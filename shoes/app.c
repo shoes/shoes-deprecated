@@ -718,6 +718,17 @@ shoes_app_win32proc(
 }
 #endif
 
+#define SHOES_META \
+  "(class << Shoes; self; end).instance_eval do;"
+#define EXC_PROC \
+  "proc do;" \
+    "markup %%{<span color='black'><span size='larger'>#{e.message}</span>\n  * #{e.backtrace.join(%%{\\n  * })}</span>};" \
+  "end;"
+#define EXC_RUN \
+  "define_method :run do |path|;" \
+    EXC_PROC \
+  "end;"
+
 shoes_code
 shoes_app_load(shoes_app *app, char *uri)
 {
@@ -732,6 +743,10 @@ shoes_app_load(shoes_app *app, char *uri)
       "require 'shoes';"
       "'OK';"
     "rescue Object => e;"
+      SHOES_META
+        "define_method :load do |path|; end;"
+        EXC_RUN
+      "end;"
       "e.message;"
     "end",
     app->path);
@@ -741,7 +756,15 @@ shoes_app_load(shoes_app *app, char *uri)
 
   if (uri != NULL)
   {
-    sprintf(bootup, "Shoes.load(%%q<%s>)", uri);
+    sprintf(bootup,
+      "begin;"
+        "Shoes.load(%%q<%s>);"
+      "rescue Object => e;"
+        SHOES_META
+          EXC_RUN
+        "end;"
+      "end;",
+      uri);
     rb_eval_string(bootup);
   }
 
