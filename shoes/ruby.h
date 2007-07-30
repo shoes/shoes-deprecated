@@ -20,9 +20,26 @@ typedef VALUE (*HOOK)(...);
 extern VALUE mShoes, cCanvas, cFlow, cStack, cPath, cImage, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cLink;
 extern VALUE reRGB_SOURCE;
 extern ID s_new, s_run, s_to_s, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hidden, s_insert, s_match, s_x, s_y, s_height, s_width, s_margin, s_marginleft, s_marginright, s_margintop, s_marginbottom;
+extern VALUE instance_eval_proc, exception_proc;
 
 VALUE mfp_instance_eval(VALUE, VALUE);
 void shoes_ruby_init(void);
+
+//
+// Exception handling strings for eval
+//
+#define SHOES_META \
+  "(class << Shoes; self; end).instance_eval do;"
+#define EXC_MARKUP \
+  "markup %%{<span color='black'><span size='larger'>#{Shoes.escape(e.message)}</span>#{e.backtrace.map { |x| %%{\\n  * #{Shoes.escape(x)}} }}</span>};"
+#define EXC_PROC \
+  "proc do;" \
+    EXC_MARKUP \
+  "end;"
+#define EXC_RUN \
+  "define_method :run do |path|;" \
+    EXC_PROC \
+  "end;"
 
 //
 // Common funcs for dealing with attribute hashes

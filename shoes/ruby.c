@@ -15,7 +15,7 @@ ID s_new, s_run, s_to_s, s_call, s_center, s_change, s_click, s_corner, s_draw, 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
 //
-VALUE instance_eval_proc;
+VALUE instance_eval_proc, exception_proc;
 
 VALUE
 mfp_instance_eval(VALUE obj, VALUE block)
@@ -1088,8 +1088,17 @@ shoes_progress_draw(VALUE self, VALUE c, VALUE attr)
 void
 shoes_ruby_init()
 {
+  char proc[SHOES_BUFSIZE];
   instance_eval_proc = rb_eval_string("lambda{|o,b| o.instance_eval(&b)}");
   rb_gc_register_address(&instance_eval_proc);
+  sprintf(proc, 
+    "proc do;"
+      "e = @exc;"
+      EXC_MARKUP
+    "end"
+  );
+  exception_proc = rb_eval_string(proc);
+  rb_gc_register_address(&exception_proc);
   s_new = rb_intern("new");
   s_run = rb_intern("run");
   s_to_s = rb_intern("to_s");
@@ -1115,6 +1124,11 @@ shoes_ruby_init()
 
   mShoes = rb_define_module("Shoes");
   C(RGB_SOURCE, "/^rgb\\((\\d+), *(\\d+), *(\\d+)\\)$/i");
+  rb_eval_string(
+    "def Shoes.escape(string);"
+       "string.gsub(/&/n, '&amp;').gsub(/\\\"/n, '&quot;').gsub(/>/n, '&gt;').gsub(/</n, '&lt;');"
+    "end"
+  );
 
   rb_define_singleton_method(mShoes, "app", CASTHOOK(shoes_app_main), -1);
   cCanvas = rb_define_class("Canvas", rb_cObject);

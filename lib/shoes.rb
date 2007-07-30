@@ -21,10 +21,6 @@ module Shoes
     markup "<span color='black'>Not Found</span>"
   end
  
-  def self.escape(string)
-   string.gsub(/&/n, '&amp;').gsub(/\"/n, '&quot;').gsub(/>/n, '&gt;').gsub(/</n, '&lt;')
-  end
- 
   def self.mount(path, &blk)
     @mounts[path] = blk
   end

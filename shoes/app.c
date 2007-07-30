@@ -718,17 +718,6 @@ shoes_app_win32proc(
 }
 #endif
 
-#define SHOES_META \
-  "(class << Shoes; self; end).instance_eval do;"
-#define EXC_PROC \
-  "proc do;" \
-    "markup %%{<span color='black'><span size='larger'>#{e.message}</span>\n  * #{e.backtrace.join(%%{\\n  * })}</span>};" \
-  "end;"
-#define EXC_RUN \
-  "define_method :run do |path|;" \
-    EXC_PROC \
-  "end;"
-
 shoes_code
 shoes_app_load(shoes_app *app, char *uri)
 {
@@ -968,16 +957,41 @@ quit:
   return SHOES_OK;
 }
 
+typedef struct
+{
+  VALUE canvas;
+  VALUE block;
+} shoes_exec;
+
+static VALUE
+shoes_app_run(VALUE rb_exec)
+{
+  shoes_exec *exec = (shoes_exec *)rb_exec;
+  return mfp_instance_eval(exec->canvas, exec->block);
+}
+
+static VALUE
+shoes_app_exception(VALUE rb_exec, VALUE e)
+{
+  shoes_exec *exec = (shoes_exec *)rb_exec;
+  // VALUE evalstr = rb_funcall(rb_str_new2("proc do; e = @exc;" EXC_MARKUP "end"), rb_intern("%"), 1, Qnil);
+  // rb_p(evalstr);
+  rb_iv_set(exec->canvas, "@exc", e);
+  // return mfp_instance_eval(exec->canvas, rb_eval_string(RSTRING_PTR(evalstr)));
+  return mfp_instance_eval(exec->canvas, exception_proc);
+}
+
 shoes_code
 shoes_app_visit(shoes_app *app, char *path)
 {
-  VALUE block;
+  shoes_exec exec;
 #ifndef SHOES_GTK
   rb_ary_clear(app->slot.controls);
 #endif
   shoes_canvas_clear(app->canvas);
-  block = rb_funcall(mShoes, s_run, 1, rb_str_new2(path));
-  mfp_instance_eval(app->canvas, block);
+  exec.block = rb_funcall(mShoes, s_run, 1, rb_str_new2(path));
+  exec.canvas = app->canvas;
+  rb_rescue2(shoes_app_run, (VALUE)&exec, shoes_app_exception, (VALUE)&exec, rb_cObject, 0);
   return SHOES_OK;
 }
 
