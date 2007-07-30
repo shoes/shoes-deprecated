@@ -123,7 +123,7 @@ typedef struct {
   VALUE parent;
   VALUE attr;
   VALUE click, release, motion, keypress;
-  double x, y, cx, cy, endy;
+  double x, y, cx, cy, endx, endy;
   int width, height;
   APPSLOT slot;
 #ifdef SHOES_GTK

@@ -134,6 +134,7 @@ rb_str_to_pas(VALUE str)
   if (!absy) { \
     canvas->cx += w; \
     canvas->cy = y; \
+    canvas->endx = canvas->cx; \
     canvas->endy = y + h; \
   } \
   if (ck == cStack) { \
@@ -760,7 +761,7 @@ shoes_text_draw(VALUE self, VALUE c, VALUE attr)
   ATTR_MARGINS(4);
   self_t->x = ATTR2INT(x, canvas->cx) + lmargin;
   self_t->y = ATTR2INT(y, canvas->cy) + tmargin;
-  self_t->w = ATTR2INT(width, canvas->width - self_t->x) - (lmargin + rmargin);
+  self_t->w = ATTR2INT(width, canvas->width - (canvas->cx - self_t->x)) - (lmargin + rmargin);
   font = ATTR2CSTR(font, "Arial 12");
 
   if (self_t->layout != NULL)
@@ -779,11 +780,14 @@ shoes_text_draw(VALUE self, VALUE c, VALUE attr)
     if (self_t->x > canvas->x) {
       pd = (self_t->x - (canvas->x + lmargin)) * PANGO_SCALE;
       pango_layout_set_indent(self_t->layout, pd);
-      self_t->w = (canvas->width - canvas->x) - rmargin;
+      self_t->w = (canvas->width - (canvas->cx - canvas->x)) - rmargin;
     }
   }
   else
     cairo_move_to(canvas->cr, self_t->x, self_t->y);
+
+  INFO("TEXT: %0.2f, %0.2f (%d, %d) / %d, %d / %d, %d\n", canvas->cx, canvas->cy,
+    canvas->width, canvas->height, self_t->x, self_t->y, self_t->w, self_t->h);
   pango_layout_set_markup(self_t->layout, RSTRING_PTR(self_t->markup), -1);
   pango_layout_set_width(self_t->layout, self_t->w * PANGO_SCALE);
   desc = pango_font_description_from_string(font);
@@ -804,6 +808,7 @@ shoes_text_draw(VALUE self, VALUE c, VALUE attr)
   } else {
     canvas->cx = (double)((lrect.x + lrect.width) + rmargin);
   }
+  canvas->endx += px + rmargin;
   canvas->endy += py + bmargin;
   return self;
 }

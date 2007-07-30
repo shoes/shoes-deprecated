@@ -263,6 +263,7 @@ shoes_canvas_clear(VALUE self)
   canvas->cx = 0.0;
   canvas->cy = 0.0;
   canvas->endy = 0.0;
+  canvas->endx = 0.0;
   canvas->click = Qnil;
   canvas->release = Qnil;
   canvas->motion = Qnil;
@@ -792,23 +793,20 @@ shoes_canvas_reflow(shoes_canvas *self_t, shoes_canvas *parent)
 {
   int inherit = 1;
   VALUE attr = Qnil;
-  ATTR_MARGINS(0);
   inherit = DC(self_t->slot) == DC(parent->slot);
   if (inherit) {
     self_t->cr = parent->cr;
-    self_t->x = ATTR2DBL(x, parent->cx - parent->x) + parent->x + lmargin;
-    self_t->y = ATTR2DBL(y, parent->cy - parent->y) + parent->y + tmargin;
-    self_t->width = ATTR2INT(width, parent->width) - (lmargin + rmargin);
-    self_t->height = ATTR2INT(height, parent->height) - (tmargin + bmargin);
+    ATTRBASE();
   } else {
     self_t->cr = shoes_cairo_create(&self_t->slot, self_t->width, self_t->height, 20);
   }
 
   self_t->cx = self_t->x;
   self_t->cy = self_t->y;
+  self_t->endx = self_t->x;
   self_t->endy = self_t->y;
-  INFO("REFLOW: %0.2f, %0.2f / %0.2f, %0.2f / %d, %d (%0.2f, %0.2f)\n", self_t->cx, self_t->cy,
-    self_t->x, self_t->y, self_t->height, self_t->width, parent->cx, parent->cy);
+  INFO("REFLOW: %0.2f, %0.2f (%0.2f, %0.2f) / %0.2f, %0.2f / %d, %d (%0.2f, %0.2f)\n", self_t->cx, self_t->cy,
+    self_t->endx, self_t->endy, self_t->x, self_t->y, self_t->width, self_t->height, parent->cx, parent->cy);
 }
 
 VALUE
@@ -832,7 +830,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE attr)
     ATTR_MARGINS(0);
     self_t->x = ATTR2DBL(x, 0) + lmargin;
     self_t->y = ATTR2DBL(y, 0) + tmargin;
-    canvas->cx = self_t->x;
+    canvas->endx = canvas->cx = self_t->x;
     canvas->endy = canvas->cy = self_t->y;
   }
 
@@ -846,8 +844,10 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE attr)
     }
   }
 
+  canvas->endx = canvas->cx = self_t->x + self_t->width;
   canvas->cy = self_t->cy;
-  canvas->endy = self_t->endy;
+  if (canvas->endy < self_t->endy)
+    canvas->endy = self_t->endy;
 #ifdef SHOES_GTK
   self_t->slot.expose = NULL;
 #endif

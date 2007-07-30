@@ -34,6 +34,21 @@ void shoes_ruby_init(void);
 #define ATTR2DBL(n, dn)   shoes_attr_dbl(s_##n, attr, self_t->attr, dn)
 #define ATTR2CSTR(n, dn)  shoes_attr_cstr(s_##n, attr, self_t->attr, dn)
 #define ATTRSET(k, v)     self_t->attr = shoes_attr_set(self_t->attr, s_##k, v)
+#define ATTRSIZE(k, dv, p, m) \
+  self_t->k = ATTR2INT(k, dv); \
+  if (self_t->k < 0) self_t->k += p->k; \
+  self_t->k -= m;
+#define ATTRBASE() \
+  ATTR_MARGINS(0); \
+  ATTRSIZE(width, 1, parent, lmargin + rmargin); \
+  if ((int)(parent->cx + self_t->width) > parent->width) { \
+    parent->endx = parent->cx = self_t->endx = self_t->cx = parent->x; \
+    parent->cy = self_t->cy = self_t->endy = parent->endy; \
+  } \
+  self_t->x = ATTR2DBL(x, parent->cx - parent->x) + parent->x + lmargin; \
+  self_t->y = ATTR2DBL(y, parent->cy - parent->y) + parent->y + tmargin; \
+  ATTRSIZE(width, parent->width - parent->cx, parent, lmargin + rmargin); \
+  ATTRSIZE(height, parent->height, parent, tmargin + bmargin);
 
 //
 // Common properties
