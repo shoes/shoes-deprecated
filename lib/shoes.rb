@@ -5,15 +5,6 @@
 #
 require 'open-uri'
 
-class Canvas
-  def text(str)
-    prep = str[/\n*( +)/, 1]
-    str = str.strip.gsub(/^#{prep}/, '')
-    html = str.gsub(/\r?\n/, '')
-    markup("<span color='black'>#{html}</span>")
-  end
-end
-
 module Shoes
   @mounts = {}
 

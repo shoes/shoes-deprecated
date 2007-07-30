@@ -644,10 +644,13 @@ shoes_text_parse(VALUE self, VALUE markup)
   GError *error = NULL;
   const gchar *start;
   gsize len;
+  VALUE str = rb_str_new2("<span>");
+  rb_str_append(str, markup);
+  rb_str_cat2(str, "</span>");
 
   Data_Get_Struct(self, shoes_text, self_t);
-  start = RSTRING_PTR(markup);
-  len = RSTRING_LEN(markup);
+  start = RSTRING_PTR(str);
+  len = RSTRING_LEN(str);
 
   self_t->tmp = g_string_new(NULL);
   self_t->links = rb_ary_new();
@@ -657,13 +660,10 @@ shoes_text_parse(VALUE self, VALUE markup)
   if (g_markup_parse_context_parse(context, start, len, &error) &&
       g_markup_parse_context_end_parse(context, &error))
   {
-    self_t->markup = rb_str_new2(g_string_free(self_t->tmp, FALSE));
-  }
-  else
-  {
-    g_string_free(self_t->tmp, TRUE);
+    self_t->markup = markup;
   }
 
+  g_string_free(self_t->tmp, TRUE);
   self_t->tmp = NULL;
   if (error != NULL)
     g_error_free(error);
@@ -785,6 +785,11 @@ shoes_text_draw(VALUE self, VALUE c, VALUE attr)
   }
   else
     cairo_move_to(canvas->cr, self_t->x, self_t->y);
+  if (canvas->fg.on)
+  {
+    cairo_set_source_rgba(canvas->cr, canvas->fg.r, canvas->fg.g, canvas->fg.b, canvas->fg.a);
+  // cairo_stroke(canvas->cr);
+  }
 
   INFO("TEXT: %0.2f, %0.2f (%d, %d) / %d, %d / %d, %d\n", canvas->cx, canvas->cy,
     canvas->width, canvas->height, self_t->x, self_t->y, self_t->w, self_t->h);
@@ -1143,7 +1148,7 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "line", CASTHOOK(shoes_canvas_line), 4);
   rb_define_method(cCanvas, "arrow", CASTHOOK(shoes_canvas_arrow), 3);
   rb_define_method(cCanvas, "star", CASTHOOK(shoes_canvas_star), -1);
-  rb_define_method(cCanvas, "markup", CASTHOOK(shoes_canvas_markup), -1);
+  rb_define_method(cCanvas, "text", CASTHOOK(shoes_canvas_markup), -1);
   rb_define_method(cCanvas, "background", CASTHOOK(shoes_canvas_background), -1);
   rb_define_method(cCanvas, "image", CASTHOOK(shoes_canvas_image), -1);
   rb_define_method(cCanvas, "imagesize", CASTHOOK(shoes_canvas_imagesize), 1);
@@ -1194,8 +1199,8 @@ shoes_ruby_init()
   cTextClass = rb_define_class_under(cCanvas, "Text", rb_cObject);
   rb_define_alloc_func(cTextClass, shoes_text_alloc);
   rb_define_method(cTextClass, "draw", CASTHOOK(shoes_text_draw), 2);
-  rb_define_method(cTextClass, "markup", CASTHOOK(shoes_text_get_markup), 0);
-  rb_define_method(cTextClass, "markup=", CASTHOOK(shoes_text_set_markup), 1);
+  rb_define_method(cTextClass, "to_s", CASTHOOK(shoes_text_get_markup), 0);
+  rb_define_method(cTextClass, "replace", CASTHOOK(shoes_text_set_markup), 1);
 
   cButton  = rb_define_class_under(cCanvas, "Button", rb_cObject);
   rb_define_alloc_func(cButton, shoes_control_alloc);

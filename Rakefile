@@ -65,8 +65,11 @@ task :build => :build_os do
   end
 
   cp_r  "lib", "dist/lib"
+  rm_rf "dist/lib/.svn"
   cp_r  "samples", "dist/samples"
+  rm_rf "dist/samples/.svn"
   cp_r  "static", "dist/static"
+  rm_rf "dist/static/.svn"
   cp    "README.txt", "dist"
   
   case PLATFORM when /darwin/
