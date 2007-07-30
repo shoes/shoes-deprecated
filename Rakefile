@@ -29,6 +29,7 @@ def env(x)
   ENV[x]
 end
 
+ruby_so = Config::CONFIG['RUBY_SO_NAME']
 ext_ruby = "external/ruby"
 unless File.exists? ext_ruby
   ext_ruby = Config::CONFIG['prefix']
@@ -58,10 +59,10 @@ task :build => :build_os do
     cp    FileList["external/cairo/bin/*"], "dist/"
     cp    FileList["external/pango/bin/*"], "dist/"
   when /darwin/
-    cp    "#{ext_ruby}/lib/libruby.dylib", "dist"
+    cp    "#{ext_ruby}/lib/lib#{ruby_so}.dylib", "dist"
   else
-    cp    "#{ext_ruby}/lib/libruby.so", "dist"
-    ln_s  "libruby.so", "dist/libruby.so.1.8"
+    cp    "#{ext_ruby}/lib/lib#{ruby_so}.so", "dist"
+    ln_s  "lib#{ruby_so}.so", "dist/libruby.so.1.8"
   end
 
   cp_r  "lib", "dist/lib"
@@ -174,7 +175,7 @@ else
   PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
 
   LINUX_CFLAGS = %[-I/usr/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{Config::CONFIG['archdir']}]
-  LINUX_LIB_NAMES = %w[ruby cairo pangocairo-1.0]
+  LINUX_LIB_NAMES = %W[#{ruby_so} cairo pangocairo-1.0]
   if ENV['DEBUG']
     LINUX_CFLAGS << " -DDEBUG"
   end
