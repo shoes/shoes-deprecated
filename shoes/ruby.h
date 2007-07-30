@@ -31,7 +31,7 @@ void shoes_ruby_init(void);
 #define SHOES_META \
   "(class << Shoes; self; end).instance_eval do;"
 #define EXC_MARKUP \
-  "markup %%{<span color='black'><span size='larger'>#{Shoes.escape(e.message)}</span>#{e.backtrace.map { |x| %%{\\n  * #{Shoes.escape(x)}} }}</span>};"
+  "text %%{<span size='larger'>#{Shoes.escape(e.message)}</span>#{e.backtrace.map { |x| %%{\\n  * #{Shoes.escape(x)}} }}};"
 #define EXC_PROC \
   "proc do;" \
     EXC_MARKUP \
