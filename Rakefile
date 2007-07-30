@@ -45,7 +45,7 @@ task :build => :build_os do
   mkdir_p "dist/ruby"
   cp_r  "#{ext_ruby}/lib/ruby/1.8", "dist/ruby/lib"
   unless ENV['STANDARD']
-    %w[rdoc rexml rss soap test webrick wsdl].each do |libn|
+    %w[rdoc rexml rss soap test webrick wsdl xsd].each do |libn|
       rm_rf "dist/ruby/lib/#{libn}"
     end
   end
