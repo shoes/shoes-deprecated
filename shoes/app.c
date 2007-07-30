@@ -974,10 +974,7 @@ static VALUE
 shoes_app_exception(VALUE rb_exec, VALUE e)
 {
   shoes_exec *exec = (shoes_exec *)rb_exec;
-  // VALUE evalstr = rb_funcall(rb_str_new2("proc do; e = @exc;" EXC_MARKUP "end"), rb_intern("%"), 1, Qnil);
-  // rb_p(evalstr);
   rb_iv_set(exec->canvas, "@exc", e);
-  // return mfp_instance_eval(exec->canvas, rb_eval_string(RSTRING_PTR(evalstr)));
   return mfp_instance_eval(exec->canvas, exception_proc);
 }
 

@@ -44,10 +44,15 @@ desc "Does a full compile, for the OS you're running on"
 task :build => :build_os do
   mkdir_p "dist/ruby"
   cp_r  "#{ext_ruby}/lib/ruby/1.8", "dist/ruby/lib"
-  %w[superredcloth].each do |libn| # hpricot sqlite3-ruby
-    gem = Gem.cache.find_name(libn).last
-    cp_r "#{gem.full_gem_path}/lib", "dist/ruby"
+  unless ENV['STANDARD']
+    %w[rdoc rexml rss soap test webrick wsdl].each do |libn|
+      rm_rf "dist/ruby/lib/#{libn}"
+    end
   end
+  # %w[superredcloth].each do |libn| # hpricot sqlite3-ruby
+  #   gem = Gem.cache.find_name(libn).last
+  #   cp_r "#{gem.full_gem_path}/lib", "dist/ruby"
+  # end
   case PLATFORM when /win32/
     cp    FileList["#{ext_ruby}/bin/*"], "dist/"
     cp    FileList["external/cairo/bin/*"], "dist/"
@@ -188,9 +193,13 @@ else
   end
 
   task "dist/#{NAME}" => OBJ do |t|
+    bin = "#{t.name}-bin"
     rm_f t.name
+    rm_f bin
     # lib = "-L/usr/lib" if File.exists? "/usr/lib"
-    sh "#{CC} -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB} -o #{t.name} #{OBJ.join(' ')} #{LINUX_LIBS}"
+    sh "#{CC} -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB} -o #{bin} #{OBJ.join(' ')} #{LINUX_LIBS}"
+    sh "echo 'LD_LIBRARY_PATH=. ./#{File.basename(bin)} $@' > #{t.name}"
+    chmod 0755, t.name
   end
 
   rule ".o" => ".mm" do |t|
