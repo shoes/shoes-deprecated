@@ -9,7 +9,7 @@ module Shoes
   @mounts = {}
 
   NotFound = proc do
-    markup "<span color='black'>Not Found</span>"
+    text "No script was launched.\n\nTry running: shoes samples/timer.rb"
   end
  
   def self.mount(path, &blk)

@@ -199,10 +199,13 @@ else
     bin = "#{t.name}-bin"
     rm_f t.name
     rm_f bin
-    # lib = "-L/usr/lib" if File.exists? "/usr/lib"
     sh "#{CC} -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB} -o #{bin} #{OBJ.join(' ')} #{LINUX_LIBS}"
-    sh "echo 'LD_LIBRARY_PATH=. ./#{File.basename(bin)} $@' > #{t.name}"
-    chmod 0755, t.name
+    case PLATFORM when /darwin/
+      mv bin, t.name
+    else
+      sh "echo 'LD_LIBRARY_PATH=. ./#{File.basename(bin)} $@' > #{t.name}"
+      chmod 0755, t.name
+    end
   end
 
   rule ".o" => ".mm" do |t|
