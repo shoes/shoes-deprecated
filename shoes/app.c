@@ -904,7 +904,8 @@ shoes_app_open(shoes_app *app)
   app->slot.window = CreateWindowEx(
     0, SHOES_SHORTNAME, SHOES_APPNAME,
     WINDOW_STYLE,
-    rect.left, rect.top, rect.right-rect.left, rect.bottom-rect.top,
+    CW_USEDEFAULT, CW_USEDEFAULT,
+    rect.right-rect.left, rect.bottom-rect.top,
     HWND_DESKTOP,
     NULL,
     app->kit.instance,
