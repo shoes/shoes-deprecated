@@ -279,7 +279,7 @@ shoes_canvas_init(VALUE self, APPSLOT slot, VALUE attr, int width, int height)
 {
   shoes_canvas *canvas;
   Data_Get_Struct(self, shoes_canvas, canvas);
-  canvas->slot = slot;
+  // canvas->slot = slot;
   canvas->attr = attr;
   canvas->width = width;
   canvas->height = height;
@@ -997,6 +997,13 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y)
   }
 
   return Qnil;
+}
+
+VALUE
+shoes_canvas_goto(VALUE self, VALUE url)
+{
+  shoes_app_goto(global_app, RSTRING_PTR(url));
+  return self;
 }
 
 VALUE

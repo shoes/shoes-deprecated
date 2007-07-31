@@ -1227,6 +1227,7 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "motion", CASTHOOK(shoes_canvas_motion), -1);
   rb_define_method(cCanvas, "keypress", CASTHOOK(shoes_canvas_keypress), -1);
   rb_define_method(cCanvas, "quit", CASTHOOK(shoes_app_quit), 0);
+  rb_define_method(cCanvas, "goto", CASTHOOK(shoes_canvas_goto), 1);
 
   cFlow    = rb_define_class_under(cCanvas, "Flow", cCanvas);
   cStack   = rb_define_class_under(cCanvas, "Stack", cCanvas);
