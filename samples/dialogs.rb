@@ -1,6 +1,6 @@
 Shoes.app :width => 300, :height => 150, :margin => 10 do
   def answer(v)
-    @answer.markup = "<span color='black'>#{v.inspect}</span>"
+    @answer.replace "<span color='black'>#{v.inspect}</span>"
   end
 
   button "Ask" do
@@ -19,5 +19,5 @@ Shoes.app :width => 300, :height => 150, :margin => 10 do
     answer ask_color("Pick a Color")
   end
 
-  @answer = markup("<span color='black'>Answers appear here</span>")
+  @answer = text "Answers appear here"
 end
