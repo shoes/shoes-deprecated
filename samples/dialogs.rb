@@ -1,6 +1,6 @@
 Shoes.app :width => 300, :height => 150, :margin => 10 do
   def answer(v)
-    @answer.replace "<span color='black'>#{v.inspect}</span>"
+    @answer.replace v.inspect
   end
 
   button "Ask" do
