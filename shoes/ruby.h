@@ -64,8 +64,9 @@ void shoes_ruby_init(void);
   self_t->k -= m;
 #define ATTRBASE() \
   ATTR_MARGINS(0); \
-  ATTRSIZE(width, 1, parent, lmargin + rmargin); \
-  if ((int)(parent->cx + self_t->width) > parent->width) { \
+  ATTRSIZE(width, lmargin + 1 + rmargin, parent, lmargin + rmargin); \
+  INFO("ATTRBASE(): %0.2f / %d / %d\n", parent->cx, self_t->width, parent->width); \
+  if (self_t->width + lmargin + rmargin + (int)parent->cx > parent->width) { \
     parent->endx = parent->cx = self_t->endx = self_t->cx = parent->x; \
     parent->cy = self_t->cy = self_t->endy = parent->endy; \
   } \

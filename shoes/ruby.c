@@ -701,10 +701,13 @@ shoes_text_parse(VALUE self, VALUE markup)
   if (g_markup_parse_context_parse(context, start, len, &error) &&
       g_markup_parse_context_end_parse(context, &error))
   {
-    self_t->markup = markup;
+    self_t->markup = rb_str_new2(g_string_free(self_t->tmp, FALSE));
+  }
+  else
+  {
+    g_string_free(self_t->tmp, TRUE);
   }
 
-  g_string_free(self_t->tmp, TRUE);
   self_t->tmp = NULL;
   if (error != NULL)
     g_error_free(error);
