@@ -38,7 +38,7 @@ shoes_safe_block_call(VALUE rb_sb)
   safe_block *sb = (safe_block *)rb_sb;
   for (i = 0; i < RARRAY_LEN(sb->args); i++)
     vargs[i] = rb_ary_entry(sb->args, i);
-  return rb_funcall(sb->block, s_call, RARRAY_LEN(sb->args), vargs);
+  return rb_funcall2(sb->block, s_call, RARRAY_LEN(sb->args), vargs);
 }
 
 static VALUE
@@ -53,11 +53,15 @@ VALUE
 shoes_safe_block(VALUE canvas, VALUE block, VALUE args)
 {
   safe_block sb;
+  VALUE v;
   sb.canvas = canvas;
   sb.block = block;
   sb.args = args;
-  return rb_rescue2(CASTHOOK(shoes_safe_block_call), (VALUE)&sb, 
+  rb_gc_register_address(&args);
+  v = rb_rescue2(CASTHOOK(shoes_safe_block_call), (VALUE)&sb, 
     CASTHOOK(shoes_safe_block_exception), (VALUE)&sb, rb_cObject, 0);
+  rb_gc_unregister_address(&args);
+  return v;
 }
 
 VALUE
