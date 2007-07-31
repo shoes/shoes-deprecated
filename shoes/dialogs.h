@@ -5,6 +5,7 @@
 #ifndef SHOES_DIALOG_H
 #define SHOES_DIALOG_H
 
+VALUE shoes_dialog_alert(VALUE, VALUE);
 VALUE shoes_dialog_ask(VALUE, VALUE);
 VALUE shoes_dialog_confirm(VALUE, VALUE);
 VALUE shoes_dialog_color(VALUE, VALUE);

@@ -1221,6 +1221,7 @@ shoes_ruby_init()
   cColor   = rb_define_class_under(cCanvas, "Color", rb_cObject);
   cLink    = rb_define_class_under(cCanvas, "Link", rb_cObject);
 
+  rb_define_method(rb_mKernel, "alert", CASTHOOK(shoes_dialog_alert), 1);
   rb_define_method(rb_mKernel, "ask", CASTHOOK(shoes_dialog_ask), 1);
   rb_define_method(rb_mKernel, "confirm", CASTHOOK(shoes_dialog_confirm), 1);
   rb_define_method(rb_mKernel, "ask_color", CASTHOOK(shoes_dialog_color), 1);

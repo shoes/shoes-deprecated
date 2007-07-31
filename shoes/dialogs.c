@@ -10,6 +10,7 @@
 #endif
 
 const char *dialog_title = "Shoes asks:";
+const char *dialog_title_says = "Shoes says:";
 
 #ifdef SHOES_WIN32
 char *win32_dialog_label = "Ask label";
@@ -57,6 +58,20 @@ shoes_ask_win32proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
   }
 }
 #endif
+
+VALUE
+shoes_dialog_alert(VALUE self, VALUE msg)
+{
+#ifdef SHOES_GTK
+  GtkWidget *dialog = gtk_message_dialog_new_with_markup(
+    GTK_WINDOW(global_app->kit.window), GTK_DIALOG_MODAL,
+    GTK_MESSAGE_INFO, GTK_BUTTONS_OK, "<span size='larger'>%s</span>\n\n%s",
+    _(dialog_title_says), RSTRING_PTR(msg));
+  gtk_dialog_run(GTK_DIALOG(dialog));
+  gtk_widget_destroy(dialog);
+#endif
+  return Qnil;
+}
 
 VALUE
 shoes_dialog_ask(VALUE self, VALUE quiz)
