@@ -70,6 +70,10 @@ shoes_dialog_alert(VALUE self, VALUE msg)
   gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
 #endif
+
+#ifdef SHOES_WIN32
+  MessageBox(global_app->slot.window, RSTRING_PTR(msg), dialog_title_says, MB_OK);
+#endif
   return Qnil;
 }
 
