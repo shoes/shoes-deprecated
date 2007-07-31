@@ -52,8 +52,12 @@ void shoes_ruby_init(void);
 #define ATTR2CSTR(n, dn)  shoes_attr_cstr(s_##n, attr, self_t->attr, dn)
 #define ATTRSET(k, v)     self_t->attr = shoes_attr_set(self_t->attr, s_##k, v)
 #define ATTRSIZE(k, dv, p, m) \
-  self_t->k = ATTR2INT(k, dv); \
-  if (self_t->k < 0) self_t->k += p->k; \
+  if (rb_obj_is_kind_of(ATTR2(k), rb_cFloat)) { \
+    self_t->k = (int)((double)p->k * NUM2DBL(ATTR2(k))); \
+  } else { \
+    self_t->k = ATTR2INT(k, dv); \
+    if (self_t->k < 0) self_t->k += p->k; \
+  } \
   self_t->k -= m;
 #define ATTRBASE() \
   ATTR_MARGINS(0); \
