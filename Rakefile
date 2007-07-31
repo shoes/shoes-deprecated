@@ -86,6 +86,8 @@ task :build => :build_os do
     `echo -n 'APPL????' > #{APPNAME}.app/Contents/PkgInfo`
     # mv "#{APPNAME}.app/Contents/Resources/hacketyhack", "#{APPNAME}.app/Contents/MacOS"
     # cp YourAppMacIcons.icns AnotherResource.txt YourApp.app/Contents/Resources/
+  when /win32/
+    cp "platform/msw/shoes.exe.manifest", "dist"
   end
 end
 
