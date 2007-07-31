@@ -16,10 +16,20 @@
 #endif
 
 //
+// color struct
+//
+typedef struct {
+  double r, g, b, a;
+  unsigned char on;
+} shoes_color;
+
+//
 // path struct
 //
 typedef struct {
   cairo_path_t *line;
+  shoes_color fg;
+  shoes_color bg;
   VALUE attr;
   VALUE parent;
 } shoes_path;
@@ -98,14 +108,6 @@ typedef struct {
   VALUE parent;
   int x, y, w, h;
 } shoes_control;
-
-//
-// color struct
-//
-typedef struct {
-  double r, g, b, a;
-  unsigned char on;
-} shoes_color;
 
 //
 // temporary canvas (used internally for painting)

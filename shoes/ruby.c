@@ -263,10 +263,14 @@ VALUE
 shoes_path_new(cairo_path_t *line, VALUE parent)
 {
   shoes_path *path;
+  shoes_canvas *canvas;
   VALUE obj = shoes_path_alloc(cPath);
   Data_Get_Struct(obj, shoes_path, path);
+  Data_Get_Struct(parent, shoes_canvas, canvas);
   path->line = line;
   path->parent = parent;
+  path->fg = canvas->fg;
+  path->bg = canvas->bg;
   return obj;
 }
 
@@ -307,14 +311,14 @@ shoes_path_draw(VALUE self, VALUE c, VALUE attr)
   cairo_translate(canvas->cr, x, y);
   cairo_append_path(canvas->cr, self_t->line);
 
-  if (canvas->bg.on)
+  if (self_t->bg.on)
   {
-    cairo_set_source_rgba(canvas->cr, canvas->bg.r, canvas->bg.g, canvas->bg.b, canvas->bg.a);
+    cairo_set_source_rgba(canvas->cr, self_t->bg.r, self_t->bg.g, self_t->bg.b, self_t->bg.a);
     cairo_fill_preserve(canvas->cr);
   }
-  if (canvas->fg.on)
+  if (self_t->fg.on)
   {
-    cairo_set_source_rgba(canvas->cr, canvas->fg.r, canvas->fg.g, canvas->fg.b, canvas->fg.a);
+    cairo_set_source_rgba(canvas->cr, self_t->fg.r, self_t->fg.g, self_t->fg.b, self_t->fg.a);
     cairo_stroke_preserve(canvas->cr);
   }
 
