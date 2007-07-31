@@ -986,7 +986,7 @@ shoes_app_visit(shoes_app *app, char *path)
   shoes_canvas_clear(app->canvas);
   exec.block = rb_funcall(mShoes, s_run, 1, rb_str_new2(path));
   exec.canvas = app->canvas;
-  rb_rescue2(shoes_app_run, (VALUE)&exec, shoes_app_exception, (VALUE)&exec, rb_cObject, 0);
+  rb_rescue2(CASTHOOK(shoes_app_run), (VALUE)&exec, CASTHOOK(shoes_app_exception), (VALUE)&exec, rb_cObject, 0);
   return SHOES_OK;
 }
 
