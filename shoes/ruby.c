@@ -762,7 +762,7 @@ shoes_text_draw(VALUE self, VALUE c, VALUE attr)
   self_t->x = ATTR2INT(x, canvas->cx) + lmargin;
   self_t->y = ATTR2INT(y, canvas->cy) + tmargin;
   self_t->w = ATTR2INT(width, canvas->width - (canvas->cx - self_t->x)) - (lmargin + rmargin);
-  font = ATTR2CSTR(font, "Arial 12");
+  font = ATTR2CSTR(font, "Arial 14px");
 
   if (self_t->layout != NULL)
     g_object_unref(self_t->layout);
