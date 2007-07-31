@@ -74,6 +74,22 @@ shoes_dialog_alert(VALUE self, VALUE msg)
 #ifdef SHOES_WIN32
   MessageBox(global_app->slot.window, RSTRING_PTR(msg), dialog_title_says, MB_OK);
 #endif
+
+#ifdef SHOES_QUARTZ
+  OSErr err;
+  SInt16 ret;
+  AlertStdAlertParamRec alert;
+  alert.movable = nil;
+  alert.helpButton = nil;
+  alert.filterProc = nil;
+  alert.defaultText = kAlertDefaultOKText;
+  alert.cancelText = nil;
+  alert.otherText = nil;
+  alert.defaultButton = kAlertStdAlertOKButton;
+  alert.cancelButton = nil;
+  alert.position = 0;
+  err = StandardAlert(kAlertPlainAlert, "\pShoes says:", RSTRING_PTR(rb_str_to_pas(msg)), &alert, &ret);
+#endif
   return Qnil;
 }
 

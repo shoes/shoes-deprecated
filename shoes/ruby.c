@@ -15,12 +15,49 @@ ID s_new, s_run, s_to_s, s_call, s_center, s_change, s_click, s_corner, s_draw, 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
 //
-VALUE instance_eval_proc, exception_proc;
+VALUE instance_eval_proc, exception_proc, exception_alert_proc;
 
 VALUE
 mfp_instance_eval(VALUE obj, VALUE block)
 {
   return rb_funcall(instance_eval_proc, s_call, 2, obj, block);
+}
+
+typedef struct
+{
+  VALUE canvas;
+  VALUE block;
+  VALUE args;
+} safe_block;
+
+static VALUE
+shoes_safe_block_call(VALUE rb_sb)
+{
+  int i;
+  VALUE vargs[10];
+  safe_block *sb = (safe_block *)rb_sb;
+  for (i = 0; i < RARRAY_LEN(sb->args); i++)
+    vargs[i] = rb_ary_entry(sb->args, i);
+  return rb_funcall(sb->block, s_call, RARRAY_LEN(sb->args), vargs);
+}
+
+static VALUE
+shoes_safe_block_exception(VALUE rb_sb, VALUE e)
+{
+  safe_block *sb = (safe_block *)rb_sb;
+  rb_iv_set(sb->canvas, "@exc", e);
+  return mfp_instance_eval(sb->canvas, exception_alert_proc);
+}
+
+VALUE
+shoes_safe_block(VALUE canvas, VALUE block, VALUE args)
+{
+  safe_block sb;
+  sb.canvas = canvas;
+  sb.block = block;
+  sb.args = args;
+  return rb_rescue2(CASTHOOK(shoes_safe_block_call), (VALUE)&sb, 
+    CASTHOOK(shoes_safe_block_exception), (VALUE)&sb, rb_cObject, 0);
 }
 
 VALUE
@@ -868,7 +905,7 @@ shoes_control_send(VALUE self, ID event)
 
   click = ATTR(click);
   if (!NIL_P(click))
-    rb_funcall(click, s_call, 0);
+    shoes_safe_block(self_t->parent, click, rb_ary_new());
 }
 
 #ifdef SHOES_GTK
@@ -1104,6 +1141,8 @@ shoes_ruby_init()
   );
   exception_proc = rb_eval_string(proc);
   rb_gc_register_address(&exception_proc);
+  exception_alert_proc = rb_eval_string(EXC_ALERT);
+  rb_gc_register_address(&exception_alert_proc);
   s_new = rb_intern("new");
   s_run = rb_intern("run");
   s_to_s = rb_intern("to_s");

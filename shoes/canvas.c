@@ -978,7 +978,7 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y)
   {
     if (!NIL_P(self_t->click))
     {
-      rb_funcall(self_t->click, s_call, 3, INT2NUM(button), INT2NUM(x), INT2NUM(y));
+      shoes_safe_block(self, self_t->click, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
     }
 
     for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--)
@@ -1020,7 +1020,7 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
   {
     if (!NIL_P(self_t->release))
     {
-      rb_funcall(self_t->release, s_call, 3, INT2NUM(button), INT2NUM(x), INT2NUM(y));
+      shoes_safe_block(self, self_t->release, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
     }
   }
 }
@@ -1037,7 +1037,7 @@ shoes_canvas_send_motion(VALUE self, int x, int y)
   {
     if (!NIL_P(self_t->motion))
     {
-      rb_funcall(self_t->motion, s_call, 2, INT2NUM(x), INT2NUM(y));
+      shoes_safe_block(self, self_t->motion, rb_ary_new3(2, INT2NUM(x), INT2NUM(y)));
     }
   }
 }
@@ -1053,7 +1053,7 @@ shoes_canvas_send_keypress(VALUE self, VALUE key)
   {
     if (!NIL_P(self_t->keypress))
     {
-      rb_funcall(self_t->keypress, s_call, 1, key);
+      shoes_safe_block(self, self_t->keypress, rb_ary_new3(1, key));
     }
   }
 }
