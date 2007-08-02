@@ -788,6 +788,19 @@ shoes_canvas_contents(VALUE self)
   return canvas->contents;
 }
 
+void
+shoes_canvas_remove_item(VALUE self, VALUE item)
+{
+  shoes_canvas *self_t;
+  Data_Get_Struct(self, shoes_canvas, self_t);
+#ifndef SHOES_GTK
+  long i = rb_ary_index_of(self_t->slot.controls, item);
+  if (i >= 0)
+    rb_ary_insert_of(self_t->slot.controls, i, 1, Qnil);
+#endif
+  rb_ary_delete(self_t->contents, item);
+}
+
 static void
 shoes_canvas_reflow(shoes_canvas *self_t, shoes_canvas *parent)
 {
@@ -807,6 +820,15 @@ shoes_canvas_reflow(shoes_canvas *self_t, shoes_canvas *parent)
   self_t->endy = self_t->y;
   INFO("REFLOW: %0.2f, %0.2f (%0.2f, %0.2f) / %0.2f, %0.2f / %d, %d (%0.2f, %0.2f)\n", self_t->cx, self_t->cy,
     self_t->endx, self_t->endy, self_t->x, self_t->y, self_t->width, self_t->height, parent->cx, parent->cy);
+}
+
+VALUE
+shoes_canvas_remove(VALUE self)
+{
+  shoes_canvas *self_t;
+  Data_Get_Struct(self, shoes_canvas, self_t);
+  shoes_canvas_remove_item(self_t->parent, self);
+  return self;
 }
 
 VALUE
@@ -896,7 +918,7 @@ shoes_canvas_insert(VALUE self, long i, long mod, VALUE ele, VALUE block)
   ary = canvas->contents;
   canvas->contents = rb_ary_new();
   shoes_canvas_memdraw(self, block);
-  rb_ary_insert_at(ary, i + mod, canvas->contents);
+  rb_ary_insert_at(ary, i + mod, 0, canvas->contents);
   canvas->contents = ary;
 }
 
@@ -939,12 +961,16 @@ shoes_canvas_prepend(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_clear_contents(int argc, VALUE *argv, VALUE self)
 {
-  VALUE block;
+  long i;
+  VALUE ary, block;
   SETUP();
 
   rb_scan_args(argc, argv, "0&", &block);
-  rb_ary_clear(canvas->contents);
-  shoes_canvas_memdraw(self, block);
+  ary = rb_ary_dup(canvas->contents);
+  for (i = 0; i < RARRAY_LEN(ary); i++) 
+    shoes_canvas_remove_item(self, rb_ary_entry(ary, i));
+  if (!NIL_P(block))
+    shoes_canvas_memdraw(self, block);
   shoes_canvas_repaint_all(self);
   return self;
 }

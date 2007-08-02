@@ -158,6 +158,7 @@ VALUE shoes_canvas_background(int, VALUE *, VALUE);
 VALUE shoes_canvas_image(int, VALUE *, VALUE);
 VALUE shoes_canvas_imagesize(VALUE, VALUE);
 VALUE shoes_canvas_path(int, VALUE *, VALUE);
+void shoes_canvas_remove_item(VALUE, VALUE);
 VALUE shoes_canvas_move_to(VALUE, VALUE, VALUE);
 VALUE shoes_canvas_line_to(VALUE, VALUE, VALUE);
 VALUE shoes_canvas_curve_to(VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE);
@@ -177,6 +178,7 @@ VALUE shoes_canvas_progress(int, VALUE *, VALUE);
 VALUE shoes_canvas_contents(VALUE);
 void shoes_canvas_size(VALUE, int, int);
 VALUE shoes_canvas_clear_contents(int, VALUE *, VALUE);
+VALUE shoes_canvas_remove(VALUE);
 VALUE shoes_canvas_draw(VALUE, VALUE, VALUE);
 VALUE shoes_canvas_after(int, VALUE *, VALUE);
 VALUE shoes_canvas_before(int, VALUE *, VALUE);
@@ -203,6 +205,7 @@ VALUE shoes_stack_new(VALUE, VALUE);
 VALUE shoes_control_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_control_alloc(VALUE);
 void shoes_control_send(VALUE, ID);
+VALUE shoes_control_remove(VALUE);
 VALUE shoes_button_draw(VALUE, VALUE, VALUE);
 VALUE shoes_edit_line_draw(VALUE, VALUE, VALUE);
 VALUE shoes_edit_box_draw(VALUE, VALUE, VALUE);
@@ -213,13 +216,16 @@ VALUE shoes_path_new(cairo_path_t *, VALUE);
 VALUE shoes_path_alloc(VALUE);
 VALUE shoes_path_draw(VALUE, VALUE, VALUE);
 VALUE shoes_path_move(VALUE, VALUE, VALUE);
+VALUE shoes_path_remove(VALUE);
 
 VALUE shoes_image_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_image_alloc(VALUE);
 VALUE shoes_image_draw(VALUE, VALUE, VALUE);
+VALUE shoes_image_remove(VALUE);
 
 VALUE shoes_pattern_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_pattern_alloc(VALUE);
+VALUE shoes_pattern_remove(VALUE);
 VALUE shoes_pattern_draw(VALUE, VALUE, VALUE);
 VALUE shoes_background_draw(VALUE, VALUE, VALUE);
 
@@ -228,6 +234,7 @@ VALUE shoes_link_alloc(VALUE);
 
 VALUE shoes_text_new(VALUE, VALUE, VALUE);
 VALUE shoes_text_alloc(VALUE);
+VALUE shoes_text_remove(VALUE);
 VALUE shoes_text_draw(VALUE, VALUE, VALUE);
 VALUE shoes_text_click(VALUE, int, int, int);
 

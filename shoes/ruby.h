@@ -24,7 +24,7 @@ extern VALUE instance_eval_proc, exception_proc, exception_alert_proc;
 
 VALUE mfp_instance_eval(VALUE, VALUE);
 long rb_ary_index_of(VALUE, VALUE);
-VALUE rb_ary_insert_at(VALUE, long, VALUE);
+VALUE rb_ary_insert_at(VALUE, long, int, VALUE);
 VALUE shoes_safe_block(VALUE, VALUE, VALUE);
 void shoes_ruby_init(void);
 

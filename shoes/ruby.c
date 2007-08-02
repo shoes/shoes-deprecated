@@ -37,9 +37,9 @@ rb_ary_index_of(VALUE ary, VALUE val)
 }
 
 VALUE
-rb_ary_insert_at(VALUE ary, long index, VALUE ary2)
+rb_ary_insert_at(VALUE ary, long index, int len, VALUE ary2)
 {
-  rb_funcall(ary, s_aref, 3, LONG2NUM(index), INT2NUM(0), ary2);
+  rb_funcall(ary, s_aref, 3, LONG2NUM(index), INT2NUM(len), ary2);
   return ary;
 }
 
@@ -318,6 +318,15 @@ shoes_path_move(VALUE self, VALUE x, VALUE y)
 }
 
 VALUE
+shoes_path_remove(VALUE self)
+{
+  shoes_path *self_t;
+  Data_Get_Struct(self, shoes_path, self_t);
+  shoes_canvas_remove_item(self_t->parent, self);
+  return self;
+}
+
+VALUE
 shoes_path_draw(VALUE self, VALUE c, VALUE attr)
 {
   double x, y;
@@ -396,6 +405,15 @@ shoes_image_alloc(VALUE klass)
 }
 
 VALUE
+shoes_image_remove(VALUE self)
+{
+  shoes_image *self_t;
+  Data_Get_Struct(self, shoes_image, self_t);
+  shoes_canvas_remove_item(self_t->parent, self);
+  return self;
+}
+
+VALUE
 shoes_image_draw(VALUE self, VALUE c, VALUE attr)
 {
   SETUP(shoes_image, self_t->width, self_t->height);
@@ -469,6 +487,15 @@ shoes_pattern_alloc(VALUE klass)
   pattern->attr = Qnil;
   pattern->parent = Qnil;
   return obj;
+}
+
+VALUE
+shoes_pattern_remove(VALUE self)
+{
+  shoes_pattern *self_t;
+  Data_Get_Struct(self, shoes_pattern, self_t);
+  shoes_canvas_remove_item(self_t->parent, self);
+  return self;
 }
 
 VALUE
@@ -771,6 +798,15 @@ shoes_text_alloc(VALUE klass)
 }
 
 VALUE
+shoes_text_remove(VALUE self)
+{
+  shoes_text *self_t;
+  Data_Get_Struct(self, shoes_text, self_t);
+  shoes_canvas_remove_item(self_t->parent, self);
+  return self;
+}
+
+VALUE
 shoes_text_get_markup(VALUE self)
 {
   shoes_text *self_t;
@@ -901,6 +937,12 @@ shoes_control_mark(shoes_control *control)
 static void
 shoes_control_free(shoes_control *control)
 {
+#ifdef SHOES_GTK
+  gtk_widget_destroy(control->ref);
+#endif
+#ifdef SHOES_QUARTZ
+  DisposeControl(control->ref);
+#endif
   free(control);
 }
 
@@ -927,6 +969,27 @@ shoes_control_alloc(VALUE klass)
   control->attr = Qnil;
   control->parent = Qnil;
   return obj;
+}
+
+VALUE
+shoes_control_remove(VALUE self)
+{
+  shoes_control *self_t;
+  shoes_canvas *canvas;
+  Data_Get_Struct(self, shoes_control, self_t);
+  shoes_canvas_remove_item(self_t->parent, self);
+
+  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+#ifdef SHOES_GTK
+  gtk_container_remove(GTK_CONTAINER(canvas->slot.canvas), self_t->ref);
+#endif
+#ifdef SHOES_QUARTZ
+  HIViewRemoveFromSuperview(self_t->ref);
+#endif
+#ifdef SHOES_WIN32
+  DestroyWindow(self_t->ref);
+#endif
+  return self;
 }
 
 void
@@ -1118,7 +1181,7 @@ shoes_progress_draw(VALUE self, VALUE c, VALUE attr)
   {
 #ifdef SHOES_GTK
     self_t->ref = gtk_progress_bar_new();
-    gtk_progress_bar_set_text(self_t->ref, _(msg));
+    gtk_progress_bar_set_text(GTK_PROGRESS_BAR(self_t->ref), _(msg));
 #endif
 
 #ifdef SHOES_QUARTZ
@@ -1268,34 +1331,43 @@ shoes_ruby_init()
   rb_define_alloc_func(cPath, shoes_path_alloc);
   rb_define_method(cPath, "draw", CASTHOOK(shoes_path_draw), 2);
   rb_define_method(cPath, "move", CASTHOOK(shoes_path_move), 2);
+  rb_define_method(cPath, "remove", CASTHOOK(shoes_path_remove), 0);
 
   cImage    = rb_define_class_under(cCanvas, "Image", rb_cObject);
   rb_define_alloc_func(cImage, shoes_image_alloc);
   rb_define_method(cImage, "draw", CASTHOOK(shoes_image_draw), 2);
+  rb_define_method(cImage, "remove", CASTHOOK(shoes_image_remove), 0);
   cBackground = rb_define_class_under(cCanvas, "Background", rb_cObject);
   rb_define_alloc_func(cBackground, shoes_image_alloc);
   rb_define_method(cBackground, "draw", CASTHOOK(shoes_background_draw), 2);
+  rb_define_method(cBackground, "remove", CASTHOOK(shoes_pattern_remove), 0);
   cTextClass = rb_define_class_under(cCanvas, "Text", rb_cObject);
   rb_define_alloc_func(cTextClass, shoes_text_alloc);
   rb_define_method(cTextClass, "draw", CASTHOOK(shoes_text_draw), 2);
+  rb_define_method(cTextClass, "remove", CASTHOOK(shoes_text_remove), 0);
   rb_define_method(cTextClass, "to_s", CASTHOOK(shoes_text_get_markup), 0);
   rb_define_method(cTextClass, "replace", CASTHOOK(shoes_text_set_markup), 1);
 
   cButton  = rb_define_class_under(cCanvas, "Button", rb_cObject);
   rb_define_alloc_func(cButton, shoes_control_alloc);
   rb_define_method(cButton, "draw", CASTHOOK(shoes_button_draw), 2);
+  rb_define_method(cButton, "remove", CASTHOOK(shoes_control_remove), 0);
   cEditLine  = rb_define_class_under(cCanvas, "EditLine", rb_cObject);
   rb_define_alloc_func(cEditLine, shoes_control_alloc);
   rb_define_method(cEditLine, "draw", CASTHOOK(shoes_edit_line_draw), 2);
+  rb_define_method(cEditLine, "remove", CASTHOOK(shoes_control_remove), 0);
   cEditBox  = rb_define_class_under(cCanvas, "EditBox", rb_cObject);
   rb_define_alloc_func(cEditBox, shoes_control_alloc);
   rb_define_method(cEditBox, "draw", CASTHOOK(shoes_edit_box_draw), 2);
+  rb_define_method(cEditBox, "remove", CASTHOOK(shoes_control_remove), 0);
   cListBox  = rb_define_class_under(cCanvas, "ListBox", rb_cObject);
   rb_define_alloc_func(cListBox, shoes_control_alloc);
   rb_define_method(cListBox, "draw", CASTHOOK(shoes_list_box_draw), 2);
+  rb_define_method(cListBox, "remove", CASTHOOK(shoes_control_remove), 0);
   cProgress  = rb_define_class_under(cCanvas, "Progress", rb_cObject);
   rb_define_alloc_func(cProgress, shoes_control_alloc);
   rb_define_method(cProgress, "draw", CASTHOOK(shoes_progress_draw), 2);
+  rb_define_method(cProgress, "remove", CASTHOOK(shoes_control_remove), 0);
 
   cColor   = rb_define_class_under(cCanvas, "Color", rb_cObject);
   cLink    = rb_define_class_under(cCanvas, "Link", rb_cObject);
