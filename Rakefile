@@ -59,7 +59,15 @@ task :build => :build_os do
     cp    FileList["external/cairo/bin/*"], "dist/"
     cp    FileList["external/pango/bin/*"], "dist/"
   when /darwin/
-    cp    "#{ext_ruby}/lib/lib#{ruby_so}.dylib", "dist"
+    if ENV['SHOES_DEPS_PATH']
+      %w[lib/libcairo.2.dylib lib/libcairo.2.dylib lib/libgmodule-2.0.0.dylib lib/libintl.8.dylib lib/libruby.dylib
+         lib/libglib-2.0.0.dylib lib/libgobject-2.0.0.dylib lib/libpng12.0.dylib lib/libpango-1.0.0.dylib 
+         lib/pango/1.6.0/modules/pango-basic-atsui.la lib/libpangocairo-1.0.0.dylib 
+         lib/pango/1.6.0/modules/pango-basic-atsui.so etc/pango/pangorc etc/pango/pango.modules].
+      each do |libn|
+        cp "#{ENV['SHOES_DEPS_PATH']}/#{libn}", "dist/"
+      end
+    end
   else
     cp    "#{ext_ruby}/lib/lib#{ruby_so}.so", "dist"
     ln_s  "lib#{ruby_so}.so", "dist/libruby.so.1.8"

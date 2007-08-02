@@ -22,5 +22,12 @@
   <integer>1</integer>
   <key>WorkingDirectory</key>
   <string>$APP_PACKAGE/Content/MacOS</string>
+  <key>LSEnvironment</key>
+  <dict>
+    <key>DYLD_LIBRARY_PATH</key>
+    <string>$APP_PACKAGE/Content/MacOS:.</string>
+    <key>PANGO_RC_FILE</key>
+    <string>pangorc</string>
+  </dict>
 </dict>
 </plist>
