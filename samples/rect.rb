@@ -10,4 +10,4 @@ rectangles = proc do
   end
 end
 
-Shoes.app &rectangles
+Shoes.app :width => 400, :height => 500, &rectangles
