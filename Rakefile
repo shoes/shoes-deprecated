@@ -30,7 +30,7 @@ def env(x)
 end
 
 ruby_so = Config::CONFIG['RUBY_SO_NAME']
-ext_ruby = "external/ruby"
+ext_ruby = "deps/ruby"
 unless File.exists? ext_ruby
   ext_ruby = Config::CONFIG['prefix']
 end
@@ -56,8 +56,8 @@ task :build => :build_os do
   # end
   case PLATFORM when /win32/
     cp    FileList["#{ext_ruby}/bin/*"], "dist/"
-    cp    FileList["external/cairo/bin/*"], "dist/"
-    cp    FileList["external/pango/bin/*"], "dist/"
+    cp    FileList["deps/cairo/bin/*"], "dist/"
+    cp    FileList["deps/pango/bin/*"], "dist/"
   when /darwin/
     if ENV['SHOES_DEPS_PATH']
       %w[lib/libcairo.2.dylib lib/libcairo.2.dylib lib/libgmodule-2.0.0.dylib lib/libintl.8.dylib lib/libruby.dylib
@@ -110,11 +110,11 @@ when /win32/
   MSVC_LIBS = %[msvcrt-ruby18.lib pango-1.0.lib pangocairo-1.0.lib gobject-2.0.lib glib-2.0.lib cairo.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib advapi32.lib oleacc.lib]
 
   MSVC_CFLAGS = %q[/MD /DWIN32 /DSHOES_WIN32
-    /Iexternal\cairo\include\cairo
-    /Iexternal\pango\include\pango-1.0
-    /Iexternal\pango\include\glib-2.0
-    /Iexternal\pango\lib\glib-2.0\include
-    /Iexternal\ruby\lib\ruby\1.8\i386-mswin32
+    /Ideps\cairo\include\cairo
+    /Ideps\pango\include\pango-1.0
+    /Ideps\pango\include\glib-2.0
+    /Ideps\pango\lib\glib-2.0\include
+    /Ideps\ruby\lib\ruby\1.8\i386-mswin32
     /I.
     /O2 /GR /EHsc
   ].gsub(/\n\s*/, ' ')
@@ -142,8 +142,8 @@ when /win32/
   task "dist/#{NAME}.exe" => OBJ do |t|
     rm_f t.name
     sh "link /NOLOGO /OUT:#{t.name} /LIBPATH:#{ext_ruby}/lib " +
-      "/LIBPATH:external/cairo/lib " +
-      "/LIBPATH:external/pango/lib " +
+      "/LIBPATH:deps/cairo/lib " +
+      "/LIBPATH:deps/pango/lib " +
       "/SUBSYSTEM:WINDOWS #{OBJ.join(' ')} #{MSVC_LIBS}"
   end
 

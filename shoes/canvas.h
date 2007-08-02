@@ -30,6 +30,7 @@ typedef struct {
   cairo_path_t *line;
   shoes_color fg;
   shoes_color bg;
+  double sw;
   VALUE attr;
   VALUE parent;
 } shoes_path;
@@ -125,7 +126,7 @@ typedef struct {
   VALUE parent;
   VALUE attr;
   VALUE click, release, motion, keypress;
-  double x, y, cx, cy, endx, endy;
+  double sw, x, y, cx, cy, endx, endy;
   int width, height;
   APPSLOT slot;
 #ifdef SHOES_GTK
@@ -175,6 +176,7 @@ VALUE shoes_canvas_edit_box(int, VALUE *, VALUE);
 VALUE shoes_canvas_progress(int, VALUE *, VALUE);
 VALUE shoes_canvas_contents(VALUE);
 void shoes_canvas_size(VALUE, int, int);
+VALUE shoes_canvas_clear_contents(VALUE);
 VALUE shoes_canvas_draw(VALUE, VALUE, VALUE);
 VALUE shoes_canvas_flow(int, VALUE *, VALUE);
 VALUE shoes_canvas_stack(int, VALUE *, VALUE);

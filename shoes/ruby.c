@@ -271,6 +271,7 @@ shoes_path_new(cairo_path_t *line, VALUE parent)
   path->parent = parent;
   path->fg = canvas->fg;
   path->bg = canvas->bg;
+  path->sw = canvas->sw;
   return obj;
 }
 
@@ -309,6 +310,7 @@ shoes_path_draw(VALUE self, VALUE c, VALUE attr)
   y = ATTR2DBL(y, 0);
   cairo_new_path(canvas->cr);
   cairo_translate(canvas->cr, x, y);
+  cairo_set_line_width(canvas->cr, self_t->sw);
   cairo_append_path(canvas->cr, self_t->line);
 
   if (self_t->bg.on)
@@ -1231,6 +1233,7 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "motion", CASTHOOK(shoes_canvas_motion), -1);
   rb_define_method(cCanvas, "keypress", CASTHOOK(shoes_canvas_keypress), -1);
   rb_define_method(cCanvas, "quit", CASTHOOK(shoes_app_quit), 0);
+  rb_define_method(cCanvas, "clear", CASTHOOK(shoes_canvas_clear_contents), 0);
   rb_define_method(cCanvas, "goto", CASTHOOK(shoes_canvas_goto), 1);
 
   cFlow    = rb_define_class_under(cCanvas, "Flow", cCanvas);

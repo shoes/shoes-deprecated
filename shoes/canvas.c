@@ -316,7 +316,7 @@ shoes_canvas_strokewidth(VALUE self, VALUE _w)
 {
   double w = NUM2DBL(_w);
   SETUP();
-  cairo_set_line_width(canvas->cr, w);
+  canvas->sw = w;
   return self;
 }
 
@@ -807,6 +807,16 @@ shoes_canvas_reflow(shoes_canvas *self_t, shoes_canvas *parent)
   self_t->endy = self_t->y;
   INFO("REFLOW: %0.2f, %0.2f (%0.2f, %0.2f) / %0.2f, %0.2f / %d, %d (%0.2f, %0.2f)\n", self_t->cx, self_t->cy,
     self_t->endx, self_t->endy, self_t->x, self_t->y, self_t->width, self_t->height, parent->cx, parent->cy);
+}
+
+VALUE
+shoes_canvas_clear_contents(VALUE self)
+{
+  shoes_canvas *canvas;
+  Data_Get_Struct(self, shoes_canvas, canvas);
+  rb_ary_clear(canvas->contents);
+  shoes_canvas_repaint_all(self);
+  return self;
 }
 
 VALUE
