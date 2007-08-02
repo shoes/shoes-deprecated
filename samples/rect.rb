@@ -6,8 +6,7 @@ rectangles = proc do
     rect rand(100), rand(200), r, r
   end
   button "OK", :x => 300, :y => 400 do
-    clear
-    append &rectangles
+    clear &rectangles
   end
 end
 
