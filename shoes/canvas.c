@@ -264,6 +264,7 @@ shoes_canvas_clear(VALUE self)
   canvas->cy = 0.0;
   canvas->endy = 0.0;
   canvas->endx = 0.0;
+  canvas->fully = 0.0;
   canvas->click = Qnil;
   canvas->release = Qnil;
   canvas->motion = Qnil;
@@ -840,6 +841,8 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE attr)
   Data_Get_Struct(self, shoes_canvas, self_t);
   Data_Get_Struct(c, shoes_canvas, canvas);
   INFO("DRAW\n", 0);
+  if (self_t->height > self_t->fully)
+    self_t->fully = self_t->height;
   if (self_t != canvas)
   {
     shoes_canvas_reflow(self_t, canvas);
@@ -870,6 +873,8 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE attr)
   canvas->cy = self_t->cy;
   if (canvas->endy < self_t->endy)
     canvas->endy = self_t->endy;
+  self_t->fully = self_t->endy;
+
 #ifdef SHOES_GTK
   self_t->slot.expose = NULL;
 #endif
@@ -878,7 +883,6 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE attr)
   {
     int endy = (int)self_t->endy;
     if (endy < self_t->height) endy = self_t->height;
-    // printf("SIZE: %lu (%d, %d)\n", self_t->slot.canvas, self_t->width, self_t->endy);
 #ifdef SHOES_GTK
     gtk_layout_set_size(GTK_LAYOUT(self_t->slot.canvas), self_t->width, self_t->endy);
 #endif

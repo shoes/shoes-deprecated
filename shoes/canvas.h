@@ -86,6 +86,7 @@ typedef struct {
 typedef struct {
   cairo_pattern_t *pattern;
   cairo_surface_t *surface;
+  cairo_path_t *line;
   VALUE source;
   VALUE attr;
   VALUE parent;
@@ -126,7 +127,7 @@ typedef struct {
   VALUE parent;
   VALUE attr;
   VALUE click, release, motion, keypress;
-  double sw, x, y, cx, cy, endx, endy;
+  double sw, x, y, cx, cy, endx, endy, fully;
   int width, height;
   APPSLOT slot;
 #ifdef SHOES_GTK

@@ -517,7 +517,7 @@ shoes_background_draw(VALUE self, VALUE c, VALUE attr)
   SETUP(shoes_pattern, 0, 0);
   shoes_canvas_shape_do(canvas, 0, 0);
   cairo_set_source(canvas->cr, self_t->pattern);
-  cairo_rectangle(canvas->cr, 0, 0, 4000, 4000);
+  cairo_rectangle(canvas->cr, canvas->x, canvas->y, (double)canvas->width, canvas->fully);
   cairo_fill(canvas->cr);
   w = 0; h = 0;
   FINISH();
