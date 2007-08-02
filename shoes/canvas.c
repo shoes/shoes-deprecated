@@ -872,7 +872,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE attr)
   return self;
 }
 
-static
+static void
 shoes_canvas_memdraw(VALUE self, VALUE block)
 {
   SETUP();
@@ -882,7 +882,7 @@ shoes_canvas_memdraw(VALUE self, VALUE block)
   mfp_instance_eval(self, block);
 }
 
-static
+static void
 shoes_canvas_insert(VALUE self, long i, long mod, VALUE ele, VALUE block)
 {
   VALUE ary;
