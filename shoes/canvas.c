@@ -810,16 +810,6 @@ shoes_canvas_reflow(shoes_canvas *self_t, shoes_canvas *parent)
 }
 
 VALUE
-shoes_canvas_clear_contents(VALUE self)
-{
-  shoes_canvas *canvas;
-  Data_Get_Struct(self, shoes_canvas, canvas);
-  rb_ary_clear(canvas->contents);
-  shoes_canvas_repaint_all(self);
-  return self;
-}
-
-VALUE
 shoes_canvas_draw(VALUE self, VALUE c, VALUE attr)
 {
   long i;
@@ -879,6 +869,83 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE attr)
 #endif
   }
 
+  return self;
+}
+
+static
+shoes_canvas_memdraw(VALUE self, VALUE block)
+{
+  SETUP();
+  if (canvas->cr != NULL)
+    cairo_destroy(canvas->cr);
+  canvas->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));;
+  mfp_instance_eval(self, block);
+}
+
+static
+shoes_canvas_insert(VALUE self, long i, long mod, VALUE ele, VALUE block)
+{
+  VALUE ary;
+  SETUP();
+
+  if (!NIL_P(ele))
+    i = rb_ary_index_of(canvas->contents, ele);
+  if (i < 0)
+    i += RARRAY_LEN(canvas->contents) + 1;
+
+  ary = canvas->contents;
+  canvas->contents = rb_ary_new();
+  shoes_canvas_memdraw(self, block);
+  rb_ary_insert_at(ary, i + mod, canvas->contents);
+  canvas->contents = ary;
+}
+
+VALUE
+shoes_canvas_after(int argc, VALUE *argv, VALUE self)
+{
+  VALUE ele, block;
+  rb_scan_args(argc, argv, "01&", &ele, &block);
+  shoes_canvas_insert(self, -2, 1, ele, block);
+  return self;
+}
+
+VALUE
+shoes_canvas_before(int argc, VALUE *argv, VALUE self)
+{
+  VALUE ele, block;
+  rb_scan_args(argc, argv, "01&", &ele, &block);
+  shoes_canvas_insert(self, 0, 0, ele, block);
+  return self;
+}
+
+VALUE
+shoes_canvas_append(int argc, VALUE *argv, VALUE self)
+{
+  VALUE block;
+  rb_scan_args(argc, argv, "0&", &block);
+  shoes_canvas_insert(self, -2, 1, Qnil, block);
+  return self;
+}
+
+VALUE
+shoes_canvas_prepend(int argc, VALUE *argv, VALUE self)
+{
+  VALUE block;
+  rb_scan_args(argc, argv, "0&", &block);
+  shoes_canvas_insert(self, 0, 0, Qnil, block);
+  return self;
+}
+
+VALUE
+shoes_canvas_clear_contents(int argc, VALUE *argv, VALUE self)
+{
+  VALUE block;
+  SETUP();
+
+  rb_scan_args(argc, argv, "0&", &block);
+  rb_ary_clear(canvas->contents);
+  shoes_canvas_memdraw(self, block);
+  shoes_canvas_repaint_all(self);
   return self;
 }
 

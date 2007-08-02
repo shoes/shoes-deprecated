@@ -10,7 +10,7 @@
 
 VALUE mShoes, cCanvas, cFlow, cStack, cPath, cImage, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cLink;
 VALUE reRGB_SOURCE;
-ID s_new, s_run, s_to_s, s_call, s_center, s_change, s_click, s_corner, s_draw, s_hidden, s_insert, s_font, s_match, s_x, s_y, s_height, s_width, s_margin, s_marginleft, s_marginright, s_margintop, s_marginbottom;
+ID s_aref, s_new, s_run, s_to_s, s_call, s_center, s_change, s_click, s_corner, s_draw, s_hidden, s_insert, s_font, s_match, s_x, s_y, s_height, s_width, s_margin, s_marginleft, s_marginright, s_margintop, s_marginbottom;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -21,6 +21,26 @@ VALUE
 mfp_instance_eval(VALUE obj, VALUE block)
 {
   return rb_funcall(instance_eval_proc, s_call, 2, obj, block);
+}
+
+long
+rb_ary_index_of(VALUE ary, VALUE val)
+{
+  long i;
+ 
+  for (i=0; i<RARRAY(ary)->len; i++) {
+    if (rb_equal(RARRAY(ary)->ptr[i], val))
+      return i;
+  }
+
+  return -1;
+}
+
+VALUE
+rb_ary_insert_at(VALUE ary, long index, VALUE ary2)
+{
+  rb_funcall(ary, s_aref, 3, LONG2NUM(index), INT2NUM(0), ary2);
+  return ary;
 }
 
 typedef struct
@@ -1156,6 +1176,7 @@ shoes_ruby_init()
   rb_gc_register_address(&exception_proc);
   exception_alert_proc = rb_eval_string(EXC_ALERT);
   rb_gc_register_address(&exception_alert_proc);
+  s_aref = rb_intern("[]=");
   s_new = rb_intern("new");
   s_run = rb_intern("run");
   s_to_s = rb_intern("to_s");
@@ -1223,6 +1244,10 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "progress", CASTHOOK(shoes_canvas_progress), -1);
   rb_define_method(cCanvas, "contents", CASTHOOK(shoes_canvas_contents), 0);
   rb_define_method(cCanvas, "draw", CASTHOOK(shoes_canvas_draw), 2);
+  rb_define_method(cCanvas, "after", CASTHOOK(shoes_canvas_after), -1);
+  rb_define_method(cCanvas, "before", CASTHOOK(shoes_canvas_before), -1);
+  rb_define_method(cCanvas, "append", CASTHOOK(shoes_canvas_append), -1);
+  rb_define_method(cCanvas, "prepend", CASTHOOK(shoes_canvas_prepend), -1);
   rb_define_method(cCanvas, "flow", CASTHOOK(shoes_canvas_flow), -1);
   rb_define_method(cCanvas, "stack", CASTHOOK(shoes_canvas_stack), -1);
   rb_define_method(cCanvas, "hide", CASTHOOK(shoes_canvas_hide), 0);
@@ -1233,7 +1258,7 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "motion", CASTHOOK(shoes_canvas_motion), -1);
   rb_define_method(cCanvas, "keypress", CASTHOOK(shoes_canvas_keypress), -1);
   rb_define_method(cCanvas, "quit", CASTHOOK(shoes_app_quit), 0);
-  rb_define_method(cCanvas, "clear", CASTHOOK(shoes_canvas_clear_contents), 0);
+  rb_define_method(cCanvas, "clear", CASTHOOK(shoes_canvas_clear_contents), -1);
   rb_define_method(cCanvas, "goto", CASTHOOK(shoes_canvas_goto), 1);
 
   cFlow    = rb_define_class_under(cCanvas, "Flow", cCanvas);
