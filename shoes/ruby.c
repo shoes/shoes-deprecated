@@ -581,6 +581,7 @@ static void
 shoes_text_mark(shoes_text *text)
 {
   rb_gc_mark_maybe(text->markup);
+  rb_gc_mark_maybe(text->string);
   rb_gc_mark_maybe(text->links);
   rb_gc_mark_maybe(text->parent);
   rb_gc_mark_maybe(text->attr);
@@ -746,6 +747,7 @@ shoes_text_parse(VALUE self, VALUE markup)
   start = RSTRING_PTR(str);
   len = RSTRING_LEN(str);
 
+  self_t->string = markup;
   self_t->tmp = g_string_new(NULL);
   self_t->links = rb_ary_new();
   self_t->i = 0;
@@ -790,6 +792,7 @@ shoes_text_alloc(VALUE klass)
   shoes_text *text;
   VALUE obj = Data_Make_Struct(klass, shoes_text, shoes_text_mark, shoes_text_free, text);
   text->markup = Qnil;
+  text->string = Qnil;
   text->links = Qnil;
   text->attr = Qnil;
   text->parent = Qnil;
@@ -811,7 +814,7 @@ shoes_text_get_markup(VALUE self)
 {
   shoes_text *self_t;
   Data_Get_Struct(self, shoes_text, self_t);
-  return self_t->markup;
+  return self_t->string;
 }
 
 VALUE
@@ -821,7 +824,7 @@ shoes_text_set_markup(VALUE self, VALUE markup)
   Data_Get_Struct(self, shoes_text, self_t);
   shoes_text_parse(self, markup);
   shoes_canvas_repaint_all(self_t->parent);
-  return self_t->markup;
+  return self;
 }
 
 VALUE

@@ -58,6 +58,7 @@ typedef struct {
 //
 typedef struct {
   VALUE markup;
+  VALUE string;
   VALUE links;
   VALUE attr;
   VALUE parent;
