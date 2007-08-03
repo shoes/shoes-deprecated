@@ -797,7 +797,7 @@ shoes_canvas_remove_item(VALUE self, VALUE item)
 #ifndef SHOES_GTK
   long i = rb_ary_index_of(self_t->slot.controls, item);
   if (i >= 0)
-    rb_ary_insert_of(self_t->slot.controls, i, 1, Qnil);
+    rb_ary_insert_at(self_t->slot.controls, i, 1, Qnil);
 #endif
   rb_ary_delete(self_t->contents, item);
 }
