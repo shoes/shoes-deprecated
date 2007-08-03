@@ -1075,10 +1075,10 @@ shoes_edit_line_get_text(VALUE self)
   LONG i;
   TCHAR *buffer;
   i = (LONG)SendMessage(self_t->ref, WM_GETTEXTLENGTH, 0, 0) + 1;
-  buffer = SHOES_ALLOC_N(TCHAR, i);
+  buffer = SHOE_ALLOC_N(TCHAR, i);
   SendMessage(self_t->ref, WM_GETTEXT, i, (LPARAM)buffer);
   text = rb_str_new2(buffer);
-  SHOES_FREE(buffer);
+  SHOE_FREE(buffer);
 #endif
   return text;
 }
@@ -1096,6 +1096,7 @@ shoes_edit_line_set_text(VALUE self, VALUE text)
 #ifdef SHOES_WIN32
   SendMessage(self_t->ref, WM_SETTEXT, 0, (LPARAM)msg);
 #endif
+  return text;
 }
 
 VALUE
