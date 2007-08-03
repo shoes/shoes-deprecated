@@ -172,7 +172,7 @@ rb_str_to_pas(VALUE str)
   }
 
 #define SETUP_CONTROL() \
-  char *msg; \
+  char *msg = ""; \
   int x, y, absy, w, h; \
   shoes_control *self_t; \
   shoes_canvas *canvas; \
@@ -189,7 +189,7 @@ rb_str_to_pas(VALUE str)
     canvas->cx = x = canvas->x; \
     canvas->cy = y = canvas->endy; \
   } \
-  msg = RSTRING_PTR(self_t->text)
+  if (!NIL_P(self_t->text)) msg = RSTRING_PTR(self_t->text)
 
 #define FINISH() \
   if (!absy) { \
@@ -1062,6 +1062,43 @@ shoes_button_draw(VALUE self, VALUE c, VALUE attr)
 }
 
 VALUE
+shoes_edit_line_get_text(VALUE self)
+{
+  VALUE text;
+  shoes_control *self_t;
+  Data_Get_Struct(self, shoes_control, self_t);
+  if (self_t->ref == NULL) text = Qnil;
+#ifdef SHOES_GTK
+  text = rb_str_new2(gtk_entry_get_text(GTK_ENTRY(self_t->ref)));
+#endif
+#ifdef SHOES_WIN32
+  LONG i;
+  TCHAR *buffer;
+  i = (LONG)SendMessage(self_t->ref, WM_GETTEXTLENGTH, 0, 0) + 1;
+  buffer = SHOES_ALLOC_N(TCHAR, i);
+  SendMessage(self_t->ref, WM_GETTEXT, i, (LPARAM)buffer);
+  text = rb_str_new2(buffer);
+  SHOES_FREE(buffer);
+#endif
+  return text;
+}
+
+VALUE
+shoes_edit_line_set_text(VALUE self, VALUE text)
+{
+  char *msg = "";
+  shoes_control *self_t;
+  Data_Get_Struct(self, shoes_control, self_t);
+  if (!NIL_P(text)) msg = RSTRING_PTR(text);
+#ifdef SHOES_GTK
+  gtk_entry_set_text(GTK_ENTRY(self_t->ref), _(msg));
+#endif
+#ifdef SHOES_WIN32
+  SendMessage(self_t->ref, WM_SETTEXT, 0, (LPARAM)msg);
+#endif
+}
+
+VALUE
 shoes_edit_line_draw(VALUE self, VALUE c, VALUE attr)
 {
   SETUP_CONTROL();
@@ -1071,8 +1108,7 @@ shoes_edit_line_draw(VALUE self, VALUE c, VALUE attr)
 
 #ifdef SHOES_GTK
     self_t->ref = gtk_entry_new();
-    if (!NIL_P(msg))
-      gtk_entry_set_text(GTK_ENTRY(self_t->ref), _(msg));
+    gtk_entry_set_text(GTK_ENTRY(self_t->ref), _(msg));
 #endif
 
 #ifdef SHOES_QUARTZ
@@ -1357,6 +1393,8 @@ shoes_ruby_init()
   rb_define_method(cButton, "remove", CASTHOOK(shoes_control_remove), 0);
   cEditLine  = rb_define_class_under(cCanvas, "EditLine", rb_cObject);
   rb_define_alloc_func(cEditLine, shoes_control_alloc);
+  rb_define_method(cEditLine, "text", CASTHOOK(shoes_edit_line_get_text), 0);
+  rb_define_method(cEditLine, "text=", CASTHOOK(shoes_edit_line_set_text), 1);
   rb_define_method(cEditLine, "draw", CASTHOOK(shoes_edit_line_draw), 2);
   rb_define_method(cEditLine, "remove", CASTHOOK(shoes_control_remove), 0);
   cEditBox  = rb_define_class_under(cCanvas, "EditBox", rb_cObject);
