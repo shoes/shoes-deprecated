@@ -243,6 +243,26 @@ rb_str_to_pas(VALUE str)
     HIViewSetFrame(self_t->ref, &hr); \
     PLACE_COORDS(); \
   }
+
+static VALUE
+shoes_cf2rb(CFStringRef cf)
+{
+  VALUE str;
+  char *text;
+  CFIndex len = CFStringGetLength(cf) * 2;
+  if (len > 0)
+  {
+    text = SHOE_ALLOC_N(char, len);
+    CFStringGetCString(cf, text, len, kCFStringEncodingUTF8);
+    str = rb_str_new2(text);
+    SHOE_FREE(text);
+  }
+  else
+  {
+    str = rb_str_new2("");
+  }
+  return str;
+}
 #endif
 
 #ifdef SHOES_WIN32
@@ -1080,6 +1100,13 @@ shoes_edit_line_get_text(VALUE self)
   text = rb_str_new2(buffer);
   SHOE_FREE(buffer);
 #endif
+#ifdef SHOES_QUARTZ
+  CFStringRef controlText;
+  Size* size = NULL;
+  GetControlData(self_t->ref, kControlEditTextPart, kControlEditTextCFStringTag, sizeof (CFStringRef), &controlText, size);
+  text = shoes_cf2rb(controlText);
+  CFRelease(controlText);
+#endif
   return text;
 }
 
@@ -1095,6 +1122,11 @@ shoes_edit_line_set_text(VALUE self, VALUE text)
 #endif
 #ifdef SHOES_WIN32
   SendMessage(self_t->ref, WM_SETTEXT, 0, (LPARAM)msg);
+#endif
+#ifdef SHOES_QUARTZ
+  CFStringRef controlText = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
+  SetControlData(self_t->ref, kControlEditTextPart, kControlEditTextCFStringTag, sizeof (CFStringRef), &controlText);
+  CFRelease(controlText);
 #endif
   return text;
 }
