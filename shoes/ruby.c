@@ -1226,6 +1226,19 @@ shoes_edit_box_draw(VALUE self, VALUE c, VALUE attr)
   return self;
 }
 
+#ifdef SHOES_GTK
+static void
+shoes_list_box_update(GtkWidget *combo, VALUE ary)
+{
+  long i;
+  for (i = 0; i < RARRAY_LEN(ary); i++)
+  {
+    gtk_combo_box_append_text(GTK_COMBO_BOX(combo), _(RSTRING_PTR(rb_ary_entry(ary, i))));
+  }
+}
+#endif
+
+#ifdef SHOES_QUARTZ
 static void
 shoes_list_box_update(MenuRef menu, VALUE ary)
 {
@@ -1237,6 +1250,7 @@ shoes_list_box_update(MenuRef menu, VALUE ary)
     CFRelease(cf);
   }
 }
+#endif
 
 VALUE
 shoes_list_box_text(VALUE self)
@@ -1245,6 +1259,12 @@ shoes_list_box_text(VALUE self)
   shoes_control *self_t;
   Data_Get_Struct(self, shoes_control, self_t);
   if (self_t->ref == NULL) text = Qnil;
+#ifdef SHOES_GTK
+  int sel = gtk_combo_box_get_active(GTK_COMBO_BOX(self_t->ref));
+  if (sel >= 0)
+    text = rb_ary_entry(ATTR(list), sel);
+#endif
+
 #ifdef SHOES_QUARTZ
   MenuRef menu;
   GetControlData(self_t->ref, 0, kControlPopupButtonMenuRefTag, sizeof(MenuRef), &menu, NULL);
@@ -1268,7 +1288,9 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE attr)
   if (self_t->ref == NULL)
   {
 #ifdef SHOES_GTK
-    self_t->ref = gtk_combo_box_new();
+    self_t->ref = gtk_combo_box_new_text();
+    if (!NIL_P(ATTR(list)))
+      shoes_list_box_update(self_t->ref, ATTR(list));
 #endif
 
 #ifdef SHOES_QUARTZ
