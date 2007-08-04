@@ -102,7 +102,8 @@ end
 # use the platform Ruby claims
 case PLATFORM
 when /win32/
-  OBJ = FileList["{bin,shoes}/*.{c,rc}"].map do |x|
+  SRC = FileList["{bin,shoes}/*.{c,rc}"] 
+  OBJ = SRC.map do |x|
     x.gsub(/\.c$/, '.obj').gsub(/\.rc$/, '.res')
   end
 
@@ -174,7 +175,8 @@ else
   require 'rbconfig'
 
   CC = "gcc"
-  OBJ = FileList["{bin,shoes}/*.c"].map do |x|
+  SRC = FileList["{bin,shoes}/*.c"]
+  OBJ = SRC.map do |x|
     x.gsub(/\.\w+$/, '.o')
   end
 
@@ -226,4 +228,9 @@ else
   rule ".o" => ".c" do |t|
     sh "#{CC} -I. -c -o#{t.name} #{LINUX_CFLAGS} #{t.source}"
   end
+end
+
+# shoes is small, if any include changes, go ahead and build from scratch.
+SRC.zip(OBJ).each do |c, o|
+  file o => [c] + Dir["shoes/*.h"]
 end
