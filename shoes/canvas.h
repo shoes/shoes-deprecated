@@ -211,6 +211,7 @@ VALUE shoes_control_remove(VALUE);
 VALUE shoes_button_draw(VALUE, VALUE, VALUE);
 VALUE shoes_edit_line_draw(VALUE, VALUE, VALUE);
 VALUE shoes_edit_box_draw(VALUE, VALUE, VALUE);
+VALUE shoes_list_box_text(VALUE);
 VALUE shoes_list_box_draw(VALUE, VALUE, VALUE);
 VALUE shoes_progress_draw(VALUE, VALUE, VALUE);
 

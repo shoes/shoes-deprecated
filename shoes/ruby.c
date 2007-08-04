@@ -10,7 +10,7 @@
 
 VALUE mShoes, cCanvas, cFlow, cStack, cPath, cImage, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cLink;
 VALUE reRGB_SOURCE;
-ID s_aref, s_new, s_run, s_to_s, s_call, s_center, s_change, s_click, s_corner, s_draw, s_hidden, s_insert, s_font, s_match, s_x, s_y, s_height, s_width, s_margin, s_marginleft, s_marginright, s_margintop, s_marginbottom;
+ID s_aref, s_new, s_run, s_to_s, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hidden, s_insert, s_list, s_match, s_x, s_y, s_height, s_width, s_margin, s_marginleft, s_marginright, s_margintop, s_marginbottom;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -243,6 +243,16 @@ rb_str_to_pas(VALUE str)
     HIViewSetFrame(self_t->ref, &hr); \
     PLACE_COORDS(); \
   }
+
+static CFStringRef
+shoes_rb2cf(VALUE str)
+{
+  CFStringRef cf;
+  char *msg = "";
+  if (!NIL_P(str)) msg = RSTRING_PTR(str);
+  cf = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
+  return cf;
+}
 
 static VALUE
 shoes_cf2rb(CFStringRef cf)
@@ -1216,6 +1226,40 @@ shoes_edit_box_draw(VALUE self, VALUE c, VALUE attr)
   return self;
 }
 
+static void
+shoes_list_box_update(MenuRef menu, VALUE ary)
+{
+  long i;
+  for (i = 0; i < RARRAY_LEN(ary); i++)
+  {
+    CFStringRef cf = shoes_rb2cf(rb_ary_entry(ary, i));
+    AppendMenuItemTextWithCFString(menu, cf, 0, 0, NULL);
+    CFRelease(cf);
+  }
+}
+
+VALUE
+shoes_list_box_text(VALUE self)
+{
+  VALUE text = Qnil;
+  shoes_control *self_t;
+  Data_Get_Struct(self, shoes_control, self_t);
+  if (self_t->ref == NULL) text = Qnil;
+#ifdef SHOES_QUARTZ
+  MenuRef menu;
+  GetControlData(self_t->ref, 0, kControlPopupButtonMenuRefTag, sizeof(MenuRef), &menu, NULL);
+  int selected = HIViewGetValue(self_t->ref);
+  if (selected > 0)
+  {
+    CFStringRef label;
+    CopyMenuItemTextAsCFString(menu, selected, &label);
+    text = shoes_cf2rb(label);
+    CFRelease(label);
+  }
+#endif
+  return text;
+}
+
 VALUE
 shoes_list_box_draw(VALUE self, VALUE c, VALUE attr)
 {
@@ -1229,8 +1273,17 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE attr)
 
 #ifdef SHOES_QUARTZ
     Rect r;
+    int menuId = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
+    CFStringRef cfmsg = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
     SetRect(&r, x, y, x + w, y + h);
-    CreateListBoxControl(NULL, &r, true, 40, 1, false, false, 20, 10, false, NULL, &self_t->ref);
+    CreatePopupButtonControl(NULL, &r, cfmsg, -12345, false, 0, 0, 0, &self_t->ref);
+    CFRelease(cfmsg);
+
+    MenuRef menuRef;
+    CreateNewMenu(menuId, kMenuAttrExcludesMarkColumn, &menuRef);
+    if (!NIL_P(ATTR(list)))
+      shoes_list_box_update(menuRef, ATTR(list));
+    SetControlData(self_t->ref, 0, kControlPopupButtonMenuRefTag, sizeof(MenuRef), &menuRef);              
 #endif
     PLACE_CONTROL();
   }
@@ -1324,6 +1377,7 @@ shoes_ruby_init()
   s_font = rb_intern("font");
   s_hidden = rb_intern("hidden");
   s_insert = rb_intern("insert");
+  s_list = rb_intern("list");
   s_match = rb_intern("match");
   s_x = rb_intern("x");
   s_y = rb_intern("y");
@@ -1436,6 +1490,7 @@ shoes_ruby_init()
   rb_define_method(cEditBox, "remove", CASTHOOK(shoes_control_remove), 0);
   cListBox  = rb_define_class_under(cCanvas, "ListBox", rb_cObject);
   rb_define_alloc_func(cListBox, shoes_control_alloc);
+  rb_define_method(cListBox, "text", CASTHOOK(shoes_list_box_text), 0);
   rb_define_method(cListBox, "draw", CASTHOOK(shoes_list_box_draw), 2);
   rb_define_method(cListBox, "remove", CASTHOOK(shoes_control_remove), 0);
   cProgress  = rb_define_class_under(cCanvas, "Progress", rb_cObject);
