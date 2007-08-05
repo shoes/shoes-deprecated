@@ -1163,11 +1163,14 @@ shoes_edit_line_draw(VALUE self, VALUE c, VALUE attr)
 #endif
 
 #ifdef SHOES_WIN32
+    int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
     self_t->ref = CreateWindowEx(0, TEXT("EDIT"), NULL,
         WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT,
-        x, y, w, h, canvas->slot.window, NULL, 
+        x, y, w, h, canvas->slot.window, (HMENU)cid, 
         (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
         NULL);
+    shoes_win32_control_font(cid, canvas->slot.window);
+    rb_ary_push(canvas->slot.controls, self);
     SendMessage(self_t->ref, WM_SETTEXT, 0, (LPARAM)msg);
 #endif
     PLACE_CONTROL();
@@ -1252,6 +1255,18 @@ shoes_list_box_update(MenuRef menu, VALUE ary)
 }
 #endif
 
+#ifdef SHOES_WIN32
+static void
+shoes_list_box_update(HWND box, VALUE ary)
+{
+  long i;
+  for (i = 0; i < RARRAY_LEN(ary); i++)
+  {
+    SendMessage(box, CB_ADDSTRING, 0, (LPARAM)RSTRING_PTR(rb_ary_entry(ary, i)));
+  }
+}
+#endif
+
 VALUE
 shoes_list_box_text(VALUE self)
 {
@@ -1276,6 +1291,12 @@ shoes_list_box_text(VALUE self)
     text = shoes_cf2rb(label);
     CFRelease(label);
   }
+#endif
+
+#ifdef SHOES_WIN32
+  int sel = SendMessage(self_t->ref, CB_GETCURSEL, 0, 0);
+  if (sel >= 0)
+    text = rb_ary_entry(ATTR(list), sel);
 #endif
   return text;
 }
@@ -1306,6 +1327,19 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE attr)
     if (!NIL_P(ATTR(list)))
       shoes_list_box_update(menuRef, ATTR(list));
     SetControlData(self_t->ref, 0, kControlPopupButtonMenuRefTag, sizeof(MenuRef), &menuRef);              
+#endif
+
+#ifdef SHOES_WIN32
+    int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
+    self_t->ref = CreateWindowEx(0, TEXT("COMBOBOX"), msg,
+        WS_TABSTOP | WS_VISIBLE | WS_CHILD | CBS_DROPDOWNLIST,
+        x, y, w, h, canvas->slot.window, (HMENU)cid, 
+        (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
+        NULL);
+    shoes_win32_control_font(cid, canvas->slot.window);
+    if (!NIL_P(ATTR(list)))
+      shoes_list_box_update(self_t->ref, ATTR(list));
+    rb_ary_push(canvas->slot.controls, self);
 #endif
     PLACE_CONTROL();
   }
