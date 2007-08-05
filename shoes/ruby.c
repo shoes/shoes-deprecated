@@ -171,7 +171,7 @@ rb_str_to_pas(VALUE str)
     y = canvas->endy; \
   }
 
-#define SETUP_CONTROL() \
+#define SETUP_CONTROL(dh) \
   char *msg = ""; \
   int x, y, absy, w, h; \
   shoes_control *self_t; \
@@ -183,7 +183,7 @@ rb_str_to_pas(VALUE str)
   absy = (ATTR(y) == Qnil ? 0 : 1); \
   y = ATTR2INT(y, canvas->cy); \
   w = ATTR2INT(width, (RSTRING_LEN(self_t->text) * 6) + 32); \
-  h = ATTR2INT(height, 28); \
+  h = ATTR2INT(height, 22 + dh); \
   if (ck == cStack || x + w > canvas->width) \
   { \
     canvas->cx = x = canvas->x; \
@@ -1050,7 +1050,7 @@ shoes_button_gtk_clicked(GtkButton *button, gpointer data)
 VALUE
 shoes_button_draw(VALUE self, VALUE c, VALUE attr)
 {
-  SETUP_CONTROL();
+  SETUP_CONTROL(6);
 
   if (self_t->ref == NULL)
   {
@@ -1144,7 +1144,7 @@ shoes_edit_line_set_text(VALUE self, VALUE text)
 VALUE
 shoes_edit_line_draw(VALUE self, VALUE c, VALUE attr)
 {
-  SETUP_CONTROL();
+  SETUP_CONTROL(0);
 
   if (self_t->ref == NULL)
   {
@@ -1164,7 +1164,7 @@ shoes_edit_line_draw(VALUE self, VALUE c, VALUE attr)
 
 #ifdef SHOES_WIN32
     int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
-    self_t->ref = CreateWindowEx(0, TEXT("EDIT"), NULL,
+    self_t->ref = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("EDIT"), NULL,
         WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT,
         x, y, w, h, canvas->slot.window, (HMENU)cid, 
         (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
@@ -1189,7 +1189,7 @@ shoes_edit_line_draw(VALUE self, VALUE c, VALUE attr)
 VALUE
 shoes_edit_box_draw(VALUE self, VALUE c, VALUE attr)
 {
-  SETUP_CONTROL();
+  SETUP_CONTROL(0);
 
   if (self_t->ref == NULL)
   {
@@ -1304,7 +1304,7 @@ shoes_list_box_text(VALUE self)
 VALUE
 shoes_list_box_draw(VALUE self, VALUE c, VALUE attr)
 {
-  SETUP_CONTROL();
+  SETUP_CONTROL(0);
 
   if (self_t->ref == NULL)
   {
@@ -1331,8 +1331,8 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE attr)
 
 #ifdef SHOES_WIN32
     int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
-    self_t->ref = CreateWindowEx(0, TEXT("COMBOBOX"), msg,
-        WS_TABSTOP | WS_VISIBLE | WS_CHILD | CBS_DROPDOWNLIST,
+    self_t->ref = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("COMBOBOX"), msg,
+        WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | CBS_DROPDOWNLIST,
         x, y, w, h, canvas->slot.window, (HMENU)cid, 
         (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
         NULL);
@@ -1356,7 +1356,7 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE attr)
 VALUE
 shoes_progress_draw(VALUE self, VALUE c, VALUE attr)
 {
-  SETUP_CONTROL();
+  SETUP_CONTROL(0);
 
   if (self_t->ref == NULL)
   {
