@@ -1074,6 +1074,12 @@ shoes_app_quit(VALUE self)
 shoes_code
 shoes_init()
 {
+#ifdef SHOES_WIN32
+  INITCOMMONCONTROLSEX InitCtrlEx;
+  InitCtrlEx.dwSize = sizeof(INITCOMMONCONTROLSEX);
+  InitCtrlEx.dwICC = ICC_PROGRESS_CLASS;
+  InitCommonControlsEx(&InitCtrlEx);
+#endif
   ruby_init();
   shoes_ruby_init();
 #ifdef SHOES_QUARTZ

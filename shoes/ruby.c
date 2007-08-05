@@ -1374,11 +1374,6 @@ shoes_progress_draw(VALUE self, VALUE c, VALUE attr)
 #endif
 
 #ifdef SHOES_WIN32
-    INITCOMMONCONTROLSEX InitCtrlEx;
-    InitCtrlEx.dwSize = sizeof(INITCOMMONCONTROLSEX);
-    InitCtrlEx.dwICC = ICC_PROGRESS_CLASS;
-    InitCommonControlsEx(&InitCtrlEx);
-
     self_t->ref = CreateWindowEx(0, PROGRESS_CLASS, msg,
         WS_VISIBLE | WS_CHILD | PBS_SMOOTH,
         x, y, w, h, canvas->slot.window, NULL, 
