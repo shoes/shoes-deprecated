@@ -1072,7 +1072,7 @@ shoes_button_draw(VALUE self, VALUE c, VALUE attr)
 #ifdef SHOES_WIN32
     int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
     self_t->ref = CreateWindowEx(0, TEXT("BUTTON"), msg,
-        WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+        WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
         x, y, w, h, canvas->slot.window, (HMENU)cid, 
         (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
         NULL);
