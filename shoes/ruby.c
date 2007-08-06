@@ -1405,6 +1405,17 @@ shoes_progress_draw(VALUE self, VALUE c, VALUE attr)
   return self;
 }
 
+static VALUE
+shoes_p(VALUE self, VALUE obj)
+{
+  VALUE str = rb_inspect(obj);
+#ifdef SHOES_WIN32
+  odprintf("%s\n", RSTRING_PTR(str));
+#else
+  printf("%s\n", RSTRING_PTR(str));
+#endif
+}
+
 #define C(n, s) \
   re##n = rb_eval_string(s); \
   rb_const_set(mShoes, rb_intern("" # n), re##n);
@@ -1463,6 +1474,7 @@ shoes_ruby_init()
   );
 
   rb_define_singleton_method(mShoes, "app", CASTHOOK(shoes_app_main), -1);
+  rb_define_singleton_method(mShoes, "p", CASTHOOK(shoes_p), 1);
   cCanvas = rb_define_class("Canvas", rb_cObject);
   rb_define_alloc_func(cCanvas, shoes_canvas_alloc);
   rb_define_method(cCanvas, "nostroke", CASTHOOK(shoes_canvas_nostroke), 0);
