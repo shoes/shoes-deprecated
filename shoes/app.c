@@ -16,6 +16,7 @@ shoes_app_new()
   app->canvas = shoes_canvas_alloc(cCanvas);
   app->width = SHOES_APP_WIDTH;
   app->height = SHOES_APP_HEIGHT;
+  app->kit.window = NULL;
   return app;
 }
 
@@ -760,6 +761,31 @@ shoes_app_load(shoes_app *app, char *uri)
   return SHOES_OK;
 }
 
+shoes_code
+shoes_app_resize(shoes_app *app, int width, int height)
+{
+  app->width = width;
+  app->height = height;
+
+  if (app->kit.window != NULL)
+  {
+#ifdef SHOES_GTK
+    gtk_widget_set_size_request(GTK_WINDOW(app->kit.window), app->width, app->height);
+#endif
+
+#ifdef SHOES_WIN32
+    Rect r;
+    GetWindowRect(app->window, &r);
+    r.right = r.left + app->width;
+    r.bottom = r.top + app->height;
+    AdjustWindowRect(&r, WINDOW_STYLE, FALSE);
+    MoveWindow(app->kit.window, r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE);
+#endif
+  }
+
+  return SHOES_OK;
+}
+
 VALUE
 shoes_app_main(int argc, VALUE *argv, VALUE self)
 {
@@ -767,8 +793,7 @@ shoes_app_main(int argc, VALUE *argv, VALUE self)
   VALUE attr, block;
   rb_scan_args(argc, argv, "01&", &attr, &block);
   rb_iv_set(self, "@main_app", block);
-  global_app->width = ATTR_INT(width, SHOES_APP_WIDTH);
-  global_app->height = ATTR_INT(height, SHOES_APP_HEIGHT);
+  shoes_app_resize(global_app, ATTR_INT(width, SHOES_APP_WIDTH), ATTR_INT(height, SHOES_APP_HEIGHT));
   shoes_canvas_init(global_app->canvas, global_app->slot, attr, global_app->width, global_app->height);
   return self;
 }
