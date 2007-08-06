@@ -711,10 +711,13 @@ shoes_canvas_button(int argc, VALUE *argv, VALUE self)
   SETUP();
   rb_scan_args(argc, argv, "11&", &text, &attr, &block);
 
+  if (!NIL_P(text))
+    attr = shoes_attr_set(attr, s_text, text);
+
   if (!NIL_P(block))
     attr = shoes_attr_set(attr, s_click, block);
 
-  button = shoes_control_new(cButton, text, attr, self);
+  button = shoes_control_new(cButton, attr, self);
   shoes_button_draw(button, self, attr);
   rb_ary_push(canvas->contents, button);
   return button;
@@ -723,14 +726,14 @@ shoes_canvas_button(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_edit_line(int argc, VALUE *argv, VALUE self)
 {
-  VALUE text, attr, block, edit_line;
+  VALUE attr, block, edit_line;
   SETUP();
-  rb_scan_args(argc, argv, "02&", &text, &attr, &block);
+  rb_scan_args(argc, argv, "01&", &attr, &block);
 
   if (!NIL_P(block))
     attr = shoes_attr_set(attr, s_insert, block);
 
-  edit_line = shoes_control_new(cEditLine, text, attr, self);
+  edit_line = shoes_control_new(cEditLine, attr, self);
   shoes_edit_line_draw(edit_line, self, attr);
   rb_ary_push(canvas->contents, edit_line);
   return edit_line;
@@ -739,14 +742,14 @@ shoes_canvas_edit_line(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_edit_box(int argc, VALUE *argv, VALUE self)
 {
-  VALUE text, attr, block, edit_box;
+  VALUE attr, block, edit_box;
   SETUP();
-  rb_scan_args(argc, argv, "02&", &text, &attr, &block);
+  rb_scan_args(argc, argv, "01&", &attr, &block);
 
   if (!NIL_P(block))
     attr = shoes_attr_set(attr, s_insert, block);
 
-  edit_box = shoes_control_new(cEditBox, text, attr, self);
+  edit_box = shoes_control_new(cEditBox, attr, self);
   shoes_edit_box_draw(edit_box, self, attr);
   rb_ary_push(canvas->contents, edit_box);
   return edit_box;
@@ -755,14 +758,14 @@ shoes_canvas_edit_box(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_list_box(int argc, VALUE *argv, VALUE self)
 {
-  VALUE text, attr, block, list_box;
+  VALUE attr, block, list_box;
   SETUP();
-  rb_scan_args(argc, argv, "11&", &text, &attr, &block);
+  rb_scan_args(argc, argv, "01&", &attr, &block);
 
   if (!NIL_P(block))
     attr = shoes_attr_set(attr, s_change, block);
 
-  list_box = shoes_control_new(cListBox, text, attr, self);
+  list_box = shoes_control_new(cListBox, attr, self);
   shoes_list_box_draw(list_box, self, attr);
   rb_ary_push(canvas->contents, list_box);
   return list_box;
@@ -771,11 +774,11 @@ shoes_canvas_list_box(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_progress(int argc, VALUE *argv, VALUE self)
 {
-  VALUE text, attr, progress;
+  VALUE attr, progress;
   SETUP();
-  rb_scan_args(argc, argv, "11", &text, &attr);
+  rb_scan_args(argc, argv, "01", &attr);
 
-  progress = shoes_control_new(cProgress, text, attr, self);
+  progress = shoes_control_new(cProgress, attr, self);
   shoes_progress_draw(progress, self, attr);
   rb_ary_push(canvas->contents, progress);
   return progress;

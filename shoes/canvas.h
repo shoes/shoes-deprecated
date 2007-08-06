@@ -106,7 +106,6 @@ typedef struct {
 #ifdef SHOES_WIN32
   HWND ref;
 #endif
-  VALUE text;
   VALUE attr;
   VALUE parent;
   int x, y, w, h;
@@ -204,7 +203,7 @@ void shoes_canvas_send_keypress(VALUE, VALUE);
 VALUE shoes_flow_new(VALUE, VALUE);
 VALUE shoes_stack_new(VALUE, VALUE);
 
-VALUE shoes_control_new(VALUE, VALUE, VALUE, VALUE);
+VALUE shoes_control_new(VALUE, VALUE, VALUE);
 VALUE shoes_control_alloc(VALUE);
 void shoes_control_send(VALUE, ID);
 VALUE shoes_control_remove(VALUE);

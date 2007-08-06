@@ -10,7 +10,7 @@
 
 VALUE mShoes, cCanvas, cFlow, cStack, cPath, cImage, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cLink;
 VALUE reRGB_SOURCE;
-ID s_aref, s_new, s_run, s_to_s, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hidden, s_insert, s_list, s_match, s_x, s_y, s_height, s_width, s_margin, s_marginleft, s_marginright, s_margintop, s_marginbottom;
+ID s_aref, s_new, s_run, s_to_s, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hidden, s_insert, s_list, s_match, s_text, s_x, s_y, s_height, s_width, s_margin, s_marginleft, s_marginright, s_margintop, s_marginbottom;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -174,22 +174,27 @@ rb_str_to_pas(VALUE str)
 #define SETUP_CONTROL(dh) \
   char *msg = ""; \
   int x, y, absy, w, h; \
+  int len = 200; \
   shoes_control *self_t; \
   shoes_canvas *canvas; \
-  VALUE ck = rb_obj_class(c); \
+  VALUE text = Qnil, ck = rb_obj_class(c); \
   Data_Get_Struct(self, shoes_control, self_t); \
   Data_Get_Struct(c, shoes_canvas, canvas); \
+  text = ATTR2(text); \
+  if (!NIL_P(text)) { \
+    msg = RSTRING_PTR(text); \
+    len = (RSTRING_LEN(text) * 6) + 32; \
+  } \
   x = ATTR2INT(x, canvas->cx); \
-  absy = (ATTR(y) == Qnil ? 0 : 1); \
+  absy = (ATTR2(y) == Qnil ? 0 : 1); \
   y = ATTR2INT(y, canvas->cy); \
-  w = ATTR2INT(width, (RSTRING_LEN(self_t->text) * 6) + 32); \
+  w = ATTR2INT(width, len); \
   h = ATTR2INT(height, 28 + dh); \
   if (ck == cStack || x + w > canvas->width) \
   { \
     canvas->cx = x = canvas->x; \
     canvas->cy = y = canvas->endy; \
-  } \
-  if (!NIL_P(self_t->text)) msg = RSTRING_PTR(self_t->text)
+  }
 
 #define FINISH() \
   if (!absy) { \
@@ -986,12 +991,11 @@ shoes_control_free(shoes_control *control)
 }
 
 VALUE
-shoes_control_new(VALUE klass, VALUE text, VALUE attr, VALUE parent)
+shoes_control_new(VALUE klass, VALUE attr, VALUE parent)
 {
   shoes_control *control;
   VALUE obj = shoes_control_alloc(klass);
   Data_Get_Struct(obj, shoes_control, control);
-  control->text = text;
   control->attr = attr;
   control->parent = parent;
   return obj;
@@ -1003,7 +1007,6 @@ shoes_control_alloc(VALUE klass)
   shoes_control *control;
   VALUE obj = Data_Make_Struct(klass, shoes_control, shoes_control_mark, shoes_control_free, control);
   control->x = control->y = control->w = control->h = 0;
-  control->text = Qnil;
   control->ref = NULL;
   control->attr = Qnil;
   control->parent = Qnil;
@@ -1440,6 +1443,7 @@ shoes_ruby_init()
   s_insert = rb_intern("insert");
   s_list = rb_intern("list");
   s_match = rb_intern("match");
+  s_text = rb_intern("text");
   s_x = rb_intern("x");
   s_y = rb_intern("y");
   s_height = rb_intern("height");
