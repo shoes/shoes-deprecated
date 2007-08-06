@@ -183,7 +183,7 @@ rb_str_to_pas(VALUE str)
   absy = (ATTR(y) == Qnil ? 0 : 1); \
   y = ATTR2INT(y, canvas->cy); \
   w = ATTR2INT(width, (RSTRING_LEN(self_t->text) * 6) + 32); \
-  h = ATTR2INT(height, 22 + dh); \
+  h = ATTR2INT(height, 28 + dh); \
   if (ck == cStack || x + w > canvas->width) \
   { \
     canvas->cx = x = canvas->x; \
@@ -203,9 +203,11 @@ rb_str_to_pas(VALUE str)
     canvas->cy = canvas->endy; \
   }
 
-#define CHANGED_COORDS() x != self_t->x || y != self_t->y || w != self_t->w || h != self_t->h
-#define PLACE_COORDS() self_t->x = x; self_t->y = y; self_t->w = w; self_t->h = h
+#define CHANGED_COORDS() x != self_t->x || y != self_t->y || w != self_t->w || h - HEIGHT_PAD != self_t->h
+#define PLACE_COORDS() self_t->x = x; self_t->y = y; self_t->w = w; self_t->h = h - HEIGHT_PAD
 #ifdef SHOES_GTK
+#define HEIGHT_PAD 0
+
 #define PLACE_CONTROL() \
   gtk_widget_set_size_request(self_t->ref, w, h); \
   gtk_layout_put(GTK_LAYOUT(canvas->slot.canvas), self_t->ref, x, y); \
@@ -225,9 +227,11 @@ rb_str_to_pas(VALUE str)
 #endif
 
 #ifdef SHOES_QUARTZ
+#define HEIGHT_PAD 6
+
 #define PLACE_CONTROL() \
   HIRect hr; \
-  hr.origin.x = x; hr.origin.y = y; hr.size.width = w; hr.size.height = h; \
+  hr.origin.x = x; hr.origin.y = y; hr.size.width = w; hr.size.height = h - HEIGHT_PAD; \
   HIViewAddSubview(canvas->slot.view, self_t->ref); \
   SetControlCommandID(self_t->ref, SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls)); \
   SetControlReference(self_t->ref, (SInt32)canvas->slot.scrollview); \
@@ -239,7 +243,7 @@ rb_str_to_pas(VALUE str)
 #define REPAINT_CONTROL() \
   if (CHANGED_COORDS()) { \
     HIRect hr; \
-    hr.origin.x = x; hr.origin.y = y; hr.size.width = w; hr.size.height = h; \
+    hr.origin.x = x; hr.origin.y = y; hr.size.width = w; hr.size.height = h - HEIGHT_PAD; \
     HIViewSetFrame(self_t->ref, &hr); \
     PLACE_COORDS(); \
   }
@@ -276,12 +280,14 @@ shoes_cf2rb(CFStringRef cf)
 #endif
 
 #ifdef SHOES_WIN32
+#define HEIGHT_PAD 6
+
 #define PLACE_CONTROL() \
   PLACE_COORDS()
 
 #define REPAINT_CONTROL() \
   if (CHANGED_COORDS()) { \
-    MoveWindow(self_t->ref, x, y, w, h, FALSE); \
+    MoveWindow(self_t->ref, x, y, w, h - HEIGHT_PAD, FALSE); \
     PLACE_COORDS(); \
   }
 
