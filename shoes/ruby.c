@@ -769,7 +769,7 @@ shoes_text_parse(VALUE self, VALUE markup)
   GError *error = NULL;
   const gchar *start;
   gsize len;
-  VALUE str = rb_str_new2("<span>");
+  VALUE str = rb_str_new2("<span rise='10000' color='#333'>");
   rb_str_append(str, markup);
   rb_str_cat2(str, "</span>");
 
@@ -901,7 +901,7 @@ shoes_text_draw(VALUE self, VALUE c, VALUE attr)
   self_t->x = ATTR2INT(x, canvas->cx) + lmargin;
   self_t->y = ATTR2INT(y, canvas->cy) + tmargin;
   self_t->w = ATTR2INT(width, canvas->width - (canvas->cx - self_t->x)) - (lmargin + rmargin);
-  font = ATTR2CSTR(font, "Arial 14px");
+  font = ATTR2CSTR(font, "Arial 16px");
 
   if (self_t->layout != NULL)
     g_object_unref(self_t->layout);
