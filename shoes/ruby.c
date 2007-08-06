@@ -1414,6 +1414,7 @@ shoes_p(VALUE self, VALUE obj)
 #else
   printf("%s\n", RSTRING_PTR(str));
 #endif
+  return Qnil;
 }
 
 #define C(n, s) \

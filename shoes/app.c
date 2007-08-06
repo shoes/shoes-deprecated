@@ -16,7 +16,7 @@ shoes_app_new()
   app->canvas = shoes_canvas_alloc(cCanvas);
   app->width = SHOES_APP_WIDTH;
   app->height = SHOES_APP_HEIGHT;
-  app->kit.window = NULL;
+  app->slot.window = NULL;
   return app;
 }
 
@@ -767,21 +767,22 @@ shoes_app_resize(shoes_app *app, int width, int height)
   app->width = width;
   app->height = height;
 
-  if (app->kit.window != NULL)
-  {
 #ifdef SHOES_GTK
+  if (app->kit.window != NULL)
     gtk_widget_set_size_request(GTK_WINDOW(app->kit.window), app->width, app->height);
 #endif
 
 #ifdef SHOES_WIN32
-    Rect r;
-    GetWindowRect(app->window, &r);
+  if (app->slot.window != NULL)
+  {
+    RECT r;
+    GetWindowRect(app->slot.window, &r);
     r.right = r.left + app->width;
     r.bottom = r.top + app->height;
     AdjustWindowRect(&r, WINDOW_STYLE, FALSE);
-    MoveWindow(app->kit.window, r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE);
-#endif
+    MoveWindow(app->slot.window, r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE);
   }
+#endif
 
   return SHOES_OK;
 }
