@@ -10,7 +10,7 @@
 
 VALUE mShoes, cCanvas, cFlow, cStack, cPath, cImage, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cLink;
 VALUE reRGB_SOURCE;
-ID s_aref, s_new, s_run, s_to_s, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hidden, s_insert, s_list, s_match, s_text, s_x, s_y, s_height, s_width, s_margin, s_marginleft, s_marginright, s_margintop, s_marginbottom;
+ID s_aref, s_new, s_run, s_to_s, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hidden, s_insert, s_items, s_match, s_text, s_x, s_y, s_height, s_width, s_margin, s_marginleft, s_marginright, s_margintop, s_marginbottom;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -1290,7 +1290,7 @@ shoes_list_box_text(VALUE self)
 #ifdef SHOES_GTK
   int sel = gtk_combo_box_get_active(GTK_COMBO_BOX(self_t->ref));
   if (sel >= 0)
-    text = rb_ary_entry(ATTR(list), sel);
+    text = rb_ary_entry(ATTR(items), sel);
 #endif
 
 #ifdef SHOES_QUARTZ
@@ -1309,7 +1309,7 @@ shoes_list_box_text(VALUE self)
 #ifdef SHOES_WIN32
   int sel = SendMessage(self_t->ref, CB_GETCURSEL, 0, 0);
   if (sel >= 0)
-    text = rb_ary_entry(ATTR(list), sel);
+    text = rb_ary_entry(ATTR(items), sel);
 #endif
   return text;
 }
@@ -1323,8 +1323,8 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE attr)
   {
 #ifdef SHOES_GTK
     self_t->ref = gtk_combo_box_new_text();
-    if (!NIL_P(ATTR(list)))
-      shoes_list_box_update(self_t->ref, ATTR(list));
+    if (!NIL_P(ATTR(items)))
+      shoes_list_box_update(self_t->ref, ATTR(items));
 #endif
 
 #ifdef SHOES_QUARTZ
@@ -1337,8 +1337,8 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE attr)
 
     MenuRef menuRef;
     CreateNewMenu(menuId, kMenuAttrExcludesMarkColumn, &menuRef);
-    if (!NIL_P(ATTR(list)))
-      shoes_list_box_update(menuRef, ATTR(list));
+    if (!NIL_P(ATTR(items)))
+      shoes_list_box_update(menuRef, ATTR(items));
     SetControlData(self_t->ref, 0, kControlPopupButtonMenuRefTag, sizeof(MenuRef), &menuRef);              
 #endif
 
@@ -1350,8 +1350,8 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE attr)
         (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
         NULL);
     shoes_win32_control_font(cid, canvas->slot.window);
-    if (!NIL_P(ATTR(list)))
-      shoes_list_box_update(self_t->ref, ATTR(list));
+    if (!NIL_P(ATTR(items)))
+      shoes_list_box_update(self_t->ref, ATTR(items));
     rb_ary_push(canvas->slot.controls, self);
 #endif
     PLACE_CONTROL();
@@ -1452,7 +1452,7 @@ shoes_ruby_init()
   s_font = rb_intern("font");
   s_hidden = rb_intern("hidden");
   s_insert = rb_intern("insert");
-  s_list = rb_intern("list");
+  s_items = rb_intern("items");
   s_match = rb_intern("match");
   s_text = rb_intern("text");
   s_x = rb_intern("x");
