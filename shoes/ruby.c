@@ -227,7 +227,7 @@ rb_str_to_pas(VALUE str)
 #endif
 
 #ifdef SHOES_QUARTZ
-#define HEIGHT_PAD 6
+#define HEIGHT_PAD 10
 
 #define PLACE_CONTROL() \
   HIRect hr; \
@@ -1152,19 +1152,23 @@ shoes_edit_line_draw(VALUE self, VALUE c, VALUE attr)
 {
   SETUP_CONTROL(0);
 
+#ifdef SHOES_QUARTZ
+  x += 4;
+#endif
   if (self_t->ref == NULL)
   {
-
 #ifdef SHOES_GTK
     self_t->ref = gtk_entry_new();
     gtk_entry_set_text(GTK_ENTRY(self_t->ref), _(msg));
 #endif
 
 #ifdef SHOES_QUARTZ
+    Boolean nowrap = true;
     Rect r;
     CFStringRef cfmsg = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
     SetRect(&r, x, y, x + w, y + h);
     CreateEditUnicodeTextControl(NULL, &r, cfmsg, false, NULL, &self_t->ref);
+    SetControlData(self_t->ref, kControlEntireControl, kControlEditTextSingleLineTag, sizeof(Boolean), &nowrap);
     CFRelease(cfmsg);
 #endif
 
