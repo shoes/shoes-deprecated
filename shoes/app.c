@@ -766,6 +766,31 @@ shoes_app_load(shoes_app *app, char *uri)
 }
 
 shoes_code
+shoes_app_cursor(shoes_app *app, ID cursor)
+{
+#ifdef SHOES_WIN32
+  HCURSOR c;
+  if (cursor == s_hand)
+  {
+    c = LoadCursor(NULL, IDC_HAND);
+  }
+  else if (cursor == s_arrow)
+  {
+    c = LoadCursor(NULL, IDC_ARROW);
+  }
+  else
+    goto done;
+
+  SetCursor(c);
+#endif
+
+  app->cursor = cursor;
+
+done:
+  return SHOES_OK;
+}
+
+shoes_code
 shoes_app_resize(shoes_app *app, int width, int height)
 {
   app->width = width;
@@ -954,6 +979,7 @@ shoes_app_loop(shoes_app *app, char *path)
 #endif
   shoes_slot_init(app->canvas, &app->slot, app->width, app->height);
   shoes_app_visit(app, path);
+  shoes_app_cursor(app, s_hand);
   INFO("RUNNING LOOP.\n", 0);
 
 #ifdef SHOES_QUARTZ

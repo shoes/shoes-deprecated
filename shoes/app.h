@@ -31,6 +31,7 @@ typedef struct {
   int width, height;
   const char *path;
   VALUE canvas;
+  ID cursor;
 } shoes_app;
 
 extern shoes_app *global_app;
@@ -45,6 +46,7 @@ shoes_code shoes_app_open(shoes_app *);
 shoes_code shoes_app_loop(shoes_app *, char *);
 shoes_code shoes_app_visit(shoes_app *, char *);
 shoes_code shoes_app_paint(shoes_app *);
+shoes_code shoes_app_cursor(shoes_app *, ID);
 shoes_code shoes_app_motion(shoes_app *, int, int);
 shoes_code shoes_app_click(shoes_app *, int, int, int);
 shoes_code shoes_app_release(shoes_app *, int, int, int);

@@ -19,7 +19,7 @@ typedef VALUE (*HOOK)(...);
 
 extern VALUE mShoes, cCanvas, cFlow, cStack, cPath, cImage, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cLink;
 extern VALUE reRGB_SOURCE;
-extern ID s_aref, s_new, s_run, s_to_s, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hidden, s_insert, s_items, s_match, s_text, s_x, s_y, s_height, s_width, s_margin, s_marginleft, s_marginright, s_margintop, s_marginbottom;
+extern ID s_aref, s_new, s_run, s_to_s, s_arrow, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_x, s_y, s_height, s_width, s_margin, s_marginleft, s_marginright, s_margintop, s_marginbottom;
 extern VALUE instance_eval_proc, exception_proc, exception_alert_proc;
 
 VALUE mfp_instance_eval(VALUE, VALUE);

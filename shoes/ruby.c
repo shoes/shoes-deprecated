@@ -10,7 +10,7 @@
 
 VALUE mShoes, cCanvas, cFlow, cStack, cPath, cImage, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cLink;
 VALUE reRGB_SOURCE;
-ID s_aref, s_new, s_run, s_to_s, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hidden, s_insert, s_items, s_match, s_text, s_x, s_y, s_height, s_width, s_margin, s_marginleft, s_marginright, s_margintop, s_marginbottom;
+ID s_aref, s_new, s_run, s_to_s, s_arrow, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_x, s_y, s_height, s_width, s_margin, s_marginleft, s_marginright, s_margintop, s_marginbottom;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -868,8 +868,8 @@ shoes_text_set_markup(VALUE self, VALUE markup)
   return self;
 }
 
-VALUE
-shoes_text_click(VALUE self, int button, int x, int y)
+static VALUE
+shoes_text_hover(VALUE self, int x, int y)
 {
   int index, trailing, i;
   shoes_text *self_t;
@@ -889,6 +889,26 @@ shoes_text_click(VALUE self, int button, int x, int y)
       }
     }
   }
+
+  return Qnil;
+}
+
+VALUE
+shoes_text_motion(VALUE self, int x, int y)
+{
+  VALUE url = shoes_text_hover(self, x, y);
+  if (!NIL_P(url))
+    shoes_app_cursor(global_app, s_hand);
+  else
+    shoes_app_cursor(global_app, s_arrow);
+  return url;
+}
+
+VALUE
+shoes_text_click(VALUE self, int button, int x, int y)
+{
+  if (button == 1)
+    return shoes_text_motion(self, x, y);
 
   return Qnil;
 }
@@ -1444,6 +1464,7 @@ shoes_ruby_init()
   s_new = rb_intern("new");
   s_run = rb_intern("run");
   s_to_s = rb_intern("to_s");
+  s_arrow = rb_intern("arrow");
   s_call = rb_intern("call");
   s_center = rb_intern("center");
   s_change = rb_intern("change");
@@ -1451,6 +1472,7 @@ shoes_ruby_init()
   s_corner = rb_intern("corner");
   s_draw = rb_intern("draw");
   s_font = rb_intern("font");
+  s_hand = rb_intern("hand");
   s_hidden = rb_intern("hidden");
   s_insert = rb_intern("insert");
   s_items = rb_intern("items");

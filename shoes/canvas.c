@@ -1139,6 +1139,15 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
     {
       shoes_safe_block(self, self_t->release, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
     }
+
+    for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--)
+    {
+      VALUE ele = rb_ary_entry(self_t->contents, i);
+      if (rb_obj_is_kind_of(ele, cCanvas))
+      {
+        shoes_canvas_send_release(ele, button, x, y);
+      }
+    }
   }
 }
 
@@ -1155,6 +1164,19 @@ shoes_canvas_send_motion(VALUE self, int x, int y)
     if (!NIL_P(self_t->motion))
     {
       shoes_safe_block(self, self_t->motion, rb_ary_new3(2, INT2NUM(x), INT2NUM(y)));
+    }
+
+    for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--)
+    {
+      VALUE ele = rb_ary_entry(self_t->contents, i);
+      if (rb_obj_is_kind_of(ele, cCanvas))
+      {
+        shoes_canvas_send_motion(ele, x, y);
+      }
+      else if (rb_obj_class(ele) == cTextClass)
+      {
+        shoes_text_motion(ele, x, y);
+      }
     }
   }
 }

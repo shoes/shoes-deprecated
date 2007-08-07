@@ -238,6 +238,7 @@ VALUE shoes_text_new(VALUE, VALUE, VALUE);
 VALUE shoes_text_alloc(VALUE);
 VALUE shoes_text_remove(VALUE);
 VALUE shoes_text_draw(VALUE, VALUE, VALUE);
+VALUE shoes_text_motion(VALUE, int, int);
 VALUE shoes_text_click(VALUE, int, int, int);
 
 #endif
