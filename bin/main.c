@@ -19,14 +19,13 @@ main(argc, argv)
   shoes_init();
   shoes_app *app = shoes_app_new();
   char *uri = NULL;
+  app->path = ".";
 #ifdef SHOES_WIN32
   app->kit.instance = inst;
   app->kit.style = style;
-  app->path = ".";
   if (arg != NULL && strlen(arg) > 0)
     uri = arg;
 #else
-  app->path = argv[0];
   if (argc > 1)
     uri = argv[1];
 #endif

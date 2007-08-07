@@ -10,6 +10,8 @@
   <string>org.hackety.Shoes</string>
   <key>CFBundleName</key>
   <string>Shoes</string>
+  <key>CFBundleIconFile</key>
+  <string>Shoes.icns</string>
   <key>CFBundleShortVersionString</key>
   <string>0.1</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -20,14 +22,5 @@
   <integer>0</integer>
   <key>IFMinorVersion</key>
   <integer>1</integer>
-  <key>WorkingDirectory</key>
-  <string>$APP_PACKAGE/Content/MacOS</string>
-  <key>LSEnvironment</key>
-  <dict>
-    <key>DYLD_LIBRARY_PATH</key>
-    <string>$APP_PACKAGE/Content/MacOS:.</string>
-    <key>PANGO_RC_FILE</key>
-    <string>pangorc</string>
-  </dict>
 </dict>
 </plist>

@@ -88,12 +88,14 @@ task :build => :build_os do
     cp_r "dist", "#{APPNAME}.app/Contents/MacOS"
     mkdir "#{APPNAME}.app/Contents/Resources"
     mkdir "#{APPNAME}.app/Contents/Resources/English.lproj"
+    sh "ditto platform/mac/Shoes.icns #{APPNAME}.app/"
+    sh "ditto platform/mac/Shoes.icns #{APPNAME}.app/Contents/Resources/"
     cp "platform/mac/Info.plist", "#{APPNAME}.app/Contents/"
     cp "platform/mac/version.plist", "#{APPNAME}.app/Contents/"
+    cp "platform/mac/shoes-launch", "#{APPNAME}.app/Contents/MacOS/"
+    chmod 0755, "#{APPNAME}.app/Contents/MacOS/shoes-launch"
     # cp InfoPlist.strings YourApp.app/Contents/Resources/English.lproj/
     `echo -n 'APPL????' > #{APPNAME}.app/Contents/PkgInfo`
-    # mv "#{APPNAME}.app/Contents/Resources/hacketyhack", "#{APPNAME}.app/Contents/MacOS"
-    # cp YourAppMacIcons.icns AnotherResource.txt YourApp.app/Contents/Resources/
   when /win32/
     cp "platform/msw/shoes.exe.manifest", "dist"
   end
