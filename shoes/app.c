@@ -768,6 +768,25 @@ shoes_app_load(shoes_app *app, char *uri)
 shoes_code
 shoes_app_cursor(shoes_app *app, ID cursor)
 {
+#ifdef SHOES_GTK
+  if (app->kit.window == NULL || app->kit.window->window == NULL || app->cursor == cursor)
+    goto done;
+
+  GdkCursor *c;
+  if (cursor == s_hand)
+  {
+    c = gdk_cursor_new(GDK_HAND2);
+  }
+  else if (cursor == s_arrow)
+  {
+    c = gdk_cursor_new(GDK_ARROW);
+  }
+  else
+    goto done;
+
+  gdk_window_set_cursor(app->kit.window->window, c);
+#endif
+
 #ifdef SHOES_WIN32
   HCURSOR c;
   if (cursor == s_hand)
@@ -978,8 +997,7 @@ shoes_app_loop(shoes_app *app, char *path)
   app->slot.controls = rb_ary_new();
 #endif
   shoes_slot_init(app->canvas, &app->slot, app->width, app->height);
-  shoes_app_visit(app, path);
-  shoes_app_cursor(app, s_hand);
+  shoes_app_goto(app, path);
   INFO("RUNNING LOOP.\n", 0);
 
 #ifdef SHOES_QUARTZ
@@ -1093,6 +1111,7 @@ shoes_app_goto(shoes_app *app, char *path)
 {
   shoes_app_visit(app, path);
   shoes_slot_repaint(&app->slot);
+  shoes_app_cursor(app, s_arrow);
   return SHOES_OK;
 }
 
