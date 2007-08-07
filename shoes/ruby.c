@@ -945,13 +945,14 @@ shoes_text_draw(VALUE self, VALUE c, VALUE attr)
     {
       self_t->x = canvas->x + lmargin;
       self_t->y = canvas->endy;
+    } else {
+      if (self_t->x > canvas->x) {
+        pd = (self_t->x - (canvas->x + lmargin));
+        pango_layout_set_indent(self_t->layout, pd * PANGO_SCALE);
+        self_t->w = (canvas->width - (canvas->cx - self_t->x)) - rmargin;
+      }
     }
     cairo_move_to(canvas->cr, canvas->x + lmargin, self_t->y);
-    if (self_t->x > canvas->x) {
-      pd = (self_t->x - (canvas->x + lmargin));
-      pango_layout_set_indent(self_t->layout, pd * PANGO_SCALE);
-      self_t->w = (canvas->width - (canvas->cx - self_t->x)) - rmargin;
-    }
   }
   else
     cairo_move_to(canvas->cr, self_t->x, self_t->y);
