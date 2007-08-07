@@ -739,8 +739,7 @@ end_element_handler(GMarkupParseContext *context,
       self_t->linku = Qnil;
       self_t->linki = -1;
     }
-		g_string_append(self_t->tmp, "</span> ");
-    self_t->i += 1;
+		g_string_append(self_t->tmp, "</span>");
 	}
 	else
 	{
