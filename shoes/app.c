@@ -787,6 +787,23 @@ shoes_app_cursor(shoes_app *app, ID cursor)
   gdk_window_set_cursor(app->kit.window->window, c);
 #endif
 
+#ifdef SHOES_QUARTZ
+  if (app->kit.window == NULL || app->cursor == cursor)
+    goto done;
+
+  if (cursor == s_hand)
+  {
+    SetThemeCursor(kThemePointingHandCursor);
+  }
+  else if (cursor == s_arrow)
+  {
+    SetThemeCursor(kThemeArrowCursor);
+  }
+  else
+    goto done;
+
+#endif
+
 #ifdef SHOES_WIN32
   HCURSOR c;
   if (cursor == s_hand)
