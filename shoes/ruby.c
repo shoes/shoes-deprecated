@@ -924,6 +924,7 @@ shoes_text_draw(VALUE self, VALUE c, VALUE attr)
   PangoRectangle lrect;
   PangoFontDescription *desc;
 
+  VALUE ck = rb_obj_class(c);
   Data_Get_Struct(self, shoes_text, self_t);
   Data_Get_Struct(c, shoes_canvas, canvas);
 
@@ -947,8 +948,8 @@ shoes_text_draw(VALUE self, VALUE c, VALUE attr)
     }
     cairo_move_to(canvas->cr, canvas->x + lmargin, self_t->y);
     if (self_t->x > canvas->x) {
-      pd = (self_t->x - (canvas->x + lmargin)) * PANGO_SCALE;
-      pango_layout_set_indent(self_t->layout, pd);
+      pd = (self_t->x - (canvas->x + lmargin));
+      pango_layout_set_indent(self_t->layout, pd * PANGO_SCALE);
       self_t->w = (canvas->width - (canvas->cx - canvas->x)) - rmargin;
     }
   }
@@ -960,8 +961,8 @@ shoes_text_draw(VALUE self, VALUE c, VALUE attr)
   // cairo_stroke(canvas->cr);
   }
 
-  INFO("TEXT: %0.2f, %0.2f (%d, %d) / %d, %d / %d, %d\n", canvas->cx, canvas->cy,
-    canvas->width, canvas->height, self_t->x, self_t->y, self_t->w, self_t->h);
+  INFO("TEXT: %0.2f, %0.2f (%d, %d) / %d, %d / %d, %d [%d]\n", canvas->cx, canvas->cy,
+    canvas->width, canvas->height, self_t->x, self_t->y, self_t->w, self_t->h, pd);
   pango_layout_set_markup(self_t->layout, RSTRING_PTR(self_t->markup), -1);
   pango_layout_set_width(self_t->layout, self_t->w * PANGO_SCALE);
   desc = pango_font_description_from_string(font);
@@ -977,13 +978,18 @@ shoes_text_draw(VALUE self, VALUE c, VALUE attr)
   pango_layout_get_pixel_size(self_t->layout, &px, &py);
 
   // newlines have an empty size
-  if (lrect.width == 0) {
-    canvas->cx = (double)lrect.x;
-  } else {
-    canvas->cx = (double)((lrect.x + lrect.width) + rmargin);
-  }
   canvas->endx += px + rmargin;
   canvas->endy += py + bmargin;
+  if (ck == cStack) {
+    canvas->cx = 0;
+    canvas->cy = canvas->endy;
+  } else {
+    if (lrect.width == 0) {
+      canvas->cx = (double)lrect.x;
+    } else {
+      canvas->cx = (double)((lrect.x + lrect.width) + rmargin);
+    }
+  }
   return self;
 }
 
