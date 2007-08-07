@@ -950,7 +950,7 @@ shoes_text_draw(VALUE self, VALUE c, VALUE attr)
     if (self_t->x > canvas->x) {
       pd = (self_t->x - (canvas->x + lmargin));
       pango_layout_set_indent(self_t->layout, pd * PANGO_SCALE);
-      self_t->w = (canvas->width - (canvas->cx - canvas->x)) - rmargin;
+      self_t->w = (canvas->width - (canvas->cx - self_t->x)) - rmargin;
     }
   }
   else
