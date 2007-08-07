@@ -875,6 +875,7 @@ shoes_app_open(shoes_app *app)
 
   gtk_init(NULL, NULL);
 
+  gtk_window_set_default_icon_from_file("static/shoes-icon.png", NULL);
   gk->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(gk->window), _(SHOES_APPNAME));
   g_signal_connect(G_OBJECT(gk->window), "expose-event",
