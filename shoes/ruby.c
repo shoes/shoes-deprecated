@@ -1085,7 +1085,7 @@ shoes_button_gtk_clicked(GtkButton *button, gpointer data)
 VALUE
 shoes_button_draw(VALUE self, VALUE c, VALUE attr)
 {
-  SETUP_CONTROL(6);
+  SETUP_CONTROL(2);
 
   if (self_t->ref == NULL)
   {
