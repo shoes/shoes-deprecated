@@ -101,7 +101,7 @@ task :build => :build_os do
     mkdir "#{APPNAME}.app/Contents/Resources/English.lproj"
     sh "ditto platform/mac/Shoes.icns #{APPNAME}.app/"
     sh "ditto platform/mac/Shoes.icns #{APPNAME}.app/Contents/Resources/"
-    rewrite "platform/mac/Info.plist", "#{APPNAME}.app/Contents/"
+    rewrite "platform/mac/Info.plist", "#{APPNAME}.app/Contents/Info.plist"
     cp "platform/mac/version.plist", "#{APPNAME}.app/Contents/"
     cp "platform/mac/shoes-launch", "#{APPNAME}.app/Contents/MacOS/"
     chmod 0755, "#{APPNAME}.app/Contents/MacOS/shoes-launch"

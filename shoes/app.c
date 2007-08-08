@@ -172,6 +172,39 @@ shoes_slot_quartz_handler(
       }
     break;
 
+    
+    case kEventClassScrollable:
+      switch (eventKind)
+      {
+        case kEventScrollableGetInfo:
+        {
+          HIRect bounds;
+          shoes_canvas *canvas;
+          Data_Get_Struct(qdata->canvas, shoes_canvas, canvas);
+          HIViewGetBounds(canvas->slot.view, &bounds);
+          SetEventParameter(inEvent, kEventParamImageSize, typeHISize, sizeof(bounds.size), &bounds.size);
+          SetEventParameter(inEvent, kEventParamOrigin, typeHIPoint, sizeof(bounds.origin), &bounds.origin);
+          HIViewGetBounds(canvas->slot.scrollview, &bounds);
+          SetEventParameter(inEvent, kEventParamViewSize, typeHISize, sizeof(bounds.size), &bounds.size);
+          SetEventParameter(inEvent, kEventParamLineSize, typeHISize, sizeof(bounds.size), &bounds.size);
+          err = noErr;
+        }
+        break;
+
+        case kEventScrollableScrollTo:
+        {
+          HIPoint where;
+          shoes_canvas *canvas;
+          Data_Get_Struct(qdata->canvas, shoes_canvas, canvas);
+          GetEventParameter(inEvent, kEventParamOrigin, typeHIPoint, NULL, sizeof(where), NULL, &where);
+          HIViewSetBoundsOrigin(canvas->slot.view, where.x, where.y);
+          // canvas->scrolly = (where.y < 0.0) ? 0.0 : where.y;
+          HIViewSetNeedsDisplay(canvas->slot.scrollview, true);
+        }
+        break;
+      }
+    break;
+
     case kEventClassControl:
       switch (eventKind)
       {
@@ -282,6 +315,9 @@ shoes_slot_quartz_register(void)
       { kEventClassHIObject, kEventHIObjectInitialize },
       { kEventClassHIObject, kEventHIObjectDestruct },
 
+      { kEventClassScrollable, kEventScrollableGetInfo },
+      { kEventClassScrollable, kEventScrollableScrollTo },
+
       { kEventClassControl, kEventControlDraw },
       { kEventClassControl, kEventControlHitTest },
       { kEventClassControl, kEventControlInitialize },
@@ -311,7 +347,7 @@ shoes_slot_quartz_create(VALUE self, APPSLOT *parent, int w, int h)
   //
   // Create the scroll view
   //
-  HIScrollViewCreate(kHIScrollViewOptionsVertScroll | kHIScrollViewOptionsHorizScroll, &slot->scrollview);
+  HIScrollViewCreate(kHIScrollViewOptionsVertScroll | kHIScrollViewOptionsHorizScroll | kHIScrollViewOptionsAllowGrow, &slot->scrollview);
   HIScrollViewSetScrollBarAutoHide(slot->scrollview, true);
   rect.origin.x = 0.0;
   rect.origin.y = 0.0;

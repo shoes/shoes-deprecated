@@ -907,10 +907,23 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE attr)
 #endif
 #ifdef SHOES_QUARTZ
     HIRect hr;
+    EventRef theEvent;
+
     HIViewGetFrame(self_t->slot.view, &hr);
-    hr.size.width = self_t->width;
-    hr.size.height = self_t->endy;
-    HIViewSetFrame(self_t->slot.view, &hr);
+    if (hr.size.width != (float)self_t->width || hr.size.height != (float)self_t->endy)
+    {
+      hr.size.width = (float)self_t->width;
+      hr.size.height = (float)self_t->endy;
+      HIViewSetFrame(self_t->slot.view, &hr);
+
+      CreateEvent(NULL, kEventClassScrollable,
+            kEventScrollableInfoChanged, 
+            GetCurrentEventTime(),
+            kEventAttributeUserEvent, 
+            &theEvent);
+      SendEventToEventTarget(theEvent, GetControlEventTarget(self_t->slot.scrollview));
+      ReleaseEvent(theEvent);
+    }
 #endif
   }
 
