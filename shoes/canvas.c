@@ -121,6 +121,20 @@ shoes_cairo_create(APPSLOT *slot, int width, int height, int border)
   return cr;
 }
 
+VALUE
+shoes_canvas_get_width(VALUE self)
+{
+  SETUP();
+  return INT2NUM(canvas->width);
+}
+
+VALUE
+shoes_canvas_get_height(VALUE self)
+{
+  SETUP();
+  return INT2NUM(canvas->height);
+}
+
 void
 shoes_canvas_paint(VALUE self)
 {

@@ -144,6 +144,8 @@ void shoes_canvas_clear(VALUE);
 shoes_canvas *shoes_canvas_init(VALUE, APPSLOT, VALUE, int, int);
 void shoes_canvas_paint(VALUE);
 void shoes_canvas_shape_do(shoes_canvas *, double, double);
+VALUE shoes_canvas_get_width(VALUE);
+VALUE shoes_canvas_get_height(VALUE);
 VALUE shoes_canvas_nostroke(VALUE);
 VALUE shoes_canvas_stroke(int, VALUE *, VALUE);
 VALUE shoes_canvas_strokewidth(VALUE, VALUE);

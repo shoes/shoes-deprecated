@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
   <key>CFBundleGetInfoString</key>
-  <string>Shoes 0.1</string>
+  <string>#{APPNAME} #{VERS}</string>
   <key>CFBundleExecutable</key>
-  <string>shoes</string>
+  <string>#{NAME}</string>
   <key>CFBundleIdentifier</key>
-  <string>org.hackety.Shoes</string>
+  <string>org.hackety.#{NAME}</string>
   <key>CFBundleName</key>
-  <string>Shoes</string>
+  <string>#{APPNAME}</string>
   <key>CFBundleIconFile</key>
   <string>Shoes.icns</string>
   <key>CFBundleShortVersionString</key>
-  <string>0.1</string>
+  <string>#{VERS}</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>

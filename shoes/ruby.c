@@ -1506,6 +1506,9 @@ shoes_ruby_init()
   rb_define_singleton_method(mShoes, "p", CASTHOOK(shoes_p), 1);
   cCanvas = rb_define_class("Canvas", rb_cObject);
   rb_define_alloc_func(cCanvas, shoes_canvas_alloc);
+  rb_define_method(cCanvas, "width", CASTHOOK(shoes_canvas_get_width), 0);
+  rb_define_method(cCanvas, "height", CASTHOOK(shoes_canvas_get_height), 0);
+
   rb_define_method(cCanvas, "nostroke", CASTHOOK(shoes_canvas_nostroke), 0);
   rb_define_method(cCanvas, "stroke", CASTHOOK(shoes_canvas_stroke), -1);
   rb_define_method(cCanvas, "strokewidth", CASTHOOK(shoes_canvas_strokewidth), 1);

@@ -3,9 +3,9 @@ require 'rake/clean'
 require 'fileutils'
 include FileUtils
 
-NAME = "shoes"
-APPNAME = "Shoes"
-VERS = "0.1"
+APPNAME = ENV['APPNAME'] || "Shoes"
+NAME = APPNAME.downcase.gsub(/\W+/, '')
+VERS = ENV['VERSION'] || "0.1"
 PKG = "#{NAME}-#{VERS}"
 
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
@@ -27,6 +27,17 @@ def env(x)
     abort "Your #{x} environment variable is not set!"
   end
   ENV[x]
+end
+
+# Subs in special variables
+def rewrite before, after
+  File.open(after, 'w') do |a|
+    File.open(before) do |b|
+      b.each do |line|
+        a << line.gsub(/\#\{(\w+)\}/) { Object.const_get($1) }
+      end
+    end
+  end
 end
 
 ruby_so = Config::CONFIG['RUBY_SO_NAME']
@@ -90,12 +101,12 @@ task :build => :build_os do
     mkdir "#{APPNAME}.app/Contents/Resources/English.lproj"
     sh "ditto platform/mac/Shoes.icns #{APPNAME}.app/"
     sh "ditto platform/mac/Shoes.icns #{APPNAME}.app/Contents/Resources/"
-    cp "platform/mac/Info.plist", "#{APPNAME}.app/Contents/"
+    rewrite "platform/mac/Info.plist", "#{APPNAME}.app/Contents/"
     cp "platform/mac/version.plist", "#{APPNAME}.app/Contents/"
     cp "platform/mac/shoes-launch", "#{APPNAME}.app/Contents/MacOS/"
     chmod 0755, "#{APPNAME}.app/Contents/MacOS/shoes-launch"
     # cp InfoPlist.strings YourApp.app/Contents/Resources/English.lproj/
-    `echo -n 'APPL????' > #{APPNAME}.app/Contents/PkgInfo`
+    `echo -n 'APPL????' > "#{APPNAME}.app/Contents/PkgInfo"`
   when /win32/
     cp "platform/msw/shoes.exe.manifest", "dist"
   end
@@ -171,7 +182,7 @@ when /win32/
     Dir.chdir("dist/installer") do
       sh "\"#{env('NSIS')}\\makensis.exe\" #{NAME}.nsi"
     end
-    mv "dist/installer/#{SHORTNAME}-#{VERS}.exe", "pkg"
+    mv "dist/installer/#{PKG}.exe", "pkg"
   end
 else
   require 'rbconfig'
