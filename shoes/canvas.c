@@ -148,6 +148,8 @@ shoes_canvas_paint(VALUE self)
 #endif
 
   INFO("shoes_cairo_create: (%d, %d)\n", canvas->width, canvas->height);
+  if (canvas->cr != NULL)
+    cairo_destroy(canvas->cr);
   canvas->cr = cr = shoes_cairo_create(&canvas->slot, canvas->width, canvas->height, 0);
   shoes_canvas_draw(self, self, Qnil);
 
@@ -898,6 +900,8 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE attr)
 #endif
   }
 
+  if (self_t->cr == canvas->cr)
+    self_t->cr = NULL;
   return self;
 }
 
