@@ -382,8 +382,8 @@ shoes_cf2rb(CFStringRef cf)
 
 #define REPAINT_CONTROL() \
   if (CHANGED_COORDS()) { \
-    MoveWindow(self_t->ref, place.x, place.y, place.w, place.h - HEIGHT_PAD, FALSE); \
     PLACE_COORDS(); \
+    MoveWindow(self_t->ref, place.x, place.y, place.w, place.h, FALSE); \
   }
 
 inline void shoes_win32_control_font(int id, HWND hwnd)
@@ -1464,7 +1464,7 @@ shoes_list_box_draw(VALUE self, VALUE c)
 
 #ifdef SHOES_WIN32
     int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
-    self_t->ref = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("COMBOBOX"), msg,
+    self_t->ref = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("COMBOBOX"), NULL,
         WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | CBS_DROPDOWNLIST,
         place.x, place.y, place.w, place.h, canvas->slot.window, (HMENU)cid, 
         (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),

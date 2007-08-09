@@ -631,7 +631,7 @@ shoes_app_win32proc(
       shoes_canvas_size(global_app->canvas, global_app->width, global_app->height);
       shoes_app_paint(global_app);
     }
-    return 0;
+    break;
 
     case WM_LBUTTONDOWN:
       WM_POINTS();
