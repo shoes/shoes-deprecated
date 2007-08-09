@@ -10,7 +10,7 @@
 
 VALUE mShoes, cCanvas, cFlow, cStack, cPath, cImage, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cLink;
 VALUE reRGB_SOURCE;
-ID s_aref, s_new, s_run, s_to_s, s_arrow, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_top, s_right, s_bottom, s_left, s_height, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom;
+ID s_aref, s_new, s_run, s_to_s, s_arrow, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_top, s_right, s_bottom, s_left, s_height, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -253,6 +253,23 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char
   place->x += lmargin;
   place->y += tmargin;
   INFO("PLACE: (%d, %d), (%d, %d)\n", place->x, place->y, place->w, place->h);
+}
+
+void
+shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, double r)
+{
+  double rc = r * BEZIER;
+  cairo_new_path(cr);
+  cairo_move_to(cr, x + r, y);
+  cairo_rel_line_to(cr, w - 2 * r, 0.0);
+  cairo_rel_curve_to(cr, rc, 0.0, r, rc, r, r);
+  cairo_rel_line_to(cr, 0, h - 2 * r);
+  cairo_rel_curve_to(cr, 0.0, rc, rc - r, r, -r, r);
+  cairo_rel_line_to(cr, -w + 2 * r, 0);
+  cairo_rel_curve_to(cr, -rc, 0, -r, -rc, -r, -r);
+  cairo_rel_line_to(cr, 0, -h + 2 * r);
+  cairo_rel_curve_to(cr, 0.0, -rc, r - rc, -r, r, -r);
+  cairo_close_path(cr);
 }
 
 //
@@ -647,10 +664,12 @@ shoes_pattern_draw(VALUE self, VALUE c)
 VALUE
 shoes_background_draw(VALUE self, VALUE c)
 {
+  double r;
   SETUP(shoes_pattern, REL_TILE, self_t->width, self_t->height);
+  r = ATTR2(dbl, self_t->attr, radius, 0.);
   shoes_canvas_shape_do(canvas, place.x, place.y);
   cairo_set_source(canvas->cr, self_t->pattern);
-  cairo_rectangle(canvas->cr, 0, 0, place.w, place.h);
+  shoes_cairo_rect(canvas->cr, 0, 0, place.w, place.h, r);
   INFO("BACKGROUND: (%d, %d), (%d, %d)\n", place.x, place.y, place.w, place.h);
   cairo_fill(canvas->cr);
   place.w = 0; place.h = 0;
@@ -1589,6 +1608,7 @@ shoes_ruby_init()
   s_margin_right = rb_intern("margin_right");
   s_margin_top = rb_intern("margin_top");
   s_margin_bottom = rb_intern("margin_bottom");
+  s_radius = rb_intern("radius");
 
   mShoes = rb_define_module("Shoes");
   C(RGB_SOURCE, "/^rgb\\((\\d+), *(\\d+), *(\\d+)\\)$/i");

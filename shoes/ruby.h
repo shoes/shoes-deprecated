@@ -19,7 +19,7 @@ typedef VALUE (*HOOK)(...);
 
 extern VALUE mShoes, cCanvas, cFlow, cStack, cPath, cImage, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cLink;
 extern VALUE reRGB_SOURCE;
-extern ID s_aref, s_new, s_run, s_to_s, s_arrow, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_top, s_right, s_bottom, s_left, s_height, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom;
+extern ID s_aref, s_new, s_run, s_to_s, s_arrow, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_top, s_right, s_bottom, s_left, s_height, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 extern VALUE instance_eval_proc, exception_proc, exception_alert_proc;
 
 VALUE mfp_instance_eval(VALUE, VALUE);
@@ -27,6 +27,8 @@ long rb_ary_index_of(VALUE, VALUE);
 VALUE rb_ary_insert_at(VALUE, long, int, VALUE);
 VALUE shoes_safe_block(VALUE, VALUE, VALUE);
 void shoes_ruby_init(void);
+
+#define BEZIER 0.55228475;
 
 //
 // Exception handling strings for eval
@@ -75,3 +77,4 @@ double shoes_hash_dbl(VALUE, ID, double);
 char *shoes_hash_cstr(VALUE, ID, char *);
 VALUE rb_str_to_pas(VALUE);
 void shoes_place_decide(shoes_place *, VALUE, VALUE, int, int, char);
+void shoes_cairo_rect(cairo_t *, double, double, double, double, double);

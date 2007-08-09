@@ -369,7 +369,6 @@ shoes_canvas_rect(int argc, VALUE *argv, VALUE self)
 {
   VALUE _x, _y, _w, _h, _r;
   double x, y, w, h, r, rc;
-  double bezier = 0.55228475;
   SETUP();
 
   rb_scan_args(argc, argv, "41", &_x, &_y, &_w, &_h, &_r);
@@ -380,21 +379,10 @@ shoes_canvas_rect(int argc, VALUE *argv, VALUE self)
   r = 0.0;
   if (!NIL_P(_r)) r = NUM2DBL(_r);
 
-  rc = bezier * r;
   shoes_canvas_shape_do(canvas, x + (w / 2.), y + (h / 2.));
   x = -w / 2.;
   y = -h / 2.;
-  cairo_new_path(cr);
-  cairo_move_to(cr, x + r, y);
-  cairo_rel_line_to(cr, w - 2 * r, 0.0);
-  cairo_rel_curve_to(cr, rc, 0.0, r, rc, r, r);
-  cairo_rel_line_to(cr, 0, h - 2 * r);
-  cairo_rel_curve_to(cr, 0.0, rc, rc - r, r, -r, r);
-  cairo_rel_line_to(cr, -w + 2 * r, 0);
-  cairo_rel_curve_to(cr, -rc, 0, -r, -rc, -r, -r);
-  cairo_rel_line_to(cr, 0, -h + 2 * r);
-  cairo_rel_curve_to(cr, 0.0, -rc, r - rc, -r, r, -r);
-  cairo_close_path(cr);
+  shoes_cairo_rect(cr, x, y, w, h, r);
   return shoes_canvas_shape_end(self);
 }
 

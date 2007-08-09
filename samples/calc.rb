@@ -40,25 +40,29 @@ number_field = nil
 number = Calc.new
 Shoes.app :height => 250, :width => 200 do
 
-  stack do
-    number_field = text number.to_s
-  end
+  stack :margin => 4 do
+    background "rgb(240, 240, 210)", :radius => 5
 
-  flow :width => 200 do
-    %w(7 8 9 / 4 5 6 * 1 2 3 - 0 Clr = +).each do |btn|
-      button btn, :width => 50, :height => 50 do
-        method = case btn
-          when /[0-9]/: 'press_'+btn
-          when 'Clr': 'press_clear'
-          when '=': 'press_equals'
-          when '+': 'press_add'
-          when '-': 'press_sub'
-          when '*': 'press_times'
-          when '/': 'press_div'
+    stack do
+      number_field = text number.to_s
+    end
+
+    flow :width => 218, :margin => 4 do
+      %w(7 8 9 / 4 5 6 * 1 2 3 - 0 Clr = +).each do |btn|
+        button btn, :width => 50, :height => 50 do
+          method = case btn
+            when /[0-9]/: 'press_'+btn
+            when 'Clr': 'press_clear'
+            when '=': 'press_equals'
+            when '+': 'press_add'
+            when '-': 'press_sub'
+            when '*': 'press_times'
+            when '/': 'press_div'
+          end
+          
+          number.send(method)
+          number_field.replace number.to_s
         end
-        
-        number.send(method)
-        number_field.replace number.to_s
       end
     end
   end
