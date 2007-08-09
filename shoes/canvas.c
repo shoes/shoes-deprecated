@@ -834,6 +834,8 @@ shoes_canvas_reflow(shoes_canvas *self_t, VALUE c)
   if (inherit) {
     self_t->cr = parent->cr;
     shoes_place_decide(&self_t->place, c, self_t->attr, parent->width, 0, REL_CANVAS);
+    self_t->width = self_t->place.w;
+    self_t->height = self_t->place.h;
   } else {
     self_t->cr = shoes_cairo_create(&self_t->slot, self_t->width, self_t->height, 20);
   }
@@ -876,7 +878,7 @@ shoes_canvas_draw(VALUE self, VALUE c)
   }
   else
   {
-    shoes_place_decide(&self_t->place, Qnil, self_t->attr, 0, 0, REL_WINDOW);
+    shoes_place_decide(&self_t->place, Qnil, self_t->attr, self_t->width, self_t->height, REL_WINDOW);
     canvas->endx = canvas->cx = self_t->place.x;
     canvas->endy = canvas->cy = self_t->place.y;
   }

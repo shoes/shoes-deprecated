@@ -215,7 +215,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char
       if (rel == REL_TILE)
       {
         tw = dw; th = dh;
-        testw = dw = canvas->width; dh = canvas->height;
+        testw = dw = canvas->place.w; dh = canvas->height;
       }
     }
     else
@@ -224,11 +224,11 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char
       ox = canvas->cx; oy = canvas->cy;
     }
 
-    place->w = PX(attr, width, testw, canvas->width);
-    if (dw == 0 && place->w + (int)canvas->cx > canvas->width) {
+    place->w = PX(attr, width, testw, canvas->place.w);
+    if (dw == 0 && place->w + (int)canvas->cx > canvas->place.w) {
       canvas->cx = canvas->endx = canvas->place.x;
       canvas->cy = canvas->endy;
-      place->w = canvas->width;
+      place->w = canvas->place.w;
     }
     place->h = PX(attr, height, dh, canvas->fully);
 
@@ -237,11 +237,11 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char
       tw = place->w; th = place->h;
     }
 
-    place->x = PX2(attr, left, right, cx, tw, canvas->width) + ox;
+    place->x = PX2(attr, left, right, cx, tw, canvas->place.w) + ox;
     place->y = PX2(attr, top, bottom, cy, th, canvas->fully) + oy;
     place->absx = (NIL_P(ATTR(attr, left)) && NIL_P(ATTR(attr, right)) ? 0 : 1);
     place->absy = (NIL_P(ATTR(attr, top)) && NIL_P(ATTR(attr, bottom)) ? 0 : 1);
-    if (place->absy == 0 && (ck == cStack || place->x + place->w > canvas->width))
+    if (place->absy == 0 && (ck == cStack || place->x + place->w > canvas->place.w))
     {
       canvas->cx = place->x = canvas->place.x;
       canvas->cy = place->y = canvas->endy;
@@ -1025,7 +1025,7 @@ shoes_text_draw(VALUE self, VALUE c)
   ATTR_MARGINS(self_t->attr, 4);
   self_t->place.x = ATTR2(int, self_t->attr, left, canvas->cx) + lmargin;
   self_t->place.y = ATTR2(int, self_t->attr, top, canvas->cy) + tmargin;
-  self_t->place.w = ATTR2(int, self_t->attr, width, canvas->width - (canvas->cx - self_t->place.x)) - (lmargin + rmargin);
+  self_t->place.w = ATTR2(int, self_t->attr, width, canvas->place.w - (canvas->cx - self_t->place.x)) - (lmargin + rmargin);
   font = ATTR2(cstr, self_t->attr, font, "Arial 16px");
 
   if (self_t->layout != NULL)
@@ -1043,7 +1043,7 @@ shoes_text_draw(VALUE self, VALUE c)
       if (self_t->place.x > canvas->place.x) {
         pd = (self_t->place.x - (canvas->place.x + lmargin));
         pango_layout_set_indent(self_t->layout, pd * PANGO_SCALE);
-        self_t->place.w = (canvas->width - (canvas->cx - self_t->place.x)) - rmargin;
+        self_t->place.w = (canvas->place.w - (canvas->cx - self_t->place.x)) - rmargin;
       }
     }
     cairo_move_to(canvas->cr, canvas->place.x + lmargin, self_t->place.y);
@@ -1056,8 +1056,8 @@ shoes_text_draw(VALUE self, VALUE c)
   // cairo_stroke(canvas->cr);
   }
 
-  INFO("TEXT: %0.2f, %0.2f (%d, %d) / %d, %d / %d, %d [%d]\n", canvas->cx, canvas->cy,
-    canvas->width, canvas->height, self_t->place.x, self_t->place.y, self_t->place.w, self_t->place.h, pd);
+  INFO("TEXT: %d, %d (%d, %d) / %d, %d / %d, %d [%d]\n", canvas->cx, canvas->cy,
+    canvas->place.w, canvas->height, self_t->place.x, self_t->place.y, self_t->place.w, self_t->place.h, pd);
   pango_layout_set_markup(self_t->layout, RSTRING_PTR(self_t->markup), -1);
   pango_layout_set_width(self_t->layout, self_t->place.w * PANGO_SCALE);
   desc = pango_font_description_from_string(font);
