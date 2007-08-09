@@ -5,7 +5,7 @@ rectangles = proc do
     r = rand(300) + 60
     rect rand(100), rand(200), r, r
   end
-  button "OK", :x => 300, :y => 400 do
+  button "OK", :left => 300, :top => 400 do
     clear &rectangles
   end
 end

@@ -19,7 +19,7 @@ typedef VALUE (*HOOK)(...);
 
 extern VALUE mShoes, cCanvas, cFlow, cStack, cPath, cImage, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cLink;
 extern VALUE reRGB_SOURCE;
-extern ID s_aref, s_new, s_run, s_to_s, s_arrow, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_x, s_y, s_height, s_width, s_margin, s_marginleft, s_marginright, s_margintop, s_marginbottom;
+extern ID s_aref, s_new, s_run, s_to_s, s_arrow, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_top, s_right, s_bottom, s_left, s_height, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom;
 extern VALUE instance_eval_proc, exception_proc, exception_alert_proc;
 
 VALUE mfp_instance_eval(VALUE, VALUE);
@@ -49,47 +49,29 @@ void shoes_ruby_init(void);
 //
 // Common funcs for dealing with attribute hashes
 //
-#define ATTR(n)           shoes_attr_find(s_##n, self_t->attr, Qnil)
-#define ATTR2(n)          shoes_attr_find(s_##n, attr, self_t->attr)
-#define ATTR_INT(n, dn)   shoes_attr_int(s_##n, attr, Qnil, dn)
-#define ATTR2INT(n, dn)   shoes_attr_int(s_##n, attr, self_t->attr, dn)
-#define ATTR2DBL(n, dn)   shoes_attr_dbl(s_##n, attr, self_t->attr, dn)
-#define ATTR2CSTR(n, dn)  shoes_attr_cstr(s_##n, attr, self_t->attr, dn)
-#define ATTRSET(k, v)     self_t->attr = shoes_attr_set(self_t->attr, s_##k, v)
-#define ATTRSIZE(k, dv, p, m) \
-  if (rb_obj_is_kind_of(ATTR2(k), rb_cFloat)) { \
-    self_t->k = (int)((double)p->k * NUM2DBL(ATTR2(k))); \
-  } else { \
-    self_t->k = ATTR2INT(k, dv); \
-    if (self_t->k < 0) self_t->k += p->k; \
-  } \
-  self_t->k -= m;
-#define ATTRBASE() \
-  ATTR_MARGINS(0); \
-  ATTRSIZE(width, lmargin + 1 + rmargin, parent, lmargin + rmargin); \
-  INFO("ATTRBASE(): %0.2f / %d / %d\n", parent->cx, self_t->width, parent->width); \
-  if (self_t->width + lmargin + rmargin + (int)parent->cx > parent->width) { \
-    parent->endx = parent->cx = self_t->endx = self_t->cx = parent->x; \
-    parent->cy = self_t->cy = self_t->endy = parent->endy; \
-  } \
-  self_t->x = ATTR2DBL(x, parent->cx - parent->x) + parent->x + lmargin; \
-  self_t->y = ATTR2DBL(y, parent->cy - parent->y) + parent->y + tmargin; \
-  ATTRSIZE(width, parent->width - parent->cx, parent, lmargin + rmargin); \
-  ATTRSIZE(height, parent->height, parent, tmargin + bmargin);
+#define ATTR(attr, n)                  shoes_hash_get(attr, s_##n)
+#define PX(attr, n, dn, pn)            shoes_px(attr, s_##n, dn, pn)
+#define PX2(attr, n1, n2, dn, dr, pn)  shoes_px2(attr, s_##n1, s_##n2, dn, dr, pn)
+#define ATTR2(typ, attr, n, dn)        shoes_hash_##typ(attr, s_##n, dn)
+#define ATTRSET(attr, k, v)            shoes_hash_set(attr, s_##k, v)
+#define ATTR_MARGINS(attr, dm) \
+  int margin = ATTR2(int, attr, margin, dm); \
+  int lmargin = ATTR2(int, attr, margin_left, margin); \
+  int rmargin = ATTR2(int, attr, margin_right, margin); \
+  int tmargin = ATTR2(int, attr, margin_top, margin); \
+  int bmargin = ATTR2(int, attr, margin_bottom, margin)
 
-//
-// Common properties
-//
-#define ATTR_MARGINS(dm) \
-  int margin = ATTR2INT(margin, dm); \
-  int lmargin = ATTR2INT(marginleft, margin); \
-  int rmargin = ATTR2INT(marginright, margin); \
-  int tmargin = ATTR2INT(margintop, margin); \
-  int bmargin = ATTR2INT(marginbottom, margin)
+#define REL_WINDOW  1
+#define REL_CANVAS  2
+#define REL_CURSOR  3
+#define REL_TILE    4
 
-VALUE shoes_attr_set(VALUE, ID, VALUE);
-VALUE shoes_attr_find(ID, VALUE, VALUE);
-int shoes_attr_int(ID, VALUE, VALUE, int);
-double shoes_attr_dbl(ID, VALUE, VALUE, double);
-char *shoes_attr_cstr(ID, VALUE, VALUE, char *);
+int shoes_px(VALUE, ID, int, int);
+int shoes_px2(VALUE, ID, ID, int, int, int);
+VALUE shoes_hash_set(VALUE, ID, VALUE);
+VALUE shoes_hash_get(VALUE, ID);
+int shoes_hash_int(VALUE, ID, int);
+double shoes_hash_dbl(VALUE, ID, double);
+char *shoes_hash_cstr(VALUE, ID, char *);
 VALUE rb_str_to_pas(VALUE);
+void shoes_place_decide(shoes_place *, VALUE, VALUE, int, int, char);

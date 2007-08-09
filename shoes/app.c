@@ -895,7 +895,7 @@ shoes_app_main(int argc, VALUE *argv, VALUE self)
   VALUE attr, block;
   rb_scan_args(argc, argv, "01&", &attr, &block);
   rb_iv_set(self, "@main_app", block);
-  shoes_app_resize(global_app, ATTR_INT(width, SHOES_APP_WIDTH), ATTR_INT(height, SHOES_APP_HEIGHT));
+  shoes_app_resize(global_app, ATTR2(int, attr, width, SHOES_APP_WIDTH), ATTR2(int, attr, height, SHOES_APP_HEIGHT));
   shoes_canvas_init(global_app->canvas, global_app->slot, attr, global_app->width, global_app->height);
   return self;
 }

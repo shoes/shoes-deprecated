@@ -2,15 +2,15 @@
 // shoes/ruby.c
 // Just little bits of Ruby I've become accustomed to.
 //
-#include "shoes/ruby.h"
 #include "shoes/app.h"
 #include "shoes/canvas.h"
+#include "shoes/ruby.h"
 #include "shoes/dialogs.h"
 #include "shoes/internal.h"
 
 VALUE mShoes, cCanvas, cFlow, cStack, cPath, cImage, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cLink;
 VALUE reRGB_SOURCE;
-ID s_aref, s_new, s_run, s_to_s, s_arrow, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_x, s_y, s_height, s_width, s_margin, s_marginleft, s_marginright, s_margintop, s_marginbottom;
+ID s_aref, s_new, s_run, s_to_s, s_arrow, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_top, s_right, s_bottom, s_left, s_height, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -84,8 +84,43 @@ shoes_safe_block(VALUE canvas, VALUE block, VALUE args)
   return v;
 }
 
+int
+shoes_px(VALUE attr, ID k, int dv, int pv)
+{
+  int px;
+  VALUE obj = shoes_hash_get(attr, k);
+  if (rb_obj_is_kind_of(obj, rb_cFloat)) {
+    px = (int)((double)pv * NUM2DBL(obj));
+  } else {
+    if (NIL_P(obj))
+      px = dv;
+    else
+      px = NUM2INT(obj);
+    if (px < 0)
+      px += pv;
+  }
+  return px;
+}
+
+int
+shoes_px2(VALUE attr, ID k1, ID k2, int dv, int dr, int pv)
+{
+  int px;
+  VALUE obj = shoes_hash_get(attr, k2);
+  if (!NIL_P(obj))
+  {
+    px = shoes_px(attr, k2, 0, pv);
+    px = (pv - dr) - px;
+  }
+  else
+  {
+    px = shoes_px(attr, k1, dv, pv);
+  }
+  return px;
+}
+
 VALUE
-shoes_attr_set(VALUE hsh, ID key, VALUE val)
+shoes_hash_set(VALUE hsh, ID key, VALUE val)
 {
   if (NIL_P(hsh))
     hsh = rb_hash_new();
@@ -94,19 +129,13 @@ shoes_attr_set(VALUE hsh, ID key, VALUE val)
 }
 
 VALUE
-shoes_attr_find(ID key, VALUE hsh1, VALUE hsh2)
+shoes_hash_get(VALUE hsh, ID key)
 {
   VALUE v;
 
-  if (!NIL_P(hsh1))
+  if (!NIL_P(hsh))
   {
-    v = rb_hash_aref(hsh1, ID2SYM(key));
-    if (!NIL_P(v)) return v;
-  }
-
-  if (!NIL_P(hsh2))
-  {
-    v = rb_hash_aref(hsh2, ID2SYM(key));
+    v = rb_hash_aref(hsh, ID2SYM(key));
     if (!NIL_P(v)) return v;
   }
 
@@ -114,25 +143,25 @@ shoes_attr_find(ID key, VALUE hsh1, VALUE hsh2)
 }
 
 int
-shoes_attr_int(ID key, VALUE hsh1, VALUE hsh2, int dn)
+shoes_hash_int(VALUE hsh, ID key, int dn)
 {
-  VALUE v = shoes_attr_find(key, hsh1, hsh2);
+  VALUE v = shoes_hash_get(hsh, key);
   if (!NIL_P(v)) return NUM2INT(v);
   return dn;
 }
 
 double
-shoes_attr_dbl(ID key, VALUE hsh1, VALUE hsh2, double dn)
+shoes_hash_dbl(VALUE hsh, ID key, double dn)
 {
-  VALUE v = shoes_attr_find(key, hsh1, hsh2);
+  VALUE v = shoes_hash_get(hsh, key);
   if (!NIL_P(v)) return NUM2DBL(v);
   return dn;
 }
 
 char *
-shoes_attr_cstr(ID key, VALUE hsh1, VALUE hsh2, char *dn)
+shoes_hash_cstr(VALUE hsh, ID key, char *dn)
 {
-  VALUE v = shoes_attr_find(key, hsh1, hsh2);
+  VALUE v = shoes_hash_get(hsh, key);
   if (!NIL_P(v)) return RSTRING_PTR(v);
   return dn;
 }
@@ -149,80 +178,139 @@ rb_str_to_pas(VALUE str)
   return str2;
 }
 
+void
+shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char rel)
+{
+  shoes_canvas *canvas = NULL;
+  VALUE ck = rb_obj_class(c);
+  if (!NIL_P(c))
+    Data_Get_Struct(c, shoes_canvas, canvas);
+
+  ATTR_MARGINS(attr, 0);
+  int testw = dw;
+  if (testw == 0) testw = lmargin + 1 + rmargin;
+
+  if (canvas == NULL)
+  {
+    place->x = 0;
+    place->y = 0;
+    place->w = dw;
+    place->h = dh;
+  }
+  else
+  {
+    int cx, cy, ox, oy, tw, th;
+
+    if (rel == REL_WINDOW)
+    {
+      cx = 0; cy = 0;
+      ox = 0; oy = 0;
+    }
+    else if (rel == REL_CANVAS || rel == REL_TILE)
+    {
+      cx = canvas->cx - canvas->place.x;
+      cy = canvas->cy - canvas->place.y;
+      ox = canvas->place.x;
+      oy = canvas->place.y;
+      if (rel == REL_TILE)
+      {
+        tw = dw; th = dh;
+        testw = dw = canvas->width; dh = canvas->height;
+      }
+    }
+    else
+    {
+      cx = 0; cy = 0;
+      ox = canvas->cx; oy = canvas->cy;
+    }
+
+    place->w = PX(attr, width, testw, canvas->width);
+    if (dw == 0 && place->w + (int)canvas->cx > canvas->width) {
+      canvas->cx = canvas->endx = canvas->place.x;
+      canvas->cy = canvas->endy;
+      place->w = canvas->width;
+    }
+    place->h = PX(attr, height, dh, canvas->fully);
+
+    if (rel != REL_TILE)
+    {
+      tw = place->w; th = place->h;
+    }
+
+    place->x = PX2(attr, left, right, cx, tw, canvas->width) + ox;
+    place->y = PX2(attr, top, bottom, cy, th, canvas->fully) + oy;
+    place->absx = (NIL_P(ATTR(attr, left)) && NIL_P(ATTR(attr, right)) ? 0 : 1);
+    place->absy = (NIL_P(ATTR(attr, top)) && NIL_P(ATTR(attr, bottom)) ? 0 : 1);
+    if (place->absy == 0 && (ck == cStack || place->x + place->w > canvas->width))
+    {
+      canvas->cx = place->x = canvas->place.x;
+      canvas->cy = place->y = canvas->endy;
+    }
+  }
+
+  place->w -= lmargin + rmargin;
+  place->h -= tmargin + bmargin;
+  place->x += lmargin;
+  place->y += tmargin;
+  INFO("PLACE: (%d, %d), (%d, %d)\n", place->x, place->y, place->w, place->h);
+}
+
 //
 // Macros for setting up drawing
 //
-#define SETUP(self_type, dw, dh) \
-  int absy; \
-  double x, y, w, h; \
+#define SETUP(self_type, rel, dw, dh) \
   self_type *self_t; \
+  shoes_place place; \
   shoes_canvas *canvas; \
   VALUE ck = rb_obj_class(c); \
   Data_Get_Struct(self, self_type, self_t); \
   Data_Get_Struct(c, shoes_canvas, canvas); \
-  x = ATTR2DBL(x, canvas->cx); \
-  absy = (ATTR(y) == Qnil ? 0 : 1); \
-  y = ATTR2DBL(y, canvas->cy); \
-  w = ATTR2DBL(width, dw); \
-  h = ATTR2DBL(height, dh); \
-  if (ck == cStack || x + w > canvas->width) \
-  { \
-    x = canvas->x; \
-    y = canvas->endy; \
-  }
+  shoes_place_decide(&place, c, self_t->attr, dw, dh, rel)
 
 #define SETUP_CONTROL(dh) \
   char *msg = ""; \
-  int x, y, absy, w, h; \
   int len = 200; \
   shoes_control *self_t; \
   shoes_canvas *canvas; \
+  shoes_place place; \
   VALUE text = Qnil, ck = rb_obj_class(c); \
   Data_Get_Struct(self, shoes_control, self_t); \
   Data_Get_Struct(c, shoes_canvas, canvas); \
-  text = ATTR2(text); \
+  text = ATTR(self_t->attr, text); \
   if (!NIL_P(text)) { \
     msg = RSTRING_PTR(text); \
     len = (RSTRING_LEN(text) * 6) + 32; \
   } \
-  x = ATTR2INT(x, canvas->cx); \
-  absy = (ATTR2(y) == Qnil ? 0 : 1); \
-  y = ATTR2INT(y, canvas->cy); \
-  w = ATTR2INT(width, len); \
-  h = ATTR2INT(height, 28 + dh); \
-  if (ck == cStack || x + w > canvas->width) \
-  { \
-    canvas->cx = x = canvas->x; \
-    canvas->cy = y = canvas->endy; \
-  }
+  shoes_place_decide(&place, c, self_t->attr, len, 28 + dh, REL_CANVAS)
 
 #define FINISH() \
-  if (!absy) { \
-    canvas->cx += w; \
-    canvas->cy = y; \
+  self_t->place = place; \
+  if (!self_t->place.absy) { \
+    canvas->cx += self_t->place.w; \
+    canvas->cy = self_t->place.y; \
     canvas->endx = canvas->cx; \
-    canvas->endy = y + h; \
+    canvas->endy = self_t->place.y + self_t->place.h; \
   } \
   if (ck == cStack) { \
     canvas->cx = 0; \
     canvas->cy = canvas->endy; \
   }
 
-#define CHANGED_COORDS() x != self_t->x || y != self_t->y || w != self_t->w || h - HEIGHT_PAD != self_t->h
-#define PLACE_COORDS() self_t->x = x; self_t->y = y; self_t->w = w; self_t->h = h - HEIGHT_PAD
+#define CHANGED_COORDS() self_t->place.x != place.x || self_t->place.y != place.y || self_t->place.w != place.w || self_t->place.h - HEIGHT_PAD != place.h
+#define PLACE_COORDS() place.h -= HEIGHT_PAD; self_t->place = place
 #ifdef SHOES_GTK
 #define HEIGHT_PAD 0
 
 #define PLACE_CONTROL() \
-  gtk_widget_set_size_request(self_t->ref, w, h); \
-  gtk_layout_put(GTK_LAYOUT(canvas->slot.canvas), self_t->ref, x, y); \
+  gtk_widget_set_size_request(self_t->ref, place.w, place.h); \
+  gtk_layout_put(GTK_LAYOUT(canvas->slot.canvas), self_t->ref, place.x, place.y); \
   gtk_widget_show(self_t->ref); \
   PLACE_COORDS();
 
 #define REPAINT_CONTROL() \
   if (CHANGED_COORDS()) { \
-    gtk_layout_move(GTK_LAYOUT(canvas->slot.canvas), self_t->ref, x, y); \
-    gtk_widget_set_size_request(self_t->ref, w, h); \
+    gtk_layout_move(GTK_LAYOUT(canvas->slot.canvas), self_t->ref, place.x, place.y); \
+    gtk_widget_set_size_request(self_t->ref, place.w, place.h); \
     PLACE_COORDS(); \
   } \
   if (canvas->slot.expose != NULL) \
@@ -236,7 +324,8 @@ rb_str_to_pas(VALUE str)
 
 #define PLACE_CONTROL() \
   HIRect hr; \
-  hr.origin.x = x; hr.origin.y = y; hr.size.width = w; hr.size.height = h - HEIGHT_PAD; \
+  hr.origin.x = place.x; hr.origin.y = place.y; \
+  hr.size.width = place.w; hr.size.height = place.h - HEIGHT_PAD; \
   HIViewAddSubview(canvas->slot.view, self_t->ref); \
   SetControlCommandID(self_t->ref, SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls)); \
   SetControlReference(self_t->ref, (SInt32)canvas->slot.scrollview); \
@@ -248,7 +337,8 @@ rb_str_to_pas(VALUE str)
 #define REPAINT_CONTROL() \
   if (CHANGED_COORDS()) { \
     HIRect hr; \
-    hr.origin.x = x; hr.origin.y = y; hr.size.width = w; hr.size.height = h - HEIGHT_PAD; \
+    hr.origin.x = place.x; hr.origin.y = place.y; \
+    hr.size.width = place.w; hr.size.height = place.h - HEIGHT_PAD; \
     HIViewSetFrame(self_t->ref, &hr); \
     PLACE_COORDS(); \
   }
@@ -292,7 +382,7 @@ shoes_cf2rb(CFStringRef cf)
 
 #define REPAINT_CONTROL() \
   if (CHANGED_COORDS()) { \
-    MoveWindow(self_t->ref, x, y, w, h - HEIGHT_PAD, FALSE); \
+    MoveWindow(self_t->ref, place.x, place.y, place.w, place.h - HEIGHT_PAD, FALSE); \
     PLACE_COORDS(); \
   }
 
@@ -352,8 +442,8 @@ shoes_path_move(VALUE self, VALUE x, VALUE y)
 {
   shoes_path *self_t;
   Data_Get_Struct(self, shoes_path, self_t);
-  ATTRSET(x, x);
-  ATTRSET(y, y);
+  ATTRSET(self_t->attr, left, x);
+  ATTRSET(self_t->attr, top, y);
   shoes_canvas_repaint_all(self_t->parent);
   return self;
 }
@@ -368,7 +458,7 @@ shoes_path_remove(VALUE self)
 }
 
 VALUE
-shoes_path_draw(VALUE self, VALUE c, VALUE attr)
+shoes_path_draw(VALUE self, VALUE c)
 {
   double x, y;
   shoes_path *self_t;
@@ -376,8 +466,8 @@ shoes_path_draw(VALUE self, VALUE c, VALUE attr)
   Data_Get_Struct(self, shoes_path, self_t);
   Data_Get_Struct(c, shoes_canvas, canvas);
 
-  x = ATTR2DBL(x, 0);
-  y = ATTR2DBL(y, 0);
+  x = ATTR2(dbl, self_t->attr, left, 0);
+  y = ATTR2(dbl, self_t->attr, top, 0);
   cairo_new_path(canvas->cr);
   cairo_translate(canvas->cr, x, y);
   cairo_set_line_width(canvas->cr, self_t->sw);
@@ -455,15 +545,15 @@ shoes_image_remove(VALUE self)
 }
 
 VALUE
-shoes_image_draw(VALUE self, VALUE c, VALUE attr)
+shoes_image_draw(VALUE self, VALUE c)
 {
-  SETUP(shoes_image, self_t->width, self_t->height);
-  shoes_canvas_shape_do(canvas, x + (w / 2.), y + (h / 2.));
-  if (w != self_t->width || h != self_t->height)
+  SETUP(shoes_image, REL_CANVAS, self_t->width, self_t->height);
+  shoes_canvas_shape_do(canvas, place.x + (place.w / 2.), place.y + (place.h / 2.));
+  if (place.w != self_t->width || place.h != self_t->height)
   {
-    cairo_scale(canvas->cr, w/self_t->width, h/self_t->height);
+    cairo_scale(canvas->cr, place.w/self_t->width, place.h/self_t->height);
   }
-  cairo_set_source_surface(canvas->cr, self_t->surface, -w / 2., -h / 2.);
+  cairo_set_source_surface(canvas->cr, self_t->surface, -place.w / 2., -place.h / 2.);
   cairo_paint(canvas->cr);
   cairo_restore(canvas->cr);
   FINISH();
@@ -505,10 +595,13 @@ shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent)
     int g = NUM2INT(rb_Integer(rb_reg_nth_match(2, rgb)));
     int b = NUM2INT(rb_Integer(rb_reg_nth_match(3, rgb)));
     pattern->pattern = cairo_pattern_create_rgb(r / 255., g / 255., b / 255.);
+    pattern->width = pattern->height = 1.;
   }
   else
   {
     pattern->surface = cairo_image_surface_create_from_png(RSTRING_PTR(source));
+    pattern->width = cairo_image_surface_get_width(pattern->surface);
+    pattern->height = cairo_image_surface_get_height(pattern->surface);
     pattern->pattern = cairo_pattern_create_for_surface(pattern->surface);
   }
   cairo_pattern_set_extend(pattern->pattern, CAIRO_EXTEND_REPEAT);
@@ -540,11 +633,11 @@ shoes_pattern_remove(VALUE self)
 }
 
 VALUE
-shoes_pattern_draw(VALUE self, VALUE c, VALUE attr)
+shoes_pattern_draw(VALUE self, VALUE c)
 {
-  SETUP(shoes_pattern, 0, 0);
-  shoes_canvas_shape_do(canvas, x + (w / 2.), y + (h / 2.));
-  cairo_set_source_surface(canvas->cr, self_t->surface, -w / 2., -h / 2.);
+  SETUP(shoes_pattern, REL_CANVAS, 0, 0);
+  shoes_canvas_shape_do(canvas, place.x + (place.w / 2.), place.y + (place.h / 2.));
+  cairo_set_source_surface(canvas->cr, self_t->surface, -place.w / 2., -place.h / 2.);
   cairo_paint(canvas->cr);
   cairo_restore(canvas->cr);
   FINISH();
@@ -552,15 +645,16 @@ shoes_pattern_draw(VALUE self, VALUE c, VALUE attr)
 }
 
 VALUE
-shoes_background_draw(VALUE self, VALUE c, VALUE attr)
+shoes_background_draw(VALUE self, VALUE c)
 {
-  cairo_pattern_t *pattern;
-  SETUP(shoes_pattern, 0, 0);
-  shoes_canvas_shape_do(canvas, 0, 0);
+  SETUP(shoes_pattern, REL_TILE, self_t->width, self_t->height);
+  shoes_canvas_shape_do(canvas, place.x, place.y);
   cairo_set_source(canvas->cr, self_t->pattern);
-  cairo_rectangle(canvas->cr, canvas->x, canvas->y, (double)canvas->width, canvas->fully);
+  cairo_rectangle(canvas->cr, 0, 0, place.w, place.h);
+  INFO("BACKGROUND: (%d, %d), (%d, %d)\n", place.x, place.y, place.w, place.h);
   cairo_fill(canvas->cr);
-  w = 0; h = 0;
+  place.w = 0; place.h = 0;
+  cairo_restore(canvas->cr);
   FINISH();
   return self;
 }
@@ -875,8 +969,8 @@ shoes_text_hover(VALUE self, int x, int y)
   Data_Get_Struct(self, shoes_text, self_t);
   if (self_t->layout == NULL) return Qnil;
 
-  x -= self_t->x;
-  y -= self_t->y;
+  x -= self_t->place.x;
+  y -= self_t->place.y;
   if (pango_layout_xy_to_index(self_t->layout, x * PANGO_SCALE, y * PANGO_SCALE, &index, &trailing))
   {
     for (i = 0; i < RARRAY_LEN(self_t->links); i++)
@@ -913,7 +1007,7 @@ shoes_text_click(VALUE self, int button, int x, int y)
 }
 
 VALUE
-shoes_text_draw(VALUE self, VALUE c, VALUE attr)
+shoes_text_draw(VALUE self, VALUE c)
 {
   int px, py, pd, li, m;
   double cx, cy;
@@ -928,34 +1022,34 @@ shoes_text_draw(VALUE self, VALUE c, VALUE attr)
   Data_Get_Struct(self, shoes_text, self_t);
   Data_Get_Struct(c, shoes_canvas, canvas);
 
-  ATTR_MARGINS(4);
-  self_t->x = ATTR2INT(x, canvas->cx) + lmargin;
-  self_t->y = ATTR2INT(y, canvas->cy) + tmargin;
-  self_t->w = ATTR2INT(width, canvas->width - (canvas->cx - self_t->x)) - (lmargin + rmargin);
-  font = ATTR2CSTR(font, "Arial 16px");
+  ATTR_MARGINS(self_t->attr, 4);
+  self_t->place.x = ATTR2(int, self_t->attr, left, canvas->cx) + lmargin;
+  self_t->place.y = ATTR2(int, self_t->attr, top, canvas->cy) + tmargin;
+  self_t->place.w = ATTR2(int, self_t->attr, width, canvas->width - (canvas->cx - self_t->place.x)) - (lmargin + rmargin);
+  font = ATTR2(cstr, self_t->attr, font, "Arial 16px");
 
   if (self_t->layout != NULL)
     g_object_unref(self_t->layout);
 
   self_t->layout = pango_cairo_create_layout(canvas->cr);
   pd = 0;
-  if (self_t->x == canvas->cx + lmargin)
+  if (self_t->place.x == canvas->cx + lmargin)
   {
-    if (self_t->x - canvas->x > (self_t->w - (lmargin + rmargin)) - 20)
+    if (self_t->place.x - canvas->place.x > (self_t->place.w - (lmargin + rmargin)) - 20)
     {
-      self_t->x = canvas->x + lmargin;
-      self_t->y = canvas->endy;
+      self_t->place.x = canvas->place.x + lmargin;
+      self_t->place.y = canvas->endy;
     } else {
-      if (self_t->x > canvas->x) {
-        pd = (self_t->x - (canvas->x + lmargin));
+      if (self_t->place.x > canvas->place.x) {
+        pd = (self_t->place.x - (canvas->place.x + lmargin));
         pango_layout_set_indent(self_t->layout, pd * PANGO_SCALE);
-        self_t->w = (canvas->width - (canvas->cx - self_t->x)) - rmargin;
+        self_t->place.w = (canvas->width - (canvas->cx - self_t->place.x)) - rmargin;
       }
     }
-    cairo_move_to(canvas->cr, canvas->x + lmargin, self_t->y);
+    cairo_move_to(canvas->cr, canvas->place.x + lmargin, self_t->place.y);
   }
   else
-    cairo_move_to(canvas->cr, self_t->x, self_t->y);
+    cairo_move_to(canvas->cr, self_t->place.x, self_t->place.y);
   if (canvas->fg.on)
   {
     cairo_set_source_rgba(canvas->cr, canvas->fg.r, canvas->fg.g, canvas->fg.b, canvas->fg.a);
@@ -963,9 +1057,9 @@ shoes_text_draw(VALUE self, VALUE c, VALUE attr)
   }
 
   INFO("TEXT: %0.2f, %0.2f (%d, %d) / %d, %d / %d, %d [%d]\n", canvas->cx, canvas->cy,
-    canvas->width, canvas->height, self_t->x, self_t->y, self_t->w, self_t->h, pd);
+    canvas->width, canvas->height, self_t->place.x, self_t->place.y, self_t->place.w, self_t->place.h, pd);
   pango_layout_set_markup(self_t->layout, RSTRING_PTR(self_t->markup), -1);
-  pango_layout_set_width(self_t->layout, self_t->w * PANGO_SCALE);
+  pango_layout_set_width(self_t->layout, self_t->place.w * PANGO_SCALE);
   desc = pango_font_description_from_string(font);
   pango_layout_set_font_description(self_t->layout, desc);
   pango_font_description_free(desc);
@@ -1032,7 +1126,7 @@ shoes_control_alloc(VALUE klass)
 {
   shoes_control *control;
   VALUE obj = Data_Make_Struct(klass, shoes_control, shoes_control_mark, shoes_control_free, control);
-  control->x = control->y = control->w = control->h = 0;
+  control->place.x = control->place.y = control->place.w = control->place.h = 0;
   control->ref = NULL;
   control->attr = Qnil;
   control->parent = Qnil;
@@ -1067,7 +1161,7 @@ shoes_control_send(VALUE self, ID event)
   shoes_control *self_t;
   Data_Get_Struct(self, shoes_control, self_t);
 
-  click = ATTR(click);
+  click = ATTR(self_t->attr, click);
   if (!NIL_P(click))
     shoes_safe_block(self_t->parent, click, rb_ary_new());
 }
@@ -1083,7 +1177,7 @@ shoes_button_gtk_clicked(GtkButton *button, gpointer data)
 #endif
 
 VALUE
-shoes_button_draw(VALUE self, VALUE c, VALUE attr)
+shoes_button_draw(VALUE self, VALUE c)
 {
   SETUP_CONTROL(2);
 
@@ -1177,7 +1271,7 @@ shoes_edit_line_set_text(VALUE self, VALUE text)
 }
 
 VALUE
-shoes_edit_line_draw(VALUE self, VALUE c, VALUE attr)
+shoes_edit_line_draw(VALUE self, VALUE c)
 {
   SETUP_CONTROL(0);
 
@@ -1226,7 +1320,7 @@ shoes_edit_line_draw(VALUE self, VALUE c, VALUE attr)
 
 
 VALUE
-shoes_edit_box_draw(VALUE self, VALUE c, VALUE attr)
+shoes_edit_box_draw(VALUE self, VALUE c)
 {
   SETUP_CONTROL(0);
 
@@ -1316,7 +1410,7 @@ shoes_list_box_text(VALUE self)
 #ifdef SHOES_GTK
   int sel = gtk_combo_box_get_active(GTK_COMBO_BOX(self_t->ref));
   if (sel >= 0)
-    text = rb_ary_entry(ATTR(items), sel);
+    text = rb_ary_entry(ATTR(self_t->attr, items), sel);
 #endif
 
 #ifdef SHOES_QUARTZ
@@ -1335,13 +1429,13 @@ shoes_list_box_text(VALUE self)
 #ifdef SHOES_WIN32
   int sel = SendMessage(self_t->ref, CB_GETCURSEL, 0, 0);
   if (sel >= 0)
-    text = rb_ary_entry(ATTR(items), sel);
+    text = rb_ary_entry(ATTR(self_t->attr, items), sel);
 #endif
   return text;
 }
 
 VALUE
-shoes_list_box_draw(VALUE self, VALUE c, VALUE attr)
+shoes_list_box_draw(VALUE self, VALUE c)
 {
   SETUP_CONTROL(0);
 
@@ -1349,8 +1443,8 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE attr)
   {
 #ifdef SHOES_GTK
     self_t->ref = gtk_combo_box_new_text();
-    if (!NIL_P(ATTR(items)))
-      shoes_list_box_update(self_t->ref, ATTR(items));
+    if (!NIL_P(ATTR(self_t->attr, items)))
+      shoes_list_box_update(self_t->ref, ATTR(self_t->attr, items));
 #endif
 
 #ifdef SHOES_QUARTZ
@@ -1363,8 +1457,8 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE attr)
 
     MenuRef menuRef;
     CreateNewMenu(menuId, kMenuAttrExcludesMarkColumn, &menuRef);
-    if (!NIL_P(ATTR(items)))
-      shoes_list_box_update(menuRef, ATTR(items));
+    if (!NIL_P(ATTR(self_t->attr, items)))
+      shoes_list_box_update(menuRef, ATTR(self_t->attr, items));
     SetControlData(self_t->ref, 0, kControlPopupButtonMenuRefTag, sizeof(MenuRef), &menuRef);              
 #endif
 
@@ -1376,8 +1470,8 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE attr)
         (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
         NULL);
     shoes_win32_control_font(cid, canvas->slot.window);
-    if (!NIL_P(ATTR(items)))
-      shoes_list_box_update(self_t->ref, ATTR(items));
+    if (!NIL_P(ATTR(self_t->attr, items)))
+      shoes_list_box_update(self_t->ref, ATTR(self_t->attr, items));
     rb_ary_push(canvas->slot.controls, self);
 #endif
     PLACE_CONTROL();
@@ -1393,7 +1487,7 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE attr)
 }
 
 VALUE
-shoes_progress_draw(VALUE self, VALUE c, VALUE attr)
+shoes_progress_draw(VALUE self, VALUE c)
 {
   SETUP_CONTROL(0);
 
@@ -1484,15 +1578,17 @@ shoes_ruby_init()
   s_items = rb_intern("items");
   s_match = rb_intern("match");
   s_text = rb_intern("text");
-  s_x = rb_intern("x");
-  s_y = rb_intern("y");
+  s_top = rb_intern("top");
+  s_right = rb_intern("right");
+  s_bottom = rb_intern("bottom");
+  s_left = rb_intern("left");
   s_height = rb_intern("height");
   s_width = rb_intern("width");
   s_margin = rb_intern("margin");
-  s_marginleft = rb_intern("marginleft");
-  s_marginright = rb_intern("marginright");
-  s_margintop = rb_intern("margintop");
-  s_marginbottom = rb_intern("marginbottom");
+  s_margin_left = rb_intern("margin_left");
+  s_margin_right = rb_intern("margin_right");
+  s_margin_top = rb_intern("margin_top");
+  s_margin_bottom = rb_intern("margin_bottom");
 
   mShoes = rb_define_module("Shoes");
   C(RGB_SOURCE, "/^rgb\\((\\d+), *(\\d+), *(\\d+)\\)$/i");
@@ -1541,7 +1637,7 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "edit_box", CASTHOOK(shoes_canvas_edit_box), -1);
   rb_define_method(cCanvas, "progress", CASTHOOK(shoes_canvas_progress), -1);
   rb_define_method(cCanvas, "contents", CASTHOOK(shoes_canvas_contents), 0);
-  rb_define_method(cCanvas, "draw", CASTHOOK(shoes_canvas_draw), 2);
+  rb_define_method(cCanvas, "draw", CASTHOOK(shoes_canvas_draw), 1);
   rb_define_method(cCanvas, "after", CASTHOOK(shoes_canvas_after), -1);
   rb_define_method(cCanvas, "before", CASTHOOK(shoes_canvas_before), -1);
   rb_define_method(cCanvas, "append", CASTHOOK(shoes_canvas_append), -1);
@@ -1564,47 +1660,47 @@ shoes_ruby_init()
 
   cPath    = rb_define_class_under(cCanvas, "Path", rb_cObject);
   rb_define_alloc_func(cPath, shoes_path_alloc);
-  rb_define_method(cPath, "draw", CASTHOOK(shoes_path_draw), 2);
+  rb_define_method(cPath, "draw", CASTHOOK(shoes_path_draw), 1);
   rb_define_method(cPath, "move", CASTHOOK(shoes_path_move), 2);
   rb_define_method(cPath, "remove", CASTHOOK(shoes_path_remove), 0);
 
   cImage    = rb_define_class_under(cCanvas, "Image", rb_cObject);
   rb_define_alloc_func(cImage, shoes_image_alloc);
-  rb_define_method(cImage, "draw", CASTHOOK(shoes_image_draw), 2);
+  rb_define_method(cImage, "draw", CASTHOOK(shoes_image_draw), 1);
   rb_define_method(cImage, "remove", CASTHOOK(shoes_image_remove), 0);
   cBackground = rb_define_class_under(cCanvas, "Background", rb_cObject);
   rb_define_alloc_func(cBackground, shoes_image_alloc);
-  rb_define_method(cBackground, "draw", CASTHOOK(shoes_background_draw), 2);
+  rb_define_method(cBackground, "draw", CASTHOOK(shoes_background_draw), 1);
   rb_define_method(cBackground, "remove", CASTHOOK(shoes_pattern_remove), 0);
   cTextClass = rb_define_class_under(cCanvas, "Text", rb_cObject);
   rb_define_alloc_func(cTextClass, shoes_text_alloc);
-  rb_define_method(cTextClass, "draw", CASTHOOK(shoes_text_draw), 2);
+  rb_define_method(cTextClass, "draw", CASTHOOK(shoes_text_draw), 1);
   rb_define_method(cTextClass, "remove", CASTHOOK(shoes_text_remove), 0);
   rb_define_method(cTextClass, "to_s", CASTHOOK(shoes_text_get_markup), 0);
   rb_define_method(cTextClass, "replace", CASTHOOK(shoes_text_set_markup), 1);
 
   cButton  = rb_define_class_under(cCanvas, "Button", rb_cObject);
   rb_define_alloc_func(cButton, shoes_control_alloc);
-  rb_define_method(cButton, "draw", CASTHOOK(shoes_button_draw), 2);
+  rb_define_method(cButton, "draw", CASTHOOK(shoes_button_draw), 1);
   rb_define_method(cButton, "remove", CASTHOOK(shoes_control_remove), 0);
   cEditLine  = rb_define_class_under(cCanvas, "EditLine", rb_cObject);
   rb_define_alloc_func(cEditLine, shoes_control_alloc);
   rb_define_method(cEditLine, "text", CASTHOOK(shoes_edit_line_get_text), 0);
   rb_define_method(cEditLine, "text=", CASTHOOK(shoes_edit_line_set_text), 1);
-  rb_define_method(cEditLine, "draw", CASTHOOK(shoes_edit_line_draw), 2);
+  rb_define_method(cEditLine, "draw", CASTHOOK(shoes_edit_line_draw), 1);
   rb_define_method(cEditLine, "remove", CASTHOOK(shoes_control_remove), 0);
   cEditBox  = rb_define_class_under(cCanvas, "EditBox", rb_cObject);
   rb_define_alloc_func(cEditBox, shoes_control_alloc);
-  rb_define_method(cEditBox, "draw", CASTHOOK(shoes_edit_box_draw), 2);
+  rb_define_method(cEditBox, "draw", CASTHOOK(shoes_edit_box_draw), 1);
   rb_define_method(cEditBox, "remove", CASTHOOK(shoes_control_remove), 0);
   cListBox  = rb_define_class_under(cCanvas, "ListBox", rb_cObject);
   rb_define_alloc_func(cListBox, shoes_control_alloc);
   rb_define_method(cListBox, "text", CASTHOOK(shoes_list_box_text), 0);
-  rb_define_method(cListBox, "draw", CASTHOOK(shoes_list_box_draw), 2);
+  rb_define_method(cListBox, "draw", CASTHOOK(shoes_list_box_draw), 1);
   rb_define_method(cListBox, "remove", CASTHOOK(shoes_control_remove), 0);
   cProgress  = rb_define_class_under(cCanvas, "Progress", rb_cObject);
   rb_define_alloc_func(cProgress, shoes_control_alloc);
-  rb_define_method(cProgress, "draw", CASTHOOK(shoes_progress_draw), 2);
+  rb_define_method(cProgress, "draw", CASTHOOK(shoes_progress_draw), 1);
   rb_define_method(cProgress, "remove", CASTHOOK(shoes_control_remove), 0);
 
   cColor   = rb_define_class_under(cCanvas, "Color", rb_cObject);
