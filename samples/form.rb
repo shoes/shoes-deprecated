@@ -1,5 +1,5 @@
 name, phone, address = nil
-Shoes.app do
+Shoes.app :width => 320, :height => 350 do
   background "static/menu-gray.png"
   background "static/menu-top.png", :height => 50
   background "static/menu-left.png", :top => 50, :width => 55
@@ -7,7 +7,7 @@ Shoes.app do
   image "static/menu-corner1.png", :top => 0, :left => 0
   image "static/menu-corner2.png", :right => 0, :top => 0
 
-  stack :marginleft => 20 do
+  stack :margin => 40 do
     stack :margin => 10 do
       text "Name"
       name = list_box :items => ["Yes, please!", "NO.  No thankyou."]
