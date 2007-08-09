@@ -1192,7 +1192,7 @@ shoes_button_draw(VALUE self, VALUE c)
 #endif
 
 #ifdef SHOES_QUARTZ
-    Rect r = {y, x, y + h, x + w};
+    Rect r = {place.y, place.x, place.y + place.h, place.x + place.w};
     CFStringRef cfmsg = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
     CreatePushButtonControl(NULL, &r, cfmsg, &self_t->ref);
     CFRelease(cfmsg);
@@ -1202,7 +1202,7 @@ shoes_button_draw(VALUE self, VALUE c)
     int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
     self_t->ref = CreateWindowEx(0, TEXT("BUTTON"), msg,
         WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
-        x, y, w, h, canvas->slot.window, (HMENU)cid, 
+        place.x, place.y, place.w, place.h, canvas->slot.window, (HMENU)cid, 
         (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
         NULL);
     shoes_win32_control_font(cid, canvas->slot.window);
@@ -1276,7 +1276,7 @@ shoes_edit_line_draw(VALUE self, VALUE c)
   SETUP_CONTROL(0);
 
 #ifdef SHOES_QUARTZ
-  x += 4;
+  place.x += 4;
 #endif
   if (self_t->ref == NULL)
   {
@@ -1289,7 +1289,7 @@ shoes_edit_line_draw(VALUE self, VALUE c)
     Boolean nowrap = true;
     Rect r;
     CFStringRef cfmsg = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
-    SetRect(&r, x, y, x + w, y + h);
+    SetRect(&r, place.x, place.y, place.x + place.w, place.y + place.h);
     CreateEditUnicodeTextControl(NULL, &r, cfmsg, false, NULL, &self_t->ref);
     SetControlData(self_t->ref, kControlEntireControl, kControlEditTextSingleLineTag, sizeof(Boolean), &nowrap);
     CFRelease(cfmsg);
@@ -1299,7 +1299,7 @@ shoes_edit_line_draw(VALUE self, VALUE c)
     int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
     self_t->ref = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("EDIT"), NULL,
         WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT,
-        x, y, w, h, canvas->slot.window, (HMENU)cid, 
+        place.x, place.y, place.w, place.h, canvas->slot.window, (HMENU)cid, 
         (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
         NULL);
     shoes_win32_control_font(cid, canvas->slot.window);
@@ -1337,7 +1337,7 @@ shoes_edit_box_draw(VALUE self, VALUE c)
 #ifdef SHOES_QUARTZ
     Rect r;
     CFStringRef cfmsg = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
-    SetRect(&r, x, y, x + w, y + h);
+    SetRect(&r, place.x, place.y, place.x + place.w, place.y + place.h);
     CreateEditUnicodeTextControl(NULL, &r, cfmsg, false, NULL, &self_t->ref);
     CFRelease(cfmsg);
 #endif
@@ -1345,7 +1345,7 @@ shoes_edit_box_draw(VALUE self, VALUE c)
 #ifdef SHOES_WIN32
     self_t->ref = CreateWindowEx(0, TEXT("EDIT"), NULL,
         WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT,
-        x, y, w, h, canvas->slot.window, NULL, 
+        place.x, place.y, place.w, place.h, canvas->slot.window, NULL, 
         (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
         NULL);
     SendMessage(self_t->ref, WM_SETTEXT, 0, (LPARAM)msg);
@@ -1451,7 +1451,7 @@ shoes_list_box_draw(VALUE self, VALUE c)
     Rect r;
     int menuId = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
     CFStringRef cfmsg = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
-    SetRect(&r, x, y, x + w, y + h);
+    SetRect(&r, place.x, place.y, place.x + place.w, place.y + place.h);
     CreatePopupButtonControl(NULL, &r, cfmsg, -12345, false, 0, 0, 0, &self_t->ref);
     CFRelease(cfmsg);
 
@@ -1466,7 +1466,7 @@ shoes_list_box_draw(VALUE self, VALUE c)
     int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
     self_t->ref = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("COMBOBOX"), msg,
         WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | CBS_DROPDOWNLIST,
-        x, y, w, h, canvas->slot.window, (HMENU)cid, 
+        place.x, place.y, place.w, place.h, canvas->slot.window, (HMENU)cid, 
         (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
         NULL);
     shoes_win32_control_font(cid, canvas->slot.window);
@@ -1501,7 +1501,7 @@ shoes_progress_draw(VALUE self, VALUE c)
 #ifdef SHOES_QUARTZ
     Rect r;
     CFStringRef cfmsg = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
-    SetRect(&r, x, y, x + w, y + h);
+    SetRect(&r, place.x, place.y, place.x + place.w, place.y + place.h);
     CreatePushButtonControl(NULL, &r, cfmsg, &self_t->ref);
     CFRelease(cfmsg);
 #endif
@@ -1509,7 +1509,7 @@ shoes_progress_draw(VALUE self, VALUE c)
 #ifdef SHOES_WIN32
     self_t->ref = CreateWindowEx(0, PROGRESS_CLASS, msg,
         WS_VISIBLE | WS_CHILD | PBS_SMOOTH,
-        x, y, w, h, canvas->slot.window, NULL, 
+        place.x, place.y, place.w, place.h, canvas->slot.window, NULL, 
         (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
         NULL);
 #endif
