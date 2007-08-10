@@ -13,6 +13,10 @@
   Data_Get_Struct(self, shoes_canvas, canvas); \
   cr = canvas->cr
 
+static const double PIM2   = 6.28318530717958647693;
+static const double PI     = 3.14159265358979323846;
+static const double RAD2PI = 0.01745329251994329577;
+
 #ifdef SHOES_GTK
 static void
 shoes_canvas_gtk_paint (GtkWidget *widget, GdkEventExpose *event, gpointer data)
@@ -399,7 +403,10 @@ shoes_canvas_oval(VALUE self, VALUE _x, VALUE _y, VALUE _w, VALUE _h)
 
   shoes_canvas_shape_do(canvas, x + w / 2., y + h / 2.);
   cairo_scale(cr, w / 2., h / 2.);
-  cairo_arc(cr, 0., 0., 1., 0., 2 * M_PI);
+  cairo_new_path(cr);
+  cairo_move_to(cr, 0, 0);
+  cairo_arc(cr, 0., 0., 1., 0., PIM2);
+  cairo_close_path(cr);
   return shoes_canvas_shape_end(self);
 }
 
@@ -465,7 +472,7 @@ shoes_canvas_star(int argc, VALUE *argv, VALUE self)
   inner = 50.0;
   if (!NIL_P(_inner)) inner = NUM2DBL(_inner);
 
-  theta = (points - 1) * M_PI / (points * 1.);
+  theta = (points - 1) * PI / (points * 1.);
   shoes_canvas_shape_do(canvas, 0, 0); /* TODO: find star's center */
   cairo_new_path(cr);
   cairo_move_to(cr, x, y);
@@ -627,7 +634,7 @@ shoes_canvas_rotate(VALUE self, VALUE _deg)
   double rad;
   SETUP();
 
-  rad = NUM2DBL(_deg) * (M_PI / 180);
+  rad = NUM2DBL(_deg) * RAD2PI;
 
   cairo_matrix_rotate(canvas->tf, -rad);
   return self;
@@ -660,9 +667,9 @@ shoes_canvas_skew(int argc, VALUE *argv, VALUE self)
 
   rb_scan_args(argc, argv, "11", &_sx, &_sy);
 
-  sx = NUM2DBL(_sx) * (M_PI / 180);
+  sx = NUM2DBL(_sx) * RAD2PI;
   sy = 0.0;
-  if (!NIL_P(_sy)) sy = NUM2DBL(_sy) * (M_PI / 180);
+  if (!NIL_P(_sy)) sy = NUM2DBL(_sy) * RAD2PI;
 
   cairo_matrix_init(&matrix, 1.0, sy, sx, 1.0, 0.0, 0.0);
   cairo_matrix_multiply(canvas->tf, canvas->tf, &matrix);

@@ -11,10 +11,6 @@
 
 #include "shoes/config.h"
 
-#ifndef M_PI
-#define M_PI 3.1415926535897932384626433832795
-#endif
-
 //
 // place struct
 // (outlines the area where a control has been placed)

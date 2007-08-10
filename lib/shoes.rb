@@ -5,6 +5,12 @@
 #
 require 'open-uri'
 
+class Range 
+  def rand 
+    (Kernel.rand * (self.end - self.begin)) + self.begin 
+  end 
+end
+
 module Shoes
   @mounts = {}
 
