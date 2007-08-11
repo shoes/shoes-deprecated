@@ -942,6 +942,18 @@ shoes_canvas_memdraw(VALUE self, VALUE block)
   mfp_instance_eval(self, block);
 }
 
+void
+shoes_canvas_compute(VALUE self)
+{
+  SETUP();
+  if (canvas->cr != NULL)
+    cairo_destroy(canvas->cr);
+  canvas->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));;
+  shoes_canvas_draw(self, self);
+  cairo_destroy(canvas->cr);
+  canvas->cr = NULL;
+}
+
 static void
 shoes_canvas_insert(VALUE self, long i, long mod, VALUE ele, VALUE block)
 {

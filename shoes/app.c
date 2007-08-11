@@ -1164,6 +1164,7 @@ shoes_code
 shoes_app_goto(shoes_app *app, char *path)
 {
   shoes_app_visit(app, path);
+  shoes_canvas_compute(app->canvas);
   shoes_slot_repaint(&app->slot);
   shoes_app_cursor(app, s_arrow);
   return SHOES_OK;

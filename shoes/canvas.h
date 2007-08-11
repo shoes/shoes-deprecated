@@ -211,6 +211,7 @@ VALUE shoes_canvas_release(int, VALUE *, VALUE);
 VALUE shoes_canvas_motion(int, VALUE *, VALUE);
 VALUE shoes_canvas_keypress(int, VALUE *, VALUE);
 void shoes_canvas_repaint_all(VALUE);
+void shoes_canvas_compute(VALUE);
 VALUE shoes_canvas_goto(VALUE, VALUE);
 VALUE shoes_canvas_send_click(VALUE, int, int, int);
 void shoes_canvas_send_release(VALUE, int, int, int);
