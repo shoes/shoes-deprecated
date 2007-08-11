@@ -3,7 +3,7 @@ Shoes.app do
   animate(24) do |i|
     l.replace i.inspect
   end
-  # motion do |x, y|
-  #   Shoes.p [x, y]
-  # end
+  motion do |x, y|
+    Shoes.p [x, y]
+  end
 end

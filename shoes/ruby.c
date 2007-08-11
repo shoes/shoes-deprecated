@@ -1561,9 +1561,11 @@ shoes_anim_call(VALUE self)
 static gboolean
 shoes_anim_gtk_animate(gpointer data)
 {
-  shoes_anim *anim = (shoes_anim *)data;
+  VALUE anim = (VALUE)data;
+  shoes_anim *self_t;
+  Data_Get_Struct(anim, shoes_anim, self_t);
   shoes_anim_call(anim);
-  return anim->started;
+  return self_t->started;
 }
 #endif
 
@@ -1635,7 +1637,7 @@ shoes_anim_draw(VALUE self, VALUE c)
     if (interval < 41) interval = 41;
     self_t->frame = 0;
 #ifdef SHOES_GTK
-    g_timeout_add(interval, shoes_anim_gtk_animate, self_t);
+    g_timeout_add(interval, shoes_anim_gtk_animate, self);
 #endif
 #ifdef SHOES_WIN32
     long nid = rb_ary_index_of(canvas->app->timers, self);
