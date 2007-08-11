@@ -121,6 +121,16 @@ typedef struct {
 } shoes_control;
 
 //
+// animation struct
+//
+typedef struct {
+  VALUE block;
+  VALUE parent;
+  int fps, frame;
+  char started;
+} shoes_anim;
+
+//
 // temporary canvas (used internally for painting)
 //
 typedef struct {
@@ -173,6 +183,7 @@ VALUE shoes_canvas_star(int, VALUE *, VALUE);
 VALUE shoes_canvas_markup(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_background(int, VALUE *, VALUE);
 VALUE shoes_canvas_image(int, VALUE *, VALUE);
+VALUE shoes_canvas_animate(int, VALUE *, VALUE);
 VALUE shoes_canvas_imagesize(VALUE, VALUE);
 VALUE shoes_canvas_path(int, VALUE *, VALUE);
 void shoes_canvas_remove_item(VALUE, VALUE);
@@ -247,6 +258,11 @@ VALUE shoes_pattern_alloc(VALUE);
 VALUE shoes_pattern_remove(VALUE);
 VALUE shoes_pattern_draw(VALUE, VALUE);
 VALUE shoes_background_draw(VALUE, VALUE);
+
+VALUE shoes_anim_new(VALUE, VALUE, VALUE, VALUE);
+VALUE shoes_anim_alloc(VALUE);
+VALUE shoes_anim_draw(VALUE, VALUE);
+VALUE shoes_anim_remove(VALUE);
 
 VALUE shoes_link_new(VALUE, int, int);
 VALUE shoes_link_alloc(VALUE);

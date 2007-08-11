@@ -531,6 +531,18 @@ shoes_canvas_image(int argc, VALUE *argv, VALUE self)
 }
 
 VALUE
+shoes_canvas_animate(int argc, VALUE *argv, VALUE self)
+{
+  VALUE fps, block, anim;
+  SETUP();
+
+  rb_scan_args(argc, argv, "01&", &fps, &block);
+  anim = shoes_anim_new(cAnim, fps, block, self);
+  rb_ary_push(canvas->contents, anim);
+  return anim;
+}
+
+VALUE
 shoes_canvas_path(int argc, VALUE *argv, VALUE self)
 {
   VALUE _x, _y;

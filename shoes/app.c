@@ -35,6 +35,13 @@ shoes_app_free(shoes_app *app)
 }
 
 #ifdef SHOES_GTK
+static gboolean
+shoes_app_gtk_idle(gpointer data)
+{
+  rb_eval_string("sleep(0.01)");
+  return TRUE;
+}
+
 static void
 shoes_app_gtk_paint_children(GtkWidget *widget, gpointer data)
 {
@@ -1067,6 +1074,7 @@ shoes_app_loop(shoes_app *app, char *path)
 
 #ifdef SHOES_GTK
   gtk_widget_show_all(app->kit.window);
+  // g_idle_add(shoes_app_gtk_idle, app);
   gtk_main();
 #endif
 

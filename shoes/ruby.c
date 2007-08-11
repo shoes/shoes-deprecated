@@ -8,7 +8,7 @@
 #include "shoes/dialogs.h"
 #include "shoes/internal.h"
 
-VALUE mShoes, cCanvas, cFlow, cStack, cPath, cImage, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cLink;
+VALUE mShoes, cCanvas, cFlow, cStack, cPath, cImage, cAnim, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cLink;
 VALUE reRGB_SOURCE;
 ID s_aref, s_new, s_run, s_to_s, s_arrow, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_top, s_right, s_bottom, s_left, s_height, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
@@ -1544,6 +1544,88 @@ shoes_progress_draw(VALUE self, VALUE c)
   return self;
 }
 
+//
+// Shoes::Anim
+//
+#ifdef SHOES_GTK
+static gboolean
+shoes_anim_gtk_animate(gpointer data)
+{
+  shoes_anim *anim = (shoes_anim *)data;
+  shoes_safe_block(anim->parent, anim->block, rb_ary_new3(1, INT2NUM(anim->frame)));
+  anim->frame++;
+  return anim->started;
+}
+#endif
+
+static void
+shoes_anim_mark(shoes_anim *anim)
+{
+  rb_gc_mark_maybe(anim->block);
+  rb_gc_mark_maybe(anim->parent);
+}
+
+static void
+shoes_anim_free(shoes_anim *anim)
+{
+  free(anim);
+}
+
+VALUE
+shoes_anim_new(VALUE klass, VALUE fps, VALUE block, VALUE parent)
+{
+  shoes_anim *anim;
+  VALUE obj = shoes_anim_alloc(klass);
+  Data_Get_Struct(obj, shoes_anim, anim);
+  anim->block = block;
+  if (!NIL_P(fps))
+    anim->fps = NUM2INT(fps);
+  anim->parent = parent;
+  return obj;
+}
+
+VALUE
+shoes_anim_alloc(VALUE klass)
+{
+  shoes_anim *anim;
+  VALUE obj = Data_Make_Struct(klass, shoes_anim, shoes_anim_mark, shoes_anim_free, anim);
+  anim->block = Qnil;
+  anim->fps = 10;
+  anim->frame = 0;
+  anim->parent = Qnil;
+  anim->started = FALSE;
+  return obj;
+}
+
+VALUE
+shoes_anim_remove(VALUE self)
+{
+  shoes_anim *self_t;
+  Data_Get_Struct(self, shoes_anim, self_t);
+  self_t->started = FALSE;
+  shoes_canvas_remove_item(self_t->parent, self);
+  return self;
+}
+
+VALUE
+shoes_anim_draw(VALUE self, VALUE c)
+{
+  shoes_anim *self_t;
+  Data_Get_Struct(self, shoes_anim, self_t);
+  if (!self_t->started)
+  {
+    guint interval = 1000 / self_t->fps;
+    if (interval < 41) interval = 41;
+    printf("INTERVAL: %d\n", interval);
+    self_t->frame = 0;
+#ifdef SHOES_GTK
+    g_timeout_add(interval, shoes_anim_gtk_animate, self_t);
+#endif
+    self_t->started = TRUE;
+  }
+  return self;
+}
+
 static VALUE
 shoes_p(VALUE self, VALUE obj)
 {
@@ -1639,6 +1721,7 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "background", CASTHOOK(shoes_canvas_background), -1);
   rb_define_method(cCanvas, "image", CASTHOOK(shoes_canvas_image), -1);
   rb_define_method(cCanvas, "imagesize", CASTHOOK(shoes_canvas_imagesize), 1);
+  rb_define_method(cCanvas, "animate", CASTHOOK(shoes_canvas_animate), -1);
   rb_define_method(cCanvas, "path", CASTHOOK(shoes_canvas_path), -1);
   rb_define_method(cCanvas, "move_to", CASTHOOK(shoes_canvas_move_to), 2);
   rb_define_method(cCanvas, "line_to", CASTHOOK(shoes_canvas_line_to), 2);
@@ -1722,6 +1805,10 @@ shoes_ruby_init()
   rb_define_alloc_func(cProgress, shoes_control_alloc);
   rb_define_method(cProgress, "draw", CASTHOOK(shoes_progress_draw), 1);
   rb_define_method(cProgress, "remove", CASTHOOK(shoes_control_remove), 0);
+  cAnim    = rb_define_class_under(cCanvas, "Animation", rb_cObject);
+  rb_define_alloc_func(cAnim, shoes_anim_alloc);
+  rb_define_method(cAnim, "draw", CASTHOOK(shoes_anim_draw), 1);
+  rb_define_method(cAnim, "remove", CASTHOOK(shoes_anim_remove), 0);
 
   cColor   = rb_define_class_under(cCanvas, "Color", rb_cObject);
   cLink    = rb_define_class_under(cCanvas, "Link", rb_cObject);

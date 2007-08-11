@@ -17,7 +17,7 @@ typedef VALUE (*HOOK)(...);
 #define RSTRING_PTR(str) RSTRING(str)->ptr
 #endif
 
-extern VALUE mShoes, cCanvas, cFlow, cStack, cPath, cImage, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cLink;
+extern VALUE mShoes, cCanvas, cFlow, cStack, cPath, cImage, cAnim, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cLink;
 extern VALUE reRGB_SOURCE;
 extern ID s_aref, s_new, s_run, s_to_s, s_arrow, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_top, s_right, s_bottom, s_left, s_height, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 extern VALUE instance_eval_proc, exception_proc, exception_alert_proc;
