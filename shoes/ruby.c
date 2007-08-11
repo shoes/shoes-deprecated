@@ -1547,13 +1547,22 @@ shoes_progress_draw(VALUE self, VALUE c)
 //
 // Shoes::Anim
 //
+//
+void
+shoes_anim_call(VALUE self)
+{
+  shoes_anim *anim;
+  Data_Get_Struct(self, shoes_anim, anim);
+  shoes_safe_block(anim->parent, anim->block, rb_ary_new3(1, INT2NUM(anim->frame)));
+  anim->frame++;
+}
+
 #ifdef SHOES_GTK
 static gboolean
 shoes_anim_gtk_animate(gpointer data)
 {
   shoes_anim *anim = (shoes_anim *)data;
-  shoes_safe_block(anim->parent, anim->block, rb_ary_new3(1, INT2NUM(anim->frame)));
-  anim->frame++;
+  shoes_anim_call(anim);
   return anim->started;
 }
 #endif
@@ -1601,8 +1610,14 @@ VALUE
 shoes_anim_remove(VALUE self)
 {
   shoes_anim *self_t;
+  shoes_canvas *canvas;
   Data_Get_Struct(self, shoes_anim, self_t);
+  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
   self_t->started = FALSE;
+#ifdef SHOES_WIN32
+  long nid = rb_ary_index_of(canvas->app->timers, self);
+  KillTimer(canvas->slot.window, SHOES_CONTROL1 + nid);
+#endif
   shoes_canvas_remove_item(self_t->parent, self);
   return self;
 }
@@ -1624,7 +1639,7 @@ shoes_anim_draw(VALUE self, VALUE c)
 #endif
 #ifdef SHOES_WIN32
     long nid = rb_ary_index_of(canvas->app->timers, self);
-    SetTimer(canvas->slot.window, nid, interval, NULL);
+    SetTimer(canvas->slot.window, SHOES_CONTROL1 + nid, interval, NULL);
 #endif
     self_t->started = TRUE;
   }

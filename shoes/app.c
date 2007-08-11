@@ -757,6 +757,15 @@ shoes_app_win32proc(
         global_app->kit.shiftkey = false;
     break;
 
+    case WM_TIMER:
+    {
+      int id = LOWORD(w);
+      VALUE timer = rb_ary_entry(global_app->timers, id - SHOES_CONTROL1);
+      if (!NIL_P(timer))
+        shoes_anim_call(timer);
+    }
+    break;
+
     case WM_COMMAND:
       if ((HWND)l && HIWORD(w) == BN_CLICKED)
       {

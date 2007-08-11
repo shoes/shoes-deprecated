@@ -268,6 +268,7 @@ VALUE shoes_anim_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_anim_alloc(VALUE);
 VALUE shoes_anim_init(VALUE, VALUE);
 VALUE shoes_anim_remove(VALUE);
+void shoes_anim_call(VALUE);
 
 VALUE shoes_link_new(VALUE, int, int);
 VALUE shoes_link_alloc(VALUE);
