@@ -266,7 +266,7 @@ VALUE shoes_background_draw(VALUE, VALUE);
 
 VALUE shoes_anim_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_anim_alloc(VALUE);
-VALUE shoes_anim_draw(VALUE, VALUE);
+VALUE shoes_anim_init(VALUE, VALUE);
 VALUE shoes_anim_remove(VALUE);
 
 VALUE shoes_link_new(VALUE, int, int);

@@ -243,6 +243,7 @@ shoes_canvas_alloc(VALUE klass)
 {
   shoes_canvas *canvas = SHOE_ALLOC(shoes_canvas);
   SHOE_MEMZERO(canvas, shoes_canvas, 1);
+  canvas->app = NULL;
   canvas->width = 0;
   canvas->height = 0;
   canvas->grl = 1;
@@ -257,7 +258,7 @@ VALUE
 shoes_canvas_new(VALUE klass, shoes_app *app)
 {
   shoes_canvas *canvas;
-  VALUE self = shoes_canvas_alloc(cCanvas);
+  VALUE self = shoes_canvas_alloc(klass);
   Data_Get_Struct(self, shoes_canvas, canvas);
   canvas->app = app;
   return self;
@@ -283,7 +284,6 @@ shoes_canvas_clear(VALUE self)
   canvas->bg.on = TRUE;
   canvas->mode = s_center;
   canvas->parent = Qnil;
-  canvas->app = NULL;
   canvas->attr = Qnil;
   canvas->grl = 1;
   cairo_matrix_init_identity(canvas->gr);
@@ -911,6 +911,15 @@ shoes_canvas_draw(VALUE self, VALUE c)
     for (i = 0; i < RARRAY_LEN(self_t->contents); i++)
     {
       VALUE ele = rb_ary_entry(self_t->contents, i);
+      rb_funcall(ele, s_draw, 1, self);
+    }
+  }
+
+  if (self_t == canvas)
+  {
+    for (i = 0; i < RARRAY_LEN(self_t->app->timers); i++)
+    {
+      VALUE ele = rb_ary_entry(self_t->app->timers, i);
       rb_funcall(ele, s_draw, 1, self);
     }
   }

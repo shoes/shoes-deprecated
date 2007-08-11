@@ -14,7 +14,9 @@ shoes_app_new()
 {
   shoes_app *app = SHOE_ALLOC(shoes_app);
   app->canvas = shoes_canvas_new(cCanvas, app);
+  rb_gc_register_address(&app->canvas);
   app->timers = rb_ary_new();
+  rb_gc_register_address(&app->timers);
   app->width = SHOES_APP_WIDTH;
   app->height = SHOES_APP_HEIGHT;
 #ifdef SHOES_WIN32
@@ -31,6 +33,8 @@ shoes_app_free(shoes_app *app)
 #ifdef SHOES_QUARTZ
   TECDisposeConverter(app->kit.converter);
 #endif
+  rb_gc_unregister_address(&app->canvas);
+  rb_gc_unregister_address(&app->timers);
   if (app != NULL)
     SHOE_FREE(app);
 }
