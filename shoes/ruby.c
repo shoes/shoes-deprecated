@@ -1559,13 +1559,22 @@ shoes_anim_call(VALUE self)
 
 #ifdef SHOES_GTK
 static gboolean
-shoes_anim_gtk_animate(gpointer data)
+shoes_gtk_animate(gpointer data)
 {
   VALUE anim = (VALUE)data;
   shoes_anim *self_t;
   Data_Get_Struct(anim, shoes_anim, self_t);
   shoes_anim_call(anim);
   return self_t->started;
+}
+#endif
+
+#ifdef SHOES_QUARTZ
+pascal void
+shoes_quartz_animate(EventLoopTimerRef timer, void* userData)
+{
+  VALUE anim = (VALUE)userData;
+  shoes_anim_call(anim);
 }
 #endif
 
@@ -1637,7 +1646,12 @@ shoes_anim_draw(VALUE self, VALUE c)
     if (interval < 41) interval = 41;
     self_t->frame = 0;
 #ifdef SHOES_GTK
-    g_timeout_add(interval, shoes_anim_gtk_animate, self);
+    g_timeout_add(interval, shoes_gtk_animate, self);
+#endif
+#ifdef SHOES_QUARTZ
+  EventLoopTimerRef timer;
+  InstallEventLoopTimer(GetMainEventLoop(), 0.0, interval * kEventDurationMillisecond,
+      NewEventLoopTimerUPP(shoes_quartz_animate), self, &timer);
 #endif
 #ifdef SHOES_WIN32
     long nid = rb_ary_index_of(canvas->app->timers, self);

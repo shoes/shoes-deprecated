@@ -1010,10 +1010,6 @@ shoes_app_open(shoes_app *app)
 
   HIViewFindByID(HIViewGetRoot(app->kit.window), kHIViewWindowContentID, &app->slot.view);
 
-  // err = InstallEventLoopTimer(GetMainEventLoop(),
-  //   0.0, 1 * kEventDurationSecond, NewEventLoopTimerUPP(shoes_app_quartz_redraw),
-  //   app, &redrawTimer);
- 
   CFRelease(titleKey);
   CFRelease(windowTitle);
 #endif
