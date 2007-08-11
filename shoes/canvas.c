@@ -253,6 +253,16 @@ shoes_canvas_alloc(VALUE klass)
   return rb_canvas;
 }
 
+VALUE
+shoes_canvas_new(VALUE klass, shoes_app *app)
+{
+  shoes_canvas *canvas;
+  VALUE self = shoes_canvas_alloc(cCanvas);
+  Data_Get_Struct(self, shoes_canvas, canvas);
+  canvas->app = app;
+  return self;
+}
+
 void
 shoes_canvas_clear(VALUE self)
 {
@@ -273,6 +283,7 @@ shoes_canvas_clear(VALUE self)
   canvas->bg.on = TRUE;
   canvas->mode = s_center;
   canvas->parent = Qnil;
+  canvas->app = NULL;
   canvas->attr = Qnil;
   canvas->grl = 1;
   cairo_matrix_init_identity(canvas->gr);
@@ -538,7 +549,7 @@ shoes_canvas_animate(int argc, VALUE *argv, VALUE self)
 
   rb_scan_args(argc, argv, "01&", &fps, &block);
   anim = shoes_anim_new(cAnim, fps, block, self);
-  rb_ary_push(canvas->contents, anim);
+  rb_ary_push(canvas->app->timers, anim);
   return anim;
 }
 
@@ -820,13 +831,17 @@ shoes_canvas_contents(VALUE self)
 void
 shoes_canvas_remove_item(VALUE self, VALUE item)
 {
+  long i;
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
 #ifndef SHOES_GTK
-  long i = rb_ary_index_of(self_t->slot.controls, item);
+  i = rb_ary_index_of(self_t->slot.controls, item);
   if (i >= 0)
     rb_ary_insert_at(self_t->slot.controls, i, 1, Qnil);
 #endif
+  i = rb_ary_index_of(self_t->app->timers, item);
+  if (i >= 0)
+    rb_ary_insert_at(self_t->app->timers, i, 1, Qnil);
   rb_ary_delete(self_t->contents, item);
 }
 
@@ -1264,6 +1279,7 @@ shoes_slot_new(VALUE klass, VALUE attr, VALUE parent)
   self_t->cr = pc->cr;
   self_t->slot = pc->slot;
   self_t->parent = parent;
+  self_t->app = pc->app;
   self_t->attr = attr;
   if (!NIL_P(ATTR(self_t->attr, width)) && !NIL_P(ATTR(self_t->attr, height))) {
     int x, y, w, h;

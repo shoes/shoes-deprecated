@@ -1611,15 +1611,20 @@ VALUE
 shoes_anim_draw(VALUE self, VALUE c)
 {
   shoes_anim *self_t;
+  shoes_canvas *canvas;
   Data_Get_Struct(self, shoes_anim, self_t);
+  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
   if (!self_t->started)
   {
-    guint interval = 1000 / self_t->fps;
+    unsigned int interval = 1000 / self_t->fps;
     if (interval < 41) interval = 41;
-    printf("INTERVAL: %d\n", interval);
     self_t->frame = 0;
 #ifdef SHOES_GTK
     g_timeout_add(interval, shoes_anim_gtk_animate, self_t);
+#endif
+#ifdef SHOES_WIN32
+    long nid = rb_ary_index_of(canvas->app->timers, self);
+    SetTimer(canvas->slot.window, nid, interval, NULL);
 #endif
     self_t->started = TRUE;
   }

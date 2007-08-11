@@ -11,6 +11,8 @@
 
 #include "shoes/config.h"
 
+struct _shoes_app;
+
 //
 // place struct
 // (outlines the area where a control has been placed)
@@ -143,6 +145,7 @@ typedef struct {
   int grt;
   ID mode;
   VALUE contents;
+  VALUE timers;
   VALUE parent;
   VALUE attr;
   VALUE click, release,     // canvas-level event handlers
@@ -153,6 +156,7 @@ typedef struct {
   int fully, scrolly;       // since we often stack vertically
   int width, height;        // the full height and width used by this box
   shoes_place place;        // temporary storage of box placement
+  struct _shoes_app *app;
   APPSLOT slot;
 #ifdef SHOES_GTK
   GtkWidget *layout;
@@ -164,6 +168,7 @@ cairo_t *shoes_cairo_create(APPSLOT *, int, int, int);
 
 VALUE shoes_app_main(int, VALUE *, VALUE);
 VALUE shoes_canvas_alloc(VALUE);
+VALUE shoes_canvas_new(VALUE, struct _shoes_app *);
 void shoes_canvas_clear(VALUE);
 shoes_canvas *shoes_canvas_init(VALUE, APPSLOT, VALUE, int, int);
 void shoes_canvas_paint(VALUE);

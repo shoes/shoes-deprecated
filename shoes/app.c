@@ -13,7 +13,8 @@ shoes_app *
 shoes_app_new()
 {
   shoes_app *app = SHOE_ALLOC(shoes_app);
-  app->canvas = shoes_canvas_alloc(cCanvas);
+  app->canvas = shoes_canvas_new(cCanvas, app);
+  app->timers = rb_ary_new();
   app->width = SHOES_APP_WIDTH;
   app->height = SHOES_APP_HEIGHT;
 #ifdef SHOES_WIN32

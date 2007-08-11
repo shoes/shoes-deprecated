@@ -25,12 +25,13 @@
 //
 // abstract window struct
 //
-typedef struct {
+typedef struct _shoes_app {
   APPKIT kit;
   APPSLOT slot;
   int width, height;
   const char *path;
   VALUE canvas;
+  VALUE timers;
   ID cursor;
 } shoes_app;
 
