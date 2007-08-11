@@ -1,9 +1,9 @@
 Shoes.app do
-  l = edit_line
-  animate do |i|
-    l.text = i.inspect
+  l = text "0"
+  animate(24) do |i|
+    l.replace i.inspect
   end
   motion do |x, y|
-    p [x, y]
+    Shoes.p [x, y]
   end
 end
