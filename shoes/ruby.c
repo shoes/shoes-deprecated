@@ -1646,7 +1646,7 @@ shoes_anim_draw(VALUE self, VALUE c)
     if (interval < 41) interval = 41;
     self_t->frame = 0;
 #ifdef SHOES_GTK
-    g_timeout_add(interval, shoes_gtk_animate, self);
+    g_timeout_add(interval, shoes_gtk_animate, (gpointer)self);
 #endif
 #ifdef SHOES_QUARTZ
   EventLoopTimerRef timer;

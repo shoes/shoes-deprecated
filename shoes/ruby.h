@@ -55,7 +55,7 @@ void shoes_ruby_init(void);
 #define PX(attr, n, dn, pn)            shoes_px(attr, s_##n, dn, pn)
 #define PX2(attr, n1, n2, dn, dr, pn)  shoes_px2(attr, s_##n1, s_##n2, dn, dr, pn)
 #define ATTR2(typ, attr, n, dn)        shoes_hash_##typ(attr, s_##n, dn)
-#define ATTRSET(attr, k, v)            shoes_hash_set(attr, s_##k, v)
+#define ATTRSET(attr, k, v)            attr = shoes_hash_set(attr, s_##k, v)
 #define ATTR_MARGINS(attr, dm) \
   int margin = ATTR2(int, attr, margin, dm); \
   int lmargin = ATTR2(int, attr, margin_left, margin); \
