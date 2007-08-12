@@ -1126,10 +1126,19 @@ shoes_app_exception(VALUE rb_exec, VALUE e)
 shoes_code
 shoes_app_visit(shoes_app *app, char *path)
 {
+  long i;
   shoes_exec exec;
+  VALUE ary = rb_ary_dup(app->timers);
 #ifndef SHOES_GTK
   rb_ary_clear(app->slot.controls);
 #endif
+  for (i = 0; i < RARRAY_LEN(ary); i++) 
+  {
+    VALUE timer = rb_ary_entry(ary, i);
+    if (!NIL_P(timer))
+      rb_funcall(timer, s_remove, 0);
+  }
+
   shoes_canvas_clear(app->canvas);
   exec.block = rb_funcall(mShoes, s_run, 1, rb_str_new2(path));
   exec.canvas = app->canvas;

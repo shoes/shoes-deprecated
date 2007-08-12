@@ -10,7 +10,7 @@
 
 VALUE mShoes, cCanvas, cFlow, cStack, cPath, cImage, cAnim, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cLink;
 VALUE reRGB_SOURCE;
-ID s_aref, s_new, s_run, s_to_s, s_arrow, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_top, s_right, s_bottom, s_left, s_height, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
+ID s_aref, s_new, s_run, s_to_s, s_arrow, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -1720,6 +1720,7 @@ shoes_ruby_init()
   s_bottom = rb_intern("bottom");
   s_left = rb_intern("left");
   s_height = rb_intern("height");
+  s_remove = rb_intern("remove");
   s_width = rb_intern("width");
   s_margin = rb_intern("margin");
   s_margin_left = rb_intern("margin_left");
@@ -1793,6 +1794,7 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "quit", CASTHOOK(shoes_app_quit), 0);
   rb_define_method(cCanvas, "clear", CASTHOOK(shoes_canvas_clear_contents), -1);
   rb_define_method(cCanvas, "goto", CASTHOOK(shoes_canvas_goto), 1);
+  rb_define_method(cCanvas, "remove", CASTHOOK(shoes_canvas_remove), 0);
 
   cFlow    = rb_define_class_under(cCanvas, "Flow", cCanvas);
   cStack   = rb_define_class_under(cCanvas, "Stack", cCanvas);

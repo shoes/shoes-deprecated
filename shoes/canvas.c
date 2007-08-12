@@ -1054,7 +1054,7 @@ shoes_canvas_clear_contents(int argc, VALUE *argv, VALUE self)
   rb_scan_args(argc, argv, "0&", &block);
   ary = rb_ary_dup(canvas->contents);
   for (i = 0; i < RARRAY_LEN(ary); i++) 
-    shoes_canvas_remove_item(self, rb_ary_entry(ary, i));
+    rb_funcall(rb_ary_entry(ary, i), s_remove, 0);
   if (!NIL_P(block))
     shoes_canvas_memdraw(self, block);
   shoes_canvas_repaint_all(self);
