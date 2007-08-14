@@ -1006,6 +1006,7 @@ shoes_canvas_insert(VALUE self, long i, long mod, VALUE ele, VALUE block)
   shoes_canvas_memdraw(self, block);
   rb_ary_insert_at(ary, i + mod, 0, canvas->contents);
   canvas->contents = ary;
+  shoes_canvas_repaint_all(self);
 }
 
 VALUE
