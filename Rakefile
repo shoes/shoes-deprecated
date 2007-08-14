@@ -9,7 +9,6 @@ VERS = ENV['VERSION'] || "0.1"
 PKG = "#{NAME}-#{VERS}"
 
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
-
 CLEAN.include ["{bin,shoes}/#{BIN}", "dist"]
 
 # Guess the environment
@@ -40,6 +39,7 @@ def rewrite before, after
   end
 end
 
+DLEXT = Config::CONFIG['DLEXT']
 ruby_so = Config::CONFIG['RUBY_SO_NAME']
 ext_ruby = "deps/ruby"
 unless File.exists? ext_ruby
@@ -221,17 +221,21 @@ else
     mkdir_p "dist"
   end
 
-  task "dist/#{NAME}" => OBJ do |t|
+  task "dist/#{NAME}" => "dist/lib#{NAME}.#{DLEXT}" do |t|
     bin = "#{t.name}-bin"
     rm_f t.name
     rm_f bin
-    sh "#{CC} -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB} -o #{bin} #{OBJ.join(' ')} #{LINUX_LIBS}"
+    sh "#{CC} -Ldist -o #{bin} -lshoes"
     case PLATFORM when /darwin/
       mv bin, t.name
     else
       sh "echo 'LD_LIBRARY_PATH=. ./#{File.basename(bin)} $@' > #{t.name}"
       chmod 0755, t.name
     end
+  end
+
+  task "dist/lib#{NAME}.#{DLEXT}" => OBJ do |t|
+    sh "#{CC} -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB} -shared -o #{t.name} #{OBJ.join(' ')} #{LINUX_LIBS}"
   end
 
   rule ".o" => ".mm" do |t|
