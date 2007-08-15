@@ -231,7 +231,8 @@ else
     case PLATFORM when /darwin/
       mv bin, t.name
     else
-      sh "echo 'LD_LIBRARY_PATH=. ./#{File.basename(bin)} $@' > #{t.name}"
+      sh %{echo 'APPPATH="${0%/*}"' > #{t.name}}
+      sh %{echo 'LD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} $@' >> #{t.name}}
       chmod 0755, t.name
     end
   end
