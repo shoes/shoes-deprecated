@@ -47,7 +47,7 @@ module Shoes
       tmpdir = "%s/shoes-%s.%d" % [Dir.tmpdir, base, $$]
       shy = Shy.x(path, tmpdir)
       Dir.chdir(tmpdir)
-      Shoes.p "Loaded SHY: #{shy.name} #{shy.version} by #{shy.creator}"
+      Shoes.debug "Loaded SHY: #{shy.name} #{shy.version} by #{shy.creator}"
       path = shy.launch
     end
     eval(File.read(path))

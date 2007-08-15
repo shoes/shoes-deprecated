@@ -1,4 +1,6 @@
 #!/bin/bash
 APPPATH="${0%/*}"
 cd $APPPATH
-DYLD_LIBRARY_PATH=. PANGO_RC_FILE=pangorc ./shoes "$@"
+echo "[Pango]" > pangorc
+echo "ModuleFiles=$APPPATH/pango.modules" >> pangorc
+DYLD_LIBRARY_PATH=$APPPATH PANGO_RC_FILE=$APPPATH/pangorc ./shoes "$@"

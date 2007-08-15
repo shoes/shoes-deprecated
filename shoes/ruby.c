@@ -1728,15 +1728,20 @@ shoes_anim_draw(VALUE self, VALUE c)
 }
 
 static VALUE
-shoes_p(VALUE self, VALUE obj)
+shoes_debug(VALUE self, VALUE str)
 {
-  VALUE str = rb_inspect(obj);
 #ifdef SHOES_WIN32
   odprintf("%s\n", RSTRING_PTR(str));
 #else
   printf("%s\n", RSTRING_PTR(str));
 #endif
   return Qnil;
+}
+
+static VALUE
+shoes_p(VALUE self, VALUE obj)
+{
+  return shoes_debug(self, rb_inspect(obj));
 }
 
 #define C(n, s) \
@@ -1804,6 +1809,7 @@ shoes_ruby_init()
 
   rb_define_singleton_method(mShoes, "app", CASTHOOK(shoes_app_main), -1);
   rb_define_singleton_method(mShoes, "p", CASTHOOK(shoes_p), 1);
+  rb_define_singleton_method(mShoes, "debug", CASTHOOK(shoes_debug), 1);
   cCanvas = rb_define_class("Canvas", rb_cObject);
   rb_define_alloc_func(cCanvas, shoes_canvas_alloc);
   rb_define_method(cCanvas, "width", CASTHOOK(shoes_canvas_get_width), 0);
