@@ -4,6 +4,7 @@
 # using Shoes.
 #
 require 'open-uri'
+require 'shoes/shy'
 
 class Range 
   def rand 
@@ -40,7 +41,15 @@ module Shoes
   end
 
   def self.load(path)
-    path.gsub!(/\\/, "/")
+    path = File.expand_path(path.gsub(/\\/, "/"))
+    if path =~ /\.shy$/
+      base = File.basename(path, ".shy")
+      tmpdir = "%s/shoes-%s.%d" % [Dir.tmpdir, base, $$]
+      shy = Shy.x(path, tmpdir)
+      Dir.chdir(tmpdir)
+      Shoes.p "Loaded SHY: #{shy.name} #{shy.version} by #{shy.creator}"
+      path = shy.launch
+    end
     eval(File.read(path))
   end
 end

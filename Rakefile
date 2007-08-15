@@ -40,7 +40,6 @@ def rewrite before, after
 end
 
 ruby_so = Config::CONFIG['RUBY_SO_NAME']
-DLEXT = Config::CONFIG['LIBRUBY_SO'][/\.(\w+)$/, 1]
 ext_ruby = "deps/ruby"
 unless File.exists? ext_ruby
   ext_ruby = Config::CONFIG['prefix']
@@ -207,9 +206,11 @@ else
 
   LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
   case PLATFORM when /darwin/
+    DLEXT = "dylib"
     LINUX_CFLAGS << " -DSHOES_QUARTZ -g -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings"
     LINUX_LDFLAGS = "-framework Carbon -dynamiclib -Wl,-single_module"
   else
+    DLEXT = "so"
     LINUX_CFLAGS << " -DSHOES_GTK #{`pkg-config --cflags gtk+-2.0`.strip}"
     LINUX_LDFLAGS =" #{`pkg-config --libs gtk+-2.0`.strip} -shared"
   end
