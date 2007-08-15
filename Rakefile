@@ -39,8 +39,8 @@ def rewrite before, after
   end
 end
 
-DLEXT = Config::CONFIG['DLEXT']
 ruby_so = Config::CONFIG['RUBY_SO_NAME']
+DLEXT = Config::CONFIG['LIBRUBY_SO'][/\.(\w+)$/, 1]
 ext_ruby = "deps/ruby"
 unless File.exists? ext_ruby
   ext_ruby = Config::CONFIG['prefix']
@@ -208,10 +208,10 @@ else
   LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
   case PLATFORM when /darwin/
     LINUX_CFLAGS << " -DSHOES_QUARTZ -g -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings"
-    LINUX_LIBS << " -framework Carbon"
+    LINUX_LDFLAGS = "-framework Carbon -dynamiclib -Wl,-single_module"
   else
     LINUX_CFLAGS << " -DSHOES_GTK #{`pkg-config --cflags gtk+-2.0`.strip}"
-    LINUX_LIBS << " #{`pkg-config --libs gtk+-2.0`.strip}"
+    LINUX_LDFLAGS =" #{`pkg-config --libs gtk+-2.0`.strip} -shared"
   end
 
   task :build_os => [:buildenv_linux, "dist/#{NAME}"]
@@ -221,11 +221,13 @@ else
     mkdir_p "dist"
   end
 
+  LINUX_LIBS << " -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB}"
+
   task "dist/#{NAME}" => "dist/lib#{NAME}.#{DLEXT}" do |t|
     bin = "#{t.name}-bin"
     rm_f t.name
     rm_f bin
-    sh "#{CC} -Ldist -o #{bin} -lshoes"
+    sh "#{CC} -Ldist -o #{bin} -lshoes #{LINUX_LIBS}"
     case PLATFORM when /darwin/
       mv bin, t.name
     else
@@ -235,7 +237,7 @@ else
   end
 
   task "dist/lib#{NAME}.#{DLEXT}" => OBJ do |t|
-    sh "#{CC} -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB} -shared -o #{t.name} #{OBJ.join(' ')} #{LINUX_LIBS}"
+    sh "#{CC} -o #{t.name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
   end
 
   rule ".o" => ".mm" do |t|

@@ -1586,10 +1586,8 @@ shoes_progress_draw(VALUE self, VALUE c)
 
 #ifdef SHOES_QUARTZ
     Rect r;
-    CFStringRef cfmsg = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
     SetRect(&r, place.x, place.y, place.x + place.w, place.y + place.h);
-    CreatePushButtonControl(NULL, &r, cfmsg, &self_t->ref);
-    CFRelease(cfmsg);
+    CreateProgressBarControl(NULL, &r, 0, 0, 100, false, &self_t->ref);
 #endif
 
 #ifdef SHOES_WIN32
