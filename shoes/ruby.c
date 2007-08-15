@@ -318,6 +318,10 @@ shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, double r)
 #ifdef SHOES_GTK
 #define HEIGHT_PAD 0
 
+#define GTK_CHILD(child, ptr) \
+  GList *children = gtk_container_get_children(GTK_CONTAINER(ptr)); \
+  child = children->data
+
 #define PLACE_CONTROL() \
   gtk_widget_set_size_request(self_t->ref, place.w, place.h); \
   gtk_layout_put(GTK_LAYOUT(canvas->slot.canvas), self_t->ref, place.x, place.y); \
@@ -1337,20 +1341,83 @@ shoes_edit_line_draw(VALUE self, VALUE c)
   return self;
 }
 
+VALUE
+shoes_edit_box_get_text(VALUE self)
+{
+  VALUE text;
+  shoes_control *self_t;
+  Data_Get_Struct(self, shoes_control, self_t);
+  if (self_t->ref == NULL) text = Qnil;
+#ifdef SHOES_GTK
+  GtkWidget *textview;
+  GTK_CHILD(textview, self_t->ref);
+  GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
+  GtkTextIter begin, end;
+  gtk_text_buffer_get_bounds(buffer, &begin, &end);
+  text = rb_str_new2(gtk_text_buffer_get_text(buffer, &begin, &end, TRUE));
+#endif
+#ifdef SHOES_WIN32
+  LONG i;
+  TCHAR *buffer;
+  i = (LONG)SendMessage(self_t->ref, WM_GETTEXTLENGTH, 0, 0) + 1;
+  buffer = SHOE_ALLOC_N(TCHAR, i);
+  SendMessage(self_t->ref, WM_GETTEXT, i, (LPARAM)buffer);
+  text = rb_str_new2(buffer);
+  SHOE_FREE(buffer);
+#endif
+#ifdef SHOES_QUARTZ
+  CFStringRef controlText;
+  Size* size = NULL;
+  GetControlData(self_t->ref, kControlEditTextPart, kControlEditTextCFStringTag, sizeof (CFStringRef), &controlText, size);
+  text = shoes_cf2rb(controlText);
+  CFRelease(controlText);
+#endif
+  return text;
+}
+
+VALUE
+shoes_edit_box_set_text(VALUE self, VALUE text)
+{
+  char *msg = "";
+  shoes_control *self_t;
+  Data_Get_Struct(self, shoes_control, self_t);
+  if (!NIL_P(text)) msg = RSTRING_PTR(text);
+#ifdef SHOES_GTK
+  GtkWidget *textview;
+  GTK_CHILD(textview, self_t->ref);
+  GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
+  gtk_text_buffer_set_text(buffer, _(msg), -1);
+#endif
+#ifdef SHOES_WIN32
+  SendMessage(self_t->ref, WM_SETTEXT, 0, (LPARAM)msg);
+#endif
+#ifdef SHOES_QUARTZ
+  CFStringRef controlText = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
+  SetControlData(self_t->ref, kControlEditTextPart, kControlEditTextCFStringTag, sizeof (CFStringRef), &controlText);
+  CFRelease(controlText);
+#endif
+  return text;
+}
+
 
 VALUE
 shoes_edit_box_draw(VALUE self, VALUE c)
 {
-  SETUP_CONTROL(0);
+  SETUP_CONTROL(80);
 
   if (self_t->ref == NULL)
   {
 
 #ifdef SHOES_GTK
     GtkTextBuffer *buffer;
-    self_t->ref = gtk_text_view_new();
-    buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(self_t->ref));
+    GtkWidget* textview = gtk_text_view_new();
+    buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
     gtk_text_buffer_set_text(buffer, _(msg), -1);
+    self_t->ref = gtk_scrolled_window_new(NULL, NULL);
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(self_t->ref),
+                                   GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+    gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(self_t->ref), GTK_SHADOW_IN);
+    gtk_container_add(GTK_CONTAINER(self_t->ref), textview);
 #endif
 
 #ifdef SHOES_QUARTZ
@@ -1832,6 +1899,8 @@ shoes_ruby_init()
   rb_define_method(cEditLine, "remove", CASTHOOK(shoes_control_remove), 0);
   cEditBox  = rb_define_class_under(cCanvas, "EditBox", rb_cObject);
   rb_define_alloc_func(cEditBox, shoes_control_alloc);
+  rb_define_method(cEditBox, "text", CASTHOOK(shoes_edit_box_get_text), 0);
+  rb_define_method(cEditBox, "text=", CASTHOOK(shoes_edit_box_set_text), 1);
   rb_define_method(cEditBox, "draw", CASTHOOK(shoes_edit_box_draw), 1);
   rb_define_method(cEditBox, "remove", CASTHOOK(shoes_control_remove), 0);
   cListBox  = rb_define_class_under(cCanvas, "ListBox", rb_cObject);
