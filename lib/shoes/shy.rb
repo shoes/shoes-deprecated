@@ -16,7 +16,7 @@ class Shy
   attr_accessor :name, :creator, :version, :launch
 
   def self.x(path, d = ".")
-    File.open(path) do |f|
+    File.open(path, 'rb') do |f|
       hdr = f.read(10).unpack(LAYOUT)
       raise IOError, "Invalid header" if hdr[0] != MAGIC and hdr[1] > VERSION
       shy = YAML.load(f.read(hdr[2]))
