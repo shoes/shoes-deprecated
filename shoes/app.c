@@ -1156,6 +1156,7 @@ shoes_app_paint(shoes_app *app)
 shoes_code
 shoes_app_motion(shoes_app *app, int x, int y)
 {
+  app->mousex = x; app->mousey = y;
   shoes_canvas_send_motion(app->canvas, x, y);
   return SHOES_OK;
 }

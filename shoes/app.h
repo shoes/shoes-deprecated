@@ -28,7 +28,7 @@
 typedef struct _shoes_app {
   APPKIT kit;
   APPSLOT slot;
-  int width, height;
+  int width, height, mousex, mousey;
   const char *path;
   VALUE canvas;
   VALUE timers;
