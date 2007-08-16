@@ -47,6 +47,34 @@ shoes_app_gtk_idle(gpointer data)
   return TRUE;
 }
 
+static gboolean
+shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
+{ 
+  GdkModifierType state;
+  shoes_app *app = (shoes_app *)data;
+  if (!event->is_hint)
+  {
+    state = (GdkModifierType)event->state;
+    shoes_app_motion(app, (int)event->x, (int)event->y);
+  }
+  return TRUE;
+}
+
+static gboolean
+shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, gpointer data)
+{ 
+  shoes_app *app = (shoes_app *)data;
+  if (event->type == GDK_BUTTON_PRESS)
+  {
+    shoes_app_click(app, event->button, event->x, event->y);
+  }
+  else if (event->type == GDK_BUTTON_RELEASE)
+  {
+    shoes_app_release(app, event->button, event->x, event->y);
+  }
+  return TRUE;
+}
+
 static void
 shoes_app_gtk_paint_children(GtkWidget *widget, gpointer data)
 {
@@ -937,6 +965,12 @@ shoes_app_open(shoes_app *app)
   gtk_window_set_title(GTK_WINDOW(gk->window), _(SHOES_APPNAME));
   g_signal_connect(G_OBJECT(gk->window), "expose-event",
                     G_CALLBACK(shoes_app_gtk_paint), app);
+  g_signal_connect(G_OBJECT(gk->window), "motion-notify-event",
+                   G_CALLBACK(shoes_app_gtk_motion), app);
+  g_signal_connect(G_OBJECT(gk->window), "button-press-event",
+                   G_CALLBACK(shoes_app_gtk_button), app);
+  g_signal_connect(G_OBJECT(gk->window), "button-release-event",
+                   G_CALLBACK(shoes_app_gtk_button), app);
   g_signal_connect(G_OBJECT(gk->window), "delete-event",
                    G_CALLBACK(gtk_main_quit), NULL);
   g_signal_connect(G_OBJECT(gk->window), "key-press-event",
