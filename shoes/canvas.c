@@ -1206,8 +1206,8 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
   }
 }
 
-void
-shoes_canvas_send_motion(VALUE self, int x, int y)
+VALUE
+shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
 {
   long i;
   shoes_canvas *self_t;
@@ -1226,14 +1226,20 @@ shoes_canvas_send_motion(VALUE self, int x, int y)
       VALUE ele = rb_ary_entry(self_t->contents, i);
       if (rb_obj_is_kind_of(ele, cCanvas))
       {
-        shoes_canvas_send_motion(ele, x, y);
+        url = shoes_canvas_send_motion(ele, x, y, url);
       }
       else if (rb_obj_class(ele) == cTextClass)
       {
-        shoes_text_motion(ele, x, y);
+        if (NIL_P(url))
+          url = shoes_text_motion(ele, x, y);
       }
     }
+
+    if (NIL_P(url))
+      shoes_app_cursor(global_app, s_arrow);
   }
+
+  return url;
 }
 
 void

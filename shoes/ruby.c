@@ -984,6 +984,19 @@ shoes_text_set_markup(VALUE self, VALUE markup)
   return self;
 }
 
+static char
+shoes_text_is_here(VALUE self, int x, int y)
+{
+  shoes_text *self_t;
+  int index, trailing, i;
+  Data_Get_Struct(self, shoes_text, self_t);
+  if (self_t->layout == NULL) return Qnil;
+
+  x -= self_t->place.x;
+  y -= self_t->place.y;
+  return pango_layout_xy_to_index(self_t->layout, x * PANGO_SCALE, y * PANGO_SCALE, &index, &trailing);
+}
+
 static VALUE
 shoes_text_hover(VALUE self, int x, int y)
 {
@@ -1012,19 +1025,21 @@ shoes_text_hover(VALUE self, int x, int y)
 VALUE
 shoes_text_motion(VALUE self, int x, int y)
 {
-  VALUE url = shoes_text_hover(self, x, y);
-  if (!NIL_P(url))
-    shoes_app_cursor(global_app, s_hand);
-  else
-    shoes_app_cursor(global_app, s_arrow);
-  return url;
+  if (shoes_text_is_here(self, x, y))
+  {
+    VALUE url = shoes_text_hover(self, x, y);
+    if (!NIL_P(url))
+      shoes_app_cursor(global_app, s_hand);
+    return url;
+  }
+  return Qnil;
 }
 
 VALUE
 shoes_text_click(VALUE self, int button, int x, int y)
 {
   if (button == 1)
-    return shoes_text_motion(self, x, y);
+    return shoes_text_hover(self, x, y);
 
   return Qnil;
 }
