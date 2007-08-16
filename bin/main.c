@@ -24,6 +24,8 @@ main(argc, argv)
   app->kit.style = style;
   if (arg != NULL && strlen(arg) > 0)
     uri = arg;
+  app->path = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
+  GetModuleFileName(NULL, (LPSTR)app->path, SHOES_BUFSIZE);
 #else
   app->path = argv[0];
   if (argc > 1)
@@ -33,6 +35,9 @@ main(argc, argv)
   shoes_app_open(app);
   shoes_app_loop(app, "/");
   shoes_app_close(app);
+#ifdef SHOES_WIN32
+  SHOE_FREE(app->path);
+#endif
   shoes_app_free(app);
   return 0;
 }

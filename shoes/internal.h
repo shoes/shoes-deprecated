@@ -9,7 +9,7 @@
 #define SHOE_REALLOC_N(V, T, N)     (V)=(T *)realloc((char*)(V), sizeof(T)*(N))
 #define SHOE_ALLOC_N(T, N)          (T *)malloc(sizeof(T) * N)
 #define SHOE_ALLOC(T)               (T *)malloc(sizeof(T))
-#define SHOE_FREE(T)                free(T)
+#define SHOE_FREE(T)                free((void*)T)
 
 #define SHOE_MEMZERO(p,type,n)      memset((p), 0, sizeof(type)*(n))
 #define SHOE_MEMCPY(p1,p2,type,n)   memcpy((p1), (p2), sizeof(type)*(n))
