@@ -222,6 +222,7 @@ VALUE shoes_canvas_stack(int, VALUE *, VALUE);
 VALUE shoes_canvas_hide(VALUE);
 VALUE shoes_canvas_show(VALUE);
 VALUE shoes_canvas_toggle(VALUE);
+VALUE shoes_canvas_mouse(VALUE);
 VALUE shoes_canvas_click(int, VALUE *, VALUE);
 VALUE shoes_canvas_release(int, VALUE *, VALUE);
 VALUE shoes_canvas_motion(int, VALUE *, VALUE);

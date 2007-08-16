@@ -1190,6 +1190,19 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y)
 }
 
 VALUE
+shoes_canvas_mouse(VALUE self)
+{
+  int x = 0, y = 0, button = 0;
+  shoes_canvas *self_t;
+  Data_Get_Struct(self, shoes_canvas, self_t);
+#ifdef SHOES_GTK
+  GdkModifierType mask;
+  gdk_window_get_pointer(gtk_widget_get_parent_window(self_t->app->kit.window), &x, &y, &mask);
+#endif
+  return rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y));
+}
+
+VALUE
 shoes_canvas_goto(VALUE self, VALUE url)
 {
   shoes_app_goto(global_app, RSTRING_PTR(url));
