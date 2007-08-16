@@ -238,6 +238,7 @@ shoes_canvas_clear(VALUE self)
   if (canvas->cr != NULL)
     cairo_destroy(canvas->cr);
   canvas->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));;
+  canvas->sw = 1.;
   canvas->fg.r = 0.;
   canvas->fg.g = 0.;
   canvas->fg.b = 0.;
