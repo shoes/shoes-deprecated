@@ -212,7 +212,7 @@ else
   else
     DLEXT = "so"
     LINUX_CFLAGS << " -DSHOES_GTK #{`pkg-config --cflags gtk+-2.0`.strip}"
-    LINUX_LDFLAGS =" #{`pkg-config --libs gtk+-2.0`.strip} -shared"
+    LINUX_LDFLAGS =" #{`pkg-config --libs gtk+-2.0`.strip} -fPIC -shared"
   end
 
   task :build_os => [:buildenv_linux, "dist/#{NAME}"]
