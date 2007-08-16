@@ -1675,7 +1675,7 @@ shoes_anim_alloc(VALUE klass)
   shoes_anim *anim;
   VALUE obj = Data_Make_Struct(klass, shoes_anim, shoes_anim_mark, shoes_anim_free, anim);
   anim->block = Qnil;
-  anim->fps = 10;
+  anim->fps = 12;
   anim->frame = 0;
   anim->parent = Qnil;
   anim->started = FALSE;
@@ -1708,7 +1708,7 @@ shoes_anim_draw(VALUE self, VALUE c)
   if (!self_t->started)
   {
     unsigned int interval = 1000 / self_t->fps;
-    if (interval < 41) interval = 41;
+    if (interval < 32) interval = 32;
     self_t->frame = 0;
 #ifdef SHOES_GTK
     g_timeout_add(interval, shoes_gtk_animate, (gpointer)self);
