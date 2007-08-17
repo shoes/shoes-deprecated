@@ -234,6 +234,8 @@ VALUE shoes_canvas_send_click(VALUE, int, int, int);
 void shoes_canvas_send_release(VALUE, int, int, int);
 VALUE shoes_canvas_send_motion(VALUE, int, int, VALUE);
 void shoes_canvas_send_keypress(VALUE, VALUE);
+
+VALUE shoes_slot_new(VALUE, VALUE, VALUE);
 VALUE shoes_flow_new(VALUE, VALUE);
 VALUE shoes_stack_new(VALUE, VALUE);
 

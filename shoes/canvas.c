@@ -1259,7 +1259,7 @@ shoes_canvas_send_keypress(VALUE self, VALUE key)
   }
 }
 
-static VALUE
+VALUE
 shoes_slot_new(VALUE klass, VALUE attr, VALUE parent)
 {
   int margin;

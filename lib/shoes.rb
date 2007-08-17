@@ -12,8 +12,8 @@ class Range
   end 
 end
 
-module Shoes
-  @mounts = {}
+class Shoes
+  @mounts = []
 
   NoScript = proc do
     script = ask_open_file
@@ -22,21 +22,28 @@ module Shoes
   end
 
   NotFound = proc do
-    text "No script was launched.\n\nTry running: shoes samples/timer.rb"
+    text "404 NOT FOUND, GUYS!"
   end
  
-  def self.mount(path, &blk)
-    @mounts[path] = blk
+  def self.mount(path, meth, &blk)
+    @mounts << [path, meth || blk]
   end
 
   def self.run(path)
     uri = URI(path)
+    @mounts.each do |mpath, rout|
+      m, *args = *path.match(/^#{mpath}$/)
+      if m
+        unless rout.is_a? Proc
+          rout = rout[0].instance_method(rout[1])
+        end
+        return [rout, args]
+      end
+    end
     if uri.path == "/"
-      @main_app or NoScript
-    elsif @mounts.has_key? path
-      @mounts[path]
+      [@main_app || NoScript]
     else
-      NotFound
+      [NotFound]
     end
   end
 
@@ -51,5 +58,9 @@ module Shoes
       path = shy.launch
     end
     eval(File.read(path))
+  end
+
+  def self.url(path, meth)
+    Shoes.mount(path, [self, meth])
   end
 end

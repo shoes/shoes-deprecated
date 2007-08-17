@@ -1,5 +1,5 @@
 size = 60
-xspeed, yspeed = 2.8, 2.2
+xspeed, yspeed = 8.4, 6.6
 xdir, ydir = 1, 1
 
 Shoes.app do

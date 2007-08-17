@@ -8,9 +8,9 @@
 #include "shoes/dialogs.h"
 #include "shoes/internal.h"
 
-VALUE mShoes, cCanvas, cFlow, cStack, cPath, cImage, cAnim, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cLink;
+VALUE cShoes, cCanvas, cFlow, cStack, cPath, cImage, cAnim, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cLink;
 VALUE reRGB_SOURCE;
-ID s_aref, s_new, s_run, s_to_s, s_arrow, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
+ID s_aref, s_bind, s_new, s_run, s_to_s, s_arrow, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -1761,7 +1761,7 @@ shoes_p(VALUE self, VALUE obj)
 
 #define C(n, s) \
   re##n = rb_eval_string(s); \
-  rb_const_set(mShoes, rb_intern("" # n), re##n);
+  rb_const_set(cShoes, rb_intern("" # n), re##n);
 
 //
 // Everything exposed to Ruby is exposed here.
@@ -1783,6 +1783,7 @@ shoes_ruby_init()
   exception_alert_proc = rb_eval_string(EXC_ALERT);
   rb_gc_register_address(&exception_alert_proc);
   s_aref = rb_intern("[]=");
+  s_bind = rb_intern("bind");
   s_new = rb_intern("new");
   s_run = rb_intern("run");
   s_to_s = rb_intern("to_s");
@@ -1814,7 +1815,10 @@ shoes_ruby_init()
   s_margin_bottom = rb_intern("margin_bottom");
   s_radius = rb_intern("radius");
 
-  mShoes = rb_define_module("Shoes");
+  cCanvas = rb_define_class("Canvas", rb_cObject);
+  rb_define_alloc_func(cCanvas, shoes_canvas_alloc);
+
+  cShoes = rb_define_class("Shoes", cCanvas);
   C(RGB_SOURCE, "/^rgb\\((\\d+), *(\\d+), *(\\d+)\\)$/i");
   rb_eval_string(
     "def Shoes.escape(string);"
@@ -1822,14 +1826,12 @@ shoes_ruby_init()
     "end"
   );
 
-  rb_define_singleton_method(mShoes, "app", CASTHOOK(shoes_app_main), -1);
-  rb_define_singleton_method(mShoes, "p", CASTHOOK(shoes_p), 1);
-  rb_define_singleton_method(mShoes, "debug", CASTHOOK(shoes_debug), 1);
-  cCanvas = rb_define_class("Canvas", rb_cObject);
-  rb_define_alloc_func(cCanvas, shoes_canvas_alloc);
+  rb_define_singleton_method(cShoes, "app", CASTHOOK(shoes_app_main), -1);
+  rb_define_singleton_method(cShoes, "p", CASTHOOK(shoes_p), 1);
+  rb_define_singleton_method(cShoes, "debug", CASTHOOK(shoes_debug), 1);
+
   rb_define_method(cCanvas, "width", CASTHOOK(shoes_canvas_get_width), 0);
   rb_define_method(cCanvas, "height", CASTHOOK(shoes_canvas_get_height), 0);
-
   rb_define_method(cCanvas, "nostroke", CASTHOOK(shoes_canvas_nostroke), 0);
   rb_define_method(cCanvas, "stroke", CASTHOOK(shoes_canvas_stroke), -1);
   rb_define_method(cCanvas, "strokewidth", CASTHOOK(shoes_canvas_strokewidth), 1);
@@ -1883,62 +1885,62 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "remove", CASTHOOK(shoes_canvas_remove), 0);
   rb_define_method(cCanvas, "mouse", CASTHOOK(shoes_canvas_mouse), 0);
 
-  cFlow    = rb_define_class_under(cCanvas, "Flow", cCanvas);
-  cStack   = rb_define_class_under(cCanvas, "Stack", cCanvas);
+  cFlow    = rb_define_class_under(cShoes, "Flow", cCanvas);
+  cStack   = rb_define_class_under(cShoes, "Stack", cCanvas);
 
-  cPath    = rb_define_class_under(cCanvas, "Path", rb_cObject);
+  cPath    = rb_define_class_under(cShoes, "Path", rb_cObject);
   rb_define_alloc_func(cPath, shoes_path_alloc);
   rb_define_method(cPath, "draw", CASTHOOK(shoes_path_draw), 1);
   rb_define_method(cPath, "move", CASTHOOK(shoes_path_move), 2);
   rb_define_method(cPath, "remove", CASTHOOK(shoes_path_remove), 0);
 
-  cImage    = rb_define_class_under(cCanvas, "Image", rb_cObject);
+  cImage    = rb_define_class_under(cShoes, "Image", rb_cObject);
   rb_define_alloc_func(cImage, shoes_image_alloc);
   rb_define_method(cImage, "draw", CASTHOOK(shoes_image_draw), 1);
   rb_define_method(cImage, "remove", CASTHOOK(shoes_image_remove), 0);
-  cBackground = rb_define_class_under(cCanvas, "Background", rb_cObject);
+  cBackground = rb_define_class_under(cShoes, "Background", rb_cObject);
   rb_define_alloc_func(cBackground, shoes_image_alloc);
   rb_define_method(cBackground, "draw", CASTHOOK(shoes_background_draw), 1);
   rb_define_method(cBackground, "remove", CASTHOOK(shoes_pattern_remove), 0);
-  cTextClass = rb_define_class_under(cCanvas, "Text", rb_cObject);
+  cTextClass = rb_define_class_under(cShoes, "Text", rb_cObject);
   rb_define_alloc_func(cTextClass, shoes_text_alloc);
   rb_define_method(cTextClass, "draw", CASTHOOK(shoes_text_draw), 1);
   rb_define_method(cTextClass, "remove", CASTHOOK(shoes_text_remove), 0);
   rb_define_method(cTextClass, "to_s", CASTHOOK(shoes_text_get_markup), 0);
   rb_define_method(cTextClass, "replace", CASTHOOK(shoes_text_set_markup), 1);
 
-  cButton  = rb_define_class_under(cCanvas, "Button", rb_cObject);
+  cButton  = rb_define_class_under(cShoes, "Button", rb_cObject);
   rb_define_alloc_func(cButton, shoes_control_alloc);
   rb_define_method(cButton, "draw", CASTHOOK(shoes_button_draw), 1);
   rb_define_method(cButton, "remove", CASTHOOK(shoes_control_remove), 0);
-  cEditLine  = rb_define_class_under(cCanvas, "EditLine", rb_cObject);
+  cEditLine  = rb_define_class_under(cShoes, "EditLine", rb_cObject);
   rb_define_alloc_func(cEditLine, shoes_control_alloc);
   rb_define_method(cEditLine, "text", CASTHOOK(shoes_edit_line_get_text), 0);
   rb_define_method(cEditLine, "text=", CASTHOOK(shoes_edit_line_set_text), 1);
   rb_define_method(cEditLine, "draw", CASTHOOK(shoes_edit_line_draw), 1);
   rb_define_method(cEditLine, "remove", CASTHOOK(shoes_control_remove), 0);
-  cEditBox  = rb_define_class_under(cCanvas, "EditBox", rb_cObject);
+  cEditBox  = rb_define_class_under(cShoes, "EditBox", rb_cObject);
   rb_define_alloc_func(cEditBox, shoes_control_alloc);
   rb_define_method(cEditBox, "text", CASTHOOK(shoes_edit_box_get_text), 0);
   rb_define_method(cEditBox, "text=", CASTHOOK(shoes_edit_box_set_text), 1);
   rb_define_method(cEditBox, "draw", CASTHOOK(shoes_edit_box_draw), 1);
   rb_define_method(cEditBox, "remove", CASTHOOK(shoes_control_remove), 0);
-  cListBox  = rb_define_class_under(cCanvas, "ListBox", rb_cObject);
+  cListBox  = rb_define_class_under(cShoes, "ListBox", rb_cObject);
   rb_define_alloc_func(cListBox, shoes_control_alloc);
   rb_define_method(cListBox, "text", CASTHOOK(shoes_list_box_text), 0);
   rb_define_method(cListBox, "draw", CASTHOOK(shoes_list_box_draw), 1);
   rb_define_method(cListBox, "remove", CASTHOOK(shoes_control_remove), 0);
-  cProgress  = rb_define_class_under(cCanvas, "Progress", rb_cObject);
+  cProgress  = rb_define_class_under(cShoes, "Progress", rb_cObject);
   rb_define_alloc_func(cProgress, shoes_control_alloc);
   rb_define_method(cProgress, "draw", CASTHOOK(shoes_progress_draw), 1);
   rb_define_method(cProgress, "remove", CASTHOOK(shoes_control_remove), 0);
-  cAnim    = rb_define_class_under(cCanvas, "Animation", rb_cObject);
+  cAnim    = rb_define_class_under(cShoes, "Animation", rb_cObject);
   rb_define_alloc_func(cAnim, shoes_anim_alloc);
   rb_define_method(cAnim, "draw", CASTHOOK(shoes_anim_draw), 1);
   rb_define_method(cAnim, "remove", CASTHOOK(shoes_anim_remove), 0);
 
-  cColor   = rb_define_class_under(cCanvas, "Color", rb_cObject);
-  cLink    = rb_define_class_under(cCanvas, "Link", rb_cObject);
+  cColor   = rb_define_class_under(cShoes, "Color", rb_cObject);
+  cLink    = rb_define_class_under(cShoes, "Link", rb_cObject);
 
   rb_define_method(rb_mKernel, "alert", CASTHOOK(shoes_dialog_alert), 1);
   rb_define_method(rb_mKernel, "ask", CASTHOOK(shoes_dialog_ask), 1);

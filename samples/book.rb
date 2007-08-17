@@ -1,31 +1,35 @@
 require 'yaml'
 
-num = 0
-incidents = YAML.load_file('samples/book.yaml')
-toc = "<span font_desc='Arial 11px'>"
+class Book < Shoes
+  url '/', :index
+  url '/incidents/(\d+)', :incident
 
-page = proc do
-  flow :margin => 10, :margin_left => 200, :margin_top => 20 do
-    text "<span font_desc='Arial 46px'>Incident</span>\n<b>No. #{num + 1}: #{incidents[num][0]}</b>"
+  def index
+    incident(0)
   end
-  flow :width => 190 do
-    text toc
-  end
-  flow :width => -250, :margin_left => 10 do
-    text incidents[num][1]
-  end
-end
 
-incidents.each_with_index do |(title, story), i|
-  toc += "(#{i + 1}) <a href='/incidents/#{i}'>#{title}</a> "
-  Shoes.mount("/incidents/#{i}") do
-    num = i
-    instance_eval &page
-  end
-end
-toc += "</span>"
+  INCIDENTS = YAML.load_file('samples/book.yaml')
 
-Shoes.app do
-  story = "Please select a story."
-  instance_eval &page
+  def table_of_contents
+    toc = "<span font_desc='Arial 11px'>"
+    INCIDENTS.each_with_index do |(title, story), i|
+      toc += "(#{i + 1}) <a href='/incidents/#{i}'>#{title}</a> "
+    end
+    toc + "</span>"
+  end
+
+  def incident(num)
+    num = num.to_i
+    toc = table_of_contents
+    flow :margin => 10, :margin_left => 200, :margin_top => 20 do
+      text "<span font_desc='Arial 46px'>Incident</span>\n" +
+        "<b>No. #{num + 1}: #{INCIDENTS[num][0]}</b>"
+    end
+    flow :width => 190 do
+      text toc
+    end
+    flow :width => -250, :margin_left => 10 do
+      text INCIDENTS[num][1]
+    end
+  end
 end

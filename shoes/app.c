@@ -6,6 +6,7 @@
 #include "shoes/internal.h"
 #include "shoes/ruby.h"
 #include "shoes/canvas.h"
+#include "node.h"
 
 shoes_app *global_app = NULL;
 
@@ -1140,13 +1141,42 @@ typedef struct
 {
   VALUE canvas;
   VALUE block;
+  char ieval;
+  VALUE args;
 } shoes_exec;
+
+struct METHOD {
+    VALUE klass, rklass;
+    VALUE recv;
+    ID id, oid;
+    int safe_level;
+    NODE *body;
+};
+
+static VALUE
+rb_unbound_get_class(VALUE method)
+{
+  struct METHOD *data;
+  Data_Get_Struct(method, struct METHOD, data);
+  return data->rklass;
+}
 
 static VALUE
 shoes_app_run(VALUE rb_exec)
 {
   shoes_exec *exec = (shoes_exec *)rb_exec;
-  return mfp_instance_eval(exec->canvas, exec->block);
+  if (exec->ieval)
+  {
+    return mfp_instance_eval(exec->canvas, exec->block);
+  }
+  else
+  {
+    int i;
+    VALUE vargs[10];
+    for (i = 0; i < RARRAY_LEN(exec->args); i++)
+      vargs[i] = rb_ary_entry(exec->args, i);
+    return rb_funcall2(exec->block, s_call, RARRAY_LEN(exec->args), vargs);
+  }
 }
 
 static VALUE
@@ -1162,6 +1192,7 @@ shoes_app_visit(shoes_app *app, char *path)
 {
   long i;
   shoes_exec exec;
+  VALUE meth;
   VALUE ary = rb_ary_dup(app->timers);
 #ifndef SHOES_GTK
   rb_ary_clear(app->slot.controls);
@@ -1174,8 +1205,21 @@ shoes_app_visit(shoes_app *app, char *path)
   }
 
   shoes_canvas_clear(app->canvas);
-  exec.block = rb_funcall(mShoes, s_run, 1, rb_str_new2(path));
-  exec.canvas = app->canvas;
+  meth = rb_funcall(cShoes, s_run, 1, rb_str_new2(path));
+  exec.block = rb_ary_entry(meth, 0);
+  exec.args = rb_ary_entry(meth, 1);
+  if (rb_obj_is_kind_of(exec.block, rb_cUnboundMethod)) {
+    shoes_canvas *canvas;
+    VALUE klass = rb_unbound_get_class(exec.block);
+    Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+    exec.canvas = shoes_slot_new(klass, Qnil, app->canvas);
+    exec.block = rb_funcall(exec.block, s_bind, 1, exec.canvas);
+    exec.ieval = 0;
+    rb_ary_push(canvas->contents, exec.canvas);
+  } else {
+    exec.canvas = app->canvas;
+    exec.ieval = 1;
+  }
   rb_rescue2(CASTHOOK(shoes_app_run), (VALUE)&exec, CASTHOOK(shoes_app_exception), (VALUE)&exec, rb_cObject, 0);
   return SHOES_OK;
 }
