@@ -23,7 +23,7 @@ class Book < Shoes
       text "<span font_desc='Arial 46px'>Incident</span>\n" +
         "<b>No. #{num + 1}: #{INCIDENTS[num][0]}</b>"
     end
-    flow :width => 190 do
+    flow :width => 180, :margin_left => 10 do
       text toc
     end
     flow :width => -250, :margin_left => 10 do
