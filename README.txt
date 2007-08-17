@@ -3,7 +3,7 @@
      ))) || |  \\/  [[_  )))
     a cross-platform applikit
 
-//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 
     Hi, guys, thankyou for taking Shoes.
 
@@ -41,7 +41,22 @@
     That's really about all that's in Shoes.  It's supposed to be light.
     Not much code and not too much ambition.
 
-//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+    WHY NOT WXWINDOWS?  WHY NOT THE FOX TOOLKIT?  OR QT??
+
+    Shoes is strictly inspired by stuff like REBOL/View, HyperCard,
+    the web itself and, of course, Processing and NodeBox.
+
+    I don't like the bulkiness and the layers and layers of wxWindows,
+    FOX, QT, GNOME.  They are big, big libraries and all the apps look
+    identical, devoid of spirit.
+
+    The unique thing about the web is that it gives you very few
+    controls, but people are able to build wildly different pages
+    with it that are still immediately accessible to people.
+
+//////////////////////////////////////////////////////////////////////////
 
     THE INSIDE OF SHOES
 
@@ -54,7 +69,7 @@
     All native widgets use the OS APIs directly.  Half of Shoes is platform
     specific code.  The targets are: OSX, Windows and GTK.
 
-//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 
     BUILDING AND INSTALLING SHOES
 
@@ -62,7 +77,7 @@
     the wiki at http://code.whytheluckystiff.net/shoes/.  Things are changing
     quickly and this README will be updated when the first release is made.
 
-//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 
     LICENSE
 

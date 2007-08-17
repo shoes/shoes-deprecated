@@ -277,6 +277,13 @@ VALUE shoes_anim_init(VALUE, VALUE);
 VALUE shoes_anim_remove(VALUE);
 void shoes_anim_call(VALUE);
 
+VALUE shoes_color_new(double, double, double, double);
+VALUE shoes_color_alloc(VALUE);
+VALUE shoes_color_rgb(int, VALUE *, VALUE);
+VALUE shoes_color_gray(int, VALUE *, VALUE);
+VALUE shoes_color_parse(VALUE, VALUE);
+VALUE shoes_color_to_s(VALUE);
+
 VALUE shoes_link_new(VALUE, int, int);
 VALUE shoes_link_alloc(VALUE);
 

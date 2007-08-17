@@ -9,8 +9,8 @@
 #include "shoes/internal.h"
 
 VALUE cShoes, cCanvas, cFlow, cStack, cPath, cImage, cAnim, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cLink;
-VALUE reRGB_SOURCE;
-ID s_aref, s_bind, s_new, s_run, s_to_s, s_arrow, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
+VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
+ID s_aref, s_perc, s_bind, s_new, s_run, s_to_s, s_arrow, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -680,6 +680,147 @@ shoes_background_draw(VALUE self, VALUE c)
   cairo_restore(canvas->cr);
   FINISH();
   return self;
+}
+
+//
+// Shoes::Color
+//
+static void
+shoes_color_mark(shoes_color *color)
+{
+}
+
+static void
+shoes_color_free(shoes_color *color)
+{
+  free(color);
+}
+
+VALUE
+shoes_color_new(double r, double g, double b, double a)
+{
+  shoes_color *color;
+  VALUE obj = shoes_color_alloc(cColor);
+  Data_Get_Struct(obj, shoes_color, color);
+  color->r = r;
+  color->g = g;
+  color->b = b;
+  color->a = a;
+  return obj;
+}
+
+VALUE
+shoes_color_alloc(VALUE klass)
+{
+  shoes_color *color;
+  VALUE obj = Data_Make_Struct(klass, shoes_color, shoes_color_mark, shoes_color_free, color);
+  color->r = 0.0;
+  color->g = 0.0;
+  color->b = 0.0;
+  color->a = 1.0;
+  color->on = TRUE;
+  return obj;
+}
+
+VALUE
+shoes_color_rgb(int argc, VALUE *argv, VALUE self)
+{
+  double a;
+  VALUE _r, _g, _b, _a;
+  rb_scan_args(argc, argv, "31", &_r, &_g, &_b, &_a);
+
+  a = 1.0;
+  if (!NIL_P(a)) a = NUM2DBL(_a);
+  return shoes_color_new(NUM2DBL(_r), NUM2DBL(_g), NUM2DBL(_b), a);
+}
+
+VALUE
+shoes_color_gray(int argc, VALUE *argv, VALUE self)
+{
+  shoes_color *color;
+  VALUE _g, _a;
+  double g, a;
+  rb_scan_args(argc, argv, "11", &_g, &_a);
+
+  a = 1.0;
+  g = NUM2DBL(_g);
+  if (!NIL_P(a)) a = NUM2DBL(_a);
+  return shoes_color_new(g, g, g, a);
+}
+
+VALUE
+shoes_color_parse(VALUE self, VALUE source)
+{
+  shoes_color *color;
+  VALUE obj = shoes_color_alloc(cColor);
+  VALUE reg;
+  Data_Get_Struct(obj, shoes_color, color);
+
+  reg = rb_funcall(source, s_match, 1, reHEX3_SOURCE);
+  if (!NIL_P(reg))
+  {
+    color->r = NUM2DBL(rb_str2inum(rb_reg_nth_match(1, reg), 16) * 17) / 255.;
+    color->g = NUM2DBL(rb_str2inum(rb_reg_nth_match(2, reg), 16) * 17) / 255.;
+    color->b = NUM2DBL(rb_str2inum(rb_reg_nth_match(3, reg), 16) * 17) / 255.;
+    return obj;
+  }
+
+  reg = rb_funcall(source, s_match, 1, reHEX_SOURCE);
+  if (!NIL_P(reg))
+  {
+    color->r = NUM2DBL(rb_str2inum(rb_reg_nth_match(1, reg), 16)) / 255.;
+    color->g = NUM2DBL(rb_str2inum(rb_reg_nth_match(2, reg), 16)) / 255.;
+    color->b = NUM2DBL(rb_str2inum(rb_reg_nth_match(3, reg), 16)) / 255.;
+    return obj;
+  }
+
+  reg = rb_funcall(source, s_match, 1, reRGB_SOURCE);
+  if (!NIL_P(reg))
+  {
+    color->r = NUM2DBL(rb_Integer(rb_reg_nth_match(1, reg))) / 255.;
+    color->g = NUM2DBL(rb_Integer(rb_reg_nth_match(2, reg))) / 255.;
+    color->b = NUM2DBL(rb_Integer(rb_reg_nth_match(3, reg))) / 255.;
+    return obj;
+  }
+
+  reg = rb_funcall(source, s_match, 1, reRGBA_SOURCE);
+  if (!NIL_P(reg))
+  {
+    color->r = NUM2DBL(rb_Integer(rb_reg_nth_match(1, reg))) / 255.;
+    color->g = NUM2DBL(rb_Integer(rb_reg_nth_match(2, reg))) / 255.;
+    color->b = NUM2DBL(rb_Integer(rb_reg_nth_match(3, reg))) / 255.;
+    color->a = NUM2DBL(rb_Integer(rb_reg_nth_match(4, reg))) / 255.;
+    return obj;
+  }
+
+  reg = rb_funcall(source, s_match, 1, reGRAY_SOURCE);
+  if (!NIL_P(reg))
+  {
+    color->r = color->g = color->b = NUM2DBL(rb_Integer(rb_reg_nth_match(1, reg))) / 255.;
+    return obj;
+  }
+
+  reg = rb_funcall(source, s_match, 1, reGRAYA_SOURCE);
+  if (!NIL_P(reg))
+  {
+    color->r = color->g = color->b = NUM2DBL(rb_Integer(rb_reg_nth_match(1, reg))) / 255.;
+    color->a = NUM2DBL(rb_Integer(rb_reg_nth_match(2, reg))) / 255.;
+    return obj;
+  }
+
+  return Qnil;
+}
+
+VALUE
+shoes_color_to_s(VALUE self)
+{
+  shoes_color *color;
+  Data_Get_Struct(self, shoes_color, color);
+  VALUE ary = rb_ary_new3(4, INT2NUM(color->r * 255), INT2NUM(color->g * 255), INT2NUM(color->b * 255), INT2NUM(color->a * 255));
+  if (color->a == 1.0)
+    return rb_funcall(rb_str_new2("rgb(%d, %d, %d)"), s_perc, 1, ary);
+  else
+    return rb_funcall(rb_str_new2("rgb(%d, %d, %d, %d)"), s_perc, 1, ary);
 }
 
 //
@@ -1783,6 +1924,7 @@ shoes_ruby_init()
   exception_alert_proc = rb_eval_string(EXC_ALERT);
   rb_gc_register_address(&exception_alert_proc);
   s_aref = rb_intern("[]=");
+  s_perc = rb_intern("%");
   s_bind = rb_intern("bind");
   s_new = rb_intern("new");
   s_run = rb_intern("run");
@@ -1819,7 +1961,12 @@ shoes_ruby_init()
   rb_define_alloc_func(cCanvas, shoes_canvas_alloc);
 
   cShoes = rb_define_class("Shoes", cCanvas);
+  C(HEX_SOURCE, "/^(?:0x|#)?([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})$/i");
+  C(HEX3_SOURCE, "/^(?:0x|#)?([0-9A-F])([0-9A-F])([0-9A-F])$/i");
   C(RGB_SOURCE, "/^rgb\\((\\d+), *(\\d+), *(\\d+)\\)$/i");
+  C(RGBA_SOURCE, "/^rgb\\((\\d+), *(\\d+), *(\\d+), *(\\d+)\\)$/i");
+  C(GRAY_SOURCE, "/^gray\\((\\d+)\\)$/i");
+  C(GRAYA_SOURCE, "/^gray\\((\\d+), *(\\d+)\\)$/i");
   rb_eval_string(
     "def Shoes.escape(string);"
        "string.gsub(/&/n, '&amp;').gsub(/\\\"/n, '&quot;').gsub(/>/n, '&gt;').gsub(/</n, '&lt;');"
@@ -1940,6 +2087,11 @@ shoes_ruby_init()
   rb_define_method(cAnim, "remove", CASTHOOK(shoes_anim_remove), 0);
 
   cColor   = rb_define_class_under(cShoes, "Color", rb_cObject);
+  rb_define_alloc_func(cColor, shoes_color_alloc);
+  rb_define_singleton_method(cColor, "rgb", CASTHOOK(shoes_color_rgb), -1);
+  rb_define_singleton_method(cColor, "gray", CASTHOOK(shoes_color_gray), -1);
+  rb_define_singleton_method(cColor, "parse", CASTHOOK(shoes_color_parse), 1);
+  rb_define_method(cColor, "to_s", CASTHOOK(shoes_color_to_s), 0);
   cLink    = rb_define_class_under(cShoes, "Link", rb_cObject);
 
   rb_define_method(rb_mKernel, "alert", CASTHOOK(shoes_dialog_alert), 1);
