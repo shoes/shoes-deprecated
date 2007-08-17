@@ -31,3 +31,5 @@ class Book < Shoes
     end
   end
 end
+
+Shoes.app :width => 640, :height => 700
