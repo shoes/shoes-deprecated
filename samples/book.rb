@@ -1,5 +1,3 @@
-require 'yaml'
-
 class Book < Shoes
   url '/', :index
   url '/incidents/(\d+)', :incident
