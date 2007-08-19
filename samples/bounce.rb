@@ -7,7 +7,7 @@ Shoes.app do
   x, y = self.width / 2, self.height / 2
   animate(30) do
     clear do
-      background "rgb(102, 102, 102)"
+      background rgb(102, 102, 102)
       x += xspeed * xdir
       y += yspeed * ydir
     

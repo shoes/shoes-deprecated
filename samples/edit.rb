@@ -1,6 +1,6 @@
 str, t = "", nil
 Shoes.app :height => 500, :width => 450 do
-  background "rgb(77, 77, 77)"
+  background rgb(77, 77, 77)
   stack :margin => 10 do
     text "<span color='white'><span color='red' background='white'>TEXT EDITOR</span> * USE ALT-Q TO QUIT</span>"
   end

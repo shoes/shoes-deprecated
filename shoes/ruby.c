@@ -496,12 +496,12 @@ shoes_path_draw(VALUE self, VALUE c)
 
   if (self_t->bg.on)
   {
-    cairo_set_source_rgba(canvas->cr, self_t->bg.r, self_t->bg.g, self_t->bg.b, self_t->bg.a);
+    cairo_set_source_rgba(canvas->cr, self_t->bg.r / 255., self_t->bg.g / 255., self_t->bg.b / 255., self_t->bg.a / 255.);
     cairo_fill_preserve(canvas->cr);
   }
   if (self_t->fg.on)
   {
-    cairo_set_source_rgba(canvas->cr, self_t->fg.r, self_t->fg.g, self_t->fg.b, self_t->fg.a);
+    cairo_set_source_rgba(canvas->cr, self_t->fg.r / 255., self_t->fg.g / 255., self_t->fg.b / 255., self_t->fg.a / 255.);
     cairo_stroke_preserve(canvas->cr);
   }
 
@@ -607,15 +607,19 @@ shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent)
 {
   shoes_pattern *pattern;
   VALUE obj = shoes_pattern_alloc(klass);
-  VALUE rgb = rb_funcall(source, s_match, 1, reRGB_SOURCE);
+  VALUE rgb;
   Data_Get_Struct(obj, shoes_pattern, pattern);
   pattern->source = source;
-  if (!NIL_P(rgb))
+
+  if (!rb_obj_is_kind_of(source, cColor))
   {
-    int r = NUM2INT(rb_Integer(rb_reg_nth_match(1, rgb)));
-    int g = NUM2INT(rb_Integer(rb_reg_nth_match(2, rgb)));
-    int b = NUM2INT(rb_Integer(rb_reg_nth_match(3, rgb)));
-    pattern->pattern = cairo_pattern_create_rgb(r / 255., g / 255., b / 255.);
+    rgb = shoes_color_parse(cColor, source);
+    if (!NIL_P(rgb)) source = rgb;
+  }
+
+  if (rb_obj_is_kind_of(source, cColor))
+  {
+    pattern->pattern = shoes_color_pattern(source);
     pattern->width = pattern->height = 1.;
   }
   else
@@ -626,6 +630,7 @@ shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent)
     pattern->pattern = cairo_pattern_create_for_surface(pattern->surface);
   }
   cairo_pattern_set_extend(pattern->pattern, CAIRO_EXTEND_REPEAT);
+
   pattern->attr = attr;
   pattern->parent = parent;
   return obj;
@@ -697,7 +702,7 @@ shoes_color_free(shoes_color *color)
 }
 
 VALUE
-shoes_color_new(double r, double g, double b, double a)
+shoes_color_new(int r, int g, int b, int a)
 {
   shoes_color *color;
   VALUE obj = shoes_color_alloc(cColor);
@@ -714,10 +719,10 @@ shoes_color_alloc(VALUE klass)
 {
   shoes_color *color;
   VALUE obj = Data_Make_Struct(klass, shoes_color, shoes_color_mark, shoes_color_free, color);
-  color->r = 0.0;
-  color->g = 0.0;
-  color->b = 0.0;
-  color->a = 1.0;
+  color->r = 0x00;
+  color->g = 0x00;
+  color->b = 0x00;
+  color->a = 0xFF;
   color->on = TRUE;
   return obj;
 }
@@ -725,13 +730,13 @@ shoes_color_alloc(VALUE klass)
 VALUE
 shoes_color_rgb(int argc, VALUE *argv, VALUE self)
 {
-  double a;
+  int a;
   VALUE _r, _g, _b, _a;
   rb_scan_args(argc, argv, "31", &_r, &_g, &_b, &_a);
 
-  a = 1.0;
-  if (!NIL_P(a)) a = NUM2DBL(_a);
-  return shoes_color_new(NUM2DBL(_r), NUM2DBL(_g), NUM2DBL(_b), a);
+  a = 0xFF;
+  if (!NIL_P(_a)) a = NUM2RGBINT(_a);
+  return shoes_color_new(NUM2RGBINT(_r), NUM2RGBINT(_g), NUM2RGBINT(_b), a);
 }
 
 VALUE
@@ -739,13 +744,24 @@ shoes_color_gray(int argc, VALUE *argv, VALUE self)
 {
   shoes_color *color;
   VALUE _g, _a;
-  double g, a;
+  int g, a;
   rb_scan_args(argc, argv, "11", &_g, &_a);
 
-  a = 1.0;
-  g = NUM2DBL(_g);
-  if (!NIL_P(a)) a = NUM2DBL(_a);
+  a = 0xFF;
+  g = NUM2RGBINT(_g);
+  if (!NIL_P(_a)) a = NUM2RGBINT(_a);
   return shoes_color_new(g, g, g, a);
+}
+
+cairo_pattern_t *
+shoes_color_pattern(VALUE obj)
+{
+  shoes_color *color;
+  Data_Get_Struct(obj, shoes_color, color);
+  if (color->a == 255)
+    return cairo_pattern_create_rgb(color->r / 255., color->g / 255., color->b / 255.);
+  else
+    return cairo_pattern_create_rgba(color->r / 255., color->g / 255., color->b / 255., color->a / 255.);
 }
 
 VALUE
@@ -759,52 +775,52 @@ shoes_color_parse(VALUE self, VALUE source)
   reg = rb_funcall(source, s_match, 1, reHEX3_SOURCE);
   if (!NIL_P(reg))
   {
-    color->r = NUM2DBL(rb_str2inum(rb_reg_nth_match(1, reg), 16) * 17) / 255.;
-    color->g = NUM2DBL(rb_str2inum(rb_reg_nth_match(2, reg), 16) * 17) / 255.;
-    color->b = NUM2DBL(rb_str2inum(rb_reg_nth_match(3, reg), 16) * 17) / 255.;
+    color->r = NUM2INT(rb_str2inum(rb_reg_nth_match(1, reg), 16)) * 17;
+    color->g = NUM2INT(rb_str2inum(rb_reg_nth_match(2, reg), 16)) * 17;
+    color->b = NUM2INT(rb_str2inum(rb_reg_nth_match(3, reg), 16)) * 17;
     return obj;
   }
 
   reg = rb_funcall(source, s_match, 1, reHEX_SOURCE);
   if (!NIL_P(reg))
   {
-    color->r = NUM2DBL(rb_str2inum(rb_reg_nth_match(1, reg), 16)) / 255.;
-    color->g = NUM2DBL(rb_str2inum(rb_reg_nth_match(2, reg), 16)) / 255.;
-    color->b = NUM2DBL(rb_str2inum(rb_reg_nth_match(3, reg), 16)) / 255.;
+    color->r = NUM2INT(rb_str2inum(rb_reg_nth_match(1, reg), 16));
+    color->g = NUM2INT(rb_str2inum(rb_reg_nth_match(2, reg), 16));
+    color->b = NUM2INT(rb_str2inum(rb_reg_nth_match(3, reg), 16));
     return obj;
   }
 
   reg = rb_funcall(source, s_match, 1, reRGB_SOURCE);
   if (!NIL_P(reg))
   {
-    color->r = NUM2DBL(rb_Integer(rb_reg_nth_match(1, reg))) / 255.;
-    color->g = NUM2DBL(rb_Integer(rb_reg_nth_match(2, reg))) / 255.;
-    color->b = NUM2DBL(rb_Integer(rb_reg_nth_match(3, reg))) / 255.;
+    color->r = NUM2INT(rb_Integer(rb_reg_nth_match(1, reg)));
+    color->g = NUM2INT(rb_Integer(rb_reg_nth_match(2, reg)));
+    color->b = NUM2INT(rb_Integer(rb_reg_nth_match(3, reg)));
     return obj;
   }
 
   reg = rb_funcall(source, s_match, 1, reRGBA_SOURCE);
   if (!NIL_P(reg))
   {
-    color->r = NUM2DBL(rb_Integer(rb_reg_nth_match(1, reg))) / 255.;
-    color->g = NUM2DBL(rb_Integer(rb_reg_nth_match(2, reg))) / 255.;
-    color->b = NUM2DBL(rb_Integer(rb_reg_nth_match(3, reg))) / 255.;
-    color->a = NUM2DBL(rb_Integer(rb_reg_nth_match(4, reg))) / 255.;
+    color->r = NUM2INT(rb_Integer(rb_reg_nth_match(1, reg)));
+    color->g = NUM2INT(rb_Integer(rb_reg_nth_match(2, reg)));
+    color->b = NUM2INT(rb_Integer(rb_reg_nth_match(3, reg)));
+    color->a = NUM2INT(rb_Integer(rb_reg_nth_match(4, reg)));
     return obj;
   }
 
   reg = rb_funcall(source, s_match, 1, reGRAY_SOURCE);
   if (!NIL_P(reg))
   {
-    color->r = color->g = color->b = NUM2DBL(rb_Integer(rb_reg_nth_match(1, reg))) / 255.;
+    color->r = color->g = color->b = NUM2INT(rb_Integer(rb_reg_nth_match(1, reg)));
     return obj;
   }
 
   reg = rb_funcall(source, s_match, 1, reGRAYA_SOURCE);
   if (!NIL_P(reg))
   {
-    color->r = color->g = color->b = NUM2DBL(rb_Integer(rb_reg_nth_match(1, reg))) / 255.;
-    color->a = NUM2DBL(rb_Integer(rb_reg_nth_match(2, reg))) / 255.;
+    color->r = color->g = color->b = NUM2INT(rb_Integer(rb_reg_nth_match(1, reg)));
+    color->a = NUM2INT(rb_Integer(rb_reg_nth_match(2, reg)));
     return obj;
   }
 
@@ -816,7 +832,7 @@ shoes_color_to_s(VALUE self)
 {
   shoes_color *color;
   Data_Get_Struct(self, shoes_color, color);
-  VALUE ary = rb_ary_new3(4, INT2NUM(color->r * 255), INT2NUM(color->g * 255), INT2NUM(color->b * 255), INT2NUM(color->a * 255));
+  VALUE ary = rb_ary_new3(4, INT2NUM(color->r), INT2NUM(color->g), INT2NUM(color->b), INT2NUM(color->a));
   if (color->a == 1.0)
     return rb_funcall(rb_str_new2("rgb(%d, %d, %d)"), s_perc, 1, ary);
   else
@@ -1231,7 +1247,7 @@ shoes_text_draw(VALUE self, VALUE c)
     cairo_move_to(canvas->cr, self_t->place.x, self_t->place.y);
   if (canvas->fg.on)
   {
-    cairo_set_source_rgba(canvas->cr, canvas->fg.r, canvas->fg.g, canvas->fg.b, canvas->fg.a);
+    cairo_set_source_rgba(canvas->cr, canvas->fg.r / 255., canvas->fg.g / 255., canvas->fg.b / 255., canvas->fg.a / 255.);
   // cairo_stroke(canvas->cr);
   }
 
@@ -1984,6 +2000,8 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "strokewidth", CASTHOOK(shoes_canvas_strokewidth), 1);
   rb_define_method(cCanvas, "nofill", CASTHOOK(shoes_canvas_nofill), 0);
   rb_define_method(cCanvas, "fill", CASTHOOK(shoes_canvas_fill), -1);
+  rb_define_method(cCanvas, "rgb", CASTHOOK(shoes_color_rgb), -1);
+  rb_define_method(cCanvas, "gray", CASTHOOK(shoes_color_gray), -1);
   rb_define_method(cCanvas, "rect", CASTHOOK(shoes_canvas_rect), -1);
   rb_define_method(cCanvas, "oval", CASTHOOK(shoes_canvas_oval), 4);
   rb_define_method(cCanvas, "line", CASTHOOK(shoes_canvas_line), 4);

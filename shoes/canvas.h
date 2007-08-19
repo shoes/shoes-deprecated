@@ -26,8 +26,7 @@ typedef struct {
 // color struct
 //
 typedef struct {
-  double r, g, b, a;
-  unsigned char on;
+  unsigned char r, g, b, a, on;
 } shoes_color;
 
 //
@@ -180,6 +179,8 @@ VALUE shoes_canvas_stroke(int, VALUE *, VALUE);
 VALUE shoes_canvas_strokewidth(VALUE, VALUE);
 VALUE shoes_canvas_nofill(VALUE);
 VALUE shoes_canvas_fill(int, VALUE *, VALUE);
+VALUE shoes_canvas_rgb(int, VALUE *, VALUE);
+VALUE shoes_canvas_gray(int, VALUE *, VALUE);
 VALUE shoes_canvas_rect(int, VALUE *, VALUE);
 VALUE shoes_canvas_oval(VALUE, VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_canvas_line(VALUE, VALUE, VALUE, VALUE, VALUE);
@@ -277,10 +278,11 @@ VALUE shoes_anim_init(VALUE, VALUE);
 VALUE shoes_anim_remove(VALUE);
 void shoes_anim_call(VALUE);
 
-VALUE shoes_color_new(double, double, double, double);
+VALUE shoes_color_new(int, int, int, int);
 VALUE shoes_color_alloc(VALUE);
 VALUE shoes_color_rgb(int, VALUE *, VALUE);
 VALUE shoes_color_gray(int, VALUE *, VALUE);
+cairo_pattern_t *shoes_color_pattern(VALUE);
 VALUE shoes_color_parse(VALUE, VALUE);
 VALUE shoes_color_to_s(VALUE);
 

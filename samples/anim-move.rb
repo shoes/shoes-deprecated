@@ -1,6 +1,6 @@
 Shoes.app do
-  background "rgb(0, 0, 0)"
-  fill 1.0, 1.0, 1.0
+  background rgb(0, 0, 0)
+  fill rgb(255, 255, 255)
   rects = [
     rect(0, 0, 50, 50),
     rect(0, 0, 100, 100),

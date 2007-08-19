@@ -1,6 +1,6 @@
 label, time = nil, Time.now
 Shoes.app :height => 150, :width => 250 do
-  background "rgb(240, 250, 208)"
+  background rgb(240, 250, 208)
   stack :margin => 10 do
     button "Start" do
       time = Time.now

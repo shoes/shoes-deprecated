@@ -239,15 +239,15 @@ shoes_canvas_clear(VALUE self)
     cairo_destroy(canvas->cr);
   canvas->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));;
   canvas->sw = 1.;
-  canvas->fg.r = 0.;
-  canvas->fg.g = 0.;
-  canvas->fg.b = 0.;
-  canvas->fg.a = 1.;
+  canvas->fg.r = 0x00;
+  canvas->fg.g = 0x00;
+  canvas->fg.b = 0x00;
+  canvas->fg.a = 0xFF;
   canvas->fg.on = TRUE;
-  canvas->bg.r = 0.;
-  canvas->bg.g = 0.;
-  canvas->bg.b = 0.;
-  canvas->bg.a = 1.;
+  canvas->bg.r = 0x00;
+  canvas->bg.g = 0x00;
+  canvas->bg.b = 0x00;
+  canvas->bg.a = 0xFF;
   canvas->bg.on = TRUE;
   canvas->mode = s_center;
   canvas->parent = Qnil;
@@ -298,16 +298,22 @@ shoes_canvas_nostroke(VALUE self)
 VALUE
 shoes_canvas_stroke(int argc, VALUE *argv, VALUE self)
 {
-  VALUE _r, _g, _b, _a;
+  shoes_color *color;
+  VALUE _r, _g, _b, _a, _color;
   SETUP();
 
-  rb_scan_args(argc, argv, "31", &_r, &_g, &_b, &_a);
-  canvas->fg.on = TRUE;
-  canvas->fg.r = NUM2DBL(_r);
-  canvas->fg.g = NUM2DBL(_g);
-  canvas->fg.b = NUM2DBL(_b);
-  canvas->fg.a = 1.0;
-  if (!NIL_P(_a)) canvas->fg.a = NUM2DBL(_a);
+  argc = rb_scan_args(argc, argv, "13", &_r, &_g, &_b, &_a);
+  if (argc == 1 && rb_obj_is_kind_of(_r, cColor))
+    _color = _r;
+  else if (argc == 1 && rb_obj_is_kind_of(_r, rb_cString))
+    _color = shoes_color_parse(cColor, _r);
+  else if (argc == 1 || argc == 2)
+    _color = shoes_color_gray(argc, argv, cColor);
+  else
+    _color = shoes_color_rgb(argc, argv, cColor);
+
+  Data_Get_Struct(_color, shoes_color, color);
+  canvas->fg = *color;
 
   return self;
 }
@@ -332,16 +338,22 @@ shoes_canvas_nofill(VALUE self)
 VALUE
 shoes_canvas_fill(int argc, VALUE *argv, VALUE self)
 {
-  VALUE _r, _g, _b, _a;
+  shoes_color *color;
+  VALUE _r, _g, _b, _a, _color;
   SETUP();
 
-  rb_scan_args(argc, argv, "31", &_r, &_g, &_b, &_a);
-  canvas->bg.on = TRUE;
-  canvas->bg.r = NUM2DBL(_r);
-  canvas->bg.g = NUM2DBL(_g);
-  canvas->bg.b = NUM2DBL(_b);
-  canvas->bg.a = 1.0;
-  if (!NIL_P(_a)) canvas->bg.a = NUM2DBL(_a);
+  argc = rb_scan_args(argc, argv, "13", &_r, &_g, &_b, &_a);
+  if (argc == 1 && rb_obj_is_kind_of(_r, cColor))
+    _color = _r;
+  else if (argc == 1 && rb_obj_is_kind_of(_r, rb_cString))
+    _color = shoes_color_parse(cColor, _r);
+  else if (argc == 1 || argc == 2)
+    _color = shoes_color_gray(argc, argv, cColor);
+  else
+    _color = shoes_color_rgb(argc, argv, cColor);
+
+  Data_Get_Struct(_color, shoes_color, color);
+  canvas->bg = *color;
 
   return self;
 }

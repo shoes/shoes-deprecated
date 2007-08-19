@@ -48,6 +48,8 @@ void shoes_ruby_init(void);
     EXC_PROC \
   "end;"
 
+#define NUM2RGBINT(x) (rb_obj_is_kind_of(x, rb_cFloat) ? NUM2DBL(x) * 255 : NUM2INT(x))
+
 //
 // Common funcs for dealing with attribute hashes
 //

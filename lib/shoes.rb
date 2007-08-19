@@ -8,7 +8,8 @@ require 'shoes/shy'
 
 class Range 
   def rand 
-    (Kernel.rand * (self.end - self.begin)) + self.begin 
+    conv = (self.end === Integer && self.begin === Integer ? :to_i : :to_f)
+    ((Kernel.rand * (self.end - self.begin)) + self.begin).send(conv) 
   end 
 end
 

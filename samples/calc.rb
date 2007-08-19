@@ -41,7 +41,7 @@ number = Calc.new
 Shoes.app :height => 250, :width => 200 do
 
   stack :margin => 4 do
-    background "rgb(240, 240, 210)", :radius => 5
+    background rgb(240, 240, 210), :radius => 5
 
     stack do
       number_field = text number.to_s
