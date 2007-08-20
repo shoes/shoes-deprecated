@@ -765,6 +765,24 @@ shoes_color_pattern(VALUE obj)
 }
 
 VALUE
+shoes_color_args(int argc, VALUE *argv, VALUE self)
+{
+  VALUE _r, _g, _b, _a, _color;
+  argc = rb_scan_args(argc, argv, "13", &_r, &_g, &_b, &_a);
+
+  if (argc == 1 && rb_obj_is_kind_of(_r, cColor))
+    _color = _r;
+  else if (argc == 1 && rb_obj_is_kind_of(_r, rb_cString))
+    _color = shoes_color_parse(cColor, _r);
+  else if (argc == 1 || argc == 2)
+    _color = shoes_color_gray(argc, argv, cColor);
+  else
+    _color = shoes_color_rgb(argc, argv, cColor);
+
+  return _color;
+}
+
+VALUE
 shoes_color_parse(VALUE self, VALUE source)
 {
   shoes_color *color;
