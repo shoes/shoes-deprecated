@@ -6,6 +6,7 @@ Shoes.app :height => 500, :width => 450 do
   end
   stack :margin => 10 do
     t = text ""
+    t.cursor = -1
   end
   keypress do |k|
     case k

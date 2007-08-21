@@ -68,6 +68,7 @@ typedef struct {
   VALUE links;
   VALUE attr;
   VALUE parent;
+  VALUE cursor;
   PangoLayout *layout;
   int i;
   shoes_place place;
@@ -293,6 +294,8 @@ VALUE shoes_link_alloc(VALUE);
 VALUE shoes_text_new(VALUE, VALUE, VALUE);
 VALUE shoes_text_alloc(VALUE);
 VALUE shoes_text_remove(VALUE);
+VALUE shoes_text_set_cursor(VALUE, VALUE);
+VALUE shoes_text_get_cursor(VALUE);
 VALUE shoes_text_draw(VALUE, VALUE);
 VALUE shoes_text_motion(VALUE, int, int);
 VALUE shoes_text_click(VALUE, int, int, int);

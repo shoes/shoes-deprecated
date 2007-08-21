@@ -1133,7 +1133,25 @@ shoes_text_alloc(VALUE klass)
   text->attr = Qnil;
   text->parent = Qnil;
   text->layout = NULL;
+  text->cursor = Qnil;
   return obj;
+}
+
+VALUE
+shoes_text_set_cursor(VALUE self, VALUE pos)
+{
+  shoes_text *self_t;
+  Data_Get_Struct(self, shoes_text, self_t);
+  self_t->cursor = pos;
+  return pos;
+}
+
+VALUE
+shoes_text_get_cursor(VALUE self)
+{
+  shoes_text *self_t;
+  Data_Get_Struct(self, shoes_text, self_t);
+  return self_t->cursor;
 }
 
 VALUE
@@ -1283,6 +1301,27 @@ shoes_text_draw(VALUE self, VALUE c)
 
   pango_cairo_update_layout(canvas->cr, self_t->layout);
   pango_cairo_show_layout(canvas->cr, self_t->layout);
+
+  // draw the cursor
+  if (!NIL_P(self_t->cursor))
+  {
+    int cursor = NUM2INT(self_t->cursor);
+    PangoRectangle crect;
+    double crx, cry;
+    if (cursor < 0) cursor += RSTRING_LEN(self_t->markup) + 1;
+    pango_layout_index_to_pos(self_t->layout, cursor, &crect);
+    crx = self_t->place.x + (crect.x / PANGO_SCALE);
+    cry = self_t->place.y + (crect.y / PANGO_SCALE);
+
+    cairo_save(canvas->cr);
+    cairo_new_path(canvas->cr);
+    cairo_move_to(canvas->cr, crx, cry);
+    cairo_line_to(canvas->cr, crx, cry + (crect.height / PANGO_SCALE));
+    cairo_set_source_rgb(canvas->cr, 0., 0., 0.);
+    cairo_set_line_width(canvas->cr, 0.8);
+    cairo_stroke(canvas->cr);
+    cairo_restore(canvas->cr);
+  }
 
   li = pango_layout_get_line_count(self_t->layout) - 1;
   last = pango_layout_get_line(self_t->layout, li);
@@ -2092,6 +2131,8 @@ shoes_ruby_init()
   cTextClass = rb_define_class_under(cShoes, "Text", rb_cObject);
   rb_define_alloc_func(cTextClass, shoes_text_alloc);
   rb_define_method(cTextClass, "draw", CASTHOOK(shoes_text_draw), 1);
+  rb_define_method(cTextClass, "cursor=", CASTHOOK(shoes_text_set_cursor), 1);
+  rb_define_method(cTextClass, "cursor", CASTHOOK(shoes_text_get_cursor), 0);
   rb_define_method(cTextClass, "remove", CASTHOOK(shoes_text_remove), 0);
   rb_define_method(cTextClass, "to_s", CASTHOOK(shoes_text_get_markup), 0);
   rb_define_method(cTextClass, "replace", CASTHOOK(shoes_text_set_markup), 1);
