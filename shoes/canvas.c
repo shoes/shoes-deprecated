@@ -162,18 +162,18 @@ quit:
 }
 
 void
-shoes_canvas_shape_do(shoes_canvas *canvas, double x, double y)
+shoes_canvas_shape_do(shoes_canvas *canvas, double x, double y, double w, double h)
 {
   cairo_save(canvas->cr);
   if (canvas->mode == s_center)
   {
-    cairo_translate(canvas->cr, x, y);
+    cairo_translate(canvas->cr, w / 2., h / 2.);
     cairo_transform(canvas->cr, canvas->tf);
   }
   else
   {
     cairo_transform(canvas->cr, canvas->tf);
-    cairo_translate(canvas->cr, x, y);
+    cairo_translate(canvas->cr, x + (w / 2.), y + (h / 2.));
   }
 }
 
@@ -353,7 +353,7 @@ shoes_canvas_rect(int argc, VALUE *argv, VALUE self)
   r = 0.0;
   if (!NIL_P(_r)) r = NUM2DBL(_r);
 
-  shoes_canvas_shape_do(canvas, x + (w / 2.), y + (h / 2.));
+  shoes_canvas_shape_do(canvas, x, y, w, h);
   x = -w / 2.;
   y = -h / 2.;
   shoes_cairo_rect(cr, x, y, w, h, r);
@@ -371,7 +371,7 @@ shoes_canvas_oval(VALUE self, VALUE _x, VALUE _y, VALUE _w, VALUE _h)
   w = NUM2DBL(_w);
   h = NUM2DBL(_h);
 
-  shoes_canvas_shape_do(canvas, x + w / 2., y + h / 2.);
+  shoes_canvas_shape_do(canvas, x, y, w, h);
   cairo_scale(cr, w / 2., h / 2.);
   cairo_new_path(cr);
   cairo_move_to(cr, 0, 0);
@@ -393,7 +393,7 @@ shoes_canvas_line(VALUE self, VALUE _x1, VALUE _y1, VALUE _x2, VALUE _y2)
 
   x = ((x2 - x1) / 2.) + x1;
   y = ((y2 - y1) / 2.) + y1;
-  shoes_canvas_shape_do(canvas, x, y);
+  shoes_canvas_shape_do(canvas, x, y, 0, 0);
   cairo_move_to(cr, x1 - x, y1 - y);
   cairo_line_to(cr, x2 - x, y2 - y);
   return shoes_canvas_shape_end(self);
@@ -411,7 +411,7 @@ shoes_canvas_arrow(VALUE self, VALUE _x, VALUE _y, VALUE _w)
   h = w * 0.8;
   tip = w * 0.42;
 
-  shoes_canvas_shape_do(canvas, x - (w / 2.), y);
+  shoes_canvas_shape_do(canvas, x, y, -w, 0);
   cairo_new_path(cr);
   cairo_move_to(cr, w / 2., 0);
   cairo_rel_line_to(cr, -tip, +(h*0.5));
@@ -443,7 +443,7 @@ shoes_canvas_star(int argc, VALUE *argv, VALUE self)
   if (!NIL_P(_inner)) inner = NUM2DBL(_inner);
 
   theta = (points - 1) * PI / (points * 1.);
-  shoes_canvas_shape_do(canvas, 0, 0); /* TODO: find star's center */
+  shoes_canvas_shape_do(canvas, 0, 0, 0, 0); /* TODO: find star's center */
   cairo_new_path(cr);
   cairo_move_to(cr, x, y);
   for (i = 0; i < points - 1; i++) {
@@ -521,7 +521,7 @@ shoes_canvas_path(int argc, VALUE *argv, VALUE self)
 
   rb_scan_args(argc, argv, "02", &_x, &_y);
 
-  shoes_canvas_shape_do(canvas, 0, 0); /* TODO: find path center */
+  shoes_canvas_shape_do(canvas, 0, 0, 0, 0); /* TODO: find path center */
   cairo_new_path(cr);
   if (!NIL_P(_x) && !NIL_P(_y))
   {

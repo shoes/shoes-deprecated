@@ -171,7 +171,7 @@ VALUE shoes_canvas_new(VALUE, struct _shoes_app *);
 void shoes_canvas_clear(VALUE);
 shoes_canvas *shoes_canvas_init(VALUE, APPSLOT, VALUE, int, int);
 void shoes_canvas_paint(VALUE);
-void shoes_canvas_shape_do(shoes_canvas *, double, double);
+void shoes_canvas_shape_do(shoes_canvas *, double, double, double, double);
 VALUE shoes_canvas_get_width(VALUE);
 VALUE shoes_canvas_get_height(VALUE);
 VALUE shoes_canvas_nostroke(VALUE);

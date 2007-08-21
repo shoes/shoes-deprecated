@@ -489,6 +489,7 @@ shoes_path_draw(VALUE self, VALUE c)
 
   x = ATTR2(dbl, self_t->attr, left, 0);
   y = ATTR2(dbl, self_t->attr, top, 0);
+  cairo_save(canvas->cr);
   cairo_new_path(canvas->cr);
   cairo_translate(canvas->cr, x, y);
   cairo_set_line_width(canvas->cr, self_t->sw);
@@ -504,6 +505,7 @@ shoes_path_draw(VALUE self, VALUE c)
     cairo_set_source_rgba(canvas->cr, self_t->fg.r / 255., self_t->fg.g / 255., self_t->fg.b / 255., self_t->fg.a / 255.);
     cairo_stroke_preserve(canvas->cr);
   }
+  cairo_restore(canvas->cr);
 
   return self;
 }
@@ -569,7 +571,7 @@ VALUE
 shoes_image_draw(VALUE self, VALUE c)
 {
   SETUP(shoes_image, REL_CANVAS, self_t->width, self_t->height);
-  shoes_canvas_shape_do(canvas, place.x + (place.w / 2.), place.y + (place.h / 2.));
+  shoes_canvas_shape_do(canvas, place.x, place.y, place.w, place.h);
   if (place.w != self_t->width || place.h != self_t->height)
   {
     cairo_scale(canvas->cr, place.w/self_t->width, place.h/self_t->height);
@@ -662,7 +664,7 @@ VALUE
 shoes_pattern_draw(VALUE self, VALUE c)
 {
   SETUP(shoes_pattern, REL_CANVAS, 0, 0);
-  shoes_canvas_shape_do(canvas, place.x + (place.w / 2.), place.y + (place.h / 2.));
+  shoes_canvas_shape_do(canvas, place.x, place.y, place.w, place.h);
   cairo_set_source_surface(canvas->cr, self_t->surface, -place.w / 2., -place.h / 2.);
   cairo_paint(canvas->cr);
   cairo_restore(canvas->cr);
@@ -676,7 +678,7 @@ shoes_background_draw(VALUE self, VALUE c)
   double r;
   SETUP(shoes_pattern, REL_TILE, self_t->width, self_t->height);
   r = ATTR2(dbl, self_t->attr, radius, 0.);
-  shoes_canvas_shape_do(canvas, place.x, place.y);
+  shoes_canvas_shape_do(canvas, place.x, place.y, 0, 0);
   cairo_set_source(canvas->cr, self_t->pattern);
   shoes_cairo_rect(canvas->cr, 0, 0, place.w, place.h, r);
   INFO("BACKGROUND: (%d, %d), (%d, %d)\n", place.x, place.y, place.w, place.h);
