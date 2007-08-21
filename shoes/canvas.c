@@ -408,8 +408,8 @@ shoes_canvas_oval(int argc, VALUE *argv, VALUE self)
 
   shoes_canvas_shape_do(canvas, x, y, w, h, RTEST(center));
   cairo_scale(cr, w / 2., h / 2.);
-  cairo_new_path(cr);
   cairo_move_to(cr, 0, 0);
+  cairo_new_path(cr);
   cairo_arc(cr, 0., 0., 1., 0., PIM2);
   cairo_close_path(cr);
   return shoes_canvas_shape_end(self, INT2NUM(x), INT2NUM(y));
@@ -1339,4 +1339,29 @@ VALUE
 shoes_stack_new(VALUE attr, VALUE parent)
 {
   return shoes_slot_new(cStack, attr, parent);
+}
+
+//
+// Global clipboard getter and setter
+//
+VALUE
+shoes_canvas_get_clipboard(VALUE canvas)
+{
+#ifdef SHOES_GTK
+  GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_PRIMARY);
+  if (gtk_clipboard_wait_is_text_available(primary))
+  {
+    gchar *string = gtk_clipboard_wait_for_text(primary);
+    return rb_str_new2(string);
+  }
+#endif
+}
+
+VALUE
+shoes_canvas_set_clipboard(VALUE canvas, VALUE string)
+{
+#ifdef SHOES_GTK
+  GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_PRIMARY);
+  gtk_clipboard_set_text(primary, RSTRING_PTR(string), RSTRING_LEN(string));
+#endif
 }

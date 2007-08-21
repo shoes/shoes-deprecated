@@ -2111,6 +2111,8 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "goto", CASTHOOK(shoes_canvas_goto), 1);
   rb_define_method(cCanvas, "remove", CASTHOOK(shoes_canvas_remove), 0);
   rb_define_method(cCanvas, "mouse", CASTHOOK(shoes_canvas_mouse), 0);
+  rb_define_method(cCanvas, "clipboard", CASTHOOK(shoes_canvas_get_clipboard), 0);
+  rb_define_method(cCanvas, "clipboard=", CASTHOOK(shoes_canvas_set_clipboard), 1);
 
   cFlow    = rb_define_class_under(cShoes, "Flow", cCanvas);
   cStack   = rb_define_class_under(cShoes, "Stack", cCanvas);
