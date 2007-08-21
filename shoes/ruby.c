@@ -432,7 +432,7 @@ shoes_path_free(shoes_path *path)
 }
 
 VALUE
-shoes_path_new(cairo_path_t *line, VALUE parent)
+shoes_path_new(cairo_path_t *line, VALUE parent, VALUE x, VALUE y)
 {
   shoes_path *path;
   shoes_canvas *canvas;
@@ -444,6 +444,8 @@ shoes_path_new(cairo_path_t *line, VALUE parent)
   path->fg = canvas->fg;
   path->bg = canvas->bg;
   path->sw = canvas->sw;
+  ATTRSET(path->attr, left, x);
+  ATTRSET(path->attr, top, y);
   return obj;
 }
 
@@ -571,7 +573,7 @@ VALUE
 shoes_image_draw(VALUE self, VALUE c)
 {
   SETUP(shoes_image, REL_CANVAS, self_t->width, self_t->height);
-  shoes_canvas_shape_do(canvas, place.x, place.y, place.w, place.h);
+  shoes_canvas_shape_do(canvas, place.x, place.y, place.w, place.h, FALSE);
   if (place.w != self_t->width || place.h != self_t->height)
   {
     cairo_scale(canvas->cr, place.w/self_t->width, place.h/self_t->height);
@@ -664,7 +666,7 @@ VALUE
 shoes_pattern_draw(VALUE self, VALUE c)
 {
   SETUP(shoes_pattern, REL_CANVAS, 0, 0);
-  shoes_canvas_shape_do(canvas, place.x, place.y, place.w, place.h);
+  shoes_canvas_shape_do(canvas, place.x, place.y, place.w, place.h, FALSE);
   cairo_set_source_surface(canvas->cr, self_t->surface, -place.w / 2., -place.h / 2.);
   cairo_paint(canvas->cr);
   cairo_restore(canvas->cr);
@@ -678,7 +680,7 @@ shoes_background_draw(VALUE self, VALUE c)
   double r;
   SETUP(shoes_pattern, REL_TILE, self_t->width, self_t->height);
   r = ATTR2(dbl, self_t->attr, radius, 0.);
-  shoes_canvas_shape_do(canvas, place.x, place.y, 0, 0);
+  shoes_canvas_shape_do(canvas, place.x, place.y, 0, 0, FALSE);
   cairo_set_source(canvas->cr, self_t->pattern);
   shoes_cairo_rect(canvas->cr, 0, 0, place.w, place.h, r);
   INFO("BACKGROUND: (%d, %d), (%d, %d)\n", place.x, place.y, place.w, place.h);
@@ -2023,7 +2025,7 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "rgb", CASTHOOK(shoes_color_rgb), -1);
   rb_define_method(cCanvas, "gray", CASTHOOK(shoes_color_gray), -1);
   rb_define_method(cCanvas, "rect", CASTHOOK(shoes_canvas_rect), -1);
-  rb_define_method(cCanvas, "oval", CASTHOOK(shoes_canvas_oval), 4);
+  rb_define_method(cCanvas, "oval", CASTHOOK(shoes_canvas_oval), -1);
   rb_define_method(cCanvas, "line", CASTHOOK(shoes_canvas_line), 4);
   rb_define_method(cCanvas, "arrow", CASTHOOK(shoes_canvas_arrow), 3);
   rb_define_method(cCanvas, "star", CASTHOOK(shoes_canvas_star), -1);

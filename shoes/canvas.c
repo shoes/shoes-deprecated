@@ -162,29 +162,38 @@ quit:
 }
 
 void
-shoes_canvas_shape_do(shoes_canvas *canvas, double x, double y, double w, double h)
+shoes_canvas_shape_do(shoes_canvas *canvas, double x, double y, double w, double h, unsigned char center)
 {
   cairo_save(canvas->cr);
+  if (center)
+  {
+    w = 0.; h = 0.;
+  }
+  else
+  {
+    w /= 2.; h /= 2.;
+  }
+
   if (canvas->mode == s_center)
   {
-    cairo_translate(canvas->cr, w / 2., h / 2.);
+    cairo_translate(canvas->cr, w, h);
     cairo_transform(canvas->cr, canvas->tf);
   }
   else
   {
     cairo_transform(canvas->cr, canvas->tf);
-    cairo_translate(canvas->cr, x + (w / 2.), y + (h / 2.));
+    cairo_translate(canvas->cr, x + w, y + h);
   }
 }
 
 static VALUE
-shoes_canvas_shape_end(VALUE self)
+shoes_canvas_shape_end(VALUE self, VALUE x, VALUE y)
 {
   VALUE shape;
   shoes_canvas *canvas;
   Data_Get_Struct(self, shoes_canvas, canvas);
   cairo_restore(canvas->cr);
-  shape = shoes_path_new(cairo_copy_path(canvas->cr), self);
+  shape = shoes_path_new(cairo_copy_path(canvas->cr), self, x, y);
   rb_ary_push(canvas->contents, shape);
   return shape;
 }
@@ -342,10 +351,23 @@ VALUE
 shoes_canvas_rect(int argc, VALUE *argv, VALUE self)
 {
   VALUE _x, _y, _w, _h, _r;
+  VALUE center = Qfalse;
   double x, y, w, h, r, rc;
   SETUP();
 
-  rb_scan_args(argc, argv, "41", &_x, &_y, &_w, &_h, &_r);
+  argc = rb_scan_args(argc, argv, "14", &_x, &_y, &_w, &_h, &_r);
+
+  if (argc == 1 && rb_obj_is_kind_of(_x, rb_cHash))
+  {
+    VALUE hsh = _x;
+    _x = ATTR(hsh, left);
+    _y = ATTR(hsh, top);
+    _w = ATTR(hsh, width);
+    _h = ATTR(hsh, height);
+    _r = ATTR(hsh, radius);
+    if (!NIL_P(ATTR(hsh, center))) center = ATTR(hsh, center);
+  }
+
   x = NUM2DBL(_x);
   y = NUM2DBL(_y);
   w = NUM2DBL(_w);
@@ -353,31 +375,44 @@ shoes_canvas_rect(int argc, VALUE *argv, VALUE self)
   r = 0.0;
   if (!NIL_P(_r)) r = NUM2DBL(_r);
 
-  shoes_canvas_shape_do(canvas, x, y, w, h);
-  x = -w / 2.;
-  y = -h / 2.;
-  shoes_cairo_rect(cr, x, y, w, h, r);
-  return shoes_canvas_shape_end(self);
+  shoes_canvas_shape_do(canvas, x, y, w, h, RTEST(center));
+  shoes_cairo_rect(cr, -w / 2., -h / 2., w, h, r);
+  return shoes_canvas_shape_end(self, INT2NUM(x), INT2NUM(y));
 }
 
 VALUE
-shoes_canvas_oval(VALUE self, VALUE _x, VALUE _y, VALUE _w, VALUE _h)
+shoes_canvas_oval(int argc, VALUE *argv, VALUE self)
 {
+  VALUE _x, _y, _w, _h;
+  VALUE center = Qfalse;
   double x, y, w, h;
   SETUP();
 
+  argc = rb_scan_args(argc, argv, "13", &_x, &_y, &_w, &_h);
+
+  if (argc == 1 && rb_obj_is_kind_of(_x, rb_cHash))
+  {
+    VALUE hsh = _x;
+    _x = ATTR(hsh, left);
+    _y = ATTR(hsh, top);
+    _h = _w = ATTR(hsh, radius);
+    if (!NIL_P(ATTR(hsh, width))) _w = ATTR(hsh, width);
+    if (!NIL_P(ATTR(hsh, height))) _h = ATTR(hsh, height);
+    if (!NIL_P(ATTR(hsh, center))) center = ATTR(hsh, center);
+  }
+
   x = NUM2DBL(_x);
   y = NUM2DBL(_y);
-  w = NUM2DBL(_w);
-  h = NUM2DBL(_h);
+  h = w = NUM2DBL(_w);
+  if (!NIL_P(_h)) h = NUM2DBL(_h);
 
-  shoes_canvas_shape_do(canvas, x, y, w, h);
+  shoes_canvas_shape_do(canvas, x, y, w, h, RTEST(center));
   cairo_scale(cr, w / 2., h / 2.);
   cairo_new_path(cr);
   cairo_move_to(cr, 0, 0);
   cairo_arc(cr, 0., 0., 1., 0., PIM2);
   cairo_close_path(cr);
-  return shoes_canvas_shape_end(self);
+  return shoes_canvas_shape_end(self, INT2NUM(x), INT2NUM(y));
 }
 
 VALUE
@@ -393,10 +428,10 @@ shoes_canvas_line(VALUE self, VALUE _x1, VALUE _y1, VALUE _x2, VALUE _y2)
 
   x = ((x2 - x1) / 2.) + x1;
   y = ((y2 - y1) / 2.) + y1;
-  shoes_canvas_shape_do(canvas, x, y, 0, 0);
+  shoes_canvas_shape_do(canvas, x, y, 0, 0, FALSE);
   cairo_move_to(cr, x1 - x, y1 - y);
   cairo_line_to(cr, x2 - x, y2 - y);
-  return shoes_canvas_shape_end(self);
+  return shoes_canvas_shape_end(self, INT2NUM(x), INT2NUM(y));
 }
 
 VALUE
@@ -411,7 +446,7 @@ shoes_canvas_arrow(VALUE self, VALUE _x, VALUE _y, VALUE _w)
   h = w * 0.8;
   tip = w * 0.42;
 
-  shoes_canvas_shape_do(canvas, x, y, -w, 0);
+  shoes_canvas_shape_do(canvas, x, y, -w, 0, FALSE);
   cairo_new_path(cr);
   cairo_move_to(cr, w / 2., 0);
   cairo_rel_line_to(cr, -tip, +(h*0.5));
@@ -421,7 +456,7 @@ shoes_canvas_arrow(VALUE self, VALUE _x, VALUE _y, VALUE _w)
   cairo_rel_line_to(cr, +(w-tip), 0);
   cairo_rel_line_to(cr, 0, -(h*0.25));
   cairo_close_path(cr);
-  return shoes_canvas_shape_end(self);
+  return shoes_canvas_shape_end(self, INT2NUM(x), INT2NUM(y));
 }
 
 VALUE
@@ -443,7 +478,7 @@ shoes_canvas_star(int argc, VALUE *argv, VALUE self)
   if (!NIL_P(_inner)) inner = NUM2DBL(_inner);
 
   theta = (points - 1) * PI / (points * 1.);
-  shoes_canvas_shape_do(canvas, 0, 0, 0, 0); /* TODO: find star's center */
+  shoes_canvas_shape_do(canvas, 0, 0, 0, 0, FALSE); /* TODO: find star's center */
   cairo_new_path(cr);
   cairo_move_to(cr, x, y);
   for (i = 0; i < points - 1; i++) {
@@ -451,7 +486,7 @@ shoes_canvas_star(int argc, VALUE *argv, VALUE self)
     cairo_rotate(cr, theta);
   }
   cairo_close_path(cr);
-  return shoes_canvas_shape_end(self);
+  return shoes_canvas_shape_end(self, INT2NUM(x), INT2NUM(y));
 }
 
 VALUE
@@ -521,7 +556,7 @@ shoes_canvas_path(int argc, VALUE *argv, VALUE self)
 
   rb_scan_args(argc, argv, "02", &_x, &_y);
 
-  shoes_canvas_shape_do(canvas, 0, 0, 0, 0); /* TODO: find path center */
+  shoes_canvas_shape_do(canvas, 0, 0, 0, 0, FALSE); /* TODO: find path center */
   cairo_new_path(cr);
   if (!NIL_P(_x) && !NIL_P(_y))
   {
@@ -534,7 +569,7 @@ shoes_canvas_path(int argc, VALUE *argv, VALUE self)
     rb_yield(Qnil);
   }
   cairo_close_path(cr);
-  return shoes_canvas_shape_end(self);
+  return shoes_canvas_shape_end(self, INT2NUM(x), INT2NUM(y));
 }
 
 VALUE

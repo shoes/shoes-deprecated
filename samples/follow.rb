@@ -10,7 +10,7 @@ Shoes.app do
       background rgb(51, 51, 51)
       trails.each_with_index do |(x, y), i|
         i += 1
-        oval x, y, i, i
+        oval :left => x, :top => y, :radius => i, :center => true
       end
     end
   end

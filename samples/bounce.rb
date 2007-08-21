@@ -14,7 +14,7 @@ Shoes.app do
       xdir *= -1 if x > self.width - size or x < 0
       ydir *= -1 if y > self.height - size or y < 0
 
-      oval x + size / 2, y + size / 2, size, size
+      oval :left => x + size / 2, :top => y + size / 2, :radius => size, :center => true
     end
   end
 end
