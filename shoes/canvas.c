@@ -1345,23 +1345,61 @@ shoes_stack_new(VALUE attr, VALUE parent)
 // Global clipboard getter and setter
 //
 VALUE
-shoes_canvas_get_clipboard(VALUE canvas)
+shoes_canvas_get_clipboard(VALUE self)
 {
+  VALUE paste = Qnil;
+  shoes_canvas *self_t;
+  Data_Get_Struct(self, shoes_canvas, self_t);
+
 #ifdef SHOES_GTK
   GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_PRIMARY);
   if (gtk_clipboard_wait_is_text_available(primary))
   {
     gchar *string = gtk_clipboard_wait_for_text(primary);
-    return rb_str_new2(string);
+    paste = rb_str_new2(string);
   }
 #endif
+
+#ifdef SHOES_WIN32
+  if (OpenClipboard(self_t->app->slot.window))
+  {
+    HANDLE hclip = GetClipboardData(CF_TEXT);
+    char *buffer = (char *)GlobalLock(hclip);
+    paste = rb_str_new2(buffer);
+    GlobalUnlock(hclip);
+    CloseClipboard();
+  }
+#endif
+
+  return paste;
 }
 
 VALUE
-shoes_canvas_set_clipboard(VALUE canvas, VALUE string)
+shoes_canvas_set_clipboard(VALUE self, VALUE string)
 {
+  shoes_canvas *self_t;
+  Data_Get_Struct(self, shoes_canvas, self_t);
+  StringValue(string);
+
 #ifdef SHOES_GTK
   GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_PRIMARY);
   gtk_clipboard_set_text(primary, RSTRING_PTR(string), RSTRING_LEN(string));
 #endif
+
+#ifdef SHOES_WIN32
+  if (OpenClipboard(self_t->app->slot.window))
+  {
+    char *buffer;
+    HGLOBAL hclip;
+    EmptyClipboard();
+    hclip = GlobalAlloc(GMEM_DDESHARE, RSTRING_LEN(string)+1);
+    buffer = (char *)GlobalLock(hclip);
+    strncpy(buffer, RSTRING_PTR(string), RSTRING_LEN(string)+1);
+    GlobalUnlock(hclip);
+    SetClipboardData(CF_TEXT, hclip);
+    CloseClipboard();
+  }
+#endif
+
+  return string;
 }

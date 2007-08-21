@@ -18,6 +18,10 @@ Shoes.app :height => 500, :width => 450 do
       str += "  "
     when :alt_q
       quit
+    when :alt_c
+      self.clipboard = str
+    when :alt_v
+      str += self.clipboard
     end
     s = Shoes.escape(str).gsub(/^def /, "<span color='#FFDDAA'>def</span> ")
     t.replace "<span font_desc='Monospace 12' color='white'>#{s}</span>"
