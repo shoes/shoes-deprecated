@@ -1317,6 +1317,7 @@ shoes_text_draw(VALUE self, VALUE c)
     cairo_new_path(canvas->cr);
     cairo_move_to(canvas->cr, crx, cry);
     cairo_line_to(canvas->cr, crx, cry + (crect.height / PANGO_SCALE));
+    cairo_set_antialias(canvas->cr, CAIRO_ANTIALIAS_NONE);
     cairo_set_source_rgb(canvas->cr, 0., 0., 0.);
     cairo_set_line_width(canvas->cr, 0.8);
     cairo_stroke(canvas->cr);
