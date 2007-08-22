@@ -1341,6 +1341,103 @@ shoes_stack_new(VALUE attr, VALUE parent)
   return shoes_slot_new(cStack, attr, parent);
 }
 
+#ifdef SHOES_QUARTZ
+static char clip_buf[SHOES_BUFSIZE];
+static char clip_rbuf[SHOES_BUFSIZE];
+
+char*
+shoes_apple_pasteboard_get(void)
+{
+  char *s, *t;
+  CFArrayRef flavors;
+  CFDataRef data;
+  CFIndex nflavor, ndata, j;
+  CFStringRef type;
+  ItemCount nitem;
+  PasteboardRef clip;
+  PasteboardItemID id;
+  PasteboardSyncFlags flags;
+  UInt32 i;
+
+  if(PasteboardCreate(kPasteboardClipboard, &clip) != noErr){
+    // fprint(2, "apple pasteboard create failed\n");
+    return nil;
+  }
+  flags = PasteboardSynchronize(clip);
+  if(flags&kPasteboardClientIsOwner){
+    s = strdup(clip_buf);
+    return s;
+  }
+  if(PasteboardGetItemCount(clip, &nitem) != noErr){
+    // fprint(2, "apple pasteboard get item count failed\n");
+    return nil;
+  }
+  for(i=1; i<=nitem; i++){
+    if(PasteboardGetItemIdentifier(clip, i, &id) != noErr)
+      continue;
+    if(PasteboardCopyItemFlavors(clip, id, &flavors) != noErr)
+      continue;
+    nflavor = CFArrayGetCount(flavors);
+    for(j=0; j<nflavor; j++){
+      type = (CFStringRef)CFArrayGetValueAtIndex(flavors, j);
+      if(!UTTypeConformsTo(type, CFSTR("public.utf8-plain-text")))
+        continue;
+      if(PasteboardCopyItemFlavorData(clip, id, type, &data) != noErr)
+        continue;
+      ndata = CFDataGetLength(data);
+      s = (char*)CFDataGetBytePtr(data);
+      CFRelease(flavors);
+      CFRelease(data);
+      for(t=s; *t; t++)
+        if(*t == '\r')
+          *t = '\n';
+      return s;
+    }
+    CFRelease(flavors);
+  }
+  return nil;   
+}
+
+void
+shoes_apple_pasteboard_put(char *s)
+{
+  CFDataRef cfdata;
+  PasteboardRef clip;
+  PasteboardSyncFlags flags;
+
+  if(strlen(s) >= SHOES_BUFSIZE)
+    return;
+  strcpy(clip_buf, s);
+  // snprint(clip_rbuf, nelem(clip_rbuf), "%s", s);
+  if(PasteboardCreate(kPasteboardClipboard, &clip) != noErr){
+    // fprint(2, "apple pasteboard create failed\n");
+    return;
+  }
+  if(PasteboardClear(clip) != noErr){
+    // fprint(2, "apple pasteboard clear failed\n");
+    return;
+  }
+  flags = PasteboardSynchronize(clip);
+  if((flags&kPasteboardModified) || !(flags&kPasteboardClientIsOwner)){
+    // fprint(2, "apple pasteboard cannot assert ownership\n");
+    return;
+  }
+  cfdata = CFDataCreate(kCFAllocatorDefault, 
+    (unsigned char*)clip_rbuf, strlen(clip_rbuf)*2);
+  if(cfdata == nil){
+    // fprint(2, "apple pasteboard cfdatacreate failed\n");
+    return;
+  }
+  if(PasteboardPutItemFlavor(clip, (PasteboardItemID)1,
+    CFSTR("public.utf8-plain-text"), cfdata, 0) != noErr){
+    // fprint(2, "apple pasteboard putitem failed\n");
+    CFRelease(cfdata);
+    return;
+  }
+  /* CFRelease(cfdata); ??? */
+}
+#endif
+
 //
 // Global clipboard getter and setter
 //
@@ -1358,6 +1455,11 @@ shoes_canvas_get_clipboard(VALUE self)
     gchar *string = gtk_clipboard_wait_for_text(primary);
     paste = rb_str_new2(string);
   }
+#endif
+
+#ifdef SHOES_QUARTZ
+  char *str = shoes_apple_pasteboard_get();
+  paste = rb_str_new2(str);
 #endif
 
 #ifdef SHOES_WIN32
@@ -1384,6 +1486,10 @@ shoes_canvas_set_clipboard(VALUE self, VALUE string)
 #ifdef SHOES_GTK
   GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_PRIMARY);
   gtk_clipboard_set_text(primary, RSTRING_PTR(string), RSTRING_LEN(string));
+#endif
+
+#ifdef SHOES_QUARTZ
+  shoes_apple_pasteboard_put(RSTRING_PTR(string));
 #endif
 
 #ifdef SHOES_WIN32
