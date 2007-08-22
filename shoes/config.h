@@ -78,6 +78,7 @@ typedef struct {
   WindowRef window;
   HIViewRef view;
   TECObjectRef converter;
+  PasteboardRef clip;
 } shoes_app_quartz, APPKIT;
 
 #define kShoesViewClassID CFSTR("org.hackety.ShoesView")

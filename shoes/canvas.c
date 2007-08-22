@@ -1343,7 +1343,6 @@ shoes_stack_new(VALUE attr, VALUE parent)
 
 #ifdef SHOES_QUARTZ
 static char clip_buf[SHOES_BUFSIZE];
-static char clip_rbuf[SHOES_BUFSIZE];
 
 char*
 shoes_apple_pasteboard_get(void)
@@ -1354,22 +1353,18 @@ shoes_apple_pasteboard_get(void)
   CFIndex nflavor, ndata, j;
   CFStringRef type;
   ItemCount nitem;
-  PasteboardRef clip;
   PasteboardItemID id;
   PasteboardSyncFlags flags;
+  PasteboardRef clip = global_app->kit.clip;
   UInt32 i;
 
-  if(PasteboardCreate(kPasteboardClipboard, &clip) != noErr){
-    // fprint(2, "apple pasteboard create failed\n");
-    return nil;
-  }
   flags = PasteboardSynchronize(clip);
   if(flags&kPasteboardClientIsOwner){
     s = strdup(clip_buf);
     return s;
   }
   if(PasteboardGetItemCount(clip, &nitem) != noErr){
-    // fprint(2, "apple pasteboard get item count failed\n");
+    INFO("apple pasteboard get item count failed\n", 0);
     return nil;
   }
   for(i=1; i<=nitem; i++){
@@ -1402,35 +1397,30 @@ void
 shoes_apple_pasteboard_put(char *s)
 {
   CFDataRef cfdata;
-  PasteboardRef clip;
+  PasteboardRef clip = global_app->kit.clip;
   PasteboardSyncFlags flags;
 
   if(strlen(s) >= SHOES_BUFSIZE)
     return;
   strcpy(clip_buf, s);
-  // snprint(clip_rbuf, nelem(clip_rbuf), "%s", s);
-  if(PasteboardCreate(kPasteboardClipboard, &clip) != noErr){
-    // fprint(2, "apple pasteboard create failed\n");
-    return;
-  }
   if(PasteboardClear(clip) != noErr){
-    // fprint(2, "apple pasteboard clear failed\n");
+    INFO("apple pasteboard clear failed\n", 0);
     return;
   }
   flags = PasteboardSynchronize(clip);
   if((flags&kPasteboardModified) || !(flags&kPasteboardClientIsOwner)){
-    // fprint(2, "apple pasteboard cannot assert ownership\n");
+    INFO("apple pasteboard cannot assert ownership\n", 0);
     return;
   }
   cfdata = CFDataCreate(kCFAllocatorDefault, 
-    (unsigned char*)clip_rbuf, strlen(clip_rbuf)*2);
+    (unsigned char*)clip_buf, strlen(clip_buf)*2);
   if(cfdata == nil){
-    // fprint(2, "apple pasteboard cfdatacreate failed\n");
+    INFO("apple pasteboard cfdatacreate failed\n", 0);
     return;
   }
   if(PasteboardPutItemFlavor(clip, (PasteboardItemID)1,
     CFSTR("public.utf8-plain-text"), cfdata, 0) != noErr){
-    // fprint(2, "apple pasteboard putitem failed\n");
+    INFO("apple pasteboard putitem failed\n", 0);
     CFRelease(cfdata);
     return;
   }

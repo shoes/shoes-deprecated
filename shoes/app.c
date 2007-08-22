@@ -32,6 +32,7 @@ void
 shoes_app_free(shoes_app *app)
 {
 #ifdef SHOES_QUARTZ
+  CFRelease(app->kit.clip);
   TECDisposeConverter(app->kit.converter);
 #endif
   rb_gc_unregister_address(&app->canvas);
@@ -444,7 +445,7 @@ shoes_slot_quartz_create(VALUE self, APPSLOT *parent, int w, int h)
 #define KEYPRESS(name, sym) \
   if (key == VK_##name) { \
     VALUE v = ID2SYM(rb_intern("" # sym)); \
-    if (modifier & optionKey) \
+    if (modifier & cmdKey) \
       KEY_STATE(alt); \
     if (modifier & shiftKey) \
       KEY_STATE(shift); \
@@ -566,7 +567,11 @@ shoes_app_quartz_handler(
               if (nwrite == 1 && text8[0] == '\r') 
                 v = rb_str_new2("\n");
               else
+              {
                 v = rb_str_new(text8, (int)nwrite);
+                if (modifier & cmdKey)
+                  KEY_STATE(alt);
+              }
 
               shoes_app_keypress(app, v);
               free(text);
@@ -1047,6 +1052,10 @@ shoes_app_open(shoes_app *app)
 
   CFRelease(titleKey);
   CFRelease(windowTitle);
+
+  if (PasteboardCreate(kPasteboardClipboard, &app->kit.clip) != noErr) {
+    INFO("Apple Pasteboard create failed.\n", 0);
+  }
 #endif
 
 #ifdef SHOES_WIN32
