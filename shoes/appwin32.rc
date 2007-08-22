@@ -1,6 +1,9 @@
 #include <windows.h>
 #include "shoes/appwin32.h"
 
+IDI_APPLICATION ICON
+"appwin32.ico"
+
 ASKDLG DIALOG 20, 20, 299, 79
 STYLE DS_SETFONT |DS_MODALFRAME |WS_POPUP |WS_VISIBLE |WS_SYSMENU |WS_CAPTION
 CAPTION "Shoes asks:"

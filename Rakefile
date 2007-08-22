@@ -108,6 +108,7 @@ task :build => :build_os do
     `echo -n 'APPL????' > "#{APPNAME}.app/Contents/PkgInfo"`
   when /win32/
     cp "platform/msw/shoes.exe.manifest", "dist"
+    cp "dist/zlib1.dll", "dist/zlib.dll"
   end
 end
 

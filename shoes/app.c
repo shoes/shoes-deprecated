@@ -1070,8 +1070,8 @@ shoes_app_open(shoes_app *app)
   app->kit.classex.lpfnWndProc = shoes_app_win32proc;
   app->kit.classex.style = CS_HREDRAW | CS_VREDRAW;
   app->kit.classex.cbSize = sizeof(WNDCLASSEX);
-  app->kit.classex.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-  app->kit.classex.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+  app->kit.classex.hIcon = LoadIcon(app->kit.instance, IDI_APPLICATION);
+  app->kit.classex.hIconSm = LoadIcon(app->kit.instance, IDI_APPLICATION);
   app->kit.classex.hCursor = LoadCursor(NULL, IDC_ARROW);
   app->kit.classex.lpszMenuName = NULL;
   app->kit.classex.cbClsExtra = 0;
