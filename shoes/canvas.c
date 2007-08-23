@@ -882,6 +882,7 @@ shoes_canvas_draw(VALUE self, VALUE c)
   shoes_canvas *canvas;
   Data_Get_Struct(self, shoes_canvas, self_t);
   Data_Get_Struct(c, shoes_canvas, canvas);
+
   INFO("DRAW\n", 0);
   if (self_t->height > self_t->fully)
     self_t->fully = self_t->height;
@@ -901,11 +902,51 @@ shoes_canvas_draw(VALUE self, VALUE c)
 
   if (ATTR(self_t->attr, hidden) != Qtrue)
   {
-    INFO("CONTENTS: %lu\n", self_t->contents);
+    VALUE masks = Qnil;
+    cairo_t *cr = NULL, *crc = NULL, *crm = NULL;
+    cairo_surface_t *surfc = NULL, *surfm = NULL;
+
     for (i = 0; i < RARRAY_LEN(self_t->contents); i++)
     {
       VALUE ele = rb_ary_entry(self_t->contents, i);
+      if (rb_obj_class(ele) == cMask)
+      {
+        if (NIL_P(masks)) masks = rb_ary_new();
+        rb_ary_push(masks, ele);
+      }
+    }
+
+    if (!NIL_P(masks))
+    {
+      cr = self_t->cr;
+      surfc = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, canvas->place.w, canvas->place.h);
+      surfm = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, canvas->place.w, canvas->place.h);
+      crc = cairo_create(surfc);
+      crm = cairo_create(surfm);
+    }
+
+    for (i = 0; i < RARRAY_LEN(self_t->contents); i++)
+    {
+      VALUE ele = rb_ary_entry(self_t->contents, i);
+      if (!NIL_P(masks))
+      {
+        if (rb_obj_class(ele) == cMask)
+          self_t->cr = crm;
+        else
+          self_t->cr = crc;
+      }
       rb_funcall(ele, s_draw, 1, self);
+    }
+
+    if (!NIL_P(masks))
+    {
+      cairo_set_source_surface(cr, surfc, 0., 0.);
+      cairo_mask_surface(cr, surfm, 0., 0.);
+      cairo_surface_destroy(surfm);
+      cairo_surface_destroy(surfc);
+      cairo_destroy(crc);
+      cairo_destroy(crm);
+      self_t->cr = cr;
     }
   }
 
@@ -1080,6 +1121,19 @@ shoes_canvas_stack(int argc, VALUE *argv, VALUE self)
   mfp_instance_eval(stack, block);
   rb_ary_push(canvas->contents, stack);
   return stack;
+}
+
+VALUE
+shoes_canvas_mask(int argc, VALUE *argv, VALUE self)
+{
+  VALUE attr, block, mask;
+  SETUP();
+
+  rb_scan_args(argc, argv, "01&", &attr, &block);
+  mask = shoes_mask_new(attr, self);
+  mfp_instance_eval(mask, block);
+  rb_ary_push(canvas->contents, mask);
+  return mask;
 }
 
 void
@@ -1333,12 +1387,21 @@ shoes_flow_new(VALUE attr, VALUE parent)
 }
 
 //
-// Shoes::Canvas
+// Shoes::Stack
 //
 VALUE
 shoes_stack_new(VALUE attr, VALUE parent)
 {
   return shoes_slot_new(cStack, attr, parent);
+}
+
+//
+// Shoes::Mask
+//
+VALUE
+shoes_mask_new(VALUE attr, VALUE parent)
+{
+  return shoes_slot_new(cMask, attr, parent);
 }
 
 #ifdef SHOES_QUARTZ

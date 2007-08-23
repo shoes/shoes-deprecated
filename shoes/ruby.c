@@ -8,7 +8,7 @@
 #include "shoes/dialogs.h"
 #include "shoes/internal.h"
 
-VALUE cShoes, cCanvas, cFlow, cStack, cPath, cImage, cAnim, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cLink;
+VALUE cShoes, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 ID s_aref, s_perc, s_bind, s_new, s_run, s_to_s, s_arrow, s_call, s_center, s_change, s_click, s_corner, s_draw, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
@@ -859,6 +859,26 @@ shoes_color_to_s(VALUE self)
     return rb_funcall(rb_str_new2("rgb(%d, %d, %d)"), s_perc, 1, ary);
   else
     return rb_funcall(rb_str_new2("rgb(%d, %d, %d, %d)"), s_perc, 1, ary);
+}
+
+
+VALUE
+shoes_method_missing_color(int argc, VALUE *argv, VALUE self)
+{
+  VALUE c, cname, alpha;
+  rb_scan_args(argc, argv, "11", &cname, &alpha);
+  c = rb_hash_aref(cColors, cname);
+  if (NIL_P(c))
+    rb_raise(rb_eNoMethodError, "undefined method `%s' for %s", cname, self);
+
+  if (!NIL_P(alpha))
+  {
+    shoes_color *color;
+    Data_Get_Struct(c, shoes_color, color);
+    color->a = NUM2RGBINT(alpha);
+  }
+
+  return c;
 }
 
 //
@@ -2099,6 +2119,7 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "prepend", CASTHOOK(shoes_canvas_prepend), -1);
   rb_define_method(cCanvas, "flow", CASTHOOK(shoes_canvas_flow), -1);
   rb_define_method(cCanvas, "stack", CASTHOOK(shoes_canvas_stack), -1);
+  rb_define_method(cCanvas, "mask", CASTHOOK(shoes_canvas_mask), -1);
   rb_define_method(cCanvas, "hide", CASTHOOK(shoes_canvas_hide), 0);
   rb_define_method(cCanvas, "show", CASTHOOK(shoes_canvas_show), 0);
   rb_define_method(cCanvas, "toggle", CASTHOOK(shoes_canvas_toggle), 0);
@@ -2116,6 +2137,7 @@ shoes_ruby_init()
 
   cFlow    = rb_define_class_under(cShoes, "Flow", cCanvas);
   cStack   = rb_define_class_under(cShoes, "Stack", cCanvas);
+  cMask   = rb_define_class_under(cShoes, "Mask", cCanvas);
 
   cPath    = rb_define_class_under(cShoes, "Path", rb_cObject);
   rb_define_alloc_func(cPath, shoes_path_alloc);
@@ -2172,10 +2194,158 @@ shoes_ruby_init()
 
   cColor   = rb_define_class_under(cShoes, "Color", rb_cObject);
   rb_define_alloc_func(cColor, shoes_color_alloc);
+  rb_define_method(rb_mKernel, "rgb", CASTHOOK(shoes_color_rgb), -1);
+  rb_define_method(rb_mKernel, "gray", CASTHOOK(shoes_color_gray), -1);
   rb_define_singleton_method(cColor, "rgb", CASTHOOK(shoes_color_rgb), -1);
   rb_define_singleton_method(cColor, "gray", CASTHOOK(shoes_color_gray), -1);
   rb_define_singleton_method(cColor, "parse", CASTHOOK(shoes_color_parse), 1);
   rb_define_method(cColor, "to_s", CASTHOOK(shoes_color_to_s), 0);
+
+  rb_define_method(cCanvas, "method_missing", CASTHOOK(shoes_method_missing_color), -1);
+
+  rb_const_set(cShoes, rb_intern("COLORS"), rb_hash_new());
+  cColors = rb_const_get(cShoes, rb_intern("COLORS"));
+  DEF_COLOR(aliceblue, 240, 248, 255);
+  DEF_COLOR(antiquewhite, 250, 235, 215);
+  DEF_COLOR(aqua, 0, 255, 255);
+  DEF_COLOR(aquamarine, 127, 255, 212);
+  DEF_COLOR(azure, 240, 255, 255);
+  DEF_COLOR(beige, 245, 245, 220);
+  DEF_COLOR(bisque, 255, 228, 196);
+  DEF_COLOR(black, 0, 0, 0);
+  DEF_COLOR(blanchedalmond, 255, 235, 205);
+  DEF_COLOR(blue, 0, 0, 255);
+  DEF_COLOR(blueviolet, 138, 43, 226);
+  DEF_COLOR(brown, 165, 42, 42);
+  DEF_COLOR(burlywood, 222, 184, 135);
+  DEF_COLOR(cadetblue, 95, 158, 160);
+  DEF_COLOR(chartreuse, 127, 255, 0);
+  DEF_COLOR(chocolate, 210, 105, 30);
+  DEF_COLOR(coral, 255, 127, 80);
+  DEF_COLOR(cornflowerblue, 100, 149, 237);
+  DEF_COLOR(cornsilk, 255, 248, 220);
+  DEF_COLOR(crimson, 220, 20, 60);
+  DEF_COLOR(cyan, 0, 255, 255);
+  DEF_COLOR(darkblue, 0, 0, 139);
+  DEF_COLOR(darkcyan, 0, 139, 139);
+  DEF_COLOR(darkgoldenrod, 184, 134, 11);
+  DEF_COLOR(darkgray, 169, 169, 169);
+  DEF_COLOR(darkgreen, 0, 100, 0);
+  DEF_COLOR(darkkhaki, 189, 183, 107);
+  DEF_COLOR(darkmagenta, 139, 0, 139);
+  DEF_COLOR(darkolivegreen, 85, 107, 47);
+  DEF_COLOR(darkorange, 255, 140, 0);
+  DEF_COLOR(darkorchid, 153, 50, 204);
+  DEF_COLOR(darkred, 139, 0, 0);
+  DEF_COLOR(darksalmon, 233, 150, 122);
+  DEF_COLOR(darkseagreen, 143, 188, 143);
+  DEF_COLOR(darkslateblue, 72, 61, 139);
+  DEF_COLOR(darkslategray, 47, 79, 79);
+  DEF_COLOR(darkturquoise, 0, 206, 209);
+  DEF_COLOR(darkviolet, 148, 0, 211);
+  DEF_COLOR(deeppink, 255, 20, 147);
+  DEF_COLOR(deepskyblue, 0, 191, 255);
+  DEF_COLOR(dimgray, 105, 105, 105);
+  DEF_COLOR(dodgerblue, 30, 144, 255);
+  DEF_COLOR(firebrick, 178, 34, 34);
+  DEF_COLOR(floralwhite, 255, 250, 240);
+  DEF_COLOR(forestgreen, 34, 139, 34);
+  DEF_COLOR(fuchsia, 255, 0, 255);
+  DEF_COLOR(gainsboro, 220, 220, 220);
+  DEF_COLOR(ghostwhite, 248, 248, 255);
+  DEF_COLOR(gold, 255, 215, 0);
+  DEF_COLOR(goldenrod, 218, 165, 32);
+  DEF_COLOR(gray, 128, 128, 128);
+  DEF_COLOR(green, 0, 128, 0);
+  DEF_COLOR(greenyellow, 173, 255, 47);
+  DEF_COLOR(honeydew, 240, 255, 240);
+  DEF_COLOR(hotpink, 255, 105, 180);
+  DEF_COLOR(indianred, 205, 92, 92);
+  DEF_COLOR(indigo, 75, 0, 130);
+  DEF_COLOR(ivory, 255, 255, 240);
+  DEF_COLOR(khaki, 240, 230, 140);
+  DEF_COLOR(lavender, 230, 230, 250);
+  DEF_COLOR(lavenderblush, 255, 240, 245);
+  DEF_COLOR(lawngreen, 124, 252, 0);
+  DEF_COLOR(lemonchiffon, 255, 250, 205);
+  DEF_COLOR(lightblue, 173, 216, 230);
+  DEF_COLOR(lightcoral, 240, 128, 128);
+  DEF_COLOR(lightcyan, 224, 255, 255);
+  DEF_COLOR(lightgoldenrodyellow, 250, 250, 210);
+  DEF_COLOR(lightgreen, 144, 238, 144);
+  DEF_COLOR(lightgrey, 211, 211, 211);
+  DEF_COLOR(lightpink, 255, 182, 193);
+  DEF_COLOR(lightsalmon, 255, 160, 122);
+  DEF_COLOR(lightseagreen, 32, 178, 170);
+  DEF_COLOR(lightskyblue, 135, 206, 250);
+  DEF_COLOR(lightslategray, 119, 136, 153);
+  DEF_COLOR(lightsteelblue, 176, 196, 222);
+  DEF_COLOR(lightyellow, 255, 255, 224);
+  DEF_COLOR(lime, 0, 255, 0);
+  DEF_COLOR(limegreen, 50, 205, 50);
+  DEF_COLOR(linen, 250, 240, 230);
+  DEF_COLOR(magenta, 255, 0, 255);
+  DEF_COLOR(maroon, 128, 0, 0);
+  DEF_COLOR(mediumaquamarine, 102, 205, 170);
+  DEF_COLOR(mediumblue, 0, 0, 205);
+  DEF_COLOR(mediumorchid, 186, 85, 211);
+  DEF_COLOR(mediumpurple, 147, 112, 219);
+  DEF_COLOR(mediumseagreen, 60, 179, 113);
+  DEF_COLOR(mediumslateblue, 123, 104, 238);
+  DEF_COLOR(mediumspringgreen, 0, 250, 154);
+  DEF_COLOR(mediumturquoise, 72, 209, 204);
+  DEF_COLOR(mediumvioletred, 199, 21, 133);
+  DEF_COLOR(midnightblue, 25, 25, 112);
+  DEF_COLOR(mintcream, 245, 255, 250);
+  DEF_COLOR(mistyrose, 255, 228, 225);
+  DEF_COLOR(moccasin, 255, 228, 181);
+  DEF_COLOR(navajowhite, 255, 222, 173);
+  DEF_COLOR(navy, 0, 0, 128);
+  DEF_COLOR(oldlace, 253, 245, 230);
+  DEF_COLOR(olive, 128, 128, 0);
+  DEF_COLOR(olivedrab, 107, 142, 35);
+  DEF_COLOR(orange, 255, 165, 0);
+  DEF_COLOR(orangered, 255, 69, 0);
+  DEF_COLOR(orchid, 218, 112, 214);
+  DEF_COLOR(palegoldenrod, 238, 232, 170);
+  DEF_COLOR(palegreen, 152, 251, 152);
+  DEF_COLOR(paleturquoise, 175, 238, 238);
+  DEF_COLOR(palevioletred, 219, 112, 147);
+  DEF_COLOR(papayawhip, 255, 239, 213);
+  DEF_COLOR(peachpuff, 255, 218, 185);
+  DEF_COLOR(peru, 205, 133, 63);
+  DEF_COLOR(pink, 255, 192, 203);
+  DEF_COLOR(plum, 221, 160, 221);
+  DEF_COLOR(powderblue, 176, 224, 230);
+  DEF_COLOR(purple, 128, 0, 128);
+  DEF_COLOR(red, 255, 0, 0);
+  DEF_COLOR(rosybrown, 188, 143, 143);
+  DEF_COLOR(royalblue, 65, 105, 225);
+  DEF_COLOR(saddlebrown, 139, 69, 19);
+  DEF_COLOR(salmon, 250, 128, 114);
+  DEF_COLOR(sandybrown, 244, 164, 96);
+  DEF_COLOR(seagreen, 46, 139, 87);
+  DEF_COLOR(seashell, 255, 245, 238);
+  DEF_COLOR(sienna, 160, 82, 45);
+  DEF_COLOR(silver, 192, 192, 192);
+  DEF_COLOR(skyblue, 135, 206, 235);
+  DEF_COLOR(slateblue, 106, 90, 205);
+  DEF_COLOR(slategray, 112, 128, 144);
+  DEF_COLOR(snow, 255, 250, 250);
+  DEF_COLOR(springgreen, 0, 255, 127);
+  DEF_COLOR(steelblue, 70, 130, 180);
+  DEF_COLOR(tan, 210, 180, 140);
+  DEF_COLOR(teal, 0, 128, 128);
+  DEF_COLOR(thistle, 216, 191, 216);
+  DEF_COLOR(tomato, 255, 99, 71);
+  DEF_COLOR(turquoise, 64, 224, 208);
+  DEF_COLOR(violet, 238, 130, 238);
+  DEF_COLOR(wheat, 245, 222, 179);
+  DEF_COLOR(white, 255, 255, 255);
+  DEF_COLOR(whitesmoke, 245, 245, 245);
+  DEF_COLOR(yellow, 255, 255, 0);
+  DEF_COLOR(yellowgreen, 154, 205, 50);
+
   cLink    = rb_define_class_under(cShoes, "Link", rb_cObject);
 
   rb_define_method(rb_mKernel, "alert", CASTHOOK(shoes_dialog_alert), 1);

@@ -221,6 +221,7 @@ VALUE shoes_canvas_append(int, VALUE *, VALUE);
 VALUE shoes_canvas_prepend(int, VALUE *, VALUE);
 VALUE shoes_canvas_flow(int, VALUE *, VALUE);
 VALUE shoes_canvas_stack(int, VALUE *, VALUE);
+VALUE shoes_canvas_mask(int, VALUE *, VALUE);
 VALUE shoes_canvas_hide(VALUE);
 VALUE shoes_canvas_show(VALUE);
 VALUE shoes_canvas_toggle(VALUE);
@@ -242,6 +243,7 @@ VALUE shoes_canvas_set_clipboard(VALUE, VALUE);
 VALUE shoes_slot_new(VALUE, VALUE, VALUE);
 VALUE shoes_flow_new(VALUE, VALUE);
 VALUE shoes_stack_new(VALUE, VALUE);
+VALUE shoes_mask_new(VALUE, VALUE);
 
 VALUE shoes_control_new(VALUE, VALUE, VALUE);
 VALUE shoes_control_alloc(VALUE);
