@@ -82,7 +82,7 @@ typedef struct {
 // image struct
 //
 typedef struct {
-  cairo_surface_t *surface;
+  GdkPixbuf *pixbuf;
   int width, height;     // dimensions of the actual image
   shoes_place place;
   VALUE path;

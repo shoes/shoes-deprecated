@@ -1319,6 +1319,7 @@ shoes_app_quit(VALUE self)
 shoes_code
 shoes_init()
 {
+  g_type_init();
 #ifdef SHOES_WIN32
   INITCOMMONCONTROLSEX InitCtrlEx;
   InitCtrlEx.dwSize = sizeof(INITCOMMONCONTROLSEX);

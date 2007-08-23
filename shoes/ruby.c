@@ -526,21 +526,23 @@ shoes_image_mark(shoes_image *image)
 static void
 shoes_image_free(shoes_image *image)
 {
-  if (image->surface != NULL)
-    cairo_surface_destroy(image->surface);
+  if (image->pixbuf != NULL)
+    gdk_pixbuf_unref(image->pixbuf);
   free(image);
 }
 
 VALUE
 shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent)
 {
+  GError *error = NULL;
   shoes_image *image;
   VALUE obj = shoes_image_alloc(klass);
   Data_Get_Struct(obj, shoes_image, image);
+
   image->path = path;
-  image->surface = cairo_image_surface_create_from_png(RSTRING_PTR(path));
-  image->width = cairo_image_surface_get_width(image->surface);
-  image->height = cairo_image_surface_get_height(image->surface);
+  image->pixbuf = gdk_pixbuf_new_from_file(RSTRING(path)->ptr, &error);
+  image->width = gdk_pixbuf_get_width(image->pixbuf);
+  image->height = gdk_pixbuf_get_height(image->pixbuf);
   image->attr = attr;
   image->parent = parent;
   return obj;
@@ -552,7 +554,7 @@ shoes_image_alloc(VALUE klass)
   shoes_image *image;
   VALUE obj = Data_Make_Struct(klass, shoes_image, shoes_image_mark, shoes_image_free, image);
   image->path = Qnil;
-  image->surface = NULL;
+  image->pixbuf = NULL;
   image->attr = Qnil;
   image->parent = Qnil;
   image->width = 0.0;
@@ -574,14 +576,35 @@ shoes_image_draw(VALUE self, VALUE c)
 {
   SETUP(shoes_image, REL_CANVAS, self_t->width, self_t->height);
   shoes_canvas_shape_do(canvas, place.x, place.y, place.w, place.h, FALSE);
+  cairo_save(canvas->cr);
+  cairo_translate(canvas->cr, place.x, place.y);
   if (place.w != self_t->width || place.h != self_t->height)
   {
     cairo_scale(canvas->cr, place.w/self_t->width, place.h/self_t->height);
   }
-  cairo_set_source_surface(canvas->cr, self_t->surface, -place.w / 2., -place.h / 2.);
+  gdk_cairo_set_source_pixbuf(canvas->cr, self_t->pixbuf, -place.w / 2., -place.h / 2.);
   cairo_paint(canvas->cr);
   cairo_restore(canvas->cr);
   FINISH();
+  return self;
+}
+
+VALUE
+shoes_image_size(VALUE self)
+{
+  shoes_image *self_t;
+  Data_Get_Struct(self, shoes_image, self_t);
+  return rb_ary_new3(2, INT2NUM(self_t->width), INT2NUM(self_t->height));
+}
+
+VALUE
+shoes_image_move(VALUE self, VALUE x, VALUE y)
+{
+  shoes_image *self_t;
+  Data_Get_Struct(self, shoes_image, self_t);
+  ATTRSET(self_t->attr, left, x);
+  ATTRSET(self_t->attr, top, y);
+  shoes_canvas_repaint_all(self_t->parent);
   return self;
 }
 
@@ -2148,6 +2171,8 @@ shoes_ruby_init()
   cImage    = rb_define_class_under(cShoes, "Image", rb_cObject);
   rb_define_alloc_func(cImage, shoes_image_alloc);
   rb_define_method(cImage, "draw", CASTHOOK(shoes_image_draw), 1);
+  rb_define_method(cImage, "size", CASTHOOK(shoes_image_size), 0);
+  rb_define_method(cImage, "move", CASTHOOK(shoes_image_move), 2);
   rb_define_method(cImage, "remove", CASTHOOK(shoes_image_remove), 0);
   cBackground = rb_define_class_under(cShoes, "Background", rb_cObject);
   rb_define_alloc_func(cBackground, shoes_image_alloc);
