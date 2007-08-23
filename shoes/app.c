@@ -843,7 +843,7 @@ shoes_app_load(shoes_app *app, char *uri)
   {
     sprintf(bootup,
       "begin;"
-        "Shoes.load(%%q<%s>);"
+        "Shoes.load(Shoes.args!);"
       "rescue Object => e;"
         SHOES_META
           EXC_RUN

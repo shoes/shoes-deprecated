@@ -4,7 +4,10 @@
 # using Shoes.
 #
 require 'open-uri'
+require 'optparse'
 require 'shoes/shy'
+
+ARGV.shift
 
 class Range 
   def rand 
@@ -15,6 +18,18 @@ end
 
 class Shoes
   @mounts = []
+
+  OPTS = OptionParser.new do |opts|
+    opts.banner = "Usage: shoes [options] (app.rb or app.shy)"
+    
+    opts.separator ""
+    opts.separator "Specific options:"
+    
+    opts.on("-s", "--shy DIRECTORY",
+            "Compress a directory into a Shoes YAML (SHY) archive.") do |s|
+      p s
+    end
+  end
 
   NoScript = proc do
     script = ask_open_file
@@ -46,6 +61,11 @@ class Shoes
     else
       [NotFound]
     end
+  end
+
+  def self.args!
+    OPTS.parse! ARGV
+    ARGV[0]
   end
 
   def self.load(path)

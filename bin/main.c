@@ -27,6 +27,7 @@ main(argc, argv)
   app->path = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
   GetModuleFileName(NULL, (LPSTR)app->path, SHOES_BUFSIZE);
 #else
+  ruby_set_argv(argc, argv);
   app->path = argv[0];
   if (argc > 1)
     uri = argv[1];
