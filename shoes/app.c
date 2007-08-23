@@ -815,7 +815,7 @@ shoes_app_win32proc(
 #endif
 
 shoes_code
-shoes_app_load(shoes_app *app, char *uri)
+shoes_app_load(shoes_app *app)
 {
   char bootup[512];
   if (global_app == NULL)
@@ -839,19 +839,19 @@ shoes_app_load(shoes_app *app, char *uri)
   StringValue(str);
   INFO("Bootup: %s\n", RSTRING(str)->ptr);
 
-  if (uri != NULL)
-  {
-    sprintf(bootup,
-      "begin;"
-        "Shoes.load(Shoes.args!);"
-      "rescue Object => e;"
-        SHOES_META
-          EXC_RUN
-        "end;"
-      "end;",
-      uri);
-    rb_eval_string(bootup);
-  }
+  VALUE uri = rb_eval_string("$SHOES_URI = Shoes.args!");
+  if (!RTEST(uri))
+    return SHOES_QUIT;
+
+  sprintf(bootup,
+    "begin;"
+      "Shoes.load($SHOES_URI) if $SHOES_URI.is_a?(String);"
+    "rescue Object => e;"
+      SHOES_META
+        EXC_RUN
+      "end;"
+    "end;");
+  rb_eval_string(bootup);
 
   return SHOES_OK;
 }

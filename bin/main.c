@@ -18,24 +18,24 @@ main(argc, argv)
 {
   shoes_init();
   shoes_app *app = shoes_app_new();
-  char *uri = NULL;
 #ifdef SHOES_WIN32
+  int argc;
+  char **argv;
   app->kit.instance = inst;
   app->kit.style = style;
-  if (arg != NULL && strlen(arg) > 0)
-    uri = arg;
   app->path = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
+  argc = rb_w32_cmdvector(GetCommandLine(), &argv);
   GetModuleFileName(NULL, (LPSTR)app->path, SHOES_BUFSIZE);
 #else
-  ruby_set_argv(argc, argv);
   app->path = argv[0];
-  if (argc > 1)
-    uri = argv[1];
 #endif
-  shoes_app_load(app, uri);
-  shoes_app_open(app);
-  shoes_app_loop(app, "/");
-  shoes_app_close(app);
+  ruby_set_argv(argc - 1, &argv[1]);
+  if (shoes_app_load(app) != SHOES_QUIT)
+  {
+    shoes_app_open(app);
+    shoes_app_loop(app, "/");
+    shoes_app_close(app);
+  }
 #ifdef SHOES_WIN32
   SHOE_FREE(app->path);
 #endif

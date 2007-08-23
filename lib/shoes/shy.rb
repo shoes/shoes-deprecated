@@ -15,6 +15,12 @@ class Shy
   yaml_as 'tag:hackety.org,2007:shy'
   attr_accessor :name, :creator, :version, :launch
 
+  def self.launchable(d)
+    Dir["#{d}/**/*.rb"].map do |path|
+      path.gsub(%r!#{Regexp::quote(path)}/!, '')
+    end
+  end
+
   def self.x(path, d = ".")
     File.open(path, 'rb') do |f|
       hdr = f.read(10).unpack(LAYOUT)
@@ -40,4 +46,3 @@ class Shy
     end
   end
 end
-

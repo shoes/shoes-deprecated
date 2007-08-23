@@ -43,7 +43,7 @@ extern shoes_app *global_app;
 //
 shoes_app *shoes_app_new(void);
 void shoes_app_free(shoes_app *);
-shoes_code shoes_app_load(shoes_app *, char *);
+shoes_code shoes_app_load(shoes_app *);
 shoes_code shoes_app_open(shoes_app *);
 shoes_code shoes_app_loop(shoes_app *, char *);
 shoes_code shoes_app_visit(shoes_app *, char *);

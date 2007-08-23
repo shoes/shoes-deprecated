@@ -6,9 +6,7 @@
 require 'open-uri'
 require 'optparse'
 require 'shoes/shy'
-
-ARGV.shift
-
+ 
 class Range 
   def rand 
     conv = (self.end === Integer && self.begin === Integer ? :to_i : :to_f)
@@ -17,19 +15,7 @@ class Range
 end
 
 class Shoes
-  @mounts = []
-
-  OPTS = OptionParser.new do |opts|
-    opts.banner = "Usage: shoes [options] (app.rb or app.shy)"
-    
-    opts.separator ""
-    opts.separator "Specific options:"
-    
-    opts.on("-s", "--shy DIRECTORY",
-            "Compress a directory into a Shoes YAML (SHY) archive.") do |s|
-      p s
-    end
-  end
+  VERSION = "0.1"
 
   NoScript = proc do
     script = ask_open_file
@@ -41,6 +27,64 @@ class Shoes
     text "404 NOT FOUND, GUYS!"
   end
  
+  ShyMake = proc do |s|
+    proc do
+      stack :margin => 10 do
+        background rgb(240, 240, 150)
+        title "ShyMaker"
+        smalltitle "for Shoes #{Shoes::VERSION}"
+      end
+      stack do
+        progress =
+          stack :margin => 20 do
+            text "Making the Shy"
+            progress
+          end
+        progress.hide
+        info =
+          stack :margin => 10 do
+            stack :margin => 10 do
+              text "Application name"
+              edit_line
+            end
+            stack :margin => 10 do
+              text "Creator"
+              edit_line
+            end
+            stack :margin => 10 do
+              text "Version"
+              edit_line
+            end
+            stack :margin => 10 do
+              text "Launch"
+              list_box :items => Shy.launchable(s)
+            end
+            stack :margin => 10 do
+              button "Ready" do
+                info.hide
+                progress.show
+              end
+            end
+          end
+      end
+    end
+  end
+
+  @mounts = []
+  @main_app = NoScript
+
+  OPTS = OptionParser.new do |opts|
+    opts.banner = "Usage: shoes [options] (app.rb or app.shy)"
+    
+    opts.separator ""
+    opts.separator "Specific options:"
+    
+    opts.on("-s", "--shy DIRECTORY",
+            "Compress a directory into a Shoes YAML (SHY) archive.") do |s|
+      @main_app = ShyMake.call(s)
+    end
+  end
+
   def self.mount(path, meth, &blk)
     @mounts << [path, meth || blk]
   end
@@ -57,7 +101,7 @@ class Shoes
       end
     end
     if uri.path == "/"
-      [@main_app || NoScript]
+      [@main_app]
     else
       [NotFound]
     end
@@ -65,7 +109,7 @@ class Shoes
 
   def self.args!
     OPTS.parse! ARGV
-    ARGV[0]
+    ARGV[0] or (!!@main_app)
   end
 
   def self.load(path)
@@ -83,5 +127,17 @@ class Shoes
 
   def self.url(path, meth)
     Shoes.mount(path, [self, meth])
+  end
+end
+
+class Canvas
+  def title str
+    text "<span font_desc='34px'>#{str}</span>"
+  end
+  def subtitle str
+    text "<span font_desc='26px'>#{str}</span>"
+  end
+  def smalltitle str
+    text "<span font_desc='18px'>#{str}</span>"
   end
 end
