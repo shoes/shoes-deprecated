@@ -288,6 +288,7 @@ VALUE shoes_color_alloc(VALUE);
 VALUE shoes_color_rgb(int, VALUE *, VALUE);
 VALUE shoes_color_gray(int, VALUE *, VALUE);
 cairo_pattern_t *shoes_color_pattern(VALUE);
+void shoes_color_grad_stop(cairo_pattern_t *, double, VALUE);
 VALUE shoes_color_args(int, VALUE *, VALUE);
 VALUE shoes_color_parse(VALUE, VALUE);
 VALUE shoes_color_to_s(VALUE);
