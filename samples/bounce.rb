@@ -4,7 +4,7 @@ xdir, ydir = 1, 1
 Shoes.app do
   background greenyellow
   nostroke
-  icon = image "static/shoes-icon.png", :left => 100, :top => 100
+  icon = image "static/shoes-red.gif", :left => 100, :top => 100
 
   x, y = self.width / 2, self.height / 2
   size = icon.size

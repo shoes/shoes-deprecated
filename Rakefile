@@ -200,7 +200,7 @@ else
   PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
 
   LINUX_CFLAGS = %[-I/usr/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{Config::CONFIG['archdir']}]
-  LINUX_LIB_NAMES = %W[#{ruby_so} cairo pangocairo-1.0 jpeg]
+  LINUX_LIB_NAMES = %W[#{ruby_so} cairo pangocairo-1.0 jpeg gif]
   if ENV['DEBUG']
     LINUX_CFLAGS << " -DDEBUG"
   end

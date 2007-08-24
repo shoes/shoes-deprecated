@@ -7,6 +7,7 @@
 #include "shoes/internal.h"
 #include "shoes/canvas.h"
 #include <jpeglib.h>
+#include <gif_lib.h>
 
 #define JPEG_LINES 16
 
@@ -63,6 +64,129 @@ shoes_surface_create_from_pixels(PIXEL *pixels, int width, int height)
 }
 
 cairo_surface_t *
+shoes_surface_create_from_gif(char *filename)
+{
+  cairo_surface_t *surface = NULL;
+  GifFileType *gif;
+  PIXEL *ptr = NULL, *pixels = NULL;
+  GifPixelType **rows = NULL;
+  GifRecordType rec;
+  ColorMapObject *cmap;
+  int i, j, bg, r, g, b, w = 0, h = 0, done = 0, transp = -1;
+  float per = 0.0, per_inc;
+  int last_per = 0, last_y = 0;
+  int intoffset[] = { 0, 4, 2, 1 };
+  int intjump[] = { 8, 8, 4, 2 };
+
+  transp = -1;
+  gif = DGifOpenFileName(filename);
+  if (gif == NULL)
+    goto done;
+
+  do
+  {
+    if (DGifGetRecordType(gif, &rec) == GIF_ERROR)
+      rec = TERMINATE_RECORD_TYPE;
+    if ((rec == IMAGE_DESC_RECORD_TYPE) && (!done))
+    {
+      if (DGifGetImageDesc(gif) == GIF_ERROR)
+        {
+           /* PrintGifError(); */
+           rec = TERMINATE_RECORD_TYPE;
+        }
+      w = gif->Image.Width;
+      h = gif->Image.Height;
+      if ((w < 1) || (h < 1) || (w > 8192) || (h > 8192))
+        goto done;
+
+      rows = SHOE_ALLOC_N(GifPixelType *, h);
+      if (rows == NULL)
+        goto done;
+
+      SHOE_MEMZERO(rows, GifPixelType *, h);
+
+      for (i = 0; i < h; i++)
+      {
+        rows[i] = SHOE_ALLOC_N(GifPixelType, w);
+        if (rows[i] == NULL)
+          goto done;
+      }
+
+      if (gif->Image.Interlace)
+      {
+        for (i = 0; i < 4; i++)
+        {
+          for (j = intoffset[i]; j < h; j += intjump[i])
+            DGifGetLine(gif, rows[j], w);
+        }
+      }
+      else
+      {
+        for (i = 0; i < h; i++)
+          DGifGetLine(gif, rows[i], w);
+      }
+      done = 1;
+    }
+    else if (rec == EXTENSION_RECORD_TYPE)
+    {
+      int ext_code;
+      GifByteType *ext = NULL;
+      DGifGetExtension(gif, &ext_code, &ext);
+      while (ext)
+      {
+        if ((ext_code == 0xf9) && (ext[1] & 1) && (transp < 0))
+          transp = (int)ext[4];
+        ext = NULL;
+        DGifGetExtensionNext(gif, &ext);
+      }
+    }
+  } while (rec != TERMINATE_RECORD_TYPE);
+
+  bg = gif->SBackGroundColor;
+  cmap = (gif->Image.ColorMap ? gif->Image.ColorMap : gif->SColorMap);
+  pixels = SHOE_ALLOC_N(PIXEL, w * h);
+  if (pixels == NULL)
+    goto done;
+
+  ptr = pixels;
+  per_inc = 100.0 / (((float)w) * h);
+  for (i = 0; i < h; i++)
+  {
+    for (j = 0; j < w; j++)
+    {
+      if (rows[i][j] == transp)
+      {
+        r = cmap->Colors[bg].Red;
+        g = cmap->Colors[bg].Green;
+        b = cmap->Colors[bg].Blue;
+        *ptr++ = 0x00ffffff & ((r << 16) | (g << 8) | b);
+      }
+      else
+      {
+        r = cmap->Colors[rows[i][j]].Red;
+        g = cmap->Colors[rows[i][j]].Green;
+        b = cmap->Colors[rows[i][j]].Blue;
+        *ptr++ = (0xff << 24) | (r << 16) | (g << 8) | b;
+      }
+      per += per_inc;
+    }
+  }
+
+  surface = shoes_surface_create_from_pixels(pixels, w, h);
+
+done:
+  if (gif != NULL) DGifCloseFile(gif);
+  if (pixels != NULL) SHOE_FREE(pixels);
+  if (rows != NULL) {
+    for (i = 0; i < h; i++)
+      if (rows[i] != NULL)
+        SHOE_FREE(rows[i]);
+    SHOE_FREE(rows);
+  }
+  return surface;
+}
+
+cairo_surface_t *
 shoes_surface_create_from_jpeg(char *filename)
 {
   int w, h;
@@ -87,7 +211,7 @@ shoes_surface_create_from_jpeg(char *filename)
   w = cinfo.output_width;
   h = cinfo.output_height;
 
-	if ((w < 1) || (h < 1) || (w > 8192) || (h > 8192))
+  if ((w < 1) || (h < 1) || (w > 8192) || (h > 8192))
     goto done;
 
   int x, y, l, i, scans, count, prevy;
@@ -157,6 +281,10 @@ shoes_load_image(VALUE filename)
   else if (shoes_has_ext(fname, len, ".jpg") || shoes_has_ext(fname, len, ".jpg"))
   {
     return shoes_surface_create_from_jpeg(fname);
+  }
+  else if (shoes_has_ext(fname, len, ".gif"))
+  {
+    return shoes_surface_create_from_gif(fname);
   }
   return NULL;
 }
