@@ -6,12 +6,13 @@
 #define SHOES_CANVAS_H
 
 #include <cairo.h>
-#include <Imlib2.h>
 #include <ruby.h>
 
 #include "shoes/config.h"
 
 struct _shoes_app;
+
+typedef unsigned int PIXEL;
 
 //
 // place struct
@@ -82,8 +83,7 @@ typedef struct {
 // image struct
 //
 typedef struct {
-  Imlib_Image pixbuf;
-  int width, height;     // dimensions of the actual image
+  cairo_surface_t *surface;
   shoes_place place;
   VALUE path;
   VALUE attr;
@@ -304,5 +304,10 @@ VALUE shoes_text_get_cursor(VALUE);
 VALUE shoes_text_draw(VALUE, VALUE);
 VALUE shoes_text_motion(VALUE, int, int);
 VALUE shoes_text_click(VALUE, int, int, int);
+
+//
+// shoes/image.c
+//
+cairo_surface_t *shoes_load_image(VALUE);
 
 #endif

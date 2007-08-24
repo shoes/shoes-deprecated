@@ -198,11 +198,9 @@ else
   CAIRO_LIB = ENV['CAIRO_LIB'] ? "-L#{ENV['CAIRO_LIB']}" : `pkg-config --libs cairo`.strip
   PANGO_CFLAGS = ENV['PANGO_CFLAGS'] || `pkg-config --cflags pango`.strip
   PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
-  IMLIB2_CFLAGS = ENV['IMLIB2_CFLAGS'] || `pkg-config --cflags imlib2`.strip
-  IMLIB2_LIB = ENV['IMLIB2_LIB'] ? "-L#{ENV['IMLIB2_LIB']}" : `pkg-config --libs imlib2`.strip
 
-  LINUX_CFLAGS = %[-I/usr/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{IMLIB2_CFLAGS} -I#{Config::CONFIG['archdir']}]
-  LINUX_LIB_NAMES = %W[#{ruby_so} cairo pangocairo-1.0]
+  LINUX_CFLAGS = %[-I/usr/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{Config::CONFIG['archdir']}]
+  LINUX_LIB_NAMES = %W[#{ruby_so} cairo pangocairo-1.0 jpeg]
   if ENV['DEBUG']
     LINUX_CFLAGS << " -DDEBUG"
   end
@@ -225,7 +223,7 @@ else
     mkdir_p "dist"
   end
 
-  LINUX_LIBS << " -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB} #{IMLIB2_LIB}"
+  LINUX_LIBS << " -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB}"
 
   task "dist/#{NAME}" => "dist/lib#{NAME}.#{DLEXT}" do |t|
     bin = "#{t.name}-bin"
