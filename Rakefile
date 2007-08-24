@@ -198,11 +198,11 @@ else
   CAIRO_LIB = ENV['CAIRO_LIB'] ? "-L#{ENV['CAIRO_LIB']}" : `pkg-config --libs cairo`.strip
   PANGO_CFLAGS = ENV['PANGO_CFLAGS'] || `pkg-config --cflags pango`.strip
   PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
-  PIXBUF_CFLAGS = ENV['PIXBUF_CFLAGS'] || `pkg-config --cflags gdk-pixbuf-2.0`.strip
-  PIXBUF_LIB = ENV['PIXBUF_LIB'] ? "-L#{ENV['PIXBUF_LIB']}" : `pkg-config --libs gdk-pixbuf-2.0`.strip
+  IMLIB2_CFLAGS = ENV['IMLIB2_CFLAGS'] || `pkg-config --cflags imlib2`.strip
+  IMLIB2_LIB = ENV['IMLIB2_LIB'] ? "-L#{ENV['IMLIB2_LIB']}" : `pkg-config --libs imlib2`.strip
 
-  LINUX_CFLAGS = %[-I/usr/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{PIXBUF_CFLAGS} -I#{Config::CONFIG['archdir']}]
-  LINUX_LIB_NAMES = %W[#{ruby_so} cairo pangocairo-1.0 gdk_pixbuf-2.0]
+  LINUX_CFLAGS = %[-I/usr/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{IMLIB2_CFLAGS} -I#{Config::CONFIG['archdir']}]
+  LINUX_LIB_NAMES = %W[#{ruby_so} cairo pangocairo-1.0]
   if ENV['DEBUG']
     LINUX_CFLAGS << " -DDEBUG"
   end
@@ -225,7 +225,7 @@ else
     mkdir_p "dist"
   end
 
-  LINUX_LIBS << " -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB} #{PIXBUF_LIB}"
+  LINUX_LIBS << " -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB} #{IMLIB2_LIB}"
 
   task "dist/#{NAME}" => "dist/lib#{NAME}.#{DLEXT}" do |t|
     bin = "#{t.name}-bin"

@@ -6,7 +6,7 @@
 #define SHOES_CANVAS_H
 
 #include <cairo.h>
-#include <pango/pangocairo.h>
+#include <Imlib2.h>
 #include <ruby.h>
 
 #include "shoes/config.h"
@@ -82,7 +82,7 @@ typedef struct {
 // image struct
 //
 typedef struct {
-  GdkPixbuf *pixbuf;
+  Imlib_Image pixbuf;
   int width, height;     // dimensions of the actual image
   shoes_place place;
   VALUE path;

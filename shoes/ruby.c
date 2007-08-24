@@ -531,6 +531,68 @@ shoes_image_free(shoes_image *image)
   free(image);
 }
 
+static void
+cairo_imlib_set_source_pixbuf (cairo_t *cr,
+  Imlib_Image pixbuf,
+  double pixbuf_x,
+  double pixbuf_y,
+  int width,
+  int height)
+{
+  DATA32 *pixels;
+  guchar *cairo_pixels;
+  cairo_surface_t *surface;
+  static const cairo_user_data_key_t key;
+  int j;
+ 
+  imlib_context_set_image(pixbuf);
+  pixels = imlib_image_get_data_for_reading_only();
+ 
+  cairo_pixels = g_malloc(4 * width * height);
+  surface = cairo_image_surface_create_for_data((unsigned char *)cairo_pixels,
+    CAIRO_FORMAT_ARGB32,
+    width, height, 4 * width);
+  cairo_surface_set_user_data(surface, &key,
+    cairo_pixels, (cairo_destroy_func_t)g_free);
+ 
+  for (j = height; j; j--)
+  {
+    guchar *p = (guchar *)pixels;
+    guchar *q = cairo_pixels;
+   
+    guchar *end = p + 4 * width;
+    guint t1,t2,t3;
+ 
+#define MULT(d,c,a,t) G_STMT_START { t = c * a; d = ((t >> 8) + t) >> 8; } G_STMT_END
+ 
+    while (p < end)
+    {
+#if G_BYTE_ORDER == G_LITTLE_ENDIAN
+      MULT(q[2], p[2], p[3], t1);
+      MULT(q[1], p[1], p[3], t2);
+      MULT(q[0], p[0], p[3], t3);
+      q[3] = p[3];
+#else
+      q[0] = p[3];
+      MULT(q[3], p[0], p[3], t1);
+      MULT(q[2], p[1], p[3], t2);
+      MULT(q[1], p[2], p[3], t3);
+#endif
+    
+      p += 4;
+      q += 4;
+    }
+   
+#undef MULT
+   
+    pixels += width;
+    cairo_pixels += 4 * width;
+  }
+ 
+  cairo_set_source_surface(cr, surface, pixbuf_x, pixbuf_y);
+  cairo_surface_destroy(surface);
+}
+
 VALUE
 shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent)
 {
@@ -540,9 +602,10 @@ shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent)
   Data_Get_Struct(obj, shoes_image, image);
 
   image->path = path;
-  image->pixbuf = gdk_pixbuf_new_from_file(RSTRING(path)->ptr, &error);
-  image->width = gdk_pixbuf_get_width(image->pixbuf);
-  image->height = gdk_pixbuf_get_height(image->pixbuf);
+  image->pixbuf = imlib_load_image(RSTRING(path)->ptr);
+  imlib_context_set_image(image->pixbuf);
+  image->width = imlib_image_get_width();
+  image->height = imlib_image_get_height();
   image->attr = attr;
   image->parent = parent;
   return obj;
@@ -582,7 +645,7 @@ shoes_image_draw(VALUE self, VALUE c)
   {
     cairo_scale(canvas->cr, place.w/self_t->width, place.h/self_t->height);
   }
-  gdk_cairo_set_source_pixbuf(canvas->cr, self_t->pixbuf, -place.w / 2., -place.h / 2.);
+  cairo_imlib_set_source_pixbuf(canvas->cr, self_t->pixbuf, -place.w / 2., -place.h / 2., self_t->width, self_t->height);
   cairo_paint(canvas->cr);
   cairo_restore(canvas->cr);
   FINISH();
