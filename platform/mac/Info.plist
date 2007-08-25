@@ -5,7 +5,7 @@
   <key>CFBundleGetInfoString</key>
   <string>#{APPNAME} #{VERS}</string>
   <key>CFBundleExecutable</key>
-  <string>#{NAME}</string>
+  <string>#{NAME}-bin</string>
   <key>CFBundleIdentifier</key>
   <string>org.hackety.#{NAME}</string>
   <key>CFBundleName</key>

@@ -73,7 +73,7 @@ task :build => :build_os do
       %w[lib/libcairo.2.dylib lib/libcairo.2.dylib lib/libgmodule-2.0.0.dylib lib/libintl.8.dylib lib/libruby.dylib
          lib/libglib-2.0.0.dylib lib/libgobject-2.0.0.dylib lib/libpng12.0.dylib lib/libpango-1.0.0.dylib 
          lib/pango/1.6.0/modules/pango-basic-atsui.la lib/libpangocairo-1.0.0.dylib 
-         lib/pango/1.6.0/modules/pango-basic-atsui.so etc/pango/pangorc etc/pango/pango.modules
+         lib/pango/1.6.0/modules/pango-basic-atsui.so etc/pango/pango.modules
          lib/libjpeg.62.dylib lib/libgif.4.dylib].
       each do |libn|
         cp "#{ENV['SHOES_DEPS_PATH']}/#{libn}", "dist/"
@@ -103,8 +103,9 @@ task :build => :build_os do
     sh "ditto platform/mac/Shoes.icns #{APPNAME}.app/Contents/Resources/"
     rewrite "platform/mac/Info.plist", "#{APPNAME}.app/Contents/Info.plist"
     cp "platform/mac/version.plist", "#{APPNAME}.app/Contents/"
-    cp "platform/mac/shoes-launch", "#{APPNAME}.app/Contents/MacOS/"
-    chmod 0755, "#{APPNAME}.app/Contents/MacOS/shoes-launch"
+    cp "platform/mac/pangorc", "#{APPNAME}.app/Contents/MacOS/"
+    cp "platform/mac/shoes-launch", "#{APPNAME}.app/Contents/MacOS/shoes"
+    chmod 0755, "#{APPNAME}.app/Contents/MacOS/shoes"
     # cp InfoPlist.strings YourApp.app/Contents/Resources/English.lproj/
     `echo -n 'APPL????' > "#{APPNAME}.app/Contents/PkgInfo"`
   when /win32/
@@ -232,9 +233,7 @@ else
     rm_f t.name
     rm_f bin
     sh "#{CC} -Ldist -o #{bin} -lshoes #{LINUX_LIBS}"
-    case PLATFORM when /darwin/
-      mv bin, t.name
-    else
+    if PLATFORM !~ /darwin/
       sh %{echo 'APPPATH="${0%/*}"' > #{t.name}}
       sh %{echo 'LD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} $@' >> #{t.name}}
       chmod 0755, t.name
