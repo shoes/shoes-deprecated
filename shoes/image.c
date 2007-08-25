@@ -6,9 +6,10 @@
 //
 #include "shoes/internal.h"
 #include "shoes/canvas.h"
+#include "shoes/ruby.h"
 #include <jpeglib.h>
 
-#ifdef SHOES_QUARTZ
+#ifndef SHOES_GTK
 #ifdef DrawText
 #undef DrawText
 #endif
@@ -26,7 +27,7 @@ shoes_surface_create_from_pixels(PIXEL *pixels, int width, int height)
   static const cairo_user_data_key_t key;
   int j;
  
-  cairo_pixels = g_malloc(4 * width * height);
+  cairo_pixels = (guchar *)g_malloc(4 * width * height);
   surface = cairo_image_surface_create_for_data((unsigned char *)cairo_pixels,
     CAIRO_FORMAT_ARGB32,
     width, height, 4 * width);
