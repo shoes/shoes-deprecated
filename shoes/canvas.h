@@ -6,6 +6,7 @@
 #define SHOES_CANVAS_H
 
 #include <cairo.h>
+#include <pango/pangocairo.h>
 #include <ruby.h>
 
 #include "shoes/config.h"

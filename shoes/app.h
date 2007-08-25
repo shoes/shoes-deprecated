@@ -11,7 +11,6 @@
 #define SHOES_APP_H
 
 #include <cairo.h>
-#include <gdk-pixbuf/gdk-pixbuf.h>
 #include <ruby.h>
 
 #include "shoes/canvas.h"

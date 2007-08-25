@@ -73,7 +73,8 @@ task :build => :build_os do
       %w[lib/libcairo.2.dylib lib/libcairo.2.dylib lib/libgmodule-2.0.0.dylib lib/libintl.8.dylib lib/libruby.dylib
          lib/libglib-2.0.0.dylib lib/libgobject-2.0.0.dylib lib/libpng12.0.dylib lib/libpango-1.0.0.dylib 
          lib/pango/1.6.0/modules/pango-basic-atsui.la lib/libpangocairo-1.0.0.dylib 
-         lib/pango/1.6.0/modules/pango-basic-atsui.so etc/pango/pangorc etc/pango/pango.modules].
+         lib/pango/1.6.0/modules/pango-basic-atsui.so etc/pango/pangorc etc/pango/pango.modules
+         lib/libjpeg.62.dylib lib/libgif.4.dylib].
       each do |libn|
         cp "#{ENV['SHOES_DEPS_PATH']}/#{libn}", "dist/"
       end
@@ -199,7 +200,7 @@ else
   PANGO_CFLAGS = ENV['PANGO_CFLAGS'] || `pkg-config --cflags pango`.strip
   PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
 
-  LINUX_CFLAGS = %[-I/usr/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{Config::CONFIG['archdir']}]
+  LINUX_CFLAGS = %[-I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{Config::CONFIG['archdir']}]
   LINUX_LIB_NAMES = %W[#{ruby_so} cairo pangocairo-1.0 jpeg gif]
   if ENV['DEBUG']
     LINUX_CFLAGS << " -DDEBUG"

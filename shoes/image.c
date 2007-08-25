@@ -7,6 +7,13 @@
 #include "shoes/internal.h"
 #include "shoes/canvas.h"
 #include <jpeglib.h>
+
+#ifdef SHOES_QUARTZ
+#ifdef DrawText
+#undef DrawText
+#endif
+#endif
+#define DrawText gif_DrawText
 #include <gif_lib.h>
 
 #define JPEG_LINES 16
