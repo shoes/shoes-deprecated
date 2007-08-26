@@ -10,7 +10,7 @@
 
 VALUE cShoes, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
-ID s_aref, s_perc, s_bind, s_new, s_run, s_to_s, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_draw, s_end, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
+ID s_aref, s_perc, s_bind, s_new, s_run, s_to_s, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -252,7 +252,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char
   place->h -= tmargin + bmargin;
   place->x += lmargin;
   place->y += tmargin;
-  INFO("PLACE: (%d, %d), (%d, %d)\n", place->x, place->y, place->w, place->h);
+  INFO("PLACE: (%d, %d), (%d, %d) [%d, %d]\n", place->x, place->y, place->w, place->h, place->absx, place->absy);
 }
 
 void
@@ -575,7 +575,6 @@ shoes_image_draw(VALUE self, VALUE c)
     (imw = cairo_image_surface_get_width(self_t->surface)), 
     (imh = cairo_image_surface_get_height(self_t->surface)));
   shoes_canvas_shape_do(canvas, place.x, place.y, place.w, place.h, FALSE);
-  cairo_save(canvas->cr);
   cairo_translate(canvas->cr, place.x, place.y);
   if (place.w != imw || place.h != imh)
   {
@@ -671,7 +670,7 @@ shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent)
     }
     else
     {
-      pattern->surface = cairo_image_surface_create_from_png(RSTRING_PTR(source));
+      pattern->surface = shoes_load_image(source);
       pattern->width = cairo_image_surface_get_width(pattern->surface);
       pattern->height = cairo_image_surface_get_height(pattern->surface);
       pattern->pattern = cairo_pattern_create_for_surface(pattern->surface);
@@ -724,17 +723,15 @@ shoes_background_draw(VALUE self, VALUE c)
   double r;
   SETUP(shoes_pattern, REL_TILE, self_t->width, self_t->height);
   r = ATTR2(dbl, self_t->attr, radius, 0.);
-  shoes_canvas_shape_do(canvas, place.x, place.y, 0, 0, FALSE);
+  cairo_save(canvas->cr);
+  cairo_translate(canvas->cr, place.x, place.y);
   cairo_set_source(canvas->cr, self_t->pattern);
-  if (self_t->width == 1.0 && self_t->height == 1.0)
-  {
-    cairo_scale(canvas->cr, place.w, place.h);
-    shoes_cairo_rect(canvas->cr, 0, 0, 1.0, 1.0, r / (place.w * 1.));
-  }
-  else
-  {
-    shoes_cairo_rect(canvas->cr, 0, 0, place.w, place.h, r);
-  }
+  // if (self_t->width == 1.0 && self_t->height == 1.0)
+  // {
+  //   cairo_scale(canvas->cr, place.w, place.h);
+  //   shoes_cairo_rect(canvas->cr, 0, 0, 1.0, 1.0, r / (place.w * 1.));
+  // }
+  shoes_cairo_rect(canvas->cr, 0, 0, place.w, place.h, r);
   INFO("BACKGROUND: (%d, %d), (%d, %d)\n", place.x, place.y, place.w, place.h);
   cairo_fill(canvas->cr);
   place.w = 0; place.h = 0;
@@ -2097,6 +2094,7 @@ shoes_ruby_init()
   s_change = rb_intern("change");
   s_click = rb_intern("click");
   s_corner = rb_intern("corner");
+  s_downcase = rb_intern("downcase");
   s_draw = rb_intern("draw");
   s_end = rb_intern("end");
   s_font = rb_intern("font");

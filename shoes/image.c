@@ -278,21 +278,22 @@ shoes_has_ext(char *fname, int len, const char *ext)
 }
 
 cairo_surface_t *
-shoes_load_image(VALUE filename)
+shoes_load_image(VALUE imgpath)
 {
+  VALUE filename = rb_funcall(imgpath, s_downcase, 0);
   char *fname = RSTRING_PTR(filename);
   int len = RSTRING_LEN(filename);
   if (shoes_has_ext(fname, len, ".png"))
   {
-    return cairo_image_surface_create_from_png(fname);
+    return cairo_image_surface_create_from_png(RSTRING_PTR(imgpath));
   }
   else if (shoes_has_ext(fname, len, ".jpg") || shoes_has_ext(fname, len, ".jpg"))
   {
-    return shoes_surface_create_from_jpeg(fname);
+    return shoes_surface_create_from_jpeg(RSTRING_PTR(imgpath));
   }
   else if (shoes_has_ext(fname, len, ".gif"))
   {
-    return shoes_surface_create_from_gif(fname);
+    return shoes_surface_create_from_gif(RSTRING_PTR(imgpath));
   }
   return NULL;
 }

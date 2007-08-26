@@ -504,7 +504,7 @@ shoes_canvas_markup(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_imagesize(VALUE self, VALUE _path)
 {
-  cairo_surface_t *image = cairo_image_surface_create_from_png(RSTRING(_path)->ptr);
+  cairo_surface_t *image = shoes_load_image(_path);
   double w = cairo_image_surface_get_width(image);
   double h = cairo_image_surface_get_height(image);
   cairo_surface_destroy(image);
