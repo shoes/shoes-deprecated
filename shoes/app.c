@@ -18,6 +18,7 @@ shoes_app_new()
   rb_gc_register_address(&app->canvas);
   app->timers = rb_ary_new();
   rb_gc_register_address(&app->timers);
+  app->title = Qnil;
   app->width = SHOES_APP_WIDTH;
   app->height = SHOES_APP_HEIGHT;
 #ifdef SHOES_WIN32
@@ -950,9 +951,40 @@ shoes_app_main(int argc, VALUE *argv, VALUE self)
   VALUE attr, block;
   rb_scan_args(argc, argv, "01&", &attr, &block);
   rb_iv_set(self, "@main_app", block);
+  global_app->title = ATTR(attr, title);
   shoes_app_resize(global_app, ATTR2(int, attr, width, SHOES_APP_WIDTH), ATTR2(int, attr, height, SHOES_APP_HEIGHT));
   shoes_canvas_init(global_app->canvas, global_app->slot, attr, global_app->width, global_app->height);
   return self;
+}
+
+void
+shoes_app_title(shoes_app *app, VALUE title)
+{
+  char *msg;
+  app->title = rb_str_new2(SHOES_APPNAME);
+  if (!NIL_P(title))
+  {
+    rb_str_cat2(app->title, " - ");
+    rb_str_append(app->title, title);
+  }
+  msg = RSTRING_PTR(app->title);
+
+#ifdef SHOES_GTK
+  gtk_window_set_title(GTK_WINDOW(app->kit.window), _(msg));
+#endif
+
+#ifdef SHOES_QUARTZ
+  CFStringRef cfmsg = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
+  OSStatus err = SetWindowTitleWithCFString(app->kit.window, cfmsg);
+  if (err != noErr)
+  {
+    QUIT("Couldn't set the window title.", 0);
+  }
+#endif
+
+#ifdef SHOES_WIN32
+  SetWindowText(app->slot.window, msg);
+#endif
 }
 
 shoes_code
@@ -968,7 +1000,6 @@ shoes_app_open(shoes_app *app)
 
   gtk_window_set_default_icon_from_file("static/shoes-icon.png", NULL);
   gk->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title(GTK_WINDOW(gk->window), _(SHOES_APPNAME));
   g_signal_connect(G_OBJECT(gk->window), "expose-event",
                     G_CALLBACK(shoes_app_gtk_paint), app);
   g_signal_connect(G_OBJECT(gk->window), "motion-notify-event",
@@ -1000,8 +1031,6 @@ shoes_app_open(shoes_app *app)
   static EventHandlerUPP gTestWindowEventProc = NULL;
   OSStatus               err;
   EventLoopTimerRef      redrawTimer;
-  CFStringRef            titleKey;
-  CFStringRef            windowTitle;
 
   app->slot.controls = Qnil;
   SetRect(&gRect, 100, 100, app->width + 100, app->height + 100);
@@ -1018,14 +1047,6 @@ shoes_app_open(shoes_app *app)
   if (err != noErr)
   {
     QUIT("Couldn't make a new window.", 0);
-  }
-
-  titleKey = CFSTR(SHOES_APPNAME);
-  windowTitle = CFCopyLocalizedString(titleKey, NULL);
-  err = SetWindowTitleWithCFString(app->kit.window, windowTitle);
-  if (err != noErr)
-  {
-    QUIT("Couldn't set the window title.", 0);
   }
 
   InitCursor();
@@ -1100,6 +1121,8 @@ shoes_app_open(shoes_app *app)
     app->kit.instance,
     NULL);
 #endif
+
+  shoes_app_title(app, app->title);
 
 quit:
   return code;

@@ -33,6 +33,7 @@ typedef struct _shoes_app {
   VALUE canvas;
   VALUE timers;
   ID cursor;
+  VALUE title;
 } shoes_app;
 
 extern shoes_app *global_app;

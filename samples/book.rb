@@ -32,4 +32,5 @@ class Book < Shoes
   end
 end
 
-Shoes.app :width => 640, :height => 700
+Shoes.app :width => 640, :height => 700,
+  :title => "Incidents, a Book"
