@@ -579,7 +579,7 @@ shoes_image_draw(VALUE self, VALUE c)
   cairo_translate(canvas->cr, place.x, place.y);
   if (place.w != imw || place.h != imh)
   {
-    cairo_scale(canvas->cr, place.w / imw, place.h / imh);
+    cairo_scale(canvas->cr, (place.w * 1.) / imw, (place.h * 1.) / imh);
   }
   cairo_set_source_surface(canvas->cr, self_t->surface, -place.w / 2., -place.h / 2.);
   cairo_paint(canvas->cr);
