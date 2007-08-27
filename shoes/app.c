@@ -390,7 +390,7 @@ shoes_slot_quartz_create(VALUE self, APPSLOT *parent, int w, int h)
   //
   // Create the scroll view
   //
-  HIScrollViewCreate(kHIScrollViewOptionsVertScroll | kHIScrollViewOptionsHorizScroll | kHIScrollViewOptionsAllowGrow, &slot->scrollview);
+  HIScrollViewCreate(kHIScrollViewOptionsVertScroll | kHIScrollViewOptionsAllowGrow, &slot->scrollview);
   HIScrollViewSetScrollBarAutoHide(slot->scrollview, true);
   rect.origin.x = 0.0;
   rect.origin.y = 0.0;
