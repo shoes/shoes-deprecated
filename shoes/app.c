@@ -14,7 +14,7 @@ shoes_app *
 shoes_app_new()
 {
   shoes_app *app = SHOE_ALLOC(shoes_app);
-  app->canvas = shoes_canvas_new(cCanvas, app);
+  app->canvas = shoes_canvas_new(cShoes, app);
   rb_gc_register_address(&app->canvas);
   app->timers = rb_ary_new();
   rb_gc_register_address(&app->timers);

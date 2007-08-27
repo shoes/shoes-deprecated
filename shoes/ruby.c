@@ -7,6 +7,7 @@
 #include "shoes/ruby.h"
 #include "shoes/dialogs.h"
 #include "shoes/internal.h"
+#include <math.h>
 
 VALUE cShoes, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
@@ -635,13 +636,14 @@ static void
 shoes_pattern_gradient(shoes_pattern *pattern, VALUE r1, VALUE r2, VALUE attr)
 {
   double angle = ATTR2(dbl, attr, angle, 0.);
+  double rads = angle * RAD2PI;
   r1 = shoes_color_parse(cColor, r1);
   r2 = shoes_color_parse(cColor, r2);
-  pattern->pattern = cairo_pattern_create_linear(0.0, 0.0, 0.0, 1.0);
+  pattern->pattern = cairo_pattern_create_linear(0.0, 0.0, 0.0, sin(rads) + cos(rads));
   if (angle != 0.)
   {
     cairo_matrix_t matrix;
-    cairo_matrix_init_rotate(&matrix, angle * RAD2PI);
+    cairo_matrix_init_rotate(&matrix, rads);
     cairo_pattern_set_matrix(pattern->pattern, &matrix);
   }
   shoes_color_grad_stop(pattern->pattern, 0.0, r1);
@@ -2157,6 +2159,9 @@ shoes_ruby_init()
   rb_define_singleton_method(cShoes, "p", CASTHOOK(shoes_p), 1);
   rb_define_singleton_method(cShoes, "debug", CASTHOOK(shoes_debug), 1);
 
+  //
+  // Canvas methods
+  //
   rb_define_method(cCanvas, "width", CASTHOOK(shoes_canvas_get_width), 0);
   rb_define_method(cCanvas, "height", CASTHOOK(shoes_canvas_get_height), 0);
   rb_define_method(cCanvas, "nostroke", CASTHOOK(shoes_canvas_nostroke), 0);
@@ -2164,8 +2169,6 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "strokewidth", CASTHOOK(shoes_canvas_strokewidth), 1);
   rb_define_method(cCanvas, "nofill", CASTHOOK(shoes_canvas_nofill), 0);
   rb_define_method(cCanvas, "fill", CASTHOOK(shoes_canvas_fill), -1);
-  rb_define_method(cCanvas, "rgb", CASTHOOK(shoes_color_rgb), -1);
-  rb_define_method(cCanvas, "gray", CASTHOOK(shoes_color_gray), -1);
   rb_define_method(cCanvas, "rect", CASTHOOK(shoes_canvas_rect), -1);
   rb_define_method(cCanvas, "oval", CASTHOOK(shoes_canvas_oval), -1);
   rb_define_method(cCanvas, "line", CASTHOOK(shoes_canvas_line), 4);
@@ -2217,9 +2220,15 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "clipboard", CASTHOOK(shoes_canvas_get_clipboard), 0);
   rb_define_method(cCanvas, "clipboard=", CASTHOOK(shoes_canvas_set_clipboard), 1);
 
-  cFlow    = rb_define_class_under(cShoes, "Flow", cCanvas);
-  cStack   = rb_define_class_under(cShoes, "Stack", cCanvas);
-  cMask   = rb_define_class_under(cShoes, "Mask", cCanvas);
+  //
+  // Shoes Kernel methods
+  //
+  rb_define_method(rb_mKernel, "rgb", CASTHOOK(shoes_color_rgb), -1);
+  rb_define_method(rb_mKernel, "gray", CASTHOOK(shoes_color_gray), -1);
+
+  cFlow    = rb_define_class_under(cShoes, "Flow", cShoes);
+  cStack   = rb_define_class_under(cShoes, "Stack", cShoes);
+  cMask   = rb_define_class_under(cShoes, "Mask", cShoes);
 
   cPath    = rb_define_class_under(cShoes, "Path", rb_cObject);
   rb_define_alloc_func(cPath, shoes_path_alloc);
