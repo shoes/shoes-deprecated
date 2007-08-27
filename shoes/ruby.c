@@ -10,7 +10,9 @@
 
 VALUE cShoes, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
-ID s_aref, s_perc, s_bind, s_new, s_run, s_to_s, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
+ID s_aref, s_perc, s_bind, s_new, s_run, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
+
+extern const double RAD2PI;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -629,6 +631,24 @@ shoes_pattern_free(shoes_pattern *pattern)
   free(pattern);
 }
 
+static void
+shoes_pattern_gradient(shoes_pattern *pattern, VALUE r1, VALUE r2, VALUE attr)
+{
+  double angle = ATTR2(dbl, attr, angle, 0.);
+  r1 = shoes_color_parse(cColor, r1);
+  r2 = shoes_color_parse(cColor, r2);
+  pattern->pattern = cairo_pattern_create_linear(0.0, 0.0, 0.0, 1.0);
+  if (angle != 0.)
+  {
+    cairo_matrix_t matrix;
+    cairo_matrix_init_rotate(&matrix, angle * RAD2PI);
+    cairo_pattern_set_matrix(pattern->pattern, &matrix);
+  }
+  shoes_color_grad_stop(pattern->pattern, 0.0, r1);
+  shoes_color_grad_stop(pattern->pattern, 1.0, r2);
+  pattern->width = pattern->height = 1.;
+}
+
 VALUE
 shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent)
 {
@@ -648,12 +668,7 @@ shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent)
     if (!rb_obj_is_kind_of(r2, rb_cString))
       rb_raise(rb_eArgError, "last color in the gradient isn't a string");
 
-    r1 = shoes_color_parse(cColor, r1);
-    r2 = shoes_color_parse(cColor, r2);
-    pattern->pattern = cairo_pattern_create_linear(0.0, 0.0, 0.0, 1.0);
-    shoes_color_grad_stop(pattern->pattern, 0.0, r1);
-    shoes_color_grad_stop(pattern->pattern, 1.0, r2);
-    pattern->width = pattern->height = 1.;
+    shoes_pattern_gradient(pattern, r1, r2, attr);
   }
   else
   {
@@ -2089,6 +2104,7 @@ shoes_ruby_init()
   s_new = rb_intern("new");
   s_run = rb_intern("run");
   s_to_s = rb_intern("to_s");
+  s_angle = rb_intern("angle");
   s_arrow = rb_intern("arrow");
   s_begin = rb_intern("begin");
   s_call = rb_intern("call");

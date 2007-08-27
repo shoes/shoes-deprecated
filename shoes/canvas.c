@@ -13,9 +13,9 @@
   Data_Get_Struct(self, shoes_canvas, canvas); \
   cr = canvas->cr
 
-static const double PIM2   = 6.28318530717958647693;
-static const double PI     = 3.14159265358979323846;
-static const double RAD2PI = 0.01745329251994329577;
+const double PIM2   = 6.28318530717958647693;
+const double PI     = 3.14159265358979323846;
+const double RAD2PI = 0.01745329251994329577;
 
 #ifdef SHOES_GTK
 static void
