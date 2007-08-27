@@ -650,7 +650,7 @@ shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent)
 
     r1 = shoes_color_parse(cColor, r1);
     r2 = shoes_color_parse(cColor, r2);
-    pattern->pattern = cairo_pattern_create_linear(0.0, 0.0, 1.0, 1.0);
+    pattern->pattern = cairo_pattern_create_linear(0.0, 0.0, 0.0, 1.0);
     shoes_color_grad_stop(pattern->pattern, 0.0, r1);
     shoes_color_grad_stop(pattern->pattern, 1.0, r2);
     pattern->width = pattern->height = 1.;
@@ -725,12 +725,14 @@ shoes_background_draw(VALUE self, VALUE c)
   r = ATTR2(dbl, self_t->attr, radius, 0.);
   cairo_save(canvas->cr);
   cairo_translate(canvas->cr, place.x, place.y);
+  if (self_t->width == 1.0 && self_t->height == 1.0)
+  {
+    cairo_scale(canvas->cr, place.w * 1., place.h * 1.);
+    r /= place.w * 1.;
+    place.w = 1.0;
+    place.h = 1.0;
+  }
   cairo_set_source(canvas->cr, self_t->pattern);
-  // if (self_t->width == 1.0 && self_t->height == 1.0)
-  // {
-  //   cairo_scale(canvas->cr, place.w, place.h);
-  //   shoes_cairo_rect(canvas->cr, 0, 0, 1.0, 1.0, r / (place.w * 1.));
-  // }
   shoes_cairo_rect(canvas->cr, 0, 0, place.w, place.h, r);
   INFO("BACKGROUND: (%d, %d), (%d, %d)\n", place.x, place.y, place.w, place.h);
   cairo_fill(canvas->cr);
