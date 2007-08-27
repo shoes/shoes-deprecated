@@ -15,6 +15,8 @@ struct _shoes_app;
 
 typedef unsigned int PIXEL;
 
+extern const double RAD2PI, PIM2, PI;
+
 //
 // place struct
 // (outlines the area where a control has been placed)

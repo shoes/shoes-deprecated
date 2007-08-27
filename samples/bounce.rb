@@ -2,7 +2,7 @@ xspeed, yspeed = 8.4, 6.6
 xdir, ydir = 1, 1
 
 Shoes.app do
-  background greenyellow
+  background "#DFA".."#F90", :angle => 45
   nostroke
   icon = image "static/shoes-icon.png", :left => 100, :top => 100
 

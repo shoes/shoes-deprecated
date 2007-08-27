@@ -13,8 +13,6 @@ VALUE cShoes, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cBackground, 
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 ID s_aref, s_perc, s_bind, s_new, s_run, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
-extern const double RAD2PI;
-
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
 //
