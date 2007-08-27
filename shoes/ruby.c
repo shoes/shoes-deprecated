@@ -1172,7 +1172,7 @@ shoes_text_parse(VALUE self, VALUE markup)
   GError *error = NULL;
   const gchar *start;
   gsize len;
-  VALUE str = rb_str_new2("<span rise='10000' color='#333'>");
+  VALUE str = rb_str_new2("<span rise='10240' color='#333'>");
   rb_str_append(str, markup);
   rb_str_cat2(str, "</span>");
 
