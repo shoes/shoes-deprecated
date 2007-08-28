@@ -193,6 +193,7 @@ VALUE shoes_canvas_line(VALUE, VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_canvas_arrow(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_canvas_star(int, VALUE *, VALUE);
 VALUE shoes_canvas_markup(int argc, VALUE *argv, VALUE self);
+VALUE shoes_canvas_link(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_background(int, VALUE *, VALUE);
 VALUE shoes_canvas_image(int, VALUE *, VALUE);
 VALUE shoes_canvas_animate(int, VALUE *, VALUE);

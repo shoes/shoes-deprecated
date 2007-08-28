@@ -518,6 +518,23 @@ shoes_canvas_markup(int argc, VALUE *argv, VALUE self)
 }
 
 VALUE
+shoes_canvas_link(int argc, VALUE *argv, VALUE self)
+{
+  VALUE msg, attr, text, block;
+  SETUP();
+
+  rb_scan_args(argc, argv, "11&", &msg, &attr, &block);
+  if (NIL_P(attr)) attr = rb_hash_new();
+
+  if (NIL_P(ATTR(attr, href)))
+    ATTRSET(attr, href, block);
+
+  text = shoes_linktext_new(msg, attr, self);
+  rb_ary_push(canvas->contents, text);
+  return text;
+}
+
+VALUE
 shoes_canvas_imagesize(VALUE self, VALUE _path)
 {
   cairo_surface_t *image = shoes_load_image(_path);
@@ -1242,7 +1259,7 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y)
       {
         v = shoes_canvas_send_click(ele, button, x, y);
       }
-      else if (rb_obj_class(ele) == cTextClass)
+      else if (rb_obj_is_kind_of(ele, cTextClass))
       {
         v = shoes_text_click(ele, button, x, y);
       }
@@ -1274,7 +1291,13 @@ shoes_canvas_send_click(VALUE self, int button, int x, int y)
 {
   // INFO("click(%d, %d, %d)\n", button, x, y);
   VALUE url = shoes_canvas_send_click2(self, button, x, y);
-  if (!NIL_P(url)) shoes_app_goto(global_app, RSTRING_PTR(url));
+  if (!NIL_P(url))
+  {
+    if (rb_obj_is_kind_of(url, rb_cProc))
+      shoes_safe_block(self, url, rb_ary_new());
+    else
+      shoes_app_goto(global_app, RSTRING_PTR(url));
+  }
   return url;
 }
 
@@ -1326,7 +1349,7 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
       {
         url = shoes_canvas_send_motion(ele, x, y, url);
       }
-      else if (rb_obj_class(ele) == cTextClass)
+      else if (rb_obj_is_kind_of(ele, cTextClass))
       {
         if (NIL_P(url))
           url = shoes_text_motion(ele, x, y);

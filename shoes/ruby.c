@@ -9,9 +9,9 @@
 #include "shoes/internal.h"
 #include <math.h>
 
-VALUE cShoes, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
+VALUE cShoes, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cBackground, cLinkText, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
-ID s_aref, s_perc, s_bind, s_new, s_run, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_insert, s_items, s_scroll, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
+ID s_aref, s_perc, s_bind, s_new, s_run, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -1116,6 +1116,14 @@ start_element_handler(GMarkupParseContext *context,
 	}
 }
 
+#define ADD_LINK() \
+  if (self_t->linki >= 0) \
+  { \
+    rb_ary_push(self_t->links, shoes_link_new(self_t->linku, self_t->linki, self_t->i - 1)); \
+    self_t->linku = Qnil; \
+    self_t->linki = -1; \
+  }
+
 static void
 end_element_handler(GMarkupParseContext *context,
 					const gchar *element_name,
@@ -1126,12 +1134,7 @@ end_element_handler(GMarkupParseContext *context,
 
 	if (!strcmp(element_name, "a"))
 	{
-    if (self_t->linki >= 0)
-    {
-      rb_ary_push(self_t->links, shoes_link_new(self_t->linku, self_t->linki, self_t->i - 1));
-      self_t->linku = Qnil;
-      self_t->linki = -1;
-    }
+    ADD_LINK();
 		g_string_append(self_t->tmp, "</span>");
 	}
 	else
@@ -1195,6 +1198,8 @@ shoes_text_parse(VALUE self, VALUE markup)
   {
     g_string_free(self_t->tmp, TRUE);
   }
+
+  ADD_LINK();
 
   self_t->tmp = NULL;
   if (error != NULL)
@@ -1440,6 +1445,20 @@ shoes_text_draw(VALUE self, VALUE c)
     }
   }
   return self;
+}
+
+VALUE
+shoes_linktext_new(VALUE markup, VALUE attr, VALUE parent)
+{
+  shoes_text *text;
+  VALUE obj = shoes_text_alloc(cLinkText);
+  Data_Get_Struct(obj, shoes_text, text);
+  text->attr = attr;
+  text->parent = parent;
+  text->linku = ATTR(attr, href);
+  text->linki = 0;
+  shoes_text_parse(obj, markup);
+  return obj;
 }
 
 //
@@ -2118,6 +2137,7 @@ shoes_ruby_init()
   s_font = rb_intern("font");
   s_hand = rb_intern("hand");
   s_hidden = rb_intern("hidden");
+  s_href = rb_intern("href");
   s_insert = rb_intern("insert");
   s_items = rb_intern("items");
   s_match = rb_intern("match");
@@ -2176,6 +2196,7 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "arrow", CASTHOOK(shoes_canvas_arrow), 3);
   rb_define_method(cCanvas, "star", CASTHOOK(shoes_canvas_star), -1);
   rb_define_method(cCanvas, "text", CASTHOOK(shoes_canvas_markup), -1);
+  rb_define_method(cCanvas, "link", CASTHOOK(shoes_canvas_link), -1);
   rb_define_method(cCanvas, "background", CASTHOOK(shoes_canvas_background), -1);
   rb_define_method(cCanvas, "image", CASTHOOK(shoes_canvas_image), -1);
   rb_define_method(cCanvas, "imagesize", CASTHOOK(shoes_canvas_imagesize), 1);
@@ -2255,6 +2276,7 @@ shoes_ruby_init()
   rb_define_method(cTextClass, "remove", CASTHOOK(shoes_text_remove), 0);
   rb_define_method(cTextClass, "to_s", CASTHOOK(shoes_text_get_markup), 0);
   rb_define_method(cTextClass, "replace", CASTHOOK(shoes_text_set_markup), 1);
+  cLinkText = rb_define_class_under(cShoes, "LinkText", cTextClass);
 
   cButton  = rb_define_class_under(cShoes, "Button", rb_cObject);
   rb_define_alloc_func(cButton, shoes_control_alloc);
