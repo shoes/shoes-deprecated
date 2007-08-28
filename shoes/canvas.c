@@ -92,17 +92,33 @@ shoes_cairo_create(APPSLOT *slot, int width, int height, int border)
 }
 
 VALUE
+shoes_canvas_set_width(VALUE self, VALUE w)
+{
+  SETUP();
+  canvas->width = NUM2INT(w);
+  return w;
+}
+
+VALUE
 shoes_canvas_get_width(VALUE self)
 {
   SETUP();
-  return INT2NUM(canvas->width);
+  return INT2NUM(canvas->place.w);
+}
+
+VALUE
+shoes_canvas_set_height(VALUE self, VALUE h)
+{
+  SETUP();
+  canvas->height = NUM2INT(h);
+  return h;
 }
 
 VALUE
 shoes_canvas_get_height(VALUE self)
 {
   SETUP();
-  return INT2NUM(canvas->height);
+  return INT2NUM(canvas->endy);
 }
 
 void
@@ -1354,7 +1370,7 @@ shoes_slot_new(VALUE klass, VALUE attr, VALUE parent)
   self_t->parent = parent;
   self_t->app = pc->app;
   self_t->attr = attr;
-  if (!NIL_P(ATTR(self_t->attr, width)) && !NIL_P(ATTR(self_t->attr, height))) {
+  if (!NIL_P(ATTR(self_t->attr, scroll))) {
     int x, y, w, h;
     x = ATTR2(int, self_t->attr, left, 0);
     y = ATTR2(int, self_t->attr, top, 0);

@@ -11,7 +11,7 @@
 
 VALUE cShoes, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cBackground, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
-ID s_aref, s_perc, s_bind, s_new, s_run, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_insert, s_items, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
+ID s_aref, s_perc, s_bind, s_new, s_run, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_insert, s_items, s_scroll, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -1173,7 +1173,7 @@ shoes_text_parse(VALUE self, VALUE markup)
   const gchar *start;
   gsize len;
   VALUE str = rb_str_new2("<span rise='10240' color='#333'>");
-  rb_str_append(str, markup);
+  rb_str_append(str, rb_String(markup));
   rb_str_cat2(str, "</span>");
 
   Data_Get_Struct(self, shoes_text, self_t);
@@ -2121,6 +2121,7 @@ shoes_ruby_init()
   s_insert = rb_intern("insert");
   s_items = rb_intern("items");
   s_match = rb_intern("match");
+  s_scroll = rb_intern("scroll");
   s_text = rb_intern("text");
   s_title = rb_intern("title");
   s_top = rb_intern("top");
@@ -2160,7 +2161,9 @@ shoes_ruby_init()
   //
   // Canvas methods
   //
+  rb_define_method(cCanvas, "width=", CASTHOOK(shoes_canvas_set_width), 1);
   rb_define_method(cCanvas, "width", CASTHOOK(shoes_canvas_get_width), 0);
+  rb_define_method(cCanvas, "height=", CASTHOOK(shoes_canvas_set_height), 1);
   rb_define_method(cCanvas, "height", CASTHOOK(shoes_canvas_get_height), 0);
   rb_define_method(cCanvas, "nostroke", CASTHOOK(shoes_canvas_nostroke), 0);
   rb_define_method(cCanvas, "stroke", CASTHOOK(shoes_canvas_stroke), -1);
