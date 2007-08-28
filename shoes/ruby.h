@@ -45,7 +45,8 @@ void shoes_ruby_init(void);
   "end;"
 #define EXC_RUN \
   "define_method :run do |path|;" \
-    EXC_PROC \
+    "p = " EXC_PROC \
+    "[p];" \
   "end;"
 
 #define NUM2RGBINT(x) (rb_obj_is_kind_of(x, rb_cFloat) ? NUM2DBL(x) * 255 : NUM2INT(x))

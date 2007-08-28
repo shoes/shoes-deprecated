@@ -122,7 +122,7 @@ class Shoes
       Shoes.debug "Loaded SHY: #{shy.name} #{shy.version} by #{shy.creator}"
       path = shy.launch
     end
-    eval(File.read(path))
+    eval(File.read(path), TOPLEVEL_BINDING)
   end
 
   def self.url(path, meth)
