@@ -1068,9 +1068,6 @@ shoes_app_open(shoes_app *app)
 
   HIViewFindByID(HIViewGetRoot(app->kit.window), kHIViewWindowContentID, &app->slot.view);
 
-  CFRelease(titleKey);
-  CFRelease(windowTitle);
-
   if (PasteboardCreate(kPasteboardClipboard, &app->kit.clip) != noErr) {
     INFO("Apple Pasteboard create failed.\n", 0);
   }
