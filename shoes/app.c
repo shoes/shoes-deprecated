@@ -960,6 +960,7 @@ shoes_app_main(int argc, VALUE *argv, VALUE self)
 void
 shoes_app_title(shoes_app *app, VALUE title)
 {
+  shoes_code code = SHOES_OK;
   char *msg;
   app->title = rb_str_new2(SHOES_APPNAME);
   if (!NIL_P(title))
@@ -976,10 +977,6 @@ shoes_app_title(shoes_app *app, VALUE title)
 #ifdef SHOES_QUARTZ
   CFStringRef cfmsg = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
   OSStatus err = SetWindowTitleWithCFString(app->kit.window, cfmsg);
-  if (err != noErr)
-  {
-    QUIT("Couldn't set the window title.", 0);
-  }
 #endif
 
 #ifdef SHOES_WIN32
