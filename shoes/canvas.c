@@ -447,7 +447,7 @@ shoes_canvas_oval(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_line(VALUE self, VALUE _x1, VALUE _y1, VALUE _x2, VALUE _y2)
 {
-  double x, y, x1, y1, x2, y2;
+  double x, y, x1, y1, x2, y2, w, h;
   SETUP();
 
   x1 = NUM2DBL(_x1);
@@ -457,10 +457,14 @@ shoes_canvas_line(VALUE self, VALUE _x1, VALUE _y1, VALUE _x2, VALUE _y2)
 
   x = ((x2 - x1) / 2.) + x1;
   y = ((y2 - y1) / 2.) + y1;
+  w = x2 - x1;
+  if (x1 > x2) w = x1 - x2;
+  h = y2 - y1;
+  if (y1 > y2) h = y1 - y2;
   shoes_canvas_shape_do(canvas, x, y, 0, 0, FALSE);
   cairo_move_to(cr, x1 - x, y1 - y);
   cairo_line_to(cr, x2 - x, y2 - y);
-  return shoes_canvas_shape_end(self, INT2NUM(x), INT2NUM(y), x2 - x1, y2 - y1);
+  return shoes_canvas_shape_end(self, INT2NUM(x), INT2NUM(y), w, h);
 }
 
 VALUE
