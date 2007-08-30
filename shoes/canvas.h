@@ -276,9 +276,12 @@ VALUE shoes_image_draw(VALUE, VALUE);
 VALUE shoes_image_remove(VALUE);
 
 VALUE shoes_pattern_self(VALUE);
+VALUE shoes_pattern_method(VALUE, VALUE);
+VALUE shoes_pattern_args(int, VALUE *, VALUE);
 VALUE shoes_pattern_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_pattern_alloc(VALUE);
 VALUE shoes_pattern_remove(VALUE);
+VALUE shoes_background_new(VALUE, VALUE, VALUE);
 VALUE shoes_background_draw(VALUE, VALUE);
 
 VALUE shoes_anim_new(VALUE, VALUE, VALUE, VALUE);

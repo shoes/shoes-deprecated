@@ -217,6 +217,8 @@ shoes_canvas_shape_end(VALUE self, VALUE x, VALUE y, int w, int h)
 static void
 shoes_canvas_mark(shoes_canvas *canvas)
 {
+  rb_gc_mark_maybe(canvas->fg);
+  rb_gc_mark_maybe(canvas->bg);
   rb_gc_mark_maybe(canvas->contents);
   rb_gc_mark_maybe(canvas->attr);
   rb_gc_mark_maybe(canvas->parent);
@@ -336,7 +338,11 @@ shoes_canvas_stroke(int argc, VALUE *argv, VALUE self)
   if (argc == 1 && rb_respond_to(argv[0], s_to_pattern))
     pat = argv[0];
   else
+  {
     pat = shoes_color_args(argc, argv, self);
+    if (NIL_P(pat))
+      pat = shoes_pattern_args(argc, argv, self);
+  }
   pat = rb_funcall(pat, s_to_pattern, 0);
   canvas->fg = pat;
   return pat;
@@ -368,7 +374,11 @@ shoes_canvas_fill(int argc, VALUE *argv, VALUE self)
   if (argc == 1 && rb_respond_to(argv[0], s_to_pattern))
     pat = argv[0];
   else
+  {
     pat = shoes_color_args(argc, argv, self);
+    if (NIL_P(pat))
+      pat = shoes_pattern_args(argc, argv, self);
+  }
   pat = rb_funcall(pat, s_to_pattern, 0);
   canvas->bg = pat;
   return pat;
@@ -558,13 +568,21 @@ shoes_canvas_imagesize(VALUE self, VALUE _path)
 VALUE
 shoes_canvas_background(int argc, VALUE *argv, VALUE self)
 {
-  VALUE path, attr, pattern;
+  VALUE pat;
+  shoes_pattern *pattern;
   SETUP();
-
-  rb_scan_args(argc, argv, "11", &path, &attr);
-  pattern = shoes_pattern_new(cBackground, path, attr, self);
-  rb_ary_push(canvas->contents, pattern);
-  return pattern;
+  if (argc == 1 && rb_respond_to(argv[0], s_to_pattern))
+    pat = argv[0];
+  else
+  {
+    pat = shoes_color_args(argc, argv, self);
+    if (NIL_P(pat))
+      pat = shoes_pattern_args(argc, argv, self);
+  }
+  pat = rb_funcall(pat, s_to_pattern, 0);
+  pat = shoes_background_new(cBackground, pat, self);
+  rb_ary_push(canvas->contents, pat);
+  return pat;
 }
 
 VALUE

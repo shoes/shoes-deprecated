@@ -648,8 +648,7 @@ shoes_pattern_mark(shoes_pattern *pattern)
 static void
 shoes_pattern_free(shoes_pattern *pattern)
 {
-  if (pattern->pattern != NULL)
-    cairo_pattern_destroy(pattern->pattern);
+  cairo_pattern_destroy(pattern->pattern);
   free(pattern);
 }
 
@@ -680,6 +679,14 @@ VALUE
 shoes_pattern_self(VALUE self)
 {
   return self;
+}
+
+VALUE
+shoes_pattern_args(int argc, VALUE *argv, VALUE self)
+{
+  VALUE source, attr;
+  rb_scan_args(argc, argv, "11", &source, &attr);
+  return shoes_pattern_new(cPattern, source, attr, Qnil);
 }
 
 VALUE
@@ -728,6 +735,12 @@ shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent)
 }
 
 VALUE
+shoes_pattern_method(VALUE klass, VALUE source)
+{
+  return shoes_pattern_new(cPattern, source, Qnil, Qnil);
+}
+
+VALUE
 shoes_pattern_alloc(VALUE klass)
 {
   shoes_pattern *pattern;
@@ -746,6 +759,23 @@ shoes_pattern_remove(VALUE self)
   Data_Get_Struct(self, shoes_pattern, self_t);
   shoes_canvas_remove_item(self_t->parent, self);
   return self;
+}
+
+VALUE
+shoes_background_new(VALUE klass, VALUE pat, VALUE parent)
+{
+  shoes_pattern *back, *pattern;
+  VALUE obj = shoes_pattern_alloc(klass);
+  Data_Get_Struct(obj, shoes_pattern, back);
+  Data_Get_Struct(pat, shoes_pattern, pattern);
+  back->source = pattern->source;
+  back->pattern = pattern->pattern;
+  cairo_pattern_reference(back->pattern);
+  back->width = pattern->width;
+  back->height = pattern->height;
+  back->attr = pattern->attr;
+  back->parent = parent;
+  return obj;
 }
 
 VALUE
@@ -962,7 +992,7 @@ shoes_color_to_s(VALUE self)
 VALUE
 shoes_color_to_pattern(VALUE self)
 {
-  return shoes_pattern_new(cPattern, self, Qnil, Qnil);
+  return shoes_pattern_method(cPattern, self);
 }
 
 VALUE
@@ -2274,6 +2304,7 @@ shoes_ruby_init()
   rb_define_method(rb_mKernel, "rgb", CASTHOOK(shoes_color_rgb), -1);
   rb_define_method(rb_mKernel, "gray", CASTHOOK(shoes_color_gray), -1);
   rb_define_method(rb_mKernel, "gradient", CASTHOOK(shoes_color_gradient), 2);
+  rb_define_method(rb_mKernel, "pattern", CASTHOOK(shoes_pattern_method), 1);
 
   cFlow    = rb_define_class_under(cShoes, "Flow", cShoes);
   cStack   = rb_define_class_under(cShoes, "Stack", cShoes);
