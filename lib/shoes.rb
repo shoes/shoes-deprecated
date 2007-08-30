@@ -113,16 +113,22 @@ class Shoes
   end
 
   def self.load(path)
-    path = File.expand_path(path.gsub(/\\/, "/"))
-    if path =~ /\.shy$/
-      base = File.basename(path, ".shy")
-      tmpdir = "%s/shoes-%s.%d" % [Dir.tmpdir, base, $$]
-      shy = Shy.x(path, tmpdir)
-      Dir.chdir(tmpdir)
-      Shoes.debug "Loaded SHY: #{shy.name} #{shy.version} by #{shy.creator}"
-      path = shy.launch
+    uri = URI(path)
+    case uri
+    when URI::HTTP
+      eval(uri.read, TOPLEVEL_BINDING)
+    else
+      path = File.expand_path(path.gsub(/\\/, "/"))
+      if path =~ /\.shy$/
+        base = File.basename(path, ".shy")
+        tmpdir = "%s/shoes-%s.%d" % [Dir.tmpdir, base, $$]
+        shy = Shy.x(path, tmpdir)
+        Dir.chdir(tmpdir)
+        Shoes.debug "Loaded SHY: #{shy.name} #{shy.version} by #{shy.creator}"
+        path = shy.launch
+      end
+      eval(File.read(path), TOPLEVEL_BINDING)
     end
-    eval(File.read(path), TOPLEVEL_BINDING)
   end
 
   def self.url(path, meth)

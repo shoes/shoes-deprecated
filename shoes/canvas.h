@@ -38,9 +38,10 @@ typedef struct {
 //
 typedef struct {
   cairo_path_t *line;
-  shoes_color fg;
-  shoes_color bg;
+  int width, height;
   double sw;
+  VALUE fg;
+  VALUE bg;
   VALUE attr;
   VALUE parent;
 } shoes_path;
@@ -98,10 +99,7 @@ typedef struct {
 //
 typedef struct {
   cairo_pattern_t *pattern;
-  cairo_surface_t *surface;
   int width, height;     // dimensions of the underlying surface
-  cairo_path_t *line;
-  shoes_place place;
   VALUE source;
   VALUE attr;
   VALUE parent;
@@ -140,8 +138,8 @@ typedef struct {
 //
 typedef struct {
   cairo_t *cr;
-  shoes_color fg;
-  shoes_color bg;
+  VALUE fg;
+  VALUE bg;
   cairo_matrix_t *tf;
   cairo_matrix_t *gr;
   int grl;
@@ -266,7 +264,7 @@ VALUE shoes_list_box_text(VALUE);
 VALUE shoes_list_box_draw(VALUE, VALUE);
 VALUE shoes_progress_draw(VALUE, VALUE);
 
-VALUE shoes_path_new(cairo_path_t *, VALUE, VALUE, VALUE);
+VALUE shoes_path_new(cairo_path_t *, VALUE, VALUE, VALUE, int, int);
 VALUE shoes_path_alloc(VALUE);
 VALUE shoes_path_draw(VALUE, VALUE);
 VALUE shoes_path_move(VALUE, VALUE, VALUE);
@@ -277,10 +275,10 @@ VALUE shoes_image_alloc(VALUE);
 VALUE shoes_image_draw(VALUE, VALUE);
 VALUE shoes_image_remove(VALUE);
 
+VALUE shoes_pattern_self(VALUE);
 VALUE shoes_pattern_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_pattern_alloc(VALUE);
 VALUE shoes_pattern_remove(VALUE);
-VALUE shoes_pattern_draw(VALUE, VALUE);
 VALUE shoes_background_draw(VALUE, VALUE);
 
 VALUE shoes_anim_new(VALUE, VALUE, VALUE, VALUE);
@@ -298,6 +296,8 @@ void shoes_color_grad_stop(cairo_pattern_t *, double, VALUE);
 VALUE shoes_color_args(int, VALUE *, VALUE);
 VALUE shoes_color_parse(VALUE, VALUE);
 VALUE shoes_color_to_s(VALUE);
+VALUE shoes_color_to_pattern(VALUE);
+VALUE shoes_color_gradient(VALUE, VALUE, VALUE);
 
 VALUE shoes_link_new(VALUE, int, int);
 VALUE shoes_link_alloc(VALUE);

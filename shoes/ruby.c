@@ -9,9 +9,9 @@
 #include "shoes/internal.h"
 #include <math.h>
 
-VALUE cShoes, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cBackground, cLinkText, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
+VALUE cShoes, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cPattern, cBackground, cLinkText, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
-ID s_aref, s_perc, s_bind, s_new, s_run, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
+ID s_aref, s_perc, s_bind, s_new, s_run, s_to_pattern, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -314,6 +314,16 @@ shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, double r)
     canvas->cy = canvas->endy; \
   }
 
+#define PATTERN_SCALE(self_t) \
+  if (self_t->width == 1.0 && self_t->height == 1.0 && !scaled) \
+  { \
+    scaled = TRUE; \
+    cairo_scale(canvas->cr, place.w * 1., place.h * 1.); \
+    r /= place.w * 1.; \
+    place.w = 1.0; \
+    place.h = 1.0; \
+  }
+
 #define CHANGED_COORDS() self_t->place.x != place.x || self_t->place.y != place.y || self_t->place.w != place.w || self_t->place.h - HEIGHT_PAD != place.h
 #define PLACE_COORDS() place.h -= HEIGHT_PAD; self_t->place = place
 #ifdef SHOES_GTK
@@ -420,6 +430,8 @@ inline void shoes_win32_control_font(int id, HWND hwnd)
 static void
 shoes_path_mark(shoes_path *path)
 {
+  rb_gc_mark_maybe(path->fg);
+  rb_gc_mark_maybe(path->bg);
   rb_gc_mark_maybe(path->parent);
   rb_gc_mark_maybe(path->attr);
 }
@@ -433,7 +445,7 @@ shoes_path_free(shoes_path *path)
 }
 
 VALUE
-shoes_path_new(cairo_path_t *line, VALUE parent, VALUE x, VALUE y)
+shoes_path_new(cairo_path_t *line, VALUE parent, VALUE x, VALUE y, int w, int h)
 {
   shoes_path *path;
   shoes_canvas *canvas;
@@ -445,6 +457,8 @@ shoes_path_new(cairo_path_t *line, VALUE parent, VALUE x, VALUE y)
   path->fg = canvas->fg;
   path->bg = canvas->bg;
   path->sw = canvas->sw;
+  path->width = w;
+  path->height = h;
   ATTRSET(path->attr, left, x);
   ATTRSET(path->attr, top, y);
   return obj;
@@ -458,6 +472,10 @@ shoes_path_alloc(VALUE klass)
   path->line = NULL;
   path->attr = Qnil;
   path->parent = Qnil;
+  path->fg = Qnil;
+  path->bg = Qnil;
+  path->width = 0;
+  path->height = 0;
   return obj;
 }
 
@@ -481,35 +499,42 @@ shoes_path_remove(VALUE self)
   return self;
 }
 
+#define PATH_OUT(pen, cfunc) \
+  if (!NIL_P(self_t->pen)) \
+  { \
+    double r = self_t->sw; \
+    shoes_pattern *pattern; \
+    Data_Get_Struct(self_t->pen, shoes_pattern, pattern); \
+    PATTERN_SCALE(pattern); \
+    cairo_set_line_width(canvas->cr, r); \
+    cairo_set_source(canvas->cr, pattern->pattern); \
+    cfunc(canvas->cr); \
+  }
+
 VALUE
 shoes_path_draw(VALUE self, VALUE c)
 {
-  double x, y;
+  int scaled = FALSE;
+  shoes_place place;
   shoes_path *self_t;
   shoes_canvas *canvas;
   Data_Get_Struct(self, shoes_path, self_t);
   Data_Get_Struct(c, shoes_canvas, canvas);
 
-  x = ATTR2(dbl, self_t->attr, left, 0);
-  y = ATTR2(dbl, self_t->attr, top, 0);
+  place.x = ATTR2(int, self_t->attr, left, 0);
+  place.y = ATTR2(int, self_t->attr, top, 0);
+  place.w = ATTR2(int, self_t->attr, width, self_t->width);
+  place.h = ATTR2(int, self_t->attr, height, self_t->height);
+
   cairo_save(canvas->cr);
+  cairo_translate(canvas->cr, place.x, place.y);
   cairo_new_path(canvas->cr);
-  cairo_translate(canvas->cr, x, y);
-  cairo_set_line_width(canvas->cr, self_t->sw);
   cairo_append_path(canvas->cr, self_t->line);
 
-  if (self_t->bg.on)
-  {
-    cairo_set_source_rgba(canvas->cr, self_t->bg.r / 255., self_t->bg.g / 255., self_t->bg.b / 255., self_t->bg.a / 255.);
-    cairo_fill_preserve(canvas->cr);
-  }
-  if (self_t->fg.on)
-  {
-    cairo_set_source_rgba(canvas->cr, self_t->fg.r / 255., self_t->fg.g / 255., self_t->fg.b / 255., self_t->fg.a / 255.);
-    cairo_stroke_preserve(canvas->cr);
-  }
-  cairo_restore(canvas->cr);
+  PATH_OUT(fg, cairo_stroke_preserve);
+  PATH_OUT(bg, cairo_fill);
 
+  cairo_restore(canvas->cr);
   return self;
 }
 
@@ -623,8 +648,6 @@ shoes_pattern_mark(shoes_pattern *pattern)
 static void
 shoes_pattern_free(shoes_pattern *pattern)
 {
-  if (pattern->surface != NULL)
-    cairo_surface_destroy(pattern->surface);
   if (pattern->pattern != NULL)
     cairo_pattern_destroy(pattern->pattern);
   free(pattern);
@@ -635,8 +658,12 @@ shoes_pattern_gradient(shoes_pattern *pattern, VALUE r1, VALUE r2, VALUE attr)
 {
   double angle = ATTR2(dbl, attr, angle, 0.);
   double rads = angle * RAD2PI;
-  r1 = shoes_color_parse(cColor, r1);
-  r2 = shoes_color_parse(cColor, r2);
+
+  if (rb_obj_is_kind_of(r1, rb_cString))
+    r1 = shoes_color_parse(cColor, r1);
+  if (rb_obj_is_kind_of(r2, rb_cString))
+    r2 = shoes_color_parse(cColor, r2);
+
   pattern->pattern = cairo_pattern_create_linear(0.0, 0.0, 0.0, sin(rads) + cos(rads));
   if (angle != 0.)
   {
@@ -650,24 +677,24 @@ shoes_pattern_gradient(shoes_pattern *pattern, VALUE r1, VALUE r2, VALUE attr)
 }
 
 VALUE
+shoes_pattern_self(VALUE self)
+{
+  return self;
+}
+
+VALUE
 shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent)
 {
   shoes_pattern *pattern;
   VALUE obj = shoes_pattern_alloc(klass);
   VALUE rgb;
   Data_Get_Struct(obj, shoes_pattern, pattern);
-  pattern->source = source;
+  pattern->source = Qnil;
 
   if (rb_obj_is_kind_of(source, rb_cRange))
   {
     VALUE r1 = rb_funcall(source, s_begin, 0);
     VALUE r2 = rb_funcall(source, s_end, 0);
-
-    if (!rb_obj_is_kind_of(r1, rb_cString))
-      rb_raise(rb_eArgError, "first color in the gradient isn't a string");
-    if (!rb_obj_is_kind_of(r2, rb_cString))
-      rb_raise(rb_eArgError, "last color in the gradient isn't a string");
-
     shoes_pattern_gradient(pattern, r1, r2, attr);
   }
   else
@@ -685,10 +712,12 @@ shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent)
     }
     else
     {
-      pattern->surface = shoes_load_image(source);
-      pattern->width = cairo_image_surface_get_width(pattern->surface);
-      pattern->height = cairo_image_surface_get_height(pattern->surface);
-      pattern->pattern = cairo_pattern_create_for_surface(pattern->surface);
+      cairo_surface_t *surface = shoes_load_image(source);
+      pattern->source = source;
+      pattern->width = cairo_image_surface_get_width(surface);
+      pattern->height = cairo_image_surface_get_height(surface);
+      pattern->pattern = cairo_pattern_create_for_surface(surface);
+      cairo_surface_destroy(surface);
     }
   }
   cairo_pattern_set_extend(pattern->pattern, CAIRO_EXTEND_REPEAT);
@@ -704,7 +733,6 @@ shoes_pattern_alloc(VALUE klass)
   shoes_pattern *pattern;
   VALUE obj = Data_Make_Struct(klass, shoes_pattern, shoes_pattern_mark, shoes_pattern_free, pattern);
   pattern->source = Qnil;
-  pattern->surface = NULL;
   pattern->pattern = NULL;
   pattern->attr = Qnil;
   pattern->parent = Qnil;
@@ -721,39 +749,20 @@ shoes_pattern_remove(VALUE self)
 }
 
 VALUE
-shoes_pattern_draw(VALUE self, VALUE c)
-{
-  SETUP(shoes_pattern, REL_CANVAS, 0, 0);
-  shoes_canvas_shape_do(canvas, place.x, place.y, place.w, place.h, FALSE);
-  cairo_set_source_surface(canvas->cr, self_t->surface, -place.w / 2., -place.h / 2.);
-  cairo_paint(canvas->cr);
-  cairo_restore(canvas->cr);
-  FINISH();
-  return self;
-}
-
-VALUE
 shoes_background_draw(VALUE self, VALUE c)
 {
+  int scaled = FALSE;
   double r;
   SETUP(shoes_pattern, REL_TILE, self_t->width, self_t->height);
   r = ATTR2(dbl, self_t->attr, radius, 0.);
   cairo_save(canvas->cr);
   cairo_translate(canvas->cr, place.x, place.y);
-  if (self_t->width == 1.0 && self_t->height == 1.0)
-  {
-    cairo_scale(canvas->cr, place.w * 1., place.h * 1.);
-    r /= place.w * 1.;
-    place.w = 1.0;
-    place.h = 1.0;
-  }
+  PATTERN_SCALE(self_t);
   cairo_set_source(canvas->cr, self_t->pattern);
   shoes_cairo_rect(canvas->cr, 0, 0, place.w, place.h, r);
   INFO("BACKGROUND: (%d, %d), (%d, %d)\n", place.x, place.y, place.w, place.h);
   cairo_fill(canvas->cr);
-  place.w = 0; place.h = 0;
   cairo_restore(canvas->cr);
-  FINISH();
   return self;
 }
 
@@ -807,6 +816,18 @@ shoes_color_rgb(int argc, VALUE *argv, VALUE self)
   a = 0xFF;
   if (!NIL_P(_a)) a = NUM2RGBINT(_a);
   return shoes_color_new(NUM2RGBINT(_r), NUM2RGBINT(_g), NUM2RGBINT(_b), a);
+}
+
+VALUE
+shoes_color_gradient(VALUE self, VALUE r1, VALUE r2)
+{
+  shoes_pattern *pattern;
+  VALUE obj = shoes_pattern_alloc(cPattern);
+  VALUE attr = Qnil;
+  Data_Get_Struct(obj, shoes_pattern, pattern);
+  pattern->source = Qnil;
+  shoes_pattern_gradient(pattern, r1, r2, attr);
+  return obj;
 }
 
 VALUE
@@ -938,6 +959,11 @@ shoes_color_to_s(VALUE self)
     return rb_funcall(rb_str_new2("rgb(%d, %d, %d, %d)"), s_perc, 1, ary);
 }
 
+VALUE
+shoes_color_to_pattern(VALUE self)
+{
+  return shoes_pattern_new(cPattern, self, Qnil, Qnil);
+}
 
 VALUE
 shoes_method_missing_color(int argc, VALUE *argv, VALUE self)
@@ -1387,11 +1413,10 @@ shoes_text_draw(VALUE self, VALUE c)
   }
   else
     cairo_move_to(canvas->cr, self_t->place.x, self_t->place.y);
-  if (canvas->fg.on)
-  {
-    cairo_set_source_rgba(canvas->cr, canvas->fg.r / 255., canvas->fg.g / 255., canvas->fg.b / 255., canvas->fg.a / 255.);
-  // cairo_stroke(canvas->cr);
-  }
+  // if (!NIL_P(canvas->fg))
+  // {
+  //   cairo_set_source(canvas->cr, canvas->fg);
+  // }
 
   INFO("TEXT: %d, %d (%d, %d) / %d, %d / %d, %d [%d]\n", canvas->cx, canvas->cy,
     canvas->place.w, canvas->height, self_t->place.x, self_t->place.y, self_t->place.w, self_t->place.h, pd);
@@ -2123,6 +2148,7 @@ shoes_ruby_init()
   s_new = rb_intern("new");
   s_run = rb_intern("run");
   s_to_s = rb_intern("to_s");
+  s_to_pattern = rb_intern("to_pattern");
   s_angle = rb_intern("angle");
   s_arrow = rb_intern("arrow");
   s_begin = rb_intern("begin");
@@ -2247,6 +2273,7 @@ shoes_ruby_init()
   //
   rb_define_method(rb_mKernel, "rgb", CASTHOOK(shoes_color_rgb), -1);
   rb_define_method(rb_mKernel, "gray", CASTHOOK(shoes_color_gray), -1);
+  rb_define_method(rb_mKernel, "gradient", CASTHOOK(shoes_color_gradient), 2);
 
   cFlow    = rb_define_class_under(cShoes, "Flow", cShoes);
   cStack   = rb_define_class_under(cShoes, "Stack", cShoes);
@@ -2264,7 +2291,9 @@ shoes_ruby_init()
   rb_define_method(cImage, "size", CASTHOOK(shoes_image_size), 0);
   rb_define_method(cImage, "move", CASTHOOK(shoes_image_move), 2);
   rb_define_method(cImage, "remove", CASTHOOK(shoes_image_remove), 0);
-  cBackground = rb_define_class_under(cShoes, "Background", rb_cObject);
+  cPattern = rb_define_class_under(cShoes, "Pattern", rb_cObject);
+  rb_define_method(cPattern, "to_pattern", CASTHOOK(shoes_pattern_self), 0);
+  cBackground = rb_define_class_under(cShoes, "Background", cPattern);
   rb_define_alloc_func(cBackground, shoes_image_alloc);
   rb_define_method(cBackground, "draw", CASTHOOK(shoes_background_draw), 1);
   rb_define_method(cBackground, "remove", CASTHOOK(shoes_pattern_remove), 0);
@@ -2316,6 +2345,7 @@ shoes_ruby_init()
   rb_define_singleton_method(cColor, "gray", CASTHOOK(shoes_color_gray), -1);
   rb_define_singleton_method(cColor, "parse", CASTHOOK(shoes_color_parse), 1);
   rb_define_method(cColor, "to_s", CASTHOOK(shoes_color_to_s), 0);
+  rb_define_method(cColor, "to_pattern", CASTHOOK(shoes_color_to_pattern), 0);
 
   rb_define_method(cCanvas, "method_missing", CASTHOOK(shoes_method_missing_color), -1);
 
