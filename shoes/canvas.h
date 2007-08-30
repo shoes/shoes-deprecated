@@ -193,6 +193,7 @@ VALUE shoes_canvas_star(int, VALUE *, VALUE);
 VALUE shoes_canvas_markup(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_link(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_background(int, VALUE *, VALUE);
+VALUE shoes_canvas_border(int, VALUE *, VALUE);
 VALUE shoes_canvas_image(int, VALUE *, VALUE);
 VALUE shoes_canvas_animate(int, VALUE *, VALUE);
 VALUE shoes_canvas_imagesize(VALUE, VALUE);
@@ -281,8 +282,9 @@ VALUE shoes_pattern_args(int, VALUE *, VALUE);
 VALUE shoes_pattern_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_pattern_alloc(VALUE);
 VALUE shoes_pattern_remove(VALUE);
-VALUE shoes_background_new(VALUE, VALUE, VALUE);
 VALUE shoes_background_draw(VALUE, VALUE);
+VALUE shoes_border_draw(VALUE, VALUE);
+VALUE shoes_subpattern_new(VALUE, VALUE, VALUE);
 
 VALUE shoes_anim_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_anim_alloc(VALUE);

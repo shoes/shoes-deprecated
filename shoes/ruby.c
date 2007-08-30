@@ -9,9 +9,9 @@
 #include "shoes/internal.h"
 #include <math.h>
 
-VALUE cShoes, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cPattern, cBackground, cLinkText, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
+VALUE cShoes, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cPattern, cBorder, cBackground, cLinkText, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
-ID s_aref, s_perc, s_bind, s_new, s_run, s_to_pattern, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
+ID s_aref, s_perc, s_bind, s_new, s_run, s_to_pattern, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -315,13 +315,19 @@ shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, double r)
   }
 
 #define PATTERN_SCALE(self_t) \
-  if (self_t->width == 1.0 && self_t->height == 1.0 && !scaled) \
+  if (self_t->width == 1.0 && self_t->height == 1.0) \
   { \
-    scaled = TRUE; \
-    cairo_scale(canvas->cr, place.w * 1., place.h * 1.); \
-    r /= place.w * 1.; \
-    place.w = 1.0; \
-    place.h = 1.0; \
+    cairo_pattern_get_matrix(self_t->pattern, &matrix1); \
+    cairo_pattern_get_matrix(self_t->pattern, &matrix2); \
+    cairo_matrix_scale(&matrix2, 1. / (place.w + (sw * 2.)), 1. / (place.h + (sw * 2.))); \
+    if (sw != 0.0) cairo_matrix_translate(&matrix2, sw, sw); \
+    cairo_pattern_set_matrix(self_t->pattern, &matrix2); \
+  }
+
+#define PATTERN_RESET(self_t) \
+  if (self_t->width == 1.0 && self_t->height == 1.0) \
+  { \
+    cairo_pattern_set_matrix(self_t->pattern, &matrix1); \
   }
 
 #define CHANGED_COORDS() self_t->place.x != place.x || self_t->place.y != place.y || self_t->place.w != place.w || self_t->place.h - HEIGHT_PAD != place.h
@@ -502,19 +508,20 @@ shoes_path_remove(VALUE self)
 #define PATH_OUT(pen, cfunc) \
   if (!NIL_P(self_t->pen)) \
   { \
-    double r = self_t->sw; \
+    double r = 0., sw = self_t->sw; \
+    cairo_matrix_t matrix1, matrix2; \
     shoes_pattern *pattern; \
     Data_Get_Struct(self_t->pen, shoes_pattern, pattern); \
     PATTERN_SCALE(pattern); \
-    cairo_set_line_width(canvas->cr, r); \
+    cairo_set_line_width(canvas->cr, sw); \
     cairo_set_source(canvas->cr, pattern->pattern); \
     cfunc(canvas->cr); \
+    PATTERN_RESET(pattern); \
   }
 
 VALUE
 shoes_path_draw(VALUE self, VALUE c)
 {
-  int scaled = FALSE;
   shoes_place place;
   shoes_path *self_t;
   shoes_canvas *canvas;
@@ -753,6 +760,53 @@ shoes_pattern_alloc(VALUE klass)
 }
 
 VALUE
+shoes_background_draw(VALUE self, VALUE c)
+{
+  cairo_matrix_t matrix1, matrix2;
+  double r = 0., sw = 1.;
+  SETUP(shoes_pattern, REL_TILE, self_t->width, self_t->height);
+  r = ATTR2(dbl, self_t->attr, radius, 0.);
+
+  cairo_save(canvas->cr);
+  cairo_translate(canvas->cr, place.x, place.y);
+  PATTERN_SCALE(self_t);
+  cairo_set_source(canvas->cr, self_t->pattern);
+  shoes_cairo_rect(canvas->cr, 0, 0, place.w, place.h, r);
+  INFO("BACKGROUND: (%d, %d), (%d, %d)\n", place.x, place.y, place.w, place.h);
+  cairo_fill(canvas->cr);
+  cairo_restore(canvas->cr);
+  PATTERN_RESET(self_t);
+  return self;
+}
+
+VALUE
+shoes_border_draw(VALUE self, VALUE c)
+{
+  cairo_matrix_t matrix1, matrix2;
+  double r = 0., sw = 1.;
+  SETUP(shoes_pattern, REL_TILE, self_t->width, self_t->height);
+  r = ATTR2(dbl, self_t->attr, radius, 0.);
+  sw = ATTR2(dbl, self_t->attr, strokewidth, 1.);
+
+  place.w -= sw;
+  place.h -= sw;
+  place.x += sw / 2.;
+  place.y += sw / 2.;
+  cairo_save(canvas->cr);
+  cairo_translate(canvas->cr, place.x, place.y);
+  PATTERN_SCALE(self_t);
+  cairo_set_source(canvas->cr, self_t->pattern);
+  shoes_cairo_rect(canvas->cr, 0, 0, place.w, place.h, r);
+  INFO("BORDER: (%d, %d), (%d, %d)\n", place.x, place.y, place.w, place.h);
+  cairo_set_antialias(canvas->cr, CAIRO_ANTIALIAS_NONE);
+  cairo_set_line_width(canvas->cr, sw);
+  cairo_stroke(canvas->cr);
+  cairo_restore(canvas->cr);
+  PATTERN_RESET(self_t);
+  return self;
+}
+
+VALUE
 shoes_pattern_remove(VALUE self)
 {
   shoes_pattern *self_t;
@@ -762,7 +816,7 @@ shoes_pattern_remove(VALUE self)
 }
 
 VALUE
-shoes_background_new(VALUE klass, VALUE pat, VALUE parent)
+shoes_subpattern_new(VALUE klass, VALUE pat, VALUE parent)
 {
   shoes_pattern *back, *pattern;
   VALUE obj = shoes_pattern_alloc(klass);
@@ -776,24 +830,6 @@ shoes_background_new(VALUE klass, VALUE pat, VALUE parent)
   back->attr = pattern->attr;
   back->parent = parent;
   return obj;
-}
-
-VALUE
-shoes_background_draw(VALUE self, VALUE c)
-{
-  int scaled = FALSE;
-  double r;
-  SETUP(shoes_pattern, REL_TILE, self_t->width, self_t->height);
-  r = ATTR2(dbl, self_t->attr, radius, 0.);
-  cairo_save(canvas->cr);
-  cairo_translate(canvas->cr, place.x, place.y);
-  PATTERN_SCALE(self_t);
-  cairo_set_source(canvas->cr, self_t->pattern);
-  shoes_cairo_rect(canvas->cr, 0, 0, place.w, place.h, r);
-  INFO("BACKGROUND: (%d, %d), (%d, %d)\n", place.x, place.y, place.w, place.h);
-  cairo_fill(canvas->cr);
-  cairo_restore(canvas->cr);
-  return self;
 }
 
 //
@@ -914,17 +950,20 @@ shoes_color_args(int argc, VALUE *argv, VALUE self)
   return _color;
 }
 
+#define NEW_COLOR() \
+  shoes_color *color; \
+  VALUE obj = shoes_color_alloc(cColor); \
+  Data_Get_Struct(obj, shoes_color, color)
+
 VALUE
 shoes_color_parse(VALUE self, VALUE source)
 {
-  shoes_color *color;
-  VALUE obj = shoes_color_alloc(cColor);
   VALUE reg;
-  Data_Get_Struct(obj, shoes_color, color);
 
   reg = rb_funcall(source, s_match, 1, reHEX3_SOURCE);
   if (!NIL_P(reg))
   {
+    NEW_COLOR();
     color->r = NUM2INT(rb_str2inum(rb_reg_nth_match(1, reg), 16)) * 17;
     color->g = NUM2INT(rb_str2inum(rb_reg_nth_match(2, reg), 16)) * 17;
     color->b = NUM2INT(rb_str2inum(rb_reg_nth_match(3, reg), 16)) * 17;
@@ -934,6 +973,7 @@ shoes_color_parse(VALUE self, VALUE source)
   reg = rb_funcall(source, s_match, 1, reHEX_SOURCE);
   if (!NIL_P(reg))
   {
+    NEW_COLOR();
     color->r = NUM2INT(rb_str2inum(rb_reg_nth_match(1, reg), 16));
     color->g = NUM2INT(rb_str2inum(rb_reg_nth_match(2, reg), 16));
     color->b = NUM2INT(rb_str2inum(rb_reg_nth_match(3, reg), 16));
@@ -943,6 +983,7 @@ shoes_color_parse(VALUE self, VALUE source)
   reg = rb_funcall(source, s_match, 1, reRGB_SOURCE);
   if (!NIL_P(reg))
   {
+    NEW_COLOR();
     color->r = NUM2INT(rb_Integer(rb_reg_nth_match(1, reg)));
     color->g = NUM2INT(rb_Integer(rb_reg_nth_match(2, reg)));
     color->b = NUM2INT(rb_Integer(rb_reg_nth_match(3, reg)));
@@ -952,6 +993,7 @@ shoes_color_parse(VALUE self, VALUE source)
   reg = rb_funcall(source, s_match, 1, reRGBA_SOURCE);
   if (!NIL_P(reg))
   {
+    NEW_COLOR();
     color->r = NUM2INT(rb_Integer(rb_reg_nth_match(1, reg)));
     color->g = NUM2INT(rb_Integer(rb_reg_nth_match(2, reg)));
     color->b = NUM2INT(rb_Integer(rb_reg_nth_match(3, reg)));
@@ -962,6 +1004,7 @@ shoes_color_parse(VALUE self, VALUE source)
   reg = rb_funcall(source, s_match, 1, reGRAY_SOURCE);
   if (!NIL_P(reg))
   {
+    NEW_COLOR();
     color->r = color->g = color->b = NUM2INT(rb_Integer(rb_reg_nth_match(1, reg)));
     return obj;
   }
@@ -969,6 +1012,7 @@ shoes_color_parse(VALUE self, VALUE source)
   reg = rb_funcall(source, s_match, 1, reGRAYA_SOURCE);
   if (!NIL_P(reg))
   {
+    NEW_COLOR();
     color->r = color->g = color->b = NUM2INT(rb_Integer(rb_reg_nth_match(1, reg)));
     color->a = NUM2INT(rb_Integer(rb_reg_nth_match(2, reg)));
     return obj;
@@ -2206,6 +2250,7 @@ shoes_ruby_init()
   s_left = rb_intern("left");
   s_height = rb_intern("height");
   s_remove = rb_intern("remove");
+  s_strokewidth = rb_intern("strokewidth");
   s_width = rb_intern("width");
   s_margin = rb_intern("margin");
   s_margin_left = rb_intern("margin_left");
@@ -2254,6 +2299,7 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "text", CASTHOOK(shoes_canvas_markup), -1);
   rb_define_method(cCanvas, "link", CASTHOOK(shoes_canvas_link), -1);
   rb_define_method(cCanvas, "background", CASTHOOK(shoes_canvas_background), -1);
+  rb_define_method(cCanvas, "border", CASTHOOK(shoes_canvas_border), -1);
   rb_define_method(cCanvas, "image", CASTHOOK(shoes_canvas_image), -1);
   rb_define_method(cCanvas, "imagesize", CASTHOOK(shoes_canvas_imagesize), 1);
   rb_define_method(cCanvas, "animate", CASTHOOK(shoes_canvas_animate), -1);
@@ -2322,12 +2368,16 @@ shoes_ruby_init()
   rb_define_method(cImage, "size", CASTHOOK(shoes_image_size), 0);
   rb_define_method(cImage, "move", CASTHOOK(shoes_image_move), 2);
   rb_define_method(cImage, "remove", CASTHOOK(shoes_image_remove), 0);
+
   cPattern = rb_define_class_under(cShoes, "Pattern", rb_cObject);
+  rb_define_alloc_func(cPattern, shoes_pattern_alloc);
+  rb_define_method(cPattern, "remove", CASTHOOK(shoes_pattern_remove), 0);
   rb_define_method(cPattern, "to_pattern", CASTHOOK(shoes_pattern_self), 0);
   cBackground = rb_define_class_under(cShoes, "Background", cPattern);
-  rb_define_alloc_func(cBackground, shoes_image_alloc);
   rb_define_method(cBackground, "draw", CASTHOOK(shoes_background_draw), 1);
-  rb_define_method(cBackground, "remove", CASTHOOK(shoes_pattern_remove), 0);
+  cBorder = rb_define_class_under(cShoes, "Border", cPattern);
+  rb_define_method(cBorder, "draw", CASTHOOK(shoes_border_draw), 1);
+
   cTextClass = rb_define_class_under(cShoes, "Text", rb_cObject);
   rb_define_alloc_func(cTextClass, shoes_text_alloc);
   rb_define_method(cTextClass, "draw", CASTHOOK(shoes_text_draw), 1);
