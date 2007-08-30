@@ -240,6 +240,7 @@ shoes_canvas_alloc(VALUE klass)
   canvas->grl = 1;
   canvas->grt = 8;
   canvas->gr = SHOE_ALLOC_N(cairo_matrix_t, canvas->grt);
+  canvas->contents = Qnil;
   cairo_matrix_init_identity(canvas->gr);
   VALUE rb_canvas = Data_Wrap_Struct(klass, shoes_canvas_mark, shoes_canvas_free, canvas);
   return rb_canvas;
@@ -253,6 +254,19 @@ shoes_canvas_new(VALUE klass, shoes_app *app)
   Data_Get_Struct(self, shoes_canvas, canvas);
   canvas->app = app;
   return self;
+}
+
+static void
+shoes_canvas_empty(shoes_canvas *canvas)
+{
+  if (!NIL_P(canvas->contents))
+  {
+    long i;
+    VALUE ary;
+    ary = rb_ary_dup(canvas->contents);
+    for (i = 0; i < RARRAY_LEN(ary); i++) 
+      rb_funcall(rb_ary_entry(ary, i), s_remove, 0);
+  }
 }
 
 void
@@ -272,6 +286,7 @@ shoes_canvas_clear(VALUE self)
   canvas->grl = 1;
   cairo_matrix_init_identity(canvas->gr);
   canvas->tf = canvas->gr;
+  shoes_canvas_empty(canvas);
   canvas->contents = rb_ary_new();
   canvas->place.x = 0;
   canvas->place.y = 0;
@@ -899,6 +914,7 @@ shoes_canvas_remove(VALUE self)
 {
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
+  shoes_canvas_empty(self_t);
   shoes_canvas_remove_item(self_t->parent, self);
   return self;
 }
@@ -1112,14 +1128,11 @@ shoes_canvas_prepend(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_clear_contents(int argc, VALUE *argv, VALUE self)
 {
-  long i;
-  VALUE ary, block;
+  VALUE block;
   SETUP();
 
   rb_scan_args(argc, argv, "0&", &block);
-  ary = rb_ary_dup(canvas->contents);
-  for (i = 0; i < RARRAY_LEN(ary); i++) 
-    rb_funcall(rb_ary_entry(ary, i), s_remove, 0);
+  shoes_canvas_empty(canvas);
   if (!NIL_P(block))
     shoes_canvas_memdraw(self, block);
   shoes_canvas_repaint_all(self);
