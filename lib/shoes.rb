@@ -113,7 +113,7 @@ class Shoes
   end
 
   def self.load(path)
-    uri = URI(path)
+    uri = URI(path) rescue nil
     case uri
     when URI::HTTP
       eval(uri.read, TOPLEVEL_BINDING)
