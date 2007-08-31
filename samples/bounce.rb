@@ -3,6 +3,8 @@ xdir, ydir = 1, 1
 
 Shoes.app do
   background "#DFA".."#F90", :angle => 45
+  border black, :strokewidth => 6
+
   nostroke
   icon = image "static/shoes-icon.png", :left => 100, :top => 100
 

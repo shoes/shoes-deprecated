@@ -315,6 +315,7 @@ VALUE shoes_text_get_cursor(VALUE);
 VALUE shoes_text_draw(VALUE, VALUE);
 VALUE shoes_text_motion(VALUE, int, int);
 VALUE shoes_text_click(VALUE, int, int, int);
+VALUE shoes_linktext_new(VALUE, VALUE, VALUE);
 
 //
 // shoes/image.c

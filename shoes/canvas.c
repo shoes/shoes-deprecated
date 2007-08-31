@@ -268,6 +268,7 @@ shoes_canvas_empty(shoes_canvas *canvas)
     ary = rb_ary_dup(canvas->contents);
     for (i = 0; i < RARRAY_LEN(ary); i++) 
       rb_funcall(rb_ary_entry(ary, i), s_remove, 0);
+    rb_ary_clear(canvas->contents);
   }
 }
 
