@@ -39,17 +39,18 @@ end
 number_field = nil
 number = Calc.new
 Shoes.app :height => 250, :width => 200 do
+  background "#EEC".."#996", :radius => 5,
+    :top => 2, :left => 2, :width => -4, :height => -4
 
   stack :margin => 4 do
-    background rgb(240, 240, 210), :radius => 5
 
-    stack do
-      number_field = text number.to_s
+    stack :margin => 8 do
+      number_field = text "<b>#{number}</b>"
     end
 
     flow :width => 218, :margin => 4 do
       %w(7 8 9 / 4 5 6 * 1 2 3 - 0 Clr = +).each do |btn|
-        button btn, :width => 50, :height => 50 do
+        button btn, :width => 46, :height => 46 do
           method = case btn
             when /[0-9]/: 'press_'+btn
             when 'Clr': 'press_clear'
@@ -61,7 +62,7 @@ Shoes.app :height => 250, :width => 200 do
           end
           
           number.send(method)
-          number_field.replace number.to_s
+          number_field.replace "<b>#{number} </b>"
         end
       end
     end
