@@ -9,7 +9,7 @@
 #include "shoes/internal.h"
 #include <math.h>
 
-VALUE cShoes, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cPattern, cBorder, cBackground, cLinkText, cTextClass, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
+VALUE cShoes, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cPattern, cBorder, cBackground, cLinkText, cTextClass, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 ID s_aref, s_perc, s_bind, s_new, s_run, s_to_pattern, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
@@ -1605,6 +1605,38 @@ shoes_control_alloc(VALUE klass)
   return obj;
 }
 
+void
+shoes_control_hide(VALUE self)
+{
+  shoes_control *self_t;
+  Data_Get_Struct(self, shoes_control, self_t);
+#ifdef SHOES_GTK
+  gtk_widget_hide(self_t->ref);
+#endif
+#ifdef SHOES_QUARTZ
+  HIViewSetVisible(self_t->ref, false);
+#endif
+#ifdef SHOES_WIN32
+  ShowWindow(self_t->ref, SW_HIDE);
+#endif
+}
+
+void
+shoes_control_show(VALUE self)
+{
+  shoes_control *self_t;
+  Data_Get_Struct(self, shoes_control, self_t);
+#ifdef SHOES_GTK
+  gtk_widget_show(self_t->ref);
+#endif
+#ifdef SHOES_QUARTZ
+  HIViewSetVisible(self_t->ref, true);
+#endif
+#ifdef SHOES_WIN32
+  ShowWindow(self_t->ref, SW_SHOW);
+#endif
+}
+
 VALUE
 shoes_control_remove(VALUE self)
 {
@@ -2388,31 +2420,25 @@ shoes_ruby_init()
   rb_define_method(cTextClass, "replace", CASTHOOK(shoes_text_set_markup), 1);
   cLinkText = rb_define_class_under(cShoes, "LinkText", cTextClass);
 
-  cButton  = rb_define_class_under(cShoes, "Button", rb_cObject);
-  rb_define_alloc_func(cButton, shoes_control_alloc);
+  cNative  = rb_define_class_under(cShoes, "Native", rb_cObject);
+  rb_define_alloc_func(cNative, shoes_control_alloc);
+  rb_define_method(cNative, "remove", CASTHOOK(shoes_control_remove), 0);
+  cButton  = rb_define_class_under(cShoes, "Button", cNative);
   rb_define_method(cButton, "draw", CASTHOOK(shoes_button_draw), 1);
-  rb_define_method(cButton, "remove", CASTHOOK(shoes_control_remove), 0);
-  cEditLine  = rb_define_class_under(cShoes, "EditLine", rb_cObject);
-  rb_define_alloc_func(cEditLine, shoes_control_alloc);
+  cEditLine  = rb_define_class_under(cShoes, "EditLine", cNative);
   rb_define_method(cEditLine, "text", CASTHOOK(shoes_edit_line_get_text), 0);
   rb_define_method(cEditLine, "text=", CASTHOOK(shoes_edit_line_set_text), 1);
   rb_define_method(cEditLine, "draw", CASTHOOK(shoes_edit_line_draw), 1);
-  rb_define_method(cEditLine, "remove", CASTHOOK(shoes_control_remove), 0);
-  cEditBox  = rb_define_class_under(cShoes, "EditBox", rb_cObject);
-  rb_define_alloc_func(cEditBox, shoes_control_alloc);
+  cEditBox  = rb_define_class_under(cShoes, "EditBox", cNative);
   rb_define_method(cEditBox, "text", CASTHOOK(shoes_edit_box_get_text), 0);
   rb_define_method(cEditBox, "text=", CASTHOOK(shoes_edit_box_set_text), 1);
   rb_define_method(cEditBox, "draw", CASTHOOK(shoes_edit_box_draw), 1);
-  rb_define_method(cEditBox, "remove", CASTHOOK(shoes_control_remove), 0);
-  cListBox  = rb_define_class_under(cShoes, "ListBox", rb_cObject);
-  rb_define_alloc_func(cListBox, shoes_control_alloc);
+  cListBox  = rb_define_class_under(cShoes, "ListBox", cNative);
   rb_define_method(cListBox, "text", CASTHOOK(shoes_list_box_text), 0);
   rb_define_method(cListBox, "draw", CASTHOOK(shoes_list_box_draw), 1);
-  rb_define_method(cListBox, "remove", CASTHOOK(shoes_control_remove), 0);
-  cProgress  = rb_define_class_under(cShoes, "Progress", rb_cObject);
-  rb_define_alloc_func(cProgress, shoes_control_alloc);
+  cProgress  = rb_define_class_under(cShoes, "Progress", cNative);
   rb_define_method(cProgress, "draw", CASTHOOK(shoes_progress_draw), 1);
-  rb_define_method(cProgress, "remove", CASTHOOK(shoes_control_remove), 0);
+
   cAnim    = rb_define_class_under(cShoes, "Animation", rb_cObject);
   rb_define_alloc_func(cAnim, shoes_anim_alloc);
   rb_define_method(cAnim, "draw", CASTHOOK(shoes_anim_draw), 1);

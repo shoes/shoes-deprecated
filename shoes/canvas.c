@@ -1227,12 +1227,34 @@ shoes_canvas_repaint_all(VALUE self)
   shoes_slot_repaint(&canvas->slot);
 }
 
+typedef void (*ccallfunc)(VALUE);
+
+static void
+shoes_canvas_ccall(VALUE self, ccallfunc func)
+{
+  shoes_canvas *self_t;
+  Data_Get_Struct(self, shoes_canvas, self_t);
+  if (!NIL_P(self_t->contents))
+  {
+    long i;
+    for (i = 0; i < RARRAY_LEN(self_t->contents); i++)
+    {
+      VALUE ele = rb_ary_entry(self_t->contents, i);
+      if (rb_obj_is_kind_of(ele, cNative))
+        func(ele);
+      else if (rb_obj_is_kind_of(ele, cCanvas))
+        shoes_canvas_ccall(ele, func);
+    }
+  }
+}
+
 VALUE
 shoes_canvas_hide(VALUE self)
 {
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
   ATTRSET(self_t->attr, hidden, Qtrue);
+  shoes_canvas_ccall(self, shoes_control_hide);
   shoes_canvas_repaint_all(self);
   return self;
 }
@@ -1243,6 +1265,7 @@ shoes_canvas_show(VALUE self)
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
   ATTRSET(self_t->attr, hidden, Qfalse);
+  shoes_canvas_ccall(self, shoes_control_show);
   shoes_canvas_repaint_all(self);
   return self;
 }

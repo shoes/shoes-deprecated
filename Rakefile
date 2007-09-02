@@ -5,6 +5,7 @@ include FileUtils
 
 APPNAME = ENV['APPNAME'] || "Shoes"
 NAME = APPNAME.downcase.gsub(/\W+/, '')
+SONAME = 'shoes'
 VERS = ENV['VERSION'] || "0.1"
 PKG = "#{NAME}-#{VERS}"
 
@@ -228,7 +229,7 @@ else
 
   LINUX_LIBS << " -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB}"
 
-  task "dist/#{NAME}" => "dist/lib#{NAME}.#{DLEXT}" do |t|
+  task "dist/#{NAME}" => "dist/lib#{SONAME}.#{DLEXT}" do |t|
     bin = "#{t.name}-bin"
     rm_f t.name
     rm_f bin
@@ -240,7 +241,7 @@ else
     end
   end
 
-  task "dist/lib#{NAME}.#{DLEXT}" => OBJ do |t|
+  task "dist/lib#{SONAME}.#{DLEXT}" => OBJ do |t|
     sh "#{CC} -o #{t.name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
   end
 

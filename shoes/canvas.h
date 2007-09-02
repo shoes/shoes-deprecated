@@ -254,6 +254,9 @@ VALUE shoes_control_new(VALUE, VALUE, VALUE);
 VALUE shoes_control_alloc(VALUE);
 void shoes_control_send(VALUE, ID);
 VALUE shoes_control_remove(VALUE);
+void shoes_control_show(VALUE);
+void shoes_control_hide(VALUE);
+
 VALUE shoes_button_draw(VALUE, VALUE);
 VALUE shoes_edit_line_draw(VALUE, VALUE);
 VALUE shoes_edit_line_get_text(VALUE);
