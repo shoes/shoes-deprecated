@@ -1128,7 +1128,7 @@ shoes_app_loop(shoes_app *app, char *path)
 #ifndef SHOES_GTK
   app->slot.controls = rb_ary_new();
 #endif
-  shoes_slot_init(app->canvas, &app->slot, app->width, app->height);
+  shoes_slot_init(app->canvas, &app->slot, app->width, app->height, TRUE);
   shoes_app_goto(app, path);
   INFO("RUNNING LOOP.\n", 0);
 

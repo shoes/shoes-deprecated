@@ -19,21 +19,28 @@ const double RAD2PI = 0.01745329251994329577;
 
 #ifdef SHOES_GTK
 static void
+shoes_canvas_gtk_paint_children(GtkWidget *widget, gpointer data)
+{
+  shoes_canvas *canvas = (shoes_canvas *)data;
+  gtk_container_propagate_expose(GTK_CONTAINER(canvas->slot.canvas), widget, canvas->slot.expose);
+}
+
+static void
 shoes_canvas_gtk_paint (GtkWidget *widget, GdkEventExpose *event, gpointer data)
 { 
   GtkRequisition req;
   VALUE c = (VALUE)data;
   shoes_canvas *canvas;
   Data_Get_Struct(c, shoes_canvas, canvas);
-  canvas->slot.expose = event;
-  // TODO: Move to resize handler
-  // gtk_window_get_size(GTK_WINDOW(app->kit.window), &app->width, &app->height);
   shoes_canvas_paint(c);
+  canvas->slot.expose = event;
+  gtk_container_forall(GTK_CONTAINER(widget), shoes_canvas_gtk_paint_children, canvas);
+  canvas->slot.expose = NULL;
 }
 #endif
 
 void
-shoes_slot_init(VALUE c, APPSLOT *parent, int width, int height)
+shoes_slot_init(VALUE c, APPSLOT *parent, int width, int height, int toplevel)
 {
   shoes_canvas *canvas;
   APPSLOT *slot;
@@ -49,7 +56,10 @@ shoes_slot_init(VALUE c, APPSLOT *parent, int width, int height)
     gtk_widget_get_events(slot->canvas) | GDK_POINTER_MOTION_MASK | GDK_BUTTON_RELEASE_MASK);
   g_signal_connect(G_OBJECT(slot->canvas), "expose-event",
                    G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
-  gtk_container_add(GTK_CONTAINER(parent->canvas), slot->box);
+  if (toplevel)
+    gtk_container_add(GTK_CONTAINER(parent->canvas), slot->box);
+  else
+    gtk_layout_put(GTK_LAYOUT(parent->canvas), slot->box, 0, 0);
   gtk_container_add(GTK_CONTAINER(slot->box), slot->canvas);
   GTK_LAYOUT(slot->canvas)->hadjustment->step_increment = 5;
   GTK_LAYOUT(slot->canvas)->vadjustment->step_increment = 5;
@@ -910,22 +920,30 @@ shoes_canvas_remove_item(VALUE self, VALUE item)
   rb_ary_delete(self_t->contents, item);
 }
 
+static int
+shoes_canvas_inherits(VALUE ele, shoes_canvas *pc)
+{
+  if (rb_obj_is_kind_of(ele, cCanvas))
+  {
+    shoes_canvas *c;
+    Data_Get_Struct(ele, shoes_canvas, c);
+    return (pc == c || DC(c->slot) == DC(pc->slot));
+  }
+
+  return TRUE;
+}
+
 static void
 shoes_canvas_reflow(shoes_canvas *self_t, VALUE c)
 {
-  int inherit = 1;
   VALUE attr = Qnil;
   shoes_canvas *parent;
   Data_Get_Struct(c, shoes_canvas, parent);
-  inherit = DC(self_t->slot) == DC(parent->slot);
-  if (inherit) {
-    self_t->cr = parent->cr;
-    shoes_place_decide(&self_t->place, c, self_t->attr, parent->width, 0, REL_CANVAS);
-    self_t->width = self_t->place.w;
-    self_t->height = self_t->place.h;
-  } else {
-    self_t->cr = shoes_cairo_create(&self_t->slot, self_t->width, self_t->height, 20);
-  }
+
+  self_t->cr = parent->cr;
+  shoes_place_decide(&self_t->place, c, self_t->attr, parent->width, 0, REL_CANVAS);
+  self_t->width = self_t->place.w;
+  self_t->height = self_t->place.h;
 
   self_t->cx = self_t->place.x;
   self_t->cy = self_t->place.y;
@@ -1007,7 +1025,11 @@ shoes_canvas_draw(VALUE self, VALUE c)
         else
           self_t->cr = crc;
       }
-      rb_funcall(ele, s_draw, 1, self);
+
+      if (shoes_canvas_inherits(ele, self_t))
+      {
+        rb_funcall(ele, s_draw, 1, self);
+      }
     }
 
     if (!NIL_P(masks))
@@ -1459,12 +1481,11 @@ shoes_slot_new(VALUE klass, VALUE attr, VALUE parent)
     w = ATTR2(int, self_t->attr, width, 100);
     h = ATTR2(int, self_t->attr, height, 100);
 
-    shoes_slot_init(self, &pc->slot, w, h);
+    shoes_slot_init(self, &pc->slot, w, h, FALSE);
 #ifdef SHOES_GTK
-    GtkWidget *slotc = self_t->slot.canvas;
-    gtk_layout_put(GTK_LAYOUT(slotc), self_t->slot.box, x, y);
+    gtk_layout_move(GTK_LAYOUT(pc->slot.canvas), self_t->slot.box, x, y);
     gtk_widget_show_all(self_t->slot.box);
-    self_t->cr = shoes_cairo_create(&self_t->slot, self_t->width, self_t->height, 20);
+    self_t->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));;
     self_t->place.x = self_t->place.y = 0.0;
     self_t->width = w - 20;
     self_t->height = h - 20;
