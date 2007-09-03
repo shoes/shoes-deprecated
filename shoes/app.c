@@ -36,6 +36,7 @@ shoes_app_free(shoes_app *app)
   CFRelease(app->kit.clip);
   TECDisposeConverter(app->kit.converter);
 #endif
+  rb_gc_unregister_address(&app->slot.controls);
   rb_gc_unregister_address(&app->canvas);
   rb_gc_unregister_address(&app->timers);
   if (app != NULL)
@@ -1127,6 +1128,7 @@ shoes_app_loop(shoes_app *app, char *path)
 {
 #ifndef SHOES_GTK
   app->slot.controls = rb_ary_new();
+  rb_gc_register_address(&app->slot.controls);
 #endif
   shoes_slot_init(app->canvas, &app->slot, app->width, app->height, TRUE);
   shoes_app_goto(app, path);
