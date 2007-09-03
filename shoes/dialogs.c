@@ -271,10 +271,10 @@ shoes_dialog_open(VALUE self)
 #endif
 
 #ifdef SHOES_WIN32
-  char dir[MAX_PATH], _path[MAX_PATH];
+  char dir[MAX_PATH+1], _path[MAX_PATH+1];
   OPENFILENAME ofn;
   ZeroMemory(&ofn, sizeof(ofn));
-  // GetCurrentDirectory(sizeof(dir), (LPSTR)dir);
+  GetCurrentDirectory(MAX_PATH, (LPSTR)dir);
   ofn.lStructSize     = sizeof(ofn);
   ofn.hwndOwner       = global_app->slot.window;
   ofn.hInstance       = global_app->kit.instance;
@@ -291,6 +291,7 @@ shoes_dialog_open(VALUE self)
   {
     path = rb_str_new2(ofn.lpstrFile);
   }
+  SetCurrentDirectory((LPSTR)dir);
 #endif
 
 #ifdef SHOES_QUARTZ
@@ -370,10 +371,10 @@ shoes_dialog_save(VALUE self)
 #endif
 
 #ifdef SHOES_WIN32
-  char dir[MAX_PATH], _path[MAX_PATH];
+  char dir[MAX_PATH+1], _path[MAX_PATH+1];
   OPENFILENAME ofn;
   ZeroMemory(&ofn, sizeof(ofn));
-  // GetCurrentDirectory(sizeof(dir), (LPSTR)dir);
+  GetCurrentDirectory(MAX_PATH, (LPSTR)dir);
   ofn.lStructSize     = sizeof(ofn);
   ofn.hwndOwner       = global_app->slot.window;
   ofn.hInstance       = global_app->kit.instance;
@@ -390,6 +391,7 @@ shoes_dialog_save(VALUE self)
   {
     path = rb_str_new2(ofn.lpstrFile);
   }
+  SetCurrentDirectory((LPSTR)dir);
 #endif
   return path;
 }
