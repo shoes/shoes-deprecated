@@ -36,7 +36,9 @@ shoes_app_free(shoes_app *app)
   CFRelease(app->kit.clip);
   TECDisposeConverter(app->kit.converter);
 #endif
+#ifndef SHOES_GTK
   rb_gc_unregister_address(&app->slot.controls);
+#endif
   rb_gc_unregister_address(&app->canvas);
   rb_gc_unregister_address(&app->timers);
   if (app != NULL)
