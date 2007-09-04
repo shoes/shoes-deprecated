@@ -9,6 +9,7 @@ NAME = APPNAME.downcase.gsub(/\W+/, '')
 SONAME = 'shoes'
 VERS = ENV['VERSION'] || "0.1"
 PKG = "#{NAME}-#{VERS}"
+APPARGS = ENV['APPARGS'].split(/\s+/)
 
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 CLEAN.include ["{bin,shoes}/#{BIN}", "dist"]
@@ -119,9 +120,9 @@ end
 # use the platform Ruby claims
 case PLATFORM
 when /win32/
-  SRC = FileList["{bin,shoes}/*.{c,rc,skel}"] 
+  SRC = FileList["{bin,shoes}/*.{c,rc}"] 
   OBJ = SRC.map do |x|
-    x.gsub(/\.(c|skel)$/, '.obj').gsub(/\.rc$/, '.res')
+    x.gsub(/\.(c)$/, '.obj').gsub(/\.rc$/, '.res')
   end
 
   # MSVC build environment
@@ -143,7 +144,7 @@ when /win32/
   end
 
   # MSVC build tasks
-  task :build_os => [:buildenv_win32, "dist/#{NAME}.exe"]
+  task :build_os => [:buildenv_win32, :build_skel, "dist/#{NAME}.exe"]
 
   task :buildenv_win32 do
     vcvars32_bat = File.join(env('MSVC'), "vcvars32.bat")
@@ -193,7 +194,7 @@ else
   require 'rbconfig'
 
   CC = "gcc"
-  SRC = FileList["{bin,shoes}/*.{c,skel}"]
+  SRC = FileList["{bin,shoes}/*.{c}"]
   OBJ = SRC.map do |x|
     x.gsub(/\.\w+$/, '.o')
   end
@@ -221,7 +222,7 @@ else
     LINUX_LDFLAGS =" #{`pkg-config --libs gtk+-2.0`.strip} -fPIC -shared"
   end
 
-  task :build_os => [:buildenv_linux, "dist/#{NAME}"]
+  task :build_os => [:buildenv_linux, :build_skel, "dist/#{NAME}"]
 
   task :buildenv_linux do
     rm_rf "dist"
