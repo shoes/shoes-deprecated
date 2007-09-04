@@ -3,4 +3,4 @@ APPPATH="${0%/*}"
 cd $APPPATH
 echo "[Pango]" > pangorc
 echo "ModuleFiles=$APPPATH/pango.modules" >> pangorc
-DYLD_LIBRARY_PATH=$APPPATH PANGO_RC_FILE=$APPPATH/pangorc ./shoes-bin "$@"
+DYLD_LIBRARY_PATH=$APPPATH PANGO_RC_FILE=$APPPATH/pangorc ./#{NAME}-bin "$@"

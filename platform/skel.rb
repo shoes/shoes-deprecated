@@ -1,11 +1,13 @@
 def skel_replace(line)
   line.gsub! /\s+%DEFAULTS\((\w+)\)%/ do
     if APPARGS
+      vname = $1
+      args = APPARGS.split(/\s+/)
       %{
-        int #$1 = TRUE;
-        char *default_argv[] = {argv[0], #{APPARGS.inspect[1..-2]}};
+        int #{vname} = TRUE;
+        char *default_argv[] = {argv[0], #{args.inspect[1..-2]}};
         argv = default_argv;
-        argc = #{APPARGS.length + 1};
+        argc = #{args.length + 1};
       }
     end
   end
@@ -22,6 +24,10 @@ task :build_skel do |t|
           c << skel_replace(line)
         end
       end
+    end
+    unless SRC.include? name
+      SRC << name
+      OBJ << name.gsub(/\.c$/, '.o')
     end
   end
 end

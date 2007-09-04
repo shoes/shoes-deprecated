@@ -9,7 +9,7 @@ NAME = APPNAME.downcase.gsub(/\W+/, '')
 SONAME = 'shoes'
 VERS = ENV['VERSION'] || "0.1"
 PKG = "#{NAME}-#{VERS}"
-APPARGS = ENV['APPARGS'].split(/\s+/)
+APPARGS = ENV['APPARGS']
 
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 CLEAN.include ["{bin,shoes}/#{BIN}", "dist"]
@@ -107,12 +107,12 @@ task :build => :build_os do
     rewrite "platform/mac/Info.plist", "#{APPNAME}.app/Contents/Info.plist"
     cp "platform/mac/version.plist", "#{APPNAME}.app/Contents/"
     cp "platform/mac/pangorc", "#{APPNAME}.app/Contents/MacOS/"
-    cp "platform/mac/shoes-launch", "#{APPNAME}.app/Contents/MacOS/shoes"
-    chmod 0755, "#{APPNAME}.app/Contents/MacOS/shoes"
+    rewrite "platform/mac/shoes-launch", "#{APPNAME}.app/Contents/MacOS/#{NAME}"
+    chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}"
     # cp InfoPlist.strings YourApp.app/Contents/Resources/English.lproj/
     `echo -n 'APPL????' > "#{APPNAME}.app/Contents/PkgInfo"`
   when /win32/
-    cp "platform/msw/shoes.exe.manifest", "dist"
+    cp "platform/msw/shoes.exe.manifest", "dist/#{NAME}.exe.manifest"
     cp "dist/zlib1.dll", "dist/zlib.dll"
   end
 end
