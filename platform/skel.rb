@@ -1,10 +1,8 @@
 def skel_replace(line)
-  line.gsub! /\s+%DEFAULTS\((\w+)\)%/ do
+  line.gsub! /\s+%DEFAULTS%/ do
     if APPARGS
-      vname = $1
       args = APPARGS.split(/\s+/)
       %{
-        int #{vname} = TRUE;
         char *default_argv[] = {argv[0], #{args.inspect[1..-2]}};
         argv = default_argv;
         argc = #{args.length + 1};

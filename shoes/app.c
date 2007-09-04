@@ -1116,7 +1116,7 @@ shoes_app_open(shoes_app *app)
 
   app->slot.window = CreateWindowEx(
     0, SHOES_SHORTNAME, SHOES_APPNAME,
-    WINDOW_STYLE | (app->resizable ? WS_NORESIZE : 0),
+    (app->resizable ? WINDOW_STYLE : 0),
     CW_USEDEFAULT, CW_USEDEFAULT,
     rect.right-rect.left, rect.bottom-rect.top,
     HWND_DESKTOP,
