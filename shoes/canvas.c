@@ -985,9 +985,20 @@ shoes_canvas_draw(VALUE self, VALUE c)
   }
   else
   {
-    shoes_place_decide(&self_t->place, Qnil, self_t->attr, self_t->width, self_t->height, REL_WINDOW);
-    canvas->endx = canvas->cx = self_t->place.x;
-    canvas->endy = canvas->cy = self_t->place.y;
+    shoes_place_decide(&self_t->place, self_t->parent, self_t->attr, self_t->width, self_t->height, REL_CANVAS);
+    self_t->endx = self_t->cx = self_t->place.x;
+    self_t->endy = self_t->cy = self_t->place.y;
+    if (!NIL_P(self_t->parent))
+    {
+      shoes_canvas *pc;
+      Data_Get_Struct(self_t->parent, shoes_canvas, pc);
+#ifdef SHOES_GTK
+      gtk_layout_move(GTK_LAYOUT(pc->slot.canvas), self_t->slot.box, self_t->place.x, self_t->place.y);
+      gtk_widget_set_size_request(self_t->slot.box, self_t->place.w, self_t->place.h);
+#endif
+      self_t->width = self_t->place.w;
+      self_t->height = self_t->place.h;
+    }
   }
 
   if (ATTR(self_t->attr, hidden) != Qtrue)

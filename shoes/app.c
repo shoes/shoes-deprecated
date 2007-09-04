@@ -37,7 +37,8 @@ shoes_app_free(shoes_app *app)
   TECDisposeConverter(app->kit.converter);
 #endif
 #ifndef SHOES_GTK
-  rb_gc_unregister_address(&app->slot.controls);
+  if (!NIL_P(app->slot.controls))
+    rb_gc_unregister_address(&app->slot.controls);
 #endif
   rb_gc_unregister_address(&app->canvas);
   rb_gc_unregister_address(&app->timers);
@@ -49,7 +50,7 @@ shoes_app_free(shoes_app *app)
 static gboolean
 shoes_app_gtk_idle(gpointer data)
 {
-  rb_eval_string("sleep(0.01)");
+  rb_eval_string("sleep(0.001)");
   return TRUE;
 }
 
@@ -1149,7 +1150,7 @@ shoes_app_loop(shoes_app *app, char *path)
 
 #ifdef SHOES_GTK
   gtk_widget_show_all(app->kit.window);
-  // g_idle_add(shoes_app_gtk_idle, app);
+  g_idle_add(shoes_app_gtk_idle, app);
   gtk_main();
 #endif
 
