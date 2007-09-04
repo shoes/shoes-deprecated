@@ -38,7 +38,7 @@ end
 
 number_field = nil
 number = Calc.new
-Shoes.app :height => 250, :width => 200 do
+Shoes.app :height => 250, :width => 200, :resizable => false do
   background "#EEC".."#996", :radius => 5,
     :top => 2, :left => 2, :width => -4, :height => -4
 

@@ -21,6 +21,7 @@ shoes_app_new()
   app->title = Qnil;
   app->width = SHOES_APP_WIDTH;
   app->height = SHOES_APP_HEIGHT;
+  app->resizable = TRUE;
 #ifdef SHOES_WIN32
   app->slot.window = NULL;
 #else
@@ -956,6 +957,7 @@ shoes_app_main(int argc, VALUE *argv, VALUE self)
   rb_scan_args(argc, argv, "01&", &attr, &block);
   rb_iv_set(self, "@main_app", block);
   global_app->title = ATTR(attr, title);
+  global_app->resizable = (ATTR(attr, resizable) != Qfalse);
   shoes_app_resize(global_app, ATTR2(int, attr, width, SHOES_APP_WIDTH), ATTR2(int, attr, height, SHOES_APP_HEIGHT));
   shoes_canvas_init(global_app->canvas, global_app->slot, attr, global_app->width, global_app->height);
   return self;
@@ -1001,6 +1003,8 @@ shoes_app_open(shoes_app *app)
 
   gtk_window_set_default_icon_from_file("static/shoes-icon.png", NULL);
   gk->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  if (!app->resizable)
+    gtk_window_set_resizable(GTK_WINDOW(gk->window), FALSE);
   g_signal_connect(G_OBJECT(gk->window), "expose-event",
                     G_CALLBACK(shoes_app_gtk_paint), app);
   g_signal_connect(G_OBJECT(gk->window), "motion-notify-event",
@@ -1041,7 +1045,8 @@ shoes_app_open(shoes_app *app)
       kWindowCompositingAttribute
     // | kWindowLiveResizeAttribute
     | kWindowStandardDocumentAttributes
-    | kWindowStandardHandlerAttribute,
+    | kWindowStandardHandlerAttribute
+    ^ (app->resizable ? kWindowResizableAttribute : 0),
     &gRect,
     &app->kit.window);
 
@@ -1111,7 +1116,7 @@ shoes_app_open(shoes_app *app)
 
   app->slot.window = CreateWindowEx(
     0, SHOES_SHORTNAME, SHOES_APPNAME,
-    WINDOW_STYLE,
+    WINDOW_STYLE | (app->resizable ? WS_NORESIZE : 0),
     CW_USEDEFAULT, CW_USEDEFAULT,
     rect.right-rect.left, rect.bottom-rect.top,
     HWND_DESKTOP,
