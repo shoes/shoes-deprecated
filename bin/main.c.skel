@@ -16,15 +16,19 @@ main(argc, argv)
   char *argv[];
 #endif
 {
-  shoes_init();
-  shoes_app *app = shoes_app_new();
 #ifdef SHOES_WIN32
   int argc;
   char **argv;
+#endif
+  %DEFAULTS(force)%
+  shoes_init();
+  shoes_app *app = shoes_app_new();
+#ifdef SHOES_WIN32
   app->kit.instance = inst;
   app->kit.style = style;
   app->path = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
-  argc = rb_w32_cmdvector(GetCommandLine(), &argv);
+  if (!force)
+    argc = rb_w32_cmdvector(GetCommandLine(), &argv);
   GetModuleFileName(NULL, (LPSTR)app->path, SHOES_BUFSIZE);
 #else
   app->path = argv[0];

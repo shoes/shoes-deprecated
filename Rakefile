@@ -1,5 +1,6 @@
 require 'rake'
 require 'rake/clean'
+require 'platform/skel'
 require 'fileutils'
 include FileUtils
 
@@ -118,9 +119,9 @@ end
 # use the platform Ruby claims
 case PLATFORM
 when /win32/
-  SRC = FileList["{bin,shoes}/*.{c,rc}"] 
+  SRC = FileList["{bin,shoes}/*.{c,rc,skel}"] 
   OBJ = SRC.map do |x|
-    x.gsub(/\.c$/, '.obj').gsub(/\.rc$/, '.res')
+    x.gsub(/\.(c|skel)$/, '.obj').gsub(/\.rc$/, '.res')
   end
 
   # MSVC build environment
@@ -192,7 +193,7 @@ else
   require 'rbconfig'
 
   CC = "gcc"
-  SRC = FileList["{bin,shoes}/*.c"]
+  SRC = FileList["{bin,shoes}/*.{c,skel}"]
   OBJ = SRC.map do |x|
     x.gsub(/\.\w+$/, '.o')
   end
