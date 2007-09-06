@@ -7,6 +7,7 @@
 #include "shoes/config.h"
 #ifdef SHOES_WIN32
 #include "shoes/appwin32.h"
+#include <commdlg.h>
 #endif
 
 const char *dialog_title = "Shoes asks:";

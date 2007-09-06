@@ -15,7 +15,7 @@ BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 CLEAN.include ["{bin,shoes}/#{BIN}", "dist"]
 
 # Guess the environment
-unless ENV['MSVC']
+unless ENV['MSVC'] or ENV['DDKBUILDENV']
   if ENV['VS71COMNTOOLS']
     ENV['MSVC'] = File.expand_path("../../Vc7", ENV['VS71COMNTOOLS'])
   elsif ENV['VCToolkitInstallDir']
@@ -126,9 +126,9 @@ when /win32/
   end
 
   # MSVC build environment
-  MSVC_LIBS = %[msvcrt-ruby18.lib pango-1.0.lib pangocairo-1.0.lib gobject-2.0.lib glib-2.0.lib cairo.lib giflib.lib jpeg.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib advapi32.lib oleacc.lib]
+  MSVC_LIBS = %[msvcrt-ruby18.lib pango-1.0.lib pangocairo-1.0.lib gobject-2.0.lib glib-2.0.lib cairo.lib giflib.lib jpeg.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib advapi32.lib oleacc.lib bufferoverflowu.lib]
 
-  MSVC_CFLAGS = %q[/ML /DWIN32 /DSHOES_WIN32
+  MSVC_CFLAGS = %q[/ML /DWIN32 /DSHOES_WIN32 /DWIN32_LEAN_AND_MEAN
     /Ideps\cairo\include
     /Ideps\cairo\include\cairo
     /Ideps\pango\include\pango-1.0
@@ -139,21 +139,26 @@ when /win32/
     /O2 /GR /EHsc
   ].gsub(/\n\s*/, ' ')
 
-  if ENV['DEBUG']
-    MSVC_CFLAGS << " /DDEBUG"
-  end
+  MSVC_LDFLAGS = "/NOLOGO"
+
+  MSVC_CFLAGS << " /DDEBUG" if ENV['DEBUG']
+  MSVC_CFLAGS << " /I#{ENV['CRT_INC_PATH']}" if ENV['CRT_INC_PATH']
+  MSVC_LDFLAGS << " /LIBPATH:#{ENV['CRT_LIB_PATH'][0..-2]}\i386" if ENV['CRT_LIB_PATH']
+  MSVC_LDFLAGS << " /LIBPATH:#{ENV['SDK_LIB_PATH'][0..-2]}\i386" if ENV['SDK_LIB_PATH']
 
   # MSVC build tasks
   task :build_os => [:buildenv_win32, :build_skel, "dist/#{NAME}.exe"]
 
   task :buildenv_win32 do
-    vcvars32_bat = File.join(env('MSVC'), "vcvars32.bat")
-    unless File.exists?(vcvars32_bat)
-      vcvars32_bat = File.join(env('MSVC'), "bin/vcvars32.bat")
-    end
-    `"#{vcvars32_bat}" x86 && set`.each do |line|
-      if line =~ /(\w+)=(.+)/
-        ENV[$1] = $2
+    unless ENV['DDKBUILDENV']
+      vcvars32_bat = File.join(env('MSVC'), "vcvars32.bat")
+      unless File.exists?(vcvars32_bat)
+        vcvars32_bat = File.join(env('MSVC'), "bin/vcvars32.bat")
+      end
+      `"#{vcvars32_bat}" x86 && set`.each do |line|
+        if line =~ /(\w+)=(.+)/
+          ENV[$1] = $2
+        end
       end
     end
     mkdir_p "dist"
@@ -161,7 +166,7 @@ when /win32/
 
   task "dist/#{NAME}.exe" => OBJ do |t|
     rm_f t.name
-    sh "link /NOLOGO /OUT:#{t.name} /LIBPATH:#{ext_ruby}/lib " +
+    sh "link #{MSVC_LDFLAGS} /OUT:#{t.name} /LIBPATH:#{ext_ruby}/lib " +
       "/LIBPATH:deps/cairo/lib " +
       "/LIBPATH:deps/pango/lib " +
       "/SUBSYSTEM:WINDOWS #{OBJ.join(' ')} #{MSVC_LIBS}"
