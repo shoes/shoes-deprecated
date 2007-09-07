@@ -127,7 +127,7 @@ when /win32/
 
   # MSVC build environment
   MSVC_LIBS = %[msvcrt-ruby18.lib pango-1.0.lib pangocairo-1.0.lib gobject-2.0.lib glib-2.0.lib cairo.lib giflib.lib jpeg.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib advapi32.lib oleacc.lib]
-  MSVC_LIBS << "bufferoverflowu.lib" if ENV['DDKBUILDENV']
+  MSVC_LIBS << " bufferoverflowu.lib" if ENV['DDKBUILDENV']
 
   MSVC_CFLAGS = %q[/ML /DWIN32 /DSHOES_WIN32 /DWIN32_LEAN_AND_MEAN
     /Ideps\cairo\include
