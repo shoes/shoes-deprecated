@@ -3,6 +3,8 @@
 # The Shoes base app, both a demonstration and the learning tool for
 # using Shoes.
 #
+ARGV.delete_if { |x| x =~ /-psn_/ }
+
 require 'open-uri'
 require 'optparse'
 require 'shoes/shy'

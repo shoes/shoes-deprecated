@@ -77,7 +77,7 @@ task :build => :build_os do
          lib/libglib-2.0.0.dylib lib/libgobject-2.0.0.dylib lib/libpng12.0.dylib lib/libpango-1.0.0.dylib 
          lib/pango/1.6.0/modules/pango-basic-atsui.la lib/libpangocairo-1.0.0.dylib 
          lib/pango/1.6.0/modules/pango-basic-atsui.so etc/pango/pango.modules
-         lib/libjpeg.62.dylib lib/libungif.4.dylib].
+         lib/libjpeg62.dylib lib/libungif.4.dylib].
       each do |libn|
         cp "#{ENV['SHOES_DEPS_PATH']}/#{libn}", "dist/"
       end
@@ -120,9 +120,9 @@ end
 # use the platform Ruby claims
 case PLATFORM
 when /win32/
-  SRC = FileList["{bin,shoes}/*.{c,rc}"] 
+  SRC = FileList["shoes/*.{c,rc}"] 
   OBJ = SRC.map do |x|
-    x.gsub(/\.(c)$/, '.obj').gsub(/\.rc$/, '.res')
+    x.gsub(/\.c$/, '.obj').gsub(/\.rc$/, '.res')
   end
 
   # MSVC build environment
@@ -164,12 +164,12 @@ when /win32/
     mkdir_p "dist"
   end
 
-  task "dist/#{NAME}.exe" => OBJ do |t|
+  task "dist/#{NAME}.exe" => OBJ + ["bin/main.o"] do |t|
     rm_f t.name
     sh "link #{MSVC_LDFLAGS} /OUT:#{t.name} /LIBPATH:#{ext_ruby}/lib " +
       "/LIBPATH:deps/cairo/lib " +
       "/LIBPATH:deps/pango/lib " +
-      "/SUBSYSTEM:WINDOWS #{OBJ.join(' ')} #{MSVC_LIBS}"
+      "/SUBSYSTEM:WINDOWS #{OBJ.join(' ')} bin/main.o #{MSVC_LIBS}"
   end
 
   rule ".obj" => ".c" do |t|
@@ -199,7 +199,7 @@ else
   require 'rbconfig'
 
   CC = "gcc"
-  SRC = FileList["{bin,shoes}/*.{c}"]
+  SRC = FileList["shoes/*.{c}"]
   OBJ = SRC.map do |x|
     x.gsub(/\.\w+$/, '.o')
   end
@@ -211,21 +211,23 @@ else
   PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
 
   LINUX_CFLAGS = %[-I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{Config::CONFIG['archdir']}]
-  LINUX_LIB_NAMES = %W[#{ruby_so} cairo pangocairo-1.0 jpeg ungif]
+  LINUX_LIB_NAMES = %W[#{ruby_so} cairo pangocairo-1.0 ungif]
   if ENV['DEBUG']
     LINUX_CFLAGS << " -DDEBUG"
   end
 
-  LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
   case PLATFORM when /darwin/
     DLEXT = "dylib"
     LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{Config::CONFIG["CFLAGS"]}"
-    LINUX_LDFLAGS = "-framework Carbon -dynamiclib -Wl,-single_module #{Config::CONFIG["LDFLAGS"]}"
+    LINUX_LDFLAGS = "-framework Carbon -dynamiclib -Wl,-single_module #{Config::CONFIG["LDFLAGS"]} INSTALL_NAME"
+    LINUX_LIB_NAMES << 'jpeg62'
   else
     DLEXT = "so"
     LINUX_CFLAGS << " -DSHOES_GTK #{`pkg-config --cflags gtk+-2.0`.strip}"
     LINUX_LDFLAGS =" #{`pkg-config --libs gtk+-2.0`.strip} -fPIC -shared"
+    LINUX_LIB_NAMES << 'jpeg'
   end
+  LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
   task :build_os => [:buildenv_linux, :build_skel, "dist/#{NAME}"]
 
@@ -236,11 +238,11 @@ else
 
   LINUX_LIBS << " -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB}"
 
-  task "dist/#{NAME}" => "dist/lib#{SONAME}.#{DLEXT}" do |t|
+  task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o"] do |t|
     bin = "#{t.name}-bin"
     rm_f t.name
     rm_f bin
-    sh "#{CC} -Ldist -o #{bin} -lshoes #{LINUX_LIBS} #{Config::CONFIG['LDFLAGS']}"
+    sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']}"
     if PLATFORM !~ /darwin/
       sh %{echo 'APPPATH="${0%/*}"' > #{t.name}}
       sh %{echo 'LD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} $@' >> #{t.name}}
@@ -249,6 +251,7 @@ else
   end
 
   task "dist/lib#{SONAME}.#{DLEXT}" => OBJ do |t|
+    ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
     sh "#{CC} -o #{t.name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
   end
 
