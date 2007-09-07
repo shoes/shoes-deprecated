@@ -126,7 +126,8 @@ when /win32/
   end
 
   # MSVC build environment
-  MSVC_LIBS = %[msvcrt-ruby18.lib pango-1.0.lib pangocairo-1.0.lib gobject-2.0.lib glib-2.0.lib cairo.lib giflib.lib jpeg.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib advapi32.lib oleacc.lib bufferoverflowu.lib]
+  MSVC_LIBS = %[msvcrt-ruby18.lib pango-1.0.lib pangocairo-1.0.lib gobject-2.0.lib glib-2.0.lib cairo.lib giflib.lib jpeg.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib advapi32.lib oleacc.lib]
+  MSVC_LIBS << "bufferoverflowu.lib" if ENV['DDKBUILDENV']
 
   MSVC_CFLAGS = %q[/ML /DWIN32 /DSHOES_WIN32 /DWIN32_LEAN_AND_MEAN
     /Ideps\cairo\include
@@ -164,12 +165,12 @@ when /win32/
     mkdir_p "dist"
   end
 
-  task "dist/#{NAME}.exe" => OBJ + ["bin/main.o"] do |t|
+  task "dist/#{NAME}.exe" => OBJ + ["bin/main.obj"] do |t|
     rm_f t.name
     sh "link #{MSVC_LDFLAGS} /OUT:#{t.name} /LIBPATH:#{ext_ruby}/lib " +
       "/LIBPATH:deps/cairo/lib " +
       "/LIBPATH:deps/pango/lib " +
-      "/SUBSYSTEM:WINDOWS #{OBJ.join(' ')} bin/main.o #{MSVC_LIBS}"
+      "/SUBSYSTEM:WINDOWS #{OBJ.join(' ')} bin/main.obj #{MSVC_LIBS}"
   end
 
   rule ".obj" => ".c" do |t|
