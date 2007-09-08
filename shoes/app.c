@@ -640,7 +640,7 @@ shoes_app_quartz_quit(const AppleEvent *appleEvt, AppleEvent* reply, long refcon
 #endif
 
 #ifdef SHOES_WIN32
-#define WINDOW_STYLE WS_OVERLAPPEDWINDOW
+#define WINDOW_STYLE WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX
 
 #define WM_POINTS() \
   x = LOWORD(l); \
@@ -1116,7 +1116,8 @@ shoes_app_open(shoes_app *app)
 
   app->slot.window = CreateWindowEx(
     0, SHOES_SHORTNAME, SHOES_APPNAME,
-    (app->resizable ? WINDOW_STYLE : 0),
+    WINDOW_STYLE | 
+      (app->resizable ? (WS_THICKFRAME | WS_MAXIMIZEBOX) : WS_DLGFRAME),
     CW_USEDEFAULT, CW_USEDEFAULT,
     rect.right-rect.left, rect.bottom-rect.top,
     HWND_DESKTOP,
