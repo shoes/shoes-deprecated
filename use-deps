@@ -5,6 +5,8 @@
 #
 PATH=./deps/bin:$PATH; export PATH
 PKG_CONFIG_PATH=./deps/lib/pkgconfig; export PKG_CONFIG_PATH
+DYLD_LIBRARY_PATH=./deps/lib; export DYLD_LIBRARY_PATH 
+LD_LIBRARY_PATH=./deps/lib; export LD_LIBRARY_PATH 
 SHOES_DEPS_PATH=./deps; export SHOES_DEPS_PATH
 RUBYOPT="-I./deps/lib/ruby/site_ruby/1.8 -I./deps/lib/ruby/1.8 -I./deps/lib/ruby/1.8/i686-darwin8.10.1"
 export RUBYOPT
