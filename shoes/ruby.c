@@ -1046,7 +1046,11 @@ shoes_method_missing_color(int argc, VALUE *argv, VALUE self)
   rb_scan_args(argc, argv, "11", &cname, &alpha);
   c = rb_hash_aref(cColors, cname);
   if (NIL_P(c))
-    rb_raise(rb_eNoMethodError, "undefined method `%s' for %s", cname, self);
+  {
+    self = rb_inspect(self);
+    rb_raise(rb_eNoMethodError, "undefined method `%s' for %s", 
+      rb_id2name(SYM2ID(cname)), RSTRING_PTR(self));
+  }
 
   if (!NIL_P(alpha))
   {
