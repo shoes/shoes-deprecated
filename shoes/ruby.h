@@ -87,4 +87,66 @@ VALUE rb_str_to_pas(VALUE);
 void shoes_place_decide(shoes_place *, VALUE, VALUE, int, int, char);
 void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
 
+#define CANVAS_DEFS(f) \
+  f("width=", set_width, 1); \
+  f("width", get_width, 0); \
+  f("height=", set_height, 1); \
+  f("height", get_height, 0); \
+  f("nostroke", nostroke, 0); \
+  f("stroke", stroke, -1); \
+  f("strokewidth", strokewidth, 1); \
+  f("nofill", nofill, 0); \
+  f("fill", fill, -1); \
+  f("rect", rect, -1); \
+  f("oval", oval, -1); \
+  f("line", line, 4); \
+  f("arrow", arrow, 3); \
+  f("star", star, -1); \
+  f("text", markup, -1); \
+  f("link", link, -1); \
+  f("background", background, -1); \
+  f("border", border, -1); \
+  f("image", image, -1); \
+  f("imagesize", imagesize, 1); \
+  f("animate", animate, -1); \
+  f("path", path, -1); \
+  f("move_to", move_to, 2); \
+  f("line_to", line_to, 2); \
+  f("curve_to", curve_to, 6); \
+  f("transform", transform, 1); \
+  f("translate", translate, 2); \
+  f("rotate", rotate, 1); \
+  f("scale", scale, -1); \
+  f("skew", skew, -1); \
+  f("push", push, 0); \
+  f("pop", pop, 0); \
+  f("reset", reset, 0); \
+  f("button", button, -1); \
+  f("list_box", list_box, -1); \
+  f("edit_line", edit_line, -1); \
+  f("edit_box", edit_box, -1); \
+  f("progress", progress, -1); \
+  f("contents", contents, 0); \
+  f("draw", draw, 1); \
+  f("after", after, -1); \
+  f("before", before, -1); \
+  f("append", append, -1); \
+  f("prepend", prepend, -1); \
+  f("flow", flow, -1); \
+  f("stack", stack, -1); \
+  f("mask", mask, -1); \
+  f("hide", hide, 0); \
+  f("show", show, 0); \
+  f("toggle", toggle, 0); \
+  f("click", click, -1); \
+  f("release", release, -1); \
+  f("motion", motion, -1); \
+  f("keypress", keypress, -1); \
+  f("clear", clear_contents, -1); \
+  f("goto", goto, 1); \
+  f("remove", remove, 0); \
+  f("mouse", mouse, 0); \
+  f("clipboard", get_clipboard, 0); \
+  f("clipboard=", set_clipboard, 1)
+
 #endif

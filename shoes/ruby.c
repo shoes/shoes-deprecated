@@ -2244,6 +2244,12 @@ shoes_p(VALUE self, VALUE obj)
   return shoes_debug(self, rb_inspect(obj));
 }
 
+//
+// Defines a redirecting function which applies the element or transformation
+// to the currently active canvas.  This is used in place of the old instance_eval
+// and ensures that you have access to the App's instance variables while
+// assembling elements in a layout.
+//
 #define APP_M(name, func, argn) \
   VALUE \
   shoes_app_c_##func(int argc, VALUE *argv, VALUE self) \
@@ -2264,66 +2270,10 @@ shoes_p(VALUE self, VALUE obj)
     return rb_funcall2(canvas, rb_intern(name), argc, argv); \
   }
 
-APP_M("width=", set_width, 1);
-APP_M("width", get_width, 0);
-APP_M("height=", set_height, 1);
-APP_M("height", get_height, 0);
-APP_M("nostroke", nostroke, 0);
-APP_M("stroke", stroke, -1);
-APP_M("strokewidth", strokewidth, 1);
-APP_M("nofill", nofill, 0);
-APP_M("fill", fill, -1);
-APP_M("rect", rect, -1);
-APP_M("oval", oval, -1);
-APP_M("line", line, 4);
-APP_M("arrow", arrow, 3);
-APP_M("star", star, -1);
-APP_M("text", markup, -1);
-APP_M("link", link, -1);
-APP_M("background", background, -1);
-APP_M("border", border, -1);
-APP_M("image", image, -1);
-APP_M("imagesize", imagesize, 1);
-APP_M("animate", animate, -1);
-APP_M("path", path, -1);
-APP_M("move_to", move_to, 2);
-APP_M("line_to", line_to, 2);
-APP_M("curve_to", curve_to, 6);
-APP_M("transform", transform, 1);
-APP_M("translate", translate, 2);
-APP_M("rotate", rotate, 1);
-APP_M("scale", scale, -1);
-APP_M("skew", skew, -1);
-APP_M("push", push, 0);
-APP_M("pop", pop, 0);
-APP_M("reset", reset, 0);
-APP_M("button", button, -1);
-APP_M("list_box", list_box, -1);
-APP_M("edit_line", edit_line, -1);
-APP_M("edit_box", edit_box, -1);
-APP_M("progress", progress, -1);
-APP_M("contents", contents, 0);
-APP_M("draw", draw, 1);
-APP_M("after", after, -1);
-APP_M("before", before, -1);
-APP_M("append", append, -1);
-APP_M("prepend", prepend, -1);
-APP_M("flow", flow, -1);
-APP_M("stack", stack, -1);
-APP_M("mask", mask, -1);
-APP_M("hide", hide, 0);
-APP_M("show", show, 0);
-APP_M("toggle", toggle, 0);
-APP_M("click", click, -1);
-APP_M("release", release, -1);
-APP_M("motion", motion, -1);
-APP_M("keypress", keypress, -1);
-APP_M("clear", clear_contents, -1);
-APP_M("goto", goto, 1);
-APP_M("remove", remove, 0);
-APP_M("mouse", mouse, 0);
-APP_M("clipboard", get_clipboard, 0);
-APP_M("clipboard=", set_clipboard, 1);
+//
+// See ruby.h for the complete list of App methods which redirect to Canvas.
+//
+CANVAS_DEFS(APP_M);
 
 #define C(n, s) \
   re##n = rb_eval_string(s); \
@@ -2416,71 +2366,15 @@ shoes_ruby_init()
 
   //
   // Canvas methods
+  // See ruby.h for the complete list of Canvas method signatures.
+  // Macros are used to build App redirection methods, which should be
+  // speedier than method_missing.
   //
 #define CANVAS_M(name, func, argc) \
   rb_define_method(cCanvas, name, CASTHOOK(shoes_canvas_##func), argc); \
   rb_define_method(cApp, name, CASTHOOK(shoes_app_c_##func), -1)
 
-  CANVAS_M("width=", set_width, 1);
-  CANVAS_M("width", get_width, 0);
-  CANVAS_M("height=", set_height, 1);
-  CANVAS_M("height", get_height, 0);
-  CANVAS_M("nostroke", nostroke, 0);
-  CANVAS_M("stroke", stroke, -1);
-  CANVAS_M("strokewidth", strokewidth, 1);
-  CANVAS_M("nofill", nofill, 0);
-  CANVAS_M("fill", fill, -1);
-  CANVAS_M("rect", rect, -1);
-  CANVAS_M("oval", oval, -1);
-  CANVAS_M("line", line, 4);
-  CANVAS_M("arrow", arrow, 3);
-  CANVAS_M("star", star, -1);
-  CANVAS_M("text", markup, -1);
-  CANVAS_M("link", link, -1);
-  CANVAS_M("background", background, -1);
-  CANVAS_M("border", border, -1);
-  CANVAS_M("image", image, -1);
-  CANVAS_M("imagesize", imagesize, 1);
-  CANVAS_M("animate", animate, -1);
-  CANVAS_M("path", path, -1);
-  CANVAS_M("move_to", move_to, 2);
-  CANVAS_M("line_to", line_to, 2);
-  CANVAS_M("curve_to", curve_to, 6);
-  CANVAS_M("transform", transform, 1);
-  CANVAS_M("translate", translate, 2);
-  CANVAS_M("rotate", rotate, 1);
-  CANVAS_M("scale", scale, -1);
-  CANVAS_M("skew", skew, -1);
-  CANVAS_M("push", push, 0);
-  CANVAS_M("pop", pop, 0);
-  CANVAS_M("reset", reset, 0);
-  CANVAS_M("button", button, -1);
-  CANVAS_M("list_box", list_box, -1);
-  CANVAS_M("edit_line", edit_line, -1);
-  CANVAS_M("edit_box", edit_box, -1);
-  CANVAS_M("progress", progress, -1);
-  CANVAS_M("contents", contents, 0);
-  CANVAS_M("draw", draw, 1);
-  CANVAS_M("after", after, -1);
-  CANVAS_M("before", before, -1);
-  CANVAS_M("append", append, -1);
-  CANVAS_M("prepend", prepend, -1);
-  CANVAS_M("flow", flow, -1);
-  CANVAS_M("stack", stack, -1);
-  CANVAS_M("mask", mask, -1);
-  CANVAS_M("hide", hide, 0);
-  CANVAS_M("show", show, 0);
-  CANVAS_M("toggle", toggle, 0);
-  CANVAS_M("click", click, -1);
-  CANVAS_M("release", release, -1);
-  CANVAS_M("motion", motion, -1);
-  CANVAS_M("keypress", keypress, -1);
-  CANVAS_M("clear", clear_contents, -1);
-  CANVAS_M("goto", goto, 1);
-  CANVAS_M("remove", remove, 0);
-  CANVAS_M("mouse", mouse, 0);
-  CANVAS_M("clipboard", get_clipboard, 0);
-  CANVAS_M("clipboard=", set_clipboard, 1);
+  CANVAS_DEFS(CANVAS_M);
 
   //
   // Shoes Kernel methods
