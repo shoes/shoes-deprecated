@@ -357,7 +357,7 @@ shoes_slot_quartz_handler(
   return err;
 }
 
-static OSStatus
+OSStatus
 shoes_slot_quartz_register(void)
 {
   OSStatus err = noErr;
@@ -574,7 +574,7 @@ shoes_app_quartz_handler(
               GetEventParameter(inEvent, kEventParamTextInputSendText, typeUnicodeText, NULL, len, NULL, text);
 
               text8 = SHOE_ALLOC_N(char, len);
-              status = TECConvertText(app->os.converter, text, len, &nread, text8, len, &nwrite);
+              status = TECConvertText(shoes_world->os.converter, text, len, &nread, text8, len, &nwrite);
 
               if (nwrite == 1 && text8[0] == '\r') 
                 v = rb_str_new2("\n");
@@ -917,7 +917,6 @@ shoes_app_resize(shoes_app *app, int width, int height)
 VALUE
 shoes_app_main(int argc, VALUE *argv, VALUE self)
 {
-  int width, height;
   VALUE attr, block;
   GLOBAL_APP(app);
 
@@ -934,7 +933,6 @@ shoes_app_main(int argc, VALUE *argv, VALUE self)
 void
 shoes_app_title(shoes_app *app, VALUE title)
 {
-  shoes_code code = SHOES_OK;
   char *msg;
   app->title = rb_str_new2(SHOES_APPNAME);
   if (!NIL_P(title))
@@ -950,7 +948,7 @@ shoes_app_title(shoes_app *app, VALUE title)
 
 #ifdef SHOES_QUARTZ
   CFStringRef cfmsg = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
-  OSStatus err = SetWindowTitleWithCFString(app->os.window, cfmsg);
+  SetWindowTitleWithCFString(app->os.window, cfmsg);
 #endif
 
 #ifdef SHOES_WIN32

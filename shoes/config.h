@@ -94,6 +94,7 @@ typedef struct {
 
 #define DC(slot) slot.view
 
+OSStatus shoes_slot_quartz_register(void);
 OSStatus shoes_slot_quartz_create(VALUE, SHOES_SLOT_OS *, int, int);
 
 #endif

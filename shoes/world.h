@@ -25,7 +25,7 @@ extern shoes_world_t *shoes_world;
 //
 // Shoes World
 // 
-shoes_world_t *shoes_world_alloc();
+shoes_world_t *shoes_world_alloc(void);
 void shoes_world_free(shoes_world_t *);
 
 //

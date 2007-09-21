@@ -41,7 +41,7 @@ typedef struct _shoes_app {
 // function signatures
 //
 VALUE shoes_app_alloc(VALUE);
-VALUE shoes_app_new();
+VALUE shoes_app_new(void);
 shoes_code shoes_app_start(VALUE, char *);
 shoes_code shoes_app_open(shoes_app *);
 shoes_code shoes_app_loop(shoes_app *, char *);

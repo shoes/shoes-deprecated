@@ -6,6 +6,7 @@
 #include "shoes/canvas.h"
 #include "shoes/app.h"
 #include "shoes/ruby.h"
+#include "shoes/world.h"
 
 #define SETUP() \
   shoes_canvas *canvas; \
@@ -1563,7 +1564,7 @@ shoes_apple_pasteboard_get(void)
   ItemCount nitem;
   PasteboardItemID id;
   PasteboardSyncFlags flags;
-  PasteboardRef clip = global_app->kit.clip;
+  PasteboardRef clip = shoes_world->os.clip;
   UInt32 i;
 
   flags = PasteboardSynchronize(clip);
@@ -1605,7 +1606,7 @@ void
 shoes_apple_pasteboard_put(char *s)
 {
   CFDataRef cfdata;
-  PasteboardRef clip = global_app->kit.clip;
+  PasteboardRef clip = shoes_world->os.clip;
   PasteboardSyncFlags flags;
 
   if(strlen(s) >= SHOES_BUFSIZE)

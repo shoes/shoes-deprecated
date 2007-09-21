@@ -5,6 +5,9 @@
 #include <ruby.h>
 #include "shoes/canvas.h"
 
+#ifndef SHOES_RUBY_H
+#define SHOES_RUBY_H
+
 #if SHOES_WIN32
 typedef VALUE (*HOOK)(...);
 #define CASTHOOK(x) reinterpret_cast<HOOK>(x)
@@ -83,3 +86,5 @@ char *shoes_hash_cstr(VALUE, ID, char *);
 VALUE rb_str_to_pas(VALUE);
 void shoes_place_decide(shoes_place *, VALUE, VALUE, int, int, char);
 void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
+
+#endif

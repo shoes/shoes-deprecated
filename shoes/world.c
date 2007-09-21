@@ -24,8 +24,8 @@ void
 shoes_world_free(shoes_world_t *world)
 {
 #ifdef SHOES_QUARTZ
-  CFRelease(world->kit.clip);
-  TECDisposeConverter(world->kit.converter);
+  CFRelease(world->os.clip);
+  TECDisposeConverter(world->os.converter);
 #endif
   rb_gc_unregister_address(&world->app);
   if (world != NULL)
