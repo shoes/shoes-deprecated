@@ -114,14 +114,13 @@ typedef struct {
 } shoes_slot_win32, SHOES_SLOT_OS;
 
 typedef struct {
-  int nada;
+  BOOL ctrlkey, altkey, shiftkey;
+  WNDCLASSEX classex;
 } shoes_app_win32, SHOES_APP_OS;
 
 typedef struct {
   HINSTANCE instance;
   int style;
-  WNDCLASSEX classex;
-  BOOL ctrlkey, altkey, shiftkey;
 } sheos_world_win32, SHOES_WORLD_OS;
 
 #define DC(slot) slot.window

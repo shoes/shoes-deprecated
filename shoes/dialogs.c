@@ -289,7 +289,7 @@ shoes_dialog_open(VALUE self)
   GetCurrentDirectory(MAX_PATH, (LPSTR)dir);
   ofn.lStructSize     = sizeof(ofn);
   ofn.hwndOwner       = app->slot.window;
-  ofn.hInstance       = app->os.instance;
+  ofn.hInstance       = shoes_world->os.instance;
   ofn.lpstrFile       = _path;
   ofn.nMaxFile        = sizeof(_path);
   ofn.lpstrFile[0] = '\0';

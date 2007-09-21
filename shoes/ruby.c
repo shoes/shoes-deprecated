@@ -28,8 +28,7 @@ mfp_instance_eval(VALUE obj, VALUE block)
 // From Guy Decoux [ruby-talk:144098]
 //
 static VALUE
-ts_each(tmp)
-  VALUE *tmp;
+ts_each(VALUE *tmp)
 {
   return rb_funcall2(tmp[0], (ID)tmp[1], (int)tmp[2], (VALUE *)tmp[3]);
 }
@@ -2260,10 +2259,9 @@ shoes_p(VALUE self, VALUE obj)
       tmp[1] = (VALUE)rb_intern(name); \
       tmp[2] = (VALUE)argc; \
       tmp[3] = (VALUE)argv; \
-      return rb_iterate((VALUE(*)(VALUE))ts_each, (VALUE)tmp, rb_yield, 0); \
-    } else { \
-      rb_funcall2(canvas, rb_intern(name), argc, argv); \
+      return rb_iterate((VALUE(*)(VALUE))ts_each, (VALUE)tmp, CASTHOOK(rb_yield), 0); \
     } \
+    return rb_funcall2(canvas, rb_intern(name), argc, argv); \
   }
 
 APP_M("width=", set_width, 1);

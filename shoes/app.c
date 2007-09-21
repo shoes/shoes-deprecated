@@ -672,6 +672,7 @@ shoes_app_win32proc(
   WPARAM w,
   LPARAM l)
 {
+  shoes_app *app = (shoes_app *)GetWindowLongPtr(win, GWLP_USERDATA);
   int x = 0, y = 0;
 
   switch (msg)
@@ -1074,13 +1075,13 @@ shoes_app_open(shoes_app *app)
   app->os.ctrlkey = false;
   app->os.altkey = false;
   app->os.shiftkey = false;
-  app->os.classex.hInstance = app->os.instance;
+  app->os.classex.hInstance = shoes_world->os.instance;
   app->os.classex.lpszClassName = SHOES_SHORTNAME;
   app->os.classex.lpfnWndProc = shoes_app_win32proc;
   app->os.classex.style = CS_HREDRAW | CS_VREDRAW;
   app->os.classex.cbSize = sizeof(WNDCLASSEX);
-  app->os.classex.hIcon = LoadIcon(app->os.instance, IDI_APPLICATION);
-  app->os.classex.hIconSm = LoadIcon(app->os.instance, IDI_APPLICATION);
+  app->os.classex.hIcon = LoadIcon(shoes_world->os.instance, IDI_APPLICATION);
+  app->os.classex.hIconSm = LoadIcon(shoes_world->os.instance, IDI_APPLICATION);
   app->os.classex.hCursor = LoadCursor(NULL, IDC_ARROW);
   app->os.classex.lpszMenuName = NULL;
   app->os.classex.cbClsExtra = 0;
@@ -1107,8 +1108,10 @@ shoes_app_open(shoes_app *app)
     rect.right-rect.left, rect.bottom-rect.top,
     HWND_DESKTOP,
     NULL,
-    app->os.instance,
+    shoes_world->os.instance,
     NULL);
+
+  SetWindowLongPtr(app->slot.window, GWLP_USERDATA, (long)app);
 #endif
 
   shoes_app_title(app, app->title);

@@ -2,9 +2,10 @@
 // shoes/world.c
 // Abstract windowing for GTK, Quartz (OSX) and Win32.
 //
-#include "shoes/world.h"
 #include "shoes/app.h"
 #include "shoes/ruby.h"
+#include "shoes/config.h"
+#include "shoes/world.h"
 #include "shoes/internal.h"
 
 shoes_world_t *shoes_world = NULL;
@@ -98,4 +99,5 @@ shoes_code
 shoes_final()
 {
   shoes_world_free(shoes_world);
+  return SHOES_OK;
 }
