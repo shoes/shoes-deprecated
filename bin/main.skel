@@ -16,32 +16,40 @@ main(argc, argv)
   char *argv[];
 #endif
 {
+  shoes_code code;
+  char *path = NULL;
 #ifdef SHOES_WIN32
   int argc;
   char **argv;
   argc = rb_w32_cmdvector(GetCommandLine(), &argv);
 #endif
   %DEFAULTS%
-  shoes_init();
-  shoes_app *app = shoes_app_new();
+  code = shoes_init();
+  if (code != SHOES_OK)
+    goto done;
+
 #ifdef SHOES_WIN32
-  app->kit.instance = inst;
-  app->kit.style = style;
-  app->path = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
-  GetModuleFileName(NULL, (LPSTR)app->path, SHOES_BUFSIZE);
+  world->instance = inst;
+  world->style = style;
+  path = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
+  GetModuleFileName(NULL, (LPSTR)world->path, SHOES_BUFSIZE);
 #else
-  app->path = argv[0];
+  path = argv[0];
 #endif
   ruby_set_argv(argc - 1, &argv[1]);
-  if (shoes_app_load(app) != SHOES_QUIT)
-  {
-    shoes_app_open(app);
-    shoes_app_loop(app, "/");
-    shoes_app_close(app);
-  }
+  code = shoes_load(path);
+  if (code != SHOES_OK)
+    goto done;
+
+  code = shoes_start("/");
+  if (code != SHOES_OK)
+    goto done;
+
+done:
 #ifdef SHOES_WIN32
-  SHOE_FREE(app->path);
+  if (path != NULL)
+    SHOE_FREE(path);
 #endif
-  shoes_app_free(app);
+  shoes_final();
   return 0;
 }

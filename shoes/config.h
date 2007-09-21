@@ -3,22 +3,22 @@
 // Most platform-specific definitions.  Window handles and GUI elements for GTK,
 // OSX and Win32.
 //
-// About APPKIT and APPSLOT:
+// About SHOES_APP_OS and SHOES_SLOT_OS:
 // =========================
 //
 // Okay, so I should mention why these two are split up.  Obviously, these structures
 // contain anything which is unique to a platform.  So, on GTK, you'll see a bunch of
 // GtkWidget pointers in these two structures.  I try to isolate anything of that nature
-// into APPKIT or APPSLOT.  Of course, for native widgets, I just go ahead and put it
+// into SHOES_APP_OS or SHOES_SLOT_OS.  Of course, for native widgets, I just go ahead and put it
 // in the widget structures, to fit that all in here would be too pedantic.
 //
-// APPKIT covers the toplevel window.  So, there should only be one APPKIT structure
+// SHOES_APP_OS covers the toplevel window.  So, there should only be one SHOES_APP_OS structure
 // floating around.  In fact, the `global_app` variable in shoes/app.c should always
 // point to that one struct.  Still, this struct has a pretty low visibility.  I don't
-// like to use `global_app`, except to get around platform limitations.  So the APPKIT
+// like to use `global_app`, except to get around platform limitations.  So the SHOES_APP_OS
 // struct is low-viz, it's only touched in the app-level API and in event handlers.
 //
-// APPSLOT travels down through nested windows, nested canvases.  It's always handy at
+// SHOES_SLOT_OS travels down through nested windows, nested canvases.  It's always handy at
 // any level in the canvas stack.  But, keep in mind, one is allocated per window or
 // canvas.  I guess I think of each drawing layer as a "slot".  Each slot copies its
 // parent slot.  So, it's possible that the bottom slot will simply reference pointers
@@ -45,11 +45,15 @@
 typedef struct {
   GtkWidget *box, *canvas;
   GdkEventExpose *expose;
-} shoes_slot_gtk, APPSLOT;
+} shoes_slot_gtk, SHOES_SLOT_OS;
 
 typedef struct {
   GtkWidget *window;
-} shoes_app_gtk, APPKIT;
+} shoes_app_gtk, SHOES_APP_OS;
+
+typedef struct {
+  int nada;
+} shoes_world_gtk, SHOES_WORLD_OS;
 
 #define DC(slot) slot.canvas
 #endif
@@ -72,14 +76,17 @@ typedef struct {
   VALUE controls;
   CGContextRef context;
   cairo_surface_t *surface;
-} shoes_slot_quartz, APPSLOT;
+} shoes_slot_quartz, SHOES_SLOT_OS;
 
 typedef struct {
   WindowRef window;
   HIViewRef view;
+} shoes_app_quartz, SHOES_APP_OS;
+
+typedef struct {
   TECObjectRef converter;
   PasteboardRef clip;
-} shoes_app_quartz, APPKIT;
+} shoes_world_quartz, SHOES_WORLD_OS;
 
 #define kShoesViewClassID CFSTR("org.hackety.ShoesView")
 #define kShoesBoundEvent  'Boun'
@@ -87,7 +94,7 @@ typedef struct {
 
 #define DC(slot) slot.view
 
-OSStatus shoes_slot_quartz_create(VALUE, APPSLOT *, int, int);
+OSStatus shoes_slot_quartz_create(VALUE, SHOES_SLOT_OS *, int, int);
 
 #endif
 
@@ -104,14 +111,18 @@ typedef struct {
   HWND window;
   VALUE controls;
   cairo_surface_t *surface;
-} shoes_slot_win32, APPSLOT;
+} shoes_slot_win32, SHOES_SLOT_OS;
+
+typedef struct {
+  int nada;
+} shoes_app_win32, SHOES_APP_OS;
 
 typedef struct {
   HINSTANCE instance;
   int style;
   WNDCLASSEX classex;
   BOOL ctrlkey, altkey, shiftkey;
-} shoes_app_win32, APPKIT;
+} sheos_world_win32, SHOES_WORLD_OS;
 
 #define DC(slot) slot.window
 

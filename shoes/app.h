@@ -26,24 +26,23 @@
 // abstract window struct
 //
 typedef struct _shoes_app {
-  APPKIT kit;
-  APPSLOT slot;
+  SHOES_APP_OS os;
+  SHOES_SLOT_OS slot;
   int width, height, mousex, mousey, resizable;
-  const char *path;
+  VALUE self;
   VALUE canvas;
+  VALUE nesting;
   VALUE timers;
   ID cursor;
   VALUE title;
 } shoes_app;
 
-extern shoes_app *global_app;
-
 //
 // function signatures
 //
-shoes_app *shoes_app_new(void);
-void shoes_app_free(shoes_app *);
-shoes_code shoes_app_load(shoes_app *);
+VALUE shoes_app_alloc(VALUE);
+VALUE shoes_app_new();
+shoes_code shoes_app_start(VALUE, char *);
 shoes_code shoes_app_open(shoes_app *);
 shoes_code shoes_app_loop(shoes_app *, char *);
 shoes_code shoes_app_visit(shoes_app *, char *);
@@ -55,8 +54,7 @@ shoes_code shoes_app_release(shoes_app *, int, int, int);
 shoes_code shoes_app_keypress(shoes_app *, VALUE);
 shoes_code shoes_app_close(shoes_app *);
 shoes_code shoes_app_goto(shoes_app *, char *);
-shoes_code shoes_slot_repaint(APPSLOT *);
+shoes_code shoes_slot_repaint(SHOES_SLOT_OS *);
 VALUE shoes_app_quit(VALUE);
-shoes_code shoes_init(void);
 
 #endif

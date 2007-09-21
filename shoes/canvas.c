@@ -40,10 +40,10 @@ shoes_canvas_gtk_paint (GtkWidget *widget, GdkEventExpose *event, gpointer data)
 #endif
 
 void
-shoes_slot_init(VALUE c, APPSLOT *parent, int width, int height, int toplevel)
+shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int width, int height, int toplevel)
 {
   shoes_canvas *canvas;
-  APPSLOT *slot;
+  SHOES_SLOT_OS *slot;
   Data_Get_Struct(c, shoes_canvas, canvas);
   slot = &canvas->slot;
 
@@ -81,7 +81,7 @@ shoes_slot_init(VALUE c, APPSLOT *parent, int width, int height, int toplevel)
 }
 
 cairo_t *
-shoes_cairo_create(APPSLOT *slot, int width, int height, int border)
+shoes_cairo_create(SHOES_SLOT_OS *slot, int width, int height, int border)
 {
   cairo_t *cr;
 #ifdef SHOES_GTK
@@ -321,7 +321,7 @@ shoes_canvas_clear(VALUE self)
 }
 
 shoes_canvas *
-shoes_canvas_init(VALUE self, APPSLOT slot, VALUE attr, int width, int height)
+shoes_canvas_init(VALUE self, SHOES_SLOT_OS slot, VALUE attr, int width, int height)
 {
   shoes_canvas *canvas;
   Data_Get_Struct(self, shoes_canvas, canvas);
@@ -1108,6 +1108,11 @@ shoes_canvas_draw(VALUE self, VALUE c)
   return self;
 }
 
+#define DRAW(c, app, blk) \
+  rb_ary_push(app->nesting, c); \
+  rb_funcall(blk, s_call, 0); \
+  rb_ary_pop(app->nesting)
+
 static void
 shoes_canvas_memdraw(VALUE self, VALUE block)
 {
@@ -1115,7 +1120,7 @@ shoes_canvas_memdraw(VALUE self, VALUE block)
   if (canvas->cr != NULL)
     cairo_destroy(canvas->cr);
   canvas->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));;
-  mfp_instance_eval(self, block);
+  DRAW(self, canvas->app, block);
 }
 
 void
@@ -1207,7 +1212,7 @@ shoes_canvas_flow(int argc, VALUE *argv, VALUE self)
 
   rb_scan_args(argc, argv, "01&", &attr, &block);
   flow = shoes_flow_new(attr, self);
-  mfp_instance_eval(flow, block);
+  DRAW(flow, canvas->app, block);
   rb_ary_push(canvas->contents, flow);
   return flow;
 }
@@ -1220,7 +1225,7 @@ shoes_canvas_stack(int argc, VALUE *argv, VALUE self)
 
   rb_scan_args(argc, argv, "01&", &attr, &block);
   stack = shoes_stack_new(attr, self);
-  mfp_instance_eval(stack, block);
+  DRAW(stack, canvas->app, block);
   rb_ary_push(canvas->contents, stack);
   return stack;
 }
@@ -1233,7 +1238,7 @@ shoes_canvas_mask(int argc, VALUE *argv, VALUE self)
 
   rb_scan_args(argc, argv, "01&", &attr, &block);
   mask = shoes_mask_new(attr, self);
-  mfp_instance_eval(mask, block);
+  DRAW(mask, canvas->app, block);
   rb_ary_push(canvas->contents, mask);
   return mask;
 }
@@ -1374,7 +1379,9 @@ shoes_canvas_mouse(VALUE self)
 VALUE
 shoes_canvas_goto(VALUE self, VALUE url)
 {
-  shoes_app_goto(global_app, RSTRING_PTR(url));
+  shoes_canvas *self_t;
+  Data_Get_Struct(self, shoes_canvas, self_t);
+  shoes_app_goto(self_t->app, RSTRING_PTR(url));
   return self;
 }
 
@@ -1388,7 +1395,11 @@ shoes_canvas_send_click(VALUE self, int button, int x, int y)
     if (rb_obj_is_kind_of(url, rb_cProc))
       shoes_safe_block(self, url, rb_ary_new());
     else
-      shoes_app_goto(global_app, RSTRING_PTR(url));
+    {
+      shoes_canvas *self_t;
+      Data_Get_Struct(self, shoes_canvas, self_t);
+      shoes_app_goto(self_t->app, RSTRING_PTR(url));
+    }
   }
   return url;
 }
@@ -1449,7 +1460,11 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
     }
 
     if (NIL_P(url))
-      shoes_app_cursor(global_app, s_arrow);
+    {
+      shoes_canvas *self_t;
+      Data_Get_Struct(self, shoes_canvas, self_t);
+      shoes_app_cursor(self_t->app, s_arrow);
+    }
   }
 
   return url;

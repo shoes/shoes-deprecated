@@ -158,20 +158,20 @@ typedef struct {
   int width, height;        // the full height and width used by this box
   shoes_place place;        // temporary storage of box placement
   struct _shoes_app *app;
-  APPSLOT slot;
+  SHOES_SLOT_OS slot;
 #ifdef SHOES_GTK
   GtkWidget *layout;
 #endif
 } shoes_canvas;
 
-void shoes_slot_init(VALUE, APPSLOT *, int, int, int);
-cairo_t *shoes_cairo_create(APPSLOT *, int, int, int);
+void shoes_slot_init(VALUE, SHOES_SLOT_OS *, int, int, int);
+cairo_t *shoes_cairo_create(SHOES_SLOT_OS *, int, int, int);
 
 VALUE shoes_app_main(int, VALUE *, VALUE);
 VALUE shoes_canvas_alloc(VALUE);
 VALUE shoes_canvas_new(VALUE, struct _shoes_app *);
 void shoes_canvas_clear(VALUE);
-shoes_canvas *shoes_canvas_init(VALUE, APPSLOT, VALUE, int, int);
+shoes_canvas *shoes_canvas_init(VALUE, SHOES_SLOT_OS, VALUE, int, int);
 void shoes_canvas_paint(VALUE);
 void shoes_canvas_shape_do(shoes_canvas *, double, double, double, double, unsigned char);
 VALUE shoes_canvas_get_width(VALUE);

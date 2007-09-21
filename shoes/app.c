@@ -6,18 +6,34 @@
 #include "shoes/internal.h"
 #include "shoes/ruby.h"
 #include "shoes/canvas.h"
+#include "shoes/world.h"
 #include "node.h"
 
-shoes_app *global_app = NULL;
+static void
+shoes_app_mark(shoes_app *app)
+{
+#ifndef SHOES_GTK
+  rb_gc_mark_maybe(app->slot.controls);
+#endif
+  rb_gc_mark_maybe(app->canvas);
+  rb_gc_mark_maybe(app->nesting);
+  rb_gc_mark_maybe(app->timers);
+}
 
-shoes_app *
-shoes_app_new()
+static void
+shoes_app_free(shoes_app *app)
+{
+  free(app);
+}
+
+VALUE
+shoes_app_alloc(VALUE klass)
 {
   shoes_app *app = SHOE_ALLOC(shoes_app);
+  SHOE_MEMZERO(app, shoes_app, 1);
   app->canvas = shoes_canvas_new(cShoes, app);
-  rb_gc_register_address(&app->canvas);
+  app->nesting = rb_ary_new();
   app->timers = rb_ary_new();
-  rb_gc_register_address(&app->timers);
   app->title = Qnil;
   app->width = SHOES_APP_WIDTH;
   app->height = SHOES_APP_HEIGHT;
@@ -25,26 +41,16 @@ shoes_app_new()
 #ifdef SHOES_WIN32
   app->slot.window = NULL;
 #else
-  app->kit.window = NULL;
+  app->os.window = NULL;
 #endif
-  return app;
+  app->self = Data_Wrap_Struct(klass, shoes_app_mark, shoes_app_free, app);
+  return app->self;
 }
 
-void
-shoes_app_free(shoes_app *app)
+VALUE
+shoes_app_new()
 {
-#ifdef SHOES_QUARTZ
-  CFRelease(app->kit.clip);
-  TECDisposeConverter(app->kit.converter);
-#endif
-#ifndef SHOES_GTK
-  if (!NIL_P(app->slot.controls))
-    rb_gc_unregister_address(&app->slot.controls);
-#endif
-  rb_gc_unregister_address(&app->canvas);
-  rb_gc_unregister_address(&app->timers);
-  if (app != NULL)
-    SHOE_FREE(app);
+  return shoes_app_alloc(cApp);
 }
 
 #ifdef SHOES_GTK
@@ -87,17 +93,17 @@ static void
 shoes_app_gtk_paint_children(GtkWidget *widget, gpointer data)
 {
   shoes_app *app = (shoes_app *)data;
-  gtk_container_propagate_expose(GTK_CONTAINER(app->kit.window), widget, app->slot.expose);
+  gtk_container_propagate_expose(GTK_CONTAINER(app->os.window), widget, app->slot.expose);
 }
 
 static void
 shoes_app_gtk_paint (GtkWidget *widget, GdkEventExpose *event, gpointer data)
 { 
   shoes_app *app = (shoes_app *)data;
-  gtk_window_get_size(GTK_WINDOW(app->kit.window), &app->width, &app->height);
+  gtk_window_get_size(GTK_WINDOW(app->os.window), &app->width, &app->height);
   shoes_canvas_size(app->canvas, app->width, app->height);
   app->slot.expose = event;
-  gtk_container_forall(GTK_CONTAINER(app->kit.window), shoes_app_gtk_paint_children, app);
+  gtk_container_forall(GTK_CONTAINER(app->os.window), shoes_app_gtk_paint_children, app);
   app->slot.expose = NULL;
 }
 
@@ -382,13 +388,13 @@ shoes_slot_quartz_register(void)
 }
 
 OSStatus
-shoes_slot_quartz_create(VALUE self, APPSLOT *parent, int w, int h)
+shoes_slot_quartz_create(VALUE self, SHOES_SLOT_OS *parent, int w, int h)
 {
   HIRect rect;
   OSStatus err;
   EventRef event;
   shoes_canvas *canvas;
-  APPSLOT *slot;
+  SHOES_SLOT_OS *slot;
   Data_Get_Struct(self, shoes_canvas, canvas);
   slot = &canvas->slot;
 
@@ -457,7 +463,7 @@ shoes_slot_quartz_create(VALUE self, APPSLOT *parent, int w, int h)
       KEY_STATE(shift); \
     if (modifier & controlKey) \
       KEY_STATE(control); \
-    shoes_app_keypress(global_app, v); \
+    shoes_app_keypress(app, v); \
   } else
 
 pascal OSStatus
@@ -568,7 +574,7 @@ shoes_app_quartz_handler(
               GetEventParameter(inEvent, kEventParamTextInputSendText, typeUnicodeText, NULL, len, NULL, text);
 
               text8 = SHOE_ALLOC_N(char, len);
-              status = TECConvertText(app->kit.converter, text, len, &nread, text8, len, &nwrite);
+              status = TECConvertText(app->os.converter, text, len, &nread, text8, len, &nwrite);
 
               if (nwrite == 1 && text8[0] == '\r') 
                 v = rb_str_new2("\n");
@@ -593,7 +599,7 @@ shoes_app_quartz_handler(
     case kEventClassMouse:
       INFO("kEventClassMouse\n", 0);
       GetMouse(&mouseLoc);
-      GetWindowBounds(app->kit.window, kWindowContentRgn, &bounds);
+      GetWindowBounds(app->os.window, kWindowContentRgn, &bounds);
       if (mouseLoc.h < bounds.left || mouseLoc.v < bounds.top) break;
       GetEventParameter(inEvent, kEventParamMouseButton, typeMouseButton, 0, sizeof(EventMouseButton), 0, &button);
       switch (eventKind)
@@ -627,7 +633,7 @@ shoes_app_quartz_redraw(
   shoes_app *app = (shoes_app *)userData;
   
   SetRect(&windowRect, 0, 0, app->width, app->height);
-  InvalWindowRect(app->kit.window, &windowRect);
+  InvalWindowRect(app->os.window, &windowRect);
 }
 
 static pascal OSErr
@@ -646,17 +652,17 @@ shoes_app_quartz_quit(const AppleEvent *appleEvt, AppleEvent* reply, long refcon
   x = LOWORD(l); \
   y = HIWORD(l)
 
-#define KEY_SYM(sym)  shoes_app_keypress(global_app, ID2SYM(rb_intern("" # sym)))
+#define KEY_SYM(sym)  shoes_app_keypress(app, ID2SYM(rb_intern("" # sym)))
 #define KEYPRESS(name, sym) \
   else if (w == VK_##name) { \
     VALUE v = ID2SYM(rb_intern("" # sym)); \
-    if (global_app->kit.altkey) \
+    if (app->os.altkey) \
       KEY_STATE(alt); \
-    if (global_app->kit.shiftkey) \
+    if (app->os.shiftkey) \
       KEY_STATE(shift); \
-    if (global_app->kit.ctrlkey) \
+    if (app->os.ctrlkey) \
       KEY_STATE(control); \
-    shoes_app_keypress(global_app, v); \
+    shoes_app_keypress(app, v); \
   }
 
 LRESULT CALLBACK
@@ -677,47 +683,47 @@ shoes_app_win32proc(
     case WM_PAINT:
     {
       RECT rect;
-      GetClientRect(global_app->slot.window, &rect);
-      global_app->width = rect.right;
-      global_app->height = rect.bottom;
-      shoes_canvas_size(global_app->canvas, global_app->width, global_app->height);
-      shoes_app_paint(global_app);
+      GetClientRect(app->slot.window, &rect);
+      app->width = rect.right;
+      app->height = rect.bottom;
+      shoes_canvas_size(app->canvas, app->width, app->height);
+      shoes_app_paint(app);
     }
     break;
 
     case WM_LBUTTONDOWN:
       WM_POINTS();
-      shoes_app_click(global_app, 1, x, y);
+      shoes_app_click(app, 1, x, y);
     break;
 
     case WM_RBUTTONDOWN:
       WM_POINTS();
-      shoes_app_click(global_app, 2, x, y);
+      shoes_app_click(app, 2, x, y);
     break;
 
     case WM_MBUTTONDOWN:
       WM_POINTS();
-      shoes_app_click(global_app, 3, x, y);
+      shoes_app_click(app, 3, x, y);
     break;
 
     case WM_LBUTTONUP:
       WM_POINTS();
-      shoes_app_release(global_app, 1, x, y);
+      shoes_app_release(app, 1, x, y);
     break;
 
     case WM_RBUTTONUP:
       WM_POINTS();
-      shoes_app_release(global_app, 2, x, y);
+      shoes_app_release(app, 2, x, y);
     break;
 
     case WM_MBUTTONUP:
       WM_POINTS();
-      shoes_app_release(global_app, 3, x, y);
+      shoes_app_release(app, 3, x, y);
     break;
 
     case WM_MOUSEMOVE:
       WM_POINTS();
-      shoes_app_motion(global_app, x, y);
+      shoes_app_motion(app, x, y);
     break;
 
     case WM_CHAR:
@@ -732,7 +738,7 @@ shoes_app_win32proc(
         break;
 
         case 0x0D:
-          shoes_app_keypress(global_app, rb_str_new2("\n"));
+          shoes_app_keypress(app, rb_str_new2("\n"));
         break;
 
         default:
@@ -743,7 +749,7 @@ shoes_app_win32proc(
           DWORD len = WideCharToMultiByte(CP_UTF8, 0, &_str, 1, (LPSTR)str, 10, NULL, NULL);
           str[len] = '\0';
           v = rb_str_new(str, len);
-          shoes_app_keypress(global_app, v);
+          shoes_app_keypress(app, v);
         }
       }
     break;
@@ -751,11 +757,11 @@ shoes_app_win32proc(
     case WM_SYSKEYDOWN:
     case WM_KEYDOWN:
       if (w == VK_CONTROL)
-        global_app->kit.ctrlkey = true;
+        app->os.ctrlkey = true;
       else if (w == VK_MENU)
-        global_app->kit.altkey = true;
+        app->os.altkey = true;
       else if (w == VK_SHIFT)
-        global_app->kit.shiftkey = true;
+        app->os.shiftkey = true;
       KEYPRESS(PRIOR, page_up)
       KEYPRESS(NEXT, page_down)
       KEYPRESS(HOME, home)
@@ -780,9 +786,9 @@ shoes_app_win32proc(
         VALUE v;
         char letter = w + 32;
         v = rb_str_new(&letter, 1);
-        if (global_app->kit.altkey) {
+        if (app->os.altkey) {
           KEY_STATE(alt);
-          shoes_app_keypress(global_app, v);
+          shoes_app_keypress(app, v);
         }
       }
     break;
@@ -790,17 +796,17 @@ shoes_app_win32proc(
     case WM_SYSKEYUP:
     case WM_KEYUP:
       if (w == VK_CONTROL)
-        global_app->kit.ctrlkey = false;
+        app->os.ctrlkey = false;
       else if (w == VK_MENU)
-        global_app->kit.altkey = false;
+        app->os.altkey = false;
       else if (w == VK_SHIFT)
-        global_app->kit.shiftkey = false;
+        app->os.shiftkey = false;
     break;
 
     case WM_TIMER:
     {
       int id = LOWORD(w);
-      VALUE timer = rb_ary_entry(global_app->timers, id - SHOES_CONTROL1);
+      VALUE timer = rb_ary_entry(app->timers, id - SHOES_CONTROL1);
       if (!NIL_P(timer))
         shoes_anim_call(timer);
     }
@@ -810,7 +816,7 @@ shoes_app_win32proc(
       if ((HWND)l && HIWORD(w) == BN_CLICKED)
       {
         int id = LOWORD(w);
-        VALUE control = rb_ary_entry(global_app->slot.controls, id - SHOES_CONTROL1);
+        VALUE control = rb_ary_entry(app->slot.controls, id - SHOES_CONTROL1);
         if (!NIL_P(control))
           shoes_control_send(control, s_click);
       }
@@ -821,52 +827,10 @@ shoes_app_win32proc(
 #endif
 
 shoes_code
-shoes_app_load(shoes_app *app)
-{
-  char bootup[512];
-  if (global_app == NULL)
-    global_app = app;
-
-  sprintf(bootup,
-    "begin;"
-      "DIR = File.expand_path(File.dirname(%%q<%s>));"
-      "$:.replace([DIR+'/ruby/lib/'+PLATFORM, DIR+'/ruby/lib', DIR+'/lib']);"
-      "require 'shoes';"
-      "'OK';"
-    "rescue Object => e;"
-      SHOES_META
-        "define_method :load do |path|; end;"
-        EXC_RUN
-      "end;"
-      "e.message;"
-    "end",
-    app->path);
-  VALUE str = rb_eval_string(bootup);
-  StringValue(str);
-  INFO("Bootup: %s\n", RSTRING(str)->ptr);
-
-  VALUE uri = rb_eval_string("$SHOES_URI = Shoes.args!");
-  if (!RTEST(uri))
-    return SHOES_QUIT;
-
-  sprintf(bootup,
-    "begin;"
-      "Shoes.load($SHOES_URI) if $SHOES_URI.is_a?(String);"
-    "rescue Object => e;"
-      SHOES_META
-        EXC_RUN
-      "end;"
-    "end;");
-  rb_eval_string(bootup);
-
-  return SHOES_OK;
-}
-
-shoes_code
 shoes_app_cursor(shoes_app *app, ID cursor)
 {
 #ifdef SHOES_GTK
-  if (app->kit.window == NULL || app->kit.window->window == NULL || app->cursor == cursor)
+  if (app->os.window == NULL || app->os.window->window == NULL || app->cursor == cursor)
     goto done;
 
   GdkCursor *c;
@@ -881,11 +845,11 @@ shoes_app_cursor(shoes_app *app, ID cursor)
   else
     goto done;
 
-  gdk_window_set_cursor(app->kit.window->window, c);
+  gdk_window_set_cursor(app->os.window->window, c);
 #endif
 
 #ifdef SHOES_QUARTZ
-  if (app->kit.window == NULL || app->cursor == cursor)
+  if (app->os.window == NULL || app->cursor == cursor)
     goto done;
 
   if (cursor == s_hand)
@@ -930,8 +894,8 @@ shoes_app_resize(shoes_app *app, int width, int height)
   app->height = height;
 
 #ifdef SHOES_GTK
-  if (app->kit.window != NULL)
-    gtk_widget_set_size_request(app->kit.window, app->width, app->height);
+  if (app->os.window != NULL)
+    gtk_widget_set_size_request(app->os.window, app->width, app->height);
 #endif
 
 #ifdef SHOES_WIN32
@@ -954,12 +918,15 @@ shoes_app_main(int argc, VALUE *argv, VALUE self)
 {
   int width, height;
   VALUE attr, block;
+  GLOBAL_APP(app);
+
   rb_scan_args(argc, argv, "01&", &attr, &block);
   rb_iv_set(self, "@main_app", block);
-  global_app->title = ATTR(attr, title);
-  global_app->resizable = (ATTR(attr, resizable) != Qfalse);
-  shoes_app_resize(global_app, ATTR2(int, attr, width, SHOES_APP_WIDTH), ATTR2(int, attr, height, SHOES_APP_HEIGHT));
-  shoes_canvas_init(global_app->canvas, global_app->slot, attr, global_app->width, global_app->height);
+
+  app->title = ATTR(attr, title);
+  app->resizable = (ATTR(attr, resizable) != Qfalse);
+  shoes_app_resize(app, ATTR2(int, attr, width, SHOES_APP_WIDTH), ATTR2(int, attr, height, SHOES_APP_HEIGHT));
+  shoes_canvas_init(app->canvas, app->slot, attr, app->width, app->height);
   return self;
 }
 
@@ -977,12 +944,12 @@ shoes_app_title(shoes_app *app, VALUE title)
   msg = RSTRING_PTR(app->title);
 
 #ifdef SHOES_GTK
-  gtk_window_set_title(GTK_WINDOW(app->kit.window), _(msg));
+  gtk_window_set_title(GTK_WINDOW(app->os.window), _(msg));
 #endif
 
 #ifdef SHOES_QUARTZ
   CFStringRef cfmsg = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
-  OSStatus err = SetWindowTitleWithCFString(app->kit.window, cfmsg);
+  OSStatus err = SetWindowTitleWithCFString(app->os.window, cfmsg);
 #endif
 
 #ifdef SHOES_WIN32
@@ -991,12 +958,30 @@ shoes_app_title(shoes_app *app, VALUE title)
 }
 
 shoes_code
+shoes_app_start(VALUE appobj, char *uri)
+{
+  shoes_code code;
+  shoes_app *app;
+  Data_Get_Struct(appobj, shoes_app, app);
+
+  code = shoes_app_open(app);
+  if (code != SHOES_OK)
+    return code;
+
+  code = shoes_app_loop(app, uri);
+  if (code != SHOES_OK)
+    return code;
+
+  return shoes_app_close(app);
+}
+
+shoes_code
 shoes_app_open(shoes_app *app)
 {
   shoes_code code = SHOES_OK;
 
 #ifdef SHOES_GTK
-  shoes_app_gtk *gk = &app->kit;
+  shoes_app_gtk *gk = &app->os;
   shoes_slot_gtk *gs = &app->slot;
 
   gtk_init(NULL, NULL);
@@ -1048,7 +1033,7 @@ shoes_app_open(shoes_app *app)
     | kWindowStandardHandlerAttribute
     ^ (app->resizable ? kWindowResizableAttribute : 0),
     &gRect,
-    &app->kit.window);
+    &app->os.window);
 
   if (err != noErr)
   {
@@ -1071,13 +1056,13 @@ shoes_app_open(shoes_app *app)
   }
 
   INFO("Event handler.\n", 0);
-  err = InstallWindowEventHandler(app->kit.window,
+  err = InstallWindowEventHandler(app->os.window,
     gTestWindowEventProc, GetEventTypeCount(windowEvents),
     windowEvents, app, NULL);
 
-  HIViewFindByID(HIViewGetRoot(app->kit.window), kHIViewWindowContentID, &app->slot.view);
+  HIViewFindByID(HIViewGetRoot(app->os.window), kHIViewWindowContentID, &app->slot.view);
 
-  if (PasteboardCreate(kPasteboardClipboard, &app->kit.clip) != noErr) {
+  if (PasteboardCreate(kPasteboardClipboard, &shoes_world->os.clip) != noErr) {
     INFO("Apple Pasteboard create failed.\n", 0);
   }
 #endif
@@ -1086,23 +1071,23 @@ shoes_app_open(shoes_app *app)
   RECT rect;
 
   app->slot.controls = Qnil;
-  app->kit.ctrlkey = false;
-  app->kit.altkey = false;
-  app->kit.shiftkey = false;
-  app->kit.classex.hInstance = app->kit.instance;
-  app->kit.classex.lpszClassName = SHOES_SHORTNAME;
-  app->kit.classex.lpfnWndProc = shoes_app_win32proc;
-  app->kit.classex.style = CS_HREDRAW | CS_VREDRAW;
-  app->kit.classex.cbSize = sizeof(WNDCLASSEX);
-  app->kit.classex.hIcon = LoadIcon(app->kit.instance, IDI_APPLICATION);
-  app->kit.classex.hIconSm = LoadIcon(app->kit.instance, IDI_APPLICATION);
-  app->kit.classex.hCursor = LoadCursor(NULL, IDC_ARROW);
-  app->kit.classex.lpszMenuName = NULL;
-  app->kit.classex.cbClsExtra = 0;
-  app->kit.classex.cbWndExtra = 0;
-  app->kit.classex.hbrBackground = 0;
+  app->os.ctrlkey = false;
+  app->os.altkey = false;
+  app->os.shiftkey = false;
+  app->os.classex.hInstance = app->os.instance;
+  app->os.classex.lpszClassName = SHOES_SHORTNAME;
+  app->os.classex.lpfnWndProc = shoes_app_win32proc;
+  app->os.classex.style = CS_HREDRAW | CS_VREDRAW;
+  app->os.classex.cbSize = sizeof(WNDCLASSEX);
+  app->os.classex.hIcon = LoadIcon(app->os.instance, IDI_APPLICATION);
+  app->os.classex.hIconSm = LoadIcon(app->os.instance, IDI_APPLICATION);
+  app->os.classex.hCursor = LoadCursor(NULL, IDC_ARROW);
+  app->os.classex.lpszMenuName = NULL;
+  app->os.classex.cbClsExtra = 0;
+  app->os.classex.cbWndExtra = 0;
+  app->os.classex.hbrBackground = 0;
 
-  if (!RegisterClassEx(&app->kit.classex))
+  if (!RegisterClassEx(&app->os.classex))
   {
     QUIT("Couldn't register WIN32 window class.");
   }
@@ -1122,7 +1107,7 @@ shoes_app_open(shoes_app *app)
     rect.right-rect.left, rect.bottom-rect.top,
     HWND_DESKTOP,
     NULL,
-    app->kit.instance,
+    app->os.instance,
     NULL);
 #endif
 
@@ -1144,25 +1129,25 @@ shoes_app_loop(shoes_app *app, char *path)
   INFO("RUNNING LOOP.\n", 0);
 
 #ifdef SHOES_QUARTZ
-  ShowWindow(app->kit.window);
+  ShowWindow(app->os.window);
   TextEncoding utf8Encoding, unicodeEncoding;
   utf8Encoding = CreateTextEncoding(kTextEncodingUnicodeDefault,
     kUnicodeNoSubset, kUnicodeUTF8Format);
   unicodeEncoding = CreateTextEncoding(kTextEncodingUnicodeDefault,
     kUnicodeNoSubset, kUnicode16BitFormat);
-  TECCreateConverter(&app->kit.converter, unicodeEncoding, utf8Encoding);
+  TECCreateConverter(&shoes_world->os.converter, unicodeEncoding, utf8Encoding);
   RunApplicationEventLoop();
 #endif
 
 #ifdef SHOES_GTK
-  gtk_widget_show_all(app->kit.window);
+  gtk_widget_show_all(app->os.window);
   g_idle_add(shoes_app_gtk_idle, app);
   gtk_main();
 #endif
 
 #ifdef SHOES_WIN32
   MSG msgs;
-  ShowWindow(app->slot.window, app->kit.style);
+  ShowWindow(app->slot.window, shoes_world->os.style);
   while (GetMessage(&msgs, NULL, 0, 0))
   {
     TranslateMessage(&msgs);
@@ -1176,6 +1161,7 @@ quit:
 
 typedef struct
 {
+  shoes_app *app;
   VALUE canvas;
   VALUE block;
   char ieval;
@@ -1204,7 +1190,11 @@ shoes_app_run(VALUE rb_exec)
   shoes_exec *exec = (shoes_exec *)rb_exec;
   if (exec->ieval)
   {
-    return mfp_instance_eval(exec->canvas, exec->block);
+    VALUE obj;
+    rb_ary_push(exec->app->nesting, exec->canvas);
+    obj = mfp_instance_eval(exec->app->self, exec->block);
+    rb_ary_pop(exec->app->nesting);
+    return obj;
   }
   else
   {
@@ -1243,6 +1233,7 @@ shoes_app_visit(shoes_app *app, char *path)
 
   shoes_canvas_clear(app->canvas);
   meth = rb_funcall(cShoes, s_run, 1, rb_str_new2(path));
+  exec.app = app;
   exec.block = rb_ary_entry(meth, 0);
   exec.args = rb_ary_entry(meth, 1);
   if (rb_obj_is_kind_of(exec.block, rb_cUnboundMethod)) {
@@ -1314,7 +1305,7 @@ shoes_app_goto(shoes_app *app, char *path)
 }
 
 shoes_code
-shoes_slot_repaint(APPSLOT *slot)
+shoes_slot_repaint(SHOES_SLOT_OS *slot)
 {
 #ifdef SHOES_GTK
   gtk_widget_queue_draw(slot->canvas);
@@ -1342,21 +1333,4 @@ shoes_app_quit(VALUE self)
   PostQuitMessage(0);
 #endif
   return self;
-}
-
-shoes_code
-shoes_init()
-{
-#ifdef SHOES_WIN32
-  INITCOMMONCONTROLSEX InitCtrlEx;
-  InitCtrlEx.dwSize = sizeof(INITCOMMONCONTROLSEX);
-  InitCtrlEx.dwICC = ICC_PROGRESS_CLASS;
-  InitCommonControlsEx(&InitCtrlEx);
-#endif
-  ruby_init();
-  shoes_ruby_init();
-#ifdef SHOES_QUARTZ
-  shoes_slot_quartz_register();
-#endif
-  return SHOES_OK;
 }

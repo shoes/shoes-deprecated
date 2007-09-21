@@ -9,7 +9,7 @@
 #include "shoes/internal.h"
 #include <math.h>
 
-VALUE cShoes, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cPattern, cBorder, cBackground, cLinkText, cTextClass, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
+VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cPattern, cBorder, cBackground, cLinkText, cTextClass, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 ID s_aref, s_perc, s_bind, s_new, s_run, s_to_pattern, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
@@ -22,6 +22,16 @@ VALUE
 mfp_instance_eval(VALUE obj, VALUE block)
 {
   return rb_funcall(instance_eval_proc, s_call, 2, obj, block);
+}
+
+//
+// From Guy Decoux [ruby-talk:144098]
+//
+static VALUE
+ts_each(tmp)
+  VALUE *tmp;
+{
+  return rb_funcall2(tmp[0], (ID)tmp[1], (int)tmp[2], (VALUE *)tmp[3]);
 }
 
 long
@@ -1432,7 +1442,13 @@ shoes_text_motion(VALUE self, int x, int y)
   {
     VALUE url = shoes_text_hover(self, x, y);
     if (!NIL_P(url))
-      shoes_app_cursor(global_app, s_hand);
+    {
+      shoes_text *self_t;
+      shoes_canvas *canvas;
+      Data_Get_Struct(self, shoes_text, self_t);
+      Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+      shoes_app_cursor(canvas->app, s_hand);
+    }
     return url;
   }
   return Qnil;
@@ -2229,6 +2245,88 @@ shoes_p(VALUE self, VALUE obj)
   return shoes_debug(self, rb_inspect(obj));
 }
 
+#define APP_M(name, func, argn) \
+  VALUE \
+  shoes_app_c_##func(int argc, VALUE *argv, VALUE self) \
+  { \
+    VALUE canvas; \
+    shoes_app *app; \
+    Data_Get_Struct(self, shoes_app, app); \
+    canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1); \
+    if (NIL_P(canvas)) canvas = app->canvas; \
+    if (rb_block_given_p()) { \
+      VALUE tmp[4]; \
+      tmp[0] = canvas; \
+      tmp[1] = (VALUE)rb_intern(name); \
+      tmp[2] = (VALUE)argc; \
+      tmp[3] = (VALUE)argv; \
+      return rb_iterate((VALUE(*)(VALUE))ts_each, (VALUE)tmp, rb_yield, 0); \
+    } else { \
+      rb_funcall2(canvas, rb_intern(name), argc, argv); \
+    } \
+  }
+
+APP_M("width=", set_width, 1);
+APP_M("width", get_width, 0);
+APP_M("height=", set_height, 1);
+APP_M("height", get_height, 0);
+APP_M("nostroke", nostroke, 0);
+APP_M("stroke", stroke, -1);
+APP_M("strokewidth", strokewidth, 1);
+APP_M("nofill", nofill, 0);
+APP_M("fill", fill, -1);
+APP_M("rect", rect, -1);
+APP_M("oval", oval, -1);
+APP_M("line", line, 4);
+APP_M("arrow", arrow, 3);
+APP_M("star", star, -1);
+APP_M("text", markup, -1);
+APP_M("link", link, -1);
+APP_M("background", background, -1);
+APP_M("border", border, -1);
+APP_M("image", image, -1);
+APP_M("imagesize", imagesize, 1);
+APP_M("animate", animate, -1);
+APP_M("path", path, -1);
+APP_M("move_to", move_to, 2);
+APP_M("line_to", line_to, 2);
+APP_M("curve_to", curve_to, 6);
+APP_M("transform", transform, 1);
+APP_M("translate", translate, 2);
+APP_M("rotate", rotate, 1);
+APP_M("scale", scale, -1);
+APP_M("skew", skew, -1);
+APP_M("push", push, 0);
+APP_M("pop", pop, 0);
+APP_M("reset", reset, 0);
+APP_M("button", button, -1);
+APP_M("list_box", list_box, -1);
+APP_M("edit_line", edit_line, -1);
+APP_M("edit_box", edit_box, -1);
+APP_M("progress", progress, -1);
+APP_M("contents", contents, 0);
+APP_M("draw", draw, 1);
+APP_M("after", after, -1);
+APP_M("before", before, -1);
+APP_M("append", append, -1);
+APP_M("prepend", prepend, -1);
+APP_M("flow", flow, -1);
+APP_M("stack", stack, -1);
+APP_M("mask", mask, -1);
+APP_M("hide", hide, 0);
+APP_M("show", show, 0);
+APP_M("toggle", toggle, 0);
+APP_M("click", click, -1);
+APP_M("release", release, -1);
+APP_M("motion", motion, -1);
+APP_M("keypress", keypress, -1);
+APP_M("clear", clear_contents, -1);
+APP_M("goto", goto, 1);
+APP_M("remove", remove, 0);
+APP_M("mouse", mouse, 0);
+APP_M("clipboard", get_clipboard, 0);
+APP_M("clipboard=", set_clipboard, 1);
+
 #define C(n, s) \
   re##n = rb_eval_string(s); \
   rb_const_set(cShoes, rb_intern("" # n), re##n);
@@ -2296,6 +2394,8 @@ shoes_ruby_init()
   s_margin_bottom = rb_intern("margin_bottom");
   s_radius = rb_intern("radius");
 
+  cApp = rb_define_class("App", rb_cObject);
+  rb_define_alloc_func(cApp, shoes_app_alloc);
   cCanvas = rb_define_class("Canvas", rb_cObject);
   rb_define_alloc_func(cCanvas, shoes_canvas_alloc);
 
@@ -2319,67 +2419,70 @@ shoes_ruby_init()
   //
   // Canvas methods
   //
-  rb_define_method(cCanvas, "width=", CASTHOOK(shoes_canvas_set_width), 1);
-  rb_define_method(cCanvas, "width", CASTHOOK(shoes_canvas_get_width), 0);
-  rb_define_method(cCanvas, "height=", CASTHOOK(shoes_canvas_set_height), 1);
-  rb_define_method(cCanvas, "height", CASTHOOK(shoes_canvas_get_height), 0);
-  rb_define_method(cCanvas, "nostroke", CASTHOOK(shoes_canvas_nostroke), 0);
-  rb_define_method(cCanvas, "stroke", CASTHOOK(shoes_canvas_stroke), -1);
-  rb_define_method(cCanvas, "strokewidth", CASTHOOK(shoes_canvas_strokewidth), 1);
-  rb_define_method(cCanvas, "nofill", CASTHOOK(shoes_canvas_nofill), 0);
-  rb_define_method(cCanvas, "fill", CASTHOOK(shoes_canvas_fill), -1);
-  rb_define_method(cCanvas, "rect", CASTHOOK(shoes_canvas_rect), -1);
-  rb_define_method(cCanvas, "oval", CASTHOOK(shoes_canvas_oval), -1);
-  rb_define_method(cCanvas, "line", CASTHOOK(shoes_canvas_line), 4);
-  rb_define_method(cCanvas, "arrow", CASTHOOK(shoes_canvas_arrow), 3);
-  rb_define_method(cCanvas, "star", CASTHOOK(shoes_canvas_star), -1);
-  rb_define_method(cCanvas, "text", CASTHOOK(shoes_canvas_markup), -1);
-  rb_define_method(cCanvas, "link", CASTHOOK(shoes_canvas_link), -1);
-  rb_define_method(cCanvas, "background", CASTHOOK(shoes_canvas_background), -1);
-  rb_define_method(cCanvas, "border", CASTHOOK(shoes_canvas_border), -1);
-  rb_define_method(cCanvas, "image", CASTHOOK(shoes_canvas_image), -1);
-  rb_define_method(cCanvas, "imagesize", CASTHOOK(shoes_canvas_imagesize), 1);
-  rb_define_method(cCanvas, "animate", CASTHOOK(shoes_canvas_animate), -1);
-  rb_define_method(cCanvas, "path", CASTHOOK(shoes_canvas_path), -1);
-  rb_define_method(cCanvas, "move_to", CASTHOOK(shoes_canvas_move_to), 2);
-  rb_define_method(cCanvas, "line_to", CASTHOOK(shoes_canvas_line_to), 2);
-  rb_define_method(cCanvas, "curve_to", CASTHOOK(shoes_canvas_curve_to), 6);
-  rb_define_method(cCanvas, "transform", CASTHOOK(shoes_canvas_transform), 1);
-  rb_define_method(cCanvas, "translate", CASTHOOK(shoes_canvas_translate), 2);
-  rb_define_method(cCanvas, "rotate", CASTHOOK(shoes_canvas_rotate), 1);
-  rb_define_method(cCanvas, "scale", CASTHOOK(shoes_canvas_scale), -1);
-  rb_define_method(cCanvas, "skew", CASTHOOK(shoes_canvas_skew), -1);
-  rb_define_method(cCanvas, "push", CASTHOOK(shoes_canvas_push), 0);
-  rb_define_method(cCanvas, "pop", CASTHOOK(shoes_canvas_pop), 0);
-  rb_define_method(cCanvas, "reset", CASTHOOK(shoes_canvas_reset), 0);
-  rb_define_method(cCanvas, "button", CASTHOOK(shoes_canvas_button), -1);
-  rb_define_method(cCanvas, "list_box", CASTHOOK(shoes_canvas_list_box), -1);
-  rb_define_method(cCanvas, "edit_line", CASTHOOK(shoes_canvas_edit_line), -1);
-  rb_define_method(cCanvas, "edit_box", CASTHOOK(shoes_canvas_edit_box), -1);
-  rb_define_method(cCanvas, "progress", CASTHOOK(shoes_canvas_progress), -1);
-  rb_define_method(cCanvas, "contents", CASTHOOK(shoes_canvas_contents), 0);
-  rb_define_method(cCanvas, "draw", CASTHOOK(shoes_canvas_draw), 1);
-  rb_define_method(cCanvas, "after", CASTHOOK(shoes_canvas_after), -1);
-  rb_define_method(cCanvas, "before", CASTHOOK(shoes_canvas_before), -1);
-  rb_define_method(cCanvas, "append", CASTHOOK(shoes_canvas_append), -1);
-  rb_define_method(cCanvas, "prepend", CASTHOOK(shoes_canvas_prepend), -1);
-  rb_define_method(cCanvas, "flow", CASTHOOK(shoes_canvas_flow), -1);
-  rb_define_method(cCanvas, "stack", CASTHOOK(shoes_canvas_stack), -1);
-  rb_define_method(cCanvas, "mask", CASTHOOK(shoes_canvas_mask), -1);
-  rb_define_method(cCanvas, "hide", CASTHOOK(shoes_canvas_hide), 0);
-  rb_define_method(cCanvas, "show", CASTHOOK(shoes_canvas_show), 0);
-  rb_define_method(cCanvas, "toggle", CASTHOOK(shoes_canvas_toggle), 0);
-  rb_define_method(cCanvas, "click", CASTHOOK(shoes_canvas_click), -1);
-  rb_define_method(cCanvas, "release", CASTHOOK(shoes_canvas_release), -1);
-  rb_define_method(cCanvas, "motion", CASTHOOK(shoes_canvas_motion), -1);
-  rb_define_method(cCanvas, "keypress", CASTHOOK(shoes_canvas_keypress), -1);
-  rb_define_method(cCanvas, "quit", CASTHOOK(shoes_app_quit), 0);
-  rb_define_method(cCanvas, "clear", CASTHOOK(shoes_canvas_clear_contents), -1);
-  rb_define_method(cCanvas, "goto", CASTHOOK(shoes_canvas_goto), 1);
-  rb_define_method(cCanvas, "remove", CASTHOOK(shoes_canvas_remove), 0);
-  rb_define_method(cCanvas, "mouse", CASTHOOK(shoes_canvas_mouse), 0);
-  rb_define_method(cCanvas, "clipboard", CASTHOOK(shoes_canvas_get_clipboard), 0);
-  rb_define_method(cCanvas, "clipboard=", CASTHOOK(shoes_canvas_set_clipboard), 1);
+#define CANVAS_M(name, func, argc) \
+  rb_define_method(cCanvas, name, CASTHOOK(shoes_canvas_##func), argc); \
+  rb_define_method(cApp, name, CASTHOOK(shoes_app_c_##func), -1)
+
+  CANVAS_M("width=", set_width, 1);
+  CANVAS_M("width", get_width, 0);
+  CANVAS_M("height=", set_height, 1);
+  CANVAS_M("height", get_height, 0);
+  CANVAS_M("nostroke", nostroke, 0);
+  CANVAS_M("stroke", stroke, -1);
+  CANVAS_M("strokewidth", strokewidth, 1);
+  CANVAS_M("nofill", nofill, 0);
+  CANVAS_M("fill", fill, -1);
+  CANVAS_M("rect", rect, -1);
+  CANVAS_M("oval", oval, -1);
+  CANVAS_M("line", line, 4);
+  CANVAS_M("arrow", arrow, 3);
+  CANVAS_M("star", star, -1);
+  CANVAS_M("text", markup, -1);
+  CANVAS_M("link", link, -1);
+  CANVAS_M("background", background, -1);
+  CANVAS_M("border", border, -1);
+  CANVAS_M("image", image, -1);
+  CANVAS_M("imagesize", imagesize, 1);
+  CANVAS_M("animate", animate, -1);
+  CANVAS_M("path", path, -1);
+  CANVAS_M("move_to", move_to, 2);
+  CANVAS_M("line_to", line_to, 2);
+  CANVAS_M("curve_to", curve_to, 6);
+  CANVAS_M("transform", transform, 1);
+  CANVAS_M("translate", translate, 2);
+  CANVAS_M("rotate", rotate, 1);
+  CANVAS_M("scale", scale, -1);
+  CANVAS_M("skew", skew, -1);
+  CANVAS_M("push", push, 0);
+  CANVAS_M("pop", pop, 0);
+  CANVAS_M("reset", reset, 0);
+  CANVAS_M("button", button, -1);
+  CANVAS_M("list_box", list_box, -1);
+  CANVAS_M("edit_line", edit_line, -1);
+  CANVAS_M("edit_box", edit_box, -1);
+  CANVAS_M("progress", progress, -1);
+  CANVAS_M("contents", contents, 0);
+  CANVAS_M("draw", draw, 1);
+  CANVAS_M("after", after, -1);
+  CANVAS_M("before", before, -1);
+  CANVAS_M("append", append, -1);
+  CANVAS_M("prepend", prepend, -1);
+  CANVAS_M("flow", flow, -1);
+  CANVAS_M("stack", stack, -1);
+  CANVAS_M("mask", mask, -1);
+  CANVAS_M("hide", hide, 0);
+  CANVAS_M("show", show, 0);
+  CANVAS_M("toggle", toggle, 0);
+  CANVAS_M("click", click, -1);
+  CANVAS_M("release", release, -1);
+  CANVAS_M("motion", motion, -1);
+  CANVAS_M("keypress", keypress, -1);
+  CANVAS_M("clear", clear_contents, -1);
+  CANVAS_M("goto", goto, 1);
+  CANVAS_M("remove", remove, 0);
+  CANVAS_M("mouse", mouse, 0);
+  CANVAS_M("clipboard", get_clipboard, 0);
+  CANVAS_M("clipboard=", set_clipboard, 1);
 
   //
   // Shoes Kernel methods
@@ -2388,10 +2491,11 @@ shoes_ruby_init()
   rb_define_method(rb_mKernel, "gray", CASTHOOK(shoes_color_gray), -1);
   rb_define_method(rb_mKernel, "gradient", CASTHOOK(shoes_color_gradient), 2);
   rb_define_method(rb_mKernel, "pattern", CASTHOOK(shoes_pattern_method), 1);
+  rb_define_method(rb_mKernel, "quit", CASTHOOK(shoes_app_quit), 0);
 
   cFlow    = rb_define_class_under(cShoes, "Flow", cShoes);
   cStack   = rb_define_class_under(cShoes, "Stack", cShoes);
-  cMask   = rb_define_class_under(cShoes, "Mask", cShoes);
+  cMask    = rb_define_class_under(cShoes, "Mask", cShoes);
 
   cPath    = rb_define_class_under(cShoes, "Path", rb_cObject);
   rb_define_alloc_func(cPath, shoes_path_alloc);
@@ -2459,7 +2563,7 @@ shoes_ruby_init()
   rb_define_method(cColor, "to_s", CASTHOOK(shoes_color_to_s), 0);
   rb_define_method(cColor, "to_pattern", CASTHOOK(shoes_color_to_pattern), 0);
 
-  rb_define_method(cCanvas, "method_missing", CASTHOOK(shoes_method_missing_color), -1);
+  rb_define_method(cApp, "method_missing", CASTHOOK(shoes_method_missing_color), -1);
 
   rb_const_set(cShoes, rb_intern("COLORS"), rb_hash_new());
   cColors = rb_const_get(cShoes, rb_intern("COLORS"));
