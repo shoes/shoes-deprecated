@@ -18,14 +18,14 @@ class Book < Shoes
 
   def incident(num)
     num = num.to_i
-    flow :margin => 10, :margin_left => 200, :margin_top => 20 do
+    flow :margin => 10, :margin_left => 190, :margin_top => 20 do
       text "<span font_desc='Arial 46px'>Incident</span>\n" +
         "<b>No. #{num + 1}: #{INCIDENTS[num][0]}</b>"
     end
-    flow :width => 180, :margin_left => 10 do
+    flow :width => 180, :margin_left => 10, :margin_top => 10 do
       text table_of_contents
     end
-    flow :width => -250, :margin_left => 10 do
+    flow :width => -190, :margin => 10 do
       text INCIDENTS[num][1]
     end
   end

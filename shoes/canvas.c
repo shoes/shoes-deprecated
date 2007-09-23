@@ -306,11 +306,11 @@ shoes_canvas_clear(VALUE self)
   canvas->place.y = 0;
   canvas->place.w = 0;
   canvas->place.h = 0;
-  canvas->cx = 0.0;
-  canvas->cy = 0.0;
-  canvas->endy = 0.0;
-  canvas->endx = 0.0;
-  canvas->fully = 0.0;
+  canvas->cx = 0;
+  canvas->cy = 0;
+  canvas->endy = 0;
+  canvas->endx = 0;
+  canvas->fully = 0;
   canvas->click = Qnil;
   canvas->release = Qnil;
   canvas->motion = Qnil;
@@ -1066,7 +1066,6 @@ shoes_canvas_draw(VALUE self, VALUE c)
   }
 
   canvas->endx = canvas->cx = self_t->place.x + self_t->width;
-  canvas->cy = self_t->cy;
   if (canvas->endy < self_t->endy)
     canvas->endy = self_t->endy;
   self_t->fully = self_t->endy;
@@ -1513,7 +1512,7 @@ shoes_slot_new(VALUE klass, VALUE attr, VALUE parent)
     gtk_layout_move(GTK_LAYOUT(pc->slot.canvas), self_t->slot.box, x, y);
     gtk_widget_show_all(self_t->slot.box);
     self_t->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));;
-    self_t->place.x = self_t->place.y = 0.0;
+    self_t->place.x = self_t->place.y = 0;
     self_t->width = w - 20;
     self_t->height = h - 20;
 #endif
