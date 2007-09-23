@@ -1619,18 +1619,29 @@ shoes_text_draw(VALUE self, VALUE c)
   pango_layout_get_pixel_size(self_t->layout, &px, &py);
 
   // newlines have an empty size
-  canvas->endx += px + rmargin;
-  canvas->endy += py + bmargin;
-  if (ck == cStack) {
-    canvas->cx = 0;
-    canvas->cy = canvas->endy;
-  } else {
-    if (lrect.width == 0) {
-      canvas->cx = (double)lrect.x;
+  canvas->endy = canvas->cy + py - lrect.height;
+  if (ck != cStack) {
+    if (li == 0) {
+      canvas->cx += (double)((lrect.x + lrect.width) + rmargin);
     } else {
-      canvas->cx = (double)((lrect.x + lrect.width) + rmargin);
+      if (lrect.width == 0) {
+        canvas->cx = (double)lrect.x;
+      } else {
+        canvas->cx = (double)((lrect.x + lrect.width) + rmargin);
+      }
+      canvas->cy = canvas->endy;
     }
   }
+  if (ck == cStack || canvas->cx > canvas->width) {
+    canvas->cx = 0;
+    canvas->endy += lrect.height;
+    canvas->cy = canvas->endy;
+  }
+  canvas->endx = canvas->cx;
+  INFO("CX: (%d, %d) / LRECT: (%d, %d) / END: (%d, %d)\n", 
+    canvas->cx, canvas->cy,
+    lrect.x, lrect.width,
+    canvas->endx, canvas->endy);
   return self;
 }
 
