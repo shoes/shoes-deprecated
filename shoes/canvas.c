@@ -987,8 +987,8 @@ shoes_canvas_draw(VALUE self, VALUE c)
   else
   {
     shoes_place_decide(&self_t->place, self_t->parent, self_t->attr, self_t->width, self_t->height, REL_CANVAS);
-    self_t->endx = self_t->cx = self_t->place.x;
-    self_t->endy = self_t->cy = self_t->place.y;
+    self_t->endx = self_t->cx = 0;
+    self_t->fully = self_t->scrolly = self_t->endy = self_t->cy = 0;
     if (!NIL_P(self_t->parent))
     {
       shoes_canvas *pc;
