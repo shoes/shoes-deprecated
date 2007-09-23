@@ -1563,7 +1563,7 @@ shoes_text_draw(VALUE self, VALUE c)
     if (self_t->place.x - canvas->place.x > (self_t->place.w - (lmargin + rmargin)) - 20)
     {
       self_t->place.x = canvas->place.x + lmargin;
-      self_t->place.y = canvas->endy;
+      self_t->place.y = canvas->endy + tmargin;
     } else {
       if (self_t->place.x > canvas->place.x) {
         pd = (self_t->place.x - (canvas->place.x + lmargin));
@@ -1619,22 +1619,22 @@ shoes_text_draw(VALUE self, VALUE c)
   pango_layout_get_pixel_size(self_t->layout, &px, &py);
 
   // newlines have an empty size
-  canvas->endy = canvas->cy + py - lrect.height;
+  canvas->endy = self_t->place.y - tmargin + py - lrect.height;
   if (ck != cStack) {
     if (li == 0) {
-      canvas->cx += (double)((lrect.x + lrect.width) + rmargin);
+      canvas->cx = self_t->place.x - lmargin + lrect.x + lrect.width + rmargin;
     } else {
       if (lrect.width == 0) {
-        canvas->cx = (double)lrect.x;
+        canvas->cx = lrect.x;
       } else {
-        canvas->cx = (double)((lrect.x + lrect.width) + rmargin);
+        canvas->cx = lrect.x + lrect.width + rmargin;
       }
       canvas->cy = canvas->endy;
     }
   }
+  canvas->endy += lrect.height;
   if (ck == cStack || canvas->cx > canvas->width) {
     canvas->cx = 0;
-    canvas->endy += lrect.height;
     canvas->cy = canvas->endy;
   }
   canvas->endx = canvas->cx;
