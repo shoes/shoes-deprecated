@@ -57,7 +57,7 @@ rb_ary_insert_at(VALUE ary, long index, int len, VALUE ary2)
 // from ruby's eval.c
 // 
 static inline VALUE
-call_cfunc(VALUE (*func)(...), VALUE recv, int len, int argc, VALUE *argv)
+call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv)
 {
   if (len >= 0 && argc != len) {
     rb_raise(rb_eArgError, "wrong number of arguments (%d for %d)",

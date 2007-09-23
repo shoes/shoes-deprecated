@@ -12,6 +12,7 @@
 typedef VALUE (*HOOK)(...);
 #define CASTHOOK(x) reinterpret_cast<HOOK>(x)
 #else
+typedef VALUE (*HOOK)();
 #define CASTHOOK(x) x
 #endif
 

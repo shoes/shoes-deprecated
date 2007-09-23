@@ -93,7 +93,8 @@ task :build => :build_os do
   rm_rf "dist/samples/.svn"
   cp_r  "static", "dist/static"
   rm_rf "dist/static/.svn"
-  cp    "README.txt", "dist"
+  cp    "README", "dist/README.txt"
+  cp    "COPYING", "dist/COPYING.txt"
   
   case PLATFORM when /darwin/
     rm_rf "#{APPNAME}.app"
