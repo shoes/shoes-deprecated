@@ -42,9 +42,14 @@ dist/libshoes.so: ${OBJ}
 	@mkdir dist
 	@${CC} -o $@ ${OBJ} ${LDFLAGS}
 
-dist/shoes: dist/libshoes.so bin/main.o
+dist/shoes-bin: dist/libshoes.so bin/main.o
 	@echo CC -o $@
 	@${CC} -o $@ ${LDFLAGS}
+
+dist/shoes: dist/shoes-bin
+	@echo 'APPPATH="$${0%/*}"' > dist/shoes
+	@echo 'LD_LIBRARY_PATH=$$APPPATH $$APPPATH/shoes-bin $$@' >> dist/shoes
+	@chmod 755 dist/shoes
 
 shoes: dist/shoes
 	@mkdir -p dist/ruby/lib
