@@ -1101,6 +1101,19 @@ shoes_canvas_draw(VALUE self, VALUE c)
       ReleaseEvent(theEvent);
     }
 #endif
+#ifdef SHOES_WIN32
+    SCROLLINFO si;
+    // maxScroll = max(canvas->fully - newHeight, 0);
+    si.cbSize = sizeof(SCROLLINFO);
+    si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS;
+    si.nMin = 0;
+    si.nMax = canvas->fully; 
+    si.nPage = canvas->height;
+    si.nPos = 0;
+    INFO("SetScrollInfo(nMin: %d, nMax: %d, nPage: %d)\n", 
+      si.nMin, si.nMax, si.nPage);
+    SetScrollInfo(canvas->slot.window, SB_VERT, &si, TRUE);
+#endif
   }
 
   if (self_t->cr == canvas->cr)

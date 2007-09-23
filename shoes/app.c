@@ -681,30 +681,6 @@ shoes_app_win32proc(
       PostQuitMessage(0);
     return 0; 
 
-    case WM_SIZE:
-    {
-      SCROLLINFO si;
-      int newHeight = HIWORD(l);
-      int maxScroll;
-      shoes_canvas *canvas;
-      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
-
-      //
-      // Set the vertical scrollbar
-      // 
-      maxScroll = max(canvas->fully - newHeight, 0);
-      si.cbSize = sizeof(SCROLLINFO);
-      si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS;
-      si.nMin = 0;
-      si.nMax = canvas->fully; 
-      si.nPage = newHeight;
-      si.nPos = 0;
-      INFO("SetScrollInfo(nMin: %d, nMax: %d, nPage: %d)\n", 
-        si.nMin, si.nMax, si.nPage);
-      SetScrollInfo(win, SB_VERT, &si, TRUE);
-    }
-    break;
-
     case WM_PAINT:
     {
       RECT rect;
@@ -1245,8 +1221,10 @@ shoes_app_visit(shoes_app *app, char *path)
 {
   long i;
   shoes_exec exec;
+  shoes_canvas *canvas;
   VALUE meth;
   VALUE ary = rb_ary_dup(app->timers);
+  Data_Get_Struct(app->canvas, shoes_canvas, canvas);
 #ifndef SHOES_GTK
   rb_ary_clear(app->slot.controls);
 #endif
@@ -1263,9 +1241,7 @@ shoes_app_visit(shoes_app *app, char *path)
   exec.block = rb_ary_entry(meth, 0);
   exec.args = rb_ary_entry(meth, 1);
   if (rb_obj_is_kind_of(exec.block, rb_cUnboundMethod)) {
-    shoes_canvas *canvas;
     VALUE klass = rb_unbound_get_class(exec.block);
-    Data_Get_Struct(app->canvas, shoes_canvas, canvas);
     exec.canvas = shoes_slot_new(klass, Qnil, app->canvas);
     exec.block = rb_funcall(exec.block, s_bind, 1, exec.canvas);
     exec.ieval = 0;
