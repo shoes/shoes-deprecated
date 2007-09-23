@@ -57,7 +57,7 @@ rb_ary_insert_at(VALUE ary, long index, int len, VALUE ary2)
 // from ruby's eval.c
 // 
 static inline VALUE
-call_cfunc(VALUE (*func)(), VALUE recv, int len, int argc, VALUE *argv)
+call_cfunc(VALUE (*func)(...), VALUE recv, int len, int argc, VALUE *argv)
 {
   if (len >= 0 && argc != len) {
     rb_raise(rb_eArgError, "wrong number of arguments (%d for %d)",
@@ -2341,7 +2341,7 @@ shoes_p(VALUE self, VALUE obj)
       canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1); \
     else \
       canvas = app->canvas; \
-    return call_cfunc(shoes_canvas_##func, canvas, argn, argc, argv); \
+    return call_cfunc(CASTHOOK(shoes_canvas_##func), canvas, argn, argc, argv); \
   } \
   VALUE \
   shoes_canvas_c_##func(int argc, VALUE *argv, VALUE self) \
@@ -2353,7 +2353,7 @@ shoes_p(VALUE self, VALUE obj)
       canvas = rb_ary_entry(self_t->app->nesting, RARRAY_LEN(self_t->app->nesting) - 1); \
     else \
       canvas = self; \
-    return call_cfunc(shoes_canvas_##func, canvas, argn, argc, argv); \
+    return call_cfunc(CASTHOOK(shoes_canvas_##func), canvas, argn, argc, argv); \
   }
 
 //
