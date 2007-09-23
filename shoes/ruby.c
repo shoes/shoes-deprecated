@@ -53,6 +53,75 @@ rb_ary_insert_at(VALUE ary, long index, int len, VALUE ary2)
   return ary;
 }
 
+//
+// from ruby's eval.c
+// 
+static inline VALUE
+call_cfunc(VALUE (*func)(), VALUE recv, int len, int argc, VALUE *argv)
+{
+  if (len >= 0 && argc != len) {
+    rb_raise(rb_eArgError, "wrong number of arguments (%d for %d)",
+      argc, len);
+  }
+
+  switch (len) {
+    case -2:
+    return (*func)(recv, rb_ary_new4(argc, argv));
+    case -1:
+    return (*func)(argc, argv, recv);
+    case 0:
+    return (*func)(recv);
+    case 1:
+    return (*func)(recv, argv[0]);
+    case 2:
+    return (*func)(recv, argv[0], argv[1]);
+    case 3:
+    return (*func)(recv, argv[0], argv[1], argv[2]);
+    case 4:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3]);
+    case 5:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3], argv[4]);
+    case 6:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3], argv[4],
+               argv[5]);
+    case 7:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3], argv[4],
+               argv[5], argv[6]);
+    case 8:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3], argv[4],
+               argv[5], argv[6], argv[7]);
+    case 9:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3], argv[4],
+               argv[5], argv[6], argv[7], argv[8]);
+    case 10:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3], argv[4],
+               argv[5], argv[6], argv[7], argv[8], argv[9]);
+    case 11:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3], argv[4],
+               argv[5], argv[6], argv[7], argv[8], argv[9], argv[10]);
+    case 12:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3], argv[4],
+               argv[5], argv[6], argv[7], argv[8], argv[9],
+               argv[10], argv[11]);
+    case 13:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3], argv[4],
+               argv[5], argv[6], argv[7], argv[8], argv[9], argv[10],
+               argv[11], argv[12]);
+    case 14:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3], argv[4],
+               argv[5], argv[6], argv[7], argv[8], argv[9], argv[10],
+               argv[11], argv[12], argv[13]);
+    case 15:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3], argv[4],
+               argv[5], argv[6], argv[7], argv[8], argv[9], argv[10],
+               argv[11], argv[12], argv[13], argv[14]);
+    default:
+    rb_raise(rb_eArgError, "too many arguments (%d)", len);
+    break;
+  }
+  return Qnil;        /* not reached */
+}
+
 typedef struct
 {
   VALUE canvas;
@@ -2250,7 +2319,7 @@ shoes_p(VALUE self, VALUE obj)
 // and ensures that you have access to the App's instance variables while
 // assembling elements in a layout.
 //
-#define APP_M(name, func, argn) \
+#define FUNC_M(name, func, argn) \
   VALUE \
   shoes_app_c_##func(int argc, VALUE *argv, VALUE self) \
   { \
@@ -2259,21 +2328,23 @@ shoes_p(VALUE self, VALUE obj)
     Data_Get_Struct(self, shoes_app, app); \
     canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1); \
     if (NIL_P(canvas)) canvas = app->canvas; \
-    if (rb_block_given_p()) { \
-      VALUE tmp[4]; \
-      tmp[0] = canvas; \
-      tmp[1] = (VALUE)rb_intern(name); \
-      tmp[2] = (VALUE)argc; \
-      tmp[3] = (VALUE)argv; \
-      return rb_iterate((VALUE(*)(VALUE))ts_each, (VALUE)tmp, CASTHOOK(rb_yield), 0); \
-    } \
-    return rb_funcall2(canvas, rb_intern(name), argc, argv); \
+    return call_cfunc(shoes_canvas_##func, canvas, argn, argc, argv); \
+  } \
+  VALUE \
+  shoes_canvas_c_##func(int argc, VALUE *argv, VALUE self) \
+  { \
+    VALUE canvas; \
+    shoes_canvas *self_t; \
+    Data_Get_Struct(self, shoes_canvas, self_t); \
+    canvas = rb_ary_entry(self_t->app->nesting, RARRAY_LEN(self_t->app->nesting) - 1); \
+    if (NIL_P(canvas)) canvas = self; \
+    return call_cfunc(shoes_canvas_##func, canvas, argn, argc, argv); \
   }
 
 //
 // See ruby.h for the complete list of App methods which redirect to Canvas.
 //
-CANVAS_DEFS(APP_M);
+CANVAS_DEFS(FUNC_M);
 
 #define C(n, s) \
   re##n = rb_eval_string(s); \
@@ -2370,11 +2441,11 @@ shoes_ruby_init()
   // Macros are used to build App redirection methods, which should be
   // speedier than method_missing.
   //
-#define CANVAS_M(name, func, argc) \
-  rb_define_method(cCanvas, name, CASTHOOK(shoes_canvas_##func), argc); \
+#define RUBY_M(name, func, argc) \
+  rb_define_method(cCanvas, name, CASTHOOK(shoes_canvas_c_##func), -1); \
   rb_define_method(cApp, name, CASTHOOK(shoes_app_c_##func), -1)
 
-  CANVAS_DEFS(CANVAS_M);
+  CANVAS_DEFS(RUBY_M);
 
   //
   // Shoes Kernel methods

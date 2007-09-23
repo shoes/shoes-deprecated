@@ -1211,6 +1211,7 @@ static VALUE
 shoes_app_exception(VALUE rb_exec, VALUE e)
 {
   shoes_exec *exec = (shoes_exec *)rb_exec;
+  rb_ary_clear(exec->app->nesting);
   rb_iv_set(exec->canvas, "@exc", e);
   return mfp_instance_eval(exec->canvas, exception_proc);
 }
@@ -1250,6 +1251,7 @@ shoes_app_visit(shoes_app *app, char *path)
     exec.ieval = 1;
   }
   rb_rescue2(CASTHOOK(shoes_app_run), (VALUE)&exec, CASTHOOK(shoes_app_exception), (VALUE)&exec, rb_cObject, 0);
+  rb_ary_clear(exec.app->nesting);
   return SHOES_OK;
 }
 
