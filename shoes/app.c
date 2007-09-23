@@ -1189,12 +1189,11 @@ static VALUE
 shoes_app_run(VALUE rb_exec)
 {
   shoes_exec *exec = (shoes_exec *)rb_exec;
+  rb_ary_push(exec->app->nesting, exec->canvas);
   if (exec->ieval)
   {
     VALUE obj;
-    rb_ary_push(exec->app->nesting, exec->canvas);
     obj = mfp_instance_eval(exec->app->self, exec->block);
-    rb_ary_pop(exec->app->nesting);
     return obj;
   }
   else

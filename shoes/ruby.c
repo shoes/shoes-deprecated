@@ -2326,8 +2326,10 @@ shoes_p(VALUE self, VALUE obj)
     VALUE canvas; \
     shoes_app *app; \
     Data_Get_Struct(self, shoes_app, app); \
-    canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1); \
-    if (NIL_P(canvas)) canvas = app->canvas; \
+    if (rb_ary_entry(app->nesting, 0) == app->canvas) \
+      canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1); \
+    else \
+      canvas = app->canvas; \
     return call_cfunc(shoes_canvas_##func, canvas, argn, argc, argv); \
   } \
   VALUE \
@@ -2336,8 +2338,10 @@ shoes_p(VALUE self, VALUE obj)
     VALUE canvas; \
     shoes_canvas *self_t; \
     Data_Get_Struct(self, shoes_canvas, self_t); \
-    canvas = rb_ary_entry(self_t->app->nesting, RARRAY_LEN(self_t->app->nesting) - 1); \
-    if (NIL_P(canvas)) canvas = self; \
+    if (rb_ary_entry(self_t->app->nesting, 0) == self) \
+      canvas = rb_ary_entry(self_t->app->nesting, RARRAY_LEN(self_t->app->nesting) - 1); \
+    else \
+      canvas = self; \
     return call_cfunc(shoes_canvas_##func, canvas, argn, argc, argv); \
   }
 
