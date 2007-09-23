@@ -681,6 +681,30 @@ shoes_app_win32proc(
       PostQuitMessage(0);
     return 0; 
 
+    case WM_SIZE:
+    {
+      SCROLLINFO si;
+      int newHeight = HIWORD(l);
+      int maxScroll;
+      shoes_canvas *canvas;
+      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+
+      //
+      // Set the vertical scrollbar
+      // 
+      maxScroll = max(canvas->fully - newHeight, 0);
+      si.cbSize = sizeof(SCROLLINFO);
+      si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS;
+      si.nMin = 0;
+      si.nMax = canvas->fully; 
+      si.nPage = newHeight;
+      si.nPos = 0;
+      INFO("SetScrollInfo(nMin: %d, nMax: %d, nPage: %d)\n", 
+        si.nMin, si.nMax, si.nPage);
+      SetScrollInfo(win, SB_VERT, &si, TRUE);
+    }
+    break;
+
     case WM_PAINT:
     {
       RECT rect;
@@ -1101,7 +1125,8 @@ shoes_app_open(shoes_app *app)
   app->slot.window = CreateWindowEx(
     0, SHOES_SHORTNAME, SHOES_APPNAME,
     WINDOW_STYLE | 
-      (app->resizable ? (WS_THICKFRAME | WS_MAXIMIZEBOX) : WS_DLGFRAME),
+      (app->resizable ? (WS_THICKFRAME | WS_MAXIMIZEBOX) : WS_DLGFRAME) |
+      WS_VSCROLL | ES_AUTOVSCROLL,
     CW_USEDEFAULT, CW_USEDEFAULT,
     rect.right-rect.left, rect.bottom-rect.top,
     HWND_DESKTOP,
