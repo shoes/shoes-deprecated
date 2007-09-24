@@ -665,6 +665,47 @@ shoes_app_quartz_quit(const AppleEvent *appleEvt, AppleEvent* reply, long refcon
     shoes_app_keypress(app, v); \
   }
 
+static void
+shoes_canvas_win32_vscroll(shoes_canvas *canvas, int code, int pos)
+{
+  SCROLLINFO si;
+  SHOE_MEMZERO(&si, SCROLLINFO, 1);
+  si.cbSize = sizeof(SCROLLINFO);
+  si.fMask = SIF_POS | SIF_RANGE | SIF_PAGE;
+  GetScrollInfo(canvas->slot.window, SB_VERT, &si);
+
+  switch (code)
+  {
+    case SB_LINEUP:
+      si.nPos -= 16;
+    break;
+    case SB_LINEDOWN:
+      si.nPos += 16;
+    break;
+    case SB_PAGEUP:
+      si.nPos -= si.nPage - 32;
+    break;
+    case SB_PAGEDOWN:
+      si.nPos += si.nPage - 32;
+    break;
+    case SB_THUMBPOSITION:
+      si.nPos = pos;
+    break;
+    case SB_ENDSCROLL:
+      InvalidateRect(canvas->slot.window, NULL, TRUE);
+    default:
+      return;
+  }
+
+  if (si.nPos < 0)
+    si.nPos = 0;
+  else if (si.nPos > si.nMax)
+    si.nPos = si.nMax;
+
+  SetScrollInfo(canvas->slot.window, SB_VERT, &si, TRUE);
+  canvas->scrolly = si.nPos;
+}
+
 LRESULT CALLBACK
 shoes_app_win32proc(
   HWND win,
@@ -693,38 +734,66 @@ shoes_app_win32proc(
     break;
 
     case WM_LBUTTONDOWN:
+    {
+      shoes_canvas *canvas;
+      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       WM_POINTS();
-      shoes_app_click(app, 1, x, y);
+      shoes_app_click(app, 1, x, y + canvas->scrolly);
+    }
     break;
 
     case WM_RBUTTONDOWN:
+    {
+      shoes_canvas *canvas;
+      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       WM_POINTS();
-      shoes_app_click(app, 2, x, y);
+      shoes_app_click(app, 2, x, y + canvas->scrolly);
+    }
     break;
 
     case WM_MBUTTONDOWN:
+    {
+      shoes_canvas *canvas;
+      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       WM_POINTS();
-      shoes_app_click(app, 3, x, y);
+      shoes_app_click(app, 3, x, y + canvas->scrolly);
+    }
     break;
 
     case WM_LBUTTONUP:
+    {
+      shoes_canvas *canvas;
+      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       WM_POINTS();
-      shoes_app_release(app, 1, x, y);
+      shoes_app_release(app, 1, x, y + canvas->scrolly);
+    }
     break;
 
     case WM_RBUTTONUP:
+    {
+      shoes_canvas *canvas;
+      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       WM_POINTS();
-      shoes_app_release(app, 2, x, y);
+      shoes_app_release(app, 2, x, y + canvas->scrolly);
+    }
     break;
 
     case WM_MBUTTONUP:
+    {
+      shoes_canvas *canvas;
+      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       WM_POINTS();
-      shoes_app_release(app, 3, x, y);
+      shoes_app_release(app, 3, x, y + canvas->scrolly);
+    }
     break;
 
     case WM_MOUSEMOVE:
+    {
+      shoes_canvas *canvas;
+      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       WM_POINTS();
-      shoes_app_motion(app, x, y);
+      shoes_app_motion(app, x, y + canvas->scrolly);
+    }
     break;
 
     case WM_CHAR:
@@ -802,6 +871,14 @@ shoes_app_win32proc(
         app->os.altkey = false;
       else if (w == VK_SHIFT)
         app->os.shiftkey = false;
+    break;
+
+    case WM_VSCROLL:
+    {
+      shoes_canvas *canvas;
+      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+      shoes_canvas_win32_vscroll(canvas, LOWORD(w), HIWORD(w));
+    }
     break;
 
     case WM_TIMER:
@@ -1225,6 +1302,8 @@ shoes_app_visit(shoes_app *app, char *path)
   VALUE meth;
   VALUE ary = rb_ary_dup(app->timers);
   Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+
+  canvas->scrolly = 0;
 #ifndef SHOES_GTK
   rb_ary_clear(app->slot.controls);
 #endif

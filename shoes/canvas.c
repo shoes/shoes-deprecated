@@ -153,7 +153,7 @@ shoes_canvas_paint(VALUE self)
   width = canvas->width; height = canvas->height;
   HDC hdc = BeginPaint(canvas->slot.window, &paint_struct);
   canvas->slot.dc = CreateCompatibleDC(hdc);
-  bitmap = CreateCompatibleBitmap(hdc, width, height);
+  bitmap = CreateCompatibleBitmap(hdc, width, max(canvas->height, canvas->fully));
   SelectObject(canvas->slot.dc, bitmap);
   canvas->slot.surface = cairo_win32_surface_create(canvas->slot.dc);
 #endif
@@ -178,7 +178,7 @@ shoes_canvas_paint(VALUE self)
 #endif
 
 #ifdef SHOES_WIN32
-  BitBlt(hdc, 0, 0, width, height, canvas->slot.dc, 0, 0, SRCCOPY);
+  BitBlt(hdc, 0, 0, width, height, canvas->slot.dc, 0, canvas->scrolly, SRCCOPY);
   cairo_surface_destroy(canvas->slot.surface);
   EndPaint(canvas->slot.window, &paint_struct);
   DeleteObject(canvas->slot.dc);
@@ -988,7 +988,7 @@ shoes_canvas_draw(VALUE self, VALUE c)
   {
     shoes_place_decide(&self_t->place, self_t->parent, self_t->attr, self_t->width, self_t->height, REL_CANVAS);
     self_t->endx = self_t->cx = 0;
-    self_t->fully = self_t->scrolly = self_t->endy = self_t->cy = 0;
+    self_t->fully = self_t->endy = self_t->cy = 0;
     if (!NIL_P(self_t->parent))
     {
       shoes_canvas *pc;
@@ -1109,9 +1109,9 @@ shoes_canvas_draw(VALUE self, VALUE c)
     si.nMin = 0;
     si.nMax = canvas->fully; 
     si.nPage = canvas->height;
-    si.nPos = 0;
-    INFO("SetScrollInfo(nMin: %d, nMax: %d, nPage: %d)\n", 
-      si.nMin, si.nMax, si.nPage);
+    si.nPos = canvas->scrolly;
+    INFO("SetScrollInfo(%d, nMin: %d, nMax: %d, nPage: %d)\n", 
+      si.nPos, si.nMin, si.nMax, si.nPage);
     SetScrollInfo(canvas->slot.window, SB_VERT, &si, TRUE);
 #endif
   }
