@@ -77,6 +77,8 @@ task :build => :build_os do
          lib/libglib-2.0.0.dylib lib/libgobject-2.0.0.dylib lib/libpng12.0.dylib lib/libpango-1.0.0.dylib 
          lib/pango/1.6.0/modules/pango-basic-atsui.la lib/libpangocairo-1.0.0.dylib 
          lib/pango/1.6.0/modules/pango-basic-atsui.so etc/pango/pango.modules
+         lib/pango/1.6.0/modules/pango-arabic-lang.so lib/pango/1.6.0/modules/pango-arabic-lang.la
+         lib/pango/1.6.0/modules/pango-indic-lang.so lib/pango/1.6.0/modules/pango-indic-lang.la
          lib/libjpeg62.dylib lib/libungif.4.dylib].
       each do |libn|
         cp "#{ENV['SHOES_DEPS_PATH']}/#{libn}", "dist/"

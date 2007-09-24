@@ -1,11 +1,11 @@
 Shoes.app do
-  background rgb(140, 240, 210)
-  stack do
-    fill green
-    rect 10, 10, 50, 50
-    mask do
-      fill white(0.0)
-      rect 11, 11, 48, 48
-    end
+  20.times do |i|
+    strokewidth 4
+    stroke rgb((0.0..0.5).rand, (0.0..1.0).rand, (0.0..0.3).rand)
+    line 0, i * 4, 400, i * 4
+  end
+
+  mask do
+    text "<span font_desc='34px'>Shoes</span>"
   end
 end
