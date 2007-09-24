@@ -22,7 +22,7 @@ GTK_LIB = `pkg-config --libs gtk+-2.0`
 
 VERSION = 0.r${SVN_VERSION}
 CFLAGS = -DSHOES_GTK ${INCS} ${CAIRO_CFLAGS} ${PANGO_CFLAGS} ${GTK_CFLAGS} -I${RUBY_INCS}
-LDFLAGS = -fPIC -shared ${LIBS} ${CAIRO_LIB} ${PANGO_LIB} ${GTK_LIB} ${RUBY_LIBS}
+LDFLAGS = -fPIC ${LIBS} ${CAIRO_LIB} ${PANGO_LIB} ${GTK_LIB} ${RUBY_LIBS}
 
 all: options shoes
 
@@ -40,11 +40,11 @@ options:
 dist/libshoes.so: ${OBJ} 
 	@echo CC -o $@
 	@mkdir dist
-	@${CC} -o $@ ${OBJ} ${LDFLAGS}
+	@${CC} -o $@ ${OBJ} ${LDFLAGS} -shared
 
 dist/shoes-bin: dist/libshoes.so bin/main.o
 	@echo CC -o $@
-	@${CC} -o $@ ${LDFLAGS}
+	@${CC} -o $@ ${LDFLAGS} bin/main.o -Ldist -lshoes
 
 dist/shoes: dist/shoes-bin
 	@echo 'APPPATH="$${0%/*}"' > dist/shoes
