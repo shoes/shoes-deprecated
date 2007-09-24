@@ -1672,9 +1672,11 @@ shoes_control_mark(shoes_control *control)
 static void
 shoes_control_free(shoes_control *control)
 {
-#ifdef SHOES_GTK
-  gtk_widget_destroy(control->ref);
-#endif
+  //
+  // no need to free gtk widgets, since gtk seems
+  // to garbage collect them fine.  and memory
+  // addresses often get reused.
+  //
 #ifdef SHOES_QUARTZ
   DisposeControl(control->ref);
 #endif

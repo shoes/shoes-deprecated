@@ -231,6 +231,11 @@ shoes_canvas_mark(shoes_canvas *canvas)
   rb_gc_mark_maybe(canvas->fg);
   rb_gc_mark_maybe(canvas->bg);
   rb_gc_mark_maybe(canvas->contents);
+  rb_gc_mark_maybe(canvas->timers);
+  rb_gc_mark_maybe(canvas->click);
+  rb_gc_mark_maybe(canvas->release);
+  rb_gc_mark_maybe(canvas->motion);
+  rb_gc_mark_maybe(canvas->keypress);
   rb_gc_mark_maybe(canvas->attr);
   rb_gc_mark_maybe(canvas->parent);
 }
@@ -1414,7 +1419,7 @@ shoes_canvas_send_click(VALUE self, int button, int x, int y)
       shoes_app_goto(self_t->app, RSTRING_PTR(url));
     }
   }
-  return url;
+  return Qnil;
 }
 
 void

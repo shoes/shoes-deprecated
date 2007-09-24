@@ -75,13 +75,14 @@ shoes: dist/shoes
 clean:
 	@echo cleaning
 	@rm -rf dist
-	@rm -f ${OBJ} shoes-${VERSION}.tar.gz
+	@rm -f ${OBJ} bin/main.o shoes-${VERSION}.tar.gz
 
 dist: clean
 	@echo creating dist tarball
 	@mkdir -p shoes-${VERSION}
 	@cp -R COPYING Makefile README bin shoes samples static \
 		shoes-${VERSION}
+	@rm -f shoes-${VERSION}/bin/main.skel
 	@rm -rf shoes-${VERSION}/**/.svn
 	@tar -cf shoes-${VERSION}.tar shoes-${VERSION}
 	@gzip shoes-${VERSION}.tar
