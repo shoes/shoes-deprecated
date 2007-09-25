@@ -33,6 +33,17 @@ ts_each(VALUE *tmp)
   return rb_funcall2(tmp[0], (ID)tmp[1], (int)tmp[2], (VALUE *)tmp[3]);
 }
 
+VALUE
+ts_funcall2(VALUE obj, ID meth, int argc, VALUE *argv)
+{
+  VALUE tmp[4];
+  tmp[0] = obj;
+  tmp[1] = (VALUE)meth; 
+  tmp[2] = (VALUE)argc;
+  tmp[3] = (VALUE)argv;
+  return rb_iterate((VALUE(*)(VALUE))ts_each, (VALUE)tmp, CASTHOOK(rb_yield), 0);
+}
+
 long
 rb_ary_index_of(VALUE ary, VALUE val)
 {
@@ -1118,10 +1129,23 @@ shoes_color_to_pattern(VALUE self)
 }
 
 VALUE
-shoes_method_missing_color(int argc, VALUE *argv, VALUE self)
+shoes_app_method_missing(int argc, VALUE *argv, VALUE self)
 {
-  VALUE c, cname, alpha;
-  rb_scan_args(argc, argv, "11", &cname, &alpha);
+  shoes_app *app;
+  VALUE c, cname, alpha, canvas;
+
+  cname = argv[0];
+  Data_Get_Struct(self, shoes_app, app);
+
+  canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1);
+  if (!NIL_P(canvas) && rb_respond_to(canvas, SYM2ID(cname)))
+  {
+    return ts_funcall2(canvas, SYM2ID(cname), argc - 1, argv + 1);
+  }
+
+  //
+  // Create colors by name
+  //
   c = rb_hash_aref(cColors, cname);
   if (NIL_P(c))
   {
@@ -1130,6 +1154,7 @@ shoes_method_missing_color(int argc, VALUE *argv, VALUE self)
       rb_id2name(SYM2ID(cname)), RSTRING_PTR(self));
   }
 
+  rb_scan_args(argc, argv, "11", &cname, &alpha);
   if (!NIL_P(alpha))
   {
     shoes_color *color;
@@ -2543,7 +2568,7 @@ shoes_ruby_init()
   rb_define_method(cColor, "to_s", CASTHOOK(shoes_color_to_s), 0);
   rb_define_method(cColor, "to_pattern", CASTHOOK(shoes_color_to_pattern), 0);
 
-  rb_define_method(cApp, "method_missing", CASTHOOK(shoes_method_missing_color), -1);
+  rb_define_method(cApp, "method_missing", CASTHOOK(shoes_app_method_missing), -1);
 
   rb_const_set(cShoes, rb_intern("COLORS"), rb_hash_new());
   cColors = rb_const_get(cShoes, rb_intern("COLORS"));

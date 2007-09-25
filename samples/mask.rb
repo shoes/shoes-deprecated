@@ -6,6 +6,6 @@ Shoes.app do
   end
 
   mask do
-    text "<span font_desc='34px'>Shoes</span>"
+    title "Shoes"
   end
 end
