@@ -34,12 +34,12 @@ int
 shoes_snprintf(char* str, size_t size, const char* format, ...)
 {
   size_t count;
-  va_list ap;
+  va_list args;
 
-  va_start(ap, format);
-  count = _vscprintf(format, ap);
-  _vsnprintf_s(str, size, _TRUNCATE, format, ap);
-  va_end(ap);
+  va_start(args, format);
+  count = _vscprintf(format, args);
+  _vsnprintf(str, size, format, args);
+  va_end(args);
 
   return count;
 }
