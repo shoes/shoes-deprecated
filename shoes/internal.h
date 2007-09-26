@@ -19,6 +19,7 @@
 #ifdef SHOES_WIN32
 
 void odprintf(const char *format, ...);
+int shoes_snprintf(char* str, size_t size, const char* format, ...);
 #define DEBUGP odprintf 
 
 #ifdef DEBUG
@@ -33,6 +34,8 @@ void odprintf(const char *format, ...);
   goto quit
 
 #else
+
+#define shoes_snprintf snprintf
 
 #define DEBUGP printf
 #ifdef DEBUG

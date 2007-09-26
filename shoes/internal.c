@@ -29,4 +29,18 @@ void odprintf(const char *format, ...)
 
   OutputDebugString(buf);
 }
+
+int
+shoes_snprintf(char* str, size_t size, const char* format, ...)
+{
+  size_t count;
+  va_list ap;
+
+  va_start(ap, format);
+  count = _vscprintf(format, ap);
+  _vsnprintf_s(str, size, _TRUNCATE, format, ap);
+  va_end(ap);
+
+  return count;
+}
 #endif

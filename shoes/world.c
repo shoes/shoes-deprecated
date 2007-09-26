@@ -53,8 +53,10 @@ shoes_init()
 shoes_code
 shoes_load(char *path)
 {
-  char bootup[512];
-  sprintf(bootup,
+  shoes_code code = SHOES_OK;
+  char bootup[SHOES_BUFSIZE];
+  int len = shoes_snprintf(bootup,
+    SHOES_BUFSIZE,
     "begin;"
       "DIR = File.expand_path(File.dirname(%%q<%s>));"
       "$:.replace([DIR+'/ruby/lib/'+PLATFORM, DIR+'/ruby/lib', DIR+'/lib']);"
@@ -68,6 +70,12 @@ shoes_load(char *path)
       "e.message;"
     "end",
     path);
+
+  if (len < 0 || len >= SHOES_BUFSIZE)
+  {
+    QUIT("Path to script is too long.", 0);
+  }
+
   VALUE str = rb_eval_string(bootup);
   StringValue(str);
   INFO("Bootup: %s\n", RSTRING(str)->ptr);
@@ -86,7 +94,8 @@ shoes_load(char *path)
     "end;");
   rb_eval_string(bootup);
 
-  return SHOES_OK;
+quit:
+  return code;
 }
 
 shoes_code
