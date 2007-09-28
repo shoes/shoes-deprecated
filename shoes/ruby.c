@@ -9,7 +9,7 @@
 #include "shoes/internal.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cTextClass, cStrong, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
+VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cTextClass, cStrong, cCode, cEm, cIns, cLinkText, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 ID s_aref, s_perc, s_bind, s_new, s_run, s_to_pattern, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
@@ -1431,10 +1431,132 @@ shoes_textblock_click(VALUE self, int button, int x, int y)
 // this is a secret structure that i got to name all by myself
 //
 typedef struct {
+  shoes_app *app;
   PangoAttrList *attr;
   GString *text;
   gsize len;
 } shoes_kxxxx;
+
+#define APPLY_ATTR() \
+  if (attr != NULL) { \
+    attr->start_index = start_index; \
+    attr->end_index = end_index; \
+    pango_attr_list_change(k->attr, attr); \
+    attr = NULL; \
+  }
+
+#define GET_STYLE(name) \
+  str = Qnil; \
+  if (!NIL_P(oattr)) str = rb_hash_aref(oattr, ID2SYM(rb_intern("" # name))); \
+  if (NIL_P(str)) str = rb_hash_aref(hsh, ID2SYM(rb_intern("" # name)))
+
+static void
+shoes_app_style_for(shoes_kxxxx *k, VALUE obj, VALUE oattr, gsize start_index, gsize end_index)
+{
+  VALUE str;
+  VALUE hsh = rb_hash_aref(k->app->styles, rb_obj_class(obj));
+  if (NIL_P(hsh)) return;
+
+  PangoAttrList *list = pango_attr_list_new();
+  PangoAttribute *attr = NULL;
+
+  GET_STYLE(stroke);
+  if (!NIL_P(str))
+  {
+    if (TYPE(str) == T_STRING)
+      str = shoes_color_parse(cColor, str);
+    if (rb_obj_is_kind_of(str, cColor))
+    {
+      shoes_color *color;
+      Data_Get_Struct(str, shoes_color, color);
+      attr = pango_attr_foreground_new(color->r * 255, color->g * 255, color-> b * 255);
+    }
+    APPLY_ATTR();
+  }
+
+  GET_STYLE(font);
+  if (!NIL_P(str))
+  {
+    if (TYPE(str) == T_STRING)
+    {
+      attr = pango_attr_font_desc_new(pango_font_description_from_string(RSTRING_PTR(str)));
+    }
+    APPLY_ATTR();
+  }
+
+  GET_STYLE(font_family);
+  if (!NIL_P(str))
+  {
+    if (TYPE(str) == T_STRING)
+    {
+      attr = pango_attr_family_new(RSTRING_PTR(str));
+    }
+    APPLY_ATTR();
+  }
+
+  GET_STYLE(font_weight);
+  if (!NIL_P(str))
+  {
+    if (TYPE(str) == T_STRING)
+    {
+      if (strncmp(RSTRING_PTR(str), "ultralight", 10) == 0)
+        attr = pango_attr_weight_new(PANGO_WEIGHT_ULTRALIGHT);
+      else if (strncmp(RSTRING_PTR(str), "light", 5) == 0)
+        attr = pango_attr_weight_new(PANGO_WEIGHT_LIGHT);
+      else if (strncmp(RSTRING_PTR(str), "normal", 6) == 0)
+        attr = pango_attr_weight_new(PANGO_WEIGHT_NORMAL);
+      else if (strncmp(RSTRING_PTR(str), "semibold", 8) == 0)
+        attr = pango_attr_weight_new(PANGO_WEIGHT_SEMIBOLD);
+      else if (strncmp(RSTRING_PTR(str), "bold", 4) == 0)
+        attr = pango_attr_weight_new(PANGO_WEIGHT_BOLD);
+      else if (strncmp(RSTRING_PTR(str), "ultrabold", 9) == 0)
+        attr = pango_attr_weight_new(PANGO_WEIGHT_ULTRABOLD);
+      else if (strncmp(RSTRING_PTR(str), "heavy", 5) == 0)
+        attr = pango_attr_weight_new(PANGO_WEIGHT_HEAVY);
+    }
+    else if (TYPE(str) == T_FIXNUM)
+    {
+      int i = NUM2INT(str);
+      if (i >= 100 && i <= 900)
+        attr = pango_attr_weight_new(i);
+    }
+    APPLY_ATTR();
+  }
+
+  GET_STYLE(font_style);
+  if (!NIL_P(str))
+  {
+    if (TYPE(str) == T_STRING)
+    {
+      if (strncmp(RSTRING_PTR(str), "normal", 6) == 0)
+        attr = pango_attr_style_new(PANGO_STYLE_NORMAL);
+      else if (strncmp(RSTRING_PTR(str), "oblique", 7) == 0)
+        attr = pango_attr_style_new(PANGO_STYLE_OBLIQUE);
+      else if (strncmp(RSTRING_PTR(str), "italic", 6) == 0)
+        attr = pango_attr_style_new(PANGO_STYLE_ITALIC);
+    }
+    APPLY_ATTR();
+  }
+
+  GET_STYLE(font_underline);
+  if (!NIL_P(str))
+  {
+    if (TYPE(str) == T_STRING)
+    {
+      if (strncmp(RSTRING_PTR(str), "none", 6) == 0)
+        attr = pango_attr_underline_new(PANGO_UNDERLINE_NONE);
+      else if (strncmp(RSTRING_PTR(str), "single", 6) == 0)
+        attr = pango_attr_underline_new(PANGO_UNDERLINE_SINGLE);
+      else if (strncmp(RSTRING_PTR(str), "double", 6) == 0)
+        attr = pango_attr_underline_new(PANGO_UNDERLINE_DOUBLE);
+      else if (strncmp(RSTRING_PTR(str), "low", 3) == 0)
+        attr = pango_attr_underline_new(PANGO_UNDERLINE_LOW);
+      else if (strncmp(RSTRING_PTR(str), "error", 5) == 0)
+        attr = pango_attr_underline_new(PANGO_UNDERLINE_ERROR);
+    }
+    APPLY_ATTR();
+  }
+}
 
 static void
 shoes_textblock_iter_pango(VALUE texts, shoes_kxxxx *k)
@@ -1450,14 +1572,13 @@ shoes_textblock_iter_pango(VALUE texts, shoes_kxxxx *k)
     v = rb_ary_entry(texts, i);
     if (rb_obj_is_kind_of(v, cTextClass))
     {
-      PangoAttribute *attr;
-      attr = pango_attr_weight_new(PANGO_WEIGHT_BOLD);
-      attr->start_index = k->len;
+      gsize start;
       shoes_text *text;
       Data_Get_Struct(v, shoes_text, text);
+
+      start = k->len;
       shoes_textblock_iter_pango(text->texts, k);
-      attr->end_index = k->len;
-      pango_attr_list_change(k->attr, attr);
+      shoes_app_style_for(k, v, text->attr, start, k->len);
     }
     else
     {
@@ -1469,12 +1590,13 @@ shoes_textblock_iter_pango(VALUE texts, shoes_kxxxx *k)
 }
 
 static void
-shoes_textblock_make_pango(shoes_textblock *block, PangoAttrList **attr_list, char **text)
+shoes_textblock_make_pango(shoes_app *app, shoes_textblock *block, PangoAttrList **attr_list, char **text)
 {
   shoes_kxxxx *k = SHOE_ALLOC(shoes_kxxxx);
   k->attr = pango_attr_list_new();
   k->text = g_string_new(NULL);
   k->len = 0;
+  k->app = app;
 
   shoes_textblock_iter_pango(block->texts, k);
 
@@ -1484,7 +1606,7 @@ shoes_textblock_make_pango(shoes_textblock *block, PangoAttrList **attr_list, ch
 }
 
 static void
-shoes_textblock_on_layout(shoes_textblock *block)
+shoes_textblock_on_layout(shoes_app *app, shoes_textblock *block)
 {
   PangoAttrList *list = NULL;
   char *text = NULL;
@@ -1492,7 +1614,7 @@ shoes_textblock_on_layout(shoes_textblock *block)
   g_return_if_fail(PANGO_IS_LAYOUT(block->layout));
   g_return_if_fail(block != NULL);
   
-  shoes_textblock_make_pango(block, &list, &text);
+  shoes_textblock_make_pango(app, block, &list, &text);
   block->string = rb_str_new2(text);
   pango_layout_set_text(block->layout, text, -1);
   pango_layout_set_attributes(block->layout, list);
@@ -1552,7 +1674,7 @@ shoes_textblock_draw(VALUE self, VALUE c)
   cairo_set_source_rgb(canvas->cr, 0., 0., 0.);
   INFO("TEXT: %d, %d (%d, %d) / %d, %d / %d, %d [%d]\n", canvas->cx, canvas->cy,
     canvas->place.w, canvas->height, self_t->place.x, self_t->place.y, self_t->place.w, self_t->place.h, pd);
-  shoes_textblock_on_layout(self_t);
+  shoes_textblock_on_layout(canvas->app, self_t);
   pango_layout_set_width(self_t->layout, self_t->place.w * PANGO_SCALE);
   desc = pango_font_description_from_string(font);
   pango_layout_set_font_description(self_t->layout, desc);
@@ -2467,7 +2589,11 @@ shoes_ruby_init()
 
   cTextClass = rb_define_class_under(cShoes, "Text", rb_cObject);
   rb_define_alloc_func(cTextClass, shoes_text_alloc);
-  cStrong = rb_define_class_under(cShoes, "Strong", cTextClass);
+  cCode      = rb_define_class_under(cShoes, "Code", cTextClass);
+  cEm        = rb_define_class_under(cShoes, "Em", cTextClass);
+  cLinkText  = rb_define_class_under(cShoes, "LinkText", cTextClass);
+  cIns       = rb_define_class_under(cShoes, "Ins", cTextClass);
+  cStrong    = rb_define_class_under(cShoes, "Strong", cTextClass);
 
   cNative  = rb_define_class_under(cShoes, "Native", rb_cObject);
   rb_define_alloc_func(cNative, shoes_control_alloc);

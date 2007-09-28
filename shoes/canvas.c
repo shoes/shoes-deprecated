@@ -567,6 +567,10 @@ shoes_canvas_star(int argc, VALUE *argv, VALUE self)
   }
 
 MARKUP_DEF(para, BLOCK, cPara);
+MARKUP_DEF(code, INLINE, cCode);
+MARKUP_DEF(em, INLINE, cEm);
+MARKUP_DEF(ins, INLINE, cIns);
+MARKUP_DEF(link, INLINE, cLinkText);
 MARKUP_DEF(strong, INLINE, cStrong);
 
 VALUE

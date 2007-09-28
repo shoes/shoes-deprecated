@@ -33,6 +33,7 @@ typedef struct _shoes_app {
   VALUE canvas;
   VALUE nesting;
   VALUE timers;
+  VALUE styles;
   ID cursor;
   VALUE title;
 } shoes_app;
@@ -55,6 +56,7 @@ shoes_code shoes_app_keypress(shoes_app *, VALUE);
 shoes_code shoes_app_close(shoes_app *);
 shoes_code shoes_app_goto(shoes_app *, char *);
 shoes_code shoes_slot_repaint(SHOES_SLOT_OS *);
+void shoes_app_reset_styles(shoes_app *);
 VALUE shoes_app_quit(VALUE);
 
 #endif

@@ -18,6 +18,7 @@ shoes_app_mark(shoes_app *app)
   rb_gc_mark_maybe(app->canvas);
   rb_gc_mark_maybe(app->nesting);
   rb_gc_mark_maybe(app->timers);
+  rb_gc_mark_maybe(app->styles);
 }
 
 static void
@@ -34,6 +35,7 @@ shoes_app_alloc(VALUE klass)
   app->canvas = shoes_canvas_new(cShoes, app);
   app->nesting = rb_ary_new();
   app->timers = rb_ary_new();
+  app->styles = Qnil;
   app->title = Qnil;
   app->width = SHOES_APP_WIDTH;
   app->height = SHOES_APP_HEIGHT;
@@ -1315,6 +1317,7 @@ shoes_app_visit(shoes_app *app, char *path)
   }
 
   shoes_canvas_clear(app->canvas);
+  shoes_app_reset_styles(app);
   meth = rb_funcall(cShoes, s_run, 1, rb_str_new2(path));
   exec.app = app;
   exec.block = rb_ary_entry(meth, 0);
@@ -1400,6 +1403,31 @@ shoes_slot_repaint(SHOES_SLOT_OS *slot)
   UpdateWindow(slot->window);
 #endif
   return SHOES_OK;
+}
+
+static void
+shoes_style_set(VALUE styles, VALUE klass, VALUE k, VALUE v)
+{
+  VALUE hsh = rb_hash_aref(styles, klass);
+  if (NIL_P(hsh))
+    rb_hash_aset(styles, klass, hsh = rb_hash_new());
+  rb_hash_aset(hsh, k, v);
+}
+
+#define STYLE(klass, k, v) \
+  shoes_style_set(app->styles, klass, \
+    ID2SYM(rb_intern("" # k)), rb_str_new2("" # v))
+
+void
+shoes_app_reset_styles(shoes_app *app)
+{
+  app->styles = rb_hash_new();
+  STYLE(cEm,       font_style, italic);
+  STYLE(cCode,     font_family, monospace);
+  STYLE(cIns,      font_underline, single);
+  STYLE(cLinkText, font_underline, single);
+  STYLE(cLinkText, stroke, #0066EE);
+  STYLE(cStrong,   font_weight, bold);
 }
 
 VALUE
