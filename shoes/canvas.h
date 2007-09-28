@@ -195,6 +195,7 @@ VALUE shoes_canvas_line(VALUE, VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_canvas_arrow(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_canvas_star(int, VALUE *, VALUE);
 VALUE shoes_canvas_para(int argc, VALUE *argv, VALUE self);
+VALUE shoes_canvas_strong(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_background(int, VALUE *, VALUE);
 VALUE shoes_canvas_border(int, VALUE *, VALUE);
 VALUE shoes_canvas_image(int, VALUE *, VALUE);

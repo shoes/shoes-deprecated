@@ -9,7 +9,7 @@
 #include "shoes/internal.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cPattern, cBorder, cBackground, cTextBlock, cTextClass, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cPara, cLink;
+VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cTextClass, cStrong, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 ID s_aref, s_perc, s_bind, s_new, s_run, s_to_pattern, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
@@ -1437,19 +1437,27 @@ typedef struct {
 } shoes_kxxxx;
 
 static void
-shoes_textblock_iter_pango(shoes_textblock *block, shoes_kxxxx *k)
+shoes_textblock_iter_pango(VALUE texts, shoes_kxxxx *k)
 {
   VALUE v;
   long i;
 
-  if (NIL_P(block->texts))
+  if (NIL_P(texts))
     return;
 
-  for (i = 0; i < RARRAY_LEN(block->texts); i++)
+  for (i = 0; i < RARRAY_LEN(texts); i++)
   {
-    v = rb_ary_entry(block->texts, i);
+    v = rb_ary_entry(texts, i);
     if (rb_obj_is_kind_of(v, cTextClass))
     {
+      PangoAttribute *attr;
+      attr = pango_attr_weight_new(PANGO_WEIGHT_BOLD);
+      attr->start_index = k->len;
+      shoes_text *text;
+      Data_Get_Struct(v, shoes_text, text);
+      shoes_textblock_iter_pango(text->texts, k);
+      attr->end_index = k->len;
+      pango_attr_list_change(k->attr, attr);
     }
     else
     {
@@ -1468,7 +1476,7 @@ shoes_textblock_make_pango(shoes_textblock *block, PangoAttrList **attr_list, ch
   k->text = g_string_new(NULL);
   k->len = 0;
 
-  shoes_textblock_iter_pango(block, k);
+  shoes_textblock_iter_pango(block->texts, k);
 
   *attr_list = k->attr;
   *text = g_string_free(k->text, FALSE);
@@ -2459,6 +2467,7 @@ shoes_ruby_init()
 
   cTextClass = rb_define_class_under(cShoes, "Text", rb_cObject);
   rb_define_alloc_func(cTextClass, shoes_text_alloc);
+  cStrong = rb_define_class_under(cShoes, "Strong", cTextClass);
 
   cNative  = rb_define_class_under(cShoes, "Native", rb_cObject);
   rb_define_alloc_func(cNative, shoes_control_alloc);

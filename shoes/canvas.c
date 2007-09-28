@@ -539,27 +539,35 @@ shoes_canvas_star(int argc, VALUE *argv, VALUE self)
   return shoes_canvas_shape_end(self, INT2NUM(x), INT2NUM(y), (int)outer, (int)outer);
 }
 
-VALUE
-shoes_canvas_para(int argc, VALUE *argv, VALUE self)
-{
-  long i;
-  VALUE msgs, attr, text;
-  SETUP();
+#define MARKUP_BLOCK(klass) \
+  text = shoes_textblock_new(klass, msgs, attr, self); \
+  rb_ary_push(canvas->contents, text)
 
-  msgs = rb_ary_new();
-  attr = Qnil;
-  for (i = 0; i < argc; i++)
-  {
-    if (rb_obj_is_kind_of(argv[i], rb_cHash))
-      attr = argv[i];
-    else
-      rb_ary_push(msgs, argv[i]);
+#define MARKUP_INLINE(klass) \
+  text = shoes_text_new(klass, msgs, attr)
+
+#define MARKUP_DEF(mname, fname, klass) \
+  VALUE \
+  shoes_canvas_##mname(int argc, VALUE *argv, VALUE self) \
+  { \
+    long i; \
+    VALUE msgs, attr, text; \
+    SETUP(); \
+    msgs = rb_ary_new(); \
+    attr = Qnil; \
+    for (i = 0; i < argc; i++) \
+    { \
+      if (rb_obj_is_kind_of(argv[i], rb_cHash)) \
+        attr = argv[i]; \
+      else \
+        rb_ary_push(msgs, argv[i]); \
+    } \
+    MARKUP_##fname(klass); \
+    return text; \
   }
 
-  text = shoes_textblock_new(cPara, msgs, attr, self);
-  rb_ary_push(canvas->contents, text);
-  return text;
-}
+MARKUP_DEF(para, BLOCK, cPara);
+MARKUP_DEF(strong, INLINE, cStrong);
 
 VALUE
 shoes_canvas_imagesize(VALUE self, VALUE _path)
