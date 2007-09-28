@@ -137,15 +137,3 @@ class Shoes
     Shoes.mount(path, [self, meth])
   end
 end
-
-class Canvas
-  def title str
-    text "<span font_desc='34px'>#{str}</span>"
-  end
-  def subtitle str
-    text "<span font_desc='26px'>#{str}</span>"
-  end
-  def smalltitle str
-    text "<span font_desc='18px'>#{str}</span>"
-  end
-end

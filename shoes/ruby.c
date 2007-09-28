@@ -9,7 +9,7 @@
 #include "shoes/internal.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cPattern, cBorder, cBackground, cTextBlock, cTextClass, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
+VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cPattern, cBorder, cBackground, cTextBlock, cTextClass, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cPara, cLink;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 ID s_aref, s_perc, s_bind, s_new, s_run, s_to_pattern, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
@@ -1216,6 +1216,46 @@ shoes_link_at(VALUE self, int index)
 }
 
 //
+// Shoes::Text
+//
+static void
+shoes_text_mark(shoes_text *text)
+{
+  rb_gc_mark_maybe(text->texts);
+  rb_gc_mark_maybe(text->attr);
+}
+
+static void
+shoes_text_free(shoes_text *text)
+{
+  free(text);
+}
+
+VALUE
+shoes_text_new(VALUE klass, VALUE texts, VALUE attr)
+{
+  shoes_text *text;
+  VALUE obj = shoes_text_alloc(klass);
+  Data_Get_Struct(obj, shoes_text, text);
+  //
+  // TODO: check that all texts are String or descended from Shoes::Text
+  //
+  text->texts = texts;
+  text->attr = attr;
+  return obj;
+}
+
+VALUE
+shoes_text_alloc(VALUE klass)
+{
+  shoes_text *text;
+  VALUE obj = Data_Make_Struct(klass, shoes_text, shoes_text_mark, shoes_text_free, text);
+  text->texts = Qnil;
+  text->attr = Qnil;
+  return obj;
+}
+
+//
 // Shoes::TextBlock
 //
 static void
@@ -1246,10 +1286,10 @@ shoes_textblock_free(shoes_textblock *text)
   }
 
 VALUE
-shoes_textblock_new(VALUE texts, VALUE attr, VALUE parent)
+shoes_textblock_new(VALUE klass, VALUE texts, VALUE attr, VALUE parent)
 {
   shoes_textblock *text;
-  VALUE obj = shoes_textblock_alloc(cTextBlock);
+  VALUE obj = shoes_textblock_alloc(klass);
   Data_Get_Struct(obj, shoes_textblock, text);
   //
   // TODO: check that all texts are String or descended from Shoes::Text
@@ -1298,6 +1338,26 @@ shoes_textblock_remove(VALUE self)
   shoes_textblock *self_t;
   Data_Get_Struct(self, shoes_textblock, self_t);
   shoes_canvas_remove_item(self_t->parent, self);
+  return self;
+}
+
+VALUE
+shoes_textblock_string(VALUE self)
+{
+  shoes_textblock *self_t;
+  Data_Get_Struct(self, shoes_textblock, self_t);
+  return self_t->string;
+}
+
+VALUE
+shoes_textblock_replace(int argc, VALUE *argv, VALUE self)
+{
+  VALUE texts;
+  shoes_textblock *self_t;
+  Data_Get_Struct(self, shoes_textblock, self_t);
+  rb_scan_args(argc, argv, "*", &texts);
+  self_t->texts = texts;
+  shoes_canvas_repaint_all(self_t->parent);
   return self;
 }
 
@@ -2393,11 +2453,12 @@ shoes_ruby_init()
   rb_define_method(cTextBlock, "cursor=", CASTHOOK(shoes_textblock_set_cursor), 1);
   rb_define_method(cTextBlock, "cursor", CASTHOOK(shoes_textblock_get_cursor), 0);
   rb_define_method(cTextBlock, "remove", CASTHOOK(shoes_textblock_remove), 0);
-  // rb_define_method(cTextBlock, "to_s", CASTHOOK(shoes_textblock_get_markup), 0);
-  // rb_define_method(cTextBlock, "replace", CASTHOOK(shoes_textblock_set_markup), 1);
+  rb_define_method(cTextBlock, "to_s", CASTHOOK(shoes_textblock_string), 0);
+  rb_define_method(cTextBlock, "replace", CASTHOOK(shoes_textblock_replace), -1);
+  cPara = rb_define_class_under(cShoes, "Para", cTextBlock);
 
   cTextClass = rb_define_class_under(cShoes, "Text", rb_cObject);
-  // rb_define_alloc_func(cTextClass, shoes_text_alloc);
+  rb_define_alloc_func(cTextClass, shoes_text_alloc);
 
   cNative  = rb_define_class_under(cShoes, "Native", rb_cObject);
   rb_define_alloc_func(cNative, shoes_control_alloc);

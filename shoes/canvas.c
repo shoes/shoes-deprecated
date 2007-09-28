@@ -547,10 +547,16 @@ shoes_canvas_para(int argc, VALUE *argv, VALUE self)
   SETUP();
 
   msgs = rb_ary_new();
-  attr = rb_hash_new();
+  attr = Qnil;
   for (i = 0; i < argc; i++)
-    rb_ary_push(msgs, argv[i]);
-  text = shoes_textblock_new(msgs, attr, self);
+  {
+    if (rb_obj_is_kind_of(argv[i], rb_cHash))
+      attr = argv[i];
+    else
+      rb_ary_push(msgs, argv[i]);
+  }
+
+  text = shoes_textblock_new(cPara, msgs, attr, self);
   rb_ary_push(canvas->contents, text);
   return text;
 }

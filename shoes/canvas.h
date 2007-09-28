@@ -312,8 +312,10 @@ VALUE shoes_color_gradient(VALUE, VALUE, VALUE);
 
 VALUE shoes_link_new(VALUE, int, int);
 VALUE shoes_link_alloc(VALUE);
+VALUE shoes_text_new(VALUE, VALUE, VALUE);
+VALUE shoes_text_alloc(VALUE);
 
-VALUE shoes_textblock_new(VALUE, VALUE, VALUE);
+VALUE shoes_textblock_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_textblock_alloc(VALUE);
 VALUE shoes_textblock_remove(VALUE);
 VALUE shoes_textblock_set_cursor(VALUE, VALUE);
