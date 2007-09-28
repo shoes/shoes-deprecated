@@ -1387,7 +1387,7 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y)
       {
         v = shoes_canvas_send_click(ele, button, x, y);
       }
-      else if (rb_obj_is_kind_of(ele, cTextClass))
+      else if (rb_obj_is_kind_of(ele, cTextBlock))
       {
         v = shoes_textblock_click(ele, button, x, y);
       }
@@ -1483,7 +1483,7 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
       {
         url = shoes_canvas_send_motion(ele, x, y, url);
       }
-      else if (rb_obj_is_kind_of(ele, cTextClass))
+      else if (rb_obj_is_kind_of(ele, cTextBlock))
       {
         if (NIL_P(url))
           url = shoes_textblock_motion(ele, x, y);

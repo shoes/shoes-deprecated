@@ -1285,14 +1285,6 @@ shoes_textblock_free(shoes_textblock *text)
   free(text);
 }
 
-#define ADD_LINK() \
-  if (self_t->linki >= 0) \
-  { \
-    rb_ary_push(self_t->links, shoes_link_new(self_t->linku, self_t->linki, self_t->i - 1)); \
-    self_t->linku = Qnil; \
-    self_t->linki = -1; \
-  }
-
 VALUE
 shoes_textblock_new(VALUE klass, VALUE texts, VALUE attr, VALUE parent)
 {
@@ -1464,6 +1456,7 @@ typedef struct {
   PangoAttrList *attr;
   GString *text;
   gsize len;
+  VALUE links;
 } shoes_kxxxx;
 
 #define APPLY_ATTR() \
@@ -1635,6 +1628,12 @@ shoes_textblock_iter_pango(VALUE texts, shoes_kxxxx *k)
       start = k->len;
       shoes_textblock_iter_pango(text->texts, k);
       shoes_app_style_for(k, rb_obj_class(v), text->attr, start, k->len);
+      if (rb_obj_is_kind_of(v, cLinkText) && !NIL_P(text->attr))
+      {
+        VALUE url = rb_hash_aref(text->attr, ID2SYM(rb_intern("url")));
+        if (!NIL_P(url))
+          rb_ary_push(k->links, shoes_link_new(url, start, k->len));
+      }
     }
     else
     {
@@ -1653,6 +1652,7 @@ shoes_textblock_make_pango(shoes_app *app, VALUE klass, shoes_textblock *block, 
   k->text = g_string_new(NULL);
   k->len = 0;
   k->app = app;
+  block->links = k->links = rb_ary_new();
 
   shoes_textblock_iter_pango(block->texts, k);
   shoes_app_style_for(k, klass, block->attr, 0, k->len);
