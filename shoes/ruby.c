@@ -9,7 +9,7 @@
 #include "shoes/internal.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cPattern, cBorder, cBackground, cLinkText, cTextClass, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
+VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cPattern, cBorder, cBackground, cTextBlock, cTextClass, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 ID s_aref, s_perc, s_bind, s_new, s_run, s_to_pattern, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
@@ -1216,111 +1216,25 @@ shoes_link_at(VALUE self, int index)
 }
 
 //
-// Shoes::Text
+// Shoes::TextBlock
 //
 static void
-shoes_text_mark(shoes_text *text)
+shoes_textblock_mark(shoes_textblock *text)
 {
-  rb_gc_mark_maybe(text->markup);
   rb_gc_mark_maybe(text->string);
+  rb_gc_mark_maybe(text->texts);
   rb_gc_mark_maybe(text->links);
-  rb_gc_mark_maybe(text->parent);
   rb_gc_mark_maybe(text->attr);
-  rb_gc_mark_maybe(text->linku);
+  rb_gc_mark_maybe(text->parent);
+  rb_gc_mark_maybe(text->cursor);
 }
 
 static void
-shoes_text_free(shoes_text *text)
+shoes_textblock_free(shoes_textblock *text)
 {
-  if (text->layout == NULL)
+  if (text->layout != NULL)
     g_object_unref(text->layout);
   free(text);
-}
-
-static void
-start_element_handler(GMarkupParseContext *context,
-					  const gchar *element_name,
-					  const gchar **attribute_names,
-					  const gchar **attribute_values,
-					  gpointer user_data,
-					  GError **error)
-{
-  shoes_text *self_t = (shoes_text *)user_data;
-
-	if (!strcmp(element_name, "a"))
-	{
-		const gchar *url = NULL;
-		int line_number;
-		int char_number;
-		int i;
-
-		g_markup_parse_context_get_position(context, &line_number,
-											&char_number);
-
-		for (i = 0; attribute_names[i] != NULL; i++)
-		{
-			const gchar *attr = attribute_names[i];
-
-			if (!strcmp(attr, "href"))
-			{
-				if (url != NULL)
-				{
-					g_set_error(error, G_MARKUP_ERROR,
-								G_MARKUP_ERROR_INVALID_CONTENT,
-								"Attribute '%s' occurs twice on <a> tag "
-								"on line %d char %d, may only occur once",
-								attribute_names[i], line_number, char_number);
-					return;
-				}
-
-				url = attribute_values[i];
-			}
-			else
-			{
-				g_set_error(error, G_MARKUP_ERROR,
-							G_MARKUP_ERROR_UNKNOWN_ATTRIBUTE,
-							"Attribute '%s' is not allowed on the <a> tag "
-							"on line %d char %d",
-							attribute_names[i], line_number, char_number);
-				return;
-			}
-		}
-
-		if (url == NULL)
-		{
-			g_set_error(error, G_MARKUP_ERROR,
-						G_MARKUP_ERROR_INVALID_CONTENT,
-						"Attribute 'href' was missing on the <a> tag "
-						"on line %d char %d",
-						line_number, char_number);
-			return;
-		}
-
-		g_string_append(self_t->tmp,
-						"<span color=\"blue\" underline=\"single\">");
-
-    self_t->linku = rb_str_new2(url);
-    self_t->linki = self_t->i;
-	}
-	else
-	{
-		int i;
-
-		g_string_append_printf(self_t->tmp,
-							   "<%s", element_name);
-
-		for (i = 0; attribute_names[i] != NULL; i++)
-		{
-			const gchar *attr  = attribute_names[i];
-			const gchar *value = attribute_values[i];
-
-			g_string_append_printf(self_t->tmp,
-								   " %s=\"%s\"",
-								   attr, value);
-		}
-
-		g_string_append_c(self_t->tmp, '>');
-	}
 }
 
 #define ADD_LINK() \
@@ -1331,113 +1245,28 @@ start_element_handler(GMarkupParseContext *context,
     self_t->linki = -1; \
   }
 
-static void
-end_element_handler(GMarkupParseContext *context,
-					const gchar *element_name,
-					gpointer user_data,
-					GError **error)
-{
-  shoes_text *self_t = (shoes_text *)user_data;
-
-	if (!strcmp(element_name, "a"))
-	{
-    ADD_LINK();
-		g_string_append(self_t->tmp, "</span>");
-	}
-	else
-	{
-		g_string_append_printf(self_t->tmp,
-							   "</%s>", element_name);
-	}
-}
-
-static void
-text_handler(GMarkupParseContext *context,
-			 const gchar *text,
-			 gsize text_len,
-			 gpointer user_data,
-			 GError **error)
-{
-  shoes_text *self_t = (shoes_text *)user_data;
-  self_t->i += text_len;
-	gchar *newtext = g_markup_escape_text(text, text_len);
-	g_string_append_len(self_t->tmp, newtext, strlen (newtext));
-	g_free (newtext);
-}
-
-static const GMarkupParser markup_parser =
-{
-  start_element_handler,
-  end_element_handler,
-  text_handler,
-  NULL,
-  NULL
-};
-
 VALUE
-shoes_text_parse(VALUE self, VALUE markup)
+shoes_textblock_new(VALUE texts, VALUE attr, VALUE parent)
 {
-  shoes_text *self_t;
-  GMarkupParseContext *context = NULL;
-  GError *error = NULL;
-  const gchar *start;
-  gsize len;
-  VALUE str = rb_str_new2("<span rise='10240' color='#333'>");
-  rb_str_append(str, rb_String(markup));
-  rb_str_cat2(str, "</span>");
-
-  Data_Get_Struct(self, shoes_text, self_t);
-  start = RSTRING_PTR(str);
-  len = RSTRING_LEN(str);
-
-  self_t->string = markup;
-  self_t->tmp = g_string_new(NULL);
-  self_t->links = rb_ary_new();
-  self_t->i = 0;
-
-  context = g_markup_parse_context_new(&markup_parser, (GMarkupParseFlags)0, self_t, NULL);
-  if (g_markup_parse_context_parse(context, start, len, &error) &&
-      g_markup_parse_context_end_parse(context, &error))
-  {
-    self_t->markup = rb_str_new2(g_string_free(self_t->tmp, FALSE));
-  }
-  else
-  {
-    g_string_free(self_t->tmp, TRUE);
-  }
-
-  ADD_LINK();
-
-  self_t->tmp = NULL;
-  if (error != NULL)
-    g_error_free(error);
-
-  g_markup_parse_context_free(context);
-
-  return Qtrue;
-}
-
-VALUE
-shoes_text_new(VALUE markup, VALUE attr, VALUE parent)
-{
-  shoes_text *text;
-  VALUE obj = shoes_text_alloc(cTextClass);
-  Data_Get_Struct(obj, shoes_text, text);
+  shoes_textblock *text;
+  VALUE obj = shoes_textblock_alloc(cTextBlock);
+  Data_Get_Struct(obj, shoes_textblock, text);
+  //
+  // TODO: check that all texts are String or descended from Shoes::Text
+  //
+  text->texts = texts;
   text->attr = attr;
   text->parent = parent;
-  text->linku = Qnil;
-  text->linki = -1;
-  shoes_text_parse(obj, markup);
   return obj;
 }
 
 VALUE
-shoes_text_alloc(VALUE klass)
+shoes_textblock_alloc(VALUE klass)
 {
-  shoes_text *text;
-  VALUE obj = Data_Make_Struct(klass, shoes_text, shoes_text_mark, shoes_text_free, text);
-  text->markup = Qnil;
+  shoes_textblock *text;
+  VALUE obj = Data_Make_Struct(klass, shoes_textblock, shoes_textblock_mark, shoes_textblock_free, text);
   text->string = Qnil;
+  text->texts = Qnil;
   text->links = Qnil;
   text->attr = Qnil;
   text->parent = Qnil;
@@ -1447,55 +1276,37 @@ shoes_text_alloc(VALUE klass)
 }
 
 VALUE
-shoes_text_set_cursor(VALUE self, VALUE pos)
+shoes_textblock_set_cursor(VALUE self, VALUE pos)
 {
-  shoes_text *self_t;
-  Data_Get_Struct(self, shoes_text, self_t);
+  shoes_textblock *self_t;
+  Data_Get_Struct(self, shoes_textblock, self_t);
   self_t->cursor = pos;
   return pos;
 }
 
 VALUE
-shoes_text_get_cursor(VALUE self)
+shoes_textblock_get_cursor(VALUE self)
 {
-  shoes_text *self_t;
-  Data_Get_Struct(self, shoes_text, self_t);
+  shoes_textblock *self_t;
+  Data_Get_Struct(self, shoes_textblock, self_t);
   return self_t->cursor;
 }
 
 VALUE
-shoes_text_remove(VALUE self)
+shoes_textblock_remove(VALUE self)
 {
-  shoes_text *self_t;
-  Data_Get_Struct(self, shoes_text, self_t);
+  shoes_textblock *self_t;
+  Data_Get_Struct(self, shoes_textblock, self_t);
   shoes_canvas_remove_item(self_t->parent, self);
   return self;
 }
 
-VALUE
-shoes_text_get_markup(VALUE self)
-{
-  shoes_text *self_t;
-  Data_Get_Struct(self, shoes_text, self_t);
-  return self_t->string;
-}
-
-VALUE
-shoes_text_set_markup(VALUE self, VALUE markup)
-{
-  shoes_text *self_t;
-  Data_Get_Struct(self, shoes_text, self_t);
-  shoes_text_parse(self, markup);
-  shoes_canvas_repaint_all(self_t->parent);
-  return self;
-}
-
 static char
-shoes_text_is_here(VALUE self, int x, int y)
+shoes_textblock_is_here(VALUE self, int x, int y)
 {
-  shoes_text *self_t;
+  shoes_textblock *self_t;
   int index, trailing, i;
-  Data_Get_Struct(self, shoes_text, self_t);
+  Data_Get_Struct(self, shoes_textblock, self_t);
   if (self_t->layout == NULL) return Qnil;
 
   x -= self_t->place.x;
@@ -1504,12 +1315,12 @@ shoes_text_is_here(VALUE self, int x, int y)
 }
 
 static VALUE
-shoes_text_hover(VALUE self, int x, int y)
+shoes_textblock_hover(VALUE self, int x, int y)
 {
   int index, trailing, i;
-  shoes_text *self_t;
-  Data_Get_Struct(self, shoes_text, self_t);
-  if (self_t->layout == NULL) return Qnil;
+  shoes_textblock *self_t;
+  Data_Get_Struct(self, shoes_textblock, self_t);
+  if (self_t->layout == NULL || NIL_P(self_t->links)) return Qnil;
 
   x -= self_t->place.x;
   y -= self_t->place.y;
@@ -1529,16 +1340,16 @@ shoes_text_hover(VALUE self, int x, int y)
 }
 
 VALUE
-shoes_text_motion(VALUE self, int x, int y)
+shoes_textblock_motion(VALUE self, int x, int y)
 {
-  if (shoes_text_is_here(self, x, y))
+  if (shoes_textblock_is_here(self, x, y))
   {
-    VALUE url = shoes_text_hover(self, x, y);
+    VALUE url = shoes_textblock_hover(self, x, y);
     if (!NIL_P(url))
     {
-      shoes_text *self_t;
+      shoes_textblock *self_t;
       shoes_canvas *canvas;
-      Data_Get_Struct(self, shoes_text, self_t);
+      Data_Get_Struct(self, shoes_textblock, self_t);
       Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
       shoes_app_cursor(canvas->app, s_hand);
     }
@@ -1548,28 +1359,93 @@ shoes_text_motion(VALUE self, int x, int y)
 }
 
 VALUE
-shoes_text_click(VALUE self, int button, int x, int y)
+shoes_textblock_click(VALUE self, int button, int x, int y)
 {
   if (button == 1)
-    return shoes_text_hover(self, x, y);
+    return shoes_textblock_hover(self, x, y);
 
   return Qnil;
 }
 
+//
+// this is a secret structure that i got to name all by myself
+//
+typedef struct {
+  PangoAttrList *attr;
+  GString *text;
+  gsize len;
+} shoes_kxxxx;
+
+static void
+shoes_textblock_iter_pango(shoes_textblock *block, shoes_kxxxx *k)
+{
+  VALUE v;
+  long i;
+
+  if (NIL_P(block->texts))
+    return;
+
+  for (i = 0; i < RARRAY_LEN(block->texts); i++)
+  {
+    v = rb_ary_entry(block->texts, i);
+    if (rb_obj_is_kind_of(v, cTextClass))
+    {
+    }
+    else
+    {
+      StringValue(v);
+      k->len += RSTRING_LEN(v); 
+      g_string_append_len(k->text, RSTRING_PTR(v), RSTRING_LEN(v));
+    }
+  }
+}
+
+static void
+shoes_textblock_make_pango(shoes_textblock *block, PangoAttrList **attr_list, char **text)
+{
+  shoes_kxxxx *k = SHOE_ALLOC(shoes_kxxxx);
+  k->attr = pango_attr_list_new();
+  k->text = g_string_new(NULL);
+  k->len = 0;
+
+  shoes_textblock_iter_pango(block, k);
+
+  *attr_list = k->attr;
+  *text = g_string_free(k->text, FALSE);
+  SHOE_FREE(k);
+}
+
+static void
+shoes_textblock_on_layout(shoes_textblock *block)
+{
+  PangoAttrList *list = NULL;
+  char *text = NULL;
+  
+  g_return_if_fail(PANGO_IS_LAYOUT(block->layout));
+  g_return_if_fail(block != NULL);
+  
+  shoes_textblock_make_pango(block, &list, &text);
+  block->string = rb_str_new2(text);
+  pango_layout_set_text(block->layout, text, -1);
+  pango_layout_set_attributes(block->layout, list);
+  pango_attr_list_unref(list);
+  g_free(text);
+}
+
 VALUE
-shoes_text_draw(VALUE self, VALUE c)
+shoes_textblock_draw(VALUE self, VALUE c)
 {
   int px, py, pd, li, m;
   double cx, cy;
   char *font;
-  shoes_text *self_t;
+  shoes_textblock *self_t;
   shoes_canvas *canvas;
   PangoLayoutLine *last;
   PangoRectangle lrect;
   PangoFontDescription *desc;
 
   VALUE ck = rb_obj_class(c);
-  Data_Get_Struct(self, shoes_text, self_t);
+  Data_Get_Struct(self, shoes_textblock, self_t);
   Data_Get_Struct(c, shoes_canvas, canvas);
 
   ATTR_MARGINS(self_t->attr, 4);
@@ -1605,9 +1481,10 @@ shoes_text_draw(VALUE self, VALUE c)
   //   cairo_set_source(canvas->cr, canvas->fg);
   // }
 
+  cairo_set_source_rgb(canvas->cr, 0., 0., 0.);
   INFO("TEXT: %d, %d (%d, %d) / %d, %d / %d, %d [%d]\n", canvas->cx, canvas->cy,
     canvas->place.w, canvas->height, self_t->place.x, self_t->place.y, self_t->place.w, self_t->place.h, pd);
-  pango_layout_set_markup(self_t->layout, RSTRING_PTR(self_t->markup), -1);
+  shoes_textblock_on_layout(self_t);
   pango_layout_set_width(self_t->layout, self_t->place.w * PANGO_SCALE);
   desc = pango_font_description_from_string(font);
   pango_layout_set_font_description(self_t->layout, desc);
@@ -1622,7 +1499,7 @@ shoes_text_draw(VALUE self, VALUE c)
     int cursor = NUM2INT(self_t->cursor);
     PangoRectangle crect;
     double crx, cry;
-    if (cursor < 0) cursor += RSTRING_LEN(self_t->markup) + 1;
+    if (cursor < 0) cursor += RSTRING_LEN(self_t->string) + 1;
     pango_layout_index_to_pos(self_t->layout, cursor, &crect);
     crx = self_t->place.x + (crect.x / PANGO_SCALE);
     cry = self_t->place.y + (crect.y / PANGO_SCALE);
@@ -1668,20 +1545,6 @@ shoes_text_draw(VALUE self, VALUE c)
     lrect.x, lrect.width,
     canvas->endx, canvas->endy);
   return self;
-}
-
-VALUE
-shoes_linktext_new(VALUE markup, VALUE attr, VALUE parent)
-{
-  shoes_text *text;
-  VALUE obj = shoes_text_alloc(cLinkText);
-  Data_Get_Struct(obj, shoes_text, text);
-  text->attr = attr;
-  text->parent = parent;
-  text->linku = ATTR(attr, href);
-  text->linki = 0;
-  shoes_text_parse(obj, markup);
-  return obj;
 }
 
 //
@@ -2524,15 +2387,17 @@ shoes_ruby_init()
   cBorder = rb_define_class_under(cShoes, "Border", cPattern);
   rb_define_method(cBorder, "draw", CASTHOOK(shoes_border_draw), 1);
 
+  cTextBlock = rb_define_class_under(cShoes, "TextBlock", rb_cObject);
+  rb_define_alloc_func(cTextBlock, shoes_textblock_alloc);
+  rb_define_method(cTextBlock, "draw", CASTHOOK(shoes_textblock_draw), 1);
+  rb_define_method(cTextBlock, "cursor=", CASTHOOK(shoes_textblock_set_cursor), 1);
+  rb_define_method(cTextBlock, "cursor", CASTHOOK(shoes_textblock_get_cursor), 0);
+  rb_define_method(cTextBlock, "remove", CASTHOOK(shoes_textblock_remove), 0);
+  // rb_define_method(cTextBlock, "to_s", CASTHOOK(shoes_textblock_get_markup), 0);
+  // rb_define_method(cTextBlock, "replace", CASTHOOK(shoes_textblock_set_markup), 1);
+
   cTextClass = rb_define_class_under(cShoes, "Text", rb_cObject);
-  rb_define_alloc_func(cTextClass, shoes_text_alloc);
-  rb_define_method(cTextClass, "draw", CASTHOOK(shoes_text_draw), 1);
-  rb_define_method(cTextClass, "cursor=", CASTHOOK(shoes_text_set_cursor), 1);
-  rb_define_method(cTextClass, "cursor", CASTHOOK(shoes_text_get_cursor), 0);
-  rb_define_method(cTextClass, "remove", CASTHOOK(shoes_text_remove), 0);
-  rb_define_method(cTextClass, "to_s", CASTHOOK(shoes_text_get_markup), 0);
-  rb_define_method(cTextClass, "replace", CASTHOOK(shoes_text_set_markup), 1);
-  cLinkText = rb_define_class_under(cShoes, "LinkText", cTextClass);
+  // rb_define_alloc_func(cTextClass, shoes_text_alloc);
 
   cNative  = rb_define_class_under(cShoes, "Native", rb_cObject);
   rb_define_alloc_func(cNative, shoes_control_alloc);

@@ -65,22 +65,26 @@ typedef struct {
 } shoes_link;
 
 //
-// text struct
+// text block struct
 //
 typedef struct {
-  VALUE markup;
   VALUE string;
+  VALUE texts;
+  VALUE fg;
   VALUE links;
   VALUE attr;
   VALUE parent;
   VALUE cursor;
   PangoLayout *layout;
-  int i;
   shoes_place place;
+} shoes_textblock;
 
-  GString *tmp;
-  int linki;
-  VALUE linku;
+//
+// text struct
+//
+typedef struct {
+  VALUE texts;
+  VALUE attr;
 } shoes_text;
 
 //
@@ -190,8 +194,7 @@ VALUE shoes_canvas_oval(int, VALUE *, VALUE);
 VALUE shoes_canvas_line(VALUE, VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_canvas_arrow(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_canvas_star(int, VALUE *, VALUE);
-VALUE shoes_canvas_markup(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_link(int argc, VALUE *argv, VALUE self);
+VALUE shoes_canvas_para(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_background(int, VALUE *, VALUE);
 VALUE shoes_canvas_border(int, VALUE *, VALUE);
 VALUE shoes_canvas_image(int, VALUE *, VALUE);
@@ -310,15 +313,14 @@ VALUE shoes_color_gradient(VALUE, VALUE, VALUE);
 VALUE shoes_link_new(VALUE, int, int);
 VALUE shoes_link_alloc(VALUE);
 
-VALUE shoes_text_new(VALUE, VALUE, VALUE);
-VALUE shoes_text_alloc(VALUE);
-VALUE shoes_text_remove(VALUE);
-VALUE shoes_text_set_cursor(VALUE, VALUE);
-VALUE shoes_text_get_cursor(VALUE);
-VALUE shoes_text_draw(VALUE, VALUE);
-VALUE shoes_text_motion(VALUE, int, int);
-VALUE shoes_text_click(VALUE, int, int, int);
-VALUE shoes_linktext_new(VALUE, VALUE, VALUE);
+VALUE shoes_textblock_new(VALUE, VALUE, VALUE);
+VALUE shoes_textblock_alloc(VALUE);
+VALUE shoes_textblock_remove(VALUE);
+VALUE shoes_textblock_set_cursor(VALUE, VALUE);
+VALUE shoes_textblock_get_cursor(VALUE);
+VALUE shoes_textblock_draw(VALUE, VALUE);
+VALUE shoes_textblock_motion(VALUE, int, int);
+VALUE shoes_textblock_click(VALUE, int, int, int);
 
 //
 // shoes/image.c

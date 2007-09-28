@@ -43,7 +43,7 @@ void shoes_ruby_init(void);
 #define EXC_ALERT \
   "proc do; alert %{#{@exc.message}\\n#{@exc.backtrace.map { |x| %{\\n  * #{x}}}}}; end"
 #define EXC_MARKUP \
-  "text %%{<span size='larger'>#{Shoes.escape(e.message)}</span>#{e.backtrace.map { |x| %%{\\n  * #{Shoes.escape(x)}} }}};"
+  "para %%{#{e.message}#{e.backtrace.map { |x| %%{\\n  * #{Shoes.escape(x)}} }}};"
 #define EXC_PROC \
   "proc do;" \
     EXC_MARKUP \
@@ -103,8 +103,7 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("line", line, 4); \
   f("arrow", arrow, 3); \
   f("star", star, -1); \
-  f("text", markup, -1); \
-  f("link", link, -1); \
+  f("para", para, -1); \
   f("background", background, -1); \
   f("border", border, -1); \
   f("image", image, -1); \

@@ -540,30 +540,17 @@ shoes_canvas_star(int argc, VALUE *argv, VALUE self)
 }
 
 VALUE
-shoes_canvas_markup(int argc, VALUE *argv, VALUE self)
+shoes_canvas_para(int argc, VALUE *argv, VALUE self)
 {
-  VALUE msg, attr, text;
+  long i;
+  VALUE msgs, attr, text;
   SETUP();
 
-  rb_scan_args(argc, argv, "11", &msg, &attr);
-  text = shoes_text_new(msg, attr, self);
-  rb_ary_push(canvas->contents, text);
-  return text;
-}
-
-VALUE
-shoes_canvas_link(int argc, VALUE *argv, VALUE self)
-{
-  VALUE msg, attr, text, block;
-  SETUP();
-
-  rb_scan_args(argc, argv, "11&", &msg, &attr, &block);
-  if (NIL_P(attr)) attr = rb_hash_new();
-
-  if (NIL_P(ATTR(attr, href)))
-    ATTRSET(attr, href, block);
-
-  text = shoes_linktext_new(msg, attr, self);
+  msgs = rb_ary_new();
+  attr = rb_hash_new();
+  for (i = 0; i < argc; i++)
+    rb_ary_push(msgs, argv[i]);
+  text = shoes_textblock_new(msgs, attr, self);
   rb_ary_push(canvas->contents, text);
   return text;
 }
@@ -1376,7 +1363,7 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y)
       }
       else if (rb_obj_is_kind_of(ele, cTextClass))
       {
-        v = shoes_text_click(ele, button, x, y);
+        v = shoes_textblock_click(ele, button, x, y);
       }
       if (!NIL_P(v)) return v;
     }
@@ -1473,7 +1460,7 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
       else if (rb_obj_is_kind_of(ele, cTextClass))
       {
         if (NIL_P(url))
-          url = shoes_text_motion(ele, x, y);
+          url = shoes_textblock_motion(ele, x, y);
       }
     }
 

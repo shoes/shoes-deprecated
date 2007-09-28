@@ -8,6 +8,6 @@ Shoes.app :height => 150, :width => 250 do
     button "Stop" do
       @label.replace "Stopped, #{Time.now - @time} seconds elapsed."
     end
-    @label = text "Press start to begin timing."
+    @label = para "Press start to begin timing."
   end
 end
