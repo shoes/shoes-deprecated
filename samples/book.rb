@@ -9,24 +9,27 @@ class Book < Shoes
   INCIDENTS = YAML.load_file('samples/book.yaml')
 
   def table_of_contents
-    toc = "<span font_desc='Arial 11px'>"
+    toc = []
     INCIDENTS.each_with_index do |(title, story), i|
-      toc += "(#{i + 1}) <a href='/incidents/#{i}'>#{title}</a> "
+      toc.push "(#{i + 1}) ",
+        link(title, :url => "/incidents/#{i}"),
+        " / "
     end
-    toc + "</span>"
+    toc.pop
+    span *toc
   end
 
   def incident(num)
     num = num.to_i
     flow :margin => 10, :margin_left => 190, :margin_top => 20 do
-      text "<span font_desc='Arial 46px'>Incident</span>\n" +
-        "<b>No. #{num + 1}: #{INCIDENTS[num][0]}</b>"
+      banner "Incident\n"
+      para strong("No. #{num + 1}: #{INCIDENTS[num][0]}")
     end
     flow :width => 180, :margin_left => 10, :margin_top => 10 do
-      text table_of_contents
+      para table_of_contents, :font => "Arial 12px"
     end
     flow :width => -190, :margin => 10 do
-      text INCIDENTS[num][1]
+      para INCIDENTS[num][1]
     end
   end
 end

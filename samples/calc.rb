@@ -45,7 +45,7 @@ Shoes.app :height => 250, :width => 200, :resizable => false do
   stack :margin => 4 do
 
     stack :margin => 8 do
-      number_field = text "<b>#{number}</b>"
+      number_field = para strong(number)
     end
 
     flow :width => 218, :margin => 4 do
@@ -62,7 +62,7 @@ Shoes.app :height => 250, :width => 200, :resizable => false do
           end
           
           number.send(method)
-          number_field.replace "<b>#{number} </b>"
+          number_field.replace strong(number)
         end
       end
     end

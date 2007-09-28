@@ -8,15 +8,15 @@ Shoes.app :width => 320, :height => 350 do
 
   stack :margin => 40 do
     stack :margin => 10 do
-      text "Name"
+      para "Name"
       @name = list_box :items => ["Yes, please!", "NO.  No thankyou."]
     end
     stack :margin => 10 do
-      text "Address"
+      para "Address"
       @address = edit_line
     end
     stack :margin => 10 do
-      text "Phone"
+      para "Phone"
       @phone = edit_line
     end
     stack :margin => 10 do

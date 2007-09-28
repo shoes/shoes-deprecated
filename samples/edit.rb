@@ -2,10 +2,10 @@ str, t = "", nil
 Shoes.app :height => 500, :width => 450 do
   background rgb(77, 77, 77)
   stack :margin => 10 do
-    text "<span color='white'><span color='red' background='white'>TEXT EDITOR</span> * USE ALT-Q TO QUIT</span>"
+    para span("TEXT EDITOR", :stroke => red, :fill => white), " * USE ALT-Q TO QUIT", :stroke => white
   end
   stack :margin => 10 do
-    t = text ""
+    t = para "", :font => "Monospace 12px", :stroke => white
     t.cursor = -1
   end
   keypress do |k|
@@ -23,7 +23,6 @@ Shoes.app :height => 500, :width => 450 do
     when :alt_v
       str += self.clipboard
     end
-    s = Shoes.escape(str).gsub(/^def /, "<span color='#FFDDAA'>def</span> ")
-    t.replace "<span font_desc='Monospace 12' color='white'>#{s}</span>"
+    t.replace str
   end
 end

@@ -205,6 +205,7 @@ VALUE shoes_canvas_code(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_em(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_ins(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_link(int argc, VALUE *argv, VALUE self);
+VALUE shoes_canvas_span(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_strong(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_background(int, VALUE *, VALUE);
 VALUE shoes_canvas_border(int, VALUE *, VALUE);

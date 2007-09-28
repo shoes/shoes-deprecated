@@ -578,6 +578,7 @@ MARKUP_DEF(code, INLINE, cCode);
 MARKUP_DEF(em, INLINE, cEm);
 MARKUP_DEF(ins, INLINE, cIns);
 MARKUP_DEF(link, INLINE, cLinkText);
+MARKUP_DEF(span, INLINE, cSpan);
 MARKUP_DEF(strong, INLINE, cStrong);
 
 VALUE

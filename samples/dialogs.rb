@@ -19,5 +19,5 @@ Shoes.app :width => 300, :height => 150, :margin => 10 do
     answer ask_color("Pick a Color")
   end
 
-  @answer = text "Answers appear here"
+  @answer = para "Answers appear here"
 end
