@@ -1255,6 +1255,14 @@ shoes_text_alloc(VALUE klass)
   return obj;
 }
 
+VALUE
+shoes_text_children(VALUE self)
+{
+  shoes_text *text;
+  Data_Get_Struct(self, shoes_text, text);
+  return text->texts;
+}
+
 //
 // Shoes::TextBlock
 //
@@ -1313,6 +1321,14 @@ shoes_textblock_alloc(VALUE klass)
   text->layout = NULL;
   text->cursor = Qnil;
   return obj;
+}
+
+VALUE
+shoes_textblock_children(VALUE self)
+{
+  shoes_textblock *text;
+  Data_Get_Struct(self, shoes_textblock, text);
+  return text->texts;
 }
 
 VALUE
@@ -2554,6 +2570,7 @@ shoes_ruby_init()
   rb_define_alloc_func(cApp, shoes_app_alloc);
   cCanvas = rb_define_class("Canvas", rb_cObject);
   rb_define_alloc_func(cCanvas, shoes_canvas_alloc);
+  rb_define_method(cCanvas, "children", CASTHOOK(shoes_canvas_contents), 0);
 
   cShoes = rb_define_class("Shoes", cCanvas);
   C(HEX_SOURCE, "/^(?:0x|#)?([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})$/i");
@@ -2621,6 +2638,7 @@ shoes_ruby_init()
 
   cTextBlock = rb_define_class_under(cShoes, "TextBlock", rb_cObject);
   rb_define_alloc_func(cTextBlock, shoes_textblock_alloc);
+  rb_define_method(cTextBlock, "children", CASTHOOK(shoes_textblock_children), 0);
   rb_define_method(cTextBlock, "draw", CASTHOOK(shoes_textblock_draw), 1);
   rb_define_method(cTextBlock, "cursor=", CASTHOOK(shoes_textblock_set_cursor), 1);
   rb_define_method(cTextBlock, "cursor", CASTHOOK(shoes_textblock_get_cursor), 0);
@@ -2637,6 +2655,7 @@ shoes_ruby_init()
 
   cTextClass = rb_define_class_under(cShoes, "Text", rb_cObject);
   rb_define_alloc_func(cTextClass, shoes_text_alloc);
+  rb_define_method(cTextClass, "children", CASTHOOK(shoes_text_children), 0);
   cCode      = rb_define_class_under(cShoes, "Code", cTextClass);
   cEm        = rb_define_class_under(cShoes, "Em", cTextClass);
   cLinkText  = rb_define_class_under(cShoes, "LinkText", cTextClass);
