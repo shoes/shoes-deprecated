@@ -9,9 +9,9 @@
 #include "shoes/internal.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cTextClass, cStrong, cCode, cEm, cIns, cLinkText, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
+VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cStrong, cCode, cEm, cIns, cLinkText, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
-ID s_aref, s_perc, s_bind, s_new, s_run, s_to_pattern, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
+ID s_aref, s_perc, s_bind, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -1451,10 +1451,10 @@ typedef struct {
   if (NIL_P(str)) str = rb_hash_aref(hsh, ID2SYM(rb_intern("" # name)))
 
 static void
-shoes_app_style_for(shoes_kxxxx *k, VALUE obj, VALUE oattr, gsize start_index, gsize end_index)
+shoes_app_style_for(shoes_kxxxx *k, VALUE klass, VALUE oattr, gsize start_index, gsize end_index)
 {
   VALUE str;
-  VALUE hsh = rb_hash_aref(k->app->styles, rb_obj_class(obj));
+  VALUE hsh = rb_hash_aref(k->app->styles, klass);
   if (NIL_P(hsh)) return;
 
   PangoAttrList *list = pango_attr_list_new();
@@ -1474,7 +1474,31 @@ shoes_app_style_for(shoes_kxxxx *k, VALUE obj, VALUE oattr, gsize start_index, g
     APPLY_ATTR();
   }
 
+  GET_STYLE(fill);
+  if (!NIL_P(str))
+  {
+    if (TYPE(str) == T_STRING)
+      str = shoes_color_parse(cColor, str);
+    if (rb_obj_is_kind_of(str, cColor))
+    {
+      shoes_color *color;
+      Data_Get_Struct(str, shoes_color, color);
+      attr = pango_attr_background_new(color->r * 255, color->g * 255, color-> b * 255);
+    }
+    APPLY_ATTR();
+  }
+
   GET_STYLE(font);
+  if (!NIL_P(str))
+  {
+    if (TYPE(str) == T_STRING)
+    {
+      attr = pango_attr_font_desc_new(pango_font_description_from_string(RSTRING_PTR(str)));
+    }
+    APPLY_ATTR();
+  }
+
+  GET_STYLE(font_size);
   if (!NIL_P(str))
   {
     if (TYPE(str) == T_STRING)
@@ -1488,8 +1512,11 @@ shoes_app_style_for(shoes_kxxxx *k, VALUE obj, VALUE oattr, gsize start_index, g
   if (!NIL_P(str))
   {
     if (TYPE(str) == T_STRING)
+      str = rb_funcall(str, s_to_i, 0);
+    if (TYPE(str) == T_FIXNUM)
     {
-      attr = pango_attr_family_new(RSTRING_PTR(str));
+      int i = NUM2INT(str);
+      attr = pango_attr_size_new(i);
     }
     APPLY_ATTR();
   }
@@ -1578,7 +1605,7 @@ shoes_textblock_iter_pango(VALUE texts, shoes_kxxxx *k)
 
       start = k->len;
       shoes_textblock_iter_pango(text->texts, k);
-      shoes_app_style_for(k, v, text->attr, start, k->len);
+      shoes_app_style_for(k, rb_obj_class(v), text->attr, start, k->len);
     }
     else
     {
@@ -1590,7 +1617,7 @@ shoes_textblock_iter_pango(VALUE texts, shoes_kxxxx *k)
 }
 
 static void
-shoes_textblock_make_pango(shoes_app *app, shoes_textblock *block, PangoAttrList **attr_list, char **text)
+shoes_textblock_make_pango(shoes_app *app, VALUE klass, shoes_textblock *block, PangoAttrList **attr_list, char **text)
 {
   shoes_kxxxx *k = SHOE_ALLOC(shoes_kxxxx);
   k->attr = pango_attr_list_new();
@@ -1599,6 +1626,7 @@ shoes_textblock_make_pango(shoes_app *app, shoes_textblock *block, PangoAttrList
   k->app = app;
 
   shoes_textblock_iter_pango(block->texts, k);
+  shoes_app_style_for(k, klass, block->attr, 0, k->len);
 
   *attr_list = k->attr;
   *text = g_string_free(k->text, FALSE);
@@ -1606,7 +1634,7 @@ shoes_textblock_make_pango(shoes_app *app, shoes_textblock *block, PangoAttrList
 }
 
 static void
-shoes_textblock_on_layout(shoes_app *app, shoes_textblock *block)
+shoes_textblock_on_layout(shoes_app *app, VALUE klass, shoes_textblock *block)
 {
   PangoAttrList *list = NULL;
   char *text = NULL;
@@ -1614,7 +1642,7 @@ shoes_textblock_on_layout(shoes_app *app, shoes_textblock *block)
   g_return_if_fail(PANGO_IS_LAYOUT(block->layout));
   g_return_if_fail(block != NULL);
   
-  shoes_textblock_make_pango(app, block, &list, &text);
+  shoes_textblock_make_pango(app, klass, block, &list, &text);
   block->string = rb_str_new2(text);
   pango_layout_set_text(block->layout, text, -1);
   pango_layout_set_attributes(block->layout, list);
@@ -1674,7 +1702,7 @@ shoes_textblock_draw(VALUE self, VALUE c)
   cairo_set_source_rgb(canvas->cr, 0., 0., 0.);
   INFO("TEXT: %d, %d (%d, %d) / %d, %d / %d, %d [%d]\n", canvas->cx, canvas->cy,
     canvas->place.w, canvas->height, self_t->place.x, self_t->place.y, self_t->place.w, self_t->place.h, pd);
-  shoes_textblock_on_layout(canvas->app, self_t);
+  shoes_textblock_on_layout(canvas->app, rb_obj_class(self), self_t);
   pango_layout_set_width(self_t->layout, self_t->place.w * PANGO_SCALE);
   desc = pango_font_description_from_string(font);
   pango_layout_set_font_description(self_t->layout, desc);
@@ -2469,6 +2497,7 @@ shoes_ruby_init()
   s_bind = rb_intern("bind");
   s_new = rb_intern("new");
   s_run = rb_intern("run");
+  s_to_i = rb_intern("to_i");
   s_to_s = rb_intern("to_s");
   s_to_pattern = rb_intern("to_pattern");
   s_angle = rb_intern("angle");
@@ -2586,6 +2615,12 @@ shoes_ruby_init()
   rb_define_method(cTextBlock, "to_s", CASTHOOK(shoes_textblock_string), 0);
   rb_define_method(cTextBlock, "replace", CASTHOOK(shoes_textblock_replace), -1);
   cPara = rb_define_class_under(cShoes, "Para", cTextBlock);
+  cBanner = rb_define_class_under(cShoes, "Banner", cTextBlock);
+  cTitle = rb_define_class_under(cShoes, "Title", cTextBlock);
+  cSubtitle = rb_define_class_under(cShoes, "Subtitle", cTextBlock);
+  cTagline = rb_define_class_under(cShoes, "Tagline", cTextBlock);
+  cCaption = rb_define_class_under(cShoes, "Caption", cTextBlock);
+  cInscription = rb_define_class_under(cShoes, "Inscription", cTextBlock);
 
   cTextClass = rb_define_class_under(cShoes, "Text", rb_cObject);
   rb_define_alloc_func(cTextClass, shoes_text_alloc);

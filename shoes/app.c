@@ -1422,6 +1422,13 @@ void
 shoes_app_reset_styles(shoes_app *app)
 {
   app->styles = rb_hash_new();
+  STYLE(cBanner,      font_size, 48);
+  STYLE(cTitle,       font_size, 34);
+  STYLE(cSubtitle,    font_size, 26);
+  STYLE(cTagline,     font_size, 18);
+  STYLE(cCaption,     font_size, 14);
+  STYLE(cInscription, font_size, 12);
+
   STYLE(cEm,       font_style, italic);
   STYLE(cCode,     font_family, monospace);
   STYLE(cIns,      font_underline, single);

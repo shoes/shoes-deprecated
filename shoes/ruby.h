@@ -22,9 +22,9 @@ typedef VALUE (*HOOK)();
 #define RSTRING_PTR(str) RSTRING(str)->ptr
 #endif
 
-extern VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cNative, cPath, cImage, cAnim, cPattern, cBorder, cBackground, cPara, cLinkText, cTextClass, cStrong, cCode, cEm, cIns, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
+extern VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cNative, cPath, cImage, cAnim, cPattern, cBorder, cBackground, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextClass, cStrong, cCode, cEm, cIns, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 extern VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
-extern ID s_aref, s_bind, s_new, s_run, s_to_pattern, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_match, s_scroll, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_resizable, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
+extern ID s_aref, s_bind, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_match, s_scroll, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_resizable, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 extern VALUE instance_eval_proc, exception_proc, exception_alert_proc;
 
 VALUE mfp_instance_eval(VALUE, VALUE);
@@ -43,7 +43,7 @@ void shoes_ruby_init(void);
 #define EXC_ALERT \
   "proc do; alert %{#{@exc.message}\\n#{@exc.backtrace.map { |x| %{\\n  * #{x}}}}}; end"
 #define EXC_MARKUP \
-  "para %%{#{e.message}#{e.backtrace.map { |x| %%{\\n  * #{Shoes.escape(x)}} }}};"
+  "title e.message; para %%{#{e.backtrace.map { |x| %%{\\n  * #{Shoes.escape(x)}} }}};"
 #define EXC_PROC \
   "proc do;" \
     EXC_MARKUP \
@@ -104,6 +104,12 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("arrow", arrow, 3); \
   f("star", star, -1); \
   f("para", para, -1); \
+  f("banner", banner, -1); \
+  f("title", title, -1); \
+  f("subtitle", subtitle, -1); \
+  f("tagline", tagline, -1); \
+  f("caption", caption, -1); \
+  f("inscription", inscription, -1); \
   f("code", code, -1); \
   f("em", em, -1); \
   f("ins", ins, -1); \
