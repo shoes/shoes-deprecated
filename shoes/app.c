@@ -390,7 +390,7 @@ shoes_slot_quartz_register(void)
 }
 
 OSStatus
-shoes_slot_quartz_create(VALUE self, SHOES_SLOT_OS *parent, int w, int h)
+shoes_slot_quartz_create(VALUE self, SHOES_SLOT_OS *parent, int x, int y, int w, int h)
 {
   HIRect rect;
   OSStatus err;
@@ -405,8 +405,8 @@ shoes_slot_quartz_create(VALUE self, SHOES_SLOT_OS *parent, int w, int h)
   //
   HIScrollViewCreate(kHIScrollViewOptionsVertScroll | kHIScrollViewOptionsAllowGrow, &slot->scrollview);
   HIScrollViewSetScrollBarAutoHide(slot->scrollview, true);
-  rect.origin.x = 0.0;
-  rect.origin.y = 0.0;
+  rect.origin.x = x * 1.;
+  rect.origin.y = y * 1.;
   rect.size.width = (double)w;
   rect.size.height = (double)h;
   HIViewSetFrame(slot->scrollview, &rect);
@@ -419,7 +419,7 @@ shoes_slot_quartz_create(VALUE self, SHOES_SLOT_OS *parent, int w, int h)
 
   rect.origin.x = 0.0;
   rect.origin.y = 0.0;
-  rect.size.width = (double)w * 2;
+  rect.size.width = w * 1.;
   rect.size.height = (double)h * 2;
   SetEventParameter(event, kShoesBoundEvent, typeHIRect, sizeof(HIRect), &rect);
   
@@ -1205,7 +1205,7 @@ shoes_app_loop(shoes_app *app, char *path)
   app->slot.controls = rb_ary_new();
   rb_gc_register_address(&app->slot.controls);
 #endif
-  shoes_slot_init(app->canvas, &app->slot, app->width, app->height, TRUE);
+  shoes_slot_init(app->canvas, &app->slot, 0, 0, app->width, app->height, TRUE);
   shoes_app_goto(app, path);
   INFO("RUNNING LOOP.\n", 0);
 

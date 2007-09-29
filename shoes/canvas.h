@@ -167,7 +167,7 @@ typedef struct {
 #endif
 } shoes_canvas;
 
-void shoes_slot_init(VALUE, SHOES_SLOT_OS *, int, int, int);
+void shoes_slot_init(VALUE, SHOES_SLOT_OS *, int, int, int, int, int);
 cairo_t *shoes_cairo_create(SHOES_SLOT_OS *, int, int, int);
 
 VALUE shoes_app_main(int, VALUE *, VALUE);

@@ -41,7 +41,7 @@ shoes_canvas_gtk_paint (GtkWidget *widget, GdkEventExpose *event, gpointer data)
 #endif
 
 void
-shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int width, int height, int toplevel)
+shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int height, int toplevel)
 {
   shoes_canvas *canvas;
   SHOES_SLOT_OS *slot;
@@ -60,7 +60,7 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int width, int height, int tople
   if (toplevel)
     gtk_container_add(GTK_CONTAINER(parent->canvas), slot->box);
   else
-    gtk_layout_put(GTK_LAYOUT(parent->canvas), slot->box, 0, 0);
+    gtk_layout_put(GTK_LAYOUT(parent->canvas), slot->box, x, y);
   gtk_container_add(GTK_CONTAINER(slot->box), slot->canvas);
   GTK_LAYOUT(slot->canvas)->hadjustment->step_increment = 5;
   GTK_LAYOUT(slot->canvas)->vadjustment->step_increment = 5;
@@ -69,7 +69,7 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int width, int height, int tople
 
 #ifdef SHOES_QUARTZ
   slot->controls = parent->controls;
-  shoes_slot_quartz_create(c, parent, width, height);
+  shoes_slot_quartz_create(c, parent, x, y, width, height);
 #endif
 
 #ifdef SHOES_WIN32
@@ -1018,6 +1018,14 @@ shoes_canvas_draw(VALUE self, VALUE c)
       gtk_layout_move(GTK_LAYOUT(pc->slot.canvas), self_t->slot.box, self_t->place.x, self_t->place.y);
       gtk_widget_set_size_request(self_t->slot.box, self_t->place.w, self_t->place.h);
 #endif
+#ifdef SHOES_QUARTZ
+      HIRect rect;
+      rect.origin.x = self_t->place.x * 1.;
+      rect.origin.y = self_t->place.y * 1.;
+      rect.size.width = self_t->place.w * 1.;
+      rect.size.height = self_t->place.h * 1.;
+      HIViewSetFrame(self_t->slot.scrollview, &rect);
+#endif
       self_t->width = self_t->place.w;
       self_t->height = self_t->place.h;
     }
@@ -1541,15 +1549,14 @@ shoes_slot_new(VALUE klass, VALUE attr, VALUE parent)
     w = ATTR2(int, self_t->attr, width, 100);
     h = ATTR2(int, self_t->attr, height, 100);
 
-    shoes_slot_init(self, &pc->slot, w, h, FALSE);
+    shoes_slot_init(self, &pc->slot, x, y, w, h, FALSE);
 #ifdef SHOES_GTK
-    gtk_layout_move(GTK_LAYOUT(pc->slot.canvas), self_t->slot.box, x, y);
     gtk_widget_show_all(self_t->slot.box);
-    self_t->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));;
-    self_t->place.x = self_t->place.y = 0;
     self_t->width = w - 20;
     self_t->height = h - 20;
 #endif
+    self_t->place.x = self_t->place.y = 0;
+    self_t->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
   } else {
     shoes_canvas_reflow(self_t, parent);
   }
