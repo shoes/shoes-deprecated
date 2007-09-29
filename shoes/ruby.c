@@ -11,7 +11,7 @@
 
 VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkText, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
-ID s_aref, s_perc, s_bind, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
+ID s_aref, s_perc, s_bind, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_leading, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -1760,7 +1760,7 @@ shoes_textblock_on_layout(shoes_app *app, VALUE klass, shoes_textblock *block)
 VALUE
 shoes_textblock_draw(VALUE self, VALUE c)
 {
-  int px, py, pd, li, m;
+  int px, py, pd, li, m, ld;
   double cx, cy;
   char *font;
   shoes_textblock *self_t;
@@ -1778,6 +1778,7 @@ shoes_textblock_draw(VALUE self, VALUE c)
   self_t->place.y = ATTR2(int, self_t->attr, top, canvas->cy) + tmargin;
   self_t->place.w = ATTR2(int, self_t->attr, width, canvas->place.w - (canvas->cx - self_t->place.x)) - (lmargin + rmargin);
   font = ATTR2(cstr, self_t->attr, font, "Arial 16px");
+  ld = ATTR2(int, self_t->attr, leading, 4);
 
   if (self_t->layout != NULL)
     g_object_unref(self_t->layout);
@@ -1801,16 +1802,13 @@ shoes_textblock_draw(VALUE self, VALUE c)
   }
   else
     cairo_move_to(canvas->cr, self_t->place.x, self_t->place.y);
-  // if (!NIL_P(canvas->fg))
-  // {
-  //   cairo_set_source(canvas->cr, canvas->fg);
-  // }
 
   cairo_set_source_rgb(canvas->cr, 0., 0., 0.);
   INFO("TEXT: %d, %d (%d, %d) / %d, %d / %d, %d [%d]\n", canvas->cx, canvas->cy,
     canvas->place.w, canvas->height, self_t->place.x, self_t->place.y, self_t->place.w, self_t->place.h, pd);
   shoes_textblock_on_layout(canvas->app, rb_obj_class(self), self_t);
   pango_layout_set_width(self_t->layout, self_t->place.w * PANGO_SCALE);
+  pango_layout_set_spacing(self_t->layout, ld * PANGO_SCALE);
   desc = pango_font_description_from_string(font);
   pango_layout_set_font_description(self_t->layout, desc);
   pango_font_description_free(desc);
@@ -2625,6 +2623,7 @@ shoes_ruby_init()
   s_insert = rb_intern("insert");
   s_items = rb_intern("items");
   s_match = rb_intern("match");
+  s_leading = rb_intern("leading");
   s_scroll = rb_intern("scroll");
   s_text = rb_intern("text");
   s_title = rb_intern("title");
