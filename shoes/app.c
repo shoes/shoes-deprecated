@@ -1436,6 +1436,10 @@ shoes_app_reset_styles(shoes_app *app)
   STYLE(cLinkText, underline, single);
   STYLE(cLinkText, stroke, #0066EE);
   STYLE(cStrong,   weight, bold);
+  STYLE(cSup,      rise,   10);
+  STYLE(cSup,      size,   x-small);
+  STYLE(cSub,      rise,   -10);
+  STYLE(cSub,      size,   x-small);
 }
 
 VALUE

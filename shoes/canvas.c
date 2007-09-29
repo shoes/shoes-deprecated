@@ -581,6 +581,8 @@ MARKUP_DEF(ins, INLINE, cIns);
 MARKUP_DEF(link, INLINE, cLinkText);
 MARKUP_DEF(span, INLINE, cSpan);
 MARKUP_DEF(strong, INLINE, cStrong);
+MARKUP_DEF(sub, INLINE, cSub);
+MARKUP_DEF(sup, INLINE, cSup);
 
 VALUE
 shoes_canvas_imagesize(VALUE self, VALUE _path)

@@ -9,7 +9,7 @@
 #include "shoes/internal.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cCode, cEm, cIns, cLinkText, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
+VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkText, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 ID s_aref, s_perc, s_bind, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
@@ -1468,6 +1468,7 @@ typedef struct {
   }
 
 #define GET_STYLE(name) \
+  attr = NULL; \
   str = Qnil; \
   if (!NIL_P(oattr)) str = rb_hash_aref(oattr, ID2SYM(rb_intern("" # name))); \
   if (NIL_P(str)) str = rb_hash_aref(hsh, ID2SYM(rb_intern("" # name)))
@@ -1516,11 +1517,29 @@ shoes_app_style_for(shoes_kxxxx *k, VALUE klass, VALUE oattr, gsize start_index,
   if (!NIL_P(str))
   {
     if (TYPE(str) == T_STRING)
-      str = rb_funcall(str, s_to_i, 0);
+    {
+      if (strncmp(RSTRING_PTR(str), "xx-small", 8) == 0)
+        attr = pango_attr_scale_new(PANGO_SCALE_XX_SMALL);
+      else if (strncmp(RSTRING_PTR(str), "x-small", 7) == 0)
+        attr = pango_attr_scale_new(PANGO_SCALE_X_SMALL);
+      else if (strncmp(RSTRING_PTR(str), "small", 5) == 0)
+        attr = pango_attr_scale_new(PANGO_SCALE_SMALL);
+      else if (strncmp(RSTRING_PTR(str), "medium", 6) == 0)
+        attr = pango_attr_scale_new(PANGO_SCALE_MEDIUM);
+      else if (strncmp(RSTRING_PTR(str), "large", 5) == 0)
+        attr = pango_attr_scale_new(PANGO_SCALE_LARGE);
+      else if (strncmp(RSTRING_PTR(str), "x-large", 7) == 0)
+        attr = pango_attr_scale_new(PANGO_SCALE_X_LARGE);
+      else if (strncmp(RSTRING_PTR(str), "xx-large", 8) == 0)
+        attr = pango_attr_scale_new(PANGO_SCALE_XX_LARGE);
+      else
+        str = rb_funcall(str, s_to_i, 0);
+    }
     if (TYPE(str) == T_FIXNUM)
     {
       int i = NUM2INT(str);
-      attr = pango_attr_size_new(i * PANGO_SCALE);
+      if (i > 0)
+        attr = pango_attr_size_new(i * PANGO_SCALE);
     }
     APPLY_ATTR();
   }
@@ -1560,6 +1579,32 @@ shoes_app_style_for(shoes_kxxxx *k, VALUE klass, VALUE oattr, gsize start_index,
       int i = NUM2INT(str);
       if (i >= 100 && i <= 900)
         attr = pango_attr_weight_new(i);
+    }
+    APPLY_ATTR();
+  }
+
+  GET_STYLE(rise);
+  if (!NIL_P(str))
+  {
+    if (TYPE(str) == T_STRING)
+      str = rb_funcall(str, s_to_i, 0);
+    if (TYPE(str) == T_FIXNUM)
+    {
+      int i = NUM2INT(str);
+      attr = pango_attr_rise_new(i * PANGO_SCALE);
+    }
+    APPLY_ATTR();
+  }
+
+  GET_STYLE(kerning);
+  if (!NIL_P(str))
+  {
+    if (TYPE(str) == T_STRING)
+      str = rb_funcall(str, s_to_i, 0);
+    if (TYPE(str) == T_FIXNUM)
+    {
+      int i = NUM2INT(str);
+      attr = pango_attr_letter_spacing_new(i * PANGO_SCALE);
     }
     APPLY_ATTR();
   }
@@ -1622,6 +1667,19 @@ shoes_app_style_for(shoes_kxxxx *k, VALUE klass, VALUE oattr, gsize start_index,
         attr = pango_attr_underline_new(PANGO_UNDERLINE_LOW);
       else if (strncmp(RSTRING_PTR(str), "error", 5) == 0)
         attr = pango_attr_underline_new(PANGO_UNDERLINE_ERROR);
+    }
+    APPLY_ATTR();
+  }
+
+  GET_STYLE(variant);
+  if (!NIL_P(str))
+  {
+    if (TYPE(str) == T_STRING)
+    {
+      if (strncmp(RSTRING_PTR(str), "normal", 6) == 0)
+        attr = pango_attr_variant_new(PANGO_VARIANT_NORMAL);
+      else if (strncmp(RSTRING_PTR(str), "smallcaps", 9) == 0)
+        attr = pango_attr_variant_new(PANGO_VARIANT_SMALL_CAPS);
     }
     APPLY_ATTR();
   }
@@ -2683,6 +2741,8 @@ shoes_ruby_init()
   cIns       = rb_define_class_under(cShoes, "Ins", cTextClass);
   cSpan      = rb_define_class_under(cShoes, "Span", cTextClass);
   cStrong    = rb_define_class_under(cShoes, "Strong", cTextClass);
+  cSub       = rb_define_class_under(cShoes, "Sub", cTextClass);
+  cSup       = rb_define_class_under(cShoes, "Sup", cTextClass);
 
   cNative  = rb_define_class_under(cShoes, "Native", rb_cObject);
   rb_define_alloc_func(cNative, shoes_control_alloc);
