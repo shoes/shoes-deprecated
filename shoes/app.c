@@ -1429,12 +1429,12 @@ shoes_app_reset_styles(shoes_app *app)
   STYLE(cCaption,     size, 14);
   STYLE(cInscription, size, 12);
 
-  STYLE(cEm,       emphasis, italic);
   STYLE(cCode,     family, monospace);
+  STYLE(cDel,      strikethrough, single);
+  STYLE(cEm,       emphasis, italic);
   STYLE(cIns,      underline, single);
   STYLE(cLinkText, underline, single);
   STYLE(cLinkText, stroke, #0066EE);
-  STYLE(cStrike,   strikethrough, single);
   STYLE(cStrong,   weight, bold);
 }
 

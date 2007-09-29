@@ -575,11 +575,11 @@ MARKUP_DEF(caption, BLOCK, cCaption);
 MARKUP_DEF(inscription, BLOCK, cInscription);
 
 MARKUP_DEF(code, INLINE, cCode);
+MARKUP_DEF(del, INLINE, cDel);
 MARKUP_DEF(em, INLINE, cEm);
 MARKUP_DEF(ins, INLINE, cIns);
 MARKUP_DEF(link, INLINE, cLinkText);
 MARKUP_DEF(span, INLINE, cSpan);
-MARKUP_DEF(strike, INLINE, cStrike);
 MARKUP_DEF(strong, INLINE, cStrong);
 
 VALUE
