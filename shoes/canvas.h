@@ -70,7 +70,6 @@ typedef struct {
 typedef struct {
   VALUE string;
   VALUE texts;
-  VALUE fg;
   VALUE links;
   VALUE attr;
   VALUE parent;

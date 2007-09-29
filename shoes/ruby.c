@@ -1115,11 +1115,15 @@ shoes_color_to_s(VALUE self)
 {
   shoes_color *color;
   Data_Get_Struct(self, shoes_color, color);
-  VALUE ary = rb_ary_new3(4, INT2NUM(color->r), INT2NUM(color->g), INT2NUM(color->b), INT2NUM(color->a));
-  if (color->a == 1.0)
+
+  VALUE ary = rb_ary_new3(4, 
+    INT2NUM(color->r), INT2NUM(color->g), INT2NUM(color->b), 
+    rb_float_new((color->a * 1.) / 255.));
+
+  if (color->a == 255)
     return rb_funcall(rb_str_new2("rgb(%d, %d, %d)"), s_perc, 1, ary);
   else
-    return rb_funcall(rb_str_new2("rgb(%d, %d, %d, %d)"), s_perc, 1, ary);
+    return rb_funcall(rb_str_new2("rgb(%d, %d, %d, %0.1f)"), s_perc, 1, ary);
 }
 
 VALUE
@@ -1288,9 +1292,11 @@ shoes_textblock_free(shoes_textblock *text)
 VALUE
 shoes_textblock_new(VALUE klass, VALUE texts, VALUE attr, VALUE parent)
 {
+  shoes_canvas *canvas;
   shoes_textblock *text;
   VALUE obj = shoes_textblock_alloc(klass);
   Data_Get_Struct(obj, shoes_textblock, text);
+  Data_Get_Struct(parent, shoes_canvas, canvas);
   //
   // TODO: check that all texts are String or descended from Shoes::Text
   //
@@ -1463,7 +1469,7 @@ typedef struct {
   if (attr != NULL) { \
     attr->start_index = start_index; \
     attr->end_index = end_index; \
-    pango_attr_list_change(k->attr, attr); \
+    pango_attr_list_insert_before(k->attr, attr); \
     attr = NULL; \
   }
 
@@ -1471,7 +1477,7 @@ typedef struct {
   attr = NULL; \
   str = Qnil; \
   if (!NIL_P(oattr)) str = rb_hash_aref(oattr, ID2SYM(rb_intern("" # name))); \
-  if (NIL_P(str)) str = rb_hash_aref(hsh, ID2SYM(rb_intern("" # name)))
+  if (!NIL_P(hsh) && NIL_P(str)) str = rb_hash_aref(hsh, ID2SYM(rb_intern("" # name)))
 
 #define APPLY_STYLE_COLOR(name, func) \
   GET_STYLE(name); \
@@ -1493,7 +1499,7 @@ shoes_app_style_for(shoes_kxxxx *k, VALUE klass, VALUE oattr, gsize start_index,
 {
   VALUE str;
   VALUE hsh = rb_hash_aref(k->app->styles, klass);
-  if (NIL_P(hsh)) return;
+  if (NIL_P(hsh) && NIL_P(oattr)) return;
 
   PangoAttrList *list = pango_attr_list_new();
   PangoAttribute *attr = NULL;
