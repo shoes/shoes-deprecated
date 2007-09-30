@@ -1584,7 +1584,7 @@ shoes_app_style_for(shoes_kxxxx *k, VALUE klass, VALUE oattr, gsize start_index,
     {
       int i = NUM2INT(str);
       if (i >= 100 && i <= 900)
-        attr = pango_attr_weight_new(i);
+        attr = pango_attr_weight_new((PangoWeight)i);
     }
     APPLY_ATTR();
   }
