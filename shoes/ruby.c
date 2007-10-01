@@ -11,7 +11,7 @@
 
 VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkText, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
-ID s_aref, s_perc, s_bind, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_leading, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
+ID s_aref, s_mult, s_perc, s_bind, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_leading, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -179,6 +179,15 @@ shoes_px(VALUE attr, ID k, int dv, int pv)
 {
   int px;
   VALUE obj = shoes_hash_get(attr, k);
+  if (TYPE(obj) == T_STRING) {
+    char *ptr = RSTRING_PTR(obj);
+    int len = RSTRING_LEN(obj);
+    obj = rb_funcall(obj, s_to_i, 0);
+    if (len > 1 && ptr[len - 1] == '%')
+    {
+      obj = rb_funcall(obj, s_mult, 1, rb_float_new(0.01)); 
+    }
+  }
   if (rb_obj_is_kind_of(obj, rb_cFloat)) {
     px = (int)((double)pv * NUM2DBL(obj));
   } else {
@@ -305,7 +314,8 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char
       if (rel == REL_TILE)
       {
         tw = dw; th = dh;
-        testw = dw = canvas->place.w; dh = canvas->height;
+        testw = dw = canvas->place.w;
+        dh = canvas->height > canvas->fully ? canvas->height : canvas->fully;
       }
     }
     else
@@ -1133,24 +1143,11 @@ shoes_color_to_pattern(VALUE self)
 }
 
 VALUE
-shoes_app_method_missing(int argc, VALUE *argv, VALUE self)
+shoes_color_method_missing(int argc, VALUE *argv, VALUE self)
 {
-  shoes_app *app;
-  VALUE c, cname, alpha, canvas;
-
-  cname = argv[0];
-  Data_Get_Struct(self, shoes_app, app);
-
-  canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1);
-  if (!NIL_P(canvas) && rb_respond_to(canvas, SYM2ID(cname)))
-  {
-    return ts_funcall2(canvas, SYM2ID(cname), argc - 1, argv + 1);
-  }
-
-  //
-  // Create colors by name
-  //
-  c = rb_hash_aref(cColors, cname);
+  VALUE alpha;
+  VALUE cname = argv[0];
+  VALUE c = rb_hash_aref(cColors, cname);
   if (NIL_P(c))
   {
     self = rb_inspect(self);
@@ -1167,6 +1164,24 @@ shoes_app_method_missing(int argc, VALUE *argv, VALUE self)
   }
 
   return c;
+}
+
+VALUE
+shoes_app_method_missing(int argc, VALUE *argv, VALUE self)
+{
+  shoes_app *app;
+  VALUE cname, canvas;
+
+  cname = argv[0];
+  Data_Get_Struct(self, shoes_app, app);
+
+  canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1);
+  if (!NIL_P(canvas) && rb_respond_to(canvas, SYM2ID(cname)))
+  {
+    return ts_funcall2(canvas, SYM2ID(cname), argc - 1, argv + 1);
+  }
+
+  return shoes_color_method_missing(argc, argv, self);
 }
 
 //
@@ -2605,6 +2620,7 @@ shoes_ruby_init()
   rb_gc_register_address(&exception_alert_proc);
   s_aref = rb_intern("[]=");
   s_perc = rb_intern("%");
+  s_mult = rb_intern("*");
   s_bind = rb_intern("bind");
   s_new = rb_intern("new");
   s_run = rb_intern("run");
@@ -2783,6 +2799,7 @@ shoes_ruby_init()
   rb_define_method(cColor, "to_s", CASTHOOK(shoes_color_to_s), 0);
   rb_define_method(cColor, "to_pattern", CASTHOOK(shoes_color_to_pattern), 0);
 
+  rb_define_method(cCanvas, "method_missing", CASTHOOK(shoes_color_method_missing), -1);
   rb_define_method(cApp, "method_missing", CASTHOOK(shoes_app_method_missing), -1);
 
   rb_const_set(cShoes, rb_intern("COLORS"), rb_hash_new());
