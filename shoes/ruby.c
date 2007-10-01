@@ -315,7 +315,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char
       {
         tw = dw; th = dh;
         testw = dw = canvas->place.w;
-        dh = canvas->height > canvas->fully ? canvas->height : canvas->fully;
+        dh = max(canvas->height, canvas->fully);
       }
     }
     else

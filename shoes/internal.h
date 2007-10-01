@@ -16,6 +16,14 @@
 #define SHOE_MEMMOVE(p1,p2,type,n)  memmove((p1), (p2), sizeof(type)*(n))
 #define SHOE_MEMCMP(p1,p2,type,n)   memcmp((p1), (p2), sizeof(type)*(n))
 
+#ifndef min
+#define min(a, b) ((a) <= (b) ? (a) : (b))
+#endif
+
+#ifndef max
+#define max(a, b) ((a) >= (b) ? (a) : (b))
+#endif
+
 #ifdef SHOES_WIN32
 
 void odprintf(const char *format, ...);
