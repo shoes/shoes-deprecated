@@ -24,7 +24,7 @@ VERSION = 0.r${SVN_VERSION}
 CFLAGS = -DSHOES_GTK ${INCS} ${CAIRO_CFLAGS} ${PANGO_CFLAGS} ${GTK_CFLAGS} -I${RUBY_INCS}
 LDFLAGS = -fPIC ${LIBS} ${CAIRO_LIB} ${PANGO_LIB} ${GTK_LIB} ${RUBY_LIBS}
 
-all: options shoes
+all: clean options shoes
 
 options:
 	@echo shoes build options:
@@ -46,6 +46,11 @@ dist/shoes-bin: dist/libshoes.so bin/main.o
 	@echo CC -o $@
 	@${CC} -o $@ ${LDFLAGS} bin/main.o -Ldist -lshoes
 
+dist/shoes.launch: dist/shoes-bin
+	@echo 'APPPATH="$${0%/*}"' > dist/shoes.launch
+	@echo 'LD_LIBRARY_PATH="$$APPPATH/../lib/shoes" $$APPPATH/../lib/shoes/shoes-bin $$@' >> dist/shoes.launch
+	@chmod 755 dist/shoes.launch
+
 dist/shoes: dist/shoes-bin
 	@echo 'APPPATH="$${0%/*}"' > dist/shoes
 	@echo 'LD_LIBRARY_PATH=$$APPPATH $$APPPATH/shoes-bin $$@' >> dist/shoes
@@ -65,11 +70,9 @@ shoes: dist/shoes
 	@cp ${RUBY_PREFIX}/lib/lib${RUBY_SO}.so dist
 	@ln -s lib${RUBY_SO}.so dist/libruby.so.1.8
 	@cp -r lib dist/lib
-	@rm -rf dist/lib/.svn
 	@cp -r samples dist/samples
-	@rm -rf dist/samples/.svn
 	@cp -r static dist/static
-	@rm -rf dist/static/.svn
+	@rm -rf dist/**/.svn
 	@cp README COPYING dist
 
 clean:
@@ -88,15 +91,14 @@ dist: clean
 	@gzip shoes-${VERSION}.tar
 	@rm -rf shoes-${VERSION}
 
-install: all
+install: all dist/shoes.launch
 	@echo installing executable file to ${DESTDIR}${PREFIX}/bin
 	@mkdir -p ${DESTDIR}${PREFIX}/bin
-	@cp -f dist/shoes ${DESTDIR}${PREFIX}/bin
+	@cp -f dist/shoes.launch ${DESTDIR}${PREFIX}/bin/shoes
 	@chmod 755 ${DESTDIR}${PREFIX}/bin/shoes
-	# @echo installing manual page to ${DESTDIR}${MANPREFIX}/man1
-	# @mkdir -p ${DESTDIR}${MANPREFIX}/man1
-	# @sed "s/VERSION/${VERSION}/g" < shoes.1 > ${DESTDIR}${MANPREFIX}/man1/shoes.1
-	# @chmod 644 ${DESTDIR}${MANPREFIX}/man1/shoes.1
+	@echo installing libraries to ${DESTDIR}${PREFIX}/lib/shoes
+	@mkdir -p ${DESTDIR}${PREFIX}/lib/shoes
+	@cp -r dist/* ${DESTDIR}${PREFIX}/lib/shoes/
 
 uninstall:
 	@echo removing executable file from ${DESTDIR}${PREFIX}/bin
