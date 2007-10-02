@@ -158,7 +158,7 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("motion", motion, -1); \
   f("keypress", keypress, -1); \
   f("clear", clear_contents, -1); \
-  f("goto", goto, 1); \
+  f("visit", goto, 1); \
   f("remove", remove, 0); \
   f("mouse", mouse, 0); \
   f("clipboard", get_clipboard, 0); \
