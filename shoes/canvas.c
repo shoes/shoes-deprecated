@@ -627,6 +627,18 @@ shoes_canvas_border(int argc, VALUE *argv, VALUE self)
 }
 
 VALUE
+shoes_canvas_video(int argc, VALUE *argv, VALUE self)
+{
+  VALUE path, attr, video;
+  SETUP();
+
+  rb_scan_args(argc, argv, "11", &path, &attr);
+  video = shoes_video_new(cVideo, path, attr, self);
+  rb_ary_push(canvas->contents, video);
+  return video;
+}
+
+VALUE
 shoes_canvas_image(int argc, VALUE *argv, VALUE self)
 {
   VALUE path, attr, image;

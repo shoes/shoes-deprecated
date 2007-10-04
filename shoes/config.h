@@ -41,6 +41,7 @@
 #ifdef SHOES_GTK
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
+#include <gdk/gdkx.h>
 
 typedef struct {
   GtkWidget *box, *canvas;

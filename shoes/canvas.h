@@ -7,6 +7,7 @@
 
 #include <cairo.h>
 #include <pango/pangocairo.h>
+#include <vlc/libvlc.h>
 #include <ruby.h>
 
 #include "shoes/config.h"
@@ -96,6 +97,20 @@ typedef struct {
   VALUE attr;
   VALUE parent;
 } shoes_image;
+
+//
+// video struct
+//
+typedef struct {
+  libvlc_exception_t excp;
+  libvlc_instance_t *vlc;
+  shoes_place place;
+  int init;
+  VALUE path;
+  VALUE attr;
+  VALUE parent;
+  SHOES_SLOT_OS slot;
+} shoes_video;
 
 //
 // pattern struct
@@ -211,6 +226,7 @@ VALUE shoes_canvas_sub(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_sup(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_background(int, VALUE *, VALUE);
 VALUE shoes_canvas_border(int, VALUE *, VALUE);
+VALUE shoes_canvas_video(int, VALUE *, VALUE);
 VALUE shoes_canvas_image(int, VALUE *, VALUE);
 VALUE shoes_canvas_animate(int, VALUE *, VALUE);
 VALUE shoes_canvas_imagesize(VALUE, VALUE);
@@ -295,6 +311,11 @@ VALUE shoes_image_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_image_alloc(VALUE);
 VALUE shoes_image_draw(VALUE, VALUE);
 VALUE shoes_image_remove(VALUE);
+
+VALUE shoes_video_new(VALUE, VALUE, VALUE, VALUE);
+VALUE shoes_video_alloc(VALUE);
+VALUE shoes_video_draw(VALUE, VALUE);
+VALUE shoes_video_remove(VALUE);
 
 VALUE shoes_pattern_self(VALUE);
 VALUE shoes_pattern_method(VALUE, VALUE);

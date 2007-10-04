@@ -9,7 +9,8 @@
 #include "shoes/internal.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkText, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
+VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkText, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
+VALUE eVlcError;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 ID s_aref, s_mult, s_perc, s_bind, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_leading, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
 
@@ -738,6 +739,101 @@ shoes_image_move(VALUE self, VALUE x, VALUE y)
   ATTRSET(self_t->attr, top, y);
   shoes_canvas_repaint_all(self_t->parent);
   return self;
+}
+
+static void shoes_vlc_exception(libvlc_exception_t *excp)
+{
+  if (libvlc_exception_raised(excp))
+  {
+    rb_raise(eVlcError, libvlc_exception_get_message(excp)); 
+  }
+}
+
+//
+// Shoes::Video
+//
+static void
+shoes_video_mark(shoes_video *video)
+{
+  rb_gc_mark_maybe(video->path);
+  rb_gc_mark_maybe(video->parent);
+  rb_gc_mark_maybe(video->attr);
+}
+
+static void
+shoes_video_free(shoes_video *video)
+{
+  if (video->vlc != NULL)
+    libvlc_destroy(video->vlc);
+  SHOE_FREE(video);
+}
+
+VALUE
+shoes_video_new(VALUE klass, VALUE path, VALUE attr, VALUE parent)
+{
+  GError *error = NULL;
+  shoes_video *video;
+  VALUE obj = shoes_video_alloc(klass);
+  Data_Get_Struct(obj, shoes_video, video);
+
+  video->path = path;
+  video->attr = attr;
+  video->parent = parent;
+  return obj;
+}
+
+VALUE
+shoes_video_alloc(VALUE klass)
+{
+  shoes_video *video;
+  VALUE obj = Data_Make_Struct(klass, shoes_video, shoes_video_mark, shoes_video_free, video);
+  libvlc_exception_init(&video->excp);
+  video->vlc = libvlc_new(0, NULL, NULL);
+  shoes_vlc_exception(&video->excp);
+  video->path = Qnil;
+  video->attr = Qnil;
+  video->parent = Qnil;
+  video->init = 0;
+  return obj;
+}
+
+VALUE
+shoes_video_remove(VALUE self)
+{
+  shoes_video *self_t;
+  Data_Get_Struct(self, shoes_video, self_t);
+  shoes_canvas_remove_item(self_t->parent, self);
+  return self;
+}
+
+VALUE
+shoes_video_draw(VALUE self, VALUE c)
+{
+  SETUP(shoes_video, REL_CANVAS, 400, 300);
+
+  if (self_t->init == 0 && GTK_LAYOUT(canvas->slot.canvas)->bin_window != 0)
+  {
+    self_t->init = 1;
+
+    int play_id = libvlc_playlist_add(self_t->vlc, RSTRING_PTR(self_t->path), NULL, &self_t->excp);
+    shoes_vlc_exception(&self_t->excp);
+
+#if SHOES_GTK
+    self_t->slot.canvas = gtk_layout_new(NULL, NULL);
+    gtk_widget_set_size_request(self_t->slot.canvas, place.w, place.h);
+    gtk_layout_put(GTK_LAYOUT(canvas->slot.canvas), self_t->slot.canvas, place.x, place.y);
+    gtk_widget_show_all(self_t->slot.canvas);
+    libvlc_drawable_t drawable = GDK_DRAWABLE_XID(GTK_LAYOUT(self_t->slot.canvas)->bin_window);
+#endif
+
+    libvlc_video_set_parent(self_t->vlc, drawable, &self_t->excp);
+    shoes_vlc_exception(&self_t->excp);
+
+    libvlc_playlist_play(self_t->vlc, 0, 0, NULL, &self_t->excp);
+    shoes_vlc_exception(&self_t->excp);
+  }
+  
+  return 0;
 }
 
 //
@@ -2672,6 +2768,7 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "children", CASTHOOK(shoes_canvas_contents), 0);
 
   cShoes = rb_define_class("Shoes", cCanvas);
+  eVlcError = rb_define_class_under(cShoes, "VideoError", rb_eStandardError);
   C(HEX_SOURCE, "/^(?:0x|#)?([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})$/i");
   C(HEX3_SOURCE, "/^(?:0x|#)?([0-9A-F])([0-9A-F])([0-9A-F])$/i");
   C(RGB_SOURCE, "/^rgb\\((\\d+), *(\\d+), *(\\d+)\\)$/i");
@@ -2725,6 +2822,11 @@ shoes_ruby_init()
   rb_define_method(cImage, "size", CASTHOOK(shoes_image_size), 0);
   rb_define_method(cImage, "move", CASTHOOK(shoes_image_move), 2);
   rb_define_method(cImage, "remove", CASTHOOK(shoes_image_remove), 0);
+
+  cVideo    = rb_define_class_under(cShoes, "Video", cImage);
+  rb_define_alloc_func(cVideo, shoes_video_alloc);
+  rb_define_method(cVideo, "draw", CASTHOOK(shoes_video_draw), 1);
+  rb_define_method(cVideo, "remove", CASTHOOK(shoes_video_remove), 0);
 
   cPattern = rb_define_class_under(cShoes, "Pattern", rb_cObject);
   rb_define_alloc_func(cPattern, shoes_pattern_alloc);

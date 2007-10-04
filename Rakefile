@@ -215,7 +215,7 @@ else
   PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
 
   LINUX_CFLAGS = %[-I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{Config::CONFIG['archdir']}]
-  LINUX_LIB_NAMES = %W[#{ruby_so} cairo pangocairo-1.0 ungif]
+  LINUX_LIB_NAMES = %W[#{ruby_so} cairo pangocairo-1.0 ungif vlc]
   if ENV['DEBUG']
     LINUX_CFLAGS << " -DDEBUG"
   end
