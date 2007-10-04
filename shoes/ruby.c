@@ -12,7 +12,7 @@
 VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkText, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE eVlcError;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
-ID s_aref, s_mult, s_perc, s_bind, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_leading, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius;
+ID s_aref, s_mult, s_perc, s_bind, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_leading, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -833,7 +833,8 @@ shoes_video_draw(VALUE self, VALUE c)
     shoes_vlc_exception(&self_t->excp);
   }
   
-  return 0;
+  FINISH();
+  return self;
 }
 
 //
@@ -2215,6 +2216,7 @@ shoes_edit_line_draw(VALUE self, VALUE c)
   {
 #ifdef SHOES_GTK
     self_t->ref = gtk_entry_new();
+    gtk_entry_set_visibility(GTK_ENTRY(self_t->ref), !RTEST(ATTR(self_t->attr, secret)));
     gtk_entry_set_text(GTK_ENTRY(self_t->ref), _(msg));
 #endif
 
@@ -2223,7 +2225,7 @@ shoes_edit_line_draw(VALUE self, VALUE c)
     Rect r;
     CFStringRef cfmsg = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
     SetRect(&r, place.x, place.y, place.x + place.w, place.y + place.h);
-    CreateEditUnicodeTextControl(NULL, &r, cfmsg, false, NULL, &self_t->ref);
+    CreateEditUnicodeTextControl(NULL, &r, cfmsg, RTEST(ATTR(self_t->attr, secret)), NULL, &self_t->ref);
     SetControlData(self_t->ref, kControlEntireControl, kControlEditTextSingleLineTag, sizeof(Boolean), &nowrap);
     CFRelease(cfmsg);
 #endif
@@ -2231,7 +2233,7 @@ shoes_edit_line_draw(VALUE self, VALUE c)
 #ifdef SHOES_WIN32
     int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
     self_t->ref = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("EDIT"), NULL,
-        WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT,
+        WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT | (RTEST(ATTR(self_t->attr, secret)) ? ES_PASSWORD | NULL),
         place.x, place.y, place.w, place.h, canvas->slot.window, (HMENU)cid, 
         (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
         NULL);
@@ -2760,6 +2762,7 @@ shoes_ruby_init()
   s_margin_top = rb_intern("margin_top");
   s_margin_bottom = rb_intern("margin_bottom");
   s_radius = rb_intern("radius");
+  s_secret = rb_intern("secret");
 
   cApp = rb_define_class("App", rb_cObject);
   rb_define_alloc_func(cApp, shoes_app_alloc);
