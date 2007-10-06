@@ -2031,7 +2031,7 @@ shoes_textblock_draw(VALUE self, VALUE c)
   }
   canvas->endy += lrect.height;
   if (ck == cStack || canvas->cx > canvas->width) {
-    canvas->cx = 0;
+    canvas->cx = canvas->place.x;
     canvas->cy = canvas->endy;
   }
   canvas->endx = canvas->cx;
