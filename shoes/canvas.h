@@ -172,7 +172,7 @@ typedef struct {
   double sw;                // current stroke-width
   int cx, cy;               // cursor x and y (stored in absolute coords)
   int endx, endy;           // jump points if the cursor spills over
-  int fully, scrolly;       // since we often stack vertically
+  int topy, fully, scrolly; // since we often stack vertically
   int width, height;        // the full height and width used by this box
   shoes_place place;        // temporary storage of box placement
   struct _shoes_app *app;

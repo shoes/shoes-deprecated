@@ -12,7 +12,7 @@
 VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkText, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE eVlcError;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
-ID s_aref, s_mult, s_perc, s_bind, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_leading, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
+ID s_aref, s_mult, s_perc, s_bind, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_leading, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -316,7 +316,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char
       {
         tw = dw; th = dh;
         testw = dw = canvas->place.w;
-        dh = max(canvas->height, canvas->fully);
+        dh = max(canvas->height, canvas->fully - canvas->place.y);
       }
     }
     else
@@ -331,7 +331,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char
       canvas->cy = canvas->endy;
       place->w = canvas->place.w;
     }
-    place->h = PX(attr, height, dh, canvas->fully);
+    place->h = PX(attr, height, dh, canvas->fully - canvas->place.y);
 
     if (rel != REL_TILE)
     {
@@ -829,13 +829,63 @@ shoes_video_draw(VALUE self, VALUE c)
     libvlc_video_set_parent(self_t->vlc, drawable, &self_t->excp);
     shoes_vlc_exception(&self_t->excp);
 
-    libvlc_playlist_play(self_t->vlc, 0, 0, NULL, &self_t->excp);
-    shoes_vlc_exception(&self_t->excp);
+    if (RTEST(ATTR(self_t->attr, autoplay)))
+    {
+      libvlc_playlist_play(self_t->vlc, 0, 0, NULL, &self_t->excp);
+      shoes_vlc_exception(&self_t->excp);
+    }
   }
   
   FINISH();
   return self;
 }
+
+VALUE
+shoes_video_is_playing(VALUE self)
+{
+  shoes_video *self_t;
+  Data_Get_Struct(self, shoes_video, self_t);
+  if (self_t->init == 1)
+  {
+    int isp = libvlc_playlist_isplaying(self_t->vlc, &self_t->excp);
+    shoes_vlc_exception(&self_t->excp);
+    return isp == 0 ? Qfalse : Qtrue;
+  }
+  return Qfalse;
+}
+
+VALUE
+shoes_video_play(VALUE self)
+{
+  shoes_video *self_t;
+  Data_Get_Struct(self, shoes_video, self_t);
+  if (self_t->init == 1)
+  {
+    libvlc_playlist_play(self_t->vlc, 0, 0, NULL, &self_t->excp);
+    shoes_vlc_exception(&self_t->excp);
+  }
+  return self;
+}
+
+#define VIDEO_METHOD(x) \
+  VALUE \
+  shoes_video_##x(VALUE self) \
+  { \
+    shoes_video *self_t; \
+    Data_Get_Struct(self, shoes_video, self_t); \
+    if (self_t->init == 1) \
+    { \
+      libvlc_playlist_##x(self_t->vlc, &self_t->excp); \
+      shoes_vlc_exception(&self_t->excp); \
+    } \
+    return self; \
+  }
+
+VIDEO_METHOD(clear);
+VIDEO_METHOD(prev);
+VIDEO_METHOD(next);
+VIDEO_METHOD(pause);
+VIDEO_METHOD(stop);
 
 //
 // Shoes::Pattern
@@ -1829,6 +1879,12 @@ shoes_textblock_iter_pango(VALUE texts, shoes_kxxxx *k)
         VALUE url = rb_hash_aref(text->attr, ID2SYM(rb_intern("url")));
         if (!NIL_P(url))
           rb_ary_push(k->links, shoes_link_new(url, start, k->len));
+        else
+        {
+          url = rb_hash_aref(text->attr, ID2SYM(s_click));
+          if (!NIL_P(url))
+            rb_ary_push(k->links, shoes_link_new(url, start, k->len));
+        }
       }
     }
     else
@@ -1913,14 +1969,12 @@ shoes_textblock_draw(VALUE self, VALUE c)
       if (self_t->place.x > canvas->place.x) {
         pd = (self_t->place.x - (canvas->place.x + lmargin));
         pango_layout_set_indent(self_t->layout, pd * PANGO_SCALE);
-        self_t->place.w = (canvas->place.w - (canvas->cx - self_t->place.x)) - rmargin;
+        self_t->place.w = (canvas->place.w - (canvas->cx - self_t->place.x)) - (lmargin + rmargin);
       }
     }
-    cairo_move_to(canvas->cr, canvas->place.x + lmargin, self_t->place.y);
   }
-  else
-    cairo_move_to(canvas->cr, self_t->place.x, self_t->place.y);
 
+  cairo_move_to(canvas->cr, self_t->place.x, self_t->place.y);
   cairo_set_source_rgb(canvas->cr, 0., 0., 0.);
   INFO("TEXT: %d, %d (%d, %d) / %d, %d / %d, %d [%d]\n", canvas->cx, canvas->cy,
     canvas->place.w, canvas->height, self_t->place.x, self_t->place.y, self_t->place.w, self_t->place.h, pd);
@@ -2727,6 +2781,7 @@ shoes_ruby_init()
   s_to_pattern = rb_intern("to_pattern");
   s_angle = rb_intern("angle");
   s_arrow = rb_intern("arrow");
+  s_autoplay = rb_intern("autoplay");
   s_begin = rb_intern("begin");
   s_call = rb_intern("call");
   s_center = rb_intern("center");
@@ -2830,6 +2885,13 @@ shoes_ruby_init()
   rb_define_alloc_func(cVideo, shoes_video_alloc);
   rb_define_method(cVideo, "draw", CASTHOOK(shoes_video_draw), 1);
   rb_define_method(cVideo, "remove", CASTHOOK(shoes_video_remove), 0);
+  rb_define_method(cVideo, "playing?", CASTHOOK(shoes_video_is_playing), 0);
+  rb_define_method(cVideo, "play", CASTHOOK(shoes_video_play), 0);
+  rb_define_method(cVideo, "clear", CASTHOOK(shoes_video_clear), 0);
+  rb_define_method(cVideo, "previous", CASTHOOK(shoes_video_prev), 0);
+  rb_define_method(cVideo, "next", CASTHOOK(shoes_video_next), 0);
+  rb_define_method(cVideo, "pause", CASTHOOK(shoes_video_pause), 0);
+  rb_define_method(cVideo, "stop", CASTHOOK(shoes_video_stop), 0);
 
   cPattern = rb_define_class_under(cShoes, "Pattern", rb_cObject);
   rb_define_alloc_func(cPattern, shoes_pattern_alloc);

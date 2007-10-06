@@ -315,6 +315,7 @@ shoes_canvas_clear(VALUE self)
   canvas->cy = 0;
   canvas->endy = 0;
   canvas->endx = 0;
+  canvas->topy = 0;
   canvas->fully = 0;
   canvas->click = Qnil;
   canvas->release = Qnil;
@@ -578,11 +579,36 @@ MARKUP_DEF(code, INLINE, cCode);
 MARKUP_DEF(del, INLINE, cDel);
 MARKUP_DEF(em, INLINE, cEm);
 MARKUP_DEF(ins, INLINE, cIns);
-MARKUP_DEF(link, INLINE, cLinkText);
 MARKUP_DEF(span, INLINE, cSpan);
 MARKUP_DEF(strong, INLINE, cStrong);
 MARKUP_DEF(sub, INLINE, cSub);
 MARKUP_DEF(sup, INLINE, cSup);
+
+VALUE
+shoes_canvas_link(int argc, VALUE *argv, VALUE self)
+{
+  long i;
+  VALUE msgs, attr, text;
+  SETUP();
+  msgs = rb_ary_new();
+  attr = Qnil;
+  for (i = 0; i < argc; i++)
+  {
+    if (rb_obj_is_kind_of(argv[i], rb_cHash))
+      attr = argv[i];
+    else
+      rb_ary_push(msgs, argv[i]);
+  }
+
+  if (rb_block_given_p())
+  {
+    if (NIL_P(attr)) attr = rb_hash_new();
+    rb_hash_aset(attr, ID2SYM(s_click), rb_block_proc());
+  }
+
+  MARKUP_INLINE(cLinkText);
+  return text;
+}
 
 VALUE
 shoes_canvas_imagesize(VALUE self, VALUE _path)
@@ -1021,7 +1047,7 @@ shoes_canvas_draw(VALUE self, VALUE c)
   {
     shoes_place_decide(&self_t->place, self_t->parent, self_t->attr, self_t->width, self_t->height, REL_CANVAS);
     self_t->endx = self_t->cx = 0;
-    self_t->fully = self_t->endy = self_t->cy = 0;
+    self_t->topy = self_t->fully = self_t->endy = self_t->cy = 0;
     if (!NIL_P(self_t->parent))
     {
       shoes_canvas *pc;
@@ -1068,6 +1094,8 @@ shoes_canvas_draw(VALUE self, VALUE c)
       crm = cairo_create(surfm);
     }
 
+    self_t->topy = canvas->cy;
+
     for (i = 0; i < RARRAY_LEN(self_t->contents); i++)
     {
       VALUE ele = rb_ary_entry(self_t->contents, i);
@@ -1081,7 +1109,26 @@ shoes_canvas_draw(VALUE self, VALUE c)
 
       if (shoes_canvas_inherits(ele, self_t))
       {
+        long j;
+        shoes_canvas *c1;
+        Data_Get_Struct(ele, shoes_canvas, c1);
         rb_funcall(ele, s_draw, 1, self);
+
+        //
+        // update the height of all canvases in this row
+        // 
+        for (j = i - 1; j >= 0; j--)
+        {
+          shoes_canvas *c2;
+          VALUE ele2 = rb_ary_entry(self_t->contents, j);
+          Data_Get_Struct(ele2, shoes_canvas, c2);
+          if (c2->topy < c1->topy)
+            break;
+          if (c1->fully > c2->fully)
+            c2->fully = c1->fully;
+          else
+            break;
+        }
       }
     }
 
@@ -1109,8 +1156,8 @@ shoes_canvas_draw(VALUE self, VALUE c)
   canvas->endx = canvas->cx = self_t->place.x + self_t->width;
   if (canvas->endy < self_t->endy)
     canvas->endy = self_t->endy;
-  self_t->fully = self_t->endy;
-
+  self_t->fully = max(canvas->endy, self_t->endy);
+      
 #ifdef SHOES_GTK
   self_t->slot.expose = NULL;
 #endif
@@ -1543,7 +1590,6 @@ shoes_canvas_send_keypress(VALUE self, VALUE key)
 VALUE
 shoes_slot_new(VALUE klass, VALUE attr, VALUE parent)
 {
-  int margin;
   shoes_canvas *self_t, *pc;
   VALUE self = shoes_canvas_alloc(klass);
   shoes_canvas_clear(self);
