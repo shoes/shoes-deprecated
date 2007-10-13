@@ -1366,7 +1366,7 @@ shoes_canvas_repaint_all(VALUE self)
   shoes_slot_repaint(&canvas->slot);
 }
 
-typedef void (*ccallfunc)(VALUE);
+typedef VALUE (*ccallfunc)(VALUE);
 
 static void
 shoes_canvas_ccall(VALUE self, ccallfunc func)

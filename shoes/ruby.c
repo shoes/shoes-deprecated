@@ -443,7 +443,7 @@ shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, double r)
 #define PLACE_CONTROL() \
   gtk_widget_set_size_request(self_t->ref, place.w, place.h); \
   gtk_layout_put(GTK_LAYOUT(canvas->slot.canvas), self_t->ref, place.x, place.y); \
-  gtk_widget_show(self_t->ref); \
+  gtk_widget_show_all(self_t->ref); \
   PLACE_COORDS();
 
 #define REPAINT_CONTROL() \
@@ -800,7 +800,7 @@ shoes_video_alloc(VALUE klass)
   return obj;
 }
 
-void
+VALUE
 shoes_video_hide(VALUE self)
 {
   shoes_video *self_t;
@@ -815,9 +815,10 @@ shoes_video_hide(VALUE self)
 #ifdef SHOES_WIN32
   ShowWindow(self_t->ref, SW_HIDE);
 #endif
+  return self;
 }
 
-void
+VALUE
 shoes_video_show(VALUE self)
 {
   shoes_video *self_t;
@@ -832,13 +833,18 @@ shoes_video_show(VALUE self)
 #ifdef SHOES_WIN32
   ShowWindow(self_t->ref, SW_SHOW);
 #endif
+  return self;
 }
 
 VALUE
 shoes_video_remove(VALUE self)
 {
   shoes_video *self_t;
+  shoes_canvas *canvas;
   Data_Get_Struct(self, shoes_video, self_t);
+  shoes_canvas_remove_item(self_t->parent, self);
+
+  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
 #ifdef SHOES_GTK
   gtk_container_remove(GTK_CONTAINER(canvas->slot.canvas), self_t->ref);
 #endif
@@ -848,7 +854,6 @@ shoes_video_remove(VALUE self)
 #ifdef SHOES_WIN32
   DestroyWindow(self_t->ref);
 #endif
-  shoes_canvas_remove_item(self_t->parent, self);
   return self;
 }
 
@@ -867,11 +872,7 @@ shoes_video_draw(VALUE self, VALUE c)
       shoes_vlc_exception(&self_t->excp);
 
 #ifdef SHOES_GTK
-      self_t->slot.canvas = gtk_layout_new(NULL, NULL);
-      gtk_widget_set_size_request(self_t->slot.canvas, place.w, place.h);
-      gtk_layout_put(GTK_LAYOUT(canvas->slot.canvas), self_t->slot.canvas, place.x, place.y);
-      gtk_widget_show_all(self_t->slot.canvas);
-      libvlc_drawable_t drawable = GDK_DRAWABLE_XID(GTK_LAYOUT(self_t->slot.canvas)->bin_window);
+      self_t->ref = gtk_layout_new(NULL, NULL);
 #endif
 
 #ifdef SHOES_WIN32
@@ -881,12 +882,12 @@ shoes_video_draw(VALUE self, VALUE c)
           self_t->place.x, self_t->place.y, self_t->place.w, self_t->place.h,
           canvas->slot.window, (HMENU)cid, 
           (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE), NULL);
-      libvlc_drawable_t drawable = (libvlc_drawable_t)self_t->ref;
       rb_ary_push(canvas->slot.controls, self);
 #endif
-      INFO("Drawable: %lu\n", drawable);
 
-      libvlc_video_set_parent(self_t->vlc, drawable, &self_t->excp);
+      PLACE_CONTROL();
+
+      libvlc_video_set_parent(self_t->vlc, DRAWABLE(self_t->ref), &self_t->excp);
       shoes_vlc_exception(&self_t->excp);
 
       if (RTEST(ATTR(self_t->attr, autoplay)))
@@ -895,8 +896,6 @@ shoes_video_draw(VALUE self, VALUE c)
         libvlc_playlist_play(self_t->vlc, 0, 0, NULL, &self_t->excp);
         shoes_vlc_exception(&self_t->excp);
       }
-
-      PLACE_CONTROL();
     }
     else
     {
@@ -2157,7 +2156,7 @@ shoes_control_alloc(VALUE klass)
   return obj;
 }
 
-void
+VALUE
 shoes_control_hide(VALUE self)
 {
   shoes_control *self_t;
@@ -2172,9 +2171,10 @@ shoes_control_hide(VALUE self)
 #ifdef SHOES_WIN32
   ShowWindow(self_t->ref, SW_HIDE);
 #endif
+  return self;
 }
 
-void
+VALUE
 shoes_control_show(VALUE self)
 {
   shoes_control *self_t;
@@ -2189,6 +2189,7 @@ shoes_control_show(VALUE self)
 #ifdef SHOES_WIN32
   ShowWindow(self_t->ref, SW_SHOW);
 #endif
+  return self;
 }
 
 VALUE

@@ -296,8 +296,8 @@ VALUE shoes_control_new(VALUE, VALUE, VALUE);
 VALUE shoes_control_alloc(VALUE);
 void shoes_control_send(VALUE, ID);
 VALUE shoes_control_remove(VALUE);
-void shoes_control_show(VALUE);
-void shoes_control_hide(VALUE);
+VALUE shoes_control_show(VALUE);
+VALUE shoes_control_hide(VALUE);
 
 VALUE shoes_button_draw(VALUE, VALUE);
 VALUE shoes_edit_line_draw(VALUE, VALUE);
@@ -324,6 +324,8 @@ VALUE shoes_image_remove(VALUE);
 VALUE shoes_video_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_video_alloc(VALUE);
 VALUE shoes_video_draw(VALUE, VALUE);
+VALUE shoes_video_show(VALUE);
+VALUE shoes_video_hide(VALUE);
 VALUE shoes_video_remove(VALUE);
 
 VALUE shoes_pattern_self(VALUE);
