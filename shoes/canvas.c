@@ -178,7 +178,7 @@ shoes_canvas_paint(VALUE self)
 #endif
 
 #ifdef SHOES_WIN32
-  BitBlt(hdc, 0, 0, width, height, canvas->slot.dc, 0, canvas->scrolly, SRCCOPY);
+  BitBlt(hdc, 0, 0, width, height, canvas->slot.dc, 0, canvas->slot.scrolly, SRCCOPY);
   cairo_surface_destroy(canvas->slot.surface);
   EndPaint(canvas->slot.window, &paint_struct);
   DeleteObject(canvas->slot.dc);
@@ -1001,6 +1001,7 @@ shoes_canvas_reflow(shoes_canvas *self_t, VALUE c)
   Data_Get_Struct(c, shoes_canvas, parent);
 
   self_t->cr = parent->cr;
+  self_t->slot = parent->slot;
   shoes_place_decide(&self_t->place, c, self_t->attr, parent->width, 0, REL_CANVAS);
   self_t->width = self_t->place.w;
   self_t->height = self_t->place.h;
@@ -1197,7 +1198,7 @@ shoes_canvas_draw(VALUE self, VALUE c)
     si.nMin = 0;
     si.nMax = canvas->fully; 
     si.nPage = canvas->height;
-    si.nPos = canvas->scrolly;
+    si.nPos = canvas->slot.scrolly;
     INFO("SetScrollInfo(%d, nMin: %d, nMax: %d, nPage: %d)\n", 
       si.nPos, si.nMin, si.nMax, si.nPage);
     SetScrollInfo(canvas->slot.window, SB_VERT, &si, TRUE);

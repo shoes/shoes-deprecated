@@ -114,6 +114,7 @@ typedef struct {
   HDC dc;
   HWND window;
   VALUE controls;
+  int scrolly;
   cairo_surface_t *surface;
 } shoes_slot_win32, SHOES_SLOT_OS;
 
