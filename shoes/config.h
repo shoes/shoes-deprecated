@@ -129,7 +129,7 @@ typedef struct {
 
 #define DC(slot) slot.window
 #define HAS_DRAWABLE(slot) slot.window != NULL
-#define DRAWABLE(ref) (libvlc_drawable_t)ref;
+#define DRAWABLE(ref) (libvlc_drawable_t)ref
 
 #endif
 
