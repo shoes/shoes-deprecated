@@ -21,6 +21,7 @@
 #define SHOES_APP_WIDTH  400
 #define SHOES_SHORTNAME  "shoes"
 #define SHOES_APPNAME    "Shoes"
+#define SHOES_VLCLASS    "Shoes VLC"
 
 //
 // abstract window struct

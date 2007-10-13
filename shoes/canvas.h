@@ -102,6 +102,15 @@ typedef struct {
 // video struct
 //
 typedef struct {
+#ifdef SHOES_GTK
+  GtkWidget *ref;
+#endif
+#ifdef SHOES_QUARTZ
+  ControlRef ref;
+#endif
+#ifdef SHOES_WIN32
+  HWND ref;
+#endif
   libvlc_exception_t excp;
   libvlc_instance_t *vlc;
   shoes_place place;

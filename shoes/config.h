@@ -57,6 +57,7 @@ typedef struct {
 } shoes_world_gtk, SHOES_WORLD_OS;
 
 #define DC(slot) slot.canvas
+#define HAS_DRAWABLE(slot) GTK_LAYOUT(slot.canvas)->bin_window != 0
 #endif
 
 //
@@ -117,7 +118,7 @@ typedef struct {
 
 typedef struct {
   BOOL ctrlkey, altkey, shiftkey;
-  WNDCLASSEX classex;
+  WNDCLASSEX classex, vlclassex;
 } shoes_app_win32, SHOES_APP_OS;
 
 typedef struct {
@@ -126,6 +127,7 @@ typedef struct {
 } sheos_world_win32, SHOES_WORLD_OS;
 
 #define DC(slot) slot.window
+#define HAS_DRAWABLE(slot) slot.window != NULL
 
 #endif
 

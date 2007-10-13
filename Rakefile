@@ -71,6 +71,7 @@ task :build => :build_os do
     cp    FileList["#{ext_ruby}/bin/*"], "dist/"
     cp    FileList["deps/cairo/bin/*"], "dist/"
     cp    FileList["deps/pango/bin/*"], "dist/"
+    cp    FileList["deps/vlc/bin/*"], "dist/"
   when /darwin/
     if ENV['SHOES_DEPS_PATH']
       %w[lib/libcairo.2.dylib lib/libcairo.2.dylib lib/libgmodule-2.0.0.dylib lib/libintl.8.dylib lib/libruby.dylib
@@ -129,10 +130,11 @@ when /win32/
   end
 
   # MSVC build environment
-  MSVC_LIBS = %[msvcrt-ruby18.lib pango-1.0.lib pangocairo-1.0.lib gobject-2.0.lib glib-2.0.lib cairo.lib giflib.lib jpeg.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib advapi32.lib oleacc.lib]
+  MSVC_LIBS = %[msvcrt-ruby18.lib libvlc.lib pango-1.0.lib pangocairo-1.0.lib gobject-2.0.lib glib-2.0.lib cairo.lib giflib.lib jpeg.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib advapi32.lib oleacc.lib]
   MSVC_LIBS << " bufferoverflowu.lib" if ENV['DDKBUILDENV']
 
   MSVC_CFLAGS = %q[/ML /DWIN32 /DSHOES_WIN32 /DWIN32_LEAN_AND_MEAN
+    /Ideps\vlc\include
     /Ideps\cairo\include
     /Ideps\cairo\include\cairo
     /Ideps\pango\include\pango-1.0
@@ -173,6 +175,7 @@ when /win32/
     sh "link #{MSVC_LDFLAGS} /OUT:#{t.name} /LIBPATH:#{ext_ruby}/lib " +
       "/LIBPATH:deps/cairo/lib " +
       "/LIBPATH:deps/pango/lib " +
+      "/LIBPATH:deps/vlc/lib " +
       "/SUBSYSTEM:WINDOWS #{OBJ.join(' ')} bin/main.obj #{MSVC_LIBS}"
   end
 

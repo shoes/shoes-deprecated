@@ -1170,6 +1170,24 @@ shoes_app_open(shoes_app *app)
     QUIT("Couldn't register WIN32 window class.");
   }
 
+  app->os.vlclassex.hInstance = shoes_world->os.instance;
+  app->os.vlclassex.lpszClassName = SHOES_VLCLASS;
+  app->os.vlclassex.style = CS_NOCLOSE;
+  app->os.vlclassex.lpfnWndProc = DefWindowProc;
+  app->os.vlclassex.cbSize = sizeof(WNDCLASSEX);
+  app->os.vlclassex.hIcon = NULL;
+  app->os.vlclassex.hIconSm = NULL;
+  app->os.vlclassex.hCursor = LoadCursor(NULL, IDC_ARROW);
+  app->os.vlclassex.lpszMenuName = NULL;
+  app->os.vlclassex.cbClsExtra = 0;
+  app->os.vlclassex.cbWndExtra = 0;
+  app->os.vlclassex.hbrBackground = (HBRUSH)GetStockObject(LTGRAY_BRUSH);
+
+  if (!RegisterClassEx(&app->os.vlclassex))
+  {
+    QUIT("Couldn't register VLC window class.");
+  }
+
   // remove the menu
   rect.left = 0;
   rect.top = 0;
