@@ -1115,20 +1115,26 @@ shoes_canvas_draw(VALUE self, VALUE c)
         Data_Get_Struct(ele, shoes_canvas, c1);
         rb_funcall(ele, s_draw, 1, self);
 
-        //
-        // update the height of all canvases in this row
-        // 
-        for (j = i - 1; j >= 0; j--)
+        if (rb_obj_is_kind_of(ele, cCanvas))
         {
-          shoes_canvas *c2;
-          VALUE ele2 = rb_ary_entry(self_t->contents, j);
-          Data_Get_Struct(ele2, shoes_canvas, c2);
-          if (c2->topy < c1->topy)
-            break;
-          if (c1->fully > c2->fully)
-            c2->fully = c1->fully;
-          else
-            break;
+          //
+          // update the height of all canvases in this row
+          // 
+          for (j = i - 1; j >= 0; j--)
+          {
+            shoes_canvas *c2;
+            VALUE ele2 = rb_ary_entry(self_t->contents, j);
+            if (rb_obj_is_kind_of(ele2, cCanvas))
+            {
+              Data_Get_Struct(ele2, shoes_canvas, c2);
+              if (c2->topy < c1->topy)
+                break;
+              if (c1->fully > c2->fully)
+                c2->fully = c1->fully;
+              else
+                c1->fully = c2->fully;
+            }
+          }
         }
       }
     }
