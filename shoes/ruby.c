@@ -744,6 +744,37 @@ shoes_image_move(VALUE self, VALUE x, VALUE y)
   return self;
 }
 
+VALUE
+shoes_image_motion(VALUE self, int x, int y)
+{
+  VALUE click;
+  shoes_image *self_t;
+  Data_Get_Struct(self, shoes_image, self_t);
+
+  click = ATTR(self_t->attr, click);
+  if (self_t->surface == NULL || NIL_P(click)) return Qnil;
+
+  if (x >= self_t->place.x && x <= self_t->place.x + cairo_image_surface_get_height(self_t->surface) && 
+      y >= self_t->place.y && y <= self_t->place.y + cairo_image_surface_get_width(self_t->surface))
+  {
+    shoes_canvas *canvas;
+    Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+    shoes_app_cursor(canvas->app, s_hand);
+    return click;
+  }
+
+  return Qnil;
+}
+
+VALUE
+shoes_image_click(VALUE self, int button, int x, int y)
+{
+  if (button == 1)
+    return shoes_image_motion(self, x, y);
+
+  return Qnil;
+}
+
 static void shoes_vlc_exception(libvlc_exception_t *excp)
 {
   if (libvlc_exception_raised(excp))

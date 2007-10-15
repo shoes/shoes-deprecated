@@ -671,6 +671,14 @@ shoes_canvas_image(int argc, VALUE *argv, VALUE self)
   SETUP();
 
   rb_scan_args(argc, argv, "11", &path, &attr);
+  if (!RTEST(rb_funcall(rb_cFile, rb_intern("exists?"), 1, path)))
+    rb_raise(rb_eArgError, "no such file %s", RSTRING_PTR(path));
+
+  if (rb_block_given_p())
+  {
+    if (NIL_P(attr)) attr = rb_hash_new();
+    rb_hash_aset(attr, ID2SYM(s_click), rb_block_proc());
+  }
   image = shoes_image_new(cImage, path, attr, self);
   rb_ary_push(canvas->contents, image);
   return image;
@@ -1468,6 +1476,10 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y)
       {
         v = shoes_textblock_click(ele, button, x, y);
       }
+      else if (rb_obj_is_kind_of(ele, cImage))
+      {
+        v = shoes_image_click(ele, button, x, y);
+      }
       if (!NIL_P(v)) return v;
     }
   }
@@ -1564,6 +1576,11 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
       {
         if (NIL_P(url))
           url = shoes_textblock_motion(ele, x, y);
+      }
+      else if (rb_obj_is_kind_of(ele, cImage))
+      {
+        if (NIL_P(url))
+          url = shoes_image_motion(ele, x, y);
       }
     }
 

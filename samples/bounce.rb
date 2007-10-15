@@ -6,7 +6,9 @@ Shoes.app do
   border black, :strokewidth => 6
 
   nostroke
-  @icon = image "static/shoes-icon.png", :left => 100, :top => 100
+  @icon = image "static/shoes-icon.png", :left => 100, :top => 100 do
+    alert "You're soooo quick."
+  end
 
   x, y = self.width / 2, self.height / 2
   size = @icon.size

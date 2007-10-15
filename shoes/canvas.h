@@ -320,6 +320,8 @@ VALUE shoes_image_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_image_alloc(VALUE);
 VALUE shoes_image_draw(VALUE, VALUE);
 VALUE shoes_image_remove(VALUE);
+VALUE shoes_image_motion(VALUE, int, int);
+VALUE shoes_image_click(VALUE, int, int, int);
 
 VALUE shoes_video_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_video_alloc(VALUE);
