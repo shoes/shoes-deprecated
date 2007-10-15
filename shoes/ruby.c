@@ -2985,7 +2985,7 @@ shoes_ruby_init()
   rb_define_method(cImage, "move", CASTHOOK(shoes_image_move), 2);
   rb_define_method(cImage, "remove", CASTHOOK(shoes_image_remove), 0);
 
-  cVideo    = rb_define_class_under(cShoes, "Video", cImage);
+  cVideo    = rb_define_class_under(cShoes, "Video", rb_cObject);
   rb_define_alloc_func(cVideo, shoes_video_alloc);
   rb_define_method(cVideo, "draw", CASTHOOK(shoes_video_draw), 1);
   rb_define_method(cVideo, "hide", CASTHOOK(shoes_video_hide), 0);
