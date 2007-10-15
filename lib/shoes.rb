@@ -22,7 +22,7 @@ class Shoes
   NoScript = proc do
     script = ask_open_file
     Shoes.load(script)
-    goto "/"
+    visit "/"
   end
 
   NotFound = proc do
