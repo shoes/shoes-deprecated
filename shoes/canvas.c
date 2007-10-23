@@ -103,11 +103,10 @@ shoes_cairo_create(SHOES_SLOT_OS *slot, int width, int height, int border)
 }
 
 VALUE
-shoes_canvas_set_width(VALUE self, VALUE w)
+shoes_canvas_get_height(VALUE self)
 {
   SETUP();
-  canvas->width = NUM2INT(w);
-  return w;
+  return INT2NUM(canvas->height);
 }
 
 VALUE
@@ -118,18 +117,14 @@ shoes_canvas_get_width(VALUE self)
 }
 
 VALUE
-shoes_canvas_set_height(VALUE self, VALUE h)
+shoes_canvas_style(int argc, VALUE *argv, VALUE self)
 {
+  VALUE attr;
   SETUP();
-  canvas->height = NUM2INT(h);
-  return h;
-}
 
-VALUE
-shoes_canvas_get_height(VALUE self)
-{
-  SETUP();
-  return INT2NUM(canvas->height);
+  rb_scan_args(argc, argv, "01", &attr);
+  if (!NIL_P(attr)) rb_funcall(canvas->attr, s_update, 1, attr);
+  return canvas->attr;
 }
 
 void
@@ -1001,6 +996,16 @@ shoes_canvas_inherits(VALUE ele, shoes_canvas *pc)
   return TRUE;
 }
 
+int
+shoes_canvas_independent(shoes_canvas *c)
+{
+  shoes_canvas *pc;
+  if (NIL_P(c->parent)) return TRUE;
+
+  Data_Get_Struct(c->parent, shoes_canvas, pc);
+  return !(pc == c || DC(c->slot) == DC(pc->slot));
+}
+
 static void
 shoes_canvas_reflow(shoes_canvas *self_t, VALUE c)
 {
@@ -1056,7 +1061,7 @@ shoes_canvas_draw(VALUE self, VALUE c)
   {
     shoes_place_decide(&self_t->place, self_t->parent, self_t->attr, self_t->width, self_t->height, REL_CANVAS);
     self_t->endx = self_t->cx = 0;
-    self_t->topy = self_t->fully = self_t->endy = self_t->cy = 0;
+    self_t->topy = self_t->endy = self_t->cy = 0;
     if (!NIL_P(self_t->parent))
     {
       shoes_canvas *pc;
@@ -1171,7 +1176,6 @@ shoes_canvas_draw(VALUE self, VALUE c)
   canvas->endx = canvas->cx = self_t->place.x + self_t->width;
   if (canvas->endy < self_t->endy)
     canvas->endy = self_t->endy;
-  self_t->fully = max(canvas->endy, self_t->endy);
       
 #ifdef SHOES_GTK
   self_t->slot.expose = NULL;
@@ -1181,18 +1185,19 @@ shoes_canvas_draw(VALUE self, VALUE c)
   {
     int endy = (int)self_t->endy;
     if (endy < self_t->height) endy = self_t->height;
+    self_t->fully = endy;
 #ifdef SHOES_GTK
-    gtk_layout_set_size(GTK_LAYOUT(self_t->slot.canvas), self_t->width, self_t->endy);
+    gtk_layout_set_size(GTK_LAYOUT(self_t->slot.canvas), self_t->width, endy);
 #endif
 #ifdef SHOES_QUARTZ
     HIRect hr;
     EventRef theEvent;
 
     HIViewGetFrame(self_t->slot.view, &hr);
-    if (hr.size.width != (float)self_t->width || hr.size.height != (float)self_t->endy)
+    if (hr.size.width != (float)self_t->width || hr.size.height != (float)endy)
     {
       hr.size.width = (float)self_t->width;
-      hr.size.height = (float)self_t->endy;
+      hr.size.height = (float)endy;
       HIViewSetFrame(self_t->slot.view, &hr);
 
       CreateEvent(NULL, kEventClassScrollable,
@@ -1210,13 +1215,17 @@ shoes_canvas_draw(VALUE self, VALUE c)
     si.cbSize = sizeof(SCROLLINFO);
     si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS;
     si.nMin = 0;
-    si.nMax = canvas->fully; 
+    si.nMax = endy; // canvas->fully; 
     si.nPage = canvas->height;
     si.nPos = canvas->slot.scrolly;
     INFO("SetScrollInfo(%d, nMin: %d, nMax: %d, nPage: %d)\n", 
       si.nPos, si.nMin, si.nMax, si.nPage);
     SetScrollInfo(canvas->slot.window, SB_VERT, &si, TRUE);
 #endif
+  }
+  else
+  {
+    self_t->fully = max(canvas->endy, self_t->endy);
   }
 
   if (self_t->cr == canvas->cr)
@@ -1624,7 +1633,7 @@ shoes_slot_new(VALUE klass, VALUE attr, VALUE parent)
   self_t->parent = parent;
   self_t->app = pc->app;
   self_t->attr = attr;
-  if (!NIL_P(ATTR(self_t->attr, scroll))) {
+  if (!NIL_P(ATTR(self_t->attr, height))) {
     int x, y, w, h;
     x = ATTR2(int, self_t->attr, left, 0);
     y = ATTR2(int, self_t->attr, top, 0);

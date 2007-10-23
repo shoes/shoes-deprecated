@@ -12,7 +12,7 @@
 VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkText, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE eVlcError;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
-ID s_aref, s_mult, s_perc, s_bind, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_leading, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
+ID s_aref, s_mult, s_perc, s_bind, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_leading, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -316,7 +316,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char
       {
         tw = dw; th = dh;
         testw = dw = canvas->place.w;
-        dh = max(canvas->height, canvas->fully - canvas->place.y);
+        dh = max(canvas->height, canvas->fully - (shoes_canvas_independent(canvas) ? 0 : canvas->place.y));
       }
     }
     else
@@ -353,7 +353,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char
   place->h -= tmargin + bmargin;
   place->x += lmargin;
   place->y += tmargin;
-  INFO("PLACE: (%d, %d), (%d, %d) [%d, %d]\n", place->x, place->y, place->w, place->h, place->absx, place->absy);
+  printf("PLACE: (%d, %d), (%d, %d) [%d, %d]\n", place->x, place->y, place->w, place->h, place->absx, place->absy);
 }
 
 void
@@ -1527,6 +1527,14 @@ shoes_text_children(VALUE self)
   shoes_text *text;
   Data_Get_Struct(self, shoes_text, text);
   return text->texts;
+}
+
+VALUE
+shoes_text_style(VALUE self)
+{
+  shoes_text *text;
+  Data_Get_Struct(self, shoes_text, text);
+  return text->attr;
 }
 
 //
@@ -2878,6 +2886,7 @@ shoes_ruby_init()
   s_perc = rb_intern("%");
   s_mult = rb_intern("*");
   s_bind = rb_intern("bind");
+  s_update = rb_intern("update");
   s_new = rb_intern("new");
   s_run = rb_intern("run");
   s_to_i = rb_intern("to_i");
@@ -3028,6 +3037,7 @@ shoes_ruby_init()
   cTextClass = rb_define_class_under(cShoes, "Text", rb_cObject);
   rb_define_alloc_func(cTextClass, shoes_text_alloc);
   rb_define_method(cTextClass, "children", CASTHOOK(shoes_text_children), 0);
+  rb_define_method(cTextClass, "style", CASTHOOK(shoes_text_style), 0);
   cCode      = rb_define_class_under(cShoes, "Code", cTextClass);
   cDel       = rb_define_class_under(cShoes, "Del", cTextClass);
   cEm        = rb_define_class_under(cShoes, "Em", cTextClass);

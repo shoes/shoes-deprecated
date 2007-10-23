@@ -16,6 +16,13 @@ class Range
   end 
 end
 
+class Canvas
+  [:height, :width, :scroll].each do |m|
+    define_method(m) { style[m] }
+    define_method("#{m}=") { |v| style[m] = v }
+  end
+end
+
 class Shoes
   VERSION = "0.1"
 
@@ -135,5 +142,13 @@ class Shoes
 
   def self.url(path, meth)
     Shoes.mount(path, [self, meth])
+  end
+
+  class Text
+    [:stroke, :fill, :strikecolor, :undercolor, :font, :size, :family, :weight,
+     :rise, :kerning, :emphasis, :strikethrough, :stretch, :underline, :variant].each do |m|
+      define_method(m) { style[m] }
+      define_method("#{m}=") { |v| style[m] = v }
+    end
   end
 end
