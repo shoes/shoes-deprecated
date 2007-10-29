@@ -353,7 +353,6 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char
   place->h -= tmargin + bmargin;
   place->x += lmargin;
   place->y += tmargin;
-  printf("PLACE: (%d, %d), (%d, %d) [%d, %d]\n", place->x, place->y, place->w, place->h, place->absx, place->absy);
 }
 
 void
@@ -1447,11 +1446,12 @@ shoes_link_free(shoes_link *link)
 }
 
 VALUE
-shoes_link_new(VALUE url, int start, int end)
+shoes_link_new(VALUE ele, VALUE url, int start, int end)
 {
   shoes_link *link;
   VALUE obj = shoes_link_alloc(cLink);
   Data_Get_Struct(obj, shoes_link, link);
+  link->ele = ele;
   link->url = url;
   link->start = start;
   link->end = end;
@@ -1463,6 +1463,7 @@ shoes_link_alloc(VALUE klass)
 {
   shoes_link *link;
   VALUE obj = Data_Make_Struct(klass, shoes_link, shoes_link_mark, shoes_link_free, link);
+  link->ele = Qnil;
   link->start = 0;
   link->end = 0;
   link->url = Qnil;
@@ -1470,12 +1471,13 @@ shoes_link_alloc(VALUE klass)
 }
 
 VALUE
-shoes_link_at(VALUE self, int index)
+shoes_link_at(VALUE self, int index, VALUE *clicked)
 {
   shoes_link *link;
   Data_Get_Struct(self, shoes_link, link);
   if (link->start <= index && link->end >= index)
   {
+    if (clicked != NULL) *clicked = link->ele;
     return link->url;
   }
   return Qnil;
@@ -1489,6 +1491,7 @@ shoes_text_mark(shoes_text *text)
 {
   rb_gc_mark_maybe(text->texts);
   rb_gc_mark_maybe(text->attr);
+  rb_gc_mark_maybe(text->parent);
 }
 
 static void
@@ -1497,16 +1500,30 @@ shoes_text_free(shoes_text *text)
   free(text);
 }
 
+static VALUE
+shoes_text_check(VALUE texts, VALUE parent)
+{
+  long i;
+  for (i = 0; i < RARRAY_LEN(texts); i++)
+  {
+    VALUE ele = rb_ary_entry(texts, i);
+    if (rb_obj_is_kind_of(ele, cTextClass))
+    {
+      shoes_text *text;
+      Data_Get_Struct(ele, shoes_text, text);
+      text->parent = parent;
+    }
+  }
+  return texts;
+}
+
 VALUE
 shoes_text_new(VALUE klass, VALUE texts, VALUE attr)
 {
   shoes_text *text;
   VALUE obj = shoes_text_alloc(klass);
   Data_Get_Struct(obj, shoes_text, text);
-  //
-  // TODO: check that all texts are String or descended from Shoes::Text
-  //
-  text->texts = texts;
+  text->texts = shoes_text_check(texts, obj);
   text->attr = attr;
   return obj;
 }
@@ -1518,7 +1535,16 @@ shoes_text_alloc(VALUE klass)
   VALUE obj = Data_Make_Struct(klass, shoes_text, shoes_text_mark, shoes_text_free, text);
   text->texts = Qnil;
   text->attr = Qnil;
+  text->parent = Qnil;
   return obj;
+}
+
+VALUE
+shoes_text_parent(VALUE self)
+{
+  shoes_text *text;
+  Data_Get_Struct(self, shoes_text, text);
+  return text->parent;
 }
 
 VALUE
@@ -1567,10 +1593,7 @@ shoes_textblock_new(VALUE klass, VALUE texts, VALUE attr, VALUE parent)
   VALUE obj = shoes_textblock_alloc(klass);
   Data_Get_Struct(obj, shoes_textblock, text);
   Data_Get_Struct(parent, shoes_canvas, canvas);
-  //
-  // TODO: check that all texts are String or descended from Shoes::Text
-  //
-  text->texts = texts;
+  text->texts = shoes_text_check(texts, obj);
   text->attr = attr;
   text->parent = parent;
   return obj;
@@ -1589,6 +1612,14 @@ shoes_textblock_alloc(VALUE klass)
   text->layout = NULL;
   text->cursor = Qnil;
   return obj;
+}
+
+VALUE
+shoes_textblock_parent(VALUE self)
+{
+  shoes_textblock *text;
+  Data_Get_Struct(self, shoes_textblock, text);
+  return text->parent;
 }
 
 VALUE
@@ -1672,7 +1703,7 @@ shoes_textblock_is_here(VALUE self, int x, int y)
 }
 
 static VALUE
-shoes_textblock_hover(VALUE self, int x, int y)
+shoes_textblock_hover(VALUE self, int x, int y, VALUE *clicked)
 {
   int index, trailing, i;
   shoes_textblock *self_t;
@@ -1685,7 +1716,7 @@ shoes_textblock_hover(VALUE self, int x, int y)
   {
     for (i = 0; i < RARRAY_LEN(self_t->links); i++)
     {
-      VALUE url = shoes_link_at(rb_ary_entry(self_t->links, i), index);
+      VALUE url = shoes_link_at(rb_ary_entry(self_t->links, i), index, clicked);
       if (!NIL_P(url))
       {
         return url;
@@ -1701,7 +1732,7 @@ shoes_textblock_motion(VALUE self, int x, int y)
 {
   if (shoes_textblock_is_here(self, x, y))
   {
-    VALUE url = shoes_textblock_hover(self, x, y);
+    VALUE url = shoes_textblock_hover(self, x, y, NULL);
     if (!NIL_P(url))
     {
       shoes_textblock *self_t;
@@ -1716,10 +1747,10 @@ shoes_textblock_motion(VALUE self, int x, int y)
 }
 
 VALUE
-shoes_textblock_click(VALUE self, int button, int x, int y)
+shoes_textblock_click(VALUE self, int button, int x, int y, VALUE *clicked)
 {
   if (button == 1)
-    return shoes_textblock_hover(self, x, y);
+    return shoes_textblock_hover(self, x, y, clicked);
 
   return Qnil;
 }
@@ -1729,6 +1760,7 @@ shoes_textblock_click(VALUE self, int button, int x, int y)
 //
 typedef struct {
   shoes_app *app;
+  PangoLayout *layout;
   PangoAttrList *attr;
   GString *text;
   gsize len;
@@ -1773,6 +1805,26 @@ shoes_app_style_for(shoes_kxxxx *k, VALUE klass, VALUE oattr, gsize start_index,
 
   PangoAttrList *list = pango_attr_list_new();
   PangoAttribute *attr = NULL;
+
+  if (rb_class_inherited_p(klass, cTextBlock))
+  {
+    GET_STYLE(justify);
+    if (!NIL_P(str))
+    {
+      pango_layout_set_justify(k->layout, RTEST(str));
+    }
+
+    GET_STYLE(align);
+    if (TYPE(str) == T_STRING)
+    {
+      if (strncmp(RSTRING_PTR(str), "left", 4) == 0)
+        pango_layout_set_alignment(k->layout, PANGO_ALIGN_LEFT);
+      else if (strncmp(RSTRING_PTR(str), "center", 6) == 0)
+        pango_layout_set_alignment(k->layout, PANGO_ALIGN_CENTER);
+      else if (strncmp(RSTRING_PTR(str), "right", 5) == 0)
+        pango_layout_set_alignment(k->layout, PANGO_ALIGN_RIGHT);
+    }
+  }
 
   APPLY_STYLE_COLOR(stroke, foreground);
   APPLY_STYLE_COLOR(fill, background);
@@ -1986,12 +2038,12 @@ shoes_textblock_iter_pango(VALUE texts, shoes_kxxxx *k)
       {
         VALUE url = rb_hash_aref(text->attr, ID2SYM(rb_intern("url")));
         if (!NIL_P(url))
-          rb_ary_push(k->links, shoes_link_new(url, start, k->len));
+          rb_ary_push(k->links, shoes_link_new(v, url, start, k->len));
         else
         {
           url = rb_hash_aref(text->attr, ID2SYM(s_click));
           if (!NIL_P(url))
-            rb_ary_push(k->links, shoes_link_new(url, start, k->len));
+            rb_ary_push(k->links, shoes_link_new(v, url, start, k->len));
         }
       }
     }
@@ -2012,6 +2064,7 @@ shoes_textblock_make_pango(shoes_app *app, VALUE klass, shoes_textblock *block, 
   k->text = g_string_new(NULL);
   k->len = 0;
   k->app = app;
+  k->layout = block->layout;
   block->links = k->links = rb_ary_new();
 
   shoes_textblock_iter_pango(block->texts, k);
@@ -2835,7 +2888,7 @@ shoes_p(VALUE self, VALUE obj)
     VALUE canvas; \
     shoes_app *app; \
     Data_Get_Struct(self, shoes_app, app); \
-    if (rb_ary_entry(app->nesting, 0) == app->canvas) \
+    if (RARRAY_LEN(app->nesting) > 0) \
       canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1); \
     else \
       canvas = app->canvas; \
@@ -3019,7 +3072,8 @@ shoes_ruby_init()
 
   cTextBlock = rb_define_class_under(cShoes, "TextBlock", rb_cObject);
   rb_define_alloc_func(cTextBlock, shoes_textblock_alloc);
-  rb_define_method(cTextBlock, "children", CASTHOOK(shoes_textblock_children), 0);
+  rb_define_method(cTextBlock, "contents", CASTHOOK(shoes_textblock_children), 0);
+  rb_define_method(cTextBlock, "parent", CASTHOOK(shoes_textblock_parent), 0);
   rb_define_method(cTextBlock, "draw", CASTHOOK(shoes_textblock_draw), 1);
   rb_define_method(cTextBlock, "cursor=", CASTHOOK(shoes_textblock_set_cursor), 1);
   rb_define_method(cTextBlock, "cursor", CASTHOOK(shoes_textblock_get_cursor), 0);
@@ -3036,7 +3090,8 @@ shoes_ruby_init()
 
   cTextClass = rb_define_class_under(cShoes, "Text", rb_cObject);
   rb_define_alloc_func(cTextClass, shoes_text_alloc);
-  rb_define_method(cTextClass, "children", CASTHOOK(shoes_text_children), 0);
+  rb_define_method(cTextClass, "contents", CASTHOOK(shoes_text_children), 0);
+  rb_define_method(cTextClass, "parent", CASTHOOK(shoes_text_parent), 0);
   rb_define_method(cTextClass, "style", CASTHOOK(shoes_text_style), 0);
   cCode      = rb_define_class_under(cShoes, "Code", cTextClass);
   cDel       = rb_define_class_under(cShoes, "Del", cTextClass);

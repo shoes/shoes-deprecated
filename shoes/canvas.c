@@ -1460,7 +1460,7 @@ EVENT_HANDLER(motion);
 EVENT_HANDLER(keypress);
 
 static VALUE
-shoes_canvas_send_click2(VALUE self, int button, int x, int y)
+shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
 {
   long i;
   VALUE v = Qnil;
@@ -1480,16 +1480,19 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y)
       if (rb_obj_is_kind_of(ele, cCanvas))
       {
         v = shoes_canvas_send_click(ele, button, x, y);
+        *clicked = ele;
       }
       else if (rb_obj_is_kind_of(ele, cTextBlock))
       {
-        v = shoes_textblock_click(ele, button, x, y);
+        v = shoes_textblock_click(ele, button, x, y, clicked);
       }
       else if (rb_obj_is_kind_of(ele, cImage))
       {
         v = shoes_image_click(ele, button, x, y);
+        *clicked = ele;
       }
-      if (!NIL_P(v)) return v;
+      if (!NIL_P(v))
+        return v;
     }
   }
 
@@ -1518,11 +1521,12 @@ VALUE
 shoes_canvas_send_click(VALUE self, int button, int x, int y)
 {
   // INFO("click(%d, %d, %d)\n", button, x, y);
-  VALUE url = shoes_canvas_send_click2(self, button, x, y);
+  VALUE clicked = Qnil;
+  VALUE url = shoes_canvas_send_click2(self, button, x, y, &clicked);
   if (!NIL_P(url))
   {
     if (rb_obj_is_kind_of(url, rb_cProc))
-      shoes_safe_block(self, url, rb_ary_new());
+      shoes_safe_block(self, url, rb_ary_new3(1, clicked));
     else
     {
       shoes_canvas *self_t;

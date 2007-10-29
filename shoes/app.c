@@ -1447,7 +1447,8 @@ shoes_app_reset_styles(shoes_app *app)
   STYLE(cSubtitle,    size, 26);
   STYLE(cTagline,     size, 18);
   STYLE(cCaption,     size, 14);
-  STYLE(cInscription, size, 12);
+  STYLE(cPara,        size, 12);
+  STYLE(cInscription, size, 10);
 
   STYLE(cCode,     family, monospace);
   STYLE(cDel,      strikethrough, single);
