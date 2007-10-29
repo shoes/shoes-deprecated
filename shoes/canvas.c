@@ -1337,7 +1337,10 @@ shoes_canvas_flow(int argc, VALUE *argv, VALUE self)
 
   rb_scan_args(argc, argv, "01&", &attr, &block);
   flow = shoes_flow_new(attr, self);
-  DRAW(flow, canvas->app, block);
+  if (!NIL_P(block))
+  {
+    DRAW(flow, canvas->app, block);
+  }
   rb_ary_push(canvas->contents, flow);
   return flow;
 }
@@ -1350,7 +1353,10 @@ shoes_canvas_stack(int argc, VALUE *argv, VALUE self)
 
   rb_scan_args(argc, argv, "01&", &attr, &block);
   stack = shoes_stack_new(attr, self);
-  DRAW(stack, canvas->app, block);
+  if (!NIL_P(block))
+  {
+    DRAW(stack, canvas->app, block);
+  }
   rb_ary_push(canvas->contents, stack);
   return stack;
 }
@@ -1363,7 +1369,10 @@ shoes_canvas_mask(int argc, VALUE *argv, VALUE self)
 
   rb_scan_args(argc, argv, "01&", &attr, &block);
   mask = shoes_mask_new(attr, self);
-  DRAW(mask, canvas->app, block);
+  if (!NIL_P(block))
+  {
+    DRAW(mask, canvas->app, block);
+  }
   rb_ary_push(canvas->contents, mask);
   return mask;
 }
