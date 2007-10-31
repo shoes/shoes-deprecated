@@ -12,7 +12,7 @@
 VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkText, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE eVlcError;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
-ID s_aref, s_mult, s_perc, s_bind, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_leading, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
+ID s_aref, s_mult, s_perc, s_bind, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_leading, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -2589,6 +2589,14 @@ shoes_list_box_update(GtkWidget *combo, VALUE ary)
     gtk_combo_box_append_text(GTK_COMBO_BOX(combo), _(RSTRING_PTR(rb_ary_entry(ary, i))));
   }
 }
+
+static void
+shoes_list_box_set_active(GtkWidget *combo, VALUE items, VALUE item)
+{
+  int idx = rb_ary_index_of(items, item);
+  if (idx < 0) return;
+  gtk_combo_box_set_active(GTK_COMBO_BOX(combo), idx);
+}
 #endif
 
 #ifdef SHOES_QUARTZ
@@ -2616,6 +2624,20 @@ shoes_list_box_update(HWND box, VALUE ary)
   }
 }
 #endif
+
+VALUE
+shoes_list_box_choose(VALUE self, VALUE item)
+{
+  VALUE text = Qnil, items = Qnil;
+  int idx = -1;
+  shoes_control *self_t;
+  Data_Get_Struct(self, shoes_control, self_t);
+  if (self_t->ref == NULL) text = Qnil;
+
+  items = ATTR(self_t->attr, items);
+  shoes_list_box_set_active(self_t->ref, items, item);
+  return self;
+}
 
 VALUE
 shoes_list_box_text(VALUE self)
@@ -2651,6 +2673,12 @@ shoes_list_box_text(VALUE self)
   return text;
 }
 
+#ifdef SHOES_QUARTZ
+#define LIST_BOX_REF menuRef
+#else
+#define LIST_BOX_REF self_t->ref
+#endif
+
 VALUE
 shoes_list_box_draw(VALUE self, VALUE c)
 {
@@ -2658,10 +2686,9 @@ shoes_list_box_draw(VALUE self, VALUE c)
 
   if (self_t->ref == NULL)
   {
+    VALUE items = ATTR(self_t->attr, items);
 #ifdef SHOES_GTK
     self_t->ref = gtk_combo_box_new_text();
-    if (!NIL_P(ATTR(self_t->attr, items)))
-      shoes_list_box_update(self_t->ref, ATTR(self_t->attr, items));
 #endif
 
 #ifdef SHOES_QUARTZ
@@ -2674,9 +2701,6 @@ shoes_list_box_draw(VALUE self, VALUE c)
 
     MenuRef menuRef;
     CreateNewMenu(menuId, kMenuAttrExcludesMarkColumn, &menuRef);
-    if (!NIL_P(ATTR(self_t->attr, items)))
-      shoes_list_box_update(menuRef, ATTR(self_t->attr, items));
-    SetControlData(self_t->ref, 0, kControlPopupButtonMenuRefTag, sizeof(MenuRef), &menuRef);              
 #endif
 
 #ifdef SHOES_WIN32
@@ -2687,10 +2711,20 @@ shoes_list_box_draw(VALUE self, VALUE c)
         (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
         NULL);
     shoes_win32_control_font(cid, canvas->slot.window);
-    if (!NIL_P(ATTR(self_t->attr, items)))
-      shoes_list_box_update(self_t->ref, ATTR(self_t->attr, items));
     rb_ary_push(canvas->slot.controls, self);
 #endif
+
+    if (!NIL_P(items))
+    {
+      shoes_list_box_update(LIST_BOX_REF, items);
+      if (!NIL_P(ATTR(self_t->attr, choose)))
+        shoes_list_box_set_active(LIST_BOX_REF, items, ATTR(self_t->attr, choose));
+    }
+
+#ifdef SHOES_QUARTZ
+    SetControlData(self_t->ref, 0, kControlPopupButtonMenuRefTag, sizeof(MenuRef), &menuRef);              
+#endif
+
     PLACE_CONTROL();
   }
   else
@@ -2952,6 +2986,7 @@ shoes_ruby_init()
   s_call = rb_intern("call");
   s_center = rb_intern("center");
   s_change = rb_intern("change");
+  s_choose = rb_intern("choose");
   s_click = rb_intern("click");
   s_corner = rb_intern("corner");
   s_downcase = rb_intern("downcase");
@@ -3121,6 +3156,7 @@ shoes_ruby_init()
   cListBox  = rb_define_class_under(cShoes, "ListBox", cNative);
   rb_define_method(cListBox, "text", CASTHOOK(shoes_list_box_text), 0);
   rb_define_method(cListBox, "draw", CASTHOOK(shoes_list_box_draw), 1);
+  rb_define_method(cListBox, "choose", CASTHOOK(shoes_list_box_choose), 1);
   cProgress  = rb_define_class_under(cShoes, "Progress", cNative);
   rb_define_method(cProgress, "draw", CASTHOOK(shoes_progress_draw), 1);
 
