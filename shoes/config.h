@@ -105,6 +105,7 @@ OSStatus shoes_slot_quartz_create(VALUE, SHOES_SLOT_OS *, int, int, int, int);
 #ifdef SHOES_WIN32
 #include <windows.h>
 #include <commctrl.h>
+#include <shellapi.h>
 #include <cairo-win32.h>
 #include "win32/win32.h"
 

@@ -1419,6 +1419,14 @@ shoes_browser_open(char *url)
 }
 #endif
 
+#ifdef SHOES_WIN32
+void
+shoes_browser_open(char *url)
+{
+  ShellExecute(0, "open", url, 0, 0, 0);
+}
+#endif
+
 shoes_code
 shoes_app_goto(shoes_app *app, char *path)
 {

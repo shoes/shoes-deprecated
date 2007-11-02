@@ -2623,6 +2623,14 @@ shoes_list_box_update(HWND box, VALUE ary)
     SendMessage(box, CB_ADDSTRING, 0, (LPARAM)RSTRING_PTR(rb_ary_entry(ary, i)));
   }
 }
+
+static void
+shoes_list_box_set_active(HWND box, VALUE items, VALUE item)
+{
+  int idx = rb_ary_index_of(items, item);
+  if (idx < 0) return;
+  SendMessage(box, CB_SETCURSEL, idx, 0);
+}
 #endif
 
 VALUE
