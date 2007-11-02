@@ -119,11 +119,18 @@ shoes_canvas_get_width(VALUE self)
 VALUE
 shoes_canvas_style(int argc, VALUE *argv, VALUE self)
 {
-  VALUE attr;
+  VALUE klass, attr;
   SETUP();
 
-  rb_scan_args(argc, argv, "01", &attr);
-  if (!NIL_P(attr)) rb_funcall(canvas->attr, s_update, 1, attr);
+  rb_scan_args(argc, argv, "02", &klass, &attr);
+  if (!NIL_P(attr))
+    shoes_app_style(canvas->app, klass, attr);
+  else if (!NIL_P(klass))
+  {
+    if (NIL_P(canvas->attr)) canvas->attr = rb_hash_new();
+    rb_funcall(canvas->attr, s_update, 1, klass);
+  }
+
   return canvas->attr;
 }
 
@@ -601,7 +608,7 @@ shoes_canvas_link(int argc, VALUE *argv, VALUE self)
     rb_hash_aset(attr, ID2SYM(s_click), rb_block_proc());
   }
 
-  MARKUP_INLINE(cLinkText);
+  MARKUP_INLINE(cLink);
   return text;
 }
 

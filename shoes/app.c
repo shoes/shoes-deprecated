@@ -1399,13 +1399,39 @@ shoes_app_close(shoes_app *app)
   return SHOES_OK;
 }
 
+VALUE
+shoes_sys(char *cmd, int detach)
+{
+  if (detach)
+    return rb_funcall(rb_mKernel, rb_intern("system"), 1, rb_str_new2(cmd));
+  else
+    return rb_funcall(rb_mKernel, '`', 1, rb_str_new2(cmd));
+}
+
+#ifdef SHOES_GTK
+void
+shoes_browser_open(char *url)
+{
+  VALUE browser = rb_str_new2("/etc/alternatives/x-www-browser '");
+  rb_str_cat2(browser, url);
+  rb_str_cat2(browser, "' 2>/dev/null &");
+  shoes_sys(RSTRING_PTR(browser), 1);
+}
+#endif
+
 shoes_code
 shoes_app_goto(shoes_app *app, char *path)
 {
-  shoes_app_visit(app, path);
-  shoes_canvas_compute(app->canvas);
-  shoes_slot_repaint(&app->slot);
-  shoes_app_cursor(app, s_arrow);
+  const char http_scheme[] = "http://";
+  if (strlen(path) > strlen(http_scheme) && strncmp(http_scheme, path, strlen(http_scheme)) == 0) {
+    shoes_browser_open(path);
+  } else {
+    shoes_app_visit(app, path);
+    shoes_canvas_compute(app->canvas);
+    shoes_slot_repaint(&app->slot);
+    // TODO: send a single motion event instead
+    shoes_app_cursor(app, s_arrow);
+  }
   return SHOES_OK;
 }
 
@@ -1454,13 +1480,27 @@ shoes_app_reset_styles(shoes_app *app)
   STYLE(cDel,      strikethrough, single);
   STYLE(cEm,       emphasis, italic);
   STYLE(cIns,      underline, single);
-  STYLE(cLinkText, underline, single);
-  STYLE(cLinkText, stroke, #0066EE);
+  STYLE(cLink,     underline, single);
+  STYLE(cLink,     stroke, #0066EE);
   STYLE(cStrong,   weight, bold);
   STYLE(cSup,      rise,   10);
   STYLE(cSup,      size,   x-small);
   STYLE(cSub,      rise,   -10);
   STYLE(cSub,      size,   x-small);
+}
+
+void
+shoes_app_style(shoes_app *app, VALUE klass, VALUE hsh)
+{
+  long i;
+  VALUE keys = rb_funcall(hsh, s_keys, 0);
+  for ( i = 0; i < RARRAY(keys)->len; i++ )
+  {
+    VALUE key = rb_ary_entry(keys, i);
+    VALUE val = rb_hash_aref(hsh, key);
+    if (!SYMBOL_P(key)) key = rb_str_intern(key);
+    shoes_style_set(app->styles, klass, key, val);
+  }
 }
 
 VALUE

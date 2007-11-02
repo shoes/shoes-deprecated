@@ -9,10 +9,10 @@
 #include "shoes/internal.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkText, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
+VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE eVlcError;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
-ID s_aref, s_mult, s_perc, s_bind, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_leading, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
+ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_leading, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -1431,7 +1431,7 @@ shoes_app_method_missing(int argc, VALUE *argv, VALUE self)
 }
 
 //
-// Shoes::Link
+// Shoes::LinkUrl
 //
 static void
 shoes_link_mark(shoes_link *link)
@@ -1449,7 +1449,7 @@ VALUE
 shoes_link_new(VALUE ele, VALUE url, int start, int end)
 {
   shoes_link *link;
-  VALUE obj = shoes_link_alloc(cLink);
+  VALUE obj = shoes_link_alloc(cLinkUrl);
   Data_Get_Struct(obj, shoes_link, link);
   link->ele = ele;
   link->url = url;
@@ -2034,7 +2034,7 @@ shoes_textblock_iter_pango(VALUE texts, shoes_kxxxx *k)
       start = k->len;
       shoes_textblock_iter_pango(text->texts, k);
       shoes_app_style_for(k, rb_obj_class(v), text->attr, start, k->len);
-      if (rb_obj_is_kind_of(v, cLinkText) && !NIL_P(text->attr))
+      if (rb_obj_is_kind_of(v, cLink) && !NIL_P(text->attr))
       {
         VALUE url = rb_hash_aref(text->attr, ID2SYM(rb_intern("url")));
         if (!NIL_P(url))
@@ -2973,6 +2973,7 @@ shoes_ruby_init()
   s_perc = rb_intern("%");
   s_mult = rb_intern("*");
   s_bind = rb_intern("bind");
+  s_keys = rb_intern("keys");
   s_update = rb_intern("update");
   s_new = rb_intern("new");
   s_run = rb_intern("run");
@@ -3131,7 +3132,7 @@ shoes_ruby_init()
   cCode      = rb_define_class_under(cShoes, "Code", cTextClass);
   cDel       = rb_define_class_under(cShoes, "Del", cTextClass);
   cEm        = rb_define_class_under(cShoes, "Em", cTextClass);
-  cLinkText  = rb_define_class_under(cShoes, "LinkText", cTextClass);
+  cLink      = rb_define_class_under(cShoes, "Link", cTextClass);
   cIns       = rb_define_class_under(cShoes, "Ins", cTextClass);
   cSpan      = rb_define_class_under(cShoes, "Span", cTextClass);
   cStrong    = rb_define_class_under(cShoes, "Strong", cTextClass);
@@ -3321,7 +3322,7 @@ shoes_ruby_init()
   DEF_COLOR(yellow, 255, 255, 0);
   DEF_COLOR(yellowgreen, 154, 205, 50);
 
-  cLink    = rb_define_class_under(cShoes, "Link", rb_cObject);
+  cLinkUrl = rb_define_class_under(cShoes, "LinkUrl", rb_cObject);
 
   rb_define_method(rb_mKernel, "alert", CASTHOOK(shoes_dialog_alert), 1);
   rb_define_method(rb_mKernel, "ask", CASTHOOK(shoes_dialog_ask), 1);
