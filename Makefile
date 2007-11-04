@@ -6,7 +6,7 @@ OBJ = ${SRC:.c=.o}
 
 PREFIX = /usr/local
 INCS = -I. -I/usr/include
-LIBS = -L/usr/lib -lcairo -lpangocairo-1.0 -lungif -ljpeg
+LIBS = -L/usr/lib -lcairo -lpangocairo-1.0 -lungif -ljpeg -lvlc
 
 SVN_VERSION = `svn info | ruby -ne 'x = $$_[/Revision: (.+)/, 1]; puts x if x'`
 RUBY_INCS = `ruby -rrbconfig -e 'puts Config::CONFIG["archdir"]'`
@@ -32,6 +32,7 @@ options:
 	@echo "LDFLAGS  = ${LDFLAGS}"
 	@echo "CC       = ${CC}"
 	@echo "RUBY     = ${RUBY_PREFIX}"
+	@ruby -v
 
 .c.o:
 	@echo CC $<
