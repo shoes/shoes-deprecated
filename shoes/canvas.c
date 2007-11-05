@@ -95,10 +95,6 @@ shoes_cairo_create(SHOES_SLOT_OS *slot, int width, int height, int border)
   cr = cairo_create(slot->surface);
 #endif
   cairo_save(cr);
-  cairo_set_source_rgb(cr,1,1,1);
-  cairo_set_line_width(cr,1.0);
-  cairo_rectangle(cr,0,0,4000,4000);
-  cairo_fill(cr);
   return cr;
 }
 
@@ -1087,6 +1083,11 @@ shoes_canvas_draw(VALUE self, VALUE c)
 #endif
       self_t->width = self_t->place.w;
       self_t->height = self_t->place.h;
+    } else {
+      cairo_set_source_rgb(self_t->cr,1,1,1);
+      cairo_set_line_width(self_t->cr,1.0);
+      cairo_rectangle(self_t->cr,0,0,4000,4000);
+      cairo_fill(self_t->cr);
     }
   }
 

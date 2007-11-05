@@ -353,6 +353,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char
   place->h -= tmargin + bmargin;
   place->x += lmargin;
   place->y += tmargin;
+  INFO("PLACE: (%d, %d), (%d, %d) [%d, %d]\n", place->x, place->y, place->w, place->h, place->absx, place->absy);
 }
 
 void
@@ -2129,7 +2130,7 @@ shoes_textblock_draw(VALUE self, VALUE c)
     } else {
       if (self_t->place.x > canvas->place.x) {
         pd = (self_t->place.x - (canvas->place.x + lmargin));
-        pango_layout_set_indent(self_t->layout, pd * PANGO_SCALE);
+        pango_layout_set_indent(self_t->layout, pd);
         self_t->place.w = (canvas->place.w - (canvas->cx - self_t->place.x)) - (lmargin + rmargin);
       }
     }
