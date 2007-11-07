@@ -1408,24 +1408,26 @@ shoes_sys(char *cmd, int detach)
     return rb_funcall(rb_mKernel, '`', 1, rb_str_new2(cmd));
 }
 
-#ifdef SHOES_GTK
 void
 shoes_browser_open(char *url)
 {
+#ifdef SHOES_GTK
   VALUE browser = rb_str_new2("/etc/alternatives/x-www-browser '");
   rb_str_cat2(browser, url);
   rb_str_cat2(browser, "' 2>/dev/null &");
   shoes_sys(RSTRING_PTR(browser), 1);
-}
+#endif
+
+#ifdef SHOES_QUARTZ
+  VALUE browser = rb_str_new2("open ");
+  rb_str_cat2(browser, url);
+  shoes_sys(RSTRING_PTR(browser), 1);
 #endif
 
 #ifdef SHOES_WIN32
-void
-shoes_browser_open(char *url)
-{
   ShellExecute(0, "open", url, 0, 0, 0);
-}
 #endif
+}
 
 shoes_code
 shoes_app_goto(shoes_app *app, char *path)

@@ -2594,9 +2594,9 @@ shoes_list_box_update(GtkWidget *combo, VALUE ary)
 }
 
 static void
-shoes_list_box_set_active(GtkWidget *combo, VALUE items, VALUE item)
+shoes_list_box_set_active(GtkWidget *combo, VALUE ary, VALUE item)
 {
-  int idx = rb_ary_index_of(items, item);
+  int idx = rb_ary_index_of(ary, item);
   if (idx < 0) return;
   gtk_combo_box_set_active(GTK_COMBO_BOX(combo), idx);
 }
@@ -2614,6 +2614,14 @@ shoes_list_box_update(MenuRef menu, VALUE ary)
     CFRelease(cf);
   }
 }
+
+static void
+shoes_list_box_set_active(ControlRef box, VALUE ary, VALUE item)
+{
+  int idx = rb_ary_index_of(ary, item);
+  if (idx < 0) return;
+  HIViewSetValue(box, idx + 1);
+}
 #endif
 
 #ifdef SHOES_WIN32
@@ -2628,9 +2636,9 @@ shoes_list_box_update(HWND box, VALUE ary)
 }
 
 static void
-shoes_list_box_set_active(HWND box, VALUE items, VALUE item)
+shoes_list_box_set_active(HWND box, VALUE ary, VALUE item)
 {
-  int idx = rb_ary_index_of(items, item);
+  int idx = rb_ary_index_of(ary, item);
   if (idx < 0) return;
   SendMessage(box, CB_SETCURSEL, idx, 0);
 }
@@ -2726,15 +2734,19 @@ shoes_list_box_draw(VALUE self, VALUE c)
 #endif
 
     if (!NIL_P(items))
-    {
       shoes_list_box_update(LIST_BOX_REF, items);
-      if (!NIL_P(ATTR(self_t->attr, choose)))
-        shoes_list_box_set_active(LIST_BOX_REF, items, ATTR(self_t->attr, choose));
-    }
 
 #ifdef SHOES_QUARTZ
+    UInt16 menuItemCount = CountMenuItems(menuRef);
+    HIViewSetMaximum(self_t->ref, menuItemCount);
     SetControlData(self_t->ref, 0, kControlPopupButtonMenuRefTag, sizeof(MenuRef), &menuRef);              
 #endif
+
+    if (!NIL_P(items))
+    {
+      if (!NIL_P(ATTR(self_t->attr, choose)))
+        shoes_list_box_set_active(self_t->ref, items, ATTR(self_t->attr, choose));
+    }
 
     PLACE_CONTROL();
   }
