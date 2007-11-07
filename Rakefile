@@ -72,7 +72,9 @@ task :build => :build_os do
     cp    FileList["#{ext_ruby}/bin/*"], "dist/"
     cp    FileList["deps/cairo/bin/*"], "dist/"
     cp    FileList["deps/pango/bin/*"], "dist/"
-    cp    FileList["deps/vlc/bin/*"], "dist/"
+    if ENV['VIDEO']
+      cp    FileList["deps/vlc/bin/*"], "dist/"
+    end
   when /darwin/
     if ENV['SHOES_DEPS_PATH']
       %w[lib/libcairo.2.dylib lib/libcairo.2.dylib lib/libgmodule-2.0.0.dylib lib/libintl.8.dylib lib/libruby.dylib
@@ -131,7 +133,8 @@ when /win32/
   end
 
   # MSVC build environment
-  MSVC_LIBS = %[msvcrt-ruby18.lib libvlc.lib pango-1.0.lib pangocairo-1.0.lib gobject-2.0.lib glib-2.0.lib cairo.lib giflib.lib jpeg.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib advapi32.lib oleacc.lib]
+  MSVC_LIBS = %[msvcrt-ruby18.lib pango-1.0.lib pangocairo-1.0.lib gobject-2.0.lib glib-2.0.lib cairo.lib giflib.lib jpeg.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib advapi32.lib oleacc.lib]
+  MSVC_LIBS << " libvlc.lib" if ENV['VIDEO']
   MSVC_LIBS << " bufferoverflowu.lib" if ENV['DDKBUILDENV']
 
   MSVC_CFLAGS = %q[/ML /DWIN32 /DSHOES_WIN32 /DWIN32_LEAN_AND_MEAN
@@ -221,7 +224,8 @@ else
   PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
 
   LINUX_CFLAGS = %[-I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{Config::CONFIG['archdir']}]
-  LINUX_LIB_NAMES = %W[#{ruby_so} cairo pangocairo-1.0 ungif vlc]
+  LINUX_LIB_NAMES = %W[#{ruby_so} cairo pangocairo-1.0 ungif]
+  LINUX_LIB_NAMES << "vlc" if ENV['VIDEO']
   FLAGS.each do |flag|
     LINUX_CFLAGS << " -D#{flag}" if ENV[flag]
   end

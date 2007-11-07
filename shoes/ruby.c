@@ -775,6 +775,7 @@ shoes_image_click(VALUE self, int button, int x, int y)
   return Qnil;
 }
 
+#ifdef VIDEO
 static void shoes_vlc_exception(libvlc_exception_t *excp)
 {
   if (libvlc_exception_raised(excp))
@@ -783,7 +784,6 @@ static void shoes_vlc_exception(libvlc_exception_t *excp)
   }
 }
 
-#ifdef VIDEO
 //
 // Shoes::Video
 //

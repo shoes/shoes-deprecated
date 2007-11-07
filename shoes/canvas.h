@@ -7,7 +7,9 @@
 
 #include <cairo.h>
 #include <pango/pangocairo.h>
+#ifdef VIDEO
 #include <vlc/libvlc.h>
+#endif
 #include <ruby.h>
 
 #include "shoes/config.h"
@@ -99,6 +101,7 @@ typedef struct {
   VALUE parent;
 } shoes_image;
 
+#ifdef VIDEO
 //
 // video struct
 //
@@ -121,6 +124,7 @@ typedef struct {
   VALUE parent;
   SHOES_SLOT_OS slot;
 } shoes_video;
+#endif
 
 //
 // pattern struct
@@ -324,12 +328,14 @@ VALUE shoes_image_remove(VALUE);
 VALUE shoes_image_motion(VALUE, int, int);
 VALUE shoes_image_click(VALUE, int, int, int);
 
+#ifdef VIDEO
 VALUE shoes_video_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_video_alloc(VALUE);
 VALUE shoes_video_draw(VALUE, VALUE);
 VALUE shoes_video_show(VALUE);
 VALUE shoes_video_hide(VALUE);
 VALUE shoes_video_remove(VALUE);
+#endif
 
 VALUE shoes_pattern_self(VALUE);
 VALUE shoes_pattern_method(VALUE, VALUE);
