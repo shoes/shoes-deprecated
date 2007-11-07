@@ -653,6 +653,7 @@ shoes_canvas_border(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_video(int argc, VALUE *argv, VALUE self)
 {
+#ifdef VIDEO
   VALUE path, attr, video;
   SETUP();
 
@@ -660,6 +661,9 @@ shoes_canvas_video(int argc, VALUE *argv, VALUE self)
   video = shoes_video_new(cVideo, path, attr, self);
   rb_ary_push(canvas->contents, video);
   return video;
+#else
+  rb_raise(eNotImpl, "no video suppport");
+#endif
 }
 
 VALUE

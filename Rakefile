@@ -10,6 +10,7 @@ SONAME = 'shoes'
 VERS = ENV['VERSION'] || "0.1"
 PKG = "#{NAME}-#{VERS}"
 APPARGS = ENV['APPARGS']
+FLAGS = %w[DEBUG VIDEO]
 
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 CLEAN.include ["{bin,shoes}/#{BIN}", "dist"]
@@ -147,7 +148,9 @@ when /win32/
 
   MSVC_LDFLAGS = "/NOLOGO"
 
-  MSVC_CFLAGS << " /DDEBUG" if ENV['DEBUG']
+  FLAGS.each do |flag|
+    MSVC_CFLAGS << " /D#{flag}" if ENV[flag]
+  end
   MSVC_CFLAGS << " /I#{ENV['CRT_INC_PATH']}" if ENV['CRT_INC_PATH']
   MSVC_LDFLAGS << " /LIBPATH:#{ENV['CRT_LIB_PATH'][0..-2]}\i386" if ENV['CRT_LIB_PATH']
   MSVC_LDFLAGS << " /LIBPATH:#{ENV['SDK_LIB_PATH'][0..-2]}\i386" if ENV['SDK_LIB_PATH']
@@ -219,8 +222,8 @@ else
 
   LINUX_CFLAGS = %[-I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{Config::CONFIG['archdir']}]
   LINUX_LIB_NAMES = %W[#{ruby_so} cairo pangocairo-1.0 ungif vlc]
-  if ENV['DEBUG']
-    LINUX_CFLAGS << " -DDEBUG"
+  FLAGS.each do |flag|
+    LINUX_CFLAGS << " -D#{flag}" if ENV[flag]
   end
 
   case PLATFORM when /darwin/

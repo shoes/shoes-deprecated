@@ -10,7 +10,7 @@
 #include <math.h>
 
 VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
-VALUE eVlcError;
+VALUE eVlcError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_leading, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
 
@@ -783,6 +783,7 @@ static void shoes_vlc_exception(libvlc_exception_t *excp)
   }
 }
 
+#ifdef VIDEO
 //
 // Shoes::Video
 //
@@ -986,6 +987,7 @@ VIDEO_METHOD(prev);
 VIDEO_METHOD(next);
 VIDEO_METHOD(pause);
 VIDEO_METHOD(stop);
+#endif
 
 //
 // Shoes::Pattern
@@ -3037,6 +3039,7 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "children", CASTHOOK(shoes_canvas_contents), 0);
 
   cShoes = rb_define_class("Shoes", cCanvas);
+  eNotImpl = rb_define_class_under(cShoes, "NotImplementedError", rb_eStandardError);
   eVlcError = rb_define_class_under(cShoes, "VideoError", rb_eStandardError);
   C(HEX_SOURCE, "/^(?:0x|#)?([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})$/i");
   C(HEX3_SOURCE, "/^(?:0x|#)?([0-9A-F])([0-9A-F])([0-9A-F])$/i");
@@ -3092,6 +3095,7 @@ shoes_ruby_init()
   rb_define_method(cImage, "move", CASTHOOK(shoes_image_move), 2);
   rb_define_method(cImage, "remove", CASTHOOK(shoes_image_remove), 0);
 
+#ifdef VIDEO
   cVideo    = rb_define_class_under(cShoes, "Video", rb_cObject);
   rb_define_alloc_func(cVideo, shoes_video_alloc);
   rb_define_method(cVideo, "draw", CASTHOOK(shoes_video_draw), 1);
@@ -3105,6 +3109,7 @@ shoes_ruby_init()
   rb_define_method(cVideo, "next", CASTHOOK(shoes_video_next), 0);
   rb_define_method(cVideo, "pause", CASTHOOK(shoes_video_pause), 0);
   rb_define_method(cVideo, "stop", CASTHOOK(shoes_video_stop), 0);
+#endif
 
   cPattern = rb_define_class_under(cShoes, "Pattern", rb_cObject);
   rb_define_alloc_func(cPattern, shoes_pattern_alloc);
