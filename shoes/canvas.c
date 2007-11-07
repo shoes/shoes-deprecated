@@ -1227,7 +1227,7 @@ shoes_canvas_draw(VALUE self, VALUE c)
     si.cbSize = sizeof(SCROLLINFO);
     si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS;
     si.nMin = 0;
-    si.nMax = endy; // canvas->fully; 
+    si.nMax = canvas->fully - 1; 
     si.nPage = canvas->height;
     si.nPos = canvas->slot.scrolly;
     INFO("SetScrollInfo(%d, nMin: %d, nMax: %d, nPage: %d)\n", 

@@ -701,8 +701,8 @@ shoes_canvas_win32_vscroll(shoes_canvas *canvas, int code, int pos)
 
   if (si.nPos < 0)
     si.nPos = 0;
-  else if (si.nPos > si.nMax)
-    si.nPos = si.nMax;
+  else if (si.nPos > (si.nMax - si.nPage))
+    si.nPos = si.nMax - si.nPage;
 
   SetScrollInfo(canvas->slot.window, SB_VERT, &si, TRUE);
   canvas->slot.scrolly = si.nPos;
