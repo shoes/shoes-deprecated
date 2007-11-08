@@ -179,6 +179,7 @@ shoes_canvas_paint(VALUE self)
   BitBlt(hdc, 0, 0, width, height, canvas->slot.dc, 0, canvas->slot.scrolly, SRCCOPY);
   cairo_surface_destroy(canvas->slot.surface);
   EndPaint(canvas->slot.window, &paint_struct);
+  DeleteObject(bitmap);
   DeleteObject(canvas->slot.dc);
 #endif
 
