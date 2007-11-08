@@ -411,7 +411,7 @@ shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, double r)
     canvas->endy = self_t->place.y + self_t->place.h; \
   } \
   if (ck == cStack) { \
-    canvas->cx = 0; \
+    canvas->cx = canvas->place.x; \
     canvas->cy = canvas->endy; \
   }
 
