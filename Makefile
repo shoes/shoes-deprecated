@@ -21,7 +21,7 @@ GTK_CFLAGS = `pkg-config --cflags gtk+-2.0`
 GTK_LIB = `pkg-config --libs gtk+-2.0`
 
 VERSION = 0.r${SVN_VERSION}
-CFLAGS = -DSHOES_GTK ${INCS} ${CAIRO_CFLAGS} ${PANGO_CFLAGS} ${GTK_CFLAGS} -I${RUBY_INCS}
+CFLAGS = -DSHOES_GTK -fPIC ${INCS} ${CAIRO_CFLAGS} ${PANGO_CFLAGS} ${GTK_CFLAGS} -I${RUBY_INCS}
 LDFLAGS = -fPIC ${LIBS} ${CAIRO_LIB} ${PANGO_LIB} ${GTK_LIB} ${RUBY_LIBS}
 
 all: clean options shoes

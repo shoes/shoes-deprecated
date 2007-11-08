@@ -662,7 +662,7 @@ shoes_canvas_video(int argc, VALUE *argv, VALUE self)
   rb_ary_push(canvas->contents, video);
   return video;
 #else
-  rb_raise(eNotImpl, "no video suppport");
+  rb_raise(eNotImpl, "no video support");
 #endif
 }
 

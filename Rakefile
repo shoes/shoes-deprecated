@@ -237,7 +237,7 @@ else
     LINUX_LIB_NAMES << 'jpeg62'
   else
     DLEXT = "so"
-    LINUX_CFLAGS << " -DSHOES_GTK #{`pkg-config --cflags gtk+-2.0`.strip}"
+    LINUX_CFLAGS << " -DSHOES_GTK -fPIC #{`pkg-config --cflags gtk+-2.0`.strip}"
     LINUX_LDFLAGS =" #{`pkg-config --libs gtk+-2.0`.strip} -fPIC -shared"
     LINUX_LIB_NAMES << 'jpeg'
   end

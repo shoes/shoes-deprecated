@@ -44,7 +44,7 @@ void shoes_ruby_init(void);
 #define EXC_ALERT \
   "proc do; alert %{#{@exc.message}\\n#{@exc.backtrace.map { |x| %{\\n  * #{x}}}}}; end"
 #define EXC_MARKUP \
-  "title e.message; para %%{#{e.backtrace.map { |x| %%{\\n  * #{Shoes.escape(x)}} }}};"
+  "subtitle e.message + %%{\\n}; para %%{#{e.backtrace.map { |x| %%{\\n  * #{Shoes.escape(x)}} }}};"
 #define EXC_PROC \
   "proc do;" \
     EXC_MARKUP \
