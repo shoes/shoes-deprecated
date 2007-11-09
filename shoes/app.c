@@ -1247,10 +1247,18 @@ shoes_app_loop(shoes_app *app, char *path)
 #ifdef SHOES_WIN32
   MSG msgs;
   ShowWindow(app->slot.window, shoes_world->os.style);
-  while (GetMessage(&msgs, NULL, 0, 0))
+  while (WM_QUIT != msgs.message)
   {
-    TranslateMessage(&msgs);
-    DispatchMessage(&msgs);
+    BOOL msg = PeekMessage(&msgs, NULL, 0, 0, PM_REMOVE);
+    if (msg)
+    {
+      TranslateMessage(&msgs);
+      DispatchMessage(&msgs);
+    }
+    else
+    {
+      rb_eval_string("sleep(0.001)");
+    }
   }
 #endif
 
