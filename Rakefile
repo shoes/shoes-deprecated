@@ -86,6 +86,13 @@ task :build => :build_os do
          lib/libjpeg62.dylib lib/libungif.4.dylib].
       each do |libn|
         cp "#{ENV['SHOES_DEPS_PATH']}/#{libn}", "dist/"
+      end.each do |libn|
+        next unless libn =~ %r!^lib/(.+?\.dylib)$!
+        libf = $1
+        sh "install_name_tool -id /tmp/dep/#{libn} dist/#{libf}"
+        ['dist/shoes-bin', *Dir['dist/*.dylib']].each do |lib2|
+          sh "install_name_tool -change /tmp/dep/#{libn} @executable_path/#{libf} #{lib2}"
+        end
       end
     end
   else
@@ -235,6 +242,11 @@ else
     LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{Config::CONFIG["CFLAGS"]}"
     LINUX_LDFLAGS = "-framework Carbon -dynamiclib -Wl,-single_module #{Config::CONFIG["LDFLAGS"]} INSTALL_NAME"
     LINUX_LIB_NAMES << 'jpeg62'
+    if ENV['UNIVERSAL']
+      LINUX_CFLAGS << " -O -g -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc"
+      LINUX_LDFLAGS << " -arch i386 -arch ppc"
+      ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.3'
+    end
   else
     DLEXT = "so"
     LINUX_CFLAGS << " -DSHOES_GTK -fPIC #{`pkg-config --cflags gtk+-2.0`.strip}"
