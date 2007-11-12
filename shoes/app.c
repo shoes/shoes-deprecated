@@ -59,7 +59,7 @@ shoes_app_new()
 static gboolean
 shoes_app_gtk_idle(gpointer data)
 {
-  rb_thread_schedule();
+  rb_eval_string("sleep(0.001)");
   return TRUE;
 }
 
@@ -1257,7 +1257,7 @@ shoes_app_loop(shoes_app *app, char *path)
     }
     else
     {
-      rb_thread_schedule();
+      rb_eval_string("sleep(0.001)");
     }
   }
 #endif
