@@ -1977,7 +1977,7 @@ shoes_app_style_for(shoes_kxxxx *k, VALUE klass, VALUE oattr, gsize start_index,
         attr = pango_attr_stretch_new(PANGO_STRETCH_CONDENSED);
       else if (strncmp(RSTRING_PTR(str), "normal", 6) == 0)
         attr = pango_attr_stretch_new(PANGO_STRETCH_NORMAL);
-      else if (strncmp(RSTRING_PTR(str), "expanded", 6) == 0)
+      else if (strncmp(RSTRING_PTR(str), "expanded", 8) == 0)
         attr = pango_attr_stretch_new(PANGO_STRETCH_EXPANDED);
     }
     APPLY_ATTR();
@@ -1988,7 +1988,7 @@ shoes_app_style_for(shoes_kxxxx *k, VALUE klass, VALUE oattr, gsize start_index,
   {
     if (TYPE(str) == T_STRING)
     {
-      if (strncmp(RSTRING_PTR(str), "none", 6) == 0)
+      if (strncmp(RSTRING_PTR(str), "none", 4) == 0)
         attr = pango_attr_underline_new(PANGO_UNDERLINE_NONE);
       else if (strncmp(RSTRING_PTR(str), "single", 6) == 0)
         attr = pango_attr_underline_new(PANGO_UNDERLINE_SINGLE);
@@ -2115,7 +2115,7 @@ shoes_textblock_draw(VALUE self, VALUE c)
   self_t->place.x = ATTR2(int, self_t->attr, left, canvas->cx) + lmargin;
   self_t->place.y = ATTR2(int, self_t->attr, top, canvas->cy) + tmargin;
   self_t->place.w = ATTR2(int, self_t->attr, width, canvas->place.w - (canvas->cx - self_t->place.x)) - (lmargin + rmargin);
-  font = ATTR2(cstr, self_t->attr, font, "Arial 16px");
+  font = ATTR2(cstr, self_t->attr, font, "Helvetica 16px");
   ld = ATTR2(int, self_t->attr, leading, 4);
 
   if (self_t->layout != NULL)
@@ -2193,7 +2193,7 @@ shoes_textblock_draw(VALUE self, VALUE c)
       canvas->cy = canvas->endy;
     }
   }
-  canvas->endy += lrect.height;
+  canvas->endy += lrect.height + (pango_layout_get_spacing(self_t->layout) / PANGO_SCALE);
   if (ck == cStack || canvas->cx > canvas->width) {
     canvas->cx = canvas->place.x;
     canvas->cy = canvas->endy;
