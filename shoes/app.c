@@ -482,7 +482,7 @@ shoes_app_quartz_handler(
   Point	mouseLoc;
   Rect bounds;
   char *text;
-  UInt len;
+  UInt32 len;
   
   switch (eventClass)
   {

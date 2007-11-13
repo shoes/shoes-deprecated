@@ -83,7 +83,7 @@ task :build => :build_os do
          lib/pango/1.6.0/modules/pango-basic-atsui.so etc/pango/pango.modules
          lib/pango/1.6.0/modules/pango-arabic-lang.so lib/pango/1.6.0/modules/pango-arabic-lang.la
          lib/pango/1.6.0/modules/pango-indic-lang.so lib/pango/1.6.0/modules/pango-indic-lang.la
-         lib/libjpeg62.dylib lib/libgif.4.dylib].
+         lib/libjpeg.62.dylib lib/libgif.4.dylib].
       each do |libn|
         cp "#{ENV['SHOES_DEPS_PATH']}/#{libn}", "dist/"
       end.each do |libn|
@@ -241,10 +241,14 @@ else
     DLEXT = "dylib"
     LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{Config::CONFIG["CFLAGS"]}"
     LINUX_LDFLAGS = "-framework Carbon -dynamiclib -Wl,-single_module #{Config::CONFIG["LDFLAGS"]} INSTALL_NAME"
-    LINUX_LIB_NAMES << 'jpeg62'
+    LINUX_LIB_NAMES << 'jpeg.62'
     if ENV['UNIVERSAL']
       LINUX_CFLAGS << " -O -g -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc"
       LINUX_LDFLAGS << " -arch i386 -arch ppc"
+      ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.3'
+    elsif ENV['PPC']
+      LINUX_CFLAGS << " -O -g -isysroot /Developer/SDKs/MacOSX10.3.9.sdk -arch ppc"
+      LINUX_LDFLAGS << " -arch ppc"
       ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.3'
     end
   else

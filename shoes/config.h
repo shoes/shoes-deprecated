@@ -96,6 +96,8 @@ typedef struct {
 #define kShoesSlotData    'SLOT'
 
 #define DC(slot) slot.view
+#define HAS_DRAWABLE(slot) slot.view != NULL
+#define DRAWABLE(ref) ref
 
 OSStatus shoes_slot_quartz_register(void);
 OSStatus shoes_slot_quartz_create(VALUE, SHOES_SLOT_OS *, int, int, int, int);
