@@ -2725,7 +2725,7 @@ shoes_list_box_draw(VALUE self, VALUE c)
 #ifdef SHOES_WIN32
     int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
     self_t->ref = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("COMBOBOX"), NULL,
-        WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | CBS_DROPDOWNLIST,
+        WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | CBS_DROPDOWNLIST | WS_VSCROLL,
         place.x, place.y, place.w, place.h, canvas->slot.window, (HMENU)cid, 
         (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
         NULL);

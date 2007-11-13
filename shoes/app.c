@@ -724,6 +724,9 @@ shoes_app_win32proc(
       PostQuitMessage(0);
     return 0; 
 
+    case WM_ERASEBKGND:
+      return 1;
+
     case WM_PAINT:
     {
       RECT rect;
@@ -1197,7 +1200,7 @@ shoes_app_open(shoes_app *app)
 
   app->slot.window = CreateWindowEx(
     0, SHOES_SHORTNAME, SHOES_APPNAME,
-    WINDOW_STYLE | 
+    WINDOW_STYLE | WS_CLIPCHILDREN |
       (app->resizable ? (WS_THICKFRAME | WS_MAXIMIZEBOX) : WS_DLGFRAME) |
       WS_VSCROLL | ES_AUTOVSCROLL,
     CW_USEDEFAULT, CW_USEDEFAULT,

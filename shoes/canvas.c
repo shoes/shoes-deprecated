@@ -147,12 +147,12 @@ shoes_canvas_paint(VALUE self)
 #ifdef SHOES_WIN32
   PAINTSTRUCT paint_struct;
   int width, height;
-  HBITMAP bitmap;
+  HBITMAP bitmap, bitold;
   width = canvas->width; height = canvas->height;
   HDC hdc = BeginPaint(canvas->slot.window, &paint_struct);
   canvas->slot.dc = CreateCompatibleDC(hdc);
   bitmap = CreateCompatibleBitmap(hdc, width, max(canvas->height, canvas->fully));
-  SelectObject(canvas->slot.dc, bitmap);
+  bitold = (HBITMAP)SelectObject(canvas->slot.dc, bitmap);
   canvas->slot.surface = cairo_win32_surface_create(canvas->slot.dc);
 #endif
 
@@ -179,8 +179,9 @@ shoes_canvas_paint(VALUE self)
   BitBlt(hdc, 0, 0, width, height, canvas->slot.dc, 0, canvas->slot.scrolly, SRCCOPY);
   cairo_surface_destroy(canvas->slot.surface);
   EndPaint(canvas->slot.window, &paint_struct);
+  SelectObject(canvas->slot.dc, bitold);
   DeleteObject(bitmap);
-  DeleteObject(canvas->slot.dc);
+  DeleteDC(canvas->slot.dc);
 #endif
 
 quit:
