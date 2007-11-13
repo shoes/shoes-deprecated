@@ -690,11 +690,9 @@ shoes_canvas_win32_vscroll(shoes_canvas *canvas, int code, int pos)
     case SB_PAGEDOWN:
       si.nPos += si.nPage - 32;
     break;
-    case SB_THUMBPOSITION:
+    case SB_THUMBTRACK:
       si.nPos = pos;
     break;
-    case SB_ENDSCROLL:
-      InvalidateRect(canvas->slot.window, NULL, TRUE);
     default:
       return;
   }
@@ -706,6 +704,7 @@ shoes_canvas_win32_vscroll(shoes_canvas *canvas, int code, int pos)
 
   SetScrollInfo(canvas->slot.window, SB_VERT, &si, TRUE);
   canvas->slot.scrolly = si.nPos;
+  InvalidateRect(canvas->slot.window, NULL, TRUE);
 }
 
 LRESULT CALLBACK
