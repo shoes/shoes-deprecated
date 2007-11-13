@@ -2098,7 +2098,7 @@ shoes_textblock_on_layout(shoes_app *app, VALUE klass, shoes_textblock *block)
 VALUE
 shoes_textblock_draw(VALUE self, VALUE c)
 {
-  int px, py, pd, li, m, ld;
+  int px, py, pd, li, m, ld, absx, absy;
   double cx, cy;
   char *font;
   shoes_textblock *self_t;
@@ -2112,6 +2112,8 @@ shoes_textblock_draw(VALUE self, VALUE c)
   Data_Get_Struct(c, shoes_canvas, canvas);
 
   ATTR_MARGINS(self_t->attr, 4);
+  absx = (NIL_P(ATTR(self_t->attr, left)) && NIL_P(ATTR(self_t->attr, right)) ? 0 : 1);
+  absy = (NIL_P(ATTR(self_t->attr, top)) && NIL_P(ATTR(self_t->attr, bottom)) ? 0 : 1);
   self_t->place.x = ATTR2(int, self_t->attr, left, canvas->cx) + lmargin;
   self_t->place.y = ATTR2(int, self_t->attr, top, canvas->cy) + tmargin;
   self_t->place.w = ATTR2(int, self_t->attr, width, canvas->place.w - (canvas->cx - self_t->place.x)) - (lmargin + rmargin);
@@ -2123,7 +2125,7 @@ shoes_textblock_draw(VALUE self, VALUE c)
 
   self_t->layout = pango_cairo_create_layout(canvas->cr);
   pd = 0;
-  if (self_t->place.x == canvas->cx + lmargin)
+  if (!absx && self_t->place.x == canvas->cx + lmargin)
   {
     if (self_t->place.x - canvas->place.x > (self_t->place.w - (lmargin + rmargin)) - 20)
     {
@@ -2132,23 +2134,42 @@ shoes_textblock_draw(VALUE self, VALUE c)
     } else {
       if (self_t->place.x > canvas->place.x) {
         pd = (self_t->place.x - (canvas->place.x + lmargin));
-        pango_layout_set_indent(self_t->layout, pd);
-        self_t->place.w = (canvas->place.w - (canvas->cx - self_t->place.x)) - (lmargin + rmargin);
+        pango_layout_set_indent(self_t->layout, pd * PANGO_SCALE);
+        self_t->place.x = canvas->place.x + lmargin;
+        self_t->place.w -= rmargin;
       }
     }
   }
 
-  cairo_move_to(canvas->cr, self_t->place.x, self_t->place.y);
-  cairo_set_source_rgb(canvas->cr, 0., 0., 0.);
   INFO("TEXT: %d, %d (%d, %d) / %d, %d / %d, %d [%d]\n", canvas->cx, canvas->cy,
     canvas->place.w, canvas->height, self_t->place.x, self_t->place.y, self_t->place.w, self_t->place.h, pd);
-  shoes_textblock_on_layout(canvas->app, rb_obj_class(self), self_t);
   pango_layout_set_width(self_t->layout, self_t->place.w * PANGO_SCALE);
   pango_layout_set_spacing(self_t->layout, ld * PANGO_SCALE);
+  shoes_textblock_on_layout(canvas->app, rb_obj_class(self), self_t);
   desc = pango_font_description_from_string(font);
   pango_layout_set_font_description(self_t->layout, desc);
   pango_font_description_free(desc);
 
+  //
+  // Line up the first line with the y-cursor
+  //
+  if (!absx && !absy && pd)
+  {
+    last = pango_layout_get_line(self_t->layout, 0);
+    pango_layout_line_get_pixel_extents(last, NULL, &lrect);
+    if (lrect.width > self_t->place.w - pd)
+    {
+      pango_layout_set_indent(self_t->layout, 0);
+      self_t->place.x = canvas->place.x + lmargin;
+      self_t->place.y = canvas->endy + tmargin;
+      pd = 0;
+    }
+    else if (((canvas->endy - ld) - lrect.height) > canvas->cy && self_t->place.y < canvas->endy)
+      self_t->place.y = ((canvas->endy - ld) - lrect.height);
+  }
+
+  cairo_move_to(canvas->cr, self_t->place.x, self_t->place.y);
+  cairo_set_source_rgb(canvas->cr, 0., 0., 0.);
   pango_cairo_update_layout(canvas->cr, self_t->layout);
   pango_cairo_show_layout(canvas->cr, self_t->layout);
 
@@ -2180,11 +2201,12 @@ shoes_textblock_draw(VALUE self, VALUE c)
   pango_layout_get_pixel_size(self_t->layout, &px, &py);
 
   // newlines have an empty size
-  canvas->endy = self_t->place.y - tmargin + py - lrect.height;
   if (ck != cStack) {
     if (li == 0) {
-      canvas->cx = self_t->place.x - lmargin + lrect.x + lrect.width + rmargin;
+      canvas->endy = self_t->place.y;
+      canvas->cx = self_t->place.x - lmargin + lrect.x + lrect.width + rmargin + pd;
     } else {
+      canvas->endy = self_t->place.y - tmargin + py - lrect.height;
       if (lrect.width == 0) {
         canvas->cx = lrect.x;
       } else {
@@ -2193,7 +2215,7 @@ shoes_textblock_draw(VALUE self, VALUE c)
       canvas->cy = canvas->endy;
     }
   }
-  canvas->endy += lrect.height + (pango_layout_get_spacing(self_t->layout) / PANGO_SCALE);
+  canvas->endy += lrect.height + ld;
   if (ck == cStack || canvas->cx > canvas->width) {
     canvas->cx = canvas->place.x;
     canvas->cy = canvas->endy;
