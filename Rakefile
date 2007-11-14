@@ -7,7 +7,7 @@ include FileUtils
 APPNAME = ENV['APPNAME'] || "Shoes"
 NAME = APPNAME.downcase.gsub(/\W+/, '')
 SONAME = 'shoes'
-SVN_VERSION = `svn info`[/Revision: (\d+)/, 1]
+SVN_VERSION = `svn info`[/Revision: (\d+)/, 1] rescue '1'
 VERS = ENV['VERSION'] || "0.r#{SVN_VERSION}"
 PKG = "#{NAME}-#{VERS}"
 APPARGS = ENV['APPARGS']
