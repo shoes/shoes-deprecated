@@ -100,7 +100,8 @@ task :build => :build_os do
         end
       end
       if ENV['VIDEO']
-        cp_r "deps/bin/VLC.app/Contents/MacOS/modules", "dist/plugins"
+        mkdir_p "dist/plugins"
+        sh "cp -r deps/lib/vlc/**/*.dylib dist/plugins"
         sh "strip -x dist/*.dylib"
         sh "strip -x dist/plugins/*.dylib"
         sh "strip -x dist/ruby/lib/**/*.bundle"

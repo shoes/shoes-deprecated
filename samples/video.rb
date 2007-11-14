@@ -1,6 +1,6 @@
 Shoes.app do
   stack do
-    @vid = video "http://whytheluckystiff.net/o..e/pinball_number_count.avi"
+    @vid = video "http://www.youtube.com/get_video?video_id=LNVYWJOEy9A&t=OEgsToPDskKe6nayFUZBTTHAUtUZixyM&rel=1&border=0"
     para "controls: ",
       link("play")  { @vid.play }, ", ",
       link("pause") { @vid.pause }, ", ",
