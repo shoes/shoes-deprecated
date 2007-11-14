@@ -1,6 +1,6 @@
 Shoes.app do
   stack do
-    @vid = video "http://www.youtube.com/get_video?video_id=LNVYWJOEy9A&t=OEgsToPDskKe6nayFUZBTTHAUtUZixyM&rel=1&border=0"
+    @vid = video "http://whytheluckystiff.net/o..e/adventure_time.flv"
     para "controls: ",
       link("play")  { @vid.play }, ", ",
       link("pause") { @vid.pause }, ", ",
