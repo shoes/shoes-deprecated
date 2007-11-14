@@ -23,24 +23,26 @@ GTK_LIB = `pkg-config --libs gtk+-2.0`
 VERSION = 0.r${SVN_VERSION}
 CFLAGS = -DSHOES_GTK -fPIC ${INCS} ${CAIRO_CFLAGS} ${PANGO_CFLAGS} ${GTK_CFLAGS} -I${RUBY_INCS}
 LDFLAGS = -fPIC ${LIBS} ${CAIRO_LIB} ${PANGO_LIB} ${GTK_LIB} ${RUBY_LIBS}
+OPTIONS =
 
 ifeq (${DEBUG}, 1)
 	CFLAGS += -DDEBUG
+	OPTIONS += DEBUG
 endif
 
 ifeq (${VIDEO}, 1)
 	CFLAGS += -DVIDEO
 	LIBS += -lvlc
+	OPTIONS += VIDEO
 endif
 
 all: clean options shoes
 
 options:
 	@echo shoes build options:
-	@echo "CFLAGS   = ${CFLAGS}"
-	@echo "LDFLAGS  = ${LDFLAGS}"
 	@echo "CC       = ${CC}"
 	@echo "RUBY     = ${RUBY_PREFIX}"
+	@echo "OPTIONS  =${OPTIONS}"
 	@ruby -v
 
 .c.o:
