@@ -7,7 +7,8 @@ include FileUtils
 APPNAME = ENV['APPNAME'] || "Shoes"
 NAME = APPNAME.downcase.gsub(/\W+/, '')
 SONAME = 'shoes'
-VERS = ENV['VERSION'] || "0.1"
+SVN_VERSION = `svn info`[/Revision: (\d+)/, 1]
+VERS = ENV['VERSION'] || "0.r#{SVN_VERSION}"
 PKG = "#{NAME}-#{VERS}"
 APPARGS = ENV['APPARGS']
 FLAGS = %w[DEBUG VIDEO]
@@ -33,11 +34,11 @@ def env(x)
 end
 
 # Subs in special variables
-def rewrite before, after
+def rewrite before, after, reg = /\#\{(\w+)\}/, reg2 = '\1'
   File.open(after, 'w') do |a|
     File.open(before) do |b|
       b.each do |line|
-        a << line.gsub(/\#\{(\w+)\}/) { Object.const_get($1) }
+        a << line.gsub(reg) { reg2.gsub(%r!\\1!, Object.const_get($1)) }
       end
     end
   end
@@ -313,6 +314,18 @@ else
     sh "#{CC} -I. -c #{LINUX_CFLAGS} #{t.source}"
     mv File.basename(t.name), t.name
   end
+end
+
+task :tarball => 'bin/main.c' do
+  rm_rf PKG
+  sh "svn export . #{PKG}"
+  rm "#{PKG}/bin/main.skel"
+  rm "#{PKG}/Rakefile"
+  rm "#{PKG}/use-deps"
+  cp "bin/main.c", "#{PKG}/bin/main.c"
+  rewrite "Makefile", "#{PKG}/Makefile", /^(SVN_VERSION) = .+?$/, 'SVN_VERSION = \1'
+  sh "tar czvf #{PKG}.tar.gz #{PKG}"
+  rm_rf PKG
 end
 
 # shoes is small, if any include changes, go ahead and build from scratch.
