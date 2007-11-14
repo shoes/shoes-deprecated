@@ -61,7 +61,7 @@ shoes_load(char *path)
       "DIR = File.expand_path(File.dirname(%%q<%s>));"
       "$:.replace([DIR+'/ruby/lib/'+PLATFORM, DIR+'/ruby/lib', DIR+'/lib']);"
       "require 'shoes';"
-      "'OK';"
+      "DIR;"
     "rescue Object => e;"
       SHOES_META
         "define_method :load do |path|; end;"
@@ -78,7 +78,7 @@ shoes_load(char *path)
 
   VALUE str = rb_eval_string(bootup);
   StringValue(str);
-  INFO("Bootup: %s\n", RSTRING(str)->ptr);
+  strcpy(shoes_world->path, RSTRING(str)->ptr);
 
   VALUE uri = rb_eval_string("$SHOES_URI = Shoes.args!");
   if (!RTEST(uri))

@@ -7,6 +7,7 @@
 #include "shoes/ruby.h"
 #include "shoes/dialogs.h"
 #include "shoes/internal.h"
+#include "shoes/world.h"
 #include <math.h>
 
 VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
@@ -821,8 +822,18 @@ VALUE
 shoes_video_alloc(VALUE klass)
 {
   shoes_video *video;
+#ifdef SHOES_QUARTZ
+  char *ppsz_argv[2] = {"vlc", NULL};
+  char pathsw[SHOES_BUFSIZE];
+  int ppsz_argc = 2;
+  sprintf(pathsw, "--plugin-path=%s/plugins", shoes_world->path);
+  printf(pathsw);
+  printf("\n");
+  ppsz_argv[1] = pathsw;
+#else
   char *ppsz_argv[1] = {"vlc"};
   int ppsz_argc = 1;
+#endif
   VALUE obj = Data_Make_Struct(klass, shoes_video, shoes_video_mark, shoes_video_free, video);
   libvlc_exception_init(&video->excp);
   video->ref = NULL;
@@ -882,9 +893,9 @@ shoes_video_remove(VALUE self)
 #ifdef SHOES_GTK
   gtk_container_remove(GTK_CONTAINER(canvas->slot.canvas), self_t->ref);
 #endif
-#ifdef SHOES_QUARTZ
-  HIViewRemoveFromSuperview(self_t->ref);
-#endif
+// #ifdef SHOES_QUARTZ
+//   HIViewRemoveFromSuperview(self_t->ref);
+// #endif
 #ifdef SHOES_WIN32
   DestroyWindow(self_t->ref);
 #endif
@@ -909,6 +920,10 @@ shoes_video_draw(VALUE self, VALUE c)
       self_t->ref = gtk_layout_new(NULL, NULL);
 #endif
 
+#ifdef SHOES_QUARTZ
+      self_t->ref = GetWindowPort(canvas->app->os.window);
+#endif
+
 #ifdef SHOES_WIN32
       int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
       self_t->ref = CreateWindowEx(0, SHOES_VLCLASS, "Shoes VLC Window",
@@ -919,10 +934,27 @@ shoes_video_draw(VALUE self, VALUE c)
       rb_ary_push(canvas->slot.controls, self);
 #endif
 
+#ifndef SHOES_QUARTZ
       PLACE_CONTROL();
+#else
+      PLACE_COORDS();
+#endif
 
       libvlc_video_set_parent(self_t->vlc, DRAWABLE(self_t->ref), &self_t->excp);
       shoes_vlc_exception(&self_t->excp);
+
+#ifdef SHOES_QUARTZ
+      libvlc_rectangle_t view, clip;
+      view.top = -self_t->place.y;
+      view.left = -self_t->place.x;
+      view.right = view.left + self_t->place.w;
+      view.bottom = view.top + self_t->place.h;
+      clip.top = self_t->place.y;
+      clip.left = self_t->place.x;
+      clip.bottom = clip.top + self_t->place.h; 
+      clip.right = clip.left + self_t->place.w; 
+      libvlc_video_set_viewport(self_t->vlc, &view, &clip, NULL);
+#endif
 
       if (RTEST(ATTR(self_t->attr, autoplay)))
       {
@@ -933,7 +965,9 @@ shoes_video_draw(VALUE self, VALUE c)
     }
     else
     {
+#ifndef SHOES_QUARTZ
       REPAINT_CONTROL();
+#endif
     }
 
     FINISH();

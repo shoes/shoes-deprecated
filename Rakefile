@@ -77,14 +77,19 @@ task :build => :build_os do
     end
   when /darwin/
     if ENV['SHOES_DEPS_PATH']
-      %w[lib/libcairo.2.dylib lib/libcairo.2.dylib lib/libgmodule-2.0.0.dylib lib/libintl.8.dylib lib/libruby.dylib
+      dylibs = %w[lib/libcairo.2.dylib lib/libcairo.2.dylib lib/libgmodule-2.0.0.dylib lib/libintl.8.dylib lib/libruby.dylib
          lib/libglib-2.0.0.dylib lib/libgobject-2.0.0.dylib lib/libpng12.0.dylib lib/libpango-1.0.0.dylib 
          lib/pango/1.6.0/modules/pango-basic-atsui.la lib/libpangocairo-1.0.0.dylib 
          lib/pango/1.6.0/modules/pango-basic-atsui.so etc/pango/pango.modules
          lib/pango/1.6.0/modules/pango-arabic-lang.so lib/pango/1.6.0/modules/pango-arabic-lang.la
          lib/pango/1.6.0/modules/pango-indic-lang.so lib/pango/1.6.0/modules/pango-indic-lang.la
-         lib/libjpeg.62.dylib lib/libgif.4.dylib].
-      each do |libn|
+         lib/libjpeg.62.dylib lib/libgif.4.dylib]
+      if ENV['VIDEO']
+        dylibs.push *%w[lib/liba52.0.dylib lib/libfaac.0.dylib lib/libfaad.0.dylib lib/libmp3lame.0.dylib
+          lib/libvorbis.0.dylib lib/libogg.0.dylib
+          lib/libvorbisenc.2.dylib lib/libpostproc.dylib lib/libavformat.dylib lib/libavcodec.dylib lib/libavutil.dylib]
+      end
+      dylibs.each do |libn|
         cp "#{ENV['SHOES_DEPS_PATH']}/#{libn}", "dist/"
       end.each do |libn|
         next unless libn =~ %r!^lib/(.+?\.dylib)$!
@@ -93,6 +98,12 @@ task :build => :build_os do
         ['dist/shoes-bin', *Dir['dist/*.dylib']].each do |lib2|
           sh "install_name_tool -change /tmp/dep/#{libn} @executable_path/#{libf} #{lib2}"
         end
+      end
+      if ENV['VIDEO']
+        cp_r "deps/bin/VLC.app/Contents/MacOS/modules", "dist/plugins"
+        sh "strip -x dist/*.dylib"
+        sh "strip -x dist/plugins/*.dylib"
+        sh "strip -x dist/ruby/lib/**/*.bundle"
       end
     end
   else
@@ -242,7 +253,7 @@ else
     LINUX_LDFLAGS = "-framework Carbon -dynamiclib -Wl,-single_module #{Config::CONFIG["LDFLAGS"]} INSTALL_NAME"
     LINUX_LIB_NAMES << 'jpeg.62'
     if ENV['VIDEO']
-      LINUX_LDFLAGS << " ./deps/lib/libvlc.a  ./deps/lib/vlc/libmemcpymmx.a ./deps/lib/vlc/libi420_rgb_mmx.a ./deps/lib/vlc/libi422_yuy2_mmx.a ./deps/lib/vlc/libi420_ymga_mmx.a ./deps/lib/vlc/libi420_yuy2_mmx.a ./deps/lib/vlc/libmemcpymmxext.a ./deps/lib/vlc/libmemcpy3dn.a ./deps/lib/vlc/libffmpeg.a ./deps/lib/vlc/libstream_out_switcher.a ./deps/lib/vlc/libquicktime.a ./deps/lib/vlc/libxvideo.a ./deps/lib/vlc/libauhal.a ./deps/lib/vlc/libmacosx.a -framework vecLib -lpthread -lm -liconv -lintl -liconv -lc -lpostproc -lavformat -lavcodec -lz -la52 -lfaac -lfaad -lmp3lame -lx264 -lxvidcore -lvorbisenc -lavutil -lvorbis -lm -logg -lm -lavformat -lavcodec -lz -la52 -lfaac -lfaad -lmp3lame -lx264 -lxvidcore -lvorbisenc -lavutil -lvorbis -lm -logg -framework QuickTime -framework Carbon -lm -lXxf86vm -lXinerama -L/usr/X11R6/lib -lSM -lICE -lX11 -lXext -lXv -framework CoreAudio -framework AudioUnit -framework AudioToolbox -framework IOKit -framework Cocoa -framework Carbon -framework QuickTime -lobjc -ObjC -framework OpenGL -framework AGL"
+      LINUX_LDFLAGS << " ./deps/lib/libvlc.a  ./deps/lib/vlc/libmemcpymmx.a ./deps/lib/vlc/libi420_rgb_mmx.a ./deps/lib/vlc/libi422_yuy2_mmx.a ./deps/lib/vlc/libi420_ymga_mmx.a ./deps/lib/vlc/libi420_yuy2_mmx.a ./deps/lib/vlc/libmemcpymmxext.a ./deps/lib/vlc/libmemcpy3dn.a ./deps/lib/vlc/libffmpeg.a ./deps/lib/vlc/libstream_out_switcher.a ./deps/lib/vlc/libquicktime.a ./deps/lib/vlc/libxvideo.a ./deps/lib/vlc/libauhal.a ./deps/lib/vlc/libmacosx.a -framework vecLib -lpthread -lm -liconv -lintl -liconv -lc -lpostproc -lavformat -lavcodec -lz -la52 -lfaac -lfaad -lmp3lame -lx264 -lxvidcore -lvorbisenc -lavutil -lvorbis -lm -logg -lm -lavformat -lavcodec -lz -la52 -lfaac -lfaad -lmp3lame -lx264 -lxvidcore -lvorbisenc -lavutil -lvorbis -lm -logg -framework QuickTime -framework Carbon -lm -lXxf86vm -lXinerama -L/usr/X11R6/lib -lSM -lICE -lX11 -lXext -lXv -framework CoreAudio -framework AudioUnit -framework AudioToolbox -framework IOKit -framework Cocoa -framework Carbon -framework QuickTime -lobjc -ObjC -framework OpenGL -framework AGL -read_only_relocs suppress"
     end
     if ENV['UNIVERSAL']
       LINUX_CFLAGS << " -O -g -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc"
@@ -286,6 +297,9 @@ else
   task "dist/lib#{SONAME}.#{DLEXT}" => OBJ do |t|
     ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
     sh "#{CC} -o #{t.name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
+    %w[libpostproc.dylib libavformat.dylib libavcodec.dylib libavutil.dylib libruby.dylib].each do |libn|
+      sh "install_name_tool -change /tmp/dep/lib/#{libn} ./deps/lib/#{libn} #{t.name}"
+    end
   end
 
   rule ".o" => ".mm" do |t|

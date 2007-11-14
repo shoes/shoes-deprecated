@@ -13,6 +13,7 @@
 
 typedef struct _shoes_world_t {
   SHOES_WORLD_OS os;
+  char path[SHOES_BUFSIZE];
   VALUE app;
 } shoes_world_t;
 
