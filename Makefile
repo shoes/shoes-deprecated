@@ -6,7 +6,7 @@ OBJ = ${SRC:.c=.o}
 
 PREFIX = /usr/local
 INCS = -I. -I/usr/include
-LIBS = -L/usr/lib -lcairo -lpangocairo-1.0 -lgif -ljpeg -lvlc
+LIBS = -L/usr/lib -lcairo -lpangocairo-1.0 -lgif -ljpeg
 
 SVN_VERSION = `svn info | ruby -ne 'x = $$_[/Revision: (.+)/, 1]; puts x if x'`
 RUBY_INCS = `ruby -rrbconfig -e 'puts Config::CONFIG["archdir"]'`
@@ -23,6 +23,15 @@ GTK_LIB = `pkg-config --libs gtk+-2.0`
 VERSION = 0.r${SVN_VERSION}
 CFLAGS = -DSHOES_GTK -fPIC ${INCS} ${CAIRO_CFLAGS} ${PANGO_CFLAGS} ${GTK_CFLAGS} -I${RUBY_INCS}
 LDFLAGS = -fPIC ${LIBS} ${CAIRO_LIB} ${PANGO_LIB} ${GTK_LIB} ${RUBY_LIBS}
+
+ifeq (${DEBUG}, 1)
+	CFLAGS += -DDEBUG
+endif
+
+ifeq (${VIDEO}, 1)
+	CFLAGS += -DVIDEO
+	LIBS += -lvlc
+endif
 
 all: clean options shoes
 

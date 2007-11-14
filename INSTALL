@@ -1,0 +1,29 @@
+This is a source distribution for compiling Shoes on Linux,
+FreeBSD and other similar architectures.  Be sure you have
+make, gcc, cairo, pango and ruby present.
+
+Then run:
+
+  make
+
+Which will build Shoes and place it in the `dist/` folder.
+You may run examples from there:
+
+  cd dist
+  ./shoes samples/timer.rb
+
+If you'd like to install Shoes, you can optionally run
+make install.  The Makefile also respects the PREFIX 
+environment variable.
+
+  make PREFIX=/opt/shoes install
+
+To compile video support, install VLC and its development
+libraries.  Then run:
+
+  make VIDEO=1
+
+This process has largely been tested on Debian distros,
+so please head over to the Shoes wiki or the mailing list
+if you have some issues and need a hand or have some
+advice.
