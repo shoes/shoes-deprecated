@@ -33,7 +33,7 @@ class Shoes
   end
 
   NotFound = proc do
-    text "404 NOT FOUND, GUYS!"
+    para "404 NOT FOUND, GUYS!"
   end
  
   ShyMake = proc do |s|
@@ -46,26 +46,26 @@ class Shoes
       stack do
         progress =
           stack :margin => 20 do
-            text "Making the Shy"
+            para "Making the Shy"
             progress
           end
         progress.hide
         info =
           stack :margin => 10 do
             stack :margin => 10 do
-              text "Application name"
+              para "Application name"
               edit_line
             end
             stack :margin => 10 do
-              text "Creator"
+              para "Creator"
               edit_line
             end
             stack :margin => 10 do
-              text "Version"
+              para "Version"
               edit_line
             end
             stack :margin => 10 do
-              text "Launch"
+              para "Launch"
               list_box :items => Shy.launchable(s)
             end
             stack :margin => 10 do
