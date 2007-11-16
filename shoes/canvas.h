@@ -377,7 +377,7 @@ VALUE shoes_textblock_remove(VALUE);
 VALUE shoes_textblock_set_cursor(VALUE, VALUE);
 VALUE shoes_textblock_get_cursor(VALUE);
 VALUE shoes_textblock_draw(VALUE, VALUE);
-VALUE shoes_textblock_motion(VALUE, int, int);
+VALUE shoes_textblock_motion(VALUE, int, int, int *);
 VALUE shoes_textblock_click(VALUE, int, int, int, VALUE *);
 
 //

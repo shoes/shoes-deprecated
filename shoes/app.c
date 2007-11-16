@@ -1496,17 +1496,20 @@ shoes_app_reset_styles(shoes_app *app)
   STYLE(cPara,        size, 12);
   STYLE(cInscription, size, 10);
 
-  STYLE(cCode,     family, monospace);
-  STYLE(cDel,      strikethrough, single);
-  STYLE(cEm,       emphasis, italic);
-  STYLE(cIns,      underline, single);
-  STYLE(cLink,     underline, single);
-  STYLE(cLink,     stroke, #0066EE);
-  STYLE(cStrong,   weight, bold);
-  STYLE(cSup,      rise,   10);
-  STYLE(cSup,      size,   x-small);
-  STYLE(cSub,      rise,   -10);
-  STYLE(cSub,      size,   x-small);
+  STYLE(cCode,        family, monospace);
+  STYLE(cDel,         strikethrough, single);
+  STYLE(cEm,          emphasis, italic);
+  STYLE(cIns,         underline, single);
+  STYLE(cLink,        underline, single);
+  STYLE(cLink,        stroke, #06E);
+  STYLE(cLinkHover,   underline, single);
+  STYLE(cLinkHover,   stroke, #039);
+  STYLE(cLinkHover,   fill,   #EEE);
+  STYLE(cStrong,      weight, bold);
+  STYLE(cSup,         rise,   10);
+  STYLE(cSup,         size,   x-small);
+  STYLE(cSub,         rise,   -10);
+  STYLE(cSub,         size,   x-small);
 }
 
 void

@@ -10,7 +10,7 @@
 #include "shoes/world.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
+VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover;
 VALUE eVlcError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_hover, s_href, s_insert, s_items, s_scroll, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
@@ -1502,8 +1502,8 @@ shoes_link_alloc(VALUE klass)
   return obj;
 }
 
-VALUE
-shoes_link_at(VALUE self, int index, int blockhover, VALUE *clicked)
+static VALUE
+shoes_link_at(VALUE self, int index, int blockhover, VALUE *clicked, int *touch)
 {
   char h = 0;
   VALUE url = Qnil, proc = Qnil;
@@ -1525,6 +1525,7 @@ shoes_link_at(VALUE self, int index, int blockhover, VALUE *clicked)
     proc = rb_hash_aref(self_t->attr, action);
     if (!NIL_P(proc))
       shoes_safe_block(self, proc, rb_ary_new());
+    if (touch != NULL) *touch += 1;
     self_t->hover = h;
   }
 
@@ -1760,7 +1761,7 @@ shoes_textblock_replace(int argc, VALUE *argv, VALUE self)
 }
 
 static VALUE
-shoes_textblock_hover(VALUE self, int x, int y, VALUE *clicked)
+shoes_textblock_hover(VALUE self, int x, int y, VALUE *clicked, int *t)
 {
   VALUE url = Qnil;
   int index, trailing, i, hover;
@@ -1773,7 +1774,7 @@ shoes_textblock_hover(VALUE self, int x, int y, VALUE *clicked)
   hover = pango_layout_xy_to_index(self_t->layout, x * PANGO_SCALE, y * PANGO_SCALE, &index, &trailing);
   for (i = 0; i < RARRAY_LEN(self_t->links); i++)
   {
-    VALUE urll = shoes_link_at(rb_ary_entry(self_t->links, i), index, hover, clicked);
+    VALUE urll = shoes_link_at(rb_ary_entry(self_t->links, i), index, hover, clicked, t);
     if (NIL_P(url)) url = urll;
   }
 
@@ -1781,9 +1782,9 @@ shoes_textblock_hover(VALUE self, int x, int y, VALUE *clicked)
 }
 
 VALUE
-shoes_textblock_motion(VALUE self, int x, int y)
+shoes_textblock_motion(VALUE self, int x, int y, int *t)
 {
-  VALUE url = shoes_textblock_hover(self, x, y, NULL);
+  VALUE url = shoes_textblock_hover(self, x, y, NULL, t);
   if (!NIL_P(url))
   {
     shoes_textblock *self_t;
@@ -1799,7 +1800,7 @@ VALUE
 shoes_textblock_click(VALUE self, int button, int x, int y, VALUE *clicked)
 {
   if (button == 1)
-    return shoes_textblock_hover(self, x, y, clicked);
+    return shoes_textblock_hover(self, x, y, clicked, NULL);
 
   return Qnil;
 }
@@ -2076,13 +2077,16 @@ shoes_textblock_iter_pango(VALUE texts, shoes_kxxxx *k)
     v = rb_ary_entry(texts, i);
     if (rb_obj_is_kind_of(v, cTextClass))
     {
+      VALUE tklass = rb_obj_class(v);
       gsize start;
       shoes_text *text;
       Data_Get_Struct(v, shoes_text, text);
 
       start = k->len;
       shoes_textblock_iter_pango(text->texts, k);
-      shoes_app_style_for(k, rb_obj_class(v), text->attr, start, k->len);
+      if (text->hover && tklass == cLink)
+        tklass = cLinkHover;
+      shoes_app_style_for(k, tklass, text->attr, start, k->len);
       if (rb_obj_is_kind_of(v, cLink) && !NIL_P(text->attr))
       {
         rb_ary_push(k->links, shoes_link_new(v, start, k->len));
@@ -3230,6 +3234,7 @@ shoes_ruby_init()
   rb_define_method(cTextClass, "click", CASTHOOK(shoes_linktext_click), -1);
   rb_define_method(cTextClass, "hover", CASTHOOK(shoes_linktext_hover), -1);
   rb_define_method(cTextClass, "leave", CASTHOOK(shoes_linktext_leave), -1);
+  cLinkHover = rb_define_class_under(cShoes, "LinkHover", cTextClass);
 
   cNative  = rb_define_class_under(cShoes, "Native", rb_cObject);
   rb_define_alloc_func(cNative, shoes_control_alloc);
