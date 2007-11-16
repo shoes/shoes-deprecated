@@ -125,7 +125,7 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("image", image, -1); \
   f("imagesize", imagesize, 1); \
   f("animate", animate, -1); \
-  f("path", path, -1); \
+  f("shape", shape, -1); \
   f("move_to", move_to, 2); \
   f("line_to", line_to, 2); \
   f("curve_to", curve_to, 6); \

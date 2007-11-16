@@ -220,7 +220,7 @@ shoes_canvas_shape_end(VALUE self, VALUE x, VALUE y, int w, int h)
   shoes_canvas *canvas;
   Data_Get_Struct(self, shoes_canvas, canvas);
   cairo_restore(canvas->cr);
-  shape = shoes_path_new(cairo_copy_path(canvas->cr), self, x, y, w, h);
+  shape = shoes_shape_new(cairo_copy_path(canvas->cr), self, x, y, w, h);
   rb_ary_push(canvas->contents, shape);
   return shape;
 }
@@ -701,7 +701,7 @@ shoes_canvas_animate(int argc, VALUE *argv, VALUE self)
 }
 
 VALUE
-shoes_canvas_path(int argc, VALUE *argv, VALUE self)
+shoes_canvas_shape(int argc, VALUE *argv, VALUE self)
 {
   VALUE _x, _y;
   double x, y;

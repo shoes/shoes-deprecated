@@ -37,7 +37,7 @@ typedef struct {
 } shoes_color;
 
 //
-// path struct
+// shape struct
 //
 typedef struct {
   cairo_path_t *line;
@@ -47,7 +47,7 @@ typedef struct {
   VALUE bg;
   VALUE attr;
   VALUE parent;
-} shoes_path;
+} shoes_shape;
 
 //
 // flow struct
@@ -244,7 +244,7 @@ VALUE shoes_canvas_video(int, VALUE *, VALUE);
 VALUE shoes_canvas_image(int, VALUE *, VALUE);
 VALUE shoes_canvas_animate(int, VALUE *, VALUE);
 VALUE shoes_canvas_imagesize(VALUE, VALUE);
-VALUE shoes_canvas_path(int, VALUE *, VALUE);
+VALUE shoes_canvas_shape(int, VALUE *, VALUE);
 void shoes_canvas_remove_item(VALUE, VALUE);
 VALUE shoes_canvas_move_to(VALUE, VALUE, VALUE);
 VALUE shoes_canvas_line_to(VALUE, VALUE, VALUE);
@@ -316,11 +316,11 @@ VALUE shoes_list_box_text(VALUE);
 VALUE shoes_list_box_draw(VALUE, VALUE);
 VALUE shoes_progress_draw(VALUE, VALUE);
 
-VALUE shoes_path_new(cairo_path_t *, VALUE, VALUE, VALUE, int, int);
-VALUE shoes_path_alloc(VALUE);
-VALUE shoes_path_draw(VALUE, VALUE);
-VALUE shoes_path_move(VALUE, VALUE, VALUE);
-VALUE shoes_path_remove(VALUE);
+VALUE shoes_shape_new(cairo_path_t *, VALUE, VALUE, VALUE, int, int);
+VALUE shoes_shape_alloc(VALUE);
+VALUE shoes_shape_draw(VALUE, VALUE);
+VALUE shoes_shape_move(VALUE, VALUE, VALUE);
+VALUE shoes_shape_remove(VALUE);
 
 VALUE shoes_image_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_image_alloc(VALUE);

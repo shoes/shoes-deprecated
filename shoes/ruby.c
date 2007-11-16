@@ -10,7 +10,7 @@
 #include "shoes/world.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover;
+VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cShape, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover;
 VALUE eVlcError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_hover, s_href, s_insert, s_items, s_scroll, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
@@ -535,10 +535,10 @@ inline void shoes_win32_control_font(int id, HWND hwnd)
 #endif
 
 //
-// Shoes::Path
+// Shoes::Shape
 //
 static void
-shoes_path_mark(shoes_path *path)
+shoes_shape_mark(shoes_shape *path)
 {
   rb_gc_mark_maybe(path->fg);
   rb_gc_mark_maybe(path->bg);
@@ -547,7 +547,7 @@ shoes_path_mark(shoes_path *path)
 }
 
 static void
-shoes_path_free(shoes_path *path)
+shoes_shape_free(shoes_shape *path)
 {
   if (path->line != NULL)
     cairo_path_destroy(path->line);
@@ -555,12 +555,12 @@ shoes_path_free(shoes_path *path)
 }
 
 VALUE
-shoes_path_new(cairo_path_t *line, VALUE parent, VALUE x, VALUE y, int w, int h)
+shoes_shape_new(cairo_path_t *line, VALUE parent, VALUE x, VALUE y, int w, int h)
 {
-  shoes_path *path;
+  shoes_shape *path;
   shoes_canvas *canvas;
-  VALUE obj = shoes_path_alloc(cPath);
-  Data_Get_Struct(obj, shoes_path, path);
+  VALUE obj = shoes_shape_alloc(cShape);
+  Data_Get_Struct(obj, shoes_shape, path);
   Data_Get_Struct(parent, shoes_canvas, canvas);
   path->line = line;
   path->parent = parent;
@@ -575,10 +575,10 @@ shoes_path_new(cairo_path_t *line, VALUE parent, VALUE x, VALUE y, int w, int h)
 }
 
 VALUE
-shoes_path_alloc(VALUE klass)
+shoes_shape_alloc(VALUE klass)
 {
-  shoes_path *path;
-  VALUE obj = Data_Make_Struct(klass, shoes_path, shoes_path_mark, shoes_path_free, path);
+  shoes_shape *path;
+  VALUE obj = Data_Make_Struct(klass, shoes_shape, shoes_shape_mark, shoes_shape_free, path);
   path->line = NULL;
   path->attr = Qnil;
   path->parent = Qnil;
@@ -590,10 +590,10 @@ shoes_path_alloc(VALUE klass)
 }
 
 VALUE
-shoes_path_move(VALUE self, VALUE x, VALUE y)
+shoes_shape_move(VALUE self, VALUE x, VALUE y)
 {
-  shoes_path *self_t;
-  Data_Get_Struct(self, shoes_path, self_t);
+  shoes_shape *self_t;
+  Data_Get_Struct(self, shoes_shape, self_t);
   ATTRSET(self_t->attr, left, x);
   ATTRSET(self_t->attr, top, y);
   shoes_canvas_repaint_all(self_t->parent);
@@ -601,10 +601,10 @@ shoes_path_move(VALUE self, VALUE x, VALUE y)
 }
 
 VALUE
-shoes_path_remove(VALUE self)
+shoes_shape_remove(VALUE self)
 {
-  shoes_path *self_t;
-  Data_Get_Struct(self, shoes_path, self_t);
+  shoes_shape *self_t;
+  Data_Get_Struct(self, shoes_shape, self_t);
   shoes_canvas_remove_item(self_t->parent, self);
   return self;
 }
@@ -624,12 +624,12 @@ shoes_path_remove(VALUE self)
   }
 
 VALUE
-shoes_path_draw(VALUE self, VALUE c)
+shoes_shape_draw(VALUE self, VALUE c)
 {
   shoes_place place;
-  shoes_path *self_t;
+  shoes_shape *self_t;
   shoes_canvas *canvas;
-  Data_Get_Struct(self, shoes_path, self_t);
+  Data_Get_Struct(self, shoes_shape, self_t);
   Data_Get_Struct(c, shoes_canvas, canvas);
 
   if (!NIL_P(self_t->attr) && ATTR(self_t->attr, hidden) == Qtrue)
@@ -2905,7 +2905,7 @@ shoes_progress_draw(VALUE self, VALUE c)
   }
 
 CLASS_COMMON(image)
-CLASS_COMMON(path)
+CLASS_COMMON(shape)
 CLASS_COMMON(pattern)
 CLASS_COMMON(textblock)
 
@@ -3208,14 +3208,14 @@ shoes_ruby_init()
   cStack   = rb_define_class_under(cShoes, "Stack", cShoes);
   cMask    = rb_define_class_under(cShoes, "Mask", cShoes);
 
-  cPath    = rb_define_class_under(cShoes, "Path", rb_cObject);
-  rb_define_alloc_func(cPath, shoes_path_alloc);
-  rb_define_method(cPath, "draw", CASTHOOK(shoes_path_draw), 1);
-  rb_define_method(cPath, "move", CASTHOOK(shoes_path_move), 2);
-  rb_define_method(cPath, "remove", CASTHOOK(shoes_path_remove), 0);
-  rb_define_method(cPath, "hide", CASTHOOK(shoes_path_hide), 0);
-  rb_define_method(cPath, "show", CASTHOOK(shoes_path_show), 0);
-  rb_define_method(cPath, "toggle", CASTHOOK(shoes_path_toggle), 0);
+  cShape    = rb_define_class_under(cShoes, "Shape", rb_cObject);
+  rb_define_alloc_func(cShape, shoes_shape_alloc);
+  rb_define_method(cShape, "draw", CASTHOOK(shoes_shape_draw), 1);
+  rb_define_method(cShape, "move", CASTHOOK(shoes_shape_move), 2);
+  rb_define_method(cShape, "remove", CASTHOOK(shoes_shape_remove), 0);
+  rb_define_method(cShape, "hide", CASTHOOK(shoes_shape_hide), 0);
+  rb_define_method(cShape, "show", CASTHOOK(shoes_shape_show), 0);
+  rb_define_method(cShape, "toggle", CASTHOOK(shoes_shape_toggle), 0);
 
   cImage    = rb_define_class_under(cShoes, "Image", rb_cObject);
   rb_define_alloc_func(cImage, shoes_image_alloc);
