@@ -632,6 +632,9 @@ shoes_path_draw(VALUE self, VALUE c)
   Data_Get_Struct(self, shoes_path, self_t);
   Data_Get_Struct(c, shoes_canvas, canvas);
 
+  if (!NIL_P(self_t->attr) && ATTR(self_t->attr, hidden) == Qtrue)
+    return self;
+
   place.x = ATTR2(int, self_t->attr, left, 0);
   place.y = ATTR2(int, self_t->attr, top, 0);
   place.w = ATTR2(int, self_t->attr, width, self_t->width);
@@ -2153,6 +2156,12 @@ shoes_textblock_draw(VALUE self, VALUE c)
   Data_Get_Struct(self, shoes_textblock, self_t);
   Data_Get_Struct(c, shoes_canvas, canvas);
 
+  if (!NIL_P(self_t->attr) && ATTR(self_t->attr, hidden) == Qtrue)
+  {
+    rb_ary_clear(self_t->links);
+    return self;
+  }
+
   ATTR_MARGINS(self_t->attr, 4);
   absx = (NIL_P(ATTR(self_t->attr, left)) && NIL_P(ATTR(self_t->attr, right)) ? 0 : 1);
   absy = (NIL_P(ATTR(self_t->attr, top)) && NIL_P(ATTR(self_t->attr, bottom)) ? 0 : 1);
@@ -2862,6 +2871,45 @@ shoes_progress_draw(VALUE self, VALUE c)
 }
 
 //
+// Common methods
+//
+#define CLASS_COMMON(ele) \
+  VALUE \
+  shoes_##ele##_hide(VALUE self) \
+  { \
+    shoes_##ele *self_t; \
+    Data_Get_Struct(self, shoes_##ele, self_t); \
+    ATTRSET(self_t->attr, hidden, Qtrue); \
+    shoes_canvas_repaint_all(self_t->parent); \
+    return self; \
+  } \
+  \
+  VALUE \
+  shoes_##ele##_show(VALUE self) \
+  { \
+    shoes_##ele *self_t; \
+    Data_Get_Struct(self, shoes_##ele, self_t); \
+    ATTRSET(self_t->attr, hidden, Qfalse); \
+    shoes_canvas_repaint_all(self_t->parent); \
+    return self; \
+  } \
+  \
+  VALUE \
+  shoes_##ele##_toggle(VALUE self) \
+  { \
+    shoes_##ele *self_t; \
+    Data_Get_Struct(self, shoes_##ele, self_t); \
+    ATTRSET(self_t->attr, hidden, ATTR(self_t->attr, hidden) == Qtrue ? Qfalse : Qtrue); \
+    shoes_canvas_repaint_all(self_t->parent); \
+    return self; \
+  }
+
+CLASS_COMMON(image)
+CLASS_COMMON(path)
+CLASS_COMMON(pattern)
+CLASS_COMMON(textblock)
+
+//
 // Shoes::Anim
 //
 //
@@ -3165,6 +3213,9 @@ shoes_ruby_init()
   rb_define_method(cPath, "draw", CASTHOOK(shoes_path_draw), 1);
   rb_define_method(cPath, "move", CASTHOOK(shoes_path_move), 2);
   rb_define_method(cPath, "remove", CASTHOOK(shoes_path_remove), 0);
+  rb_define_method(cPath, "hide", CASTHOOK(shoes_path_hide), 0);
+  rb_define_method(cPath, "show", CASTHOOK(shoes_path_show), 0);
+  rb_define_method(cPath, "toggle", CASTHOOK(shoes_path_toggle), 0);
 
   cImage    = rb_define_class_under(cShoes, "Image", rb_cObject);
   rb_define_alloc_func(cImage, shoes_image_alloc);
@@ -3172,6 +3223,9 @@ shoes_ruby_init()
   rb_define_method(cImage, "size", CASTHOOK(shoes_image_size), 0);
   rb_define_method(cImage, "move", CASTHOOK(shoes_image_move), 2);
   rb_define_method(cImage, "remove", CASTHOOK(shoes_image_remove), 0);
+  rb_define_method(cImage, "hide", CASTHOOK(shoes_image_hide), 0);
+  rb_define_method(cImage, "show", CASTHOOK(shoes_image_show), 0);
+  rb_define_method(cImage, "toggle", CASTHOOK(shoes_image_toggle), 0);
 
 #ifdef VIDEO
   cVideo    = rb_define_class_under(cShoes, "Video", rb_cObject);
@@ -3193,6 +3247,9 @@ shoes_ruby_init()
   rb_define_alloc_func(cPattern, shoes_pattern_alloc);
   rb_define_method(cPattern, "remove", CASTHOOK(shoes_pattern_remove), 0);
   rb_define_method(cPattern, "to_pattern", CASTHOOK(shoes_pattern_self), 0);
+  rb_define_method(cPattern, "hide", CASTHOOK(shoes_pattern_hide), 0);
+  rb_define_method(cPattern, "show", CASTHOOK(shoes_pattern_show), 0);
+  rb_define_method(cPattern, "toggle", CASTHOOK(shoes_pattern_toggle), 0);
   cBackground = rb_define_class_under(cShoes, "Background", cPattern);
   rb_define_method(cBackground, "draw", CASTHOOK(shoes_background_draw), 1);
   cBorder = rb_define_class_under(cShoes, "Border", cPattern);
@@ -3208,6 +3265,9 @@ shoes_ruby_init()
   rb_define_method(cTextBlock, "remove", CASTHOOK(shoes_textblock_remove), 0);
   rb_define_method(cTextBlock, "to_s", CASTHOOK(shoes_textblock_string), 0);
   rb_define_method(cTextBlock, "replace", CASTHOOK(shoes_textblock_replace), -1);
+  rb_define_method(cTextBlock, "hide", CASTHOOK(shoes_textblock_hide), 0);
+  rb_define_method(cTextBlock, "show", CASTHOOK(shoes_textblock_show), 0);
+  rb_define_method(cTextBlock, "toggle", CASTHOOK(shoes_textblock_toggle), 0);
   cPara = rb_define_class_under(cShoes, "Para", cTextBlock);
   cBanner = rb_define_class_under(cShoes, "Banner", cTextBlock);
   cTitle = rb_define_class_under(cShoes, "Title", cTextBlock);
