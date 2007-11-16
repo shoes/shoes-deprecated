@@ -1470,10 +1470,10 @@ shoes_canvas_toggle(VALUE self)
   VALUE \
   shoes_canvas_##x(int argc, VALUE *argv, VALUE self) \
   { \
-    VALUE block; \
+    VALUE val, block; \
     SETUP(); \
-    rb_scan_args(argc, argv, "0&", &block); \
-    canvas->x = block; \
+    rb_scan_args(argc, argv, "01&", &val, &block); \
+    canvas->x = NIL_P(block) ? val : block; \
     return self; \
   }
 
