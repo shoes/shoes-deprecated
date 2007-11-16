@@ -432,8 +432,20 @@ shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, double r)
     cairo_pattern_set_matrix(self_t->pattern, &matrix1); \
   }
 
+#define CHECK_HOVER(self_t, h, touch) \
+  if (self_t->hover != h && !NIL_P(self_t->attr)) \
+  { \
+    VALUE action = ID2SYM(h ? s_hover : s_leave); \
+    VALUE proc = rb_hash_aref(self_t->attr, action); \
+    if (!NIL_P(proc)) \
+      shoes_safe_block(self, proc, rb_ary_new()); \
+    if (touch != NULL) *touch += 1; \
+    self_t->hover = h; \
+  }
+
 #define CHANGED_COORDS() self_t->place.x != place.x || self_t->place.y != place.y || self_t->place.w != place.w || self_t->place.h - HEIGHT_PAD != place.h
 #define PLACE_COORDS() place.h -= HEIGHT_PAD; self_t->place = place
+
 #ifdef SHOES_GTK
 #define HEIGHT_PAD 0
 
@@ -695,6 +707,7 @@ shoes_image_alloc(VALUE klass)
   image->surface = NULL;
   image->attr = Qnil;
   image->parent = Qnil;
+  image->hover = 0;
   return obj;
 }
 
@@ -720,7 +733,7 @@ shoes_image_draw(VALUE self, VALUE c)
   {
     cairo_scale(canvas->cr, (place.w * 1.) / imw, (place.h * 1.) / imh);
   }
-  cairo_set_source_surface(canvas->cr, self_t->surface, -place.w / 2., -place.h / 2.);
+  cairo_set_source_surface(canvas->cr, self_t->surface, -imw / 2., -imh / 2.);
   cairo_paint(canvas->cr);
   cairo_restore(canvas->cr);
   FINISH();
@@ -749,32 +762,38 @@ shoes_image_move(VALUE self, VALUE x, VALUE y)
 }
 
 VALUE
-shoes_image_motion(VALUE self, int x, int y)
+shoes_image_motion(VALUE self, int x, int y, int *touch)
 {
+  char h = 0;
   VALUE click;
   shoes_image *self_t;
   Data_Get_Struct(self, shoes_image, self_t);
 
   click = ATTR(self_t->attr, click);
-  if (self_t->surface == NULL || NIL_P(click)) return Qnil;
+  if (self_t->surface == NULL) return Qnil;
 
-  if (x >= self_t->place.x && x <= self_t->place.x + cairo_image_surface_get_height(self_t->surface) && 
-      y >= self_t->place.y && y <= self_t->place.y + cairo_image_surface_get_width(self_t->surface))
+  if (x >= self_t->place.x && x <= self_t->place.x + self_t->place.w && 
+      y >= self_t->place.y && y <= self_t->place.y + self_t->place.h)
   {
-    shoes_canvas *canvas;
-    Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-    shoes_app_cursor(canvas->app, s_hand);
-    return click;
+    if (!NIL_P(click))
+    {
+      shoes_canvas *canvas;
+      Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+      shoes_app_cursor(canvas->app, s_hand);
+    }
+    h = 1;
   }
 
-  return Qnil;
+  CHECK_HOVER(self_t, h, touch);
+
+  return h ? click : Qnil;
 }
 
 VALUE
-shoes_image_click(VALUE self, int button, int x, int y)
+shoes_image_send_click(VALUE self, int button, int x, int y)
 {
   if (button == 1)
-    return shoes_image_motion(self, x, y);
+    return shoes_image_motion(self, x, y, NULL);
 
   return Qnil;
 }
@@ -1509,7 +1528,7 @@ static VALUE
 shoes_link_at(VALUE self, int index, int blockhover, VALUE *clicked, int *touch)
 {
   char h = 0;
-  VALUE url = Qnil, proc = Qnil;
+  VALUE url = Qnil;
   shoes_link *link;
   shoes_text *self_t;
 
@@ -1522,15 +1541,7 @@ shoes_link_at(VALUE self, int index, int blockhover, VALUE *clicked, int *touch)
     if (!NIL_P(self_t->attr)) url = rb_hash_aref(self_t->attr, ID2SYM(s_click));
   }
 
-  if (self_t->hover != h && !NIL_P(self_t->attr))
-  {
-    VALUE action = ID2SYM(h ? s_hover : s_leave);
-    proc = rb_hash_aref(self_t->attr, action);
-    if (!NIL_P(proc))
-      shoes_safe_block(self, proc, rb_ary_new());
-    if (touch != NULL) *touch += 1;
-    self_t->hover = h;
-  }
+  CHECK_HOVER(self_t, h, touch);
 
   return url;
 }
@@ -1615,27 +1626,6 @@ shoes_text_style(VALUE self)
   Data_Get_Struct(self, shoes_text, text);
   return text->attr;
 }
-
-//
-// Shoes::Link
-//
-#define LINK_EVENT(sym) \
-  VALUE \
-  shoes_linktext_##sym(int argc, VALUE *argv, VALUE self) \
-  { \
-    VALUE str = Qnil, blk = Qnil; \
-    shoes_text *text; \
-    Data_Get_Struct(self, shoes_text, text); \
-  \
-    rb_scan_args(argc, argv, "01&", &str, &blk); \
-    if (NIL_P(text->attr)) text->attr = rb_hash_new(); \
-    rb_hash_aset(text->attr, ID2SYM(s_##sym), NIL_P(blk) ? str : blk ); \
-    return self; \
-  }
-
-LINK_EVENT(click);
-LINK_EVENT(hover);
-LINK_EVENT(leave);
 
 //
 // Shoes::TextBlock
@@ -1764,7 +1754,7 @@ shoes_textblock_replace(int argc, VALUE *argv, VALUE self)
 }
 
 static VALUE
-shoes_textblock_hover(VALUE self, int x, int y, VALUE *clicked, int *t)
+shoes_textblock_send_hover(VALUE self, int x, int y, VALUE *clicked, int *t)
 {
   VALUE url = Qnil;
   int index, trailing, i, hover;
@@ -1787,7 +1777,7 @@ shoes_textblock_hover(VALUE self, int x, int y, VALUE *clicked, int *t)
 VALUE
 shoes_textblock_motion(VALUE self, int x, int y, int *t)
 {
-  VALUE url = shoes_textblock_hover(self, x, y, NULL, t);
+  VALUE url = shoes_textblock_send_hover(self, x, y, NULL, t);
   if (!NIL_P(url))
   {
     shoes_textblock *self_t;
@@ -1800,10 +1790,10 @@ shoes_textblock_motion(VALUE self, int x, int y, int *t)
 }
 
 VALUE
-shoes_textblock_click(VALUE self, int button, int x, int y, VALUE *clicked)
+shoes_textblock_send_click(VALUE self, int button, int x, int y, VALUE *clicked)
 {
   if (button == 1)
-    return shoes_textblock_hover(self, x, y, clicked, NULL);
+    return shoes_textblock_send_hover(self, x, y, clicked, NULL);
 
   return Qnil;
 }
@@ -2873,6 +2863,24 @@ shoes_progress_draw(VALUE self, VALUE c)
 //
 // Common methods
 //
+#define EVENT_COMMON(ele, est, sym) \
+  VALUE \
+  shoes_##ele##_##sym(int argc, VALUE *argv, VALUE self) \
+  { \
+    VALUE str = Qnil, blk = Qnil; \
+    shoes_##est *self_t; \
+    Data_Get_Struct(self, shoes_##est, self_t); \
+  \
+    rb_scan_args(argc, argv, "01&", &str, &blk); \
+    if (NIL_P(self_t->attr)) self_t->attr = rb_hash_new(); \
+    rb_hash_aset(self_t->attr, ID2SYM(s_##sym), NIL_P(blk) ? str : blk ); \
+    return self; \
+  }
+
+EVENT_COMMON(linktext, text, click);
+EVENT_COMMON(linktext, text, hover);
+EVENT_COMMON(linktext, text, leave);
+
 #define CLASS_COMMON(ele) \
   VALUE \
   shoes_##ele##_hide(VALUE self) \
@@ -2902,7 +2910,10 @@ shoes_progress_draw(VALUE self, VALUE c)
     ATTRSET(self_t->attr, hidden, ATTR(self_t->attr, hidden) == Qtrue ? Qfalse : Qtrue); \
     shoes_canvas_repaint_all(self_t->parent); \
     return self; \
-  }
+  } \
+  EVENT_COMMON(ele, ele, click); \
+  EVENT_COMMON(ele, ele, hover); \
+  EVENT_COMMON(ele, ele, leave);
 
 CLASS_COMMON(image)
 CLASS_COMMON(shape)
@@ -3216,6 +3227,9 @@ shoes_ruby_init()
   rb_define_method(cShape, "hide", CASTHOOK(shoes_shape_hide), 0);
   rb_define_method(cShape, "show", CASTHOOK(shoes_shape_show), 0);
   rb_define_method(cShape, "toggle", CASTHOOK(shoes_shape_toggle), 0);
+  rb_define_method(cShape, "click", CASTHOOK(shoes_shape_click), -1);
+  rb_define_method(cShape, "hover", CASTHOOK(shoes_shape_hover), -1);
+  rb_define_method(cShape, "leave", CASTHOOK(shoes_shape_leave), -1);
 
   cImage    = rb_define_class_under(cShoes, "Image", rb_cObject);
   rb_define_alloc_func(cImage, shoes_image_alloc);
@@ -3226,6 +3240,9 @@ shoes_ruby_init()
   rb_define_method(cImage, "hide", CASTHOOK(shoes_image_hide), 0);
   rb_define_method(cImage, "show", CASTHOOK(shoes_image_show), 0);
   rb_define_method(cImage, "toggle", CASTHOOK(shoes_image_toggle), 0);
+  rb_define_method(cImage, "click", CASTHOOK(shoes_image_click), -1);
+  rb_define_method(cImage, "hover", CASTHOOK(shoes_image_hover), -1);
+  rb_define_method(cImage, "leave", CASTHOOK(shoes_image_leave), -1);
 
 #ifdef VIDEO
   cVideo    = rb_define_class_under(cShoes, "Video", rb_cObject);
@@ -3268,6 +3285,9 @@ shoes_ruby_init()
   rb_define_method(cTextBlock, "hide", CASTHOOK(shoes_textblock_hide), 0);
   rb_define_method(cTextBlock, "show", CASTHOOK(shoes_textblock_show), 0);
   rb_define_method(cTextBlock, "toggle", CASTHOOK(shoes_textblock_toggle), 0);
+  rb_define_method(cTextBlock, "click", CASTHOOK(shoes_textblock_click), -1);
+  rb_define_method(cTextBlock, "hover", CASTHOOK(shoes_textblock_hover), -1);
+  rb_define_method(cTextBlock, "leave", CASTHOOK(shoes_textblock_leave), -1);
   cPara = rb_define_class_under(cShoes, "Para", cTextBlock);
   cBanner = rb_define_class_under(cShoes, "Banner", cTextBlock);
   cTitle = rb_define_class_under(cShoes, "Title", cTextBlock);

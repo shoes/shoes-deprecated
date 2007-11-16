@@ -47,6 +47,7 @@ typedef struct {
   VALUE bg;
   VALUE attr;
   VALUE parent;
+  char hover;
 } shoes_shape;
 
 //
@@ -79,6 +80,7 @@ typedef struct {
   VALUE cursor;
   PangoLayout *layout;
   shoes_place place;
+  char hover;
 } shoes_textblock;
 
 //
@@ -100,6 +102,7 @@ typedef struct {
   VALUE path;
   VALUE attr;
   VALUE parent;
+  char hover;
 } shoes_image;
 
 #ifdef VIDEO
@@ -136,6 +139,7 @@ typedef struct {
   VALUE source;
   VALUE attr;
   VALUE parent;
+  char hover;
 } shoes_pattern;
 
 //
@@ -321,13 +325,15 @@ VALUE shoes_shape_alloc(VALUE);
 VALUE shoes_shape_draw(VALUE, VALUE);
 VALUE shoes_shape_move(VALUE, VALUE, VALUE);
 VALUE shoes_shape_remove(VALUE);
+VALUE shoes_shape_motion(VALUE, int, int, int *);
+VALUE shoes_shape_send_click(VALUE, int, int, int);
 
 VALUE shoes_image_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_image_alloc(VALUE);
 VALUE shoes_image_draw(VALUE, VALUE);
 VALUE shoes_image_remove(VALUE);
-VALUE shoes_image_motion(VALUE, int, int);
-VALUE shoes_image_click(VALUE, int, int, int);
+VALUE shoes_image_motion(VALUE, int, int, int *);
+VALUE shoes_image_send_click(VALUE, int, int, int);
 
 #ifdef VIDEO
 VALUE shoes_video_new(VALUE, VALUE, VALUE, VALUE);
@@ -344,6 +350,8 @@ VALUE shoes_pattern_args(int, VALUE *, VALUE);
 VALUE shoes_pattern_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_pattern_alloc(VALUE);
 VALUE shoes_pattern_remove(VALUE);
+VALUE shoes_pattern_motion(VALUE, int, int, int *);
+VALUE shoes_pattern_send_click(VALUE, int, int, int);
 VALUE shoes_background_draw(VALUE, VALUE);
 VALUE shoes_border_draw(VALUE, VALUE);
 VALUE shoes_subpattern_new(VALUE, VALUE, VALUE);
@@ -378,7 +386,7 @@ VALUE shoes_textblock_set_cursor(VALUE, VALUE);
 VALUE shoes_textblock_get_cursor(VALUE);
 VALUE shoes_textblock_draw(VALUE, VALUE);
 VALUE shoes_textblock_motion(VALUE, int, int, int *);
-VALUE shoes_textblock_click(VALUE, int, int, int, VALUE *);
+VALUE shoes_textblock_send_click(VALUE, int, int, int, VALUE *);
 
 //
 // shoes/image.c

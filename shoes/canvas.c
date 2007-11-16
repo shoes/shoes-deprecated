@@ -1507,13 +1507,14 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
       }
       else if (rb_obj_is_kind_of(ele, cTextBlock))
       {
-        v = shoes_textblock_click(ele, button, x, y, clicked);
+        v = shoes_textblock_send_click(ele, button, x, y, clicked);
       }
       else if (rb_obj_is_kind_of(ele, cImage))
       {
-        v = shoes_image_click(ele, button, x, y);
+        v = shoes_image_send_click(ele, button, x, y);
         *clicked = ele;
       }
+
       if (!NIL_P(v))
         return v;
     }
@@ -1604,21 +1605,22 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
 
     for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--)
     {
+      VALUE urll = Qnil;
       VALUE ele = rb_ary_entry(self_t->contents, i);
       if (rb_obj_is_kind_of(ele, cCanvas))
       {
-        url = shoes_canvas_send_motion(ele, x, y, url);
+        urll = shoes_canvas_send_motion(ele, x, y, url);
       }
       else if (rb_obj_is_kind_of(ele, cTextBlock))
       {
-        VALUE urll = shoes_textblock_motion(ele, x, y, &h);
-        if (NIL_P(url)) url = urll;
+        urll = shoes_textblock_motion(ele, x, y, &h);
       }
       else if (rb_obj_is_kind_of(ele, cImage))
       {
-        if (NIL_P(url))
-          url = shoes_image_motion(ele, x, y);
+        urll = shoes_image_motion(ele, x, y, &h);
       }
+
+      if (NIL_P(url)) url = urll;
     }
 
     if (NIL_P(url))
