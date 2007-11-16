@@ -12,7 +12,7 @@ class Book < Shoes
     toc = []
     INCIDENTS.each_with_index do |(title, story), i|
       toc.push "(#{i + 1}) ",
-        link(title, :url => "/incidents/#{i}"),
+        link(title, :click => "/incidents/#{i}"),
         " / "
     end
     toc.pop

@@ -13,7 +13,7 @@
 VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cPath, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink;
 VALUE eVlcError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
-ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_scroll, s_leading, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
+ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_hover, s_href, s_insert, s_items, s_scroll, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -827,8 +827,6 @@ shoes_video_alloc(VALUE klass)
   char pathsw[SHOES_BUFSIZE];
   int ppsz_argc = 2;
   sprintf(pathsw, "--plugin-path=%s/plugins", shoes_world->path);
-  printf(pathsw);
-  printf("\n");
   ppsz_argv[1] = pathsw;
 #else
   char *ppsz_argv[1] = {"vlc"};
@@ -1473,7 +1471,6 @@ shoes_app_method_missing(int argc, VALUE *argv, VALUE self)
 static void
 shoes_link_mark(shoes_link *link)
 {
-  rb_gc_mark_maybe(link->url);
 }
 
 static void
@@ -1483,13 +1480,12 @@ shoes_link_free(shoes_link *link)
 }
 
 VALUE
-shoes_link_new(VALUE ele, VALUE url, int start, int end)
+shoes_link_new(VALUE ele, int start, int end)
 {
   shoes_link *link;
   VALUE obj = shoes_link_alloc(cLinkUrl);
   Data_Get_Struct(obj, shoes_link, link);
   link->ele = ele;
-  link->url = url;
   link->start = start;
   link->end = end;
   return obj;
@@ -1503,21 +1499,36 @@ shoes_link_alloc(VALUE klass)
   link->ele = Qnil;
   link->start = 0;
   link->end = 0;
-  link->url = Qnil;
   return obj;
 }
 
 VALUE
-shoes_link_at(VALUE self, int index, VALUE *clicked)
+shoes_link_at(VALUE self, int index, int blockhover, VALUE *clicked)
 {
+  char h = 0;
+  VALUE url = Qnil, proc = Qnil;
   shoes_link *link;
+  shoes_text *self_t;
+
   Data_Get_Struct(self, shoes_link, link);
-  if (link->start <= index && link->end >= index)
+  Data_Get_Struct(link->ele, shoes_text, self_t);
+  if (blockhover && link->start <= index && link->end >= index)
   {
+    h = 1;
     if (clicked != NULL) *clicked = link->ele;
-    return link->url;
+    if (!NIL_P(self_t->attr)) url = rb_hash_aref(self_t->attr, ID2SYM(s_click));
   }
-  return Qnil;
+
+  if (self_t->hover != h && !NIL_P(self_t->attr))
+  {
+    VALUE action = ID2SYM(h ? s_hover : s_leave);
+    proc = rb_hash_aref(self_t->attr, action);
+    if (!NIL_P(proc))
+      shoes_safe_block(self, proc, rb_ary_new());
+    self_t->hover = h;
+  }
+
+  return url;
 }
 
 //
@@ -1560,6 +1571,7 @@ shoes_text_new(VALUE klass, VALUE texts, VALUE attr)
   shoes_text *text;
   VALUE obj = shoes_text_alloc(klass);
   Data_Get_Struct(obj, shoes_text, text);
+  text->hover = 0;
   text->texts = shoes_text_check(texts, obj);
   text->attr = attr;
   return obj;
@@ -1599,6 +1611,27 @@ shoes_text_style(VALUE self)
   Data_Get_Struct(self, shoes_text, text);
   return text->attr;
 }
+
+//
+// Shoes::Link
+//
+#define LINK_EVENT(sym) \
+  VALUE \
+  shoes_linktext_##sym(int argc, VALUE *argv, VALUE self) \
+  { \
+    VALUE str = Qnil, blk = Qnil; \
+    shoes_text *text; \
+    Data_Get_Struct(self, shoes_text, text); \
+  \
+    rb_scan_args(argc, argv, "01&", &str, &blk); \
+    if (NIL_P(text->attr)) text->attr = rb_hash_new(); \
+    rb_hash_aset(text->attr, ID2SYM(s_##sym), NIL_P(blk) ? str : blk ); \
+    return self; \
+  }
+
+LINK_EVENT(click);
+LINK_EVENT(hover);
+LINK_EVENT(leave);
 
 //
 // Shoes::TextBlock
@@ -1726,61 +1759,40 @@ shoes_textblock_replace(int argc, VALUE *argv, VALUE self)
   return self;
 }
 
-static char
-shoes_textblock_is_here(VALUE self, int x, int y)
-{
-  shoes_textblock *self_t;
-  int index, trailing, i;
-  Data_Get_Struct(self, shoes_textblock, self_t);
-  if (self_t->layout == NULL) return Qnil;
-
-  x -= self_t->place.x;
-  y -= self_t->place.y;
-  return pango_layout_xy_to_index(self_t->layout, x * PANGO_SCALE, y * PANGO_SCALE, &index, &trailing);
-}
-
 static VALUE
 shoes_textblock_hover(VALUE self, int x, int y, VALUE *clicked)
 {
-  int index, trailing, i;
+  VALUE url = Qnil;
+  int index, trailing, i, hover;
   shoes_textblock *self_t;
   Data_Get_Struct(self, shoes_textblock, self_t);
   if (self_t->layout == NULL || NIL_P(self_t->links)) return Qnil;
 
   x -= self_t->place.x;
   y -= self_t->place.y;
-  if (pango_layout_xy_to_index(self_t->layout, x * PANGO_SCALE, y * PANGO_SCALE, &index, &trailing))
+  hover = pango_layout_xy_to_index(self_t->layout, x * PANGO_SCALE, y * PANGO_SCALE, &index, &trailing);
+  for (i = 0; i < RARRAY_LEN(self_t->links); i++)
   {
-    for (i = 0; i < RARRAY_LEN(self_t->links); i++)
-    {
-      VALUE url = shoes_link_at(rb_ary_entry(self_t->links, i), index, clicked);
-      if (!NIL_P(url))
-      {
-        return url;
-      }
-    }
+    VALUE urll = shoes_link_at(rb_ary_entry(self_t->links, i), index, hover, clicked);
+    if (NIL_P(url)) url = urll;
   }
 
-  return Qnil;
+  return url;
 }
 
 VALUE
 shoes_textblock_motion(VALUE self, int x, int y)
 {
-  if (shoes_textblock_is_here(self, x, y))
+  VALUE url = shoes_textblock_hover(self, x, y, NULL);
+  if (!NIL_P(url))
   {
-    VALUE url = shoes_textblock_hover(self, x, y, NULL);
-    if (!NIL_P(url))
-    {
-      shoes_textblock *self_t;
-      shoes_canvas *canvas;
-      Data_Get_Struct(self, shoes_textblock, self_t);
-      Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-      shoes_app_cursor(canvas->app, s_hand);
-    }
-    return url;
+    shoes_textblock *self_t;
+    shoes_canvas *canvas;
+    Data_Get_Struct(self, shoes_textblock, self_t);
+    Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+    shoes_app_cursor(canvas->app, s_hand);
   }
-  return Qnil;
+  return url;
 }
 
 VALUE
@@ -2073,15 +2085,7 @@ shoes_textblock_iter_pango(VALUE texts, shoes_kxxxx *k)
       shoes_app_style_for(k, rb_obj_class(v), text->attr, start, k->len);
       if (rb_obj_is_kind_of(v, cLink) && !NIL_P(text->attr))
       {
-        VALUE url = rb_hash_aref(text->attr, ID2SYM(rb_intern("url")));
-        if (!NIL_P(url))
-          rb_ary_push(k->links, shoes_link_new(v, url, start, k->len));
-        else
-        {
-          url = rb_hash_aref(text->attr, ID2SYM(s_click));
-          if (!NIL_P(url))
-            rb_ary_push(k->links, shoes_link_new(v, url, start, k->len));
-        }
+        rb_ary_push(k->links, shoes_link_new(v, start, k->len));
       }
     }
     else
@@ -3075,11 +3079,13 @@ shoes_ruby_init()
   s_font = rb_intern("font");
   s_hand = rb_intern("hand");
   s_hidden = rb_intern("hidden");
+  s_hover = rb_intern("hover");
   s_href = rb_intern("href");
   s_insert = rb_intern("insert");
   s_items = rb_intern("items");
   s_match = rb_intern("match");
   s_leading = rb_intern("leading");
+  s_leave = rb_intern("leave");
   s_scroll = rb_intern("scroll");
   s_text = rb_intern("text");
   s_title = rb_intern("title");
@@ -3214,12 +3220,16 @@ shoes_ruby_init()
   cCode      = rb_define_class_under(cShoes, "Code", cTextClass);
   cDel       = rb_define_class_under(cShoes, "Del", cTextClass);
   cEm        = rb_define_class_under(cShoes, "Em", cTextClass);
-  cLink      = rb_define_class_under(cShoes, "Link", cTextClass);
   cIns       = rb_define_class_under(cShoes, "Ins", cTextClass);
   cSpan      = rb_define_class_under(cShoes, "Span", cTextClass);
   cStrong    = rb_define_class_under(cShoes, "Strong", cTextClass);
   cSub       = rb_define_class_under(cShoes, "Sub", cTextClass);
   cSup       = rb_define_class_under(cShoes, "Sup", cTextClass);
+
+  cLink      = rb_define_class_under(cShoes, "Link", cTextClass);
+  rb_define_method(cTextClass, "click", CASTHOOK(shoes_linktext_click), -1);
+  rb_define_method(cTextClass, "hover", CASTHOOK(shoes_linktext_hover), -1);
+  rb_define_method(cTextClass, "leave", CASTHOOK(shoes_linktext_leave), -1);
 
   cNative  = rb_define_class_under(cShoes, "Native", rb_cObject);
   rb_define_alloc_func(cNative, shoes_control_alloc);

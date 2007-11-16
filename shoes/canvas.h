@@ -64,7 +64,7 @@ typedef struct {
 typedef struct {
   int start;
   int end;
-  VALUE url, ele;
+  VALUE ele;
 } shoes_link;
 
 //
@@ -88,6 +88,7 @@ typedef struct {
   VALUE texts;
   VALUE attr;
   VALUE parent;
+  char hover;
 } shoes_text;
 
 //
@@ -365,7 +366,7 @@ VALUE shoes_color_to_s(VALUE);
 VALUE shoes_color_to_pattern(VALUE);
 VALUE shoes_color_gradient(VALUE, VALUE, VALUE);
 
-VALUE shoes_link_new(VALUE, VALUE, int, int);
+VALUE shoes_link_new(VALUE, int, int);
 VALUE shoes_link_alloc(VALUE);
 VALUE shoes_text_new(VALUE, VALUE, VALUE);
 VALUE shoes_text_alloc(VALUE);
