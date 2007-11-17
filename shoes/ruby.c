@@ -602,17 +602,6 @@ shoes_shape_alloc(VALUE klass)
 }
 
 VALUE
-shoes_shape_move(VALUE self, VALUE x, VALUE y)
-{
-  shoes_shape *self_t;
-  Data_Get_Struct(self, shoes_shape, self_t);
-  ATTRSET(self_t->attr, left, x);
-  ATTRSET(self_t->attr, top, y);
-  shoes_canvas_repaint_all(self_t->parent);
-  return self;
-}
-
-VALUE
 shoes_shape_remove(VALUE self)
 {
   shoes_shape *self_t;
@@ -771,17 +760,6 @@ shoes_image_size(VALUE self)
 }
 
 VALUE
-shoes_image_move(VALUE self, VALUE x, VALUE y)
-{
-  shoes_image *self_t;
-  Data_Get_Struct(self, shoes_image, self_t);
-  ATTRSET(self_t->attr, left, x);
-  ATTRSET(self_t->attr, top, y);
-  shoes_canvas_repaint_all(self_t->parent);
-  return self;
-}
-
-VALUE
 shoes_image_motion(VALUE self, int x, int y, int *touch)
 {
   char h = 0;
@@ -918,17 +896,6 @@ shoes_video_show(VALUE self)
 #ifdef SHOES_WIN32
   ShowWindow(self_t->ref, SW_SHOW);
 #endif
-  return self;
-}
-
-VALUE
-shoes_video_move(VALUE self, VALUE x, VALUE y)
-{
-  shoes_video *self_t;
-  Data_Get_Struct(self, shoes_video, self_t);
-  ATTRSET(self_t->attr, left, x);
-  ATTRSET(self_t->attr, top, y);
-  shoes_canvas_repaint_all(self_t->parent);
   return self;
 }
 
@@ -1650,21 +1617,6 @@ shoes_text_children(VALUE self)
   return text->texts;
 }
 
-VALUE
-shoes_text_style(int argc, VALUE *argv, VALUE self)
-{
-  VALUE attr;
-  shoes_text *text;
-  Data_Get_Struct(self, shoes_text, text);
-  rb_scan_args(argc, argv, "01", &attr);
-  if (!NIL_P(attr))
-  {
-    rb_funcall(text->attr, s_update, 1, attr);
-    shoes_canvas_repaint_all(text->parent);
-  }
-  return text->attr;
-}
-
 //
 // Shoes::TextBlock
 //
@@ -1747,17 +1699,6 @@ shoes_textblock_get_cursor(VALUE self)
   shoes_textblock *self_t;
   Data_Get_Struct(self, shoes_textblock, self_t);
   return self_t->cursor;
-}
-
-VALUE
-shoes_textblock_move(VALUE self, VALUE x, VALUE y)
-{
-  shoes_textblock *self_t;
-  Data_Get_Struct(self, shoes_textblock, self_t);
-  ATTRSET(self_t->attr, left, x);
-  ATTRSET(self_t->attr, top, y);
-  shoes_canvas_repaint_all(self_t->parent);
-  return self;
 }
 
 VALUE
@@ -2404,17 +2345,6 @@ shoes_control_show(VALUE self)
 }
 
 VALUE
-shoes_control_move(VALUE self, VALUE x, VALUE y)
-{
-  shoes_control *self_t;
-  Data_Get_Struct(self, shoes_control, self_t);
-  ATTRSET(self_t->attr, left, x);
-  ATTRSET(self_t->attr, top, y);
-  shoes_canvas_repaint_all(self_t->parent);
-  return self;
-}
-
-VALUE
 shoes_control_remove(VALUE self)
 {
   shoes_control *self_t;
@@ -2960,6 +2890,18 @@ EVENT_COMMON(linktext, text, leave);
   } \
   \
   VALUE \
+  shoes_##ele##_move(VALUE self, VALUE x, VALUE y) \
+  { \
+    shoes_##ele *self_t; \
+    Data_Get_Struct(self, shoes_##ele, self_t); \
+    ATTRSET(self_t->attr, left, x); \
+    ATTRSET(self_t->attr, top, y); \
+    shoes_canvas_repaint_all(self_t->parent); \
+    return self; \
+  }
+
+#define CLASS_COMMON2(ele) \
+  VALUE \
   shoes_##ele##_hide(VALUE self) \
   { \
     shoes_##ele *self_t; \
@@ -2988,14 +2930,20 @@ EVENT_COMMON(linktext, text, leave);
     shoes_canvas_repaint_all(self_t->parent); \
     return self; \
   } \
+  CLASS_COMMON(ele); \
   EVENT_COMMON(ele, ele, click); \
   EVENT_COMMON(ele, ele, hover); \
   EVENT_COMMON(ele, ele, leave);
 
-CLASS_COMMON(image)
-CLASS_COMMON(shape)
-CLASS_COMMON(pattern)
-CLASS_COMMON(textblock)
+CLASS_COMMON(control);
+CLASS_COMMON(text);
+#ifdef VIDEO
+CLASS_COMMON(video);
+#endif
+CLASS_COMMON2(image)
+CLASS_COMMON2(shape)
+CLASS_COMMON2(pattern)
+CLASS_COMMON2(textblock)
 
 //
 // Shoes::Anim
@@ -3329,9 +3277,10 @@ shoes_ruby_init()
   cVideo    = rb_define_class_under(cShoes, "Video", rb_cObject);
   rb_define_alloc_func(cVideo, shoes_video_alloc);
   rb_define_method(cVideo, "draw", CASTHOOK(shoes_video_draw), 1);
+  rb_define_method(cVideo, "style", CASTHOOK(shoes_video_style), -1);
   rb_define_method(cVideo, "hide", CASTHOOK(shoes_video_hide), 0);
   rb_define_method(cVideo, "show", CASTHOOK(shoes_video_show), 0);
-  rb_define_method(cVideo, "move", CASTHOOK(shoes_video_remove), 2);
+  rb_define_method(cVideo, "move", CASTHOOK(shoes_video_move), 2);
   rb_define_method(cVideo, "remove", CASTHOOK(shoes_video_remove), 0);
   rb_define_method(cVideo, "playing?", CASTHOOK(shoes_video_is_playing), 0);
   rb_define_method(cVideo, "play", CASTHOOK(shoes_video_play), 0);
@@ -3344,6 +3293,7 @@ shoes_ruby_init()
 
   cPattern = rb_define_class_under(cShoes, "Pattern", rb_cObject);
   rb_define_alloc_func(cPattern, shoes_pattern_alloc);
+  rb_define_method(cPattern, "move", CASTHOOK(shoes_pattern_move), 2);
   rb_define_method(cPattern, "remove", CASTHOOK(shoes_pattern_remove), 0);
   rb_define_method(cPattern, "to_pattern", CASTHOOK(shoes_pattern_self), 0);
   rb_define_method(cPattern, "style", CASTHOOK(shoes_pattern_style), -1);
@@ -3403,6 +3353,7 @@ shoes_ruby_init()
 
   cNative  = rb_define_class_under(cShoes, "Native", rb_cObject);
   rb_define_alloc_func(cNative, shoes_control_alloc);
+  rb_define_method(cNative, "style", CASTHOOK(shoes_control_style), -1);
   rb_define_method(cNative, "hide", CASTHOOK(shoes_control_hide), 0);
   rb_define_method(cNative, "show", CASTHOOK(shoes_control_show), 0);
   rb_define_method(cNative, "move", CASTHOOK(shoes_control_move), 2);
