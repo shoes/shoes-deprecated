@@ -122,7 +122,13 @@ class Shoes
   end
 
   def self.load(path)
-    uri = URI(path) rescue nil
+    uri = 
+      if path =~ %r!^@([^/]+)(.*)$!
+        URI("http://#$1:53045#$2")
+      else
+        URI(path) rescue nil
+      end
+
     case uri
     when URI::HTTP
       eval(uri.read, TOPLEVEL_BINDING)
