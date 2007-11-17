@@ -1651,10 +1651,17 @@ shoes_text_children(VALUE self)
 }
 
 VALUE
-shoes_text_style(VALUE self)
+shoes_text_style(int argc, VALUE *argv, VALUE self)
 {
+  VALUE attr;
   shoes_text *text;
   Data_Get_Struct(self, shoes_text, text);
+  rb_scan_args(argc, argv, "01", &attr);
+  if (!NIL_P(attr))
+  {
+    rb_funcall(text->attr, s_update, 1, attr);
+    shoes_canvas_repaint_all(text->parent);
+  }
   return text->attr;
 }
 
@@ -2938,6 +2945,21 @@ EVENT_COMMON(linktext, text, leave);
 
 #define CLASS_COMMON(ele) \
   VALUE \
+  shoes_##ele##_style(int argc, VALUE *argv, VALUE self) \
+  { \
+    VALUE attr; \
+    shoes_##ele *self_t; \
+    Data_Get_Struct(self, shoes_##ele, self_t); \
+    rb_scan_args(argc, argv, "01", &attr); \
+    if (!NIL_P(attr)) \
+    { \
+      rb_funcall(self_t->attr, s_update, 1, attr); \
+      shoes_canvas_repaint_all(self_t->parent); \
+    } \
+    return self_t->attr; \
+  } \
+  \
+  VALUE \
   shoes_##ele##_hide(VALUE self) \
   { \
     shoes_##ele *self_t; \
@@ -3279,6 +3301,7 @@ shoes_ruby_init()
   rb_define_method(cShape, "draw", CASTHOOK(shoes_shape_draw), 1);
   rb_define_method(cShape, "move", CASTHOOK(shoes_shape_move), 2);
   rb_define_method(cShape, "remove", CASTHOOK(shoes_shape_remove), 0);
+  rb_define_method(cShape, "style", CASTHOOK(shoes_shape_style), -1);
   rb_define_method(cShape, "hide", CASTHOOK(shoes_shape_hide), 0);
   rb_define_method(cShape, "show", CASTHOOK(shoes_shape_show), 0);
   rb_define_method(cShape, "toggle", CASTHOOK(shoes_shape_toggle), 0);
@@ -3294,6 +3317,7 @@ shoes_ruby_init()
   rb_define_method(cImage, "size", CASTHOOK(shoes_image_size), 0);
   rb_define_method(cImage, "move", CASTHOOK(shoes_image_move), 2);
   rb_define_method(cImage, "remove", CASTHOOK(shoes_image_remove), 0);
+  rb_define_method(cImage, "style", CASTHOOK(shoes_image_style), -1);
   rb_define_method(cImage, "hide", CASTHOOK(shoes_image_hide), 0);
   rb_define_method(cImage, "show", CASTHOOK(shoes_image_show), 0);
   rb_define_method(cImage, "toggle", CASTHOOK(shoes_image_toggle), 0);
@@ -3322,6 +3346,7 @@ shoes_ruby_init()
   rb_define_alloc_func(cPattern, shoes_pattern_alloc);
   rb_define_method(cPattern, "remove", CASTHOOK(shoes_pattern_remove), 0);
   rb_define_method(cPattern, "to_pattern", CASTHOOK(shoes_pattern_self), 0);
+  rb_define_method(cPattern, "style", CASTHOOK(shoes_pattern_style), -1);
   rb_define_method(cPattern, "hide", CASTHOOK(shoes_pattern_hide), 0);
   rb_define_method(cPattern, "show", CASTHOOK(shoes_pattern_show), 0);
   rb_define_method(cPattern, "toggle", CASTHOOK(shoes_pattern_toggle), 0);
@@ -3341,6 +3366,7 @@ shoes_ruby_init()
   rb_define_method(cTextBlock, "remove", CASTHOOK(shoes_textblock_remove), 0);
   rb_define_method(cTextBlock, "to_s", CASTHOOK(shoes_textblock_string), 0);
   rb_define_method(cTextBlock, "replace", CASTHOOK(shoes_textblock_replace), -1);
+  rb_define_method(cTextBlock, "style", CASTHOOK(shoes_textblock_style), -1);
   rb_define_method(cTextBlock, "hide", CASTHOOK(shoes_textblock_hide), 0);
   rb_define_method(cTextBlock, "show", CASTHOOK(shoes_textblock_show), 0);
   rb_define_method(cTextBlock, "toggle", CASTHOOK(shoes_textblock_toggle), 0);
@@ -3359,7 +3385,7 @@ shoes_ruby_init()
   rb_define_alloc_func(cTextClass, shoes_text_alloc);
   rb_define_method(cTextClass, "contents", CASTHOOK(shoes_text_children), 0);
   rb_define_method(cTextClass, "parent", CASTHOOK(shoes_text_parent), 0);
-  rb_define_method(cTextClass, "style", CASTHOOK(shoes_text_style), 0);
+  rb_define_method(cTextClass, "style", CASTHOOK(shoes_text_style), -1);
   cCode      = rb_define_class_under(cShoes, "Code", cTextClass);
   cDel       = rb_define_class_under(cShoes, "Del", cTextClass);
   cEm        = rb_define_class_under(cShoes, "Em", cTextClass);
