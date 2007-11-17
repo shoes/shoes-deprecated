@@ -2393,6 +2393,9 @@ shoes_button_draw(VALUE self, VALUE c)
 {
   SETUP_CONTROL(2);
 
+#ifdef SHOES_QUARTZ
+  place.h += 4;
+#endif
   if (self_t->ref == NULL)
   {
 
