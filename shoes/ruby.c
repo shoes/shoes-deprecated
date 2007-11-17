@@ -712,6 +712,26 @@ shoes_image_alloc(VALUE klass)
 }
 
 VALUE
+shoes_image_get_path(VALUE self)
+{
+  shoes_image *image;
+  Data_Get_Struct(self, shoes_image, image);
+  return image->path;
+}
+
+VALUE
+shoes_image_set_path(VALUE self, VALUE path)
+{
+  shoes_image *image;
+  Data_Get_Struct(self, shoes_image, image);
+  if (image->surface != NULL)
+    cairo_surface_destroy(image->surface);
+  image->path = path;
+  image->surface = shoes_load_image(path);
+  return path;
+}
+
+VALUE
 shoes_image_remove(VALUE self)
 {
   shoes_image *self_t;
@@ -3233,6 +3253,8 @@ shoes_ruby_init()
 
   cImage    = rb_define_class_under(cShoes, "Image", rb_cObject);
   rb_define_alloc_func(cImage, shoes_image_alloc);
+  rb_define_method(cImage, "path", CASTHOOK(shoes_image_get_path), 0);
+  rb_define_method(cImage, "path=", CASTHOOK(shoes_image_set_path), 1);
   rb_define_method(cImage, "draw", CASTHOOK(shoes_image_draw), 1);
   rb_define_method(cImage, "size", CASTHOOK(shoes_image_size), 0);
   rb_define_method(cImage, "move", CASTHOOK(shoes_image_move), 2);
