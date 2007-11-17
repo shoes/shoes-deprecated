@@ -922,6 +922,17 @@ shoes_video_show(VALUE self)
 }
 
 VALUE
+shoes_video_move(VALUE self, VALUE x, VALUE y)
+{
+  shoes_video *self_t;
+  Data_Get_Struct(self, shoes_video, self_t);
+  ATTRSET(self_t->attr, left, x);
+  ATTRSET(self_t->attr, top, y);
+  shoes_canvas_repaint_all(self_t->parent);
+  return self;
+}
+
+VALUE
 shoes_video_remove(VALUE self)
 {
   shoes_video *self_t;
@@ -1732,6 +1743,17 @@ shoes_textblock_get_cursor(VALUE self)
 }
 
 VALUE
+shoes_textblock_move(VALUE self, VALUE x, VALUE y)
+{
+  shoes_textblock *self_t;
+  Data_Get_Struct(self, shoes_textblock, self_t);
+  ATTRSET(self_t->attr, left, x);
+  ATTRSET(self_t->attr, top, y);
+  shoes_canvas_repaint_all(self_t->parent);
+  return self;
+}
+
+VALUE
 shoes_textblock_remove(VALUE self)
 {
   shoes_textblock *self_t;
@@ -2261,31 +2283,33 @@ shoes_textblock_draw(VALUE self, VALUE c)
   pango_layout_line_get_pixel_extents(last, NULL, &lrect);
   pango_layout_get_pixel_size(self_t->layout, &px, &py);
 
-  // newlines have an empty size
-  if (ck != cStack) {
-    if (li == 0) {
-      canvas->endy = self_t->place.y;
-      canvas->cx = self_t->place.x - lmargin + lrect.x + lrect.width + rmargin + pd;
-    } else {
-      canvas->endy = self_t->place.y - tmargin + py - lrect.height;
-      if (lrect.width == 0) {
-        canvas->cx = lrect.x;
+  if (!absy) {
+    // newlines have an empty size
+    if (ck != cStack) {
+      if (li == 0) {
+        canvas->endy = self_t->place.y;
+        canvas->cx = self_t->place.x - lmargin + lrect.x + lrect.width + rmargin + pd;
       } else {
-        canvas->cx = lrect.x + lrect.width + rmargin;
+        canvas->endy = self_t->place.y - tmargin + py - lrect.height;
+        if (lrect.width == 0) {
+          canvas->cx = lrect.x;
+        } else {
+          canvas->cx = lrect.x + lrect.width + rmargin;
+        }
+        canvas->cy = canvas->endy;
       }
+    }
+    canvas->endy += lrect.height + ld;
+    if (ck == cStack || canvas->cx > canvas->width) {
+      canvas->cx = canvas->place.x;
       canvas->cy = canvas->endy;
     }
+    canvas->endx = canvas->cx;
+    INFO("CX: (%d, %d) / LRECT: (%d, %d) / END: (%d, %d)\n", 
+      canvas->cx, canvas->cy,
+      lrect.x, lrect.width,
+      canvas->endx, canvas->endy);
   }
-  canvas->endy += lrect.height + ld;
-  if (ck == cStack || canvas->cx > canvas->width) {
-    canvas->cx = canvas->place.x;
-    canvas->cy = canvas->endy;
-  }
-  canvas->endx = canvas->cx;
-  INFO("CX: (%d, %d) / LRECT: (%d, %d) / END: (%d, %d)\n", 
-    canvas->cx, canvas->cy,
-    lrect.x, lrect.width,
-    canvas->endx, canvas->endy);
   return self;
 }
 
@@ -2369,6 +2393,17 @@ shoes_control_show(VALUE self)
 #ifdef SHOES_WIN32
   ShowWindow(self_t->ref, SW_SHOW);
 #endif
+  return self;
+}
+
+VALUE
+shoes_control_move(VALUE self, VALUE x, VALUE y)
+{
+  shoes_control *self_t;
+  Data_Get_Struct(self, shoes_control, self_t);
+  ATTRSET(self_t->attr, left, x);
+  ATTRSET(self_t->attr, top, y);
+  shoes_canvas_repaint_all(self_t->parent);
   return self;
 }
 
@@ -3272,6 +3307,7 @@ shoes_ruby_init()
   rb_define_method(cVideo, "draw", CASTHOOK(shoes_video_draw), 1);
   rb_define_method(cVideo, "hide", CASTHOOK(shoes_video_hide), 0);
   rb_define_method(cVideo, "show", CASTHOOK(shoes_video_show), 0);
+  rb_define_method(cVideo, "move", CASTHOOK(shoes_video_remove), 2);
   rb_define_method(cVideo, "remove", CASTHOOK(shoes_video_remove), 0);
   rb_define_method(cVideo, "playing?", CASTHOOK(shoes_video_is_playing), 0);
   rb_define_method(cVideo, "play", CASTHOOK(shoes_video_play), 0);
@@ -3301,6 +3337,7 @@ shoes_ruby_init()
   rb_define_method(cTextBlock, "draw", CASTHOOK(shoes_textblock_draw), 1);
   rb_define_method(cTextBlock, "cursor=", CASTHOOK(shoes_textblock_set_cursor), 1);
   rb_define_method(cTextBlock, "cursor", CASTHOOK(shoes_textblock_get_cursor), 0);
+  rb_define_method(cTextBlock, "move", CASTHOOK(shoes_textblock_move), 2);
   rb_define_method(cTextBlock, "remove", CASTHOOK(shoes_textblock_remove), 0);
   rb_define_method(cTextBlock, "to_s", CASTHOOK(shoes_textblock_string), 0);
   rb_define_method(cTextBlock, "replace", CASTHOOK(shoes_textblock_replace), -1);
@@ -3342,6 +3379,7 @@ shoes_ruby_init()
   rb_define_alloc_func(cNative, shoes_control_alloc);
   rb_define_method(cNative, "hide", CASTHOOK(shoes_control_hide), 0);
   rb_define_method(cNative, "show", CASTHOOK(shoes_control_show), 0);
+  rb_define_method(cNative, "move", CASTHOOK(shoes_control_move), 2);
   rb_define_method(cNative, "remove", CASTHOOK(shoes_control_remove), 0);
   cButton  = rb_define_class_under(cShoes, "Button", cNative);
   rb_define_method(cButton, "draw", CASTHOOK(shoes_button_draw), 1);
