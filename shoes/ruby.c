@@ -1900,7 +1900,7 @@ shoes_app_style_for(shoes_kxxxx *k, VALUE klass, VALUE oattr, gsize start_index,
     {
       int i = NUM2INT(str);
       if (i > 0)
-        attr = pango_attr_size_new(i * PANGO_SCALE);
+        attr = pango_attr_size_new_absolute(i * PANGO_SCALE * (96./72.));
     }
     APPLY_ATTR();
   }
@@ -2148,7 +2148,6 @@ shoes_textblock_draw(VALUE self, VALUE c)
   self_t->place.x = ATTR2(int, self_t->attr, left, canvas->cx) + lmargin;
   self_t->place.y = ATTR2(int, self_t->attr, top, canvas->cy) + tmargin;
   self_t->place.w = ATTR2(int, self_t->attr, width, canvas->place.w - (canvas->cx - self_t->place.x)) - (lmargin + rmargin);
-  font = ATTR2(cstr, self_t->attr, font, "Helvetica 16px");
   ld = ATTR2(int, self_t->attr, leading, 4);
 
   if (self_t->layout != NULL)
@@ -2177,7 +2176,9 @@ shoes_textblock_draw(VALUE self, VALUE c)
   pango_layout_set_width(self_t->layout, self_t->place.w * PANGO_SCALE);
   pango_layout_set_spacing(self_t->layout, ld * PANGO_SCALE);
   shoes_textblock_on_layout(canvas->app, rb_obj_class(self), self_t);
-  desc = pango_font_description_from_string(font);
+  desc = pango_font_description_new();
+  pango_font_description_set_family(desc, "Arial");
+  pango_font_description_set_absolute_size(desc, 14. * PANGO_SCALE * (96./72.));
   pango_layout_set_font_description(self_t->layout, desc);
   pango_font_description_free(desc);
 

@@ -26,7 +26,7 @@ class Book < Shoes
       para strong("No. #{num + 1}: #{INCIDENTS[num][0]}")
     end
     flow :width => 180, :margin_left => 10, :margin_top => 10 do
-      para table_of_contents, :font => "Arial 11px", :leading => 0
+      para table_of_contents, :size => 8
     end
     flow :width => -190, :margin => 10 do
       para INCIDENTS[num][1]
