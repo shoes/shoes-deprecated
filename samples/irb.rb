@@ -54,7 +54,6 @@ end
 CURSOR = ">>"
 IRBalike = MimickIRB.new
 
-puts IRBalike.run(gets).inspect
 str = [CURSOR + " "]
 cmd = ""
 Shoes.app do
