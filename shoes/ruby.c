@@ -3200,6 +3200,8 @@ shoes_ruby_init()
 
   cApp = rb_define_class("App", rb_cObject);
   rb_define_alloc_func(cApp, shoes_app_alloc);
+  rb_define_method(cApp, "location", CASTHOOK(shoes_app_location), 0);
+
   cCanvas = rb_define_class("Canvas", rb_cObject);
   rb_define_alloc_func(cCanvas, shoes_canvas_alloc);
   rb_define_method(cCanvas, "children", CASTHOOK(shoes_canvas_contents), 0);

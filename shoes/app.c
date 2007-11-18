@@ -15,6 +15,7 @@ shoes_app_mark(shoes_app *app)
 #ifndef SHOES_GTK
   rb_gc_mark_maybe(app->slot.controls);
 #endif
+  rb_gc_mark_maybe(app->location);
   rb_gc_mark_maybe(app->canvas);
   rb_gc_mark_maybe(app->nesting);
   rb_gc_mark_maybe(app->timers);
@@ -32,6 +33,7 @@ shoes_app_alloc(VALUE klass)
 {
   shoes_app *app = SHOE_ALLOC(shoes_app);
   SHOE_MEMZERO(app, shoes_app, 1);
+  app->location = Qnil;
   app->canvas = shoes_canvas_new(cShoes, app);
   app->nesting = rb_ary_new();
   app->timers = rb_ary_new();
@@ -1348,7 +1350,7 @@ shoes_app_visit(shoes_app *app, char *path)
 
   shoes_canvas_clear(app->canvas);
   shoes_app_reset_styles(app);
-  meth = rb_funcall(cShoes, s_run, 1, rb_str_new2(path));
+  meth = rb_funcall(cShoes, s_run, 1, app->location = rb_str_new2(path));
   exec.app = app;
   exec.block = rb_ary_entry(meth, 0);
   exec.args = rb_ary_entry(meth, 1);
@@ -1524,6 +1526,14 @@ shoes_app_style(shoes_app *app, VALUE klass, VALUE hsh)
     if (!SYMBOL_P(key)) key = rb_str_intern(key);
     shoes_style_set(app->styles, klass, key, val);
   }
+}
+
+VALUE
+shoes_app_location(VALUE self)
+{
+  shoes_app *app;
+  Data_Get_Struct(self, shoes_app, app);
+  return app->location;
 }
 
 VALUE

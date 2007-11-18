@@ -98,6 +98,8 @@ class Shoes
     @mounts << [path, meth || blk]
   end
 
+  SHOES_URL_RE = %r!^@([^/]+)(.*)$! 
+
   def self.run(path)
     uri = URI(path)
     @mounts.each do |mpath, rout|
@@ -109,8 +111,10 @@ class Shoes
         return [rout, args]
       end
     end
-    if uri.path == "/"
+    case uri.path when "/"
       [@main_app]
+    when SHOES_URL_RE
+      [proc { eval(URI("http://#$1:53045#$2").read) }]
     else
       [NotFound]
     end
@@ -123,7 +127,7 @@ class Shoes
 
   def self.load(path)
     uri = 
-      if path =~ %r!^@([^/]+)(.*)$!
+      if path =~ SHOES_URL_RE
         URI("http://#$1:53045#$2")
       else
         URI(path) rescue nil
@@ -131,7 +135,9 @@ class Shoes
 
     case uri
     when URI::HTTP
-      eval(uri.read, TOPLEVEL_BINDING)
+      Shoes.app do
+        eval(uri.read)
+      end
     else
       path = File.expand_path(path.gsub(/\\/, "/"))
       if path =~ /\.shy$/

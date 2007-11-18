@@ -37,6 +37,7 @@ typedef struct _shoes_app {
   VALUE styles;
   ID cursor;
   VALUE title;
+  VALUE location;
 } shoes_app;
 
 //
@@ -59,6 +60,7 @@ shoes_code shoes_app_goto(shoes_app *, char *);
 shoes_code shoes_slot_repaint(SHOES_SLOT_OS *);
 void shoes_app_reset_styles(shoes_app *);
 void shoes_app_style(shoes_app *, VALUE, VALUE);
+VALUE shoes_app_location(VALUE);
 VALUE shoes_app_quit(VALUE);
 
 #endif
