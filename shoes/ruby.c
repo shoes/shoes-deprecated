@@ -3245,6 +3245,7 @@ shoes_ruby_init()
   rb_define_method(rb_mKernel, "gradient", CASTHOOK(shoes_color_gradient), 2);
   rb_define_method(rb_mKernel, "pattern", CASTHOOK(shoes_pattern_method), 1);
   rb_define_method(rb_mKernel, "quit", CASTHOOK(shoes_app_quit), 0);
+  rb_define_method(rb_mKernel, "exit", CASTHOOK(shoes_app_quit), 0);
 
   cFlow    = rb_define_class_under(cShoes, "Flow", cShoes);
   cStack   = rb_define_class_under(cShoes, "Stack", cShoes);
