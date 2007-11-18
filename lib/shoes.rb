@@ -7,6 +7,7 @@ ARGV.delete_if { |x| x =~ /-psn_/ }
 
 require 'open-uri'
 require 'optparse'
+require 'shoes/cache'
 require 'shoes/shy'
  
 class Range 
