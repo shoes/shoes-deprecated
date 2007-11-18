@@ -29,7 +29,9 @@ class Book < Shoes
       para table_of_contents, :size => 8
     end
     flow :width => -190, :margin => 10 do
-      para INCIDENTS[num][1]
+      INCIDENTS[num][1].split(/\n\n+/).each do |p|
+        para p
+      end
     end
   end
 end

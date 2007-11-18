@@ -2241,15 +2241,17 @@ shoes_textblock_draw(VALUE self, VALUE c)
       } else {
         canvas->endy = self_t->place.y - tmargin + py - lrect.height;
         if (lrect.width == 0) {
-          canvas->cx = lrect.x;
+          canvas->cx = self_t->place.x + lrect.x;
         } else {
-          canvas->cx = lrect.x + lrect.width + rmargin;
+          canvas->cx = self_t->place.x - lmargin + lrect.width + rmargin;
         }
         canvas->cy = canvas->endy;
       }
+      canvas->endy += lrect.height + ld;
+    } else {
+      canvas->endy += bmargin + py + ld;
     }
-    canvas->endy += lrect.height + ld;
-    if (ck == cStack || canvas->cx > canvas->width) {
+    if (ck == cStack || canvas->cx - canvas->place.x > canvas->width) {
       canvas->cx = canvas->place.x;
       canvas->cy = canvas->endy;
     }
