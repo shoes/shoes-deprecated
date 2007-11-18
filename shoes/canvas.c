@@ -480,8 +480,10 @@ shoes_canvas_line(VALUE self, VALUE _x1, VALUE _y1, VALUE _x2, VALUE _y2)
   h = y2 - y1;
   if (y1 > y2) h = y1 - y2;
   shoes_canvas_shape_do(canvas, x, y, 0, 0, FALSE);
+  cairo_new_path(cr);
   cairo_move_to(cr, x1 - x, y1 - y);
   cairo_line_to(cr, x2 - x, y2 - y);
+  cairo_close_path(cr);
   return shoes_canvas_shape_end(self, INT2NUM(x), INT2NUM(y), w, h);
 }
 
