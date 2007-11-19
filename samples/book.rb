@@ -28,7 +28,7 @@ class Book < Shoes
     flow :width => 180, :margin_left => 10, :margin_top => 10 do
       para table_of_contents, :size => 8
     end
-    flow :width => -190, :margin => 10 do
+    stack :width => -190, :margin => 10 do
       INCIDENTS[num][1].split(/\n\n+/).each do |p|
         para p
       end
