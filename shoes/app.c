@@ -897,12 +897,28 @@ shoes_app_win32proc(
     break;
 
     case WM_COMMAND:
-      if ((HWND)l && HIWORD(w) == BN_CLICKED)
+      if ((HWND)l)
       {
-        int id = LOWORD(w);
-        VALUE control = rb_ary_entry(app->slot.controls, id - SHOES_CONTROL1);
-        if (!NIL_P(control))
-          shoes_control_send(control, s_click);
+        switch (HIWORD(w))
+        {
+          case BN_CLICKED:
+          {
+            int id = LOWORD(w);
+            VALUE control = rb_ary_entry(app->slot.controls, id - SHOES_CONTROL1);
+            if (!NIL_P(control))
+              shoes_control_send(control, s_click);
+          }
+          break;
+
+          case CBN_SELCHANGE:
+          {
+            int id = LOWORD(w);
+            VALUE control = rb_ary_entry(app->slot.controls, id - SHOES_CONTROL1);
+            if (!NIL_P(control))
+              shoes_control_send(control, s_change);
+          }
+          break;
+        }
       }
     break;
   }

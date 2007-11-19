@@ -2375,9 +2375,12 @@ shoes_control_send(VALUE self, ID event)
   shoes_control *self_t;
   Data_Get_Struct(self, shoes_control, self_t);
 
-  click = ATTR(self_t->attr, click);
-  if (!NIL_P(click))
-    shoes_safe_block(self_t->parent, click, rb_ary_new());
+  if (!NIL_P(self_t->attr))
+  {
+    click = rb_hash_aref(self_t->attr, ID2SYM(event));
+    if (!NIL_P(click))
+      shoes_safe_block(self_t->parent, click, rb_ary_new());
+  }
 }
 
 #ifdef SHOES_GTK
@@ -2645,6 +2648,13 @@ shoes_edit_box_draw(VALUE self, VALUE c)
 
 #ifdef SHOES_GTK
 static void
+shoes_list_box_changed(GtkComboBox *ref, gpointer data)
+{ 
+  VALUE self = (VALUE)data;
+  shoes_control_send(self, s_change);
+}
+
+static void
 shoes_list_box_update(GtkWidget *combo, VALUE ary)
 {
   long i;
@@ -2769,6 +2779,9 @@ shoes_list_box_draw(VALUE self, VALUE c)
     VALUE items = ATTR(self_t->attr, items);
 #ifdef SHOES_GTK
     self_t->ref = gtk_combo_box_new_text();
+    g_signal_connect(G_OBJECT(self_t->ref), "changed",
+                     G_CALLBACK(shoes_list_box_changed),
+                     (gpointer)self);
 #endif
 
 #ifdef SHOES_QUARTZ
