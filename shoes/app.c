@@ -514,7 +514,7 @@ shoes_app_quartz_handler(
     break;
 
     case kEventClassCommand:
-      INFO("kEventClassCommand\n", 0);
+      INFO("kEventClassCommand: %d+%d\n", eventKind, eventClass);
       if (!NIL_P(app->slot.controls))
       {
         HICommand aCommand;
@@ -523,7 +523,12 @@ shoes_app_quartz_handler(
         {
           VALUE control = rb_ary_entry(app->slot.controls, aCommand.commandID - SHOES_CONTROL1);
           if (!NIL_P(control))
-            shoes_control_send(control, s_click);
+          {
+            if (rb_respond_to(control, s_change))
+              shoes_control_send(control, s_change);
+            else
+              shoes_control_send(control, s_click);
+          }
         }
       }
     break;

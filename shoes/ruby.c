@@ -2950,11 +2950,14 @@ EVENT_COMMON(linktext, text, leave);
     return self; \
   } \
   CLASS_COMMON(ele); \
+  EVENT_COMMON(ele, ele, change); \
   EVENT_COMMON(ele, ele, click); \
   EVENT_COMMON(ele, ele, hover); \
   EVENT_COMMON(ele, ele, leave);
 
 CLASS_COMMON(control);
+EVENT_COMMON(control, control, click);
+EVENT_COMMON(control, control, change);
 CLASS_COMMON(text);
 #ifdef VIDEO
 CLASS_COMMON(video);
@@ -3382,6 +3385,7 @@ shoes_ruby_init()
   rb_define_method(cNative, "remove", CASTHOOK(shoes_control_remove), 0);
   cButton  = rb_define_class_under(cShoes, "Button", cNative);
   rb_define_method(cButton, "draw", CASTHOOK(shoes_button_draw), 1);
+  rb_define_method(cButton, "click", CASTHOOK(shoes_control_click), -1);
   cEditLine  = rb_define_class_under(cShoes, "EditLine", cNative);
   rb_define_method(cEditLine, "text", CASTHOOK(shoes_edit_line_get_text), 0);
   rb_define_method(cEditLine, "text=", CASTHOOK(shoes_edit_line_set_text), 1);
@@ -3394,6 +3398,7 @@ shoes_ruby_init()
   rb_define_method(cListBox, "text", CASTHOOK(shoes_list_box_text), 0);
   rb_define_method(cListBox, "draw", CASTHOOK(shoes_list_box_draw), 1);
   rb_define_method(cListBox, "choose", CASTHOOK(shoes_list_box_choose), 1);
+  rb_define_method(cListBox, "change", CASTHOOK(shoes_control_change), -1);
   cProgress  = rb_define_class_under(cShoes, "Progress", cNative);
   rb_define_method(cProgress, "draw", CASTHOOK(shoes_progress_draw), 1);
 
