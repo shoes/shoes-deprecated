@@ -8,7 +8,9 @@ ARGV.delete_if { |x| x =~ /-psn_/ }
 require 'open-uri'
 require 'optparse'
 require 'shoes/cache'
+require 'shoes/inspect'
 require 'shoes/shy'
+require 'shoes/help'
  
 class Range 
   def rand 
@@ -89,6 +91,9 @@ class Shoes
     opts.separator ""
     opts.separator "Specific options:"
     
+    opts.on("-h", "--help") do |s|
+      @main_app = Shoes::Help
+    end
     opts.on("-s", "--shy DIRECTORY",
             "Compress a directory into a Shoes YAML (SHY) archive.") do |s|
       @main_app = ShyMake.call(s)
