@@ -14,7 +14,7 @@ def dewikify(str)
     str.split(/\s*?(\{{3}(?:.+?)\}{3})|\n\n/m).map do |ps|
       next if ps.empty?
       if ps =~ /\{{3}(?:\s*\#![^\n]+)?(.+?)\}{3}/m
-        para code($1), :stroke => "#636", :fill => "#eee", :size => 9 
+        stack { background gray(0.9); para code($1), :stroke => "#636", :size => 9 }
       else
         case ps
         when /\A \* (.+)/m
@@ -52,6 +52,7 @@ def Shoes.make_help_page(str)
   proc do
     style(Shoes::LinkHover, :stroke => red, :fill => nil)
     style(Shoes::Para, :size => 9)
+    style(Shoes::Tagline, :size => 12, :weight => "bold", :stroke => "#eee", :fill => "#333", :margin => 6)
 
     @doc = 
       stack :margin => 10, :margin_left => 130, :margin_top => 80,
@@ -77,7 +78,7 @@ def Shoes.make_help_page(str)
                   @title.replace meth_h['title']
                   @doc.clear(&dewikify(meth_h['description'])) 
                   meth_h['methods'].each do |mname, expl|
-                    @doc.append { tagline mname }
+                    @doc.append { stack { background "#333"; tagline mname } }
                     @doc.append(&dewikify(expl))
                   end
                 }, "\n"]
