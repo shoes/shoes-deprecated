@@ -1221,7 +1221,7 @@ shoes_app_open(shoes_app *app)
   AdjustWindowRect(&rect, WINDOW_STYLE, FALSE);
 
   app->slot.window = CreateWindowEx(
-    0, SHOES_SHORTNAME, SHOES_APPNAME,
+    WS_EX_CLIENTEDGE, SHOES_SHORTNAME, SHOES_APPNAME,
     WINDOW_STYLE | WS_CLIPCHILDREN |
       (app->resizable ? (WS_THICKFRAME | WS_MAXIMIZEBOX) : WS_DLGFRAME) |
       WS_VSCROLL | ES_AUTOVSCROLL,
