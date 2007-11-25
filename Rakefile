@@ -175,6 +175,10 @@ when /win32/
   FLAGS.each do |flag|
     MSVC_CFLAGS << " /D#{flag}" if ENV[flag]
   end
+  if ENV['DEBUG']
+    MSVC_CFLAGS << " /Zi"
+    MSVC_LDFLAGS << " /DEBUG"
+  end
   MSVC_CFLAGS << " /I#{ENV['CRT_INC_PATH']}" if ENV['CRT_INC_PATH']
   MSVC_LDFLAGS << " /LIBPATH:#{ENV['CRT_LIB_PATH'][0..-2]}\i386" if ENV['CRT_LIB_PATH']
   MSVC_LDFLAGS << " /LIBPATH:#{ENV['SDK_LIB_PATH'][0..-2]}\i386" if ENV['SDK_LIB_PATH']
