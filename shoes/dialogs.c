@@ -215,12 +215,10 @@ shoes_dialog_color(VALUE self, VALUE title)
   if (result == GTK_RESPONSE_OK)
   {
     GdkColor _color;
-    char colorstr[20];
     gtk_color_selection_get_current_color(
       GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(dialog)->colorsel),
       &_color);
-    sprintf(colorstr, "rgb(%d, %d, %d)", _color.red/256, _color.green/256, _color.blue/256);
-    color = rb_str_new2(colorstr);
+    color = shoes_color_new(_color.red/256, _color.green/256, _color.blue/256, SHOES_COLOR_OPAQUE);
   }
   gtk_widget_destroy(dialog);
 #endif
@@ -240,10 +238,8 @@ shoes_dialog_color(VALUE self, VALUE title)
   cc.Flags = CC_FULLOPEN | CC_RGBINIT;
    
   if (ChooseColor(&cc)) {
-    char colorstr[20];
-    sprintf(colorstr, "rgb(%d, %d, %d)", GetRValue(cc.rgbResult), 
-      GetGValue(cc.rgbResult), GetBValue(cc.rgbResult));
-    color = rb_str_new2(colorstr);
+    color = shoes_color_new(GetRValue(cc.rgbResult), GetGValue(cc.rgbResult), GetBValue(cc.rgbResult),
+      SHOES_COLOR_OPAQUE);
   }
 #endif
 
@@ -254,9 +250,7 @@ shoes_dialog_color(VALUE self, VALUE title)
   where.h = where.v = 0;
   if (GetColor(where, RSTRING_PTR(title), &colwh, &_color))
   {
-    char colorstr[20];
-    sprintf(colorstr, "rgb(%d, %d, %d)", _color.red/256, _color.green/256, _color.blue/256);
-    color = rb_str_new2(colorstr);
+    color = shoes_color_new(_color.red/256, _color.green/256, _color.blue/256, SHOES_COLOR_OPAQUE);
   }
 #endif
   return color;

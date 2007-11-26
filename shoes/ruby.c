@@ -1277,7 +1277,7 @@ shoes_color_alloc(VALUE klass)
   color->r = 0x00;
   color->g = 0x00;
   color->b = 0x00;
-  color->a = 0xFF;
+  color->a = SHOES_COLOR_OPAQUE;
   color->on = TRUE;
   return obj;
 }
@@ -1289,7 +1289,7 @@ shoes_color_rgb(int argc, VALUE *argv, VALUE self)
   VALUE _r, _g, _b, _a;
   rb_scan_args(argc, argv, "31", &_r, &_g, &_b, &_a);
 
-  a = 0xFF;
+  a = SHOES_COLOR_OPAQUE;
   if (!NIL_P(_a)) a = NUM2RGBINT(_a);
   return shoes_color_new(NUM2RGBINT(_r), NUM2RGBINT(_g), NUM2RGBINT(_b), a);
 }
@@ -1314,7 +1314,7 @@ shoes_color_gray(int argc, VALUE *argv, VALUE self)
   int g, a;
   rb_scan_args(argc, argv, "11", &_g, &_a);
 
-  a = 0xFF;
+  a = SHOES_COLOR_OPAQUE;
   g = NUM2RGBINT(_g);
   if (!NIL_P(_a)) a = NUM2RGBINT(_a);
   return shoes_color_new(g, g, g, a);
@@ -3434,6 +3434,7 @@ shoes_ruby_init()
   rb_define_singleton_method(cColor, "rgb", CASTHOOK(shoes_color_rgb), -1);
   rb_define_singleton_method(cColor, "gray", CASTHOOK(shoes_color_gray), -1);
   rb_define_singleton_method(cColor, "parse", CASTHOOK(shoes_color_parse), 1);
+  rb_define_method(cColor, "inspect", CASTHOOK(shoes_color_to_s), 0);
   rb_define_method(cColor, "to_s", CASTHOOK(shoes_color_to_s), 0);
   rb_define_method(cColor, "to_pattern", CASTHOOK(shoes_color_to_pattern), 0);
 

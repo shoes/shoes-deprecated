@@ -36,6 +36,8 @@ typedef struct {
   unsigned char r, g, b, a, on;
 } shoes_color;
 
+#define SHOES_COLOR_OPAQUE 0xFF
+
 //
 // shape struct
 //
