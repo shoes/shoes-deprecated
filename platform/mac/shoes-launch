@@ -1,5 +1,6 @@
 #!/bin/bash
 APPPATH="${0%/*}"
+unset DYLD_LIBRARY_PATH
 cd $APPPATH
 echo "[Pango]" > pangorc
 echo "ModuleFiles=$APPPATH/pango.modules" >> pangorc
