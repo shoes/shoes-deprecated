@@ -3,6 +3,7 @@
 // Some defs for Ruby.
 //
 #include <ruby.h>
+#include <rubysig.h>
 #include "shoes/canvas.h"
 
 #ifndef SHOES_RUBY_H

@@ -563,7 +563,7 @@ shoes_shape_free(shoes_shape *path)
 {
   if (path->line != NULL)
     cairo_path_destroy(path->line);
-  free(path);
+  RUBY_CRITICAL(free(path));
 }
 
 VALUE
@@ -589,15 +589,17 @@ shoes_shape_new(cairo_path_t *line, VALUE parent, VALUE x, VALUE y, int w, int h
 VALUE
 shoes_shape_alloc(VALUE klass)
 {
-  shoes_shape *path;
-  VALUE obj = Data_Make_Struct(klass, shoes_shape, shoes_shape_mark, shoes_shape_free, path);
-  path->line = NULL;
-  path->attr = Qnil;
-  path->parent = Qnil;
-  path->fg = Qnil;
-  path->bg = Qnil;
-  path->width = 0;
-  path->height = 0;
+  VALUE obj;
+  shoes_shape *shape = SHOE_ALLOC(shoes_shape);
+  SHOE_MEMZERO(shape, shoes_shape, 1);
+  obj = Data_Wrap_Struct(klass, shoes_shape_mark, shoes_shape_free, shape);
+  shape->line = NULL;
+  shape->attr = Qnil;
+  shape->parent = Qnil;
+  shape->fg = Qnil;
+  shape->bg = Qnil;
+  shape->width = 0;
+  shape->height = 0;
   return obj;
 }
 
@@ -669,7 +671,7 @@ shoes_image_free(shoes_image *image)
 {
   if (image->surface != NULL)
     cairo_surface_destroy(image->surface);
-  SHOE_FREE(image);
+  RUBY_CRITICAL(SHOE_FREE(image));
 }
 
 VALUE
@@ -690,8 +692,10 @@ shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent)
 VALUE
 shoes_image_alloc(VALUE klass)
 {
-  shoes_image *image;
-  VALUE obj = Data_Make_Struct(klass, shoes_image, shoes_image_mark, shoes_image_free, image);
+  VALUE obj;
+  shoes_image *image = SHOE_ALLOC(shoes_image);
+  SHOE_MEMZERO(image, shoes_image, 1);
+  obj = Data_Wrap_Struct(klass, shoes_image_mark, shoes_image_free, image);
   image->path = Qnil;
   image->surface = NULL;
   image->attr = Qnil;
@@ -821,7 +825,7 @@ shoes_video_free(shoes_video *video)
 {
   if (video->vlc != NULL)
     libvlc_destroy(video->vlc);
-  SHOE_FREE(video);
+  RUBY_CRITICAL(SHOE_FREE(video));
 }
 
 VALUE
@@ -841,7 +845,9 @@ shoes_video_new(VALUE klass, VALUE path, VALUE attr, VALUE parent)
 VALUE
 shoes_video_alloc(VALUE klass)
 {
-  shoes_video *video;
+  VALUE obj;
+  shoes_video *video = SHOE_ALLOC(shoes_video);
+  SHOE_MEMZERO(video, shoes_video, 1);
 #ifdef SHOES_QUARTZ
   char *ppsz_argv[2] = {"vlc", NULL};
   char pathsw[SHOES_BUFSIZE];
@@ -852,7 +858,7 @@ shoes_video_alloc(VALUE klass)
   char *ppsz_argv[1] = {"vlc"};
   int ppsz_argc = 1;
 #endif
-  VALUE obj = Data_Make_Struct(klass, shoes_video, shoes_video_mark, shoes_video_free, video);
+  obj = Data_Wrap_Struct(klass, shoes_video_mark, shoes_video_free, video);
   libvlc_exception_init(&video->excp);
   video->ref = NULL;
   video->vlc = libvlc_new(ppsz_argc, ppsz_argv, NULL);
@@ -1056,7 +1062,7 @@ static void
 shoes_pattern_free(shoes_pattern *pattern)
 {
   cairo_pattern_destroy(pattern->pattern);
-  free(pattern);
+  RUBY_CRITICAL(free(pattern));
 }
 
 static void
@@ -1150,8 +1156,10 @@ shoes_pattern_method(VALUE klass, VALUE source)
 VALUE
 shoes_pattern_alloc(VALUE klass)
 {
-  shoes_pattern *pattern;
-  VALUE obj = Data_Make_Struct(klass, shoes_pattern, shoes_pattern_mark, shoes_pattern_free, pattern);
+  VALUE obj;
+  shoes_pattern *pattern = SHOE_ALLOC(shoes_pattern);
+  SHOE_MEMZERO(pattern, shoes_pattern, 1);
+  obj = Data_Wrap_Struct(klass, shoes_pattern_mark, shoes_pattern_free, pattern);
   pattern->source = Qnil;
   pattern->pattern = NULL;
   pattern->attr = Qnil;
@@ -1243,7 +1251,7 @@ shoes_color_mark(shoes_color *color)
 static void
 shoes_color_free(shoes_color *color)
 {
-  free(color);
+  RUBY_CRITICAL(free(color));
 }
 
 VALUE
@@ -1262,8 +1270,10 @@ shoes_color_new(int r, int g, int b, int a)
 VALUE
 shoes_color_alloc(VALUE klass)
 {
-  shoes_color *color;
-  VALUE obj = Data_Make_Struct(klass, shoes_color, shoes_color_mark, shoes_color_free, color);
+  VALUE obj;
+  shoes_color *color = SHOE_ALLOC(shoes_color);
+  SHOE_MEMZERO(color, shoes_color, 1);
+  obj = Data_Wrap_Struct(klass, shoes_color_mark, shoes_color_free, color);
   color->r = 0x00;
   color->g = 0x00;
   color->b = 0x00;
@@ -1496,7 +1506,7 @@ shoes_link_mark(shoes_link *link)
 static void
 shoes_link_free(shoes_link *link)
 {
-  free(link);
+  RUBY_CRITICAL(free(link));
 }
 
 VALUE
@@ -1514,8 +1524,10 @@ shoes_link_new(VALUE ele, int start, int end)
 VALUE
 shoes_link_alloc(VALUE klass)
 {
-  shoes_link *link;
-  VALUE obj = Data_Make_Struct(klass, shoes_link, shoes_link_mark, shoes_link_free, link);
+  VALUE obj;
+  shoes_link *link = SHOE_ALLOC(shoes_link);
+  SHOE_MEMZERO(link, shoes_link, 1);
+  obj = Data_Wrap_Struct(klass, shoes_link_mark, shoes_link_free, link);
   link->ele = Qnil;
   link->start = 0;
   link->end = 0;
@@ -1558,7 +1570,7 @@ shoes_text_mark(shoes_text *text)
 static void
 shoes_text_free(shoes_text *text)
 {
-  free(text);
+  RUBY_CRITICAL(free(text));
 }
 
 static VALUE
@@ -1593,8 +1605,10 @@ shoes_text_new(VALUE klass, VALUE texts, VALUE attr)
 VALUE
 shoes_text_alloc(VALUE klass)
 {
-  shoes_text *text;
-  VALUE obj = Data_Make_Struct(klass, shoes_text, shoes_text_mark, shoes_text_free, text);
+  VALUE obj;
+  shoes_text *text = SHOE_ALLOC(shoes_text);
+  SHOE_MEMZERO(text, shoes_text, 1);
+  obj = Data_Wrap_Struct(klass, shoes_text_mark, shoes_text_free, text);
   text->texts = Qnil;
   text->attr = Qnil;
   text->parent = Qnil;
@@ -1636,7 +1650,7 @@ shoes_textblock_free(shoes_textblock *text)
 {
   if (text->layout != NULL)
     g_object_unref(text->layout);
-  free(text);
+  RUBY_CRITICAL(free(text));
 }
 
 VALUE
@@ -1656,8 +1670,10 @@ shoes_textblock_new(VALUE klass, VALUE texts, VALUE attr, VALUE parent)
 VALUE
 shoes_textblock_alloc(VALUE klass)
 {
-  shoes_textblock *text;
-  VALUE obj = Data_Make_Struct(klass, shoes_textblock, shoes_textblock_mark, shoes_textblock_free, text);
+  VALUE obj;
+  shoes_textblock *text = SHOE_ALLOC(shoes_textblock);
+  SHOE_MEMZERO(text, shoes_textblock, 1);
+  obj = Data_Wrap_Struct(klass, shoes_textblock_mark, shoes_textblock_free, text);
   text->string = Qnil;
   text->texts = Qnil;
   text->links = Qnil;
@@ -2285,7 +2301,7 @@ shoes_control_free(shoes_control *control)
 #ifdef SHOES_QUARTZ
   DisposeControl(control->ref);
 #endif
-  free(control);
+  RUBY_CRITICAL(free(control));
 }
 
 VALUE
@@ -2302,8 +2318,10 @@ shoes_control_new(VALUE klass, VALUE attr, VALUE parent)
 VALUE
 shoes_control_alloc(VALUE klass)
 {
-  shoes_control *control;
-  VALUE obj = Data_Make_Struct(klass, shoes_control, shoes_control_mark, shoes_control_free, control);
+  VALUE obj;
+  shoes_control *control = SHOE_ALLOC(shoes_control);
+  SHOE_MEMZERO(control, shoes_control, 1);
+  obj = Data_Wrap_Struct(klass, shoes_control_mark, shoes_control_free, control);
   control->place.x = control->place.y = control->place.w = control->place.h = 0;
   control->ref = NULL;
   control->attr = Qnil;
@@ -3011,7 +3029,7 @@ shoes_anim_mark(shoes_anim *anim)
 static void
 shoes_anim_free(shoes_anim *anim)
 {
-  free(anim);
+  RUBY_CRITICAL(free(anim));
 }
 
 VALUE
@@ -3030,8 +3048,10 @@ shoes_anim_new(VALUE klass, VALUE fps, VALUE block, VALUE parent)
 VALUE
 shoes_anim_alloc(VALUE klass)
 {
-  shoes_anim *anim;
-  VALUE obj = Data_Make_Struct(klass, shoes_anim, shoes_anim_mark, shoes_anim_free, anim);
+  VALUE obj;
+  shoes_anim *anim = SHOE_ALLOC(shoes_anim);
+  SHOE_MEMZERO(anim, shoes_anim, 1);
+  obj = Data_Wrap_Struct(klass, shoes_anim_mark, shoes_anim_free, anim);
   anim->block = Qnil;
   anim->fps = 12;
   anim->frame = 0;

@@ -244,7 +244,7 @@ static void
 shoes_canvas_free(shoes_canvas *canvas)
 {
   free(canvas->gr);
-  free(canvas);
+  RUBY_CRITICAL(free(canvas));
 }
 
 VALUE

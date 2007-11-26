@@ -25,7 +25,7 @@ shoes_app_mark(shoes_app *app)
 static void
 shoes_app_free(shoes_app *app)
 {
-  free(app);
+  RUBY_CRITICAL(free(app));
 }
 
 VALUE
