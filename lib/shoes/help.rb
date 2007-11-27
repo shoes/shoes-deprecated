@@ -14,7 +14,7 @@ def dewikify(str)
     str.split(/\s*?(\{{3}(?:.+?)\}{3})|\n\n/m).map do |ps|
       next if ps.empty?
       if ps =~ /\{{3}(?:\s*\#![^\n]+)?(.+?)\}{3}/m
-        stack { background gray(0.9); para code($1), :stroke => "#636", :size => 9 }
+        stack { para code($1.strip), :stroke => "#636", :size => 9, :margin => 12 }
       else
         case ps
         when /\A \* (.+)/m
@@ -55,15 +55,16 @@ def Shoes.make_help_page(str)
     style(Shoes::Tagline, :size => 12, :weight => "bold", :stroke => "#eee", :fill => "#333", :margin => 6)
 
     @doc = 
-      stack :margin => 10, :margin_left => 130, :margin_top => 80,
+      stack :margin => 20, :margin_left => 130, :margin_top => 106,
         &dewikify(docs[0][-1]['description'])
     stack :top => 0, :left => 0 do
       stack do
         background black
-        @title = title docs[0][0], :stroke => white, :margin => 10
+        @title = title docs[0][0], :stroke => white, :margin => 14,
+          :weight => "bold"
       end
       @toc = {}
-      stack :margin => 10, :width => 120 do
+      stack :margin => 20, :width => 120 do
         docs.each do |sect_s, sect_h|
           sect_cls = sect_h['class']
           para strong(link(sect_s, :stroke => black) { 
@@ -77,9 +78,11 @@ def Shoes.make_help_page(str)
                 [link(meth_s) {
                   @title.replace meth_h['title']
                   @doc.clear(&dewikify(meth_h['description'])) 
-                  meth_h['methods'].each do |mname, expl|
-                    @doc.append { stack { background "#333"; tagline mname } }
-                    @doc.append(&dewikify(expl))
+                  @doc.append do
+                    meth_h['methods'].each do |mname, expl|
+                      stack { background "#333"; tagline mname, :margin => 4 }
+                      instance_eval &dewikify(expl)
+                    end
                   end
                 }, "\n"]
               end.flatten
@@ -89,6 +92,8 @@ def Shoes.make_help_page(str)
         end
       end
     end
+    image "static/shoes-icon.png", :top => 8, :right => 10,
+      :width => 64, :height => 64
   end
 rescue => e
   p e.message

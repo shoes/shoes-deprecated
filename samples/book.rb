@@ -22,7 +22,7 @@ class Book < Shoes
   def incident(num)
     num = num.to_i
     stack :margin => 10, :margin_left => 190, :margin_top => 20 do
-      banner "Incident"
+      banner "Incident", :margin => 0
       para strong("No. #{num + 1}: #{INCIDENTS[num][0]}")
     end
     flow :width => 180, :margin_left => 10, :margin_top => 10 do

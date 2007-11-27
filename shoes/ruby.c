@@ -288,6 +288,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char
     Data_Get_Struct(c, shoes_canvas, canvas);
 
   ATTR_MARGINS(attr, 0);
+
   int testw = dw;
   if (testw == 0) testw = lmargin + 1 + rmargin;
 
@@ -313,6 +314,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char
       cy = canvas->cy - canvas->place.y;
       ox = canvas->place.x;
       oy = canvas->place.y;
+
       if (rel == REL_TILE)
       {
         tw = dw; th = dh;
@@ -347,6 +349,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char
     {
       canvas->cx = place->x = canvas->place.x;
       canvas->cy = place->y = canvas->endy;
+      canvas->marginy = bmargin;
     }
   }
 
@@ -2161,6 +2164,8 @@ shoes_textblock_draw(VALUE self, VALUE c)
   ATTR_MARGINS(self_t->attr, 4);
   absx = (NIL_P(ATTR(self_t->attr, left)) && NIL_P(ATTR(self_t->attr, right)) ? 0 : 1);
   absy = (NIL_P(ATTR(self_t->attr, top)) && NIL_P(ATTR(self_t->attr, bottom)) ? 0 : 1);
+  if (!absy) tmargin = max(tmargin, canvas->marginy);
+
   self_t->place.x = ATTR2(int, self_t->attr, left, canvas->cx) + lmargin;
   self_t->place.y = ATTR2(int, self_t->attr, top, canvas->cy) + tmargin;
   self_t->place.w = ATTR2(int, self_t->attr, width, canvas->place.w - (canvas->cx - self_t->place.x)) - (lmargin + rmargin);
@@ -2265,12 +2270,15 @@ shoes_textblock_draw(VALUE self, VALUE c)
       }
       canvas->endy += lrect.height + ld;
     } else {
-      canvas->endy += bmargin + py + ld;
+      canvas->endy = self_t->place.y + bmargin + py;
     }
     if (ck == cStack || canvas->cx - canvas->place.x > canvas->width) {
       canvas->cx = canvas->place.x;
       canvas->cy = canvas->endy;
     }
+    canvas->marginy = bmargin;
+    if (NIL_P(ATTR(self_t->attr, margin)) && NIL_P(ATTR(self_t->attr, margin_top)))
+      canvas->marginy = lrect.height;
     canvas->endx = canvas->cx;
     INFO("CX: (%d, %d) / LRECT: (%d, %d) / END: (%d, %d)\n", 
       canvas->cx, canvas->cy,

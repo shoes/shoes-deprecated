@@ -313,6 +313,7 @@ shoes_canvas_clear(VALUE self)
   canvas->place.h = 0;
   canvas->cx = 0;
   canvas->cy = 0;
+  canvas->marginy = 0;
   canvas->endy = 0;
   canvas->endx = 0;
   canvas->topy = 0;
@@ -1032,6 +1033,7 @@ shoes_canvas_reflow(shoes_canvas *self_t, VALUE c)
 
   self_t->cx = self_t->place.x;
   self_t->cy = self_t->place.y;
+  self_t->marginy = 0;
   self_t->endx = self_t->place.x;
   self_t->endy = self_t->place.y;
   INFO("REFLOW: %d, %d (%d, %d) / %d, %d / %d, %d (%d, %d)\n", self_t->cx, self_t->cy,
@@ -1073,6 +1075,7 @@ shoes_canvas_draw(VALUE self, VALUE c)
     shoes_place_decide(&self_t->place, self_t->parent, self_t->attr, self_t->width, self_t->height, REL_CANVAS);
     self_t->endx = self_t->cx = 0;
     self_t->topy = self_t->endy = self_t->cy = 0;
+    self_t->marginy = 0;
     if (!NIL_P(self_t->parent))
     {
       shoes_canvas *pc;
