@@ -17,7 +17,7 @@ def dewikify(str, intro = false)
     end
     paras.map do |ps|
       if ps =~ /\{{3}(?:\s*\#![^\n]+)?(.+?)\}{3}/m
-        stack { para code($1.strip), :size => 9, :margin => 12 }
+        stack { para code($1.gsub(/\A\n+/, '').chomp), :size => 9, :margin => 12 }
       else
         case ps
         when /\A \* (.+)/m
