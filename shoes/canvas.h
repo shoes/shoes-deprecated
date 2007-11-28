@@ -20,14 +20,27 @@ typedef unsigned int PIXEL;
 
 extern const double RAD2PI, PIM2, PI;
 
+#define REL_WINDOW  1
+#define REL_CANVAS  2
+#define REL_CURSOR  3
+#define REL_TILE    4
+
+#define FLAG_POSITION 0x0F
+#define FLAG_ABSX     0x10
+#define FLAG_ABSY     0x20
+
 //
 // place struct
 // (outlines the area where a control has been placed)
 //
 typedef struct {
   int x, y, w, h;
-  char absx, absy;
+  unsigned char flags;
 } shoes_place;
+
+#define ABSX(place) ((place).flags & FLAG_ABSX)
+#define ABSY(place) ((place).flags & FLAG_ABSY)
+#define POS(place)  ((place).flags & FLAG_POSITION)
 
 //
 // color struct

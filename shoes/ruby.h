@@ -74,11 +74,6 @@ void shoes_ruby_init(void);
   int tmargin = ATTR2(int, attr, margin_top, margin); \
   int bmargin = ATTR2(int, attr, margin_bottom, margin)
 
-#define REL_WINDOW  1
-#define REL_CANVAS  2
-#define REL_CURSOR  3
-#define REL_TILE    4
-
 int shoes_px(VALUE, ID, int, int);
 int shoes_px2(VALUE, ID, ID, int, int, int);
 VALUE shoes_hash_set(VALUE, ID, VALUE);
@@ -87,7 +82,7 @@ int shoes_hash_int(VALUE, ID, int);
 double shoes_hash_dbl(VALUE, ID, double);
 char *shoes_hash_cstr(VALUE, ID, char *);
 VALUE rb_str_to_pas(VALUE);
-void shoes_place_decide(shoes_place *, VALUE, VALUE, int, int, char);
+void shoes_place_decide(shoes_place *, VALUE, VALUE, int, int, unsigned char);
 void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
 
 #define CANVAS_DEFS(f) \

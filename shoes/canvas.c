@@ -1159,7 +1159,7 @@ shoes_canvas_draw(VALUE self, VALUE c)
             if (rb_obj_is_kind_of(ele2, cCanvas))
             {
               Data_Get_Struct(ele2, shoes_canvas, c2);
-              if (c2->topy < c1->topy)
+              if (c2->topy < c1->topy || POS(c2->place) != REL_CANVAS)
                 break;
               if (c1->fully > c2->fully)
                 c2->fully = c1->fully;

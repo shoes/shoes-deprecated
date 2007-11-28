@@ -280,7 +280,7 @@ rb_str_to_pas(VALUE str)
 }
 
 void
-shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char rel)
+shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsigned char rel)
 {
   shoes_canvas *canvas = NULL;
   VALUE ck = rb_obj_class(c);
@@ -292,6 +292,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char
   int testw = dw;
   if (testw == 0) testw = lmargin + 1 + rmargin;
 
+  place->flags = rel;
   if (canvas == NULL)
   {
     place->x = 0;
@@ -317,6 +318,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char
 
       if (rel == REL_TILE)
       {
+        cx = 0; cy = 0;
         tw = dw; th = dh;
         testw = dw = canvas->place.w;
         dh = max(canvas->height, canvas->fully - (shoes_canvas_independent(canvas) ? 0 : canvas->place.y));
@@ -343,9 +345,9 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char
 
     place->x = PX2(attr, left, right, cx, tw, canvas->place.w) + ox;
     place->y = PX2(attr, top, bottom, cy, th, canvas->fully) + oy;
-    place->absx = (NIL_P(ATTR(attr, left)) && NIL_P(ATTR(attr, right)) ? 0 : 1);
-    place->absy = (NIL_P(ATTR(attr, top)) && NIL_P(ATTR(attr, bottom)) ? 0 : 1);
-    if (place->absy == 0 && (ck == cStack || place->x + place->w > canvas->place.x + canvas->place.w))
+    place->flags |= NIL_P(ATTR(attr, left)) && NIL_P(ATTR(attr, right)) ? 0 : FLAG_ABSX;
+    place->flags |= NIL_P(ATTR(attr, top)) && NIL_P(ATTR(attr, bottom)) ? 0 : FLAG_ABSY;
+    if (ABSY(*place) == 0 && (ck == cStack || place->x + place->w > canvas->place.x + canvas->place.w))
     {
       canvas->cx = place->x = canvas->place.x;
       canvas->cy = place->y = canvas->endy;
@@ -357,7 +359,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char
   place->h -= tmargin + bmargin;
   place->x += lmargin;
   place->y += tmargin;
-  INFO("PLACE: (%d, %d), (%d, %d) [%d, %d]\n", place->x, place->y, place->w, place->h, place->absx, place->absy);
+  INFO("PLACE: (%d, %d), (%d, %d) [%d, %d]\n", place->x, place->y, place->w, place->h, ABSX(*place), ABSY(*place));
 }
 
 void
@@ -408,7 +410,7 @@ shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, double r)
 
 #define FINISH() \
   self_t->place = place; \
-  if (!self_t->place.absy) { \
+  if (!ABSY(self_t->place)) { \
     canvas->cx += self_t->place.w; \
     canvas->cy = self_t->place.y; \
     canvas->endx = canvas->cx; \
@@ -2142,7 +2144,7 @@ shoes_textblock_on_layout(shoes_app *app, VALUE klass, shoes_textblock *block)
 VALUE
 shoes_textblock_draw(VALUE self, VALUE c)
 {
-  int px, py, pd, li, m, ld, absx, absy;
+  int px, py, pd, li, m, ld;
   double cx, cy;
   char *font;
   shoes_textblock *self_t;
@@ -2162,9 +2164,10 @@ shoes_textblock_draw(VALUE self, VALUE c)
   }
 
   ATTR_MARGINS(self_t->attr, 4);
-  absx = (NIL_P(ATTR(self_t->attr, left)) && NIL_P(ATTR(self_t->attr, right)) ? 0 : 1);
-  absy = (NIL_P(ATTR(self_t->attr, top)) && NIL_P(ATTR(self_t->attr, bottom)) ? 0 : 1);
-  if (!absy) tmargin = max(tmargin, canvas->marginy);
+  self_t->place.flags = REL_CANVAS;
+  self_t->place.flags |= NIL_P(ATTR(self_t->attr, left)) && NIL_P(ATTR(self_t->attr, right)) ? 0 : FLAG_ABSX;
+  self_t->place.flags |= NIL_P(ATTR(self_t->attr, top)) && NIL_P(ATTR(self_t->attr, bottom)) ? 0 : FLAG_ABSY;
+  if (!ABSY(self_t->place)) tmargin = max(tmargin, canvas->marginy);
 
   self_t->place.x = ATTR2(int, self_t->attr, left, canvas->cx) + lmargin;
   self_t->place.y = ATTR2(int, self_t->attr, top, canvas->cy) + tmargin;
@@ -2176,7 +2179,7 @@ shoes_textblock_draw(VALUE self, VALUE c)
 
   self_t->layout = pango_cairo_create_layout(canvas->cr);
   pd = 0;
-  if (!absx && self_t->place.x == canvas->cx + lmargin)
+  if (!ABSX(self_t->place) && self_t->place.x == canvas->cx + lmargin)
   {
     if (self_t->place.x - canvas->place.x > (self_t->place.w - (lmargin + rmargin)) - 20)
     {
@@ -2206,7 +2209,7 @@ shoes_textblock_draw(VALUE self, VALUE c)
   //
   // Line up the first line with the y-cursor
   //
-  if (!absx && !absy && pd)
+  if (!ABSX(self_t->place) && !ABSY(self_t->place) && pd)
   {
     last = pango_layout_get_line(self_t->layout, 0);
     pango_layout_line_get_pixel_extents(last, NULL, &lrect);
@@ -2253,7 +2256,7 @@ shoes_textblock_draw(VALUE self, VALUE c)
   pango_layout_line_get_pixel_extents(last, NULL, &lrect);
   pango_layout_get_pixel_size(self_t->layout, &px, &py);
 
-  if (!absy) {
+  if (!ABSY(self_t->place)) {
     // newlines have an empty size
     if (ck != cStack) {
       if (li == 0) {
