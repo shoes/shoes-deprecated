@@ -345,7 +345,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, char
     place->y = PX2(attr, top, bottom, cy, th, canvas->fully) + oy;
     place->absx = (NIL_P(ATTR(attr, left)) && NIL_P(ATTR(attr, right)) ? 0 : 1);
     place->absy = (NIL_P(ATTR(attr, top)) && NIL_P(ATTR(attr, bottom)) ? 0 : 1);
-    if (place->absy == 0 && (ck == cStack || place->x + place->w > canvas->place.w))
+    if (place->absy == 0 && (ck == cStack || place->x + place->w > canvas->place.x + canvas->place.w))
     {
       canvas->cx = place->x = canvas->place.x;
       canvas->cy = place->y = canvas->endy;
