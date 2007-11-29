@@ -309,20 +309,21 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
       cx = 0; cy = 0;
       ox = 0; oy = 0;
     }
-    else if (rel == REL_CANVAS || rel == REL_TILE)
+    else if (rel == REL_CANVAS)
     {
       cx = canvas->cx - canvas->place.x;
       cy = canvas->cy - canvas->place.y;
       ox = canvas->place.x;
       oy = canvas->place.y;
-
-      if (rel == REL_TILE)
-      {
-        cx = 0; cy = 0;
-        tw = dw; th = dh;
-        testw = dw = canvas->place.w;
-        dh = max(canvas->height, canvas->fully - (shoes_canvas_independent(canvas) ? 0 : canvas->place.y));
-      }
+    }
+    else if (rel == REL_TILE)
+    {
+      cx = 0; cy = 0;
+      ox = canvas->place.x;
+      oy = canvas->place.y;
+      tw = dw; th = dh;
+      testw = dw = canvas->place.w;
+      dh = max(canvas->height, canvas->fully - (shoes_canvas_independent(canvas) ? 0 : canvas->place.y));
     }
     else
     {
@@ -347,7 +348,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
     place->y = PX2(attr, top, bottom, cy, th, canvas->fully) + oy;
     place->flags |= NIL_P(ATTR(attr, left)) && NIL_P(ATTR(attr, right)) ? 0 : FLAG_ABSX;
     place->flags |= NIL_P(ATTR(attr, top)) && NIL_P(ATTR(attr, bottom)) ? 0 : FLAG_ABSY;
-    if (ABSY(*place) == 0 && (ck == cStack || place->x + place->w > canvas->place.x + canvas->place.w))
+    if (rel != REL_TILE && ABSY(*place) == 0 && (ck == cStack || place->x + place->w > canvas->place.x + canvas->place.w))
     {
       canvas->cx = place->x = canvas->place.x;
       canvas->cy = place->y = canvas->endy;
@@ -359,7 +360,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
   place->h -= tmargin + bmargin;
   place->x += lmargin;
   place->y += tmargin;
-  INFO("PLACE: (%d, %d), (%d, %d) [%d, %d]\n", place->x, place->y, place->w, place->h, ABSX(*place), ABSY(*place));
+  INFO("PLACE: (%d, %d), (%d, %d) [%d, %d] %x\n", place->x, place->y, place->w, place->h, ABSX(*place), ABSY(*place), place->flags);
 }
 
 void
