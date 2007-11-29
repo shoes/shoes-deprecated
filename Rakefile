@@ -220,18 +220,19 @@ when /win32/
 
   task :installer do
     mkdir_p "pkg"
-    rm_rf "dist/installer"
-    cp_r  "installer", "dist"
-    File.open("dist/installer/#{NAME}.nsi", "w") do |f|
-      File.foreach("installer/base.nsi") do |line|
+    rm_rf "dist/nsis"
+    cp_r  "platform/msw", "dist/nsis"
+    cp "shoes/appwin32.ico", "dist/nsis/setup.ico"
+    File.open("dist/nsis/#{NAME}.nsi", "w") do |f|
+      File.foreach("dist/nsis/base.nsi") do |line|
         line.gsub!(/\#\{(\w+)\}/) { Object.const_get($1) }
         f << line
       end
     end
-    Dir.chdir("dist/installer") do
+    Dir.chdir("dist/nsis") do
       sh "\"#{env('NSIS')}\\makensis.exe\" #{NAME}.nsi"
     end
-    mv "dist/installer/#{PKG}.exe", "pkg"
+    mv "dist/nsis/#{PKG}.exe", "pkg"
   end
 else
   require 'rbconfig'

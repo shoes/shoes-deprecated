@@ -67,6 +67,7 @@ def Shoes.make_help_page(str)
         @title = title docs[0][0], :stroke => white, :margin => 14,
           :weight => "bold"
         background "rgb(66, 66, 66, 180)".."rgb(0, 0, 0, 0)", :height => 0.7
+        background "rgb(66, 66, 66, 100)".."rgb(255, 255, 255, 0)", :height => 20, :bottom => 0
       end
       @toc = {}
       stack :margin => 20, :width => 120 do
