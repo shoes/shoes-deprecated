@@ -233,12 +233,7 @@ when /win32/
     rm_rf "dist/nsis"
     cp_r  "platform/msw", "dist/nsis"
     cp "shoes/appwin32.ico", "dist/nsis/setup.ico"
-    File.open("dist/nsis/#{NAME}.nsi", "w") do |f|
-      File.foreach("dist/nsis/base.nsi") do |line|
-        line.gsub!(/\#\{(\w+)\}/) { Object.const_get($1) }
-        f << line
-      end
-    end
+    rewrite "dist/nsis/base.nsi", "dist/nsis/#{NAME}.nsi"
     Dir.chdir("dist/nsis") do
       sh "\"#{env('NSIS')}\\makensis.exe\" #{NAME}.nsi"
     end
@@ -329,6 +324,18 @@ else
   rule ".o" => ".c" do |t|
     sh "#{CC} -I. -c #{LINUX_CFLAGS} #{t.source}"
     mv File.basename(t.name), t.name
+  end
+
+  case PLATFORM when /darwin/
+    task :installer do
+      mkdir_p "pkg"
+      rm_rf "dmg"
+      mkdir_p "dmg"
+      cp_r "#{APPNAME}.app", "dmg"
+      ln_s "/Applications", "dmg/Applications"
+      sh "DYLD_LIBRARY_PATH= platform/mac/pkg-dmg --target pkg/#{PKG}.dmg --source dmg --volname '#{APPNAME}' --license COPYING --copy platform/mac/dmg_ds_store:/.DS_Store --mkdir /.background --copy platform/mac/shoes-dmg.jpg:/.background" # --format UDRW"
+      rm_rf "dmg"
+    end
   end
 end
 

@@ -22,5 +22,20 @@
   <integer>0</integer>
   <key>IFMinorVersion</key>
   <integer>1</integer>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>shy</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>Shoes.icns</string>
+			<key>CFBundleTypeName</key>
+      <string>Shoes Package</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+		</dict>
+	</array>
 </dict>
 </plist>

@@ -646,9 +646,52 @@ shoes_app_quartz_redraw(
 }
 
 static pascal OSErr
+shoes_app_quartz_open(const AppleEvent *appleEvt, AppleEvent* reply, long refcon)
+{
+  short i;
+  AEDesc fileDesc;
+  OSErr err;
+  AEKeyword ignoredKeyWord;
+  DescType ignoredType;
+  Size ignoredSize;
+  long numberOFiles;
+  FSRef fr;
+  char _path[SHOES_BUFSIZE], bootup[SHOES_BUFSIZE];
+
+  if (!(err = AEGetParamDesc(appleEvt, keyDirectObject, typeAEList, &fileDesc)))
+  {
+    if ((err = AECountItems(&fileDesc, &numberOFiles)) == noErr) 
+    {
+      for (i = 1; i <= numberOFiles; ++i)
+      {
+        // Get a pointer to selected file
+        err = AEGetNthPtr(&fileDesc, i, typeFSRef, NULL,
+          NULL, &fr, sizeof(FSRef), NULL);
+        if (!err)
+        {
+          FSRefMakePath(&fr, &_path, SHOES_BUFSIZE);
+          sprintf(bootup,
+            "begin;"
+              "Shoes.load('%s');"
+            "rescue Object => e;"
+              SHOES_META
+                EXC_RUN
+              "end;"
+            "end;", _path);
+          rb_eval_string(bootup);
+          shoes_start("/");
+        }
+      }
+    }
+    err = AEDisposeDesc(&fileDesc);
+  }
+
+  return err;
+}
+
+static pascal OSErr
 shoes_app_quartz_quit(const AppleEvent *appleEvt, AppleEvent* reply, long refcon)
 {
-#pragma unused (appleEvt, reply, refcon)
   QuitApplicationEventLoop();
   return 128;
 }
@@ -1153,6 +1196,13 @@ shoes_app_open(shoes_app *app)
 
   err = AEInstallEventHandler(kCoreEventClass, kAEQuitApplication, 
     NewAEEventHandlerUPP(shoes_app_quartz_quit), 0, false);
+  if (err != noErr)
+  {
+    QUIT("Out of memory.", 0);
+  }
+
+  err = AEInstallEventHandler(kCoreEventClass, kAEOpenDocuments, 
+    NewAEEventHandlerUPP(shoes_app_quartz_open), 0, false);
   if (err != noErr)
   {
     QUIT("Out of memory.", 0);
