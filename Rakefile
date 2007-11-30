@@ -18,7 +18,9 @@ CLEAN.include ["{bin,shoes}/#{BIN}", "dist"]
 
 # Guess the environment
 unless ENV['MSVC'] or ENV['DDKBUILDENV']
-  if ENV['VS71COMNTOOLS']
+  if ENV['MSVCDir']
+    ENV['MSVC'] = ENV['MSVCDir']
+  elsif ENV['VS71COMNTOOLS']
     ENV['MSVC'] = File.expand_path("../../Vc7", ENV['VS71COMNTOOLS'])
   elsif ENV['VCToolkitInstallDir']
     ENV['MSVC'] = ENV['VCToolkitInstallDir']
@@ -71,11 +73,11 @@ task :build => :build_os do
   #   cp_r "#{gem.full_gem_path}/lib", "dist/ruby"
   # end
   case PLATFORM when /win32/
-    cp    FileList["#{ext_ruby}/bin/*"], "dist/"
-    cp    FileList["deps/cairo/bin/*"], "dist/"
-    cp    FileList["deps/pango/bin/*"], "dist/"
+    cp FileList["#{ext_ruby}/bin/*"], "dist/"
+    cp FileList["deps/cairo/bin/*"], "dist/"
+    cp FileList["deps/pango/bin/*"], "dist/"
     if ENV['VIDEO']
-      cp    FileList["deps/vlc/bin/*"], "dist/"
+      cp_r FileList["deps/vlc/bin/*"], "dist/"
     end
   when /darwin/
     if ENV['SHOES_DEPS_PATH']
@@ -115,11 +117,10 @@ task :build => :build_os do
   end
 
   cp_r  "lib", "dist/lib"
-  rm_rf "dist/lib/.svn"
   cp_r  "samples", "dist/samples"
   rm_rf "dist/samples/.svn"
   cp_r  "static", "dist/static"
-  rm_rf "dist/static/.svn"
+  rm_rf "dist/**/.svn"
   cp    "README", "dist/README.txt"
   cp    "COPYING", "dist/COPYING.txt"
   

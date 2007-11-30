@@ -721,7 +721,7 @@ shoes_app_win32proc(
   WPARAM w,
   LPARAM l)
 {
-  shoes_app *app = (shoes_app *)GetWindowLongPtr(win, GWLP_USERDATA);
+  shoes_app *app = (shoes_app *)GetWindowLong(win, GWL_USERDATA);
   int x = 0, y = 0;
 
   switch (msg)
@@ -929,6 +929,12 @@ shoes_app_win32proc(
   }
   return DefWindowProc(win, msg, w, l);
 }
+#endif
+
+#ifdef SHOES_WIN32
+#ifndef IDC_HAND
+#define IDC_HAND MAKEINTRESOURCE(32649)
+#endif
 #endif
 
 shoes_code
@@ -1232,7 +1238,7 @@ shoes_app_open(shoes_app *app)
     shoes_world->os.instance,
     NULL);
 
-  SetWindowLongPtr(app->slot.window, GWLP_USERDATA, (long)app);
+  SetWindowLong(app->slot.window, GWL_USERDATA, (long)app);
 #endif
 
   shoes_app_title(app, app->title);

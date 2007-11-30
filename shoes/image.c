@@ -7,6 +7,7 @@
 #include "shoes/internal.h"
 #include "shoes/canvas.h"
 #include "shoes/ruby.h"
+#include "shoes/config.h"
 #include <jpeglib.h>
 
 #ifndef SHOES_GTK

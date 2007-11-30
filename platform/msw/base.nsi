@@ -28,6 +28,9 @@
   ;Vista redirects $SMPROGRAMS to all users without this
   RequestExecutionLevel admin
 
+  ;Best compression
+  SetCompressor /SOLID lzma
+
 ;--------------------------------
 ;Variables
 
@@ -51,8 +54,6 @@
 ;Pages
 
   !insertmacro MUI_PAGE_WELCOME
-  ;!insertmacro MUI_PAGE_DIRECTORY
-  ;Page custom HackFolderPage HackFolderHook
 
   ;Start Menu Folder Page Configuration
   !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKCU" 
@@ -68,7 +69,7 @@
   !define MUI_FINISHPAGE_RUN
   !define MUI_FINISHPAGE_RUN_FUNCTION LaunchApp
   !define MUI_FINISHPAGE_RUN_TEXT $(LAUNCH_TEXT)
-  !define MUI_PAGE_CUSTOMFUNCTION_PRE preFinish
+  ;!define MUI_PAGE_CUSTOMFUNCTION_PRE preFinish
   !insertmacro MUI_PAGE_FINISH
   
   !insertmacro MUI_UNPAGE_CONFIRM
@@ -102,7 +103,7 @@ Section "App Section" SecApp
 
   SetOutPath "$INSTDIR"
   
-  File /r /x components\compreg.dat /x components\xpti.dat /x installer ..\*.*
+  File /r /x components\compreg.dat /x components\xpti.dat /x nsis ..\*.*
   
   ;Store installation folder
   WriteRegStr HKCU "${InstallKey}" "" $INSTDIR
