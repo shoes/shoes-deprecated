@@ -7,10 +7,12 @@ ARGV.delete_if { |x| x =~ /-psn_/ }
 
 require 'open-uri'
 require 'optparse'
-require 'shoes/cache'
+if Object.const_defined? :Shoes
+  require 'shoes/cache'
+  require 'shoes/help'
+end
 require 'shoes/inspect'
 require 'shoes/shy'
-require 'shoes/help'
  
 class Range 
   def rand 
