@@ -21,7 +21,7 @@ def dewikify(str, intro = false)
       else
         case ps
         when /\A \* (.+)/m
-          $1.split(/^ \* /).map { |x| para *dewikify_p(x) }
+          para *(dewikify_p($1.split(/^ \* /).join("[[BR]]")))
         when /\A==== (.+) ====/
           caption *dewikify_p($1)
         when /\A=== (.+) ===/
@@ -226,6 +226,8 @@ Stops your program. Call this anytime you want to suddenly call it quits.
 
 An App is a single window running code at a URL. When you switch URLs, a new App object is created and filled up with stacks, flows and other Shoes elements.
 
+The App itself, in slot/box terminology, is a flow.  See the ''Slots'' section for more, but this just means that any elements placed directly at the top-level will flow.
+
 === location() ===
 
 Gets a string containing the URL of the current app.
@@ -287,6 +289,66 @@ lining, leaving the middle transparent.
 
 Empties the line color.  Shapes drawn will have no outer line.  If `nofill` is also set, shapes drawn will
 not be visible.
+
+=== oval(top, left, radius) ===
+
+Draws a circular form at pixel coordinates (top, left) with a width and height of `radius` pixels.  The line and fill colors are used to draw the shape.
+
+{{{
+ #!ruby
+ Shoes.app do
+   stroke blue
+   strokewidth 4
+   fill black
+
+   oval 10, 10, 50
+ end
+}}}
+
+To draw an oval of varied proportions, you may also use the syntax: `oval(top, left, width, height)`.
+
+=== oval(styles) ===
+
+Draw circular form using a style hash.  The following styles are supported:
+
+ * `top`: the y-coordinate for the oval pen.
+ * `left`: the x-coordinate for the oval pen.
+ * `radius`: the width and height of the circle.
+ * `width`: a specific pixel width for the oval.
+ * `height`: a specific pixel height for the oval.
+ * `center`: do the coordinates specific the oval's center? (true or false)
+
+These styles may also be altered using the `style` method on the Shape object.
+
+=== rect(top, left, width, height, corners = 0) ===
+
+Draws a rectangle starting from coordinates (top, left) with dimensions of width x height.  Optionally, you may give the rectangle rounded corners with a fifth argument: the radius of the corners in pixels.
+
+As with all other shapes, the rectangle is drawn using the stroke and fill colors.
+
+{{{
+ #!ruby
+ Shoes.app do
+   stroke rgb(0.5, 0.5, 0.7)
+   fill rgb(1.0, 1.0, 0.9)
+   rect 10, 10, self.width - 10, self.height - 10
+ end
+}}}
+
+The above sample draws a rectangle which fills the area of its parent box, leaving a margin of 10 pixels around the edge.  Also see the `background` method for a rectangle which defaults to filling its parent box.
+
+=== rect(styles) ===
+
+Draw a rectangle using a style hash.  The following styles are supported:
+
+ * `top`: the y-coordinate for the rectangle.
+ * `left`: the x-coordinate for the rectangle.
+ * `radius`: the pixel radius of the rectangle's corners.
+ * `width`: a specific pixel width for the rectangle.
+ * `height`: a specific pixel height for the rectangle.
+ * `center`: do the coordinates specific the rectangle's center? (true or false)
+
+These styles may also be altered using the `style` method on the Shape object.
 
 == Styles of a Slot ==
 
