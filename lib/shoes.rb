@@ -91,7 +91,8 @@ class Shoes
     opts.separator ""
     opts.separator "Specific options:"
     
-    opts.on("-h", "--help") do |s|
+    opts.on("-m", "--manual",
+            "Open the built-in manual.") do |s|
       @main_app = Shoes::Help
     end
     opts.on("-s", "--shy DIRECTORY",

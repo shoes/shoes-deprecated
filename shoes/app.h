@@ -17,8 +17,8 @@
 #include "shoes/code.h"
 #include "shoes/config.h"
 
-#define SHOES_APP_HEIGHT 400
-#define SHOES_APP_WIDTH  400
+#define SHOES_APP_HEIGHT 500
+#define SHOES_APP_WIDTH  700
 #define SHOES_SHORTNAME  "shoes"
 #define SHOES_APPNAME    "Shoes"
 #define SHOES_VLCLASS    "Shoes VLC"

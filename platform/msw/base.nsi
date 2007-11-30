@@ -20,7 +20,7 @@
   OutFile "${ShortName}-${AppVersion}.exe"
 
   ;Default installation folder
-  InstallDir "$PROGRAMFILES\Common Files\${AppName}"
+  InstallDir "$PROGRAMFILES\Common Files\${AppName}\${AppVersion}"
   
   ;Get installation folder from registry if available
   InstallDirRegKey HKCU "${InstallKey}" ""
@@ -119,8 +119,7 @@ Section "App Section" SecApp
     ;Create shortcuts
     CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\${AppName}.lnk" "$INSTDIR\${AppMainEXE}"
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Get Help.lnk" "$INSTDIR\${AppMainEXE}" "--manual"
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\${AppMainEXE}" "--manual"
   
   !insertmacro MUI_STARTMENU_WRITE_END
 
@@ -153,7 +152,7 @@ Section "Uninstall"
   !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
     
   Delete "$SMPROGRAMS\$MUI_TEMP\${AppName}.lnk"
-  Delete "$SMPROGRAMS\$MUI_TEMP\Uninstall.lnk"
+  Delete "$SMPROGRAMS\$MUI_TEMP\Manual.lnk"
   
   ;Delete empty start menu parent diretories
   StrCpy $MUI_TEMP "$SMPROGRAMS\$MUI_TEMP"

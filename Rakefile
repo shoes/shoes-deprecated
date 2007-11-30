@@ -35,6 +35,16 @@ def env(x)
   ENV[x]
 end
 
+def rm_svn(root)
+  require 'find'
+  Find.find(root) do |path|
+    if File.basename(path) == '.svn'
+      rm_rf path
+      Find.prune
+    end
+  end
+end
+
 # Subs in special variables
 def rewrite before, after, reg = /\#\{(\w+)\}/, reg2 = '\1'
   File.open(after, 'w') do |a|
@@ -118,9 +128,8 @@ task :build => :build_os do
 
   cp_r  "lib", "dist/lib"
   cp_r  "samples", "dist/samples"
-  rm_rf "dist/samples/.svn"
   cp_r  "static", "dist/static"
-  rm_rf "dist/**/.svn"
+  rm_svn "dist"
   cp    "README", "dist/README.txt"
   cp    "COPYING", "dist/COPYING.txt"
   
