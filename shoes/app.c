@@ -7,6 +7,7 @@
 #include "shoes/ruby.h"
 #include "shoes/canvas.h"
 #include "shoes/world.h"
+#include "shoes/dialogs.h"
 #include "node.h"
 
 static void
