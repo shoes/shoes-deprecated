@@ -1527,9 +1527,8 @@ shoes_app_goto(shoes_app *app, char *path)
     shoes_browser_open(path);
   } else {
     shoes_app_visit(app, path);
-    shoes_canvas_compute(app->canvas);
     shoes_slot_repaint(&app->slot);
-    // TODO: send a single motion event instead
+    shoes_app_motion(app, app->mousex, app->mousey);
     shoes_app_cursor(app, s_arrow);
   }
   return SHOES_OK;

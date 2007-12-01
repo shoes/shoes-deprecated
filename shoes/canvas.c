@@ -133,6 +133,7 @@ shoes_canvas_style(int argc, VALUE *argv, VALUE self)
 void
 shoes_canvas_paint(VALUE self)
 {
+  int n = 0;
   shoes_code code = SHOES_OK;
 
   if (self == Qnil)
@@ -159,17 +160,21 @@ shoes_canvas_paint(VALUE self)
   INFO("shoes_cairo_create: (%d, %d)\n", canvas->width, canvas->height);
   if (canvas->cr != NULL)
     cairo_destroy(canvas->cr);
-  canvas->cr = cr = shoes_cairo_create(&canvas->slot, canvas->width, canvas->height, 0);
-  shoes_canvas_draw(self, self);
 
-  cairo_restore(cr);
+  // TODO: come up with a better shoes_canvas_compute and call it here
+  for (n = 0; n < 2; n++)
+  {
+    canvas->cr = cr = shoes_cairo_create(&canvas->slot, canvas->width, canvas->height, 0);
+    shoes_canvas_draw(self, self);
+    cairo_restore(cr);
 
-  if (cairo_status(cr)) {
-    QUIT("Cairo is unhappy: %s\n", cairo_status_to_string (cairo_status (cr)));
+    if (cairo_status(cr)) {
+      QUIT("Cairo is unhappy: %s\n", cairo_status_to_string (cairo_status (cr)));
+    }
+
+    cairo_destroy(cr);
+    canvas->cr = NULL;
   }
-
-  cairo_destroy(cr);
-  canvas->cr = NULL;
 
 #ifdef SHOES_QUARTZ
   cairo_surface_destroy(canvas->slot.surface);
