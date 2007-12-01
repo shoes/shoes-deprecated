@@ -14,7 +14,7 @@
 typedef struct _shoes_world_t {
   SHOES_WORLD_OS os;
   char path[SHOES_BUFSIZE];
-  VALUE app;
+  VALUE app, apps;
 } shoes_world_t;
 
 extern shoes_world_t *shoes_world;

@@ -54,7 +54,9 @@ shoes_app_alloc(VALUE klass)
 VALUE
 shoes_app_new()
 {
-  return shoes_app_alloc(cApp);
+  shoes_world->app = shoes_app_alloc(cApp);
+  rb_ary_push(shoes_world->apps, shoes_world->app);
+  return shoes_world->app;
 }
 
 #ifdef SHOES_GTK

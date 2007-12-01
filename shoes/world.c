@@ -15,8 +15,9 @@ shoes_world_alloc()
 {
   shoes_world_t *world = SHOE_ALLOC(shoes_world_t);
   SHOE_MEMZERO(world, shoes_world_t, 1);
-  world->app = shoes_app_new();
-  rb_gc_register_address(&world->app);
+  world->app = Qnil;
+  world->apps = rb_ary_new();
+  rb_gc_register_address(&world->apps);
   return world;
 }
 
@@ -27,7 +28,7 @@ shoes_world_free(shoes_world_t *world)
   CFRelease(world->os.clip);
   TECDisposeConverter(world->os.converter);
 #endif
-  rb_gc_unregister_address(&world->app);
+  rb_gc_unregister_address(&world->apps);
   if (world != NULL)
     SHOE_FREE(world);
 }
@@ -53,6 +54,8 @@ shoes_init()
 shoes_code
 shoes_load(char *path, char *uri)
 {
+  VALUE appobj = shoes_app_new();
+
   if (path)
   {
     char bootup[SHOES_BUFSIZE];
@@ -67,7 +70,7 @@ shoes_load(char *path, char *uri)
     rb_eval_string(bootup);
   }
 
-  return shoes_app_start(shoes_world->app, uri);
+  return shoes_app_start(appobj, uri);
 }
 
 shoes_code

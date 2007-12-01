@@ -1879,3 +1879,26 @@ shoes_canvas_set_clipboard(VALUE self, VALUE string)
 
   return string;
 }
+
+//
+// Window creation
+//
+VALUE
+shoes_canvas_window(int argc, VALUE *argv, VALUE self)
+{
+  VALUE uri, attr, block, app;
+  SETUP();
+
+  rb_scan_args(argc, argv, "02&", &uri, &attr, &block);
+  if (rb_obj_is_kind_of(uri, rb_cHash))
+  {
+    attr = uri;
+    uri = Qnil;
+  }
+
+  if (!NIL_P(uri))
+    shoes_load(RSTRING_PTR(uri), "/");
+
+  return shoes_world->app;
+}
+
