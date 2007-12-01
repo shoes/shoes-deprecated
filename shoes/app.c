@@ -1046,8 +1046,8 @@ shoes_app_resize(shoes_app *app, int width, int height)
 #ifdef SHOES_QUARTZ
   Rect gRect;
   GetWindowBounds(app->os.window, kWindowContentRgn, &gRect);
-  gRect.bottom = app->width + gRect.top;
-  gRect.right = app->height + gRect.left;
+  gRect.right = app->width + gRect.left;
+  gRect.bottom = app->height + gRect.top;
   SetWindowBounds(app->os.window, kWindowContentRgn, &gRect);
 #endif
 
