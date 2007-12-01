@@ -51,7 +51,24 @@ shoes_init()
 }
 
 shoes_code
-shoes_load(char *path)
+shoes_load(char *path, char *uri)
+{
+  char bootup[SHOES_BUFSIZE];
+  sprintf(bootup,
+    "begin;"
+      "Shoes.load(%%q<%s>);"
+    "rescue Object => e;"
+      SHOES_META
+        EXC_RUN
+      "end;"
+    "end;", path);
+  rb_eval_string(bootup);
+
+  return shoes_app_start(shoes_world->app, uri);
+}
+
+shoes_code
+shoes_start(char *path, char *uri)
 {
   shoes_code code = SHOES_OK;
   char bootup[SHOES_BUFSIZE];
@@ -80,28 +97,14 @@ shoes_load(char *path)
   StringValue(str);
   strcpy(shoes_world->path, RSTRING(str)->ptr);
 
-  VALUE uri = rb_eval_string("$SHOES_URI = Shoes.args!");
-  if (!RTEST(uri))
+  VALUE load_uri = rb_eval_string("$SHOES_URI = Shoes.args!");
+  if (!RTEST(load_uri))
     return SHOES_QUIT;
 
-  sprintf(bootup,
-    "begin;"
-      "Shoes.load($SHOES_URI) if $SHOES_URI.is_a?(String);"
-    "rescue Object => e;"
-      SHOES_META
-        EXC_RUN
-      "end;"
-    "end;");
-  rb_eval_string(bootup);
+  code = shoes_load(RSTRING_PTR(load_uri), uri);
 
 quit:
   return code;
-}
-
-shoes_code
-shoes_start(char *uri)
-{
-  return shoes_app_start(shoes_world->app, uri);
 }
 
 shoes_code

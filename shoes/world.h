@@ -33,8 +33,8 @@ void shoes_world_free(shoes_world_t *);
 // Shoes
 // 
 shoes_code shoes_init(void);
-shoes_code shoes_load(char *);
-shoes_code shoes_start(char *);
+shoes_code shoes_load(char *, char *);
+shoes_code shoes_start(char *, char *);
 shoes_code shoes_final(void);
 
 #endif

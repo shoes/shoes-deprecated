@@ -40,11 +40,7 @@ main(argc, argv)
   path = argv[0];
 #endif
   ruby_set_argv(argc - 1, &argv[1]);
-  code = shoes_load(path);
-  if (code != SHOES_OK)
-    goto done;
-
-  code = shoes_start("/");
+  code = shoes_start(path, "/");
   if (code != SHOES_OK)
     goto done;
 

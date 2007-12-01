@@ -670,16 +670,7 @@ shoes_app_quartz_open(const AppleEvent *appleEvt, AppleEvent* reply, long refcon
         if (!err)
         {
           FSRefMakePath(&fr, &_path, SHOES_BUFSIZE);
-          sprintf(bootup,
-            "begin;"
-              "Shoes.load('%s');"
-            "rescue Object => e;"
-              SHOES_META
-                EXC_RUN
-              "end;"
-            "end;", _path);
-          rb_eval_string(bootup);
-          shoes_start("/");
+          shoes_load(RSTRING(_path), "/");
         }
       }
     }
