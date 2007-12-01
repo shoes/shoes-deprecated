@@ -31,12 +31,6 @@ end
 class Shoes
   VERSION = "0.1"
 
-  NoScript = proc do
-    script = ask_open_file
-    Shoes.load(script)
-    visit "/"
-  end
-
   NotFound = proc do
     para "404 NOT FOUND, GUYS!"
   end
@@ -85,7 +79,7 @@ class Shoes
   end
 
   @mounts = []
-  @main_app = NoScript
+  @main_app = nil
 
   OPTS = OptionParser.new do |opts|
     opts.banner = "Usage: shoes [options] (app.rb or app.shy)"
@@ -131,7 +125,7 @@ class Shoes
 
   def self.args!
     OPTS.parse! ARGV
-    ARGV[0] or (!!@main_app)
+    ARGV[0] or true
   end
 
   def self.load(path)

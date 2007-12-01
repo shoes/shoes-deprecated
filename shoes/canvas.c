@@ -78,7 +78,7 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
   slot->dc = parent->dc;
 #endif
 
-  INFO("shoes_slot_init(DONE)\n", 0);
+  INFO("shoes_slot_init(%d, %d)\n", width, height);
 }
 
 cairo_t *

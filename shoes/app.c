@@ -1429,6 +1429,13 @@ shoes_app_visit(shoes_app *app, char *path)
   shoes_canvas_clear(app->canvas);
   shoes_app_reset_styles(app);
   meth = rb_funcall(cShoes, s_run, 1, app->location = rb_str_new2(path));
+  if (NIL_P(rb_ary_entry(meth, 0)))
+  {
+    VALUE script = shoes_dialog_open(app->canvas);
+    rb_funcall(cShoes, rb_intern("load"), 1, script);
+    meth = rb_funcall(cShoes, s_run, 1, app->location);
+  }
+
   exec.app = app;
   exec.block = rb_ary_entry(meth, 0);
   exec.args = rb_ary_entry(meth, 1);
