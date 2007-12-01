@@ -1043,6 +1043,14 @@ shoes_app_resize(shoes_app *app, int width, int height)
     gtk_widget_set_size_request(app->os.window, app->width, app->height);
 #endif
 
+#ifdef SHOES_QUARTZ
+  Rect gRect;
+  GetWindowBounds(app->os.window, kWindowContentRgn, &gRect);
+  gRect.bottom = app->width + gRect.top;
+  gRect.right = app->height + gRect.left;
+  SetWindowBounds(app->os.window, kWindowContentRgn, &gRect);
+#endif
+
 #ifdef SHOES_WIN32
   if (app->slot.window != NULL)
   {
