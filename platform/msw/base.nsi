@@ -54,9 +54,9 @@
 ;Pages
 
   !insertmacro MUI_PAGE_WELCOME
-  ;!define MUI_PAGE_HEADER_TEXT "Information"
-  !define MUI_PAGE_HEADER_SUBTEXT "Please read the following important information before continuing."
-  !define MUI_LICENSEPAGE_TEXT_TOP "When you are ready to continue with Setup, click Next."
+  !define MUI_PAGE_HEADER_TEXT "Shoes is MIT Licensed"
+  !define MUI_PAGE_HEADER_SUBTEXT "You are free to do as you please with Shoes."
+  !define MUI_LICENSEPAGE_TEXT_TOP "When you are ready to continue with Setup, click I Agree."
   !define MUI_LICENSEPAGE_TEXT_BOTTOM " "
   !insertmacro MUI_PAGE_LICENSE "..\COPYING.txt"
 
