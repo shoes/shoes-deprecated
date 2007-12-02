@@ -54,6 +54,11 @@
 ;Pages
 
   !insertmacro MUI_PAGE_WELCOME
+  ;!define MUI_PAGE_HEADER_TEXT "Information"
+  !define MUI_PAGE_HEADER_SUBTEXT "Please read the following important information before continuing."
+  !define MUI_LICENSEPAGE_TEXT_TOP "When you are ready to continue with Setup, click Next."
+  !define MUI_LICENSEPAGE_TEXT_BOTTOM " "
+  !insertmacro MUI_PAGE_LICENSE "..\COPYING.txt"
 
   ;Start Menu Folder Page Configuration
   !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKCU" 
