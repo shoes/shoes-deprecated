@@ -155,7 +155,7 @@ Compare that to the method `reverse`, which isn't a Kernel method and is availab
   #=> [:snakes, :cows, :dogs]
 }}}
 
-=== alert( message ) ➝ nil ===
+=== alert( message ) » nil ===
 
 Pops up a window containing a short message.
 
@@ -164,7 +164,7 @@ Pops up a window containing a short message.
  alert("I'm afraid I must interject!")
 }}}
 
-=== ask( message ) ➝ String ===
+=== ask( message ) » String ===
 
 Pops up a window and asks a question. For example, you may want to ask someone their name.
 
@@ -175,7 +175,7 @@ Pops up a window and asks a question. For example, you may want to ask someone t
 
 When the above script is run, the person at the computer will see a window with a blank box for entering their name. The name will then be saved in the `name` variable.
 
-=== ask_color(title: a String) ➝ Shoes::Color ===
+=== ask_color(title: a String) » Shoes::Color ===
 
 Pops up a color picker window. The program will wait for a color to be picked, then gives you 
 back a Color object. See the `Color` help for some ways you can use this color.
@@ -188,7 +188,7 @@ back a Color object. See the `Color` help for some ways you can use this color.
  end
 }}}
 
-=== ask_open_file() ➝ String ===
+=== ask_open_file() » String ===
 
 Pops up an "Open file..." window. It's the standard window which show all of your folders and lets you select a file to open. Hands you back the name of the file.
 
@@ -198,7 +198,7 @@ Pops up an "Open file..." window. It's the standard window which show all of you
  puts File.read(filename)
 }}}
 
-=== ask_save_file() ➝ String ===
+=== ask_save_file() » String ===
 
 Pops up a "Save file..." window, similiar to `ask_open_file`, described above.
 
@@ -207,7 +207,7 @@ Pops up a "Save file..." window, similiar to `ask_open_file`, described above.
  save_as = ask_save_file
 }}}
 
-=== confirm(question: a String) ➝ true or false ===
+=== confirm(question: a String) » true or false ===
 
 Pops up a yes-or-no question. If the person at the computer, clicks '''yes''', you'll get back a `true`. If not, you'll get back `false`.
 
@@ -228,7 +228,7 @@ An App is a single window running code at a URL. When you switch URLs, a new App
 
 The App itself, in slot/box terminology, is a flow.  See the ''Slots'' section for more, but this just means that any elements placed directly at the top-level will flow.
 
-=== location() ➝ String ===
+=== location() » String ===
 
 Gets a string containing the URL of the current app.
 
@@ -288,11 +288,11 @@ Shoes does a few things differently from NodeBox and Processing.  For example, S
 
 Shoes also borrows some animation ideas from Processing and will continue to closely consult Processing's methods as it expands.
 
-=== arrow(x, y, width) ➝ Shoes::Shape ===
+=== arrow(x, y, width) » Shoes::Shape ===
 
 Draws an arrow at coordinates (x, y) with a pixel `width`.
 
-=== fill(pattern) ➝ pattern ===
+=== fill(pattern) » pattern ===
 
 Sets the fill bucket to a specific color (or pattern.)  Patterns can be colors, gradients or images.  So, once the fill bucket is set, you can draw shapes and they will be colored in with the pattern you've chosen.
 
@@ -308,21 +308,21 @@ To draw a star with an image pattern:
 
 To clear the fill bucket, use `nofill`.  And to set the line color (the border of the star,) use the `stroke` method.
 
-=== nofill() ➝ self ===
+=== nofill() » self ===
 
 Blanks the fill color, so that any shapes drawn will not be filled in.  Instead, shapes will have only a
 lining, leaving the middle transparent.
 
-=== nostroke() ➝ self ===
+=== nostroke() » self ===
 
 Empties the line color.  Shapes drawn will have no outer line.  If `nofill` is also set, shapes drawn will
 not be visible.
 
-=== line(x, y, x2, y2) ➝ Shoes::Shape ===
+=== line(x, y, x2, y2) » Shoes::Shape ===
 
 Draws a line using the current line color (aka "stroke") starting at coordinates (x, y) and ending at coordinates (x2, y2).
 
-=== oval(top, left, radius) ➝ Shoes::Shape ===
+=== oval(top, left, radius) » Shoes::Shape ===
 
 Draws a circular form at pixel coordinates (top, left) with a width and height of `radius` pixels.  The line and fill colors are used to draw the shape.
 
@@ -339,7 +339,7 @@ Draws a circular form at pixel coordinates (top, left) with a width and height o
 
 To draw an oval of varied proportions, you may also use the syntax: `oval(top, left, width, height)`.
 
-=== oval(styles) ➝ Shoes::Shape ===
+=== oval(styles) » Shoes::Shape ===
 
 Draw circular form using a style hash.  The following styles are supported:
 
@@ -352,7 +352,7 @@ Draw circular form using a style hash.  The following styles are supported:
 
 These styles may also be altered using the `style` method on the Shape object.
 
-=== rect(top, left, width, height, corners = 0) ➝ Shoes::Shape ===
+=== rect(top, left, width, height, corners = 0) » Shoes::Shape ===
 
 Draws a rectangle starting from coordinates (top, left) with dimensions of width x height.  Optionally, you may give the rectangle rounded corners with a fifth argument: the radius of the corners in pixels.
 
@@ -369,7 +369,7 @@ As with all other shapes, the rectangle is drawn using the stroke and fill color
 
 The above sample draws a rectangle which fills the area of its parent box, leaving a margin of 10 pixels around the edge.  Also see the `background` method for a rectangle which defaults to filling its parent box.
 
-=== rect(styles) ➝ Shoes::Shape ===
+=== rect(styles) » Shoes::Shape ===
 
 Draw a rectangle using a style hash.  The following styles are supported:
 
@@ -382,15 +382,15 @@ Draw a rectangle using a style hash.  The following styles are supported:
 
 These styles may also be altered using the `style` method on the Shape object.
 
-=== shape(x, y) { ... } ➝ Shoes::Shape ===
+=== shape(x, y) { ... } » Shoes::Shape ===
 
 Describes an arbitrary shape to draw, beginning at coordinates (x, y) and continued by calls to `line_to`, `curve_to` and `move_to` inside the block.
 
-=== star(x, y, points = 10, outer = 100.0, inner = 50.0) ➝ Shoes::Shape ===
+=== star(x, y, points = 10, outer = 100.0, inner = 50.0) » Shoes::Shape ===
 
 Draws a star using the stroke and fill colors.  The star is positioned at coordinates (x, y) with a certain number of `points`.  The `outer` width defines the full radius of the star; the `inner` width specifies the radius of the star's middle, where points stem from.
 
-=== stroke(pattern) ➝ pattern ===
+=== stroke(pattern) » pattern ===
 
 Set the active line color for this slot.  The `pattern` may be a color, a gradient or an image, all of which are categorized as "patterns."  The line color is then used to draw the borders of any subsequent shape.
 
@@ -406,7 +406,7 @@ So, to draw an arrow with a red line around it:
 
 To clear the line color, use the `nostroke` method.
 
-=== transform(:center or :corner) ➝ self ===
+=== transform(:center or :corner) » self ===
 
 Should transformations (such as `skew` and `rotate`) be performed around the center of the shape?  Or the corner of the shape?  Shoes defaults to `:corner`.
 
@@ -424,16 +424,16 @@ To set the width of a stack to 150 pixels:
 Each style setting also has a method, which can be used to grab that particular setting.  (So,
 like, the `width` method returns the width of the slot in pixels.)
 
-=== height() ➝ a number ===
+=== height() » a number ===
 
 The vertical size of the slot in pixels.
 
-=== scroll() ➝ true or false ===
+=== scroll() » true or false ===
 
 Is this slot allowed to show a scrollbar?  True or false.  The scrollbar will only appear if
 the height of the slot is also fixed.
 
-=== style(styles) ➝ styles ===
+=== style(styles) » styles ===
 
 Alter the slot using a hash of style settings.  Any of the methods on this page (aside from this method, of course) can be used as a style setting.  So, for example, there is a `width` method, thus there is also a `width` style.
 
@@ -445,7 +445,7 @@ Alter the slot using a hash of style settings.  Any of the methods on this page 
  end
 }}}
 
-=== width() ➝ a number ===
+=== width() » a number ===
 
 The horizontal size of the slot in pixels.
 
@@ -475,13 +475,13 @@ To create an image, use the `image` method in a slot:
   end
 }}}
 
-=== height() ➝ a number ===
+=== height() » a number ===
 
 The vertical screen size of the image in pixels.  This is not the original size of the image.
 If you have a 150x150 pixel image and you set the width to 50 pixels, this method will return
 50.
 
-=== width() ➝ a number ===
+=== width() » a number ===
 
 The horizontal screen size of the image in pixels.
 
