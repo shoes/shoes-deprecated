@@ -340,14 +340,16 @@ else
 end
 
 task :tarball => 'bin/main.c' do
+  mkdir_p "pkg"
   rm_rf PKG
   sh "svn export . #{PKG}"
   rm "#{PKG}/bin/main.skel"
   rm "#{PKG}/Rakefile"
   rm "#{PKG}/use-deps"
+  rm_rf "#{PKG}/platform"
   cp "bin/main.c", "#{PKG}/bin/main.c"
   rewrite "Makefile", "#{PKG}/Makefile", /^(SVN_VERSION) = .+?$/, 'SVN_VERSION = \1'
-  sh "tar czvf #{PKG}.tar.gz #{PKG}"
+  sh "tar czvf pkg/#{PKG}.tar.gz #{PKG}"
   rm_rf PKG
 end
 
