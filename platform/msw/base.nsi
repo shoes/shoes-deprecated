@@ -108,7 +108,7 @@ Section "App Section" SecApp
 
   SetOutPath "$INSTDIR"
   
-  File /r /x components\compreg.dat /x components\xpti.dat /x nsis ..\*.*
+  File /r /x nsis ..\*.*
   
   ;Store installation folder
   WriteRegStr HKCU "${InstallKey}" "" $INSTDIR
@@ -119,12 +119,18 @@ Section "App Section" SecApp
   ;Create uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
 
+  ;Create batch file
+  FileOpen $0 "$INSTDIR\..\shoes.bat" w
+  FileWrite $0 "@ECHO OFF$\r$\n"
+  FileWrite $0 '@"$INSTDIR\shoes.exe" %1 %2 %3 %4 %5 %6 %7 %8 %9$\r$\n'
+  FileClose $0
+
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
     
-    ;Create shortcuts
-    CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\${AppName}.lnk" "$INSTDIR\${AppMainEXE}"
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\${AppMainEXE}" "--manual"
+  ;Create shortcuts
+  CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
+  CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\${AppName}.lnk" "$INSTDIR\${AppMainEXE}"
+  CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\${AppMainEXE}" "--manual"
   
   !insertmacro MUI_STARTMENU_WRITE_END
 
@@ -153,6 +159,7 @@ FunctionEnd
 Section "Uninstall"
 
   RMDir /r "$INSTDIR"
+  Delete "$INSTDIR\..\shoes.bat"
 
   !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
     
