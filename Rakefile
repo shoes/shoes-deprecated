@@ -332,6 +332,7 @@ else
       rm_rf "dmg"
       mkdir_p "dmg"
       cp_r "#{APPNAME}.app", "dmg"
+      mv "dmg/#{APPNAME}.app/Contents/MacOS/samples", "dmg/samples"
       ln_s "/Applications", "dmg/Applications"
       sh "DYLD_LIBRARY_PATH= platform/mac/pkg-dmg --target pkg/#{PKG}.dmg --source dmg --volname '#{APPNAME}' --license COPYING --copy platform/mac/dmg_ds_store:/.DS_Store --mkdir /.background --copy platform/mac/shoes-dmg.jpg:/.background" # --format UDRW"
       rm_rf "dmg"

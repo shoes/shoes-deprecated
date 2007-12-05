@@ -2709,7 +2709,7 @@ static void
 shoes_list_box_update(MenuRef menu, VALUE ary)
 {
   long i;
-  DeleteMenuItems(menu, 0, CountMenuItems(menu));
+  DeleteMenuItems(menu, 1, CountMenuItems(menu));
   for (i = 0; i < RARRAY_LEN(ary); i++)
   {
     CFStringRef cf = shoes_rb2cf(rb_ary_entry(ary, i));
@@ -2817,6 +2817,10 @@ shoes_list_box_items_set(VALUE self, VALUE items)
   shoes_control *self_t;
   Data_Get_Struct(self, shoes_control, self_t);
   ATTRSET(self_t->attr, items, items);
+#ifdef SHOES_QUARTZ
+  MenuRef menuRef;
+  GetControlData(self_t->ref, 0, kControlPopupButtonMenuRefTag, sizeof(MenuRef), &menuRef, NULL);
+#endif
   shoes_list_box_update(LIST_BOX_REF, items);
   shoes_list_box_choose(self, opt);
   return items;
