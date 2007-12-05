@@ -1302,12 +1302,15 @@ quit:
 shoes_code
 shoes_app_loop(shoes_app *app, char *path)
 {
+  shoes_code code = SHOES_OK;
 #ifndef SHOES_GTK
   app->slot.controls = rb_ary_new();
   rb_gc_register_address(&app->slot.controls);
 #endif
   shoes_slot_init(app->canvas, &app->slot, 0, 0, app->width, app->height, TRUE);
-  shoes_app_goto(app, path);
+  code = shoes_app_goto(app, path);
+  if (code != SHOES_OK)
+    return code;
   INFO("RUNNING LOOP.\n", 0);
 
 #ifdef SHOES_QUARTZ
@@ -1433,6 +1436,8 @@ shoes_app_visit(shoes_app *app, char *path)
   if (NIL_P(rb_ary_entry(meth, 0)))
   {
     VALUE script = shoes_dialog_open(app->canvas);
+    if (NIL_P(script))
+      return SHOES_QUIT;
     rb_funcall(cShoes, rb_intern("load"), 1, script);
     meth = rb_funcall(cShoes, s_run, 1, app->location);
   }
@@ -1530,16 +1535,20 @@ shoes_browser_open(char *url)
 shoes_code
 shoes_app_goto(shoes_app *app, char *path)
 {
+  shoes_code code = SHOES_OK;
   const char http_scheme[] = "http://";
   if (strlen(path) > strlen(http_scheme) && strncmp(http_scheme, path, strlen(http_scheme)) == 0) {
     shoes_browser_open(path);
   } else {
-    shoes_app_visit(app, path);
-    shoes_slot_repaint(&app->slot);
-    shoes_app_motion(app, app->mousex, app->mousey);
-    shoes_app_cursor(app, s_arrow);
+    code = shoes_app_visit(app, path);
+    if (code == SHOES_OK)
+    {
+      shoes_slot_repaint(&app->slot);
+      shoes_app_motion(app, app->mousex, app->mousey);
+      shoes_app_cursor(app, s_arrow);
+    }
   }
-  return SHOES_OK;
+  return code;
 }
 
 shoes_code
