@@ -2688,6 +2688,7 @@ static void
 shoes_list_box_update(GtkWidget *combo, VALUE ary)
 {
   long i;
+  gtk_list_store_clear(GTK_LIST_STORE(gtk_combo_box_get_model(GTK_COMBO_BOX(combo))));
   for (i = 0; i < RARRAY_LEN(ary); i++)
   {
     gtk_combo_box_append_text(GTK_COMBO_BOX(combo), _(RSTRING_PTR(rb_ary_entry(ary, i))));
@@ -2708,6 +2709,7 @@ static void
 shoes_list_box_update(MenuRef menu, VALUE ary)
 {
   long i;
+  DeleteMenuItems(menu, 0, CountMenuItems(menu));
   for (i = 0; i < RARRAY_LEN(ary); i++)
   {
     CFStringRef cf = shoes_rb2cf(rb_ary_entry(ary, i));
@@ -2730,6 +2732,7 @@ static void
 shoes_list_box_update(HWND box, VALUE ary)
 {
   long i;
+  SendMessage(box, CB_RESETCONTENT, 0, 0);
   for (i = 0; i < RARRAY_LEN(ary); i++)
   {
     SendMessage(box, CB_ADDSTRING, 0, (LPARAM)RSTRING_PTR(rb_ary_entry(ary, i)));
@@ -2798,6 +2801,26 @@ shoes_list_box_text(VALUE self)
 #else
 #define LIST_BOX_REF self_t->ref
 #endif
+
+VALUE
+shoes_list_box_items_get(VALUE self)
+{
+  shoes_control *self_t;
+  Data_Get_Struct(self, shoes_control, self_t);
+  return ATTR(self_t->attr, items);
+}
+
+VALUE
+shoes_list_box_items_set(VALUE self, VALUE items)
+{
+  VALUE opt = shoes_list_box_text(self);
+  shoes_control *self_t;
+  Data_Get_Struct(self, shoes_control, self_t);
+  ATTRSET(self_t->attr, items, items);
+  shoes_list_box_update(LIST_BOX_REF, items);
+  shoes_list_box_choose(self, opt);
+  return items;
+}
 
 VALUE
 shoes_list_box_draw(VALUE self, VALUE c)
@@ -3431,6 +3454,8 @@ shoes_ruby_init()
   rb_define_method(cListBox, "draw", CASTHOOK(shoes_list_box_draw), 1);
   rb_define_method(cListBox, "choose", CASTHOOK(shoes_list_box_choose), 1);
   rb_define_method(cListBox, "change", CASTHOOK(shoes_control_change), -1);
+  rb_define_method(cListBox, "items", CASTHOOK(shoes_list_box_items_get), 0);
+  rb_define_method(cListBox, "items=", CASTHOOK(shoes_list_box_items_set), 1);
   cProgress  = rb_define_class_under(cShoes, "Progress", cNative);
   rb_define_method(cProgress, "draw", CASTHOOK(shoes_progress_draw), 1);
 
