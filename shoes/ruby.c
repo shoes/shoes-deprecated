@@ -2351,8 +2351,8 @@ shoes_control_focus(VALUE self)
   if (GTK_CAN_FOCUS(self_t->ref)) gtk_widget_grab_focus(self_t->ref);
 #endif
 #ifdef SHOES_QUARTZ
-  SetKeyboardFocus(GetControlOwner(self_t->ref), self_t->ref, kControlNoFocusPart);
-  SetKeyboardFocus(GetControlOwner(self_t->ref), self_t->ref, kControlNextFocusPart);
+  SetKeyboardFocus(GetControlOwner(self_t->ref), self_t->ref, kControlFocusNoPart);
+  SetKeyboardFocus(GetControlOwner(self_t->ref), self_t->ref, kControlFocusNextPart);
 #endif
 #ifdef SHOES_WIN32
   SetFocus(self_t->ref);

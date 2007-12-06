@@ -302,11 +302,6 @@ shoes_slot_quartz_handler(
         }
         break;
 
-        case kEventControlHitTest:
-          INFO("kEventControlHitTest\n", 0);
-          err = noErr;
-        break;
-
         case kEventControlGetData:
         {
           OSType tag;
@@ -354,11 +349,6 @@ shoes_slot_quartz_handler(
             err = errDataNotSupported;
         }
         break;
-
-        case kEventControlClick:
-          INFO("kEventControlClick\n", 0);
-          err = noErr;
-        break;
       }
     break;
   }
@@ -383,11 +373,9 @@ shoes_slot_quartz_register(void)
       { kEventClassScrollable, kEventScrollableScrollTo },
 
       { kEventClassControl, kEventControlDraw },
-      { kEventClassControl, kEventControlHitTest },
       { kEventClassControl, kEventControlInitialize },
       { kEventClassControl, kEventControlGetData },
-      { kEventClassControl, kEventControlSetData },
-      { kEventClassControl, kEventControlClick }
+      { kEventClassControl, kEventControlSetData }
     };
 
     err = HIObjectRegisterSubclass(kShoesViewClassID, kHIViewClassID,

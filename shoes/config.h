@@ -76,6 +76,7 @@ typedef struct {
 
 typedef struct {
   HIViewRef scrollview, view;
+  VALUE focus;
   VALUE controls;
   CGContextRef context;
   cairo_surface_t *surface;
