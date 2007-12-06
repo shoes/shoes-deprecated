@@ -957,7 +957,7 @@ shoes_video_draw(VALUE self, VALUE c)
 #ifdef SHOES_WIN32
       int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
       self_t->ref = CreateWindowEx(0, SHOES_VLCLASS, "Shoes VLC Window",
-          WS_CHILD | WS_CLIPCHILDREN | WS_VISIBLE,
+          WS_CHILD | WS_CLIPCHILDREN | WS_TABSTOP | WS_VISIBLE,
           self_t->place.x, self_t->place.y, self_t->place.w, self_t->place.h,
           canvas->slot.window, (HMENU)cid, 
           (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE), NULL);
@@ -2339,6 +2339,25 @@ shoes_control_alloc(VALUE klass)
   control->attr = Qnil;
   control->parent = Qnil;
   return obj;
+}
+
+VALUE
+shoes_control_focus(VALUE self)
+{
+  shoes_control *self_t;
+  Data_Get_Struct(self, shoes_control, self_t);
+  ATTRSET(self_t->attr, hidden, Qtrue);
+#ifdef SHOES_GTK
+  if (GTK_CAN_FOCUS(self_t->ref)) gtk_widget_grab_focus(self_t->ref);
+#endif
+#ifdef SHOES_QUARTZ
+  SetKeyboardFocus(GetControlOwner(self_t->ref), self_t->ref, kControlNoFocusPart);
+  SetKeyboardFocus(GetControlOwner(self_t->ref), self_t->ref, kControlNextFocusPart);
+#endif
+#ifdef SHOES_WIN32
+  SetFocus(self_t->ref);
+#endif
+  return self;
 }
 
 VALUE

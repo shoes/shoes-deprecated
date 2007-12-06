@@ -325,6 +325,7 @@ void shoes_control_send(VALUE, ID);
 VALUE shoes_control_remove(VALUE);
 VALUE shoes_control_show(VALUE);
 VALUE shoes_control_hide(VALUE);
+VALUE shoes_control_focus(VALUE);
 
 VALUE shoes_button_draw(VALUE, VALUE);
 VALUE shoes_edit_line_draw(VALUE, VALUE);

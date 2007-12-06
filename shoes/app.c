@@ -16,6 +16,9 @@ shoes_app_mark(shoes_app *app)
 #ifndef SHOES_GTK
   rb_gc_mark_maybe(app->slot.controls);
 #endif
+#ifdef SHOES_WIN32
+  rb_gc_mark_maybe(app->slot.focus);
+#endif
   rb_gc_mark_maybe(app->location);
   rb_gc_mark_maybe(app->canvas);
   rb_gc_mark_maybe(app->nesting);
@@ -938,6 +941,35 @@ shoes_app_win32proc(
     }
     break;
 
+    case WM_ACTIVATE:
+      if (LOWORD(w) == WA_INACTIVE)
+      {
+        int i;
+        HWND newFocus = GetFocus();
+        for (i = 0; i < RARRAY_LEN(app->slot.controls); i++)
+        {
+          VALUE ctrl = rb_ary_entry(app->slot.controls, i);
+          if (rb_obj_is_kind_of(ctrl, cNative))
+          {
+            shoes_control *self_t;
+            Data_Get_Struct(ctrl, shoes_control, self_t);
+            if (self_t->ref == newFocus)
+            {
+              app->slot.focus = ctrl;
+              break;
+            }
+          }
+        }
+      }
+    break;
+
+    case WM_SETFOCUS:
+      if (!NIL_P(app->slot.focus))
+      {
+        shoes_control_focus(app->slot.focus);
+      }
+    break;
+
     case WM_COMMAND:
       if ((HWND)l)
       {
@@ -1232,6 +1264,7 @@ shoes_app_open(shoes_app *app)
   RECT rect;
 
   app->slot.controls = Qnil;
+  app->slot.focus = Qnil;
   app->os.ctrlkey = false;
   app->os.altkey = false;
   app->os.shiftkey = false;
@@ -1338,8 +1371,11 @@ shoes_app_loop(shoes_app *app, char *path)
     BOOL msg = PeekMessage(&msgs, NULL, 0, 0, PM_REMOVE);
     if (msg)
     {
-      TranslateMessage(&msgs);
-      DispatchMessage(&msgs);
+      if (!IsDialogMessage(app->slot.window, &msgs))
+      {
+        TranslateMessage(&msgs);
+        DispatchMessage(&msgs);
+      }
     }
     else
     {

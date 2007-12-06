@@ -116,6 +116,7 @@ OSStatus shoes_slot_quartz_create(VALUE, SHOES_SLOT_OS *, int, int, int, int);
 typedef struct {
   HDC dc;
   HWND window;
+  VALUE focus;
   VALUE controls;
   int scrolly;
   cairo_surface_t *surface;
