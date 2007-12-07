@@ -2348,7 +2348,7 @@ shoes_control_focus(VALUE self)
   Data_Get_Struct(self, shoes_control, self_t);
   ATTRSET(self_t->attr, hidden, Qtrue);
 #ifdef SHOES_GTK
-  if (GTK_CAN_FOCUS(self_t->ref)) gtk_widget_grab_focus(self_t->ref);
+  if (GTK_WIDGET_CAN_FOCUS(self_t->ref)) gtk_widget_grab_focus(self_t->ref);
 #endif
 #ifdef SHOES_QUARTZ
   SetKeyboardFocus(GetControlOwner(self_t->ref), self_t->ref, kControlFocusNoPart);
