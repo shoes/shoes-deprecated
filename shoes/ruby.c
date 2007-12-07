@@ -475,7 +475,6 @@ shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, double r)
   { \
     gtk_container_propagate_expose(GTK_CONTAINER(canvas->slot.canvas), self_t->ref, canvas->slot.expose); \
   }
-#endif
 
 static void
 shoes_widget_changed(GtkWidget *ref, gpointer data)
@@ -483,6 +482,7 @@ shoes_widget_changed(GtkWidget *ref, gpointer data)
   VALUE self = (VALUE)data;
   shoes_control_send(self, s_change);
 }
+#endif
 
 #ifdef SHOES_QUARTZ
 #define HEIGHT_PAD 10
