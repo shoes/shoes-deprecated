@@ -918,7 +918,7 @@ shoes_canvas_edit_line(int argc, VALUE *argv, VALUE self)
   rb_scan_args(argc, argv, "01&", &attr, &block);
 
   if (!NIL_P(block))
-    attr = shoes_hash_set(attr, s_insert, block);
+    attr = shoes_hash_set(attr, s_change, block);
 
   edit_line = shoes_control_new(cEditLine, attr, self);
   rb_ary_push(canvas->contents, edit_line);
@@ -933,7 +933,7 @@ shoes_canvas_edit_box(int argc, VALUE *argv, VALUE self)
   rb_scan_args(argc, argv, "01&", &attr, &block);
 
   if (!NIL_P(block))
-    attr = shoes_hash_set(attr, s_insert, block);
+    attr = shoes_hash_set(attr, s_change, block);
 
   edit_box = shoes_control_new(cEditBox, attr, self);
   rb_ary_push(canvas->contents, edit_box);

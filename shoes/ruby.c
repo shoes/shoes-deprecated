@@ -477,6 +477,13 @@ shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, double r)
   }
 #endif
 
+static void
+shoes_widget_changed(GtkWidget *ref, gpointer data)
+{ 
+  VALUE self = (VALUE)data;
+  shoes_control_send(self, s_change);
+}
+
 #ifdef SHOES_QUARTZ
 #define HEIGHT_PAD 10
 
@@ -2587,6 +2594,9 @@ shoes_edit_line_draw(VALUE self, VALUE c, VALUE actual)
       self_t->ref = gtk_entry_new();
       gtk_entry_set_visibility(GTK_ENTRY(self_t->ref), !RTEST(ATTR(self_t->attr, secret)));
       gtk_entry_set_text(GTK_ENTRY(self_t->ref), _(msg));
+      g_signal_connect(G_OBJECT(self_t->ref), "changed",
+                       G_CALLBACK(shoes_widget_changed),
+                       (gpointer)self);
 #endif
 
 #ifdef SHOES_QUARTZ
@@ -2706,6 +2716,9 @@ shoes_edit_box_draw(VALUE self, VALUE c, VALUE actual)
                                      GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
       gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(self_t->ref), GTK_SHADOW_IN);
       gtk_container_add(GTK_CONTAINER(self_t->ref), textview);
+      g_signal_connect(G_OBJECT(buffer), "changed",
+                       G_CALLBACK(shoes_widget_changed),
+                       (gpointer)self);
 #endif
 
 #ifdef SHOES_QUARTZ
@@ -2742,13 +2755,6 @@ shoes_edit_box_draw(VALUE self, VALUE c, VALUE actual)
 }
 
 #ifdef SHOES_GTK
-static void
-shoes_list_box_changed(GtkComboBox *ref, gpointer data)
-{ 
-  VALUE self = (VALUE)data;
-  shoes_control_send(self, s_change);
-}
-
 static void
 shoes_list_box_update(GtkWidget *combo, VALUE ary)
 {
@@ -2904,7 +2910,7 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE actual)
 #ifdef SHOES_GTK
       self_t->ref = gtk_combo_box_new_text();
       g_signal_connect(G_OBJECT(self_t->ref), "changed",
-                       G_CALLBACK(shoes_list_box_changed),
+                       G_CALLBACK(shoes_widget_changed),
                        (gpointer)self);
 #endif
 
@@ -3528,10 +3534,12 @@ shoes_ruby_init()
   rb_define_method(cEditLine, "text", CASTHOOK(shoes_edit_line_get_text), 0);
   rb_define_method(cEditLine, "text=", CASTHOOK(shoes_edit_line_set_text), 1);
   rb_define_method(cEditLine, "draw", CASTHOOK(shoes_edit_line_draw), 2);
+  rb_define_method(cEditLine, "change", CASTHOOK(shoes_control_change), -1);
   cEditBox  = rb_define_class_under(cShoes, "EditBox", cNative);
   rb_define_method(cEditBox, "text", CASTHOOK(shoes_edit_box_get_text), 0);
   rb_define_method(cEditBox, "text=", CASTHOOK(shoes_edit_box_set_text), 1);
   rb_define_method(cEditBox, "draw", CASTHOOK(shoes_edit_box_draw), 2);
+  rb_define_method(cEditBox, "change", CASTHOOK(shoes_control_change), -1);
   cListBox  = rb_define_class_under(cShoes, "ListBox", cNative);
   rb_define_method(cListBox, "text", CASTHOOK(shoes_list_box_text), 0);
   rb_define_method(cListBox, "draw", CASTHOOK(shoes_list_box_draw), 2);
