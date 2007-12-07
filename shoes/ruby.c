@@ -2612,7 +2612,8 @@ shoes_edit_line_draw(VALUE self, VALUE c, VALUE actual)
 #ifdef SHOES_WIN32
       int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
       self_t->ref = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("EDIT"), NULL,
-          WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT | (RTEST(ATTR(self_t->attr, secret)) ? ES_PASSWORD : NULL),
+          WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT | 
+          ES_MULTILINE | (RTEST(ATTR(self_t->attr, secret)) ? ES_PASSWORD : NULL),
           place.x, place.y, place.w, place.h, canvas->slot.window, (HMENU)cid, 
           (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
           NULL);

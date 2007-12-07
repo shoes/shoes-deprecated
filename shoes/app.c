@@ -973,6 +973,7 @@ shoes_app_win32proc(
           break;
 
           case CBN_SELCHANGE:
+          case EN_CHANGE:
           {
             int id = LOWORD(w);
             VALUE control = rb_ary_entry(app->slot.controls, id - SHOES_CONTROL1);
