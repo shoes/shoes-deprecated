@@ -2730,11 +2730,15 @@ shoes_edit_box_draw(VALUE self, VALUE c, VALUE actual)
 #endif
 
 #ifdef SHOES_WIN32
-      self_t->ref = CreateWindowEx(0, TEXT("EDIT"), NULL,
-          WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT,
-          place.x, place.y, place.w, place.h, canvas->slot.window, NULL, 
+      int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
+      self_t->ref = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("EDIT"), NULL,
+          WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT |
+          ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN,
+          place.x, place.y, place.w, place.h, canvas->slot.window, (HMENU)cid, 
           (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
           NULL);
+      shoes_win32_control_font(cid, canvas->slot.window);
+      rb_ary_push(canvas->slot.controls, self);
       SendMessage(self_t->ref, WM_SETTEXT, 0, (LPARAM)msg);
 #endif
       PLACE_CONTROL();
