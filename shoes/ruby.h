@@ -139,7 +139,7 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("edit_box", edit_box, -1); \
   f("progress", progress, -1); \
   f("contents", contents, 0); \
-  f("draw", draw, 1); \
+  f("draw", draw, 2); \
   f("after", after, -1); \
   f("before", before, -1); \
   f("append", append, -1); \

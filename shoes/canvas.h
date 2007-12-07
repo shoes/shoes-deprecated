@@ -28,6 +28,7 @@ extern const double RAD2PI, PIM2, PI;
 #define FLAG_POSITION 0x0F
 #define FLAG_ABSX     0x10
 #define FLAG_ABSY     0x20
+#define FLAG_ORIGIN   0x40
 
 //
 // place struct
@@ -41,6 +42,8 @@ typedef struct {
 #define ABSX(place) ((place).flags & FLAG_ABSX)
 #define ABSY(place) ((place).flags & FLAG_ABSY)
 #define POS(place)  ((place).flags & FLAG_POSITION)
+#define CPX(c)  (c->place.flags & FLAG_ORIGIN ? 0 : c->place.x)
+#define CPY(c)  (c->place.flags & FLAG_ORIGIN ? 0 : c->place.y)
 
 //
 // color struct
@@ -286,7 +289,7 @@ VALUE shoes_canvas_contents(VALUE);
 void shoes_canvas_size(VALUE, int, int);
 VALUE shoes_canvas_clear_contents(int, VALUE *, VALUE);
 VALUE shoes_canvas_remove(VALUE);
-VALUE shoes_canvas_draw(VALUE, VALUE);
+VALUE shoes_canvas_draw(VALUE, VALUE, VALUE);
 VALUE shoes_canvas_after(int, VALUE *, VALUE);
 VALUE shoes_canvas_before(int, VALUE *, VALUE);
 VALUE shoes_canvas_append(int, VALUE *, VALUE);
@@ -327,20 +330,20 @@ VALUE shoes_control_show(VALUE);
 VALUE shoes_control_hide(VALUE);
 VALUE shoes_control_focus(VALUE);
 
-VALUE shoes_button_draw(VALUE, VALUE);
-VALUE shoes_edit_line_draw(VALUE, VALUE);
+VALUE shoes_button_draw(VALUE, VALUE, VALUE);
+VALUE shoes_edit_line_draw(VALUE, VALUE, VALUE);
 VALUE shoes_edit_line_get_text(VALUE);
 VALUE shoes_edit_line_set_text(VALUE, VALUE);
-VALUE shoes_edit_box_draw(VALUE, VALUE);
+VALUE shoes_edit_box_draw(VALUE, VALUE, VALUE);
 VALUE shoes_edit_box_get_text(VALUE);
 VALUE shoes_edit_box_set_text(VALUE, VALUE);
 VALUE shoes_list_box_text(VALUE);
-VALUE shoes_list_box_draw(VALUE, VALUE);
-VALUE shoes_progress_draw(VALUE, VALUE);
+VALUE shoes_list_box_draw(VALUE, VALUE, VALUE);
+VALUE shoes_progress_draw(VALUE, VALUE, VALUE);
 
 VALUE shoes_shape_new(cairo_path_t *, VALUE, VALUE, VALUE, int, int);
 VALUE shoes_shape_alloc(VALUE);
-VALUE shoes_shape_draw(VALUE, VALUE);
+VALUE shoes_shape_draw(VALUE, VALUE, VALUE);
 VALUE shoes_shape_move(VALUE, VALUE, VALUE);
 VALUE shoes_shape_remove(VALUE);
 VALUE shoes_shape_motion(VALUE, int, int, int *);
@@ -348,7 +351,7 @@ VALUE shoes_shape_send_click(VALUE, int, int, int);
 
 VALUE shoes_image_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_image_alloc(VALUE);
-VALUE shoes_image_draw(VALUE, VALUE);
+VALUE shoes_image_draw(VALUE, VALUE, VALUE);
 VALUE shoes_image_remove(VALUE);
 VALUE shoes_image_motion(VALUE, int, int, int *);
 VALUE shoes_image_send_click(VALUE, int, int, int);
@@ -356,7 +359,7 @@ VALUE shoes_image_send_click(VALUE, int, int, int);
 #ifdef VIDEO
 VALUE shoes_video_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_video_alloc(VALUE);
-VALUE shoes_video_draw(VALUE, VALUE);
+VALUE shoes_video_draw(VALUE, VALUE, VALUE);
 VALUE shoes_video_show(VALUE);
 VALUE shoes_video_hide(VALUE);
 VALUE shoes_video_remove(VALUE);
@@ -370,8 +373,8 @@ VALUE shoes_pattern_alloc(VALUE);
 VALUE shoes_pattern_remove(VALUE);
 VALUE shoes_pattern_motion(VALUE, int, int, int *);
 VALUE shoes_pattern_send_click(VALUE, int, int, int);
-VALUE shoes_background_draw(VALUE, VALUE);
-VALUE shoes_border_draw(VALUE, VALUE);
+VALUE shoes_background_draw(VALUE, VALUE, VALUE);
+VALUE shoes_border_draw(VALUE, VALUE, VALUE);
 VALUE shoes_subpattern_new(VALUE, VALUE, VALUE);
 
 VALUE shoes_anim_new(VALUE, VALUE, VALUE, VALUE);
@@ -402,7 +405,7 @@ VALUE shoes_textblock_alloc(VALUE);
 VALUE shoes_textblock_remove(VALUE);
 VALUE shoes_textblock_set_cursor(VALUE, VALUE);
 VALUE shoes_textblock_get_cursor(VALUE);
-VALUE shoes_textblock_draw(VALUE, VALUE);
+VALUE shoes_textblock_draw(VALUE, VALUE, VALUE);
 VALUE shoes_textblock_motion(VALUE, int, int, int *);
 VALUE shoes_textblock_send_click(VALUE, int, int, int, VALUE *);
 
