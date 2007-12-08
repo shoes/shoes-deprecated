@@ -337,8 +337,8 @@ shoes_canvas_init(VALUE self, SHOES_SLOT_OS slot, VALUE attr, int width, int hei
   Data_Get_Struct(self, shoes_canvas, canvas);
   // canvas->slot = slot;
   canvas->attr = attr;
-  canvas->width = width;
-  canvas->height = height;
+  canvas->place.w = canvas->width = width;
+  canvas->place.h = canvas->height = height;
   return canvas;
 }
 
@@ -1092,8 +1092,6 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
         HIViewSetFrame(self_t->slot.scrollview, &rect);
 #endif
       }
-      self_t->width = self_t->place.w;
-      self_t->height = self_t->place.h;
     } 
     else if (RTEST(actual))
     {
@@ -1424,8 +1422,8 @@ void
 shoes_canvas_size(VALUE self, int w, int h)
 {
   SETUP();
-  canvas->width = w;
-  canvas->height = h;
+  canvas->place.w = canvas->width = w;
+  canvas->place.h = canvas->height = h;
 #ifdef SHOES_QUARTZ
   HIRect hr;
   HIViewGetFrame(canvas->slot.scrollview, &hr);
