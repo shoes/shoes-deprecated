@@ -73,9 +73,22 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
 #endif
 
 #ifdef SHOES_WIN32
-  slot->controls = parent->controls;
-  slot->window = parent->window;
-  slot->dc = parent->dc;
+  if (toplevel)
+  {
+    slot->dc = parent->dc;
+    slot->window = parent->window;
+    slot->controls = parent->controls;
+  }
+  else
+  {
+    slot->controls = rb_ary_new();
+    slot->dc = NULL;
+    slot->window = CreateWindowEx(0, SHOES_SLOTCLASS, "Shoes Slot Window",
+      WS_CHILD | WS_CLIPCHILDREN | WS_TABSTOP | WS_VISIBLE,
+      x, y, width, height, parent->window, NULL, 
+      (HINSTANCE)GetWindowLong(parent->window, GWL_HINSTANCE), NULL);
+    SetWindowLong(slot->window, GWL_USERDATA, (long)c);
+  }
 #endif
 
   INFO("shoes_slot_init(%d, %d)\n", width, height);
@@ -1091,6 +1104,11 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
         rect.size.height = self_t->place.h * 1.;
         HIViewSetFrame(self_t->slot.scrollview, &rect);
 #endif
+#ifdef SHOES_WIN32
+        MoveWindow(self_t->slot.window, self_t->place.x, 
+          self_t->place.y - pc->slot.scrolly, self_t->place.w, 
+          self_t->place.h, TRUE);
+#endif
       }
     } 
     else if (RTEST(actual))
@@ -1173,6 +1191,8 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
       else
       {
         shoes_place_decide(&c1->place, c1->parent, c1->attr, c1->width, c1->height, REL_CANVAS);
+        c1->height = c1->place.h;
+        c1->width = c1->place.w;
         c1->place.flags |= FLAG_ORIGIN;
         if (!ABSY(c1->place)) {
           self_t->cx = c1->place.x + c1->place.w;

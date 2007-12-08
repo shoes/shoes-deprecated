@@ -743,6 +743,143 @@ shoes_canvas_win32_vscroll(shoes_canvas *canvas, int code, int pos)
 }
 
 LRESULT CALLBACK
+shoes_slot_win32proc(
+  HWND win,
+  UINT msg,
+  WPARAM w,
+  LPARAM l)
+{
+  shoes_canvas *canvas;
+  VALUE c = (VALUE)GetWindowLong(win, GWL_USERDATA);
+
+  if (c != NULL)
+  {
+    Data_Get_Struct(c, shoes_canvas, canvas);
+    int x = 0, y = 0;
+
+    switch (msg)
+    {
+      case WM_ERASEBKGND:
+        return 1;
+
+      case WM_PAINT:
+        shoes_canvas_paint(c);
+        return 1;
+
+      case WM_VSCROLL:
+        shoes_canvas_win32_vscroll(canvas, LOWORD(w), HIWORD(w));
+      break;
+
+      case WM_LBUTTONDOWN:
+      {
+        WM_POINTS();
+        shoes_canvas_send_click(c, 1, x, y + canvas->slot.scrolly);
+      }
+      break;
+
+      case WM_RBUTTONDOWN:
+      {
+        WM_POINTS();
+        shoes_canvas_send_click(c, 2, x, y + canvas->slot.scrolly);
+      }
+      break;
+
+      case WM_MBUTTONDOWN:
+      {
+        WM_POINTS();
+        shoes_canvas_send_click(c, 3, x, y + canvas->slot.scrolly);
+      }
+      break;
+
+      case WM_LBUTTONUP:
+      {
+        WM_POINTS();
+        shoes_canvas_send_release(c, 1, x, y + canvas->slot.scrolly);
+      }
+      break;
+
+      case WM_RBUTTONUP:
+      {
+        WM_POINTS();
+        shoes_canvas_send_release(c, 2, x, y + canvas->slot.scrolly);
+      }
+      break;
+
+      case WM_MBUTTONUP:
+      {
+        WM_POINTS();
+        shoes_canvas_send_release(c, 3, x, y + canvas->slot.scrolly);
+      }
+      break;
+
+      case WM_MOUSEMOVE:
+      {
+        WM_POINTS();
+        shoes_canvas_send_motion(c, x, y + canvas->slot.scrolly, Qnil);
+      }
+      break;
+
+      case WM_ACTIVATE:
+        if (LOWORD(w) == WA_INACTIVE)
+        {
+          int i;
+          HWND newFocus = GetFocus();
+          for (i = 0; i < RARRAY_LEN(canvas->slot.controls); i++)
+          {
+            VALUE ctrl = rb_ary_entry(canvas->slot.controls, i);
+            if (rb_obj_is_kind_of(ctrl, cNative))
+            {
+              shoes_control *self_t;
+              Data_Get_Struct(ctrl, shoes_control, self_t);
+              if (self_t->ref == newFocus)
+              {
+                canvas->slot.focus = ctrl;
+                break;
+              }
+            }
+          }
+        }
+      break;
+
+      case WM_SETFOCUS:
+        if (!NIL_P(canvas->slot.focus))
+        {
+          shoes_control_focus(canvas->slot.focus);
+        }
+      break;
+
+      case WM_COMMAND:
+        if ((HWND)l)
+        {
+          switch (HIWORD(w))
+          {
+            case BN_CLICKED:
+            {
+              int id = LOWORD(w);
+              VALUE control = rb_ary_entry(canvas->slot.controls, id - SHOES_CONTROL1);
+              if (!NIL_P(control))
+                shoes_control_send(control, s_click);
+            }
+            break;
+
+            case CBN_SELCHANGE:
+            case EN_CHANGE:
+            {
+              int id = LOWORD(w);
+              VALUE control = rb_ary_entry(canvas->slot.controls, id - SHOES_CONTROL1);
+              if (!NIL_P(control))
+                shoes_control_send(control, s_change);
+            }
+            break;
+          }
+        }
+      break;
+    }
+  }
+  return DefWindowProc(win, msg, w, l);
+}
+
+LRESULT CALLBACK
 shoes_app_win32proc(
   HWND win,
   UINT msg,
@@ -1275,20 +1412,22 @@ shoes_app_open(shoes_app *app)
     QUIT("Couldn't register WIN32 window class.");
   }
 
-  app->os.vlclassex.hInstance = shoes_world->os.instance;
+  app->os.vlclassex.hInstance = app->os.slotex.hInstance = shoes_world->os.instance;
   app->os.vlclassex.lpszClassName = SHOES_VLCLASS;
-  app->os.vlclassex.style = CS_NOCLOSE;
+  app->os.slotex.lpszClassName = SHOES_SLOTCLASS;
+  app->os.vlclassex.style = app->os.slotex.style = CS_NOCLOSE;
   app->os.vlclassex.lpfnWndProc = DefWindowProc;
-  app->os.vlclassex.cbSize = sizeof(WNDCLASSEX);
-  app->os.vlclassex.hIcon = NULL;
-  app->os.vlclassex.hIconSm = NULL;
-  app->os.vlclassex.hCursor = LoadCursor(NULL, IDC_ARROW);
-  app->os.vlclassex.lpszMenuName = NULL;
-  app->os.vlclassex.cbClsExtra = 0;
-  app->os.vlclassex.cbWndExtra = 0;
-  app->os.vlclassex.hbrBackground = (HBRUSH)GetStockObject(LTGRAY_BRUSH);
+  app->os.slotex.lpfnWndProc = shoes_slot_win32proc;
+  app->os.vlclassex.cbSize = app->os.slotex.cbSize = sizeof(WNDCLASSEX);
+  app->os.vlclassex.hIcon = app->os.slotex.hIcon = NULL;
+  app->os.vlclassex.hIconSm = app->os.slotex.hIconSm = NULL;
+  app->os.vlclassex.hCursor = app->os.slotex.hCursor = LoadCursor(NULL, IDC_ARROW);
+  app->os.vlclassex.lpszMenuName = app->os.slotex.lpszMenuName = NULL;
+  app->os.vlclassex.cbClsExtra = app->os.slotex.cbClsExtra = 0;
+  app->os.vlclassex.cbWndExtra = app->os.slotex.cbWndExtra = 0;
+  app->os.vlclassex.hbrBackground = app->os.slotex.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
 
-  if (!RegisterClassEx(&app->os.vlclassex))
+  if (!RegisterClassEx(&app->os.slotex) || !RegisterClassEx(&app->os.vlclassex))
   {
     QUIT("Couldn't register VLC window class.");
   }

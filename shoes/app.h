@@ -22,6 +22,7 @@
 #define SHOES_SHORTNAME  "shoes"
 #define SHOES_APPNAME    "Shoes"
 #define SHOES_VLCLASS    "Shoes VLC"
+#define SHOES_SLOTCLASS  "Shoes Slot"
 
 //
 // abstract window struct

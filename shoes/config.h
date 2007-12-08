@@ -125,7 +125,7 @@ typedef struct {
 
 typedef struct {
   BOOL ctrlkey, altkey, shiftkey;
-  WNDCLASSEX classex, vlclassex;
+  WNDCLASSEX classex, slotex, vlclassex;
 } shoes_app_win32, SHOES_APP_OS;
 
 typedef struct {
