@@ -2,7 +2,10 @@ NOTES = [
   ['Welcome to the vJot Clone', 'Okay, you know, just type stuff in and it will save as you go.']
 ]
 
-Shoes.app do
+Shoes.app :title => "vJot Clone", 
+  :width => 420, :height => 560,
+  :resizable => false do
+
   @note = NOTES.first
   background "#C7EAFB"
   stack :width => 400, :margin => 20 do
@@ -14,11 +17,11 @@ Shoes.app do
         @note[0] = @title.text
         load_list
       end
-      stack :width => 1.0, :height => 250 do
+      stack :width => 1.0, :height => 200 do
         background "#eee"
         @list = para
       end
-      @jot = edit_box :width => 1.0, :height => 250, :text => @note[1] do
+      @jot = edit_box :width => 1.0, :height => 200, :text => @note[1] do
         @note[1] = @jot.text
       end
     end
