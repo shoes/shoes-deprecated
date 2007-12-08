@@ -2710,6 +2710,7 @@ shoes_edit_box_draw(VALUE self, VALUE c, VALUE actual)
 #ifdef SHOES_GTK
       GtkTextBuffer *buffer;
       GtkWidget* textview = gtk_text_view_new();
+      gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textview), GTK_WRAP_WORD);
       buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
       gtk_text_buffer_set_text(buffer, _(msg), -1);
       self_t->ref = gtk_scrolled_window_new(NULL, NULL);
