@@ -1499,7 +1499,25 @@ shoes_app_loop(shoes_app *app, char *path)
     BOOL msg = PeekMessage(&msgs, NULL, 0, 0, PM_REMOVE);
     if (msg)
     {
-      if (!IsDialogMessage(app->slot.window, &msgs))
+      if (msgs.message == WM_KEYDOWN || msgs.message == WM_KEYUP)
+      {
+        if (RARRAY_LEN(app->slot.controls) > 0)
+        {
+          switch (msgs.wParam)
+          {
+            case VK_TAB: case VK_UP: case VK_LEFT: case VK_DOWN:
+            case VK_RIGHT: case VK_PRIOR: case VK_NEXT:
+              break;
+            default:
+              msg = false;
+          }
+        }
+        else msg = false;
+      }
+      else if (msgs.message == WM_SYSCHAR || msgs.message == WM_CHAR)
+        msg = false;
+      if (msg) msg = IsDialogMessage(app->slot.window, &msgs);
+      if (!msg)
       {
         TranslateMessage(&msgs);
         DispatchMessage(&msgs);

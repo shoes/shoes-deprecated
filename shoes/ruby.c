@@ -2613,7 +2613,7 @@ shoes_edit_line_draw(VALUE self, VALUE c, VALUE actual)
       int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
       self_t->ref = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("EDIT"), NULL,
           WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT | 
-          ES_MULTILINE | (RTEST(ATTR(self_t->attr, secret)) ? ES_PASSWORD : NULL),
+          (RTEST(ATTR(self_t->attr, secret)) ? ES_PASSWORD : NULL),
           place.x, place.y, place.w, place.h, canvas->slot.window, (HMENU)cid, 
           (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
           NULL);
@@ -3235,7 +3235,7 @@ shoes_anim_draw(VALUE self, VALUE c, VALUE actual)
   return self;
 }
 
-static VALUE
+VALUE
 shoes_debug(VALUE self, VALUE str)
 {
 #ifdef SHOES_WIN32
@@ -3246,7 +3246,7 @@ shoes_debug(VALUE self, VALUE str)
   return Qnil;
 }
 
-static VALUE
+VALUE
 shoes_p(VALUE self, VALUE obj)
 {
   return shoes_debug(self, rb_inspect(obj));

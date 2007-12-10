@@ -409,6 +409,9 @@ VALUE shoes_textblock_draw(VALUE, VALUE, VALUE);
 VALUE shoes_textblock_motion(VALUE, int, int, int *);
 VALUE shoes_textblock_send_click(VALUE, int, int, int, VALUE *);
 
+VALUE shoes_debug(VALUE, VALUE);
+VALUE shoes_p(VALUE, VALUE);
+
 //
 // shoes/image.c
 //
