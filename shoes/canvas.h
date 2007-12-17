@@ -178,6 +178,10 @@ typedef struct {
   shoes_place place;
 } shoes_control;
 
+#define ANIM_NADA    0
+#define ANIM_STARTED 1
+#define ANIM_PAUSED  2
+
 //
 // animation struct
 //
@@ -186,6 +190,12 @@ typedef struct {
   VALUE parent;
   int fps, frame;
   char started;
+#ifdef SHOES_GTK
+  guint tag;
+#endif
+#ifdef SHOES_QUARTZ
+  EventLoopTimerRef timer;
+#endif
 } shoes_anim;
 
 //
@@ -381,6 +391,8 @@ VALUE shoes_anim_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_anim_alloc(VALUE);
 VALUE shoes_anim_init(VALUE, VALUE);
 VALUE shoes_anim_remove(VALUE);
+VALUE shoes_anim_start(VALUE);
+VALUE shoes_anim_stop(VALUE);
 void shoes_anim_call(VALUE);
 
 VALUE shoes_color_new(int, int, int, int);
