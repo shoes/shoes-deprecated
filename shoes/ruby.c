@@ -3244,6 +3244,8 @@ shoes_anim_start(VALUE self)
       NewEventLoopTimerUPP(shoes_quartz_animate), self, &self_t->timer);
 #endif
 #ifdef SHOES_WIN32
+    shoes_canvas *canvas;
+    Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
     long nid = rb_ary_index_of(canvas->app->timers, self);
     SetTimer(canvas->slot.window, SHOES_CONTROL1 + nid, interval, NULL);
 #endif
@@ -3599,10 +3601,10 @@ shoes_ruby_init()
   cAnim    = rb_define_class_under(cShoes, "Animation", rb_cObject);
   rb_define_alloc_func(cAnim, shoes_anim_alloc);
   rb_define_method(cAnim, "draw", CASTHOOK(shoes_anim_draw), 2);
+  rb_define_method(cAnim, "remove", CASTHOOK(shoes_anim_remove), 0);
   rb_define_method(cAnim, "start", CASTHOOK(shoes_anim_start), 0);
   rb_define_method(cAnim, "stop", CASTHOOK(shoes_anim_stop), 0);
   rb_define_method(cAnim, "toggle", CASTHOOK(shoes_anim_toggle), 0);
-  rb_define_method(cAnim, "remove", CASTHOOK(shoes_anim_remove), 0);
 
   cColor   = rb_define_class_under(cShoes, "Color", rb_cObject);
   rb_define_alloc_func(cColor, shoes_color_alloc);
