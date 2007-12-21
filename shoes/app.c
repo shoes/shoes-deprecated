@@ -1452,6 +1452,15 @@ shoes_app_open(shoes_app *app)
     NULL);
 
   SetWindowLong(app->slot.window, GWL_USERDATA, (long)app);
+
+  SCROLLINFO si;
+  si.cbSize = sizeof(SCROLLINFO);
+  si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS;
+  si.nMin = 0;
+  si.nMax = 0; 
+  si.nPage = 0;
+  si.nPos = 0;
+  SetScrollInfo(app->slot.window, SB_VERT, &si, TRUE);
 #endif
 
   shoes_app_title(app, app->title);
@@ -1493,7 +1502,7 @@ shoes_app_loop(shoes_app *app, char *path)
 
 #ifdef SHOES_WIN32
   MSG msgs;
-  ShowWindow(app->slot.window, shoes_world->os.style);
+  ShowWindow(app->slot.window, SW_SHOWNORMAL);
   while (WM_QUIT != msgs.message)
   {
     BOOL msg = PeekMessage(&msgs, NULL, 0, 0, PM_REMOVE);
@@ -1725,9 +1734,8 @@ shoes_app_goto(shoes_app *app, char *path)
     code = shoes_app_visit(app, path);
     if (code == SHOES_OK)
     {
-      shoes_slot_repaint(&app->slot);
       shoes_app_motion(app, app->mousex, app->mousey);
-      shoes_app_cursor(app, s_arrow);
+      shoes_slot_repaint(&app->slot);
     }
   }
   return code;

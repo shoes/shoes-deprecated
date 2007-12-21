@@ -543,13 +543,13 @@ shoes_cf2rb(CFStringRef cf)
 #define HEIGHT_PAD 6
 
 #define PLACE_CONTROL() \
-  PLACE_COORDS()
+  PLACE_COORDS(); \
+  MoveWindow(self_t->ref, place.x, place.y, place.w, place.h, TRUE)
 
 #define REPAINT_CONTROL() \
   place.y -= canvas->slot.scrolly; \
   if (CHANGED_COORDS()) { \
-    PLACE_COORDS(); \
-    MoveWindow(self_t->ref, place.x, place.y, place.w, place.h, TRUE); \
+    PLACE_CONTROL(); \
   } \
   place.y += canvas->slot.scrolly
 
