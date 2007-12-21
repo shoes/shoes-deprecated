@@ -86,11 +86,7 @@ shoes_start(char *path, char *uri)
       "require 'shoes';"
       "DIR;"
     "rescue Object => e;"
-      SHOES_META
-        "define_method :load do |path|; end;"
-        EXC_RUN
-      "end;"
-      "e.message;"
+      "puts(e.message);"
     "end",
     path);
 
@@ -100,6 +96,9 @@ shoes_start(char *path, char *uri)
   }
 
   VALUE str = rb_eval_string(bootup);
+  if (NIL_P(str))
+    return SHOES_QUIT;
+
   StringValue(str);
   strcpy(shoes_world->path, RSTRING(str)->ptr);
 

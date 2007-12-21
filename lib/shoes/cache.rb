@@ -37,8 +37,8 @@ if Object::const_defined? :OpenURI
   end
 end
 require 'rubygems/open-uri'
-require 'rubygems/remote_installer'
-class << Gem::Ext::Builder
+require 'rubygems/installer'
+class << Gem::Ext::ExtConfBuilder
   alias_method :make__, :make
   def self.make(dest_path, results)
     raise unless File.exist?('Makefile')
@@ -124,7 +124,7 @@ def fetch_gem(name, version = nil, &blk)
   if Gem.source_index.find_name(name, version).empty?
     puts "** Fetching #{name} #{version}"
 
-    installer = Gem::RemoteInstaller.new(:include_dependencies => true)
+    installer = Gem::Installer.new(:include_dependencies => true)
     installer.install(name, version || Gem::Requirement.default, true)
     gem_reset
   end
