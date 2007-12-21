@@ -20,7 +20,7 @@
   OutFile "${ShortName}-${AppVersion}.exe"
 
   ;Default installation folder
-  InstallDir "$PROGRAMFILES\Common Files\${AppName}\${AppVersion}"
+  InstallDir "$PROGRAMFILES\${AppName}\${AppVersion}"
   
   ;Get installation folder from registry if available
   InstallDirRegKey HKCU "${InstallKey}" ""
@@ -106,6 +106,8 @@
 
 Section "App Section" SecApp
 
+  ReadEnvStr $INSTDIR "COMMONPROGRAMFILES"
+  StrCpy $INSTDIR "$INSTDIR\${AppName}\${AppVersion}"
   SetOutPath "$INSTDIR"
   
   File /r /x nsis ..\*.*
