@@ -1506,7 +1506,7 @@ shoes_color_method_missing(int argc, VALUE *argv, VALUE self)
   {
     shoes_color *color;
     Data_Get_Struct(c, shoes_color, color);
-    color->a = NUM2RGBINT(alpha);
+    c = shoes_color_new(color->r, color->g, color->b, NUM2RGBINT(alpha));
   }
 
   return c;
