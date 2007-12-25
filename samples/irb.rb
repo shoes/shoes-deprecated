@@ -39,7 +39,12 @@ class MimickIRB < RubyLex
 
     @indent = 0
     @indent_stack = []
-    obj
+
+    $stdout.rewind
+    output = $stdout.read
+    $stdout.truncate(0)
+    $stdout.rewind
+    [output, obj]
   rescue Object => e
     case e when Empty, Continue
     else @line = ""
@@ -53,19 +58,27 @@ end
 
 CURSOR = ">>"
 IRBalike = MimickIRB.new
+$stdout = StringIO.new
 
 str = [CURSOR + " "]
 cmd = ""
 Shoes.app do
-  background "#555"
-  @console = para str, :font => "Monospace 12px", :stroke => "#dfa"
-  @console.cursor = -1
+  stack do
+    background "#555"
+    para "Interactive Ruby ready.", :fill => white, :stroke => red
+    stack :width => 1.0, :height => 400, :tail => true do
+      background "#555"
+      @console = para str, :font => "Monospace 12px", :stroke => "#dfa"
+      @console.cursor = -1
+    end
+  end
   keypress do |k|
     case k
     when "\n"
       begin
-        str += ["#{cmd}\n", 
-          span("=> #{IRBalike.run(cmd).inspect}\n", :stroke => "#fda"), 
+        out, obj = IRBalike.run(cmd)
+        str += ["#{cmd}\n",
+          span("#{out}=> #{obj.inspect}\n", :stroke => "#fda"),
           "#{CURSOR} "]
         cmd = ""
       rescue MimickIRB::Empty

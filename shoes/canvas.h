@@ -219,6 +219,7 @@ typedef struct {
   double sw;                // current stroke-width
   int cx, cy;               // cursor x and y (stored in absolute coords)
   int marginy;              // value for next y-margin
+  int scrolly;              // value for top of scroll position
   int endx, endy;           // jump points if the cursor spills over
   int topy, fully;          // since we often stack vertically
   int width, height;        // the full height and width used by this box

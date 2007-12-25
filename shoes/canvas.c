@@ -191,7 +191,7 @@ shoes_canvas_paint(VALUE self)
 #endif
 
 #ifdef SHOES_WIN32
-  BitBlt(hdc, 0, 0, width, height, canvas->slot.dc, 0, canvas->slot.scrolly, SRCCOPY);
+  BitBlt(hdc, 0, 0, width, height, canvas->slot.dc, 0, canvas->scrolly, SRCCOPY);
   cairo_surface_destroy(canvas->slot.surface);
   EndPaint(canvas->slot.window, &paint_struct);
   SelectObject(canvas->slot.dc, bitold);
@@ -1106,7 +1106,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
 #endif
 #ifdef SHOES_WIN32
         MoveWindow(self_t->slot.window, self_t->place.x, 
-          self_t->place.y - pc->slot.scrolly, self_t->place.w, 
+          self_t->place.y - pc->scrolly, self_t->place.w, 
           self_t->place.h, TRUE);
 #endif
       }
@@ -1243,8 +1243,16 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
     self_t->fully = endy;
     if (RTEST(actual))
     {
+      int tail = RTEST(ATTR(self_t->attr, tail));
+      if (tail)
+        canvas->scrolly = max(canvas->fully - canvas->height, 0);
 #ifdef SHOES_GTK
       gtk_layout_set_size(GTK_LAYOUT(self_t->slot.canvas), self_t->width, endy);
+      if (tail)
+      {
+        GtkRange *r = GTK_RANGE(gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(self_t->slot.box)));
+        gtk_range_set_value(r, canvas->scrolly);
+      }
 #endif
 #ifdef SHOES_QUARTZ
       HIRect hr;
@@ -1274,7 +1282,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
       si.nMin = 0;
       si.nMax = canvas->fully - 1; 
       si.nPage = canvas->height;
-      si.nPos = canvas->slot.scrolly;
+      si.nPos = canvas->scrolly;
       INFO("SetScrollInfo(%d, nMin: %d, nMax: %d, nPage: %d)\n", 
         si.nPos, si.nMin, si.nMax, si.nPage);
       SetScrollInfo(canvas->slot.window, SB_VERT, &si, TRUE);
