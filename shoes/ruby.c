@@ -547,11 +547,11 @@ shoes_cf2rb(CFStringRef cf)
   MoveWindow(self_t->ref, place.x, place.y, place.w, place.h, TRUE)
 
 #define REPAINT_CONTROL() \
-  place.y -= canvas->slot.scrolly; \
+  place.y -= canvas->scrolly; \
   if (CHANGED_COORDS()) { \
     PLACE_CONTROL(); \
   } \
-  place.y += canvas->slot.scrolly
+  place.y += canvas->scrolly
 
 inline void shoes_win32_control_font(int id, HWND hwnd)
 {
