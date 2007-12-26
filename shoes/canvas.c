@@ -1246,6 +1246,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
       int tail = RTEST(ATTR(self_t->attr, tail));
       if (tail)
         canvas->scrolly = max(canvas->fully - canvas->height, 0);
+      canvas->scrolly = min(canvas->scrolly, canvas->fully - canvas->height);
 #ifdef SHOES_GTK
       gtk_layout_set_size(GTK_LAYOUT(self_t->slot.canvas), self_t->width, endy);
       if (tail)
