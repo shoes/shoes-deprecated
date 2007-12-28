@@ -1049,6 +1049,28 @@ shoes_app_win32proc(
         app->os.shiftkey = false;
     break;
 
+    case WM_MOUSEWHEEL:
+    {
+      shoes_canvas *canvas;
+      int lines = 0, scode = 0;
+      int notch = ((int)w >> 16) / WHEEL_DELTA;
+      SystemParametersInfo(SPI_GETWHEELSCROLLLINES, 0, &lines, 0);
+      if (lines == WHEEL_PAGESCROLL)
+        scode = (int)w < 0 ? SB_PAGEDOWN : SB_PAGEUP;
+      else
+      {
+        scode = (int)w < 0 ? SB_LINEDOWN : SB_LINEUP;
+        notch *= lines;
+      }
+
+      INFO("WM_MOUSEWHEEL: %d (%d, %d) %lu\n", w, scode, notch, lines);
+      notch = abs(notch);
+      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+      while (notch--)
+        shoes_canvas_win32_vscroll(canvas, scode, 0);
+    }
+    break;
+
     case WM_VSCROLL:
     {
       shoes_canvas *canvas;

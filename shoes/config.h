@@ -112,6 +112,19 @@ OSStatus shoes_slot_quartz_create(VALUE, SHOES_SLOT_OS *, int, int, int, int);
 #include <cairo-win32.h>
 #include "win32/win32.h"
 
+#ifndef WM_MOUSEWHEEL
+#define WM_MOUSEWHEEL 0x020A
+#endif
+#ifndef WHEEL_DELTA
+#define WHEEL_DELTA 120
+#endif
+#ifndef SPI_GETWHEELSCROLLLINES
+#define SPI_GETWHEELSCROLLLINES 104
+#endif
+#ifndef WHEEL_PAGESCROLL
+#define WHEEL_PAGESCROLL UINT_MAX
+#endif
+
 #define SHOES_CONTROL1  3045
 
 typedef struct {
