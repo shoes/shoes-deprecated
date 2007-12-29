@@ -271,7 +271,7 @@ shoes_slot_quartz_handler(
           INFO("Got context: %lu\n", canvas->slot.context);
           shoes_canvas_paint(qdata->canvas);
           INFO("Painted!\n", 0);
-          err = eventNotHandledErr;
+          err = noErr;
         }
         break;
 
@@ -1332,7 +1332,7 @@ shoes_app_open(shoes_app *app)
   INFO("Draw QUARTZ window.\n", 0);
   err = CreateNewWindow(kDocumentWindowClass,
       kWindowCompositingAttribute
-    // | kWindowLiveResizeAttribute
+    | kWindowLiveResizeAttribute
     | kWindowStandardDocumentAttributes
     | kWindowStandardHandlerAttribute
     ^ (app->resizable ? kWindowResizableAttribute : 0),
