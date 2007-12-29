@@ -38,6 +38,34 @@ shoes_canvas_gtk_paint (GtkWidget *widget, GdkEventExpose *event, gpointer data)
   gtk_container_forall(GTK_CONTAINER(widget), shoes_canvas_gtk_paint_children, canvas);
   canvas->slot.expose = NULL;
 }
+
+static gboolean
+shoes_canvas_gtk_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
+{ 
+  GdkModifierType state;
+  VALUE c = (VALUE)data;
+  if (!event->is_hint)
+  {
+    state = (GdkModifierType)event->state;
+    shoes_canvas_send_motion(c, (int)event->x, (int)event->y, Qnil);
+  }
+  return TRUE;
+}
+
+static gboolean
+shoes_canvas_gtk_button(GtkWidget *widget, GdkEventButton *event, gpointer data)
+{ 
+  VALUE c = (VALUE)data;
+  if (event->type == GDK_BUTTON_PRESS)
+  {
+    shoes_canvas_send_click(c, event->button, event->x, event->y);
+  }
+  else if (event->type == GDK_BUTTON_RELEASE)
+  {
+    shoes_canvas_send_release(c, event->button, event->x, event->y);
+  }
+  return TRUE;
+}
 #endif
 
 void
@@ -57,6 +85,12 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
     gtk_widget_get_events(slot->canvas) | GDK_POINTER_MOTION_MASK | GDK_BUTTON_RELEASE_MASK);
   g_signal_connect(G_OBJECT(slot->canvas), "expose-event",
                    G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
+  g_signal_connect(G_OBJECT(slot->canvas), "motion-notify-event",
+                   G_CALLBACK(shoes_canvas_gtk_motion), (gpointer)c);
+  g_signal_connect(G_OBJECT(slot->canvas), "button-press-event",
+                   G_CALLBACK(shoes_canvas_gtk_button), (gpointer)c);
+  g_signal_connect(G_OBJECT(slot->canvas), "button-release-event",
+                   G_CALLBACK(shoes_canvas_gtk_button), (gpointer)c);
   if (toplevel)
     gtk_container_add(GTK_CONTAINER(parent->canvas), slot->box);
   else
@@ -1558,6 +1592,8 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
       VALUE ele = rb_ary_entry(self_t->contents, i);
       if (rb_obj_is_kind_of(ele, cCanvas))
       {
+        if (!shoes_canvas_inherits(ele, self_t))
+          continue;
         v = shoes_canvas_send_click(ele, button, x, y);
         *clicked = ele;
       }
@@ -1637,6 +1673,8 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
       VALUE ele = rb_ary_entry(self_t->contents, i);
       if (rb_obj_is_kind_of(ele, cCanvas))
       {
+        if (!shoes_canvas_inherits(ele, self_t))
+          continue;
         shoes_canvas_send_release(ele, button, x, y);
       }
     }
