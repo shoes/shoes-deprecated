@@ -372,7 +372,7 @@ shoes_slot_quartz_create(VALUE self, SHOES_SLOT_OS *parent, int x, int y, int w,
   //
   // Create the scroll view
   //
-  HIScrollViewCreate(kHIScrollViewOptionsVertScroll | kHIScrollViewOptionsAllowGrow, &slot->scrollview);
+  HIScrollViewCreate(kHIScrollViewOptionsVertScroll, &slot->scrollview);
   HIScrollViewSetScrollBarAutoHide(slot->scrollview, true);
   rect.origin.x = x * 1.;
   rect.origin.y = y * 1.;
@@ -472,7 +472,7 @@ shoes_app_quartz_handler(
             app->width = hr.size.width;
             app->height = hr.size.height;
             shoes_canvas_size(app->canvas, app->width, app->height);
-            HIViewSetNeedsDisplay(app->slot.view, true);
+            HIViewSetNeedsDisplay(app->slot.scrollview, true);
             err = noErr;
           }
         }
@@ -1738,7 +1738,7 @@ shoes_slot_repaint(SHOES_SLOT_OS *slot)
   gtk_widget_queue_draw(slot->canvas);
 #endif
 #ifdef SHOES_QUARTZ
-  HIViewSetNeedsDisplay(slot->view, true);
+  HIViewSetNeedsDisplay(slot->scrollview, true);
 #endif
 #ifdef SHOES_WIN32
   InvalidateRgn(slot->window, NULL, TRUE);

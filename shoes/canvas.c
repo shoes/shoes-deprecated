@@ -1133,9 +1133,9 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
 #ifdef SHOES_QUARTZ
         HIRect rect;
         rect.origin.x = self_t->place.x * 1.;
-        rect.origin.y = self_t->place.y * 1.;
-        rect.size.width = self_t->place.w * 1.;
-        rect.size.height = self_t->place.h * 1.;
+        rect.origin.y = (self_t->place.y * 1.) + 4;
+        rect.size.width = (self_t->place.w * 1.) + 4;
+        rect.size.height = (self_t->place.h * 1.) - 8;
         HIViewSetFrame(self_t->slot.scrollview, &rect);
 #endif
 #ifdef SHOES_WIN32
@@ -1297,7 +1297,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
       if (hr.size.width != (float)self_t->width || hr.size.height != (float)endy)
       {
         hr.size.width = (float)self_t->width;
-        hr.size.height = (float)endy;
+        hr.size.height = (float)endy - (endy == self_t->height ? 8 : 0);
         HIViewSetFrame(self_t->slot.view, &hr);
 
         CreateEvent(NULL, kEventClassScrollable,
