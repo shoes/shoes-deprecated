@@ -1650,7 +1650,8 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
   long i;
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
-  // INFO("motion(%d, %d)\n", x, y);
+
+  INFO("motion(%d, %d)\n", x, y);
 
   if (ATTR(self_t->attr, hidden) != Qtrue)
   {
@@ -1665,6 +1666,8 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
       VALUE ele = rb_ary_entry(self_t->contents, i);
       if (rb_obj_is_kind_of(ele, cCanvas))
       {
+        if (!shoes_canvas_inherits(ele, self_t))
+          continue;
         urll = shoes_canvas_send_motion(ele, x, y, url);
       }
       else if (rb_obj_is_kind_of(ele, cTextBlock))

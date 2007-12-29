@@ -1806,6 +1806,10 @@ shoes_textblock_send_hover(VALUE self, int x, int y, VALUE *clicked, int *t)
   x -= self_t->place.x;
   y -= self_t->place.y;
   hover = pango_layout_xy_to_index(self_t->layout, x * PANGO_SCALE, y * PANGO_SCALE, &index, &trailing);
+  if (hover)
+  {
+    INFO("HOVER (%d, %d) OVER (%d, %d)\n", x, y, self_t->place.x, self_t->place.y);
+  }
   for (i = 0; i < RARRAY_LEN(self_t->links); i++)
   {
     VALUE urll = shoes_link_at(rb_ary_entry(self_t->links, i), index, hover, clicked, t);

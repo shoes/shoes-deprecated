@@ -39,9 +39,10 @@ typedef struct {
   unsigned char flags;
 } shoes_place;
 
-#define ABSX(place) ((place).flags & FLAG_ABSX)
-#define ABSY(place) ((place).flags & FLAG_ABSY)
-#define POS(place)  ((place).flags & FLAG_POSITION)
+#define ABSX(place)   ((place).flags & FLAG_ABSX)
+#define ABSY(place)   ((place).flags & FLAG_ABSY)
+#define POS(place)    ((place).flags & FLAG_POSITION)
+#define ORIGIN(place) ((place).flags & FLAG_ORIGIN)
 #define CPX(c)  (c->place.flags & FLAG_ORIGIN ? 0 : c->place.x)
 #define CPY(c)  (c->place.flags & FLAG_ORIGIN ? 0 : c->place.y)
 
