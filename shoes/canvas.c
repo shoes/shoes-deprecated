@@ -1011,12 +1011,20 @@ shoes_canvas_button(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_edit_line(int argc, VALUE *argv, VALUE self)
 {
-  VALUE attr, block, edit_line;
+  VALUE phrase, attr, block, edit_line;
   SETUP();
-  rb_scan_args(argc, argv, "01&", &attr, &block);
+  rb_scan_args(argc, argv, "02&", &phrase, &attr, &block);
 
   if (!NIL_P(block))
     attr = shoes_hash_set(attr, s_change, block);
+
+  if (rb_obj_is_kind_of(phrase, rb_cHash))
+    attr = phrase;
+  else
+  {
+    if (NIL_P(attr)) attr = rb_hash_new();
+    rb_hash_aset(attr, ID2SYM(s_text), phrase);
+  }
 
   edit_line = shoes_control_new(cEditLine, attr, self);
 #ifdef SHOES_QUARTZ
@@ -1029,12 +1037,20 @@ shoes_canvas_edit_line(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_edit_box(int argc, VALUE *argv, VALUE self)
 {
-  VALUE attr, block, edit_box;
+  VALUE phrase, attr, block, edit_box;
   SETUP();
-  rb_scan_args(argc, argv, "01&", &attr, &block);
+  rb_scan_args(argc, argv, "02&", &phrase, &attr, &block);
 
   if (!NIL_P(block))
     attr = shoes_hash_set(attr, s_change, block);
+
+  if (rb_obj_is_kind_of(phrase, rb_cHash))
+    attr = phrase;
+  else
+  {
+    if (NIL_P(attr)) attr = rb_hash_new();
+    rb_hash_aset(attr, ID2SYM(s_text), phrase);
+  }
 
   edit_box = shoes_control_new(cEditBox, attr, self);
 #ifdef SHOES_QUARTZ
