@@ -26,7 +26,7 @@ typedef VALUE (*HOOK)();
 extern VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cNative, cShape, cVideo, cImage, cAnim, cPattern, cBorder, cBackground, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextBlock, cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover;
 extern VALUE eNotImpl;
 extern VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
-extern ID s_aref, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_leading, s_match, s_scroll, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_resizable, s_strokewidth, s_tail, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
+extern ID s_aref, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_leading, s_match, s_scroll, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_resizable, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
 extern VALUE instance_eval_proc, exception_proc, exception_alert_proc;
 
 VALUE mfp_instance_eval(VALUE, VALUE);
@@ -88,6 +88,10 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
 #define CANVAS_DEFS(f) \
   f("width", get_width, 0); \
   f("height", get_height, 0); \
+  f("scroll_height", get_scroll_height, 0); \
+  f("scroll_max", get_scroll_max, 0); \
+  f("scroll_top", get_scroll_top, 0); \
+  f("scroll_top=", set_scroll_top, 1); \
   f("style", style, -1); \
   f("nostroke", nostroke, 0); \
   f("stroke", stroke, -1); \

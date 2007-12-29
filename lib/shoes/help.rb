@@ -426,12 +426,32 @@ like, the `width` method returns the width of the slot in pixels.)
 
 === height() » a number ===
 
-The vertical size of the slot in pixels.
+The vertical size of the viewable slot in pixels.  So, if this is a scrolling slot, you'll need to use `scroll_top()` to get the full size of the slot.
 
 === scroll() » true or false ===
 
 Is this slot allowed to show a scrollbar?  True or false.  The scrollbar will only appear if
 the height of the slot is also fixed.
+
+=== scroll_height() » a number === 
+
+The vertical size of the full slot, including any of it which is hidden by scrolling.
+
+=== scroll_max() » a number === 
+
+The top coordinate which this slot can be scrolled down to.  The top coordinate of a scroll bar is always zero.  The bottom coordinate is the full height of the slot minus one page of scrolling.  This bottom coordinate is what `scroll_max` returns.
+
+This is basically a shortcut for writing `slot.scroll_height - slot.height`.
+
+To scroll to the bottom of a slot, use `slot.scroll_top = slot.scroll_max`.
+
+=== scroll_top() » a number === 
+
+The top coordinate which this slot is scrolled down to.  So, if the slot is scrolled down twenty pixels, this method will return `20`.
+
+=== scroll_top = a number === 
+
+Scrolls the slot to a certain coordinate.  This must be between zero and `scroll_max`.
 
 === style(styles) » styles ===
 

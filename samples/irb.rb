@@ -66,11 +66,12 @@ Shoes.app do
   stack do
     background "#555"
     para "Interactive Ruby ready.", :fill => white, :stroke => red
-    stack :width => 1.0, :height => 400, :tail => true do
-      background "#555"
-      @console = para str, :font => "Monospace 12px", :stroke => "#dfa"
-      @console.cursor = -1
-    end
+    @scroll =
+      stack :width => 1.0, :height => 400 do
+        background "#555"
+        @console = para str, :font => "Monospace 12px", :stroke => "#dfa"
+        @console.cursor = -1
+      end
   end
   keypress do |k|
     case k
@@ -104,5 +105,6 @@ Shoes.app do
       cmd += self.clipboard
     end
     @console.replace *(str + [cmd])
+    @scroll.scroll_top = @scroll.scroll_max
   end
 end

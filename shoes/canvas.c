@@ -66,6 +66,15 @@ shoes_canvas_gtk_button(GtkWidget *widget, GdkEventButton *event, gpointer data)
   }
   return TRUE;
 }
+
+static void
+shoes_canvas_gtk_scroll(GtkRange *r, gpointer data)
+{ 
+  VALUE c = (VALUE)data;
+  shoes_canvas *canvas;
+  Data_Get_Struct(c, shoes_canvas, canvas);
+  canvas->scrolly = (int)gtk_range_get_value(r);
+}
 #endif
 
 void
@@ -91,6 +100,8 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
                    G_CALLBACK(shoes_canvas_gtk_button), (gpointer)c);
   g_signal_connect(G_OBJECT(slot->canvas), "button-release-event",
                    G_CALLBACK(shoes_canvas_gtk_button), (gpointer)c);
+  g_signal_connect(G_OBJECT(gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(slot->box))), 
+                   "value-changed", G_CALLBACK(shoes_canvas_gtk_scroll), (gpointer)c);
   if (toplevel)
     gtk_container_add(GTK_CONTAINER(parent->canvas), slot->box);
   else
@@ -157,6 +168,43 @@ shoes_canvas_get_width(VALUE self)
 {
   SETUP();
   return INT2NUM(canvas->width);
+}
+
+VALUE
+shoes_canvas_get_scroll_top(VALUE self)
+{
+  SETUP();
+  return INT2NUM(canvas->scrolly);
+}
+
+VALUE
+shoes_canvas_set_scroll_top(VALUE self, VALUE num)
+{
+  SETUP();
+  canvas->scrolly = NUM2INT(num);
+#ifdef SHOES_GTK
+  GtkRange *r = GTK_RANGE(gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(canvas->slot.box)));
+  gtk_range_set_value(r, canvas->scrolly);
+#endif
+#ifdef SHOES_WIN32
+  SetScrollPos(canvas->slot.window, SB_VERT, canvas->scrolly, TRUE);
+#endif
+  shoes_canvas_repaint_all(self);
+  return num;
+}
+
+VALUE
+shoes_canvas_get_scroll_max(VALUE self)
+{
+  SETUP();
+  return INT2NUM(max(0, canvas->fully - canvas->height));
+}
+
+VALUE
+shoes_canvas_get_scroll_height(VALUE self)
+{
+  SETUP();
+  return INT2NUM(canvas->fully);
 }
 
 VALUE
@@ -1292,17 +1340,9 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
     self_t->fully = endy;
     if (RTEST(actual))
     {
-      int tail = RTEST(ATTR(self_t->attr, tail));
-      if (tail)
-        canvas->scrolly = max(canvas->fully - canvas->height, 0);
-      canvas->scrolly = min(canvas->scrolly, canvas->fully - canvas->height);
+      self_t->scrolly = min(self_t->scrolly, self_t->fully - self_t->height);
 #ifdef SHOES_GTK
       gtk_layout_set_size(GTK_LAYOUT(self_t->slot.canvas), self_t->width, endy);
-      if (tail)
-      {
-        GtkRange *r = GTK_RANGE(gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(self_t->slot.box)));
-        gtk_range_set_value(r, canvas->scrolly);
-      }
 #endif
 #ifdef SHOES_QUARTZ
       HIRect hr;
@@ -1330,12 +1370,12 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
       si.cbSize = sizeof(SCROLLINFO);
       si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS;
       si.nMin = 0;
-      si.nMax = canvas->fully - 1; 
-      si.nPage = canvas->height;
-      si.nPos = canvas->scrolly;
+      si.nMax = self_t->fully - 1; 
+      si.nPage = self_t->height;
+      si.nPos = self_t->scrolly;
       INFO("SetScrollInfo(%d, nMin: %d, nMax: %d, nPage: %d)\n", 
         si.nPos, si.nMin, si.nMax, si.nPage);
-      SetScrollInfo(canvas->slot.window, SB_VERT, &si, TRUE);
+      SetScrollInfo(self_t->slot.window, SB_VERT, &si, TRUE);
 #endif
     }
   }

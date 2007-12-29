@@ -245,6 +245,10 @@ void shoes_canvas_shape_do(shoes_canvas *, double, double, double, double, unsig
 VALUE shoes_canvas_style(int, VALUE *, VALUE);
 VALUE shoes_canvas_get_width(VALUE);
 VALUE shoes_canvas_get_height(VALUE);
+VALUE shoes_canvas_get_scroll_height(VALUE);
+VALUE shoes_canvas_get_scroll_max(VALUE);
+VALUE shoes_canvas_get_scroll_top(VALUE);
+VALUE shoes_canvas_set_scroll_top(VALUE, VALUE);
 VALUE shoes_canvas_nostroke(VALUE);
 VALUE shoes_canvas_stroke(int, VALUE *, VALUE);
 VALUE shoes_canvas_strokewidth(VALUE, VALUE);
