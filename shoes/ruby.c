@@ -2582,6 +2582,36 @@ shoes_edit_line_set_text(VALUE self, VALUE text)
   return text;
 }
 
+#ifdef SHOES_QUARTZ
+static const EventTypeSpec editEvents[] = {   
+  { kEventClassTextField, kEventTextDidChange }
+};
+
+static pascal OSStatus
+shoes_quartz_edit_handler(EventHandlerCallRef handler, EventRef inEvent, void *data)
+{
+  OSStatus err        = eventNotHandledErr;
+  UInt32 eventKind    = GetEventKind(inEvent);
+  UInt32 eventClass   = GetEventClass(inEvent);
+  VALUE self          = (VALUE)data;
+  
+  switch (eventClass)
+  {
+    case kEventClassTextField:
+      switch (eventKind)
+      {
+        case kEventTextDidChange:
+          shoes_control_send(self, s_change);
+          err = noErr;
+        break;
+      }
+    break;
+  }
+
+  return err;
+}
+#endif
+
 VALUE
 shoes_edit_line_draw(VALUE self, VALUE c, VALUE actual)
 {
@@ -2610,6 +2640,8 @@ shoes_edit_line_draw(VALUE self, VALUE c, VALUE actual)
       SetRect(&r, place.x, place.y, place.x + place.w, place.y + place.h);
       CreateEditUnicodeTextControl(NULL, &r, cfmsg, RTEST(ATTR(self_t->attr, secret)), NULL, &self_t->ref);
       SetControlData(self_t->ref, kControlEntireControl, kControlEditTextSingleLineTag, sizeof(Boolean), &nowrap);
+      InstallControlEventHandler(self_t->ref, NewEventHandlerUPP(shoes_quartz_edit_handler),
+        GetEventTypeCount(editEvents), editEvents, self, NULL);
       CFRelease(cfmsg);
 #endif
 
@@ -2695,6 +2727,8 @@ shoes_edit_box_set_text(VALUE self, VALUE text)
 #ifdef SHOES_QUARTZ
   CFStringRef controlText = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
   SetControlData(self_t->ref, kControlEditTextPart, kControlEditTextCFStringTag, sizeof (CFStringRef), &controlText);
+  InstallControlEventHandler(self_t->ref, NewEventHandlerUPP(shoes_quartz_edit_handler),
+    GetEventTypeCount(editEvents), editEvents, self, NULL);
   CFRelease(controlText);
 #endif
   return text;

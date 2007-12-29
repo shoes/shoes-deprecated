@@ -1580,6 +1580,14 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
 
+#ifdef SHOES_QUARTZ
+  if (ORIGIN(self_t->place))
+  {
+    x -= self_t->place.x;
+    y -= self_t->place.y - self_t->scrolly;
+  }
+#endif
+
   if (ATTR(self_t->attr, hidden) != Qtrue)
   {
     if (!NIL_P(self_t->click))
@@ -1592,8 +1600,10 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
       VALUE ele = rb_ary_entry(self_t->contents, i);
       if (rb_obj_is_kind_of(ele, cCanvas))
       {
+#ifndef SHOES_QUARTZ
         if (!shoes_canvas_inherits(ele, self_t))
           continue;
+#endif
         v = shoes_canvas_send_click(ele, button, x, y);
         *clicked = ele;
       }
@@ -1659,6 +1669,14 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
   long i;
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
+#ifdef SHOES_QUARTZ
+  if (ORIGIN(self_t->place))
+  {
+    x -= self_t->place.x;
+    y -= self_t->place.y - self_t->scrolly;
+  }
+#endif
+
   // INFO("release(%d, %d, %d)\n", button, x, y);
 
   if (ATTR(self_t->attr, hidden) != Qtrue)
@@ -1673,8 +1691,10 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
       VALUE ele = rb_ary_entry(self_t->contents, i);
       if (rb_obj_is_kind_of(ele, cCanvas))
       {
+#ifndef SHOES_QUARTZ
         if (!shoes_canvas_inherits(ele, self_t))
           continue;
+#endif
         shoes_canvas_send_release(ele, button, x, y);
       }
     }
@@ -1688,6 +1708,14 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
   long i;
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
+
+#ifdef SHOES_QUARTZ
+  if (ORIGIN(self_t->place))
+  {
+    x -= self_t->place.x;
+    y -= self_t->place.y - self_t->scrolly;
+  }
+#endif
 
   INFO("motion(%d, %d)\n", x, y);
 
@@ -1704,8 +1732,10 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
       VALUE ele = rb_ary_entry(self_t->contents, i);
       if (rb_obj_is_kind_of(ele, cCanvas))
       {
+#ifndef SHOES_QUARTZ
         if (!shoes_canvas_inherits(ele, self_t))
           continue;
+#endif
         urll = shoes_canvas_send_motion(ele, x, y, url);
       }
       else if (rb_obj_is_kind_of(ele, cTextBlock))

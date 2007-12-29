@@ -234,8 +234,9 @@ shoes_slot_quartz_handler(
           Data_Get_Struct(qdata->canvas, shoes_canvas, canvas);
           GetEventParameter(inEvent, kEventParamOrigin, typeHIPoint, NULL, sizeof(where), NULL, &where);
           HIViewSetBoundsOrigin(canvas->slot.view, where.x, where.y);
-          // canvas->scrolly = (where.y < 0.0) ? 0.0 : where.y;
+          canvas->scrolly = (where.y < 0.0) ? 0 : (int)where.y;
           HIViewSetNeedsDisplay(canvas->slot.scrollview, true);
+          err = noErr;
         }
         break;
       }
@@ -572,26 +573,29 @@ shoes_app_quartz_handler(
     break;
 
     case kEventClassMouse:
-      INFO("kEventClassMouse\n", 0);
+    {
+      shoes_canvas *canvas;
       GetMouse(&mouseLoc);
       GetWindowBounds(app->os.window, kWindowContentRgn, &bounds);
       if (mouseLoc.h < bounds.left || mouseLoc.v < bounds.top) break;
       GetEventParameter(inEvent, kEventParamMouseButton, typeMouseButton, 0, sizeof(EventMouseButton), 0, &button);
+      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       switch (eventKind)
       {
         case kEventMouseMoved:
         case kEventMouseDragged:
-          shoes_app_motion(app, mouseLoc.h - bounds.left, mouseLoc.v - bounds.top);
+          shoes_app_motion(app, mouseLoc.h - bounds.left, (mouseLoc.v - bounds.top) + canvas->scrolly);
         break;
 
         case kEventMouseDown:
-          shoes_app_click(app, button, mouseLoc.h - bounds.left, mouseLoc.v - bounds.top);
+          shoes_app_click(app, button, mouseLoc.h - bounds.left, (mouseLoc.v - bounds.top) + canvas->scrolly);
         break;
 
         case kEventMouseUp:
-          shoes_app_release(app, button, mouseLoc.h - bounds.left, mouseLoc.v - bounds.top);
+          shoes_app_release(app, button, mouseLoc.h - bounds.left, (mouseLoc.v - bounds.top) + canvas->scrolly);
         break;
       }
+    }
     break;
   }
 
@@ -1596,9 +1600,7 @@ shoes_app_visit(shoes_app *app, char *path)
   VALUE ary = rb_ary_dup(app->timers);
   Data_Get_Struct(app->canvas, shoes_canvas, canvas);
 
-#ifdef SHOES_WIN32
   canvas->scrolly = 0;
-#endif
 #ifndef SHOES_GTK
   rb_ary_clear(app->slot.controls);
 #endif
