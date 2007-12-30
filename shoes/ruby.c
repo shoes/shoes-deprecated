@@ -663,8 +663,8 @@ shoes_shape_draw(VALUE self, VALUE c, VALUE actual)
     cairo_new_path(canvas->cr);
     cairo_append_path(canvas->cr, self_t->line);
 
-    PATH_OUT(fg, cairo_stroke_preserve);
-    PATH_OUT(bg, cairo_fill);
+    PATH_OUT(bg, cairo_fill_preserve);
+    PATH_OUT(fg, cairo_stroke);
 
     cairo_restore(canvas->cr);
   }

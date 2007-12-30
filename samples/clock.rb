@@ -26,7 +26,9 @@ Shoes.app :height => 260, :width => 250 do
     background rgb(230, 240, 200)
 
     fill white
-    oval @centerx - 100, @centery - 100, 200, 200
+    stroke black
+    strokewidth 4
+    oval @centerx - 102, @centery - 102, 204, 204
 
     fill black
     nostroke
