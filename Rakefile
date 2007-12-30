@@ -347,6 +347,7 @@ task :tarball => 'bin/main.c' do
   mkdir_p "pkg"
   rm_rf PKG
   sh "svn export . #{PKG}"
+  sh "svn export rubygems #{PKG}/rubygems"
   rm "#{PKG}/bin/main.skel"
   rm "#{PKG}/Rakefile"
   rm "#{PKG}/use-deps"

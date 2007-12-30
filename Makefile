@@ -82,6 +82,7 @@ shoes: dist/shoes
 	@cp ${RUBY_PREFIX}/lib/lib${RUBY_SO}.so dist
 	@ln -s lib${RUBY_SO}.so dist/libruby.so.1.8
 	@cp -r lib dist/lib
+	@cp -r rubygems/* dist/ruby/lib
 	@cp -r samples dist/samples
 	@cp -r static dist/static
 	@rm -rf dist/**/.svn

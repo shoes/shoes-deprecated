@@ -1,4 +1,3 @@
-require 'rexml/document'
 require 'fileutils'
 include FileUtils
 
