@@ -60,16 +60,15 @@ CURSOR = ">>"
 IRBalike = MimickIRB.new
 $stdout = StringIO.new
 
-str = [CURSOR + " "]
-cmd = ""
 Shoes.app do
+  @str, @cmd = [CURSOR + " "], ""
   stack do
     background "#555"
     para "Interactive Ruby ready.", :fill => white, :stroke => red
     @scroll =
       stack :width => 1.0, :height => 400 do
         background "#555"
-        @console = para str, :font => "Monospace 12px", :stroke => "#dfa"
+        @console = para @str, :font => "Monospace 12px", :stroke => "#dfa"
         @console.cursor = -1
       end
   end
@@ -77,34 +76,34 @@ Shoes.app do
     case k
     when "\n"
       begin
-        out, obj = IRBalike.run(cmd)
-        str += ["#{cmd}\n",
+        out, obj = IRBalike.run(@cmd)
+        @str += ["#@cmd\n",
           span("#{out}=> #{obj.inspect}\n", :stroke => "#fda"),
           "#{CURSOR} "]
-        cmd = ""
+        @cmd = ""
       rescue MimickIRB::Empty
       rescue MimickIRB::Continue
-        str += ["#{cmd}\n.. "]
-        cmd = ""
+        @str += ["#@cmd\n.. "]
+        @cmd = ""
       rescue Object => e
-        str += ["#{cmd}\n", span("#{e.class}: #{e.message}\n", :stroke => "#fcf"),
+        @str += ["#@cmd\n", span("#{e.class}: #{e.message}\n", :stroke => "#fcf"),
           "#{CURSOR} "]
-        cmd = ""
+        @cmd = ""
       end
     when String
-      cmd += k
+      @cmd += k
     when :backspace
-      cmd.slice!(-1)
+      @cmd.slice!(-1)
     when :tab
-      cmd += "  "
+      @cmd += "  "
     when :alt_q
       quit
     when :alt_c
-      self.clipboard = cmd
+      self.clipboard = @cmd
     when :alt_v
-      cmd += self.clipboard
+      @cmd += self.clipboard
     end
-    @console.replace *(str + [cmd])
+    @console.replace *(@str + [@cmd])
     @scroll.scroll_top = @scroll.scroll_max
   end
 end
