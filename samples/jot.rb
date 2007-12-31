@@ -13,7 +13,7 @@ Shoes.app :title => "vJot Clone",
     border "#00D0FF", :strokewidth => 3, :radius => 12
     stack :margin => 20 do
       caption "vJot Clone"
-      @title = edit_line :width => 1.0, :text => @note[0] do
+      @title = edit_line @note[0], :width => 1.0 do
         @note[0] = @title.text
         load_list
       end
@@ -21,7 +21,7 @@ Shoes.app :title => "vJot Clone",
         background "#eee"
         @list = para
       end
-      @jot = edit_box :width => 1.0, :height => 200, :text => @note[1] do
+      @jot = edit_box @note[1], :width => 1.0, :height => 200 do
         @note[1] = @jot.text
       end
     end
