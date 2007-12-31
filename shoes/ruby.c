@@ -280,7 +280,7 @@ rb_str_to_pas(VALUE str)
 }
 
 void
-shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsigned char rel)
+shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsigned char rel, int padded)
 {
   shoes_canvas *canvas = NULL;
   VALUE ck = rb_obj_class(c);
@@ -288,6 +288,10 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
     Data_Get_Struct(c, shoes_canvas, canvas);
 
   ATTR_MARGINS(attr, 0);
+  if (padded) {
+    dw += tmargin + bmargin;
+    dh += lmargin + rmargin;
+  }
 
   int testw = dw;
   if (testw == 0) testw = lmargin + 1 + rmargin;
@@ -391,7 +395,7 @@ shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, double r)
   Data_Get_Struct(self, self_type, self_t); \
   Data_Get_Struct(c, shoes_canvas, canvas); \
   if (ATTR(self_t->attr, hidden) == Qtrue) return self; \
-  shoes_place_decide(&place, c, self_t->attr, dw, dh, rel)
+  shoes_place_decide(&place, c, self_t->attr, dw, dh, rel, rel == REL_CANVAS)
 
 #define SETUP_CONTROL(dh) \
   char *msg = ""; \
@@ -407,7 +411,7 @@ shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, double r)
     msg = RSTRING_PTR(text); \
     len = (RSTRING_LEN(text) * 6) + 32; \
   } \
-  shoes_place_decide(&place, c, self_t->attr, len, 28 + dh, REL_CANVAS)
+  shoes_place_decide(&place, c, self_t->attr, len, 28 + dh, REL_CANVAS, FALSE)
 
 #define FINISH() \
   self_t->place = place; \

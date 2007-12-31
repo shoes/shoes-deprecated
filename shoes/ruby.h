@@ -82,7 +82,7 @@ int shoes_hash_int(VALUE, ID, int);
 double shoes_hash_dbl(VALUE, ID, double);
 char *shoes_hash_cstr(VALUE, ID, char *);
 VALUE rb_str_to_pas(VALUE);
-void shoes_place_decide(shoes_place *, VALUE, VALUE, int, int, unsigned char);
+void shoes_place_decide(shoes_place *, VALUE, VALUE, int, int, unsigned char, int);
 void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
 
 #define CANVAS_DEFS(f) \
