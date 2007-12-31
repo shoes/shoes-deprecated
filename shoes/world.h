@@ -11,13 +11,13 @@
 #include "shoes/ruby.h"
 #include "shoes/code.h"
 
-typedef struct _shoes_world_t {
+SHOES_EXTERN typedef struct _shoes_world_t {
   SHOES_WORLD_OS os;
   char path[SHOES_BUFSIZE];
   VALUE app, apps;
 } shoes_world_t;
 
-extern shoes_world_t *shoes_world;
+SHOES_EXTERN shoes_world_t *shoes_world;
 
 #define GLOBAL_APP(appvar) \
   shoes_app *appvar; \
@@ -32,9 +32,13 @@ void shoes_world_free(shoes_world_t *);
 //
 // Shoes
 // 
-shoes_code shoes_init(void);
-shoes_code shoes_load(char *, char *);
-shoes_code shoes_start(char *, char *);
-shoes_code shoes_final(void);
+SHOES_EXTERN shoes_code shoes_init(void);
+SHOES_EXTERN shoes_code shoes_load(char *, char *);
+SHOES_EXTERN shoes_code shoes_start(char *, char *);
+#ifdef SHOES_WIN32
+SHOES_EXTERN int shoes_win32_cmdvector(const char *, char ***);
+#endif
+SHOES_EXTERN void shoes_set_argv(int, char **);
+SHOES_EXTERN shoes_code shoes_final(void);
 
 #endif

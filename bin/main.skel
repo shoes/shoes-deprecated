@@ -24,7 +24,7 @@ main(argc, argv)
 #ifdef SHOES_WIN32
   int argc;
   char **argv;
-  argc = rb_w32_cmdvector(GetCommandLine(), &argv);
+  argc = shoes_win32_cmdvector(GetCommandLine(), &argv);
 #endif
   %DEFAULTS%
   code = shoes_init();
@@ -39,7 +39,7 @@ main(argc, argv)
 #else
   path = argv[0];
 #endif
-  ruby_set_argv(argc - 1, &argv[1]);
+  shoes_set_argv(argc - 1, &argv[1]);
   code = shoes_start(path, "/");
   if (code != SHOES_OK)
     goto done;

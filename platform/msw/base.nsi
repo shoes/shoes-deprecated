@@ -16,7 +16,7 @@
 ;General
 
   ;Name and file
-  Name "${AppName}"
+  Name "${AppName} ${AppVersion}"
   OutFile "${ShortName}-${AppVersion}.exe"
 
   ;Default installation folder

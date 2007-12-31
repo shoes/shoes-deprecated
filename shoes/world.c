@@ -73,6 +73,20 @@ shoes_load(char *path, char *uri)
   return shoes_app_start(appobj, uri);
 }
 
+#ifdef SHOES_WIN32
+int
+shoes_win32_cmdvector(const char *cmdline, char ***argv)
+{
+  return rb_w32_cmdvector(cmdline, argv);
+}
+#endif
+
+void
+shoes_set_argv(int argc, char **argv)
+{
+  ruby_set_argv(argc, argv);
+}
+
 shoes_code
 shoes_start(char *path, char *uri)
 {
