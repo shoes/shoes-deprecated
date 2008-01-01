@@ -71,6 +71,19 @@ shoes_app_gtk_idle(gpointer data)
   return TRUE;
 }
 
+static gboolean 
+shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) 
+{  
+  GdkModifierType state; 
+  shoes_app *app = (shoes_app *)data; 
+  if (!event->is_hint) 
+  { 
+    state = (GdkModifierType)event->state; 
+    shoes_app_motion(app, (int)event->x, (int)event->y);
+  } 
+  return TRUE; 
+} 
+
 static void
 shoes_app_gtk_paint_children(GtkWidget *widget, gpointer data)
 {
@@ -1301,7 +1314,9 @@ shoes_app_open(shoes_app *app)
   if (!app->resizable)
     gtk_window_set_resizable(GTK_WINDOW(gk->window), FALSE);
   g_signal_connect(G_OBJECT(gk->window), "expose-event",
-                    G_CALLBACK(shoes_app_gtk_paint), app);
+                   G_CALLBACK(shoes_app_gtk_paint), app);
+  g_signal_connect(G_OBJECT(gk->window), "motion-notify-event", 
+                   G_CALLBACK(shoes_app_gtk_motion), app);
   g_signal_connect(G_OBJECT(gk->window), "delete-event",
                    G_CALLBACK(gtk_main_quit), NULL);
   g_signal_connect(G_OBJECT(gk->window), "key-press-event",

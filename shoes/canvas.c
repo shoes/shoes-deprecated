@@ -94,8 +94,9 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
     gtk_widget_get_events(slot->canvas) | GDK_POINTER_MOTION_MASK | GDK_BUTTON_RELEASE_MASK);
   g_signal_connect(G_OBJECT(slot->canvas), "expose-event",
                    G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
-  g_signal_connect(G_OBJECT(slot->canvas), "motion-notify-event",
-                   G_CALLBACK(shoes_canvas_gtk_motion), (gpointer)c);
+  if (!toplevel)
+    g_signal_connect(G_OBJECT(slot->canvas), "motion-notify-event",
+                     G_CALLBACK(shoes_canvas_gtk_motion), (gpointer)c);
   g_signal_connect(G_OBJECT(slot->canvas), "button-press-event",
                    G_CALLBACK(shoes_canvas_gtk_button), (gpointer)c);
   g_signal_connect(G_OBJECT(slot->canvas), "button-release-event",
@@ -1331,6 +1332,12 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
       self_t->cr = cr;
     }
   }
+
+  int bmargin = (self_t->place.h - self_t->place.ih) - (self_t->place.iy - self_t->place.y);
+  self_t->place.ih = self_t->fully;
+  self_t->fully += bmargin;
+  self_t->endy += bmargin;
+  self_t->place.h = self_t->fully;
 
   if (self_t == canvas)
   {

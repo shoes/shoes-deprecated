@@ -3,8 +3,7 @@ NOTES = [
 ]
 
 Shoes.app :title => "vJot Clone", 
-  :width => 420, :height => 560,
-  :resizable => false do
+  :width => 420, :height => 560 do
 
   @note = NOTES.first
   background "#C7EAFB"
@@ -25,7 +24,6 @@ Shoes.app :title => "vJot Clone",
         @note[1] = @jot.text
       end
     end
-    para ""
   end
 
   def load_list
