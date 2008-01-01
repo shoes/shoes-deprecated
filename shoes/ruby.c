@@ -2304,6 +2304,9 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
     }
   }
 
+  self_t->place.ih = lrect.height;
+  self_t->place.h = lrect.height + tmargin + bmargin;
+
   if (!ABSY(self_t->place)) {
     // newlines have an empty size
     if (ck != cStack) {
