@@ -36,6 +36,7 @@ extern const double RAD2PI, PIM2, PI;
 //
 typedef struct {
   int x, y, w, h;
+  int ix, iy, iw, ih;
   unsigned char flags;
 } shoes_place;
 
@@ -43,8 +44,8 @@ typedef struct {
 #define ABSY(place)   ((place).flags & FLAG_ABSY)
 #define POS(place)    ((place).flags & FLAG_POSITION)
 #define ORIGIN(place) ((place).flags & FLAG_ORIGIN)
-#define CPX(c)  (c->place.flags & FLAG_ORIGIN ? 0 : c->place.x)
-#define CPY(c)  (c->place.flags & FLAG_ORIGIN ? 0 : c->place.y)
+#define CPX(c)  (c->place.flags & FLAG_ORIGIN ? 0 : c->place.ix)
+#define CPY(c)  (c->place.flags & FLAG_ORIGIN ? 0 : c->place.iy)
 
 //
 // color struct
