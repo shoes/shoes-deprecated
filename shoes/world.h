@@ -17,7 +17,7 @@ SHOES_EXTERN typedef struct _shoes_world_t {
   VALUE app, apps;
 } shoes_world_t;
 
-SHOES_EXTERN shoes_world_t *shoes_world;
+SHOES_EXTERN_VAR shoes_world_t *shoes_world;
 
 #define GLOBAL_APP(appvar) \
   shoes_app *appvar; \

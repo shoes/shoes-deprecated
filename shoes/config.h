@@ -44,6 +44,7 @@
 #include <gdk/gdkx.h>
 
 #define SHOES_EXTERN
+#define SHOES_EXTERN_VAR extern
 
 typedef struct {
   GtkWidget *box, *canvas;
@@ -76,6 +77,7 @@ typedef struct {
 
 #define SHOES_CONTROL1  3045
 #define SHOES_EXTERN
+#define SHOES_EXTERN_VAR extern
 
 typedef struct {
   HIViewRef scrollview, view;
@@ -130,6 +132,7 @@ OSStatus shoes_slot_quartz_create(VALUE, SHOES_SLOT_OS *, int, int, int, int);
 
 #define SHOES_CONTROL1  3045
 #define SHOES_EXTERN extern "C" __declspec(dllimport)
+#define SHOES_EXTERN_VAR SHOES_EXTERN
 
 typedef struct {
   HDC dc;

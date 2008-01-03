@@ -405,10 +405,8 @@ shoes_canvas_clear(VALUE self)
   canvas->tf = canvas->gr;
   shoes_canvas_empty(canvas);
   canvas->contents = rb_ary_new();
-  canvas->place.x = canvas->place.y =
-    canvas->place.w = canvas->place.h = 0;
-  canvas->place.ix = canvas->place.iy =
-    canvas->place.iw = canvas->place.ih = 0;
+  canvas->place.x = canvas->place.y = 0;
+  canvas->place.ix = canvas->place.iy = 0;
   canvas->cx = 0;
   canvas->cy = 0;
   canvas->marginy = 0;

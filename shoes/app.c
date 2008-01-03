@@ -248,7 +248,7 @@ shoes_slot_quartz_handler(
           GetEventParameter(inEvent, kEventParamOrigin, typeHIPoint, NULL, sizeof(where), NULL, &where);
           HIViewSetBoundsOrigin(canvas->slot.view, where.x, where.y);
           canvas->scrolly = (where.y < 0.0) ? 0 : (int)where.y;
-          HIViewSetNeedsDisplay(canvas->slot.scrollview, true);
+          HIViewSetNeedsDisplay(canvas->slot.view, true);
           err = noErr;
         }
         break;
@@ -485,7 +485,7 @@ shoes_app_quartz_handler(
             app->width = hr.size.width;
             app->height = hr.size.height;
             shoes_canvas_size(app->canvas, app->width, app->height);
-            HIViewSetNeedsDisplay(app->slot.scrollview, true);
+            HIViewSetNeedsDisplay(app->slot.view, true);
             err = noErr;
           }
         }
@@ -1753,7 +1753,7 @@ shoes_slot_repaint(SHOES_SLOT_OS *slot)
   gtk_widget_queue_draw(slot->canvas);
 #endif
 #ifdef SHOES_QUARTZ
-  HIViewSetNeedsDisplay(slot->scrollview, true);
+  HIViewSetNeedsDisplay(slot->view, true);
 #endif
 #ifdef SHOES_WIN32
   InvalidateRgn(slot->window, NULL, TRUE);
