@@ -427,6 +427,10 @@ shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, double r)
     canvas->cy = canvas->endy; \
   }
 
+#ifdef SHOES_QUARTZ
+#define PATTERN_SCALE(self_t)
+#define PATTERN_RESET(self_t)
+#else
 #define PATTERN_SCALE(self_t) \
   if (self_t->width == 1.0 && self_t->height == 1.0) \
   { \
@@ -442,6 +446,7 @@ shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, double r)
   { \
     cairo_pattern_set_matrix(self_t->pattern, &matrix1); \
   }
+#endif
 
 #define CHECK_HOVER(self_t, h, touch) \
   if (self_t->hover != h && !NIL_P(self_t->attr)) \
@@ -1170,8 +1175,8 @@ shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent)
       pattern->pattern = cairo_pattern_create_for_surface(surface);
       cairo_surface_destroy(surface);
     }
+    cairo_pattern_set_extend(pattern->pattern, CAIRO_EXTEND_REPEAT);
   }
-  cairo_pattern_set_extend(pattern->pattern, CAIRO_EXTEND_REPEAT);
 
   pattern->attr = attr;
   pattern->parent = parent;
@@ -1211,8 +1216,8 @@ shoes_background_draw(VALUE self, VALUE c, VALUE actual)
     cairo_save(canvas->cr);
     cairo_translate(canvas->cr, place.ix, place.iy);
     PATTERN_SCALE(self_t);
-    cairo_set_source(canvas->cr, self_t->pattern);
     shoes_cairo_rect(canvas->cr, 0, 0, place.iw, place.ih, r);
+    cairo_set_source(canvas->cr, self_t->pattern);
     cairo_fill(canvas->cr);
     cairo_restore(canvas->cr);
     PATTERN_RESET(self_t);
