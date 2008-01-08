@@ -86,7 +86,8 @@ def Shoes.make_help_page(str)
                   @doc.clear(&dewikify(meth_h['description'], true)) 
                   @doc.append do
                     meth_h['methods'].each do |mname, expl|
-                      stack { background "#333"; tagline mname, :margin => 4 }
+                      stack(:margin_top => 8, :margin_bottom => 8) { 
+                        background "#333"; tagline mname, :margin => 4 }
                       instance_eval &dewikify(expl)
                     end
                   end
