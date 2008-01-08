@@ -1,7 +1,7 @@
 ;--------------------------------
 ;Definitions
 !define AppName    "#{APPNAME}"
-!define AppRelease "#{RELEASE}"
+!define AppRelease "#{RELEASE_NAME}"
 !define AppVersion "#{VERS}"
 !define AppMainEXE "#{NAME}.exe"
 !define ShortName  "#{NAME}"

@@ -8,6 +8,7 @@
 #include "shoes/dialogs.h"
 #include "shoes/internal.h"
 #include "shoes/world.h"
+#include "shoes/version.h"
 #include <math.h>
 
 VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cShape, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover;
@@ -3520,6 +3521,10 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "children", CASTHOOK(shoes_canvas_contents), 0);
 
   cShoes = rb_define_class("Shoes", cCanvas);
+  rb_const_set(cShoes, rb_intern("RELEASE_NAME"), rb_str_new2(SHOES_RELEASE_NAME));
+  rb_const_set(cShoes, rb_intern("RELEASE_ID"), INT2NUM(SHOES_RELEASE_ID));
+  rb_const_set(cShoes, rb_intern("REVISION"), INT2NUM(SHOES_REVISION));
+
   eNotImpl = rb_define_class_under(cShoes, "NotImplementedError", rb_eStandardError);
   eVlcError = rb_define_class_under(cShoes, "VideoError", rb_eStandardError);
   C(HEX_SOURCE, "/^(?:0x|#)?([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})$/i");

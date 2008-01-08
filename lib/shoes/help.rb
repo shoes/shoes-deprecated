@@ -100,6 +100,10 @@ def Shoes.make_help_page(str)
             end
         end
       end
+      stack :margin => 12, :width => 118 do
+        inscription "Shoes #{Shoes::RELEASE_NAME}\nRevision: #{Shoes::REVISION}",
+          :size => 7, :align => "center", :stroke => "#999"
+      end
     end
     image "static/shoes-icon.png", :top => 8, :right => 30,
       :width => 64, :height => 64

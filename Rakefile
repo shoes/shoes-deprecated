@@ -5,7 +5,7 @@ require 'fileutils'
 include FileUtils
 
 APPNAME = ENV['APPNAME'] || "Shoes"
-RELEASE = "Curious"
+RELEASE_ID, RELEASE_NAME = 1, "Curious"
 NAME = APPNAME.downcase.gsub(/\W+/, '')
 SONAME = 'shoes'
 SVN_VERSION = `svn info`[/Revision: (\d+)/, 1] rescue '1'
@@ -68,6 +68,12 @@ task :default => [:build]
 
 desc "Does a full compile, with installer"
 task :package => [:build, :installer]
+
+task "shoes/version.h" do |t|
+  File.open(t.name, 'w') do |f|
+    f << %{#define SHOES_RELEASE_ID #{RELEASE_ID}\n#define SHOES_RELEASE_NAME "#{RELEASE_NAME}"\n#define SHOES_REVISION #{SVN_VERSION}\n}
+  end
+end
 
 desc "Does a full compile, for the OS you're running on"
 task :build => :build_os do
@@ -220,7 +226,7 @@ when /win32/
       "/SUBSYSTEM:WINDOWS bin/main.obj shoes/appwin32.res lib#{SONAME}.lib #{MSVC_LIBS2}"
   end
 
-  task "dist/lib#{SONAME}.dll" => OBJ do |t|
+  task "dist/lib#{SONAME}.dll" => OBJ + ["shoes/version.h"] do |t|
     sh "link #{MSVC_LDFLAGS} /OUT:#{t.name} /dll " +
       "/LIBPATH:#{ext_ruby}/lib " +
       "/LIBPATH:deps/cairo/lib " +
@@ -318,7 +324,7 @@ else
     end
   end
 
-  task "dist/lib#{SONAME}.#{DLEXT}" => OBJ do |t|
+  task "dist/lib#{SONAME}.#{DLEXT}" => OBJ + ['shoes/version.h'] do |t|
     ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
     sh "#{CC} -o #{t.name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     case PLATFORM when /darwin/
