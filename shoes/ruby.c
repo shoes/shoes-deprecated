@@ -1078,11 +1078,49 @@ shoes_video_play(VALUE self)
     return self; \
   }
 
+#define VIDEO_GET_METHOD(x, ctype, rbtype) \
+  VALUE shoes_video_get_##x(VALUE self) \
+  { \
+    shoes_video *self_t; \
+    Data_Get_Struct(self, shoes_video, self_t); \
+    if (self_t->init == 1) \
+    { \
+      libvlc_input_t *input = libvlc_playlist_get_input(self_t->vlc, NULL); \
+      if (input != NULL) { \
+        ctype len = libvlc_input_get_##x(input, &self_t->excp); \
+        shoes_vlc_exception(&self_t->excp); \
+        return rbtype(len); \
+      } \
+    } \
+    return Qnil; \
+  }
+
+#define VIDEO_SET_METHOD(x, rbconv) \
+  VALUE shoes_video_set_##x(VALUE self, VALUE val) \
+  { \
+    shoes_video *self_t; \
+    Data_Get_Struct(self, shoes_video, self_t); \
+    if (self_t->init == 1) \
+    { \
+      libvlc_input_t *input = libvlc_playlist_get_input(self_t->vlc, NULL); \
+      if (input != NULL) { \
+        libvlc_input_set_##x(input, rbconv(val), &self_t->excp); \
+        shoes_vlc_exception(&self_t->excp); \
+      } \
+    } \
+    return val; \
+  }
+
 VIDEO_METHOD(clear);
 VIDEO_METHOD(prev);
 VIDEO_METHOD(next);
 VIDEO_METHOD(pause);
 VIDEO_METHOD(stop);
+VIDEO_GET_METHOD(length, vlc_int64_t, INT2NUM);
+VIDEO_GET_METHOD(time, vlc_int64_t, INT2NUM);
+VIDEO_SET_METHOD(time, NUM2INT);
+VIDEO_GET_METHOD(position, float, rb_float_new);
+VIDEO_SET_METHOD(position, NUM2DBL);
 #endif
 
 //
@@ -3571,6 +3609,11 @@ shoes_ruby_init()
   rb_define_method(cVideo, "next", CASTHOOK(shoes_video_next), 0);
   rb_define_method(cVideo, "pause", CASTHOOK(shoes_video_pause), 0);
   rb_define_method(cVideo, "stop", CASTHOOK(shoes_video_stop), 0);
+  rb_define_method(cVideo, "length", CASTHOOK(shoes_video_get_length), 0);
+  rb_define_method(cVideo, "position", CASTHOOK(shoes_video_get_position), 0);
+  rb_define_method(cVideo, "position=", CASTHOOK(shoes_video_set_position), 1);
+  rb_define_method(cVideo, "time", CASTHOOK(shoes_video_get_time), 0);
+  rb_define_method(cVideo, "time=", CASTHOOK(shoes_video_set_time), 1);
 #endif
 
   cPattern = rb_define_class_under(cShoes, "Pattern", rb_cObject);

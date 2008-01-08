@@ -506,4 +506,68 @@ If you have a 150x150 pixel image and you set the width to 50 pixels, this metho
 
 The horizontal screen size of the image in pixels.
 
+== Video ==
+
+Shoes supports embedding of QuickTime, Flash video (FLV), DivX, Xvid and various other popular video formats.  This is all thanks to VideoLAN and ffmpeg, two sensational open source libraries.  Use the `video` method on a slot to setup a Shoes::Video object.
+
+In addition to video formats, some audio formats are also supported, such as MP3, WAV and Ogg Vorbis.
+
+Video support is optional in Shoes and some builds do not support video.  For example, video support is unavailable for PowerPC.  When you download Shoes, the build for your platform will be marked `novideo` in the filename if no video support is available.
+
+=== hide() » self ===
+
+Hides the video.  If already playing, the video will continue to play.  This just turns off display of the video.  One possible use of this method is to collapse the video area when it is playing an audio file, such as an MP3.
+
+=== length() » a number ===
+
+The full length of the video in milliseconds.  Returns nil if the video is not yet loaded.
+
+=== move(x, y) » self ===
+
+Moves the video to specific coordinates, the (x, y) being the upper left hand corner of the video.
+
+=== pause() » self ===
+
+Pauses the video, if it is playing.
+
+=== playing?() » true of false ===
+
+Returns true if the video is currently playing.  Or, false if the video is paused or stopped.
+
+=== play() » self ===
+
+Starts playing the video, if it isn't already playing.  If already playing, the video is restarted from the beginning.
+
+=== position() » a decimal ===
+
+The position of the video as a decimanl number (a Float) between the beginning (0.0) and the end (1.0).  For instance, a Float value of 0.5 indicates the halfway point of the video.
+
+=== position = a decimal ===
+
+Sets the position of the video using a Float value.  To move the video to its 25% position: `@video.position = 0.25`.
+
+=== remove() » self ===
+
+Removes the video from its slot.  This will stop the video as well.
+
+=== show() » self ===
+
+Reveals the video, if it has been hidden by the `hide()` method.
+
+=== stop() » self ===
+
+Stops the video, if it is playing.
+
+=== time() » a number ===
+
+The time position of the video in milliseconds.  So, if the video is 10 seconds into play, this method would return the number 10000.
+
+=== time = a number ===
+
+Set the position of the video to a time in milliseconds.
+
+=== toggle() » self ===
+
+Toggles the visibility of the video.  If the video can be seen, then `hide` is called.  Otherwise, `show` is called.
+
 END
