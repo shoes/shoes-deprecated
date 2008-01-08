@@ -158,9 +158,9 @@ end
 # use the platform Ruby claims
 case PLATFORM
 when /win32/
-  SRC = FileList["shoes/*.{c,rc}"] 
+  SRC = FileList["shoes/*.c"] 
   OBJ = SRC.map do |x|
-    x.gsub(/\.c$/, '.obj').gsub(/\.rc$/, '.res')
+    x.gsub(/\.c$/, '.obj')
   end
 
   # MSVC build environment
@@ -213,10 +213,10 @@ when /win32/
     mkdir_p "dist"
   end
 
-  task "dist/#{NAME}.exe" => ["dist/lib#{SONAME}.dll", "bin/main.obj"] do |t|
+  task "dist/#{NAME}.exe" => ["dist/lib#{SONAME}.dll", "bin/main.obj", "shoes/appwin32.res"] do |t|
     rm_f t.name
     sh "link #{MSVC_LDFLAGS} /OUT:#{t.name} /LIBPATH:dist " +
-      "/SUBSYSTEM:WINDOWS bin/main.obj lib#{SONAME}.lib #{MSVC_LIBS2}"
+      "/SUBSYSTEM:WINDOWS bin/main.obj shoes/appwin32.res lib#{SONAME}.lib #{MSVC_LIBS2}"
   end
 
   task "dist/lib#{SONAME}.dll" => OBJ do |t|
