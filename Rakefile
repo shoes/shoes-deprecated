@@ -226,7 +226,7 @@ when /win32/
       "/SUBSYSTEM:WINDOWS bin/main.obj shoes/appwin32.res lib#{SONAME}.lib #{MSVC_LIBS2}"
   end
 
-  task "dist/lib#{SONAME}.dll" => OBJ + ["shoes/version.h"] do |t|
+  task "dist/lib#{SONAME}.dll" => ["shoes/version.h"] + OBJ do |t|
     sh "link #{MSVC_LDFLAGS} /OUT:#{t.name} /dll " +
       "/LIBPATH:#{ext_ruby}/lib " +
       "/LIBPATH:deps/cairo/lib " +
@@ -324,7 +324,7 @@ else
     end
   end
 
-  task "dist/lib#{SONAME}.#{DLEXT}" => OBJ + ['shoes/version.h'] do |t|
+  task "dist/lib#{SONAME}.#{DLEXT}" => ['shoes/version.h'] + OBJ do |t|
     ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
     sh "#{CC} -o #{t.name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     case PLATFORM when /darwin/
