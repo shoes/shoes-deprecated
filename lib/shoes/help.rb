@@ -58,7 +58,7 @@ def Shoes.make_help_page(str)
     style(Shoes::Para, :size => 9)
     style(Shoes::Tagline, :size => 12, :weight => "bold", :stroke => "#eee", :fill => "#333", :margin => 6)
 
-    @doc = 
+    @doc =
       stack :margin => 20, :margin_left => 130, :margin_top => 106,
         &dewikify(docs[0][-1]['description'], true)
     stack :top => 0, :left => 0 do
@@ -400,16 +400,76 @@ So, to draw an arrow with a red line around it:
 {{{
  #!ruby
  Shoes.app do
-   color red
+   stroke red
    arrow 0, 100, 10
  end
 }}}
 
 To clear the line color, use the `nostroke` method.
 
+=== strokewidth(a number) » self ===
+
+Sets the line size for all drawing within this slot.  Whereas the `stroke` method alters the line color, the `strokewidth` method alters the line size in pixels.  Calling `strokewidth(4)` will cause lines to be drawn 4 pixels wide.
+
 === transform(:center or :corner) » self ===
 
 Should transformations (such as `skew` and `rotate`) be performed around the center of the shape?  Or the corner of the shape?  Shoes defaults to `:corner`.
+
+== Manipulation Blocks ==
+
+The manipulation methods below make quick work of shifting around slots and inserting new elements.
+
+=== append() { ... } » self ===
+
+Adds elements to the end of a slot.
+
+{{{
+ #!ruby
+ @slot.append do
+   title "Breaking News"
+   tagline "Astronauts arrested for space shuttle DUI."
+ end
+}}}
+
+The `title` and `tagline` elements will be added to the end of the `@slot`.
+
+=== after(element) { ... } » self ===
+
+Adds elements to a specific place in a slot, just after the `element` which is a child of the slot.
+
+=== before(element) { ... } » self ===
+
+Adds elements to a specific place in a slot, just before the `element` which is a child of the slot.
+
+=== clear() » self ===
+
+Empties the slot of any elements, timers and nested slots.  This is effectively identical to looping through
+the contents of the slot and calling each element's `remove` method.
+
+=== clear() { ... } » self ===
+
+The clear method also takes an optional block.  The block will be used to replace the contents of the slot.
+
+{{{
+ #!ruby
+ @slot = stack { para "Old text" }
+ @slot.clear { para "Brand new text" }
+}}}
+
+In this example, the "Old text" paragraph will be cleared out, replaced by the "Brand new text" paragraph.
+
+=== prepend() { ... } » self ===
+
+Adds elements to the beginning of a slot.
+
+{{{
+ #!ruby
+ @slot.append do
+   para "Your car is ready."
+ end
+}}}
+
+The `para` element is added to the beginning of the `@slot`.
 
 == Styles of a Slot ==
 
@@ -434,11 +494,11 @@ The vertical size of the viewable slot in pixels.  So, if this is a scrolling sl
 Is this slot allowed to show a scrollbar?  True or false.  The scrollbar will only appear if
 the height of the slot is also fixed.
 
-=== scroll_height() » a number === 
+=== scroll_height() » a number ===
 
 The vertical size of the full slot, including any of it which is hidden by scrolling.
 
-=== scroll_max() » a number === 
+=== scroll_max() » a number ===
 
 The top coordinate which this slot can be scrolled down to.  The top coordinate of a scroll bar is always zero.  The bottom coordinate is the full height of the slot minus one page of scrolling.  This bottom coordinate is what `scroll_max` returns.
 
@@ -446,11 +506,11 @@ This is basically a shortcut for writing `slot.scroll_height - slot.height`.
 
 To scroll to the bottom of a slot, use `slot.scroll_top = slot.scroll_max`.
 
-=== scroll_top() » a number === 
+=== scroll_top() » a number ===
 
 The top coordinate which this slot is scrolled down to.  So, if the slot is scrolled down twenty pixels, this method will return `20`.
 
-=== scroll_top = a number === 
+=== scroll_top = a number ===
 
 Scrolls the slot to a certain coordinate.  This must be between zero and `scroll_max`.
 
