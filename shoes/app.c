@@ -64,10 +64,24 @@ shoes_app_new()
 }
 
 #ifdef SHOES_GTK
+static VALUE
+shoes_app_gtk_sleep(VALUE v)
+{
+  return rb_eval_string("sleep(0.001)");
+}
+
+static VALUE
+shoes_app_gtk_exception(VALUE v, VALUE exc)
+{
+  if (rb_obj_is_kind_of(exc, rb_eInterrupt))
+    gtk_main_quit();
+  return Qnil;
+}
+
 static gboolean
 shoes_app_gtk_idle(gpointer data)
 {
-  rb_eval_string("sleep(0.001)");
+  rb_rescue2(shoes_app_gtk_sleep, Qnil, shoes_app_gtk_exception, Qnil, rb_cObject, 0);
   return TRUE;
 }
 
