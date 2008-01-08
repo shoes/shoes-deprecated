@@ -8,7 +8,7 @@ APPNAME = ENV['APPNAME'] || "Shoes"
 RELEASE_ID, RELEASE_NAME = 1, "Curious"
 NAME = APPNAME.downcase.gsub(/\W+/, '')
 SONAME = 'shoes'
-SVN_VERSION = `svn info`[/Revision: (\d+)/, 1] rescue '1'
+SVN_VERSION = `svn info`[/Revision: (\d+)/, 1] rescue File.readlines(".svn/entries")[3].to_i
 VERS = ENV['VERSION'] || "0.r#{SVN_VERSION}"
 PKG = "#{NAME}-#{VERS}"
 APPARGS = ENV['APPARGS']
@@ -357,7 +357,7 @@ else
   end
 end
 
-task :tarball => 'bin/main.c' do
+task :tarball => ['bin/main.c', 'shoes/version.h'] do
   mkdir_p "pkg"
   rm_rf PKG
   sh "svn export . #{PKG}"
@@ -367,6 +367,7 @@ task :tarball => 'bin/main.c' do
   rm "#{PKG}/use-deps"
   rm_rf "#{PKG}/platform"
   cp "bin/main.c", "#{PKG}/bin/main.c"
+  cp "shoes/version.h", "#{PKG}/shoes/version.h"
   rewrite "Makefile", "#{PKG}/Makefile", /^(SVN_VERSION) = .+?$/, 'SVN_VERSION = \1'
   sh "tar czvf pkg/#{PKG}.tar.gz #{PKG}"
   rm_rf PKG
