@@ -71,7 +71,8 @@ def Shoes.make_help_page(str)
         background "rgb(66, 66, 66, 100)".."rgb(255, 255, 255, 0)", :height => 20, :bottom => 0
       end
       @toc = {}
-      stack :margin => 20, :width => 120 do
+      stack :margin => 12, :width => 130, :margin_top => 20 do
+        background "#eee", :radius => 4
         docs.each do |sect_s, sect_h|
           sect_cls = sect_h['class']
           para strong(link(sect_s, :stroke => black) { 
@@ -415,6 +416,102 @@ Sets the line size for all drawing within this slot.  Whereas the `stroke` metho
 === transform(:center or :corner) » self ===
 
 Should transformations (such as `skew` and `rotate`) be performed around the center of the shape?  Or the corner of the shape?  Shoes defaults to `:corner`.
+
+== Element Creation ==
+
+Shoes has a wide variety of elements, many cherry-picked from HTML.  This page describes how to create these elements in a slot.  See the Elements section of the manual for more on how to modify and use these elements after they have been placed.
+
+=== background(pattern) ===
+
+Draws a Background element with a specific color (or pattern.)  Patterns can be colors, gradients or images.  Colors and images will tile across the background.  Gradients stretch to fill the background.
+
+'''PLEASE NOTE:''' Backgrounds are actual elements, not styles.  HTML treats backgrounds like styles.  Which means every box can only have one background.  Shoes layers background elements.
+
+{{{
+ #!ruby
+ Shoes.app do
+   background black
+   background white, :width => 50
+ end
+}}}
+
+The above example paints two backgrounds.  First, a black background is painted over the entire app's surface area.  Then a 50 pixel white stripe is painted along the left side.
+
+=== banner(text) ===
+
+Creates a Banner text block.  Shoes automatically styles this text to 48 pixels high.
+
+=== border(text, :strokewidth => a number) ===
+
+Draws a Border element using a specific color (or pattern.)  Patterns can be colors, gradients or images.  Colors and images will tile across the border.  Gradients stretch to fill the border.
+
+'''PLEASE NOTE:''' Like Backgrounds, Borders are actual elements, not styles.  HTML treats backgrounds and borders like styles.  Which means every box can only have one borders.  Shoes layers border and background elements, along with text blocks, images, and everything else.
+
+=== caption(text) ===
+
+Creates a Caption text block.  Shoes styles this text to 14 pixels high.
+
+=== code(text) ===
+
+Create a Code text fragment.  This text defaults to a monospaced font.
+
+=== del(text) ===
+
+Creates a Del text fragment (short for "deleted") which defaults to text with a single strikethrough in its middle.
+
+=== em(text) ===
+
+Creates an Em text fragment (short for "emphasized") which, by default, is styled with italics.
+
+=== image(path) ===
+
+Creates an Image element for displaying a picture.  PNG, JPEG and GIF formats are allowed.
+
+=== ins(text) ===
+
+Creates an Ins text fragment (short for "inserted") which Shoes styles with a single underline.
+
+=== inscription(text) ===
+
+Creates an Inscription text block.  Shoes styles this text at 10 pixels high.
+
+=== link(text, :click => proc or string) ===
+
+Creates a Link text block, which Shoes styles with a single underline and colors with a #06E (blue) colored stroke.
+
+The default LinkHover style is also single-underlined with a #039 (dark blue) stroke.
+
+=== para(text) ===
+
+Create a Para text block (short for "paragraph") which Shoes styles at 12 pixels high.
+
+=== strong(text) ===
+
+Creates a Strong text fragment, styled in bold by default.
+
+=== sub(text) ===
+
+Creates a Sub text fragment (short for "subscript") which defaults to lowering the text by 10 pixels and styling it in an x-small font.
+
+=== subtitle(text) ===
+
+Creates a Subtitle text block.  Shoes styles this text to 26 pixels high.
+
+=== sup(text) ===
+
+Creates a Sup text fragment (short for "superscript") which defaults to raising the text by 10 pixels and styling it in an x-small font.
+
+=== tagline(text) ===
+
+Creates a Tagline text block.  Shoes styles this text to 18 pixels high.
+
+=== title(text) ===
+
+Creates a Title text block.  Shoes styles these elements to 34 pixels high.
+
+=== video(path or url) ===
+
+Embeds a movie in this slot.
 
 == Manipulation Blocks ==
 
