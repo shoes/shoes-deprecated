@@ -5,6 +5,7 @@ require 'fileutils'
 include FileUtils
 
 APPNAME = ENV['APPNAME'] || "Shoes"
+RELEASE = "Curious"
 NAME = APPNAME.downcase.gsub(/\W+/, '')
 SONAME = 'shoes'
 SVN_VERSION = `svn info`[/Revision: (\d+)/, 1] rescue '1'
