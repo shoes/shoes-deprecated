@@ -901,10 +901,20 @@ shoes_app_win32proc(
     case WM_ERASEBKGND:
       return 1;
 
+    //
+    // On Windows, I have to ensure the scrollbar's width is added
+    // to the client area width.  In Shoes, the toplevel slot size is
+    // always obscured by the scrollbar when it appears, rather than
+    // resizing the width of the slot.
+    //
     case WM_PAINT:
     {
-      RECT rect;
+      RECT rect, wrect;
+      int scrollwidth = GetSystemMetrics(SM_CXVSCROLL);
       GetClientRect(app->slot.window, &rect);
+      GetWindowRect(app->slot.window, &wrect);
+      if (wrect.right - wrect.left > rect.right + scrollwidth)
+        rect.right += scrollwidth;
       app->width = rect.right;
       app->height = rect.bottom;
       shoes_canvas_size(app->canvas, app->width, app->height);
