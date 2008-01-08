@@ -56,10 +56,11 @@ def Shoes.make_help_page(str)
     style(Shoes::Code, :stroke => "#C30")
     style(Shoes::LinkHover, :stroke => green, :fill => nil)
     style(Shoes::Para, :size => 9)
-    style(Shoes::Tagline, :size => 12, :weight => "bold", :stroke => "#eee", :fill => "#333", :margin => 6)
+    style(Shoes::Tagline, :size => 12, :weight => "bold", :stroke => "#eee", :margin => 6)
+    background "#ddd".."#fff", :angle => 90
 
     @doc =
-      stack :margin => 20, :margin_left => 130, :margin_top => 106,
+      stack :margin_left => 130, :margin_top => 106, :margin_bottom => 50, :margin_right => 40,
         &dewikify(docs[0][-1]['description'], true)
     stack :top => 0, :left => 0 do
       stack do
@@ -87,7 +88,7 @@ def Shoes.make_help_page(str)
                   @doc.append do
                     meth_h['methods'].each do |mname, expl|
                       stack(:margin_top => 8, :margin_bottom => 8) { 
-                        background "#333"; tagline mname, :margin => 4 }
+                        background "#333".."#666", :radius => 3, :angle => 90; tagline mname, :margin => 4 }
                       instance_eval &dewikify(expl)
                     end
                   end
@@ -99,7 +100,7 @@ def Shoes.make_help_page(str)
         end
       end
     end
-    image "static/shoes-icon.png", :top => 8, :right => 10,
+    image "static/shoes-icon.png", :top => 8, :right => 30,
       :width => 64, :height => 64
   end
 rescue => e
