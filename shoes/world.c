@@ -76,9 +76,7 @@ shoes_load(char *path, char *uri)
     VALUE v = rb_rescue2(CASTHOOK(shoes_load_begin), (VALUE)bootup, CASTHOOK(shoes_load_exception), Qnil, rb_cObject, 0);
     if (rb_obj_is_kind_of(v, rb_eException))
     {
-      VALUE msg = rb_funcall(v, rb_intern("message"), 0);
-      printf("%s\n", RSTRING_PTR(msg));
-      return SHOES_QUIT;
+      QUIT_ALERT(v);
     }
   }
 
@@ -144,13 +142,9 @@ shoes_start(char *path, char *uri)
   VALUE load_uri = rb_rescue2(CASTHOOK(shoes_start_begin), Qnil, CASTHOOK(shoes_start_exception), Qnil, rb_cObject, 0);
   if (!RTEST(load_uri))
     return SHOES_QUIT;
-  if (rb_obj_is_kind_of(load_uri, rb_eSystemExit))
-    return SHOES_QUIT;
   if (rb_obj_is_kind_of(load_uri, rb_eException))
   {
-    VALUE msg = rb_funcall(load_uri, rb_intern("message"), 0);
-    printf("%s\n", RSTRING_PTR(msg));
-    return SHOES_QUIT;
+    QUIT_ALERT(load_uri);
   }
 
   if (rb_obj_is_kind_of(load_uri, rb_cString))

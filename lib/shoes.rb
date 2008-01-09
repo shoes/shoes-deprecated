@@ -95,13 +95,11 @@ class Shoes
     end
 
     opts.on_tail("-v", "--version", "Display the version info.") do
-      puts "shoes #{Shoes::RELEASE_NAME.downcase} (0.r#{Shoes::REVISION})"
-      raise SystemExit
+      raise SystemExit, "shoes #{Shoes::RELEASE_NAME.downcase} (0.r#{Shoes::REVISION})"
     end
 
     opts.on_tail("-h", "--help", "Show this message") do
-      puts opts
-      raise SystemExit
+      raise SystemExit, opts.to_s
     end
   end
 

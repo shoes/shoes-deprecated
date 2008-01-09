@@ -42,6 +42,16 @@ void shoes_ruby_init(void);
 //
 #define SHOES_META \
   "(class << Shoes; self; end).instance_eval do;"
+#ifdef SHOES_WIN32
+#define QUIT_ALERT_MSG() MessageBox(NULL, RSTRING_PTR(msg), "Shoes", MB_OK)
+#else
+#define QUIT_ALERT_MSG() printf("%s\n", RSTRING_PTR(msg))
+#endif
+#define QUIT_ALERT(v) \
+   VALUE msg = rb_ary_entry(rb_funcall(rb_funcall(v, rb_intern("message"), 0), rb_intern("split"), 2, \
+     rb_eval_string("/:\\d+:/"), INT2NUM(2)), 1); \
+   QUIT_ALERT_MSG(); \
+   return SHOES_QUIT;
 #define EXC_ALERT \
   "proc do; alert %{#{@exc.message}\\n#{@exc.backtrace.map { |x| %{\\n  * #{x}}}}}; end"
 #define EXC_MARKUP \
