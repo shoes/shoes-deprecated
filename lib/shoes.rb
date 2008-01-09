@@ -84,16 +84,24 @@ class Shoes
   OPTS = OptionParser.new do |opts|
     opts.banner = "Usage: shoes [options] (app.rb or app.shy)"
     
-    opts.separator ""
-    opts.separator "Specific options:"
-    
     opts.on("-m", "--manual",
-            "Open the built-in manual.") do |s|
+            "Open the built-in manual.") do
       @main_app = Shoes::Help
     end
+
     opts.on("-s", "--shy DIRECTORY",
             "Compress a directory into a Shoes YAML (SHY) archive.") do |s|
       @main_app = ShyMake.call(s)
+    end
+
+    opts.on_tail("-v", "--version", "Display the version info.") do
+      puts "shoes #{Shoes::RELEASE_NAME.downcase} (0.r#{Shoes::REVISION})"
+      raise SystemExit
+    end
+
+    opts.on_tail("-h", "--help", "Show this message") do
+      puts opts
+      raise SystemExit
     end
   end
 

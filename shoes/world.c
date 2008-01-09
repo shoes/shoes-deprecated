@@ -51,6 +51,19 @@ shoes_init()
   return SHOES_OK;
 }
 
+static VALUE
+shoes_load_begin(VALUE v)
+{
+  char *bootup = (char *)v;
+  return rb_eval_string(bootup);
+}
+
+static VALUE
+shoes_load_exception(VALUE v, VALUE exc)
+{
+  return exc;
+}
+
 shoes_code
 shoes_load(char *path, char *uri)
 {
@@ -59,15 +72,14 @@ shoes_load(char *path, char *uri)
   if (path)
   {
     char bootup[SHOES_BUFSIZE];
-    sprintf(bootup,
-      "begin;"
-        "Shoes.load(%%q<%s>);"
-      "rescue Object => e;"
-        SHOES_META
-          EXC_RUN
-        "end;"
-      "end;", path);
-    rb_eval_string(bootup);
+    sprintf(bootup, "Shoes.load(%%q<%s>);", path);
+    VALUE v = rb_rescue2(shoes_load_begin, (VALUE)bootup, shoes_load_exception, Qnil, rb_cObject, 0);
+    if (rb_obj_is_kind_of(v, rb_eException))
+    {
+      VALUE msg = rb_funcall(v, rb_intern("message"), 0);
+      printf("%s\n", RSTRING_PTR(msg));
+      return SHOES_QUIT;
+    }
   }
 
   return shoes_app_start(appobj, uri);
@@ -85,6 +97,18 @@ void
 shoes_set_argv(int argc, char **argv)
 {
   ruby_set_argv(argc, argv);
+}
+
+static VALUE
+shoes_start_begin(VALUE v)
+{
+  return rb_eval_string("$SHOES_URI = Shoes.args!");
+}
+
+static VALUE
+shoes_start_exception(VALUE v, VALUE exc)
+{
+  return exc;
 }
 
 shoes_code
@@ -117,9 +141,17 @@ shoes_start(char *path, char *uri)
   strcpy(shoes_world->path, RSTRING(str)->ptr);
 
   char *load_uri_str = NULL;
-  VALUE load_uri = rb_eval_string("$SHOES_URI = Shoes.args!");
+  VALUE load_uri = rb_rescue2(shoes_start_begin, Qnil, shoes_start_exception, Qnil, rb_cObject, 0);
   if (!RTEST(load_uri))
     return SHOES_QUIT;
+  if (rb_obj_is_kind_of(load_uri, rb_eSystemExit))
+    return SHOES_QUIT;
+  if (rb_obj_is_kind_of(load_uri, rb_eException))
+  {
+    VALUE msg = rb_funcall(load_uri, rb_intern("message"), 0);
+    printf("%s\n", RSTRING_PTR(msg));
+    return SHOES_QUIT;
+  }
 
   if (rb_obj_is_kind_of(load_uri, rb_cString))
     load_uri_str = RSTRING_PTR(load_uri);

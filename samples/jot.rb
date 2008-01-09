@@ -3,7 +3,7 @@ NOTES = [
 ]
 
 Shoes.app :title => "vJot Clone", 
-  :width => 420, :height => 560 do
+  :width => 420, :height => 560, :resizable => false do
 
   @note = NOTES.first
   background "#C7EAFB"
