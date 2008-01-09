@@ -73,7 +73,7 @@ shoes_load(char *path, char *uri)
   {
     char bootup[SHOES_BUFSIZE];
     sprintf(bootup, "Shoes.load(%%q<%s>);", path);
-    VALUE v = rb_rescue2(shoes_load_begin, (VALUE)bootup, shoes_load_exception, Qnil, rb_cObject, 0);
+    VALUE v = rb_rescue2(CASTHOOK(shoes_load_begin), (VALUE)bootup, CASTHOOK(shoes_load_exception), Qnil, rb_cObject, 0);
     if (rb_obj_is_kind_of(v, rb_eException))
     {
       VALUE msg = rb_funcall(v, rb_intern("message"), 0);
@@ -141,7 +141,7 @@ shoes_start(char *path, char *uri)
   strcpy(shoes_world->path, RSTRING(str)->ptr);
 
   char *load_uri_str = NULL;
-  VALUE load_uri = rb_rescue2(shoes_start_begin, Qnil, shoes_start_exception, Qnil, rb_cObject, 0);
+  VALUE load_uri = rb_rescue2(CASTHOOK(shoes_start_begin), Qnil, CASTHOOK(shoes_start_exception), Qnil, rb_cObject, 0);
   if (!RTEST(load_uri))
     return SHOES_QUIT;
   if (rb_obj_is_kind_of(load_uri, rb_eSystemExit))
