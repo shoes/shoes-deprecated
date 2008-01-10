@@ -1,0 +1,6 @@
+= Curious (0.r396)
+== 8th January, 2008
+* First official release of Shoes.
+* Support for OS X, Win32 and GTK+.
+* Scrolling stacks newly added.
+* VLC embedded for Video.

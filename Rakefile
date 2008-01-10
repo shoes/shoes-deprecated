@@ -138,6 +138,7 @@ task :build => :build_os do
   cp_r  "static", "dist/static"
   rm_svn "dist"
   cp    "README", "dist/README.txt"
+  cp    "CHANGELOG", "dist/CHANGELOG.txt"
   cp    "COPYING", "dist/COPYING.txt"
   
   case PLATFORM when /darwin/
