@@ -73,7 +73,8 @@ shoes_canvas_gtk_scroll(GtkRange *r, gpointer data)
   VALUE c = (VALUE)data;
   shoes_canvas *canvas;
   Data_Get_Struct(c, shoes_canvas, canvas);
-  canvas->scrolly = (int)gtk_range_get_value(r);
+  canvas->slot.scrolly = (int)gtk_range_get_value(r);
+  shoes_slot_repaint(&canvas->slot);
 }
 #endif
 
@@ -158,6 +159,20 @@ shoes_cairo_create(SHOES_SLOT_OS *slot, int width, int height, int border)
 }
 
 VALUE
+shoes_canvas_get_top(VALUE self)
+{
+  SETUP();
+  return INT2NUM(canvas->place.x);
+}
+
+VALUE
+shoes_canvas_get_left(VALUE self)
+{
+  SETUP();
+  return INT2NUM(canvas->place.y);
+}
+
+VALUE
 shoes_canvas_get_height(VALUE self)
 {
   SETUP();
@@ -175,20 +190,20 @@ VALUE
 shoes_canvas_get_scroll_top(VALUE self)
 {
   SETUP();
-  return INT2NUM(canvas->scrolly);
+  return INT2NUM(canvas->slot.scrolly);
 }
 
 VALUE
 shoes_canvas_set_scroll_top(VALUE self, VALUE num)
 {
   SETUP();
-  canvas->scrolly = NUM2INT(num);
+  canvas->slot.scrolly = NUM2INT(num);
 #ifdef SHOES_GTK
   GtkRange *r = GTK_RANGE(gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(canvas->slot.box)));
-  gtk_range_set_value(r, canvas->scrolly);
+  gtk_range_set_value(r, canvas->slot.scrolly);
 #endif
 #ifdef SHOES_WIN32
-  SetScrollPos(canvas->slot.window, SB_VERT, canvas->scrolly, TRUE);
+  SetScrollPos(canvas->slot.window, SB_VERT, canvas->slot.scrolly, TRUE);
 #endif
   shoes_canvas_repaint_all(self);
   return num;
@@ -274,7 +289,7 @@ shoes_canvas_paint(VALUE self)
 #endif
 
 #ifdef SHOES_WIN32
-  BitBlt(hdc, 0, 0, width, height, canvas->slot.dc, 0, canvas->scrolly, SRCCOPY);
+  BitBlt(hdc, 0, 0, width, height, canvas->slot.dc, 0, canvas->slot.scrolly, SRCCOPY);
   cairo_surface_destroy(canvas->slot.surface);
   EndPaint(canvas->slot.window, &paint_struct);
   SelectObject(canvas->slot.dc, bitold);
@@ -1218,7 +1233,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
 #endif
 #ifdef SHOES_WIN32
         MoveWindow(self_t->slot.window, self_t->place.ix, 
-          self_t->place.iy - pc->scrolly, self_t->place.iw, 
+          self_t->place.iy - pc->slot.scrolly, self_t->place.iw, 
           self_t->place.ih, TRUE);
 #endif
       }
@@ -1355,7 +1370,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
     self_t->fully = endy;
     if (RTEST(actual))
     {
-      self_t->scrolly = min(self_t->scrolly, self_t->fully - self_t->height);
+      self_t->slot.scrolly = min(self_t->slot.scrolly, self_t->fully - self_t->height);
 #ifdef SHOES_GTK
       gtk_layout_set_size(GTK_LAYOUT(self_t->slot.canvas), self_t->width, endy);
 #endif
@@ -1387,7 +1402,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
       si.nMin = 0;
       si.nMax = self_t->fully - 1; 
       si.nPage = self_t->height;
-      si.nPos = self_t->scrolly;
+      si.nPos = self_t->slot.scrolly;
       INFO("SetScrollInfo(%d, nMin: %d, nMax: %d, nPage: %d)\n", 
         si.nPos, si.nMin, si.nMax, si.nPage);
       SetScrollInfo(self_t->slot.window, SB_VERT, &si, TRUE);
@@ -1658,7 +1673,7 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
   if (ORIGIN(self_t->place))
   {
     x -= self_t->place.ix;
-    y -= self_t->place.iy - self_t->scrolly;
+    y -= self_t->place.iy - self_t->slot.scrolly;
   }
 #endif
 
@@ -1747,7 +1762,7 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
   if (ORIGIN(self_t->place))
   {
     x -= self_t->place.ix;
-    y -= self_t->place.iy - self_t->scrolly;
+    y -= self_t->place.iy - self_t->slot.scrolly;
   }
 #endif
 
@@ -1787,7 +1802,7 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
   if (ORIGIN(self_t->place))
   {
     x -= self_t->place.ix;
-    y -= self_t->place.iy - self_t->scrolly;
+    y -= self_t->place.iy - self_t->slot.scrolly;
   }
 #endif
 

@@ -59,17 +59,17 @@ def Shoes.make_help_page(str)
     style(Shoes::Tagline, :size => 12, :weight => "bold", :stroke => "#eee", :margin => 6)
     background "#ddd".."#fff", :angle => 90
 
+    stack do
+      background black
+      @title = title docs[0][0], :stroke => white, :margin => 14,
+        :weight => "bold"
+      background "rgb(66, 66, 66, 180)".."rgb(0, 0, 0, 0)", :height => 0.7
+      background "rgb(66, 66, 66, 100)".."rgb(255, 255, 255, 0)", :height => 20, :bottom => 0
+    end
     @doc =
-      stack :margin_left => 130, :margin_top => 106, :margin_bottom => 50, :margin_right => 40,
+      stack :margin_left => 130, :margin_top => 20, :margin_bottom => 50, :margin_right => 40,
         &dewikify(docs[0][-1]['description'], true)
-    stack :top => 0, :left => 0 do
-      stack do
-        background black
-        @title = title docs[0][0], :stroke => white, :margin => 14,
-          :weight => "bold"
-        background "rgb(66, 66, 66, 180)".."rgb(0, 0, 0, 0)", :height => 0.7
-        background "rgb(66, 66, 66, 100)".."rgb(255, 255, 255, 0)", :height => 20, :bottom => 0
-      end
+    stack :top => 80, :left => 0, :sticky => Window do
       @toc = {}
       stack :margin => 12, :width => 130, :margin_top => 20 do
         background "#eee", :radius => 4

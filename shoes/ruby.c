@@ -11,10 +11,10 @@
 #include "shoes/version.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cCanvas, cFlow, cStack, cMask, cShape, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover;
+VALUE cShoes, cApp, cWindow, cMouse, cCanvas, cFlow, cStack, cMask, cShape, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover;
 VALUE eVlcError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
-ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_hover, s_href, s_insert, s_items, s_scroll, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
+ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_hover, s_href, s_insert, s_items, s_scroll, s_sticky, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -285,6 +285,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
 {
   shoes_canvas *canvas = NULL;
   VALUE ck = rb_obj_class(c);
+  VALUE stuck = ATTR(attr, sticky);
   if (!NIL_P(c))
     Data_Get_Struct(c, shoes_canvas, canvas);
 
@@ -296,6 +297,16 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
 
   int testw = dw;
   if (testw == 0) testw = lmargin + 1 + rmargin;
+
+  if (!NIL_P(stuck))
+  {
+    if (stuck == cWindow)
+      rel = REL_WINDOW;
+    else if (stuck == cMouse)
+      rel = REL_CURSOR;
+    else
+      rel = REL_STICKY;
+  }
 
   place->flags = rel;
   if (canvas == NULL)
@@ -312,7 +323,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
     if (rel == REL_WINDOW)
     {
       cx = 0; cy = 0;
-      ox = 0; oy = 0;
+      ox = 0; oy = canvas->slot.scrolly;
     }
     else if (rel == REL_CANVAS)
     {
@@ -320,6 +331,11 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
       cy = canvas->cy - CPY(canvas);
       ox = CPX(canvas);
       oy = CPY(canvas);
+    }
+    else if (rel == REL_CURSOR)
+    {
+      cx = 0; cy = 0;
+      ox = canvas->app->mousex; oy = canvas->app->mousey;
     }
     else if (rel == REL_TILE)
     {
@@ -558,11 +574,11 @@ shoes_cf2rb(CFStringRef cf)
   MoveWindow(self_t->ref, place.ix, place.iy, place.iw, place.ih, TRUE)
 
 #define REPAINT_CONTROL() \
-  place.iy -= canvas->scrolly; \
+  place.iy -= canvas->slot.scrolly; \
   if (CHANGED_COORDS()) { \
     PLACE_CONTROL(); \
   } \
-  place.iy += canvas->scrolly
+  place.iy += canvas->slot.scrolly
 
 inline void shoes_win32_control_font(int id, HWND hwnd)
 {
@@ -3493,6 +3509,7 @@ shoes_ruby_init()
   s_leading = rb_intern("leading");
   s_leave = rb_intern("leave");
   s_scroll = rb_intern("scroll");
+  s_sticky = rb_intern("sticky");
   s_text = rb_intern("text");
   s_title = rb_intern("title");
   s_top = rb_intern("top");
@@ -3515,6 +3532,9 @@ shoes_ruby_init()
   cApp = rb_define_class("App", rb_cObject);
   rb_define_alloc_func(cApp, shoes_app_alloc);
   rb_define_method(cApp, "location", CASTHOOK(shoes_app_location), 0);
+
+  cWindow = rb_define_class("Window", rb_cObject);
+  cMouse = rb_define_class("Mouse", rb_cObject);
 
   cCanvas = rb_define_class("Canvas", rb_cObject);
   rb_define_alloc_func(cCanvas, shoes_canvas_alloc);

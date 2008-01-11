@@ -24,6 +24,7 @@ extern const double RAD2PI, PIM2, PI;
 #define REL_CANVAS  2
 #define REL_CURSOR  3
 #define REL_TILE    4
+#define REL_STICKY  5
 
 #define FLAG_POSITION 0x0F
 #define FLAG_ABSX     0x10
@@ -221,7 +222,6 @@ typedef struct {
   double sw;                // current stroke-width
   int cx, cy;               // cursor x and y (stored in absolute coords)
   int marginy;              // value for next y-margin
-  int scrolly;              // value for top of scroll position
   int endx, endy;           // jump points if the cursor spills over
   int topy, fully;          // since we often stack vertically
   int width, height;        // the full height and width used by this box
@@ -244,6 +244,8 @@ shoes_canvas *shoes_canvas_init(VALUE, SHOES_SLOT_OS, VALUE, int, int);
 void shoes_canvas_paint(VALUE);
 void shoes_canvas_shape_do(shoes_canvas *, double, double, double, double, unsigned char);
 VALUE shoes_canvas_style(int, VALUE *, VALUE);
+VALUE shoes_canvas_get_top(VALUE);
+VALUE shoes_canvas_get_left(VALUE);
 VALUE shoes_canvas_get_width(VALUE);
 VALUE shoes_canvas_get_height(VALUE);
 VALUE shoes_canvas_get_scroll_height(VALUE);

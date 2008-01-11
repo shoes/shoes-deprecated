@@ -49,6 +49,7 @@
 typedef struct {
   GtkWidget *box, *canvas;
   GdkEventExpose *expose;
+  int scrolly;
 } shoes_slot_gtk, SHOES_SLOT_OS;
 
 typedef struct {
@@ -85,6 +86,7 @@ typedef struct {
   VALUE controls;
   CGContextRef context;
   cairo_surface_t *surface;
+  int scrolly;
 } shoes_slot_quartz, SHOES_SLOT_OS;
 
 typedef struct {
@@ -140,6 +142,7 @@ typedef struct {
   VALUE focus;
   VALUE controls;
   cairo_surface_t *surface;
+  int scrolly;
 } shoes_slot_win32, SHOES_SLOT_OS;
 
 typedef struct {
