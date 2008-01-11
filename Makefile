@@ -5,8 +5,8 @@ SRC = shoes/app.c shoes/canvas.c shoes/dialogs.c shoes/image.c shoes/internal.c 
 OBJ = ${SRC:.c=.o}
 
 PREFIX = /usr/local
-INCS = -I. -I/usr/include
-LIBS = -L/usr/lib -lcairo -lpangocairo-1.0 -lgif -ljpeg
+INCS = -I. -I/usr/include -I/usr/local/include
+LIBS = -L/usr/lib -L/usr/local/lib -lcairo -lpangocairo-1.0 -lgif -ljpeg
 
 SVN_VERSION = `svn info | ruby -ne 'x = $$_[/Revision: (.+)/, 1]; puts x if x'`
 RUBY_INCS = `ruby -rrbconfig -e 'puts Config::CONFIG["archdir"]'`
