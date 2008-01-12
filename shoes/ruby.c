@@ -350,6 +350,14 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
     {
       cx = 0; cy = 0;
       ox = canvas->cx; oy = canvas->cy;
+      if (rel == REL_STICKY)
+      {
+        if (rb_respond_to(stuck, s_top) && rb_respond_to(stuck, s_left))
+        {
+          ox = NUM2INT(rb_funcall(stuck, s_left, 0));
+          oy = NUM2INT(rb_funcall(stuck, s_top, 0));
+        }
+      }
     }
 
     place->w = PX(attr, width, testw, canvas->place.iw);
