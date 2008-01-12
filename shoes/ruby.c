@@ -654,8 +654,7 @@ shoes_shape_alloc(VALUE klass)
 VALUE
 shoes_shape_remove(VALUE self)
 {
-  shoes_shape *self_t;
-  Data_Get_Struct(self, shoes_shape, self_t);
+  GET_STRUCT(shape, self_t);
   shoes_canvas_remove_item(self_t->parent, self);
   return self;
 }
@@ -678,9 +677,8 @@ VALUE
 shoes_shape_draw(VALUE self, VALUE c, VALUE actual)
 {
   shoes_place place;
-  shoes_shape *self_t;
   shoes_canvas *canvas;
-  Data_Get_Struct(self, shoes_shape, self_t);
+  GET_STRUCT(shape, self_t);
   Data_Get_Struct(c, shoes_canvas, canvas);
 
   if (!NIL_P(self_t->attr) && ATTR(self_t->attr, hidden) == Qtrue)
@@ -703,7 +701,55 @@ shoes_shape_draw(VALUE self, VALUE c, VALUE actual)
 
     cairo_restore(canvas->cr);
   }
+
+  self_t->place = place;
   return self;
+}
+
+VALUE
+shoes_shape_motion(VALUE self, int x, int y, int *touch)
+{
+  char h = 0;
+  VALUE click;
+  GET_STRUCT(shape, self_t);
+
+  click = ATTR(self_t->attr, click);
+  if (self_t->line == NULL) return Qnil;
+
+  if (x >= self_t->place.ix && x <= self_t->place.ix + self_t->place.iw && 
+      y >= self_t->place.iy && y <= self_t->place.iy + self_t->place.ih)
+  {
+    cairo_bool_t in_shape;
+    cairo_t *cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
+    cairo_new_path(cr);
+    cairo_append_path(cr, self_t->line);
+    in_shape = cairo_in_fill(cr, x - self_t->place.ix, y - self_t->place.iy);
+    cairo_destroy(cr);
+
+    if (in_shape)
+    {
+      if (!NIL_P(click))
+      {
+        shoes_canvas *canvas;
+        Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+        shoes_app_cursor(canvas->app, s_hand);
+      }
+      h = 1;
+    }
+  }
+
+  CHECK_HOVER(self_t, h, touch);
+
+  return h ? click : Qnil;
+}
+
+VALUE
+shoes_shape_send_click(VALUE self, int button, int x, int y)
+{
+  if (button == 1)
+    return shoes_shape_motion(self, x, y, NULL);
+
+  return Qnil;
 }
 
 //
@@ -758,16 +804,14 @@ shoes_image_alloc(VALUE klass)
 VALUE
 shoes_image_get_path(VALUE self)
 {
-  shoes_image *image;
-  Data_Get_Struct(self, shoes_image, image);
+  GET_STRUCT(image, image);
   return image->path;
 }
 
 VALUE
 shoes_image_set_path(VALUE self, VALUE path)
 {
-  shoes_image *image;
-  Data_Get_Struct(self, shoes_image, image);
+  GET_STRUCT(image, image);
   if (image->surface != NULL)
     cairo_surface_destroy(image->surface);
   image->path = path;
@@ -778,8 +822,7 @@ shoes_image_set_path(VALUE self, VALUE path)
 VALUE
 shoes_image_remove(VALUE self)
 {
-  shoes_image *self_t;
-  Data_Get_Struct(self, shoes_image, self_t);
+  GET_STRUCT(image, self_t);
   shoes_canvas_remove_item(self_t->parent, self);
   return self;
 }
@@ -810,8 +853,7 @@ shoes_image_draw(VALUE self, VALUE c, VALUE actual)
 VALUE
 shoes_image_size(VALUE self)
 {
-  shoes_image *self_t;
-  Data_Get_Struct(self, shoes_image, self_t);
+  GET_STRUCT(image, self_t);
   return rb_ary_new3(2,
     INT2NUM(cairo_image_surface_get_width(self_t->surface)),
     INT2NUM(cairo_image_surface_get_height(self_t->surface)));
@@ -822,8 +864,7 @@ shoes_image_motion(VALUE self, int x, int y, int *touch)
 {
   char h = 0;
   VALUE click;
-  shoes_image *self_t;
-  Data_Get_Struct(self, shoes_image, self_t);
+  GET_STRUCT(image, self_t);
 
   click = ATTR(self_t->attr, click);
   if (self_t->surface == NULL) return Qnil;
@@ -926,8 +967,7 @@ shoes_video_alloc(VALUE klass)
 VALUE
 shoes_video_hide(VALUE self)
 {
-  shoes_video *self_t;
-  Data_Get_Struct(self, shoes_video, self_t);
+  GET_STRUCT(video, self_t);
   ATTRSET(self_t->attr, hidden, Qtrue);
 #ifdef SHOES_GTK
   gtk_widget_hide(self_t->ref);
@@ -945,8 +985,7 @@ shoes_video_hide(VALUE self)
 VALUE
 shoes_video_show(VALUE self)
 {
-  shoes_video *self_t;
-  Data_Get_Struct(self, shoes_video, self_t);
+  GET_STRUCT(video, self_t);
   ATTRSET(self_t->attr, hidden, Qfalse);
 #ifdef SHOES_GTK
   gtk_widget_show(self_t->ref);
@@ -964,9 +1003,8 @@ shoes_video_show(VALUE self)
 VALUE
 shoes_video_remove(VALUE self)
 {
-  shoes_video *self_t;
   shoes_canvas *canvas;
-  Data_Get_Struct(self, shoes_video, self_t);
+  GET_STRUCT(video, self_t);
   shoes_canvas_remove_item(self_t->parent, self);
 
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
@@ -1065,8 +1103,7 @@ shoes_video_draw(VALUE self, VALUE c, VALUE actual)
 VALUE
 shoes_video_is_playing(VALUE self)
 {
-  shoes_video *self_t;
-  Data_Get_Struct(self, shoes_video, self_t);
+  GET_STRUCT(video, self_t);
   if (self_t->init == 1)
   {
     int isp = libvlc_playlist_isplaying(self_t->vlc, &self_t->excp);
@@ -1079,8 +1116,7 @@ shoes_video_is_playing(VALUE self)
 VALUE
 shoes_video_play(VALUE self)
 {
-  shoes_video *self_t;
-  Data_Get_Struct(self, shoes_video, self_t);
+  GET_STRUCT(video, self_t);
   if (self_t->init == 1)
   {
     libvlc_playlist_play(self_t->vlc, 0, 0, NULL, &self_t->excp);
@@ -1093,8 +1129,7 @@ shoes_video_play(VALUE self)
   VALUE \
   shoes_video_##x(VALUE self) \
   { \
-    shoes_video *self_t; \
-    Data_Get_Struct(self, shoes_video, self_t); \
+    GET_STRUCT(video, self_t); \
     if (self_t->init == 1) \
     { \
       libvlc_playlist_##x(self_t->vlc, &self_t->excp); \
@@ -1106,8 +1141,7 @@ shoes_video_play(VALUE self)
 #define VIDEO_GET_METHOD(x, ctype, rbtype) \
   VALUE shoes_video_get_##x(VALUE self) \
   { \
-    shoes_video *self_t; \
-    Data_Get_Struct(self, shoes_video, self_t); \
+    GET_STRUCT(video, self_t); \
     if (self_t->init == 1) \
     { \
       libvlc_input_t *input = libvlc_playlist_get_input(self_t->vlc, NULL); \
@@ -1123,8 +1157,7 @@ shoes_video_play(VALUE self)
 #define VIDEO_SET_METHOD(x, rbconv) \
   VALUE shoes_video_set_##x(VALUE self, VALUE val) \
   { \
-    shoes_video *self_t; \
-    Data_Get_Struct(self, shoes_video, self_t); \
+    GET_STRUCT(video, self_t); \
     if (self_t->init == 1) \
     { \
       libvlc_input_t *input = libvlc_playlist_get_input(self_t->vlc, NULL); \
@@ -1327,8 +1360,7 @@ shoes_border_draw(VALUE self, VALUE c, VALUE actual)
 VALUE
 shoes_pattern_remove(VALUE self)
 {
-  shoes_pattern *self_t;
-  Data_Get_Struct(self, shoes_pattern, self_t);
+  GET_STRUCT(pattern, self_t);
   shoes_canvas_remove_item(self_t->parent, self);
   return self;
 }
@@ -1431,10 +1463,9 @@ shoes_color_gray(int argc, VALUE *argv, VALUE self)
 }
 
 cairo_pattern_t *
-shoes_color_pattern(VALUE obj)
+shoes_color_pattern(VALUE self)
 {
-  shoes_color *color;
-  Data_Get_Struct(obj, shoes_color, color);
+  GET_STRUCT(color, color);
   if (color->a == 255)
     return cairo_pattern_create_rgb(color->r / 255., color->g / 255., color->b / 255.);
   else
@@ -1442,10 +1473,9 @@ shoes_color_pattern(VALUE obj)
 }
 
 void
-shoes_color_grad_stop(cairo_pattern_t *pattern, double stop, VALUE obj)
+shoes_color_grad_stop(cairo_pattern_t *pattern, double stop, VALUE self)
 {
-  shoes_color *color;
-  Data_Get_Struct(obj, shoes_color, color);
+  GET_STRUCT(color, color);
   if (color->a == 255)
     return cairo_pattern_add_color_stop_rgb(pattern, stop, color->r / 255., color->g / 255., color->b / 255.);
   else
@@ -1544,8 +1574,7 @@ shoes_color_parse(VALUE self, VALUE source)
 VALUE
 shoes_color_to_s(VALUE self)
 {
-  shoes_color *color;
-  Data_Get_Struct(self, shoes_color, color);
+  GET_STRUCT(color, color);
 
   VALUE ary = rb_ary_new3(4, 
     INT2NUM(color->r), INT2NUM(color->g), INT2NUM(color->b), 
@@ -1590,12 +1619,10 @@ shoes_color_method_missing(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_app_method_missing(int argc, VALUE *argv, VALUE self)
 {
-  shoes_app *app;
   VALUE cname, canvas;
+  GET_STRUCT(app, app);
 
   cname = argv[0];
-  Data_Get_Struct(self, shoes_app, app);
-
   canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1);
   if (!NIL_P(canvas) && rb_respond_to(canvas, SYM2ID(cname)))
   {
@@ -1649,10 +1676,9 @@ shoes_link_at(VALUE self, int index, int blockhover, VALUE *clicked, int *touch)
 {
   char h = 0;
   VALUE url = Qnil;
-  shoes_link *link;
   shoes_text *self_t;
 
-  Data_Get_Struct(self, shoes_link, link);
+  GET_STRUCT(link, link);
   Data_Get_Struct(link->ele, shoes_text, self_t);
   if (blockhover && link->start <= index && link->end >= index)
   {
@@ -1728,16 +1754,14 @@ shoes_text_alloc(VALUE klass)
 VALUE
 shoes_text_parent(VALUE self)
 {
-  shoes_text *text;
-  Data_Get_Struct(self, shoes_text, text);
+  GET_STRUCT(text, text);
   return text->parent;
 }
 
 VALUE
 shoes_text_children(VALUE self)
 {
-  shoes_text *text;
-  Data_Get_Struct(self, shoes_text, text);
+  GET_STRUCT(text, text);
   return text->texts;
 }
 
@@ -1797,24 +1821,21 @@ shoes_textblock_alloc(VALUE klass)
 VALUE
 shoes_textblock_parent(VALUE self)
 {
-  shoes_textblock *text;
-  Data_Get_Struct(self, shoes_textblock, text);
+  GET_STRUCT(textblock, text);
   return text->parent;
 }
 
 VALUE
 shoes_textblock_children(VALUE self)
 {
-  shoes_textblock *text;
-  Data_Get_Struct(self, shoes_textblock, text);
+  GET_STRUCT(textblock, text);
   return text->texts;
 }
 
 VALUE
 shoes_textblock_set_cursor(VALUE self, VALUE pos)
 {
-  shoes_textblock *self_t;
-  Data_Get_Struct(self, shoes_textblock, self_t);
+  GET_STRUCT(textblock, self_t);
   self_t->cursor = pos;
   return pos;
 }
@@ -1822,16 +1843,14 @@ shoes_textblock_set_cursor(VALUE self, VALUE pos)
 VALUE
 shoes_textblock_get_cursor(VALUE self)
 {
-  shoes_textblock *self_t;
-  Data_Get_Struct(self, shoes_textblock, self_t);
+  GET_STRUCT(textblock, self_t);
   return self_t->cursor;
 }
 
 VALUE
 shoes_textblock_remove(VALUE self)
 {
-  shoes_textblock *self_t;
-  Data_Get_Struct(self, shoes_textblock, self_t);
+  GET_STRUCT(textblock, self_t);
   shoes_canvas_remove_item(self_t->parent, self);
   return self;
 }
@@ -1839,8 +1858,7 @@ shoes_textblock_remove(VALUE self)
 VALUE
 shoes_textblock_string(VALUE self)
 {
-  shoes_textblock *self_t;
-  Data_Get_Struct(self, shoes_textblock, self_t);
+  GET_STRUCT(textblock, self_t);
   return self_t->string;
 }
 
@@ -1849,8 +1867,7 @@ shoes_textblock_replace(int argc, VALUE *argv, VALUE self)
 {
   long i;
   VALUE texts, attr;
-  shoes_textblock *self_t;
-  Data_Get_Struct(self, shoes_textblock, self_t);
+  GET_STRUCT(textblock, self_t);
 
   attr = Qnil;
   texts = rb_ary_new();
@@ -1874,8 +1891,7 @@ shoes_textblock_send_hover(VALUE self, int x, int y, VALUE *clicked, int *t)
 {
   VALUE url = Qnil;
   int index, trailing, i, hover;
-  shoes_textblock *self_t;
-  Data_Get_Struct(self, shoes_textblock, self_t);
+  GET_STRUCT(textblock, self_t);
   if (self_t->layout == NULL || NIL_P(self_t->links)) return Qnil;
 
   x -= self_t->place.ix;
@@ -1900,9 +1916,8 @@ shoes_textblock_motion(VALUE self, int x, int y, int *t)
   VALUE url = shoes_textblock_send_hover(self, x, y, NULL, t);
   if (!NIL_P(url))
   {
-    shoes_textblock *self_t;
     shoes_canvas *canvas;
-    Data_Get_Struct(self, shoes_textblock, self_t);
+    GET_STRUCT(textblock, self_t);
     Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
     shoes_app_cursor(canvas->app, s_hand);
   }
@@ -2256,14 +2271,13 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
   int px, py, pd, li, m, ld;
   double cx, cy;
   char *font;
-  shoes_textblock *self_t;
   shoes_canvas *canvas;
   PangoLayoutLine *last;
   PangoRectangle lrect;
   PangoFontDescription *desc;
 
   VALUE ck = rb_obj_class(c);
-  Data_Get_Struct(self, shoes_textblock, self_t);
+  GET_STRUCT(textblock, self_t);
   Data_Get_Struct(c, shoes_canvas, canvas);
 
   if (!NIL_P(self_t->attr) && ATTR(self_t->attr, hidden) == Qtrue)
@@ -2468,8 +2482,7 @@ shoes_control_alloc(VALUE klass)
 VALUE
 shoes_control_focus(VALUE self)
 {
-  shoes_control *self_t;
-  Data_Get_Struct(self, shoes_control, self_t);
+  GET_STRUCT(control, self_t);
   ATTRSET(self_t->attr, hidden, Qtrue);
 #ifdef SHOES_GTK
   if (GTK_WIDGET_CAN_FOCUS(self_t->ref)) gtk_widget_grab_focus(self_t->ref);
@@ -2487,8 +2500,7 @@ shoes_control_focus(VALUE self)
 VALUE
 shoes_control_hide(VALUE self)
 {
-  shoes_control *self_t;
-  Data_Get_Struct(self, shoes_control, self_t);
+  GET_STRUCT(control, self_t);
   ATTRSET(self_t->attr, hidden, Qtrue);
 #ifdef SHOES_GTK
   gtk_widget_hide(self_t->ref);
@@ -2505,8 +2517,7 @@ shoes_control_hide(VALUE self)
 VALUE
 shoes_control_show(VALUE self)
 {
-  shoes_control *self_t;
-  Data_Get_Struct(self, shoes_control, self_t);
+  GET_STRUCT(control, self_t);
   ATTRSET(self_t->attr, hidden, Qfalse);
 #ifdef SHOES_GTK
   gtk_widget_show(self_t->ref);
@@ -2523,9 +2534,8 @@ shoes_control_show(VALUE self)
 VALUE
 shoes_control_remove(VALUE self)
 {
-  shoes_control *self_t;
   shoes_canvas *canvas;
-  Data_Get_Struct(self, shoes_control, self_t);
+  GET_STRUCT(control, self_t);
   shoes_canvas_remove_item(self_t->parent, self);
 
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
@@ -2545,8 +2555,7 @@ void
 shoes_control_send(VALUE self, ID event)
 {
   VALUE click;
-  shoes_control *self_t;
-  Data_Get_Struct(self, shoes_control, self_t);
+  GET_STRUCT(control, self_t);
 
   if (!NIL_P(self_t->attr))
   {
@@ -2625,8 +2634,7 @@ VALUE
 shoes_edit_line_get_text(VALUE self)
 {
   VALUE text;
-  shoes_control *self_t;
-  Data_Get_Struct(self, shoes_control, self_t);
+  GET_STRUCT(control, self_t);
   if (self_t->ref == NULL) text = Qnil;
 #ifdef SHOES_GTK
   text = rb_str_new2(gtk_entry_get_text(GTK_ENTRY(self_t->ref)));
@@ -2654,8 +2662,7 @@ VALUE
 shoes_edit_line_set_text(VALUE self, VALUE text)
 {
   char *msg = "";
-  shoes_control *self_t;
-  Data_Get_Struct(self, shoes_control, self_t);
+  GET_STRUCT(control, self_t);
   if (!NIL_P(text)) msg = RSTRING_PTR(text);
 #ifdef SHOES_GTK
   gtk_entry_set_text(GTK_ENTRY(self_t->ref), _(msg));
@@ -2768,8 +2775,7 @@ VALUE
 shoes_edit_box_get_text(VALUE self)
 {
   VALUE text;
-  shoes_control *self_t;
-  Data_Get_Struct(self, shoes_control, self_t);
+  GET_STRUCT(control, self_t);
   if (self_t->ref == NULL) text = Qnil;
 #ifdef SHOES_GTK
   GtkWidget *textview;
@@ -2802,8 +2808,7 @@ VALUE
 shoes_edit_box_set_text(VALUE self, VALUE text)
 {
   char *msg = "";
-  shoes_control *self_t;
-  Data_Get_Struct(self, shoes_control, self_t);
+  GET_STRUCT(control, self_t);
   if (!NIL_P(text)) msg = RSTRING_PTR(text);
 #ifdef SHOES_GTK
   GtkWidget *textview;
@@ -2958,8 +2963,7 @@ shoes_list_box_choose(VALUE self, VALUE item)
 {
   VALUE text = Qnil, items = Qnil;
   int idx = -1;
-  shoes_control *self_t;
-  Data_Get_Struct(self, shoes_control, self_t);
+  GET_STRUCT(control, self_t);
   if (self_t->ref == NULL) text = Qnil;
 
   items = ATTR(self_t->attr, items);
@@ -2971,8 +2975,7 @@ VALUE
 shoes_list_box_text(VALUE self)
 {
   VALUE text = Qnil;
-  shoes_control *self_t;
-  Data_Get_Struct(self, shoes_control, self_t);
+  GET_STRUCT(control, self_t);
   if (self_t->ref == NULL) text = Qnil;
 #ifdef SHOES_GTK
   int sel = gtk_combo_box_get_active(GTK_COMBO_BOX(self_t->ref));
@@ -3010,8 +3013,7 @@ shoes_list_box_text(VALUE self)
 VALUE
 shoes_list_box_items_get(VALUE self)
 {
-  shoes_control *self_t;
-  Data_Get_Struct(self, shoes_control, self_t);
+  GET_STRUCT(control, self_t);
   return ATTR(self_t->attr, items);
 }
 
@@ -3019,8 +3021,7 @@ VALUE
 shoes_list_box_items_set(VALUE self, VALUE items)
 {
   VALUE opt = shoes_list_box_text(self);
-  shoes_control *self_t;
-  Data_Get_Struct(self, shoes_control, self_t);
+  GET_STRUCT(control, self_t);
   ATTRSET(self_t->attr, items, items);
 #ifdef SHOES_QUARTZ
   MenuRef menuRef;
@@ -3155,8 +3156,7 @@ shoes_progress_draw(VALUE self, VALUE c, VALUE actual)
   shoes_##ele##_##sym(int argc, VALUE *argv, VALUE self) \
   { \
     VALUE str = Qnil, blk = Qnil; \
-    shoes_##est *self_t; \
-    Data_Get_Struct(self, shoes_##est, self_t); \
+    GET_STRUCT(est, self_t); \
   \
     rb_scan_args(argc, argv, "01&", &str, &blk); \
     if (NIL_P(self_t->attr)) self_t->attr = rb_hash_new(); \
@@ -3173,8 +3173,7 @@ EVENT_COMMON(linktext, text, leave);
   shoes_##ele##_style(int argc, VALUE *argv, VALUE self) \
   { \
     VALUE attr; \
-    shoes_##ele *self_t; \
-    Data_Get_Struct(self, shoes_##ele, self_t); \
+    GET_STRUCT(ele, self_t); \
     rb_scan_args(argc, argv, "01", &attr); \
     if (!NIL_P(attr)) \
     { \
@@ -3187,8 +3186,7 @@ EVENT_COMMON(linktext, text, leave);
   VALUE \
   shoes_##ele##_move(VALUE self, VALUE x, VALUE y) \
   { \
-    shoes_##ele *self_t; \
-    Data_Get_Struct(self, shoes_##ele, self_t); \
+    GET_STRUCT(ele, self_t); \
     ATTRSET(self_t->attr, left, x); \
     ATTRSET(self_t->attr, top, y); \
     shoes_canvas_repaint_all(self_t->parent); \
@@ -3199,8 +3197,7 @@ EVENT_COMMON(linktext, text, leave);
   VALUE \
   shoes_##ele##_hide(VALUE self) \
   { \
-    shoes_##ele *self_t; \
-    Data_Get_Struct(self, shoes_##ele, self_t); \
+    GET_STRUCT(ele, self_t); \
     ATTRSET(self_t->attr, hidden, Qtrue); \
     shoes_canvas_repaint_all(self_t->parent); \
     return self; \
@@ -3209,8 +3206,7 @@ EVENT_COMMON(linktext, text, leave);
   VALUE \
   shoes_##ele##_show(VALUE self) \
   { \
-    shoes_##ele *self_t; \
-    Data_Get_Struct(self, shoes_##ele, self_t); \
+    GET_STRUCT(ele, self_t); \
     ATTRSET(self_t->attr, hidden, Qfalse); \
     shoes_canvas_repaint_all(self_t->parent); \
     return self; \
@@ -3219,8 +3215,7 @@ EVENT_COMMON(linktext, text, leave);
   VALUE \
   shoes_##ele##_toggle(VALUE self) \
   { \
-    shoes_##ele *self_t; \
-    Data_Get_Struct(self, shoes_##ele, self_t); \
+    GET_STRUCT(ele, self_t); \
     ATTRSET(self_t->attr, hidden, ATTR(self_t->attr, hidden) == Qtrue ? Qfalse : Qtrue); \
     shoes_canvas_repaint_all(self_t->parent); \
     return self; \
@@ -3231,16 +3226,51 @@ EVENT_COMMON(linktext, text, leave);
   EVENT_COMMON(ele, ele, hover); \
   EVENT_COMMON(ele, ele, leave);
 
-CLASS_COMMON(control);
-EVENT_COMMON(control, control, click);
-EVENT_COMMON(control, control, change);
-CLASS_COMMON(text);
+#define PLACE_COMMON(ele) \
+  VALUE \
+  shoes_##ele##_get_left(VALUE self) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    return INT2NUM(self_t->place.x); \
+  } \
+  \
+  VALUE \
+  shoes_##ele##_get_top(VALUE self) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    return INT2NUM(self_t->place.y); \
+  } \
+  \
+  VALUE \
+  shoes_##ele##_get_height(VALUE self) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    return INT2NUM(self_t->place.h); \
+  } \
+  \
+  VALUE \
+  shoes_##ele##_get_width(VALUE self) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    return INT2NUM(self_t->place.w); \
+  }
+
+PLACE_COMMON(canvas)
+PLACE_COMMON(control)
+CLASS_COMMON(control)
+EVENT_COMMON(control, control, click)
+EVENT_COMMON(control, control, change)
+CLASS_COMMON(text)
 #ifdef VIDEO
-CLASS_COMMON(video);
+PLACE_COMMON(video)
+CLASS_COMMON(video)
 #endif
+PLACE_COMMON(image)
 CLASS_COMMON2(image)
+PLACE_COMMON(shape)
 CLASS_COMMON2(shape)
 CLASS_COMMON2(pattern)
+PLACE_COMMON(textblock)
 CLASS_COMMON2(textblock)
 
 //
@@ -3250,8 +3280,7 @@ CLASS_COMMON2(textblock)
 void
 shoes_anim_call(VALUE self)
 {
-  shoes_anim *anim;
-  Data_Get_Struct(self, shoes_anim, anim);
+  GET_STRUCT(anim, anim);
   shoes_safe_block(anim->parent, anim->block, rb_ary_new3(1, INT2NUM(anim->frame)));
   anim->frame++;
 }
@@ -3324,9 +3353,8 @@ shoes_anim_alloc(VALUE klass)
 VALUE
 shoes_anim_remove(VALUE self)
 {
-  shoes_anim *self_t;
+  GET_STRUCT(anim, self_t);
   shoes_anim_stop(self);
-  Data_Get_Struct(self, shoes_anim, self_t);
   shoes_canvas_remove_item(self_t->parent, self);
   return self;
 }
@@ -3334,8 +3362,7 @@ shoes_anim_remove(VALUE self)
 VALUE
 shoes_anim_stop(VALUE self)
 {
-  shoes_anim *self_t;
-  Data_Get_Struct(self, shoes_anim, self_t);
+  GET_STRUCT(anim, self_t);
   if (self_t->started == ANIM_STARTED)
   {
 #ifdef SHOES_GTK
@@ -3358,8 +3385,7 @@ shoes_anim_stop(VALUE self)
 VALUE
 shoes_anim_start(VALUE self)
 {
-  shoes_anim *self_t;
-  Data_Get_Struct(self, shoes_anim, self_t);
+  GET_STRUCT(anim, self_t);
   unsigned int interval = 1000 / self_t->fps;
   if (interval < 32) interval = 32;
   if (self_t->started != ANIM_STARTED)
@@ -3385,17 +3411,15 @@ shoes_anim_start(VALUE self)
 VALUE
 shoes_anim_toggle(VALUE self)
 {
-  shoes_anim *self_t;
-  Data_Get_Struct(self, shoes_anim, self_t);
+  GET_STRUCT(anim, self_t);
   return self_t->started == ANIM_STARTED ? shoes_anim_stop(self) : shoes_anim_start(self);
 }
 
 VALUE
 shoes_anim_draw(VALUE self, VALUE c, VALUE actual)
 {
-  shoes_anim *self_t;
   shoes_canvas *canvas;
-  Data_Get_Struct(self, shoes_anim, self_t);
+  GET_STRUCT(anim, self_t);
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
   if (RTEST(actual) && self_t->started == ANIM_NADA)
   {
@@ -3433,8 +3457,7 @@ shoes_p(VALUE self, VALUE obj)
   shoes_app_c_##func(int argc, VALUE *argv, VALUE self) \
   { \
     VALUE canvas; \
-    shoes_app *app; \
-    Data_Get_Struct(self, shoes_app, app); \
+    GET_STRUCT(app, app); \
     if (RARRAY_LEN(app->nesting) > 0) \
       canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1); \
     else \
@@ -3445,8 +3468,7 @@ shoes_p(VALUE self, VALUE obj)
   shoes_canvas_c_##func(int argc, VALUE *argv, VALUE self) \
   { \
     VALUE canvas; \
-    shoes_canvas *self_t; \
-    Data_Get_Struct(self, shoes_canvas, self_t); \
+    GET_STRUCT(canvas, self_t); \
     if (rb_ary_entry(self_t->app->nesting, 0) == self) \
       canvas = rb_ary_entry(self_t->app->nesting, RARRAY_LEN(self_t->app->nesting) - 1); \
     else \
@@ -3601,6 +3623,10 @@ shoes_ruby_init()
   rb_define_alloc_func(cShape, shoes_shape_alloc);
   rb_define_method(cShape, "draw", CASTHOOK(shoes_shape_draw), 2);
   rb_define_method(cShape, "move", CASTHOOK(shoes_shape_move), 2);
+  rb_define_method(cShape, "top", CASTHOOK(shoes_shape_get_top), 0);
+  rb_define_method(cShape, "left", CASTHOOK(shoes_shape_get_left), 0);
+  rb_define_method(cShape, "width", CASTHOOK(shoes_shape_get_width), 0);
+  rb_define_method(cShape, "height", CASTHOOK(shoes_shape_get_height), 0);
   rb_define_method(cShape, "remove", CASTHOOK(shoes_shape_remove), 0);
   rb_define_method(cShape, "style", CASTHOOK(shoes_shape_style), -1);
   rb_define_method(cShape, "hide", CASTHOOK(shoes_shape_hide), 0);
@@ -3617,6 +3643,10 @@ shoes_ruby_init()
   rb_define_method(cImage, "draw", CASTHOOK(shoes_image_draw), 2);
   rb_define_method(cImage, "size", CASTHOOK(shoes_image_size), 0);
   rb_define_method(cImage, "move", CASTHOOK(shoes_image_move), 2);
+  rb_define_method(cImage, "top", CASTHOOK(shoes_image_get_top), 0);
+  rb_define_method(cImage, "left", CASTHOOK(shoes_image_get_left), 0);
+  rb_define_method(cImage, "width", CASTHOOK(shoes_image_get_width), 0);
+  rb_define_method(cImage, "height", CASTHOOK(shoes_image_get_height), 0);
   rb_define_method(cImage, "remove", CASTHOOK(shoes_image_remove), 0);
   rb_define_method(cImage, "style", CASTHOOK(shoes_image_style), -1);
   rb_define_method(cImage, "hide", CASTHOOK(shoes_image_hide), 0);
@@ -3634,6 +3664,10 @@ shoes_ruby_init()
   rb_define_method(cVideo, "hide", CASTHOOK(shoes_video_hide), 0);
   rb_define_method(cVideo, "show", CASTHOOK(shoes_video_show), 0);
   rb_define_method(cVideo, "move", CASTHOOK(shoes_video_move), 2);
+  rb_define_method(cVideo, "top", CASTHOOK(shoes_video_get_top), 0);
+  rb_define_method(cVideo, "left", CASTHOOK(shoes_video_get_left), 0);
+  rb_define_method(cVideo, "width", CASTHOOK(shoes_video_get_width), 0);
+  rb_define_method(cVideo, "height", CASTHOOK(shoes_video_get_height), 0);
   rb_define_method(cVideo, "remove", CASTHOOK(shoes_video_remove), 0);
   rb_define_method(cVideo, "playing?", CASTHOOK(shoes_video_is_playing), 0);
   rb_define_method(cVideo, "play", CASTHOOK(shoes_video_play), 0);
@@ -3671,6 +3705,10 @@ shoes_ruby_init()
   rb_define_method(cTextBlock, "cursor=", CASTHOOK(shoes_textblock_set_cursor), 1);
   rb_define_method(cTextBlock, "cursor", CASTHOOK(shoes_textblock_get_cursor), 0);
   rb_define_method(cTextBlock, "move", CASTHOOK(shoes_textblock_move), 2);
+  rb_define_method(cTextBlock, "top", CASTHOOK(shoes_textblock_get_top), 0);
+  rb_define_method(cTextBlock, "left", CASTHOOK(shoes_textblock_get_left), 0);
+  rb_define_method(cTextBlock, "width", CASTHOOK(shoes_textblock_get_width), 0);
+  rb_define_method(cTextBlock, "height", CASTHOOK(shoes_textblock_get_height), 0);
   rb_define_method(cTextBlock, "remove", CASTHOOK(shoes_textblock_remove), 0);
   rb_define_method(cTextBlock, "to_s", CASTHOOK(shoes_textblock_string), 0);
   rb_define_method(cTextBlock, "replace", CASTHOOK(shoes_textblock_replace), -1);
@@ -3715,6 +3753,10 @@ shoes_ruby_init()
   rb_define_method(cNative, "hide", CASTHOOK(shoes_control_hide), 0);
   rb_define_method(cNative, "show", CASTHOOK(shoes_control_show), 0);
   rb_define_method(cNative, "move", CASTHOOK(shoes_control_move), 2);
+  rb_define_method(cNative, "top", CASTHOOK(shoes_control_get_top), 0);
+  rb_define_method(cNative, "left", CASTHOOK(shoes_control_get_left), 0);
+  rb_define_method(cNative, "width", CASTHOOK(shoes_control_get_width), 0);
+  rb_define_method(cNative, "height", CASTHOOK(shoes_control_get_height), 0);
   rb_define_method(cNative, "remove", CASTHOOK(shoes_control_remove), 0);
   cButton  = rb_define_class_under(cShoes, "Button", cNative);
   rb_define_method(cButton, "draw", CASTHOOK(shoes_button_draw), 2);

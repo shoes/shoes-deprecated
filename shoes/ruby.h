@@ -68,6 +68,10 @@ void shoes_ruby_init(void);
 
 #define NUM2RGBINT(x) (rb_obj_is_kind_of(x, rb_cFloat) ? NUM2DBL(x) * 255 : NUM2INT(x))
 #define DEF_COLOR(name, r, g, b) rb_hash_aset(cColors, ID2SYM(rb_intern("" # name)), shoes_color_new(r, g, b, 255))
+#define GET_STRUCT(ele, var) \
+  shoes_##ele *var; \
+  Data_Get_Struct(self, shoes_##ele, var)
+
 
 //
 // Common funcs for dealing with attribute hashes

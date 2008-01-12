@@ -159,37 +159,9 @@ shoes_cairo_create(SHOES_SLOT_OS *slot, int width, int height, int border)
 }
 
 VALUE
-shoes_canvas_get_top(VALUE self)
-{
-  SETUP();
-  return INT2NUM(canvas->place.x);
-}
-
-VALUE
-shoes_canvas_get_left(VALUE self)
-{
-  SETUP();
-  return INT2NUM(canvas->place.y);
-}
-
-VALUE
-shoes_canvas_get_height(VALUE self)
-{
-  SETUP();
-  return INT2NUM(canvas->height);
-}
-
-VALUE
-shoes_canvas_get_width(VALUE self)
-{
-  SETUP();
-  return INT2NUM(canvas->width);
-}
-
-VALUE
 shoes_canvas_get_scroll_top(VALUE self)
 {
-  SETUP();
+  GET_STRUCT(canvas, canvas);
   return INT2NUM(canvas->slot.scrolly);
 }
 
@@ -1705,6 +1677,11 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
         v = shoes_image_send_click(ele, button, x, y);
         *clicked = ele;
       }
+      else if (rb_obj_is_kind_of(ele, cShape))
+      {
+        v = shoes_shape_send_click(ele, button, x, y);
+        *clicked = ele;
+      }
 
       if (!NIL_P(v))
         return v;
@@ -1834,6 +1811,10 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
       else if (rb_obj_is_kind_of(ele, cImage))
       {
         urll = shoes_image_motion(ele, x, y, &h);
+      }
+      else if (rb_obj_is_kind_of(ele, cShape))
+      {
+        urll = shoes_shape_motion(ele, x, y, &h);
       }
 
       if (NIL_P(url)) url = urll;
