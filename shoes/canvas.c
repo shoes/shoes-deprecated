@@ -1763,6 +1763,18 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
 #endif
         shoes_canvas_send_release(ele, button, x, y);
       }
+      else if (rb_obj_is_kind_of(ele, cTextBlock))
+      {
+        shoes_textblock_send_release(ele, button, x, y);
+      }
+      else if (rb_obj_is_kind_of(ele, cImage))
+      {
+        shoes_image_send_release(ele, button, x, y);
+      }
+      else if (rb_obj_is_kind_of(ele, cShape))
+      {
+        shoes_shape_send_release(ele, button, x, y);
+      }
     }
   }
 }

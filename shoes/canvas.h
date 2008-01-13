@@ -31,6 +31,8 @@ extern const double RAD2PI, PIM2, PI;
 #define FLAG_ABSY     0x20
 #define FLAG_ORIGIN   0x40
 
+#define HOVER_MOTION  0x01
+#define HOVER_CLICK   0x02
 //
 // place struct
 // (outlines the area where a control has been placed)
@@ -376,6 +378,7 @@ VALUE shoes_shape_get_height(VALUE);
 VALUE shoes_shape_remove(VALUE);
 VALUE shoes_shape_motion(VALUE, int, int, int *);
 VALUE shoes_shape_send_click(VALUE, int, int, int);
+void shoes_shape_send_release(VALUE, int, int, int);
 
 VALUE shoes_image_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_image_alloc(VALUE);
@@ -387,6 +390,7 @@ VALUE shoes_image_get_height(VALUE);
 VALUE shoes_image_remove(VALUE);
 VALUE shoes_image_motion(VALUE, int, int, int *);
 VALUE shoes_image_send_click(VALUE, int, int, int);
+void shoes_image_send_release(VALUE, int, int, int);
 
 #ifdef VIDEO
 VALUE shoes_video_new(VALUE, VALUE, VALUE, VALUE);
@@ -408,7 +412,6 @@ VALUE shoes_pattern_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_pattern_alloc(VALUE);
 VALUE shoes_pattern_remove(VALUE);
 VALUE shoes_pattern_motion(VALUE, int, int, int *);
-VALUE shoes_pattern_send_click(VALUE, int, int, int);
 VALUE shoes_background_draw(VALUE, VALUE, VALUE);
 VALUE shoes_border_draw(VALUE, VALUE, VALUE);
 VALUE shoes_subpattern_new(VALUE, VALUE, VALUE);
@@ -450,6 +453,7 @@ VALUE shoes_textblock_get_cursor(VALUE);
 VALUE shoes_textblock_draw(VALUE, VALUE, VALUE);
 VALUE shoes_textblock_motion(VALUE, int, int, int *);
 VALUE shoes_textblock_send_click(VALUE, int, int, int, VALUE *);
+void shoes_textblock_send_release(VALUE, int, int, int);
 
 VALUE shoes_debug(VALUE, VALUE);
 VALUE shoes_p(VALUE, VALUE);

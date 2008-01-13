@@ -14,7 +14,7 @@
 VALUE cShoes, cApp, cWindow, cMouse, cCanvas, cFlow, cStack, cMask, cShape, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover;
 VALUE eVlcError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
-ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_hover, s_href, s_insert, s_items, s_scroll, s_sticky, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
+ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_hover, s_href, s_insert, s_items, s_release, s_scroll, s_sticky, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -474,14 +474,14 @@ shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, double r)
 #endif
 
 #define CHECK_HOVER(self_t, h, touch) \
-  if (self_t->hover != h && !NIL_P(self_t->attr)) \
+  if ((self_t->hover & HOVER_MOTION) != h && !NIL_P(self_t->attr)) \
   { \
     VALUE action = ID2SYM(h ? s_hover : s_leave); \
     VALUE proc = rb_hash_aref(self_t->attr, action); \
     if (!NIL_P(proc)) \
       shoes_safe_block(self, proc, rb_ary_new()); \
     if (touch != NULL) *touch += 1; \
-    self_t->hover = h; \
+    self_t->hover = (self_t->hover & HOVER_CLICK) | h; \
   }
 
 #define CHANGED_COORDS() self_t->place.x != place.x || self_t->place.y != place.y || self_t->place.w != place.w || self_t->place.h - HEIGHT_PAD != place.h
@@ -746,10 +746,30 @@ shoes_shape_motion(VALUE self, int x, int y, int *touch)
 VALUE
 shoes_shape_send_click(VALUE self, int button, int x, int y)
 {
-  if (button == 1)
-    return shoes_shape_motion(self, x, y, NULL);
+  VALUE v = Qnil;
 
-  return Qnil;
+  if (button == 1)
+  {
+    GET_STRUCT(shape, self_t);
+    v = shoes_shape_motion(self, x, y, NULL);
+    if (self_t->hover & HOVER_MOTION)
+      self_t->hover = HOVER_MOTION | HOVER_CLICK;
+  }
+
+  return v;
+}
+
+void
+shoes_shape_send_release(VALUE self, int button, int x, int y)
+{
+  GET_STRUCT(shape, self_t);
+  if (button == 1 && (self_t->hover & HOVER_CLICK))
+  {
+    VALUE proc = rb_hash_aref(self_t->attr, ID2SYM(s_release));
+    self_t->hover ^= HOVER_CLICK;
+    if (!NIL_P(proc))
+      shoes_safe_block(self, proc, rb_ary_new());
+  }
 }
 
 //
@@ -889,10 +909,30 @@ shoes_image_motion(VALUE self, int x, int y, int *touch)
 VALUE
 shoes_image_send_click(VALUE self, int button, int x, int y)
 {
-  if (button == 1)
-    return shoes_image_motion(self, x, y, NULL);
+  VALUE v = Qnil;
 
-  return Qnil;
+  if (button == 1)
+  {
+    GET_STRUCT(image, self_t);
+    v = shoes_image_motion(self, x, y, NULL);
+    if (self_t->hover & HOVER_MOTION)
+      self_t->hover = HOVER_MOTION | HOVER_CLICK;
+  }
+
+  return v;
+}
+
+void
+shoes_image_send_release(VALUE self, int button, int x, int y)
+{
+  GET_STRUCT(image, self_t);
+  if (button == 1 && (self_t->hover & HOVER_CLICK))
+  {
+    VALUE proc = rb_hash_aref(self_t->attr, ID2SYM(s_release));
+    self_t->hover ^= HOVER_CLICK;
+    if (!NIL_P(proc))
+      shoes_safe_block(self, proc, rb_ary_new());
+  }
 }
 
 #ifdef VIDEO
@@ -1927,10 +1967,30 @@ shoes_textblock_motion(VALUE self, int x, int y, int *t)
 VALUE
 shoes_textblock_send_click(VALUE self, int button, int x, int y, VALUE *clicked)
 {
-  if (button == 1)
-    return shoes_textblock_send_hover(self, x, y, clicked, NULL);
+  VALUE v = Qnil;
 
-  return Qnil;
+  if (button == 1)
+  {
+    GET_STRUCT(textblock, self_t);
+    v = shoes_textblock_send_hover(self, x, y, clicked, NULL);
+    if (self_t->hover & HOVER_MOTION)
+      self_t->hover = HOVER_MOTION | HOVER_CLICK;
+  }
+
+  return v;
+}
+
+void
+shoes_textblock_send_release(VALUE self, int button, int x, int y)
+{
+  GET_STRUCT(textblock, self_t);
+  if (button == 1 && (self_t->hover & HOVER_CLICK))
+  {
+    VALUE proc = rb_hash_aref(self_t->attr, ID2SYM(s_release));
+    self_t->hover ^= HOVER_CLICK;
+    if (!NIL_P(proc))
+      shoes_safe_block(self, proc, rb_ary_new());
+  }
 }
 
 //
@@ -2212,7 +2272,7 @@ shoes_textblock_iter_pango(VALUE texts, shoes_kxxxx *k)
 
       start = k->len;
       shoes_textblock_iter_pango(text->texts, k);
-      if (text->hover && tklass == cLink)
+      if ((text->hover & HOVER_MOTION) && tklass == cLink)
         tklass = cLinkHover;
       shoes_app_style_for(k, tklass, text->attr, start, k->len);
       if (rb_obj_is_kind_of(v, cLink) && !NIL_P(text->attr))
@@ -3165,6 +3225,7 @@ shoes_progress_draw(VALUE self, VALUE c, VALUE actual)
   }
 
 EVENT_COMMON(linktext, text, click);
+EVENT_COMMON(linktext, text, release);
 EVENT_COMMON(linktext, text, hover);
 EVENT_COMMON(linktext, text, leave);
 
@@ -3223,6 +3284,7 @@ EVENT_COMMON(linktext, text, leave);
   CLASS_COMMON(ele); \
   EVENT_COMMON(ele, ele, change); \
   EVENT_COMMON(ele, ele, click); \
+  EVENT_COMMON(ele, ele, release); \
   EVENT_COMMON(ele, ele, hover); \
   EVENT_COMMON(ele, ele, leave);
 
@@ -3538,6 +3600,7 @@ shoes_ruby_init()
   s_match = rb_intern("match");
   s_leading = rb_intern("leading");
   s_leave = rb_intern("leave");
+  s_release = rb_intern("release");
   s_scroll = rb_intern("scroll");
   s_sticky = rb_intern("sticky");
   s_text = rb_intern("text");
@@ -3633,6 +3696,7 @@ shoes_ruby_init()
   rb_define_method(cShape, "show", CASTHOOK(shoes_shape_show), 0);
   rb_define_method(cShape, "toggle", CASTHOOK(shoes_shape_toggle), 0);
   rb_define_method(cShape, "click", CASTHOOK(shoes_shape_click), -1);
+  rb_define_method(cShape, "release", CASTHOOK(shoes_shape_release), -1);
   rb_define_method(cShape, "hover", CASTHOOK(shoes_shape_hover), -1);
   rb_define_method(cShape, "leave", CASTHOOK(shoes_shape_leave), -1);
 
@@ -3653,6 +3717,7 @@ shoes_ruby_init()
   rb_define_method(cImage, "show", CASTHOOK(shoes_image_show), 0);
   rb_define_method(cImage, "toggle", CASTHOOK(shoes_image_toggle), 0);
   rb_define_method(cImage, "click", CASTHOOK(shoes_image_click), -1);
+  rb_define_method(cImage, "release", CASTHOOK(shoes_image_release), -1);
   rb_define_method(cImage, "hover", CASTHOOK(shoes_image_hover), -1);
   rb_define_method(cImage, "leave", CASTHOOK(shoes_image_leave), -1);
 
@@ -3717,6 +3782,7 @@ shoes_ruby_init()
   rb_define_method(cTextBlock, "show", CASTHOOK(shoes_textblock_show), 0);
   rb_define_method(cTextBlock, "toggle", CASTHOOK(shoes_textblock_toggle), 0);
   rb_define_method(cTextBlock, "click", CASTHOOK(shoes_textblock_click), -1);
+  rb_define_method(cTextBlock, "release", CASTHOOK(shoes_textblock_release), -1);
   rb_define_method(cTextBlock, "hover", CASTHOOK(shoes_textblock_hover), -1);
   rb_define_method(cTextBlock, "leave", CASTHOOK(shoes_textblock_leave), -1);
   cPara = rb_define_class_under(cShoes, "Para", cTextBlock);
@@ -3743,6 +3809,7 @@ shoes_ruby_init()
 
   cLink      = rb_define_class_under(cShoes, "Link", cTextClass);
   rb_define_method(cTextClass, "click", CASTHOOK(shoes_linktext_click), -1);
+  rb_define_method(cTextClass, "release", CASTHOOK(shoes_linktext_release), -1);
   rb_define_method(cTextClass, "hover", CASTHOOK(shoes_linktext_hover), -1);
   rb_define_method(cTextClass, "leave", CASTHOOK(shoes_linktext_leave), -1);
   cLinkHover = rb_define_class_under(cShoes, "LinkHover", cTextClass);
