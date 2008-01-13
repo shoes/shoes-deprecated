@@ -48,8 +48,10 @@ void shoes_ruby_init(void);
 #define QUIT_ALERT_MSG() printf("%s\n", RSTRING_PTR(msg))
 #endif
 #define QUIT_ALERT(v) \
-   VALUE msg = rb_ary_entry(rb_funcall(rb_funcall(v, rb_intern("message"), 0), rb_intern("split"), 2, \
-     rb_eval_string("/:\\d+:/"), INT2NUM(2)), 1); \
+   VALUE line_re = rb_eval_string("/:\\d+:\\s*/"); \
+   VALUE msg = rb_funcall(v, rb_intern("message"), 0); \
+   VALUE msg2 = rb_funcall(msg, rb_intern("split"), 2, line_re, INT2NUM(2)); \
+   if (RARRAY_LEN(msg2) > 1) msg = rb_ary_entry(msg2, 1); \
    QUIT_ALERT_MSG(); \
    return SHOES_QUIT;
 #define EXC_ALERT \
