@@ -11,7 +11,7 @@
 #include "shoes/version.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cWindow, cMouse, cCanvas, cFlow, cStack, cMask, cShape, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover;
+VALUE cShoes, cApp, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cShape, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover;
 VALUE eVlcError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_hover, s_href, s_insert, s_items, s_release, s_scroll, s_sticky, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
@@ -300,7 +300,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
 
   if (!NIL_P(stuck))
   {
-    if (stuck == cWindow)
+    if (stuck == cShoesWindow)
       rel = REL_WINDOW;
     else if (stuck == cMouse)
       rel = REL_CURSOR;
@@ -3626,7 +3626,7 @@ shoes_ruby_init()
   rb_define_alloc_func(cApp, shoes_app_alloc);
   rb_define_method(cApp, "location", CASTHOOK(shoes_app_location), 0);
 
-  cWindow = rb_define_class("Window", rb_cObject);
+  cShoesWindow = rb_define_class("Window", rb_cObject);
   cMouse = rb_define_class("Mouse", rb_cObject);
 
   cCanvas = rb_define_class("Canvas", rb_cObject);
