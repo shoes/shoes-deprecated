@@ -94,6 +94,13 @@ class Shoes
       @main_app = ShyMake.call(s)
     end
 
+    opts.on("-g", "--gem",
+            "Passes commands to RubyGems.") do
+      require 'rubygems/gem_runner'
+      Gem::GemRunner.new.run(ARGV)
+      raise SystemExit, ""
+    end
+
     opts.on_tail("-v", "--version", "Display the version info.") do
       raise SystemExit, "shoes #{Shoes::RELEASE_NAME.downcase} (0.r#{Shoes::REVISION})"
     end
