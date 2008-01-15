@@ -676,18 +676,7 @@ shoes_shape_remove(VALUE self)
 VALUE
 shoes_shape_draw(VALUE self, VALUE c, VALUE actual)
 {
-  shoes_place place;
-  shoes_canvas *canvas;
-  GET_STRUCT(shape, self_t);
-  Data_Get_Struct(c, shoes_canvas, canvas);
-
-  if (!NIL_P(self_t->attr) && ATTR(self_t->attr, hidden) == Qtrue)
-    return self;
-
-  place.ix = place.x = ATTR2(int, self_t->attr, left, 0);
-  place.iy = place.y = ATTR2(int, self_t->attr, top, 0);
-  place.iw = place.w = ATTR2(int, self_t->attr, width, self_t->width);
-  place.ih = place.h = ATTR2(int, self_t->attr, height, self_t->height);
+  SETUP(shoes_shape, REL_CANVAS, self_t->width, self_t->height);
 
   if (RTEST(actual))
   {

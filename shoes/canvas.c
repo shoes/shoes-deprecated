@@ -525,9 +525,10 @@ shoes_canvas_oval(int argc, VALUE *argv, VALUE self)
   if (argc == 1 && rb_obj_is_kind_of(_x, rb_cHash))
   {
     VALUE hsh = _x;
-    _x = ATTR(hsh, left);
-    _y = ATTR(hsh, top);
+    _x = _y = INT2NUM(0);
     _h = _w = ATTR(hsh, radius);
+    if (!NIL_P(ATTR(hsh, left))) _x = ATTR(hsh, left);
+    if (!NIL_P(ATTR(hsh, top))) _y = ATTR(hsh, top);
     if (!NIL_P(ATTR(hsh, width))) _w = ATTR(hsh, width);
     if (!NIL_P(ATTR(hsh, height))) _h = ATTR(hsh, height);
     if (!NIL_P(ATTR(hsh, center))) center = ATTR(hsh, center);
