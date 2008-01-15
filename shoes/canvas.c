@@ -138,6 +138,7 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
   }
 #endif
 
+  shoes_canvas_size(c, width, height);
   INFO("shoes_slot_init(%d, %d)\n", width, height);
 }
 
