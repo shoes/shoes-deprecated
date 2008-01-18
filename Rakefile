@@ -8,7 +8,13 @@ APPNAME = ENV['APPNAME'] || "Shoes"
 RELEASE_ID, RELEASE_NAME = 1, "Curious"
 NAME = APPNAME.downcase.gsub(/\W+/, '')
 SONAME = 'shoes'
-SVN_VERSION = `svn info`[/Last Changed Rev: (\d+)/, 1] rescue File.readlines(".svn/entries")[10].to_i
+SVN_ENTRIES = File.read(".svn/entries") 
+SVN_VERSION =
+  if SVN_ENTRIES =~ /committed-rev\s*=\s*"(\d+)"\s*/
+    $1
+  else
+    SVN_ENTRIES.split(/\n/)[10]
+  end
 VERS = ENV['VERSION'] || "0.r#{SVN_VERSION}"
 PKG = "#{NAME}-#{VERS}"
 APPARGS = ENV['APPARGS']
