@@ -11,8 +11,8 @@
 #include "shoes/version.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cShape, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover;
-VALUE eVlcError, eNotImpl;
+VALUE cShoes, cApp, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cShape, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover;
+VALUE eVlcError, eImageError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_hover, s_href, s_insert, s_items, s_release, s_scroll, s_sticky, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
 
@@ -423,9 +423,9 @@ shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, double r)
   if (ATTR(self_t->attr, hidden) == Qtrue) return self; \
   shoes_place_decide(&place, c, self_t->attr, dw, dh, rel, rel == REL_CANVAS)
 
-#define SETUP_CONTROL(dh) \
+#define SETUP_CONTROL(dh, dw) \
   char *msg = ""; \
-  int len = 200; \
+  int len = dw ? dw : 200; \
   shoes_control *self_t; \
   shoes_canvas *canvas; \
   shoes_place place; \
@@ -780,6 +780,14 @@ shoes_image_free(shoes_image *image)
   RUBY_CRITICAL(SHOE_FREE(image));
 }
 
+static void
+shoes_raise_unsupported_image(VALUE path)
+{
+  VALUE ext = rb_funcall(rb_cFile, rb_intern("extname"), 1, path);
+  StringValue(ext);
+  rb_raise(eImageError, "Shoes does not support images with the %s extension.", RSTRING_PTR(ext)); 
+}
+
 VALUE
 shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent)
 {
@@ -790,6 +798,7 @@ shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent)
 
   image->path = path;
   image->surface = shoes_load_image(path);
+  if (image->surface == NULL) shoes_raise_unsupported_image(path);
   image->attr = attr;
   image->parent = parent;
   return obj;
@@ -825,6 +834,7 @@ shoes_image_set_path(VALUE self, VALUE path)
     cairo_surface_destroy(image->surface);
   image->path = path;
   image->surface = shoes_load_image(path);
+  if (image->surface == NULL) shoes_raise_unsupported_image(path);
   return path;
 }
 
@@ -1296,6 +1306,7 @@ shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent)
     else
     {
       cairo_surface_t *surface = shoes_load_image(source);
+      if (surface == NULL) shoes_raise_unsupported_image(source);
       pattern->source = source;
       pattern->width = cairo_image_surface_get_width(surface);
       pattern->height = cairo_image_surface_get_height(surface);
@@ -2627,7 +2638,7 @@ shoes_button_gtk_clicked(GtkButton *button, gpointer data)
 VALUE
 shoes_button_draw(VALUE self, VALUE c, VALUE actual)
 {
-  SETUP_CONTROL(2);
+  SETUP_CONTROL(2, 0);
 
 #ifdef SHOES_QUARTZ
   place.h += 4;
@@ -2760,7 +2771,7 @@ shoes_quartz_edit_handler(EventHandlerCallRef handler, EventRef inEvent, void *d
 VALUE
 shoes_edit_line_draw(VALUE self, VALUE c, VALUE actual)
 {
-  SETUP_CONTROL(0);
+  SETUP_CONTROL(0, 0);
 
 #ifdef SHOES_QUARTZ
   place.x += 4;
@@ -2882,7 +2893,7 @@ shoes_edit_box_set_text(VALUE self, VALUE text)
 VALUE
 shoes_edit_box_draw(VALUE self, VALUE c, VALUE actual)
 {
-  SETUP_CONTROL(80);
+  SETUP_CONTROL(80, 0);
 
   if (RTEST(actual))
   {
@@ -3084,7 +3095,7 @@ shoes_list_box_items_set(VALUE self, VALUE items)
 VALUE
 shoes_list_box_draw(VALUE self, VALUE c, VALUE actual)
 {
-  SETUP_CONTROL(0);
+  SETUP_CONTROL(0, 0);
 
   if (RTEST(actual))
   {
@@ -3156,7 +3167,7 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE actual)
 VALUE
 shoes_progress_draw(VALUE self, VALUE c, VALUE actual)
 {
-  SETUP_CONTROL(0);
+  SETUP_CONTROL(0, 0);
 
   if (RTEST(actual))
   {
@@ -3179,6 +3190,121 @@ shoes_progress_draw(VALUE self, VALUE c, VALUE actual)
           place.ix, place.iy, place.iw, place.ih, canvas->slot.window, NULL, 
           (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
           NULL);
+#endif
+      PLACE_CONTROL();
+    }
+    else
+    {
+      REPAINT_CONTROL();
+    }
+  }
+  else
+  {
+    PLACE_COORDS();
+  }
+
+  FINISH();
+
+  return self;
+}
+
+VALUE
+shoes_check_draw(VALUE self, VALUE c, VALUE actual)
+{
+  SETUP_CONTROL(0, 20);
+
+  if (RTEST(actual))
+  {
+    if (self_t->ref == NULL)
+    {
+
+#ifdef SHOES_GTK
+      self_t->ref = gtk_check_button_new();
+      g_signal_connect(G_OBJECT(self_t->ref), "clicked",
+                       G_CALLBACK(shoes_button_gtk_clicked),
+                       (gpointer)self);
+#endif
+
+#ifdef SHOES_QUARTZ
+      Rect r = {place.iy, place.ix, place.iy + place.ih, place.ix + place.iw};
+      CreateCheckBoxControl(NULL, &r, CFSTR(""), 0, true, &self_t->ref);
+#endif
+
+#ifdef SHOES_WIN32
+      int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
+      self_t->ref = CreateWindowEx(0, TEXT("BUTTON"), NULL,
+          WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX,
+          place.ix, place.iy, place.iw, place.ih, canvas->slot.window, (HMENU)cid, 
+          (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
+          NULL);
+      shoes_win32_control_font(cid, canvas->slot.window);
+      rb_ary_push(canvas->slot.controls, self);
+#endif
+      PLACE_CONTROL();
+    }
+    else
+    {
+      REPAINT_CONTROL();
+    }
+  }
+  else
+  {
+    PLACE_COORDS();
+  }
+
+  FINISH();
+
+  return self;
+}
+
+VALUE
+shoes_check_is_checked(VALUE self)
+{
+  GET_STRUCT(control, self_t);
+#ifdef SHOES_GTK
+  return gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(self_t->ref)) ? Qtrue : Qfalse;
+#endif
+#ifdef SHOES_QUARTZ
+  return GetControl32BitValue(self_t->ref) ? Qtrue : Qfalse;
+#endif
+#ifdef SHOES_WIN32
+  return SendMessage(self_t->ref, BM_GETCHECK, 0, 0) == BST_CHECKED ? Qtrue : Qfalse;
+#endif
+}
+
+VALUE
+shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
+{
+  SETUP_CONTROL(0, 20);
+
+  if (RTEST(actual))
+  {
+    if (self_t->ref == NULL)
+    {
+
+#ifdef SHOES_GTK
+      self_t->ref = gtk_radio_button_new(canvas->radios);
+      if (canvas->radios == NULL)
+        canvas->radios = gtk_radio_button_group(GTK_RADIO_BUTTON(self_t->ref));
+      g_signal_connect(G_OBJECT(self_t->ref), "clicked",
+                       G_CALLBACK(shoes_button_gtk_clicked),
+                       (gpointer)self);
+#endif
+
+#ifdef SHOES_QUARTZ
+      Rect r = {place.iy, place.ix, place.iy + place.ih, place.ix + place.iw};
+      CreateRadioButtonControl(NULL, &r, NULL, 0, true, &self_t->ref);
+#endif
+
+#ifdef SHOES_WIN32
+      int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
+      self_t->ref = CreateWindowEx(0, TEXT("BUTTON"), msg,
+          WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_AUTORADIOBUTTON,
+          place.ix, place.iy, place.iw, place.ih, canvas->slot.window, (HMENU)cid, 
+          (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
+          NULL);
+      shoes_win32_control_font(cid, canvas->slot.window);
+      rb_ary_push(canvas->slot.controls, self);
 #endif
       PLACE_CONTROL();
     }
@@ -3629,6 +3755,7 @@ shoes_ruby_init()
 
   eNotImpl = rb_define_class_under(cShoes, "NotImplementedError", rb_eStandardError);
   eVlcError = rb_define_class_under(cShoes, "VideoError", rb_eStandardError);
+  eImageError = rb_define_class_under(cShoes, "ImageError", rb_eStandardError);
   C(HEX_SOURCE, "/^(?:0x|#)?([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})$/i");
   C(HEX3_SOURCE, "/^(?:0x|#)?([0-9A-F])([0-9A-F])([0-9A-F])$/i");
   C(RGB_SOURCE, "/^rgb\\((\\d+), *(\\d+), *(\\d+)\\)$/i");
@@ -3836,6 +3963,14 @@ shoes_ruby_init()
   rb_define_method(cListBox, "items=", CASTHOOK(shoes_list_box_items_set), 1);
   cProgress  = rb_define_class_under(cShoes, "Progress", cNative);
   rb_define_method(cProgress, "draw", CASTHOOK(shoes_progress_draw), 2);
+  cCheck  = rb_define_class_under(cShoes, "Check", cNative);
+  rb_define_method(cCheck, "draw", CASTHOOK(shoes_check_draw), 2);
+  rb_define_method(cCheck, "checked?", CASTHOOK(shoes_check_is_checked), 0);
+  rb_define_method(cCheck, "click", CASTHOOK(shoes_control_click), -1);
+  cRadio  = rb_define_class_under(cShoes, "Radio", cNative);
+  rb_define_method(cRadio, "draw", CASTHOOK(shoes_radio_draw), 2);
+  rb_define_method(cRadio, "checked?", CASTHOOK(shoes_check_is_checked), 0);
+  rb_define_method(cRadio, "click", CASTHOOK(shoes_control_click), -1);
 
   cAnim    = rb_define_class_under(cShoes, "Animation", rb_cObject);
   rb_define_alloc_func(cAnim, shoes_anim_alloc);

@@ -233,6 +233,7 @@ typedef struct {
   SHOES_SLOT_OS slot;
 #ifdef SHOES_GTK
   GtkWidget *layout;
+  GSList *radios;
 #endif
 } shoes_canvas;
 
@@ -307,6 +308,8 @@ VALUE shoes_canvas_list_box(int, VALUE *, VALUE);
 VALUE shoes_canvas_edit_line(int, VALUE *, VALUE);
 VALUE shoes_canvas_edit_box(int, VALUE *, VALUE);
 VALUE shoes_canvas_progress(int, VALUE *, VALUE);
+VALUE shoes_canvas_check(int, VALUE *, VALUE);
+VALUE shoes_canvas_radio(int, VALUE *, VALUE);
 VALUE shoes_canvas_contents(VALUE);
 void shoes_canvas_size(VALUE, int, int);
 VALUE shoes_canvas_clear_contents(int, VALUE *, VALUE);
