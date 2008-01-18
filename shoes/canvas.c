@@ -1209,6 +1209,11 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
   Data_Get_Struct(self, shoes_canvas, self_t);
   Data_Get_Struct(c, shoes_canvas, canvas);
 
+#ifdef SHOES_GTK
+  if (!RTEST(actual))
+    canvas->radios = NULL;
+#endif
+
   INFO("DRAW\n", 0);
   if (self_t->height > self_t->fully)
     self_t->fully = self_t->height;

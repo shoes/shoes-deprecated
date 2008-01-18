@@ -233,7 +233,7 @@ typedef struct {
   SHOES_SLOT_OS slot;
 #ifdef SHOES_GTK
   GtkWidget *layout;
-  GSList *radios;
+  GtkWidget *radios;
 #endif
 } shoes_canvas;
 

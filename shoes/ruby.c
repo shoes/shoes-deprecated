@@ -3211,7 +3211,7 @@ shoes_progress_draw(VALUE self, VALUE c, VALUE actual)
 VALUE
 shoes_check_draw(VALUE self, VALUE c, VALUE actual)
 {
-  SETUP_CONTROL(0, 20);
+  SETUP_CONTROL(-6, 20);
 
   if (RTEST(actual))
   {
@@ -3275,7 +3275,7 @@ shoes_check_is_checked(VALUE self)
 VALUE
 shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
 {
-  SETUP_CONTROL(0, 20);
+  SETUP_CONTROL(-6, 20);
 
   if (RTEST(actual))
   {
@@ -3283,9 +3283,10 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
     {
 
 #ifdef SHOES_GTK
-      self_t->ref = gtk_radio_button_new(canvas->radios);
-      if (canvas->radios == NULL)
-        canvas->radios = gtk_radio_button_group(GTK_RADIO_BUTTON(self_t->ref));
+      GSList *list = NULL;
+      if (canvas->radios)
+        list = gtk_radio_button_get_group(GTK_RADIO_BUTTON(canvas->radios));
+      self_t->ref = gtk_radio_button_new(list);
       g_signal_connect(G_OBJECT(self_t->ref), "clicked",
                        G_CALLBACK(shoes_button_gtk_clicked),
                        (gpointer)self);
@@ -3312,11 +3313,17 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
     {
       REPAINT_CONTROL();
     }
+
   }
   else
   {
     PLACE_COORDS();
   }
+
+#ifdef SHOES_GTK
+    if (canvas->radios == NULL && self_t->ref != NULL)
+      canvas->radios = self_t->ref;
+#endif
 
   FINISH();
 
