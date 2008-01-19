@@ -16,7 +16,7 @@ end
  
 class Range 
   def rand 
-    conv = (self.end === Integer && self.begin === Integer ? :to_i : :to_f)
+    conv = (Integer === self.end && Integer === self.begin ? :to_i : :to_f)
     ((Kernel.rand * (self.end - self.begin)) + self.begin).send(conv) 
   end 
 end
