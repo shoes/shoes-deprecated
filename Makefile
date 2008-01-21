@@ -69,20 +69,12 @@ dist/shoes: dist/shoes-bin
 	@chmod 755 dist/shoes
 
 shoes: dist/shoes
-	@mkdir -p dist/ruby/lib
-	@cp -r ${RUBY_PREFIX}/lib/ruby/1.8/* dist/ruby/lib
-	@rm -rf dist/ruby/lib/rdoc
-	@rm -rf dist/ruby/lib/rexml
-	@rm -rf dist/ruby/lib/rss
-	@rm -rf dist/ruby/lib/soap
-	@rm -rf dist/ruby/lib/test
-	@rm -rf dist/ruby/lib/webrick
-	@rm -rf dist/ruby/lib/wsdl
-	@rm -rf dist/ruby/lib/xsd
+	@mkdir -p dist/ruby
+	@ln -s ${RUBY_PREFIX}/lib/ruby/1.8 dist/ruby/lib
 	@cp ${RUBY_PREFIX}/lib/lib${RUBY_SO}.so dist
 	@ln -s lib${RUBY_SO}.so dist/libruby.so.1.8
 	@cp -r lib dist/lib
-	@cp -r rubygems/* dist/ruby/lib
+	@cp -r rubygems/* dist/lib
 	@cp -r samples dist/samples
 	@cp -r static dist/static
 	@rm -rf dist/**/.svn
@@ -110,6 +102,7 @@ install: all dist/shoes.launch
 	@cp -f dist/shoes.launch ${DESTDIR}${PREFIX}/bin/shoes
 	@chmod 755 ${DESTDIR}${PREFIX}/bin/shoes
 	@echo installing libraries to ${DESTDIR}${PREFIX}/lib/shoes
+	@rm -rf ${DESTDIR}${PREFIX}/lib/shoes
 	@mkdir -p ${DESTDIR}${PREFIX}/lib/shoes
 	@cp -r dist/* ${DESTDIR}${PREFIX}/lib/shoes/
 
