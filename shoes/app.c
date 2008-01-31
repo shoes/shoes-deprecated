@@ -78,12 +78,56 @@ shoes_app_gtk_exception(VALUE v, VALUE exc)
   return Qnil;
 }
 
-static gboolean
-shoes_app_gtk_idle(gpointer data)
+static gint                                                                                                                   
+shoes_app_gtk_poll (GPollFD *fds,
+           guint    nfds,
+           gint     timeout)
 {
-  rb_rescue2(shoes_app_gtk_sleep, Qnil, shoes_app_gtk_exception, Qnil, rb_cObject, 0);
-  return TRUE;
+    struct timeval tv;
+    fd_set rset, wset, xset;
+    GPollFD *f;
+    int ready;
+    int maxfd = 0;
+
+    FD_ZERO (&rset);
+    FD_ZERO (&wset);
+    FD_ZERO (&xset);
+
+    for (f = fds; f < &fds[nfds]; ++f)
+       if (f->fd >= 0)
+       {
+           if (f->events & G_IO_IN)
+               FD_SET (f->fd, &rset);
+           if (f->events & G_IO_OUT)
+               FD_SET (f->fd, &wset);
+           if (f->events & G_IO_PRI)
+               FD_SET (f->fd, &xset);
+           if (f->fd > maxfd && (f->events & (G_IO_IN|G_IO_OUT|G_IO_PRI)))
+               maxfd = f->fd;
+       }
+    tv.tv_sec = timeout / 1000;
+    tv.tv_usec = (timeout % 1000) * 1000;
+
+    ready = rb_thread_select (maxfd + 1, &rset, &wset, &xset,
+                             timeout == -1 ? NULL : &tv);
+    if (ready > 0)
+       for (f = fds; f < &fds[nfds]; ++f)
+       {
+           f->revents = 0;
+           if (f->fd >= 0)
+           {
+               if (FD_ISSET (f->fd, &rset))
+                   f->revents |= G_IO_IN;
+               if (FD_ISSET (f->fd, &wset))
+                   f->revents |= G_IO_OUT;
+               if (FD_ISSET (f->fd, &xset))
+                   f->revents |= G_IO_PRI;
+           }
+       }
+
+    return ready;
 }
+
 
 static gboolean 
 shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) 
@@ -1527,7 +1571,7 @@ shoes_app_loop(shoes_app *app, char *path)
 
 #ifdef SHOES_GTK
   gtk_widget_show_all(app->os.window);
-  g_idle_add(shoes_app_gtk_idle, app);
+  g_main_set_poll_func(shoes_app_gtk_poll);
   gtk_main();
 #endif
 
