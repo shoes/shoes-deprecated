@@ -434,6 +434,7 @@ shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, double r)
   Data_Get_Struct(c, shoes_canvas, canvas); \
   text = ATTR(self_t->attr, text); \
   if (!NIL_P(text)) { \
+    text = rb_funcall(text, s_to_s, 0); \
     msg = RSTRING_PTR(text); \
     len = (RSTRING_LEN(text) * 6) + 32; \
   } \
