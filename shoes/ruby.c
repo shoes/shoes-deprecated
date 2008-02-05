@@ -656,7 +656,7 @@ VALUE
 shoes_shape_remove(VALUE self)
 {
   GET_STRUCT(shape, self_t);
-  shoes_canvas_remove_item(self_t->parent, self);
+  shoes_canvas_remove_item(self_t->parent, self, 0, 0);
   return self;
 }
 
@@ -843,7 +843,7 @@ VALUE
 shoes_image_remove(VALUE self)
 {
   GET_STRUCT(image, self_t);
-  shoes_canvas_remove_item(self_t->parent, self);
+  shoes_canvas_remove_item(self_t->parent, self, 0, 0);
   return self;
 }
 
@@ -1045,7 +1045,7 @@ shoes_video_remove(VALUE self)
 {
   shoes_canvas *canvas;
   GET_STRUCT(video, self_t);
-  shoes_canvas_remove_item(self_t->parent, self);
+  shoes_canvas_remove_item(self_t->parent, self, 1, 0);
 
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
 #ifdef SHOES_GTK
@@ -1402,7 +1402,7 @@ VALUE
 shoes_pattern_remove(VALUE self)
 {
   GET_STRUCT(pattern, self_t);
-  shoes_canvas_remove_item(self_t->parent, self);
+  shoes_canvas_remove_item(self_t->parent, self, 0, 0);
   return self;
 }
 
@@ -1892,7 +1892,7 @@ VALUE
 shoes_textblock_remove(VALUE self)
 {
   GET_STRUCT(textblock, self_t);
-  shoes_canvas_remove_item(self_t->parent, self);
+  shoes_canvas_remove_item(self_t->parent, self, 0, 0);
   return self;
 }
 
@@ -2597,7 +2597,7 @@ shoes_control_remove(VALUE self)
 {
   shoes_canvas *canvas;
   GET_STRUCT(control, self_t);
-  shoes_canvas_remove_item(self_t->parent, self);
+  shoes_canvas_remove_item(self_t->parent, self, 1, 0);
 
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
 #ifdef SHOES_GTK
@@ -3540,7 +3540,7 @@ shoes_anim_remove(VALUE self)
 {
   GET_STRUCT(anim, self_t);
   shoes_anim_stop(self);
-  shoes_canvas_remove_item(self_t->parent, self);
+  shoes_canvas_remove_item(self_t->parent, self, 0, 1);
   return self;
 }
 

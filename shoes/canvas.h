@@ -291,7 +291,7 @@ VALUE shoes_canvas_image(int, VALUE *, VALUE);
 VALUE shoes_canvas_animate(int, VALUE *, VALUE);
 VALUE shoes_canvas_imagesize(VALUE, VALUE);
 VALUE shoes_canvas_shape(int, VALUE *, VALUE);
-void shoes_canvas_remove_item(VALUE, VALUE);
+void shoes_canvas_remove_item(VALUE, VALUE, char, char);
 VALUE shoes_canvas_move_to(VALUE, VALUE, VALUE);
 VALUE shoes_canvas_line_to(VALUE, VALUE, VALUE);
 VALUE shoes_canvas_curve_to(VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE);

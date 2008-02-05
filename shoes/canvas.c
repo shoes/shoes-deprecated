@@ -1127,19 +1127,25 @@ shoes_canvas_contents(VALUE self)
 }
 
 void
-shoes_canvas_remove_item(VALUE self, VALUE item)
+shoes_canvas_remove_item(VALUE self, VALUE item, char c, char t)
 {
   long i;
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
 #ifndef SHOES_GTK
-  i = rb_ary_index_of(self_t->slot.controls, item);
-  if (i >= 0)
-    rb_ary_insert_at(self_t->slot.controls, i, 1, Qnil);
+  if (c)
+  {
+    i = rb_ary_index_of(self_t->slot.controls, item);
+    if (i >= 0)
+      rb_ary_insert_at(self_t->slot.controls, i, 1, Qnil);
+  }
 #endif
-  i = rb_ary_index_of(self_t->app->timers, item);
-  if (i >= 0)
-    rb_ary_insert_at(self_t->app->timers, i, 1, Qnil);
+  if (t)
+  {
+    i = rb_ary_index_of(self_t->app->timers, item);
+    if (i >= 0)
+      rb_ary_insert_at(self_t->app->timers, i, 1, Qnil);
+  }
   rb_ary_delete(self_t->contents, item);
 }
 
@@ -1195,7 +1201,7 @@ shoes_canvas_remove(VALUE self)
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
   shoes_canvas_empty(self_t);
-  shoes_canvas_remove_item(self_t->parent, self);
+  shoes_canvas_remove_item(self_t->parent, self, 0, 0);
   return self;
 }
 
@@ -1838,8 +1844,6 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
     y -= self_t->place.iy - self_t->slot.scrolly;
   }
 #endif
-
-  INFO("motion(%d, %d)\n", x, y);
 
   if (ATTR(self_t->attr, hidden) != Qtrue)
   {
