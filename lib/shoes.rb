@@ -89,6 +89,7 @@ class Shoes
                 Thread.start do
                   Shy.c(shy_save, shy, s) do |_name, _perc, _left|
                     @make_text.replace "Adding #{_name}"
+                    @prog.fraction = _perc
                   end
                   @make.hide
                   @done.show

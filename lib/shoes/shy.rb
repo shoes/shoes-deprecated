@@ -76,7 +76,7 @@ class Shy
           tarblk = proc do |action, name, stats|
             if action == :file_progress
               left -= stats[:currinc]
-              blk[name, 100.0 - (left.to_f / total.to_f), left]
+              blk[name, 1.0 - (left.to_f / total.to_f), left]
             end
           end
         end

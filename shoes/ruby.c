@@ -3210,6 +3210,46 @@ shoes_progress_draw(VALUE self, VALUE c, VALUE actual)
 }
 
 VALUE
+shoes_progress_get_fraction(VALUE self)
+{
+  double perc = 0.;
+  GET_STRUCT(control, self_t);
+  if (self_t->ref != NULL)
+  {
+#ifdef SHOES_GTK
+    perc = gtk_progress_bar_get_fraction(GTK_PROGRESS_BAR(self_t->ref));
+#endif
+#ifdef SHOES_QUARTZ
+    perc = GetControl32BitValue(self_t->ref) * 0.01;
+#endif
+#ifdef SHOES_WIN32
+    perc = SendMessage(self_t->ref, PBM_GETPOS, 0, 0) * 0.01;
+#endif
+  }
+  return rb_float_new(perc);
+}
+
+VALUE
+shoes_progress_set_fraction(VALUE self, VALUE _perc)
+{
+  double perc = NUM2DBL(_perc);
+  GET_STRUCT(control, self_t);
+  if (self_t->ref != NULL)
+  {
+#ifdef SHOES_GTK
+    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(self_t->ref), perc);
+#endif
+#ifdef SHOES_QUARTZ
+    SetControl32BitValue(self_t->ref, SInt32(perc) * 100.);
+#endif
+#ifdef SHOES_WIN32
+    SendMessage(self_t->ref, PBM_SETPOS, 0L, (int)(perc * 100));
+#endif
+  }
+  return self;
+}
+
+VALUE
 shoes_check_draw(VALUE self, VALUE c, VALUE actual)
 {
   SETUP_CONTROL(-6, 20);
@@ -3971,6 +4011,8 @@ shoes_ruby_init()
   rb_define_method(cListBox, "items=", CASTHOOK(shoes_list_box_items_set), 1);
   cProgress  = rb_define_class_under(cShoes, "Progress", cNative);
   rb_define_method(cProgress, "draw", CASTHOOK(shoes_progress_draw), 2);
+  rb_define_method(cProgress, "fraction", CASTHOOK(shoes_progress_get_fraction), 0);
+  rb_define_method(cProgress, "fraction=", CASTHOOK(shoes_progress_set_fraction), 1);
   cCheck  = rb_define_class_under(cShoes, "Check", cNative);
   rb_define_method(cCheck, "draw", CASTHOOK(shoes_check_draw), 2);
   rb_define_method(cCheck, "checked?", CASTHOOK(shoes_check_is_checked), 0);
