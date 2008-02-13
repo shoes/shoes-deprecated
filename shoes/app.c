@@ -2,6 +2,7 @@
 // shoes/app.c
 // Abstract windowing for GTK, Quartz (OSX) and Win32.
 //
+#include <glib.h>
 #include "shoes/app.h"
 #include "shoes/internal.h"
 #include "shoes/ruby.h"
@@ -63,17 +64,8 @@ shoes_app_new()
   return shoes_world->app;
 }
 
-#ifdef SHOES_GTK
-static VALUE
-shoes_app_gtk_exception(VALUE v, VALUE exc)
-{
-  if (rb_obj_is_kind_of(exc, rb_eInterrupt))
-    gtk_main_quit();
-  return Qnil;
-}
-
 static gint                                                                                                                   
-shoes_app_gtk_poll (GPollFD *fds,
+shoes_app_g_poll (GPollFD *fds,
            guint    nfds,
            gint     timeout)
 {
@@ -122,6 +114,14 @@ shoes_app_gtk_poll (GPollFD *fds,
     return ready;
 }
 
+#ifdef SHOES_GTK
+static VALUE
+shoes_app_gtk_exception(VALUE v, VALUE exc)
+{
+  if (rb_obj_is_kind_of(exc, rb_eInterrupt))
+    gtk_main_quit();
+  return Qnil;
+}
 
 static gboolean 
 shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) 
@@ -720,6 +720,12 @@ shoes_app_quartz_quit(const AppleEvent *appleEvt, AppleEvent* reply, long refcon
 {
   QuitApplicationEventLoop();
   return 128;
+}
+
+static pascal void
+shoes_quartz_cancel_app_loop(EventLoopTimerRef timer, void* userData)
+{
+  QuitEventLoop(GetCurrentEventLoop());
 }
 #endif
 
@@ -1560,12 +1566,29 @@ shoes_app_loop(shoes_app *app, char *path)
   unicodeEncoding = CreateTextEncoding(kTextEncodingUnicodeDefault,
     kUnicodeNoSubset, kUnicode16BitFormat);
   TECCreateConverter(&shoes_world->os.converter, unicodeEncoding, utf8Encoding);
-  RunApplicationEventLoop();
+
+  // GMainLoop *loop = g_main_loop_new(NULL, FALSE);
+  // g_main_set_poll_func(shoes_app_g_poll);
+  // g_main_loop_run(loop);
+
+  EventRef theEvent;
+  EventTargetRef theTarget = GetEventDispatcherTarget();
+  while (true)
+  {
+    OSStatus err = ReceiveNextEvent(0, NULL, kEventDurationNoWait, true, &theEvent);
+    if (err == noErr)                                                                                                                 {                                                                                                                                   SendEventToEventTarget (theEvent, theTarget);
+      ReleaseEvent(theEvent);
+    }
+    else if (err == eventLoopQuitErr)
+      break;
+    else
+      rb_eval_string("sleep(0.001)");
+  }
 #endif
 
 #ifdef SHOES_GTK
   gtk_widget_show_all(app->os.window);
-  g_main_set_poll_func(shoes_app_gtk_poll);
+  g_main_set_poll_func(shoes_app_g_poll);
   gtk_main();
 #endif
 
