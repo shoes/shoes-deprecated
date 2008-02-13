@@ -67,7 +67,7 @@ def Shoes.make_help_page(str)
       background "rgb(66, 66, 66, 100)".."rgb(255, 255, 255, 0)", :height => 20, :bottom => 0
     end
     @doc =
-      stack :margin_left => 130, :margin_top => 20, :margin_bottom => 50, :margin_right => 40,
+      stack :margin_left => 130, :margin_top => 20, :margin_bottom => 50, :margin_right => 20 + gutter,
         &dewikify(docs[0][-1]['description'], true)
     stack :top => 80, :left => 0, :sticky => Window do
       @toc = {}
@@ -105,7 +105,7 @@ def Shoes.make_help_page(str)
           :size => 7, :align => "center", :stroke => "#999"
       end
     end
-    image "static/shoes-icon.png", :top => 8, :right => 30,
+    image "static/shoes-icon.png", :top => 8, :right => 10 + gutter,
       :width => 64, :height => 64
   end
 rescue => e

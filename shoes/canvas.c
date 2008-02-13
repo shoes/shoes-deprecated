@@ -205,7 +205,7 @@ shoes_canvas_get_gutter_width(VALUE self)
   scrollwidth = GetSystemMetrics(SM_CXVSCROLL);
 #endif
 #ifdef SHOES_QUARTZ
-  GetThemeMetric(kThemeMetricScrollBarWidth, &scrollwidth)
+  GetThemeMetric(kThemeMetricScrollBarWidth, (SInt32 *)&scrollwidth);
 #endif
 #ifdef SHOES_GTK
   GtkRequisition req;

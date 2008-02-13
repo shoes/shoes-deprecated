@@ -295,11 +295,11 @@ else
     if ENV['UNIVERSAL']
       LINUX_CFLAGS << " -O -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc"
       LINUX_LDFLAGS << " -arch i386 -arch ppc"
-      ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.3'
+      ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
     elsif ENV['PPC']
-      LINUX_CFLAGS << " -O -isysroot /Developer/SDKs/MacOSX10.3.9.sdk -arch ppc"
+      LINUX_CFLAGS << " -O -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch ppc"
       LINUX_LDFLAGS << " -arch ppc"
-      ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.3'
+      ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
     end
   else
     DLEXT = "so"
