@@ -37,40 +37,59 @@ class Shoes
  
   ShyMake = proc do |s|
     proc do
-      stack :margin => 10 do
+      stack do
         background rgb(240, 240, 150)
-        title "ShyMaker"
-        smalltitle "for Shoes #{Shoes::VERSION}"
+        stack :margin => 10 do
+          subtitle "ShyMaker", :margin => 0
+          tagline "for Shoes #{Shoes::VERSION}"
+        end
       end
       stack do
-        progress =
-          stack :margin => 20 do
-            para "Making the Shy"
-            progress
+        @done =
+          stack :margin => 20, :hidden => true do
+            para "Your .shy is fully baked."
           end
-        progress.hide
+        @make =
+          stack :margin => 20, :hidden => true do
+            para "Making the Shy"
+            @prog = progress
+          end
         info =
           stack :margin => 10 do
             stack :margin => 10 do
               para "Application name"
-              edit_line
+              @shy_name = edit_line
             end
             stack :margin => 10 do
               para "Creator"
-              edit_line
+              @shy_creator = edit_line
             end
             stack :margin => 10 do
               para "Version"
-              edit_line
+              @shy_version = edit_line
             end
             stack :margin => 10 do
               para "Launch"
-              list_box :items => Shy.launchable(s)
+              @shy_launch = list_box :items => Shy.launchable(s)
             end
             stack :margin => 10 do
               button "Ready" do
+                shy_save = ask_save_file
+
                 info.hide
-                progress.show
+                @make.show
+
+                shy = Shy.new
+                shy.name = @shy_name.text
+                shy.creator = @shy_creator.text
+                shy.version = @shy_version.text
+                shy.launch =  @shy_launch.text
+
+                Thread.start do
+                  Shy.c(shy_save, shy, s)
+                  @make.hide
+                  @done.show
+                end
               end
             end
           end
