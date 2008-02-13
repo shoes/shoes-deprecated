@@ -29,7 +29,7 @@ class Canvas
 end
 
 class Shoes
-  VERSION = "0.1"
+  VERSION = "Raisins"
 
   NotFound = proc do
     para "404 NOT FOUND, GUYS!"
@@ -41,17 +41,18 @@ class Shoes
         background rgb(240, 240, 150)
         stack :margin => 10 do
           subtitle "ShyMaker", :margin => 0
-          tagline "for Shoes #{Shoes::VERSION}"
+          inscription "for Shoes #{Shoes::VERSION}"
         end
       end
-      stack do
+      stack :margin_left => 40 do
         @done =
           stack :margin => 20, :hidden => true do
             para "Your .shy is fully baked."
           end
         @make =
           stack :margin => 20, :hidden => true do
-            para "Making the Shy"
+            para "Making the Shy" 
+            @make_text = para "Creating file..."
             @prog = progress
           end
         info =
@@ -86,7 +87,9 @@ class Shoes
                 shy.launch =  @shy_launch.text
 
                 Thread.start do
-                  Shy.c(shy_save, shy, s)
+                  Shy.c(shy_save, shy, s) do |_name, _perc, _left|
+                    @make_text.replace "Adding #{_name}"
+                  end
                   @make.hide
                   @done.show
                 end
