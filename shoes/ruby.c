@@ -3243,7 +3243,7 @@ shoes_progress_set_fraction(VALUE self, VALUE _perc)
     SetControl32BitValue(self_t->ref, SInt32(perc) * 100.);
 #endif
 #ifdef SHOES_WIN32
-    SendMessage(self_t->ref, PBM_SETPOS, 0L, (int)(perc * 100));
+    SendMessage(self_t->ref, PBM_SETPOS, (int)(perc * 100), 0L);
 #endif
   }
   return self;
