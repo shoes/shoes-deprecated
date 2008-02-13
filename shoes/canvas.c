@@ -197,6 +197,26 @@ shoes_canvas_get_scroll_height(VALUE self)
 }
 
 VALUE
+shoes_canvas_get_gutter_width(VALUE self)
+{
+  int scrollwidth = 0;
+  GET_STRUCT(canvas, canvas);
+#ifdef SHOES_WIN32
+  scrollwidth = GetSystemMetrics(SM_CXVSCROLL);
+#endif
+#ifdef SHOES_QUARTZ
+  GetThemeMetric(kThemeMetricScrollBarWidth, &scrollwidth)
+#endif
+#ifdef SHOES_GTK
+  GtkRequisition req;
+  GtkWidget *vsb = gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(canvas->slot.box));
+  gtk_widget_size_request(vsb, &req);
+  scrollwidth = req.width;
+#endif
+  return INT2NUM(scrollwidth);
+}
+
+VALUE
 shoes_canvas_style(int argc, VALUE *argv, VALUE self)
 {
   VALUE klass, attr;

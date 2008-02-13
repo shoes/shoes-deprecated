@@ -110,6 +110,7 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("scroll_max", get_scroll_max, 0); \
   f("scroll_top", get_scroll_top, 0); \
   f("scroll_top=", set_scroll_top, 1); \
+  f("gutter", get_gutter_width, 0); \
   f("style", style, -1); \
   f("nostroke", nostroke, 0); \
   f("stroke", stroke, -1); \
