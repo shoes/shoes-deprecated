@@ -60,6 +60,7 @@ typedef struct {
   int nada;
 } shoes_world_gtk, SHOES_WORLD_OS;
 
+#define SHOES_CONTROL_REF GtkWidget *
 #define DC(slot) slot.canvas
 #define HAS_DRAWABLE(slot) GTK_LAYOUT(slot.canvas)->bin_window != 0
 #define DRAWABLE(ref) GDK_DRAWABLE_XID(GTK_LAYOUT(ref)->bin_window)
@@ -103,6 +104,7 @@ typedef struct {
 #define kShoesBoundEvent  'Boun'
 #define kShoesSlotData    'SLOT'
 
+#define SHOES_CONTROL_REF ControlRef
 #define DC(slot) slot.view
 #define HAS_DRAWABLE(slot) slot.context != NULL
 #define DRAWABLE(ref) ref
@@ -155,6 +157,7 @@ typedef struct {
   int style;
 } sheos_world_win32, SHOES_WORLD_OS;
 
+#define SHOES_CONTROL_REF HWND
 #define DC(slot) slot.window
 #define HAS_DRAWABLE(slot) slot.window != NULL
 #define DRAWABLE(ref) (libvlc_drawable_t)ref

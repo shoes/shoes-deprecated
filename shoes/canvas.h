@@ -239,6 +239,8 @@ typedef struct {
 
 void shoes_slot_init(VALUE, SHOES_SLOT_OS *, int, int, int, int, int);
 cairo_t *shoes_cairo_create(SHOES_SLOT_OS *, int, int, int);
+void shoes_control_hide_ref(SHOES_CONTROL_REF);
+void shoes_control_show_ref(SHOES_CONTROL_REF);
 
 VALUE shoes_app_main(int, VALUE *, VALUE);
 VALUE shoes_canvas_alloc(VALUE);

@@ -35,7 +35,6 @@ if Object::const_defined? :OpenURI
     alias open open_uri_original_open
   end
 end
-require 'rubygems/open-uri'
 require 'rubygems/installer'
 class << Gem::Ext::ExtConfBuilder
   alias_method :make__, :make

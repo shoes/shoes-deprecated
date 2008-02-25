@@ -410,6 +410,34 @@ shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, double r)
   cairo_close_path(cr);
 }
 
+void
+shoes_control_hide_ref(SHOES_CONTROL_REF ref)
+{
+#ifdef SHOES_GTK
+  gtk_widget_hide(ref);
+#endif
+#ifdef SHOES_QUARTZ
+  HIViewSetVisible(ref, false);
+#endif
+#ifdef SHOES_WIN32
+  ShowWindow(ref, SW_HIDE);
+#endif
+}
+
+void
+shoes_control_show_ref(SHOES_CONTROL_REF ref)
+{
+#ifdef SHOES_GTK
+  gtk_widget_show(ref);
+#endif
+#ifdef SHOES_QUARTZ
+  HIViewSetVisible(ref, true);
+#endif
+#ifdef SHOES_WIN32
+  ShowWindow(ref, SW_SHOW);
+#endif
+}
+
 //
 // Macros for setting up drawing
 //
@@ -1009,15 +1037,7 @@ shoes_video_hide(VALUE self)
 {
   GET_STRUCT(video, self_t);
   ATTRSET(self_t->attr, hidden, Qtrue);
-#ifdef SHOES_GTK
-  gtk_widget_hide(self_t->ref);
-#endif
-#ifdef SHOES_QUARTZ
-  HIViewSetVisible(self_t->ref, false);
-#endif
-#ifdef SHOES_WIN32
-  ShowWindow(self_t->ref, SW_HIDE);
-#endif
+  shoes_control_hide_ref(self_t->ref);
   shoes_canvas_repaint_all(self_t->parent);
   return self;
 }
@@ -1027,15 +1047,7 @@ shoes_video_show(VALUE self)
 {
   GET_STRUCT(video, self_t);
   ATTRSET(self_t->attr, hidden, Qfalse);
-#ifdef SHOES_GTK
-  gtk_widget_show(self_t->ref);
-#endif
-#ifdef SHOES_QUARTZ
-  HIViewSetVisible(self_t->ref, true);
-#endif
-#ifdef SHOES_WIN32
-  ShowWindow(self_t->ref, SW_SHOW);
-#endif
+  shoes_control_show_ref(self_t->ref);
   shoes_canvas_repaint_all(self_t->parent);
   return self;
 }
@@ -2563,15 +2575,7 @@ shoes_control_hide(VALUE self)
 {
   GET_STRUCT(control, self_t);
   ATTRSET(self_t->attr, hidden, Qtrue);
-#ifdef SHOES_GTK
-  gtk_widget_hide(self_t->ref);
-#endif
-#ifdef SHOES_QUARTZ
-  HIViewSetVisible(self_t->ref, false);
-#endif
-#ifdef SHOES_WIN32
-  ShowWindow(self_t->ref, SW_HIDE);
-#endif
+  shoes_control_hide_ref(self_t->ref);
   return self;
 }
 
@@ -2580,15 +2584,7 @@ shoes_control_show(VALUE self)
 {
   GET_STRUCT(control, self_t);
   ATTRSET(self_t->attr, hidden, Qfalse);
-#ifdef SHOES_GTK
-  gtk_widget_show(self_t->ref);
-#endif
-#ifdef SHOES_QUARTZ
-  HIViewSetVisible(self_t->ref, true);
-#endif
-#ifdef SHOES_WIN32
-  ShowWindow(self_t->ref, SW_SHOW);
-#endif
+  shoes_control_show_ref(self_t->ref);
   return self;
 }
 
