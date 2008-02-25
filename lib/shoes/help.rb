@@ -162,6 +162,16 @@ Compare that to the method `reverse`, which isn't a Kernel method and is availab
   #=> [:snakes, :cows, :dogs]
 }}}
 
+==== Built-in Constants ====
+
+Shoes also has a handful of built-in constants which may prove useful if you are trying to sniff out what release of Shoes is running.
+
+'''Shoes::RELEASE_NAME''' contains a string with the name of the Shoes release.  All Shoes releases are named, starting with Curious.
+
+'''Shoes::RELEASE_ID''' contains a number representing the Shoes release.  So, for example, Curious is number 1, as it was the first official release.
+
+'''Shoes::REVISION''' is the Subversion revision number for this build.
+
 === alert( message ) » nil ===
 
 Pops up a window containing a short message.
@@ -261,16 +271,6 @@ darkgreen = rgb(0, 0.4, 0)
 }}}
 
 This method may also be called as `Shoes.rgb`.
-
-== Built-in Constants ==
-
-Shoes also has a handful of built-in constants which may prove useful if you are trying to sniff out what release of Shoes is running.
-
-*Shoes::RELEASE_NAME* contains a string with the name of the Shoes release.  All Shoes releases are named, starting with Curious.
-
-*Shoes::RELEASE_ID* contains a number representing the Shoes release.  So, for example, Curious is number 1, as it was the first official release.
-
-*Shoes::REVISION* is the Subversion revision number for this build.
 
 == The App Object ==
 
@@ -675,7 +675,7 @@ Alter the slot using a hash of style settings.  Any of the methods on this page 
 
 The horizontal size of the slot in pixels.
 
-== Traversing Parents and Children ==
+== Traversing the Page ==
 
 You may find yourself needing to loop through the elements inside a slot.  Or maybe you need to
 climb the page, looking for a stack that is the parent of an element.
