@@ -5,7 +5,7 @@ require 'fileutils'
 include FileUtils
 
 APPNAME = ENV['APPNAME'] || "Shoes"
-RELEASE_ID, RELEASE_NAME = 1, "Curious"
+RELEASE_ID, RELEASE_NAME = 2, "Raisins"
 NAME = APPNAME.downcase.gsub(/\W+/, '')
 SONAME = 'shoes'
 SVN_ENTRIES = File.read(".svn/entries") 

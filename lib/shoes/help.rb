@@ -229,6 +229,49 @@ Pops up a yes-or-no question. If the person at the computer, clicks '''yes''', y
 
 Stops your program. Call this anytime you want to suddenly call it quits.
 
+=== gradient(color1, color2) » Shoes::Pattern ===
+
+Builds a linear gradient from two colors.  For each color, you may pass in a Shoes::Color object or a string describing the color.
+
+=== gray(the numbers: darkness, alpha) » Shoes::Color ===
+
+Create a grayscale color from a level of darkness and, optionally, an alpha level.
+
+{{{
+black = gray(0.0)
+white = gray(1.0)
+}}}
+
+=== rgb(a series of numbers: red, green, blue, alpha) » Shoes::Color ===
+
+Create a color from red, green and blue components.  An alpha level (indicating transparency) can also be added, optionally.
+
+When passing in a whole number, use values from 0 to 255.
+
+{{{
+blueviolet = rgb(138, 43, 226)
+darkgreen = rgb(0, 100, 0)
+}}}
+
+Or, use a decimal number from 0.0 to 1.0.
+
+{{{
+blueviolet = rgb(0.54, 0.17, 0.89)
+darkgreen = rgb(0, 0.4, 0)
+}}}
+
+This method may also be called as `Shoes.rgb`.
+
+== Built-in Constants ==
+
+Shoes also has a handful of built-in constants which may prove useful if you are trying to sniff out what release of Shoes is running.
+
+*Shoes::RELEASE_NAME* contains a string with the name of the Shoes release.  All Shoes releases are named, starting with Curious.
+
+*Shoes::RELEASE_ID* contains a number representing the Shoes release.  So, for example, Curious is number 1, as it was the first official release.
+
+*Shoes::REVISION* is the Subversion revision number for this build.
+
 == The App Object ==
 
 An App is a single window running code at a URL. When you switch URLs, a new App object is created and filled up with stacks, flows and other Shoes elements.
@@ -261,7 +304,7 @@ A flow will pack elements in as tightly as it can. A width will be filled, then 
 
 Like the stack, a flow is a box. So stacks and flows can safely be embedded and, without respect to their contents, are identical. They just treat their contents differently.
 
-Last thing: The Shoes window is a flow. 
+Last thing: The Shoes window itself is a flow. 
 
 == Art for Slots ==
 
@@ -425,7 +468,7 @@ Should transformations (such as `skew` and `rotate`) be performed around the cen
 
 Shoes has a wide variety of elements, many cherry-picked from HTML.  This page describes how to create these elements in a slot.  See the Elements section of the manual for more on how to modify and use these elements after they have been placed.
 
-=== background(pattern) ===
+=== background(pattern) » Shoes::Background ===
 
 Draws a Background element with a specific color (or pattern.)  Patterns can be colors, gradients or images.  Colors and images will tile across the background.  Gradients stretch to fill the background.
 
@@ -441,79 +484,79 @@ Draws a Background element with a specific color (or pattern.)  Patterns can be 
 
 The above example paints two backgrounds.  First, a black background is painted over the entire app's surface area.  Then a 50 pixel white stripe is painted along the left side.
 
-=== banner(text) ===
+=== banner(text) » Shoes::Banner ===
 
 Creates a Banner text block.  Shoes automatically styles this text to 48 pixels high.
 
-=== border(text, :strokewidth => a number) ===
+=== border(text, :strokewidth => a number) » Shoes::Border ===
 
 Draws a Border element using a specific color (or pattern.)  Patterns can be colors, gradients or images.  Colors and images will tile across the border.  Gradients stretch to fill the border.
 
 '''PLEASE NOTE:''' Like Backgrounds, Borders are actual elements, not styles.  HTML treats backgrounds and borders like styles.  Which means every box can only have one borders.  Shoes layers border and background elements, along with text blocks, images, and everything else.
 
-=== caption(text) ===
+=== caption(text) » Shoes::Caption ===
 
 Creates a Caption text block.  Shoes styles this text to 14 pixels high.
 
-=== code(text) ===
+=== code(text) » Shoes::Code ===
 
 Create a Code text fragment.  This text defaults to a monospaced font.
 
-=== del(text) ===
+=== del(text) » Shoes::Del ===
 
 Creates a Del text fragment (short for "deleted") which defaults to text with a single strikethrough in its middle.
 
-=== em(text) ===
+=== em(text) » Shoes::Em ===
 
 Creates an Em text fragment (short for "emphasized") which, by default, is styled with italics.
 
-=== image(path) ===
+=== image(path) » Shoes::Image ===
 
 Creates an Image element for displaying a picture.  PNG, JPEG and GIF formats are allowed.
 
-=== ins(text) ===
+=== ins(text) » Shoes::Ins ===
 
 Creates an Ins text fragment (short for "inserted") which Shoes styles with a single underline.
 
-=== inscription(text) ===
+=== inscription(text) » Shoes::Inscription ===
 
 Creates an Inscription text block.  Shoes styles this text at 10 pixels high.
 
-=== link(text, :click => proc or string) ===
+=== link(text, :click => proc or string) » Shoes::Link ===
 
 Creates a Link text block, which Shoes styles with a single underline and colors with a #06E (blue) colored stroke.
 
 The default LinkHover style is also single-underlined with a #039 (dark blue) stroke.
 
-=== para(text) ===
+=== para(text) » Shoes::Para ===
 
 Create a Para text block (short for "paragraph") which Shoes styles at 12 pixels high.
 
-=== strong(text) ===
+=== strong(text) » Shoes::Strong ===
 
 Creates a Strong text fragment, styled in bold by default.
 
-=== sub(text) ===
+=== sub(text) » Shoes::Sub ===
 
 Creates a Sub text fragment (short for "subscript") which defaults to lowering the text by 10 pixels and styling it in an x-small font.
 
-=== subtitle(text) ===
+=== subtitle(text) » Shoes::Subtitle ===
 
 Creates a Subtitle text block.  Shoes styles this text to 26 pixels high.
 
-=== sup(text) ===
+=== sup(text) » Shoes::Sup ===
 
 Creates a Sup text fragment (short for "superscript") which defaults to raising the text by 10 pixels and styling it in an x-small font.
 
-=== tagline(text) ===
+=== tagline(text) » Shoes::Tagline ===
 
 Creates a Tagline text block.  Shoes styles this text to 18 pixels high.
 
-=== title(text) ===
+=== title(text) » Shoes::Title ===
 
 Creates a Title text block.  Shoes styles these elements to 34 pixels high.
 
-=== video(path or url) ===
+=== video(path or url) » Shoes::Video ===
 
 Embeds a movie in this slot.
 
@@ -632,6 +675,23 @@ Alter the slot using a hash of style settings.  Any of the methods on this page 
 
 The horizontal size of the slot in pixels.
 
+== Traversing Parents and Children ==
+
+You may find yourself needing to loop through the elements inside a slot.  Or maybe you need to
+climb the page, looking for a stack that is the parent of an element.
+
+On any element, you may call the `parent` method to get the slot directly above it.  And on slots,
+you can call the `children` method to get all of the children.  (Some elements, such as text blocks,
+have a `contents` method for getting their children.)
+
+=== children() » an array of elements ===
+
+Lists all elements in a slot.
+
+=== parent() » a Shoes::Stack or Shoes::Flow ===
+
+Gets the object for this element's container.
+
 = Elements =
 
 Ah, here's the stuff of Shoes.  An element can be as simple as an oval shape.  Or as complex as
@@ -667,6 +727,18 @@ If you have a 150x150 pixel image and you set the width to 50 pixels, this metho
 === width() » a number ===
 
 The horizontal screen size of the image in pixels.
+
+== Native ==
+
+Shoes has seven native controls: the Button, the EditLine, the EditBox, the ListBox, the Progress meter, the Check box and the Radio.
+
+== TextBlock ==
+
+The TextBlock object represents a group of text organized as a single element.  A paragraph containing bolded text, for example.  A caption containing links and underlined text.
+
+== Timers ==
+
+Shoes contains two timer classes: the Animation class and the Timer class.
 
 == Video ==
 
