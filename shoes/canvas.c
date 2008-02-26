@@ -804,9 +804,33 @@ shoes_canvas_animate(int argc, VALUE *argv, VALUE self)
   SETUP();
 
   rb_scan_args(argc, argv, "01&", &fps, &block);
-  anim = shoes_anim_new(cAnim, fps, block, self);
+  anim = shoes_timer_new(cAnim, fps, block, self);
   rb_ary_push(canvas->app->timers, anim);
   return anim;
+}
+
+VALUE
+shoes_canvas_every(int argc, VALUE *argv, VALUE self)
+{
+  VALUE rate, block, ev;
+  SETUP();
+
+  rb_scan_args(argc, argv, "1&", &rate, &block);
+  ev = shoes_timer_new(cEvery, rate, block, self);
+  rb_ary_push(canvas->app->timers, ev);
+  return ev;
+}
+
+VALUE
+shoes_canvas_timer(int argc, VALUE *argv, VALUE self)
+{
+  VALUE period, block, timer;
+  SETUP();
+
+  rb_scan_args(argc, argv, "1&", &period, &block);
+  timer = shoes_timer_new(cTimer, period, block, self);
+  rb_ary_push(canvas->app->timers, timer);
+  return timer;
 }
 
 VALUE

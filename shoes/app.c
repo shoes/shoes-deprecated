@@ -1141,7 +1141,11 @@ shoes_app_win32proc(
       int id = LOWORD(w);
       VALUE timer = rb_ary_entry(app->timers, id - SHOES_CONTROL1);
       if (!NIL_P(timer))
-        shoes_anim_call(timer);
+      {
+        if (rb_obj_is_kind_of(timer, cTimer))
+          KillTimer(win, id);
+        shoes_timer_call(timer);
+      }
     }
     break;
 

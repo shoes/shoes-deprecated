@@ -187,6 +187,7 @@ typedef struct {
 #define ANIM_NADA    0
 #define ANIM_STARTED 1
 #define ANIM_PAUSED  2
+#define ANIM_STOPPED 3
 
 //
 // animation struct
@@ -194,15 +195,15 @@ typedef struct {
 typedef struct {
   VALUE block;
   VALUE parent;
-  int fps, frame;
+  unsigned int rate, frame;
   char started;
 #ifdef SHOES_GTK
   guint tag;
 #endif
 #ifdef SHOES_QUARTZ
-  EventLoopTimerRef timer;
+  EventLoopTimerRef ref;
 #endif
-} shoes_anim;
+} shoes_timer;
 
 //
 // temporary canvas (used internally for painting)
@@ -292,6 +293,8 @@ VALUE shoes_canvas_border(int, VALUE *, VALUE);
 VALUE shoes_canvas_video(int, VALUE *, VALUE);
 VALUE shoes_canvas_image(int, VALUE *, VALUE);
 VALUE shoes_canvas_animate(int, VALUE *, VALUE);
+VALUE shoes_canvas_every(int, VALUE *, VALUE);
+VALUE shoes_canvas_timer(int, VALUE *, VALUE);
 VALUE shoes_canvas_imagesize(VALUE, VALUE);
 VALUE shoes_canvas_shape(int, VALUE *, VALUE);
 void shoes_canvas_remove_item(VALUE, VALUE, char, char);
@@ -422,13 +425,13 @@ VALUE shoes_background_draw(VALUE, VALUE, VALUE);
 VALUE shoes_border_draw(VALUE, VALUE, VALUE);
 VALUE shoes_subpattern_new(VALUE, VALUE, VALUE);
 
-VALUE shoes_anim_new(VALUE, VALUE, VALUE, VALUE);
-VALUE shoes_anim_alloc(VALUE);
-VALUE shoes_anim_init(VALUE, VALUE);
-VALUE shoes_anim_remove(VALUE);
-VALUE shoes_anim_start(VALUE);
-VALUE shoes_anim_stop(VALUE);
-void shoes_anim_call(VALUE);
+VALUE shoes_timer_new(VALUE, VALUE, VALUE, VALUE);
+VALUE shoes_timer_alloc(VALUE);
+VALUE shoes_timer_init(VALUE, VALUE);
+VALUE shoes_timer_remove(VALUE);
+VALUE shoes_timer_start(VALUE);
+VALUE shoes_timer_stop(VALUE);
+void shoes_timer_call(VALUE);
 
 VALUE shoes_color_new(int, int, int, int);
 VALUE shoes_color_alloc(VALUE);

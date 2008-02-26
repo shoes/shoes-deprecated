@@ -11,7 +11,7 @@
 #include "shoes/version.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cShape, cImage, cVideo, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover;
+VALUE cShoes, cApp, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cShape, cImage, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover;
 VALUE eVlcError, eImageError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_hover, s_href, s_insert, s_items, s_release, s_scroll, s_sticky, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
@@ -3495,25 +3495,34 @@ PLACE_COMMON(textblock)
 CLASS_COMMON2(textblock)
 
 //
-// Shoes::Anim
+// Shoes::Timer
 //
 //
 void
-shoes_anim_call(VALUE self)
+shoes_timer_call(VALUE self)
 {
-  GET_STRUCT(anim, anim);
-  shoes_safe_block(anim->parent, anim->block, rb_ary_new3(1, INT2NUM(anim->frame)));
-  anim->frame++;
+  GET_STRUCT(timer, timer);
+  shoes_safe_block(timer->parent, timer->block, rb_ary_new3(1, INT2NUM(timer->frame)));
+  timer->frame++;
+
+  if (rb_obj_is_kind_of(self, cTimer))
+  {
+#ifdef SHOES_GTK
+    timer->tag = 0;
+#endif
+    timer->started = ANIM_STOPPED;
+  }
 }
 
 #ifdef SHOES_GTK
 static gboolean
 shoes_gtk_animate(gpointer data)
 {
-  VALUE anim = (VALUE)data;
-  shoes_anim *self_t;
-  Data_Get_Struct(anim, shoes_anim, self_t);
-  shoes_anim_call(anim);
+  VALUE timer = (VALUE)data;
+  shoes_timer *self_t;
+  Data_Get_Struct(timer, shoes_timer, self_t);
+  if (self_t->started == ANIM_STARTED)
+    shoes_timer_call(timer);
   return self_t->started == ANIM_STARTED;
 }
 #endif
@@ -3522,75 +3531,80 @@ shoes_gtk_animate(gpointer data)
 pascal void
 shoes_quartz_animate(EventLoopTimerRef timer, void* userData)
 {
-  VALUE anim = (VALUE)userData;
-  shoes_anim_call(anim);
+  VALUE timer = (VALUE)userData;
+  shoes_timer_call(timer);
 }
 #endif
 
 static void
-shoes_anim_mark(shoes_anim *anim)
+shoes_timer_mark(shoes_timer *timer)
 {
-  rb_gc_mark_maybe(anim->block);
-  rb_gc_mark_maybe(anim->parent);
+  rb_gc_mark_maybe(timer->block);
+  rb_gc_mark_maybe(timer->parent);
 }
 
 static void
-shoes_anim_free(shoes_anim *anim)
+shoes_timer_free(shoes_timer *timer)
 {
-  RUBY_CRITICAL(free(anim));
+  RUBY_CRITICAL(free(timer));
 }
 
 VALUE
-shoes_anim_new(VALUE klass, VALUE fps, VALUE block, VALUE parent)
+shoes_timer_new(VALUE klass, VALUE rate, VALUE block, VALUE parent)
 {
-  shoes_anim *anim;
-  VALUE obj = shoes_anim_alloc(klass);
-  Data_Get_Struct(obj, shoes_anim, anim);
-  anim->block = block;
-  if (!NIL_P(fps))
-    anim->fps = NUM2INT(fps);
-  anim->parent = parent;
+  shoes_timer *timer;
+  VALUE obj = shoes_timer_alloc(klass);
+  Data_Get_Struct(obj, shoes_timer, timer);
+  timer->block = block;
+  if (!NIL_P(rate))
+  {
+    if (klass == cAnim)
+      timer->rate = 1000 / NUM2INT(rate);
+    else
+      timer->rate = (int)(1000. * NUM2DBL(rate));
+  }
+  timer->parent = parent;
   return obj;
 }
 
 VALUE
-shoes_anim_alloc(VALUE klass)
+shoes_timer_alloc(VALUE klass)
 {
   VALUE obj;
-  shoes_anim *anim = SHOE_ALLOC(shoes_anim);
-  SHOE_MEMZERO(anim, shoes_anim, 1);
-  obj = Data_Wrap_Struct(klass, shoes_anim_mark, shoes_anim_free, anim);
+  shoes_timer *timer = SHOE_ALLOC(shoes_timer);
+  SHOE_MEMZERO(timer, shoes_timer, 1);
+  obj = Data_Wrap_Struct(klass, shoes_timer_mark, shoes_timer_free, timer);
 #ifdef SHOES_GTK
-  anim->tag = 0;
+  timer->tag = 0;
 #endif
-  anim->block = Qnil;
-  anim->fps = 12;
-  anim->frame = 0;
-  anim->parent = Qnil;
-  anim->started = ANIM_NADA;
+  timer->block = Qnil;
+  timer->rate = 1000 / 12;  // 12 frames per second
+  timer->frame = 0;
+  timer->parent = Qnil;
+  timer->started = ANIM_NADA;
   return obj;
 }
 
 VALUE
-shoes_anim_remove(VALUE self)
+shoes_timer_remove(VALUE self)
 {
-  GET_STRUCT(anim, self_t);
-  shoes_anim_stop(self);
+  GET_STRUCT(timer, self_t);
+  shoes_timer_stop(self);
   shoes_canvas_remove_item(self_t->parent, self, 0, 1);
   return self;
 }
 
 VALUE
-shoes_anim_stop(VALUE self)
+shoes_timer_stop(VALUE self)
 {
-  GET_STRUCT(anim, self_t);
+  GET_STRUCT(timer, self_t);
   if (self_t->started == ANIM_STARTED)
   {
 #ifdef SHOES_GTK
     g_source_remove(self_t->tag);
 #endif
 #ifdef SHOES_QUARTZ
-    RemoveEventLoopTimer(self_t->timer);
+    RemoveEventLoopTimer(self_t->ref);
 #endif
 #ifdef SHOES_WIN32
     shoes_canvas *canvas;
@@ -3604,10 +3618,10 @@ shoes_anim_stop(VALUE self)
 }
 
 VALUE
-shoes_anim_start(VALUE self)
+shoes_timer_start(VALUE self)
 {
-  GET_STRUCT(anim, self_t);
-  unsigned int interval = 1000 / self_t->fps;
+  GET_STRUCT(timer, self_t);
+  unsigned int interval = self_t->rate;
   if (interval < 32) interval = 32;
   if (self_t->started != ANIM_STARTED)
   {
@@ -3615,8 +3629,12 @@ shoes_anim_start(VALUE self)
     self_t->tag = g_timeout_add(interval, shoes_gtk_animate, (gpointer)self);
 #endif
 #ifdef SHOES_QUARTZ
-    InstallEventLoopTimer(GetMainEventLoop(), 0.0, interval * kEventDurationMillisecond,
-      NewEventLoopTimerUPP(shoes_quartz_animate), self, &self_t->timer);
+    if (rb_obj_is_kind_of(timer, cTimer))
+      InstallEventLoopTimer(GetMainEventLoop(), interval * kEventDurationMillisecond,
+        kEventDurationForever, NewEventLoopTimerUPP(shoes_quartz_animate), self, &self_t->ref);
+    else
+      InstallEventLoopTimer(GetMainEventLoop(), 0.0, interval * kEventDurationMillisecond,
+        NewEventLoopTimerUPP(shoes_quartz_animate), self, &self_t->ref);
 #endif
 #ifdef SHOES_WIN32
     shoes_canvas *canvas;
@@ -3630,22 +3648,22 @@ shoes_anim_start(VALUE self)
 }
 
 VALUE
-shoes_anim_toggle(VALUE self)
+shoes_timer_toggle(VALUE self)
 {
-  GET_STRUCT(anim, self_t);
-  return self_t->started == ANIM_STARTED ? shoes_anim_stop(self) : shoes_anim_start(self);
+  GET_STRUCT(timer, self_t);
+  return self_t->started == ANIM_STARTED ? shoes_timer_stop(self) : shoes_timer_start(self);
 }
 
 VALUE
-shoes_anim_draw(VALUE self, VALUE c, VALUE actual)
+shoes_timer_draw(VALUE self, VALUE c, VALUE actual)
 {
   shoes_canvas *canvas;
-  GET_STRUCT(anim, self_t);
+  GET_STRUCT(timer, self_t);
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
   if (RTEST(actual) && self_t->started == ANIM_NADA)
   {
     self_t->frame = 0;
-    shoes_anim_start(self);
+    shoes_timer_start(self);
   }
   return self;
 }
@@ -4018,13 +4036,16 @@ shoes_ruby_init()
   rb_define_method(cRadio, "checked?", CASTHOOK(shoes_check_is_checked), 0);
   rb_define_method(cRadio, "click", CASTHOOK(shoes_control_click), -1);
 
-  cAnim    = rb_define_class_under(cShoes, "Animation", rb_cObject);
-  rb_define_alloc_func(cAnim, shoes_anim_alloc);
-  rb_define_method(cAnim, "draw", CASTHOOK(shoes_anim_draw), 2);
-  rb_define_method(cAnim, "remove", CASTHOOK(shoes_anim_remove), 0);
-  rb_define_method(cAnim, "start", CASTHOOK(shoes_anim_start), 0);
-  rb_define_method(cAnim, "stop", CASTHOOK(shoes_anim_stop), 0);
-  rb_define_method(cAnim, "toggle", CASTHOOK(shoes_anim_toggle), 0);
+  cTimerBase   = rb_define_class_under(cShoes, "TimerBase", rb_cObject);
+  rb_define_alloc_func(cTimerBase, shoes_timer_alloc);
+  rb_define_method(cTimerBase, "draw", CASTHOOK(shoes_timer_draw), 2);
+  rb_define_method(cTimerBase, "remove", CASTHOOK(shoes_timer_remove), 0);
+  rb_define_method(cTimerBase, "start", CASTHOOK(shoes_timer_start), 0);
+  rb_define_method(cTimerBase, "stop", CASTHOOK(shoes_timer_stop), 0);
+  rb_define_method(cTimerBase, "toggle", CASTHOOK(shoes_timer_toggle), 0);
+  cAnim    = rb_define_class_under(cShoes, "Animation", cTimerBase);
+  cEvery   = rb_define_class_under(cShoes, "Every", cTimerBase);
+  cTimer   = rb_define_class_under(cShoes, "Timer", cTimerBase);
 
   cColor   = rb_define_class_under(cShoes, "Color", rb_cObject);
   rb_define_alloc_func(cColor, shoes_color_alloc);
