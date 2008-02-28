@@ -28,13 +28,6 @@ Config::CONFIG['libdir'] = GEM_DIR
 Config::CONFIG['sitelibdir'] = SITE_LIB_DIR
 
 require 'rubygems'
-if Object::const_defined? :OpenURI
-  Object.send :remove_const, :OpenURI
-  module Kernel
-    remove_method :open
-    alias open open_uri_original_open
-  end
-end
 require 'rubygems/installer'
 class << Gem::Ext::ExtConfBuilder
   alias_method :make__, :make
