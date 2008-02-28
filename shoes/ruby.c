@@ -3529,7 +3529,7 @@ shoes_gtk_animate(gpointer data)
 
 #ifdef SHOES_QUARTZ
 pascal void
-shoes_quartz_animate(EventLoopTimerRef timer, void* userData)
+shoes_quartz_animate(EventLoopTimerRef ref, void* userData)
 {
   VALUE timer = (VALUE)userData;
   shoes_timer_call(timer);
@@ -3629,7 +3629,7 @@ shoes_timer_start(VALUE self)
     self_t->tag = g_timeout_add(interval, shoes_gtk_animate, (gpointer)self);
 #endif
 #ifdef SHOES_QUARTZ
-    if (rb_obj_is_kind_of(timer, cTimer))
+    if (rb_obj_is_kind_of(self, cTimer))
       InstallEventLoopTimer(GetMainEventLoop(), interval * kEventDurationMillisecond,
         kEventDurationForever, NewEventLoopTimerUPP(shoes_quartz_animate), self, &self_t->ref);
     else
