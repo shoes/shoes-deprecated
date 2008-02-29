@@ -278,6 +278,10 @@ An App is a single window running code at a URL. When you switch URLs, a new App
 
 The App itself, in slot/box terminology, is a flow.  See the ''Slots'' section for more, but this just means that any elements placed directly at the top-level will flow.
 
+=== close() ===
+
+Closes the app window.  If multiple windows are open and you want to close the entire application, use the built-in method `exit`.
+
 === location() » String ===
 
 Gets a string containing the URL of the current app.
@@ -468,6 +472,24 @@ Should transformations (such as `skew` and `rotate`) be performed around the cen
 
 Shoes has a wide variety of elements, many cherry-picked from HTML.  This page describes how to create these elements in a slot.  See the Elements section of the manual for more on how to modify and use these elements after they have been placed.
 
+=== animate(fps) { |frame| ... } » Shoes::Animation ===
+
+Starts an animation timer, which runs parallel to the rest of the app.  The `fps` is a number, the frames per seconds.  This number dictates how many times per second the attached block will be called.
+
+The block is given a `frame` number.  Starting with zero, the `frame` number tells the block how many frames of the animation have been shown.
+
+{{{
+ #!ruby
+ Shoes.app do
+   @counter = para "STARTING"
+   animate(24) do |frame|
+     @counter.replace "FRAME #{frame}"
+   end
+ end
+}}}
+
+The above animation is shown 24 times per second.  If no number is give, the `fps` defaults to 10.
+
 === background(pattern) » Shoes::Background ===
 
 Draws a Background element with a specific color (or pattern.)  Patterns can be colors, gradients or images.  Colors and images will tile across the background.  Gradients stretch to fill the background.
@@ -494,9 +516,17 @@ Draws a Border element using a specific color (or pattern.)  Patterns can be col
 
 '''PLEASE NOTE:''' Like Backgrounds, Borders are actual elements, not styles.  HTML treats backgrounds and borders like styles.  Which means every box can only have one borders.  Shoes layers border and background elements, along with text blocks, images, and everything else.
 
+=== button(text) { ... } » Shoes::Button ===
+
+Adds a push button with the message `text` written across its surface.  An optional block can be attached, which is called if the button is pressed.
+
 === caption(text) » Shoes::Caption ===
 
 Creates a Caption text block.  Shoes styles this text to 14 pixels high.
+
+=== check() » Shoes::Check ===
+
+Adds a check box.
 
 === code(text) » Shoes::Code ===
 
@@ -506,13 +536,38 @@ Create a Code text fragment.  This text defaults to a monospaced font.
 
 Creates a Del text fragment (short for "deleted") which defaults to text with a single strikethrough in its middle.
 
+=== edit_box(text) » Shoes::EditBox ===
+
+Adds a large, multi-line textarea to this slot.  The `text` is optional and should be a string that will start out the box.  An optional block can be attached here which is called any type the user changes the text in the box.
+
+{{{
+ #!ruby
+ Shoes.app do
+   edit_box
+   edit_box "HORRAY EDIT ME"
+   edit_box "small one", :width => 100, :height => 160
+ end
+}}}
+
+=== edit_line(text) » Shoes::EditLine ===
+
+Adds a single-line text box to this slot.  The `text` is optional and should be a string that will start out the box.  An optional block can be attached here which is called any type the user changes the text in the box.
+
 === em(text) » Shoes::Em ===
 
 Creates an Em text fragment (short for "emphasized") which, by default, is styled with italics.
 
+=== every(seconds) { |count| ... } » Shoes::Every ===
+
+A timer similar to the `animation` method, but much slower.  This timer fires a given number of seconds, running the block attached.  So, for example, if you need to check a web site every five minutes, you'd call `every(300)` with a block containing the code to actually ping the web site.
+
 === image(path) » Shoes::Image ===
 
 Creates an Image element for displaying a picture.  PNG, JPEG and GIF formats are allowed.
+
+=== imagesize(path) » [width, height] === 
+
+Quickly grab the width and height of an image.  The image won't be loaded into the cache or displayed.
 
 === ins(text) » Shoes::Ins ===
 
@@ -528,9 +583,33 @@ Creates a Link text block, which Shoes styles with a single underline and colors
 
 The default LinkHover style is also single-underlined with a #039 (dark blue) stroke.
 
+=== list_box(:items => [strings, ...]) » Shoes::ListBox ===
+
+Adds a drop-down list box containing entries for everything in the `items` array.  An optional block may be attached, which is called if anything in the box becomes selected by the user.
+
+{{{
+ #!ruby
+ Shoes.app do
+   stack :margin => 10 do
+     para "Pick a card:"
+     list_box :items => ["Jack", "Ace", "Joker"]
+   end
+ end
+}}}
+
+Call `ListBox#text` to get the selected string.  See the `ListBox` section under `Native` controls for more help.
+
+=== progress() » Shoes::Progress ===
+
+Adds a progress bar.
+
 === para(text) » Shoes::Para ===
 
 Create a Para text block (short for "paragraph") which Shoes styles at 12 pixels high.
+
+=== radio() » Shoes::Radio ===
+
+Adds a radio button.
 
 === strong(text) » Shoes::Strong ===
 
@@ -551,6 +630,21 @@ Creates a Sup text fragment (short for "superscript") which defaults to raising 
 === tagline(text) » Shoes::Tagline ===
 
 Creates a Tagline text block.  Shoes styles this text to 18 pixels high.
+
+=== timer(seconds) { ... } » Shoes::Timer ===
+
+A one-shot timer.  If you want to schedule to run some code in a few seconds (or minutes, hours) you can attach the code as a block here.
+
+To display an alert box five seconds from now:
+
+{{{
+ #!ruby
+ Shoes.app do
+   timer(5) do
+     alert("Your five seconds are up.")
+   end
+ end
+}}}
 
 === title(text) » Shoes::Title ===
 
@@ -629,6 +723,20 @@ To set the width of a stack to 150 pixels:
 
 Each style setting also has a method, which can be used to grab that particular setting.  (So,
 like, the `width` method returns the width of the slot in pixels.)
+
+=== gutter() » a number ===
+
+The size of the scrollbar area.  When Shoes needs to show a scrollbar, the scrollbar may end up covering up some elements that touch the edge of the window.  The `gutter` tells you how many pixels to expect the scrollbar to cover.
+
+This is commonly used to pad elements on the right, like so:
+
+{{{
+ #!ruby
+ stack :margin_right => 20 + gutter do
+   para "Insert fat and ratified declaration of
+     independence here..."
+ end
+}}}
 
 === height() » a number ===
 
