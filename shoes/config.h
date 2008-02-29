@@ -45,6 +45,7 @@
 
 #define SHOES_EXTERN
 #define SHOES_EXTERN_VAR extern
+#define SHOES_INIT_ARGS void
 
 typedef struct {
   GtkWidget *box, *canvas;
@@ -80,6 +81,7 @@ typedef struct {
 #define SHOES_CONTROL1  3045
 #define SHOES_EXTERN
 #define SHOES_EXTERN_VAR extern
+#define SHOES_INIT_ARGS void
 
 typedef struct {
   HIViewRef scrollview, view;
@@ -137,6 +139,7 @@ OSStatus shoes_slot_quartz_create(VALUE, SHOES_SLOT_OS *, int, int, int, int);
 #define SHOES_CONTROL1  3045
 #define SHOES_EXTERN extern "C" __declspec(dllimport)
 #define SHOES_EXTERN_VAR SHOES_EXTERN
+#define SHOES_INIT_ARGS HINSTANCE inst, int style
 
 typedef struct {
   HDC dc;
@@ -149,13 +152,13 @@ typedef struct {
 
 typedef struct {
   BOOL ctrlkey, altkey, shiftkey;
-  WNDCLASSEX classex, slotex, vlclassex;
 } shoes_app_win32, SHOES_APP_OS;
 
 typedef struct {
   HINSTANCE instance;
   int style;
-} sheos_world_win32, SHOES_WORLD_OS;
+  WNDCLASSEX classex, slotex, vlclassex;
+} shoes_world_win32, SHOES_WORLD_OS;
 
 #define SHOES_CONTROL_REF HWND
 #define DC(slot) slot.window

@@ -86,8 +86,9 @@ task :build => :build_os do
   mkdir_p "dist/ruby"
   cp_r  "#{ext_ruby}/lib/ruby/1.8", "dist/ruby/lib"
   cp_r  FileList["rubygems/*"], "dist/ruby/lib"
+  rm_f  FileList["dist/ruby/lib/**/*.h"]
   unless ENV['STANDARD']
-    %w[rdoc soap webrick wsdl xsd].each do |libn|
+    %w[cgi cgi.rb cgi-lib.rb rdoc rexml rss shell soap webrick wsdl xsd].each do |libn|
       rm_rf "dist/ruby/lib/#{libn}"
     end
   end
@@ -192,6 +193,7 @@ when /win32/
     /Ideps\pango\include\glib-2.0
     /Ideps\pango\lib\glib-2.0\include
     /Ideps\ruby\lib\ruby\1.8\i386-mswin32
+    /Ideps\curl\include
     /I.
     /O2 /GR /EHsc
   ].gsub(/\n\s*/, ' ')
@@ -231,6 +233,12 @@ when /win32/
     rm_f t.name
     sh "link #{MSVC_LDFLAGS} /OUT:#{t.name} /LIBPATH:dist " +
       "/SUBSYSTEM:WINDOWS bin/main.obj shoes/appwin32.res lib#{SONAME}.lib #{MSVC_LIBS2}"
+  end
+
+  task "dist/pull.exe" => ["bin/pull.obj"] do |t|
+    rm_f t.name
+    sh "link #{MSVC_LDFLAGS} /OUT:#{t.name} /LIBPATH:deps/curl/lib " +
+      "/SUBSYSTEM:WINDOWS bin/pull.obj libcurl.lib #{MSVC_LIBS2}"
   end
 
   task "dist/lib#{SONAME}.dll" => ["shoes/version.h"] + OBJ do |t|

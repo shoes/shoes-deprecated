@@ -34,7 +34,7 @@ shoes_world_free(shoes_world_t *world)
 }
 
 shoes_code
-shoes_init()
+shoes_init(SHOES_INIT_ARGS)
 {
 #ifdef SHOES_WIN32
   INITCOMMONCONTROLSEX InitCtrlEx;
@@ -48,6 +48,11 @@ shoes_init()
   shoes_slot_quartz_register();
 #endif
   shoes_world = shoes_world_alloc();
+#ifdef SHOES_WIN32
+  shoes_world->os.instance = inst;
+  shoes_world->os.style = style;
+  shoes_classex_init();
+#endif
   return SHOES_OK;
 }
 

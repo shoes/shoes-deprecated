@@ -27,18 +27,18 @@ main(argc, argv)
   argc = shoes_win32_cmdvector(GetCommandLine(), &argv);
 #endif
   %DEFAULTS%
+
+#ifdef SHOES_WIN32
+  path = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
+  GetModuleFileName(NULL, (LPSTR)path, SHOES_BUFSIZE);
+  code = shoes_init(inst, style);
+#else
+  path = argv[0];
   code = shoes_init();
+#endif
   if (code != SHOES_OK)
     goto done;
 
-#ifdef SHOES_WIN32
-  shoes_world->os.instance = inst;
-  shoes_world->os.style = style;
-  path = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
-  GetModuleFileName(NULL, (LPSTR)path, SHOES_BUFSIZE);
-#else
-  path = argv[0];
-#endif
   shoes_set_argv(argc - 1, &argv[1]);
   code = shoes_start(path, "/");
   if (code != SHOES_OK)

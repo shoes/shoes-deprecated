@@ -32,7 +32,7 @@ void shoes_world_free(shoes_world_t *);
 //
 // Shoes
 // 
-SHOES_EXTERN shoes_code shoes_init(void);
+SHOES_EXTERN shoes_code shoes_init(SHOES_INIT_ARGS);
 SHOES_EXTERN shoes_code shoes_load(char *, char *);
 SHOES_EXTERN shoes_code shoes_start(char *, char *);
 #ifdef SHOES_WIN32

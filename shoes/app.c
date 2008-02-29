@@ -59,9 +59,9 @@ shoes_app_alloc(VALUE klass)
 VALUE
 shoes_app_new()
 {
-  shoes_world->app = shoes_app_alloc(cApp);
-  rb_ary_push(shoes_world->apps, shoes_world->app);
-  return shoes_world->app;
+  VALUE app = shoes_app_alloc(cApp);
+  rb_ary_push(shoes_world->apps, app);
+  return app;
 }
 
 static gint                                                                                                                   
@@ -1391,6 +1391,54 @@ shoes_app_start(VALUE appobj, VALUE allapps, char *uri)
   return SHOES_OK;
 }
 
+#ifdef SHOES_WIN32
+shoes_code
+shoes_classex_init()
+{
+  shoes_code code = SHOES_OK;
+  shoes_world->os.classex.hInstance = shoes_world->os.instance;
+  shoes_world->os.classex.lpszClassName = SHOES_SHORTNAME;
+  shoes_world->os.classex.lpfnWndProc = shoes_app_win32proc;
+  shoes_world->os.classex.style = CS_HREDRAW | CS_VREDRAW;
+  shoes_world->os.classex.cbSize = sizeof(WNDCLASSEX);
+  shoes_world->os.classex.hIcon = LoadIcon(shoes_world->os.instance, IDI_APPLICATION);
+  shoes_world->os.classex.hIconSm = LoadIcon(shoes_world->os.instance, IDI_APPLICATION);
+  shoes_world->os.classex.hCursor = LoadCursor(NULL, IDC_ARROW);
+  shoes_world->os.classex.lpszMenuName = NULL;
+  shoes_world->os.classex.cbClsExtra = 0;
+  shoes_world->os.classex.cbWndExtra = 0;
+  shoes_world->os.classex.hbrBackground = 0;
+
+  if (!RegisterClassEx(&shoes_world->os.classex))
+  {
+    QUIT("Couldn't register WIN32 window class.");
+  }
+
+  shoes_world->os.vlclassex.hInstance = shoes_world->os.slotex.hInstance = shoes_world->os.instance;
+  shoes_world->os.vlclassex.lpszClassName = SHOES_VLCLASS;
+  shoes_world->os.slotex.lpszClassName = SHOES_SLOTCLASS;
+  shoes_world->os.vlclassex.style = shoes_world->os.slotex.style = CS_NOCLOSE;
+  shoes_world->os.vlclassex.lpfnWndProc = DefWindowProc;
+  shoes_world->os.slotex.lpfnWndProc = shoes_slot_win32proc;
+  shoes_world->os.vlclassex.cbSize = shoes_world->os.slotex.cbSize = sizeof(WNDCLASSEX);
+  shoes_world->os.vlclassex.hIcon = shoes_world->os.slotex.hIcon = NULL;
+  shoes_world->os.vlclassex.hIconSm = shoes_world->os.slotex.hIconSm = NULL;
+  shoes_world->os.vlclassex.hCursor = shoes_world->os.slotex.hCursor = LoadCursor(NULL, IDC_ARROW);
+  shoes_world->os.vlclassex.lpszMenuName = shoes_world->os.slotex.lpszMenuName = NULL;
+  shoes_world->os.vlclassex.cbClsExtra = shoes_world->os.slotex.cbClsExtra = 0;
+  shoes_world->os.vlclassex.cbWndExtra = shoes_world->os.slotex.cbWndExtra = 0;
+  shoes_world->os.vlclassex.hbrBackground = shoes_world->os.slotex.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+
+  if (!RegisterClassEx(&shoes_world->os.slotex) || !RegisterClassEx(&shoes_world->os.vlclassex))
+  {
+    QUIT("Couldn't register VLC window class.");
+  }
+
+quit:
+  return code;
+}
+#endif
+
 shoes_code
 shoes_app_open(shoes_app *app, char *path, unsigned char is_main)
 {
@@ -1500,43 +1548,6 @@ shoes_app_open(shoes_app *app, char *path, unsigned char is_main)
   app->os.ctrlkey = false;
   app->os.altkey = false;
   app->os.shiftkey = false;
-  app->os.classex.hInstance = shoes_world->os.instance;
-  app->os.classex.lpszClassName = SHOES_SHORTNAME;
-  app->os.classex.lpfnWndProc = shoes_app_win32proc;
-  app->os.classex.style = CS_HREDRAW | CS_VREDRAW;
-  app->os.classex.cbSize = sizeof(WNDCLASSEX);
-  app->os.classex.hIcon = LoadIcon(shoes_world->os.instance, IDI_APPLICATION);
-  app->os.classex.hIconSm = LoadIcon(shoes_world->os.instance, IDI_APPLICATION);
-  app->os.classex.hCursor = LoadCursor(NULL, IDC_ARROW);
-  app->os.classex.lpszMenuName = NULL;
-  app->os.classex.cbClsExtra = 0;
-  app->os.classex.cbWndExtra = 0;
-  app->os.classex.hbrBackground = 0;
-
-  if (!RegisterClassEx(&app->os.classex))
-  {
-    QUIT("Couldn't register WIN32 window class.");
-  }
-
-  app->os.vlclassex.hInstance = app->os.slotex.hInstance = shoes_world->os.instance;
-  app->os.vlclassex.lpszClassName = SHOES_VLCLASS;
-  app->os.slotex.lpszClassName = SHOES_SLOTCLASS;
-  app->os.vlclassex.style = app->os.slotex.style = CS_NOCLOSE;
-  app->os.vlclassex.lpfnWndProc = DefWindowProc;
-  app->os.slotex.lpfnWndProc = shoes_slot_win32proc;
-  app->os.vlclassex.cbSize = app->os.slotex.cbSize = sizeof(WNDCLASSEX);
-  app->os.vlclassex.hIcon = app->os.slotex.hIcon = NULL;
-  app->os.vlclassex.hIconSm = app->os.slotex.hIconSm = NULL;
-  app->os.vlclassex.hCursor = app->os.slotex.hCursor = LoadCursor(NULL, IDC_ARROW);
-  app->os.vlclassex.lpszMenuName = app->os.slotex.lpszMenuName = NULL;
-  app->os.vlclassex.cbClsExtra = app->os.slotex.cbClsExtra = 0;
-  app->os.vlclassex.cbWndExtra = app->os.slotex.cbWndExtra = 0;
-  app->os.vlclassex.hbrBackground = app->os.slotex.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
-
-  if (!RegisterClassEx(&app->os.slotex) || !RegisterClassEx(&app->os.vlclassex))
-  {
-    QUIT("Couldn't register VLC window class.");
-  }
 
   // remove the menu
   rect.left = 0;
@@ -1580,6 +1591,7 @@ shoes_app_open(shoes_app *app, char *path, unsigned char is_main)
   if (code != SHOES_OK)
     return code;
 
+  INFO("ShowWindow\n");
 #ifdef SHOES_WIN32
   ShowWindow(app->slot.window, SW_SHOWNORMAL);
 #endif
@@ -1638,14 +1650,18 @@ shoes_app_loop(shoes_app *app)
 
 #ifdef SHOES_WIN32
   MSG msgs;
-  while (WM_QUIT != msgs.message)
+  while (msgs.message != WM_QUIT)
   {
     BOOL msg = PeekMessage(&msgs, NULL, 0, 0, PM_REMOVE);
     if (msg)
     {
       if (msgs.message == WM_KEYDOWN || msgs.message == WM_KEYUP)
       {
-        if (RARRAY_LEN(app->slot.controls) > 0)
+        VALUE appw = (VALUE)GetWindowLong(msgs.hwnd, GWL_USERDATA);
+        shoes_app *appk;
+        Data_Get_Struct(appw, shoes_app, appk);
+
+        if (RARRAY_LEN(appk->slot.controls) > 0)
         {
           switch (msgs.wParam)
           {
@@ -1660,7 +1676,9 @@ shoes_app_loop(shoes_app *app)
       }
       else if (msgs.message == WM_SYSCHAR || msgs.message == WM_CHAR)
         msg = false;
-      if (msg) msg = IsDialogMessage(app->slot.window, &msgs);
+      if (msg)
+        msg = IsDialogMessage(app->slot.window, &msgs);
+
       if (!msg)
       {
         TranslateMessage(&msgs);

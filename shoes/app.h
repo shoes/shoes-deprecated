@@ -46,6 +46,9 @@ typedef struct _shoes_app {
 //
 VALUE shoes_app_alloc(VALUE);
 VALUE shoes_app_new(void);
+#ifdef SHOES_WIN32
+shoes_code shoes_classex_init();
+#endif
 shoes_code shoes_app_start(VALUE, VALUE, char *);
 shoes_code shoes_app_open(shoes_app *, char *, unsigned char);
 shoes_code shoes_app_loop(shoes_app *);
