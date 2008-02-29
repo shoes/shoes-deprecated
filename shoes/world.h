@@ -14,14 +14,15 @@
 SHOES_EXTERN typedef struct _shoes_world_t {
   SHOES_WORLD_OS os;
   char path[SHOES_BUFSIZE];
-  VALUE app, apps;
+  VALUE apps;
 } shoes_world_t;
 
 SHOES_EXTERN_VAR shoes_world_t *shoes_world;
 
+// TODO: allow a window to be chosen as the main window
 #define GLOBAL_APP(appvar) \
   shoes_app *appvar; \
-  Data_Get_Struct(shoes_world->app, shoes_app, appvar)
+  Data_Get_Struct(rb_ary_entry(shoes_world->apps, 0), shoes_app, appvar)
 
 //
 // Shoes World

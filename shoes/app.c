@@ -64,6 +64,17 @@ shoes_app_new()
   return app;
 }
 
+//
+// When a window is finished, call this to delete it from the master
+// list.  Returns 1 if all windows are gone.
+//
+static int
+shoes_app_remove(shoes_app *app)
+{
+  rb_ary_delete(shoes_world->apps, app->self);
+  return (RARRAY_LEN(shoes_world->apps) == 0);
+}
+
 static gint                                                                                                                   
 shoes_app_g_poll (GPollFD *fds,
            guint    nfds,
@@ -211,6 +222,15 @@ shoes_app_gtk_keypress (GtkWidget *widget, GdkEventKey *event, gpointer data)
 
   if (v != Qnil)
     shoes_app_keypress(app, v);
+  return FALSE;
+}
+
+static gboolean
+shoes_app_gtk_quit(GtkWidget *widget, GdkEvent *event, gpointer data)
+{
+  shoes_app *app = (shoes_app *)data;
+  if (shoes_app_remove(app))
+    gtk_main_quit();
   return FALSE;
 }
 #endif
@@ -939,7 +959,8 @@ shoes_app_win32proc(
   switch (msg)
   {
     case WM_DESTROY:
-      PostQuitMessage(0);
+      if (shoes_app_remove(app))
+        PostQuitMessage(0);
     return 0; 
 
     case WM_ERASEBKGND:
@@ -1318,9 +1339,6 @@ shoes_app_main(int argc, VALUE *argv, VALUE self)
   shoes_app *app_t;
   Data_Get_Struct(app, shoes_app, app_t);
 
-  if (NIL_P(shoes_world->app))
-    shoes_world->app = app;
-
   rb_scan_args(argc, argv, "01&", &attr, &block);
   rb_iv_set(app, "@main_app", block);
 
@@ -1358,7 +1376,7 @@ shoes_app_title(shoes_app *app, VALUE title)
 }
 
 shoes_code
-shoes_app_start(VALUE appobj, VALUE allapps, char *uri)
+shoes_app_start(VALUE allapps, char *uri)
 {
   int i;
   shoes_code code;
@@ -1369,13 +1387,12 @@ shoes_app_start(VALUE appobj, VALUE allapps, char *uri)
     VALUE appobj2 = rb_ary_entry(allapps, i);
     Data_Get_Struct(appobj2, shoes_app, app);
 
-    code = shoes_app_open(app, uri, appobj2 == appobj);
+    code = shoes_app_open(app, uri);
     if (code != SHOES_OK)
       return code;
   }
 
-  Data_Get_Struct(appobj, shoes_app, app);
-  code = shoes_app_loop(app);
+  code = shoes_app_loop();
   if (code != SHOES_OK)
     return code;
 
@@ -1440,7 +1457,7 @@ quit:
 #endif
 
 shoes_code
-shoes_app_open(shoes_app *app, char *path, unsigned char is_main)
+shoes_app_open(shoes_app *app, char *path)
 {
   shoes_code code = SHOES_OK;
 
@@ -1460,11 +1477,8 @@ shoes_app_open(shoes_app *app, char *path, unsigned char is_main)
                    G_CALLBACK(shoes_app_gtk_motion), app);
   g_signal_connect(G_OBJECT(gk->window), "key-press-event",
                    G_CALLBACK(shoes_app_gtk_keypress), app);
-  if (is_main)
-  {
-    g_signal_connect(G_OBJECT(gk->window), "delete-event",
-                     G_CALLBACK(gtk_main_quit), NULL);
-  }
+  g_signal_connect(G_OBJECT(gk->window), "delete-event",
+                   G_CALLBACK(shoes_app_gtk_quit), app);
   app->slot.canvas = gk->window;
 #endif
 
@@ -1505,14 +1519,11 @@ shoes_app_open(shoes_app *app, char *path, unsigned char is_main)
 
   InitCursor();
 
-  if (is_main)
+  err = AEInstallEventHandler(kCoreEventClass, kAEQuitApplication, 
+    NewAEEventHandlerUPP(shoes_app_quartz_quit), 0, false);
+  if (err != noErr)
   {
-    err = AEInstallEventHandler(kCoreEventClass, kAEQuitApplication, 
-      NewAEEventHandlerUPP(shoes_app_quartz_quit), 0, false);
-    if (err != noErr)
-    {
-      QUIT("Out of memory.", 0);
-    }
+    QUIT("Out of memory.", 0);
   }
 
   err = AEInstallEventHandler(kCoreEventClass, kAEOpenDocuments, 
@@ -1609,7 +1620,7 @@ quit:
 }
 
 shoes_code
-shoes_app_loop(shoes_app *app)
+shoes_app_loop()
 {
   shoes_code code = SHOES_OK;
   INFO("RUNNING LOOP.\n", 0);
@@ -1657,10 +1668,7 @@ shoes_app_loop(shoes_app *app)
     {
       if (msgs.message == WM_KEYDOWN || msgs.message == WM_KEYUP)
       {
-        VALUE appw = (VALUE)GetWindowLong(msgs.hwnd, GWL_USERDATA);
-        shoes_app *appk;
-        Data_Get_Struct(appw, shoes_app, appk);
-
+        shoes_app *appk = (shoes_app *)GetWindowLong(msgs.hwnd, GWL_USERDATA);
         if (RARRAY_LEN(appk->slot.controls) > 0)
         {
           switch (msgs.wParam)
@@ -1677,7 +1685,7 @@ shoes_app_loop(shoes_app *app)
       else if (msgs.message == WM_SYSCHAR || msgs.message == WM_CHAR)
         msg = false;
       if (msg)
-        msg = IsDialogMessage(app->slot.window, &msgs);
+        msg = IsDialogMessage(msgs.hwnd, &msgs);
 
       if (!msg)
       {
