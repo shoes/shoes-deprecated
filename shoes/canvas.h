@@ -251,6 +251,7 @@ shoes_canvas *shoes_canvas_init(VALUE, SHOES_SLOT_OS, VALUE, int, int);
 void shoes_canvas_paint(VALUE);
 void shoes_canvas_shape_do(shoes_canvas *, double, double, double, double, unsigned char);
 VALUE shoes_canvas_style(int, VALUE *, VALUE);
+VALUE shoes_canvas_close(VALUE);
 VALUE shoes_canvas_get_top(VALUE);
 VALUE shoes_canvas_get_left(VALUE);
 VALUE shoes_canvas_get_width(VALUE);

@@ -1344,6 +1344,7 @@ shoes_app_main(int argc, VALUE *argv, VALUE self)
 
   app_t->title = ATTR(attr, title);
   app_t->resizable = (ATTR(attr, resizable) != Qfalse);
+  app_t->hidden = (ATTR(attr, hidden) == Qtrue);
   shoes_app_resize(app_t, ATTR2(int, attr, width, SHOES_APP_WIDTH), ATTR2(int, attr, height, SHOES_APP_HEIGHT));
   shoes_canvas_init(app_t->canvas, app_t->slot, attr, app_t->width, app_t->height);
   return self;
@@ -1603,17 +1604,18 @@ shoes_app_open(shoes_app *app, char *path)
     return code;
 
   INFO("ShowWindow\n");
+  if (!app->hidden)
+  {
 #ifdef SHOES_WIN32
-  ShowWindow(app->slot.window, SW_SHOWNORMAL);
+    ShowWindow(app->slot.window, SW_SHOWNORMAL);
 #endif
-
 #ifdef SHOES_GTK
-  gtk_widget_show_all(app->os.window);
+    gtk_widget_show_all(app->os.window);
 #endif
-
 #ifdef SHOES_QUARTZ
-  ShowWindow(app->os.window);
+    ShowWindow(app->os.window);
 #endif
+  }
 
 quit:
   return code;
@@ -1786,16 +1788,7 @@ shoes_app_visit(shoes_app *app, char *path)
   if (NIL_P(rb_ary_entry(meth, 0)))
   {
     VALUE app_block = rb_iv_get(app->self, "@main_app");
-    if (!NIL_P(app_block))
-      rb_ary_store(meth, 0, app_block);
-    else
-    {
-      VALUE script = shoes_dialog_open(app->canvas);
-      if (NIL_P(script))
-        return SHOES_QUIT;
-      rb_funcall(cShoes, rb_intern("load"), 1, script);
-      meth = rb_funcall(cShoes, s_run, 1, app->location);
-    }
+    rb_ary_store(meth, 0, app_block);
   }
 
   exec.app = app;
@@ -1975,6 +1968,18 @@ shoes_app_style(shoes_app *app, VALUE klass, VALUE hsh)
     if (!SYMBOL_P(key)) key = rb_str_intern(key);
     shoes_style_set(app->styles, klass, key, val);
   }
+}
+
+VALUE
+shoes_app_close_window(shoes_app *app)
+{
+#ifdef SHOES_GTK
+  gtk_widget_destroy(GTK_WIDGET(APP_WINDOW(app)));
+#endif
+#ifdef SHOES_WIN32
+  SendMessage(APP_WINDOW(app), WM_CLOSE, 0, 0);
+#endif
+  return Qnil;
 }
 
 VALUE

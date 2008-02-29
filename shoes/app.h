@@ -30,7 +30,7 @@
 typedef struct _shoes_app {
   SHOES_APP_OS os;
   SHOES_SLOT_OS slot;
-  int width, height, mousex, mousey, resizable;
+  int width, height, mousex, mousey, resizable, hidden;
   VALUE self;
   VALUE canvas;
   VALUE nesting;
@@ -60,6 +60,7 @@ shoes_code shoes_app_click(shoes_app *, int, int, int);
 shoes_code shoes_app_release(shoes_app *, int, int, int);
 shoes_code shoes_app_keypress(shoes_app *, VALUE);
 shoes_code shoes_app_close(shoes_app *);
+VALUE shoes_app_close_window(shoes_app *);
 shoes_code shoes_app_goto(shoes_app *, char *);
 shoes_code shoes_slot_repaint(SHOES_SLOT_OS *);
 void shoes_app_reset_styles(shoes_app *);

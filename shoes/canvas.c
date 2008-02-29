@@ -160,6 +160,13 @@ shoes_cairo_create(SHOES_SLOT_OS *slot, int width, int height, int border)
 }
 
 VALUE
+shoes_canvas_close(VALUE self)
+{
+  SETUP();
+  return shoes_app_close_window(canvas->app);
+}
+
+VALUE
 shoes_canvas_get_scroll_top(VALUE self)
 {
   GET_STRUCT(canvas, canvas);

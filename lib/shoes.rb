@@ -163,6 +163,11 @@ class Shoes
     ARGV[0] or true
   end
 
+  def self.load_dialog
+    fname = ask_open_file
+    load(fname) if fname
+  end
+
   def self.load(path)
     uri = 
       if path =~ SHOES_URL_RE

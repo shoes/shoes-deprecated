@@ -102,6 +102,7 @@ void shoes_place_decide(shoes_place *, VALUE, VALUE, int, int, unsigned char, in
 void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
 
 #define CANVAS_DEFS(f) \
+  f("close", close, 0); \
   f("top", get_top, 0); \
   f("left", get_left, 0); \
   f("width", get_width, 0); \

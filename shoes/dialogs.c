@@ -68,7 +68,7 @@ shoes_dialog_alert(VALUE self, VALUE msg)
 
 #ifdef SHOES_GTK
   GtkWidget *dialog = gtk_message_dialog_new_with_markup(
-    GTK_WINDOW(app->os.window), GTK_DIALOG_MODAL,
+    APP_WINDOW(app), GTK_DIALOG_MODAL,
     GTK_MESSAGE_INFO, GTK_BUTTONS_OK, "<span size='larger'>%s</span>\n\n%s",
     _(dialog_title_says), RSTRING_PTR(msg));
   gtk_dialog_run(GTK_DIALOG(dialog));
@@ -76,7 +76,7 @@ shoes_dialog_alert(VALUE self, VALUE msg)
 #endif
 
 #ifdef SHOES_WIN32
-  MessageBox(app->slot.window, RSTRING_PTR(msg), dialog_title_says, MB_OK);
+  MessageBox(APP_WINDOW(app), RSTRING_PTR(msg), dialog_title_says, MB_OK);
 #endif
 
 #ifdef SHOES_QUARTZ
@@ -105,7 +105,7 @@ shoes_dialog_ask(VALUE self, VALUE quiz)
 
 #ifdef SHOES_GTK
   GtkWidget *dialog = gtk_dialog_new_with_buttons(_(dialog_title),
-    GTK_WINDOW(app->os.window), GTK_DIALOG_MODAL, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
+    APP_WINDOW(app), GTK_DIALOG_MODAL, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
   gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
   gtk_container_set_border_width(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), 6);
   GtkWidget *question = gtk_label_new(RSTRING_PTR(quiz));
@@ -126,7 +126,7 @@ shoes_dialog_ask(VALUE self, VALUE quiz)
 #ifdef SHOES_WIN32
   win32_dialog_label = RSTRING_PTR(quiz);
   int confirm = DialogBox(shoes_world->os.instance, MAKEINTRESOURCE(ASKDLG),
-    app->slot.window, shoes_ask_win32proc);
+    APP_WINDOW(app), shoes_ask_win32proc);
   if (confirm == IDOK)
   {
     if (win32_dialog_answer != NULL)
@@ -162,7 +162,7 @@ shoes_dialog_confirm(VALUE self, VALUE quiz)
 
 #ifdef SHOES_GTK
   GtkWidget *dialog = gtk_dialog_new_with_buttons(_(dialog_title),
-    GTK_WINDOW(app->os.window), GTK_DIALOG_MODAL, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
+    APP_WINDOW(app), GTK_DIALOG_MODAL, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
   gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
   gtk_container_set_border_width(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), 6);
   GtkWidget *question = gtk_label_new(RSTRING_PTR(quiz));
@@ -176,7 +176,7 @@ shoes_dialog_confirm(VALUE self, VALUE quiz)
 #endif
 
 #ifdef SHOES_WIN32
-  int confirm = MessageBox(app->slot.window, RSTRING_PTR(quiz), dialog_title, MB_OKCANCEL);
+  int confirm = MessageBox(APP_WINDOW(app), RSTRING_PTR(quiz), dialog_title, MB_OKCANCEL);
   if (confirm == IDOK)
     answer = Qtrue;
 #endif
@@ -232,7 +232,7 @@ shoes_dialog_color(VALUE self, VALUE title)
   // Initialize CHOOSECOLOR 
   ZeroMemory(&cc, sizeof(cc));
   cc.lStructSize = sizeof(cc);
-  cc.hwndOwner = app->slot.window;
+  cc.hwndOwner = APP_WINDOW(app);
   cc.lpCustColors = (LPDWORD) acrCustClr;
   cc.rgbResult = rgbCurrent;
   cc.Flags = CC_FULLOPEN | CC_RGBINIT;
@@ -263,7 +263,7 @@ shoes_dialog_open(VALUE self)
   GLOBAL_APP(app);
 
 #ifdef SHOES_GTK
-  GtkWidget *dialog = gtk_file_chooser_dialog_new("Open file...", GTK_WINDOW(app->os.window),
+  GtkWidget *dialog = gtk_file_chooser_dialog_new("Open file...", APP_WINDOW(app),
     GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
     GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
   gint result = gtk_dialog_run(GTK_DIALOG(dialog));
@@ -282,7 +282,7 @@ shoes_dialog_open(VALUE self)
   ZeroMemory(&ofn, sizeof(ofn));
   GetCurrentDirectory(MAX_PATH, (LPSTR)dir);
   ofn.lStructSize     = sizeof(ofn);
-  ofn.hwndOwner       = app->slot.window;
+  ofn.hwndOwner       = APP_WINDOW(app);
   ofn.hInstance       = shoes_world->os.instance;
   ofn.lpstrFile       = _path;
   ofn.nMaxFile        = sizeof(_path);
@@ -335,7 +335,7 @@ shoes_dialog_save(VALUE self)
   GLOBAL_APP(app);
 
 #ifdef SHOES_GTK
-  GtkWidget *dialog = gtk_file_chooser_dialog_new("Save file...", GTK_WINDOW(app->os.window),
+  GtkWidget *dialog = gtk_file_chooser_dialog_new("Save file...", APP_WINDOW(app),
     GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
     GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, NULL);
   gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(dialog), TRUE);
@@ -384,7 +384,7 @@ shoes_dialog_save(VALUE self)
   ZeroMemory(&ofn, sizeof(ofn));
   GetCurrentDirectory(MAX_PATH, (LPSTR)dir);
   ofn.lStructSize     = sizeof(ofn);
-  ofn.hwndOwner       = app->slot.window;
+  ofn.hwndOwner       = APP_WINDOW(app);
   ofn.hInstance       = shoes_world->os.instance;
   ofn.lpstrFile       = _path;
   ofn.nMaxFile        = sizeof(_path);

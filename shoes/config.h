@@ -65,6 +65,7 @@ typedef struct {
 #define DC(slot) slot.canvas
 #define HAS_DRAWABLE(slot) GTK_LAYOUT(slot.canvas)->bin_window != 0
 #define DRAWABLE(ref) GDK_DRAWABLE_XID(GTK_LAYOUT(ref)->bin_window)
+#define APP_WINDOW(app) (app == NULL ? NULL : GTK_WINDOW(app->os.window))
 #endif
 
 //
@@ -164,6 +165,7 @@ typedef struct {
 #define DC(slot) slot.window
 #define HAS_DRAWABLE(slot) slot.window != NULL
 #define DRAWABLE(ref) (libvlc_drawable_t)ref
+#define APP_WINDOW(app) (app == NULL ? NULL : app->slot.window)
 
 #endif
 

@@ -72,16 +72,17 @@ shoes_code
 shoes_load(char *path, char *uri)
 {
   shoes_code code = SHOES_QUIT;
+  char bootup[SHOES_BUFSIZE];
 
   if (path)
-  {
-    char bootup[SHOES_BUFSIZE];
     sprintf(bootup, "Shoes.load(%%q<%s>);", path);
-    VALUE v = rb_rescue2(CASTHOOK(shoes_load_begin), (VALUE)bootup, CASTHOOK(shoes_load_exception), Qnil, rb_cObject, 0);
-    if (rb_obj_is_kind_of(v, rb_eException))
-    {
-      QUIT_ALERT(v);
-    }
+  else
+    sprintf(bootup, "Shoes.app(:hidden => true) { Shoes.load_dialog }");
+
+  VALUE v = rb_rescue2(CASTHOOK(shoes_load_begin), (VALUE)bootup, CASTHOOK(shoes_load_exception), Qnil, rb_cObject, 0);
+  if (rb_obj_is_kind_of(v, rb_eException))
+  {
+    QUIT_ALERT(v);
   }
 
   return shoes_app_start(shoes_world->apps, uri);
