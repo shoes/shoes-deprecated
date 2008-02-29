@@ -67,7 +67,7 @@ shoes_load_exception(VALUE v, VALUE exc)
 shoes_code
 shoes_load(char *path, char *uri)
 {
-  VALUE appobj = shoes_app_new();
+  shoes_code code = SHOES_QUIT;
 
   if (path)
   {
@@ -80,7 +80,10 @@ shoes_load(char *path, char *uri)
     }
   }
 
-  return shoes_app_start(appobj, uri);
+  if (!NIL_P(shoes_world->app))
+    return shoes_app_start(shoes_world->app, shoes_world->apps, uri);
+
+  return SHOES_QUIT;
 }
 
 #ifdef SHOES_WIN32

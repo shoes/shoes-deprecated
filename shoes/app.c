@@ -1314,15 +1314,20 @@ VALUE
 shoes_app_main(int argc, VALUE *argv, VALUE self)
 {
   VALUE attr, block;
-  GLOBAL_APP(app);
+  VALUE app = shoes_app_new();
+  shoes_app *app_t;
+  Data_Get_Struct(app, shoes_app, app_t);
+
+  if (NIL_P(shoes_world->app))
+    shoes_world->app = app;
 
   rb_scan_args(argc, argv, "01&", &attr, &block);
-  rb_iv_set(self, "@main_app", block);
+  rb_iv_set(app, "@main_app", block);
 
-  app->title = ATTR(attr, title);
-  app->resizable = (ATTR(attr, resizable) != Qfalse);
-  shoes_app_resize(app, ATTR2(int, attr, width, SHOES_APP_WIDTH), ATTR2(int, attr, height, SHOES_APP_HEIGHT));
-  shoes_canvas_init(app->canvas, app->slot, attr, app->width, app->height);
+  app_t->title = ATTR(attr, title);
+  app_t->resizable = (ATTR(attr, resizable) != Qfalse);
+  shoes_app_resize(app_t, ATTR2(int, attr, width, SHOES_APP_WIDTH), ATTR2(int, attr, height, SHOES_APP_HEIGHT));
+  shoes_canvas_init(app_t->canvas, app_t->slot, attr, app_t->width, app_t->height);
   return self;
 }
 
@@ -1353,25 +1358,41 @@ shoes_app_title(shoes_app *app, VALUE title)
 }
 
 shoes_code
-shoes_app_start(VALUE appobj, char *uri)
+shoes_app_start(VALUE appobj, VALUE allapps, char *uri)
 {
+  int i;
   shoes_code code;
   shoes_app *app;
+
+  for (i = 0; i < RARRAY_LEN(allapps); i++)
+  {
+    VALUE appobj2 = rb_ary_entry(allapps, i);
+    Data_Get_Struct(appobj2, shoes_app, app);
+
+    code = shoes_app_open(app, uri, appobj2 == appobj);
+    if (code != SHOES_OK)
+      return code;
+  }
+
   Data_Get_Struct(appobj, shoes_app, app);
-
-  code = shoes_app_open(app);
+  code = shoes_app_loop(app);
   if (code != SHOES_OK)
     return code;
 
-  code = shoes_app_loop(app, uri);
-  if (code != SHOES_OK)
-    return code;
+  for (i = 0; i < RARRAY_LEN(allapps); i++)
+  {
+    Data_Get_Struct(rb_ary_entry(allapps, i), shoes_app, app);
 
-  return shoes_app_close(app);
+    code = shoes_app_close(app);
+    if (code != SHOES_OK)
+      return code;
+  }
+
+  return SHOES_OK;
 }
 
 shoes_code
-shoes_app_open(shoes_app *app)
+shoes_app_open(shoes_app *app, char *path, unsigned char is_main)
 {
   shoes_code code = SHOES_OK;
 
@@ -1389,10 +1410,13 @@ shoes_app_open(shoes_app *app)
                    G_CALLBACK(shoes_app_gtk_paint), app);
   g_signal_connect(G_OBJECT(gk->window), "motion-notify-event", 
                    G_CALLBACK(shoes_app_gtk_motion), app);
-  g_signal_connect(G_OBJECT(gk->window), "delete-event",
-                   G_CALLBACK(gtk_main_quit), NULL);
   g_signal_connect(G_OBJECT(gk->window), "key-press-event",
                    G_CALLBACK(shoes_app_gtk_keypress), app);
+  if (is_main)
+  {
+    g_signal_connect(G_OBJECT(gk->window), "delete-event",
+                     G_CALLBACK(gtk_main_quit), NULL);
+  }
   app->slot.canvas = gk->window;
 #endif
 
@@ -1433,11 +1457,14 @@ shoes_app_open(shoes_app *app)
 
   InitCursor();
 
-  err = AEInstallEventHandler(kCoreEventClass, kAEQuitApplication, 
-    NewAEEventHandlerUPP(shoes_app_quartz_quit), 0, false);
-  if (err != noErr)
+  if (is_main)
   {
-    QUIT("Out of memory.", 0);
+    err = AEInstallEventHandler(kCoreEventClass, kAEQuitApplication, 
+      NewAEEventHandlerUPP(shoes_app_quartz_quit), 0, false);
+    if (err != noErr)
+    {
+      QUIT("Out of memory.", 0);
+    }
   }
 
   err = AEInstallEventHandler(kCoreEventClass, kAEOpenDocuments, 
@@ -1544,14 +1571,6 @@ shoes_app_open(shoes_app *app)
 
   shoes_app_title(app, app->title);
 
-quit:
-  return code;
-}
-
-shoes_code
-shoes_app_loop(shoes_app *app, char *path)
-{
-  shoes_code code = SHOES_OK;
 #ifndef SHOES_GTK
   app->slot.controls = rb_ary_new();
   rb_gc_register_address(&app->slot.controls);
@@ -1560,10 +1579,30 @@ shoes_app_loop(shoes_app *app, char *path)
   code = shoes_app_goto(app, path);
   if (code != SHOES_OK)
     return code;
-  INFO("RUNNING LOOP.\n", 0);
+
+#ifdef SHOES_WIN32
+  ShowWindow(app->slot.window, SW_SHOWNORMAL);
+#endif
+
+#ifdef SHOES_GTK
+  gtk_widget_show_all(app->os.window);
+#endif
 
 #ifdef SHOES_QUARTZ
   ShowWindow(app->os.window);
+#endif
+
+quit:
+  return code;
+}
+
+shoes_code
+shoes_app_loop(shoes_app *app)
+{
+  shoes_code code = SHOES_OK;
+  INFO("RUNNING LOOP.\n", 0);
+
+#ifdef SHOES_QUARTZ
   TextEncoding utf8Encoding, unicodeEncoding;
   utf8Encoding = CreateTextEncoding(kTextEncodingUnicodeDefault,
     kUnicodeNoSubset, kUnicodeUTF8Format);
@@ -1580,7 +1619,9 @@ shoes_app_loop(shoes_app *app, char *path)
   while (true)
   {
     OSStatus err = ReceiveNextEvent(0, NULL, kEventDurationNoWait, true, &theEvent);
-    if (err == noErr)                                                                                                                 {                                                                                                                                   SendEventToEventTarget (theEvent, theTarget);
+    if (err == noErr)
+    {
+      SendEventToEventTarget (theEvent, theTarget);
       ReleaseEvent(theEvent);
     }
     else if (err == eventLoopQuitErr)
@@ -1591,14 +1632,12 @@ shoes_app_loop(shoes_app *app, char *path)
 #endif
 
 #ifdef SHOES_GTK
-  gtk_widget_show_all(app->os.window);
   g_main_set_poll_func(shoes_app_g_poll);
   gtk_main();
 #endif
 
 #ifdef SHOES_WIN32
   MSG msgs;
-  ShowWindow(app->slot.window, SW_SHOWNORMAL);
   while (WM_QUIT != msgs.message)
   {
     BOOL msg = PeekMessage(&msgs, NULL, 0, 0, PM_REMOVE);
@@ -1720,11 +1759,17 @@ shoes_app_visit(shoes_app *app, char *path)
   meth = rb_funcall(cShoes, s_run, 1, app->location = rb_str_new2(path));
   if (NIL_P(rb_ary_entry(meth, 0)))
   {
-    VALUE script = shoes_dialog_open(app->canvas);
-    if (NIL_P(script))
-      return SHOES_QUIT;
-    rb_funcall(cShoes, rb_intern("load"), 1, script);
-    meth = rb_funcall(cShoes, s_run, 1, app->location);
+    VALUE app_block = rb_iv_get(app->self, "@main_app");
+    if (!NIL_P(app_block))
+      rb_ary_store(meth, 0, app_block);
+    else
+    {
+      VALUE script = shoes_dialog_open(app->canvas);
+      if (NIL_P(script))
+        return SHOES_QUIT;
+      rb_funcall(cShoes, rb_intern("load"), 1, script);
+      meth = rb_funcall(cShoes, s_run, 1, app->location);
+    }
   }
 
   exec.app = app;

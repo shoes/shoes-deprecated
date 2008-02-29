@@ -102,19 +102,18 @@ class Shoes
   end
 
   @mounts = []
-  @main_app = nil
 
   OPTS = OptionParser.new do |opts|
     opts.banner = "Usage: shoes [options] (app.rb or app.shy)"
     
     opts.on("-m", "--manual",
             "Open the built-in manual.") do
-      @main_app = Shoes::Help
+      Shoes.app(&Shoes::Help)
     end
 
     opts.on("-s", "--shy DIRECTORY",
             "Compress a directory into a Shoes YAML (SHY) archive.") do |s|
-      @main_app = ShyMake.call(s)
+      Shoes.app(&ShyMake.call(s))
     end
 
     opts.on("-g", "--gem",
@@ -151,7 +150,7 @@ class Shoes
       end
     end
     case uri.path when "/"
-      [@main_app]
+      [nil]
     when SHOES_URL_RE
       [proc { eval(URI("http://#$1:53045#$2").read) }]
     else
