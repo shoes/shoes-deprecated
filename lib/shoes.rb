@@ -159,13 +159,16 @@ class Shoes
   end
 
   def self.args!
+    if ARGV.empty?
+      fname = ask_open_file
+      if fname
+        ARGV << fname
+      else
+        return false
+      end
+    end
     OPTS.parse! ARGV
     ARGV[0] or true
-  end
-
-  def self.load_dialog
-    fname = ask_open_file
-    load(fname) if fname
   end
 
   def self.load(path)
