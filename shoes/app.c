@@ -1466,8 +1466,6 @@ shoes_app_open(shoes_app *app, char *path)
   shoes_app_gtk *gk = &app->os;
   shoes_slot_gtk *gs = &app->slot;
 
-  gtk_init(NULL, NULL);
-
   gtk_window_set_default_icon_from_file("static/shoes-icon.png", NULL);
   gk->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   if (!app->resizable)

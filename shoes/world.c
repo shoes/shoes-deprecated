@@ -35,6 +35,9 @@ shoes_world_free(shoes_world_t *world)
 shoes_code
 shoes_init(SHOES_INIT_ARGS)
 {
+#ifdef SHOES_GTK
+  gtk_init(NULL, NULL);
+#endif
 #ifdef SHOES_WIN32
   INITCOMMONCONTROLSEX InitCtrlEx;
   InitCtrlEx.dwSize = sizeof(INITCOMMONCONTROLSEX);
