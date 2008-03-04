@@ -16,6 +16,7 @@ shoes_world_alloc()
   shoes_world_t *world = SHOE_ALLOC(shoes_world_t);
   SHOE_MEMZERO(world, shoes_world_t, 1);
   world->apps = rb_ary_new();
+  world->mainloop = FALSE;
   rb_gc_register_address(&world->apps);
   return world;
 }

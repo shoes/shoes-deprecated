@@ -58,8 +58,11 @@ def rewrite before, after, reg = /\#\{(\w+)\}/, reg2 = '\1'
     File.open(before) do |b|
       b.each do |line|
         a << line.gsub(reg) do
-          reg2.gsub(%r!\\1!, Object.const_get($1)) if reg2.include? '\1'
-          reg2
+          if reg2.include? '\1'
+            reg2.gsub(%r!\\1!, Object.const_get($1))
+          else
+            reg2
+          end
         end
       end
     end

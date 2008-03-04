@@ -39,6 +39,7 @@ shoes_app_alloc(VALUE klass)
 {
   shoes_app *app = SHOE_ALLOC(shoes_app);
   SHOE_MEMZERO(app, shoes_app, 1);
+  app->started = FALSE;
   app->location = Qnil;
   app->canvas = shoes_canvas_new(cShoes, app);
   app->nestslot = Qnil;
@@ -1398,26 +1399,16 @@ shoes_app_start(VALUE allapps, char *uri)
   {
     VALUE appobj2 = rb_ary_entry(allapps, i);
     Data_Get_Struct(appobj2, shoes_app, app);
-
-    code = shoes_app_open(app, uri);
-    if (code != SHOES_OK)
-      return code;
+    if (!app->started)
+    {
+      app->started = TRUE;
+      code = shoes_app_open(app, uri);
+      if (code != SHOES_OK)
+        return code;
+    }
   }
 
-  code = shoes_app_loop();
-  if (code != SHOES_OK)
-    return code;
-
-  for (i = 0; i < RARRAY_LEN(allapps); i++)
-  {
-    Data_Get_Struct(rb_ary_entry(allapps, i), shoes_app, app);
-
-    code = shoes_app_close(app);
-    if (code != SHOES_OK)
-      return code;
-  }
-
-  return SHOES_OK;
+  return shoes_app_loop();
 }
 
 #ifdef SHOES_WIN32
@@ -1636,6 +1627,10 @@ shoes_code
 shoes_app_loop()
 {
   shoes_code code = SHOES_OK;
+  if (shoes_world->mainloop)
+    return SHOES_OK;
+
+  shoes_world->mainloop = TRUE;
   INFO("RUNNING LOOP.\n", 0);
 
 #ifdef SHOES_QUARTZ
@@ -1650,21 +1645,23 @@ shoes_app_loop()
   // g_main_set_poll_func(shoes_app_g_poll);
   // g_main_loop_run(loop);
 
-  EventRef theEvent;
-  EventTargetRef theTarget = GetEventDispatcherTarget();
-  while (true)
-  {
-    OSStatus err = ReceiveNextEvent(0, NULL, kEventDurationNoWait, true, &theEvent);
-    if (err == noErr)
-    {
-      SendEventToEventTarget (theEvent, theTarget);
-      ReleaseEvent(theEvent);
-    }
-    else if (err == eventLoopQuitErr)
-      break;
-    else
-      rb_eval_string("sleep(0.001)");
-  }
+  // EventRef theEvent;
+  // EventTargetRef theTarget = GetEventDispatcherTarget();
+  // while (true)
+  // {
+  //   OSStatus err = ReceiveNextEvent(0, NULL, kEventDurationNoWait, true, &theEvent);
+  //   if (err == noErr)
+  //   {
+  //     SendEventToEventTarget (theEvent, theTarget);
+  //     ReleaseEvent(theEvent);
+  //   }
+  //   else if (err == eventLoopQuitErr)
+  //     break;
+  //   else
+  //     rb_eval_string("sleep(0.001)");
+  // }
+ 
+  RunApplicationEventLoop();
 #endif
 
 #ifdef SHOES_GTK
@@ -1853,12 +1850,6 @@ shoes_code
 shoes_app_keypress(shoes_app *app, VALUE key)
 {
   shoes_canvas_send_keypress(app->canvas, key);
-  return SHOES_OK;
-}
-
-shoes_code
-shoes_app_close(shoes_app *app)
-{
   return SHOES_OK;
 }
 
