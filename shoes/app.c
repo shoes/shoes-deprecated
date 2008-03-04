@@ -575,6 +575,12 @@ shoes_app_quartz_handler(
           }
         }
         break;
+
+        case kEventWindowClose:
+        {
+          shoes_app_remove(app);
+        }
+        break;
       }
     break;
 
@@ -742,7 +748,7 @@ shoes_app_quartz_open(const AppleEvent *appleEvt, AppleEvent* reply, long refcon
         if (!err)
         {
           FSRefMakePath(&fr, &_path, SHOES_BUFSIZE);
-          shoes_load(RSTRING(_path), "/");
+          shoes_load(RSTRING(_path));
         }
       }
     }
@@ -1501,7 +1507,8 @@ shoes_app_open(shoes_app *app, char *path)
     { kEventClassMouse,    kEventMouseDragged },
     { kEventClassMouse,    kEventMouseDown },
     { kEventClassMouse,    kEventMouseUp },
-    { kEventClassWindow,   kEventWindowBoundsChanged }
+    { kEventClassWindow,   kEventWindowBoundsChanged },
+    { kEventClassWindow,   kEventWindowClose }
   };
 
   Rect                   gRect;
@@ -1805,11 +1812,10 @@ shoes_app_visit(shoes_app *app, char *path)
   shoes_app_clear(app);
   shoes_app_reset_styles(app);
   meth = rb_funcall(cShoes, s_run, 1, app->location = rb_str_new2(path));
-  if (NIL_P(rb_ary_entry(meth, 0)))
-  {
-    VALUE app_block = rb_iv_get(app->self, "@main_app");
+
+  VALUE app_block = rb_iv_get(app->self, "@main_app");
+  if (!NIL_P(app_block))
     rb_ary_store(meth, 0, app_block);
-  }
 
   exec.app = app;
   exec.block = rb_ary_entry(meth, 0);
@@ -1994,6 +2000,9 @@ shoes_app_close_window(shoes_app *app)
 #endif
 #ifdef SHOES_WIN32
   SendMessage(APP_WINDOW(app), WM_CLOSE, 0, 0);
+#endif
+#ifdef SHOES_QUARTZ
+  DisposeWindow(app->os.window);
 #endif
   return Qnil;
 }

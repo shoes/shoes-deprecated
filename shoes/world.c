@@ -73,7 +73,7 @@ shoes_load_exception(VALUE v, VALUE exc)
 }
 
 shoes_code
-shoes_load(char *path, char *uri)
+shoes_load(char *path)
 {
   shoes_code code = SHOES_QUIT;
   char bootup[SHOES_BUFSIZE];
@@ -89,7 +89,7 @@ shoes_load(char *path, char *uri)
     }
   }
 
-  return shoes_app_start(shoes_world->apps, uri);
+  return SHOES_OK;
 }
 
 #ifdef SHOES_WIN32
@@ -159,8 +159,11 @@ shoes_start(char *path, char *uri)
   if (rb_obj_is_kind_of(load_uri, rb_cString))
     load_uri_str = RSTRING_PTR(load_uri);
 
-  code = shoes_load(load_uri_str, uri);
+  code = shoes_load(load_uri_str);
+  if (code != SHOES_OK)
+    goto quit;
 
+  code = shoes_app_start(shoes_world->apps, uri);
 quit:
   return code;
 }

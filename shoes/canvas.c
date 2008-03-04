@@ -2204,7 +2204,7 @@ shoes_canvas_window(int argc, VALUE *argv, VALUE self)
   }
 
   if (!NIL_P(uri))
-    shoes_load(RSTRING_PTR(uri), "/");
+    shoes_load(RSTRING_PTR(uri));
 
   // TODO: do I send back an array of created App objects I guess?
   return Qnil;
