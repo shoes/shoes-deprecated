@@ -33,6 +33,7 @@ typedef struct _shoes_app {
   int width, height, mousex, mousey, resizable, hidden;
   VALUE self;
   VALUE canvas;
+  VALUE nestslot;
   VALUE nesting;
   VALUE timers;
   VALUE styles;

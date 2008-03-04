@@ -22,6 +22,7 @@ shoes_app_mark(shoes_app *app)
 #endif
   rb_gc_mark_maybe(app->location);
   rb_gc_mark_maybe(app->canvas);
+  rb_gc_mark_maybe(app->nestslot);
   rb_gc_mark_maybe(app->nesting);
   rb_gc_mark_maybe(app->timers);
   rb_gc_mark_maybe(app->styles);
@@ -40,6 +41,7 @@ shoes_app_alloc(VALUE klass)
   SHOE_MEMZERO(app, shoes_app, 1);
   app->location = Qnil;
   app->canvas = shoes_canvas_new(cShoes, app);
+  app->nestslot = Qnil;
   app->nesting = rb_ary_new();
   app->timers = rb_ary_new();
   app->styles = Qnil;
@@ -73,6 +75,7 @@ shoes_app_clear(shoes_app *app)
 {
   shoes_ele_remove_all(app->timers);
   shoes_canvas_clear(app->canvas);
+  app->nestslot = Qnil;
 }
 
 static int
@@ -1804,12 +1807,12 @@ shoes_app_visit(shoes_app *app, char *path)
   exec.args = rb_ary_entry(meth, 1);
   if (rb_obj_is_kind_of(exec.block, rb_cUnboundMethod)) {
     VALUE klass = rb_unbound_get_class(exec.block);
-    exec.canvas = shoes_slot_new(klass, Qnil, app->canvas);
+    exec.canvas = app->nestslot = shoes_slot_new(klass, Qnil, app->canvas);
     exec.block = rb_funcall(exec.block, s_bind, 1, exec.canvas);
     exec.ieval = 0;
     rb_ary_push(canvas->contents, exec.canvas);
   } else {
-    exec.canvas = app->canvas;
+    exec.canvas = app->nestslot = app->canvas;
     exec.ieval = 1;
   }
   rb_rescue2(CASTHOOK(shoes_app_run), (VALUE)&exec, CASTHOOK(shoes_app_exception), (VALUE)&exec, rb_cObject, 0);

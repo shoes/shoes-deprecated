@@ -1492,9 +1492,20 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
 }
 
 #define DRAW(c, app, blk) \
-  rb_ary_push(app->nesting, c); \
-  rb_funcall(blk, s_call, 0); \
-  rb_ary_pop(app->nesting)
+  { \
+    unsigned char alter = 0; \
+    if (RARRAY_LEN(app->nesting) == 0) \
+    { \
+      alter = 1; \
+      rb_ary_push(app->nesting, app->nestslot); \
+    } \
+    rb_ary_push(app->nesting, c); \
+    rb_funcall(blk, s_call, 0); \
+    rb_ary_pop(app->nesting); \
+    if (alter) \
+      rb_ary_pop(app->nesting); \
+  }
+
 
 static void
 shoes_canvas_memdraw(VALUE self, VALUE block)
