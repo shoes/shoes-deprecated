@@ -248,6 +248,7 @@ shoes_app_gtk_quit(GtkWidget *widget, GdkEvent *event, gpointer data)
 #endif
 
 #ifdef SHOES_QUARTZ
+static MenuRef HelpMenu;
 pascal void shoes_app_quartz_redraw(EventLoopTimerRef theTimer, void* userData);
 pascal OSStatus shoes_app_quartz_handler(EventHandlerCallRef inCallRef, EventRef inEvent, void* inUserData);
 pascal OSStatus shoes_slot_quartz_handler(EventHandlerCallRef inCallRef, EventRef inEvent, void* inUserData);
@@ -583,7 +584,11 @@ shoes_app_quartz_handler(
       {
         HICommand aCommand;
         GetEventParameter(inEvent, kEventParamDirectObject, typeHICommand, NULL, sizeof(aCommand), NULL, &aCommand);
-        if (aCommand.commandID >= SHOES_CONTROL1 && aCommand.commandID < SHOES_CONTROL1 + RARRAY_LEN(app->slot.controls))
+        if (aCommand.commandID == SHOES_HELP_MANUAL)
+        {
+          rb_eval_string("Shoes.show_manual"); 
+        }
+        else if (aCommand.commandID >= SHOES_CONTROL1 && aCommand.commandID < SHOES_CONTROL1 + RARRAY_LEN(app->slot.controls))
         {
           VALUE control = rb_ary_entry(app->slot.controls, aCommand.commandID - SHOES_CONTROL1);
           if (!NIL_P(control))
@@ -1359,6 +1364,8 @@ shoes_app_main(int argc, VALUE *argv, VALUE self)
   app_t->hidden = (ATTR(attr, hidden) == Qtrue);
   shoes_app_resize(app_t, ATTR2(int, attr, width, SHOES_APP_WIDTH), ATTR2(int, attr, height, SHOES_APP_HEIGHT));
   shoes_canvas_init(app_t->canvas, app_t->slot, attr, app_t->width, app_t->height);
+  if (shoes_world->mainloop)
+    shoes_app_open(app_t, "/");
   return self;
 }
 
@@ -1640,6 +1647,11 @@ shoes_app_loop()
   unicodeEncoding = CreateTextEncoding(kTextEncodingUnicodeDefault,
     kUnicodeNoSubset, kUnicode16BitFormat);
   TECCreateConverter(&shoes_world->os.converter, unicodeEncoding, utf8Encoding);
+
+  CreateNewMenu(202, 0, &HelpMenu);
+  SetMenuTitleWithCFString(HelpMenu, CFSTR("Help"));
+  InsertMenu(HelpMenu, 0);
+  AppendMenuItemTextWithCFString(HelpMenu, CFSTR("Manual"), 0, SHOES_HELP_MANUAL, 0);
 
   // GMainLoop *loop = g_main_loop_new(NULL, FALSE);
   // g_main_set_poll_func(shoes_app_g_poll);

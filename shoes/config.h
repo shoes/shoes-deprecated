@@ -79,7 +79,8 @@ typedef struct {
 #include <Carbon/Carbon.h>
 #include <cairo-quartz.h>
 
-#define SHOES_CONTROL1  3045
+#define SHOES_HELP_MANUAL 3044
+#define SHOES_CONTROL1    3045
 #define SHOES_EXTERN
 #define SHOES_EXTERN_VAR extern
 #define SHOES_INIT_ARGS void

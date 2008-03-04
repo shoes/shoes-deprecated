@@ -108,7 +108,7 @@ class Shoes
     
     opts.on("-m", "--manual",
             "Open the built-in manual.") do
-      Shoes.app(&Shoes::Help)
+      show_manual
     end
 
     opts.on("-s", "--shy DIRECTORY",
@@ -130,6 +130,10 @@ class Shoes
     opts.on_tail("-h", "--help", "Show this message") do
       raise SystemExit, opts.to_s
     end
+  end
+
+  def self.show_manual
+    Shoes.app(&Shoes::Help)
   end
 
   def self.mount(path, meth, &blk)
