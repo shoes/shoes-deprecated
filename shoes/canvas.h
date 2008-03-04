@@ -218,7 +218,6 @@ typedef struct {
   int grt;
   ID mode;
   VALUE contents;
-  VALUE timers;
   VALUE parent;
   VALUE attr;
   VALUE click, release,     // canvas-level event handlers

@@ -394,6 +394,20 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
 }
 
 void
+shoes_ele_remove_all(VALUE contents)
+{
+  if (!NIL_P(contents))
+  {
+    long i;
+    VALUE ary;
+    ary = rb_ary_dup(contents);
+    for (i = 0; i < RARRAY_LEN(ary); i++) 
+      rb_funcall(rb_ary_entry(ary, i), s_remove, 0);
+    rb_ary_clear(contents);
+  }
+}
+
+void
 shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, double r)
 {
   double rc = r * BEZIER;

@@ -6,7 +6,7 @@ class Book < Shoes
     incident(0)
   end
 
-  INCIDENTS = YAML.load_file('samples/book.yaml')
+  INCIDENTS = YAML.load_file('book.yaml')
 
   def table_of_contents
     toc = []

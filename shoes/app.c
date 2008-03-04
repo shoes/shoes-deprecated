@@ -71,6 +71,7 @@ shoes_app_new()
 static int
 shoes_app_remove(shoes_app *app)
 {
+  shoes_ele_remove_all(app->timers);
   rb_ary_delete(shoes_world->apps, app->self);
   return (RARRAY_LEN(shoes_world->apps) == 0);
 }
@@ -1971,8 +1972,11 @@ shoes_app_style(shoes_app *app, VALUE klass, VALUE hsh)
 VALUE
 shoes_app_close_window(shoes_app *app)
 {
+  shoes_ele_remove_all(app->timers);
 #ifdef SHOES_GTK
-  gtk_widget_destroy(GTK_WIDGET(APP_WINDOW(app)));
+  shoes_app_gtk_quit(app->os.window, NULL, (gpointer)app);
+  gtk_widget_destroy(app->os.window);
+  app->os.window = NULL;
 #endif
 #ifdef SHOES_WIN32
   SendMessage(APP_WINDOW(app), WM_CLOSE, 0, 0);

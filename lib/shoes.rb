@@ -193,6 +193,9 @@ class Shoes
         Dir.chdir(tmpdir)
         Shoes.debug "Loaded SHY: #{shy.name} #{shy.version} by #{shy.creator}"
         path = shy.launch
+      else
+        Dir.chdir(File.dirname(path))
+        path = File.basename(path)
       end
       eval(File.read(path), TOPLEVEL_BINDING)
     end

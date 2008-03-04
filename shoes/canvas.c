@@ -344,7 +344,6 @@ shoes_canvas_mark(shoes_canvas *canvas)
   rb_gc_mark_maybe(canvas->fg);
   rb_gc_mark_maybe(canvas->bg);
   rb_gc_mark_maybe(canvas->contents);
-  rb_gc_mark_maybe(canvas->timers);
   rb_gc_mark_maybe(canvas->click);
   rb_gc_mark_maybe(canvas->release);
   rb_gc_mark_maybe(canvas->motion);
@@ -390,15 +389,7 @@ shoes_canvas_new(VALUE klass, shoes_app *app)
 static void
 shoes_canvas_empty(shoes_canvas *canvas)
 {
-  if (!NIL_P(canvas->contents))
-  {
-    long i;
-    VALUE ary;
-    ary = rb_ary_dup(canvas->contents);
-    for (i = 0; i < RARRAY_LEN(ary); i++) 
-      rb_funcall(rb_ary_entry(ary, i), s_remove, 0);
-    rb_ary_clear(canvas->contents);
-  }
+  shoes_ele_remove_all(canvas->contents);
 }
 
 void
@@ -1252,7 +1243,8 @@ shoes_canvas_remove(VALUE self)
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
   shoes_canvas_empty(self_t);
-  shoes_canvas_remove_item(self_t->parent, self, 0, 0);
+  if (!NIL_P(self_t->parent))
+    shoes_canvas_remove_item(self_t->parent, self, 0, 0);
   return self;
 }
 
