@@ -823,14 +823,6 @@ shoes_image_free(shoes_image *image)
   RUBY_CRITICAL(SHOE_FREE(image));
 }
 
-static void
-shoes_raise_unsupported_image(VALUE path)
-{
-  VALUE ext = rb_funcall(rb_cFile, rb_intern("extname"), 1, path);
-  StringValue(ext);
-  rb_raise(eImageError, "Shoes does not support images with the %s extension.", RSTRING_PTR(ext)); 
-}
-
 VALUE
 shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent)
 {
@@ -841,7 +833,6 @@ shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent)
 
   image->path = path;
   image->surface = shoes_load_image(path);
-  if (image->surface == NULL) shoes_raise_unsupported_image(path);
   image->attr = attr;
   image->parent = parent;
   return obj;
@@ -877,7 +868,6 @@ shoes_image_set_path(VALUE self, VALUE path)
     cairo_surface_destroy(image->surface);
   image->path = path;
   image->surface = shoes_load_image(path);
-  if (image->surface == NULL) shoes_raise_unsupported_image(path);
   return path;
 }
 
@@ -1333,7 +1323,6 @@ shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent)
     else
     {
       cairo_surface_t *surface = shoes_load_image(source);
-      if (surface == NULL) shoes_raise_unsupported_image(source);
       pattern->source = source;
       pattern->width = cairo_image_surface_get_width(surface);
       pattern->height = cairo_image_surface_get_height(surface);
