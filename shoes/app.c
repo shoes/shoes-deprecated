@@ -68,10 +68,17 @@ shoes_app_new()
 // When a window is finished, call this to delete it from the master
 // list.  Returns 1 if all windows are gone.
 //
+static void
+shoes_app_clear(shoes_app *app)
+{
+  shoes_ele_remove_all(app->timers);
+  shoes_canvas_clear(app->canvas);
+}
+
 static int
 shoes_app_remove(shoes_app *app)
 {
-  shoes_ele_remove_all(app->timers);
+  shoes_app_clear(app);
   rb_ary_delete(shoes_world->apps, app->self);
   return (RARRAY_LEN(shoes_world->apps) == 0);
 }
@@ -1781,7 +1788,7 @@ shoes_app_visit(shoes_app *app, char *path)
       rb_funcall(timer, s_remove, 0);
   }
 
-  shoes_canvas_clear(app->canvas);
+  shoes_app_clear(app);
   shoes_app_reset_styles(app);
   meth = rb_funcall(cShoes, s_run, 1, app->location = rb_str_new2(path));
   if (NIL_P(rb_ary_entry(meth, 0)))
@@ -1972,7 +1979,6 @@ shoes_app_style(shoes_app *app, VALUE klass, VALUE hsh)
 VALUE
 shoes_app_close_window(shoes_app *app)
 {
-  shoes_ele_remove_all(app->timers);
 #ifdef SHOES_GTK
   shoes_app_gtk_quit(app->os.window, NULL, (gpointer)app);
   gtk_widget_destroy(app->os.window);
