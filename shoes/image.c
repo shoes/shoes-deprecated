@@ -281,9 +281,11 @@ shoes_has_ext(char *fname, int len, const char *ext)
 static void
 shoes_raise_unless_file_exists(VALUE path)
 {
-  rb_funcall(rb_cFile, rb_intern("exists?"), 1, path);
-  StringValue(path);
-  rb_raise(eImageError, "Shoes could not find the file %s.", RSTRING_PTR(path)); 
+  if (!RTEST(rb_funcall(rb_cFile, rb_intern("exists?"), 1, path)))
+  {
+    StringValue(path);
+    rb_raise(eImageError, "Shoes could not find the file %s.", RSTRING_PTR(path)); 
+  }
 }
 
 static void
@@ -313,5 +315,5 @@ shoes_load_image(VALUE imgpath)
   else
     shoes_raise_unsupported_image(imgpath);
 
-  return NULL;
+  return img;
 }
