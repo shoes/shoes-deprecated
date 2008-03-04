@@ -1471,10 +1471,12 @@ shoes_app_open(shoes_app *app, char *path)
   shoes_code code = SHOES_OK;
 
 #ifdef SHOES_GTK
+  char icon_path[SHOES_BUFSIZE];
   shoes_app_gtk *gk = &app->os;
   shoes_slot_gtk *gs = &app->slot;
 
-  gtk_window_set_default_icon_from_file("static/shoes-icon.png", NULL);
+  sprintf(icon_path, "%s/static/shoes-icon.png", shoes_world->path);
+  gtk_window_set_default_icon_from_file(icon_path, NULL);
   gk->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   if (!app->resizable)
     gtk_window_set_resizable(GTK_WINDOW(gk->window), FALSE);

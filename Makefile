@@ -59,8 +59,7 @@ dist/shoes-bin: dist/libshoes.so bin/main.o
 	@${CC} -o $@ ${LDFLAGS} bin/main.o -Ldist -lshoes
 
 dist/shoes.launch: dist/shoes-bin
-	@echo 'APPPATH="$${0%/*}"' > dist/shoes.launch
-	@echo 'LD_LIBRARY_PATH="$$APPPATH/../lib/shoes" $$APPPATH/../lib/shoes/shoes-bin $$@' >> dist/shoes.launch
+	@cp platform/nix/shoes.launch dist/
 	@chmod 755 dist/shoes.launch
 
 dist/shoes: dist/shoes-bin

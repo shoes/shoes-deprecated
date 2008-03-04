@@ -1,0 +1,7 @@
+if [ 0`readlink $0` = "0" ]; then
+  REALPATH=$0
+else
+  REALPATH=`readlink $0`
+fi
+APPPATH="${REALPATH%/*}"
+LD_LIBRARY_PATH=$APPPATH $APPPATH/shoes-bin $@

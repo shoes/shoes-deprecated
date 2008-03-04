@@ -57,7 +57,10 @@ def rewrite before, after, reg = /\#\{(\w+)\}/, reg2 = '\1'
   File.open(after, 'w') do |a|
     File.open(before) do |b|
       b.each do |line|
-        a << line.gsub(reg) { reg2.gsub(%r!\\1!, Object.const_get($1)) }
+        a << line.gsub(reg) do
+          reg2.gsub(%r!\\1!, Object.const_get($1)) if reg2.include? '\1'
+          reg2
+        end
       end
     end
   end
@@ -333,8 +336,7 @@ else
     rm_f bin
     sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']}"
     if PLATFORM !~ /darwin/
-      sh %{echo 'APPPATH="${0%/*}"' > #{t.name}}
-      sh %{echo 'LD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} $@' >> #{t.name}}
+      rewrite "platform/nix/shoes.launch", t.name, %r!/shoes-bin!, "/#{NAME}-bin"
       chmod 0755, t.name
     end
   end
