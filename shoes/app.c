@@ -1697,8 +1697,9 @@ shoes_app_loop()
     {
       if (msgs.message == WM_KEYDOWN || msgs.message == WM_KEYUP)
       {
-        shoes_app *appk = (shoes_app *)GetWindowLong(msgs.hwnd, GWL_USERDATA);
-        if (RARRAY_LEN(appk->slot.controls) > 0)
+        HWND focused = GetFocus();
+        shoes_app *appk = (shoes_app *)GetWindowLong(focused, GWL_USERDATA);
+        if (appk != NULL && RARRAY_LEN(appk->slot.controls) > 0)
         {
           switch (msgs.wParam)
           {
