@@ -1305,10 +1305,8 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
     } 
     else if (RTEST(actual))
     {
-      cairo_set_source_rgb(self_t->cr,1,1,1);
-      cairo_set_line_width(self_t->cr,1.0);
-      cairo_rectangle(self_t->cr,0,0,4000,4000);
-      cairo_fill(self_t->cr);
+      cairo_set_line_width(self_t->cr, 1.0);
+      cairo_set_operator(self_t->cr, CAIRO_OPERATOR_OVER);
     }
   }
 
@@ -2213,3 +2211,24 @@ shoes_canvas_window(int argc, VALUE *argv, VALUE self)
   return Qnil;
 }
 
+VALUE
+shoes_canvas_window_plain(VALUE self)
+{
+  SETUP();
+#ifdef SHOES_GTK
+  GtkStyle *style = gtk_widget_get_style(GTK_WIDGET(APP_WINDOW(canvas->app)));
+  GdkColor bg = style->bg[GTK_STATE_NORMAL];
+  return shoes_color_new(bg.red / 257, bg.green / 257, bg.blue / 257 , SHOES_COLOR_OPAQUE);
+#endif
+#ifdef SHOES_QUARTZ
+  ThemeBrush bg;
+  RGBColor _color;
+  HIWindowGetThemeBackground(canvas->app->os.window, &bg);
+  GetThemeBrushAsColor(bg, 32, true, &_color);
+  return shoes_color_new(_color.red/256, _color.green/256, _color.blue/256, SHOES_COLOR_OPAQUE);
+#endif
+#ifdef SHOES_WIN32
+  DWORD winc = GetSysColor(COLOR_WINDOW);
+  return shoes_color_new(GetRValue(winc), GetGValue(winc), GetBValue(winc), SHOES_COLOR_OPAQUE);
+#endif
+}

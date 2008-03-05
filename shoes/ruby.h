@@ -189,6 +189,7 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("mouse", mouse, 0); \
   f("clipboard", get_clipboard, 0); \
   f("clipboard=", set_clipboard, 1); \
-  f("window", window, -1)
+  f("window", window, -1); \
+  f("window_plain", window_plain, 0)
 
 #endif

@@ -226,7 +226,6 @@ shoes_dialog_color(VALUE self, VALUE title)
 #ifdef SHOES_WIN32
   CHOOSECOLOR cc;
   static COLORREF acrCustClr[16];
-  HBRUSH hbrush;
   static DWORD rgbCurrent;
 
   // Initialize CHOOSECOLOR 
