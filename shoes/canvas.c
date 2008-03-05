@@ -2236,11 +2236,12 @@ shoes_canvas_window_plain(VALUE self)
   return shoes_color_new(bg.red / 257, bg.green / 257, bg.blue / 257 , SHOES_COLOR_OPAQUE);
 #endif
 #ifdef SHOES_QUARTZ
-  ThemeBrush bg;
-  RGBColor _color;
-  HIWindowGetThemeBackground(canvas->app->os.window, &bg);
-  GetThemeBrushAsColor(bg, 32, true, &_color);
-  return shoes_color_new(_color.red/256, _color.green/256, _color.blue/256, SHOES_COLOR_OPAQUE);
+  // ThemeBrush bg;
+  // RGBColor _color;
+  // HIWindowGetThemeBackground(canvas->app->os.window, &bg);
+  // GetThemeBrushAsColor(bg, 32, true, &_color);
+  // return shoes_color_new(_color.red/256, _color.green/256, _color.blue/256, SHOES_COLOR_OPAQUE);
+  return shoes_color_new(255, 255, 255, 255);
 #endif
 #ifdef SHOES_WIN32
   DWORD winc = GetSysColor(COLOR_WINDOW);
@@ -2258,11 +2259,7 @@ shoes_canvas_dialog_plain(VALUE self)
   return shoes_color_new(bg.red / 257, bg.green / 257, bg.blue / 257 , SHOES_COLOR_OPAQUE);
 #endif
 #ifdef SHOES_QUARTZ
-  ThemeBrush bg;
-  RGBColor _color;
-  HIWindowGetThemeBackground(canvas->app->os.window, &bg);
-  GetThemeBrushAsColor(bg, 32, true, &_color);
-  return shoes_color_new(_color.red/256, _color.green/256, _color.blue/256, SHOES_COLOR_OPAQUE);
+  return shoes_color_new(255, 255, 255, 255);
 #endif
 #ifdef SHOES_WIN32
   DWORD winc = GetSysColor(COLOR_3DFACE);
