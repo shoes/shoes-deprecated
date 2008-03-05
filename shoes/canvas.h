@@ -246,6 +246,15 @@ VALUE shoes_app_main(int, VALUE *, VALUE);
 VALUE shoes_app_window(int, VALUE *, VALUE, VALUE);
 VALUE shoes_app_contents(VALUE);
 
+VALUE shoes_canvas_info (VALUE, VALUE);
+VALUE shoes_canvas_debug(VALUE, VALUE);
+VALUE shoes_canvas_warn (VALUE, VALUE);
+VALUE shoes_canvas_error(VALUE, VALUE);
+void shoes_info (const char *fmt, ...);
+void shoes_debug(const char *fmt, ...);
+void shoes_warn (const char *fmt, ...);
+void shoes_error(const char *fmt, ...);
+
 VALUE shoes_canvas_alloc(VALUE);
 VALUE shoes_canvas_new(VALUE, struct _shoes_app *);
 void shoes_canvas_clear(VALUE);
@@ -471,7 +480,6 @@ VALUE shoes_textblock_motion(VALUE, int, int, int *);
 VALUE shoes_textblock_send_click(VALUE, int, int, int, VALUE *);
 void shoes_textblock_send_release(VALUE, int, int, int);
 
-VALUE shoes_debug(VALUE, VALUE);
 VALUE shoes_p(VALUE, VALUE);
 
 //

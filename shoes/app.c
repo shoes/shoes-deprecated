@@ -1803,8 +1803,8 @@ shoes_app_exception(VALUE rb_exec, VALUE e)
 {
   shoes_exec *exec = (shoes_exec *)rb_exec;
   rb_ary_clear(exec->app->nesting);
-  rb_iv_set(exec->canvas, "@exc", e);
-  return mfp_instance_eval(exec->canvas, exception_proc);
+  shoes_canvas_error(exec->canvas, e);
+  return Qnil;
 }
 
 shoes_code
@@ -1886,7 +1886,12 @@ shoes_app_release(shoes_app *app, int button, int x, int y)
 shoes_code
 shoes_app_keypress(shoes_app *app, VALUE key)
 {
-  shoes_canvas_send_keypress(app->canvas, key);
+  if (key == symAltSlash)
+    rb_eval_string("Shoes.show_log");
+  else if (key == symAltQuest)
+    rb_eval_string("Shoes.show_manual");
+  else
+    shoes_canvas_send_keypress(app->canvas, key);
   return SHOES_OK;
 }
 

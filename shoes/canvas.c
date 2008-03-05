@@ -728,10 +728,14 @@ VALUE
 shoes_canvas_imagesize(VALUE self, VALUE _path)
 {
   cairo_surface_t *image = shoes_load_image(_path);
-  double w = cairo_image_surface_get_width(image);
-  double h = cairo_image_surface_get_height(image);
-  cairo_surface_destroy(image);
-  return rb_ary_new3(2, INT2NUM(w), INT2NUM(h));
+  if (image)
+  {
+    double w = cairo_image_surface_get_width(image);
+    double h = cairo_image_surface_get_height(image);
+    cairo_surface_destroy(image);
+    return rb_ary_new3(2, INT2NUM(w), INT2NUM(h));
+  }
+  return Qnil;
 }
 
 VALUE
@@ -744,9 +748,12 @@ shoes_canvas_background(int argc, VALUE *argv, VALUE self)
     pat = argv[0];
   else
     pat = shoes_pattern_args(argc, argv, self);
-  pat = rb_funcall(pat, s_to_pattern, 0);
-  pat = shoes_subpattern_new(cBackground, pat, self);
-  rb_ary_push(canvas->contents, pat);
+  if (!NIL_P(pat))
+  {
+    pat = rb_funcall(pat, s_to_pattern, 0);
+    pat = shoes_subpattern_new(cBackground, pat, self);
+    rb_ary_push(canvas->contents, pat);
+  }
   return pat;
 }
 
@@ -760,9 +767,12 @@ shoes_canvas_border(int argc, VALUE *argv, VALUE self)
     pat = argv[0];
   else
     pat = shoes_pattern_args(argc, argv, self);
-  pat = rb_funcall(pat, s_to_pattern, 0);
-  pat = shoes_subpattern_new(cBorder, pat, self);
-  rb_ary_push(canvas->contents, pat);
+  if (!NIL_P(pat))
+  {
+    pat = rb_funcall(pat, s_to_pattern, 0);
+    pat = shoes_subpattern_new(cBorder, pat, self);
+    rb_ary_push(canvas->contents, pat);
+  }
   return pat;
 }
 
@@ -789,8 +799,6 @@ shoes_canvas_image(int argc, VALUE *argv, VALUE self)
   SETUP();
 
   rb_scan_args(argc, argv, "11", &path, &attr);
-  if (!RTEST(rb_funcall(rb_cFile, rb_intern("exists?"), 1, path)))
-    rb_raise(rb_eArgError, "no such file %s", RSTRING_PTR(path));
 
   if (rb_block_given_p())
   {
@@ -798,7 +806,8 @@ shoes_canvas_image(int argc, VALUE *argv, VALUE self)
     rb_hash_aset(attr, ID2SYM(s_click), rb_block_proc());
   }
   image = shoes_image_new(cImage, path, attr, self);
-  rb_ary_push(canvas->contents, image);
+  if (!NIL_P(image))
+    rb_ary_push(canvas->contents, image);
   return image;
 }
 

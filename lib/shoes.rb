@@ -12,6 +12,7 @@ require 'shoes/shy'
 if Object.const_defined? :Shoes
   require 'shoes/cache'
   require 'shoes/help'
+  require 'shoes/log'
 end
  
 class Range 
@@ -134,6 +135,13 @@ class Shoes
 
   def self.show_manual
     Shoes.app(&Shoes::Help)
+  end
+
+  def self.show_log
+    Shoes.app do
+      extend Shoes::LogWindow
+      setup
+    end
   end
 
   def self.mount(path, meth, &blk)

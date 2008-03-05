@@ -15,7 +15,7 @@ SHOES_EXTERN typedef struct _shoes_world_t {
   SHOES_WORLD_OS os;
   int mainloop;
   char path[SHOES_BUFSIZE];
-  VALUE apps;
+  VALUE apps, msgs;
 } shoes_world_t;
 
 SHOES_EXTERN_VAR shoes_world_t *shoes_world;

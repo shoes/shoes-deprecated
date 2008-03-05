@@ -16,8 +16,10 @@ shoes_world_alloc()
   shoes_world_t *world = SHOE_ALLOC(shoes_world_t);
   SHOE_MEMZERO(world, shoes_world_t, 1);
   world->apps = rb_ary_new();
+  world->msgs = rb_ary_new();
   world->mainloop = FALSE;
   rb_gc_register_address(&world->apps);
+  rb_gc_register_address(&world->msgs);
   return world;
 }
 
@@ -29,6 +31,7 @@ shoes_world_free(shoes_world_t *world)
   TECDisposeConverter(world->os.converter);
 #endif
   rb_gc_unregister_address(&world->apps);
+  rb_gc_unregister_address(&world->msgs);
   if (world != NULL)
     SHOE_FREE(world);
 }

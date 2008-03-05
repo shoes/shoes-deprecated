@@ -14,12 +14,13 @@
 VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cShape, cImage, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover;
 VALUE eVlcError, eImageError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
-ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_hover, s_href, s_insert, s_items, s_release, s_scroll, s_sticky, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
+VALUE symAltQuest, symAltSlash;
+ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_hover, s_href, s_insert, s_items, s_release, s_scroll, s_sticky, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
 //
-VALUE instance_eval_proc, exception_proc, exception_alert_proc;
+VALUE instance_eval_proc;
 
 VALUE
 mfp_instance_eval(VALUE obj, VALUE block)
@@ -158,8 +159,8 @@ static VALUE
 shoes_safe_block_exception(VALUE rb_sb, VALUE e)
 {
   safe_block *sb = (safe_block *)rb_sb;
-  rb_iv_set(sb->canvas, "@exc", e);
-  return mfp_instance_eval(sb->canvas, exception_alert_proc);
+  shoes_canvas_error(sb->canvas, e);
+  return Qnil;
 }
 
 VALUE
@@ -827,14 +828,19 @@ VALUE
 shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent)
 {
   GError *error = NULL;
-  shoes_image *image;
-  VALUE obj = shoes_image_alloc(klass);
-  Data_Get_Struct(obj, shoes_image, image);
+  VALUE obj = Qnil;
+  cairo_surface_t *surf = shoes_load_image(path);
+  if (surf)
+  {
+    shoes_image *image;
+    obj = shoes_image_alloc(klass);
+    Data_Get_Struct(obj, shoes_image, image);
 
-  image->path = path;
-  image->surface = shoes_load_image(path);
-  image->attr = attr;
-  image->parent = parent;
+    image->path = path;
+    image->surface = surf;
+    image->attr = attr;
+    image->parent = parent;
+  }
   return obj;
 }
 
@@ -863,12 +869,20 @@ shoes_image_get_path(VALUE self)
 VALUE
 shoes_image_set_path(VALUE self, VALUE path)
 {
-  GET_STRUCT(image, image);
-  if (image->surface != NULL)
-    cairo_surface_destroy(image->surface);
-  image->path = path;
-  image->surface = shoes_load_image(path);
-  return path;
+  cairo_surface_t *surf = shoes_load_image(path);
+  if (surf)
+  {
+    GET_STRUCT(image, image);
+    if (image->surface != NULL)
+      cairo_surface_destroy(image->surface);
+    image->path = path;
+    image->surface = surf;
+    return path;
+  }
+  else
+  {
+    return Qnil;
+  }
 }
 
 VALUE
@@ -972,7 +986,7 @@ static void shoes_vlc_exception(libvlc_exception_t *excp)
 {
   if (libvlc_exception_raised(excp))
   {
-    rb_raise(eVlcError, libvlc_exception_get_message(excp)); 
+    shoes_error("from VLC: %s", libvlc_exception_get_message(excp)); 
   }
 }
 
@@ -1323,11 +1337,18 @@ shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent)
     else
     {
       cairo_surface_t *surface = shoes_load_image(source);
-      pattern->source = source;
-      pattern->width = cairo_image_surface_get_width(surface);
-      pattern->height = cairo_image_surface_get_height(surface);
-      pattern->pattern = cairo_pattern_create_for_surface(surface);
-      cairo_surface_destroy(surface);
+      if (surface)
+      {
+        pattern->source = source;
+        pattern->width = cairo_image_surface_get_width(surface);
+        pattern->height = cairo_image_surface_get_height(surface);
+        pattern->pattern = cairo_pattern_create_for_surface(surface);
+        cairo_surface_destroy(surface);
+      }
+      else
+      {
+        return Qnil;
+      }
     }
     cairo_pattern_set_extend(pattern->pattern, CAIRO_EXTEND_REPEAT);
   }
@@ -3671,21 +3692,47 @@ shoes_timer_draw(VALUE self, VALUE c, VALUE actual)
   return self;
 }
 
-VALUE
-shoes_debug(VALUE self, VALUE str)
+void
+shoes_msg(ID typ, VALUE str)
 {
-#ifdef SHOES_WIN32
-  odprintf("%s\n", RSTRING_PTR(str));
-#else
-  printf("%s\n", RSTRING_PTR(str));
-#endif
-  return Qnil;
+  rb_ary_push(shoes_world->msgs, rb_ary_new3(3, ID2SYM(typ), str, rb_funcall(rb_cTime, s_now, 0)));
 }
+
+#define DEBUG_TYPE(t) \
+  VALUE \
+  shoes_canvas_##t(VALUE self, VALUE str) \
+  { \
+    shoes_msg(s_##t, str); \
+    return Qnil; \
+  } \
+  \
+  void \
+  shoes_##t(const char *fmt, ...) \
+  { \
+    va_list args; \
+    char buf[BUFSIZ]; \
+  \
+    va_start(args,fmt); \
+    vsnprintf(buf, BUFSIZ, fmt, args); \
+    va_end(args); \
+    shoes_msg(s_##t, rb_str_new2(buf)); \
+  }
+
+DEBUG_TYPE(info);
+DEBUG_TYPE(debug);
+DEBUG_TYPE(warn);
+DEBUG_TYPE(error);
 
 VALUE
 shoes_p(VALUE self, VALUE obj)
 {
-  return shoes_debug(self, rb_inspect(obj));
+  return shoes_canvas_debug(self, rb_inspect(obj));
+}
+
+VALUE
+shoes_log(VALUE self)
+{
+  return shoes_world->msgs;
 }
 
 //
@@ -3736,16 +3783,6 @@ shoes_ruby_init()
   char proc[SHOES_BUFSIZE];
   instance_eval_proc = rb_eval_string("lambda{|o,b| o.instance_eval(&b)}");
   rb_gc_register_address(&instance_eval_proc);
-  sprintf(proc, 
-    "proc do;"
-      "e = @exc;"
-      EXC_MARKUP
-    "end"
-  );
-  exception_proc = rb_eval_string(proc);
-  rb_gc_register_address(&exception_proc);
-  exception_alert_proc = rb_eval_string(EXC_ALERT);
-  rb_gc_register_address(&exception_alert_proc);
   s_aref = rb_intern("[]=");
   s_perc = rb_intern("%");
   s_mult = rb_intern("*");
@@ -3753,6 +3790,13 @@ shoes_ruby_init()
   s_keys = rb_intern("keys");
   s_update = rb_intern("update");
   s_new = rb_intern("new");
+
+  s_now   = rb_intern("now");
+  s_debug = rb_intern("DEBUG");
+  s_info  = rb_intern("INFO");
+  s_warn  = rb_intern("WARN");
+  s_error = rb_intern("ERROR");
+
   s_run = rb_intern("run");
   s_to_i = rb_intern("to_i");
   s_to_s = rb_intern("to_s");
@@ -3802,6 +3846,9 @@ shoes_ruby_init()
   s_radius = rb_intern("radius");
   s_secret = rb_intern("secret");
 
+  symAltQuest = ID2SYM(rb_intern("alt_?"));
+  symAltSlash = ID2SYM(rb_intern("alt_/"));
+
   cShoesWindow = rb_define_class("Window", rb_cObject);
   cMouse = rb_define_class("Mouse", rb_cObject);
 
@@ -3837,7 +3884,8 @@ shoes_ruby_init()
 
   rb_define_singleton_method(cShoes, "app", CASTHOOK(shoes_app_main), -1);
   rb_define_singleton_method(cShoes, "p", CASTHOOK(shoes_p), 1);
-  rb_define_singleton_method(cShoes, "debug", CASTHOOK(shoes_debug), 1);
+  rb_define_singleton_method(cShoes, "debug", CASTHOOK(shoes_canvas_debug), 1);
+  rb_define_singleton_method(cShoes, "log", CASTHOOK(shoes_log), 0);
 
   //
   // Canvas methods

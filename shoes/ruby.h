@@ -24,10 +24,12 @@ typedef VALUE (*HOOK)();
 #endif
 
 extern VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cNative, cShape, cVideo, cImage, cEvery, cTimer, cAnim, cPattern, cBorder, cBackground, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextBlock, cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns, cButton, cEditLine, cEditBox, cListBox, cProgress, cCheck, cRadio, cColor, cColors, cLink, cLinkHover;
+extern VALUE aMsgList;
 extern VALUE eNotImpl, eImageError;
 extern VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
+extern VALUE symAltQuest, symAltSlash;
 extern ID s_aref, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_leading, s_match, s_release, s_scroll, s_sticky, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_resizable, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
-extern VALUE instance_eval_proc, exception_proc, exception_alert_proc;
+extern VALUE instance_eval_proc;
 
 VALUE mfp_instance_eval(VALUE, VALUE);
 long rb_ary_index_of(VALUE, VALUE);
@@ -54,19 +56,6 @@ void shoes_ruby_init(void);
    if (RARRAY_LEN(msg2) > 1) msg = rb_ary_entry(msg2, 1); \
    QUIT_ALERT_MSG(); \
    return SHOES_QUIT;
-#define EXC_ALERT \
-  "proc do; alert %{#{@exc.message}\\n#{@exc.backtrace.map { |x| %{\\n  * #{x}}}}}; end"
-#define EXC_MARKUP \
-  "subtitle e.message + %%{\\n}; para %%{#{e.backtrace.map { |x| %%{\\n  * #{Shoes.escape(x)}} }}};"
-#define EXC_PROC \
-  "proc do;" \
-    EXC_MARKUP \
-  "end;"
-#define EXC_RUN \
-  "define_method :run do |path|;" \
-    "p = " EXC_PROC \
-    "[p];" \
-  "end;"
 
 #define NUM2RGBINT(x) (rb_obj_is_kind_of(x, rb_cFloat) ? NUM2DBL(x) * 255 : NUM2INT(x))
 #define DEF_COLOR(name, r, g, b) rb_hash_aset(cColors, ID2SYM(rb_intern("" # name)), shoes_color_new(r, g, b, 255))
@@ -193,6 +182,10 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("window", window, -1); \
   f("dialog", dialog, -1); \
   f("window_plain", window_plain, 0); \
-  f("dialog_plain", dialog_plain, 0)
+  f("dialog_plain", dialog_plain, 0); \
+  f("info", info, 1); \
+  f("debug", debug, 1); \
+  f("warn", warn, 1); \
+  f("error", error, 1)
 
 #endif

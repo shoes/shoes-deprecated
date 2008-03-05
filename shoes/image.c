@@ -278,22 +278,26 @@ shoes_has_ext(char *fname, int len, const char *ext)
   return strncmp(fname + (len - strlen(ext)), ext, strlen(ext)) == 0;
 }
 
-static void
-shoes_raise_unless_file_exists(VALUE path)
+static unsigned char
+shoes_check_file_exists(VALUE path)
 {
   if (!RTEST(rb_funcall(rb_cFile, rb_intern("exists?"), 1, path)))
   {
     StringValue(path);
-    rb_raise(eImageError, "Shoes could not find the file %s.", RSTRING_PTR(path)); 
+    shoes_error("Shoes could not find the file %s.", RSTRING_PTR(path)); 
+    return FALSE;
   }
+  return TRUE;
 }
 
 static void
-shoes_raise_unsupported_image(VALUE path)
+shoes_unsupported_image(VALUE path)
 {
   VALUE ext = rb_funcall(rb_cFile, rb_intern("extname"), 1, path);
+  StringValue(path);
   StringValue(ext);
-  rb_raise(eImageError, "Shoes does not support images with the %s extension.", RSTRING_PTR(ext)); 
+  shoes_error("Couldn't load %s. Shoes does not support images with the %s extension.", 
+    RSTRING_PTR(path), RSTRING_PTR(ext)); 
 }
 
 cairo_surface_t *
@@ -304,16 +308,16 @@ shoes_load_image(VALUE imgpath)
   char *fname = RSTRING_PTR(filename);
   int len = RSTRING_LEN(filename);
 
-  shoes_raise_unless_file_exists(imgpath);
-
-  if (shoes_has_ext(fname, len, ".png"))
+  if (!shoes_check_file_exists(imgpath))
+    img = NULL;
+  else if (shoes_has_ext(fname, len, ".png"))
     img = cairo_image_surface_create_from_png(RSTRING_PTR(imgpath));
   else if (shoes_has_ext(fname, len, ".jpg") || shoes_has_ext(fname, len, ".jpg"))
     img = shoes_surface_create_from_jpeg(RSTRING_PTR(imgpath));
   else if (shoes_has_ext(fname, len, ".gif"))
     img = shoes_surface_create_from_gif(RSTRING_PTR(imgpath));
   else
-    shoes_raise_unsupported_image(imgpath);
+    shoes_unsupported_image(imgpath);
 
   return img;
 }
