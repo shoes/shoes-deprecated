@@ -1568,10 +1568,9 @@ shoes_app_open(shoes_app *app, char *path)
   INFO("Draw QUARTZ window.\n", 0);
   err = CreateNewWindow(kDocumentWindowClass,
       kWindowCompositingAttribute
-    | kWindowLiveResizeAttribute
-    | kWindowStandardDocumentAttributes
     | kWindowStandardHandlerAttribute
-    ^ (app->resizable ? kWindowResizableAttribute : 0),
+    | (app->resizable ? (kWindowLiveResizeAttribute | kWindowStandardDocumentAttributes) :
+      (kWindowCloseBoxAttribute | kWindowFullZoomAttribute | kWindowCollapseBoxAttribute)),
     &gRect,
     &app->os.window);
 
