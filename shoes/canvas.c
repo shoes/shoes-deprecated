@@ -160,6 +160,13 @@ shoes_cairo_create(SHOES_SLOT_OS *slot, int width, int height, int border)
 }
 
 VALUE
+shoes_canvas_owner(VALUE self)
+{
+  SETUP();
+  return canvas->app->owner;
+}
+
+VALUE
 shoes_canvas_close(VALUE self)
 {
   SETUP();
@@ -2197,7 +2204,7 @@ shoes_canvas_window(int argc, VALUE *argv, VALUE self)
   SETUP();
 
   if (rb_block_given_p())
-    return shoes_app_main(argc, argv, self);
+    return shoes_app_window(argc, argv, cApp, self);
 
   rb_scan_args(argc, argv, "02&", &uri, &attr, &block);
   if (rb_obj_is_kind_of(uri, rb_cHash))
@@ -2211,6 +2218,12 @@ shoes_canvas_window(int argc, VALUE *argv, VALUE self)
 
   // TODO: do I send back an array of created App objects I guess?
   return Qnil;
+}
+
+VALUE
+shoes_canvas_dialog(int argc, VALUE *argv, VALUE self)
+{
+  return shoes_app_window(argc, argv, cDialog, self);
 }
 
 VALUE
@@ -2231,6 +2244,28 @@ shoes_canvas_window_plain(VALUE self)
 #endif
 #ifdef SHOES_WIN32
   DWORD winc = GetSysColor(COLOR_WINDOW);
+  return shoes_color_new(GetRValue(winc), GetGValue(winc), GetBValue(winc), SHOES_COLOR_OPAQUE);
+#endif
+}
+
+VALUE
+shoes_canvas_dialog_plain(VALUE self)
+{
+  SETUP();
+#ifdef SHOES_GTK
+  GtkStyle *style = gtk_widget_get_style(GTK_WIDGET(APP_WINDOW(canvas->app)));
+  GdkColor bg = style->bg[GTK_STATE_NORMAL];
+  return shoes_color_new(bg.red / 257, bg.green / 257, bg.blue / 257 , SHOES_COLOR_OPAQUE);
+#endif
+#ifdef SHOES_QUARTZ
+  ThemeBrush bg;
+  RGBColor _color;
+  HIWindowGetThemeBackground(canvas->app->os.window, &bg);
+  GetThemeBrushAsColor(bg, 32, true, &_color);
+  return shoes_color_new(_color.red/256, _color.green/256, _color.blue/256, SHOES_COLOR_OPAQUE);
+#endif
+#ifdef SHOES_WIN32
+  DWORD winc = GetSysColor(COLOR_3DFACE);
   return shoes_color_new(GetRValue(winc), GetGValue(winc), GetBValue(winc), SHOES_COLOR_OPAQUE);
 #endif
 }

@@ -26,6 +26,7 @@ shoes_app_mark(shoes_app *app)
   rb_gc_mark_maybe(app->nesting);
   rb_gc_mark_maybe(app->timers);
   rb_gc_mark_maybe(app->styles);
+  rb_gc_mark_maybe(app->owner);
 }
 
 static void
@@ -40,6 +41,7 @@ shoes_app_alloc(VALUE klass)
   shoes_app *app = SHOE_ALLOC(shoes_app);
   SHOE_MEMZERO(app, shoes_app, 1);
   app->started = FALSE;
+  app->owner = Qnil;
   app->location = Qnil;
   app->canvas = shoes_canvas_new(cShoes, app);
   app->nestslot = Qnil;
@@ -60,9 +62,9 @@ shoes_app_alloc(VALUE klass)
 }
 
 VALUE
-shoes_app_new()
+shoes_app_new(VALUE klass)
 {
-  VALUE app = shoes_app_alloc(cApp);
+  VALUE app = shoes_app_alloc(klass);
   rb_ary_push(shoes_world->apps, app);
   return app;
 }
@@ -1355,16 +1357,17 @@ shoes_app_resize(shoes_app *app, int width, int height)
 }
 
 VALUE
-shoes_app_main(int argc, VALUE *argv, VALUE self)
+shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner)
 {
   VALUE attr, block;
-  VALUE app = shoes_app_new();
+  VALUE app = shoes_app_new(self == cDialog ? cDialog : cApp);
   shoes_app *app_t;
   Data_Get_Struct(app, shoes_app, app_t);
 
   rb_scan_args(argc, argv, "01&", &attr, &block);
   rb_iv_set(app, "@main_app", block);
 
+  app_t->owner = owner;
   app_t->title = ATTR(attr, title);
   app_t->resizable = (ATTR(attr, resizable) != Qfalse);
   app_t->hidden = (ATTR(attr, hidden) == Qtrue);
@@ -1373,6 +1376,12 @@ shoes_app_main(int argc, VALUE *argv, VALUE self)
   if (shoes_world->mainloop)
     shoes_app_open(app_t, "/");
   return self;
+}
+
+VALUE
+shoes_app_main(int argc, VALUE *argv, VALUE self)
+{
+  return shoes_app_window(argc, argv, self, Qnil);
 }
 
 void
@@ -1476,6 +1485,7 @@ shoes_code
 shoes_app_open(shoes_app *app, char *path)
 {
   shoes_code code = SHOES_OK;
+  int dialog = (rb_obj_class(app->self) == cDialog);
 
 #ifdef SHOES_GTK
   char icon_path[SHOES_BUFSIZE];
@@ -1585,7 +1595,8 @@ shoes_app_open(shoes_app *app, char *path)
   AdjustWindowRect(&rect, WINDOW_STYLE, FALSE);
 
   app->slot.window = CreateWindowEx(
-    WS_EX_CLIENTEDGE, SHOES_SHORTNAME, SHOES_APPNAME,
+    dialog ? WS_EX_WINDOWEDGE : WS_EX_CLIENTEDGE,
+    SHOES_SHORTNAME, SHOES_APPNAME,
     WINDOW_STYLE | WS_CLIPCHILDREN |
       (app->resizable ? (WS_THICKFRAME | WS_MAXIMIZEBOX) : WS_DLGFRAME) |
       WS_VSCROLL | ES_AUTOVSCROLL,
@@ -1623,6 +1634,13 @@ shoes_app_open(shoes_app *app, char *path)
   if (!app->hidden)
   {
 #ifdef SHOES_WIN32
+    // TODO: disable parent windows of dialogs
+    // if (dialog && !NIL_P(app->owner))
+    // {
+    //   shoes_app *owner;
+    //   Data_Get_Struct(app->owner, shoes_app, owner);
+    //   EnableWindow(owner->slot.window, FALSE);
+    // }
     ShowWindow(app->slot.window, SW_SHOWNORMAL);
 #endif
 #ifdef SHOES_GTK
@@ -2014,6 +2032,14 @@ shoes_app_location(VALUE self)
   shoes_app *app;
   Data_Get_Struct(self, shoes_app, app);
   return app->location;
+}
+
+VALUE
+shoes_app_contents(VALUE self)
+{
+  shoes_app *app;
+  Data_Get_Struct(self, shoes_app, app);
+  return shoes_canvas_contents(app->canvas);
 }
 
 VALUE

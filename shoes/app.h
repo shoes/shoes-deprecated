@@ -40,6 +40,7 @@ typedef struct _shoes_app {
   ID cursor;
   VALUE title;
   VALUE location;
+  VALUE owner;
 } shoes_app;
 
 //

@@ -11,7 +11,7 @@
 #include "shoes/version.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cShape, cImage, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover;
+VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cShape, cImage, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover;
 VALUE eVlcError, eImageError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_hover, s_href, s_insert, s_items, s_release, s_scroll, s_sticky, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
@@ -3802,10 +3802,6 @@ shoes_ruby_init()
   s_radius = rb_intern("radius");
   s_secret = rb_intern("secret");
 
-  cApp = rb_define_class("App", rb_cObject);
-  rb_define_alloc_func(cApp, shoes_app_alloc);
-  rb_define_method(cApp, "location", CASTHOOK(shoes_app_location), 0);
-
   cShoesWindow = rb_define_class("Window", rb_cObject);
   cMouse = rb_define_class("Mouse", rb_cObject);
 
@@ -3817,6 +3813,12 @@ shoes_ruby_init()
   rb_const_set(cShoes, rb_intern("RELEASE_NAME"), rb_str_new2(SHOES_RELEASE_NAME));
   rb_const_set(cShoes, rb_intern("RELEASE_ID"), INT2NUM(SHOES_RELEASE_ID));
   rb_const_set(cShoes, rb_intern("REVISION"), INT2NUM(SHOES_REVISION));
+
+  cApp = rb_define_class_under(cShoes, "App", rb_cObject);
+  rb_define_alloc_func(cApp, shoes_app_alloc);
+  rb_define_method(cApp, "location", CASTHOOK(shoes_app_location), 0);
+  rb_define_method(cApp, "children", CASTHOOK(shoes_app_contents), 0);
+  cDialog = rb_define_class_under(cShoes, "Dialog", cApp);
 
   eNotImpl = rb_define_class_under(cShoes, "NotImplementedError", rb_eStandardError);
   eVlcError = rb_define_class_under(cShoes, "VideoError", rb_eStandardError);

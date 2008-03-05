@@ -243,6 +243,9 @@ void shoes_control_hide_ref(SHOES_CONTROL_REF);
 void shoes_control_show_ref(SHOES_CONTROL_REF);
 
 VALUE shoes_app_main(int, VALUE *, VALUE);
+VALUE shoes_app_window(int, VALUE *, VALUE, VALUE);
+VALUE shoes_app_contents(VALUE);
+
 VALUE shoes_canvas_alloc(VALUE);
 VALUE shoes_canvas_new(VALUE, struct _shoes_app *);
 void shoes_canvas_clear(VALUE);
@@ -250,6 +253,7 @@ shoes_canvas *shoes_canvas_init(VALUE, SHOES_SLOT_OS, VALUE, int, int);
 void shoes_canvas_paint(VALUE);
 void shoes_canvas_shape_do(shoes_canvas *, double, double, double, double, unsigned char);
 VALUE shoes_canvas_style(int, VALUE *, VALUE);
+VALUE shoes_canvas_owner(VALUE);
 VALUE shoes_canvas_close(VALUE);
 VALUE shoes_canvas_get_top(VALUE);
 VALUE shoes_canvas_get_left(VALUE);
@@ -347,7 +351,9 @@ void shoes_canvas_send_keypress(VALUE, VALUE);
 VALUE shoes_canvas_get_clipboard(VALUE);
 VALUE shoes_canvas_set_clipboard(VALUE, VALUE);
 VALUE shoes_canvas_window(int, VALUE *, VALUE);
+VALUE shoes_canvas_dialog(int, VALUE *, VALUE);
 VALUE shoes_canvas_window_plain(VALUE);
+VALUE shoes_canvas_dialog_plain(VALUE);
 
 VALUE shoes_slot_new(VALUE, VALUE, VALUE);
 VALUE shoes_flow_new(VALUE, VALUE);
