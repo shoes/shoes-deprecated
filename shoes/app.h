@@ -47,7 +47,7 @@ typedef struct _shoes_app {
 // function signatures
 //
 VALUE shoes_app_alloc(VALUE);
-VALUE shoes_app_new(void);
+VALUE shoes_app_new(VALUE);
 #ifdef SHOES_WIN32
 shoes_code shoes_classex_init();
 #endif
