@@ -1131,7 +1131,7 @@ shoes_app_win32proc(
       KEYPRESS(F10, f10)
       KEYPRESS(F11, f11)
       KEYPRESS(F12, f12)
-      else if ((w >= 'A' && w <= 'Z') || w == 191) {
+      else if ((w >= 'A' && w <= 'Z') || w == 191 || w == 190) {
         VALUE v;
         char letter = w;
         if (w == 191)
@@ -1140,6 +1140,13 @@ shoes_app_win32proc(
             letter = '?';
           else
             letter = '/';
+        }
+        else if (w == 190)
+        {
+          if (app->os.shiftkey)
+            letter = '>';
+          else
+            letter = '.';
         }
         else
         {
