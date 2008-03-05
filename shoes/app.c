@@ -1570,7 +1570,7 @@ shoes_app_open(shoes_app *app, char *path)
       kWindowCompositingAttribute
     | kWindowStandardHandlerAttribute
     | (app->resizable ? (kWindowLiveResizeAttribute | kWindowStandardDocumentAttributes) :
-      (kWindowCloseBoxAttribute | kWindowFullZoomAttribute | kWindowCollapseBoxAttribute)),
+      kWindowStandardFloatingAttributes),
     &gRect,
     &app->os.window);
 
