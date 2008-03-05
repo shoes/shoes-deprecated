@@ -51,6 +51,7 @@ shoes_init(SHOES_INIT_ARGS)
   ruby_init();
   shoes_ruby_init();
 #ifdef SHOES_QUARTZ
+  shoes_app_quartz_install();
   shoes_slot_quartz_register();
 #endif
   shoes_world = shoes_world_alloc();

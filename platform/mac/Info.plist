@@ -31,10 +31,16 @@
 			</array>
 			<key>CFBundleTypeIconFile</key>
 			<string>Shoes.icns</string>
+      <key>CFBundleTypeMIMETypes</key>
+      <array>
+        <string>application/x-shy</string>
+      </array>
 			<key>CFBundleTypeName</key>
       <string>Shoes Package</string>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
+      <key>LSIsAppleDefaultForType</key>
+      <true/>
 		</dict>
 		<dict>
 			<key>CFBundleTypeExtensions</key>

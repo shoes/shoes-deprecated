@@ -69,6 +69,12 @@ shoes_app_new(VALUE klass)
   return app;
 }
 
+VALUE
+shoes_apps_get(VALUE self)
+{
+  return rb_ary_dup(shoes_world->apps);
+}
+
 //
 // When a window is finished, call this to delete it from the master
 // list.  Returns 1 if all windows are gone.
@@ -736,7 +742,7 @@ shoes_app_quartz_open(const AppleEvent *appleEvt, AppleEvent* reply, long refcon
   Size ignoredSize;
   long numberOFiles;
   FSRef fr;
-  char _path[SHOES_BUFSIZE], bootup[SHOES_BUFSIZE];
+  char _path[SHOES_BUFSIZE];
 
   if (!(err = AEGetParamDesc(appleEvt, keyDirectObject, typeAEList, &fileDesc)))
   {
@@ -750,7 +756,8 @@ shoes_app_quartz_open(const AppleEvent *appleEvt, AppleEvent* reply, long refcon
         if (!err)
         {
           FSRefMakePath(&fr, &_path, SHOES_BUFSIZE);
-          shoes_load(RSTRING(_path));
+          printf("Opening %s\n", _path);
+          shoes_load(_path);
         }
       }
     }
@@ -765,6 +772,16 @@ shoes_app_quartz_quit(const AppleEvent *appleEvt, AppleEvent* reply, long refcon
 {
   QuitApplicationEventLoop();
   return 128;
+}
+
+void 
+shoes_app_quartz_install()
+{
+  AEInstallEventHandler(kCoreEventClass, kAEQuitApplication, 
+    NewAEEventHandlerUPP(shoes_app_quartz_quit), 0, false);
+
+  AEInstallEventHandler(kCoreEventClass, kAEOpenDocuments, 
+    NewAEEventHandlerUPP(shoes_app_quartz_open), 0, false);
 }
 
 static pascal void
@@ -1564,20 +1581,6 @@ shoes_app_open(shoes_app *app, char *path)
   }
 
   InitCursor();
-
-  err = AEInstallEventHandler(kCoreEventClass, kAEQuitApplication, 
-    NewAEEventHandlerUPP(shoes_app_quartz_quit), 0, false);
-  if (err != noErr)
-  {
-    QUIT("Out of memory.", 0);
-  }
-
-  err = AEInstallEventHandler(kCoreEventClass, kAEOpenDocuments, 
-    NewAEEventHandlerUPP(shoes_app_quartz_open), 0, false);
-  if (err != noErr)
-  {
-    QUIT("Out of memory.", 0);
-  }
 
   gTestWindowEventProc = NewEventHandlerUPP(shoes_app_quartz_handler);
   if (gTestWindowEventProc == NULL)

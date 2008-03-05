@@ -3883,6 +3883,7 @@ shoes_ruby_init()
     "end"
   );
 
+  rb_define_singleton_method(cShoes, "APPS", CASTHOOK(shoes_apps_get), 0);
   rb_define_singleton_method(cShoes, "app", CASTHOOK(shoes_app_main), -1);
   rb_define_singleton_method(cShoes, "p", CASTHOOK(shoes_p), 1);
   rb_define_singleton_method(cShoes, "debug", CASTHOOK(shoes_canvas_debug), 1);

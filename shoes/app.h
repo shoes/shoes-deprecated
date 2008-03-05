@@ -48,8 +48,12 @@ typedef struct _shoes_app {
 //
 VALUE shoes_app_alloc(VALUE);
 VALUE shoes_app_new(VALUE);
+VALUE shoes_apps_get(VALUE);
 #ifdef SHOES_WIN32
 shoes_code shoes_classex_init();
+#endif
+#ifdef SHOES_QUARTZ
+void shoes_app_quartz_install();
 #endif
 shoes_code shoes_app_start(VALUE, char *);
 shoes_code shoes_app_open(shoes_app *, char *);

@@ -176,12 +176,14 @@ class Shoes
   end
 
   def self.args!
-    if ARGV.empty?
-      fname = ask_open_file
-      if fname
-        ARGV << fname
-      else
-        return false
+    if PLATFORM !~ /darwin/
+      if ARGV.empty?
+        fname = ask_open_file
+        if fname
+          ARGV << fname
+        else
+          return false
+        end
       end
     end
     OPTS.parse! ARGV
