@@ -60,14 +60,10 @@ dist/shoes-bin: dist/libshoes.so bin/main.o
 
 dist/shoes.launch: dist/shoes-bin
 	@cp platform/nix/shoes.launch dist/
+	@echo 'LD_LIBRARY_PATH="$$APPPATH/../lib/shoes" $$APPPATH/../lib/shoes/shoes-bin $$@' >> dist/shoes.launch 
 	@chmod 755 dist/shoes.launch
 
-dist/shoes: dist/shoes-bin
-	@echo 'APPPATH="$${0%/*}"' > dist/shoes
-	@echo 'LD_LIBRARY_PATH=$$APPPATH $$APPPATH/shoes-bin $$@' >> dist/shoes
-	@chmod 755 dist/shoes
-
-shoes: dist/shoes
+shoes: dist/shoes.launch
 	@mkdir -p dist/ruby
 	@ln -s ${RUBY_PREFIX}/lib/ruby/1.8 dist/ruby/lib
 	@cp ${RUBY_PREFIX}/lib/lib${RUBY_SO}.so dist

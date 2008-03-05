@@ -340,6 +340,7 @@ else
     sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']}"
     if PLATFORM !~ /darwin/
       rewrite "platform/nix/shoes.launch", t.name, %r!/shoes-bin!, "/#{NAME}-bin"
+      sh %{echo 'LD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} $@' >> #{t.name}} 
       chmod 0755, t.name
     end
   end
@@ -385,7 +386,6 @@ task :tarball => ['bin/main.c', 'shoes/version.h'] do
   rm "#{PKG}/bin/main.skel"
   rm "#{PKG}/Rakefile"
   rm "#{PKG}/use-deps"
-  rm_rf "#{PKG}/platform"
   cp "bin/main.c", "#{PKG}/bin/main.c"
   cp "shoes/version.h", "#{PKG}/shoes/version.h"
   rewrite "Makefile", "#{PKG}/Makefile", /^(SVN_VERSION) = .+?$/, 'SVN_VERSION = \1'

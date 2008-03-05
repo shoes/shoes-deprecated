@@ -4,4 +4,3 @@ else
   REALPATH=`readlink $0`
 fi
 APPPATH="${REALPATH%/*}"
-LD_LIBRARY_PATH=$APPPATH $APPPATH/shoes-bin $@
