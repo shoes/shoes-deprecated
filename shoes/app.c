@@ -1440,7 +1440,7 @@ shoes_classex_init()
   shoes_world->os.classex.lpszMenuName = NULL;
   shoes_world->os.classex.cbClsExtra = 0;
   shoes_world->os.classex.cbWndExtra = 0;
-  shoes_world->os.classex.hbrBackground = 0;
+  shoes_world->os.classex.hbrBackground = (HBRUSH)COLOR_WINDOW;
 
   if (!RegisterClassEx(&shoes_world->os.classex))
   {

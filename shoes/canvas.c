@@ -1305,8 +1305,10 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
     } 
     else if (RTEST(actual))
     {
+      cairo_set_source_rgba(self_t->cr, 1.0f, 1.0f, 1.0f, 1.0f);
       cairo_set_line_width(self_t->cr, 1.0);
-      cairo_set_operator(self_t->cr, CAIRO_OPERATOR_OVER);
+      cairo_rectangle(self_t->cr, 0, 0, 4000, 4000);
+      cairo_fill(self_t->cr);
     }
   }
 
