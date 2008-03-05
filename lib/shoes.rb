@@ -133,6 +133,11 @@ class Shoes
     end
   end
 
+  def self.show_selector
+    fname = ask_open_file
+    Shoes.load(fname) if fname
+  end
+
   def self.show_manual
     Shoes.app(&Shoes::Help)
   end
