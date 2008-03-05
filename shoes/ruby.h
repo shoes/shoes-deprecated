@@ -182,10 +182,6 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("window", window, -1); \
   f("dialog", dialog, -1); \
   f("window_plain", window_plain, 0); \
-  f("dialog_plain", dialog_plain, 0); \
-  f("info", info, 1); \
-  f("debug", debug, 1); \
-  f("warn", warn, 1); \
-  f("error", error, 1)
+  f("dialog_plain", dialog_plain, 0)
 
 #endif

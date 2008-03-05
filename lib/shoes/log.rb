@@ -4,7 +4,7 @@ module Shoes::LogWindow
       flow do
         background black
         stack :width => -100 do
-          tagline strong("SHOES LOG WINDOW"), :stroke => white
+          tagline "Shoes Console", :stroke => white
         end
         button "Clear", :margin => 6, :width => 80, :height => 40 do
           Shoes.log.clear
@@ -24,9 +24,16 @@ module Shoes::LogWindow
         i = 0
         Shoes.log.each do |typ, msg, at|
           stack do
-            background "#eee" if i % 2 == 0
-            inscription at, :stroke => "#905", :margin => 4, :margin_bottom => 0
-            para strong(typ), " #{msg}", :margin => 4, :margin_top => 0
+            background "#f1f5e1" if i % 2 == 0
+            inscription strong(typ, :stroke => "#C50"), " ", at, :stroke => "#950", :margin => 4, :margin_bottom => 0
+            flow do
+              stack :margin => 4, :width => 20 do
+                image "#{DIR}/static/icon-#{typ}.png"
+              end
+              stack :margin => 4, :width => -20 do
+                para " #{msg}", :margin => 4, :margin_top => 0
+              end
+            end
           end
           i += 1
         end
