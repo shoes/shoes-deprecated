@@ -1131,9 +1131,21 @@ shoes_app_win32proc(
       KEYPRESS(F10, f10)
       KEYPRESS(F11, f11)
       KEYPRESS(F12, f12)
-      else if (w >= 'A' && w <= 'Z') {
+      else if ((w >= 'A' && w <= 'Z') || w == 191) {
         VALUE v;
-        char letter = w + 32;
+        char letter = w;
+        if (w == 191)
+        {
+          if (app->os.shiftkey)
+            letter = '?';
+          else
+            letter = '/';
+        }
+        else
+        {
+          if (!app->os.shiftkey)
+            letter += 32;
+        }
         v = rb_str_new(&letter, 1);
         if (app->os.altkey) {
           KEY_STATE(alt);

@@ -105,7 +105,7 @@ def Shoes.make_help_page(str)
           :size => 7, :align => "center", :stroke => "#999"
       end
     end
-    image "static/shoes-icon.png", :top => 8, :right => 10 + gutter,
+    image "#{DIR}/static/shoes-icon.png", :top => 8, :right => 10 + gutter,
       :width => 64, :height => 64
   end
 rescue => e
