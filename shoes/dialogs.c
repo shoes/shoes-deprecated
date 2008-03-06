@@ -183,12 +183,14 @@ shoes_dialog_ask(VALUE self, VALUE quiz)
   if (dialog.ref) {
     char byteFlag = 1;
     EventTypeSpec spec[1];
-    CFStringRef cfmsg = CFStringCreateWithCString(NULL, RSTRING_PTR(quiz), kCFStringEncodingUTF8);
-    SetWindowTitleWithCFString(app->os.window, CFSTR(dialog_title));
+    CFStringRef cfmsg = CFStringCreateWithCString(NULL, dialog_title, kCFStringEncodingUTF8);
+    SetWindowTitleWithCFString(dialog.ref, cfmsg);
+    CFRelease(cfmsg);
 
     //
     // TODO: make room for larger text in the label
     //
+    cfmsg = CFStringCreateWithCString(NULL, RSTRING_PTR(quiz), kCFStringEncodingUTF8);
     SetRect(&r, 24, 20, 400, 42);
     CreateStaticTextControl(dialog.ref, &r, cfmsg, NULL, &lbl);
     ShowControl(lbl);
