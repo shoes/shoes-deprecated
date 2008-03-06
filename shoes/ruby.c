@@ -597,7 +597,7 @@ shoes_rb2cf(VALUE str)
   return cf;
 }
 
-static VALUE
+VALUE
 shoes_cf2rb(CFStringRef cf)
 {
   VALUE str;

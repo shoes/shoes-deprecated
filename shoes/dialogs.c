@@ -14,6 +14,39 @@
 const char *dialog_title = "Shoes asks:";
 const char *dialog_title_says = "Shoes says:";
 
+#ifdef SHOES_QUARTZ
+typedef struct {
+  VALUE val;
+  ControlRef txt;
+  WindowRef ref;
+} shoes_quartz_dialog;
+
+static OSStatus
+shoes_dialog_done(EventHandlerCallRef inHandlerCallRef,  EventRef inEvent, void *data)
+{
+  CFStringRef controlText;
+  Size* size = NULL;
+  shoes_quartz_dialog *dialog = (shoes_quartz_dialog *)data;
+
+  GetControlData(dialog->txt, kControlEditTextPart, kControlEditTextCFStringTag, sizeof(CFStringRef), &controlText, size);
+  dialog->val = shoes_cf2rb(controlText);
+  CFRelease(controlText);
+
+  HideWindow(dialog->ref);
+  QuitAppModalLoopForWindow(dialog->ref);
+  return noErr;
+}
+
+static OSStatus
+shoes_dialog_cancelled(EventHandlerCallRef inHandlerCallRef,  EventRef inEvent, void *data)
+{
+  shoes_quartz_dialog *dialog = (shoes_quartz_dialog *)data;
+  HideWindow(dialog->ref);
+  QuitAppModalLoopForWindow(dialog->ref);
+  return noErr;
+}
+#endif
+
 #ifdef SHOES_WIN32
 char *win32_dialog_label = "Ask label";
 char *win32_dialog_answer = NULL;
@@ -140,15 +173,43 @@ shoes_dialog_ask(VALUE self, VALUE quiz)
 
 #ifdef SHOES_QUARTZ
   Rect r;
-  ControlRef edit;
-  SetRect(&r, 50, 50, 450, 150);
-  DialogRef dialog = NewDialog(NULL, &r, "\pShoes asks:", false, kWindowMovableModalDialogProc, (WindowPtr)-1L, true, 0, NULL);
-  if (dialog) {
-    SetRect(&r, 10, 10, 420, 20);
-    CreateEditUnicodeTextControl(GetDialogWindow(dialog), &r, CFSTR(""), false, NULL, &edit);
-    InsertDialogItem(dialog, 0, kResourceControlDialogItem, (Handle)edit, &r);
-    ShowWindow(dialog);
-    answer = Qtrue;
+  ControlRef lbl, okb, cancb;
+  shoes_quartz_dialog dialog;
+  dialog.val = Qnil;
+
+  SetRect(&r, 50, 50, 480, 194);
+  CreateNewWindow(kMovableModalWindowClass, kWindowCompositingAttribute, &r, &dialog.ref);
+  InstallStandardEventHandler(GetWindowEventTarget(dialog.ref));
+  if (dialog.ref) {
+    char byteFlag = 1;
+    EventTypeSpec spec[1];
+    CFStringRef cfmsg = CFStringCreateWithCString(NULL, RSTRING_PTR(quiz), kCFStringEncodingUTF8);
+
+    SetRect(&r, 24, 20, 400, 42);
+    CreateStaticTextControl(dialog.ref, &r, cfmsg, NULL, &lbl);
+    ShowControl(lbl);
+
+    SetRect(&r, 24, 46, 400, 80);
+    CreateEditUnicodeTextControl(dialog.ref, &r, CFSTR(""), false, NULL, &dialog.txt);
+    ShowControl(dialog.txt);
+
+    SetRect(&r, 250, 100, 320, 120);
+    CreatePushButtonControl(dialog.ref, &r, CFSTR("Cancel"), &cancb);
+    spec[0].eventClass = kEventClassControl;
+    spec[0].eventKind = kEventControlHit;
+    InstallEventHandler(GetControlEventTarget(cancb), shoes_dialog_cancelled, 1, spec, (void *)&dialog, NULL);
+    ShowControl(cancb);
+
+    SetRect(&r, 330, 100, 400, 120);
+    CreatePushButtonControl(dialog.ref, &r, CFSTR("OK"), &okb);
+    InstallEventHandler(GetControlEventTarget(okb), shoes_dialog_done, 1, spec, (void *)&dialog, NULL);
+    SetControlData(okb, kControlEntireControl, kControlPushButtonDefaultTag, 1, &byteFlag);
+    ShowControl(okb);
+
+    CFRelease(cfmsg);
+    ShowWindow(dialog.ref); SelectWindow(dialog.ref);
+    RunAppModalLoopForWindow(dialog.ref); HideWindow(dialog.ref);
+    answer = dialog.val;
   }
 #endif
   return answer;
