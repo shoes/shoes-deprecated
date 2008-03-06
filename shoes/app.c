@@ -1593,10 +1593,6 @@ shoes_app_open(shoes_app *app, char *path)
     windowEvents, app, NULL);
 
   HIViewFindByID(HIViewGetRoot(app->os.window), kHIViewWindowContentID, &app->slot.view);
-
-  if (PasteboardCreate(kPasteboardClipboard, &shoes_world->os.clip) != noErr) {
-    INFO("Apple Pasteboard create failed.\n", 0);
-  }
 #endif
 
 #ifdef SHOES_WIN32

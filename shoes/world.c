@@ -50,11 +50,14 @@ shoes_init(SHOES_INIT_ARGS)
 #endif
   ruby_init();
   shoes_ruby_init();
+  shoes_world = shoes_world_alloc();
 #ifdef SHOES_QUARTZ
   shoes_app_quartz_install();
   shoes_slot_quartz_register();
+  if (PasteboardCreate(kPasteboardClipboard, &shoes_world->os.clip) != noErr) {
+    INFO("Apple Pasteboard create failed.\n", 0);
+  }
 #endif
-  shoes_world = shoes_world_alloc();
 #ifdef SHOES_WIN32
   shoes_world->os.instance = inst;
   shoes_world->os.style = style;
