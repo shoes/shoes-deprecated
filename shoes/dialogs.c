@@ -184,7 +184,11 @@ shoes_dialog_ask(VALUE self, VALUE quiz)
     char byteFlag = 1;
     EventTypeSpec spec[1];
     CFStringRef cfmsg = CFStringCreateWithCString(NULL, RSTRING_PTR(quiz), kCFStringEncodingUTF8);
+    SetWindowTitleWithCFString(app->os.window, CFSTR(dialog_title));
 
+    //
+    // TODO: make room for larger text in the label
+    //
     SetRect(&r, 24, 20, 400, 42);
     CreateStaticTextControl(dialog.ref, &r, cfmsg, NULL, &lbl);
     ShowControl(lbl);
@@ -207,8 +211,16 @@ shoes_dialog_ask(VALUE self, VALUE quiz)
     ShowControl(okb);
 
     CFRelease(cfmsg);
-    ShowWindow(dialog.ref); SelectWindow(dialog.ref);
-    RunAppModalLoopForWindow(dialog.ref); HideWindow(dialog.ref);
+    ShowWindow(dialog.ref);
+    SelectWindow(dialog.ref);
+    RunAppModalLoopForWindow(dialog.ref);
+    HideWindow(dialog.ref);
+
+    DisposeControl(lbl);
+    DisposeControl(dialog.txt);
+    DisposeControl(cancb);
+    DisposeControl(okb);
+
     answer = dialog.val;
   }
 #endif
