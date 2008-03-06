@@ -4,11 +4,13 @@
 // the idea here is to cut down dependencies, since I only really need reading of 
 // the basics: GIF and JPEG.
 //
+#include <stdio.h>
 #include "shoes/internal.h"
 #include "shoes/canvas.h"
 #include "shoes/ruby.h"
 #include "shoes/config.h"
 #include <jpeglib.h>
+#include <jerror.h>
 
 #ifndef SHOES_GTK
 #ifdef DrawText
@@ -195,6 +197,103 @@ done:
   return surface;
 }
 
+//
+// JPEG handling code
+//
+struct shoes_jpeg_file_src {
+  struct jpeg_source_mgr pub;   /* public fields */
+
+  FILE *infile;         /* source stream */
+  JOCTET *buffer;         /* start of buffer */
+  boolean start_of_file;    /* have we gotten any data yet? */
+};
+
+typedef struct shoes_jpeg_file_src *shoes_jpeg_file;
+
+#define JPEG_INPUT_BUF_SIZE 4096
+
+static void
+shoes_jpeg_term_source(j_decompress_ptr cinfo)
+{
+}
+
+static void
+shoes_jpeg_init_source(j_decompress_ptr cinfo)
+{
+  shoes_jpeg_file src = (shoes_jpeg_file) cinfo->src;
+  src->start_of_file = 1;
+}
+
+
+static boolean
+shoes_jpeg_fill_input_buffer(j_decompress_ptr cinfo)
+{
+  shoes_jpeg_file src = (shoes_jpeg_file)cinfo->src;
+  size_t nbytes;
+
+  nbytes = fread(src->buffer, 1, JPEG_INPUT_BUF_SIZE, src->infile);
+
+  if (nbytes <= 0) {
+    if (src->start_of_file) /* Treat empty input file as fatal error */
+      ERREXIT(cinfo, JERR_INPUT_EMPTY);
+    WARNMS(cinfo, JWRN_JPEG_EOF);
+    src->buffer[0] = (JOCTET) 0xFF;
+    src->buffer[1] = (JOCTET) JPEG_EOI;
+    nbytes = 2;
+  }
+
+  src->pub.next_input_byte = src->buffer;
+  src->pub.bytes_in_buffer = nbytes;
+  src->start_of_file = 0;
+
+  return 1;
+}
+
+static void
+shoes_jpeg_skip_input_data(j_decompress_ptr cinfo, long num_bytes)
+{
+  shoes_jpeg_file src = (shoes_jpeg_file)cinfo->src;
+
+  if (num_bytes > 0)
+  {
+    while (num_bytes > (long)src->pub.bytes_in_buffer)
+    {
+      num_bytes -= (long)src->pub.bytes_in_buffer;
+      (void)shoes_jpeg_fill_input_buffer(cinfo);
+    }
+    src->pub.next_input_byte += (size_t)num_bytes;
+    src->pub.bytes_in_buffer -= (size_t)num_bytes;
+  }
+}
+
+static void
+jpeg_file_src(j_decompress_ptr cinfo, FILE *infile)
+{
+  shoes_jpeg_file src;
+
+  if (cinfo->src == NULL)
+  {
+    /* first time for this JPEG object? */
+    cinfo->src = (struct jpeg_source_mgr *)
+      (*cinfo->mem->alloc_small)((j_common_ptr) cinfo, JPOOL_PERMANENT,
+                    sizeof(struct shoes_jpeg_file_src));
+    src = (shoes_jpeg_file) cinfo->src;
+    src->buffer = (JOCTET *)
+      (*cinfo->mem->alloc_small)((j_common_ptr) cinfo, JPOOL_PERMANENT,
+                    JPEG_INPUT_BUF_SIZE * sizeof(JOCTET));
+  }
+
+  src = (shoes_jpeg_file)cinfo->src;
+  src->pub.init_source = shoes_jpeg_init_source;
+  src->pub.fill_input_buffer = shoes_jpeg_fill_input_buffer;
+  src->pub.skip_input_data = shoes_jpeg_skip_input_data;
+  src->pub.resync_to_restart = jpeg_resync_to_restart; /* use default method */
+  src->pub.term_source = shoes_jpeg_term_source;
+  src->infile = infile;
+  src->pub.bytes_in_buffer = 0; /* forces fill_input_buffer on first read */
+  src->pub.next_input_byte = NULL; /* until buffer loaded */
+}
+ 
 cairo_surface_t *
 shoes_surface_create_from_jpeg(char *filename)
 {
@@ -211,7 +310,7 @@ shoes_surface_create_from_jpeg(char *filename)
   // jpgerr.emit_message = shoes_jpeg_error;
   // jpgerr.output_message = shoes_jpeg_error2;
   jpeg_create_decompress(&cinfo);
-  jpeg_stdio_src(&cinfo, f);
+  jpeg_file_src(&cinfo, f);
   jpeg_read_header(&cinfo, TRUE);
   cinfo.do_fancy_upsampling = FALSE;
   cinfo.do_block_smoothing = FALSE;

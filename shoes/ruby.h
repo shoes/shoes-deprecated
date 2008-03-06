@@ -12,6 +12,9 @@
 #if SHOES_WIN32
 typedef VALUE (*HOOK)(...);
 #define CASTHOOK(x) reinterpret_cast<HOOK>(x)
+#undef fopen
+#undef fclose
+#undef fread
 #else
 typedef VALUE (*HOOK)();
 #define CASTHOOK(x) x
