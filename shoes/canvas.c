@@ -309,28 +309,37 @@ quit:
 }
 
 void
+shoes_apply_transformation(shoes_canvas *canvas, cairo_matrix_t *tf, 
+  double x, double y, double w, double h, VALUE mode)
+{
+  if (tf)
+  {
+    w /= 2.; h /= 2.;
+
+    if (mode == s_center)
+    {
+      cairo_translate(canvas->cr, w, h);
+      cairo_transform(canvas->cr, tf);
+    }
+    else
+    {
+      cairo_translate(canvas->cr, -x, -y);
+      cairo_transform(canvas->cr, tf);
+      cairo_translate(canvas->cr, x + w, y + h);
+    }
+  }
+}
+
+void
 shoes_canvas_shape_do(shoes_canvas *canvas, double x, double y, double w, double h, unsigned char center)
 {
-  cairo_save(canvas->cr);
   if (center)
   {
     w = 0.; h = 0.;
   }
-  else
-  {
-    w /= 2.; h /= 2.;
-  }
 
-  if (canvas->mode == s_center)
-  {
-    cairo_translate(canvas->cr, w, h);
-    cairo_transform(canvas->cr, canvas->tf);
-  }
-  else
-  {
-    cairo_transform(canvas->cr, canvas->tf);
-    cairo_translate(canvas->cr, x + w, y + h);
-  }
+  cairo_save(canvas->cr);
+  shoes_apply_transformation(canvas, canvas->tf, x, y, w, h, canvas->mode);
 }
 
 static VALUE
@@ -805,7 +814,7 @@ shoes_canvas_image(int argc, VALUE *argv, VALUE self)
     if (NIL_P(attr)) attr = rb_hash_new();
     rb_hash_aset(attr, ID2SYM(s_click), rb_block_proc());
   }
-  image = shoes_image_new(cImage, path, attr, self);
+  image = shoes_image_new(cImage, path, attr, self, canvas->tf, canvas->mode);
   if (!NIL_P(image))
     rb_ary_push(canvas->contents, image);
   return image;
@@ -912,84 +921,6 @@ shoes_canvas_curve_to(VALUE self, VALUE _x1, VALUE _y1, VALUE _x2, VALUE _y2, VA
   y3 = NUM2DBL(_y3);
 
   cairo_curve_to(cr, x1, y1, x2, y2, x3, y3);
-  return self;
-}
-
-VALUE
-shoes_canvas_transform(VALUE self, VALUE _m)
-{
-  ID m = SYM2ID(_m);
-  SETUP();
-
-  if (m == s_center || m == s_corner)
-  {
-    canvas->mode = m;
-  }
-  else
-  {
-    rb_raise(rb_eArgError, "transform must be called with either :center or :corner.");
-  }
-  return self;
-}
-
-VALUE
-shoes_canvas_translate(VALUE self, VALUE _x, VALUE _y)
-{
-  double x, y;
-  SETUP();
-
-  x = NUM2DBL(_x);
-  y = NUM2DBL(_y);
-
-  cairo_matrix_translate(canvas->tf, x, y);
-  return self;
-}
-
-VALUE
-shoes_canvas_rotate(VALUE self, VALUE _deg)
-{
-  double rad;
-  SETUP();
-
-  rad = NUM2DBL(_deg) * RAD2PI;
-
-  cairo_matrix_rotate(canvas->tf, -rad);
-  return self;
-}
-
-VALUE
-shoes_canvas_scale(int argc, VALUE *argv, VALUE self)
-{
-  VALUE _sx, _sy;
-  double sx, sy;
-  SETUP();
-
-  rb_scan_args(argc, argv, "11", &_sx, &_sy);
-
-  sx = NUM2DBL(_sx);
-  if (NIL_P(_sy)) sy = sx;
-  else            sy = NUM2DBL(_sy);
-
-  cairo_matrix_scale(canvas->tf, sx, sy);
-  return self;
-}
-
-VALUE
-shoes_canvas_skew(int argc, VALUE *argv, VALUE self)
-{
-  cairo_matrix_t matrix;
-  VALUE _sx, _sy;
-  double sx, sy;
-  SETUP();
-
-  rb_scan_args(argc, argv, "11", &_sx, &_sy);
-
-  sx = NUM2DBL(_sx) * RAD2PI;
-  sy = 0.0;
-  if (!NIL_P(_sy)) sy = NUM2DBL(_sy) * RAD2PI;
-
-  cairo_matrix_init(&matrix, 1.0, sy, sx, 1.0, 0.0, 0.0);
-  cairo_matrix_multiply(canvas->tf, canvas->tf, &matrix);
   return self;
 }
 

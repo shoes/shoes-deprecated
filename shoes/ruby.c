@@ -814,6 +814,7 @@ shoes_image_mark(shoes_image *image)
   rb_gc_mark_maybe(image->path);
   rb_gc_mark_maybe(image->parent);
   rb_gc_mark_maybe(image->attr);
+  rb_gc_mark_maybe(image->mode);
 }
 
 static void
@@ -821,11 +822,12 @@ shoes_image_free(shoes_image *image)
 {
   if (image->surface != NULL)
     cairo_surface_destroy(image->surface);
+  SHOE_FREE(image->tf);
   RUBY_CRITICAL(SHOE_FREE(image));
 }
 
 VALUE
-shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent)
+shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, cairo_matrix_t *tf, VALUE mode)
 {
   GError *error = NULL;
   VALUE obj = Qnil;
@@ -838,6 +840,9 @@ shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent)
 
     image->path = path;
     image->surface = surf;
+    cairo_matrix_init_identity(image->tf);
+    cairo_matrix_multiply(image->tf, image->tf, tf);
+    image->mode = mode;
     image->attr = attr;
     image->parent = parent;
   }
@@ -853,6 +858,9 @@ shoes_image_alloc(VALUE klass)
   obj = Data_Wrap_Struct(klass, shoes_image_mark, shoes_image_free, image);
   image->path = Qnil;
   image->surface = NULL;
+  image->tf = SHOE_ALLOC(cairo_matrix_t);
+  cairo_matrix_init_identity(image->tf);
+  image->mode = Qnil;
   image->attr = Qnil;
   image->parent = Qnil;
   image->hover = 0;
@@ -902,8 +910,9 @@ shoes_image_draw(VALUE self, VALUE c, VALUE actual)
     (imh = cairo_image_surface_get_height(self_t->surface)));
   if (RTEST(actual))
   {
-    shoes_canvas_shape_do(canvas, place.ix, place.iy, place.iw, place.ih, FALSE);
+    cairo_save(canvas->cr);
     cairo_translate(canvas->cr, place.ix, place.iy);
+    shoes_apply_transformation(canvas, self_t->tf, place.ix, place.iy, place.iw, place.ih, self_t->mode);
     if (place.iw != imw || place.ih != imh)
     {
       cairo_scale(canvas->cr, (place.iw * 1.) / imw, (place.ih * 1.) / imh);
@@ -3392,6 +3401,76 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
 }
 
 //
+// Transformations
+//
+#define TRANS_COMMON(ele) \
+  VALUE \
+  shoes_##ele##_transform(VALUE self, VALUE _m) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    ID m = SYM2ID(_m); \
+    if (m == s_center || m == s_corner) \
+    { \
+      self_t->mode = m; \
+    } \
+    else \
+    { \
+      rb_raise(rb_eArgError, "transform must be called with either :center or :corner."); \
+    } \
+    return self; \
+  } \
+  VALUE \
+  shoes_##ele##_translate(VALUE self, VALUE _x, VALUE _y) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    double x, y; \
+    x = NUM2DBL(_x); \
+    y = NUM2DBL(_y); \
+    cairo_matrix_translate(self_t->tf, x, y); \
+    return self; \
+  } \
+  VALUE \
+  shoes_##ele##_rotate(VALUE self, VALUE _deg) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    double rad; \
+    rad = NUM2DBL(_deg) * RAD2PI; \
+    cairo_matrix_rotate(self_t->tf, -rad); \
+    return self; \
+  } \
+  VALUE \
+  shoes_##ele##_scale(int argc, VALUE *argv, VALUE self) \
+  { \
+    VALUE _sx, _sy; \
+    double sx, sy; \
+    GET_STRUCT(ele, self_t); \
+    rb_scan_args(argc, argv, "11", &_sx, &_sy); \
+    sx = NUM2DBL(_sx); \
+    if (NIL_P(_sy)) sy = sx; \
+    else            sy = NUM2DBL(_sy); \
+    cairo_matrix_scale(self_t->tf, sx, sy); \
+    return self; \
+  } \
+  VALUE \
+  shoes_##ele##_skew(int argc, VALUE *argv, VALUE self) \
+  { \
+    cairo_matrix_t matrix; \
+    VALUE _sx, _sy; \
+    double sx, sy; \
+    GET_STRUCT(ele, self_t); \
+    rb_scan_args(argc, argv, "11", &_sx, &_sy); \
+    sx = NUM2DBL(_sx) * RAD2PI; \
+    sy = 0.0; \
+    if (!NIL_P(_sy)) sy = NUM2DBL(_sy) * RAD2PI; \
+    cairo_matrix_init(&matrix, 1.0, sy, sx, 1.0, 0.0, 0.0); \
+    cairo_matrix_multiply(self_t->tf, self_t->tf, &matrix); \
+    return self; \
+  }
+
+TRANS_COMMON(canvas);
+TRANS_COMMON(image);
+
+//
 // Common methods
 //
 #define EVENT_COMMON(ele, est, sym) \
@@ -3944,6 +4023,11 @@ shoes_ruby_init()
   rb_define_method(cImage, "draw", CASTHOOK(shoes_image_draw), 2);
   rb_define_method(cImage, "size", CASTHOOK(shoes_image_size), 0);
   rb_define_method(cImage, "move", CASTHOOK(shoes_image_move), 2);
+  rb_define_method(cImage, "rotate", CASTHOOK(shoes_image_rotate), 1);
+  rb_define_method(cImage, "scale", CASTHOOK(shoes_image_scale), -1);
+  rb_define_method(cImage, "skew", CASTHOOK(shoes_image_skew), -1);
+  rb_define_method(cImage, "transform", CASTHOOK(shoes_image_transform), 1);
+  rb_define_method(cImage, "translate", CASTHOOK(shoes_image_translate), 2);
   rb_define_method(cImage, "top", CASTHOOK(shoes_image_get_top), 0);
   rb_define_method(cImage, "left", CASTHOOK(shoes_image_get_left), 0);
   rb_define_method(cImage, "width", CASTHOOK(shoes_image_get_width), 0);

@@ -122,6 +122,8 @@ typedef struct {
 //
 typedef struct {
   cairo_surface_t *surface;
+  cairo_matrix_t *tf;
+  VALUE mode;
   shoes_place place;
   VALUE path;
   VALUE attr;
@@ -260,6 +262,8 @@ VALUE shoes_canvas_new(VALUE, struct _shoes_app *);
 void shoes_canvas_clear(VALUE);
 shoes_canvas *shoes_canvas_init(VALUE, SHOES_SLOT_OS, VALUE, int, int);
 void shoes_canvas_paint(VALUE);
+void shoes_apply_transformation(shoes_canvas *, cairo_matrix_t *, 
+  double, double, double, double, VALUE);
 void shoes_canvas_shape_do(shoes_canvas *, double, double, double, double, unsigned char);
 VALUE shoes_canvas_style(int, VALUE *, VALUE);
 VALUE shoes_canvas_owner(VALUE);
@@ -405,7 +409,7 @@ VALUE shoes_shape_motion(VALUE, int, int, int *);
 VALUE shoes_shape_send_click(VALUE, int, int, int);
 void shoes_shape_send_release(VALUE, int, int, int);
 
-VALUE shoes_image_new(VALUE, VALUE, VALUE, VALUE);
+VALUE shoes_image_new(VALUE, VALUE, VALUE, VALUE, cairo_matrix_t *, VALUE);
 VALUE shoes_image_alloc(VALUE);
 VALUE shoes_image_draw(VALUE, VALUE, VALUE);
 VALUE shoes_image_get_top(VALUE);
