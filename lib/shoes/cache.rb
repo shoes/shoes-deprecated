@@ -62,12 +62,13 @@ def libdir(path)
   puts "** Adding #{path} to the $LOAD_PATH..."
   $:.unshift path
 end
-def fetch_gems(gems, &blk)
+def fetch_gems(*gems, &blk)
   ui = Gem::DefaultUserInteraction.ui
   count, total = 0, gems.length
   ui.progress count, total
 
   gems.each do |name, version|
+    name, version = name.split(/\s+/, 2) if name =~ /\s/
     count += 1
     ui.say "Looking for #{name}"
     if Gem.source_index.find_name(name, version).empty?
