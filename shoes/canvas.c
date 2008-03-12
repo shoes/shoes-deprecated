@@ -1250,7 +1250,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
 #endif
       }
     } 
-    else if (RTEST(actual))
+    if (RTEST(actual))
     {
       cairo_set_source_rgba(self_t->cr, 1.0f, 1.0f, 1.0f, 1.0f);
       cairo_set_line_width(self_t->cr, 1.0);
