@@ -1343,6 +1343,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
           self_t->cx = self_t->place.x;
           self_t->cy = self_t->endy;
         }
+        shoes_slot_repaint(&c1->slot);
       }
     }
 
