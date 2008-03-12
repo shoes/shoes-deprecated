@@ -1038,7 +1038,7 @@ shoes_video_alloc(VALUE klass)
   VALUE obj;
   shoes_video *video = SHOE_ALLOC(shoes_video);
   SHOE_MEMZERO(video, shoes_video, 1);
-#ifdef SHOES_QUARTZ
+#ifndef SHOES_GTK
   char *ppsz_argv[2] = {"vlc", NULL};
   char pathsw[SHOES_BUFSIZE];
   int ppsz_argc = 2;
