@@ -91,7 +91,9 @@ desc "Does a full compile, for the OS you're running on"
 task :build => :build_os do
   mkdir_p "dist/ruby"
   cp_r  "#{ext_ruby}/lib/ruby/1.8", "dist/ruby/lib"
-  cp_r  FileList["rubygems/*"], "dist/ruby/lib"
+  FileList["rubygems/*"].each do |rg|
+    cp_r  rg, "dist/ruby/lib"
+  end
   rm_f  FileList["dist/ruby/lib/**/*.h"]
   unless ENV['STANDARD']
     %w[cgi cgi.rb cgi-lib.rb rdoc rss shell soap webrick wsdl xsd].each do |libn|
