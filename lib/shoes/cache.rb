@@ -28,7 +28,7 @@ Config::CONFIG['libdir'] = GEM_DIR
 Config::CONFIG['sitelibdir'] = SITE_LIB_DIR
 
 require 'rubygems'
-require 'rubygems/installer'
+require 'rubygems/dependency_installer'
 class << Gem::Ext::ExtConfBuilder
   alias_method :make__, :make
   def self.make(dest_path, results)
@@ -39,12 +39,6 @@ class << Gem::Ext::ExtConfBuilder
     mf = mf.gsub(/^INSTALL_DATA\s*=\s*\$[^$]*/, "INSTALL_DATA = '$(INSTALL) -m 0644'")
     File.open('Makefile', 'wb') {|f| f.print mf}
     make__(dest_path, results)
-  end
-end
-class Gem::Installer
-  alias_method :install__, :install
-  def install(*a)
-    install__
   end
 end
 
@@ -68,18 +62,27 @@ def libdir(path)
   puts "** Adding #{path} to the $LOAD_PATH..."
   $:.unshift path
 end
-def fetch_gem(name, version = nil, &blk)
-  if Gem.source_index.find_name(name, version).empty?
-    puts "** Fetching #{name} #{version}"
+def fetch_gems(gems, &blk)
+  ui = Gem::DefaultUserInteraction.ui
+  count, total = 0, gems.length
+  ui.progress count, total
 
-    installer = Gem::Installer.new(:include_dependencies => true)
-    installer.install(name, version || Gem::Requirement.default, true)
-    gem_reset
+  gems.each do |name, version|
+    count += 1
+    ui.say "Looking for #{name}"
+    if Gem.source_index.find_name(name, version).empty?
+      ui.title "Installing #{name}"
+      installer = Gem::DependencyInstaller.new
+      installer.install(name, version || Gem::Requirement.default)
+      gem_reset
+    end
+    gem = Gem.source_index.find_name(name, version).first
+    Gem.activate(gem.name, true, "= #{gem.version}")
+    ui.say "Finished installing #{name}"
+    ui.progress count, total
   end
-  gem = Gem.source_index.find_name(name, version).first
-  Gem.activate(gem.name, true, "= #{gem.version}")
+
   if blk
-    puts "** Entering #{gem.full_gem_path}..."
     Dir.chdir(gem.full_gem_path, &blk)
   end
 end
@@ -195,6 +198,58 @@ def install_sources
     GEM
   end
   Gem::Installer.new(sources_gem).install()
+end
+
+class Gem::ShoesFace
+  class ProgressReporter
+    attr_reader :count
+
+    def initialize(prog, size, initial_message,
+                   terminal_message = "complete")
+      @prog = prog
+      @total = size
+      @count = 0.0
+    end
+
+    def updated(message)
+      @count += 1.0
+      @prog.fraction = @count / @total.to_f
+    end
+
+    def done
+    end
+  end
+
+  def initialize app
+    @title, @status, @prog, = app.contents[-1].contents
+  end
+  def title msg
+    @title.replace msg
+  end
+  def progress count, total
+    @prog.fraction = count.to_f / total.to_f
+  end
+  def ask_yes_no msg
+    Kernel.confirm(msg)
+  end
+  def ask msg
+    Kernel.ask(msg)
+  end
+  def say msg
+    @status.replace msg
+  end
+  def alert msg, quiz=nil
+    say(msg)
+    ask(quiz) if quiz
+  end
+  def progress_reporter(*args)
+    SilentProgressReporter.new(nil, *args)
+    # ProgressReporter.new(@prog, *args)
+  end
+  def method_missing(*args)
+    p args
+    nil
+  end
 end
 
 $stderr = StringIO.new
