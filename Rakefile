@@ -390,7 +390,7 @@ task :tarball => ['bin/main.c', 'shoes/version.h'] do
   rm "#{PKG}/use-deps"
   cp "bin/main.c", "#{PKG}/bin/main.c"
   cp "shoes/version.h", "#{PKG}/shoes/version.h"
-  rewrite "Makefile", "#{PKG}/Makefile", /^(SVN_VERSION) = .+?$/, 'SVN_VERSION = \1'
+  rewrite "platform/nix/Makefile", "#{PKG}/Makefile", /^(SVN_VERSION) = .+?$/, 'SVN_VERSION = \1'
   sh "tar czvf pkg/#{PKG}.tar.gz #{PKG}"
   rm_rf PKG
 end
