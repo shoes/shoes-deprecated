@@ -135,7 +135,7 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("background", background, -1); \
   f("border", border, -1); \
   f("video", video, -1); \
-  f("image", image, -1); \
+  f("image_file", image, -1); \
   f("imagesize", imagesize, 1); \
   f("animate", animate, -1); \
   f("every", every, -1); \

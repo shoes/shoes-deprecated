@@ -10,6 +10,7 @@ require 'optparse'
 require 'shoes/inspect'
 require 'shoes/shy'
 if Object.const_defined? :Shoes
+  require 'shoes/image'
   require 'shoes/cache'
   require 'shoes/help'
   require 'shoes/log'

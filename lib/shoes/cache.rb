@@ -18,8 +18,9 @@ end
 LIB_DIR = lib_dir || File.join(Dir::tmpdir, "shoes")
 SITE_LIB_DIR = File.join(LIB_DIR, '+lib')
 GEM_DIR = File.join(LIB_DIR, '+gem')
+CACHE_DIR = File.join(LIB_DIR, '+cache')
 
-mkdir_p(LIB_DIR)
+mkdir_p(CACHE_DIR)
 $:.unshift SITE_LIB_DIR
 $:.unshift GEM_DIR
 
@@ -62,8 +63,24 @@ def libdir(path)
   puts "** Adding #{path} to the $LOAD_PATH..."
   $:.unshift path
 end
+def setup_gems_app
+  unless Shoes === Gem::DefaultUserInteraction.ui
+    app = 
+      Shoes.app :width => 370, :height => 148, :resizable => false do
+        background "#9CF"
+        image "#{DIR}/static/shoes-icon-blue.png", :top => 10, :right => 20
+        stack :margin => 18 do
+          title "", :size => 12, :weight => "bold", :margin => 0
+          para "", :size => 10, :margin => 0, :margin_top => 8, :width => 220
+          progress :width => 1.0, :top => 80
+        end
+      end
+    Gem::DefaultUserInteraction.ui = Gem::ShoesFace.new(app)
+  end
+  Gem::DefaultUserInteraction.ui
+end
 def fetch_gems(*gems, &blk)
-  ui = Gem::DefaultUserInteraction.ui
+  ui = setup_gems_app
   count, total = 0, gems.length
   ui.progress count, total
 
