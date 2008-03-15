@@ -383,7 +383,6 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
     {
       canvas->cx = place->x = CPX(canvas);
       canvas->cy = place->y = canvas->endy;
-      canvas->marginy = bmargin;
     }
   }
 
@@ -391,7 +390,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
   place->iy = place->y + tmargin;
   place->iw = place->w - (lmargin + rmargin);
   place->ih = place->h - (tmargin + bmargin);
-  INFO("PLACE: (%d, %d), (%d, %d) [%d, %d] %d %x\n", place->x, place->y, place->w, place->h, ABSX(*place), ABSY(*place), place->flags, canvas->marginy);
+  INFO("PLACE: (%d, %d), (%d, %d) [%d, %d] %x\n", place->x, place->y, place->w, place->h, ABSX(*place), ABSY(*place), place->flags);
 }
 
 void
@@ -489,7 +488,7 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
     canvas->cx += self_t->place.w; \
     canvas->cy = self_t->place.y; \
     canvas->endx = canvas->cx; \
-    canvas->endy = self_t->place.y + self_t->place.h; \
+    canvas->endy = max(canvas->endy, self_t->place.y + self_t->place.h); \
   } \
   if (ck == cStack) { \
     canvas->cx = CPX(canvas); \
@@ -2412,7 +2411,7 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
     if (self_t->place.x - CPX(canvas) > self_t->place.w)
     {
       self_t->place.x = CPX(canvas);
-      self_t->place.y = canvas->endy;
+      canvas->cy = self_t->place.y = canvas->endy;
     }
     else
     {
@@ -2444,14 +2443,12 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
     {
       pango_layout_set_indent(self_t->layout, 0);
       self_t->place.x = CPX(canvas);
-      self_t->place.y = canvas->endy;
+      canvas->cy = self_t->place.y = canvas->endy;
       pd = 0;
     }
     else if (((canvas->endy - ld) - lrect.height) > canvas->cy && self_t->place.y < canvas->endy)
       self_t->place.y = ((canvas->endy - ld) - lrect.height);
   }
-  if (!ABSY(self_t->place) && !ABSX(self_t->place) && !pd)
-    tmargin = max(tmargin, canvas->marginy);
   self_t->place.ix = self_t->place.x + lmargin;
   self_t->place.iy = self_t->place.y + tmargin;
 
@@ -2497,24 +2494,29 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
     canvas->place.w, canvas->height, self_t->place.x, self_t->place.ix,
     self_t->place.y, self_t->place.iy, self_t->place.w, self_t->place.h, pd);
 
+  int endy = 0;
   if (!ABSY(self_t->place)) {
     // newlines have an empty size
     if (ck != cStack) {
       if (li == 0) {
-        canvas->endy = self_t->place.y;
+        endy = self_t->place.y;
         canvas->cx = self_t->place.x + lrect.x + lrect.width + rmargin + pd;
       } else {
-        canvas->endy = self_t->place.y + py - lrect.height;
+        endy = self_t->place.y + py - lrect.height;
         if (lrect.width == 0) {
           canvas->cx = self_t->place.x + lrect.x;
         } else {
           canvas->cx = self_t->place.x + lrect.width + rmargin;
         }
-        canvas->cy = canvas->endy;
+        canvas->cy = endy;
       }
     } else {
-      canvas->endy = self_t->place.y + self_t->place.h;
+      endy = self_t->place.y + self_t->place.h;
     }
+
+    canvas->endy = max(endy, canvas->endy);
+    canvas->endx = canvas->cx;
+
     if (ck == cStack || canvas->cx - CPX(canvas) > canvas->width) {
       canvas->cx = CPX(canvas);
       canvas->cy = canvas->endy;
@@ -2522,16 +2524,10 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
     if (NIL_P(ATTR(self_t->attr, margin)) && NIL_P(ATTR(self_t->attr, margin_top)))
       bmargin = lrect.height;
 
-    if (!pd)
-      canvas->marginy = bmargin;
-    else
-      canvas->marginy = max(canvas->marginy, bmargin);
-    canvas->endx = canvas->cx;
-
-    INFO("CX: (%d, %d) / LRECT: (%d, %d) / END: (%d, %d) %d\n", 
+    INFO("CX: (%d, %d) / LRECT: (%d, %d) / END: (%d, %d)\n", 
       canvas->cx, canvas->cy,
       lrect.x, lrect.width,
-      canvas->endx, canvas->endy, canvas->marginy);
+      canvas->endx, canvas->endy);
   }
   return self;
 }

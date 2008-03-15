@@ -1535,6 +1535,8 @@ shoes_app_open(shoes_app *app, char *path)
     gtk_window_set_resizable(GTK_WINDOW(gk->window), FALSE);
   g_signal_connect(G_OBJECT(gk->window), "expose-event",
                    G_CALLBACK(shoes_app_gtk_paint), app);
+  g_signal_connect(G_OBJECT(gk->window), "size-allocate",
+                   G_CALLBACK(shoes_app_gtk_paint), app);
   g_signal_connect(G_OBJECT(gk->window), "motion-notify-event", 
                    G_CALLBACK(shoes_app_gtk_motion), app);
   g_signal_connect(G_OBJECT(gk->window), "key-press-event",

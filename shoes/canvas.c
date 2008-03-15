@@ -431,7 +431,6 @@ shoes_canvas_clear(VALUE self)
   canvas->place.ix = canvas->place.iy = 0;
   canvas->cx = 0;
   canvas->cy = 0;
-  canvas->marginy = 0;
   canvas->endy = 0;
   canvas->endx = 0;
   canvas->topy = 0;
@@ -1176,7 +1175,6 @@ shoes_canvas_reflow(shoes_canvas *self_t, VALUE c)
 
   self_t->cx = self_t->place.ix;
   self_t->cy = self_t->place.iy;
-  self_t->marginy = 0;
   self_t->endx = self_t->place.ix;
   self_t->endy = self_t->place.iy;
   INFO("REFLOW: %d, %d (%d, %d) / %d, %d / %d, %d (%d, %d)\n", self_t->cx, self_t->cy,
@@ -1224,7 +1222,6 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
   {
     self_t->endx = self_t->cx = 0;
     self_t->topy = self_t->endy = self_t->cy = 0;
-    self_t->marginy = 0;
     if (!NIL_P(self_t->parent))
     {
       if (RTEST(actual))
@@ -1337,7 +1334,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
           self_t->cx = c1->place.x + c1->place.w;
           self_t->cy = c1->place.y;
           self_t->endx = self_t->cx;
-          self_t->endy = c1->place.y + c1->place.h;
+          self_t->endy = max(self_t->endy, c1->place.y + c1->place.h);
         }
         if (ck == cStack) {
           self_t->cx = self_t->place.x;
