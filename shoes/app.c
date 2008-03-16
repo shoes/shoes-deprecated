@@ -95,154 +95,55 @@ shoes_app_remove(shoes_app *app)
   return (RARRAY_LEN(shoes_world->apps) == 0);
 }
 
+static gint                                                           
+shoes_app_g_poll (GPollFD *fds, guint nfds, gint timeout)
+{
+  struct timeval tv;
+  fd_set rset, wset, xset;
+  GPollFD *f;
+  int ready;
+  int maxfd = 0;
+
+  FD_ZERO (&rset);
+  FD_ZERO (&wset);
+  FD_ZERO (&xset);
+
+  for (f = fds; f < &fds[nfds]; ++f)
+     if (f->fd >= 0)
+     {
+       if (f->events & G_IO_IN)
+         FD_SET (f->fd, &rset);
+       if (f->events & G_IO_OUT)
+         FD_SET (f->fd, &wset);
+       if (f->events & G_IO_PRI)
+         FD_SET (f->fd, &xset);
+       if (f->fd > maxfd && (f->events & (G_IO_IN|G_IO_OUT|G_IO_PRI)))
+         maxfd = f->fd;
+     }
+  tv.tv_sec = timeout / 1000;
+  tv.tv_usec = (timeout % 1000) * 1000;
+
+  ready = rb_thread_select (maxfd + 1, &rset, &wset, &xset,
+               timeout == -1 ? NULL : &tv);
+  if (ready > 0)
+     for (f = fds; f < &fds[nfds]; ++f)
+     {
+       f->revents = 0;
+       if (f->fd >= 0)
+       {
+         if (FD_ISSET (f->fd, &rset))
+           f->revents |= G_IO_IN;
+         if (FD_ISSET (f->fd, &wset))
+           f->revents |= G_IO_OUT;
+         if (FD_ISSET (f->fd, &xset))
+           f->revents |= G_IO_PRI;
+       }
+     }
+
+  return ready;
+}
+
 #ifdef SHOES_GTK
-#define WAIT_FD   (1<<0)
-#define WAIT_SELECT (1<<1)
-#define WAIT_TIME (1<<2)
-#define WAIT_JOIN (1<<3)
-#define WAIT_PID  (1<<4)
-
-#define DELAY_INFTY 1E30
-
-static double
-timeofday()
-{
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return (double)tv.tv_sec + (double)tv.tv_usec * 1e-6;
-}
-
-typedef struct
-{
-    GSource source;
-    GList *poll_fds;
-    gboolean ready;
-} shoes_source_t;
-
-static void
-source_free_poll_fds(GSource *source, gboolean source_is_destroyed)
-{
-    shoes_source_t *shoes_source = (shoes_source_t *)source;
-    GList *node;
-
-    for (node = shoes_source->poll_fds; node; node = g_list_next(node)) {
-        GPollFD *poll_fd = node->data;
-        if (!source_is_destroyed)
-            g_source_remove_poll(source, poll_fd);
-        g_free(poll_fd);
-    }
-    g_list_free(shoes_source->poll_fds);
-    shoes_source->poll_fds = NULL;
-}
-
-static inline void
-source_prepare_add_poll_fd(GSource *source, rb_thread_t thread)
-{
-    shoes_source_t *shoes_source = (shoes_source_t *)source;
-    GPollFD *poll_fd;
-
-    poll_fd = g_new0(GPollFD, 1);
-    poll_fd->fd = thread->fd;
-    poll_fd->events = G_IO_IN;
-    if (FD_ISSET(thread->fd, &thread->readfds))
-        poll_fd->events |= G_IO_IN;
-    if (FD_ISSET(thread->fd, &thread->writefds))
-        poll_fd->events |= G_IO_OUT;
-    if (FD_ISSET(thread->fd, &thread->exceptfds))
-        poll_fd->events |= G_IO_PRI | G_IO_ERR | G_IO_HUP;
-
-    g_source_add_poll(source, poll_fd);
-    shoes_source->poll_fds = g_list_prepend(shoes_source->poll_fds, poll_fd);
-}
-
-static inline gboolean
-source_prepare_setup_poll_fd(GSource *source, gint *timeout)
-{
-    rb_thread_t thread;
-    gdouble now;
-
-    now = timeofday();
-    thread = curr_thread;
-    do {
-        thread = thread->next;
-
-        if ((thread->wait_for == 0 && thread->status == THREAD_RUNNABLE &&
-             thread != curr_thread) ||
-            (thread->wait_for & WAIT_JOIN &&
-             thread->join->status == THREAD_KILLED))
-            return TRUE;
-
-        if (thread->wait_for & WAIT_TIME && thread->delay != DELAY_INFTY) {
-            gint delay;
-
-            delay = (thread->delay - now) * 1000;
-            if (delay <= 0)
-                return TRUE;
-            if (*timeout == -1 || delay < *timeout)
-                *timeout = delay;
-        }
-
-        if (thread->wait_for & WAIT_FD)
-            source_prepare_add_poll_fd(source, thread);
-    } while (thread != curr_thread);
-
-    return FALSE;
-}
-
-static gboolean
-source_prepare(GSource *source, gint *timeout)
-{
-    shoes_source_t *shoes_source = (shoes_source_t *)source;
-
-    *timeout = -1;
-    source_free_poll_fds(source, FALSE);
-    shoes_source->ready = source_prepare_setup_poll_fd(source, timeout);
-
-    return shoes_source->ready;
-}
-
-static gboolean
-source_check(GSource *source)
-{
-    shoes_source_t *shoes_source = (shoes_source_t *)source;
-    GList *node;
-
-    if (shoes_source->ready)
-        return TRUE;
-
-    for (node = shoes_source->poll_fds; node; node = g_list_next(node)) {
-        GPollFD *poll_fd = node->data;
-
-        if (poll_fd->revents)
-            return TRUE;
-    }
-
-    return FALSE;
-}
-
-static gboolean
-source_dispatch(GSource *source, GSourceFunc callback, gpointer user_data)
-{
-    TRAP_BEG;
-    rb_thread_schedule();
-    TRAP_END;
-
-    return TRUE;
-}
-
-static void
-source_finalize(GSource *source)
-{
-    source_free_poll_fds(source, TRUE);
-}
-
-static GSourceFuncs source_funcs = {
-    source_prepare,
-    source_check,
-    source_dispatch,
-    source_finalize
-};
-
 static VALUE
 shoes_app_gtk_exception(VALUE v, VALUE exc)
 {
@@ -1818,20 +1719,7 @@ shoes_app_loop()
 #endif
 
 #ifdef SHOES_GTK
-  GSource *source;
-  guint tag;
-  shoes_source_t *shoes_source;
-
-  source = g_source_new(&source_funcs, sizeof(shoes_source_t));
-  g_source_set_can_recurse(source, TRUE);
-
-  shoes_source = (shoes_source_t *)source;
-  shoes_source->poll_fds = NULL;
-
-  tag = g_source_attach(source, NULL);
-  g_source_unref(source);
-  rb_set_end_proc((void (*)(VALUE))g_source_remove, (VALUE)tag);
-
+  g_main_set_poll_func(shoes_app_g_poll);
   gtk_main();
 #endif
 
@@ -2079,6 +1967,11 @@ shoes_slot_repaint(SHOES_SLOT_OS *slot)
 {
 #ifdef SHOES_GTK
   gtk_widget_queue_draw(slot->canvas);
+  if (curr_thread != main_thread)
+    gdk_window_process_all_updates();
+  // GdkRegion *region = gdk_drawable_get_clip_region(slot->canvas->window);
+  // gdk_window_invalidate_region(slot->canvas->window, region, TRUE);
+  // gdk_window_process_updates(slot->canvas->window, TRUE);
 #endif
 #ifdef SHOES_QUARTZ
   HIViewSetNeedsDisplay(slot->view, true);
