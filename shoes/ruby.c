@@ -2446,8 +2446,6 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
       canvas->cy = self_t->place.y = canvas->endy;
       pd = 0;
     }
-    else if (((canvas->endy - ld) - lrect.height) > canvas->cy && self_t->place.y < canvas->endy)
-      self_t->place.y = ((canvas->endy - ld) - lrect.height);
   }
   self_t->place.ix = self_t->place.x + lmargin;
   self_t->place.iy = self_t->place.y + tmargin;
@@ -2494,27 +2492,22 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
     canvas->place.w, canvas->height, self_t->place.x, self_t->place.ix,
     self_t->place.y, self_t->place.iy, self_t->place.w, self_t->place.h, pd);
 
-  int endy = 0;
   if (!ABSY(self_t->place)) {
     // newlines have an empty size
     if (ck != cStack) {
       if (li == 0) {
-        endy = self_t->place.y;
         canvas->cx = self_t->place.x + lrect.x + lrect.width + rmargin + pd;
       } else {
-        endy = self_t->place.y + py - lrect.height;
+        canvas->cy = self_t->place.y + py - lrect.height;
         if (lrect.width == 0) {
           canvas->cx = self_t->place.x + lrect.x;
         } else {
           canvas->cx = self_t->place.x + lrect.width + rmargin;
         }
-        canvas->cy = endy;
       }
-    } else {
-      endy = self_t->place.y + self_t->place.h;
     }
 
-    canvas->endy = max(endy, canvas->endy);
+    canvas->endy = max(self_t->place.y + self_t->place.h, canvas->endy);
     canvas->endx = canvas->cx;
 
     if (ck == cStack || canvas->cx - CPX(canvas) > canvas->width) {
