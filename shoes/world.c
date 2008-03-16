@@ -7,6 +7,15 @@
 #include "shoes/config.h"
 #include "shoes/world.h"
 #include "shoes/internal.h"
+#ifndef SHOES_WIN32
+#include <signal.h>
+
+void
+shoes_sigint()
+{
+  gtk_main_quit();
+}
+#endif
 
 shoes_world_t *shoes_world = NULL;
 
@@ -47,6 +56,9 @@ shoes_init(SHOES_INIT_ARGS)
   InitCtrlEx.dwSize = sizeof(INITCOMMONCONTROLSEX);
   InitCtrlEx.dwICC = ICC_PROGRESS_CLASS;
   InitCommonControlsEx(&InitCtrlEx);
+#else
+  signal(SIGINT,  shoes_sigint);
+  signal(SIGQUIT, shoes_sigint);
 #endif
   ruby_init();
   shoes_ruby_init();
