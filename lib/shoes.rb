@@ -142,9 +142,11 @@ class Shoes
     line = caller[-1]
     return if @setups[line]
     script = line[/^(.+?):/, 1]
-    Shoes::Setup.new(script, &blk)
+    set = Shoes::Setup.new(script, &blk)
     @setups[line] = true
-    raise SettingUp
+    unless set.steps.empty?
+      raise SettingUp
+    end
   end
 
   def self.show_selector

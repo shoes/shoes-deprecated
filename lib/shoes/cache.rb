@@ -53,13 +53,10 @@ class Shoes::Setup
     Gem.manage_gems
 
     gem_reset
-    install_sources
+    install_sources if Gem.source_index.find_name('sources').empty?
   end
 
   def self.gem_reset
-    if Gem.const_defined? :ConfigFile
-      Gem.configuration = Gem::ConfigFile.new(:gemhome => GEM_DIR, :gempath => GEM_DIR)
-    end
     Gem.use_paths(GEM_DIR, [GEM_DIR])
     Gem.source_index.refresh!
   end
@@ -82,7 +79,6 @@ class Shoes::Setup
           start do
             Thread.start(self) do |app|
               begin
-                sleep(1) until app.started?
                 setup.start
               rescue => e
                 puts e.message
@@ -98,12 +94,18 @@ class Shoes::Setup
   def initialize(script, &blk)
     @steps = []
     @script = script
-    @app = self.class.setup_app(self)
     instance_eval &blk
+    unless @steps.empty?
+      @app = self.class.setup_app(self)
+    end
   end
 
   def gem name, version = nil
-    @steps << [:gem, "#{name} #{version}".strip]
+    arg = "#{name} #{version}".strip
+    name, version = arg.split(/\s+/, 2)
+    if Gem.source_index.find_name(name, version).empty?
+      @steps << [:gem, arg]
+    end
   end
 
   def start
@@ -112,7 +114,7 @@ class Shoes::Setup
     count, total = 0, @steps.length
     ui.progress count, total
 
-    @steps.each do |act, arg|
+    steps.each do |act, arg|
       case act
       when :gem
         name, version = arg.split(/\s+/, 2)
