@@ -3842,6 +3842,8 @@ CANVAS_DEFS(FUNC_M);
   re##n = rb_eval_string(s); \
   rb_const_set(cShoes, rb_intern("" # n), re##n);
 
+VALUE progname;
+
 //
 // Everything exposed to Ruby is exposed here.
 //
@@ -3849,7 +3851,7 @@ void
 shoes_ruby_init()
 {
   char proc[SHOES_BUFSIZE];
-  VALUE progname = rb_str_new2("(eval)");
+  progname = rb_str_new2("(eval)");
   rb_define_variable("$0", &progname);
   rb_define_variable("$PROGRAM_NAME", &progname);
 
