@@ -71,6 +71,7 @@ shoes_code shoes_slot_repaint(SHOES_SLOT_OS *);
 void shoes_app_reset_styles(shoes_app *);
 void shoes_app_style(shoes_app *, VALUE, VALUE);
 VALUE shoes_app_location(VALUE);
+VALUE shoes_app_is_started(VALUE);
 VALUE shoes_app_quit(VALUE);
 
 #endif

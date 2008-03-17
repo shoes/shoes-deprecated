@@ -134,6 +134,19 @@ class Shoes
     end
   end
 
+  class SettingUp < StandardError; end
+
+  @setups = {}
+
+  def self.setup &blk
+    line = caller[-1]
+    return if @setups[line]
+    script = line[/^(.+?):/, 1]
+    Shoes::Setup.new(script, &blk)
+    @setups[line] = true
+    raise SettingUp
+  end
+
   def self.show_selector
     fname = ask_open_file
     Shoes.load(fname) if fname
@@ -177,6 +190,7 @@ class Shoes
   end
 
   def self.args!
+    Shoes::Setup.init
     if PLATFORM !~ /darwin/
       if ARGV.empty?
         fname = ask_open_file
@@ -220,6 +234,7 @@ class Shoes
       $0.replace path
       eval(File.read(path), TOPLEVEL_BINDING, path)
     end
+  rescue SettingUp
   end
 
   def self.url(path, meth)

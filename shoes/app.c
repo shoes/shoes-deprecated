@@ -1409,7 +1409,7 @@ shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner)
   shoes_canvas_init(app_t->canvas, app_t->slot, attr, app_t->width, app_t->height);
   if (shoes_world->mainloop)
     shoes_app_open(app_t, "/");
-  return self;
+  return app;
 }
 
 VALUE
@@ -1457,8 +1457,8 @@ shoes_app_start(VALUE allapps, char *uri)
     Data_Get_Struct(appobj2, shoes_app, app);
     if (!app->started)
     {
-      app->started = TRUE;
       code = shoes_app_open(app, uri);
+      app->started = TRUE;
       if (code != SHOES_OK)
         return code;
     }
@@ -2061,6 +2061,14 @@ shoes_app_location(VALUE self)
   shoes_app *app;
   Data_Get_Struct(self, shoes_app, app);
   return app->location;
+}
+
+VALUE
+shoes_app_is_started(VALUE self)
+{
+  shoes_app *app;
+  Data_Get_Struct(self, shoes_app, app);
+  return app->started == TRUE ? Qtrue : Qfalse;
 }
 
 VALUE
