@@ -171,6 +171,8 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("hide", hide, 0); \
   f("show", show, 0); \
   f("toggle", toggle, 0); \
+  f("start", start, -1); \
+  f("finish", finish, -1); \
   f("click", click, -1); \
   f("release", release, -1); \
   f("motion", motion, -1); \

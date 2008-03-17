@@ -78,13 +78,16 @@ class Shoes::Setup
           title "", :size => 12, :weight => "bold", :margin => 0
           para "", :size => 10, :margin => 0, :margin_top => 8, :width => 220
           progress :width => 1.0, :top => 80
-        end
-        Thread.start(self) do |app|
-          begin
-            sleep(1) until app.started?
-            setup.start
-          rescue => e
-            puts e.message
+
+          start do
+            Thread.start(self) do |app|
+              begin
+                sleep(1) until app.started?
+                setup.start
+              rescue => e
+                puts e.message
+              end
+            end
           end
         end
       end

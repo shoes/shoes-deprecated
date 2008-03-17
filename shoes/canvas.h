@@ -207,6 +207,10 @@ typedef struct {
 #endif
 } shoes_timer;
 
+#define CANVAS_NADA    0
+#define CANVAS_STARTED 1
+#define CANVAS_REMOVED 2
+
 //
 // temporary canvas (used internally for painting)
 //
@@ -223,7 +227,9 @@ typedef struct {
   VALUE parent;
   VALUE attr;
   VALUE click, release,     // canvas-level event handlers
-    motion, keypress;
+    motion, keypress,
+    start, finish;
+  unsigned char stage;
   double sw;                // current stroke-width
   int cx, cy;               // cursor x and y (stored in absolute coords)
   int endx, endy;           // jump points if the cursor spills over
@@ -348,6 +354,8 @@ VALUE shoes_canvas_hide(VALUE);
 VALUE shoes_canvas_show(VALUE);
 VALUE shoes_canvas_toggle(VALUE);
 VALUE shoes_canvas_mouse(VALUE);
+VALUE shoes_canvas_start(int, VALUE *, VALUE);
+VALUE shoes_canvas_finish(int, VALUE *, VALUE);
 VALUE shoes_canvas_click(int, VALUE *, VALUE);
 VALUE shoes_canvas_release(int, VALUE *, VALUE);
 VALUE shoes_canvas_motion(int, VALUE *, VALUE);

@@ -364,6 +364,8 @@ shoes_canvas_mark(shoes_canvas *canvas)
   rb_gc_mark_maybe(canvas->release);
   rb_gc_mark_maybe(canvas->motion);
   rb_gc_mark_maybe(canvas->keypress);
+  rb_gc_mark_maybe(canvas->start);
+  rb_gc_mark_maybe(canvas->finish);
   rb_gc_mark_maybe(canvas->attr);
   rb_gc_mark_maybe(canvas->parent);
 }
@@ -381,6 +383,7 @@ shoes_canvas_alloc(VALUE klass)
   shoes_canvas *canvas = SHOE_ALLOC(shoes_canvas);
   SHOE_MEMZERO(canvas, shoes_canvas, 1);
   canvas->app = NULL;
+  canvas->stage = CANVAS_NADA;
   canvas->width = 0;
   canvas->height = 0;
   canvas->grl = 1;
@@ -440,6 +443,8 @@ shoes_canvas_clear(VALUE self)
   canvas->motion = Qnil;
   canvas->release = Qnil;
   canvas->keypress = Qnil;
+  canvas->start = Qnil;
+  canvas->finish = Qnil;
 #ifdef SHOES_GTK
   canvas->radios = NULL;
   canvas->layout = NULL;
@@ -1432,7 +1437,17 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
   {
     if (self_t->cr == canvas->cr)
       self_t->cr = NULL;
+
+    if (canvas->stage == CANVAS_NADA)
+    {
+      canvas->stage = CANVAS_STARTED;
+      if (!NIL_P(self_t->start))
+      {
+        shoes_safe_block(self, self_t->start, rb_ary_new());
+      }
+    }
   }
+
   return self;
 }
 
@@ -1681,6 +1696,8 @@ EVENT_HANDLER(click);
 EVENT_HANDLER(release);
 EVENT_HANDLER(motion);
 EVENT_HANDLER(keypress);
+EVENT_HANDLER(start);
+EVENT_HANDLER(finish);
 
 static VALUE
 shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
