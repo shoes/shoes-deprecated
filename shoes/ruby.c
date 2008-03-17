@@ -527,7 +527,7 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
     self_t->hover = (self_t->hover & HOVER_CLICK) | h; \
   }
 
-#define CHANGED_COORDS() self_t->place.x != place.x || self_t->place.y != place.y || self_t->place.w != place.w || self_t->place.h - HEIGHT_PAD != place.h
+#define CHANGED_COORDS() self_t->place.ix != place.ix || self_t->place.iy != place.iy || self_t->place.iw != place.iw || self_t->place.ih - HEIGHT_PAD != place.ih
 #define PLACE_COORDS() place.h -= HEIGHT_PAD; place.ih -= HEIGHT_PAD; self_t->place = place
 
 #ifdef SHOES_GTK
@@ -538,17 +538,15 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
   child = children->data
 
 #define PLACE_CONTROL() \
+  PLACE_COORDS(); \
   gtk_widget_set_size_request(self_t->ref, place.iw, place.ih); \
   gtk_layout_put(GTK_LAYOUT(canvas->slot.canvas), self_t->ref, place.ix, place.iy); \
   gtk_widget_show_all(self_t->ref); \
-  PLACE_COORDS();
 
 #define REPAINT_CONTROL() \
-  if (CHANGED_COORDS()) { \
-    gtk_layout_move(GTK_LAYOUT(canvas->slot.canvas), self_t->ref, place.ix, place.iy); \
-    gtk_widget_set_size_request(self_t->ref, place.iw, place.ih); \
-    PLACE_COORDS(); \
-  } \
+  PLACE_COORDS(); \
+  gtk_layout_move(GTK_LAYOUT(canvas->slot.canvas), self_t->ref, place.ix, place.iy); \
+  gtk_widget_set_size_request(self_t->ref, place.iw, place.ih); \
   if (canvas->slot.expose != NULL) \
   { \
     gtk_container_propagate_expose(GTK_CONTAINER(canvas->slot.canvas), self_t->ref, canvas->slot.expose); \
@@ -567,24 +565,22 @@ shoes_widget_changed(GtkWidget *ref, gpointer data)
 
 #define PLACE_CONTROL() \
   HIRect hr; \
+  PLACE_COORDS(); \
   hr.origin.x = place.ix; hr.origin.y = place.iy; \
-  hr.size.width = place.iw; hr.size.height = place.ih - HEIGHT_PAD; \
+  hr.size.width = place.iw; hr.size.height = place.ih; \
   HIViewAddSubview(canvas->slot.view, self_t->ref); \
   SetControlCommandID(self_t->ref, SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls)); \
   SetControlReference(self_t->ref, (SInt32)canvas->slot.scrollview); \
   HIViewSetFrame(self_t->ref, &hr); \
   HIViewSetVisible(self_t->ref, true); \
   rb_ary_push(canvas->slot.controls, self); \
-  PLACE_COORDS();
 
 #define REPAINT_CONTROL() \
-  if (CHANGED_COORDS()) { \
-    HIRect hr; \
-    hr.origin.x = place.ix; hr.origin.y = place.iy; \
-    hr.size.width = place.iw; hr.size.height = place.ih - HEIGHT_PAD; \
-    HIViewSetFrame(self_t->ref, &hr); \
-    PLACE_COORDS(); \
-  }
+  HIRect hr; \
+  PLACE_COORDS(); \
+  hr.origin.x = place.ix; hr.origin.y = place.iy; \
+  hr.size.width = place.iw; hr.size.height = place.ih; \
+  HIViewSetFrame(self_t->ref, &hr);
 
 static CFStringRef
 shoes_rb2cf(VALUE str)
@@ -626,9 +622,7 @@ shoes_cf2rb(CFStringRef cf)
 
 #define REPAINT_CONTROL() \
   place.iy -= canvas->slot.scrolly; \
-  if (CHANGED_COORDS()) { \
-    PLACE_CONTROL(); \
-  } \
+  PLACE_CONTROL(); \
   place.iy += canvas->slot.scrolly
 
 inline void shoes_win32_control_font(int id, HWND hwnd)
