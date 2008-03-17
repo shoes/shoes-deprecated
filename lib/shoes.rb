@@ -217,7 +217,8 @@ class Shoes
         Dir.chdir(File.dirname(path))
         path = File.basename(path)
       end
-      eval(File.read(path), TOPLEVEL_BINDING)
+      $0.replace path
+      eval(File.read(path), TOPLEVEL_BINDING, path)
     end
   end
 

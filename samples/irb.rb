@@ -32,8 +32,9 @@ class MimickIRB < RubyLex
       end
     end
     unless @line.empty?
-      obj = eval @line, TOPLEVEL_BINDING
+      obj = eval @line, TOPLEVEL_BINDING, "(irb)", @line_no
     end
+    @line_no += @line.scan(/\n/).length
     @line = ''
     @exp_line_no = @line_no
 

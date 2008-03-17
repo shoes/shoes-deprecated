@@ -3849,6 +3849,10 @@ void
 shoes_ruby_init()
 {
   char proc[SHOES_BUFSIZE];
+  VALUE progname = rb_str_new2("(eval)");
+  rb_define_variable("$0", &progname);
+  rb_define_variable("$PROGRAM_NAME", &progname);
+
   instance_eval_proc = rb_eval_string("lambda{|o,b| o.instance_eval(&b)}");
   rb_gc_register_address(&instance_eval_proc);
   s_aref = rb_intern("[]=");
