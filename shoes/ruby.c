@@ -199,8 +199,6 @@ shoes_px(VALUE attr, ID k, int dv, int pv)
       px = dv;
     else
       px = NUM2INT(obj);
-    if (px < 0)
-      px += pv;
   }
   return px;
 }
