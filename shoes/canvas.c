@@ -18,6 +18,8 @@ const double PIM2   = 6.28318530717958647693;
 const double PI     = 3.14159265358979323846;
 const double RAD2PI = 0.01745329251994329577;
 
+static void shoes_canvas_send_start(VALUE);
+
 #ifdef SHOES_GTK
 static void
 shoes_canvas_gtk_paint_children(GtkWidget *widget, gpointer data)
@@ -304,6 +306,7 @@ shoes_canvas_paint(VALUE self)
   DeleteDC(canvas->slot.dc);
 #endif
 
+  shoes_canvas_send_start(self);
 quit:
   return;
 }
@@ -1437,15 +1440,6 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
   {
     if (self_t->cr == canvas->cr)
       self_t->cr = NULL;
-
-    if (canvas->stage == CANVAS_NADA)
-    {
-      canvas->stage = CANVAS_STARTED;
-      if (!NIL_P(self_t->start))
-      {
-        shoes_safe_block(self, self_t->start, rb_ary_new());
-      }
-    }
   }
 
   return self;
@@ -1698,6 +1692,31 @@ EVENT_HANDLER(motion);
 EVENT_HANDLER(keypress);
 EVENT_HANDLER(start);
 EVENT_HANDLER(finish);
+
+static void
+shoes_canvas_send_start(VALUE self)
+{
+  shoes_canvas *canvas;
+  Data_Get_Struct(self, shoes_canvas, canvas);
+
+  if (canvas->stage == CANVAS_NADA)
+  {
+    int i;
+    canvas->stage = CANVAS_STARTED;
+
+    for (i = RARRAY_LEN(canvas->contents) - 1; i >= 0; i--)
+    {
+      VALUE ele = rb_ary_entry(canvas->contents, i);
+      if (rb_obj_is_kind_of(ele, cCanvas) && shoes_canvas_inherits(ele, canvas))
+        shoes_canvas_send_start(ele);
+    }
+
+    if (!NIL_P(canvas->start))
+    {
+      shoes_safe_block(self, canvas->start, rb_ary_new());
+    }
+  }
+}
 
 static VALUE
 shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
