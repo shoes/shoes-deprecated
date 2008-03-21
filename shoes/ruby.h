@@ -71,7 +71,7 @@ void shoes_ruby_init(void);
 // Common funcs for dealing with attribute hashes
 //
 #define ATTR(attr, n)                  shoes_hash_get(attr, s_##n)
-#define PX(attr, n, dn, pn)            shoes_px(attr, s_##n, dn, pn)
+#define PX(attr, n, dn, pn)            shoes_px(attr, s_##n, dn, pn, 1)
 #define PX2(attr, n1, n2, dn, dr, pn)  shoes_px2(attr, s_##n1, s_##n2, dn, dr, pn)
 #define ATTR2(typ, attr, n, dn)        shoes_hash_##typ(attr, s_##n, dn)
 #define ATTRSET(attr, k, v)            attr = shoes_hash_set(attr, s_##k, v)
@@ -82,7 +82,7 @@ void shoes_ruby_init(void);
   int tmargin = ATTR2(int, attr, margin_top, margin); \
   int bmargin = ATTR2(int, attr, margin_bottom, margin)
 
-int shoes_px(VALUE, ID, int, int);
+int shoes_px(VALUE, ID, int, int, int);
 int shoes_px2(VALUE, ID, ID, int, int, int);
 VALUE shoes_hash_set(VALUE, ID, VALUE);
 VALUE shoes_hash_get(VALUE, ID);

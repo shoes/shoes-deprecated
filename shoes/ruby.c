@@ -179,7 +179,7 @@ shoes_safe_block(VALUE canvas, VALUE block, VALUE args)
 }
 
 int
-shoes_px(VALUE attr, ID k, int dv, int pv)
+shoes_px(VALUE attr, ID k, int dv, int pv, int nv)
 {
   int px;
   VALUE obj = shoes_hash_get(attr, k);
@@ -199,6 +199,8 @@ shoes_px(VALUE attr, ID k, int dv, int pv)
       px = dv;
     else
       px = NUM2INT(obj);
+    if (px < 0 && nv == 1)
+      px += pv;
   }
   return px;
 }
@@ -210,12 +212,12 @@ shoes_px2(VALUE attr, ID k1, ID k2, int dv, int dr, int pv)
   VALUE obj = shoes_hash_get(attr, k2);
   if (!NIL_P(obj))
   {
-    px = shoes_px(attr, k2, 0, pv);
+    px = shoes_px(attr, k2, 0, pv, 0);
     px = (pv - dr) - px;
   }
   else
   {
-    px = shoes_px(attr, k1, dv, pv);
+    px = shoes_px(attr, k1, dv, pv, 0);
   }
   return px;
 }
