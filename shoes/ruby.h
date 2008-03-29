@@ -168,6 +168,7 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("flow", flow, -1); \
   f("stack", stack, -1); \
   f("mask", mask, -1); \
+  f("widget", widget, -1); \
   f("hide", hide, 0); \
   f("show", show, 0); \
   f("toggle", toggle, 0); \

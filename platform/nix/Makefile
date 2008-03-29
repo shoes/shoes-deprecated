@@ -8,7 +8,7 @@ PREFIX = /usr/local
 INCS = -I. -I/usr/include -I/usr/local/include
 LIBS = -L/usr/lib -L/usr/local/lib -lcairo -lpangocairo-1.0 -lgif -ljpeg
 
-SVN_VERSION = `svn info | ruby -ne 'x = $$_[/Revision: (.+)/, 1]; puts x if x'`
+REVISION = `git rev-list HEAD | wc -l`
 RUBY_INCS = `ruby -rrbconfig -e 'puts Config::CONFIG["archdir"]'`
 RUBY_LIBS = `ruby -rrbconfig -e 'puts Config::CONFIG["LIBRUBYARG_SHARED"]'`
 RUBY_PREFIX = `ruby -rrbconfig -e 'puts Config::CONFIG["prefix"]'`
@@ -20,7 +20,7 @@ PANGO_LIB = `pkg-config --libs pango`
 GTK_CFLAGS = `pkg-config --cflags gtk+-2.0`
 GTK_LIB = `pkg-config --libs gtk+-2.0`
 
-VERSION = 0.r${SVN_VERSION}
+VERSION = 0.r${REVISION}
 CFLAGS = -DSHOES_GTK -fPIC ${INCS} ${CAIRO_CFLAGS} ${PANGO_CFLAGS} ${GTK_CFLAGS} -I${RUBY_INCS}
 LDFLAGS = -fPIC ${LIBS} ${CAIRO_LIB} ${PANGO_LIB} ${GTK_LIB} ${RUBY_LIBS}
 OPTIONS =

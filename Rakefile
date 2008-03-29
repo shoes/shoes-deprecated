@@ -8,14 +8,8 @@ APPNAME = ENV['APPNAME'] || "Shoes"
 RELEASE_ID, RELEASE_NAME = 2, "Raisins"
 NAME = APPNAME.downcase.gsub(/\W+/, '')
 SONAME = 'shoes'
-SVN_ENTRIES = File.read(".svn/entries") 
-SVN_VERSION =
-  if SVN_ENTRIES =~ /committed-rev\s*=\s*"(\d+)"\s*/
-    $1
-  else
-    SVN_ENTRIES.split(/\n/)[10]
-  end
-VERS = ENV['VERSION'] || "0.r#{SVN_VERSION}"
+REVISION = `git rev-list HEAD`.split.length + 1
+VERS = ENV['VERSION'] || "0.r#{REVISION}"
 PKG = "#{NAME}-#{VERS}"
 APPARGS = ENV['APPARGS']
 FLAGS = %w[DEBUG VIDEO]
@@ -83,7 +77,7 @@ task :package => [:build, :installer]
 
 task "shoes/version.h" do |t|
   File.open(t.name, 'w') do |f|
-    f << %{#define SHOES_RELEASE_ID #{RELEASE_ID}\n#define SHOES_RELEASE_NAME "#{RELEASE_NAME}"\n#define SHOES_REVISION #{SVN_VERSION}\n}
+    f << %{#define SHOES_RELEASE_ID #{RELEASE_ID}\n#define SHOES_RELEASE_NAME "#{RELEASE_NAME}"\n#define SHOES_REVISION #{REVISION}\n}
   end
 end
 
@@ -390,7 +384,7 @@ task :tarball => ['bin/main.c', 'shoes/version.h'] do
   rm "#{PKG}/use-deps"
   cp "bin/main.c", "#{PKG}/bin/main.c"
   cp "shoes/version.h", "#{PKG}/shoes/version.h"
-  rewrite "platform/nix/Makefile", "#{PKG}/Makefile", /^(SVN_VERSION) = .+?$/, 'SVN_VERSION = \1'
+  rewrite "platform/nix/Makefile", "#{PKG}/Makefile", /^(REVISION) = .+?$/, 'REVISION = \1'
   sh "tar czvf pkg/#{PKG}.tar.gz #{PKG}"
   rm_rf PKG
 end

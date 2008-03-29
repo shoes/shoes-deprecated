@@ -1600,6 +1600,22 @@ shoes_canvas_mask(int argc, VALUE *argv, VALUE self)
   return mask;
 }
 
+VALUE
+shoes_canvas_widget(int argc, VALUE *argv, VALUE self)
+{
+  VALUE klass, attr, block, widget;
+  SETUP();
+
+  rb_scan_args(argc, argv, "11&", &klass, &attr, &block);
+  widget = shoes_widget_new(klass, attr, self);
+  if (!NIL_P(block))
+  {
+    DRAW(widget, canvas->app, block);
+  }
+  rb_ary_push(canvas->contents, widget);
+  return widget;
+}
+
 void
 shoes_canvas_size(VALUE self, int w, int h)
 {
@@ -2007,6 +2023,15 @@ VALUE
 shoes_mask_new(VALUE attr, VALUE parent)
 {
   return shoes_slot_new(cMask, attr, parent);
+}
+
+//
+// Shoes::Widget
+//
+VALUE
+shoes_widget_new(VALUE klass, VALUE attr, VALUE parent)
+{
+  return shoes_slot_new(klass, attr, parent);
 }
 
 #ifdef SHOES_QUARTZ

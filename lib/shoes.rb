@@ -250,4 +250,13 @@ class Shoes
       define_method("#{m}=") { |v| style[m] = v }
     end
   end
+
+  def Widget.inherited subc
+    Shoes.class_eval %{
+      def #{subc.to_s[/::(\w+)$/, 1].downcase}(*a, &b)
+        a.unshift #{subc}
+        widget(*a, &b)
+      end
+    }
+  end
 end
