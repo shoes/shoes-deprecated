@@ -5,6 +5,7 @@
 // the basics: GIF and JPEG.
 //
 #include <stdio.h>
+#include <setjmp.h>
 #include "shoes/internal.h"
 #include "shoes/canvas.h"
 #include "shoes/ruby.h"
@@ -208,7 +209,13 @@ struct shoes_jpeg_file_src {
   boolean start_of_file;    /* have we gotten any data yet? */
 };
 
+struct shoes_jpeg_error_mgr {
+  struct jpeg_error_mgr pub;             /* public fields */
+  jmp_buf setjmp_buffer;  /* for return to caller */
+};
+
 typedef struct shoes_jpeg_file_src *shoes_jpeg_file;
+typedef struct shoes_jpeg_error_mgr *shoes_jpeg_err;
 
 #define JPEG_INPUT_BUF_SIZE 4096
 
@@ -294,21 +301,35 @@ jpeg_file_src(j_decompress_ptr cinfo, FILE *infile)
   src->pub.next_input_byte = NULL; /* until buffer loaded */
 }
  
+static void
+shoes_jpeg_fatal(j_common_ptr cinfo)
+{
+  shoes_jpeg_err jpgerr = (shoes_jpeg_err)cinfo->err;
+  longjmp(jpgerr->setjmp_buffer, 1);
+}
+
 cairo_surface_t *
 shoes_surface_create_from_jpeg(char *filename)
 {
   int w, h;
   cairo_surface_t *surface = NULL;
   struct jpeg_decompress_struct cinfo;
-  struct jpeg_error_mgr jpgerr;
+  struct shoes_jpeg_error_mgr jerr;
   FILE *f = fopen(filename, "rb");
   if (!f) return NULL;
 
   // TODO: error handling
-  cinfo.err = jpeg_std_error(&jpgerr);
-  // jpgerr.error_exit = shoes_jpeg_fatal;
+  cinfo.err = jpeg_std_error(&jerr.pub);
+  jerr.pub.error_exit = shoes_jpeg_fatal;
   // jpgerr.emit_message = shoes_jpeg_error;
   // jpgerr.output_message = shoes_jpeg_error2;
+  if (setjmp(jerr.setjmp_buffer)) {
+    // Tcl_AppendResult(interp, "couldn't read JPEG string: ", (char *) NULL);
+    // append_jpeg_message(interp, (j_common_ptr) &cinfo);
+    jpeg_destroy_decompress(&cinfo);
+    return NULL;
+  }
+
   jpeg_create_decompress(&cinfo);
   jpeg_file_src(&cinfo, f);
   jpeg_read_header(&cinfo, TRUE);
@@ -399,6 +420,18 @@ shoes_unsupported_image(VALUE path)
     RSTRING_PTR(path), RSTRING_PTR(ext)); 
 }
 
+static void
+shoes_failed_image(VALUE path)
+{
+  VALUE ext = rb_funcall(rb_cFile, rb_intern("extname"), 1, path);
+  StringValue(path);
+  StringValue(ext);
+  shoes_error("Couldn't load %s. Is the file a valid %s?", 
+    RSTRING_PTR(path), RSTRING_PTR(ext)); 
+}
+
+#define NO_IMAGE (cairo_surface_t *)-1
+
 cairo_surface_t *
 shoes_load_image(VALUE imgpath)
 {
@@ -408,7 +441,7 @@ shoes_load_image(VALUE imgpath)
   int len = RSTRING_LEN(filename);
 
   if (!shoes_check_file_exists(imgpath))
-    img = NULL;
+    img = NO_IMAGE;
   else if (shoes_has_ext(fname, len, ".png"))
     img = cairo_image_surface_create_from_png(RSTRING_PTR(imgpath));
   else if (shoes_has_ext(fname, len, ".jpg") || shoes_has_ext(fname, len, ".jpg"))
@@ -416,7 +449,15 @@ shoes_load_image(VALUE imgpath)
   else if (shoes_has_ext(fname, len, ".gif"))
     img = shoes_surface_create_from_gif(RSTRING_PTR(imgpath));
   else
+  {
     shoes_unsupported_image(imgpath);
+    img = NO_IMAGE;
+  }
+
+  if (img == NULL)
+    shoes_failed_image(imgpath);
+  else if (img == NO_IMAGE)
+    img == NULL;
 
   return img;
 }
