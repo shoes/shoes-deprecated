@@ -1,7 +1,8 @@
 class Shoes
   def image path, opts = {}, &blk
     uri = URI(path) unless uri.is_a? URI
-    if uri.scheme
+    case uri
+    when URI::HTTP, URI::FTP
       uri.open do |fin|
         name = uri.host + "." + fin.meta['etag'].gsub(/[^\w\-\.]/, '') +
           File.extname(uri.path)
