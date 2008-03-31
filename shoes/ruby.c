@@ -1705,7 +1705,10 @@ shoes_app_method_missing(int argc, VALUE *argv, VALUE self)
   canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1);
   if (!NIL_P(canvas) && rb_respond_to(canvas, SYM2ID(cname)))
   {
-    return ts_funcall2(canvas, SYM2ID(cname), argc - 1, argv + 1);
+    if (rb_block_given_p())
+      return ts_funcall2(canvas, SYM2ID(cname), argc - 1, argv + 1);
+    else
+      return rb_funcall2(canvas, SYM2ID(cname), argc - 1, argv + 1);
   }
 
   return shoes_color_method_missing(argc, argv, self);

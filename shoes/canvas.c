@@ -811,15 +811,15 @@ shoes_canvas_video(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_image(int argc, VALUE *argv, VALUE self)
 {
-  VALUE path, attr, image;
+  VALUE path, attr, image, block;
   SETUP();
 
-  rb_scan_args(argc, argv, "11", &path, &attr);
+  rb_scan_args(argc, argv, "11&", &path, &attr, &block);
 
-  if (rb_block_given_p())
+  if (!NIL_P(block))
   {
     if (NIL_P(attr)) attr = rb_hash_new();
-    rb_hash_aset(attr, ID2SYM(s_click), rb_block_proc());
+    rb_hash_aset(attr, ID2SYM(s_click), block);
   }
   image = shoes_image_new(cImage, path, attr, self, canvas->tf, canvas->mode);
   if (!NIL_P(image))

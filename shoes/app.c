@@ -1967,7 +1967,7 @@ shoes_slot_repaint(SHOES_SLOT_OS *slot)
 {
 #ifdef SHOES_GTK
   gtk_widget_queue_draw(slot->canvas);
-  if (curr_thread != main_thread)
+  if (rb_thread_current() != rb_thread_main())
     gdk_window_process_all_updates();
   // GdkRegion *region = gdk_drawable_get_clip_region(slot->canvas->window);
   // gdk_window_invalidate_region(slot->canvas->window, region, TRUE);
