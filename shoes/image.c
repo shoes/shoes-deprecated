@@ -184,6 +184,9 @@ shoes_surface_create_from_gif(char *filename)
     }
   }
 
+  if ((w < 1) || (h < 1) || (w > 8192) || (h > 8192))
+    goto done;
+
   surface = shoes_surface_create_from_pixels(pixels, w, h);
 
 done:
@@ -443,7 +446,11 @@ shoes_load_image(VALUE imgpath)
   if (!shoes_check_file_exists(imgpath))
     img = NO_IMAGE;
   else if (shoes_has_ext(fname, len, ".png"))
+  {
     img = cairo_image_surface_create_from_png(RSTRING_PTR(imgpath));
+    if (cairo_surface_status(img) != CAIRO_STATUS_SUCCESS)
+      img = NULL;
+  }
   else if (shoes_has_ext(fname, len, ".jpg") || shoes_has_ext(fname, len, ".jpg"))
     img = shoes_surface_create_from_jpeg(RSTRING_PTR(imgpath));
   else if (shoes_has_ext(fname, len, ".gif"))
