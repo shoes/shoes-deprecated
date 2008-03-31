@@ -1730,9 +1730,9 @@ shoes_app_loop()
     BOOL msg = PeekMessage(&msgs, NULL, 0, 0, PM_REMOVE);
     if (msg)
     {
+      HWND focused = GetForegroundWindow();
       if (msgs.message == WM_KEYDOWN || msgs.message == WM_KEYUP)
       {
-        HWND focused = GetFocus();
         shoes_app *appk = (shoes_app *)GetWindowLong(focused, GWL_USERDATA);
         if (appk != NULL && RARRAY_LEN(appk->slot.controls) > 0)
         {
@@ -1750,7 +1750,7 @@ shoes_app_loop()
       else if (msgs.message == WM_SYSCHAR || msgs.message == WM_CHAR)
         msg = false;
       if (msg)
-        msg = IsDialogMessage(msgs.hwnd, &msgs);
+        msg = IsDialogMessage(focused, &msgs);
 
       if (!msg)
       {
