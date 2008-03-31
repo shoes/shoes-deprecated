@@ -1531,8 +1531,6 @@ shoes_app_open(shoes_app *app, char *path)
   gk->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   if (!app->resizable)
     gtk_window_set_resizable(GTK_WINDOW(gk->window), FALSE);
-  g_signal_connect(G_OBJECT(gk->window), "expose-event",
-                   G_CALLBACK(shoes_app_gtk_paint), app);
   g_signal_connect(G_OBJECT(gk->window), "size-allocate",
                    G_CALLBACK(shoes_app_gtk_paint), app);
   g_signal_connect(G_OBJECT(gk->window), "motion-notify-event", 
@@ -1967,11 +1965,6 @@ shoes_slot_repaint(SHOES_SLOT_OS *slot)
 {
 #ifdef SHOES_GTK
   gtk_widget_queue_draw(slot->canvas);
-  if (rb_thread_current() != rb_thread_main())
-    gdk_window_process_all_updates();
-  // GdkRegion *region = gdk_drawable_get_clip_region(slot->canvas->window);
-  // gdk_window_invalidate_region(slot->canvas->window, region, TRUE);
-  // gdk_window_process_updates(slot->canvas->window, TRUE);
 #endif
 #ifdef SHOES_QUARTZ
   HIViewSetNeedsDisplay(slot->view, true);
