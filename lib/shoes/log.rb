@@ -12,7 +12,7 @@ module Shoes::LogWindow
       end
       @log, @hash = stack, nil
       update
-      every(1) do
+      every(0.2) do
         update
       end
     end
