@@ -66,13 +66,13 @@ class Shoes::Setup
 
   def self.setup_app(setup)
     app = 
-      Shoes.app :width => 370, :height => 148, :resizable => false do
-        background "#9CF"
-        image "#{DIR}/static/shoes-icon-blue.png", :top => 10, :right => 20
+      Shoes.app :width => 370, :height => 128, :resizable => false do
+        background "#EEE"
+        image "#{DIR}/static/shoes-icon.png", :top => -20, :right => -20
         stack :margin => 18 do
-          title "", :size => 12, :weight => "bold", :margin => 0
-          para "", :size => 10, :margin => 0, :margin_top => 8, :width => 220
-          progress :width => 1.0, :top => 80
+          title "", :size => 10, :weight => "bold", :margin => 0
+          para "", :size => 8, :margin => 0, :margin_top => 8, :width => 220
+          progress :width => 1.0, :top => 70, :height => 20
 
           start do
             Thread.start(self) do |app|
