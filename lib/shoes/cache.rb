@@ -50,8 +50,6 @@ class NotSupportedByShoes < Exception; end
 class Shoes::Setup
 
   def self.init
-    Gem.manage_gems
-
     gem_reset
     install_sources if Gem.source_index.find_name('sources').empty?
   end
