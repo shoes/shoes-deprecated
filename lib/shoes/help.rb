@@ -70,7 +70,7 @@ def Shoes.make_help_page(str)
 
     stack do
       background black
-      para "The Shoes Manual", :stroke => "#eee", :margin_top => 8, :margin_left => 14, 
+      para "The Shoes Manual", :stroke => "#eee", :margin_top => 8, :margin_left => 17, 
         :margin_bottom => 0
       @title = title docs[0][0], :stroke => white, :margin => 4, :margin_left => 14,
         :margin_top => 0, :weight => "bold"
