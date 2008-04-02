@@ -16,6 +16,10 @@ if Object.const_defined? :Shoes
   require 'shoes/log'
 end
  
+def Object.const_missing c
+  Shoes.const_get(c)
+end
+
 class Range 
   def rand 
     conv = (Integer === self.end && Integer === self.begin ? :to_i : :to_f)
