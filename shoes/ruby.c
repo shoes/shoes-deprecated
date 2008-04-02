@@ -345,7 +345,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
       oy = CPY(canvas);
       tw = dw; th = dh;
       testw = dw = canvas->place.iw;
-      dh = max(canvas->height, canvas->fully - (shoes_canvas_independent(canvas) ? 0 : CPY(canvas)));
+      dh = max(canvas->height, (canvas->fully - CPB(canvas)) - (shoes_canvas_independent(canvas) ? 0 : CPY(canvas)));
     }
     else
     {
@@ -367,7 +367,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
       canvas->cy = canvas->endy;
       place->w = canvas->place.iw;
     }
-    place->h = PX(attr, height, dh, canvas->fully - CPY(canvas));
+    place->h = PX(attr, height, dh, (canvas->fully - CPB(canvas)) - CPY(canvas));
 
     if (rel != REL_TILE)
     {
@@ -390,7 +390,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
   place->iy = place->y + tmargin;
   place->iw = place->w - (lmargin + rmargin);
   place->ih = place->h - (tmargin + bmargin);
-  INFO("PLACE: (%d, %d), (%d, %d) [%d, %d] %x\n", place->x, place->y, place->w, place->h, ABSX(*place), ABSY(*place), place->flags);
+  INFO("PLACE: (%d, %d), (%d: %d, %d: %d) [%d, %d] %x\n", place->x, place->y, place->w, place->iw, place->h, place->ih, ABSX(*place), ABSY(*place), place->flags);
 }
 
 void

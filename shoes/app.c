@@ -1645,7 +1645,7 @@ shoes_app_open(shoes_app *app, char *path)
   if (code != SHOES_OK)
     return code;
 
-  INFO("ShowWindow\n");
+  INFO("ShowWindow\n", 0);
   if (!app->hidden)
   {
 #ifdef SHOES_WIN32

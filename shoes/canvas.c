@@ -1429,11 +1429,10 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
   }
   else
   {
-    int bmargin = (self_t->place.h - self_t->place.ih) - 
-      (self_t->place.iy - self_t->place.y);
-    self_t->fully = max(canvas->endy, self_t->endy);
-    self_t->place.ih = self_t->fully;
-    self_t->place.h = self_t->fully + bmargin;
+    int bmargin = CPB(self_t);
+    self_t->fully = canvas->endy = max(canvas->endy, self_t->endy + bmargin);
+    self_t->place.ih = (canvas->endy - self_t->place.iy) - bmargin;
+    self_t->place.h = canvas->endy - self_t->place.y;
   }
 
   if (RTEST(actual))
