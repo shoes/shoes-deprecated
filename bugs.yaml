@@ -22,12 +22,12 @@ issues:
   reporter: DeeJay <smartgpx@gmail.com>
   status: :unstarted
   disposition: 
-  creation_time: 2008-04-02 12:27:46.117788 -05:00
+  creation_time: 2008-04-02 11:27:46.117788 -05:00
   references: []
 
   id: 82ff7152cebb8a1cb065b864cb4fe22de2328146
   log_events: 
-  - - 2008-04-02 12:27:59.069402 -05:00
+  - - 2008-04-02 11:27:59.069402 -05:00
     - _why <why@whytheluckystiff.net>
     - created
     - ""
@@ -60,12 +60,12 @@ issues:
   reporter: beb
   status: :unstarted
   disposition: 
-  creation_time: 2008-04-02 12:30:37.627434 -05:00
+  creation_time: 2008-04-02 11:30:37.627434 -05:00
   references: []
 
   id: e4b0aca4a10a574b333aeaecaaf221dbc5ed22c6
   log_events: 
-  - - 2008-04-02 12:30:41.935158 -05:00
+  - - 2008-04-02 11:30:41.935158 -05:00
     - _why <why@whytheluckystiff.net>
     - created
     - ""
@@ -80,12 +80,12 @@ issues:
   reporter: beb
   status: :unstarted
   disposition: 
-  creation_time: 2008-04-02 12:32:02.853986 -05:00
+  creation_time: 2008-04-02 11:32:02.853986 -05:00
   references: []
 
   id: 320924117cadb045cc91f2a6fca922b4d81d4bb5
   log_events: 
-  - - 2008-04-02 12:32:04.024904 -05:00
+  - - 2008-04-02 11:32:04.024904 -05:00
     - _why <why@whytheluckystiff.net>
     - created
     - ""
@@ -109,12 +109,101 @@ issues:
   reporter: _why <why@whytheluckystiff.net>
   status: :unstarted
   disposition: 
-  creation_time: 2008-04-02 12:32:47.558732 -05:00
+  creation_time: 2008-04-02 11:32:47.558732 -05:00
   references: []
 
   id: 78b16c7988ade2ef96e716fa8cb9a004bd4ced65
   log_events: 
-  - - 2008-04-02 12:32:49.933982 -05:00
+  - - 2008-04-02 11:32:49.933982 -05:00
+    - _why <why@whytheluckystiff.net>
+    - created
+    - ""
+- !ditz.rubyforge.org,2008-03-06/issue 
+  title: Negative stack heights inside pages misbehave
+  desc: |+
+    
+    Once a working stack (with flows and stacks inside) with negative height code is inserted inside a page, good rendering stops.
+    
+    No workaround found yet. Tried: - put everything inside a stack :height => 1.0, :width => 1.0 - put everything inside a stack :height => 300, :width => 500 (no relative dimensions)
+    
+    Using our negative height stack inside those cases doesnt work either.
+    
+  type: :feature
+  component: shoes
+  release: Raisins
+  reporter: pedromg <pedro@tquadrado.com>
+  status: :unstarted
+  disposition: 
+  creation_time: 2008-04-02 13:36:24.687796 -05:00
+  references: []
+
+  id: 183bc3c7a8f575aff2b24e0bf22aa0dfcc8e4fc2
+  log_events: 
+  - - 2008-04-02 13:36:26.135340 -05:00
+    - _why <why@whytheluckystiff.net>
+    - created
+    - ""
+- !ditz.rubyforge.org,2008-03-06/issue 
+  title: Scrolling windows and fixed height slot have a white background -- what about transparent?
+  desc: |
+    Fixed height containers, at current, unavoidably have a background. _why has hardcoded that background to "white" until the problem can be worked out.
+    Here is the test code:
+    
+    Shoes.app do
+    background green
+    stack :width => 100 do
+    border black
+    para "Stack #1", :stroke => red
+    end
+    stack :width => 100, :height => 100 do
+    border black
+    para "Stack #2", :stroke => red
+    end
+    end
+    
+    Stack #1 is transparent, Stack #2 is white.
+    
+    You can deviate from the default with an explicit "background" command, but transparency stops being an option.
+
+  type: :feature
+  component: shoes
+  release: Feinstein
+  reporter: Jesse Thompson <jesset@gmail.com>
+  status: :unstarted
+  disposition: 
+  creation_time: 2008-04-02 13:38:42.719794 -05:00
+  references: []
+
+  id: 1f1d43f76bf4de79d7f94adbae6dd506a9d81633
+  log_events: 
+  - - 2008-04-02 13:38:43.949694 -05:00
+    - _why <why@whytheluckystiff.net>
+    - created
+    - ""
+- !ditz.rubyforge.org,2008-03-06/issue 
+  title: Cursor position in an edit_box
+  desc: |+
+    
+    It would be useful to be able to get and set the current position of the cursor in an edit_box.
+    
+    Suggested name:
+    
+    @editbox.cursor_position
+    @editbox.cursor_position=
+    
+    
+  type: :feature
+  component: shoes
+  release: Murder
+  reporter: tcp
+  status: :unstarted
+  disposition: 
+  creation_time: 2008-04-02 13:39:32.005746 -05:00
+  references: []
+
+  id: 804ee49f9800154eddf0650690c7a9bb5626253f
+  log_events: 
+  - - 2008-04-02 13:39:34.439069 -05:00
     - _why <why@whytheluckystiff.net>
     - created
     - ""
@@ -125,13 +214,13 @@ releases:
 - !ditz.rubyforge.org,2008-03-06/release 
   name: Curious
   status: :released
-  release_time: 2008-01-08 10:00:00 -07:00
+  release_time: 2008-01-08 10:00:00 -05:00
   log_events: 
-  - - 2008-04-02 11:15:31.384943 -05:00
+  - - 2008-04-02 10:15:31.384943 -05:00
     - _why <why@whytheluckystiff.net>
     - created
     - The first version of Shoes. Right before r400.
-  - - 2008-04-02 11:18:48.506461 -05:00
+  - - 2008-04-02 10:18:48.506461 -05:00
     - _why <why@whytheluckystiff.net>
     - released
     - The first release of Shoes.
@@ -140,7 +229,7 @@ releases:
   status: :unreleased
   release_time: 
   log_events: 
-  - - 2008-04-02 11:17:12.803117 -05:00
+  - - 2008-04-02 10:17:12.803117 -05:00
     - _why <why@whytheluckystiff.net>
     - created
     - |-
@@ -153,7 +242,7 @@ releases:
   status: :unreleased
   release_time: 
   log_events: 
-  - - 2008-04-02 11:17:45.417106 -05:00
+  - - 2008-04-02 10:17:45.417106 -05:00
     - _why <why@whytheluckystiff.net>
     - created
     - |-
@@ -165,7 +254,7 @@ releases:
   status: :unreleased
   release_time: 
   log_events: 
-  - - 2008-04-02 11:18:08.652997 -05:00
+  - - 2008-04-02 10:18:08.652997 -05:00
     - _why <why@whytheluckystiff.net>
     - created
     - |-
