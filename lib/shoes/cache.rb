@@ -65,8 +65,9 @@ class Shoes::Setup
   end
 
   def self.setup_app(setup)
+    appt = "Setting up for #{setup.script}"
     app = 
-      Shoes.app :width => 370, :height => 128, :resizable => false do
+      Shoes.app :width => 370, :height => 128, :resizable => false, :title => appt do
         background "#EEE"
         image "#{DIR}/static/shoes-icon.png", :top => -20, :right => -20
         stack :margin => 18 do
