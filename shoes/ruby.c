@@ -1150,7 +1150,7 @@ shoes_video_draw(VALUE self, VALUE c, VALUE actual)
 
         if (RTEST(ATTR(self_t->attr, autoplay)))
         {
-          INFO("Starting playlist.\n", 0);
+          INFO("Starting playlist.\n");
           libvlc_playlist_play(self_t->vlc, 0, 0, NULL, &self_t->excp);
           shoes_vlc_exception(&self_t->excp);
         }

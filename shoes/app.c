@@ -282,7 +282,7 @@ shoes_slot_quartz_handler(
       switch (eventKind)
       {
         case kEventHIObjectConstruct:
-          INFO("kEventHIObjectConstruct\n", 0);
+          INFO("kEventHIObjectConstruct\n");
           qdata = (shoes_qdata *)malloc(sizeof(shoes_qdata));
           qdata->canvas = Qnil;
           err = GetEventParameter(inEvent, kEventParamHIObjectInstance,
@@ -295,7 +295,7 @@ shoes_slot_quartz_handler(
 
         case kEventHIObjectInitialize:
         {
-          INFO("kEventHIObjectInitialize\n", 0);
+          INFO("kEventHIObjectInitialize\n");
           HIRect bounds;
           err = CallNextEventHandler(inCallRef, inEvent);
           if (err != noErr) break;
@@ -306,7 +306,7 @@ shoes_slot_quartz_handler(
         break;
 
         case kEventHIObjectDestruct:
-          INFO("kEventHIObjectDestruct\n", 0);
+          INFO("kEventHIObjectDestruct\n");
           free(qdata);
         break;
       }
@@ -350,7 +350,7 @@ shoes_slot_quartz_handler(
       switch (eventKind)
       {
         case kEventControlInitialize:
-          INFO("kEventHIControlInitialize\n", 0);
+          INFO("kEventHIControlInitialize\n");
           err = CallNextEventHandler(inCallRef, inEvent);
           if (err) break;
 
@@ -366,15 +366,15 @@ shoes_slot_quartz_handler(
 
         case kEventControlDraw:
         {
-          INFO("kEventHIControlDraw\n", 0);
+          INFO("kEventHIControlDraw\n");
           shoes_canvas *canvas;
           Data_Get_Struct(qdata->canvas, shoes_canvas, canvas);
-          INFO("Getting context\n", 0);
+          INFO("Getting context\n");
           GetEventParameter(inEvent, kEventParamCGContextRef, typeCGContextRef,
             NULL, sizeof(CGContextRef), NULL, &canvas->slot.context);
           INFO("Got context: %lu\n", canvas->slot.context);
           shoes_canvas_paint(qdata->canvas);
-          INFO("Painted!\n", 0);
+          INFO("Painted!\n");
           err = noErr;
         }
         break;
@@ -385,7 +385,7 @@ shoes_slot_quartz_handler(
           Ptr ptr;
           Size outSize;
 
-          INFO("kEventControlGetData\n", 0);
+          INFO("kEventControlGetData\n");
           GetEventParameter(inEvent, kEventParamControlDataTag, typeEnumeration,
             NULL, sizeof(OSType), NULL, &tag);
 
@@ -413,7 +413,7 @@ shoes_slot_quartz_handler(
           Ptr ptr;
           OSType tag;
 
-          INFO("kEventControlSetData\n", 0);
+          INFO("kEventControlSetData\n");
           GetEventParameter(inEvent, kEventParamControlDataTag, typeEnumeration,
             NULL, sizeof(OSType), NULL, &tag);
 
@@ -430,7 +430,7 @@ shoes_slot_quartz_handler(
     break;
   }
 
-  INFO("End of window proc\n", 0);
+  INFO("End of window proc\n");
   return err;
 }
 
@@ -615,7 +615,7 @@ shoes_app_quartz_handler(
     break;
 
     case kEventClassTextInput:
-      INFO("kEventClassTextInput\n", 0);
+      INFO("kEventClassTextInput\n");
       switch (eventKind)
       {
         case kEventTextInputUnicodeForKeyEvent:
@@ -713,7 +713,7 @@ shoes_app_quartz_handler(
     break;
   }
 
-  INFO("End of main window proc\n", 0);
+  INFO("End of main window proc\n");
   return err;
 }
 
@@ -1563,7 +1563,7 @@ shoes_app_open(shoes_app *app, char *path)
   app->slot.controls = Qnil;
   SetRect(&gRect, 100, 100, app->width + 100, app->height + 100);
 
-  INFO("Draw QUARTZ window.\n", 0);
+  INFO("Draw QUARTZ window.\n");
   err = CreateNewWindow(kDocumentWindowClass,
       kWindowCompositingAttribute
     | kWindowStandardHandlerAttribute
@@ -1574,7 +1574,7 @@ shoes_app_open(shoes_app *app, char *path)
 
   if (err != noErr)
   {
-    QUIT("Couldn't make a new window.", 0);
+    QUIT("Couldn't make a new window.");
   }
 
   InitCursor();
@@ -1582,10 +1582,10 @@ shoes_app_open(shoes_app *app, char *path)
   gTestWindowEventProc = NewEventHandlerUPP(shoes_app_quartz_handler);
   if (gTestWindowEventProc == NULL)
   {
-    QUIT("Out of memory.", 0);
+    QUIT("Out of memory.");
   }
 
-  INFO("Event handler.\n", 0);
+  INFO("Event handler.\n");
   err = InstallWindowEventHandler(app->os.window,
     gTestWindowEventProc, GetEventTypeCount(windowEvents),
     windowEvents, app, NULL);
@@ -1645,7 +1645,7 @@ shoes_app_open(shoes_app *app, char *path)
   if (code != SHOES_OK)
     return code;
 
-  INFO("ShowWindow\n", 0);
+  INFO("ShowWindow\n");
   if (!app->hidden)
   {
 #ifdef SHOES_WIN32
@@ -1678,7 +1678,7 @@ shoes_app_loop()
     return SHOES_OK;
 
   shoes_world->mainloop = TRUE;
-  INFO("RUNNING LOOP.\n", 0);
+  INFO("RUNNING LOOP.\n");
 
 #ifdef SHOES_QUARTZ
   TextEncoding utf8Encoding, unicodeEncoding;
