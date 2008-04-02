@@ -1216,7 +1216,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
     canvas->radios = NULL;
 #endif
 
-  INFO("DRAW\n", 0);
+  INFO("DRAW\n");
   if (self_t->height > self_t->fully)
     self_t->fully = self_t->height;
   if (self_t != canvas)
@@ -1429,11 +1429,10 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
   }
   else
   {
-    int bmargin = (self_t->place.h - self_t->place.ih) - 
-      (self_t->place.iy - self_t->place.y);
-    self_t->fully = max(canvas->endy, self_t->endy);
-    self_t->place.ih = self_t->fully;
-    self_t->place.h = self_t->fully + bmargin;
+    int bmargin = CPB(self_t);
+    self_t->fully = canvas->endy = max(canvas->endy, self_t->endy + bmargin);
+    self_t->place.ih = (canvas->endy - self_t->place.iy) - bmargin;
+    self_t->place.h = canvas->endy - self_t->place.y;
   }
 
   if (RTEST(actual))
@@ -2057,7 +2056,7 @@ shoes_apple_pasteboard_get(void)
     return s;
   }
   if(PasteboardGetItemCount(clip, &nitem) != noErr){
-    INFO("apple pasteboard get item count failed\n", 0);
+    INFO("apple pasteboard get item count failed\n");
     return nil;
   }
   for(i=1; i<=nitem; i++){
@@ -2097,23 +2096,23 @@ shoes_apple_pasteboard_put(char *s)
     return;
   strcpy(clip_buf, s);
   if(PasteboardClear(clip) != noErr){
-    INFO("apple pasteboard clear failed\n", 0);
+    INFO("apple pasteboard clear failed\n");
     return;
   }
   flags = PasteboardSynchronize(clip);
   if((flags&kPasteboardModified) || !(flags&kPasteboardClientIsOwner)){
-    INFO("apple pasteboard cannot assert ownership\n", 0);
+    INFO("apple pasteboard cannot assert ownership\n");
     return;
   }
   cfdata = CFDataCreate(kCFAllocatorDefault, 
     (unsigned char*)clip_buf, strlen(clip_buf)*2);
   if(cfdata == nil){
-    INFO("apple pasteboard cfdatacreate failed\n", 0);
+    INFO("apple pasteboard cfdatacreate failed\n");
     return;
   }
   if(PasteboardPutItemFlavor(clip, (PasteboardItemID)1,
     CFSTR("public.utf8-plain-text"), cfdata, 0) != noErr){
-    INFO("apple pasteboard putitem failed\n", 0);
+    INFO("apple pasteboard putitem failed\n");
     CFRelease(cfdata);
     return;
   }

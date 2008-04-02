@@ -67,7 +67,7 @@ shoes_init(SHOES_INIT_ARGS)
   shoes_app_quartz_install();
   shoes_slot_quartz_register();
   if (PasteboardCreate(kPasteboardClipboard, &shoes_world->os.clip) != noErr) {
-    INFO("Apple Pasteboard create failed.\n", 0);
+    INFO("Apple Pasteboard create failed.\n");
   }
 #endif
 #ifdef SHOES_WIN32
@@ -156,7 +156,7 @@ shoes_start(char *path, char *uri)
 
   if (len < 0 || len >= SHOES_BUFSIZE)
   {
-    QUIT("Path to script is too long.", 0);
+    QUIT("Path to script is too long.");
   }
 
   VALUE str = rb_eval_string(bootup);

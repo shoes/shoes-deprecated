@@ -50,8 +50,6 @@ class NotSupportedByShoes < Exception; end
 class Shoes::Setup
 
   def self.init
-    Gem.manage_gems
-
     gem_reset
     install_sources if Gem.source_index.find_name('sources').empty?
   end
@@ -68,13 +66,13 @@ class Shoes::Setup
 
   def self.setup_app(setup)
     app = 
-      Shoes.app :width => 370, :height => 148, :resizable => false do
-        background "#9CF"
-        image "#{DIR}/static/shoes-icon-blue.png", :top => 10, :right => 20
+      Shoes.app :width => 370, :height => 128, :resizable => false do
+        background "#EEE"
+        image "#{DIR}/static/shoes-icon.png", :top => -20, :right => -20
         stack :margin => 18 do
-          title "", :size => 12, :weight => "bold", :margin => 0
-          para "", :size => 10, :margin => 0, :margin_top => 8, :width => 220
-          progress :width => 1.0, :top => 80
+          title "", :size => 10, :weight => "bold", :margin => 0
+          para "", :size => 8, :margin => 0, :margin_top => 8, :width => 220
+          progress :width => 1.0, :top => 70, :height => 20
 
           start do
             Thread.start(self) do |app|
@@ -127,7 +125,7 @@ class Shoes::Setup
           self.class.gem_reset
         end
         gem = Gem.source_index.find_name(name, version).first
-        Gem.activate(gem.name, true, "= #{gem.version}")
+        Gem.activate(gem.name, "= #{gem.version}")
         ui.say "Finished installing #{name}"
       end
       ui.progress count, total

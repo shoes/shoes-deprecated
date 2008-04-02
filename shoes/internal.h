@@ -48,14 +48,14 @@ int shoes_snprintf(char* str, size_t size, const char* format, ...);
 #define DEBUGP printf
 #ifdef DEBUG
 
-#define INFO(f, s...) DEBUGP(f, s)
+#define INFO(f, s...) DEBUGP(f, ## s)
 #else
 #define INFO(f, s...)
 #endif
-#define WARN(f, s...) DEBUGP(f, s)
+#define WARN(f, s...) DEBUGP(f, ## s)
 #define QUIT(f, s...) \
   if (code == SHOES_OK) code = SHOES_FAIL; \
-  DEBUGP(f, s); \
+  DEBUGP(f, ## s); \
   goto quit
 #endif
 
