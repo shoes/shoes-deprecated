@@ -1835,6 +1835,9 @@ shoes_app_visit(shoes_app *app, char *path)
   canvas->slot.scrolly = 0;
 #ifndef SHOES_GTK
   rb_ary_clear(app->slot.controls);
+#else
+  GtkAdjustment *adj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(canvas->slot.box));
+  gtk_adjustment_set_value(adj, adj->lower);
 #endif
   for (i = 0; i < RARRAY_LEN(ary); i++) 
   {

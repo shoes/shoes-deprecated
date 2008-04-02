@@ -90,6 +90,7 @@ def Shoes.make_help_page(str)
               @toc.each { |k,v| v.send(k == sect_cls ? :show : :hide) }
               @title.replace sect_s
               @doc.clear(&dewikify(sect_h['description'], true)) 
+              self.scroll_top = 0
             }), :size => 11, :margin => 4
           @toc[sect_cls] =
             stack :hidden => @toc.empty? ? false : true do
@@ -104,6 +105,7 @@ def Shoes.make_help_page(str)
                       instance_eval &dewikify(expl)
                     end
                   end
+                  self.scroll_top = 0
                 }, "\n"]
               end.flatten
               links[-1] = {:size => 9, :margin => 4}
