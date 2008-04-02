@@ -125,7 +125,7 @@ class Shoes::Setup
           self.class.gem_reset
         end
         gem = Gem.source_index.find_name(name, version).first
-        Gem.activate(gem.name, true, "= #{gem.version}")
+        Gem.activate(gem.name, "= #{gem.version}")
         ui.say "Finished installing #{name}"
       end
       ui.progress count, total
