@@ -66,26 +66,25 @@ class Shoes::Setup
 
   def self.setup_app(setup)
     appt = "Setting up for #{setup.script}"
-    app = 
-      Shoes.app :width => 370, :height => 128, :resizable => false, :title => appt do
-        background "#EEE"
-        image "#{DIR}/static/shoes-icon.png", :top => -20, :right => -20
-        stack :margin => 18 do
-          title "", :size => 10, :weight => "bold", :margin => 0
-          para "", :size => 8, :margin => 0, :margin_top => 8, :width => 220
-          progress :width => 1.0, :top => 70, :height => 20
+    Shoes.app :width => 370, :height => 128, :resizable => false, :title => appt do
+      background "#EEE"
+      image "#{DIR}/static/shoes-icon.png", :top => -20, :right => -20
+      stack :margin => 18 do
+        title "", :size => 10, :weight => "bold", :margin => 0
+        para "", :size => 8, :margin => 0, :margin_top => 8, :width => 220
+        progress :width => 1.0, :top => 70, :height => 20
 
-          start do
-            Thread.start(self) do |app|
-              begin
-                setup.start
-              rescue => e
-                puts e.message
-              end
+        start do
+          Thread.start(self) do |app|
+            begin
+              setup.start(app)
+            rescue => e
+              puts e.message
             end
           end
         end
       end
+    end
   end
 
   attr_accessor :steps, :script
@@ -95,7 +94,7 @@ class Shoes::Setup
     @script = script
     instance_eval &blk
     unless @steps.empty?
-      @app = self.class.setup_app(self)
+      app = self.class.setup_app(self)
     end
   end
 
@@ -107,9 +106,9 @@ class Shoes::Setup
     end
   end
 
-  def start
+  def start(app)
     old_ui = Gem::DefaultUserInteraction.ui
-    ui = Gem::DefaultUserInteraction.ui = Gem::ShoesFace.new(@app)
+    ui = Gem::DefaultUserInteraction.ui = Gem::ShoesFace.new(app)
     count, total = 0, @steps.length
     ui.progress count, total
 
@@ -134,7 +133,7 @@ class Shoes::Setup
     Gem::DefaultUserInteraction.ui = old_ui
 
     Shoes.load(@script)
-    @app.close
+    app.close
   end
 
   def svn(dir, save_as = nil, &blk)

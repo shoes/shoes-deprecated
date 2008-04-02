@@ -13,7 +13,12 @@
 void
 shoes_sigint()
 {
+#ifdef SHOES_GTK
   gtk_main_quit();
+#endif
+#ifdef SHOES_QUARTZ
+  QuitApplicationEventLoop();
+#endif
 }
 #endif
 
