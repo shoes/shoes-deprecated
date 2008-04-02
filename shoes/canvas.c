@@ -282,8 +282,7 @@ shoes_canvas_paint(VALUE self)
     cairo_destroy(canvas->cr);
 
   canvas->cr = cr = shoes_cairo_create(&canvas->slot, canvas->width, canvas->height, 0);
-  if (canvas->fully == 0)
-    shoes_canvas_draw(self, self, Qfalse);
+  shoes_canvas_draw(self, self, Qfalse);
   shoes_canvas_draw(self, self, Qtrue);
   cairo_restore(cr);
 
