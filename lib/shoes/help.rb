@@ -1,37 +1,45 @@
-def dewikify_p(str)
-  str = str.gsub(/\n+\s*/, " ").dump.
-    gsub(/`(.+?)`/m, '", code("\1"), "').gsub(/\[\[BR\]\]/i, "\n").
-    gsub(/'''(.+?)'''/m, '", strong("\1"), "').gsub(/''(.+?)''/m, '", em("\1"), "').
-    gsub(/\[\[(\S+?) (.+?)\]\]/m, '", link("\2", :click => "\1"), "')
-    # gsub(/\(\!\)/m, '<img src="/static/exclamation.png" />').
-    # gsub(/\!\\(\S+\.png)\!/, '<img class="inline" src="/static/\1" />').
-    # gsub(/\!(\S+\.png)\!/, '<img src="/static/\1" />')
-  eval "[#{str}]"
-end
+module Shoes::Manual
+  CODE_STYLE = {:size => 9, :margin => 12}
+  INTRO_STYLE = {:size => 12, :weight => "bold", :margin_bottom => 20, :stroke => "#000"}
 
-def dewikify(str, intro = false)
-  proc do
-    paras = str.split(/\s*?(\{{3}(?:.+?)\}{3})|\n\n/m).reject { |x| x.empty? }
-    if intro
-      para *(dewikify_p(paras.shift) + [:size => 12, :weight => "bold"])
-    end
-    paras.map do |ps|
-      if ps =~ /\{{3}(?:\s*\#![^\n]+)?(.+?)\}{3}/m
-        stack { para code($1.gsub(/\A\n+/, '').chomp), :size => 9, :margin => 12 }
-      else
-        case ps
-        when /\A \* (.+)/m
-          para *(dewikify_p($1.split(/^ \* /).join("[[BR]]")))
-        when /\A==== (.+) ====/
-          caption *dewikify_p($1)
-        when /\A=== (.+) ===/
-          tagline *dewikify_p($1)
-        when /\A== (.+) ==/
-          subtitle *dewikify_p($1)
-        when /\A= (.+) =/
-          title *dewikify_p($1)
+  def dewikify_p(str)
+    str = str.gsub(/\n+\s*/, " ").dump.
+      gsub(/`(.+?)`/m, '", code("\1"), "').gsub(/\[\[BR\]\]/i, "\n").
+      gsub(/'''(.+?)'''/m, '", strong("\1"), "').gsub(/''(.+?)''/m, '", em("\1"), "').
+      gsub(/\[\[(\S+?) (.+?)\]\]/m, '", link("\2", :click => "\1"), "')
+      # gsub(/\(\!\)/m, '<img src="/static/exclamation.png" />').
+      # gsub(/\!\\(\S+\.png)\!/, '<img class="inline" src="/static/\1" />').
+      # gsub(/\!(\S+\.png)\!/, '<img src="/static/\1" />')
+    eval("[#{str}]")
+  end
+
+  def dewikify(str, intro = false)
+    proc do
+      paras = str.split(/\s*?(\{{3}(?:.+?)\}{3})|\n\n/m).reject { |x| x.empty? }
+      if intro
+        para *(dewikify_p(paras.shift) + [INTRO_STYLE])
+      end
+      paras.map do |ps|
+        if ps =~ /\{{3}(?:\s*\#![^\n]+)?(.+?)\}{3}/m
+          stack :margin_bottom => 12 do 
+            background rgb(210, 210, 210)
+            para code($1.gsub(/\A\n+/, '').chomp), CODE_STYLE 
+          end
         else
-          para *dewikify_p(ps)
+          case ps
+          when /\A \* (.+)/m
+            para *(dewikify_p($1.split(/^ \* /).join("[[BR]]")))
+          when /\A==== (.+) ====/
+            caption *dewikify_p($1)
+          when /\A=== (.+) ===/
+            tagline *dewikify_p($1)
+          when /\A== (.+) ==/
+            subtitle *dewikify_p($1)
+          when /\A= (.+) =/
+            title *dewikify_p($1)
+          else
+            para *dewikify_p(ps)
+          end
         end
       end
     end
@@ -53,16 +61,19 @@ def Shoes.make_help_page(str)
          'class' => "toc" + k.downcase.gsub(/\W+/, '')}]
     end
   proc do
-    style(Shoes::Code, :stroke => "#C30")
+    extend Shoes::Manual
+    style(Shoes::Code, :weight => "bold", :stroke => "#C30")
     style(Shoes::LinkHover, :stroke => green, :fill => nil)
-    style(Shoes::Para, :size => 9)
+    style(Shoes::Para, :size => 9, :stroke => "#332")
     style(Shoes::Tagline, :size => 12, :weight => "bold", :stroke => "#eee", :margin => 6)
     background "#ddd".."#fff", :angle => 90
 
     stack do
       background black
-      @title = title docs[0][0], :stroke => white, :margin => 14,
-        :weight => "bold"
+      para "The Shoes Manual", :stroke => "#eee", :margin_top => 8, :margin_left => 14, 
+        :margin_bottom => 0
+      @title = title docs[0][0], :stroke => white, :margin => 4, :margin_left => 14,
+        :margin_top => 0, :weight => "bold"
       background "rgb(66, 66, 66, 180)".."rgb(0, 0, 0, 0)", :height => 0.7
       background "rgb(66, 66, 66, 100)".."rgb(255, 255, 255, 0)", :height => 20, :bottom => 0
     end
@@ -79,7 +90,7 @@ def Shoes.make_help_page(str)
               @toc.each { |k,v| v.send(k == sect_cls ? :show : :hide) }
               @title.replace sect_s
               @doc.clear(&dewikify(sect_h['description'], true)) 
-            }), :size => 11
+            }), :size => 11, :margin => 4
           @toc[sect_cls] =
             stack :hidden => @toc.empty? ? false : true do
               links = sect_h['sections'].map do |meth_s, meth_h|
@@ -95,7 +106,7 @@ def Shoes.make_help_page(str)
                   end
                 }, "\n"]
               end.flatten
-              links[-1] = {:size => 9}
+              links[-1] = {:size => 9, :margin => 4}
               para *links
             end
         end
@@ -114,9 +125,9 @@ rescue => e
 end
 
 Shoes::Help = Shoes.make_help_page <<-'END'
-= Shoes =
+= Hello! =
 
-Shoes is a tiny graphics toolkit. It's simple and straightforward. Shoes was born to be easy, it was made for newlyhacks. There's really nothing to it.
+Shoes is a tiny graphics toolkit. It's simple and straightforward. Shoes was born to be easy!  Really, it was made for absolute beginners. There's really nothing to it.
 
 You see, the trivial Shoes program can be just one line:
 
@@ -133,9 +144,9 @@ So, welcome to Shoes' built-in manual. This manual is a Shoes program itself, wr
 
 Well, you can make windowing applications. But Shoes is inspired by the web, so applications tend to use images and text layout rather than a lot of widgets. For example, Shoes doesn't come with tabbed controls or toolbars. Shoes is a ''tiny'' toolkit, remember?
 
-Still, Shoes does have a few widgets like buttons and edit boxes. And many missing elements (like tabbed controls or toolbars) can be simulated with images and mouse events.
+Still, Shoes does have a few widgets like buttons and edit boxes. And many missing elements (like tabbed controls or toolbars) can be simulated with images.
 
-Shoes also has a very good art engine, for drawing with shapes and colors. In this way, Shoes is inspired by NodeBox and Processing, two very good languages for drawing animated graphics.
+Shoes also has a very good art engine called Cairo, which is used for drawing with shapes and colors. In this way, Shoes is inspired by NodeBox and Processing, two very good languages for drawing animated graphics.
 
 == Built-in Methods ==
 
@@ -565,7 +576,7 @@ A timer similar to the `animation` method, but much slower.  This timer fires a 
 
 Creates an Image element for displaying a picture.  PNG, JPEG and GIF formats are allowed.
 
-=== imagesize(path) » [width, height] === 
+=== imagesize(path) » [width, height] ===
 
 Quickly grab the width and height of an image.  The image won't be loaded into the cache or displayed.
 

@@ -2389,6 +2389,8 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
   }
 
   ATTR_MARGINS(self_t->attr, 4);
+  if (NIL_P(ATTR(self_t->attr, margin)) && NIL_P(ATTR(self_t->attr, margin_bottom)))
+    bmargin = 12;
   self_t->place.flags = REL_CANVAS;
   self_t->place.flags |= NIL_P(ATTR(self_t->attr, left)) && NIL_P(ATTR(self_t->attr, right)) ? 0 : FLAG_ABSX;
   self_t->place.flags |= NIL_P(ATTR(self_t->attr, top)) && NIL_P(ATTR(self_t->attr, bottom)) ? 0 : FLAG_ABSY;
