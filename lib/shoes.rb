@@ -119,7 +119,7 @@ class Shoes
 
     opts.on("-s", "--shy DIRECTORY",
             "Compress a directory into a Shoes YAML (SHY) archive.") do |s|
-      Shoes.app(&ShyMake.call(s))
+      make_shy(s)
     end
 
     opts.on("-g", "--gem",
@@ -156,6 +156,10 @@ class Shoes
   def self.show_selector
     fname = ask_open_file
     Shoes.load(fname) if fname
+  end
+
+  def self.make_shy(s)
+    Shoes.app(&ShyMake.call(s))
   end
 
   def self.show_manual
