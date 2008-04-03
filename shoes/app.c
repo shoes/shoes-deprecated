@@ -335,6 +335,7 @@ shoes_slot_quartz_handler(
           SetEventParameter(inEvent, kEventParamOrigin, typeHIPoint, sizeof(bounds.origin), &bounds.origin);
           HIViewGetBounds(canvas->slot.scrollview, &bounds);
           SetEventParameter(inEvent, kEventParamViewSize, typeHISize, sizeof(bounds.size), &bounds.size);
+          bounds.size.height = 50;
           SetEventParameter(inEvent, kEventParamLineSize, typeHISize, sizeof(bounds.size), &bounds.size);
           err = noErr;
         }

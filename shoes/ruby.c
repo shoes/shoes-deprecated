@@ -1283,12 +1283,14 @@ shoes_pattern_gradient(shoes_pattern *pattern, VALUE r1, VALUE r2, VALUE attr)
     r2 = shoes_color_parse(cColor, r2);
 
   pattern->pattern = cairo_pattern_create_linear(0.0, 0.0, 0.0, sin(rads) + cos(rads));
+#ifndef SHOES_QUARTZ
   if (angle != 0.)
   {
     cairo_matrix_t matrix;
     cairo_matrix_init_rotate(&matrix, rads);
     cairo_pattern_set_matrix(pattern->pattern, &matrix);
   }
+#endif
   shoes_color_grad_stop(pattern->pattern, 0.0, r1);
   shoes_color_grad_stop(pattern->pattern, 1.0, r2);
   pattern->width = pattern->height = 1.;
