@@ -264,6 +264,7 @@ shoes_app_gtk_quit(GtkWidget *widget, GdkEvent *event, gpointer data)
 #ifdef SHOES_QUARTZ
 static MenuRef HelpMenu;
 pascal void shoes_app_quartz_redraw(EventLoopTimerRef theTimer, void* userData);
+pascal void shoes_app_quartz_idle(EventLoopTimerRef theTimer, void* userData);
 pascal OSStatus shoes_app_quartz_handler(EventHandlerCallRef inCallRef, EventRef inEvent, void* inUserData);
 pascal OSStatus shoes_slot_quartz_handler(EventHandlerCallRef inCallRef, EventRef inEvent, void* inUserData);
 
@@ -735,6 +736,14 @@ shoes_app_quartz_redraw(
   
   SetRect(&windowRect, 0, 0, app->width, app->height);
   InvalWindowRect(app->os.window, &windowRect);
+}
+
+pascal void
+shoes_app_quartz_idle(
+  EventLoopTimerRef theTimer,
+  void* userData)
+{
+  rb_eval_string("sleep(0.001)");
 }
 
 static pascal OSErr
@@ -1566,7 +1575,7 @@ shoes_app_open(shoes_app *app, char *path)
   Rect                   gRect;
   static EventHandlerUPP gTestWindowEventProc = NULL;
   OSStatus               err;
-  EventLoopTimerRef      redrawTimer;
+  EventLoopTimerRef      rubyTimer;
 
   app->slot.controls = Qnil;
   SetRect(&gRect, 100, 100, app->width + 100, app->height + 100);
@@ -1597,6 +1606,11 @@ shoes_app_open(shoes_app *app, char *path)
   err = InstallWindowEventHandler(app->os.window,
     gTestWindowEventProc, GetEventTypeCount(windowEvents),
     windowEvents, app, NULL);
+
+  err = InstallEventLoopIdleTimer(GetMainEventLoop(),
+   kEventDurationNoWait, 10 * kEventDurationMillisecond,
+   NewEventLoopIdleTimerUPP(shoes_app_quartz_idle),
+   0, &rubyTimer);
 
   HIViewFindByID(HIViewGetRoot(app->os.window), kHIViewWindowContentID, &app->slot.view);
 #endif
