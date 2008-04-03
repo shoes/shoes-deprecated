@@ -8,7 +8,7 @@ APPNAME = ENV['APPNAME'] || "Shoes"
 RELEASE_ID, RELEASE_NAME = 2, "Raisins"
 NAME = APPNAME.downcase.gsub(/\W+/, '')
 SONAME = 'shoes'
-REVISION = 500 # `git rev-list HEAD`.split.length + 1
+REVISION = `git rev-list HEAD`.split.length + 1
 VERS = ENV['VERSION'] || "0.r#{REVISION}"
 PKG = "#{NAME}-#{VERS}"
 APPARGS = ENV['APPARGS']
@@ -81,8 +81,14 @@ task "shoes/version.h" do |t|
   end
 end
 
+task "dist/VERSION.txt" do |t|
+  File.open(t.name, 'w') do |f|
+    f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION})\n}
+  end
+end
+
 desc "Does a full compile, for the OS you're running on"
-task :build => :build_os do
+task :build => [:build_os, "dist/VERSION.txt"] do
   mkdir_p "dist/ruby"
   cp_r  "#{ext_ruby}/lib/ruby/1.8", "dist/ruby/lib"
   FileList["rubygems/*"].each do |rg|
@@ -162,8 +168,11 @@ task :build => :build_os do
     rewrite "platform/mac/Info.plist", "#{APPNAME}.app/Contents/Info.plist"
     cp "platform/mac/version.plist", "#{APPNAME}.app/Contents/"
     cp "platform/mac/pangorc", "#{APPNAME}.app/Contents/MacOS/"
-    rewrite "platform/mac/shoes-launch", "#{APPNAME}.app/Contents/MacOS/#{NAME}"
-    chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}"
+    cp "platform/mac/command-manual.rb", "#{APPNAME}.app/Contents/MacOS/"
+    rewrite "platform/mac/shoes-launch", "#{APPNAME}.app/Contents/MacOS/shoes-launch"
+    chmod 0755, "#{APPNAME}.app/Contents/MacOS/shoes-launch"
+    rewrite "platform/mac/shoes", "#{APPNAME}.app/Contents/MacOS/shoes"
+    chmod 0755, "#{APPNAME}.app/Contents/MacOS/shoes"
     # cp InfoPlist.strings YourApp.app/Contents/Resources/English.lproj/
     `echo -n 'APPL????' > "#{APPNAME}.app/Contents/PkgInfo"`
   when /win32/

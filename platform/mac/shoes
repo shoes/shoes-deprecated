@@ -1,0 +1,22 @@
+#!/bin/sh
+APPPATH="${0%/*}"
+APPFULLPATH="`cd \"$APPPATH\" 2>/dev/null && pwd`"
+RUNPATH="$@"
+
+while getopts mhv OPTION
+do
+  case $OPTION in
+    h)  printf "Usage: shoes [options] (app.rb or app.shy)\n"
+        printf "\t-m\tOpen the built-in manual.\n"
+        printf "\t-v\tDisplay version info.\n"
+        exit
+        ;;
+    m)  RUNPATH="$APPFULLPATH/command-manual.rb"
+        ;;
+    v)  cat "$APPFULLPATH/VERSION.txt"
+        exit
+        ;;
+  esac
+done
+
+open -a $APPFULLPATH/../../../Shoes.app "$RUNPATH"
