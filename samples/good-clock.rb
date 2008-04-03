@@ -14,7 +14,8 @@ Shoes.app :height => 260, :width => 250 do
           para @time.strftime("%a"),
             span(@time.strftime(" %b %d, %Y "), :stroke => "#ccc"), 
             strong(@time.strftime("%I:%M"), :stroke => white), 
-            @time.strftime(".%S"), :align => "center", :stroke => "#666"
+            @time.strftime(".%S"), :align => "center", :stroke => "#666",
+              :margin => 4
         end
         clock_hand @time.sec + (@time.usec * 0.000001),2,30,red
         clock_hand @time.min + (@time.sec / 60.0),5
