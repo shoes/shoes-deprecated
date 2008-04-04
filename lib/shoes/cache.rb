@@ -25,41 +25,43 @@ $:.unshift SITE_LIB_DIR
 $:.unshift GEM_DIR
 
 require 'rbconfig'
-Config::CONFIG['prefix'] = "#{DIR}"
-Config::CONFIG['rubylibdir'] = "#{DIR}/ruby/lib"
-Config::CONFIG['datarootdir'] = "#{DIR}/share"
-Config::CONFIG['dvidir'] = 
-Config::CONFIG['psdir'] = 
-Config::CONFIG['htmldir'] = 
-Config::CONFIG['docdir'] = "#{DIR}/doc/${PACKAGE}"
-Config::CONFIG['archdir'] = "#{DIR}/ruby/lib/#{PLATFORM}"
-Config::CONFIG['sitedir'] = SITE_LIB_DIR
-Config::CONFIG['sitelibdir'] = SITE_LIB_DIR
-Config::CONFIG['sitearchdir'] = "#{SITE_LIB_DIR}/#{PLATFORM}"
-Config::CONFIG['LIBRUBYARG_STATIC'] = Config::CONFIG['LIBRUBYARG']
-Config::CONFIG['libdir'] = "#{DIR}"
-Config::CONFIG['LDFLAGS'] = "-L. -L#{DIR}"
+config = {
+  'prefix' => "#{DIR}", 
+  'rubylibdir' => "#{DIR}/ruby/lib",
+  'datarootdir' => "#{DIR}/share",
+  'dvidir' => "#{DIR}/doc/${PACKAGE}",
+  'psdir' => "#{DIR}/doc/${PACKAGE}",
+  'htmldir' => "#{DIR}/doc/${PACKAGE}",
+  'docdir' => "#{DIR}/doc/${PACKAGE}",
+  'archdir' => "#{DIR}/ruby/lib/#{PLATFORM}",
+  'sitedir' => SITE_LIB_DIR,
+  'sitelibdir' => SITE_LIB_DIR,
+  'sitearchdir' => "#{SITE_LIB_DIR}/#{PLATFORM}",
+  'LIBRUBYARG_STATIC' => "",
+  'libdir' => "#{DIR}",
+  'LDFLAGS' => "-L. -L#{DIR}"
+}
+Config::CONFIG.merge! config
+Config::MAKEFILE_CONFIG.merge! config
 
 require 'rubygems'
 require 'rubygems/dependency_installer'
 class << Gem::Ext::ExtConfBuilder
   def build(extension, directory, dest_path, results)
     Kernel.eval(File.read(File.basename(extension)))
-    run cmd, results
     make(dest_path, results) rescue nil
     results
   end
-  alias_method :make__, :make
-  def make(dest_path, results)
-    raise unless File.exist?('Makefile')
-    mf = File.read('Makefile')
-    mf = mf.gsub(/^INSTALL\s*=\s*\$[^$]*/, "INSTALL = '@$(RUBY) -run -e install -- -vp'")
-    mf = mf.gsub(/^INSTALL_PROG\s*=\s*\$[^$]*/, "INSTALL_PROG = '$(INSTALL) -m 0755'")
-    mf = mf.gsub(/^INSTALL_DATA\s*=\s*\$[^$]*/, "INSTALL_DATA = '$(INSTALL) -m 0644'")
-    puts mf
-    File.open('Makefile', 'wb') {|f| f.print mf}
-    make__(dest_path, results)
-  end
+  # alias_method :make__, :make
+  # def make(dest_path, results)
+  #   raise unless File.exist?('Makefile')
+  #   mf = File.read('Makefile')
+  #   mf = mf.gsub(/^INSTALL\s*=\s*\$[^$]*/, "INSTALL = '@$(RUBY) -run -e install -- -vp'")
+  #   mf = mf.gsub(/^INSTALL_PROG\s*=\s*\$[^$]*/, "INSTALL_PROG = '$(INSTALL) -m 0755'")
+  #   mf = mf.gsub(/^INSTALL_DATA\s*=\s*\$[^$]*/, "INSTALL_DATA = '$(INSTALL) -m 0644'")
+  #   File.open('Makefile', 'wb') {|f| f.print mf}
+  #   make__(dest_path, results)
+  # end
 end
 class << Gem; attr_accessor :loaded_specs end
 
