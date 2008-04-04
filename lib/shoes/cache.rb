@@ -31,6 +31,12 @@ Config::CONFIG['sitelibdir'] = SITE_LIB_DIR
 require 'rubygems'
 require 'rubygems/dependency_installer'
 class << Gem::Ext::ExtConfBuilder
+  def self.build(extension, directory, dest_path, results)
+    load File.basename(extension)
+    run cmd, results
+    make dest_path, results
+    results
+  end
   alias_method :make__, :make
   def self.make(dest_path, results)
     raise unless File.exist?('Makefile')
@@ -57,11 +63,6 @@ class Shoes::Setup
   def self.gem_reset
     Gem.use_paths(GEM_DIR, [GEM_DIR])
     Gem.source_index.refresh!
-  end
-
-  def self.source(uri)
-    Gem.sources.clear
-    Gem.sources << uri
   end
 
   def self.setup_app(setup)
@@ -93,9 +94,13 @@ class Shoes::Setup
     @steps = []
     @script = script
     instance_eval &blk
-    unless @steps.empty?
+    unless no_steps?
       app = self.class.setup_app(self)
     end
+  end
+
+  def no_steps?
+    (@steps.map { |s| s[0] }.uniq - [:source]).empty?
   end
 
   def gem name, version = nil
@@ -104,6 +109,10 @@ class Shoes::Setup
     if Gem.source_index.find_name(name, version).empty?
       @steps << [:gem, arg]
     end
+  end
+
+  def source uri
+    @steps << [:source, uri]
   end
 
   def start(app)
@@ -118,6 +127,7 @@ class Shoes::Setup
         name, version = arg.split(/\s+/, 2)
         count += 1
         ui.say "Looking for #{name}"
+        p Gem.sources
         if Gem.source_index.find_name(name, version).empty?
           ui.title "Installing #{name}"
           installer = Gem::DependencyInstaller.new
@@ -127,6 +137,11 @@ class Shoes::Setup
         gem = Gem.source_index.find_name(name, version).first
         Gem.activate(gem.name, "= #{gem.version}")
         ui.say "Finished installing #{name}"
+      when :source
+        ui.title "Switching Gem servers"
+        ui.say "Pulling from #{arg}"
+        Gem.sources.clear << arg
+        self.class.gem_reset
       end
       ui.progress count, total
     end

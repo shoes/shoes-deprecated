@@ -148,7 +148,7 @@ class Shoes
     script = line[/^(.+?):/, 1]
     set = Shoes::Setup.new(script, &blk)
     @setups[line] = true
-    unless set.steps.empty?
+    unless set.no_steps?
       raise SettingUp
     end
   end
