@@ -94,7 +94,6 @@ task :build => [:build_os, "dist/VERSION.txt"] do
   FileList["rubygems/*"].each do |rg|
     cp_r  rg, "dist/ruby/lib"
   end
-  rm_f  FileList["dist/ruby/lib/**/*.h"]
   unless ENV['STANDARD']
     %w[cgi cgi.rb cgi-lib.rb rdoc rss shell soap webrick wsdl xsd].each do |libn|
       rm_rf "dist/ruby/lib/#{libn}"

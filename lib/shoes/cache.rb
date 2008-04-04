@@ -25,25 +25,38 @@ $:.unshift SITE_LIB_DIR
 $:.unshift GEM_DIR
 
 require 'rbconfig'
-Config::CONFIG['libdir'] = GEM_DIR
+Config::CONFIG['prefix'] = "#{DIR}"
+Config::CONFIG['rubylibdir'] = "#{DIR}/ruby/lib"
+Config::CONFIG['datarootdir'] = "#{DIR}/share"
+Config::CONFIG['dvidir'] = 
+Config::CONFIG['psdir'] = 
+Config::CONFIG['htmldir'] = 
+Config::CONFIG['docdir'] = "#{DIR}/doc/${PACKAGE}"
+Config::CONFIG['archdir'] = "#{DIR}/ruby/lib/#{PLATFORM}"
+Config::CONFIG['sitedir'] = SITE_LIB_DIR
 Config::CONFIG['sitelibdir'] = SITE_LIB_DIR
+Config::CONFIG['sitearchdir'] = "#{SITE_LIB_DIR}/#{PLATFORM}"
+Config::CONFIG['LIBRUBYARG_STATIC'] = Config::CONFIG['LIBRUBYARG']
+Config::CONFIG['libdir'] = "#{DIR}"
+Config::CONFIG['LDFLAGS'] = "-L. -L#{DIR}"
 
 require 'rubygems'
 require 'rubygems/dependency_installer'
 class << Gem::Ext::ExtConfBuilder
-  def self.build(extension, directory, dest_path, results)
-    load File.basename(extension)
+  def build(extension, directory, dest_path, results)
+    Kernel.eval(File.read(File.basename(extension)))
     run cmd, results
-    make dest_path, results
+    make(dest_path, results) rescue nil
     results
   end
   alias_method :make__, :make
-  def self.make(dest_path, results)
+  def make(dest_path, results)
     raise unless File.exist?('Makefile')
     mf = File.read('Makefile')
     mf = mf.gsub(/^INSTALL\s*=\s*\$[^$]*/, "INSTALL = '@$(RUBY) -run -e install -- -vp'")
     mf = mf.gsub(/^INSTALL_PROG\s*=\s*\$[^$]*/, "INSTALL_PROG = '$(INSTALL) -m 0755'")
     mf = mf.gsub(/^INSTALL_DATA\s*=\s*\$[^$]*/, "INSTALL_DATA = '$(INSTALL) -m 0644'")
+    puts mf
     File.open('Makefile', 'wb') {|f| f.print mf}
     make__(dest_path, results)
   end
@@ -71,8 +84,8 @@ class Shoes::Setup
       background "#EEE"
       image "#{DIR}/static/shoes-icon.png", :top => -20, :right => -20
       stack :margin => 18 do
-        title "", :size => 10, :weight => "bold", :margin => 0
-        para "", :size => 8, :margin => 0, :margin_top => 8, :width => 220
+        title "Shoes Setup", :size => 10, :weight => "bold", :margin => 0
+        para "Preparing #{setup.script}", :size => 8, :margin => 0, :margin_top => 8, :width => 220
         progress :width => 1.0, :top => 70, :height => 20
 
         start do
@@ -127,7 +140,6 @@ class Shoes::Setup
         name, version = arg.split(/\s+/, 2)
         count += 1
         ui.say "Looking for #{name}"
-        p Gem.sources
         if Gem.source_index.find_name(name, version).empty?
           ui.title "Installing #{name}"
           installer = Gem::DependencyInstaller.new
