@@ -1,6 +1,6 @@
 class Shoes
   def image path, opts = {}, &blk
-    uri = URI(path) unless uri.is_a? URI
+    uri = (URI(path) rescue nil) unless uri.is_a? URI
     case uri
     when URI::HTTP, URI::FTP
       uri.open do |fin|
