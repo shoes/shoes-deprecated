@@ -4,11 +4,11 @@
 #
 Shoes.setup do
   gem 'RedCloth'
-  gem 'hpricot >= 0.6'
+  gem 'builder >= 2.0'
 end
 
 require 'redcloth'
-require 'hpricot'
+require 'builder'
 
 Shoes.app :width => 300, :height => 400, :resizable => false do
   background "#eed"
