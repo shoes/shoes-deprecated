@@ -36,7 +36,7 @@ ifeq (${VIDEO}, 1)
 	OPTIONS += VIDEO
 endif
 
-all: clean options shoes
+all: options dist/shoes.launch
 
 options:
 	@echo shoes build options:
@@ -60,10 +60,6 @@ dist/shoes-bin: dist/libshoes.so bin/main.o
 
 dist/shoes.launch: dist/shoes-bin
 	@cp platform/nix/shoes.launch dist/
-	@echo 'LD_LIBRARY_PATH="$$APPPATH/../lib/shoes" $$APPPATH/../lib/shoes/shoes-bin $$@' >> dist/shoes.launch 
-	@chmod 755 dist/shoes.launch
-
-shoes: dist/shoes.launch
 	@mkdir -p dist/ruby
 	@ln -s ${RUBY_PREFIX}/lib/ruby/1.8 dist/ruby/lib
 	@cp ${RUBY_PREFIX}/lib/lib${RUBY_SO}.so dist
@@ -74,6 +70,8 @@ shoes: dist/shoes.launch
 	@cp -r static dist/static
 	@rm -rf dist/**/.svn
 	@cp README COPYING dist
+	@echo 'LD_LIBRARY_PATH="$$APPPATH/../lib/shoes" $$APPPATH/../lib/shoes/shoes-bin $$@' >> dist/shoes.launch 
+	@chmod 755 dist/shoes.launch
 
 clean:
 	@echo cleaning
@@ -91,7 +89,7 @@ dist: clean
 	@gzip shoes-${VERSION}.tar
 	@rm -rf shoes-${VERSION}
 
-install: all dist/shoes.launch
+install: all
 	@echo installing executable file to ${DESTDIR}${PREFIX}/bin
 	@mkdir -p ${DESTDIR}${PREFIX}/bin
 	@cp -f dist/shoes.launch ${DESTDIR}${PREFIX}/bin/shoes
