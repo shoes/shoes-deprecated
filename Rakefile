@@ -381,7 +381,7 @@ task :tarball => ['bin/main.c', 'shoes/version.h'] do
   cp "bin/main.c", "#{PKG}/bin/main.c"
   cp "shoes/version.h", "#{PKG}/shoes/version.h"
   rewrite "README", "#{PKG}/README", 
-    /^(.+STAYING CURRENT.+)$/, File.read("platform/nix/INSTALL")
+    /^.+STAYING CURRENT/, File.read("platform/nix/INSTALL")
   rewrite "platform/nix/Makefile", "#{PKG}/Makefile", /^(REVISION) = .+?$/, 'REVISION = \1'
   sh "tar czvf pkg/#{PKG}.tar.gz #{PKG}"
   rm_rf PKG
