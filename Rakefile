@@ -112,7 +112,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     end
   when /darwin/
     if ENV['SHOES_DEPS_PATH']
-      dylibs = %w[lib/libcairo.2.dylib lib/libcairo.2.dylib lib/libgmodule-2.0.0.dylib lib/libintl.8.dylib lib/libruby.dylib
+      dylibs = %w[lib/libcairo.2.dylib lib/libpixman-1.0.dylib lib/libgmodule-2.0.0.dylib lib/libintl.8.dylib lib/libruby.dylib
          lib/libglib-2.0.0.dylib lib/libgobject-2.0.0.dylib lib/libpng12.0.dylib lib/libpango-1.0.0.dylib 
          lib/pango/1.6.0/modules/pango-basic-atsui.la lib/libpangocairo-1.0.0.dylib 
          lib/pango/1.6.0/modules/pango-basic-atsui.so etc/pango/pango.modules
@@ -294,7 +294,7 @@ else
   PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
 
   LINUX_CFLAGS = %[-I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{Config::CONFIG['archdir']}]
-  LINUX_LIB_NAMES = %W[#{ruby_so} cairo pangocairo-1.0 ungif]
+  LINUX_LIB_NAMES = %W[#{ruby_so} png pixman-1 cairo pangocairo-1.0 ungif]
   FLAGS.each do |flag|
     LINUX_CFLAGS << " -D#{flag}" if ENV[flag]
   end
