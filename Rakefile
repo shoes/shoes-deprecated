@@ -8,7 +8,7 @@ APPNAME = ENV['APPNAME'] || "Shoes"
 RELEASE_ID, RELEASE_NAME = 2, "Raisins"
 NAME = APPNAME.downcase.gsub(/\W+/, '')
 SONAME = 'shoes'
-REVISION = `git rev-list HEAD`.split.length + 1
+REVISION = (`#{ENV['GIT'] || "git"} rev-list HEAD`.split.length + 1).to_s
 VERS = ENV['VERSION'] || "0.r#{REVISION}"
 PKG = "#{NAME}-#{VERS}"
 APPARGS = ENV['APPARGS']
@@ -34,16 +34,6 @@ def env(x)
     abort "Your #{x} environment variable is not set!"
   end
   ENV[x]
-end
-
-def rm_svn(root)
-  require 'find'
-  Find.find(root) do |path|
-    if File.basename(path) == '.svn'
-      rm_rf path
-      Find.prune
-    end
-  end
 end
 
 # Subs in special variables
@@ -150,7 +140,6 @@ task :build => [:build_os, "dist/VERSION.txt"] do
   cp_r  "lib", "dist/lib"
   cp_r  "samples", "dist/samples"
   cp_r  "static", "dist/static"
-  rm_svn "dist"
   cp    "README", "dist/README.txt"
   cp    "CHANGELOG", "dist/CHANGELOG.txt"
   cp    "COPYING", "dist/COPYING.txt"
@@ -385,8 +374,7 @@ end
 task :tarball => ['bin/main.c', 'shoes/version.h'] do
   mkdir_p "pkg"
   rm_rf PKG
-  sh "svn export . #{PKG}"
-  sh "svn export rubygems #{PKG}/rubygems"
+  sh "git-checkout-index --prefix=#{PKG}/ -a"
   rm "#{PKG}/bin/main.skel"
   rm "#{PKG}/Rakefile"
   rm "#{PKG}/use-deps"

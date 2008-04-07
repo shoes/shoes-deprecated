@@ -10,7 +10,7 @@ LIBS = -L/usr/lib -L/usr/local/lib -lcairo -lpangocairo-1.0 -lgif -ljpeg
 
 REVISION = `git rev-list HEAD | wc -l`
 RUBY_INCS = `ruby -rrbconfig -e 'puts Config::CONFIG["archdir"]'`
-RUBY_LIBS = `ruby -rrbconfig -e 'puts Config::CONFIG["LIBRUBYARG_SHARED"]'`
+RUBY_LIBS = `ruby -rrbconfig -e 'puts Config::CONFIG["LIBRUBYARG_SHARED"]'` -lruby
 RUBY_PREFIX = `ruby -rrbconfig -e 'puts Config::CONFIG["prefix"]'`
 RUBY_SO = `ruby -rrbconfig -e 'puts Config::CONFIG["RUBY_SO_NAME"]'`
 CAIRO_CFLAGS = `pkg-config --cflags cairo`
