@@ -241,8 +241,16 @@ class Shoes
         Dir.chdir(File.dirname(path))
         path = File.basename(path)
       end
+
       $0.replace path
-      eval(File.read(path), TOPLEVEL_BINDING, path)
+      Object.const_set :DATA, StringIO.new
+
+      code = File.read(path)
+      if code =~ /\n__END__[ \t]*\r?\n/m
+        DATA.write($')
+        DATA.rewind
+      end
+      eval(code, TOPLEVEL_BINDING, path)
     end
   rescue SettingUp
   end
