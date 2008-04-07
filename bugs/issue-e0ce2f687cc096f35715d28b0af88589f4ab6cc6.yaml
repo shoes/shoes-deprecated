@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Warn (possible error) on invalid element stylings.
+desc: As raised by Phlip in [shoes:2580], developers should be notified when a styling is passed to an element that the element is not equipped to handle.
+type: :bugfix
+component: shoes
+release: Murder
+reporter: _why <why@whytheluckystiff.net>
+status: :unstarted
+disposition: 
+creation_time: 2008-04-07 17:30:56.711031 Z
+references: []
+
+id: e0ce2f687cc096f35715d28b0af88589f4ab6cc6
+log_events: 
+- - 2008-04-07 17:30:57.709967 Z
+  - _why <why@whytheluckystiff.net>
+  - created
+  - ""
