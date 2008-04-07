@@ -1,0 +1,52 @@
+
+    READYING ONE'S SELF TO BUILD SHOES
+
+    Before building, be sure you have all the right libraries installed.
+    Shoes relies on Cairo, Pango, libungif, libjpeg, GTK+ 2.0, and Ruby,
+    as well as GCC and its linker.
+
+    To install all of these libraries on Ubuntu or Debian:
+
+      # aptitude install libcairo2-dev libpixman-1-dev libpango1.0-dev \
+          libungif4-dev libjpeg62-dev libgtk2.0-dev vlc libvlc0-dev \
+          ruby1.8-dev rake
+
+    To install these libraries on Fedora:
+     
+      # yum install -y giflib-devel cairo-devel libpixman-devel \
+          pango-devel libjpeg-devel gtk2-devel ruby-devel
+
+//////////////////////////////////////////////////////////////////////////
+
+    BUILDING AND INSTALLING SHOES
+
+    To build from the source tarball:
+
+      $ make
+      # make install
+
+    A few options to be aware of:
+
+      * VIDEO=1 will build in VideoLAN support.
+      * PREFIX=/opt/shoes will install to /opt/shoes.
+
+    So, a practical use of the two options would be:
+
+      $ make VIDEO=1
+      # make PREFIX=/opt/shoes install
+
+    This source tarball should work for all Linux and BSD variants, but
+    if you need help building on your platform, consult the Shoes wiki.
+    <http://code.whytheluckystiff.net/shoes/>
+
+    Or, come join the Shoes mailing list, by sending an email.
+
+      To: shoes@code.whytheluckystiff.net
+      Cc: why@whytheluckystiff.net
+      Subject: subscribe
+
+    Be sure to CC the owner of the list, just as shown above.
+
+//////////////////////////////////////////////////////////////////////////
+
+    STAYING CURRENT WITH SHOES

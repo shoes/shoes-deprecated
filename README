@@ -61,7 +61,7 @@
     THE INSIDE OF SHOES
 
     So, to save a bit of work, Shoes relies on a few libraries:
-
+ 
     * Cairo, for drawing. (http://cairographics.org)
     * Pango, for text.
     * Ruby, for programming.
@@ -71,11 +71,28 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-    BUILDING AND INSTALLING SHOES
+    STAYING CURRENT WITH SHOES
 
-    Since this project is in its infancy, be sure to get instructions from
-    the wiki at http://code.whytheluckystiff.net/shoes/.  Things are changing
-    quickly and this README will be updated when the first release is made.
+    Shoes development happens at Github.  You can download a current
+    tarball of the very latest Shoes from here:
+
+      http://github.com/why/shoes
+
+    Or, if you have git installed, you can clone the repo like so:
+
+      git clone git clone git://github.com/why/shoes.git
+
+    Once you have your compiler and dependencies set up, building Shoes
+    is as simple as:
+
+      rake
+
+    Your Shoes build will then appear in the `dist` directory.
+
+    For instructions on how to set up your compiler and acquire deps for
+    Windows, OS X, and Linux, see the Shoes wiki:
+    <http://code.whytheluckystiff.net/shoes/>  Look for a "Building Shoes"
+    link on the front page.
 
 //////////////////////////////////////////////////////////////////////////
 
