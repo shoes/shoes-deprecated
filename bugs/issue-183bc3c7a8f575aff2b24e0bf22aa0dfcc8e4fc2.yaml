@@ -1,0 +1,25 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Negative stack heights inside pages misbehave
+desc: |+
+  
+  Once a working stack (with flows and stacks inside) with negative height code is inserted inside a page, good rendering stops.
+  
+  No workaround found yet. Tried: - put everything inside a stack :height => 1.0, :width => 1.0 - put everything inside a stack :height => 300, :width => 500 (no relative dimensions)
+  
+  Using our negative height stack inside those cases doesnt work either.
+  
+type: :feature
+component: shoes
+release: Raisins
+reporter: pedromg <pedro@tquadrado.com>
+status: :unstarted
+disposition: 
+creation_time: 2008-04-02 18:36:24.687796 Z
+references: []
+
+id: 183bc3c7a8f575aff2b24e0bf22aa0dfcc8e4fc2
+log_events: 
+- - 2008-04-02 18:36:26.135340 Z
+  - _why <why@whytheluckystiff.net>
+  - created
+  - ""

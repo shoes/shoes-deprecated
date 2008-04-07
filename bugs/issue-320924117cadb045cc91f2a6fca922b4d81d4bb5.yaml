@@ -1,0 +1,20 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: I18n - German
+desc: |-
+  After a short discussion on #shoes a first draft for the German I18n file and a place to add new ideas, translations and so on :)
+  http://pastie.caboo.se/private/wca7ajxvht3lf7bukpkega
+type: :feature
+component: shoes
+release: Feinstein
+reporter: beb
+status: :unstarted
+disposition: 
+creation_time: 2008-04-02 16:32:02.853986 Z
+references: []
+
+id: 320924117cadb045cc91f2a6fca922b4d81d4bb5
+log_events: 
+- - 2008-04-02 16:32:04.024904 Z
+  - _why <why@whytheluckystiff.net>
+  - created
+  - ""

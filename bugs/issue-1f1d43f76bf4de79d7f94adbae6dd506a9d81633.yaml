@@ -1,0 +1,37 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Scrolling windows and fixed height slot have a white background -- what about transparent?
+desc: |
+  Fixed height containers, at current, unavoidably have a background. _why has hardcoded that background to "white" until the problem can be worked out.
+  Here is the test code:
+  
+  Shoes.app do
+  background green
+  stack :width => 100 do
+  border black
+  para "Stack #1", :stroke => red
+  end
+  stack :width => 100, :height => 100 do
+  border black
+  para "Stack #2", :stroke => red
+  end
+  end
+  
+  Stack #1 is transparent, Stack #2 is white.
+  
+  You can deviate from the default with an explicit "background" command, but transparency stops being an option.
+
+type: :feature
+component: shoes
+release: Feinstein
+reporter: Jesse Thompson <jesset@gmail.com>
+status: :unstarted
+disposition: 
+creation_time: 2008-04-02 18:38:42.719794 Z
+references: []
+
+id: 1f1d43f76bf4de79d7f94adbae6dd506a9d81633
+log_events: 
+- - 2008-04-02 18:38:43.949694 Z
+  - _why <why@whytheluckystiff.net>
+  - created
+  - ""
