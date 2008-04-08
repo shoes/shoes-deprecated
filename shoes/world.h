@@ -10,12 +10,15 @@
 #include "shoes/config.h"
 #include "shoes/ruby.h"
 #include "shoes/code.h"
+#include <st.h>
 
 SHOES_EXTERN typedef struct _shoes_world_t {
   SHOES_WORLD_OS os;
   int mainloop;
   char path[SHOES_BUFSIZE];
   VALUE apps, msgs;
+  st_table *image_cache;
+  cairo_surface_t *blank_image;
 } shoes_world_t;
 
 SHOES_EXTERN_VAR shoes_world_t *shoes_world;

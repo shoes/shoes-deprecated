@@ -10,6 +10,7 @@
 #include "shoes/canvas.h"
 #include "shoes/ruby.h"
 #include "shoes/config.h"
+#include "shoes/world.h"
 #include <jpeglib.h>
 #include <jerror.h>
 
@@ -324,10 +325,9 @@ shoes_surface_create_from_jpeg(char *filename)
   // TODO: error handling
   cinfo.err = jpeg_std_error(&jerr.pub);
   jerr.pub.error_exit = shoes_jpeg_fatal;
-  // jpgerr.emit_message = shoes_jpeg_error;
-  // jpgerr.output_message = shoes_jpeg_error2;
+  // jerr.pub.emit_message = shoes_jpeg_error;
+  // jerr.pub.output_message = shoes_jpeg_error2;
   if (setjmp(jerr.setjmp_buffer)) {
-    // Tcl_AppendResult(interp, "couldn't read JPEG string: ", (char *) NULL);
     // append_jpeg_message(interp, (j_common_ptr) &cinfo);
     jpeg_destroy_decompress(&cinfo);
     return NULL;
@@ -433,8 +433,6 @@ shoes_failed_image(VALUE path)
     RSTRING_PTR(path), RSTRING_PTR(ext)); 
 }
 
-#define NO_IMAGE (cairo_surface_t *)-1
-
 cairo_surface_t *
 shoes_load_image(VALUE imgpath)
 {
@@ -443,28 +441,35 @@ shoes_load_image(VALUE imgpath)
   char *fname = RSTRING_PTR(filename);
   int len = RSTRING_LEN(filename);
 
+  if (st_lookup(shoes_world->image_cache, RSTRING_PTR(imgpath), &img))
+    return img;
+
   if (!shoes_check_file_exists(imgpath))
-    img = NO_IMAGE;
+    img = shoes_world->blank_image;
   else if (shoes_has_ext(fname, len, ".png"))
   {
     img = cairo_image_surface_create_from_png(RSTRING_PTR(imgpath));
     if (cairo_surface_status(img) != CAIRO_STATUS_SUCCESS)
       img = NULL;
   }
-  else if (shoes_has_ext(fname, len, ".jpg") || shoes_has_ext(fname, len, ".jpg"))
+  else if (shoes_has_ext(fname, len, ".jpg") || shoes_has_ext(fname, len, ".jpeg"))
     img = shoes_surface_create_from_jpeg(RSTRING_PTR(imgpath));
   else if (shoes_has_ext(fname, len, ".gif"))
     img = shoes_surface_create_from_gif(RSTRING_PTR(imgpath));
   else
   {
     shoes_unsupported_image(imgpath);
-    img = NO_IMAGE;
+    img = shoes_world->blank_image;
   }
 
   if (img == NULL)
+  {
     shoes_failed_image(imgpath);
-  else if (img == NO_IMAGE)
-    img == NULL;
+    img = shoes_world->blank_image;
+  }
+
+  if (img != NULL)
+    st_insert(shoes_world->image_cache, RSTRING_PTR(imgpath), img);
 
   return img;
 }

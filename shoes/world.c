@@ -32,9 +32,19 @@ shoes_world_alloc()
   world->apps = rb_ary_new();
   world->msgs = rb_ary_new();
   world->mainloop = FALSE;
+  world->image_cache = st_init_strtable();
+  world->blank_image = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1);
   rb_gc_register_address(&world->apps);
   rb_gc_register_address(&world->msgs);
   return world;
+}
+
+int
+shoes_world_free_image_cache(char *key, cairo_surface_t *surface, char *arg)
+{
+  cairo_surface_destroy(surface);
+  free(key);
+  return ST_CONTINUE;
 }
 
 void
@@ -44,6 +54,9 @@ shoes_world_free(shoes_world_t *world)
   CFRelease(world->os.clip);
   TECDisposeConverter(world->os.converter);
 #endif
+  st_foreach(world->image_cache, shoes_world_free_image_cache, 0);
+  st_free_table(world->image_cache);
+  cairo_surface_destroy(world->blank_image);
   rb_gc_unregister_address(&world->apps);
   rb_gc_unregister_address(&world->msgs);
   if (world != NULL)

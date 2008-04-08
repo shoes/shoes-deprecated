@@ -808,8 +808,6 @@ shoes_image_mark(shoes_image *image)
 static void
 shoes_image_free(shoes_image *image)
 {
-  if (image->surface != NULL)
-    cairo_surface_destroy(image->surface);
   SHOE_FREE(image->tf);
   RUBY_CRITICAL(SHOE_FREE(image));
 }
@@ -819,21 +817,20 @@ shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, cairo_matrix_
 {
   GError *error = NULL;
   VALUE obj = Qnil;
+  shoes_image *image;
   cairo_surface_t *surf = shoes_load_image(path);
-  if (surf)
-  {
-    shoes_image *image;
-    obj = shoes_image_alloc(klass);
-    Data_Get_Struct(obj, shoes_image, image);
 
-    image->path = path;
-    image->surface = surf;
-    cairo_matrix_init_identity(image->tf);
-    cairo_matrix_multiply(image->tf, image->tf, tf);
-    image->mode = mode;
-    image->attr = attr;
-    image->parent = parent;
-  }
+  obj = shoes_image_alloc(klass);
+  Data_Get_Struct(obj, shoes_image, image);
+
+  image->path = path;
+  image->surface = surf;
+  cairo_matrix_init_identity(image->tf);
+  cairo_matrix_multiply(image->tf, image->tf, tf);
+  image->mode = mode;
+  image->attr = attr;
+  image->parent = parent;
+
   return obj;
 }
 
@@ -866,19 +863,10 @@ VALUE
 shoes_image_set_path(VALUE self, VALUE path)
 {
   cairo_surface_t *surf = shoes_load_image(path);
-  if (surf)
-  {
-    GET_STRUCT(image, image);
-    if (image->surface != NULL)
-      cairo_surface_destroy(image->surface);
-    image->path = path;
-    image->surface = surf;
-    return path;
-  }
-  else
-  {
-    return Qnil;
-  }
+  GET_STRUCT(image, image);
+  image->path = path;
+  image->surface = surf;
+  return path;
 }
 
 VALUE
@@ -1334,18 +1322,10 @@ shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent)
     else
     {
       cairo_surface_t *surface = shoes_load_image(source);
-      if (surface)
-      {
-        pattern->source = source;
-        pattern->width = cairo_image_surface_get_width(surface);
-        pattern->height = cairo_image_surface_get_height(surface);
-        pattern->pattern = cairo_pattern_create_for_surface(surface);
-        cairo_surface_destroy(surface);
-      }
-      else
-      {
-        return Qnil;
-      }
+      pattern->source = source;
+      pattern->width = cairo_image_surface_get_width(surface);
+      pattern->height = cairo_image_surface_get_height(surface);
+      pattern->pattern = cairo_pattern_create_for_surface(surface);
     }
     cairo_pattern_set_extend(pattern->pattern, CAIRO_EXTEND_REPEAT);
   }
