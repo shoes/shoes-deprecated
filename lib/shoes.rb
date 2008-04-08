@@ -146,7 +146,7 @@ class Shoes
   @setups = {}
 
   def self.setup &blk
-    line = caller[-1]
+    line = caller[0]
     return if @setups[line]
     script = line[/^(.+?):/, 1]
     set = Shoes::Setup.new(script, &blk)
