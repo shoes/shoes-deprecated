@@ -62,10 +62,10 @@ def Shoes.make_help_page(str)
     end
   proc do
     extend Shoes::Manual
-    style(Code, :weight => "bold", :stroke => "#C30")
-    style(LinkHover, :stroke => green, :fill => nil)
-    style(Para, :size => 9, :stroke => "#332")
-    style(Tagline, :size => 12, :weight => "bold", :stroke => "#eee", :margin => 6)
+    style(Shoes::Code, :weight => "bold", :stroke => "#C30")
+    style(Shoes::LinkHover, :stroke => green, :fill => nil)
+    style(Shoes::Para, :size => 9, :stroke => "#332")
+    style(Shoes::Tagline, :size => 12, :weight => "bold", :stroke => "#eee", :margin => 6)
     background "#ddd".."#fff", :angle => 90
 
     stack do

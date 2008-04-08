@@ -16,10 +16,6 @@ if Object.const_defined? :Shoes
   require 'shoes/log'
 end
  
-def Object.const_missing c
-  Shoes.const_get(c)
-end
-
 class Range 
   def rand 
     conv = (Integer === self.end && Integer === self.begin ? :to_i : :to_f)
@@ -36,6 +32,13 @@ end
 
 class Shoes
   VERSION = "Raisins"
+
+  MAIN = Object.new
+  def MAIN.to_s
+    "(shoes)"
+  end
+
+  BINDING = MAIN.instance_eval { binding }
 
   NotFound = proc do
     para "404 NOT FOUND, GUYS!"
@@ -243,14 +246,9 @@ class Shoes
       end
 
       $0.replace path
-      Object.const_set :DATA, StringIO.new
 
       code = File.read(path)
-      if code =~ /\n__END__[ \t]*\r?\n/m
-        DATA.write($')
-        DATA.rewind
-      end
-      eval(code, TOPLEVEL_BINDING, path)
+      eval(code, Shoes::BINDING, path)
     end
   rescue SettingUp
   end

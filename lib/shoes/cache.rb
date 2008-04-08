@@ -285,16 +285,17 @@ class Gem::ShoesFace
   class ProgressReporter
     attr_reader :count
 
-    def initialize(prog, size, initial_message,
+    def initialize(prog, status, size, initial_message,
                    terminal_message = "complete")
       @prog = prog
+      (@status = status).replace initial_message
       @total = size
       @count = 0.0
     end
 
     def updated(message)
       @count += 1.0
-      @prog.fraction = @count / @total.to_f
+      @prog.fraction = (@count / @total.to_f) * 0.5
     end
 
     def done
@@ -324,8 +325,7 @@ class Gem::ShoesFace
     ask(quiz) if quiz
   end
   def progress_reporter(*args)
-    SilentProgressReporter.new(nil, *args)
-    # ProgressReporter.new(@prog, *args)
+    ProgressReporter.new(@prog, @status, *args)
   end
   def method_missing(*args)
     p args
