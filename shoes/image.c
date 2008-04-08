@@ -441,7 +441,7 @@ shoes_load_image(VALUE imgpath)
   char *fname = RSTRING_PTR(filename);
   int len = RSTRING_LEN(filename);
 
-  if (st_lookup(shoes_world->image_cache, RSTRING_PTR(imgpath), &img))
+  if (st_lookup(shoes_world->image_cache, (st_data_t)RSTRING_PTR(imgpath), (st_data_t *)&img))
     return img;
 
   if (!shoes_check_file_exists(imgpath))
@@ -468,8 +468,8 @@ shoes_load_image(VALUE imgpath)
     img = shoes_world->blank_image;
   }
 
-  if (img != NULL)
-    st_insert(shoes_world->image_cache, RSTRING_PTR(imgpath), img);
+  if (img != shoes_world->blank_image)
+    st_insert(shoes_world->image_cache, (st_data_t)RSTRING_PTR(imgpath), (st_data_t)img);
 
   return img;
 }

@@ -54,7 +54,7 @@ shoes_world_free(shoes_world_t *world)
   CFRelease(world->os.clip);
   TECDisposeConverter(world->os.converter);
 #endif
-  st_foreach(world->image_cache, shoes_world_free_image_cache, 0);
+  st_foreach(world->image_cache, CASTFOREACH(shoes_world_free_image_cache), 0);
   st_free_table(world->image_cache);
   cairo_surface_destroy(world->blank_image);
   rb_gc_unregister_address(&world->apps);

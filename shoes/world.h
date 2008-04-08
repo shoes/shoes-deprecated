@@ -10,7 +10,6 @@
 #include "shoes/config.h"
 #include "shoes/ruby.h"
 #include "shoes/code.h"
-#include <st.h>
 
 SHOES_EXTERN typedef struct _shoes_world_t {
   SHOES_WORLD_OS os;

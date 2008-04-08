@@ -6,11 +6,29 @@
 #include <rubysig.h>
 #include "shoes/canvas.h"
 
+#if defined(__cplusplus)
+extern "C" {
+#if 0
+} /* satisfy cc-mode */
+#endif
+#endif
+
+#include <st.h>
+
+#if defined(__cplusplus)
+#if 0
+{ /* satisfy cc-mode */
+#endif
+}  /* extern "C" { */
+#endif
+
 #ifndef SHOES_RUBY_H
 #define SHOES_RUBY_H
 
 #if SHOES_WIN32
 typedef VALUE (*HOOK)(...);
+typedef int (*FOREACH)(...);
+#define CASTFOREACH(x) reinterpret_cast<FOREACH>(x)
 #define CASTHOOK(x) reinterpret_cast<HOOK>(x)
 #undef fopen
 #undef fclose
@@ -18,6 +36,7 @@ typedef VALUE (*HOOK)(...);
 #else
 typedef VALUE (*HOOK)();
 #define CASTHOOK(x) x
+#define CASTFOREACH(x) x
 #endif
 
 #ifndef RARRAY_LEN
