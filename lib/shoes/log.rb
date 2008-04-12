@@ -22,12 +22,15 @@ module Shoes::LogWindow
       @hash = Shoes.log.hash
       @log.clear do
         i = 0
-        Shoes.log.each do |typ, msg, at|
+        Shoes.log.each do |typ, msg, at, mid, rbf, rbl|
           stack do
             background "#f1f5e1" if i % 2 == 0
-            inscription strong(typ, :stroke => "#C50"), " ", at, :stroke => "#950", :margin => 4, :margin_bottom => 0
+            inscription strong(typ, :stroke => "#05C"), " in ", 
+              span(rbf, " line ", rbl, :stroke => "#335"), " | ",
+              span(at, :stroke => "#777"), 
+              :stroke => "#059", :margin => 4, :margin_bottom => 0
             flow do
-              stack :margin => 4, :width => 20 do
+              stack :margin => 6, :width => 20 do
                 image "#{DIR}/static/icon-#{typ}.png"
               end
               stack :margin => 4, :width => -20 do
