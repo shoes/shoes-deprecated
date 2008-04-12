@@ -185,9 +185,7 @@ module Gem
     # Terminate the appliation normally, running any exit handlers
     # that might have been defined.
     def terminate_interaction(status=0)
-      e = Gem::SystemExitException.new "Exiting RubyGems with exit_code = #{status}"
-      e.exit_code = status
-      raise e
+      raise Gem::SystemExitException, status
     end
 
     # Return a progress reporter object

@@ -1976,17 +1976,14 @@ shoes_slot_new(VALUE klass, VALUE attr, VALUE parent)
   self_t->app = pc->app;
   self_t->attr = attr;
   if (!NIL_P(ATTR(self_t->attr, height))) {
-    int x, y, w, h;
-    x = ATTR2(int, self_t->attr, left, 0);
-    y = ATTR2(int, self_t->attr, top, 0);
-    w = ATTR2(int, self_t->attr, width, 100);
-    h = ATTR2(int, self_t->attr, height, 100);
-
-    shoes_slot_init(self, &pc->slot, x, y, w, h, FALSE);
+    //
+    // create the slot off-screen until it can be properly placed
+    //
+    shoes_slot_init(self, &pc->slot, -99, -99, 100, 100, FALSE);
 #ifdef SHOES_GTK
     gtk_widget_show_all(self_t->slot.box);
-    self_t->width = w - 20;
-    self_t->height = h - 20;
+    self_t->width = 100;
+    self_t->height = 100;
 #endif
     self_t->place.x = self_t->place.y = 0;
     self_t->place.ix = self_t->place.iy = 0;

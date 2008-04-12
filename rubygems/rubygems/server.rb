@@ -51,7 +51,7 @@ class Gem::Server
         <h1>Summary</h1>
   <p>There are <%=values["gem_count"]%> gems installed:</p>
   <p>
-  <%= values["specs"].map { |v| "<a href=\"#{v["name"]}\">#{v["name"]}</a>" }.join ', ' %>. 
+  <%= values["specs"].map { |v| "<a href=\"##{v["name"]}\">#{v["name"]}</a>" }.join ', ' %>.
   <h1>Gems</h1>
 
   <dl>
@@ -77,7 +77,7 @@ class Gem::Server
 
   	<% if spec["has_deps"] then %>
   	 - depends on
-  		<%= spec["dependencies"].map { |v| "<a href=\"#{v["name"]}\">#{v["name"]}</a>" }.join ', ' %>. 
+  		<%= spec["dependencies"].map { |v| "<a href=\"##{v["name"]}\">#{v["name"]}</a>" }.join ', ' %>.
   	<% end %>
   	</dt>
   	<dd>

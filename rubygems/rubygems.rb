@@ -97,7 +97,7 @@ module Gem
 
   @configuration = nil
   @loaded_specs = {}
-  @platforms = nil
+  @platforms = []
   @ruby = nil
   @sources = []
 
@@ -202,6 +202,13 @@ module Gem
   end
 
   private_class_method :all_partials
+
+  ##
+  # The mode needed to read a file as straight binary.
+
+  def self.binary_mode
+    @binary_mode ||= RUBY_VERSION > '1.9' ? 'rb:ascii-8bit' : 'rb'
+  end
 
   ##
   # The path where gem executables are to be installed.
@@ -408,11 +415,13 @@ module Gem
 
   ##
   # manage_gems is useless and deprecated.  Don't call it anymore.
+  #--
+  # TODO warn w/ RubyGems 1.2.x release.
 
   def self.manage_gems
-    file, lineno = location_of_caller
+    #file, lineno = location_of_caller
 
-    warn "#{file}:#{lineno}:Warning: Gem#manage_gems is deprecated and will be removed on or after September 2008."
+    #warn "#{file}:#{lineno}:Warning: Gem#manage_gems is deprecated and will be removed on or after September 2008."
   end
 
   ##
@@ -442,10 +451,21 @@ module Gem
   end
 
   ##
+  # Set array of platforms this RubyGems supports (primarily for testing).
+
+  def self.platforms=(platforms)
+    @platforms = platforms
+  end
+
+  ##
   # Array of platforms this RubyGems supports.
 
   def self.platforms
-    @platforms ||= [Gem::Platform::RUBY, Gem::Platform.local]
+    @platforms ||= []
+    if @platforms.empty?
+      @platforms = [Gem::Platform::RUBY, Gem::Platform.local]
+    end
+    @platforms
   end
 
   ##
@@ -454,11 +474,31 @@ module Gem
   def self.prefix
     prefix = File.dirname File.expand_path(__FILE__)
 
-    if prefix == File.expand_path(ConfigMap[:sitelibdir]) then
+    if File.dirname(prefix) == File.expand_path(ConfigMap[:sitelibdir]) or
+       File.dirname(prefix) == File.expand_path(ConfigMap[:libdir]) or
+       'lib' != File.basename(prefix) then
       nil
     else
       File.dirname prefix
     end
+  end
+
+  ##
+  # Refresh source_index from disk and clear searcher.
+
+  def self.refresh
+    source_index.refresh!
+
+    MUTEX.synchronize do
+      @searcher = nil
+    end
+  end
+
+  ##
+  # Safely read a file in binary mode on all platforms.
+
+  def self.read_binary(path)
+    File.open path, binary_mode do |f| f.read end
   end
 
   ##
@@ -508,6 +548,16 @@ module Gem
     end
 
     @ruby
+  end
+
+  ##
+  # A Gem::Version for the currently running ruby.
+
+  def self.ruby_version
+    return @ruby_version if defined? @ruby_version
+    version = RUBY_VERSION.dup
+    version << ".#{RUBY_PATCHLEVEL}" if defined? RUBY_PATCHLEVEL
+    @ruby_version = Gem::Version.new version
   end
 
   ##
