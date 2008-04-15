@@ -18,4 +18,17 @@ class Shoes
     end
     image_file path, opts, &blk
   end
+  def snapshot(options = {}, &block)
+    options[:format]   ||= :svg
+
+    options[:filename] ||= ( tf_path = ( require 'tempfile'
+                 tf = Tempfile.new(File.basename(__FILE__)).path ))
+
+    _snapshot options do
+      block.call
+    end
+    return File.read(options[:filename])
+  ensure
+    File.unlink(tf_path) if tf_path
+  end
 end

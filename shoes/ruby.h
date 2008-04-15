@@ -207,6 +207,7 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("window", window, -1); \
   f("dialog", dialog, -1); \
   f("window_plain", window_plain, 0); \
-  f("dialog_plain", dialog_plain, 0)
+  f("dialog_plain", dialog_plain, 0); \
+  f("_snapshot", snapshot, -1)  /* TODO neg one?? */
 
 #endif

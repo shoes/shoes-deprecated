@@ -6,6 +6,10 @@
 #define SHOES_CANVAS_H
 
 #include <cairo.h>
+#include <cairo-svg.h>
+#include <cairo-ps.h>
+#include <cairo-pdf.h>
+
 #include <pango/pangocairo.h>
 #ifdef VIDEO
 #include <vlc/libvlc.h>
@@ -376,6 +380,7 @@ VALUE shoes_canvas_window(int, VALUE *, VALUE);
 VALUE shoes_canvas_dialog(int, VALUE *, VALUE);
 VALUE shoes_canvas_window_plain(VALUE);
 VALUE shoes_canvas_dialog_plain(VALUE);
+VALUE shoes_canvas_snapshot(int, VALUE *, VALUE);
 
 VALUE shoes_slot_new(VALUE, VALUE, VALUE);
 VALUE shoes_flow_new(VALUE, VALUE);

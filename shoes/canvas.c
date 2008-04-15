@@ -1477,6 +1477,73 @@ shoes_canvas_memdraw(VALUE self, VALUE block)
   DRAW(self, canvas->app, block);
 }
 
+typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
+
+static  cairo_public cairo_surface_t *
+shoes_get_snapshot_nada (const char *filename, double width, double height)
+{
+  return NULL;
+}
+
+static cairo_surface_function_t *
+shoes_get_snapshot_surface(VALUE _format)
+{
+  ID format = SYM2ID (_format);
+  if (format == rb_intern ("pdf"))  return & cairo_pdf_surface_create;
+  if (format == rb_intern ("ps"))   return & cairo_ps_surface_create;
+  if (format == rb_intern ("svg"))  return & cairo_svg_surface_create;
+  return shoes_get_snapshot_nada;
+}
+
+VALUE
+shoes_canvas_snapshot(int argc, VALUE *argv, VALUE self)
+{
+  SETUP();
+  ID   s_filename = rb_intern ("filename");
+  ID   s_format   = rb_intern ("format");
+  VALUE  block    = Qnil;
+  VALUE _filename = Qnil;
+  VALUE _format   = Qnil;
+  VALUE  hash     = Qnil;
+  argc = rb_scan_args (argc, argv, "1&", &hash, &block);
+
+  if (argc == 1 && rb_obj_is_kind_of(hash, rb_cHash))
+  {
+    _filename = ATTR(hash, filename);
+    _format   = ATTR(hash, format);
+  }
+  if (NIL_P(block) || NIL_P(_filename) || NIL_P(_format))
+  {
+    rb_raise(rb_eArgError, "wrong arguments for _snapshot({:filename=>'...',"
+                              ":format=>:pdf|:ps|:svg}, &block)\n");
+  }
+  else
+  {
+    const char      * filename = RSTRING_PTR(_filename);
+    cairo_surface_t * surface  = shoes_get_snapshot_surface (_format)
+                                      (filename, canvas->width, canvas->height);
+    if (surface == NULL) {
+        rb_raise(rb_eArgError, "Failed to create %s surface for file %s\n", 
+           RSTRING_PTR(rb_inspect(_format)),
+           RSTRING_PTR(rb_inspect(_filename)));
+    }
+    else
+    {
+      cairo_t * waz_cr = canvas->cr;
+      cairo_t * cr     = canvas->cr = cairo_create (surface);
+      DRAW (self, canvas->app, block);
+      shoes_canvas_draw (self, self, Qfalse);
+      shoes_canvas_draw (self, self, Qtrue);
+      canvas->cr = waz_cr;
+      cairo_show_page (cr);
+      cairo_destroy (cr);
+      cairo_surface_destroy (surface);
+      //  TODO  detect cairo outrages here
+    }
+  }
+  return Qnil;
+}
+
 void
 shoes_canvas_compute(VALUE self)
 {
