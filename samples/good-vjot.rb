@@ -16,7 +16,7 @@ Shoes.app :title => "vJot Clone",
         @note[0] = @title.text
         load_list
       end
-      stack :width => 1.0, :height => 200 do
+      stack :width => 1.0, :height => 200, :scroll => true do
         background "#eee"
         @list = para
       end

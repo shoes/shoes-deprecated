@@ -1882,7 +1882,7 @@ shoes_app_visit(shoes_app *app, char *path)
   exec.args = rb_ary_entry(meth, 1);
   if (rb_obj_is_kind_of(exec.block, rb_cUnboundMethod)) {
     VALUE klass = rb_unbound_get_class(exec.block);
-    exec.canvas = app->nestslot = shoes_slot_new(klass, Qnil, app->canvas);
+    exec.canvas = app->nestslot = shoes_slot_new(klass, ssNestSlot, app->canvas);
     exec.block = rb_funcall(exec.block, s_bind, 1, exec.canvas);
     exec.ieval = 0;
     rb_ary_push(canvas->contents, exec.canvas);

@@ -8,7 +8,7 @@ Shoes.app :title => "A Gentle Reminder",
   stack :margin => 10, :margin_top => 50 do    
     para "You need to", :stroke => red, :fill => yellow
     
-    stack :margin_left => 5, :width => 1.0, :height => 200 do
+    stack :margin_left => 5, :width => 1.0, :height => 200, :scroll => true do
       background white
       border white, :strokewidth => 3
       @gui_todo = para

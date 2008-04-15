@@ -1982,7 +1982,7 @@ shoes_slot_new(VALUE klass, VALUE attr, VALUE parent)
   self_t->parent = parent;
   self_t->app = pc->app;
   self_t->attr = attr;
-  if (!NIL_P(ATTR(self_t->attr, height))) {
+  if (!NIL_P(ATTR(self_t->attr, scroll))) {
     //
     // create the slot off-screen until it can be properly placed
     //

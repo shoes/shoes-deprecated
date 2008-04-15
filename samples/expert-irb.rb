@@ -63,11 +63,13 @@ $stdout = StringIO.new
 
 Shoes.app do
   @str, @cmd = [CURSOR + " "], ""
-  stack do
+  stack :width => 1.0, :height => 1.0 do
     background "#555"
-    para "Interactive Ruby ready.", :fill => white, :stroke => red
+    stack :width => 1.0, :height => 50 do
+      para "Interactive Ruby ready.", :fill => white, :stroke => red
+    end
     @scroll =
-      stack :width => 1.0, :height => 400 do
+      stack :width => 1.0, :height => -50, :scroll => true do
         background "#555"
         @console = para @str, :font => "Monospace 12px", :stroke => "#dfa"
         @console.cursor = -1

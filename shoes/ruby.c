@@ -11,7 +11,7 @@
 #include "shoes/version.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover;
+VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE eVlcError, eImageError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 VALUE symAltQuest, symAltSlash, symAltDot;
@@ -3835,6 +3835,9 @@ shoes_ruby_init()
 
   instance_eval_proc = rb_eval_string("lambda{|o,b| o.instance_eval(&b)}");
   rb_gc_register_address(&instance_eval_proc);
+  ssNestSlot = rb_eval_string("{:height => 1.0}");
+  rb_gc_register_address(&ssNestSlot);
+
   s_aref = rb_intern("[]=");
   s_perc = rb_intern("%");
   s_mult = rb_intern("*");
