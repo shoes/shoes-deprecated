@@ -8,8 +8,8 @@ type: :feature
 component: shoes
 release: Raisins
 reporter: _why <why@whytheluckystiff.net>
-status: :unstarted
-disposition: 
+status: :closed
+disposition: :fixed
 creation_time: 2008-04-15 16:24:16.442475 Z
 references: []
 
@@ -19,3 +19,7 @@ log_events:
   - _why <why@whytheluckystiff.net>
   - created
   - ""
+- - 2008-04-15 18:13:16.318535 Z
+  - _why <why@whytheluckystiff.net>
+  - closed issue with disposition fixed
+  - Okay, discovered that Cairo 1.6.4 and Pango 1.20.2 do the trick.
