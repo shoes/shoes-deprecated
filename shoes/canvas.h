@@ -424,7 +424,7 @@ VALUE shoes_shape_motion(VALUE, int, int, int *);
 VALUE shoes_shape_send_click(VALUE, int, int, int);
 void shoes_shape_send_release(VALUE, int, int, int);
 
-VALUE shoes_image_new(VALUE, VALUE, VALUE, VALUE, cairo_matrix_t *, VALUE);
+VALUE shoes_image_new(VALUE, VALUE, VALUE, VALUE, VALUE, cairo_matrix_t *, VALUE);
 VALUE shoes_image_alloc(VALUE);
 VALUE shoes_image_draw(VALUE, VALUE, VALUE);
 VALUE shoes_image_get_top(VALUE);

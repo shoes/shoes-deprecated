@@ -469,7 +469,7 @@ shoes_load_image(VALUE imgpath)
   }
 
   if (img != shoes_world->blank_image)
-    st_insert(shoes_world->image_cache, (st_data_t)RSTRING_PTR(imgpath), (st_data_t)img);
+    st_insert(shoes_world->image_cache, (st_data_t)strdup(RSTRING_PTR(imgpath)), (st_data_t)img);
 
   return img;
 }

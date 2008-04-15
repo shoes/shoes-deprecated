@@ -813,12 +813,12 @@ shoes_image_free(shoes_image *image)
 }
 
 VALUE
-shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, cairo_matrix_t *tf, VALUE mode)
+shoes_image_new(VALUE klass, VALUE path, VALUE realpath, VALUE attr, VALUE parent, cairo_matrix_t *tf, VALUE mode)
 {
   GError *error = NULL;
   VALUE obj = Qnil;
   shoes_image *image;
-  cairo_surface_t *surf = shoes_load_image(path);
+  cairo_surface_t *surf = shoes_load_image(realpath);
 
   obj = shoes_image_alloc(klass);
   Data_Get_Struct(obj, shoes_image, image);
