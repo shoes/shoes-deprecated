@@ -299,6 +299,12 @@ Closes the app window.  If multiple windows are open and you want to close the e
 
 Gets a string containing the URL of the current app.
 
+=== visit(url: a string) ===
+
+Changes the location, in order to view a different Shoes URL.
+
+Absolute URLs (such as http://google.com) are okay, but Shoes will be expecting a Shoes application to be at that address.  (So, google.com won't work, as it's an HTML app.)
+
 = Slots =
 
 Slots are boxes used to lay out images, text and so on. The two most common slots are `stacks` and `flows`. Slots can also be referred to as "boxes" or "canvases" in Shoes terminology.
@@ -666,6 +672,29 @@ Creates a Title text block.  Shoes styles these elements to 34 pixels high.
 === video(path or url) » Shoes::Video ===
 
 Embeds a movie in this slot.
+
+== Events ==
+
+Wondering how to catch stray mouse clicks or keyboard typing?  Events are sent to a slot whenever a mouse moves inside the slot.  Or whenever a key is pressed.  Even when the slot is created or destroyed.  You can attach a block to each of these events.
+
+Mouse events include `motion`, `click`, `hover` and `leave`.  Keyboard typing is represented by the `keypress` event.  And the `start` and `finish` events indicate when a canvas comes into play or is discarded.
+
+So, let's say you want to change the background of a slot whenever the mouse floats over it.  We can use the `hover` event to change the background when the mouse comes inside the slot.  And `leave` to change back when the mouse floats away.
+
+{{{
+ #!ruby
+ Shoes.app do
+   stack :width => 200, :height => 200 do
+     background red
+     hover do
+       clear { background blue }
+     end
+     leave do
+       clear { background red }
+     end
+   end
+ end
+}}}
 
 == Manipulation Blocks ==
 

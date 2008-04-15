@@ -250,11 +250,16 @@ shoes_canvas_style(int argc, VALUE *argv, VALUE self)
   return canvas->attr;
 }
 
+#define ELAPSED ((double)(clock() - start) / CLOCKS_PER_SEC)
+
 void
 shoes_canvas_paint(VALUE self)
 {
   int n = 0;
   shoes_code code = SHOES_OK;
+#ifdef DEBUG
+  clock_t start = clock();
+#endif
 
   if (self == Qnil)
     return;
@@ -283,7 +288,9 @@ shoes_canvas_paint(VALUE self)
 
   canvas->cr = cr = shoes_cairo_create(&canvas->slot, canvas->width, canvas->height, 0);
   shoes_canvas_draw(self, self, Qfalse);
+  INFO("COMPUTE: %0.6f s\n", ELAPSED);
   shoes_canvas_draw(self, self, Qtrue);
+  INFO("DRAW: %0.6f s\n", ELAPSED);
   cairo_restore(cr);
 
   if (cairo_status(cr)) {
@@ -306,6 +313,7 @@ shoes_canvas_paint(VALUE self)
   DeleteDC(canvas->slot.dc);
 #endif
 
+  INFO("PAINT: %0.6f s\n", ELAPSED);
   shoes_canvas_send_start(self);
 quit:
   return;
@@ -1216,7 +1224,6 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
     canvas->radios = NULL;
 #endif
 
-  INFO("DRAW\n");
   if (self_t->height > self_t->fully)
     self_t->fully = self_t->height;
   if (self_t != canvas)
