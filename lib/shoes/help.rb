@@ -80,7 +80,7 @@ def Shoes.make_help_page(str)
     @doc =
       stack :margin_left => 130, :margin_top => 20, :margin_bottom => 50, :margin_right => 20 + gutter,
         &dewikify(docs[0][-1]['description'], true)
-    stack :top => 80, :left => 0, :sticky => Window do
+    stack :top => 80, :left => 0, :attach => Window do
       @toc = {}
       stack :margin => 12, :width => 130, :margin_top => 20 do
         background "#eee", :radius => 4
