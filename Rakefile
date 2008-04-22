@@ -283,7 +283,7 @@ else
   PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
 
   LINUX_CFLAGS = %[-I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{Config::CONFIG['archdir']}]
-  LINUX_LIB_NAMES = %W[#{ruby_so} png pixman-1 cairo pangocairo-1.0 ungif]
+  LINUX_LIB_NAMES = %W[#{ruby_so} png cairo pangocairo-1.0 ungif]
   FLAGS.each do |flag|
     LINUX_CFLAGS << " -D#{flag}" if ENV[flag]
   end
@@ -295,7 +295,7 @@ else
     DLEXT = "dylib"
     LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{Config::CONFIG["CFLAGS"]}"
     LINUX_LDFLAGS = "-framework Carbon -dynamiclib -Wl,-single_module #{Config::CONFIG["LDFLAGS"]} INSTALL_NAME"
-    LINUX_LIB_NAMES << 'jpeg.62'
+    LINUX_LIB_NAMES << 'pixman-1 jpeg.62'
     if ENV['VIDEO']
       LINUX_LDFLAGS << " ./deps/lib/libvlc.a  ./deps/lib/vlc/libmemcpymmx.a ./deps/lib/vlc/libi420_rgb_mmx.a ./deps/lib/vlc/libi422_yuy2_mmx.a ./deps/lib/vlc/libi420_ymga_mmx.a ./deps/lib/vlc/libi420_yuy2_mmx.a ./deps/lib/vlc/libmemcpymmxext.a ./deps/lib/vlc/libmemcpy3dn.a ./deps/lib/vlc/libffmpeg.a ./deps/lib/vlc/libstream_out_switcher.a ./deps/lib/vlc/libquicktime.a ./deps/lib/vlc/libxvideo.a ./deps/lib/vlc/libauhal.a ./deps/lib/vlc/libmacosx.a -framework vecLib -lpthread -lm -liconv -lintl -liconv -lc -lpostproc -lavformat -lavcodec -lz -la52 -lfaac -lfaad -lmp3lame -lx264 -lxvidcore -lvorbisenc -lavutil -lvorbis -lm -logg -lm -lavformat -lavcodec -lz -la52 -lfaac -lfaad -lmp3lame -lx264 -lxvidcore -lvorbisenc -lavutil -lvorbis -lm -logg -framework QuickTime -framework Carbon -lm -lXxf86vm -lXinerama -L/usr/X11R6/lib -lSM -lICE -lX11 -lXext -lXv -framework CoreAudio -framework AudioUnit -framework AudioToolbox -framework IOKit -framework Cocoa -framework Carbon -framework QuickTime -lobjc -ObjC -framework OpenGL -framework AGL -read_only_relocs suppress"
     end
