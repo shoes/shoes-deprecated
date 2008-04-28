@@ -2033,6 +2033,15 @@ shoes_canvas_send_keypress(VALUE self, VALUE key)
     {
       shoes_safe_block(self, self_t->keypress, rb_ary_new3(1, key));
     }
+
+    for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--)
+    {
+      VALUE ele = rb_ary_entry(self_t->contents, i);
+      if (rb_obj_is_kind_of(ele, cCanvas))
+      {
+        shoes_canvas_send_keypress(ele, key);
+      }
+    }
   }
 }
 
