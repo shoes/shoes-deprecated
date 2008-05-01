@@ -12,6 +12,7 @@ require 'shoes/shy'
 if Object.const_defined? :Shoes
   require 'shoes/image'
   require 'shoes/cache'
+  require 'shoes/data'
   require 'shoes/help'
   require 'shoes/log'
 end
