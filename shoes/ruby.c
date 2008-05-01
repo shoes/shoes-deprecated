@@ -2382,6 +2382,8 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
   self_t->place.flags |= NIL_P(ATTR(self_t->attr, top)) && NIL_P(ATTR(self_t->attr, bottom)) ? 0 : FLAG_ABSY;
   self_t->place.x = ATTR2(int, self_t->attr, left, canvas->cx);
   self_t->place.y = ATTR2(int, self_t->attr, top, canvas->cy);
+  self_t->place.dx = canvas->place.dx + PXN(self_t->attr, displace_left, 0, CPW(canvas)); 
+  self_t->place.dy = canvas->place.dy + PXN(self_t->attr, displace_top, 0, CPH(canvas));
   self_t->place.w = ATTR2(int, self_t->attr, width, canvas->place.iw - (canvas->cx - self_t->place.x));
   self_t->place.iw = self_t->place.w - (lmargin + rmargin);
   ld = ATTR2(int, self_t->attr, leading, 4);
