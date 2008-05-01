@@ -42,7 +42,7 @@ extern const double RAD2PI, PIM2, PI;
 // (outlines the area where a control has been placed)
 //
 typedef struct {
-  int x, y, w, h;
+  int x, y, w, h, dx, dy;
   int ix, iy, iw, ih;
   unsigned char flags;
 } shoes_place;
@@ -54,6 +54,8 @@ typedef struct {
 #define CPX(c)  (c->place.flags & FLAG_ORIGIN ? 0 : c->place.ix)
 #define CPY(c)  (c->place.flags & FLAG_ORIGIN ? 0 : c->place.iy)
 #define CPB(c)  ((c->place.h - c->place.ih) - (c->place.iy - c->place.y))
+#define CPH(c)  ((c->fully - CPB(c)) - CPY(c))
+#define CPW(c)  (c->place.iw)
 
 //
 // color struct
@@ -287,6 +289,8 @@ VALUE shoes_canvas_get_scroll_max(VALUE);
 VALUE shoes_canvas_get_scroll_top(VALUE);
 VALUE shoes_canvas_set_scroll_top(VALUE, VALUE);
 VALUE shoes_canvas_get_gutter_width(VALUE);
+VALUE shoes_canvas_displace(VALUE, VALUE, VALUE);
+VALUE shoes_canvas_move(VALUE, VALUE, VALUE);
 VALUE shoes_canvas_nostroke(VALUE);
 VALUE shoes_canvas_stroke(int, VALUE *, VALUE);
 VALUE shoes_canvas_strokewidth(VALUE, VALUE);

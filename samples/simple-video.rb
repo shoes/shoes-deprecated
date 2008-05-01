@@ -1,4 +1,4 @@
-Shoes.app :width => 408, :height => 334, :resizable => false do
+Shoes.app :width => 408, :height => 346, :resizable => false do
   background "#eee"
   stack :margin => 4 do
     @vid = video "http://whytheluckystiff.net/o..e/adventure_time.flv"

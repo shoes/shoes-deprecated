@@ -204,10 +204,93 @@ module Othello
       end
     end 
   end
+
+  def draw_player_1(first_turn=false)
+    stack :margin => 10 do
+      if GAME.current_player==GAME.p1
+        background yellow
+        para span("Player 1 (#{GAME.current_player.color}) turn", :stroke => black, :font => "Trebuchet 20px bold"), :margin => 4
+      else
+        background white
+        para span("Player 1", :stroke => black, :font => "Trebuchet 10px bold"), :margin => 4
+
+        button("Undo last move", :top => 0, :left => -150) { GAME.undo!; draw_board } unless GAME.board_history.empty?
+      end
+    end
+  end
+
+  def draw_player_2(first_turn=false)
+    stack :top => 550, :left => 0, :margin => 10 do
+      if GAME.current_player==GAME.p2 
+        background yellow
+        para span("Player 2's (#{GAME.current_player.color}) turn", :stroke => black, :font => "Trebuchet 20px bold"), :margin => 4
+      else
+        background white
+        para span("Player 2", :stroke => black, :font => "Trebuchet 10px bold"), :margin => 4
+
+        button("Undo last move", :top => 0, :left => -150) { GAME.undo!; draw_board } unless GAME.board_history.empty?
+      end
+    end
+  end
+
+
+  def draw_board
+    clear do
+      background black
+      draw_player_1
+      stack :margin => 10 do
+        fill rgb(0, 190, 0)
+        rect :left => 0, :top => 0, :width => 495, :height => 495
+
+        GAME.board.each_with_index do |col, col_index|
+          col.each_with_index do |cell, row_index|
+            left, top = left_top_corner_of_piece(col_index, row_index)
+            left = left - LEFT_OFFSET
+            top = top - TOP_OFFSET
+            fill rgb(0, 440, 0, 90)
+            strokewidth 1
+            stroke rgb(0, 100, 0)
+            rect :left => left, :top => top, :width => PIECE_WIDTH, :height => PIECE_HEIGHT
+
+            if cell != 0
+              strokewidth 0
+              fill (cell == 1 ? rgb(100,100,100) : rgb(155,155,155))
+              oval(left+3, top+4, PIECE_WIDTH-10, PIECE_HEIGHT-10)
+
+              fill (cell == 1 ? black : white)
+              oval(left+5, top+5, PIECE_WIDTH-10, PIECE_HEIGHT-10)
+            end
+          end
+        end
+      end
+      draw_player_2
+    end
+  end
+
+  def left_top_corner_of_piece(a,b)
+    [(a*PIECE_WIDTH+LEFT_OFFSET), (b*PIECE_HEIGHT+TOP_OFFSET)]
+  end
+
+  def right_bottom_corner_of_piece(a,b)
+    left_top_corner_of_piece(a,b).map { |coord| coord + PIECE_WIDTH }
+  end
+
+  def find_piece(x,y)
+    GAME.board.each_with_index { |row_array, row| 
+      row_array.each_with_index { |col_array, col| 
+        left, top = left_top_corner_of_piece(col, row).map { |i| i - 5}
+        right, bottom = right_bottom_corner_of_piece(col, row).map { |i| i -5 }
+        return [col, row] if x >= left && x <= right && y >= top && y <= bottom
+      } 
+    }
+    return false
+  end
 end
 
 
 Shoes.app :width => 520, :height => 600 do
+  extend Othello
+
   GAME = Othello::Game.new
   PIECE_WIDTH  = 62
   PIECE_HEIGHT = 62
@@ -232,83 +315,3 @@ Shoes.app :width => 520, :height => 600 do
   }
 end
 
-def draw_player_1(first_turn=false)
-  stack :margin => 10 do
-    if GAME.current_player==GAME.p1
-      background yellow
-      para span("Player 1 (#{GAME.current_player.color}) turn", :stroke => black, :font => "Trebuchet 20px bold")
-    else
-      background white
-      para span("Player 1", :stroke => black, :font => "Trebuchet 10px bold")
-
-      button("Undo last move", :top => 0, :left => -150) { GAME.undo!; draw_board } unless GAME.board_history.empty?
-    end
-  end
-end
-
-def draw_player_2(first_turn=false)
-  stack :top => 550, :left => 0, :margin => 10 do
-    if GAME.current_player==GAME.p2 
-      background yellow
-      para span("Player 2's (#{GAME.current_player.color}) turn", :stroke => black, :font => "Trebuchet 20px bold")
-    else
-      background white
-      para span("Player 2", :stroke => black, :font => "Trebuchet 10px bold")
-
-      button("Undo last move", :top => 0, :left => -150) { GAME.undo!; draw_board } unless GAME.board_history.empty?
-    end
-  end
-end
-
-
-def draw_board
-  clear do
-    background black
-    draw_player_1
-    stack :margin => 10 do
-      fill rgb(0, 190, 0)
-      rect :left => 0, :top => 0, :width => 495, :height => 495
-
-      GAME.board.each_with_index do |col, col_index|
-        col.each_with_index do |cell, row_index|
-          left, top = left_top_corner_of_piece(col_index, row_index)
-          left = left - LEFT_OFFSET
-          top = top - TOP_OFFSET
-          fill rgb(0, 440, 0, 90)
-          strokewidth 1
-          stroke rgb(0, 100, 0)
-          rect :left => left, :top => top, :width => PIECE_WIDTH, :height => PIECE_HEIGHT
-
-          if cell != 0
-            strokewidth 0
-            fill (cell == 1 ? rgb(100,100,100) : rgb(155,155,155))
-            oval(left+3, top+4, PIECE_WIDTH-10, PIECE_HEIGHT-10)
-
-            fill (cell == 1 ? black : white)
-            oval(left+5, top+5, PIECE_WIDTH-10, PIECE_HEIGHT-10)
-          end
-        end
-      end
-    end
-    draw_player_2
-  end
-end
-
-def left_top_corner_of_piece(a,b)
-  [(a*PIECE_WIDTH+LEFT_OFFSET), (b*PIECE_HEIGHT+TOP_OFFSET)]
-end
-
-def right_bottom_corner_of_piece(a,b)
-  left_top_corner_of_piece(a,b).map { |coord| coord + PIECE_WIDTH }
-end
-
-def find_piece(x,y)
-  GAME.board.each_with_index { |row_array, row| 
-    row_array.each_with_index { |col_array, col| 
-      left, top = left_top_corner_of_piece(col, row).map { |i| i - 5}
-      right, bottom = right_bottom_corner_of_piece(col, row).map { |i| i -5 }
-      return [col, row] if x >= left && x <= right && y >= top && y <= bottom
-    } 
-  }
-  return false
-end

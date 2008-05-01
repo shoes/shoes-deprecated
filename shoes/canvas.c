@@ -233,6 +233,26 @@ shoes_canvas_get_gutter_width(VALUE self)
 }
 
 VALUE
+shoes_canvas_displace(VALUE self, VALUE dx, VALUE dy)
+{
+  SETUP();
+  ATTRSET(canvas->attr, displace_left, dx);
+  ATTRSET(canvas->attr, displace_top, dy);
+  shoes_canvas_repaint_all(canvas->parent);
+  return self;
+}
+
+VALUE
+shoes_canvas_move(VALUE self, VALUE x, VALUE y)
+{
+  SETUP();
+  ATTRSET(canvas->attr, left, x);
+  ATTRSET(canvas->attr, top, y);
+  shoes_canvas_repaint_all(canvas->parent);
+  return self;
+}
+
+VALUE
 shoes_canvas_style(int argc, VALUE *argv, VALUE self)
 {
   VALUE klass, attr;
@@ -283,9 +303,6 @@ shoes_canvas_paint(VALUE self)
 #endif
 
   INFO("shoes_cairo_create: (%d, %d)\n", canvas->width, canvas->height);
-  if (canvas->cr != NULL)
-    cairo_destroy(canvas->cr);
-
   canvas->cr = cr = shoes_cairo_create(&canvas->slot, canvas->width, canvas->height, 0);
   shoes_canvas_draw(self, self, Qfalse);
   INFO("COMPUTE: %0.6f s\n", ELAPSED);
@@ -427,9 +444,7 @@ shoes_canvas_clear(VALUE self)
 {
   shoes_canvas *canvas;
   Data_Get_Struct(self, shoes_canvas, canvas);
-  if (canvas->cr != NULL)
-    cairo_destroy(canvas->cr);
-  canvas->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));;
+  canvas->cr = NULL;
   canvas->sw = 1.;
   canvas->fg = rb_funcall(shoes_color_new(0, 0, 0, 0xFF), s_to_pattern, 0);
   canvas->bg = rb_funcall(shoes_color_new(0, 0, 0, 0xFF), s_to_pattern, 0);
@@ -442,6 +457,7 @@ shoes_canvas_clear(VALUE self)
   shoes_canvas_empty(canvas);
   canvas->contents = rb_ary_new();
   canvas->place.x = canvas->place.y = 0;
+  canvas->place.dx = canvas->place.dy = 0;
   canvas->place.ix = canvas->place.iy = 0;
   canvas->cx = 0;
   canvas->cy = 0;
@@ -1244,20 +1260,21 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
         shoes_canvas *pc;
         Data_Get_Struct(self_t->parent, shoes_canvas, pc);
 #ifdef SHOES_GTK
-        gtk_layout_move(GTK_LAYOUT(pc->slot.canvas), self_t->slot.box, self_t->place.ix, self_t->place.iy);
+        gtk_layout_move(GTK_LAYOUT(pc->slot.canvas), self_t->slot.box, 
+            self_t->place.ix + self_t->place.dx, self_t->place.iy + self_t->place.dy);
         gtk_widget_set_size_request(self_t->slot.box, self_t->place.iw, self_t->place.ih);
 #endif
 #ifdef SHOES_QUARTZ
         HIRect rect;
-        rect.origin.x = self_t->place.ix * 1.;
-        rect.origin.y = (self_t->place.iy * 1.) + 4;
+        rect.origin.x = (self_t->place.ix + self_t->place.dx) * 1.;
+        rect.origin.y = ((self_t->place.iy + self_t->place.dy) * 1.) + 4;
         rect.size.width = (self_t->place.iw * 1.) + 4;
         rect.size.height = (self_t->place.ih * 1.) - 8;
         HIViewSetFrame(self_t->slot.scrollview, &rect);
 #endif
 #ifdef SHOES_WIN32
-        MoveWindow(self_t->slot.window, self_t->place.ix, 
-          self_t->place.iy - pc->slot.scrolly, self_t->place.iw, 
+        MoveWindow(self_t->slot.window, self_t->place.ix + self_t->place.dx, 
+          (self_t->place.iy + self_t->place.dy) - pc->slot.scrolly, self_t->place.iw, 
           self_t->place.ih, TRUE);
 #endif
       }
@@ -1471,10 +1488,10 @@ static void
 shoes_canvas_memdraw(VALUE self, VALUE block)
 {
   SETUP();
-  if (canvas->cr != NULL)
-    cairo_destroy(canvas->cr);
-  canvas->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));;
+  canvas->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
   DRAW(self, canvas->app, block);
+  cairo_destroy(canvas->cr);
+  canvas->cr = NULL;
 }
 
 typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
@@ -1548,8 +1565,6 @@ void
 shoes_canvas_compute(VALUE self)
 {
   SETUP();
-  if (canvas->cr != NULL)
-    cairo_destroy(canvas->cr);
   canvas->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));;
   shoes_canvas_draw(self, self, Qfalse);
   cairo_destroy(canvas->cr);
@@ -1818,8 +1833,8 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
 #ifdef SHOES_QUARTZ
   if (ORIGIN(self_t->place))
   {
-    x -= self_t->place.ix;
-    y -= self_t->place.iy - self_t->slot.scrolly;
+    x -= self_t->place.ix + self_t->place.dx;
+    y -= (self_t->place.iy + self_t->place.dy) - self_t->slot.scrolly;
   }
 #endif
 
@@ -1912,8 +1927,8 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
 #ifdef SHOES_QUARTZ
   if (ORIGIN(self_t->place))
   {
-    x -= self_t->place.ix;
-    y -= self_t->place.iy - self_t->slot.scrolly;
+    x -= (self_t->place.ix + self_t->place.dx);
+    y -= (self_t->place.iy + self_t->place.dy) - self_t->slot.scrolly;
   }
 #endif
 
@@ -1964,8 +1979,8 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
 #ifdef SHOES_QUARTZ
   if (ORIGIN(self_t->place))
   {
-    x -= self_t->place.ix;
-    y -= self_t->place.iy - self_t->slot.scrolly;
+    x -= (self_t->place.ix + self_t->place.dx);
+    y -= (self_t->place.iy + self_t->place.dy) - self_t->slot.scrolly;
   }
 #endif
 

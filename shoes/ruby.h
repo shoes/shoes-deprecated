@@ -50,7 +50,7 @@ extern VALUE aMsgList;
 extern VALUE eNotImpl, eImageError;
 extern VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 extern VALUE symAltQuest, symAltSlash, symAltDot;
-extern ID s_aref, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_attach, s_begin, s_call, s_center, s_change, s_click, s_corner, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_leading, s_match, s_release, s_scroll, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_resizable, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
+extern ID s_aref, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_attach, s_begin, s_call, s_center, s_change, s_click, s_corner, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_leading, s_match, s_release, s_scroll, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_resizable, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
 extern VALUE instance_eval_proc;
 
 VALUE mfp_instance_eval(VALUE, VALUE);
@@ -91,6 +91,7 @@ void shoes_ruby_init(void);
 //
 #define ATTR(attr, n)                  shoes_hash_get(attr, s_##n)
 #define PX(attr, n, dn, pn)            shoes_px(attr, s_##n, dn, pn, 1)
+#define PXN(attr, n, dn, pn)            shoes_px(attr, s_##n, dn, pn, 0)
 #define PX2(attr, n1, n2, dn, dr, pn)  shoes_px2(attr, s_##n1, s_##n2, dn, dr, pn)
 #define ATTR2(typ, attr, n, dn)        shoes_hash_##typ(attr, s_##n, dn)
 #define ATTRSET(attr, k, v)            attr = shoes_hash_set(attr, s_##k, v)
@@ -124,6 +125,8 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("scroll_top", get_scroll_top, 0); \
   f("scroll_top=", set_scroll_top, 1); \
   f("gutter", get_gutter_width, 0); \
+  f("displace", displace, 2); \
+  f("move", move, 2); \
   f("style", style, -1); \
   f("nostroke", nostroke, 0); \
   f("stroke", stroke, -1); \
