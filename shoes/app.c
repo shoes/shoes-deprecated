@@ -1890,7 +1890,12 @@ shoes_app_visit(shoes_app *app, char *path)
     exec.canvas = app->nestslot = app->canvas;
     exec.ieval = 1;
   }
+
+  canvas->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
   rb_rescue2(CASTHOOK(shoes_app_run), (VALUE)&exec, CASTHOOK(shoes_app_exception), (VALUE)&exec, rb_cObject, 0);
+  cairo_destroy(canvas->cr);
+  canvas->cr = NULL;
+
   rb_ary_clear(exec.app->nesting);
   return SHOES_OK;
 }
