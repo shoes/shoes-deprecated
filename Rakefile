@@ -81,18 +81,25 @@ desc "Does a full compile, for the OS you're running on"
 task :build => [:build_os, "dist/VERSION.txt"] do
   mkdir_p "dist/ruby"
   cp_r  "#{ext_ruby}/lib/ruby/1.8", "dist/ruby/lib"
-  FileList["rubygems/*"].each do |rg|
-    cp_r  rg, "dist/ruby/lib"
-  end
   unless ENV['STANDARD']
     %w[cgi cgi.rb cgi-lib.rb rdoc rss shell soap webrick wsdl xsd].each do |libn|
       rm_rf "dist/ruby/lib/#{libn}"
     end
   end
-  # %w[superredcloth].each do |libn| # hpricot sqlite3-ruby
-  #   gem = Gem.cache.find_name(libn).last
-  #   cp_r "#{gem.full_gem_path}/lib", "dist/ruby"
-  # end
+  %w[req/rubygems/* req/sqlite3/lib/*].each do |rdir|
+    FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
+  end
+  %w[req/sqlite3/ext/sqlite3_api].each do |xdir|
+    case PLATFORM when /win32/
+      cp FileList["#{xdir}/*.dll"], "dist/ruby/lib/#{RUBY_PLATFORM}"
+    else
+      Dir.chdir(xdir) do
+        `ruby extconf.rb; make`
+      end
+      cp FileList["#{xdir}/*.so"], "dist/ruby/lib/#{RUBY_PLATFORM}"
+    end
+  end
+
   case PLATFORM when /win32/
     cp FileList["#{ext_ruby}/bin/*"], "dist/"
     cp FileList["deps/cairo/bin/*"], "dist/"

@@ -19,6 +19,7 @@ LIB_DIR = lib_dir || File.join(Dir::tmpdir, "shoes")
 SITE_LIB_DIR = File.join(LIB_DIR, '+lib')
 GEM_DIR = File.join(LIB_DIR, '+gem')
 CACHE_DIR = File.join(LIB_DIR, '+cache')
+GEM_CENTRAL_DIR = File.join(DIR, "ruby/gems")
 
 mkdir_p(CACHE_DIR)
 $:.unshift SITE_LIB_DIR
