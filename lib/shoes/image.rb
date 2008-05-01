@@ -44,6 +44,7 @@ class Shoes
           end
         rescue OpenURI::HTTPError => e
           raise e unless cache
+          DATABASE.notify_cache_of path, cache[:etag], cache[:hash]
           realpath = image_cache_path cache[:hash], uext
         end
       end
