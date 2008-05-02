@@ -85,7 +85,8 @@ class Shoes::Setup
     appt = "Setting up for #{setup.script}"
     Shoes.app :width => 370, :height => 128, :resizable => false, :title => appt do
       background "#EEE"
-      image "#{DIR}/static/shoes-icon.png", :top => -20, :right => -20
+      @pulse = stack :top => 0, :left => 0
+      @logo = image "#{DIR}/static/shoes-icon.png", :top => -20, :right => -20
       stack :margin => 18 do
         title "Shoes Setup", :size => 10, :weight => "bold", :margin => 0
         para "Preparing #{setup.script}", :size => 8, :margin => 0, :margin_top => 8, :width => 220
@@ -99,6 +100,16 @@ class Shoes::Setup
               puts e.message
             end
           end
+        end
+      end
+
+      animate 10 do |i|
+        i %= 10
+        @pulse.clear do
+          fill black(0.2 - (i * 0.02))
+          strokewidth(3.0 - (i * 0.2))
+          stroke red(1.0 - (i * 0.1))
+          oval(@logo.left - i, @logo.top - i, @logo.width + (i * 2)) 
         end
       end
     end
