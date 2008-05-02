@@ -1662,7 +1662,9 @@ shoes_color_method_missing(int argc, VALUE *argv, VALUE self)
 {
   VALUE alpha;
   VALUE cname = argv[0];
-  VALUE c = rb_hash_aref(cColors, cname);
+  VALUE c = Qnil;
+  if (rb_obj_is_kind_of(cColors, rb_cHash))
+    c = rb_hash_aref(cColors, cname);
   if (NIL_P(c))
   {
     self = rb_inspect(self);
@@ -4227,8 +4229,9 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "method_missing", CASTHOOK(shoes_color_method_missing), -1);
   rb_define_method(cApp, "method_missing", CASTHOOK(shoes_app_method_missing), -1);
 
-  rb_const_set(cShoes, rb_intern("COLORS"), rb_hash_new());
-  cColors = rb_const_get(cShoes, rb_intern("COLORS"));
+  rb_const_set(cShoes, rb_intern("ALL_NAMED_COLORS"), rb_hash_new());
+  cColors = rb_const_get(cShoes, rb_intern("ALL_NAMED_COLORS"));
+  rb_const_set(cShoes, rb_intern("COLORS"), cColors);
   DEF_COLOR(aliceblue, 240, 248, 255);
   DEF_COLOR(antiquewhite, 250, 235, 215);
   DEF_COLOR(aqua, 0, 255, 255);
