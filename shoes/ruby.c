@@ -2443,7 +2443,6 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
   last = pango_layout_get_line(self_t->layout, li);
   pango_layout_line_get_pixel_extents(last, NULL, &lrect);
   pango_layout_get_pixel_size(self_t->layout, &px, &py);
-  // TODO: allow one-liners to be positioned right
 
   if (RTEST(actual))
   {
@@ -2469,7 +2468,7 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
       cairo_line_to(canvas->cr, crx, cry + (crect.height / PANGO_SCALE));
       cairo_set_antialias(canvas->cr, CAIRO_ANTIALIAS_NONE);
       cairo_set_source_rgb(canvas->cr, 0., 0., 0.);
-      cairo_set_line_width(canvas->cr, 0.8);
+      cairo_set_line_width(canvas->cr, 1.);
       cairo_stroke(canvas->cr);
       cairo_restore(canvas->cr);
     }
