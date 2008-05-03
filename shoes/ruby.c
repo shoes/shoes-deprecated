@@ -310,13 +310,13 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
   }
 
   place->flags = rel;
+  place->dx = place->dy = 0;
   if (canvas == NULL)
   {
     place->ix = place->x = 0;
     place->iy = place->y = 0;
     place->iw = place->w = dw;
     place->ih = place->h = dh;
-    place->dx = place->dy = 0;
   }
   else
   {
@@ -378,8 +378,13 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
 
     place->x = PX2(attr, left, right, cx, tw, canvas->place.iw) + ox;
     place->y = PX2(attr, top, bottom, cy, th, canvas->fully) + oy;
-    place->dx = canvas->place.dx + PXN(attr, displace_left, 0, CPW(canvas)); 
-    place->dy = canvas->place.dy + PXN(attr, displace_top, 0, CPH(canvas));
+    if (!ORIGIN(canvas->place))
+    {
+      place->dx = canvas->place.dx; 
+      place->dy = canvas->place.dy;
+    }
+    place->dx += PXN(attr, displace_left, 0, CPW(canvas)); 
+    place->dy += PXN(attr, displace_top, 0, CPH(canvas));
 
     place->flags |= NIL_P(ATTR(attr, left)) && NIL_P(ATTR(attr, right)) ? 0 : FLAG_ABSX;
     place->flags |= NIL_P(ATTR(attr, top)) && NIL_P(ATTR(attr, bottom)) ? 0 : FLAG_ABSY;
@@ -2388,8 +2393,18 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
   self_t->place.flags |= NIL_P(ATTR(self_t->attr, top)) && NIL_P(ATTR(self_t->attr, bottom)) ? 0 : FLAG_ABSY;
   self_t->place.x = ATTR2(int, self_t->attr, left, canvas->cx);
   self_t->place.y = ATTR2(int, self_t->attr, top, canvas->cy);
-  self_t->place.dx = canvas->place.dx + PXN(self_t->attr, displace_left, 0, CPW(canvas)); 
-  self_t->place.dy = canvas->place.dy + PXN(self_t->attr, displace_top, 0, CPH(canvas));
+  if (!ORIGIN(canvas->place))
+  {
+    self_t->place.dx = canvas->place.dx; 
+    self_t->place.dy = canvas->place.dy;
+  }
+  else
+  {
+    self_t->place.dx = 0;
+    self_t->place.dy = 0;
+  }
+  self_t->place.dx += PXN(self_t->attr, displace_left, 0, CPW(canvas)); 
+  self_t->place.dy += PXN(self_t->attr, displace_top, 0, CPH(canvas));
   self_t->place.w = ATTR2(int, self_t->attr, width, canvas->place.iw - (canvas->cx - self_t->place.x));
   self_t->place.iw = self_t->place.w - (lmargin + rmargin);
   ld = ATTR2(int, self_t->attr, leading, 4);
