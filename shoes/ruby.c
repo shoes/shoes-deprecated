@@ -2310,6 +2310,10 @@ shoes_textblock_iter_pango(VALUE texts, shoes_kxxxx *k)
         rb_ary_push(k->links, shoes_link_new(v, start, k->len));
       }
     }
+    else if (rb_obj_is_kind_of(v, rb_cArray))
+    {
+      shoes_textblock_iter_pango(v, k);
+    }
     else
     {
       v = rb_funcall(v, s_to_s, 0);
