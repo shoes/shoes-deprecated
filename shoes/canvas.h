@@ -214,6 +214,16 @@ typedef struct {
 #endif
 } shoes_timer;
 
+typedef void (*shoes_effect_filter)(unsigned char *, unsigned char *,
+  unsigned int, int, void *);
+
+typedef struct {
+  shoes_effect_filter filter;
+  VALUE parent;
+  VALUE attr;
+  shoes_place place;
+} shoes_effect;
+
 #define CANVAS_NADA    0
 #define CANVAS_STARTED 1
 #define CANVAS_REMOVED 2
@@ -322,6 +332,7 @@ VALUE shoes_canvas_sup(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_background(int, VALUE *, VALUE);
 VALUE shoes_canvas_border(int, VALUE *, VALUE);
 VALUE shoes_canvas_video(int, VALUE *, VALUE);
+VALUE shoes_canvas_blur(int, VALUE *, VALUE);
 VALUE shoes_canvas_image(int, VALUE *, VALUE);
 VALUE shoes_canvas_animate(int, VALUE *, VALUE);
 VALUE shoes_canvas_every(int, VALUE *, VALUE);
@@ -440,6 +451,10 @@ VALUE shoes_image_remove(VALUE);
 VALUE shoes_image_motion(VALUE, int, int, int *);
 VALUE shoes_image_send_click(VALUE, int, int, int);
 void shoes_image_send_release(VALUE, int, int, int);
+
+VALUE shoes_effect_new(VALUE, VALUE, VALUE);
+VALUE shoes_effect_alloc(VALUE);
+VALUE shoes_effect_draw(VALUE, VALUE, VALUE);
 
 #ifdef VIDEO
 VALUE shoes_video_new(VALUE, VALUE, VALUE, VALUE);

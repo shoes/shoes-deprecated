@@ -45,7 +45,7 @@ typedef VALUE (*HOOK)();
 #define RSTRING_PTR(str) RSTRING(str)->ptr
 #endif
 
-extern VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cNative, cShape, cVideo, cImage, cImageBlock, cEvery, cTimer, cAnim, cPattern, cBorder, cBackground, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextBlock, cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns, cButton, cEditLine, cEditBox, cListBox, cProgress, cCheck, cRadio, cColor, cColors, cLink, cLinkHover, ssNestSlot;
+extern VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cNative, cShape, cVideo, cImage, cImageBlock, cEffect, cBlur, cEvery, cTimer, cAnim, cPattern, cBorder, cBackground, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextBlock, cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns, cButton, cEditLine, cEditBox, cListBox, cProgress, cCheck, cRadio, cColor, cColors, cLink, cLinkHover, ssNestSlot;
 extern VALUE aMsgList;
 extern VALUE eNotImpl, eImageError;
 extern VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
@@ -157,6 +157,7 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("background", background, -1); \
   f("border", border, -1); \
   f("video", video, -1); \
+  f("blur", blur, -1); \
   f("image_file", image, -1); \
   f("imagesize", imagesize, 1); \
   f("animate", animate, -1); \

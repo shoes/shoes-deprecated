@@ -694,6 +694,24 @@ shoes_canvas_star(int argc, VALUE *argv, VALUE self)
   return shoes_canvas_shape_end(self, INT2NUM(x), INT2NUM(y), (int)outer, (int)outer);
 }
 
+VALUE
+shoes_canvas_blur(int argc, VALUE *argv, VALUE self)
+{
+  VALUE x, y, fx, attr;
+  SETUP();
+
+  rb_scan_args(argc, argv, "11", &x, &y);
+  if (NIL_P(y)) y = x;
+
+  attr = rb_hash_new();
+  rb_hash_aset(attr, ID2SYM(s_width), x);
+  rb_hash_aset(attr, ID2SYM(s_height), y);
+
+  fx = shoes_effect_new(cBlur, attr, self);
+  rb_ary_push(canvas->contents, fx);
+  return fx;
+}
+
 #define MARKUP_BLOCK(klass) \
   text = shoes_textblock_new(klass, msgs, attr, self); \
   rb_ary_push(canvas->contents, text)
@@ -1714,6 +1732,9 @@ shoes_canvas_imageblock(VALUE self, int w, int h, VALUE attr, VALUE block)
   Data_Get_Struct(self, shoes_canvas, pc);
   Data_Get_Struct(imageblock, shoes_canvas, self_t);
   self_t->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h));
+  self_t->fg = pc->fg;
+  self_t->bg = pc->bg;
+  self_t->sw = pc->sw;
   self_t->width = w;
   self_t->height = h;
   self_t->slot = pc->slot;
