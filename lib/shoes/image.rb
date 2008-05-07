@@ -9,7 +9,7 @@ class Shoes
     File.join(dir, hash[2..-1]) + ext.downcase
   end
   def image *args, &blk
-    case args[0] when Integer
+    case args[0] when Integer, Hash, NilClass
       image_file *args, &blk 
     else
       path, opts = args

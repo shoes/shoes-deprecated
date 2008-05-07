@@ -856,13 +856,22 @@ shoes_canvas_image(int argc, VALUE *argv, VALUE self)
   VALUE path, realpath, attr, image, block;
   SETUP();
 
-  rb_scan_args(argc, argv, "21&", &path, &realpath, &attr, &block);
-
-  if (FIXNUM_P(path) && FIXNUM_P(realpath))
+  if (argc == 0 || (argc == 1 && rb_obj_is_kind_of(argv[0], rb_cHash)))
   {
-    int w = NUM2INT(path);
-    int h = NUM2INT(realpath);
+    rb_scan_args(argc, argv, "01&", &attr, &block);
     if (NIL_P(attr)) attr = rb_hash_new();
+    path = ATTR(attr, width);
+    realpath = ATTR(attr, height);
+  }
+  else
+    rb_scan_args(argc, argv, "21&", &path, &realpath, &attr, &block);
+
+  if (NIL_P(path) || FIXNUM_P(path))
+  {
+    int w = canvas->width;
+    if (!NIL_P(path)) w = NUM2INT(path);
+    int h = canvas->height;
+    if (!NIL_P(realpath)) h = NUM2INT(realpath);
     image = shoes_canvas_imageblock(self, w, h, attr, block);
   }
   else
