@@ -840,12 +840,23 @@ shoes_canvas_image(int argc, VALUE *argv, VALUE self)
 
   rb_scan_args(argc, argv, "21&", &path, &realpath, &attr, &block);
 
-  if (!NIL_P(block))
+  if (FIXNUM_P(path) && FIXNUM_P(realpath))
   {
+    int w = NUM2INT(path);
+    int h = NUM2INT(realpath);
     if (NIL_P(attr)) attr = rb_hash_new();
-    rb_hash_aset(attr, ID2SYM(s_click), block);
+    image = shoes_canvas_imageblock(self, w, h, attr, block);
   }
-  image = shoes_image_new(cImage, path, realpath, attr, self, canvas->tf, canvas->mode);
+  else
+  {
+    if (!NIL_P(block))
+    {
+      if (NIL_P(attr)) attr = rb_hash_new();
+      rb_hash_aset(attr, ID2SYM(s_click), block);
+    }
+    image = shoes_image_new(cImage, path, realpath, attr, self, canvas->tf, canvas->mode);
+  }
+
   if (!NIL_P(image))
     rb_ary_push(canvas->contents, image);
   return image;
@@ -1244,10 +1255,13 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
     self_t->fully = self_t->height;
   if (self_t != canvas)
   {
-    shoes_canvas_reflow(self_t, c);
+    if (ck != cImageBlock)
+    {
+      shoes_canvas_reflow(self_t, c);
 #ifdef SHOES_GTK
-    self_t->slot.expose = canvas->slot.expose;
+      self_t->slot.expose = canvas->slot.expose;
 #endif
+    }
   }
   else
   {
@@ -1686,6 +1700,38 @@ shoes_canvas_mask(int argc, VALUE *argv, VALUE self)
   }
   rb_ary_push(canvas->contents, mask);
   return mask;
+}
+
+VALUE
+shoes_canvas_imageblock(VALUE self, int w, int h, VALUE attr, VALUE block)
+{
+  shoes_canvas *self_t, *pc;
+  cairo_surface_t *surfc;
+  VALUE hidden = Qnil;
+  VALUE imageblock = shoes_canvas_alloc(cImageBlock);
+
+  shoes_canvas_clear(imageblock);
+  Data_Get_Struct(self, shoes_canvas, pc);
+  Data_Get_Struct(imageblock, shoes_canvas, self_t);
+  self_t->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h));
+  self_t->width = w;
+  self_t->height = h;
+  self_t->slot = pc->slot;
+  self_t->parent = self;
+  self_t->app = pc->app;
+  self_t->attr = attr;
+  if (!NIL_P(block))
+  {
+    DRAW(imageblock, pc->app, block);
+  }
+
+  hidden = ATTR(self_t->attr, hidden);
+  ATTRSET(self_t->attr, hidden, Qfalse);
+  shoes_canvas_draw(imageblock, self, Qfalse);
+  shoes_canvas_draw(imageblock, self, Qtrue);
+  ATTRSET(self_t->attr, hidden, hidden);
+  rb_ary_push(pc->contents, imageblock);
+  return imageblock;
 }
 
 VALUE

@@ -359,6 +359,7 @@ VALUE shoes_canvas_prepend(int, VALUE *, VALUE);
 VALUE shoes_canvas_flow(int, VALUE *, VALUE);
 VALUE shoes_canvas_stack(int, VALUE *, VALUE);
 VALUE shoes_canvas_mask(int, VALUE *, VALUE);
+VALUE shoes_canvas_imageblock(VALUE, int, int, VALUE, VALUE);
 VALUE shoes_canvas_widget(int, VALUE *, VALUE);
 VALUE shoes_canvas_hide(VALUE);
 VALUE shoes_canvas_show(VALUE);
@@ -482,7 +483,7 @@ VALUE shoes_color_args(int, VALUE *, VALUE);
 VALUE shoes_color_parse(VALUE, VALUE);
 VALUE shoes_color_to_s(VALUE);
 VALUE shoes_color_to_pattern(VALUE);
-VALUE shoes_color_gradient(VALUE, VALUE, VALUE);
+VALUE shoes_color_gradient(int, VALUE *, VALUE);
 
 VALUE shoes_link_new(VALUE, int, int);
 VALUE shoes_link_alloc(VALUE);
