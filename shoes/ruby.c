@@ -1034,8 +1034,8 @@ shoes_gaussian_blur_filter(unsigned char *in, unsigned char *out,
     memset(out, 0, len);
 
   unsigned int dX, dY;
-  dX = (unsigned int) floor(blur_x * 3*sqrt(2*M_PI)/4 + 0.5);
-  dY = (unsigned int) floor(blur_y * 3*sqrt(2*M_PI)/4 + 0.5);
+  dX = (unsigned int) floor(blur_x * 3*sqrt(2*SHOES_PI)/4 + 0.5);
+  dY = (unsigned int) floor(blur_y * 3*sqrt(2*SHOES_PI)/4 + 0.5);
 
   unsigned char *tmp = SHOE_ALLOC_N(unsigned char, len);
 
@@ -1518,7 +1518,7 @@ static void
 shoes_pattern_gradient(shoes_pattern *pattern, VALUE r1, VALUE r2, VALUE attr)
 {
   double angle = ATTR2(dbl, attr, angle, 0.);
-  double rads = angle * RAD2PI;
+  double rads = angle * SHOES_RAD2PI;
 
   if (rb_obj_is_kind_of(r1, rb_cString))
     r1 = shoes_color_parse(cColor, r1);
@@ -3691,7 +3691,7 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   { \
     GET_STRUCT(ele, self_t); \
     double rad; \
-    rad = NUM2DBL(_deg) * RAD2PI; \
+    rad = NUM2DBL(_deg) * SHOES_RAD2PI; \
     cairo_matrix_rotate(self_t->tf, -rad); \
     return self; \
   } \
@@ -3716,9 +3716,9 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
     double sx, sy; \
     GET_STRUCT(ele, self_t); \
     rb_scan_args(argc, argv, "11", &_sx, &_sy); \
-    sx = NUM2DBL(_sx) * RAD2PI; \
+    sx = NUM2DBL(_sx) * SHOES_RAD2PI; \
     sy = 0.0; \
-    if (!NIL_P(_sy)) sy = NUM2DBL(_sy) * RAD2PI; \
+    if (!NIL_P(_sy)) sy = NUM2DBL(_sy) * SHOES_RAD2PI; \
     cairo_matrix_init(&matrix, 1.0, sy, sx, 1.0, 0.0, 0.0); \
     cairo_matrix_multiply(self_t->tf, self_t->tf, &matrix); \
     return self; \

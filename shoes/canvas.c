@@ -14,9 +14,9 @@
   Data_Get_Struct(self, shoes_canvas, canvas); \
   cr = canvas->cr
 
-const double PIM2   = 6.28318530717958647693;
-const double PI     = 3.14159265358979323846;
-const double RAD2PI = 0.01745329251994329577;
+const double SHOES_PIM2   = 6.28318530717958647693;
+const double SHOES_PI     = 3.14159265358979323846;
+const double SHOES_RAD2PI = 0.01745329251994329577;
 
 static void shoes_canvas_send_start(VALUE);
 
@@ -609,7 +609,7 @@ shoes_canvas_oval(int argc, VALUE *argv, VALUE self)
   cairo_scale(cr, w / 2., h / 2.);
   cairo_move_to(cr, 0, 0);
   cairo_new_path(cr);
-  cairo_arc(cr, 0., 0., 1., 0., PIM2);
+  cairo_arc(cr, 0., 0., 1., 0., SHOES_PIM2);
   cairo_close_path(cr);
   return shoes_canvas_shape_end(self, INT2NUM(x), INT2NUM(y), w, h);
 }
@@ -682,7 +682,7 @@ shoes_canvas_star(int argc, VALUE *argv, VALUE self)
   inner = 50.0;
   if (!NIL_P(_inner)) inner = NUM2DBL(_inner);
 
-  theta = (points - 1) * PI / (points * 1.);
+  theta = (points - 1) * SHOES_PI / (points * 1.);
   shoes_canvas_shape_do(canvas, 0, 0, 0, 0, FALSE); /* TODO: find star's center */
   cairo_new_path(cr);
   cairo_move_to(cr, x, y);
