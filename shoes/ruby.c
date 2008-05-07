@@ -1108,10 +1108,14 @@ shoes_surface_blur(cairo_surface_t *surf, VALUE x, VALUE y)
 }
 
 VALUE
-shoes_imageblock_blur(VALUE self, VALUE x, VALUE y)
+shoes_imageblock_blur(int argc, VALUE *argv, VALUE self)
 {
+  VALUE x, y;
   cairo_surface_t *surf;
   GET_STRUCT(canvas, self_t);
+  rb_scan_args(argc, argv, "11", &x, &y);
+
+  if (NIL_P(y)) y = x;
   surf = cairo_get_target(self_t->cr);
   self_t->cr = cairo_create(shoes_surface_blur(surf, x, y));
   cairo_surface_destroy(surf);
@@ -4235,7 +4239,7 @@ shoes_ruby_init()
 
   cImageBlock = rb_define_class_under(cShoes, "ImageBlock", cShoes);
   rb_define_method(cImageBlock, "draw", CASTHOOK(shoes_imageblock_draw), 2);
-  rb_define_method(cImageBlock, "blur", CASTHOOK(shoes_imageblock_blur), 2);
+  rb_define_method(cImageBlock, "blur", CASTHOOK(shoes_imageblock_blur), -1);
 
   cShape    = rb_define_class_under(cShoes, "Shape", rb_cObject);
   rb_define_alloc_func(cShape, shoes_shape_alloc);
