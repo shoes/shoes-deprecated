@@ -1753,7 +1753,6 @@ shoes_canvas_imageblock(VALUE self, int w, int h, VALUE attr, VALUE block)
 {
   shoes_canvas *self_t, *pc;
   cairo_surface_t *surfc;
-  VALUE hidden = Qnil;
   VALUE imageblock = shoes_canvas_alloc(cImageBlock);
 
   shoes_canvas_clear(imageblock);
@@ -1774,11 +1773,7 @@ shoes_canvas_imageblock(VALUE self, int w, int h, VALUE attr, VALUE block)
     DRAW(imageblock, pc->app, block);
   }
 
-  hidden = ATTR(self_t->attr, hidden);
-  ATTRSET(self_t->attr, hidden, Qfalse);
-  shoes_canvas_draw(imageblock, self, Qfalse);
-  shoes_canvas_draw(imageblock, self, Qtrue);
-  ATTRSET(self_t->attr, hidden, hidden);
+  shoes_imageblock_paint(imageblock, 1);
   rb_ary_push(pc->contents, imageblock);
   return imageblock;
 }

@@ -924,6 +924,35 @@ shoes_imageblock_draw(VALUE self, VALUE c, VALUE actual)
 }
 
 VALUE
+shoes_imageblock_paint(VALUE self, int init)
+{
+  GET_STRUCT(canvas, self_t);
+  VALUE hidden = ATTR(self_t->attr, hidden);
+  ATTRSET(self_t->attr, hidden, Qfalse);
+
+  if (!init)
+  {
+    cairo_set_operator(self_t->cr, CAIRO_OPERATOR_CLEAR);
+    cairo_paint(self_t->cr);
+  }
+
+  cairo_set_operator(self_t->cr, CAIRO_OPERATOR_OVER);
+  shoes_canvas_draw(self, self_t->parent, Qfalse);
+  shoes_canvas_draw(self, self_t->parent, Qtrue);
+  ATTRSET(self_t->attr, hidden, hidden);
+
+  if (!init)
+    shoes_canvas_repaint_all(self_t->parent);
+  return self;
+}
+
+VALUE
+shoes_imageblock_refresh(VALUE self)
+{
+  return shoes_imageblock_paint(self, 0);
+}
+
+VALUE
 shoes_image_size(VALUE self)
 {
   GET_STRUCT(image, self_t);
@@ -4319,6 +4348,7 @@ shoes_ruby_init()
 
   cImageBlock = rb_define_class_under(cShoes, "ImageBlock", cShoes);
   rb_define_method(cImageBlock, "draw", CASTHOOK(shoes_imageblock_draw), 2);
+  rb_define_method(cImageBlock, "refresh", CASTHOOK(shoes_imageblock_refresh), 0);
 
   cShape    = rb_define_class_under(cShoes, "Shape", rb_cObject);
   rb_define_alloc_func(cShape, shoes_shape_alloc);

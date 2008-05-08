@@ -452,6 +452,10 @@ VALUE shoes_image_motion(VALUE, int, int, int *);
 VALUE shoes_image_send_click(VALUE, int, int, int);
 void shoes_image_send_release(VALUE, int, int, int);
 
+VALUE shoes_imageblock_draw(VALUE, VALUE, VALUE);
+VALUE shoes_imageblock_refresh(VALUE);
+VALUE shoes_imageblock_paint(VALUE, int);
+
 VALUE shoes_effect_new(VALUE, VALUE, VALUE);
 VALUE shoes_effect_alloc(VALUE);
 VALUE shoes_effect_draw(VALUE, VALUE, VALUE);
