@@ -700,12 +700,12 @@ shoes_canvas_blur(int argc, VALUE *argv, VALUE self)
   VALUE x, y, fx, attr;
   SETUP();
 
-  rb_scan_args(argc, argv, "11", &x, &y);
+  rb_scan_args(argc, argv, "02", &x, &y);
   if (NIL_P(y)) y = x;
 
   attr = rb_hash_new();
-  rb_hash_aset(attr, ID2SYM(s_width), x);
-  rb_hash_aset(attr, ID2SYM(s_height), y);
+  if (!NIL_P(x)) rb_hash_aset(attr, ID2SYM(s_width), x);
+  if (!NIL_P(y)) rb_hash_aset(attr, ID2SYM(s_height), y);
 
   fx = shoes_effect_new(cBlur, attr, self);
   rb_ary_push(canvas->contents, fx);
@@ -718,13 +718,13 @@ shoes_canvas_shadow(int argc, VALUE *argv, VALUE self)
   VALUE dist, x, y, fx, attr;
   SETUP();
 
-  rb_scan_args(argc, argv, "12", &dist, &x, &y);
+  rb_scan_args(argc, argv, "03", &dist, &x, &y);
   if (NIL_P(y)) y = x;
 
   attr = rb_hash_new();
-  rb_hash_aset(attr, ID2SYM(s_distance), dist);
-  rb_hash_aset(attr, ID2SYM(s_width), x);
-  rb_hash_aset(attr, ID2SYM(s_height), y);
+  if (!NIL_P(dist)) rb_hash_aset(attr, ID2SYM(s_distance), dist);
+  if (!NIL_P(x)) rb_hash_aset(attr, ID2SYM(s_width), x);
+  if (!NIL_P(y)) rb_hash_aset(attr, ID2SYM(s_height), y);
 
   fx = shoes_effect_new(cShadow, attr, self);
   rb_ary_push(canvas->contents, fx);

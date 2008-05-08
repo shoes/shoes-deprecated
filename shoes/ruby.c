@@ -1111,13 +1111,15 @@ shoes_gaussian_blur_filter(cairo_t *cr, void *data)
 cairo_t *
 shoes_shadow_filter(cairo_t *cr, void *data)
 {
+  shoes_effect *fx = (shoes_effect *)data;
   cairo_surface_t *source = cairo_get_target(cr);
   int width  = cairo_image_surface_get_width(source);
   int height = cairo_image_surface_get_height(source);
+  int distance = ATTR2(int, fx->attr, distance, 4);
 
   cairo_surface_t *target = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
   cairo_t *cr2 = cairo_create(target);
-  cairo_set_source_surface(cr2, source, 4, 4);
+  cairo_set_source_surface(cr2, source, distance, distance);
   cairo_paint(cr2);
   cairo_set_operator(cr2, CAIRO_OPERATOR_IN);
   cairo_set_source_rgb(cr2, 0., 0., 0.);
