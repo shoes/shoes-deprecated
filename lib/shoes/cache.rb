@@ -83,12 +83,12 @@ class Shoes::Setup
 
   def self.setup_app(setup)
     appt = "Setting up for #{setup.script}"
-    Shoes.app :width => 370, :height => 128, :resizable => false, :title => appt do
-      background "#EEC".."#DA9"
+    Shoes.app :width => 370, :height => 158, :resizable => false, :title => appt do
+      background "#EEC".."#AA9"
       image :top => 0, :left => 0 do
         stroke "#FFF"; strokewidth 0.1
-        (0..128).step(3) { |i| line 0, i, 370, i }
-        mask { rect 4, 4, 362, 120, 6 }
+        (0..158).step(3) { |i| line 0, i, 370, i }
+        mask { rect 4, 4, 362, 150, 6 }
       end
       @pulse = stack :top => 0, :left => 0
       @logo = image "#{DIR}/static/shoes-icon.png", :top => -20, :right => -20
@@ -96,6 +96,9 @@ class Shoes::Setup
         title "Shoes Setup", :size => 12, :weight => "bold", :margin => 0
         para "Preparing #{setup.script}", :size => 8, :margin => 0, :margin_top => 8, :width => 220
         progress :width => 1.0, :top => 70, :height => 20
+        button "Cancel", :top => 98, :left => 0.4 do
+          self.close
+        end
 
         start do
           Thread.start(self) do |app|
