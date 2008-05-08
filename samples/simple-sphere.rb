@@ -27,7 +27,7 @@ Shoes.app :width => 500, :height => 500, :resizable => false do
 
     image :top => 182, :left => 150, :width => 160, :height => 50 do
       para "Shoes", :top => 0, :left => 0, :stroke => white, :size => 26
-      shadow
+      blur
     end
   end
 end
