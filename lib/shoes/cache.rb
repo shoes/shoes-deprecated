@@ -84,9 +84,9 @@ class Shoes::Setup
   def self.setup_app(setup)
     appt = "Setting up for #{setup.script}"
     Shoes.app :width => 370, :height => 128, :resizable => false, :title => appt do
-      background "#FFE".."#DDA"
+      background "#EEC".."#DA9"
       image :top => 0, :left => 0 do
-        stroke "#F99"; strokewidth 0.1
+        stroke "#FFF"; strokewidth 0.1
         (0..128).step(3) { |i| line 0, i, 370, i }
         mask { rect 4, 4, 362, 120, 6 }
       end
