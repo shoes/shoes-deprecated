@@ -11,11 +11,11 @@
 #include "shoes/version.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cImageBlock, cEffect, cBlur, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover, ssNestSlot;
+VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cImageBlock, cEffect, cBlur, cShadow, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE eVlcError, eImageError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 VALUE symAltQuest, symAltSlash, symAltDot;
-ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_hover, s_href, s_insert, s_items, s_release, s_scroll, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
+ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_hover, s_href, s_insert, s_items, s_release, s_scroll, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -1018,17 +1018,41 @@ box_blur(unsigned char *in, unsigned char *out,
   }
 }
 
-void
-shoes_gaussian_blur_filter(unsigned char *in, unsigned char *out,
-  unsigned int len, int stride, void *data)
+#define RAW_FILTER_START(self_t) \
+  int width, height, stride; \
+  guchar *out; \
+  static const cairo_user_data_key_t key; \
+  cairo_surface_t *source = cairo_get_target(cr); \
+  cairo_surface_t *target; \
+  unsigned char *in = cairo_image_surface_get_data(source); \
+  \
+  self_t->place.x = self_t->place.y = 0; \
+  self_t->place.w = width  = cairo_image_surface_get_width(source); \
+  self_t->place.h = height = cairo_image_surface_get_height(source); \
+  stride = cairo_image_surface_get_stride(source); \
+  \
+  out = (guchar *)g_malloc(4 * width * height); \
+  target = cairo_image_surface_create_for_data((unsigned char *)out, \
+    CAIRO_FORMAT_ARGB32, \
+    width, height, 4 * width); \
+  cairo_surface_set_user_data(target, &key, out, (cairo_destroy_func_t)g_free); \
+  unsigned int len = 4 * width * height
+   
+#define RAW_FILTER_END(self_t) \
+  cr = cairo_create(target); \
+  cairo_surface_destroy(source);
+
+cairo_t *
+shoes_gaussian_blur_filter(cairo_t *cr, void *data)
 {
   shoes_effect *fx = (shoes_effect *)data;
+  RAW_FILTER_START(fx);
   float blur_d = ATTR2(dbl, fx->attr, radius, 1.);
   float blur_x = ATTR2(dbl, fx->attr, width, blur_d);
   float blur_y = ATTR2(dbl, fx->attr, height, blur_d);
 
   if (blur_x < 0 || blur_y < 0)
-    return;
+    return cr;
 
   if (blur_x == 0 || blur_y == 0)
     memset(out, 0, len);
@@ -1080,6 +1104,32 @@ shoes_gaussian_blur_filter(unsigned char *in, unsigned char *out,
   }
 
   SHOE_FREE(tmp);
+  RAW_FILTER_END(fx);
+  return cr;
+}
+
+cairo_t *
+shoes_shadow_filter(cairo_t *cr, void *data)
+{
+  cairo_surface_t *source = cairo_get_target(cr);
+  int width  = cairo_image_surface_get_width(source);
+  int height = cairo_image_surface_get_height(source);
+
+  cairo_surface_t *target = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+  cairo_t *cr2 = cairo_create(target);
+  cairo_set_source_surface(cr2, source, 4, 4);
+  cairo_paint(cr2);
+  cairo_set_operator(cr2, CAIRO_OPERATOR_IN);
+  cairo_set_source_rgb(cr2, 0., 0., 0.);
+  cairo_rectangle(cr2, 0, 0, width, height);
+  cairo_paint(cr2);
+  cairo_t *cr3 = shoes_gaussian_blur_filter(cr2, data);
+  cairo_set_operator(cr3, CAIRO_OPERATOR_OVER);
+  cairo_set_source_surface(cr3, source, 0, 0);
+  cairo_paint(cr3);
+
+  cairo_destroy(cr);
+  return cr3;
 }
 
 VALUE
@@ -1168,6 +1218,8 @@ shoes_effect_new(VALUE klass, VALUE attr, VALUE parent)
   fx->attr = attr;
   if (klass == cBlur)
     fx->filter = &shoes_gaussian_blur_filter;
+  else if (klass == cShadow)
+    fx->filter = &shoes_shadow_filter;
   return obj;
 }
 
@@ -1198,27 +1250,7 @@ shoes_effect_draw(VALUE self, VALUE c, VALUE actual)
 
   if (RTEST(actual))
   {
-    int width, height, stride;
-    guchar *target;
-    static const cairo_user_data_key_t key;
-    cairo_surface_t *in = cairo_get_target(canvas->cr);
-    cairo_surface_t *out;
-    unsigned char *source = cairo_image_surface_get_data(in);
-
-    self_t->place.x = self_t->place.y = 0;
-    self_t->place.w = width  = cairo_image_surface_get_width(in);
-    self_t->place.h = height = cairo_image_surface_get_height(in);
-    stride = cairo_image_surface_get_stride(in);
-
-    target = (guchar *)g_malloc(4 * width * height);
-    out = cairo_image_surface_create_for_data((unsigned char *)target,
-      CAIRO_FORMAT_ARGB32,
-      width, height, 4 * width);
-    cairo_surface_set_user_data(out, &key, target, (cairo_destroy_func_t)g_free);
-   
-    self_t->filter(source, target, 4 * width * height, stride, (void *)self_t);
-    canvas->cr = cairo_create(out);
-    cairo_surface_destroy(in);
+    canvas->cr = self_t->filter(canvas->cr, (void *)self_t);
   }
 
   self_t->place = place;
@@ -4170,6 +4202,7 @@ shoes_ruby_init()
   s_choose = rb_intern("choose");
   s_click = rb_intern("click");
   s_corner = rb_intern("corner");
+  s_distance = rb_intern("distance");
   s_displace_left = rb_intern("displace_left");
   s_displace_top = rb_intern("displace_top");
   s_downcase = rb_intern("downcase");
@@ -4336,6 +4369,7 @@ shoes_ruby_init()
   rb_define_method(cEffect, "draw", CASTHOOK(shoes_effect_draw), 2);
   rb_define_method(cEffect, "remove", CASTHOOK(shoes_effect_remove), 0);
   cBlur     = rb_define_class_under(cShoes, "Blur", cEffect);
+  cShadow   = rb_define_class_under(cShoes, "Shadow", cEffect);
 
 #ifdef VIDEO
   cVideo    = rb_define_class_under(cShoes, "Video", rb_cObject);

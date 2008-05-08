@@ -214,8 +214,7 @@ typedef struct {
 #endif
 } shoes_timer;
 
-typedef void (*shoes_effect_filter)(unsigned char *, unsigned char *,
-  unsigned int, int, void *);
+typedef cairo_t *(*shoes_effect_filter)(cairo_t *, void *);
 
 typedef struct {
   shoes_effect_filter filter;
@@ -333,6 +332,7 @@ VALUE shoes_canvas_background(int, VALUE *, VALUE);
 VALUE shoes_canvas_border(int, VALUE *, VALUE);
 VALUE shoes_canvas_video(int, VALUE *, VALUE);
 VALUE shoes_canvas_blur(int, VALUE *, VALUE);
+VALUE shoes_canvas_shadow(int, VALUE *, VALUE);
 VALUE shoes_canvas_image(int, VALUE *, VALUE);
 VALUE shoes_canvas_animate(int, VALUE *, VALUE);
 VALUE shoes_canvas_every(int, VALUE *, VALUE);
