@@ -1618,6 +1618,7 @@ shoes_app_open(shoes_app *app, char *path)
 
 #ifdef SHOES_WIN32
   RECT rect;
+  DWORD exStyle = dialog ? WS_EX_WINDOWEDGE : WS_EX_CLIENTEDGE;
 
   app->slot.controls = Qnil;
   app->slot.focus = Qnil;
@@ -1630,11 +1631,10 @@ shoes_app_open(shoes_app *app, char *path)
   rect.top = 0;
   rect.right = app->width;
   rect.bottom = app->height;
-  AdjustWindowRect(&rect, WINDOW_STYLE, FALSE);
+  AdjustWindowRectEx(&rect, WINDOW_STYLE, FALSE, exStyle);
 
   app->slot.window = CreateWindowEx(
-    dialog ? WS_EX_WINDOWEDGE : WS_EX_CLIENTEDGE,
-    SHOES_SHORTNAME, SHOES_APPNAME,
+    exStyle, SHOES_SHORTNAME, SHOES_APPNAME,
     WINDOW_STYLE | WS_CLIPCHILDREN |
       (app->resizable ? (WS_THICKFRAME | WS_MAXIMIZEBOX) : WS_DLGFRAME) |
       WS_VSCROLL | ES_AUTOVSCROLL,
