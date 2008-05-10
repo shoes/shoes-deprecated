@@ -4055,7 +4055,6 @@ shoes_timer_start(VALUE self)
 {
   GET_STRUCT(timer, self_t);
   unsigned int interval = self_t->rate;
-  if (interval < 32) interval = 32;
   if (self_t->started != ANIM_STARTED)
   {
 #ifdef SHOES_GTK

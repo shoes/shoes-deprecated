@@ -1,10 +1,10 @@
 trails = [[0, 0]] * 60
-Shoes.app do
+Shoes.app :width => 400, :height => 400, :resizable => false do
   nostroke
   fill rgb(0x30, 0xFF, 0xFF, 0.6)
 
   # animation at 24 frames per second
-  animate(24) do
+  animate(100) do
     trails.shift
     trails << self.mouse[1, 2]
 
