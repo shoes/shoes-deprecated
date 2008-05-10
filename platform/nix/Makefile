@@ -65,7 +65,10 @@ dist/shoes.launch: dist/shoes-bin
 	@cp ${RUBY_PREFIX}/lib/lib${RUBY_SO}.so dist
 	@ln -s lib${RUBY_SO}.so dist/libruby.so.1.8
 	@cp -r lib dist/lib
-	@cp -r rubygems/* dist/lib
+	@cp -r req/rubygems/* dist/lib
+	@cp -r req/sqlite3/lib/* dist/lib
+	@cd req/sqlite3/ext/sqlite3_api && ruby extconf.rb && make
+	@cp req/sqlite3/ext/sqlite3_api/*.so dist/lib
 	@cp -r samples dist/samples
 	@cp -r static dist/static
 	@rm -rf dist/**/.svn
