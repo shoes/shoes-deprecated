@@ -11,11 +11,11 @@
 #include "shoes/version.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cImageBlock, cEffect, cBlur, cShadow, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover, ssNestSlot;
+VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cImageBlock, cEffect, cBlur, cShadow, cGlow, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE eVlcError, eImageError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 VALUE symAltQuest, symAltSlash, symAltDot;
-ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_hover, s_href, s_insert, s_items, s_release, s_scroll, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
+ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_font, s_hand, s_hidden, s_hover, s_href, s_inner, s_insert, s_items, s_release, s_scroll, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -1076,7 +1076,7 @@ shoes_gaussian_blur_filter(cairo_t *cr, void *data)
 {
   shoes_effect *fx = (shoes_effect *)data;
   RAW_FILTER_START(fx);
-  float blur_d = ATTR2(dbl, fx->attr, radius, 1.);
+  float blur_d = ATTR2(dbl, fx->attr, radius, 2.);
   float blur_x = ATTR2(dbl, fx->attr, width, blur_d);
   float blur_y = ATTR2(dbl, fx->attr, height, blur_d);
 
@@ -1137,30 +1137,62 @@ shoes_gaussian_blur_filter(cairo_t *cr, void *data)
   return cr;
 }
 
-cairo_t *
-shoes_shadow_filter(cairo_t *cr, void *data)
+static cairo_t *
+shoes_layer_blur_filter(cairo_t *cr, void *data, cairo_operator_t blur_op,
+  cairo_operator_t merge_op, int distance)
 {
+  shoes_canvas *canvas;
   shoes_effect *fx = (shoes_effect *)data;
   cairo_surface_t *source = cairo_get_target(cr);
   int width  = cairo_image_surface_get_width(source);
   int height = cairo_image_surface_get_height(source);
-  int distance = ATTR2(int, fx->attr, distance, 4);
+  VALUE fill = ATTR(fx->attr, fill);
+  Data_Get_Struct(fx->parent, shoes_canvas, canvas);
 
   cairo_surface_t *target = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
   cairo_t *cr2 = cairo_create(target);
   cairo_set_source_surface(cr2, source, distance, distance);
   cairo_paint(cr2);
-  cairo_set_operator(cr2, CAIRO_OPERATOR_IN);
-  cairo_set_source_rgb(cr2, 0., 0., 0.);
+  cairo_set_operator(cr2, blur_op);
+  if (NIL_P(canvas->bg))
+    cairo_set_source_rgb(cr2, 0., 0., 0.);
+  else
+  {
+    shoes_pattern *pattern;
+    Data_Get_Struct(canvas->bg, shoes_pattern, pattern);
+    cairo_set_source(cr2, pattern->pattern);
+  }
   cairo_rectangle(cr2, 0, 0, width, height);
   cairo_paint(cr2);
   cairo_t *cr3 = shoes_gaussian_blur_filter(cr2, data);
-  cairo_set_operator(cr3, CAIRO_OPERATOR_OVER);
+  cairo_set_operator(cr3, merge_op);
   cairo_set_source_surface(cr3, source, 0, 0);
   cairo_paint(cr3);
 
   cairo_destroy(cr);
   return cr3;
+}
+
+cairo_t *
+shoes_shadow_filter(cairo_t *cr, void *data)
+{
+  shoes_effect *fx = (shoes_effect *)data;
+  int distance = ATTR2(int, fx->attr, distance, 4);
+  return shoes_layer_blur_filter(cr, data, CAIRO_OPERATOR_IN, CAIRO_OPERATOR_OVER, distance);
+}
+
+cairo_t *
+shoes_glow_filter(cairo_t *cr, void *data)
+{
+  shoes_effect *fx = (shoes_effect *)data;
+  cairo_operator_t blur_op = CAIRO_OPERATOR_IN;
+  cairo_operator_t merge_op = CAIRO_OPERATOR_OVER;
+  if (RTEST(ATTR(fx->attr, inner)))
+  {
+    blur_op = CAIRO_OPERATOR_OUT;
+    merge_op = CAIRO_OPERATOR_DEST_ATOP;
+  }
+  return shoes_layer_blur_filter(cr, data, blur_op, merge_op, 0);
 }
 
 VALUE
@@ -1251,6 +1283,8 @@ shoes_effect_new(VALUE klass, VALUE attr, VALUE parent)
     fx->filter = &shoes_gaussian_blur_filter;
   else if (klass == cShadow)
     fx->filter = &shoes_shadow_filter;
+  else if (klass == cGlow)
+    fx->filter = &shoes_glow_filter;
   return obj;
 }
 
@@ -4238,12 +4272,14 @@ shoes_ruby_init()
   s_downcase = rb_intern("downcase");
   s_draw = rb_intern("draw");
   s_end = rb_intern("end");
+  s_fill = rb_intern("fill");
   s_font = rb_intern("font");
   s_hand = rb_intern("hand");
   s_hidden = rb_intern("hidden");
   s_hover = rb_intern("hover");
   s_href = rb_intern("href");
   s_insert = rb_intern("insert");
+  s_inner = rb_intern("inner");
   s_items = rb_intern("items");
   s_match = rb_intern("match");
   s_leading = rb_intern("leading");
@@ -4401,6 +4437,7 @@ shoes_ruby_init()
   rb_define_method(cEffect, "remove", CASTHOOK(shoes_effect_remove), 0);
   cBlur     = rb_define_class_under(cShoes, "Blur", cEffect);
   cShadow   = rb_define_class_under(cShoes, "Shadow", cEffect);
+  cGlow     = rb_define_class_under(cShoes, "Glow", cEffect);
 
 #ifdef VIDEO
   cVideo    = rb_define_class_under(cShoes, "Video", rb_cObject);

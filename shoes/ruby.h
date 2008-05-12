@@ -45,12 +45,12 @@ typedef VALUE (*HOOK)();
 #define RSTRING_PTR(str) RSTRING(str)->ptr
 #endif
 
-extern VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cNative, cShape, cVideo, cImage, cImageBlock, cEffect, cBlur, cShadow, cEvery, cTimer, cAnim, cPattern, cBorder, cBackground, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextBlock, cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns, cButton, cEditLine, cEditBox, cListBox, cProgress, cCheck, cRadio, cColor, cColors, cLink, cLinkHover, ssNestSlot;
+extern VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cNative, cShape, cVideo, cImage, cImageBlock, cEffect, cBlur, cShadow, cGlow, cEvery, cTimer, cAnim, cPattern, cBorder, cBackground, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextBlock, cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns, cButton, cEditLine, cEditBox, cListBox, cProgress, cCheck, cRadio, cColor, cColors, cLink, cLinkHover, ssNestSlot;
 extern VALUE aMsgList;
 extern VALUE eNotImpl, eImageError;
 extern VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 extern VALUE symAltQuest, symAltSlash, symAltDot;
-extern ID s_aref, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_attach, s_begin, s_call, s_center, s_change, s_click, s_corner, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_font, s_hand, s_hidden, s_href, s_insert, s_items, s_leading, s_match, s_release, s_scroll, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_resizable, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
+extern ID s_aref, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_attach, s_begin, s_call, s_center, s_change, s_click, s_corner, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_font, s_hand, s_hidden, s_href, s_inner, s_insert, s_items, s_leading, s_match, s_release, s_scroll, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_resizable, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
 extern VALUE instance_eval_proc;
 
 VALUE mfp_instance_eval(VALUE, VALUE);
@@ -158,6 +158,7 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("border", border, -1); \
   f("video", video, -1); \
   f("blur", blur, -1); \
+  f("glow", glow, -1); \
   f("shadow", shadow, -1); \
   f("image_file", image, -1); \
   f("imagesize", imagesize, 1); \
