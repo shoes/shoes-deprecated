@@ -214,7 +214,7 @@ typedef struct {
 #endif
 } shoes_timer;
 
-typedef cairo_t *(*shoes_effect_filter)(cairo_t *, void *);
+typedef void (*shoes_effect_filter)(cairo_t *, void *);
 
 typedef struct {
   shoes_effect_filter filter;

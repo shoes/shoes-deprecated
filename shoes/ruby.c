@@ -1068,10 +1068,14 @@ box_blur(unsigned char *in, unsigned char *out,
   unsigned int len = 4 * width * height
    
 #define RAW_FILTER_END(self_t) \
-  cr = cairo_create(target); \
-  cairo_surface_destroy(source);
+  cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR); \
+  cairo_paint(cr); \
+  cairo_set_operator(cr, CAIRO_OPERATOR_OVER); \
+  cairo_set_source_surface(cr, target, 0, 0); \
+  cairo_paint(cr); \
+  cairo_surface_destroy(target);
 
-cairo_t *
+void
 shoes_gaussian_blur_filter(cairo_t *cr, void *data)
 {
   shoes_effect *fx = (shoes_effect *)data;
@@ -1081,7 +1085,7 @@ shoes_gaussian_blur_filter(cairo_t *cr, void *data)
   float blur_y = ATTR2(dbl, fx->attr, height, blur_d);
 
   if (blur_x < 0 || blur_y < 0)
-    return cr;
+    return;
 
   if (blur_x == 0 || blur_y == 0)
     memset(out, 0, len);
@@ -1134,10 +1138,9 @@ shoes_gaussian_blur_filter(cairo_t *cr, void *data)
 
   SHOE_FREE(tmp);
   RAW_FILTER_END(fx);
-  return cr;
 }
 
-static cairo_t *
+static void
 shoes_layer_blur_filter(cairo_t *cr, void *data, cairo_operator_t blur_op,
   cairo_operator_t merge_op, int distance)
 {
@@ -1164,35 +1167,33 @@ shoes_layer_blur_filter(cairo_t *cr, void *data, cairo_operator_t blur_op,
   }
   cairo_rectangle(cr2, 0, 0, width, height);
   cairo_paint(cr2);
-  cairo_t *cr3 = shoes_gaussian_blur_filter(cr2, data);
-  cairo_set_operator(cr3, merge_op);
-  cairo_set_source_surface(cr3, source, 0, 0);
-  cairo_paint(cr3);
-
-  cairo_destroy(cr);
-  return cr3;
+  shoes_gaussian_blur_filter(cr2, data);
+  cairo_set_operator(cr, merge_op);
+  cairo_set_source_surface(cr, target, 0, 0);
+  cairo_paint(cr);
+  cairo_destroy(cr2);
 }
 
-cairo_t *
+void
 shoes_shadow_filter(cairo_t *cr, void *data)
 {
   shoes_effect *fx = (shoes_effect *)data;
   int distance = ATTR2(int, fx->attr, distance, 4);
-  return shoes_layer_blur_filter(cr, data, CAIRO_OPERATOR_IN, CAIRO_OPERATOR_OVER, distance);
+  shoes_layer_blur_filter(cr, data, CAIRO_OPERATOR_IN, CAIRO_OPERATOR_OVER, distance);
 }
 
-cairo_t *
+void
 shoes_glow_filter(cairo_t *cr, void *data)
 {
   shoes_effect *fx = (shoes_effect *)data;
   cairo_operator_t blur_op = CAIRO_OPERATOR_IN;
-  cairo_operator_t merge_op = CAIRO_OPERATOR_OVER;
+  cairo_operator_t merge_op = CAIRO_OPERATOR_DEST_OVER;
   if (RTEST(ATTR(fx->attr, inner)))
   {
     blur_op = CAIRO_OPERATOR_OUT;
-    merge_op = CAIRO_OPERATOR_DEST_ATOP;
+    merge_op = CAIRO_OPERATOR_ATOP;
   }
-  return shoes_layer_blur_filter(cr, data, blur_op, merge_op, 0);
+  shoes_layer_blur_filter(cr, data, blur_op, merge_op, 0);
 }
 
 VALUE
@@ -1315,7 +1316,7 @@ shoes_effect_draw(VALUE self, VALUE c, VALUE actual)
 
   if (RTEST(actual))
   {
-    canvas->cr = self_t->filter(canvas->cr, (void *)self_t);
+    self_t->filter(canvas->cr, (void *)self_t);
   }
 
   self_t->place = place;
