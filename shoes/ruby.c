@@ -1179,7 +1179,7 @@ shoes_shadow_filter(cairo_t *cr, void *data)
 {
   shoes_effect *fx = (shoes_effect *)data;
   int distance = ATTR2(int, fx->attr, distance, 4);
-  shoes_layer_blur_filter(cr, data, CAIRO_OPERATOR_IN, CAIRO_OPERATOR_OVER, distance);
+  shoes_layer_blur_filter(cr, data, CAIRO_OPERATOR_IN, CAIRO_OPERATOR_DEST_OVER, distance);
 }
 
 void
@@ -1617,18 +1617,29 @@ shoes_pattern_gradient(shoes_pattern *pattern, VALUE r1, VALUE r2, VALUE attr)
 {
   double angle = ATTR2(dbl, attr, angle, 0.);
   double rads = angle * SHOES_RAD2PI;
+  double edge = sin(rads) + cos(rads);
 
   if (rb_obj_is_kind_of(r1, rb_cString))
     r1 = shoes_color_parse(cColor, r1);
   if (rb_obj_is_kind_of(r2, rb_cString))
     r2 = shoes_color_parse(cColor, r2);
 
-  pattern->pattern = cairo_pattern_create_linear(0.0, 0.0, 0.0, sin(rads) + cos(rads));
-  if (angle != 0.)
+  VALUE radius = ATTR(attr, radius);
+  if (!NIL_P(radius))
   {
-    cairo_matrix_t matrix;
-    cairo_matrix_init_rotate(&matrix, rads);
-    cairo_pattern_set_matrix(pattern->pattern, &matrix);
+    double r = 0.001;
+    if (rb_obj_is_kind_of(r, rb_cFloat)) r = NUM2DBL(radius);
+    pattern->pattern = cairo_pattern_create_radial(0.5, 0.5, r, edge / 2., edge / 2., edge / 2.);
+  }
+  else
+  {
+    pattern->pattern = cairo_pattern_create_linear(0.0, 0.0, 0.0, edge);
+    if (angle != 0.)
+    {
+      cairo_matrix_t matrix;
+      cairo_matrix_init_rotate(&matrix, rads);
+      cairo_pattern_set_matrix(pattern->pattern, &matrix);
+    }
   }
   shoes_color_grad_stop(pattern->pattern, 0.0, r1);
   shoes_color_grad_stop(pattern->pattern, 1.0, r2);
