@@ -34,6 +34,8 @@ shoes_canvas_gtk_paint (GtkWidget *widget, GdkEventExpose *event, gpointer data)
   GtkRequisition req;
   VALUE c = (VALUE)data;
   shoes_canvas *canvas;
+  INFO("EXPOSE: (%d, %d) (%d, %d) %lu, %d, %d\n", event->area.x, event->area.y,
+    event->area.width, event->area.height, event->window, (int)event->send_event, event->count);
   Data_Get_Struct(c, shoes_canvas, canvas);
   shoes_canvas_paint(c);
   canvas->slot.expose = event;

@@ -549,8 +549,10 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
 
 #define REPAINT_CONTROL() \
   PLACE_COORDS(); \
-  gtk_layout_move(GTK_LAYOUT(canvas->slot.canvas), self_t->ref, place.ix + place.dx, place.iy + place.dy); \
-  gtk_widget_set_size_request(self_t->ref, place.iw, place.ih); \
+  if (CHANGED_COORDS()) { \
+    gtk_layout_move(GTK_LAYOUT(canvas->slot.canvas), self_t->ref, place.ix + place.dx, place.iy + place.dy); \
+    gtk_widget_set_size_request(self_t->ref, place.iw, place.ih); \
+  } \
   if (canvas->slot.expose != NULL) \
   { \
     gtk_container_propagate_expose(GTK_CONTAINER(canvas->slot.canvas), self_t->ref, canvas->slot.expose); \
@@ -582,9 +584,11 @@ shoes_widget_changed(GtkWidget *ref, gpointer data)
 #define REPAINT_CONTROL() \
   HIRect hr; \
   PLACE_COORDS(); \
-  hr.origin.x = place.ix + place.dx; hr.origin.y = place.iy + place.dy; \
-  hr.size.width = place.iw; hr.size.height = place.ih; \
-  HIViewSetFrame(self_t->ref, &hr);
+  if (CHANGED_COORDS()) { \
+    hr.origin.x = place.ix + place.dx; hr.origin.y = place.iy + place.dy; \
+    hr.size.width = place.iw; hr.size.height = place.ih; \
+    HIViewSetFrame(self_t->ref, &hr); \
+  }
 
 static CFStringRef
 shoes_rb2cf(VALUE str)
@@ -622,7 +626,9 @@ shoes_cf2rb(CFStringRef cf)
 
 #define PLACE_CONTROL() \
   PLACE_COORDS(); \
-  MoveWindow(self_t->ref, place.ix + place.dx, place.iy + place.dy, place.iw, place.ih, TRUE)
+  if (CHANGED_COORDS()) { \
+    MoveWindow(self_t->ref, place.ix + place.dx, place.iy + place.dy, place.iw, place.ih, TRUE); \
+  }
 
 #define REPAINT_CONTROL() \
   place.iy -= canvas->slot.scrolly; \
