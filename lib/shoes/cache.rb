@@ -141,8 +141,12 @@ class Shoes::Setup
   def gem name, version = nil
     arg = "#{name} #{version}".strip
     name, version = arg.split(/\s+/, 2)
-    if Gem.source_index.find_name(name, version).empty?
-      @steps << [:gem, arg]
+    if ['hpricot', 'sqlite3-ruby'].include? name
+      warn "#{name} is included with Shoes and cannot be installed as a gem."
+    else
+      if Gem.source_index.find_name(name, version).empty?
+        @steps << [:gem, arg]
+      end
     end
   end
 
