@@ -83,7 +83,7 @@ def Shoes.make_help_page(str)
     stack :top => 80, :left => 0, :attach => Window do
       @toc = {}
       stack :margin => 12, :width => 130, :margin_top => 20 do
-        background "#eee", :radius => 4
+        background "#eee", :curve => 4
         docs.each do |sect_s, sect_h|
           sect_cls = sect_h['class']
           para strong(link(sect_s, :stroke => black) { 
@@ -101,7 +101,7 @@ def Shoes.make_help_page(str)
                   @doc.append do
                     meth_h['methods'].each do |mname, expl|
                       stack(:margin_top => 8, :margin_bottom => 8) { 
-                        background "#333".."#666", :radius => 3, :angle => 90; tagline mname, :margin => 4 }
+                        background "#333".."#666", :curve => 3, :angle => 90; tagline mname, :margin => 4 }
                       instance_eval &dewikify(expl)
                     end
                   end
@@ -448,7 +448,7 @@ Draw a rectangle using a style hash.  The following styles are supported:
 
  * `top`: the y-coordinate for the rectangle.
  * `left`: the x-coordinate for the rectangle.
- * `radius`: the pixel radius of the rectangle's corners.
+ * `curve`: the pixel radius of the rectangle's corners.
  * `width`: a specific pixel width for the rectangle.
  * `height`: a specific pixel height for the rectangle.
  * `center`: do the coordinates specific the rectangle's center? (true or false)

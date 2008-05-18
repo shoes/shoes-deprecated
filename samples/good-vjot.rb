@@ -8,8 +8,8 @@ Shoes.app :title => "vJot Clone",
   @note = NOTES.first
   background "#C7EAFB"
   stack :width => 400, :margin => 20 do
-    background "#eee", :radius => 12
-    border "#00D0FF", :strokewidth => 3, :radius => 12
+    background "#eee", :curve => 12
+    border "#00D0FF", :strokewidth => 3, :curve => 12
     stack :margin => 20 do
       caption "vJot Clone"
       @title = edit_line @note[0], :width => 1.0 do

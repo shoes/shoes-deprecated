@@ -15,7 +15,7 @@ VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask
 VALUE eVlcError, eImageError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 VALUE symAltQuest, symAltSlash, symAltDot;
-ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_font, s_hand, s_hidden, s_hover, s_href, s_inner, s_insert, s_items, s_release, s_scroll, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
+ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_font, s_hand, s_hidden, s_hover, s_href, s_inner, s_insert, s_items, s_release, s_scroll, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -1736,7 +1736,7 @@ shoes_background_draw(VALUE self, VALUE c, VALUE actual)
   cairo_matrix_t matrix1, matrix2;
   double r = 0., sw = 1.;
   SETUP(shoes_pattern, REL_TILE, self_t->width, self_t->height);
-  r = ATTR2(dbl, self_t->attr, radius, 0.);
+  r = ATTR2(dbl, self_t->attr, curve, 0.);
 
   if (RTEST(actual))
   {
@@ -1760,7 +1760,7 @@ shoes_border_draw(VALUE self, VALUE c, VALUE actual)
   cairo_matrix_t matrix1, matrix2;
   double r = 0., sw = 1.;
   SETUP(shoes_pattern, REL_TILE, self_t->width, self_t->height);
-  r = ATTR2(dbl, self_t->attr, radius, 0.);
+  r = ATTR2(dbl, self_t->attr, curve, 0.);
   sw = ATTR2(dbl, self_t->attr, strokewidth, 1.);
 
   place.iw -= sw;
@@ -4284,6 +4284,7 @@ shoes_ruby_init()
   s_choose = rb_intern("choose");
   s_click = rb_intern("click");
   s_corner = rb_intern("corner");
+  s_curve = rb_intern("curve");
   s_distance = rb_intern("distance");
   s_displace_left = rb_intern("displace_left");
   s_displace_top = rb_intern("displace_top");
