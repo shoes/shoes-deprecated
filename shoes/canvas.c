@@ -37,8 +37,8 @@ shoes_canvas_gtk_paint (GtkWidget *widget, GdkEventExpose *event, gpointer data)
   INFO("EXPOSE: (%d, %d) (%d, %d) %lu, %d, %d\n", event->area.x, event->area.y,
     event->area.width, event->area.height, event->window, (int)event->send_event, event->count);
   Data_Get_Struct(c, shoes_canvas, canvas);
-  shoes_canvas_paint(c);
   canvas->slot.expose = event;
+  shoes_canvas_paint(c);
   gtk_container_forall(GTK_CONTAINER(widget), shoes_canvas_gtk_paint_children, canvas);
   canvas->slot.expose = NULL;
 }
@@ -152,6 +152,12 @@ shoes_cairo_create(SHOES_SLOT_OS *slot, int width, int height, int border)
   cairo_t *cr;
 #ifdef SHOES_GTK
   cr = gdk_cairo_create(GTK_LAYOUT(slot->canvas)->bin_window);
+  if (slot->expose != NULL)
+  {
+    GdkRegion *region = gdk_region_rectangle(&slot->canvas->allocation);
+    gdk_region_intersect(region, slot->expose->region);
+    gdk_cairo_region(cr, region);
+  }
 #endif
 #ifdef SHOES_WIN32
   cr = cairo_create(slot->surface);
@@ -1374,13 +1380,6 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
 #endif
       }
     } 
-    if (RTEST(actual))
-    {
-      cairo_set_source_rgba(self_t->cr, 1.0f, 1.0f, 1.0f, 1.0f);
-      cairo_set_line_width(self_t->cr, 1.0);
-      cairo_rectangle(self_t->cr, 0, 0, 4000, 4000);
-      cairo_fill(self_t->cr);
-    }
   }
 
   if (ATTR(self_t->attr, hidden) != Qtrue)
@@ -1497,7 +1496,8 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
     canvas->endy = self_t->endy;
       
 #ifdef SHOES_GTK
-  self_t->slot.expose = NULL;
+  if (self_t != canvas)
+    self_t->slot.expose = NULL;
 #endif
 
   if (self_t == canvas || DC(self_t->slot) != DC(canvas->slot))

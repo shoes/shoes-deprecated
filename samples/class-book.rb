@@ -21,6 +21,7 @@ class Book < Shoes
 
   def incident(num)
     num = num.to_i
+    background white
     stack :margin => 10, :margin_left => 190, :margin_top => 20 do
       banner "Incident", :margin => 4
       para strong("No. #{num + 1}: #{INCIDENTS[num][0]}"), :margin => 4
