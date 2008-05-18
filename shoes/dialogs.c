@@ -187,6 +187,7 @@ shoes_dialog_ask(VALUE self, VALUE quiz)
     SetWindowTitleWithCFString(dialog.ref, cfmsg);
     CFRelease(cfmsg);
 
+    SetThemeWindowBackground(dialog.ref, kThemeBrushDialogBackgroundActive, false);
     //
     // TODO: make room for larger text in the label
     //
