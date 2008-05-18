@@ -492,12 +492,11 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
   shoes_place_decide(&place, c, self_t->attr, len, 28 + dh, REL_CANVAS, FALSE)
 
 #define FINISH() \
-  self_t->place = place; \
-  if (!ABSY(self_t->place)) { \
-    canvas->cx += self_t->place.w; \
-    canvas->cy = self_t->place.y; \
+  if (!ABSY(place)) { \
+    canvas->cx += place.w; \
+    canvas->cy = place.y; \
     canvas->endx = canvas->cx; \
-    canvas->endy = max(canvas->endy, self_t->place.y + self_t->place.h); \
+    canvas->endy = max(canvas->endy, place.y + place.h); \
   } \
   if (ck == cStack) { \
     canvas->cx = CPX(canvas); \
@@ -548,10 +547,10 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
   gtk_widget_show_all(self_t->ref); \
 
 #define REPAINT_CONTROL() \
-  PLACE_COORDS(); \
   if (CHANGED_COORDS()) { \
     gtk_layout_move(GTK_LAYOUT(canvas->slot.canvas), self_t->ref, place.ix + place.dx, place.iy + place.dy); \
     gtk_widget_set_size_request(self_t->ref, place.iw, place.ih); \
+    PLACE_COORDS(); \
   } \
   if (canvas->slot.expose != NULL) \
   { \
@@ -582,12 +581,12 @@ shoes_widget_changed(GtkWidget *ref, gpointer data)
   rb_ary_push(canvas->slot.controls, self); \
 
 #define REPAINT_CONTROL() \
-  HIRect hr; \
-  PLACE_COORDS(); \
   if (CHANGED_COORDS()) { \
+    HIRect hr; \
     hr.origin.x = place.ix + place.dx; hr.origin.y = place.iy + place.dy; \
     hr.size.width = place.iw; hr.size.height = place.ih; \
     HIViewSetFrame(self_t->ref, &hr); \
+    PLACE_COORDS(); \
   }
 
 static CFStringRef
@@ -626,13 +625,13 @@ shoes_cf2rb(CFStringRef cf)
 
 #define PLACE_CONTROL() \
   PLACE_COORDS(); \
-  if (CHANGED_COORDS()) { \
-    MoveWindow(self_t->ref, place.ix + place.dx, place.iy + place.dy, place.iw, place.ih, TRUE); \
-  }
+  MoveWindow(self_t->ref, place.ix + place.dx, place.iy + place.dy, place.iw, place.ih, TRUE)
 
 #define REPAINT_CONTROL() \
   place.iy -= canvas->slot.scrolly; \
-  PLACE_CONTROL(); \
+  if (CHANGED_COORDS()) { \
+    PLACE_CONTROL(); \
+  } \
   place.iy += canvas->slot.scrolly
 
 inline void shoes_win32_control_font(int id, HWND hwnd)
@@ -913,6 +912,7 @@ shoes_image_remove(VALUE self)
     cairo_set_source_surface(canvas->cr, surf, -imw / 2., -imh / 2.); \
     cairo_paint(canvas->cr); \
     cairo_restore(canvas->cr); \
+    self_t->place = place; \
   } \
   FINISH(); \
   return self;
@@ -1509,10 +1509,6 @@ shoes_video_draw(VALUE self, VALUE c, VALUE actual)
 #endif
       }
     }
-  }
-  else
-  {
-    PLACE_COORDS();
   }
 
   FINISH();
@@ -3070,10 +3066,6 @@ shoes_button_draw(VALUE self, VALUE c, VALUE actual)
       REPAINT_CONTROL();
     }
   }
-  else
-  {
-    PLACE_COORDS();
-  }
 
   FINISH();
 
@@ -3213,10 +3205,6 @@ shoes_edit_line_draw(VALUE self, VALUE c, VALUE actual)
       REPAINT_CONTROL();
     }
   }
-  else
-  {
-    PLACE_COORDS();
-  }
 
   FINISH();
 
@@ -3336,10 +3324,6 @@ shoes_edit_box_draw(VALUE self, VALUE c, VALUE actual)
     {
       REPAINT_CONTROL();
     }
-  }
-  else
-  {
-    PLACE_COORDS();
   }
 
   FINISH();
@@ -3550,10 +3534,6 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE actual)
       REPAINT_CONTROL();
     }
   }
-  else
-  {
-    PLACE_COORDS();
-  }
 
   FINISH();
 
@@ -3595,10 +3575,6 @@ shoes_progress_draw(VALUE self, VALUE c, VALUE actual)
     {
       REPAINT_CONTROL();
     }
-  }
-  else
-  {
-    PLACE_COORDS();
   }
 
   FINISH();
@@ -3687,10 +3663,6 @@ shoes_check_draw(VALUE self, VALUE c, VALUE actual)
       REPAINT_CONTROL();
     }
   }
-  else
-  {
-    PLACE_COORDS();
-  }
 
   FINISH();
 
@@ -3755,11 +3727,6 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
     {
       REPAINT_CONTROL();
     }
-
-  }
-  else
-  {
-    PLACE_COORDS();
   }
 
 #ifdef SHOES_GTK
