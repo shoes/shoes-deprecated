@@ -1960,6 +1960,8 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
   {
     x -= self_t->place.ix + self_t->place.dx;
     y -= (self_t->place.iy + self_t->place.dy) - self_t->slot.scrolly;
+    if (y < self_t->slot.scrolly || x < 0 || y > self_t->slot.scrolly + self_t->height || x > self_t->width)
+      return Qnil;
   }
 #endif
 
@@ -2054,6 +2056,8 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
   {
     x -= (self_t->place.ix + self_t->place.dx);
     y -= (self_t->place.iy + self_t->place.dy) - self_t->slot.scrolly;
+    if (y < self_t->slot.scrolly || x < 0 || y > self_t->slot.scrolly + self_t->height || x > self_t->width)
+      return Qnil;
   }
 #endif
 
@@ -2106,6 +2110,8 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
   {
     x -= (self_t->place.ix + self_t->place.dx);
     y -= (self_t->place.iy + self_t->place.dy) - self_t->slot.scrolly;
+    if (y < self_t->slot.scrolly || x < 0 || y > self_t->slot.scrolly + self_t->height || x > self_t->width)
+      return Qnil;
   }
 #endif
 
