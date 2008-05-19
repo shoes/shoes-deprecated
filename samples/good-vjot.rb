@@ -17,7 +17,6 @@ Shoes.app :title => "vJot Clone",
         load_list
       end
       stack :width => 1.0, :height => 200, :scroll => true do
-        background "#eee"
         @list = para
       end
       @jot = edit_box @note[1], :width => 1.0, :height => 200, :margin_bottom => 20 do

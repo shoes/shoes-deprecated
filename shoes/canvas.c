@@ -304,9 +304,36 @@ shoes_canvas_paint(VALUE self)
   HBITMAP bitmap, bitold;
   width = canvas->width; height = canvas->height;
   HDC hdc = BeginPaint(canvas->slot.window, &paint_struct);
+  if (canvas->slot.dc != NULL)
+  {
+    DeleteObject(GetCurrentObject(canvas->slot.dc, OBJ_BITMAP));
+    DeleteDC(canvas->slot.dc);
+  }
   canvas->slot.dc = CreateCompatibleDC(hdc);
   bitmap = CreateCompatibleBitmap(hdc, width, max(canvas->height, canvas->fully));
   bitold = (HBITMAP)SelectObject(canvas->slot.dc, bitmap);
+  DeleteObject(bitold);
+  if (canvas->slot.window == canvas->app->slot.window)
+  {
+    RECT rc;
+    HBRUSH bg = CreateSolidBrush(GetSysColor(COLOR_WINDOW));
+    GetClientRect(canvas->slot.window, &rc);
+    FillRect(canvas->slot.dc, &rc, bg);
+    DeleteObject(bg);
+  }
+  else
+  {
+    shoes_canvas *pc;
+    Data_Get_Struct(canvas->parent, shoes_canvas, pc);
+    if (pc != NULL && pc->slot.dc != NULL)
+    {
+      RECT r;
+      GetClientRect(canvas->slot.window, &r);
+      BitBlt(canvas->slot.dc, 0, canvas->slot.scrolly, r.right - r.left, r.bottom - r.top,
+        pc->slot.dc, canvas->place.ix, canvas->place.iy, SRCCOPY);
+    }
+  }
+
   canvas->slot.surface = cairo_win32_surface_create(canvas->slot.dc);
 #endif
 
@@ -333,9 +360,6 @@ shoes_canvas_paint(VALUE self)
   BitBlt(hdc, 0, 0, width, height, canvas->slot.dc, 0, canvas->slot.scrolly, SRCCOPY);
   cairo_surface_destroy(canvas->slot.surface);
   EndPaint(canvas->slot.window, &paint_struct);
-  SelectObject(canvas->slot.dc, bitold);
-  DeleteObject(bitmap);
-  DeleteDC(canvas->slot.dc);
 #endif
 
   INFO("PAINT: %0.6f s\n", ELAPSED);
