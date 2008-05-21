@@ -543,12 +543,12 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
 #define PLACE_CONTROL() \
   PLACE_COORDS(); \
   gtk_widget_set_size_request(self_t->ref, place.iw, place.ih); \
-  gtk_layout_put(GTK_LAYOUT(canvas->slot.canvas), self_t->ref, place.ix + place.dx, place.iy + place.dy); \
+  gtk_fixed_put(GTK_FIXED(canvas->slot.canvas), self_t->ref, place.ix + place.dx, place.iy + place.dy); \
   gtk_widget_show_all(self_t->ref); \
 
 #define REPAINT_CONTROL() \
   if (CHANGED_COORDS()) { \
-    gtk_layout_move(GTK_LAYOUT(canvas->slot.canvas), self_t->ref, place.ix + place.dx, place.iy + place.dy); \
+    gtk_fixed_move(GTK_FIXED(canvas->slot.canvas), self_t->ref, place.ix + place.dx, place.iy + place.dy); \
     gtk_widget_set_size_request(self_t->ref, place.iw, place.ih); \
     PLACE_COORDS(); \
   } \

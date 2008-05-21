@@ -173,6 +173,21 @@ shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
   return TRUE; 
 } 
 
+static gboolean
+shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, gpointer data)
+{ 
+  shoes_app *app = (shoes_app *)data; 
+  if (event->type == GDK_BUTTON_PRESS)
+  {
+    shoes_app_click(app, event->button, event->x, event->y);
+  }
+  else if (event->type == GDK_BUTTON_RELEASE)
+  {
+    shoes_app_release(app, event->button, event->x, event->y);
+  }
+  return TRUE;
+}
+
 static void
 shoes_app_gtk_paint_children(GtkWidget *widget, gpointer data)
 {
@@ -1549,10 +1564,15 @@ shoes_app_open(shoes_app *app, char *path)
   gk->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   if (!app->resizable)
     gtk_window_set_resizable(GTK_WINDOW(gk->window), FALSE);
+  gtk_widget_set_events(gk->window, GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK);
   g_signal_connect(G_OBJECT(gk->window), "size-allocate",
                    G_CALLBACK(shoes_app_gtk_paint), app);
   g_signal_connect(G_OBJECT(gk->window), "motion-notify-event", 
                    G_CALLBACK(shoes_app_gtk_motion), app);
+  g_signal_connect(G_OBJECT(gk->window), "button-press-event",
+                   G_CALLBACK(shoes_app_gtk_button), app);
+  g_signal_connect(G_OBJECT(gk->window), "button-release-event",
+                   G_CALLBACK(shoes_app_gtk_button), app);
   g_signal_connect(G_OBJECT(gk->window), "key-press-event",
                    G_CALLBACK(shoes_app_gtk_keypress), app);
   g_signal_connect(G_OBJECT(gk->window), "delete-event",
@@ -1859,8 +1879,8 @@ shoes_app_visit(shoes_app *app, char *path)
 #ifndef SHOES_GTK
   rb_ary_clear(app->slot.controls);
 #else
-  GtkAdjustment *adj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(canvas->slot.box));
-  gtk_adjustment_set_value(adj, adj->lower);
+  // GtkAdjustment *adj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(canvas->slot.box));
+  // gtk_adjustment_set_value(adj, adj->lower);
 #endif
   for (i = 0; i < RARRAY_LEN(ary); i++) 
   {

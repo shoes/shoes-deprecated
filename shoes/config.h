@@ -48,7 +48,7 @@
 #define SHOES_INIT_ARGS void
 
 typedef struct {
-  GtkWidget *box, *canvas;
+  GtkWidget *vscroll, *canvas;
   GdkEventExpose *expose;
   int scrolly;
 } shoes_slot_gtk, SHOES_SLOT_OS;
@@ -63,8 +63,8 @@ typedef struct {
 
 #define SHOES_CONTROL_REF GtkWidget *
 #define DC(slot) slot.canvas
-#define HAS_DRAWABLE(slot) GTK_LAYOUT(slot.canvas)->bin_window != 0
-#define DRAWABLE(ref) GDK_DRAWABLE_XID(GTK_LAYOUT(ref)->bin_window)
+#define HAS_DRAWABLE(slot) slot.canvas->window != 0
+#define DRAWABLE(ref) GDK_DRAWABLE_XID(ref->window)
 #define APP_WINDOW(app) (app == NULL ? NULL : GTK_WINDOW(app->os.window))
 #endif
 

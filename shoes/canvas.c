@@ -43,34 +43,6 @@ shoes_canvas_gtk_paint (GtkWidget *widget, GdkEventExpose *event, gpointer data)
   canvas->slot.expose = NULL;
 }
 
-static gboolean
-shoes_canvas_gtk_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
-{ 
-  GdkModifierType state;
-  VALUE c = (VALUE)data;
-  if (!event->is_hint)
-  {
-    state = (GdkModifierType)event->state;
-    shoes_canvas_send_motion(c, (int)event->x, (int)event->y, Qnil);
-  }
-  return TRUE;
-}
-
-static gboolean
-shoes_canvas_gtk_button(GtkWidget *widget, GdkEventButton *event, gpointer data)
-{ 
-  VALUE c = (VALUE)data;
-  if (event->type == GDK_BUTTON_PRESS)
-  {
-    shoes_canvas_send_click(c, event->button, event->x, event->y);
-  }
-  else if (event->type == GDK_BUTTON_RELEASE)
-  {
-    shoes_canvas_send_release(c, event->button, event->x, event->y);
-  }
-  return TRUE;
-}
-
 static void
 shoes_canvas_gtk_scroll(GtkRange *r, gpointer data)
 { 
@@ -91,30 +63,24 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
   slot = &canvas->slot;
 
 #ifdef SHOES_GTK
-  slot->box = gtk_scrolled_window_new(NULL, NULL);
-  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(slot->box), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
-  gtk_widget_set_size_request(slot->box, width, height);
-  slot->canvas = gtk_layout_new(NULL, NULL);
+  // slot->vscroll = gtk_scrolled_window_new(NULL, NULL);
+  // gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(slot->box), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+  // gtk_widget_set_size_request(slot->box, width, height);
+  slot->canvas = gtk_fixed_new();
+  gtk_fixed_set_has_window(GTK_FIXED(slot->canvas), TRUE);
   gtk_widget_set_events(slot->canvas,
-    gtk_widget_get_events(slot->canvas) | GDK_POINTER_MOTION_MASK | GDK_BUTTON_RELEASE_MASK);
+    gtk_widget_get_events(slot->canvas) | GDK_BUTTON_RELEASE_MASK);
   g_signal_connect(G_OBJECT(slot->canvas), "expose-event",
                    G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
-  if (!toplevel)
-    g_signal_connect(G_OBJECT(slot->canvas), "motion-notify-event",
-                     G_CALLBACK(shoes_canvas_gtk_motion), (gpointer)c);
-  g_signal_connect(G_OBJECT(slot->canvas), "button-press-event",
-                   G_CALLBACK(shoes_canvas_gtk_button), (gpointer)c);
-  g_signal_connect(G_OBJECT(slot->canvas), "button-release-event",
-                   G_CALLBACK(shoes_canvas_gtk_button), (gpointer)c);
-  g_signal_connect(G_OBJECT(gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(slot->box))), 
-                   "value-changed", G_CALLBACK(shoes_canvas_gtk_scroll), (gpointer)c);
+  // g_signal_connect(G_OBJECT(gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(slot->box))), 
+  //                  "value-changed", G_CALLBACK(shoes_canvas_gtk_scroll), (gpointer)c);
   if (toplevel)
-    gtk_container_add(GTK_CONTAINER(parent->canvas), slot->box);
+    gtk_container_add(GTK_CONTAINER(parent->canvas), slot->canvas);
   else
-    gtk_layout_put(GTK_LAYOUT(parent->canvas), slot->box, x, y);
-  gtk_container_add(GTK_CONTAINER(slot->box), slot->canvas);
-  GTK_LAYOUT(slot->canvas)->hadjustment->step_increment = 5;
-  GTK_LAYOUT(slot->canvas)->vadjustment->step_increment = 5;
+    gtk_fixed_put(GTK_FIXED(parent->canvas), slot->canvas, x, y);
+  gtk_widget_set_size_request(slot->canvas, width, height);
+  // GTK_FIXED(slot->canvas)->hadjustment->step_increment = 5;
+  // GTK_FIXED(slot->canvas)->vadjustment->step_increment = 5;
   slot->expose = NULL;
 #endif
 
@@ -151,13 +117,13 @@ shoes_cairo_create(SHOES_SLOT_OS *slot, int width, int height, int border)
 {
   cairo_t *cr;
 #ifdef SHOES_GTK
-  cr = gdk_cairo_create(GTK_LAYOUT(slot->canvas)->bin_window);
-  if (slot->expose != NULL)
-  {
-    GdkRegion *region = gdk_region_rectangle(&slot->canvas->allocation);
-    gdk_region_intersect(region, slot->expose->region);
-    gdk_cairo_region(cr, region);
-  }
+  cr = gdk_cairo_create(slot->canvas->window);
+  // if (slot->expose != NULL)
+  // {
+  //   GdkRegion *region = gdk_region_rectangle(&slot->canvas->allocation);
+  //   gdk_region_intersect(region, slot->expose->region);
+  //   gdk_cairo_region(cr, region);
+  // }
 #endif
 #ifdef SHOES_WIN32
   cr = cairo_create(slot->surface);
@@ -196,8 +162,8 @@ shoes_canvas_set_scroll_top(VALUE self, VALUE num)
   SETUP();
   canvas->slot.scrolly = NUM2INT(num);
 #ifdef SHOES_GTK
-  GtkRange *r = GTK_RANGE(gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(canvas->slot.box)));
-  gtk_range_set_value(r, canvas->slot.scrolly);
+  // GtkRange *r = GTK_RANGE(gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(canvas->slot.box)));
+  // gtk_range_set_value(r, canvas->slot.scrolly);
 #endif
 #ifdef SHOES_WIN32
   SetScrollPos(canvas->slot.window, SB_VERT, canvas->slot.scrolly, TRUE);
@@ -232,10 +198,10 @@ shoes_canvas_get_gutter_width(VALUE self)
   GetThemeMetric(kThemeMetricScrollBarWidth, (SInt32 *)&scrollwidth);
 #endif
 #ifdef SHOES_GTK
-  GtkRequisition req;
-  GtkWidget *vsb = gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(canvas->slot.box));
-  gtk_widget_size_request(vsb, &req);
-  scrollwidth = req.width;
+  // GtkRequisition req;
+  // GtkWidget *vsb = gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(canvas->slot.box));
+  // gtk_widget_size_request(vsb, &req);
+  // scrollwidth = req.width;
 #endif
   return INT2NUM(scrollwidth);
 }
@@ -1385,9 +1351,9 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
         shoes_canvas *pc;
         Data_Get_Struct(self_t->parent, shoes_canvas, pc);
 #ifdef SHOES_GTK
-        gtk_layout_move(GTK_LAYOUT(pc->slot.canvas), self_t->slot.box, 
+        gtk_fixed_move(GTK_FIXED(pc->slot.canvas), self_t->slot.canvas, 
             self_t->place.ix + self_t->place.dx, self_t->place.iy + self_t->place.dy);
-        gtk_widget_set_size_request(self_t->slot.box, self_t->place.iw, self_t->place.ih);
+        gtk_widget_set_size_request(self_t->slot.canvas, self_t->place.iw, self_t->place.ih);
 #endif
 #ifdef SHOES_QUARTZ
         HIRect rect;
@@ -1533,7 +1499,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
     {
       self_t->slot.scrolly = min(self_t->slot.scrolly, self_t->fully - self_t->height);
 #ifdef SHOES_GTK
-      gtk_layout_set_size(GTK_LAYOUT(self_t->slot.canvas), self_t->width, endy);
+      // gtk_fixed_set_size(GTK_FIXED(self_t->slot.canvas), self_t->width, endy);
 #endif
 #ifdef SHOES_QUARTZ
       HIRect hr;
@@ -1979,7 +1945,7 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
 
-#ifdef SHOES_QUARTZ
+#ifndef SHOES_WIN32
   if (ORIGIN(self_t->place))
   {
     x -= self_t->place.ix + self_t->place.dx;
@@ -2001,7 +1967,7 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
       VALUE ele = rb_ary_entry(self_t->contents, i);
       if (rb_obj_is_kind_of(ele, cCanvas))
       {
-#ifndef SHOES_QUARTZ
+#ifdef SHOES_WIN32
         if (!shoes_canvas_inherits(ele, self_t))
           continue;
 #endif
@@ -2075,13 +2041,13 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
   long i;
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
-#ifdef SHOES_QUARTZ
+#ifndef SHOES_WIN32
   if (ORIGIN(self_t->place))
   {
     x -= (self_t->place.ix + self_t->place.dx);
     y -= (self_t->place.iy + self_t->place.dy) - self_t->slot.scrolly;
     if (y < self_t->slot.scrolly || x < 0 || y > self_t->slot.scrolly + self_t->height || x > self_t->width)
-      return Qnil;
+      return;
   }
 #endif
 
@@ -2099,7 +2065,7 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
       VALUE ele = rb_ary_entry(self_t->contents, i);
       if (rb_obj_is_kind_of(ele, cCanvas))
       {
-#ifndef SHOES_QUARTZ
+#ifdef SHOES_WIN32
         if (!shoes_canvas_inherits(ele, self_t))
           continue;
 #endif
@@ -2129,7 +2095,7 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
 
-#ifdef SHOES_QUARTZ
+#ifdef SHOES_WIN32
   if (ORIGIN(self_t->place))
   {
     x -= (self_t->place.ix + self_t->place.dx);
@@ -2152,7 +2118,7 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
       VALUE ele = rb_ary_entry(self_t->contents, i);
       if (rb_obj_is_kind_of(ele, cCanvas))
       {
-#ifndef SHOES_QUARTZ
+#ifdef SHOES_WIN32
         if (!shoes_canvas_inherits(ele, self_t))
           continue;
 #endif
@@ -2234,7 +2200,7 @@ shoes_slot_new(VALUE klass, VALUE attr, VALUE parent)
     //
     shoes_slot_init(self, &pc->slot, -99, -99, 100, 100, FALSE);
 #ifdef SHOES_GTK
-    gtk_widget_show_all(self_t->slot.box);
+    gtk_widget_show_all(self_t->slot.canvas);
     self_t->width = 100;
     self_t->height = 100;
 #endif
