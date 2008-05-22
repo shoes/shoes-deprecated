@@ -551,10 +551,6 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
     gtk_fixed_move(GTK_FIXED(canvas->slot.canvas), self_t->ref, place.ix + place.dx, place.iy + place.dy); \
     gtk_widget_set_size_request(self_t->ref, place.iw, place.ih); \
     PLACE_COORDS(); \
-  } \
-  if (canvas->slot.expose != NULL) \
-  { \
-    gtk_container_propagate_expose(GTK_CONTAINER(canvas->slot.canvas), self_t->ref, canvas->slot.expose); \
   }
 
 static void

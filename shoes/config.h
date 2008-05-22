@@ -50,7 +50,7 @@
 typedef struct {
   GtkWidget *vscroll, *canvas;
   GdkEventExpose *expose;
-  int scrolly;
+  int scrolly, scrollh, scrollw;
 } shoes_slot_gtk, SHOES_SLOT_OS;
 
 typedef struct {

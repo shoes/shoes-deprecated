@@ -167,8 +167,10 @@ shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
   shoes_app *app = (shoes_app *)data; 
   if (!event->is_hint) 
   { 
+    shoes_canvas *canvas;
+    Data_Get_Struct(app->canvas, shoes_canvas, canvas);
     state = (GdkModifierType)event->state; 
-    shoes_app_motion(app, (int)event->x, (int)event->y);
+    shoes_app_motion(app, (int)event->x, (int)event->y + canvas->slot.scrolly);
   } 
   return TRUE; 
 } 
@@ -177,22 +179,17 @@ static gboolean
 shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, gpointer data)
 { 
   shoes_app *app = (shoes_app *)data; 
+  shoes_canvas *canvas;
+  Data_Get_Struct(app->canvas, shoes_canvas, canvas);
   if (event->type == GDK_BUTTON_PRESS)
   {
-    shoes_app_click(app, event->button, event->x, event->y);
+    shoes_app_click(app, event->button, event->x, event->y + canvas->slot.scrolly);
   }
   else if (event->type == GDK_BUTTON_RELEASE)
   {
-    shoes_app_release(app, event->button, event->x, event->y);
+    shoes_app_release(app, event->button, event->x, event->y + canvas->slot.scrolly);
   }
   return TRUE;
-}
-
-static void
-shoes_app_gtk_paint_children(GtkWidget *widget, gpointer data)
-{
-  shoes_app *app = (shoes_app *)data;
-  gtk_container_propagate_expose(GTK_CONTAINER(app->os.window), widget, app->slot.expose);
 }
 
 static void
@@ -201,9 +198,6 @@ shoes_app_gtk_paint (GtkWidget *widget, GdkEventExpose *event, gpointer data)
   shoes_app *app = (shoes_app *)data;
   gtk_window_get_size(GTK_WINDOW(app->os.window), &app->width, &app->height);
   shoes_canvas_size(app->canvas, app->width, app->height);
-  app->slot.expose = event;
-  gtk_container_forall(GTK_CONTAINER(app->os.window), shoes_app_gtk_paint_children, app);
-  app->slot.expose = NULL;
 }
 
 #define KEY_SYM(name, sym) \
@@ -1879,8 +1873,8 @@ shoes_app_visit(shoes_app *app, char *path)
 #ifndef SHOES_GTK
   rb_ary_clear(app->slot.controls);
 #else
-  // GtkAdjustment *adj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(canvas->slot.box));
-  // gtk_adjustment_set_value(adj, adj->lower);
+  GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot.vscroll));
+  gtk_adjustment_set_value(adj, adj->lower);
 #endif
   for (i = 0; i < RARRAY_LEN(ary); i++) 
   {
