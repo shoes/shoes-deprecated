@@ -384,6 +384,7 @@ task :tarball => ['bin/main.c', 'shoes/version.h'] do
   sh "git-checkout-index --prefix=#{PKG}/ -a"
   rm "#{PKG}/bin/main.skel"
   rm "#{PKG}/Rakefile"
+  rm "#{PKG}/.gitignore"
   rm "#{PKG}/use-deps"
   cp "bin/main.c", "#{PKG}/bin/main.c"
   cp "shoes/version.h", "#{PKG}/shoes/version.h"

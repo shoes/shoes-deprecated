@@ -24,8 +24,8 @@ type: :feature
 component: shoes
 release: Feinstein
 reporter: Jesse Thompson <jesset@gmail.com>
-status: :unstarted
-disposition: 
+status: :closed
+disposition: :fixed
 creation_time: 2008-04-02 18:38:42.719794 Z
 references: []
 
@@ -35,3 +35,7 @@ log_events:
   - _why <why@whytheluckystiff.net>
   - created
   - ""
+- - 2008-05-22 05:56:10.004328 Z
+  - _why <why@whytheluckystiff.net>
+  - closed issue with disposition fixed
+  - Transparent scroll windows are working on all three platforms now.  The trickiest of these was GTK, which required me to switch to a GtkFixed widget and use clipping on the cairo surface.
