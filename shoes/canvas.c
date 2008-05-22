@@ -2163,11 +2163,11 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
       }
       else if (rb_obj_is_kind_of(ele, cImage))
       {
-        urll = shoes_image_motion(ele, x, y, &h);
+        urll = shoes_image_motion(ele, x, y, NULL);
       }
       else if (rb_obj_is_kind_of(ele, cShape))
       {
-        urll = shoes_shape_motion(ele, x, y, &h);
+        urll = shoes_shape_motion(ele, x, y, NULL);
       }
 
       if (NIL_P(url)) url = urll;
@@ -2181,10 +2181,7 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
     }
   }
 
-  if (h)
-  {
-    shoes_canvas_repaint_all(self);
-  }
+  if (h) shoes_canvas_repaint_all(self);
 
   return url;
 }

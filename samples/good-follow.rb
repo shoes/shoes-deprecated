@@ -1,10 +1,10 @@
 trails = [[0, 0]] * 60
-Shoes.app :width => 400, :height => 400, :resizable => false do
+Shoes.app :width => 200, :height => 200, :resizable => false do
   nostroke
-  fill rgb(0x30, 0xFF, 0xFF, 0.6)
+  fill rgb(0x3, 0x1, 0x3, 0.6)
 
-  # animation at 24 frames per second
-  animate(100) do
+  # animation at 100 frames per second
+  animate(60) do
     trails.shift
     trails << self.mouse[1, 2]
 
@@ -18,7 +18,7 @@ Shoes.app :width => 400, :height => 400, :resizable => false do
       # draw circles progressively bigger
       trails.each_with_index do |(x, y), i|
         i += 1
-        oval :left => x, :top => y, :radius => i, :center => true
+        oval :left => x, :top => y, :radius => (i*0.5), :center => true
       end
     end
   end

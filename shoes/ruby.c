@@ -879,6 +879,7 @@ shoes_image_set_path(VALUE self, VALUE path)
   GET_STRUCT(image, image);
   image->path = path;
   image->surface = surf;
+  shoes_canvas_repaint_all(image->parent);
   return path;
 }
 

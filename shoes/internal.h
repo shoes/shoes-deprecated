@@ -28,34 +28,34 @@
 
 void odprintf(const char *format, ...);
 int shoes_snprintf(char* str, size_t size, const char* format, ...);
-#define DEBUGP odprintf 
+#define PUTS odprintf 
 
 #ifdef DEBUG
-#define INFO DEBUGP
+#define INFO PUTS
 #else
 #define INFO(msg)
 #endif
-#define WARN DEBUGP
+#define WARN PUTS
 #define QUIT(msg) \
   if (code == SHOES_OK) code = SHOES_FAIL; \
-  DEBUGP(msg); \
+  PUTS(msg); \
   goto quit
 
 #else
 
 #define shoes_snprintf snprintf
 
-#define DEBUGP printf
+#define PUTS printf
 #ifdef DEBUG
 
-#define INFO(f, s...) DEBUGP(f, ## s)
+#define INFO(f, s...) PUTS(f, ## s)
 #else
 #define INFO(f, s...)
 #endif
-#define WARN(f, s...) DEBUGP(f, ## s)
+#define WARN(f, s...) PUTS(f, ## s)
 #define QUIT(f, s...) \
   if (code == SHOES_OK) code = SHOES_FAIL; \
-  DEBUGP(f, ## s); \
+  PUTS(f, ## s); \
   goto quit
 #endif
 
