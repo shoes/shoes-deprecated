@@ -175,6 +175,7 @@ shoes_cairo_create(SHOES_SLOT_OS *slot, int width, int height, int border)
 #endif
 #ifdef SHOES_WIN32
   cr = cairo_create(slot->surface);
+  cairo_translate(cr, 0, -slot->scrolly);
 #endif
 #ifdef SHOES_QUARTZ
   cr = cairo_create(slot->surface);
@@ -326,7 +327,7 @@ shoes_canvas_paint(VALUE self)
     DeleteDC(canvas->slot.dc);
   }
   canvas->slot.dc = CreateCompatibleDC(hdc);
-  bitmap = CreateCompatibleBitmap(hdc, width, max(canvas->height, canvas->fully));
+  bitmap = CreateCompatibleBitmap(hdc, width, height);
   bitold = (HBITMAP)SelectObject(canvas->slot.dc, bitmap);
   DeleteObject(bitold);
   if (canvas->slot.window == canvas->app->slot.window)
@@ -345,7 +346,7 @@ shoes_canvas_paint(VALUE self)
     {
       RECT r;
       GetClientRect(canvas->slot.window, &r);
-      BitBlt(canvas->slot.dc, 0, canvas->slot.scrolly, r.right - r.left, r.bottom - r.top,
+      BitBlt(canvas->slot.dc, 0, 0, r.right - r.left, r.bottom - r.top,
         pc->slot.dc, canvas->place.ix, canvas->place.iy, SRCCOPY);
     }
   }
@@ -373,7 +374,7 @@ shoes_canvas_paint(VALUE self)
 #endif
 
 #ifdef SHOES_WIN32
-  BitBlt(hdc, 0, 0, width, height, canvas->slot.dc, 0, canvas->slot.scrolly, SRCCOPY);
+  BitBlt(hdc, 0, 0, width, height, canvas->slot.dc, 0, 0, SRCCOPY);
   cairo_surface_destroy(canvas->slot.surface);
   EndPaint(canvas->slot.window, &paint_struct);
 #endif
