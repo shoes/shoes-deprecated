@@ -1677,7 +1677,7 @@ shoes_app_open(shoes_app *app, char *path)
   app->slot.controls = rb_ary_new();
   rb_gc_register_address(&app->slot.controls);
 #endif
-  shoes_slot_init(app->canvas, &app->slot, 0, 0, app->width, app->height, TRUE);
+  shoes_slot_init(app->canvas, &app->slot, 0, 0, app->width, app->height, TRUE, TRUE);
   code = shoes_app_goto(app, path);
   if (code != SHOES_OK)
     return code;
@@ -1873,8 +1873,11 @@ shoes_app_visit(shoes_app *app, char *path)
 #ifndef SHOES_GTK
   rb_ary_clear(app->slot.controls);
 #else
-  GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot.vscroll));
-  gtk_adjustment_set_value(adj, adj->lower);
+  if (canvas->slot.vscroll)
+  {
+    GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot.vscroll));
+    gtk_adjustment_set_value(adj, adj->lower);
+  }
 #endif
   for (i = 0; i < RARRAY_LEN(ary); i++) 
   {

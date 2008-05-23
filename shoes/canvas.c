@@ -69,7 +69,7 @@ shoes_canvas_gtk_size(GtkWidget *widget, GtkAllocation *size, gpointer data)
   VALUE c = (VALUE)data;
   shoes_canvas *canvas;
   Data_Get_Struct(c, shoes_canvas, canvas);
-  if (size->height != canvas->slot.scrollh && size->width != canvas->slot.scrollw)
+  if (canvas->slot.vscroll && size->height != canvas->slot.scrollh && size->width != canvas->slot.scrollw)
   {
     GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot.vscroll));
     gtk_widget_set_size_request(canvas->slot.vscroll, -1, size->height);
@@ -97,7 +97,7 @@ shoes_canvas_gtk_scroll(GtkRange *r, gpointer data)
 #endif
 
 void
-shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int height, int toplevel)
+shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int height, int scrolls, int toplevel)
 {
   shoes_canvas *canvas;
   SHOES_SLOT_OS *slot;
@@ -116,11 +116,15 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
     gtk_fixed_put(GTK_FIXED(parent->canvas), slot->canvas, x, y);
 
   slot->scrollh = slot->scrollw = 0;
-  slot->vscroll = gtk_vscrollbar_new(NULL);
-  gtk_range_get_adjustment(GTK_RANGE(slot->vscroll))->step_increment = 5;
-  g_signal_connect(G_OBJECT(slot->vscroll), "value-changed",
-                   G_CALLBACK(shoes_canvas_gtk_scroll), (gpointer)c);
-  gtk_fixed_put(GTK_FIXED(slot->canvas), slot->vscroll, 0, 0);
+  slot->vscroll = NULL;
+  if (scrolls)
+  {
+    slot->vscroll = gtk_vscrollbar_new(NULL);
+    gtk_range_get_adjustment(GTK_RANGE(slot->vscroll))->step_increment = 5;
+    g_signal_connect(G_OBJECT(slot->vscroll), "value-changed",
+                     G_CALLBACK(shoes_canvas_gtk_scroll), (gpointer)c);
+    gtk_fixed_put(GTK_FIXED(slot->canvas), slot->vscroll, 0, 0);
+  }
 
   gtk_widget_set_size_request(slot->canvas, width, height);
   slot->expose = NULL;
@@ -206,8 +210,8 @@ shoes_canvas_set_scroll_top(VALUE self, VALUE num)
   SETUP();
   canvas->slot.scrolly = NUM2INT(num);
 #ifdef SHOES_GTK
-  GtkRange *r = GTK_RANGE(canvas->slot.vscroll);
-  gtk_range_set_value(r, canvas->slot.scrolly);
+  if (canvas->slot.vscroll)
+    gtk_range_set_value(GTK_RANGE(canvas->slot.vscroll), canvas->slot.scrolly);
 #endif
 #ifdef SHOES_WIN32
   SetScrollPos(canvas->slot.window, SB_VERT, canvas->slot.scrolly, TRUE);
@@ -242,9 +246,12 @@ shoes_canvas_get_gutter_width(VALUE self)
   GetThemeMetric(kThemeMetricScrollBarWidth, (SInt32 *)&scrollwidth);
 #endif
 #ifdef SHOES_GTK
-  GtkRequisition req;
-  gtk_widget_size_request(canvas->slot.vscroll, &req);
-  scrollwidth = req.width;
+  if (canvas->slot.vscroll)
+  {
+    GtkRequisition req;
+    gtk_widget_size_request(canvas->slot.vscroll, &req);
+    scrollwidth = req.width;
+  }
 #endif
   return INT2NUM(scrollwidth);
 }
@@ -1545,14 +1552,17 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
     {
       self_t->slot.scrolly = min(self_t->slot.scrolly, self_t->fully - self_t->height);
 #ifdef SHOES_GTK
-      GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(self_t->slot.vscroll));
-      if (adj->upper != (gdouble)endy)
+      if (self_t->slot.vscroll)
       {
-        gtk_range_set_range(GTK_RANGE(self_t->slot.vscroll), 0., (gdouble)endy);
-        if (adj->page_size >= adj->upper)
-          gtk_widget_hide(self_t->slot.vscroll);
-        else
-          gtk_widget_show(self_t->slot.vscroll);
+        GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(self_t->slot.vscroll));
+        if (adj->upper != (gdouble)endy)
+        {
+          gtk_range_set_range(GTK_RANGE(self_t->slot.vscroll), 0., (gdouble)endy);
+          if (adj->page_size >= adj->upper)
+            gtk_widget_hide(self_t->slot.vscroll);
+          else
+            gtk_widget_show(self_t->slot.vscroll);
+        }
       }
 #endif
 #ifdef SHOES_QUARTZ
@@ -2245,11 +2255,12 @@ shoes_slot_new(VALUE klass, VALUE attr, VALUE parent)
   self_t->parent = parent;
   self_t->app = pc->app;
   self_t->attr = attr;
-  if (!NIL_P(ATTR(self_t->attr, scroll))) {
+  int scrolls = RTEST(ATTR(self_t->attr, scroll));
+  if ((attr != ssNestSlot && RTEST(ATTR(self_t->attr, height))) || scrolls) {
     //
     // create the slot off-screen until it can be properly placed
     //
-    shoes_slot_init(self, &pc->slot, -99, -99, 100, 100, FALSE);
+    shoes_slot_init(self, &pc->slot, -99, -99, 100, 100, scrolls, FALSE);
 #ifdef SHOES_GTK
     gtk_widget_show_all(self_t->slot.canvas);
     self_t->width = 100;
