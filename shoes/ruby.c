@@ -2331,7 +2331,7 @@ shoes_textblock_send_hover(VALUE self, int x, int y, VALUE *clicked, int *t)
   hover = pango_layout_xy_to_index(self_t->layout, x * PANGO_SCALE, y * PANGO_SCALE, &index, &trailing);
   if (hover)
   {
-    INFO("HOVER (%d, %d) OVER (%d, %d)\n", x, y, self_t->place.ix + self->place.dx, self_t->place.iy + self_t->place.dy);
+    INFO("HOVER (%d, %d) OVER (%d, %d)\n", x, y, self_t->place.ix + self_t->place.dx, self_t->place.iy + self_t->place.dy);
   }
   for (i = 0; i < RARRAY_LEN(self_t->links); i++)
   {

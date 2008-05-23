@@ -2,6 +2,7 @@ require 'rake'
 require 'rake/clean'
 require 'platform/skel'
 require 'fileutils'
+require 'find'
 include FileUtils
 
 APPNAME = ENV['APPNAME'] || "Shoes"
@@ -398,4 +399,14 @@ end
 # shoes is small, if any include changes, go ahead and build from scratch.
 SRC.zip(OBJ).each do |c, o|
   file o => [c] + Dir["shoes/*.h"]
+end
+
+desc "build TAGS file for emacs hackers"
+task :tags do
+  files = ""
+  Find.find(".") do |path|
+    next if path !~ /\.(c|h)$/
+    files += path + " "
+  end
+  system("etags #{files}")
 end
