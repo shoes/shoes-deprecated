@@ -547,11 +547,13 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
   gtk_widget_show_all(self_t->ref); \
 
 #define REPAINT_CONTROL() \
+  place.iy -= canvas->slot.scrolly; \
   if (CHANGED_COORDS()) { \
+    PLACE_COORDS(); \
     gtk_fixed_move(GTK_FIXED(canvas->slot.canvas), self_t->ref, place.ix + place.dx, place.iy + place.dy); \
     gtk_widget_set_size_request(self_t->ref, place.iw, place.ih); \
-    PLACE_COORDS(); \
-  }
+  } \
+  place.iy += canvas->slot.scrolly
 
 static void
 shoes_widget_changed(GtkWidget *ref, gpointer data)

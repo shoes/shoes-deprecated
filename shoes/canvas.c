@@ -37,9 +37,29 @@ shoes_canvas_gtk_paint(GtkWidget *widget, GdkEventExpose *event, gpointer data)
   INFO("EXPOSE: (%d, %d) (%d, %d) %lu, %d, %d\n", event->area.x, event->area.y,
     event->area.width, event->area.height, event->window, (int)event->send_event, event->count);
   Data_Get_Struct(c, shoes_canvas, canvas);
+
+  //
+  // Since I'm using a GtkFixed container, I need to force it to be clipped on its boundaries.
+  // This could be done by using a whole lot of gdk_window_begin_paint_region calls, but that
+  // would also mean masking every region for every element... This approach is simple.  Clip
+  // the expose region and pass it on.
+  //
   canvas->slot.expose = event;
+  GdkRegion *region = event->region;
+  GdkRectangle rect = event->area;
+  event->region = gdk_region_rectangle(&canvas->slot.canvas->allocation);
+  gdk_region_intersect(event->region, region);
+  gdk_region_get_clipbox(event->region, &event->area);
+
   shoes_canvas_paint(c);
   gtk_container_forall(GTK_CONTAINER(widget), shoes_canvas_gtk_paint_children, canvas);
+
+  //
+  // Restore the full region to the event.
+  //
+  gdk_region_destroy(event->region);
+  event->region = region;
+  event->area = rect;
   canvas->slot.expose = NULL;
 }
 
@@ -1375,9 +1395,10 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
         Data_Get_Struct(self_t->parent, shoes_canvas, pc);
 #ifdef SHOES_GTK
         GtkAllocation *a = &self_t->slot.canvas->allocation;
-        if (a->x != self_t->place.ix + self_t->place.dx || a->y != self_t->place.iy + self_t->place.dy)
+        int newy = (self_t->place.iy + self_t->place.dy) - pc->slot.scrolly;
+        if (a->x != self_t->place.ix + self_t->place.dx || a->y != newy)
           gtk_fixed_move(GTK_FIXED(pc->slot.canvas), self_t->slot.canvas, 
-              self_t->place.ix + self_t->place.dx, self_t->place.iy + self_t->place.dy);
+              self_t->place.ix + self_t->place.dx, newy);
         if (a->width != self_t->place.iw || a->height != self_t->place.ih)
           gtk_widget_set_size_request(self_t->slot.canvas, self_t->place.iw, self_t->place.ih);
 #endif
