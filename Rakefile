@@ -219,7 +219,7 @@ when /win32/
   MSVC_LDFLAGS << " /LIBPATH:#{ENV['SDK_LIB_PATH'][0..-2]}\i386" if ENV['SDK_LIB_PATH']
 
   # MSVC build tasks
-  task :build_os => [:buildenv_win32, :build_skel, "dist/#{NAME}.exe"]
+  task :build_os => [:buildenv_win32, :build_skel, "dist/lib/shoes-stub.exe", "dist/lib/shoes-stub-inject.exe", "dist/#{NAME}.exe"]
 
   task :buildenv_win32 do
     unless ENV['DDKBUILDENV']
@@ -234,6 +234,14 @@ when /win32/
       end
     end
     mkdir_p "dist"
+  end
+
+  ['stub', 'stub-inject'].each do |s|
+    task "dist/lib/shoes-#{s}.exe" => ["platform/msw/stub32.res", "platform/msw/#{s}.obj"] do |t|
+      rm_f t.name
+      sh "link #{MSVC_LDFLAGS} /OUT:#{t.name} /LIBPATH:dist " +
+        "/SUBSYSTEM:WINDOWS platform/msw/stub32.res platform/msw/#{s}.obj shell32.lib user32.lib bufferoverflowu.lib"
+    end
   end
 
   task "dist/#{NAME}.exe" => ["dist/lib#{SONAME}.dll", "bin/main.obj", "shoes/appwin32.res"] do |t|
