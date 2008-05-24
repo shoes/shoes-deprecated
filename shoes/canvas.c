@@ -1627,19 +1627,18 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
       rb_ary_push(app->nesting, app->nestslot); \
     } \
     rb_ary_push(app->nesting, c); \
-    rb_funcall(blk, s_call, 0); \
+    blk; \
     rb_ary_pop(app->nesting); \
     if (alter) \
       rb_ary_pop(app->nesting); \
   }
-
 
 static void
 shoes_canvas_memdraw(VALUE self, VALUE block)
 {
   SETUP();
   canvas->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
-  DRAW(self, canvas->app, block);
+  DRAW(self, canvas->app, rb_funcall(block, s_call, 0));
   cairo_destroy(canvas->cr);
   canvas->cr = NULL;
 }
@@ -1698,7 +1697,7 @@ shoes_canvas_snapshot(int argc, VALUE *argv, VALUE self)
     {
       cairo_t * waz_cr = canvas->cr;
       cairo_t * cr     = canvas->cr = cairo_create (surface);
-      DRAW (self, canvas->app, block);
+      DRAW(self, canvas->app, rb_funcall(block, s_call, 0));
       shoes_canvas_draw (self, self, Qfalse);
       shoes_canvas_draw (self, self, Qtrue);
       canvas->cr = waz_cr;
@@ -1800,7 +1799,7 @@ shoes_canvas_flow(int argc, VALUE *argv, VALUE self)
   flow = shoes_flow_new(attr, self);
   if (!NIL_P(block))
   {
-    DRAW(flow, canvas->app, block);
+    DRAW(flow, canvas->app, rb_funcall(block, s_call, 0));
   }
   rb_ary_push(canvas->contents, flow);
   return flow;
@@ -1816,7 +1815,7 @@ shoes_canvas_stack(int argc, VALUE *argv, VALUE self)
   stack = shoes_stack_new(attr, self);
   if (!NIL_P(block))
   {
-    DRAW(stack, canvas->app, block);
+    DRAW(stack, canvas->app, rb_funcall(block, s_call, 0));
   }
   rb_ary_push(canvas->contents, stack);
   return stack;
@@ -1832,7 +1831,7 @@ shoes_canvas_mask(int argc, VALUE *argv, VALUE self)
   mask = shoes_mask_new(attr, self);
   if (!NIL_P(block))
   {
-    DRAW(mask, canvas->app, block);
+    DRAW(mask, canvas->app, rb_funcall(block, s_call, 0));
   }
   rb_ary_push(canvas->contents, mask);
   return mask;
@@ -1860,7 +1859,7 @@ shoes_canvas_imageblock(VALUE self, int w, int h, VALUE attr, VALUE block)
   self_t->attr = attr;
   if (!NIL_P(block))
   {
-    DRAW(imageblock, pc->app, block);
+    DRAW(imageblock, pc->app, rb_funcall(block, s_call, 0));
   }
 
   shoes_imageblock_paint(imageblock, 1);
@@ -1871,15 +1870,16 @@ shoes_canvas_imageblock(VALUE self, int w, int h, VALUE attr, VALUE block)
 VALUE
 shoes_canvas_widget(int argc, VALUE *argv, VALUE self)
 {
-  VALUE klass, attr, block, widget;
+  VALUE klass, attr, args, widget;
   SETUP();
 
-  rb_scan_args(argc, argv, "11&", &klass, &attr, &block);
+  rb_scan_args(argc, argv, "1*", &klass, &args);
+  attr = rb_ary_pop(args);
+  if (!rb_obj_is_kind_of(attr, rb_cHash))
+    attr = Qnil;
+
   widget = shoes_widget_new(klass, attr, self);
-  if (!NIL_P(block))
-  {
-    DRAW(widget, canvas->app, block);
-  }
+  DRAW(widget, canvas->app, ts_funcall2(widget, rb_intern("initialize"), argc - 1, argv + 1));
   rb_ary_push(canvas->contents, widget);
   return widget;
 }
