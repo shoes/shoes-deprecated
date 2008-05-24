@@ -1419,9 +1419,18 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
         HIViewSetFrame(self_t->slot.scrollview, &rect);
 #endif
 #ifdef SHOES_WIN32
-        MoveWindow(self_t->slot.window, self_t->place.ix + self_t->place.dx, 
-          (self_t->place.iy + self_t->place.dy) - pc->slot.scrolly, self_t->place.iw, 
-          self_t->place.ih, TRUE);
+        RECT r;
+        GetWindowRect(self_t->slot.window, &r);
+        if (r.left != self_t->place.ix + self_t->place.dx || 
+            r.top != (self_t->place.iy + self_t->place.dy) - pc->slot.scrolly ||
+            r.right - r.left != self_t->place.iw ||
+            r.bottom - r.top != self_t->place.ih)
+        {
+          PUTS("MoveWindow\n");
+          MoveWindow(self_t->slot.window, self_t->place.ix + self_t->place.dx, 
+            (self_t->place.iy + self_t->place.dy) - pc->slot.scrolly, self_t->place.iw, 
+            self_t->place.ih, TRUE);
+        }
 #endif
       }
     } 
