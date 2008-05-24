@@ -54,6 +54,7 @@ extern ID s_aref, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, 
 extern VALUE instance_eval_proc;
 
 VALUE mfp_instance_eval(VALUE, VALUE);
+VALUE ts_funcall2(VALUE, ID, int, VALUE *);
 long rb_ary_index_of(VALUE, VALUE);
 VALUE rb_ary_insert_at(VALUE, long, int, VALUE);
 VALUE shoes_safe_block(VALUE, VALUE, VALUE);
