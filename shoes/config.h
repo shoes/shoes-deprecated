@@ -86,7 +86,8 @@ typedef struct {
 #define SHOES_INIT_ARGS void
 
 typedef struct {
-  HIViewRef scrollview, view;
+  HIViewRef view;
+  ControlRef vscroll;
   VALUE focus;
   VALUE controls;
   CGContextRef context;

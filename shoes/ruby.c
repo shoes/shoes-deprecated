@@ -573,7 +573,6 @@ shoes_widget_changed(GtkWidget *ref, gpointer data)
   hr.size.width = place.iw; hr.size.height = place.ih; \
   HIViewAddSubview(canvas->slot.view, self_t->ref); \
   SetControlCommandID(self_t->ref, SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls)); \
-  SetControlReference(self_t->ref, (SInt32)canvas->slot.scrollview); \
   HIViewSetFrame(self_t->ref, &hr); \
   HIViewSetVisible(self_t->ref, true); \
   rb_ary_push(canvas->slot.controls, self); \
@@ -581,10 +580,10 @@ shoes_widget_changed(GtkWidget *ref, gpointer data)
 #define REPAINT_CONTROL() \
   if (CHANGED_COORDS()) { \
     HIRect hr; \
+    PLACE_COORDS(); \
     hr.origin.x = place.ix + place.dx; hr.origin.y = place.iy + place.dy; \
     hr.size.width = place.iw; hr.size.height = place.ih; \
     HIViewSetFrame(self_t->ref, &hr); \
-    PLACE_COORDS(); \
   }
 
 static CFStringRef

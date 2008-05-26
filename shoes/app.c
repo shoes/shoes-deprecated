@@ -342,7 +342,7 @@ shoes_slot_quartz_handler(
           HIViewGetBounds(canvas->slot.view, &bounds);
           SetEventParameter(inEvent, kEventParamImageSize, typeHISize, sizeof(bounds.size), &bounds.size);
           SetEventParameter(inEvent, kEventParamOrigin, typeHIPoint, sizeof(bounds.origin), &bounds.origin);
-          HIViewGetBounds(canvas->slot.scrollview, &bounds);
+          HIViewGetBounds(canvas->slot.view, &bounds);
           SetEventParameter(inEvent, kEventParamViewSize, typeHISize, sizeof(bounds.size), &bounds.size);
           bounds.size.height = 50;
           SetEventParameter(inEvent, kEventParamLineSize, typeHISize, sizeof(bounds.size), &bounds.size);
@@ -481,6 +481,11 @@ shoes_slot_quartz_register(void)
   return err;
 }
 
+pascal void
+shoes_slot_scroll_action(ControlRef vscroll, short part)
+{
+}
+
 OSStatus
 shoes_slot_quartz_create(VALUE self, SHOES_SLOT_OS *parent, int x, int y, int w, int h)
 {
@@ -489,19 +494,9 @@ shoes_slot_quartz_create(VALUE self, SHOES_SLOT_OS *parent, int x, int y, int w,
   EventRef event;
   shoes_canvas *canvas;
   SHOES_SLOT_OS *slot;
+  Rect bounds = {0, w - 16, h, w};
   Data_Get_Struct(self, shoes_canvas, canvas);
   slot = &canvas->slot;
-
-  //
-  // Create the scroll view
-  //
-  HIScrollViewCreate(kHIScrollViewOptionsVertScroll, &slot->scrollview);
-  HIScrollViewSetScrollBarAutoHide(slot->scrollview, true);
-  rect.origin.x = x * 1.;
-  rect.origin.y = y * 1.;
-  rect.size.width = (double)w;
-  rect.size.height = (double)h;
-  HIViewSetFrame(slot->scrollview, &rect);
 
   //
   // Create the content view
@@ -509,19 +504,20 @@ shoes_slot_quartz_create(VALUE self, SHOES_SLOT_OS *parent, int x, int y, int w,
   CreateEvent(NULL, kEventClassHIObject, kEventHIObjectInitialize,
     GetCurrentEventTime(), 0, &event);
 
-  rect.origin.x = 0.0;
-  rect.origin.y = 0.0;
-  rect.size.width = w * 1.;
+  rect.origin.x = (double)x;
+  rect.origin.y = (double)y;
+  rect.size.width = (double)w;
   rect.size.height = (double)h * 2;
   SetEventParameter(event, kShoesBoundEvent, typeHIRect, sizeof(HIRect), &rect);
   
   HIObjectCreate(kShoesViewClassID, event, (HIObjectRef *)&slot->view);
+  CreateScrollBarControl(slot->view, &bounds, 0, 0, 1, h, true, NewControlActionUPP(shoes_slot_scroll_action), &slot->vscroll);
+  HIViewAddSubview(slot->view, slot->vscroll);
+  HIViewSetVisible(slot->vscroll, true);
 
   SetControlData(slot->view, 1, kShoesSlotData, sizeof(VALUE), self);
-  HIViewAddSubview(slot->scrollview, slot->view);
-  HIViewAddSubview(parent->view, slot->scrollview);
+  HIViewAddSubview(parent->view, slot->view);
   HIViewSetVisible(slot->view, true);
-  HIViewSetVisible(slot->scrollview, true);
   return noErr;
 }
 

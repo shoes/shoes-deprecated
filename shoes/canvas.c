@@ -1411,12 +1411,28 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
           gtk_widget_set_size_request(self_t->slot.canvas, self_t->place.iw, self_t->place.ih);
 #endif
 #ifdef SHOES_QUARTZ
-        HIRect rect;
+        HIRect rect, rect2;
         rect.origin.x = (self_t->place.ix + self_t->place.dx) * 1.;
         rect.origin.y = ((self_t->place.iy + self_t->place.dy) * 1.) + 4;
         rect.size.width = (self_t->place.iw * 1.) + 4;
         rect.size.height = (self_t->place.ih * 1.) - 8;
-        HIViewSetFrame(self_t->slot.scrollview, &rect);
+        HIViewGetFrame(self_t->slot.view, &rect2);
+        if (rect.origin.x != rect2.origin.x || rect.origin.y != rect2.origin.y ||
+            rect.size.width != rect2.size.width || rect.size.height != rect2.size.height)
+        {
+          HIViewSetFrame(self_t->slot.view, &rect);
+          if (self_t->slot.vscroll)
+          {
+            Rect scrollb = {0, canvas->width - 16, canvas->height, canvas->width};
+            SInt16 baseLine;
+            SetControlBounds(self_t->slot.vscroll, &scrollb);
+            SetControlViewSize(self_t->slot.vscroll, canvas->height);
+            int upper = GetControlMaximum(self_t->slot.vscroll);
+            printf("* PAGESIZE: %d / UPPER: %d\n", canvas->height, upper);
+            HIViewSetVisible(self_t->slot.vscroll, upper > canvas->height);
+            HIViewSetNeedsDisplay(self_t->slot.vscroll, true);
+          }
+        }
 #endif
 #ifdef SHOES_WIN32
         RECT r;
@@ -1426,7 +1442,6 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
             r.right - r.left != self_t->place.iw ||
             r.bottom - r.top != self_t->place.ih)
         {
-          PUTS("MoveWindow\n");
           MoveWindow(self_t->slot.window, self_t->place.ix + self_t->place.dx, 
             (self_t->place.iy + self_t->place.dy) - pc->slot.scrolly, self_t->place.iw, 
             self_t->place.ih, TRUE);
@@ -1576,28 +1591,21 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
       }
 #endif
 #ifdef SHOES_QUARTZ
-      HIRect hr;
-      EventRef theEvent;
-
-      HIViewGetFrame(self_t->slot.view, &hr);
-      if (hr.size.width != (float)self_t->width || hr.size.height != (float)endy)
+      if (self_t->slot.vscroll)
       {
-        hr.size.width = (float)self_t->width;
-        hr.size.height = (float)endy - (endy == self_t->height ? 8 : 0);
-        HIViewSetFrame(self_t->slot.view, &hr);
-
-        CreateEvent(NULL, kEventClassScrollable,
-              kEventScrollableInfoChanged, 
-              GetCurrentEventTime(),
-              kEventAttributeUserEvent, 
-              &theEvent);
-        SendEventToEventTarget(theEvent, GetControlEventTarget(self_t->slot.scrollview));
-        ReleaseEvent(theEvent);
+        int upper = GetControlMaximum(self_t->slot.vscroll);
+        if (upper != endy)
+        {
+          int page_size = GetControlViewSize(self_t->slot.vscroll);
+          SetControlMaximum(self_t->slot.vscroll, max(0, endy - page_size));
+          printf("PAGESIZE: %d / UPPER: %d\n", page_size, endy);
+          HIViewSetVisible(self_t->slot.vscroll, endy > page_size);
+          HIViewSetNeedsDisplay(self_t->slot.vscroll, true);
+        }
       }
 #endif
 #ifdef SHOES_WIN32
       SCROLLINFO si;
-      // maxScroll = max(canvas->fully - newHeight, 0);
       si.cbSize = sizeof(SCROLLINFO);
       si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS;
       si.nMin = 0;
@@ -1901,10 +1909,10 @@ shoes_canvas_size(VALUE self, int w, int h)
   canvas->place.ih = canvas->place.h = canvas->height = h;
 #ifdef SHOES_QUARTZ
   HIRect hr;
-  HIViewGetFrame(canvas->slot.scrollview, &hr);
+  HIViewGetFrame(canvas->slot.view, &hr);
   hr.size.width = canvas->width;
   hr.size.height = canvas->height;
-  HIViewSetFrame(canvas->slot.scrollview, &hr);
+  HIViewSetFrame(canvas->slot.view, &hr);
 #endif
 }
 
