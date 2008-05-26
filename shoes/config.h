@@ -115,7 +115,7 @@ typedef struct {
 #define DRAWABLE(ref) ref
 
 OSStatus shoes_slot_quartz_register(void);
-OSStatus shoes_slot_quartz_create(VALUE, SHOES_SLOT_OS *, int, int, int, int);
+OSStatus shoes_slot_quartz_create(VALUE, SHOES_SLOT_OS *, int, int, int, int, int);
 VALUE shoes_cf2rb(CFStringRef cf);
 
 #endif

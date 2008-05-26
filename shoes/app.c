@@ -487,7 +487,7 @@ shoes_slot_scroll_action(ControlRef vscroll, short part)
 }
 
 OSStatus
-shoes_slot_quartz_create(VALUE self, SHOES_SLOT_OS *parent, int x, int y, int w, int h)
+shoes_slot_quartz_create(VALUE self, SHOES_SLOT_OS *parent, int x, int y, int w, int h, int s)
 {
   HIRect rect;
   OSStatus err;
@@ -509,11 +509,14 @@ shoes_slot_quartz_create(VALUE self, SHOES_SLOT_OS *parent, int x, int y, int w,
   rect.size.width = (double)w;
   rect.size.height = (double)h * 2;
   SetEventParameter(event, kShoesBoundEvent, typeHIRect, sizeof(HIRect), &rect);
-  
   HIObjectCreate(kShoesViewClassID, event, (HIObjectRef *)&slot->view);
-  CreateScrollBarControl(slot->view, &bounds, 0, 0, 1, h, true, NewControlActionUPP(shoes_slot_scroll_action), &slot->vscroll);
-  HIViewAddSubview(slot->view, slot->vscroll);
-  HIViewSetVisible(slot->vscroll, true);
+  
+  slot->vscroll = NULL;
+  if (s) {
+    CreateScrollBarControl(slot->view, &bounds, 0, 0, 1, h, true, NewControlActionUPP(shoes_slot_scroll_action), &slot->vscroll);
+    HIViewAddSubview(slot->view, slot->vscroll);
+    HIViewSetVisible(slot->vscroll, true);
+  }
 
   SetControlData(slot->view, 1, kShoesSlotData, sizeof(VALUE), self);
   HIViewAddSubview(parent->view, slot->view);

@@ -132,7 +132,7 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
 
 #ifdef SHOES_QUARTZ
   slot->controls = parent->controls;
-  shoes_slot_quartz_create(c, parent, x, y, width, height);
+  shoes_slot_quartz_create(c, parent, x, y, width, height, scrolls);
 #endif
 
 #ifdef SHOES_WIN32
@@ -1428,7 +1428,6 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
             SetControlBounds(self_t->slot.vscroll, &scrollb);
             SetControlViewSize(self_t->slot.vscroll, canvas->height);
             int upper = GetControlMaximum(self_t->slot.vscroll);
-            printf("* PAGESIZE: %d / UPPER: %d\n", canvas->height, upper);
             HIViewSetVisible(self_t->slot.vscroll, upper > canvas->height);
             HIViewSetNeedsDisplay(self_t->slot.vscroll, true);
           }
@@ -1598,7 +1597,6 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
         {
           int page_size = GetControlViewSize(self_t->slot.vscroll);
           SetControlMaximum(self_t->slot.vscroll, max(0, endy - page_size));
-          printf("PAGESIZE: %d / UPPER: %d\n", page_size, endy);
           HIViewSetVisible(self_t->slot.vscroll, endy > page_size);
           HIViewSetNeedsDisplay(self_t->slot.vscroll, true);
         }
@@ -1920,7 +1918,7 @@ void
 shoes_canvas_repaint_all(VALUE self)
 {
   SETUP();
-  shoes_slot_repaint(&canvas->slot);
+  shoes_slot_repaint(&canvas->app->slot);
 }
 
 typedef VALUE (*ccallfunc)(VALUE);
