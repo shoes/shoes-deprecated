@@ -6,7 +6,7 @@ module Accordion
       a = animate 30 do
         stack.height += 20
         active.height -= 20 if active
-        a.stop if stack.height > 120
+        a.stop if stack.height > 200
       end
     end
   end
@@ -16,13 +16,19 @@ module Accordion
       stack do
         page_text = nil
         stack :width => "100%" do
-          background "#eee"
-          para link(title).click { open_page page_text }
+          background "#fff".."#eed"
+          hi = background "#ddd".."#ba9", :hidden => true
+          para link(title).
+            hover { hi.show }.
+            leave { hi.hide }.
+            click { open_page page_text }, :size => 26
         end
         page_text =
-          stack :width => "100%", :height => 0 do
-            text.split(/\n+/).each do |pg|
-              para pg
+          stack :width => "100%", :height => (@pages.empty? ? 240 : 0) do
+            stack :margin => 10 do
+              text.split(/\n{2,}/).each do |pg|
+                para pg
+              end
             end
           end
       end
@@ -31,16 +37,40 @@ end
 
 Shoes.app do
   extend Accordion
-  page "Common descent", <<-'END'
-A group of organisms is said to have common descent if they have a common ancestor. In biology, the theory of universal common descent proposes that all organisms on Earth are descended from a common ancestor or ancestral gene pool.
+  style(Link, :stroke => black, :underline => nil, :weight => "strong")
+  style(LinkHover, :stroke => black, :fill => nil, :underline => nil)
 
-A theory of universal common descent based on evolutionary principles was proposed by Charles Darwin in his book The Origin of Species (1859), and later in The Descent of Man (1871). This theory is now generally accepted by biologists, and the last universal common ancestor (LUCA or LUA), that is, the most recent common ancestor of all currently living organisms, is believed to have appeared about 3.9 billion years ago. The theory of a common ancestor between all organisms is one of the principles of evolution, although for single cell organisms and viruses, single phylogeny is disputed.
+  page "0.0", <<-'END'
+There is a thought
+I have just had
+Which I don’t care to pass to
+Anyone at all at this time.
+
+I have even forgotten it now,
+But kept only the pleasures
+Of my property
+And of my controlled mental slippage.
 END
-  page "History", <<-'END'
-The first suggestion that all organisms may have had a common ancestor and diverged through random variation and natural selection was made in 1745 by the French mathematician and scientist Pierre-Louis Moreau de Maupertuis (1698-1759) in his work Venus physique. Specifically:
+  page "0.1", <<-'END'
+My eyes have blinked again
+And I have just realized
+This upright world
+I have been in.
 
-"Could one not say that, in the fortuitous combinations of the productions of nature, as there must be some characterized by a certain relation of fitness which are able to subsist, it is not to be wondered at that this fitness is present in all the species that are currently in existence? Chance, one would say, produced an innumerable multitude of individuals; a small number found themselves constructed in such a manner that the parts of the animal were able to satisfy its needs; in another infinitely greater number, there was neither fitness nor order: all of these latter have perished. Animals lacking a mouth could not live; others lacking reproductive organs could not perpetuate themselves... The species we see today are but the smallest part of what blind destiny has produced..."
+My eyelids wipe
+My eyes hundreds of times
+Reseting and renovating
+The scenery.
+END
+  page "0.2", <<-'END'
+Sister, without you,
+The universe would
+Have such a hole through it,
+Where infinity has been shot.
 
-In 1790, Immanuel Kant (Konigsberg (Kaliningrad) 1724 - 1804), in his Kritik der Urtheilskraft, states that the analogy of animal forms implies a common original type and thus a common parent.
+This cannot be, though.
+There will always be room
+For you—all of us are
+Holding the way open.
 END
 end
