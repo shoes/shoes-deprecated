@@ -27,7 +27,7 @@ end
 class Canvas
   [:height, :width, :scroll].each do |m|
     define_method(m) { style[m] } unless method_defined? m
-    define_method("#{m}=") { |v| style[m] = v }
+    define_method("#{m}=") { |v| style(m => v) }
   end
 end
 

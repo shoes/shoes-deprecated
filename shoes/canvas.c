@@ -290,6 +290,7 @@ shoes_canvas_style(int argc, VALUE *argv, VALUE self)
   {
     if (NIL_P(canvas->attr)) canvas->attr = rb_hash_new();
     rb_funcall(canvas->attr, s_update, 1, klass);
+    shoes_canvas_repaint_all(canvas->parent);
   }
 
   return canvas->attr;

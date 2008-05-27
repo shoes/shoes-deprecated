@@ -6,7 +6,6 @@ module Accordion
       a = animate 30 do
         stack.height += 20
         active.height -= 20 if active
-        stack.show
         a.stop if stack.height > 120
       end
     end

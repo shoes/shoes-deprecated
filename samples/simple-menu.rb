@@ -15,7 +15,6 @@ class MenuPanel < Widget
           b.width -= 5 if b != self and b.width > 140
         end
         self.width += 5
-        self.show
         a.stop if self.width >= 170
       end
     end
