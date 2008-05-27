@@ -1368,6 +1368,58 @@ shoes_canvas_remove(VALUE self)
   return self;
 }
 
+static void
+shoes_canvas_place(shoes_canvas *self_t)
+{
+  shoes_canvas *pc;
+  Data_Get_Struct(self_t->parent, shoes_canvas, pc);
+#ifdef SHOES_GTK
+  GtkAllocation *a = &self_t->slot.canvas->allocation;
+  int newy = (self_t->place.iy + self_t->place.dy) - pc->slot.scrolly;
+  if (a->x != self_t->place.ix + self_t->place.dx || a->y != newy)
+    gtk_fixed_move(GTK_FIXED(pc->slot.canvas), self_t->slot.canvas, 
+        self_t->place.ix + self_t->place.dx, newy);
+  if (a->width != self_t->place.iw || a->height != self_t->place.ih)
+    gtk_widget_set_size_request(self_t->slot.canvas, self_t->place.iw, self_t->place.ih);
+#endif
+#ifdef SHOES_QUARTZ
+  HIRect rect, rect2;
+  rect.origin.x = (self_t->place.ix + self_t->place.dx) * 1.;
+  rect.origin.y = ((self_t->place.iy + self_t->place.dy) * 1.) + 4;
+  rect.size.width = (self_t->place.iw * 1.) + 4;
+  rect.size.height = (self_t->place.ih * 1.) - 8;
+  HIViewGetFrame(self_t->slot.view, &rect2);
+  if (rect.origin.x != rect2.origin.x || rect.origin.y != rect2.origin.y ||
+      rect.size.width != rect2.size.width || rect.size.height != rect2.size.height)
+  {
+    HIViewSetFrame(self_t->slot.view, &rect);
+    if (self_t->slot.vscroll)
+    {
+      Rect scrollb = {0, canvas->width - 16, canvas->height, canvas->width};
+      SInt16 baseLine;
+      SetControlBounds(self_t->slot.vscroll, &scrollb);
+      SetControlViewSize(self_t->slot.vscroll, canvas->height);
+      int upper = GetControlMaximum(self_t->slot.vscroll);
+      HIViewSetVisible(self_t->slot.vscroll, upper > canvas->height);
+      HIViewSetNeedsDisplay(self_t->slot.vscroll, true);
+    }
+  }
+#endif
+#ifdef SHOES_WIN32
+  RECT r;
+  GetWindowRect(self_t->slot.window, &r);
+  if (r.left != self_t->place.ix + self_t->place.dx || 
+      r.top != (self_t->place.iy + self_t->place.dy) - pc->slot.scrolly ||
+      r.right - r.left != self_t->place.iw ||
+      r.bottom - r.top != self_t->place.ih)
+  {
+    MoveWindow(self_t->slot.window, self_t->place.ix + self_t->place.dx, 
+      (self_t->place.iy + self_t->place.dy) - pc->slot.scrolly, self_t->place.iw, 
+      self_t->place.ih, TRUE);
+  }
+#endif
+}
+
 VALUE
 shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
 {
@@ -1399,59 +1451,6 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
   {
     self_t->endx = self_t->cx = 0;
     self_t->topy = self_t->endy = self_t->cy = 0;
-    if (!NIL_P(self_t->parent))
-    {
-      if (RTEST(actual))
-      {
-        shoes_canvas *pc;
-        Data_Get_Struct(self_t->parent, shoes_canvas, pc);
-#ifdef SHOES_GTK
-        GtkAllocation *a = &self_t->slot.canvas->allocation;
-        int newy = (self_t->place.iy + self_t->place.dy) - pc->slot.scrolly;
-        if (a->x != self_t->place.ix + self_t->place.dx || a->y != newy)
-          gtk_fixed_move(GTK_FIXED(pc->slot.canvas), self_t->slot.canvas, 
-              self_t->place.ix + self_t->place.dx, newy);
-        if (a->width != self_t->place.iw || a->height != self_t->place.ih)
-          gtk_widget_set_size_request(self_t->slot.canvas, self_t->place.iw, self_t->place.ih);
-#endif
-#ifdef SHOES_QUARTZ
-        HIRect rect, rect2;
-        rect.origin.x = (self_t->place.ix + self_t->place.dx) * 1.;
-        rect.origin.y = ((self_t->place.iy + self_t->place.dy) * 1.) + 4;
-        rect.size.width = (self_t->place.iw * 1.) + 4;
-        rect.size.height = (self_t->place.ih * 1.) - 8;
-        HIViewGetFrame(self_t->slot.view, &rect2);
-        if (rect.origin.x != rect2.origin.x || rect.origin.y != rect2.origin.y ||
-            rect.size.width != rect2.size.width || rect.size.height != rect2.size.height)
-        {
-          HIViewSetFrame(self_t->slot.view, &rect);
-          if (self_t->slot.vscroll)
-          {
-            Rect scrollb = {0, canvas->width - 16, canvas->height, canvas->width};
-            SInt16 baseLine;
-            SetControlBounds(self_t->slot.vscroll, &scrollb);
-            SetControlViewSize(self_t->slot.vscroll, canvas->height);
-            int upper = GetControlMaximum(self_t->slot.vscroll);
-            HIViewSetVisible(self_t->slot.vscroll, upper > canvas->height);
-            HIViewSetNeedsDisplay(self_t->slot.vscroll, true);
-          }
-        }
-#endif
-#ifdef SHOES_WIN32
-        RECT r;
-        GetWindowRect(self_t->slot.window, &r);
-        if (r.left != self_t->place.ix + self_t->place.dx || 
-            r.top != (self_t->place.iy + self_t->place.dy) - pc->slot.scrolly ||
-            r.right - r.left != self_t->place.iw ||
-            r.bottom - r.top != self_t->place.ih)
-        {
-          MoveWindow(self_t->slot.window, self_t->place.ix + self_t->place.dx, 
-            (self_t->place.iy + self_t->place.dy) - pc->slot.scrolly, self_t->place.iw, 
-            self_t->place.ih, TRUE);
-        }
-#endif
-      }
-    } 
   }
 
   if (ATTR(self_t->attr, hidden) != Qtrue)
@@ -1538,6 +1537,10 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
           self_t->cx = self_t->place.x;
           self_t->cy = self_t->endy;
         }
+        if (RTEST(actual))
+        {
+          shoes_canvas_place(c1);
+        }
       }
     }
 
@@ -1607,16 +1610,19 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
       }
 #endif
 #ifdef SHOES_WIN32
-      SCROLLINFO si;
-      si.cbSize = sizeof(SCROLLINFO);
-      si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS;
-      si.nMin = 0;
-      si.nMax = self_t->fully - 1; 
-      si.nPage = self_t->height;
-      si.nPos = self_t->slot.scrolly;
-      INFO("SetScrollInfo(%d, nMin: %d, nMax: %d, nPage: %d)\n", 
-        si.nPos, si.nMin, si.nMax, si.nPage);
-      SetScrollInfo(self_t->slot.window, SB_VERT, &si, TRUE);
+      if (RTEST(ATTR(self_t->attr, scroll)))
+      {
+        SCROLLINFO si;
+        si.cbSize = sizeof(SCROLLINFO);
+        si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS;
+        si.nMin = 0;
+        si.nMax = self_t->fully - 1; 
+        si.nPage = self_t->height;
+        si.nPos = self_t->slot.scrolly;
+        INFO("SetScrollInfo(%d, nMin: %d, nMax: %d, nPage: %d)\n", 
+          si.nPos, si.nMin, si.nMax, si.nPage);
+        SetScrollInfo(self_t->slot.window, SB_VERT, &si, TRUE);
+      }
 #endif
     }
   }
