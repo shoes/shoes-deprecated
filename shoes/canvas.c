@@ -1396,12 +1396,12 @@ shoes_canvas_place(shoes_canvas *self_t)
     HIViewSetFrame(self_t->slot.view, &rect);
     if (self_t->slot.vscroll)
     {
-      Rect scrollb = {0, canvas->width - 16, canvas->height, canvas->width};
+      Rect scrollb = {0, self_t->width - 16, self_t->height, self_t->width};
       SInt16 baseLine;
       SetControlBounds(self_t->slot.vscroll, &scrollb);
-      SetControlViewSize(self_t->slot.vscroll, canvas->height);
+      SetControlViewSize(self_t->slot.vscroll, self_t->height);
       int upper = GetControlMaximum(self_t->slot.vscroll);
-      HIViewSetVisible(self_t->slot.vscroll, upper > canvas->height);
+      HIViewSetVisible(self_t->slot.vscroll, upper > self_t->height);
       HIViewSetNeedsDisplay(self_t->slot.vscroll, true);
     }
   }
