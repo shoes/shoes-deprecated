@@ -316,6 +316,9 @@ shoes_canvas_paint(VALUE self)
 #endif
 
 #ifdef SHOES_WIN32
+  if (canvas->slot.surface != NULL)
+    return;
+
   PAINTSTRUCT paint_struct;
   int width, height;
   HBITMAP bitmap, bitold;
@@ -376,6 +379,7 @@ shoes_canvas_paint(VALUE self)
 #ifdef SHOES_WIN32
   BitBlt(hdc, 0, 0, width, height, canvas->slot.dc, 0, 0, SRCCOPY);
   cairo_surface_destroy(canvas->slot.surface);
+  canvas->slot.surface = NULL;
   EndPaint(canvas->slot.window, &paint_struct);
 #endif
 

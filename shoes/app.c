@@ -896,8 +896,10 @@ shoes_slot_win32proc(
         return 1;
 
       case WM_PAINT:
-        shoes_canvas_paint(c);
-        return 1;
+        INFO("WM_PAINT(slot)\n");
+        if (c != canvas->app->canvas)
+          shoes_canvas_paint(c);
+      break;
 
       case WM_VSCROLL:
         shoes_canvas_win32_vscroll(canvas, LOWORD(w), HIWORD(w));
@@ -1049,6 +1051,7 @@ shoes_app_win32proc(
       app->width = rect.right;
       app->height = rect.bottom;
       shoes_canvas_size(app->canvas, app->width, app->height);
+      INFO("WM_PAINT(app)\n");
       shoes_app_paint(app);
     }
     break;
@@ -2017,8 +2020,7 @@ shoes_slot_repaint(SHOES_SLOT_OS *slot)
   HIViewSetNeedsDisplay(slot->view, true);
 #endif
 #ifdef SHOES_WIN32
-  InvalidateRgn(slot->window, NULL, TRUE);
-  UpdateWindow(slot->window);
+  RedrawWindow(slot->window, NULL, NULL, RDW_INVALIDATE|RDW_ALLCHILDREN);
 #endif
   return SHOES_OK;
 }
