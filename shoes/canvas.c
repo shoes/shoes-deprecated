@@ -1611,7 +1611,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
       }
 #endif
 #ifdef SHOES_WIN32
-      if (RTEST(ATTR(self_t->attr, scroll)))
+      if (NIL_P(self_t->parent) || RTEST(ATTR(self_t->attr, scroll)))
       {
         SCROLLINFO si;
         si.cbSize = sizeof(SCROLLINFO);

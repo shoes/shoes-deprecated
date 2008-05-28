@@ -7,6 +7,7 @@ ARGV.delete_if { |x| x =~ /-psn_/ }
 
 require 'open-uri'
 require 'optparse'
+require 'resolv-replace'
 require 'shoes/inspect'
 require 'shoes/shy'
 if Object.const_defined? :Shoes

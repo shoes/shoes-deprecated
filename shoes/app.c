@@ -899,7 +899,7 @@ shoes_slot_win32proc(
         INFO("WM_PAINT(slot)\n");
         if (c != canvas->app->canvas)
           shoes_canvas_paint(c);
-      break;
+      return 1;
 
       case WM_VSCROLL:
         shoes_canvas_win32_vscroll(canvas, LOWORD(w), HIWORD(w));
