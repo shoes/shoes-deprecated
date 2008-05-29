@@ -452,7 +452,7 @@ sa_reader_lazyhits_to_offsets(VALUE self, VALUE lazyhits)
      str = rb_funcall(io, rb_intern("read"), 1, INT2NUM(4 * (to - from)));
      /* TODO: check retval */
      if(TYPE(str) != T_STRING) {
-         raise(rb_eRuntimeError, "The @io didn't return a String object.");
+         rb_raise(rb_eRuntimeError, "The @io didn't return a String object.");
      }
      for(src = (unsigned long *)RSTRING(str)->ptr, 
          dst = (unsigned long *)RARRAY(ret)->ptr, i = 0; i < RSTRING(str)->len / 4; i++) {
