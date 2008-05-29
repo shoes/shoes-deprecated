@@ -2,9 +2,15 @@ module Shoes::Manual
   CODE_STYLE = {:size => 9, :margin => 12}
   INTRO_STYLE = {:size => 12, :weight => "bold", :margin_bottom => 20, :stroke => "#000"}
 
+  def dewikify_hi(str, terms, intro = false)
+    str = str.gsub(/\b#{Regexp::quote(terms)}\b/i, '!\0!') if terms
+    dewikify(str, intro)
+  end
+
   def dewikify_p(str)
     str = str.gsub(/\n+\s*/, " ").dump.
       gsub(/`(.+?)`/m, '", code("\1"), "').gsub(/\[\[BR\]\]/i, "\n").
+      gsub(/!(.+?)!/m, '", strong("\1", :fill => yellow), "').gsub(/''(.+?)''/m, '", em("\1"), "').
       gsub(/'''(.+?)'''/m, '", strong("\1"), "').gsub(/''(.+?)''/m, '", em("\1"), "').
       gsub(/\[\[(\S+?) (.+?)\]\]/m, '", link("\2", :click => "\1"), "')
       # gsub(/\(\!\)/m, '<img src="/static/exclamation.png" />').
@@ -56,19 +62,19 @@ module Shoes::Manual
         sections = (sparts[1..-1]/2).map do |k2,v2|
           meth = v2.split(/^=== (.+?) ===/)
           k2t = k2[/^(?:The )?([\-\w]+)/, 1]
-          @search.add_document :uri => "T #{k2t}", :body => "#{k2}\n#{meth[0]}"
+          @search.add_document :uri => "T #{k2t}", :body => "#{k2}\n#{meth[0]}".downcase
 
           hsh = {'title' => k2,
             'description' => meth[0],
             'methods' => (meth[1..-1]/2).map { |_k,_v|
-              @search.add_document :uri => "M #{k2t}: #{_k}", :body => "#{_k}\n#{_v}"
+              @search.add_document :uri => "M #{k2t}: #{_k}", :body => "#{_k}\n#{_v}".downcase
               [_k, _v]
           }}
           @methods[k2t] = hsh
           [k2t, hsh]
         end
 
-        @search.add_document :uri => "S #{k}", :body => "#{k}\n#{sparts[0]}"
+        @search.add_document :uri => "S #{k}", :body => "#{k}\n#{sparts[0]}".downcase
         hsh = {'description' => sparts[0], 'sections' => sections, 
            'class' => "toc" + k.downcase.gsub(/\W+/, '')}
         @sections[k] = hsh
@@ -78,27 +84,27 @@ module Shoes::Manual
     @docs
   end
 
-  def open_section(sect_s)
+  def open_section(sect_s, terms = nil)
     sect_h = @sections[sect_s]
     sect_cls = sect_h['class']
     @toc.each { |k,v| v.send(k == sect_cls ? :show : :hide) }
     @title.replace sect_s
-    @doc.clear(&dewikify(sect_h['description'], true)) 
+    @doc.clear(&dewikify_hi(sect_h['description'], terms, true)) 
     self.scroll_top = 0
   end
 
-  def open_methods(meth_s, meth_a = nil)
+  def open_methods(meth_s, terms = nil, meth_a = nil)
     meth_h = @methods[meth_s]
     @title.replace meth_h['title']
     @doc.clear do
       unless meth_a
-        instance_eval &dewikify(meth_h['description'], true)
+        instance_eval &dewikify_hi(meth_h['description'], terms, true)
       end
       meth_h['methods'].each do |mname, expl|
         if meth_a.nil? or meth_a == mname
           stack(:margin_top => 8, :margin_bottom => 8) { 
             background "#333".."#666", :curve => 3, :angle => 90; tagline mname, :margin => 4 }
-          instance_eval &dewikify(expl)
+          instance_eval &dewikify_hi(expl, terms)
         end
       end
     end
@@ -160,23 +166,23 @@ def Shoes.make_help_page(str)
               terms = edit_line :width => -120
               button "Search" do
                 @results.clear do
-                  found = manual_search(terms.text)
+                  found = manual_search(terms.text.downcase)
                   para "#{found.length} matches", :align => "center"
                   found.each do |typ, head|
                     flow :margin => 4 do
                       case typ
                       when "S"
                         background "#333", :curve => 4
-                        caption strong(link(head, :stroke => white) { open_section(head) })
+                        caption strong(link(head, :stroke => white) { open_section(head, terms.text) })
                         para "Section header", :stroke => "#CCC", :margin_top => 8
                       when "T"
                         background "#777", :curve => 4
-                        caption strong(link(head, :stroke => "#EEE") { open_methods(head) })
+                        caption strong(link(head, :stroke => "#EEE") { open_methods(head, terms.text) })
                         para "Sub-section", :stroke => "#CCC", :margin_top => 8
                       when "M"
                         background "#CCC", :curve => 4
                         subhead, head = head.split(": ", 2)
-                        para strong(subhead, " ", link(head) { open_methods(subhead, head) })
+                        para strong(subhead, " ", link(head) { open_methods(subhead, terms.text, head) })
                       end
                     end
                   end
