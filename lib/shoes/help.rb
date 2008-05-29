@@ -909,6 +909,14 @@ rid of it.  You'll use the element's class to do that sort of stuff.
 So, for example, use the `image` method of a Slot to place a PNG on the screen. The `image` method
 gives you back an Image object. Use the methods of the Image object to change things up.
 
+== Background ==
+
+A background is a type of Shoes::Pattern.
+
+== Border ==
+
+A border is a type of Shoes::Pattern.
+
 == Image ==
 
 An image is a picture in PNG, JPEG or GIF format.  Shoes can resize images or flow them in with text.
@@ -933,9 +941,21 @@ If you have a 150x150 pixel image and you set the width to 50 pixels, this metho
 
 The horizontal screen size of the image in pixels.
 
+== ImageBlock ==
+
+Whereas standard images are loaded from a file, an image block is created with code.  But unlike Shape objects (like `oval` and `rect`,) the image is stored in memory as a block of pixels which is molded together and cannot be separated.
+
 == Native ==
 
 Shoes has seven native controls: the Button, the EditLine, the EditBox, the ListBox, the Progress meter, the Check box and the Radio.
+
+== Pattern ==
+
+Patterns are gradients or colors.
+
+== Shape ==
+
+A shape is a path outline usually created by drawing methods like `oval` and `rect`.
 
 == TextBlock ==
 

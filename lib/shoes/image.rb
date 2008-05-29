@@ -55,7 +55,7 @@ class Shoes
           end
         end
       end
-      image_file path, realpath, opts, &blk
+      image_file path, File.expand_path(realpath), opts, &blk
     end
   end
   def snapshot(options = {}, &block)
