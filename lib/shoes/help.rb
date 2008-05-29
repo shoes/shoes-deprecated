@@ -44,6 +44,48 @@ module Shoes::Manual
       end
     end
   end
+
+  def search_index docs
+    return if @docs
+    @search = Shoes::Search.new
+    (@docs = docs).each do |sect_s, sect_h|
+      @search.add_document :uri => "S #{sect_s}", :body => "#{sect_s}\n#{sect_h['description']}"
+      sect_h['sections'].each do |sub_s, sub_h|
+        @search.add_document :uri => "T #{sub_s}", :body => "#{sub_h['title']}\n#{sub_h['description']}"
+        sub_h['methods'].each do |meth_s, meth_h|
+          @search.add_document :uri => "M #{sub_s}: #{meth_s}", :body => "#{meth_s}\n#{meth_h}"
+        end
+      end
+    end
+    @search.finish!
+  end
+
+  def open_section(sect_s, sect_h)
+    sect_cls = sect_h['class']
+    @toc.each { |k,v| v.send(k == sect_cls ? :show : :hide) }
+    @title.replace sect_s
+    @doc.clear(&dewikify(sect_h['description'], true)) 
+    self.scroll_top = 0
+  end
+
+  def open_methods(meth_s, meth_h)
+    @title.replace meth_h['title']
+    @doc.clear(&dewikify(meth_h['description'], true)) 
+    @doc.append do
+      meth_h['methods'].each do |mname, expl|
+        stack(:margin_top => 8, :margin_bottom => 8) { 
+          background "#333".."#666", :curve => 3, :angle => 90; tagline mname, :margin => 4 }
+        instance_eval &dewikify(expl)
+      end
+    end
+    self.scroll_top = 0
+  end
+
+  def manual_search(terms)
+    @search.find_all(terms).map do |title, count|
+      title.split(" ", 2)
+    end
+  end
 end
 
 def Shoes.make_help_page(str)
@@ -77,6 +119,7 @@ def Shoes.make_help_page(str)
       background "rgb(66, 66, 66, 180)".."rgb(0, 0, 0, 0)", :height => 0.7
       background "rgb(66, 66, 66, 100)".."rgb(255, 255, 255, 0)", :height => 20, :bottom => 0
     end
+    search_index docs
     @doc =
       stack :margin_left => 130, :margin_top => 20, :margin_bottom => 50, :margin_right => 20 + gutter,
         &dewikify(docs[0][-1]['description'], true)
@@ -86,32 +129,52 @@ def Shoes.make_help_page(str)
         background "#eee", :curve => 4
         docs.each do |sect_s, sect_h|
           sect_cls = sect_h['class']
-          para strong(link(sect_s, :stroke => black) { 
-              @toc.each { |k,v| v.send(k == sect_cls ? :show : :hide) }
-              @title.replace sect_s
-              @doc.clear(&dewikify(sect_h['description'], true)) 
-              self.scroll_top = 0
-            }), :size => 11, :margin => 4
+          para strong(link(sect_s, :stroke => black) { open_section(sect_s, sect_h) }),
+            :size => 11, :margin => 4
           @toc[sect_cls] =
             stack :hidden => @toc.empty? ? false : true do
               links = sect_h['sections'].map do |meth_s, meth_h|
-                [link(meth_s) {
-                  @title.replace meth_h['title']
-                  @doc.clear(&dewikify(meth_h['description'], true)) 
-                  @doc.append do
-                    meth_h['methods'].each do |mname, expl|
-                      stack(:margin_top => 8, :margin_bottom => 8) { 
-                        background "#333".."#666", :curve => 3, :angle => 90; tagline mname, :margin => 4 }
-                      instance_eval &dewikify(expl)
-                    end
-                  end
-                  self.scroll_top = 0
-                }, "\n"]
+                [link(meth_s) { open_methods(meth_s, meth_h) }, "\n"]
               end.flatten
               links[-1] = {:size => 9, :margin => 4}
               para *links
             end
         end
+        para strong(link("Search") {
+          @toc.each { |k,v| v.hide }
+          @title.replace "Search"
+          @doc.clear do
+            flow :margin_left => 60, :margin_top => 20 do
+              terms = edit_line :width => -120
+              button "Search" do
+                @results.clear do
+                  found = manual_search(terms.text)
+                  para "#{found.length} matches", :align => "center"
+                  found.each do |typ, head|
+                    flow :margin => 4 do
+                      case typ
+                      when "S"
+                        background "#333", :curve => 4
+                        caption strong(link(head, :stroke => white) { open_section(head, args) })
+                        para "Section header", :stroke => "#CCC", :margin_top => 8
+                      when "T"
+                        background "#777", :curve => 4
+                        caption strong(link(head, :stroke => "#EEE") { open_methods(head, args) })
+                        para "Sub-section", :stroke => "#CCC", :margin_top => 8
+                      when "M"
+                        background "#CCC", :curve => 4
+                        subhead, head = head.split(": ", 2)
+                        para strong(subhead, " ", link(head) { open_methods(head, args) })
+                      end
+                    end
+                  end
+                end
+              end
+            end
+            @results = stack
+          end
+          self.scroll_top = 0
+          })
       end
       stack :margin => 12, :width => 118 do
         inscription "Shoes #{Shoes::RELEASE_NAME}\nRevision: #{Shoes::REVISION}",
@@ -298,6 +361,10 @@ Closes the app window.  If multiple windows are open and you want to close the e
 === location() » String ===
 
 Gets a string containing the URL of the current app.
+
+=== started?() » true or false === 
+
+Has the window been fully constructed and displayed?  This is useful for threaded code which may try to use the window before it is completely built.  (Also see the `start` event which fires once the window is open.)
 
 === visit(url: a string) ===
 

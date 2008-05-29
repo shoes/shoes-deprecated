@@ -87,10 +87,10 @@ task :build => [:build_os, "dist/VERSION.txt"] do
       rm_rf "dist/ruby/lib/#{libn}"
     end
   end
-  %w[req/rubygems/* req/sqlite3/lib/* req/hpricot/lib/*].each do |rdir|
+  %w[req/rubygems/* req/sqlite3/lib/* req/hpricot/lib/* req/ftsearch/lib/*].each do |rdir|
     FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
   end
-  %w[req/sqlite3/ext/sqlite3_api req/hpricot/ext/hpricot_scan].each do |xdir|
+  %w[req/sqlite3/ext/sqlite3_api req/hpricot/ext/hpricot_scan req/ftsearch/ext/ftsearchrt].each do |xdir|
     case PLATFORM when /win32/
       cp FileList["#{xdir}/*.dll"], "dist/ruby/lib/#{RUBY_PLATFORM}"
     else
