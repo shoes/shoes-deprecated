@@ -2250,13 +2250,6 @@ shoes_textblock_alloc(VALUE klass)
 }
 
 VALUE
-shoes_textblock_parent(VALUE self)
-{
-  GET_STRUCT(textblock, text);
-  return text->parent;
-}
-
-VALUE
 shoes_textblock_children(VALUE self)
 {
   GET_STRUCT(textblock, text);
@@ -3899,6 +3892,13 @@ EVENT_COMMON(linktext, text, leave);
 
 #define PLACE_COMMON(ele) \
   VALUE \
+  shoes_##ele##_get_parent(VALUE self) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    return self_t->parent; \
+  } \
+  \
+  VALUE \
   shoes_##ele##_get_left(VALUE self) \
   { \
     GET_STRUCT(ele, self_t); \
@@ -4374,6 +4374,7 @@ shoes_ruby_init()
   rb_define_method(cShape, "displace", CASTHOOK(shoes_shape_displace), 2);
   rb_define_method(cShape, "draw", CASTHOOK(shoes_shape_draw), 2);
   rb_define_method(cShape, "move", CASTHOOK(shoes_shape_move), 2);
+  rb_define_method(cShape, "parent", CASTHOOK(shoes_shape_get_parent), 0);
   rb_define_method(cShape, "top", CASTHOOK(shoes_shape_get_top), 0);
   rb_define_method(cShape, "left", CASTHOOK(shoes_shape_get_left), 0);
   rb_define_method(cShape, "width", CASTHOOK(shoes_shape_get_width), 0);
@@ -4396,6 +4397,7 @@ shoes_ruby_init()
   rb_define_method(cImage, "draw", CASTHOOK(shoes_image_draw), 2);
   rb_define_method(cImage, "size", CASTHOOK(shoes_image_size), 0);
   rb_define_method(cImage, "move", CASTHOOK(shoes_image_move), 2);
+  rb_define_method(cImage, "parent", CASTHOOK(shoes_image_get_parent), 0);
   rb_define_method(cImage, "rotate", CASTHOOK(shoes_image_rotate), 1);
   rb_define_method(cImage, "scale", CASTHOOK(shoes_image_scale), -1);
   rb_define_method(cImage, "skew", CASTHOOK(shoes_image_skew), -1);
@@ -4432,6 +4434,7 @@ shoes_ruby_init()
   rb_define_method(cVideo, "hide", CASTHOOK(shoes_video_hide), 0);
   rb_define_method(cVideo, "show", CASTHOOK(shoes_video_show), 0);
   rb_define_method(cVideo, "move", CASTHOOK(shoes_video_move), 2);
+  rb_define_method(cVideo, "parent", CASTHOOK(shoes_video_get_parent), 0);
   rb_define_method(cVideo, "top", CASTHOOK(shoes_video_get_top), 0);
   rb_define_method(cVideo, "left", CASTHOOK(shoes_video_get_left), 0);
   rb_define_method(cVideo, "width", CASTHOOK(shoes_video_get_width), 0);
@@ -4469,7 +4472,7 @@ shoes_ruby_init()
   cTextBlock = rb_define_class_under(cShoes, "TextBlock", rb_cObject);
   rb_define_alloc_func(cTextBlock, shoes_textblock_alloc);
   rb_define_method(cTextBlock, "contents", CASTHOOK(shoes_textblock_children), 0);
-  rb_define_method(cTextBlock, "parent", CASTHOOK(shoes_textblock_parent), 0);
+  rb_define_method(cTextBlock, "parent", CASTHOOK(shoes_textblock_get_parent), 0);
   rb_define_method(cTextBlock, "displace", CASTHOOK(shoes_textblock_displace), 2);
   rb_define_method(cTextBlock, "draw", CASTHOOK(shoes_textblock_draw), 2);
   rb_define_method(cTextBlock, "cursor=", CASTHOOK(shoes_textblock_set_cursor), 1);
@@ -4521,6 +4524,7 @@ shoes_ruby_init()
 
   cNative  = rb_define_class_under(cShoes, "Native", rb_cObject);
   rb_define_alloc_func(cNative, shoes_control_alloc);
+  rb_define_method(cNative, "parent", CASTHOOK(shoes_control_get_parent), 0);
   rb_define_method(cNative, "style", CASTHOOK(shoes_control_style), -1);
   rb_define_method(cNative, "displace", CASTHOOK(shoes_control_displace), 2);
   rb_define_method(cNative, "hide", CASTHOOK(shoes_control_hide), 0);

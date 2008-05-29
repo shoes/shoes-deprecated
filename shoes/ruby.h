@@ -185,6 +185,7 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("progress", progress, -1); \
   f("check", check, -1); \
   f("radio", radio, -1); \
+  f("parent", get_parent, 0); \
   f("contents", contents, 0); \
   f("draw", draw, 2); \
   f("after", after, -1); \
