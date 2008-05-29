@@ -45,22 +45,41 @@ module Shoes::Manual
     end
   end
 
-  def search_index docs
-    return if @docs
+  def load_docs str
+    return @docs if @docs
     @search = Shoes::Search.new
-    (@docs = docs).each do |sect_s, sect_h|
-      @search.add_document :uri => "S #{sect_s}", :body => "#{sect_s}\n#{sect_h['description']}"
-      sect_h['sections'].each do |sub_s, sub_h|
-        @search.add_document :uri => "T #{sub_s}", :body => "#{sub_h['title']}\n#{sub_h['description']}"
-        sub_h['methods'].each do |meth_s, meth_h|
-          @search.add_document :uri => "M #{sub_s}: #{meth_s}", :body => "#{meth_s}\n#{meth_h}"
+    @sections, @methods = {}, {}
+    @docs =
+      (str.split(/^= (.+?) =/)[1..-1]/2).map do |k,v|
+        sparts = v.split(/^== (.+?) ==/)
+
+        sections = (sparts[1..-1]/2).map do |k2,v2|
+          meth = v2.split(/^=== (.+?) ===/)
+          k2t = k2[/^(?:The )?([\-\w]+)/, 1]
+          @search.add_document :uri => "T #{k2t}", :body => "#{k2}\n#{meth[0]}"
+
+          hsh = {'title' => k2,
+            'description' => meth[0],
+            'methods' => (meth[1..-1]/2).map { |_k,_v|
+              @search.add_document :uri => "M #{k2t}: #{_k}", :body => "#{_k}\n#{_v}"
+              [_k, _v]
+          }}
+          @methods[k2t] = hsh
+          [k2t, hsh]
         end
+
+        @search.add_document :uri => "S #{k}", :body => "#{k}\n#{sparts[0]}"
+        hsh = {'description' => sparts[0], 'sections' => sections, 
+           'class' => "toc" + k.downcase.gsub(/\W+/, '')}
+        @sections[k] = hsh
+        [k, hsh]
       end
-    end
     @search.finish!
+    @docs
   end
 
-  def open_section(sect_s, sect_h)
+  def open_section(sect_s)
+    sect_h = @sections[sect_s]
     sect_cls = sect_h['class']
     @toc.each { |k,v| v.send(k == sect_cls ? :show : :hide) }
     @title.replace sect_s
@@ -68,14 +87,19 @@ module Shoes::Manual
     self.scroll_top = 0
   end
 
-  def open_methods(meth_s, meth_h)
+  def open_methods(meth_s, meth_a = nil)
+    meth_h = @methods[meth_s]
     @title.replace meth_h['title']
-    @doc.clear(&dewikify(meth_h['description'], true)) 
-    @doc.append do
+    @doc.clear do
+      unless meth_a
+        instance_eval &dewikify(meth_h['description'], true)
+      end
       meth_h['methods'].each do |mname, expl|
-        stack(:margin_top => 8, :margin_bottom => 8) { 
-          background "#333".."#666", :curve => 3, :angle => 90; tagline mname, :margin => 4 }
-        instance_eval &dewikify(expl)
+        if meth_a.nil? or meth_a == mname
+          stack(:margin_top => 8, :margin_bottom => 8) { 
+            background "#333".."#666", :curve => 3, :angle => 90; tagline mname, :margin => 4 }
+          instance_eval &dewikify(expl)
+        end
       end
     end
     self.scroll_top = 0
@@ -89,21 +113,10 @@ module Shoes::Manual
 end
 
 def Shoes.make_help_page(str)
-  docs =
-    (str.split(/^= (.+?) =/)[1..-1]/2).map do |k,v|
-      sparts = v.split(/^== (.+?) ==/)
-      sections = (sparts[1..-1]/2).map do |k2,v2|
-        meth = v2.split(/^=== (.+?) ===/)
-        [k2[/^(?:The )?([\-\w]+)/, 1],
-         {'title' => k2,
-          'description' => meth[0],
-          'methods' => (meth[1..-1]/2).map { |_k,_v| [_k, _v] }}]
-      end
-      [k, {'description' => sparts[0], 'sections' => sections, 
-         'class' => "toc" + k.downcase.gsub(/\W+/, '')}]
-    end
   proc do
     extend Shoes::Manual
+    docs = load_docs str
+
     style(Shoes::Code, :weight => "bold", :stroke => "#C30")
     style(Shoes::LinkHover, :stroke => green, :fill => nil)
     style(Shoes::Para, :size => 9, :stroke => "#332")
@@ -119,7 +132,6 @@ def Shoes.make_help_page(str)
       background "rgb(66, 66, 66, 180)".."rgb(0, 0, 0, 0)", :height => 0.7
       background "rgb(66, 66, 66, 100)".."rgb(255, 255, 255, 0)", :height => 20, :bottom => 0
     end
-    search_index docs
     @doc =
       stack :margin_left => 130, :margin_top => 20, :margin_bottom => 50, :margin_right => 20 + gutter,
         &dewikify(docs[0][-1]['description'], true)
@@ -129,12 +141,12 @@ def Shoes.make_help_page(str)
         background "#eee", :curve => 4
         docs.each do |sect_s, sect_h|
           sect_cls = sect_h['class']
-          para strong(link(sect_s, :stroke => black) { open_section(sect_s, sect_h) }),
+          para strong(link(sect_s, :stroke => black) { open_section(sect_s) }),
             :size => 11, :margin => 4
           @toc[sect_cls] =
             stack :hidden => @toc.empty? ? false : true do
               links = sect_h['sections'].map do |meth_s, meth_h|
-                [link(meth_s) { open_methods(meth_s, meth_h) }, "\n"]
+                [link(meth_s) { open_methods(meth_s) }, "\n"]
               end.flatten
               links[-1] = {:size => 9, :margin => 4}
               para *links
@@ -155,16 +167,16 @@ def Shoes.make_help_page(str)
                       case typ
                       when "S"
                         background "#333", :curve => 4
-                        caption strong(link(head, :stroke => white) { open_section(head, args) })
+                        caption strong(link(head, :stroke => white) { open_section(head) })
                         para "Section header", :stroke => "#CCC", :margin_top => 8
                       when "T"
                         background "#777", :curve => 4
-                        caption strong(link(head, :stroke => "#EEE") { open_methods(head, args) })
+                        caption strong(link(head, :stroke => "#EEE") { open_methods(head) })
                         para "Sub-section", :stroke => "#CCC", :margin_top => 8
                       when "M"
                         background "#CCC", :curve => 4
                         subhead, head = head.split(": ", 2)
-                        para strong(subhead, " ", link(head) { open_methods(head, args) })
+                        para strong(subhead, " ", link(head) { open_methods(subhead, head) })
                       end
                     end
                   end
