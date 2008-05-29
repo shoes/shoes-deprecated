@@ -242,9 +242,6 @@ typedef struct {
   VALUE contents;
   VALUE parent;
   VALUE attr;
-  VALUE click, release,     // canvas-level event handlers
-    motion, keypress,
-    start, finish;
   unsigned char stage;
   double sw;                // current stroke-width
   int cx, cy;               // cursor x and y (stored in absolute coords)
@@ -252,6 +249,7 @@ typedef struct {
   int topy, fully;          // since we often stack vertically
   int width, height;        // the full height and width used by this box
   shoes_place place;        // temporary storage of box placement
+  char hover;
   struct _shoes_app *app;
   SHOES_SLOT_OS slot;
 #ifdef SHOES_GTK
@@ -379,6 +377,8 @@ VALUE shoes_canvas_toggle(VALUE);
 VALUE shoes_canvas_mouse(VALUE);
 VALUE shoes_canvas_start(int, VALUE *, VALUE);
 VALUE shoes_canvas_finish(int, VALUE *, VALUE);
+VALUE shoes_canvas_hover(int, VALUE *, VALUE);
+VALUE shoes_canvas_leave(int, VALUE *, VALUE);
 VALUE shoes_canvas_click(int, VALUE *, VALUE);
 VALUE shoes_canvas_release(int, VALUE *, VALUE);
 VALUE shoes_canvas_motion(int, VALUE *, VALUE);
@@ -437,7 +437,7 @@ VALUE shoes_shape_get_left(VALUE);
 VALUE shoes_shape_get_width(VALUE);
 VALUE shoes_shape_get_height(VALUE);
 VALUE shoes_shape_remove(VALUE);
-VALUE shoes_shape_motion(VALUE, int, int, int *);
+VALUE shoes_shape_motion(VALUE, int, int, char *);
 VALUE shoes_shape_send_click(VALUE, int, int, int);
 void shoes_shape_send_release(VALUE, int, int, int);
 
@@ -449,7 +449,7 @@ VALUE shoes_image_get_left(VALUE);
 VALUE shoes_image_get_width(VALUE);
 VALUE shoes_image_get_height(VALUE);
 VALUE shoes_image_remove(VALUE);
-VALUE shoes_image_motion(VALUE, int, int, int *);
+VALUE shoes_image_motion(VALUE, int, int, char *);
 VALUE shoes_image_send_click(VALUE, int, int, int);
 void shoes_image_send_release(VALUE, int, int, int);
 
@@ -480,7 +480,7 @@ VALUE shoes_pattern_args(int, VALUE *, VALUE);
 VALUE shoes_pattern_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_pattern_alloc(VALUE);
 VALUE shoes_pattern_remove(VALUE);
-VALUE shoes_pattern_motion(VALUE, int, int, int *);
+VALUE shoes_pattern_motion(VALUE, int, int, char *);
 VALUE shoes_background_draw(VALUE, VALUE, VALUE);
 VALUE shoes_border_draw(VALUE, VALUE, VALUE);
 VALUE shoes_subpattern_new(VALUE, VALUE, VALUE);
@@ -520,7 +520,7 @@ VALUE shoes_textblock_remove(VALUE);
 VALUE shoes_textblock_set_cursor(VALUE, VALUE);
 VALUE shoes_textblock_get_cursor(VALUE);
 VALUE shoes_textblock_draw(VALUE, VALUE, VALUE);
-VALUE shoes_textblock_motion(VALUE, int, int, int *);
+VALUE shoes_textblock_motion(VALUE, int, int, char *);
 VALUE shoes_textblock_send_click(VALUE, int, int, int, VALUE *);
 void shoes_textblock_send_release(VALUE, int, int, int);
 

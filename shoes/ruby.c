@@ -15,7 +15,7 @@ VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask
 VALUE eVlcError, eImageError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 VALUE symAltQuest, symAltSlash, symAltDot;
-ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_font, s_hand, s_hidden, s_hover, s_href, s_inner, s_insert, s_items, s_release, s_scroll, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
+ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_hand, s_hidden, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_motion, s_release, s_scroll, s_start, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -519,17 +519,6 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
     cairo_pattern_set_matrix(self_t->pattern, &matrix1); \
   }
 
-#define CHECK_HOVER(self_t, h, touch) \
-  if ((self_t->hover & HOVER_MOTION) != h && !NIL_P(self_t->attr)) \
-  { \
-    VALUE action = ID2SYM(h ? s_hover : s_leave); \
-    VALUE proc = rb_hash_aref(self_t->attr, action); \
-    if (!NIL_P(proc)) \
-      shoes_safe_block(self, proc, rb_ary_new()); \
-    if (touch != NULL) *touch += 1; \
-    self_t->hover = (self_t->hover & HOVER_CLICK) | h; \
-  }
-
 #define CHANGED_COORDS() self_t->place.ix != place.ix || self_t->place.iy != place.iy || self_t->place.iw != place.iw || self_t->place.dx != place.dx || self_t->place.dy != place.dy || self_t->place.ih - HEIGHT_PAD != place.ih
 #define PLACE_COORDS() place.h -= HEIGHT_PAD; place.ih -= HEIGHT_PAD; self_t->place = place
 
@@ -691,6 +680,7 @@ shoes_shape_alloc(VALUE klass)
   shape->bg = Qnil;
   shape->width = 0;
   shape->height = 0;
+  shape->hover = 0;
   return obj;
 }
 
@@ -739,7 +729,7 @@ shoes_shape_draw(VALUE self, VALUE c, VALUE actual)
 }
 
 VALUE
-shoes_shape_motion(VALUE self, int x, int y, int *touch)
+shoes_shape_motion(VALUE self, int x, int y, char *touch)
 {
   char h = 0;
   VALUE click;
@@ -748,10 +738,7 @@ shoes_shape_motion(VALUE self, int x, int y, int *touch)
   click = ATTR(self_t->attr, click);
   if (self_t->line == NULL) return Qnil;
 
-  if (x >= self_t->place.ix + self_t->place.dx && 
-      x <= self_t->place.ix + self_t->place.dx + self_t->place.iw && 
-      y >= self_t->place.iy + self_t->place.dy && 
-      y <= self_t->place.iy + self_t->place.dy + self_t->place.ih)
+  if (IS_INSIDE(self_t, x, y))
   {
     cairo_bool_t in_shape;
     cairo_t *cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
@@ -1201,7 +1188,7 @@ shoes_glow_filter(cairo_t *cr, void *data)
 }
 
 VALUE
-shoes_image_motion(VALUE self, int x, int y, int *touch)
+shoes_image_motion(VALUE self, int x, int y, char *touch)
 {
   char h = 0;
   VALUE click;
@@ -1210,10 +1197,7 @@ shoes_image_motion(VALUE self, int x, int y, int *touch)
   click = ATTR(self_t->attr, click);
   if (self_t->surface == NULL) return Qnil;
 
-  if (x >= self_t->place.ix + self_t->place.dx && 
-      x <= self_t->place.ix + self_t->place.dx + self_t->place.iw && 
-      y >= self_t->place.iy + self_t->place.dy && 
-      y <= self_t->place.iy + self_t->place.dy + self_t->place.ih)
+  if (IS_INSIDE(self_t, x, y))
   {
     if (!NIL_P(click))
     {
@@ -1721,6 +1705,7 @@ shoes_pattern_alloc(VALUE klass)
   pattern->pattern = NULL;
   pattern->attr = Qnil;
   pattern->parent = Qnil;
+  pattern->hover = 0;
   return obj;
 }
 
@@ -2103,7 +2088,7 @@ shoes_link_alloc(VALUE klass)
 }
 
 static VALUE
-shoes_link_at(VALUE self, int index, int blockhover, VALUE *clicked, int *touch)
+shoes_link_at(VALUE self, int index, int blockhover, VALUE *clicked, char *touch)
 {
   char h = 0;
   VALUE url = Qnil;
@@ -2179,6 +2164,7 @@ shoes_text_alloc(VALUE klass)
   text->texts = Qnil;
   text->attr = Qnil;
   text->parent = Qnil;
+  text->hover = 0;
   return obj;
 }
 
@@ -2246,6 +2232,7 @@ shoes_textblock_alloc(VALUE klass)
   text->parent = Qnil;
   text->layout = NULL;
   text->cursor = Qnil;
+  text->hover = 0;
   return obj;
 }
 
@@ -2311,7 +2298,7 @@ shoes_textblock_replace(int argc, VALUE *argv, VALUE self)
 }
 
 static VALUE
-shoes_textblock_send_hover(VALUE self, int x, int y, VALUE *clicked, int *t)
+shoes_textblock_send_hover(VALUE self, int x, int y, VALUE *clicked, char *t)
 {
   VALUE url = Qnil;
   int index, trailing, i, hover;
@@ -2335,7 +2322,7 @@ shoes_textblock_send_hover(VALUE self, int x, int y, VALUE *clicked, int *t)
 }
 
 VALUE
-shoes_textblock_motion(VALUE self, int x, int y, int *t)
+shoes_textblock_motion(VALUE self, int x, int y, char *t)
 {
   VALUE url = shoes_textblock_send_hover(self, x, y, NULL, t);
   if (!NIL_P(url))
@@ -4257,6 +4244,7 @@ shoes_ruby_init()
   s_draw = rb_intern("draw");
   s_end = rb_intern("end");
   s_fill = rb_intern("fill");
+  s_finish = rb_intern("finish");
   s_font = rb_intern("font");
   s_hand = rb_intern("hand");
   s_hidden = rb_intern("hidden");
@@ -4265,11 +4253,14 @@ shoes_ruby_init()
   s_insert = rb_intern("insert");
   s_inner = rb_intern("inner");
   s_items = rb_intern("items");
+  s_keypress = rb_intern("keypress");
   s_match = rb_intern("match");
+  s_motion = rb_intern("motion");
   s_leading = rb_intern("leading");
   s_leave = rb_intern("leave");
   s_release = rb_intern("release");
   s_scroll = rb_intern("scroll");
+  s_start = rb_intern("start");
   s_attach = rb_intern("attach");
   s_text = rb_intern("text");
   s_title = rb_intern("title");

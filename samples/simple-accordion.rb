@@ -19,9 +19,10 @@ module Accordion
           background "#fff".."#eed"
           hi = background "#ddd".."#ba9", :hidden => true
           para link(title).
-            hover { hi.show }.
-            leave { hi.hide }.
             click { open_page page_text }, :size => 26
+          hover { hi.show }
+          leave { hi.hide }
+          click { open_page page_text }
         end
         page_text =
           stack :width => "100%", :height => (@pages.empty? ? 240 : 0) do

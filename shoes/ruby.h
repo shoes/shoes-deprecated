@@ -50,7 +50,7 @@ extern VALUE aMsgList;
 extern VALUE eNotImpl, eImageError;
 extern VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
 extern VALUE symAltQuest, symAltSlash, symAltDot;
-extern ID s_aref, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_attach, s_begin, s_call, s_center, s_change, s_click, s_corner, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_font, s_hand, s_hidden, s_href, s_inner, s_insert, s_items, s_leading, s_match, s_release, s_scroll, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_remove, s_resizable, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret;
+extern ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_hand, s_hidden, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_motion, s_release, s_scroll, s_start, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
 extern VALUE instance_eval_proc;
 
 VALUE mfp_instance_eval(VALUE, VALUE);
@@ -102,6 +102,24 @@ void shoes_ruby_init(void);
   int rmargin = ATTR2(int, attr, margin_right, margin); \
   int tmargin = ATTR2(int, attr, margin_top, margin); \
   int bmargin = ATTR2(int, attr, margin_bottom, margin)
+
+#define CHECK_HOVER(self_t, h, touch) \
+  if ((self_t->hover & HOVER_MOTION) != h && !NIL_P(self_t->attr)) \
+  { \
+    VALUE action = ID2SYM(h ? s_hover : s_leave); \
+    VALUE proc = rb_hash_aref(self_t->attr, action); \
+    if (!NIL_P(proc)) \
+      shoes_safe_block(self, proc, rb_ary_new()); \
+    if (touch != NULL) *touch += 1; \
+    self_t->hover = (self_t->hover & HOVER_CLICK) | h; \
+  }
+
+#define IS_INSIDE(self_t, x, y) \
+  (self_t->place.iw > 0 && self_t->place.ih > 0 && \
+   x >= self_t->place.ix + self_t->place.dx && \
+   x <= self_t->place.ix + self_t->place.dx + self_t->place.iw && \
+   y >= self_t->place.iy + self_t->place.dy && \
+   y <= self_t->place.iy + self_t->place.dy + self_t->place.ih)
 
 int shoes_px(VALUE, ID, int, int, int);
 int shoes_px2(VALUE, ID, ID, int, int, int);
@@ -201,6 +219,8 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("toggle", toggle, 0); \
   f("start", start, -1); \
   f("finish", finish, -1); \
+  f("hover", hover, -1); \
+  f("leave", leave, -1); \
   f("click", click, -1); \
   f("release", release, -1); \
   f("motion", motion, -1); \

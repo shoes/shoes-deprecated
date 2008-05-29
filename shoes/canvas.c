@@ -442,12 +442,6 @@ shoes_canvas_mark(shoes_canvas *canvas)
   rb_gc_mark_maybe(canvas->fg);
   rb_gc_mark_maybe(canvas->bg);
   rb_gc_mark_maybe(canvas->contents);
-  rb_gc_mark_maybe(canvas->click);
-  rb_gc_mark_maybe(canvas->release);
-  rb_gc_mark_maybe(canvas->motion);
-  rb_gc_mark_maybe(canvas->keypress);
-  rb_gc_mark_maybe(canvas->start);
-  rb_gc_mark_maybe(canvas->finish);
   rb_gc_mark_maybe(canvas->attr);
   rb_gc_mark_maybe(canvas->parent);
 }
@@ -513,19 +507,13 @@ shoes_canvas_clear(VALUE self)
   canvas->place.x = canvas->place.y = 0;
   canvas->place.dx = canvas->place.dy = 0;
   canvas->place.ix = canvas->place.iy = 0;
+  canvas->hover = 0;
   canvas->cx = 0;
   canvas->cy = 0;
   canvas->endy = 0;
   canvas->endx = 0;
   canvas->topy = 0;
   canvas->fully = 0;
-  canvas->click = Qnil;
-  canvas->release = Qnil;
-  canvas->motion = Qnil;
-  canvas->release = Qnil;
-  canvas->keypress = Qnil;
-  canvas->start = Qnil;
-  canvas->finish = Qnil;
 #ifdef SHOES_GTK
   canvas->radios = NULL;
   canvas->layout = NULL;
@@ -1992,11 +1980,13 @@ shoes_canvas_toggle(VALUE self)
     VALUE val, block; \
     SETUP(); \
     rb_scan_args(argc, argv, "01&", &val, &block); \
-    canvas->x = NIL_P(block) ? val : block; \
+    ATTRSET(canvas->attr, x, NIL_P(block) ? val : block); \
     return self; \
   }
 
 EVENT_HANDLER(click);
+EVENT_HANDLER(hover);
+EVENT_HANDLER(leave);
 EVENT_HANDLER(release);
 EVENT_HANDLER(motion);
 EVENT_HANDLER(keypress);
@@ -2021,9 +2011,10 @@ shoes_canvas_send_start(VALUE self)
         shoes_canvas_send_start(ele);
     }
 
-    if (!NIL_P(canvas->start))
+    VALUE start = ATTR(canvas->attr, start);
+    if (!NIL_P(start))
     {
-      shoes_safe_block(self, canvas->start, rb_ary_new());
+      shoes_safe_block(self, start, rb_ary_new());
     }
   }
 }
@@ -2048,9 +2039,13 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
 
   if (ATTR(self_t->attr, hidden) != Qtrue)
   {
-    if (!NIL_P(self_t->click))
+    if (IS_INSIDE(self_t, x, y))
     {
-      shoes_safe_block(self, self_t->click, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
+      VALUE click = ATTR(self_t->attr, click);
+      if (!NIL_P(click))
+      {
+        shoes_safe_block(self, click, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
+      }
     }
 
     for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--)
@@ -2146,9 +2141,13 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
 
   if (ATTR(self_t->attr, hidden) != Qtrue)
   {
-    if (!NIL_P(self_t->release))
+    if (IS_INSIDE(self_t, x, y))
     {
-      shoes_safe_block(self, self_t->release, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
+      VALUE release = ATTR(self_t->attr, release);
+      if (!NIL_P(release))
+      {
+        shoes_safe_block(self, release, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
+      }
     }
 
     for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--)
@@ -2181,10 +2180,13 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
 VALUE
 shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
 {
-  int h = 0;
+  char h = 0, *n = 0;
   long i;
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
+
+  h = IS_INSIDE(self_t, x, y);
+  CHECK_HOVER(self_t, h, n);
 
 #ifndef SHOES_WIN32
   if (ORIGIN(self_t->place))
@@ -2196,11 +2198,13 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
   }
 #endif
 
+  h = 0;
   if (ATTR(self_t->attr, hidden) != Qtrue)
   {
-    if (!NIL_P(self_t->motion))
+    VALUE motion = ATTR(self_t->attr, motion);
+    if (!NIL_P(motion))
     {
-      shoes_safe_block(self, self_t->motion, rb_ary_new3(2, INT2NUM(x), INT2NUM(y)));
+      shoes_safe_block(self, motion, rb_ary_new3(2, INT2NUM(x), INT2NUM(y)));
     }
 
     for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--)
@@ -2253,9 +2257,10 @@ shoes_canvas_send_keypress(VALUE self, VALUE key)
 
   if (ATTR(self_t->attr, hidden) != Qtrue)
   {
-    if (!NIL_P(self_t->keypress))
+    VALUE keypress = ATTR(self_t->attr, keypress);
+    if (!NIL_P(keypress))
     {
-      shoes_safe_block(self, self_t->keypress, rb_ary_new3(1, key));
+      shoes_safe_block(self, keypress, rb_ary_new3(1, key));
     }
 
     for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--)

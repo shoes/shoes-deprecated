@@ -361,9 +361,9 @@ Shoes does a few things differently from NodeBox and Processing.  For example, S
 
 Shoes also borrows some animation ideas from Processing and will continue to closely consult Processing's methods as it expands.
 
-=== arrow(x, y, width) » Shoes::Shape ===
+=== arrow(left, top, width) » Shoes::Shape ===
 
-Draws an arrow at coordinates (x, y) with a pixel `width`.
+Draws an arrow at coordinates (left, top) with a pixel `width`.
 
 === fill(pattern) » pattern ===
 
@@ -391,9 +391,9 @@ lining, leaving the middle transparent.
 Empties the line color.  Shapes drawn will have no outer line.  If `nofill` is also set, shapes drawn will
 not be visible.
 
-=== line(x, y, x2, y2) » Shoes::Shape ===
+=== line(left, top, x2, y2) » Shoes::Shape ===
 
-Draws a line using the current line color (aka "stroke") starting at coordinates (x, y) and ending at coordinates (x2, y2).
+Draws a line using the current line color (aka "stroke") starting at coordinates (left, top) and ending at coordinates (x2, y2).
 
 === oval(top, left, radius) » Shoes::Shape ===
 
@@ -455,13 +455,28 @@ Draw a rectangle using a style hash.  The following styles are supported:
 
 These styles may also be altered using the `style` method on the Shape object.
 
-=== shape(x, y) { ... } » Shoes::Shape ===
+=== rotate(degrees: a number) » self ===
 
-Describes an arbitrary shape to draw, beginning at coordinates (x, y) and continued by calls to `line_to`, `curve_to` and `move_to` inside the block.
+Rotates the pen used for drawing by a certain number of `degrees`, so that any shapes will be drawn at that angle.
 
-=== star(x, y, points = 10, outer = 100.0, inner = 50.0) » Shoes::Shape ===
+In this example below, the rectangle drawn at (30, 30) will be rotated 45 degrees.
 
-Draws a star using the stroke and fill colors.  The star is positioned at coordinates (x, y) with a certain number of `points`.  The `outer` width defines the full radius of the star; the `inner` width specifies the radius of the star's middle, where points stem from.
+{{{
+ #!ruby
+ Shoes.app do
+   fill "#333"
+   rotate 45
+   rect 30, 30, 40, 40
+ end
+}}}
+
+=== shape(left, top) { ... } » Shoes::Shape ===
+
+Describes an arbitrary shape to draw, beginning at coordinates (left, top) and continued by calls to `line_to`, `curve_to` and `move_to` inside the block.
+
+=== star(left, top, points = 10, outer = 100.0, inner = 50.0) » Shoes::Shape ===
+
+Draws a star using the stroke and fill colors.  The star is positioned at coordinates (left, top) with a certain number of `points`.  The `outer` width defines the full radius of the star; the `inner` width specifies the radius of the star's middle, where points stem from.
 
 === stroke(pattern) » pattern ===
 
@@ -486,6 +501,10 @@ Sets the line size for all drawing within this slot.  Whereas the `stroke` metho
 === transform(:center or :corner) » self ===
 
 Should transformations (such as `skew` and `rotate`) be performed around the center of the shape?  Or the corner of the shape?  Shoes defaults to `:corner`.
+
+=== translate(left, top) » self ===
+
+Moves the starting point of the drawing pen for this slot.  Normally, the pen starts at (0, 0) in the top-left corner, so that all shapes are drawn from that point.  With `translate`, if the starting point is moved to (10, 20) and a shape is drawn at (50, 60), then the shape is actually drawn at (60, 80) on the slot.
 
 == Element Creation ==
 
@@ -583,6 +602,8 @@ A timer similar to the `animation` method, but much slower.  This timer fires a 
 === image(path) » Shoes::Image ===
 
 Creates an Image element for displaying a picture.  PNG, JPEG and GIF formats are allowed.
+
+The `path` can be a file path or a URL.  All images loaded are temporarily cached in memory, but remote images are also cached locally in the user's personal Shoes directory.
 
 === imagesize(path) » [width, height] ===
 
@@ -766,6 +787,12 @@ To set the width of a stack to 150 pixels:
 Each style setting also has a method, which can be used to grab that particular setting.  (So,
 like, the `width` method returns the width of the slot in pixels.)
 
+=== displace(left: a number, top: a number) » self ===
+
+A shortcut method for setting the :displace_left and :displace_top styles.  Displacing is a handy way of moving a slot without altering the layout.  In fact, the `top` and `left` methods will not report displacement at all.  So, generally, displacement is only for temporary animations.  For example, jiggling a button in place.
+
+The `left` and `top` numbers sent to `displace` are added to the slot's own top-left coordinates.  To subtract from the top-left coordinate, use negative numbers.
+
 === gutter() » a number ===
 
 The size of the scrollbar area.  When Shoes needs to show a scrollbar, the scrollbar may end up covering up some elements that touch the edge of the window.  The `gutter` tells you how many pixels to expect the scrollbar to cover.
@@ -782,7 +809,15 @@ This is commonly used to pad elements on the right, like so:
 
 === height() » a number ===
 
-The vertical size of the viewable slot in pixels.  So, if this is a scrolling slot, you'll need to use `scroll_top()` to get the full size of the slot.
+The vertical size of the viewable slot in pixels.  So, if this is a scrolling slot, you'll need to use `scroll_height()` to get the full size of the slot.
+
+=== left() » a number ===
+
+The left pixel location of the slot.  Also known as the x-axis coordinate.
+
+=== move(left, top) » self ===
+
+Moves the slot to specific coordinates, the (left, top) being the upper left hand corner of the slot.
 
 === scroll() » true or false ===
 
@@ -809,6 +844,22 @@ The top coordinate which this slot is scrolled down to.  So, if the slot is scro
 
 Scrolls the slot to a certain coordinate.  This must be between zero and `scroll_max`.
 
+=== style() » styles === 
+
+Calling the `style` method with no arguments returns a hash of the styles presently applied to this slot.
+
+While methods such as `height` and `width` return the true pixel dimensions of the slot, you can use `style[:height]` or `style[:width]` to get the dimensions originally requested.
+
+{{{
+ #!ruby
+ Shoes.app do
+   @s = stack :width => "100%"
+   para @s.style[:width]
+ end
+}}}
+
+In this example, the paragraph under the stack will display the string "100%".
+
 === style(styles) » styles ===
 
 Alter the slot using a hash of style settings.  Any of the methods on this page (aside from this method, of course) can be used as a style setting.  So, for example, there is a `width` method, thus there is also a `width` style.
@@ -821,6 +872,10 @@ Alter the slot using a hash of style settings.  Any of the methods on this page 
  end
 }}}
 
+=== top() » a number ===
+
+The top pixel location of the slot.  Also known as the y-axis coordinate.
+
 === width() » a number ===
 
 The horizontal size of the slot in pixels.
@@ -831,10 +886,10 @@ You may find yourself needing to loop through the elements inside a slot.  Or ma
 climb the page, looking for a stack that is the parent of an element.
 
 On any element, you may call the `parent` method to get the slot directly above it.  And on slots,
-you can call the `children` method to get all of the children.  (Some elements, such as text blocks,
-have a `contents` method for getting their children.)
+you can call the `contents` method to get all of the children.  (Some elements, such as text blocks,
+also have a `contents` method for getting their children.)
 
-=== children() » an array of elements ===
+=== contents() » an array of elements ===
 
 Lists all elements in a slot.
 
@@ -906,9 +961,9 @@ Hides the video.  If already playing, the video will continue to play.  This jus
 
 The full length of the video in milliseconds.  Returns nil if the video is not yet loaded.
 
-=== move(x, y) » self ===
+=== move(left, top) » self ===
 
-Moves the video to specific coordinates, the (x, y) being the upper left hand corner of the video.
+Moves the video to specific coordinates, the (left, top) being the upper left hand corner of the video.
 
 === pause() » self ===
 
