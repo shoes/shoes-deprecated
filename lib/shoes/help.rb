@@ -381,7 +381,7 @@ Closes the app window.  If multiple windows are open and you want to close the e
 
 Gets a string containing the URL of the current app.
 
-=== started?() » true or false === 
+=== started?() » true or false ===
 
 Has the window been fully constructed and displayed?  This is useful for threaded code which may try to use the window before it is completely built.  (Also see the `start` event which fires once the window is open.)
 
@@ -930,7 +930,7 @@ The top coordinate which this slot is scrolled down to.  So, if the slot is scro
 
 Scrolls the slot to a certain coordinate.  This must be between zero and `scroll_max`.
 
-=== style() » styles === 
+=== style() » styles ===
 
 Calling the `style` method with no arguments returns a hash of the styles presently applied to this slot.
 
