@@ -123,7 +123,7 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
     gtk_range_get_adjustment(GTK_RANGE(slot->vscroll))->step_increment = 5;
     g_signal_connect(G_OBJECT(slot->vscroll), "value-changed",
                      G_CALLBACK(shoes_canvas_gtk_scroll), (gpointer)c);
-    gtk_fixed_put(GTK_FIXED(slot->canvas), slot->vscroll, 0, 0);
+    gtk_fixed_put(GTK_FIXED(slot->canvas), slot->vscroll, -100, -100);
   }
 
   gtk_widget_set_size_request(slot->canvas, width, height);
