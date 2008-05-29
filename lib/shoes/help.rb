@@ -162,7 +162,8 @@ def Shoes.make_help_page(str)
           @toc.each { |k,v| v.hide }
           @title.replace "Search"
           @doc.clear do
-            flow :margin_left => 60, :margin_top => 20 do
+            para "Try method names (like `arrow`) or topics (like `stacks`)", :align => 'center'
+            flow :margin_left => 60 do
               terms = edit_line :width => -120
               button "Search" do
                 @results.clear do
