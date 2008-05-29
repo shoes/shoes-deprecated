@@ -3,7 +3,7 @@ module Shoes::Manual
   INTRO_STYLE = {:size => 12, :weight => "bold", :margin_bottom => 20, :stroke => "#000"}
 
   def dewikify_hi(str, terms, intro = false)
-    str = str.gsub(/\b#{Regexp::quote(terms)}\b/i, '!\0!') if terms
+    str = str.gsub(/#{Regexp::quote(terms)}/i, '!\0!') if terms
     dewikify(str, intro)
   end
 
