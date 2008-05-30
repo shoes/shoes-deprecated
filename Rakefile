@@ -91,7 +91,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
   end
   %w[req/sqlite3/ext/sqlite3_api req/hpricot/ext/hpricot_scan req/ftsearch/ext/ftsearchrt].each do |xdir|
-    case PLATFORM when /win32/
+    case PLATFORM when /win32/, /darwin/
       cp FileList["#{xdir}/*.dll"], "dist/ruby/lib/#{RUBY_PLATFORM}"
     else
       Dir.chdir(xdir) do
