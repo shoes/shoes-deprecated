@@ -173,10 +173,10 @@ def Shoes.make_help_page(str)
           @doc.clear do
             para span(*dewikify_p("Try method names (like `button` or `arrow`) or topics (like `slots`)")), :align => 'center'
             flow :margin_left => 60 do
-              terms = edit_line :width => -120
-              button "Search" do
+              edit_line :width => -120 do |terms|
                 @results.clear do
-                  found = manual_search(terms.text.downcase)
+                  termd = terms.text.downcase
+                  found = termd.empty? ? [] : manual_search(termd)
                   para "#{found.length} matches", :align => "center"
                   found.each do |typ, head|
                     flow :margin => 4 do
