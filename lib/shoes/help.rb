@@ -93,6 +93,44 @@ module Shoes::Manual
     @docs
   end
 
+  def show_search
+    @toc.each { |k,v| v.hide }
+    @title.replace "Search"
+    @doc.clear do
+      para span(*dewikify_p("Try method names (like `button` or `arrow`) or topics (like `slots`)")), :align => 'center'
+      flow :margin_left => 60 do
+        edit_line :width => -120 do |terms|
+          @results.clear do
+            termd = terms.text.downcase
+            found = termd.empty? ? [] : manual_search(termd)
+            para "#{found.length} matches", :align => "center"
+            found.each do |typ, head|
+              flow :margin => 4 do
+                case typ
+                when "S"
+                  background "#333", :curve => 4
+                  caption strong(link(head, :stroke => white) { open_section(head, terms.text) })
+                  para "Section header", Shoes::Manual::SUB_STYLE
+                when "T"
+                  background "#777", :curve => 4
+                  caption strong(link(head, :stroke => "#EEE") { open_methods(head, terms.text) })
+                  hsh = @methods[head]
+                  para "Sub-section under #{hsh['section']} (#{hsh['methods'].length} methods)", Shoes::Manual::SUB_STYLE
+                when "M"
+                  background "#CCC", :curve => 4
+                  sect, subhead, head = head.split(Shoes::Manual::COLON, 3)
+                  para strong(sect, Shoes::Manual::COLON, subhead, Shoes::Manual::COLON, link(head) { open_methods(subhead, terms.text, head) })
+                end
+              end
+            end
+          end
+        end
+      end
+      @results = stack
+    end
+    self.scroll_top = 0
+  end
+
   def open_section(sect_s, terms = nil)
     sect_h = @sections[sect_s]
     sect_cls = sect_h['class']
@@ -167,43 +205,10 @@ def Shoes.make_help_page(str)
               para *links
             end
         end
-        para strong(link("Search") {
-          @toc.each { |k,v| v.hide }
-          @title.replace "Search"
-          @doc.clear do
-            para span(*dewikify_p("Try method names (like `button` or `arrow`) or topics (like `slots`)")), :align => 'center'
-            flow :margin_left => 60 do
-              edit_line :width => -120 do |terms|
-                @results.clear do
-                  termd = terms.text.downcase
-                  found = termd.empty? ? [] : manual_search(termd)
-                  para "#{found.length} matches", :align => "center"
-                  found.each do |typ, head|
-                    flow :margin => 4 do
-                      case typ
-                      when "S"
-                        background "#333", :curve => 4
-                        caption strong(link(head, :stroke => white) { open_section(head, terms.text) })
-                        para "Section header", Shoes::Manual::SUB_STYLE
-                      when "T"
-                        background "#777", :curve => 4
-                        caption strong(link(head, :stroke => "#EEE") { open_methods(head, terms.text) })
-                        hsh = @methods[head]
-                        para "Sub-section under #{hsh['section']} (#{hsh['methods'].length} methods)", Shoes::Manual::SUB_STYLE
-                      when "M"
-                        background "#CCC", :curve => 4
-                        sect, subhead, head = head.split(Shoes::Manual::COLON, 3)
-                        para strong(sect, Shoes::Manual::COLON, subhead, Shoes::Manual::COLON, link(head) { open_methods(subhead, terms.text, head) })
-                      end
-                    end
-                  end
-                end
-              end
-            end
-            @results = stack
-          end
-          self.scroll_top = 0
-          })
+      end
+      stack :margin => 12, :width => 130, :margin_top => 6 do
+        background "#c30", :curve => 4
+        para "Not finding it? Try ", strong(link("Search", :stroke => white) { show_search }), "!", :stroke => "#ddd"
       end
       stack :margin => 12, :width => 118 do
         inscription "Shoes #{Shoes::RELEASE_NAME}\nRevision: #{Shoes::REVISION}",
