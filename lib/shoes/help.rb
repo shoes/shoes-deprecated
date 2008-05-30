@@ -99,11 +99,11 @@ module Shoes::Manual
     @doc.clear do
       para span(*dewikify_p("Try method names (like `button` or `arrow`) or topics (like `slots`)")), :align => 'center'
       flow :margin_left => 60 do
-        edit_line :width => -120 do |terms|
+        edit_line :width => -60 do |terms|
           @results.clear do
             termd = terms.text.downcase
             found = termd.empty? ? [] : manual_search(termd)
-            para "#{found.length} matches", :align => "center"
+            para "#{found.length} matches", :align => "center", :margin_bottom => 0
             found.each do |typ, head|
               flow :margin => 4 do
                 case typ
@@ -192,16 +192,17 @@ def Shoes.make_help_page(str)
       @toc = {}
       stack :margin => 12, :width => 130, :margin_top => 20 do
         background "#eee", :curve => 4
+        para "CONTENTS", :stroke => "#BBB", :margin => 4, :align => "center"
         docs.each do |sect_s, sect_h|
           sect_cls = sect_h['class']
           para strong(link(sect_s, :stroke => black) { open_section(sect_s) }),
-            :size => 11, :margin => 4
+            :size => 11, :margin => 4, :margin_top => 0
           @toc[sect_cls] =
             stack :hidden => @toc.empty? ? false : true do
               links = sect_h['sections'].map do |meth_s, meth_h|
                 [link(meth_s) { open_methods(meth_s) }, "\n"]
               end.flatten
-              links[-1] = {:size => 9, :margin => 4}
+              links[-1] = {:size => 9, :margin => 4, :margin_left => 10}
               para *links
             end
         end
