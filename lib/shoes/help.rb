@@ -157,6 +157,7 @@ module Shoes::Manual
   end
 
   def manual_search(terms)
+    terms += " " if terms.length == 1
     @search.find_all(terms).map do |title, count|
       title.split(" ", 2)
     end
