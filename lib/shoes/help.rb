@@ -10,29 +10,27 @@ module Shoes::Manual
       code = []
       str = str.
         gsub(CODE_RE) { |x| code << x; "CODE#[#{code.length-1}]" }.
-        gsub(/#{Regexp::quote(terms)}/i, '!\0!').
+        gsub(/#{Regexp::quote(terms)}/i, '@\0@').
         gsub(/CODE#\[(\d+)\]/) { code[$1.to_i] }
     end
     dewikify(str, intro)
   end
 
-  def dewikify_p(str)
+  def dewikify_p(ele, str, *args)
     str = str.gsub(/\n+\s*/, " ").dump.
       gsub(/`(.+?)`/m, '", code("\1"), "').gsub(/\[\[BR\]\]/i, "\n").
-      gsub(/!(.+?)!/m, '", strong("\1", :fill => yellow), "').gsub(/''(.+?)''/m, '", em("\1"), "').
+      gsub(/@(.+?)@/m, '", strong("\1", :fill => yellow), "').gsub(/''(.+?)''/m, '", em("\1"), "').
       gsub(/'''(.+?)'''/m, '", strong("\1"), "').gsub(/''(.+?)''/m, '", em("\1"), "').
-      gsub(/\[\[(\S+?) (.+?)\]\]/m, '", link("\2", :click => "\1"), "')
-      # gsub(/\(\!\)/m, '<img src="/static/exclamation.png" />').
-      # gsub(/\!\\(\S+\.png)\!/, '<img class="inline" src="/static/\1" />').
-      # gsub(/\!(\S+\.png)\!/, '<img src="/static/\1" />')
-    eval("[#{str}]")
+      gsub(/\[\[(\S+?) (.+?)\]\]/m, '", link("\2", :click => "\1"), "').
+      gsub(/\!(\{[^}\n]+\})?([^!\n]+\.\w+)\!/, '", *args); stack(\1) { image("#{DIR}/static/\2") }; #{ele}("')
+    eval("#{ele}(#{str}, *args)")
   end
 
   def dewikify(str, intro = false)
     proc do
       paras = str.split(/\s*?(\{{3}(?:.+?)\}{3})|\n\n/m).reject { |x| x.empty? }
       if intro
-        para *(dewikify_p(paras.shift) + [INTRO_STYLE])
+        dewikify_p :para, paras.shift, INTRO_STYLE
       end
       paras.map do |ps|
         if ps =~ CODE_RE
@@ -43,17 +41,17 @@ module Shoes::Manual
         else
           case ps
           when /\A \* (.+)/m
-            para *(dewikify_p($1.split(/^ \* /).join("[[BR]]")))
+            dewikify_p :para, $1.split(/^ \* /).join("[[BR]]")
           when /\A==== (.+) ====/
-            caption *dewikify_p($1)
+            dewikify_p :caption, $1
           when /\A=== (.+) ===/
-            tagline *dewikify_p($1)
+            dewikify_p :tagline, $1
           when /\A== (.+) ==/
-            subtitle *dewikify_p($1)
+            dewikify_p :subtitle, $1
           when /\A= (.+) =/
-            title *dewikify_p($1)
+            dewikify_p :title, $1
           else
-            para *dewikify_p(ps)
+            dewikify_p :para, ps
           end
         end
       end
@@ -97,7 +95,7 @@ module Shoes::Manual
     @toc.each { |k,v| v.hide }
     @title.replace "Search"
     @doc.clear do
-      para span(*dewikify_p("Try method names (like `button` or `arrow`) or topics (like `slots`)")), :align => 'center'
+      dewikify_p :para, "Try method names (like `button` or `arrow`) or topics (like `slots`)", :align => 'center'
       flow :margin_left => 60 do
         edit_line :width => -60 do |terms|
           @results.clear do
@@ -170,7 +168,7 @@ def Shoes.make_help_page(str)
     extend Shoes::Manual
     docs = load_docs str
 
-    style(Shoes::Code, :weight => "bold", :stroke => "#C30")
+    style(Shoes::Code, :stroke => "#C30")
     style(Shoes::LinkHover, :stroke => green, :fill => nil)
     style(Shoes::Para, :size => 9, :stroke => "#332")
     style(Shoes::Tagline, :size => 12, :weight => "bold", :stroke => "#eee", :margin => 6)
@@ -233,8 +231,10 @@ You see, the trivial Shoes program can be just one line:
 
 {{{
  #!ruby
- Shoes.app { button("Click me!") { alert("I am so proud of you...") } }
+ Shoes.app { button("Click me!") { alert("Good job.") } }
 }}}
+
+While lots of Shoes apps are graphical games and art programs, you can also layout text and edit controls easily. !{:margin_left => 40}shoes-manual-apps.gif!
 
 And, ideally, Shoes programs will run on any of the major platforms out there. Microsoft Windows, Apple's Mac OS X, Linux and many others.
 

@@ -1,8 +1,6 @@
-NOTES = [
-  ['Welcome to the vJot Clone', 'Okay, you know, just type stuff in and it will save as you go.']
-]
+NOTES = []
 
-Shoes.app :title => "vJot Clone", 
+Shoes.app :title => "vJot", 
   :width => 420, :height => 560, :resizable => false do
 
   @note = NOTES.first
@@ -11,7 +9,7 @@ Shoes.app :title => "vJot Clone",
     background "#eee", :curve => 12
     border "#00D0FF", :strokewidth => 3, :curve => 12
     stack :margin => 20 do
-      caption "vJot Clone"
+      caption "vJot"
       @title = edit_line @note[0], :width => 1.0 do
         @note[0] = @title.text
         load_list
@@ -41,3 +39,20 @@ Shoes.app :title => "vJot Clone",
 
   load_list
 end
+
+NOTES << ['Welcome to the vJot Clone', <<-'END']
+This sample app is a notetaker, a clone of PJ Hyett's vjot.com.
+
+Creating
+----------
+Click "Add a New Note" and the jot will be loaded into the editor for reading or editing.
+
+Editing
+---------
+Click a jot's title to load it.
+
+Saving
+--------
+There is no save button, the jot is saved as you edit.
+
+END

@@ -1,6 +1,6 @@
 require 'open-uri'
 
-Shoes.app :title => "Dictionary, powered by Definr" do
+Shoes.app :title => "Dictionary, powered by Definr", :width => 370, :height => 320 do
   stack do
     background red, :height => 60
     flow :margin => 20 do
