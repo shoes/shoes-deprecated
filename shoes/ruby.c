@@ -790,7 +790,7 @@ shoes_shape_send_release(VALUE self, int button, int x, int y)
     VALUE proc = rb_hash_aref(self_t->attr, ID2SYM(s_release));
     self_t->hover ^= HOVER_CLICK;
     if (!NIL_P(proc))
-      shoes_safe_block(self, proc, rb_ary_new());
+      shoes_safe_block(self, proc, rb_ary_new3(1, self));
   }
 }
 
@@ -1238,7 +1238,7 @@ shoes_image_send_release(VALUE self, int button, int x, int y)
     VALUE proc = rb_hash_aref(self_t->attr, ID2SYM(s_release));
     self_t->hover ^= HOVER_CLICK;
     if (!NIL_P(proc))
-      shoes_safe_block(self, proc, rb_ary_new());
+      shoes_safe_block(self, proc, rb_ary_new3(1, self));
   }
 }
 
@@ -2360,7 +2360,7 @@ shoes_textblock_send_release(VALUE self, int button, int x, int y)
     VALUE proc = rb_hash_aref(self_t->attr, ID2SYM(s_release));
     self_t->hover ^= HOVER_CLICK;
     if (!NIL_P(proc))
-      shoes_safe_block(self, proc, rb_ary_new());
+      shoes_safe_block(self, proc, rb_ary_new3(1, self));
   }
 }
 
@@ -2983,7 +2983,7 @@ shoes_control_send(VALUE self, ID event)
   {
     click = rb_hash_aref(self_t->attr, ID2SYM(event));
     if (!NIL_P(click))
-      shoes_safe_block(self_t->parent, click, rb_ary_new());
+      shoes_safe_block(self_t->parent, click, rb_ary_new3(1, self));
   }
 }
 

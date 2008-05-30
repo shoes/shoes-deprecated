@@ -2014,7 +2014,7 @@ shoes_canvas_send_start(VALUE self)
     VALUE start = ATTR(canvas->attr, start);
     if (!NIL_P(start))
     {
-      shoes_safe_block(self, start, rb_ary_new());
+      shoes_safe_block(self, start, rb_ary_new3(1, self));
     }
   }
 }

@@ -1,9 +1,18 @@
 module Shoes::Manual
+  CODE_RE = /\{{3}(?:\s*\#![^\n]+)?(.+?)\}{3}/m
   CODE_STYLE = {:size => 9, :margin => 12}
   INTRO_STYLE = {:size => 12, :weight => "bold", :margin_bottom => 20, :stroke => "#000"}
+  SUB_STYLE = {:stroke => "#CCC", :margin_top => 10}
+  COLON = ": "
 
   def dewikify_hi(str, terms, intro = false)
-    str = str.gsub(/#{Regexp::quote(terms)}/i, '!\0!') if terms
+    if terms
+      code = []
+      str = str.
+        gsub(CODE_RE) { |x| code << x; "CODE#[#{code.length-1}]" }.
+        gsub(/#{Regexp::quote(terms)}/i, '!\0!').
+        gsub(/CODE#\[(\d+)\]/) { code[$1.to_i] }
+    end
     dewikify(str, intro)
   end
 
@@ -26,7 +35,7 @@ module Shoes::Manual
         para *(dewikify_p(paras.shift) + [INTRO_STYLE])
       end
       paras.map do |ps|
-        if ps =~ /\{{3}(?:\s*\#![^\n]+)?(.+?)\}{3}/m
+        if ps =~ CODE_RE
           stack :margin_bottom => 12 do 
             background rgb(210, 210, 210)
             para code($1.gsub(/\A\n+/, '').chomp), CODE_STYLE 
@@ -64,10 +73,10 @@ module Shoes::Manual
           k2t = k2[/^(?:The )?([\-\w]+)/, 1]
           @search.add_document :uri => "T #{k2t}", :body => "#{k2}\n#{meth[0]}".downcase
 
-          hsh = {'title' => k2,
+          hsh = {'title' => k2, 'section' => k,
             'description' => meth[0],
             'methods' => (meth[1..-1]/2).map { |_k,_v|
-              @search.add_document :uri => "M #{k2t}: #{_k}", :body => "#{_k}\n#{_v}".downcase
+              @search.add_document :uri => "M #{k}#{COLON}#{k2t}#{COLON}#{_k}", :body => "#{_k}\n#{_v}".downcase
               [_k, _v]
           }}
           @methods[k2t] = hsh
@@ -162,7 +171,7 @@ def Shoes.make_help_page(str)
           @toc.each { |k,v| v.hide }
           @title.replace "Search"
           @doc.clear do
-            para "Try method names (like `arrow`) or topics (like `stacks`)", :align => 'center'
+            para span(*dewikify_p("Try method names (like `button` or `arrow`) or topics (like `slots`)")), :align => 'center'
             flow :margin_left => 60 do
               terms = edit_line :width => -120
               button "Search" do
@@ -175,15 +184,16 @@ def Shoes.make_help_page(str)
                       when "S"
                         background "#333", :curve => 4
                         caption strong(link(head, :stroke => white) { open_section(head, terms.text) })
-                        para "Section header", :stroke => "#CCC", :margin_top => 8
+                        para "Section header", Shoes::Manual::SUB_STYLE
                       when "T"
                         background "#777", :curve => 4
                         caption strong(link(head, :stroke => "#EEE") { open_methods(head, terms.text) })
-                        para "Sub-section", :stroke => "#CCC", :margin_top => 8
+                        hsh = @methods[head]
+                        para "Sub-section under #{hsh['section']} (#{hsh['methods'].length} methods)", Shoes::Manual::SUB_STYLE
                       when "M"
                         background "#CCC", :curve => 4
-                        subhead, head = head.split(": ", 2)
-                        para strong(subhead, " ", link(head) { open_methods(subhead, terms.text, head) })
+                        sect, subhead, head = head.split(Shoes::Manual::COLON, 3)
+                        para strong(sect, Shoes::Manual::COLON, subhead, Shoes::Manual::COLON, link(head) { open_methods(subhead, terms.text, head) })
                       end
                     end
                   end
