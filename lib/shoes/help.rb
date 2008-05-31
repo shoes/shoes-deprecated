@@ -177,10 +177,12 @@ def Shoes.make_help_page(str)
 
     stack do
       background black
-      para "The Shoes Manual", :stroke => "#eee", :margin_top => 8, :margin_left => 17, 
-        :margin_bottom => 0
-      @title = title docs[0][0], :stroke => white, :margin => 4, :margin_left => 14,
-        :margin_top => 0, :weight => "bold"
+      stack :margin_left => 118 do
+        para "The Shoes Manual", :stroke => "#eee", :margin_top => 8, :margin_left => 17, 
+          :margin_bottom => 0
+        @title = title docs[0][0], :stroke => white, :margin => 4, :margin_left => 14,
+          :margin_top => 0, :weight => "bold"
+      end
       background "rgb(66, 66, 66, 180)".."rgb(0, 0, 0, 0)", :height => 0.7
       background "rgb(66, 66, 66, 100)".."rgb(255, 255, 255, 0)", :height => 20, :bottom => 0
     end
@@ -190,8 +192,6 @@ def Shoes.make_help_page(str)
     stack :top => 80, :left => 0, :attach => Window do
       @toc = {}
       stack :margin => 12, :width => 130, :margin_top => 20 do
-        background "#eee", :curve => 4
-        para "CONTENTS", :stroke => "#BBB", :margin => 4, :align => "center"
         docs.each do |sect_s, sect_h|
           sect_cls = sect_h['class']
           para strong(link(sect_s, :stroke => black) { open_section(sect_s) }),
@@ -206,8 +206,8 @@ def Shoes.make_help_page(str)
             end
         end
       end
-      stack :margin => 12, :width => 130, :margin_top => 6 do
-        background "#c30", :curve => 4
+      stack :margin => 12, :width => 118, :margin_top => 6 do
+        background "#330", :curve => 4
         para "Not finding it? Try ", strong(link("Search", :stroke => white) { show_search }), "!", :stroke => "#ddd"
       end
       stack :margin => 12, :width => 118 do
@@ -215,8 +215,10 @@ def Shoes.make_help_page(str)
           :size => 7, :align => "center", :stroke => "#999"
       end
     end
-    image "#{DIR}/static/shoes-icon.png", :top => 8, :right => 10 + gutter,
-      :width => 64, :height => 64
+    image :width => 120, :height => 120, :top => -8, :left => 16 do
+      image "#{DIR}/static/shoes-icon.png", :width => 100, :height => 100, :top => 0, :left => 0
+      glow 2
+    end
   end
 rescue => e
   p e.message
