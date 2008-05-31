@@ -72,6 +72,9 @@ dist/shoes.launch: dist/shoes-bin
 	@cp -r req/sqlite3/lib/* dist/lib
 	@cd req/sqlite3/ext/sqlite3_api && ruby extconf.rb && make
 	@cp req/sqlite3/ext/sqlite3_api/*.so dist/lib
+	@cp -r req/ftsearch/lib/* dist/lib
+	@cd req/ftsearch/ext/ftsearchrt && ruby extconf.rb && make
+	@cp req/ftsearch/ext/ftsearchrt/*.so dist/lib
 	@cp -r samples dist/samples
 	@cp -r static dist/static
 	@rm -rf dist/**/.svn
