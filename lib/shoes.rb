@@ -231,7 +231,12 @@ class Shoes
 
     case uri
     when URI::HTTP
-      Shoes.app do
+      str = uri.read
+      if str !~ /Shoes\.app/
+        Shoes.app do
+          eval(uri.read)
+        end
+      else
         eval(uri.read)
       end
     else
