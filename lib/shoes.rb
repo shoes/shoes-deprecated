@@ -45,72 +45,6 @@ class Shoes
     para "404 NOT FOUND, GUYS!"
   end
  
-  ShyMake = proc do |s|
-    proc do
-      stack do
-        background rgb(240, 240, 150)
-        stack :margin => 10 do
-          subtitle "ShyMaker", :margin => 0
-          inscription "for Shoes #{Shoes::VERSION}"
-        end
-      end
-      stack :margin_left => 40 do
-        @done =
-          stack :margin => 20, :hidden => true do
-            para "Your .shy is fully baked."
-          end
-        @make =
-          stack :margin => 20, :hidden => true do
-            para "Making the Shy" 
-            @make_text = para "Creating file..."
-            @prog = progress
-          end
-        info =
-          stack :margin => 10 do
-            stack :margin => 10 do
-              para "Application name"
-              @shy_name = edit_line
-            end
-            stack :margin => 10 do
-              para "Creator"
-              @shy_creator = edit_line
-            end
-            stack :margin => 10 do
-              para "Version"
-              @shy_version = edit_line
-            end
-            stack :margin => 10 do
-              para "Launch"
-              @shy_launch = list_box :items => Shy.launchable(s)
-            end
-            stack :margin => 10 do
-              button "Ready" do
-                shy_save = ask_save_file
-
-                info.hide
-                @make.show
-
-                shy = Shy.new
-                shy.name = @shy_name.text
-                shy.creator = @shy_creator.text
-                shy.version = @shy_version.text
-                shy.launch =  @shy_launch.text
-
-                Thread.start do
-                  Shy.c(shy_save, shy, s) do |_name, _perc, _left|
-                    @make_text.replace "Adding #{_name}"
-                    @prog.fraction = _perc
-                  end
-                  @make.hide
-                  @done.show
-                end
-              end
-            end
-          end
-      end
-    end
-  end
-
   @mounts = []
 
   OPTS = OptionParser.new do |opts|
@@ -163,6 +97,7 @@ class Shoes
   end
 
   def self.make_shy(s)
+    require 'shoes/shy'
     Shoes.app(&ShyMake.call(s))
   end
 
@@ -240,6 +175,7 @@ class Shoes
         eval(uri.read)
       end
     else
+      require 'shoes/shy'
       path = File.expand_path(path.gsub(/\\/, "/"))
       if path =~ /\.shy$/
         base = File.basename(path, ".shy")
