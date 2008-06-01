@@ -62,6 +62,7 @@ class Shoes
 
     opts.on("-g", "--gem",
             "Passes commands to RubyGems.") do
+      require 'shoes/setup'
       require 'rubygems/gem_runner'
       Gem::GemRunner.new.run(ARGV)
       raise SystemExit, ""
@@ -81,6 +82,7 @@ class Shoes
   @setups = {}
 
   def self.setup &blk
+    require 'shoes/setup'
     line = caller[0]
     return if @setups[line]
     script = line[/^(.+?):/, 1]
@@ -141,7 +143,6 @@ class Shoes
   end
 
   def self.args!
-    Shoes::Setup.init
     if PLATFORM !~ /darwin/
       if ARGV.empty?
         fname = ask_open_file
