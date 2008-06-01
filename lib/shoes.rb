@@ -9,7 +9,6 @@ require 'open-uri'
 require 'optparse'
 require 'resolv-replace'
 require 'shoes/inspect'
-require 'shoes/shy'
 if Object.const_defined? :Shoes
   require 'shoes/image'
   require 'shoes/cache'
@@ -176,9 +175,9 @@ class Shoes
         eval(uri.read)
       end
     else
-      require 'shoes/shy'
       path = File.expand_path(path.gsub(/\\/, "/"))
       if path =~ /\.shy$/
+        require 'shoes/shy'
         base = File.basename(path, ".shy")
         tmpdir = "%s/shoes-%s.%d" % [Dir.tmpdir, base, $$]
         shy = Shy.x(path, tmpdir)
