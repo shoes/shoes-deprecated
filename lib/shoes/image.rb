@@ -9,12 +9,11 @@ class Shoes
     File.join(dir, hash[2..-1]) + ext.downcase
   end
   def image *args, &blk
-    case args[0] when Integer, Hash, NilClass
-      image_file *args, &blk 
-    else
+    if args[0].respond_to? :to_str
       path, opts = args
       opts ||= {}
 
+      path = path.to_str
       uri = (URI(path) rescue nil) unless uri.is_a? URI
       realpath = path
       case uri
@@ -56,6 +55,8 @@ class Shoes
         end
       end
       image_file path, File.expand_path(realpath), opts, &blk
+    else
+      image_file *args, &blk 
     end
   end
   def snapshot(options = {}, &block)

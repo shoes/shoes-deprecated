@@ -958,7 +958,7 @@ shoes_canvas_image(int argc, VALUE *argv, VALUE self)
     realpath = ATTR(attr, height);
   }
   else
-    rb_scan_args(argc, argv, "21&", &path, &realpath, &attr, &block);
+    rb_scan_args(argc, argv, "12&", &path, &realpath, &attr, &block);
 
   if (NIL_P(path) || FIXNUM_P(path))
   {

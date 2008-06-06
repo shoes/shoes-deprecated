@@ -819,13 +819,31 @@ shoes_image_new(VALUE klass, VALUE path, VALUE realpath, VALUE attr, VALUE paren
   GError *error = NULL;
   VALUE obj = Qnil;
   shoes_image *image;
-  cairo_surface_t *surf = shoes_load_image(realpath);
+  cairo_surface_t *surf;
 
   obj = shoes_image_alloc(klass);
   Data_Get_Struct(obj, shoes_image, image);
 
-  image->path = path;
-  image->surface = surf;
+  image->path = Qnil;
+  if (rb_obj_is_kind_of(path, cImage))
+  {
+    shoes_image *image2;
+    Data_Get_Struct(path, shoes_image, image2);
+    cairo_surface_reference(image->surface = image2->surface);
+    attr = realpath;
+  }
+  else if (rb_obj_is_kind_of(path, cImageBlock))
+  {
+    shoes_canvas *c;
+    Data_Get_Struct(path, shoes_canvas, c);
+    cairo_surface_reference(image->surface = cairo_get_target(c->cr));
+    attr = realpath;
+  }
+  else
+  {
+    image->path = path;
+    image->surface = shoes_load_image(realpath);
+  }
   cairo_matrix_init_identity(image->tf);
   cairo_matrix_multiply(image->tf, image->tf, tf);
   image->mode = mode;
