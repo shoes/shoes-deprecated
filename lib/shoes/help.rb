@@ -19,9 +19,9 @@ module Shoes::Manual
   def dewikify_p(ele, str, *args)
     str = str.gsub(/\n+\s*/, " ").dump.
       gsub(/`(.+?)`/m, '", code("\1"), "').gsub(/\[\[BR\]\]/i, "\n").
-      gsub(/@(.+?)@/m, '", strong("\1", :fill => yellow), "').gsub(/''(.+?)''/m, '", em("\1"), "').
+      gsub(/@(.+?)@/m, '", strong("\1", :fill => yellow), "').
       gsub(/'''(.+?)'''/m, '", strong("\1"), "').gsub(/''(.+?)''/m, '", em("\1"), "').
-      gsub(/\[\[(\S+?) (.+?)\]\]/m, '", link("\2", :click => "\1"), "').
+      gsub(/\[\[(\S+?) (.+?)\]\]/m, '", link("\2") { open_link("\1") }, "').
       gsub(/\!(\{[^}\n]+\})?([^!\n]+\.\w+)\!/, '", *args); stack(\1) { image("#{DIR}/static/\2") }; #{ele}("')
     eval("#{ele}(#{str}, *args)")
   end
@@ -61,7 +61,7 @@ module Shoes::Manual
   def load_docs str
     return @docs if @docs
     @search = Shoes::Search.new
-    @sections, @methods = {}, {}
+    @sections, @methods, @mindex = {}, {}, {}
     @docs =
       (str.split(/^= (.+?) =/)[1..-1]/2).map do |k,v|
         sparts = v.split(/^== (.+?) ==/)
@@ -75,6 +75,7 @@ module Shoes::Manual
             'description' => meth[0],
             'methods' => (meth[1..-1]/2).map { |_k,_v|
               @search.add_document :uri => "M #{k}#{COLON}#{k2t}#{COLON}#{_k}", :body => "#{_k}\n#{_v}".downcase
+              @mindex["#{k2t}.#{_k[/\w+/]}"] = [k2t, _k]
               [_k, _v]
           }}
           @methods[k2t] = hsh
@@ -127,6 +128,17 @@ module Shoes::Manual
       @results = stack
     end
     self.scroll_top = 0
+  end
+
+  def open_link(head)
+    if @sections.has_key? head
+      open_section(head)
+    elsif @methods.has_key? head
+      open_methods(head)
+    elsif @mindex.has_key? head
+      head, sub = @mindex[head]
+      open_methods(head, nil, sub)
+    end
   end
 
   def open_section(sect_s, terms = nil)
@@ -249,7 +261,7 @@ Well, you can make windowing applications. But Shoes is inspired by the web, so 
 
 Still, Shoes does have a few widgets like buttons and edit boxes. And many missing elements (like tabbed controls or toolbars) can be simulated with images.
 
-Shoes also has a very good art engine called Cairo, which is used for drawing with shapes and colors. In this way, Shoes is inspired by NodeBox and Processing, two very good languages for drawing animated graphics.
+Shoes is written in part thanks to a very good art engine called Cairo, which is used for drawing with shapes and colors. In this way, Shoes is inspired by NodeBox and Processing, two very good languages for drawing animated graphics.
 
 == Built-in Methods ==
 
@@ -259,14 +271,14 @@ All of these commands are unusual because you don't attach them with a dot.
 '''Every other method in this manual must be attached to an object with a dot.'''
 But these are built-in methods (also called: Kernel methods.) Which means no dot!
 
-A common one is `puts`:
+A common one is `alert`:
 
 {{{
  #!ruby
- puts "No dots in sight"
+ alert "No dots in sight"
 }}}
 
-Compare that to the method `reverse`, which isn't a Kernel method and is available with Arrays and Strings:
+Compare that to the method `reverse`, which isn't a Kernel method and is only available for Arrays and Strings:
 
 {{{
  #!ruby
@@ -275,6 +287,8 @@ Compare that to the method `reverse`, which isn't a Kernel method and is availab
  [:dogs, :cows, :snakes].reverse
   #=> [:snakes, :cows, :dogs]
 }}}
+
+Most Shoes methods for drawing and making buttons and so on are attached to slots.  See the section on [[Slots Slots]] for more.
 
 ==== Built-in Constants ====
 
@@ -1016,11 +1030,88 @@ gives you back an Image object. Use the methods of the Image object to change th
 
 == Background ==
 
-A background is a type of Shoes::Pattern.
+A background is a color, a gradient or an image that is painted across an entire slot.  Both backgrounds and borders are a type of Shoes::Pattern.
+
+Even though it's called a ''background'', you may still place this element in front of other elements.  If a background comes after something else painted on the slot (like a `rect` or an `oval`,) the background will be painted over that element.
+
+The simplest background is just a plain color background, created with the [[Element.background background method]], such as this black background:
+
+{{{
+ #!ruby
+ Shoes.app do
+   background black
+ end
+}}}
+
+A simple background like that paints the entire slot that contains it.  (In this case, the whole window is painted black.)
+
+You can use styles to cut down the size or move around the background to your liking.
+
+To paint a black background across the top fifty pixels of the window:
+
+{{{
+ #!ruby
+ Shoes.app do
+   background black, :height => 50
+ end
+}}}
+
+Or, to paint a fifty pixel column on the right-side of the window:
+
+{{{
+ #!ruby
+ Shoes.app do
+   background black, :width => 50, :right => 0
+ end
+}}}
+
+Since Backgrounds are normal elements as well, see also the start of the [[Elements Elements]] section for all of its other methods.
+
+=== to_pattern() » a Shoes::Pattern ===
+
+Yanks out the color, gradient or image used to paint this background and places it in a normal Shoes::Pattern object.  You can then pass that object to other backgrounds and borders.  Reuse it as you like.
 
 == Border ==
 
-A border is a type of Shoes::Pattern.
+A border is a color, gradient or image painted in a line around the edge of any slot.  Like the Background element in the last section, a Border is a kind of Shoes::Pattern.
+
+The first, crucial thing to know about border is that all borders paint a line around the '''inside''' of a slot, not the outside.  So, if you have a slot which is fifty pixels wide and you paint a five pixel border on it, that means there is a fourty pixel wide area inside the slot which is surrounded by the border.
+
+This also means that if you paint a Border on top of a [[Background Background]], the edges of the background will be painted over by the border.
+
+Here is just such a slot:
+
+{{{
+ #!ruby
+ Shoes.app do
+   stack :width => 50 do
+     border black, :strokewidth => 5
+     para "=^.^=", :stroke => green
+   end
+ end
+}}}
+
+If you want to paint a border around the outside of a slot, you'll need to wrap that slot in another slot.  Then, place the border in the outside slot.
+
+{{{
+ #!ruby
+ Shoes.app do
+   stack :width => 60 do
+     border black, :strokewidth => 5
+     stack :width => 50 do
+       para "=^.^=", :stroke => green
+     end
+   end
+ end
+}}}
+
+In HTML and many other languages, the border is painted on the outside of the box, thus increasing the overall width of the box.  Shoes was designed with consistency in mind, so that if you say that a box is fifty pixels wide, it stays fifty pixels wide regardless of its borders or margins or anything else.
+
+Please also check out the [[Elements Elements]] section for other methods used on borders.
+
+=== to_pattern() » a Shoes::Pattern ===
+
+Creates a basic pattern object based on the color, gradient or image used to paint this border.  The pattern may then be re-used in new borders and backgrounds.
 
 == Image ==
 
