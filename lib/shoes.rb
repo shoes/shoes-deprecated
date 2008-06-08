@@ -23,6 +23,13 @@ class Range
   end 
 end
 
+unless Time.respond_to? :today
+  def Time.today
+    t = Time.now
+    t - (t.to_i % 86400)
+  end
+end
+
 class Canvas
   [:height, :width, :scroll].each do |m|
     define_method(m) { style[m] } unless method_defined? m

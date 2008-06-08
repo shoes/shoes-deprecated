@@ -1,6 +1,9 @@
+require 'yaml'
+
 Shoes.app :title => "A Gentle Reminder", 
   :width => 370, :height => 560, :resizable => false do
 
+  background white
   background tan, :height => 40
   
   caption "A Gentle Reminder", :margin => 8, :stroke => white
@@ -8,7 +11,7 @@ Shoes.app :title => "A Gentle Reminder",
   stack :margin => 10, :margin_top => 50 do    
     para "You need to", :stroke => red, :fill => yellow
     
-    stack :margin_left => 5, :width => 1.0, :height => 200, :scroll => true do
+    stack :margin_left => 5, :margin_right => 10, :width => 1.0, :height => 200, :scroll => true do
       background white
       border white, :strokewidth => 3
       @gui_todo = para
@@ -26,13 +29,13 @@ Shoes.app :title => "A Gentle Reminder",
     para strong('Completed'), :stroke => white
   end
 
-  @gui_completed = stack :width => 1.0, :height => 207
+  @gui_completed = stack :width => 1.0, :height => 207, :margin_right => 20
 
 
   def data_path
     if RUBY_PLATFORM =~ /win32/
       if ENV['USERPROFILE']
-        if File.exist?(File.join File.expand_path(ENV['USERPROFILE']), "Application Data")
+        if File.exist?(File.join(File.expand_path(ENV['USERPROFILE']), "Application Data"))
           user_data_directory = File.join File.expand_path(ENV['USERPROFILE']), "Application Data", "GentleReminder"
         else
           user_data_directory = File.join File.expand_path(ENV['USERPROFILE']), "GentleReminder"
@@ -41,14 +44,14 @@ Shoes.app :title => "A Gentle Reminder",
         user_data_directory = File.join File.expand_path(Dir.getwd), "data"
       end
     else
-      user_data_directory = File.expand_path(File.join "~", ".gentlereminder")
+      user_data_directory = File.expand_path(File.join("~", ".gentlereminder"))
     end
     
     unless File.exist?(user_data_directory)
       Dir.mkdir(user_data_directory)
     end
     
-    return File.join user_data_directory, "data.yaml"
+    return File.join(user_data_directory, "data.yaml")
   end
   
 
