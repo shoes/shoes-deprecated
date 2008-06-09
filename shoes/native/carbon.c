@@ -9,6 +9,38 @@
 #include "shoes/native.h"
 #include "shoes/internal.h"
 
+#define HEIGHT_PAD 10
+
+static CFStringRef
+shoes_rb2cf(VALUE str)
+{
+  CFStringRef cf;
+  char *msg = "";
+  if (!NIL_P(str)) msg = RSTRING_PTR(str);
+  cf = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
+  return cf;
+}
+
+VALUE
+shoes_cf2rb(CFStringRef cf)
+{
+  VALUE str;
+  char *text;
+  CFIndex len = CFStringGetLength(cf) * 2;
+  if (len > 0)
+  {
+    text = SHOE_ALLOC_N(char, len);
+    CFStringGetCString(cf, text, len, kCFStringEncodingUTF8);
+    str = rb_str_new2(text);
+    SHOE_FREE(text);
+  }
+  else
+  {
+    str = rb_str_new2("");
+  }
+  return str;
+}
+
 void shoes_native_init()
 {
   shoes_app_quartz_install();
@@ -813,4 +845,157 @@ shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc)
       HIViewSetNeedsDisplay(self_t->slot.vscroll, true);
     }
   }
+}
+
+void
+shoes_native_control_hide(SHOES_CONTROL_REF ref)
+{
+  HIViewSetVisible(ref, false);
+}
+
+void
+shoes_native_control_show(SHOES_CONTROL_REF ref)
+{
+  HIViewSetVisible(ref, true);
+}
+
+void
+shoes_native_control_position(SHOES_CONTROL_REF ref, shoes_place *p1, VALUE self,
+  shoes_canvas *canvas, shoes_place *p2)
+{
+  HIRect hr;
+  PLACE_COORDS();
+  hr.origin.x = p2->ix + p2->dx; hr.origin.y = p2->iy + p2->dy;
+  hr.size.width = p2->iw; hr.size.height = p2->ih;
+  HIViewAddSubview(canvas->slot.view, ref);
+  SetControlCommandID(ref, SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls));
+  HIViewSetFrame(ref, &hr);
+  HIViewSetVisible(ref, true);
+  rb_ary_push(canvas->slot.controls, self);
+}
+
+void
+shoes_native_control_repaint(SHOES_CONTROL_REF ref, shoes_place *p1,
+  shoes_canvas *canvas, shoes_place *p2)
+{
+  if (CHANGED_COORDS()) {
+    HIRect hr;
+    PLACE_COORDS();
+    hr.origin.x = p2->ix + p2->dx; hr.origin.y = p2->iy + p2->dy;
+    hr.size.width = p2->iw; hr.size.height = p2->ih;
+    HIViewSetFrame(&hr);
+  }
+}
+
+void
+shoes_native_control_focus(SHOES_CONTROL_REF ref)
+{
+  SetKeyboardFocus(GetControlOwner(ref), ref, kControlFocusNoPart);
+  SetKeyboardFocus(GetControlOwner(ref), ref, kControlFocusNextPart);
+}
+
+void
+shoes_native_control_remove(SHOES_CONTROL_REF ref, shoes_canvas *canvas)
+{
+  HIViewRemoveFromSuperview(ref);
+}
+
+void
+shoes_native_control_free(SHOES_CONTROL_REF ref)
+{
+}
+
+SHOES_CONTROL_REF
+shoes_native_surface_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
+{
+  return GetWindowPort(canvas->app->os.window);
+}
+
+void
+shoes_native_surface_position(shoes_canvas *self_t, shoes_canvas *canvas, shoes_place *place)
+{
+  PLACE_COORDS();
+}
+
+void
+shoes_native_surface_remove(shoes_canvas *canvas, SHOES_CONTROL_REF ref)
+{
+//   HIViewRemoveFromSuperview(self_t->ref);
+}
+
+SHOES_CONTROL_REF
+shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, char *msg)
+{
+  SHOES_CONTROL_REF ref;
+  Rect r = {place->iy + place->dy, place->ix + place->dx, 
+    place->iy + place->dy + place->ih, place->ix + place->dx + place->iw};
+  CFStringRef cfmsg = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
+  CreatePushButtonControl(NULL, &r, cfmsg, &ref);
+  CFRelease(cfmsg);
+  return ref;
+}
+
+SHOES_CONTROL_REF
+shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+  SHOES_CONTROL_REF ref;
+  Boolean nowrap = true;
+  Rect r;
+  CFStringRef cfmsg = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
+  SetRect(&r, place->ix + place->dx, place->iy + place->dy,
+    place->ix + place->dx + place->iw, place->iy + place->dy + place->ih);
+  CreateEditUnicodeTextControl(NULL, &r, cfmsg, RTEST(ATTR(attr, secret)), NULL, &ref);
+  SetControlData(ref, kControlEntireControl, kControlEditTextSingleLineTag, sizeof(Boolean), &nowrap);
+  InstallControlEventHandler(ref, NewEventHandlerUPP(shoes_quartz_edit_handler),
+    GetEventTypeCount(editEvents), editEvents, self, NULL);
+  CFRelease(cfmsg);
+  return ref;
+}
+
+VALUE
+shoes_native_edit_line_get_text(SHOES_CONTROL_REF ref)
+{
+  VALUE text;
+  CFStringRef controlText;
+  Size* size = NULL;
+  GetControlData(ref, kControlEditTextPart, kControlEditTextCFStringTag, sizeof (CFStringRef), &controlText, size);
+  text = shoes_cf2rb(controlText);
+  CFRelease(controlText);
+  return text;
+}
+
+void
+shoes_native_edit_line_set_text(SHOES_CONTROL_REF ref, char *msg)
+{
+  CFStringRef controlText = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
+  SetControlData(ref, kControlEditTextPart, kControlEditTextCFStringTag, sizeof (CFStringRef), &controlText);
+  CFRelease(controlText);
+}
+
+static const EventTypeSpec editEvents[] = {   
+  { kEventClassTextField, kEventTextDidChange }
+};
+
+static pascal OSStatus
+shoes_quartz_edit_handler(EventHandlerCallRef handler, EventRef inEvent, void *data)
+{
+  OSStatus err        = eventNotHandledErr;
+  UInt32 eventKind    = GetEventKind(inEvent);
+  UInt32 eventClass   = GetEventClass(inEvent);
+  VALUE self          = (VALUE)data;
+  
+  switch (eventClass)
+  {
+    case kEventClassTextField:
+      switch (eventKind)
+      {
+        case kEventTextDidChange:
+          shoes_control_send(self, s_change);
+          err = noErr;
+        break;
+      }
+    break;
+  }
+
+  return err;
 }

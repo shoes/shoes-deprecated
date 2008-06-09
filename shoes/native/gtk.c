@@ -9,6 +9,12 @@
 #include "shoes/native.h"
 #include "shoes/internal.h"
 
+#define GTK_CHILD(child, ptr) \
+  GList *children = gtk_container_get_children(GTK_CONTAINER(ptr)); \
+  child = children->data
+
+#define HEIGHT_PAD 0
+
 void shoes_native_init()
 {
   gtk_init(NULL, NULL);
@@ -479,4 +485,130 @@ shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc)
         self_t->place.ix + self_t->place.dx, newy);
   if (a->width != self_t->place.iw || a->height != self_t->place.ih)
     gtk_widget_set_size_request(self_t->slot.canvas, self_t->place.iw, self_t->place.ih);
+}
+
+static void
+shoes_widget_changed(GtkWidget *ref, gpointer data)
+{ 
+  VALUE self = (VALUE)data;
+  shoes_control_send(self, s_change);
+}
+
+void
+shoes_native_control_hide(SHOES_CONTROL_REF ref)
+{
+  gtk_widget_hide(ref);
+}
+
+void
+shoes_native_control_show(SHOES_CONTROL_REF ref)
+{
+  gtk_widget_show(ref);
+}
+
+void
+shoes_native_control_position(SHOES_CONTROL_REF ref, shoes_place *p1, VALUE self,
+  shoes_canvas *canvas, shoes_place *p2)
+{
+  PLACE_COORDS();
+  gtk_widget_set_size_request(ref, p2->iw, p2->ih);
+  gtk_fixed_put(GTK_FIXED(canvas->slot.canvas), 
+    ref, p2->ix + p2->dx, p2->iy + p2->dy);
+  gtk_widget_show_all(ref);
+}
+
+void
+shoes_native_control_repaint(SHOES_CONTROL_REF ref, shoes_place *p1,
+  shoes_canvas *canvas, shoes_place *p2)
+{
+  p2->iy -= canvas->slot.scrolly;
+  if (CHANGED_COORDS()) {
+    PLACE_COORDS();
+    gtk_fixed_move(GTK_FIXED(canvas->slot.canvas), 
+      ref, p2->ix + p2->dx, p2->iy + p2->dy);
+    gtk_widget_set_size_request(ref, p2->iw, p2->ih);
+  }
+  p2->iy += canvas->slot.scrolly;
+}
+
+void
+shoes_native_control_focus(SHOES_CONTROL_REF ref)
+{
+  if (GTK_WIDGET_CAN_FOCUS(ref)) gtk_widget_grab_focus(ref);
+}
+
+void
+shoes_native_control_remove(SHOES_CONTROL_REF ref, shoes_canvas *canvas)
+{
+  gtk_container_remove(GTK_CONTAINER(canvas->slot.canvas), ref);
+}
+
+void
+shoes_native_control_free(SHOES_CONTROL_REF ref)
+{
+  //
+  // no need to free gtk widgets, since gtk seems
+  // to garbage collect them fine.  and memory
+  // addresses often get reused.
+  //
+}
+
+SHOES_CONTROL_REF
+shoes_native_surface_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
+{
+  return gtk_layout_new(NULL, NULL);
+}
+
+void
+shoes_native_surface_position(shoes_canvas *self_t, shoes_canvas *canvas, shoes_place *place)
+{
+  shoes_native_control_position(self_t, canvas, place);
+}
+
+void
+shoes_native_surface_remove(shoes_canvas *canvas, SHOES_CONTROL_REF ref)
+{
+  gtk_container_remove(GTK_CONTAINER(canvas->slot.canvas), self_t->ref);
+}
+
+static gboolean
+shoes_button_gtk_clicked(GtkButton *button, gpointer data)
+{ 
+  VALUE self = (VALUE)data;
+  shoes_control_send(self, s_click);
+  return TRUE;
+}
+
+SHOES_CONTROL_REF
+shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, char *msg)
+{
+  SHOES_CONTROL_REF ref = gtk_button_new_with_label(_(msg));
+  g_signal_connect(G_OBJECT(ref), "clicked",
+                   G_CALLBACK(shoes_button_gtk_clicked),
+                   (gpointer)self);
+  return ref;
+}
+
+SHOES_CONTROL_REF
+shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+  SHOES_CONTROL_REF ref = gtk_entry_new();
+  gtk_entry_set_visibility(GTK_ENTRY(ref), !RTEST(ATTR(attr, secret)));
+  gtk_entry_set_text(GTK_ENTRY(ref), _(msg));
+  g_signal_connect(G_OBJECT(ref), "changed",
+                   G_CALLBACK(shoes_widget_changed),
+                   (gpointer)self);
+  return ref;
+}
+
+VALUE
+shoes_native_edit_line_get_text(SHOES_CONTROL_REF ref)
+{
+  return rb_str_new2(gtk_entry_get_text(GTK_ENTRY(ref)));
+}
+
+void
+shoes_native_edit_line_set_text(SHOES_CONTROL_REF ref, char *msg)
+{
+  gtk_entry_set_text(GTK_ENTRY(ref), _(msg));
 }

@@ -9,6 +9,8 @@
 #include "shoes/native.h"
 #include "shoes/internal.h"
 
+#define HEIGHT_PAD 6
+
 #ifndef IDC_HAND
 #define IDC_HAND MAKEINTRESOURCE(32649)
 #endif
@@ -885,4 +887,135 @@ shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc)
       (self_t->place.iy + self_t->place.dy) - pc->slot.scrolly, self_t->place.iw, 
       self_t->place.ih, TRUE);
   }
+}
+
+void
+shoes_native_control_hide(SHOES_CONTROL_REF ref)
+{
+  ShowWindow(ref, SW_HIDE);
+}
+
+void
+shoes_native_control_show(SHOES_CONTROL_REF ref)
+{
+  ShowWindow(ref, SW_SHOW);
+}
+
+void
+shoes_native_control_position(SHOES_CONTROL_REF ref, shoes_place *p1, VALUE self,
+  shoes_canvas *canvas, shoes_place *p2)
+{
+  PLACE_COORDS();
+  MoveWindow(ref, p2->ix + p2->dx, p2->iy + p2->dy, p2->iw, p2->ih, TRUE);
+}
+
+void
+shoes_native_control_repaint(SHOES_CONTROL_REF ref, shoes_place *p1,
+  shoes_canvas *canvas, shoes_place *p2)
+{
+  p2->iy -= canvas->slot.scrolly;
+  if (CHANGED_COORDS())
+    shoes_native_control_position(ref, canvas, place);
+  p2->iy += canvas->slot.scrolly;
+}
+
+void
+shoes_native_control_focus(SHOES_CONTROL_REF ref)
+{
+  SetFocus(ref);
+}
+
+void
+shoes_native_control_remove(SHOES_CONTROL_REF ref, shoes_canvas *canvas)
+{
+  DestroyWindow(ref);
+}
+
+void
+shoes_native_control_free(SHOES_CONTROL_REF ref)
+{
+  DisposeControl(ref);
+}
+
+inline void shoes_win32_control_font(int id, HWND hwnd)
+{
+  SendDlgItemMessage(hwnd, id, WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), MAKELPARAM(true, 0));
+}
+
+SHOES_CONTROL_REF
+shoes_native_surface_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
+{
+  int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
+  SHOES_CONTROL_REF ref = CreateWindowEx(0, SHOES_VLCLASS, "Shoes VLC Window",
+      WS_CHILD | WS_CLIPCHILDREN | WS_TABSTOP | WS_VISIBLE,
+      place->ix + place->dx, place->iy + place->dy,
+      place->iw, place->ih,
+      canvas->slot.window, (HMENU)cid, 
+      (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE), NULL);
+  rb_ary_push(canvas->slot.controls, self);
+  return ref;
+}
+
+void
+shoes_native_surface_position(shoes_canvas *self_t, shoes_canvas *canvas, shoes_place *place)
+{
+  shoes_native_control_position(self_t, canvas, place);
+}
+
+void
+shoes_native_surface_remove(shoes_canvas *canvas, SHOES_CONTROL_REF ref)
+{
+  DestroyWindow(self_t->ref);
+}
+
+SHOES_CONTROL_REF
+shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, char *msg)
+{
+  int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
+  SHOES_CONTROL_REF ref = CreateWindowEx(0, TEXT("BUTTON"), msg,
+      WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
+      place->ix + place->dx, place->iy + place->dy, place->iw, place->ih,
+      canvas->slot.window, (HMENU)cid, 
+      (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
+      NULL);
+  shoes_win32_control_font(cid, canvas->slot.window);
+  rb_ary_push(canvas->slot.controls, self);
+  return ref;
+}
+
+SHOES_CONTROL_REF
+shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+  int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
+  SHOES_CONTROL_REF ref = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("EDIT"), NULL,
+      WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT | 
+      (RTEST(ATTR(attr, secret)) ? ES_PASSWORD : NULL),
+      place->ix + place->dx, place->iy + place->dy, place->iw, place->ih,
+      canvas->slot.window, (HMENU)cid, 
+      (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
+      NULL);
+  shoes_win32_control_font(cid, canvas->slot.window);
+  rb_ary_push(canvas->slot.controls, self);
+  SendMessage(ref, WM_SETTEXT, 0, (LPARAM)msg);
+  return ref;
+}
+
+VALUE
+shoes_native_edit_line_get_text(SHOES_CONTROL_REF ref)
+{
+  LONG i;
+  VALUE text;
+  TCHAR *buffer;
+  i = (LONG)SendMessage(ref, WM_GETTEXTLENGTH, 0, 0) + 1;
+  buffer = SHOE_ALLOC_N(TCHAR, i);
+  SendMessage(ref, WM_GETTEXT, i, (LPARAM)buffer);
+  text = rb_str_new2(buffer);
+  SHOE_FREE(buffer);
+  return text;
+}
+
+void
+shoes_native_edit_line_set_text(SHOES_CONTROL_REF ref, char *msg)
+{
+  SendMessage(ref, WM_SETTEXT, 0, (LPARAM)msg);
 }
