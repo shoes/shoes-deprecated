@@ -49,6 +49,7 @@ typedef struct _shoes_app {
 VALUE shoes_app_alloc(VALUE);
 VALUE shoes_app_new(VALUE);
 VALUE shoes_apps_get(VALUE);
+int shoes_app_remove(shoes_app *);
 #ifdef SHOES_WIN32
 shoes_code shoes_classex_init();
 #endif
@@ -60,7 +61,6 @@ shoes_code shoes_app_open(shoes_app *, char *);
 shoes_code shoes_app_loop();
 shoes_code shoes_app_visit(shoes_app *, char *);
 shoes_code shoes_app_paint(shoes_app *);
-shoes_code shoes_app_cursor(shoes_app *, ID);
 shoes_code shoes_app_motion(shoes_app *, int, int);
 shoes_code shoes_app_click(shoes_app *, int, int, int);
 shoes_code shoes_app_release(shoes_app *, int, int, int);

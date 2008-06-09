@@ -6,19 +6,15 @@
 #include "shoes/ruby.h"
 #include "shoes/config.h"
 #include "shoes/world.h"
+#include "shoes/native.h"
 #include "shoes/internal.h"
-#ifndef SHOES_WIN32
+#ifdef SHOES_SIGNAL
 #include <signal.h>
 
 void
 shoes_sigint()
 {
-#ifdef SHOES_GTK
-  gtk_main_quit();
-#endif
-#ifdef SHOES_QUARTZ
-  QuitApplicationEventLoop();
-#endif
+  shoes_native_quit();
 }
 #endif
 
@@ -50,10 +46,7 @@ shoes_world_free_image_cache(char *key, cairo_surface_t *surface, char *arg)
 void
 shoes_world_free(shoes_world_t *world)
 {
-#ifdef SHOES_QUARTZ
-  CFRelease(world->os.clip);
-  TECDisposeConverter(world->os.converter);
-#endif
+  shoes_native_cleanup(world);
   st_foreach(world->image_cache, CASTFOREACH(shoes_world_free_image_cache), 0);
   st_free_table(world->image_cache);
   cairo_surface_destroy(world->blank_image);
@@ -66,33 +59,18 @@ shoes_world_free(shoes_world_t *world)
 shoes_code
 shoes_init(SHOES_INIT_ARGS)
 {
-#ifdef SHOES_GTK
-  gtk_init(NULL, NULL);
-#endif
-#ifdef SHOES_WIN32
-  INITCOMMONCONTROLSEX InitCtrlEx;
-  InitCtrlEx.dwSize = sizeof(INITCOMMONCONTROLSEX);
-  InitCtrlEx.dwICC = ICC_PROGRESS_CLASS;
-  InitCommonControlsEx(&InitCtrlEx);
-#else
+#ifdef SHOES_SIGNAL
   signal(SIGINT,  shoes_sigint);
   signal(SIGQUIT, shoes_sigint);
 #endif
   ruby_init();
   shoes_ruby_init();
   shoes_world = shoes_world_alloc();
-#ifdef SHOES_QUARTZ
-  shoes_app_quartz_install();
-  shoes_slot_quartz_register();
-  if (PasteboardCreate(kPasteboardClipboard, &shoes_world->os.clip) != noErr) {
-    INFO("Apple Pasteboard create failed.\n");
-  }
-#endif
 #ifdef SHOES_WIN32
   shoes_world->os.instance = inst;
   shoes_world->os.style = style;
-  shoes_classex_init();
 #endif
+  shoes_native_init();
   return SHOES_OK;
 }
 
@@ -128,14 +106,6 @@ shoes_load(char *path)
 
   return SHOES_OK;
 }
-
-#ifdef SHOES_WIN32
-int
-shoes_win32_cmdvector(const char *cmdline, char ***argv)
-{
-  return rb_w32_cmdvector(cmdline, argv);
-}
-#endif
 
 void
 shoes_set_argv(int argc, char **argv)

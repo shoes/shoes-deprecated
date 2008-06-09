@@ -43,6 +43,7 @@
 #include <gdk/gdkkeysyms.h>
 #include <gdk/gdkx.h>
 
+#define SHOES_SIGNAL
 #define SHOES_EXTERN
 #define SHOES_EXTERN_VAR extern
 #define SHOES_INIT_ARGS void
@@ -52,6 +53,11 @@ typedef struct {
   GdkEventExpose *expose;
   int scrolly, scrollh, scrollw;
 } shoes_slot_gtk, SHOES_SLOT_OS;
+
+typedef struct {
+  GtkWidget *layout;
+  GtkWidget *radios;
+} shoes_group_gtk, SHOES_GROUP_OS;
 
 typedef struct {
   GtkWidget *window;
@@ -79,6 +85,7 @@ typedef struct {
 #include <Carbon/Carbon.h>
 #include <cairo-quartz.h>
 
+#define SHOES_SIGNAL
 #define SHOES_HELP_MANUAL 3044
 #define SHOES_CONTROL1    3045
 #define SHOES_EXTERN
@@ -94,6 +101,10 @@ typedef struct {
   cairo_surface_t *surface;
   int scrolly;
 } shoes_slot_quartz, SHOES_SLOT_OS;
+
+typedef struct {
+  char none;
+} shoes_group_quartz, SHOES_GROUP_OS;
 
 typedef struct {
   WindowRef window;
@@ -146,6 +157,7 @@ VALUE shoes_cf2rb(CFStringRef cf);
 #define SHOES_INIT_ARGS HINSTANCE inst, int style
 
 typedef struct {
+  PAINTSTRUCT ps;
   HDC dc;
   HWND window;
   VALUE focus;
@@ -153,6 +165,10 @@ typedef struct {
   cairo_surface_t *surface;
   int scrolly;
 } shoes_slot_win32, SHOES_SLOT_OS;
+
+typedef struct {
+  char none;
+} shoes_group_win32, SHOES_GROUP_OS;
 
 typedef struct {
   BOOL ctrlkey, altkey, shiftkey;

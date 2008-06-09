@@ -180,7 +180,7 @@ end
 # use the platform Ruby claims
 case PLATFORM
 when /win32/
-  SRC = FileList["shoes/*.c"] 
+  SRC = FileList["shoes/*.c", "shoes/native/windows.c"] 
   OBJ = SRC.map do |x|
     x.gsub(/\.c$/, '.obj')
   end
@@ -287,7 +287,7 @@ else
   require 'rbconfig'
 
   CC = "gcc"
-  SRC = FileList["shoes/*.{c}"]
+  SRC = FileList["shoes/*.{c}", PLATFORM =~ /darwin/ ? "shoes/native/carbon.c" : "shoes/native/gtk.c"]
   OBJ = SRC.map do |x|
     x.gsub(/\.\w+$/, '.o')
   end
@@ -342,7 +342,7 @@ else
 
   LINUX_LIBS << " -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB}"
 
-  task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o"] do |t|
+  task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o", "bin/TestView.o"] do |t|
     bin = "#{t.name}-bin"
     rm_f t.name
     rm_f bin
@@ -364,8 +364,8 @@ else
     end
   end
 
-  rule ".o" => ".mm" do |t|
-    sh "#{CC} -c -o#{t.name} -fpascal-strings -Wundef -Wno-ctor-dtor-privacy -fno-strict-aliasing -fno-common #{t.source}"
+  rule ".o" => ".m" do |t|
+    sh "#{CC} -I. -c -o#{t.name} -fpascal-strings -Wundef -fno-strict-aliasing -fno-common #{LINUX_CFLAGS} #{t.source}"
   end
 
   rule ".o" => ".c" do |t|

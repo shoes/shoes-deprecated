@@ -252,14 +252,9 @@ typedef struct {
   char hover;
   struct _shoes_app *app;
   SHOES_SLOT_OS slot;
-#ifdef SHOES_GTK
-  GtkWidget *layout;
-  GtkWidget *radios;
-#endif
+  SHOES_GROUP_OS group;
 } shoes_canvas;
 
-void shoes_slot_init(VALUE, SHOES_SLOT_OS *, int, int, int, int, int, int);
-cairo_t *shoes_cairo_create(SHOES_SLOT_OS *, int, int, int);
 void shoes_control_hide_ref(SHOES_CONTROL_REF);
 void shoes_control_show_ref(SHOES_CONTROL_REF);
 

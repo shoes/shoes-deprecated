@@ -8,6 +8,7 @@
 #include "shoes/dialogs.h"
 #include "shoes/internal.h"
 #include "shoes/world.h"
+#include "shoes/native.h"
 #include "shoes/version.h"
 #include <math.h>
 
