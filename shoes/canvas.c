@@ -1134,7 +1134,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
 
 #ifdef SHOES_GTK
   if (!RTEST(actual))
-    canvas->radios = NULL;
+    canvas->group.radios = NULL;
 #endif
 
   if (self_t->height > self_t->fully)

@@ -206,12 +206,7 @@ typedef struct {
   VALUE parent;
   unsigned int rate, frame;
   char started;
-#ifdef SHOES_GTK
-  guint tag;
-#endif
-#ifdef SHOES_QUARTZ
-  EventLoopTimerRef ref;
-#endif
+  SHOES_TIMER_REF ref;
 } shoes_timer;
 
 typedef void (*shoes_effect_filter)(cairo_t *, void *);

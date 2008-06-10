@@ -999,3 +999,183 @@ shoes_quartz_edit_handler(EventHandlerCallRef handler, EventRef inEvent, void *d
 
   return err;
 }
+
+SHOES_CONTROL_REF
+shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+  Rect r;
+  SHOES_CONTROL_REF ref;
+  CFStringRef cfmsg = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
+  SetRect(&r, place->ix + place->dx, place->iy + place->dy,
+    place->ix + place->dx + place->iw, place->iy + place->dy + place->ih);
+  CreateEditUnicodeTextControl(NULL, &r, cfmsg, false, NULL, &ref);
+  CFRelease(cfmsg);
+  return ref;
+}
+
+VALUE
+shoes_native_edit_box_get_text(SHOES_CONTROL_REF ref)
+{
+  VALUE text;
+  CFStringRef controlText;
+  Size *size = NULL;
+  GetControlData(ref, kControlEditTextPart, kControlEditTextCFStringTag, 
+    sizeof(CFStringRef), &controlText, size);
+  text = shoes_cf2rb(controlText);
+  CFRelease(controlText);
+  return text;
+}
+
+void
+shoes_native_edit_box_set_text(SHOES_CONTROL_REF ref, char *msg)
+{
+  CFStringRef controlText = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
+  SetControlData(ref, kControlEditTextPart, kControlEditTextCFStringTag, 
+    sizeof(CFStringRef), &controlText);
+  InstallControlEventHandler(ref, NewEventHandlerUPP(shoes_quartz_edit_handler),
+    GetEventTypeCount(editEvents), editEvents, self, NULL);
+  CFRelease(controlText);
+}
+
+#define LISTBOX_REF(lb) \
+  MenuRef lb; \
+  GetControlData(ref, 0, kControlPopupButtonMenuRefTag, sizeof(lb), &lb, NULL)
+
+SHOES_CONTROL_REF
+shoes_native_list_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+  Rect r;
+  SHOES_CONTROL_REF ref;
+  int menuId = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
+  CFStringRef cfmsg = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
+  SetRect(&r, place->ix + place->dx, place->iy + place->dy,
+    place->ix + place->dx + place->iw, place->iy + place->dy + place->ih);
+  CreatePopupButtonControl(NULL, &r, cfmsg, -12345, false, 0, 0, 0, &ref);
+  CFRelease(cfmsg);
+
+  MenuRef menuRef;
+  CreateNewMenu(menuId, kMenuAttrExcludesMarkColumn, &menuRef);
+  // UInt16 menuItemCount = CountMenuItems(menuRef);
+  // HIViewSetMaximum(ref, menuItemCount);
+  SetControlData(ref, 0, kControlPopupButtonMenuRefTag, sizeof(MenuRef), &menuRef);
+  return ref;
+}
+
+void
+shoes_native_list_box_update(SHOES_CONTROL_REF ref, VALUE ary)
+{
+  long i;
+  LISTBOX_REF(menu);
+  DeleteMenuItems(menu, 1, CountMenuItems(menu));
+  for (i = 0; i < RARRAY_LEN(ary); i++)
+  {
+    CFStringRef cf = shoes_rb2cf(rb_ary_entry(ary, i));
+    AppendMenuItemTextWithCFString(menu, cf, 0, 0, NULL);
+    CFRelease(cf);
+  }
+}
+
+VALUE
+shoes_native_list_box_get_active(SHOES_CONTROL_REF ref, VALUE items)
+{
+  VALUE text = Qnil;
+  LISTBOX_REF(menu);
+  int selected = HIViewGetValue(ref);
+  if (selected > 0)
+  {
+    CFStringRef label;
+    CopyMenuItemTextAsCFString(menu, selected, &label);
+    text = shoes_cf2rb(label);
+    CFRelease(label);
+  }
+  return text;
+}
+
+void
+shoes_native_list_box_set_active(SHOES_CONTROL_REF box, VALUE ary, VALUE item)
+{
+  int idx = rb_ary_index_of(ary, item);
+  if (idx < 0) return;
+  HIViewSetValue(box, idx + 1);
+}
+
+SHOES_CONTROL_REF
+shoes_native_progress(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+  Rect r;
+  SHOES_CONTROL_REF ref;
+  SetRect(&r, place->ix + place->dx, place->iy + place->dy,
+    place->ix + place->dx + place->iw, place->iy + place->dy + place->ih);
+  CreateProgressBarControl(NULL, &r, 0, 0, 100, false, &ref);
+  return ref;
+}
+
+double
+shoes_native_progress_get_fraction(SHOES_CONTROL_REF ref)
+{
+  return GetControl32BitValue(ref) * 0.01;
+}
+
+void
+shoes_native_progress_set_fraction(SHOES_CONTROL_REF ref, double perc)
+{
+  SetControl32BitValue(ref, (SInt32)(perc * 100.));
+}
+
+SHOES_CONTROL_REF
+shoes_native_check(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+  SHOES_CONTROL_REF ref;
+  Rect r = {place->iy + place->dy, place->ix + place->dx, 
+    place->iy + place->dy + place->ih, place->ix + place->dx + place->iw};
+  CreateCheckBoxControl(NULL, &r, CFSTR(""), 0, true, &ref);
+  return ref;
+}
+
+VALUE
+shoes_native_check_get(SHOES_CONTROL_REF ref)
+{
+  return GetControl32BitValue(ref) ? Qtrue : Qfalse;
+}
+
+void
+shoes_native_check_set(SHOES_CONTROL_REF ref, int on)
+{
+  SetControl32BitValue(ref, on);
+}
+
+SHOES_CONTROL_REF
+shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+  SHOES_CONTROL_REF ref;
+  Rect r = {place->iy + place->dy, place->ix + place->dx, 
+    place->iy + place->dy + place->ih, place->ix + place->dx + place->iw};
+  CreateRadioButtonControl(NULL, &r, NULL, 0, true, &ref);
+  return ref;
+}
+
+pascal void
+shoes_quartz_animate(EventLoopTimerRef ref, void* userData)
+{
+  VALUE timer = (VALUE)userData;
+  shoes_timer_call(timer);
+}
+
+void
+shoes_native_timer_remove(shoes_canvas *canvas, SHOES_TIMER_REF ref)
+{
+  RemoveEventLoopTimer(ref);
+}
+
+SHOES_TIMER_REF
+shoes_native_timer_start(VALUE self, shoes_canvas *canvas, unsigned int interval)
+{
+  SHOES_CONTROL_REF ref;
+  if (rb_obj_is_kind_of(self, cTimer))
+    InstallEventLoopTimer(GetMainEventLoop(), interval * kEventDurationMillisecond,
+      kEventDurationForever, NewEventLoopTimerUPP(shoes_quartz_animate), self, &ref);
+  else
+    InstallEventLoopTimer(GetMainEventLoop(), 0.0, interval * kEventDurationMillisecond,
+      NewEventLoopTimerUPP(shoes_quartz_animate), self, &ref);
+  return ref;
+}

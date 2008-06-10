@@ -612,3 +612,157 @@ shoes_native_edit_line_set_text(SHOES_CONTROL_REF ref, char *msg)
 {
   gtk_entry_set_text(GTK_ENTRY(ref), _(msg));
 }
+
+SHOES_CONTROL_REF
+shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+  GtkTextBuffer *buffer;
+  GtkWidget* textview = gtk_text_view_new();
+  SHOES_CONTROL_REF ref = gtk_scrolled_window_new(NULL, NULL);
+  gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textview), GTK_WRAP_WORD);
+  buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
+  gtk_text_buffer_set_text(buffer, _(msg), -1);
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(ref),
+                                 GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+  gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(ref), GTK_SHADOW_IN);
+  gtk_container_add(GTK_CONTAINER(ref), textview);
+  g_signal_connect(G_OBJECT(buffer), "changed",
+                   G_CALLBACK(shoes_widget_changed),
+                   (gpointer)self);
+  return ref;
+}
+
+VALUE
+shoes_native_edit_box_get_text(SHOES_CONTROL_REF ref)
+{
+  GtkWidget *textview;
+  GTK_CHILD(textview, ref);
+  GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
+  GtkTextIter begin, end;
+  gtk_text_buffer_get_bounds(buffer, &begin, &end);
+  return rb_str_new2(gtk_text_buffer_get_text(buffer, &begin, &end, TRUE));
+}
+
+void
+shoes_native_edit_box_set_text(SHOES_CONTROL_REF ref, char *msg)
+{
+  GtkWidget *textview;
+  GTK_CHILD(textview, ref);
+  GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
+  gtk_text_buffer_set_text(buffer, _(msg), -1);
+}
+
+SHOES_CONTROL_REF
+shoes_native_list_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+   SHOES_CONTROL_REF ref = gtk_combo_box_new_text();
+   g_signal_connect(G_OBJECT(ref), "changed",
+                    G_CALLBACK(shoes_widget_changed),
+                    (gpointer)self);
+   return ref;
+}
+
+void
+shoes_native_list_box_update(SHOES_CONTROL_REF combo, VALUE ary)
+{
+  long i;
+  gtk_list_store_clear(GTK_LIST_STORE(gtk_combo_box_get_model(GTK_COMBO_BOX(combo))));
+  for (i = 0; i < RARRAY_LEN(ary); i++)
+    gtk_combo_box_append_text(GTK_COMBO_BOX(combo), _(RSTRING_PTR(rb_ary_entry(ary, i))));
+}
+
+VALUE
+shoes_native_list_box_get_active(SHOES_CONTROL_REF ref, VALUE items)
+{
+  int sel = gtk_combo_box_get_active(GTK_COMBO_BOX(ref));
+  if (sel >= 0)
+    return rb_ary_entry(items, sel);
+  return Qnil;
+}
+
+void
+shoes_native_list_box_set_active(SHOES_CONTROL_REF combo, VALUE ary, VALUE item)
+{
+  int idx = rb_ary_index_of(ary, item);
+  if (idx < 0) return;
+  gtk_combo_box_set_active(GTK_COMBO_BOX(combo), idx);
+}
+
+SHOES_CONTROL_REF
+shoes_native_progress(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+  SHOES_CONTROL_REF ref = gtk_progress_bar_new();
+  gtk_progress_bar_set_text(GTK_PROGRESS_BAR(ref), _(msg));
+  return ref;
+}
+
+double
+shoes_native_progress_get_fraction(SHOES_CONTROL_REF ref)
+{
+  return gtk_progress_bar_get_fraction(GTK_PROGRESS_BAR(ref));
+}
+
+void
+shoes_native_progress_set_fraction(SHOES_CONTROL_REF ref, double perc)
+{
+  gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(ref), perc);
+}
+
+SHOES_CONTROL_REF
+shoes_native_check(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+  SHOES_CONTROL_REF ref = gtk_check_button_new();
+  g_signal_connect(G_OBJECT(ref), "clicked",
+                   G_CALLBACK(shoes_button_gtk_clicked),
+                   (gpointer)self);
+  return ref;
+}
+
+VALUE
+shoes_native_check_get(SHOES_CONTROL_REF ref)
+{
+  return gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(ref)) ? Qtrue : Qfalse;
+}
+
+void
+shoes_native_check_set(SHOES_CONTROL_REF ref, int on)
+{
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ref), on ? TRUE : FALSE);
+}
+
+SHOES_CONTROL_REF
+shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+  SHOES_CONTROL_REF ref;
+  GSList *list = NULL;
+  if (canvas->group.radios)
+    list = gtk_radio_button_get_group(GTK_RADIO_BUTTON(canvas->group.radios));
+  ref = gtk_radio_button_new(list);
+  g_signal_connect(G_OBJECT(ref), "clicked",
+                   G_CALLBACK(shoes_button_gtk_clicked),
+                   (gpointer)self);
+  return ref;
+}
+
+static gboolean
+shoes_gtk_animate(gpointer data)
+{
+  VALUE timer = (VALUE)data;
+  shoes_timer *self_t;
+  Data_Get_Struct(timer, shoes_timer, self_t);
+  if (self_t->started == ANIM_STARTED)
+    shoes_timer_call(timer);
+  return self_t->started == ANIM_STARTED;
+}
+
+void
+shoes_native_timer_remove(shoes_canvas *canvas, SHOES_TIMER_REF ref)
+{
+  g_source_remove(ref);
+}
+
+SHOES_TIMER_REF
+shoes_native_timer_start(VALUE self, shoes_canvas *canvas, unsigned int interval)
+{
+  return g_timeout_add(interval, shoes_gtk_animate, (gpointer)self);
+}

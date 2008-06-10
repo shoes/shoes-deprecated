@@ -68,6 +68,7 @@ typedef struct {
 } shoes_world_gtk, SHOES_WORLD_OS;
 
 #define SHOES_CONTROL_REF GtkWidget *
+#define SHOES_TIMER_REF guint
 #define DC(slot) slot.canvas
 #define HAS_DRAWABLE(slot) slot.canvas->window != 0
 #define DRAWABLE(ref) GDK_DRAWABLE_XID(ref->window)
@@ -121,6 +122,7 @@ typedef struct {
 #define kShoesSlotData    'SLOT'
 
 #define SHOES_CONTROL_REF ControlRef
+#define SHOES_TIMER_REF EventLoopTimerRef
 #define DC(slot) slot.view
 #define HAS_DRAWABLE(slot) slot.context != NULL
 #define DRAWABLE(ref) ref
@@ -181,6 +183,7 @@ typedef struct {
 } shoes_world_win32, SHOES_WORLD_OS;
 
 #define SHOES_CONTROL_REF HWND
+#define SHOES_TIMER_REF long
 #define DC(slot) slot.window
 #define HAS_DRAWABLE(slot) slot.window != NULL
 #define DRAWABLE(ref) (libvlc_drawable_t)ref
