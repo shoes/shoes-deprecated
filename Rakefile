@@ -309,7 +309,7 @@ else
 
   case PLATFORM when /darwin/
     DLEXT = "dylib"
-    LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{Config::CONFIG["CFLAGS"]}"
+    LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{Config::CONFIG["CFLAGS"]} -x objective-c"
     LINUX_LDFLAGS = "-framework Cocoa -dynamiclib -Wl,-single_module #{Config::CONFIG["LDFLAGS"]} INSTALL_NAME"
     LINUX_LIB_NAMES << 'pixman-1' << 'jpeg.62'
     if ENV['VIDEO']
@@ -365,12 +365,11 @@ else
   end
 
   rule ".o" => ".m" do |t|
-    sh "#{CC} -I. -c -o#{t.name} -fpascal-strings -Wundef -fno-strict-aliasing -fno-common #{LINUX_CFLAGS} #{t.source}"
+    sh "#{CC} -I. -O -c -o#{t.name} #{LINUX_CFLAGS} #{t.source}"
   end
 
   rule ".o" => ".c" do |t|
-    sh "#{CC} -I. -c #{LINUX_CFLAGS} #{t.source}"
-    mv File.basename(t.name), t.name
+    sh "#{CC} -I. -O -c -o#{t.name} #{LINUX_CFLAGS} #{t.source}"
   end
 
   case PLATFORM when /darwin/

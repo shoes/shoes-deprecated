@@ -22,7 +22,7 @@
 }
 @end
 
-stvoid shoes_native_init()
+void shoes_native_init()
 {
 }
 

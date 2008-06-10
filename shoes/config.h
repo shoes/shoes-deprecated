@@ -78,6 +78,11 @@ typedef struct {
 // quartz (osx) window struct
 //
 #ifdef SHOES_QUARTZ
+// hacks to prevent T_DATA conflict between Ruby and Carbon headers
+# define __OPENTRANSPORT__
+# define __OPENTRANSPORTPROTOCOL__
+# define __OPENTRANSPORTPROVIDERS__
+#include <Cocoa/Cocoa.h>
 #include <cairo-quartz.h>
 
 #define SHOES_SIGNAL
@@ -87,10 +92,8 @@ typedef struct {
 #define SHOES_EXTERN
 
 typedef struct {
-  HIViewRef view;
-  ControlRef vscroll;
-  VALUE focus;
-  VALUE controls;
+  NSView *view;
+  NSScroller *vscroll;
   CGContextRef context;
   cairo_surface_t *surface;
   int scrolly;
@@ -102,27 +105,22 @@ typedef struct {
 
 typedef struct {
   WindowRef window;
-  HIViewRef view;
+  NSView *view;
 } shoes_app_quartz, SHOES_APP_OS;
 
 typedef struct {
-  TECObjectRef converter;
-  PasteboardRef clip;
+  char none;
 } shoes_world_quartz, SHOES_WORLD_OS;
 
 #define kShoesViewClassID CFSTR("org.hackety.ShoesView")
 #define kShoesBoundEvent  'Boun'
 #define kShoesSlotData    'SLOT'
 
-#define SHOES_CONTROL_REF ControlRef
-#define SHOES_TIMER_REF EventLoopTimerRef
+#define SHOES_CONTROL_REF NSControl *
+#define SHOES_TIMER_REF NSTimer *
 #define DC(slot) slot.view
 #define HAS_DRAWABLE(slot) slot.context != NULL
 #define DRAWABLE(ref) ref
-
-OSStatus shoes_slot_quartz_register(void);
-OSStatus shoes_slot_quartz_create(VALUE, SHOES_SLOT_OS *, int, int, int, int, int);
-VALUE shoes_cf2rb(CFStringRef cf);
 
 #endif
 
