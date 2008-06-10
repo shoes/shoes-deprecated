@@ -27,13 +27,14 @@
 #ifdef SHOES_WIN32
 
 void odprintf(const char *format, ...);
+static inline void odignore(const char *format, ...) {}
 int shoes_snprintf(char* str, size_t size, const char* format, ...);
 #define PUTS odprintf 
 
 #ifdef DEBUG
 #define INFO PUTS
 #else
-#define INFO(msg)
+#define INFO odignore
 #endif
 #define WARN PUTS
 #define QUIT(msg) \

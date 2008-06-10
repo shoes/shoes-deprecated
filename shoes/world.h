@@ -11,6 +11,10 @@
 #include "shoes/ruby.h"
 #include "shoes/code.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 SHOES_EXTERN typedef struct _shoes_world_t {
   SHOES_WORLD_OS os;
   int mainloop;
@@ -20,7 +24,7 @@ SHOES_EXTERN typedef struct _shoes_world_t {
   cairo_surface_t *blank_image;
 } shoes_world_t;
 
-SHOES_EXTERN_VAR shoes_world_t *shoes_world;
+extern SHOES_EXTERN shoes_world_t *shoes_world;
 
 #define GLOBAL_APP(appvar) \
   shoes_app *appvar = NULL; \
@@ -30,8 +34,8 @@ SHOES_EXTERN_VAR shoes_world_t *shoes_world;
 //
 // Shoes World
 // 
-shoes_world_t *shoes_world_alloc(void);
-void shoes_world_free(shoes_world_t *);
+SHOES_EXTERN shoes_world_t *shoes_world_alloc(void);
+SHOES_EXTERN void shoes_world_free(shoes_world_t *);
 
 //
 // Shoes
@@ -44,5 +48,9 @@ SHOES_EXTERN int shoes_win32_cmdvector(const char *, char ***);
 #endif
 SHOES_EXTERN void shoes_set_argv(int, char **);
 SHOES_EXTERN shoes_code shoes_final(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -17,6 +17,10 @@
 #define IDC_HAND MAKEINTRESOURCE(32649)
 #endif
 
+shoes_code shoes_classex_init();
+LRESULT CALLBACK shoes_app_win32proc(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK shoes_slot_win32proc(HWND, UINT, WPARAM, LPARAM);
+
 int
 shoes_win32_cmdvector(const char *cmdline, char ***argv)
 {
@@ -41,7 +45,7 @@ void shoes_native_quit()
   PostQuitMessage(0);
 }
 
-void shoes_slot_mark(SHOES_SLOT_OS *slot)
+void shoes_native_slot_mark(SHOES_SLOT_OS *slot)
 {
   rb_gc_mark_maybe(slot->controls);
   rb_gc_mark_maybe(slot->focus);
@@ -87,11 +91,11 @@ int shoes_native_slot_gutter(SHOES_SLOT_OS *slot)
   return GetSystemMetrics(SM_CXVSCROLL);
 }
 
-void shoes_native_remove_item(SHOES_SLOT_OS *slot)
+void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c)
 {
   if (c)
   {
-    i = rb_ary_index_of(slot->controls, item);
+    long i = rb_ary_index_of(slot->controls, item);
     if (i >= 0)
       rb_ary_insert_at(slot->controls, i, 1, Qnil);
   }
@@ -691,7 +695,7 @@ shoes_native_app_title(shoes_app *app, char *msg)
 }
 
 shoes_code
-shoes_native_app_open(shoes_app *app, char *path)
+shoes_native_app_open(shoes_app *app, char *path, int dialog)
 {
   shoes_code code = SHOES_OK;
   RECT rect;
@@ -738,7 +742,7 @@ quit:
 }
 
 void
-shoes_native_app_show(shoes_app *)
+shoes_native_app_show(shoes_app *app)
 {
   // TODO: disable parent windows of dialogs
   // if (dialog && !NIL_P(app->owner))
@@ -834,28 +838,32 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
 }
 
 cairo_t *
-shoes_cairo_create(SHOES_SLOT_OS *slot, shoes_canvas *parent, int width, int height, int toplevel)
+shoes_cairo_create(shoes_canvas *canvas)
 {
-  if (slot->surface != NULL)
+  shoes_canvas *parent;
+  if (canvas->slot.surface != NULL)
     return NULL;
 
+  if (!NIL_P(canvas->parent))
+    Data_Get_Struct(canvas->parent, shoes_canvas, parent);
+
   HBITMAP bitmap, bitold;
-  HDC hdc = BeginPaint(slot->window, &slot->ps);
-  if (slot->dc != NULL)
+  canvas->slot.dc2 = BeginPaint(canvas->slot.window, &canvas->slot.ps);
+  if (canvas->slot.dc != NULL)
   {
-    DeleteObject(GetCurrentObject(slot->dc, OBJ_BITMAP));
-    DeleteDC(slot->dc);
+    DeleteObject(GetCurrentObject(canvas->slot.dc, OBJ_BITMAP));
+    DeleteDC(canvas->slot.dc);
   }
-  slot->dc = CreateCompatibleDC(hdc);
-  bitmap = CreateCompatibleBitmap(hdc, width, height);
-  bitold = (HBITMAP)SelectObject(slot->dc, bitmap);
+  canvas->slot.dc = CreateCompatibleDC(canvas->slot.dc2);
+  bitmap = CreateCompatibleBitmap(canvas->slot.dc2, canvas->width, canvas->height);
+  bitold = (HBITMAP)SelectObject(canvas->slot.dc, bitmap);
   DeleteObject(bitold);
-  if (toplevel)
+  if (DC(canvas->slot) == DC(canvas->app->slot))
   {
     RECT rc;
     HBRUSH bg = CreateSolidBrush(GetSysColor(COLOR_WINDOW));
-    GetClientRect(slot->window, &rc);
-    FillRect(slot->dc, &rc, bg);
+    GetClientRect(canvas->slot.window, &rc);
+    FillRect(canvas->slot.dc, &rc, bg);
     DeleteObject(bg);
   }
   else
@@ -863,25 +871,25 @@ shoes_cairo_create(SHOES_SLOT_OS *slot, shoes_canvas *parent, int width, int hei
     if (parent != NULL && parent->slot.dc != NULL)
     {
       RECT r;
-      GetClientRect(slot->window, &r);
-      BitBlt(slot->dc, 0, 0, r.right - r.left, r.bottom - r.top,
+      GetClientRect(canvas->slot.window, &r);
+      BitBlt(canvas->slot.dc, 0, 0, r.right - r.left, r.bottom - r.top,
         parent->slot.dc, canvas->place.ix, canvas->place.iy, SRCCOPY);
     }
   }
 
-  slot->surface = cairo_win32_surface_create(slot->dc);
+  canvas->slot.surface = cairo_win32_surface_create(canvas->slot.dc);
 
-  cairo_t *cr = cairo_create(slot->surface);
-  cairo_translate(cr, 0, -slot->scrolly);
+  cairo_t *cr = cairo_create(canvas->slot.surface);
+  cairo_translate(cr, 0, -canvas->slot.scrolly);
   return cr;
 }
 
-void shoes_cairo_destroy(SHOES_SLOT_OS *)
+void shoes_cairo_destroy(shoes_canvas *canvas)
 {
-  BitBlt(hdc, 0, 0, width, height, slot->dc, 0, 0, SRCCOPY);
-  cairo_surface_destroy(slot->surface);
-  slot->surface = NULL;
-  EndPaint(slot->window, &slot->ps);
+  BitBlt(canvas->slot.dc2, 0, 0, canvas->width, canvas->height, canvas->slot.dc, 0, 0, SRCCOPY);
+  cairo_surface_destroy(canvas->slot.surface);
+  canvas->slot.surface = NULL;
+  EndPaint(canvas->slot.window, &canvas->slot.ps);
 }
 
 void
@@ -936,7 +944,7 @@ shoes_native_control_repaint(SHOES_CONTROL_REF ref, shoes_place *p1,
 {
   p2->iy -= canvas->slot.scrolly;
   if (CHANGED_COORDS())
-    shoes_native_control_position(ref, canvas, place);
+    shoes_native_control_position(ref, p1, Qnil, canvas, p2);
   p2->iy += canvas->slot.scrolly;
 }
 
@@ -955,7 +963,6 @@ shoes_native_control_remove(SHOES_CONTROL_REF ref, shoes_canvas *canvas)
 void
 shoes_native_control_free(SHOES_CONTROL_REF ref)
 {
-  DisposeControl(ref);
 }
 
 inline void shoes_win32_control_font(int id, HWND hwnd)
@@ -987,7 +994,7 @@ shoes_native_surface_position(SHOES_CONTROL_REF ref, shoes_place *p1,
 void
 shoes_native_surface_remove(shoes_canvas *canvas, SHOES_CONTROL_REF ref)
 {
-  DestroyWindow(self_t->ref);
+  DestroyWindow(ref);
 }
 
 SHOES_CONTROL_REF
@@ -1286,10 +1293,8 @@ shoes_ask_win32proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_CLOSE:
       EndDialog(hwnd, 0);
       return FALSE;
-
-    default:
-      return FALSE;
   }
+  return FALSE;
 }
 
 VALUE

@@ -108,7 +108,7 @@ int shoes_native_slot_gutter(SHOES_SLOT_OS *slot)
   return scrollwidth;
 }
 
-void shoes_native_remove_item(SHOES_SLOT_OS *slot)
+void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c)
 {
   if (c)
   {
@@ -705,7 +705,7 @@ shoes_native_app_title(shoes_app *app, char *msg)
 }
 
 shoes_code
-shoes_native_app_open(shoes_app *app, char *path)
+shoes_native_app_open(shoes_app *app, char *path, int dialog)
 {
   shoes_code code = SHOES_OK;
 
@@ -820,15 +820,16 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
 }
 
 cairo_t *
-shoes_cairo_create(SHOES_SLOT_OS *slot, shoes_canvas *parent, int width, int height, int toplevel)
+shoes_cairo_create(shoes_canvas *canvas)
 {
-  slot->surface = cairo_quartz_surface_create_for_cg_context(slot->context, width, height);
-  return cairo_create(slot->surface);
+  canvas->slot.surface = cairo_quartz_surface_create_for_cg_context(canvas->slot.context,
+    canvas->width, canvas->height);
+  return cairo_create(canvas->slot.surface);
 }
 
 void shoes_cairo_destroy(SHOES_SLOT_OS *)
 {
-  cairo_surface_destroy(slot->surface);
+  cairo_surface_destroy(canvas->slot.surface);
 }
 
 void
@@ -928,6 +929,7 @@ shoes_native_control_remove(SHOES_CONTROL_REF ref, shoes_canvas *canvas)
 void
 shoes_native_control_free(SHOES_CONTROL_REF ref)
 {
+  DisposeControl(ref);
 }
 
 SHOES_CONTROL_REF

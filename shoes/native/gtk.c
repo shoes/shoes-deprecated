@@ -78,7 +78,7 @@ int shoes_native_slot_gutter(SHOES_SLOT_OS *slot)
   return 0;
 }
 
-void shoes_native_remove_item(SHOES_SLOT_OS *slot)
+void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c)
 {
 }
 
@@ -372,7 +372,7 @@ shoes_native_app_title(shoes_app *app, char *msg)
 }
 
 shoes_code
-shoes_native_app_open(shoes_app *app, char *path)
+shoes_native_app_open(shoes_app *app, char *path, int dialog)
 {
   char icon_path[SHOES_BUFSIZE];
   shoes_app_gtk *gk = &app->os;
@@ -465,22 +465,22 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
 }
 
 cairo_t *
-shoes_cairo_create(SHOES_SLOT_OS *slot, shoes_canvas *parent, int width, int height, int toplevel)
+shoes_cairo_create(shoes_canvas *canvas)
 {
-  cairo_t *cr = gdk_cairo_create(slot->canvas->window);
-  if (slot->expose != NULL)
+  cairo_t *cr = gdk_cairo_create(canvas->slot.canvas->window);
+  if (canvas->slot.expose != NULL)
   {
-    GdkRegion *region = gdk_region_rectangle(&slot->canvas->allocation);
-    gdk_region_intersect(region, slot->expose->region);
+    GdkRegion *region = gdk_region_rectangle(&canvas->slot.canvas->allocation);
+    gdk_region_intersect(region, canvas->slot.expose->region);
     gdk_cairo_region(cr, region);
     cairo_clip(cr);
-    cairo_translate(cr, slot->canvas->allocation.x, slot->canvas->allocation.y - slot->scrolly);
+    cairo_translate(cr, canvas->slot.canvas->allocation.x, canvas->slot.canvas->allocation.y - canvas->slot.scrolly);
   }
   return cr;
 }
 
 void
-shoes_cairo_destroy(SHOES_SLOT_OS *slot)
+shoes_cairo_destroy(shoes_canvas *canvas)
 {
 }
 

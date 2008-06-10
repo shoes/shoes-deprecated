@@ -18,6 +18,10 @@ shoes_sigint()
 }
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 shoes_world_t *shoes_world = NULL;
 
 shoes_world_t *
@@ -181,3 +185,7 @@ shoes_final()
   shoes_world_free(shoes_world);
   return SHOES_OK;
 }
+
+#ifdef __cplusplus
+}
+#endif

@@ -125,19 +125,14 @@ shoes_canvas_paint(VALUE self)
   int n = 0;
   shoes_canvas *pc = NULL;
   shoes_code code = SHOES_OK;
-#ifdef DEBUG
   clock_t start = clock();
-#endif
 
   if (self == Qnil)
     return;
 
   SETUP();
 
-  if (!NIL_P(canvas->parent))
-    Data_Get_Struct(canvas->parent, shoes_canvas, pc);
-  canvas->cr = cr = shoes_cairo_create(&canvas->slot, pc, canvas->width, canvas->height,
-    DC(canvas->slot) == DC(canvas->app->slot));
+  canvas->cr = cr = shoes_cairo_create(canvas);
   if (cr == NULL)
     return;
 
@@ -149,13 +144,15 @@ shoes_canvas_paint(VALUE self)
   cairo_restore(cr);
 
   if (cairo_status(cr)) {
-    QUIT("Cairo is unhappy: %s\n", cairo_status_to_string (cairo_status (cr)));
+    code = SHOES_FAIL;
+    PUTS("Cairo is unhappy: %s\n", cairo_status_to_string (cairo_status (cr)));
+    goto quit;
   }
 
   cairo_destroy(cr);
   canvas->cr = NULL;
 
-  shoes_cairo_destroy(&canvas->slot);
+  shoes_cairo_destroy(canvas);
   INFO("PAINT: %0.6f s\n", ELAPSED);
   shoes_canvas_send_start(self);
 quit:
@@ -1052,7 +1049,7 @@ shoes_canvas_remove_item(VALUE self, VALUE item, char c, char t)
   long i;
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
-  shoes_native_remove_item(&self_t->slot);
+  shoes_native_remove_item(&self_t->slot, item, c);
   if (t)
   {
     i = rb_ary_index_of(self_t->app->timers, item);

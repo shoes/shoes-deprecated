@@ -165,7 +165,7 @@ shoes_app_open(shoes_app *app, char *path)
   shoes_code code = SHOES_OK;
   int dialog = (rb_obj_class(app->self) == cDialog);
 
-  code = shoes_native_app_open(app, path);
+  code = shoes_native_app_open(app, path, dialog);
   if (code != SHOES_OK)
     return code;
 
@@ -454,7 +454,7 @@ shoes_app_is_started(VALUE self)
 {
   shoes_app *app;
   Data_Get_Struct(self, shoes_app, app);
-  return app->started == TRUE ? Qtrue : Qfalse;
+  return app->started ? Qtrue : Qfalse;
 }
 
 VALUE

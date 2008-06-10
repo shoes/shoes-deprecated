@@ -44,9 +44,8 @@
 #include <gdk/gdkx.h>
 
 #define SHOES_SIGNAL
-#define SHOES_EXTERN
-#define SHOES_EXTERN_VAR extern
 #define SHOES_INIT_ARGS void
+#define SHOES_EXTERN
 
 typedef struct {
   GtkWidget *vscroll, *canvas;
@@ -89,9 +88,8 @@ typedef struct {
 #define SHOES_SIGNAL
 #define SHOES_HELP_MANUAL 3044
 #define SHOES_CONTROL1    3045
-#define SHOES_EXTERN
-#define SHOES_EXTERN_VAR extern
 #define SHOES_INIT_ARGS void
+#define SHOES_EXTERN
 
 typedef struct {
   HIViewRef view;
@@ -154,13 +152,12 @@ VALUE shoes_cf2rb(CFStringRef cf);
 #endif
 
 #define SHOES_CONTROL1  3045
-#define SHOES_EXTERN extern "C" __declspec(dllimport)
-#define SHOES_EXTERN_VAR SHOES_EXTERN
 #define SHOES_INIT_ARGS HINSTANCE inst, int style
+#define SHOES_EXTERN __declspec(dllimport)
 
 typedef struct {
   PAINTSTRUCT ps;
-  HDC dc;
+  HDC dc, dc2;
   HWND window;
   VALUE focus;
   VALUE controls;
