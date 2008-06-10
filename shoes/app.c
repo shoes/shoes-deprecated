@@ -9,7 +9,6 @@
 #include "shoes/canvas.h"
 #include "shoes/world.h"
 #include "shoes/native.h"
-#include "shoes/dialogs.h"
 #include "node.h"
 
 static void

@@ -8,6 +8,8 @@
 #include "shoes/world.h"
 #include "shoes/native.h"
 #include "shoes/internal.h"
+#include "shoes/appwin32.h"
+#include <commdlg.h>
 
 #define HEIGHT_PAD 6
 
@@ -59,6 +61,20 @@ void shoes_native_slot_clear(SHOES_SLOT_OS *slot)
 void shoes_native_slot_paint(SHOES_SLOT_OS *slot)
 {
   RedrawWindow(slot->window, NULL, NULL, RDW_INVALIDATE|RDW_ALLCHILDREN);
+}
+
+void shoes_native_slot_lengthen(SHOES_SLOT_OS *slot, int height, int endy)
+{
+  SCROLLINFO si;
+  si.cbSize = sizeof(SCROLLINFO);
+  si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS;
+  si.nMin = 0;
+  si.nMax = endy - 1; 
+  si.nPage = height;
+  si.nPos = slot->scrolly;
+  INFO("SetScrollInfo(%d, nMin: %d, nMax: %d, nPage: %d)\n", 
+    si.nPos, si.nMin, si.nMax, si.nPage);
+  SetScrollInfo(slot->window, SB_VERT, &si, TRUE);
 }
 
 void shoes_native_slot_scroll_top(SHOES_SLOT_OS *slot)
@@ -890,6 +906,11 @@ shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc)
 }
 
 void
+shoes_native_canvas_resize(shoes_canvas *canvas)
+{
+}
+
+void
 shoes_native_control_hide(SHOES_CONTROL_REF ref)
 {
   ShowWindow(ref, SW_HIDE);
@@ -1177,4 +1198,216 @@ shoes_native_timer_start(VALUE self, shoes_canvas *canvas, unsigned int interval
   long nid = rb_ary_index_of(canvas->app->timers, self);
   SetTimer(canvas->slot.window, SHOES_CONTROL1 + nid, interval, NULL);
   return SHOES_CONTROL1 + nid;
+}
+
+VALUE
+shoes_native_clipboard_get(shoes_app *app)
+{
+  VALUE paste = Qnil;
+  if (OpenClipboard(app->slot.window))
+  {
+    HANDLE hclip = GetClipboardData(CF_TEXT);
+    char *buffer = (char *)GlobalLock(hclip);
+    paste = rb_str_new2(buffer);
+    GlobalUnlock(hclip);
+    CloseClipboard();
+  }
+  return paste;
+}
+
+void
+shoes_native_clipboard_set(shoes_app *app, VALUE string)
+{
+  if (OpenClipboard(app->slot.window))
+  {
+    char *buffer;
+    HGLOBAL hclip;
+    EmptyClipboard();
+    hclip = GlobalAlloc(GMEM_DDESHARE, RSTRING_LEN(string)+1);
+    buffer = (char *)GlobalLock(hclip);
+    strncpy(buffer, RSTRING_PTR(string), RSTRING_LEN(string)+1);
+    GlobalUnlock(hclip);
+    SetClipboardData(CF_TEXT, hclip);
+    CloseClipboard();
+  }
+}
+
+VALUE
+shoes_native_window_color(shoes_app *app)
+{
+  DWORD winc = GetSysColor(COLOR_WINDOW);
+  return shoes_color_new(GetRValue(winc), GetGValue(winc), GetBValue(winc), SHOES_COLOR_OPAQUE);
+}
+
+VALUE
+shoes_native_dialog_color(shoes_app *app)
+{
+  DWORD winc = GetSysColor(COLOR_3DFACE);
+  return shoes_color_new(GetRValue(winc), GetGValue(winc), GetBValue(winc), SHOES_COLOR_OPAQUE);
+}
+
+char *win32_dialog_label = "Ask label";
+char *win32_dialog_answer = NULL;
+
+BOOL CALLBACK
+shoes_ask_win32proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+  switch (message)
+  {
+    case WM_INITDIALOG:
+      SetDlgItemText(hwnd, IDQUIZ, win32_dialog_label);
+      if (win32_dialog_answer != NULL)
+      {
+        GlobalFree((HANDLE)win32_dialog_answer);
+        win32_dialog_answer = NULL;
+      }
+      return TRUE;
+
+    case WM_COMMAND:
+      switch (LOWORD(wParam))
+      {
+        case IDOK:
+        {
+          int len = GetWindowTextLength(GetDlgItem(hwnd, IDQUED));
+          if(len > 0)
+          {
+            int i;
+            win32_dialog_answer = (char*)GlobalAlloc(GPTR, len + 1);
+            GetDlgItemText(hwnd, IDQUED, win32_dialog_answer, len + 1);
+          }
+        }
+        case IDCANCEL:
+          EndDialog(hwnd, LOWORD(wParam));
+          return TRUE;
+      }
+      break;
+
+    case WM_CLOSE:
+      EndDialog(hwnd, 0);
+      return FALSE;
+
+    default:
+      return FALSE;
+  }
+}
+
+VALUE
+shoes_dialog_alert(VALUE self, VALUE msg)
+{
+  GLOBAL_APP(app);
+  MessageBox(APP_WINDOW(app), RSTRING_PTR(msg), dialog_title_says, MB_OK);
+  return Qnil;
+}
+
+VALUE
+shoes_dialog_ask(VALUE self, VALUE quiz)
+{
+  VALUE answer = Qnil;
+  GLOBAL_APP(app);
+  win32_dialog_label = RSTRING_PTR(quiz);
+  int confirm = DialogBox(shoes_world->os.instance, MAKEINTRESOURCE(ASKDLG),
+    APP_WINDOW(app), shoes_ask_win32proc);
+  if (confirm == IDOK)
+  {
+    if (win32_dialog_answer != NULL)
+    {
+      answer = rb_str_new2(win32_dialog_answer);
+      GlobalFree((HANDLE)win32_dialog_answer);
+      win32_dialog_answer = NULL;
+    }
+  }
+  return answer;
+}
+
+VALUE
+shoes_dialog_confirm(VALUE self, VALUE quiz)
+{
+  VALUE answer = Qfalse;
+  GLOBAL_APP(app);
+  int confirm = MessageBox(APP_WINDOW(app), RSTRING_PTR(quiz), dialog_title, MB_OKCANCEL);
+  if (confirm == IDOK)
+    answer = Qtrue;
+  return answer;
+}
+
+VALUE
+shoes_dialog_color(VALUE self, VALUE title)
+{
+  VALUE color = Qnil;
+  GLOBAL_APP(app);
+  CHOOSECOLOR cc;
+  static COLORREF acrCustClr[16];
+  static DWORD rgbCurrent;
+
+  // Initialize CHOOSECOLOR 
+  ZeroMemory(&cc, sizeof(cc));
+  cc.lStructSize = sizeof(cc);
+  cc.hwndOwner = APP_WINDOW(app);
+  cc.lpCustColors = (LPDWORD) acrCustClr;
+  cc.rgbResult = rgbCurrent;
+  cc.Flags = CC_FULLOPEN | CC_RGBINIT;
+   
+  if (ChooseColor(&cc)) {
+    color = shoes_color_new(GetRValue(cc.rgbResult), GetGValue(cc.rgbResult), GetBValue(cc.rgbResult),
+      SHOES_COLOR_OPAQUE);
+  }
+  return color;
+}
+
+VALUE
+shoes_dialog_open(VALUE self)
+{
+  VALUE path = Qnil;
+  GLOBAL_APP(app);
+  char dir[MAX_PATH+1], _path[MAX_PATH+1];
+  OPENFILENAME ofn;
+  ZeroMemory(&ofn, sizeof(ofn));
+  GetCurrentDirectory(MAX_PATH, (LPSTR)dir);
+  ofn.lStructSize     = sizeof(ofn);
+  ofn.hwndOwner       = APP_WINDOW(app);
+  ofn.hInstance       = shoes_world->os.instance;
+  ofn.lpstrFile       = _path;
+  ofn.nMaxFile        = sizeof(_path);
+  ofn.lpstrFile[0] = '\0';
+  ofn.lpstrFilter = "All\0*.*\0Text\0*.TXT\0";
+  ofn.nFilterIndex = 1;
+  ofn.lpstrFileTitle = NULL;
+  ofn.nMaxFileTitle = 0;
+  ofn.lpstrInitialDir = NULL; // (LPSTR)dir;
+  ofn.Flags           = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+  if (GetOpenFileName(&ofn))
+  {
+    path = rb_str_new2(ofn.lpstrFile);
+  }
+  SetCurrentDirectory((LPSTR)dir);
+  return path;
+}
+
+VALUE
+shoes_dialog_save(VALUE self)
+{
+  VALUE path = Qnil;
+  GLOBAL_APP(app);
+  char dir[MAX_PATH+1], _path[MAX_PATH+1];
+  OPENFILENAME ofn;
+  ZeroMemory(&ofn, sizeof(ofn));
+  GetCurrentDirectory(MAX_PATH, (LPSTR)dir);
+  ofn.lStructSize     = sizeof(ofn);
+  ofn.hwndOwner       = APP_WINDOW(app);
+  ofn.hInstance       = shoes_world->os.instance;
+  ofn.lpstrFile       = _path;
+  ofn.nMaxFile        = sizeof(_path);
+  ofn.lpstrFile[0] = '\0';
+  ofn.lpstrFilter = "All\0*.*\0Text\0*.TXT\0";
+  ofn.nFilterIndex = 1;
+  ofn.lpstrFileTitle = NULL;
+  ofn.nMaxFileTitle = 0;
+  ofn.lpstrInitialDir = NULL; // (LPSTR)dir;
+  ofn.Flags           = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+  if (GetSaveFileName(&ofn))
+  {
+    path = rb_str_new2(ofn.lpstrFile);
+  }
+  SetCurrentDirectory((LPSTR)dir);
+  return path;
 }

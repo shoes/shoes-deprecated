@@ -82,6 +82,21 @@ void shoes_native_slot_paint(SHOES_SLOT_OS *slot)
   HIViewSetNeedsDisplay(slot->view, true);
 }
 
+void shoes_native_slot_lengthen(SHOES_SLOT_OS *slot, int height, int endy)
+{
+  if (slot->vscroll)
+  {
+    int upper = GetControlMaximum(slot->vscroll);
+    if (upper != endy)
+    {
+      int page_size = GetControlViewSize(slot->vscroll);
+      SetControlMaximum(slot->vscroll, max(0, endy - page_size));
+      HIViewSetVisible(slot->vscroll, endy > page_size);
+      HIViewSetNeedsDisplay(slot->vscroll, true);
+    }
+  }
+}
+
 void shoes_native_slot_scroll_top(SHOES_SLOT_OS *slot)
 {
 }
@@ -848,6 +863,16 @@ shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc)
 }
 
 void
+shoes_native_canvas_resize(shoes_canvas *canvas)
+{
+  HIRect hr;
+  HIViewGetFrame(canvas->slot.view, &hr);
+  hr.size.width = canvas->width;
+  hr.size.height = canvas->height;
+  HIViewSetFrame(canvas->slot.view, &hr);
+}
+
+void
 shoes_native_control_hide(SHOES_CONTROL_REF ref)
 {
   HIViewSetVisible(ref, false);
@@ -1178,4 +1203,343 @@ shoes_native_timer_start(VALUE self, shoes_canvas *canvas, unsigned int interval
     InstallEventLoopTimer(GetMainEventLoop(), 0.0, interval * kEventDurationMillisecond,
       NewEventLoopTimerUPP(shoes_quartz_animate), self, &ref);
   return ref;
+}
+
+static char clip_buf[SHOES_BUFSIZE];
+
+char*
+shoes_apple_pasteboard_get(void)
+{
+  char *s, *t;
+  CFArrayRef flavors;
+  CFDataRef data;
+  CFIndex nflavor, ndata, j;
+  CFStringRef type;
+  ItemCount nitem;
+  PasteboardItemID id;
+  PasteboardSyncFlags flags;
+  PasteboardRef clip = shoes_world->os.clip;
+  UInt32 i;
+
+  flags = PasteboardSynchronize(clip);
+  if(flags&kPasteboardClientIsOwner){
+    s = strdup(clip_buf);
+    return s;
+  }
+  if(PasteboardGetItemCount(clip, &nitem) != noErr){
+    INFO("apple pasteboard get item count failed\n");
+    return nil;
+  }
+  for(i=1; i<=nitem; i++){
+    if(PasteboardGetItemIdentifier(clip, i, &id) != noErr)
+      continue;
+    if(PasteboardCopyItemFlavors(clip, id, &flavors) != noErr)
+      continue;
+    nflavor = CFArrayGetCount(flavors);
+    for(j=0; j<nflavor; j++){
+      type = (CFStringRef)CFArrayGetValueAtIndex(flavors, j);
+      if(!UTTypeConformsTo(type, CFSTR("public.utf8-plain-text")))
+        continue;
+      if(PasteboardCopyItemFlavorData(clip, id, type, &data) != noErr)
+        continue;
+      ndata = CFDataGetLength(data);
+      s = (char*)CFDataGetBytePtr(data);
+      CFRelease(flavors);
+      CFRelease(data);
+      for(t=s; *t; t++)
+        if(*t == '\r')
+          *t = '\n';
+      return s;
+    }
+    CFRelease(flavors);
+  }
+  return nil;   
+}
+
+void
+shoes_apple_pasteboard_put(char *s)
+{
+  CFDataRef cfdata;
+  PasteboardRef clip = shoes_world->os.clip;
+  PasteboardSyncFlags flags;
+
+  if(strlen(s) >= SHOES_BUFSIZE)
+    return;
+  strcpy(clip_buf, s);
+  if(PasteboardClear(clip) != noErr){
+    INFO("apple pasteboard clear failed\n");
+    return;
+  }
+  flags = PasteboardSynchronize(clip);
+  if((flags&kPasteboardModified) || !(flags&kPasteboardClientIsOwner)){
+    INFO("apple pasteboard cannot assert ownership\n");
+    return;
+  }
+  cfdata = CFDataCreate(kCFAllocatorDefault, 
+    (unsigned char*)clip_buf, strlen(clip_buf)*2);
+  if(cfdata == nil){
+    INFO("apple pasteboard cfdatacreate failed\n");
+    return;
+  }
+  if(PasteboardPutItemFlavor(clip, (PasteboardItemID)1,
+    CFSTR("public.utf8-plain-text"), cfdata, 0) != noErr){
+    INFO("apple pasteboard putitem failed\n");
+    CFRelease(cfdata);
+    return;
+  }
+  /* CFRelease(cfdata); ??? */
+}
+
+VALUE
+shoes_native_clipboard_get(shoes_app *app)
+{
+  char *str = shoes_apple_pasteboard_get();
+  return rb_str_new2(str);
+}
+
+void
+shoes_native_clipboard_set(shoes_app *app, VALUE string)
+{
+  shoes_apple_pasteboard_put(RSTRING_PTR(string));
+}
+
+VALUE
+shoes_native_window_color(shoes_app *app)
+{
+  // ThemeBrush bg;
+  // RGBColor _color;
+  // HIWindowGetThemeBackground(canvas->app->os.window, &bg);
+  // GetThemeBrushAsColor(bg, 32, true, &_color);
+  // return shoes_color_new(_color.red/256, _color.green/256, _color.blue/256, SHOES_COLOR_OPAQUE);
+  return shoes_color_new(255, 255, 255, 255);
+}
+
+VALUE
+shoes_native_dialog_color(shoes_app *app)
+{
+  return shoes_color_new(255, 255, 255, 255);
+}
+
+typedef struct {
+  VALUE val;
+  ControlRef txt;
+  WindowRef ref;
+} shoes_quartz_dialog;
+
+static OSStatus
+shoes_dialog_done(EventHandlerCallRef inHandlerCallRef,  EventRef inEvent, void *data)
+{
+  CFStringRef controlText;
+  Size* size = NULL;
+  shoes_quartz_dialog *dialog = (shoes_quartz_dialog *)data;
+
+  GetControlData(dialog->txt, kControlEditTextPart, kControlEditTextCFStringTag, sizeof(CFStringRef), &controlText, size);
+  dialog->val = shoes_cf2rb(controlText);
+  CFRelease(controlText);
+
+  HideWindow(dialog->ref);
+  QuitAppModalLoopForWindow(dialog->ref);
+  return noErr;
+}
+
+static OSStatus
+shoes_dialog_cancelled(EventHandlerCallRef inHandlerCallRef,  EventRef inEvent, void *data)
+{
+  shoes_quartz_dialog *dialog = (shoes_quartz_dialog *)data;
+  HideWindow(dialog->ref);
+  QuitAppModalLoopForWindow(dialog->ref);
+  return noErr;
+}
+
+VALUE
+shoes_dialog_alert(VALUE self, VALUE msg)
+{
+  GLOBAL_APP(app);
+  OSErr err;
+  SInt16 ret;
+  AlertStdAlertParamRec alert;
+  alert.movable = nil;
+  alert.helpButton = nil;
+  alert.filterProc = nil;
+  alert.defaultText = kAlertDefaultOKText;
+  alert.cancelText = nil;
+  alert.otherText = nil;
+  alert.defaultButton = kAlertStdAlertOKButton;
+  alert.cancelButton = nil;
+  alert.position = 0;
+  err = StandardAlert(kAlertPlainAlert, "\pShoes says:", RSTRING_PTR(rb_str_to_pas(msg)), &alert, &ret);
+  return Qnil;
+}
+
+VALUE
+shoes_dialog_ask(VALUE self, VALUE quiz)
+{
+  Rect r;
+  ControlRef lbl, okb, cancb;
+  shoes_quartz_dialog dialog;
+  VALUE answer = Qnil;
+
+  GLOBAL_APP(app);
+  dialog.val = Qnil;
+
+  SetRect(&r, 50, 50, 480, 194);
+  CreateNewWindow(kMovableModalWindowClass, kWindowCompositingAttribute, &r, &dialog.ref);
+  InstallStandardEventHandler(GetWindowEventTarget(dialog.ref));
+  if (dialog.ref) {
+    char byteFlag = 1;
+    EventTypeSpec spec[1];
+    CFStringRef cfmsg = CFStringCreateWithCString(NULL, dialog_title, kCFStringEncodingUTF8);
+    SetWindowTitleWithCFString(dialog.ref, cfmsg);
+    CFRelease(cfmsg);
+
+    SetThemeWindowBackground(dialog.ref, kThemeBrushDialogBackgroundActive, false);
+    //
+    // TODO: make room for larger text in the label
+    //
+    cfmsg = CFStringCreateWithCString(NULL, RSTRING_PTR(quiz), kCFStringEncodingUTF8);
+    SetRect(&r, 24, 20, 400, 42);
+    CreateStaticTextControl(dialog.ref, &r, cfmsg, NULL, &lbl);
+    ShowControl(lbl);
+
+    SetRect(&r, 24, 46, 400, 80);
+    CreateEditUnicodeTextControl(dialog.ref, &r, CFSTR(""), false, NULL, &dialog.txt);
+    ShowControl(dialog.txt);
+
+    SetRect(&r, 250, 100, 320, 120);
+    CreatePushButtonControl(dialog.ref, &r, CFSTR("Cancel"), &cancb);
+    spec[0].eventClass = kEventClassControl;
+    spec[0].eventKind = kEventControlHit;
+    InstallEventHandler(GetControlEventTarget(cancb), shoes_dialog_cancelled, 1, spec, (void *)&dialog, NULL);
+    ShowControl(cancb);
+
+    SetRect(&r, 330, 100, 400, 120);
+    CreatePushButtonControl(dialog.ref, &r, CFSTR("OK"), &okb);
+    InstallEventHandler(GetControlEventTarget(okb), shoes_dialog_done, 1, spec, (void *)&dialog, NULL);
+    SetControlData(okb, kControlEntireControl, kControlPushButtonDefaultTag, 1, &byteFlag);
+    ShowControl(okb);
+
+    CFRelease(cfmsg);
+    ShowWindow(dialog.ref);
+    SelectWindow(dialog.ref);
+    RunAppModalLoopForWindow(dialog.ref);
+    HideWindow(dialog.ref);
+
+    DisposeControl(lbl);
+    DisposeControl(dialog.txt);
+    DisposeControl(cancb);
+    DisposeControl(okb);
+
+    answer = dialog.val;
+  }
+  return answer;
+}
+
+VALUE
+shoes_dialog_confirm(VALUE self, VALUE quiz)
+{
+  OSErr err;
+  SInt16 ret;
+  AlertStdAlertParamRec alert;
+  VALUE answer = Qfalse;
+  GLOBAL_APP(app);
+
+  alert.movable = nil;
+  alert.helpButton = nil;
+  alert.filterProc = nil;
+  alert.defaultText = kAlertDefaultOKText;
+  alert.cancelText = kAlertDefaultCancelText;
+  alert.otherText = nil;
+  alert.defaultButton = kAlertStdAlertOKButton;
+  alert.cancelButton = kAlertStdAlertCancelButton;
+  alert.position = 0;
+  err = StandardAlert(kAlertPlainAlert, "\pShoes asks:", RSTRING_PTR(rb_str_to_pas(quiz)), &alert, &ret);
+  if (err == noErr && ret == kAlertStdAlertOKButton)
+  {
+    answer = Qtrue;
+  }
+  return answer;
+}
+
+VALUE
+shoes_dialog_color(VALUE self, VALUE title)
+{
+  Point where;
+  RGBColor colwh = { 0xFFFF, 0xFFFF, 0xFFFF };
+  RGBColor _color;
+  VALUE color = Qnil;
+  GLOBAL_APP(app);
+
+  where.h = where.v = 0;
+  if (GetColor(where, RSTRING_PTR(title), &colwh, &_color))
+  {
+    color = shoes_color_new(_color.red/256, _color.green/256, _color.blue/256, SHOES_COLOR_OPAQUE);
+  }
+  return color;
+}
+
+VALUE
+shoes_dialog_open(VALUE self)
+{
+  char _path[SHOES_BUFSIZE];
+  FSRef fr;
+  NavDialogRef dialog;
+  NavReplyRecord reply;
+  NavDialogCreationOptions opts;
+  Size actualSize;
+  OSErr err = noErr;
+  VALUE path = Qnil;
+  GLOBAL_APP(app);
+
+  NavGetDefaultDialogCreationOptions(&opts);
+  err = NavCreateGetFileDialog(&opts, NULL, NULL, NULL, NULL, NULL, &dialog);
+  NavDialogRun(dialog);
+  err = NavDialogGetReply(dialog, &reply); 
+  NavDialogDispose(dialog);
+      
+  if (reply.validRecord)
+  {
+    // Get a pointer to selected file
+    err = AEGetNthPtr(&(reply.selection), 1, typeFSRef, NULL,
+      NULL, &fr, sizeof(FSRef), NULL);
+    FSRefMakePath(&fr, &_path, SHOES_BUFSIZE);
+    path = rb_str_new2(_path);
+  }
+    
+  return path;
+}
+
+VALUE
+shoes_dialog_save(VALUE self)
+{
+  VALUE path = Qnil;
+  GLOBAL_APP(app);
+
+  char _path[SHOES_BUFSIZE];
+  FSRef fr;
+  NavDialogRef dialog;
+  NavReplyRecord reply;
+  NavDialogCreationOptions opts;
+  Size actualSize;
+  OSErr err = noErr;
+   
+  NavGetDefaultDialogCreationOptions(&opts);
+  opts.modality = kWindowModalityAppModal; 
+  err = NavCreatePutFileDialog(&opts, NULL, NULL, NULL, NULL, &dialog);
+  NavDialogRun(dialog);
+  err = NavDialogGetReply(dialog, &reply); 
+  NavDialogDispose(dialog);
+      
+  if (reply.validRecord)
+  {
+    // Get a pointer to selected file
+    err = AEGetNthPtr(&(reply.selection), 1, typeFSRef, NULL,
+      NULL, &fr, sizeof(FSRef), NULL);
+    FSRefMakePath(&fr, &_path, SHOES_BUFSIZE);
+    path = rb_str_new2(_path);
+    rb_str_cat2(path, "/");
+    CFStringGetCString(reply.saveFileName, _path, SHOES_BUFSIZE, 0);
+    rb_str_cat2(path, _path);
+  }
+
+  return path;
 }

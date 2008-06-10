@@ -45,6 +45,22 @@ void shoes_native_slot_paint(SHOES_SLOT_OS *slot)
   gtk_widget_queue_draw(slot->canvas);
 }
 
+void shoes_native_slot_lengthen(SHOES_SLOT_OS *slot, int height, int endy)
+{
+  if (slot->vscroll)
+  {
+    GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(slot->vscroll));
+    if (adj->upper != (gdouble)endy)
+    {
+      gtk_range_set_range(GTK_RANGE(slot->vscroll), 0., (gdouble)endy);
+      if (adj->page_size >= adj->upper)
+        gtk_widget_hide(slot->vscroll);
+      else
+        gtk_widget_show(slot->vscroll);
+    }
+  }
+}
+
 void shoes_native_slot_scroll_top(SHOES_SLOT_OS *slot)
 {
   if (slot->vscroll)
@@ -487,6 +503,11 @@ shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc)
     gtk_widget_set_size_request(self_t->slot.canvas, self_t->place.iw, self_t->place.ih);
 }
 
+void
+shoes_native_canvas_resize(shoes_canvas *canvas)
+{
+}
+
 static void
 shoes_widget_changed(GtkWidget *ref, gpointer data)
 { 
@@ -765,4 +786,155 @@ SHOES_TIMER_REF
 shoes_native_timer_start(VALUE self, shoes_canvas *canvas, unsigned int interval)
 {
   return g_timeout_add(interval, shoes_gtk_animate, (gpointer)self);
+}
+
+VALUE
+shoes_native_clipboard_get(shoes_app *app)
+{
+  GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_PRIMARY);
+  if (gtk_clipboard_wait_is_text_available(primary))
+  {
+    gchar *string = gtk_clipboard_wait_for_text(primary);
+    return rb_str_new2(string);
+  }
+  return Qnil;
+}
+
+void
+shoes_native_clipboard_set(shoes_app *app, VALUE string)
+{
+  GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_PRIMARY);
+  gtk_clipboard_set_text(primary, RSTRING_PTR(string), RSTRING_LEN(string));
+}
+
+VALUE
+shoes_native_window_color(shoes_app *app)
+{
+  GtkStyle *style = gtk_widget_get_style(GTK_WIDGET(APP_WINDOW(app)));
+  GdkColor bg = style->bg[GTK_STATE_NORMAL];
+  return shoes_color_new(bg.red / 257, bg.green / 257, bg.blue / 257 , SHOES_COLOR_OPAQUE);
+}
+
+VALUE
+shoes_native_dialog_color(shoes_app *app)
+{
+  GtkStyle *style = gtk_widget_get_style(GTK_WIDGET(APP_WINDOW(app)));
+  GdkColor bg = style->bg[GTK_STATE_NORMAL];
+  return shoes_color_new(bg.red / 257, bg.green / 257, bg.blue / 257 , SHOES_COLOR_OPAQUE);
+}
+
+VALUE
+shoes_dialog_alert(VALUE self, VALUE msg)
+{
+  GLOBAL_APP(app);
+  GtkWidget *dialog = gtk_message_dialog_new_with_markup(
+    APP_WINDOW(app), GTK_DIALOG_MODAL,
+    GTK_MESSAGE_INFO, GTK_BUTTONS_OK, "<span size='larger'>%s</span>\n\n%s",
+    _(dialog_title_says), RSTRING_PTR(msg));
+  gtk_dialog_run(GTK_DIALOG(dialog));
+  gtk_widget_destroy(dialog);
+  return Qnil;
+}
+
+VALUE
+shoes_dialog_ask(VALUE self, VALUE quiz)
+{
+  VALUE answer = Qnil;
+  GLOBAL_APP(app);
+  GtkWidget *dialog = gtk_dialog_new_with_buttons(_(dialog_title),
+    APP_WINDOW(app), GTK_DIALOG_MODAL, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
+  gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
+  gtk_container_set_border_width(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), 6);
+  GtkWidget *question = gtk_label_new(RSTRING_PTR(quiz));
+  gtk_misc_set_alignment(GTK_MISC(question), 0, 0);
+  GtkWidget *_answer = gtk_entry_new();
+  gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), question, FALSE, FALSE, 3);
+  gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), _answer, FALSE, TRUE, 3);
+  gtk_widget_show_all(dialog);
+  gint result = gtk_dialog_run(GTK_DIALOG(dialog));
+  if (result == GTK_RESPONSE_OK)
+  {
+    const gchar *txt = gtk_entry_get_text(GTK_ENTRY(_answer));
+    answer = rb_str_new2(txt);
+  }
+  gtk_widget_destroy(dialog);
+  return answer;
+}
+
+VALUE
+shoes_dialog_confirm(VALUE self, VALUE quiz)
+{
+  VALUE answer = Qfalse;
+  GLOBAL_APP(app);
+  GtkWidget *dialog = gtk_dialog_new_with_buttons(_(dialog_title),
+    APP_WINDOW(app), GTK_DIALOG_MODAL, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
+  gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
+  gtk_container_set_border_width(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), 6);
+  GtkWidget *question = gtk_label_new(RSTRING_PTR(quiz));
+  gtk_misc_set_alignment(GTK_MISC(question), 0, 0);
+  gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), question, FALSE, FALSE, 3);
+  gtk_widget_show_all(dialog);
+  gint result = gtk_dialog_run(GTK_DIALOG(dialog));
+  if (result == GTK_RESPONSE_OK)
+    answer = Qtrue;
+  gtk_widget_destroy(dialog);
+  return answer;
+}
+
+VALUE
+shoes_dialog_color(VALUE self, VALUE title)
+{
+  VALUE color = Qnil;
+  GLOBAL_APP(app);
+  GtkWidget *dialog = gtk_color_selection_dialog_new(RSTRING_PTR(title));
+  gint result = gtk_dialog_run(GTK_DIALOG(dialog));
+  if (result == GTK_RESPONSE_OK)
+  {
+    GdkColor _color;
+    gtk_color_selection_get_current_color(
+      GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(dialog)->colorsel),
+      &_color);
+    color = shoes_color_new(_color.red/256, _color.green/256, _color.blue/256, SHOES_COLOR_OPAQUE);
+  }
+  gtk_widget_destroy(dialog);
+  return color;
+}
+
+VALUE
+shoes_dialog_open(VALUE self)
+{
+  VALUE path = Qnil;
+  GLOBAL_APP(app);
+  GtkWidget *dialog = gtk_file_chooser_dialog_new("Open file...", APP_WINDOW(app),
+    GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+    GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
+  gint result = gtk_dialog_run(GTK_DIALOG(dialog));
+  if (result == GTK_RESPONSE_ACCEPT)
+  {
+    char *filename;
+    filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+    path = rb_str_new2(filename);
+  }
+  gtk_widget_destroy(dialog);
+  return path;
+}
+
+VALUE
+shoes_dialog_save(VALUE self)
+{
+  VALUE path = Qnil;
+  GLOBAL_APP(app);
+  GtkWidget *dialog = gtk_file_chooser_dialog_new("Save file...", APP_WINDOW(app),
+    GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+    GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, NULL);
+  gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(dialog), TRUE);
+  gint result = gtk_dialog_run(GTK_DIALOG(dialog));
+  if (result == GTK_RESPONSE_ACCEPT)
+  {
+    char *filename;
+    filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+    path = rb_str_new2(filename);
+  }
+  gtk_widget_destroy(dialog);
+  return path;
 }

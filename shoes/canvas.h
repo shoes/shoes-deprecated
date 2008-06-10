@@ -23,6 +23,7 @@ struct _shoes_app;
 typedef unsigned int PIXEL;
 
 extern const double RAD2PI, PIM2, PI;
+extern const char *dialog_title, *dialog_title_says;
 
 #define REL_WINDOW  1
 #define REL_CANVAS  2
@@ -143,15 +144,7 @@ typedef struct {
 // video struct
 //
 typedef struct {
-#ifdef SHOES_GTK
-  GtkWidget *ref;
-#endif
-#ifdef SHOES_QUARTZ
-  ControlRef ref;
-#endif
-#ifdef SHOES_WIN32
-  HWND ref;
-#endif
+  SHOES_CONTROL_REF ref;
   libvlc_exception_t excp;
   libvlc_instance_t *vlc;
   shoes_place place;
@@ -179,15 +172,7 @@ typedef struct {
 // native controls struct
 //
 typedef struct {
-#ifdef SHOES_GTK
-  GtkWidget *ref;
-#endif
-#ifdef SHOES_QUARTZ
-  ControlRef ref;
-#endif
-#ifdef SHOES_WIN32
-  HWND ref;
-#endif
+  SHOES_CONTROL_REF ref;
   VALUE attr;
   VALUE parent;
   shoes_place place;

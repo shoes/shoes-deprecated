@@ -18,6 +18,9 @@ const double SHOES_PIM2   = 6.28318530717958647693;
 const double SHOES_PI     = 3.14159265358979323846;
 const double SHOES_RAD2PI = 0.01745329251994329577;
 
+const char *dialog_title = "Shoes asks:";
+const char *dialog_title_says = "Shoes says:";
+
 static void shoes_canvas_send_start(VALUE);
 
 VALUE
@@ -1284,48 +1287,8 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
     if (RTEST(actual))
     {
       self_t->slot.scrolly = min(self_t->slot.scrolly, self_t->fully - self_t->height);
-#ifdef SHOES_GTK
-      if (self_t->slot.vscroll)
-      {
-        GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(self_t->slot.vscroll));
-        if (adj->upper != (gdouble)endy)
-        {
-          gtk_range_set_range(GTK_RANGE(self_t->slot.vscroll), 0., (gdouble)endy);
-          if (adj->page_size >= adj->upper)
-            gtk_widget_hide(self_t->slot.vscroll);
-          else
-            gtk_widget_show(self_t->slot.vscroll);
-        }
-      }
-#endif
-#ifdef SHOES_QUARTZ
-      if (self_t->slot.vscroll)
-      {
-        int upper = GetControlMaximum(self_t->slot.vscroll);
-        if (upper != endy)
-        {
-          int page_size = GetControlViewSize(self_t->slot.vscroll);
-          SetControlMaximum(self_t->slot.vscroll, max(0, endy - page_size));
-          HIViewSetVisible(self_t->slot.vscroll, endy > page_size);
-          HIViewSetNeedsDisplay(self_t->slot.vscroll, true);
-        }
-      }
-#endif
-#ifdef SHOES_WIN32
       if (NIL_P(self_t->parent) || RTEST(ATTR(self_t->attr, scroll)))
-      {
-        SCROLLINFO si;
-        si.cbSize = sizeof(SCROLLINFO);
-        si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS;
-        si.nMin = 0;
-        si.nMax = self_t->fully - 1; 
-        si.nPage = self_t->height;
-        si.nPos = self_t->slot.scrolly;
-        INFO("SetScrollInfo(%d, nMin: %d, nMax: %d, nPage: %d)\n", 
-          si.nPos, si.nMin, si.nMax, si.nPage);
-        SetScrollInfo(self_t->slot.window, SB_VERT, &si, TRUE);
-      }
-#endif
+        shoes_native_slot_lengthen(&self_t->slot, self_t->height, endy);
     }
   }
   else
@@ -1617,13 +1580,7 @@ shoes_canvas_size(VALUE self, int w, int h)
   SETUP();
   canvas->place.iw = canvas->place.w = canvas->width = w;
   canvas->place.ih = canvas->place.h = canvas->height = h;
-#ifdef SHOES_QUARTZ
-  HIRect hr;
-  HIViewGetFrame(canvas->slot.view, &hr);
-  hr.size.width = canvas->width;
-  hr.size.height = canvas->height;
-  HIViewSetFrame(canvas->slot.view, &hr);
-#endif
+  shoes_native_canvas_resize(canvas);
 }
 
 void
@@ -2056,129 +2013,15 @@ shoes_widget_new(VALUE klass, VALUE attr, VALUE parent)
   return shoes_slot_new(klass, attr, parent);
 }
 
-#ifdef SHOES_QUARTZ
-static char clip_buf[SHOES_BUFSIZE];
-
-char*
-shoes_apple_pasteboard_get(void)
-{
-  char *s, *t;
-  CFArrayRef flavors;
-  CFDataRef data;
-  CFIndex nflavor, ndata, j;
-  CFStringRef type;
-  ItemCount nitem;
-  PasteboardItemID id;
-  PasteboardSyncFlags flags;
-  PasteboardRef clip = shoes_world->os.clip;
-  UInt32 i;
-
-  flags = PasteboardSynchronize(clip);
-  if(flags&kPasteboardClientIsOwner){
-    s = strdup(clip_buf);
-    return s;
-  }
-  if(PasteboardGetItemCount(clip, &nitem) != noErr){
-    INFO("apple pasteboard get item count failed\n");
-    return nil;
-  }
-  for(i=1; i<=nitem; i++){
-    if(PasteboardGetItemIdentifier(clip, i, &id) != noErr)
-      continue;
-    if(PasteboardCopyItemFlavors(clip, id, &flavors) != noErr)
-      continue;
-    nflavor = CFArrayGetCount(flavors);
-    for(j=0; j<nflavor; j++){
-      type = (CFStringRef)CFArrayGetValueAtIndex(flavors, j);
-      if(!UTTypeConformsTo(type, CFSTR("public.utf8-plain-text")))
-        continue;
-      if(PasteboardCopyItemFlavorData(clip, id, type, &data) != noErr)
-        continue;
-      ndata = CFDataGetLength(data);
-      s = (char*)CFDataGetBytePtr(data);
-      CFRelease(flavors);
-      CFRelease(data);
-      for(t=s; *t; t++)
-        if(*t == '\r')
-          *t = '\n';
-      return s;
-    }
-    CFRelease(flavors);
-  }
-  return nil;   
-}
-
-void
-shoes_apple_pasteboard_put(char *s)
-{
-  CFDataRef cfdata;
-  PasteboardRef clip = shoes_world->os.clip;
-  PasteboardSyncFlags flags;
-
-  if(strlen(s) >= SHOES_BUFSIZE)
-    return;
-  strcpy(clip_buf, s);
-  if(PasteboardClear(clip) != noErr){
-    INFO("apple pasteboard clear failed\n");
-    return;
-  }
-  flags = PasteboardSynchronize(clip);
-  if((flags&kPasteboardModified) || !(flags&kPasteboardClientIsOwner)){
-    INFO("apple pasteboard cannot assert ownership\n");
-    return;
-  }
-  cfdata = CFDataCreate(kCFAllocatorDefault, 
-    (unsigned char*)clip_buf, strlen(clip_buf)*2);
-  if(cfdata == nil){
-    INFO("apple pasteboard cfdatacreate failed\n");
-    return;
-  }
-  if(PasteboardPutItemFlavor(clip, (PasteboardItemID)1,
-    CFSTR("public.utf8-plain-text"), cfdata, 0) != noErr){
-    INFO("apple pasteboard putitem failed\n");
-    CFRelease(cfdata);
-    return;
-  }
-  /* CFRelease(cfdata); ??? */
-}
-#endif
-
 //
 // Global clipboard getter and setter
 //
 VALUE
 shoes_canvas_get_clipboard(VALUE self)
 {
-  VALUE paste = Qnil;
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
-
-#ifdef SHOES_GTK
-  GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_PRIMARY);
-  if (gtk_clipboard_wait_is_text_available(primary))
-  {
-    gchar *string = gtk_clipboard_wait_for_text(primary);
-    paste = rb_str_new2(string);
-  }
-#endif
-
-#ifdef SHOES_QUARTZ
-  char *str = shoes_apple_pasteboard_get();
-  paste = rb_str_new2(str);
-#endif
-
-#ifdef SHOES_WIN32
-  if (OpenClipboard(self_t->app->slot.window))
-  {
-    HANDLE hclip = GetClipboardData(CF_TEXT);
-    char *buffer = (char *)GlobalLock(hclip);
-    paste = rb_str_new2(buffer);
-    GlobalUnlock(hclip);
-    CloseClipboard();
-  }
-#endif
-
-  return paste;
+  return shoes_native_clipboard_get(self_t->app);
 }
 
 VALUE
@@ -2187,31 +2030,7 @@ shoes_canvas_set_clipboard(VALUE self, VALUE string)
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
   StringValue(string);
-
-#ifdef SHOES_GTK
-  GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_PRIMARY);
-  gtk_clipboard_set_text(primary, RSTRING_PTR(string), RSTRING_LEN(string));
-#endif
-
-#ifdef SHOES_QUARTZ
-  shoes_apple_pasteboard_put(RSTRING_PTR(string));
-#endif
-
-#ifdef SHOES_WIN32
-  if (OpenClipboard(self_t->app->slot.window))
-  {
-    char *buffer;
-    HGLOBAL hclip;
-    EmptyClipboard();
-    hclip = GlobalAlloc(GMEM_DDESHARE, RSTRING_LEN(string)+1);
-    buffer = (char *)GlobalLock(hclip);
-    strncpy(buffer, RSTRING_PTR(string), RSTRING_LEN(string)+1);
-    GlobalUnlock(hclip);
-    SetClipboardData(CF_TEXT, hclip);
-    CloseClipboard();
-  }
-#endif
-
+  shoes_native_clipboard_set(self_t->app, string);
   return string;
 }
 
@@ -2251,39 +2070,12 @@ VALUE
 shoes_canvas_window_plain(VALUE self)
 {
   SETUP();
-#ifdef SHOES_GTK
-  GtkStyle *style = gtk_widget_get_style(GTK_WIDGET(APP_WINDOW(canvas->app)));
-  GdkColor bg = style->bg[GTK_STATE_NORMAL];
-  return shoes_color_new(bg.red / 257, bg.green / 257, bg.blue / 257 , SHOES_COLOR_OPAQUE);
-#endif
-#ifdef SHOES_QUARTZ
-  // ThemeBrush bg;
-  // RGBColor _color;
-  // HIWindowGetThemeBackground(canvas->app->os.window, &bg);
-  // GetThemeBrushAsColor(bg, 32, true, &_color);
-  // return shoes_color_new(_color.red/256, _color.green/256, _color.blue/256, SHOES_COLOR_OPAQUE);
-  return shoes_color_new(255, 255, 255, 255);
-#endif
-#ifdef SHOES_WIN32
-  DWORD winc = GetSysColor(COLOR_WINDOW);
-  return shoes_color_new(GetRValue(winc), GetGValue(winc), GetBValue(winc), SHOES_COLOR_OPAQUE);
-#endif
+  return shoes_native_window_color(canvas->app);
 }
 
 VALUE
 shoes_canvas_dialog_plain(VALUE self)
 {
   SETUP();
-#ifdef SHOES_GTK
-  GtkStyle *style = gtk_widget_get_style(GTK_WIDGET(APP_WINDOW(canvas->app)));
-  GdkColor bg = style->bg[GTK_STATE_NORMAL];
-  return shoes_color_new(bg.red / 257, bg.green / 257, bg.blue / 257 , SHOES_COLOR_OPAQUE);
-#endif
-#ifdef SHOES_QUARTZ
-  return shoes_color_new(255, 255, 255, 255);
-#endif
-#ifdef SHOES_WIN32
-  DWORD winc = GetSysColor(COLOR_3DFACE);
-  return shoes_color_new(GetRValue(winc), GetGValue(winc), GetBValue(winc), SHOES_COLOR_OPAQUE);
-#endif
+  return shoes_native_dialog_color(canvas->app);
 }
