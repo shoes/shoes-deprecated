@@ -11,6 +11,9 @@
 
 #define HEIGHT_PAD 10
 
+void shoes_app_quartz_install();
+OSStatus shoes_slot_quartz_register();
+
 static CFStringRef
 shoes_rb2cf(VALUE str)
 {
@@ -112,7 +115,7 @@ void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c)
 {
   if (c)
   {
-    i = rb_ary_index_of(slot->controls, item);
+    long i = rb_ary_index_of(slot->controls, item);
     if (i >= 0)
       rb_ary_insert_at(slot->controls, i, 1, Qnil);
   }
@@ -827,7 +830,7 @@ shoes_cairo_create(shoes_canvas *canvas)
   return cairo_create(canvas->slot.surface);
 }
 
-void shoes_cairo_destroy(SHOES_SLOT_OS *)
+void shoes_cairo_destroy(shoes_canvas *canvas)
 {
   cairo_surface_destroy(canvas->slot.surface);
 }
@@ -909,7 +912,7 @@ shoes_native_control_repaint(SHOES_CONTROL_REF ref, shoes_place *p1,
     PLACE_COORDS();
     hr.origin.x = p2->ix + p2->dx; hr.origin.y = p2->iy + p2->dy;
     hr.size.width = p2->iw; hr.size.height = p2->ih;
-    HIViewSetFrame(&hr);
+    HIViewSetFrame(ref, &hr);
   }
 }
 
@@ -963,6 +966,34 @@ shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, char *
   return ref;
 }
 
+static const EventTypeSpec editEvents[] = {   
+  { kEventClassTextField, kEventTextDidChange }
+};
+
+static pascal OSStatus
+shoes_quartz_edit_handler(EventHandlerCallRef handler, EventRef inEvent, void *data)
+{
+  OSStatus err        = eventNotHandledErr;
+  UInt32 eventKind    = GetEventKind(inEvent);
+  UInt32 eventClass   = GetEventClass(inEvent);
+  VALUE self          = (VALUE)data;
+  
+  switch (eventClass)
+  {
+    case kEventClassTextField:
+      switch (eventKind)
+      {
+        case kEventTextDidChange:
+          shoes_control_send(self, s_change);
+          err = noErr;
+        break;
+      }
+    break;
+  }
+
+  return err;
+}
+
 SHOES_CONTROL_REF
 shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
@@ -1000,34 +1031,6 @@ shoes_native_edit_line_set_text(SHOES_CONTROL_REF ref, char *msg)
   CFRelease(controlText);
 }
 
-static const EventTypeSpec editEvents[] = {   
-  { kEventClassTextField, kEventTextDidChange }
-};
-
-static pascal OSStatus
-shoes_quartz_edit_handler(EventHandlerCallRef handler, EventRef inEvent, void *data)
-{
-  OSStatus err        = eventNotHandledErr;
-  UInt32 eventKind    = GetEventKind(inEvent);
-  UInt32 eventClass   = GetEventClass(inEvent);
-  VALUE self          = (VALUE)data;
-  
-  switch (eventClass)
-  {
-    case kEventClassTextField:
-      switch (eventKind)
-      {
-        case kEventTextDidChange:
-          shoes_control_send(self, s_change);
-          err = noErr;
-        break;
-      }
-    break;
-  }
-
-  return err;
-}
-
 SHOES_CONTROL_REF
 shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
@@ -1037,6 +1040,8 @@ shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALU
   SetRect(&r, place->ix + place->dx, place->iy + place->dy,
     place->ix + place->dx + place->iw, place->iy + place->dy + place->ih);
   CreateEditUnicodeTextControl(NULL, &r, cfmsg, false, NULL, &ref);
+  InstallControlEventHandler(ref, NewEventHandlerUPP(shoes_quartz_edit_handler),
+    GetEventTypeCount(editEvents), editEvents, self, NULL);
   CFRelease(cfmsg);
   return ref;
 }
@@ -1060,8 +1065,6 @@ shoes_native_edit_box_set_text(SHOES_CONTROL_REF ref, char *msg)
   CFStringRef controlText = CFStringCreateWithCString(NULL, msg, kCFStringEncodingUTF8);
   SetControlData(ref, kControlEditTextPart, kControlEditTextCFStringTag, 
     sizeof(CFStringRef), &controlText);
-  InstallControlEventHandler(ref, NewEventHandlerUPP(shoes_quartz_edit_handler),
-    GetEventTypeCount(editEvents), editEvents, self, NULL);
   CFRelease(controlText);
 }
 
