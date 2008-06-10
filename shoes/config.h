@@ -78,11 +78,6 @@ typedef struct {
 // quartz (osx) window struct
 //
 #ifdef SHOES_QUARTZ
-// hacks to prevent T_DATA conflict between Ruby and Carbon headers
-# define __OPENTRANSPORT__
-# define __OPENTRANSPORTPROTOCOL__
-# define __OPENTRANSPORTPROVIDERS__
-#include <Carbon/Carbon.h>
 #include <cairo-quartz.h>
 
 #define SHOES_SIGNAL
