@@ -401,7 +401,7 @@ shoes_native_app_open(shoes_app *app, char *path)
 }
 
 void
-shoes_native_app_show(shoes_app *)
+shoes_native_app_show(shoes_app *app)
 {
   gtk_widget_show_all(app->os.window);
 }
@@ -480,7 +480,7 @@ shoes_cairo_create(SHOES_SLOT_OS *slot, shoes_canvas *parent, int width, int hei
 }
 
 void
-shoes_cairo_destroy(SHOES_SLOT_OS *)
+shoes_cairo_destroy(SHOES_SLOT_OS *slot)
 {
 }
 
@@ -581,15 +581,16 @@ shoes_native_surface_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
 }
 
 void
-shoes_native_surface_position(shoes_canvas *self_t, shoes_canvas *canvas, shoes_place *place)
+shoes_native_surface_position(SHOES_CONTROL_REF ref, shoes_place *p1, 
+  VALUE self, shoes_canvas *canvas, shoes_place *p2)
 {
-  shoes_native_control_position(self_t, canvas, place);
+  shoes_native_control_position(ref, p1, self, canvas, p2);
 }
 
 void
 shoes_native_surface_remove(shoes_canvas *canvas, SHOES_CONTROL_REF ref)
 {
-  gtk_container_remove(GTK_CONTAINER(canvas->slot.canvas), self_t->ref);
+  gtk_container_remove(GTK_CONTAINER(canvas->slot.canvas), ref);
 }
 
 static gboolean

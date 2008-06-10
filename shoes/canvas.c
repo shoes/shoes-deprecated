@@ -7,6 +7,7 @@
 #include "shoes/app.h"
 #include "shoes/ruby.h"
 #include "shoes/world.h"
+#include "shoes/native.h"
 
 #define SETUP() \
   shoes_canvas *canvas; \
@@ -134,7 +135,7 @@ shoes_canvas_paint(VALUE self)
   SETUP();
 
   if (!NIL_P(canvas->parent))
-    Data_Get_Struct(self->parent, shoes_canvas, pc);
+    Data_Get_Struct(canvas->parent, shoes_canvas, pc);
   canvas->cr = cr = shoes_cairo_create(&canvas->slot, pc, canvas->width, canvas->height,
     DC(canvas->slot) == DC(canvas->app->slot));
   if (cr == NULL)

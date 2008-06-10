@@ -342,7 +342,7 @@ else
 
   LINUX_LIBS << " -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB}"
 
-  task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o", "bin/TestView.o"] do |t|
+  task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o"] do |t|
     bin = "#{t.name}-bin"
     rm_f t.name
     rm_f bin

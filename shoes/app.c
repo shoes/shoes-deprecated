@@ -170,7 +170,7 @@ shoes_app_open(shoes_app *app, char *path)
     return code;
 
   shoes_app_title(app, app->title);
-  shoes_native_slot_init(&app->slot);
+  shoes_native_slot_reset(&app->slot);
   shoes_slot_init(app->canvas, &app->slot, 0, 0, app->width, app->height, TRUE, TRUE);
   code = shoes_app_goto(app, path);
   if (code != SHOES_OK)

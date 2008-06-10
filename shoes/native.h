@@ -28,7 +28,7 @@ void shoes_native_loop();
 void shoes_native_app_close(shoes_app *);
 void shoes_browser_open(char *);
 void shoes_slot_init(VALUE, SHOES_SLOT_OS *, int, int, int, int, int, int);
-cairo_t *shoes_cairo_create(SHOES_SLOT_OS *, int, int, int);
+cairo_t *shoes_cairo_create(SHOES_SLOT_OS *, shoes_canvas *, int, int, int);
 void shoes_cairo_destroy(SHOES_SLOT_OS *);
 void shoes_group_clear(SHOES_GROUP_OS *);
 void shoes_native_canvas_place(shoes_canvas *, shoes_canvas *);
@@ -42,7 +42,8 @@ void shoes_native_control_repaint(SHOES_CONTROL_REF, shoes_place *,
 void shoes_native_control_remove(SHOES_CONTROL_REF, shoes_canvas *);
 void shoes_native_control_free(SHOES_CONTROL_REF);
 SHOES_CONTROL_REF shoes_native_surface_new(shoes_canvas *, VALUE, shoes_place *);
-void shoes_native_surface_position(shoes_canvas *, shoes_canvas *, shoes_place *);
+void shoes_native_surface_position(SHOES_CONTROL_REF, shoes_place *, 
+  VALUE, shoes_canvas *, shoes_place *);
 void shoes_native_surface_remove(shoes_canvas *, SHOES_CONTROL_REF);
 SHOES_CONTROL_REF shoes_native_button(VALUE, shoes_canvas *, shoes_place *, char *);
 SHOES_CONTROL_REF shoes_native_edit_line(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);

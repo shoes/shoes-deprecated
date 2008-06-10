@@ -1353,7 +1353,7 @@ shoes_video_draw(VALUE self, VALUE c, VALUE actual)
       else
       {
 #ifndef SHOES_QUARTZ
-        shoes_native_control_repaint(self_t, canvas, &place);
+        shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
 #endif
       }
     }
@@ -2811,7 +2811,7 @@ shoes_control_remove(VALUE self)
   shoes_canvas_remove_item(self_t->parent, self, 1, 0);
 
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-  shoes_native_control_remove(self_t->ref, canvas)
+  shoes_native_control_remove(self_t->ref, canvas);
   return self;
 }
 
@@ -2843,10 +2843,10 @@ shoes_button_draw(VALUE self, VALUE c, VALUE actual)
     if (self_t->ref == NULL)
     {
       self_t->ref = shoes_native_button(self, canvas, &place, msg);
-      shoes_native_control_position(self_t, canvas, &place);
+      shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
     }
     else
-      shoes_native_control_repaint(self_t, canvas, &place);
+      shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
   }
 
   FINISH();
@@ -2858,7 +2858,7 @@ VALUE
 shoes_edit_line_get_text(VALUE self)
 {
   GET_STRUCT(control, self_t);
-  if (self_t->ref == NULL) text = Qnil;
+  if (self_t->ref == NULL) return Qnil;
   return shoes_native_edit_line_get_text(self_t->ref);
 }
 
@@ -2868,7 +2868,7 @@ shoes_edit_line_set_text(VALUE self, VALUE text)
   char *msg = "";
   GET_STRUCT(control, self_t);
   if (!NIL_P(text)) msg = RSTRING_PTR(text);
-  shoes_native_edit_line_set_text(self_t->ref);
+  shoes_native_edit_line_set_text(self_t->ref, msg);
   return text;
 }
 
@@ -2886,10 +2886,10 @@ shoes_edit_line_draw(VALUE self, VALUE c, VALUE actual)
     if (self_t->ref == NULL)
     {
       self_t->ref = shoes_native_edit_line(self, canvas, &place, self_t->attr, msg);
-      shoes_native_control_position(self_t, canvas, &place);
+      shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
     }
     else
-      shoes_native_control_repaint(self_t, canvas, &place);
+      shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
   }
 
   FINISH();
@@ -2901,7 +2901,7 @@ VALUE
 shoes_edit_box_get_text(VALUE self)
 {
   GET_STRUCT(control, self_t);
-  if (self_t->ref == NULL) text = Qnil;
+  if (self_t->ref == NULL) return Qnil;
   return shoes_native_edit_box_get_text(self_t->ref);
 }
 
@@ -2926,10 +2926,10 @@ shoes_edit_box_draw(VALUE self, VALUE c, VALUE actual)
     if (self_t->ref == NULL)
     {
       self_t->ref = shoes_native_edit_box(self, canvas, &place, self_t->attr, msg);
-      shoes_native_control_position(self_t, canvas, &place);
+      shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
     }
     else
-      shoes_native_control_repaint(self_t, canvas, &place);
+      shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
   }
 
   FINISH();
@@ -2946,7 +2946,7 @@ shoes_list_box_choose(VALUE self, VALUE item)
   if (self_t->ref == NULL) text = Qnil;
 
   items = ATTR(self_t->attr, items);
-  shoes_list_box_set_active(self_t->ref, items, item);
+  shoes_native_list_box_set_active(self_t->ref, items, item);
   return self;
 }
 
@@ -2954,7 +2954,7 @@ VALUE
 shoes_list_box_text(VALUE self)
 {
   GET_STRUCT(control, self_t);
-  if (self_t->ref == NULL) text = Qnil;
+  if (self_t->ref == NULL) return Qnil;
   return shoes_native_list_box_get_active(self_t->ref, ATTR(self_t->attr, items));
 }
 
@@ -2971,7 +2971,7 @@ shoes_list_box_items_set(VALUE self, VALUE items)
   VALUE opt = shoes_list_box_text(self);
   GET_STRUCT(control, self_t);
   ATTRSET(self_t->attr, items, items);
-  shoes_list_box_update(self_t->ref, items);
+  shoes_native_list_box_update(self_t->ref, items);
   shoes_list_box_choose(self, opt);
   return items;
 }
@@ -2990,15 +2990,15 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE actual)
 
       if (!NIL_P(items))
       {
-        shoes_list_box_update(self_t->ref, items);
+        shoes_native_list_box_update(self_t->ref, items);
         if (!NIL_P(ATTR(self_t->attr, choose)))
-          shoes_list_box_set_active(self_t->ref, items, ATTR(self_t->attr, choose));
+          shoes_native_list_box_set_active(self_t->ref, items, ATTR(self_t->attr, choose));
       }
 
-      shoes_native_control_position(self_t, canvas, &place);
+      shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
     }
     else
-      shoes_native_control_repaint(self_t, canvas, &place);
+      shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
   }
 
   FINISH();
@@ -3016,10 +3016,10 @@ shoes_progress_draw(VALUE self, VALUE c, VALUE actual)
     if (self_t->ref == NULL)
     {
       self_t->ref = shoes_native_progress(self, canvas, &place, self_t->attr, msg);
-      shoes_native_control_position(self_t, canvas, &place);
+      shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
     }
     else
-      shoes_native_control_repaint(self_t, canvas, &place);
+      shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
   }
 
   FINISH();
@@ -3057,10 +3057,10 @@ shoes_check_draw(VALUE self, VALUE c, VALUE actual)
     if (self_t->ref == NULL)
     {
       self_t->ref = shoes_native_check(self, canvas, &place, self_t->attr, msg);
-      shoes_native_control_position(self_t, canvas, &place);
+      shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
     }
     else
-      shoes_native_control_repaint(self_t, canvas, &place);
+      shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
   }
 
   FINISH();
@@ -3076,7 +3076,7 @@ shoes_check_is_checked(VALUE self)
 }
 
 VALUE
-shoes_check_is_checked(VALUE self, VALUE on)
+shoes_check_set_checked(VALUE self, VALUE on)
 {
   GET_STRUCT(control, self_t);
   shoes_native_check_set(self_t->ref, RTEST(on));
@@ -3093,10 +3093,10 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
     if (self_t->ref == NULL)
     {
       self_t->ref = shoes_native_radio(self, canvas, &place, self_t->attr, msg);
-      shoes_native_control_position(self_t, canvas, &place);
+      shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
     }
     else
-      shoes_native_control_repaint(self_t, canvas, &place);
+      shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
   }
 
 #ifdef SHOES_GTK
@@ -3403,7 +3403,9 @@ shoes_timer_stop(VALUE self)
   GET_STRUCT(timer, self_t);
   if (self_t->started == ANIM_STARTED)
   {
-    shoes_native_timer_remove(self_t->ref);
+    shoes_canvas *canvas;
+    Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+    shoes_native_timer_remove(canvas, self_t->ref);
     self_t->started = ANIM_PAUSED;
   }
   return self;
