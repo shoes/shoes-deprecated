@@ -8,6 +8,7 @@
 #include "shoes/world.h"
 #include "shoes/native.h"
 #include "shoes/internal.h"
+#include <Carbon/Carbon.h>
 
 #define HEIGHT_PAD 10
 
@@ -22,21 +23,72 @@
 - (BOOL) application: (NSApplication *) anApplication
     openFile: (NSString *) aFileName
 {
-  char *path = [aFileName UTF8String];
-  printf("Opening %s\n", path);
-  shoes_load(path);
+  shoes_load([aFileName UTF8String]);
 
   return YES;
 }
 @end
 
 @implementation ShoesView
-- (id)initWithFrame: (NSRect)frame
+- (id)initWithFrame: (NSRect)frame andCanvas: (VALUE)c
 {
-  return [super initWithFrame: frame];
+  if ((self = [super initWithFrame: frame]))
+  {
+    canvas = c;
+  }
+  return self;
+}
+- (BOOL)isFlipped
+{
+  return YES;
 }
 - (void)drawRect: (NSRect)rect
 {
+  shoes_canvas *c;
+  NSRect bounds = [self bounds];
+  Data_Get_Struct(canvas, shoes_canvas, c);
+
+  c->width = bounds.size.width;
+  c->height = bounds.size.height;
+  c->slot.context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
+  shoes_canvas_paint(canvas);
+}
+@end
+
+@implementation ShoesButton
+- (id)initWithFrame: (NSRect)frame andObject: (VALUE)o
+{
+  if ((self = [super initWithFrame: frame]))
+  {
+    object = o;
+    [self setButtonType: NSMomentaryPushInButton];
+    [self setBezelStyle: NSRoundedBezelStyle];
+    [self setTarget: self];
+    [self setAction: @selector(handleClick:)];
+  }
+  return self;
+}
+-(IBAction)handleClick: (id)sender
+{
+  shoes_control_send(object, s_click);
+}
+@end
+
+@implementation ShoesTextField
+- (id)initWithFrame: (NSRect)frame andObject: (VALUE)o isSecret: (BOOL)secret
+{
+  if ((self = [super initWithFrame: frame]))
+  {
+    object = o;
+    [[self cell] setEchosBullets: secret];
+    // [self setTarget: self];
+    // [self setAction: @selector(handleClick:)];
+  }
+  return self;
+}
+-(IBAction)handleClick: (id)sender
+{
+  shoes_control_send(object, s_click);
 }
 @end
 
@@ -60,24 +112,29 @@ void shoes_native_quit()
 {
   INIT;
   NSApplication *NSApp = [NSApplication sharedApplication];
-  [NSApp stop];
+  [NSApp stop: nil];
   RELEASE;
 }
 
 void shoes_native_slot_mark(SHOES_SLOT_OS *slot)
 {
+  rb_gc_mark_maybe(slot->controls);
 }
 
 void shoes_native_slot_reset(SHOES_SLOT_OS *slot)
 {
+  slot->controls = rb_ary_new();
+  rb_gc_register_address(&slot->controls);
 }
 
 void shoes_native_slot_clear(SHOES_SLOT_OS *slot)
 {
+  rb_ary_clear(slot->controls);
 }
 
 void shoes_native_slot_paint(SHOES_SLOT_OS *slot)
 {
+  [slot->view setNeedsDisplay: YES];
 }
 
 void shoes_native_slot_lengthen(SHOES_SLOT_OS *slot, int height, int endy)
@@ -97,11 +154,6 @@ void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c)
 {
 }
 
-void 
-shoes_app_quartz_install()
-{
-}
-
 shoes_code
 shoes_app_cursor(shoes_app *app, ID cursor)
 {
@@ -112,6 +164,10 @@ done:
 void
 shoes_native_app_resized(shoes_app *app)
 {
+  NSRect rect = [app->os.window frame];
+  rect.size.width = app->width;
+  rect.size.height = app->height;
+  [app->os.window setFrame: rect display: YES];
 }
 
 void
@@ -126,7 +182,7 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
   INIT;
   shoes_code code = SHOES_OK;
 
-  app->os.window = [[NSWindow alloc] initWithContentRect: NSMakeRect(100, 100, app->width, app->height)
+  app->os.window = [[NSWindow alloc] initWithContentRect: NSMakeRect(0, 0, app->width, app->height)
     styleMask: (NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
     backing: NSBackingStoreBuffered defer: NO];
   app->slot.view = [app->os.window contentView];
@@ -166,16 +222,32 @@ shoes_browser_open(char *url)
 void
 shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int height, int scrolls, int toplevel)
 {
+  INIT;
+  shoes_canvas *canvas;
+  SHOES_SLOT_OS *slot;
+  Data_Get_Struct(c, shoes_canvas, canvas);
+  slot = &canvas->slot;
+
+  slot->controls = parent->controls;
+  slot->view = [[ShoesView alloc] initWithFrame: NSMakeRect(x, y, width, height) andCanvas: c];
+  [slot->view setAutoresizesSubviews: NO];
+  if (toplevel)
+    [slot->view setAutoresizingMask: (NSViewWidthSizable | NSViewHeightSizable)];
+  [parent->view addSubview: slot->view];
+  RELEASE;
 }
 
 cairo_t *
 shoes_cairo_create(shoes_canvas *canvas)
 {
-  return NULL;
+  canvas->slot.surface = cairo_quartz_surface_create_for_cg_context(canvas->slot.context,
+    canvas->width, canvas->height);
+  return cairo_create(canvas->slot.surface);
 }
 
 void shoes_cairo_destroy(shoes_canvas *canvas)
 {
+  cairo_surface_destroy(canvas->slot.surface);
 }
 
 void
@@ -186,21 +258,45 @@ shoes_group_clear(SHOES_GROUP_OS *group)
 void
 shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc)
 {
+  NSRect rect, rect2;
+  rect.origin.x = (self_t->place.ix + self_t->place.dx) * 1.;
+  rect.origin.y = ((self_t->place.iy + self_t->place.dy) * 1.) + 4;
+  rect.size.width = (self_t->place.iw * 1.) + 4;
+  rect.size.height = (self_t->place.ih * 1.) - 8;
+  rect2 = [self_t->slot.view frame];
+  if (rect.origin.x != rect2.origin.x || rect.origin.y != rect2.origin.y ||
+      rect.size.width != rect2.size.width || rect.size.height != rect2.size.height)
+  {
+    [self_t->slot.view setFrame: rect];
+  }
 }
 
 void
 shoes_native_canvas_resize(shoes_canvas *canvas)
 {
+  NSSize size = {canvas->width, canvas->height};
+  [canvas->slot.view setFrameSize: size];
 }
 
 void
 shoes_native_control_hide(SHOES_CONTROL_REF ref)
 {
+  [ref setHidden: YES];
 }
 
 void
 shoes_native_control_show(SHOES_CONTROL_REF ref)
 {
+  [ref setHidden: NO];
+}
+
+static void
+shoes_native_control_frame(SHOES_CONTROL_REF ref, shoes_place *p)
+{
+  NSRect rect;
+  rect.origin.x = p->ix + p->dx; rect.origin.y = p->iy + p->dy;
+  rect.size.width = p->iw; rect.size.height = p->ih;
+  [ref setFrame: rect];
 }
 
 void
@@ -208,6 +304,9 @@ shoes_native_control_position(SHOES_CONTROL_REF ref, shoes_place *p1, VALUE self
   shoes_canvas *canvas, shoes_place *p2)
 {
   PLACE_COORDS();
+  [canvas->slot.view addSubview: ref];
+  shoes_native_control_frame(ref, p2);
+  rb_ary_push(canvas->slot.controls, self);
 }
 
 void
@@ -216,6 +315,7 @@ shoes_native_control_repaint(SHOES_CONTROL_REF ref, shoes_place *p1,
 {
   if (CHANGED_COORDS()) {
     PLACE_COORDS();
+    shoes_native_control_frame(ref, p2);
   }
 }
 
@@ -255,13 +355,27 @@ shoes_native_surface_remove(shoes_canvas *canvas, SHOES_CONTROL_REF ref)
 SHOES_CONTROL_REF
 shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, char *msg)
 {
-  return NULL;
+  INIT;
+  ShoesButton *button = [[ShoesButton alloc] initWithFrame: 
+    NSMakeRect(place->ix + place->dx, place->iy + place->dy, 
+    place->ix + place->dx + place->iw, place->iy + place->dy + place->ih)
+    andObject: self];
+  [button setTitle: [NSString stringWithUTF8String: msg]];
+  RELEASE;
+  return (NSControl *)button;
 }
 
 SHOES_CONTROL_REF
 shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
-  return NULL;
+  INIT;
+  ShoesTextField *field = [[ShoesTextField alloc] initWithFrame:
+    NSMakeRect(place->ix + place->dx, place->iy + place->dy,
+    place->ix + place->dx + place->iw, place->iy + place->dy + place->ih)
+    andObject: self isSecret: RTEST(ATTR(attr, secret)) ? YES : NO];
+  [field setStringValue: [NSString stringWithUTF8String: msg]];
+  RELEASE;
+  return (NSControl *)field;
 }
 
 VALUE
@@ -391,32 +505,51 @@ shoes_native_dialog_color(shoes_app *app)
 VALUE
 shoes_dialog_alert(VALUE self, VALUE msg)
 {
+  INIT;
+  VALUE answer = Qnil;
+  NSAlert *alert = [NSAlert alertWithMessageText: nil
+    defaultButton: @"OK" alternateButton: nil otherButton: nil 
+    informativeTextWithFormat: [NSString stringWithUTF8String: RSTRING_PTR(msg)]];
+  [alert runModal];
+  RELEASE;
   return Qnil;
 }
 
 VALUE
 shoes_dialog_ask(VALUE self, VALUE quiz)
 {
+  return Qnil;
+}
+
+VALUE
+shoes_dialog_confirm(VALUE self, VALUE quiz)
+{
+  INIT;
   VALUE answer = Qnil;
   char *msg = RSTRING_PTR(quiz);
   NSAlert *alert = [NSAlert alertWithMessageText: nil
     defaultButton: @"OK" alternateButton: @"Cancel" otherButton:nil 
     informativeTextWithFormat: [NSString stringWithUTF8String: msg]];
   answer = ([alert runModal] == NSAlertFirstButtonReturn ? Qtrue : Qfalse);
-  [alert release];
-  return answer;
-}
-
-VALUE
-shoes_dialog_confirm(VALUE self, VALUE quiz)
-{
+  RELEASE;
   return Qnil;
 }
 
 VALUE
 shoes_dialog_color(VALUE self, VALUE title)
 {
-  return Qnil;
+  Point where;
+  RGBColor colwh = { 0xFFFF, 0xFFFF, 0xFFFF };
+  RGBColor _color;
+  VALUE color = Qnil;
+  GLOBAL_APP(app);
+
+  where.h = where.v = 0;
+  if (GetColor(where, RSTRING_PTR(title), &colwh, &_color))
+  {
+    color = shoes_color_new(_color.red/256, _color.green/256, _color.blue/256, SHOES_COLOR_OPAQUE);
+  }
+  return color;
 }
 
 VALUE
@@ -437,5 +570,14 @@ shoes_dialog_open(VALUE self)
 VALUE
 shoes_dialog_save(VALUE self)
 {
+  NSSavePanel* saveDlg = [NSSavePanel savePanel];
+  [saveDlg setCanChooseFiles:YES];
+  [saveDlg setCanChooseDirectories:NO];
+  if ( [saveDlg runModalForDirectory:nil file:nil] == NSOKButton )
+  {
+    NSArray* files = [saveDlg filenames];
+    char *filename = [[files objectAtIndex: 0] UTF8String];
+    return rb_str_new2(filename);
+  }
   return Qnil;
 }

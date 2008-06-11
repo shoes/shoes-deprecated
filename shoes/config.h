@@ -97,6 +97,7 @@ typedef struct {
   NSScroller *vscroll;
   CGContextRef context;
   cairo_surface_t *surface;
+  VALUE controls;
   int scrolly;
 } shoes_slot_quartz, SHOES_SLOT_OS;
 

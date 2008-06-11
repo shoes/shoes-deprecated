@@ -11,5 +11,18 @@
 
 @interface ShoesView : NSView
 {
+  VALUE canvas;
+}
+@end
+
+@interface ShoesButton : NSButton
+{
+  VALUE object;
+}
+@end
+
+@interface ShoesTextField : NSSecureTextField
+{
+  VALUE object;
 }
 @end
