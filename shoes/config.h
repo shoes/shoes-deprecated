@@ -83,6 +83,7 @@ typedef struct {
 # define __OPENTRANSPORTPROTOCOL__
 # define __OPENTRANSPORTPROVIDERS__
 #include <Cocoa/Cocoa.h>
+#include "shoes/native/cocoa.h"
 #include <cairo-quartz.h>
 
 #define SHOES_SIGNAL
@@ -104,12 +105,12 @@ typedef struct {
 } shoes_group_quartz, SHOES_GROUP_OS;
 
 typedef struct {
-  WindowRef window;
+  NSWindow *window;
   NSView *view;
 } shoes_app_quartz, SHOES_APP_OS;
 
 typedef struct {
-  char none;
+  ShoesEvents *events;
 } shoes_world_quartz, SHOES_WORLD_OS;
 
 #define kShoesViewClassID CFSTR("org.hackety.ShoesView")

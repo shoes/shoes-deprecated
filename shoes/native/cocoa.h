@@ -4,6 +4,11 @@
 //
 #import <Cocoa/Cocoa.h>
 
+@interface ShoesEvents : NSObject
+{
+}
+@end
+
 @interface ShoesView : NSView
 {
 }

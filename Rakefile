@@ -287,7 +287,7 @@ else
   require 'rbconfig'
 
   CC = "gcc"
-  SRC = FileList["shoes/*.{c}", PLATFORM =~ /darwin/ ? "shoes/native/cocoa.m" : "shoes/native/gtk.c"]
+  SRC = FileList[PLATFORM =~ /darwin/ ? "shoes/native/cocoa.m" : "shoes/native/gtk.c", "shoes/*.{c}"]
   OBJ = SRC.map do |x|
     x.gsub(/\.\w+$/, '.o')
   end

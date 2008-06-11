@@ -12,11 +12,9 @@
 #include "shoes/config.h"
 #include "shoes/world.h"
 
-#ifdef SHOES_WIN32
 #undef HAVE_PROTOTYPES
 #undef HAVE_STDLIB_H
 #undef EXTERN
-#endif
 #include <jpeglib.h>
 #include <jerror.h>
 

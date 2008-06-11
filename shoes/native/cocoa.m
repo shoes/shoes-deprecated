@@ -8,9 +8,27 @@
 #include "shoes/world.h"
 #include "shoes/native.h"
 #include "shoes/internal.h"
-#import "shoes/native/cocoa.h"
 
 #define HEIGHT_PAD 10
+
+#define INIT    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init]
+#define RELEASE [pool release]
+
+@implementation ShoesEvents
+- (id)init
+{
+  return ((self = [super init]));
+}
+- (BOOL) application: (NSApplication *) anApplication
+    openFile: (NSString *) aFileName
+{
+  char *path = [aFileName UTF8String];
+  printf("Opening %s\n", path);
+  shoes_load(path);
+
+  return YES;
+}
+@end
 
 @implementation ShoesView
 - (id)initWithFrame: (NSRect)frame
@@ -24,14 +42,26 @@
 
 void shoes_native_init()
 {
+  INIT;
+  NSApplication *NSApp = [NSApplication sharedApplication];
+  shoes_world->os.events = [[ShoesEvents alloc] init];
+  [NSApp setDelegate: shoes_world->os.events];
+  RELEASE;
 }
 
 void shoes_native_cleanup(shoes_world_t *world)
 {
+  INIT;
+  [shoes_world->os.events release];
+  RELEASE;
 }
 
 void shoes_native_quit()
 {
+  INIT;
+  NSApplication *NSApp = [NSApplication sharedApplication];
+  [NSApp stop];
+  RELEASE;
 }
 
 void shoes_native_slot_mark(SHOES_SLOT_OS *slot)
@@ -87,12 +117,21 @@ shoes_native_app_resized(shoes_app *app)
 void
 shoes_native_app_title(shoes_app *app, char *msg)
 {
+  [app->os.window setTitle: [NSString stringWithUTF8String: msg]];
 }
 
 shoes_code
 shoes_native_app_open(shoes_app *app, char *path, int dialog)
 {
+  INIT;
   shoes_code code = SHOES_OK;
+
+  app->os.window = [[NSWindow alloc] initWithContentRect: NSMakeRect(100, 100, app->width, app->height)
+    styleMask: (NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
+    backing: NSBackingStoreBuffered defer: NO];
+  app->slot.view = [app->os.window contentView];
+  RELEASE;
+
 quit:
   return code;
 }
@@ -100,16 +139,20 @@ quit:
 void
 shoes_native_app_show(shoes_app *app)
 {
+  [app->os.window orderFront: nil];
 }
 
 void
 shoes_native_loop()
 {
+  NSApplication *NSApp = [NSApplication sharedApplication];
+  [NSApp run];
 }
 
 void
 shoes_native_app_close(shoes_app *app)
 {
+  [app->os.window close];
 }
 
 void
@@ -354,7 +397,14 @@ shoes_dialog_alert(VALUE self, VALUE msg)
 VALUE
 shoes_dialog_ask(VALUE self, VALUE quiz)
 {
-  return Qnil;
+  VALUE answer = Qnil;
+  char *msg = RSTRING_PTR(quiz);
+  NSAlert *alert = [NSAlert alertWithMessageText: nil
+    defaultButton: @"OK" alternateButton: @"Cancel" otherButton:nil 
+    informativeTextWithFormat: [NSString stringWithUTF8String: msg]];
+  answer = ([alert runModal] == NSAlertFirstButtonReturn ? Qtrue : Qfalse);
+  [alert release];
+  return answer;
 }
 
 VALUE
@@ -372,6 +422,15 @@ shoes_dialog_color(VALUE self, VALUE title)
 VALUE
 shoes_dialog_open(VALUE self)
 {
+  NSOpenPanel* openDlg = [NSOpenPanel openPanel];
+  [openDlg setCanChooseFiles:YES];
+  [openDlg setCanChooseDirectories:NO];
+  if ( [openDlg runModalForDirectory:nil file:nil] == NSOKButton )
+  {
+    NSArray* files = [openDlg filenames];
+    char *filename = [[files objectAtIndex: 0] UTF8String];
+    return rb_str_new2(filename);
+  }
   return Qnil;
 }
 
