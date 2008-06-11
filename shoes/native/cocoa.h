@@ -26,3 +26,9 @@
   VALUE object;
 }
 @end
+
+@interface ShoesPopUpButton : NSPopUpButton
+{
+  VALUE object;
+}
+@end

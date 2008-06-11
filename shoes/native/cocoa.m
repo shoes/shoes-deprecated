@@ -48,8 +48,8 @@
   NSRect bounds = [self bounds];
   Data_Get_Struct(canvas, shoes_canvas, c);
 
-  c->width = bounds.size.width;
-  c->height = bounds.size.height;
+  c->place.iw = c->place.w = c->width = bounds.size.width;
+  c->place.ih = c->place.h = c->height = bounds.size.height;
   c->slot.context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
   shoes_canvas_paint(canvas);
 }
@@ -81,14 +81,31 @@
   {
     object = o;
     [[self cell] setEchosBullets: secret];
-    // [self setTarget: self];
-    // [self setAction: @selector(handleClick:)];
+    [self setTarget: self];
+    [self setAction: @selector(handleChange:)];
   }
   return self;
 }
--(IBAction)handleClick: (id)sender
+-(IBAction)handleChange: (id)sender
 {
-  shoes_control_send(object, s_click);
+  shoes_control_send(object, s_change);
+}
+@end
+
+@implementation ShoesPopUpButton
+- (id)initWithFrame: (NSRect)frame andObject: (VALUE)o
+{
+  if ((self = [super initWithFrame: frame pullsDown: YES]))
+  {
+    object = o;
+    [self setTarget: self];
+    [self setAction: @selector(handleChange:)];
+  }
+  return self;
+}
+-(IBAction)handleChange: (id)sender
+{
+  shoes_control_send(object, s_change);
 }
 @end
 
@@ -372,8 +389,9 @@ shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VAL
   ShoesTextField *field = [[ShoesTextField alloc] initWithFrame:
     NSMakeRect(place->ix + place->dx, place->iy + place->dy,
     place->ix + place->dx + place->iw, place->iy + place->dy + place->ih)
-    andObject: self isSecret: RTEST(ATTR(attr, secret)) ? YES : NO];
+    andObject: self isSecret:(RTEST(ATTR(attr, secret)) ? YES : NO)];
   [field setStringValue: [NSString stringWithUTF8String: msg]];
+  [field setEditable: YES];
   RELEASE;
   return (NSControl *)field;
 }
@@ -381,12 +399,19 @@ shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VAL
 VALUE
 shoes_native_edit_line_get_text(SHOES_CONTROL_REF ref)
 {
-  return Qnil;
+  VALUE text = Qnil;
+  INIT;
+  text = rb_str_new2([[ref stringValue] UTF8String]);
+  RELEASE;
+  return text;
 }
 
 void
 shoes_native_edit_line_set_text(SHOES_CONTROL_REF ref, char *msg)
 {
+  INIT;
+  [ref setStringValue: [NSString stringWithUTF8String: msg]];
+  RELEASE;
 }
 
 SHOES_CONTROL_REF
@@ -409,23 +434,46 @@ shoes_native_edit_box_set_text(SHOES_CONTROL_REF ref, char *msg)
 SHOES_CONTROL_REF
 shoes_native_list_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
-  return NULL;
+  INIT;
+  ShoesPopUpButton *pop = [[ShoesPopUpButton alloc] initWithFrame:
+    NSMakeRect(place->ix + place->dx, place->iy + place->dy,
+    place->ix + place->dx + place->iw, place->iy + place->dy + place->ih)
+    andObject: self];
+  RELEASE;
+  return (NSControl *)pop;
 }
 
 void
 shoes_native_list_box_update(SHOES_CONTROL_REF ref, VALUE ary)
 {
+  INIT;
+  long i;
+  ShoesPopUpButton *pop = (ShoesPopUpButton *)ref;
+  [pop removeAllItems];
+  for (i = 0; i < RARRAY_LEN(ary); i++)
+  {
+    char *msg = RSTRING_PTR(rb_ary_entry(ary, i));
+    [[pop menu] insertItemWithTitle: [NSString stringWithUTF8String: msg] action: nil
+      keyEquivalent: @"" atIndex: i];
+  }
+  RELEASE;
 }
 
 VALUE
 shoes_native_list_box_get_active(SHOES_CONTROL_REF ref, VALUE items)
 {
+  int sel = [(ShoesPopUpButton *)ref indexOfSelectedItem];
+  if (sel >= 0)
+    return rb_ary_entry(items, sel);
   return Qnil;
 }
 
 void
-shoes_native_list_box_set_active(SHOES_CONTROL_REF box, VALUE ary, VALUE item)
+shoes_native_list_box_set_active(SHOES_CONTROL_REF ref, VALUE ary, VALUE item)
 {
+  int idx = rb_ary_index_of(ary, item);
+  if (idx < 0) return;
+  [(ShoesPopUpButton *)ref selectItemAtIndex: idx];
 }
 
 SHOES_CONTROL_REF
