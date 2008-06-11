@@ -80,7 +80,8 @@
   if ((self = [super initWithFrame: frame]))
   {
     object = o;
-    [[self cell] setEchosBullets: secret];
+    // [[self cell] setEchosBullets: secret];
+    [self setBezelStyle: NSRegularSquareBezelStyle];
     [self setTarget: self];
     [self setAction: @selector(handleChange:)];
   }
@@ -92,10 +93,40 @@
 }
 @end
 
+@implementation ShoesTextView
+- (id)initWithFrame: (NSRect)frame andObject: (VALUE)o
+{
+  if ((self = [super initWithFrame: frame]))
+  {
+    object = o;
+    textView = [[NSTextView alloc] initWithFrame:
+      NSMakeRect(0, 0, frame.size.width, frame.size.height)];
+    [textView setVerticallyResizable: YES];
+    [textView setHorizontallyResizable: YES];
+    
+    [self setBorderType: NSBezelBorder];
+    [self setHasVerticalScroller: YES];
+    [self setHasHorizontalScroller: NO];
+    [self setDocumentView: textView];
+    // [self setTarget: self];
+    // [self setAction: @selector(handleChange:)];
+  }
+  return self;
+}
+-(NSTextStorage *)textStorage
+{
+  return [textView textStorage];
+}
+-(IBAction)handleChange: (id)sender
+{
+  shoes_control_send(object, s_change);
+}
+@end
+
 @implementation ShoesPopUpButton
 - (id)initWithFrame: (NSRect)frame andObject: (VALUE)o
 {
-  if ((self = [super initWithFrame: frame pullsDown: YES]))
+  if ((self = [super initWithFrame: frame pullsDown: NO]))
   {
     object = o;
     [self setTarget: self];
@@ -417,18 +448,32 @@ shoes_native_edit_line_set_text(SHOES_CONTROL_REF ref, char *msg)
 SHOES_CONTROL_REF
 shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
-  return NULL;
+  INIT;
+  ShoesTextView *tv = [[ShoesTextView alloc] initWithFrame:
+    NSMakeRect(place->ix + place->dx, place->iy + place->dy,
+    place->ix + place->dx + place->iw, place->iy + place->dy + place->ih)
+    andObject: self];
+  shoes_native_edit_box_set_text((NSControl *)tv, msg);
+  RELEASE;
+  return (NSControl *)tv;
 }
 
 VALUE
 shoes_native_edit_box_get_text(SHOES_CONTROL_REF ref)
 {
-  return Qnil;
+  VALUE text = Qnil;
+  INIT;
+  text = rb_str_new2([[[(ShoesTextView *)ref textStorage] string] UTF8String]);
+  RELEASE;
+  return text;
 }
 
 void
 shoes_native_edit_box_set_text(SHOES_CONTROL_REF ref, char *msg)
 {
+  INIT;
+  [[[(ShoesTextView *)ref textStorage] mutableString] setString: [NSString stringWithUTF8String: msg]];
+  RELEASE;
 }
 
 SHOES_CONTROL_REF
@@ -606,6 +651,7 @@ shoes_dialog_open(VALUE self)
   NSOpenPanel* openDlg = [NSOpenPanel openPanel];
   [openDlg setCanChooseFiles:YES];
   [openDlg setCanChooseDirectories:NO];
+  [openDlg setAllowsMultipleSelection:NO];
   if ( [openDlg runModalForDirectory:nil file:nil] == NSOKButton )
   {
     NSArray* files = [openDlg filenames];
@@ -619,12 +665,9 @@ VALUE
 shoes_dialog_save(VALUE self)
 {
   NSSavePanel* saveDlg = [NSSavePanel savePanel];
-  [saveDlg setCanChooseFiles:YES];
-  [saveDlg setCanChooseDirectories:NO];
   if ( [saveDlg runModalForDirectory:nil file:nil] == NSOKButton )
   {
-    NSArray* files = [saveDlg filenames];
-    char *filename = [[files objectAtIndex: 0] UTF8String];
+    char *filename = [[saveDlg filename] UTF8String];
     return rb_str_new2(filename);
   }
   return Qnil;

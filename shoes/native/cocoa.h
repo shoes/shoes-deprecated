@@ -21,9 +21,16 @@
 }
 @end
 
-@interface ShoesTextField : NSSecureTextField
+@interface ShoesTextField : NSTextField
 {
   VALUE object;
+}
+@end
+
+@interface ShoesTextView : NSScrollView
+{
+  VALUE object;
+  NSTextView *textView;
 }
 @end
 
