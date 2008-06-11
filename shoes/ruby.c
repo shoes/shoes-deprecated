@@ -2835,8 +2835,8 @@ shoes_button_draw(VALUE self, VALUE c, VALUE actual)
   SETUP_CONTROL(2, 0);
 
 #ifdef SHOES_QUARTZ
-  place.h += 4;
-  place.ih += 4;
+  place.h += 8;
+  place.ih += 8;
 #endif
   if (RTEST(actual))
   {
@@ -2981,6 +2981,10 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE actual)
 {
   SETUP_CONTROL(0, 0);
 
+#ifdef SHOES_QUARTZ
+  place.h += 4;
+  place.ih += 4;
+#endif
   if (RTEST(actual))
   {
     if (self_t->ref == NULL)

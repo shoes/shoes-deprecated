@@ -10,7 +10,7 @@
 #include "shoes/internal.h"
 #include <Carbon/Carbon.h>
 
-#define HEIGHT_PAD 10
+#define HEIGHT_PAD 6
 
 #define INIT    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init]
 #define RELEASE [pool release]
@@ -53,15 +53,20 @@
   c->slot.context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
   shoes_canvas_paint(canvas);
 }
+- (void)animate: (NSTimer *)t
+{
+  VALUE timer = (VALUE)[t userInfo];
+  shoes_timer_call(timer);
+}
 @end
 
 @implementation ShoesButton
-- (id)initWithFrame: (NSRect)frame andObject: (VALUE)o
+- (id)initWithType: (NSButtonType)t andObject: (VALUE)o
 {
-  if ((self = [super initWithFrame: frame]))
+  if ((self = [super init]))
   {
     object = o;
-    [self setButtonType: NSMomentaryPushInButton];
+    [self setButtonType: t];
     [self setBezelStyle: NSRoundedBezelStyle];
     [self setTarget: self];
     [self setAction: @selector(handleClick:)];
@@ -404,9 +409,7 @@ SHOES_CONTROL_REF
 shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, char *msg)
 {
   INIT;
-  ShoesButton *button = [[ShoesButton alloc] initWithFrame: 
-    NSMakeRect(place->ix + place->dx, place->iy + place->dy, 
-    place->ix + place->dx + place->iw, place->iy + place->dy + place->ih)
+  ShoesButton *button = [[ShoesButton alloc] initWithType: NSMomentaryPushInButton
     andObject: self];
   [button setTitle: [NSString stringWithUTF8String: msg]];
   RELEASE;
@@ -524,52 +527,70 @@ shoes_native_list_box_set_active(SHOES_CONTROL_REF ref, VALUE ary, VALUE item)
 SHOES_CONTROL_REF
 shoes_native_progress(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
-  return NULL;
+  INIT;
+  NSProgressIndicator *pop = [[NSProgressIndicator alloc] init];
+  [pop setBezeled: YES];
+  RELEASE;
+  return (NSControl *)pop;
 }
 
 double
 shoes_native_progress_get_fraction(SHOES_CONTROL_REF ref)
 {
-  return 0.0;
+  return [(NSProgressIndicator *)ref doubleValue] * 0.01;
 }
 
 void
 shoes_native_progress_set_fraction(SHOES_CONTROL_REF ref, double perc)
 {
+  [(NSProgressIndicator *)ref setDoubleValue: perc * 100.];
 }
 
 SHOES_CONTROL_REF
 shoes_native_check(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
-  return NULL;
+  INIT;
+  ShoesButton *button = [[ShoesButton alloc] initWithType: NSSwitchButton
+    andObject: self];
+  RELEASE;
+  return (NSControl *)button;
 }
 
 VALUE
 shoes_native_check_get(SHOES_CONTROL_REF ref)
 {
-  return Qfalse;
+  return [(ShoesButton *)ref state] == NSOnState ? Qtrue : Qfalse;
 }
 
 void
 shoes_native_check_set(SHOES_CONTROL_REF ref, int on)
 {
+  [(ShoesButton *)ref setState: on ? NSOnState : NSOffState];
 }
 
 SHOES_CONTROL_REF
 shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
-  return NULL;
+  INIT;
+  ShoesButton *button = [[ShoesButton alloc] initWithType: NSRadioButton
+    andObject: self];
+  RELEASE;
+  return (NSControl *)button;
 }
 
 void
 shoes_native_timer_remove(shoes_canvas *canvas, SHOES_TIMER_REF ref)
 {
+  [ref invalidate];
 }
 
 SHOES_TIMER_REF
 shoes_native_timer_start(VALUE self, shoes_canvas *canvas, unsigned int interval)
 {
-  return NULL;
+  NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval: (double)interval * 0.001
+    target: canvas->slot.view selector: @selector(animate:) userInfo: self
+    repeats: rb_obj_is_kind_of(self, cTimer) ? YES : NO];
+  return timer;
 }
 
 VALUE
@@ -600,7 +621,7 @@ shoes_dialog_alert(VALUE self, VALUE msg)
 {
   INIT;
   VALUE answer = Qnil;
-  NSAlert *alert = [NSAlert alertWithMessageText: nil
+  NSAlert *alert = [NSAlert alertWithMessageText: @"Shoes says:"
     defaultButton: @"OK" alternateButton: nil otherButton: nil 
     informativeTextWithFormat: [NSString stringWithUTF8String: RSTRING_PTR(msg)]];
   [alert runModal];
@@ -620,7 +641,7 @@ shoes_dialog_confirm(VALUE self, VALUE quiz)
   INIT;
   VALUE answer = Qnil;
   char *msg = RSTRING_PTR(quiz);
-  NSAlert *alert = [NSAlert alertWithMessageText: nil
+  NSAlert *alert = [NSAlert alertWithMessageText: @"Shoes asks:"
     defaultButton: @"OK" alternateButton: @"Cancel" otherButton:nil 
     informativeTextWithFormat: [NSString stringWithUTF8String: msg]];
   answer = ([alert runModal] == NSAlertFirstButtonReturn ? Qtrue : Qfalse);
