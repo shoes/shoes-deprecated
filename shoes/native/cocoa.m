@@ -90,6 +90,27 @@
 {
   [self sendMotion: e ofType: s_motion withButton: 0];
 }
+- (void)scrollWheel: (NSEvent *)e
+{
+  ID wheel;
+  int dy = [e deltaY] * 10;
+  NSPoint p = [e locationInWindow];
+  shoes_app *a;
+
+  if (dy == 0)
+    return;
+  else if (dy > 0)
+    wheel = s_up;
+  else
+  {
+    wheel = s_down;
+    dy = -dy;
+  }
+
+  Data_Get_Struct(app, shoes_app, a);
+  for (; dy > 0; dy--)
+    shoes_app_wheel(a, wheel, p.x, p.y);
+}
 - (void)keyDown: (NSEvent *)e
 {
   shoes_app *a;
