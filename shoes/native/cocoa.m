@@ -545,8 +545,9 @@ void
 shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc)
 {
   NSRect rect, rect2;
+  int newy = (self_t->place.iy + self_t->place.dy) - pc->slot.scrolly;
   rect.origin.x = (self_t->place.ix + self_t->place.dx) * 1.;
-  rect.origin.y = ((self_t->place.iy + self_t->place.dy) * 1.) + 4;
+  rect.origin.y = ((newy) * 1.) + 4;
   rect.size.width = (self_t->place.iw * 1.) + 4;
   rect.size.height = (self_t->place.ih * 1.) - 8;
   rect2 = [self_t->slot.view frame];
