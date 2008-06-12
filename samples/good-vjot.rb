@@ -1,4 +1,19 @@
-NOTES = []
+NOTES = [['Welcome to the vJot Clone', <<-'END']]
+This sample app is a notetaker, a clone of PJ Hyett's vjot.com.
+
+Creating
+----------
+Click "Add a New Note" and the jot will be loaded into the editor for reading or editing.
+
+Editing
+---------
+Click a jot's title to load it.
+
+Saving
+--------
+There is no save button, the jot is saved as you edit.
+
+END
 
 Shoes.app :title => "vJot", 
   :width => 420, :height => 560, :resizable => false do
@@ -39,20 +54,3 @@ Shoes.app :title => "vJot",
 
   load_list
 end
-
-NOTES << ['Welcome to the vJot Clone', <<-'END']
-This sample app is a notetaker, a clone of PJ Hyett's vjot.com.
-
-Creating
-----------
-Click "Add a New Note" and the jot will be loaded into the editor for reading or editing.
-
-Editing
----------
-Click a jot's title to load it.
-
-Saving
---------
-There is no save button, the jot is saved as you edit.
-
-END

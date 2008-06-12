@@ -239,11 +239,29 @@ int shoes_native_slot_gutter(SHOES_SLOT_OS *slot)
 
 void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c)
 {
+  if (c)
+  {
+    long i = rb_ary_index_of(slot->controls, item);
+    if (i >= 0)
+      rb_ary_insert_at(slot->controls, i, 1, Qnil);
+  }
 }
 
 shoes_code
 shoes_app_cursor(shoes_app *app, ID cursor)
 {
+  if (app->os.window == NULL || app->cursor == cursor)
+    goto done;
+
+  if (cursor == s_hand)
+    [[NSCursor pointingHandCursor] set];
+  else if (cursor == s_arrow)
+    [[NSCursor arrowCursor] set];
+  else
+    goto done;
+
+  app->cursor = cursor;
+
 done:
   return SHOES_OK;
 }
@@ -416,6 +434,9 @@ shoes_native_control_focus(SHOES_CONTROL_REF ref)
 void
 shoes_native_control_remove(SHOES_CONTROL_REF ref, shoes_canvas *canvas)
 {
+  INIT;
+  [ref removeFromSuperview];
+  RELEASE;
 }
 
 void
