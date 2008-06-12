@@ -1636,8 +1636,10 @@ shoes_canvas_toggle(VALUE self)
 {
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
-  ATTRSET(self_t->attr, hidden, ATTR(self_t->attr, hidden) == Qtrue ? Qfalse : Qtrue);
-  shoes_canvas_repaint_all(self);
+  if (RTEST(ATTR(self_t->attr, hidden)))
+    shoes_canvas_show(self);
+  else
+    shoes_canvas_hide(self);
   return self;
 }
 
