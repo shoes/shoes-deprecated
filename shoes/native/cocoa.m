@@ -90,6 +90,68 @@
 {
   [self sendMotion: e ofType: s_motion withButton: 0];
 }
+- (void)keyDown: (NSEvent *)e
+{
+  shoes_app *a;
+  VALUE v = Qnil;
+  unsigned int modifier = [e modifierFlags];
+  unsigned short key = [e keyCode];
+  INIT;
+
+  Data_Get_Struct(app, shoes_app, a);
+  KEY_SYM(TAB, tab)
+  KEY_SYM(BS, backspace)
+  KEY_SYM(PRIOR, page_up)
+  KEY_SYM(NEXT, page_down)
+  KEY_SYM(HOME, home)
+  KEY_SYM(END, end)
+  KEY_SYM(LEFT, left)
+  KEY_SYM(UP, up)
+  KEY_SYM(RIGHT, right)
+  KEY_SYM(DOWN, down)
+  KEY_SYM(F1, f1)
+  KEY_SYM(F2, f2)
+  KEY_SYM(F3, f3)
+  KEY_SYM(F4, f4)
+  KEY_SYM(F5, f5)
+  KEY_SYM(F6, f6)
+  KEY_SYM(F7, f7)
+  KEY_SYM(F8, f8)
+  KEY_SYM(F9, f9)
+  KEY_SYM(F10, f10)
+  KEY_SYM(F11, f11)
+  KEY_SYM(F12, f12)
+  {
+    NSString *str = [e charactersIgnoringModifiers];
+    if (str)
+    {
+      char *utf8 = [str UTF8String];
+      if (utf8[0] == '\r' && [str length] == 1)
+        v = rb_str_new2("\n");
+      else
+        v = rb_str_new2(utf8);
+    }
+  }
+
+  if (SYMBOL_P(v))
+  {
+    if ((modifier & NSCommandKeyMask) || (modifier & NSAlternateKeyMask))
+      KEY_STATE(alt);
+    if (modifier & NSShiftKeyMask)
+      KEY_STATE(shift);
+    if (modifier & NSControlKeyMask)
+      KEY_STATE(control);
+  }
+  else
+  {
+    if ((modifier & NSCommandKeyMask) || (modifier & NSAlternateKeyMask))
+      KEY_STATE(alt);
+  }
+
+  if (v != Qnil)
+    shoes_app_keypress(a, v);
+  RELEASE;
+}
 - (void)windowWillClose: (NSNotification *)n
 {
   shoes_app *a;
