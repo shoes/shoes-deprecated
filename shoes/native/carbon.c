@@ -935,21 +935,21 @@ shoes_native_control_free(SHOES_CONTROL_REF ref)
   DisposeControl(ref);
 }
 
-SHOES_CONTROL_REF
+SHOES_SURFACE_REF
 shoes_native_surface_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
 {
   return GetWindowPort(canvas->app->os.window);
 }
 
 void
-shoes_native_surface_position(SHOES_CONTROL_REF ref, shoes_place *p1, 
+shoes_native_surface_position(SHOES_SURFACE_REF ref, shoes_place *p1, 
   VALUE self, shoes_canvas *canvas, shoes_place *p2)
 {
   PLACE_COORDS();
 }
 
 void
-shoes_native_surface_remove(shoes_canvas *canvas, SHOES_CONTROL_REF ref)
+shoes_native_surface_remove(shoes_canvas *canvas, SHOES_SURFACE_REF ref)
 {
 //   HIViewRemoveFromSuperview(self_t->ref);
 }

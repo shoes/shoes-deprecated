@@ -1280,7 +1280,7 @@ shoes_video_hide(VALUE self)
 {
   GET_STRUCT(video, self_t);
   ATTRSET(self_t->attr, hidden, Qtrue);
-  shoes_control_hide_ref(self_t->ref);
+  shoes_native_surface_hide(self_t->ref);
   shoes_canvas_repaint_all(self_t->parent);
   return self;
 }
@@ -1290,7 +1290,7 @@ shoes_video_show(VALUE self)
 {
   GET_STRUCT(video, self_t);
   ATTRSET(self_t->attr, hidden, Qfalse);
-  shoes_control_show_ref(self_t->ref);
+  shoes_native_surface_show(self_t->ref);
   shoes_canvas_repaint_all(self_t->parent);
   return self;
 }
@@ -1325,7 +1325,7 @@ shoes_video_draw(VALUE self, VALUE c, VALUE actual)
         shoes_vlc_exception(&self_t->excp);
 
         self_t->ref = shoes_native_surface_new(canvas, self, &self_t->place);
-        shoes_native_surface_position(self_t, canvas, &place);
+        shoes_native_surface_position(self_t->ref, &self_t->place, self, canvas, &place);
 
         libvlc_video_set_parent(self_t->vlc, DRAWABLE(self_t->ref), &self_t->excp);
         shoes_vlc_exception(&self_t->excp);

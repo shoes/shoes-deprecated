@@ -970,11 +970,11 @@ inline void shoes_win32_control_font(int id, HWND hwnd)
   SendDlgItemMessage(hwnd, id, WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), MAKELPARAM(true, 0));
 }
 
-SHOES_CONTROL_REF
+SHOES_SURFACE_REF
 shoes_native_surface_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
 {
   int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
-  SHOES_CONTROL_REF ref = CreateWindowEx(0, SHOES_VLCLASS, "Shoes VLC Window",
+  SHOES_SURFACE_REF ref = CreateWindowEx(0, SHOES_VLCLASS, "Shoes VLC Window",
       WS_CHILD | WS_CLIPCHILDREN | WS_TABSTOP | WS_VISIBLE,
       place->ix + place->dx, place->iy + place->dy,
       place->iw, place->ih,
@@ -985,14 +985,26 @@ shoes_native_surface_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
 }
 
 void
-shoes_native_surface_position(SHOES_CONTROL_REF ref, shoes_place *p1, 
+shoes_native_surface_position(SHOES_SURFACE_REF ref, shoes_place *p1, 
   VALUE self, shoes_canvas *canvas, shoes_place *p2)
 {
   shoes_native_control_position(ref, p1, self, canvas, p2);
 }
 
 void
-shoes_native_surface_remove(shoes_canvas *canvas, SHOES_CONTROL_REF ref)
+shoes_native_surface_hide(SHOES_SURFACE_REF ref)
+{
+  shoes_native_control_hide(ref);
+}
+
+void
+shoes_native_surface_show(SHOES_SURFACE_REF ref)
+{
+  shoes_native_control_show(ref);
+}
+
+void
+shoes_native_surface_remove(shoes_canvas *canvas, SHOES_SURFACE_REF ref)
 {
   DestroyWindow(ref);
 }
