@@ -506,6 +506,7 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
   [slot->view setAutoresizesSubviews: NO];
   if (toplevel)
     [slot->view setAutoresizingMask: (NSViewWidthSizable | NSViewHeightSizable)];
+  slot->vscroll = NULL;
   if (scrolls)
   {
     slot->vscroll = [[NSScroller alloc] initWithFrame: 
@@ -598,10 +599,12 @@ void
 shoes_native_control_repaint(SHOES_CONTROL_REF ref, shoes_place *p1,
   shoes_canvas *canvas, shoes_place *p2)
 {
+  p2->iy -= canvas->slot.scrolly;
   if (CHANGED_COORDS()) {
     PLACE_COORDS();
     shoes_native_control_frame(ref, p2);
   }
+  p2->iy += canvas->slot.scrolly;
 }
 
 void
