@@ -181,14 +181,11 @@
 
   c->width = bounds.size.width;
   c->height = bounds.size.height;
-  if (c->place.iw != c->width || c->place.ih != c->height)
+  if (c->slot.vscroll)
   {
-    if (c->slot.vscroll)
-    {
-      [c->slot.vscroll setFrame: NSMakeRect(c->width - [NSScroller scrollerWidth], 0,
-        [NSScroller scrollerWidth], c->height)];
-      shoes_native_slot_lengthen(&c->slot, c->height, c->endy);
-    }
+    [c->slot.vscroll setFrame: NSMakeRect(c->width - [NSScroller scrollerWidth], 0,
+      [NSScroller scrollerWidth], c->height)];
+    shoes_native_slot_lengthen(&c->slot, c->height, c->endy);
   }
   c->place.iw = c->place.w = c->width;
   c->place.ih = c->place.h = c->height;
@@ -547,9 +544,9 @@ shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc)
   NSRect rect, rect2;
   int newy = (self_t->place.iy + self_t->place.dy) - pc->slot.scrolly;
   rect.origin.x = (self_t->place.ix + self_t->place.dx) * 1.;
-  rect.origin.y = ((newy) * 1.) + 4;
-  rect.size.width = (self_t->place.iw * 1.) + 4;
-  rect.size.height = (self_t->place.ih * 1.) - 8;
+  rect.origin.y = ((newy) * 1.);
+  rect.size.width = (self_t->place.iw * 1.);
+  rect.size.height = (self_t->place.ih * 1.);
   rect2 = [self_t->slot.view frame];
   if (rect.origin.x != rect2.origin.x || rect.origin.y != rect2.origin.y ||
       rect.size.width != rect2.size.width || rect.size.height != rect2.size.height)
