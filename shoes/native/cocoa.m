@@ -197,6 +197,35 @@
 }
 - (void)scroll: (NSScroller *)scroller
 {
+  shoes_canvas *c;
+  Data_Get_Struct(canvas, shoes_canvas, c);
+
+  switch ([scroller hitPart])
+  {
+    case NSScrollerIncrementLine:
+      c->slot.scrolly += 16;
+    break;
+    case NSScrollerDecrementLine:
+      c->slot.scrolly -= 16;
+    break;
+    case NSScrollerIncrementPage:
+      c->slot.scrolly += c->height - 32;
+    break;
+    case NSScrollerDecrementPage:
+      c->slot.scrolly -= c->height - 32;
+    break;
+    case NSScrollerKnobSlot:
+    case NSScrollerKnob:
+    default:
+      c->slot.scrolly = (c->endy - c->height) * [scroller floatValue];
+    break;
+  }
+
+  if (c->slot.scrolly > c->endy - c->height)
+    c->slot.scrolly = c->endy - c->height;
+  if (c->slot.scrolly < 0)
+    c->slot.scrolly = 0;
+  shoes_slot_repaint(&c->slot);
 }
 @end
 
@@ -360,8 +389,8 @@ void shoes_native_slot_lengthen(SHOES_SLOT_OS *slot, int height, int endy)
 {
   if (slot->vscroll)
   {
-    float s = slot->scrolly * 1., e = endy * 1., h = height * 1.;
-    [slot->vscroll setFloatValue: (s / e) knobProportion: (h / e)];
+    float s = slot->scrolly * 1., e = endy * 1., h = height * 1., d = (endy - height) * 1.;
+    [slot->vscroll setFloatValue: (d > 0 ? s / d : 0) knobProportion: (h / e)];
     [slot->vscroll setHidden: endy <= height ? YES : NO];
   }
 }
@@ -495,9 +524,12 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
 cairo_t *
 shoes_cairo_create(shoes_canvas *canvas)
 {
+  cairo_t *cr;
   canvas->slot.surface = cairo_quartz_surface_create_for_cg_context(canvas->slot.context,
     canvas->width, canvas->height);
-  return cairo_create(canvas->slot.surface);
+  cr = cairo_create(canvas->slot.surface);
+  cairo_translate(cr, 0, 0 - canvas->slot.scrolly);
+  return cr;
 }
 
 void shoes_cairo_destroy(shoes_canvas *canvas)
