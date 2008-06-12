@@ -256,12 +256,11 @@
     object = o;
     // [[self cell] setEchosBullets: secret];
     [self setBezelStyle: NSRegularSquareBezelStyle];
-    [self setTarget: self];
-    [self setAction: @selector(handleChange:)];
+    [self setDelegate: self];
   }
   return self;
 }
--(IBAction)handleChange: (id)sender
+-(void)textDidChange: (NSNotification *)n
 {
   shoes_control_send(object, s_change);
 }
@@ -282,8 +281,7 @@
     [self setHasVerticalScroller: YES];
     [self setHasHorizontalScroller: NO];
     [self setDocumentView: textView];
-    // [self setTarget: self];
-    // [self setAction: @selector(handleChange:)];
+    [textView setDelegate: self];
   }
   return self;
 }
@@ -291,7 +289,7 @@
 {
   return [textView textStorage];
 }
--(IBAction)handleChange: (id)sender
+-(void)textDidChange: (NSNotification *)n
 {
   shoes_control_send(object, s_change);
 }
