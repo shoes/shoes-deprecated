@@ -106,8 +106,7 @@ typedef struct {
 } shoes_group_quartz, SHOES_GROUP_OS;
 
 typedef struct {
-  NSWindow *window;
-  ShoesWindowEvents *events;
+  ShoesWindow *window;
   NSView *view;
 } shoes_app_quartz, SHOES_APP_OS;
 

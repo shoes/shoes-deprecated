@@ -320,6 +320,7 @@ shoes_app_motion(shoes_app *app, int x, int y)
 shoes_code
 shoes_app_click(shoes_app *app, int button, int x, int y)
 {
+  app->mouseb = button;
   shoes_canvas_send_click(app->canvas, button, x, y);
   return SHOES_OK;
 }
@@ -327,6 +328,7 @@ shoes_app_click(shoes_app *app, int button, int x, int y)
 shoes_code
 shoes_app_release(shoes_app *app, int button, int x, int y)
 {
+  app->mouseb = 0;
   shoes_canvas_send_release(app->canvas, button, x, y);
   return SHOES_OK;
 }

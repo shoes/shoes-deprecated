@@ -29,14 +29,66 @@
 }
 @end
 
-@implementation ShoesWindowEvents
-- (id)initWithApp: (VALUE)a
+@implementation ShoesWindow
+- (void)prepareWithApp: (VALUE)a
 {
-  if ((self = [super init]))
-  {
-    app = a;
-  }
-  return self;
+  app = a;
+  [self setAcceptsMouseMovedEvents: YES];
+  [self setDelegate: self];
+}
+- (void)sendMotion: (NSEvent *)e ofType: (ID)type withButton: (int)b
+{
+  shoes_app *a;
+  shoes_canvas *canvas;
+  NSPoint p = [e locationInWindow];
+  Data_Get_Struct(app, shoes_app, a);
+  Data_Get_Struct(a->canvas, shoes_canvas, canvas);
+  if (type == s_motion)
+    shoes_app_motion(a, p.x, (canvas->height - p.y) + canvas->slot.scrolly);
+  else if (type == s_click)
+    shoes_app_click(a, b, p.x, (canvas->height - p.y) + canvas->slot.scrolly);
+  else if (type == s_release)
+    shoes_app_release(a, b, p.x, (canvas->height - p.y) + canvas->slot.scrolly);
+}
+- (void)mouseDown: (NSEvent *)e
+{
+  [self sendMotion: e ofType: s_click withButton: 1];
+}
+- (void)rightMouseDown: (NSEvent *)e
+{
+  [self sendMotion: e ofType: s_click withButton: 2];
+}
+- (void)otherMouseDown: (NSEvent *)e
+{
+  [self sendMotion: e ofType: s_click withButton: 3];
+}
+- (void)mouseUp: (NSEvent *)e
+{
+  [self sendMotion: e ofType: s_release withButton: 1];
+}
+- (void)rightMouseUp: (NSEvent *)e
+{
+  [self sendMotion: e ofType: s_release withButton: 2];
+}
+- (void)otherMouseUp: (NSEvent *)e
+{
+  [self sendMotion: e ofType: s_release withButton: 3];
+}
+- (void)mouseMoved: (NSEvent *)e
+{
+  [self sendMotion: e ofType: s_motion withButton: 0];
+}
+- (void)mouseDragged: (NSEvent *)e
+{
+  [self sendMotion: e ofType: s_motion withButton: 0];
+}
+- (void)rightMouseDragged: (NSEvent *)e
+{
+  [self sendMotion: e ofType: s_motion withButton: 0];
+}
+- (void)otherMouseDragged: (NSEvent *)e
+{
+  [self sendMotion: e ofType: s_motion withButton: 0];
 }
 - (void)windowWillClose: (NSNotification *)n
 {
@@ -287,11 +339,10 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
   INIT;
   shoes_code code = SHOES_OK;
 
-  app->os.window = [[NSWindow alloc] initWithContentRect: NSMakeRect(0, 0, app->width, app->height)
+  app->os.window = [[ShoesWindow alloc] initWithContentRect: NSMakeRect(0, 0, app->width, app->height)
     styleMask: (NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
     backing: NSBackingStoreBuffered defer: NO];
-  app->os.events = [[ShoesWindowEvents alloc] initWithApp: app->self];
-  [app->os.window setDelegate: app->os.events];
+  [app->os.window prepareWithApp: app->self];
   app->slot.view = [app->os.window contentView];
   RELEASE;
 
@@ -315,7 +366,9 @@ shoes_native_loop()
 void
 shoes_native_app_close(shoes_app *app)
 {
+  INIT;
   [app->os.window close];
+  RELEASE;
 }
 
 void

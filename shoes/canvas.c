@@ -1757,7 +1757,8 @@ shoes_canvas_mouse(VALUE self)
   int x = 0, y = 0, button = 0;
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
-  return rb_ary_new3(3, INT2NUM(0), INT2NUM(self_t->app->mousex), INT2NUM(self_t->app->mousey));
+  return rb_ary_new3(3, INT2NUM(self_t->app->mouseb), 
+    INT2NUM(self_t->app->mousex), INT2NUM(self_t->app->mousey));
 }
 
 VALUE

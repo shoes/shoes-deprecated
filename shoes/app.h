@@ -30,7 +30,8 @@
 typedef struct _shoes_app {
   SHOES_APP_OS os;
   SHOES_SLOT_OS slot;
-  int width, height, mousex, mousey, resizable, hidden, started;
+  int width, height, mouseb, mousex, mousey,
+    resizable, hidden, started;
   VALUE self;
   VALUE canvas;
   VALUE nestslot;

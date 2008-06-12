@@ -9,7 +9,7 @@
 }
 @end
 
-@interface ShoesWindowEvents : NSObject
+@interface ShoesWindow : NSWindow
 {
   VALUE app;
 }
