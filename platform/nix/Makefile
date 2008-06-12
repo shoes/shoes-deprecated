@@ -1,7 +1,7 @@
 # shoes - abstract windowing for gtk, osx, and win32
 # by why the lucky stiff, released to you under the MIT license
 
-SRC = shoes/app.c shoes/canvas.c shoes/dialogs.c shoes/image.c shoes/internal.c shoes/ruby.c shoes/world.c
+SRC = shoes/app.c shoes/canvas.c shoes/dialogs.c shoes/image.c shoes/internal.c shoes/ruby.c shoes/world.c shoes/native/gtk.c
 OBJ = ${SRC:.c=.o}
 
 PREFIX = /usr/local
