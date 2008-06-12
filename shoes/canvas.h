@@ -38,6 +38,7 @@ extern const char *dialog_title, *dialog_title_says;
 
 #define HOVER_MOTION  0x01
 #define HOVER_CLICK   0x02
+
 //
 // place struct
 // (outlines the area where a control has been placed)
@@ -255,6 +256,7 @@ VALUE shoes_canvas_alloc(VALUE);
 VALUE shoes_canvas_new(VALUE, struct _shoes_app *);
 void shoes_canvas_clear(VALUE);
 shoes_canvas *shoes_canvas_init(VALUE, SHOES_SLOT_OS, VALUE, int, int);
+void shoes_slot_scroll_to(shoes_canvas *, int, int);
 void shoes_canvas_paint(VALUE);
 void shoes_apply_transformation(shoes_canvas *, cairo_matrix_t *, 
   double, double, double, double, VALUE);
@@ -365,6 +367,7 @@ VALUE shoes_canvas_goto(VALUE, VALUE);
 VALUE shoes_canvas_send_click(VALUE, int, int, int);
 void shoes_canvas_send_release(VALUE, int, int, int);
 VALUE shoes_canvas_send_motion(VALUE, int, int, VALUE);
+void shoes_canvas_send_wheel(VALUE, ID, int, int);
 void shoes_canvas_send_keypress(VALUE, VALUE);
 VALUE shoes_canvas_get_clipboard(VALUE);
 VALUE shoes_canvas_set_clipboard(VALUE, VALUE);

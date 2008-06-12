@@ -200,29 +200,23 @@
   switch ([scroller hitPart])
   {
     case NSScrollerIncrementLine:
-      c->slot.scrolly += 16;
+      shoes_slot_scroll_to(c, 16, 1);
     break;
     case NSScrollerDecrementLine:
-      c->slot.scrolly -= 16;
+      shoes_slot_scroll_to(c, -16, 1);
     break;
     case NSScrollerIncrementPage:
-      c->slot.scrolly += c->height - 32;
+      shoes_slot_scroll_to(c, c->height - 32, 1);
     break;
     case NSScrollerDecrementPage:
-      c->slot.scrolly -= c->height - 32;
+      shoes_slot_scroll_to(c, -(c->height - 32), 1);
     break;
     case NSScrollerKnobSlot:
     case NSScrollerKnob:
     default:
-      c->slot.scrolly = (c->endy - c->height) * [scroller floatValue];
+      shoes_slot_scroll_to(c, (c->endy - c->height) * [scroller floatValue], 0);
     break;
   }
-
-  if (c->slot.scrolly > c->endy - c->height)
-    c->slot.scrolly = c->endy - c->height;
-  if (c->slot.scrolly < 0)
-    c->slot.scrolly = 0;
-  shoes_slot_repaint(&c->slot);
 }
 @end
 

@@ -49,9 +49,7 @@ VALUE
 shoes_canvas_set_scroll_top(VALUE self, VALUE num)
 {
   SETUP();
-  canvas->slot.scrolly = NUM2INT(num);
-  shoes_native_slot_scroll_top(&canvas->slot);
-  shoes_canvas_repaint_all(self);
+  shoes_slot_scroll_to(canvas, NUM2INT(num), 0);
   return num;
 }
 
@@ -295,6 +293,22 @@ shoes_canvas_init(VALUE self, SHOES_SLOT_OS slot, VALUE attr, int width, int hei
   canvas->place.iw = canvas->place.w = canvas->width = width;
   canvas->place.ih = canvas->place.h = canvas->height = height;
   return canvas;
+}
+
+void
+shoes_slot_scroll_to(shoes_canvas *canvas, int dy, int rel)
+{
+  if (rel)
+    canvas->slot.scrolly += dy;
+  else
+    canvas->slot.scrolly = dy;
+
+  if (canvas->slot.scrolly > canvas->endy - canvas->height)
+    canvas->slot.scrolly = canvas->endy - canvas->height;
+  if (canvas->slot.scrolly < 0)
+    canvas->slot.scrolly = 0;
+  shoes_native_slot_scroll_top(&canvas->slot);
+  shoes_slot_repaint(&canvas->slot);
 }
 
 VALUE
@@ -1917,6 +1931,32 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
   if (h) shoes_canvas_repaint_all(self);
 
   return url;
+}
+
+void
+shoes_canvas_send_wheel(VALUE self, ID dir, int x, int y)
+{
+  long i;
+  shoes_canvas *self_t;
+  Data_Get_Struct(self, shoes_canvas, self_t);
+
+  if (ATTR(self_t->attr, hidden) != Qtrue)
+  {
+    VALUE wheel = ATTR(self_t->attr, wheel);
+    if (!NIL_P(wheel))
+    {
+      shoes_safe_block(self, wheel, rb_ary_new3(3, ID2SYM(dir), INT2NUM(x), INT2NUM(y)));
+    }
+
+    for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--)
+    {
+      VALUE ele = rb_ary_entry(self_t->contents, i);
+      if (rb_obj_is_kind_of(ele, cCanvas))
+      {
+        shoes_canvas_send_wheel(ele, dir, x, y);
+      }
+    }
+  }
 }
 
 void

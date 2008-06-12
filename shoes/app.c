@@ -334,6 +334,22 @@ shoes_app_release(shoes_app *app, int button, int x, int y)
 }
 
 shoes_code
+shoes_app_wheel(shoes_app *app, ID dir, int x, int y)
+{
+  shoes_canvas *canvas;
+  Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+  if (canvas->slot.vscroll)
+  {
+    if (dir == s_up)
+      shoes_slot_scroll_to(canvas, -16, 1);
+    else if (dir == s_down)
+      shoes_slot_scroll_to(canvas, 16, 1);
+  }
+  shoes_canvas_send_wheel(app->canvas, dir, x, y);
+  return SHOES_OK;
+}
+
+shoes_code
 shoes_app_keypress(shoes_app *app, VALUE key)
 {
   if (key == symAltSlash)

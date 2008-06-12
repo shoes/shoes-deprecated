@@ -125,6 +125,25 @@ shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, gpointer data)
   return TRUE;
 }
 
+static gboolean
+shoes_app_gtk_wheel(GtkWidget *widget, GdkEventScroll *event, gpointer data)
+{ 
+  ID wheel;
+  shoes_canvas *canvas;
+  shoes_app *app = (shoes_app *)data; 
+  switch (event->direction)
+  {
+    case GDK_SCROLL_UP:    wheel = s_up;    break;
+    case GDK_SCROLL_DOWN:  wheel = s_down;  break;
+    case GDK_SCROLL_LEFT:  wheel = s_left;  break;
+    case GDK_SCROLL_RIGHT: wheel = s_right; break;
+    default: return TRUE;
+  }
+
+  shoes_app_wheel(app, wheel, event->x, event->y);
+  return TRUE;
+}
+
 static void
 shoes_app_gtk_paint (GtkWidget *widget, GdkEventExpose *event, gpointer data)
 { 
@@ -392,6 +411,8 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
                    G_CALLBACK(shoes_app_gtk_button), app);
   g_signal_connect(G_OBJECT(gk->window), "button-release-event",
                    G_CALLBACK(shoes_app_gtk_button), app);
+  g_signal_connect(G_OBJECT(gk->window), "scroll-event",
+                   G_CALLBACK(shoes_app_gtk_wheel), app);
   g_signal_connect(G_OBJECT(gk->window), "key-press-event",
                    G_CALLBACK(shoes_app_gtk_keypress), app);
   g_signal_connect(G_OBJECT(gk->window), "delete-event",
