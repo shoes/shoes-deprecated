@@ -31,11 +31,11 @@ void shoes_native_quit()
 
 void shoes_native_slot_mark(SHOES_SLOT_OS *slot) {}
 void shoes_native_slot_reset(SHOES_SLOT_OS *slot) {}
-void shoes_native_slot_clear(SHOES_SLOT_OS *slot)
+void shoes_native_slot_clear(shoes_canvas *canvas)
 {
-  if (slot->vscroll)
+  if (canvas->slot.vscroll)
   {
-    GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(slot->vscroll));
+    GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot.vscroll));
     gtk_adjustment_set_value(adj, adj->lower);
   }
 }

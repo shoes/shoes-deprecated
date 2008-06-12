@@ -263,7 +263,7 @@ shoes_app_visit(shoes_app *app, char *path)
   Data_Get_Struct(app->canvas, shoes_canvas, canvas);
 
   canvas->slot.scrolly = 0;
-  shoes_native_slot_clear(&app->slot);
+  shoes_native_slot_clear(canvas);
   for (i = 0; i < RARRAY_LEN(ary); i++) 
   {
     VALUE timer = rb_ary_entry(ary, i);

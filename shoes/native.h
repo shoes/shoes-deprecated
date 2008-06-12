@@ -13,7 +13,7 @@ void shoes_native_cleanup(shoes_world_t *world);
 void shoes_native_quit();
 void shoes_native_slot_mark(SHOES_SLOT_OS *);
 void shoes_native_slot_reset(SHOES_SLOT_OS *);
-void shoes_native_slot_clear(SHOES_SLOT_OS *);
+void shoes_native_slot_clear(shoes_canvas *);
 void shoes_native_slot_paint(SHOES_SLOT_OS *);
 void shoes_native_slot_lengthen(SHOES_SLOT_OS *, int, int);
 void shoes_native_slot_scroll_top(SHOES_SLOT_OS *);

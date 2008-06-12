@@ -179,10 +179,24 @@
   NSRect bounds = [self bounds];
   Data_Get_Struct(canvas, shoes_canvas, c);
 
-  c->place.iw = c->place.w = c->width = bounds.size.width;
-  c->place.ih = c->place.h = c->height = bounds.size.height;
+  c->width = bounds.size.width;
+  c->height = bounds.size.height;
+  if (c->place.iw != c->width || c->place.ih != c->height)
+  {
+    if (c->slot.vscroll)
+    {
+      [c->slot.vscroll setFrame: NSMakeRect(c->width - [NSScroller scrollerWidth], 0,
+        [NSScroller scrollerWidth], c->height)];
+      shoes_native_slot_lengthen(&c->slot, c->height, c->endy);
+    }
+  }
+  c->place.iw = c->place.w = c->width;
+  c->place.ih = c->place.h = c->height;
   c->slot.context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
   shoes_canvas_paint(canvas);
+}
+- (void)scroll: (NSScroller *)scroller
+{
 }
 @end
 
@@ -328,9 +342,13 @@ void shoes_native_slot_reset(SHOES_SLOT_OS *slot)
   rb_gc_register_address(&slot->controls);
 }
 
-void shoes_native_slot_clear(SHOES_SLOT_OS *slot)
+void shoes_native_slot_clear(shoes_canvas *canvas)
 {
-  rb_ary_clear(slot->controls);
+  rb_ary_clear(canvas->slot.controls);
+  if (canvas->slot.vscroll)
+  {
+    shoes_native_slot_lengthen(&canvas->slot, canvas->height, 1);
+  }
 }
 
 void shoes_native_slot_paint(SHOES_SLOT_OS *slot)
@@ -340,6 +358,12 @@ void shoes_native_slot_paint(SHOES_SLOT_OS *slot)
 
 void shoes_native_slot_lengthen(SHOES_SLOT_OS *slot, int height, int endy)
 {
+  if (slot->vscroll)
+  {
+    float s = slot->scrolly * 1., e = endy * 1., h = height * 1.;
+    [slot->vscroll setFloatValue: (s / e) knobProportion: (h / e)];
+    [slot->vscroll setHidden: endy <= height ? YES : NO];
+  }
 }
 
 void shoes_native_slot_scroll_top(SHOES_SLOT_OS *slot)
@@ -348,7 +372,7 @@ void shoes_native_slot_scroll_top(SHOES_SLOT_OS *slot)
 
 int shoes_native_slot_gutter(SHOES_SLOT_OS *slot)
 {
-  return 0;
+  return (int)[NSScroller scrollerWidth];
 }
 
 void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c)
@@ -455,6 +479,15 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
   [slot->view setAutoresizesSubviews: NO];
   if (toplevel)
     [slot->view setAutoresizingMask: (NSViewWidthSizable | NSViewHeightSizable)];
+  if (scrolls)
+  {
+    slot->vscroll = [[NSScroller alloc] initWithFrame: 
+      NSMakeRect(width - [NSScroller scrollerWidth], 0, [NSScroller scrollerWidth], height)];
+    [slot->vscroll setEnabled: YES];
+    [slot->vscroll setTarget: slot->view];
+    [slot->vscroll setAction: @selector(scroll:)];
+    [slot->view addSubview: slot->vscroll];
+  }
   [parent->view addSubview: slot->view];
   RELEASE;
 }

@@ -57,9 +57,9 @@ void shoes_native_slot_reset(SHOES_SLOT_OS *slot)
   rb_gc_register_address(&slot->controls);
 }
 
-void shoes_native_slot_clear(SHOES_SLOT_OS *slot)
+void shoes_native_slot_clear(shoes_canvas *canvas)
 {
-  rb_ary_clear(slot->controls);
+  rb_ary_clear(canvas->slot.controls);
 }
 
 void shoes_native_slot_paint(SHOES_SLOT_OS *slot)
