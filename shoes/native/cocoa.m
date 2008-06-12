@@ -565,6 +565,8 @@ shoes_native_progress(VALUE self, shoes_canvas *canvas, shoes_place *place, VALU
 {
   INIT;
   NSProgressIndicator *pop = [[NSProgressIndicator alloc] init];
+  [pop setIndeterminate: FALSE];
+  [pop setDoubleValue: 0.];
   [pop setBezeled: YES];
   RELEASE;
   return (NSControl *)pop;
@@ -635,24 +637,40 @@ shoes_native_timer_start(VALUE self, shoes_canvas *canvas, unsigned int interval
 VALUE
 shoes_native_clipboard_get(shoes_app *app)
 {
-  return Qnil;
+  VALUE txt = Qnil;
+  INIT;
+  NSString *paste = [[NSPasteboard generalPasteboard] stringForType: NSStringPboardType];
+  if (paste) txt = rb_str_new2([paste UTF8String]);
+  RELEASE;
+  return txt;
 }
 
 void
 shoes_native_clipboard_set(shoes_app *app, VALUE string)
 {
+  INIT;
+  [[NSPasteboard generalPasteboard] declareTypes: [NSArray arrayWithObject: NSStringPboardType] owner: nil];
+  [[NSPasteboard generalPasteboard] setString: [NSString stringWithUTF8String: RSTRING_PTR(string)]
+    forType: NSStringPboardType];
+  RELEASE;
 }
 
 VALUE
 shoes_native_window_color(shoes_app *app)
 {
-  return Qnil;
+  // float r, g, b, a;
+  // INIT;
+  // [[[app->os.window backgroundColor] colorUsingColorSpace: [NSColorSpace genericRGBColorSpace]] 
+  //   getRed: &r green: &g blue: &b alpha: &a];
+  // RELEASE;
+  // return shoes_color_new((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255));
+  return shoes_color_new(255, 255, 255, 255);
 }
 
 VALUE
 shoes_native_dialog_color(shoes_app *app)
 {
-  return Qnil;
+  return shoes_native_window_color(app);
 }
 
 VALUE
