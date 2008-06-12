@@ -9,6 +9,12 @@
 }
 @end
 
+@interface ShoesWindowEvents : NSObject
+{
+  VALUE app;
+}
+@end
+
 @interface ShoesView : NSView
 {
   VALUE canvas;
@@ -37,5 +43,12 @@
 @interface ShoesPopUpButton : NSPopUpButton
 {
   VALUE object;
+}
+@end
+
+@interface ShoesTimer : NSObject
+{
+  VALUE object;
+  NSTimer *timer;
 }
 @end

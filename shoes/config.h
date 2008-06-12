@@ -107,6 +107,7 @@ typedef struct {
 
 typedef struct {
   NSWindow *window;
+  ShoesWindowEvents *events;
   NSView *view;
 } shoes_app_quartz, SHOES_APP_OS;
 
@@ -119,7 +120,7 @@ typedef struct {
 #define kShoesSlotData    'SLOT'
 
 #define SHOES_CONTROL_REF NSControl *
-#define SHOES_TIMER_REF NSTimer *
+#define SHOES_TIMER_REF ShoesTimer *
 #define DC(slot) slot.view
 #define HAS_DRAWABLE(slot) slot.context != NULL
 #define DRAWABLE(ref) ref

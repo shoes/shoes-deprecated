@@ -29,6 +29,23 @@
 }
 @end
 
+@implementation ShoesWindowEvents
+- (id)initWithApp: (VALUE)a
+{
+  if ((self = [super init]))
+  {
+    app = a;
+  }
+  return self;
+}
+- (void)windowWillClose: (NSNotification *)n
+{
+  shoes_app *a;
+  Data_Get_Struct(app, shoes_app, a);
+  shoes_app_remove(a);
+}
+@end
+
 @implementation ShoesView
 - (id)initWithFrame: (NSRect)frame andCanvas: (VALUE)c
 {
@@ -52,11 +69,6 @@
   c->place.ih = c->place.h = c->height = bounds.size.height;
   c->slot.context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
   shoes_canvas_paint(canvas);
-}
-- (void)animate: (NSTimer *)t
-{
-  VALUE timer = (VALUE)[t userInfo];
-  shoes_timer_call(timer);
 }
 @end
 
@@ -142,6 +154,28 @@
 -(IBAction)handleChange: (id)sender
 {
   shoes_control_send(object, s_change);
+}
+@end
+
+@implementation ShoesTimer
+- (id)initWithTimeInterval: (NSTimeInterval)i andObject: (VALUE)o repeats: (BOOL)r
+{
+  if ((self = [super init]))
+  {
+    object = o;
+    timer = [NSTimer scheduledTimerWithTimeInterval: i
+      target: self selector: @selector(animate:) userInfo: self
+      repeats: r];
+  }
+  return self;
+}
+- (void)animate: (NSTimer *)t
+{
+  shoes_timer_call(object);
+}
+- (void)invalidate
+{
+  [timer invalidate];
 }
 @end
 
@@ -238,6 +272,8 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
   app->os.window = [[NSWindow alloc] initWithContentRect: NSMakeRect(0, 0, app->width, app->height)
     styleMask: (NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
     backing: NSBackingStoreBuffered defer: NO];
+  app->os.events = [[ShoesWindowEvents alloc] initWithApp: app->self];
+  [app->os.window setDelegate: app->os.events];
   app->slot.view = [app->os.window contentView];
   RELEASE;
 
@@ -581,15 +617,18 @@ shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE a
 void
 shoes_native_timer_remove(shoes_canvas *canvas, SHOES_TIMER_REF ref)
 {
+  INIT;
   [ref invalidate];
+  RELEASE;
 }
 
 SHOES_TIMER_REF
 shoes_native_timer_start(VALUE self, shoes_canvas *canvas, unsigned int interval)
 {
-  NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval: (double)interval * 0.001
-    target: canvas->slot.view selector: @selector(animate:) userInfo: self
-    repeats: rb_obj_is_kind_of(self, cTimer) ? YES : NO];
+  INIT;
+  ShoesTimer *timer = [[ShoesTimer alloc] initWithTimeInterval: interval * 0.001
+    andObject: self repeats:(rb_obj_is_kind_of(self, cTimer) ? NO : YES)];
+  RELEASE;
   return timer;
 }
 
