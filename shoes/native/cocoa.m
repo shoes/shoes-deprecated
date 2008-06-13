@@ -20,6 +20,10 @@
 {
   return ((self = [super init]));
 }
+- (void)idle: (NSTimer *)t
+{
+  rb_eval_string("sleep(0.001)");
+}
 - (BOOL) application: (NSApplication *) anApplication
     openFile: (NSString *) aFileName
 {
@@ -349,9 +353,15 @@
 void shoes_native_init()
 {
   INIT;
+  NSTimer *idle;
   NSApplication *NSApp = [NSApplication sharedApplication];
   shoes_world->os.events = [[ShoesEvents alloc] init];
   [NSApp setDelegate: shoes_world->os.events];
+
+  idle = [NSTimer scheduledTimerWithTimeInterval: 0.01
+    target: shoes_world->os.events selector: @selector(idle:) userInfo: nil
+    repeats: YES];
+  [[NSRunLoop currentRunLoop] addTimer: idle forMode: NSEventTrackingRunLoopMode];
   RELEASE;
 }
 
