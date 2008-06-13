@@ -654,7 +654,10 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
     [slot->vscroll setAction: @selector(scroll:)];
     [slot->view addSubview: slot->vscroll];
   }
-  [parent->view addSubview: slot->view];
+  if (parent->vscroll)
+    [parent->view addSubview: slot->view positioned: NSWindowBelow relativeTo: parent->vscroll];
+  else
+    [parent->view addSubview: slot->view];
   RELEASE;
 }
 
@@ -729,7 +732,10 @@ shoes_native_control_position(SHOES_CONTROL_REF ref, shoes_place *p1, VALUE self
   shoes_canvas *canvas, shoes_place *p2)
 {
   PLACE_COORDS();
-  [canvas->slot.view addSubview: ref];
+  if (canvas->slot.vscroll)
+    [canvas->slot.view addSubview: ref positioned: NSWindowBelow relativeTo: canvas->slot.vscroll];
+  else
+    [canvas->slot.view addSubview: ref];
   shoes_native_control_frame(ref, p2);
   rb_ary_push(canvas->slot.controls, self);
 }
