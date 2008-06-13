@@ -172,8 +172,10 @@ module Shoes::Manual
       end
       meth_h['methods'].each do |mname, expl|
         if meth_a.nil? or meth_a == mname
+          sig, val = mname.split("»", 2)
           stack(:margin_top => 8, :margin_bottom => 8) { 
-            background "#333".."#666", :curve => 3, :angle => 90; tagline mname, :margin => 4 }
+            background "#333".."#666", :curve => 3, :angle => 90
+            tagline sig, (span("»", val, :stroke => "#BBB") if val), :margin => 4 }
           instance_eval &dewikify_hi(expl, terms)
         end
       end
@@ -240,8 +242,8 @@ def Shoes.make_help_page(str)
           :size => 7, :align => "center", :stroke => "#999"
       end
     end
-    image :width => 120, :height => 120, :top => -8, :left => 16 do
-      image "#{DIR}/static/shoes-icon.png", :width => 100, :height => 100, :top => 0, :left => 0
+    image :width => 120, :height => 120, :top => -18, :left => 6 do
+      image "#{DIR}/static/shoes-icon.png", :width => 100, :height => 100, :top => 10, :left => 10 
       glow 2
     end
   end
@@ -1093,13 +1095,27 @@ Notice that while the second button bounces, the other two buttons stay put.  If
 
 '''Of particular note:''' if you use the `left` and `top` methods to get the coordinates of a displaced element, you'll just get back the normal coordinates.  As if there was no displacement.  Displacing is just intended for quick animations!
 
+=== height() » a number ===
+
+The vertical screen size of the element in pixels.  In the case of images, this is not the 
+full size of the image.  This is the height of the element as it is shown right now.
+
+If you have a 150x150 pixel image and you set the width to 50 pixels, this method will return
+50.
+
+Also see the [[Common.width width]] method for an example and some other comments.
+
+=== hide() » self ===
+
+Hides the element, so that it can't be seen.  See also [[Common.show show]] and [[Common.toggle toggle]].
+
 === left() » a number ===
 
 Gets you the pixel position of the left edge of the element.
 
 === move(left: a number, top: a number) » self  ===
 
-Moves the element to a specific pixel position within its slot.  The element is still inside the slot.  But it will no longer be stacked or flowed in with the other stuff in the slot.  The element will float freely, now absolutely positioned.
+Moves the element to a specific pixel position within its slot.  The element is still inside the slot.  But it will no longer be stacked or flowed in with the other stuff in the slot.  The element will float freely, now absolutely positioned instead.
 
 {{{
  #!ruby
@@ -1124,9 +1140,62 @@ The second button is moved to a specific place, allowing the third button to sli
 
 Gets the object for this element's container.  Also see the slot's [[Traversing.contents contents]] to do the opposite: get a container's elements.
 
+=== remove() » self ===
+
+Removes the element from its slot.  (In other words: throws it in the garbage.)  The element will no longer be displayed.
+
+=== show() » self ===
+
+Reveals the element, if it is hidden.  See also [[Common.hide hide]] and [[Common.toggle toggle]].
+
+=== style() » styles ===
+
+Gives you the full set of styles applied to this element, in the form of a Hash.  While methods like `width` and `height` and `top` give you back specific pixel dimensions, using `style[:width]` or `style[:top]`, you can get the original setting (things like "100%" for width or "10px" for top.)
+
+{{{
+ #!ruby
+ Shoes.app do
+   # A button which take up the whole page
+   @b = button "All of it", :width => 1.0, :height => 1.0
+
+   # When clicked, show the styles
+   @b.click { alert(@b.style.inspect) }
+ end
+}}}
+
+=== style(styles) » styles ===
+
+Changes the style of an element.  This could include the `:width` and `:height` of an element, the font `:size` of some text, the `:stroke` and `:fill` of a shape.  Or any other number of style settings.
+
+=== toggle() » self ===
+
+Hides an element if it is shown.  Or shows the element, if it is hidden.
+
 === top() » a number ===
 
-Gets you the pixel position of the top edge of the element.
+Gets the pixel position of the top edge of the element.
+
+=== width() » a number ===
+
+Gets the pixel width for the full size of the element.  This method always returns an exact pixel size.  In the case of images, this is not the full width of the image, just the size it is shown at.  See the [[Common.height height]] method for more.
+
+Also, if you create an element with a width of 100% and that element is inside a stack which is 120 pixels wide, you'll get back `120`.  However, if you call `style[:width]`, you'll get `"100%"`.
+
+{{{
+ #!ruby
+ Shoes.app do
+   stack :width => 120 do
+     @b = button "Click me", :width => "100%" do
+       alert "button.width = #{@b.width}\n" +
+         "button.style[:width] = #{@b.style[:width]}"
+     end
+   end
+ end
+}}}
+
+In order to set the width, you'll have to go through the [[Common.style style]] method again.  So, to set the button to 150 pixels wide: `@b.style(:width => 150)`.
+
+To let Shoes pick the element's width, go with `@b.style(:width => nil)` to empty out the setting.
 
 == Background ==
 
@@ -1226,16 +1295,6 @@ To create an image, use the `image` method in a slot:
    image "static/disheveled.gif"
   end
 }}}
-
-=== height() » a number ===
-
-The vertical screen size of the image in pixels.  This is not the original size of the image.
-If you have a 150x150 pixel image and you set the width to 50 pixels, this method will return
-50.
-
-=== width() » a number ===
-
-The horizontal screen size of the image in pixels.
 
 == ImageBlock ==
 
