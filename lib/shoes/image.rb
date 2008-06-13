@@ -14,7 +14,7 @@ class Shoes
       opts ||= {}
 
       path = path.to_str
-      uri = (URI(path) rescue nil) unless uri.is_a? URI
+      uri = (Shoes.uri(path) rescue nil) unless uri.is_a? URI
       realpath = path
       case uri
       when URI::HTTP, URI::FTP

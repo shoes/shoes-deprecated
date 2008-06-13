@@ -163,13 +163,16 @@ class Shoes
     ARGV[0] or true
   end
 
+  def self.uri(str)
+    if str =~ SHOES_URL_RE
+      URI("http://#$1:53045#$2")
+    else
+      URI(str) rescue nil
+    end
+  end
+
   def self.load(path)
-    uri = 
-      if path =~ SHOES_URL_RE
-        URI("http://#$1:53045#$2")
-      else
-        URI(path) rescue nil
-      end
+    uri = Shoes.uri(path)
 
     case uri
     when URI::HTTP
