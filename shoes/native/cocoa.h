@@ -6,6 +6,7 @@
 
 @interface ShoesEvents : NSObject
 {
+  int count;
 }
 @end
 

@@ -18,10 +18,18 @@
 @implementation ShoesEvents
 - (id)init
 {
-  return ((self = [super init]));
+  if ((self = [super init]))
+    count = 0;
+  return self;
 }
 - (void)idle: (NSTimer *)t
 {
+  if (count < 100)
+  {
+    count++;
+    if (count == 100 && RARRAY_LEN(shoes_world->apps) == 0)
+      rb_eval_string("Shoes.show_selector");
+  }
   rb_eval_string("sleep(0.001)");
 }
 - (BOOL) application: (NSApplication *) anApplication
