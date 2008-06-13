@@ -45,6 +45,7 @@
 - (void)prepareWithApp: (VALUE)a
 {
   app = a;
+  [self center];
   [self setAcceptsMouseMovedEvents: YES];
   [self setDelegate: self];
 }
