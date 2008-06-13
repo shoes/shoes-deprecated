@@ -34,9 +34,14 @@ module Shoes::Manual
       end
       paras.map do |ps|
         if ps =~ CODE_RE
-          stack :margin_bottom => 12 do 
+          str = $1.gsub(/\A\n+/, '').chomp
+          stack do 
             background rgb(210, 210, 210)
-            para code($1.gsub(/\A\n+/, '').chomp), CODE_STYLE 
+            para code(str), CODE_STYLE 
+          end
+          stack :margin_bottom => 12, :margin_top => -20 do
+            para link("Run this", :stroke => "#777") { run_code(str) },
+              :align => "right", :margin => 4
           end
         else
           case ps
@@ -55,6 +60,14 @@ module Shoes::Manual
           end
         end
       end
+    end
+  end
+
+  def run_code str
+    unless str =~ /Shoes\.app/
+      Shoes.app { eval(str) }
+    else
+      eval(str, TOPLEVEL_BINDING)
     end
   end
 
@@ -1023,10 +1036,97 @@ a video stream.  You've encountered all of these elements before in the Slots se
 manual.
 
 Once an element is created, you will often still want to change it.  To move it or hide it or get
-rid of it.  You'll use the element's class to do that sort of stuff.
+rid of it.  You'll use the commands in this section to do that sort of stuff.  (Especially check out the [[Common Common Methods]] section for commands you can use on any element.)
 
 So, for example, use the `image` method of a Slot to place a PNG on the screen. The `image` method
 gives you back an Image object. Use the methods of the Image object to change things up.
+
+== Common Methods ==
+
+A few methods are shared by every little element in Shoes.  Moving, showing, hiding.  Removing an element.  Basic and very general things.  This list encompasses those common commands.
+
+One of the most general methods of all is the `style` method (which is also covered as the [[Styles.style style]] method for slots.)
+
+{{{
+ #!ruby
+ Shoes.app do
+   stack do
+     # Background, text and a button: both are elements!
+     @back  = background green
+     @text  = banner "A Message for You, Rudy"
+     @press = button "Stop your messin about!"
+     
+     # And so, both can be styled.
+     @text.style :size => 12, :stroke => red, :margin => 10
+     @press.style :width => 400
+     @back.style :height => 10
+   end
+ end
+}}}
+
+For specific commands, see the other links to the left in the Elements section.  Like if you want to pause or play a video file, check the [[Video Video]] section, since pausing and playing is peculiar to videos.  No sense pausing a button.
+
+=== displace(left: a number, top: a number) » self ===
+
+Displacing an element moves it.  But without changing the layout around it.  This is great for subtle animations, especially if you want to reserve a place for an element while it is still animating.  Like maybe a quick button shake or a slot sliding into view.
+
+When you displace an element, it moves relative to the upper-left corner where it was placed.  So, if an element is at the coordinates (20, 40) and you displace it 2 pixels left and 6 pixels on top, you end up with the coordinates (22, 46).
+
+{{{
+ #!ruby
+ Shoes.app do
+   flow :margin => 12 do
+     # Set up three buttons
+     button "One"
+     @two = button "Two"
+     button "Three"
+
+     # Bounce the second button
+     animate do |i|
+       @two.displace(0, (Math.sin(i) * 6).to_i)
+     end
+   end
+ end
+}}}
+
+Notice that while the second button bounces, the other two buttons stay put.  If we used a normal `move` in this situation, the second button would be moved out of the layout and the buttons would act as if the second button wasn't there at all.  (See the [[Common.move move]] example.)
+
+'''Of particular note:''' if you use the `left` and `top` methods to get the coordinates of a displaced element, you'll just get back the normal coordinates.  As if there was no displacement.  Displacing is just intended for quick animations!
+
+=== left() » a number ===
+
+Gets you the pixel position of the left edge of the element.
+
+=== move(left: a number, top: a number) » self  ===
+
+Moves the element to a specific pixel position within its slot.  The element is still inside the slot.  But it will no longer be stacked or flowed in with the other stuff in the slot.  The element will float freely, now absolutely positioned.
+
+{{{
+ #!ruby
+ Shoes.app do
+   flow :margin => 12 do
+     # Set up three buttons
+     button "One"
+     @two = button "Two"
+     button "Three"
+
+     # Bounce the second button
+     animate do |i|
+       @two.move(40, 40 + (Math.sin(i) * 6).to_i)
+     end
+   end
+ end
+}}}
+
+The second button is moved to a specific place, allowing the third button to slide over into its place.  If you want to move an element without shifting other pieces, see the [[Common.displace displace]] method.
+
+=== parent() » a Shoes::Stack or Shoes::Flow ===
+
+Gets the object for this element's container.  Also see the slot's [[Traversing.contents contents]] to do the opposite: get a container's elements.
+
+=== top() » a number ===
+
+Gets you the pixel position of the top edge of the element.
 
 == Background ==
 

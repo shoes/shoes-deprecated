@@ -269,7 +269,8 @@ shoes_canvas_gtk_size(GtkWidget *widget, GtkAllocation *size, gpointer data)
   VALUE c = (VALUE)data;
   shoes_canvas *canvas;
   Data_Get_Struct(c, shoes_canvas, canvas);
-  if (canvas->slot.vscroll && size->height != canvas->slot.scrollh && size->width != canvas->slot.scrollw)
+  if (canvas->slot.vscroll && 
+    (size->height != canvas->slot.scrollh || size->width != canvas->slot.scrollw))
   {
     GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot.vscroll));
     gtk_widget_set_size_request(canvas->slot.vscroll, -1, size->height);

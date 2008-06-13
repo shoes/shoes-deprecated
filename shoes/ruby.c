@@ -3213,6 +3213,7 @@ EVENT_COMMON(linktext, text, leave);
     rb_scan_args(argc, argv, "01", &attr); \
     if (!NIL_P(attr)) \
     { \
+      if (NIL_P(self_t->attr)) self_t->attr = rb_hash_new(); \
       rb_funcall(self_t->attr, s_update, 1, attr); \
       shoes_canvas_repaint_all(self_t->parent); \
     } \
