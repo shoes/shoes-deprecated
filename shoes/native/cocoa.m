@@ -39,6 +39,18 @@
 
   return YES;
 }
+- (void)openFile: (id)sender
+{
+  rb_eval_string("Shoes.show_selector");
+}
+- (void)showLog: (id)sender
+{
+  rb_eval_string("Shoes.show_log");
+}
+- (void)help: (id)sender
+{
+  rb_eval_string("Shoes.show_manual");
+}
 @end
 
 @implementation ShoesWindow
@@ -359,12 +371,107 @@
 }
 @end
 
+void
+add_to_menubar(NSMenu *main, NSMenu *menu)
+{
+    NSMenuItem *dummyItem = [[NSMenuItem alloc] initWithTitle:@""
+        action:nil keyEquivalent:@""];
+    [dummyItem setSubmenu:menu];
+    [main addItem:dummyItem];
+    [dummyItem release];
+}
+
+void
+create_apple_menu(NSMenu *main)
+{
+    NSMenuItem *menuitem;
+    // Create the application (Apple) menu.
+    NSMenu *menuApp = [[NSMenu alloc] initWithTitle: @"Apple Menu"];
+
+    NSMenu *menuServices = [[NSMenu alloc] initWithTitle: @"Services"];
+    [NSApp setServicesMenu:menuServices];
+
+    menuitem = [menuApp addItemWithTitle:@"Open..."
+        action:@selector(openFile:) keyEquivalent:@"o"];
+    [menuitem setTarget: shoes_world->os.events];
+    [menuApp addItemWithTitle:@"Preferences..." action:nil keyEquivalent:@""];
+    [menuApp addItem: [NSMenuItem separatorItem]];
+    menuitem = [[NSMenuItem alloc] initWithTitle: @"Services"
+        action:nil keyEquivalent:@""];
+    [menuitem setSubmenu:menuServices];
+    [menuApp addItem: menuitem];
+    [menuitem release];
+    [menuApp addItem: [NSMenuItem separatorItem]];
+    menuitem = [[NSMenuItem alloc] initWithTitle:@"Hide"
+        action:@selector(hide:) keyEquivalent:@""];
+    [menuitem setTarget: NSApp];
+    [menuApp addItem: menuitem];
+    [menuitem release];
+    menuitem = [[NSMenuItem alloc] initWithTitle:@"Hide Others"
+        action:@selector(hideOtherApplications:) keyEquivalent:@""];
+    [menuitem setTarget: NSApp];
+    [menuApp addItem: menuitem];
+    [menuitem release];
+    menuitem = [[NSMenuItem alloc] initWithTitle:@"Show All"
+        action:@selector(unhideAllApplications:) keyEquivalent:@""];
+    [menuitem setTarget: NSApp];
+    [menuApp addItem: menuitem];
+    [menuitem release];
+    [menuApp addItem: [NSMenuItem separatorItem]];
+    menuitem = [[NSMenuItem alloc] initWithTitle:@"Quit"
+        action:@selector(terminate:) keyEquivalent:@"q"];
+    [menuitem setTarget: NSApp];
+    [menuApp addItem: menuitem];
+    [menuitem release];
+
+    [NSApp setAppleMenu:menuApp];
+    add_to_menubar(main, menuApp);
+    [menuApp release];
+}
+
+void
+create_window_menu(NSMenu *main)
+{   
+    NSMenu *menuWindows = [[NSMenu alloc] initWithTitle: @"Window"];
+
+    [menuWindows addItemWithTitle:@"Minimize"
+        action:@selector(performMiniaturize:) keyEquivalent:@""];
+    [menuWindows addItem: [NSMenuItem separatorItem]];
+    [menuWindows addItemWithTitle:@"Bring All to Front"
+        action:@selector(arrangeInFront:) keyEquivalent:@""];
+
+    [NSApp setWindowsMenu:menuWindows];
+    add_to_menubar(main, menuWindows);
+    [menuWindows release];
+}
+
+void
+create_help_menu(NSMenu *main)
+{   
+    NSMenuItem *menuitem;
+    NSMenu *menuHelp = [[NSMenu alloc] initWithTitle: @"Help"];
+    menuitem = [menuHelp addItemWithTitle:@"Console"
+        action:@selector(showLog:) keyEquivalent:@"/"];
+    [menuitem setTarget: shoes_world->os.events];
+    [menuHelp addItem: [NSMenuItem separatorItem]];
+    menuitem = [menuHelp addItemWithTitle:@"Manual"
+        action:@selector(help:) keyEquivalent:@"?"];
+    [menuitem setTarget: shoes_world->os.events];
+    add_to_menubar(main, menuHelp);
+    [menuHelp release];
+}
+
 void shoes_native_init()
 {
   INIT;
   NSTimer *idle;
   NSApplication *NSApp = [NSApplication sharedApplication];
+  NSMenu *main = [[NSMenu alloc] initWithTitle: @""];
   shoes_world->os.events = [[ShoesEvents alloc] init];
+  [NSApp setMainMenu: main];
+  create_apple_menu(main);
+  create_window_menu(main);
+  create_help_menu(main);
   [NSApp setDelegate: shoes_world->os.events];
 
   idle = [NSTimer scheduledTimerWithTimeInterval: 0.01
