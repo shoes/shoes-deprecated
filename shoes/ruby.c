@@ -471,7 +471,7 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
   if (!NIL_P(text)) { \
     text = rb_funcall(text, s_to_s, 0); \
     msg = RSTRING_PTR(text); \
-    len = (RSTRING_LEN(text) * 6) + 32; \
+    len = (RSTRING_LEN(text) * 8) + 32; \
   } \
   shoes_place_decide(&place, c, self_t->attr, len, 28 + dh, REL_CANVAS, FALSE)
 
