@@ -75,6 +75,8 @@ dist/shoes.launch: dist/shoes-bin
 	@cp -r req/ftsearch/lib/* dist/lib
 	@cd req/ftsearch/ext/ftsearchrt && ruby extconf.rb && make
 	@cp req/ftsearch/ext/ftsearchrt/*.so dist/lib
+	@cd req/binject/ext/binject_c && ruby extconf.rb && make
+	@cp req/binject/ext/binject_c/*.so dist/lib
 	@cp -r samples dist/samples
 	@cp -r static dist/static
 	@rm -rf dist/**/.svn

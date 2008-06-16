@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include "pe.h"
 
-char *pe_pad = "PADDINGXX";
+char *pe_pad = "PADDINGXXPADDING";
 
 unsigned short int swap16(unsigned short int x)
 {
@@ -229,6 +229,34 @@ binject_names_len(binject_t *binj)
   return len;
 }
 
+unsigned int
+binj_file_size(VALUE obj)
+{
+  struct stat st;
+  OpenFile *fptr;
+  FILE *fres;
+  GetOpenFile(obj, fptr);
+  rb_io_check_readable(fptr);
+  fres = GetReadFile(fptr);
+  fstat(fileno(fres), &st);
+  return (unsigned int)st.st_size;
+}
+
+int
+binject_data_len(binject_t *binj)
+{
+  unsigned int i, len = 0;
+  for (i = 0; i < RARRAY_LEN(binj->adds); i++)
+  {
+    VALUE obj = rb_ary_entry(rb_ary_entry(binj->adds, i), 1);
+    if (rb_obj_is_kind_of(obj, rb_cFile))
+      len += binj_file_size(obj);
+    else if (rb_obj_is_kind_of(obj, rb_cFile))
+      len += RSTRING_LEN(obj);
+  }
+  return len;
+}
+
 void
 binj_string_copy(binject_t *binj, char *str, unsigned int size, unsigned int pos)
 {
@@ -295,7 +323,7 @@ binject_rewrite(binject_t *binj, char *buf, char *out, int offset, int offset2, 
     binj->namestart = 16 +
       (rd2->NumberOfIdEntries * (8 + sizeof(struct resource_data_t))) + 
       ((binj->resids + RARRAY_LEN(binj->adds)) * ((2 * 8) + (2 * sizeof(struct resource_dir_t))));
-    binj->datastart = binj->namestart + binject_names_len(binj) + 2;
+    binj->datastart = binj->namestart + binject_names_len(binj);
     binj->datapos = binj->section_header.PointerToRawData + binj->datastart;
     // printf("DATAPOS: %x\n", binj->datapos);
   }
@@ -360,21 +388,15 @@ binject_rewrite(binject_t *binj, char *buf, char *out, int offset, int offset2, 
             {
               rdat->Size = RSTRING_LEN(obj);
               binj_string_copy(binj, RSTRING_PTR(obj), RSTRING_LEN(obj), binj->datapos);
-              binj->datapos += RSTRING_LEN(obj);
             }
             else
             {
-              struct stat st;
               OpenFile *fptr;
-              FILE *fres;
+              rdat->Size = binj_file_size(obj);
               GetOpenFile(obj, fptr);
-              rb_io_check_readable(fptr);
-              fres = GetReadFile(fptr);
-              fstat(fileno(fres), &st);
-              rdat->Size = st.st_size;
-              binj_file_copy(fres, binj->out, st.st_size, 0, binj->datapos);
-              binj->datapos += st.st_size;
+              binj_file_copy(GetReadFile(fptr), binj->out, rdat->Size, 0, binj->datapos);
             }
+            binj->datapos += rdat->Size;
             padlen = BINJ_PAD(rdat->Size, 4) - rdat->Size;
             if (padlen > 0)
             {
@@ -476,7 +498,6 @@ binject_save(VALUE self, VALUE file)
   char buf[BUFSIZE];
   char buf2[BUFSIZE];
   Data_Get_Struct(self, binject_t, binj);
-  unsigned int grow = 0x1000, actual = 2392;
 
   binj->out = rb_fopen(RSTRING_PTR(file), "wb");
   binj->ids = 0;
@@ -488,7 +509,6 @@ binject_save(VALUE self, VALUE file)
   pos = 0;
   while (!feof(binj->file))
   {
-    int mark = ftell(binj->file);
     int rlen = BUFSIZE;
     if (pos < binj->section_header.PointerToRawData && pos + rlen > binj->section_header.PointerToRawData)
       rlen = binj->section_header.PointerToRawData - pos;
@@ -501,34 +521,39 @@ binject_save(VALUE self, VALUE file)
       fwrite(buf2, sizeof(char), binj->datastart, binj->out);
       // printf("FINISHING AT: %x / %x\n", binj->dataend, binj->datapos);
       fseek(binj->out, binj->datapos, SEEK_SET);
-      fseek(binj->file, binj->dataend, SEEK_SET);
+      fseek(binj->file, 0, SEEK_END);
     }
     else
     {
-      if (pos == 0)
-      {
-        unsigned int *uninit = (unsigned int *)(buf + (binj->dos_header.e_lfanew + 32));
-        *uninit += grow;
-        uninit = (unsigned int *)(buf + (binj->dos_header.e_lfanew + 80));
-        *uninit += grow;
-        int *resd = (int *)(buf + (binj->dos_header.e_lfanew + 140));
-        *resd += actual;
-        resd = (int *)(buf + (binj->dos_header.e_lfanew + 376));
-        *resd += actual;
-        uninit = (unsigned int *)(buf + (binj->dos_header.e_lfanew + 384));
-        *uninit += grow;
-      }
       fwrite(buf, sizeof(char), len, binj->out);
     }
     pos += len;
   }
   
   unsigned int posend = BINJ_PAD(binj->datapos, 0x1000);
+  unsigned int grow = posend - ftell(binj->file);
+  unsigned int actual = binj->datapos - binj->section_header.PointerToRawData;
+  // printf("GROW: %x / ACTUAL: %x (%x / %x)\n", grow, actual, binj->datapos, binj->dataend);
+  fseek(binj->file, 0, SEEK_SET);
+  fseek(binj->out, 0, SEEK_SET);
+  fread(buf, sizeof(char), 1024, binj->file);
+  unsigned int *uninit = (unsigned int *)(buf + (binj->dos_header.e_lfanew + 32));
+  *uninit += grow;
+  uninit = (unsigned int *)(buf + (binj->dos_header.e_lfanew + 80));
+  *uninit += grow;
+  int *resd = (int *)(buf + (binj->dos_header.e_lfanew + 140));
+  *resd = actual;
+  resd = (int *)(buf + (binj->dos_header.e_lfanew + 376));
+  *resd = actual;
+  uninit = (unsigned int *)(buf + (binj->dos_header.e_lfanew + 384));
+  *uninit += grow;
+  fwrite(buf, sizeof(char), 1024, binj->out);
+
   fseek(binj->out, binj->datapos, SEEK_SET);
   while (binj->datapos < posend)
   {
     int len = posend - binj->datapos;
-    if (len > 9) len = 9;
+    if (len > 16) len = 16;
     fwrite(pe_pad, sizeof(char), len, binj->out);
     binj->datapos += len;
   }

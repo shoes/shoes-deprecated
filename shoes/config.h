@@ -160,6 +160,7 @@ typedef struct {
   VALUE controls;
   cairo_surface_t *surface;
   int scrolly;
+  char vscroll;
 } shoes_slot_win32, SHOES_SLOT_OS;
 
 typedef struct {

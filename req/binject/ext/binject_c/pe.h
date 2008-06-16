@@ -1,22 +1,10 @@
-
-/*
-
-anal_pe - Copyright 2005-2007 by Michael Kohn
-
-Webpage: http://www.mikekohn.net/
-Email: mike@mikekohn.net
-
-This code falls under the LGPL license.
-
-*/
-
-struct funct_t
-{
-  char funct_name[1024];
-  unsigned int funct_retvalue;
-  long funct_ptr;
-  long file_offset;
-};
+//
+// pe.h, a description of the windows binary
+// Originally part of anal_pe, Copyright 2005-2007 by Michael Kohn
+//
+// This header was licensed under the LGPL, so it's
+// possible that this program may also be LGPL.
+//
 
 struct dos_header_t
 {
@@ -233,35 +221,4 @@ struct debug_directory_t
   unsigned int AddressOfRawData;
   unsigned int PointerToRawData;
 };
-
-int read_dos_header(FILE *in, struct dos_header_t *dos_header);
-int print_dos_header(struct dos_header_t *dos_header);
-
-int read_image_file_header(FILE *in, struct image_file_header_t *image_file_header);
-int print_image_file_header(struct image_file_header_t *image_file_header);
-
-int read_image_optional_header(FILE *in, struct image_optional_header_t *image_optional_header, int header_size);
-int print_image_optional_header(struct image_optional_header_t *image_optional_header);
-
-int read_section_header(FILE *in, struct section_header_t *section_header);
-int print_section_header(struct section_header_t *section_header,int count);
-
-int print_imports(FILE *in, int addr, int size, struct section_header_t *section_header);
-int print_exports(FILE *in, int addr, int size, struct section_header_t *section_header, struct funct_t *funct);
-int print_debug_section(FILE *in, int addr, int size, struct section_header_t *section_header);
-
-int print_vb_info(FILE *in, struct image_optional_header_t *image_optional_header, struct section_header_t *section_header);
-
-int rip_binary(FILE *in, char *filename, int address, int size);
-int read_unicode(FILE *in, int addr, char *s, int max_chars);
-
-int parse_resource_dir(FILE *in, struct section_header_t *section_header, int offset, int level, int res_type);
-int read_resource_data(FILE *in, int addr, struct resource_data_t *resource_data, int offset);
-int read_resource_dir(FILE *in, int addr, struct resource_dir_t *resource_dir);
-int read_resource_dir_entry(FILE *in, int addr, struct resource_dir_entry_t *resource_dir_entry, int offset);
-int print_resource_data(struct resource_data_t *resource_data, int level);
-int print_resource_type(int id, int level);
-int print_resource_dir(struct resource_dir_t *resource_dir, int level);
-int print_resource_dir_entry(struct resource_dir_entry_t *resource_dir_entry, int level);
-
 
