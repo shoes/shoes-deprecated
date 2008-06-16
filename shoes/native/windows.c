@@ -817,7 +817,7 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
   SHOES_SLOT_OS *slot;
   Data_Get_Struct(c, shoes_canvas, canvas);
   slot = &canvas->slot;
-  slot.vscroll = scrolls;
+  slot->vscroll = scrolls;
 
   if (toplevel)
   {

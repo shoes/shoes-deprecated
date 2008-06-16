@@ -219,7 +219,7 @@ when /win32/
   MSVC_LDFLAGS << " /LIBPATH:#{ENV['SDK_LIB_PATH'][0..-2]}\i386" if ENV['SDK_LIB_PATH']
 
   # MSVC build tasks
-  task :build_os => [:buildenv_win32, :build_skel, "dist/#{NAME}.exe", "dist/pkg/shoes-stub.exe", "dist/pkg/shoes-stub-inject.exe"]
+  task :build_os => [:buildenv_win32, :build_skel, "dist/#{NAME}.exe", "dist/pkg/shoes-stub.exe"]
 
   task :buildenv_win32 do
     unless ENV['DDKBUILDENV']
