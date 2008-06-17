@@ -337,7 +337,7 @@ binject_exe_rewrite(binject_exe_t *binj, char *buf, char *out, int offset, int o
     binj->namestart = 16 +
       (rd2->NumberOfIdEntries * (8 + sizeof(struct resource_data_t))) + 
       ((binj->resids + RARRAY_LEN(binj->adds)) * ((2 * 8) + (2 * sizeof(struct resource_dir_t))));
-    binj->datastart = binj->namestart + binject_exe_names_len(binj);
+    binj->datastart = BINJ_PAD(binj->namestart + binject_exe_names_len(binj), 4);
     binj->datapos = binj->section_header.PointerToRawData + binj->datastart;
     // printf("DATAPOS: %x\n", binj->datapos);
   }
