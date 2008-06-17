@@ -3,10 +3,24 @@
 #include <st.h>
 #include <rubyio.h>
 #include <stdlib.h>
+#include <zlib.h>
 #include <sys/stat.h>
+
+#include <hfs/hfsplus.h>
+#include <dirent.h>
+#include <hfs/hfslib.h>
+#include "abstractfile.h"
 #include "pe.h"
 
 char *pe_pad = "PADDINGXXPADDING";
+char endianness;
+
+void TestByteOrder()
+{
+	short int word = 0x0001;
+	char *byte = (char *) &word;
+	endianness = byte[0] ? IS_LITTLE_ENDIAN : IS_BIG_ENDIAN;
+}
 
 unsigned short int swap16(unsigned short int x)
 {
@@ -556,6 +570,119 @@ binject_exe_save(VALUE self, VALUE file)
   binj->out = NULL;
 }
 
+typedef struct {
+  AbstractFile* in;
+	io_func* in_func;
+	Volume* in_vol;
+  VALUE tmpname;
+} binject_dmg_t;
+
+VALUE
+binject_dmg_uncompress(VALUE filename)
+{
+  FILE *hfs;
+  int len;
+  gzFile file;
+  VALUE filename2 = rb_funcall(filename, rb_intern("gsub"), 2,
+    rb_eval_string("/\\.\\w+$/"), rb_str_new2(".hfs"));
+
+  char *fname = RSTRING_PTR(filename);
+  char buf[BUFSIZE];
+
+  file = gzopen(fname, "rb");
+  hfs = rb_fopen(RSTRING_PTR(filename2), "wb");
+  while ((len = gzread(file, buf, BUFSIZE)) > 0)
+  {
+    fwrite(buf, sizeof(char), len, hfs);
+  }
+  gzclose(file);
+  fclose(hfs);
+
+  return filename2;
+}
+
+static void
+binject_dmg_mark(binject_dmg_t *binj)
+{
+  rb_gc_mark_maybe(binj->tmpname);
+}
+
+static void
+binject_dmg_free(binject_dmg_t *binj)
+{
+  if (!NIL_P(binj->tmpname))
+    rb_funcall(rb_cFile, rb_intern("delete"), 1, binj->tmpname);
+  free(binj);
+}
+
+VALUE
+binject_dmg_load(VALUE self, VALUE filename)
+{
+  binject_dmg_t *binj;
+  Data_Get_Struct(self, binject_dmg_t, binj);
+  binj->tmpname = binject_dmg_uncompress(filename);
+	binj->in = createAbstractFileFromFile(fopen(RSTRING_PTR(binj->tmpname), "rb+"));
+	if(binj->in == NULL) {
+		fprintf(stderr, "error: Cannot open image-file.\n");
+		return Qnil;
+	}
+
+	binj->in_func = IOFuncFromAbstractFile(binj->in);
+	binj->in_vol = openVolume(binj->in_func); 
+	if(binj->in_vol == NULL) {
+		fprintf(stderr, "error: Cannot open volume.\n");
+		CLOSE(binj->in_func);
+		return 1;
+	}
+}
+
+VALUE
+binject_dmg_inject_dir(VALUE self, VALUE key, VALUE dir)
+{
+  binject_dmg_t *binj;
+  Data_Get_Struct(self, binject_dmg_t, binj);
+  newFolder(RSTRING_PTR(key), binj->in_vol);
+	addall_hfs(binj->in_vol, RSTRING_PTR(dir), RSTRING_PTR(key));
+}
+
+VALUE
+binject_dmg_inject_file(VALUE self, VALUE key, VALUE filename)
+{
+  binject_dmg_t *binj;
+	AbstractFile *inFile;
+  Data_Get_Struct(self, binject_dmg_t, binj);
+	inFile = createAbstractFileFromFile(fopen(RSTRING_PTR(filename), "rb"));
+	if(inFile == NULL) {
+		printf("file to add not found");
+    return Qnil;
+	}
+	add_hfs(binj->in_vol, inFile, RSTRING_PTR(key));
+}
+
+VALUE
+binject_dmg_save(VALUE self, VALUE filename)
+{
+  binject_dmg_t *binj;
+	AbstractFile *out;
+  Data_Get_Struct(self, binject_dmg_t, binj);
+	out = createAbstractFileFromFile(fopen(RSTRING_PTR(filename), "wb"));
+	if(out == NULL) {
+		fprintf(stderr, "error: Cannot open image-file.\n");
+		return Qnil;
+	}
+  convertToDMG(binj->in, out);
+  return Qnil;
+}
+
+VALUE
+binject_dmg_alloc(VALUE klass)
+{
+  binject_dmg_t *binj = ALLOC(binject_dmg_t);
+  MEMZERO(binj, binject_dmg_t, 1);
+  binj->tmpname = Qnil;
+  return Data_Wrap_Struct(klass, binject_dmg_mark, binject_dmg_free, binj);
+}
+
 void Init_binject()
 {
   VALUE cBinject = rb_define_module("Binject");
@@ -564,4 +691,13 @@ void Init_binject()
   rb_define_method(cEXE, "initialize", binject_exe_load, 1);
   rb_define_method(cEXE, "inject", binject_exe_inject, 2);
   rb_define_method(cEXE, "save", binject_exe_save, 1);
+
+  VALUE cDMG = rb_define_class_under(cBinject, "DMG", rb_cObject);
+  rb_define_alloc_func(cDMG, binject_dmg_alloc);
+  rb_define_method(cDMG, "initialize", binject_dmg_load, 1);
+  rb_define_method(cDMG, "inject_dir", binject_dmg_inject_dir, 2);
+  rb_define_method(cDMG, "inject_file", binject_dmg_inject_file, 2);
+  rb_define_method(cDMG, "save", binject_dmg_save, 1);
+
+	TestByteOrder();
 }
