@@ -66,6 +66,11 @@ class Shoes
       make_shy(s)
     end
 
+    opts.on("-p", "--package",
+            "Package a Shoes app for Windows, OS X and Linux.") do |s|
+      make_pack
+    end
+
     opts.on("-g", "--gem",
             "Passes commands to RubyGems.") do
       require 'shoes/setup'
@@ -107,6 +112,11 @@ class Shoes
   def self.make_shy(s)
     require 'shoes/shy'
     Shoes.app(&ShyMake.call(s))
+  end
+
+  def self.make_pack
+    require 'shoes/pack'
+    Shoes.app(:width => 500, :height => 380, :resizable => false, &PackMake)
   end
 
   def self.show_manual
