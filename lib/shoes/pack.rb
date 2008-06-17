@@ -18,7 +18,7 @@ class Shoes
     tmp_dir = File.join(Shoes::LIB_DIR, "+dmg")
     FileUtils.rm_rf(tmp_dir) if File.exists? tmp_dir
     FileUtils.mkdir_p(tmp_dir)
-    dmg = Binject::DMG.new(File.join(Shoes::DIR, "static", "stubs", "blank.hfs"))
+    dmg = Binject::DMG.new(File.join(Shoes::DIR, "static", "stubs", "blank.hfz"))
     dmg.inject_dir("#{script.capitalize}.app", tmp_dir)
     dmg.save(script.gsub(/\.\w+$/, '') + ".dmg")
   end
