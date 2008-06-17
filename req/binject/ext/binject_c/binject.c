@@ -49,18 +49,18 @@ typedef struct {
   char signature[4];
   VALUE adds;
   FILE *file, *out;
-} binject_t;
+} binject_exe_t;
 
 #define BUFSIZE 16384
 
 static void
-binject_mark(binject_t *binj)
+binject_exe_mark(binject_exe_t *binj)
 {
   rb_gc_mark_maybe(binj->adds);
 }
 
 static void
-binject_free(binject_t *binj)
+binject_exe_free(binject_exe_t *binj)
 {
   if (binj->file != NULL)
     fclose(binj->file);
@@ -68,12 +68,12 @@ binject_free(binject_t *binj)
 }
 
 VALUE
-binject_alloc(VALUE klass)
+binject_exe_alloc(VALUE klass)
 {
-  binject_t *binj = ALLOC(binject_t);
-  MEMZERO(binj, binject_t, 1);
+  binject_exe_t *binj = ALLOC(binject_exe_t);
+  MEMZERO(binj, binject_exe_t, 1);
   binj->adds = rb_ary_new();
-  return Data_Wrap_Struct(klass, binject_mark, binject_free, binj);
+  return Data_Wrap_Struct(klass, binject_exe_mark, binject_exe_free, binj);
 }
 
 #define BINJ_READ(binj, stct) \
@@ -89,7 +89,7 @@ binject_alloc(VALUE klass)
   fwrite(&(stct), sizeof(stct), 1, binj->out)
 
 void
-binject_resources(binject_t *binj, int offset, int level, int res_type)
+binject_exe_resources(binject_exe_t *binj, int offset, int level, int res_type)
 {
   int count = 0, i = 0;
   BINJ_READ_POS(binj, binj->resource_dir, binj->section_header.PointerToRawData + offset);
@@ -125,13 +125,13 @@ binject_resources(binject_t *binj, int offset, int level, int res_type)
       if (level == 0)
       {
         // print_resource_type(binj->resource_dir_entry.Name, level);
-        binject_resources(binj, 
+        binject_exe_resources(binj, 
           (binj->resource_dir_entry.OffsetToData & 0x7fffffff), level + 1,
           binj->resource_dir_entry.Name);
       }
       else
       {
-        binject_resources(binj, 
+        binject_exe_resources(binj, 
           (binj->resource_dir_entry.OffsetToData & 0x7fffffff), level + 1,
           res_type);
       }
@@ -146,7 +146,7 @@ binject_resources(binject_t *binj, int offset, int level, int res_type)
   MEMCPY(dest, src, stct, 1)
 
 VALUE
-binject_get_key(binject_t *binj, VALUE klass, int index)
+binject_exe_get_key(binject_exe_t *binj, VALUE klass, int index)
 {
   long i;
   for (i = 0; i < RARRAY_LEN(binj->adds); i++)
@@ -162,12 +162,12 @@ binject_get_key(binject_t *binj, VALUE klass, int index)
 }
 
 unsigned int
-binject_write_name(binject_t *binj, char *out, VALUE klass, int index)
+binject_exe_write_name(binject_exe_t *binj, char *out, VALUE klass, int index)
 {
   long i;
   char *str;
   unsigned int *datlen;
-  VALUE key = binject_get_key(binj, klass, index);
+  VALUE key = binject_exe_get_key(binj, klass, index);
   datlen = (unsigned int *)(out + binj->namestart);
   *datlen = (unsigned int)RSTRING_LEN(key);
   str = RSTRING_PTR(key);
@@ -180,7 +180,7 @@ binject_write_name(binject_t *binj, char *out, VALUE klass, int index)
 }
 
 VALUE
-binject_get_type(binject_t *binj, VALUE klass, int index)
+binject_exe_get_type(binject_exe_t *binj, VALUE klass, int index)
 {
   long i;
   for (i = 0; i < RARRAY_LEN(binj->adds); i++)
@@ -196,7 +196,7 @@ binject_get_type(binject_t *binj, VALUE klass, int index)
 }
 
 int
-binject_count_type(binject_t *binj, VALUE klass)
+binject_exe_count_type(binject_exe_t *binj, VALUE klass)
 {
   long i, count = 0;
   for (i = 0; i < RARRAY_LEN(binj->adds); i++)
@@ -209,16 +209,16 @@ binject_count_type(binject_t *binj, VALUE klass)
 }
 
 int
-binject_new_ids(binject_t *binj)
+binject_exe_new_ids(binject_exe_t *binj)
 {
   long i = 0;
-  if (binject_count_type(binj, rb_cString)) i++;
-  if (binject_count_type(binj, rb_cFile)) i++;
+  if (binject_exe_count_type(binj, rb_cString)) i++;
+  if (binject_exe_count_type(binj, rb_cFile)) i++;
   return i;
 }
 
 int
-binject_names_len(binject_t *binj)
+binject_exe_names_len(binject_exe_t *binj)
 {
   int i, len = 0;
   for (i = 0; i < RARRAY_LEN(binj->adds); i++)
@@ -230,7 +230,7 @@ binject_names_len(binject_t *binj)
 }
 
 unsigned int
-binj_file_size(VALUE obj)
+binject_exe_file_size(VALUE obj)
 {
   struct stat st;
   OpenFile *fptr;
@@ -243,14 +243,14 @@ binj_file_size(VALUE obj)
 }
 
 int
-binject_data_len(binject_t *binj)
+binject_exe_data_len(binject_exe_t *binj)
 {
   unsigned int i, len = 0;
   for (i = 0; i < RARRAY_LEN(binj->adds); i++)
   {
     VALUE obj = rb_ary_entry(rb_ary_entry(binj->adds, i), 1);
     if (rb_obj_is_kind_of(obj, rb_cFile))
-      len += binj_file_size(obj);
+      len += binject_exe_file_size(obj);
     else if (rb_obj_is_kind_of(obj, rb_cFile))
       len += RSTRING_LEN(obj);
   }
@@ -258,7 +258,7 @@ binject_data_len(binject_t *binj)
 }
 
 void
-binj_string_copy(binject_t *binj, char *str, unsigned int size, unsigned int pos)
+binject_exe_string_copy(binject_exe_t *binj, char *str, unsigned int size, unsigned int pos)
 {
   int mark = ftell(binj->out);
   fseek(binj->out, pos, SEEK_SET);
@@ -267,7 +267,7 @@ binj_string_copy(binject_t *binj, char *str, unsigned int size, unsigned int pos
 }
 
 void
-binj_file_copy(FILE *file, FILE *out, unsigned int size, unsigned int pos1, unsigned int pos2)
+binject_exe_file_copy(FILE *file, FILE *out, unsigned int size, unsigned int pos1, unsigned int pos2)
 {
   char buf[BUFSIZE];
   int mark1 = ftell(file), mark2 = ftell(out);
@@ -285,11 +285,11 @@ binj_file_copy(FILE *file, FILE *out, unsigned int size, unsigned int pos1, unsi
 }
 
 int
-binj_offset(binject_t *binj, int level, int res_type)
+binject_exe_offset(binject_exe_t *binj, int level, int res_type)
 {
-  unsigned int offset = binject_new_ids(binj) * 8;
+  unsigned int offset = binject_exe_new_ids(binj) * 8;
   if (level > 0 || (level == 0 && res_type > 10))
-    offset += (RARRAY_LEN(binj->adds) * 8) + (binject_new_ids(binj) * 16);
+    offset += (RARRAY_LEN(binj->adds) * 8) + (binject_exe_new_ids(binj) * 16);
   if (level > 1 || (level == 1 && res_type > 10))
     offset += (RARRAY_LEN(binj->adds) * 24);
   if (level == 2 && res_type > 10)
@@ -306,7 +306,7 @@ binj_offset(binject_t *binj, int level, int res_type)
 // locale leaf each.
 //
 int
-binject_rewrite(binject_t *binj, char *buf, char *out, int offset, int offset2, int level, int res_type)
+binject_exe_rewrite(binject_exe_t *binj, char *buf, char *out, int offset, int offset2, int level, int res_type)
 {
   int count = 0, i = 0, ins = 0;
   unsigned int newoff;
@@ -317,13 +317,13 @@ binject_rewrite(binject_t *binj, char *buf, char *out, int offset, int offset2, 
   BINJ_COPY(rd2, rd, struct resource_dir_t, offset, offset2);
   if (level == 0)
   {
-    ins = binject_new_ids(binj);
-    rd2->NumberOfIdEntries += binject_new_ids(binj);
+    ins = binject_exe_new_ids(binj);
+    rd2->NumberOfIdEntries += binject_exe_new_ids(binj);
     binj->ids = rd2->NumberOfIdEntries;
     binj->namestart = 16 +
       (rd2->NumberOfIdEntries * (8 + sizeof(struct resource_data_t))) + 
       ((binj->resids + RARRAY_LEN(binj->adds)) * ((2 * 8) + (2 * sizeof(struct resource_dir_t))));
-    binj->datastart = binj->namestart + binject_names_len(binj);
+    binj->datastart = binj->namestart + binject_exe_names_len(binj);
     binj->datapos = binj->section_header.PointerToRawData + binj->datastart;
     // printf("DATAPOS: %x\n", binj->datapos);
   }
@@ -349,27 +349,27 @@ binject_rewrite(binject_t *binj, char *buf, char *out, int offset, int offset2, 
         ctype = (ti == 0 ? rb_cString : rb_cFile);
         btype = (ti == 0 ? 6 : 10);
         // printf("\nNEW ID\n");
-        if (binject_count_type(binj, ctype))
+        if (binject_exe_count_type(binj, ctype))
         {
           rde = (struct resource_dir_entry_t *)(buf + offset);
           rde2 = (struct resource_dir_entry_t *)(out + offset2);
           rde2->Name = btype;
-          rde2->OffsetToData = rde->OffsetToData + binj_offset(binj, 0, btype) + (ti * 16) + (oc * 8);
+          rde2->OffsetToData = rde->OffsetToData + binject_exe_offset(binj, 0, btype) + (ti * 16) + (oc * 8);
           // printf("STRING ENTRY[0] @ %x (%u, %x)\n", (char *)rde2 - out, rde2->Name, rde2->OffsetToData);
           oo = rde->OffsetToData & 0x7fffffff;
           doff = rde2->OffsetToData & 0x7fffffff;
           rd2 = (struct resource_dir_t *)(out + doff);
-          rd2->NumberOfNamedEntries = binject_count_type(binj, ctype);
+          rd2->NumberOfNamedEntries = binject_exe_count_type(binj, ctype);
           // printf("STRING DIR[1]: %x\n", doff);
 
-          for (i2 = 0; i2 < binject_count_type(binj, ctype); i2++)
+          for (i2 = 0; i2 < binject_exe_count_type(binj, ctype); i2++)
           {
             rde = (struct resource_dir_entry_t *)(buf + oo + 16);
             rde2 = (struct resource_dir_entry_t *)(out + doff + 16 + (i2 * 8));
             // printf("STRING ENTRY[1] @ %x / NAME(%x)\n", (char *)rde2 - out, binj->namestart);
             rde2->Name = 0x80000000 | binj->namestart;
-            rde2->OffsetToData = rde->OffsetToData + binj_offset(binj, 1, btype) + (oc * 24);
-            binj->namestart += binject_write_name(binj, out, ctype, i2);
+            rde2->OffsetToData = rde->OffsetToData + binject_exe_offset(binj, 1, btype) + (oc * 24);
+            binj->namestart += binject_exe_write_name(binj, out, ctype, i2);
 
             doff2 = rde2->OffsetToData & 0x7fffffff;
             rd2 = (struct resource_dir_t *)(out + doff2);
@@ -378,29 +378,29 @@ binject_rewrite(binject_t *binj, char *buf, char *out, int offset, int offset2, 
             rde = (struct resource_dir_entry_t *)(buf + (rde->OffsetToData & 0x7fffffff) + 16);
             rde2 = (struct resource_dir_entry_t *)(out + doff2 + 16);
             // printf("STRING ENTRY[2] @ %x\n", (char *)rde2 - out);
-            rde2->OffsetToData = rde->OffsetToData + binj_offset(binj, 2, btype) + (oc * 16);
+            rde2->OffsetToData = rde->OffsetToData + binject_exe_offset(binj, 2, btype) + (oc * 16);
             // printf("RESDATA: %x / %x\n", rde->OffsetToData, rde2->OffsetToData);
-            obj = binject_get_type(binj, ctype, i2);
+            obj = binject_exe_get_type(binj, ctype, i2);
             // printf("DATA: %x\n", binj->datapos);
             rdat = (struct resource_data_t *)(out + (rde2->OffsetToData));
             rdat->OffsetToData = binj->datapos;
             if (ctype == rb_cString)
             {
               rdat->Size = RSTRING_LEN(obj);
-              binj_string_copy(binj, RSTRING_PTR(obj), RSTRING_LEN(obj), binj->datapos);
+              binject_exe_string_copy(binj, RSTRING_PTR(obj), RSTRING_LEN(obj), binj->datapos);
             }
             else
             {
               OpenFile *fptr;
-              rdat->Size = binj_file_size(obj);
+              rdat->Size = binject_exe_file_size(obj);
               GetOpenFile(obj, fptr);
-              binj_file_copy(GetReadFile(fptr), binj->out, rdat->Size, 0, binj->datapos);
+              binject_exe_file_copy(GetReadFile(fptr), binj->out, rdat->Size, 0, binj->datapos);
             }
             binj->datapos += rdat->Size;
             padlen = BINJ_PAD(rdat->Size, 4) - rdat->Size;
             if (padlen > 0)
             {
-              binj_string_copy(binj, pe_pad, padlen, binj->datapos);
+              binject_exe_string_copy(binj, pe_pad, padlen, binj->datapos);
               binj->datapos += padlen;
             }
             oc++;
@@ -414,7 +414,7 @@ binject_rewrite(binject_t *binj, char *buf, char *out, int offset, int offset2, 
     BINJ_COPY(rde2, rde, struct resource_dir_entry_t, offset, offset2);
 
     // offset every entry to leave a hole for new stuff
-    rde2->OffsetToData += binj_offset(binj, level, res_type);
+    rde2->OffsetToData += binject_exe_offset(binj, level, res_type);
     if ((rde->OffsetToData & 0x80000000) == 0)
     {
       unsigned int dataoff = offset2 + rde2->OffsetToData;
@@ -422,7 +422,7 @@ binject_rewrite(binject_t *binj, char *buf, char *out, int offset, int offset2, 
       rdat2->OffsetToData = binj->datapos;
       // printf("RESDATA: %x TO %x AT %x / %x\n", rde->OffsetToData, rde2->OffsetToData, 
       //   binj->namestart, binj->datastart);
-      binj_file_copy(binj->file, binj->out, rdat->Size, rdat->OffsetToData, rdat2->OffsetToData);
+      binject_exe_file_copy(binj->file, binj->out, rdat->Size, rdat->OffsetToData, rdat2->OffsetToData);
       // printf("DATA: %x TO %x\n", rdat->OffsetToData, binj->datapos);
       binj->datapos += rdat->Size;
       binj->dataend = rdat->OffsetToData + rdat->Size;
@@ -431,13 +431,13 @@ binject_rewrite(binject_t *binj, char *buf, char *out, int offset, int offset2, 
     {
       if (level == 0)
       {
-        binject_rewrite(binj, buf, out,
+        binject_exe_rewrite(binj, buf, out,
           rde->OffsetToData & 0x7fffffff, rde2->OffsetToData & 0x7fffffff, level + 1,
           res_type);
       }
       else
       {
-        binject_rewrite(binj, buf, out,
+        binject_exe_rewrite(binj, buf, out,
           rde->OffsetToData & 0x7fffffff, rde2->OffsetToData & 0x7fffffff, level + 1,
           res_type);
       }
@@ -449,11 +449,11 @@ binject_rewrite(binject_t *binj, char *buf, char *out, int offset, int offset2, 
 }
 
 VALUE
-binject_load(VALUE self, VALUE file)
+binject_exe_load(VALUE self, VALUE file)
 {
   int i;
-  binject_t *binj;
-  Data_Get_Struct(self, binject_t, binj);
+  binject_exe_t *binj;
+  Data_Get_Struct(self, binject_exe_t, binj);
   binj->file = rb_fopen(RSTRING_PTR(file), "rb");
 
   BINJ_READ(binj, binj->dos_header);
@@ -471,33 +471,27 @@ binject_load(VALUE self, VALUE file)
     BINJ_READ(binj, binj->section_header);
 
     if (strcmp(binj->section_header.Name, ".rsrc") == 0)
-      binject_resources(binj, 0, 0, 0);
-  }
-
-  // printf("RESOURCES FOUND: %d (ids: %d, resids: %d)\n", binj->resource_count, binj->ids, binj->resids);
-  for (i = 0; i < binj->resource_count; i++)
-  {
-    print_resource_data(&binj->resources[i], 0);
+      binject_exe_resources(binj, 0, 0, 0);
   }
 }
 
 VALUE
-binject_inject(VALUE self, VALUE key, VALUE obj)
+binject_exe_inject(VALUE self, VALUE key, VALUE obj)
 {
-  binject_t *binj;
-  Data_Get_Struct(self, binject_t, binj);
+  binject_exe_t *binj;
+  Data_Get_Struct(self, binject_exe_t, binj);
   rb_ary_push(binj->adds, rb_ary_new3(2, key, obj));
 }
 
 VALUE
-binject_save(VALUE self, VALUE file)
+binject_exe_save(VALUE self, VALUE file)
 {
   int i;
   size_t len, pos;
-  binject_t *binj;
+  binject_exe_t *binj;
   char buf[BUFSIZE];
   char buf2[BUFSIZE];
-  Data_Get_Struct(self, binject_t, binj);
+  Data_Get_Struct(self, binject_exe_t, binj);
 
   binj->out = rb_fopen(RSTRING_PTR(file), "wb");
   binj->ids = 0;
@@ -517,7 +511,7 @@ binject_save(VALUE self, VALUE file)
     if (pos == binj->section_header.PointerToRawData)
     {
       MEMZERO(buf2, char, BUFSIZE);
-      len = binject_rewrite(binj, buf, buf2, 0, 0, 0, 0);
+      len = binject_exe_rewrite(binj, buf, buf2, 0, 0, 0, 0);
       fwrite(buf2, sizeof(char), binj->datastart, binj->out);
       // printf("FINISHING AT: %x / %x\n", binj->dataend, binj->datapos);
       fseek(binj->out, binj->datapos, SEEK_SET);
@@ -564,9 +558,10 @@ binject_save(VALUE self, VALUE file)
 
 void Init_binject()
 {
-  VALUE cBinject = rb_define_class("Binject", rb_cObject);
-  rb_define_alloc_func(cBinject, binject_alloc);
-  rb_define_method(cBinject, "load", binject_load, 1);
-  rb_define_method(cBinject, "inject", binject_inject, 2);
-  rb_define_method(cBinject, "save", binject_save, 1);
+  VALUE cBinject = rb_define_module("Binject");
+  VALUE cEXE = rb_define_class_under(cBinject, "EXE", rb_cObject);
+  rb_define_alloc_func(cEXE, binject_exe_alloc);
+  rb_define_method(cEXE, "initialize", binject_exe_load, 1);
+  rb_define_method(cEXE, "inject", binject_exe_inject, 2);
+  rb_define_method(cEXE, "save", binject_exe_save, 1);
 }
