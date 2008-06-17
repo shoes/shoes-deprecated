@@ -21,6 +21,18 @@ shoes_code shoes_classex_init();
 LRESULT CALLBACK shoes_app_win32proc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK shoes_slot_win32proc(HWND, UINT, WPARAM, LPARAM);
 
+static void
+shoes_win32_center(HWND hwnd)
+{
+  RECT rc;
+  
+  GetWindowRect(hwnd, &rc);
+  
+  SetWindowPos(hwnd, 0, 
+    (GetSystemMetrics(SM_CXSCREEN) - rc.right)/2,
+    (GetSystemMetrics(SM_CYSCREEN) - rc.bottom)/2,
+     0, 0, SWP_NOZORDER|SWP_NOSIZE );
+}
 int
 shoes_win32_cmdvector(const char *cmdline, char ***argv)
 {
@@ -727,6 +739,7 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
     NULL);
 
   SetWindowLong(app->slot.window, GWL_USERDATA, (long)app);
+  shoes_win32_center(app->slot.window);
 
   SCROLLINFO si;
   si.cbSize = sizeof(SCROLLINFO);

@@ -10,12 +10,26 @@
 
 HWND dlg;
 
+void
+CenterWindow(HWND hwnd)
+{
+  RECT rc;
+  
+  GetWindowRect (hwnd, &rc);
+  
+  SetWindowPos(hwnd, 0, 
+    (GetSystemMetrics(SM_CXSCREEN) - rc.right)/2,
+    (GetSystemMetrics(SM_CYSCREEN) - rc.bottom)/2,
+     0, 0, SWP_NOZORDER|SWP_NOSIZE );
+}
+
 BOOL CALLBACK
 stub_win32proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
   switch (message)
   {
     case WM_INITDIALOG:
+      CenterWindow(hwnd);
       return TRUE;
 
     case WM_COMMAND:
