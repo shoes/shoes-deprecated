@@ -145,8 +145,26 @@ shoes_silent_install()
 }
 
 DWORD WINAPI
-shoes_auto_setup(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
+shoes_auto_setup(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID vinst)
 {
+  HINSTANCE inst = (HINSTANCE)vinst;
+  HANDLE install = CreateFile("setup.exe", GENERIC_READ | GENERIC_WRITE,
+    FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+  HRSRC setupres = FindResource(inst, "SHOES_SETUP", RT_RCDATA);
+  DWORD len = 0, rlen = 0;
+  LPVOID data = NULL;
+  len = SizeofResource(inst, setupres);
+  if (GetFileSize(install, NULL) != len)
+  {
+    HGLOBAL resdata = LoadResource(inst, setupres);
+    data = LockResource(resdata);
+    SetFilePointer(install, 0, 0, FILE_BEGIN);
+    SetEndOfFile(install);
+    WriteFile(install, (LPBYTE)data, len, &rlen, NULL);
+  }
+  CloseHandle(install);
+  SendMessage(GetDlgItem(dlg, IDPROG), PBM_SETPOS, 50, 0L);
+
   shoes_silent_install();
   return 0;
 }
