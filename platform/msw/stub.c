@@ -170,8 +170,7 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
   HRSRC res;
   DWORD len = 0, rlen = 0, tid = 0;
   LPVOID data = NULL;
-  TCHAR buf[BUFSIZE];
-  TCHAR cmd[BUFSIZE];
+  TCHAR buf[BUFSIZE], path[BUFSIZE], cmd[BUFSIZE];
   HKEY hkey;
   BOOL shoes;
   DWORD plen;
@@ -179,9 +178,9 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
   MSG msg;
   char *key = "SOFTWARE\\Hackety.org\\Shoes";
 
-  plen = sizeof(cmd);
-  if (!(shoes = reg_s((hkey=HKEY_LOCAL_MACHINE), key, "", (LPBYTE)&cmd, &plen)))
-    shoes = reg_s((hkey=HKEY_CURRENT_USER), key, "", (LPBYTE)&cmd, &plen);
+  plen = sizeof(path);
+  if (!(shoes = reg_s((hkey=HKEY_LOCAL_MACHINE), key, "", (LPBYTE)&path, &plen)))
+    shoes = reg_s((hkey=HKEY_CURRENT_USER), key, "", (LPBYTE)&path, &plen);
 
   if(!shoes)
   {
@@ -205,9 +204,12 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
         }        
     }
     CloseHandle(th);
+
+    if (!(shoes = reg_s((hkey=HKEY_LOCAL_MACHINE), key, "", (LPBYTE)&path, &plen)))
+      shoes = reg_s((hkey=HKEY_CURRENT_USER), key, "", (LPBYTE)&path, &plen);
   }
 
-  if (0)
+  if (shoes)
   {
     GetTempPath(BUFSIZE, buf);
     res = FindResource(inst, "SHOES_FILENAME", RT_STRING);
@@ -230,7 +232,8 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
     WriteFile(payload, (LPBYTE)data, len, &rlen, NULL);
     CloseHandle(payload);
 
-    ShellExecute(NULL, "open", "C:\\Program Files\\Common Files\\Shoes\\shoes.bat", buf, NULL, 0);
+    sprintf(cmd, "%s\\..\\shoes.bat", path);
+    ShellExecute(NULL, "open", cmd, buf, NULL, 0);
   }
 
   return 0;
