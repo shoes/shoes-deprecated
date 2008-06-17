@@ -85,15 +85,19 @@ ShoesWinHttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, HANDLE 
 
   if (file != NULL)
   {
-    TCHAR fbuf[CHUNKSIZE];
+    TCHAR fbuf[CHUNKSIZE], msg[512];
     DWORD flen = 0, total = *size * 100;
+    int perc;
     rlen = *size;
     while (rlen > 0)
     {
       WinHttpReadData(req, fbuf, CHUNKSIZE, &len);
       WriteFile(file, (LPBYTE)fbuf, len, &flen, NULL);
-      SendMessage(GetDlgItem(dlg, IDPROG), PBM_SETPOS,
-        (int)((total - (rlen * 100)) / *size), 0L);
+      perc = (int)((total - (rlen * 100)) / *size);
+
+      sprintf(msg, "Shoes is downloading. (%d%% done)", perc);
+      SetDlgItemText(dlg, IDSHOE, msg);
+      SendMessage(GetDlgItem(dlg, IDPROG), PBM_SETPOS, perc, 0L);
       rlen -= CHUNKSIZE;
     }
   }
@@ -115,6 +119,7 @@ shoes_download(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
   WCHAR path[BUFSIZE];
   TCHAR buf[BUFSIZE];
   HANDLE file;
+  SHELLEXECUTEINFO shell = {0};
 
   ShoesWinHttp(L"hackety.org", 53045, L"/shoes.txt", buf, NULL, &len);
   if (len == 0)
@@ -126,7 +131,37 @@ shoes_download(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
     FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
   ShoesWinHttp(L"code.whytheluckystiff.net", 80, path, NULL, file, &len);
   CloseHandle(file);
+
+  SetDlgItemText(dlg, IDSHOE, "Setting up Shoes...");
+  shell.cbSize = sizeof(SHELLEXECUTEINFO);
+  shell.fMask = SEE_MASK_NOCLOSEPROCESS;
+  shell.hwnd = NULL;
+  shell.lpVerb = NULL;
+  shell.lpFile = "setup.exe";    
+  shell.lpParameters = "/S"; 
+  shell.lpDirectory = NULL;
+  shell.nShow = SW_SHOW;
+  shell.hInstApp = NULL; 
+  ShellExecuteEx(&shell);
+  WaitForSingleObject(shell.hProcess,INFINITE);
+
   return 0;
+}
+
+static BOOL
+reg_s(HKEY key, char* sub_key, char* val, LPBYTE data, LPDWORD data_len) {
+  HKEY hkey;
+  BOOL ret = FALSE;
+  LONG retv;
+
+  retv = RegOpenKeyEx(key, sub_key, 0, KEY_QUERY_VALUE, &hkey);
+  if (retv == ERROR_SUCCESS)
+  {
+    retv = RegQueryValueEx(hkey, val, NULL, NULL, data, data_len);
+    if (retv == ERROR_SUCCESS)
+      return TRUE;
+  }
+  return FALSE;
 }
 
 int WINAPI
@@ -136,29 +171,41 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
   DWORD len = 0, rlen = 0, tid = 0;
   LPVOID data = NULL;
   TCHAR buf[BUFSIZE];
+  TCHAR cmd[BUFSIZE];
+  HKEY hkey;
+  BOOL shoes;
+  DWORD plen;
   HANDLE payload, th;
   MSG msg;
+  char *key = "SOFTWARE\\Hackety.org\\Shoes";
 
-  INITCOMMONCONTROLSEX InitCtrlEx;
-  InitCtrlEx.dwSize = sizeof(INITCOMMONCONTROLSEX);
-  InitCtrlEx.dwICC = ICC_PROGRESS_CLASS;
-  InitCommonControlsEx(&InitCtrlEx);
+  plen = sizeof(cmd);
+  if (!(shoes = reg_s((hkey=HKEY_LOCAL_MACHINE), key, "", (LPBYTE)&cmd, &plen)))
+    shoes = reg_s((hkey=HKEY_CURRENT_USER), key, "", (LPBYTE)&cmd, &plen);
 
-  dlg = CreateDialog(inst, MAKEINTRESOURCE(ASKDLG), NULL, stub_win32proc);
-  ShowWindow(dlg, SW_SHOW);
+  if(!shoes)
+  {
+    INITCOMMONCONTROLSEX InitCtrlEx;
+    InitCtrlEx.dwSize = sizeof(INITCOMMONCONTROLSEX);
+    InitCtrlEx.dwICC = ICC_PROGRESS_CLASS;
+    InitCommonControlsEx(&InitCtrlEx);
 
-  if (!(th = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)shoes_download, NULL, 0, &tid)))
-    return 0;
+    dlg = CreateDialog(inst, MAKEINTRESOURCE(ASKDLG), NULL, stub_win32proc);
+    ShowWindow(dlg, SW_SHOW);
 
-  while (WaitForSingleObject(th, 10) != WAIT_OBJECT_0)   
-  {       
-      while (PeekMessage(&msg, NULL, NULL, NULL, PM_REMOVE))         
-      {            
-          TranslateMessage(&msg);           
-          DispatchMessage(&msg);         
-      }        
+    if (!(th = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)shoes_download, NULL, 0, &tid)))
+      return 0;
+
+    while (WaitForSingleObject(th, 10) != WAIT_OBJECT_0)   
+    {       
+        while (PeekMessage(&msg, NULL, NULL, NULL, PM_REMOVE))         
+        {            
+            TranslateMessage(&msg);           
+            DispatchMessage(&msg);         
+        }        
+    }
+    CloseHandle(th);
   }
-  CloseHandle(th);
 
   if (0)
   {

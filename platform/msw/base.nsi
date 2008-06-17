@@ -465,7 +465,7 @@ FunctionEnd
   InstallDir "$PROGRAMFILES\${AppName}\${AppVersion}"
   
   ;Get installation folder from registry if available
-  InstallDirRegKey HKCU "${InstallKey}" ""
+  InstallDirRegKey HKLM "${InstallKey}" ""
 
   ;Vista redirects $SMPROGRAMS to all users without this
   RequestExecutionLevel admin
@@ -504,7 +504,7 @@ FunctionEnd
 
   ;Start Menu Folder Page Configuration
   !define MUI_STARTMENUPAGE_DEFAULTFOLDER "${AppName}"
-  !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKCU" 
+  !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKLM" 
   !define MUI_STARTMENUPAGE_REGISTRY_KEY "${InstallKey}" 
   !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "Start Menu Folder"
   
@@ -556,7 +556,7 @@ Section "App Section" SecApp
   File /r /x nsis ..\*.*
   
   ;Store installation folder
-  WriteRegStr HKCU "${InstallKey}" "" $INSTDIR
+  WriteRegStr HKLM "${InstallKey}" "" $INSTDIR
   
   ;Make associations
   !insertmacro MakeFileAssoc "Shoes" "shy"
@@ -635,6 +635,6 @@ Section "Uninstall"
   Push "$INSTDIR\.."
   Call un.RemoveFromPath
   
-  DeleteRegKey /ifempty HKCU "${InstallKey}"
+  DeleteRegKey /ifempty HKLM "${InstallKey}"
 
 SectionEnd

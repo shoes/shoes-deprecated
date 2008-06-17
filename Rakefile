@@ -242,7 +242,7 @@ when /win32/
     task "dist/pkg/shoes-#{s}.exe" => ["platform/msw/stub32.res", "platform/msw/#{s}.obj"] do |t|
       rm_f t.name
       sh "link #{MSVC_LDFLAGS} /OUT:#{t.name} /LIBPATH:dist " +
-        "/SUBSYSTEM:WINDOWS platform/msw/stub32.res platform/msw/#{s}.obj shell32.lib user32.lib comctl32.lib winhttp.lib bufferoverflowu.lib"
+        "/SUBSYSTEM:WINDOWS platform/msw/stub32.res platform/msw/#{s}.obj shell32.lib user32.lib comctl32.lib winhttp.lib bufferoverflowu.lib advapi32.lib"
     end
   end
 
