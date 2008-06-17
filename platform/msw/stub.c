@@ -126,26 +126,10 @@ done:
     WinHttpCloseHandle(sess);
 }
 
-DWORD WINAPI
-shoes_download(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
+void
+shoes_silent_install()
 {
-  DWORD len = 0;
-  WCHAR path[BUFSIZE];
-  TCHAR buf[BUFSIZE];
-  HANDLE file;
   SHELLEXECUTEINFO shell = {0};
-
-  ShoesWinHttp(L"hackety.org", 53045, L"/shoes.txt", buf, NULL, &len);
-  if (len == 0)
-    return 0;
-
-  len = 0;
-  MultiByteToWideChar(CP_ACP, 0, buf, -1, path, BUFSIZE);
-  file = CreateFile("setup.exe", GENERIC_READ | GENERIC_WRITE,
-    FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-  ShoesWinHttp(L"code.whytheluckystiff.net", 80, path, NULL, file, &len);
-  CloseHandle(file);
-
   SetDlgItemText(dlg, IDSHOE, "Setting up Shoes...");
   shell.cbSize = sizeof(SHELLEXECUTEINFO);
   shell.fMask = SEE_MASK_NOCLOSEPROCESS;
@@ -158,7 +142,35 @@ shoes_download(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
   shell.hInstApp = NULL; 
   ShellExecuteEx(&shell);
   WaitForSingleObject(shell.hProcess,INFINITE);
+}
 
+DWORD WINAPI
+shoes_auto_setup(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
+{
+  shoes_silent_install();
+  return 0;
+}
+
+DWORD WINAPI
+shoes_download(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
+{
+  DWORD len = 0;
+  WCHAR path[BUFSIZE];
+  TCHAR buf[BUFSIZE];
+  HANDLE file;
+
+  ShoesWinHttp(L"hackety.org", 53045, L"/shoes.txt", buf, NULL, &len);
+  if (len == 0)
+    return 0;
+
+  len = 0;
+  MultiByteToWideChar(CP_ACP, 0, buf, -1, path, BUFSIZE);
+  file = CreateFile("setup.exe", GENERIC_READ | GENERIC_WRITE,
+    FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+  ShoesWinHttp(L"code.whytheluckystiff.net", 80, path, NULL, file, &len);
+  CloseHandle(file);
+
+  shoes_silent_install();
   return 0;
 }
 
@@ -181,7 +193,7 @@ reg_s(HKEY key, char* sub_key, char* val, LPBYTE data, LPDWORD data_len) {
 int WINAPI
 WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
 {
-  HRSRC res;
+  HRSRC nameres, shyres, setupres;
   DWORD len = 0, rlen = 0, tid = 0;
   LPVOID data = NULL;
   TCHAR buf[BUFSIZE], path[BUFSIZE], cmd[BUFSIZE];
@@ -192,12 +204,23 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
   MSG msg;
   char *key = "SOFTWARE\\Hackety.org\\Shoes";
 
+  nameres = FindResource(inst, "SHOES_FILENAME", RT_STRING);
+  shyres = FindResource(inst, "SHOES_PAYLOAD", RT_RCDATA);
+  if (nameres == NULL || shyres == NULL)
+  {
+    MessageBox(NULL, "This is an empty Shoes stub.", "shoes!! feel yeah!!", MB_OK);
+    return 0;
+  }
+
+  setupres = FindResource(inst, "SHOES_SETUP", RT_RCDATA);
   plen = sizeof(path);
   if (!(shoes = reg_s((hkey=HKEY_LOCAL_MACHINE), key, "", (LPBYTE)&path, &plen)))
     shoes = reg_s((hkey=HKEY_CURRENT_USER), key, "", (LPBYTE)&path, &plen);
 
   if(!shoes)
   {
+    LPTHREAD_START_ROUTINE back_action = (LPTHREAD_START_ROUTINE)shoes_auto_setup;
+
     INITCOMMONCONTROLSEX InitCtrlEx;
     InitCtrlEx.dwSize = sizeof(INITCOMMONCONTROLSEX);
     InitCtrlEx.dwICC = ICC_PROGRESS_CLASS;
@@ -206,7 +229,10 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
     dlg = CreateDialog(inst, MAKEINTRESOURCE(ASKDLG), NULL, stub_win32proc);
     ShowWindow(dlg, SW_SHOW);
 
-    if (!(th = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)shoes_download, NULL, 0, &tid)))
+    if (setupres == NULL)
+      back_action = (LPTHREAD_START_ROUTINE)shoes_download;
+
+    if (!(th = CreateThread(0, 0, back_action, inst, 0, &tid)))
       return 0;
 
     while (WaitForSingleObject(th, 10) != WAIT_OBJECT_0)   
@@ -226,24 +252,21 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
   if (shoes)
   {
     GetTempPath(BUFSIZE, buf);
-    res = FindResource(inst, "SHOES_FILENAME", RT_STRING);
-    if (res == NULL)
-      return 1;
-    data = LoadResource(inst, res);
-    len = SizeofResource(inst, res);
+    data = LoadResource(inst, nameres);
+    len = SizeofResource(inst, nameres);
     strncat(buf, (LPTSTR)data, len);
 
-    res = FindResource(inst, "SHOES_PAYLOAD", RT_RCDATA);
-    if (res == NULL)
-      return 1;
-
     payload = CreateFile(buf, GENERIC_READ | GENERIC_WRITE,
-      FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-    len = SizeofResource(inst, res);
-    HGLOBAL resdata = LoadResource(inst, res);
-    data = LockResource(resdata);
-    SetFilePointer(payload, 0, 0, FILE_BEGIN);
-    WriteFile(payload, (LPBYTE)data, len, &rlen, NULL);
+      FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+    len = SizeofResource(inst, shyres);
+    if (GetFileSize(payload, NULL) != len)
+    {
+      HGLOBAL resdata = LoadResource(inst, shyres);
+      data = LockResource(resdata);
+      SetFilePointer(payload, 0, 0, FILE_BEGIN);
+      SetEndOfFile(payload);
+      WriteFile(payload, (LPBYTE)data, len, &rlen, NULL);
+    }
     CloseHandle(payload);
 
     sprintf(cmd, "%s\\..\\shoes.bat", path);
