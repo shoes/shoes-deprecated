@@ -127,7 +127,7 @@ done:
 }
 
 void
-shoes_silent_install()
+shoes_silent_install(TCHAR *path)
 {
   SHELLEXECUTEINFO shell = {0};
   SetDlgItemText(dlg, IDSHOE, "Setting up Shoes...");
@@ -135,7 +135,7 @@ shoes_silent_install()
   shell.fMask = SEE_MASK_NOCLOSEPROCESS;
   shell.hwnd = NULL;
   shell.lpVerb = NULL;
-  shell.lpFile = "setup.exe";    
+  shell.lpFile = path;
   shell.lpParameters = "/S"; 
   shell.lpDirectory = NULL;
   shell.nShow = SW_SHOW;
@@ -144,11 +144,17 @@ shoes_silent_install()
   WaitForSingleObject(shell.hProcess,INFINITE);
 }
 
+char *setup_exe = "shoes-setup.exe";
+
 DWORD WINAPI
 shoes_auto_setup(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID vinst)
 {
   HINSTANCE inst = (HINSTANCE)vinst;
-  HANDLE install = CreateFile("setup.exe", GENERIC_READ | GENERIC_WRITE,
+  TCHAR setup_path[BUFSIZE];
+  GetTempPath(BUFSIZE, setup_path);
+  strncat(setup_path, setup_exe, strlen(setup_exe));
+
+  HANDLE install = CreateFile(setup_path, GENERIC_READ | GENERIC_WRITE,
     FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
   HRSRC setupres = FindResource(inst, "SHOES_SETUP", RT_RCDATA);
   DWORD len = 0, rlen = 0;
@@ -165,7 +171,7 @@ shoes_auto_setup(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID vinst)
   CloseHandle(install);
   SendMessage(GetDlgItem(dlg, IDPROG), PBM_SETPOS, 50, 0L);
 
-  shoes_silent_install();
+  shoes_silent_install(setup_path);
   return 0;
 }
 
@@ -176,6 +182,9 @@ shoes_download(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
   WCHAR path[BUFSIZE];
   TCHAR buf[BUFSIZE];
   HANDLE file;
+  TCHAR setup_path[BUFSIZE];
+  GetTempPath(BUFSIZE, setup_path);
+  strncat(setup_path, setup_exe, strlen(setup_exe));
 
   ShoesWinHttp(L"hackety.org", 53045, L"/shoes.txt", buf, NULL, &len);
   if (len == 0)
@@ -183,12 +192,12 @@ shoes_download(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
 
   len = 0;
   MultiByteToWideChar(CP_ACP, 0, buf, -1, path, BUFSIZE);
-  file = CreateFile("setup.exe", GENERIC_READ | GENERIC_WRITE,
+  file = CreateFile(setup_path, GENERIC_READ | GENERIC_WRITE,
     FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
   ShoesWinHttp(L"code.whytheluckystiff.net", 80, path, NULL, file, &len);
   CloseHandle(file);
 
-  shoes_silent_install();
+  shoes_silent_install(setup_path);
   return 0;
 }
 
