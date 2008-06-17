@@ -6,24 +6,35 @@ require 'shoes/shy'
 require 'binject'
 
 class Shoes
-  def pack_exe(script)
-    f = File.open(script)
-    exe = Binject::EXE.new(File.join(Shoes::DIR, "static", "stubs", "blank.exe"))
-    exe.inject("SHOES_FILENAME", File.basename(script))
-    exe.inject("SHOES_PAYLOAD", f)
-    exe.save(script.gsub(/\.\w+$/, '') + ".exe")
-  end
+  module Pack
+    def self.exe(script)
+      f = File.open(script)
+      exe = Binject::EXE.new(File.join(::DIR, "static", "stubs", "blank.exe"))
+      exe.inject("SHOES_FILENAME", File.basename(script))
+      exe.inject("SHOES_PAYLOAD", f)
+      exe.save(script.gsub(/\.\w+$/, '') + ".exe")
+    end
 
-  def pack_dmg(script)
-    tmp_dir = File.join(Shoes::LIB_DIR, "+dmg")
-    FileUtils.rm_rf(tmp_dir) if File.exists? tmp_dir
-    FileUtils.mkdir_p(tmp_dir)
-    dmg = Binject::DMG.new(File.join(Shoes::DIR, "static", "stubs", "blank.hfz"))
-    dmg.inject_dir("#{script.capitalize}.app", tmp_dir)
-    dmg.save(script.gsub(/\.\w+$/, '') + ".dmg")
-  end
+    def self.dmg(script)
+      app_name = "#{File.basename(script).capitalize}.app"
+      tmp_dir = File.join(Shoes::LIB_DIR, "+dmg")
+      FileUtils.rm_rf(tmp_dir) if File.exists? tmp_dir
+      FileUtils.mkdir_p(tmp_dir)
+      FileUtils.cp(File.join(::DIR, "static", "stubs", "blank.hfz"),
+                   File.join(tmp_dir, "blank.hfz"))
+      dmg = Binject::DMG.new(File.join(tmp_dir, "blank.hfz"))
+      app_dir = File.join(tmp_dir, app_name)
+      FileUtils.mkdir_p(app_dir)
+      File.open(File.join(app_dir, "Applications"), "w") do |f|
+        f << "Applications"
+      end
+      dmg.inject_dir(app_name, app_dir)
+      dmg.save(script.gsub(/\.\w+$/, '') + ".dmg")
+      FileUtils.rm_rf(tmp_dir) if File.exists? tmp_dir
+    end
 
-  def pack_linux(script)
+    def self.linux(script)
+    end
   end
 
   I_NET = "No, download Shoes if it's absent."
@@ -82,11 +93,11 @@ class Shoes
             @prog.fraction = 0
             @page2.show 
             @path2.replace File.basename(@path.text)
-            pack_exe(@path.txt)
+            Shoes::Pack.exe(@path.text)
             @prog.fraction = 0.3
-            pack_dmg(@path.txt)
+            Shoes::Pack.dmg(@path.text)
             @prog.fraction = 0.6
-            pack_linux(@path.txt)
+            Shoes::Pack.linux(@path.text)
             @prog.fraction = 1.0
           end
           button "Cancel" do
