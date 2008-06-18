@@ -5,6 +5,8 @@
 
 @interface StubEvents : NSObject
 {
+  NSWindow *win;
+  NSFileManager *fm;
   NSMutableData *data;
   NSString *setupURL;
   NSURLConnection *metaConn;
@@ -19,11 +21,15 @@
 @end
 
 @implementation StubEvents
-- (id)init
+- (id)initWithWindow: (NSWindow *)w andText: (NSTextField *)text andProgress: (NSProgressIndicator *)pop
 {
   if ((self = [super init]))
   {
     data = [[NSMutableData data] retain];
+    fm = [NSFileManager defaultManager];
+    win = w;
+    progress = pop;
+    textField = text;
   }
   return self;
 }
@@ -33,11 +39,18 @@
   if (temp == NULL) temp = NSHomeDirectory();
   return temp;
 }
-- (void)setMetaConn: (NSURLConnection *)conn andText: (NSTextField *)text andProgress: (NSProgressIndicator *)pop
+-(IBAction)cancelClick: (id)sender
 {
-  metaConn = conn;
-  progress = pop;
-  textField = text;
+  [[NSApplication sharedApplication] stop: nil];
+}
+- (void)checkForLatestShoesAt: (NSString *)url
+{
+  NSURLRequest *req = [NSURLRequest requestWithURL: 
+    [NSURL URLWithString: url]
+    cachePolicy: NSURLRequestUseProtocolCachePolicy
+    timeoutInterval: 60.0];
+  metaConn = [[NSURLConnection alloc] initWithRequest: req
+    delegate: self];
 }
 - (void)connection: (NSURLConnection *)conn didReceiveResponse: (NSURLResponse *)resp
 {
@@ -93,26 +106,22 @@
 }
 - (void)downloadDidFinish: (NSURLDownload *)download
 {
-  NSFileManager *fm;
   NSString *shoesMount, *shoesPath;
   NSTask *mount = [[NSTask alloc] init];
   [mount setLaunchPath: @"/usr/bin/hdiutil"];
   [mount setArguments: [NSArray arrayWithObjects: 
     @"mount", @"-noidme", @"-quiet", @"-mountroot", [self getTempPath], pkgPath, nil]];
   [mount launch];
-  printf("Mounting %s\n", [pkgPath UTF8String]);
   [mount waitUntilExit];
   [mount release];
 
   shoesMount = [[self getTempPath] stringByAppendingPathComponent: @"Shoes"];
   shoesPath = [shoesMount stringByAppendingPathComponent: @"Shoes.app"]; 
-  fm = [NSFileManager defaultManager];
   [fm copyPath: shoesPath toPath: @"/Applications/Shoes.app" handler: nil];
 
   mount = [[NSTask alloc] init];
   [mount setLaunchPath: @"/usr/bin/hdiutil"];
   [mount setArguments: [NSArray arrayWithObjects: @"unmount", @"-quiet", shoesMount, nil]];
-  printf("Unounting %s\n", [shoesMount UTF8String]);
   [mount launch];
   [mount waitUntilExit];
   [mount release];
@@ -126,7 +135,6 @@ main(int argc, char *argv[])
 {
   NSApplication *app = [NSApplication sharedApplication];
   INIT;
-  StubEvents *events = [[StubEvents alloc] init];
   NSWindow *win = [[NSWindow alloc] initWithContentRect: NSMakeRect(0, 0, 340, 140)
     styleMask: (NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask)
     backing: NSBackingStoreBuffered defer: NO];
@@ -136,13 +144,8 @@ main(int argc, char *argv[])
     NSMakeRect(130, 20, 100, 30)] autorelease];
   NSTextField *text = [[[NSTextField alloc] initWithFrame:
     NSMakeRect(40, 90, 260, 18)] autorelease];
-  NSURLRequest *req = [NSURLRequest requestWithURL: 
-    [NSURL URLWithString: @"http://hacketyhack.net/pkg/osx/shoes"]
-    cachePolicy: NSURLRequestUseProtocolCachePolicy
-    timeoutInterval: 60.0];
-  NSURLConnection *conn = [[NSURLConnection alloc] initWithRequest: req
-    delegate: events];
-  [events setMetaConn: conn andText: text andProgress: pop];
+  StubEvents *events = [[StubEvents alloc] initWithWindow: win andText: text andProgress: pop];
+  [events checkForLatestShoesAt: @"http://hacketyhack.net/pkg/osx/shoes"];
 
   [[win contentView] addSubview: text];
   [text setStringValue: @"Downloading Shoes."];
@@ -159,11 +162,12 @@ main(int argc, char *argv[])
   [[win contentView] addSubview: button];
   [button setTitle: @"Cancel"];
   [button setBezelStyle: 1];
+  [button setTarget: events];
+  [button setAction: @selector(cancelClick:)];
 
   // [win center];
   [win orderFrontRegardless];
   RELEASE;
-  printf("RUN?\n");
   [app run];
   return 0;
 }
