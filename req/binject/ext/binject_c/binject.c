@@ -645,6 +645,7 @@ binject_dmg_inject_dir(VALUE self, VALUE key, VALUE dir)
   Data_Get_Struct(self, binject_dmg_t, binj);
   newFolder(RSTRING_PTR(key), binj->in_vol);
 	addall_hfs(binj->in_vol, RSTRING_PTR(dir), RSTRING_PTR(key));
+  return self;
 }
 
 VALUE
@@ -655,10 +656,19 @@ binject_dmg_inject_file(VALUE self, VALUE key, VALUE filename)
   Data_Get_Struct(self, binject_dmg_t, binj);
 	inFile = createAbstractFileFromFile(fopen(RSTRING_PTR(filename), "rb"));
 	if(inFile == NULL) {
-		printf("file to add not found");
     return Qnil;
 	}
 	add_hfs(binj->in_vol, inFile, RSTRING_PTR(key));
+  return self;
+}
+
+VALUE
+binject_dmg_chmod_file(VALUE self, VALUE mode, VALUE filename)
+{
+  binject_dmg_t *binj;
+  Data_Get_Struct(self, binject_dmg_t, binj);
+  chmodFile(RSTRING_PTR(filename), NUM2INT(mode), binj->in_vol);
+  return self;
 }
 
 VALUE
@@ -669,7 +679,6 @@ binject_dmg_save(VALUE self, VALUE filename)
   Data_Get_Struct(self, binject_dmg_t, binj);
 	out = createAbstractFileFromFile(fopen(RSTRING_PTR(filename), "wb"));
 	if(out == NULL) {
-		fprintf(stderr, "error: Cannot open image-file.\n");
 		return Qnil;
 	}
   buildDmg(binj->in, out);
@@ -699,6 +708,7 @@ void Init_binject()
   rb_define_method(cDMG, "initialize", binject_dmg_load, 1);
   rb_define_method(cDMG, "inject_dir", binject_dmg_inject_dir, 2);
   rb_define_method(cDMG, "inject_file", binject_dmg_inject_file, 2);
+  rb_define_method(cDMG, "chmod_file", binject_dmg_chmod_file, 2);
   rb_define_method(cDMG, "save", binject_dmg_save, 1);
 
 	TestByteOrder();

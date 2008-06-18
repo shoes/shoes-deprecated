@@ -16,21 +16,98 @@ class Shoes
     end
 
     def self.dmg(script)
-      app_name = "#{File.basename(script).capitalize}.app"
+      name = File.basename(script).gsub(/\.\w+$/, '')
+      app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
+      app_app = "#{app_name}.app"
+      vers = [1, 0]
+
       tmp_dir = File.join(Shoes::LIB_DIR, "+dmg")
       FileUtils.rm_rf(tmp_dir) if File.exists? tmp_dir
       FileUtils.mkdir_p(tmp_dir)
       FileUtils.cp(File.join(::DIR, "static", "stubs", "blank.hfz"),
                    File.join(tmp_dir, "blank.hfz"))
-      dmg = Binject::DMG.new(File.join(tmp_dir, "blank.hfz"))
-      app_dir = File.join(tmp_dir, app_name)
-      FileUtils.mkdir_p(app_dir)
-      File.open(File.join(app_dir, "Applications"), "w") do |f|
-        f << "Applications"
+      app_dir = File.join(tmp_dir, app_app)
+      res_dir = File.join(tmp_dir, app_app, "Contents", "Resources")
+      mac_dir = File.join(tmp_dir, app_app, "Contents", "MacOS")
+      [res_dir, mac_dir].map { |x| FileUtils.mkdir_p(x) }
+      FileUtils.cp(File.join(Shoes::DIR, "static", "Shoes.icns"), app_dir)
+      FileUtils.cp(File.join(Shoes::DIR, "static", "Shoes.icns"), res_dir)
+      File.open(File.join(app_dir, "Contents", "PkgInfo"), 'w') do |f|
+        f << "APPL????"
       end
-      dmg.inject_dir(app_name, app_dir)
+      File.open(File.join(app_dir, "Contents", "Info.plist"), 'w') do |f|
+        f << <<END
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleGetInfoString</key>
+  <string>#{app_name} #{vers.join(".")}</string>
+  <key>CFBundleExecutable</key>
+  <string>#{name}-launch</string>
+  <key>CFBundleIdentifier</key>
+  <string>org.hackety.#{name}</string>
+  <key>CFBundleName</key>
+  <string>#{app_name}</string>
+  <key>CFBundleIconFile</key>
+  <string>Shoes.icns</string>
+  <key>CFBundleShortVersionString</key>
+  <string>#{vers.join(".")}</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+  <key>IFMajorVersion</key>
+  <integer>#{vers[0]}</integer>
+  <key>IFMinorVersion</key>
+  <integer>#{vers[1]}</integer>
+</dict>
+</plist>
+END
+      end
+      File.open(File.join(app_dir, "Contents", "version.plist"), 'w') do |f|
+        f << <<END
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>BuildVersion</key>
+  <string>1</string>
+  <key>CFBundleVersion</key>
+  <string>#{vers.join(".")}</string>
+  <key>ProjectName</key>
+  <string>#{app_name}</string>
+  <key>SourceVersion</key>
+  <string>#{Time.now.strftime("%Y%m%d")}</string>
+</dict>
+</plist>
+END
+      end
+      File.open(File.join(mac_dir, "pangorc"), 'w') do |f|
+        f << <<END
+[Pango]
+ModuleFiles=/Applications/Shoes.app/Contents/MacOS/pango.modules
+END
+      end
+      File.open(File.join(mac_dir, "#{name}-launch"), 'w') do |f|
+        f << <<END
+#!/bin/bash
+SHOESPATH=/Applications/Shoes.app/Contents/MacOS
+APPPATH="${0%/*}"
+unset DYLD_LIBRARY_PATH
+cd $APPPATH
+echo "[Pango]" > pangorc
+echo "ModuleFiles=$SHOESPATH/pango.modules" >> pangorc
+DYLD_LIBRARY_PATH=$SHOESPATH PANGO_RC_FILE=$APPPATH/pangorc $SHOESPATH/shoes-bin "#{File.basename(script)}"
+END
+      end
+      FileUtils.cp(script, File.join(mac_dir, File.basename(script)))
+
+      dmg = Binject::DMG.new(File.join(tmp_dir, "blank.hfz"))
+      dmg.inject_dir(app_app, app_dir)
+      dmg.chmod_file(0755, "#{app_app}/Contents/MacOS/#{name}-launch")
       dmg.save(script.gsub(/\.\w+$/, '') + ".dmg")
-      FileUtils.rm_rf(tmp_dir) if File.exists? tmp_dir
+      # FileUtils.rm_rf(tmp_dir) if File.exists? tmp_dir
     end
 
     def self.linux(script)

@@ -159,8 +159,8 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     cp_r "dist", "#{APPNAME}.app/Contents/MacOS"
     mkdir "#{APPNAME}.app/Contents/Resources"
     mkdir "#{APPNAME}.app/Contents/Resources/English.lproj"
-    sh "ditto platform/mac/Shoes.icns #{APPNAME}.app/"
-    sh "ditto platform/mac/Shoes.icns #{APPNAME}.app/Contents/Resources/"
+    sh "ditto static/Shoes.icns #{APPNAME}.app/"
+    sh "ditto static/Shoes.icns #{APPNAME}.app/Contents/Resources/"
     rewrite "platform/mac/Info.plist", "#{APPNAME}.app/Contents/Info.plist"
     cp "platform/mac/version.plist", "#{APPNAME}.app/Contents/"
     cp "platform/mac/pangorc", "#{APPNAME}.app/Contents/MacOS/"
@@ -382,7 +382,7 @@ else
       cp_r "#{APPNAME}.app", "dmg"
       mv "dmg/#{APPNAME}.app/Contents/MacOS/samples", "dmg/samples"
       ln_s "/Applications", "dmg/Applications"
-      sh "DYLD_LIBRARY_PATH= platform/mac/pkg-dmg --target pkg/#{PKG}.dmg --source dmg --volname '#{APPNAME}' --license COPYING --copy platform/mac/dmg_ds_store:/.DS_Store --mkdir /.background --copy platform/mac/shoes-dmg.jpg:/.background" # --format UDRW"
+      sh "DYLD_LIBRARY_PATH= platform/mac/pkg-dmg --target pkg/#{PKG}.dmg --source dmg --volname '#{APPNAME}' --license COPYING --copy platform/mac/dmg_ds_store:/.DS_Store --mkdir /.background --copy static/shoes-dmg.jpg:/.background" # --format UDRW"
       rm_rf "dmg"
     end
   end
