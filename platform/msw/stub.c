@@ -4,6 +4,7 @@
 #include <shellapi.h>
 #include <wchar.h>
 #include "stub32.h"
+#include "shoes/version.h"
 
 #define BUFSIZE 512
 #define CHUNKSIZE 16384
@@ -50,9 +51,12 @@ ShoesWinHttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, HANDLE 
 {
   DWORD len = 0, rlen = 0, status = 0;
   TCHAR buf[BUFSIZE];
+  WCHAR uagent[BUFSIZE];
   HINTERNET sess = NULL, conn = NULL, req = NULL;
 
-  sess = WinHttpOpen( L"ShoeStub/1.0", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
+  _snwprintf(uagent, BUFSIZE, L"ShoeStub/0.r%d (%S) %S/%d", SHOES_REVISION, SHOES_PLATFORM,
+    SHOES_RELEASE_NAME, SHOES_BUILD_DATE);
+  sess = WinHttpOpen(uagent, WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
     WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
   if (sess == NULL)
     goto done;
@@ -186,7 +190,7 @@ shoes_download(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
   GetTempPath(BUFSIZE, setup_path);
   strncat(setup_path, setup_exe, strlen(setup_exe));
 
-  ShoesWinHttp(L"hackety.org", 53045, L"/shoes.txt", buf, NULL, &len);
+  ShoesWinHttp(L"hacketyhack.net", 80, L"/pkg/win32/shoes", buf, NULL, &len);
   if (len == 0)
     return 0;
 
@@ -194,7 +198,7 @@ shoes_download(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
   MultiByteToWideChar(CP_ACP, 0, buf, -1, path, BUFSIZE);
   file = CreateFile(setup_path, GENERIC_READ | GENERIC_WRITE,
     FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-  ShoesWinHttp(L"code.whytheluckystiff.net", 80, path, NULL, file, &len);
+  ShoesWinHttp(L"hacketyhack.net", 80, path, NULL, file, &len);
   CloseHandle(file);
 
   shoes_silent_install(setup_path);

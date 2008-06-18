@@ -68,7 +68,7 @@ task :package => [:build, :installer]
 
 task "shoes/version.h" do |t|
   File.open(t.name, 'w') do |f|
-    f << %{#define SHOES_RELEASE_ID #{RELEASE_ID}\n#define SHOES_RELEASE_NAME "#{RELEASE_NAME}"\n#define SHOES_REVISION #{REVISION}\n}
+    f << %{#define SHOES_RELEASE_ID #{RELEASE_ID}\n#define SHOES_RELEASE_NAME "#{RELEASE_NAME}"\n#define SHOES_REVISION #{REVISION}\n#define SHOES_BUILD_DATE #{Time.now.strftime("%Y%m%d")}\n#define SHOES_PLATFORM "#{RUBY_PLATFORM}"\n}
   end
 end
 
@@ -239,7 +239,7 @@ when /win32/
   task :stub => ["dist/pkg/shoes-stub.exe", "dist/pkg/shoes-stub-inject.exe"]
 
   ['stub', 'stub-inject'].each do |s|
-    task "dist/pkg/shoes-#{s}.exe" => ["platform/msw/stub32.res", "platform/msw/#{s}.obj"] do |t|
+    task "dist/pkg/shoes-#{s}.exe" => ["shoes/version.h", "platform/msw/stub32.res", "platform/msw/#{s}.obj"] do |t|
       rm_f t.name
       sh "link #{MSVC_LDFLAGS} /OUT:#{t.name} /LIBPATH:dist " +
         "/SUBSYSTEM:WINDOWS platform/msw/stub32.res platform/msw/#{s}.obj shell32.lib user32.lib comctl32.lib winhttp.lib bufferoverflowu.lib advapi32.lib"
