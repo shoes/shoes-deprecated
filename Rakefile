@@ -375,6 +375,10 @@ else
   end
 
   case PLATFORM when /darwin/
+    task :stub do
+      sh "gcc -framework Cocoa -o stub platform/mac/stub.m -I."
+    end
+
     task :installer do
       mkdir_p "pkg"
       rm_rf "dmg"
@@ -382,7 +386,7 @@ else
       cp_r "#{APPNAME}.app", "dmg"
       mv "dmg/#{APPNAME}.app/Contents/MacOS/samples", "dmg/samples"
       ln_s "/Applications", "dmg/Applications"
-      sh "DYLD_LIBRARY_PATH= platform/mac/pkg-dmg --target pkg/#{PKG}.dmg --source dmg --volname '#{APPNAME}' --license COPYING --copy platform/mac/dmg_ds_store:/.DS_Store --mkdir /.background --copy static/shoes-dmg.jpg:/.background" # --format UDRW"
+      sh "DYLD_LIBRARY_PATH= platform/mac/pkg-dmg --target pkg/#{PKG}.dmg --source dmg --volname '#{APPNAME}' --copy platform/mac/dmg_ds_store:/.DS_Store --mkdir /.background --copy static/shoes-dmg.jpg:/.background" # --format UDRW"
       rm_rf "dmg"
     end
   end

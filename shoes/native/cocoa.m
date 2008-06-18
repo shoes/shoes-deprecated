@@ -1092,10 +1092,10 @@ VALUE
 shoes_dialog_open(VALUE self)
 {
   NSOpenPanel* openDlg = [NSOpenPanel openPanel];
-  [openDlg setCanChooseFiles:YES];
-  [openDlg setCanChooseDirectories:NO];
-  [openDlg setAllowsMultipleSelection:NO];
-  if ( [openDlg runModalForDirectory:nil file:nil] == NSOKButton )
+  [openDlg setCanChooseFiles: YES];
+  [openDlg setCanChooseDirectories: NO];
+  [openDlg setAllowsMultipleSelection: NO];
+  if ( [openDlg runModalForDirectory: nil file: nil] == NSOKButton )
   {
     NSArray* files = [openDlg filenames];
     char *filename = [[files objectAtIndex: 0] UTF8String];
