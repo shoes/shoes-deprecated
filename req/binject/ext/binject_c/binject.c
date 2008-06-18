@@ -59,7 +59,7 @@ typedef struct {
   struct resource_data_t resources[16];
   int resource_count;
   int ids, resids;
-  unsigned int namestart, datastart, datapos, dataend;
+  unsigned int namestart, datastart, datapos, dataend, vdelta;
   char signature[4];
   VALUE adds;
   FILE *file, *out;
@@ -339,6 +339,7 @@ binject_exe_rewrite(binject_exe_t *binj, char *buf, char *out, int offset, int o
       ((binj->resids + RARRAY_LEN(binj->adds)) * ((2 * 8) + (2 * sizeof(struct resource_dir_t))));
     binj->datastart = BINJ_PAD(binj->namestart + binject_exe_names_len(binj), 4);
     binj->datapos = binj->section_header.PointerToRawData + binj->datastart;
+    binj->vdelta = binj->section_header.VirtualAddress - binj->section_header.PointerToRawData;
     // printf("DATAPOS: %x\n", binj->datapos);
   }
   else
@@ -397,7 +398,7 @@ binject_exe_rewrite(binject_exe_t *binj, char *buf, char *out, int offset, int o
             obj = binject_exe_get_type(binj, ctype, i2);
             // printf("DATA: %x\n", binj->datapos);
             rdat = (struct resource_data_t *)(out + (rde2->OffsetToData));
-            rdat->OffsetToData = binj->datapos;
+            rdat->OffsetToData = binj->datapos + binj->vdelta;
             if (ctype == rb_cString)
             {
               rdat->Size = RSTRING_LEN(obj);
@@ -433,13 +434,14 @@ binject_exe_rewrite(binject_exe_t *binj, char *buf, char *out, int offset, int o
     {
       unsigned int dataoff = offset2 + rde2->OffsetToData;
       BINJ_COPY(rdat2, rdat, struct resource_data_t, rde->OffsetToData, rde2->OffsetToData);
-      rdat2->OffsetToData = binj->datapos;
+      rdat2->OffsetToData = binj->datapos + binj->vdelta;
       // printf("RESDATA: %x TO %x AT %x / %x\n", rde->OffsetToData, rde2->OffsetToData, 
       //   binj->namestart, binj->datastart);
-      binject_exe_file_copy(binj->file, binj->out, rdat->Size, rdat->OffsetToData, rdat2->OffsetToData);
+      binject_exe_file_copy(binj->file, binj->out, rdat->Size, 
+        rdat->OffsetToData - binj->vdelta, binj->datapos);
       // printf("DATA: %x TO %x\n", rdat->OffsetToData, binj->datapos);
       binj->datapos += rdat->Size;
-      binj->dataend = rdat->OffsetToData + rdat->Size;
+      binj->dataend = (rdat->OffsetToData - binj->vdelta) + rdat->Size;
     }
     else
     {
@@ -546,7 +548,7 @@ binject_exe_save(VALUE self, VALUE file)
   fseek(binj->out, 0, SEEK_SET);
   fread(buf, sizeof(char), 1024, binj->file);
   unsigned int *uninit = (unsigned int *)(buf + (binj->dos_header.e_lfanew + 32));
-  *uninit += grow;
+  *uninit += grow - binj->vdelta;
   uninit = (unsigned int *)(buf + (binj->dos_header.e_lfanew + 80));
   *uninit += grow;
   int *resd = (int *)(buf + (binj->dos_header.e_lfanew + 140));
