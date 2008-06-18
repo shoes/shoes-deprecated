@@ -577,7 +577,7 @@ void writeATAPI(AbstractFile* file, ChecksumFunc dataForkChecksum, void* dataFor
   memset(&uncompressedToken, 0, sizeof(uncompressedToken));
   
   atapi = (char*) malloc(ATAPI_SIZE * SECTOR_SIZE);
-  printf("malloc: %p %d\n", atapi, ATAPI_SIZE * SECTOR_SIZE); fflush(stdout);
+  // printf("malloc: %p %d\n", atapi, ATAPI_SIZE * SECTOR_SIZE); fflush(stdout);
   memcpy(atapi, atapi_data, ATAPI_SIZE * SECTOR_SIZE);
   bufferFile = createAbstractFileFromMemory((void**)&atapi, ATAPI_SIZE * SECTOR_SIZE);
 

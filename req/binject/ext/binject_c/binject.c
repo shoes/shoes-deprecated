@@ -672,7 +672,7 @@ binject_dmg_save(VALUE self, VALUE filename)
 		fprintf(stderr, "error: Cannot open image-file.\n");
 		return Qnil;
 	}
-  convertToDMG(binj->in, out);
+  buildDmg(binj->in, out);
   return Qnil;
 }
 

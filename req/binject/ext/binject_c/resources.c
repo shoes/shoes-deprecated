@@ -773,7 +773,7 @@ ResourceKey* insertData(ResourceKey* resources, const char* key, int id, const c
     if(strcmp((char*) curResource->key, "blkx") == 0) {
       curResource->flipData = &flipBLKX;
     } else if(strcmp((char*) curResource->key, "size") == 0) {
-	  printf("we know to flip this size resource\n");
+	  // printf("we know to flip this size resource\n");
       curResource->flipData = &flipSizeResource;
     } else if(strcmp((char*) curResource->key, "cSum") == 0) {
       curResource->flipData = &flipCSumResource;
@@ -844,7 +844,7 @@ ResourceKey* makeSize(HFSPlusVolumeHeader* volumeHeader) {
   size.volumeSignature = volumeHeader->signature;
   size.sizePresent = 1;
 
-  printf("making size data\n");  
+  // printf("making size data\n");  
   return insertData(NULL, "size", 0, "", (const char*)(&size), sizeof(SizeResource), 0); 
 }
 
