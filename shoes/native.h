@@ -7,6 +7,7 @@
    p1->iw != p2->iw || p1->dx != p2->dx || \
    p1->dy != p2->dy || p1->ih - HEIGHT_PAD != p2->ih)
 #define PLACE_COORDS() p2->h -= HEIGHT_PAD; p2->ih -= HEIGHT_PAD; *p1 = *p2
+#define PLACE_COORDS_NO_PAD() p2->h -= HEIGHT_PAD; p2->ih -= HEIGHT_PAD; *p1 = *p2
 
 void shoes_native_init();
 void shoes_native_cleanup(shoes_world_t *world);

@@ -921,9 +921,6 @@ shoes_canvas_button(int argc, VALUE *argv, VALUE self)
     attr = shoes_hash_set(attr, s_click, block);
 
   button = shoes_control_new(cButton, attr, self);
-#ifdef SHOES_QUARTZ
-  shoes_button_draw(button, self, Qtrue); 
-#endif
   rb_ary_push(canvas->contents, button);
   return button;
 }
@@ -947,9 +944,6 @@ shoes_canvas_edit_line(int argc, VALUE *argv, VALUE self)
     attr = shoes_hash_set(attr, s_change, block);
 
   edit_line = shoes_control_new(cEditLine, attr, self);
-#ifdef SHOES_QUARTZ
-  shoes_edit_line_draw(edit_line, self, Qtrue); 
-#endif
   rb_ary_push(canvas->contents, edit_line);
   return edit_line;
 }
@@ -973,9 +967,6 @@ shoes_canvas_edit_box(int argc, VALUE *argv, VALUE self)
     attr = shoes_hash_set(attr, s_change, block);
 
   edit_box = shoes_control_new(cEditBox, attr, self);
-#ifdef SHOES_QUARTZ
-  shoes_edit_box_draw(edit_box, self, Qtrue); 
-#endif
   rb_ary_push(canvas->contents, edit_box);
   return edit_box;
 }
@@ -991,9 +982,6 @@ shoes_canvas_list_box(int argc, VALUE *argv, VALUE self)
     attr = shoes_hash_set(attr, s_change, block);
 
   list_box = shoes_control_new(cListBox, attr, self);
-#ifdef SHOES_QUARTZ
-  shoes_list_box_draw(list_box, self, Qtrue); 
-#endif
   rb_ary_push(canvas->contents, list_box);
   return list_box;
 }
@@ -1006,9 +994,6 @@ shoes_canvas_progress(int argc, VALUE *argv, VALUE self)
   rb_scan_args(argc, argv, "01", &attr);
 
   progress = shoes_control_new(cProgress, attr, self);
-#ifdef SHOES_QUARTZ
-  shoes_progress_draw(progress, self, Qtrue); 
-#endif
   rb_ary_push(canvas->contents, progress);
   return progress;
 }
@@ -1024,9 +1009,6 @@ shoes_canvas_radio(int argc, VALUE *argv, VALUE self)
     attr = shoes_hash_set(attr, s_click, block);
 
   radio = shoes_control_new(cRadio, attr, self);
-#ifdef SHOES_QUARTZ
-  shoes_radio_draw(radio, self, Qtrue); 
-#endif
   rb_ary_push(canvas->contents, radio);
   return radio;
 }
@@ -1042,9 +1024,6 @@ shoes_canvas_check(int argc, VALUE *argv, VALUE self)
     attr = shoes_hash_set(attr, s_click, block);
 
   check = shoes_control_new(cCheck, attr, self);
-#ifdef SHOES_QUARTZ
-  shoes_check_draw(check, self, Qtrue); 
-#endif
   rb_ary_push(canvas->contents, check);
   return check;
 }

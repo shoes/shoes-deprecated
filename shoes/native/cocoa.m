@@ -43,6 +43,10 @@
 {
   rb_eval_string("Shoes.show_selector");
 }
+- (void)package: (id)sender
+{
+  rb_eval_string("Shoes.make_pack");
+}
 - (void)showLog: (id)sender
 {
   rb_eval_string("Shoes.show_log");
@@ -393,6 +397,9 @@ create_apple_menu(NSMenu *main)
 
     menuitem = [menuApp addItemWithTitle:@"Open..."
         action:@selector(openFile:) keyEquivalent:@"o"];
+    [menuitem setTarget: shoes_world->os.events];
+    menuitem = [menuApp addItemWithTitle:@"Package..."
+        action:@selector(package:) keyEquivalent:@"x"];
     [menuitem setTarget: shoes_world->os.events];
     [menuApp addItemWithTitle:@"Preferences..." action:nil keyEquivalent:@""];
     [menuApp addItem: [NSMenuItem separatorItem]];
@@ -947,8 +954,7 @@ SHOES_CONTROL_REF
 shoes_native_check(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
   INIT;
-  ShoesButton *button = [[ShoesButton alloc] initWithType: NSSwitchButton
-    andObject: self];
+  ShoesButton *button = [[ShoesButton alloc] initWithType: NSSwitchButton andObject: self];
   RELEASE;
   return (NSControl *)button;
 }

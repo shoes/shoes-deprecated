@@ -473,7 +473,7 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
     msg = RSTRING_PTR(text); \
     len = (RSTRING_LEN(text) * 8) + 32; \
   } \
-  shoes_place_decide(&place, c, self_t->attr, len, 28 + dh, REL_CANVAS, FALSE)
+  shoes_place_decide(&place, c, self_t->attr, len, 28 + dh, REL_CANVAS, TRUE)
 
 #define FINISH() \
   if (!ABSY(place)) { \
@@ -3054,7 +3054,7 @@ shoes_progress_set_fraction(VALUE self, VALUE _perc)
 VALUE
 shoes_check_draw(VALUE self, VALUE c, VALUE actual)
 {
-  SETUP_CONTROL(-6, 20);
+  SETUP_CONTROL(0, 20);
 
   if (RTEST(actual))
   {
@@ -3090,7 +3090,7 @@ shoes_check_set_checked(VALUE self, VALUE on)
 VALUE
 shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
 {
-  SETUP_CONTROL(-6, 20);
+  SETUP_CONTROL(0, 20);
 
   if (RTEST(actual))
   {
