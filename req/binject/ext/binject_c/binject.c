@@ -580,7 +580,7 @@ typedef struct {
 } binject_dmg_t;
 
 VALUE
-binject_dmg_uncompress(VALUE filename)
+binject_dmg_uncompress(VALUE filename, VALUE volname)
 {
   FILE *hfs;
   int len;
@@ -588,15 +588,42 @@ binject_dmg_uncompress(VALUE filename)
   VALUE filename2 = rb_funcall(filename, rb_intern("gsub"), 2,
     rb_eval_string("/\\.\\w+$/"), rb_str_new2(".hfs"));
 
+  char *vname = RSTRING_PTR(volname);
   char *fname = RSTRING_PTR(filename);
-  char buf[BUFSIZE];
+  unsigned char buf[BUFSIZE], sig[8];
+  int pos = 0;
 
   file = gzopen(fname, "rb");
   hfs = rb_fopen(RSTRING_PTR(filename2), "wb");
   while ((len = gzread(file, buf, BUFSIZE)) > 0)
   {
+    if (pos == 0)
+      MEMCPY(sig, buf + 0x414, char, 4);
+
+    if (pos <= 0xB000 && pos + len > 0xB000)
+    {
+      int i;
+      char *meta = buf + (0xB000 - pos);
+      unsigned char o = (RSTRING_LEN(volname) * 2) + 6;
+      MEMZERO(meta + 0x17, char, 0xFF0 - 0x18);
+      // printf("POS: %d\n", pos);
+      meta[0x0F] = o;
+      meta[0x15] = meta[0x79 + o] = (unsigned char)RSTRING_LEN(volname);
+      for (i = 0; i < RSTRING_LEN(volname); i++)
+      {
+        meta[0x17 + (i * 2)] = meta[0x7B + o + (i * 2)] = vname[i];
+      }
+      meta[0x17 + (i * 2)] = 1; meta[0x1B + o] = 2;
+      MEMCPY(meta + 0x1C + o, sig, char, 4);
+      MEMCPY(meta + 0x20 + o, sig, char, 4);
+      meta[0x69 + o] = 6; meta[0x6D + o] = 2;
+      meta[0x71 + o] = 3; meta[0x77 + o] = 1;
+      meta[0xffd] = 0x68 + o; meta[0xffb] = 0x7A + o + (i * 2);
+    }
     fwrite(buf, sizeof(char), len, hfs);
+    pos += len;
   }
+  // printf("LEN: %d / POS: %d\n", len, pos);
   gzclose(file);
   fclose(hfs);
 
@@ -618,11 +645,11 @@ binject_dmg_free(binject_dmg_t *binj)
 }
 
 VALUE
-binject_dmg_load(VALUE self, VALUE filename)
+binject_dmg_load(VALUE self, VALUE filename, VALUE volname)
 {
   binject_dmg_t *binj;
   Data_Get_Struct(self, binject_dmg_t, binj);
-  binj->tmpname = binject_dmg_uncompress(filename);
+  binj->tmpname = binject_dmg_uncompress(filename, volname);
 	binj->in = createAbstractFileFromFile(fopen(RSTRING_PTR(binj->tmpname), "rb+"));
 	if(binj->in == NULL) {
 		fprintf(stderr, "error: Cannot open image-file.\n");
@@ -636,6 +663,16 @@ binject_dmg_load(VALUE self, VALUE filename)
 		CLOSE(binj->in_func);
 		return 1;
 	}
+}
+
+VALUE
+binject_dmg_grow(VALUE self, VALUE megs)
+{
+  uint64_t size = (uint64_t)NUM2INT(megs) * (1024 * 1024);
+  binject_dmg_t *binj;
+  Data_Get_Struct(self, binject_dmg_t, binj);
+	grow_hfs(binj->in_vol, size);
+  return self;
 }
 
 VALUE
@@ -705,7 +742,8 @@ void Init_binject()
 
   VALUE cDMG = rb_define_class_under(cBinject, "DMG", rb_cObject);
   rb_define_alloc_func(cDMG, binject_dmg_alloc);
-  rb_define_method(cDMG, "initialize", binject_dmg_load, 1);
+  rb_define_method(cDMG, "initialize", binject_dmg_load, 2);
+  rb_define_method(cDMG, "grow", binject_dmg_grow, 1);
   rb_define_method(cDMG, "inject_dir", binject_dmg_inject_dir, 2);
   rb_define_method(cDMG, "inject_file", binject_dmg_inject_file, 2);
   rb_define_method(cDMG, "chmod_file", binject_dmg_chmod_file, 2);

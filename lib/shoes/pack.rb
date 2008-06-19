@@ -18,6 +18,7 @@ class Shoes
     def self.dmg(script)
       name = File.basename(script).gsub(/\.\w+$/, '')
       app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
+      vol_name = name.capitalize.gsub(/[-_](\w)/) { " " + $1.capitalize }
       app_app = "#{app_name}.app"
       vers = [1, 0]
 
@@ -103,7 +104,7 @@ END
       end
       FileUtils.cp(script, File.join(mac_dir, File.basename(script)))
 
-      dmg = Binject::DMG.new(File.join(tmp_dir, "blank.hfz"))
+      dmg = Binject::DMG.new(File.join(tmp_dir, "blank.hfz"), vol_name)
       dmg.inject_dir(app_app, app_dir)
       dmg.chmod_file(0755, "#{app_app}/Contents/MacOS/#{name}-launch")
       dmg.save(script.gsub(/\.\w+$/, '') + ".dmg")

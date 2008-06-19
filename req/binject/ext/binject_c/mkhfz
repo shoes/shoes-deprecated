@@ -1,4 +1,4 @@
-dd if=/dev/zero of=blank.hfs bs=1M count=20
+dd if=/dev/zero of=blank.hfs bs=512K count=1
 mkfs.hfsplus -v Shoes blank.hfs
 gzip blank.hfs
 mv blank.hfs.gz blank.hfz
