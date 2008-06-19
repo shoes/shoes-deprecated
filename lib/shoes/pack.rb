@@ -9,7 +9,7 @@ class Shoes
   module Pack
     def self.exe(script)
       f = File.open(script)
-      exe = Binject::EXE.new(File.join(::DIR, "static", "stubs", "blank.exe"))
+      exe = Binject::EXE.new(File.join(DIR, "static", "stubs", "blank.exe"))
       exe.inject("SHOES_FILENAME", File.basename(script))
       exe.inject("SHOES_PAYLOAD", f)
       exe.save(script.gsub(/\.\w+$/, '') + ".exe")
@@ -22,17 +22,17 @@ class Shoes
       app_app = "#{app_name}.app"
       vers = [1, 0]
 
-      tmp_dir = File.join(Shoes::LIB_DIR, "+dmg")
+      tmp_dir = File.join(LIB_DIR, "+dmg")
       FileUtils.rm_rf(tmp_dir) if File.exists? tmp_dir
       FileUtils.mkdir_p(tmp_dir)
-      FileUtils.cp(File.join(::DIR, "static", "stubs", "blank.hfz"),
+      FileUtils.cp(File.join(DIR, "static", "stubs", "blank.hfz"),
                    File.join(tmp_dir, "blank.hfz"))
       app_dir = File.join(tmp_dir, app_app)
       res_dir = File.join(tmp_dir, app_app, "Contents", "Resources")
       mac_dir = File.join(tmp_dir, app_app, "Contents", "MacOS")
       [res_dir, mac_dir].map { |x| FileUtils.mkdir_p(x) }
-      FileUtils.cp(File.join(Shoes::DIR, "static", "Shoes.icns"), app_dir)
-      FileUtils.cp(File.join(Shoes::DIR, "static", "Shoes.icns"), res_dir)
+      FileUtils.cp(File.join(DIR, "static", "Shoes.icns"), app_dir)
+      FileUtils.cp(File.join(DIR, "static", "Shoes.icns"), res_dir)
       File.open(File.join(app_dir, "Contents", "PkgInfo"), 'w') do |f|
         f << "APPL????"
       end
@@ -101,7 +101,7 @@ open -a /Applications/Shoes.app "#{File.basename(script)}"
 END
       end
       FileUtils.cp(script, File.join(mac_dir, File.basename(script)))
-      FileUtils.cp(File.join(::DIR, "static", "stubs", "cocoa-install"),
+      FileUtils.cp(File.join(DIR, "static", "stubs", "cocoa-install"),
         File.join(mac_dir, "cocoa-install"))
 
       dmg = Binject::DMG.new(File.join(tmp_dir, "blank.hfz"), vol_name)
