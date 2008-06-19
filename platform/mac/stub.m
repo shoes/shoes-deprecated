@@ -125,8 +125,8 @@
   [mount launch];
   [mount waitUntilExit];
   [mount release];
-
   [download release];
+  [[NSApplication sharedApplication] stop: nil];
 }
 @end
 
@@ -165,7 +165,7 @@ main(int argc, char *argv[])
   [button setTarget: events];
   [button setAction: @selector(cancelClick:)];
 
-  // [win center];
+  [win center];
   [win orderFrontRegardless];
   RELEASE;
   [app run];

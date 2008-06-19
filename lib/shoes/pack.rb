@@ -84,29 +84,30 @@ END
 </plist>
 END
       end
-      File.open(File.join(mac_dir, "pangorc"), 'w') do |f|
-        f << <<END
-[Pango]
-ModuleFiles=/Applications/Shoes.app/Contents/MacOS/pango.modules
-END
-      end
       File.open(File.join(mac_dir, "#{name}-launch"), 'w') do |f|
         f << <<END
 #!/bin/bash
 SHOESPATH=/Applications/Shoes.app/Contents/MacOS
 APPPATH="${0%/*}"
 unset DYLD_LIBRARY_PATH
-cd $APPPATH
-echo "[Pango]" > pangorc
-echo "ModuleFiles=$SHOESPATH/pango.modules" >> pangorc
-DYLD_LIBRARY_PATH=$SHOESPATH PANGO_RC_FILE=$APPPATH/pangorc $SHOESPATH/shoes-bin "#{File.basename(script)}"
+cd "$APPPATH"
+echo "[Pango]" > /tmp/pangorc
+echo "ModuleFiles=$SHOESPATH/pango.modules" >> /tmp/pangorc
+if [ ! -d /Applications/Shoes.app ]
+  then ./cocoa-install
+fi
+open -a /Applications/Shoes.app "#{File.basename(script)}"
+# DYLD_LIBRARY_PATH=$SHOESPATH PANGO_RC_FILE="$APPPATH/pangorc" $SHOESPATH/shoes-bin "#{File.basename(script)}"
 END
       end
       FileUtils.cp(script, File.join(mac_dir, File.basename(script)))
+      FileUtils.cp(File.join(::DIR, "static", "stubs", "cocoa-install"),
+        File.join(mac_dir, "cocoa-install"))
 
       dmg = Binject::DMG.new(File.join(tmp_dir, "blank.hfz"), vol_name)
       dmg.inject_dir(app_app, app_dir)
       dmg.chmod_file(0755, "#{app_app}/Contents/MacOS/#{name}-launch")
+      dmg.chmod_file(0755, "#{app_app}/Contents/MacOS/cocoa-install")
       dmg.save(script.gsub(/\.\w+$/, '') + ".dmg")
       # FileUtils.rm_rf(tmp_dir) if File.exists? tmp_dir
     end
