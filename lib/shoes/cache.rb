@@ -16,6 +16,7 @@ homes.each do |home_top, home_dir|
   end
 end
 LIB_DIR = lib_dir || File.join(Dir::tmpdir, "shoes")
+LIB_DIR.gsub! /\\/, '/'
 SITE_LIB_DIR = File.join(LIB_DIR, '+lib')
 GEM_DIR = File.join(LIB_DIR, '+gem')
 CACHE_DIR = File.join(LIB_DIR, '+cache')

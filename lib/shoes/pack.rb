@@ -111,7 +111,7 @@ END
       dmg.save(script.gsub(/\.\w+$/, '') + ".dmg") do |perc|
         progress.fraction = perc * 0.01 if progress
       end
-      # FileUtils.rm_rf(tmp_dir) if File.exists? tmp_dir
+      FileUtils.rm_rf(tmp_dir) if File.exists? tmp_dir
     end
 
     def self.linux(script)
