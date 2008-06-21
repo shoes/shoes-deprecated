@@ -2,12 +2,10 @@ module Accordion
   def open_page stack
     active = contents.map { |x| x.contents[1] }.detect { |x| x.height > 0 }
     return if active == stack
-    append do
-      a = animate 60 do
-        stack.height += 20
-        active.height -= 20 if active
-        a.stop if stack.height > 200
-      end
+    a = animate 60 do
+      stack.height += 20
+      active.height -= 20 if active
+      a.stop if stack.height > 200
     end
   end
   def page title, text

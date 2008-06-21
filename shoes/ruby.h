@@ -181,9 +181,9 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f(".shadow", shadow, -1); \
   f("+image_file", image, -1); \
   f(".imagesize", imagesize, 1); \
-  f(".animate", animate, -1); \
-  f(".every", every, -1); \
-  f(".timer", timer, -1); \
+  f("+animate", animate, -1); \
+  f("+every", every, -1); \
+  f("+timer", timer, -1); \
   f("+shape", shape, -1); \
   f("+move_to", move_to, 2); \
   f("+line_to", line_to, 2); \

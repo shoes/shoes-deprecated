@@ -224,6 +224,7 @@ typedef struct {
   VALUE parent;
   VALUE attr;
   unsigned char stage;
+  long insertion;
   double sw;                // current stroke-width
   int cx, cy;               // cursor x and y (stored in absolute coords)
   int endx, endy;           // jump points if the cursor spills over

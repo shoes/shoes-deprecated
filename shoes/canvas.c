@@ -191,6 +191,18 @@ shoes_canvas_shape_do(shoes_canvas *canvas, double x, double y, double w, double
   shoes_apply_transformation(canvas, canvas->tf, x, y, w, h, canvas->mode);
 }
 
+static void
+shoes_add_ele(shoes_canvas *canvas, VALUE ele)
+{
+  if (canvas->insertion == -1)
+    rb_ary_push(canvas->contents, ele);
+  else
+  {
+    rb_ary_insert_at(canvas->contents, canvas->insertion, 0, ele);
+    canvas->insertion++;
+  }
+}
+
 static VALUE
 shoes_canvas_shape_end(VALUE self, VALUE x, VALUE y, int w, int h)
 {
@@ -199,7 +211,7 @@ shoes_canvas_shape_end(VALUE self, VALUE x, VALUE y, int w, int h)
   Data_Get_Struct(self, shoes_canvas, canvas);
   cairo_restore(canvas->cr);
   shape = shoes_shape_new(cairo_copy_path(canvas->cr), self, x, y, w, h);
-  rb_ary_push(canvas->contents, shape);
+  shoes_add_ele(canvas, shape);
   return shape;
 }
 
@@ -233,6 +245,7 @@ shoes_canvas_alloc(VALUE klass)
   canvas->grt = 8;
   canvas->gr = SHOE_ALLOC_N(cairo_matrix_t, canvas->grt);
   canvas->contents = Qnil;
+  canvas->insertion = -1;
   cairo_matrix_init_identity(canvas->gr);
   VALUE rb_canvas = Data_Wrap_Struct(klass, shoes_canvas_mark, shoes_canvas_free, canvas);
   return rb_canvas;
@@ -534,7 +547,7 @@ shoes_canvas_blur(int argc, VALUE *argv, VALUE self)
   }
 
   fx = shoes_effect_new(cBlur, attr, self);
-  rb_ary_push(canvas->contents, fx);
+  shoes_add_ele(canvas, fx);
   return fx;
 }
 
@@ -557,7 +570,7 @@ shoes_canvas_glow(int argc, VALUE *argv, VALUE self)
   }
 
   fx = shoes_effect_new(cGlow, attr, self);
-  rb_ary_push(canvas->contents, fx);
+  shoes_add_ele(canvas, fx);
   return fx;
 }
 
@@ -581,13 +594,13 @@ shoes_canvas_shadow(int argc, VALUE *argv, VALUE self)
   }
 
   fx = shoes_effect_new(cShadow, attr, self);
-  rb_ary_push(canvas->contents, fx);
+  shoes_add_ele(canvas, fx);
   return fx;
 }
 
 #define MARKUP_BLOCK(klass) \
   text = shoes_textblock_new(klass, msgs, attr, self); \
-  rb_ary_push(canvas->contents, text)
+  shoes_add_ele(canvas, text)
 
 #define MARKUP_INLINE(klass) \
   text = shoes_text_new(klass, msgs, attr)
@@ -683,7 +696,7 @@ shoes_canvas_background(int argc, VALUE *argv, VALUE self)
   {
     pat = rb_funcall(pat, s_to_pattern, 0);
     pat = shoes_subpattern_new(cBackground, pat, self);
-    rb_ary_push(canvas->contents, pat);
+    shoes_add_ele(canvas, pat);
   }
   return pat;
 }
@@ -702,7 +715,7 @@ shoes_canvas_border(int argc, VALUE *argv, VALUE self)
   {
     pat = rb_funcall(pat, s_to_pattern, 0);
     pat = shoes_subpattern_new(cBorder, pat, self);
-    rb_ary_push(canvas->contents, pat);
+    shoes_add_ele(canvas, pat);
   }
   return pat;
 }
@@ -716,7 +729,7 @@ shoes_canvas_video(int argc, VALUE *argv, VALUE self)
 
   rb_scan_args(argc, argv, "11", &path, &attr);
   video = shoes_video_new(cVideo, path, attr, self);
-  rb_ary_push(canvas->contents, video);
+  shoes_add_ele(canvas, video);
   return video;
 #else
   rb_raise(eNotImpl, "no video support");
@@ -758,7 +771,7 @@ shoes_canvas_image(int argc, VALUE *argv, VALUE self)
   }
 
   if (!NIL_P(image))
-    rb_ary_push(canvas->contents, image);
+    shoes_add_ele(canvas, image);
   return image;
 }
 
@@ -921,7 +934,7 @@ shoes_canvas_button(int argc, VALUE *argv, VALUE self)
     attr = shoes_hash_set(attr, s_click, block);
 
   button = shoes_control_new(cButton, attr, self);
-  rb_ary_push(canvas->contents, button);
+  shoes_add_ele(canvas, button);
   return button;
 }
 
@@ -944,7 +957,7 @@ shoes_canvas_edit_line(int argc, VALUE *argv, VALUE self)
     attr = shoes_hash_set(attr, s_change, block);
 
   edit_line = shoes_control_new(cEditLine, attr, self);
-  rb_ary_push(canvas->contents, edit_line);
+  shoes_add_ele(canvas, edit_line);
   return edit_line;
 }
 
@@ -967,7 +980,7 @@ shoes_canvas_edit_box(int argc, VALUE *argv, VALUE self)
     attr = shoes_hash_set(attr, s_change, block);
 
   edit_box = shoes_control_new(cEditBox, attr, self);
-  rb_ary_push(canvas->contents, edit_box);
+  shoes_add_ele(canvas, edit_box);
   return edit_box;
 }
 
@@ -982,7 +995,7 @@ shoes_canvas_list_box(int argc, VALUE *argv, VALUE self)
     attr = shoes_hash_set(attr, s_change, block);
 
   list_box = shoes_control_new(cListBox, attr, self);
-  rb_ary_push(canvas->contents, list_box);
+  shoes_add_ele(canvas, list_box);
   return list_box;
 }
 
@@ -994,7 +1007,7 @@ shoes_canvas_progress(int argc, VALUE *argv, VALUE self)
   rb_scan_args(argc, argv, "01", &attr);
 
   progress = shoes_control_new(cProgress, attr, self);
-  rb_ary_push(canvas->contents, progress);
+  shoes_add_ele(canvas, progress);
   return progress;
 }
 
@@ -1009,7 +1022,7 @@ shoes_canvas_radio(int argc, VALUE *argv, VALUE self)
     attr = shoes_hash_set(attr, s_click, block);
 
   radio = shoes_control_new(cRadio, attr, self);
-  rb_ary_push(canvas->contents, radio);
+  shoes_add_ele(canvas, radio);
   return radio;
 }
 
@@ -1024,7 +1037,7 @@ shoes_canvas_check(int argc, VALUE *argv, VALUE self)
     attr = shoes_hash_set(attr, s_click, block);
 
   check = shoes_control_new(cCheck, attr, self);
-  rb_ary_push(canvas->contents, check);
+  shoes_add_ele(canvas, check);
   return check;
 }
 
@@ -1418,21 +1431,17 @@ shoes_canvas_compute(VALUE self)
 }
 
 static void
-shoes_canvas_insert(VALUE self, long i, long mod, VALUE ele, VALUE block)
+shoes_canvas_insert(VALUE self, long i, VALUE ele, VALUE block)
 {
   VALUE ary;
   SETUP();
 
   if (!NIL_P(ele))
-    i = rb_ary_index_of(canvas->contents, ele);
-  if (i < 0)
-    i += RARRAY_LEN(canvas->contents) + 1;
+    i = rb_ary_index_of(canvas->contents, ele) - i;
 
-  ary = canvas->contents;
-  canvas->contents = rb_ary_new();
+  canvas->insertion = i;
   shoes_canvas_memdraw(self, block);
-  rb_ary_insert_at(ary, i + mod, 0, canvas->contents);
-  canvas->contents = ary;
+  canvas->insertion = -1;
   shoes_canvas_repaint_all(self);
 }
 
@@ -1441,7 +1450,7 @@ shoes_canvas_after(int argc, VALUE *argv, VALUE self)
 {
   VALUE ele, block;
   rb_scan_args(argc, argv, "01&", &ele, &block);
-  shoes_canvas_insert(self, -2, 1, ele, block);
+  shoes_canvas_insert(self, -1, ele, block);
   return self;
 }
 
@@ -1450,7 +1459,7 @@ shoes_canvas_before(int argc, VALUE *argv, VALUE self)
 {
   VALUE ele, block;
   rb_scan_args(argc, argv, "01&", &ele, &block);
-  shoes_canvas_insert(self, 0, 0, ele, block);
+  shoes_canvas_insert(self, 0, ele, block);
   return self;
 }
 
@@ -1459,7 +1468,7 @@ shoes_canvas_append(int argc, VALUE *argv, VALUE self)
 {
   VALUE block;
   rb_scan_args(argc, argv, "0&", &block);
-  shoes_canvas_insert(self, -2, 1, Qnil, block);
+  shoes_canvas_insert(self, -1, Qnil, block);
   return self;
 }
 
@@ -1468,7 +1477,7 @@ shoes_canvas_prepend(int argc, VALUE *argv, VALUE self)
 {
   VALUE block;
   rb_scan_args(argc, argv, "0&", &block);
-  shoes_canvas_insert(self, 0, 0, Qnil, block);
+  shoes_canvas_insert(self, 0, Qnil, block);
   return self;
 }
 
@@ -1498,7 +1507,7 @@ shoes_canvas_flow(int argc, VALUE *argv, VALUE self)
   {
     DRAW(flow, canvas->app, rb_funcall(block, s_call, 0));
   }
-  rb_ary_push(canvas->contents, flow);
+  shoes_add_ele(canvas, flow);
   return flow;
 }
 
@@ -1514,7 +1523,7 @@ shoes_canvas_stack(int argc, VALUE *argv, VALUE self)
   {
     DRAW(stack, canvas->app, rb_funcall(block, s_call, 0));
   }
-  rb_ary_push(canvas->contents, stack);
+  shoes_add_ele(canvas, stack);
   return stack;
 }
 
@@ -1530,7 +1539,7 @@ shoes_canvas_mask(int argc, VALUE *argv, VALUE self)
   {
     DRAW(mask, canvas->app, rb_funcall(block, s_call, 0));
   }
-  rb_ary_push(canvas->contents, mask);
+  shoes_add_ele(canvas, mask);
   return mask;
 }
 
@@ -1560,7 +1569,7 @@ shoes_canvas_imageblock(VALUE self, int w, int h, VALUE attr, VALUE block)
   }
 
   shoes_imageblock_paint(imageblock, 1);
-  rb_ary_push(pc->contents, imageblock);
+  shoes_add_ele(pc, imageblock);
   return imageblock;
 }
 
@@ -1577,7 +1586,7 @@ shoes_canvas_widget(int argc, VALUE *argv, VALUE self)
 
   widget = shoes_widget_new(klass, attr, self);
   DRAW(widget, canvas->app, ts_funcall2(widget, rb_intern("initialize"), argc - 1, argv + 1));
-  rb_ary_push(canvas->contents, widget);
+  shoes_add_ele(canvas, widget);
   return widget;
 }
 
