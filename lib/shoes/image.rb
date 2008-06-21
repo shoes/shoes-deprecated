@@ -18,6 +18,7 @@ class Shoes
       realpath = path
       case uri
       when URI::HTTP, URI::FTP
+        require 'shoes/data'
         realpath = nil
         cache = DATABASE.check_cache_for path
         uopts, uext = [], File.extname(uri.path)

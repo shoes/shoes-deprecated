@@ -12,8 +12,6 @@ require 'shoes/inspect'
 if Object.const_defined? :Shoes
   require 'shoes/image'
   require 'shoes/cache'
-  require 'shoes/data'
-  require 'shoes/log'
 end
  
 class Range 
@@ -126,6 +124,7 @@ class Shoes
   end
 
   def self.show_log
+    require 'shoes/log'
     Shoes.app do
       extend Shoes::LogWindow
       setup
