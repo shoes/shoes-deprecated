@@ -339,6 +339,8 @@ void shoes_canvas_size(VALUE, int, int);
 VALUE shoes_canvas_clear_contents(int, VALUE *, VALUE);
 VALUE shoes_canvas_remove(VALUE);
 VALUE shoes_canvas_draw(VALUE, VALUE, VALUE);
+void shoes_canvas_memdraw_begin(VALUE);
+void shoes_canvas_memdraw_end(VALUE);
 VALUE shoes_canvas_after(int, VALUE *, VALUE);
 VALUE shoes_canvas_before(int, VALUE *, VALUE);
 VALUE shoes_canvas_append(int, VALUE *, VALUE);

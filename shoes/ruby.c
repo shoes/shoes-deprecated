@@ -3507,6 +3507,21 @@ shoes_log(VALUE self)
 //
 #define FUNC_M(name, func, argn) \
   VALUE \
+  shoes_canvas_c_##func(int argc, VALUE *argv, VALUE self) \
+  { \
+    VALUE canvas, obj; \
+    GET_STRUCT(canvas, self_t); \
+    char *n = name; cairo_t *cr = self_t->cr; \
+    if (rb_ary_entry(self_t->app->nesting, 0) == self) \
+      canvas = rb_ary_entry(self_t->app->nesting, RARRAY_LEN(self_t->app->nesting) - 1); \
+    else \
+      canvas = self; \
+    if (cr == NULL && n[0] == '+') shoes_canvas_memdraw_begin(canvas); \
+    obj = call_cfunc(CASTHOOK(shoes_canvas_##func), canvas, argn, argc, argv); \
+    if (cr == NULL && n[0] == '+') shoes_canvas_memdraw_end(self); \
+    return obj; \
+  } \
+  VALUE \
   shoes_app_c_##func(int argc, VALUE *argv, VALUE self) \
   { \
     VALUE canvas; \
@@ -3515,18 +3530,7 @@ shoes_log(VALUE self)
       canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1); \
     else \
       canvas = app->canvas; \
-    return call_cfunc(CASTHOOK(shoes_canvas_##func), canvas, argn, argc, argv); \
-  } \
-  VALUE \
-  shoes_canvas_c_##func(int argc, VALUE *argv, VALUE self) \
-  { \
-    VALUE canvas; \
-    GET_STRUCT(canvas, self_t); \
-    if (rb_ary_entry(self_t->app->nesting, 0) == self) \
-      canvas = rb_ary_entry(self_t->app->nesting, RARRAY_LEN(self_t->app->nesting) - 1); \
-    else \
-      canvas = self; \
-    return call_cfunc(CASTHOOK(shoes_canvas_##func), canvas, argn, argc, argv); \
+    return shoes_canvas_c_##func(argc, argv, canvas); \
   }
 
 //
@@ -3682,8 +3686,8 @@ shoes_ruby_init()
   // speedier than method_missing.
   //
 #define RUBY_M(name, func, argc) \
-  rb_define_method(cCanvas, name, CASTHOOK(shoes_canvas_c_##func), -1); \
-  rb_define_method(cApp, name, CASTHOOK(shoes_app_c_##func), -1)
+  rb_define_method(cCanvas, name + 1, CASTHOOK(shoes_canvas_c_##func), -1); \
+  rb_define_method(cApp, name + 1, CASTHOOK(shoes_app_c_##func), -1)
 
   CANVAS_DEFS(RUBY_M);
 

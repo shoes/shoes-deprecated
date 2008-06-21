@@ -1314,6 +1314,22 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
       rb_ary_pop(app->nesting); \
   }
 
+void
+shoes_canvas_memdraw_begin(VALUE self)
+{
+  SETUP();
+  canvas->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
+}
+
+void
+shoes_canvas_memdraw_end(VALUE self)
+{
+  SETUP();
+  cairo_destroy(canvas->cr);
+  canvas->cr = NULL;
+  shoes_canvas_repaint_all(self);
+}
+
 static void
 shoes_canvas_memdraw(VALUE self, VALUE block)
 {
