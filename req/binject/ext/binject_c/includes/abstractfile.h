@@ -24,6 +24,8 @@ typedef enum AbstractFileType {
 	AbstractFileTypeDummy
 } AbstractFileType;
 
+typedef void (*AbstractFileProgress)(void *data, unsigned int percent);
+
 struct AbstractFile {
 	void* data;
 	WriteFunc write;
@@ -33,6 +35,8 @@ struct AbstractFile {
 	GetLengthFunc getLength;
 	CloseFunc close;
 	AbstractFileType type;
+  AbstractFileProgress progress;
+  void *user;
 };
 
 typedef struct {

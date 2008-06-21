@@ -593,7 +593,7 @@ binject_dmg_uncompress(VALUE filename, VALUE volname)
   unsigned char buf[BUFSIZE], sig[8];
   int pos = 0;
 
-  file = gzopen(fname, "rb");
+  file = (gzFile)gzopen(fname, "rb");
   hfs = rb_fopen(RSTRING_PTR(filename2), "wb");
   while ((len = gzread(file, buf, BUFSIZE)) > 0)
   {
@@ -708,6 +708,13 @@ binject_dmg_chmod_file(VALUE self, VALUE mode, VALUE filename)
   return self;
 }
 
+void
+binject_dmg_loop(void *data, unsigned int percent)
+{
+  VALUE proc = (VALUE)data;
+  rb_funcall(proc, rb_intern("call"), 1, INT2NUM(percent));
+}
+
 VALUE
 binject_dmg_save(VALUE self, VALUE filename)
 {
@@ -715,10 +722,13 @@ binject_dmg_save(VALUE self, VALUE filename)
 	AbstractFile *out;
   Data_Get_Struct(self, binject_dmg_t, binj);
 	out = createAbstractFileFromFile(fopen(RSTRING_PTR(filename), "wb"));
-	if(out == NULL) {
+	if(out == NULL)
 		return Qnil;
-	}
+
+  out->progress = binject_dmg_loop;
+  out->user = (void *)rb_block_proc();
   buildDmg(binj->in, out);
+  binject_dmg_loop(out->user, 100);
   return Qnil;
 }
 

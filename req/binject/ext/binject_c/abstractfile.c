@@ -58,6 +58,8 @@ AbstractFile* createAbstractFileFromFile(FILE* file) {
 	toReturn->getLength = fileGetLength;
 	toReturn->close = fcloseWrapper;
 	toReturn->type = AbstractFileTypeFile;
+  toReturn->user = 0;
+  toReturn->progress = 0;
 	return toReturn;
 }
 
@@ -94,6 +96,8 @@ AbstractFile* createAbstractFileFromDummy() {
 	toReturn->getLength = NULL;
 	toReturn->close = dummyClose;
 	toReturn->type = AbstractFileTypeDummy;
+  toReturn->user = 0;
+  toReturn->progress = 0;
 	return toReturn;
 }
 
@@ -156,6 +160,8 @@ AbstractFile* createAbstractFileFromMemory(void** buffer, size_t size) {
 	toReturn->getLength = memGetLength;
 	toReturn->close = memClose;
 	toReturn->type = AbstractFileTypeMem;
+  toReturn->user = 0;
+  toReturn->progress = 0;
 	return toReturn;
 }
 
@@ -280,6 +286,8 @@ AbstractFile* createAbstractFileFromMemoryFile(void** buffer, size_t* size) {
 	toReturn->getLength = memFileGetLength;
 	toReturn->close = memFileClose;
 	toReturn->type = AbstractFileTypeMemFile;
+  toReturn->user = 0;
+  toReturn->progress = 0;
 	return toReturn;
 }
 
@@ -302,6 +310,8 @@ AbstractFile* createAbstractFileFromMemoryFileBuffer(void** buffer, size_t* size
 	toReturn->getLength = memFileGetLength;
 	toReturn->close = memFileClose;
 	toReturn->type = AbstractFileTypeMemFile;
+  toReturn->user = 0;
+  toReturn->progress = 0;
 	return toReturn;
 }
 

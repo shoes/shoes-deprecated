@@ -15,7 +15,7 @@ class Shoes
       exe.save(script.gsub(/\.\w+$/, '') + ".exe")
     end
 
-    def self.dmg(script)
+    def self.dmg(script, progress = nil)
       name = File.basename(script).gsub(/\.\w+$/, '')
       app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
       vol_name = name.capitalize.gsub(/[-_](\w)/) { " " + $1.capitalize }
@@ -108,7 +108,9 @@ END
       dmg.inject_dir(app_app, app_dir)
       dmg.chmod_file(0755, "#{app_app}/Contents/MacOS/#{name}-launch")
       dmg.chmod_file(0755, "#{app_app}/Contents/MacOS/cocoa-install")
-      dmg.save(script.gsub(/\.\w+$/, '') + ".dmg")
+      dmg.save(script.gsub(/\.\w+$/, '') + ".dmg") do |perc|
+        progress.fraction = perc * 0.01 if progress
+      end
       # FileUtils.rm_rf(tmp_dir) if File.exists? tmp_dir
     end
 
@@ -173,11 +175,8 @@ END
             @page2.show 
             @path2.replace File.basename(@path.text)
             Shoes::Pack.exe(@path.text)
-            @prog.fraction = 0.3
-            Shoes::Pack.dmg(@path.text)
-            @prog.fraction = 0.6
+            Shoes::Pack.dmg(@path.text, @prog)
             Shoes::Pack.linux(@path.text)
-            @prog.fraction = 1.0
           end
           button "Cancel" do
             close

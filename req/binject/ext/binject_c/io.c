@@ -71,8 +71,8 @@ BLKXTable* insertBLKX(AbstractFile* out, AbstractFile* in, uint32_t firstSectorN
     strm.zfree = Z_NULL;
     strm.opaque = Z_NULL;
     
-    // if (volume->progress)
-    //   volume->progress(volume->data, (numSectors * 100) / blkx->sectorCount);
+    if (out->progress)
+      out->progress(out->user, 100 - ((numSectors * 100) / blkx->sectorCount));
     // printf("run %d: sectors=%lld, left=%d\n", curRun, blkx->sectorCount, numSectors);
     
     ASSERT(deflateInit(&strm, Z_DEFAULT_COMPRESSION) == Z_OK, "deflateInit");

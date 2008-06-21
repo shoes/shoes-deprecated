@@ -409,8 +409,6 @@ typedef struct {
   dataReadFunc dataRead;
 } BTree;
 
-typedef void (*VolumeProgress)(void *data, unsigned int percent);
-
 typedef struct {
   io_func* image;
   HFSPlusVolumeHeader* volumeHeader;
@@ -418,8 +416,6 @@ typedef struct {
   BTree* extentsTree;
   BTree* catalogTree;
   io_func* allocationFile;
-  VolumeProgress progress;
-  void *data;
 } Volume;
 
 
