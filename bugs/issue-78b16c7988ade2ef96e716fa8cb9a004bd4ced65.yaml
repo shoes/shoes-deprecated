@@ -16,8 +16,8 @@ type: :feature
 component: shoes
 release: Murder
 reporter: _why <why@whytheluckystiff.net>
-status: :unstarted
-disposition: 
+status: :closed
+disposition: :fixed
 creation_time: 2008-04-02 16:32:47.558732 Z
 references: []
 
@@ -27,3 +27,7 @@ log_events:
   - _why <why@whytheluckystiff.net>
   - created
   - ""
+- - 2008-06-21 07:19:23.532061 Z
+  - _why <why@whytheluckystiff.net>
+  - closed issue with disposition fixed
+  - This was fixed a few checkins ago.  Instead of disallowing it, I allowed it and fixed the segfault.  So, elements can be added with or without `append`.
