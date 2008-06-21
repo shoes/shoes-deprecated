@@ -3116,7 +3116,7 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
 //
 // Transformations
 //
-#define TRANS_COMMON(ele) \
+#define TRANS_COMMON(ele, repaint) \
   VALUE \
   shoes_##ele##_transform(VALUE self, VALUE _m) \
   { \
@@ -3149,6 +3149,7 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
     double rad; \
     rad = NUM2DBL(_deg) * SHOES_RAD2PI; \
     cairo_matrix_rotate(self_t->tf, -rad); \
+    if (repaint) shoes_canvas_repaint_all(self_t->parent); \
     return self; \
   } \
   VALUE \
@@ -3162,6 +3163,7 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
     if (NIL_P(_sy)) sy = sx; \
     else            sy = NUM2DBL(_sy); \
     cairo_matrix_scale(self_t->tf, sx, sy); \
+    if (repaint) shoes_canvas_repaint_all(self_t->parent); \
     return self; \
   } \
   VALUE \
@@ -3177,11 +3179,12 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
     if (!NIL_P(_sy)) sy = NUM2DBL(_sy) * SHOES_RAD2PI; \
     cairo_matrix_init(&matrix, 1.0, sy, sx, 1.0, 0.0, 0.0); \
     cairo_matrix_multiply(self_t->tf, self_t->tf, &matrix); \
+    if (repaint) shoes_canvas_repaint_all(self_t->parent); \
     return self; \
   }
 
-TRANS_COMMON(canvas);
-TRANS_COMMON(image);
+TRANS_COMMON(canvas, 0);
+TRANS_COMMON(image, 1);
 
 //
 // Common methods
