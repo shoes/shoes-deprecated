@@ -2790,7 +2790,7 @@ shoes_control_hide(VALUE self)
 {
   GET_STRUCT(control, self_t);
   ATTRSET(self_t->attr, hidden, Qtrue);
-  shoes_control_hide_ref(self_t->ref);
+  if (self_t->ref != NULL) shoes_control_hide_ref(self_t->ref);
   return self;
 }
 
@@ -2799,7 +2799,7 @@ shoes_control_show(VALUE self)
 {
   GET_STRUCT(control, self_t);
   ATTRSET(self_t->attr, hidden, Qfalse);
-  shoes_control_show_ref(self_t->ref);
+  if (self_t->ref != NULL) shoes_control_show_ref(self_t->ref);
   return self;
 }
 

@@ -7,15 +7,44 @@ require 'binject'
 
 class Shoes
   module Pack
-    def self.exe(script)
+    def self.pkg(platform, opt)
+      url = 
+        case opt
+        when I_YES; "http://hacketyhack.net/pkg/#{platform}/shoes"
+        when I_NOV; "http://hacketyhack.net/pkg/#{platform}/shoes-novideo"
+        end
+      if url
+        url = "http://hacketyhack.net" + open(url).read.strip
+        open(url)
+      end
+    end
+
+    def self.exe(script, opt, progress = nil)
+      size = File.size(script)
       f = File.open(script)
       exe = Binject::EXE.new(File.join(DIR, "static", "stubs", "blank.exe"))
       exe.inject("SHOES_FILENAME", File.basename(script))
       exe.inject("SHOES_PAYLOAD", f)
-      exe.save(script.gsub(/\.\w+$/, '') + ".exe")
+      f2 = pkg("win32", opt)
+      if f2
+        f3 = File.open(f2.path, 'rb')
+        exe.inject("SHOES_SETUP", f3)
+      end
+
+      count = 0
+      exe.save(script.gsub(/\.\w+$/, '') + ".exe") do |len|
+        count += len
+        progress.fraction = 0.3
+      end
+
+      f.close
+      if f2
+        f2.close
+        f3.close
+      end
     end
 
-    def self.dmg(script, progress = nil)
+    def self.dmg(script, opt, progress = nil)
       name = File.basename(script).gsub(/\.\w+$/, '')
       app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
       vol_name = name.capitalize.gsub(/[-_](\w)/) { " " + $1.capitalize }
@@ -105,6 +134,11 @@ END
         File.join(mac_dir, "cocoa-install"))
 
       dmg = Binject::DMG.new(File.join(tmp_dir, "blank.hfz"), vol_name)
+      f2 = pkg("osx", opt)
+      if f2
+        dmg.grow(10)
+        dmg.inject_file("setup.dmg", f2.path)
+      end
       dmg.inject_dir(app_app, app_dir)
       dmg.chmod_file(0755, "#{app_app}/Contents/MacOS/#{name}-launch")
       dmg.chmod_file(0755, "#{app_app}/Contents/MacOS/cocoa-install")
@@ -114,13 +148,13 @@ END
       FileUtils.rm_rf(tmp_dir) if File.exists? tmp_dir
     end
 
-    def self.linux(script)
+    def self.linux(script, opt, progress = nil)
     end
   end
 
   I_NET = "No, download Shoes if it's absent."
   I_YES = "Yes, I want Shoes included."
-  I_VID = "Yes, include Shoes with video support."
+  I_NOV = "Yes, include Shoes, but without video support."
   PackMake = proc do
     background "#EEE"
 
@@ -148,7 +182,7 @@ END
           end
 
           para "Include Shoes with your app? "
-          @inc = list_box :items => [I_NET, I_YES, I_VID], :width => 0.6 do
+          @inc = list_box :items => [I_NET, I_YES, I_NOV], :width => 0.6 do
             est_recount
           end
         end
@@ -160,8 +194,8 @@ END
           base = 
             case @inc.text
             when I_NET; 70
-            when I_YES; 2500
-            when I_VID; 7000
+            when I_YES; 7000
+            when I_NOV; 2500
             end
           base += File.size(@path.text) / 1024
           @est.replace "Estimated size of each app: ", strong(base > 1024 ?
@@ -171,12 +205,17 @@ END
         flow :margin_top => 10, :margin_left => 310 do
           button "OK", :margin_right => 4 do
             @page1.hide
-            @prog.fraction = 0
             @page2.show 
             @path2.replace File.basename(@path.text)
-            Shoes::Pack.exe(@path.text)
-            Shoes::Pack.dmg(@path.text, @prog)
-            Shoes::Pack.linux(@path.text)
+            Thread.start(@prog) do |prog|
+              begin
+                Shoes::Pack.exe(@path.text, @inc.text, prog)
+                Shoes::Pack.dmg(@path.text, @inc.text, prog)
+                Shoes::Pack.linux(@path.text, @inc.text, prog)
+              rescue => e
+                Kernel.p [e.class, e.message]
+              end
+            end
           end
           button "Cancel" do
             close

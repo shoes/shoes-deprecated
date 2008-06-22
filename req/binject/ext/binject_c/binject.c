@@ -61,7 +61,7 @@ typedef struct {
   int ids, resids;
   unsigned int namestart, datastart, datapos, dataend, vdelta;
   char signature[4];
-  VALUE adds;
+  VALUE adds, proc;
   FILE *file, *out;
 } binject_exe_t;
 
@@ -87,6 +87,7 @@ binject_exe_alloc(VALUE klass)
   binject_exe_t *binj = ALLOC(binject_exe_t);
   MEMZERO(binj, binject_exe_t, 1);
   binj->adds = rb_ary_new();
+  binj->proc = Qnil;
   return Data_Wrap_Struct(klass, binject_exe_mark, binject_exe_free, binj);
 }
 
@@ -272,16 +273,18 @@ binject_exe_data_len(binject_exe_t *binj)
 }
 
 void
-binject_exe_string_copy(binject_exe_t *binj, char *str, unsigned int size, unsigned int pos)
+binject_exe_string_copy(binject_exe_t *binj, char *str, unsigned int size, unsigned int pos, VALUE proc)
 {
   int mark = ftell(binj->out);
   fseek(binj->out, pos, SEEK_SET);
   fwrite(str, sizeof(char), size, binj->out);
+  if (!NIL_P(proc))
+    rb_funcall(proc, rb_intern("call"), 1, INT2NUM(size));
   fseek(binj->out, mark, SEEK_SET);
 }
 
 void
-binject_exe_file_copy(FILE *file, FILE *out, unsigned int size, unsigned int pos1, unsigned int pos2)
+binject_exe_file_copy(FILE *file, FILE *out, unsigned int size, unsigned int pos1, unsigned int pos2, VALUE proc)
 {
   char buf[BUFSIZE];
   int mark1 = ftell(file), mark2 = ftell(out);
@@ -292,6 +295,8 @@ binject_exe_file_copy(FILE *file, FILE *out, unsigned int size, unsigned int pos
     unsigned int len = size > BUFSIZE ? BUFSIZE : size;
     fread(buf, sizeof(char), len, file);
     fwrite(buf, sizeof(char), len, out);
+    if (!NIL_P(proc))
+      rb_funcall(proc, rb_intern("call"), 1, INT2NUM(len));
     size -= len;
   }
   fseek(file, mark1, SEEK_SET);
@@ -402,20 +407,20 @@ binject_exe_rewrite(binject_exe_t *binj, char *buf, char *out, int offset, int o
             if (ctype == rb_cString)
             {
               rdat->Size = RSTRING_LEN(obj);
-              binject_exe_string_copy(binj, RSTRING_PTR(obj), RSTRING_LEN(obj), binj->datapos);
+              binject_exe_string_copy(binj, RSTRING_PTR(obj), RSTRING_LEN(obj), binj->datapos, binj->proc);
             }
             else
             {
               OpenFile *fptr;
               rdat->Size = binject_exe_file_size(obj);
               GetOpenFile(obj, fptr);
-              binject_exe_file_copy(GetReadFile(fptr), binj->out, rdat->Size, 0, binj->datapos);
+              binject_exe_file_copy(GetReadFile(fptr), binj->out, rdat->Size, 0, binj->datapos, binj->proc);
             }
             binj->datapos += rdat->Size;
             padlen = BINJ_PAD(rdat->Size, 4) - rdat->Size;
             if (padlen > 0)
             {
-              binject_exe_string_copy(binj, pe_pad, padlen, binj->datapos);
+              binject_exe_string_copy(binj, pe_pad, padlen, binj->datapos, binj->proc);
               binj->datapos += padlen;
             }
             oc++;
@@ -438,7 +443,7 @@ binject_exe_rewrite(binject_exe_t *binj, char *buf, char *out, int offset, int o
       // printf("RESDATA: %x TO %x AT %x / %x\n", rde->OffsetToData, rde2->OffsetToData, 
       //   binj->namestart, binj->datastart);
       binject_exe_file_copy(binj->file, binj->out, rdat->Size, 
-        rdat->OffsetToData - binj->vdelta, binj->datapos);
+        rdat->OffsetToData - binj->vdelta, binj->datapos, binj->proc);
       // printf("DATA: %x TO %x\n", rdat->OffsetToData, binj->datapos);
       binj->datapos += rdat->Size;
       binj->dataend = (rdat->OffsetToData - binj->vdelta) + rdat->Size;
@@ -514,6 +519,7 @@ binject_exe_save(VALUE self, VALUE file)
   binj->namestart = 0;
   binj->datastart = 0;
   binj->datapos = 0;
+  binj->proc = rb_block_proc();
   fseek(binj->file, 0, SEEK_SET);
 
   pos = 0;
