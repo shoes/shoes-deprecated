@@ -354,7 +354,7 @@ shoes_app_win32proc(
       INFO("WM_PAINT(app)\n");
       shoes_app_paint(app);
     }
-    break;
+    return 1;
 
     case WM_LBUTTONDOWN:
     {
