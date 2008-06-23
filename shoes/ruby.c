@@ -3657,6 +3657,8 @@ shoes_ruby_init()
 
   cApp = rb_define_class_under(cShoes, "App", rb_cObject);
   rb_define_alloc_func(cApp, shoes_app_alloc);
+  rb_define_method(cApp, "name", CASTHOOK(shoes_app_get_title), 0);
+  rb_define_method(cApp, "name=", CASTHOOK(shoes_app_set_title), 1);
   rb_define_method(cApp, "location", CASTHOOK(shoes_app_location), 0);
   rb_define_method(cApp, "started?", CASTHOOK(shoes_app_is_started), 0);
   rb_define_method(cApp, "children", CASTHOOK(shoes_app_contents), 0);

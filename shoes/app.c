@@ -122,6 +122,22 @@ shoes_app_main(int argc, VALUE *argv, VALUE self)
   return shoes_app_window(argc, argv, self, Qnil);
 }
 
+VALUE
+shoes_app_get_title(VALUE app)
+{
+  shoes_app *app_t;
+  Data_Get_Struct(app, shoes_app, app_t);
+  return app_t->title;
+}
+
+VALUE
+shoes_app_set_title(VALUE app, VALUE title)
+{
+  shoes_app *app_t;
+  Data_Get_Struct(app, shoes_app, app_t);
+  return app_t->title = title;
+}
+
 void
 shoes_app_title(shoes_app *app, VALUE title)
 {

@@ -2089,7 +2089,7 @@ shoes_canvas_window(int argc, VALUE *argv, VALUE self)
   SETUP();
 
   if (rb_block_given_p())
-    return shoes_app_window(argc, argv, cApp, self);
+    return shoes_app_window(argc, argv, cApp, canvas->app->self);
 
   rb_scan_args(argc, argv, "02&", &uri, &attr, &block);
   if (rb_obj_is_kind_of(uri, rb_cHash))

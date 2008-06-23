@@ -115,3 +115,9 @@ class Float; make_inspect :to_s end
 class TrueClass; make_inspect :to_s end
 class FalseClass; make_inspect :to_s end
 class NilClass; make_inspect end
+
+class Shoes::App
+  def inspect(hits = nil)
+    "(#{self.class} #{name.dump})"
+  end
+end

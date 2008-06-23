@@ -51,6 +51,8 @@ VALUE shoes_app_alloc(VALUE);
 VALUE shoes_app_new(VALUE);
 VALUE shoes_apps_get(VALUE);
 int shoes_app_remove(shoes_app *);
+VALUE shoes_app_get_title(VALUE);
+VALUE shoes_app_set_title(VALUE, VALUE);
 shoes_code shoes_app_start(VALUE, char *);
 shoes_code shoes_app_open(shoes_app *, char *);
 shoes_code shoes_app_loop();
