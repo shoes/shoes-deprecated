@@ -8,7 +8,7 @@ require 'rubygems/user_interaction'
 # SourceInfoCache stores a copy of the gem index for each gem source.
 #
 # There are two possible cache locations, the system cache and the user cache:
-# * The system cache is prefered if it is writable or can be created.
+# * The system cache is preferred if it is writable or can be created.
 # * The user cache is used otherwise
 #
 # Once a cache is selected, it will be used for all operations.
@@ -194,8 +194,8 @@ class Gem::SourceInfoCache
       begin
         refresh true
       rescue Gem::RemoteFetcher::FetchError
+      end
     end
-  end
   end
 
   ##
@@ -368,9 +368,9 @@ class Gem::SourceInfoCache
 
   def write_cache
     if not File.exist?(cache_file) or not @only_latest then
-    open cache_file, 'wb' do |io|
-      io.write Marshal.dump(cache_data)
-    end
+      open cache_file, 'wb' do |io|
+        io.write Marshal.dump(cache_data)
+      end
     end
 
     open latest_cache_file, 'wb' do |io|

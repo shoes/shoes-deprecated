@@ -16,7 +16,6 @@ class Gem::Commands::InstallCommand < Gem::Command
     defaults = Gem::DependencyInstaller::DEFAULT_OPTIONS.merge({
       :generate_rdoc => true,
       :generate_ri   => true,
-      :install_dir => Gem.dir,
       :format_executable => false,
       :test => false,
       :version => Gem::Requirement.default,
@@ -51,7 +50,7 @@ class Gem::Commands::InstallCommand < Gem::Command
 
     installed_gems = []
 
-    ENV['GEM_PATH'] = options[:install_dir] # HACK what does this do?
+    ENV.delete 'GEM_PATH' if options[:install_dir].nil? and RUBY_VERSION > '1.9'
 
     install_options = {
       :env_shebang => options[:env_shebang],
@@ -62,7 +61,8 @@ class Gem::Commands::InstallCommand < Gem::Command
       :install_dir => options[:install_dir],
       :security_policy => options[:security_policy],
       :wrappers => options[:wrappers],
-      :bin_dir => options[:bin_dir]
+      :bin_dir => options[:bin_dir],
+      :development => options[:development],
     }
 
     exit_code = 0
