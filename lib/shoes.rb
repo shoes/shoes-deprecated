@@ -125,10 +125,12 @@ class Shoes
 
   def self.show_log
     require 'shoes/log'
-    Shoes.app do
-      extend Shoes::LogWindow
-      setup
-    end
+    return if @log_app and Shoes.APPS.include? @log_app
+    @log_app =
+      Shoes.app do
+        extend Shoes::LogWindow
+        setup
+      end
   end
 
   def self.mount(path, meth, &blk)
@@ -214,6 +216,9 @@ class Shoes
       eval(code, Shoes::BINDING, path)
     end
   rescue SettingUp
+  rescue Object => e
+    error(e)
+    show_log
   end
 
   def self.url(path, meth)

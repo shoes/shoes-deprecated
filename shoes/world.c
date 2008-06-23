@@ -104,7 +104,8 @@ shoes_load(char *path)
     VALUE v = rb_rescue2(CASTHOOK(shoes_load_begin), (VALUE)bootup, CASTHOOK(shoes_load_exception), Qnil, rb_cObject, 0);
     if (rb_obj_is_kind_of(v, rb_eException))
     {
-      QUIT_ALERT(v);
+      shoes_canvas_error(Qnil, v);
+      rb_eval_string("Shoes.show_log");
     }
   }
 
