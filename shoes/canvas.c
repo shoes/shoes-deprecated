@@ -117,8 +117,8 @@ shoes_canvas_style(int argc, VALUE *argv, VALUE self)
 
 #define ELAPSED ((double)(clock() - start) / CLOCKS_PER_SEC)
 
-void
-shoes_canvas_paint(VALUE self)
+static VALUE
+shoes_canvas_paint_call(VALUE self)
 {
   int n = 0;
   shoes_canvas *pc = NULL;
@@ -126,13 +126,13 @@ shoes_canvas_paint(VALUE self)
   clock_t start = clock();
 
   if (self == Qnil)
-    return;
+    return self;
 
   SETUP();
 
   canvas->cr = cr = shoes_cairo_create(canvas);
   if (cr == NULL)
-    return;
+    return self;
 
   cairo_save(cr);
   shoes_canvas_draw(self, self, Qfalse);
@@ -154,6 +154,14 @@ shoes_canvas_paint(VALUE self)
   INFO("PAINT: %0.6f s\n", ELAPSED);
   shoes_canvas_send_start(self);
 quit:
+  return self;
+}
+
+void
+shoes_canvas_paint(VALUE self)
+{
+  rb_rescue2(CASTHOOK(shoes_canvas_paint_call), self, 
+    CASTHOOK(shoes_canvas_error), self, rb_cObject, 0);
   return;
 }
 
