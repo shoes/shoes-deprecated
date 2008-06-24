@@ -322,11 +322,17 @@ shoes_app_g_poll (GPollFD *fds, guint nfds, gint timeout)
          maxfd = f->fd;
      }
 
+  //
+  // If we poll indefinitely, then the window updates will
+  // pile up for as long as Ruby is churning away.
+  //
+  if (timeout == -1)
+    timeout = 500;
+  
   tv.tv_sec = timeout / 1000;
   tv.tv_usec = (timeout % 1000) * 1000;
 
-  ready = rb_thread_select (maxfd + 1, &rset, &wset, &xset,
-               timeout == -1 ? NULL : &tv);
+  ready = rb_thread_select (maxfd + 1, &rset, &wset, &xset, &tv);
   if (ready > 0)
      for (f = fds; f < &fds[nfds]; ++f)
      {
