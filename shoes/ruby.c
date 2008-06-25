@@ -2867,7 +2867,11 @@ shoes_edit_line_set_text(VALUE self, VALUE text)
 {
   char *msg = "";
   GET_STRUCT(control, self_t);
-  if (!NIL_P(text)) msg = RSTRING_PTR(text);
+  if (!NIL_P(text))
+  {
+    text = shoes_native_to_s(text);
+    msg = RSTRING_PTR(text);
+  }
   shoes_native_edit_line_set_text(self_t->ref, msg);
   return text;
 }
@@ -2910,7 +2914,11 @@ shoes_edit_box_set_text(VALUE self, VALUE text)
 {
   char *msg = "";
   GET_STRUCT(control, self_t);
-  if (!NIL_P(text)) msg = RSTRING_PTR(text);
+  if (!NIL_P(text))
+  {
+    text = shoes_native_to_s(text);
+    msg = RSTRING_PTR(text);
+  }
   shoes_native_edit_box_set_text(self_t->ref, msg);
   return text;
 }

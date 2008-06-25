@@ -858,7 +858,10 @@ shoes_cairo_create(shoes_canvas *canvas)
     return NULL;
 
   HBITMAP bitmap, bitold;
-  canvas->slot.dc2 = BeginPaint(canvas->slot.window, &canvas->slot.ps);
+  if (DC(canvas->slot) != DC(canvas->app->slot))
+    canvas->slot.dc2 = BeginPaint(canvas->slot.window, &canvas->slot.ps);
+  else
+    canvas->slot.dc2 = GetDC(canvas->slot.window);
   if (canvas->slot.dc != NULL)
   {
     DeleteObject(GetCurrentObject(canvas->slot.dc, OBJ_BITMAP));
@@ -868,7 +871,15 @@ shoes_cairo_create(shoes_canvas *canvas)
   bitmap = CreateCompatibleBitmap(canvas->slot.dc2, canvas->width, canvas->height);
   bitold = (HBITMAP)SelectObject(canvas->slot.dc, bitmap);
   DeleteObject(bitold);
-  if (DC(canvas->slot) != DC(canvas->app->slot))
+  if (DC(canvas->slot) == DC(canvas->app->slot))
+  {
+    RECT rc;
+    HBRUSH bg = CreateSolidBrush(GetSysColor(COLOR_WINDOW));
+    GetClientRect(canvas->slot.window, &rc);
+    FillRect(canvas->slot.dc, &rc, bg);
+    DeleteObject(bg);
+  }
+  else
   {
     shoes_canvas *parent;
     Data_Get_Struct(canvas->parent, shoes_canvas, parent);
@@ -894,7 +905,10 @@ void shoes_cairo_destroy(shoes_canvas *canvas)
   BitBlt(canvas->slot.dc2, 0, 0, canvas->width, canvas->height, canvas->slot.dc, 0, 0, SRCCOPY);
   cairo_surface_destroy(canvas->slot.surface);
   canvas->slot.surface = NULL;
-  EndPaint(canvas->slot.window, &canvas->slot.ps);
+  if (DC(canvas->slot) != DC(canvas->app->slot))
+    EndPaint(canvas->slot.window, &canvas->slot.ps);
+  else
+    ReleaseDC(canvas->slot.window, canvas->slot.dc2);
 }
 
 void
