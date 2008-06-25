@@ -188,13 +188,40 @@ Once an app is created, it is added to the [[App.Shoes.APPS Shoes.APPS]] list.  
 
 Builds a complete list of all the Shoes apps that are open right now.  Once an app is closed, it is removed from the list.  Yes, you can run many apps at once in Shoes.  It's completely encouraged.
 
+=== clipboard() » a string ===
+
+Returns a string containing all of the text that's on the system clipboard.  This is the global clipboard that every program on the computer cuts and pastes into.
+
+=== clipboard = a string ===
+
+Stores `a string` of text in the system clipboard.
+
 === close() ===
 
 Closes the app window.  If multiple windows are open and you want to close the entire application, use the built-in method `exit`.
 
-=== location() » String ===
+=== location() » a string ===
 
 Gets a string containing the URL of the current app.
+
+=== mouse() » an array of numbers: button, left, top ===
+
+Identifies the mouse cursor's location, along with which button is being pressed.
+
+{{{
+ #!ruby
+ Shoes.app do
+   @p = para
+   animate do
+     button, left, top = self.mouse
+     @p.replace "mouse: #{button}, #{left}, #{top}"
+   end
+ end
+}}}
+
+=== owner() » Shoes::App ===
+
+Gets the app which launched this app.  In most cases, this will be `nil`.  But if this app was launched using the [[Element.window window]] method, the owner will be the app which called `window`.
 
 === started?() » true or false ===
 
@@ -601,7 +628,7 @@ Embeds a movie in this slot.
 
 === window(styles) { ... } » Shoes::App ===
 
-Opens a new app window.  This method is almost identical to the [[App.Shoes.app Shoes.app]] method used to start an app in the first place.  The difference is that the `window` method sets the new window's `owner` property.  (A normal Shoes.app has its `owner` set to `nil`.)
+Opens a new app window.  This method is almost identical to the [[App.Shoes.app Shoes.app]] method used to start an app in the first place.  The difference is that the `window` method sets the new window's [[App.owner owner]] property.  (A normal Shoes.app has its `owner` set to `nil`.)
 
 So, the new window's `owner` will be set to the Shoes::App which launched the window.  This way the child window can call the parent.
 
@@ -688,7 +715,7 @@ Adds elements to the beginning of a slot.
 
 {{{
  #!ruby
- @slot.append do
+ @slot.prepend do
    para "Your car is ready."
  end
 }}}
