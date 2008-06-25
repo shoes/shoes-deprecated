@@ -292,8 +292,8 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
 
   ATTR_MARGINS(attr, 0);
   if (padded) {
-    dw += tmargin + bmargin;
-    dh += lmargin + rmargin;
+    dh += tmargin + bmargin;
+    dw += lmargin + rmargin;
   }
 
   int testw = dw;
