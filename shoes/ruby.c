@@ -436,13 +436,13 @@ shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, double r)
 void
 shoes_control_hide_ref(SHOES_CONTROL_REF ref)
 {
-  shoes_native_control_hide(ref);
+  if (ref != NULL) shoes_native_control_hide(ref);
 }
 
 void
 shoes_control_show_ref(SHOES_CONTROL_REF ref)
 {
-  shoes_native_control_show(ref);
+  if (ref != NULL) shoes_native_control_show(ref);
 }
 
 //
@@ -2747,7 +2747,7 @@ shoes_control_mark(shoes_control *control)
 static void
 shoes_control_free(shoes_control *control)
 {
-  shoes_native_control_free(control->ref);
+  if (control->ref != NULL) shoes_native_control_free(control->ref);
   RUBY_CRITICAL(free(control));
 }
 
@@ -2781,7 +2781,7 @@ shoes_control_focus(VALUE self)
 {
   GET_STRUCT(control, self_t);
   ATTRSET(self_t->attr, hidden, Qtrue);
-  shoes_native_control_focus(self_t->ref);
+  if (self_t->ref != NULL) shoes_native_control_focus(self_t->ref);
   return self;
 }
 
@@ -2811,7 +2811,7 @@ shoes_control_remove(VALUE self)
   shoes_canvas_remove_item(self_t->parent, self, 1, 0);
 
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-  shoes_native_control_remove(self_t->ref, canvas);
+  if (self_t->ref != NULL) shoes_native_control_remove(self_t->ref, canvas);
   return self;
 }
 
