@@ -145,7 +145,11 @@ main(int argc, char *argv[])
   NSTextField *text = [[[NSTextField alloc] initWithFrame:
     NSMakeRect(40, 90, 260, 18)] autorelease];
   StubEvents *events = [[StubEvents alloc] initWithWindow: win andText: text andProgress: pop];
+#ifdef __ppc__
+  [events checkForLatestShoesAt: @"http://hacketyhack.net/pkg/osx/shoes-ppc"];
+#else
   [events checkForLatestShoesAt: @"http://hacketyhack.net/pkg/osx/shoes"];
+#endif
 
   [[win contentView] addSubview: text];
   [text setStringValue: @"Downloading Shoes."];

@@ -376,7 +376,8 @@ else
 
   case PLATFORM when /darwin/
     task :stub do
-      sh "gcc -framework Cocoa -o stub platform/mac/stub.m -I."
+      ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
+      sh "gcc -O -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc -framework Cocoa -o stub platform/mac/stub.m -I."
     end
 
     task :installer do
