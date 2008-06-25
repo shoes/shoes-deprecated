@@ -136,7 +136,7 @@ main(int argc, char *argv[])
   NSApplication *app = [NSApplication sharedApplication];
   INIT;
   NSWindow *win = [[NSWindow alloc] initWithContentRect: NSMakeRect(0, 0, 340, 140)
-    styleMask: (NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask)
+    styleMask: (NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSTexturedBackgroundWindowMask)
     backing: NSBackingStoreBuffered defer: NO];
   NSProgressIndicator *pop = [[[NSProgressIndicator alloc] initWithFrame: 
     NSMakeRect(40, 68, 260, 14)] autorelease];
@@ -170,8 +170,9 @@ main(int argc, char *argv[])
   [button setAction: @selector(cancelClick:)];
 
   [win center];
-  [win orderFrontRegardless];
-  RELEASE;
+  [win setLevel: NSFloatingWindowLevel];
+  [win makeKeyAndOrderFront: win];
   [app run];
+  RELEASE;
   return 0;
 }
