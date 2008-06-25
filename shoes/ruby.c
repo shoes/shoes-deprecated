@@ -13,9 +13,9 @@
 
 VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cImageBlock, cEffect, cBlur, cShadow, cGlow, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE eVlcError, eImageError, eNotImpl;
-VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE;
+VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot;
-ID s_aref, s_mult, s_perc, s_bind, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_hand, s_hidden, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_motion, s_release, s_wheel, s_scroll, s_start, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
+ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_hand, s_hidden, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_motion, s_release, s_wheel, s_scroll, s_start, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -469,7 +469,7 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
   Data_Get_Struct(c, shoes_canvas, canvas); \
   text = ATTR(self_t->attr, text); \
   if (!NIL_P(text)) { \
-    text = rb_funcall(text, s_to_s, 0); \
+    text = shoes_native_to_s(text); \
     msg = RSTRING_PTR(text); \
     len = (RSTRING_LEN(text) * 8) + 32; \
   } \
@@ -3567,6 +3567,7 @@ shoes_ruby_init()
   s_perc = rb_intern("%");
   s_mult = rb_intern("*");
   s_bind = rb_intern("bind");
+  s_gsub = rb_intern("gsub");
   s_keys = rb_intern("keys");
   s_update = rb_intern("update");
   s_new = rb_intern("new");
@@ -3673,6 +3674,7 @@ shoes_ruby_init()
   C(RGBA_SOURCE, "/^rgb\\((\\d+), *(\\d+), *(\\d+), *(\\d+)\\)$/i");
   C(GRAY_SOURCE, "/^gray\\((\\d+)\\)$/i");
   C(GRAYA_SOURCE, "/^gray\\((\\d+), *(\\d+)\\)$/i");
+  C(LF, "/\\r?\\n/");
   rb_eval_string(
     "def Shoes.escape(string);"
        "string.gsub(/&/n, '&amp;').gsub(/\\\"/n, '&quot;').gsub(/>/n, '&gt;').gsub(/</n, '&lt;');"

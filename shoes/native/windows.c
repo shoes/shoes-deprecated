@@ -354,7 +354,7 @@ shoes_app_win32proc(
       INFO("WM_PAINT(app)\n");
       shoes_app_paint(app);
     }
-    return 1;
+    break;
 
     case WM_LBUTTONDOWN:
     {
@@ -854,12 +854,8 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
 cairo_t *
 shoes_cairo_create(shoes_canvas *canvas)
 {
-  shoes_canvas *parent;
   if (canvas->slot.surface != NULL)
     return NULL;
-
-  if (!NIL_P(canvas->parent))
-    Data_Get_Struct(canvas->parent, shoes_canvas, parent);
 
   HBITMAP bitmap, bitold;
   canvas->slot.dc2 = BeginPaint(canvas->slot.window, &canvas->slot.ps);
@@ -872,16 +868,11 @@ shoes_cairo_create(shoes_canvas *canvas)
   bitmap = CreateCompatibleBitmap(canvas->slot.dc2, canvas->width, canvas->height);
   bitold = (HBITMAP)SelectObject(canvas->slot.dc, bitmap);
   DeleteObject(bitold);
-  if (DC(canvas->slot) == DC(canvas->app->slot))
+  if (DC(canvas->slot) != DC(canvas->app->slot))
   {
-    RECT rc;
-    HBRUSH bg = CreateSolidBrush(GetSysColor(COLOR_WINDOW));
-    GetClientRect(canvas->slot.window, &rc);
-    FillRect(canvas->slot.dc, &rc, bg);
-    DeleteObject(bg);
-  }
-  else
-  {
+    shoes_canvas *parent;
+    Data_Get_Struct(canvas->parent, shoes_canvas, parent);
+
     if (parent != NULL && parent->slot.dc != NULL)
     {
       RECT r;
@@ -1264,6 +1255,14 @@ shoes_native_clipboard_set(shoes_app *app, VALUE string)
     SetClipboardData(CF_TEXT, hclip);
     CloseClipboard();
   }
+}
+
+VALUE
+shoes_native_to_s(VALUE text)
+{
+  text = rb_funcall(text, s_to_s, 0);
+  text = rb_funcall(text, s_gsub, 2, reLF, rb_str_new2("\r\n"));
+  return text;
 }
 
 VALUE

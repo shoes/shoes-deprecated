@@ -1021,6 +1021,13 @@ shoes_native_clipboard_set(shoes_app *app, VALUE string)
 }
 
 VALUE
+shoes_native_to_s(VALUE text)
+{
+  text = rb_funcall(text, s_to_s, 0);
+  return text;
+}
+
+VALUE
 shoes_native_window_color(shoes_app *app)
 {
   // float r, g, b, a;
