@@ -1055,8 +1055,8 @@ shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VAL
       (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
       NULL);
   shoes_win32_control_font(cid, canvas->slot.window);
-  rb_ary_push(canvas->slot.controls, self);
   SendMessage(ref, WM_SETTEXT, 0, (LPARAM)msg);
+  rb_ary_push(canvas->slot.controls, self);
   return ref;
 }
 
@@ -1092,8 +1092,8 @@ shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALU
     (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
     NULL);
   shoes_win32_control_font(cid, canvas->slot.window);
-  rb_ary_push(canvas->slot.controls, self);
   SendMessage(ref, WM_SETTEXT, 0, (LPARAM)msg);
+  rb_ary_push(canvas->slot.controls, self);
   return ref;
 }
 
