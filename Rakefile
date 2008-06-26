@@ -143,6 +143,11 @@ task :build => [:build_os, "dist/VERSION.txt"] do
   else
     cp    "#{ext_ruby}/lib/lib#{ruby_so}.so", "dist"
     ln_s  "lib#{ruby_so}.so", "dist/libruby.so.1.8"
+    cp    "/usr/lib/libgif.so", "dist"
+    ln_s  "libgif.so", "dist/libgif.so.4"
+    cp    "/usr/lib/libjpeg.so", "dist"
+    ln_s  "libjpeg.so", "dist/libjpeg.so.62"
+    sh    "strip -x dist/*.so"
   end
 
   cp_r  "lib", "dist/lib"
@@ -389,6 +394,11 @@ else
       ln_s "/Applications", "dmg/Applications"
       sh "DYLD_LIBRARY_PATH= platform/mac/pkg-dmg --target pkg/#{PKG}.dmg --source dmg --volname '#{APPNAME}' --copy platform/mac/dmg_ds_store:/.DS_Store --mkdir /.background --copy static/shoes-dmg.jpg:/.background" # --format UDRW"
       rm_rf "dmg"
+    end
+  else
+    task :installer do
+      mkdir_p "pkg"
+      sh "makeself --bzip2 dist pkg/#{PKG}.run '#{APPNAME}' ./#{NAME}"
     end
   end
 end
