@@ -27,7 +27,7 @@ Shoes is written in part thanks to a very good art engine called Cairo, which is
 
 These methods can be used anywhere throughout Shoes programs.
 
-All of these commands are unusual because you don't attach them with a dot. 
+All of these commands are unusual because you don't attach them with a dot.
 '''Every other method in this manual must be attached to an object with a dot.'''
 But these are built-in methods (also called: Kernel methods.) Which means no dot!
 
@@ -82,8 +82,7 @@ When the above script is run, the person at the computer will see a window with 
 
 === ask_color(title: a string) » Shoes::Color ===
 
-Pops up a color picker window. The program will wait for a color to be picked, then gives you 
-back a Color object. See the `Color` help for some ways you can use this color.
+Pops up a color picker window. The program will wait for a color to be picked, then gives you back a Color object. See the `Color` help for some ways you can use this color.
 
 {{{
  #!ruby
@@ -241,13 +240,15 @@ Since the mouse wheel and PageUp and PageDown are so pervasive on every platform
 
 Now, you can also just use specific widths and heights for everything, if you want. That'll take some math, but everything could be perfect.
 
-Generally, I'd suggest using stacks and flows. The idea here is that you want to fill up a certain width with things, then advance down the page, filling up further widths. You can think of these as being analogous to HTML's "block" and "inline" styles. 
+Generally, I'd suggest using stacks and flows. The idea here is that you want to fill up a certain width with things, then advance down the page, filling up further widths. You can think of these as being analogous to HTML's "block" and "inline" styles.
 
 ==== Stacks ====
 
 A stack is simply a vertical stack of elements. Each element in a stack is placed directly under the element preceding it.
 
-A stack is also shaped like a box. So if a stack is given a width of 250, that stack is itself an element which is 250 pixels wide. 
+A stack is also shaped like a box. So if a stack is given a width of 250, that stack is itself an element which is 250 pixels wide.
+
+To create a new stack, use the [[Element.stack stack]] method, which is available inside any slot.  So stacks can contain other stacks and flows.
 
 ==== Flows ====
 
@@ -255,7 +256,9 @@ A flow will pack elements in as tightly as it can. A width will be filled, then 
 
 Like the stack, a flow is a box. So stacks and flows can safely be embedded and, without respect to their contents, are identical. They just treat their contents differently.
 
-Last thing: The Shoes window itself is a flow. 
+Making a flow means calling the [[Element.flow flow]] method.  Flows may contain other flows and stacks.
+
+Last thing: The Shoes window itself is a flow.
 
 == Art for Slots ==
 
@@ -531,6 +534,12 @@ Creates an Em text fragment (short for "emphasized") which, by default, is style
 
 A timer similar to the `animation` method, but much slower.  This timer fires a given number of seconds, running the block attached.  So, for example, if you need to check a web site every five minutes, you'd call `every(300)` with a block containing the code to actually ping the web site.
 
+=== flow(styles) { ... } » Shoes::Flow ===
+
+A flow is an invisible box (or "slot") in which you place Shoes elements.  Both flows and stacks are explained in great detail on the main [[Slots Slots]] page.
+
+Flows organize elements horizontally.  Where one would use a [[Element.stack stack]] to keep things stacked vertically, a flow places its contents end-to-end across the page.  Once the end of the page is reached, the flow starts a new line of elements.
+
 === image(path) » Shoes::Image ===
 
 Creates an Image element for displaying a picture.  PNG, JPEG and GIF formats are allowed.
@@ -582,6 +591,12 @@ Create a Para text block (short for "paragraph") which Shoes styles at 12 pixels
 === radio() » Shoes::Radio ===
 
 Adds a radio button.
+
+=== stack(styles) { ... } » Shoes::Stack ===
+
+Creates a new stack.  A stack is a type of slot.  (See the main [[Slots Slots]] page for a full explanation of both stacks and flows.)
+
+In short, stacks are an invisible box (a "slot") for placing stuff.  As you add things to the stack, such as buttons or images, those things pile up vertically.  Yes, they stack up!
 
 === strong(text) » Shoes::Strong ===
 
@@ -832,6 +847,10 @@ This is commonly used to pad elements on the right, like so:
 
 The vertical size of the viewable slot in pixels.  So, if this is a scrolling slot, you'll need to use `scroll_height()` to get the full size of the slot.
 
+=== hide() » self ===
+
+Hides the slot, so that it can't be seen.  See also [[Styles.show show]] and [[Styles.toggle toggle]].
+
 === left() » a number ===
 
 The left pixel location of the slot.  Also known as the x-axis coordinate.
@@ -869,6 +888,10 @@ The top coordinate which this slot is scrolled down to.  So, if the slot is scro
 
 Scrolls the slot to a certain coordinate.  This must be between zero and `scroll_max`.
 
+=== show() » self ===
+
+Reveals the slot, if it is hidden.  See also [[Styles.hide hide]] and [[Styles.toggle toggle]].
+
 === style() » styles ===
 
 Calling the `style` method with no arguments returns a hash of the styles presently applied to this slot.
@@ -896,6 +919,10 @@ Alter the slot using a hash of style settings.  Any of the methods on this page 
    @s.style(:width => 400)
  end
 }}}
+
+=== toggle() » self ===
+
+Hides the slot, if it is shown.  Or shows the slot, if it is hidden.
 
 === top() » a number ===
 
@@ -948,7 +975,7 @@ One of the most general methods of all is the `style` method (which is also cove
      @back  = background green
      @text  = banner "A Message for You, Rudy"
      @press = button "Stop your messin about!"
-     
+
      # And so, both can be styled.
      @text.style :size => 12, :stroke => red, :margin => 10
      @press.style :width => 400
@@ -988,8 +1015,8 @@ Notice that while the second button bounces, the other two buttons stay put.  If
 
 === height() » a number ===
 
-The vertical screen size of the element in pixels.  In the case of images, this is not the 
-full size of the image.  This is the height of the element as it is shown right now.
+The vertical screen size of the element in pixels.  In the case of images, this is not the
+ full size of the image.  This is the height of the element as it is shown right now.
 
 If you have a 150x150 pixel image and you set the width to 50 pixels, this method will return
 50.
