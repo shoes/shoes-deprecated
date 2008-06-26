@@ -69,7 +69,7 @@ Pops up a window containing a short message.
  alert("I'm afraid I must interject!")
 }}}
 
-=== ask( message ) » String ===
+=== ask( message ) » a string ===
 
 Pops up a window and asks a question. For example, you may want to ask someone their name.
 
@@ -80,7 +80,7 @@ Pops up a window and asks a question. For example, you may want to ask someone t
 
 When the above script is run, the person at the computer will see a window with a blank box for entering their name. The name will then be saved in the `name` variable.
 
-=== ask_color(title: a String) » Shoes::Color ===
+=== ask_color(title: a string) » Shoes::Color ===
 
 Pops up a color picker window. The program will wait for a color to be picked, then gives you 
 back a Color object. See the `Color` help for some ways you can use this color.
@@ -93,7 +93,7 @@ back a Color object. See the `Color` help for some ways you can use this color.
  end
 }}}
 
-=== ask_open_file() » String ===
+=== ask_open_file() » a string ===
 
 Pops up an "Open file..." window. It's the standard window which show all of your folders and lets you select a file to open. Hands you back the name of the file.
 
@@ -103,7 +103,7 @@ Pops up an "Open file..." window. It's the standard window which show all of you
  puts File.read(filename)
 }}}
 
-=== ask_save_file() » String ===
+=== ask_save_file() » a string ===
 
 Pops up a "Save file..." window, similiar to `ask_open_file`, described above.
 
@@ -112,7 +112,7 @@ Pops up a "Save file..." window, similiar to `ask_open_file`, described above.
  save_as = ask_save_file
 }}}
 
-=== confirm(question: a String) » true or false ===
+=== confirm(question: a string) » true or false ===
 
 Pops up a yes-or-no question. If the person at the computer, clicks '''yes''', you'll get back a `true`. If not, you'll get back `false`.
 
@@ -666,6 +666,79 @@ So, let's say you want to change the background of a slot whenever the mouse flo
  end
 }}}
 
+=== click { |button, left, top| ... } » self ===
+
+The click block is called when a mouse button is clicked.  The `button` is the number of the mouse button which has been pressed.  The `left` and `top` are the mouse coordinates at which the click happened.
+
+To catch the moment when the mouse is unclicked, see the [[Events.release release]] event.
+
+=== finish { |self| ... } » self ===
+
+When a slot is removed, it's finish event occurs.  The finish block is immediately handed `self`, the slot object which has been removed.
+
+=== hover { |self| ... } » self ===
+
+The hover event happens when the mouse enters the slot.  The block gets `self`, meaning the object which was hovered over.
+
+To catch the mouse exiting the slot, check out the [[Events.leave leave]] event.
+
+=== keypress { |key| ... } » self ===
+
+Whenever a key (or combination of keys) is pressed, the block gets called.  The block is sent a `key` which is a string representing the character (such as the letter or number) on the key.  For special keys and key combos, a Ruby symbol is sent, rather than a string.
+
+So, for example, if `Shift-a` is pressed, the block will get the string `"A"`.
+
+However, if the F1 key is pressed, the `:f1` symbol is received.  For `Shift-F1`, the symbol would be `:shift_f1`.
+
+The modifier keys are `control`, `shift` and `alt`.  They appear in that order.  If `Shift-Control-Alt-k` is pressed, the symbol will be `:control_shift_alt_k`.
+
+{{{
+ #!ruby
+ Shoes.app do
+   @info = para "NO KEY is PRESSED."
+   keypress do |k|
+     @info.replace "#{k.inspect} was PRESSED."
+   end
+ end
+}}}
+
+Keep in mind that Shoes itself uses a few hotkeys.  `Alt-Period`, `Alt-Question` and `Alt-Slash` are reserved for Shoes on most platforms.
+
+The list of special keys is as follows: `:backspace`, `:tab`, `:page_up`, `:page_down`, `:home`, `:end`, `:left`, `:up`, `:right`, `:down`, `:f1`, `:f2`, `:f3`, `:f4`, `:f5`, `:f6`, `:f7`, `:f8`, `:f9`, `:f10`, `:f11` and `:f12`.
+
+=== leave { |self| ... } » self ===
+
+The leave event takes place when the mouse cursor exits a slot.  The moment it no longer is inside the slot's edges.  When that takes place, the block is called with `self`, the slot object which is being left.
+
+Also see [[Events.hover hover]] if you'd like to detect the mouse entering a slot.
+
+=== motion { |left, top| ... } » self ===
+
+The motion block gets called every time the mouse moves around inside the slot.  The block is handed the cursor's `left` and `top` coordinates.
+
+{{{
+ #!ruby
+ Shoes.app :width => 200, :height => 200 do
+   background black
+   fill white
+   @circ = oval 0, 0, 100, 100
+
+   motion do |top, left|
+     @circ.move top - 50, left - 50
+   end
+ end
+}}}
+
+=== release { |button, left, top| ... } » self ===
+
+The release block runs whenever the mouse is unclicked (on mouse up).  When the finger is lifted.  The `button` is the number of the button that was depressed.  The `left` and `top` are the coordinates of the mouse at the time the button was released.
+
+To catch the actual mouse click, use the [[Events.click click]] event.
+
+=== start { |self| ... } » self ===
+
+The first time the slot is drawn, the start event fires.  The block is handed `self`, the slot object which has just been drawn.
+
 == Manipulation Blocks ==
 
 The manipulation methods below make quick work of shifting around slots and inserting new elements.
@@ -694,8 +767,7 @@ Adds elements to a specific place in a slot, just before the `element` which is 
 
 === clear() » self ===
 
-Empties the slot of any elements, timers and nested slots.  This is effectively identical to looping through
-the contents of the slot and calling each element's `remove` method.
+Empties the slot of any elements, timers and nested slots.  This is effectively identical to looping through the contents of the slot and calling each element's `remove` method.
 
 === clear() { ... } » self ===
 
@@ -767,6 +839,10 @@ The left pixel location of the slot.  Also known as the x-axis coordinate.
 === move(left, top) » self ===
 
 Moves the slot to specific coordinates, the (left, top) being the upper left hand corner of the slot.
+
+=== remove() » self ===
+
+Removes the slot.  It will no longer be displayed and will not be listed in its parent's contents.  It's gone.
 
 === scroll() » true or false ===
 
