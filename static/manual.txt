@@ -1236,7 +1236,21 @@ The TextBlock object represents a group of text organized as a single element.  
 
 == Timers ==
 
-Shoes contains two timer classes: the Animation class and the Timer class.
+Shoes contains three timer classes: the Animation class, the Every class and the Timer class.  Both Animations and Everies loop over and over after they start.  Timers happen once.  A one-shot timer.
+
+Animations and Everies are basically the same thing.  The difference is that Animations usually happen many, many times per second.  And Everies happen only once every few seconds or rarely.
+
+=== start() » self ===
+
+Both types of timers automatically start themselves, so there's no need to use this normally.  But if you [[Timers.stop stop]] a timer and would like to start it up again, then by all means: use this!
+
+=== stop() » self ===
+
+Pauses the animation or timer.  In the case of a one-shot timer that's already happened, it's already stopped and this method will have no effect.
+
+=== toggle() » self ===
+
+If the animation or timer is stopped, it is started.  Otherwise, if it is already running, it is stopped.
 
 == Video ==
 
