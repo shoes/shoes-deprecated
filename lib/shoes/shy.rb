@@ -131,25 +131,29 @@ class Shy
   def self.c(path, shy, d, &blk)
     path = File.expand_path(path)
     meta = shy.to_yaml
+    File.open(path, "wb") do |f|
+      f << [MAGIC, VERSION, meta.length].pack(LAYOUT)
+      f << meta
+      self.czf(f, d, &blk)
+    end
+  end
+
+  def self.czf(f, d, &blk)
     total = left = du(d)
     Dir.chdir(d) do
-      File.open(path, "wb") do |f|
-        f << [MAGIC, VERSION, meta.length].pack(LAYOUT)
-        f << meta
-        out = Zlib::GzipWriter.new(f)
-        files = ["."]
+      out = Zlib::GzipWriter.new(f)
+      files = ["."]
 
-        tarblk = nil
-        if blk
-          tarblk = proc do |action, name, stats|
-            if action == :file_progress
-              left -= stats[:currinc]
-              blk[name, 1.0 - (left.to_f / total.to_f), left]
-            end
+      tarblk = nil
+      if blk
+        tarblk = proc do |action, name, stats|
+          if action == :file_progress
+            left -= stats[:currinc]
+            blk[name, 1.0 - (left.to_f / total.to_f), left]
           end
         end
-        Archive::Tar::Minitar.pack(files, out, &tarblk)
       end
+      Archive::Tar::Minitar.pack(files, out, &tarblk)
     end
   end
 end

@@ -149,6 +149,10 @@ END
     end
 
     def self.linux(script, opt, progress = nil)
+      run_path = script.gsub(/\.\w+$/, '') + ".exe"
+      File.open(run_path, 'wb') do |f|
+        Shy.czf(f)
+      end
     end
   end
 
