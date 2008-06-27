@@ -147,6 +147,10 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     ln_s  "libgif.so", "dist/libgif.so.4"
     cp    "/usr/lib/libjpeg.so", "dist"
     ln_s  "libjpeg.so", "dist/libjpeg.so.62"
+    if ENV['VIDEO']
+      cp    "/usr/lib/libvlc.so", "dist"
+      ln_s  "libvlc.so", "dist/libvlc.so.0"
+    end
     sh    "strip -x dist/*.so"
   end
 
