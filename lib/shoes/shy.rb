@@ -138,22 +138,37 @@ class Shy
     end
   end
 
+  def self.progress(blk)
+    if blk
+      proc do |action, name, stats|
+        if action == :file_progress
+          left -= stats[:currinc]
+          blk[name, 1.0 - (left.to_f / total.to_f), left]
+        end
+      end
+    end
+  end
+
   def self.czf(f, d, &blk)
     total = left = du(d)
     Dir.chdir(d) do
       out = Zlib::GzipWriter.new(f)
       files = ["."]
 
-      tarblk = nil
-      if blk
-        tarblk = proc do |action, name, stats|
-          if action == :file_progress
-            left -= stats[:currinc]
-            blk[name, 1.0 - (left.to_f / total.to_f), left]
-          end
-        end
-      end
-      Archive::Tar::Minitar.pack(files, out, &tarblk)
+      Archive::Tar::Minitar.pack(files, out, &progress(blk))
     end
+  end
+
+  def self.xzf(f, d, &blk)
+    gz = Zlib::GzipReader.new(f)
+    Archive::Tar::Minitar.unpack(gz, d, &progress(blk))
+  end
+
+  def self.md5sum(path)
+    digest = Digest::MD5.new
+    File.open(path, "r") do |f|
+      digest.update f.read(8192) until f.eof
+    end
+    digest.hexdigest
   end
 end

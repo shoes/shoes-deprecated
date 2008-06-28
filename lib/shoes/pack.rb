@@ -4,9 +4,18 @@
 #
 require 'shoes/shy'
 require 'binject'
+require 'digest'
 
 class Shoes
   module Pack
+    def self.rewrite a, before, hsh
+      File.open(before) do |b|
+        b.each do |line|
+          a << line.gsub(/\#\{(\w+)\}/) { hsh[$1] }
+        end
+      end
+    end
+
     def self.pkg(platform, opt)
       url = 
         case opt
@@ -19,7 +28,7 @@ class Shoes
       end
     end
 
-    def self.exe(script, opt, progress = nil)
+    def self.exe(script, opt, &blk)
       size = File.size(script)
       f = File.open(script)
       exe = Binject::EXE.new(File.join(DIR, "static", "stubs", "blank.exe"))
@@ -34,7 +43,7 @@ class Shoes
       count = 0
       exe.save(script.gsub(/\.\w+$/, '') + ".exe") do |len|
         count += len
-        progress.fraction = 0.3
+        blk["Writing the EXE", 0.3] if blk
       end
 
       f.close
@@ -44,7 +53,7 @@ class Shoes
       end
     end
 
-    def self.dmg(script, opt, progress = nil)
+    def self.dmg(script, opt, &blk)
       name = File.basename(script).gsub(/\.\w+$/, '')
       app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
       vol_name = name.capitalize.gsub(/[-_](\w)/) { " " + $1.capitalize }
@@ -52,7 +61,7 @@ class Shoes
       vers = [1, 0]
 
       tmp_dir = File.join(LIB_DIR, "+dmg")
-      FileUtils.rm_rf(tmp_dir) if File.exists? tmp_dir
+      FileUtils.rm_rf(tmp_dir)
       FileUtils.mkdir_p(tmp_dir)
       FileUtils.cp(File.join(DIR, "static", "stubs", "blank.hfz"),
                    File.join(tmp_dir, "blank.hfz"))
@@ -142,17 +151,46 @@ END
       dmg.inject_dir(app_app, app_dir)
       dmg.chmod_file(0755, "#{app_app}/Contents/MacOS/#{name}-launch")
       dmg.chmod_file(0755, "#{app_app}/Contents/MacOS/cocoa-install")
-      dmg.save(script.gsub(/\.\w+$/, '') + ".dmg") do |perc|
-        progress.fraction = perc * 0.01 if progress
-      end
-      FileUtils.rm_rf(tmp_dir) if File.exists? tmp_dir
+      dmg.save(script.gsub(/\.\w+$/, '') + ".dmg", &blk)
+      FileUtils.rm_rf(tmp_dir)
     end
 
-    def self.linux(script, opt, progress = nil)
-      run_path = script.gsub(/\.\w+$/, '') + ".exe"
-      File.open(run_path, 'wb') do |f|
-        Shy.czf(f)
+    def self.linux(script, opt, &blk)
+      name = File.basename(script).gsub(/\.\w+$/, '')
+      app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
+      run_path = script.gsub(/\.\w+$/, '') + ".run"
+      tgz_path = script.gsub(/\.\w+$/, '') + ".tgz"
+      tmp_dir = File.join(LIB_DIR, "+run")
+      FileUtils.mkdir_p(tmp_dir)
+      pkgf = pkg("win32", opt)
+      if pkgf
+        375.times { pkgf.readline }
+        Shy.xzf(pkgf, tmp_dir, &blk)
       end
+
+      FileUtils.cp(script, File.join(tmp_dir, File.basename(script)))
+      File.open(File.join(tmp_dir, "sh-install"), 'w') do |a|
+        rewrite a, File.join(DIR, "static", "stubs", "sh-install"),
+          'SCRIPT' => "./#{File.basename(script)}"
+      end
+      FileUtils.chmod 0755, File.join(tmp_dir, "sh-install")
+
+      File.open(tgz_path, 'wb') do |f|
+        Shy.czf(f, tmp_dir, &blk)
+      end
+       
+      md5, fsize, raw = Shy.md5sum(tgz_path), File.size(tgz_path), Shy.du(tmp_dir)
+      File.open(run_path, 'wb') do |f|
+        rewrite f, File.join(DIR, "static", "stubs", "blank.run"),
+          'CRC' => '0000000000', 'MD5' => md5, 'LABEL' => app_name, 'NAME' => name,
+          'SIZE' => fsize, 'RAWSIZE' => (raw / 1024) + 1, 'TIME' => Time.now
+        File.open(tgz_path, 'rb') do |f2|
+          f.write f2.read(8192) until f2.eof
+        end
+      end
+      FileUtils.chmod 0755, run_path
+      FileUtils.rm_rf(tgz_path)
+      FileUtils.rm_rf(tmp_dir)
     end
   end
 

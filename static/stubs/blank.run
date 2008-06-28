@@ -6,7 +6,7 @@ MD5="#{MD5}"
 TMPROOT=${TMPDIR:=/tmp}
 
 label="#{LABEL}"
-script="./shoes"
+script="./sh-install"
 scriptargs=""
 targetdir="dist"
 filesizes="#{SIZE}"
@@ -140,15 +140,15 @@ do
     --info)
 	echo Identification: "$label"
 	echo Target directory: "$targetdir"
-	echo Uncompressed size: 9944 KB
+	echo Uncompressed size: #{RAWSIZE} KB
 	echo Compression: gzip
-	echo Date of packaging: Thu Jun 26 23:21:24 MDT 2008
+	echo Date of packaging: #{TIME}
 	echo Built with Makeself version 2.1.4 on 
 	echo Build command was: "/usr/bin/makeself \\
     \"dist\" \\
-    \"pkg/shoes-0.r750.run\" \\
-    \"Shoes\" \\
-    \"./shoes\""
+    \"pkg/#{NAME}.run\" \\
+    \"#{LABEL}\" \\
+    \"./sh-install\""
 	if test x$script != x; then
 	    echo Script run after extraction:
 	    echo "    " $script $scriptargs
@@ -173,7 +173,7 @@ do
 	echo filesizes=\"$filesizes\"
 	echo CRCsum=\"$CRCsum\"
 	echo MD5sum=\"$MD5\"
-	echo OLDUSIZE=9944
+	echo OLDUSIZE=#{RAWSIZE}
 	echo OLDSKIP=376
 	exit 0
 	;;
@@ -324,7 +324,7 @@ fi
 offset=`head -n 375 "$0" | wc -c | tr -d " "`
 
 if test x"$verbose" = xy; then
-	MS_Printf "About to extract 9944 KB in $tmpdir ... Proceed ? [Y/n] "
+	MS_Printf "About to extract #{RAWSIZE} KB in $tmpdir ... Proceed ? [Y/n] "
 	read yn
 	if test x"$yn" = xn; then
 		eval $finish; exit 1

@@ -278,7 +278,7 @@ binject_exe_string_copy(binject_exe_t *binj, char *str, unsigned int size, unsig
   int mark = ftell(binj->out);
   fseek(binj->out, pos, SEEK_SET);
   fwrite(str, sizeof(char), size, binj->out);
-  if (!NIL_P(proc))
+  if (RTEST(proc))
     rb_funcall(proc, rb_intern("call"), 1, INT2NUM(size));
   fseek(binj->out, mark, SEEK_SET);
 }
@@ -295,7 +295,7 @@ binject_exe_file_copy(FILE *file, FILE *out, unsigned int size, unsigned int pos
     unsigned int len = size > BUFSIZE ? BUFSIZE : size;
     fread(buf, sizeof(char), len, file);
     fwrite(buf, sizeof(char), len, out);
-    if (!NIL_P(proc))
+    if (RTEST(proc))
       rb_funcall(proc, rb_intern("call"), 1, INT2NUM(len));
     size -= len;
   }
@@ -718,7 +718,8 @@ void
 binject_dmg_loop(void *data, unsigned int percent)
 {
   VALUE proc = (VALUE)data;
-  rb_funcall(proc, rb_intern("call"), 1, INT2NUM(percent));
+  if (RTEST(proc))
+    rb_funcall(proc, rb_intern("call"), 1, INT2NUM(percent));
 }
 
 VALUE
@@ -732,7 +733,8 @@ binject_dmg_save(VALUE self, VALUE filename)
 		return Qnil;
 
   out->progress = binject_dmg_loop;
-  out->user = (void *)rb_block_proc();
+  if (rb_block_given_p())
+    out->user = (void *)rb_block_proc();
   buildDmg(binj->in, out);
   binject_dmg_loop(out->user, 100);
   return Qnil;

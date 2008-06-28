@@ -1,6 +1,7 @@
 #!/bin/sh
 shoes_host="http://hacketyhack.net"
 shoes_url="$shoes_host/pkg/linux/shoes"
+this_dir=`pwd`
 
 shoes="$(which shoes)"
 if [ -z "$shoes" ] ; then
@@ -41,4 +42,4 @@ if [ ! -x "$shoes" ] ; then
   chmod 755 $shoes
 fi
 
-eval $shoes -- samples/simple-bounce.rb
+eval $shoes -- "$this_dir/#{SCRIPT}"
