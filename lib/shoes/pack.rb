@@ -5,6 +5,7 @@
 require 'shoes/shy'
 require 'binject'
 require 'digest'
+require 'open-uri'
 
 class Shoes
   module Pack
@@ -162,9 +163,9 @@ END
       tgz_path = script.gsub(/\.\w+$/, '') + ".tgz"
       tmp_dir = File.join(LIB_DIR, "+run")
       FileUtils.mkdir_p(tmp_dir)
-      pkgf = pkg("win32", opt)
+      pkgf = pkg("linux", opt)
       if pkgf
-        375.times { pkgf.readline }
+        Shy.hrun(pkgf)
         Shy.xzf(pkgf, tmp_dir, &blk)
       end
 

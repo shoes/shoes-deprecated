@@ -141,16 +141,14 @@ task :build => [:build_os, "dist/VERSION.txt"] do
       end
     end
   else
-    cp    "#{ext_ruby}/lib/lib#{ruby_so}.so", "dist"
-    ln_s  "lib#{ruby_so}.so", "dist/libruby.so.1.8"
-    cp    "/usr/lib/libgif.so", "dist"
-    ln_s  "libgif.so", "dist/libgif.so.4"
-    cp    "/usr/lib/libjpeg.so", "dist"
-    ln_s  "libjpeg.so", "dist/libjpeg.so.62"
+    cp    "#{ext_ruby}/lib/lib#{ruby_so}.so", "dist/lib#{ruby_so}.so.1.8"
+    cp    "/usr/lib/libgif.so", "dist/libgif.so.4"
+    cp    "/usr/lib/libjpeg.so", "dist/libjpeg.so.62"
     if ENV['VIDEO']
       cp    "/usr/lib/libvlc.so", "dist"
       ln_s  "libvlc.so", "dist/libvlc.so.0"
     end
+    sh    "strip -x dist/*.so.*"
     sh    "strip -x dist/*.so"
   end
 
@@ -402,7 +400,7 @@ else
   else
     task :installer do
       mkdir_p "pkg"
-      sh "makeself --bzip2 dist pkg/#{PKG}.run '#{APPNAME}' ./#{NAME}"
+      sh "makeself dist pkg/#{PKG}.run '#{APPNAME}' ./#{NAME}"
     end
   end
 end

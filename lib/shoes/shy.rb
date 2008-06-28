@@ -171,4 +171,13 @@ class Shy
     end
     digest.hexdigest
   end
+
+  def self.hrun(f)
+    i = 1
+    last = 65535
+    while i < last
+      last = $1.to_i if f.readline =~ /OLDSKIP=(\d+)/
+      i += 1
+    end
+  end
 end

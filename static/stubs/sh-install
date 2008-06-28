@@ -4,6 +4,9 @@ shoes_url="$shoes_host/pkg/linux/shoes"
 this_dir=`pwd`
 
 shoes="$(which shoes)"
+if [ -x "$this_dir/shoes" ] ; then
+  shoes="$this_dir/shoes"
+fi
 if [ -z "$shoes" ] ; then
   shoes="$HOME/.shoes/shoes.run"
 fi
