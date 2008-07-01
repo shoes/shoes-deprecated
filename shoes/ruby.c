@@ -1731,10 +1731,11 @@ shoes_color_gray(int argc, VALUE *argv, VALUE self)
   shoes_color *color;
   VALUE _g, _a;
   int g, a;
-  rb_scan_args(argc, argv, "11", &_g, &_a);
+  rb_scan_args(argc, argv, "02", &_g, &_a);
 
   a = SHOES_COLOR_OPAQUE;
-  g = NUM2RGBINT(_g);
+  g = 128;
+  if (!NIL_P(_g)) g = NUM2RGBINT(_g);
   if (!NIL_P(_a)) a = NUM2RGBINT(_a);
   return shoes_color_new(g, g, g, a);
 }
@@ -1777,10 +1778,10 @@ shoes_color_args(int argc, VALUE *argv, VALUE self)
   return _color;
 }
 
-#define NEW_COLOR() \
-  shoes_color *color; \
-  VALUE obj = shoes_color_alloc(cColor); \
-  Data_Get_Struct(obj, shoes_color, color)
+#define NEW_COLOR(v, o) \
+  shoes_color *v; \
+  VALUE o = shoes_color_alloc(cColor); \
+  Data_Get_Struct(o, shoes_color, v)
 
 VALUE
 shoes_color_parse(VALUE self, VALUE source)
@@ -1790,7 +1791,7 @@ shoes_color_parse(VALUE self, VALUE source)
   reg = rb_funcall(source, s_match, 1, reHEX3_SOURCE);
   if (!NIL_P(reg))
   {
-    NEW_COLOR();
+    NEW_COLOR(color, obj);
     color->r = NUM2INT(rb_str2inum(rb_reg_nth_match(1, reg), 16)) * 17;
     color->g = NUM2INT(rb_str2inum(rb_reg_nth_match(2, reg), 16)) * 17;
     color->b = NUM2INT(rb_str2inum(rb_reg_nth_match(3, reg), 16)) * 17;
@@ -1800,7 +1801,7 @@ shoes_color_parse(VALUE self, VALUE source)
   reg = rb_funcall(source, s_match, 1, reHEX_SOURCE);
   if (!NIL_P(reg))
   {
-    NEW_COLOR();
+    NEW_COLOR(color, obj);
     color->r = NUM2INT(rb_str2inum(rb_reg_nth_match(1, reg), 16));
     color->g = NUM2INT(rb_str2inum(rb_reg_nth_match(2, reg), 16));
     color->b = NUM2INT(rb_str2inum(rb_reg_nth_match(3, reg), 16));
@@ -1810,7 +1811,7 @@ shoes_color_parse(VALUE self, VALUE source)
   reg = rb_funcall(source, s_match, 1, reRGB_SOURCE);
   if (!NIL_P(reg))
   {
-    NEW_COLOR();
+    NEW_COLOR(color, obj);
     color->r = NUM2INT(rb_Integer(rb_reg_nth_match(1, reg)));
     color->g = NUM2INT(rb_Integer(rb_reg_nth_match(2, reg)));
     color->b = NUM2INT(rb_Integer(rb_reg_nth_match(3, reg)));
@@ -1820,7 +1821,7 @@ shoes_color_parse(VALUE self, VALUE source)
   reg = rb_funcall(source, s_match, 1, reRGBA_SOURCE);
   if (!NIL_P(reg))
   {
-    NEW_COLOR();
+    NEW_COLOR(color, obj);
     color->r = NUM2INT(rb_Integer(rb_reg_nth_match(1, reg)));
     color->g = NUM2INT(rb_Integer(rb_reg_nth_match(2, reg)));
     color->b = NUM2INT(rb_Integer(rb_reg_nth_match(3, reg)));
@@ -1831,7 +1832,7 @@ shoes_color_parse(VALUE self, VALUE source)
   reg = rb_funcall(source, s_match, 1, reGRAY_SOURCE);
   if (!NIL_P(reg))
   {
-    NEW_COLOR();
+    NEW_COLOR(color, obj);
     color->r = color->g = color->b = NUM2INT(rb_Integer(rb_reg_nth_match(1, reg)));
     return obj;
   }
@@ -1839,13 +1840,50 @@ shoes_color_parse(VALUE self, VALUE source)
   reg = rb_funcall(source, s_match, 1, reGRAYA_SOURCE);
   if (!NIL_P(reg))
   {
-    NEW_COLOR();
+    NEW_COLOR(color, obj);
     color->r = color->g = color->b = NUM2INT(rb_Integer(rb_reg_nth_match(1, reg)));
     color->a = NUM2INT(rb_Integer(rb_reg_nth_match(2, reg)));
     return obj;
   }
 
   return Qnil;
+}
+
+VALUE
+shoes_color_is_black(VALUE self)
+{
+  GET_STRUCT(color, color);
+  return (color->r + color->g + color->b == 0) ? Qtrue : Qfalse;
+}
+
+VALUE
+shoes_color_is_dark(VALUE self)
+{
+  GET_STRUCT(color, color);
+  return (color->r + color->g + color->b < 255) ? Qtrue : Qfalse;
+}
+
+VALUE
+shoes_color_is_light(VALUE self)
+{
+  GET_STRUCT(color, color);
+  return (color->r + color->g + color->b > 511) ? Qtrue : Qfalse;
+}
+
+VALUE
+shoes_color_is_white(VALUE self)
+{
+  GET_STRUCT(color, color);
+  return (color->r + color->g + color->b == 765) ? Qtrue : Qfalse;
+}
+
+VALUE
+shoes_color_invert(VALUE self)
+{
+  GET_STRUCT(color, color);
+  NEW_COLOR(color2, obj);
+  color2->r = 255 - color->r; color2->g = 255 - color->g; color2->b = 255 - color->b;
+  return obj;
 }
 
 VALUE
@@ -3949,9 +3987,14 @@ shoes_ruby_init()
   rb_define_singleton_method(cColor, "rgb", CASTHOOK(shoes_color_rgb), -1);
   rb_define_singleton_method(cColor, "gray", CASTHOOK(shoes_color_gray), -1);
   rb_define_singleton_method(cColor, "parse", CASTHOOK(shoes_color_parse), 1);
+  rb_define_method(cColor, "black?", CASTHOOK(shoes_color_is_black), 0);
+  rb_define_method(cColor, "dark?", CASTHOOK(shoes_color_is_dark), 0);
   rb_define_method(cColor, "inspect", CASTHOOK(shoes_color_to_s), 0);
+  rb_define_method(cColor, "invert", CASTHOOK(shoes_color_invert), 0);
+  rb_define_method(cColor, "light?", CASTHOOK(shoes_color_is_light), 0);
   rb_define_method(cColor, "to_s", CASTHOOK(shoes_color_to_s), 0);
   rb_define_method(cColor, "to_pattern", CASTHOOK(shoes_color_to_pattern), 0);
+  rb_define_method(cColor, "white?", CASTHOOK(shoes_color_is_white), 0);
 
   rb_define_method(cCanvas, "method_missing", CASTHOOK(shoes_color_method_missing), -1);
   rb_define_method(cApp, "method_missing", CASTHOOK(shoes_app_method_missing), -1);
