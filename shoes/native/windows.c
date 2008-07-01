@@ -10,6 +10,7 @@
 #include "shoes/internal.h"
 #include "shoes/appwin32.h"
 #include <commdlg.h>
+#include <shlobj.h>
 
 #define HEIGHT_PAD 6
 
@@ -1399,9 +1400,10 @@ shoes_dialog_color(VALUE self, VALUE title)
   return color;
 }
 
-VALUE
-shoes_dialog_open(VALUE self)
+static VALUE
+shoes_dialog_chooser(VALUE self, char *title, DWORD flags)
 {
+  BOOL ok;
   VALUE path = Qnil;
   GLOBAL_APP(app);
   char dir[MAX_PATH+1], _path[MAX_PATH+1];
@@ -1412,6 +1414,7 @@ shoes_dialog_open(VALUE self)
   ofn.hwndOwner       = APP_WINDOW(app);
   ofn.hInstance       = shoes_world->os.instance;
   ofn.lpstrFile       = _path;
+  ofn.lpstrTitle      = title;
   ofn.nMaxFile        = sizeof(_path);
   ofn.lpstrFile[0] = '\0';
   ofn.lpstrFilter = "All\0*.*\0Text\0*.TXT\0";
@@ -1419,40 +1422,61 @@ shoes_dialog_open(VALUE self)
   ofn.lpstrFileTitle = NULL;
   ofn.nMaxFileTitle = 0;
   ofn.lpstrInitialDir = NULL; // (LPSTR)dir;
-  ofn.Flags           = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
-  if (GetOpenFileName(&ofn))
-  {
+  ofn.Flags           = OFN_EXPLORER | flags;
+  if (flags & OFN_OVERWRITEPROMPT)
+    ok = GetSaveFileName(&ofn);
+  else
+    ok = GetOpenFileName(&ofn);
+  if (ok)
     path = rb_str_new2(ofn.lpstrFile);
-  }
   SetCurrentDirectory((LPSTR)dir);
   return path;
+}
+
+static VALUE
+shoes_dialog_chooser2(VALUE self, char *title, UINT flags)
+{
+  VALUE path = Qnil;
+  BROWSEINFO bi = {0};
+  bi.lpszTitle = title;
+  bi.ulFlags = BIF_USENEWUI | flags;
+  LPITEMIDLIST pidl = SHBrowseForFolder (&bi);
+  if (pidl != 0)
+  {
+    char _path[MAX_PATH+1];
+    if (SHGetPathFromIDList(pidl, _path))
+      path = rb_str_new2(_path);
+
+    IMalloc *imalloc = 0;
+    if (SUCCEEDED(SHGetMalloc(&imalloc)))
+    {
+      IMalloc_Free(imalloc, pidl);
+      IMalloc_Release(imalloc);
+    }
+  }
+  return path;
+}
+
+VALUE
+shoes_dialog_open(VALUE self)
+{
+  return shoes_dialog_chooser(self, "Open file...", OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST);
 }
 
 VALUE
 shoes_dialog_save(VALUE self)
 {
-  VALUE path = Qnil;
-  GLOBAL_APP(app);
-  char dir[MAX_PATH+1], _path[MAX_PATH+1];
-  OPENFILENAME ofn;
-  ZeroMemory(&ofn, sizeof(ofn));
-  GetCurrentDirectory(MAX_PATH, (LPSTR)dir);
-  ofn.lStructSize     = sizeof(ofn);
-  ofn.hwndOwner       = APP_WINDOW(app);
-  ofn.hInstance       = shoes_world->os.instance;
-  ofn.lpstrFile       = _path;
-  ofn.nMaxFile        = sizeof(_path);
-  ofn.lpstrFile[0] = '\0';
-  ofn.lpstrFilter = "All\0*.*\0Text\0*.TXT\0";
-  ofn.nFilterIndex = 1;
-  ofn.lpstrFileTitle = NULL;
-  ofn.nMaxFileTitle = 0;
-  ofn.lpstrInitialDir = NULL; // (LPSTR)dir;
-  ofn.Flags           = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
-  if (GetSaveFileName(&ofn))
-  {
-    path = rb_str_new2(ofn.lpstrFile);
-  }
-  SetCurrentDirectory((LPSTR)dir);
-  return path;
+  return shoes_dialog_chooser(self, "Save file...", OFN_OVERWRITEPROMPT);
+}
+
+VALUE
+shoes_dialog_open_folder(VALUE self)
+{
+  return shoes_dialog_chooser2(self, "Open folder...", BIF_NONEWFOLDERBUTTON | BIF_RETURNONLYFSDIRS);
+}
+
+VALUE
+shoes_dialog_save_folder(VALUE self)
+{
+  return shoes_dialog_chooser2(self, "Save folder...", BIF_RETURNONLYFSDIRS);
 }

@@ -199,7 +199,7 @@ when /win32/
   MSVC_LIBS2 << " bufferoverflowu.lib" if ENV['DDKBUILDENV']
   MSVC_LIBS << MSVC_LIBS2
 
-  MSVC_CFLAGS = %q[/ML /DWIN32 /DSHOES_WIN32 /DWIN32_LEAN_AND_MEAN
+  MSVC_CFLAGS = %q[/ML /DWIN32 /DSHOES_WIN32 /DWIN32_LEAN_AND_MEAN /DCINTERFACE /DCOBJMACROS
     /Ideps\vlc\include
     /Ideps\cairo\include
     /Ideps\cairo\include\cairo
