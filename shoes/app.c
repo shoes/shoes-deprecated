@@ -21,6 +21,7 @@ shoes_app_mark(shoes_app *app)
   rb_gc_mark_maybe(app->nesting);
   rb_gc_mark_maybe(app->timers);
   rb_gc_mark_maybe(app->styles);
+  rb_gc_mark_maybe(app->groups);
   rb_gc_mark_maybe(app->owner);
 }
 
@@ -42,6 +43,7 @@ shoes_app_alloc(VALUE klass)
   app->nestslot = Qnil;
   app->nesting = rb_ary_new();
   app->timers = rb_ary_new();
+  app->groups = Qnil;
   app->styles = Qnil;
   app->title = Qnil;
   app->width = SHOES_APP_WIDTH;
@@ -65,18 +67,19 @@ shoes_apps_get(VALUE self)
   return rb_ary_dup(shoes_world->apps);
 }
 
-//
-// When a window is finished, call this to delete it from the master
-// list.  Returns 1 if all windows are gone.
-//
 static void
 shoes_app_clear(shoes_app *app)
 {
   shoes_ele_remove_all(app->timers);
   shoes_canvas_clear(app->canvas);
   app->nestslot = Qnil;
+  app->groups = Qnil;
 }
 
+//
+// When a window is finished, call this to delete it from the master
+// list.  Returns 1 if all windows are gone.
+//
 int
 shoes_app_remove(shoes_app *app)
 {

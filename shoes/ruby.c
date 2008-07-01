@@ -15,7 +15,7 @@ VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask
 VALUE eVlcError, eImageError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot;
-ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_hand, s_hidden, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_motion, s_release, s_wheel, s_scroll, s_start, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
+ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_group, s_hand, s_hidden, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_motion, s_release, s_wheel, s_scroll, s_start, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -3163,11 +3163,6 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
       shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
   }
 
-#ifdef SHOES_GTK
-    if (canvas->group.radios == NULL && self_t->ref != NULL)
-      canvas->group.radios = self_t->ref;
-#endif
-
   FINISH();
 
   return self;
@@ -3662,6 +3657,7 @@ shoes_ruby_init()
   s_fill = rb_intern("fill");
   s_finish = rb_intern("finish");
   s_font = rb_intern("font");
+  s_group = rb_intern("group");
   s_hand = rb_intern("hand");
   s_hidden = rb_intern("hidden");
   s_hover = rb_intern("hover");

@@ -38,6 +38,7 @@ typedef struct _shoes_app {
   VALUE nesting;
   VALUE timers;
   VALUE styles;
+  VALUE groups;
   ID cursor;
   VALUE title;
   VALUE location;

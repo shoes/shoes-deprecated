@@ -1022,10 +1022,18 @@ shoes_canvas_progress(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_radio(int argc, VALUE *argv, VALUE self)
 {
-  VALUE attr, block, radio;
+  VALUE group, attr, block, radio;
   SETUP();
-  rb_scan_args(argc, argv, "01&", &attr, &block);
+  rb_scan_args(argc, argv, "02&", &group, &attr, &block);
 
+  if (rb_obj_is_kind_of(group, rb_cHash))
+  {
+    attr = group;
+    group = Qnil;
+  }
+
+  if (!NIL_P(group))
+    attr = shoes_hash_set(attr, s_group, group);
   if (!NIL_P(block))
     attr = shoes_hash_set(attr, s_click, block);
 
