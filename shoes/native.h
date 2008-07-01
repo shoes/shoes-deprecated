@@ -84,3 +84,5 @@ VALUE shoes_dialog_confirm(VALUE, VALUE);
 VALUE shoes_dialog_color(VALUE, VALUE);
 VALUE shoes_dialog_open(VALUE);
 VALUE shoes_dialog_save(VALUE);
+VALUE shoes_dialog_open_folder(VALUE);
+VALUE shoes_dialog_save_folder(VALUE);

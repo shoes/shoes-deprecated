@@ -4219,4 +4219,6 @@ shoes_ruby_init()
   rb_define_method(rb_mKernel, "ask_color", CASTHOOK(shoes_dialog_color), 1);
   rb_define_method(rb_mKernel, "ask_open_file", CASTHOOK(shoes_dialog_open), 0);
   rb_define_method(rb_mKernel, "ask_save_file", CASTHOOK(shoes_dialog_save), 0);
+  rb_define_method(rb_mKernel, "ask_open_folder", CASTHOOK(shoes_dialog_open_folder), 0);
+  rb_define_method(rb_mKernel, "ask_save_folder", CASTHOOK(shoes_dialog_save_folder), 0);
 }

@@ -946,14 +946,15 @@ shoes_dialog_color(VALUE self, VALUE title)
   return color;
 }
 
-VALUE
-shoes_dialog_open(VALUE self)
+static VALUE
+shoes_dialog_chooser(VALUE self, char *title, GtkFileChooserAction act, const gchar *button)
 {
   VALUE path = Qnil;
   GLOBAL_APP(app);
-  GtkWidget *dialog = gtk_file_chooser_dialog_new("Open file...", APP_WINDOW(app),
-    GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-    GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
+  GtkWidget *dialog = gtk_file_chooser_dialog_new(title, APP_WINDOW(app),
+    act, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, button, GTK_RESPONSE_ACCEPT, NULL);
+  if (act == GTK_FILE_CHOOSER_ACTION_SAVE)
+    gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(dialog), TRUE);
   gint result = gtk_dialog_run(GTK_DIALOG(dialog));
   if (result == GTK_RESPONSE_ACCEPT)
   {
@@ -966,21 +967,29 @@ shoes_dialog_open(VALUE self)
 }
 
 VALUE
+shoes_dialog_open(VALUE self)
+{
+  return shoes_dialog_chooser(self, "Open file...", GTK_FILE_CHOOSER_ACTION_OPEN,
+    GTK_STOCK_OPEN);
+}
+
+VALUE
 shoes_dialog_save(VALUE self)
 {
-  VALUE path = Qnil;
-  GLOBAL_APP(app);
-  GtkWidget *dialog = gtk_file_chooser_dialog_new("Save file...", APP_WINDOW(app),
-    GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-    GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, NULL);
-  gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(dialog), TRUE);
-  gint result = gtk_dialog_run(GTK_DIALOG(dialog));
-  if (result == GTK_RESPONSE_ACCEPT)
-  {
-    char *filename;
-    filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
-    path = rb_str_new2(filename);
-  }
-  gtk_widget_destroy(dialog);
-  return path;
+  return shoes_dialog_chooser(self, "Save file...", GTK_FILE_CHOOSER_ACTION_SAVE,
+    GTK_STOCK_SAVE);
+}
+
+VALUE
+shoes_dialog_open_folder(VALUE self)
+{
+  return shoes_dialog_chooser(self, "Open folder...", GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
+    GTK_STOCK_OPEN);
+}
+
+VALUE
+shoes_dialog_save_folder(VALUE self)
+{
+  return shoes_dialog_chooser(self, "Save folder...", GTK_FILE_CHOOSER_ACTION_CREATE_FOLDER,
+    GTK_STOCK_SAVE);
 }

@@ -15,6 +15,12 @@ Shoes.app :width => 300, :height => 150, :margin => 10 do
   button "Save File..." do
     answer ask_save_file
   end
+  button "Open Folder..." do
+    answer ask_open_folder
+  end
+  button "Save Folder..." do
+    answer ask_save_folder
+  end
   button "Color" do
     answer ask_color("Pick a Color")
   end
