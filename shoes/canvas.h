@@ -67,6 +67,9 @@ typedef struct {
 } shoes_color;
 
 #define SHOES_COLOR_OPAQUE 0xFF
+#define SHOES_COLOR_TRANSPARENT 0x0
+#define SHOES_COLOR_DARK   (0x55 * 3)
+#define SHOES_COLOR_LIGHT  (0xAA * 3)
 
 //
 // shape struct

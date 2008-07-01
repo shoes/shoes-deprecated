@@ -1860,14 +1860,28 @@ VALUE
 shoes_color_is_dark(VALUE self)
 {
   GET_STRUCT(color, color);
-  return (color->r + color->g + color->b < 255) ? Qtrue : Qfalse;
+  return ((int)color->r + (int)color->g + (int)color->b < SHOES_COLOR_DARK) ? Qtrue : Qfalse;
 }
 
 VALUE
 shoes_color_is_light(VALUE self)
 {
   GET_STRUCT(color, color);
-  return (color->r + color->g + color->b > 511) ? Qtrue : Qfalse;
+  return ((int)color->r + (int)color->g + (int)color->b > SHOES_COLOR_LIGHT) ? Qtrue : Qfalse;
+}
+
+VALUE
+shoes_color_is_opaque(VALUE self)
+{
+  GET_STRUCT(color, color);
+  return (color->a == SHOES_COLOR_OPAQUE) ? Qtrue : Qfalse;
+}
+
+VALUE
+shoes_color_is_transparent(VALUE self)
+{
+  GET_STRUCT(color, color);
+  return (color->a == SHOES_COLOR_TRANSPARENT) ? Qtrue : Qfalse;
 }
 
 VALUE
@@ -3992,8 +4006,10 @@ shoes_ruby_init()
   rb_define_method(cColor, "inspect", CASTHOOK(shoes_color_to_s), 0);
   rb_define_method(cColor, "invert", CASTHOOK(shoes_color_invert), 0);
   rb_define_method(cColor, "light?", CASTHOOK(shoes_color_is_light), 0);
+  rb_define_method(cColor, "opaque?", CASTHOOK(shoes_color_is_opaque), 0);
   rb_define_method(cColor, "to_s", CASTHOOK(shoes_color_to_s), 0);
   rb_define_method(cColor, "to_pattern", CASTHOOK(shoes_color_to_pattern), 0);
+  rb_define_method(cColor, "transparent?", CASTHOOK(shoes_color_is_transparent), 0);
   rb_define_method(cColor, "white?", CASTHOOK(shoes_color_is_white), 0);
 
   rb_define_method(cCanvas, "method_missing", CASTHOOK(shoes_color_method_missing), -1);
