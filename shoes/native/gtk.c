@@ -786,39 +786,21 @@ shoes_native_check_set(SHOES_CONTROL_REF ref, int on)
 }
 
 SHOES_CONTROL_REF
-shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, VALUE group)
 {
   SHOES_CONTROL_REF ref;
   GSList *list = NULL;
-  VALUE group = ATTR(attr, group);
-  if (NIL_P(group))
+  if (!NIL_P(group))
   {
-    if (canvas->group.radios)
-      list = gtk_radio_button_get_group(GTK_RADIO_BUTTON(canvas->group.radios));
+    shoes_control *lctrl;
+    VALUE leader = rb_ary_entry(group, 0);
+    Data_Get_Struct(leader, shoes_control, lctrl);
+    list = gtk_radio_button_get_group(GTK_RADIO_BUTTON(lctrl->ref));
   }
-  else
-  {
-    VALUE gobj = shoes_hash_get(canvas->app->groups, group);
-    if (!NIL_P(gobj))
-    {
-      shoes_control *gctrl;
-      Data_Get_Struct(gobj, shoes_control, gctrl);
-      list = gtk_radio_button_get_group(GTK_RADIO_BUTTON(gctrl->ref));
-    }
-  }
-
   ref = gtk_radio_button_new(list);
   g_signal_connect(G_OBJECT(ref), "clicked",
                    G_CALLBACK(shoes_button_gtk_clicked),
                    (gpointer)self);
-
-  if (list == NULL)
-  {
-    if (NIL_P(group))
-      canvas->group.radios = ref;
-    else
-      canvas->app->groups = shoes_hash_set(canvas->app->groups, group, self);
-  }
   return ref;
 }
 

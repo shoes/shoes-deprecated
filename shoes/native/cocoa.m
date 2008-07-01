@@ -972,7 +972,7 @@ shoes_native_check_set(SHOES_CONTROL_REF ref, int on)
 }
 
 SHOES_CONTROL_REF
-shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, VALUE group)
 {
   INIT;
   ShoesButton *button = [[ShoesButton alloc] initWithType: NSRadioButton

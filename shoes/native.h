@@ -66,7 +66,7 @@ SHOES_CONTROL_REF shoes_native_check(VALUE, shoes_canvas *, shoes_place *, VALUE
 VALUE shoes_native_check_get(SHOES_CONTROL_REF);
 void shoes_native_check_set(SHOES_CONTROL_REF, int);
 void shoes_native_list_box_set_active(SHOES_CONTROL_REF, VALUE, VALUE);
-SHOES_CONTROL_REF shoes_native_radio(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);
+SHOES_CONTROL_REF shoes_native_radio(VALUE, shoes_canvas *, shoes_place *, VALUE, VALUE);
 void shoes_native_timer_remove(shoes_canvas *, SHOES_TIMER_REF);
 SHOES_TIMER_REF shoes_native_timer_start(VALUE, shoes_canvas *, unsigned int);
 VALUE shoes_native_clipboard_get(shoes_app *);

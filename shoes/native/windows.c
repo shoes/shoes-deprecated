@@ -1211,7 +1211,7 @@ shoes_native_check_set(SHOES_CONTROL_REF ref, int on)
 }
 
 SHOES_CONTROL_REF
-shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, VALUE group)
 {
   int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
   SHOES_CONTROL_REF ref = CreateWindowEx(0, TEXT("BUTTON"), msg,

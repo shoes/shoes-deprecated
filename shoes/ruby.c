@@ -3156,7 +3156,17 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   {
     if (self_t->ref == NULL)
     {
-      self_t->ref = shoes_native_radio(self, canvas, &place, self_t->attr, msg);
+      VALUE group = ATTR(self_t->attr, group);
+      if (NIL_P(group)) group = c;
+
+      VALUE glist = shoes_hash_get(canvas->app->groups, group);
+      self_t->ref = shoes_native_radio(self, canvas, &place, self_t->attr, glist);
+
+      if (NIL_P(glist))
+        canvas->app->groups = shoes_hash_set(canvas->app->groups, group, (glist = rb_ary_new3(1, self)));
+      else
+        rb_ary_push(glist, self);
+
       shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
     }
     else
