@@ -1095,12 +1095,12 @@ shoes_dialog_color(VALUE self, VALUE title)
   return color;
 }
 
-VALUE
-shoes_dialog_open(VALUE self)
+static VALUE
+shoes_dialog_chooser(VALUE self, NSString *title, BOOL directories)
 {
   NSOpenPanel* openDlg = [NSOpenPanel openPanel];
-  [openDlg setCanChooseFiles: YES];
-  [openDlg setCanChooseDirectories: NO];
+  [openDlg setCanChooseFiles: !directories];
+  [openDlg setCanChooseDirectories: directories];
   [openDlg setAllowsMultipleSelection: NO];
   if ( [openDlg runModalForDirectory: nil file: nil] == NSOKButton )
   {
@@ -1109,6 +1109,12 @@ shoes_dialog_open(VALUE self)
     return rb_str_new2(filename);
   }
   return Qnil;
+}
+
+VALUE
+shoes_dialog_open(VALUE self)
+{
+  return shoes_dialog_chooser(self, @"Open file...", NO);
 }
 
 VALUE
@@ -1121,4 +1127,16 @@ shoes_dialog_save(VALUE self)
     return rb_str_new2(filename);
   }
   return Qnil;
+}
+
+VALUE
+shoes_dialog_open_folder(VALUE self)
+{
+  return shoes_dialog_chooser(self, @"Open folder...", YES);
+}
+
+VALUE
+shoes_dialog_save_folder(VALUE self)
+{
+  return shoes_dialog_chooser(self, @"Save folder...", YES);
 }
