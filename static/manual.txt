@@ -624,9 +624,9 @@ Adds a progress bar.
 
 Create a Para text block (short for "paragraph") which Shoes styles at 12 pixels high.
 
-=== radio() » Shoes::Radio ===
+=== radio(group name: a string or symbol) » Shoes::Radio ===
 
-Adds a radio button.
+Adds a radio button.  If a `group name` is given, the radio button is considered part of a group.  Among radio buttons in the same group, only one may be checked.  (If no group name is given, the radio button is grouped with any other radio buttons in the same slot.)
 
 === stack(styles) { ... } » Shoes::Stack ===
 
