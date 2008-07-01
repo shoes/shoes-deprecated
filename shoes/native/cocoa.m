@@ -62,6 +62,7 @@
 {
   app = a;
   [self center];
+  [self makeKeyAndOrderFront: self];
   [self setAcceptsMouseMovedEvents: YES];
   [self setDelegate: self];
 }
