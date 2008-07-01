@@ -1,0 +1,20 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Add ask_open_folder and ask_save_folder.
+desc: |-
+  Ed Heil asks, "Is it possible to query the user for a *directory* to open, as 
+  opposed to a file?" - [shoes-list:3038]
+type: :feature
+component: shoes
+release: Raisins
+reporter: _why <why@whytheluckystiff.net>
+status: :unstarted
+disposition: 
+creation_time: 2008-07-01 21:00:07.017988 Z
+references: []
+
+id: 0c66f223d19efbca7b692f3b91961f407ad7abec
+log_events: 
+- - 2008-07-01 21:00:12.261106 Z
+  - _why <why@whytheluckystiff.net>
+  - created
+  - ""
