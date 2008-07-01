@@ -9,6 +9,10 @@
 #define PLACE_COORDS() p2->h -= HEIGHT_PAD; p2->ih -= HEIGHT_PAD; *p1 = *p2
 #define PLACE_COORDS_NO_PAD() p2->h -= HEIGHT_PAD; p2->ih -= HEIGHT_PAD; *p1 = *p2
 
+#ifdef SHOES_WIN32
+#define SHOES_FORCE_RADIO 1
+#endif
+
 void shoes_native_init();
 void shoes_native_cleanup(shoes_world_t *world);
 void shoes_native_quit();

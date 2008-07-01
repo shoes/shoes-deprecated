@@ -3140,11 +3140,57 @@ shoes_check_is_checked(VALUE self)
 }
 
 VALUE
+shoes_button_group(VALUE self)
+{
+  GET_STRUCT(control, self_t);
+  if (!NIL_P(self_t->parent))
+  {
+    shoes_canvas *canvas;
+    VALUE group = ATTR(self_t->attr, group);
+    if (NIL_P(group)) group = self_t->parent;
+    Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+    return shoes_hash_get(canvas->app->groups, group);
+  }
+  return Qnil;
+}
+
+VALUE
 shoes_check_set_checked(VALUE self, VALUE on)
 {
   GET_STRUCT(control, self_t);
   shoes_native_check_set(self_t->ref, RTEST(on));
   return on;
+}
+
+VALUE
+shoes_check_set_checked_m(VALUE self, VALUE on)
+{
+#ifdef SHOES_FORCE_RADIO
+  if (RTEST(on))
+  {
+    VALUE glist = shoes_button_group(self);
+    if (!NIL_P(glist))
+    {
+      long i;
+      for (i = 0; i < RARRAY_LEN(glist); i++)
+      {
+        VALUE ele = rb_ary_entry(glist, i);
+        shoes_check_set_checked(ele, ele == self ? Qtrue : Qfalse);
+      }
+    }
+    return on;
+  }
+#endif
+  shoes_check_set_checked(self, on);
+  return on;
+}
+
+void
+shoes_button_send_click(VALUE control)
+{
+  if (rb_obj_is_kind_of(control, cRadio))
+    shoes_check_set_checked_m(control, Qtrue);
+  shoes_control_send(control, s_click);
 }
 
 VALUE
@@ -3986,7 +4032,7 @@ shoes_ruby_init()
   cRadio  = rb_define_class_under(cShoes, "Radio", cNative);
   rb_define_method(cRadio, "draw", CASTHOOK(shoes_radio_draw), 2);
   rb_define_method(cRadio, "checked?", CASTHOOK(shoes_check_is_checked), 0);
-  rb_define_method(cRadio, "checked=", CASTHOOK(shoes_check_set_checked), 1);
+  rb_define_method(cRadio, "checked=", CASTHOOK(shoes_check_set_checked_m), 1);
   rb_define_method(cRadio, "click", CASTHOOK(shoes_control_click), -1);
 
   cTimerBase   = rb_define_class_under(cShoes, "TimerBase", rb_cObject);

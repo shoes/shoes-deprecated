@@ -293,7 +293,7 @@ shoes_slot_win32proc(
               int id = LOWORD(w);
               VALUE control = rb_ary_entry(canvas->slot.controls, id - SHOES_CONTROL1);
               if (!NIL_P(control))
-                shoes_control_send(control, s_click);
+                shoes_button_send_click(control);
             }
             break;
 
@@ -597,7 +597,7 @@ shoes_app_win32proc(
             int id = LOWORD(w);
             VALUE control = rb_ary_entry(app->slot.controls, id - SHOES_CONTROL1);
             if (!NIL_P(control))
-              shoes_control_send(control, s_click);
+              shoes_button_send_click(control);
           }
           break;
 
@@ -1214,8 +1214,8 @@ SHOES_CONTROL_REF
 shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, VALUE group)
 {
   int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot.controls);
-  SHOES_CONTROL_REF ref = CreateWindowEx(0, TEXT("BUTTON"), msg,
-      WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_AUTORADIOBUTTON,
+  SHOES_CONTROL_REF ref = CreateWindowEx(0, TEXT("BUTTON"), NULL,
+      WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_RADIOBUTTON,
       place->ix + place->dx, place->iy + place->dy, place->iw, place->ih,
       canvas->slot.window, (HMENU)cid, 
       (HINSTANCE)GetWindowLong(canvas->slot.window, GWL_HINSTANCE),
