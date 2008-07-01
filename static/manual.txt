@@ -69,6 +69,8 @@ Pops up a window containing a short message.
  alert("I'm afraid I must interject!")
 }}}
 
+Please use alerts sparingly, as they are incredibly annoying!  If you are using alerts to show messages to help you debug your program, try checking out the [[Built-in.debug debug]] or [[Built-in.info info]] methods.
+
 === ask( message ) » a string ===
 
 Pops up a window and asks a question. For example, you may want to ask someone their name.
@@ -122,6 +124,23 @@ Pops up a yes-or-no question. If the person at the computer, clicks '''yes''', y
  end
 }}}
 
+=== debug(message: a string) » nil ===
+
+Sends a debug message to the Shoes console.  You can bring up the Shoes console by pressing `Alt-/` on any Shoes window (or `⌘-/` on OS X.)
+
+{{{
+ #!ruby
+ debug("Running Shoes on " + RUBY_PLATFORM)
+}}}
+
+Also check out the [[Built-in.error error]], [[Built-in.warn warn]] and [[Built-in.info info]] methods.
+
+=== error(message: a string) » nil ===
+
+Sends an error message to the Shoes console.  This method should only be used to log errors.  Try the [[Built-in.debug debug]] method for logging messages to yourself.
+
+Oh, and, rather than a string, you may also hand exceptions directly to this method and they'll be formatted appropriately.
+
 === exit() ===
 
 Stops your program. Call this anytime you want to suddenly call it quits.
@@ -138,6 +157,17 @@ Create a grayscale color from a level of darkness and, optionally, an alpha leve
 black = gray(0.0)
 white = gray(1.0)
 }}}
+
+=== info(message: a string) » nil ===
+
+Logs an informational message to the user in the Shoes console.  So, where debug messages are designed to help the program figure out what's happening, `info` messages tell the user extra information about the program.
+
+{{{
+ #!ruby
+ info("You just ran the info example on Shoes #{Shoes::RELEASE_NAME}.")
+}}}
+
+For example, whenever a Shy file loads, Shoes prints an informational message in the console describing the author of the Shy and its version.
 
 === rgb(a series of numbers: red, green, blue, alpha) » Shoes::Color ===
 
@@ -158,6 +188,12 @@ darkgreen = rgb(0, 0.4, 0)
 }}}
 
 This method may also be called as `Shoes.rgb`.
+
+=== warn(message: a string) » nil ===
+
+Logs a warning for the user.  A warning is not a catastrophic error (see [[Built-in.error error]] for that.)  It is just a notice that the program will be changing in the future or that certain parts of the program aren't reliable yet.
+
+To view warnings and errors, open the Shoes console with `Alt-/` (or `⌘-/` on OS X.)
 
 == The App Object ==
 

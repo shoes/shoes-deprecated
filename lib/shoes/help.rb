@@ -64,11 +64,7 @@ module Shoes::Manual
   end
 
   def run_code str
-    unless str =~ /Shoes\.app/
-      Shoes.app { eval(str) }
-    else
-      eval(str, TOPLEVEL_BINDING)
-    end
+    eval(str, TOPLEVEL_BINDING)
   end
 
   def load_docs str
