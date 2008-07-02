@@ -679,14 +679,9 @@ shoes_canvas_link(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_imagesize(VALUE self, VALUE _path)
 {
-  cairo_surface_t *image = shoes_load_image(_path);
-  if (image)
-  {
-    double w = cairo_image_surface_get_width(image);
-    double h = cairo_image_surface_get_height(image);
-    cairo_surface_destroy(image);
+  int w, h;
+  if (shoes_load_image(_path, &w, &h, FALSE))
     return rb_ary_new3(2, INT2NUM(w), INT2NUM(h));
-  }
   return Qnil;
 }
 

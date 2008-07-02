@@ -550,14 +550,10 @@ shoes_shape_alloc(VALUE klass)
   shoes_shape *shape = SHOE_ALLOC(shoes_shape);
   SHOE_MEMZERO(shape, shoes_shape, 1);
   obj = Data_Wrap_Struct(klass, shoes_shape_mark, shoes_shape_free, shape);
-  shape->line = NULL;
   shape->attr = Qnil;
   shape->parent = Qnil;
   shape->fg = Qnil;
   shape->bg = Qnil;
-  shape->width = 0;
-  shape->height = 0;
-  shape->hover = 0;
   return obj;
 }
 
@@ -719,8 +715,15 @@ shoes_image_new(VALUE klass, VALUE path, VALUE realpath, VALUE attr, VALUE paren
   else
   {
     image->path = path;
-    image->surface = shoes_load_image(realpath);
+    image->surface = shoes_load_image(realpath, &image->width, &image->height, TRUE);
   }
+
+  if (image->surface != NULL && image->width == 0)
+  {
+    image->width = cairo_image_surface_get_width(image->surface);
+    image->height = cairo_image_surface_get_height(image->surface);
+  }
+
   cairo_matrix_init_identity(image->tf);
   cairo_matrix_multiply(image->tf, image->tf, tf);
   image->mode = mode;
@@ -738,14 +741,26 @@ shoes_image_alloc(VALUE klass)
   SHOE_MEMZERO(image, shoes_image, 1);
   obj = Data_Wrap_Struct(klass, shoes_image_mark, shoes_image_free, image);
   image->path = Qnil;
-  image->surface = NULL;
   image->tf = SHOE_ALLOC(cairo_matrix_t);
   cairo_matrix_init_identity(image->tf);
   image->mode = Qnil;
   image->attr = Qnil;
   image->parent = Qnil;
-  image->hover = 0;
   return obj;
+}
+
+VALUE
+shoes_image_get_full_width(VALUE self)
+{
+  GET_STRUCT(image, image);
+  return INT2NUM(image->width);
+}
+
+VALUE
+shoes_image_get_full_height(VALUE self)
+{
+  GET_STRUCT(image, image);
+  return INT2NUM(image->height);
 }
 
 VALUE
@@ -758,10 +773,9 @@ shoes_image_get_path(VALUE self)
 VALUE
 shoes_image_set_path(VALUE self, VALUE path)
 {
-  cairo_surface_t *surf = shoes_load_image(path);
   GET_STRUCT(image, image);
   image->path = path;
-  image->surface = surf;
+  image->surface = shoes_load_image(path, &image->width, &image->height, TRUE);
   shoes_canvas_repaint_all(image->parent);
   return path;
 }
@@ -774,11 +788,8 @@ shoes_image_remove(VALUE self)
   return self;
 }
 
-#define SHOES_IMAGE_PLACE(type, surf) \
-  int imw, imh; \
-  SETUP(shoes_##type, REL_CANVAS, \
-    (imw = cairo_image_surface_get_width(surf)), \
-    (imh = cairo_image_surface_get_height(surf))); \
+#define SHOES_IMAGE_PLACE(type, imw, imh, surf) \
+  SETUP(shoes_##type, REL_CANVAS, imw, imh); \
   if (RTEST(actual)) \
   { \
     cairo_save(canvas->cr); \
@@ -800,13 +811,17 @@ shoes_image_remove(VALUE self)
 VALUE
 shoes_image_draw(VALUE self, VALUE c, VALUE actual)
 {
-  SHOES_IMAGE_PLACE(image, self_t->surface);
+  SHOES_IMAGE_PLACE(image, self_t->width, self_t->height, self_t->surface);
 }
 
 VALUE
 shoes_imageblock_draw(VALUE self, VALUE c, VALUE actual)
 {
-  SHOES_IMAGE_PLACE(canvas, cairo_get_target(self_t->cr));
+  GET_STRUCT(canvas, canvas_t);
+  cairo_surface_t *surf = cairo_get_target(canvas_t->cr);
+  int w = cairo_image_surface_get_width(surf);
+  int h = cairo_image_surface_get_height(surf);
+  SHOES_IMAGE_PLACE(canvas, w, h, surf);
 }
 
 VALUE
@@ -1266,12 +1281,10 @@ shoes_video_alloc(VALUE klass)
 #endif
   obj = Data_Wrap_Struct(klass, shoes_video_mark, shoes_video_free, video);
   libvlc_exception_init(&video->excp);
-  video->ref = NULL;
   video->vlc = libvlc_new(ppsz_argc, ppsz_argv, NULL);
   video->path = Qnil;
   video->attr = Qnil;
   video->parent = Qnil;
-  video->init = 0;
   return obj;
 }
 
@@ -1540,10 +1553,8 @@ shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent)
     }
     else
     {
-      cairo_surface_t *surface = shoes_load_image(source);
+      cairo_surface_t *surface = shoes_load_image(source, &pattern->width, &pattern->height, TRUE);
       pattern->source = source;
-      pattern->width = cairo_image_surface_get_width(surface);
-      pattern->height = cairo_image_surface_get_height(surface);
       pattern->pattern = cairo_pattern_create_for_surface(surface);
     }
     cairo_pattern_set_extend(pattern->pattern, CAIRO_EXTEND_REPEAT);
@@ -1568,10 +1579,8 @@ shoes_pattern_alloc(VALUE klass)
   SHOE_MEMZERO(pattern, shoes_pattern, 1);
   obj = Data_Wrap_Struct(klass, shoes_pattern_mark, shoes_pattern_free, pattern);
   pattern->source = Qnil;
-  pattern->pattern = NULL;
   pattern->attr = Qnil;
   pattern->parent = Qnil;
-  pattern->hover = 0;
   return obj;
 }
 
@@ -1690,9 +1699,6 @@ shoes_color_alloc(VALUE klass)
   shoes_color *color = SHOE_ALLOC(shoes_color);
   SHOE_MEMZERO(color, shoes_color, 1);
   obj = Data_Wrap_Struct(klass, shoes_color_mark, shoes_color_free, color);
-  color->r = 0x00;
-  color->g = 0x00;
-  color->b = 0x00;
   color->a = SHOES_COLOR_OPAQUE;
   color->on = TRUE;
   return obj;
@@ -2000,8 +2006,6 @@ shoes_link_alloc(VALUE klass)
   SHOE_MEMZERO(link, shoes_link, 1);
   obj = Data_Wrap_Struct(klass, shoes_link_mark, shoes_link_free, link);
   link->ele = Qnil;
-  link->start = 0;
-  link->end = 0;
   return obj;
 }
 
@@ -2082,7 +2086,6 @@ shoes_text_alloc(VALUE klass)
   text->texts = Qnil;
   text->attr = Qnil;
   text->parent = Qnil;
-  text->hover = 0;
   return obj;
 }
 
@@ -2148,9 +2151,7 @@ shoes_textblock_alloc(VALUE klass)
   text->links = Qnil;
   text->attr = Qnil;
   text->parent = Qnil;
-  text->layout = NULL;
   text->cursor = Qnil;
-  text->hover = 0;
   return obj;
 }
 
@@ -2821,8 +2822,6 @@ shoes_control_alloc(VALUE klass)
   shoes_control *control = SHOE_ALLOC(shoes_control);
   SHOE_MEMZERO(control, shoes_control, 1);
   obj = Data_Wrap_Struct(klass, shoes_control_mark, shoes_control_free, control);
-  control->place.ix = control->place.iy = control->place.iw = control->place.ih = 0;
-  control->ref = NULL;
   control->attr = Qnil;
   control->parent = Qnil;
   return obj;
@@ -3498,10 +3497,8 @@ shoes_timer_alloc(VALUE klass)
   shoes_timer *timer = SHOE_ALLOC(shoes_timer);
   SHOE_MEMZERO(timer, shoes_timer, 1);
   obj = Data_Wrap_Struct(klass, shoes_timer_mark, shoes_timer_free, timer);
-  timer->ref = 0;
   timer->block = Qnil;
   timer->rate = 1000 / 12;  // 12 frames per second
-  timer->frame = 0;
   timer->parent = Qnil;
   timer->started = ANIM_NADA;
   return obj;
@@ -3872,6 +3869,8 @@ shoes_ruby_init()
   rb_define_method(cImage, "left", CASTHOOK(shoes_image_get_left), 0);
   rb_define_method(cImage, "width", CASTHOOK(shoes_image_get_width), 0);
   rb_define_method(cImage, "height", CASTHOOK(shoes_image_get_height), 0);
+  rb_define_method(cImage, "full_width", CASTHOOK(shoes_image_get_full_width), 0);
+  rb_define_method(cImage, "full_height", CASTHOOK(shoes_image_get_full_height), 0);
   rb_define_method(cImage, "remove", CASTHOOK(shoes_image_remove), 0);
   rb_define_method(cImage, "style", CASTHOOK(shoes_image_style), -1);
   rb_define_method(cImage, "hide", CASTHOOK(shoes_image_hide), 0);

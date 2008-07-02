@@ -40,9 +40,10 @@ shoes_world_alloc()
 }
 
 int
-shoes_world_free_image_cache(char *key, cairo_surface_t *surface, char *arg)
+shoes_world_free_image_cache(char *key, shoes_cached_image *cached, char *arg)
 {
-  cairo_surface_destroy(surface);
+  cairo_surface_destroy(cached->surface);
+  free(cached);
   free(key);
   return ST_CONTINUE;
 }

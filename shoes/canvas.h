@@ -134,6 +134,7 @@ typedef struct {
 //
 typedef struct {
   cairo_surface_t *surface;
+  int width, height;
   cairo_matrix_t *tf;
   VALUE mode;
   shoes_place place;
@@ -142,6 +143,14 @@ typedef struct {
   VALUE parent;
   char hover;
 } shoes_image;
+
+//
+// cached image
+//
+typedef struct {
+  cairo_surface_t *surface;
+  int width, height;
+} shoes_cached_image;
 
 #ifdef VIDEO
 //
@@ -521,6 +530,6 @@ extern const double SHOES_PIM2, SHOES_PI, SHOES_RAD2PI;
 //
 // shoes/image.c
 //
-cairo_surface_t *shoes_load_image(VALUE);
+cairo_surface_t *shoes_load_image(VALUE, int *, int *, unsigned char);
 
 #endif

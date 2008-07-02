@@ -27,6 +27,7 @@
 #include <gif_lib.h>
 
 #define JPEG_LINES 16
+#define SIZE_SURFACE ((cairo_surface_t *)1)
 
 static cairo_surface_t *
 shoes_surface_create_from_pixels(PIXEL *pixels, int width, int height)
@@ -80,8 +81,30 @@ shoes_surface_create_from_pixels(PIXEL *pixels, int width, int height)
   return surface;
 }
 
+#define PNG_SIG "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A"
+
 cairo_surface_t *
-shoes_surface_create_from_gif(char *filename)
+shoes_png_size(char *filename, int *width, int *height)
+{
+  unsigned char sig[32];
+  cairo_surface_t *surface = NULL;
+  FILE *image = fopen(filename, "rb");
+  if (image == NULL) return;
+
+  fread(sig, 1, 32, image);
+  if (memcmp(sig, PNG_SIG, 8) != 0)
+    goto done;
+
+  *width = ntohl(*((int *)(sig + 0x10)));
+  *height = ntohl(*((int *)(sig + 0x14)));
+  surface = SIZE_SURFACE;
+done:
+  fclose(image);
+  return surface;
+}
+
+cairo_surface_t *
+shoes_surface_create_from_gif(char *filename, int *width, int *height, unsigned char load)
 {
   cairo_surface_t *surface = NULL;
   GifFileType *gif;
@@ -111,10 +134,16 @@ shoes_surface_create_from_gif(char *filename)
            /* PrintGifError(); */
            rec = TERMINATE_RECORD_TYPE;
         }
-      w = gif->Image.Width;
-      h = gif->Image.Height;
+      *width = w = gif->Image.Width;
+      *height = h = gif->Image.Height;
       if ((w < 1) || (h < 1) || (w > 8192) || (h > 8192))
         goto done;
+
+      if (!load)
+      {
+        surface = SIZE_SURFACE;
+        goto done;
+      }
 
       rows = SHOE_ALLOC_N(GifPixelType *, h);
       if (rows == NULL)
@@ -317,9 +346,11 @@ shoes_jpeg_fatal(j_common_ptr cinfo)
 }
 
 cairo_surface_t *
-shoes_surface_create_from_jpeg(char *filename)
+shoes_surface_create_from_jpeg(char *filename, int *width, int *height, unsigned char load)
 {
-  int w, h;
+  int x, y, w, h, l, i, scans, count, prevy;
+  unsigned char *ptr, *rgb = NULL, *line[JPEG_LINES];
+  PIXEL *pixels = NULL, *ptr2;
   cairo_surface_t *surface = NULL;
   struct jpeg_decompress_struct cinfo;
   struct shoes_jpeg_error_mgr jerr;
@@ -344,15 +375,18 @@ shoes_surface_create_from_jpeg(char *filename)
   cinfo.do_block_smoothing = FALSE;
 
   jpeg_start_decompress(&cinfo);
-  w = cinfo.output_width;
-  h = cinfo.output_height;
+  *width = w = cinfo.output_width;
+  *height = h = cinfo.output_height;
 
   if ((w < 1) || (h < 1) || (w > 8192) || (h > 8192))
     goto done;
 
-  int x, y, l, i, scans, count, prevy;
-  unsigned char *ptr, *rgb, *line[JPEG_LINES];
-  PIXEL *pixels, *ptr2;
+  if (!load)
+  {
+    surface = SIZE_SURFACE;
+    goto done;
+  }
+
   if (cinfo.rec_outbuf_height > JPEG_LINES)
     goto done;
 
@@ -438,28 +472,33 @@ shoes_failed_image(VALUE path)
 }
 
 cairo_surface_t *
-shoes_load_image(VALUE imgpath)
+shoes_load_image(VALUE imgpath, int *width, int *height, unsigned char load)
 {
+  shoes_cached_image *cached = NULL;
   cairo_surface_t *img = NULL;
   VALUE filename = rb_funcall(imgpath, s_downcase, 0);
   char *fname = RSTRING_PTR(filename);
   int len = RSTRING_LEN(filename);
 
-  if (st_lookup(shoes_world->image_cache, (st_data_t)RSTRING_PTR(imgpath), (st_data_t *)&img))
-    return img;
+  if (st_lookup(shoes_world->image_cache, (st_data_t)RSTRING_PTR(imgpath), (st_data_t *)&cached))
+    goto done;
 
   if (!shoes_check_file_exists(imgpath))
     img = shoes_world->blank_image;
   else if (shoes_has_ext(fname, len, ".png"))
   {
-    img = cairo_image_surface_create_from_png(RSTRING_PTR(imgpath));
-    if (cairo_surface_status(img) != CAIRO_STATUS_SUCCESS)
-      img = NULL;
+    img = shoes_png_size(RSTRING_PTR(imgpath), width, height);
+    if (load)
+    {
+      img = cairo_image_surface_create_from_png(RSTRING_PTR(imgpath));
+      if (cairo_surface_status(img) != CAIRO_STATUS_SUCCESS)
+        img = NULL;
+    }
   }
   else if (shoes_has_ext(fname, len, ".jpg") || shoes_has_ext(fname, len, ".jpeg"))
-    img = shoes_surface_create_from_jpeg(RSTRING_PTR(imgpath));
+    img = shoes_surface_create_from_jpeg(RSTRING_PTR(imgpath), width, height, load);
   else if (shoes_has_ext(fname, len, ".gif"))
-    img = shoes_surface_create_from_gif(RSTRING_PTR(imgpath));
+    img = shoes_surface_create_from_gif(RSTRING_PTR(imgpath), width, height, load);
   else
   {
     shoes_unsupported_image(imgpath);
@@ -472,8 +511,18 @@ shoes_load_image(VALUE imgpath)
     img = shoes_world->blank_image;
   }
 
-  if (img != shoes_world->blank_image)
-    st_insert(shoes_world->image_cache, (st_data_t)strdup(RSTRING_PTR(imgpath)), (st_data_t)img);
+  if (load && img != shoes_world->blank_image)
+  {
+    cached = SHOE_ALLOC(shoes_cached_image);
+    cached->surface = img; cached->width = *width; cached->height = *height;
+    st_insert(shoes_world->image_cache, (st_data_t)strdup(RSTRING_PTR(imgpath)), (st_data_t)cached);
+  }
+  else if (!load && img == shoes_world->blank_image)
+    img = NULL;
 
   return img;
+done:
+  *width = cached->width;
+  *height = cached->height;
+  return cached->surface;
 }
