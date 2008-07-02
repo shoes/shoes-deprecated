@@ -596,11 +596,13 @@ shoes_code
 shoes_native_app_open(shoes_app *app, char *path, int dialog)
 {
   INIT;
+  NSUInteger mask = NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
   shoes_code code = SHOES_OK;
 
+  if (app->resizable)
+    mask |= NSResizableWindowMask;
   app->os.window = [[ShoesWindow alloc] initWithContentRect: NSMakeRect(0, 0, app->width, app->height)
-    styleMask: (NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
-    backing: NSBackingStoreBuffered defer: NO];
+    styleMask: mask backing: NSBackingStoreBuffered defer: NO];
   [app->os.window prepareWithApp: app->self];
   app->slot.view = [app->os.window contentView];
   RELEASE;
