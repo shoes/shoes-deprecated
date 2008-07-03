@@ -741,7 +741,9 @@ So, for example, if `Shift-a` is pressed, the block will get the string `"A"`.
 
 However, if the F1 key is pressed, the `:f1` symbol is received.  For `Shift-F1`, the symbol would be `:shift_f1`.
 
-The modifier keys are `control`, `shift` and `alt`.  They appear in that order.  If `Shift-Control-Alt-k` is pressed, the symbol will be `:control_shift_alt_k`.
+The modifier keys are `control`, `shift` and `alt`.  They appear in that order.  If `Shift-Control-Alt-PgUp` is pressed, the symbol will be `:control_shift_alt_page_up`.
+
+One thing about the shift key.  You won't see the shift key on most keys.  On US keyboards, `Shift-7` is an ampersand.  So you'll get the string `"&"` rather than `:shift_5`.  And, if you press `Shift-Alt-7` on such a keyboard, you'll get the symbol: `:alt_&`.  You'll only see the shift modifier on the special keys listed a few paragraphs down.
 
 {{{
  #!ruby
@@ -753,9 +755,11 @@ The modifier keys are `control`, `shift` and `alt`.  They appear in that order. 
  end
 }}}
 
-Keep in mind that Shoes itself uses a few hotkeys.  `Alt-Period`, `Alt-Question` and `Alt-Slash` are reserved for Shoes on most platforms.
+Keep in mind that Shoes itself uses a few hotkeys.  Alt-Period (`:alt_.`), Alt-Question (`:alt_?`) and Alt-Slash (`:alt_/`) are reserved for Shoes.
 
-The list of special keys is as follows: `:backspace`, `:tab`, `:page_up`, `:page_down`, `:home`, `:end`, `:left`, `:up`, `:right`, `:down`, `:f1`, `:f2`, `:f3`, `:f4`, `:f5`, `:f6`, `:f7`, `:f8`, `:f9`, `:f10`, `:f11` and `:f12`.
+The list of special keys is as follows: `:escape`, `:delete`, `:backspace`, `:tab`, `:page_up`, `:page_down`, `:home`, `:end`, `:left`, `:up`, `:right`, `:down`, `:f1`, `:f2`, `:f3`, `:f4`, `:f5`, `:f6`, `:f7`, `:f8`, `:f9`, `:f10`, `:f11` and `:f12`.
+
+One caveat to all of those rules: normally the Return key gives you a string `"\n"`.  When pressed with modifier keys, however, you end up with `:control_enter`, `:control_alt_enter`, `:shift_alt_enter` and the like.
 
 === leave { |self| ... } » self ===
 

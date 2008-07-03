@@ -160,22 +160,38 @@ static gboolean
 shoes_app_gtk_keypress (GtkWidget *widget, GdkEventKey *event, gpointer data)
 { 
   VALUE v = Qnil;
-  guint modifiers;
+  guint modifiers = event->state;
   shoes_app *app = (shoes_app *)data;
-  if (event->keyval == GDK_Escape)
-    v = ID2SYM(rb_intern("escape"));
+  if (event->keyval == GDK_Return)
+  {
+    if (event->state == 0)
+      v = rb_str_new2("\n");
+    else
+      v = ID2SYM(rb_intern("enter"));
+  }
+  KEY_SYM(Escape, escape);
   else if (event->length > 0)
   {
-    if (event->state == GDK_SHIFT_MASK || event->state == 0)
+    if ((event->state & GDK_CONTROL_MASK) || (event->state & GDK_MOD1_MASK))
+    {
+      guint kv;
+      gint len;
+      gunichar ch;
+      char chbuf[7] = {0};
+
+      ch = gdk_keyval_to_unicode(event->keyval);
+      len = g_unichar_to_utf8(ch, chbuf);
+      chbuf[len] = '\0';
+
+      v = ID2SYM(rb_intern(chbuf));
+      if (modifiers & GDK_SHIFT_MASK) modifiers ^= GDK_SHIFT_MASK;
+    }
+    else
     {
       if (event->string[0] == '\r' && event->length == 1)
         v = rb_str_new2("\n");
       else
         v = rb_str_new(event->string, event->length);
-    }
-    else
-    {
-      v = ID2SYM(rb_intern(gdk_keyval_name(gdk_keyval_to_lower(event->keyval))));
     }
   }
   KEY_SYM(Delete, delete);
@@ -204,11 +220,11 @@ shoes_app_gtk_keypress (GtkWidget *widget, GdkEventKey *event, gpointer data)
 
   if (SYMBOL_P(v))
   {
-    if (event->state & GDK_MOD1_MASK)
+    if (modifiers & GDK_MOD1_MASK)
       KEY_STATE(alt);
-    if (event->state & GDK_SHIFT_MASK)
+    if (modifiers & GDK_SHIFT_MASK)
       KEY_STATE(shift);
-    if (event->state & GDK_CONTROL_MASK)
+    if (modifiers & GDK_CONTROL_MASK)
       KEY_STATE(control);
   }
 
