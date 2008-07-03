@@ -78,7 +78,7 @@ binject_exe_free(binject_exe_t *binj)
 {
   if (binj->file != NULL)
     fclose(binj->file);
-  free(binj);
+  RUBY_CRITICAL(free(binj));
 }
 
 VALUE
@@ -645,9 +645,7 @@ binject_dmg_mark(binject_dmg_t *binj)
 static void
 binject_dmg_free(binject_dmg_t *binj)
 {
-  if (!NIL_P(binj->tmpname))
-    rb_funcall(rb_cFile, rb_intern("delete"), 1, binj->tmpname);
-  free(binj);
+  RUBY_CRITICAL(free(binj));
 }
 
 VALUE
@@ -737,6 +735,8 @@ binject_dmg_save(VALUE self, VALUE filename)
     out->user = (void *)rb_block_proc();
   buildDmg(binj->in, out);
   binject_dmg_loop(out->user, 100);
+  if (!NIL_P(binj->tmpname))
+    rb_funcall(rb_cFile, rb_intern("delete"), 1, binj->tmpname);
   return Qnil;
 }
 
