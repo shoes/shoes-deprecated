@@ -162,13 +162,23 @@ shoes_app_gtk_keypress (GtkWidget *widget, GdkEventKey *event, gpointer data)
   VALUE v = Qnil;
   guint modifiers;
   shoes_app *app = (shoes_app *)data;
-  if (event->length > 0)
+  if (event->keyval == GDK_Escape)
+    v = ID2SYM(rb_intern("escape"));
+  else if (event->length > 0)
   {
-    if (event->string[0] == '\r' && event->length == 1)
-      v = rb_str_new2("\n");
+    if (event->state == GDK_SHIFT_MASK || event->state == 0)
+    {
+      if (event->string[0] == '\r' && event->length == 1)
+        v = rb_str_new2("\n");
+      else
+        v = rb_str_new(event->string, event->length);
+    }
     else
-      v = rb_str_new(event->string, event->length);
+    {
+      v = ID2SYM(rb_intern(gdk_keyval_name(gdk_keyval_to_lower(event->keyval))));
+    }
   }
+  KEY_SYM(Delete, delete);
   KEY_SYM(BackSpace, backspace);
   KEY_SYM(Tab, tab);
   KEY_SYM(Page_Up, page_up);
@@ -200,11 +210,6 @@ shoes_app_gtk_keypress (GtkWidget *widget, GdkEventKey *event, gpointer data)
       KEY_STATE(shift);
     if (event->state & GDK_CONTROL_MASK)
       KEY_STATE(control);
-  }
-  else
-  {
-    if (event->state & GDK_MOD1_MASK)
-      KEY_STATE(alt);
   }
 
   if (v != Qnil)
