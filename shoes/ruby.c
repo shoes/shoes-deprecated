@@ -3991,6 +3991,7 @@ shoes_ruby_init()
   rb_define_method(cNative, "parent", CASTHOOK(shoes_control_get_parent), 0);
   rb_define_method(cNative, "style", CASTHOOK(shoes_control_style), -1);
   rb_define_method(cNative, "displace", CASTHOOK(shoes_control_displace), 2);
+  rb_define_method(cNative, "focus", CASTHOOK(shoes_control_focus), 0);
   rb_define_method(cNative, "hide", CASTHOOK(shoes_control_hide), 0);
   rb_define_method(cNative, "show", CASTHOOK(shoes_control_show), 0);
   rb_define_method(cNative, "move", CASTHOOK(shoes_control_move), 2);

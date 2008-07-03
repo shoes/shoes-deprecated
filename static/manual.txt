@@ -1296,6 +1296,18 @@ Beside the methods below, buttons also inherit all of the methods that are [[Com
 
 When a button is clicked, its `click` block is called.  The block is handed `self`.  Meaning: the button which was clicked.
 
+== Check ==
+
+Check boxes are clickable square boxes than can be checked and unchecked.
+
+== EditBox ==
+
+Edit boxes are wide, rectangular boxes for entering text.
+
+== EditLine ==
+
+Edit lines are a slender, little box for entering text.
+
 == Image ==
 
 An image is a picture in PNG, JPEG or GIF format.  Shoes can resize images or flow them in with text.
@@ -1314,9 +1326,21 @@ To create an image, use the `image` method in a slot:
 
 Whereas standard images are loaded from a file, an image block is created with code.  But unlike Shape objects (like `oval` and `rect`,) the image is stored in memory as a block of pixels which is molded together and cannot be separated.
 
+== ListBox ==
+
+List boxes (also called "combo boxes" or "drop-down boxes" or "select boxes" in some places) are a list of options that drop down when you click on the box.
+
 == Pattern ==
 
 Patterns are gradients or colors.
+
+== Progress ==
+
+Progress bars show you how long you've been waiting.
+
+== Radio ==
+
+Radio buttons are a group of clickable circles.  Click a circle and it'll be marked.  Only one radio button can be marked at a time.
 
 == Shape ==
 
