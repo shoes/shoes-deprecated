@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: locked edit fields
+desc: Add a means for disabling all native controls.
+type: :feature
+component: shoes
+release: Raisins
+reporter: "Phlip <phlip2005@gmail.com> "
+status: :unstarted
+disposition: 
+creation_time: 2008-07-03 18:49:43.142384 Z
+references: []
+
+id: 0bff2d80008803cbc7efbcdacdc60ef2163664d2
+log_events: 
+- - 2008-07-03 18:49:44.772771 Z
+  - _why <why@whytheluckystiff.net>
+  - created
+  - ""
