@@ -4,7 +4,6 @@
 #
 require 'shoes/shy'
 require 'binject'
-require 'digest'
 require 'open-uri'
 
 class Shoes
@@ -220,7 +219,7 @@ END
             para "Windows", :margin_right => 20
             @dmg = check :margin_top => 4
             para "OS X", :margin_right => 20
-            @lin = check :margin_top => 4
+            @run = check :margin_top => 4
             para "Linux"
           end
 
@@ -250,13 +249,24 @@ END
             @page1.hide
             @page2.show 
             @path2.replace File.basename(@path.text)
-            Thread.start(@prog) do |prog|
+            Thread.start do
               begin
-                Shoes::Pack.exe(@path.text, @inc.text, prog)
-                Shoes::Pack.dmg(@path.text, @inc.text, prog)
-                Shoes::Pack.linux(@path.text, @inc.text, prog)
+                sofar, stage = 0.0, 1.0 / [@exe.checked?, @dmg.checked?, @run.checked?].count(true)
+                if @exe.checked?
+                  Shoes::Pack.exe(@path.text, @inc.text)
+                  @prog.fraction = (sofar += stage)
+                end
+                if @dmg.checked?
+                  Shoes::Pack.dmg(@path.text, @inc.text)
+                  @prog.fraction = (sofar += stage)
+                end
+                if @run.checked?
+                  Shoes::Pack.linux(@path.text, @inc.text)
+                  @prog.fraction = (sofar += stage)
+                end
+                @prog.fraction = 1.0
               rescue => e
-                Kernel.p [e.class, e.message]
+                error(e)
               end
             end
           end
@@ -284,7 +294,7 @@ END
     start do
       @exe.checked = true
       @dmg.checked = true
-      @lin.checked = true
+      @run.checked = true
       @inc.choose I_NET
     end
   end

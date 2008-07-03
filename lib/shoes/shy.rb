@@ -2,6 +2,7 @@
 # lib/shoes/shy.rb
 # Shy, the Shoes YAML archive format
 #
+require 'digest/md5'
 require 'zlib'
 require 'shoes/minitar'
 require 'find'
