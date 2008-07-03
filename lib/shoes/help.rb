@@ -21,6 +21,7 @@ module Shoes::Manual
       gsub(/`(.+?)`/m, '", code("\1"), "').gsub(/\[\[BR\]\]/i, "\n").
       gsub(/@(.+?)@/m, '", strong("\1", :fill => yellow), "').
       gsub(/'''(.+?)'''/m, '", strong("\1"), "').gsub(/''(.+?)''/m, '", em("\1"), "').
+      gsub(/\[\[(\S+?)\]\]/m, '", link("\1".split(".", 2).last) { open_link("\1") }, "').
       gsub(/\[\[(\S+?) (.+?)\]\]/m, '", link("\2") { open_link("\1") }, "').
       gsub(/\!(\{[^}\n]+\})?([^!\n]+\.\w+)\!/, '", *args); stack(\1) { image("#{DIR}/static/\2") }; #{ele}("')
     eval("#{ele}(#{str}, *args)")

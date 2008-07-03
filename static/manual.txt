@@ -48,7 +48,7 @@ Compare that to the method `reverse`, which isn't a Kernel method and is only av
   #=> [:snakes, :cows, :dogs]
 }}}
 
-Most Shoes methods for drawing and making buttons and so on are attached to slots.  See the section on [[Slots Slots]] for more.
+Most Shoes methods for drawing and making buttons and so on are attached to slots.  See the section on [[Slots]] for more.
 
 ==== Built-in Constants ====
 
@@ -69,7 +69,7 @@ Pops up a window containing a short message.
  alert("I'm afraid I must interject!")
 }}}
 
-Please use alerts sparingly, as they are incredibly annoying!  If you are using alerts to show messages to help you debug your program, try checking out the [[Built-in.debug debug]] or [[Built-in.info info]] methods.
+Please use alerts sparingly, as they are incredibly annoying!  If you are using alerts to show messages to help you debug your program, try checking out the [[Built-in.debug]] or [[Built-in.info]] methods.
 
 === ask( message ) » a string ===
 
@@ -133,11 +133,11 @@ Sends a debug message to the Shoes console.  You can bring up the Shoes console 
  debug("Running Shoes on " + RUBY_PLATFORM)
 }}}
 
-Also check out the [[Built-in.error error]], [[Built-in.warn warn]] and [[Built-in.info info]] methods.
+Also check out the [[Built-in.error]], [[Built-in.warn]] and [[Built-in.info]] methods.
 
 === error(message: a string) » nil ===
 
-Sends an error message to the Shoes console.  This method should only be used to log errors.  Try the [[Built-in.debug debug]] method for logging messages to yourself.
+Sends an error message to the Shoes console.  This method should only be used to log errors.  Try the [[Built-in.debug]] method for logging messages to yourself.
 
 Oh, and, rather than a string, you may also hand exceptions directly to this method and they'll be formatted appropriately.
 
@@ -191,7 +191,7 @@ This method may also be called as `Shoes.rgb`.
 
 === warn(message: a string) » nil ===
 
-Logs a warning for the user.  A warning is not a catastrophic error (see [[Built-in.error error]] for that.)  It is just a notice that the program will be changing in the future or that certain parts of the program aren't reliable yet.
+Logs a warning for the user.  A warning is not a catastrophic error (see [[Built-in.error]] for that.)  It is just a notice that the program will be changing in the future or that certain parts of the program aren't reliable yet.
 
 To view warnings and errors, open the Shoes console with `Alt-/` (or `⌘-/` on OS X.)
 
@@ -217,7 +217,7 @@ Starts up a Shoes app window.  This is the starting place for making a Shoes pro
 
 In the case above, a small window is built.  200 pixels by 200 pixels.  It's not resizable.  And, inside the window, two elements: a black background and a white circle.
 
-Once an app is created, it is added to the [[App.Shoes.APPS Shoes.APPS]] list.  If you want an app to spawn more windows, see the [[Element.window window]] method and the [[Element.dialog dialog]] method.
+Once an app is created, it is added to the [[App.Shoes.APPS]] list.  If you want an app to spawn more windows, see the [[Element.window]] method and the [[Element.dialog]] method.
 
 === Shoes.APPS() » An array of Shoes::App objects ===
 
@@ -256,7 +256,7 @@ Identifies the mouse cursor's location, along with which button is being pressed
 
 === owner() » Shoes::App ===
 
-Gets the app which launched this app.  In most cases, this will be `nil`.  But if this app was launched using the [[Element.window window]] method, the owner will be the app which called `window`.
+Gets the app which launched this app.  In most cases, this will be `nil`.  But if this app was launched using the [[Element.window]] method, the owner will be the app which called `window`.
 
 === started?() » true or false ===
 
@@ -284,7 +284,7 @@ A stack is simply a vertical stack of elements. Each element in a stack is place
 
 A stack is also shaped like a box. So if a stack is given a width of 250, that stack is itself an element which is 250 pixels wide.
 
-To create a new stack, use the [[Element.stack stack]] method, which is available inside any slot.  So stacks can contain other stacks and flows.
+To create a new stack, use the [[Element.stack]] method, which is available inside any slot.  So stacks can contain other stacks and flows.
 
 ==== Flows ====
 
@@ -292,7 +292,7 @@ A flow will pack elements in as tightly as it can. A width will be filled, then 
 
 Like the stack, a flow is a box. So stacks and flows can safely be embedded and, without respect to their contents, are identical. They just treat their contents differently.
 
-Making a flow means calling the [[Element.flow flow]] method.  Flows may contain other flows and stacks.
+Making a flow means calling the [[Element.flow]] method.  Flows may contain other flows and stacks.
 
 Last thing: The Shoes window itself is a flow.
 
@@ -543,7 +543,7 @@ Creates a Del text fragment (short for "deleted") which defaults to text with a 
 
 === dialog(styles) { ... } » Shoes::App ===
 
-Opens a new app window (just like the [[Element.window window]] method does,) but the window is given a dialog box look.
+Opens a new app window (just like the [[Element.window]] method does,) but the window is given a dialog box look.
 
 === edit_box(text) » Shoes::EditBox ===
 
@@ -572,9 +572,9 @@ A timer similar to the `animation` method, but much slower.  This timer fires a 
 
 === flow(styles) { ... } » Shoes::Flow ===
 
-A flow is an invisible box (or "slot") in which you place Shoes elements.  Both flows and stacks are explained in great detail on the main [[Slots Slots]] page.
+A flow is an invisible box (or "slot") in which you place Shoes elements.  Both flows and stacks are explained in great detail on the main [[Slots]] page.
 
-Flows organize elements horizontally.  Where one would use a [[Element.stack stack]] to keep things stacked vertically, a flow places its contents end-to-end across the page.  Once the end of the page is reached, the flow starts a new line of elements.
+Flows organize elements horizontally.  Where one would use a [[Element.stack]] to keep things stacked vertically, a flow places its contents end-to-end across the page.  Once the end of the page is reached, the flow starts a new line of elements.
 
 === image(path) » Shoes::Image ===
 
@@ -630,7 +630,7 @@ Adds a radio button.  If a `group name` is given, the radio button is considered
 
 === stack(styles) { ... } » Shoes::Stack ===
 
-Creates a new stack.  A stack is a type of slot.  (See the main [[Slots Slots]] page for a full explanation of both stacks and flows.)
+Creates a new stack.  A stack is a type of slot.  (See the main [[Slots]] page for a full explanation of both stacks and flows.)
 
 In short, stacks are an invisible box (a "slot") for placing stuff.  As you add things to the stack, such as buttons or images, those things pile up vertically.  Yes, they stack up!
 
@@ -679,7 +679,7 @@ Embeds a movie in this slot.
 
 === window(styles) { ... } » Shoes::App ===
 
-Opens a new app window.  This method is almost identical to the [[App.Shoes.app Shoes.app]] method used to start an app in the first place.  The difference is that the `window` method sets the new window's [[App.owner owner]] property.  (A normal Shoes.app has its `owner` set to `nil`.)
+Opens a new app window.  This method is almost identical to the [[App.Shoes.app]] method used to start an app in the first place.  The difference is that the `window` method sets the new window's [[App.owner]] property.  (A normal Shoes.app has its `owner` set to `nil`.)
 
 So, the new window's `owner` will be set to the Shoes::App which launched the window.  This way the child window can call the parent.
 
@@ -721,7 +721,7 @@ So, let's say you want to change the background of a slot whenever the mouse flo
 
 The click block is called when a mouse button is clicked.  The `button` is the number of the mouse button which has been pressed.  The `left` and `top` are the mouse coordinates at which the click happened.
 
-To catch the moment when the mouse is unclicked, see the [[Events.release release]] event.
+To catch the moment when the mouse is unclicked, see the [[Events.release]] event.
 
 === finish { |self| ... } » self ===
 
@@ -731,7 +731,7 @@ When a slot is removed, it's finish event occurs.  The finish block is immediate
 
 The hover event happens when the mouse enters the slot.  The block gets `self`, meaning the object which was hovered over.
 
-To catch the mouse exiting the slot, check out the [[Events.leave leave]] event.
+To catch the mouse exiting the slot, check out the [[Events.leave]] event.
 
 === keypress { |key| ... } » self ===
 
@@ -765,7 +765,7 @@ One caveat to all of those rules: normally the Return key gives you a string `"\
 
 The leave event takes place when the mouse cursor exits a slot.  The moment it no longer is inside the slot's edges.  When that takes place, the block is called with `self`, the slot object which is being left.
 
-Also see [[Events.hover hover]] if you'd like to detect the mouse entering a slot.
+Also see [[Events.hover]] if you'd like to detect the mouse entering a slot.
 
 === motion { |left, top| ... } » self ===
 
@@ -788,7 +788,7 @@ The motion block gets called every time the mouse moves around inside the slot. 
 
 The release block runs whenever the mouse is unclicked (on mouse up).  When the finger is lifted.  The `button` is the number of the button that was depressed.  The `left` and `top` are the coordinates of the mouse at the time the button was released.
 
-To catch the actual mouse click, use the [[Events.click click]] event.
+To catch the actual mouse click, use the [[Events.click]] event.
 
 === start { |self| ... } » self ===
 
@@ -889,7 +889,7 @@ The vertical size of the viewable slot in pixels.  So, if this is a scrolling sl
 
 === hide() » self ===
 
-Hides the slot, so that it can't be seen.  See also [[Styles.show show]] and [[Styles.toggle toggle]].
+Hides the slot, so that it can't be seen.  See also [[Styles.show]] and [[Styles.toggle]].
 
 === left() » a number ===
 
@@ -930,7 +930,7 @@ Scrolls the slot to a certain coordinate.  This must be between zero and `scroll
 
 === show() » self ===
 
-Reveals the slot, if it is hidden.  See also [[Styles.hide hide]] and [[Styles.toggle toggle]].
+Reveals the slot, if it is hidden.  See also [[Styles.hide]] and [[Styles.toggle]].
 
 === style() » styles ===
 
@@ -995,6 +995,10 @@ Ah, here's the stuff of Shoes.  An element can be as simple as an oval shape.  O
 a video stream.  You've encountered all of these elements before in the Slots section of the
 manual.
 
+Shoes has seven native controls: the Button, the EditLine, the EditBox, the ListBox, the Progress meter, the Check box and the Radio.  By "native" controls, we mean that each of these seven elements is drawn by the operating system.  So, a Progress bar will look one way on Windows and another way on OS X.
+
+Shoes also has eight basic other types of elements: Background, Border, Image, ImageBlock, Shape, TextBlock, Timer and Video.  These all should look and act the same on every operating system.
+
 Once an element is created, you will often still want to change it.  To move it or hide it or get
 rid of it.  You'll use the commands in this section to do that sort of stuff.  (Especially check out the [[Common Common Methods]] section for commands you can use on any element.)
 
@@ -1005,7 +1009,7 @@ gives you back an Image object. Use the methods of the Image object to change th
 
 A few methods are shared by every little element in Shoes.  Moving, showing, hiding.  Removing an element.  Basic and very general things.  This list encompasses those common commands.
 
-One of the most general methods of all is the `style` method (which is also covered as the [[Styles.style style]] method for slots.)
+One of the most general methods of all is the `style` method (which is also covered as the [[Styles.style]] method for slots.)
 
 {{{
  #!ruby
@@ -1024,7 +1028,7 @@ One of the most general methods of all is the `style` method (which is also cove
  end
 }}}
 
-For specific commands, see the other links to the left in the Elements section.  Like if you want to pause or play a video file, check the [[Video Video]] section, since pausing and playing is peculiar to videos.  No sense pausing a button.
+For specific commands, see the other links to the left in the Elements section.  Like if you want to pause or play a video file, check the [[Video]] section, since pausing and playing is peculiar to videos.  No sense pausing a button.
 
 === displace(left: a number, top: a number) » self ===
 
@@ -1049,7 +1053,7 @@ When you displace an element, it moves relative to the upper-left corner where i
  end
 }}}
 
-Notice that while the second button bounces, the other two buttons stay put.  If we used a normal `move` in this situation, the second button would be moved out of the layout and the buttons would act as if the second button wasn't there at all.  (See the [[Common.move move]] example.)
+Notice that while the second button bounces, the other two buttons stay put.  If we used a normal `move` in this situation, the second button would be moved out of the layout and the buttons would act as if the second button wasn't there at all.  (See the [[Common.move]] example.)
 
 '''Of particular note:''' if you use the `left` and `top` methods to get the coordinates of a displaced element, you'll just get back the normal coordinates.  As if there was no displacement.  Displacing is just intended for quick animations!
 
@@ -1061,11 +1065,11 @@ The vertical screen size of the element in pixels.  In the case of images, this 
 If you have a 150x150 pixel image and you set the width to 50 pixels, this method will return
 50.
 
-Also see the [[Common.width width]] method for an example and some other comments.
+Also see the [[Common.width]] method for an example and some other comments.
 
 === hide() » self ===
 
-Hides the element, so that it can't be seen.  See also [[Common.show show]] and [[Common.toggle toggle]].
+Hides the element, so that it can't be seen.  See also [[Common.show]] and [[Common.toggle]].
 
 === left() » a number ===
 
@@ -1092,11 +1096,11 @@ Moves the element to a specific pixel position within its slot.  The element is 
  end
 }}}
 
-The second button is moved to a specific place, allowing the third button to slide over into its place.  If you want to move an element without shifting other pieces, see the [[Common.displace displace]] method.
+The second button is moved to a specific place, allowing the third button to slide over into its place.  If you want to move an element without shifting other pieces, see the [[Common.displace]] method.
 
 === parent() » a Shoes::Stack or Shoes::Flow ===
 
-Gets the object for this element's container.  Also see the slot's [[Traversing.contents contents]] to do the opposite: get a container's elements.
+Gets the object for this element's container.  Also see the slot's [[Traversing.contents]] to do the opposite: get a container's elements.
 
 === remove() » self ===
 
@@ -1104,7 +1108,7 @@ Removes the element from its slot.  (In other words: throws it in the garbage.) 
 
 === show() » self ===
 
-Reveals the element, if it is hidden.  See also [[Common.hide hide]] and [[Common.toggle toggle]].
+Reveals the element, if it is hidden.  See also [[Common.hide]] and [[Common.toggle]].
 
 === style() » styles ===
 
@@ -1135,7 +1139,7 @@ Gets the pixel position of the top edge of the element.
 
 === width() » a number ===
 
-Gets the pixel width for the full size of the element.  This method always returns an exact pixel size.  In the case of images, this is not the full width of the image, just the size it is shown at.  See the [[Common.height height]] method for more.
+Gets the pixel width for the full size of the element.  This method always returns an exact pixel size.  In the case of images, this is not the full width of the image, just the size it is shown at.  See the [[Common.height]] method for more.
 
 Also, if you create an element with a width of 100% and that element is inside a stack which is 120 pixels wide, you'll get back `120`.  However, if you call `style[:width]`, you'll get `"100%"`.
 
@@ -1151,7 +1155,7 @@ Also, if you create an element with a width of 100% and that element is inside a
  end
 }}}
 
-In order to set the width, you'll have to go through the [[Common.style style]] method again.  So, to set the button to 150 pixels wide: `@b.style(:width => 150)`.
+In order to set the width, you'll have to go through the [[Common.style]] method again.  So, to set the button to 150 pixels wide: `@b.style(:width => 150)`.
 
 To let Shoes pick the element's width, go with `@b.style(:width => nil)` to empty out the setting.
 
@@ -1161,7 +1165,7 @@ A background is a color, a gradient or an image that is painted across an entire
 
 Even though it's called a ''background'', you may still place this element in front of other elements.  If a background comes after something else painted on the slot (like a `rect` or an `oval`,) the background will be painted over that element.
 
-The simplest background is just a plain color background, created with the [[Element.background background method]], such as this black background:
+The simplest background is just a plain color background, created with the [[Element.background]] method, such as this black background:
 
 {{{
  #!ruby
@@ -1192,7 +1196,7 @@ Or, to paint a fifty pixel column on the right-side of the window:
  end
 }}}
 
-Since Backgrounds are normal elements as well, see also the start of the [[Elements Elements]] section for all of its other methods.
+Since Backgrounds are normal elements as well, see also the start of the [[Elements]] section for all of its other methods.
 
 === to_pattern() » a Shoes::Pattern ===
 
@@ -1204,7 +1208,7 @@ A border is a color, gradient or image painted in a line around the edge of any 
 
 The first, crucial thing to know about border is that all borders paint a line around the '''inside''' of a slot, not the outside.  So, if you have a slot which is fifty pixels wide and you paint a five pixel border on it, that means there is a fourty pixel wide area inside the slot which is surrounded by the border.
 
-This also means that if you paint a Border on top of a [[Background Background]], the edges of the background will be painted over by the border.
+This also means that if you paint a Border on top of a [[Background]], the edges of the background will be painted over by the border.
 
 Here is just such a slot:
 
@@ -1234,11 +1238,63 @@ If you want to paint a border around the outside of a slot, you'll need to wrap 
 
 In HTML and many other languages, the border is painted on the outside of the box, thus increasing the overall width of the box.  Shoes was designed with consistency in mind, so that if you say that a box is fifty pixels wide, it stays fifty pixels wide regardless of its borders or margins or anything else.
 
-Please also check out the [[Elements Elements]] section for other methods used on borders.
+Please also check out the [[Elements]] section for other methods used on borders.
 
 === to_pattern() » a Shoes::Pattern ===
 
 Creates a basic pattern object based on the color, gradient or image used to paint this border.  The pattern may then be re-used in new borders and backgrounds.
+
+== Button ==
+
+Buttons are, you know, push buttons.  You click them and they do something.  Buttons are known to say "OK" or "Are you sure?"  And, then, if you're sure, you click the button.
+
+{{{
+ #!ruby
+ Shoes.app do
+   button "OK!"
+   button "Are you sure?"
+ end
+}}}
+
+The buttons in the example above don't do anything when you click them.  In order to get them to work, you've got to hook up a block to each button.
+
+{{{
+ #!ruby
+ Shoes.app do
+   button "OK!" do
+     append { para "Well okay then." }
+   end
+   button "Are you sure?" do
+     append { para "Your confidence is inspiring." }
+   end
+ end
+}}}
+
+So now we've got blocks for the buttons.  Each block appends a new paragraph to the page.  The more you click, the more paragraphs get added.
+
+It doesn't go much deeper than that.  A button is just a clickable phrase.
+
+Just to be pedantic, though, here's another way to write that last example.
+
+{{{
+ #!ruby
+ Shoes.app do
+   @b1 = button "OK!"
+   @b1.click { para "Well okay then." }
+   @b2 = button "Are you sure?"
+   @b2.click { para "Your confidence is inspiring." }
+ end
+}}}
+
+This looks dramatically different, but it does the same thing.  The first difference: rather than attaching the block directly to the button, the block is attached later, through the `click` method.
+
+The second change isn't related to buttons at all.  The `append` block was dropped since Shoes allows you to add new elements directly to the slot.  So we can just call `para` directly.  (This isn't the case with the `prepend`, `before` or `after` methods.)
+
+Beside the methods below, buttons also inherit all of the methods that are [[Common]].
+
+=== click { |self| ... } » self ===
+
+When a button is clicked, its `click` block is called.  The block is handed `self`.  Meaning: the button which was clicked.
 
 == Image ==
 
@@ -1257,10 +1313,6 @@ To create an image, use the `image` method in a slot:
 == ImageBlock ==
 
 Whereas standard images are loaded from a file, an image block is created with code.  But unlike Shape objects (like `oval` and `rect`,) the image is stored in memory as a block of pixels which is molded together and cannot be separated.
-
-== Native ==
-
-Shoes has seven native controls: the Button, the EditLine, the EditBox, the ListBox, the Progress meter, the Check box and the Radio.
 
 == Pattern ==
 
@@ -1282,7 +1334,7 @@ Animations and Everies are basically the same thing.  The difference is that Ani
 
 === start() » self ===
 
-Both types of timers automatically start themselves, so there's no need to use this normally.  But if you [[Timers.stop stop]] a timer and would like to start it up again, then by all means: use this!
+Both types of timers automatically start themselves, so there's no need to use this normally.  But if you [[Timers.stop]] a timer and would like to start it up again, then by all means: use this!
 
 === stop() » self ===
 
