@@ -272,7 +272,8 @@ END
             @path2.replace File.basename(@path.text)
             Thread.start do
               begin
-                sofar, stage = 0.0, 1.0 / [@exe.checked?, @dmg.checked?, @run.checked?].count(true)
+                sofar, stage = 0.0, 1.0 / [@exe.checked?, @dmg.checked?, @run.checked?].
+                  select { |x| x }.size
                 blk = proc do |frac|
                   @prog.fraction = sofar + (frac * stage)
                 end
