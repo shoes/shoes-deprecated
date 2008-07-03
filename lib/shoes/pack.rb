@@ -24,7 +24,10 @@ class Shoes
         end
       if url
         url = "http://hacketyhack.net" + open(url).read.strip
-        open(url)
+        save = File.join(LIB_DIR, File.basename(url))
+        if File.exists? save; open(save)
+        else                  open(url)
+        end
       end
     end
 
@@ -32,18 +35,22 @@ class Shoes
       size = File.size(script)
       f = File.open(script)
       exe = Binject::EXE.new(File.join(DIR, "static", "stubs", "blank.exe"))
+      size += script.length
       exe.inject("SHOES_FILENAME", File.basename(script))
+      size += File.size(script)
       exe.inject("SHOES_PAYLOAD", f)
       f2 = pkg("win32", opt)
       if f2
+        size += File.size(f2.path)
         f3 = File.open(f2.path, 'rb')
         exe.inject("SHOES_SETUP", f3)
       end
 
-      count = 0
+      count, last = 0, 0.0
       exe.save(script.gsub(/\.\w+$/, '') + ".exe") do |len|
         count += len
-        blk["Writing the EXE", 0.3] if blk
+        prg = count.to_f / size.to_f
+        blk[last = prg] if blk and prg - last > 0.02 and prg < 1.0
       end
 
       f.close
@@ -51,6 +58,7 @@ class Shoes
         f2.close
         f3.close
       end
+      blk[1.0] if blk
     end
 
     def self.dmg(script, opt, &blk)
@@ -151,8 +159,11 @@ END
       dmg.inject_dir(app_app, app_dir)
       dmg.chmod_file(0755, "#{app_app}/Contents/MacOS/#{name}-launch")
       dmg.chmod_file(0755, "#{app_app}/Contents/MacOS/cocoa-install")
-      dmg.save(script.gsub(/\.\w+$/, '') + ".dmg", &blk)
+      dmg.save(script.gsub(/\.\w+$/, '') + ".dmg") do |perc|
+        blk[perc * 0.01] if blk
+      end
       FileUtils.rm_rf(tmp_dir)
+      blk[1.0] if blk
     end
 
     def self.linux(script, opt, &blk)
@@ -163,9 +174,14 @@ END
       tmp_dir = File.join(LIB_DIR, "+run")
       FileUtils.mkdir_p(tmp_dir)
       pkgf = pkg("linux", opt)
+      prog = 1.0
       if pkgf
-        Shy.hrun(pkgf)
-        Shy.xzf(pkgf, tmp_dir, &blk)
+        size = Shy.hrun(pkgf)
+        pblk = Shy.progress(size) do |name, perc, left|
+          blk[perc * 0.5]
+        end if blk
+        Shy.xzf(pkgf, tmp_dir, &pblk)
+        prog -= 0.5
       end
 
       FileUtils.cp(script, File.join(tmp_dir, File.basename(script)))
@@ -175,15 +191,19 @@ END
       end
       FileUtils.chmod 0755, File.join(tmp_dir, "sh-install")
 
+      raw = Shy.du(tmp_dir)
       File.open(tgz_path, 'wb') do |f|
-        Shy.czf(f, tmp_dir, &blk)
+        pblk = Shy.progress(raw) do |name, perc, left|
+          blk[prog + (perc * prog)]
+        end if blk
+        Shy.czf(f, tmp_dir, &pblk)
       end
        
-      md5, fsize, raw = Shy.md5sum(tgz_path), File.size(tgz_path), Shy.du(tmp_dir)
+      md5, fsize = Shy.md5sum(tgz_path), File.size(tgz_path)
       File.open(run_path, 'wb') do |f|
         rewrite f, File.join(DIR, "static", "stubs", "blank.run"),
           'CRC' => '0000000000', 'MD5' => md5, 'LABEL' => app_name, 'NAME' => name,
-          'SIZE' => fsize, 'RAWSIZE' => (raw / 1024) + 1, 'TIME' => Time.now
+          'SIZE' => fsize, 'RAWSIZE' => (raw / 1024) + 1, 'TIME' => Time.now, 'FULLSIZE' => raw
         File.open(tgz_path, 'rb') do |f2|
           f.write f2.read(8192) until f2.eof
         end
@@ -191,6 +211,7 @@ END
       FileUtils.chmod 0755, run_path
       FileUtils.rm_rf(tgz_path)
       FileUtils.rm_rf(tmp_dir)
+      blk[1.0] if blk
     end
   end
 
@@ -252,18 +273,26 @@ END
             Thread.start do
               begin
                 sofar, stage = 0.0, 1.0 / [@exe.checked?, @dmg.checked?, @run.checked?].count(true)
+                blk = proc do |frac|
+                  @prog.fraction = sofar + (frac * stage)
+                end
+
                 if @exe.checked?
-                  Shoes::Pack.exe(@path.text, @inc.text)
+                  @status.replace "Working on an .exe for Windows."
+                  Shoes::Pack.exe(@path.text, @inc.text, &blk)
                   @prog.fraction = (sofar += stage)
                 end
                 if @dmg.checked?
-                  Shoes::Pack.dmg(@path.text, @inc.text)
+                  @status.replace "Working on a .dmg for Mac OS X."
+                  Shoes::Pack.dmg(@path.text, @inc.text, &blk)
                   @prog.fraction = (sofar += stage)
                 end
                 if @run.checked?
-                  Shoes::Pack.linux(@path.text, @inc.text)
+                  @status.replace "Working on a .run for Linux."
+                  Shoes::Pack.linux(@path.text, @inc.text, &blk)
                   @prog.fraction = (sofar += stage)
                 end
+
                 @prog.fraction = 1.0
               rescue => e
                 error(e)
@@ -283,6 +312,7 @@ END
         stack :margin => 20 do
           para "Packaging:", :margin => 4
           @path2 = para "", :size => 20, :margin => 4
+          @status = para "", :margin => 4
         end
       end
 

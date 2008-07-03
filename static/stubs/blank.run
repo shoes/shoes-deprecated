@@ -1,6 +1,6 @@
 #!/bin/sh
 # This script was generated using Makeself 2.1.4
-
+FULLSIZE=#{FULLSIZE}
 CRCsum="#{CRC}"
 MD5="#{MD5}"
 TMPROOT=${TMPDIR:=/tmp}

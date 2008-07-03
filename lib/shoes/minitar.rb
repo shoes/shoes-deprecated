@@ -533,6 +533,10 @@ module Archive::Tar::Minitar
         @read = 0
       end
 
+      def orig_pos
+        @orig_pos
+      end
+
       def bytes_read
         @read
       end
