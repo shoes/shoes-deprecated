@@ -78,7 +78,7 @@ binject_exe_free(binject_exe_t *binj)
 {
   if (binj->file != NULL)
     fclose(binj->file);
-  RUBY_CRITICAL(free(binj));
+  free(binj);
 }
 
 VALUE
@@ -645,7 +645,7 @@ binject_dmg_mark(binject_dmg_t *binj)
 static void
 binject_dmg_free(binject_dmg_t *binj)
 {
-  RUBY_CRITICAL(free(binj));
+  free(binj);
 }
 
 VALUE
