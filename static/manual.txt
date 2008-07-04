@@ -1343,6 +1343,8 @@ Okay, let's add to the above example.
 
 So, when the button gets pressed, each of the checks gets asked for its status, using the `checked?` method.
 
+Button methods are listed below, but also see the list of [[Common]] methods, which all elements respond to.
+
 === checked?() » true or false ===
 
 Returns whether the box is checked or not.  So, `true` means "yes, the box is checked!"
@@ -1363,7 +1365,50 @@ Moves focus to the check.  The check will be highlighted and, if the user hits E
 
 == EditBox ==
 
-Edit boxes are wide, rectangular boxes for entering text.
+Edit boxes are wide, rectangular boxes for entering text.  On the web, they call these textareas.  These are multi-line edit boxes for entering longer descriptions.  Essays, even!
+
+Without any other styling, edit boxes are sized 200 pixels by 108 pixels.  You can also use `:width` and `:height` styles to set specific sizes.
+
+{{{
+ #!ruby
+ Shoes.app do
+   edit_box
+   edit_box :width => 100, :height => 100
+ end
+}}}
+
+Other controls (like [[Button]] and [[Check]]) have only click events, but both [[EditLine]] and EditBox have a `change` event.  The `change` block is called every time someone types into or deletes from the box.
+
+{{{
+ #!ruby
+ Shoes.app do
+   edit_box do |e|
+     @counter.text = e.text.size
+   end
+   @counter = strong("0")
+   para @counter, " characters"
+ end
+}}}
+
+Notice that the example also uses the [[EditBox.text]] method inside the block.  That method gives you a string of all the characters typed into the box.
+
+More edit box methods are listed below, but also see the list of [[Common]] methods, which all elements respond to.
+
+=== change() { |self| ... } » self ===
+
+Each time a character is added to or removed from the edit box, its `change` block is called.  The block is given `self`, which is the edit box object which has changed.
+
+=== focus() » self ===
+
+Moves focus to the edit box.  The edit box will be highlighted and the user will be able to type into the edit box.
+
+=== text() » self ===
+
+Return a string of characters which have been typed into the box.
+
+=== text = a string ===
+
+Fills the edit box with the characters of `a string`.
 
 == EditLine ==
 

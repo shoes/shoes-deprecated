@@ -2065,6 +2065,13 @@ shoes_text_check(VALUE texts, VALUE parent)
 }
 
 VALUE
+shoes_text_to_s(VALUE self)
+{
+  GET_STRUCT(textblock, self_t);
+  return rb_funcall(self_t->texts, s_to_s, 0);
+}
+
+VALUE
 shoes_text_new(VALUE klass, VALUE texts, VALUE attr)
 {
   shoes_text *text;
@@ -2190,30 +2197,6 @@ shoes_textblock_string(VALUE self)
 {
   GET_STRUCT(textblock, self_t);
   return self_t->string;
-}
-
-VALUE
-shoes_textblock_replace(int argc, VALUE *argv, VALUE self)
-{
-  long i;
-  VALUE texts, attr;
-  GET_STRUCT(textblock, self_t);
-
-  attr = Qnil;
-  texts = rb_ary_new();
-  for (i = 0; i < argc; i++)
-  {
-    if (rb_obj_is_kind_of(argv[i], rb_cHash))
-      attr = argv[i];
-    else
-      rb_ary_push(texts, argv[i]);
-  }
-
-  self_t->texts = texts;
-  if (!NIL_P(attr)) self_t->attr = attr;
-
-  shoes_canvas_repaint_all(self_t->parent);
-  return self;
 }
 
 static VALUE
@@ -3293,8 +3276,27 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
     return self; \
   }
 
-TRANS_COMMON(canvas, 0);
-TRANS_COMMON(image, 1);
+#define REPLACE_COMMON(ele) \
+  VALUE \
+  shoes_##ele##_replace(int argc, VALUE *argv, VALUE self) \
+  { \
+    long i; \
+    VALUE texts, attr; \
+    GET_STRUCT(ele, self_t); \
+    attr = Qnil; \
+    texts = rb_ary_new(); \
+    for (i = 0; i < argc; i++) \
+    { \
+      if (rb_obj_is_kind_of(argv[i], rb_cHash)) \
+        attr = argv[i]; \
+      else \
+        rb_ary_push(texts, argv[i]); \
+    } \
+    self_t->texts = texts; \
+    if (!NIL_P(attr)) self_t->attr = attr; \
+    shoes_canvas_repaint_all(self_t->parent); \
+    return self; \
+  }
 
 //
 // Common methods
@@ -3311,11 +3313,6 @@ TRANS_COMMON(image, 1);
     rb_hash_aset(self_t->attr, ID2SYM(s_##sym), NIL_P(blk) ? str : blk ); \
     return self; \
   }
-
-EVENT_COMMON(linktext, text, click);
-EVENT_COMMON(linktext, text, release);
-EVENT_COMMON(linktext, text, hover);
-EVENT_COMMON(linktext, text, leave);
 
 #define CLASS_COMMON(ele) \
   VALUE \
@@ -3424,22 +3421,30 @@ EVENT_COMMON(linktext, text, leave);
   }
 
 PLACE_COMMON(canvas)
+TRANS_COMMON(canvas, 0);
 PLACE_COMMON(control)
 CLASS_COMMON(control)
 EVENT_COMMON(control, control, click)
 EVENT_COMMON(control, control, change)
 CLASS_COMMON(text)
+REPLACE_COMMON(text)
 #ifdef VIDEO
 PLACE_COMMON(video)
 CLASS_COMMON(video)
 #endif
 PLACE_COMMON(image)
 CLASS_COMMON2(image)
+TRANS_COMMON(image, 1);
+EVENT_COMMON(linktext, text, click);
+EVENT_COMMON(linktext, text, release);
+EVENT_COMMON(linktext, text, hover);
+EVENT_COMMON(linktext, text, leave);
 PLACE_COMMON(shape)
 CLASS_COMMON2(shape)
 CLASS_COMMON2(pattern)
 PLACE_COMMON(textblock)
 CLASS_COMMON2(textblock)
+REPLACE_COMMON(textblock)
 
 //
 // Shoes::Timer
@@ -3948,6 +3953,8 @@ shoes_ruby_init()
   rb_define_method(cTextBlock, "height", CASTHOOK(shoes_textblock_get_height), 0);
   rb_define_method(cTextBlock, "remove", CASTHOOK(shoes_textblock_remove), 0);
   rb_define_method(cTextBlock, "to_s", CASTHOOK(shoes_textblock_string), 0);
+  rb_define_method(cTextBlock, "text", CASTHOOK(shoes_textblock_children), 0);
+  rb_define_method(cTextBlock, "text=", CASTHOOK(shoes_textblock_replace), -1);
   rb_define_method(cTextBlock, "replace", CASTHOOK(shoes_textblock_replace), -1);
   rb_define_method(cTextBlock, "style", CASTHOOK(shoes_textblock_style), -1);
   rb_define_method(cTextBlock, "hide", CASTHOOK(shoes_textblock_hide), 0);
@@ -3970,6 +3977,10 @@ shoes_ruby_init()
   rb_define_method(cTextClass, "contents", CASTHOOK(shoes_text_children), 0);
   rb_define_method(cTextClass, "parent", CASTHOOK(shoes_text_parent), 0);
   rb_define_method(cTextClass, "style", CASTHOOK(shoes_text_style), -1);
+  rb_define_method(cTextClass, "to_s", CASTHOOK(shoes_text_to_s), 0);
+  rb_define_method(cTextClass, "text", CASTHOOK(shoes_text_children), 0);
+  rb_define_method(cTextClass, "text=", CASTHOOK(shoes_text_replace), -1);
+  rb_define_method(cTextClass, "replace", CASTHOOK(shoes_text_replace), -1);
   cCode      = rb_define_class_under(cShoes, "Code", cTextClass);
   cDel       = rb_define_class_under(cShoes, "Del", cTextClass);
   cEm        = rb_define_class_under(cShoes, "Em", cTextClass);

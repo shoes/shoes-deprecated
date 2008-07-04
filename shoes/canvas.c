@@ -1613,7 +1613,14 @@ shoes_canvas_size(VALUE self, int w, int h)
 void
 shoes_canvas_repaint_all(VALUE self)
 {
-  SETUP();
+  shoes_canvas *canvas;
+  while (!NIL_P(self) && !rb_obj_is_kind_of(self, cCanvas))
+  {
+    shoes_basic *basic;
+    Data_Get_Struct(self, shoes_basic, basic);
+    self = basic->parent;
+  }
+  Data_Get_Struct(self, shoes_canvas, canvas);
   shoes_slot_repaint(&canvas->app->slot);
 }
 

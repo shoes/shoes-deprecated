@@ -72,17 +72,25 @@ typedef struct {
 #define SHOES_COLOR_LIGHT  (0xAA * 3)
 
 //
+// basic struct
+//
+typedef struct {
+  VALUE parent;
+  VALUE attr;
+} shoes_basic;
+
+//
 // shape struct
 //
 typedef struct {
+  VALUE parent;
+  VALUE attr;
+  shoes_place place;
   cairo_path_t *line;
   int width, height;
   double sw;
   VALUE fg;
   VALUE bg;
-  VALUE attr;
-  VALUE parent;
-  shoes_place place;
   char hover;
 } shoes_shape;
 
@@ -90,9 +98,9 @@ typedef struct {
 // flow struct
 //
 typedef struct {
+  VALUE parent;
   VALUE attr;
   VALUE contents;
-  VALUE parent;
 } shoes_flow;
 
 //
@@ -108,14 +116,14 @@ typedef struct {
 // text block struct
 //
 typedef struct {
+  VALUE parent;
+  VALUE attr;
+  shoes_place place;
   VALUE string;
   VALUE texts;
   VALUE links;
-  VALUE attr;
-  VALUE parent;
   VALUE cursor;
   PangoLayout *layout;
-  shoes_place place;
   char hover;
 } shoes_textblock;
 
@@ -123,9 +131,9 @@ typedef struct {
 // text struct
 //
 typedef struct {
-  VALUE texts;
-  VALUE attr;
   VALUE parent;
+  VALUE attr;
+  VALUE texts;
   char hover;
 } shoes_text;
 
@@ -133,14 +141,14 @@ typedef struct {
 // image struct
 //
 typedef struct {
+  VALUE parent;
+  VALUE attr;
+  shoes_place place;
   cairo_surface_t *surface;
   int width, height;
   cairo_matrix_t *tf;
   VALUE mode;
-  shoes_place place;
   VALUE path;
-  VALUE attr;
-  VALUE parent;
   char hover;
 } shoes_image;
 
@@ -157,14 +165,14 @@ typedef struct {
 // video struct
 //
 typedef struct {
+  VALUE parent;
+  VALUE attr;
+  shoes_place place;
   SHOES_CONTROL_REF ref;
   libvlc_exception_t excp;
   libvlc_instance_t *vlc;
-  shoes_place place;
   int init;
   VALUE path;
-  VALUE attr;
-  VALUE parent;
   SHOES_SLOT_OS slot;
 } shoes_video;
 #endif
@@ -173,11 +181,11 @@ typedef struct {
 // pattern struct
 //
 typedef struct {
+  VALUE parent;
+  VALUE attr;
   cairo_pattern_t *pattern;
   int width, height;     // dimensions of the underlying surface
   VALUE source;
-  VALUE attr;
-  VALUE parent;
   char hover;
 } shoes_pattern;
 
@@ -185,10 +193,10 @@ typedef struct {
 // native controls struct
 //
 typedef struct {
-  SHOES_CONTROL_REF ref;
-  VALUE attr;
   VALUE parent;
+  VALUE attr;
   shoes_place place;
+  SHOES_CONTROL_REF ref;
 } shoes_control;
 
 #define ANIM_NADA    0
@@ -200,8 +208,8 @@ typedef struct {
 // animation struct
 //
 typedef struct {
-  VALUE block;
   VALUE parent;
+  VALUE block;
   unsigned int rate, frame;
   char started;
   SHOES_TIMER_REF ref;
@@ -210,9 +218,9 @@ typedef struct {
 typedef void (*shoes_effect_filter)(cairo_t *, void *);
 
 typedef struct {
-  shoes_effect_filter filter;
   VALUE parent;
   VALUE attr;
+  shoes_effect_filter filter;
   shoes_place place;
 } shoes_effect;
 
@@ -224,6 +232,9 @@ typedef struct {
 // temporary canvas (used internally for painting)
 //
 typedef struct {
+  VALUE parent;
+  VALUE attr;
+  shoes_place place;
   cairo_t *cr;
   VALUE fg;
   VALUE bg;
@@ -233,8 +244,6 @@ typedef struct {
   int grt;
   ID mode;
   VALUE contents;
-  VALUE parent;
-  VALUE attr;
   unsigned char stage;
   long insertion;
   double sw;                // current stroke-width
@@ -242,7 +251,6 @@ typedef struct {
   int endx, endy;           // jump points if the cursor spills over
   int topy, fully;          // since we often stack vertically
   int width, height;        // the full height and width used by this box
-  shoes_place place;        // temporary storage of box placement
   char hover;
   struct _shoes_app *app;
   SHOES_SLOT_OS slot;
