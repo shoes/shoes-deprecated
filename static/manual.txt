@@ -1292,13 +1292,74 @@ The second change isn't related to buttons at all.  The `append` block was dropp
 
 Beside the methods below, buttons also inherit all of the methods that are [[Common]].
 
-=== click { |self| ... } » self ===
+=== click() { |self| ... } » self ===
 
 When a button is clicked, its `click` block is called.  The block is handed `self`.  Meaning: the button which was clicked.
 
+=== focus() » self ===
+
+Moves focus to the button.  The button will be highlighted and, if the user hits Enter, the button will be clicked.
+
 == Check ==
 
-Check boxes are clickable square boxes than can be checked and unchecked.
+Check boxes are clickable square boxes than can be either checked or unchecked.  A single checkbox usually asks a "yes" or "no" question.  Sets of checkboxes are also seen in to-do lists.
+
+Here's a sample checklist.
+
+{{{
+ #!ruby
+ Shoes.app do
+   stack do
+     flow { check; para "Frances Johnson" }
+     flow { check; para "Ignatius J. Reilly" }
+     flow { check; para "Winston Niles Rumfoord" }
+   end
+ end
+}}}
+
+You basically have two ways to use a check.  You can attach a block to the check and it'll get called when the check gets clicked.  And/or you can just use the `checked?` method to go back and see if a box has been checked or not.
+
+Okay, let's add to the above example.
+
+{{{
+ #!ruby
+ Shoes.app do
+   @list = ['Frances Johnson', 'Ignatius J. Reilly', 
+     'Winston Niles Rumfoord']
+
+   stack do
+     @list.map! do |name|
+       flow { @c = check; para name }
+       [@c, name]
+     end
+
+     button "What's been checked?" do
+       selected = @list.map { |c, name| name if c.checked? }.compact
+       alert("You selected: " + selected.join(', '))
+     end
+   end
+ end
+}}}
+
+So, when the button gets pressed, each of the checks gets asked for its status, using the `checked?` method.
+
+=== checked?() » true or false ===
+
+Returns whether the box is checked or not.  So, `true` means "yes, the box is checked!"
+
+=== checked = true or false ===
+
+Marks or unmarks the check box.  Using `checked = false`, for instance, unchecks the box.
+
+=== click() { |self| ... } » self ===
+
+When the check is clicked, its `click` block is called.  The block is handed `self`, which is the check object which was clicked.
+
+Clicks are sent for both checking and unchecking the box.
+
+=== focus() » self ===
+
+Moves focus to the check.  The check will be highlighted and, if the user hits Enter, the check will be toggled between its checked and unchecked states.
 
 == EditBox ==
 
