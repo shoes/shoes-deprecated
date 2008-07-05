@@ -1412,21 +1412,84 @@ Fills the edit box with the characters of `a string`.
 
 == EditLine ==
 
-Edit lines are a slender, little box for entering text.
+Edit lines are a slender, little box for entering text.  While the EditBox is multi-line, an edit line is just one.  Line, that is.  Horizontal, in fact.
+
+The unstyled edit line is 200 pixels wide and 28 pixels wide.  Roughly.  The height may vary on some platforms.
+
+{{{
+ #!ruby
+ Shoes.app do
+   stack do
+     edit_line
+     edit_line :width => 400
+   end
+ end
+}}}
+
+You can change the size by styling both the `:width` and the `:height`.  However, you generally only want to style the `:width`, as the height will be sized to fit the font.  (And, in current versions of Shoes, the font for edit lines and edit boxes cannot be altered anyway.)
+
+If a block is given to an edit line, it receives `change` events.  Check out the [[EditBox]] page for an example of using a change block.  In fact, the edit box has all the same methods as an edit line.  Also see the list of [[Common]] methods, which all elements respond to.
+
+=== change() { |self| ... } » self ===
+
+Each time a character is added to or removed from the edit line, its `change` block is called.  The block is given `self`, which is the edit line object which has changed.
+
+=== focus() » self ===
+
+Moves focus to the edit line.  The edit line will be highlighted and the user will be able to type into the edit line.
+
+=== text() » self ===
+
+Return a string of characters which have been typed into the box.
+
+=== text = a string ===
+
+Fills the edit line with the characters of `a string`.
 
 == Image ==
 
-An image is a picture in PNG, JPEG or GIF format.  Shoes can resize images or flow them in with text.
+An image is a picture in PNG, JPEG or GIF format.  Shoes can resize images or flow them in with text.  Images can be loaded from a file or directly off the web.
 
 To create an image, use the `image` method in a slot:
 
 {{{
  #!ruby
- flow do
+ Shoes.app do
    para "Nice, nice, very nice.  Busy, busy, busy."
    image "static/disheveled.gif"
   end
 }}}
+
+When you load any image into Shoes, it is cached in memory.  This means that if you load up many image elements from the same file, it'll only really load the file once.
+
+You can use web URLs directly as well.
+
+{{{
+ #!ruby
+ Shoes.app do
+   image "http://hacketyhack.net/images/design/Hacky-Mouse-Hand.png"
+ end
+}}}
+
+When an image is loaded from the web, it's cached on the hard drive as well as in memory.  This prevents a repeat download unless the image has changed.  (In case you're wondering: Shoes keeps track of modification times and etags just like a browser would.)
+
+=== full_height() » a number ===
+
+The full pixel height of the image.  Normally, you can just use the [[Common.height]] method to figure out how many pixels high the image is.  But if you've resized the image or styled it to be larger or something, then `height` will return the scaled size.
+
+The `full_height` method gives you the height of image (in pixels) as it was stored in the original file.
+
+=== full_width() » a number ===
+
+The full pixel width of the image.  See the [[Image.full_height]] method for an explanation of why you might use this method rather than [[Common.width]].
+
+=== path() » a string ===
+
+The URL or file name of the image.
+
+=== path = a string ===
+
+Swaps the image with a different one, loaded from a file or URL.
 
 == ImageBlock ==
 
