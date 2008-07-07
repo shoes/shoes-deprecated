@@ -54,7 +54,7 @@ class Shoes::Setup
         end
 
         start do
-          Thread.start(self) do |app|
+          Thread.start(self.app) do |app|
             begin
               setup.start(app)
             rescue => e

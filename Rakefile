@@ -83,7 +83,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
   mkdir_p "dist/ruby"
   cp_r  "#{ext_ruby}/lib/ruby/1.8", "dist/ruby/lib"
   unless ENV['STANDARD']
-    %w[cgi cgi.rb cgi-lib.rb rdoc rss shell soap webrick wsdl xsd].each do |libn|
+    %w[rdoc rss soap wsdl xsd].each do |libn|
       rm_rf "dist/ruby/lib/#{libn}"
     end
   end
