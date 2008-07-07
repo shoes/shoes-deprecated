@@ -109,7 +109,7 @@ void shoes_ruby_init(void);
     VALUE action = ID2SYM(h ? s_hover : s_leave); \
     VALUE proc = rb_hash_aref(self_t->attr, action); \
     if (!NIL_P(proc)) \
-      shoes_safe_block(self, proc, rb_ary_new()); \
+      shoes_safe_block(self, proc, rb_ary_new3(1, self)); \
     if (touch != NULL) *touch += 1; \
     self_t->hover = (self_t->hover & HOVER_CLICK) | h; \
   }
@@ -203,6 +203,7 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("+progress", progress, -1); \
   f("+check", check, -1); \
   f("+radio", radio, -1); \
+  f(".app", get_app, 0); \
   f(".parent", get_parent, 0); \
   f(".contents", contents, 0); \
   f(".draw", draw, 2); \

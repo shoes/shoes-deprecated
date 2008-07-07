@@ -1610,16 +1610,36 @@ shoes_canvas_size(VALUE self, int w, int h)
   shoes_native_canvas_resize(canvas);
 }
 
-void
-shoes_canvas_repaint_all(VALUE self)
+VALUE
+shoes_find_canvas(VALUE self)
 {
-  shoes_canvas *canvas;
   while (!NIL_P(self) && !rb_obj_is_kind_of(self, cCanvas))
   {
     shoes_basic *basic;
     Data_Get_Struct(self, shoes_basic, basic);
     self = basic->parent;
   }
+  return self;
+}
+
+VALUE
+shoes_canvas_get_app(VALUE self)
+{
+  VALUE app = Qnil, c = shoes_find_canvas(self);
+  if (rb_obj_is_kind_of(c, cCanvas))
+  {
+    shoes_canvas *canvas;
+    Data_Get_Struct(c, shoes_canvas, canvas);
+    app = canvas->app->canvas;
+  }
+  return app;
+}
+
+void
+shoes_canvas_repaint_all(VALUE self)
+{
+  shoes_canvas *canvas;
+  self = shoes_find_canvas(self);
   Data_Get_Struct(self, shoes_canvas, canvas);
   shoes_slot_repaint(&canvas->app->slot);
 }

@@ -164,16 +164,22 @@ shoes_safe_block_exception(VALUE rb_sb, VALUE e)
 }
 
 VALUE
-shoes_safe_block(VALUE canvas, VALUE block, VALUE args)
+shoes_safe_block(VALUE self, VALUE block, VALUE args)
 {
   safe_block sb;
+  shoes_canvas *canvas;
   VALUE v;
-  sb.canvas = canvas;
+
+  sb.canvas = shoes_find_canvas(self);
   sb.block = block;
   sb.args = args;
   rb_gc_register_address(&args);
+
+  Data_Get_Struct(sb.canvas, shoes_canvas, canvas);
+  rb_ary_push(canvas->app->nesting, sb.canvas);
   v = rb_rescue2(CASTHOOK(shoes_safe_block_call), (VALUE)&sb, 
     CASTHOOK(shoes_safe_block_exception), (VALUE)&sb, rb_cObject, 0);
+  rb_ary_pop(canvas->app->nesting);
   rb_gc_unregister_address(&args);
   return v;
 }
@@ -3838,6 +3844,7 @@ shoes_ruby_init()
 
   cShape    = rb_define_class_under(cShoes, "Shape", rb_cObject);
   rb_define_alloc_func(cShape, shoes_shape_alloc);
+  rb_define_method(cShape, "app", CASTHOOK(shoes_canvas_get_app), 0);
   rb_define_method(cShape, "displace", CASTHOOK(shoes_shape_displace), 2);
   rb_define_method(cShape, "draw", CASTHOOK(shoes_shape_draw), 2);
   rb_define_method(cShape, "move", CASTHOOK(shoes_shape_move), 2);
@@ -3860,6 +3867,7 @@ shoes_ruby_init()
   rb_define_alloc_func(cImage, shoes_image_alloc);
   rb_define_method(cImage, "path", CASTHOOK(shoes_image_get_path), 0);
   rb_define_method(cImage, "path=", CASTHOOK(shoes_image_set_path), 1);
+  rb_define_method(cImage, "app", CASTHOOK(shoes_canvas_get_app), 0);
   rb_define_method(cImage, "displace", CASTHOOK(shoes_image_displace), 2);
   rb_define_method(cImage, "draw", CASTHOOK(shoes_image_draw), 2);
   rb_define_method(cImage, "size", CASTHOOK(shoes_image_size), 0);
@@ -3897,6 +3905,7 @@ shoes_ruby_init()
 #ifdef VIDEO
   cVideo    = rb_define_class_under(cShoes, "Video", rb_cObject);
   rb_define_alloc_func(cVideo, shoes_video_alloc);
+  rb_define_method(cVideo, "app", CASTHOOK(shoes_canvas_get_app), 0);
   rb_define_method(cVideo, "displace", CASTHOOK(shoes_video_displace), 2);
   rb_define_method(cVideo, "draw", CASTHOOK(shoes_video_draw), 2);
   rb_define_method(cVideo, "style", CASTHOOK(shoes_video_style), -1);
@@ -3940,6 +3949,7 @@ shoes_ruby_init()
 
   cTextBlock = rb_define_class_under(cShoes, "TextBlock", rb_cObject);
   rb_define_alloc_func(cTextBlock, shoes_textblock_alloc);
+  rb_define_method(cTextBlock, "app", CASTHOOK(shoes_canvas_get_app), 0);
   rb_define_method(cTextBlock, "contents", CASTHOOK(shoes_textblock_children), 0);
   rb_define_method(cTextBlock, "parent", CASTHOOK(shoes_textblock_get_parent), 0);
   rb_define_method(cTextBlock, "displace", CASTHOOK(shoes_textblock_displace), 2);
@@ -3974,6 +3984,7 @@ shoes_ruby_init()
 
   cTextClass = rb_define_class_under(cShoes, "Text", rb_cObject);
   rb_define_alloc_func(cTextClass, shoes_text_alloc);
+  rb_define_method(cTextClass, "app", CASTHOOK(shoes_canvas_get_app), 0);
   rb_define_method(cTextClass, "contents", CASTHOOK(shoes_text_children), 0);
   rb_define_method(cTextClass, "parent", CASTHOOK(shoes_text_parent), 0);
   rb_define_method(cTextClass, "style", CASTHOOK(shoes_text_style), -1);
@@ -3999,6 +4010,7 @@ shoes_ruby_init()
 
   cNative  = rb_define_class_under(cShoes, "Native", rb_cObject);
   rb_define_alloc_func(cNative, shoes_control_alloc);
+  rb_define_method(cNative, "app", CASTHOOK(shoes_canvas_get_app), 0);
   rb_define_method(cNative, "parent", CASTHOOK(shoes_control_get_parent), 0);
   rb_define_method(cNative, "style", CASTHOOK(shoes_control_style), -1);
   rb_define_method(cNative, "displace", CASTHOOK(shoes_control_displace), 2);
