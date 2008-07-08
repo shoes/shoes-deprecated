@@ -1538,6 +1538,10 @@ Whenever someone highlights a new option in the list box (by clicking on an item
 
 Selects the option in the list box that matches the string given by `item`.
 
+=== focus() » self ===
+
+Moves focus to the list box.  The list box will be highlighted and, if the user hits the up and down arrow keys, other options in the list will be selected.
+
 === items() » an array of strings ===
 
 Returns the complete list of strings that the list box presently shows as its options.
@@ -1581,7 +1585,80 @@ Sets the progress to a decimal number between 0.0 and 1.0.
 
 == Radio ==
 
-Radio buttons are a group of clickable circles.  Click a circle and it'll be marked.  Only one radio button can be marked at a time.
+Radio buttons are a group of clickable circles.  Click a circle and it'll be marked.  Only one radio button can be marked at a time.  (This is similar to the ListBox, where only one option can be selected at a time.)
+
+So, how do you decide when to use radio buttons and when to use list boxes?  Well, list boxes only show one highlighted item unless you click on the box and the drop-down appears.  But radio buttons are all shown, regardless of which is marked.
+
+{{{
+ #!ruby
+ Shoes.app do
+   para "Among these films, which do you prefer?\n"
+   radio; para strong("The Taste of Tea"), " by Katsuhito Ishii\n"
+   radio; para strong("Kin-Dza-Dza"), " by Georgi Danelia\n"
+   radio; para strong("Children of Heaven"), " by Majid Majidi\n"
+ end
+}}}
+
+Only one of these three radios can be checked at a time, since they are grouped together in the same slot (along with a bunch of `para`.)
+
+If we move them each into their own slot, the example breaks.
+
+{{{
+ #!ruby
+ Shoes.app do
+   stack do
+     para "Among these films, which do you prefer?"
+     flow { radio; para "The Taste of Tea by Katsuhito Ishii" }
+     flow { radio; para "Kin-Dza-Dza by Georgi Danelia" }
+     flow { radio; para "Children of Heaven by Majid Majidi" }
+   end
+ end
+}}}
+
+This can be fixed, though.  You can group together radios from different slots, you just have to give them all the same group name.
+
+Here, let's group all these radios in the `:films` group.
+
+{{{
+ #!ruby
+ Shoes.app do
+   stack do
+     para "Among these films, which do you prefer?"
+     flow do
+       radio :films
+       para "The Taste of Tea by Katsuhito Ishii"
+     end
+     flow do
+       radio :films
+       para "Kin-Dza-Dza by Georgi Danelia"
+     end
+     flow do
+       radio :films
+       para "Children of Heaven by Majid Majidi"
+     end
+   end
+ end
+}}}
+
+For more methods beyond those listed below, also look into the [[Common]] methods page.  Because you get those methods on every radio as well.
+
+=== checked?() » true or false ===
+
+Returns whether the radio button is checked or not.  So, `true` means "yes, it is checked!"
+
+=== checked = true or false ===
+
+Marks or unmarks the radio button.  Using `checked = false`, for instance, clears the radio.
+
+=== click() { |self| ... } » self ===
+
+When the radio button is clicked, its `click` block is called.  The block is handed `self`, which is an object representing the radio which was clicked.
+
+Clicks are sent for both marking and unmarking the radio.
+
+=== focus() » self ===
+
+Moves focus to the radio.  The radio will be highlighted and, if the user hits Enter, the radio will be toggled between its marked and unmarked states.
 
 == Shape ==
 
