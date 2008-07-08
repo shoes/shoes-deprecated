@@ -1499,13 +1499,85 @@ Whereas standard images are loaded from a file, an image block is created with c
 
 List boxes (also called "combo boxes" or "drop-down boxes" or "select boxes" in some places) are a list of options that drop down when you click on the box.
 
-== Pattern ==
+A list box gets its options from an array.  An array (a list) of strings, passed into the `:items` style.
 
-Patterns are gradients or colors.
+{{{
+ #!ruby
+ Shoes.app do
+   para "Choose a fruit:"
+   list_box :items => ["Grapes", "Pears", "Apricots"]
+ end
+}}}
+
+So, the basic size of a list box is about 200 pixels wide and 28 pixels high.  You can adjust this length using the `:width` style.
+
+{{{
+ #!ruby
+ Shoes.app do
+   para "Choose a fruit:"
+   list_box :items => ["Grapes", "Pears", "Apricots"],
+     :width => 120, :choose => "Apricots" do |list|
+       @fruit.text = list.text
+   end
+   
+   @fruit = para "No fruit selected"
+ end
+}}}
+
+Next to the `:width` style, the example uses another useful option.  The `:choose` option tells the list box which of the items should be highlighted from the beginning.  (There's also a [[ListBox.choose]] method for highlighting an item after the box is created.)
+
+List boxes also have a [[ListBox.change]] event.  In the last example, we've got a block hooked up to the list box.  Well, okay, see, that's a `change` block.  The block is called each time someone changes the selected item.
+
+Those are the basics.  Might you also be persuaded to look at the [[Common]] methods page, a complete list of the methods that all elements have?
+
+=== change() { |self| ... } » self ===
+
+Whenever someone highlights a new option in the list box (by clicking on an item, for instance,) its `change` block is called.  The block is given `self`, which is the edit line object which has changed.
+
+=== choose(item: a string) » self ===
+
+Selects the option in the list box that matches the string given by `item`.
+
+=== items() » an array of strings ===
+
+Returns the complete list of strings that the list box presently shows as its options.
+
+=== items = an array of strings ===
+
+Replaces the list box's options with a new list of strings.
+
+=== text() » a string ===
+
+A string containing whatever text is shown highlighted in the list box right now.  If nothing is selected, `nil` will be the reply.
 
 == Progress ==
 
-Progress bars show you how long you've been waiting.
+Progress bars show you how far along you are in an activity.  Usually, a progress bar represents a percentage (from 0% to 100%.)  Shoes thinks of progress in terms of the decimal numbers 0.0 to 1.0.
+
+A simple progress bar is 200 pixels wide, but you can use the `:width` style (as with all Shoes elements) to lengthen it.
+
+{{{
+ Shoes.app do
+   stack :margin => 0.9 do
+     title "Progress example"
+     @p = progress :width => 1.0
+     
+     animate do |i|
+       @p.fraction = (i % 100) / 100.0
+     end
+   end
+ end
+}}}
+
+Take a look at the [[Common]] methods page for a list of methods found an all elements, including progress bars.
+
+=== fraction() » a decimal number ===
+
+Returns a decimal number from 0.0 to 1.0, indicating how far along the progress bar is.
+
+=== fraction = a decimal number ===
+
+Sets the progress to a decimal number between 0.0 and 1.0.
 
 == Radio ==
 
