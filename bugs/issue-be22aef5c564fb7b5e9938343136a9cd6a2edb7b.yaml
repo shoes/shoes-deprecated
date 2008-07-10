@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: confirm opens a confirmation dialog, but returns nil
+desc: This is on Leopard.  Reported on IRC by Jenna.
+type: :bugfix
+component: shoes
+release: Raisins
+reporter: _why <why@whytheluckystiff.net>
+status: :unstarted
+disposition: 
+creation_time: 2008-07-10 14:21:45.758870 Z
+references: []
+
+id: be22aef5c564fb7b5e9938343136a9cd6a2edb7b
+log_events: 
+- - 2008-07-10 14:21:46.541947 Z
+  - _why <why@whytheluckystiff.net>
+  - created
+  - ""
