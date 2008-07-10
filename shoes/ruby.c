@@ -3769,7 +3769,6 @@ shoes_ruby_init()
 
   cCanvas = rb_define_class("Canvas", rb_cObject);
   rb_define_alloc_func(cCanvas, shoes_canvas_alloc);
-  rb_define_method(cCanvas, "children", CASTHOOK(shoes_canvas_contents), 0);
 
   cShoes = rb_define_class("Shoes", cCanvas);
   rb_const_set(cShoes, rb_intern("RELEASE_NAME"), rb_str_new2(SHOES_RELEASE_NAME));
@@ -3782,7 +3781,6 @@ shoes_ruby_init()
   rb_define_method(cApp, "name=", CASTHOOK(shoes_app_set_title), 1);
   rb_define_method(cApp, "location", CASTHOOK(shoes_app_location), 0);
   rb_define_method(cApp, "started?", CASTHOOK(shoes_app_is_started), 0);
-  rb_define_method(cApp, "children", CASTHOOK(shoes_app_contents), 0);
   cDialog = rb_define_class_under(cShoes, "Dialog", cApp);
 
   eNotImpl = rb_define_class_under(cShoes, "NotImplementedError", rb_eStandardError);
@@ -3951,6 +3949,7 @@ shoes_ruby_init()
   rb_define_alloc_func(cTextBlock, shoes_textblock_alloc);
   rb_define_method(cTextBlock, "app", CASTHOOK(shoes_canvas_get_app), 0);
   rb_define_method(cTextBlock, "contents", CASTHOOK(shoes_textblock_children), 0);
+  rb_define_method(cTextBlock, "children", CASTHOOK(shoes_textblock_children), 0);
   rb_define_method(cTextBlock, "parent", CASTHOOK(shoes_textblock_get_parent), 0);
   rb_define_method(cTextBlock, "displace", CASTHOOK(shoes_textblock_displace), 2);
   rb_define_method(cTextBlock, "draw", CASTHOOK(shoes_textblock_draw), 2);
@@ -3986,6 +3985,7 @@ shoes_ruby_init()
   rb_define_alloc_func(cTextClass, shoes_text_alloc);
   rb_define_method(cTextClass, "app", CASTHOOK(shoes_canvas_get_app), 0);
   rb_define_method(cTextClass, "contents", CASTHOOK(shoes_text_children), 0);
+  rb_define_method(cTextClass, "children", CASTHOOK(shoes_text_children), 0);
   rb_define_method(cTextClass, "parent", CASTHOOK(shoes_text_parent), 0);
   rb_define_method(cTextClass, "style", CASTHOOK(shoes_text_style), -1);
   rb_define_method(cTextClass, "to_s", CASTHOOK(shoes_text_to_s), 0);
