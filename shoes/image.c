@@ -208,14 +208,18 @@ shoes_surface_create_from_gif(char *filename, int *width, int *height, unsigned 
         r = cmap->Colors[bg].Red;
         g = cmap->Colors[bg].Green;
         b = cmap->Colors[bg].Blue;
-        *ptr++ = 0x00ffffff & ((r << 16) | (g << 8) | b);
+        *ptr = 0x00ffffff & ((r << 16) | (g << 8) | b);
+        LE_CPU(*ptr);
+        ptr++;
       }
       else
       {
         r = cmap->Colors[rows[i][j]].Red;
         g = cmap->Colors[rows[i][j]].Green;
         b = cmap->Colors[rows[i][j]].Blue;
-        *ptr++ = (0xff << 24) | (r << 16) | (g << 8) | b;
+        *ptr = (0xff << 24) | (r << 16) | (g << 8) | b;
+        LE_CPU(*ptr);
+        ptr++;
       }
       per += per_inc;
     }
@@ -419,6 +423,7 @@ shoes_surface_create_from_jpeg(char *filename, int *width, int *height, unsigned
             *ptr2 = (0xff000000) | ((ptr[0]) << 16) | ((ptr[1]) << 8) | (ptr[2]);
           else if (c == 1)
             *ptr2 = (0xff000000) | ((ptr[0]) << 16) | ((ptr[0]) << 8) | (ptr[0]);
+          LE_CPU(*ptr2);
           ptr += c;
           ptr2++;
         }
