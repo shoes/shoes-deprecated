@@ -39,6 +39,28 @@ typedef VALUE (*HOOK)();
 #define CASTFOREACH(x) x
 #endif
 
+#ifdef WORDS_BIGENDIAN
+#define BE_CPU_N(x, n)
+#define LE_CPU_N(x, n) flip_endian((unsigned char *)(x), n) 
+#else
+#define BE_CPU_N(x, n) flip_endian((unsigned char *)(x), n) 
+#define LE_CPU_N(x, n)
+#endif
+
+#define BE_CPU(x) BE_CPU_N(&(x), sizeof(x)) 
+#define LE_CPU(x) LE_CPU_N(&(x), sizeof(x)) 
+
+static inline void flip_endian(unsigned char* x, int length) {
+  int i;
+  unsigned char tmp;
+
+  for(i = 0; i < (length / 2); i++) {
+    tmp = x[i];
+    x[i] = x[length - i - 1];
+    x[length - i - 1] = tmp;
+  }
+}
+
 #ifndef RARRAY_LEN
 #define RARRAY_LEN(arr)  RARRAY(arr)->len
 #define RSTRING_LEN(str) RSTRING(str)->len

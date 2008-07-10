@@ -95,8 +95,11 @@ shoes_png_size(char *filename, int *width, int *height)
   if (memcmp(sig, PNG_SIG, 8) != 0)
     goto done;
 
-  *width = ntohl(*((int *)(sig + 0x10)));
-  *height = ntohl(*((int *)(sig + 0x14)));
+  *width = *((int *)(sig + 0x10));
+  BE_CPU(*width);
+  *height = *((int *)(sig + 0x14));
+  BE_CPU(*height);
+
   surface = SIZE_SURFACE;
 done:
   fclose(image);
