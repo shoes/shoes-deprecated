@@ -1055,9 +1055,15 @@ shoes_canvas_check(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_contents(VALUE self)
 {
-  shoes_canvas *canvas;
-  Data_Get_Struct(self, shoes_canvas, canvas);
-  return canvas->contents;
+  GET_STRUCT(canvas, self_t);
+  return self_t->contents;
+}
+
+VALUE
+shoes_canvas_children(VALUE self)
+{
+  GET_STRUCT(canvas, self_t);
+  return self_t->contents;
 }
 
 void

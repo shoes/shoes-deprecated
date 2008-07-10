@@ -15,7 +15,7 @@ VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask
 VALUE eVlcError, eImageError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot;
-ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_group, s_hand, s_hidden, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_motion, s_release, s_wheel, s_scroll, s_start, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
+ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_checked, s_checked_q, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_group, s_hand, s_hidden, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_motion, s_release, s_wheel, s_scroll, s_start, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -2861,6 +2861,9 @@ shoes_control_send(VALUE self, ID event)
   VALUE click;
   GET_STRUCT(control, self_t);
 
+  if (rb_respond_to(self, s_checked_q))
+    ATTRSET(self_t->attr, checked, rb_funcall(self, s_checked_q, 0));
+
   if (!NIL_P(self_t->attr))
   {
     click = rb_hash_aref(self_t->attr, ID2SYM(event));
@@ -3109,6 +3112,7 @@ shoes_check_draw(VALUE self, VALUE c, VALUE actual)
     if (self_t->ref == NULL)
     {
       self_t->ref = shoes_native_check(self, canvas, &place, self_t->attr, msg);
+      if (RTEST(ATTR(self_t->attr, checked))) shoes_native_check_set(self_t->ref, Qtrue);
       shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
     }
     else
@@ -3146,7 +3150,9 @@ VALUE
 shoes_check_set_checked(VALUE self, VALUE on)
 {
   GET_STRUCT(control, self_t);
-  shoes_native_check_set(self_t->ref, RTEST(on));
+  ATTRSET(self_t->attr, checked, on);
+  if (self_t->ref != NULL)
+    shoes_native_check_set(self_t->ref, RTEST(on));
   return on;
 }
 
@@ -3201,6 +3207,7 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
       else
         rb_ary_push(glist, self);
 
+      if (RTEST(ATTR(self_t->attr, checked))) shoes_native_check_set(self_t->ref, Qtrue);
       shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
     }
     else
@@ -3708,6 +3715,8 @@ shoes_ruby_init()
   s_call = rb_intern("call");
   s_center = rb_intern("center");
   s_change = rb_intern("change");
+  s_checked = rb_intern("checked");
+  s_checked_q = rb_intern("checked?");
   s_choose = rb_intern("choose");
   s_click = rb_intern("click");
   s_corner = rb_intern("corner");

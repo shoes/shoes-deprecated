@@ -356,6 +356,7 @@ VALUE shoes_canvas_progress(int, VALUE *, VALUE);
 VALUE shoes_canvas_check(int, VALUE *, VALUE);
 VALUE shoes_canvas_radio(int, VALUE *, VALUE);
 VALUE shoes_canvas_contents(VALUE);
+VALUE shoes_canvas_children(VALUE);
 void shoes_canvas_size(VALUE, int, int);
 VALUE shoes_canvas_clear_contents(int, VALUE *, VALUE);
 VALUE shoes_canvas_remove(VALUE);
