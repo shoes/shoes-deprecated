@@ -596,7 +596,7 @@ shoes_code
 shoes_native_app_open(shoes_app *app, char *path, int dialog)
 {
   INIT;
-  NSUInteger mask = NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
+  unsigned int mask = NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
   shoes_code code = SHOES_OK;
 
   if (app->resizable)
