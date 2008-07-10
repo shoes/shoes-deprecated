@@ -54,6 +54,10 @@ def rewrite before, after, reg = /\#\{(\w+)\}/, reg2 = '\1'
   end
 end
 
+def copy_files glob, dir
+  FileList[glob].each { |f| cp f, dir }
+end
+
 ruby_so = Config::CONFIG['RUBY_SO_NAME']
 ext_ruby = "deps/ruby"
 unless File.exists? ext_ruby
@@ -92,21 +96,21 @@ task :build => [:build_os, "dist/VERSION.txt"] do
   end
   %w[req/binject/ext/binject_c req/sqlite3/ext/sqlite3_api req/hpricot/ext/hpricot_scan req/ftsearch/ext/ftsearchrt].each do |xdir|
     case PLATFORM when /win32/, /darwin/
-      cp FileList["#{xdir}/*.dll"], "dist/ruby/lib/#{RUBY_PLATFORM}"
+      copy_files "#{xdir}/*.dll", "dist/ruby/lib/#{RUBY_PLATFORM}"
     else
       Dir.chdir(xdir) do
         `ruby extconf.rb; make`
       end
-      cp FileList["#{xdir}/*.so"], "dist/ruby/lib/#{RUBY_PLATFORM}"
+      copy_files "#{xdir}/*.so", "dist/ruby/lib/#{RUBY_PLATFORM}"
     end
   end
 
   case PLATFORM when /win32/
-    cp FileList["#{ext_ruby}/bin/*"], "dist/"
-    cp FileList["deps/cairo/bin/*"], "dist/"
-    cp FileList["deps/pango/bin/*"], "dist/"
+    copy_files "#{ext_ruby}/bin/*", "dist/"
+    copy_files "deps/cairo/bin/*", "dist/"
+    copy_files "deps/pango/bin/*", "dist/"
     if ENV['VIDEO']
-      cp_r FileList["deps/vlc/bin/*"], "dist/"
+      copy_files "deps/vlc/bin/*", "dist/"
     end
   when /darwin/
     if ENV['SHOES_DEPS_PATH']
