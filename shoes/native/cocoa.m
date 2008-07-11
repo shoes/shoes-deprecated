@@ -1076,9 +1076,9 @@ shoes_dialog_confirm(VALUE self, VALUE quiz)
   NSAlert *alert = [NSAlert alertWithMessageText: @"Shoes asks:"
     defaultButton: @"OK" alternateButton: @"Cancel" otherButton:nil 
     informativeTextWithFormat: [NSString stringWithUTF8String: msg]];
-  answer = ([alert runModal] == NSAlertFirstButtonReturn ? Qtrue : Qfalse);
+  answer = ([alert runModal] == NSOKButton ? Qtrue : Qfalse);
   RELEASE;
-  return Qnil;
+  return answer;
 }
 
 VALUE
