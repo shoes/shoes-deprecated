@@ -2913,9 +2913,10 @@ shoes_edit_line_set_text(VALUE self, VALUE text)
   if (!NIL_P(text))
   {
     text = shoes_native_to_s(text);
+    ATTRSET(self_t->attr, text, text);
     msg = RSTRING_PTR(text);
   }
-  shoes_native_edit_line_set_text(self_t->ref, msg);
+  if (self_t->ref != NULL) shoes_native_edit_line_set_text(self_t->ref, msg);
   return text;
 }
 
@@ -2962,9 +2963,10 @@ shoes_edit_box_set_text(VALUE self, VALUE text)
   if (!NIL_P(text))
   {
     text = shoes_native_to_s(text);
+    ATTRSET(self_t->attr, text, text);
     msg = RSTRING_PTR(text);
   }
-  shoes_native_edit_box_set_text(self_t->ref, msg);
+  if (self_t->ref != NULL) shoes_native_edit_box_set_text(self_t->ref, msg);
   return text;
 }
 
