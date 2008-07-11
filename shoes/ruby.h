@@ -123,7 +123,6 @@ void shoes_ruby_init(void);
   VALUE margino = ATTR(attr, margin); \
   if (rb_obj_is_kind_of(margino, rb_cArray)) \
   { \
-    rb_p(margino); \
     lmargin = NUM2INT(rb_ary_entry(margino, 0)); \
     tmargin = NUM2INT(rb_ary_entry(margino, 1)); \
     rmargin = NUM2INT(rb_ary_entry(margino, 2)); \
