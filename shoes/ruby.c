@@ -3973,7 +3973,7 @@ shoes_ruby_init()
   rb_define_method(cTextBlock, "height", CASTHOOK(shoes_textblock_get_height), 0);
   rb_define_method(cTextBlock, "remove", CASTHOOK(shoes_textblock_remove), 0);
   rb_define_method(cTextBlock, "to_s", CASTHOOK(shoes_textblock_string), 0);
-  rb_define_method(cTextBlock, "text", CASTHOOK(shoes_textblock_children), 0);
+  rb_define_method(cTextBlock, "text", CASTHOOK(shoes_textblock_string), 0);
   rb_define_method(cTextBlock, "text=", CASTHOOK(shoes_textblock_replace), -1);
   rb_define_method(cTextBlock, "replace", CASTHOOK(shoes_textblock_replace), -1);
   rb_define_method(cTextBlock, "style", CASTHOOK(shoes_textblock_style), -1);

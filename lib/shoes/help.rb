@@ -47,7 +47,7 @@ module Shoes::Manual
         else
           case ps
           when /\A \* (.+)/m
-            dewikify_p :para, $1.split(/^ \* /).join("[[BR]]")
+            dewikify_p :para, "  ● " + $1.split(/^ \* /).join("[[BR]]  ● ")
           when /\A==== (.+) ====/
             dewikify_p :caption, $1
           when /\A=== (.+) ===/

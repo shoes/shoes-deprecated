@@ -1664,9 +1664,41 @@ Moves focus to the radio.  The radio will be highlighted and, if the user hits E
 
 A shape is a path outline usually created by drawing methods like `oval` and `rect`.
 
+See the [[Common]] methods page.  Shapes respond to all of those methods.
+
 == TextBlock ==
 
-The TextBlock object represents a group of text organized as a single element.  A paragraph containing bolded text, for example.  A caption containing links and underlined text.
+The TextBlock object represents a group of text organized as a single element.  A paragraph containing bolded text, for example.  A caption containing links and bolded text.  (So, a `caption` is a TextBlock type.  However, `link` and `strong` are TextClass types.)
+
+All of the various types of TextBlock are found on the [[Element Element Creation]] page.
+
+ * [[Element.banner]], a 48 pixel font.
+ * [[Element.title]], a 34 pixel font.
+ * [[Element.subtitle]], a 26 pixel font.
+ * [[Element.tagline]], an 18 pixel font.
+ * [[Element.caption]], a 14 pixel font.
+ * [[Element.para]], a 12 pixel font.
+ * [[Element.inscription]], a 10 pixel font.
+
+=== contents() » an array of elements  ===
+
+Lists all of the strings and styled text objects inside this block.
+
+=== replace(a string) ===
+
+Replaces the text of the entire block with the characters of `a string`.
+
+=== text() » a string ===
+
+Return a string of all of the characters in this text box.  This will strip off any style or text classes and just return the actual characters, as if seen on the screen.
+
+=== text = a string ===
+
+Replaces the text of the entire block with the characters of `a string`.
+
+=== to_s() » a string ===
+
+An alias for [[TextBlock.text]].  Returns a flattened string of all of this TextBlock's contents.
 
 == Timers ==
 
