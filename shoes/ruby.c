@@ -2925,8 +2925,10 @@ shoes_edit_line_draw(VALUE self, VALUE c, VALUE actual)
   SETUP_CONTROL(0, 0);
 
 #ifdef SHOES_QUARTZ
-  place.x += 4;
-  place.ix += 4;
+  place.x += 4; place.ix += 4;
+  place.y += 4; place.iy += 4;
+  place.h += 4; place.ih += 4;
+  place.w += 4; place.iw += 4;
 #endif
   if (RTEST(actual))
   {
