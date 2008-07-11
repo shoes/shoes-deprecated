@@ -49,6 +49,7 @@ shoes_app_alloc(VALUE klass)
   app->width = SHOES_APP_WIDTH;
   app->height = SHOES_APP_HEIGHT;
   app->resizable = TRUE;
+  app->cursor = s_arrow;
   app->self = Data_Wrap_Struct(klass, shoes_app_mark, shoes_app_free, app);
   return app->self;
 }

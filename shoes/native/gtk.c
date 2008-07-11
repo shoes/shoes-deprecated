@@ -894,6 +894,7 @@ VALUE
 shoes_dialog_alert(VALUE self, VALUE msg)
 {
   GLOBAL_APP(app);
+  msg = shoes_native_to_s(msg);
   GtkWidget *dialog = gtk_message_dialog_new_with_markup(
     APP_WINDOW(app), GTK_DIALOG_MODAL,
     GTK_MESSAGE_INFO, GTK_BUTTONS_OK, "<span size='larger'>%s</span>\n\n%s",
@@ -908,6 +909,7 @@ shoes_dialog_ask(VALUE self, VALUE quiz)
 {
   VALUE answer = Qnil;
   GLOBAL_APP(app);
+  quiz = shoes_native_to_s(quiz);
   GtkWidget *dialog = gtk_dialog_new_with_buttons(_(dialog_title),
     APP_WINDOW(app), GTK_DIALOG_MODAL, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
   gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
@@ -933,6 +935,7 @@ shoes_dialog_confirm(VALUE self, VALUE quiz)
 {
   VALUE answer = Qfalse;
   GLOBAL_APP(app);
+  quiz = shoes_native_to_s(quiz);
   GtkWidget *dialog = gtk_dialog_new_with_buttons(_(dialog_title),
     APP_WINDOW(app), GTK_DIALOG_MODAL, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
   gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
@@ -953,6 +956,7 @@ shoes_dialog_color(VALUE self, VALUE title)
 {
   VALUE color = Qnil;
   GLOBAL_APP(app);
+  title = shoes_native_to_s(title);
   GtkWidget *dialog = gtk_color_selection_dialog_new(RSTRING_PTR(title));
   gint result = gtk_dialog_run(GTK_DIALOG(dialog));
   if (result == GTK_RESPONSE_OK)

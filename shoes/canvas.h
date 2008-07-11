@@ -395,6 +395,8 @@ void shoes_canvas_send_release(VALUE, int, int, int);
 VALUE shoes_canvas_send_motion(VALUE, int, int, VALUE);
 void shoes_canvas_send_wheel(VALUE, ID, int, int);
 void shoes_canvas_send_keypress(VALUE, VALUE);
+VALUE shoes_canvas_get_cursor(VALUE);
+VALUE shoes_canvas_set_cursor(VALUE, VALUE);
 VALUE shoes_canvas_get_clipboard(VALUE);
 VALUE shoes_canvas_set_clipboard(VALUE, VALUE);
 VALUE shoes_canvas_window(int, VALUE *, VALUE);

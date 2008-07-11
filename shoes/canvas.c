@@ -2102,6 +2102,21 @@ shoes_widget_new(VALUE klass, VALUE attr, VALUE parent)
   return shoes_slot_new(klass, attr, parent);
 }
 
+VALUE
+shoes_canvas_get_cursor(VALUE self)
+{
+  SETUP();
+  return ID2SYM(canvas->app->cursor);
+}
+
+VALUE
+shoes_canvas_set_cursor(VALUE self, VALUE name)
+{
+  SETUP();
+  shoes_app_cursor(canvas->app, SYM2ID(name));
+  return name;
+}
+
 //
 // Global clipboard getter and setter
 //
@@ -2118,7 +2133,7 @@ shoes_canvas_set_clipboard(VALUE self, VALUE string)
 {
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
-  StringValue(string);
+  string = shoes_native_to_s(string);
   shoes_native_clipboard_set(self_t->app, string);
   return string;
 }
