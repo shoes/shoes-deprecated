@@ -1759,7 +1759,6 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
 
-#ifndef SHOES_WIN32
   if (ORIGIN(self_t->place))
   {
     x -= self_t->place.ix + self_t->place.dx;
@@ -1767,7 +1766,6 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
     if (y < self_t->slot.scrolly || x < 0 || y > self_t->slot.scrolly + self_t->height || x > self_t->width)
       return Qnil;
   }
-#endif
 
   if (ATTR(self_t->attr, hidden) != Qtrue)
   {
@@ -1785,10 +1783,6 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
       VALUE ele = rb_ary_entry(self_t->contents, i);
       if (rb_obj_is_kind_of(ele, cCanvas))
       {
-#ifdef SHOES_WIN32
-        if (!shoes_canvas_inherits(ele, self_t))
-          continue;
-#endif
         v = shoes_canvas_send_click(ele, button, x, y);
         *clicked = ele;
       }
@@ -1860,7 +1854,6 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
   long i;
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
-#ifndef SHOES_WIN32
   if (ORIGIN(self_t->place))
   {
     x -= (self_t->place.ix + self_t->place.dx);
@@ -1868,7 +1861,6 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
     if (y < self_t->slot.scrolly || x < 0 || y > self_t->slot.scrolly + self_t->height || x > self_t->width)
       return;
   }
-#endif
 
   // INFO("release(%d, %d, %d)\n", button, x, y);
 
@@ -1888,10 +1880,6 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
       VALUE ele = rb_ary_entry(self_t->contents, i);
       if (rb_obj_is_kind_of(ele, cCanvas))
       {
-#ifdef SHOES_WIN32
-        if (!shoes_canvas_inherits(ele, self_t))
-          continue;
-#endif
         shoes_canvas_send_release(ele, button, x, y);
       }
       else if (rb_obj_is_kind_of(ele, cTextBlock))
@@ -1921,7 +1909,6 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
   h = IS_INSIDE(self_t, x, y);
   CHECK_HOVER(self_t, h, n);
 
-#ifndef SHOES_WIN32
   if (ORIGIN(self_t->place))
   {
     x -= (self_t->place.ix + self_t->place.dx);
@@ -1929,7 +1916,6 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
     if (y < self_t->slot.scrolly || x < 0 || y > self_t->slot.scrolly + self_t->height || x > self_t->width)
       return Qnil;
   }
-#endif
 
   h = 0;
   if (ATTR(self_t->attr, hidden) != Qtrue)
@@ -1946,10 +1932,6 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
       VALUE ele = rb_ary_entry(self_t->contents, i);
       if (rb_obj_is_kind_of(ele, cCanvas))
       {
-#ifdef SHOES_WIN32
-        if (!shoes_canvas_inherits(ele, self_t))
-          continue;
-#endif
         urll = shoes_canvas_send_motion(ele, x, y, url);
       }
       else if (rb_obj_is_kind_of(ele, cTextBlock))

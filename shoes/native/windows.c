@@ -120,8 +120,13 @@ void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c)
 #define WINDOW_STYLE WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX
 
 #define WM_POINTS() \
-  x = LOWORD(l); \
-  y = HIWORD(l)
+  POINT p; \
+  p.x = LOWORD(l); \
+  p.y = HIWORD(l)
+#define WM_POINTS2() \
+  WM_POINTS(); \
+  ClientToScreen(win, &p); \
+  ScreenToClient(canvas->app->slot.window, &p); \
 
 #define KEY_SYM(sym)  shoes_app_keypress(app, ID2SYM(rb_intern("" # sym)))
 #define KEYPRESS(name, sym) \
@@ -208,52 +213,52 @@ shoes_slot_win32proc(
 
       case WM_LBUTTONDOWN:
       {
-        WM_POINTS();
-        shoes_canvas_send_click(c, 1, x, y + canvas->slot.scrolly);
+        WM_POINTS2();
+        shoes_app_click(canvas->app, 1, p.x, p.y + canvas->slot.scrolly);
       }
       break;
 
       case WM_RBUTTONDOWN:
       {
-        WM_POINTS();
-        shoes_canvas_send_click(c, 2, x, y + canvas->slot.scrolly);
+        WM_POINTS2();
+        shoes_app_click(canvas->app, 2, p.x, p.y + canvas->slot.scrolly);
       }
       break;
 
       case WM_MBUTTONDOWN:
       {
-        WM_POINTS();
-        shoes_canvas_send_click(c, 3, x, y + canvas->slot.scrolly);
+        WM_POINTS2();
+        shoes_app_click(canvas->app, 3, p.x, p.y + canvas->slot.scrolly);
       }
       break;
 
       case WM_LBUTTONUP:
       {
-        WM_POINTS();
-        shoes_canvas_send_release(c, 1, x, y + canvas->slot.scrolly);
+        WM_POINTS2();
+        shoes_app_release(canvas->app, 1, p.x, p.y + canvas->slot.scrolly);
       }
       break;
 
       case WM_RBUTTONUP:
       {
-        WM_POINTS();
-        shoes_canvas_send_release(c, 2, x, y + canvas->slot.scrolly);
+        WM_POINTS2();
+        shoes_app_release(canvas->app, 2, p.x, p.y + canvas->slot.scrolly);
       }
       break;
 
       case WM_MBUTTONUP:
       {
-        WM_POINTS();
-        shoes_canvas_send_release(c, 3, x, y + canvas->slot.scrolly);
+        WM_POINTS2();
+        shoes_app_release(canvas->app, 3, p.x, p.y + canvas->slot.scrolly);
       }
       break;
 
       case WM_MOUSEMOVE:
       {
-        WM_POINTS();
-        shoes_canvas_send_motion(c, x, y + canvas->slot.scrolly, Qnil);
+        WM_POINTS2();
+        shoes_app_motion(canvas->app, p.x, p.y + canvas->app->slot.scrolly);
       }
-      break;
+      return 1;
 
       case WM_ACTIVATE:
         if (LOWORD(w) == WA_INACTIVE)
@@ -362,7 +367,7 @@ shoes_app_win32proc(
       shoes_canvas *canvas;
       Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       WM_POINTS();
-      shoes_app_click(app, 1, x, y + canvas->slot.scrolly);
+      shoes_app_click(app, 1, p.x, p.y + canvas->slot.scrolly);
     }
     break;
 
@@ -371,7 +376,7 @@ shoes_app_win32proc(
       shoes_canvas *canvas;
       Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       WM_POINTS();
-      shoes_app_click(app, 2, x, y + canvas->slot.scrolly);
+      shoes_app_click(app, 2, p.x, p.y + canvas->slot.scrolly);
     }
     break;
 
@@ -380,7 +385,7 @@ shoes_app_win32proc(
       shoes_canvas *canvas;
       Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       WM_POINTS();
-      shoes_app_click(app, 3, x, y + canvas->slot.scrolly);
+      shoes_app_click(app, 3, p.x, p.y + canvas->slot.scrolly);
     }
     break;
 
@@ -389,7 +394,7 @@ shoes_app_win32proc(
       shoes_canvas *canvas;
       Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       WM_POINTS();
-      shoes_app_release(app, 1, x, y + canvas->slot.scrolly);
+      shoes_app_release(app, 1, p.x, p.y + canvas->slot.scrolly);
     }
     break;
 
@@ -398,7 +403,7 @@ shoes_app_win32proc(
       shoes_canvas *canvas;
       Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       WM_POINTS();
-      shoes_app_release(app, 2, x, y + canvas->slot.scrolly);
+      shoes_app_release(app, 2, p.x, p.y + canvas->slot.scrolly);
     }
     break;
 
@@ -407,7 +412,7 @@ shoes_app_win32proc(
       shoes_canvas *canvas;
       Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       WM_POINTS();
-      shoes_app_release(app, 3, x, y + canvas->slot.scrolly);
+      shoes_app_release(app, 3, p.x, p.y + canvas->slot.scrolly);
     }
     break;
 
@@ -416,9 +421,9 @@ shoes_app_win32proc(
       shoes_canvas *canvas;
       Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       WM_POINTS();
-      shoes_app_motion(app, x, y + canvas->slot.scrolly);
+      shoes_app_motion(app, p.x, p.y + canvas->slot.scrolly);
     }
-    break;
+    return 1;
 
     case WM_CHAR:
       switch(w)
