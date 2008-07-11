@@ -462,7 +462,7 @@ FunctionEnd
   OutFile "${ShortName}-${AppVersion}.exe"
 
   ;Default installation folder
-  InstallDir "$PROGRAMFILES\${AppName}\${AppVersion}"
+  InstallDir "$PROGRAMFILES\Common Files\${AppName}"
   
   ;Get installation folder from registry if available
   InstallDirRegKey HKLM "${InstallKey}" ""
@@ -509,6 +509,7 @@ FunctionEnd
   !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "Start Menu Folder"
   
   !insertmacro MUI_PAGE_STARTMENU Application $STARTMENU_FOLDER
+  !insertmacro MUI_PAGE_DIRECTORY
   !insertmacro MUI_PAGE_INSTFILES
 
   ; Finish Page
@@ -549,8 +550,8 @@ FunctionEnd
 
 Section "App Section" SecApp
 
-  ReadEnvStr $INSTDIR "COMMONPROGRAMFILES"
-  StrCpy $INSTDIR "$INSTDIR\${AppName}\${AppVersion}"
+  ;ReadEnvStr $INSTDIR "COMMONPROGRAMFILES"
+  StrCpy $INSTDIR "$INSTDIR\${AppVersion}"
   SetOutPath "$INSTDIR"
   
   File /r /x nsis ..\*.*
