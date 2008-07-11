@@ -379,7 +379,7 @@ shoes_app_cursor(shoes_app *app, ID cursor)
     goto done;
 
   GdkCursor *c;
-  if (cursor == s_hand)
+  if (cursor == s_hand || cursor == s_link)
   {
     c = gdk_cursor_new(GDK_HAND2);
   }

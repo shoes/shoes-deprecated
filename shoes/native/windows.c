@@ -622,7 +622,7 @@ shoes_code
 shoes_app_cursor(shoes_app *app, ID cursor)
 {
   HCURSOR c;
-  if (cursor == s_hand)
+  if (cursor == s_hand || cursor == s_link)
   {
     c = LoadCursor(NULL, IDC_HAND);
   }

@@ -1972,7 +1972,8 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
     {
       shoes_canvas *self_t;
       Data_Get_Struct(self, shoes_canvas, self_t);
-      shoes_app_cursor(self_t->app, s_arrow);
+      if (self_t->app->cursor == s_link)
+        shoes_app_cursor(self_t->app, s_arrow);
     }
   }
 
