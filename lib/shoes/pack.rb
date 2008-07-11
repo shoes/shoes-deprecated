@@ -275,26 +275,26 @@ END
                 sofar, stage = 0.0, 1.0 / [@exe.checked?, @dmg.checked?, @run.checked?].
                   select { |x| x }.size
                 blk = proc do |frac|
-                  @prog.fraction = sofar + (frac * stage)
+                  @prog.style(:width => sofar + (frac * stage))
                 end
 
                 if @exe.checked?
                   @status.replace "Working on an .exe for Windows."
                   Shoes::Pack.exe(@path.text, @inc.text, &blk)
-                  @prog.fraction = (sofar += stage)
+                  @prog.style(:width => sofar += stage)
                 end
                 if @dmg.checked?
                   @status.replace "Working on a .dmg for Mac OS X."
                   Shoes::Pack.dmg(@path.text, @inc.text, &blk)
-                  @prog.fraction = (sofar += stage)
+                  @prog.style(:width => sofar += stage)
                 end
                 if @run.checked?
                   @status.replace "Working on a .run for Linux."
                   Shoes::Pack.linux(@path.text, @inc.text, &blk)
-                  @prog.fraction = (sofar += stage)
+                  @prog.style(:width => sofar += stage)
                 end
 
-                @prog.fraction = 1.0
+                @prog.style(:width => 1.0)
               rescue => e
                 error(e)
               end
@@ -318,7 +318,13 @@ END
       end
 
       stack :margin => 20 do
-        @prog = progress :width => -20
+        stack :width => -20, :height => 24 do
+          @prog = background "#{DIR}/static/stripe.png", :curve => 7
+          background "rgb(0, 0, 0, 100)".."rgb(120, 120, 120, 0)", :curve => 6, :height => 16
+          background "rgb(120, 120, 120, 0)".."rgb(0, 0, 0, 100)", :curve => 6, 
+            :height => 16, :top => 8
+          border "rgb(60, 60, 60, 80)", :curve => 7, :strokewidth => 2
+        end
       end
     end
 
