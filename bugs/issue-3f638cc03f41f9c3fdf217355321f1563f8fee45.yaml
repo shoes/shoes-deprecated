@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: allow install location to be picked in the windows installer
+desc: allow both the /D switch and a screen to pick the install location.
+type: :bugfix
+component: shoes
+release: Raisins
+reporter: _why <why@whytheluckystiff.net>
+status: :unstarted
+disposition: 
+creation_time: 2008-07-11 13:10:04.709686 Z
+references: []
+
+id: 3f638cc03f41f9c3fdf217355321f1563f8fee45
+log_events: 
+- - 2008-07-11 13:10:05.801485 Z
+  - _why <why@whytheluckystiff.net>
+  - created
+  - ""
