@@ -89,7 +89,7 @@ shoes_png_size(char *filename, int *width, int *height)
   unsigned char sig[32];
   cairo_surface_t *surface = NULL;
   FILE *image = fopen(filename, "rb");
-  if (image == NULL) return;
+  if (image == NULL) return NULL;
 
   fread(sig, 1, 32, image);
   if (memcmp(sig, PNG_SIG, 8) != 0)
