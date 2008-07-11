@@ -119,11 +119,22 @@ void shoes_ruby_init(void);
 #define ATTR2(typ, attr, n, dn)        shoes_hash_##typ(attr, s_##n, dn)
 #define ATTRSET(attr, k, v)            attr = shoes_hash_set(attr, s_##k, v)
 #define ATTR_MARGINS(attr, dm) \
-  int margin = ATTR2(int, attr, margin, dm); \
-  int lmargin = ATTR2(int, attr, margin_left, margin); \
-  int rmargin = ATTR2(int, attr, margin_right, margin); \
-  int tmargin = ATTR2(int, attr, margin_top, margin); \
-  int bmargin = ATTR2(int, attr, margin_bottom, margin)
+  int margin = 0, lmargin, rmargin, tmargin, bmargin; \
+  VALUE margino = ATTR(attr, margin); \
+  if (rb_obj_is_kind_of(margino, rb_cArray)) \
+  { \
+    rb_p(margino); \
+    lmargin = NUM2INT(rb_ary_entry(margino, 0)); \
+    tmargin = NUM2INT(rb_ary_entry(margino, 1)); \
+    rmargin = NUM2INT(rb_ary_entry(margino, 2)); \
+    bmargin = NUM2INT(rb_ary_entry(margino, 3)); \
+  } \
+  else \
+    margin = lmargin = tmargin = rmargin = bmargin = ATTR2(int, attr, margin, dm); \
+  lmargin = ATTR2(int, attr, margin_left, lmargin); \
+  rmargin = ATTR2(int, attr, margin_right, rmargin); \
+  tmargin = ATTR2(int, attr, margin_top, tmargin); \
+  bmargin = ATTR2(int, attr, margin_bottom, bmargin)
 
 #define CHECK_HOVER(self_t, h, touch) \
   if ((self_t->hover & HOVER_MOTION) != h && !NIL_P(self_t->attr)) \
