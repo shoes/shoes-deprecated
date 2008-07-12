@@ -194,9 +194,11 @@ shoes_app_gtk_keypress (GtkWidget *widget, GdkEventKey *event, gpointer data)
         v = rb_str_new(event->string, event->length);
     }
   }
+  KEY_SYM(Insert, insert);
   KEY_SYM(Delete, delete);
   KEY_SYM(BackSpace, backspace);
   KEY_SYM(Tab, tab);
+  KEY_SYM(ISO_Left_Tab, tab);
   KEY_SYM(Page_Up, page_up);
   KEY_SYM(Page_Down, page_down);
   KEY_SYM(Home, home);
