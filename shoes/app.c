@@ -146,12 +146,10 @@ void
 shoes_app_title(shoes_app *app, VALUE title)
 {
   char *msg;
-  app->title = rb_str_new2(SHOES_APPNAME);
   if (!NIL_P(title))
-  {
-    rb_str_cat2(app->title, " - ");
-    rb_str_append(app->title, title);
-  }
+    app->title = title;
+  else
+    app->title = rb_str_new2(SHOES_APPNAME);
   msg = RSTRING_PTR(app->title);
   shoes_native_app_title(app, msg);
 }
