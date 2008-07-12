@@ -113,27 +113,30 @@ void shoes_ruby_init(void);
 // Common funcs for dealing with attribute hashes
 //
 #define ATTR(attr, n)                  shoes_hash_get(attr, s_##n)
-#define PX(attr, n, dn, pn)            shoes_px(attr, s_##n, dn, pn, 1)
-#define PXN(attr, n, dn, pn)            shoes_px(attr, s_##n, dn, pn, 0)
+#define PX(attr, n, dn, pn)            shoes_px(shoes_hash_get(attr, s_##n), dn, pn, 1)
+#define PXN(attr, n, dn, pn)            shoes_px(shoes_hash_get(attr, s_##n), dn, pn, 0)
 #define PX2(attr, n1, n2, dn, dr, pn)  shoes_px2(attr, s_##n1, s_##n2, dn, dr, pn)
 #define ATTR2(typ, attr, n, dn)        shoes_hash_##typ(attr, s_##n, dn)
 #define ATTRSET(attr, k, v)            attr = shoes_hash_set(attr, s_##k, v)
-#define ATTR_MARGINS(attr, dm) \
-  int margin = 0, lmargin, rmargin, tmargin, bmargin; \
+#define ATTR_MARGINS(attr, dm, canvas) \
+  int lmargin, rmargin, tmargin, bmargin; \
   VALUE margino = ATTR(attr, margin); \
   if (rb_obj_is_kind_of(margino, rb_cArray)) \
   { \
-    lmargin = NUM2INT(rb_ary_entry(margino, 0)); \
-    tmargin = NUM2INT(rb_ary_entry(margino, 1)); \
-    rmargin = NUM2INT(rb_ary_entry(margino, 2)); \
-    bmargin = NUM2INT(rb_ary_entry(margino, 3)); \
+    lmargin = shoes_px(rb_ary_entry(margino, 0), dm, CPW(canvas), 1); \
+    tmargin = shoes_px(rb_ary_entry(margino, 1), dm, CPH(canvas), 1); \
+    rmargin = shoes_px(rb_ary_entry(margino, 2), dm, CPW(canvas), 1); \
+    bmargin = shoes_px(rb_ary_entry(margino, 3), dm, CPH(canvas), 1); \
   } \
   else \
-    margin = lmargin = tmargin = rmargin = bmargin = ATTR2(int, attr, margin, dm); \
-  lmargin = ATTR2(int, attr, margin_left, lmargin); \
-  rmargin = ATTR2(int, attr, margin_right, rmargin); \
-  tmargin = ATTR2(int, attr, margin_top, tmargin); \
-  bmargin = ATTR2(int, attr, margin_bottom, bmargin)
+  { \
+    lmargin = rmargin = PX(attr, margin, dm, CPW(canvas)); \
+    tmargin = bmargin = PX(attr, margin, dm, CPH(canvas)); \
+  } \
+  lmargin = PX(attr, margin_left, lmargin, CPW(canvas)); \
+  rmargin = PX(attr, margin_right, rmargin, CPW(canvas)); \
+  tmargin = PX(attr, margin_top, tmargin, CPH(canvas)); \
+  bmargin = PX(attr, margin_bottom, bmargin, CPH(canvas))
 
 #define CHECK_HOVER(self_t, h, touch) \
   if ((self_t->hover & HOVER_MOTION) != h && !NIL_P(self_t->attr)) \
@@ -153,7 +156,7 @@ void shoes_ruby_init(void);
    y >= self_t->place.iy + self_t->place.dy && \
    y <= self_t->place.iy + self_t->place.dy + self_t->place.ih)
 
-int shoes_px(VALUE, ID, int, int, int);
+int shoes_px(VALUE, int, int, int);
 int shoes_px2(VALUE, ID, ID, int, int, int);
 VALUE shoes_hash_set(VALUE, ID, VALUE);
 VALUE shoes_hash_get(VALUE, ID);

@@ -185,10 +185,9 @@ shoes_safe_block(VALUE self, VALUE block, VALUE args)
 }
 
 int
-shoes_px(VALUE attr, ID k, int dv, int pv, int nv)
+shoes_px(VALUE obj, int dv, int pv, int nv)
 {
   int px;
-  VALUE obj = shoes_hash_get(attr, k);
   if (TYPE(obj) == T_STRING) {
     char *ptr = RSTRING_PTR(obj);
     int len = RSTRING_LEN(obj);
@@ -218,12 +217,12 @@ shoes_px2(VALUE attr, ID k1, ID k2, int dv, int dr, int pv)
   VALUE obj = shoes_hash_get(attr, k2);
   if (!NIL_P(obj))
   {
-    px = shoes_px(attr, k2, 0, pv, 0);
+    px = shoes_px(obj, 0, pv, 0);
     px = (pv - dr) - px;
   }
   else
   {
-    px = shoes_px(attr, k1, dv, pv, 0);
+    px = shoes_px(shoes_hash_get(attr, k1), dv, pv, 0);
   }
   return px;
 }
@@ -296,7 +295,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
   if (!NIL_P(c))
     Data_Get_Struct(c, shoes_canvas, canvas);
 
-  ATTR_MARGINS(attr, 0);
+  ATTR_MARGINS(attr, 0, canvas);
   if (padded) {
     dh += tmargin + bmargin;
     dw += lmargin + rmargin;
@@ -2629,7 +2628,7 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
     return self;
   }
 
-  ATTR_MARGINS(self_t->attr, 4);
+  ATTR_MARGINS(self_t->attr, 4, canvas);
   if (NIL_P(ATTR(self_t->attr, margin)) && NIL_P(ATTR(self_t->attr, margin_bottom)))
     bmargin = 12;
   self_t->place.flags = REL_CANVAS;
