@@ -444,6 +444,8 @@ create_window_menu(NSMenu *main)
 
     [menuWindows addItemWithTitle:@"Minimize"
         action:@selector(performMiniaturize:) keyEquivalent:@""];
+    [menuWindows addItemWithTitle:@"Close current Window"
+        action:@selector(performClose:) keyEquivalent:@"w"];
     [menuWindows addItem: [NSMenuItem separatorItem]];
     [menuWindows addItemWithTitle:@"Bring All to Front"
         action:@selector(arrangeInFront:) keyEquivalent:@""];
@@ -463,7 +465,7 @@ create_help_menu(NSMenu *main)
     [menuitem setTarget: shoes_world->os.events];
     [menuHelp addItem: [NSMenuItem separatorItem]];
     menuitem = [menuHelp addItemWithTitle:@"Manual"
-        action:@selector(help:) keyEquivalent:@"?"];
+        action:@selector(help:) keyEquivalent:@"m"];
     [menuitem setTarget: shoes_world->os.events];
     add_to_menubar(main, menuHelp);
     [menuHelp release];
