@@ -26,7 +26,7 @@ class Array
     def inspect(hits = {})
         return "[...]" if hits[self]
         hits[self] = true
-        "[" + map { |x| x.inspect(hits) }.join(', ') + "]"
+        "[" + map { |x| x.method(:inspect).arity == 0 ? x.inspect : x.inspect(hits) }.join(', ') + "]"
     end
     def to_html
       ary = self
@@ -54,7 +54,12 @@ class Hash
     def inspect(hits = {})
         return "{...}" if hits[self]
         hits[self] = true
-        "{" + map { |k,v| k.inspect(hits) + "=>" + v.inspect(hits) }.join(', ') + "}"
+        mappings = map do |k,v|
+            key = k.method(:inspect).arity == 0 ? k.inspect : k.inspect(hits)
+            val = v.method(:inspect).arity == 0 ? v.inspect : v.inspect(hits)
+            "#{key} => #{val}"
+        end
+        "{ #{mappings.join(', ')} }"
     end
     def to_html
       h = self
