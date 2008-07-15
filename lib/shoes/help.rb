@@ -51,6 +51,8 @@ module Shoes::Manual
           case ps
           when /\A\{COLORS\}/
             color_page
+          when /\A\{INDEX\}/
+            index_page
           when /\A \* (.+)/m
             dewikify_p :para, "  ● " + $1.split(/^ \* /).join("[[BR]]  ● ")
           when /\A==== (.+) ====/
@@ -81,6 +83,39 @@ module Shoes::Manual
         end
       end
     end
+  end
+
+  def index_page
+    tree = {}
+    Shoes.constants.each do |c|
+      k = Shoes.const_get(c)
+      next unless k.respond_to? :superclass
+      
+      c = "Shoes::#{c}"
+      if k.superclass == Object
+        tree[c] ||= []
+      else
+        k.ancestors[1..-1].each do |sk|
+          break if [Object, Kernel].include? sk
+          (tree[sk.name] ||= []) << c
+          c = sk.name
+        end
+      end
+    end
+
+    shown = []
+    index_p = proc do |k, subs|
+      unless shown.include? k
+        stack :margin_left => 20 do
+          para "▸ #{k}"
+          subs.uniq.sort.each do |s|
+            index_p[s, tree[s]]
+          end if subs
+        end
+        shown << k
+      end
+    end
+    tree.sort.each &index_p
   end
 
   def run_code str

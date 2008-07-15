@@ -268,6 +268,12 @@ Changes the location, in order to view a different Shoes URL.
 
 Absolute URLs (such as http://google.com) are okay, but Shoes will be expecting a Shoes application to be at that address.  (So, google.com won't work, as it's an HTML app.)
 
+== Classes List ==
+
+Here is a complete list of all the classes introduced by Shoes.  This chart is laid out according to how classes inherits from each other.  Subclasses are indented one level to the right, beneath their parent class.
+
+{INDEX}
+
 == Colors List ==
 
 The following list of colors can be used throughout Shoes.  As background colors or border colors.  As stroke and fill colors.  Most of these colors come from the X11 and HTML palettes.
