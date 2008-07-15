@@ -754,7 +754,10 @@ shoes_native_list_box_update(SHOES_CONTROL_REF combo, VALUE ary)
   long i;
   gtk_list_store_clear(GTK_LIST_STORE(gtk_combo_box_get_model(GTK_COMBO_BOX(combo))));
   for (i = 0; i < RARRAY_LEN(ary); i++)
-    gtk_combo_box_append_text(GTK_COMBO_BOX(combo), _(RSTRING_PTR(rb_ary_entry(ary, i))));
+  {
+    VALUE msg = shoes_native_to_s(rb_ary_entry(ary, i));
+    gtk_combo_box_append_text(GTK_COMBO_BOX(combo), _(RSTRING_PTR(msg)));
+  }
 }
 
 VALUE

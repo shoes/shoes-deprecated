@@ -286,7 +286,7 @@
 }
 -(IBAction)handleClick: (id)sender
 {
-  shoes_control_send(object, s_click);
+  shoes_button_send_click(object);
 }
 @end
 
@@ -917,7 +917,8 @@ shoes_native_list_box_update(SHOES_CONTROL_REF ref, VALUE ary)
   [pop removeAllItems];
   for (i = 0; i < RARRAY_LEN(ary); i++)
   {
-    char *msg = RSTRING_PTR(rb_ary_entry(ary, i));
+    VALUE msg_s = shoes_native_to_s(rb_ary_entry(ary, i));
+    char *msg = RSTRING_PTR(msg_s);
     [[pop menu] insertItemWithTitle: [NSString stringWithUTF8String: msg] action: nil
       keyEquivalent: @"" atIndex: i];
   }
@@ -1065,6 +1066,7 @@ shoes_dialog_alert(VALUE self, VALUE msg)
 {
   INIT;
   VALUE answer = Qnil;
+  msg = shoes_native_to_s(msg);
   NSAlert *alert = [NSAlert alertWithMessageText: @"Shoes says:"
     defaultButton: @"OK" alternateButton: nil otherButton: nil 
     informativeTextWithFormat: [NSString stringWithUTF8String: RSTRING_PTR(msg)]];
@@ -1083,8 +1085,10 @@ VALUE
 shoes_dialog_confirm(VALUE self, VALUE quiz)
 {
   INIT;
+  char *msg;
   VALUE answer = Qnil;
-  char *msg = RSTRING_PTR(quiz);
+  quiz = shoes_native_to_s(quiz);
+  msg = RSTRING_PTR(quiz);
   NSAlert *alert = [NSAlert alertWithMessageText: @"Shoes asks:"
     defaultButton: @"OK" alternateButton: @"Cancel" otherButton:nil 
     informativeTextWithFormat: [NSString stringWithUTF8String: msg]];
@@ -1103,6 +1107,7 @@ shoes_dialog_color(VALUE self, VALUE title)
   GLOBAL_APP(app);
 
   where.h = where.v = 0;
+  title = shoes_native_to_s(title);
   if (GetColor(where, RSTRING_PTR(title), &colwh, &_color))
   {
     color = shoes_color_new(_color.red/256, _color.green/256, _color.blue/256, SHOES_COLOR_OPAQUE);

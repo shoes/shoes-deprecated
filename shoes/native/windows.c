@@ -1156,7 +1156,8 @@ shoes_native_list_box_update(SHOES_CONTROL_REF box, VALUE ary)
   SendMessage(box, CB_RESETCONTENT, 0, 0);
   for (i = 0; i < RARRAY_LEN(ary); i++)
   {
-    SendMessage(box, CB_ADDSTRING, 0, (LPARAM)RSTRING_PTR(rb_ary_entry(ary, i)));
+    VALUE msg = shoes_native_to_s(rb_ary_entry(ary, i));
+    SendMessage(box, CB_ADDSTRING, 0, (LPARAM)RSTRING_PTR(msg));
   }
 }
 
@@ -1357,6 +1358,7 @@ VALUE
 shoes_dialog_alert(VALUE self, VALUE msg)
 {
   GLOBAL_APP(app);
+  msg = shoes_native_to_s(msg);
   MessageBox(APP_WINDOW(app), RSTRING_PTR(msg), dialog_title_says, MB_OK);
   return Qnil;
 }
@@ -1366,6 +1368,7 @@ shoes_dialog_ask(VALUE self, VALUE quiz)
 {
   VALUE answer = Qnil;
   GLOBAL_APP(app);
+  quiz = shoes_native_to_s(quiz);
   win32_dialog_label = RSTRING_PTR(quiz);
   int confirm = DialogBox(shoes_world->os.instance, MAKEINTRESOURCE(ASKDLG),
     APP_WINDOW(app), shoes_ask_win32proc);
@@ -1386,6 +1389,7 @@ shoes_dialog_confirm(VALUE self, VALUE quiz)
 {
   VALUE answer = Qfalse;
   GLOBAL_APP(app);
+  quiz = shoes_native_to_s(quiz);
   int confirm = MessageBox(APP_WINDOW(app), RSTRING_PTR(quiz), dialog_title, MB_OKCANCEL);
   if (confirm == IDOK)
     answer = Qtrue;

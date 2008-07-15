@@ -9,7 +9,7 @@
 #define PLACE_COORDS() p2->h -= HEIGHT_PAD; p2->ih -= HEIGHT_PAD; *p1 = *p2
 #define PLACE_COORDS_NO_PAD() p2->h -= HEIGHT_PAD; p2->ih -= HEIGHT_PAD; *p1 = *p2
 
-#ifdef SHOES_WIN32
+#ifndef SHOES_GTK
 #define SHOES_FORCE_RADIO 1
 #endif
 
