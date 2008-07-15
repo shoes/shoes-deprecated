@@ -415,7 +415,7 @@ shoes_ele_remove_all(VALUE contents)
     long i;
     VALUE ary;
     ary = rb_ary_dup(contents);
-    for (i = 0; i < RARRAY_LEN(ary); i++) 
+    for (i = 0; i < RARRAY_LEN(ary); i++)
       rb_funcall(rb_ary_entry(ary, i), s_remove, 0);
     rb_ary_clear(contents);
   }

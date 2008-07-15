@@ -36,13 +36,16 @@ module Shoes::Manual
       paras.map do |ps|
         if ps =~ CODE_RE
           str = $1.gsub(/\A\n+/, '').chomp
-          stack do 
-            background rgb(210, 210, 210)
+          stack :margin_bottom => 12 do 
+            background rgb(210, 210, 210), :curve => 4
             para code(str), CODE_STYLE 
-          end
-          stack :margin_bottom => 12, :margin_top => -20 do
-            para link("Run this", :stroke => "#777") { run_code(str) },
-              :align => "right", :margin => 4
+            stack :top => 0, :right => 2, :width => 70 do
+              stack do
+                background "#8A7", :margin => [0, 2, 0, 2], :curve => 4 
+                para link("Run this", :stroke => "#eee", :underline => "none") { run_code(str) },
+                  :margin => 4, :align => 'center', :weight => 'bold'
+              end
+            end
           end
         else
           case ps

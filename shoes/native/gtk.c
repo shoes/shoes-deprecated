@@ -258,7 +258,7 @@ shoes_canvas_gtk_paint(GtkWidget *widget, GdkEventExpose *event, gpointer data)
   VALUE c = (VALUE)data;
   shoes_canvas *canvas;
   INFO("EXPOSE: (%d, %d) (%d, %d) %lu, %d, %d\n", event->area.x, event->area.y,
-    event->area.width, event->area.height, event->window, (int)event->send_event, event->count);
+    event->area.width, event->area.height, c, (int)event->send_event, event->count);
   Data_Get_Struct(c, shoes_canvas, canvas);
 
   //
@@ -506,6 +506,14 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
   gtk_widget_set_size_request(slot->canvas, width, height);
   slot->expose = NULL;
   if (toplevel) shoes_canvas_size(c, width, height);
+}
+
+void
+shoes_slot_destroy(shoes_canvas *canvas, shoes_canvas *pc)
+{
+  if (canvas->slot.vscroll)
+    gtk_container_remove(GTK_CONTAINER(canvas->slot.canvas), canvas->slot.vscroll);
+  gtk_container_remove(GTK_CONTAINER(pc->slot.canvas), canvas->slot.canvas);
 }
 
 cairo_t *

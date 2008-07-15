@@ -673,6 +673,16 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
   RELEASE;
 }
 
+void
+shoes_slot_destroy(shoes_canvas *canvas, shoes_canvas *pc)
+{
+  INIT;
+  if (canvas->slot.vscroll != NULL)
+    [canvas->slot.vscroll removeFromSuperview];
+  [canvas->slot.view removeFromSuperview];
+  RELEASE;
+}
+
 cairo_t *
 shoes_cairo_create(shoes_canvas *canvas)
 {

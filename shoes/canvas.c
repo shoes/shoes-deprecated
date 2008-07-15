@@ -1134,7 +1134,13 @@ shoes_canvas_remove(VALUE self)
   Data_Get_Struct(self, shoes_canvas, self_t);
   shoes_canvas_empty(self_t);
   if (!NIL_P(self_t->parent))
+  {
+    shoes_canvas *pc;
     shoes_canvas_remove_item(self_t->parent, self, 0, 0);
+    Data_Get_Struct(self_t->parent, shoes_canvas, pc);
+    if (pc != self_t && DC(self_t->slot) != DC(pc->slot))
+      shoes_slot_destroy(self_t, pc);
+  }
   return self;
 }
 
@@ -1237,7 +1243,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
             if (rb_obj_is_kind_of(ele2, cCanvas))
             {
               Data_Get_Struct(ele2, shoes_canvas, c2);
-              if (c2->topy < c1->topy || POS(c2->place) != REL_CANVAS)
+              if (c2->topy < c1->topy || ABSY(c2->place) || POS(c2->place) != REL_CANVAS)
                 break;
               if (c1->fully > c2->fully)
                 c2->fully = c1->fully;

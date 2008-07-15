@@ -857,6 +857,17 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
   if (toplevel) shoes_canvas_size(c, width, height);
 }
 
+void
+shoes_slot_destroy(shoes_canvas *canvas, shoes_canvas *pc)
+{
+  if (canvas->slot.dc != NULL)
+  {
+    DeleteObject(GetCurrentObject(canvas->slot.dc, OBJ_BITMAP));
+    DeleteDC(canvas->slot.dc);
+  }
+  DestroyWindow(canvas->slot.window);
+}
+
 cairo_t *
 shoes_cairo_create(shoes_canvas *canvas)
 {

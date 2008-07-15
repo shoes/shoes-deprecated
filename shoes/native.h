@@ -34,6 +34,7 @@ void shoes_native_app_close(shoes_app *);
 void shoes_browser_open(char *);
 void shoes_slot_init(VALUE, SHOES_SLOT_OS *, int, int, int, int, int, int);
 cairo_t *shoes_cairo_create(shoes_canvas *);
+void shoes_slot_destroy(shoes_canvas *, shoes_canvas *);
 void shoes_cairo_destroy(shoes_canvas *);
 void shoes_group_clear(SHOES_GROUP_OS *);
 void shoes_native_canvas_place(shoes_canvas *, shoes_canvas *);
