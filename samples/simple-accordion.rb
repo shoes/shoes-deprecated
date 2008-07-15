@@ -5,8 +5,8 @@ module Accordion
     return if active == stack
     a = animate 60 do
       stack.height += 20
-      active.height -= 20 if active
-      a.stop if stack.height > 200
+      active.height = 240 - stack.height if active
+      a.stop if stack.height == 240
     end
   end
   def page title, text

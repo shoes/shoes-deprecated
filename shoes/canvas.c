@@ -1653,6 +1653,7 @@ shoes_canvas_repaint_all(VALUE self)
   shoes_canvas *canvas;
   self = shoes_find_canvas(self);
   Data_Get_Struct(self, shoes_canvas, canvas);
+  shoes_canvas_compute(self);
   shoes_slot_repaint(&canvas->app->slot);
 }
 
