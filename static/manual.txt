@@ -268,6 +268,14 @@ Changes the location, in order to view a different Shoes URL.
 
 Absolute URLs (such as http://google.com) are okay, but Shoes will be expecting a Shoes application to be at that address.  (So, google.com won't work, as it's an HTML app.)
 
+== Colors List ==
+
+The following list of colors can be used throughout Shoes.  As background colors or border colors.  As stroke and fill colors.  Most of these colors come from the X11 and HTML palettes.
+
+All of these colors can be used by name.  (So calling the `tomato` method from inside any slot will get you a nice reddish color.)  Below each color, also find the exact numbers which can be used with the [[Built-in.rgb]] method.
+
+{COLORS}
+
 = Slots =
 
 Slots are boxes used to lay out images, text and so on. The two most common slots are `stacks` and `flows`. Slots can also be referred to as "boxes" or "canvases" in Shoes terminology.

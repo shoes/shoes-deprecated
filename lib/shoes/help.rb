@@ -49,6 +49,8 @@ module Shoes::Manual
           end
         else
           case ps
+          when /\A\{COLORS\}/
+            color_page
           when /\A \* (.+)/m
             dewikify_p :para, "  ● " + $1.split(/^ \* /).join("[[BR]]  ● ")
           when /\A==== (.+) ====/
@@ -62,6 +64,20 @@ module Shoes::Manual
           else
             dewikify_p :para, ps
           end
+        end
+      end
+    end
+  end
+
+  def color_page
+    color_names = (Shoes::COLORS.keys*"\n").split("\n").sort
+    flow do
+      color_names.each do |color|
+        flow :width => 175 do
+          c = send(color)
+          background c
+          para strong(color), "\n", c, :stroke => (c.dark? ? white : black),
+            :margin => 4, :align => 'center'
         end
       end
     end
