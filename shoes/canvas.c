@@ -1447,10 +1447,15 @@ void
 shoes_canvas_compute(VALUE self)
 {
   SETUP();
-  canvas->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));;
+  if (!shoes_canvas_independent(canvas))
+    return shoes_canvas_compute(canvas->parent);
+
+  if (cr == NULL)
+    canvas->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));;
   shoes_canvas_draw(self, self, Qfalse);
-  cairo_destroy(canvas->cr);
-  canvas->cr = NULL;
+  if (cr == NULL)
+    cairo_destroy(canvas->cr);
+  canvas->cr = cr;
 }
 
 static void

@@ -75,7 +75,7 @@ module Shoes::Manual
     color_names = (Shoes::COLORS.keys*"\n").split("\n").sort
     flow do
       color_names.each do |color|
-        flow :width => 175 do
+        flow :width => 0.33 do
           c = send(color)
           background c
           para strong(color), "\n", c, :stroke => (c.dark? ? white : black),
