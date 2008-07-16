@@ -120,7 +120,7 @@ class Shoes
   def self.show_manual
     require 'shoes/search'
     require 'shoes/help'
-    Shoes.app(:width => 600, :height => 640, &Shoes::Help)
+    Shoes.app(:width => 720, :height => 640, &Shoes::Help)
   end
 
   def self.show_log
