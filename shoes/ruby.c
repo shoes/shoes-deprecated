@@ -843,7 +843,8 @@ shoes_imageblock_paint(VALUE self, int init)
   }
 
   cairo_set_operator(self_t->cr, CAIRO_OPERATOR_OVER);
-  shoes_canvas_draw(self, self_t->parent, Qfalse);
+  if (self_t->stage == CANVAS_NADA)
+    shoes_canvas_draw(self, self_t->parent, Qfalse);
   shoes_canvas_draw(self, self_t->parent, Qtrue);
   ATTRSET(self_t->attr, hidden, hidden);
 
@@ -2030,6 +2031,7 @@ shoes_link_at(VALUE self, int index, int blockhover, VALUE *clicked, char *touch
     if (!NIL_P(self_t->attr)) url = rb_hash_aref(self_t->attr, ID2SYM(s_click));
   }
 
+  self = link->ele;
   CHECK_HOVER(self_t, h, touch);
 
   return url;
