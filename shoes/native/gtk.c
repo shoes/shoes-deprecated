@@ -300,6 +300,7 @@ shoes_canvas_gtk_size(GtkWidget *widget, GtkAllocation *size, gpointer data)
     gtk_fixed_move(GTK_FIXED(canvas->slot.canvas), canvas->slot.vscroll,
       size->width - canvas->slot.vscroll->allocation.width, 0);
     adj->page_size = size->height;
+    adj->page_increment = size->height - 32;
     if (adj->page_size >= adj->upper)
       gtk_widget_hide(canvas->slot.vscroll);
     else
@@ -497,7 +498,8 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
   if (scrolls)
   {
     slot->vscroll = gtk_vscrollbar_new(NULL);
-    gtk_range_get_adjustment(GTK_RANGE(slot->vscroll))->step_increment = 5;
+    gtk_range_get_adjustment(GTK_RANGE(slot->vscroll))->step_increment = 16;
+    gtk_range_get_adjustment(GTK_RANGE(slot->vscroll))->page_increment = height - 32;
     g_signal_connect(G_OBJECT(slot->vscroll), "value-changed",
                      G_CALLBACK(shoes_canvas_gtk_scroll), (gpointer)c);
     gtk_fixed_put(GTK_FIXED(slot->canvas), slot->vscroll, -100, -100);
