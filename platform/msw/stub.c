@@ -5,11 +5,21 @@
 #include <wchar.h>
 #include "stub32.h"
 #include "shoes/version.h"
+#include "shoes/http.h"
 
 #define BUFSIZE 512
-#define CHUNKSIZE 16384
 
 HWND dlg;
+
+int
+StubDownloadingShoes(shoes_download_event *event, void *data)
+{
+  TCHAR msg[512];
+  sprintf(msg, "Shoes is downloading. (%d%% done)", event->percent);
+  SetDlgItemText(dlg, IDSHOE, msg);
+  SendMessage(GetDlgItem(dlg, IDPROG), PBM_SETPOS, event->percent, 0L);
+  return SHOES_DOWNLOAD_CONTINUE;
+}
 
 void
 CenterWindow(HWND hwnd)
@@ -44,90 +54,6 @@ stub_win32proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
       return FALSE;
   }
   return FALSE;
-}
-
-void
-ShoesWinHttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, HANDLE file, LPDWORD size)
-{
-  DWORD len = 0, rlen = 0, status = 0;
-  TCHAR buf[BUFSIZE];
-  WCHAR uagent[BUFSIZE];
-  HINTERNET sess = NULL, conn = NULL, req = NULL;
-
-  _snwprintf(uagent, BUFSIZE, L"ShoeStub/0.r%d (%S) %S/%d", SHOES_REVISION, SHOES_PLATFORM,
-    SHOES_RELEASE_NAME, SHOES_BUILD_DATE);
-  sess = WinHttpOpen(uagent, WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
-    WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
-  if (sess == NULL)
-    goto done;
-
-  conn = WinHttpConnect(sess, host, port, 0);
-  if (conn == NULL)
-    goto done;
-
-  req = WinHttpOpenRequest(conn, L"GET", path,
-    NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, 0);
-  if (req == NULL)
-    goto done;
-
-  if (!WinHttpSendRequest(req, WINHTTP_NO_ADDITIONAL_HEADERS, 0,
-    NULL, 0, 0, 0))
-    goto done;
-
-  if (!WinHttpReceiveResponse(req, NULL))
-    goto done;
-
-  len = sizeof(DWORD);
-  if (!WinHttpQueryHeaders(req, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
-    NULL, &status, &len, NULL))
-    goto done;
-
-  if (status != 200)
-    goto done;
-
-  len = sizeof(buf);
-  if (!WinHttpQueryHeaders(req, WINHTTP_QUERY_CONTENT_LENGTH,
-    NULL, buf, &len, NULL))
-    goto done;
-
-  *size = _wtoi((wchar_t *)buf);
-
-  if (mem != NULL)
-  {
-    TCHAR *nl;
-    WinHttpReadData(req, mem, BUFSIZE, &len);
-    mem[min(BUFSIZE - 1, *size)] = '\0';
-    nl = strstr(mem, "\n");
-    if (nl) nl[0] = '\0';
-  }
-
-  if (file != NULL)
-  {
-    TCHAR fbuf[CHUNKSIZE], msg[512];
-    DWORD flen = 0, total = *size * 100;
-    int perc;
-    rlen = *size;
-    while (rlen > 0)
-    {
-      WinHttpReadData(req, fbuf, CHUNKSIZE, &len);
-      WriteFile(file, (LPBYTE)fbuf, len, &flen, NULL);
-      perc = (int)((total - (rlen * 100)) / *size);
-
-      sprintf(msg, "Shoes is downloading. (%d%% done)", perc);
-      SetDlgItemText(dlg, IDSHOE, msg);
-      SendMessage(GetDlgItem(dlg, IDPROG), PBM_SETPOS, perc, 0L);
-      rlen -= CHUNKSIZE;
-    }
-  }
-done:
-  if (req)
-    WinHttpCloseHandle(req);
-
-  if (conn)
-    WinHttpCloseHandle(conn);
-
-  if (sess)
-    WinHttpCloseHandle(sess);
 }
 
 void
@@ -180,7 +106,7 @@ shoes_auto_setup(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID vinst)
 }
 
 DWORD WINAPI
-shoes_download(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
+shoes_download_thread(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
 {
   DWORD len = 0;
   WCHAR path[BUFSIZE];
@@ -190,7 +116,7 @@ shoes_download(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
   GetTempPath(BUFSIZE, setup_path);
   strncat(setup_path, setup_exe, strlen(setup_exe));
 
-  ShoesWinHttp(L"hacketyhack.net", 80, L"/pkg/win32/shoes", buf, NULL, &len);
+  shoes_winhttp(L"hacketyhack.net", 80, L"/pkg/win32/shoes", buf, NULL, &len, NULL, NULL);
   if (len == 0)
     return 0;
 
@@ -198,7 +124,7 @@ shoes_download(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
   MultiByteToWideChar(CP_ACP, 0, buf, -1, path, BUFSIZE);
   file = CreateFile(setup_path, GENERIC_READ | GENERIC_WRITE,
     FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-  ShoesWinHttp(L"hacketyhack.net", 80, path, NULL, file, &len);
+  shoes_winhttp(L"hacketyhack.net", 80, path, NULL, file, &len, HTTP_HANDLER(StubDownloadingShoes), NULL);
   CloseHandle(file);
 
   shoes_silent_install(setup_path);
@@ -261,7 +187,7 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
     ShowWindow(dlg, SW_SHOW);
 
     if (setupres == NULL)
-      back_action = (LPTHREAD_START_ROUTINE)shoes_download;
+      back_action = (LPTHREAD_START_ROUTINE)shoes_download_thread;
 
     if (!(th = CreateThread(0, 0, back_action, inst, 0, &tid)))
       return 0;

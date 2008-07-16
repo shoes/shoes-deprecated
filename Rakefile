@@ -250,10 +250,10 @@ when /win32/
   task :stub => ["dist/pkg/shoes-stub.exe", "dist/pkg/shoes-stub-inject.exe"]
 
   ['stub', 'stub-inject'].each do |s|
-    task "dist/pkg/shoes-#{s}.exe" => ["shoes/version.h", "platform/msw/stub32.res", "platform/msw/#{s}.obj"] do |t|
+    task "dist/pkg/shoes-#{s}.exe" => ["shoes/version.h", "shoes/http/winhttp.obj", "platform/msw/stub32.res", "platform/msw/#{s}.obj"] do |t|
       rm_f t.name
       sh "link #{MSVC_LDFLAGS} /OUT:#{t.name} /LIBPATH:dist " +
-        "/SUBSYSTEM:WINDOWS platform/msw/stub32.res platform/msw/#{s}.obj shell32.lib user32.lib comctl32.lib winhttp.lib bufferoverflowu.lib advapi32.lib"
+        "/SUBSYSTEM:WINDOWS platform/msw/stub32.res shoes/http/winhttp.obj platform/msw/#{s}.obj shell32.lib user32.lib comctl32.lib winhttp.lib bufferoverflowu.lib advapi32.lib"
     end
   end
 
