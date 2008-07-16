@@ -4,3 +4,15 @@ else
   REALPATH=`readlink $0`
 fi
 APPPATH="${REALPATH%/*}"
+if [ "$APPPATH" = "shoes" ]; then
+  APPPATH="."
+fi
+if [ "$APPPATH" = "." ]; then
+  APPPATH=`pwd`
+fi
+
+# makeself changes the directory to /tmp/selfgzNNNNN.  if we're in
+# an extracted archive, change back to the directory where we launched.
+if [ `pwd | awk '{ sub(/[0-9]+/, ""); print }'` = "/tmp/selfgz" ]; then
+  cd "$OLDPWD"
+fi
