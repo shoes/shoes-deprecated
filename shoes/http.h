@@ -8,7 +8,21 @@
 #define SHOES_DOWNLOAD_CONTINUE 0
 #define SHOES_DOWNLOAD_HALT 1
 
+#define SHOES_HTTP_CONNECTED 5
+#define SHOES_HTTP_TRANSFER  10
+#define SHOES_HTTP_COMPLETED 15
+
+#define HTTP_EVENT(handler, s, perc, trans, tot, dat, abort) \
+{ shoes_download_event event; \
+  event.stage = s; \
+  event.percent = perc; \
+  event.transferred = trans;\
+  event.total = tot; \
+  if (handler != NULL && (handler(&event, dat) & SHOES_DOWNLOAD_HALT)) \
+  { abort; } }
+
 typedef struct {
+  unsigned char stage;
   unsigned long long total;
   unsigned long long transferred;
   unsigned int percent;

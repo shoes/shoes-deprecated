@@ -56,7 +56,7 @@ class Shoes
     
     opts.on("-d", "--download",
             "A download test") do
-      str = download_non_threaded "http://hacketyhack.net/pkg/win32/shoes"
+      str = download_and_wait "http://hacketyhack.net/pkg/win32/shoes"
       raise SystemExit, str
     end
 

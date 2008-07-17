@@ -3617,6 +3617,13 @@ shoes_msg(ID typ, VALUE str)
     shoes_msg(s_##t, rb_str_new2(buf)); \
   }
 
+int
+shoes_dont_handler(shoes_download_event *de, void *data)
+{
+  printf("EVENT: %d, %lu, %llu, %llu\n", (int)de->stage, de->percent, 
+    de->transferred, de->total);
+}
+
 VALUE
 shoes_download_non_threaded(VALUE self, VALUE url)
 {
@@ -4278,5 +4285,5 @@ shoes_ruby_init()
   rb_define_method(rb_mKernel, "ask_save_file", CASTHOOK(shoes_dialog_save), 0);
   rb_define_method(rb_mKernel, "ask_open_folder", CASTHOOK(shoes_dialog_open_folder), 0);
   rb_define_method(rb_mKernel, "ask_save_folder", CASTHOOK(shoes_dialog_save_folder), 0);
-  rb_define_method(rb_mKernel, "download_non_threaded", CASTHOOK(shoes_download_non_threaded), 1);
+  rb_define_method(rb_mKernel, "download_and_wait", CASTHOOK(shoes_download_non_threaded), 1);
 }
