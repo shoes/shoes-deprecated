@@ -41,7 +41,7 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, HANDLE
   WCHAR uagent[SHOES_BUFSIZE];
   HINTERNET sess = NULL, conn = NULL, req = NULL;
 
-  _snwprintf(uagent, SHOES_BUFSIZE, L"ShoeStub/0.r%d (%S) %S/%d", SHOES_REVISION, SHOES_PLATFORM,
+  _snwprintf(uagent, SHOES_BUFSIZE, L"Shoes/0.r%d (%S) %S/%d", SHOES_REVISION, SHOES_PLATFORM,
     SHOES_RELEASE_NAME, SHOES_BUILD_DATE);
   sess = WinHttpOpen(uagent, WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
     WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);

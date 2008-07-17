@@ -300,7 +300,9 @@ else
   require 'rbconfig'
 
   CC = "gcc"
-  SRC = FileList[PLATFORM =~ /darwin/ ? "shoes/native/cocoa.m" : "shoes/native/gtk.c", "shoes/*.{c}"]
+  SRC = FileList["shoes/*.c",
+    PLATFORM =~ /darwin/ ? "shoes/native/cocoa.m" : "shoes/native/gtk.c",
+    PLATFORM =~ /darwin/ ? "shoes/http/nsurl.m" : "shoes/http/curl.c"]
   OBJ = SRC.map do |x|
     x.gsub(/\.\w+$/, '.o')
   end
@@ -339,8 +341,8 @@ else
     end
   else
     DLEXT = "so"
-    LINUX_CFLAGS << " -DSHOES_GTK -fPIC #{`pkg-config --cflags gtk+-2.0`.strip}"
-    LINUX_LDFLAGS =" #{`pkg-config --libs gtk+-2.0`.strip} -fPIC -shared"
+    LINUX_CFLAGS << " -DSHOES_GTK -fPIC #{`pkg-config --cflags gtk+-2.0`.strip} #{`curl-config --cflags`.strip}"
+    LINUX_LDFLAGS =" #{`pkg-config --libs gtk+-2.0`.strip} #{`curl-config --libs`.strip} -fPIC -shared"
     LINUX_LIB_NAMES << 'jpeg'
     LINUX_LIB_NAMES << "vlc" if ENV['VIDEO']
   end

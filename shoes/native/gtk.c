@@ -9,6 +9,8 @@
 #include "shoes/native.h"
 #include "shoes/internal.h"
 
+#include <curl/curl.h>
+
 #define GTK_CHILD(child, ptr) \
   GList *children = gtk_container_get_children(GTK_CONTAINER(ptr)); \
   child = children->data
@@ -17,11 +19,13 @@
 
 void shoes_native_init()
 {
+  curl_global_init(CURL_GLOBAL_ALL);
   gtk_init(NULL, NULL);
 }
 
 void shoes_native_cleanup(shoes_world_t *world)
 {
+  curl_global_cleanup();
 }
 
 void shoes_native_quit()
