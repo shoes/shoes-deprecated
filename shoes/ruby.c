@@ -9,13 +9,14 @@
 #include "shoes/world.h"
 #include "shoes/native.h"
 #include "shoes/version.h"
+#include "shoes/http.h"
 #include <math.h>
 
 VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cImageBlock, cEffect, cBlur, cShadow, cGlow, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE eVlcError, eImageError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot;
-ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_checked, s_checked_q, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_group, s_hand, s_hidden, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_link, s_motion, s_release, s_wheel, s_scroll, s_start, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
+ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_URI, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_checked, s_checked_q, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_group, s_hand, s_hidden, s_host, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_link, s_motion, s_path, s_port, s_release, s_wheel, s_scroll, s_start, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -3616,6 +3617,20 @@ shoes_msg(ID typ, VALUE str)
     shoes_msg(s_##t, rb_str_new2(buf)); \
   }
 
+VALUE
+shoes_download_non_threaded(VALUE self, VALUE url)
+{
+  if (!rb_respond_to(url, s_host)) url = rb_funcall(rb_mKernel, s_URI, 1, url);
+  VALUE host = rb_funcall(url, s_host, 0);
+  VALUE port = rb_funcall(url, s_port, 0);
+  VALUE path = rb_funcall(url, s_path, 0);
+  char mem[SHOES_BUFSIZE] = {0};
+  unsigned long long size;
+  shoes_download(RSTRING_PTR(host), NUM2INT(port), RSTRING_PTR(path),
+    mem, NULL, &size, NULL, NULL);
+  return rb_str_new(mem, size);
+}
+
 DEBUG_TYPE(info);
 DEBUG_TYPE(debug);
 DEBUG_TYPE(warn);
@@ -3702,6 +3717,7 @@ shoes_ruby_init()
   s_keys = rb_intern("keys");
   s_update = rb_intern("update");
   s_new = rb_intern("new");
+  s_URI = rb_intern("URI");
 
   s_now   = rb_intern("now");
   s_debug = rb_intern("DEBUG");
@@ -3738,6 +3754,7 @@ shoes_ruby_init()
   s_group = rb_intern("group");
   s_hand = rb_intern("hand");
   s_hidden = rb_intern("hidden");
+  s_host = rb_intern("host");
   s_hover = rb_intern("hover");
   s_href = rb_intern("href");
   s_insert = rb_intern("insert");
@@ -3749,6 +3766,8 @@ shoes_ruby_init()
   s_link = rb_intern("link");
   s_leading = rb_intern("leading");
   s_leave = rb_intern("leave");
+  s_path = rb_intern("path");
+  s_port = rb_intern("port");
   s_release = rb_intern("release");
   s_wheel = rb_intern("wheel");
   s_scroll = rb_intern("scroll");
@@ -4259,4 +4278,5 @@ shoes_ruby_init()
   rb_define_method(rb_mKernel, "ask_save_file", CASTHOOK(shoes_dialog_save), 0);
   rb_define_method(rb_mKernel, "ask_open_folder", CASTHOOK(shoes_dialog_open_folder), 0);
   rb_define_method(rb_mKernel, "ask_save_folder", CASTHOOK(shoes_dialog_save_folder), 0);
+  rb_define_method(rb_mKernel, "download_non_threaded", CASTHOOK(shoes_download_non_threaded), 1);
 }

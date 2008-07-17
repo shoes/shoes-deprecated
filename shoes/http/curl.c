@@ -90,6 +90,7 @@ shoes_download(char *host, int port, char *path, char *mem, char *filepath,
   curl_easy_setopt(curl, CURLOPT_USERAGENT, uagent);
 
   res = curl_easy_perform(curl);
+  *size = write_data.size;
 
   if (write_data.fp != NULL)
     fclose(write_data.fp);
