@@ -3622,6 +3622,7 @@ shoes_dont_handler(shoes_download_event *de, void *data)
 {
   printf("EVENT: %d, %lu, %llu, %llu\n", (int)de->stage, de->percent, 
     de->transferred, de->total);
+  return SHOES_DOWNLOAD_CONTINUE;
 }
 
 VALUE

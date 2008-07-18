@@ -67,6 +67,8 @@ static inline void flip_endian(unsigned char* x, int length) {
 #define RSTRING_PTR(str) RSTRING(str)->ptr
 #endif
 
+#undef s_host
+
 extern VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cNative, cShape, cVideo, cImage, cImageBlock, cEffect, cBlur, cShadow, cGlow, cEvery, cTimer, cAnim, cPattern, cBorder, cBackground, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextBlock, cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns, cButton, cEditLine, cEditBox, cListBox, cProgress, cCheck, cRadio, cColor, cColors, cLink, cLinkHover, ssNestSlot;
 extern VALUE aMsgList;
 extern VALUE eNotImpl, eImageError;

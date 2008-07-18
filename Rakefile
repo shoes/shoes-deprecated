@@ -191,13 +191,13 @@ end
 # use the platform Ruby claims
 case PLATFORM
 when /win32/
-  SRC = FileList["shoes/*.c", "shoes/native/windows.c"] 
+  SRC = FileList["shoes/*.c", "shoes/native/windows.c", "shoes/http/winhttp.c"]
   OBJ = SRC.map do |x|
     x.gsub(/\.c$/, '.obj')
   end
 
   # MSVC build environment
-  MSVC_LIBS = %[msvcrt-ruby18.lib pango-1.0.lib pangocairo-1.0.lib gobject-2.0.lib glib-2.0.lib cairo.lib giflib.lib jpeg.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib advapi32.lib oleacc.lib]
+  MSVC_LIBS = %[msvcrt-ruby18.lib pango-1.0.lib pangocairo-1.0.lib gobject-2.0.lib glib-2.0.lib cairo.lib giflib.lib jpeg.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib advapi32.lib oleacc.lib winhttp.lib]
   MSVC_LIBS << " libvlc.lib" if ENV['VIDEO']
   MSVC_LIBS2 = ""
   MSVC_LIBS2 << " bufferoverflowu.lib" if ENV['DDKBUILDENV']
