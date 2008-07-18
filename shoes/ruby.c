@@ -408,6 +408,18 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
   INFO("PLACE: (%d, %d), (%d: %d, %d: %d) [%d, %d] %x\n", place->x, place->y, place->w, place->iw, place->h, place->ih, ABSX(*place), ABSY(*place), place->flags);
 }
 
+//
+// shoes_basic routines
+//
+VALUE
+shoes_basic_remove(VALUE self)
+{
+  GET_STRUCT(basic, self_t);
+  shoes_canvas_remove_item(self_t->parent, self, 0, 0);
+  shoes_canvas_repaint_all(self_t->parent);
+  return self;
+}
+
 void
 shoes_ele_remove_all(VALUE contents)
 {
@@ -464,7 +476,7 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
   if (ATTR(self_t->attr, hidden) == Qtrue) return self; \
   shoes_place_decide(&place, c, self_t->attr, dw, dh, rel, rel == REL_CANVAS)
 
-#define SETUP_CONTROL(dh, dw) \
+#define SETUP_CONTROL(dh, dw, flex) \
   char *msg = ""; \
   int len = dw ? dw : 200; \
   shoes_control *self_t; \
@@ -477,7 +489,7 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
   if (!NIL_P(text)) { \
     text = shoes_native_to_s(text); \
     msg = RSTRING_PTR(text); \
-    len = (RSTRING_LEN(text) * 8) + 32; \
+    if (flex) len = (RSTRING_LEN(text) * 8) + 32; \
   } \
   shoes_place_decide(&place, c, self_t->attr, len, 28 + dh, REL_CANVAS, TRUE)
 
@@ -561,14 +573,6 @@ shoes_shape_alloc(VALUE klass)
   shape->fg = Qnil;
   shape->bg = Qnil;
   return obj;
-}
-
-VALUE
-shoes_shape_remove(VALUE self)
-{
-  GET_STRUCT(shape, self_t);
-  shoes_canvas_remove_item(self_t->parent, self, 0, 0);
-  return self;
 }
 
 #define PATH_OUT(pen, cfunc) \
@@ -784,14 +788,6 @@ shoes_image_set_path(VALUE self, VALUE path)
   image->surface = shoes_load_image(path, &image->width, &image->height, TRUE);
   shoes_canvas_repaint_all(image->parent);
   return path;
-}
-
-VALUE
-shoes_image_remove(VALUE self)
-{
-  GET_STRUCT(image, self_t);
-  shoes_canvas_remove_item(self_t->parent, self, 0, 0);
-  return self;
 }
 
 #define SHOES_IMAGE_PLACE(type, imw, imh, surf) \
@@ -1204,14 +1200,6 @@ shoes_effect_alloc(VALUE klass)
   fx->attr = Qnil;
   fx->parent = Qnil;
   return obj;
-}
-
-VALUE
-shoes_effect_remove(VALUE self)
-{
-  GET_STRUCT(effect, self_t);
-  shoes_canvas_remove_item(self_t->parent, self, 0, 0);
-  return self;
 }
 
 VALUE
@@ -1644,14 +1632,6 @@ shoes_border_draw(VALUE self, VALUE c, VALUE actual)
   }
 
   INFO("BORDER: (%d, %d), (%d, %d)\n", place.x, place.y, place.w, place.h);
-  return self;
-}
-
-VALUE
-shoes_pattern_remove(VALUE self)
-{
-  GET_STRUCT(pattern, self_t);
-  shoes_canvas_remove_item(self_t->parent, self, 0, 0);
   return self;
 }
 
@@ -2190,14 +2170,6 @@ shoes_textblock_get_cursor(VALUE self)
 {
   GET_STRUCT(textblock, self_t);
   return self_t->cursor;
-}
-
-VALUE
-shoes_textblock_remove(VALUE self)
-{
-  GET_STRUCT(textblock, self_t);
-  shoes_canvas_remove_item(self_t->parent, self, 0, 0);
-  return self;
 }
 
 VALUE
@@ -2877,7 +2849,7 @@ shoes_control_send(VALUE self, ID event)
 VALUE
 shoes_button_draw(VALUE self, VALUE c, VALUE actual)
 {
-  SETUP_CONTROL(2, 0);
+  SETUP_CONTROL(2, 0, TRUE);
 
 #ifdef SHOES_QUARTZ
   place.h += 8;
@@ -2925,7 +2897,7 @@ shoes_edit_line_set_text(VALUE self, VALUE text)
 VALUE
 shoes_edit_line_draw(VALUE self, VALUE c, VALUE actual)
 {
-  SETUP_CONTROL(0, 0);
+  SETUP_CONTROL(0, 0, FALSE);
 
 #ifdef SHOES_QUARTZ
   place.x += 4; place.ix += 4;
@@ -2976,7 +2948,7 @@ shoes_edit_box_set_text(VALUE self, VALUE text)
 VALUE
 shoes_edit_box_draw(VALUE self, VALUE c, VALUE actual)
 {
-  SETUP_CONTROL(80, 0);
+  SETUP_CONTROL(80, 0, FALSE);
 
   if (RTEST(actual))
   {
@@ -3036,7 +3008,7 @@ shoes_list_box_items_set(VALUE self, VALUE items)
 VALUE
 shoes_list_box_draw(VALUE self, VALUE c, VALUE actual)
 {
-  SETUP_CONTROL(0, 0);
+  SETUP_CONTROL(0, 0, TRUE);
 
 #ifdef SHOES_QUARTZ
   place.h += 4;
@@ -3070,7 +3042,7 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE actual)
 VALUE
 shoes_progress_draw(VALUE self, VALUE c, VALUE actual)
 {
-  SETUP_CONTROL(0, 0);
+  SETUP_CONTROL(0, 0, FALSE);
 
   if (RTEST(actual))
   {
@@ -3111,7 +3083,7 @@ shoes_progress_set_fraction(VALUE self, VALUE _perc)
 VALUE
 shoes_check_draw(VALUE self, VALUE c, VALUE actual)
 {
-  SETUP_CONTROL(0, 20);
+  SETUP_CONTROL(0, 20, FALSE);
 
   if (RTEST(actual))
   {
@@ -3196,7 +3168,7 @@ shoes_button_send_click(VALUE control)
 VALUE
 shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
 {
-  SETUP_CONTROL(0, 20);
+  SETUP_CONTROL(0, 20, FALSE);
 
   if (RTEST(actual))
   {
@@ -3916,7 +3888,7 @@ shoes_ruby_init()
   rb_define_method(cShape, "left", CASTHOOK(shoes_shape_get_left), 0);
   rb_define_method(cShape, "width", CASTHOOK(shoes_shape_get_width), 0);
   rb_define_method(cShape, "height", CASTHOOK(shoes_shape_get_height), 0);
-  rb_define_method(cShape, "remove", CASTHOOK(shoes_shape_remove), 0);
+  rb_define_method(cShape, "remove", CASTHOOK(shoes_basic_remove), 0);
   rb_define_method(cShape, "style", CASTHOOK(shoes_shape_style), -1);
   rb_define_method(cShape, "hide", CASTHOOK(shoes_shape_hide), 0);
   rb_define_method(cShape, "show", CASTHOOK(shoes_shape_show), 0);
@@ -3947,7 +3919,7 @@ shoes_ruby_init()
   rb_define_method(cImage, "height", CASTHOOK(shoes_image_get_height), 0);
   rb_define_method(cImage, "full_width", CASTHOOK(shoes_image_get_full_width), 0);
   rb_define_method(cImage, "full_height", CASTHOOK(shoes_image_get_full_height), 0);
-  rb_define_method(cImage, "remove", CASTHOOK(shoes_image_remove), 0);
+  rb_define_method(cImage, "remove", CASTHOOK(shoes_basic_remove), 0);
   rb_define_method(cImage, "style", CASTHOOK(shoes_image_style), -1);
   rb_define_method(cImage, "hide", CASTHOOK(shoes_image_hide), 0);
   rb_define_method(cImage, "show", CASTHOOK(shoes_image_show), 0);
@@ -3960,7 +3932,7 @@ shoes_ruby_init()
   cEffect   = rb_define_class_under(cShoes, "Effect", rb_cObject);
   rb_define_alloc_func(cEffect, shoes_effect_alloc);
   rb_define_method(cEffect, "draw", CASTHOOK(shoes_effect_draw), 2);
-  rb_define_method(cEffect, "remove", CASTHOOK(shoes_effect_remove), 0);
+  rb_define_method(cEffect, "remove", CASTHOOK(shoes_basic_remove), 0);
   cBlur     = rb_define_class_under(cShoes, "Blur", cEffect);
   cShadow   = rb_define_class_under(cShoes, "Shadow", cEffect);
   cGlow     = rb_define_class_under(cShoes, "Glow", cEffect);
@@ -3999,7 +3971,7 @@ shoes_ruby_init()
   rb_define_alloc_func(cPattern, shoes_pattern_alloc);
   rb_define_method(cPattern, "displace", CASTHOOK(shoes_pattern_displace), 2);
   rb_define_method(cPattern, "move", CASTHOOK(shoes_pattern_move), 2);
-  rb_define_method(cPattern, "remove", CASTHOOK(shoes_pattern_remove), 0);
+  rb_define_method(cPattern, "remove", CASTHOOK(shoes_basic_remove), 0);
   rb_define_method(cPattern, "to_pattern", CASTHOOK(shoes_pattern_self), 0);
   rb_define_method(cPattern, "style", CASTHOOK(shoes_pattern_style), -1);
   rb_define_method(cPattern, "hide", CASTHOOK(shoes_pattern_hide), 0);
@@ -4025,7 +3997,7 @@ shoes_ruby_init()
   rb_define_method(cTextBlock, "left", CASTHOOK(shoes_textblock_get_left), 0);
   rb_define_method(cTextBlock, "width", CASTHOOK(shoes_textblock_get_width), 0);
   rb_define_method(cTextBlock, "height", CASTHOOK(shoes_textblock_get_height), 0);
-  rb_define_method(cTextBlock, "remove", CASTHOOK(shoes_textblock_remove), 0);
+  rb_define_method(cTextBlock, "remove", CASTHOOK(shoes_basic_remove), 0);
   rb_define_method(cTextBlock, "to_s", CASTHOOK(shoes_textblock_string), 0);
   rb_define_method(cTextBlock, "text", CASTHOOK(shoes_textblock_string), 0);
   rb_define_method(cTextBlock, "text=", CASTHOOK(shoes_textblock_replace), -1);
