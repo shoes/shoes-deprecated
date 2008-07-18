@@ -4,6 +4,7 @@
 //
 #include "shoes/app.h"
 #include "shoes/ruby.h"
+#include "shoes/internal.h"
 #include "shoes/config.h"
 #include "shoes/http.h"
 #include "shoes/version.h"
@@ -81,14 +82,11 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, HANDLE
 
   if (mem != NULL)
   {
-    TCHAR *nl;
     WinHttpReadData(req, mem, SHOES_BUFSIZE, &len);
-    mem[min(SHOES_BUFSIZE - 1, *size)] = '\0';
-    nl = strstr(mem, "\n");
-    if (nl) nl[0] = '\0';
+    mem[len] = '\0';
   }
 
-  if (file != NULL)
+  if (file != INVALID_HANDLE_VALUE)
   {
     TCHAR fbuf[SHOES_CHUNKSIZE];
     DWORD flen = 0, total = *size * 100;

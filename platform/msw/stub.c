@@ -112,6 +112,7 @@ shoes_download_thread(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
   WCHAR path[BUFSIZE];
   TCHAR buf[BUFSIZE];
   HANDLE file;
+  TCHAR *nl;
   TCHAR setup_path[BUFSIZE];
   GetTempPath(BUFSIZE, setup_path);
   strncat(setup_path, setup_exe, strlen(setup_exe));
@@ -119,6 +120,9 @@ shoes_download_thread(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
   shoes_winhttp(L"hacketyhack.net", 80, L"/pkg/win32/shoes", buf, NULL, &len, NULL, NULL);
   if (len == 0)
     return 0;
+
+  nl = strstr(buf, "\n");
+  if (nl) nl[0] = '\0';
 
   len = 0;
   MultiByteToWideChar(CP_ACP, 0, buf, -1, path, BUFSIZE);
