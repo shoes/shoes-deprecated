@@ -30,7 +30,19 @@ typedef struct {
 
 typedef int (*shoes_download_handler)(shoes_download_event *, void *);
 
-void shoes_download(char *, int, char *, char *, char *, unsigned long long *, shoes_download_handler, void *);
+typedef struct {
+  char *host;
+  int port;
+  char *path;
+  char *mem;
+  char *filepath;
+  unsigned long long size;
+  shoes_download_handler handler;
+  void *data;
+} shoes_download_request;
+
+void shoes_download(shoes_download_request *req);
+void shoes_queue_download(shoes_download_request *req);
 
 #ifdef SHOES_WIN32
 #include <stdio.h>

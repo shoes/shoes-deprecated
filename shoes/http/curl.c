@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <pthread.h>
 #include <curl/curl.h>
 #include <curl/types.h>
 #include <curl/easy.h>
@@ -60,32 +61,33 @@ shoes_curl_progress_funk(shoes_curl_data *data,
 }
 
 void
-shoes_download(char *host, int port, char *path, char *mem, char *filepath,
-  unsigned long long *size, shoes_download_handler handler, void *data)
+shoes_download(shoes_download_request *req)
 {
-  char url[SHOES_BUFSIZE], uagent[SHOES_BUFSIZE];
+  char url[SHOES_BUFSIZE], uagent[SHOES_BUFSIZE], slash[2] = "/";
   CURL *curl = curl_easy_init();
   CURLcode res;
   shoes_curl_data cdata;
   if (curl == NULL) return;
 
-  sprintf(url, "http://%s:%d/%s", host, port, path);
+  if (req->path[0] == '/') slash[0] = '\0';
+  sprintf(url, "http://%s:%d%s%s", req->host, req->port, slash, req->path);
   sprintf(uagent, "Shoes/0.r%d (%s) %s/%d", SHOES_REVISION, SHOES_PLATFORM,
     SHOES_RELEASE_NAME, SHOES_BUILD_DATE);
 
-  cdata.mem = mem;
+  cdata.mem = req->mem;
   cdata.fp = NULL;
-  cdata.size = 0;
+  cdata.size = req->size = 0;
   cdata.total = 0;
-  cdata.handler = handler;
-  cdata.data = data;
+  cdata.handler = req->handler;
+  cdata.data = req->data;
 
-  if (mem == NULL)
+  if (req->mem == NULL)
   {
-    cdata.fp = fopen(filepath, "wb");
+    cdata.fp = fopen(req->filepath, "wb");
     if (cdata.fp == NULL) return;
   } 
 
+  curl_easy_setopt(curl, CURLOPT_NOSIGNAL, TRUE);
   curl_easy_setopt(curl, CURLOPT_URL, url);
   curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, shoes_curl_header_funk);
   curl_easy_setopt(curl, CURLOPT_WRITEHEADER, &cdata);
@@ -97,13 +99,20 @@ shoes_download(char *host, int port, char *path, char *mem, char *filepath,
   curl_easy_setopt(curl, CURLOPT_USERAGENT, uagent);
 
   res = curl_easy_perform(curl);
-  *size = cdata.total;
+  req->size = cdata.total;
 
-  HTTP_EVENT(handler, SHOES_HTTP_TRANSFER, 100, cdata.total, cdata.total, data, 1);
-  HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, 100, cdata.total, cdata.total, data, 1);
+  HTTP_EVENT(req->handler, SHOES_HTTP_TRANSFER, 100, cdata.total, cdata.total, req->data, 1);
+  HTTP_EVENT(req->handler, SHOES_HTTP_COMPLETED, 100, cdata.total, cdata.total, req->data, 1);
 
   if (cdata.fp != NULL)
     fclose(cdata.fp);
 
   curl_easy_cleanup(curl);
+}
+
+void
+shoes_queue_download(shoes_download_request *req)
+{
+  pthread_t tid;
+  pthread_create(&tid, NULL, shoes_download, req);
 }

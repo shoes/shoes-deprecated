@@ -18,24 +18,28 @@
 @end
 
 @implementation ShoesHttp
-- (void)download: (NSString *)url string: (char *)mem filepath: (char *)filepath size: (unsigned long long *)size handler: (shoes_download_handler)handler data: (void *)data
+- (void)download: (shoes_download_request *)req
 {
+  NSString *url = [NSString stringWithFormat: @"http://%s:%d/%s", req->host, req->port, req->path];
   NSString *uagent = [NSString stringWithFormat: @"Shoes/0.r%d (%s) %s/%d", 
     SHOES_REVISION, SHOES_PLATFORM, SHOES_RELEASE_NAME, SHOES_BUILD_DATE];
-  NSURLRequest *req = [NSURLRequest requestWithURL: 
+  NSURLRequest *nsreq = [NSURLRequest requestWithURL: 
     [NSURL URLWithString: url]
     cachePolicy: NSURLRequestUseProtocolCachePolicy
     timeoutInterval: 60.0];
-  metaConn = [[NSURLConnection alloc] initWithRequest: req
+  metaConn = [[NSURLConnection alloc] initWithRequest: nsreq
     delegate: self];
 }
 @end
 
 void
-shoes_download(char *host, int port, char *path, char *mem, char *filepath,
-  unsigned long long *size, shoes_download_handler handler, void *data)
+shoes_download(shoes_download_request *req)
 {
   ShoesHttp *http = [[ShoesHttp alloc] init];
-  [http download: [NSString stringWithFormat: @"http://%s:%d/%s", host, port, path]
-    string: mem filepath: filepath size: size handler: handler data: data];
+  [http download: req];
+}
+
+void
+shoes_queue_download(shoes_download_request *req)
+{
 }

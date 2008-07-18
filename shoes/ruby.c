@@ -3633,10 +3633,33 @@ shoes_download_non_threaded(VALUE self, VALUE url)
   VALUE port = rb_funcall(url, s_port, 0);
   VALUE path = rb_funcall(url, s_path, 0);
   char mem[SHOES_BUFSIZE] = {0};
-  unsigned long long size;
-  shoes_download(RSTRING_PTR(host), NUM2INT(port), RSTRING_PTR(path),
-    mem, NULL, &size, shoes_dont_handler, NULL);
-  return rb_str_new(mem, size);
+  shoes_download_request req;
+  req.host = RSTRING_PTR(host);
+  req.port = 80;
+  req.path = RSTRING_PTR(path);
+  req.mem = mem;
+  req.filepath = NULL;
+  req.handler = shoes_dont_handler;
+  shoes_download(&req);
+  return rb_str_new(mem, req.size);
+}
+
+VALUE
+shoes_download_threaded(VALUE self, VALUE url)
+{
+  if (!rb_respond_to(url, s_host)) url = rb_funcall(rb_mKernel, s_URI, 1, url);
+  VALUE host = rb_funcall(url, s_host, 0);
+  VALUE port = rb_funcall(url, s_port, 0);
+  VALUE path = rb_funcall(url, s_path, 0);
+  shoes_download_request req;
+  req.host = RSTRING_PTR(host);
+  req.port = 80;
+  req.path = RSTRING_PTR(path);
+  req.mem = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
+  req.filepath = NULL;
+  req.handler = shoes_dont_handler;
+  shoes_queue_download(&req);
+  return Qtrue;
 }
 
 DEBUG_TYPE(info);
@@ -4286,5 +4309,6 @@ shoes_ruby_init()
   rb_define_method(rb_mKernel, "ask_save_file", CASTHOOK(shoes_dialog_save), 0);
   rb_define_method(rb_mKernel, "ask_open_folder", CASTHOOK(shoes_dialog_open_folder), 0);
   rb_define_method(rb_mKernel, "ask_save_folder", CASTHOOK(shoes_dialog_save_folder), 0);
+  rb_define_method(rb_mKernel, "download", CASTHOOK(shoes_download_threaded), 1);
   rb_define_method(rb_mKernel, "download_and_wait", CASTHOOK(shoes_download_non_threaded), 1);
 }

@@ -12,24 +12,28 @@
 #include <wchar.h>
 
 void
-shoes_download(char *host, int port, char *path, char *mem, char *filepath,
-  unsigned long long *size, shoes_download_handler handler, void *data)
+shoes_download(shoes_download_request *req)
 {
   HANDLE file = INVALID_HANDLE_VALUE;
-  INTERNET_PORT _port = port;
+  INTERNET_PORT _port = req->port;
   WCHAR _host[MAX_PATH];
   WCHAR _path[MAX_PATH];
   DWORD _size;
-  MultiByteToWideChar(CP_UTF8, 0, host, -1, _host, MAX_PATH);
-  MultiByteToWideChar(CP_UTF8, 0, path, -1, _path, MAX_PATH);
+  MultiByteToWideChar(CP_UTF8, 0, req->host, -1, _host, MAX_PATH);
+  MultiByteToWideChar(CP_UTF8, 0, req->path, -1, _path, MAX_PATH);
 
-  if (mem == NULL && filepath != NULL)
-    file = CreateFile(filepath, GENERIC_READ | GENERIC_WRITE,
+  if (req->mem == NULL && req->filepath != NULL)
+    file = CreateFile(req->filepath, GENERIC_READ | GENERIC_WRITE,
       FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-  shoes_winhttp(_host, _port, _path, mem, file, &_size, handler, data);
-  *size = _size;
+  shoes_winhttp(_host, _port, _path, req->mem, file, &_size, req->handler, req->data);
+  req->size = _size;
   if (file != INVALID_HANDLE_VALUE)
     CloseHandle(file);
+}
+
+void
+shoes_queue_download(shoes_download_request *req)
+{
 }
 
 void
