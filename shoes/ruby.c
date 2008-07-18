@@ -3620,7 +3620,7 @@ shoes_msg(ID typ, VALUE str)
 int
 shoes_dont_handler(shoes_download_event *de, void *data)
 {
-  printf("EVENT: %d, %lu, %llu, %llu\n", (int)de->stage, de->percent, 
+  INFO("EVENT: %d, %lu, %llu, %llu\n", (int)de->stage, de->percent,
     de->transferred, de->total);
   return SHOES_DOWNLOAD_CONTINUE;
 }
@@ -3635,7 +3635,7 @@ shoes_download_non_threaded(VALUE self, VALUE url)
   char mem[SHOES_BUFSIZE] = {0};
   unsigned long long size;
   shoes_download(RSTRING_PTR(host), NUM2INT(port), RSTRING_PTR(path),
-    mem, NULL, &size, NULL, NULL);
+    mem, NULL, &size, shoes_dont_handler, NULL);
   return rb_str_new(mem, size);
 }
 

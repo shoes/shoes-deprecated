@@ -36,7 +36,6 @@ void
 shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, HANDLE file,
   LPDWORD size, shoes_download_handler handler, void *data)
 {
-  shoes_download_event event;
   DWORD len = 0, rlen = 0, status = 0;
   TCHAR buf[SHOES_BUFSIZE];
   WCHAR uagent[SHOES_BUFSIZE];
@@ -79,6 +78,7 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, HANDLE
     goto done;
 
   *size = _wtoi((wchar_t *)buf);
+  HTTP_EVENT(handler, SHOES_HTTP_CONNECTED, 0, 0, *size, data, goto done);
 
   if (mem != NULL)
   {
@@ -96,15 +96,15 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, HANDLE
       WinHttpReadData(req, fbuf, SHOES_CHUNKSIZE, &len);
       WriteFile(file, (LPBYTE)fbuf, len, &flen, NULL);
 
-      event.percent = (int)((total - (rlen * 100)) / *size);
-      event.total = *size;
-      event.transferred = *size - rlen;
-      if (handler != NULL && (handler(&event, data) & SHOES_DOWNLOAD_HALT))
-        break;
-
+      HTTP_EVENT(handler, SHOES_HTTP_TRANSFER, (int)((total - (rlen * 100)) / *size),
+                 *size - rlen, *size, data, break);
       rlen -= SHOES_CHUNKSIZE;
     }
   }
+
+  HTTP_EVENT(handler, SHOES_HTTP_TRANSFER, 100, *size, *size, data, goto done);
+  HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, 100, *size, *size, data, goto done);
+
 done:
   if (req)
     WinHttpCloseHandle(req);

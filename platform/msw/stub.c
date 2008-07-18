@@ -15,9 +15,12 @@ int
 StubDownloadingShoes(shoes_download_event *event, void *data)
 {
   TCHAR msg[512];
-  sprintf(msg, "Shoes is downloading. (%d%% done)", event->percent);
-  SetDlgItemText(dlg, IDSHOE, msg);
-  SendMessage(GetDlgItem(dlg, IDPROG), PBM_SETPOS, event->percent, 0L);
+  if (event->stage == SHOES_HTTP_TRANSFER)
+  {
+    sprintf(msg, "Shoes is downloading. (%d%% done)", event->percent);
+    SetDlgItemText(dlg, IDSHOE, msg);
+    SendMessage(GetDlgItem(dlg, IDPROG), PBM_SETPOS, event->percent, 0L);
+  }
   return SHOES_DOWNLOAD_CONTINUE;
 }
 
