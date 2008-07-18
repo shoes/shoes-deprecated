@@ -101,8 +101,8 @@ shoes_download(shoes_download_request *req)
   res = curl_easy_perform(curl);
   req->size = cdata.total;
 
-  HTTP_EVENT(req->handler, SHOES_HTTP_TRANSFER, 100, cdata.total, cdata.total, req->data, 1);
-  HTTP_EVENT(req->handler, SHOES_HTTP_COMPLETED, 100, cdata.total, cdata.total, req->data, 1);
+  HTTP_EVENT(cdata.handler, SHOES_HTTP_TRANSFER, 100, cdata.total, cdata.total, cdata.data, 1);
+  HTTP_EVENT(cdata.handler, SHOES_HTTP_COMPLETED, 100, cdata.total, cdata.total, cdata.data, 1);
 
   if (cdata.fp != NULL)
     fclose(cdata.fp);
@@ -110,9 +110,19 @@ shoes_download(shoes_download_request *req)
   curl_easy_cleanup(curl);
 }
 
+void *
+shoes_download2(void *data)
+{
+  shoes_download_request *req = (shoes_download_request *)data;
+  shoes_download(req);
+  free(req->mem);
+  free(req);
+  return NULL;
+}
+
 void
 shoes_queue_download(shoes_download_request *req)
 {
   pthread_t tid;
-  pthread_create(&tid, NULL, shoes_download, req);
+  pthread_create(&tid, NULL, shoes_download2, req);
 }

@@ -3616,21 +3616,41 @@ shoes_download_non_threaded(VALUE self, VALUE url)
   return rb_str_new(mem, req.size);
 }
 
-VALUE
-shoes_download_threaded(VALUE self, VALUE url)
+void
+shoes_message_download(void *data)
 {
+  shoes_download_event *de = (shoes_download_event *)data;
+  INFO("EVENT: %d, %lu, %llu, %llu\n", (int)de->stage, de->percent,
+    de->transferred, de->total);
+}
+
+int
+shoes_doth_handler(shoes_download_event *de, void *data)
+{
+  SHOES_CONTROL_REF ref = (SHOES_CONTROL_REF)data;
+  shoes_download_event *de2 = SHOE_ALLOC(shoes_download_event);
+  SHOE_MEMCPY(de2, de, shoes_download_event, 1);
+  shoes_native_message(ref, SHOES_THREAD_DOWNLOAD, de2);
+  return SHOES_DOWNLOAD_CONTINUE;
+}
+
+VALUE
+shoes_canvas_download_threaded(VALUE self, VALUE url)
+{
+  GET_STRUCT(canvas, self_t);
   if (!rb_respond_to(url, s_host)) url = rb_funcall(rb_mKernel, s_URI, 1, url);
   VALUE host = rb_funcall(url, s_host, 0);
   VALUE port = rb_funcall(url, s_port, 0);
   VALUE path = rb_funcall(url, s_path, 0);
-  shoes_download_request req;
-  req.host = RSTRING_PTR(host);
-  req.port = 80;
-  req.path = RSTRING_PTR(path);
-  req.mem = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
-  req.filepath = NULL;
-  req.handler = shoes_dont_handler;
-  shoes_queue_download(&req);
+  shoes_download_request *req = SHOE_ALLOC(shoes_download_request);
+  req->host = RSTRING_PTR(host);
+  req->port = 80;
+  req->path = RSTRING_PTR(path);
+  req->mem = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
+  req->filepath = NULL;
+  req->handler = shoes_doth_handler;
+  req->data = DC(self_t->slot);
+  shoes_queue_download(req);
   return Qtrue;
 }
 
@@ -4281,6 +4301,5 @@ shoes_ruby_init()
   rb_define_method(rb_mKernel, "ask_save_file", CASTHOOK(shoes_dialog_save), 0);
   rb_define_method(rb_mKernel, "ask_open_folder", CASTHOOK(shoes_dialog_open_folder), 0);
   rb_define_method(rb_mKernel, "ask_save_folder", CASTHOOK(shoes_dialog_save_folder), 0);
-  rb_define_method(rb_mKernel, "download", CASTHOOK(shoes_download_threaded), 1);
   rb_define_method(rb_mKernel, "download_and_wait", CASTHOOK(shoes_download_non_threaded), 1);
 }

@@ -534,6 +534,8 @@ VALUE shoes_textblock_motion(VALUE, int, int, char *);
 VALUE shoes_textblock_send_click(VALUE, int, int, int, VALUE *);
 void shoes_textblock_send_release(VALUE, int, int, int);
 
+VALUE shoes_canvas_download_threaded(VALUE, VALUE);
+void shoes_message_download(void *);
 VALUE shoes_p(VALUE, VALUE);
 
 extern const double SHOES_PIM2, SHOES_PI, SHOES_RAD2PI;

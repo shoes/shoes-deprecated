@@ -272,6 +272,7 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f(".cursor=", set_cursor, 1); \
   f(".clipboard", get_clipboard, 0); \
   f(".clipboard=", set_clipboard, 1); \
+  f(".download", download_threaded, 1); \
   f(".owner", owner, 0); \
   f(".window", window, -1); \
   f(".dialog", dialog, -1); \

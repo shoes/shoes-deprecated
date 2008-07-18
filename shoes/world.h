@@ -21,6 +21,7 @@ SHOES_EXTERN typedef struct _shoes_world_t {
   char path[SHOES_BUFSIZE];
   VALUE apps, msgs;
   st_table *image_cache;
+  guint thread_event;
   cairo_surface_t *blank_image;
 } shoes_world_t;
 
