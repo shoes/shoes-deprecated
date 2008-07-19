@@ -1078,7 +1078,20 @@ shoes_dialog_alert(VALUE self, VALUE msg)
 VALUE
 shoes_dialog_ask(VALUE self, VALUE quiz)
 {
-  return Qnil;
+  INIT;
+  VALUE answer = Qnil;
+  NSAlert *alert = [NSAlert alertWithMessageText: @"Shoes asks:"
+    defaultButton:@"OK" alternateButton:@"Cancel" otherButton:nil
+    informativeTextWithFormat: [NSString stringWithUTF8String: RSTRING_PTR(quiz)]];
+  NSTextField *input = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 300, 24)];
+  [input setStringValue:@""];
+  [alert setAccessoryView:input];
+  if ([alert runModal] == NSOKButton)
+  {
+    answer = rb_str_new2([[input stringValue] UTF8String]);
+  }
+  RELEASE;
+  return answer;
 }
 
 VALUE
