@@ -22,7 +22,7 @@ typedef struct {
   size_t size;
   size_t total;
   shoes_download_handler handler;
-  unsigned long percent;
+  time_t last;
   void *data;
 } shoes_curl_data;
 
@@ -35,7 +35,7 @@ shoes_curl_header_funk(void *ptr, size_t size, size_t nmemb, shoes_curl_data *da
   if (strncmp(ptr, content_len_str, strlen(content_len_str)) == 0)
   {
     data->total = strtoull(ptr + strlen(content_len_str), NULL, 10);
-    HTTP_EVENT(data->handler, SHOES_HTTP_CONNECTED, data->percent, 0, 0, data->total, data->data, return -1);
+    HTTP_EVENT(data->handler, SHOES_HTTP_CONNECTED, data->last, 0, 0, data->total, data->data, return -1);
   }
   return realsize;
 }
@@ -56,7 +56,7 @@ int
 shoes_curl_progress_funk(shoes_curl_data *data,
   double dltotal, double dlnow, double ultotal, double ulnow)
 {
-  HTTP_EVENT(data->handler, SHOES_HTTP_TRANSFER, data->percent, dlnow * 100.0 / dltotal, dlnow,
+  HTTP_EVENT(data->handler, SHOES_HTTP_TRANSFER, data->last, dlnow * 100.0 / dltotal, dlnow,
              dltotal, data->data, return 1);
   return 0;
 }
@@ -78,9 +78,10 @@ shoes_download(shoes_download_request *req)
   cdata.mem = req->mem;
   cdata.fp = NULL;
   cdata.size = req->size = 0;
-  cdata.percent = cdata.total = 0;
+  cdata.total = 0;
   cdata.handler = req->handler;
   cdata.data = req->data;
+  cdata.last = 0;
 
   if (req->mem == NULL)
   {
@@ -102,8 +103,7 @@ shoes_download(shoes_download_request *req)
   res = curl_easy_perform(curl);
   req->size = cdata.total;
 
-  HTTP_EVENT(cdata.handler, SHOES_HTTP_TRANSFER, cdata.percent, 100, cdata.total, cdata.total, cdata.data, 1);
-  HTTP_EVENT(cdata.handler, SHOES_HTTP_COMPLETED, cdata.percent, 100, cdata.total, cdata.total, cdata.data, 1);
+  HTTP_EVENT(cdata.handler, SHOES_HTTP_COMPLETED, cdata.last, 100, cdata.total, cdata.total, cdata.data, 1);
 
   if (cdata.fp != NULL)
     fclose(cdata.fp);
