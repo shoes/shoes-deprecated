@@ -3625,6 +3625,8 @@ shoes_download_alloc(VALUE klass)
   obj = Data_Wrap_Struct(klass, shoes_download_mark, shoes_download_free, dl);
   dl->parent = Qnil;
   dl->attr = Qnil;
+  dl->total = dl->transferred = 0;
+  dl->percent = 0;
   return obj;
 }
 
@@ -3654,11 +3656,11 @@ shoes_download_non_threaded(VALUE self, VALUE url)
   VALUE path = rb_funcall(url, s_path, 0);
   char mem[SHOES_BUFSIZE] = {0};
   shoes_download_request req;
+  SHOE_MEMZERO(&req, shoes_download_request, 1);
   req.host = RSTRING_PTR(host);
   req.port = 80;
   req.path = RSTRING_PTR(path);
   req.mem = mem;
-  req.filepath = NULL;
   req.handler = shoes_dont_handler;
   shoes_download(&req);
   return rb_str_new(mem, req.size);
@@ -3667,14 +3669,24 @@ shoes_download_non_threaded(VALUE self, VALUE url)
 void
 shoes_message_download(VALUE self, void *data)
 {
+  VALUE proc;
   shoes_download_event *de = (shoes_download_event *)data;
   GET_STRUCT(download_klass, dl);
-  INFO("EVENT THREAD: %lu\n", pthread_self());
   INFO("EVENT: %d, %lu, %llu, %llu\n", (int)de->stage, de->percent,
     de->transferred, de->total);
-  VALUE progress = ATTR(dl->attr, progress);
-  if (!NIL_P(progress))
-    shoes_safe_block(dl->parent, progress, rb_ary_new3(1, INT2NUM(de->percent)));
+
+  dl->percent = de->percent;
+  dl->total = de->total;
+  dl->transferred = de->transferred;
+
+  switch (de->stage) {
+    case SHOES_HTTP_CONNECTED: proc = ATTR(dl->attr, start); break;
+    case SHOES_HTTP_TRANSFER:  proc = ATTR(dl->attr, progress); break;
+    case SHOES_HTTP_COMPLETED: proc = ATTR(dl->attr, finish); break;
+  }
+
+  if (!NIL_P(proc))
+    shoes_safe_block(dl->parent, proc, rb_ary_new3(1, self));
 }
 
 typedef struct {
@@ -3688,7 +3700,6 @@ shoes_doth_handler(shoes_download_event *de, void *data)
   shoes_doth_data *doth = (shoes_doth_data *)data;
   shoes_download_event *de2 = SHOE_ALLOC(shoes_download_event);
   SHOE_MEMCPY(de2, de, shoes_download_event, 1);
-  INFO("DOTH THREAD: %lu\n", pthread_self());
   shoes_native_message(doth->ref, SHOES_THREAD_DOWNLOAD, doth->download, de2);
   return SHOES_DOWNLOAD_CONTINUE;
 }
@@ -3698,7 +3709,6 @@ shoes_download_threaded(VALUE self, VALUE url, VALUE attr)
 {
   VALUE obj = shoes_download_new(cDownload, self, attr);
   GET_STRUCT(canvas, self_t);
-  INFO("THREAD: %lu\n", pthread_self());
 
   if (!rb_respond_to(url, s_host)) url = rb_funcall(rb_mKernel, s_URI, 1, url);
   VALUE host = rb_funcall(url, s_host, 0);
@@ -3706,11 +3716,11 @@ shoes_download_threaded(VALUE self, VALUE url, VALUE attr)
   VALUE path = rb_funcall(url, s_path, 0);
 
   shoes_download_request *req = SHOE_ALLOC(shoes_download_request);
+  SHOE_MEMZERO(req, shoes_download_request, 1);
   req->host = RSTRING_PTR(host);
   req->port = 80;
   req->path = RSTRING_PTR(path);
   req->mem = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
-  req->filepath = NULL;
   req->handler = shoes_doth_handler;
 
   shoes_doth_data *data = SHOE_ALLOC(shoes_doth_data);
@@ -3721,6 +3731,31 @@ shoes_download_threaded(VALUE self, VALUE url, VALUE attr)
   shoes_queue_download(req);
   return obj;
 }
+
+VALUE
+shoes_download_length(VALUE self)
+{
+  GET_STRUCT(download_klass, dl);
+  return rb_ull2inum(dl->total);
+}
+
+VALUE
+shoes_download_percent(VALUE self)
+{
+  GET_STRUCT(download_klass, dl);
+  return rb_uint2inum(dl->percent);
+}
+
+VALUE
+shoes_download_transferred(VALUE self)
+{
+  GET_STRUCT(download_klass, dl);
+  return rb_ull2inum(dl->transferred);
+}
+
+EVENT_COMMON(download, download_klass, start);
+EVENT_COMMON(download, download_klass, progress);
+EVENT_COMMON(download, download_klass, finish);
 
 DEBUG_TYPE(info);
 DEBUG_TYPE(debug);
@@ -4215,7 +4250,14 @@ shoes_ruby_init()
 
   cDownload   = rb_define_class_under(cShoes, "Download", rb_cObject);
   rb_define_alloc_func(cDownload, shoes_download_alloc);
+  rb_define_method(cDownload, "finish", CASTHOOK(shoes_download_finish), -1);
   rb_define_method(cDownload, "remove", CASTHOOK(shoes_download_remove), 0);
+  rb_define_method(cDownload, "length", CASTHOOK(shoes_download_length), 0);
+  rb_define_method(cDownload, "percent", CASTHOOK(shoes_download_percent), 0);
+  rb_define_method(cDownload, "progress", CASTHOOK(shoes_download_progress), -1);
+  rb_define_method(cDownload, "size", CASTHOOK(shoes_download_length), 0);
+  rb_define_method(cDownload, "start", CASTHOOK(shoes_download_start), -1);
+  rb_define_method(cDownload, "transferred", CASTHOOK(shoes_download_transferred), 0);
 
   rb_define_method(cCanvas, "method_missing", CASTHOOK(shoes_color_method_missing), -1);
   rb_define_method(cApp, "method_missing", CASTHOOK(shoes_app_method_missing), -1);

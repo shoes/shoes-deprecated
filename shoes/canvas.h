@@ -227,6 +227,9 @@ typedef struct {
 typedef struct {
   VALUE parent;
   VALUE attr;
+  unsigned LONG_LONG total;
+  unsigned LONG_LONG transferred;
+  unsigned long percent;
 } shoes_download_klass;
 
 #define CANVAS_NADA    0

@@ -1626,7 +1626,7 @@ shoes_canvas_download(int argc, VALUE *argv, VALUE self)
   SETUP();
 
   rb_scan_args(argc, argv, "01&", &url, &block);
-  ATTRSET(attr, progress, block);
+  ATTRSET(attr, finish, block);
   obj = shoes_download_threaded(self, url, attr);
   rb_ary_push(canvas->app->extras, obj);
   return obj;

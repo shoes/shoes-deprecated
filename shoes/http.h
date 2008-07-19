@@ -12,20 +12,22 @@
 #define SHOES_HTTP_TRANSFER  10
 #define SHOES_HTTP_COMPLETED 15
 
-#define HTTP_EVENT(handler, s, perc, trans, tot, dat, abort) \
-{ shoes_download_event event; \
-  event.stage = s; \
-  event.percent = perc; \
-  event.transferred = trans;\
-  event.total = tot; \
-  if (handler != NULL && (handler(&event, dat) & SHOES_DOWNLOAD_HALT)) \
-  { abort; } }
+#define HTTP_EVENT(handler, s, last_perc, perc, trans, tot, dat, abort) \
+  if (s != SHOES_HTTP_TRANSFER || perc > last_perc) { \
+    shoes_download_event event; \
+    event.stage = s; \
+    event.percent = last_perc = perc; \
+    event.transferred = trans;\
+    event.total = tot; \
+    if (handler != NULL && (handler(&event, dat) & SHOES_DOWNLOAD_HALT)) \
+    { abort; } \
+  }
 
 typedef struct {
   unsigned char stage;
-  unsigned long long total;
-  unsigned long long transferred;
-  unsigned int percent;
+  unsigned LONG_LONG total;
+  unsigned LONG_LONG transferred;
+  unsigned long percent;
 } shoes_download_event;
 
 typedef int (*shoes_download_handler)(shoes_download_event *, void *);
@@ -36,7 +38,7 @@ typedef struct {
   char *path;
   char *mem;
   char *filepath;
-  unsigned long long size;
+  unsigned LONG_LONG size;
   shoes_download_handler handler;
   void *data;
 } shoes_download_request;
