@@ -34,7 +34,7 @@ shoes_curl_header_funk(void *ptr, size_t size, size_t nmemb, shoes_curl_data *da
   size_t realsize = size * nmemb;
   if (strncmp(ptr, content_len_str, strlen(content_len_str)) == 0)
   {
-    data->total = strtoll(ptr + strlen(content_len_str), NULL, 10);
+    data->total = strtoull(ptr + strlen(content_len_str), NULL, 10);
     HTTP_EVENT(data->handler, SHOES_HTTP_CONNECTED, data->percent, 0, 0, data->total, data->data, return -1);
   }
   return realsize;
