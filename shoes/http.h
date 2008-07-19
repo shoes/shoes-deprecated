@@ -13,21 +13,24 @@
 #define SHOES_HTTP_COMPLETED 15
 
 #define HTTP_EVENT(handler, s, last, perc, trans, tot, dat, abort) \
-  if (s != SHOES_HTTP_TRANSFER || (long)(time(NULL) - last) > 1 ) { \
+{ struct timespec ts, tse; \
+  clock_gettime(CLOCK_REALTIME, &ts); \
+  tse = shoes_time_diff(last, ts); \
+  if (s != SHOES_HTTP_TRANSFER || tse.tv_nsec > 300000000 ) { \
     shoes_download_event event; \
     event.stage = s; \
     if (s == SHOES_HTTP_COMPLETED) event.stage = SHOES_HTTP_TRANSFER; \
     event.percent = perc; \
     event.transferred = trans;\
     event.total = tot; \
-    last = time(NULL); \
+    last = ts; \
     if (handler != NULL && (handler(&event, dat) & SHOES_DOWNLOAD_HALT)) \
     { abort; } \
     if (s == SHOES_HTTP_COMPLETED) { event.stage = s; \
       if (handler != NULL && (handler(&event, dat) & SHOES_DOWNLOAD_HALT)) \
       { abort; } \
     } \
-  }
+  } }
 
 typedef struct {
   unsigned char stage;
