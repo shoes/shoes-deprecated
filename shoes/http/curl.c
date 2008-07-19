@@ -116,7 +116,8 @@ shoes_download2(void *data)
 {
   shoes_download_request *req = (shoes_download_request *)data;
   shoes_download(req);
-  free(req->mem);
+  if (req->mem != NULL) free(req->mem);
+  if (req->filepath != NULL) free(req->filepath);
   free(req->data);
   free(req);
   return NULL;
