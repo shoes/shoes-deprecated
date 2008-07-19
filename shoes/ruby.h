@@ -69,12 +69,12 @@ static inline void flip_endian(unsigned char* x, int length) {
 
 #undef s_host
 
-extern VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cNative, cShape, cVideo, cImage, cImageBlock, cEffect, cBlur, cShadow, cGlow, cEvery, cTimer, cAnim, cPattern, cBorder, cBackground, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextBlock, cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns, cButton, cEditLine, cEditBox, cListBox, cProgress, cCheck, cRadio, cColor, cColors, cLink, cLinkHover, ssNestSlot;
+extern VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cNative, cShape, cVideo, cImage, cImageBlock, cEffect, cBlur, cShadow, cGlow, cEvery, cTimer, cAnim, cPattern, cBorder, cBackground, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextBlock, cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns, cButton, cEditLine, cEditBox, cListBox, cProgress, cCheck, cRadio, cColor, cDownload, cColors, cLink, cLinkHover, ssNestSlot;
 extern VALUE aMsgList;
 extern VALUE eNotImpl, eImageError;
 extern VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 extern VALUE symAltQuest, symAltSlash, symAltDot;
-extern ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_URI, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_group, s_hand, s_hidden, s_host, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_link, s_motion, s_path, s_port, s_release, s_wheel, s_scroll, s_start, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
+extern ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_URI, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_group, s_hand, s_hidden, s_host, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_link, s_motion, s_path, s_port, s_progress, s_release, s_wheel, s_scroll, s_start, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
 extern VALUE instance_eval_proc;
 
 VALUE mfp_instance_eval(VALUE, VALUE);
@@ -272,7 +272,7 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f(".cursor=", set_cursor, 1); \
   f(".clipboard", get_clipboard, 0); \
   f(".clipboard=", set_clipboard, 1); \
-  f(".download", download_threaded, 1); \
+  f(".download", download, -1); \
   f(".owner", owner, 0); \
   f(".window", window, -1); \
   f(".dialog", dialog, -1); \

@@ -554,7 +554,7 @@ shoes_app_win32proc(
     case WM_TIMER:
     {
       int id = LOWORD(w);
-      VALUE timer = rb_ary_entry(app->timers, id - SHOES_CONTROL1);
+      VALUE timer = rb_ary_entry(app->extras, id - SHOES_CONTROL1);
       if (!NIL_P(timer))
       {
         if (rb_obj_is_kind_of(timer, cTimer))
@@ -1252,7 +1252,7 @@ shoes_native_timer_remove(shoes_canvas *canvas, SHOES_TIMER_REF ref)
 SHOES_TIMER_REF
 shoes_native_timer_start(VALUE self, shoes_canvas *canvas, unsigned int interval)
 {
-  long nid = rb_ary_index_of(canvas->app->timers, self);
+  long nid = rb_ary_index_of(canvas->app->extras, self);
   SetTimer(canvas->slot.window, SHOES_CONTROL1 + nid, interval, NULL);
   return SHOES_CONTROL1 + nid;
 }

@@ -786,7 +786,7 @@ shoes_canvas_animate(int argc, VALUE *argv, VALUE self)
 
   rb_scan_args(argc, argv, "01&", &fps, &block);
   anim = shoes_timer_new(cAnim, fps, block, self);
-  rb_ary_push(canvas->app->timers, anim);
+  rb_ary_push(canvas->app->extras, anim);
   return anim;
 }
 
@@ -798,7 +798,7 @@ shoes_canvas_every(int argc, VALUE *argv, VALUE self)
 
   rb_scan_args(argc, argv, "1&", &rate, &block);
   ev = shoes_timer_new(cEvery, rate, block, self);
-  rb_ary_push(canvas->app->timers, ev);
+  rb_ary_push(canvas->app->extras, ev);
   return ev;
 }
 
@@ -810,7 +810,7 @@ shoes_canvas_timer(int argc, VALUE *argv, VALUE self)
 
   rb_scan_args(argc, argv, "1&", &period, &block);
   timer = shoes_timer_new(cTimer, period, block, self);
-  rb_ary_push(canvas->app->timers, timer);
+  rb_ary_push(canvas->app->extras, timer);
   return timer;
 }
 
@@ -1075,9 +1075,9 @@ shoes_canvas_remove_item(VALUE self, VALUE item, char c, char t)
   shoes_native_remove_item(&self_t->slot, item, c);
   if (t)
   {
-    i = rb_ary_index_of(self_t->app->timers, item);
+    i = rb_ary_index_of(self_t->app->extras, item);
     if (i >= 0)
-      rb_ary_insert_at(self_t->app->timers, i, 1, Qnil);
+      rb_ary_insert_at(self_t->app->extras, i, 1, Qnil);
   }
   rb_ary_delete(self_t->contents, item);
 }
@@ -1290,10 +1290,11 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
 
   if (self_t == canvas)
   {
-    for (i = 0; i < RARRAY_LEN(self_t->app->timers); i++)
+    for (i = 0; i < RARRAY_LEN(self_t->app->extras); i++)
     {
-      VALUE ele = rb_ary_entry(self_t->app->timers, i);
-      rb_funcall(ele, s_draw, 2, self, actual);
+      VALUE ele = rb_ary_entry(self_t->app->extras, i);
+      if (rb_respond_to(ele, s_draw))
+        rb_funcall(ele, s_draw, 2, self, actual);
     }
   }
 
@@ -1616,6 +1617,19 @@ shoes_canvas_widget(int argc, VALUE *argv, VALUE self)
   DRAW(widget, canvas->app, ts_funcall2(widget, rb_intern("initialize"), argc - 1, argv + 1));
   shoes_add_ele(canvas, widget);
   return widget;
+}
+
+VALUE
+shoes_canvas_download(int argc, VALUE *argv, VALUE self)
+{
+  VALUE url, block, obj, attr = Qnil;
+  SETUP();
+
+  rb_scan_args(argc, argv, "01&", &url, &block);
+  ATTRSET(attr, progress, block);
+  obj = shoes_download_threaded(self, url, attr);
+  rb_ary_push(canvas->app->extras, obj);
+  return obj;
 }
 
 void

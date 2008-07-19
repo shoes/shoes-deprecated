@@ -19,7 +19,7 @@ shoes_app_mark(shoes_app *app)
   rb_gc_mark_maybe(app->canvas);
   rb_gc_mark_maybe(app->nestslot);
   rb_gc_mark_maybe(app->nesting);
-  rb_gc_mark_maybe(app->timers);
+  rb_gc_mark_maybe(app->extras);
   rb_gc_mark_maybe(app->styles);
   rb_gc_mark_maybe(app->groups);
   rb_gc_mark_maybe(app->owner);
@@ -42,7 +42,7 @@ shoes_app_alloc(VALUE klass)
   app->canvas = shoes_canvas_new(cShoes, app);
   app->nestslot = Qnil;
   app->nesting = rb_ary_new();
-  app->timers = rb_ary_new();
+  app->extras = rb_ary_new();
   app->groups = Qnil;
   app->styles = Qnil;
   app->title = Qnil;
@@ -71,7 +71,7 @@ shoes_apps_get(VALUE self)
 static void
 shoes_app_clear(shoes_app *app)
 {
-  shoes_ele_remove_all(app->timers);
+  shoes_ele_remove_all(app->extras);
   shoes_canvas_clear(app->canvas);
   app->nestslot = Qnil;
   app->groups = Qnil;
@@ -277,7 +277,7 @@ shoes_app_visit(shoes_app *app, char *path)
   shoes_exec exec;
   shoes_canvas *canvas;
   VALUE meth;
-  VALUE ary = rb_ary_dup(app->timers);
+  VALUE ary = rb_ary_dup(app->extras);
   Data_Get_Struct(app->canvas, shoes_canvas, canvas);
 
   canvas->slot.scrolly = 0;

@@ -36,7 +36,7 @@ typedef struct _shoes_app {
   VALUE canvas;
   VALUE nestslot;
   VALUE nesting;
-  VALUE timers;
+  VALUE extras;
   VALUE styles;
   VALUE groups;
   ID cursor;

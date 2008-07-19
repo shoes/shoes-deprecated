@@ -12,11 +12,11 @@
 #include "shoes/http.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cImageBlock, cEffect, cBlur, cShadow, cGlow, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cColors, cLink, cLinkHover, ssNestSlot;
+VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cImageBlock, cEffect, cBlur, cShadow, cGlow, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cDownload, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE eVlcError, eImageError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot;
-ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_URI, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_checked, s_checked_q, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_group, s_hand, s_hidden, s_host, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_link, s_motion, s_path, s_port, s_release, s_wheel, s_scroll, s_start, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
+ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_URI, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_checked, s_checked_q, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_group, s_hand, s_hidden, s_host, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_link, s_motion, s_path, s_port, s_progress, s_release, s_wheel, s_scroll, s_start, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -3589,6 +3589,54 @@ shoes_msg(ID typ, VALUE str)
     shoes_msg(s_##t, rb_str_new2(buf)); \
   }
 
+//
+// Shoes::Download
+//
+static void
+shoes_download_mark(shoes_download_klass *dl)
+{
+  rb_gc_mark_maybe(dl->parent);
+  rb_gc_mark_maybe(dl->attr);
+}
+
+static void
+shoes_download_free(shoes_download_klass *dl)
+{
+  RUBY_CRITICAL(free(dl));
+}
+
+VALUE
+shoes_download_new(VALUE klass, VALUE parent, VALUE attr)
+{
+  shoes_download_klass *dl;
+  VALUE obj = shoes_download_alloc(klass);
+  Data_Get_Struct(obj, shoes_download_klass, dl);
+  dl->parent = parent;
+  dl->attr = attr;
+  return obj;
+}
+
+VALUE
+shoes_download_alloc(VALUE klass)
+{
+  VALUE obj;
+  shoes_download_klass *dl = SHOE_ALLOC(shoes_download_klass);
+  SHOE_MEMZERO(dl, shoes_download_klass, 1);
+  obj = Data_Wrap_Struct(klass, shoes_download_mark, shoes_download_free, dl);
+  dl->parent = Qnil;
+  dl->attr = Qnil;
+  return obj;
+}
+
+VALUE
+shoes_download_remove(VALUE self)
+{
+  GET_STRUCT(download_klass, self_t);
+  // TODO: shoes_download_stop
+  shoes_canvas_remove_item(self_t->parent, self, 0, 1);
+  return self;
+}
+
 int
 shoes_dont_handler(shoes_download_event *de, void *data)
 {
@@ -3617,31 +3665,46 @@ shoes_download_non_threaded(VALUE self, VALUE url)
 }
 
 void
-shoes_message_download(void *data)
+shoes_message_download(VALUE self, void *data)
 {
   shoes_download_event *de = (shoes_download_event *)data;
+  GET_STRUCT(download_klass, dl);
+  INFO("EVENT THREAD: %lu\n", pthread_self());
   INFO("EVENT: %d, %lu, %llu, %llu\n", (int)de->stage, de->percent,
     de->transferred, de->total);
+  VALUE progress = ATTR(dl->attr, progress);
+  if (!NIL_P(progress))
+    shoes_safe_block(dl->parent, progress, rb_ary_new3(1, INT2NUM(de->percent)));
 }
+
+typedef struct {
+  SHOES_CONTROL_REF ref;
+  VALUE download;
+} shoes_doth_data;
 
 int
 shoes_doth_handler(shoes_download_event *de, void *data)
 {
-  SHOES_CONTROL_REF ref = (SHOES_CONTROL_REF)data;
+  shoes_doth_data *doth = (shoes_doth_data *)data;
   shoes_download_event *de2 = SHOE_ALLOC(shoes_download_event);
   SHOE_MEMCPY(de2, de, shoes_download_event, 1);
-  shoes_native_message(ref, SHOES_THREAD_DOWNLOAD, de2);
+  INFO("DOTH THREAD: %lu\n", pthread_self());
+  shoes_native_message(doth->ref, SHOES_THREAD_DOWNLOAD, doth->download, de2);
   return SHOES_DOWNLOAD_CONTINUE;
 }
 
 VALUE
-shoes_canvas_download_threaded(VALUE self, VALUE url)
+shoes_download_threaded(VALUE self, VALUE url, VALUE attr)
 {
+  VALUE obj = shoes_download_new(cDownload, self, attr);
   GET_STRUCT(canvas, self_t);
+  INFO("THREAD: %lu\n", pthread_self());
+
   if (!rb_respond_to(url, s_host)) url = rb_funcall(rb_mKernel, s_URI, 1, url);
   VALUE host = rb_funcall(url, s_host, 0);
   VALUE port = rb_funcall(url, s_port, 0);
   VALUE path = rb_funcall(url, s_path, 0);
+
   shoes_download_request *req = SHOE_ALLOC(shoes_download_request);
   req->host = RSTRING_PTR(host);
   req->port = 80;
@@ -3649,9 +3712,14 @@ shoes_canvas_download_threaded(VALUE self, VALUE url)
   req->mem = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
   req->filepath = NULL;
   req->handler = shoes_doth_handler;
-  req->data = DC(self_t->slot);
+
+  shoes_doth_data *data = SHOE_ALLOC(shoes_doth_data);
+  data->ref = DC(self_t->slot);
+  data->download = obj;
+  req->data = data;
+
   shoes_queue_download(req);
-  return Qtrue;
+  return obj;
 }
 
 DEBUG_TYPE(info);
@@ -3791,6 +3859,7 @@ shoes_ruby_init()
   s_leave = rb_intern("leave");
   s_path = rb_intern("path");
   s_port = rb_intern("port");
+  s_progress = rb_intern("progress");
   s_release = rb_intern("release");
   s_wheel = rb_intern("wheel");
   s_scroll = rb_intern("scroll");
@@ -4143,6 +4212,10 @@ shoes_ruby_init()
   rb_define_method(cColor, "to_pattern", CASTHOOK(shoes_color_to_pattern), 0);
   rb_define_method(cColor, "transparent?", CASTHOOK(shoes_color_is_transparent), 0);
   rb_define_method(cColor, "white?", CASTHOOK(shoes_color_is_white), 0);
+
+  cDownload   = rb_define_class_under(cShoes, "Download", rb_cObject);
+  rb_define_alloc_func(cDownload, shoes_download_alloc);
+  rb_define_method(cDownload, "remove", CASTHOOK(shoes_download_remove), 0);
 
   rb_define_method(cCanvas, "method_missing", CASTHOOK(shoes_color_method_missing), -1);
   rb_define_method(cApp, "method_missing", CASTHOOK(shoes_app_method_missing), -1);

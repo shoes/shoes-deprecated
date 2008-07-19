@@ -23,8 +23,8 @@ void shoes_native_init()
   gtk_init(NULL, NULL);
   shoes_world->thread_event = g_signal_new("shoes-thread",
     GTK_TYPE_WIDGET, G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
-    NULL, NULL, NULL, gtk_marshal_NONE__POINTER_UINT,
-    G_TYPE_NONE, 2, G_TYPE_POINTER, G_TYPE_UINT);
+    NULL, NULL, NULL, gtk_marshal_NONE__POINTER_UINT_UINT,
+    G_TYPE_NONE, 3, G_TYPE_POINTER, G_TYPE_UINT, G_TYPE_UINT);
 }
 
 void shoes_native_cleanup(shoes_world_t *world)
@@ -37,9 +37,33 @@ void shoes_native_quit()
   gtk_main_quit();
 }
 
-void shoes_native_message(SHOES_CONTROL_REF w, unsigned int m, void *data)
+typedef struct {
+  SHOES_CONTROL_REF ref;
+  unsigned int name;
+  VALUE obj;
+  void *data;
+} shoes_gtk_msg;
+
+static gboolean 
+shoes_msg_emit_it (gpointer user) {
+  shoes_gtk_msg *msg = (shoes_gtk_msg *)user;
+  g_signal_emit(G_OBJECT(msg->ref), shoes_world->thread_event, 0, msg->data, msg->name, msg->obj);
+  return FALSE;
+}
+
+static void
+shoes_msg_destroy_it(gpointer user) {
+  free(user);
+}
+
+void shoes_native_message(SHOES_CONTROL_REF w, unsigned int name, VALUE obj, void *data)
 {
-  g_signal_emit(G_OBJECT(w), shoes_world->thread_event, 0, data, m);
+  shoes_gtk_msg *msg = SHOE_ALLOC(shoes_gtk_msg);
+  msg->ref = w;
+  msg->name = name;
+  msg->obj = obj;
+  msg->data = data;
+  g_idle_add_full(G_PRIORITY_DEFAULT, shoes_msg_emit_it, msg, shoes_msg_destroy_it);
 }
 
 void shoes_native_slot_mark(SHOES_SLOT_OS *slot) {}
@@ -334,11 +358,13 @@ shoes_canvas_gtk_scroll(GtkRange *r, gpointer data)
 }
 
 static void
-shoes_canvas_thread_event(GtkWidget *w, void *x, unsigned int m, gpointer data)
+shoes_canvas_thread_event(GtkWidget *w, void *x, unsigned int name, unsigned int obj, gpointer data)
 {
-  if (m == SHOES_THREAD_DOWNLOAD) {
-    shoes_message_download(x);
-    free(x);
+  switch (name) {
+    case SHOES_THREAD_DOWNLOAD:
+      shoes_message_download(obj, x);
+      free(x);
+    break;
   }
 }
 

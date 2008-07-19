@@ -224,6 +224,11 @@ typedef struct {
   shoes_place place;
 } shoes_effect;
 
+typedef struct {
+  VALUE parent;
+  VALUE attr;
+} shoes_download_klass;
+
 #define CANVAS_NADA    0
 #define CANVAS_STARTED 1
 #define CANVAS_REMOVED 2
@@ -406,6 +411,7 @@ VALUE shoes_canvas_dialog(int, VALUE *, VALUE);
 VALUE shoes_canvas_window_plain(VALUE);
 VALUE shoes_canvas_dialog_plain(VALUE);
 VALUE shoes_canvas_snapshot(int, VALUE *, VALUE);
+VALUE shoes_canvas_download(int, VALUE *, VALUE);
 
 VALUE shoes_slot_new(VALUE, VALUE, VALUE);
 VALUE shoes_flow_new(VALUE, VALUE);
@@ -534,8 +540,10 @@ VALUE shoes_textblock_motion(VALUE, int, int, char *);
 VALUE shoes_textblock_send_click(VALUE, int, int, int, VALUE *);
 void shoes_textblock_send_release(VALUE, int, int, int);
 
-VALUE shoes_canvas_download_threaded(VALUE, VALUE);
-void shoes_message_download(void *);
+VALUE shoes_download_new(VALUE, VALUE, VALUE);
+VALUE shoes_download_alloc(VALUE);
+VALUE shoes_download_threaded(VALUE, VALUE, VALUE);
+void shoes_message_download(VALUE, void *);
 VALUE shoes_p(VALUE, VALUE);
 
 extern const double SHOES_PIM2, SHOES_PI, SHOES_RAD2PI;
