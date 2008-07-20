@@ -65,7 +65,7 @@ void shoes_get_time(SHOES_TIME *ts)
 
 unsigned long shoes_diff_time(SHOES_TIME *start, SHOES_TIME *end)
 {
-  return *start - *end;
+  return *end - *start;
 }
 
 void shoes_windows_catch_message(unsigned int name, VALUE obj, void *data) {
@@ -226,7 +226,7 @@ shoes_slot_win32proc(
         return 1;
 
       case WM_PAINT:
-        INFO("WM_PAINT(slot)\n");
+        INFO("WM_PAINT(slot, %lu)\n", win);
         if (c != canvas->app->canvas)
           shoes_canvas_paint(c);
       return 1;
@@ -341,9 +341,9 @@ shoes_slot_win32proc(
       break;
     }
 
-    if (msg > WM_APP && msg < WM_APP + SHOES_MAX_MESSAGE)
+    if (msg > SHOES_WM_MESSAGE && msg < SHOES_WM_MESSAGE + SHOES_MAX_MESSAGE)
     {
-      shoes_windows_catch_message(msg - WM_APP, (VALUE)w, (void *)l);
+      shoes_windows_catch_message(msg - SHOES_WM_MESSAGE, (VALUE)w, (void *)l);
       return 1;
     }
   }
@@ -387,7 +387,7 @@ shoes_app_win32proc(
       app->width = rect.right;
       app->height = rect.bottom;
       shoes_canvas_size(app->canvas, app->width, app->height);
-      INFO("WM_PAINT(app)\n");
+      INFO("WM_PAINT(app, %lu)\n", win);
       shoes_app_paint(app);
     }
     break;
@@ -650,6 +650,13 @@ shoes_app_win32proc(
       }
     break;
   }
+
+  if (msg > SHOES_WM_MESSAGE && msg < SHOES_WM_MESSAGE + SHOES_MAX_MESSAGE)
+  {
+    shoes_windows_catch_message(msg - SHOES_WM_MESSAGE, (VALUE)w, (void *)l);
+    return 1;
+  }
+
   return DefWindowProc(win, msg, w, l);
 }
 

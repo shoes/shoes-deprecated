@@ -34,8 +34,8 @@ shoes_download(shoes_download_request *req)
     CloseHandle(file);
 }
 
-void *
-shoes_download2(void *data)
+DWORD WINAPI
+shoes_download2(LPVOID data)
 {
   shoes_download_request *req = (shoes_download_request *)data;
   shoes_download(req);
@@ -43,7 +43,7 @@ shoes_download2(void *data)
   if (req->filepath != NULL) free(req->filepath);
   free(req->data);
   free(req);
-  return NULL;
+  return TRUE;
 }
 
 void
@@ -133,7 +133,7 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, HANDLE
 
       HTTP_EVENT(handler, SHOES_HTTP_TRANSFER, last, (int)((total - (rlen * 100)) / *size),
                  *size - rlen, *size, data, break);
-      rlen -= SHOES_CHUNKSIZE;
+      rlen -= len;
     }
   }
 

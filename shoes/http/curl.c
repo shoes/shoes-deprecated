@@ -112,8 +112,8 @@ shoes_download(shoes_download_request *req)
   curl_easy_cleanup(curl);
 }
 
-DWORD WINAPI
-shoes_download2(LPVOID data)
+void *
+shoes_download2(void *data)
 {
   shoes_download_request *req = (shoes_download_request *)data;
   shoes_download(req);

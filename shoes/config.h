@@ -150,7 +150,7 @@ typedef struct {
 #endif
 
 #define SHOES_CONTROL1   3045
-#define SHOES_WM_MESSAGE WM_APP + 3045
+#define SHOES_WM_MESSAGE (WM_APP + 3045)
 #define SHOES_INIT_ARGS  HINSTANCE inst, int style
 #define SHOES_EXTERN     __declspec(dllimport)
 

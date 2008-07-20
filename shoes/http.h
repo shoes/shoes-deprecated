@@ -15,7 +15,8 @@
 #define HTTP_EVENT(handler, s, last, perc, trans, tot, dat, abort) \
 { SHOES_TIME ts; \
   shoes_get_time(&ts); \
-  if (s != SHOES_HTTP_TRANSFER || shoes_diff_time(&(last), &ts) > 300 ) { \
+  unsigned long elapsed = shoes_diff_time(&(last), &ts); \
+  if (s != SHOES_HTTP_TRANSFER || elapsed > 300 ) { \
     shoes_download_event event; \
     event.stage = s; \
     if (s == SHOES_HTTP_COMPLETED) event.stage = SHOES_HTTP_TRANSFER; \
