@@ -50,20 +50,7 @@ void
 shoes_queue_download(shoes_download_request *req)
 {
   DWORD tid;
-  HANDLE th = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)shoes_download2, (void *)req, 0, &tid);
-  if (th != NULL)
-  {
-    MSG msg;
-    while (WaitForSingleObject(th, 10) != WAIT_OBJECT_0)
-    {
-      while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-      {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-      }
-    }
-    CloseHandle(th);
-  }
+  CreateThread(0, 0, (LPTHREAD_START_ROUTINE)shoes_download2, (void *)req, 0, &tid);
 }
 
 void
