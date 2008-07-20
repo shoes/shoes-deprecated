@@ -8,8 +8,11 @@
 #include "shoes/config.h"
 #include "shoes/http.h"
 #include "shoes/version.h"
+#include "shoes/world.h"
+#include "shoes/native.h"
 #include <shellapi.h>
 #include <wchar.h>
+#include <time.h>
 
 void
 shoes_download(shoes_download_request *req)
@@ -31,9 +34,36 @@ shoes_download(shoes_download_request *req)
     CloseHandle(file);
 }
 
+void *
+shoes_download2(void *data)
+{
+  shoes_download_request *req = (shoes_download_request *)data;
+  shoes_download(req);
+  if (req->mem != NULL) free(req->mem);
+  if (req->filepath != NULL) free(req->filepath);
+  free(req->data);
+  free(req);
+  return NULL;
+}
+
 void
 shoes_queue_download(shoes_download_request *req)
 {
+  DWORD tid;
+  HANDLE th = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)shoes_download2, (void *)req, 0, &tid);
+  if (th != NULL)
+  {
+    MSG msg;
+    while (WaitForSingleObject(th, 10) != WAIT_OBJECT_0)
+    {
+      while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+      {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+      }
+    }
+    CloseHandle(th);
+  }
 }
 
 void
@@ -44,6 +74,7 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, HANDLE
   TCHAR buf[SHOES_BUFSIZE];
   WCHAR uagent[SHOES_BUFSIZE];
   HINTERNET sess = NULL, conn = NULL, req = NULL;
+  SHOES_TIME last = 0;
 
   _snwprintf(uagent, SHOES_BUFSIZE, L"Shoes/0.r%d (%S) %S/%d", SHOES_REVISION, SHOES_PLATFORM,
     SHOES_RELEASE_NAME, SHOES_BUILD_DATE);
@@ -82,7 +113,7 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, HANDLE
     goto done;
 
   *size = _wtoi((wchar_t *)buf);
-  HTTP_EVENT(handler, SHOES_HTTP_CONNECTED, 0, 0, *size, data, goto done);
+  HTTP_EVENT(handler, SHOES_HTTP_CONNECTED, last, 0, 0, *size, data, goto done);
 
   if (mem != NULL)
   {
@@ -100,14 +131,13 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, HANDLE
       WinHttpReadData(req, fbuf, SHOES_CHUNKSIZE, &len);
       WriteFile(file, (LPBYTE)fbuf, len, &flen, NULL);
 
-      HTTP_EVENT(handler, SHOES_HTTP_TRANSFER, (int)((total - (rlen * 100)) / *size),
+      HTTP_EVENT(handler, SHOES_HTTP_TRANSFER, last, (int)((total - (rlen * 100)) / *size),
                  *size - rlen, *size, data, break);
       rlen -= SHOES_CHUNKSIZE;
     }
   }
 
-  HTTP_EVENT(handler, SHOES_HTTP_TRANSFER, 100, *size, *size, data, goto done);
-  HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, 100, *size, *size, data, goto done);
+  HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, *size, *size, data, goto done);
 
 done:
   if (req)

@@ -58,6 +58,30 @@ void shoes_native_quit()
   PostQuitMessage(0);
 }
 
+void shoes_get_time(SHOES_TIME *ts)
+{
+  *ts = GetTickCount();
+}
+
+unsigned long shoes_diff_time(SHOES_TIME *start, SHOES_TIME *end)
+{
+  return *start - *end;
+}
+
+void shoes_windows_catch_message(unsigned int name, VALUE obj, void *data) {
+  switch (name) {
+    case SHOES_THREAD_DOWNLOAD:
+      shoes_message_download(obj, data);
+      free(data);
+    break;
+  }
+}
+
+void shoes_native_message(SHOES_CONTROL_REF w, unsigned int name, VALUE obj, void *data)
+{
+  SendMessage(w, SHOES_WM_MESSAGE + name, obj, (LPARAM)data);
+}
+
 void shoes_native_slot_mark(SHOES_SLOT_OS *slot)
 {
   rb_gc_mark_maybe(slot->controls);
@@ -315,6 +339,12 @@ shoes_slot_win32proc(
           }
         }
       break;
+    }
+
+    if (msg > WM_APP && msg < WM_APP + SHOES_MAX_MESSAGE)
+    {
+      shoes_windows_catch_message(msg - WM_APP, (VALUE)w, (void *)l);
+      return 1;
     }
   }
   return DefWindowProc(win, msg, w, l);

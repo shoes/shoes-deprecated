@@ -33,6 +33,24 @@ void shoes_native_quit()
   gtk_main_quit();
 }
 
+void shoes_get_time(SHOES_TIME *ts)
+{
+  clock_gettime(CLOCK_REALTIME, ts);
+}
+
+unsigned long shoes_diff_time(SHOES_TIME *start, SHOES_TIME *end)
+{
+  unsigned long usec;
+  if ((end.tv_nsec-start.tv_nsec)<0) {
+    usec = (end.tv_sec-start.tv_sec - 1) * 1000;
+    usec += (1000000000 + end.tv_nsec - start.tv_nsec) / 1000000;
+  } else {
+    usec = (end.tv_sec - start.tv_sec) * 1000;
+    usec += (end.tv_nsec - start.tv_nsec) / 1000000;
+  }
+  return usec;
+}
+
 typedef struct {
   SHOES_CONTROL_REF ref;
   unsigned int name;

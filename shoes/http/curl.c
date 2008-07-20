@@ -22,24 +22,11 @@ typedef struct {
   size_t size;
   size_t total;
   shoes_download_handler handler;
-  struct timespec last;
+  SHOES_TIME last;
   void *data;
 } shoes_curl_data;
 
 const char *content_len_str = "Content-Length: ";
-
-struct timespec shoes_time_diff(struct timespec start, struct timespec end)
-{
-  struct timespec temp;
-  if ((end.tv_nsec-start.tv_nsec)<0) {
-    temp.tv_sec = end.tv_sec-start.tv_sec-1;
-    temp.tv_nsec = 1000000000+end.tv_nsec-start.tv_nsec;
-  } else {
-    temp.tv_sec = end.tv_sec-start.tv_sec;
-    temp.tv_nsec = end.tv_nsec-start.tv_nsec;
-  }
-  return temp;
-}
 
 size_t
 shoes_curl_header_funk(void *ptr, size_t size, size_t nmemb, shoes_curl_data *data)
@@ -125,8 +112,8 @@ shoes_download(shoes_download_request *req)
   curl_easy_cleanup(curl);
 }
 
-void *
-shoes_download2(void *data)
+DWORD WINAPI
+shoes_download2(LPVOID data)
 {
   shoes_download_request *req = (shoes_download_request *)data;
   shoes_download(req);

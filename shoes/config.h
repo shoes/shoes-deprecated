@@ -73,6 +73,7 @@ typedef struct {
 #define HAS_DRAWABLE(slot) slot.canvas->window != 0
 #define DRAWABLE(ref) GDK_DRAWABLE_XID(ref->window)
 #define APP_WINDOW(app) (app == NULL ? NULL : GTK_WINDOW(app->os.window))
+#define SHOES_TIME struct timespec
 #endif
 
 //
@@ -148,9 +149,10 @@ typedef struct {
 #define WHEEL_PAGESCROLL UINT_MAX
 #endif
 
-#define SHOES_CONTROL1  3045
-#define SHOES_INIT_ARGS HINSTANCE inst, int style
-#define SHOES_EXTERN __declspec(dllimport)
+#define SHOES_CONTROL1   3045
+#define SHOES_WM_MESSAGE WM_APP + 3045
+#define SHOES_INIT_ARGS  HINSTANCE inst, int style
+#define SHOES_EXTERN     __declspec(dllimport)
 
 typedef struct {
   PAINTSTRUCT ps;
@@ -184,6 +186,7 @@ typedef struct {
 #define HAS_DRAWABLE(slot) slot.window != NULL
 #define DRAWABLE(ref) (libvlc_drawable_t)ref
 #define APP_WINDOW(app) (app == NULL ? NULL : app->slot.window)
+#define SHOES_TIME DWORD
 
 #endif
 

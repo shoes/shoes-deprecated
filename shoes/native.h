@@ -13,11 +13,14 @@
 #define SHOES_FORCE_RADIO 1
 #endif
 
-#define SHOES_THREAD_DOWNLOAD 401
+#define SHOES_THREAD_DOWNLOAD 41
+#define SHOES_MAX_MESSAGE     100
 
 void shoes_native_init();
 void shoes_native_cleanup(shoes_world_t *world);
 void shoes_native_quit();
+void shoes_get_time(SHOES_TIME *);
+unsigned long shoes_diff_time(SHOES_TIME *, SHOES_TIME *);
 void shoes_native_message(SHOES_CONTROL_REF w, unsigned int, VALUE, void *);
 void shoes_native_slot_mark(SHOES_SLOT_OS *);
 void shoes_native_slot_reset(SHOES_SLOT_OS *);
