@@ -41,12 +41,12 @@ void shoes_get_time(SHOES_TIME *ts)
 unsigned long shoes_diff_time(SHOES_TIME *start, SHOES_TIME *end)
 {
   unsigned long usec;
-  if ((end.tv_nsec-start.tv_nsec)<0) {
-    usec = (end.tv_sec-start.tv_sec - 1) * 1000;
-    usec += (1000000000 + end.tv_nsec - start.tv_nsec) / 1000000;
+  if ((end->tv_nsec-start->tv_nsec)<0) {
+    usec = (end->tv_sec-start->tv_sec - 1) * 1000;
+    usec += (1000000000 + end->tv_nsec - start->tv_nsec) / 1000000;
   } else {
-    usec = (end.tv_sec - start.tv_sec) * 1000;
-    usec += (end.tv_nsec - start.tv_nsec) / 1000000;
+    usec = (end->tv_sec - start->tv_sec) * 1000;
+    usec += (end->tv_nsec - start->tv_nsec) / 1000000;
   }
   return usec;
 }
