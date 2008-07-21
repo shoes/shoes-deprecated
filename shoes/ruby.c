@@ -3707,7 +3707,7 @@ shoes_doth_handler(shoes_download_event *de, void *data)
   shoes_doth_data *doth = (shoes_doth_data *)data;
   shoes_download_event *de2 = SHOE_ALLOC(shoes_download_event);
   SHOE_MEMCPY(de2, de, shoes_download_event, 1);
-  return shoes_native_message(SHOES_THREAD_DOWNLOAD, doth->download, de2);
+  return shoes_throw_message(SHOES_THREAD_DOWNLOAD, doth->download, de2);
 }
 
 VALUE
@@ -3770,6 +3770,17 @@ shoes_download_transferred(VALUE self)
 EVENT_COMMON(download, download_klass, start);
 EVENT_COMMON(download, download_klass, progress);
 EVENT_COMMON(download, download_klass, finish);
+
+int shoes_catch_message(unsigned int name, VALUE obj, void *data) {
+  int ret = 0;
+  switch (name) {
+    case SHOES_THREAD_DOWNLOAD:
+      ret = shoes_message_download(obj, data);
+      free(data);
+    break;
+  }
+  return ret;
+}
 
 DEBUG_TYPE(info);
 DEBUG_TYPE(debug);

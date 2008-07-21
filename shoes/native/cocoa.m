@@ -506,6 +506,29 @@ void shoes_native_quit()
   RELEASE;
 }
 
+void shoes_get_time(SHOES_TIME *ts)
+{
+  gettimeofday(ts, NULL);
+}
+
+unsigned long shoes_diff_time(SHOES_TIME *start, SHOES_TIME *end)
+{
+  unsigned long usec;
+  if ((end->tv_usec-start->tv_usec)<0) {
+    usec = (end->tv_sec-start->tv_sec - 1) * 1000;
+    usec += (1000000 + end->tv_usec - start->tv_usec) / 1000;
+  } else {
+    usec = (end->tv_sec - start->tv_sec) * 1000;
+    usec += (end->tv_usec - start->tv_usec) / 1000;
+  }
+  return usec;
+}
+
+int shoes_throw_message(unsigned int name, VALUE obj, void *data)
+{
+  return shoes_catch_message(name, obj, data);
+}
+
 void shoes_native_slot_mark(SHOES_SLOT_OS *slot)
 {
   rb_gc_mark_maybe(slot->controls);

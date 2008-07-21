@@ -70,18 +70,7 @@ unsigned long shoes_diff_time(SHOES_TIME *start, SHOES_TIME *end)
   return *end - *start;
 }
 
-int shoes_windows_catch_message(unsigned int name, VALUE obj, void *data) {
-  int ret = 0;
-  switch (name) {
-    case SHOES_THREAD_DOWNLOAD:
-      ret = shoes_message_download(obj, data);
-      free(data);
-    break;
-  }
-  return ret;
-}
-
-int shoes_native_message(unsigned int name, VALUE obj, void *data)
+int shoes_throw_message(unsigned int name, VALUE obj, void *data)
 {
   return SendMessage(shoes_world->os.hidden, SHOES_WM_MESSAGE + name, obj, (LPARAM)data);
 }
@@ -352,7 +341,7 @@ LRESULT CALLBACK
 shoes_hidden_win32proc(HWND win, UINT msg, WPARAM w, LPARAM l)
 {
   if (msg > SHOES_WM_MESSAGE && msg < SHOES_WM_MESSAGE + SHOES_MAX_MESSAGE)
-    return shoes_windows_catch_message(msg - SHOES_WM_MESSAGE, (VALUE)w, (void *)l);
+    return shoes_catch_message(msg - SHOES_WM_MESSAGE, (VALUE)w, (void *)l);
   return DefWindowProc(win, msg, w, l);
 }
 

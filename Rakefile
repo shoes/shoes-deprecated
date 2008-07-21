@@ -314,7 +314,7 @@ else
   PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
 
   LINUX_CFLAGS = %[-I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{Config::CONFIG['archdir']}]
-  LINUX_LIB_NAMES = %W[#{ruby_so} png cairo pangocairo-1.0 ungif rt]
+  LINUX_LIB_NAMES = %W[#{ruby_so} png cairo pangocairo-1.0 ungif]
   FLAGS.each do |flag|
     LINUX_CFLAGS << " -D#{flag}" if ENV[flag]
   end
@@ -344,6 +344,7 @@ else
     LINUX_CFLAGS << " -DSHOES_GTK -fPIC #{`pkg-config --cflags gtk+-2.0`.strip} #{`curl-config --cflags`.strip}"
     LINUX_LDFLAGS =" #{`pkg-config --libs gtk+-2.0`.strip} #{`curl-config --libs`.strip} -fPIC -shared"
     LINUX_LIB_NAMES << 'jpeg'
+    LINUX_LIB_NAMES << 'rt'
     LINUX_LIB_NAMES << "vlc" if ENV['VIDEO']
   end
   LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')

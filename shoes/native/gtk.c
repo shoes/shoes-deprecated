@@ -64,18 +64,13 @@ static gboolean
 shoes_gtk_catch_message(gpointer user) {
   shoes_gtk_msg *msg = (shoes_gtk_msg *)user;
   pthread_mutex_lock(&msg->mutex);
-  switch (msg->name) {
-    case SHOES_THREAD_DOWNLOAD:
-      msg->ret = shoes_message_download(msg->obj, msg->data);
-      free(msg->data);
-    break;
-  }
+  msg->ret = shoes_catch_message(msg->name, msg->obj, msg->data);
   pthread_cond_signal(&msg->cond);
   pthread_mutex_unlock(&msg->mutex);
   return FALSE;
 }
 
-int shoes_native_message(unsigned int name, VALUE obj, void *data)
+int shoes_throw_message(unsigned int name, VALUE obj, void *data)
 {
   int ret;
   shoes_gtk_msg *msg = SHOE_ALLOC(shoes_gtk_msg);

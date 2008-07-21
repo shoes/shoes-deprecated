@@ -126,6 +126,7 @@ typedef struct {
 #define DC(slot) slot.view
 #define HAS_DRAWABLE(slot) slot.context != NULL
 #define DRAWABLE(ref) ref
+#define SHOES_TIME struct timeval
 
 #endif
 
