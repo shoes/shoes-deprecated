@@ -9,13 +9,13 @@
 
       # aptitude install libcairo2-dev libpixman-1-dev libpango1.0-dev \
           libungif4-dev libjpeg62-dev libgtk2.0-dev vlc libvlc0-dev \
-          libsqlite3-dev ruby1.8-dev rake
+          libsqlite3-dev libcurl4-openssl-dev ruby1.8-dev rake
 
     To install these libraries on Fedora:
      
       # yum install -y giflib-devel cairo-devel libpixman-devel \
           pango-devel libjpeg-devel gtk2-devel sqlite-devel vlc-devel \
-          ruby-devel
+          libcurl-devel ruby-devel
 
 //////////////////////////////////////////////////////////////////////////
 
