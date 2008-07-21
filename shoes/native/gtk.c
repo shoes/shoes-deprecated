@@ -56,33 +56,47 @@ typedef struct {
   unsigned int name;
   VALUE obj;
   void *data;
+  pthread_mutex_t mutex;
+  pthread_cond_t cond;
+  int ret;
 } shoes_gtk_msg;
 
 static gboolean 
 shoes_gtk_catch_message(gpointer user) {
   shoes_gtk_msg *msg = (shoes_gtk_msg *)user;
+  pthread_mutex_lock(&msg->mutex);
   switch (msg->name) {
     case SHOES_THREAD_DOWNLOAD:
-      shoes_message_download(msg->obj, msg->data);
+      msg->ret = shoes_message_download(msg->obj, msg->data);
       free(msg->data);
     break;
   }
+  pthread_cond_signal(&msg->cond);
+  pthread_mutex_unlock(&msg->mutex);
   return FALSE;
 }
 
-static void
-shoes_gtk_free_message(gpointer user) {
-  free(user);
-}
-
-void shoes_native_message(SHOES_CONTROL_REF w, unsigned int name, VALUE obj, void *data)
+int shoes_native_message(SHOES_CONTROL_REF w, unsigned int name, VALUE obj, void *data)
 {
+  int ret;
+
   shoes_gtk_msg *msg = SHOE_ALLOC(shoes_gtk_msg);
   msg->ref = w;
   msg->name = name;
   msg->obj = obj;
   msg->data = data;
-  g_idle_add_full(G_PRIORITY_DEFAULT, shoes_gtk_catch_message, msg, shoes_gtk_free_message);
+  pthread_mutex_init(&msg->mutex, NULL);
+  pthread_cond_init(&msg->cond, NULL);
+  msg->ret = 0;
+
+  pthread_mutex_lock(&msg->mutex);
+  g_idle_add_full(G_PRIORITY_DEFAULT, shoes_gtk_catch_message, msg, NULL);
+  pthread_cond_wait(&msg->cond, &msg->mutex);
+  ret = msg->ret;
+  pthread_mutex_unlock(&msg->mutex);
+
+  free(msg);
+  return ret;
 }
 
 void shoes_native_slot_mark(SHOES_SLOT_OS *slot) {}
