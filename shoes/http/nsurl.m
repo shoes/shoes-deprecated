@@ -7,28 +7,111 @@
 #include "shoes/config.h"
 #include "shoes/http.h"
 #include "shoes/version.h"
+#include "shoes/world.h"
+#include "shoes/native.h"
 
 #import <Cocoa/Cocoa.h>
 
 @interface ShoesHttp : NSObject
 {
-  NSURLConnection *metaConn;
-  long long bytes;
+  char *dest;
+  NSURLConnection *conn;
+  NSURLDownload *down;
+  NSURLResponse *resp;
+  NSFileManager *fm;
+  long long size;
+  long long total;
+  shoes_download_handler handler;
+  SHOES_TIME last;
+  NSMutableData *bytes;
+  void *data;
 }
 @end
 
 @implementation ShoesHttp
+- (id)init
+{
+  if ((self = [super init]))
+  {
+    bytes = [[NSMutableData data] retain];
+    fm = [NSFileManager defaultManager];
+  }
+  return self;
+}
 - (void)download: (shoes_download_request *)req
 {
-  NSString *url = [NSString stringWithFormat: @"http://%s:%d/%s", req->host, req->port, req->path];
+  char slash[2] = "/";
+  if (req->path[0] == '/') slash[0] = '\0';
+  NSString *url = [NSString stringWithFormat: @"http://%s:%d%s%s", req->host, req->port, slash, req->path];
   NSString *uagent = [NSString stringWithFormat: @"Shoes/0.r%d (%s) %s/%d", 
     SHOES_REVISION, SHOES_PLATFORM, SHOES_RELEASE_NAME, SHOES_BUILD_DATE];
-  NSURLRequest *nsreq = [NSURLRequest requestWithURL: 
+  NSMutableURLRequest *nsreq = [NSMutableURLRequest requestWithURL: 
     [NSURL URLWithString: url]
     cachePolicy: NSURLRequestUseProtocolCachePolicy
     timeoutInterval: 60.0];
-  metaConn = [[NSURLConnection alloc] initWithRequest: nsreq
-    delegate: self];
+  [nsreq setValue: uagent forHTTPHeaderField: @"User-Agent"];
+
+  handler = req->handler;
+  data = req->data;
+  last.tv_sec = 0;
+  last.tv_usec = 0;
+  size = total = 0;
+  if (req->mem != NULL)
+  {
+    dest = req->mem;
+    conn = [[NSURLConnection alloc] initWithRequest: nsreq
+      delegate: self];
+  }
+  else
+  {
+    dest = req->filepath;
+    down = [[NSURLDownload alloc] initWithRequest: nsreq delegate: self];
+  }
+}
+- (void)connection: (NSURLConnection *)conn didReceiveResponse: (NSURLResponse *)resp
+{
+  [bytes setLength: 0];
+}
+- (void)connection: (NSURLConnection *)conn didReceiveData: (NSData *)chunk
+{
+  [bytes appendData: chunk];
+}
+- (void)connectionDidFinishLoading: (NSURLConnection *)c
+{
+  // TODO: convert data to ruby string
+  // [[NSString alloc] initWithData: data
+  //  encoding: NSUTF8StringEncoding];
+  [c release];
+}
+- (void)download: (NSURLDownload *)download decideDestinationWithSuggestedFilename: (NSString *)filename
+{
+  NSString *path = [NSString stringWithUTF8String: dest];
+  [download setDestination: path allowOverwrite: YES];
+}
+- (void)setDownloadResponse: (NSURLResponse *)aDownloadResponse
+{
+  [aDownloadResponse retain];
+  [resp release];
+  resp = aDownloadResponse;
+}
+- (void)download: (NSURLDownload *)download didReceiveResponse: (NSURLResponse *)response
+{
+  size = total = 0;
+  if ([response expectedContentLength] != NSURLResponseUnknownLength)
+    total = [response expectedContentLength];
+  HTTP_EVENT(handler, SHOES_HTTP_CONNECTED, last, 0, 0, total, data, [download cancel]);
+  [self setDownloadResponse: response];
+}
+- (void)download: (NSURLDownload *)download didReceiveDataOfLength: (unsigned)length
+{
+  size += length;
+  HTTP_EVENT(handler, SHOES_HTTP_TRANSFER, last, size * 100.0 / total, size,
+             total, data, [download cancel]);
+}
+- (void)downloadDidFinish: (NSURLDownload *)download
+{
+  HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, total, total, data, 1);
+  [download release];
 }
 @end
 
@@ -42,4 +125,6 @@ shoes_download(shoes_download_request *req)
 void
 shoes_queue_download(shoes_download_request *req)
 {
+  ShoesHttp *http = [[ShoesHttp alloc] init];
+  [http download: req];
 }
