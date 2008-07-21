@@ -68,18 +68,20 @@ unsigned long shoes_diff_time(SHOES_TIME *start, SHOES_TIME *end)
   return *end - *start;
 }
 
-void shoes_windows_catch_message(unsigned int name, VALUE obj, void *data) {
+int shoes_windows_catch_message(unsigned int name, VALUE obj, void *data) {
+  int ret = 0;
   switch (name) {
     case SHOES_THREAD_DOWNLOAD:
-      shoes_message_download(obj, data);
+      ret = shoes_message_download(obj, data);
       free(data);
     break;
   }
+  return ret;
 }
 
-void shoes_native_message(SHOES_CONTROL_REF w, unsigned int name, VALUE obj, void *data)
+int shoes_native_message(SHOES_CONTROL_REF w, unsigned int name, VALUE obj, void *data)
 {
-  SendMessage(w, SHOES_WM_MESSAGE + name, obj, (LPARAM)data);
+  return SendMessage(w, SHOES_WM_MESSAGE + name, obj, (LPARAM)data);
 }
 
 void shoes_native_slot_mark(SHOES_SLOT_OS *slot)
@@ -342,10 +344,7 @@ shoes_slot_win32proc(
     }
 
     if (msg > SHOES_WM_MESSAGE && msg < SHOES_WM_MESSAGE + SHOES_MAX_MESSAGE)
-    {
-      shoes_windows_catch_message(msg - SHOES_WM_MESSAGE, (VALUE)w, (void *)l);
-      return 1;
-    }
+      return shoes_windows_catch_message(msg - SHOES_WM_MESSAGE, (VALUE)w, (void *)l);
   }
   return DefWindowProc(win, msg, w, l);
 }
@@ -652,10 +651,7 @@ shoes_app_win32proc(
   }
 
   if (msg > SHOES_WM_MESSAGE && msg < SHOES_WM_MESSAGE + SHOES_MAX_MESSAGE)
-  {
-    shoes_windows_catch_message(msg - SHOES_WM_MESSAGE, (VALUE)w, (void *)l);
-    return 1;
-  }
+    return shoes_windows_catch_message(msg - SHOES_WM_MESSAGE, (VALUE)w, (void *)l);
 
   return DefWindowProc(win, msg, w, l);
 }

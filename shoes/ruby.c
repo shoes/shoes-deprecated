@@ -3625,8 +3625,6 @@ shoes_download_alloc(VALUE klass)
   obj = Data_Wrap_Struct(klass, shoes_download_mark, shoes_download_free, dl);
   dl->parent = Qnil;
   dl->attr = Qnil;
-  dl->total = dl->transferred = 0;
-  dl->percent = 0;
   return obj;
 }
 
@@ -3634,8 +3632,16 @@ VALUE
 shoes_download_remove(VALUE self)
 {
   GET_STRUCT(download_klass, self_t);
-  // TODO: shoes_download_stop
+  self_t->state = SHOES_DOWNLOAD_HALT;
   shoes_canvas_remove_item(self_t->parent, self, 0, 1);
+  return self;
+}
+
+VALUE
+shoes_download_abort(VALUE self)
+{
+  GET_STRUCT(download_klass, self_t);
+  self_t->state = SHOES_DOWNLOAD_HALT;
   return self;
 }
 
@@ -3666,7 +3672,7 @@ shoes_download_non_threaded(VALUE self, VALUE url)
   return rb_str_new(mem, req.size);
 }
 
-void
+int
 shoes_message_download(VALUE self, void *data)
 {
   VALUE proc;
@@ -3687,6 +3693,7 @@ shoes_message_download(VALUE self, void *data)
 
   if (!NIL_P(proc))
     shoes_safe_block(dl->parent, proc, rb_ary_new3(1, self));
+  return dl->state;
 }
 
 typedef struct {
@@ -3700,8 +3707,7 @@ shoes_doth_handler(shoes_download_event *de, void *data)
   shoes_doth_data *doth = (shoes_doth_data *)data;
   shoes_download_event *de2 = SHOE_ALLOC(shoes_download_event);
   SHOE_MEMCPY(de2, de, shoes_download_event, 1);
-  shoes_native_message(doth->ref, SHOES_THREAD_DOWNLOAD, doth->download, de2);
-  return SHOES_DOWNLOAD_CONTINUE;
+  return shoes_native_message(doth->ref, SHOES_THREAD_DOWNLOAD, doth->download, de2);
 }
 
 VALUE
@@ -4260,6 +4266,7 @@ shoes_ruby_init()
 
   cDownload   = rb_define_class_under(cShoes, "Download", rb_cObject);
   rb_define_alloc_func(cDownload, shoes_download_alloc);
+  rb_define_method(cDownload, "abort", CASTHOOK(shoes_download_abort), 0);
   rb_define_method(cDownload, "finish", CASTHOOK(shoes_download_finish), -1);
   rb_define_method(cDownload, "remove", CASTHOOK(shoes_download_remove), 0);
   rb_define_method(cDownload, "length", CASTHOOK(shoes_download_length), 0);

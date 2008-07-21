@@ -227,6 +227,7 @@ typedef struct {
 typedef struct {
   VALUE parent;
   VALUE attr;
+  unsigned char state;
   unsigned LONG_LONG total;
   unsigned LONG_LONG transferred;
   unsigned long percent;
@@ -546,7 +547,7 @@ void shoes_textblock_send_release(VALUE, int, int, int);
 VALUE shoes_download_new(VALUE, VALUE, VALUE);
 VALUE shoes_download_alloc(VALUE);
 VALUE shoes_download_threaded(VALUE, VALUE, VALUE);
-void shoes_message_download(VALUE, void *);
+int shoes_message_download(VALUE, void *);
 VALUE shoes_p(VALUE, VALUE);
 
 extern const double SHOES_PIM2, SHOES_PI, SHOES_RAD2PI;

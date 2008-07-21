@@ -9,10 +9,11 @@ Shoes.app do
           stack do
             background "#eee".."#ccd"
             stack :margin => 10 do
-              para @url.text, :margin => 0
+              dl = nil
+              para @url.text, " [", link("cancel") { dl.abort }, "]", :margin => 0
               d = inscription "Beginning transfer.", :margin => 0
               p = progress :width => 1.0, :height => 14
-              download @url.text, :save => File.basename(@url.text),
+              dl = download @url.text, :save => File.basename(@url.text),
                 :progress => proc { |dl| 
                   d.text = "Transferred #{dl.transferred} of #{dl.length} bytes (#{dl.percent}%)"
                   p.fraction = dl.percent * 0.01 },
