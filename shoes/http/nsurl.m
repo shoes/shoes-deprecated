@@ -68,19 +68,27 @@
     down = [[NSURLDownload alloc] initWithRequest: nsreq delegate: self];
   }
 }
-- (void)connection: (NSURLConnection *)conn didReceiveResponse: (NSURLResponse *)resp
+- (void)connection: (NSURLConnection *)c didReceiveResponse: (NSURLResponse *)response
 {
+  size = total = 0;
+  if ([response expectedContentLength] != NSURLResponseUnknownLength)
+    total = [response expectedContentLength];
+  HTTP_EVENT(handler, SHOES_HTTP_CONNECTED, last, 0, 0, total, data, [c cancel]);
   [bytes setLength: 0];
 }
-- (void)connection: (NSURLConnection *)conn didReceiveData: (NSData *)chunk
+- (void)connection: (NSURLConnection *)c didReceiveData: (NSData *)chunk
 {
   [bytes appendData: chunk];
+  size += [chunk length];
+  HTTP_EVENT(handler, SHOES_HTTP_TRANSFER, last, size * 100.0 / total, size,
+             total, data, [c cancel]);
 }
 - (void)connectionDidFinishLoading: (NSURLConnection *)c
 {
   // TODO: convert data to ruby string
   // [[NSString alloc] initWithData: data
   //  encoding: NSUTF8StringEncoding];
+  HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, total, total, data, 1);
   [c release];
 }
 - (void)download: (NSURLDownload *)download decideDestinationWithSuggestedFilename: (NSString *)filename
