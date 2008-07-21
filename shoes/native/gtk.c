@@ -52,7 +52,6 @@ unsigned long shoes_diff_time(SHOES_TIME *start, SHOES_TIME *end)
 }
 
 typedef struct {
-  SHOES_CONTROL_REF ref;
   unsigned int name;
   VALUE obj;
   void *data;
@@ -76,12 +75,10 @@ shoes_gtk_catch_message(gpointer user) {
   return FALSE;
 }
 
-int shoes_native_message(SHOES_CONTROL_REF w, unsigned int name, VALUE obj, void *data)
+int shoes_native_message(unsigned int name, VALUE obj, void *data)
 {
   int ret;
-
   shoes_gtk_msg *msg = SHOE_ALLOC(shoes_gtk_msg);
-  msg->ref = w;
   msg->name = name;
   msg->obj = obj;
   msg->data = data;

@@ -176,7 +176,8 @@ typedef struct {
 typedef struct {
   HINSTANCE instance;
   int style;
-  WNDCLASSEX classex, slotex, vlclassex;
+  HWND hidden;
+  WNDCLASSEX classex, slotex, vlclassex, hiddenex;
 } shoes_world_win32, SHOES_WORLD_OS;
 
 #define SHOES_CONTROL_REF HWND

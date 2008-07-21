@@ -3707,7 +3707,7 @@ shoes_doth_handler(shoes_download_event *de, void *data)
   shoes_doth_data *doth = (shoes_doth_data *)data;
   shoes_download_event *de2 = SHOE_ALLOC(shoes_download_event);
   SHOE_MEMCPY(de2, de, shoes_download_event, 1);
-  return shoes_native_message(doth->ref, SHOES_THREAD_DOWNLOAD, doth->download, de2);
+  return shoes_native_message(SHOES_THREAD_DOWNLOAD, doth->download, de2);
 }
 
 VALUE
@@ -3739,7 +3739,6 @@ shoes_download_threaded(VALUE self, VALUE url, VALUE attr)
   }
 
   shoes_doth_data *data = SHOE_ALLOC(shoes_doth_data);
-  data->ref = DC(self_t->slot);
   data->download = obj;
   req->data = data;
 

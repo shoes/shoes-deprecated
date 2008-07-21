@@ -47,6 +47,8 @@ void shoes_native_init()
   InitCtrlEx.dwICC = ICC_PROGRESS_CLASS;
   InitCommonControlsEx(&InitCtrlEx);
   shoes_classex_init();
+  shoes_world->hidden = CreateWindow(SHOES_HIDDENCLS, SHOES_HIDDENCLS, WS_OVERLAPPEDWINDOW,      
+    CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, shoes_world->os.instance, NULL);
 }
 
 void shoes_native_cleanup(shoes_world_t *world)
@@ -79,9 +81,9 @@ int shoes_windows_catch_message(unsigned int name, VALUE obj, void *data) {
   return ret;
 }
 
-int shoes_native_message(SHOES_CONTROL_REF w, unsigned int name, VALUE obj, void *data)
+int shoes_native_message(unsigned int name, VALUE obj, void *data)
 {
-  return SendMessage(w, SHOES_WM_MESSAGE + name, obj, (LPARAM)data);
+  return SendMessage(shoes_world->hiddenwnd, SHOES_WM_MESSAGE + name, obj, (LPARAM)data);
 }
 
 void shoes_native_slot_mark(SHOES_SLOT_OS *slot)
@@ -342,10 +344,15 @@ shoes_slot_win32proc(
         }
       break;
     }
-
-    if (msg > SHOES_WM_MESSAGE && msg < SHOES_WM_MESSAGE + SHOES_MAX_MESSAGE)
-      return shoes_windows_catch_message(msg - SHOES_WM_MESSAGE, (VALUE)w, (void *)l);
   }
+  return DefWindowProc(win, msg, w, l);
+}
+
+LRESULT CALLBACK
+shoes_hidden_win32proc(HWND win, UINT msg, WPARAM w, LPARAM l)
+{
+  if (msg > SHOES_WM_MESSAGE && msg < SHOES_WM_MESSAGE + SHOES_MAX_MESSAGE)
+    return shoes_windows_catch_message(msg - SHOES_WM_MESSAGE, (VALUE)w, (void *)l);
   return DefWindowProc(win, msg, w, l);
 }
 
@@ -650,9 +657,6 @@ shoes_app_win32proc(
     break;
   }
 
-  if (msg > SHOES_WM_MESSAGE && msg < SHOES_WM_MESSAGE + SHOES_MAX_MESSAGE)
-    return shoes_windows_catch_message(msg - SHOES_WM_MESSAGE, (VALUE)w, (void *)l);
-
   return DefWindowProc(win, msg, w, l);
 }
 
@@ -683,6 +687,26 @@ shoes_code
 shoes_classex_init()
 {
   shoes_code code = SHOES_OK;
+
+  shoes_world->hiddenex.cbSize = sizeof(WNDCLASSEX);
+  shoes_world->hiddenex.style = 0;
+  shoes_world->hiddenex.lpfnWndProc = (WNDPROC)shoes_hidden_win32proc;
+  shoes_world->hiddenex.cbClsExtra = 0;
+  shoes_world->hiddenex.cbWndExtra = 0;
+  shoes_world->hiddenex.hInstance = shoes_world->os.instance;
+  shoes_world->hiddenex.hIcon = NULL;
+  shoes_world->hiddenex.hCursor = NULL;
+  shoes_world->hiddenex.hbrBackground = NULL;
+  shoes_world->hiddenex.lpszMenuName = NULL;
+  shoes_world->hiddenex.lpszClassName = SHOES_HIDDENCLS;
+  shoes_world->hiddenex.hIconSm = NULL;
+
+  if (!RegisterClassEx(&shoes_world->os.hiddenex))
+  {
+    QUIT("Couldn't register Shoes hidden window class.");
+  }
+
+
   shoes_world->os.classex.hInstance = shoes_world->os.instance;
   shoes_world->os.classex.lpszClassName = SHOES_SHORTNAME;
   shoes_world->os.classex.lpfnWndProc = shoes_app_win32proc;
