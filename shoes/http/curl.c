@@ -21,8 +21,10 @@ typedef struct {
   FILE *fp;
   size_t size;
   size_t total;
+  long status;
   shoes_download_handler handler;
   SHOES_TIME last;
+  CURL *curl;
   void *data;
 } shoes_curl_data;
 
@@ -32,6 +34,11 @@ size_t
 shoes_curl_header_funk(void *ptr, size_t size, size_t nmemb, shoes_curl_data *data)
 {
   size_t realsize = size * nmemb;
+  if (data->status == 0)
+  {
+    data->status = curl_easy_getinfo(data->curl, CURLINFO_RESPONSE_CODE, &data->status);
+  }
+
   if (strncmp(ptr, content_len_str, strlen(content_len_str)) == 0)
   {
     data->total = strtoull(ptr + strlen(content_len_str), NULL, 10);
@@ -83,6 +90,8 @@ shoes_download(shoes_download_request *req)
   cdata.data = req->data;
   cdata.last.tv_sec = 0;
   cdata.last.tv_nsec = 0;
+  cdata.status = 0;
+  cdata.curl = curl;
 
   if (req->mem == NULL)
   {

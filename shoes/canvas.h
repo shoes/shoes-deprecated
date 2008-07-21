@@ -227,6 +227,7 @@ typedef struct {
 typedef struct {
   VALUE parent;
   VALUE attr;
+  VALUE response;
   unsigned char state;
   unsigned LONG_LONG total;
   unsigned LONG_LONG transferred;

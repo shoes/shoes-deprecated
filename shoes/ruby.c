@@ -12,7 +12,7 @@
 #include "shoes/http.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cImageBlock, cEffect, cBlur, cShadow, cGlow, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cDownload, cColors, cLink, cLinkHover, ssNestSlot;
+VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cImageBlock, cEffect, cBlur, cShadow, cGlow, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE eVlcError, eImageError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot;
@@ -3597,6 +3597,7 @@ shoes_download_mark(shoes_download_klass *dl)
 {
   rb_gc_mark_maybe(dl->parent);
   rb_gc_mark_maybe(dl->attr);
+  rb_gc_mark_maybe(dl->response);
 }
 
 static void
@@ -3625,6 +3626,7 @@ shoes_download_alloc(VALUE klass)
   obj = Data_Wrap_Struct(klass, shoes_download_mark, shoes_download_free, dl);
   dl->parent = Qnil;
   dl->attr = Qnil;
+  dl->response = Qnil;
   return obj;
 }
 
@@ -3761,6 +3763,13 @@ shoes_download_percent(VALUE self)
 }
 
 VALUE
+shoes_download_response(VALUE self)
+{
+  GET_STRUCT(download_klass, dl);
+  return rb_uint2inum(dl->response);
+}
+
+VALUE
 shoes_download_transferred(VALUE self)
 {
   GET_STRUCT(download_klass, dl);
@@ -3770,6 +3779,37 @@ shoes_download_transferred(VALUE self)
 EVENT_COMMON(download, download_klass, start);
 EVENT_COMMON(download, download_klass, progress);
 EVENT_COMMON(download, download_klass, finish);
+
+//
+// Shoes::Response
+//
+VALUE
+shoes_response_new(VALUE klass, int status)
+{
+  VALUE obj = rb_obj_alloc(cResponse);
+  rb_iv_set(obj, "body", Qnil);
+  rb_iv_set(obj, "headers", rb_hash_new());
+  rb_iv_set(obj, "status", INT2NUM(status));
+  return obj;
+}
+
+VALUE
+shoes_response_body(VALUE self)
+{
+  return rb_iv_get(self, "body");
+}
+
+VALUE
+shoes_response_headers(VALUE self)
+{
+  return rb_iv_get(self, "headers");
+}
+
+VALUE
+shoes_response_status(VALUE self)
+{
+  return rb_iv_get(self, "status");
+}
 
 int shoes_catch_message(unsigned int name, VALUE obj, void *data) {
   int ret = 0;
@@ -4282,9 +4322,16 @@ shoes_ruby_init()
   rb_define_method(cDownload, "length", CASTHOOK(shoes_download_length), 0);
   rb_define_method(cDownload, "percent", CASTHOOK(shoes_download_percent), 0);
   rb_define_method(cDownload, "progress", CASTHOOK(shoes_download_progress), -1);
+  rb_define_method(cDownload, "response", CASTHOOK(shoes_download_response), 0);
   rb_define_method(cDownload, "size", CASTHOOK(shoes_download_length), 0);
   rb_define_method(cDownload, "start", CASTHOOK(shoes_download_start), -1);
   rb_define_method(cDownload, "transferred", CASTHOOK(shoes_download_transferred), 0);
+
+  cResponse   = rb_define_class_under(cDownload, "Response", rb_cObject);
+  rb_define_method(cResponse, "body", CASTHOOK(shoes_response_body), 0);
+  rb_define_method(cResponse, "headers", CASTHOOK(shoes_response_headers), 0);
+  rb_define_method(cResponse, "status", CASTHOOK(shoes_response_status), 0);
+  rb_define_method(cResponse, "text", CASTHOOK(shoes_response_body), 0);
 
   rb_define_method(cCanvas, "method_missing", CASTHOOK(shoes_color_method_missing), -1);
   rb_define_method(cApp, "method_missing", CASTHOOK(shoes_app_method_missing), -1);
