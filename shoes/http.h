@@ -8,15 +8,18 @@
 #define SHOES_DOWNLOAD_CONTINUE 0
 #define SHOES_DOWNLOAD_HALT 1
 
+#define SHOES_HTTP_STATUS    3
+#define SHOES_HTTP_HEADER    4
 #define SHOES_HTTP_CONNECTED 5
 #define SHOES_HTTP_TRANSFER  10
 #define SHOES_HTTP_COMPLETED 15
+#define SHOES_HTTP_ERROR     20
 
-#define HTTP_EVENT(handler, s, last, perc, trans, tot, dat, abort) \
+#define HTTP_EVENT(handler, s, last, perc, trans, tot, dat, bd, abort) \
 { SHOES_TIME ts; \
   shoes_get_time(&ts); \
   unsigned long elapsed = shoes_diff_time(&(last), &ts); \
-  if (s != SHOES_HTTP_TRANSFER || elapsed > 300 ) { \
+  if (s != SHOES_HTTP_TRANSFER || elapsed > 600 ) { \
     shoes_download_event event; \
     event.stage = s; \
     if (s == SHOES_HTTP_COMPLETED) event.stage = SHOES_HTTP_TRANSFER; \
@@ -27,6 +30,7 @@
     if (handler != NULL && (handler(&event, dat) & SHOES_DOWNLOAD_HALT)) \
     { abort; } \
     if (s == SHOES_HTTP_COMPLETED) { event.stage = s; \
+      event.body = bd; \
       if (handler != NULL && (handler(&event, dat) & SHOES_DOWNLOAD_HALT)) \
       { abort; } \
     } \
@@ -34,9 +38,13 @@
 
 typedef struct {
   unsigned char stage;
+  unsigned long status;
+  char *hkey, *hval, *body;
+  unsigned long hkeylen, hvallen;
   unsigned LONG_LONG total;
   unsigned LONG_LONG transferred;
   unsigned long percent;
+  SHOES_DOWNLOAD_ERROR error;
 } shoes_download_event;
 
 typedef int (*shoes_download_handler)(shoes_download_event *, void *);
@@ -46,6 +54,7 @@ typedef struct {
   int port;
   char *path;
   char *mem;
+  unsigned long memlen;
   char *filepath;
   unsigned LONG_LONG size;
   shoes_download_handler handler;
@@ -54,6 +63,7 @@ typedef struct {
 
 void shoes_download(shoes_download_request *req);
 void shoes_queue_download(shoes_download_request *req);
+VALUE shoes_download_error(SHOES_DOWNLOAD_ERROR error);
 
 #ifdef SHOES_WIN32
 #include <stdio.h>

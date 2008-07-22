@@ -3662,16 +3662,18 @@ shoes_download_non_threaded(VALUE self, VALUE url)
   VALUE host = rb_funcall(url, s_host, 0);
   VALUE port = rb_funcall(url, s_port, 0);
   VALUE path = rb_funcall(url, s_path, 0);
-  char mem[SHOES_BUFSIZE] = {0};
   shoes_download_request req;
   SHOE_MEMZERO(&req, shoes_download_request, 1);
   req.host = RSTRING_PTR(host);
   req.port = 80;
   req.path = RSTRING_PTR(path);
-  req.mem = mem;
+  req.mem = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
+  req.memlen = SHOES_BUFSIZE;
   req.handler = shoes_dont_handler;
   shoes_download(&req);
-  return rb_str_new(mem, req.size);
+  VALUE str = rb_str_new(req.mem, req.size);
+  free(req.mem);
+  return str;
 }
 
 int
@@ -3682,6 +3684,29 @@ shoes_message_download(VALUE self, void *data)
   GET_STRUCT(download_klass, dl);
   INFO("EVENT: %d, %lu, %llu, %llu\n", (int)de->stage, de->percent,
     de->transferred, de->total);
+
+  switch (de->stage)
+  {
+    case SHOES_HTTP_STATUS:
+      dl->response = shoes_response_new(cResponse, de->status);
+    return 0;
+
+    case SHOES_HTTP_HEADER:
+    {
+      VALUE h = shoes_response_headers(dl->response);
+      rb_hash_aset(h, rb_str_new(de->hkey, de->hkeylen), rb_str_new(de->hval, de->hvallen));
+    }
+    return 0;
+
+    case SHOES_HTTP_ERROR:
+      proc = ATTR(dl->attr, error);
+      if (!NIL_P(proc))
+        shoes_safe_block(dl->parent, proc, rb_ary_new3(2, self, shoes_download_error(de->error)));
+    return 0;
+
+    case SHOES_HTTP_COMPLETED:
+      if (de->body != NULL) rb_iv_set(dl->response, "body", rb_str_new(de->body, de->total));
+  }
 
   dl->percent = de->percent;
   dl->total = de->total;
@@ -3732,7 +3757,10 @@ shoes_download_threaded(VALUE self, VALUE url, VALUE attr)
 
   VALUE save = ATTR(attr, save);
   if (NIL_P(save))
+  {
     req->mem = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
+    req->memlen = SHOES_BUFSIZE;
+  }
   else
   {
     req->filepath = SHOE_ALLOC_N(char, RSTRING_LEN(save) + 1);
@@ -3766,7 +3794,7 @@ VALUE
 shoes_download_response(VALUE self)
 {
   GET_STRUCT(download_klass, dl);
-  return rb_uint2inum(dl->response);
+  return dl->response;
 }
 
 VALUE

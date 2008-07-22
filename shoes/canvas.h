@@ -550,6 +550,12 @@ VALUE shoes_download_alloc(VALUE);
 VALUE shoes_download_threaded(VALUE, VALUE, VALUE);
 int shoes_message_download(VALUE, void *);
 int shoes_catch_message(unsigned int name, VALUE obj, void *data);
+
+VALUE shoes_response_new(VALUE, int);
+VALUE shoes_response_body(VALUE);
+VALUE shoes_response_headers(VALUE);
+VALUE shoes_response_status(VALUE);
+
 VALUE shoes_p(VALUE, VALUE);
 
 extern const double SHOES_PIM2, SHOES_PI, SHOES_RAD2PI;

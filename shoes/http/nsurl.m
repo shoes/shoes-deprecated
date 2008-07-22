@@ -73,7 +73,7 @@
   size = total = 0;
   if ([response expectedContentLength] != NSURLResponseUnknownLength)
     total = [response expectedContentLength];
-  HTTP_EVENT(handler, SHOES_HTTP_CONNECTED, last, 0, 0, total, data, [c cancel]);
+  HTTP_EVENT(handler, SHOES_HTTP_CONNECTED, last, 0, 0, total, data, NULL, [c cancel]);
   [bytes setLength: 0];
 }
 - (void)connection: (NSURLConnection *)c didReceiveData: (NSData *)chunk
@@ -81,14 +81,11 @@
   [bytes appendData: chunk];
   size += [chunk length];
   HTTP_EVENT(handler, SHOES_HTTP_TRANSFER, last, size * 100.0 / total, size,
-             total, data, [c cancel]);
+             total, data, NULL, [c cancel]);
 }
 - (void)connectionDidFinishLoading: (NSURLConnection *)c
 {
-  // TODO: convert data to ruby string
-  // [[NSString alloc] initWithData: data
-  //  encoding: NSUTF8StringEncoding];
-  HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, total, total, data, 1);
+  HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, total, total, data, [data mutableBytes], 1);
   [c release];
 }
 - (void)download: (NSURLDownload *)download decideDestinationWithSuggestedFilename: (NSString *)filename
@@ -107,18 +104,18 @@
   size = total = 0;
   if ([response expectedContentLength] != NSURLResponseUnknownLength)
     total = [response expectedContentLength];
-  HTTP_EVENT(handler, SHOES_HTTP_CONNECTED, last, 0, 0, total, data, [download cancel]);
+  HTTP_EVENT(handler, SHOES_HTTP_CONNECTED, last, 0, 0, total, data, NULL, [download cancel]);
   [self setDownloadResponse: response];
 }
 - (void)download: (NSURLDownload *)download didReceiveDataOfLength: (unsigned)length
 {
   size += length;
   HTTP_EVENT(handler, SHOES_HTTP_TRANSFER, last, size * 100.0 / total, size,
-             total, data, [download cancel]);
+             total, data, NULL, [download cancel]);
 }
 - (void)downloadDidFinish: (NSURLDownload *)download
 {
-  HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, total, total, data, 1);
+  HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, total, total, data, NULL, 1);
   [download release];
 }
 @end

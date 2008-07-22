@@ -42,6 +42,9 @@
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 #include <gdk/gdkx.h>
+#include <curl/curl.h>
+#include <curl/types.h>
+#include <curl/easy.h>
 
 #define SHOES_SIGNAL
 #define SHOES_INIT_ARGS void
@@ -74,6 +77,7 @@ typedef struct {
 #define DRAWABLE(ref) GDK_DRAWABLE_XID(ref->window)
 #define APP_WINDOW(app) (app == NULL ? NULL : GTK_WINDOW(app->os.window))
 #define SHOES_TIME struct timespec
+#define SHOES_DOWNLOAD_ERROR CURLcode
 #endif
 
 //
@@ -127,6 +131,7 @@ typedef struct {
 #define HAS_DRAWABLE(slot) slot.context != NULL
 #define DRAWABLE(ref) ref
 #define SHOES_TIME struct timeval
+#define SHOES_DOWNLOAD_ERROR NSError *
 
 #endif
 
@@ -189,6 +194,7 @@ typedef struct {
 #define DRAWABLE(ref) (libvlc_drawable_t)ref
 #define APP_WINDOW(app) (app == NULL ? NULL : app->slot.window)
 #define SHOES_TIME DWORD
+#define SHOES_DOWNLOAD_ERROR DWORD
 
 #endif
 
