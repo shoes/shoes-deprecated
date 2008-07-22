@@ -68,8 +68,41 @@
     down = [[NSURLDownload alloc] initWithRequest: nsreq delegate: self];
   }
 }
+- (void)readHeaders: (NSURLResponse *)response
+{
+  if ([response respondsToSelector:@selector(allHeaderFields)])
+  {
+    NSHTTPURLResponse* httpresp = (NSHTTPURLResponse *)response;
+    if ([httpresp statusCode])
+    {
+      shoes_download_event event;
+      event.stage = SHOES_HTTP_STATUS;
+      event.status = [httpresp statusCode];
+      if (handler != NULL) handler(&event, data);
+    }
+
+    NSDictionary *hdrs = [httpresp allHeaderFields];
+    if (hdrs)
+    {
+      NSString *key;
+      NSEnumerator *keys = [hdrs keyEnumerator];
+      while (key = [keys nextObject])
+      {
+        NSString *val = [hdrs objectForKey: key];
+        shoes_download_event event;
+        event.stage = SHOES_HTTP_HEADER;
+        event.hkey = [key UTF8String];
+        event.hkeylen = strlen(event.hkey);
+        event.hval = [val UTF8String];
+        event.hvallen = strlen(event.hval);
+        if (handler != NULL) handler(&event, data);
+      }
+    }
+  }
+}
 - (void)connection: (NSURLConnection *)c didReceiveResponse: (NSURLResponse *)response
 {
+  [self readHeaders: response];
   size = total = 0;
   if ([response expectedContentLength] != NSURLResponseUnknownLength)
     total = [response expectedContentLength];
@@ -101,6 +134,7 @@
 }
 - (void)download: (NSURLDownload *)download didReceiveResponse: (NSURLResponse *)response
 {
+  [self readHeaders: response];
   size = total = 0;
   if ([response expectedContentLength] != NSURLResponseUnknownLength)
     total = [response expectedContentLength];
@@ -137,4 +171,6 @@ shoes_queue_download(shoes_download_request *req)
 VALUE
 shoes_http_error(SHOES_DOWNLOAD_ERROR code)
 {
+  char *errorString = [[code localizedDescription] UTF8String];
+  return rb_str_new2(errorString);
 }
