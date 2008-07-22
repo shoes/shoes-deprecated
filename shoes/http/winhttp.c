@@ -66,10 +66,10 @@ shoes_winhttp_headers(HINTERNET req, shoes_download_handler handler, void *data)
     CHAR hdr[MAX_PATH];
     LPCWSTR hdrs = new WCHAR[size/sizeof(WCHAR)], whdr;
     BOOL res = WinHttpQueryHeaders(req, WINHTTP_QUERY_RAW_HEADERS,
-      WINHTTP_HEADER_NAME_BY_INDEX, hdrs, &size, WINHTTP_NO_HEADER_INDEX);
+      WINHTTP_HEADER_NAME_BY_INDEX, (LPVOID)hdrs, &size, WINHTTP_NO_HEADER_INDEX);
     if (!res) return;
 
-    for (whdr = hdrs; whdr < hdrs + size; whdr += whdrlen)
+    for (whdr = hdrs; whdr - hdrs < size / sizeof(WCHAR); whdr += whdrlen)
     {
       WideCharToMultiByte(CP_UTF8, 0, whdr, -1, hdr, MAX_PATH, NULL, NULL);
       hdrlen = strlen(hdr);
@@ -83,7 +83,7 @@ void
 shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, HANDLE file,
   LPDWORD size, shoes_download_handler handler, void *data)
 {
-  DWORD len = 0, rlen = 0, status = 0;
+  DWORD len = 0, rlen = 0, status = 0, complete = 0;
   TCHAR buf[SHOES_BUFSIZE];
   WCHAR uagent[SHOES_BUFSIZE];
   HINTERNET sess = NULL, conn = NULL, req = NULL;
@@ -124,13 +124,15 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, HANDLE
     if (handler != NULL) handler(&event, data);
   }
 
+  shoes_winhttp_headers(req, handler, data);
+
   len = sizeof(buf);
   if (!WinHttpQueryHeaders(req, WINHTTP_QUERY_CONTENT_LENGTH,
     NULL, buf, &len, NULL))
     goto done;
 
   *size = _wtoi((wchar_t *)buf);
-  HTTP_EVENT(handler, SHOES_HTTP_CONNECTED, last, 0, 0, *size, data, goto done);
+  HTTP_EVENT(handler, SHOES_HTTP_CONNECTED, last, 0, 0, *size, data, NULL, goto done);
 
   if (mem != NULL)
   {
@@ -149,14 +151,23 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, HANDLE
       WriteFile(file, (LPBYTE)fbuf, len, &flen, NULL);
 
       HTTP_EVENT(handler, SHOES_HTTP_TRANSFER, last, (int)((total - (rlen * 100)) / *size),
-                 *size - rlen, *size, data, break);
+                 *size - rlen, *size, data, NULL, break);
       rlen -= len;
     }
   }
 
-  HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, *size, *size, data, goto done);
+  HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, *size, *size, data, mem, goto done);
+  complete = 1;
 
 done:
+  if (!complete)
+  {
+    shoes_download_event event;
+    event.stage = SHOES_HTTP_ERROR;
+    event.error = GetLastError();
+    if (handler != NULL) handler(&event, data);
+  }
+
   if (req)
     WinHttpCloseHandle(req);
 
@@ -170,4 +181,9 @@ done:
 VALUE
 shoes_http_error(SHOES_DOWNLOAD_ERROR code)
 {
+  TCHAR msg[1024];
+  DWORD msglen = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+    NULL, code, 0, msg, sizeof(msg), NULL);
+  msg[msglen] = '\0';
+  return rb_str_new2(msg);
 }
