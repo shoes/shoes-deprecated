@@ -15,6 +15,30 @@
 #define SHOES_HTTP_COMPLETED 15
 #define SHOES_HTTP_ERROR     20
 
+#define HTTP_HEADER(ptr, realsize, handler, data) \
+  { \
+    char *colon, *val, *end; \
+    for (colon = ptr; colon < ptr + realsize; colon++) \
+      if (colon[0] == ':') \
+        break; \
+    for (val = colon + 1; val < ptr + realsize; val++) \
+      if (val[0] != ' ') \
+        break; \
+    for (end = (ptr + realsize) - 1; end > ptr; end--) \
+      if (end[0] != '\r' && end[0] != '\n' && end[0] != ' ') \
+        break; \
+    if (colon < ptr + realsize) \
+    { \
+      shoes_download_event event; \
+      event.stage = SHOES_HTTP_HEADER; \
+      event.hkey = ptr; \
+      event.hkeylen = colon - ptr; \
+      event.hval = val; \
+      event.hvallen = (end - val) + 1; \
+      if (handler != NULL) handler(&event, data); \
+    } \
+  }
+
 #define HTTP_EVENT(handler, s, last, perc, trans, tot, dat, bd, abort) \
 { SHOES_TIME ts; \
   shoes_get_time(&ts); \

@@ -54,6 +54,32 @@ shoes_queue_download(shoes_download_request *req)
 }
 
 void
+shoes_winhttp_headers(HINTERNET req, shoes_download_handler handler, void *data)
+{ 
+  DWORD size;
+  WinHttpQueryHeaders(req, WINHTTP_QUERY_RAW_HEADERS,
+    WINHTTP_HEADER_NAME_BY_INDEX, NULL, &size, WINHTTP_NO_HEADER_INDEX);
+
+  if(GetLastError() == ERROR_INSUFFICIENT_BUFFER)
+  {
+    int whdrlen = 0, hdrlen = 0;
+    CHAR hdr[MAX_PATH];
+    LPCWSTR hdrs = new WCHAR[size/sizeof(WCHAR)], whdr;
+    BOOL res = WinHttpQueryHeaders(req, WINHTTP_QUERY_RAW_HEADERS,
+      WINHTTP_HEADER_NAME_BY_INDEX, hdrs, &size, WINHTTP_NO_HEADER_INDEX);
+    if (!res) return;
+
+    for (whdr = hdrs; whdr < hdrs + size; whdr += whdrlen)
+    {
+      WideCharToMultiByte(CP_UTF8, 0, whdr, -1, hdr, MAX_PATH, NULL, NULL);
+      hdrlen = strlen(hdr);
+      HTTP_HEADER(hdr, hdrlen, handler, data);
+      whdrlen = wcslen(whdr) + 1;
+    }
+  }
+}
+
+void
 shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, HANDLE file,
   LPDWORD size, shoes_download_handler handler, void *data)
 {
@@ -90,9 +116,13 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, HANDLE
   if (!WinHttpQueryHeaders(req, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
     NULL, &status, &len, NULL))
     goto done;
-
-  if (status != 200)
-    goto done;
+  else
+  {
+    shoes_download_event event;
+    event.stage = SHOES_HTTP_STATUS;
+    event.status = status;
+    if (handler != NULL) handler(&event, data);
+  }
 
   len = sizeof(buf);
   if (!WinHttpQueryHeaders(req, WINHTTP_QUERY_CONTENT_LENGTH,

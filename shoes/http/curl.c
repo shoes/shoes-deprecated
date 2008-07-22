@@ -31,7 +31,6 @@ const char *content_len_str = "Content-Length: ";
 size_t
 shoes_curl_header_funk(char *ptr, size_t size, size_t nmemb, shoes_curl_data *data)
 {
-  char *colon, *val, *end;
   size_t realsize = size * nmemb;
   if (data->status == 0)
   {
@@ -42,35 +41,16 @@ shoes_curl_header_funk(char *ptr, size_t size, size_t nmemb, shoes_curl_data *da
     if (data->handler != NULL) data->handler(&event, data->data);
   }
 
-  for (colon = ptr; colon < ptr + realsize; colon++)
-    if (colon[0] == ':')
-      break;
-  for (val = colon + 1; val < ptr + realsize; val++)
-    if (val[0] != ' ')
-      break;
-  for (end = (ptr + realsize) - 1; end > ptr; end--)
-    if (end[0] != '\r' && end[0] != '\n' && end[0] != ' ')
-      break;
+  HTTP_HEADER(ptr, realsize, data->handler, data->data);
 
-  if (colon < ptr + realsize)
+  if (strncmp(ptr, content_len_str, strlen(content_len_str)) == 0)
   {
-    shoes_download_event event;
-    event.stage = SHOES_HTTP_HEADER;
-    event.hkey = ptr;
-    event.hkeylen = colon - ptr;
-    event.hval = val;
-    event.hvallen = (end - val) + 1;
-    if (data->handler != NULL) data->handler(&event, data->data);
-
-    if (strncmp(ptr, content_len_str, strlen(content_len_str)) == 0)
+    data->total = strtoull(ptr + strlen(content_len_str), NULL, 10);
+    if (data->mem != NULL && data->total > data->memlen)
     {
-      data->total = strtoull(ptr + strlen(content_len_str), NULL, 10);
-      if (data->mem != NULL && data->total > data->memlen)
-      {
-        data->memlen = data->total;
-        SHOE_REALLOC_N(data->mem, char, data->memlen);
-        if (data->mem == NULL) return -1;
-      }
+      data->memlen = data->total;
+      SHOE_REALLOC_N(data->mem, char, data->memlen);
+      if (data->mem == NULL) return -1;
     }
   }
   return realsize;
