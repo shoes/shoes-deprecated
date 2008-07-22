@@ -63,7 +63,7 @@ typedef struct {
 
 void shoes_download(shoes_download_request *req);
 void shoes_queue_download(shoes_download_request *req);
-VALUE shoes_download_error(SHOES_DOWNLOAD_ERROR error);
+VALUE shoes_http_error(SHOES_DOWNLOAD_ERROR error);
 
 #ifdef SHOES_WIN32
 #include <stdio.h>

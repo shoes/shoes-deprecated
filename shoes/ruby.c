@@ -3701,7 +3701,7 @@ shoes_message_download(VALUE self, void *data)
     case SHOES_HTTP_ERROR:
       proc = ATTR(dl->attr, error);
       if (!NIL_P(proc))
-        shoes_safe_block(dl->parent, proc, rb_ary_new3(2, self, shoes_download_error(de->error)));
+        shoes_safe_block(dl->parent, proc, rb_ary_new3(2, self, shoes_http_error(de->error)));
     return 0;
 
     case SHOES_HTTP_COMPLETED:
@@ -3807,6 +3807,7 @@ shoes_download_transferred(VALUE self)
 EVENT_COMMON(download, download_klass, start);
 EVENT_COMMON(download, download_klass, progress);
 EVENT_COMMON(download, download_klass, finish);
+EVENT_COMMON(download, download_klass, error);
 
 //
 // Shoes::Response
@@ -3939,10 +3940,10 @@ shoes_ruby_init()
   s_URI = rb_intern("URI");
 
   s_now   = rb_intern("now");
-  s_debug = rb_intern("DEBUG");
-  s_info  = rb_intern("INFO");
-  s_warn  = rb_intern("WARN");
-  s_error = rb_intern("ERROR");
+  s_debug = rb_intern("debug");
+  s_info  = rb_intern("info");
+  s_warn  = rb_intern("warn");
+  s_error = rb_intern("error");
 
   s_run = rb_intern("run");
   s_to_i = rb_intern("to_i");

@@ -69,6 +69,7 @@ shoes_curl_header_funk(char *ptr, size_t size, size_t nmemb, shoes_curl_data *da
       {
         data->memlen = data->total;
         SHOE_REALLOC_N(data->mem, char, data->memlen);
+        if (data->mem == NULL) return -1;
       }
     }
   }
@@ -90,6 +91,7 @@ shoes_curl_write_funk(void *ptr, size_t size, size_t nmemb, shoes_curl_data *dat
       while (data->size + realsize > data->memlen)
         data->memlen += SHOES_BUFSIZE;
       SHOE_REALLOC_N(data->mem, char, data->memlen);
+      if (data->mem == NULL) return -1;
     }
     SHOE_MEMCPY(&(data->mem[data->size]), ptr, char, realsize);
   }
@@ -152,14 +154,17 @@ shoes_download(shoes_download_request *req)
   curl_easy_setopt(curl, CURLOPT_USERAGENT, uagent);
 
   res = curl_easy_perform(curl);
-  if (res != CURLE_OK)
-  {
-    HTTP_EVENT(cdata.handler, SHOES_HTTP_ERROR, cdata.last, res, 0, 0, cdata.data, NULL, 1);
-    goto done;
-  }
-
   req->size = cdata.total;
   req->mem = cdata.mem;
+
+  if (res != CURLE_OK)
+  {
+    shoes_download_event event;
+    event.stage = SHOES_HTTP_ERROR;
+    event.error = res;
+    if (req->handler != NULL) req->handler(&event, req->data);
+    goto done;
+  }
 
   HTTP_EVENT(cdata.handler, SHOES_HTTP_COMPLETED, cdata.last, 100, req->size, req->size, cdata.data, req->mem, 1);
 
@@ -190,7 +195,7 @@ shoes_queue_download(shoes_download_request *req)
 }
 
 VALUE
-shoes_download_error(SHOES_DOWNLOAD_ERROR code)
+shoes_http_error(SHOES_DOWNLOAD_ERROR code)
 {
   return rb_str_new2(curl_easy_strerror(code));
 }

@@ -133,3 +133,8 @@ shoes_queue_download(shoes_download_request *req)
   ShoesHttp *http = [[ShoesHttp alloc] init];
   [http download: req];
 }
+
+VALUE
+shoes_http_error(SHOES_DOWNLOAD_ERROR code)
+{
+}

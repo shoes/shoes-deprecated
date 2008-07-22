@@ -136,3 +136,8 @@ done:
   if (sess)
     WinHttpCloseHandle(sess);
 }
+
+VALUE
+shoes_http_error(SHOES_DOWNLOAD_ERROR code)
+{
+}
