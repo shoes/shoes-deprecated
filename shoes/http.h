@@ -77,6 +77,10 @@ typedef struct {
   char *host;
   int port;
   char *path;
+
+  char *method, *body;
+  SHOES_DOWNLOAD_HEADERS headers;
+
   char *mem;
   unsigned long memlen;
   char *filepath;
@@ -88,6 +92,7 @@ typedef struct {
 void shoes_download(shoes_download_request *req);
 void shoes_queue_download(shoes_download_request *req);
 VALUE shoes_http_error(SHOES_DOWNLOAD_ERROR error);
+SHOES_DOWNLOAD_HEADERS shoes_http_headers(VALUE hsh);
 
 #ifdef SHOES_WIN32
 #include <stdio.h>

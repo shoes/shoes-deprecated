@@ -77,6 +77,7 @@ typedef struct {
 #define DRAWABLE(ref) GDK_DRAWABLE_XID(ref->window)
 #define APP_WINDOW(app) (app == NULL ? NULL : GTK_WINDOW(app->os.window))
 #define SHOES_TIME struct timespec
+#define SHOES_DOWNLOAD_HEADERS struct curl_slist *
 #define SHOES_DOWNLOAD_ERROR CURLcode
 #endif
 
@@ -131,6 +132,7 @@ typedef struct {
 #define HAS_DRAWABLE(slot) slot.context != NULL
 #define DRAWABLE(ref) ref
 #define SHOES_TIME struct timeval
+#define SHOES_DOWNLOAD_HEADERS NSDictionary *
 #define SHOES_DOWNLOAD_ERROR NSError *
 
 #endif
@@ -194,6 +196,7 @@ typedef struct {
 #define DRAWABLE(ref) (libvlc_drawable_t)ref
 #define APP_WINDOW(app) (app == NULL ? NULL : app->slot.window)
 #define SHOES_TIME DWORD
+#define SHOES_DOWNLOAD_HEADERS char *
 #define SHOES_DOWNLOAD_ERROR DWORD
 
 #endif

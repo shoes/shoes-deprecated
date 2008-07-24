@@ -16,7 +16,7 @@ VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask
 VALUE eVlcError, eImageError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot;
-ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_URI, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_checked, s_checked_q, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_group, s_hand, s_hidden, s_host, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_link, s_motion, s_path, s_port, s_progress, s_release, s_save, s_wheel, s_scroll, s_start, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
+ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_URI, s_angle, s_arrow, s_autoplay, s_begin, s_body, s_call, s_center, s_change, s_checked, s_checked_q, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_group, s_hand, s_headers, s_hidden, s_host, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_link, s_method, s_motion, s_path, s_port, s_progress, s_release, s_save, s_wheel, s_scroll, s_start, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -3755,6 +3755,13 @@ shoes_download_threaded(VALUE self, VALUE url, VALUE attr)
   req->path = RSTRING_PTR(path);
   req->handler = shoes_doth_handler;
 
+  VALUE method = ATTR(attr, method);
+  VALUE headers = ATTR(attr, headers);
+  VALUE body = ATTR(attr, body);
+  if (!NIL_P(body))    req->body = RSTRING_PTR(body);
+  if (!NIL_P(method))  req->method = RSTRING_PTR(method);
+  if (!NIL_P(headers)) req->headers = shoes_http_headers(headers);
+
   VALUE save = ATTR(attr, save);
   if (NIL_P(save))
   {
@@ -3953,6 +3960,7 @@ shoes_ruby_init()
   s_arrow = rb_intern("arrow");
   s_autoplay = rb_intern("autoplay");
   s_begin = rb_intern("begin");
+  s_body = rb_intern("body");
   s_call = rb_intern("call");
   s_center = rb_intern("center");
   s_change = rb_intern("change");
@@ -3973,6 +3981,7 @@ shoes_ruby_init()
   s_font = rb_intern("font");
   s_group = rb_intern("group");
   s_hand = rb_intern("hand");
+  s_headers = rb_intern("headers");
   s_hidden = rb_intern("hidden");
   s_host = rb_intern("host");
   s_hover = rb_intern("hover");
@@ -3982,6 +3991,7 @@ shoes_ruby_init()
   s_items = rb_intern("items");
   s_keypress = rb_intern("keypress");
   s_match = rb_intern("match");
+  s_method = rb_intern("method");
   s_motion = rb_intern("motion");
   s_link = rb_intern("link");
   s_leading = rb_intern("leading");
