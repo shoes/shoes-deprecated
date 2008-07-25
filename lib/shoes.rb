@@ -14,6 +14,15 @@ if Object.const_defined? :Shoes
   require 'shoes/cache'
 end
  
+class Class
+  def setup_styles *styles
+    styles.each do |m|
+      define_method(m) { style[m] }
+      define_method("#{m}=") { |v| style[m] = v }
+    end
+  end
+end
+
 class Range 
   def rand 
     conv = (Integer === self.end && Integer === self.begin ? :to_i : :to_f)
@@ -231,12 +240,13 @@ class Shoes
     Shoes.mount(path, [self, meth])
   end
 
+  class Shape
+    setup_styles :stroke, :fill
+  end
+
   class Text
-    [:stroke, :fill, :strikecolor, :undercolor, :font, :size, :family, :weight,
-     :rise, :kerning, :emphasis, :strikethrough, :stretch, :underline, :variant].each do |m|
-      define_method(m) { style[m] }
-      define_method("#{m}=") { |v| style[m] = v }
-    end
+    setup_styles :stroke, :fill, :strikecolor, :undercolor, :font, :size, :family, :weight,
+     :rise, :kerning, :emphasis, :strikethrough, :stretch, :underline, :variant
   end
 
   def Widget.inherited subc

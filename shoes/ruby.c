@@ -16,7 +16,7 @@ VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask
 VALUE eVlcError, eImageError, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot;
-ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_URI, s_angle, s_arrow, s_autoplay, s_begin, s_body, s_call, s_center, s_change, s_checked, s_checked_q, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_group, s_hand, s_headers, s_hidden, s_host, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_link, s_method, s_motion, s_path, s_port, s_progress, s_release, s_save, s_wheel, s_scroll, s_start, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
+ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_URI, s_angle, s_arrow, s_autoplay, s_begin, s_body, s_call, s_center, s_change, s_checked, s_checked_q, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_group, s_hand, s_headers, s_hidden, s_host, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_link, s_method, s_motion, s_path, s_port, s_progress, s_release, s_save, s_wheel, s_stroke, s_scroll, s_start, s_attach, s_leading, s_leave, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -530,8 +530,6 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
 static void
 shoes_shape_mark(shoes_shape *path)
 {
-  rb_gc_mark_maybe(path->fg);
-  rb_gc_mark_maybe(path->bg);
   rb_gc_mark_maybe(path->parent);
   rb_gc_mark_maybe(path->attr);
 }
@@ -554,11 +552,11 @@ shoes_shape_new(cairo_path_t *line, VALUE parent, VALUE x, VALUE y, int w, int h
   Data_Get_Struct(parent, shoes_canvas, canvas);
   path->line = line;
   path->parent = parent;
-  path->fg = canvas->fg;
-  path->bg = canvas->bg;
   path->sw = canvas->sw;
   path->width = w;
   path->height = h;
+  if (NIL_P(ATTR(path->attr, stroke))) ATTRSET(path->attr, stroke, canvas->fg);
+  if (NIL_P(ATTR(path->attr, fill)))   ATTRSET(path->attr, fill, canvas->bg);
   ATTRSET(path->attr, left, x);
   ATTRSET(path->attr, top, y);
   return obj;
@@ -573,18 +571,19 @@ shoes_shape_alloc(VALUE klass)
   obj = Data_Wrap_Struct(klass, shoes_shape_mark, shoes_shape_free, shape);
   shape->attr = Qnil;
   shape->parent = Qnil;
-  shape->fg = Qnil;
-  shape->bg = Qnil;
   return obj;
 }
 
 #define PATH_OUT(pen, cfunc) \
-  if (!NIL_P(self_t->pen)) \
+  if (!NIL_P(ATTR(self_t->attr, pen))) \
   { \
+    VALUE p = ATTR(self_t->attr, pen); \
+    if (!rb_obj_is_kind_of(p, cPattern)) \
+      ATTRSET(self_t->attr, pen, p = rb_funcall(p, s_to_pattern, 0)); \
     double r = 0., sw = self_t->sw; \
     cairo_matrix_t matrix1, matrix2; \
     shoes_pattern *pattern; \
-    Data_Get_Struct(self_t->pen, shoes_pattern, pattern); \
+    Data_Get_Struct(ATTR(self_t->attr, pen), shoes_pattern, pattern); \
     PATTERN_SCALE(pattern); \
     cairo_set_line_width(canvas->cr, sw); \
     cairo_set_source(canvas->cr, PATTERN(pattern)); \
@@ -604,8 +603,8 @@ shoes_shape_draw(VALUE self, VALUE c, VALUE actual)
     cairo_new_path(canvas->cr);
     cairo_append_path(canvas->cr, self_t->line);
 
-    PATH_OUT(bg, cairo_fill_preserve);
-    PATH_OUT(fg, cairo_stroke);
+    PATH_OUT(fill, cairo_fill_preserve);
+    PATH_OUT(stroke, cairo_stroke);
 
     cairo_restore(canvas->cr);
   }
@@ -4022,6 +4021,7 @@ shoes_ruby_init()
   s_save = rb_intern("save");
   s_wheel = rb_intern("wheel");
   s_scroll = rb_intern("scroll");
+  s_stroke = rb_intern("stroke");
   s_start = rb_intern("start");
   s_attach = rb_intern("attach");
   s_text = rb_intern("text");
