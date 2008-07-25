@@ -680,7 +680,7 @@ VALUE
 shoes_canvas_imagesize(VALUE self, VALUE _path)
 {
   int w, h;
-  if (shoes_load_image(_path, &w, &h, FALSE))
+  if (shoes_load_imagesize(_path, &w, &h) == SHOES_OK)
     return rb_ary_new3(2, INT2NUM(w), INT2NUM(h));
   return Qnil;
 }

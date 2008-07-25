@@ -137,8 +137,10 @@ shoes_surface_create_from_gif(char *filename, int *width, int *height, unsigned 
            /* PrintGifError(); */
            rec = TERMINATE_RECORD_TYPE;
         }
-      *width = w = gif->Image.Width;
-      *height = h = gif->Image.Height;
+      w = gif->Image.Width;
+      if (width != NULL) *width = w;
+      h = gif->Image.Height;
+      if (height != NULL) *height = h;
       if ((w < 1) || (h < 1) || (w > 8192) || (h > 8192))
         goto done;
 
@@ -382,8 +384,10 @@ shoes_surface_create_from_jpeg(char *filename, int *width, int *height, unsigned
   cinfo.do_block_smoothing = FALSE;
 
   jpeg_start_decompress(&cinfo);
-  *width = w = cinfo.output_width;
-  *height = h = cinfo.output_height;
+  w = cinfo.output_width;
+  if (width != NULL) *width = w;
+  h = cinfo.output_height;
+  if (height != NULL) *height = h;
 
   if ((w < 1) || (h < 1) || (w > 8192) || (h > 8192))
     goto done;
@@ -479,8 +483,8 @@ shoes_failed_image(VALUE path)
     RSTRING_PTR(path), RSTRING_PTR(ext)); 
 }
 
-cairo_surface_t *
-shoes_load_image(VALUE imgpath, int *width, int *height, unsigned char load)
+shoes_code
+shoes_load_imagesize(VALUE imgpath, int *width, int *height)
 {
   shoes_cached_image *cached = NULL;
   cairo_surface_t *img = NULL;
@@ -489,24 +493,59 @@ shoes_load_image(VALUE imgpath, int *width, int *height, unsigned char load)
   int len = RSTRING_LEN(filename);
 
   if (st_lookup(shoes_world->image_cache, (st_data_t)RSTRING_PTR(imgpath), (st_data_t *)&cached))
+  {
+    *width = cached->width;
+    *height = cached->height;
+    return SHOES_OK;
+  }
+
+  if (!shoes_check_file_exists(imgpath))
+    return SHOES_FAIL;
+  else if (shoes_has_ext(fname, len, ".png"))
+    img = shoes_png_size(RSTRING_PTR(imgpath), width, height);
+  else if (shoes_has_ext(fname, len, ".jpg") || shoes_has_ext(fname, len, ".jpeg"))
+    img = shoes_surface_create_from_jpeg(RSTRING_PTR(imgpath), width, height, FALSE);
+  else if (shoes_has_ext(fname, len, ".gif"))
+    img = shoes_surface_create_from_gif(RSTRING_PTR(imgpath), width, height, FALSE);
+  else
+  {
+    shoes_unsupported_image(imgpath);
+    return SHOES_FAIL;
+  }
+
+  if (img != SIZE_SURFACE)
+  {
+    shoes_failed_image(imgpath);
+    return SHOES_FAIL;
+  }
+  return SHOES_OK;
+}
+
+shoes_cached_image *
+shoes_load_image(VALUE imgpath)
+{
+  shoes_cached_image *cached = NULL;
+  cairo_surface_t *img = NULL;
+  VALUE filename = rb_funcall(imgpath, s_downcase, 0);
+  char *fname = RSTRING_PTR(filename);
+  int len = RSTRING_LEN(filename), width = 1, height = 1;
+
+  if (st_lookup(shoes_world->image_cache, (st_data_t)RSTRING_PTR(imgpath), (st_data_t *)&cached))
     goto done;
 
   if (!shoes_check_file_exists(imgpath))
     img = shoes_world->blank_image;
   else if (shoes_has_ext(fname, len, ".png"))
   {
-    img = shoes_png_size(RSTRING_PTR(imgpath), width, height);
-    if (load)
-    {
-      img = cairo_image_surface_create_from_png(RSTRING_PTR(imgpath));
-      if (cairo_surface_status(img) != CAIRO_STATUS_SUCCESS)
-        img = NULL;
-    }
+    img = shoes_png_size(RSTRING_PTR(imgpath), &width, &height);
+    img = cairo_image_surface_create_from_png(RSTRING_PTR(imgpath));
+    if (cairo_surface_status(img) != CAIRO_STATUS_SUCCESS)
+      img = NULL;
   }
   else if (shoes_has_ext(fname, len, ".jpg") || shoes_has_ext(fname, len, ".jpeg"))
-    img = shoes_surface_create_from_jpeg(RSTRING_PTR(imgpath), width, height, load);
+    img = shoes_surface_create_from_jpeg(RSTRING_PTR(imgpath), &width, &height, TRUE);
   else if (shoes_has_ext(fname, len, ".gif"))
-    img = shoes_surface_create_from_gif(RSTRING_PTR(imgpath), width, height, load);
+    img = shoes_surface_create_from_gif(RSTRING_PTR(imgpath), &width, &height, TRUE);
   else
   {
     shoes_unsupported_image(imgpath);
@@ -519,18 +558,13 @@ shoes_load_image(VALUE imgpath, int *width, int *height, unsigned char load)
     img = shoes_world->blank_image;
   }
 
-  if (load && img != shoes_world->blank_image)
+  if (img != shoes_world->blank_image)
   {
     cached = SHOE_ALLOC(shoes_cached_image);
-    cached->surface = img; cached->width = *width; cached->height = *height;
+    cached->surface = img; cached->pattern = NULL; cached->width = width; cached->height = height;
     st_insert(shoes_world->image_cache, (st_data_t)strdup(RSTRING_PTR(imgpath)), (st_data_t)cached);
   }
-  else if (!load && img == shoes_world->blank_image)
-    img = NULL;
 
-  return img;
 done:
-  *width = cached->width;
-  *height = cached->height;
-  return cached->surface;
+  return cached;
 }

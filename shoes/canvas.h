@@ -17,6 +17,7 @@
 #include <ruby.h>
 
 #include "shoes/config.h"
+#include "shoes/code.h"
 
 struct _shoes_app;
 
@@ -138,27 +139,27 @@ typedef struct {
 } shoes_text;
 
 //
+// cached image
+//
+typedef struct {
+  cairo_surface_t *surface;
+  cairo_pattern_t *pattern;
+  int width, height;
+} shoes_cached_image;
+
+//
 // image struct
 //
 typedef struct {
   VALUE parent;
   VALUE attr;
   shoes_place place;
-  cairo_surface_t *surface;
-  int width, height;
+  shoes_cached_image *cached;
   cairo_matrix_t *tf;
   VALUE mode;
   VALUE path;
   char hover;
 } shoes_image;
-
-//
-// cached image
-//
-typedef struct {
-  cairo_surface_t *surface;
-  int width, height;
-} shoes_cached_image;
 
 #ifdef VIDEO
 //
@@ -183,10 +184,10 @@ typedef struct {
 typedef struct {
   VALUE parent;
   VALUE attr;
-  cairo_pattern_t *pattern;
-  int width, height;     // dimensions of the underlying surface
   VALUE source;
   char hover;
+  shoes_cached_image *cached;
+  cairo_pattern_t *pattern;
 } shoes_pattern;
 
 //
@@ -563,6 +564,7 @@ extern const double SHOES_PIM2, SHOES_PI, SHOES_RAD2PI;
 //
 // shoes/image.c
 //
-cairo_surface_t *shoes_load_image(VALUE, int *, int *, unsigned char);
+shoes_code shoes_load_imagesize(VALUE, int *, int *);
+shoes_cached_image *shoes_load_image(VALUE);
 
 #endif

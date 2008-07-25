@@ -600,6 +600,8 @@ The `path` can be a file path or a URL.  All images loaded are temporarily cache
 
 Quickly grab the width and height of an image.  The image won't be loaded into the cache or displayed.
 
+URGENT NOTE: This method cannot be used with remote images (loaded from HTTP, rather than the hard drive.)
+
 === ins(text) » Shoes::Ins ===
 
 Creates an Ins text fragment (short for "inserted") which Shoes styles with a single underline.

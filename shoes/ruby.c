@@ -505,20 +505,23 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
     canvas->cy = canvas->endy; \
   }
 
+#define PATTERN_DIM(self_t, x) (self_t->cached != NULL ? self_t->cached->x : 1)
+#define PATTERN(self_t) (self_t->cached != NULL ? self_t->cached->pattern : self_t->pattern)
+
 #define PATTERN_SCALE(self_t) \
-  if (self_t->width == 1.0 && self_t->height == 1.0) \
+  if (self_t->cached == NULL) \
   { \
-    cairo_pattern_get_matrix(self_t->pattern, &matrix1); \
-    cairo_pattern_get_matrix(self_t->pattern, &matrix2); \
+    cairo_pattern_get_matrix(PATTERN(self_t), &matrix1); \
+    cairo_pattern_get_matrix(PATTERN(self_t), &matrix2); \
     cairo_matrix_scale(&matrix2, 1. / (place.iw + (sw * 2.)), 1. / (place.ih + (sw * 2.))); \
     if (sw != 0.0) cairo_matrix_translate(&matrix2, sw, sw); \
-    cairo_pattern_set_matrix(self_t->pattern, &matrix2); \
+    cairo_pattern_set_matrix(PATTERN(self_t), &matrix2); \
   }
 
 #define PATTERN_RESET(self_t) \
-  if (self_t->width == 1.0 && self_t->height == 1.0) \
+  if (self_t->cached == NULL) \
   { \
-    cairo_pattern_set_matrix(self_t->pattern, &matrix1); \
+    cairo_pattern_set_matrix(PATTERN(self_t), &matrix1); \
   }
 
 //
@@ -702,7 +705,6 @@ shoes_image_new(VALUE klass, VALUE path, VALUE realpath, VALUE attr, VALUE paren
   GError *error = NULL;
   VALUE obj = Qnil;
   shoes_image *image;
-  cairo_surface_t *surf;
 
   obj = shoes_image_alloc(klass);
   Data_Get_Struct(obj, shoes_image, image);
@@ -712,9 +714,10 @@ shoes_image_new(VALUE klass, VALUE path, VALUE realpath, VALUE attr, VALUE paren
   {
     shoes_image *image2;
     Data_Get_Struct(path, shoes_image, image2);
-    cairo_surface_reference(image->surface = image2->surface);
+    image->cached = image2->cached;
     attr = realpath;
   }
+  /* TODO: cached image blocks
   else if (rb_obj_is_kind_of(path, cImageBlock))
   {
     shoes_canvas *c;
@@ -722,16 +725,11 @@ shoes_image_new(VALUE klass, VALUE path, VALUE realpath, VALUE attr, VALUE paren
     cairo_surface_reference(image->surface = cairo_get_target(c->cr));
     attr = realpath;
   }
+  */
   else
   {
     image->path = path;
-    image->surface = shoes_load_image(realpath, &image->width, &image->height, TRUE);
-  }
-
-  if (image->surface != NULL && image->width == 0)
-  {
-    image->width = cairo_image_surface_get_width(image->surface);
-    image->height = cairo_image_surface_get_height(image->surface);
+    image->cached = shoes_load_image(realpath);
   }
 
   cairo_matrix_init_identity(image->tf);
@@ -763,14 +761,14 @@ VALUE
 shoes_image_get_full_width(VALUE self)
 {
   GET_STRUCT(image, image);
-  return INT2NUM(image->width);
+  return INT2NUM(image->cached->width);
 }
 
 VALUE
 shoes_image_get_full_height(VALUE self)
 {
   GET_STRUCT(image, image);
-  return INT2NUM(image->height);
+  return INT2NUM(image->cached->height);
 }
 
 VALUE
@@ -785,8 +783,7 @@ shoes_image_set_path(VALUE self, VALUE path)
 {
   GET_STRUCT(image, image);
   image->path = path;
-  image->surface = shoes_load_image(path, &image->width, &image->height, TRUE);
-  shoes_canvas_repaint_all(image->parent);
+  image->cached = shoes_load_image(path);
   return path;
 }
 
@@ -813,7 +810,7 @@ shoes_image_set_path(VALUE self, VALUE path)
 VALUE
 shoes_image_draw(VALUE self, VALUE c, VALUE actual)
 {
-  SHOES_IMAGE_PLACE(image, self_t->width, self_t->height, self_t->surface);
+  SHOES_IMAGE_PLACE(image, self_t->cached->width, self_t->cached->height, self_t->cached->surface);
 }
 
 VALUE
@@ -860,9 +857,7 @@ VALUE
 shoes_image_size(VALUE self)
 {
   GET_STRUCT(image, self_t);
-  return rb_ary_new3(2,
-    INT2NUM(cairo_image_surface_get_width(self_t->surface)),
-    INT2NUM(cairo_image_surface_get_height(self_t->surface)));
+  return rb_ary_new3(2, INT2NUM(self_t->cached->width), INT2NUM(self_t->cached->height));
 }
 
 static unsigned char *
@@ -1108,7 +1103,7 @@ shoes_image_motion(VALUE self, int x, int y, char *touch)
   GET_STRUCT(image, self_t);
 
   click = ATTR(self_t->attr, click);
-  if (self_t->surface == NULL) return Qnil;
+  if (self_t->cached == NULL) return Qnil;
 
   if (IS_INSIDE(self_t, x, y))
   {
@@ -1466,7 +1461,8 @@ shoes_pattern_mark(shoes_pattern *pattern)
 static void
 shoes_pattern_free(shoes_pattern *pattern)
 {
-  cairo_pattern_destroy(pattern->pattern);
+  if (pattern->pattern != NULL)
+    cairo_pattern_destroy(pattern->pattern);
   RUBY_CRITICAL(free(pattern));
 }
 
@@ -1501,7 +1497,6 @@ shoes_pattern_gradient(shoes_pattern *pattern, VALUE r1, VALUE r2, VALUE attr)
   }
   shoes_color_grad_stop(pattern->pattern, 0.0, r1);
   shoes_color_grad_stop(pattern->pattern, 1.0, r2);
-  pattern->width = pattern->height = 1.;
 }
 
 VALUE
@@ -1544,13 +1539,13 @@ shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent)
     if (rb_obj_is_kind_of(source, cColor))
     {
       pattern->pattern = shoes_color_pattern(source);
-      pattern->width = pattern->height = 1.;
     }
     else
     {
-      cairo_surface_t *surface = shoes_load_image(source, &pattern->width, &pattern->height, TRUE);
+      pattern->cached = shoes_load_image(source);
       pattern->source = source;
-      pattern->pattern = cairo_pattern_create_for_surface(surface);
+      if (pattern->cached->pattern == NULL)
+        pattern->cached->pattern = cairo_pattern_create_for_surface(pattern->cached->surface);
     }
     cairo_pattern_set_extend(pattern->pattern, CAIRO_EXTEND_REPEAT);
   }
@@ -1584,7 +1579,7 @@ shoes_background_draw(VALUE self, VALUE c, VALUE actual)
 {
   cairo_matrix_t matrix1, matrix2;
   double r = 0., sw = 1.;
-  SETUP(shoes_pattern, REL_TILE, self_t->width, self_t->height);
+  SETUP(shoes_pattern, REL_TILE, PATTERN_DIM(self_t, width), PATTERN_DIM(self_t, height));
   r = ATTR2(dbl, self_t->attr, curve, 0.);
 
   if (RTEST(actual))
@@ -1593,7 +1588,7 @@ shoes_background_draw(VALUE self, VALUE c, VALUE actual)
     cairo_translate(canvas->cr, place.ix + place.dx, place.iy + place.dy);
     PATTERN_SCALE(self_t);
     shoes_cairo_rect(canvas->cr, 0, 0, place.iw, place.ih, r);
-    cairo_set_source(canvas->cr, self_t->pattern);
+    cairo_set_source(canvas->cr, PATTERN(self_t));
     cairo_fill(canvas->cr);
     cairo_restore(canvas->cr);
     PATTERN_RESET(self_t);
@@ -1608,7 +1603,7 @@ shoes_border_draw(VALUE self, VALUE c, VALUE actual)
 {
   cairo_matrix_t matrix1, matrix2;
   double r = 0., sw = 1.;
-  SETUP(shoes_pattern, REL_TILE, self_t->width, self_t->height);
+  SETUP(shoes_pattern, REL_TILE, PATTERN_DIM(self_t, width), PATTERN_DIM(self_t, height));
   r = ATTR2(dbl, self_t->attr, curve, 0.);
   sw = ATTR2(dbl, self_t->attr, strokewidth, 1.);
 
@@ -1622,7 +1617,7 @@ shoes_border_draw(VALUE self, VALUE c, VALUE actual)
     cairo_save(canvas->cr);
     cairo_translate(canvas->cr, place.ix + place.dx, place.iy + place.dy);
     PATTERN_SCALE(self_t);
-    cairo_set_source(canvas->cr, self_t->pattern);
+    cairo_set_source(canvas->cr, PATTERN(self_t));
     shoes_cairo_rect(canvas->cr, 0, 0, place.iw, place.ih, r);
     cairo_set_antialias(canvas->cr, CAIRO_ANTIALIAS_NONE);
     cairo_set_line_width(canvas->cr, sw);
@@ -1643,10 +1638,9 @@ shoes_subpattern_new(VALUE klass, VALUE pat, VALUE parent)
   Data_Get_Struct(obj, shoes_pattern, back);
   Data_Get_Struct(pat, shoes_pattern, pattern);
   back->source = pattern->source;
+  back->cached = pattern->cached;
   back->pattern = pattern->pattern;
   cairo_pattern_reference(back->pattern);
-  back->width = pattern->width;
-  back->height = pattern->height;
   back->attr = pattern->attr;
   back->parent = parent;
   return obj;

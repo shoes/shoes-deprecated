@@ -42,6 +42,8 @@ shoes_world_alloc()
 int
 shoes_world_free_image_cache(char *key, shoes_cached_image *cached, char *arg)
 {
+  if (cached->pattern != NULL)
+    cairo_pattern_destroy(cached->pattern);
   cairo_surface_destroy(cached->surface);
   free(cached);
   free(key);
