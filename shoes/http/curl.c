@@ -42,7 +42,6 @@ shoes_curl_header_funk(char *ptr, size_t size, size_t nmemb, shoes_curl_data *da
   }
 
   HTTP_HEADER(ptr, realsize, data->handler, data->data);
-
   if (strncmp(ptr, content_len_str, strlen(content_len_str)) == 0)
   {
     data->total = strtoull(ptr + strlen(content_len_str), NULL, 10);
@@ -164,6 +163,12 @@ shoes_download(shoes_download_request *req)
     event.error = res;
     if (req->handler != NULL) req->handler(&event, req->data);
     goto done;
+  }
+
+  if (cdata.fp != NULL)
+  { 
+    fclose(cdata.fp);
+    cdata.fp = NULL;
   }
 
   HTTP_EVENT(cdata.handler, SHOES_HTTP_COMPLETED, cdata.last, 100, req->size, req->size, cdata.data, req->mem, 1);

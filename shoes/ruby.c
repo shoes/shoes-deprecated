@@ -587,7 +587,7 @@ shoes_shape_alloc(VALUE klass)
     Data_Get_Struct(self_t->pen, shoes_pattern, pattern); \
     PATTERN_SCALE(pattern); \
     cairo_set_line_width(canvas->cr, sw); \
-    cairo_set_source(canvas->cr, pattern->pattern); \
+    cairo_set_source(canvas->cr, PATTERN(pattern)); \
     cfunc(canvas->cr); \
     PATTERN_RESET(pattern); \
   }
@@ -700,7 +700,7 @@ shoes_image_free(shoes_image *image)
 }
 
 VALUE
-shoes_image_new(VALUE klass, VALUE path, VALUE realpath, VALUE attr, VALUE parent, cairo_matrix_t *tf, VALUE mode)
+shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, cairo_matrix_t *tf, VALUE mode)
 {
   GError *error = NULL;
   VALUE obj = Qnil;
@@ -715,7 +715,6 @@ shoes_image_new(VALUE klass, VALUE path, VALUE realpath, VALUE attr, VALUE paren
     shoes_image *image2;
     Data_Get_Struct(path, shoes_image, image2);
     image->cached = image2->cached;
-    attr = realpath;
   }
   /* TODO: cached image blocks
   else if (rb_obj_is_kind_of(path, cImageBlock))
@@ -728,8 +727,9 @@ shoes_image_new(VALUE klass, VALUE path, VALUE realpath, VALUE attr, VALUE paren
   */
   else
   {
+    path = shoes_native_to_s(path);
     image->path = path;
-    image->cached = shoes_load_image(realpath);
+    image->cached = shoes_load_image(parent, path);
   }
 
   cairo_matrix_init_identity(image->tf);
@@ -783,7 +783,7 @@ shoes_image_set_path(VALUE self, VALUE path)
 {
   GET_STRUCT(image, image);
   image->path = path;
-  image->cached = shoes_load_image(path);
+  image->cached = shoes_load_image(image->parent, path);
   return path;
 }
 
@@ -1062,7 +1062,7 @@ shoes_layer_blur_filter(cairo_t *cr, void *data, cairo_operator_t blur_op,
   {
     shoes_pattern *pattern;
     Data_Get_Struct(canvas->bg, shoes_pattern, pattern);
-    cairo_set_source(cr2, pattern->pattern);
+    cairo_set_source(cr2, PATTERN(pattern));
   }
   cairo_rectangle(cr2, 0, 0, width, height);
   cairo_paint(cr2);
@@ -1542,12 +1542,12 @@ shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent)
     }
     else
     {
-      pattern->cached = shoes_load_image(source);
+      pattern->cached = shoes_load_image(parent, source);
       pattern->source = source;
-      if (pattern->cached->pattern == NULL)
+      if (pattern->cached != NULL && pattern->cached->pattern == NULL)
         pattern->cached->pattern = cairo_pattern_create_for_surface(pattern->cached->surface);
     }
-    cairo_pattern_set_extend(pattern->pattern, CAIRO_EXTEND_REPEAT);
+    cairo_pattern_set_extend(PATTERN(pattern), CAIRO_EXTEND_REPEAT);
   }
 
   pattern->attr = attr;
@@ -1640,7 +1640,7 @@ shoes_subpattern_new(VALUE klass, VALUE pat, VALUE parent)
   back->source = pattern->source;
   back->cached = pattern->cached;
   back->pattern = pattern->pattern;
-  cairo_pattern_reference(back->pattern);
+  if (back->pattern != NULL) cairo_pattern_reference(back->pattern);
   back->attr = pattern->attr;
   back->parent = parent;
   return obj;
@@ -3764,9 +3764,7 @@ shoes_download_threaded(VALUE self, VALUE url, VALUE attr)
   }
   else
   {
-    req->filepath = SHOE_ALLOC_N(char, RSTRING_LEN(save) + 1);
-    strncpy(req->filepath, RSTRING_PTR(save), RSTRING_LEN(save));
-    req->filepath[RSTRING_LEN(save)] = '\0';
+    req->filepath = strdup(RSTRING_PTR(save));
   }
 
   shoes_doth_data *data = SHOE_ALLOC(shoes_doth_data);
@@ -3842,11 +3840,38 @@ shoes_response_status(VALUE self)
 }
 
 int shoes_catch_message(unsigned int name, VALUE obj, void *data) {
-  int ret = 0;
+  int ret = SHOES_DOWNLOAD_CONTINUE;
   switch (name) {
     case SHOES_THREAD_DOWNLOAD:
       ret = shoes_message_download(obj, data);
       free(data);
+    break;
+    case SHOES_IMAGE_DOWNLOAD:
+    {
+      VALUE hash, etag = Qnil, uri, uext, path, realpath;
+      shoes_image_download_event *side = (shoes_image_download_event *)data;
+      shoes_canvas_repaint_all(side->slot);
+
+      path = rb_str_new2(side->filepath);
+      uri = rb_str_new2(side->uripath);
+      hash = rb_str_new2(side->hexdigest);
+      if (side->etag != NULL) etag = rb_str_new2(side->etag);
+      uext = rb_funcall(rb_cFile, rb_intern("extname"), 1, path);
+
+      rb_funcall(rb_const_get(rb_cObject, rb_intern("DATABASE")),
+        rb_intern("notify_cache_of"), 3, uri, etag, hash);
+      if (side->status != 304)
+      {
+        realpath = rb_funcall(cShoes, rb_intern("image_cache_path"), 2, hash, uext);
+        rb_funcall(rb_const_get(rb_cObject, rb_intern("FileUtils")),
+          rb_intern("mv"), 2, path, realpath);
+      }
+
+      free(side->filepath);
+      free(side->uripath);
+      if (side->etag != NULL) free(side->etag);
+      free(data);
+    }
     break;
   }
   return ret;

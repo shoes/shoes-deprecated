@@ -147,9 +147,18 @@ typedef struct {
   int width, height;
 } shoes_cached_image;
 
+#define SHOES_CACHE_NEW   0
+#define SHOES_CACHE_ALIAS 1
+
+typedef struct {
+  unsigned char type;
+  shoes_cached_image *image;
+} shoes_cache_entry;
+
 //
 // image struct
 //
+#define SHOES_IMAGE_EXPIRE (60 * 60)
 typedef struct {
   VALUE parent;
   VALUE attr;
@@ -461,7 +470,7 @@ VALUE shoes_shape_motion(VALUE, int, int, char *);
 VALUE shoes_shape_send_click(VALUE, int, int, int);
 void shoes_shape_send_release(VALUE, int, int, int);
 
-VALUE shoes_image_new(VALUE, VALUE, VALUE, VALUE, VALUE, cairo_matrix_t *, VALUE);
+VALUE shoes_image_new(VALUE, VALUE, VALUE, VALUE, cairo_matrix_t *, VALUE);
 VALUE shoes_image_alloc(VALUE);
 VALUE shoes_image_draw(VALUE, VALUE, VALUE);
 VALUE shoes_image_get_top(VALUE);
@@ -565,6 +574,6 @@ extern const double SHOES_PIM2, SHOES_PI, SHOES_RAD2PI;
 // shoes/image.c
 //
 shoes_code shoes_load_imagesize(VALUE, int *, int *);
-shoes_cached_image *shoes_load_image(VALUE);
+shoes_cached_image *shoes_load_image(VALUE, VALUE);
 
 #endif

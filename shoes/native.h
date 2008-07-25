@@ -14,6 +14,7 @@
 #endif
 
 #define SHOES_THREAD_DOWNLOAD 41
+#define SHOES_IMAGE_DOWNLOAD  42
 #define SHOES_MAX_MESSAGE     100
 
 void shoes_native_init();

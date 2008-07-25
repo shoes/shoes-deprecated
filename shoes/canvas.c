@@ -742,35 +742,36 @@ shoes_canvas_video(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_image(int argc, VALUE *argv, VALUE self)
 {
-  VALUE path, realpath, attr, image, block;
+  VALUE path, attr, _w, _h, image, block;
   SETUP();
 
   if (argc == 0 || (argc == 1 && rb_obj_is_kind_of(argv[0], rb_cHash)))
   {
     rb_scan_args(argc, argv, "01&", &attr, &block);
     if (NIL_P(attr)) attr = rb_hash_new();
-    path = ATTR(attr, width);
-    realpath = ATTR(attr, height);
+    _w = ATTR(attr, width);
+    _h = ATTR(attr, height);
   }
   else
-    rb_scan_args(argc, argv, "12&", &path, &realpath, &attr, &block);
+    rb_scan_args(argc, argv, "12&", &_w, &_h, &attr, &block);
 
-  if (NIL_P(path) || FIXNUM_P(path))
+  if (NIL_P(_w) || FIXNUM_P(_w))
   {
     int w = canvas->width;
-    if (!NIL_P(path)) w = NUM2INT(path);
+    if (!NIL_P(_w)) w = NUM2INT(_w);
     int h = canvas->height;
-    if (!NIL_P(realpath)) h = NUM2INT(realpath);
+    if (!NIL_P(_h)) h = NUM2INT(_h);
     image = shoes_canvas_imageblock(self, w, h, attr, block);
   }
   else
   {
+    rb_scan_args(argc, argv, "11&", &path, &attr, &block);
     if (!NIL_P(block))
     {
       if (NIL_P(attr)) attr = rb_hash_new();
       rb_hash_aset(attr, ID2SYM(s_click), block);
     }
-    image = shoes_image_new(cImage, path, realpath, attr, self, canvas->tf, canvas->mode);
+    image = shoes_image_new(cImage, path, attr, self, canvas->tf, canvas->mode);
   }
 
   if (!NIL_P(image))

@@ -40,11 +40,16 @@ shoes_world_alloc()
 }
 
 int
-shoes_world_free_image_cache(char *key, shoes_cached_image *cached, char *arg)
+shoes_world_free_image_cache(char *key, shoes_cache_entry *cached, char *arg)
 {
-  if (cached->pattern != NULL)
-    cairo_pattern_destroy(cached->pattern);
-  cairo_surface_destroy(cached->surface);
+  if (cached->type != SHOES_CACHE_ALIAS && cached->image != NULL)
+  {
+    if (cached->image->pattern != NULL)
+      cairo_pattern_destroy(cached->image->pattern);
+    if (cached->image->surface != shoes_world->blank_image)
+      cairo_surface_destroy(cached->image->surface);
+    free(cached->image);
+  }
   free(cached);
   free(key);
   return ST_CONTINUE;

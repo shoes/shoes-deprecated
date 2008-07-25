@@ -6,11 +6,14 @@
 //
 #include <stdio.h>
 #include <setjmp.h>
-#include "shoes/internal.h"
+#include "shoes/app.h"
 #include "shoes/canvas.h"
 #include "shoes/ruby.h"
-#include "shoes/config.h"
+#include "shoes/internal.h"
 #include "shoes/world.h"
+#include "shoes/native.h"
+#include "shoes/version.h"
+#include "shoes/http.h"
 
 #undef HAVE_PROTOTYPES
 #undef HAVE_STDLIB_H
@@ -28,6 +31,152 @@
 
 #define JPEG_LINES 16
 #define SIZE_SURFACE ((cairo_surface_t *)1)
+
+typedef struct {
+  unsigned long state[5];
+  unsigned long count[2];
+  unsigned char buffer[64];
+} SHA1_CTX;
+
+void SHA1Transform(unsigned long state[5], unsigned char buffer[64]);
+void SHA1Init(SHA1_CTX* context);
+void SHA1Update(SHA1_CTX* context, unsigned char* data, unsigned int len);
+void SHA1Final(unsigned char digest[20], SHA1_CTX* context);
+
+#define rol(value, bits) (((value) << (bits)) | ((value) >> (32 - (bits))))
+
+/* blk0() and blk() perform the initial expand. */
+/* I got the idea of expanding during the round function from SSLeay */
+#ifdef LITTLE_ENDIAN
+#define blk0(i) (block->l[i] = (rol(block->l[i],24)&0xFF00FF00) \
+  |(rol(block->l[i],8)&0x00FF00FF))
+#else
+#define blk0(i) block->l[i]
+#endif
+#define blk(i) (block->l[i&15] = rol(block->l[(i+13)&15]^block->l[(i+8)&15] \
+  ^block->l[(i+2)&15]^block->l[i&15],1))
+
+/* (R0+R1), R2, R3, R4 are the different operations used in SHA1 */
+#define R0(v,w,x,y,z,i) z+=((w&(x^y))^y)+blk0(i)+0x5A827999+rol(v,5);w=rol(w,30);
+#define R1(v,w,x,y,z,i) z+=((w&(x^y))^y)+blk(i)+0x5A827999+rol(v,5);w=rol(w,30);
+#define R2(v,w,x,y,z,i) z+=(w^x^y)+blk(i)+0x6ED9EBA1+rol(v,5);w=rol(w,30);
+#define R3(v,w,x,y,z,i) z+=(((w|x)&y)|(w&x))+blk(i)+0x8F1BBCDC+rol(v,5);w=rol(w,30);
+#define R4(v,w,x,y,z,i) z+=(w^x^y)+blk(i)+0xCA62C1D6+rol(v,5);w=rol(w,30);
+
+/* Hash a single 512-bit block. This is the core of the algorithm. */
+void SHA1Transform(unsigned long state[5], unsigned char buffer[64])
+{
+unsigned long a, b, c, d, e;
+typedef union {
+  unsigned char c[64];
+  unsigned long l[16];
+} CHAR64LONG16;
+CHAR64LONG16* block;
+#ifdef SHA1HANDSOFF
+static unsigned char workspace[64];
+  block = (CHAR64LONG16*)workspace;
+  memcpy(block, buffer, 64);
+#else
+  block = (CHAR64LONG16*)buffer;
+#endif
+  /* Copy context->state[] to working vars */
+  a = state[0];
+  b = state[1];
+  c = state[2];
+  d = state[3];
+  e = state[4];
+  /* 4 rounds of 20 operations each. Loop unrolled. */
+  R0(a,b,c,d,e, 0); R0(e,a,b,c,d, 1); R0(d,e,a,b,c, 2); R0(c,d,e,a,b, 3);
+  R0(b,c,d,e,a, 4); R0(a,b,c,d,e, 5); R0(e,a,b,c,d, 6); R0(d,e,a,b,c, 7);
+  R0(c,d,e,a,b, 8); R0(b,c,d,e,a, 9); R0(a,b,c,d,e,10); R0(e,a,b,c,d,11);
+  R0(d,e,a,b,c,12); R0(c,d,e,a,b,13); R0(b,c,d,e,a,14); R0(a,b,c,d,e,15);
+  R1(e,a,b,c,d,16); R1(d,e,a,b,c,17); R1(c,d,e,a,b,18); R1(b,c,d,e,a,19);
+  R2(a,b,c,d,e,20); R2(e,a,b,c,d,21); R2(d,e,a,b,c,22); R2(c,d,e,a,b,23);
+  R2(b,c,d,e,a,24); R2(a,b,c,d,e,25); R2(e,a,b,c,d,26); R2(d,e,a,b,c,27);
+  R2(c,d,e,a,b,28); R2(b,c,d,e,a,29); R2(a,b,c,d,e,30); R2(e,a,b,c,d,31);
+  R2(d,e,a,b,c,32); R2(c,d,e,a,b,33); R2(b,c,d,e,a,34); R2(a,b,c,d,e,35);
+  R2(e,a,b,c,d,36); R2(d,e,a,b,c,37); R2(c,d,e,a,b,38); R2(b,c,d,e,a,39);
+  R3(a,b,c,d,e,40); R3(e,a,b,c,d,41); R3(d,e,a,b,c,42); R3(c,d,e,a,b,43);
+  R3(b,c,d,e,a,44); R3(a,b,c,d,e,45); R3(e,a,b,c,d,46); R3(d,e,a,b,c,47);
+  R3(c,d,e,a,b,48); R3(b,c,d,e,a,49); R3(a,b,c,d,e,50); R3(e,a,b,c,d,51);
+  R3(d,e,a,b,c,52); R3(c,d,e,a,b,53); R3(b,c,d,e,a,54); R3(a,b,c,d,e,55);
+  R3(e,a,b,c,d,56); R3(d,e,a,b,c,57); R3(c,d,e,a,b,58); R3(b,c,d,e,a,59);
+  R4(a,b,c,d,e,60); R4(e,a,b,c,d,61); R4(d,e,a,b,c,62); R4(c,d,e,a,b,63);
+  R4(b,c,d,e,a,64); R4(a,b,c,d,e,65); R4(e,a,b,c,d,66); R4(d,e,a,b,c,67);
+  R4(c,d,e,a,b,68); R4(b,c,d,e,a,69); R4(a,b,c,d,e,70); R4(e,a,b,c,d,71);
+  R4(d,e,a,b,c,72); R4(c,d,e,a,b,73); R4(b,c,d,e,a,74); R4(a,b,c,d,e,75);
+  R4(e,a,b,c,d,76); R4(d,e,a,b,c,77); R4(c,d,e,a,b,78); R4(b,c,d,e,a,79);
+  /* Add the working vars back into context.state[] */
+  state[0] += a;
+  state[1] += b;
+  state[2] += c;
+  state[3] += d;
+  state[4] += e;
+  /* Wipe variables */
+  a = b = c = d = e = 0;
+}
+
+/* SHA1Init - Initialize new context */
+void SHA1Init(SHA1_CTX* context)
+{
+  /* SHA1 initialization constants */
+  context->state[0] = 0x67452301;
+  context->state[1] = 0xEFCDAB89;
+  context->state[2] = 0x98BADCFE;
+  context->state[3] = 0x10325476;
+  context->state[4] = 0xC3D2E1F0;
+  context->count[0] = context->count[1] = 0;
+}
+
+/* Run your data through this. */
+void SHA1Update(SHA1_CTX* context, unsigned char* data, unsigned int len)
+{
+unsigned int i, j;
+
+  j = (context->count[0] >> 3) & 63;
+  if ((context->count[0] += len << 3) < (len << 3)) context->count[1]++;
+  context->count[1] += (len >> 29);
+  if ((j + len) > 63) {
+    memcpy(&context->buffer[j], data, (i = 64-j));
+    SHA1Transform(context->state, context->buffer);
+    for ( ; i + 63 < len; i += 64) {
+      SHA1Transform(context->state, &data[i]);
+    }
+    j = 0;
+  }
+  else i = 0;
+  memcpy(&context->buffer[j], &data[i], len - i);
+}
+
+/* Add padding and return the message digest. */
+void SHA1Final(unsigned char digest[20], SHA1_CTX* context)
+{
+unsigned long i, j;
+unsigned char finalcount[8];
+
+  for (i = 0; i < 8; i++) {
+    finalcount[i] = (unsigned char)((context->count[(i >= 4 ? 0 : 1)]
+     >> ((3-(i & 3)) * 8) ) & 255);  /* Endian independent */
+  }
+  SHA1Update(context, (unsigned char *)"\200", 1);
+  while ((context->count[0] & 504) != 448) {
+    SHA1Update(context, (unsigned char *)"\0", 1);
+  }
+  SHA1Update(context, finalcount, 8);  /* Should cause a SHA1Transform() */
+  for (i = 0; i < 20; i++) {
+    digest[i] = (unsigned char)
+     ((context->state[i>>2] >> ((3-(i & 3)) * 8) ) & 255);
+  }
+  /* Wipe variables */
+  i = j = 0;
+  memset(context->buffer, 0, 64);
+  memset(context->state, 0, 20);
+  memset(context->count, 0, 8);
+  memset(&finalcount, 0, 8);
+#ifdef SHA1HANDSOFF  /* make SHA1Transform overwrite it's own static vars */
+  SHA1Transform(context->state, context->buffer);
+#endif
+}
 
 static cairo_surface_t *
 shoes_surface_create_from_pixels(PIXEL *pixels, int width, int height)
@@ -86,7 +235,7 @@ shoes_surface_create_from_pixels(PIXEL *pixels, int width, int height)
 cairo_surface_t *
 shoes_png_size(char *filename, int *width, int *height)
 {
-  unsigned char sig[32];
+  unsigned char *sig = SHOE_ALLOC_N(char, 32);
   cairo_surface_t *surface = NULL;
   FILE *image = fopen(filename, "rb");
   if (image == NULL) return NULL;
@@ -358,7 +507,7 @@ cairo_surface_t *
 shoes_surface_create_from_jpeg(char *filename, int *width, int *height, unsigned char load)
 {
   int x, y, w, h, l, i, scans, count, prevy;
-  unsigned char *ptr, *rgb = NULL, *line[JPEG_LINES];
+  unsigned char *ptr, *rgb = NULL, **line = NULL;
   PIXEL *pixels = NULL, *ptr2;
   cairo_surface_t *surface = NULL;
   struct jpeg_decompress_struct cinfo;
@@ -383,6 +532,7 @@ shoes_surface_create_from_jpeg(char *filename, int *width, int *height, unsigned
   cinfo.do_fancy_upsampling = FALSE;
   cinfo.do_block_smoothing = FALSE;
 
+  line = SHOE_ALLOC_N(unsigned char *, JPEG_LINES);
   jpeg_start_decompress(&cinfo);
   w = cinfo.output_width;
   if (width != NULL) *width = w;
@@ -438,6 +588,7 @@ shoes_surface_create_from_jpeg(char *filename, int *width, int *height, unsigned
   surface = shoes_surface_create_from_pixels(pixels, w, h);
   jpeg_finish_decompress(&cinfo);
 done:
+  free(line);
   if (pixels != NULL) free(pixels);
   if (rgb != NULL) free(rgb);
   jpeg_destroy_decompress(&cinfo);
@@ -483,6 +634,25 @@ shoes_failed_image(VALUE path)
     RSTRING_PTR(path), RSTRING_PTR(ext)); 
 }
 
+static cairo_surface_t *
+shoes_surface_create_from_file(char *fname, char *dname, int *width, int *height)
+{
+  int len = strlen(dname);
+  cairo_surface_t *img = NULL;
+  if (shoes_has_ext(dname, len, ".png"))
+  {
+    img = shoes_png_size(fname, width, height);
+    img = cairo_image_surface_create_from_png(fname);
+    if (cairo_surface_status(img) != CAIRO_STATUS_SUCCESS)
+      img = NULL;
+  }
+  else if (shoes_has_ext(dname, len, ".jpg") || shoes_has_ext(dname, len, ".jpeg"))
+    img = shoes_surface_create_from_jpeg(fname, width, height, TRUE);
+  else if (shoes_has_ext(dname, len, ".gif"))
+    img = shoes_surface_create_from_gif(fname, width, height, TRUE);
+  return img;
+}
+
 shoes_code
 shoes_load_imagesize(VALUE imgpath, int *width, int *height)
 {
@@ -492,7 +662,7 @@ shoes_load_imagesize(VALUE imgpath, int *width, int *height)
   char *fname = RSTRING_PTR(filename);
   int len = RSTRING_LEN(filename);
 
-  if (st_lookup(shoes_world->image_cache, (st_data_t)RSTRING_PTR(imgpath), (st_data_t *)&cached))
+  if (shoes_cache_lookup(RSTRING_PTR(imgpath), &cached))
   {
     *width = cached->width;
     *height = cached->height;
@@ -521,8 +691,108 @@ shoes_load_imagesize(VALUE imgpath, int *width, int *height)
   return SHOES_OK;
 }
 
+typedef struct {
+  char *cachepath, *filepath, *uripath, *etag, *hexdigest;
+  unsigned long status;
+  VALUE slot;
+} shoes_download_image_data;
+
+int
+shoes_download_image_handler(shoes_download_event *de, void *data)
+{
+  shoes_download_image_data *idat = (shoes_download_image_data *)data;
+  if (de->stage == SHOES_HTTP_STATUS)
+  {
+    idat->status = de->status;
+  }
+  else if (de->stage == SHOES_HTTP_HEADER)
+  {
+    if (de->hkeylen == 4 && strncmp(de->hkey, "ETag", 4) == 0 && de->hvallen > 0)
+    {
+      idat->etag = SHOE_ALLOC_N(char, de->hvallen + 1);
+      SHOE_MEMCPY(idat->etag, de->hval, char, de->hvallen);
+      idat->etag[de->hvallen] = '\0';
+    }
+  }
+  else if (de->stage == SHOES_HTTP_COMPLETED)
+  {
+    int i, j, width, height;
+    SHA1_CTX context;
+    unsigned char *digest = SHOE_ALLOC_N(char, 20), *buffer = SHOE_ALLOC_N(char, 16384);
+
+    if (idat->status == 304)
+    {
+      idat->filepath = idat->cachepath;
+      idat->cachepath = NULL;
+    }
+
+    cairo_surface_t *img = shoes_surface_create_from_file(idat->filepath, idat->filepath, &width, &height);
+    if (img != NULL)
+    {
+      shoes_cached_image *cached;
+      if (shoes_cache_lookup(idat->uripath, &cached) && cached->surface == shoes_world->blank_image)
+      {
+        shoes_image_download_event *side = SHOE_ALLOC(shoes_image_download_event);
+        cached->surface = img;
+        cached->width = width;
+        cached->height = height;
+
+        if (idat->status != 304)
+        {
+          FILE* fp = fopen(idat->filepath, "rb");
+          SHA1Init(&context);
+          while (!feof(fp)) 
+          {
+            i = fread(buffer, 1, 16384, fp);
+            SHA1Update(&context, buffer, i);
+          }
+          SHA1Final(digest, &context);
+          fclose(fp);
+
+          for (i = 0; i < 5; i++)
+            for (j = 0; j < 4; j++)
+              sprintf(&side->hexdigest[(i*8)+(j*2)], "%02x", digest[i*4+j]);
+          side->hexdigest[41] = '\0';
+        }
+        else
+        {
+          SHOE_MEMCPY(side->hexdigest, idat->hexdigest, char, strlen(idat->hexdigest) + 1);
+        }
+
+        side->filepath = idat->filepath;
+        side->uripath = idat->uripath;
+        side->etag = idat->etag;
+        side->slot = idat->slot;
+        side->status = idat->status;
+        return shoes_throw_message(SHOES_IMAGE_DOWNLOAD, idat->slot, side);
+      }
+    }
+    free(digest);
+    free(buffer);
+  }
+  return SHOES_DOWNLOAD_CONTINUE;
+}
+
+int
+shoes_cache_lookup(char *imgpath, shoes_cached_image **image)
+{
+  shoes_cache_entry *cached = NULL;
+  int ret = st_lookup(shoes_world->image_cache, (st_data_t)imgpath, (st_data_t *)&cached);
+  if (ret) *image = cached->image;
+  return ret;
+}
+
+void
+shoes_cache_insert(unsigned char type, VALUE imgpath, shoes_cached_image *image)
+{
+  shoes_cache_entry *cached = SHOE_ALLOC(shoes_cache_entry);
+  cached->type = type;
+  cached->image = image;
+  st_insert(shoes_world->image_cache, (st_data_t)strdup(RSTRING_PTR(imgpath)), (st_data_t)cached);
+}
+
 shoes_cached_image *
-shoes_load_image(VALUE imgpath)
+shoes_load_image(VALUE slot, VALUE imgpath)
 {
   shoes_cached_image *cached = NULL;
   cairo_surface_t *img = NULL;
@@ -530,22 +800,71 @@ shoes_load_image(VALUE imgpath)
   char *fname = RSTRING_PTR(filename);
   int len = RSTRING_LEN(filename), width = 1, height = 1;
 
-  if (st_lookup(shoes_world->image_cache, (st_data_t)RSTRING_PTR(imgpath), (st_data_t *)&cached))
+  if (shoes_cache_lookup(RSTRING_PTR(imgpath), &cached))
     goto done;
+
+  if (strstr(fname, "http://") == fname)
+  {
+    struct timeval tv;
+    VALUE cache, uext, hdrs, tmppath, uri, host, port, path, cachepath = Qnil, hash = Qnil;
+    rb_require("shoes/data");
+    uri = rb_funcall(cShoes, rb_intern("uri"), 1, imgpath);
+    host = rb_funcall(uri, s_host, 0);
+    port = rb_funcall(uri, s_port, 0);
+    path = rb_funcall(uri, s_path, 0);
+
+    cache = rb_funcall(rb_const_get(rb_cObject, rb_intern("DATABASE")), rb_intern("check_cache_for"), 1, imgpath);
+    uext = rb_funcall(rb_cFile, rb_intern("extname"), 1, path);
+    hdrs = Qnil;
+    if (!NIL_P(cache)) 
+    {
+      VALUE etag = rb_hash_aref(cache, ID2SYM(rb_intern("etag")));
+      hash = rb_hash_aref(cache, ID2SYM(rb_intern("hash")));
+      if (!NIL_P(hash)) cachepath = rb_funcall(cShoes, rb_intern("image_cache_path"), 2, hash, uext);
+      int saved = NUM2INT(rb_hash_aref(cache, ID2SYM(rb_intern("saved"))));
+      gettimeofday(&tv, 0);
+      if (tv.tv_sec - saved < SHOES_IMAGE_EXPIRE)
+      {
+        cached = shoes_load_image(slot, cachepath);
+        if (cached != NULL)
+        {
+          shoes_cache_insert(SHOES_CACHE_ALIAS, imgpath, cached);
+          goto done;
+        }
+      }
+      else if (!NIL_P(etag))
+        rb_hash_aset(hdrs = rb_hash_new(), rb_str_new2("If-None-Match"), etag);
+    }
+
+    cached = SHOE_ALLOC(shoes_cached_image);
+    cached->surface = shoes_world->blank_image; cached->pattern = NULL; cached->width = 1; cached->height = 1;
+    shoes_cache_insert(SHOES_CACHE_NEW, imgpath, cached);
+    tmppath = rb_funcall(cShoes, rb_intern("image_temp_path"), 2, uri, uext);
+
+    shoes_download_request *req = SHOE_ALLOC(shoes_download_request);
+    SHOE_MEMZERO(req, shoes_download_request, 1);
+    shoes_download_image_data *idat = SHOE_ALLOC(shoes_download_image_data);
+    SHOE_MEMZERO(idat, shoes_download_image_data, 1);
+    req->host = RSTRING_PTR(host);
+    req->port = 80;
+    req->path = RSTRING_PTR(path);
+    req->handler = shoes_download_image_handler;
+    req->filepath = strdup(RSTRING_PTR(tmppath));
+    idat->filepath = strdup(RSTRING_PTR(tmppath));
+    idat->uripath = strdup(RSTRING_PTR(imgpath));
+    idat->slot = slot;
+    if (!NIL_P(cachepath)) idat->cachepath = strdup(RSTRING_PTR(cachepath));
+    if (!NIL_P(hash)) idat->hexdigest = strdup(RSTRING_PTR(hash));
+    if (!NIL_P(hdrs)) req->headers = shoes_http_headers(hdrs);
+    req->data = idat;
+    shoes_queue_download(req);
+    goto done;
+  }
 
   if (!shoes_check_file_exists(imgpath))
     img = shoes_world->blank_image;
-  else if (shoes_has_ext(fname, len, ".png"))
-  {
-    img = shoes_png_size(RSTRING_PTR(imgpath), &width, &height);
-    img = cairo_image_surface_create_from_png(RSTRING_PTR(imgpath));
-    if (cairo_surface_status(img) != CAIRO_STATUS_SUCCESS)
-      img = NULL;
-  }
-  else if (shoes_has_ext(fname, len, ".jpg") || shoes_has_ext(fname, len, ".jpeg"))
-    img = shoes_surface_create_from_jpeg(RSTRING_PTR(imgpath), &width, &height, TRUE);
-  else if (shoes_has_ext(fname, len, ".gif"))
-    img = shoes_surface_create_from_gif(RSTRING_PTR(imgpath), &width, &height, TRUE);
+  else if (shoes_has_ext(fname, len, ".png") || shoes_has_ext(fname, len, ".jpg") || shoes_has_ext(fname, len, ".jpeg") || shoes_has_ext(fname, len, ".gif"))
+    img = shoes_surface_create_from_file(RSTRING_PTR(imgpath), fname, &width, &height);
   else
   {
     shoes_unsupported_image(imgpath);
@@ -562,7 +881,7 @@ shoes_load_image(VALUE imgpath)
   {
     cached = SHOE_ALLOC(shoes_cached_image);
     cached->surface = img; cached->pattern = NULL; cached->width = width; cached->height = height;
-    st_insert(shoes_world->image_cache, (st_data_t)strdup(RSTRING_PTR(imgpath)), (st_data_t)cached);
+    shoes_cache_insert(SHOES_CACHE_NEW, imgpath, cached);
   }
 
 done:

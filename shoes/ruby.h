@@ -216,7 +216,7 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f(".blur", blur, -1); \
   f(".glow", glow, -1); \
   f(".shadow", shadow, -1); \
-  f("+image_file", image, -1); \
+  f("+image", image, -1); \
   f(".imagesize", imagesize, 1); \
   f("+animate", animate, -1); \
   f("+every", every, -1); \

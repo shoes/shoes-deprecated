@@ -71,6 +71,13 @@ typedef struct {
   SHOES_DOWNLOAD_ERROR error;
 } shoes_download_event;
 
+typedef struct {
+  unsigned long status;
+  char *filepath, *uripath, *etag;
+  char hexdigest[41];
+  VALUE slot;
+} shoes_image_download_event;
+
 typedef int (*shoes_download_handler)(shoes_download_event *, void *);
 
 typedef struct {

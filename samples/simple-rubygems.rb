@@ -3,7 +3,7 @@
 # rest of the app below it.
 #
 Shoes.setup do
-  gem 'RedCloth'
+  gem 'RedCloth =3.0.4'
   gem 'metaid'
 end
 
