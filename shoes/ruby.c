@@ -3839,6 +3839,7 @@ shoes_response_status(VALUE self)
   return rb_iv_get(self, "status");
 }
 
+// TODO: handle exceptions
 int shoes_catch_message(unsigned int name, VALUE obj, void *data) {
   int ret = SHOES_DOWNLOAD_CONTINUE;
   switch (name) {
@@ -3863,8 +3864,7 @@ int shoes_catch_message(unsigned int name, VALUE obj, void *data) {
       if (side->status != 304)
       {
         realpath = rb_funcall(cShoes, rb_intern("image_cache_path"), 2, hash, uext);
-        rb_funcall(rb_const_get(rb_cObject, rb_intern("FileUtils")),
-          rb_intern("mv"), 2, path, realpath);
+        rename(side->filepath, RSTRING_PTR(realpath));
       }
 
       free(side->filepath);

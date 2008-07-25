@@ -1546,3 +1546,9 @@ shoes_dialog_save_folder(VALUE self)
 {
   return shoes_dialog_chooser2(self, "Save folder...", BIF_RETURNONLYFSDIRS);
 }
+
+void
+shoes_native_move_file(char *src, char *dest)
+{
+  MoveFile(src, dest);
+}

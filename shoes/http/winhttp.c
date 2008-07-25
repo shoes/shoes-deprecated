@@ -30,8 +30,6 @@ shoes_download(shoes_download_request *req)
       FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
   shoes_winhttp(_host, _port, _path, req->mem, file, &_size, req->handler, req->data);
   req->size = _size;
-  if (file != INVALID_HANDLE_VALUE)
-    CloseHandle(file);
 }
 
 DWORD WINAPI
@@ -156,6 +154,12 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, HANDLE
     }
   }
 
+  if (file != INVALID_HANDLE_VALUE)
+  {
+    CloseHandle(file);
+    file = INVALID_HANDLE_VALUE;
+  }
+
   HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, *size, *size, data, mem, goto done);
   complete = 1;
 
@@ -167,6 +171,9 @@ done:
     event.error = GetLastError();
     if (handler != NULL) handler(&event, data);
   }
+
+  if (file != INVALID_HANDLE_VALUE)
+    CloseHandle(file);
 
   if (req)
     WinHttpCloseHandle(req);
@@ -186,4 +193,10 @@ shoes_http_error(SHOES_DOWNLOAD_ERROR code)
     NULL, code, 0, msg, sizeof(msg), NULL);
   msg[msglen] = '\0';
   return rb_str_new2(msg);
+}
+
+SHOES_DOWNLOAD_HEADERS
+shoes_http_headers(VALUE hsh)
+{
+  return NULL;
 }
