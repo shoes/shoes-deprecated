@@ -1095,9 +1095,3 @@ shoes_dialog_save_folder(VALUE self)
   return shoes_dialog_chooser(self, "Save folder...", GTK_FILE_CHOOSER_ACTION_CREATE_FOLDER,
     GTK_STOCK_SAVE);
 }
-
-void
-shoes_native_move_file(char *src, char *dest)
-{
-  rename(src, dest);
-}

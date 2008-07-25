@@ -174,3 +174,9 @@ shoes_http_error(SHOES_DOWNLOAD_ERROR code)
   char *errorString = [[code localizedDescription] UTF8String];
   return rb_str_new2(errorString);
 }
+
+SHOES_DOWNLOAD_HEADERS
+shoes_http_headers(VALUE hsh)
+{
+  return NULL;
+}

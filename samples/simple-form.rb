@@ -1,4 +1,4 @@
-Shoes.app :width => 320, :height => 350 do
+Shoes.app :width => 320, :height => 420 do
   background "../static/menu-gray.png"
   background "../static/menu-top.png", :height => 50
   background "../static/menu-left.png", :top => 50, :width => 55
@@ -9,7 +9,7 @@ Shoes.app :width => 320, :height => 350 do
   stack :margin => 40 do
     stack :margin => 10 do
       para "Name"
-      @name = list_box :items => ["Yes, please!", "NO.  No thankyou."]
+      @name = list_box :items => ["Phyllis", "Ronald", "Wyatt"]
     end
     stack :margin => 10 do
       para "Address"
