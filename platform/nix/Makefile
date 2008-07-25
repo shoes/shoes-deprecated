@@ -1,12 +1,12 @@
 # shoes - abstract windowing for gtk, osx, and win32
 # by why the lucky stiff, released to you under the MIT license
 
-SRC = shoes/app.c shoes/canvas.c shoes/image.c shoes/internal.c shoes/ruby.c shoes/world.c shoes/native/gtk.c
+SRC = shoes/app.c shoes/canvas.c shoes/image.c shoes/internal.c shoes/ruby.c shoes/world.c shoes/native/gtk.c shoes/http/curl.c
 OBJ = ${SRC:.c=.o}
 
 PREFIX = /usr/local
 INCS = -I. -I/usr/include -I/usr/local/include
-LIBS = -L/usr/lib -L/usr/local/lib -lcairo -lpangocairo-1.0 -lgif -ljpeg
+LIBS = -L/usr/lib -L/usr/local/lib -lcairo -lpangocairo-1.0 -lgif -ljpeg -lrt
 
 REVISION = `git rev-list HEAD | wc -l`
 RUBY_INCS = `ruby -rrbconfig -e 'puts Config::CONFIG["archdir"]'`
@@ -19,10 +19,12 @@ PANGO_CFLAGS = `pkg-config --cflags pango`
 PANGO_LIB = `pkg-config --libs pango`
 GTK_CFLAGS = `pkg-config --cflags gtk+-2.0`
 GTK_LIB = `pkg-config --libs gtk+-2.0`
+CURL_CFLAGS = `curl-config --cflags`
+CURL_LIB = `curl-config --libs`
 
 VERSION = 0.r${REVISION}
-CFLAGS = -DSHOES_GTK -fPIC ${INCS} ${CAIRO_CFLAGS} ${PANGO_CFLAGS} ${GTK_CFLAGS} -I${RUBY_INCS}
-LDFLAGS = -fPIC ${LIBS} ${CAIRO_LIB} ${PANGO_LIB} ${GTK_LIB} ${RUBY_LIBS}
+CFLAGS = -DSHOES_GTK -fPIC ${INCS} ${CAIRO_CFLAGS} ${PANGO_CFLAGS} ${GTK_CFLAGS} ${CURL_CFLAGS} -I${RUBY_INCS}
+LDFLAGS = -fPIC ${LIBS} ${CAIRO_LIB} ${PANGO_LIB} ${GTK_LIB} ${CURL_LIB} ${RUBY_LIBS}
 OPTIONS =
 
 ifeq (${DEBUG}, 1)
