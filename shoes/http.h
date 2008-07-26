@@ -105,7 +105,7 @@ SHOES_DOWNLOAD_HEADERS shoes_http_headers(VALUE hsh);
 #include <stdio.h>
 #include <windows.h>
 #include <winhttp.h>
-void shoes_winhttp(LPCWSTR, INTERNET_PORT, LPCWSTR, TCHAR *, HANDLE, LPDWORD, shoes_download_handler, void *);
+void shoes_winhttp(LPCWSTR, INTERNET_PORT, LPCWSTR, TCHAR *, ULONG, HANDLE, LPDWORD, shoes_download_handler, void *);
 #define HTTP_HANDLER(x) reinterpret_cast<shoes_download_handler>(x)
 #else
 #define HTTP_HANDLER(x)

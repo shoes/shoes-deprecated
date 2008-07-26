@@ -28,7 +28,7 @@ shoes_download(shoes_download_request *req)
   if (req->mem == NULL && req->filepath != NULL)
     file = CreateFile(req->filepath, GENERIC_READ | GENERIC_WRITE,
       FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-  shoes_winhttp(_host, _port, _path, req->mem, file, &_size, req->handler, req->data);
+  shoes_winhttp(_host, _port, _path, req->mem, req->memlen, file, &_size, req->handler, req->data);
   req->size = _size;
 }
 
@@ -78,7 +78,7 @@ shoes_winhttp_headers(HINTERNET req, shoes_download_handler handler, void *data)
 }
 
 void
-shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, HANDLE file,
+shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, ULONG memlen, HANDLE file,
   LPDWORD size, shoes_download_handler handler, void *data)
 {
   DWORD len = 0, rlen = 0, status = 0, complete = 0;
@@ -134,6 +134,8 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, HANDLE
 
   if (mem != NULL)
   {
+    if (*size > memlen) SHOE_REALLOC_N(mem, char, *size);
+    if (mem == NULL) goto done;
     WinHttpReadData(req, mem, SHOES_BUFSIZE, &len);
     mem[len] = '\0';
   }
