@@ -202,7 +202,7 @@ shoes_canvas_shape_do(shoes_canvas *canvas, double x, double y, double w, double
 static void
 shoes_add_ele(shoes_canvas *canvas, VALUE ele)
 {
-  if (canvas->insertion == -1)
+  if (canvas->insertion <= -1)
     rb_ary_push(canvas->contents, ele);
   else
   {
@@ -253,7 +253,7 @@ shoes_canvas_alloc(VALUE klass)
   canvas->grt = 8;
   canvas->gr = SHOE_ALLOC_N(cairo_matrix_t, canvas->grt);
   canvas->contents = Qnil;
-  canvas->insertion = -1;
+  canvas->insertion = -2;
   cairo_matrix_init_identity(canvas->gr);
   VALUE rb_canvas = Data_Wrap_Struct(klass, shoes_canvas_mark, shoes_canvas_free, canvas);
   return rb_canvas;
@@ -1466,12 +1466,15 @@ shoes_canvas_insert(VALUE self, long i, VALUE ele, VALUE block)
   VALUE ary;
   SETUP();
 
+  if (canvas->insertion != -2)
+    rb_raise(eInvMode, "this slot is already being modified by an append, clear, etc.");
+
   if (!NIL_P(ele))
     i = rb_ary_index_of(canvas->contents, ele) - i;
 
   canvas->insertion = i;
   shoes_canvas_memdraw(self, block);
-  canvas->insertion = -1;
+  canvas->insertion = -2;
   shoes_canvas_repaint_all(self);
 }
 
