@@ -1103,6 +1103,7 @@ shoes_dialog_ask(VALUE self, VALUE quiz)
 {
   INIT;
   VALUE answer = Qnil;
+  quiz = shoes_native_to_s(quiz);
   NSAlert *alert = [NSAlert alertWithMessageText: @"Shoes asks:"
     defaultButton:@"OK" alternateButton:@"Cancel" otherButton:nil
     informativeTextWithFormat: [NSString stringWithUTF8String: RSTRING_PTR(quiz)]];
