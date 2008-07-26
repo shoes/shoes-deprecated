@@ -807,12 +807,14 @@ shoes_load_image(VALUE slot, VALUE imgpath)
   if (strstr(fname, "http://") == fname)
   {
     struct timeval tv;
-    VALUE cache, uext, hdrs, tmppath, uri, host, port, path, cachepath = Qnil, hash = Qnil;
+    VALUE cache, uext, hdrs, tmppath, uri, host, port, requ, path, cachepath = Qnil, hash = Qnil;
     rb_require("shoes/data");
     uri = rb_funcall(cShoes, rb_intern("uri"), 1, imgpath);
     host = rb_funcall(uri, s_host, 0);
     port = rb_funcall(uri, s_port, 0);
+    requ = rb_funcall(uri, s_request_uri, 0);
     path = rb_funcall(uri, s_path, 0);
+    path = rb_funcall(path, s_downcase, 0);
 
     cache = rb_funcall(rb_const_get(rb_cObject, rb_intern("DATABASE")), rb_intern("check_cache_for"), 1, imgpath);
     uext = rb_funcall(rb_cFile, rb_intern("extname"), 1, path);
@@ -848,7 +850,7 @@ shoes_load_image(VALUE slot, VALUE imgpath)
     SHOE_MEMZERO(idat, shoes_download_image_data, 1);
     req->host = RSTRING_PTR(host);
     req->port = 80;
-    req->path = RSTRING_PTR(path);
+    req->path = RSTRING_PTR(requ);
     req->handler = shoes_download_image_handler;
     req->filepath = strdup(RSTRING_PTR(tmppath));
     idat->filepath = strdup(RSTRING_PTR(tmppath));

@@ -93,8 +93,11 @@ int
 shoes_curl_progress_funk(shoes_curl_data *data,
   double dltotal, double dlnow, double ultotal, double ulnow)
 {
-  HTTP_EVENT(data->handler, SHOES_HTTP_TRANSFER, data->last, dlnow * 100.0 / dltotal, dlnow,
-             dltotal, data->data, NULL, return 1);
+  if (dltotal > 0.)
+  {
+    HTTP_EVENT(data->handler, SHOES_HTTP_TRANSFER, data->last, dlnow * 100.0 / dltotal, dlnow,
+               dltotal, data->data, NULL, return 1);
+  }
   return 0;
 }
 
@@ -153,7 +156,7 @@ shoes_download(shoes_download_request *req)
   }
 
   res = curl_easy_perform(curl);
-  req->size = cdata.total;
+  req->size = cdata.size;
   req->mem = cdata.mem;
 
   if (res != CURLE_OK)
