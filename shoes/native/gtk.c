@@ -610,11 +610,15 @@ shoes_group_clear(SHOES_GROUP_OS *group)
 void
 shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc)
 {
+  int x, y, newy;
   GtkAllocation *a = &self_t->slot.canvas->allocation;
-  int newy = (self_t->place.iy + self_t->place.dy) - pc->slot.scrolly;
-  if (a->x != self_t->place.ix + self_t->place.dx || a->y != newy)
+  gtk_widget_translate_coordinates(self_t->slot.canvas, pc->slot.canvas, 0, 0, &x, &y);
+  newy = (self_t->place.iy + self_t->place.dy) - pc->slot.scrolly;
+
+  if (x != self_t->place.ix + self_t->place.dx || y != newy)
     gtk_fixed_move(GTK_FIXED(pc->slot.canvas), self_t->slot.canvas, 
         self_t->place.ix + self_t->place.dx, newy);
+
   if (a->width != self_t->place.iw || a->height != self_t->place.ih)
     gtk_widget_set_size_request(self_t->slot.canvas, self_t->place.iw, self_t->place.ih);
 }
