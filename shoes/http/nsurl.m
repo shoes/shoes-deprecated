@@ -4,6 +4,7 @@
 //
 #include "shoes/app.h"
 #include "shoes/ruby.h"
+#include "shoes/internal.h"
 #include "shoes/config.h"
 #include "shoes/http.h"
 #include "shoes/version.h"
@@ -15,6 +16,7 @@
 @interface ShoesHttp : NSObject
 {
   char *dest;
+  unsigned long destlen;
   NSURLConnection *conn;
   NSURLDownload *down;
   NSURLResponse *resp;
@@ -35,6 +37,7 @@
   {
     bytes = [[NSMutableData data] retain];
     fm = [NSFileManager defaultManager];
+    destlen = 0;
   }
   return self;
 }
@@ -59,6 +62,7 @@
   if (req->mem != NULL)
   {
     dest = req->mem;
+    destlen = req->memlen;
     conn = [[NSURLConnection alloc] initWithRequest: nsreq
       delegate: self];
   }
@@ -118,7 +122,10 @@
 }
 - (void)connectionDidFinishLoading: (NSURLConnection *)c
 {
-  HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, total, total, data, [data mutableBytes], 1);
+  if ([bytes length] > destlen)
+    SHOE_REALLOC_N(dest, char, [bytes length]);
+  [bytes getBytes: dest];
+  HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, total, total, data, [bytes mutableBytes], 1);
   [c release];
 }
 - (void)download: (NSURLDownload *)download decideDestinationWithSuggestedFilename: (NSString *)filename
