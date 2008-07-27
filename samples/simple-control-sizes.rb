@@ -1,7 +1,8 @@
 Shoes.app :width => 360, :height => 600, :resizable => false do
   stroke "#dde"
   background "#f1f5ff"
-  12.times { |x| line 20, 142 + (30 * x), 320, 142 + (30 * x) }
+  13.times { |x| line 20, 142 + (30 * x), 320, 142 + (30 * x) }
+  11.times { |x| line 20 + (30 * x), 142, 20 + (30 * x), 502 }
 
   stack :margin => 20 do
     title "Control Sizes", :size => 16
