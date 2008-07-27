@@ -272,7 +272,9 @@ shoes_canvas_new(VALUE klass, shoes_app *app)
 static void
 shoes_canvas_empty(shoes_canvas *canvas)
 {
+  canvas->stage = CANVAS_EMPTY;
   shoes_ele_remove_all(canvas->contents);
+  canvas->stage = CANVAS_STARTED;
 }
 
 void
@@ -1175,9 +1177,6 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
     if (ck != cImageBlock)
     {
       shoes_canvas_reflow(self_t, c);
-#ifdef SHOES_GTK
-      self_t->slot.expose = canvas->slot.expose;
-#endif
     }
   }
   else
@@ -1303,11 +1302,6 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
   if (canvas->endy < self_t->endy)
     canvas->endy = self_t->endy;
       
-#ifdef SHOES_GTK
-  if (self_t != canvas)
-    self_t->slot.expose = NULL;
-#endif
-
   if (self_t == canvas || DC(self_t->slot) != DC(canvas->slot))
   {
     int endy = (int)self_t->endy;
@@ -1677,6 +1671,7 @@ shoes_canvas_repaint_all(VALUE self)
   shoes_canvas *canvas;
   self = shoes_find_canvas(self);
   Data_Get_Struct(self, shoes_canvas, canvas);
+  if (canvas->stage != CANVAS_STARTED) return;
   shoes_canvas_compute(self);
   shoes_slot_repaint(&canvas->app->slot);
 }

@@ -246,8 +246,10 @@ typedef struct {
 
 #define CANVAS_NADA    0
 #define CANVAS_STARTED 1
-#define CANVAS_REMOVED 2
-
+#define CANVAS_PAINT   2
+#define CANVAS_EMPTY   3
+#define CANVAS_REMOVED 4
+ 
 //
 // temporary canvas (used internally for painting)
 //
