@@ -25,7 +25,7 @@ module Shoes::LogWindow
         Shoes.log.each do |typ, msg, at, mid, rbf, rbl|
           stack do
             background "#f1f5e1" if i % 2 == 0
-            inscription strong(typ, :stroke => "#05C"), " in ", 
+            inscription strong(typ.to_s.capitalize, :stroke => "#05C"), " in ", 
               span(rbf, " line ", rbl, :stroke => "#335"), " | ",
               span(at, :stroke => "#777"), 
               :stroke => "#059", :margin => 4, :margin_bottom => 0
