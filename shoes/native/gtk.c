@@ -310,7 +310,10 @@ static void
 shoes_canvas_gtk_paint_children(GtkWidget *widget, gpointer data)
 {
   shoes_canvas *canvas = (shoes_canvas *)data;
-  gtk_container_propagate_expose(GTK_CONTAINER(canvas->slot.canvas), widget, canvas->slot.expose);
+  // this is strange, the scrollbar expose event sends through the parent and
+  // if i don't paint the parent the scrollbar disappears??
+  if (canvas->slot.expose->area.x > 0 || !GTK_IS_FIXED(widget))
+    gtk_container_propagate_expose(GTK_CONTAINER(canvas->slot.canvas), widget, canvas->slot.expose);
 }
 
 static void
@@ -379,7 +382,7 @@ shoes_canvas_gtk_scroll(GtkRange *r, gpointer data)
   shoes_canvas *canvas;
   Data_Get_Struct(c, shoes_canvas, canvas);
   canvas->slot.scrolly = (int)gtk_range_get_value(r);
-  shoes_slot_repaint(&canvas->slot);
+  shoes_slot_repaint(&canvas->app->slot);
 }
 
 static gint                                                           
