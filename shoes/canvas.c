@@ -1117,7 +1117,7 @@ shoes_canvas_reflow(shoes_canvas *self_t, VALUE c)
 
   self_t->cr = parent->cr;
   self_t->slot = parent->slot;
-  shoes_place_decide(&self_t->place, c, self_t->attr, parent->place.iw, 0, REL_CANVAS, TRUE);
+  shoes_place_decide(&self_t->place, c, self_t->attr, parent->place.iw, 0, REL_CANVAS, FALSE);
   self_t->width = self_t->place.w;
   self_t->height = self_t->place.h;
 
@@ -1255,7 +1255,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
       }
       else
       {
-        shoes_place_decide(&c1->place, c1->parent, c1->attr, c1->width, c1->height, REL_CANVAS, TRUE);
+        shoes_place_decide(&c1->place, c1->parent, c1->attr, c1->width, c1->height, REL_CANVAS, FALSE);
         c1->height = c1->place.ih;
         c1->width = c1->place.iw;
         c1->place.flags |= FLAG_ORIGIN;

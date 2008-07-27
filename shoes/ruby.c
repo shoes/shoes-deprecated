@@ -297,10 +297,8 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
     Data_Get_Struct(c, shoes_canvas, canvas);
 
   ATTR_MARGINS(attr, 0, canvas);
-  if (padded) {
-    dh += tmargin + bmargin;
-    dw += lmargin + rmargin;
-  }
+  if (padded || dh == 0) dh += tmargin + bmargin;
+  if (padded || dw == 0) dw += lmargin + rmargin;
 
   int testw = dw;
   if (testw == 0) testw = lmargin + 1 + rmargin;
