@@ -81,8 +81,8 @@ void
 shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, ULONG memlen, HANDLE file,
   LPDWORD size, shoes_download_handler handler, void *data)
 {
-  DWORD len = 0, rlen = 0, status = 0, complete = 0;
-  TCHAR buf[SHOES_BUFSIZE];
+  DWORD len = 0, rlen = 0, status = 0, complete = 0, flen = 0, total = 0, written = 0;
+  TCHAR buf[SHOES_BUFSIZE], fbuf[SHOES_CHUNKSIZE];
   WCHAR uagent[SHOES_BUFSIZE];
   HINTERNET sess = NULL, conn = NULL, req = NULL;
   SHOES_TIME last = 0;
@@ -124,37 +124,52 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, ULONG 
 
   shoes_winhttp_headers(req, handler, data);
 
+  *size = 0;
   len = sizeof(buf);
-  if (!WinHttpQueryHeaders(req, WINHTTP_QUERY_CONTENT_LENGTH,
-    NULL, buf, &len, NULL))
-    goto done;
-
-  *size = _wtoi((wchar_t *)buf);
-  HTTP_EVENT(handler, SHOES_HTTP_CONNECTED, last, 0, 0, *size, data, NULL, goto done);
-
-  if (mem != NULL)
+  if (WinHttpQueryHeaders(req, WINHTTP_QUERY_CONTENT_LENGTH, NULL, buf, &len, NULL))
   {
-    if (*size > memlen) SHOE_REALLOC_N(mem, char, *size);
-    if (mem == NULL) goto done;
-    WinHttpReadData(req, mem, SHOES_BUFSIZE, &len);
-    mem[len] = '\0';
-  }
-
-  if (file != INVALID_HANDLE_VALUE)
-  {
-    TCHAR fbuf[SHOES_CHUNKSIZE];
-    DWORD flen = 0, total = *size * 100;
-    rlen = *size;
-    while (rlen > 0)
+    *size = _wtoi((wchar_t *)buf);
+    if (mem != NULL && *size > memlen)
     {
-      WinHttpReadData(req, fbuf, SHOES_CHUNKSIZE, &len);
-      WriteFile(file, (LPBYTE)fbuf, len, &flen, NULL);
-
-      HTTP_EVENT(handler, SHOES_HTTP_TRANSFER, last, (int)((total - (rlen * 100)) / *size),
-                 *size - rlen, *size, data, NULL, break);
-      rlen -= len;
+      SHOE_REALLOC_N(mem, char, (memlen = *size));
+      if (mem == NULL) goto done;
     }
   }
+
+  HTTP_EVENT(handler, SHOES_HTTP_CONNECTED, last, 0, 0, *size, data, NULL, goto done);
+
+  total = *size * 100;
+  rlen = *size;
+  while (1)
+  {
+    len = 0;
+    WinHttpReadData(req, fbuf, SHOES_CHUNKSIZE, &len);
+    if (len <= 0)
+      break;
+
+    if (mem != NULL)
+    {
+      if (written + len > memlen)
+      {
+        while (written + len > memlen)
+          memlen += SHOES_BUFSIZE;
+        SHOE_REALLOC_N(mem, char, memlen);
+        if (mem == NULL) goto done;
+      }
+      SHOE_MEMCPY(&(mem[written]), fbuf, char, len);
+    }
+    if (file != INVALID_HANDLE_VALUE)
+      WriteFile(file, (LPBYTE)fbuf, len, &flen, NULL);
+
+    if (*size == 0) total = written * 100;
+    HTTP_EVENT(handler, SHOES_HTTP_TRANSFER, last, (int)((total - (rlen * 100)) / (total / 100)),
+               (total / 100) - rlen, (total / 100), data, NULL, break);
+
+    if (rlen > len) rlen -= len;
+    written += len;
+  }
+
+  *size = written;
 
   if (file != INVALID_HANDLE_VALUE)
   {
