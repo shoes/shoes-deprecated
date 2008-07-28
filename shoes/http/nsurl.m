@@ -122,6 +122,7 @@
 }
 - (void)connectionDidFinishLoading: (NSURLConnection *)c
 {
+  total = [bytes length];
   if ([bytes length] > destlen)
     SHOE_REALLOC_N(dest, char, [bytes length]);
   [bytes getBytes: dest];
