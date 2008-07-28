@@ -19,8 +19,8 @@ shoes_download(shoes_download_request *req)
 {
   HANDLE file = INVALID_HANDLE_VALUE;
   INTERNET_PORT _port = req->port;
-  WCHAR _host[MAX_PATH];
-  WCHAR _path[MAX_PATH];
+  LPWSTR _host = SHOE_ALLOC_N(WCHAR, MAX_PATH);
+  LPWSTR _path = SHOE_ALLOC_N(WCHAR, MAX_PATH);
   DWORD _size;
   MultiByteToWideChar(CP_UTF8, 0, req->host, -1, _host, MAX_PATH);
   MultiByteToWideChar(CP_UTF8, 0, req->path, -1, _path, MAX_PATH);
@@ -28,8 +28,10 @@ shoes_download(shoes_download_request *req)
   if (req->mem == NULL && req->filepath != NULL)
     file = CreateFile(req->filepath, GENERIC_READ | GENERIC_WRITE,
       FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-  shoes_winhttp(_host, _port, _path, req->mem, req->memlen, file, &_size, req->handler, req->data);
+  shoes_winhttp(_host, _port, _path, &req->mem, req->memlen, file, &_size, req->handler, req->data);
   req->size = _size;
+  SHOE_FREE(_host);
+  SHOE_FREE(_path);
 }
 
 DWORD WINAPI
@@ -61,31 +63,39 @@ shoes_winhttp_headers(HINTERNET req, shoes_download_handler handler, void *data)
   if(GetLastError() == ERROR_INSUFFICIENT_BUFFER)
   {
     int whdrlen = 0, hdrlen = 0;
-    CHAR hdr[MAX_PATH];
-    LPCWSTR hdrs = new WCHAR[size/sizeof(WCHAR)], whdr;
+    LPCWSTR whdr;
+    LPSTR hdr = SHOE_ALLOC_N(CHAR, MAX_PATH);
+    LPCWSTR hdrs = SHOE_ALLOC_N(WCHAR, size/sizeof(WCHAR));
     BOOL res = WinHttpQueryHeaders(req, WINHTTP_QUERY_RAW_HEADERS,
       WINHTTP_HEADER_NAME_BY_INDEX, (LPVOID)hdrs, &size, WINHTTP_NO_HEADER_INDEX);
-    if (!res) return;
-
-    for (whdr = hdrs; whdr - hdrs < size / sizeof(WCHAR); whdr += whdrlen)
+    if (res)
     {
-      WideCharToMultiByte(CP_UTF8, 0, whdr, -1, hdr, MAX_PATH, NULL, NULL);
-      hdrlen = strlen(hdr);
-      HTTP_HEADER(hdr, hdrlen, handler, data);
-      whdrlen = wcslen(whdr) + 1;
+      for (whdr = hdrs; whdr - hdrs < size / sizeof(WCHAR); whdr += whdrlen)
+      {
+        WideCharToMultiByte(CP_UTF8, 0, whdr, -1, hdr, MAX_PATH, NULL, NULL);
+        hdrlen = strlen(hdr);
+        HTTP_HEADER(hdr, hdrlen, handler, data);
+        whdrlen = wcslen(whdr) + 1;
+      }
     }
+    SHOE_FREE(hdrs);
+    SHOE_FREE(hdr);
   }
 }
 
 void
-shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, ULONG memlen, HANDLE file,
+shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR **mem, ULONG memlen, HANDLE file,
   LPDWORD size, shoes_download_handler handler, void *data)
 {
   DWORD len = 0, rlen = 0, status = 0, complete = 0, flen = 0, total = 0, written = 0;
-  TCHAR buf[SHOES_BUFSIZE], fbuf[SHOES_CHUNKSIZE];
-  WCHAR uagent[SHOES_BUFSIZE];
+  LPTSTR buf = SHOE_ALLOC_N(TCHAR, SHOES_BUFSIZE);
+  LPTSTR fbuf = SHOE_ALLOC_N(TCHAR, SHOES_CHUNKSIZE);
+  LPWSTR uagent = SHOE_ALLOC_N(WCHAR, SHOES_BUFSIZE);
   HINTERNET sess = NULL, conn = NULL, req = NULL;
   SHOES_TIME last = 0;
+
+  if (buf == NULL || fbuf == NULL || uagent == NULL)
+    goto done;
 
   _snwprintf(uagent, SHOES_BUFSIZE, L"Shoes/0.r%d (%S) %S/%d", SHOES_REVISION, SHOES_PLATFORM,
     SHOES_RELEASE_NAME, SHOES_BUILD_DATE);
@@ -129,10 +139,10 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, ULONG 
   if (WinHttpQueryHeaders(req, WINHTTP_QUERY_CONTENT_LENGTH, NULL, buf, &len, NULL))
   {
     *size = _wtoi((wchar_t *)buf);
-    if (mem != NULL && *size > memlen)
+    if (*mem != NULL && *size > memlen)
     {
-      SHOE_REALLOC_N(mem, char, (memlen = *size));
-      if (mem == NULL) goto done;
+      SHOE_REALLOC_N(*mem, char, (memlen = *size));
+      if (*mem == NULL) goto done;
     }
   }
 
@@ -147,26 +157,29 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, ULONG 
     if (len <= 0)
       break;
 
-    if (mem != NULL)
+    if (*mem != NULL)
     {
       if (written + len > memlen)
       {
         while (written + len > memlen)
           memlen += SHOES_BUFSIZE;
-        SHOE_REALLOC_N(mem, char, memlen);
-        if (mem == NULL) goto done;
+        SHOE_REALLOC_N(*mem, char, memlen);
+        if (*mem == NULL) goto done;
       }
-      SHOE_MEMCPY(&(mem[written]), fbuf, char, len);
+      SHOE_MEMCPY(*mem + written, fbuf, char, len);
     }
     if (file != INVALID_HANDLE_VALUE)
       WriteFile(file, (LPBYTE)fbuf, len, &flen, NULL);
+    written += len;
 
     if (*size == 0) total = written * 100;
-    HTTP_EVENT(handler, SHOES_HTTP_TRANSFER, last, (int)((total - (rlen * 100)) / (total / 100)),
-               (total / 100) - rlen, (total / 100), data, NULL, break);
+    if (total > 0)
+    {
+      HTTP_EVENT(handler, SHOES_HTTP_TRANSFER, last, (int)((total - (rlen * 100)) / (total / 100)),
+                 (total / 100) - rlen, (total / 100), data, NULL, break);
+    }
 
     if (rlen > len) rlen -= len;
-    written += len;
   }
 
   *size = written;
@@ -177,10 +190,14 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR *mem, ULONG 
     file = INVALID_HANDLE_VALUE;
   }
 
-  HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, *size, *size, data, mem, goto done);
+  HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, *size, *size, data, *mem, goto done);
   complete = 1;
 
 done:
+  if (buf != NULL)    SHOE_FREE(buf);
+  if (fbuf != NULL)   SHOE_FREE(fbuf);
+  if (uagent != NULL) SHOE_FREE(uagent);
+
   if (!complete)
   {
     shoes_download_event event;
