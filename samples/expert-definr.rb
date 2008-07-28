@@ -7,9 +7,8 @@ Shoes.app :title => "Dictionary, powered by Definr", :width => 370, :height => 3
       caption "Define: ", :stroke => white
       @lookup = edit_line
       button "Go" do
-        Thread.start do
-          doc = open(URI("http://definr.com/definr/show/#{@lookup.text}")).read.
-              gsub('&nbsp;', ' ').
+        download "http://definr.com/definr/show/#{@lookup.text}" do |dl|
+          doc = dl.response.body.gsub('&nbsp;', ' ').
               gsub(%r!(</a>|<br />|<a href.+?>)!, '').
               gsub(%r!\(http://.+?\)!, '').strip
           title, doc = doc.split(/\n+/, 2)

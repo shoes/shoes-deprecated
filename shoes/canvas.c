@@ -272,9 +272,10 @@ shoes_canvas_new(VALUE klass, shoes_app *app)
 static void
 shoes_canvas_empty(shoes_canvas *canvas)
 {
-  canvas->stage = CANVAS_EMPTY;
+  unsigned char stage = canvas->stage;
+  if (stage != CANVAS_NADA) canvas->stage = CANVAS_EMPTY;
   shoes_ele_remove_all(canvas->contents);
-  canvas->stage = CANVAS_STARTED;
+  if (stage != CANVAS_NADA) canvas->stage = stage;
 }
 
 void
@@ -1333,17 +1334,9 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
 
 #define DRAW(c, app, blk) \
   { \
-    unsigned char alter = 0; \
-    if (RARRAY_LEN(app->nesting) == 0) \
-    { \
-      alter = 1; \
-      rb_ary_push(app->nesting, app->nestslot); \
-    } \
     rb_ary_push(app->nesting, c); \
     blk; \
     rb_ary_pop(app->nesting); \
-    if (alter) \
-      rb_ary_pop(app->nesting); \
   }
 
 void
@@ -1366,10 +1359,10 @@ static void
 shoes_canvas_memdraw(VALUE self, VALUE block)
 {
   SETUP();
-  canvas->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
+  if (cr == NULL) canvas->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
   DRAW(self, canvas->app, rb_funcall(block, s_call, 0));
-  cairo_destroy(canvas->cr);
-  canvas->cr = NULL;
+  if (cr == NULL) cairo_destroy(canvas->cr);
+  canvas->cr = cr;
 }
 
 typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
@@ -1446,11 +1439,9 @@ shoes_canvas_compute(VALUE self)
   if (!shoes_canvas_independent(canvas))
     return shoes_canvas_compute(canvas->parent);
 
-  if (cr == NULL)
-    canvas->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));;
+  if (cr == NULL) canvas->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));;
   shoes_canvas_draw(self, self, Qfalse);
-  if (cr == NULL)
-    cairo_destroy(canvas->cr);
+  if (cr == NULL) cairo_destroy(canvas->cr);
   canvas->cr = cr;
 }
 
@@ -2068,9 +2059,6 @@ shoes_slot_new(VALUE klass, VALUE attr, VALUE parent)
 #endif
     self_t->place.x = self_t->place.y = 0;
     self_t->place.ix = self_t->place.iy = 0;
-    self_t->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
-  } else {
-    shoes_canvas_reflow(self_t, parent);
   }
   return self;
 }

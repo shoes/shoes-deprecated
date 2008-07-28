@@ -177,9 +177,11 @@ shoes_safe_block(VALUE self, VALUE block, VALUE args)
   rb_gc_register_address(&args);
 
   Data_Get_Struct(sb.canvas, shoes_canvas, canvas);
+  rb_ary_push(canvas->app->nesting, canvas->app->nestslot);
   rb_ary_push(canvas->app->nesting, sb.canvas);
   v = rb_rescue2(CASTHOOK(shoes_safe_block_call), (VALUE)&sb, 
     CASTHOOK(shoes_safe_block_exception), (VALUE)&sb, rb_cObject, 0);
+  rb_ary_pop(canvas->app->nesting);
   rb_ary_pop(canvas->app->nesting);
   rb_gc_unregister_address(&args);
   return v;
@@ -3906,14 +3908,16 @@ shoes_log(VALUE self)
   { \
     VALUE canvas, obj; \
     GET_STRUCT(canvas, self_t); \
-    char *n = name; cairo_t *cr = self_t->cr; \
+    char *n = name; \
     if (rb_ary_entry(self_t->app->nesting, 0) == self) \
       canvas = rb_ary_entry(self_t->app->nesting, RARRAY_LEN(self_t->app->nesting) - 1); \
     else \
       canvas = self; \
+    Data_Get_Struct(canvas, shoes_canvas, self_t); \
+    cairo_t *cr = self_t->cr; \
     if (cr == NULL && n[0] == '+') shoes_canvas_memdraw_begin(canvas); \
     obj = call_cfunc(CASTHOOK(shoes_canvas_##func), canvas, argn, argc, argv); \
-    if (cr == NULL && n[0] == '+') shoes_canvas_memdraw_end(self); \
+    if (cr == NULL && n[0] == '+') shoes_canvas_memdraw_end(canvas); \
     return obj; \
   } \
   VALUE \
