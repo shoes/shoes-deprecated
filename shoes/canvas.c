@@ -273,9 +273,9 @@ static void
 shoes_canvas_empty(shoes_canvas *canvas)
 {
   unsigned char stage = canvas->stage;
-  if (stage != CANVAS_NADA) canvas->stage = CANVAS_EMPTY;
+  canvas->stage = CANVAS_EMPTY;
   shoes_ele_remove_all(canvas->contents);
-  if (stage != CANVAS_NADA) canvas->stage = stage;
+  canvas->stage = stage;
 }
 
 void
@@ -1662,7 +1662,7 @@ shoes_canvas_repaint_all(VALUE self)
   shoes_canvas *canvas;
   self = shoes_find_canvas(self);
   Data_Get_Struct(self, shoes_canvas, canvas);
-  if (canvas->stage != CANVAS_STARTED) return;
+  if (canvas->stage == CANVAS_EMPTY) return;
   shoes_canvas_compute(self);
   shoes_slot_repaint(&canvas->app->slot);
 }
