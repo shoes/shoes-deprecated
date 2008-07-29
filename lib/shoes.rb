@@ -28,13 +28,6 @@ unless Time.respond_to? :today
   end
 end
 
-class Canvas
-  [:height, :width, :scroll].each do |m|
-    define_method(m) { style[m] } unless method_defined? m
-    define_method("#{m}=") { |v| style(m => v) }
-  end
-end
-
 class Shoes
   VERSION = "Raisins"
 
@@ -231,6 +224,30 @@ class Shoes
     Shoes.mount(path, [self, meth])
   end
 
+  module Basic
+    def tween opts, &blk
+      a = parent.animate(opts[:speed] || 20) do
+
+        # figure out a coordinate halfway between here and there
+        cont = opts.select do |k, v|
+          n, o = v, self.style[k]
+          if n != o
+            n = o + ((n - o) / 2)
+            n = v if o == n
+            self.send("#{k}=", n)
+          end
+          self.style[k] != v
+        end
+
+        # if we're there, get rid of the animation
+        if cont.empty?
+          a.remove
+          blk.call if blk
+        end
+      end
+    end
+  end
+
   # complete list of styles
   BASIC_S = [:left, :top, :right, :bottom, :width, :height, :attach, :hidden,
              :displace_left, :displace_top, :margin, :margin_left, :margin_top,
@@ -243,7 +260,7 @@ class Shoes
 
   {Background => [:angle, :radius, :curve, *BASIC_S],
    Border     => [:angle, :radius, :curve, :strokewidth, *BASIC_S],
-   Canvas     => [:scroll, :start, :finish, :keypress, *(MOUSE_S|BASIC_S)],
+   ::Canvas   => [:scroll, :start, :finish, :keypress, *(MOUSE_S|BASIC_S)],
    Check      => [:click, :checked, *BASIC_S],
    Radio      => [:click, :checked, :group, *BASIC_S],
    EditLine   => [:change, :secret, :text, *BASIC_S],
@@ -258,6 +275,7 @@ class Shoes
    Text       => COLOR_S|MOUSE_S|TEXT_S|BASIC_S}.
   each do |klass, styles|
     klass.class_eval do
+      include Basic
       styles.each do |m|
         case m when *MOUSE_S
         else
