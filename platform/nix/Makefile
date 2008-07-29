@@ -13,6 +13,7 @@ RUBY_INCS = `ruby -rrbconfig -e 'puts Config::CONFIG["archdir"]'`
 RUBY_SO = `ruby -rrbconfig -e 'puts Config::CONFIG["RUBY_SO_NAME"]'`
 RUBY_LIBS = `ruby -rrbconfig -e 'puts Config::CONFIG["LIBRUBYARG_SHARED"]'` -l${RUBY_SO}
 RUBY_PREFIX = `ruby -rrbconfig -e 'puts Config::CONFIG["prefix"]'`
+RUBY_PLATFORM = `ruby -rrbconfig -e 'puts RUBY_PLATFORM'`
 CAIRO_CFLAGS = `pkg-config --cflags cairo`
 CAIRO_LIB = `pkg-config --libs cairo`
 PANGO_CFLAGS = `pkg-config --cflags pango`
@@ -21,6 +22,8 @@ GTK_CFLAGS = `pkg-config --cflags gtk+-2.0`
 GTK_LIB = `pkg-config --libs gtk+-2.0`
 CURL_CFLAGS = `curl-config --cflags`
 CURL_LIB = `curl-config --libs`
+RELEASE_NAME = `cat shoes/version.h | ruby -ne 'puts $$1.downcase if ~/SHOES_RELEASE_NAME "(.+)"/'`
+SHOES_IDENT = "shoes ${RELEASE_NAME} (0.r${REVISION}) [${RUBY_PLATFORM}]"
 
 VERSION = 0.r${REVISION}
 CFLAGS = -DSHOES_GTK -fPIC ${INCS} ${CAIRO_CFLAGS} ${PANGO_CFLAGS} ${GTK_CFLAGS} ${CURL_CFLAGS} -I${RUBY_INCS}
@@ -30,22 +33,23 @@ OPTIONS =
 ifeq (${DEBUG}, 1)
 	CFLAGS += -DDEBUG
 	OPTIONS += DEBUG
+	SHOES_IDENT += +debug
 endif
 
 ifeq (${VIDEO}, 1)
 	CFLAGS += -DVIDEO
 	LIBS += -lvlc
 	OPTIONS += VIDEO
+	SHOES_IDENT += +video
 endif
 
 all: options dist/shoes.launch
 
 options:
-	@echo shoes build options:
+	@echo build options: ${SHOES_IDENT}
 	@echo "CC       = ${CC}"
 	@echo "RUBY     = ${RUBY_PREFIX}"
 	@echo "OPTIONS  =${OPTIONS}"
-	@ruby -v
 
 .c.o:
 	@echo CC $<
@@ -82,6 +86,7 @@ dist/shoes.launch: dist/shoes-bin
 	@cp -r samples dist/samples
 	@cp -r static dist/static
 	@rm -rf dist/**/.svn
+	@echo ${SHOES_IDENT} > dist/VERSION.txt
 	@cp README COPYING dist
 	@echo 'LD_LIBRARY_PATH="$$APPPATH/../lib/shoes" $$APPPATH/../lib/shoes/shoes-bin $$@' >> dist/shoes.launch 
 	@chmod 755 dist/shoes.launch
