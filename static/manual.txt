@@ -235,6 +235,68 @@ Stores `a string` of text in the system clipboard.
 
 Closes the app window.  If multiple windows are open and you want to close the entire application, use the built-in method `exit`.
 
+=== download(url: a string, styles) ===
+
+Starts a download thread (much like XMLHttpRequest, if you're familiar with JavaScript.)  This method returns immediately and runs the download in the background.  Each download thread also fires `start`, `progress` and `finish` events.  You can send the download to a file or just get back a string (in the `finish` event.)
+
+If you attach a block to a download, it'll get called as the `finish` event.
+
+{{{
+ #!ruby
+ Shoes.app do
+   stack do
+     title "Searching Google", :size => 16
+     @status = para "One moment..."
+
+     # Search Google for 'shoes' and print the HTTP headers
+     download "http://www.google.com/search?q=shoes" do |goog|
+       @status.text = "Headers: " + goog.response.headers.inspect
+     end
+   end
+ end
+}}}
+
+And, if we wanted to use the downloaded data, we'd get it using `goog.response.body`.  This example is truly the simplest form of `download`: pulling some web data down into memory and handling it once it's done.
+
+Another simple use of `download` is to save some web data to a file, using the `:save` style.
+
+{{{
+ #!ruby
+ Shoes.app do
+   stack do
+     title "Downloading Google image", :size => 16
+     @status = para "One moment..."
+
+     download "http://www.google.com/logos/nasa50th.gif",
+       :save => "nasa50th.gif" do
+         @status.text = "Okay, is downloaded."
+     end
+   end
+ end
+}}}
+
+In this case, you can still get the headers for the downloaded file, but `response.body` will be `nil`, since the data wasn't saved to memory.  You will need to open the file to get the downloaded goods.
+
+If you need to send certain headers or actions to the web server, you can use the `:method`, `:headers` and `:body` styles to customize the HTTP request.  (And, if you need to go beyond these, you can always break out Ruby's OpenURI class.)
+
+{{{
+ #!ruby
+ Shoes.app do
+   stack do
+     title "POSTing to Google", :size => 16
+     @status = para "One moment..."
+
+     download "http://www.stevex.net/dump.php",
+              :method => "POST", :body => "v=1.0&q=shoes" do |dump|
+       require 'hpricot'
+       @status.text = Hpricot(dump.response.body).inner_text
+     end
+   end
+ end
+}}}
+
+As you can see from the above example, Shoes includes the Hpricot library for parsing HTML.
+
 === location() » a string ===
 
 Gets a string containing the URL of the current app.
