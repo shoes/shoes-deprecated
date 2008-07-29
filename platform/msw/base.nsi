@@ -465,7 +465,7 @@ FunctionEnd
   InstallDir "$PROGRAMFILES\Common Files\${AppName}"
   
   ;Get installation folder from registry if available
-  InstallDirRegKey HKLM "${InstallKey}" ""
+  InstallDirRegKey HKLM "${InstallKey}" "Base"
 
   ;Vista redirects $SMPROGRAMS to all users without this
   RequestExecutionLevel admin
@@ -550,14 +550,15 @@ FunctionEnd
 
 Section "App Section" SecApp
 
+  ;Store installation folder
+  WriteRegStr HKLM "${InstallKey}" "" "$INSTDIR\${AppVersion}"
+  WriteRegStr HKLM "${InstallKey}" "Base" $INSTDIR
+  
   ;ReadEnvStr $INSTDIR "COMMONPROGRAMFILES"
   StrCpy $INSTDIR "$INSTDIR\${AppVersion}"
   SetOutPath "$INSTDIR"
   
   File /r /x nsis ..\*.*
-  
-  ;Store installation folder
-  WriteRegStr HKLM "${InstallKey}" "" $INSTDIR
   
   ;Make associations
   !insertmacro MakeFileAssoc "Shoes" "shy"
