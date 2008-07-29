@@ -654,9 +654,9 @@ Flows organize elements horizontally.  Where one would use a [[Element.stack]] t
 
 === image(path) » Shoes::Image ===
 
-Creates an Image element for displaying a picture.  PNG, JPEG and GIF formats are allowed.
+Creates an [[Image]] element for displaying a picture.  PNG, JPEG and GIF formats are allowed.
 
-The `path` can be a file path or a URL.  All images loaded are temporarily cached in memory, but remote images are also cached locally in the user's personal Shoes directory.
+The `path` can be a file path or a URL.  All images loaded are temporarily cached in memory, but remote images are also cached locally in the user's personal Shoes directory.  Remote images are loaded in the background; as with browsers, the images will not appear right away, but will we shown when they are loaded.
 
 === imagesize(path) » [width, height] ===
 
@@ -1550,6 +1550,8 @@ You can use web URLs directly as well.
 }}}
 
 When an image is loaded from the web, it's cached on the hard drive as well as in memory.  This prevents a repeat download unless the image has changed.  (In case you're wondering: Shoes keeps track of modification times and etags just like a browser would.)
+
+Shoes also loads remote images in the background using system threads.  So, using remote images will not block Ruby or any intense graphical displays you may have going on.
 
 === full_height() » a number ===
 
