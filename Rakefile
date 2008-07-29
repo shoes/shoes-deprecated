@@ -55,7 +55,7 @@ def rewrite before, after, reg = /\#\{(\w+)\}/, reg2 = '\1'
 end
 
 def copy_files glob, dir
-  FileList[glob].each { |f| cp f, dir }
+  FileList[glob].each { |f| cp_r f, dir }
 end
 
 ruby_so = Config::CONFIG['RUBY_SO_NAME']
@@ -214,6 +214,7 @@ when /win32/
     /Ideps\pango\lib\glib-2.0\include
     /Ideps\ruby\lib\ruby\1.8\i386-mswin32
     /Ideps\curl\include
+    /Ideps\winhttp\include
     /I.
     /O2 /GR /EHsc
   ].gsub(/\n\s*/, ' ')
@@ -254,7 +255,7 @@ when /win32/
   ['stub', 'stub-inject'].each do |s|
     task "dist/pkg/shoes-#{s}.exe" => ["shoes/version.h", "shoes/http/winhttp.obj", "platform/msw/stub32.res", "platform/msw/#{s}.obj"] do |t|
       rm_f t.name
-      sh "link #{MSVC_LDFLAGS} /OUT:#{t.name} /LIBPATH:dist " +
+      sh "link #{MSVC_LDFLAGS} /OUT:#{t.name} /Ideps/winhttp/include /LIBPATH:deps/winhttp/lib /LIBPATH:dist " +
         "/SUBSYSTEM:WINDOWS platform/msw/stub32.res shoes/http/winhttp.obj platform/msw/#{s}.obj shell32.lib user32.lib comctl32.lib winhttp.lib bufferoverflowu.lib advapi32.lib"
     end
   end
@@ -265,17 +266,12 @@ when /win32/
       "/SUBSYSTEM:WINDOWS bin/main.obj shoes/appwin32.res lib#{SONAME}.lib #{MSVC_LIBS2}"
   end
 
-  task "dist/pull.exe" => ["bin/pull.obj"] do |t|
-    rm_f t.name
-    sh "link #{MSVC_LDFLAGS} /OUT:#{t.name} /LIBPATH:deps/curl/lib " +
-      "/SUBSYSTEM:WINDOWS bin/pull.obj libcurl.lib #{MSVC_LIBS2}"
-  end
-
   task "dist/lib#{SONAME}.dll" => ["shoes/version.h"] + OBJ do |t|
     sh "link #{MSVC_LDFLAGS} /OUT:#{t.name} /dll " +
       "/LIBPATH:#{ext_ruby}/lib " +
       "/LIBPATH:deps/cairo/lib " +
       "/LIBPATH:deps/pango/lib " +
+      "/LIBPATH:deps/winhttp/lib " +
       "/LIBPATH:deps/vlc/lib #{OBJ.join(' ')} #{MSVC_LIBS}"
   end
 
