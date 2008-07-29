@@ -78,7 +78,9 @@ end
 
 task "dist/VERSION.txt" do |t|
   File.open(t.name, 'w') do |f|
-    f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION})\n}
+    f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION}) [#{PLATFORM}]}
+    %w[VIDEO DEBUG].each { |x| f << " +#{x.downcase}" if ENV[x] }
+    f << "\n"
   end
 end
 

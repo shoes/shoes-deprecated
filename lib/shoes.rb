@@ -77,7 +77,7 @@ class Shoes
     end
 
     opts.on_tail("-v", "--version", "Display the version info.") do
-      raise SystemExit, "shoes #{Shoes::RELEASE_NAME.downcase} (0.r#{Shoes::REVISION})"
+      raise SystemExit, File.read("#{DIR}/VERSION.txt").strip
     end
 
     opts.on_tail("-h", "--help", "Show this message") do
