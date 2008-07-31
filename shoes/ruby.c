@@ -4060,6 +4060,25 @@ shoes_ruby_init()
 
   cCanvas = rb_define_class("Canvas", rb_cObject);
   rb_define_alloc_func(cCanvas, shoes_canvas_alloc);
+  rb_define_method(cCanvas, "top", CASTHOOK(shoes_canvas_get_top), 0);
+  rb_define_method(cCanvas, "left", CASTHOOK(shoes_canvas_get_left), 0);
+  rb_define_method(cCanvas, "width", CASTHOOK(shoes_canvas_get_width), 0);
+  rb_define_method(cCanvas, "height", CASTHOOK(shoes_canvas_get_height), 0);
+  rb_define_method(cCanvas, "scroll_height", CASTHOOK(shoes_canvas_get_scroll_height), 0);
+  rb_define_method(cCanvas, "scroll_max", CASTHOOK(shoes_canvas_get_scroll_max), 0);
+  rb_define_method(cCanvas, "scroll_top", CASTHOOK(shoes_canvas_get_scroll_top), 0);
+  rb_define_method(cCanvas, "scroll_top=", CASTHOOK(shoes_canvas_set_scroll_top), 1);
+  rb_define_method(cCanvas, "displace", CASTHOOK(shoes_canvas_displace), 2);
+  rb_define_method(cCanvas, "move", CASTHOOK(shoes_canvas_move), 2);
+  rb_define_method(cCanvas, "style", CASTHOOK(shoes_canvas_style), -1);
+  rb_define_method(cCanvas, "parent", CASTHOOK(shoes_canvas_get_parent), 0);
+  rb_define_method(cCanvas, "contents", CASTHOOK(shoes_canvas_contents), 0);
+  rb_define_method(cCanvas, "children", CASTHOOK(shoes_canvas_children), 0);
+  rb_define_method(cCanvas, "draw", CASTHOOK(shoes_canvas_draw), 2);
+  rb_define_method(cCanvas, "hide", CASTHOOK(shoes_canvas_hide), 0);
+  rb_define_method(cCanvas, "show", CASTHOOK(shoes_canvas_show), 0);
+  rb_define_method(cCanvas, "toggle", CASTHOOK(shoes_canvas_toggle), 0);
+  rb_define_method(cCanvas, "remove", CASTHOOK(shoes_canvas_remove), 0);
 
   cShoes = rb_define_class("Shoes", cCanvas);
   rb_const_set(cShoes, rb_intern("RELEASE_NAME"), rb_str_new2(SHOES_RELEASE_NAME));

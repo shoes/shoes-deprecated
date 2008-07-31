@@ -1877,7 +1877,7 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
     ox = x - self_t->place.ix + self_t->place.dx;
     oy = y - (self_t->place.iy + self_t->place.dy) - self_t->slot.scrolly;
     if (oy < self_t->slot.scrolly || ox < 0 || oy > self_t->slot.scrolly + self_t->place.ih || ox > self_t->place.iw)
-      return Qnil;
+      return;
   }
 
   // INFO("release(%d, %d, %d)\n", button, x, y);

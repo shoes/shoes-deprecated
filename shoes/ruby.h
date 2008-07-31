@@ -172,18 +172,7 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
 
 #define CANVAS_DEFS(f) \
   f(".close", close, 0); \
-  f(".top", get_top, 0); \
-  f(".left", get_left, 0); \
-  f(".width", get_width, 0); \
-  f(".height", get_height, 0); \
-  f(".scroll_height", get_scroll_height, 0); \
-  f(".scroll_max", get_scroll_max, 0); \
-  f(".scroll_top", get_scroll_top, 0); \
-  f(".scroll_top=", set_scroll_top, 1); \
   f(".gutter", get_gutter_width, 0); \
-  f(".displace", displace, 2); \
-  f(".move", move, 2); \
-  f(".style", style, -1); \
   f(".nostroke", nostroke, 0); \
   f(".stroke", stroke, -1); \
   f(".strokewidth", strokewidth, 1); \
@@ -241,10 +230,6 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("+check", check, -1); \
   f("+radio", radio, -1); \
   f(".app", get_app, 0); \
-  f(".parent", get_parent, 0); \
-  f(".contents", contents, 0); \
-  f(".children", children, 0); \
-  f(".draw", draw, 2); \
   f(".after", after, -1); \
   f(".before", before, -1); \
   f(".append", append, -1); \
@@ -253,9 +238,6 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("+stack", stack, -1); \
   f("+mask", mask, -1); \
   f("+widget", widget, -1); \
-  f(".hide", hide, 0); \
-  f(".show", show, 0); \
-  f(".toggle", toggle, 0); \
   f(".start", start, -1); \
   f(".finish", finish, -1); \
   f(".hover", hover, -1); \
@@ -266,7 +248,6 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f(".keypress", keypress, -1); \
   f(".clear", clear_contents, -1); \
   f(".visit", goto, 1); \
-  f(".remove", remove, 0); \
   f(".mouse", mouse, 0); \
   f(".cursor", get_cursor, 0); \
   f(".cursor=", set_cursor, 1); \
