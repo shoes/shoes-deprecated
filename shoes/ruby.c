@@ -698,6 +698,11 @@ static void
 shoes_image_free(shoes_image *image)
 {
   SHOE_FREE(image->tf);
+  if (image->type == SHOES_CACHE_MEM)
+  {
+    cairo_surface_destroy(image->cached->surface);
+    SHOE_FREE(image->cached);
+  }
   RUBY_CRITICAL(SHOE_FREE(image));
 }
 
@@ -717,6 +722,7 @@ shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, cairo_matrix_
     shoes_image *image2;
     Data_Get_Struct(path, shoes_image, image2);
     image->cached = image2->cached;
+    image->type = SHOES_CACHE_ALIAS;
   }
   /* TODO: cached image blocks
   else if (rb_obj_is_kind_of(path, cImageBlock))
@@ -732,6 +738,7 @@ shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, cairo_matrix_
     path = shoes_native_to_s(path);
     image->path = path;
     image->cached = shoes_load_image(parent, path);
+    image->type = SHOES_CACHE_FILE;
   }
 
   cairo_matrix_init_identity(image->tf);
@@ -756,6 +763,7 @@ shoes_image_alloc(VALUE klass)
   image->mode = Qnil;
   image->attr = Qnil;
   image->parent = Qnil;
+  image->type = SHOES_CACHE_MEM;
   return obj;
 }
 
@@ -773,6 +781,76 @@ shoes_image_get_full_height(VALUE self)
   return INT2NUM(image->cached->height);
 }
 
+static void
+shoes_image_ensure_dup(shoes_image *image)
+{
+  if (image->type == SHOES_CACHE_MEM)
+    return;
+  shoes_cached_image *cached = SHOE_ALLOC(shoes_cached_image);
+  cached->surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,
+    image->cached->width, image->cached->height);
+  cached->pattern = NULL;
+  cached->width = image->cached->width;
+  cached->height = image->cached->height;
+  cairo_t *cr = cairo_create(cached->surface);
+  cairo_set_source_surface(cr, image->cached->surface, 0, 0);
+  cairo_paint(cr);
+  cairo_destroy(cr);
+
+  image->cached = cached;
+  image->type = SHOES_CACHE_MEM;
+}
+
+unsigned char *
+shoes_image_surface_get_pixel(shoes_cached_image *cached, int x, int y)
+{
+  if (x >= 0 && y >= 0 && x < cached->width && y < cached->height)
+  {
+    unsigned char* pixels = cairo_image_surface_get_data(cached->surface);
+    switch (cairo_image_surface_get_format(cached->surface))
+    {
+      case CAIRO_FORMAT_ARGB32: return pixels + (y * (4 * cached->width)) + (4 * x);
+    }
+  }
+  return NULL;
+}
+
+VALUE
+shoes_image_get_pixel(VALUE self, VALUE _x, VALUE _y)
+{
+  VALUE color = Qnil;
+  int x = NUM2INT(_x), y = NUM2INT(_y);
+  GET_STRUCT(image, image);
+  unsigned char *pixels = shoes_image_surface_get_pixel(image->cached, x, y);
+  if (pixels != NULL)
+    color = shoes_color_new(pixels[2], pixels[1], pixels[0], pixels[3]);
+  return color;
+}
+
+VALUE
+shoes_image_set_pixel(VALUE self, VALUE _x, VALUE _y, VALUE col)
+{
+  int x = NUM2INT(_x), y = NUM2INT(_y);
+  GET_STRUCT(image, image);
+  shoes_image_ensure_dup(image);
+  unsigned char *pixels = shoes_image_surface_get_pixel(image->cached, x, y);
+  if (pixels != NULL)
+  {
+    if (TYPE(col) == T_STRING)
+      col = shoes_color_parse(cColor, col);
+    if (rb_obj_is_kind_of(col, cColor))
+    {
+      shoes_color *color;
+      Data_Get_Struct(col, shoes_color, color);
+      pixels[0] = color->b;
+      pixels[1] = color->g;
+      pixels[2] = color->r;
+      pixels[3] = color->a;
+    }
+  }
+  return self;
+}
+
 VALUE
 shoes_image_get_path(VALUE self)
 {
@@ -786,6 +864,7 @@ shoes_image_set_path(VALUE self, VALUE path)
   GET_STRUCT(image, image);
   image->path = path;
   image->cached = shoes_load_image(image->parent, path);
+  image->type = SHOES_CACHE_FILE;
   return path;
 }
 
@@ -1836,6 +1915,34 @@ shoes_color_parse(VALUE self, VALUE source)
   }
 
   return Qnil;
+}
+
+VALUE
+shoes_color_get_red(VALUE self)
+{
+  GET_STRUCT(color, color);
+  return INT2NUM(color->r);
+}
+
+VALUE
+shoes_color_get_green(VALUE self)
+{
+  GET_STRUCT(color, color);
+  return INT2NUM(color->g);
+}
+
+VALUE
+shoes_color_get_blue(VALUE self)
+{
+  GET_STRUCT(color, color);
+  return INT2NUM(color->b);
+}
+
+VALUE
+shoes_color_get_alpha(VALUE self)
+{
+  GET_STRUCT(color, color);
+  return INT2NUM(color->a);
 }
 
 VALUE
@@ -4174,6 +4281,8 @@ shoes_ruby_init()
 
   cImage    = rb_define_class_under(cShoes, "Image", rb_cObject);
   rb_define_alloc_func(cImage, shoes_image_alloc);
+  rb_define_method(cImage, "[]", CASTHOOK(shoes_image_get_pixel), 2);
+  rb_define_method(cImage, "[]=", CASTHOOK(shoes_image_set_pixel), 3);
   rb_define_method(cImage, "path", CASTHOOK(shoes_image_get_path), 0);
   rb_define_method(cImage, "path=", CASTHOOK(shoes_image_set_path), 1);
   rb_define_method(cImage, "app", CASTHOOK(shoes_canvas_get_app), 0);
@@ -4387,6 +4496,10 @@ shoes_ruby_init()
   rb_define_singleton_method(cColor, "rgb", CASTHOOK(shoes_color_rgb), -1);
   rb_define_singleton_method(cColor, "gray", CASTHOOK(shoes_color_gray), -1);
   rb_define_singleton_method(cColor, "parse", CASTHOOK(shoes_color_parse), 1);
+  rb_define_method(cColor, "red", CASTHOOK(shoes_color_get_red), 0);
+  rb_define_method(cColor, "green", CASTHOOK(shoes_color_get_green), 0);
+  rb_define_method(cColor, "blue", CASTHOOK(shoes_color_get_blue), 0);
+  rb_define_method(cColor, "alpha", CASTHOOK(shoes_color_get_alpha), 0);
   rb_define_method(cColor, "black?", CASTHOOK(shoes_color_is_black), 0);
   rb_define_method(cColor, "dark?", CASTHOOK(shoes_color_is_dark), 0);
   rb_define_method(cColor, "inspect", CASTHOOK(shoes_color_to_s), 0);

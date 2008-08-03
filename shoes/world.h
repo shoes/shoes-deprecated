@@ -23,6 +23,7 @@ SHOES_EXTERN typedef struct _shoes_world_t {
   st_table *image_cache;
   guint thread_event;
   cairo_surface_t *blank_image;
+  shoes_cached_image *blank_cache;
 } shoes_world_t;
 
 extern SHOES_EXTERN shoes_world_t *shoes_world;

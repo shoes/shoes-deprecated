@@ -147,8 +147,9 @@ typedef struct {
   int width, height;
 } shoes_cached_image;
 
-#define SHOES_CACHE_NEW   0
+#define SHOES_CACHE_FILE  0
 #define SHOES_CACHE_ALIAS 1
+#define SHOES_CACHE_MEM   2
 
 typedef struct {
   unsigned char type;
@@ -163,6 +164,7 @@ typedef struct {
   VALUE parent;
   VALUE attr;
   shoes_place place;
+  unsigned char type;
   shoes_cached_image *cached;
   cairo_matrix_t *tf;
   VALUE mode;

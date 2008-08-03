@@ -841,7 +841,7 @@ shoes_load_image(VALUE slot, VALUE imgpath)
 
     cached = SHOE_ALLOC(shoes_cached_image);
     cached->surface = shoes_world->blank_image; cached->pattern = NULL; cached->width = 1; cached->height = 1;
-    shoes_cache_insert(SHOES_CACHE_NEW, imgpath, cached);
+    shoes_cache_insert(SHOES_CACHE_FILE, imgpath, cached);
     tmppath = rb_funcall(cShoes, rb_intern("image_temp_path"), 2, uri, uext);
 
     shoes_download_request *req = SHOE_ALLOC(shoes_download_request);
@@ -884,9 +884,11 @@ shoes_load_image(VALUE slot, VALUE imgpath)
   {
     cached = SHOE_ALLOC(shoes_cached_image);
     cached->surface = img; cached->pattern = NULL; cached->width = width; cached->height = height;
-    shoes_cache_insert(SHOES_CACHE_NEW, imgpath, cached);
+    shoes_cache_insert(SHOES_CACHE_FILE, imgpath, cached);
   }
 
 done:
+  if (cached == NULL)
+    cached = shoes_world->blank_cache;
   return cached;
 }
