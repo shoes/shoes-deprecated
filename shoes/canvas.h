@@ -59,6 +59,7 @@ typedef struct {
 #define CPB(c)  ((c->place.h - c->place.ih) - (c->place.iy - c->place.y))
 #define CPH(c)  ((c->fully - CPB(c)) - CPY(c))
 #define CPW(c)  (c->place.iw)
+#define SWPOS(x) ((int)sw % 2 == 0 ? x * 1. : x + .5)
 
 //
 // color struct
@@ -90,8 +91,6 @@ typedef struct {
   cairo_path_t *line;
   int width, height;
   double sw;
-  VALUE fg;
-  VALUE bg;
   char hover;
 } shoes_shape;
 
@@ -166,6 +165,7 @@ typedef struct {
   shoes_place place;
   unsigned char type;
   shoes_cached_image *cached;
+  cairo_t *cr;
   cairo_matrix_t *tf;
   VALUE mode;
   VALUE path;
