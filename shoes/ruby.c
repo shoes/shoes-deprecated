@@ -541,21 +541,33 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
   }
 
 #define PATH_OUT(cr, attr, place, sw, pen, cfunc) \
-  if (!NIL_P(ATTR(attr, pen))) \
+{ \
+  VALUE p = ATTR(attr, pen); \
+  if (!NIL_P(p)) \
   { \
-    VALUE p = ATTR(attr, pen); \
-    if (!rb_obj_is_kind_of(p, cPattern)) \
-      ATTRSET(attr, pen, p = rb_funcall(p, s_to_pattern, 0)); \
-    double r = 0.; \
-    cairo_matrix_t matrix1, matrix2; \
-    shoes_pattern *pattern; \
-    Data_Get_Struct(ATTR(attr, pen), shoes_pattern, pattern); \
-    PATTERN_SCALE(pattern, (place), sw); \
     cairo_set_line_width(cr, sw); \
-    cairo_set_source(cr, PATTERN(pattern)); \
-    cfunc(cr); \
-    PATTERN_RESET(pattern); \
-  }
+    if (rb_obj_is_kind_of(p, cColor)) \
+    { \
+      shoes_color *color; \
+      Data_Get_Struct(p, shoes_color, color); \
+      cairo_set_source_rgba(cr, color->r / 255., color->g / 255., color->b / 255., color->a / 255.); \
+      cfunc(cr); \
+    } \
+    else \
+    { \
+      if (!rb_obj_is_kind_of(p, cPattern)) \
+        ATTRSET(attr, pen, p = rb_funcall(p, s_to_pattern, 0)); \
+      double r = 0.; \
+      cairo_matrix_t matrix1, matrix2; \
+      shoes_pattern *pattern; \
+      Data_Get_Struct(p, shoes_pattern, pattern); \
+      PATTERN_SCALE(pattern, (place), sw); \
+      cairo_set_source(cr, PATTERN(pattern)); \
+      cfunc(cr); \
+      PATTERN_RESET(pattern); \
+    } \
+  } \
+}
 
 //
 // Shoes::Shape

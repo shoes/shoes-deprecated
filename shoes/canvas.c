@@ -115,7 +115,7 @@ shoes_canvas_style(int argc, VALUE *argv, VALUE self)
   return canvas->attr;
 }
 
-#define ELAPSED ((double)(clock() - start) / CLOCKS_PER_SEC)
+#define ELAPSED (shoes_diff_time(&start, &mid) * 0.001)
 
 static VALUE
 shoes_canvas_paint_call(VALUE self)
@@ -123,7 +123,8 @@ shoes_canvas_paint_call(VALUE self)
   int n = 0;
   shoes_canvas *pc = NULL;
   shoes_code code = SHOES_OK;
-  clock_t start = clock();
+  SHOES_TIME start, mid;
+  shoes_get_time(&start);
 
   if (self == Qnil)
     return self;
@@ -136,8 +137,10 @@ shoes_canvas_paint_call(VALUE self)
 
   cairo_save(cr);
   shoes_canvas_draw(self, self, Qfalse);
+  shoes_get_time(&mid);
   INFO("COMPUTE: %0.6f s\n", ELAPSED);
   shoes_canvas_draw(self, self, Qtrue);
+  shoes_get_time(&mid);
   INFO("DRAW: %0.6f s\n", ELAPSED);
   cairo_restore(cr);
 
@@ -151,6 +154,7 @@ shoes_canvas_paint_call(VALUE self)
   canvas->cr = NULL;
 
   shoes_cairo_destroy(canvas);
+  shoes_get_time(&mid);
   INFO("PAINT: %0.6f s\n", ELAPSED);
   shoes_canvas_send_start(self);
 quit:
@@ -262,8 +266,8 @@ shoes_canvas_clear(VALUE self)
   Data_Get_Struct(self, shoes_canvas, canvas);
   canvas->cr = NULL;
   canvas->sw = rb_float_new(1.);
-  canvas->fg = rb_funcall(shoes_color_new(0, 0, 0, 0xFF), s_to_pattern, 0);
-  canvas->bg = rb_funcall(shoes_color_new(0, 0, 0, 0xFF), s_to_pattern, 0);
+  canvas->fg = shoes_color_new(0, 0, 0, 0xFF);
+  canvas->bg = shoes_color_new(0, 0, 0, 0xFF);
   canvas->mode = s_center;
   canvas->parent = Qnil;
   canvas->attr = Qnil;
@@ -330,7 +334,8 @@ shoes_canvas_stroke(int argc, VALUE *argv, VALUE self)
     pat = argv[0];
   else
     pat = shoes_pattern_args(argc, argv, self);
-  pat = rb_funcall(pat, s_to_pattern, 0);
+  if (!rb_obj_is_kind_of(pat, cColor))
+    pat = rb_funcall(pat, s_to_pattern, 0);
   canvas->fg = pat;
   return pat;
 }
@@ -361,7 +366,8 @@ shoes_canvas_fill(int argc, VALUE *argv, VALUE self)
     pat = argv[0];
   else
     pat = shoes_pattern_args(argc, argv, self);
-  pat = rb_funcall(pat, s_to_pattern, 0);
+  if (!rb_obj_is_kind_of(pat, cColor))
+    pat = rb_funcall(pat, s_to_pattern, 0);
   canvas->bg = pat;
   return pat;
 }
