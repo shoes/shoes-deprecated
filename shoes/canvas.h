@@ -88,9 +88,7 @@ typedef struct {
   VALUE parent;
   VALUE attr;
   shoes_place place;
-  cairo_path_t *line;
-  int width, height;
-  double sw;
+  ID name;
   char hover;
 } shoes_shape;
 
@@ -260,8 +258,7 @@ typedef struct {
   VALUE attr;
   shoes_place place;
   cairo_t *cr;
-  VALUE fg;
-  VALUE bg;
+  VALUE fg, bg, sw;
   cairo_matrix_t *tf;
   cairo_matrix_t *gr;
   int grl;
@@ -270,7 +267,6 @@ typedef struct {
   VALUE contents;
   unsigned char stage;
   long insertion;
-  double sw;                // current stroke-width
   int cx, cy;               // cursor x and y (stored in absolute coords)
   int endx, endy;           // jump points if the cursor spills over
   int topy, fully;          // since we often stack vertically
@@ -331,8 +327,8 @@ VALUE shoes_canvas_rgb(int, VALUE *, VALUE);
 VALUE shoes_canvas_gray(int, VALUE *, VALUE);
 VALUE shoes_canvas_rect(int, VALUE *, VALUE);
 VALUE shoes_canvas_oval(int, VALUE *, VALUE);
-VALUE shoes_canvas_line(VALUE, VALUE, VALUE, VALUE, VALUE);
-VALUE shoes_canvas_arrow(VALUE, VALUE, VALUE, VALUE);
+VALUE shoes_canvas_line(int, VALUE *, VALUE);
+VALUE shoes_canvas_arrow(int, VALUE *, VALUE);
 VALUE shoes_canvas_star(int, VALUE *, VALUE);
 VALUE shoes_canvas_para(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_banner(int argc, VALUE *argv, VALUE self);
@@ -462,7 +458,9 @@ VALUE shoes_list_box_text(VALUE);
 VALUE shoes_list_box_draw(VALUE, VALUE, VALUE);
 VALUE shoes_progress_draw(VALUE, VALUE, VALUE);
 
-VALUE shoes_shape_new(cairo_path_t *, VALUE, VALUE, VALUE, int, int);
+VALUE shoes_shape_attr(int, VALUE *, int, ...);
+void shoes_shape_sketch(cairo_t *, ID, shoes_place *, VALUE);
+VALUE shoes_shape_new(VALUE, ID, VALUE);
 VALUE shoes_shape_alloc(VALUE);
 VALUE shoes_shape_draw(VALUE, VALUE, VALUE);
 VALUE shoes_shape_move(VALUE, VALUE, VALUE);
@@ -474,6 +472,7 @@ VALUE shoes_shape_motion(VALUE, int, int, char *);
 VALUE shoes_shape_send_click(VALUE, int, int, int);
 void shoes_shape_send_release(VALUE, int, int, int);
 
+void shoes_image_ensure_dup(shoes_image *);
 VALUE shoes_image_new(VALUE, VALUE, VALUE, VALUE, cairo_matrix_t *, VALUE);
 VALUE shoes_image_alloc(VALUE);
 VALUE shoes_image_draw(VALUE, VALUE, VALUE);
