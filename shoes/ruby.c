@@ -1003,11 +1003,12 @@ shoes_image_set_path(VALUE self, VALUE path)
   if (RTEST(actual)) \
   { \
     shoes_apply_transformation(canvas->cr, self_t->st, &place, RTEST(ATTR(self_t->attr, center)), 0); \
+    cairo_translate(canvas->cr, place.ix + place.dx, place.iy + place.dy); \
     if (place.iw != imw || place.ih != imh) \
     { \
       cairo_scale(canvas->cr, (place.iw * 1.) / imw, (place.ih * 1.) / imh); \
     } \
-    cairo_set_source_surface(canvas->cr, surf, -imw / 2., -imh / 2.); \
+    cairo_set_source_surface(canvas->cr, surf, 0., 0.); \
     cairo_paint(canvas->cr); \
     shoes_undo_transformation(canvas->cr, self_t->st, &place, 0); \
     self_t->place = place; \

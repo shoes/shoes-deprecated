@@ -260,11 +260,22 @@ shoes_canvas_mark(shoes_canvas *canvas)
 static void
 shoes_canvas_reset_transform(shoes_canvas *canvas)
 {
-  int i;
-  for (i = 0; i < canvas->stl; i++)
-    shoes_transform_release(canvas->sts[i]);
-  if (canvas->sts != NULL) SHOE_FREE(canvas->sts);
-  shoes_transform_release(canvas->st);
+  if (canvas->sts != NULL)
+  {
+    int i;
+    for (i = 0; i < canvas->stl; i++)
+      shoes_transform_release(canvas->sts[i]);
+    SHOE_FREE(canvas->sts);
+    canvas->sts = NULL;
+  }
+  canvas->stl = 0;
+  canvas->stt = 0;
+
+  if (canvas->st != NULL)
+  {
+    shoes_transform_release(canvas->st);
+    canvas->st = NULL;
+  }
 }
 
 static void
