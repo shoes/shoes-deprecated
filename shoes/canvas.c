@@ -846,7 +846,7 @@ shoes_canvas_pop(VALUE self)
   {
     shoes_transform_release(canvas->st);
     canvas->stl--;
-    canvas->st = canvas->sts[canvas->stl - 1];
+    canvas->st = canvas->sts[canvas->stl];
   }
   return self;
 }
