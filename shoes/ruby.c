@@ -607,18 +607,20 @@ shoes_shape_attr(int argc, VALUE *argv, int syms, ...)
 void
 shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, VALUE attr)
 {
-  if (name == s_oval)
+  if (name == s_oval && place->w > 0 && place->h > 0)
   {
     double sw = ATTR2(dbl, attr, strokewidth, 1.);
     cairo_save(cr);
+    cairo_new_path(cr);
     cairo_translate(cr, (place->x * 1.) + (place->w / 2.), (place->y * 1.) + (place->h / 2.));
     cairo_scale(cr, place->w / 2., place->h / 2.);
     cairo_arc(cr, 0., 0., 1., 0., SHOES_PIM2);
+    cairo_close_path(cr);
     cairo_restore(cr);
     PATH_OUT(cr, attr, *place, sw, fill, cairo_fill_preserve);
     PATH_OUT(cr, attr, *place, sw, stroke, cairo_stroke);
   }
-  else if (name == s_rect)
+  else if (name == s_rect && place->w > 0 && place->h > 0)
   {
     double sw, cv;
     sw = ATTR2(dbl, attr, strokewidth, 1.);
@@ -642,7 +644,7 @@ shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, VALUE attr)
     cairo_line_to(cr, SWPOS(r), SWPOS(b));
     PATH_OUT(cr, attr, *place, sw, stroke, cairo_stroke);
   }
-  else if (name == s_arrow)
+  else if (name == s_arrow && place->w > 0)
   {
     double sw, h, tip, x;
     x = place->x + (place->w / 2.);
@@ -651,12 +653,12 @@ shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, VALUE attr)
     sw = ATTR2(dbl, attr, strokewidth, 1.);
 
     cairo_move_to(cr, SWPOS(x), SWPOS(place->y));
-    cairo_rel_line_to(cr, -tip, +(place->h*0.5));
-    cairo_rel_line_to(cr, 0, -(place->h*0.25));
+    cairo_rel_line_to(cr, -tip, +(h*0.5));
+    cairo_rel_line_to(cr, 0, -(h*0.25));
     cairo_rel_line_to(cr, -(place->w-tip), 0);
-    cairo_rel_line_to(cr, 0, -(place->h*0.5));
+    cairo_rel_line_to(cr, 0, -(h*0.5));
     cairo_rel_line_to(cr, +(place->w-tip), 0);
-    cairo_rel_line_to(cr, 0, -(place->h*0.25));
+    cairo_rel_line_to(cr, 0, -(h*0.25));
     cairo_close_path(cr);
     PATH_OUT(cr, attr, *place, sw, fill, cairo_fill_preserve);
     PATH_OUT(cr, attr, *place, sw, stroke, cairo_stroke);
@@ -670,15 +672,18 @@ shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, VALUE attr)
     inner = ATTR2(dbl, attr, inner, 50.);
     sw = ATTR2(dbl, attr, strokewidth, 1.);
 
-    cairo_move_to(cr, place->x * 1., (place->y * 1.) + outer);
-    for (i = 1; i <= points * 2; i++) {
-      angle = (i * SHOES_PI) / (points * 1.);
-      r = (i % 2 == 0 ? outer : inner);
-      cairo_line_to(cr, place->x + r * sin(angle), place->y + r * cos(angle));
+    if (outer > 0)
+    {
+      cairo_move_to(cr, place->x * 1., (place->y * 1.) + outer);
+      for (i = 1; i <= points * 2; i++) {
+        angle = (i * SHOES_PI) / (points * 1.);
+        r = (i % 2 == 0 ? outer : inner);
+        cairo_line_to(cr, place->x + r * sin(angle), place->y + r * cos(angle));
+      }
+      cairo_close_path(cr);
+      PATH_OUT(cr, attr, *place, sw, fill, cairo_fill_preserve);
+      PATH_OUT(cr, attr, *place, sw, stroke, cairo_stroke);
     }
-    cairo_close_path(cr);
-    PATH_OUT(cr, attr, *place, sw, fill, cairo_fill_preserve);
-    PATH_OUT(cr, attr, *place, sw, stroke, cairo_stroke);
   }
 }
 
