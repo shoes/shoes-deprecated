@@ -41,6 +41,15 @@ extern const char *dialog_title, *dialog_title_says;
 #define HOVER_CLICK   0x02
 
 //
+// affine transforms, to avoid littering these structs everywhere
+//
+typedef struct {
+  cairo_matrix_t tf;
+  ID mode;
+  int refs;
+} shoes_transform;
+
+//
 // place struct
 // (outlines the area where a control has been placed)
 //
@@ -90,6 +99,7 @@ typedef struct {
   shoes_place place;
   ID name;
   char hover;
+  shoes_transform *st;
 } shoes_shape;
 
 //
@@ -163,9 +173,8 @@ typedef struct {
   shoes_place place;
   unsigned char type;
   shoes_cached_image *cached;
+  shoes_transform *st;
   cairo_t *cr;
-  cairo_matrix_t *tf;
-  VALUE mode;
   VALUE path;
   char hover;
 } shoes_image;
@@ -259,11 +268,8 @@ typedef struct {
   shoes_place place;
   cairo_t *cr;
   VALUE fg, bg, sw;
-  cairo_matrix_t *tf;
-  cairo_matrix_t *gr;
-  int grl;
-  int grt;
-  ID mode;
+  shoes_transform *st, **sts;
+  int stl, stt;
   VALUE contents;
   unsigned char stage;
   long insertion;
@@ -286,6 +292,11 @@ VALUE shoes_app_contents(VALUE);
 
 VALUE shoes_basic_remove(VALUE);
 
+shoes_transform *shoes_transform_new(shoes_transform *);
+shoes_transform *shoes_transform_touch(shoes_transform *);
+shoes_transform *shoes_transform_detach(shoes_transform *);
+void shoes_transform_release(shoes_transform *);
+
 VALUE shoes_canvas_info (VALUE, VALUE);
 VALUE shoes_canvas_debug(VALUE, VALUE);
 VALUE shoes_canvas_warn (VALUE, VALUE);
@@ -301,8 +312,8 @@ void shoes_canvas_clear(VALUE);
 shoes_canvas *shoes_canvas_init(VALUE, SHOES_SLOT_OS, VALUE, int, int);
 void shoes_slot_scroll_to(shoes_canvas *, int, int);
 void shoes_canvas_paint(VALUE);
-void shoes_apply_transformation(shoes_canvas *, cairo_matrix_t *, 
-  double, double, double, double, VALUE);
+void shoes_apply_transformation(cairo_t *, shoes_transform *, shoes_place *, unsigned char);
+void shoes_undo_transformation(cairo_t *, shoes_transform *, shoes_place *, unsigned char);
 void shoes_canvas_shape_do(shoes_canvas *, double, double, double, double, unsigned char);
 VALUE shoes_canvas_style(int, VALUE *, VALUE);
 VALUE shoes_canvas_owner(VALUE);
@@ -459,8 +470,8 @@ VALUE shoes_list_box_draw(VALUE, VALUE, VALUE);
 VALUE shoes_progress_draw(VALUE, VALUE, VALUE);
 
 VALUE shoes_shape_attr(int, VALUE *, int, ...);
-void shoes_shape_sketch(cairo_t *, ID, shoes_place *, VALUE);
-VALUE shoes_shape_new(VALUE, ID, VALUE);
+void shoes_shape_sketch(cairo_t *, ID, shoes_place *, shoes_transform *, VALUE);
+VALUE shoes_shape_new(VALUE, ID, VALUE, shoes_transform *);
 VALUE shoes_shape_alloc(VALUE);
 VALUE shoes_shape_draw(VALUE, VALUE, VALUE);
 VALUE shoes_shape_move(VALUE, VALUE, VALUE);
@@ -473,7 +484,7 @@ VALUE shoes_shape_send_click(VALUE, int, int, int);
 void shoes_shape_send_release(VALUE, int, int, int);
 
 void shoes_image_ensure_dup(shoes_image *);
-VALUE shoes_image_new(VALUE, VALUE, VALUE, VALUE, cairo_matrix_t *, VALUE);
+VALUE shoes_image_new(VALUE, VALUE, VALUE, VALUE, shoes_transform *);
 VALUE shoes_image_alloc(VALUE);
 VALUE shoes_image_draw(VALUE, VALUE, VALUE);
 VALUE shoes_image_get_top(VALUE);

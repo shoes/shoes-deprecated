@@ -582,6 +582,7 @@ shoes_shape_mark(shoes_shape *path)
 static void
 shoes_shape_free(shoes_shape *path)
 {
+  shoes_transform_release(path->st);
   RUBY_CRITICAL(free(path));
 }
 
@@ -605,18 +606,19 @@ shoes_shape_attr(int argc, VALUE *argv, int syms, ...)
 }
 
 void
-shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, VALUE attr)
+shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, shoes_transform *st, VALUE attr)
 {
   if (name == s_oval && place->w > 0 && place->h > 0)
   {
     double sw = ATTR2(dbl, attr, strokewidth, 1.);
-    cairo_save(cr);
+    cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
+    shoes_apply_transformation(cr, st, place, 1);
     cairo_new_path(cr);
     cairo_translate(cr, (place->x * 1.) + (place->w / 2.), (place->y * 1.) + (place->h / 2.));
     cairo_scale(cr, place->w / 2., place->h / 2.);
     cairo_arc(cr, 0., 0., 1., 0., SHOES_PIM2);
     cairo_close_path(cr);
-    cairo_restore(cr);
+    shoes_undo_transformation(cr, st, place, 1);
     PATH_OUT(cr, attr, *place, sw, fill, cairo_fill_preserve);
     PATH_OUT(cr, attr, *place, sw, stroke, cairo_stroke);
   }
@@ -626,32 +628,39 @@ shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, VALUE attr)
     sw = ATTR2(dbl, attr, strokewidth, 1.);
     cv = ATTR2(dbl, attr, curve, 0.);
 
+    shoes_apply_transformation(cr, st, place, 0);
     shoes_cairo_rect(cr, SWPOS(place->x), SWPOS(place->y), place->w * 1., place->h * 1., cv);
+    shoes_undo_transformation(cr, st, place, 0);
     PATH_OUT(cr, attr, *place, sw, fill, cairo_fill_preserve);
     PATH_OUT(cr, attr, *place, sw, stroke, cairo_stroke);
   }
   else if (name == s_line)
   {
-    int r, b;
+    int x1, y1, x2, y2, r, b;
     double sw, cv;
     sw = ATTR2(dbl, attr, strokewidth, 1.);
     r = ATTR2(int, attr, right, 0);
     b = ATTR2(int, attr, bottom, 0);
-    place->iw = place->w = abs(place->x - r);
-    place->ih = place->h = abs(place->y - b);
+    x1 = min(place->x, r); x2 = max(place->x, r);
+    y1 = min(place->y, b); y2 = max(place->y, b);
+    place->iw = place->w = x2 - x1;
+    place->ih = place->h = y2 - y1;
 
+    shoes_apply_transformation(cr, st, place, 0);
     cairo_move_to(cr, SWPOS(place->x), SWPOS(place->y));
     cairo_line_to(cr, SWPOS(r), SWPOS(b));
+    shoes_undo_transformation(cr, st, place, 0);
     PATH_OUT(cr, attr, *place, sw, stroke, cairo_stroke);
   }
   else if (name == s_arrow && place->w > 0)
   {
     double sw, h, tip, x;
     x = place->x + (place->w / 2.);
-    h = place->w * 0.8;
+    place->h = h = place->w * 0.8;
     tip = place->w * 0.42;
     sw = ATTR2(dbl, attr, strokewidth, 1.);
 
+    shoes_apply_transformation(cr, st, place, 0);
     cairo_move_to(cr, SWPOS(x), SWPOS(place->y));
     cairo_rel_line_to(cr, -tip, +(h*0.5));
     cairo_rel_line_to(cr, 0, -(h*0.25));
@@ -660,6 +669,7 @@ shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, VALUE attr)
     cairo_rel_line_to(cr, +(place->w-tip), 0);
     cairo_rel_line_to(cr, 0, -(h*0.25));
     cairo_close_path(cr);
+    shoes_undo_transformation(cr, st, place, 0);
     PATH_OUT(cr, attr, *place, sw, fill, cairo_fill_preserve);
     PATH_OUT(cr, attr, *place, sw, stroke, cairo_stroke);
   }
@@ -674,6 +684,8 @@ shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, VALUE attr)
 
     if (outer > 0)
     {
+      place->w = place->h = outer;
+      shoes_apply_transformation(cr, st, place, 0);
       cairo_move_to(cr, place->x * 1., (place->y * 1.) + outer);
       for (i = 1; i <= points * 2; i++) {
         angle = (i * SHOES_PI) / (points * 1.);
@@ -681,6 +693,7 @@ shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, VALUE attr)
         cairo_line_to(cr, place->x + r * sin(angle), place->y + r * cos(angle));
       }
       cairo_close_path(cr);
+      shoes_undo_transformation(cr, st, place, 0);
       PATH_OUT(cr, attr, *place, sw, fill, cairo_fill_preserve);
       PATH_OUT(cr, attr, *place, sw, stroke, cairo_stroke);
     }
@@ -688,7 +701,7 @@ shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, VALUE attr)
 }
 
 VALUE
-shoes_shape_new(VALUE parent, ID name, VALUE attr)
+shoes_shape_new(VALUE parent, ID name, VALUE attr, shoes_transform *st)
 {
   shoes_shape *path;
   shoes_canvas *canvas;
@@ -698,6 +711,7 @@ shoes_shape_new(VALUE parent, ID name, VALUE attr)
   path->parent = parent;
   path->attr = attr;
   path->name = name;
+  path->st = shoes_transform_touch(st);
   if (NIL_P(ATTR(path->attr, stroke))) ATTRSET(path->attr, stroke, canvas->fg);
   if (NIL_P(ATTR(path->attr, fill)))   ATTRSET(path->attr, fill, canvas->bg);
   if (NIL_P(ATTR(path->attr, strokewidth))) ATTRSET(path->attr, strokewidth, canvas->sw);
@@ -726,7 +740,7 @@ shoes_shape_draw(VALUE self, VALUE c, VALUE actual)
   shoes_place_exact(&place, self_t->attr, CPX(canvas), CPY(canvas));
 
   if (RTEST(actual))
-    shoes_shape_sketch(canvas->cr, self_t->name, &place, self_t->attr); 
+    shoes_shape_sketch(canvas->cr, self_t->name, &place, self_t->st, self_t->attr); 
 
   self_t->place = place;
   return self;
@@ -812,24 +826,23 @@ shoes_image_mark(shoes_image *image)
   rb_gc_mark_maybe(image->path);
   rb_gc_mark_maybe(image->parent);
   rb_gc_mark_maybe(image->attr);
-  rb_gc_mark_maybe(image->mode);
 }
 
 static void
 shoes_image_free(shoes_image *image)
 {
-  SHOE_FREE(image->tf);
   if (image->type == SHOES_CACHE_MEM)
   {
     if (image->cr != NULL)     cairo_destroy(image->cr);
     if (image->cached != NULL) cairo_surface_destroy(image->cached->surface);
     SHOE_FREE(image->cached);
   }
+  shoes_transform_release(image->st);
   RUBY_CRITICAL(SHOE_FREE(image));
 }
 
 VALUE
-shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, cairo_matrix_t *tf, VALUE mode)
+shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, shoes_transform *st)
 {
   GError *error = NULL;
   VALUE obj = Qnil;
@@ -863,9 +876,7 @@ shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, cairo_matrix_
     image->type = SHOES_CACHE_FILE;
   }
 
-  cairo_matrix_init_identity(image->tf);
-  cairo_matrix_multiply(image->tf, image->tf, tf);
-  image->mode = mode;
+  image->st = shoes_transform_touch(st);
   image->attr = attr;
   image->parent = parent;
 
@@ -880,9 +891,7 @@ shoes_image_alloc(VALUE klass)
   SHOE_MEMZERO(image, shoes_image, 1);
   obj = Data_Wrap_Struct(klass, shoes_image_mark, shoes_image_free, image);
   image->path = Qnil;
-  image->tf = SHOE_ALLOC(cairo_matrix_t);
-  cairo_matrix_init_identity(image->tf);
-  image->mode = Qnil;
+  image->st = NULL;
   image->attr = Qnil;
   image->parent = Qnil;
   image->type = SHOES_CACHE_MEM;
@@ -993,17 +1002,14 @@ shoes_image_set_path(VALUE self, VALUE path)
   SETUP(shoes_##type, REL_CANVAS, imw, imh); \
   if (RTEST(actual)) \
   { \
-    cairo_save(canvas->cr); \
-    cairo_translate(canvas->cr, place.ix + place.dx, place.iy + place.dy); \
-    shoes_apply_transformation(canvas, self_t->tf, place.ix + place.dx, place.iy + place.dy, \
-      place.iw, place.ih, self_t->mode); \
+    shoes_apply_transformation(canvas->cr, self_t->st, &place, 0); \
     if (place.iw != imw || place.ih != imh) \
     { \
       cairo_scale(canvas->cr, (place.iw * 1.) / imw, (place.ih * 1.) / imh); \
     } \
     cairo_set_source_surface(canvas->cr, surf, -imw / 2., -imh / 2.); \
     cairo_paint(canvas->cr); \
-    cairo_restore(canvas->cr); \
+    shoes_undo_transformation(canvas->cr, self_t->st, &place, 0); \
     self_t->place = place; \
   } \
   FINISH(); \
@@ -1022,7 +1028,6 @@ shoes_imageblock_draw(VALUE self, VALUE c, VALUE actual)
   cairo_surface_t *surf = cairo_get_target(canvas_t->cr);
   int w = cairo_image_surface_get_width(surf);
   int h = cairo_image_surface_get_height(surf);
-  SHOES_IMAGE_PLACE(canvas, w, h, surf);
 }
 
 VALUE
@@ -3432,7 +3437,8 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
     ID m = SYM2ID(_m); \
     if (m == s_center || m == s_corner) \
     { \
-      self_t->mode = m; \
+      self_t->st = shoes_transform_detach(self_t->st); \
+      self_t->st->mode = m; \
     } \
     else \
     { \
@@ -3443,20 +3449,22 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   VALUE \
   shoes_##ele##_translate(VALUE self, VALUE _x, VALUE _y) \
   { \
-    GET_STRUCT(ele, self_t); \
     double x, y; \
+    GET_STRUCT(ele, self_t); \
     x = NUM2DBL(_x); \
     y = NUM2DBL(_y); \
-    cairo_matrix_translate(self_t->tf, x, y); \
+    self_t->st = shoes_transform_detach(self_t->st); \
+    cairo_matrix_translate(&self_t->st->tf, x, y); \
     return self; \
   } \
   VALUE \
   shoes_##ele##_rotate(VALUE self, VALUE _deg) \
   { \
-    GET_STRUCT(ele, self_t); \
     double rad; \
+    GET_STRUCT(ele, self_t); \
     rad = NUM2DBL(_deg) * SHOES_RAD2PI; \
-    cairo_matrix_rotate(self_t->tf, -rad); \
+    self_t->st = shoes_transform_detach(self_t->st); \
+    cairo_matrix_rotate(&self_t->st->tf, -rad); \
     if (repaint) shoes_canvas_repaint_all(self_t->parent); \
     return self; \
   } \
@@ -3470,7 +3478,8 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
     sx = NUM2DBL(_sx); \
     if (NIL_P(_sy)) sy = sx; \
     else            sy = NUM2DBL(_sy); \
-    cairo_matrix_scale(self_t->tf, sx, sy); \
+    self_t->st = shoes_transform_detach(self_t->st); \
+    cairo_matrix_scale(&self_t->st->tf, sx, sy); \
     if (repaint) shoes_canvas_repaint_all(self_t->parent); \
     return self; \
   } \
@@ -3486,7 +3495,8 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
     sy = 0.0; \
     if (!NIL_P(_sy)) sy = NUM2DBL(_sy) * SHOES_RAD2PI; \
     cairo_matrix_init(&matrix, 1.0, sy, sx, 1.0, 0.0, 0.0); \
-    cairo_matrix_multiply(self_t->tf, self_t->tf, &matrix); \
+    self_t->st = shoes_transform_detach(self_t->st); \
+    cairo_matrix_multiply(&self_t->st->tf, &self_t->st->tf, &matrix); \
     if (repaint) shoes_canvas_repaint_all(self_t->parent); \
     return self; \
   }
@@ -3656,6 +3666,7 @@ EVENT_COMMON(linktext, text, hover);
 EVENT_COMMON(linktext, text, leave);
 PLACE_COMMON(shape)
 CLASS_COMMON2(shape)
+TRANS_COMMON(shape, 1);
 CLASS_COMMON2(pattern)
 PLACE_COMMON(textblock)
 CLASS_COMMON2(textblock)
