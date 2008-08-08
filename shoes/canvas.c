@@ -50,6 +50,7 @@ shoes_transform *
 shoes_transform_detach(shoes_transform *old)
 {
   if (old != NULL && old->refs == 1) return old;
+  if (old != NULL) old->refs--;
   return shoes_transform_new(old);
 }
 
@@ -207,14 +208,16 @@ shoes_canvas_paint(VALUE self)
 }
 
 void
-shoes_apply_transformation(cairo_t *cr, shoes_transform *st, shoes_place *place, unsigned char force)
+shoes_apply_transformation(cairo_t *cr, shoes_transform *st, shoes_place *place, unsigned char center, unsigned char force)
 {
-  double x, y;
+  double x, y, w, h;
   cairo_save(cr);
+  w = place->iw / 2.;
+  h = place->ih / 2.;
   if (st != NULL)
   {
-    x = (place->ix + place->dx) + (place->iw / 2.);
-    y = (place->iy + place->dy) + (place->ih / 2.);
+    x = (place->ix + place->dx) + w;
+    y = (place->iy + place->dy) + h;
 
     if (st->mode == s_center)
       cairo_translate(cr, x, y);
@@ -222,6 +225,7 @@ shoes_apply_transformation(cairo_t *cr, shoes_transform *st, shoes_place *place,
     if (st->mode == s_center)
       cairo_translate(cr, -x, -y);
   }
+  if (center) cairo_translate(cr, -w, -h);
 }
 
 void
@@ -537,7 +541,7 @@ shoes_canvas_shadow(int argc, VALUE *argv, VALUE self)
 }
 
 #define MARKUP_BLOCK(klass) \
-  text = shoes_textblock_new(klass, msgs, attr, self); \
+  text = shoes_textblock_new(klass, msgs, attr, self, canvas->st); \
   shoes_add_ele(canvas, text)
 
 #define MARKUP_INLINE(klass) \
