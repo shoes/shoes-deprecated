@@ -712,9 +712,9 @@ shoes_shape_new(VALUE parent, ID name, VALUE attr, shoes_transform *st)
   path->attr = attr;
   path->name = name;
   path->st = shoes_transform_touch(st);
-  if (NIL_P(ATTR(path->attr, stroke))) ATTRSET(path->attr, stroke, canvas->fg);
-  if (NIL_P(ATTR(path->attr, fill)))   ATTRSET(path->attr, fill, canvas->bg);
-  if (NIL_P(ATTR(path->attr, strokewidth))) ATTRSET(path->attr, strokewidth, canvas->sw);
+  if (NIL_P(ATTR(path->attr, stroke))) ATTRSET(path->attr, stroke, ATTR(canvas->attr, stroke));
+  if (NIL_P(ATTR(path->attr, fill)))   ATTRSET(path->attr, fill, ATTR(canvas->attr, fill));
+  if (NIL_P(ATTR(path->attr, strokewidth))) ATTRSET(path->attr, strokewidth, ATTR(canvas->attr, strokewidth));
   return obj;
 }
 
@@ -852,6 +852,10 @@ shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, shoes_transfo
   Data_Get_Struct(obj, shoes_image, image);
 
   image->path = Qnil;
+  image->st = shoes_transform_touch(st);
+  image->attr = attr;
+  image->parent = parent;
+
   if (rb_obj_is_kind_of(path, cImage))
   {
     shoes_image *image2;
@@ -868,16 +872,16 @@ shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, shoes_transfo
   }
   else
   {
+    shoes_canvas *canvas;
+    Data_Get_Struct(parent, shoes_canvas, canvas);
     int w = ATTR2(int, attr, width, 1);
     int h = ATTR2(int, attr, height, 1);
+    VALUE block = ATTR(attr, draw);
     image->cached = shoes_cached_image_new(w, h, NULL);
     image->cr = cairo_create(image->cached->surface);
     image->type = SHOES_CACHE_MEM;
+    if (!NIL_P(block)) DRAW(obj, canvas->app, rb_funcall(block, s_call, 0));
   }
-
-  image->st = shoes_transform_touch(st);
-  image->attr = attr;
-  image->parent = parent;
 
   return obj;
 }
@@ -1206,6 +1210,7 @@ static void
 shoes_layer_blur_filter(cairo_t *cr, void *data, cairo_operator_t blur_op,
   cairo_operator_t merge_op, int distance)
 {
+  VALUE bg;
   shoes_canvas *canvas;
   shoes_effect *fx = (shoes_effect *)data;
   cairo_surface_t *source = cairo_get_target(cr);
@@ -1219,12 +1224,19 @@ shoes_layer_blur_filter(cairo_t *cr, void *data, cairo_operator_t blur_op,
   cairo_set_source_surface(cr2, source, distance, distance);
   cairo_paint(cr2);
   cairo_set_operator(cr2, blur_op);
-  if (NIL_P(canvas->bg))
+  bg = ATTR(canvas->attr, fill);
+  if (NIL_P(bg))
     cairo_set_source_rgb(cr2, 0., 0., 0.);
+  else if (rb_obj_is_kind_of(bg, cColor))
+  {
+    shoes_color *color;
+    Data_Get_Struct(bg, shoes_color, color);
+    cairo_set_source_rgba(cr, color->r / 255., color->g / 255., color->b / 255., color->a / 255.);
+  }
   else
   {
     shoes_pattern *pattern;
-    Data_Get_Struct(canvas->bg, shoes_pattern, pattern);
+    Data_Get_Struct(bg, shoes_pattern, pattern);
     cairo_set_source(cr2, PATTERN(pattern));
   }
   cairo_rectangle(cr2, 0, 0, width, height);
@@ -4113,6 +4125,8 @@ shoes_log(VALUE self)
       canvas = rb_ary_entry(self_t->app->nesting, RARRAY_LEN(self_t->app->nesting) - 1); \
     else \
       canvas = self; \
+    if (!rb_obj_is_kind_of(canvas, cCanvas)) \
+      return rb_funcall2(canvas, rb_intern(n + 1), argc, argv); \
     Data_Get_Struct(canvas, shoes_canvas, self_t); \
     cairo_t *cr = self_t->cr; \
     if (cr == NULL && n[0] == '+') shoes_canvas_memdraw_begin(canvas); \
@@ -4124,11 +4138,14 @@ shoes_log(VALUE self)
   shoes_app_c_##func(int argc, VALUE *argv, VALUE self) \
   { \
     VALUE canvas; \
+    char *n = name; \
     GET_STRUCT(app, app); \
     if (RARRAY_LEN(app->nesting) > 0) \
       canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1); \
     else \
       canvas = app->canvas; \
+    if (!rb_obj_is_kind_of(canvas, cCanvas)) \
+      return rb_funcall2(canvas, rb_intern(n + 1), argc, argv); \
     return shoes_canvas_c_##func(argc, argv, canvas); \
   }
 
@@ -4378,6 +4395,11 @@ shoes_ruby_init()
   rb_define_alloc_func(cImage, shoes_image_alloc);
   rb_define_method(cImage, "[]", CASTHOOK(shoes_image_get_pixel), 2);
   rb_define_method(cImage, "[]=", CASTHOOK(shoes_image_set_pixel), 3);
+  rb_define_method(cImage, "nostroke", CASTHOOK(shoes_canvas_nostroke), 0);
+  rb_define_method(cImage, "stroke", CASTHOOK(shoes_canvas_stroke), -1);
+  rb_define_method(cImage, "strokewidth", CASTHOOK(shoes_canvas_strokewidth), 1);
+  rb_define_method(cImage, "nofill", CASTHOOK(shoes_canvas_nofill), 0);
+  rb_define_method(cImage, "fill", CASTHOOK(shoes_canvas_fill), -1);
   rb_define_method(cImage, "arrow", CASTHOOK(shoes_canvas_arrow), -1);
   rb_define_method(cImage, "line", CASTHOOK(shoes_canvas_line), -1);
   rb_define_method(cImage, "oval", CASTHOOK(shoes_canvas_oval), -1);

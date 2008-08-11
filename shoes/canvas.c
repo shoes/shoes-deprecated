@@ -14,6 +14,9 @@
   cairo_t *cr; \
   Data_Get_Struct(self, shoes_canvas, canvas); \
   cr = canvas->cr
+#define SETUP_BASIC() \
+  shoes_basic *basic; \
+  Data_Get_Struct(self, shoes_basic, basic);
 
 const double SHOES_PIM2   = 6.28318530717958647693;
 const double SHOES_PI     = 3.14159265358979323846;
@@ -250,8 +253,6 @@ shoes_add_ele(shoes_canvas *canvas, VALUE ele)
 static void
 shoes_canvas_mark(shoes_canvas *canvas)
 {
-  rb_gc_mark_maybe(canvas->fg);
-  rb_gc_mark_maybe(canvas->bg);
   rb_gc_mark_maybe(canvas->contents);
   rb_gc_mark_maybe(canvas->attr);
   rb_gc_mark_maybe(canvas->parent);
@@ -323,11 +324,11 @@ shoes_canvas_clear(VALUE self)
   shoes_canvas *canvas;
   Data_Get_Struct(self, shoes_canvas, canvas);
   canvas->cr = NULL;
-  canvas->sw = rb_float_new(1.);
-  canvas->fg = shoes_color_new(0, 0, 0, 0xFF);
-  canvas->bg = shoes_color_new(0, 0, 0, 0xFF);
+  canvas->attr = rb_hash_new();
+  ATTRSET(canvas->attr, strokewidth, rb_float_new(1.));
+  ATTRSET(canvas->attr, stroke, shoes_color_new(0, 0, 0, 0xFF));
+  ATTRSET(canvas->attr, fill, shoes_color_new(0, 0, 0, 0xFF));
   canvas->parent = Qnil;
-  canvas->attr = Qnil;
   canvas->stl = 0;
   canvas->stt = 0;
   shoes_canvas_reset_transform(canvas);
@@ -376,8 +377,8 @@ shoes_slot_scroll_to(shoes_canvas *canvas, int dy, int rel)
 VALUE
 shoes_canvas_nostroke(VALUE self)
 {
-  SETUP();
-  canvas->fg = Qnil;
+  SETUP_BASIC();
+  ATTRSET(basic->attr, stroke, Qnil);
   return self;
 }
 
@@ -386,30 +387,30 @@ shoes_canvas_stroke(int argc, VALUE *argv, VALUE self)
 {
   VALUE pat;
   shoes_pattern *pattern;
-  SETUP();
+  SETUP_BASIC();
   if (argc == 1 && rb_respond_to(argv[0], s_to_pattern))
     pat = argv[0];
   else
     pat = shoes_pattern_args(argc, argv, self);
   if (!rb_obj_is_kind_of(pat, cColor))
     pat = rb_funcall(pat, s_to_pattern, 0);
-  canvas->fg = pat;
+  ATTRSET(basic->attr, stroke, pat);
   return pat;
 }
 
 VALUE
 shoes_canvas_strokewidth(VALUE self, VALUE w)
 {
-  SETUP();
-  canvas->sw = w;
+  SETUP_BASIC();
+  ATTRSET(basic->attr, strokewidth, w);
   return self;
 }
 
 VALUE
 shoes_canvas_nofill(VALUE self)
 {
-  SETUP();
-  canvas->bg = Qnil;
+  SETUP_BASIC();
+  ATTRSET(basic->attr, fill, Qnil);
   return self;
 }
 
@@ -418,14 +419,14 @@ shoes_canvas_fill(int argc, VALUE *argv, VALUE self)
 {
   VALUE pat;
   shoes_pattern *pattern;
-  SETUP();
+  SETUP_BASIC();
   if (argc == 1 && rb_respond_to(argv[0], s_to_pattern))
     pat = argv[0];
   else
     pat = shoes_pattern_args(argc, argv, self);
   if (!rb_obj_is_kind_of(pat, cColor))
     pat = rb_funcall(pat, s_to_pattern, 0);
-  canvas->bg = pat;
+  ATTRSET(basic->attr, fill, pat);
   return pat;
 }
 
@@ -438,6 +439,8 @@ shoes_add_shape(VALUE self, ID name, VALUE attr)
     GET_STRUCT(image, image);
     shoes_image_ensure_dup(image);
     shoes_place_exact(&place, attr, 0, 0);
+    if (NIL_P(attr)) attr = image->attr;
+    else if (!NIL_P(image->attr)) rb_funcall(attr, s_update, 1, image->attr);
     shoes_shape_sketch(image->cr, name, &place, NULL, attr);
     return self;
   }
@@ -1275,13 +1278,6 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
   return self;
 }
 
-#define DRAW(c, app, blk) \
-  { \
-    rb_ary_push(app->nesting, c); \
-    blk; \
-    rb_ary_pop(app->nesting); \
-  }
-
 void
 shoes_canvas_memdraw_begin(VALUE self)
 {
@@ -1549,8 +1545,7 @@ shoes_find_canvas(VALUE self)
 {
   while (!NIL_P(self) && !rb_obj_is_kind_of(self, cCanvas))
   {
-    shoes_basic *basic;
-    Data_Get_Struct(self, shoes_basic, basic);
+    SETUP_BASIC();
     self = basic->parent;
   }
   return self;

@@ -59,6 +59,12 @@ typedef struct {
   unsigned char flags;
 } shoes_place;
 
+#define DRAW(c, app, blk) \
+  { \
+    rb_ary_push(app->nesting, c); \
+    blk; \
+    rb_ary_pop(app->nesting); \
+  }
 #define ABSX(place)   ((place).flags & FLAG_ABSX)
 #define ABSY(place)   ((place).flags & FLAG_ABSY)
 #define POS(place)    ((place).flags & FLAG_POSITION)
@@ -268,7 +274,6 @@ typedef struct {
   VALUE attr;
   shoes_place place;
   cairo_t *cr;
-  VALUE fg, bg, sw;
   shoes_transform *st, **sts;
   int stl, stt;
   VALUE contents;
