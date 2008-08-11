@@ -706,7 +706,10 @@ shoes_canvas_image(int argc, VALUE *argv, VALUE self)
     if (!NIL_P(_w)) w = NUM2INT(_w);
     int h = canvas->height;
     if (!NIL_P(_h)) h = NUM2INT(_h);
-    image = shoes_canvas_imageblock(self, w, h, attr, block);
+    path = Qnil;
+    ATTRSET(attr, width, INT2NUM(w));
+    ATTRSET(attr, height, INT2NUM(h));
+    ATTRSET(attr, draw, block);
   }
   else
   {
@@ -716,8 +719,8 @@ shoes_canvas_image(int argc, VALUE *argv, VALUE self)
       if (NIL_P(attr)) attr = rb_hash_new();
       rb_hash_aset(attr, ID2SYM(s_click), block);
     }
-    image = shoes_image_new(cImage, path, attr, self, canvas->st);
   }
+  image = shoes_image_new(cImage, path, attr, self, canvas->st);
 
   if (!NIL_P(image))
     shoes_add_ele(canvas, image);
@@ -1118,10 +1121,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
     self_t->fully = self_t->height;
   if (self_t != canvas)
   {
-    if (ck != cImageBlock)
-    {
-      shoes_canvas_reflow(self_t, c);
-    }
+    shoes_canvas_reflow(self_t, c);
   }
   else
   {
@@ -1502,36 +1502,6 @@ shoes_canvas_mask(int argc, VALUE *argv, VALUE self)
   }
   shoes_add_ele(canvas, mask);
   return mask;
-}
-
-VALUE
-shoes_canvas_imageblock(VALUE self, int w, int h, VALUE attr, VALUE block)
-{
-  shoes_canvas *self_t, *pc;
-  cairo_surface_t *surfc;
-  VALUE imageblock = shoes_canvas_alloc(cImageBlock);
-
-  shoes_canvas_clear(imageblock);
-  Data_Get_Struct(self, shoes_canvas, pc);
-  Data_Get_Struct(imageblock, shoes_canvas, self_t);
-  self_t->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h));
-  self_t->fg = pc->fg;
-  self_t->bg = pc->bg;
-  self_t->sw = pc->sw;
-  self_t->width = w;
-  self_t->height = h;
-  self_t->slot = pc->slot;
-  self_t->parent = self;
-  self_t->app = pc->app;
-  self_t->attr = attr;
-  if (!NIL_P(block))
-  {
-    DRAW(imageblock, pc->app, rb_funcall(block, s_call, 0));
-  }
-
-  shoes_imageblock_paint(imageblock, 1);
-  shoes_add_ele(pc, imageblock);
-  return imageblock;
 }
 
 VALUE

@@ -404,7 +404,6 @@ VALUE shoes_canvas_prepend(int, VALUE *, VALUE);
 VALUE shoes_canvas_flow(int, VALUE *, VALUE);
 VALUE shoes_canvas_stack(int, VALUE *, VALUE);
 VALUE shoes_canvas_mask(int, VALUE *, VALUE);
-VALUE shoes_canvas_imageblock(VALUE, int, int, VALUE, VALUE);
 VALUE shoes_canvas_widget(int, VALUE *, VALUE);
 VALUE shoes_canvas_hide(VALUE);
 VALUE shoes_canvas_show(VALUE);
@@ -496,10 +495,6 @@ VALUE shoes_image_motion(VALUE, int, int, char *);
 VALUE shoes_image_send_click(VALUE, int, int, int);
 void shoes_image_send_release(VALUE, int, int, int);
 
-VALUE shoes_imageblock_draw(VALUE, VALUE, VALUE);
-VALUE shoes_imageblock_refresh(VALUE);
-VALUE shoes_imageblock_paint(VALUE, int);
-
 VALUE shoes_effect_new(VALUE, VALUE, VALUE);
 VALUE shoes_effect_alloc(VALUE);
 VALUE shoes_effect_draw(VALUE, VALUE, VALUE);
@@ -589,6 +584,7 @@ extern const double SHOES_PIM2, SHOES_PI, SHOES_RAD2PI;
 // shoes/image.c
 //
 shoes_code shoes_load_imagesize(VALUE, int *, int *);
+shoes_cached_image *shoes_cached_image_new(int, int, cairo_surface_t *);
 shoes_cached_image *shoes_load_image(VALUE, VALUE);
 
 #endif

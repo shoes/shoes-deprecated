@@ -1075,7 +1075,7 @@ manual.
 
 Shoes has seven native controls: the Button, the EditLine, the EditBox, the ListBox, the Progress meter, the Check box and the Radio.  By "native" controls, we mean that each of these seven elements is drawn by the operating system.  So, a Progress bar will look one way on Windows and another way on OS X.
 
-Shoes also has eight basic other types of elements: Background, Border, Image, ImageBlock, Shape, TextBlock, Timer and Video.  These all should look and act the same on every operating system.
+Shoes also has seven basic other types of elements: Background, Border, Image, Shape, TextBlock, Timer and Video.  These all should look and act the same on every operating system.
 
 Once an element is created, you will often still want to change it.  To move it or hide it or get
 rid of it.  You'll use the commands in this section to do that sort of stuff.  (Especially check out the [[Common Common Methods]] section for commands you can use on any element.)
@@ -1570,10 +1570,6 @@ The URL or file name of the image.
 === path = a string ===
 
 Swaps the image with a different one, loaded from a file or URL.
-
-== ImageBlock ==
-
-Whereas standard images are loaded from a file, an image block is created with code.  But unlike Shape objects (like `oval` and `rect`,) the image is stored in memory as a block of pixels which is molded together and cannot be separated.
 
 == ListBox ==
 

@@ -653,6 +653,19 @@ shoes_surface_create_from_file(char *fname, char *dname, int *width, int *height
   return img;
 }
 
+shoes_cached_image *
+shoes_cached_image_new(int width, int height, cairo_surface_t *surface)
+{
+  shoes_cached_image *cached = SHOE_ALLOC(shoes_cached_image);
+  if (surface == NULL)
+    surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+  cached->surface = surface;
+  cached->pattern = NULL;
+  cached->width = width;
+  cached->height = height;
+  return cached;
+}
+
 int
 shoes_cache_lookup(char *imgpath, shoes_cached_image **image)
 {
@@ -839,8 +852,7 @@ shoes_load_image(VALUE slot, VALUE imgpath)
         rb_hash_aset(hdrs = rb_hash_new(), rb_str_new2("If-None-Match"), etag);
     }
 
-    cached = SHOE_ALLOC(shoes_cached_image);
-    cached->surface = shoes_world->blank_image; cached->pattern = NULL; cached->width = 1; cached->height = 1;
+    cached = shoes_cached_image_new(1, 1, shoes_world->blank_image);
     shoes_cache_insert(SHOES_CACHE_FILE, imgpath, cached);
     tmppath = rb_funcall(cShoes, rb_intern("image_temp_path"), 2, uri, uext);
 
@@ -882,8 +894,7 @@ shoes_load_image(VALUE slot, VALUE imgpath)
 
   if (img != shoes_world->blank_image)
   {
-    cached = SHOE_ALLOC(shoes_cached_image);
-    cached->surface = img; cached->pattern = NULL; cached->width = width; cached->height = height;
+    cached = shoes_cached_image_new(width, height, img);
     shoes_cache_insert(SHOES_CACHE_FILE, imgpath, cached);
   }
 

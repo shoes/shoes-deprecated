@@ -12,7 +12,7 @@
 #include "shoes/http.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cImageBlock, cEffect, cBlur, cShadow, cGlow, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
+VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cBlur, cShadow, cGlow, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE eVlcError, eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot;
@@ -859,21 +859,20 @@ shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, shoes_transfo
     image->cached = image2->cached;
     image->type = SHOES_CACHE_ALIAS;
   }
-  /* TODO: cached image blocks
-  else if (rb_obj_is_kind_of(path, cImageBlock))
-  {
-    shoes_canvas *c;
-    Data_Get_Struct(path, shoes_canvas, c);
-    cairo_surface_reference(image->surface = cairo_get_target(c->cr));
-    attr = realpath;
-  }
-  */
-  else
+  else if (!NIL_P(path))
   {
     path = shoes_native_to_s(path);
     image->path = path;
     image->cached = shoes_load_image(parent, path);
     image->type = SHOES_CACHE_FILE;
+  }
+  else
+  {
+    int w = ATTR2(int, attr, width, 1);
+    int h = ATTR2(int, attr, height, 1);
+    image->cached = shoes_cached_image_new(w, h, NULL);
+    image->cr = cairo_create(image->cached->surface);
+    image->type = SHOES_CACHE_MEM;
   }
 
   image->st = shoes_transform_touch(st);
@@ -917,12 +916,7 @@ shoes_image_ensure_dup(shoes_image *image)
 {
   if (image->type == SHOES_CACHE_MEM)
     return;
-  shoes_cached_image *cached = SHOE_ALLOC(shoes_cached_image);
-  cached->surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,
-    image->cached->width, image->cached->height);
-  cached->pattern = NULL;
-  cached->width = image->cached->width;
-  cached->height = image->cached->height;
+  shoes_cached_image *cached = shoes_cached_image_new(image->cached->width, image->cached->height, NULL);
   image->cr = cairo_create(cached->surface);
   cairo_set_source_surface(image->cr, image->cached->surface, 0, 0);
   cairo_paint(image->cr);
@@ -1020,45 +1014,6 @@ VALUE
 shoes_image_draw(VALUE self, VALUE c, VALUE actual)
 {
   SHOES_IMAGE_PLACE(image, self_t->cached->width, self_t->cached->height, self_t->cached->surface);
-}
-
-VALUE
-shoes_imageblock_draw(VALUE self, VALUE c, VALUE actual)
-{
-  GET_STRUCT(canvas, canvas_t);
-  cairo_surface_t *surf = cairo_get_target(canvas_t->cr);
-  int w = cairo_image_surface_get_width(surf);
-  int h = cairo_image_surface_get_height(surf);
-}
-
-VALUE
-shoes_imageblock_paint(VALUE self, int init)
-{
-  GET_STRUCT(canvas, self_t);
-  VALUE hidden = ATTR(self_t->attr, hidden);
-  ATTRSET(self_t->attr, hidden, Qfalse);
-
-  if (!init)
-  {
-    cairo_set_operator(self_t->cr, CAIRO_OPERATOR_CLEAR);
-    cairo_paint(self_t->cr);
-  }
-
-  cairo_set_operator(self_t->cr, CAIRO_OPERATOR_OVER);
-  if (self_t->stage == CANVAS_NADA)
-    shoes_canvas_draw(self, self_t->parent, Qfalse);
-  shoes_canvas_draw(self, self_t->parent, Qtrue);
-  ATTRSET(self_t->attr, hidden, hidden);
-
-  if (!init)
-    shoes_canvas_repaint_all(self_t->parent);
-  return self;
-}
-
-VALUE
-shoes_imageblock_refresh(VALUE self)
-{
-  return shoes_imageblock_paint(self, 0);
 }
 
 VALUE
@@ -4397,10 +4352,6 @@ shoes_ruby_init()
   cStack      = rb_define_class_under(cShoes, "Stack", cShoes);
   cMask       = rb_define_class_under(cShoes, "Mask", cShoes);
   cWidget     = rb_define_class_under(cShoes, "Widget", cShoes);
-
-  cImageBlock = rb_define_class_under(cShoes, "ImageBlock", cShoes);
-  rb_define_method(cImageBlock, "draw", CASTHOOK(shoes_imageblock_draw), 2);
-  rb_define_method(cImageBlock, "refresh", CASTHOOK(shoes_imageblock_refresh), 0);
 
   cShape    = rb_define_class_under(cShoes, "Shape", rb_cObject);
   rb_define_alloc_func(cShape, shoes_shape_alloc);
