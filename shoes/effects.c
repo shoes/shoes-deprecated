@@ -126,8 +126,7 @@ void
 shoes_gaussian_blur_filter(cairo_t *cr, VALUE attr, shoes_place *place)
 {
   float blur_d = ATTR2(dbl, attr, radius, 2.);
-  float blur_x = ATTR2(dbl, attr, width, blur_d);
-  float blur_y = ATTR2(dbl, attr, height, blur_d);
+  float blur_x = blur_d, blur_y = blur_d;
   RAW_FILTER_START(place);
   if (blur_x < 0 || blur_y < 0)
     return;

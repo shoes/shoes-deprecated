@@ -493,6 +493,7 @@ shoes_add_effect(VALUE self, ID name, VALUE attr)
   {
     shoes_effect_filter filter = shoes_effect_for_type(name);
     SETUP_IMAGE();
+    if (filter == NULL) return self;
     filter(image->cr, attr, &place);
     return self;
   }
