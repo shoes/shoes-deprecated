@@ -307,18 +307,6 @@ shoes_place_exact(shoes_place *place, VALUE attr, int ox, int oy)
   if (!NIL_P(x)) place->iw = place->w = (NUM2INT(x) + ox) - place->x;
   x = ATTR(attr, bottom);
   if (!NIL_P(x)) place->ih = place->h = (NUM2INT(x) + oy) - place->y;
-
-  if (place->iw < 0)
-  {
-    place->ix = place->x = place->ix + place->iw;
-    place->iw = place->w = -place->iw;
-  }
-
-  if (place->ih < 0)
-  {
-    place->iy = place->y = place->iy + place->ih;
-    place->ih = place->h = -place->ih;
-  }
 }
 
 void
