@@ -24,10 +24,5 @@ Shoes.app :width => 500, :height => 500, :resizable => false do
       oval 60, 60, 200, 136
       blur 20
     end
-
-    image :top => 182, :left => 150, :width => 160, :height => 50 do
-      para "Shoes", :top => 0, :left => 0, :stroke => white, :size => 26
-      blur
-    end
   end
 end
