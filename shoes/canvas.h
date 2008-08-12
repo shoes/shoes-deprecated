@@ -59,6 +59,10 @@ typedef struct {
   unsigned char flags;
 } shoes_place;
 
+#define COPY_PENS(attr1, attr2) \
+  if (NIL_P(ATTR(attr1, stroke))) ATTRSET(attr1, stroke, ATTR(attr2, stroke)); \
+  if (NIL_P(ATTR(attr1, fill)))   ATTRSET(attr1, fill, ATTR(attr2, fill)); \
+  if (NIL_P(ATTR(attr1, strokewidth))) ATTRSET(attr1, strokewidth, ATTR(attr2, strokewidth));
 #define DRAW(c, app, blk) \
   { \
     rb_ary_push(app->nesting, c); \

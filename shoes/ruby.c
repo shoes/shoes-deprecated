@@ -720,9 +720,7 @@ shoes_shape_new(VALUE parent, ID name, VALUE attr, shoes_transform *st)
   path->attr = attr;
   path->name = name;
   path->st = shoes_transform_touch(st);
-  if (NIL_P(ATTR(path->attr, stroke))) ATTRSET(path->attr, stroke, ATTR(canvas->attr, stroke));
-  if (NIL_P(ATTR(path->attr, fill)))   ATTRSET(path->attr, fill, ATTR(canvas->attr, fill));
-  if (NIL_P(ATTR(path->attr, strokewidth))) ATTRSET(path->attr, strokewidth, ATTR(canvas->attr, strokewidth));
+  COPY_PENS(path->attr, canvas->attr);
   return obj;
 }
 
@@ -855,6 +853,8 @@ shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, shoes_transfo
   GError *error = NULL;
   VALUE obj = Qnil;
   shoes_image *image;
+  shoes_basic *basic;
+  Data_Get_Struct(parent, shoes_basic, basic);
 
   obj = shoes_image_alloc(klass);
   Data_Get_Struct(obj, shoes_image, image);
@@ -863,6 +863,7 @@ shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, shoes_transfo
   image->st = shoes_transform_touch(st);
   image->attr = attr;
   image->parent = shoes_find_canvas(parent);
+  COPY_PENS(image->attr, basic->attr);
 
   if (rb_obj_is_kind_of(path, cImage))
   {
