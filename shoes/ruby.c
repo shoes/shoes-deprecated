@@ -294,6 +294,7 @@ void
 shoes_place_exact(shoes_place *place, VALUE attr, int ox, int oy)
 {
   int r;
+  VALUE x;
   place->dx = ATTR2(int, attr, displace_left, 0);
   place->dy = ATTR2(int, attr, displace_top, 0);
   place->flags = FLAG_ABSX | FLAG_ABSY;
@@ -302,6 +303,22 @@ shoes_place_exact(shoes_place *place, VALUE attr, int ox, int oy)
   r = ATTR2(int, attr, radius, 0) * 2;
   place->iw = place->w = ATTR2(int, attr, width, r);
   place->ih = place->h = ATTR2(int, attr, height, place->w);
+  x = ATTR(attr, right);
+  if (!NIL_P(x)) place->iw = place->w = (NUM2INT(x) + ox) - place->x;
+  x = ATTR(attr, bottom);
+  if (!NIL_P(x)) place->ih = place->h = (NUM2INT(x) + oy) - place->y;
+
+  if (place->iw < 0)
+  {
+    place->ix = place->x = place->ix + place->iw;
+    place->iw = place->w = -place->iw;
+  }
+
+  if (place->ih < 0)
+  {
+    place->iy = place->y = place->iy + place->ih;
+    place->ih = place->h = -place->ih;
+  }
 }
 
 void
@@ -637,16 +654,9 @@ shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, shoes_transform *st
     int x1, y1, x2, y2, r, b;
     double sw, cv;
     sw = ATTR2(dbl, attr, strokewidth, 1.);
-    r = ATTR2(int, attr, right, 0);
-    b = ATTR2(int, attr, bottom, 0);
-    x1 = min(place->x, r); x2 = max(place->x, r);
-    y1 = min(place->y, b); y2 = max(place->y, b);
-    place->iw = place->w = x2 - x1;
-    place->ih = place->h = y2 - y1;
-
     shoes_apply_transformation(cr, st, place, RTEST(ATTR(attr, center)), 0);
-    cairo_move_to(cr, SWPOS(place->x), SWPOS(place->y));
-    cairo_line_to(cr, SWPOS(r), SWPOS(b));
+    cairo_move_to(cr, SWPOS(place->ix), SWPOS(place->iy));
+    cairo_line_to(cr, SWPOS(place->ix + place->iw), SWPOS(place->iy + place->ih));
     shoes_undo_transformation(cr, st, place, 0);
     PATH_OUT(cr, attr, *place, sw, stroke, cairo_stroke);
   }
