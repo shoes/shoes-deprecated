@@ -247,6 +247,7 @@ shoes_undo_transformation(cairo_t *cr, shoes_transform *st, shoes_place *place, 
 static VALUE
 shoes_add_ele(shoes_canvas *canvas, VALUE ele)
 {
+  if (NIL_P(ele)) return ele;
   if (canvas->insertion <= -1)
     rb_ary_push(canvas->contents, ele);
   else
@@ -505,21 +506,21 @@ shoes_add_effect(VALUE self, ID name, VALUE attr)
 VALUE
 shoes_canvas_blur(int argc, VALUE *argv, VALUE self)
 {
-  VALUE attr = shoes_shape_attr(argc, argv, 2, s_width, s_height);
+  VALUE attr = shoes_shape_attr(argc, argv, 1, s_radius);
   return shoes_add_effect(self, s_blur, attr);
 }
 
 VALUE
 shoes_canvas_glow(int argc, VALUE *argv, VALUE self)
 {
-  VALUE attr = shoes_shape_attr(argc, argv, 2, s_width, s_height);
+  VALUE attr = shoes_shape_attr(argc, argv, 1, s_radius);
   return shoes_add_effect(self, s_glow, attr);
 }
 
 VALUE
 shoes_canvas_shadow(int argc, VALUE *argv, VALUE self)
 {
-  VALUE attr = shoes_shape_attr(argc, argv, 2, s_distance, s_width, s_height);
+  VALUE attr = shoes_shape_attr(argc, argv, 2, s_distance, s_radius);
   return shoes_add_effect(self, s_shadow, attr);
 }
 
@@ -660,7 +661,6 @@ VALUE
 shoes_canvas_image(int argc, VALUE *argv, VALUE self)
 {
   VALUE path, attr, _w, _h, image, block;
-  SETUP();
 
   if (argc == 0 || (argc == 1 && rb_obj_is_kind_of(argv[0], rb_cHash)))
   {
@@ -674,13 +674,9 @@ shoes_canvas_image(int argc, VALUE *argv, VALUE self)
 
   if (NIL_P(_w) || FIXNUM_P(_w))
   {
-    int w = canvas->width;
-    if (!NIL_P(_w)) w = NUM2INT(_w);
-    int h = canvas->height;
-    if (!NIL_P(_h)) h = NUM2INT(_h);
     path = Qnil;
-    ATTRSET(attr, width, INT2NUM(w));
-    ATTRSET(attr, height, INT2NUM(h));
+    if (FIXNUM_P(_w)) ATTRSET(attr, width, _w);
+    if (FIXNUM_P(_h)) ATTRSET(attr, height, _h);
     ATTRSET(attr, draw, block);
   }
   else
@@ -692,10 +688,17 @@ shoes_canvas_image(int argc, VALUE *argv, VALUE self)
       rb_hash_aset(attr, ID2SYM(s_click), block);
     }
   }
-  image = shoes_image_new(cImage, path, attr, self, canvas->st);
 
-  if (!NIL_P(image))
-    shoes_add_ele(canvas, image);
+  if (rb_obj_is_kind_of(self, cImage))
+  {
+    shoes_image_image(self, path, attr);
+    return self;
+  }
+
+  SETUP();
+  image = shoes_image_new(cImage, path, attr, self, canvas->st);
+  shoes_add_ele(canvas, image);
+
   return image;
 }
 

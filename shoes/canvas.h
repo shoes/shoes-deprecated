@@ -493,6 +493,7 @@ void shoes_shape_send_release(VALUE, int, int, int);
 void shoes_image_ensure_dup(shoes_image *);
 VALUE shoes_image_new(VALUE, VALUE, VALUE, VALUE, shoes_transform *);
 VALUE shoes_image_alloc(VALUE);
+void shoes_image_image(VALUE, VALUE, VALUE);
 VALUE shoes_image_draw(VALUE, VALUE, VALUE);
 VALUE shoes_image_get_top(VALUE);
 VALUE shoes_image_get_left(VALUE);

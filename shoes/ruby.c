@@ -852,7 +852,7 @@ shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, shoes_transfo
   image->path = Qnil;
   image->st = shoes_transform_touch(st);
   image->attr = attr;
-  image->parent = parent;
+  image->parent = shoes_find_canvas(parent);
 
   if (rb_obj_is_kind_of(path, cImage))
   {
@@ -865,15 +865,15 @@ shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, shoes_transfo
   {
     path = shoes_native_to_s(path);
     image->path = path;
-    image->cached = shoes_load_image(parent, path);
+    image->cached = shoes_load_image(image->parent, path);
     image->type = SHOES_CACHE_FILE;
   }
   else
   {
     shoes_canvas *canvas;
-    Data_Get_Struct(parent, shoes_canvas, canvas);
-    int w = ATTR2(int, attr, width, 1);
-    int h = ATTR2(int, attr, height, 1);
+    Data_Get_Struct(image->parent, shoes_canvas, canvas);
+    int w = ATTR2(int, attr, width, canvas->width);
+    int h = ATTR2(int, attr, height, canvas->height);
     VALUE block = ATTR(attr, draw);
     image->cached = shoes_cached_image_new(w, h, NULL);
     image->cr = cairo_create(image->cached->surface);
@@ -994,21 +994,23 @@ shoes_image_set_path(VALUE self, VALUE path)
   return path;
 }
 
+static void
+shoes_image_draw_surface(cairo_t *cr, shoes_image *self_t, shoes_place *place, cairo_surface_t *surf, int imw, int imh)
+{
+  shoes_apply_transformation(cr, self_t->st, place, RTEST(ATTR(self_t->attr, center)), 0);
+  cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
+  if (place->iw != imw || place->ih != imh)
+    cairo_scale(cr, (place->iw * 1.) / imw, (place->ih * 1.) / imh);
+  cairo_set_source_surface(cr, surf, 0., 0.);
+  cairo_paint(cr);
+  shoes_undo_transformation(cr, self_t->st, place, 0);
+  self_t->place = *place;
+}
+
 #define SHOES_IMAGE_PLACE(type, imw, imh, surf) \
   SETUP(shoes_##type, REL_CANVAS, imw, imh); \
   if (RTEST(actual)) \
-  { \
-    shoes_apply_transformation(canvas->cr, self_t->st, &place, RTEST(ATTR(self_t->attr, center)), 0); \
-    cairo_translate(canvas->cr, place.ix + place.dx, place.iy + place.dy); \
-    if (place.iw != imw || place.ih != imh) \
-    { \
-      cairo_scale(canvas->cr, (place.iw * 1.) / imw, (place.ih * 1.) / imh); \
-    } \
-    cairo_set_source_surface(canvas->cr, surf, 0., 0.); \
-    cairo_paint(canvas->cr); \
-    shoes_undo_transformation(canvas->cr, self_t->st, &place, 0); \
-    self_t->place = place; \
-  } \
+    shoes_image_draw_surface(canvas->cr, self_t, &place, surf, imw, imh); \
   FINISH(); \
   return self;
 
@@ -1016,6 +1018,21 @@ VALUE
 shoes_image_draw(VALUE self, VALUE c, VALUE actual)
 {
   SHOES_IMAGE_PLACE(image, self_t->cached->width, self_t->cached->height, self_t->cached->surface);
+}
+
+void
+shoes_image_image(VALUE parent, VALUE path, VALUE attr)
+{
+  shoes_image *pi;
+  shoes_place place;
+  Data_Get_Struct(parent, shoes_image, pi);
+  VALUE self = shoes_image_new(cImage, path, attr, parent, pi->st);
+  GET_STRUCT(image, image);
+  shoes_image_ensure_dup(pi);
+  shoes_place_exact(&place, image->attr, 0, 0);
+  if (place.iw < 1) place.w = place.iw = image->cached->width;
+  if (place.ih < 1) place.h = place.ih = image->cached->height;
+  shoes_image_draw_surface(pi->cr, image, &place, image->cached->surface, image->cached->width, image->cached->height);
 }
 
 VALUE
@@ -3886,7 +3903,7 @@ shoes_log(VALUE self)
     else \
       canvas = self; \
     if (!rb_obj_is_kind_of(canvas, cCanvas)) \
-      return rb_funcall2(canvas, rb_intern(n + 1), argc, argv); \
+      return ts_funcall2(canvas, rb_intern(n + 1), argc, argv); \
     Data_Get_Struct(canvas, shoes_canvas, self_t); \
     cairo_t *cr = self_t->cr; \
     if (cr == NULL && n[0] == '+') shoes_canvas_memdraw_begin(canvas); \
@@ -3905,7 +3922,7 @@ shoes_log(VALUE self)
     else \
       canvas = app->canvas; \
     if (!rb_obj_is_kind_of(canvas, cCanvas)) \
-      return rb_funcall2(canvas, rb_intern(n + 1), argc, argv); \
+      return ts_funcall2(canvas, rb_intern(n + 1), argc, argv); \
     return shoes_canvas_c_##func(argc, argv, canvas); \
   }
 
@@ -4172,6 +4189,7 @@ shoes_ruby_init()
   rb_define_method(cImage, "blur", CASTHOOK(shoes_canvas_blur), -1);
   rb_define_method(cImage, "glow", CASTHOOK(shoes_canvas_glow), -1);
   rb_define_method(cImage, "shadow", CASTHOOK(shoes_canvas_shadow), -1);
+  rb_define_method(cImage, "image", CASTHOOK(shoes_canvas_image), -1);
   rb_define_method(cImage, "path", CASTHOOK(shoes_image_get_path), 0);
   rb_define_method(cImage, "path=", CASTHOOK(shoes_image_set_path), 1);
   rb_define_method(cImage, "app", CASTHOOK(shoes_canvas_get_app), 0);
