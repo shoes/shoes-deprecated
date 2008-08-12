@@ -10,13 +10,14 @@
 #include "shoes/native.h"
 #include "shoes/version.h"
 #include "shoes/http.h"
+#include "shoes/effects.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cBlur, cShadow, cGlow, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
+VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE eVlcError, eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot;
-ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_URI, s_angle, s_arrow, s_autoplay, s_begin, s_body, s_call, s_center, s_change, s_checked, s_checked_q, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_group, s_hand, s_headers, s_hidden, s_host, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_link, s_method, s_motion, s_path, s_port, s_progress, s_release, s_request_uri, s_save, s_wheel, s_stroke, s_scroll, s_start, s_attach, s_leading, s_leave, s_outer, s_points, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info, s_rect, s_oval, s_line, s_star;
+ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_merge, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_URI, s_angle, s_arrow, s_autoplay, s_begin, s_body, s_call, s_center, s_change, s_checked, s_checked_q, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_group, s_hand, s_headers, s_hidden, s_host, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_link, s_method, s_motion, s_path, s_port, s_progress, s_release, s_request_uri, s_save, s_wheel, s_stroke, s_scroll, s_start, s_attach, s_leading, s_leave, s_outer, s_points, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info, s_blur, s_glow, s_shadow, s_rect, s_oval, s_line, s_star;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -296,8 +297,8 @@ shoes_place_exact(shoes_place *place, VALUE attr, int ox, int oy)
   place->dx = ATTR2(int, attr, displace_left, 0);
   place->dy = ATTR2(int, attr, displace_top, 0);
   place->flags = FLAG_ABSX | FLAG_ABSY;
-  place->ix = place->x = NUM2INT(ATTR(attr, left)) + ox;
-  place->iy = place->y = NUM2INT(ATTR(attr, top)) + oy;
+  place->ix = place->x = ATTR2(int, attr, left, 0) + ox;
+  place->iy = place->y = ATTR2(int, attr, top, 0) + oy;
   r = ATTR2(int, attr, radius, 0) * 2;
   place->iw = place->w = ATTR2(int, attr, width, r);
   place->ih = place->h = ATTR2(int, attr, height, place->w);
@@ -521,9 +522,6 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
     canvas->cx = CPX(canvas); \
     canvas->cy = canvas->endy; \
   }
-
-#define PATTERN_DIM(self_t, x) (self_t->cached != NULL ? self_t->cached->x : 1)
-#define PATTERN(self_t) (self_t->cached != NULL ? self_t->cached->pattern : self_t->pattern)
 
 #define PATTERN_SCALE(self_t, place, sw) \
   if (self_t->cached == NULL) \
@@ -1027,249 +1025,6 @@ shoes_image_size(VALUE self)
   return rb_ary_new3(2, INT2NUM(self_t->cached->width), INT2NUM(self_t->cached->height));
 }
 
-static unsigned char *
-box_run(unsigned int size)
-{
-  int i;
-  unsigned char *tmp = SHOE_ALLOC_N(unsigned char, size * 256);
-  for (i = 0; i < 256; i++)
-    memset(tmp + i * size, i, size);
-  return tmp;
-}
-
-#define BOX_H 1
-#define BOX_V 2
-
-static void
-box_blur(unsigned char *in, unsigned char *out,
-  int stride, shoes_place place,
-  unsigned int edge1, unsigned int edge2,
-  const unsigned char *run, int dir)
-{
-  int i, j1, j2, l, l2, l3, l4, lx, c1, c2, c3, c4, start;
-  int boxSize = edge1 + edge2 + 1;
-  if (dir == BOX_H)
-  {
-    c1 = place.y;
-    c2 = place.y + place.h;
-    c3 = place.x;
-    c4 = place.x + place.w;
-  }
-  else
-  {
-    c1 = place.x;
-    c2 = place.x + place.w;
-    c3 = place.y;
-    c4 = place.y + place.h;
-  }
-
-  start = c3 - edge1;
-  for (j1 = c1; j1 < c2; j1++) {
-    unsigned int sums[4] = {0, 0, 0, 0};
-    if (dir == BOX_H)
-      l = stride * j1;
-    else
-      lx = j1 << 2;
-    for (i = 0; i < boxSize; i++) {
-      int pos = start + i;
-      pos = max(pos, c3);
-      pos = min(pos, c4 - 1);
-      if (dir == BOX_V)
-        l = stride * pos + lx;
-      sums[0] += in[l];
-      sums[1] += in[l + 1];
-      sums[2] += in[l + 2];
-      sums[3] += in[l + 3];
-    }
-    for (j2 = c3; j2 < c4; j2++) {
-      if (dir == BOX_H)
-        l2 = l + (j2 << 2);
-      else
-        l2 = stride * j2 + lx;
-      out[l2] = run[sums[0]];
-      out[l2 + 1] = run[sums[1]];
-      out[l2 + 2] = run[sums[2]];
-      out[l2 + 3] = run[sums[3]];
-
-      int tmp = j2 - edge1;
-      int last = max(tmp, c3);
-      int next = min(tmp + boxSize, c4 - 1);
-      if (dir == BOX_H)
-      {
-        l3 = l + (next << 2);
-        l4 = l + (last << 2);
-      }
-      else
-      {
-        l3 = stride * next + lx;
-        l4 = stride * last + lx;
-      }
-
-      sums[0] += in[l3] - in[l4];
-      sums[1] += in[l3 + 1] - in[l4 + 1];
-      sums[2] += in[l3 + 2] - in[l4 + 2];
-      sums[3] += in[l3 + 3] - in[l4 + 3];
-    }
-  }
-}
-
-#define RAW_FILTER_START(self_t) \
-  int width, height, stride; \
-  guchar *out; \
-  static const cairo_user_data_key_t key; \
-  cairo_surface_t *source = cairo_get_target(cr); \
-  cairo_surface_t *target; \
-  unsigned char *in = cairo_image_surface_get_data(source); \
-  \
-  self_t->place.x = self_t->place.y = 0; \
-  self_t->place.w = width  = cairo_image_surface_get_width(source); \
-  self_t->place.h = height = cairo_image_surface_get_height(source); \
-  stride = cairo_image_surface_get_stride(source); \
-  \
-  out = (guchar *)g_malloc(4 * width * height); \
-  target = cairo_image_surface_create_for_data((unsigned char *)out, \
-    CAIRO_FORMAT_ARGB32, \
-    width, height, 4 * width); \
-  cairo_surface_set_user_data(target, &key, out, (cairo_destroy_func_t)g_free); \
-  unsigned int len = 4 * width * height
-   
-#define RAW_FILTER_END(self_t) \
-  cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR); \
-  cairo_paint(cr); \
-  cairo_set_operator(cr, CAIRO_OPERATOR_OVER); \
-  cairo_set_source_surface(cr, target, 0, 0); \
-  cairo_paint(cr); \
-  cairo_surface_destroy(target);
-
-void
-shoes_gaussian_blur_filter(cairo_t *cr, void *data)
-{
-  shoes_effect *fx = (shoes_effect *)data;
-  RAW_FILTER_START(fx);
-  float blur_d = ATTR2(dbl, fx->attr, radius, 2.);
-  float blur_x = ATTR2(dbl, fx->attr, width, blur_d);
-  float blur_y = ATTR2(dbl, fx->attr, height, blur_d);
-
-  if (blur_x < 0 || blur_y < 0)
-    return;
-
-  if (blur_x == 0 || blur_y == 0)
-    memset(out, 0, len);
-
-  unsigned int dX, dY;
-  dX = (unsigned int) floor(blur_x * 3*sqrt(2*SHOES_PI)/4 + 0.5);
-  dY = (unsigned int) floor(blur_y * 3*sqrt(2*SHOES_PI)/4 + 0.5);
-
-  unsigned char *tmp = SHOE_ALLOC_N(unsigned char, len);
-
-  if (dX & 1) {
-    unsigned char *run = box_run(2 * (dX / 2) + 1);
-    box_blur(in, tmp,  stride, fx->place, dX/2, dX/2, run, BOX_H);
-    box_blur(tmp, out, stride, fx->place, dX/2, dX/2, run, BOX_H);
-    box_blur(out, tmp, stride, fx->place, dX/2, dX/2, run, BOX_H);
-    SHOE_FREE(run);
-  } else {
-    if (dX == 0) {
-      memcpy(tmp, in, len);
-    } else {
-      unsigned char *run1 = box_run(2 * (dX / 2) + 1);
-      unsigned char *run2 = box_run(2 * (dX / 2));
-      box_blur(in, tmp,  stride, fx->place, dX/2,     dX/2 - 1, run2, BOX_H);
-      box_blur(tmp, out, stride, fx->place, dX/2 - 1, dX/2,     run2, BOX_H);
-      box_blur(out, tmp, stride, fx->place, dX/2,     dX/2,     run1, BOX_H);
-      SHOE_FREE(run1);
-      SHOE_FREE(run2);
-    }
-  }
-
-  if (dY & 1) {
-    unsigned char *run = box_run(2 * (dY / 2) + 1);
-    box_blur(tmp, out, stride, fx->place, dY/2, dY/2, run, BOX_V);
-    box_blur(out, tmp, stride, fx->place, dY/2, dY/2, run, BOX_V);
-    box_blur(tmp, out, stride, fx->place, dY/2, dY/2, run, BOX_V);
-    SHOE_FREE(run);
-  } else {
-    if (dY == 0) {
-      memcpy(out, tmp, len);
-    } else {
-      unsigned char *run1 = box_run(2 * (dY / 2) + 1);
-      unsigned char *run2 = box_run(2 * (dY / 2));
-      box_blur(tmp, out, stride, fx->place, dY/2,     dY/2 - 1, run2, BOX_V);
-      box_blur(out, tmp, stride, fx->place, dY/2 - 1, dY/2,     run2, BOX_V);
-      box_blur(tmp, out, stride, fx->place, dY/2,     dY/2,     run1, BOX_V);
-      SHOE_FREE(run1);
-      SHOE_FREE(run2);
-    }
-  }
-
-  SHOE_FREE(tmp);
-  RAW_FILTER_END(fx);
-}
-
-static void
-shoes_layer_blur_filter(cairo_t *cr, void *data, cairo_operator_t blur_op,
-  cairo_operator_t merge_op, int distance)
-{
-  VALUE bg;
-  shoes_canvas *canvas;
-  shoes_effect *fx = (shoes_effect *)data;
-  cairo_surface_t *source = cairo_get_target(cr);
-  int width  = cairo_image_surface_get_width(source);
-  int height = cairo_image_surface_get_height(source);
-  VALUE fill = ATTR(fx->attr, fill);
-  Data_Get_Struct(fx->parent, shoes_canvas, canvas);
-
-  cairo_surface_t *target = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
-  cairo_t *cr2 = cairo_create(target);
-  cairo_set_source_surface(cr2, source, distance, distance);
-  cairo_paint(cr2);
-  cairo_set_operator(cr2, blur_op);
-  bg = ATTR(canvas->attr, fill);
-  if (NIL_P(bg))
-    cairo_set_source_rgb(cr2, 0., 0., 0.);
-  else if (rb_obj_is_kind_of(bg, cColor))
-  {
-    shoes_color *color;
-    Data_Get_Struct(bg, shoes_color, color);
-    cairo_set_source_rgba(cr, color->r / 255., color->g / 255., color->b / 255., color->a / 255.);
-  }
-  else
-  {
-    shoes_pattern *pattern;
-    Data_Get_Struct(bg, shoes_pattern, pattern);
-    cairo_set_source(cr2, PATTERN(pattern));
-  }
-  cairo_rectangle(cr2, 0, 0, width, height);
-  cairo_paint(cr2);
-  shoes_gaussian_blur_filter(cr2, data);
-  cairo_set_operator(cr, merge_op);
-  cairo_set_source_surface(cr, target, 0, 0);
-  cairo_paint(cr);
-  cairo_destroy(cr2);
-}
-
-void
-shoes_shadow_filter(cairo_t *cr, void *data)
-{
-  shoes_effect *fx = (shoes_effect *)data;
-  int distance = ATTR2(int, fx->attr, distance, 4);
-  shoes_layer_blur_filter(cr, data, CAIRO_OPERATOR_IN, CAIRO_OPERATOR_DEST_OVER, distance);
-}
-
-void
-shoes_glow_filter(cairo_t *cr, void *data)
-{
-  shoes_effect *fx = (shoes_effect *)data;
-  cairo_operator_t blur_op = CAIRO_OPERATOR_IN;
-  cairo_operator_t merge_op = CAIRO_OPERATOR_DEST_OVER;
-  if (RTEST(ATTR(fx->attr, inner)))
-  {
-    blur_op = CAIRO_OPERATOR_OUT;
-    merge_op = CAIRO_OPERATOR_ATOP;
-  }
-  shoes_layer_blur_filter(cr, data, blur_op, merge_op, 0);
-}
-
 VALUE
 shoes_image_motion(VALUE self, int x, int y, char *touch)
 {
@@ -1341,22 +1096,29 @@ shoes_effect_free(shoes_effect *fx)
   RUBY_CRITICAL(free(fx));
 }
 
+shoes_effect_filter
+shoes_effect_for_type(ID name)
+{
+  if (name == s_blur)
+    return &shoes_gaussian_blur_filter;
+  else if (name == s_shadow)
+    return &shoes_shadow_filter;
+  else if (name == s_glow)
+    return &shoes_glow_filter;
+  return NULL;
+}
+
 VALUE
-shoes_effect_new(VALUE klass, VALUE attr, VALUE parent)
+shoes_effect_new(ID name, VALUE attr, VALUE parent)
 {
   shoes_effect *fx;
   shoes_canvas *canvas;
-  VALUE obj = shoes_effect_alloc(klass);
+  VALUE obj = shoes_effect_alloc(cEffect);
   Data_Get_Struct(obj, shoes_effect, fx);
   Data_Get_Struct(parent, shoes_canvas, canvas);
   fx->parent = parent;
   fx->attr = attr;
-  if (klass == cBlur)
-    fx->filter = &shoes_gaussian_blur_filter;
-  else if (klass == cShadow)
-    fx->filter = &shoes_shadow_filter;
-  else if (klass == cGlow)
-    fx->filter = &shoes_glow_filter;
+  fx->filter = shoes_effect_for_type(name);
   return obj;
 }
 
@@ -1377,10 +1139,8 @@ shoes_effect_draw(VALUE self, VALUE c, VALUE actual)
 {
   SETUP(shoes_effect, REL_TILE, canvas->width, canvas->height);
 
-  if (RTEST(actual))
-  {
-    self_t->filter(canvas->cr, (void *)self_t);
-  }
+  if (RTEST(actual) && self_t->filter != NULL)
+    self_t->filter(canvas->cr, self_t->attr, &self_t->place);
 
   self_t->place = place;
   return self;
@@ -4183,6 +3943,7 @@ shoes_ruby_init()
   s_gsub = rb_intern("gsub");
   s_keys = rb_intern("keys");
   s_update = rb_intern("update");
+  s_merge = rb_intern("merge");
   s_new = rb_intern("new");
   s_URI = rb_intern("URI");
 
@@ -4269,6 +4030,9 @@ shoes_ruby_init()
   s_margin_bottom = rb_intern("margin_bottom");
   s_radius = rb_intern("radius");
   s_secret = rb_intern("secret");
+  s_blur = rb_intern("blur");
+  s_glow = rb_intern("glow");
+  s_shadow = rb_intern("shadow");
   s_rect = rb_intern("rect");
   s_oval = rb_intern("oval");
   s_line = rb_intern("line");
@@ -4405,6 +4169,9 @@ shoes_ruby_init()
   rb_define_method(cImage, "oval", CASTHOOK(shoes_canvas_oval), -1);
   rb_define_method(cImage, "rect", CASTHOOK(shoes_canvas_rect), -1);
   rb_define_method(cImage, "star", CASTHOOK(shoes_canvas_star), -1);
+  rb_define_method(cImage, "blur", CASTHOOK(shoes_canvas_blur), -1);
+  rb_define_method(cImage, "glow", CASTHOOK(shoes_canvas_glow), -1);
+  rb_define_method(cImage, "shadow", CASTHOOK(shoes_canvas_shadow), -1);
   rb_define_method(cImage, "path", CASTHOOK(shoes_image_get_path), 0);
   rb_define_method(cImage, "path=", CASTHOOK(shoes_image_set_path), 1);
   rb_define_method(cImage, "app", CASTHOOK(shoes_canvas_get_app), 0);
@@ -4438,9 +4205,6 @@ shoes_ruby_init()
   rb_define_alloc_func(cEffect, shoes_effect_alloc);
   rb_define_method(cEffect, "draw", CASTHOOK(shoes_effect_draw), 2);
   rb_define_method(cEffect, "remove", CASTHOOK(shoes_basic_remove), 0);
-  cBlur     = rb_define_class_under(cShoes, "Blur", cEffect);
-  cShadow   = rb_define_class_under(cShoes, "Shadow", cEffect);
-  cGlow     = rb_define_class_under(cShoes, "Glow", cEffect);
 
 #ifdef VIDEO
   cVideo    = rb_define_class_under(cShoes, "Video", rb_cObject);

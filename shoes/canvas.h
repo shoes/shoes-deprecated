@@ -65,6 +65,8 @@ typedef struct {
     blk; \
     rb_ary_pop(app->nesting); \
   }
+#define PATTERN_DIM(self_t, x) (self_t->cached != NULL ? self_t->cached->x : 1)
+#define PATTERN(self_t) (self_t->cached != NULL ? self_t->cached->pattern : self_t->pattern)
 #define ABSX(place)   ((place).flags & FLAG_ABSX)
 #define ABSY(place)   ((place).flags & FLAG_ABSY)
 #define POS(place)    ((place).flags & FLAG_POSITION)
@@ -241,13 +243,13 @@ typedef struct {
   SHOES_TIMER_REF ref;
 } shoes_timer;
 
-typedef void (*shoes_effect_filter)(cairo_t *, void *);
+typedef void (*shoes_effect_filter)(cairo_t *, VALUE attr, shoes_place *);
 
 typedef struct {
   VALUE parent;
   VALUE attr;
-  shoes_effect_filter filter;
   shoes_place place;
+  shoes_effect_filter filter;
 } shoes_effect;
 
 typedef struct {
@@ -500,7 +502,8 @@ VALUE shoes_image_motion(VALUE, int, int, char *);
 VALUE shoes_image_send_click(VALUE, int, int, int);
 void shoes_image_send_release(VALUE, int, int, int);
 
-VALUE shoes_effect_new(VALUE, VALUE, VALUE);
+shoes_effect_filter shoes_effect_for_type(ID);
+VALUE shoes_effect_new(ID, VALUE, VALUE);
 VALUE shoes_effect_alloc(VALUE);
 VALUE shoes_effect_draw(VALUE, VALUE, VALUE);
 

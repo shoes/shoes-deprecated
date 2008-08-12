@@ -17,6 +17,13 @@
 #define SETUP_BASIC() \
   shoes_basic *basic; \
   Data_Get_Struct(self, shoes_basic, basic);
+#define SETUP_IMAGE() \
+  shoes_place place; \
+  GET_STRUCT(image, image); \
+  shoes_image_ensure_dup(image); \
+  shoes_place_exact(&place, attr, 0, 0); \
+  if (NIL_P(attr)) attr = image->attr; \
+  else if (!NIL_P(image->attr)) attr = rb_funcall(image->attr, s_merge, 1, attr);
 
 const double SHOES_PIM2   = 6.28318530717958647693;
 const double SHOES_PI     = 3.14159265358979323846;
@@ -435,12 +442,7 @@ shoes_add_shape(VALUE self, ID name, VALUE attr)
 {
   if (rb_obj_is_kind_of(self, cImage))
   {
-    shoes_place place;
-    GET_STRUCT(image, image);
-    shoes_image_ensure_dup(image);
-    shoes_place_exact(&place, attr, 0, 0);
-    if (NIL_P(attr)) attr = image->attr;
-    else if (!NIL_P(image->attr)) rb_funcall(attr, s_update, 1, image->attr);
+    SETUP_IMAGE();
     shoes_shape_sketch(image->cr, name, &place, NULL, attr);
     return self;
   }
@@ -485,73 +487,39 @@ shoes_canvas_star(int argc, VALUE *argv, VALUE self)
 }
 
 VALUE
-shoes_canvas_blur(int argc, VALUE *argv, VALUE self)
+shoes_add_effect(VALUE self, ID name, VALUE attr)
 {
-  VALUE x, y, fx, attr;
-  SETUP();
-
-  rb_scan_args(argc, argv, "02", &x, &y);
-  if (NIL_P(y)) y = x;
-
-  if (rb_obj_is_kind_of(x, rb_cHash))
-    attr = x;
-  else
+  if (rb_obj_is_kind_of(self, cImage))
   {
-    attr = rb_hash_new();
-    if (!NIL_P(x)) rb_hash_aset(attr, ID2SYM(s_width), x);
-    if (!NIL_P(y)) rb_hash_aset(attr, ID2SYM(s_height), y);
+    shoes_effect_filter filter = shoes_effect_for_type(name);
+    SETUP_IMAGE();
+    filter(image->cr, attr, &place);
+    return self;
   }
 
-  fx = shoes_effect_new(cBlur, attr, self);
-  shoes_add_ele(canvas, fx);
-  return fx;
+  SETUP();
+  return shoes_add_ele(canvas, shoes_effect_new(name, attr, self));
+}
+
+VALUE
+shoes_canvas_blur(int argc, VALUE *argv, VALUE self)
+{
+  VALUE attr = shoes_shape_attr(argc, argv, 2, s_width, s_height);
+  return shoes_add_effect(self, s_blur, attr);
 }
 
 VALUE
 shoes_canvas_glow(int argc, VALUE *argv, VALUE self)
 {
-  VALUE x, y, fx, attr;
-  SETUP();
-
-  rb_scan_args(argc, argv, "02", &x, &y);
-  if (NIL_P(y)) y = x;
-
-  if (rb_obj_is_kind_of(x, rb_cHash))
-    attr = x;
-  else
-  {
-    attr = rb_hash_new();
-    if (!NIL_P(x)) rb_hash_aset(attr, ID2SYM(s_width), x);
-    if (!NIL_P(y)) rb_hash_aset(attr, ID2SYM(s_height), y);
-  }
-
-  fx = shoes_effect_new(cGlow, attr, self);
-  shoes_add_ele(canvas, fx);
-  return fx;
+  VALUE attr = shoes_shape_attr(argc, argv, 2, s_width, s_height);
+  return shoes_add_effect(self, s_glow, attr);
 }
 
 VALUE
 shoes_canvas_shadow(int argc, VALUE *argv, VALUE self)
 {
-  VALUE dist, x, y, fx, attr;
-  SETUP();
-
-  rb_scan_args(argc, argv, "03", &dist, &x, &y);
-  if (NIL_P(y)) y = x;
-
-  if (rb_obj_is_kind_of(x, rb_cHash))
-    attr = x;
-  else
-  {
-    attr = rb_hash_new();
-    if (!NIL_P(dist)) rb_hash_aset(attr, ID2SYM(s_distance), dist);
-    if (!NIL_P(x)) rb_hash_aset(attr, ID2SYM(s_width), x);
-    if (!NIL_P(y)) rb_hash_aset(attr, ID2SYM(s_height), y);
-  }
-
-  fx = shoes_effect_new(cShadow, attr, self);
-  shoes_add_ele(canvas, fx);
-  return fx;
+  VALUE attr = shoes_shape_attr(argc, argv, 2, s_distance, s_width, s_height);
+  return shoes_add_effect(self, s_shadow, attr);
 }
 
 #define MARKUP_BLOCK(klass) \
