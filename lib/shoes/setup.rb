@@ -41,7 +41,6 @@ class Shoes::Setup
       image :top => 0, :left => 0 do
         stroke "#FFF"; strokewidth 0.1
         (0..158).step(3) { |i| line 0, i, 370, i }
-        mask { rect 4, 4, 362, 150, 6 }
       end
       @pulse = stack :top => 0, :left => 0
       @logo = image "#{DIR}/static/shoes-icon.png", :top => -20, :right => -20
