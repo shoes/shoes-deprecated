@@ -491,9 +491,9 @@ not be visible.
 
 Draws a line using the current line color (aka "stroke") starting at coordinates (left, top) and ending at coordinates (x2, y2).
 
-=== oval(top, left, radius) » Shoes::Shape ===
+=== oval(left, top, radius) » Shoes::Shape ===
 
-Draws a circular form at pixel coordinates (top, left) with a width and height of `radius` pixels.  The line and fill colors are used to draw the shape.
+Draws a circular form at pixel coordinates (left, top) with a width and height of `radius` pixels.  The line and fill colors are used to draw the shape.
 
 {{{
  #!ruby
@@ -506,7 +506,7 @@ Draws a circular form at pixel coordinates (top, left) with a width and height o
  end
 }}}
 
-To draw an oval of varied proportions, you may also use the syntax: `oval(top, left, width, height)`.
+To draw an oval of varied proportions, you may also use the syntax: `oval(left, top, width, height)`.
 
 === oval(styles) » Shoes::Shape ===
 
