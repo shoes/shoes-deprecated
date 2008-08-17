@@ -177,13 +177,8 @@ shoes_safe_block(VALUE self, VALUE block, VALUE args)
   sb.args = args;
   rb_gc_register_address(&args);
 
-  Data_Get_Struct(sb.canvas, shoes_canvas, canvas);
-  rb_ary_push(canvas->app->nesting, canvas->app->nestslot);
-  rb_ary_push(canvas->app->nesting, sb.canvas);
   v = rb_rescue2(CASTHOOK(shoes_safe_block_call), (VALUE)&sb, 
     CASTHOOK(shoes_safe_block_exception), (VALUE)&sb, rb_cObject, 0);
-  rb_ary_pop(canvas->app->nesting);
-  rb_ary_pop(canvas->app->nesting);
   rb_gc_unregister_address(&args);
   return v;
 }
@@ -4117,6 +4112,8 @@ shoes_ruby_init()
   rb_define_method(cApp, "name=", CASTHOOK(shoes_app_set_title), 1);
   rb_define_method(cApp, "location", CASTHOOK(shoes_app_location), 0);
   rb_define_method(cApp, "started?", CASTHOOK(shoes_app_is_started), 0);
+  rb_define_method(cApp, "width", CASTHOOK(shoes_app_get_width), 0);
+  rb_define_method(cApp, "height", CASTHOOK(shoes_app_get_height), 0);
   cDialog = rb_define_class_under(cShoes, "Dialog", cApp);
 
   eInvMode = rb_define_class_under(cShoes, "InvalidModeError", rb_eStandardError);

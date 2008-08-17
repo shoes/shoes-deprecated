@@ -109,7 +109,7 @@ class Field
     render_cell(x, y, "#999", false)
     if self[x, y].number != 0 then
       @app.nostroke
-      @app.para self[x, y].number.to_s, :left => x*cell_size + 3 + offset.first, :top => y*cell_size + offset.last - 2, 
+      @app.para self[x, y].number.to_s, :left => x*cell_size + 3, :top => y*cell_size - 2, 
         :font => '13px', :stroke => COLORS[self[x, y].number - 1]
     end
   end
@@ -233,7 +233,7 @@ Shoes.app :width => 730, :height => 450, :title => 'Minesweeper' do
       background rgb(50, 50, 90, 0.7)
       flow :margin => 4 do
         button("Beginner") { new_game :beginner }
-        button("Intermediate") {new_game :intermediate }
+        button("Intermediate") { new_game :intermediate }
         button("Expert") { new_game :expert }
       end
       stack do @status = para :stroke => white end

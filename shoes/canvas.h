@@ -301,6 +301,8 @@ void shoes_control_show_ref(SHOES_CONTROL_REF);
 VALUE shoes_app_main(int, VALUE *, VALUE);
 VALUE shoes_app_window(int, VALUE *, VALUE, VALUE);
 VALUE shoes_app_contents(VALUE);
+VALUE shoes_app_get_width(VALUE);
+VALUE shoes_app_get_height(VALUE);
 
 VALUE shoes_basic_remove(VALUE);
 
