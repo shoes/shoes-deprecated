@@ -15,6 +15,7 @@ static void
 shoes_app_mark(shoes_app *app)
 {
   shoes_native_slot_mark(&app->slot);
+  rb_gc_mark_maybe(app->title);
   rb_gc_mark_maybe(app->location);
   rb_gc_mark_maybe(app->canvas);
   rb_gc_mark_maybe(app->nestslot);
