@@ -27,6 +27,21 @@ module Shoes::Manual
     eval("#{ele}(#{str}, *args)")
   end
 
+  def dewikify_code(str)
+    str = str.gsub(/\A\n+/, '').chomp
+    stack :margin_bottom => 12 do 
+      background rgb(210, 210, 210), :curve => 4
+      para code(str), CODE_STYLE 
+      stack :top => 0, :right => 2, :width => 70 do
+        stack do
+          background "#8A7", :margin => [0, 2, 0, 2], :curve => 4 
+          para link("Run this", :stroke => "#eee", :underline => "none") { run_code(str) },
+            :margin => 4, :align => 'center', :weight => 'bold'
+        end
+      end
+    end
+  end
+
   def dewikify(str, intro = false)
     proc do
       paras = str.split(/\s*?(\{{3}(?:.+?)\}{3})|\n\n/m).reject { |x| x.empty? }
@@ -35,18 +50,7 @@ module Shoes::Manual
       end
       paras.map do |ps|
         if ps =~ CODE_RE
-          str = $1.gsub(/\A\n+/, '').chomp
-          stack :margin_bottom => 12 do 
-            background rgb(210, 210, 210), :curve => 4
-            para code(str), CODE_STYLE 
-            stack :top => 0, :right => 2, :width => 70 do
-              stack do
-                background "#8A7", :margin => [0, 2, 0, 2], :curve => 4 
-                para link("Run this", :stroke => "#eee", :underline => "none") { run_code(str) },
-                  :margin => 4, :align => 'center', :weight => 'bold'
-              end
-            end
-          end
+          dewikify_code($1)
         else
           case ps
           when /\A\{COLORS\}/

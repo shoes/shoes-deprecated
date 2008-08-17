@@ -4,9 +4,9 @@ class MenuPanel < Widget
     @@boxes << self
     background color
     para link("Box #{@@boxes.length}", :stroke => white, :fill => nil).
-      hover { expand }.
       click { visit "/" },
         :margin => 18, :align => "center", :size => 20
+    hover { expand }
   end
   def expand
     if self.width < 170
@@ -22,7 +22,8 @@ class MenuPanel < Widget
 end
 
 Shoes.app :width => 400, :height => 130 do
-  style(LinkHover, :fill => nil)
+  style(Link, :underline => nil)
+  style(LinkHover, :fill => nil, :underline => nil)
   menupanel green,  :width => 170, :height => 120, :margin => 4
   menupanel blue,   :width => 140, :height => 120, :margin => 4
   menupanel red,    :width => 140, :height => 120, :margin => 4
