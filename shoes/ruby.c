@@ -1008,6 +1008,7 @@ shoes_image_set_path(VALUE self, VALUE path)
   image->path = path;
   image->cached = shoes_load_image(image->parent, path);
   image->type = SHOES_CACHE_FILE;
+  shoes_canvas_repaint_all(image->parent);
   return path;
 }
 
