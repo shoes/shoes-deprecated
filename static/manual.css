@@ -8,6 +8,7 @@ body {
   margin: 40px auto;
 }
 .sidebar {
+  position: fixed;
   width: 120px;
 }
 #manual {
@@ -55,13 +56,24 @@ div.method a {
   font-size: 18px;
 }
 .sidebar ul.sub {
-  margin: 6px; padding: 0;
+  margin: 6px 0; padding: 0;
+  border-left: solid 1px #CCC;
+  border-right: solid 1px #CCC;
+}
+.sidebar li:hover {
+  background: #EEE;
+}
+.sidebar li:hover ul.sub {
+  background: #DDD;
+}
+.sidebar li:hover .prime {
+  background: #DDD;
 }
 .sidebar ul.sub li {
   margin: 0; padding: 0;
+  font-size: 14px;
 }
 .sidebar ul.sub a {
-  font-size: 14px;
   font-weight: normal;
 }
 .sidebar a {
