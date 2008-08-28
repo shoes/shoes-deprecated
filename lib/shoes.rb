@@ -76,6 +76,11 @@ class Shoes
       raise SystemExit, ""
     end
 
+    opts.on("--manual-html DIRECTORY", "Saves the manual to a directory as HTML.") do |dir|
+      manual_as :html, dir
+      raise SystemExit, "HTML manual in: #{dir}"
+    end
+
     opts.on_tail("-v", "--version", "Display the version info.") do
       raise SystemExit, File.read("#{DIR}/VERSION.txt").strip
     end
@@ -116,10 +121,104 @@ class Shoes
     Shoes.app(:width => 500, :height => 380, :resizable => false, &PackMake)
   end
 
-  def self.show_manual
+  def self.manual_p(str, path)
+    str.gsub(/\n+\s*/, " ").
+      gsub(/&/, '&amp;').gsub(/>/, '&gt;').gsub(/>/, '&lt;').gsub(/"/, '&quot;').
+      gsub(/`(.+?)`/m, '<code>\1</code>').gsub(/\[\[BR\]\]/i, "<br />\n").
+      gsub(/'''(.+?)'''/m, '<strong>\1</strong>').gsub(/''(.+?)''/m, '<em>\1</em>').
+      gsub(/\[\[(\S+?)\]\]/m) do
+        ms, mn = $1.split(".", 2)
+        if mn
+          '<a href="' + ms + '.html#' + mn + '">' + mn + '</a>'
+        else
+          '<a href="' + ms + '.html">' + ms + '</a>'
+        end
+      end.
+      gsub(/\[\[(\S+?) (.+?)\]\]/m, '<a href="\1.html">\2</a>').
+      gsub(/\!(\{[^}\n]+\})?([^!\n]+\.\w+)\!/) do
+        x = "static/#$2"
+        FileUtils.cp("#{DIR}/#{x}", "#{path}/#{x}") if File.exists? "#{DIR}/#{x}"
+        '<img src="' + x + '" />'
+      end
+  end
+
+  TITLES = {:title => :h1, :subtitle => :h2, :tagline => :h3, :caption => :h4}
+
+  def self.manual_as format, *args
     require 'shoes/search'
     require 'shoes/help'
-    Shoes.app(:width => 720, :height => 640, &Shoes::Help)
+
+    case format
+    when :shoes
+      Shoes.app(:width => 720, :height => 640, &Shoes::Help)
+    else
+      extend Shoes::Manual
+      man = self
+      dir, = args
+      FileUtils.mkdir_p File.join(dir, 'static')
+      FileUtils.cp "static/manual.css", dir
+      FileUtils.cp "static/shoes-icon.png", "#{dir}/static"
+      html_bits = proc do
+        proc do |sym, text|
+        case sym when :intro
+          div.intro { p { self << man.manual_p(text, dir) } }
+        when :code
+          pre { code text.gsub(/^\s*?\n/, ''), :class => "rb" }
+        when :colors
+        #   color_page
+        when :index
+        #   index_page
+        when :list
+          ul { text.each { |x| li x } }
+        else
+          send(TITLES[sym] || :p) { self << man.manual_p(text, dir) }
+        end
+        end
+      end
+
+      docs = load_docs(Shoes::Manual::PATH)
+      sections = docs.map { |x,| x }
+
+      docs.each do |title1, opt1|
+        subsect = opt1['sections'].map { |x,| x }
+        menu = sections.map do |x|
+          [x, (subsect if x == title1)]
+        end
+
+        path1 = File.join(dir, title1.gsub(/\W/, ''))
+        make_html("#{path1}.html", title1, menu) do
+          h2 "The Shoes Manual"
+          h1 title1
+          man.wiki_tokens opt1['description'], true, &instance_eval(&html_bits)
+        end
+
+        opt1['sections'].each do |title2, opt2|
+          path2 = File.join(dir, title2)
+          make_html("#{path2}.html", opt2['title'], menu) do
+            h2 "The Shoes Manual"
+            h1 opt2['title']
+            man.wiki_tokens opt2['description'], true, &instance_eval(&html_bits)
+            opt2['methods'].each do |title3, desc3|
+              sig, val = title3.split(/\s+»\s+/, 2)
+              aname = sig[/^[^(=]+=?/].gsub(/\s/, '').downcase
+              a :name => aname
+              div.method do
+                a sig, :href => "##{aname}"
+                text " » #{val}" if val
+              end
+              div.sample do
+                man.wiki_tokens desc3, &instance_eval(&html_bits)
+              end
+            end
+          end
+        end
+
+      end
+    end
+  end
+
+  def self.show_manual
+    manual_as :shoes
   end
 
   def self.show_log

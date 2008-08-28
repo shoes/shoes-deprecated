@@ -1,4 +1,6 @@
 module Shoes::Manual
+  PATH = "#{DIR}/static/manual.txt"
+  PARA_RE = /\s*?(\{{3}(?:.+?)\}{3})|\n\n/m
   CODE_RE = /\{{3}(?:\s*\#![^\n]+)?(.+?)\}{3}/m
   CODE_STYLE = {:size => 9, :margin => 12}
   INTRO_STYLE = {:size => 12, :weight => "bold", :margin_bottom => 20, :stroke => "#000"}
@@ -42,34 +44,52 @@ module Shoes::Manual
     end
   end
 
+  def wiki_tokens(str, intro = false)
+    paras = str.split(PARA_RE).reject { |x| x.empty? }
+    if intro
+      yield :intro, paras.shift
+    end
+    paras.map do |ps|
+      if ps =~ CODE_RE
+        yield :code, $1
+      else
+        case ps
+        when /\A\{COLORS\}/
+          yield :colors, nil
+        when /\A\{INDEX\}/
+          yield :index, nil
+        when /\A \* (.+)/m
+          yield :list, $1.split(/^ \* /)
+        when /\A==== (.+) ====/
+          yield :caption, $1
+        when /\A=== (.+) ===/
+          yield :tagline, $1
+        when /\A== (.+) ==/
+          yield :subtitle, $1
+        when /\A= (.+) =/
+          yield :title, $1
+        else
+          yield :para, ps
+        end
+      end
+    end
+  end
+
   def dewikify(str, intro = false)
     proc do
-      paras = str.split(/\s*?(\{{3}(?:.+?)\}{3})|\n\n/m).reject { |x| x.empty? }
-      if intro
-        dewikify_p :para, paras.shift, INTRO_STYLE
-      end
-      paras.map do |ps|
-        if ps =~ CODE_RE
-          dewikify_code($1)
+      wiki_tokens(str) do |sym, text|
+        case sym when :intro
+          dewikify_p :para, text, INTRO_STYLE
+        when :code
+          dewikify_code(text)
+        when :colors
+          color_page
+        when :index
+          index_page
+        when :list
+          dewikify_p :para, "  ● " + text.join("[[BR]]  ● ")
         else
-          case ps
-          when /\A\{COLORS\}/
-            color_page
-          when /\A\{INDEX\}/
-            index_page
-          when /\A \* (.+)/m
-            dewikify_p :para, "  ● " + $1.split(/^ \* /).join("[[BR]]  ● ")
-          when /\A==== (.+) ====/
-            dewikify_p :caption, $1
-          when /\A=== (.+) ===/
-            dewikify_p :tagline, $1
-          when /\A== (.+) ==/
-            dewikify_p :subtitle, $1
-          when /\A= (.+) =/
-            dewikify_p :title, $1
-          else
-            dewikify_p :para, ps
-          end
+          dewikify_p sym, text
         end
       end
     end
@@ -126,8 +146,9 @@ module Shoes::Manual
     eval(str, TOPLEVEL_BINDING)
   end
 
-  def load_docs str
+  def load_docs path
     return @docs if @docs
+    str = File.read(path)
     @search = Shoes::Search.new
     @sections, @methods, @mindex = {}, {}, {}
     @docs =
@@ -244,12 +265,51 @@ module Shoes::Manual
       title.split(" ", 2)
     end
   end
+
+  def make_html(path, title, menu, &blk)
+    require 'hpricot'
+    File.open(path, 'w') do |f|
+      f << Hpricot do
+        xhtml_transitional do
+          head do
+            meta :"http-equiv" => "Content-Type", "content" => "text/html; charset=utf-8"
+            title "The Shoes Manual // #{title}"
+            style :type => "text/css" do
+              text "@import 'manual.css';"
+            end
+          end
+          body do
+            div.main! do
+              div.manual! &blk
+              div.sidebar do
+                img :src => "static/shoes-icon.png"
+                ul do
+                  li { a.prime "HELP", :href => "./" }
+                  menu.each do |m, sm|
+                    li do
+                      a m, :href => "#{m[/^\w+/]}.html"
+                      if sm
+                        ul.sub do
+                          sm.each { |smm| li { a smm, :href => "#{smm}.html" } }
+                        end
+                      end
+                    end
+                  end
+
+                end
+              end
+            end
+          end
+        end
+      end.to_html
+    end
+  end
 end
 
-def Shoes.make_help_page(str)
+def Shoes.make_help_page
   proc do
     extend Shoes::Manual
-    docs = load_docs str
+    docs = load_docs Shoes::Manual::PATH
 
     style(Shoes::Code, :stroke => "#C30")
     style(Shoes::LinkHover, :stroke => green, :fill => nil)
@@ -307,4 +367,4 @@ rescue => e
   p e.class
 end
 
-Shoes::Help = Shoes.make_help_page File.read("#{DIR}/static/manual.txt")
+Shoes::Help = Shoes.make_help_page
