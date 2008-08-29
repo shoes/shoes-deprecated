@@ -9,6 +9,10 @@
 #include "shoes/world.h"
 #include "shoes/internal.h"
 
+#ifdef __APPLE__
+#include <crt_externs.h>
+#endif
+
 #ifdef SHOES_WIN32
 int WINAPI
 WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
@@ -21,6 +25,9 @@ main(argc, argv)
 {
   shoes_code code;
   char *path = NULL;
+#ifdef __APPLE__
+  char **env = *_NSGetEnviron();
+#endif
 #ifdef SHOES_WIN32
   int argc;
   char **argv;
