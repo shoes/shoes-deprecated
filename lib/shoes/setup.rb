@@ -32,13 +32,13 @@ class Shoes::Setup
   def self.setup_app(setup)
     appt = "Setting up for #{setup.script}"
     Shoes.app :width => 370, :height => 158, :resizable => false, :title => appt do
-      background "#EEC".."#AA9"
+      background "#EEE".."#9AA"
       image :top => 0, :left => 0 do
         stroke "#FFF"; strokewidth 0.1
         (0..158).step(3) { |i| line 0, i, 370, i }
       end
       @pulse = stack :top => 0, :left => 0
-      @logo = image "#{DIR}/static/shoes-icon.png", :top => -20, :right => -20
+      @logo = image "#{DIR}/static/shoes-icon-blue.png", :top => -20, :right => -20
       stack :margin => 18 do
         title "Shoes Setup", :size => 12, :weight => "bold", :margin => 0
         para "Preparing #{setup.script}", :size => 8, :margin => 0, :margin_top => 8, :width => 220
@@ -63,7 +63,7 @@ class Shoes::Setup
         @pulse.clear do
           fill black(0.2 - (i * 0.02))
           strokewidth(3.0 - (i * 0.2))
-          stroke red(1.0 - (i * 0.1))
+          stroke rgb(0.7, 0.7, 0.9, 1.0 - (i * 0.1))
           oval(@logo.left - i, @logo.top - i, @logo.width + (i * 2)) 
         end
       end

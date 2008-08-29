@@ -3,6 +3,11 @@ APPPATH="${0%/*}"
 APPFULLPATH="`cd \"$APPPATH\" 2>/dev/null && pwd`"
 RUNPATH="$@"
 
+if [ $1 = "--ruby" ]; then
+  $APPFULLPATH/shoes-bin "$@"
+  exit
+fi
+
 while getopts mhv OPTION
 do
   case $OPTION in
