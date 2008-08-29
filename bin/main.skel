@@ -34,6 +34,37 @@ main(argc, argv)
   code = shoes_init(inst, style);
 #else
   path = argv[0];
+  if (argc > 1 && strcmp(argv[1], "--ruby") == 0)
+  {
+    char bootup[SHOES_BUFSIZE];
+    int len = shoes_snprintf(bootup,
+      SHOES_BUFSIZE,
+      "begin;"
+        "DIR = File.expand_path(File.dirname(%%q<%s>));"
+        "$:.replace([DIR+'/ruby/lib/'+PLATFORM, DIR+'/ruby/lib', DIR+'/lib', '.']);"
+        "require 'shoes/cache';"
+        "DIR;"
+      "rescue Object => e;"
+        "puts(e.message);"
+      "end",
+      path);
+
+    if (len < 0 || len >= SHOES_BUFSIZE)
+      return 0;
+
+    argc--;
+    argv[1] = argv[0];
+    argv = &argv[1];
+    {
+      RUBY_INIT_STACK
+      ruby_init();
+      rb_eval_string(bootup);
+      ruby_options(argc, argv);
+      ruby_run();
+    }
+    return 0;
+  }
+
   code = shoes_init();
 #endif
   if (code != SHOES_OK)

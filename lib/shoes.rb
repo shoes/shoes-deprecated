@@ -81,6 +81,12 @@ class Shoes
       raise SystemExit, "HTML manual in: #{dir}"
     end
 
+    opts.on("--install MODE SRC DEST", "Installs a file.") do |mode|
+      src, dest = ARGV
+      FileUtils.install src, dest, :mode => mode.to_i(8), :preserve => true
+      raise SystemExit, ""
+    end
+
     opts.on_tail("-v", "--version", "Display the version info.") do
       raise SystemExit, File.read("#{DIR}/VERSION.txt").strip
     end

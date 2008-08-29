@@ -28,7 +28,10 @@ $:.unshift GEM_DIR
 
 require 'rbconfig'
 config = {
+  'ruby_install_name' => "shoes --ruby",
+  'RUBY_INSTALL_NAME' => "shoes --ruby",
   'prefix' => "#{DIR}", 
+  'bindir' => "#{DIR}", 
   'rubylibdir' => "#{DIR}/ruby/lib",
   'datarootdir' => "#{DIR}/share",
   'dvidir' => "#{DIR}/doc/${PACKAGE}",
