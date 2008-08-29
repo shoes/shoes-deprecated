@@ -1,21 +1,16 @@
 require 'rubygems'
 require 'rubygems/dependency_installer'
 class << Gem::Ext::ExtConfBuilder
-  def build(extension, directory, dest_path, results)
-    Kernel.eval(File.read(File.basename(extension)))
-    make(dest_path, results) rescue nil
-    results
+  alias_method :make__, :make
+  def make(dest_path, results)
+    raise unless File.exist?('Makefile')
+    mf = File.read('Makefile')
+    mf = mf.gsub(/^INSTALL\s*=\s*.*$/, "INSTALL = $(RUBY) -run -e install -- -vp")
+    mf = mf.gsub(/^INSTALL_PROG\s*=\s*.*$/, "INSTALL_PROG = $(INSTALL) -m 0755")
+    mf = mf.gsub(/^INSTALL_DATA\s*=\s*.*$/, "INSTALL_DATA = $(INSTALL) -m 0644")
+    File.open('Makefile', 'wb') {|f| f.print mf}
+    make__(dest_path, results)
   end
-  # alias_method :make__, :make
-  # def make(dest_path, results)
-  #   raise unless File.exist?('Makefile')
-  #   mf = File.read('Makefile')
-  #   mf = mf.gsub(/^INSTALL\s*=\s*\$[^$]*/, "INSTALL = '@$(RUBY) -run -e install -- -vp'")
-  #   mf = mf.gsub(/^INSTALL_PROG\s*=\s*\$[^$]*/, "INSTALL_PROG = '$(INSTALL) -m 0755'")
-  #   mf = mf.gsub(/^INSTALL_DATA\s*=\s*\$[^$]*/, "INSTALL_DATA = '$(INSTALL) -m 0644'")
-  #   File.open('Makefile', 'wb') {|f| f.print mf}
-  #   make__(dest_path, results)
-  # end
 end
 class << Gem; attr_accessor :loaded_specs end
 
