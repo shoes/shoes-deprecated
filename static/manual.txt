@@ -9,11 +9,13 @@ You see, the trivial Shoes program can be just one line:
  Shoes.app { button("Click me!") { alert("Good job.") } }
 }}}
 
+Shoes programs are written in a language called Ruby.  When Shoes is handed this simple line of Ruby code, a window appears with a button inside reading "Click me!"  When the button is clicked, a message pops up. !{:margin_left => 100}man-shot1.png!
+
 While lots of Shoes apps are graphical games and art programs, you can also layout text and edit controls easily. !{:margin_left => 40}shoes-manual-apps.gif!
 
 And, ideally, Shoes programs will run on any of the major platforms out there. Microsoft Windows, Apple's Mac OS X, Linux and many others.
 
-So, welcome to Shoes' built-in manual. This manual is a Shoes program itself, written in Ruby. This manual is unfinished, but I hope that it will be a complete reference in the near future.
+So, welcome to Shoes' built-in manual. This manual is a Shoes program itself!
 
 ==== What Can You Make With Shoes? ====
 
