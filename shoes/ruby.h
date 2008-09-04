@@ -231,10 +231,10 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("+check", check, -1); \
   f("+radio", radio, -1); \
   f(".app", get_app, 0); \
-  f(".after", after, -1); \
-  f(".before", before, -1); \
-  f(".append", append, -1); \
-  f(".prepend", prepend, -1); \
+  f("+after", after, -1); \
+  f("+before", before, -1); \
+  f("+append", append, -1); \
+  f("+prepend", prepend, -1); \
   f("+flow", flow, -1); \
   f("+stack", stack, -1); \
   f("+mask", mask, -1); \
@@ -247,7 +247,7 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f(".release", release, -1); \
   f(".motion", motion, -1); \
   f(".keypress", keypress, -1); \
-  f(".clear", clear_contents, -1); \
+  f("+clear", clear_contents, -1); \
   f(".visit", goto, 1); \
   f(".mouse", mouse, 0); \
   f(".cursor", get_cursor, 0); \

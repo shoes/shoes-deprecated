@@ -109,7 +109,7 @@ module Shoes::Manual
     end
   end
 
-  def index_page
+  def class_tree
     tree = {}
     Shoes.constants.each do |c|
       k = Shoes.const_get(c)
@@ -126,7 +126,11 @@ module Shoes::Manual
         end
       end
     end
+    tree
+  end
 
+  def index_page
+    tree = class_tree
     shown = []
     index_p = proc do |k, subs|
       unless shown.include? k
@@ -274,8 +278,10 @@ module Shoes::Manual
           head do
             meta :"http-equiv" => "Content-Type", "content" => "text/html; charset=utf-8"
             title "The Shoes Manual // #{title}"
+            script :type => "text/javascript", :src => "static/code_highlighter.js"
+            script :type => "text/javascript", :src => "static/code_highlighter_ruby.js"
             style :type => "text/css" do
-              text "@import 'manual.css';"
+              text "@import 'static/manual.css';"
             end
           end
           body do

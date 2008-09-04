@@ -162,20 +162,41 @@ class Shoes
       man = self
       dir, = args
       FileUtils.mkdir_p File.join(dir, 'static')
-      FileUtils.cp "static/manual.css", dir
       FileUtils.cp "static/shoes-icon.png", "#{dir}/static"
+      %w[manual.css code_highlighter.js code_highlighter_ruby.js].
+        each { |x| FileUtils.cp "static/#{x}", "#{dir}/static" }
       html_bits = proc do
         proc do |sym, text|
         case sym when :intro
           div.intro { p { self << man.manual_p(text, dir) } }
         when :code
-          pre { code text.gsub(/^\s*?\n/, ''), :class => "rb" }
+          pre { code.rb text.gsub(/^\s*?\n/, '') }
         when :colors
-        #   color_page
+          color_names = (Shoes::COLORS.keys*"\n").split("\n").sort
+          color_names.each do |color|
+            c = Shoes::COLORS[color.intern]
+            f = c.dark? ? "white" : "black"
+            div.color(:style => "background: #{c}; color: #{f}") { h3 color; p c }
+          end
         when :index
+          tree = man.class_tree
+          shown = []
+          i = 0
+          index_p = proc do |k, subs|
+            unless shown.include? k
+              i += 1
+              p "▸ #{k}", :style => "margin-left: #{20*i}px"
+              subs.uniq.sort.each do |s|
+                index_p[s, tree[s]]
+              end if subs
+              i -= 1
+              shown << k
+            end
+          end
+          tree.sort.each &index_p
         #   index_page
         when :list
-          ul { text.each { |x| li x } }
+          ul { text.each { |x| li { self << man.manual_p(x, dir) } } }
         else
           send(TITLES[sym] || :p) { self << man.manual_p(text, dir) }
         end

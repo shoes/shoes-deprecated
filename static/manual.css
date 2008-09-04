@@ -60,15 +60,6 @@ div.method a {
   border-left: solid 1px #CCC;
   border-right: solid 1px #CCC;
 }
-.sidebar li:hover {
-  background: #EEE;
-}
-.sidebar li:hover ul.sub {
-  background: #DDD;
-}
-.sidebar li:hover .prime {
-  background: #DDD;
-}
 .sidebar ul.sub li {
   margin: 0; padding: 0;
   font-size: 14px;
@@ -89,4 +80,41 @@ div.method a {
 }
 .sidebar a:hover {
   color: black;
+}
+div.color {
+  width: 31%;
+  float: left;
+  text-align: center;
+  padding: 6px;
+  font-size: 80%;
+}
+div.color h3, div.color p {
+  margin: 4px;
+}
+
+/* code highlighting */
+pre {
+  background: white;
+  padding: 8px 0;
+  border: solid 1px #ddd;
+}
+pre .comment, .ruby .comment {
+  color: #696;
+}                                                                                                            pre .string, .ruby .string {
+  color: teal;
+}
+pre .constant, .ruby .constant {
+  font-weight: bold;
+}
+pre .symbol, .ruby .symbol {
+  color: green;
+}
+pre .keywords, .ruby .keywords {
+  color: #662;
+}
+pre .global, pre .ivar, .ruby .ivar {
+  color: #F60;
+}
+pre .brackets, .ruby .brackets {
+  color: #993;
 }
