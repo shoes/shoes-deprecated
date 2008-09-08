@@ -1,3 +1,4 @@
+#!/bin/sh
 if [ 0`readlink $0` = "0" ]; then
   REALPATH=$0
 else
