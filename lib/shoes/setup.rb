@@ -37,7 +37,7 @@ class Shoes::Setup
         stroke "#FFF"; strokewidth 0.1
         (0..158).step(3) { |i| line 0, i, 370, i }
       end
-      @pulse = stack :top => 0, :left => 0
+      @pulse = stack :top => 0, :left => 0, :width => 1.0, :height => 1.0
       @logo = image "#{DIR}/static/shoes-icon-blue.png", :top => -20, :right => -20
       stack :margin => 18 do
         title "Shoes Setup", :size => 12, :weight => "bold", :margin => 0

@@ -89,7 +89,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
   mkdir_p "dist/ruby"
   cp_r  "#{ext_ruby}/lib/ruby/1.8", "dist/ruby/lib"
   unless ENV['STANDARD']
-    %w[rdoc rss soap wsdl xsd].each do |libn|
+    %w[rss soap wsdl xsd].each do |libn|
       rm_rf "dist/ruby/lib/#{libn}"
     end
   end
@@ -147,7 +147,8 @@ task :build => [:build_os, "dist/VERSION.txt"] do
       end
     end
   else
-    cp    "#{ext_ruby}/lib/lib#{ruby_so}.so", "dist/lib#{ruby_so}.so.1.8"
+    cp    "#{ext_ruby}/lib/lib#{ruby_so}.so", "dist/lib#{ruby_so}.so"
+    ln_s  "lib#{ruby_so}.so", "dist/lib#{ruby_so}.so.1.8"
     cp    "/usr/lib/libgif.so", "dist/libgif.so.4"
     cp    "/usr/lib/libjpeg.so", "dist/libjpeg.so.62"
     if ENV['VIDEO']

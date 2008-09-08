@@ -25,6 +25,7 @@ GEM_CENTRAL_DIR = File.join(DIR, "ruby/gems")
 mkdir_p(CACHE_DIR)
 $:.unshift SITE_LIB_DIR
 $:.unshift GEM_DIR
+ENV['GEM_HOME'] = GEM_DIR
 
 require 'rbconfig'
 config = {

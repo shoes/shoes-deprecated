@@ -9,9 +9,9 @@ require 'open-uri'
 require 'optparse'
 require 'resolv-replace'
 require 'shoes/inspect'
+require 'shoes/cache'
 if Object.const_defined? :Shoes
   require 'shoes/image'
-  require 'shoes/cache'
 end
  
 class Range 
