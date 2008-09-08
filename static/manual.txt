@@ -27,7 +27,7 @@ First, let's take a look at Shoes on each of the platforms.
 
 You'll want to visit [[http://shoooes.net/ shoooes.net]] to download the Shoes installer.  Usually, you'll just want one of the installers on the top corner of the home page. !{:margin => 8, :margin_left => 100}man-builds.png!
 
-Time to go over how to run the installer on each platform:
+Here's how to run the installer:
 
  * On '''Mac OS X''', you'll have a file ending with '''.dmg'''.  Double-click this file and a window should appear with a '''Shoes''' icon and an '''Applications''' folder.  Following the arrow, drag the Shoes icon into the '''Applications''' folder.
  * On '''Windows''', you'll download a '''.exe''' file.  Double-click this file and follow the instructions.
@@ -39,7 +39,7 @@ Shoes programs are just plain text files ending with a '''.rb''' extension.
 
 Here are a few ways to create a blank text file:
 
- * On '''Mac OS X''', visit your '''Applications''' folder and double-click on the '''TextEdit''' app.  A blank editor window should come up.  Now, go to the '''Format''' menu and select the ''Make Plain Text''' option.  Okay, you're all set!
+ * On '''Mac OS X''', visit your '''Applications''' folder and double-click on the '''TextEdit''' app.  A blank editor window should come up.  Now, go to the '''Format''' menu and select the '''Make Plain Text''' option.  Okay, you're all set!
  * On '''Windows''', go to the Start menu.  Select '''All Programs''', then '''Accessories''', then '''Notepad'''.
  * On '''Linux''', most distros come with '''gedit'''.  You might try running that.  Or, if your distro is KDE-based, run '''kate'''.
 

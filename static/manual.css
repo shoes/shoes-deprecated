@@ -26,6 +26,9 @@ a:hover {
   background: #eee;
   margin-bottom: 80px;
 }
+#manual li {
+  margin-bottom: 8px;
+}
 h1 {
   font-weight: normal;
   font-size: 42px;
