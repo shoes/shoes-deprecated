@@ -181,14 +181,17 @@ shoes_canvas_paint_call(VALUE self)
   if (canvas->cr != NULL)
     goto quit;
 
-  shoes_canvas_draw(self, self, Qfalse);
-  shoes_get_time(&mid);
-  INFO("COMPUTE: %0.6f s\n", ELAPSED);
-
   canvas->cr = cr = shoes_cairo_create(canvas);
   if (cr == NULL)
     goto quit;
 
+  cairo_save(cr);
+  shoes_canvas_draw(self, self, Qfalse);
+  shoes_get_time(&mid);
+  INFO("COMPUTE: %0.6f s\n", ELAPSED);
+  cairo_restore(cr);
+
+  canvas->cr = cr;
   cairo_save(cr);
   shoes_canvas_draw(self, self, Qtrue);
   shoes_get_time(&mid);
@@ -1331,7 +1334,9 @@ shoes_canvas_compute(VALUE self)
   if (!shoes_canvas_independent(canvas))
     return shoes_canvas_compute(canvas->parent);
 
+  cairo_save(cr);
   shoes_canvas_draw(self, self, Qfalse);
+  cairo_restore(cr);
 }
 
 static void
