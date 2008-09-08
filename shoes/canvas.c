@@ -13,7 +13,7 @@
   shoes_canvas *canvas; \
   cairo_t *cr; \
   Data_Get_Struct(self, shoes_canvas, canvas); \
-  cr = canvas->cr
+  cr = CCR(canvas)
 #define SETUP_BASIC() \
   shoes_basic *basic; \
   Data_Get_Struct(self, shoes_basic, basic);
@@ -178,15 +178,18 @@ shoes_canvas_paint_call(VALUE self)
     return self;
 
   SETUP();
+  if (canvas->cr != NULL)
+    goto quit;
 
-  canvas->cr = cr = shoes_cairo_create(canvas);
-  if (cr == NULL)
-    return self;
-
-  cairo_save(cr);
   shoes_canvas_draw(self, self, Qfalse);
   shoes_get_time(&mid);
   INFO("COMPUTE: %0.6f s\n", ELAPSED);
+
+  canvas->cr = cr = shoes_cairo_create(canvas);
+  if (cr == NULL)
+    goto quit;
+
+  cairo_save(cr);
   shoes_canvas_draw(self, self, Qtrue);
   shoes_get_time(&mid);
   INFO("DRAW: %0.6f s\n", ELAPSED);
@@ -1241,39 +1244,17 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
     self_t->place.h = canvas->endy - self_t->place.y;
   }
 
-  if (RTEST(actual))
-  {
-    if (self_t->cr == canvas->cr)
-      self_t->cr = NULL;
-  }
+  if (self_t->cr == canvas->cr)
+    self_t->cr = NULL;
 
   return self;
-}
-
-void
-shoes_canvas_memdraw_begin(VALUE self)
-{
-  SETUP();
-  canvas->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
-}
-
-void
-shoes_canvas_memdraw_end(VALUE self)
-{
-  SETUP();
-  cairo_destroy(canvas->cr);
-  canvas->cr = NULL;
-  shoes_canvas_repaint_all(self);
 }
 
 static void
 shoes_canvas_memdraw(VALUE self, VALUE block)
 {
   SETUP();
-  if (cr == NULL) canvas->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
   DRAW(self, canvas->app, rb_funcall(block, s_call, 0));
-  if (cr == NULL) cairo_destroy(canvas->cr);
-  canvas->cr = cr;
 }
 
 typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
@@ -1350,10 +1331,7 @@ shoes_canvas_compute(VALUE self)
   if (!shoes_canvas_independent(canvas))
     return shoes_canvas_compute(canvas->parent);
 
-  if (cr == NULL) canvas->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));;
   shoes_canvas_draw(self, self, Qfalse);
-  if (cr == NULL) cairo_destroy(canvas->cr);
-  canvas->cr = cr;
 }
 
 static void

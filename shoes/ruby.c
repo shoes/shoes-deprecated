@@ -752,7 +752,7 @@ shoes_shape_draw(VALUE self, VALUE c, VALUE actual)
   shoes_place_exact(&place, self_t->attr, CPX(canvas), CPY(canvas));
 
   if (RTEST(actual))
-    shoes_shape_sketch(canvas->cr, self_t->name, &place, self_t->st, self_t->attr); 
+    shoes_shape_sketch(CCR(canvas), self_t->name, &place, self_t->st, self_t->attr); 
 
   self_t->place = place;
   return self;
@@ -1028,7 +1028,7 @@ shoes_image_draw_surface(cairo_t *cr, shoes_image *self_t, shoes_place *place, c
 #define SHOES_IMAGE_PLACE(type, imw, imh, surf) \
   SETUP(shoes_##type, REL_CANVAS, imw, imh); \
   if (RTEST(actual)) \
-    shoes_image_draw_surface(canvas->cr, self_t, &place, surf, imw, imh); \
+    shoes_image_draw_surface(CCR(canvas), self_t, &place, surf, imw, imh); \
   FINISH(); \
   return self;
 
@@ -1175,7 +1175,7 @@ shoes_effect_draw(VALUE self, VALUE c, VALUE actual)
   SETUP(shoes_effect, REL_TILE, canvas->width, canvas->height);
 
   if (RTEST(actual) && self_t->filter != NULL)
-    self_t->filter(canvas->cr, self_t->attr, &self_t->place);
+    self_t->filter(CCR(canvas), self_t->attr, &self_t->place);
 
   self_t->place = place;
   return self;
@@ -1554,13 +1554,14 @@ shoes_background_draw(VALUE self, VALUE c, VALUE actual)
 
   if (RTEST(actual))
   {
-    cairo_save(canvas->cr);
-    cairo_translate(canvas->cr, place.ix + place.dx, place.iy + place.dy);
+    cairo_t *cr = CCR(canvas);
+    cairo_save(cr);
+    cairo_translate(cr, place.ix + place.dx, place.iy + place.dy);
     PATTERN_SCALE(self_t, place, sw);
-    shoes_cairo_rect(canvas->cr, 0, 0, place.iw, place.ih, r);
-    cairo_set_source(canvas->cr, PATTERN(self_t));
-    cairo_fill(canvas->cr);
-    cairo_restore(canvas->cr);
+    shoes_cairo_rect(cr, 0, 0, place.iw, place.ih, r);
+    cairo_set_source(cr, PATTERN(self_t));
+    cairo_fill(cr);
+    cairo_restore(cr);
     PATTERN_RESET(self_t);
   }
 
@@ -1584,15 +1585,16 @@ shoes_border_draw(VALUE self, VALUE c, VALUE actual)
 
   if (RTEST(actual))
   {
-    cairo_save(canvas->cr);
-    cairo_translate(canvas->cr, place.ix + place.dx, place.iy + place.dy);
+    cairo_t *cr = CCR(canvas);
+    cairo_save(cr);
+    cairo_translate(cr, place.ix + place.dx, place.iy + place.dy);
     PATTERN_SCALE(self_t, place, sw);
-    cairo_set_source(canvas->cr, PATTERN(self_t));
-    shoes_cairo_rect(canvas->cr, 0, 0, place.iw, place.ih, r);
-    cairo_set_antialias(canvas->cr, CAIRO_ANTIALIAS_NONE);
-    cairo_set_line_width(canvas->cr, sw);
-    cairo_stroke(canvas->cr);
-    cairo_restore(canvas->cr);
+    cairo_set_source(cr, PATTERN(self_t));
+    shoes_cairo_rect(cr, 0, 0, place.iw, place.ih, r);
+    cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE);
+    cairo_set_line_width(cr, sw);
+    cairo_stroke(cr);
+    cairo_restore(cr);
     PATTERN_RESET(self_t);
   }
 
@@ -2582,6 +2584,7 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
   int px, py, pd, li, m, ld;
   double cx, cy;
   char *font;
+  cairo_t *cr;
   shoes_canvas *canvas;
   PangoLayoutLine *last;
   PangoRectangle lrect;
@@ -2590,6 +2593,7 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
   VALUE ck = rb_obj_class(c);
   GET_STRUCT(textblock, self_t);
   Data_Get_Struct(c, shoes_canvas, canvas);
+  cr = CCR(canvas);
 
   if (!NIL_P(self_t->attr) && ATTR(self_t->attr, hidden) == Qtrue)
   {
@@ -2624,7 +2628,7 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
   if (self_t->layout != NULL)
     g_object_unref(self_t->layout);
 
-  self_t->layout = pango_cairo_create_layout(canvas->cr);
+  self_t->layout = pango_cairo_create_layout(cr);
   pd = 0;
   if (!ABSX(self_t->place) && self_t->place.x == canvas->cx)
   {
@@ -2677,11 +2681,11 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
 
   if (RTEST(actual))
   {
-    shoes_apply_transformation(canvas->cr, self_t->st, &self_t->place, RTEST(ATTR(self_t->attr, center)), 0);
-    cairo_move_to(canvas->cr, self_t->place.ix + self_t->place.dx, self_t->place.iy + self_t->place.dy);
-    cairo_set_source_rgb(canvas->cr, 0., 0., 0.);
-    pango_cairo_update_layout(canvas->cr, self_t->layout);
-    pango_cairo_show_layout(canvas->cr, self_t->layout);
+    shoes_apply_transformation(cr, self_t->st, &self_t->place, RTEST(ATTR(self_t->attr, center)), 0);
+    cairo_move_to(cr, self_t->place.ix + self_t->place.dx, self_t->place.iy + self_t->place.dy);
+    cairo_set_source_rgb(cr, 0., 0., 0.);
+    pango_cairo_update_layout(cr, self_t->layout);
+    pango_cairo_show_layout(cr, self_t->layout);
 
     // draw the cursor
     if (!NIL_P(self_t->cursor))
@@ -2694,18 +2698,18 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
       crx = (self_t->place.ix + self_t->place.dx) + (crect.x / PANGO_SCALE);
       cry = (self_t->place.iy + self_t->place.dy) + (crect.y / PANGO_SCALE);
 
-      cairo_save(canvas->cr);
-      cairo_new_path(canvas->cr);
-      cairo_move_to(canvas->cr, crx, cry);
-      cairo_line_to(canvas->cr, crx, cry + (crect.height / PANGO_SCALE));
-      cairo_set_antialias(canvas->cr, CAIRO_ANTIALIAS_NONE);
-      cairo_set_source_rgb(canvas->cr, 0., 0., 0.);
-      cairo_set_line_width(canvas->cr, 1.);
-      cairo_stroke(canvas->cr);
-      cairo_restore(canvas->cr);
+      cairo_save(cr);
+      cairo_new_path(cr);
+      cairo_move_to(cr, crx, cry);
+      cairo_line_to(cr, crx, cry + (crect.height / PANGO_SCALE));
+      cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE);
+      cairo_set_source_rgb(cr, 0., 0., 0.);
+      cairo_set_line_width(cr, 1.);
+      cairo_stroke(cr);
+      cairo_restore(cr);
     }
 
-    shoes_undo_transformation(canvas->cr, self_t->st, &self_t->place, 0);
+    shoes_undo_transformation(cr, self_t->st, &self_t->place, 0);
   }
 
   self_t->place.ih = py;
@@ -3922,11 +3926,8 @@ shoes_log(VALUE self)
       canvas = self; \
     if (!rb_obj_is_kind_of(canvas, cCanvas)) \
       return ts_funcall2(canvas, rb_intern(n + 1), argc, argv); \
-    Data_Get_Struct(canvas, shoes_canvas, self_t); \
-    cairo_t *cr = self_t->cr; \
-    if (cr == NULL && n[0] == '+') shoes_canvas_memdraw_begin(canvas); \
     obj = call_cfunc(CASTHOOK(shoes_canvas_##func), canvas, argn, argc, argv); \
-    if (cr == NULL && n[0] == '+') shoes_canvas_memdraw_end(canvas); \
+    if (n[0] == '+') shoes_canvas_repaint_all(canvas); \
     return obj; \
   } \
   VALUE \

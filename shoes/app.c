@@ -29,6 +29,7 @@ shoes_app_mark(shoes_app *app)
 static void
 shoes_app_free(shoes_app *app)
 {
+  cairo_destroy(app->scratch);
   RUBY_CRITICAL(free(app));
 }
 
@@ -51,6 +52,7 @@ shoes_app_alloc(VALUE klass)
   app->height = SHOES_APP_HEIGHT;
   app->resizable = TRUE;
   app->cursor = s_arrow;
+  app->scratch = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
   app->self = Data_Wrap_Struct(klass, shoes_app_mark, shoes_app_free, app);
   return app->self;
 }
@@ -328,10 +330,7 @@ shoes_app_visit(shoes_app *app, char *path)
     exec.ieval = 1;
   }
 
-  canvas->cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
   rb_rescue2(CASTHOOK(shoes_app_run), (VALUE)&exec, CASTHOOK(shoes_app_exception), (VALUE)&exec, rb_cObject, 0);
-  cairo_destroy(canvas->cr);
-  canvas->cr = NULL;
 
   rb_ary_clear(exec.app->nesting);
   return SHOES_OK;

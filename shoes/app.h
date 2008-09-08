@@ -31,6 +31,7 @@
 typedef struct _shoes_app {
   SHOES_APP_OS os;
   SHOES_SLOT_OS slot;
+  cairo_t *scratch;
   int width, height, mouseb, mousex, mousey,
     resizable, hidden, started;
   VALUE self;
