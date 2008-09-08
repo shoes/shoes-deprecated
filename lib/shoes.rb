@@ -132,6 +132,8 @@ class Shoes
       gsub(/&/, '&amp;').gsub(/>/, '&gt;').gsub(/>/, '&lt;').gsub(/"/, '&quot;').
       gsub(/`(.+?)`/m, '<code>\1</code>').gsub(/\[\[BR\]\]/i, "<br />\n").
       gsub(/'''(.+?)'''/m, '<strong>\1</strong>').gsub(/''(.+?)''/m, '<em>\1</em>').
+      gsub(/\[\[(http:\/\/\S+?)\]\]/m, '<a href="\1" target="_new">\1</a>').
+      gsub(/\[\[(http:\/\/\S+?) (.+?)\]\]/m, '<a href="\1" target="_new">\2</a>').
       gsub(/\[\[(\S+?)\]\]/m) do
         ms, mn = $1.split(".", 2)
         if mn
@@ -146,6 +148,9 @@ class Shoes
         FileUtils.cp("#{DIR}/#{x}", "#{path}/#{x}") if File.exists? "#{DIR}/#{x}"
         '<img src="' + x + '" />'
       end
+  end
+
+  def self.manual_link(sect)
   end
 
   TITLES = {:title => :h1, :subtitle => :h2, :tagline => :h3, :caption => :h4}
@@ -206,6 +211,7 @@ class Shoes
       docs = load_docs(Shoes::Manual::PATH)
       sections = docs.map { |x,| x }
 
+      docn = 1
       docs.each do |title1, opt1|
         subsect = opt1['sections'].map { |x,| x }
         menu = sections.map do |x|
@@ -217,8 +223,11 @@ class Shoes
           h2 "The Shoes Manual"
           h1 title1
           man.wiki_tokens opt1['description'], true, &instance_eval(&html_bits)
+          p.next { text "Next: "
+            a opt1['sections'].first[1]['title'], :href => "#{opt1['sections'].first[0]}.html" }
         end
 
+        optn = 1
         opt1['sections'].each do |title2, opt2|
           path2 = File.join(dir, title2)
           make_html("#{path2}.html", opt2['title'], menu) do
@@ -237,9 +246,18 @@ class Shoes
                 man.wiki_tokens desc3, &instance_eval(&html_bits)
               end
             end
+            if opt1['sections'][optn]
+              p.next { text "Next: "
+                a opt1['sections'][optn][1]['title'], :href => "#{opt1['sections'][optn][0]}.html" }
+            elsif docs[docn]
+              p.next { text "Next: "
+                a docs[docn][0], :href => "#{docs[docn][0].gsub(/\W/, '')}.html" }
+            end
+            optn += 1
           end
         end
 
+        docn += 1
       end
     end
   end

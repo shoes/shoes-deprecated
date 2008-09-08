@@ -3,6 +3,13 @@ body {
   background: #DDD;
   margin: 0; padding: 0;
 }
+a {
+  color: #378;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
 #main {
   width: 720px;
   margin: 40px auto;
@@ -90,6 +97,13 @@ div.color {
 }
 div.color h3, div.color p {
   margin: 4px;
+}
+p.next {
+  clear: both;
+  border-top: solid 1px #BBB;
+  text-align: right;
+  font-size: 120%;
+  padding: 8px;
 }
 
 /* code highlighting */
