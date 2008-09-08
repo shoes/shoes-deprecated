@@ -35,18 +35,18 @@ const char *dialog_title_says = "Shoes says:";
 static void shoes_canvas_send_start(VALUE);
 
 shoes_transform *
-shoes_transform_new(shoes_transform *old)
+shoes_transform_new(shoes_transform *o)
 {
-  shoes_transform *new = SHOE_ALLOC(shoes_transform);
-  new->mode = s_center;
-  new->refs = 1;
-  cairo_matrix_init_identity(&new->tf);
-  if (old != NULL)
+  shoes_transform *n = SHOE_ALLOC(shoes_transform);
+  n->mode = s_center;
+  n->refs = 1;
+  cairo_matrix_init_identity(&n->tf);
+  if (o != NULL)
   {
-    cairo_matrix_multiply(&new->tf, &new->tf, &old->tf);
-    new->mode = old->mode;
+    cairo_matrix_multiply(&n->tf, &n->tf, &o->tf);
+    n->mode = o->mode;
   }
-  return new;
+  return n;
 }
 
 shoes_transform *
