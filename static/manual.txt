@@ -25,11 +25,11 @@ First, let's take a look at Shoes on each of the platforms.
 
 ==== Step 1: Installing Shoes ====
 
-You'll want to visit [[http://shoooes.net/ shoooes.net]] to download the Shoes installer.  Usually, you'll just want one of the installers on the top corner of the home page. !{:margin => 8, :margin_left => 100}man-builds.png!
+You'll want to visit [[http://shoooes.net/ shoooes.net]] to download the Shoes installer.  Usually, you'll just want one of the installers on the top corner of the home page. !man-builds.png!
 
 Here's how to run the installer:
 
- * On '''Mac OS X''', you'll have a file ending with '''.dmg'''.  Double-click this file and a window should appear with a '''Shoes''' icon and an '''Applications''' folder.  Following the arrow, drag the Shoes icon into the '''Applications''' folder.
+ * On '''Mac OS X''', you'll have a file ending with '''.dmg'''.  Double-click this file and a window should appear with a '''Shoes''' icon and an '''Applications''' folder.  Following the arrow, drag the Shoes icon into the '''Applications''' folder. !man-intro-dmg.png!
  * On '''Windows''', you'll download a '''.exe''' file.  Double-click this file and follow the instructions.
  * On '''Linux''', you'll download a file ending with '''.run'''.  Double-click this file and Shoes will start up.  (You can also run this file from a prompt as if it was a shell script.  In fact, it is a shell script!)
 
@@ -39,7 +39,7 @@ Shoes programs are just plain text files ending with a '''.rb''' extension.
 
 Here are a few ways to create a blank text file:
 
- * On '''Mac OS X''', visit your '''Applications''' folder and double-click on the '''TextEdit''' app.  A blank editor window should come up.  Now, go to the '''Format''' menu and select the '''Make Plain Text''' option.  Okay, you're all set!
+ * On '''Mac OS X''', visit your '''Applications''' folder and double-click on the '''TextEdit''' app.  A blank editor window should come up.  Now, go to the '''Format''' menu and select the '''Make Plain Text''' option.  Okay, you're all set! !man-editor-osx.png!
  * On '''Windows''', go to the Start menu.  Select '''All Programs''', then '''Accessories''', then '''Notepad'''.
  * On '''Linux''', most distros come with '''gedit'''.  You might try running that.  Or, if your distro is KDE-based, run '''kate'''.
 
@@ -58,7 +58,7 @@ Save to your desktop as `welcome.rb`.
 
 To run your program:
 
- * On '''Mac OS X''', visit your '''Applications''' folder again.  This time, double-click the '''Shoes''' icon in that folder.  You should see the red shoes icon appear in the dock.  Drag your `welcome.rb` from the desktop on to that dock icon.
+ * On '''Mac OS X''', visit your '''Applications''' folder again.  This time, double-click the '''Shoes''' icon in that folder.  You should see the red shoes icon appear in the dock.  Drag your `welcome.rb` from the desktop on to that dock icon. !man-run-osx.png!
  * On '''Windows''', get to the Start menu.  Go into '''All Programs''', then '''Shoes''', then '''Shoes'''.  A file selector box should come up.  Browse to your desktop and select `welcome.rb`.  Click '''OK''' and you're on your way.
  * On '''Linux''', run Shoes just like you did in step one.  You should see a file selector box.  Browse to your desktop, select `welcome.rb` and hit '''OK'''.
 

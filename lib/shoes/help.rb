@@ -5,6 +5,7 @@ module Shoes::Manual
   CODE_STYLE = {:size => 9, :margin => 12}
   INTRO_STYLE = {:size => 12, :weight => "bold", :margin_bottom => 20, :stroke => "#000"}
   SUB_STYLE = {:stroke => "#CCC", :margin_top => 10}
+  IMAGE_STYLE = {:margin => 8, :margin_left => 100}
   COLON = ": "
 
   def dewikify_hi(str, terms, intro = false)
@@ -25,7 +26,7 @@ module Shoes::Manual
       gsub(/'''(.+?)'''/m, '", strong("\1"), "').gsub(/''(.+?)''/m, '", em("\1"), "').
       gsub(/\[\[(\S+?)\]\]/m, '", link("\1".split(".", 2).last) { open_link("\1") }, "').
       gsub(/\[\[(\S+?) (.+?)\]\]/m, '", link("\2") { open_link("\1") }, "').
-      gsub(/\!(\{[^}\n]+\})?([^!\n]+\.\w+)\!/, '", *args); stack(\1) { image("#{DIR}/static/\2") }; #{ele}("')
+      gsub(/\!(\{([^}\n]+)\})?([^!\n]+\.\w+)\!/, '", *args); stack(IMAGE_STYLE.merge({\2})) { image("#{DIR}/static/\3") }; #{ele}("')
     eval("#{ele}(#{str}, *args)")
   end
 
@@ -87,7 +88,7 @@ module Shoes::Manual
         when :index
           index_page
         when :list
-          dewikify_p :para, "  ● " + text.join("[[BR]]  ● ")
+          text.each { |t| dewikify_p :para, "  ● " + t }
         else
           dewikify_p sym, text
         end
@@ -317,6 +318,7 @@ def Shoes.make_help_page
     extend Shoes::Manual
     docs = load_docs Shoes::Manual::PATH
 
+    style(Shoes::Image, :margin => 8, :margin_left => 100)
     style(Shoes::Code, :stroke => "#C30")
     style(Shoes::LinkHover, :stroke => green, :fill => nil)
     style(Shoes::Para, :size => 9, :stroke => "#332")
