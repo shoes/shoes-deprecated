@@ -88,7 +88,8 @@ module Shoes::Manual
         when :index
           index_page
         when :list
-          text.each { |t| dewikify_p :para, "  ● " + t }
+          text.each { |t| stack(:margin_left => 30) { 
+            fill black; oval -10, 7, 6; dewikify_p :para, t } }
         else
           dewikify_p sym, text
         end
