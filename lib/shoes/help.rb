@@ -78,7 +78,7 @@ module Shoes::Manual
 
   def dewikify(str, intro = false)
     proc do
-      wiki_tokens(str) do |sym, text|
+      wiki_tokens(str, intro) do |sym, text|
         case sym when :intro
           dewikify_p :para, text, INTRO_STYLE
         when :code
@@ -338,7 +338,7 @@ def Shoes.make_help_page
       background "rgb(66, 66, 66, 100)".."rgb(255, 255, 255, 0)", :height => 20, :bottom => 0
     end
     @doc =
-      stack :margin_left => 130, :margin_top => 20, :margin_bottom => 50, :margin_right => 20 + gutter,
+      stack :margin_left => 130, :margin_top => 20, :margin_bottom => 50, :margin_right => 50 + gutter,
         &dewikify(docs[0][-1]['description'], true)
     stack :top => 80, :left => 0, :attach => Window do
       @toc = {}
