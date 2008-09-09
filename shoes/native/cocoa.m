@@ -123,7 +123,7 @@
 - (void)scrollWheel: (NSEvent *)e
 {
   ID wheel;
-  int dy = [e deltaY] * 10;
+  float dy = [e deltaY];
   NSPoint p = [e locationInWindow];
   shoes_app *a;
 
@@ -138,7 +138,7 @@
   }
 
   Data_Get_Struct(app, shoes_app, a);
-  for (; dy > 0; dy--)
+  for (; dy > 0.; dy--)
     shoes_app_wheel(a, wheel, p.x, p.y);
 }
 - (void)keyDown: (NSEvent *)e
