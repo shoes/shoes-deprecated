@@ -3920,7 +3920,7 @@ shoes_log(VALUE self)
     VALUE canvas, obj; \
     GET_STRUCT(canvas, self_t); \
     char *n = name; \
-    if (rb_ary_entry(self_t->app->nesting, 0) == self) \
+    if (rb_ary_entry(self_t->app->nesting, 0) == self || (self == self_t->app->nestslot && RARRAY_LEN(self_t->app->nesting) > 0)) \
       canvas = rb_ary_entry(self_t->app->nesting, RARRAY_LEN(self_t->app->nesting) - 1); \
     else \
       canvas = self; \
