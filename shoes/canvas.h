@@ -482,7 +482,7 @@ VALUE shoes_list_box_draw(VALUE, VALUE, VALUE);
 VALUE shoes_progress_draw(VALUE, VALUE, VALUE);
 
 VALUE shoes_shape_attr(int, VALUE *, int, ...);
-void shoes_shape_sketch(cairo_t *, ID, shoes_place *, shoes_transform *, VALUE);
+void shoes_shape_sketch(cairo_t *, ID, shoes_place *, shoes_transform *, VALUE, unsigned char);
 VALUE shoes_shape_new(VALUE, ID, VALUE, shoes_transform *);
 VALUE shoes_shape_alloc(VALUE);
 VALUE shoes_shape_draw(VALUE, VALUE, VALUE);

@@ -451,7 +451,7 @@ shoes_add_shape(VALUE self, ID name, VALUE attr)
   if (rb_obj_is_kind_of(self, cImage))
   {
     SETUP_IMAGE();
-    shoes_shape_sketch(image->cr, name, &place, NULL, attr);
+    shoes_shape_sketch(image->cr, name, &place, NULL, attr, 1);
     return self;
   }
 
