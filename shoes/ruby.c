@@ -592,9 +592,9 @@ shoes_shape_attr(int argc, VALUE *argv, int syms, ...)
   int i;
   va_list args;
   VALUE hsh = Qnil, v;
-  if (argc < 1) rb_raise(rb_eArgError, "wrong number of arguments (%d for 1)", argc);
   va_start(args, syms);
-  if (rb_obj_is_kind_of(argv[argc - 1], rb_cHash)) hsh = argv[argc - 1];
+  if (argc < 1) hsh = rb_hash_new();
+  else if (rb_obj_is_kind_of(argv[argc - 1], rb_cHash)) hsh = argv[argc - 1];
   for (i = 0; i < syms; i++)
   {
     ID sym = va_arg(args, ID);
