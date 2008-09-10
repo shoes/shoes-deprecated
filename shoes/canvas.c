@@ -24,6 +24,10 @@
   shoes_place_exact(&place, attr, 0, 0); \
   if (NIL_P(attr)) attr = image->attr; \
   else if (!NIL_P(image->attr)) attr = rb_funcall(image->attr, s_merge, 1, attr);
+#define SETUP_SHAPE() \
+  shoes_canvas *canvas = NULL; \
+  VALUE attr, c = shoes_find_canvas(self); \
+  Data_Get_Struct(c, shoes_canvas, canvas)
 
 const double SHOES_PIM2   = 6.28318530717958647693;
 const double SHOES_PI     = 3.14159265358979323846;
@@ -308,6 +312,7 @@ shoes_canvas_alloc(VALUE klass)
   canvas->app = NULL;
   canvas->stage = CANVAS_NADA;
   canvas->contents = Qnil;
+  canvas->shape = NULL;
   canvas->insertion = -2;
   VALUE rb_canvas = Data_Wrap_Struct(klass, shoes_canvas_mark, shoes_canvas_free, canvas);
   return rb_canvas;
@@ -446,52 +451,52 @@ shoes_canvas_fill(int argc, VALUE *argv, VALUE self)
 }
 
 VALUE
-shoes_add_shape(VALUE self, ID name, VALUE attr)
+shoes_add_shape(VALUE self, ID name, VALUE attr, cairo_path_t *line)
 {
   if (rb_obj_is_kind_of(self, cImage))
   {
     SETUP_IMAGE();
-    shoes_shape_sketch(image->cr, name, &place, NULL, attr, 1);
+    shoes_shape_sketch(image->cr, name, &place, NULL, attr, line, 1);
     return self;
   }
 
   SETUP();
-  return shoes_add_ele(canvas, shoes_shape_new(self, name, attr, canvas->st));
+  return shoes_add_ele(canvas, shoes_shape_new(self, name, attr, canvas->st, line));
 }
 
 VALUE
 shoes_canvas_rect(int argc, VALUE *argv, VALUE self)
 {
   VALUE attr = shoes_shape_attr(argc, argv, 5, s_left, s_top, s_width, s_height, s_curve);
-  return shoes_add_shape(self, s_rect, attr);
+  return shoes_add_shape(self, s_rect, attr, NULL);
 }
 
 VALUE
 shoes_canvas_oval(int argc, VALUE *argv, VALUE self)
 {
   VALUE attr = shoes_shape_attr(argc, argv, 4, s_left, s_top, s_width, s_height);
-  return shoes_add_shape(self, s_oval, attr);
+  return shoes_add_shape(self, s_oval, attr, NULL);
 }
 
 VALUE
 shoes_canvas_line(int argc, VALUE *argv, VALUE self)
 {
   VALUE attr = shoes_shape_attr(argc, argv, 4, s_left, s_top, s_right, s_bottom);
-  return shoes_add_shape(self, s_line, attr);
+  return shoes_add_shape(self, s_line, attr, NULL);
 }
 
 VALUE
 shoes_canvas_arrow(int argc, VALUE *argv, VALUE self)
 {
   VALUE attr = shoes_shape_attr(argc, argv, 3, s_left, s_top, s_width);
-  return shoes_add_shape(self, s_arrow, attr);
+  return shoes_add_shape(self, s_arrow, attr, NULL);
 }
 
 VALUE
 shoes_canvas_star(int argc, VALUE *argv, VALUE self)
 {
   VALUE attr = shoes_shape_attr(argc, argv, 5, s_left, s_top, s_points, s_outer, s_inner);
-  return shoes_add_shape(self, s_star, attr);
+  return shoes_add_shape(self, s_star, attr, NULL);
 }
 
 VALUE
@@ -748,41 +753,38 @@ shoes_canvas_timer(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_shape(int argc, VALUE *argv, VALUE self)
 {
-  VALUE _x, _y;
-  double x, y;
-  SETUP();
+  int x;
+  double x1, y1, x2, y2;
+  cairo_t *shape = NULL;
+  cairo_path_t *line = NULL;
+  SETUP_SHAPE();
 
-  /*
-  rb_scan_args(argc, argv, "02", &_x, &_y);
+  shape = canvas->shape;
+  attr = shoes_shape_attr(argc, argv, 2, s_left, s_top);
+  canvas->shape = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
+  cairo_new_path(canvas->shape);
+  if (rb_block_given_p()) rb_yield(Qnil);
 
-  shoes_canvas_shape_do(canvas, 0, 0, 0, 0, FALSE);
-  cairo_new_path(cr);
-  if (!NIL_P(_x) && !NIL_P(_y))
-  {
-    x = NUM2DBL(_x);
-    y = NUM2DBL(_y);
-    cairo_move_to(cr, x, y);
-  }
-  if (rb_block_given_p())
-  {
-    rb_yield(Qnil);
-  }
-  cairo_close_path(cr);
-  return shoes_canvas_shape_end(self, INT2NUM(x), INT2NUM(y), 40, 40);
-  */
-  return Qnil;
+  cairo_path_extents(canvas->shape, &x1, &y1, &x2, &y2);
+  x = x2 - x1;
+  ATTRSET(attr, width, INT2NUM(x));
+  x = y2 - y1;
+  ATTRSET(attr, height, INT2NUM(x));
+  line = cairo_copy_path(canvas->shape);
+  canvas->shape = shape;
+  return shoes_add_shape(self, s_shape, attr, line);
 }
 
 VALUE
 shoes_canvas_move_to(VALUE self, VALUE _x, VALUE _y)
 {
   double x, y;
-  SETUP();
+  SETUP_SHAPE();
 
   x = NUM2DBL(_x);
   y = NUM2DBL(_y);
 
-  cairo_move_to(cr, x, y);
+  if (canvas->shape != NULL) cairo_move_to(canvas->shape, x, y);
   return self;
 }
 
@@ -790,12 +792,12 @@ VALUE
 shoes_canvas_line_to(VALUE self, VALUE _x, VALUE _y)
 {
   double x, y;
-  SETUP();
+  SETUP_SHAPE();
 
   x = NUM2DBL(_x);
   y = NUM2DBL(_y);
 
-  cairo_line_to(cr, x, y);
+  if (canvas->shape != NULL) cairo_line_to(canvas->shape, x, y);
   return self;
 }
 
@@ -803,7 +805,7 @@ VALUE
 shoes_canvas_curve_to(VALUE self, VALUE _x1, VALUE _y1, VALUE _x2, VALUE _y2, VALUE _x3, VALUE _y3)
 {
   double x1, y1, x2, y2, x3, y3;
-  SETUP();
+  SETUP_SHAPE();
 
   x1 = NUM2DBL(_x1);
   y1 = NUM2DBL(_y1);
@@ -812,7 +814,7 @@ shoes_canvas_curve_to(VALUE self, VALUE _x1, VALUE _y1, VALUE _x2, VALUE _y2, VA
   x3 = NUM2DBL(_x3);
   y3 = NUM2DBL(_y3);
 
-  cairo_curve_to(cr, x1, y1, x2, y2, x3, y3);
+  if (canvas->shape != NULL) cairo_curve_to(canvas->shape, x1, y1, x2, y2, x3, y3);
   return self;
 }
 

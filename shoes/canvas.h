@@ -112,6 +112,7 @@ typedef struct {
   shoes_place place;
   ID name;
   char hover;
+  cairo_path_t *line;
   shoes_transform *st;
 } shoes_shape;
 
@@ -280,7 +281,7 @@ typedef struct {
   VALUE parent;
   VALUE attr;
   shoes_place place;
-  cairo_t *cr;
+  cairo_t *cr, *shape;
   shoes_transform *st, **sts;
   int stl, stt;
   VALUE contents;
@@ -482,8 +483,8 @@ VALUE shoes_list_box_draw(VALUE, VALUE, VALUE);
 VALUE shoes_progress_draw(VALUE, VALUE, VALUE);
 
 VALUE shoes_shape_attr(int, VALUE *, int, ...);
-void shoes_shape_sketch(cairo_t *, ID, shoes_place *, shoes_transform *, VALUE, unsigned char);
-VALUE shoes_shape_new(VALUE, ID, VALUE, shoes_transform *);
+void shoes_shape_sketch(cairo_t *, ID, shoes_place *, shoes_transform *, VALUE, cairo_path_t *, unsigned char);
+VALUE shoes_shape_new(VALUE, ID, VALUE, shoes_transform *, cairo_path_t *);
 VALUE shoes_shape_alloc(VALUE);
 VALUE shoes_shape_draw(VALUE, VALUE, VALUE);
 VALUE shoes_shape_move(VALUE, VALUE, VALUE);

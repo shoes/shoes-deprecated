@@ -17,7 +17,7 @@ VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask
 VALUE eVlcError, eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot;
-ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_merge, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_URI, s_angle, s_arrow, s_autoplay, s_begin, s_body, s_call, s_center, s_change, s_checked, s_checked_q, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_group, s_hand, s_headers, s_hidden, s_host, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_link, s_method, s_motion, s_path, s_port, s_progress, s_release, s_request_uri, s_save, s_wheel, s_stroke, s_scroll, s_start, s_attach, s_leading, s_leave, s_outer, s_points, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info, s_blur, s_glow, s_shadow, s_rect, s_oval, s_line, s_star;
+ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_merge, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_URI, s_angle, s_arrow, s_autoplay, s_begin, s_body, s_call, s_center, s_change, s_checked, s_checked_q, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_group, s_hand, s_headers, s_hidden, s_host, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_link, s_method, s_motion, s_path, s_port, s_progress, s_release, s_request_uri, s_save, s_wheel, s_stroke, s_scroll, s_start, s_attach, s_leading, s_leave, s_outer, s_points, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info, s_blur, s_glow, s_shadow, s_rect, s_oval, s_line, s_shape, s_star;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -582,6 +582,7 @@ static void
 shoes_shape_free(shoes_shape *path)
 {
   shoes_transform_release(path->st);
+  if (path->line != NULL) cairo_path_destroy(path->line);
   RUBY_CRITICAL(free(path));
 }
 
@@ -618,7 +619,7 @@ shoes_shape_check(cairo_t *cr, shoes_place *place)
 }
 
 void
-shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, shoes_transform *st, VALUE attr, unsigned char draw)
+shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, shoes_transform *st, VALUE attr, cairo_path_t* line, unsigned char draw)
 {
   double sw = ATTR2(dbl, attr, strokewidth, 1.);
   if (name == s_oval && place->w > 0 && place->h > 0)
@@ -699,6 +700,15 @@ shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, shoes_transform *st
       shoes_undo_transformation(cr, st, place, 0);
     }
   }
+  else if (name == s_shape)
+  {
+    shoes_apply_transformation(cr, st, place, RTEST(ATTR(attr, center)), 0);
+    if (!shoes_shape_check(cr, place))
+      return shoes_undo_transformation(cr, st, place, 0);
+    cairo_translate(cr, SWPOS(place->x), SWPOS(place->y));
+    cairo_append_path(cr, line);
+    shoes_undo_transformation(cr, st, place, 0);
+  }
   else return;
 
   if (draw)
@@ -709,7 +719,7 @@ shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, shoes_transform *st
 }
 
 VALUE
-shoes_shape_new(VALUE parent, ID name, VALUE attr, shoes_transform *st)
+shoes_shape_new(VALUE parent, ID name, VALUE attr, shoes_transform *st, cairo_path_t *line)
 {
   shoes_shape *path;
   shoes_canvas *canvas;
@@ -720,6 +730,7 @@ shoes_shape_new(VALUE parent, ID name, VALUE attr, shoes_transform *st)
   path->attr = attr;
   path->name = name;
   path->st = shoes_transform_touch(st);
+  path->line = line;
   COPY_PENS(path->attr, canvas->attr);
   return obj;
 }
@@ -733,6 +744,7 @@ shoes_shape_alloc(VALUE klass)
   obj = Data_Wrap_Struct(klass, shoes_shape_mark, shoes_shape_free, shape);
   shape->attr = Qnil;
   shape->parent = Qnil;
+  shape->line = NULL;
   return obj;
 }
 
@@ -746,7 +758,7 @@ shoes_shape_draw(VALUE self, VALUE c, VALUE actual)
   shoes_place_exact(&place, self_t->attr, CPX(canvas), CPY(canvas));
 
   if (RTEST(actual))
-    shoes_shape_sketch(CCR(canvas), self_t->name, &place, self_t->st, self_t->attr, 1); 
+    shoes_shape_sketch(CCR(canvas), self_t->name, &place, self_t->st, self_t->attr, self_t->line, 1); 
 
   self_t->place = place;
   return self;
@@ -772,7 +784,7 @@ shoes_shape_motion(VALUE self, int x, int y, char *touch)
     //   cairo_append_path(cr, self_t->line);
     // }
     // else
-      shoes_shape_sketch(cr, self_t->name, &self_t->place, self_t->st, self_t->attr, 0); 
+      shoes_shape_sketch(cr, self_t->name, &self_t->place, self_t->st, self_t->attr, self_t->line, 0); 
     in_shape = cairo_in_fill(cr, x, y);
     cairo_destroy(cr);
 
@@ -4065,6 +4077,7 @@ shoes_ruby_init()
   s_rect = rb_intern("rect");
   s_oval = rb_intern("oval");
   s_line = rb_intern("line");
+  s_shape = rb_intern("shape");
   s_star = rb_intern("star");
 
   symAltQuest = ID2SYM(rb_intern("alt_?"));
@@ -4199,7 +4212,11 @@ shoes_ruby_init()
   rb_define_method(cImage, "line", CASTHOOK(shoes_canvas_line), -1);
   rb_define_method(cImage, "oval", CASTHOOK(shoes_canvas_oval), -1);
   rb_define_method(cImage, "rect", CASTHOOK(shoes_canvas_rect), -1);
+  rb_define_method(cImage, "shape", CASTHOOK(shoes_canvas_shape), -1);
   rb_define_method(cImage, "star", CASTHOOK(shoes_canvas_star), -1);
+  rb_define_method(cImage, "move_to", CASTHOOK(shoes_canvas_move_to), 2);
+  rb_define_method(cImage, "line_to", CASTHOOK(shoes_canvas_line_to), 2);
+  rb_define_method(cImage, "curve_to", CASTHOOK(shoes_canvas_curve_to), 6);
   rb_define_method(cImage, "blur", CASTHOOK(shoes_canvas_blur), -1);
   rb_define_method(cImage, "glow", CASTHOOK(shoes_canvas_glow), -1);
   rb_define_method(cImage, "shadow", CASTHOOK(shoes_canvas_shadow), -1);
