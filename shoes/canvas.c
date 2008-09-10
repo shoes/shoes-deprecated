@@ -384,6 +384,7 @@ shoes_slot_scroll_to(shoes_canvas *canvas, int dy, int rel)
     canvas->slot.scrolly = canvas->endy - canvas->height;
   if (canvas->slot.scrolly < 0)
     canvas->slot.scrolly = 0;
+  if (DC(canvas->app->slot) == DC(canvas->slot)) canvas->app->slot.scrolly = si.nPos;
   shoes_native_slot_scroll_top(&canvas->slot);
   shoes_slot_repaint(&canvas->slot);
 }
