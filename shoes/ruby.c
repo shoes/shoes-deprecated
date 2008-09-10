@@ -4113,6 +4113,10 @@ shoes_ruby_init()
   rb_const_set(cShoes, rb_intern("RELEASE_NAME"), rb_str_new2(SHOES_RELEASE_NAME));
   rb_const_set(cShoes, rb_intern("RELEASE_ID"), INT2NUM(SHOES_RELEASE_ID));
   rb_const_set(cShoes, rb_intern("REVISION"), INT2NUM(SHOES_REVISION));
+  rb_const_set(cShoes, rb_intern("RAD2PI"), rb_float_new(SHOES_RAD2PI));
+  rb_const_set(cShoes, rb_intern("TWO_PI"), rb_float_new(SHOES_PIM2));
+  rb_const_set(cShoes, rb_intern("HALF_PI"), rb_float_new(SHOES_HALFPI));
+  rb_const_set(cShoes, rb_intern("PI"), rb_float_new(SHOES_PI));
 
   cApp = rb_define_class_under(cShoes, "App", rb_cObject);
   rb_define_alloc_func(cApp, shoes_app_alloc);
@@ -4217,6 +4221,7 @@ shoes_ruby_init()
   rb_define_method(cImage, "move_to", CASTHOOK(shoes_canvas_move_to), 2);
   rb_define_method(cImage, "line_to", CASTHOOK(shoes_canvas_line_to), 2);
   rb_define_method(cImage, "curve_to", CASTHOOK(shoes_canvas_curve_to), 6);
+  rb_define_method(cImage, "arc", CASTHOOK(shoes_canvas_arc), 6);
   rb_define_method(cImage, "blur", CASTHOOK(shoes_canvas_blur), -1);
   rb_define_method(cImage, "glow", CASTHOOK(shoes_canvas_glow), -1);
   rb_define_method(cImage, "shadow", CASTHOOK(shoes_canvas_shadow), -1);

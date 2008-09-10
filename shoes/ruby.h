@@ -212,9 +212,10 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f("+every", every, -1); \
   f("+timer", timer, -1); \
   f("+shape", shape, -1); \
-  f("+move_to", move_to, 2); \
-  f("+line_to", line_to, 2); \
-  f("+curve_to", curve_to, 6); \
+  f(".move_to", move_to, 2); \
+  f(".line_to", line_to, 2); \
+  f(".curve_to", curve_to, 6); \
+  f(".arc", arc, 6); \
   f(".transform", transform, 1); \
   f(".translate", translate, 2); \
   f(".rotate", rotate, 1); \

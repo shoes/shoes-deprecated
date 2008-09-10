@@ -31,6 +31,7 @@
 
 const double SHOES_PIM2   = 6.28318530717958647693;
 const double SHOES_PI     = 3.14159265358979323846;
+const double SHOES_HALFPI = 1.57079632679489661923;
 const double SHOES_RAD2PI = 0.01745329251994329577;
 
 const char *dialog_title = "Shoes asks:";
@@ -815,6 +816,31 @@ shoes_canvas_curve_to(VALUE self, VALUE _x1, VALUE _y1, VALUE _x2, VALUE _y2, VA
   y3 = NUM2DBL(_y3);
 
   if (canvas->shape != NULL) cairo_curve_to(canvas->shape, x1, y1, x2, y2, x3, y3);
+  return self;
+}
+
+VALUE
+shoes_canvas_arc(VALUE self, VALUE _x, VALUE _y, VALUE _w, VALUE _h, VALUE _a1, VALUE _a2)
+{
+  double x, y, w, h, a1, a2;
+  SETUP_SHAPE();
+
+  x = NUM2DBL(_x);
+  y = NUM2DBL(_y);
+  w = NUM2DBL(_w);
+  h = NUM2DBL(_h);
+  a1 = NUM2DBL(_a1);
+  a2 = NUM2DBL(_a2);
+
+  if (canvas->shape != NULL)
+  {
+    cairo_save(canvas->shape);
+    cairo_new_sub_path(canvas->shape);
+    cairo_translate(canvas->shape, x, y);
+    cairo_scale(canvas->shape, w / 2., h / 2.);
+    cairo_arc(canvas->shape, 0., 0., 1., a1, a2);
+    cairo_restore(canvas->shape);
+  }
   return self;
 }
 

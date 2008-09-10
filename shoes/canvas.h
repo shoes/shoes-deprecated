@@ -389,6 +389,7 @@ void shoes_canvas_remove_item(VALUE, VALUE, char, char);
 VALUE shoes_canvas_move_to(VALUE, VALUE, VALUE);
 VALUE shoes_canvas_line_to(VALUE, VALUE, VALUE);
 VALUE shoes_canvas_curve_to(VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE);
+VALUE shoes_canvas_arc(VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_canvas_transform(VALUE, VALUE);
 VALUE shoes_canvas_translate(VALUE, VALUE, VALUE);
 VALUE shoes_canvas_rotate(VALUE, VALUE);
@@ -593,7 +594,7 @@ VALUE shoes_response_status(VALUE);
 
 VALUE shoes_p(VALUE, VALUE);
 
-extern const double SHOES_PIM2, SHOES_PI, SHOES_RAD2PI;
+extern const double SHOES_PIM2, SHOES_PI, SHOES_RAD2PI, SHOES_HALFPI;
 
 //
 // shoes/image.c
