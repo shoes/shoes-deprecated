@@ -345,6 +345,7 @@ shoes_canvas_clear(VALUE self)
   Data_Get_Struct(self, shoes_canvas, canvas);
   canvas->cr = NULL;
   canvas->attr = rb_hash_new();
+  ATTRSET(canvas->attr, cap, Qnil);
   ATTRSET(canvas->attr, strokewidth, rb_float_new(1.));
   ATTRSET(canvas->attr, stroke, shoes_color_new(0, 0, 0, 0xFF));
   ATTRSET(canvas->attr, fill, shoes_color_new(0, 0, 0, 0xFF));
@@ -424,6 +425,14 @@ shoes_canvas_strokewidth(VALUE self, VALUE w)
 {
   SETUP_BASIC();
   ATTRSET(basic->attr, strokewidth, w);
+  return self;
+}
+
+VALUE
+shoes_canvas_cap(VALUE self, VALUE cap)
+{
+  SETUP_BASIC();
+  ATTRSET(basic->attr, cap, cap);
   return self;
 }
 
