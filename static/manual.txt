@@ -568,7 +568,7 @@ In this example below, the rectangle drawn at (30, 30) will be rotated 45 degree
 
 === shape(left, top) { ... } » Shoes::Shape ===
 
-Describes an arbitrary shape to draw, beginning at coordinates (left, top) and continued by calls to `line_to`, `curve_to` and `move_to` inside the block.
+Describes an arbitrary shape to draw, beginning at coordinates (left, top) and continued by calls to `line_to`, `move_to`, `curve_to` and `arc` inside the block.
 
 === star(left, top, points = 10, outer = 100.0, inner = 50.0) » Shoes::Shape ===
 

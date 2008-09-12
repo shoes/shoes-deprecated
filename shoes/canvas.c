@@ -471,6 +471,15 @@ shoes_add_shape(VALUE self, ID name, VALUE attr, cairo_path_t *line)
   }
 
   SETUP();
+  if (canvas->shape != NULL)
+  {
+    shoes_place place;
+    shoes_place_exact(&place, attr, 0, 0);
+    cairo_new_sub_path(canvas->shape);
+    shoes_shape_sketch(canvas->shape, name, &place, canvas->st, attr, line, 0);
+    return self;
+  }
+
   return shoes_add_ele(canvas, shoes_shape_new(self, name, attr, canvas->st, line));
 }
 
