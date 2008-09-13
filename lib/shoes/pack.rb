@@ -295,6 +295,9 @@ END
                 end
 
                 @prog.style(:width => 1.0)
+                @page2.hide
+                @page3.show 
+                @path3.replace File.basename(@path.text)
               rescue => e
                 error(e)
               end
@@ -324,6 +327,17 @@ END
           background "rgb(120, 120, 120, 0)".."rgb(0, 0, 0, 100)", :curve => 6, 
             :height => 16, :top => 8
           border "rgb(60, 60, 60, 80)", :curve => 7, :strokewidth => 2
+        end
+      end
+    end
+
+    @page3 = stack :hidden => true do
+      stack do
+        background white
+        stack :margin => 20 do
+          para "Completed:", :margin => 4
+          @path3 = para "", :size => 20, :margin => 4
+          para "Your files are done, you may close this window.", :margin => 4
         end
       end
     end
