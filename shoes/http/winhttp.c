@@ -1,56 +1,24 @@
 //
 // shoes/http/winhttp.c
-// the downloader routines using windows' winhttp lib.
+// the central download routine
+// (isolated so it can be reused in platform/msw/stub.c)
 //
 #include "shoes/app.h"
 #include "shoes/ruby.h"
 #include "shoes/internal.h"
 #include "shoes/config.h"
-#include "shoes/http.h"
 #include "shoes/version.h"
-#include "shoes/world.h"
-#include "shoes/native.h"
-#include <shellapi.h>
-#include <wchar.h>
-#include <time.h>
+#include "shoes/http/common.h"
+#include "shoes/http/winhttp.h"
 
-void
-shoes_download(shoes_download_request *req)
+void shoes_get_time(SHOES_TIME *ts)
 {
-  HANDLE file = INVALID_HANDLE_VALUE;
-  INTERNET_PORT _port = req->port;
-  LPWSTR _host = SHOE_ALLOC_N(WCHAR, MAX_PATH);
-  LPWSTR _path = SHOE_ALLOC_N(WCHAR, MAX_PATH);
-  DWORD _size;
-  MultiByteToWideChar(CP_UTF8, 0, req->host, -1, _host, MAX_PATH);
-  MultiByteToWideChar(CP_UTF8, 0, req->path, -1, _path, MAX_PATH);
-
-  if (req->mem == NULL && req->filepath != NULL)
-    file = CreateFile(req->filepath, GENERIC_READ | GENERIC_WRITE,
-      FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-  shoes_winhttp(_host, _port, _path, &req->mem, req->memlen, file, &_size, req->handler, req->data);
-  req->size = _size;
-  SHOE_FREE(_host);
-  SHOE_FREE(_path);
+  *ts = GetTickCount();
 }
 
-DWORD WINAPI
-shoes_download2(LPVOID data)
+unsigned long shoes_diff_time(SHOES_TIME *start, SHOES_TIME *end)
 {
-  shoes_download_request *req = (shoes_download_request *)data;
-  shoes_download(req);
-  if (req->mem != NULL) free(req->mem);
-  if (req->filepath != NULL) free(req->filepath);
-  free(req->data);
-  free(req);
-  return TRUE;
-}
-
-void
-shoes_queue_download(shoes_download_request *req)
-{
-  DWORD tid;
-  CreateThread(0, 0, (LPTHREAD_START_ROUTINE)shoes_download2, (void *)req, 0, &tid);
+  return *end - *start;
 }
 
 void
@@ -132,13 +100,13 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR **mem, ULONG
     if (handler != NULL) handler(&event, data);
   }
 
-  shoes_winhttp_headers(req, handler, data);
+  if (handler != NULL) shoes_winhttp_headers(req, handler, data);
 
   *size = 0;
   len = sizeof(buf);
-  if (WinHttpQueryHeaders(req, WINHTTP_QUERY_CONTENT_LENGTH, NULL, buf, &len, NULL))
+  if (WinHttpQueryHeaders(req, WINHTTP_QUERY_CONTENT_LENGTH | WINHTTP_QUERY_FLAG_NUMBER,
+    NULL, size, &len, NULL))
   {
-    *size = _wtoi((wchar_t *)buf);
     if (*mem != NULL && *size > memlen)
     {
       SHOE_REALLOC_N(*mem, char, (memlen = *size));
@@ -219,18 +187,3 @@ done:
     WinHttpCloseHandle(sess);
 }
 
-VALUE
-shoes_http_error(SHOES_DOWNLOAD_ERROR code)
-{
-  TCHAR msg[1024];
-  DWORD msglen = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-    NULL, code, 0, msg, sizeof(msg), NULL);
-  msg[msglen] = '\0';
-  return rb_str_new2(msg);
-}
-
-SHOES_DOWNLOAD_HEADERS
-shoes_http_headers(VALUE hsh)
-{
-  return NULL;
-}

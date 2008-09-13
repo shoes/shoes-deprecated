@@ -194,7 +194,7 @@ end
 # use the platform Ruby claims
 case PLATFORM
 when /win32/
-  SRC = FileList["shoes/*.c", "shoes/native/windows.c", "shoes/http/winhttp.c"]
+  SRC = FileList["shoes/*.c", "shoes/native/windows.c", "shoes/http/winhttp.c", "shoes/http/windownload.c"]
   OBJ = SRC.map do |x|
     x.gsub(/\.c$/, '.obj')
   end

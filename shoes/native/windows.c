@@ -60,16 +60,6 @@ void shoes_native_quit()
   PostQuitMessage(0);
 }
 
-void shoes_get_time(SHOES_TIME *ts)
-{
-  *ts = GetTickCount();
-}
-
-unsigned long shoes_diff_time(SHOES_TIME *start, SHOES_TIME *end)
-{
-  return *end - *start;
-}
-
 int shoes_throw_message(unsigned int name, VALUE obj, void *data)
 {
   return SendMessage(shoes_world->os.hidden, SHOES_WM_MESSAGE + name, obj, (LPARAM)data);

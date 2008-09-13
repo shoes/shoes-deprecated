@@ -1,11 +1,14 @@
 #include <stdio.h>
-#include <windows.h>
-#include <winhttp.h>
-#include <shellapi.h>
-#include <wchar.h>
-#include "stub32.h"
+#include <stdlib.h>
+
+#define LONG_LONG long long
+#define SHOES_TIME DWORD
+#define SHOES_DOWNLOAD_ERROR DWORD
+
 #include "shoes/version.h"
-#include "shoes/http.h"
+#include "shoes/internal.h"
+#include "shoes/http/winhttp.h"
+#include "stub32.h"
 
 #define BUFSIZE 512
 
@@ -113,14 +116,16 @@ shoes_download_thread(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
 {
   DWORD len = 0;
   WCHAR path[BUFSIZE];
-  TCHAR buf[BUFSIZE];
+  TCHAR *buf = SHOE_ALLOC_N(TCHAR, BUFSIZE);
+  TCHAR *empty = NULL;
   HANDLE file;
   TCHAR *nl;
   TCHAR setup_path[BUFSIZE];
   GetTempPath(BUFSIZE, setup_path);
   strncat(setup_path, setup_exe, strlen(setup_exe));
 
-  shoes_winhttp(L"hacketyhack.net", 80, L"/pkg/win32/shoes", buf, NULL, &len, NULL, NULL);
+  shoes_winhttp(L"hacketyhack.net", 80, L"/pkg/win32/shoes", &buf, BUFSIZE,
+    INVALID_HANDLE_VALUE, &len, NULL, NULL);
   if (len == 0)
     return 0;
 
@@ -131,11 +136,20 @@ shoes_download_thread(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
   MultiByteToWideChar(CP_ACP, 0, buf, -1, path, BUFSIZE);
   file = CreateFile(setup_path, GENERIC_READ | GENERIC_WRITE,
     FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-  shoes_winhttp(L"hacketyhack.net", 80, path, NULL, file, &len, HTTP_HANDLER(StubDownloadingShoes), NULL);
+  shoes_winhttp(L"hacketyhack.net", 80, path, &empty, 0, file, &len, HTTP_HANDLER(StubDownloadingShoes), NULL);
   CloseHandle(file);
 
   shoes_silent_install(setup_path);
   return 0;
+}
+
+static BOOL
+file_exists(char *fname)
+{
+  WIN32_FIND_DATA data;
+  if (FindFirstFile(fname, &data) != INVALID_HANDLE_VALUE)
+    return !(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
+  return FALSE;
 }
 
 static BOOL
@@ -181,7 +195,7 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
   if (!(shoes = reg_s((hkey=HKEY_LOCAL_MACHINE), key, "", (LPBYTE)&path, &plen)))
     shoes = reg_s((hkey=HKEY_CURRENT_USER), key, "", (LPBYTE)&path, &plen);
 
-  if(!shoes)
+  if (!shoes || !file_exists(path))
   {
     LPTHREAD_START_ROUTINE back_action = (LPTHREAD_START_ROUTINE)shoes_auto_setup;
 

@@ -1,11 +1,11 @@
 Shoes.app do
   background "#eee"
-  stack do
+  @list = stack do
     para "Enter a URL to download:", :margin => [10, 8, 10, 0]
     flow :margin => 10 do
       @url = edit_line :width => -120
       button "Download", :width => 120 do
-        parent.append do
+        @list.append do
           stack do
             background "#eee".."#ccd"
             stack :margin => 10 do

@@ -8,6 +8,7 @@
 #include "shoes/ruby.h"
 #include "shoes/world.h"
 #include "shoes/native.h"
+#include "shoes/http.h"
 
 #define SETUP() \
   shoes_canvas *canvas; \
