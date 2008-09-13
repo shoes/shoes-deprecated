@@ -17,6 +17,8 @@
 
 #define HEIGHT_PAD 0
 
+#define SHOES_GTK_INVISIBLE_CHAR (gunichar)0x2022
+
 void shoes_native_init()
 {
   curl_global_init(CURL_GLOBAL_ALL);
@@ -751,6 +753,7 @@ shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VAL
 {
   SHOES_CONTROL_REF ref = gtk_entry_new();
   gtk_entry_set_visibility(GTK_ENTRY(ref), !RTEST(ATTR(attr, secret)));
+  gtk_entry_set_invisible_char(GTK_ENTRY(ref), SHOES_GTK_INVISIBLE_CHAR);
   gtk_entry_set_text(GTK_ENTRY(ref), _(msg));
   g_signal_connect(G_OBJECT(ref), "changed",
                    G_CALLBACK(shoes_widget_changed),
@@ -1001,6 +1004,34 @@ shoes_dialog_ask(VALUE self, VALUE quiz)
   GtkWidget *question = gtk_label_new(RSTRING_PTR(quiz));
   gtk_misc_set_alignment(GTK_MISC(question), 0, 0);
   GtkWidget *_answer = gtk_entry_new();
+  gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), question, FALSE, FALSE, 3);
+  gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), _answer, FALSE, TRUE, 3);
+  gtk_widget_show_all(dialog);
+  gint result = gtk_dialog_run(GTK_DIALOG(dialog));
+  if (result == GTK_RESPONSE_OK)
+  {
+    const gchar *txt = gtk_entry_get_text(GTK_ENTRY(_answer));
+    answer = rb_str_new2(txt);
+  }
+  gtk_widget_destroy(dialog);
+  return answer;
+}
+
+VALUE
+shoes_dialog_ask_secretly(VALUE self, VALUE quiz)
+{
+  VALUE answer = Qnil;
+  GLOBAL_APP(app);
+  quiz = shoes_native_to_s(quiz);
+  GtkWidget *dialog = gtk_dialog_new_with_buttons(_(dialog_title),
+    APP_WINDOW(app), GTK_DIALOG_MODAL, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
+  gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
+  gtk_container_set_border_width(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), 6);
+  GtkWidget *question = gtk_label_new(RSTRING_PTR(quiz));
+  gtk_misc_set_alignment(GTK_MISC(question), 0, 0);
+  GtkWidget *_answer = gtk_entry_new();
+  gtk_entry_set_visibility(GTK_ENTRY(_answer), FALSE);
+  gtk_entry_set_visibility_char(GTK_ENTRY(_answer), SHOES_GTK_INVISIBLE_CHAR);
   gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), question, FALSE, FALSE, 3);
   gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), _answer, FALSE, TRUE, 3);
   gtk_widget_show_all(dialog);

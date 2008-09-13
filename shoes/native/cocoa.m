@@ -1119,6 +1119,25 @@ shoes_dialog_ask(VALUE self, VALUE quiz)
 }
 
 VALUE
+shoes_dialog_ask_secretly(VALUE self, VALUE quiz)
+{
+    INIT;
+    VALUE answer = Qnil;
+    quiz = shoes_native_to_s(quiz);
+    NSAlert *alert = [NSAlert alertWithMessageText: @"Shoes quietly asks:"
+        defaultButton:@"OK" alternateButton:@"Cancel" otherButton:nil
+        informativeTextWithFormat: [NSString stringWithUTF8String: RSTRING_PTR(quiz)]];
+    NSSecureTextField *input = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(0, 0, 300, 24)];
+    [input setStringValue:@""];
+    [alert setAccessoryView:input];
+    if ([alert runModal] == NSOKButton)
+    {
+        answer = rb_str_new2([[input stringValue] UTF8String]);
+    }
+    RELEASE;
+    return answer;
+}
+VALUE
 shoes_dialog_confirm(VALUE self, VALUE quiz)
 {
   INIT;

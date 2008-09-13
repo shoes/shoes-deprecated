@@ -86,6 +86,7 @@ VALUE shoes_native_window_color(shoes_app *);
 VALUE shoes_native_dialog_color(shoes_app *);
 VALUE shoes_dialog_alert(VALUE, VALUE);
 VALUE shoes_dialog_ask(VALUE, VALUE);
+VALUE shoes_dialog_ask_secretly(VALUE, VALUE);
 VALUE shoes_dialog_confirm(VALUE, VALUE);
 VALUE shoes_dialog_color(VALUE, VALUE);
 VALUE shoes_dialog_open(VALUE);
