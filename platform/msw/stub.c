@@ -13,11 +13,13 @@
 #define BUFSIZE 512
 
 HWND dlg;
+BOOL http_abort = FALSE;
 
 int
 StubDownloadingShoes(shoes_download_event *event, void *data)
 {
   TCHAR msg[512];
+  if (http_abort) return SHOES_DOWNLOAD_HALT;
   if (event->stage == SHOES_HTTP_TRANSFER)
   {
     sprintf(msg, "Shoes is downloading. (%d%% done)", event->percent);
@@ -52,11 +54,15 @@ stub_win32proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_COMMAND:
       if (LOWORD(wParam) == IDCANCEL)
       {
+        http_abort = TRUE;
+        EndDialog(hwnd, LOWORD(wParam));
         return TRUE;
       }
       break;
 
     case WM_CLOSE:
+      http_abort = TRUE;
+      EndDialog(hwnd, 0);
       return FALSE;
   }
   return FALSE;
@@ -195,7 +201,14 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
   if (!(shoes = reg_s((hkey=HKEY_LOCAL_MACHINE), key, "", (LPBYTE)&path, &plen)))
     shoes = reg_s((hkey=HKEY_CURRENT_USER), key, "", (LPBYTE)&path, &plen);
 
-  if (!shoes || !file_exists(path))
+  if (shoes)
+  {
+    sprintf(cmd, "%s\\shoes.exe", path);
+    if (!file_exists(cmd)) shoes = FALSE;
+    memset(cmd, 0, BUFSIZE);
+  }
+
+  if (!shoes)
   {
     LPTHREAD_START_ROUTINE back_action = (LPTHREAD_START_ROUTINE)shoes_auto_setup;
 
