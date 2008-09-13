@@ -484,6 +484,13 @@ shoes_add_shape(VALUE self, ID name, VALUE attr, cairo_path_t *line)
 }
 
 VALUE
+shoes_canvas_arc(int argc, VALUE *argv, VALUE self)
+{
+  VALUE attr = shoes_shape_attr(argc, argv, 6, s_left, s_top, s_width, s_height, s_angle1, s_angle2);
+  return shoes_add_shape(self, s_arc, attr, NULL);
+}
+
+VALUE
 shoes_canvas_rect(int argc, VALUE *argv, VALUE self)
 {
   VALUE attr = shoes_shape_attr(argc, argv, 5, s_left, s_top, s_width, s_height, s_curve);
@@ -838,7 +845,7 @@ shoes_canvas_curve_to(VALUE self, VALUE _x1, VALUE _y1, VALUE _x2, VALUE _y2, VA
 }
 
 VALUE
-shoes_canvas_arc(VALUE self, VALUE _x, VALUE _y, VALUE _w, VALUE _h, VALUE _a1, VALUE _a2)
+shoes_canvas_arc_to(VALUE self, VALUE _x, VALUE _y, VALUE _w, VALUE _h, VALUE _a1, VALUE _a2)
 {
   double x, y, w, h, a1, a2;
   SETUP_SHAPE();
@@ -853,10 +860,7 @@ shoes_canvas_arc(VALUE self, VALUE _x, VALUE _y, VALUE _w, VALUE _h, VALUE _a1, 
   if (canvas->shape != NULL)
   {
     cairo_save(canvas->shape);
-    cairo_new_sub_path(canvas->shape);
-    cairo_translate(canvas->shape, x, y);
-    cairo_scale(canvas->shape, w / 2., h / 2.);
-    cairo_arc(canvas->shape, 0., 0., 1., a1, a2);
+    shoes_cairo_arc(canvas->shape, x, y, w, h, a1, a2);
     cairo_restore(canvas->shape);
   }
   return self;

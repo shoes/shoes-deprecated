@@ -457,9 +457,17 @@ Shoes does a few things differently from NodeBox and Processing.  For example, S
 
 Shoes also borrows some animation ideas from Processing and will continue to closely consult Processing's methods as it expands.
 
+=== arc(left, top, width, height, angle1, angle2) » Shoes::Shape ===
+
+Draws an arc shape (a section of an oval) at coordinates (left, top).  This method just give you a bit more control than [[oval]], by offering the @:angle1@ and @:angle2@ styles.  (In fact, you can mimick the @oval@ method by setting @:angle1@ to 0 and @:angle2@ to @Shoes::TWO_PI@.)
+
 === arrow(left, top, width) » Shoes::Shape ===
 
 Draws an arrow at coordinates (left, top) with a pixel `width`.
+
+=== cap(:curve or :rect or :project) » self ===
+
+Sets the line cap, which is the shape at the end of every line you draw.  If set to @:curve@, the end is rounded.  The default is @:rect@, a line which ends abruptly flat.  The @:project@ cap is also fat, but sticks out a bit longer.
 
 === fill(pattern) » pattern ===
 
@@ -568,7 +576,23 @@ In this example below, the rectangle drawn at (30, 30) will be rotated 45 degree
 
 === shape(left, top) { ... } » Shoes::Shape ===
 
-Describes an arbitrary shape to draw, beginning at coordinates (left, top) and continued by calls to `line_to`, `move_to`, `curve_to` and `arc` inside the block.
+Describes an arbitrary shape to draw, beginning at coordinates (left, top) and continued by calls to `line_to`, `move_to`, `curve_to` and `arc_to` inside the block.  You can look at it as sketching a shape with a long line that curves and arcs and bends.
+
+{{{
+ #!ruby
+ Shoes.app do
+   fill red(0.2)
+   shape do
+     move_to(90, 55)
+     arc_to(50, 55, 50, 50, 0, PI/2)
+     arc_to(50, 55, 60, 60, PI/2, PI)
+     arc_to(50, 55, 70, 70, PI, TWO_PI-PI/2)
+     arc_to(50, 55, 80, 80, TWO_PI-PI/2, TWO_PI)
+   end
+ end
+}}}
+
+A shape can also contain other shapes.  So, you can place an [[Art.oval]], a [[Art.rect]], a [[Art.line]], a [[Art.star]] or an [[Art.arrow]] (and all of the other methods in this [[Art]] section) inside a shape, but they will not be part of the line.  They will be more like a group of shapes are all drawn as one.
 
 === star(left, top, points = 10, outer = 100.0, inner = 50.0) » Shoes::Shape ===
 

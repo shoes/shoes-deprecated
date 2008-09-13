@@ -74,7 +74,7 @@ extern VALUE aMsgList;
 extern VALUE eInvMode, eNotImpl, eImageError;
 extern VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 extern VALUE symAltQuest, symAltSlash, symAltDot;
-extern ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_merge, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_URI, s_angle, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_group, s_hand, s_hidden, s_host, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_link, s_motion, s_path, s_port, s_progress, s_release, s_request_uri, s_save, s_wheel, s_scroll, s_start, s_attach, s_leading, s_leave, s_outer, s_points, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_stroke, s_strokewidth, s_cap, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info, s_blur, s_glow, s_shadow, s_rect, s_oval, s_line, s_shape, s_star, s_project, s_round, s_square;
+extern ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_merge, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_URI, s_angle, s_angle1, s_angle2, s_arrow, s_autoplay, s_begin, s_call, s_center, s_change, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_group, s_hand, s_hidden, s_host, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_link, s_motion, s_path, s_port, s_progress, s_release, s_request_uri, s_save, s_wheel, s_scroll, s_start, s_attach, s_leading, s_leave, s_outer, s_points, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_stroke, s_strokewidth, s_cap, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info, s_blur, s_glow, s_shadow, s_arc, s_rect, s_oval, s_line, s_shape, s_star, s_project, s_round, s_square;
 extern VALUE instance_eval_proc;
 
 VALUE mfp_instance_eval(VALUE, VALUE);
@@ -170,6 +170,7 @@ void shoes_place_exact(shoes_place *, VALUE, int, int);
 void shoes_place_decide(shoes_place *, VALUE, VALUE, int, int, unsigned char, int);
 void shoes_ele_remove_all(VALUE);
 void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
+void shoes_cairo_arc(cairo_t *, double, double, double, double, double, double);
 
 #define CANVAS_DEFS(f) \
   f(".close", close, 0); \
@@ -180,6 +181,7 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f(".cap", cap, 1); \
   f(".nofill", nofill, 0); \
   f(".fill", fill, -1); \
+  f("+arc", arc, -1); \
   f("+rect", rect, -1); \
   f("+oval", oval, -1); \
   f("+line", line, -1); \
@@ -216,7 +218,7 @@ void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
   f(".move_to", move_to, 2); \
   f(".line_to", line_to, 2); \
   f(".curve_to", curve_to, 6); \
-  f(".arc", arc, 6); \
+  f(".arc_to", arc_to, 6); \
   f(".transform", transform, 1); \
   f(".translate", translate, 2); \
   f(".rotate", rotate, 1); \
