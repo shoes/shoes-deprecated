@@ -169,7 +169,7 @@ class Shy
 
   def self.md5sum(path)
     digest = Digest::MD5.new
-    File.open(path, "r") do |f|
+    File.open(path, "rb") do |f|
       digest.update f.read(8192) until f.eof
     end
     digest.hexdigest

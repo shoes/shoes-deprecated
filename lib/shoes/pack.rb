@@ -185,7 +185,7 @@ END
       end
 
       FileUtils.cp(script, File.join(tmp_dir, File.basename(script)))
-      File.open(File.join(tmp_dir, "sh-install"), 'w') do |a|
+      File.open(File.join(tmp_dir, "sh-install"), 'wb') do |a|
         rewrite a, File.join(DIR, "static", "stubs", "sh-install"),
           'SCRIPT' => "./#{File.basename(script)}"
       end

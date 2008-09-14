@@ -904,6 +904,9 @@ module Archive::Tar::Minitar
       stats[:mode]   ||= stat.mode
       stats[:mtime]  ||= stat.mtime
       stats[:size]   = stat.size
+      if name == "sh-install" # an ugly shoes-specific hack, to
+        stats[:mode] = 0755   # get the file to be 0755 on windows
+      end
 
       if RUBY_PLATFORM =~ /win32/
         stats[:uid]  = nil
