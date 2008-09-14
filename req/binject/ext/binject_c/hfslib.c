@@ -8,10 +8,10 @@
 #include "abstractfile.h"
 #include <sys/stat.h>
 
-#define BUFSIZE 1024*1024
+#define HFS_BUFSIZE 32768
 
 void writeToFile(HFSPlusCatalogFile* file, AbstractFile* output, Volume* volume) {
-	unsigned char buffer[BUFSIZE];
+	unsigned char buffer[HFS_BUFSIZE];
 	io_func* io;
 	off_t curPosition;
 	size_t bytesLeft;
@@ -26,15 +26,15 @@ void writeToFile(HFSPlusCatalogFile* file, AbstractFile* output, Volume* volume)
 	bytesLeft = file->dataFork.logicalSize;
 	
 	while(bytesLeft > 0) {
-		if(bytesLeft > BUFSIZE) {
-			if(!READ(io, curPosition, BUFSIZE, buffer)) {
+		if(bytesLeft > HFS_BUFSIZE) {
+			if(!READ(io, curPosition, HFS_BUFSIZE, buffer)) {
 				panic("error reading");
 			}
-			if(output->write(output, buffer, BUFSIZE) != BUFSIZE) {
+			if(output->write(output, buffer, HFS_BUFSIZE) != HFS_BUFSIZE) {
 				panic("error writing");
 			}
-			curPosition += BUFSIZE;
-			bytesLeft -= BUFSIZE;
+			curPosition += HFS_BUFSIZE;
+			bytesLeft -= HFS_BUFSIZE;
 		} else {
 			if(!READ(io, curPosition, bytesLeft, buffer)) {
 				panic("error reading");
@@ -50,7 +50,7 @@ void writeToFile(HFSPlusCatalogFile* file, AbstractFile* output, Volume* volume)
 }
 
 void writeToHFSFile(HFSPlusCatalogFile* file, AbstractFile* input, Volume* volume) {
-	unsigned char buffer[BUFSIZE];
+	unsigned char buffer[HFS_BUFSIZE];
 	io_func* io;
 	off_t curPosition;
 	off_t bytesLeft;
@@ -59,7 +59,6 @@ void writeToHFSFile(HFSPlusCatalogFile* file, AbstractFile* input, Volume* volum
 
 	io = openRawFile(file->fileID, &file->dataFork, (HFSPlusCatalogRecord*)file, volume);
 	if(io == NULL) {
-		panic("error opening file");
 		return;
 	}
 	
@@ -68,21 +67,21 @@ void writeToHFSFile(HFSPlusCatalogFile* file, AbstractFile* input, Volume* volum
 	allocate((RawFile*)io->data, bytesLeft);
 	
 	while(bytesLeft > 0) {
-		if(bytesLeft > BUFSIZE) {
-			if(input->read(input, buffer, BUFSIZE) != BUFSIZE) {
-				panic("error reading");
+		if(bytesLeft > HFS_BUFSIZE) {
+			if(input->read(input, buffer, HFS_BUFSIZE) != HFS_BUFSIZE) {
+        break;
 			}
-			if(!WRITE(io, curPosition, BUFSIZE, buffer)) {
-				panic("error writing");
+			if(!WRITE(io, curPosition, HFS_BUFSIZE, buffer)) {
+        break;
 			}
-			curPosition += BUFSIZE;
-			bytesLeft -= BUFSIZE;
+			curPosition += HFS_BUFSIZE;
+			bytesLeft -= HFS_BUFSIZE;
 		} else {
 			if(input->read(input, buffer, (size_t)bytesLeft) != (size_t)bytesLeft) {
-				panic("error reading");
+        break;
 			}
 			if(!WRITE(io, curPosition, (size_t)bytesLeft, buffer)) {
-				panic("error reading");
+        break;
 			}
 			curPosition += bytesLeft;
 			bytesLeft -= bytesLeft;
