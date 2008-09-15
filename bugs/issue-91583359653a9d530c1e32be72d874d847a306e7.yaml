@@ -1,0 +1,21 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Broken resolv.conf symlink crashes Shoes applications
+desc: |-
+  Config.parse_resolv_conf returns a nil if /etc/resolv.conf is a symlink to a non-existent file. This occurs on OS X when it is not attached to any network.
+  
+  So, then, lazy_initialize falls over on line 794, because config_hash is nil, and crashes any Shoe app trying to run.
+type: :bugfix
+component: shoes
+release: 
+reporter: Jeff Hodges <jeff@somethingsimilar.com>
+status: :unstarted
+disposition: 
+creation_time: 2008-09-15 07:07:52.742605 Z
+references: []
+
+id: 91583359653a9d530c1e32be72d874d847a306e7
+log_events: 
+- - 2008-09-15 07:07:58.790699 Z
+  - Jeff Hodges <jeff@somethingsimilar.com>
+  - created
+  - ""
