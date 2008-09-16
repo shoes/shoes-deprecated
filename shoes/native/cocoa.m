@@ -291,12 +291,28 @@
 @end
 
 @implementation ShoesTextField
-- (id)initWithFrame: (NSRect)frame andObject: (VALUE)o isSecret: (BOOL)secret
+- (id)initWithFrame: (NSRect)frame andObject: (VALUE)o
 {
   if ((self = [super initWithFrame: frame]))
   {
     object = o;
-    // [[self cell] setEchosBullets: secret];
+    [self setBezelStyle: NSRegularSquareBezelStyle];
+    [self setDelegate: self];
+  }
+  return self;
+}
+-(void)textDidChange: (NSNotification *)n
+{
+  shoes_control_send(object, s_change);
+}
+@end
+
+@implementation ShoesSecureTextField
+- (id)initWithFrame: (NSRect)frame andObject: (VALUE)o
+{
+  if ((self = [super initWithFrame: frame]))
+  {
+    object = o;
     [self setBezelStyle: NSRegularSquareBezelStyle];
     [self setDelegate: self];
   }
@@ -860,10 +876,17 @@ SHOES_CONTROL_REF
 shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
   INIT;
-  ShoesTextField *field = [[ShoesTextField alloc] initWithFrame:
-    NSMakeRect(place->ix + place->dx, place->iy + place->dy,
-    place->ix + place->dx + place->iw, place->iy + place->dy + place->ih)
-    andObject: self isSecret:(RTEST(ATTR(attr, secret)) ? YES : NO)];
+  NSTextField *field;
+  if (RTEST(ATTR(attr, secret)))
+    field = [[ShoesSecureTextField alloc] initWithFrame:
+      NSMakeRect(place->ix + place->dx, place->iy + place->dy,
+      place->ix + place->dx + place->iw, place->iy + place->dy + place->ih)
+      andObject: self];
+  else
+    field = [[ShoesTextField alloc] initWithFrame:
+      NSMakeRect(place->ix + place->dx, place->iy + place->dy,
+      place->ix + place->dx + place->iw, place->iy + place->dy + place->ih)
+      andObject: self];
   [field setStringValue: [NSString stringWithUTF8String: msg]];
   [field setEditable: YES];
   RELEASE;
