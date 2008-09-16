@@ -6,6 +6,7 @@
 #define SHOES_APPWIN32_H
 
 #define ASKDLG 1
+#define ASKSECRETDLG 2
 #define IDQUIZ 111
 #define IDQUED 112
 
