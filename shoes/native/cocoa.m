@@ -1099,15 +1099,20 @@ shoes_dialog_alert(VALUE self, VALUE msg)
 }
 
 VALUE
-shoes_dialog_ask(VALUE self, VALUE quiz)
+shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
 {
   INIT;
-  VALUE answer = Qnil;
+  VALUE quiz, attr = Qnil, answer = Qnil;
+  rb_scan_args(argc, argv, "11", &quiz, &attr);
   quiz = shoes_native_to_s(quiz);
   NSAlert *alert = [NSAlert alertWithMessageText: @"Shoes asks:"
     defaultButton:@"OK" alternateButton:@"Cancel" otherButton:nil
     informativeTextWithFormat: [NSString stringWithUTF8String: RSTRING_PTR(quiz)]];
-  NSTextField *input = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 300, 24)];
+  NSTextField *input;
+  if (RTEST(ATTR(attr, secret)))
+    input = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(0, 0, 300, 24)];
+  else
+    input = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 300, 24)];
   [input setStringValue:@""];
   [alert setAccessoryView:input];
   if ([alert runModal] == NSOKButton)
@@ -1118,25 +1123,6 @@ shoes_dialog_ask(VALUE self, VALUE quiz)
   return answer;
 }
 
-VALUE
-shoes_dialog_ask_secretly(VALUE self, VALUE quiz)
-{
-    INIT;
-    VALUE answer = Qnil;
-    quiz = shoes_native_to_s(quiz);
-    NSAlert *alert = [NSAlert alertWithMessageText: @"Shoes quietly asks:"
-        defaultButton:@"OK" alternateButton:@"Cancel" otherButton:nil
-        informativeTextWithFormat: [NSString stringWithUTF8String: RSTRING_PTR(quiz)]];
-    NSSecureTextField *input = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(0, 0, 300, 24)];
-    [input setStringValue:@""];
-    [alert setAccessoryView:input];
-    if ([alert runModal] == NSOKButton)
-    {
-        answer = rb_str_new2([[input stringValue] UTF8String]);
-    }
-    RELEASE;
-    return answer;
-}
 VALUE
 shoes_dialog_confirm(VALUE self, VALUE quiz)
 {
