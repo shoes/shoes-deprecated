@@ -1852,6 +1852,21 @@ shoes_color_parse(VALUE self, VALUE source)
 }
 
 VALUE
+shoes_color_spaceship(VALUE self, VALUE c2)
+{
+  int v1, v2;
+  shoes_color *color2;
+  GET_STRUCT(color, color);
+  if (!rb_obj_is_kind_of(c2, cColor)) return Qnil;
+  Data_Get_Struct(c2, shoes_color, color2);
+  v1 = color->r + color->g + color->b;
+  v2 = color2->r + color2->g + color2->b;
+  if (v1 == v2) return INT2FIX(0);
+  if (v1 > v2)  return INT2FIX(1);
+  else          return INT2FIX(-1);
+}
+
+VALUE
 shoes_color_get_red(VALUE self)
 {
   GET_STRUCT(color, color);
@@ -4482,6 +4497,8 @@ shoes_ruby_init()
   rb_define_singleton_method(cColor, "rgb", CASTHOOK(shoes_color_rgb), -1);
   rb_define_singleton_method(cColor, "gray", CASTHOOK(shoes_color_gray), -1);
   rb_define_singleton_method(cColor, "parse", CASTHOOK(shoes_color_parse), 1);
+  rb_include_module(cColor, rb_mComparable);
+  rb_define_method(cColor, "<=>", CASTHOOK(shoes_color_spaceship), 1);
   rb_define_method(cColor, "red", CASTHOOK(shoes_color_get_red), 0);
   rb_define_method(cColor, "green", CASTHOOK(shoes_color_get_green), 0);
   rb_define_method(cColor, "blue", CASTHOOK(shoes_color_get_blue), 0);
