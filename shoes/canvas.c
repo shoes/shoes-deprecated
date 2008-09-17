@@ -96,7 +96,7 @@ VALUE
 shoes_canvas_get_scroll_top(VALUE self)
 {
   GET_STRUCT(canvas, canvas);
-  return INT2NUM(canvas->slot.scrolly);
+  return INT2NUM(canvas->slot->scrolly);
 }
 
 VALUE
@@ -126,7 +126,7 @@ shoes_canvas_get_gutter_width(VALUE self)
 {
   int scrollwidth = 0;
   GET_STRUCT(canvas, canvas);
-  scrollwidth = shoes_native_slot_gutter(&canvas->slot);
+  scrollwidth = shoes_native_slot_gutter(canvas->slot);
   return INT2NUM(scrollwidth);
 }
 
@@ -302,6 +302,8 @@ shoes_canvas_reset_transform(shoes_canvas *canvas)
 static void
 shoes_canvas_free(shoes_canvas *canvas)
 {
+  if (canvas->slot != NULL && canvas->slot->owner == canvas)
+    SHOE_FREE(canvas->slot);
   shoes_canvas_reset_transform(canvas);
   RUBY_CRITICAL(free(canvas));
 }
@@ -370,7 +372,7 @@ shoes_canvas_clear(VALUE self)
 }
 
 shoes_canvas *
-shoes_canvas_init(VALUE self, SHOES_SLOT_OS slot, VALUE attr, int width, int height)
+shoes_canvas_init(VALUE self, SHOES_SLOT_OS *slot, VALUE attr, int width, int height)
 {
   shoes_canvas *canvas;
   Data_Get_Struct(self, shoes_canvas, canvas);
@@ -384,17 +386,17 @@ void
 shoes_slot_scroll_to(shoes_canvas *canvas, int dy, int rel)
 {
   if (rel)
-    canvas->slot.scrolly += dy;
+    canvas->slot->scrolly += dy;
   else
-    canvas->slot.scrolly = dy;
+    canvas->slot->scrolly = dy;
 
-  if (canvas->slot.scrolly > canvas->endy - canvas->height)
-    canvas->slot.scrolly = canvas->endy - canvas->height;
-  if (canvas->slot.scrolly < 0)
-    canvas->slot.scrolly = 0;
-  if (DC(canvas->app->slot) == DC(canvas->slot)) canvas->app->slot.scrolly = canvas->slot.scrolly;
-  shoes_native_slot_scroll_top(&canvas->slot);
-  shoes_slot_repaint(&canvas->slot);
+  if (canvas->slot->scrolly > canvas->endy - canvas->height)
+    canvas->slot->scrolly = canvas->endy - canvas->height;
+  if (canvas->slot->scrolly < 0)
+    canvas->slot->scrolly = 0;
+  if (DC(canvas->app->slot) == DC(canvas->slot)) canvas->app->slot->scrolly = canvas->slot->scrolly;
+  shoes_native_slot_scroll_top(canvas->slot);
+  shoes_slot_repaint(canvas->slot);
 }
 
 VALUE
@@ -1055,7 +1057,7 @@ shoes_canvas_remove_item(VALUE self, VALUE item, char c, char t)
   long i;
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
-  shoes_native_remove_item(&self_t->slot, item, c);
+  shoes_native_remove_item(self_t->slot, item, c);
   if (t)
   {
     i = rb_ary_index_of(self_t->app->extras, item);
@@ -1096,7 +1098,6 @@ shoes_canvas_reflow(shoes_canvas *self_t, VALUE c)
   Data_Get_Struct(c, shoes_canvas, parent);
 
   self_t->cr = parent->cr;
-  self_t->slot = parent->slot;
   shoes_place_decide(&self_t->place, c, self_t->attr, parent->place.iw, 0, REL_CANVAS, FALSE);
   self_t->width = self_t->place.w;
   self_t->height = self_t->place.h;
@@ -1286,9 +1287,9 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
     self_t->fully = endy;
     if (RTEST(actual))
     {
-      self_t->slot.scrolly = min(self_t->slot.scrolly, self_t->fully - self_t->height);
+      self_t->slot->scrolly = min(self_t->slot->scrolly, self_t->fully - self_t->height);
       if (NIL_P(self_t->parent) || RTEST(ATTR(self_t->attr, scroll)))
-        shoes_native_slot_lengthen(&self_t->slot, self_t->height, endy);
+        shoes_native_slot_lengthen(self_t->slot, self_t->height, endy);
     }
   }
   else
@@ -1579,7 +1580,7 @@ shoes_canvas_repaint_all(VALUE self)
   Data_Get_Struct(self, shoes_canvas, canvas);
   if (canvas->stage == CANVAS_EMPTY) return;
   shoes_canvas_compute(self);
-  shoes_slot_repaint(&canvas->app->slot);
+  shoes_slot_repaint(canvas->app->slot);
 }
 
 typedef VALUE (*ccallfunc)(VALUE);
@@ -1694,10 +1695,10 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
 
   if (ORIGIN(self_t->place))
   {
-    y += self_t->slot.scrolly;
+    y += self_t->slot->scrolly;
     ox = x - self_t->place.ix + self_t->place.dx;
     oy = y - (self_t->place.iy + self_t->place.dy);
-    if (oy < self_t->slot.scrolly || ox < 0 || oy > self_t->slot.scrolly + self_t->place.ih || ox > self_t->place.iw)
+    if (oy < self_t->slot->scrolly || ox < 0 || oy > self_t->slot->scrolly + self_t->place.ih || ox > self_t->place.iw)
       return Qnil;
   }
 
@@ -1790,10 +1791,10 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
 
   if (ORIGIN(self_t->place))
   {
-    y += self_t->slot.scrolly;
+    y += self_t->slot->scrolly;
     ox = x - self_t->place.ix + self_t->place.dx;
     oy = y - (self_t->place.iy + self_t->place.dy);
-    if (oy < self_t->slot.scrolly || ox < 0 || oy > self_t->slot.scrolly + self_t->place.ih || ox > self_t->place.iw)
+    if (oy < self_t->slot->scrolly || ox < 0 || oy > self_t->slot->scrolly + self_t->place.ih || ox > self_t->place.iw)
       return;
   }
 
@@ -1847,10 +1848,10 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
 
   if (ORIGIN(self_t->place))
   {
-    y += self_t->slot.scrolly;
+    y += self_t->slot->scrolly;
     ox = x - self_t->place.ix + self_t->place.dx;
     oy = y - (self_t->place.iy + self_t->place.dy);
-    if (oy < self_t->slot.scrolly || ox < 0 || oy > self_t->slot.scrolly + self_t->place.ih || ox > self_t->place.iw)
+    if (oy < self_t->slot->scrolly || ox < 0 || oy > self_t->slot->scrolly + self_t->place.ih || ox > self_t->place.iw)
       return Qnil;
   }
 
@@ -1953,6 +1954,15 @@ shoes_canvas_send_keypress(VALUE self, VALUE key)
   }
 }
 
+SHOES_SLOT_OS *
+shoes_slot_alloc(shoes_canvas *canvas, SHOES_SLOT_OS *parent, int toplevel)
+{
+  canvas->slot = SHOE_ALLOC(SHOES_SLOT_OS);
+  SHOE_MEMZERO(canvas->slot, SHOES_SLOT_OS, 1);
+  canvas->slot->owner = canvas;
+  return canvas->slot;
+}
+
 VALUE
 shoes_slot_new(VALUE klass, VALUE attr, VALUE parent)
 {
@@ -1971,12 +1981,7 @@ shoes_slot_new(VALUE klass, VALUE attr, VALUE parent)
     //
     // create the slot off-screen until it can be properly placed
     //
-    shoes_slot_init(self, &pc->slot, -99, -99, 100, 100, scrolls, FALSE);
-#ifdef SHOES_GTK
-    gtk_widget_show_all(self_t->slot.canvas);
-    self_t->width = 100;
-    self_t->height = 100;
-#endif
+    shoes_slot_init(self, pc->slot, -99, -99, 100, 100, scrolls, FALSE);
     self_t->place.x = self_t->place.y = 0;
     self_t->place.ix = self_t->place.iy = 0;
   }

@@ -97,9 +97,9 @@ void shoes_native_slot_mark(SHOES_SLOT_OS *slot) {}
 void shoes_native_slot_reset(SHOES_SLOT_OS *slot) {}
 void shoes_native_slot_clear(shoes_canvas *canvas)
 {
-  if (canvas->slot.vscroll)
+  if (canvas->slot->vscroll)
   {
-    GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot.vscroll));
+    GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot->vscroll));
     gtk_adjustment_set_value(adj, adj->lower);
   }
 }
@@ -167,7 +167,7 @@ shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
     shoes_canvas *canvas;
     Data_Get_Struct(app->canvas, shoes_canvas, canvas);
     state = (GdkModifierType)event->state; 
-    shoes_app_motion(app, (int)event->x, (int)event->y + canvas->slot.scrolly);
+    shoes_app_motion(app, (int)event->x, (int)event->y + canvas->slot->scrolly);
   } 
   return TRUE; 
 } 
@@ -180,11 +180,11 @@ shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, gpointer data)
   Data_Get_Struct(app->canvas, shoes_canvas, canvas);
   if (event->type == GDK_BUTTON_PRESS)
   {
-    shoes_app_click(app, event->button, event->x, event->y + canvas->slot.scrolly);
+    shoes_app_click(app, event->button, event->x, event->y + canvas->slot->scrolly);
   }
   else if (event->type == GDK_BUTTON_RELEASE)
   {
-    shoes_app_release(app, event->button, event->x, event->y + canvas->slot.scrolly);
+    shoes_app_release(app, event->button, event->x, event->y + canvas->slot->scrolly);
   }
   return TRUE;
 }
@@ -312,10 +312,7 @@ static void
 shoes_canvas_gtk_paint_children(GtkWidget *widget, gpointer data)
 {
   shoes_canvas *canvas = (shoes_canvas *)data;
-  // this is strange, the scrollbar expose event sends through the parent and
-  // if i don't paint the parent the scrollbar disappears??
-  if (canvas->slot.expose->area.x > 0 || !GTK_IS_FIXED(widget))
-    gtk_container_propagate_expose(GTK_CONTAINER(canvas->slot.canvas), widget, canvas->slot.expose);
+  gtk_container_propagate_expose(GTK_CONTAINER(canvas->slot->canvas), widget, canvas->slot->expose);
 }
 
 static void
@@ -334,10 +331,10 @@ shoes_canvas_gtk_paint(GtkWidget *widget, GdkEventExpose *event, gpointer data)
   // would also mean masking every region for every element... This approach is simple.  Clip
   // the expose region and pass it on.
   //
-  canvas->slot.expose = event;
+  canvas->slot->expose = event;
   GdkRegion *region = event->region;
   GdkRectangle rect = event->area;
-  event->region = gdk_region_rectangle(&canvas->slot.canvas->allocation);
+  event->region = gdk_region_rectangle(&canvas->slot->canvas->allocation);
   gdk_region_intersect(event->region, region);
   gdk_region_get_clipbox(event->region, &event->area);
 
@@ -350,7 +347,7 @@ shoes_canvas_gtk_paint(GtkWidget *widget, GdkEventExpose *event, gpointer data)
   gdk_region_destroy(event->region);
   event->region = region;
   event->area = rect;
-  canvas->slot.expose = NULL;
+  canvas->slot->expose = NULL;
 }
 
 static void
@@ -359,21 +356,21 @@ shoes_canvas_gtk_size(GtkWidget *widget, GtkAllocation *size, gpointer data)
   VALUE c = (VALUE)data;
   shoes_canvas *canvas;
   Data_Get_Struct(c, shoes_canvas, canvas);
-  if (canvas->slot.vscroll && 
-    (size->height != canvas->slot.scrollh || size->width != canvas->slot.scrollw))
+  if (canvas->slot->vscroll && 
+    (size->height != canvas->slot->scrollh || size->width != canvas->slot->scrollw))
   {
-    GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot.vscroll));
-    gtk_widget_set_size_request(canvas->slot.vscroll, -1, size->height);
-    gtk_fixed_move(GTK_FIXED(canvas->slot.canvas), canvas->slot.vscroll,
-      size->width - canvas->slot.vscroll->allocation.width, 0);
+    GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot->vscroll));
+    gtk_widget_set_size_request(canvas->slot->vscroll, -1, size->height);
+    gtk_fixed_move(GTK_FIXED(canvas->slot->canvas), canvas->slot->vscroll,
+      size->width - canvas->slot->vscroll->allocation.width, 0);
     adj->page_size = size->height;
     adj->page_increment = size->height - 32;
     if (adj->page_size >= adj->upper)
-      gtk_widget_hide(canvas->slot.vscroll);
+      gtk_widget_hide(canvas->slot->vscroll);
     else
-      gtk_widget_show(canvas->slot.vscroll);
-    canvas->slot.scrollh = size->height;
-    canvas->slot.scrollw = size->width;
+      gtk_widget_show(canvas->slot->vscroll);
+    canvas->slot->scrollh = size->height;
+    canvas->slot->scrollw = size->width;
   }
 }
 
@@ -383,8 +380,8 @@ shoes_canvas_gtk_scroll(GtkRange *r, gpointer data)
   VALUE c = (VALUE)data;
   shoes_canvas *canvas;
   Data_Get_Struct(c, shoes_canvas, canvas);
-  canvas->slot.scrolly = (int)gtk_range_get_value(r);
-  shoes_slot_repaint(&canvas->app->slot);
+  canvas->slot->scrolly = (int)gtk_range_get_value(r);
+  shoes_slot_repaint(canvas->app->slot);
 }
 
 static gint                                                           
@@ -486,7 +483,6 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
 {
   char icon_path[SHOES_BUFSIZE];
   shoes_app_gtk *gk = &app->os;
-  shoes_slot_gtk *gs = &app->slot;
 
   sprintf(icon_path, "%s/static/shoes-icon.png", shoes_world->path);
   gtk_window_set_default_icon_from_file(icon_path, NULL);
@@ -508,7 +504,7 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
                    G_CALLBACK(shoes_app_gtk_keypress), app);
   g_signal_connect(G_OBJECT(gk->window), "delete-event",
                    G_CALLBACK(shoes_app_gtk_quit), app);
-  app->slot.canvas = gk->window;
+  app->slot->canvas = gk->window;
   return SHOES_OK;
 }
 
@@ -548,9 +544,10 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
   shoes_canvas *canvas;
   SHOES_SLOT_OS *slot;
   Data_Get_Struct(c, shoes_canvas, canvas);
-  slot = &canvas->slot;
 
+  slot = shoes_slot_alloc(canvas, parent, toplevel);
   slot->canvas = gtk_fixed_new();
+  INFO("shoes_slot_init(%lu)\n", c);
   g_signal_connect(G_OBJECT(slot->canvas), "expose-event",
                    G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
   g_signal_connect(G_OBJECT(slot->canvas), "size-allocate",
@@ -575,27 +572,33 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
   gtk_widget_set_size_request(slot->canvas, width, height);
   slot->expose = NULL;
   if (toplevel) shoes_canvas_size(c, width, height);
+  else
+  {
+    gtk_widget_show_all(slot->canvas);
+    canvas->width = 100;
+    canvas->height = 100;
+  }
 }
 
 void
 shoes_slot_destroy(shoes_canvas *canvas, shoes_canvas *pc)
 {
-  if (canvas->slot.vscroll)
-    gtk_container_remove(GTK_CONTAINER(canvas->slot.canvas), canvas->slot.vscroll);
-  gtk_container_remove(GTK_CONTAINER(pc->slot.canvas), canvas->slot.canvas);
+  if (canvas->slot->vscroll)
+    gtk_container_remove(GTK_CONTAINER(canvas->slot->canvas), canvas->slot->vscroll);
+  gtk_container_remove(GTK_CONTAINER(pc->slot->canvas), canvas->slot->canvas);
 }
 
 cairo_t *
 shoes_cairo_create(shoes_canvas *canvas)
 {
-  cairo_t *cr = gdk_cairo_create(canvas->slot.canvas->window);
-  if (canvas->slot.expose != NULL)
+  cairo_t *cr = gdk_cairo_create(canvas->slot->canvas->window);
+  if (canvas->slot->expose != NULL)
   {
-    GdkRegion *region = gdk_region_rectangle(&canvas->slot.canvas->allocation);
-    gdk_region_intersect(region, canvas->slot.expose->region);
+    GdkRegion *region = gdk_region_rectangle(&canvas->slot->canvas->allocation);
+    gdk_region_intersect(region, canvas->slot->expose->region);
     gdk_cairo_region(cr, region);
     cairo_clip(cr);
-    cairo_translate(cr, canvas->slot.canvas->allocation.x, canvas->slot.canvas->allocation.y - canvas->slot.scrolly);
+    cairo_translate(cr, canvas->slot->canvas->allocation.x, canvas->slot->canvas->allocation.y - canvas->slot->scrolly);
   }
   return cr;
 }
@@ -616,16 +619,16 @@ void
 shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc)
 {
   int x, y, newy;
-  GtkAllocation *a = &self_t->slot.canvas->allocation;
-  gtk_widget_translate_coordinates(self_t->slot.canvas, pc->slot.canvas, 0, 0, &x, &y);
-  newy = (self_t->place.iy + self_t->place.dy) - pc->slot.scrolly;
+  GtkAllocation *a = &self_t->slot->canvas->allocation;
+  gtk_widget_translate_coordinates(self_t->slot->canvas, pc->slot->canvas, 0, 0, &x, &y);
+  newy = (self_t->place.iy + self_t->place.dy) - pc->slot->scrolly;
 
   if (x != self_t->place.ix + self_t->place.dx || y != newy)
-    gtk_fixed_move(GTK_FIXED(pc->slot.canvas), self_t->slot.canvas, 
+    gtk_fixed_move(GTK_FIXED(pc->slot->canvas), self_t->slot->canvas, 
         self_t->place.ix + self_t->place.dx, newy);
 
   if (a->width != self_t->place.iw || a->height != self_t->place.ih)
-    gtk_widget_set_size_request(self_t->slot.canvas, self_t->place.iw, self_t->place.ih);
+    gtk_widget_set_size_request(self_t->slot->canvas, self_t->place.iw, self_t->place.ih);
 }
 
 void
@@ -658,7 +661,7 @@ shoes_native_control_position(SHOES_CONTROL_REF ref, shoes_place *p1, VALUE self
 {
   PLACE_COORDS();
   gtk_widget_set_size_request(ref, p2->iw, p2->ih);
-  gtk_fixed_put(GTK_FIXED(canvas->slot.canvas), 
+  gtk_fixed_put(GTK_FIXED(canvas->slot->canvas), 
     ref, p2->ix + p2->dx, p2->iy + p2->dy);
   gtk_widget_show_all(ref);
 }
@@ -667,14 +670,14 @@ void
 shoes_native_control_repaint(SHOES_CONTROL_REF ref, shoes_place *p1,
   shoes_canvas *canvas, shoes_place *p2)
 {
-  p2->iy -= canvas->slot.scrolly;
+  p2->iy -= canvas->slot->scrolly;
   if (CHANGED_COORDS()) {
     PLACE_COORDS();
-    gtk_fixed_move(GTK_FIXED(canvas->slot.canvas), 
+    gtk_fixed_move(GTK_FIXED(canvas->slot->canvas), 
       ref, p2->ix + p2->dx, p2->iy + p2->dy);
     gtk_widget_set_size_request(ref, p2->iw, p2->ih);
   }
-  p2->iy += canvas->slot.scrolly;
+  p2->iy += canvas->slot->scrolly;
 }
 
 void
@@ -686,7 +689,7 @@ shoes_native_control_focus(SHOES_CONTROL_REF ref)
 void
 shoes_native_control_remove(SHOES_CONTROL_REF ref, shoes_canvas *canvas)
 {
-  gtk_container_remove(GTK_CONTAINER(canvas->slot.canvas), ref);
+  gtk_container_remove(GTK_CONTAINER(canvas->slot->canvas), ref);
 }
 
 void
@@ -727,7 +730,7 @@ shoes_native_surface_show(SHOES_SURFACE_REF ref)
 void
 shoes_native_surface_remove(shoes_canvas *canvas, SHOES_SURFACE_REF ref)
 {
-  gtk_container_remove(GTK_CONTAINER(canvas->slot.canvas), ref);
+  gtk_container_remove(GTK_CONTAINER(canvas->slot->canvas), ref);
 }
 
 static gboolean

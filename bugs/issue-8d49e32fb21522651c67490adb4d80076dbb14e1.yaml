@@ -7,8 +7,8 @@ type: :bugfix
 component: shoes
 release: Raisins
 reporter: _why <why@whytheluckystiff.net>
-status: :unstarted
-disposition: 
+status: :closed
+disposition: :fixed
 creation_time: 2008-07-11 13:08:40.957025 Z
 references: []
 
@@ -18,3 +18,7 @@ log_events:
   - _why <why@whytheluckystiff.net>
   - created
   - ""
+- - 2008-09-16 18:41:09.297777 Z
+  - _why <why@whytheluckystiff.net>
+  - closed issue with disposition fixed
+  - commit cb48846 on sep 8th, found a casting error in my use of deltaY.

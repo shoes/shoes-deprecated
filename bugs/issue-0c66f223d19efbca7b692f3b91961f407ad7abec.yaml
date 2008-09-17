@@ -7,8 +7,8 @@ type: :feature
 component: shoes
 release: Raisins
 reporter: _why <why@whytheluckystiff.net>
-status: :unstarted
-disposition: 
+status: :closed
+disposition: :fixed
 creation_time: 2008-07-01 21:00:07.017988 Z
 references: []
 
@@ -18,3 +18,7 @@ log_events:
   - _why <why@whytheluckystiff.net>
   - created
   - ""
+- - 2008-09-16 18:43:23.591040 Z
+  - _why <why@whytheluckystiff.net>
+  - closed issue with disposition fixed
+  - added on july 1st, in commit c33a26dc

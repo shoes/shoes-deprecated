@@ -14,7 +14,7 @@
 static void
 shoes_app_mark(shoes_app *app)
 {
-  shoes_native_slot_mark(&app->slot);
+  shoes_native_slot_mark(app->slot);
   rb_gc_mark_maybe(app->title);
   rb_gc_mark_maybe(app->location);
   rb_gc_mark_maybe(app->canvas);
@@ -29,6 +29,7 @@ shoes_app_mark(shoes_app *app)
 static void
 shoes_app_free(shoes_app *app)
 {
+  SHOE_FREE(app->slot);
   cairo_destroy(app->scratch);
   RUBY_CRITICAL(free(app));
 }
@@ -38,6 +39,9 @@ shoes_app_alloc(VALUE klass)
 {
   shoes_app *app = SHOE_ALLOC(shoes_app);
   SHOE_MEMZERO(app, shoes_app, 1);
+  app->slot = SHOE_ALLOC(SHOES_SLOT_OS);
+  SHOE_MEMZERO(app->slot, SHOES_SLOT_OS, 1);
+  app->slot->owner = app;
   app->started = FALSE;
   app->owner = Qnil;
   app->location = Qnil;
@@ -207,8 +211,8 @@ shoes_app_open(shoes_app *app, char *path)
     return code;
 
   shoes_app_title(app, app->title);
-  shoes_native_slot_reset(&app->slot);
-  shoes_slot_init(app->canvas, &app->slot, 0, 0, app->width, app->height, TRUE, TRUE);
+  if (app->slot != NULL) shoes_native_slot_reset(app->slot);
+  shoes_slot_init(app->canvas, app->slot, 0, 0, app->width, app->height, TRUE, TRUE);
   code = shoes_app_goto(app, path);
   if (code != SHOES_OK)
     return code;
@@ -299,7 +303,7 @@ shoes_app_visit(shoes_app *app, char *path)
   VALUE ary = rb_ary_dup(app->extras);
   Data_Get_Struct(app->canvas, shoes_canvas, canvas);
 
-  canvas->slot.scrolly = 0;
+  canvas->slot->scrolly = 0;
   shoes_native_slot_clear(canvas);
   for (i = 0; i < RARRAY_LEN(ary); i++) 
   {
@@ -372,7 +376,7 @@ shoes_app_wheel(shoes_app *app, ID dir, int x, int y)
 {
   shoes_canvas *canvas;
   Data_Get_Struct(app->canvas, shoes_canvas, canvas);
-  if (canvas->slot.vscroll)
+  if (canvas->slot->vscroll)
   {
     if (dir == s_up)
       shoes_slot_scroll_to(canvas, -16, 1);
@@ -418,7 +422,7 @@ shoes_app_goto(shoes_app *app, char *path)
     if (code == SHOES_OK)
     {
       shoes_app_motion(app, app->mousex, app->mousey);
-      shoes_slot_repaint(&app->slot);
+      shoes_slot_repaint(app->slot);
     }
   }
   return code;

@@ -346,7 +346,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
     if (rel == REL_WINDOW)
     {
       cx = 0; cy = 0;
-      ox = 0; oy = canvas->slot.scrolly;
+      ox = 0; oy = canvas->slot->scrolly;
     }
     else if (rel == REL_CANVAS)
     {

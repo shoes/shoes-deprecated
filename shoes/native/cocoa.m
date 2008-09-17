@@ -74,11 +74,11 @@
   Data_Get_Struct(app, shoes_app, a);
   Data_Get_Struct(a->canvas, shoes_canvas, canvas);
   if (type == s_motion)
-    shoes_app_motion(a, p.x, (canvas->height - p.y) + canvas->slot.scrolly);
+    shoes_app_motion(a, p.x, (canvas->height - p.y) + canvas->slot->scrolly);
   else if (type == s_click)
-    shoes_app_click(a, b, p.x, (canvas->height - p.y) + canvas->slot.scrolly);
+    shoes_app_click(a, b, p.x, (canvas->height - p.y) + canvas->slot->scrolly);
   else if (type == s_release)
-    shoes_app_release(a, b, p.x, (canvas->height - p.y) + canvas->slot.scrolly);
+    shoes_app_release(a, b, p.x, (canvas->height - p.y) + canvas->slot->scrolly);
 }
 - (void)mouseDown: (NSEvent *)e
 {
@@ -232,15 +232,15 @@
 
   c->width = bounds.size.width;
   c->height = bounds.size.height;
-  if (c->slot.vscroll)
+  if (c->slot->vscroll)
   {
-    [c->slot.vscroll setFrame: NSMakeRect(c->width - [NSScroller scrollerWidth], 0,
+    [c->slot->vscroll setFrame: NSMakeRect(c->width - [NSScroller scrollerWidth], 0,
       [NSScroller scrollerWidth], c->height)];
-    shoes_native_slot_lengthen(&c->slot, c->height, c->endy);
+    shoes_native_slot_lengthen(c->slot, c->height, c->endy);
   }
   c->place.iw = c->place.w = c->width;
   c->place.ih = c->place.h = c->height;
-  c->slot.context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
+  c->slot->context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
   shoes_canvas_paint(canvas);
 }
 - (void)scroll: (NSScroller *)scroller
@@ -558,10 +558,10 @@ void shoes_native_slot_reset(SHOES_SLOT_OS *slot)
 
 void shoes_native_slot_clear(shoes_canvas *canvas)
 {
-  rb_ary_clear(canvas->slot.controls);
-  if (canvas->slot.vscroll)
+  rb_ary_clear(canvas->slot->controls);
+  if (canvas->slot->vscroll)
   {
-    shoes_native_slot_lengthen(&canvas->slot, canvas->height, 1);
+    shoes_native_slot_lengthen(canvas->slot, canvas->height, 1);
   }
 }
 
@@ -645,7 +645,7 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
   app->os.window = [[ShoesWindow alloc] initWithContentRect: NSMakeRect(0, 0, app->width, app->height)
     styleMask: mask backing: NSBackingStoreBuffered defer: NO];
   [app->os.window prepareWithApp: app->self];
-  app->slot.view = [app->os.window contentView];
+  app->slot->view = [app->os.window contentView];
   RELEASE;
 
 quit:
@@ -688,7 +688,7 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
   shoes_canvas *canvas;
   SHOES_SLOT_OS *slot;
   Data_Get_Struct(c, shoes_canvas, canvas);
-  slot = &canvas->slot;
+  slot->canvas = gtk_fixed_new();
 
   slot->controls = parent->controls;
   slot->view = [[ShoesView alloc] initWithFrame: NSMakeRect(x, y, width, height) andCanvas: c];
@@ -716,9 +716,9 @@ void
 shoes_slot_destroy(shoes_canvas *canvas, shoes_canvas *pc)
 {
   INIT;
-  if (canvas->slot.vscroll != NULL)
-    [canvas->slot.vscroll removeFromSuperview];
-  [canvas->slot.view removeFromSuperview];
+  if (canvas->slot->vscroll != NULL)
+    [canvas->slot->vscroll removeFromSuperview];
+  [canvas->slot->view removeFromSuperview];
   RELEASE;
 }
 
@@ -726,16 +726,16 @@ cairo_t *
 shoes_cairo_create(shoes_canvas *canvas)
 {
   cairo_t *cr;
-  canvas->slot.surface = cairo_quartz_surface_create_for_cg_context(canvas->slot.context,
+  canvas->slot->surface = cairo_quartz_surface_create_for_cg_context(canvas->slot->context,
     canvas->width, canvas->height);
-  cr = cairo_create(canvas->slot.surface);
-  cairo_translate(cr, 0, 0 - canvas->slot.scrolly);
+  cr = cairo_create(canvas->slot->surface);
+  cairo_translate(cr, 0, 0 - canvas->slot->scrolly);
   return cr;
 }
 
 void shoes_cairo_destroy(shoes_canvas *canvas)
 {
-  cairo_surface_destroy(canvas->slot.surface);
+  cairo_surface_destroy(canvas->slot->surface);
 }
 
 void
@@ -747,16 +747,16 @@ void
 shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc)
 {
   NSRect rect, rect2;
-  int newy = (self_t->place.iy + self_t->place.dy) - pc->slot.scrolly;
+  int newy = (self_t->place.iy + self_t->place.dy) - pc->slot->scrolly;
   rect.origin.x = (self_t->place.ix + self_t->place.dx) * 1.;
   rect.origin.y = ((newy) * 1.);
   rect.size.width = (self_t->place.iw * 1.);
   rect.size.height = (self_t->place.ih * 1.);
-  rect2 = [self_t->slot.view frame];
+  rect2 = [self_t->slot->view frame];
   if (rect.origin.x != rect2.origin.x || rect.origin.y != rect2.origin.y ||
       rect.size.width != rect2.size.width || rect.size.height != rect2.size.height)
   {
-    [self_t->slot.view setFrame: rect];
+    [self_t->slot->view setFrame: rect];
   }
 }
 
@@ -764,7 +764,7 @@ void
 shoes_native_canvas_resize(shoes_canvas *canvas)
 {
   NSSize size = {canvas->width, canvas->height};
-  [canvas->slot.view setFrameSize: size];
+  [canvas->slot->view setFrameSize: size];
 }
 
 void
@@ -793,24 +793,24 @@ shoes_native_control_position(SHOES_CONTROL_REF ref, shoes_place *p1, VALUE self
   shoes_canvas *canvas, shoes_place *p2)
 {
   PLACE_COORDS();
-  if (canvas->slot.vscroll)
-    [canvas->slot.view addSubview: ref positioned: NSWindowBelow relativeTo: canvas->slot.vscroll];
+  if (canvas->slot->vscroll)
+    [canvas->slot->view addSubview: ref positioned: NSWindowBelow relativeTo: canvas->slot->vscroll];
   else
-    [canvas->slot.view addSubview: ref];
+    [canvas->slot->view addSubview: ref];
   shoes_native_control_frame(ref, p2);
-  rb_ary_push(canvas->slot.controls, self);
+  rb_ary_push(canvas->slot->controls, self);
 }
 
 void
 shoes_native_control_repaint(SHOES_CONTROL_REF ref, shoes_place *p1,
   shoes_canvas *canvas, shoes_place *p2)
 {
-  p2->iy -= canvas->slot.scrolly;
+  p2->iy -= canvas->slot->scrolly;
   if (CHANGED_COORDS()) {
     PLACE_COORDS();
     shoes_native_control_frame(ref, p2);
   }
-  p2->iy += canvas->slot.scrolly;
+  p2->iy += canvas->slot->scrolly;
 }
 
 void

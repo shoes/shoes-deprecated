@@ -54,6 +54,7 @@ typedef struct {
   GtkWidget *vscroll, *canvas;
   GdkEventExpose *expose;
   int scrolly, scrollh, scrollw;
+  void *owner;
 } shoes_slot_gtk, SHOES_SLOT_OS;
 
 typedef struct {
@@ -72,8 +73,8 @@ typedef struct {
 #define SHOES_CONTROL_REF GtkWidget *
 #define SHOES_SURFACE_REF GtkWidget *
 #define SHOES_TIMER_REF guint
-#define DC(slot) slot.canvas
-#define HAS_DRAWABLE(slot) slot.canvas->window != 0
+#define DC(slot) slot->canvas
+#define HAS_DRAWABLE(slot) slot->canvas->window != 0
 #define DRAWABLE(ref) GDK_DRAWABLE_XID(ref->window)
 #define APP_WINDOW(app) (app == NULL ? NULL : GTK_WINDOW(app->os.window))
 #define SHOES_TIME struct timespec
@@ -106,6 +107,7 @@ typedef struct {
   cairo_surface_t *surface;
   VALUE controls;
   int scrolly;
+  void *owner;
 } shoes_slot_quartz, SHOES_SLOT_OS;
 
 typedef struct {
@@ -128,8 +130,8 @@ typedef struct {
 #define SHOES_CONTROL_REF NSControl *
 #define SHOES_SURFACE_REF CGrafPtr
 #define SHOES_TIMER_REF ShoesTimer *
-#define DC(slot) slot.view
-#define HAS_DRAWABLE(slot) slot.context != NULL
+#define DC(slot) slot->view
+#define HAS_DRAWABLE(slot) slot->context != NULL
 #define DRAWABLE(ref) ref
 #define SHOES_TIME struct timeval
 #define SHOES_DOWNLOAD_HEADERS NSDictionary *
@@ -171,6 +173,7 @@ typedef struct {
   cairo_surface_t *surface;
   int scrolly;
   char vscroll;
+  void *owner;
 } shoes_slot_win32, SHOES_SLOT_OS;
 
 typedef struct {
@@ -191,10 +194,10 @@ typedef struct {
 #define SHOES_CONTROL_REF HWND
 #define SHOES_SURFACE_REF HWND
 #define SHOES_TIMER_REF long
-#define DC(slot) slot.window
-#define HAS_DRAWABLE(slot) slot.window != NULL
+#define DC(slot) slot->window
+#define HAS_DRAWABLE(slot) slot->window != NULL
 #define DRAWABLE(ref) (libvlc_drawable_t)ref
-#define APP_WINDOW(app) (app == NULL ? NULL : app->slot.window)
+#define APP_WINDOW(app) (app == NULL ? NULL : app->slot->window)
 #define SHOES_TIME DWORD
 #define SHOES_DOWNLOAD_HEADERS char *
 #define SHOES_DOWNLOAD_ERROR DWORD

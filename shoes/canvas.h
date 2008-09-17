@@ -208,7 +208,7 @@ typedef struct {
   libvlc_instance_t *vlc;
   int init;
   VALUE path;
-  SHOES_SLOT_OS slot;
+  SHOES_SLOT_OS *slot;
 } shoes_video;
 #endif
 
@@ -294,7 +294,7 @@ typedef struct {
   int width, height;        // the full height and width used by this box
   char hover;
   struct _shoes_app *app;
-  SHOES_SLOT_OS slot;
+  SHOES_SLOT_OS *slot;
   SHOES_GROUP_OS group;
 } shoes_canvas;
 
@@ -326,7 +326,7 @@ void shoes_error(const char *fmt, ...);
 VALUE shoes_canvas_alloc(VALUE);
 VALUE shoes_canvas_new(VALUE, struct _shoes_app *);
 void shoes_canvas_clear(VALUE);
-shoes_canvas *shoes_canvas_init(VALUE, SHOES_SLOT_OS, VALUE, int, int);
+shoes_canvas *shoes_canvas_init(VALUE, SHOES_SLOT_OS *, VALUE, int, int);
 void shoes_slot_scroll_to(shoes_canvas *, int, int);
 void shoes_canvas_paint(VALUE);
 void shoes_apply_transformation(cairo_t *, shoes_transform *, shoes_place *, unsigned char, unsigned char);
@@ -456,6 +456,7 @@ VALUE shoes_canvas_dialog_plain(VALUE);
 VALUE shoes_canvas_snapshot(int, VALUE *, VALUE);
 VALUE shoes_canvas_download(int, VALUE *, VALUE);
 
+SHOES_SLOT_OS *shoes_slot_alloc(shoes_canvas *, SHOES_SLOT_OS *, int);
 VALUE shoes_slot_new(VALUE, VALUE, VALUE);
 VALUE shoes_flow_new(VALUE, VALUE);
 VALUE shoes_stack_new(VALUE, VALUE);
