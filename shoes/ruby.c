@@ -786,6 +786,7 @@ shoes_shape_draw(VALUE self, VALUE c, VALUE actual)
   shoes_place place;
   shoes_canvas *canvas;
   GET_STRUCT(shape, self_t);
+  if (ATTR(self_t->attr, hidden) == Qtrue) return self;
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
   shoes_place_exact(&place, self_t->attr, CPX(canvas), CPY(canvas));
 
