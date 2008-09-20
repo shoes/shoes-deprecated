@@ -3029,10 +3029,11 @@ shoes_edit_box_draw(VALUE self, VALUE c, VALUE actual)
 VALUE
 shoes_list_box_choose(VALUE self, VALUE item)
 {
-  VALUE text = Qnil, items = Qnil;
+  VALUE items = Qnil;
   int idx = -1;
   GET_STRUCT(control, self_t);
-  if (self_t->ref == NULL) text = Qnil;
+  ATTRSET(self_t->attr, choose, item);
+  if (self_t->ref == NULL) return self;
 
   items = ATTR(self_t->attr, items);
   shoes_native_list_box_set_active(self_t->ref, items, item);
