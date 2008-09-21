@@ -225,29 +225,47 @@ END
       stack do
         background white
         stack :margin => 20 do
-          para "File:"
-          flow do
-            @path = edit_line :width => -120
-            button "Browse...", :width => 100 do
-              @path.text = ask_open_file
-              est_recount
+          selt = proc { @sel1.toggle; @sel2.toggle }
+          @path = ""
+          @shy_path = nil
+          @sel1 =
+            flow do
+              para "File:"
+              inscription " (or a ", link("directory", &selt), ")"
+              edit1 = edit_line :width => -120
+              button "Browse...", :width => 100 do
+                @path = edit1.text = ask_open_file
+                est_recount
+              end
             end
-          end
+          @sel2 =
+            flow :hidden => true do
+              para "Directory:"
+              inscription " (or a ", link("single file", &selt), ")"
+              edit2 = edit_line :width => -120
+              button "Folder...", :width => 100 do
+                @path = edit2.text = ask_open_folder
+                est_recount
+              end
+            end
 
-          para "Installers:"
+          para "Package for:"
           flow :margin_left => 20 do
-            @exe = check :margin_top => 4
+            @shy = check
+            para "Shoes (.shy)", :margin_right => 20
+            @exe = check
             para "Windows", :margin_right => 20
-            @dmg = check :margin_top => 4
+            @dmg = check
             para "OS X", :margin_right => 20
-            @run = check :margin_top => 4
+            @run = check
             para "Linux"
           end
 
-          para "Include Shoes with your app? "
+          para "Include Shoes with your app? ", :margin => 0
           @inc = list_box :items => [I_NET, I_YES, I_NOV], :width => 0.6 do
             est_recount
           end
+          inscription "(This option doesn't apply to Shoes .shy files.)"
         end
       end
 
@@ -260,48 +278,120 @@ END
             when I_YES; 7000
             when I_NOV; 2500
             end
-          base += File.size(@path.text) / 1024
+          base += ((File.directory?(@path) ? Shy.du(@path) : File.size(@path)) rescue 0) / 1024
           @est.replace "Estimated size of each app: ", strong(base > 1024 ?
             "%0.1fM" % [base / 1024.0] : "#{base}K")
+        end
+        def build_thread
+          @shy_path = nil
+          if File.directory? @path
+            @shy_path = @path.gsub(%r![\\/]+$!, '') + ".shy"
+          elsif @shy.checked?
+            @shy_path = @path.gsub(/\.\w+$/, '') + ".shy"
+          end
+          if @shy_path and not @shy_meta
+            @page_shy.show
+            @shy_para.text = File.basename(@shy_path)
+            @shy_launch.items = Shy.launchable(@path)
+            return
+          end
+          @page2.show 
+          @path2.replace File.basename(@path)
+          Thread.start do
+            begin
+              sofar, stage = 0.0, 1.0 / [@shy.checked?, @exe.checked?, @dmg.checked?, @run.checked?].
+                select { |x| x }.size
+              blk = proc do |frac|
+                @prog.style(:width => sofar + (frac * stage))
+              end
+
+              if @shy_path
+                @status.replace "Compressing the script's folder."
+                pblk = Shy.progress(Shy.du(@path)) do |name, perc, left|
+                  blk[perc]
+                end
+                Shy.c(@shy_path, @shy_meta, @path, &pblk)
+                @path = @shy_path
+                @prog.style(:width => sofar += stage)
+              end
+              if @exe.checked?
+                @status.replace "Working on an .exe for Windows."
+                Shoes::Pack.exe(@path, @inc.text, &blk)
+                @prog.style(:width => sofar += stage)
+              end
+              if @dmg.checked?
+                @status.replace "Working on a .dmg for Mac OS X."
+                Shoes::Pack.dmg(@path, @inc.text, &blk)
+                @prog.style(:width => sofar += stage)
+              end
+              if @run.checked?
+                @status.replace "Working on a .run for Linux."
+                Shoes::Pack.linux(@path, @inc.text, &blk)
+                @prog.style(:width => sofar += stage)
+              end
+              if @shy_path and not @shy.checked?
+                FileUtils.rm_rf(@shy_path)
+              end
+
+              @prog.style(:width => 1.0)
+              @page2.hide
+              @page3.show 
+              @path3.replace File.basename(@path)
+            rescue => e
+              error(e)
+            end
+          end
         end
         inscription "Using the latest Shoes build (0.r#{Shoes::REVISION})", :margin => 0
         flow :margin_top => 10, :margin_left => 310 do
           button "OK", :margin_right => 4 do
             @page1.hide
-            @page2.show 
-            @path2.replace File.basename(@path.text)
-            Thread.start do
-              begin
-                sofar, stage = 0.0, 1.0 / [@exe.checked?, @dmg.checked?, @run.checked?].
-                  select { |x| x }.size
-                blk = proc do |frac|
-                  @prog.style(:width => sofar + (frac * stage))
-                end
+            build_thread
+          end
+          button "Cancel" do
+            close
+          end
+        end
+      end
+    end
 
-                if @exe.checked?
-                  @status.replace "Working on an .exe for Windows."
-                  Shoes::Pack.exe(@path.text, @inc.text, &blk)
-                  @prog.style(:width => sofar += stage)
-                end
-                if @dmg.checked?
-                  @status.replace "Working on a .dmg for Mac OS X."
-                  Shoes::Pack.dmg(@path.text, @inc.text, &blk)
-                  @prog.style(:width => sofar += stage)
-                end
-                if @run.checked?
-                  @status.replace "Working on a .run for Linux."
-                  Shoes::Pack.linux(@path.text, @inc.text, &blk)
-                  @prog.style(:width => sofar += stage)
-                end
-
-                @prog.style(:width => 1.0)
-                @page2.hide
-                @page3.show 
-                @path3.replace File.basename(@path.text)
-              rescue => e
-                error(e)
-              end
+    @page_shy = stack :hidden => true do
+      stack do
+        background white
+        stack :margin => 20 do
+          para "Details for:", :margin => 4
+          @shy_para = para "", :size => 20, :margin => 4
+          flow do
+            stack :margin => 10, :width => 0.4 do
+              para "Name of app:"
+              @shy_name = edit_line :width => 1.0
             end
+            stack :margin => 10, :width => 0.4 do
+              para "Version:"
+              @shy_version = edit_line :width => 120
+            end
+            stack :margin => 10, :width => 0.4 do
+              para "Creator"
+              @shy_creator = edit_line :width => 1.0
+            end
+            stack :margin => 10, :width => 0.5 do
+              para "Launch"
+              @shy_launch = list_box
+            end
+          end
+        end
+      end
+
+      stack :margin => 20 do
+        flow :margin_top => 10, :margin_left => 310 do
+          button "OK", :margin_right => 4 do
+            @shy_meta = Shy.new
+            @shy_meta.name = @shy_name.text
+            @shy_meta.creator = @shy_creator.text
+            @shy_meta.version = @shy_version.text
+            @shy_meta.launch =  @shy_launch.text
+            @page_shy.hide
+            build_thread
           end
           button "Cancel" do
             close

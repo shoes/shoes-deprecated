@@ -58,11 +58,6 @@ class Shoes
       show_manual
     end
 
-    opts.on("-s", "--shy DIRECTORY",
-            "Compress a directory into a Shoes YAML (SHY) archive.") do |s|
-      make_shy(s)
-    end
-
     opts.on("-p", "--package",
             "Package a Shoes app for Windows, OS X and Linux.") do |s|
       make_pack
@@ -115,11 +110,6 @@ class Shoes
   def self.show_selector
     fname = ask_open_file
     Shoes.load(fname) if fname
-  end
-
-  def self.make_shy(s)
-    require 'shoes/shy'
-    Shoes.app(&ShyMake.call(s))
   end
 
   def self.make_pack
