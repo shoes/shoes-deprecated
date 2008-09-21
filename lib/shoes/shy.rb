@@ -23,7 +23,7 @@ class Shy
         path.gsub(%r!#{Regexp::quote(d)}/!, '')
       end
     else
-      File.basename(d)
+      [File.basename(d)]
     end
   end
 

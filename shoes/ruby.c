@@ -3060,8 +3060,10 @@ shoes_list_box_items_set(VALUE self, VALUE items)
 {
   VALUE opt = shoes_list_box_text(self);
   GET_STRUCT(control, self_t);
+  if (!rb_obj_is_kind_of(items, rb_cArray))
+    rb_raise(rb_eArgError, "ListBox items must be an array.");
   ATTRSET(self_t->attr, items, items);
-  shoes_native_list_box_update(self_t->ref, items);
+  if (self_t->ref != NULL) shoes_native_list_box_update(self_t->ref, items);
   shoes_list_box_choose(self, opt);
   return items;
 }
@@ -3084,7 +3086,7 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE actual)
 
       if (!NIL_P(items))
       {
-        shoes_native_list_box_update(self_t->ref, items);
+        shoes_list_box_items_set(self, items);
         if (!NIL_P(ATTR(self_t->attr, choose)))
           shoes_native_list_box_set_active(self_t->ref, items, ATTR(self_t->attr, choose));
       }
