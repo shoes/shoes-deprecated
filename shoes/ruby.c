@@ -2594,9 +2594,14 @@ shoes_textblock_iter_pango(VALUE texts, shoes_kxxxx *k)
     }
     else
     {
+      char *start, *end;
       v = rb_funcall(v, s_to_s, 0);
       k->len += RSTRING_LEN(v); 
-      g_string_append_len(k->text, RSTRING_PTR(v), RSTRING_LEN(v));
+      start = RSTRING_PTR(v);
+      if (!g_utf8_validate(start, RSTRING_LEN(v), &end))
+        shoes_error("not a valid UTF-8 string: %.*s", end - start, start); 
+      if (end > start)
+        g_string_append_len(k->text, start, end - start);
     }
   }
 }
