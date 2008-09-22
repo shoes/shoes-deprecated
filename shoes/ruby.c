@@ -535,7 +535,7 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
   { \
     cairo_pattern_get_matrix(PATTERN(self_t), &matrix1); \
     cairo_pattern_get_matrix(PATTERN(self_t), &matrix2); \
-    cairo_matrix_scale(&matrix2, 1. / (place.iw + (sw * 2.)), 1. / (place.ih + (sw * 2.))); \
+    cairo_matrix_scale(&matrix2, 1. / (abs(place.iw) + (sw * 2.)), 1. / (abs(place.ih) + (sw * 2.))); \
     if (sw != 0.0) cairo_matrix_translate(&matrix2, sw, sw); \
     cairo_pattern_set_matrix(PATTERN(self_t), &matrix2); \
   }
@@ -627,6 +627,8 @@ shoes_shape_check(cairo_t *cr, shoes_place *place)
   double ox1 = place->ix, oy1 = place->iy, ox2 = place->ix + place->iw, oy2 = place->iy + place->ih;
   double cx1, cy1, cx2, cy2;
   cairo_clip_extents(cr, &cx1, &cy1, &cx2, &cy2);
+  if (place->iw < 0) ox1 = place->ix - (ox2 = -place->iw);
+  if (place->ih < 0) oy1 = place->iy - (oy2 = -place->ih);
   if (cy2 - cy1 == 1.0 && cx2 - cx1 == 1.0) return 1;
   cairo_user_to_device(cr, &ox1, &oy1);
   cairo_user_to_device(cr, &ox2, &oy2);
@@ -675,8 +677,6 @@ shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, shoes_transform *st
   }
   else if (name == s_line)
   {
-    int x1, y1, x2, y2, r, b;
-    double cv;
     shoes_apply_transformation(cr, st, place, RTEST(ATTR(attr, center)), 0);
     if (!shoes_shape_check(cr, place))
       return shoes_undo_transformation(cr, st, place, 0);
@@ -2629,6 +2629,11 @@ shoes_textblock_on_layout(shoes_app *app, VALUE klass, shoes_textblock *block)
   oattr = block->attr;
   hsh = rb_hash_aref(app->styles, klass);
 
+  if (!block->cached || block->pattr == NULL)
+    shoes_textblock_make_pango(app, klass, block);
+  pango_layout_set_text(block->layout, block->text->str, -1);
+  pango_layout_set_attributes(block->layout, block->pattr);
+
   GET_STYLE(justify);
   if (!NIL_P(str))
     pango_layout_set_justify(block->layout, RTEST(str));
@@ -2643,11 +2648,6 @@ shoes_textblock_on_layout(shoes_app *app, VALUE klass, shoes_textblock *block)
     else if (strncmp(RSTRING_PTR(str), "right", 5) == 0)
       pango_layout_set_alignment(block->layout, PANGO_ALIGN_RIGHT);
   }
-
-  if (!block->cached || block->pattr == NULL)
-    shoes_textblock_make_pango(app, klass, block);
-  pango_layout_set_text(block->layout, block->text->str, -1);
-  pango_layout_set_attributes(block->layout, block->pattr);
 }
 
 VALUE
