@@ -1117,15 +1117,29 @@ shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VAL
 VALUE
 shoes_native_edit_line_get_text(SHOES_CONTROL_REF ref)
 {
-  LONG i;
   VALUE text;
-  TCHAR *buffer;
-  i = (LONG)SendMessage(ref, WM_GETTEXTLENGTH, 0, 0) + 1;
-  buffer = SHOE_ALLOC_N(TCHAR, i);
-  SendMessage(ref, WM_GETTEXT, i, (LPARAM)buffer);
-  text = rb_str_new2(buffer);
+  LONG i, i8;
+  char *utf8 = NULL;
+  WCHAR *buffer = NULL;
+  i = (LONG)SendMessageW(ref, WM_GETTEXTLENGTH, 0, 0) + 1;
+  if (!i) goto empty;
+  buffer = SHOE_ALLOC_N(WCHAR, i);
+  if (!buffer) goto empty;
+  SendMessageW(ref, WM_GETTEXT, i, (LPARAM)buffer);
+
+  i8 = WideCharToMultiByte(CP_UTF8, 0, buffer, i, NULL, 0, NULL, NULL);
+  if (!i8) goto empty;
+  utf8 = SHOE_ALLOC_N(char, i8);
+  if (!utf8) goto empty;
+  WideCharToMultiByte(CP_UTF8, 0, buffer, i, utf8, i8, NULL, NULL);
+
+  text = rb_str_new2(utf8);
+  SHOE_FREE(utf8);
   SHOE_FREE(buffer);
   return text;
+empty:
+  if (buffer != NULL) SHOE_FREE(buffer);
+  return rb_str_new2("");
 }
 
 void
@@ -1154,15 +1168,7 @@ shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALU
 VALUE
 shoes_native_edit_box_get_text(SHOES_CONTROL_REF ref)
 {
-  VALUE text;
-  LONG i;
-  TCHAR *buffer;
-  i = (LONG)SendMessage(ref, WM_GETTEXTLENGTH, 0, 0) + 1;
-  buffer = SHOE_ALLOC_N(TCHAR, i);
-  SendMessage(ref, WM_GETTEXT, i, (LPARAM)buffer);
-  text = rb_str_new2(buffer);
-  SHOE_FREE(buffer);
-  return text;
+  return shoes_native_edit_line_get_text(ref);
 }
 
 void
