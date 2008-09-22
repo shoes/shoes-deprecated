@@ -688,8 +688,8 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
   shoes_canvas *canvas;
   SHOES_SLOT_OS *slot;
   Data_Get_Struct(c, shoes_canvas, canvas);
-  slot->canvas = gtk_fixed_new();
 
+  slot = shoes_slot_alloc(canvas, parent, toplevel);
   slot->controls = parent->controls;
   slot->view = [[ShoesView alloc] initWithFrame: NSMakeRect(x, y, width, height) andCanvas: c];
   [slot->view setAutoresizesSubviews: NO];
