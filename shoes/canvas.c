@@ -15,9 +15,6 @@
   cairo_t *cr; \
   Data_Get_Struct(self, shoes_canvas, canvas); \
   cr = CCR(canvas)
-#define SETUP_BASIC() \
-  shoes_basic *basic; \
-  Data_Get_Struct(self, shoes_basic, basic);
 #define SETUP_IMAGE() \
   shoes_place place; \
   GET_STRUCT(image, image); \

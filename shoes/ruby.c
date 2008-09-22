@@ -2166,9 +2166,22 @@ shoes_textblock_mark(shoes_textblock *text)
 }
 
 static void
+shoes_textblock_uncache(shoes_textblock *text)
+{
+  if (text->kxxxx != NULL)
+  {
+    pango_attr_list_unref(text->kxxxx->attr);
+    g_string_free(text->kxxxx->text, TRUE);
+    SHOE_FREE(text->kxxxx);
+    text->kxxxx = NULL;
+  }
+}
+
+static void
 shoes_textblock_free(shoes_textblock *text)
 {
   shoes_transform_release(text->st);
+  shoes_textblock_uncache(text);
   if (text->layout != NULL)
     g_object_unref(text->layout);
   RUBY_CRITICAL(free(text));
@@ -2235,6 +2248,17 @@ shoes_textblock_string(VALUE self)
 }
 
 static VALUE
+shoes_find_textblock(VALUE self)
+{
+  while (!NIL_P(self) && !rb_obj_is_kind_of(self, cTextBlock))
+  {
+    SETUP_BASIC();
+    self = basic->parent;
+  }
+  return self;
+}
+
+static VALUE
 shoes_textblock_send_hover(VALUE self, int x, int y, VALUE *clicked, char *t)
 {
   VALUE url = Qnil;
@@ -2247,6 +2271,7 @@ shoes_textblock_send_hover(VALUE self, int x, int y, VALUE *clicked, char *t)
   hover = pango_layout_xy_to_index(self_t->layout, x * PANGO_SCALE, y * PANGO_SCALE, &index, &trailing);
   if (hover)
   {
+    shoes_textblock_uncache(self_t);
     INFO("HOVER (%d, %d) OVER (%d, %d)\n", x, y, self_t->place.ix + self_t->place.dx, self_t->place.iy + self_t->place.dy);
   }
   for (i = 0; i < RARRAY_LEN(self_t->links); i++)
@@ -2301,18 +2326,6 @@ shoes_textblock_send_release(VALUE self, int button, int x, int y)
   }
 }
 
-//
-// this is a secret structure that i got to name all by myself
-//
-typedef struct {
-  shoes_app *app;
-  PangoLayout *layout;
-  PangoAttrList *attr;
-  GString *text;
-  gsize len;
-  VALUE links;
-} shoes_kxxxx;
-
 #define APPLY_ATTR() \
   if (attr != NULL) { \
     attr->start_index = start_index; \
@@ -2345,32 +2358,12 @@ typedef struct {
 static void
 shoes_app_style_for(shoes_kxxxx *k, VALUE klass, VALUE oattr, gsize start_index, gsize end_index)
 {
-  VALUE str;
+  VALUE str = Qnil;
   VALUE hsh = rb_hash_aref(k->app->styles, klass);
   if (NIL_P(hsh) && NIL_P(oattr)) return;
 
   PangoAttrList *list = pango_attr_list_new();
   PangoAttribute *attr = NULL;
-
-  if (rb_class_inherited_p(klass, cTextBlock))
-  {
-    GET_STYLE(justify);
-    if (!NIL_P(str))
-    {
-      pango_layout_set_justify(k->layout, RTEST(str));
-    }
-
-    GET_STYLE(align);
-    if (TYPE(str) == T_STRING)
-    {
-      if (strncmp(RSTRING_PTR(str), "left", 4) == 0)
-        pango_layout_set_alignment(k->layout, PANGO_ALIGN_LEFT);
-      else if (strncmp(RSTRING_PTR(str), "center", 6) == 0)
-        pango_layout_set_alignment(k->layout, PANGO_ALIGN_CENTER);
-      else if (strncmp(RSTRING_PTR(str), "right", 5) == 0)
-        pango_layout_set_alignment(k->layout, PANGO_ALIGN_RIGHT);
-    }
-  }
 
   APPLY_STYLE_COLOR(stroke, foreground);
   APPLY_STYLE_COLOR(fill, background);
@@ -2607,39 +2600,52 @@ shoes_textblock_iter_pango(VALUE texts, shoes_kxxxx *k)
 }
 
 static void
-shoes_textblock_make_pango(shoes_app *app, VALUE klass, shoes_textblock *block, PangoAttrList **attr_list, char **text)
+shoes_textblock_make_pango(shoes_app *app, VALUE klass, shoes_textblock *block)
 {
   shoes_kxxxx *k = SHOE_ALLOC(shoes_kxxxx);
   k->attr = pango_attr_list_new();
   k->text = g_string_new(NULL);
   k->len = 0;
   k->app = app;
-  k->layout = block->layout;
   block->links = k->links = rb_ary_new();
 
   shoes_textblock_iter_pango(block->texts, k);
   shoes_app_style_for(k, klass, block->attr, 0, k->len);
 
-  *attr_list = k->attr;
-  *text = g_string_free(k->text, FALSE);
-  SHOE_FREE(k);
+  block->string = rb_str_new(k->text->str, k->text->len);
+  block->kxxxx = k;
 }
 
 static void
 shoes_textblock_on_layout(shoes_app *app, VALUE klass, shoes_textblock *block)
 {
-  PangoAttrList *list = NULL;
-  char *text = NULL;
-  
-  g_return_if_fail(PANGO_IS_LAYOUT(block->layout));
+  char *attr = NULL;
+  VALUE str = Qnil, hsh = Qnil, oattr = Qnil;
   g_return_if_fail(block != NULL);
+  g_return_if_fail(PANGO_IS_LAYOUT(block->layout));
   
-  shoes_textblock_make_pango(app, klass, block, &list, &text);
-  block->string = rb_str_new2(text);
-  pango_layout_set_text(block->layout, text, -1);
-  pango_layout_set_attributes(block->layout, list);
-  pango_attr_list_unref(list);
-  g_free(text);
+  oattr = block->attr;
+  hsh = rb_hash_aref(app->styles, klass);
+
+  GET_STYLE(justify);
+  if (!NIL_P(str))
+    pango_layout_set_justify(block->layout, RTEST(str));
+
+  GET_STYLE(align);
+  if (TYPE(str) == T_STRING)
+  {
+    if (strncmp(RSTRING_PTR(str), "left", 4) == 0)
+      pango_layout_set_alignment(block->layout, PANGO_ALIGN_LEFT);
+    else if (strncmp(RSTRING_PTR(str), "center", 6) == 0)
+      pango_layout_set_alignment(block->layout, PANGO_ALIGN_CENTER);
+    else if (strncmp(RSTRING_PTR(str), "right", 5) == 0)
+      pango_layout_set_alignment(block->layout, PANGO_ALIGN_RIGHT);
+  }
+
+  if (block->kxxxx == NULL)
+    shoes_textblock_make_pango(app, klass, block);
+  pango_layout_set_text(block->layout, block->kxxxx->text->str, -1);
+  pango_layout_set_attributes(block->layout, block->kxxxx->attr);
 }
 
 VALUE
@@ -3345,7 +3351,8 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   shoes_##ele##_replace(int argc, VALUE *argv, VALUE self) \
   { \
     long i; \
-    VALUE texts, attr; \
+    shoes_textblock *block_t; \
+    VALUE texts, attr, block; \
     GET_STRUCT(ele, self_t); \
     attr = Qnil; \
     texts = rb_ary_new(); \
@@ -3358,6 +3365,9 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
     } \
     self_t->texts = texts; \
     if (!NIL_P(attr)) self_t->attr = attr; \
+    block = shoes_find_textblock(self); \
+    Data_Get_Struct(block, shoes_textblock, block_t); \
+    shoes_textblock_uncache(block_t); \
     shoes_canvas_repaint_all(self_t->parent); \
     return self; \
   }
@@ -3510,6 +3520,15 @@ CLASS_COMMON2(pattern)
 PLACE_COMMON(textblock)
 CLASS_COMMON2(textblock)
 REPLACE_COMMON(textblock)
+
+VALUE
+shoes_textblock_style_m(int argc, VALUE *argv, VALUE self)
+{
+  GET_STRUCT(textblock, self_t);
+  VALUE obj = shoes_textblock_style(argc, argv, self);
+  shoes_textblock_uncache(self_t);
+  return obj;
+}
 
 //
 // Shoes::Timer
@@ -4395,7 +4414,7 @@ shoes_ruby_init()
   rb_define_method(cTextBlock, "text", CASTHOOK(shoes_textblock_string), 0);
   rb_define_method(cTextBlock, "text=", CASTHOOK(shoes_textblock_replace), -1);
   rb_define_method(cTextBlock, "replace", CASTHOOK(shoes_textblock_replace), -1);
-  rb_define_method(cTextBlock, "style", CASTHOOK(shoes_textblock_style), -1);
+  rb_define_method(cTextBlock, "style", CASTHOOK(shoes_textblock_style_m), -1);
   rb_define_method(cTextBlock, "hide", CASTHOOK(shoes_textblock_hide), 0);
   rb_define_method(cTextBlock, "show", CASTHOOK(shoes_textblock_show), 0);
   rb_define_method(cTextBlock, "toggle", CASTHOOK(shoes_textblock_toggle), 0);

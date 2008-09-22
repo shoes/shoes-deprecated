@@ -59,6 +59,9 @@ typedef struct {
   unsigned char flags;
 } shoes_place;
 
+#define SETUP_BASIC() \
+  shoes_basic *basic; \
+  Data_Get_Struct(self, shoes_basic, basic);
 #define COPY_PENS(attr1, attr2) \
   if (NIL_P(ATTR(attr1, stroke))) ATTRSET(attr1, stroke, ATTR(attr2, stroke)); \
   if (NIL_P(ATTR(attr1, fill)))   ATTRSET(attr1, fill, ATTR(attr2, fill)); \
@@ -136,6 +139,17 @@ typedef struct {
 } shoes_link;
 
 //
+// this is a secret structure that i got to name all by myself
+//
+typedef struct {
+  struct _shoes_app *app;
+  PangoAttrList *attr;
+  GString *text;
+  gsize len;
+  VALUE links;
+} shoes_kxxxx;
+
+//
 // text block struct
 //
 typedef struct {
@@ -147,6 +161,7 @@ typedef struct {
   VALUE links;
   VALUE cursor;
   PangoLayout *layout;
+  shoes_kxxxx *kxxxx;
   char hover;
   shoes_transform *st;
 } shoes_textblock;
