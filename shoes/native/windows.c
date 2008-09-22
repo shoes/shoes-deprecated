@@ -22,6 +22,20 @@ shoes_code shoes_classex_init();
 LRESULT CALLBACK shoes_app_win32proc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK shoes_slot_win32proc(HWND, UINT, WPARAM, LPARAM);
 
+static WCHAR *
+shoes_wchar(char *utf8)
+{
+  WCHAR *buffer = NULL;
+  LONG wlen = 0;
+  if (utf8 == NULL) return NULL;
+  wlen = MultiByteToWideChar(CP_UTF8, 0, utf8, -1, NULL, 0);
+  if (!wlen) return NULL;
+  buffer = SHOE_ALLOC_N(WCHAR, wlen);
+  if (!buffer) return NULL;
+  MultiByteToWideChar(CP_UTF8, 0, utf8, -1, buffer, wlen);
+  return buffer;
+}
+
 static void
 shoes_win32_center(HWND hwnd)
 {
@@ -1109,7 +1123,7 @@ shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VAL
       (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
       NULL);
   shoes_win32_control_font(cid, canvas->slot->window);
-  SendMessage(ref, WM_SETTEXT, 0, (LPARAM)msg);
+  shoes_native_edit_line_set_text(ref, msg);
   rb_ary_push(canvas->slot->controls, self);
   return ref;
 }
@@ -1145,7 +1159,12 @@ empty:
 void
 shoes_native_edit_line_set_text(SHOES_CONTROL_REF ref, char *msg)
 {
-  SendMessage(ref, WM_SETTEXT, 0, (LPARAM)msg);
+  WCHAR *buffer = shoes_wchar(msg);
+  if (buffer != NULL)
+  {
+    SendMessageW(ref, WM_SETTEXT, 0, (LPARAM)buffer);
+    SHOE_FREE(buffer);
+  }
 }
 
 SHOES_CONTROL_REF
@@ -1160,7 +1179,7 @@ shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALU
     (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
     NULL);
   shoes_win32_control_font(cid, canvas->slot->window);
-  SendMessage(ref, WM_SETTEXT, 0, (LPARAM)msg);
+  shoes_native_edit_line_set_text(ref, msg);
   rb_ary_push(canvas->slot->controls, self);
   return ref;
 }
@@ -1174,7 +1193,7 @@ shoes_native_edit_box_get_text(SHOES_CONTROL_REF ref)
 void
 shoes_native_edit_box_set_text(SHOES_CONTROL_REF ref, char *msg)
 {
-  SendMessage(ref, WM_SETTEXT, 0, (LPARAM)msg);
+  shoes_native_edit_line_set_text(ref, msg);
 }
 
 SHOES_CONTROL_REF
@@ -1200,7 +1219,12 @@ shoes_native_list_box_update(SHOES_CONTROL_REF box, VALUE ary)
   for (i = 0; i < RARRAY_LEN(ary); i++)
   {
     VALUE msg = shoes_native_to_s(rb_ary_entry(ary, i));
-    SendMessage(box, CB_ADDSTRING, 0, (LPARAM)RSTRING_PTR(msg));
+    WCHAR *buffer = shoes_wchar(RSTRING_PTR(msg));
+    if (buffer != NULL)
+    {
+      SendMessageW(box, CB_ADDSTRING, 0, (LPARAM)buffer);
+      SHOE_FREE(buffer);
+    }
   }
 }
 
