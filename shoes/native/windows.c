@@ -760,7 +760,12 @@ shoes_native_app_resized(shoes_app *app)
 void
 shoes_native_app_title(shoes_app *app, char *msg)
 {
-  SetWindowText(app->slot->window, msg);
+  WCHAR *buffer = shoes_wchar(msg);
+  if (buffer != NULL)
+  {
+    SetWindowTextW(app->slot->window, buffer);
+    SHOE_FREE(buffer);
+  }
 }
 
 shoes_code
