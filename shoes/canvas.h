@@ -139,30 +139,20 @@ typedef struct {
 } shoes_link;
 
 //
-// this is a secret structure that i got to name all by myself
-//
-typedef struct {
-  struct _shoes_app *app;
-  PangoAttrList *attr;
-  GString *text;
-  gsize len;
-  VALUE links;
-} shoes_kxxxx;
-
-//
 // text block struct
 //
 typedef struct {
   VALUE parent;
   VALUE attr;
   shoes_place place;
-  VALUE string;
   VALUE texts;
   VALUE links;
   VALUE cursor;
   PangoLayout *layout;
-  shoes_kxxxx *kxxxx;
-  char hover;
+  PangoAttrList *pattr;
+  GString *text;
+  gsize len;
+  char cached, hover;
   shoes_transform *st;
 } shoes_textblock;
 

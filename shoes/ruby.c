@@ -2157,7 +2157,6 @@ shoes_text_children(VALUE self)
 static void
 shoes_textblock_mark(shoes_textblock *text)
 {
-  rb_gc_mark_maybe(text->string);
   rb_gc_mark_maybe(text->texts);
   rb_gc_mark_maybe(text->links);
   rb_gc_mark_maybe(text->attr);
@@ -2165,15 +2164,22 @@ shoes_textblock_mark(shoes_textblock *text)
   rb_gc_mark_maybe(text->cursor);
 }
 
+//
+// Frees the pango attribute list.
+// The `all` flag means the string has changed as well.
+//
 static void
-shoes_textblock_uncache(shoes_textblock *text)
+shoes_textblock_uncache(shoes_textblock *text, unsigned char all)
 {
-  if (text->kxxxx != NULL)
+  if (text->pattr != NULL)
+    pango_attr_list_unref(text->pattr);
+  text->pattr = NULL;
+  if (all)
   {
-    pango_attr_list_unref(text->kxxxx->attr);
-    g_string_free(text->kxxxx->text, TRUE);
-    SHOE_FREE(text->kxxxx);
-    text->kxxxx = NULL;
+    if (text->text != NULL)
+      g_string_free(text->text, TRUE);
+    text->text = NULL;
+    text->cached = 0;
   }
 }
 
@@ -2181,7 +2187,7 @@ static void
 shoes_textblock_free(shoes_textblock *text)
 {
   shoes_transform_release(text->st);
-  shoes_textblock_uncache(text);
+  shoes_textblock_uncache(text, TRUE);
   if (text->layout != NULL)
     g_object_unref(text->layout);
   RUBY_CRITICAL(free(text));
@@ -2209,7 +2215,6 @@ shoes_textblock_alloc(VALUE klass)
   shoes_textblock *text = SHOE_ALLOC(shoes_textblock);
   SHOE_MEMZERO(text, shoes_textblock, 1);
   obj = Data_Wrap_Struct(klass, shoes_textblock_mark, shoes_textblock_free, text);
-  text->string = Qnil;
   text->texts = Qnil;
   text->links = Qnil;
   text->attr = Qnil;
@@ -2240,13 +2245,6 @@ shoes_textblock_get_cursor(VALUE self)
   return self_t->cursor;
 }
 
-VALUE
-shoes_textblock_string(VALUE self)
-{
-  GET_STRUCT(textblock, self_t);
-  return self_t->string;
-}
-
 static VALUE
 shoes_find_textblock(VALUE self)
 {
@@ -2265,13 +2263,14 @@ shoes_textblock_send_hover(VALUE self, int x, int y, VALUE *clicked, char *t)
   int index, trailing, i, hover;
   GET_STRUCT(textblock, self_t);
   if (self_t->layout == NULL || NIL_P(self_t->links)) return Qnil;
+  if (!NIL_P(self_t->attr) && ATTR(self_t->attr, hidden) == Qtrue) return Qnil;
 
   x -= self_t->place.ix + self_t->place.dx;
   y -= self_t->place.iy + self_t->place.dy;
   hover = pango_layout_xy_to_index(self_t->layout, x * PANGO_SCALE, y * PANGO_SCALE, &index, &trailing);
   if (hover)
   {
-    shoes_textblock_uncache(self_t);
+    shoes_textblock_uncache(self_t, FALSE);
     INFO("HOVER (%d, %d) OVER (%d, %d)\n", x, y, self_t->place.ix + self_t->place.dx, self_t->place.iy + self_t->place.dy);
   }
   for (i = 0; i < RARRAY_LEN(self_t->links); i++)
@@ -2330,7 +2329,7 @@ shoes_textblock_send_release(VALUE self, int button, int x, int y)
   if (attr != NULL) { \
     attr->start_index = start_index; \
     attr->end_index = end_index; \
-    pango_attr_list_insert_before(k->attr, attr); \
+    pango_attr_list_insert_before(block->pattr, attr); \
     attr = NULL; \
   }
 
@@ -2356,10 +2355,10 @@ shoes_textblock_send_release(VALUE self, int button, int x, int y)
   }
 
 static void
-shoes_app_style_for(shoes_kxxxx *k, VALUE klass, VALUE oattr, gsize start_index, gsize end_index)
+shoes_app_style_for(shoes_textblock *block, shoes_app *app, VALUE klass, VALUE oattr, gsize start_index, gsize end_index)
 {
   VALUE str = Qnil;
-  VALUE hsh = rb_hash_aref(k->app->styles, klass);
+  VALUE hsh = rb_hash_aref(app->styles, klass);
   if (NIL_P(hsh) && NIL_P(oattr)) return;
 
   PangoAttrList *list = pango_attr_list_new();
@@ -2553,7 +2552,7 @@ shoes_app_style_for(shoes_kxxxx *k, VALUE klass, VALUE oattr, gsize start_index,
 }
 
 static void
-shoes_textblock_iter_pango(VALUE texts, shoes_kxxxx *k)
+shoes_textblock_iter_pango(VALUE texts, shoes_textblock *block, shoes_app *app)
 {
   VALUE v;
   long i;
@@ -2571,30 +2570,33 @@ shoes_textblock_iter_pango(VALUE texts, shoes_kxxxx *k)
       shoes_text *text;
       Data_Get_Struct(v, shoes_text, text);
 
-      start = k->len;
-      shoes_textblock_iter_pango(text->texts, k);
+      start = block->len;
+      shoes_textblock_iter_pango(text->texts, block, app);
       if ((text->hover & HOVER_MOTION) && tklass == cLink)
         tklass = cLinkHover;
-      shoes_app_style_for(k, tklass, text->attr, start, k->len);
-      if (rb_obj_is_kind_of(v, cLink) && !NIL_P(text->attr))
+      shoes_app_style_for(block, app, tklass, text->attr, start, block->len);
+      if (!block->cached && rb_obj_is_kind_of(v, cLink) && !NIL_P(text->attr))
       {
-        rb_ary_push(k->links, shoes_link_new(v, start, k->len));
+        rb_ary_push(block->links, shoes_link_new(v, start, block->len));
       }
     }
     else if (rb_obj_is_kind_of(v, rb_cArray))
     {
-      shoes_textblock_iter_pango(v, k);
+      shoes_textblock_iter_pango(v, block, app);
     }
     else
     {
       char *start, *end;
       v = rb_funcall(v, s_to_s, 0);
-      k->len += RSTRING_LEN(v); 
-      start = RSTRING_PTR(v);
-      if (!g_utf8_validate(start, RSTRING_LEN(v), &end))
-        shoes_error("not a valid UTF-8 string: %.*s", end - start, start); 
-      if (end > start)
-        g_string_append_len(k->text, start, end - start);
+      block->len += RSTRING_LEN(v); 
+      if (!block->cached)
+      {
+        start = RSTRING_PTR(v);
+        if (!g_utf8_validate(start, RSTRING_LEN(v), (const gchar **)&end))
+          shoes_error("not a valid UTF-8 string: %.*s", end - start, start); 
+        if (end > start)
+          g_string_append_len(block->text, start, end - start);
+      }
     }
   }
 }
@@ -2602,18 +2604,18 @@ shoes_textblock_iter_pango(VALUE texts, shoes_kxxxx *k)
 static void
 shoes_textblock_make_pango(shoes_app *app, VALUE klass, shoes_textblock *block)
 {
-  shoes_kxxxx *k = SHOE_ALLOC(shoes_kxxxx);
-  k->attr = pango_attr_list_new();
-  k->text = g_string_new(NULL);
-  k->len = 0;
-  k->app = app;
-  block->links = k->links = rb_ary_new();
+  if (!block->cached)
+  {
+    block->text = g_string_new(NULL);
+    block->links = rb_ary_new();
+  }
+  block->len = 0;
+  block->pattr = pango_attr_list_new();
 
-  shoes_textblock_iter_pango(block->texts, k);
-  shoes_app_style_for(k, klass, block->attr, 0, k->len);
+  shoes_textblock_iter_pango(block->texts, block, app);
+  shoes_app_style_for(block, app, klass, block->attr, 0, block->len);
 
-  block->string = rb_str_new(k->text->str, k->text->len);
-  block->kxxxx = k;
+  block->cached = 1;
 }
 
 static void
@@ -2642,10 +2644,10 @@ shoes_textblock_on_layout(shoes_app *app, VALUE klass, shoes_textblock *block)
       pango_layout_set_alignment(block->layout, PANGO_ALIGN_RIGHT);
   }
 
-  if (block->kxxxx == NULL)
+  if (!block->cached || block->pattr == NULL)
     shoes_textblock_make_pango(app, klass, block);
-  pango_layout_set_text(block->layout, block->kxxxx->text->str, -1);
-  pango_layout_set_attributes(block->layout, block->kxxxx->attr);
+  pango_layout_set_text(block->layout, block->text->str, -1);
+  pango_layout_set_attributes(block->layout, block->pattr);
 }
 
 VALUE
@@ -2666,10 +2668,7 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
   cr = CCR(canvas);
 
   if (!NIL_P(self_t->attr) && ATTR(self_t->attr, hidden) == Qtrue)
-  {
-    rb_ary_clear(self_t->links);
     return self;
-  }
 
   ATTR_MARGINS(self_t->attr, 4, canvas);
   if (NIL_P(ATTR(self_t->attr, margin)) && NIL_P(ATTR(self_t->attr, margin_bottom)))
@@ -2763,7 +2762,7 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
       int cursor = NUM2INT(self_t->cursor);
       PangoRectangle crect;
       double crx, cry;
-      if (cursor < 0) cursor += RSTRING_LEN(self_t->string) + 1;
+      if (cursor < 0) cursor += self_t->text->len + 1;
       pango_layout_index_to_pos(self_t->layout, cursor, &crect);
       crx = (self_t->place.ix + self_t->place.dx) + (crect.x / PANGO_SCALE);
       cry = (self_t->place.iy + self_t->place.dy) + (crect.y / PANGO_SCALE);
@@ -2819,6 +2818,17 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
       canvas->endx, canvas->endy);
   }
   return self;
+}
+
+VALUE
+shoes_textblock_string(VALUE self)
+{
+  shoes_canvas *canvas;
+  GET_STRUCT(textblock, self_t);
+  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+  if (!self_t->cached || self_t->pattr == NULL)
+    shoes_textblock_make_pango(canvas->app, rb_obj_class(self), self_t);
+  return rb_str_new(self_t->text->str, self_t->text->len);
 }
 
 //
@@ -3367,7 +3377,7 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
     if (!NIL_P(attr)) self_t->attr = attr; \
     block = shoes_find_textblock(self); \
     Data_Get_Struct(block, shoes_textblock, block_t); \
-    shoes_textblock_uncache(block_t); \
+    shoes_textblock_uncache(block_t, TRUE); \
     shoes_canvas_repaint_all(self_t->parent); \
     return self; \
   }
@@ -3526,7 +3536,7 @@ shoes_textblock_style_m(int argc, VALUE *argv, VALUE self)
 {
   GET_STRUCT(textblock, self_t);
   VALUE obj = shoes_textblock_style(argc, argv, self);
-  shoes_textblock_uncache(self_t);
+  shoes_textblock_uncache(self_t, FALSE);
   return obj;
 }
 
