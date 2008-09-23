@@ -219,11 +219,13 @@ END
   I_YES = "Yes, I want Shoes included."
   I_NOV = "Yes, include Shoes, but without video support."
   PackMake = proc do
-    background "#EEE"
+    background "#DDD"
 
     @page1 = stack do
       stack do
         background white
+        background "#FFF".."#EEE", :height => 50, :bottom => 50
+        border "#CCC", :height => 2, :bottom => 0
         stack :margin => 20 do
           selt = proc { @sel1.toggle; @sel2.toggle }
           @path = ""
@@ -358,6 +360,7 @@ END
     @page_shy = stack :hidden => true do
       stack do
         background white
+        border "#DDD", :height => 2, :bottom => 0
         stack :margin => 20 do
           para "Details for:", :margin => 4
           @shy_para = para "", :size => 20, :margin => 4
@@ -403,6 +406,7 @@ END
     @page2 = stack :hidden => true do
       stack do
         background white
+        border "#DDD", :height => 2, :bottom => 0
         stack :margin => 20 do
           para "Packaging:", :margin => 4
           @path2 = para "", :size => 20, :margin => 4
@@ -424,6 +428,7 @@ END
     @page3 = stack :hidden => true do
       stack do
         background white
+        border "#DDD", :height => 2, :bottom => 0
         stack :margin => 20 do
           para "Completed:", :margin => 4
           @path3 = para "", :size => 20, :margin => 4
