@@ -203,6 +203,93 @@ So the rules here are:
 
 1. '''Methods named "app" change self to the App object.'''[[BR]](This is true for both Shoes.app and Slot.app.)[[BR]]2. '''Blocks attached to stacks, flows or any manipulation method (such as append) do not change self.  Instead, they pop the slot on to the app's editing stack.'''
 
+==== Careful With Fixed Heights ====
+
+Fixed widths on slots are great so you can split the window into columns.
+
+{{{
+ Shoes.app do
+   flow do
+     stack :width => 200
+       caption "Column one"
+       para "is 200 pixels wide"
+     end
+     stack :width => -200
+       caption "Column two"
+       para "is 100% minus 200 pixels wide"
+     end
+   end
+ end
+}}}
+
+Fixed heights on slots should be less common.  Usually you want your text and images to just flow down the window as far as they can.  Height usually happens naturally.
+
+The important thing here is that fixed heights actually force slots to behave differently.  To be sure that the end of the slot is chopped off perfectly, the slot becomes a '''nested window'''.  A new layer is created by the operating system to keep the slot in a fixed square.
+
+On difference between normal slots and nested window slots is that the latter can have scrollbars.
+
+{{{
+ Shoes.app do
+   stack :width => 200, :height => 200, :scroll => true do
+     background "#DFA"
+     100.times do |i|
+       para "Paragraph No. #{i}"
+     end
+   end
+ end
+}}}
+
+These nested windows require more memory.  They tax the application a bit more.  So if you're experiencing some slowness with hundreds of fixed-height slots, try a different approach.
+
+==== Image and Shape Blocks ====
+
+Most beginners start littering the window with shapes.  It's just easier to throw all your rectangles and ovals in a slot.
+
+'''However, bear in mind that Shoes will create objects for all those shapes!'''
+
+{{{
+ Shoes.app do
+   fill black(0.1)
+   100.times do |i|
+     oval i, i, i * 2
+   end
+ end
+}}}
+
+In this example, one-hundred Oval objects are created.  This isn't too bad.  But things would be slimmer if we made these into a single shape.
+
+{{{
+ Shoes.app do
+   fill black(0.1)
+   shape do
+     100.times do |i|
+       oval i, i, i * 2
+     end
+   end
+ end
+}}}
+
+Oh, wait.  The ovals aren't filled in this time!  That's because the ovals have been combined into a single hhuge shape.  And Shoes isn't sure where to fill in this case.
+
+So you usually only want to combine into a single shape when you're dealing strictly with outlines.
+
+Another option is to combine all those ovals into a single image.
+
+{{{
+ Shoes.app do
+   fill black(0.1)
+   image 300, 300 do
+     100.times do |i|
+       oval i, i, i * 2
+     end
+   end
+ end
+}}}
+
+There we go!  The ovals are all combined into a single 300 x 300 pixel image.  In this case, storing that image in memory might be much bigger than having one-hundred ovals around.  But when you're dealing with thousands of shapes, the image block can be cheaper.
+
+The point is: it's easy to group shapes together into image or shape blocks, so give it a try if you're looking to gain some speed.  Shape blocks particularly will save you some memory and speed.
+
 ==== UTF-8 Everywhere ====
 
 Ruby itself isn't Unicode aware.  And UTF-8 is a type of Unicode.  (See [[http://en.wikipedia.org/wiki/UTF-8 Wikipedia]] for a full explanation of UTF-8.)
