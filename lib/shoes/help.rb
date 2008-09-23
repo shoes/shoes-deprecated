@@ -3,7 +3,7 @@ module Shoes::Manual
   PARA_RE = /\s*?(\{{3}(?:.+?)\}{3})|\n\n/m
   CODE_RE = /\{{3}(?:\s*\#![^\n]+)?(.+?)\}{3}/m
   CODE_STYLE = {:size => 9, :margin => 12}
-  INTRO_STYLE = {:size => 12, :weight => "bold", :margin_bottom => 20, :stroke => "#000"}
+  INTRO_STYLE = {:size => 16, :margin_bottom => 20, :stroke => "#000"}
   SUB_STYLE = {:stroke => "#CCC", :margin_top => 10}
   IMAGE_STYLE = {:margin => 8, :margin_left => 100}
   COLON = ": "
@@ -39,7 +39,7 @@ module Shoes::Manual
         stack do
           background "#8A7", :margin => [0, 2, 0, 2], :curve => 4 
           para link("Run this", :stroke => "#eee", :underline => "none") { run_code(str) },
-            :margin => 4, :align => 'center', :weight => 'bold'
+            :margin => 4, :align => 'center', :weight => 'bold', :size => 9
         end
       end
     end
@@ -322,9 +322,9 @@ def Shoes.make_help_page
     style(Shoes::Image, :margin => 8, :margin_left => 100)
     style(Shoes::Code, :stroke => "#C30")
     style(Shoes::LinkHover, :stroke => green, :fill => nil)
-    style(Shoes::Para, :size => 9, :stroke => "#332")
+    style(Shoes::Para, :size => 12, :stroke => "#332")
     style(Shoes::Tagline, :size => 12, :weight => "bold", :stroke => "#eee", :margin => 6)
-    style(Shoes::Caption, :size => 18)
+    style(Shoes::Caption, :size => 24)
     background "#ddd".."#fff", :angle => 90
 
     stack do
@@ -360,7 +360,7 @@ def Shoes.make_help_page
       end
       stack :margin => 12, :width => 118, :margin_top => 6 do
         background "#330", :curve => 4
-        para "Not finding it? Try ", strong(link("Search", :stroke => white) { show_search }), "!", :stroke => "#ddd"
+        para "Not finding it? Try ", strong(link("Search", :stroke => white) { show_search }), "!", :stroke => "#ddd", :size => 9, :align => "center", :margin => 6
       end
       stack :margin => 12, :width => 118 do
         inscription "Shoes #{Shoes::RELEASE_NAME}\nRevision: #{Shoes::REVISION}",
