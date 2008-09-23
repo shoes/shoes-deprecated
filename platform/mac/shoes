@@ -24,4 +24,8 @@ do
   esac
 done
 
-open -a $APPFULLPATH/../../../Shoes.app "$RUNPATH"
+if [ "$1" = "" ]; then
+  open -a $APPFULLPATH/../../../Shoes.app
+else
+  open -a $APPFULLPATH/../../../Shoes.app "$RUNPATH"
+fi
