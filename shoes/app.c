@@ -134,6 +134,14 @@ shoes_app_main(int argc, VALUE *argv, VALUE self)
 }
 
 VALUE
+shoes_app_slot(VALUE app)
+{
+  shoes_app *app_t;
+  Data_Get_Struct(app, shoes_app, app_t);
+  return app_t->canvas;
+}
+
+VALUE
 shoes_app_get_width(VALUE app)
 {
   shoes_app *app_t;

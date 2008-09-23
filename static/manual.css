@@ -40,6 +40,11 @@ h2 {
   color: #777;
   margin: 0;
 }
+h4 {
+  font-weight: normal;
+  font-size: 32px;
+  margin-bottom: 0;
+}
 #manual img {
   display: block;
   margin: 0 auto;

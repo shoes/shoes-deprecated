@@ -324,6 +324,7 @@ def Shoes.make_help_page
     style(Shoes::LinkHover, :stroke => green, :fill => nil)
     style(Shoes::Para, :size => 9, :stroke => "#332")
     style(Shoes::Tagline, :size => 12, :weight => "bold", :stroke => "#eee", :margin => 6)
+    style(Shoes::Caption, :size => 18)
     background "#ddd".."#fff", :angle => 90
 
     stack do

@@ -72,6 +72,174 @@ Still, Shoes does have a few widgets like buttons and edit boxes. And many missi
 
 Shoes is written in part thanks to a very good art engine called Cairo, which is used for drawing with shapes and colors. In this way, Shoes is inspired by NodeBox and Processing, two very good languages for drawing animated graphics.
 
+== The Rules of Shoes ==
+
+Time to stop guessing how Shoes works.  Some of the tricky things will come back to haunt you.  I've boiled down the central rules to Shoes.  These are the things you MUST know to really make it all work.
+
+These are general rules found throughout Shoes.  While Shoes has an overall philosophy of simplicity and clarity, there are a few points that need to be studied and remembered.
+
+==== Shoes Tricky Blocks ====
+
+Okay, this is absolutely crucial.  Shoes does a trick with blocks.  This trick makes everything easier to read.  But it also can make blocks harder to use once you're in deep.
+
+'''Let's take a normal Ruby block:'''
+
+{{{
+ ary = ['potion', 'swords', 'shields']
+ ary.each do |item|
+   puts item
+ end
+}}}
+
+In Shoes, these sorts of blocks work the same.  This block above loops through the array and stores each object in the `item` variable.  The `item` variable disappears (goes out of scope) when the block ends.
+
+One other thing to keep in mind is that `self` stays the same inside normal Ruby blocks.  Whatever `self` was before the call to `each`, it is the same inside the `each` block.
+
+'''Both of these things are also true for most Shoes blocks.'''
+
+{{{
+ Shoes.app do
+   stack do
+     para "First"
+     para "Second"
+     para "Third"
+   end
+ end
+}}}
+
+Here we have two blocks.  The first block is sent to `Shoes.app`.  This `app` block changes `self`.
+
+The other block is the `stack` block.  That block does NOT change self.
+
+'''For what reason does the `app` block change self?'''  Let's start by spelling out that last example completely.
+
+{{{
+ Shoes.app do
+   self.stack do
+     self.para "First"
+     self.para "Second"
+     self.para "Third"
+   end
+ end
+}}}
+
+All of the `self`s in the above example are the App object.  Shoes uses Ruby's `instance_eval` to change self inside the `app` block.  So the method calls to `stack` and `para` get sent to the app.
+
+'''This also is why you can use instance variables throughout a Shoes app:'''
+
+{{{
+ Shoes.app do
+   @s = stack do
+     @p1 = para "First"
+     @p2 = para "Second"
+     @p3 = para "Third"
+   end
+ end
+}}}
+
+These instance variables will all end up inside the App object.
+
+==== Block Redirection ====
+
+The `stack` block is a different story, though.  It doesn't change `self` and it's basically a regular block.
+
+'''But there's a trick:''' when you attach a `stack` and give it a block, the App object places that stack in its memory.  The stack gets popped off when the block ends.  So all drawing inside the block gets '''redirected''' from the App's top slot to the new stack.
+
+So those three `para`s will get drawn on the `stack`, even though they actually get sent to the App object first.
+
+{{{
+ Shoes.app do
+   stack do
+     para "First"
+     para "Second"
+     para "Third"
+   end
+ end
+}}}
+
+A bit tricky, you see?  This can bite you even if you know about it.
+
+One way it'll get you is if you try to edit a stack somewhere else in your program, outside the `app` block.
+
+Like let's say you pass around a stack object.  And you have a class that edits that object.
+
+{{{
+ class Messenger
+   def initialize(stack)
+     @stack = stack
+   end
+   def add(msg)
+     @stack.append do
+       para msg
+     end
+   end
+ end
+}}}
+
+So, let's assume you pass the stack object into your Messenger class when the app starts.  And, later, when a message comes in, the `add` method gets used to append a paragraph to that stack.  Should work, right?
+
+Nope, it won't work.  The `para` method won't be found.  The App object isn't around any more.  And it's the one with the `para` method.
+
+Fortunately, each Shoes object has an `app` method that will let you reopen the App object so you can do somefurther editing.
+
+{{{
+ class Messenger
+   def initialize(stack)
+     @stack = stack
+   end
+   def add(msg)
+     @stack.app do
+       @stack.append do
+         para msg
+       end
+     end
+   end
+ end
+}}}
+
+As you can imagine, the `app` object changes `self` to the App object.
+
+So the rules here are:
+
+1. '''Methods named "app" change self to the App object.'''[[BR]](This is true for both Shoes.app and Slot.app.)[[BR]]2. '''Blocks attached to stacks, flows or any manipulation method (such as append) do not change self.  Instead, they pop the slot on to the app's editing stack.'''
+
+==== UTF-8 Everywhere ====
+
+Ruby itself isn't Unicode aware.  And UTF-8 is a type of Unicode.  (See [[http://en.wikipedia.org/wiki/UTF-8 Wikipedia]] for a full explanation of UTF-8.)
+
+However, UTF-8 is common on the web.  And lots of different platforms support it.  So to cut down on the amount of conversion that Shoes has to do, Shoes expects all strings to be in UTF-8 format.
+
+This is great because you can show a myriad of languages (Russian, Japanese, Spanish, English) using UTF-8 in Shoes.  Just be sure that your text editor uses UTF-8!
+
+To illustrate:
+
+{{{
+ Shoes.app do
+   stack :margin => 10 do
+     @edit = edit_box :width => 1.0 do
+       @para.text = @edit.text
+     end
+     @para = para ""
+   end
+ end
+}}}
+
+This app will copy anything you paste into the edit box and display it in a Shoes paragraph.  You can try copying some foreign text (such as Greek or Japanese) into this box to see how it displays.
+
+This is a good test because it proves that the edit box gives back UTF-8 characters.  And the paragraph can be set to any UTF-8 characters.
+
+'''Important note:''' if some UTF-8 characters don't display for you, you will need to change the paragraph's font.  This is especially common on OS X.
+
+So, a good Japanese font on OS X is '''AppleGothic'''.
+
+{{{
+ Shoes.app do
+   para "てすと (te-su-to)", :font => "AppleGothic, Arial"
+ end
+}}}
+
+Again, anything which takes a string in Shoes will need a UTF-8 string.  Edit boxes, edit lines, list boxes, window titles and text blocks all take UTF-8. If you give a string with bad characters in it, an error will show up in the console.
+
 = Shoes =
 
 Shoes is all about drawing windows and the stuff inside those windows.  Let's focus on the window itself, for now.  The other sections [[Slots]] and [[Elements]] cover everything that goes inside the window.  And this section sticks to talking about [[Built-in Built-in methods]], the [[App]] window itself and a few general charts you can refer to.

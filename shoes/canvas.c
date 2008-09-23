@@ -1564,7 +1564,9 @@ shoes_canvas_get_app(VALUE self)
   {
     shoes_canvas *canvas;
     Data_Get_Struct(c, shoes_canvas, canvas);
-    app = canvas->app->canvas;
+    app = canvas->app->self;
+    if (rb_block_given_p())
+      mfp_instance_eval(app, rb_block_proc());
   }
   return app;
 }
