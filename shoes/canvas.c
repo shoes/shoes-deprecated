@@ -1230,7 +1230,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
       }
       else
       {
-        shoes_place_decide(&c1->place, c1->parent, c1->attr, c1->width, c1->height, REL_CANVAS, FALSE);
+        shoes_place_decide(&c1->place, c1->parent, c1->attr, self_t->place.iw, 0, REL_CANVAS, FALSE);
         c1->height = c1->place.ih;
         c1->width = c1->place.iw;
         c1->place.flags |= FLAG_ORIGIN;
