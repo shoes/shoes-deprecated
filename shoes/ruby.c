@@ -43,6 +43,8 @@ VALUE
 ts_funcall2(VALUE obj, ID meth, int argc, VALUE *argv)
 {
   VALUE tmp[4];
+  if (!rb_block_given_p())
+    return rb_funcall2(obj, meth, argc, argv);
   tmp[0] = obj;
   tmp[1] = (VALUE)meth; 
   tmp[2] = (VALUE)argc;
@@ -630,8 +632,6 @@ shoes_shape_check(cairo_t *cr, shoes_place *place)
   if (place->iw < 0) ox1 = place->ix - (ox2 = -place->iw);
   if (place->ih < 0) oy1 = place->iy - (oy2 = -place->ih);
   if (cy2 - cy1 == 1.0 && cx2 - cx1 == 1.0) return 1;
-  cairo_user_to_device(cr, &ox1, &oy1);
-  cairo_user_to_device(cr, &ox2, &oy2);
   if ((ox1 < cx1 && ox2 < cx1) || (oy1 < cy1 && oy2 < cy1) || 
       (ox1 > cx2 && ox2 > cx2) || (oy1 > cy2 && oy2 > cy2)) return 0;
   return 1;
@@ -2002,13 +2002,7 @@ shoes_app_method_missing(int argc, VALUE *argv, VALUE self)
   cname = argv[0];
   canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1);
   if (!NIL_P(canvas) && rb_respond_to(canvas, SYM2ID(cname)))
-  {
-    if (rb_block_given_p())
-      return ts_funcall2(canvas, SYM2ID(cname), argc - 1, argv + 1);
-    else
-      return rb_funcall2(canvas, SYM2ID(cname), argc - 1, argv + 1);
-  }
-
+    return ts_funcall2(canvas, SYM2ID(cname), argc - 1, argv + 1);
   return shoes_color_method_missing(argc, argv, self);
 }
 
@@ -2660,7 +2654,6 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
   shoes_canvas *canvas;
   PangoLayoutLine *last;
   PangoRectangle lrect;
-  PangoFontDescription *desc;
 
   VALUE ck = rb_obj_class(c);
   GET_STRUCT(textblock, self_t);
@@ -2715,15 +2708,11 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
       }
     }
   }
-
+  
   pango_layout_set_width(self_t->layout, self_t->place.iw * PANGO_SCALE);
   pango_layout_set_spacing(self_t->layout, ld * PANGO_SCALE);
   shoes_textblock_on_layout(canvas->app, rb_obj_class(self), self_t);
-  desc = pango_font_description_new();
-  pango_font_description_set_family(desc, "Arial");
-  pango_font_description_set_absolute_size(desc, 14. * PANGO_SCALE * (96./72.));
-  pango_layout_set_font_description(self_t->layout, desc);
-  pango_font_description_free(desc);
+  pango_layout_set_font_description(self_t->layout, shoes_world->default_font);
 
   //
   // Line up the first line with the y-cursor
@@ -2751,31 +2740,34 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
   if (RTEST(actual))
   {
     shoes_apply_transformation(cr, self_t->st, &self_t->place, RTEST(ATTR(self_t->attr, center)), 0);
-    cairo_move_to(cr, self_t->place.ix + self_t->place.dx, self_t->place.iy + self_t->place.dy);
-    cairo_set_source_rgb(cr, 0., 0., 0.);
-    pango_cairo_update_layout(cr, self_t->layout);
-    pango_cairo_show_layout(cr, self_t->layout);
-
-    // draw the cursor
-    if (!NIL_P(self_t->cursor))
+    if (shoes_shape_check(cr, &self_t->place))
     {
-      int cursor = NUM2INT(self_t->cursor);
-      PangoRectangle crect;
-      double crx, cry;
-      if (cursor < 0) cursor += self_t->text->len + 1;
-      pango_layout_index_to_pos(self_t->layout, cursor, &crect);
-      crx = (self_t->place.ix + self_t->place.dx) + (crect.x / PANGO_SCALE);
-      cry = (self_t->place.iy + self_t->place.dy) + (crect.y / PANGO_SCALE);
-
-      cairo_save(cr);
-      cairo_new_path(cr);
-      cairo_move_to(cr, crx, cry);
-      cairo_line_to(cr, crx, cry + (crect.height / PANGO_SCALE));
-      cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE);
+      cairo_move_to(cr, self_t->place.ix + self_t->place.dx, self_t->place.iy + self_t->place.dy);
       cairo_set_source_rgb(cr, 0., 0., 0.);
-      cairo_set_line_width(cr, 1.);
-      cairo_stroke(cr);
-      cairo_restore(cr);
+      pango_cairo_update_layout(cr, self_t->layout);
+      pango_cairo_show_layout(cr, self_t->layout);
+
+      // draw the cursor
+      if (!NIL_P(self_t->cursor))
+      {
+        int cursor = NUM2INT(self_t->cursor);
+        PangoRectangle crect;
+        double crx, cry;
+        if (cursor < 0) cursor += self_t->text->len + 1;
+        pango_layout_index_to_pos(self_t->layout, cursor, &crect);
+        crx = (self_t->place.ix + self_t->place.dx) + (crect.x / PANGO_SCALE);
+        cry = (self_t->place.iy + self_t->place.dy) + (crect.y / PANGO_SCALE);
+
+        cairo_save(cr);
+        cairo_new_path(cr);
+        cairo_move_to(cr, crx, cry);
+        cairo_line_to(cr, crx, cry + (crect.height / PANGO_SCALE));
+        cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE);
+        cairo_set_source_rgb(cr, 0., 0., 0.);
+        cairo_set_line_width(cr, 1.);
+        cairo_stroke(cr);
+        cairo_restore(cr);
+      }
     }
 
     shoes_undo_transformation(cr, self_t->st, &self_t->place, 0);

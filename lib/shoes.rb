@@ -422,7 +422,9 @@ class Shoes
 
   def Widget.inherited subc
     Shoes.class_eval %{
-      def #{subc.to_s[/::(\w+)$/, 1].downcase}(*a, &b)
+      def #{subc.to_s[/::(\w+)$/, 1].
+            gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
+            gsub(/([a-z\d])([A-Z])/,'\1_\2').downcase}(*a, &b)
         a.unshift #{subc}
         widget(*a, &b)
       end

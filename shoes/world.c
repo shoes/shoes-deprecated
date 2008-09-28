@@ -39,6 +39,9 @@ shoes_world_alloc()
   world->blank_cache->pattern = NULL;
   world->blank_cache->width = 1;
   world->blank_cache->height = 1;
+  world->default_font = pango_font_description_new();
+  pango_font_description_set_family(world->default_font, "Arial");
+  pango_font_description_set_absolute_size(world->default_font, 14. * PANGO_SCALE * (96./72.));
   rb_gc_register_address(&world->apps);
   rb_gc_register_address(&world->msgs);
   return world;
@@ -68,6 +71,7 @@ shoes_world_free(shoes_world_t *world)
   st_free_table(world->image_cache);
   SHOE_FREE(world->blank_cache);
   cairo_surface_destroy(world->blank_image);
+  pango_font_description_free(world->default_font);
   rb_gc_unregister_address(&world->apps);
   rb_gc_unregister_address(&world->msgs);
   if (world != NULL)
