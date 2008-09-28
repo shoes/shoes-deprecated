@@ -816,6 +816,7 @@ shoes_native_control_repaint(SHOES_CONTROL_REF ref, shoes_place *p1,
 void
 shoes_native_control_focus(SHOES_CONTROL_REF ref)
 {
+  [[ref window] makeFirstResponder: ref];
 }
 
 void
