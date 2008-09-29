@@ -4015,7 +4015,7 @@ shoes_log(VALUE self)
     if (!rb_obj_is_kind_of(canvas, cCanvas)) \
       return ts_funcall2(canvas, rb_intern(n + 1), argc, argv); \
     obj = call_cfunc(CASTHOOK(shoes_canvas_##func), canvas, argn, argc, argv); \
-    if (n[0] == '+') shoes_canvas_repaint_all(self); \
+    if (n[0] == '+' && RARRAY_LEN(self_t->app->nesting) == 0) shoes_canvas_repaint_all(self); \
     return obj; \
   } \
   VALUE \
