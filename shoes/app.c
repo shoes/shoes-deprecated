@@ -116,6 +116,7 @@ shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner)
   rb_scan_args(argc, argv, "01&", &attr, &block);
   rb_iv_set(app, "@main_app", block);
 
+  CHECK_HASH(attr);
   app_t->owner = owner;
   app_t->title = ATTR(attr, title);
   app_t->resizable = (ATTR(attr, resizable) != Qfalse);

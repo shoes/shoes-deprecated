@@ -114,6 +114,7 @@ void shoes_ruby_init(void);
 //
 // Common funcs for dealing with attribute hashes
 //
+#define CHECK_HASH(hsh)                if (TYPE(hsh) != T_HASH) { hsh = Qnil; }
 #define ATTR(attr, n)                  shoes_hash_get(attr, s_##n)
 #define PX(attr, n, dn, pn)            shoes_px(shoes_hash_get(attr, s_##n), dn, pn, 1)
 #define PXN(attr, n, dn, pn)            shoes_px(shoes_hash_get(attr, s_##n), dn, pn, 0)

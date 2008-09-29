@@ -242,7 +242,7 @@ shoes_hash_get(VALUE hsh, ID key)
 {
   VALUE v;
 
-  if (!NIL_P(hsh))
+  if (TYPE(hsh) == T_HASH)
   {
     v = rb_hash_aref(hsh, ID2SYM(key));
     if (!NIL_P(v)) return v;
@@ -1519,6 +1519,7 @@ shoes_pattern_args(int argc, VALUE *argv, VALUE self)
 {
   VALUE source, attr;
   rb_scan_args(argc, argv, "11", &source, &attr);
+  CHECK_HASH(attr);
   return shoes_pattern_new(cPattern, source, attr, Qnil);
 }
 
@@ -1720,6 +1721,7 @@ shoes_color_gradient(int argc, VALUE *argv, VALUE self)
   VALUE obj, r1, r2;
   VALUE attr = Qnil;
   rb_scan_args(argc, argv, "21", &r1, &r2, &attr);
+  CHECK_HASH(attr);
 
   obj = shoes_pattern_alloc(cPattern);
   Data_Get_Struct(obj, shoes_pattern, pattern);
@@ -3397,6 +3399,7 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
     VALUE attr; \
     GET_STRUCT(ele, self_t); \
     rb_scan_args(argc, argv, "01", &attr); \
+    CHECK_HASH(attr); \
     if (!NIL_P(attr)) \
     { \
       if (NIL_P(self_t->attr)) self_t->attr = rb_hash_new(); \

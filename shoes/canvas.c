@@ -154,6 +154,7 @@ shoes_canvas_style(int argc, VALUE *argv, VALUE self)
   SETUP();
 
   rb_scan_args(argc, argv, "02", &klass, &attr);
+  CHECK_HASH(attr);
   if (!NIL_P(attr))
     shoes_app_style(canvas->app, klass, attr);
   else if (!NIL_P(klass))
@@ -687,6 +688,7 @@ shoes_canvas_video(int argc, VALUE *argv, VALUE self)
   SETUP();
 
   rb_scan_args(argc, argv, "11", &path, &attr);
+  CHECK_HASH(attr);
   video = shoes_video_new(cVideo, path, attr, self);
   shoes_add_ele(canvas, video);
   return video;
@@ -703,12 +705,15 @@ shoes_canvas_image(int argc, VALUE *argv, VALUE self)
   if (argc == 0 || (argc == 1 && rb_obj_is_kind_of(argv[0], rb_cHash)))
   {
     rb_scan_args(argc, argv, "01&", &attr, &block);
-    if (NIL_P(attr)) attr = rb_hash_new();
+    CHECK_HASH(attr);
     _w = ATTR(attr, width);
     _h = ATTR(attr, height);
   }
   else
+  {
     rb_scan_args(argc, argv, "12&", &_w, &_h, &attr, &block);
+    CHECK_HASH(attr);
+  }
 
   if (NIL_P(_w) || FIXNUM_P(_w))
   {
@@ -722,8 +727,8 @@ shoes_canvas_image(int argc, VALUE *argv, VALUE self)
     rb_scan_args(argc, argv, "11&", &path, &attr, &block);
     if (!NIL_P(block))
     {
-      if (NIL_P(attr)) attr = rb_hash_new();
-      rb_hash_aset(attr, ID2SYM(s_click), block);
+      CHECK_HASH(attr);
+      ATTRSET(attr, click, block);
     }
   }
 
@@ -911,12 +916,13 @@ shoes_canvas_button(int argc, VALUE *argv, VALUE self)
   VALUE text, attr, block, button;
   SETUP();
   rb_scan_args(argc, argv, "11&", &text, &attr, &block);
+  CHECK_HASH(attr);
 
   if (!NIL_P(text))
-    attr = shoes_hash_set(attr, s_text, text);
+    ATTRSET(attr, text, text);
 
   if (!NIL_P(block))
-    attr = shoes_hash_set(attr, s_click, block);
+    ATTRSET(attr, click, block);
 
   button = shoes_control_new(cButton, attr, self);
   shoes_add_ele(canvas, button);
@@ -929,17 +935,17 @@ shoes_canvas_edit_line(int argc, VALUE *argv, VALUE self)
   VALUE phrase, attr, block, edit_line;
   SETUP();
   rb_scan_args(argc, argv, "02&", &phrase, &attr, &block);
+  CHECK_HASH(attr);
 
   if (rb_obj_is_kind_of(phrase, rb_cHash))
     attr = phrase;
   else
   {
-    if (NIL_P(attr)) attr = rb_hash_new();
-    rb_hash_aset(attr, ID2SYM(s_text), phrase);
+    ATTRSET(attr, text, phrase);
   }
 
   if (!NIL_P(block))
-    attr = shoes_hash_set(attr, s_change, block);
+    ATTRSET(attr, change, block);
 
   edit_line = shoes_control_new(cEditLine, attr, self);
   shoes_add_ele(canvas, edit_line);
@@ -952,17 +958,17 @@ shoes_canvas_edit_box(int argc, VALUE *argv, VALUE self)
   VALUE phrase, attr, block, edit_box;
   SETUP();
   rb_scan_args(argc, argv, "02&", &phrase, &attr, &block);
+  CHECK_HASH(attr);
 
   if (rb_obj_is_kind_of(phrase, rb_cHash))
     attr = phrase;
   else
   {
-    if (NIL_P(attr)) attr = rb_hash_new();
-    rb_hash_aset(attr, ID2SYM(s_text), phrase);
+    ATTRSET(attr, text, phrase);
   }
 
   if (!NIL_P(block))
-    attr = shoes_hash_set(attr, s_change, block);
+    ATTRSET(attr, change, block);
 
   edit_box = shoes_control_new(cEditBox, attr, self);
   shoes_add_ele(canvas, edit_box);
@@ -975,9 +981,10 @@ shoes_canvas_list_box(int argc, VALUE *argv, VALUE self)
   VALUE attr, block, list_box;
   SETUP();
   rb_scan_args(argc, argv, "01&", &attr, &block);
+  CHECK_HASH(attr);
 
   if (!NIL_P(block))
-    attr = shoes_hash_set(attr, s_change, block);
+    ATTRSET(attr, change, block);
 
   list_box = shoes_control_new(cListBox, attr, self);
   shoes_add_ele(canvas, list_box);
@@ -990,6 +997,7 @@ shoes_canvas_progress(int argc, VALUE *argv, VALUE self)
   VALUE attr, progress;
   SETUP();
   rb_scan_args(argc, argv, "01", &attr);
+  CHECK_HASH(attr);
 
   progress = shoes_control_new(cProgress, attr, self);
   shoes_add_ele(canvas, progress);
@@ -1002,6 +1010,7 @@ shoes_canvas_radio(int argc, VALUE *argv, VALUE self)
   VALUE group, attr, block, radio;
   SETUP();
   rb_scan_args(argc, argv, "02&", &group, &attr, &block);
+  CHECK_HASH(attr);
 
   if (rb_obj_is_kind_of(group, rb_cHash))
   {
@@ -1010,9 +1019,9 @@ shoes_canvas_radio(int argc, VALUE *argv, VALUE self)
   }
 
   if (!NIL_P(group))
-    attr = shoes_hash_set(attr, s_group, group);
+    ATTRSET(attr, group, group);
   if (!NIL_P(block))
-    attr = shoes_hash_set(attr, s_click, block);
+    ATTRSET(attr, click, block);
 
   radio = shoes_control_new(cRadio, attr, self);
   shoes_add_ele(canvas, radio);
@@ -1025,9 +1034,10 @@ shoes_canvas_check(int argc, VALUE *argv, VALUE self)
   VALUE attr, block, check;
   SETUP();
   rb_scan_args(argc, argv, "01&", &attr, &block);
+  CHECK_HASH(attr);
 
   if (!NIL_P(block))
-    attr = shoes_hash_set(attr, s_click, block);
+    ATTRSET(attr, click, block);
 
   check = shoes_control_new(cCheck, attr, self);
   shoes_add_ele(canvas, check);
@@ -1464,6 +1474,7 @@ shoes_canvas_flow(int argc, VALUE *argv, VALUE self)
   SETUP();
 
   rb_scan_args(argc, argv, "01&", &attr, &block);
+  CHECK_HASH(attr);
   flow = shoes_flow_new(attr, self);
   if (!NIL_P(block))
   {
@@ -1480,6 +1491,7 @@ shoes_canvas_stack(int argc, VALUE *argv, VALUE self)
   SETUP();
 
   rb_scan_args(argc, argv, "01&", &attr, &block);
+  CHECK_HASH(attr);
   stack = shoes_stack_new(attr, self);
   if (!NIL_P(block))
   {
@@ -1496,6 +1508,7 @@ shoes_canvas_mask(int argc, VALUE *argv, VALUE self)
   SETUP();
 
   rb_scan_args(argc, argv, "01&", &attr, &block);
+  CHECK_HASH(attr);
   mask = shoes_mask_new(attr, self);
   if (!NIL_P(block))
   {
@@ -1513,8 +1526,7 @@ shoes_canvas_widget(int argc, VALUE *argv, VALUE self)
 
   rb_scan_args(argc, argv, "1*", &klass, &args);
   attr = rb_ary_pop(args);
-  if (!rb_obj_is_kind_of(attr, rb_cHash))
-    attr = Qnil;
+  CHECK_HASH(attr);
 
   widget = shoes_widget_new(klass, attr, self);
   DRAW(widget, canvas->app, ts_funcall2(widget, rb_intern("initialize"), argc - 1, argv + 1));
@@ -1529,6 +1541,7 @@ shoes_canvas_download(int argc, VALUE *argv, VALUE self)
   SETUP();
 
   rb_scan_args(argc, argv, "11&", &url, &attr, &block);
+  CHECK_HASH(attr);
   if (!NIL_P(block))
     ATTRSET(attr, finish, block);
   obj = shoes_download_threaded(self, url, attr);
@@ -2072,6 +2085,7 @@ shoes_canvas_window(int argc, VALUE *argv, VALUE self)
     return shoes_app_window(argc, argv, cApp, canvas->app->self);
 
   rb_scan_args(argc, argv, "02&", &uri, &attr, &block);
+  CHECK_HASH(attr);
   if (rb_obj_is_kind_of(uri, rb_cHash))
   {
     attr = uri;

@@ -139,6 +139,19 @@ All of the `self`s in the above example are the App object.  Shoes uses Ruby's `
 
 These instance variables will all end up inside the App object.
 
+'''Whenever you create a new window, `self` is also changed.'''  So, this means the [[Element.window]] and [[Element.dialog]] methods, in addition to Shoes.app.
+
+{{{
+ Shoes.app :title => "MAIN" do
+   para self
+   button "Spawn" do
+     window :title => "CHILD" do
+       para self
+     end
+   end
+ end
+}}}
+
 ==== Block Redirection ====
 
 The `stack` block is a different story, though.  It doesn't change `self` and it's basically a regular block.
@@ -201,7 +214,7 @@ As you can imagine, the `app` object changes `self` to the App object.
 
 So the rules here are:
 
-1. '''Methods named "app" change self to the App object.'''[[BR]](This is true for both Shoes.app and Slot.app.)[[BR]]2. '''Blocks attached to stacks, flows or any manipulation method (such as append) do not change self.  Instead, they pop the slot on to the app's editing stack.'''
+1. '''Methods named "app" or which create new windows alter `self` to the App object.'''[[BR]](This is true for both Shoes.app and Slot.app, as well as [[Element.window]] and [[Element.dialog]].)[[BR]]2. '''Blocks attached to stacks, flows or any manipulation method (such as append) do not change self.  Instead, they pop the slot on to the app's editing stack.'''
 
 ==== Careful With Fixed Heights ====
 
