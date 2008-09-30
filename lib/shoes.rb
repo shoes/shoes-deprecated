@@ -109,7 +109,7 @@ class Shoes
 
   def self.show_selector
     fname = ask_open_file
-    Shoes.load(fname) if fname
+    Shoes.visit(fname) if fname
   end
 
   def self.make_pack
@@ -315,7 +315,7 @@ class Shoes
     end
   end
 
-  def self.load(path)
+  def self.visit(path)
     uri = Shoes.uri(path)
 
     case uri
@@ -422,7 +422,7 @@ class Shoes
 
   def Widget.inherited subc
     Shoes.class_eval %{
-      def #{subc.to_s[/::(\w+)$/, 1].
+      def #{subc.to_s[/(^|::)(\w+)$/, 2].
             gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
             gsub(/([a-z\d])([A-Z])/,'\1_\2').downcase}(*a, &b)
         a.unshift #{subc}

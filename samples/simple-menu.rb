@@ -24,8 +24,8 @@ end
 Shoes.app :width => 400, :height => 130 do
   style(Link, :underline => nil)
   style(LinkHover, :fill => nil, :underline => nil)
-  menupanel green,  :width => 170, :height => 120, :margin => 4
-  menupanel blue,   :width => 140, :height => 120, :margin => 4
-  menupanel red,    :width => 140, :height => 120, :margin => 4
-  menupanel purple, :width => 140, :height => 120, :margin => 4
+  menu_panel green,  :width => 170, :height => 120, :margin => 4
+  menu_panel blue,   :width => 140, :height => 120, :margin => 4
+  menu_panel red,    :width => 140, :height => 120, :margin => 4
+  menu_panel purple, :width => 140, :height => 120, :margin => 4
 end

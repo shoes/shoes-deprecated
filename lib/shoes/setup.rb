@@ -132,7 +132,7 @@ class Shoes::Setup
     end
     Gem::DefaultUserInteraction.ui = old_ui
 
-    Shoes.load(@script)
+    Shoes.visit(@script)
     app.close
   end
 
@@ -274,7 +274,7 @@ class Gem::ShoesFace
   end
 
   def initialize app
-    @title, @status, @prog, = app.contents[-1].contents
+    @title, @status, @prog, = app.slot.contents[-1].contents
   end
   def title msg
     @title.replace msg

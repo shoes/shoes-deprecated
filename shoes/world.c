@@ -117,7 +117,7 @@ shoes_load(char *path)
 
   if (path)
   {
-    sprintf(bootup, "Shoes.load(%%q<%s>);", path);
+    sprintf(bootup, "Shoes.visit(%%q<%s>);", path);
 
     VALUE v = rb_rescue2(CASTHOOK(shoes_load_begin), (VALUE)bootup, CASTHOOK(shoes_load_exception), Qnil, rb_cObject, 0);
     if (rb_obj_is_kind_of(v, rb_eException))
