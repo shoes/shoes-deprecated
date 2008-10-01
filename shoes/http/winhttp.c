@@ -55,6 +55,7 @@ void
 shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR **mem, ULONG memlen, HANDLE file,
   LPDWORD size, shoes_download_handler handler, void *data)
 {
+  LPWSTR proxy;
   DWORD len = 0, rlen = 0, status = 0, complete = 0, flen = 0, total = 0, written = 0;
   LPTSTR buf = SHOE_ALLOC_N(TCHAR, SHOES_BUFSIZE);
   LPTSTR fbuf = SHOE_ALLOC_N(TCHAR, SHOES_CHUNKSIZE);
@@ -71,6 +72,16 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR **mem, ULONG
     WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
   if (sess == NULL)
     goto done;
+
+  proxy = _wgetenv(L"http_proxy");
+  if (proxy != NULL)
+  {
+    WINHTTP_PROXY_INFO proxy_info;
+    proxy_info.dwAccessType = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
+    proxy_info.lpszProxy = proxy;
+    proxy_info.lpszProxyBypass = NULL;
+    WinHttpSetOption(sess, WINHTTP_OPTION_PROXY, &proxy_info, sizeof(proxy_info));
+  }
 
   conn = WinHttpConnect(sess, host, port, 0);
   if (conn == NULL)
