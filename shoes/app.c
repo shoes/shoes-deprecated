@@ -139,7 +139,7 @@ shoes_app_slot(VALUE app)
 {
   shoes_app *app_t;
   Data_Get_Struct(app, shoes_app, app_t);
-  return app_t->canvas;
+  return app_t->nestslot;
 }
 
 VALUE
