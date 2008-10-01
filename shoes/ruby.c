@@ -3079,7 +3079,7 @@ shoes_list_box_items_set(VALUE self, VALUE items)
     rb_raise(rb_eArgError, "ListBox items must be an array.");
   ATTRSET(self_t->attr, items, items);
   if (self_t->ref != NULL) shoes_native_list_box_update(self_t->ref, items);
-  shoes_list_box_choose(self, opt);
+  if (!NIL_P(opt)) shoes_list_box_choose(self, opt);
   return items;
 }
 
