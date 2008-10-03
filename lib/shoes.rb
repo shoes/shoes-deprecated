@@ -36,7 +36,12 @@ class Shoes
   end
  
   def self.anonymous_binding
-    Class.new { def self.to_s; "(shoes)" end }.send :binding
+    obj = Object.new
+    return \
+      class << obj
+        def self.to_s; "(shoes)" end
+        binding
+      end
   end
 
   @mounts = []

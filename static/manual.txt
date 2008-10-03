@@ -340,6 +340,42 @@ So, a good Japanese font on OS X is '''AppleGothic'''.
 
 Again, anything which takes a string in Shoes will need a UTF-8 string.  Edit boxes, edit lines, list boxes, window titles and text blocks all take UTF-8. If you give a string with bad characters in it, an error will show up in the console.
 
+==== The Main App and Its Requires ====
+
+Each Shoes app is given a little room where it can create itself.  You can create classes and set variables and they won't be seen by other Shoes programs.  Each programs runs inside its own anonymous class.
+
+{{{
+ main = self
+ Shoes.app do
+   para main.to_s
+ end
+}}}
+
+This anonymous class is called `(shoes)` and it's just an empty, unnamed class.  The `Shoes` module is mixed into this class (using `include Shoes`) so that you can use either `Para` or `Shoes::Para` when referring to the paragraph class.
+
+The advantages of this approach are:
+
+ * Shoes apps cannot share local variables.
+ * Classes created in the main app code are temporary.
+ * The Shoes module can be mixed in to the anonymous class, but not the top-level environment of Ruby itself.
+ * Garbage collection can clean up apps entirely once they complete.
+
+The second part is especially important to remember.
+
+{{{
+ class Storage; end
+
+ Shoes.app do
+   para Storage.new
+ end
+}}}
+
+The `Storage` class will disappear once the app completes.  Other apps aren't able to use the Storage class.  And it can't be gotten to from files that are loaded using `require`.
+
+When you `require` code, though, that code will stick around.  It will be kept in the Ruby top-level environment.
+
+So, the rule is: '''keep your temporary classes in the code with the app and keep your permanent classes in requires.'''
+
 = Shoes =
 
 Shoes is all about drawing windows and the stuff inside those windows.  Let's focus on the window itself, for now.  The other sections [[Slots]] and [[Elements]] cover everything that goes inside the window.  And this section sticks to talking about [[Built-in Built-in methods]], the [[App]] window itself and a few general charts you can refer to.
