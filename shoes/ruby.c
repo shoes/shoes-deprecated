@@ -448,8 +448,10 @@ shoes_ele_remove_all(VALUE contents)
     long i;
     VALUE ary;
     ary = rb_ary_dup(contents);
+    rb_gc_register_address(&ary);
     for (i = 0; i < RARRAY_LEN(ary); i++)
       rb_funcall(rb_ary_entry(ary, i), s_remove, 0);
+    rb_gc_unregister_address(&ary);
     rb_ary_clear(contents);
   }
 }

@@ -7,6 +7,10 @@ a {
   color: #378;
   text-decoration: none;
 }
+a.hi {
+  color: #C30;
+  font-weight: bold;
+}
 a:hover {
   text-decoration: underline;
 }
@@ -139,4 +143,25 @@ pre .global, pre .ivar, .ruby .ivar {
 }
 pre .brackets, .ruby .brackets {
   color: #993;
+}
+
+/* index pages */
+#index .hibox {
+  background: white;
+  border: solid 1px #ddd;
+}
+#index .hibox p {
+  font-size: 14px;
+  margin: 8px;
+}
+#index h1 {
+  margin: 0;
+}
+#index ul {
+  list-style: none;
+  font-size: 13px;
+}
+#index ul a.hi,
+#index ul a.lo {
+  font-size: 18px;
 }
