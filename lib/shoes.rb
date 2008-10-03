@@ -31,17 +31,19 @@ end
 class Shoes
   VERSION = "Raisins"
 
-  MAIN = Object.new
-  def MAIN.to_s
-    "(shoes)"
-  end
-
-  BINDING = MAIN.instance_eval { binding }
-
   NotFound = proc do
     para "404 NOT FOUND, GUYS!"
   end
  
+  def self.anonymous_binding
+    obj = Object.new
+    return \
+      class << obj
+        def self.to_s; "(shoes)" end
+        binding
+      end
+  end
+
   @mounts = []
 
   OPTS = OptionParser.new do |opts|
@@ -346,7 +348,7 @@ class Shoes
       $0.replace path
 
       code = File.read(path)
-      eval(code, Shoes::BINDING, path)
+      eval(code, Shoes.anonymous_binding, path)
     end
   rescue SettingUp
   rescue Object => e
