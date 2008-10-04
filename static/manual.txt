@@ -342,7 +342,7 @@ Again, anything which takes a string in Shoes will need a UTF-8 string.  Edit bo
 
 ==== The Main App and Its Requires ====
 
-Each Shoes app is given a little room where it can create itself.  You can create classes and set variables and they won't be seen by other Shoes programs.  Each programs runs inside its own anonymous class.
+Each Shoes app is given a little room where it can create itself.  You can create classes and set variables and they won't be seen by other Shoes programs.  Each program runs inside its own anonymous class.
 
 {{{
  main = self

@@ -39,6 +39,7 @@ shoes_world_alloc()
   world->blank_cache->pattern = NULL;
   world->blank_cache->width = 1;
   world->blank_cache->height = 1;
+  world->blank_cache->mtime = 0;
   world->default_font = pango_font_description_new();
   pango_font_description_set_family(world->default_font, "Arial");
   pango_font_description_set_absolute_size(world->default_font, 14. * PANGO_SCALE * (96./72.));

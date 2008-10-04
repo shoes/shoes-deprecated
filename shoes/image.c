@@ -6,6 +6,7 @@
 //
 #include <stdio.h>
 #include <setjmp.h>
+#include <sys/stat.h>
 #include "shoes/app.h"
 #include "shoes/canvas.h"
 #include "shoes/ruby.h"
@@ -28,6 +29,8 @@
 #endif
 #define DrawText gif_DrawText
 #include <gif_lib.h>
+
+shoes_image_format shoes_image_detect(VALUE, int *, int *);
 
 #define JPEG_LINES 16
 #define SIZE_SURFACE ((cairo_surface_t *)1)
@@ -635,22 +638,41 @@ shoes_failed_image(VALUE path)
 }
 
 cairo_surface_t *
-shoes_surface_create_from_file(char *fname, char *dname, int *width, int *height)
+shoes_surface_create_from_file(VALUE imgpath, int *width, int *height)
 {
-  int len = strlen(dname);
   cairo_surface_t *img = NULL;
-  if (shoes_has_ext(dname, len, ".png"))
+  shoes_image_format format = shoes_image_detect(imgpath, width, height);
+  if (format == SHOES_IMAGE_PNG)
   {
-    img = shoes_png_size(fname, width, height);
-    img = cairo_image_surface_create_from_png(fname);
+    img = cairo_image_surface_create_from_png(RSTRING_PTR(imgpath));
     if (cairo_surface_status(img) != CAIRO_STATUS_SUCCESS)
       img = NULL;
   }
-  else if (shoes_has_ext(dname, len, ".jpg") || shoes_has_ext(dname, len, ".jpeg"))
-    img = shoes_surface_create_from_jpeg(fname, width, height, TRUE);
-  else if (shoes_has_ext(dname, len, ".gif"))
-    img = shoes_surface_create_from_gif(fname, width, height, TRUE);
+  else if (format == SHOES_IMAGE_JPEG)
+    img = shoes_surface_create_from_jpeg(RSTRING_PTR(imgpath), width, height, TRUE);
+  else if (format == SHOES_IMAGE_GIF)
+    img = shoes_surface_create_from_gif(RSTRING_PTR(imgpath), width, height, TRUE);
+  else
+    return shoes_world->blank_image;
+
+  if (img == NULL)
+  {
+    shoes_failed_image(imgpath);
+    img = shoes_world->blank_image;
+  }
+
   return img;
+}
+
+int
+shoes_file_mtime(char *path)
+{
+  int mtime = 0;
+  struct stat *s = SHOE_ALLOC(struct stat);
+  stat(path, s);
+  mtime = s->st_mtim.tv_sec;
+  SHOE_FREE(s);
+  return mtime;
 }
 
 shoes_cached_image *
@@ -663,6 +685,7 @@ shoes_cached_image_new(int width, int height, cairo_surface_t *surface)
   cached->pattern = NULL;
   cached->width = width;
   cached->height = height;
+  cached->mtime = 0;
   return cached;
 }
 
@@ -671,6 +694,13 @@ shoes_cache_lookup(char *imgpath, shoes_cached_image **image)
 {
   shoes_cache_entry *cached = NULL;
   int ret = st_lookup(shoes_world->image_cache, (st_data_t)imgpath, (st_data_t *)&cached);
+  if (ret && shoes_file_mtime(imgpath) == cached->image->mtime) {
+    st_delete(shoes_world->image_cache, (st_data_t *)&imgpath, 0);
+    // TODO: memory leak if an image's mtime changes (it's overwritten)
+    // need to free this struct, but only after the surface is out of play
+    // shoes_world_free_image_cache(imgpath, cached, NULL);
+    ret = 0;
+  }
   if (ret) *image = cached->image;
   return ret;
 }
@@ -678,15 +708,18 @@ shoes_cache_lookup(char *imgpath, shoes_cached_image **image)
 void
 shoes_cache_insert(unsigned char type, VALUE imgpath, shoes_cached_image *image)
 {
+  char *path = strdup(RSTRING_PTR(imgpath));
   shoes_cache_entry *cached = SHOE_ALLOC(shoes_cache_entry);
   cached->type = type;
   cached->image = image;
-  st_insert(shoes_world->image_cache, (st_data_t)strdup(RSTRING_PTR(imgpath)), (st_data_t)cached);
+  if (type == SHOES_CACHE_FILE) image->mtime = shoes_file_mtime(path);
+  st_insert(shoes_world->image_cache, (st_data_t)path, (st_data_t)cached);
 }
 
-shoes_code
-shoes_load_imagesize(VALUE imgpath, int *width, int *height)
+shoes_image_format
+shoes_image_detect(VALUE imgpath, int *width, int *height)
 {
+  shoes_image_format format = SHOES_IMAGE_NONE;
   shoes_cached_image *cached = NULL;
   cairo_surface_t *img = NULL;
   VALUE filename = rb_funcall(imgpath, s_downcase, 0);
@@ -697,28 +730,57 @@ shoes_load_imagesize(VALUE imgpath, int *width, int *height)
   {
     *width = cached->width;
     *height = cached->height;
-    return SHOES_OK;
+    return cached->format;
   }
 
   if (!shoes_check_file_exists(imgpath))
-    return SHOES_FAIL;
+    return SHOES_IMAGE_NONE;
   else if (shoes_has_ext(fname, len, ".png"))
-    img = shoes_png_size(RSTRING_PTR(imgpath), width, height);
-  else if (shoes_has_ext(fname, len, ".jpg") || shoes_has_ext(fname, len, ".jpeg"))
-    img = shoes_surface_create_from_jpeg(RSTRING_PTR(imgpath), width, height, FALSE);
-  else if (shoes_has_ext(fname, len, ".gif"))
-    img = shoes_surface_create_from_gif(RSTRING_PTR(imgpath), width, height, FALSE);
-  else
   {
-    shoes_unsupported_image(imgpath);
-    return SHOES_FAIL;
+    img = shoes_png_size(RSTRING_PTR(imgpath), width, height);
+    format = SHOES_IMAGE_PNG;
+  }
+  else if (shoes_has_ext(fname, len, ".jpg") || shoes_has_ext(fname, len, ".jpeg"))
+  {
+    img = shoes_surface_create_from_jpeg(RSTRING_PTR(imgpath), width, height, FALSE);
+    format = SHOES_IMAGE_JPEG;
+  }
+  else if (shoes_has_ext(fname, len, ".gif"))
+  {
+    img = shoes_surface_create_from_gif(RSTRING_PTR(imgpath), width, height, FALSE);
+    format = SHOES_IMAGE_GIF;
   }
 
   if (img != SIZE_SURFACE)
   {
-    shoes_failed_image(imgpath);
-    return SHOES_FAIL;
+    if (format != SHOES_IMAGE_PNG && 
+      (img = shoes_png_size(RSTRING_PTR(imgpath), width, height)) == SIZE_SURFACE)
+      format = SHOES_IMAGE_PNG;
+    else if (format != SHOES_IMAGE_JPEG && 
+      (img = shoes_surface_create_from_jpeg(RSTRING_PTR(imgpath), width, height, FALSE)) == SIZE_SURFACE)
+      format = SHOES_IMAGE_JPEG;
+    else if (format != SHOES_IMAGE_GIF &&
+      (img = shoes_surface_create_from_gif(RSTRING_PTR(imgpath), width, height, FALSE)) == SIZE_SURFACE)
+      format = SHOES_IMAGE_GIF;
   }
+
+  if (format == SHOES_IMAGE_NONE)
+  {
+    shoes_unsupported_image(imgpath);
+    return format;
+  }
+
+  if (img != SIZE_SURFACE)
+    shoes_failed_image(imgpath);
+
+  return format;
+}
+
+shoes_code
+shoes_load_imagesize(VALUE imgpath, int *width, int *height)
+{
+  if (shoes_image_detect(imgpath, width, height) == SHOES_IMAGE_NONE)
+    return SHOES_FAIL;
   return SHOES_OK;
 }
 
@@ -757,7 +819,7 @@ shoes_download_image_handler(shoes_download_event *de, void *data)
       idat->cachepath = NULL;
     }
 
-    cairo_surface_t *img = shoes_surface_create_from_file(idat->filepath, idat->filepath, &width, &height);
+    cairo_surface_t *img = shoes_surface_create_from_file(rb_str_new2(idat->filepath), &width, &height);
     if (img != NULL)
     {
       shoes_cached_image *cached;
@@ -768,6 +830,7 @@ shoes_download_image_handler(shoes_download_event *de, void *data)
         cached->surface = img;
         cached->width = width;
         cached->height = height;
+        cached->mtime = shoes_file_mtime(idat->filepath);
 
         if (idat->status != 304)
         {
@@ -876,22 +939,7 @@ shoes_load_image(VALUE slot, VALUE imgpath)
     goto done;
   }
 
-  if (!shoes_check_file_exists(imgpath))
-    img = shoes_world->blank_image;
-  else if (shoes_has_ext(fname, len, ".png") || shoes_has_ext(fname, len, ".jpg") || shoes_has_ext(fname, len, ".jpeg") || shoes_has_ext(fname, len, ".gif"))
-    img = shoes_surface_create_from_file(RSTRING_PTR(imgpath), fname, &width, &height);
-  else
-  {
-    shoes_unsupported_image(imgpath);
-    img = shoes_world->blank_image;
-  }
-
-  if (img == NULL)
-  {
-    shoes_failed_image(imgpath);
-    img = shoes_world->blank_image;
-  }
-
+  img = shoes_surface_create_from_file(imgpath, &width, &height);
   if (img != shoes_world->blank_image)
   {
     cached = shoes_cached_image_new(width, height, img);

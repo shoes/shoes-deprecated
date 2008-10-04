@@ -169,10 +169,18 @@ typedef struct {
 //
 // cached image
 //
+typedef enum {
+  SHOES_IMAGE_NONE,
+  SHOES_IMAGE_PNG,
+  SHOES_IMAGE_JPEG,
+  SHOES_IMAGE_GIF
+} shoes_image_format;
+
 typedef struct {
   cairo_surface_t *surface;
   cairo_pattern_t *pattern;
-  int width, height;
+  int width, height, mtime;
+  shoes_image_format format;
 } shoes_cached_image;
 
 #define SHOES_CACHE_FILE  0
