@@ -414,7 +414,10 @@ shoes_app_g_poll (GPollFD *fds, guint nfds, gint timeout)
   // If we poll indefinitely, then the window updates will
   // pile up for as long as Ruby is churning away.
   //
-  if (timeout == -1)
+  // Give Ruby half-seconds in which to work, in order to
+  // keep it from completely blocking the GUI.
+  //
+  if (timeout == -1 || timeout > 500)
     timeout = 500;
   
   tv.tv_sec = timeout / 1000;

@@ -694,13 +694,13 @@ shoes_cache_lookup(char *imgpath, shoes_cached_image **image)
 {
   shoes_cache_entry *cached = NULL;
   int ret = st_lookup(shoes_world->image_cache, (st_data_t)imgpath, (st_data_t *)&cached);
-  if (ret && shoes_file_mtime(imgpath) == cached->image->mtime) {
-    st_delete(shoes_world->image_cache, (st_data_t *)&imgpath, 0);
-    // TODO: memory leak if an image's mtime changes (it's overwritten)
-    // need to free this struct, but only after the surface is out of play
-    // shoes_world_free_image_cache(imgpath, cached, NULL);
-    ret = 0;
-  }
+  // if (ret && shoes_file_mtime(imgpath) == cached->image->mtime) {
+  //   st_delete(shoes_world->image_cache, (st_data_t *)&imgpath, 0);
+  //   // TODO: memory leak if an image's mtime changes (it's overwritten)
+  //   // need to free this struct, but only after the surface is out of play
+  //   // shoes_world_free_image_cache(imgpath, cached, NULL);
+  //   ret = 0;
+  // }
   if (ret) *image = cached->image;
   return ret;
 }
