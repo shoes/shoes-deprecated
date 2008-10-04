@@ -670,7 +670,7 @@ shoes_file_mtime(char *path)
   int mtime = 0;
   struct stat *s = SHOE_ALLOC(struct stat);
   stat(path, s);
-  mtime = s->st_mtim.tv_sec;
+  mtime = s->st_mtime;
   SHOE_FREE(s);
   return mtime;
 }
