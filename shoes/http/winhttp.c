@@ -73,22 +73,6 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR **mem, ULONG
   if (sess == NULL)
     goto done;
 
-  proxy = _wgetenv(L"http_proxy");
-  if (proxy != NULL)
-  {
-    WINHTTP_PROXY_INFO proxy_info;
-    proxy_info.dwAccessType = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
-    proxy_info.lpszProxy = proxy;
-    proxy_info.lpszProxyBypass = NULL;
-    WinHttpSetOption(sess, WINHTTP_OPTION_PROXY, &proxy_info, sizeof(proxy_info));
-  }
-
-  if (!(flags & SHOES_DL_REDIRECTS))
-  {
-    DWORD options = WINHTTP_DISABLE_REDIRECTS;
-    WinHttpSetOption(sess, WINHTTP_OPTION_DISABLE_FEATURE, &options, sizeof(options));
-  }
-
   conn = WinHttpConnect(sess, host, port, 0);
   if (conn == NULL)
     goto done;
@@ -97,6 +81,22 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR **mem, ULONG
     NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, 0);
   if (req == NULL)
     goto done;
+
+  proxy = _wgetenv(L"http_proxy");
+  if (proxy != NULL)
+  {
+    WINHTTP_PROXY_INFO proxy_info;
+    proxy_info.dwAccessType = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
+    proxy_info.lpszProxy = proxy;
+    proxy_info.lpszProxyBypass = NULL;
+    WinHttpSetOption(req, WINHTTP_OPTION_PROXY, &proxy_info, sizeof(proxy_info));
+  }
+
+  if (!(flags & SHOES_DL_REDIRECTS))
+  {
+    DWORD options = WINHTTP_DISABLE_REDIRECTS;
+    WinHttpSetOption(req, WINHTTP_OPTION_DISABLE_FEATURE, &options, sizeof(options));
+  }
 
   if (!WinHttpSendRequest(req, WINHTTP_NO_ADDITIONAL_HEADERS, 0,
     NULL, 0, 0, 0))
