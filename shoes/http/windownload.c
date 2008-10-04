@@ -28,7 +28,8 @@ shoes_download(shoes_download_request *req)
   if (req->mem == NULL && req->filepath != NULL)
     file = CreateFile(req->filepath, GENERIC_READ | GENERIC_WRITE,
       FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-  shoes_winhttp(_host, _port, _path, &req->mem, req->memlen, file, &_size, req->handler, req->data);
+  shoes_winhttp(_host, _port, _path, &req->mem, req->memlen, file, 
+               &_size, req->flags, req->handler, req->data);
   req->size = _size;
   SHOE_FREE(_host);
   SHOE_FREE(_path);

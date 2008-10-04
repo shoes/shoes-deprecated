@@ -29,6 +29,7 @@ typedef struct {
   unsigned LONG_LONG size;
   shoes_download_handler handler;
   void *data;
+  unsigned char flags;
 } shoes_download_request;
 
 void shoes_download(shoes_download_request *req);

@@ -144,6 +144,8 @@ shoes_download(shoes_download_request *req)
   curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, shoes_curl_progress_funk);
   curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &cdata);
   curl_easy_setopt(curl, CURLOPT_USERAGENT, uagent);
+  if (req->flags & SHOES_DL_REDIRECTS)
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
   if (req->method)
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, req->method);
   if (req->headers)

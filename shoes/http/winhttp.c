@@ -53,7 +53,7 @@ shoes_winhttp_headers(HINTERNET req, shoes_download_handler handler, void *data)
 
 void
 shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR **mem, ULONG memlen, HANDLE file,
-  LPDWORD size, shoes_download_handler handler, void *data)
+  LPDWORD size, UCHAR flags, shoes_download_handler handler, void *data)
 {
   LPWSTR proxy;
   DWORD len = 0, rlen = 0, status = 0, complete = 0, flen = 0, total = 0, written = 0;
@@ -81,6 +81,12 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR **mem, ULONG
     proxy_info.lpszProxy = proxy;
     proxy_info.lpszProxyBypass = NULL;
     WinHttpSetOption(sess, WINHTTP_OPTION_PROXY, &proxy_info, sizeof(proxy_info));
+  }
+
+  if (!(flags & SHOES_DL_REDIRECTS))
+  {
+    DWORD options = WINHTTP_DISABLE_REDIRECTS;
+    WinHttpSetOption(sess, WINHTTP_OPTION_DISABLE_FEATURE, &options, sizeof(options));
   }
 
   conn = WinHttpConnect(sess, host, port, 0);
