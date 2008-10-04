@@ -23,6 +23,7 @@
   NSFileManager *fm;
   long long size;
   long long total;
+  unsigned char flags;
   shoes_download_handler handler;
   SHOES_TIME last;
   NSMutableData *bytes;
@@ -54,6 +55,7 @@
     timeoutInterval: 60.0];
   [nsreq setValue: uagent forHTTPHeaderField: @"User-Agent"];
 
+  flags = req->flags;
   handler = req->handler;
   data = req->data;
   last.tv_sec = 0;
@@ -104,6 +106,15 @@
     }
   }
 }
+- (NSURLRequest *)connection: (NSURLConnection *)connection
+  willSendRequest: (NSURLRequest *)request
+  redirectResponse: (NSURLResponse *)redirectResponse
+{
+  NSURLRequest *newRequest = request;
+  if (redirectResponse && !(flags & SHOES_DL_REDIRECTS))
+    newRequest = nil;
+  return newRequest;
+}
 - (void)connection: (NSURLConnection *)c didReceiveResponse: (NSURLResponse *)response
 {
   [self readHeaders: response];
@@ -128,6 +139,15 @@
   [bytes getBytes: dest];
   HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, total, total, data, [bytes mutableBytes], 1);
   [c release];
+}
+- (NSURLRequest *)download: (NSURLDownload *)download
+  willSendRequest: (NSURLRequest *)request
+  redirectResponse: (NSURLResponse *)redirectResponse
+{
+  NSURLRequest *newRequest = request;
+  if (redirectResponse && !(flags & SHOES_DL_REDIRECTS))
+    newRequest = nil;
+  return newRequest;
 }
 - (void)download: (NSURLDownload *)download decideDestinationWithSuggestedFilename: (NSString *)filename
 {
