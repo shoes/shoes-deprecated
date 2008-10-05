@@ -209,13 +209,14 @@ shoes_canvas_paint_call(VALUE self)
   }
 
   cairo_destroy(cr);
-  canvas->cr = NULL;
+  cr = canvas->cr = NULL;
 
   shoes_cairo_destroy(canvas);
   shoes_get_time(&mid);
   INFO("PAINT: %0.6f s\n", ELAPSED);
   shoes_canvas_send_start(self);
 quit:
+  if (cr != NULL) cairo_destroy(cr);
   return self;
 }
 

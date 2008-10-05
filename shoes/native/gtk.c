@@ -600,6 +600,7 @@ shoes_cairo_create(shoes_canvas *canvas)
     GdkRegion *region = gdk_region_rectangle(&canvas->slot->canvas->allocation);
     gdk_region_intersect(region, canvas->slot->expose->region);
     gdk_cairo_region(cr, region);
+    gdk_region_destroy(region);
     cairo_clip(cr);
     cairo_translate(cr, canvas->slot->canvas->allocation.x, canvas->slot->canvas->allocation.y - canvas->slot->scrolly);
   }
