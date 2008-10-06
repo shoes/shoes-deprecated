@@ -94,7 +94,14 @@ shoes_init(SHOES_INIT_ARGS)
   shoes_world->os.style = style;
 #endif
   shoes_native_init();
+  rb_const_set(cShoes, rb_intern("FONTS"), shoes_font_list());
   return SHOES_OK;
+}
+
+void
+shoes_update_fonts(VALUE ary)
+{
+  rb_funcall(rb_const_get(cShoes, rb_intern("FONTS")), rb_intern("replace"), 1, ary);
 }
 
 static VALUE

@@ -39,6 +39,7 @@ extern SHOES_EXTERN shoes_world_t *shoes_world;
 // 
 SHOES_EXTERN shoes_world_t *shoes_world_alloc(void);
 SHOES_EXTERN void shoes_world_free(shoes_world_t *);
+void shoes_update_fonts(VALUE);
 
 //
 // Shoes

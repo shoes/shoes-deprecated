@@ -64,7 +64,7 @@ shoes_load_font(const char *filename)
   allfonts = shoes_font_list();
   oldfonts = rb_const_get(cShoes, rb_intern("FONTS"));
   newfonts = rb_funcall(allfonts, rb_intern("-"), 1, oldfonts);
-  rb_funcall(oldfonts, rb_intern("replace"), 1, allfonts);
+  shoes_update_fonts(allfonts);
   return newfonts;
 }
 
@@ -98,7 +98,6 @@ void shoes_native_init()
   shoes_classex_init();
   shoes_world->os.hidden = CreateWindow(SHOES_HIDDENCLS, SHOES_HIDDENCLS, WS_OVERLAPPEDWINDOW,
     CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, shoes_world->os.instance, NULL);
-  rb_const_set(cShoes, rb_intern("FONTS"), shoes_font_list());
 }
 
 void shoes_native_cleanup(shoes_world_t *world)

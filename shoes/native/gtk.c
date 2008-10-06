@@ -31,6 +31,7 @@ shoes_make_font_list(FcFontSet *fonts, VALUE ary)
     if (FcPatternGet(p, FC_FAMILY, 0, &val) == FcResultMatch)
       rb_ary_push(ary, rb_str_new2(val.u.s));
   }
+  rb_funcall(ary, rb_intern("uniq!"), 0);
   rb_funcall(ary, rb_intern("sort!"), 0);
   return ary;
 }
@@ -63,16 +64,14 @@ shoes_load_font(const char *filename)
     return Qnil;
 
   // refresh the FONTS list
-  rb_funcall(rb_const_get(cShoes, rb_intern("FONTS")), rb_intern("replace"), 1,
-    shoes_font_list());
-  return rb_funcall(ary, rb_intern("uniq"), 0);
+  shoes_update_fonts(shoes_font_list());
+  return ary;
 }
 
 void shoes_native_init()
 {
   curl_global_init(CURL_GLOBAL_ALL);
   gtk_init(NULL, NULL);
-  rb_const_set(cShoes, rb_intern("FONTS"), shoes_font_list());
 }
 
 void shoes_native_cleanup(shoes_world_t *world)
