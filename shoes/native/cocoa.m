@@ -487,12 +487,22 @@ create_help_menu(NSMenu *main)
     [menuHelp release];
 }
 
-int
+VALUE
 shoes_load_font(const char *filename)
 {
-  ATSFontContainerRef o;
-  if (ATSFontActivateFromFileReference(file, kATSFontContextLocal, kATSFontFormatUnspecified,
-    NULL, kATSOptionFlagsDefault, &o) != noErr) return Qnil;
+  FSRef fsRef;
+  FSSpec fsSpec;
+  Boolean isDir;
+  FSPathMakeRef(filename, &fsRef, &isDir);
+  if (FSGetCatalogInfo(&fsRef, kFSCatInfoNone, NULL, NULL, &fsSpec, NULL) == noErr)
+  {
+    ATSFontActivateFromFileSpecification(&fsSpec, kATSFontContextLocal, kATSFontFormatUnspecified, 
+      NULL, kATSOptionFlagsDefault, NULL);
+  }
+
+  // ATSFontContainerRef o;
+  // if (ATSFontActivateFromFileReference(file, kATSFontContextLocal, kATSFontFormatUnspecified,
+  //   NULL, kATSOptionFlagsDefault, &o) != noErr) return Qnil;
   return rb_ary_new();
 }
 
