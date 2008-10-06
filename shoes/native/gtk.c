@@ -21,9 +21,9 @@
 #define SHOES_GTK_INVISIBLE_CHAR (gunichar)0x2022
 
 static VALUE
-shoes_make_font_list(FcFontSet *fonts)
+shoes_make_font_list(FcFontSet *fonts, VALUE ary)
 {
-  VALUE ary = rb_ary_new();
+  int i = 0;
   for (i = 0; i < fonts->nfont; i++)
   {
     FcValue val;
@@ -31,27 +31,32 @@ shoes_make_font_list(FcFontSet *fonts)
     if (FcPatternGet(p, FC_FAMILY, 0, &val) == FcResultMatch)
       rb_ary_push(ary, rb_str_new2(val.u.s));
   }
+  rb_funcall(ary, rb_intern("sort!"), 0);
   return ary;
 }
 
 VALUE
 shoes_font_list()
 {
+  VALUE ary = rb_ary_new();
   FcConfig *fc = FcConfigGetCurrent();
-  FcFontSet *fonts = FcConfigGetFonts(fc, FcSetSystem);
-  return shoes_make_font_list(fonts);
+  FcFontSet *fonts = FcConfigGetFonts(fc, FcSetApplication);
+  if (fonts) shoes_make_font_list(fonts, ary);
+  fonts = FcConfigGetFonts(fc, FcSetSystem);
+  if (fonts) shoes_make_font_list(fonts, ary);
+  return ary;
 }
 
 VALUE
 shoes_load_font(const char *filename)
 {
-  int i = 0;
   FcConfig *fc = FcConfigGetCurrent();
   FcFontSet *fonts = FcFontSetCreate();
   if (!FcFileScan(fonts, NULL, NULL, NULL, filename, FcTrue))
     return Qnil;
 
-  VALUE ary = shoes_make_font_list(fonts);
+  VALUE ary = rb_ary_new();
+  shoes_make_font_list(fonts, ary);
   FcFontSetDestroy(fonts);
 
   if (!FcConfigAppFontAddFile(fc, filename))
