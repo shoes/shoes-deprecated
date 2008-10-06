@@ -494,15 +494,15 @@ shoes_font_list()
   ATSFontRef fontRef = 0;
   NSMutableArray *outArray;
   VALUE ary = rb_ary_new(); 
-  while (noErr == ATSFontIteratorCreate(kATSFontContextLocal, nil, nil,
+  if (noErr == ATSFontIteratorCreate(kATSFontContextLocal, nil, nil,
          kATSOptionFlagsUnRestrictedScope, &fi))
   {
-    if (noErr == ATSFontIteratorNext(fi, &fontRef))
+    while (noErr == ATSFontIteratorNext(fi, &fontRef))
     {
       NSString *fontName;
       ATSFontGetName(fontRef, kATSOptionFlagsDefault, &fontName);
       if (fontName != NULL)
-        rb_ary_push(families, rb_str_new2([fontName UTF8String]));
+        rb_ary_push(ary, rb_str_new2([fontName UTF8String]));
     }
   }
   
