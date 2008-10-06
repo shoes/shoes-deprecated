@@ -506,7 +506,19 @@ Stops your program. Call this anytime you want to suddenly call it quits.
 
 Loads a TrueType (or other type of font) from a file.  While TrueType is supported by all platforms, your platform may support other types of fonts.  Shoes uses each operating system's built-in font system to make this work.
 
-If the font is properly loaded, you'll get back an array of font names found in the file.  Otherwise, @nil@ is returned if no fonts were found in the file.
+Here's a rough idea of what fonts work on which platforms:
+
+ * Bitmap fonts (.bdf, .pcf, .snf) - Linux
+ * Font resource (.fon) - Windows
+ * Windows bitmap font file (.fnt) - Linux, Windows
+ * PostScript OpenType font (.otf) - Mac OS X, Linux, Windows
+ * Type1 multiple master (.mmm) - Windows
+ * Type1 font bits (.pfb) - Linux, Windows
+ * Type1 font metrics (.pfm) - Linux, Windows
+ * TrueType font (.ttf) - Mac OS X, Linux, Windows
+ * TrueType collection (.ttc) - Mac OS X, Linux, Windows
+
+If the font is properly loaded, you'll get back an array of font names found in the file.  Otherwise, `nil` is returned if no fonts were found in the file.
 
 === gradient(color1, color2) » Shoes::Pattern ===
 
@@ -769,7 +781,7 @@ Shoes also borrows some animation ideas from Processing and will continue to clo
 
 === arc(left, top, width, height, angle1, angle2) » Shoes::Shape ===
 
-Draws an arc shape (a section of an oval) at coordinates (left, top).  This method just give you a bit more control than [[oval]], by offering the @:angle1@ and @:angle2@ styles.  (In fact, you can mimick the @oval@ method by setting @:angle1@ to 0 and @:angle2@ to @Shoes::TWO_PI@.)
+Draws an arc shape (a section of an oval) at coordinates (left, top).  This method just give you a bit more control than [[oval]], by offering the `:angle1` and `:angle2` styles.  (In fact, you can mimick the `oval` method by setting `:angle1` to 0 and `:angle2` to `Shoes::TWO_PI`.)
 
 === arrow(left, top, width) » Shoes::Shape ===
 
@@ -777,7 +789,7 @@ Draws an arrow at coordinates (left, top) with a pixel `width`.
 
 === cap(:curve or :rect or :project) » self ===
 
-Sets the line cap, which is the shape at the end of every line you draw.  If set to @:curve@, the end is rounded.  The default is @:rect@, a line which ends abruptly flat.  The @:project@ cap is also fat, but sticks out a bit longer.
+Sets the line cap, which is the shape at the end of every line you draw.  If set to `:curve`, the end is rounded.  The default is `:rect`, a line which ends abruptly flat.  The `:project` cap is also fat, but sticks out a bit longer.
 
 === fill(pattern) » pattern ===
 
