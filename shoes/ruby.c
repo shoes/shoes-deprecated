@@ -4002,6 +4002,13 @@ shoes_log(VALUE self)
   return shoes_world->msgs;
 }
 
+VALUE
+shoes_font(VALUE self, VALUE path)
+{
+  StringValue(path);
+  return shoes_load_font(RSTRING_PTR(path));
+}
+
 //
 // Defines a redirecting function which applies the element or transformation
 // to the currently active canvas.  This is used in place of the old instance_eval
@@ -4731,4 +4738,5 @@ shoes_ruby_init()
   rb_define_method(rb_mKernel, "ask_open_folder", CASTHOOK(shoes_dialog_open_folder), 0);
   rb_define_method(rb_mKernel, "ask_save_folder", CASTHOOK(shoes_dialog_save_folder), 0);
   rb_define_method(rb_mKernel, "download_and_wait", CASTHOOK(shoes_download_non_threaded), 1);
+  rb_define_method(rb_mKernel, "font", CASTHOOK(shoes_font), 1);
 }

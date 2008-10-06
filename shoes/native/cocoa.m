@@ -487,6 +487,15 @@ create_help_menu(NSMenu *main)
     [menuHelp release];
 }
 
+int
+shoes_load_font(const char *filename)
+{
+  ATSFontContainerRef o;
+  if (ATSFontActivateFromFileReference(file, kATSFontContextLocal, kATSFontFormatUnspecified,
+    NULL, kATSOptionFlagsDefault, &o) != noErr) return Qnil;
+  return rb_ary_new();
+}
+
 void shoes_native_init()
 {
   INIT;

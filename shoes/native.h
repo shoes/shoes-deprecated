@@ -17,6 +17,7 @@
 #define SHOES_IMAGE_DOWNLOAD  42
 #define SHOES_MAX_MESSAGE     100
 
+VALUE shoes_load_font(const char *);
 void shoes_native_init();
 void shoes_native_cleanup(shoes_world_t *world);
 void shoes_native_quit();

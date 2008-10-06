@@ -9,6 +9,7 @@
 #include "shoes/native.h"
 #include "shoes/internal.h"
 
+#include <fontconfig/fontconfig.h>
 #include <curl/curl.h>
 
 #define GTK_CHILD(child, ptr) \
@@ -18,6 +19,30 @@
 #define HEIGHT_PAD 0
 
 #define SHOES_GTK_INVISIBLE_CHAR (gunichar)0x2022
+
+VALUE
+shoes_load_font(const char *filename)
+{
+  int i = 0;
+  VALUE ary = rb_ary_new();
+  FcConfig *fc = FcConfigGetCurrent();
+  FcFontSet *fonts = FcFontSetCreate();
+  if (!FcFileScan(fonts, NULL, NULL, NULL, filename, FcTrue))
+    return Qnil;
+  for (i = 0; i < fonts->nfont; i++)
+  {
+    FcValue val;
+    FcPattern *p = fonts->fonts[i];
+    if (FcPatternGet(p, FC_FAMILY, 0, &val) == FcResultMatch)
+      rb_ary_push(ary, rb_str_new2(val.u.s));
+  }
+  FcFontSetDestroy(fonts);
+
+  if (!FcConfigAppFontAddFile(fc, filename))
+    return Qnil;
+
+  return rb_funcall(ary, rb_intern("uniq"), 0);
+}
 
 void shoes_native_init()
 {

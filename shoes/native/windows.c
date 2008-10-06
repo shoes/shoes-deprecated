@@ -54,6 +54,14 @@ shoes_win32_cmdvector(const char *cmdline, char ***argv)
   return rb_w32_cmdvector(cmdline, argv);
 }
 
+int
+shoes_load_font(const char *filename)
+{
+  int fonts = AddFontResourceEx(filename, FR_PRIVATE, 0);
+  if (!fonts) return Qnil;
+  return rb_ary_new();
+}
+
 void shoes_native_init()
 {
   INITCOMMONCONTROLSEX InitCtrlEx;
