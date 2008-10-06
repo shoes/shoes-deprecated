@@ -417,7 +417,7 @@ Shoes also has a handful of built-in constants which may prove useful if you are
 
 '''Shoes::REVISION''' is the Subversion revision number for this build.
 
-=== alert( message ) » nil ===
+=== alert(message: a string) » nil ===
 
 Pops up a window containing a short message.
 
@@ -428,7 +428,7 @@ Pops up a window containing a short message.
 
 Please use alerts sparingly, as they are incredibly annoying!  If you are using alerts to show messages to help you debug your program, try checking out the [[Built-in.debug]] or [[Built-in.info]] methods.
 
-=== ask( message ) » a string ===
+=== ask(message: a string) » a string ===
 
 Pops up a window and asks a question. For example, you may want to ask someone their name.
 
@@ -501,6 +501,12 @@ Oh, and, rather than a string, you may also hand exceptions directly to this met
 === exit() ===
 
 Stops your program. Call this anytime you want to suddenly call it quits.
+
+=== font(message: a string) » an array of font family names ===
+
+Loads a TrueType (or other type of font) from a file.  While TrueType is supported by all platforms, your platform may support other types of fonts.  Shoes uses each operating system's built-in font system to make this work.
+
+If the font is properly loaded, you'll get back an array of font names found in the file.  Otherwise, @nil@ is returned if no fonts were found in the file.
 
 === gradient(color1, color2) » Shoes::Pattern ===
 
