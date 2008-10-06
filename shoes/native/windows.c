@@ -48,6 +48,7 @@ shoes_win32_center(HWND hwnd)
     (GetSystemMetrics(SM_CYSCREEN) - rc.bottom)/2,
      0, 0, SWP_NOZORDER|SWP_NOSIZE );
 }
+
 int
 shoes_win32_cmdvector(const char *cmdline, char ***argv)
 {
@@ -57,9 +58,35 @@ shoes_win32_cmdvector(const char *cmdline, char ***argv)
 VALUE
 shoes_load_font(const char *filename)
 {
+  VALUE allfonts, newfonts, oldfonts;
   int fonts = AddFontResourceEx(filename, FR_PRIVATE, 0);
   if (!fonts) return Qnil;
-  return rb_ary_new();
+  allfonts = shoes_font_list();
+  oldfonts = rb_const_get(cShoes, rb_intern("FONTS"));
+  newfonts = rb_funcall(allfonts, rb_intern("-"), 1, oldfonts);
+  rb_funcall(oldfonts, rb_intern("replace"), 1, allfonts);
+  return newfonts;
+}
+
+int CALLBACK
+shoes_font_list_iter(const LOGFONTA *font, const TEXTMETRICA *pfont, DWORD type, LPARAM l)
+{
+  VALUE ary = (VALUE)l;
+  rb_ary_push(l, rb_str_new2(font->lfFaceName));
+  return 1;
+}
+
+VALUE
+shoes_font_list()
+{
+  LOGFONT font;
+  VALUE ary = rb_ary_new();
+  HDC dc = GetDC(shoes_world->os.hidden);
+  SHOE_MEMZERO(&font, LOGFONT, 1);
+  font.lfCharSet = DEFAULT_CHARSET;
+  EnumFontFamiliesEx(dc, &font, shoes_font_list_iter, (LPARAM)ary, 0);
+  ReleaseDC(shoes_world->os.hidden, dc);
+  return rb_funcall(ary, rb_intern("sort"), 0);
 }
 
 void shoes_native_init()
@@ -71,6 +98,7 @@ void shoes_native_init()
   shoes_classex_init();
   shoes_world->os.hidden = CreateWindow(SHOES_HIDDENCLS, SHOES_HIDDENCLS, WS_OVERLAPPEDWINDOW,
     CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, shoes_world->os.instance, NULL);
+  rb_const_set(cShoes, rb_intern("FONTS"), shoes_font_list());
 }
 
 void shoes_native_cleanup(shoes_world_t *world)

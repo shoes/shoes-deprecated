@@ -20,15 +20,10 @@
 
 #define SHOES_GTK_INVISIBLE_CHAR (gunichar)0x2022
 
-VALUE
-shoes_load_font(const char *filename)
+static VALUE
+shoes_make_font_list(FcFontSet *fonts)
 {
-  int i = 0;
   VALUE ary = rb_ary_new();
-  FcConfig *fc = FcConfigGetCurrent();
-  FcFontSet *fonts = FcFontSetCreate();
-  if (!FcFileScan(fonts, NULL, NULL, NULL, filename, FcTrue))
-    return Qnil;
   for (i = 0; i < fonts->nfont; i++)
   {
     FcValue val;
@@ -36,11 +31,35 @@ shoes_load_font(const char *filename)
     if (FcPatternGet(p, FC_FAMILY, 0, &val) == FcResultMatch)
       rb_ary_push(ary, rb_str_new2(val.u.s));
   }
+  return ary;
+}
+
+VALUE
+shoes_font_list()
+{
+  FcConfig *fc = FcConfigGetCurrent();
+  FcFontSet *fonts = FcConfigGetFonts(fc, FcSetSystem);
+  return shoes_make_font_list(fonts);
+}
+
+VALUE
+shoes_load_font(const char *filename)
+{
+  int i = 0;
+  FcConfig *fc = FcConfigGetCurrent();
+  FcFontSet *fonts = FcFontSetCreate();
+  if (!FcFileScan(fonts, NULL, NULL, NULL, filename, FcTrue))
+    return Qnil;
+
+  VALUE ary = shoes_make_font_list(fonts);
   FcFontSetDestroy(fonts);
 
   if (!FcConfigAppFontAddFile(fc, filename))
     return Qnil;
 
+  // refresh the FONTS list
+  rb_funcall(rb_const_get(cShoes, rb_intern("FONTS")), rb_intern("replace"), 1,
+    shoes_font_list());
   return rb_funcall(ary, rb_intern("uniq"), 0);
 }
 
@@ -48,6 +67,7 @@ void shoes_native_init()
 {
   curl_global_init(CURL_GLOBAL_ALL);
   gtk_init(NULL, NULL);
+  rb_const_set(cShoes, rb_intern("FONTS"), shoes_font_list());
 }
 
 void shoes_native_cleanup(shoes_world_t *world)
