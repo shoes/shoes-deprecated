@@ -417,6 +417,8 @@ Shoes also has a handful of built-in constants which may prove useful if you are
 
 '''Shoes::REVISION''' is the Subversion revision number for this build.
 
+'''Shoes::FONTS''' is a complete list of fonts available to the app.  This list includes any fonts loaded by the [[Built-in.font]] method.
+
 === alert(message: a string) » nil ===
 
 Pops up a window containing a short message.
@@ -519,6 +521,16 @@ Here's a rough idea of what fonts work on which platforms:
  * TrueType collection (.ttc) - Mac OS X, Linux, Windows
 
 If the font is properly loaded, you'll get back an array of font names found in the file.  Otherwise, `nil` is returned if no fonts were found in the file.
+
+Also of interest: the `Shoes::FONTS` constant is a complete list of fonts available to you on this platform.  You can check for a certain font by using `include?`.
+
+{{{
+ if Shoes::FONTS.include? "Helvetica"
+   alert "Helvetica is available on this system."
+ else
+   alert "You do not have the Helvetica font."
+ end
+}}}
 
 === gradient(color1, color2) » Shoes::Pattern ===
 
