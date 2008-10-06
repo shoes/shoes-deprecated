@@ -493,17 +493,40 @@ shoes_load_font(const char *filename)
   FSRef fsRef;
   FSSpec fsSpec;
   Boolean isDir;
+  VALUE families = Qnil;
+  ATSFontContainerRef ref;
+  NSString *fontName;
   FSPathMakeRef(filename, &fsRef, &isDir);
   if (FSGetCatalogInfo(&fsRef, kFSCatInfoNone, NULL, NULL, &fsSpec, NULL) == noErr)
   {
     ATSFontActivateFromFileSpecification(&fsSpec, kATSFontContextLocal, kATSFontFormatUnspecified, 
-      NULL, kATSOptionFlagsDefault, NULL);
+      NULL, kATSOptionFlagsDefault, &ref);
+    if (ref != NULL)
+    {
+      int i = 0;
+      ItemCount count = 0;
+      ATSFontRef *fonts;
+      ATSFontFindFromContainer(ref, kATSOptionFlagsDefault, 0, NULL, &count); 
+      families = rb_ary_new();
+      if (count > 0)
+      {
+        fonts = SHOE_ALLOC_N(ATSFontRef, count);
+        ATSFontFindFromContainer(ref, kATSOptionFlagsDefault, count, fonts, &count); 
+        for (i = 0; i < count; i++)
+        {
+          fontName = NULL;
+          ATSFontGetName(fonts[i], kATSOptionFlagsDefault, &fontName);
+          if (fontName != NULL)
+          {
+            rb_ary_push(families, rb_str_new2([fontName UTF8String]));
+          }
+        }
+        SHOE_FREE(fonts);
+      }
+    }
   }
 
-  // ATSFontContainerRef o;
-  // if (ATSFontActivateFromFileReference(file, kATSFontContextLocal, kATSFontFormatUnspecified,
-  //   NULL, kATSOptionFlagsDefault, &o) != noErr) return Qnil;
-  return rb_ary_new();
+  return families;
 }
 
 void shoes_native_init()
