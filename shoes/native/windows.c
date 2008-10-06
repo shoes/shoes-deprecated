@@ -54,7 +54,7 @@ shoes_win32_cmdvector(const char *cmdline, char ***argv)
   return rb_w32_cmdvector(cmdline, argv);
 }
 
-int
+VALUE
 shoes_load_font(const char *filename)
 {
   int fonts = AddFontResourceEx(filename, FR_PRIVATE, 0);

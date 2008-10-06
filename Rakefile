@@ -216,7 +216,7 @@ when /win32/
     /Ideps\ruby\lib\ruby\1.8\i386-mswin32
     /Ideps\curl\include
     /Ideps\winhttp\include
-    /I.
+    /I. /DWINVER=0x0500 /D_WIN32_WINNT=0x0500
     /O2 /GR /EHsc
   ].gsub(/\n\s*/, ' ')
 
@@ -229,9 +229,10 @@ when /win32/
     MSVC_CFLAGS << " /Zi"
     MSVC_LDFLAGS << " /DEBUG"
   end
+  MSVC_CFLAGS << " /I#{ENV['SDK_INC_PATH']}" if ENV['SDK_INC_PATH']
   MSVC_CFLAGS << " /I#{ENV['CRT_INC_PATH']}" if ENV['CRT_INC_PATH']
-  MSVC_LDFLAGS << " /LIBPATH:#{ENV['CRT_LIB_PATH'][0..-2]}\i386" if ENV['CRT_LIB_PATH']
   MSVC_LDFLAGS << " /LIBPATH:#{ENV['SDK_LIB_PATH'][0..-2]}\i386" if ENV['SDK_LIB_PATH']
+  MSVC_LDFLAGS << " /LIBPATH:#{ENV['CRT_LIB_PATH'][0..-2]}\i386" if ENV['CRT_LIB_PATH']
 
   # MSVC build tasks
   task :build_os => [:buildenv_win32, :build_skel, "dist/#{NAME}.exe"]
