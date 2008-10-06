@@ -488,6 +488,31 @@ create_help_menu(NSMenu *main)
 }
 
 VALUE
+shoes_font_list()
+{
+  ATSFontIterator fi = NULL;
+  ATSFontRef fontRef = 0;
+  NSMutableArray *outArray;
+  VALUE ary = rb_ary_new(); 
+  while (noErr == ATSFontIteratorCreate(kATSFontContextLocal, nil, nil,
+         kATSOptionFlagsUnRestrictedScope, &fi))
+  {
+    if (noErr == ATSFontIteratorNext(fi, &fontRef))
+    {
+      NSString *fontName;
+      ATSFontGetName(fontRef, kATSOptionFlagsDefault, &fontName);
+      if (fontName != NULL)
+        rb_ary_push(families, rb_str_new2([fontName UTF8String]));
+    }
+  }
+  
+  ATSFontIteratorRelease(&fi);
+  rb_funcall(ary, rb_intern("uniq!"), 0);
+  rb_funcall(ary, rb_intern("sort!"), 0);
+  return ary;
+}
+
+VALUE
 shoes_load_font(const char *filename)
 {
   FSRef fsRef;
@@ -517,15 +542,14 @@ shoes_load_font(const char *filename)
           fontName = NULL;
           ATSFontGetName(fonts[i], kATSOptionFlagsDefault, &fontName);
           if (fontName != NULL)
-          {
             rb_ary_push(families, rb_str_new2([fontName UTF8String]));
-          }
         }
         SHOE_FREE(fonts);
       }
     }
   }
 
+  shoes_update_fonts(shoes_font_list());
   return families;
 }
 
