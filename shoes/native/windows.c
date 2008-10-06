@@ -86,7 +86,9 @@ shoes_font_list()
   font.lfCharSet = DEFAULT_CHARSET;
   EnumFontFamiliesEx(dc, &font, shoes_font_list_iter, (LPARAM)ary, 0);
   ReleaseDC(shoes_world->os.hidden, dc);
-  return rb_funcall(ary, rb_intern("sort"), 0);
+  rb_funcall(ary, rb_intern("uniq!"), 0);
+  rb_funcall(ary, rb_intern("sort!"), 0);
+  return ary;
 }
 
 void shoes_native_init()
