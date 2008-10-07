@@ -490,6 +490,7 @@ create_help_menu(NSMenu *main)
 VALUE
 shoes_font_list()
 {
+  INIT;
   ATSFontIterator fi = NULL;
   ATSFontRef fontRef = 0;
   NSMutableArray *outArray;
@@ -507,6 +508,7 @@ shoes_font_list()
   }
   
   ATSFontIteratorRelease(&fi);
+  RELEASE;
   rb_funcall(ary, rb_intern("uniq!"), 0);
   rb_funcall(ary, rb_intern("sort!"), 0);
   return ary;
