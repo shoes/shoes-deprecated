@@ -552,6 +552,8 @@ Also of interest: the `Shoes::FONTS` constant is a complete list of fonts availa
  end
 }}}
 
+If you have trouble with fonts showing up, make sure your app loads the font before it is used.  Especially on OS X, if fonts are used before they are loaded, the font cache will tend to ignore loaded fonts.
+
 === gradient(color1, color2) » Shoes::Pattern ===
 
 Builds a linear gradient from two colors.  For each color, you may pass in a Shoes::Color object or a string describing the color.
