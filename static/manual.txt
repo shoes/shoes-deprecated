@@ -455,7 +455,7 @@ Pops up a color picker window. The program will wait for a color to be picked, t
 
 === ask_open_file() » a string ===
 
-Pops up an "Open file..." window. It's the standard window which show all of your folders and lets you select a file to open. Hands you back the name of the file.
+Pops up an "Open file..." window. It's the standard window which shows all of your folders and lets you select a file to open. Hands you back the name of the file.
 
 {{{
  #!ruby
@@ -465,12 +465,32 @@ Pops up an "Open file..." window. It's the standard window which show all of you
 
 === ask_save_file() » a string ===
 
-Pops up a "Save file..." window, similiar to `ask_open_file`, described above.
+Pops up a "Save file..." window, similiar to `ask_open_file`, described previously.
 
 {{{
  #!ruby
  save_as = ask_save_file
 }}}
+
+=== ask_open_folder() » a string ===
+
+Pops up an "Open folder..." window. It's the standard window which shows all of your folders and lets you select a folder to open. Hands you back the name of the folder.
+
+{{{
+ #!ruby
+ folder = ask_open_folder
+ puts Dir[folder].entries
+}}}
+
+=== ask_save_folder() » a string ===
+
+Pops up a "Save folder..." window, similiar to `ask_open_folder`, described previously. On OS X, this method currently behaves like an alias of `ask_open_folder`.
+
+{{{
+ #!ruby
+ save_to = ask_save_folder
+}}}
+
 
 === confirm(question: a string) » true or false ===
 
