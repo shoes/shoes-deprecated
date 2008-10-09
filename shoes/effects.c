@@ -27,7 +27,7 @@ box_blur(unsigned char *in, unsigned char *out,
   unsigned int edge1, unsigned int edge2,
   const unsigned char *run, int dir)
 {
-  int i, j1, j2, l, l2, l3, l4, lx, c1, c2, c3, c4, start;
+  int i, j1, j2, l = 0, l2, l3, l4, lx = 0, c1, c2, c3, c4, start;
   int boxSize = edge1 + edge2 + 1;
   if (dir == BOX_H)
   {
@@ -188,7 +188,6 @@ static void
 shoes_layer_blur_filter(cairo_t *cr, VALUE attr, shoes_place *place,
   cairo_operator_t blur_op, cairo_operator_t merge_op, int distance)
 {
-  VALUE bg;
   cairo_surface_t *source = cairo_get_target(cr);
   int width  = cairo_image_surface_get_width(source);
   int height = cairo_image_surface_get_height(source);
@@ -199,19 +198,18 @@ shoes_layer_blur_filter(cairo_t *cr, VALUE attr, shoes_place *place,
   cairo_set_source_surface(cr2, source, distance, distance);
   cairo_paint(cr2);
   cairo_set_operator(cr2, blur_op);
-  bg = ATTR(attr, fill);
-  if (NIL_P(bg))
+  if (NIL_P(fill))
     cairo_set_source_rgb(cr2, 0., 0., 0.);
-  else if (rb_obj_is_kind_of(bg, cColor))
+  else if (rb_obj_is_kind_of(fill, cColor))
   {
     shoes_color *color;
-    Data_Get_Struct(bg, shoes_color, color);
+    Data_Get_Struct(fill, shoes_color, color);
     cairo_set_source_rgba(cr, color->r / 255., color->g / 255., color->b / 255., color->a / 255.);
   }
   else
   {
     shoes_pattern *pattern;
-    Data_Get_Struct(bg, shoes_pattern, pattern);
+    Data_Get_Struct(fill, shoes_pattern, pattern);
     cairo_set_source(cr2, PATTERN(pattern));
   }
   cairo_rectangle(cr2, 0, 0, width, height);

@@ -11,6 +11,7 @@
 
 #include <fontconfig/fontconfig.h>
 #include <curl/curl.h>
+#include <pthread.h>
 
 #define GTK_CHILD(child, ptr) \
   GList *children = gtk_container_get_children(GTK_CONTAINER(ptr)); \
@@ -29,7 +30,7 @@ shoes_make_font_list(FcFontSet *fonts, VALUE ary)
     FcValue val;
     FcPattern *p = fonts->fonts[i];
     if (FcPatternGet(p, FC_FAMILY, 0, &val) == FcResultMatch)
-      rb_ary_push(ary, rb_str_new2(val.u.s));
+      rb_ary_push(ary, rb_str_new2((char *)val.u.s));
   }
   rb_funcall(ary, rb_intern("uniq!"), 0);
   rb_funcall(ary, rb_intern("sort!"), 0);
@@ -53,14 +54,14 @@ shoes_load_font(const char *filename)
 {
   FcConfig *fc = FcConfigGetCurrent();
   FcFontSet *fonts = FcFontSetCreate();
-  if (!FcFileScan(fonts, NULL, NULL, NULL, filename, FcTrue))
+  if (!FcFileScan(fonts, NULL, NULL, NULL, (const FcChar8 *)filename, FcTrue))
     return Qnil;
 
   VALUE ary = rb_ary_new();
   shoes_make_font_list(fonts, ary);
   FcFontSetDestroy(fonts);
 
-  if (!FcConfigAppFontAddFile(fc, filename))
+  if (!FcConfigAppFontAddFile(fc, (const FcChar8 *)filename))
     return Qnil;
 
   // refresh the FONTS list
@@ -198,14 +199,6 @@ void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c)
 //
 // Window-level events
 //
-static VALUE
-shoes_app_gtk_exception(VALUE v, VALUE exc)
-{
-  if (rb_obj_is_kind_of(exc, rb_eInterrupt))
-    gtk_main_quit();
-  return Qnil;
-}
-
 static gboolean 
 shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) 
 {  
@@ -242,7 +235,6 @@ static gboolean
 shoes_app_gtk_wheel(GtkWidget *widget, GdkEventScroll *event, gpointer data)
 { 
   ID wheel;
-  shoes_canvas *canvas;
   shoes_app *app = (shoes_app *)data; 
   switch (event->direction)
   {
@@ -287,7 +279,6 @@ shoes_app_gtk_keypress (GtkWidget *widget, GdkEventKey *event, gpointer data)
   {
     if ((event->state & GDK_CONTROL_MASK) || (event->state & GDK_MOD1_MASK))
     {
-      guint kv;
       gint len;
       gunichar ch;
       char chbuf[7] = {0};
@@ -367,7 +358,6 @@ shoes_canvas_gtk_paint_children(GtkWidget *widget, gpointer data)
 static void
 shoes_canvas_gtk_paint(GtkWidget *widget, GdkEventExpose *event, gpointer data)
 { 
-  GtkRequisition req;
   VALUE c = (VALUE)data;
   shoes_canvas *canvas;
   INFO("EXPOSE: (%d, %d) (%d, %d) %lu, %d, %d\n", event->area.x, event->area.y,

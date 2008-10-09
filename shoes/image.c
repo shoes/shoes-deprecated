@@ -270,7 +270,6 @@ shoes_surface_create_from_gif(char *filename, int *width, int *height, unsigned 
   ColorMapObject *cmap;
   int i, j, bg, r, g, b, w = 0, h = 0, done = 0, transp = -1;
   float per = 0.0, per_inc;
-  int last_per = 0, last_y = 0;
   int intoffset[] = { 0, 4, 2, 1 };
   int intjump[] = { 8, 8, 4, 2 };
 
@@ -876,7 +875,7 @@ shoes_load_image(VALUE slot, VALUE imgpath)
   cairo_surface_t *img = NULL;
   VALUE filename = rb_funcall(imgpath, s_downcase, 0);
   char *fname = RSTRING_PTR(filename);
-  int len = RSTRING_LEN(filename), width = 1, height = 1;
+  int width = 1, height = 1;
 
   if (shoes_cache_lookup(RSTRING_PTR(imgpath), &cached))
     goto done;

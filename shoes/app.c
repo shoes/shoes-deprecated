@@ -229,21 +229,18 @@ shoes_app_open(shoes_app *app, char *path)
   if (!app->hidden)
     shoes_native_app_show(app);
 
-quit:
   return code;
 }
 
 shoes_code
 shoes_app_loop()
 {
-  shoes_code code = SHOES_OK;
   if (shoes_world->mainloop)
     return SHOES_OK;
 
   shoes_world->mainloop = TRUE;
   INFO("RUNNING LOOP.\n");
   shoes_native_loop();
-quit:
   return SHOES_OK;
 }
 

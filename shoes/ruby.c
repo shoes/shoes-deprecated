@@ -171,7 +171,6 @@ VALUE
 shoes_safe_block(VALUE self, VALUE block, VALUE args)
 {
   safe_block sb;
-  shoes_canvas *canvas;
   VALUE v;
 
   sb.canvas = shoes_find_canvas(self);
@@ -343,7 +342,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
   }
   else
   {
-    int cx, cy, ox, oy, tw, th;
+    int cx, cy, ox, oy, tw = dw, th = dh;
 
     if (rel == REL_WINDOW)
     {
@@ -367,7 +366,6 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
       cx = 0; cy = 0;
       ox = CPX(canvas);
       oy = CPY(canvas);
-      tw = dw; th = dh;
       testw = dw = CPW(canvas);
       dh = max(canvas->height, CPH(canvas));
     }
@@ -499,7 +497,6 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
   self_type *self_t; \
   shoes_place place; \
   shoes_canvas *canvas; \
-  VALUE ck = rb_obj_class(c); \
   Data_Get_Struct(self, self_type, self_t); \
   Data_Get_Struct(c, shoes_canvas, canvas); \
   if (ATTR(self_t->attr, hidden) == Qtrue) return self; \
@@ -576,7 +573,6 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
     { \
       if (!rb_obj_is_kind_of(p, cPattern)) \
         ATTRSET(attr, pen, p = rb_funcall(p, s_to_pattern, 0)); \
-      double r = 0.; \
       cairo_matrix_t matrix1, matrix2; \
       shoes_pattern *pattern; \
       Data_Get_Struct(p, shoes_pattern, pattern); \
@@ -611,7 +607,7 @@ shoes_shape_attr(int argc, VALUE *argv, int syms, ...)
 {
   int i;
   va_list args;
-  VALUE hsh = Qnil, v;
+  VALUE hsh = Qnil;
   va_start(args, syms);
   if (argc < 1) hsh = rb_hash_new();
   else if (rb_obj_is_kind_of(argv[argc - 1], rb_cHash)) hsh = argv[argc - 1];
@@ -810,7 +806,6 @@ shoes_shape_motion(VALUE self, int x, int y, char *touch)
 
   if (IS_INSIDE(self_t, x, y))
   {
-    double x1, y1, x2, y2;
     cairo_bool_t in_shape;
     cairo_t *cr = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
     // if (self_t->line != NULL)
@@ -897,7 +892,6 @@ shoes_image_free(shoes_image *image)
 VALUE
 shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, shoes_transform *st)
 {
-  GError *error = NULL;
   VALUE obj = Qnil;
   shoes_image *image;
   shoes_basic *basic;
@@ -991,10 +985,8 @@ shoes_image_surface_get_pixel(shoes_cached_image *cached, int x, int y)
   if (x >= 0 && y >= 0 && x < cached->width && y < cached->height)
   {
     unsigned char* pixels = cairo_image_surface_get_data(cached->surface);
-    switch (cairo_image_surface_get_format(cached->surface))
-    {
-      case CAIRO_FORMAT_ARGB32: return pixels + (y * (4 * cached->width)) + (4 * x);
-    }
+    if (cairo_image_surface_get_format(cached->surface) == CAIRO_FORMAT_ARGB32)
+      return pixels + (y * (4 * cached->width)) + (4 * x);
   }
   return NULL;
 }
@@ -1068,6 +1060,7 @@ shoes_image_draw_surface(cairo_t *cr, shoes_image *self_t, shoes_place *place, c
 
 #define SHOES_IMAGE_PLACE(type, imw, imh, surf) \
   SETUP(shoes_##type, REL_CANVAS, imw, imh); \
+  VALUE ck = rb_obj_class(c); \
   if (RTEST(actual)) \
     shoes_image_draw_surface(CCR(canvas), self_t, &place, surf, imw, imh); \
   FINISH(); \
@@ -1735,7 +1728,6 @@ shoes_color_gradient(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_color_gray(int argc, VALUE *argv, VALUE self)
 {
-  shoes_color *color;
   VALUE _g, _a;
   int g, a;
   rb_scan_args(argc, argv, "02", &_g, &_a);
@@ -2359,7 +2351,6 @@ shoes_app_style_for(shoes_textblock *block, shoes_app *app, VALUE klass, VALUE o
   VALUE hsh = rb_hash_aref(app->styles, klass);
   if (NIL_P(hsh) && NIL_P(oattr)) return;
 
-  PangoAttrList *list = pango_attr_list_new();
   PangoAttribute *attr = NULL;
 
   APPLY_STYLE_COLOR(stroke, foreground);
@@ -2651,9 +2642,7 @@ shoes_textblock_on_layout(shoes_app *app, VALUE klass, shoes_textblock *block)
 VALUE
 shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
 {
-  int px, py, pd, li, m, ld;
-  double cx, cy;
-  char *font;
+  int px, py, pd, li, ld;
   cairo_t *cr;
   shoes_canvas *canvas;
   PangoLayoutLine *last;
@@ -3047,7 +3036,6 @@ VALUE
 shoes_list_box_choose(VALUE self, VALUE item)
 {
   VALUE items = Qnil;
-  int idx = -1;
   GET_STRUCT(control, self_t);
   ATTRSET(self_t->attr, choose, item);
   if (self_t->ref == NULL) return self;
@@ -3765,7 +3753,7 @@ shoes_download_non_threaded(VALUE self, VALUE url)
   shoes_download_request req;
   SHOE_MEMZERO(&req, shoes_download_request, 1);
   req.host = RSTRING_PTR(host);
-  req.port = 80;
+  req.port = NUM2INT(port);
   req.path = RSTRING_PTR(path);
   req.mem = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
   req.memlen = SHOES_BUFSIZE;
@@ -3779,7 +3767,7 @@ shoes_download_non_threaded(VALUE self, VALUE url)
 int
 shoes_message_download(VALUE self, void *data)
 {
-  VALUE proc;
+  VALUE proc = Qnil;
   shoes_download_event *de = (shoes_download_event *)data;
   GET_STRUCT(download_klass, dl);
   INFO("EVENT: %d, %lu, %llu, %llu\n", (int)de->stage, de->percent,
@@ -3851,7 +3839,7 @@ shoes_download_threaded(VALUE self, VALUE url, VALUE attr)
   shoes_download_request *req = SHOE_ALLOC(shoes_download_request);
   SHOE_MEMZERO(req, shoes_download_request, 1);
   req->host = RSTRING_PTR(host);
-  req->port = 80;
+  req->port = NUM2INT(port);
   req->path = RSTRING_PTR(path);
   req->handler = shoes_doth_handler;
   req->flags = SHOES_DL_DEFAULTS;
@@ -4064,7 +4052,6 @@ VALUE progname;
 void
 shoes_ruby_init()
 {
-  char proc[SHOES_BUFSIZE];
   progname = rb_str_new2("(eval)");
   rb_define_variable("$0", &progname);
   rb_define_variable("$PROGRAM_NAME", &progname);

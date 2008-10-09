@@ -180,7 +180,7 @@ shoes_download(shoes_download_request *req)
     cdata.fp = NULL;
   }
 
-  HTTP_EVENT(cdata.handler, SHOES_HTTP_COMPLETED, cdata.last, 100, req->size, req->size, cdata.data, req->mem, 1);
+  HTTP_EVENT(cdata.handler, SHOES_HTTP_COMPLETED, cdata.last, 100, req->size, req->size, cdata.data, req->mem, goto done);
 
 done:
   if (cdata.fp != NULL)

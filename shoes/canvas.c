@@ -24,7 +24,7 @@
   else if (!NIL_P(image->attr)) attr = rb_funcall(image->attr, s_merge, 1, attr);
 #define SETUP_SHAPE() \
   shoes_canvas *canvas = NULL; \
-  VALUE attr, c = shoes_find_canvas(self); \
+  VALUE c = shoes_find_canvas(self); \
   Data_Get_Struct(c, shoes_canvas, canvas)
 
 const double SHOES_PIM2   = 6.28318530717958647693;
@@ -172,8 +172,6 @@ shoes_canvas_style(int argc, VALUE *argv, VALUE self)
 static VALUE
 shoes_canvas_paint_call(VALUE self)
 {
-  int n = 0;
-  shoes_canvas *pc = NULL;
   shoes_code code = SHOES_OK;
   SHOES_TIME start, mid;
   shoes_get_time(&start);
@@ -410,7 +408,6 @@ VALUE
 shoes_canvas_stroke(int argc, VALUE *argv, VALUE self)
 {
   VALUE pat;
-  shoes_pattern *pattern;
   SETUP_BASIC();
   if (argc == 1 && rb_respond_to(argv[0], s_to_pattern))
     pat = argv[0];
@@ -450,7 +447,6 @@ VALUE
 shoes_canvas_fill(int argc, VALUE *argv, VALUE self)
 {
   VALUE pat;
-  shoes_pattern *pattern;
   SETUP_BASIC();
   if (argc == 1 && rb_respond_to(argv[0], s_to_pattern))
     pat = argv[0];
@@ -647,7 +643,6 @@ VALUE
 shoes_canvas_background(int argc, VALUE *argv, VALUE self)
 {
   VALUE pat;
-  shoes_pattern *pattern;
   SETUP();
   if (argc == 1 && rb_respond_to(argv[0], s_to_pattern))
     pat = argv[0];
@@ -666,7 +661,6 @@ VALUE
 shoes_canvas_border(int argc, VALUE *argv, VALUE self)
 {
   VALUE pat;
-  shoes_pattern *pattern;
   SETUP();
   if (argc == 1 && rb_respond_to(argv[0], s_to_pattern))
     pat = argv[0];
@@ -792,7 +786,7 @@ shoes_canvas_shape(int argc, VALUE *argv, VALUE self)
   SETUP_SHAPE();
 
   shape = canvas->shape;
-  attr = shoes_shape_attr(argc, argv, 2, s_left, s_top);
+  VALUE attr = shoes_shape_attr(argc, argv, 2, s_left, s_top);
   canvas->shape = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
   cairo_move_to(canvas->shape, 0, 0);
   if (rb_block_given_p()) rb_yield(Qnil);
@@ -1101,7 +1095,6 @@ shoes_canvas_independent(shoes_canvas *c)
 static void
 shoes_canvas_reflow(shoes_canvas *self_t, VALUE c)
 {
-  VALUE attr = Qnil;
   shoes_canvas *parent;
   Data_Get_Struct(c, shoes_canvas, parent);
 
@@ -1403,7 +1396,6 @@ shoes_canvas_compute(VALUE self)
 static void
 shoes_canvas_insert(VALUE self, long i, VALUE ele, VALUE block)
 {
-  VALUE ary;
   SETUP();
 
   if (canvas->insertion != -2)
@@ -1758,7 +1750,6 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
 VALUE
 shoes_canvas_mouse(VALUE self)
 {
-  int x = 0, y = 0, button = 0;
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
   return rb_ary_new3(3, INT2NUM(self_t->app->mouseb), 
@@ -2079,7 +2070,7 @@ shoes_canvas_set_clipboard(VALUE self, VALUE string)
 VALUE
 shoes_canvas_window(int argc, VALUE *argv, VALUE self)
 {
-  VALUE uri, attr, block, app;
+  VALUE uri, attr, block;
   SETUP();
 
   if (rb_block_given_p())

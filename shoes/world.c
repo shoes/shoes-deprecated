@@ -120,7 +120,6 @@ shoes_load_exception(VALUE v, VALUE exc)
 shoes_code
 shoes_load(char *path)
 {
-  shoes_code code = SHOES_QUIT;
   char bootup[SHOES_BUFSIZE];
 
   if (path)
