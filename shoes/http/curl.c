@@ -29,14 +29,15 @@ typedef struct {
 const char *content_len_str = "Content-Length: ";
 
 size_t
-shoes_curl_header_funk(char *ptr, size_t size, size_t nmemb, shoes_curl_data *data)
+shoes_curl_header_funk(char *ptr, size_t size, size_t nmemb, void *user)
 {
+  shoes_curl_data *data = (shoes_curl_data *)user;
   size_t realsize = size * nmemb;
   if (data->status == 0)
   {
     shoes_download_event event;
     event.stage = SHOES_HTTP_STATUS;
-    curl_easy_getinfo(data->curl, CURLINFO_RESPONSE_CODE, &event.status);
+    curl_easy_getinfo(data->curl, CURLINFO_RESPONSE_CODE, (long *)&event.status);
     data->status = event.status;
     if (data->handler != NULL) data->handler(&event, data->data);
   }
@@ -56,8 +57,9 @@ shoes_curl_header_funk(char *ptr, size_t size, size_t nmemb, shoes_curl_data *da
 }
 
 size_t
-shoes_curl_read_funk(void *ptr, size_t size, size_t nmemb, shoes_curl_data *data)
+shoes_curl_read_funk(void *ptr, size_t size, size_t nmemb, void *user)
 {
+  shoes_curl_data *data = (shoes_curl_data *)user;
   size_t realsize = size * nmemb;
   SHOE_MEMCPY(ptr, &(data->body[data->readpos]), char, realsize);
   data->readpos += realsize;
@@ -65,8 +67,9 @@ shoes_curl_read_funk(void *ptr, size_t size, size_t nmemb, shoes_curl_data *data
 }
 
 size_t
-shoes_curl_write_funk(void *ptr, size_t size, size_t nmemb, shoes_curl_data *data)
+shoes_curl_write_funk(void *ptr, size_t size, size_t nmemb, void *user)
 {
+  shoes_curl_data *data = (shoes_curl_data *)user;
   size_t realsize = size * nmemb;
   if (data->size == 0)
   {
@@ -84,15 +87,16 @@ shoes_curl_write_funk(void *ptr, size_t size, size_t nmemb, shoes_curl_data *dat
     SHOE_MEMCPY(&(data->mem[data->size]), ptr, char, realsize);
   }
   if (data->fp != NULL)
-    fwrite(ptr, nmemb, size, data->fp);
-  data->size += realsize;
+    realsize = fwrite(ptr, size, nmemb, data->fp) * size;
+  if (realsize > 0)
+    data->size += realsize;
   return realsize;
 }
 
 int
-shoes_curl_progress_funk(shoes_curl_data *data,
-  double dltotal, double dlnow, double ultotal, double ulnow)
+shoes_curl_progress_funk(void *user, double dltotal, double dlnow, double ultotal, double ulnow)
 {
+  shoes_curl_data *data = (shoes_curl_data *)user;
   if (dltotal > 0.)
   {
     HTTP_EVENT(data->handler, SHOES_HTTP_TRANSFER, data->last, dlnow * 100.0 / dltotal, dlnow,

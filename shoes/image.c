@@ -243,7 +243,8 @@ shoes_png_size(char *filename, int *width, int *height)
   FILE *image = fopen(filename, "rb");
   if (image == NULL) return NULL;
 
-  fread(sig, 1, 32, image);
+  if (fread(sig, 1, 32, image) < 8)
+    goto done; 
   if (memcmp(sig, PNG_SIG, 8) != 0)
     goto done;
 
