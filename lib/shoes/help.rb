@@ -222,7 +222,7 @@ module Shoes::Manual
       end
       @results = stack
     end
-    app.scroll_top = 0
+    app.slot.scroll_top = 0
   end
 
   def open_link(head)
@@ -242,7 +242,7 @@ module Shoes::Manual
     @toc.each { |k,v| v.send(k == sect_cls ? :show : :hide) }
     @title.replace sect_s
     @doc.clear(&dewikify_hi(sect_h['description'], terms, true)) 
-    app.scroll_top = 0
+    app.slot.scroll_top = 0
   end
 
   def open_methods(meth_s, terms = nil, meth_a = nil)
@@ -262,7 +262,7 @@ module Shoes::Manual
         end
       end
     end
-    app.scroll_top = 0
+    app.slot.scroll_top = 0
   end
 
   def manual_search(terms)
