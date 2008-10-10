@@ -1318,6 +1318,7 @@ VALUE
 shoes_video_draw(VALUE self, VALUE c, VALUE actual)
 {
   SETUP(shoes_video, REL_CANVAS, 400, 300);
+  VALUE ck = rb_obj_class(c);
 
   if (RTEST(actual))
   {
