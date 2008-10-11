@@ -2945,6 +2945,13 @@ shoes_control_remove(VALUE self)
 }
 
 void
+shoes_control_check_styles(shoes_control *self_t)
+{
+  VALUE x = ATTR(self_t->attr, state);
+  shoes_control_try_state(self_t, x);
+}
+
+void
 shoes_control_send(VALUE self, ID event)
 {
   VALUE click;
@@ -2975,6 +2982,7 @@ shoes_button_draw(VALUE self, VALUE c, VALUE actual)
     if (self_t->ref == NULL)
     {
       self_t->ref = shoes_native_button(self, canvas, &place, msg);
+      shoes_control_check_styles(self_t);
       shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
     }
     else
@@ -3025,6 +3033,7 @@ shoes_edit_line_draw(VALUE self, VALUE c, VALUE actual)
     if (self_t->ref == NULL)
     {
       self_t->ref = shoes_native_edit_line(self, canvas, &place, self_t->attr, msg);
+      shoes_control_check_styles(self_t);
       shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
     }
     else
@@ -3070,6 +3079,7 @@ shoes_edit_box_draw(VALUE self, VALUE c, VALUE actual)
     if (self_t->ref == NULL)
     {
       self_t->ref = shoes_native_edit_box(self, canvas, &place, self_t->attr, msg);
+      shoes_control_check_styles(self_t);
       shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
     }
     else
@@ -3141,6 +3151,7 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE actual)
       if (!NIL_P(items))
       {
         shoes_list_box_items_set(self, items);
+        shoes_control_check_styles(self_t);
         if (!NIL_P(ATTR(self_t->attr, choose)))
           shoes_native_list_box_set_active(self_t->ref, items, ATTR(self_t->attr, choose));
       }
@@ -3208,6 +3219,7 @@ shoes_check_draw(VALUE self, VALUE c, VALUE actual)
     {
       self_t->ref = shoes_native_check(self, canvas, &place, self_t->attr, msg);
       if (RTEST(ATTR(self_t->attr, checked))) shoes_native_check_set(self_t->ref, Qtrue);
+      shoes_control_check_styles(self_t);
       shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
     }
     else
@@ -3303,6 +3315,7 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
         rb_ary_push(glist, self);
 
       if (RTEST(ATTR(self_t->attr, checked))) shoes_native_check_set(self_t->ref, Qtrue);
+      shoes_control_check_styles(self_t);
       shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
     }
     else
