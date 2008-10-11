@@ -306,18 +306,10 @@ shoes_app_visit(shoes_app *app, char *path)
   shoes_exec exec;
   shoes_canvas *canvas;
   VALUE meth;
-  VALUE ary = rb_ary_dup(app->extras);
   Data_Get_Struct(app->canvas, shoes_canvas, canvas);
 
   canvas->slot->scrolly = 0;
   shoes_native_slot_clear(canvas);
-  for (i = 0; i < RARRAY_LEN(ary); i++) 
-  {
-    VALUE timer = rb_ary_entry(ary, i);
-    if (!NIL_P(timer))
-      rb_funcall(timer, s_remove, 0);
-  }
-
   shoes_app_clear(app);
   shoes_app_reset_styles(app);
   meth = rb_funcall(cShoes, s_run, 1, app->location = rb_str_new2(path));

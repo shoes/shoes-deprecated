@@ -48,13 +48,14 @@ class Shoes::Setup
         end
 
         start do
-          Thread.start(self.app) do |app|
-            begin
-              setup.start(app)
-            rescue => e
-              puts e.message
+          @th = 
+            Thread.start(self.app) do |app|
+              begin
+                setup.start(app)
+              rescue => e
+                puts e.message
+              end
             end
-          end
         end
       end
 
@@ -65,6 +66,10 @@ class Shoes::Setup
           strokewidth(3.0 - (i * 0.2))
           stroke rgb(0.7, 0.7, 0.9, 1.0 - (i * 0.1))
           oval(@logo.left - i, @logo.top - i, @logo.width + (i * 2)) 
+        end
+        if @script
+          Shoes.visit(@script)
+          close
         end
       end
     end
@@ -131,9 +136,7 @@ class Shoes::Setup
       ui.progress count, total
     end
     Gem::DefaultUserInteraction.ui = old_ui
-
-    Shoes.visit(@script)
-    app.close
+    app.instance_variable_set("@script", @script)
   end
 
   def svn(dir, save_as = nil, &blk)
