@@ -159,6 +159,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     sh    "strip -x dist/*.so"
   end
 
+  cp_r  "fonts", "dist/fonts"
   cp_r  "lib", "dist/lib"
   cp_r  "samples", "dist/samples"
   cp_r  "static", "dist/static"

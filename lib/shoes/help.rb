@@ -315,6 +315,7 @@ module Shoes::Manual
 end
 
 def Shoes.make_help_page
+  font "#{DIR}/fonts/Coolvetica.ttf" unless Shoes::FONTS.include? "Coolvetica"
   proc do
     extend Shoes::Manual
     docs = load_docs Shoes::Manual::PATH
@@ -333,7 +334,7 @@ def Shoes.make_help_page
         para "The Shoes Manual", :stroke => "#eee", :margin_top => 8, :margin_left => 17, 
           :margin_bottom => 0
         @title = title docs[0][0], :stroke => white, :margin => 4, :margin_left => 14,
-          :margin_top => 0, :weight => "bold"
+          :margin_top => 0, :font => "Coolvetica"
       end
       background "rgb(66, 66, 66, 180)".."rgb(0, 0, 0, 0)", :height => 0.7
       background "rgb(66, 66, 66, 100)".."rgb(255, 255, 255, 0)", :height => 20, :bottom => 0
