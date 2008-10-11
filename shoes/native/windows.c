@@ -1081,7 +1081,7 @@ void
 shoes_native_control_state(SHOES_CONTROL_REF ref, BOOL sensitive, BOOL setting)
 {
   EnableWindow(ref, sensitive);
-  SendMessage(ref, EM_SETREADONLY, setting, 0);
+  SendMessage(ref, EM_SETREADONLY, !setting, 0);
 }
 
 void
