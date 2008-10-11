@@ -302,7 +302,6 @@ shoes_app_exception(VALUE rb_exec, VALUE e)
 shoes_code
 shoes_app_visit(shoes_app *app, char *path)
 {
-  long i;
   shoes_exec exec;
   shoes_canvas *canvas;
   VALUE meth;

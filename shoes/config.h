@@ -72,6 +72,7 @@ typedef struct {
 
 #define SHOES_CONTROL_REF GtkWidget *
 #define SHOES_SURFACE_REF GtkWidget *
+#define SHOES_BOOL gboolean
 #define SHOES_TIMER_REF guint
 #define DC(slot) slot->canvas
 #define HAS_DRAWABLE(slot) slot->canvas->window != 0
@@ -129,6 +130,7 @@ typedef struct {
 
 #define SHOES_CONTROL_REF NSControl *
 #define SHOES_SURFACE_REF CGrafPtr
+#define SHOES_BOOL BOOL
 #define SHOES_TIMER_REF ShoesTimer *
 #define DC(slot) slot->view
 #define HAS_DRAWABLE(slot) slot->context != NULL
@@ -193,6 +195,7 @@ typedef struct {
 
 #define SHOES_CONTROL_REF HWND
 #define SHOES_SURFACE_REF HWND
+#define SHOES_BOOL BOOL
 #define SHOES_TIMER_REF long
 #define DC(slot) slot->window
 #define HAS_DRAWABLE(slot) slot->window != NULL

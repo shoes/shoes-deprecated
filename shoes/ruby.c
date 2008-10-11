@@ -17,7 +17,7 @@ VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask
 VALUE eVlcError, eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot;
-ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_merge, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_URI, s_angle, s_angle1, s_angle2, s_arrow, s_autoplay, s_begin, s_body, s_call, s_center, s_change, s_checked, s_checked_q, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_group, s_hand, s_headers, s_hidden, s_host, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_link, s_method, s_motion, s_path, s_port, s_progress, s_redirect, s_release, s_request_uri, s_save, s_wheel, s_stroke, s_scroll, s_start, s_attach, s_leading, s_leave, s_outer, s_points, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_cap, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info, s_blur, s_glow, s_shadow, s_arc, s_rect, s_oval, s_line, s_shape, s_star, s_project, s_round, s_square;
+ID s_aref, s_mult, s_perc, s_bind, s_gsub, s_keys, s_update, s_merge, s_new, s_run, s_to_pattern, s_to_i, s_to_s, s_URI, s_angle, s_angle1, s_angle2, s_arrow, s_autoplay, s_begin, s_body, s_call, s_center, s_change, s_checked, s_checked_q, s_choose, s_click, s_corner, s_curve, s_distance, s_displace_left, s_displace_top, s_downcase, s_draw, s_end, s_fill, s_finish, s_font, s_group, s_hand, s_headers, s_hidden, s_host, s_hover, s_href, s_inner, s_insert, s_items, s_keypress, s_link, s_method, s_motion, s_path, s_port, s_progress, s_redirect, s_release, s_request_uri, s_save, s_state, s_wheel, s_stroke, s_scroll, s_start, s_attach, s_leading, s_leave, s_outer, s_points, s_match, s_text, s_title, s_top, s_right, s_bottom, s_left, s_up, s_down, s_height, s_resizable, s_remove, s_cap, s_strokewidth, s_width, s_margin, s_margin_left, s_margin_right, s_margin_top, s_margin_bottom, s_radius, s_secret, s_now, s_debug, s_error, s_warn, s_info, s_blur, s_glow, s_shadow, s_arc, s_rect, s_oval, s_line, s_shape, s_star, s_project, s_round, s_square;
 
 //
 // Mauricio's instance_eval hack (he bested my cloaker back in 06 Jun 2006)
@@ -2867,6 +2867,47 @@ shoes_control_focus(VALUE self)
 }
 
 VALUE
+shoes_control_get_state(VALUE self)
+{
+  GET_STRUCT(control, self_t);
+  return ATTR(self_t->attr, state);
+}
+
+VALUE
+shoes_control_set_state(VALUE self, VALUE state)
+{
+  unsigned char cstate;
+  GET_STRUCT(control, self_t);
+  if (NIL_P(state))
+    cstate = CONTROL_NORMAL;
+  else if (TYPE(state) == T_STRING)
+  {
+    if (strncmp(RSTRING_PTR(state), "disabled", 8) == 0)
+      cstate = CONTROL_DISABLED;
+    else if (strncmp(RSTRING_PTR(state), "readonly", 8) == 0)
+      cstate = CONTROL_READONLY;
+    else
+    {
+      shoes_error("control can't have :state of %s\n", RSTRING_PTR(state));
+      return self;
+    }
+  }
+  else return self;
+
+  ATTRSET(self_t->attr, state, state);
+  if (self_t->ref != NULL)
+  {
+    if (cstate == CONTROL_NORMAL)
+      shoes_native_control_state(self_t->ref, TRUE, TRUE);
+    else if (cstate == CONTROL_DISABLED)
+      shoes_native_control_state(self_t->ref, FALSE, TRUE);
+    else if (cstate == CONTROL_READONLY)
+      shoes_native_control_state(self_t->ref, TRUE, FALSE);
+  }
+  return self;
+}
+
+VALUE
 shoes_control_hide(VALUE self)
 {
   GET_STRUCT(control, self_t);
@@ -4134,6 +4175,7 @@ shoes_ruby_init()
   s_release = rb_intern("release");
   s_request_uri = rb_intern("request_uri");
   s_save = rb_intern("save");
+  s_state = rb_intern("state");
   s_wheel = rb_intern("wheel");
   s_scroll = rb_intern("scroll");
   s_stroke = rb_intern("stroke");
@@ -4473,6 +4515,8 @@ shoes_ruby_init()
   rb_define_method(cNative, "focus", CASTHOOK(shoes_control_focus), 0);
   rb_define_method(cNative, "hide", CASTHOOK(shoes_control_hide), 0);
   rb_define_method(cNative, "show", CASTHOOK(shoes_control_show), 0);
+  rb_define_method(cNative, "state=", CASTHOOK(shoes_control_set_state), 1);
+  rb_define_method(cNative, "state", CASTHOOK(shoes_control_get_state), 0);
   rb_define_method(cNative, "move", CASTHOOK(shoes_control_move), 2);
   rb_define_method(cNative, "top", CASTHOOK(shoes_control_get_top), 0);
   rb_define_method(cNative, "left", CASTHOOK(shoes_control_get_left), 0);

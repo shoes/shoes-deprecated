@@ -1078,6 +1078,13 @@ shoes_native_control_repaint(SHOES_CONTROL_REF ref, shoes_place *p1,
 }
 
 void
+shoes_native_control_state(SHOES_CONTROL_REF ref, BOOL sensitive, BOOL setting)
+{
+  EnableWindow(ref, sensitive);
+  SendMessage(ref, EM_SETREADONLY, setting, 0);
+}
+
+void
 shoes_native_control_focus(SHOES_CONTROL_REF ref)
 {
   SetFocus(ref);

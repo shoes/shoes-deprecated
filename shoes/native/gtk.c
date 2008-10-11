@@ -730,6 +730,20 @@ shoes_native_control_focus(SHOES_CONTROL_REF ref)
 }
 
 void
+shoes_native_control_state(SHOES_CONTROL_REF ref, gboolean sensitive, gboolean setting)
+{
+  gtk_widget_set_sensitive(ref, sensitive);
+  if (GTK_IS_EDITABLE(ref))
+    gtk_editable_set_editable(GTK_EDITABLE(ref), setting);
+  else if (GTK_IS_SCROLLED_WINDOW(ref))
+  {
+    GtkWidget *textview;
+    GTK_CHILD(textview, ref);
+    gtk_text_view_set_editable(GTK_TEXT_VIEW(textview), setting);
+  }
+}
+
+void
 shoes_native_control_remove(SHOES_CONTROL_REF ref, shoes_canvas *canvas)
 {
   gtk_container_remove(GTK_CONTAINER(canvas->slot->canvas), ref);

@@ -53,6 +53,7 @@ void shoes_native_control_position(SHOES_CONTROL_REF, shoes_place *,
 void shoes_native_control_repaint(SHOES_CONTROL_REF, shoes_place *,
   shoes_canvas *, shoes_place *);
 void shoes_native_control_focus(SHOES_CONTROL_REF);
+void shoes_native_control_state(SHOES_CONTROL_REF, SHOES_BOOL, SHOES_BOOL);
 void shoes_native_control_remove(SHOES_CONTROL_REF, shoes_canvas *);
 void shoes_native_control_free(SHOES_CONTROL_REF);
 SHOES_SURFACE_REF shoes_native_surface_new(shoes_canvas *, VALUE, shoes_place *);

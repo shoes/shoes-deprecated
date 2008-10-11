@@ -888,6 +888,16 @@ shoes_native_control_repaint(SHOES_CONTROL_REF ref, shoes_place *p1,
 }
 
 void
+shoes_native_control_state(SHOES_CONTROL_REF ref, BOOL sensitive, BOOL setting)
+{
+  COCOA_DO({
+    [ref setEnabled: sensitive];
+    if ([ref respondsToSelector: @selector(setEditable:)])
+      [ref setEditable: setting];
+  });
+}
+
+void
 shoes_native_control_focus(SHOES_CONTROL_REF ref)
 {
   COCOA_DO([[ref window] makeFirstResponder: ref]);

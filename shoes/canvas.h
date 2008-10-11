@@ -240,6 +240,10 @@ typedef struct {
 //
 // native controls struct
 //
+#define CONTROL_NORMAL   0
+#define CONTROL_READONLY 1
+#define CONTROL_DISABLED 2
+
 typedef struct {
   VALUE parent;
   VALUE attr;
@@ -487,6 +491,8 @@ VALUE shoes_control_remove(VALUE);
 VALUE shoes_control_show(VALUE);
 VALUE shoes_control_hide(VALUE);
 VALUE shoes_control_focus(VALUE);
+VALUE shoes_control_get_state(VALUE);
+VALUE shoes_control_set_state(VALUE, VALUE);
 
 VALUE shoes_button_draw(VALUE, VALUE, VALUE);
 void shoes_button_send_click(VALUE);
