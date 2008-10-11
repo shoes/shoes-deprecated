@@ -2873,11 +2873,10 @@ shoes_control_get_state(VALUE self)
   return ATTR(self_t->attr, state);
 }
 
-VALUE
-shoes_control_set_state(VALUE self, VALUE state)
+static VALUE
+shoes_control_try_state(shoes_control *self_t, VALUE state)
 {
   unsigned char cstate;
-  GET_STRUCT(control, self_t);
   if (NIL_P(state))
     cstate = CONTROL_NORMAL;
   else if (TYPE(state) == T_STRING)
@@ -2889,12 +2888,11 @@ shoes_control_set_state(VALUE self, VALUE state)
     else
     {
       shoes_error("control can't have :state of %s\n", RSTRING_PTR(state));
-      return self;
+      return Qfalse;
     }
   }
-  else return self;
+  else return Qfalse;
 
-  ATTRSET(self_t->attr, state, state);
   if (self_t->ref != NULL)
   {
     if (cstate == CONTROL_NORMAL)
@@ -2904,6 +2902,15 @@ shoes_control_set_state(VALUE self, VALUE state)
     else if (cstate == CONTROL_READONLY)
       shoes_native_control_state(self_t->ref, TRUE, FALSE);
   }
+  return Qtrue;
+}
+
+VALUE
+shoes_control_set_state(VALUE self, VALUE state)
+{
+  GET_STRUCT(control, self_t);
+  if (shoes_control_try_state(self_t, state))
+    ATTRSET(self_t->attr, state, state);
   return self;
 }
 
