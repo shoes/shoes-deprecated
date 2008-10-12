@@ -1238,10 +1238,8 @@ shoes_video_mark(shoes_video *video)
 static void
 shoes_video_free(shoes_video *video)
 {
-#ifdef VLC_0_8
   if (video->vlc != NULL)
     libvlc_destroy(video->vlc);
-#endif
   RUBY_CRITICAL(SHOE_FREE(video));
 }
 

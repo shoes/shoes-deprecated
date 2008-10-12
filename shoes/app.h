@@ -25,7 +25,7 @@
 #else
 #include <vlc/vlc.h>
 #include <vlc/libvlc.h>
-#define libvlc_destroy libvlc_release
+#define libvlc_destroy  libvlc_media_player_release
 #define vlc_int64_t     libvlc_time_t
 #define shoes_libvlc_clear libvlc_media_player_pause
 #define shoes_libvlc_prev  libvlc_media_player_stop
