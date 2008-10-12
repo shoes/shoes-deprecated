@@ -3,8 +3,8 @@
 // Ruby methods for all the drawing ops.
 //
 #include "shoes/internal.h"
-#include "shoes/canvas.h"
 #include "shoes/app.h"
+#include "shoes/canvas.h"
 #include "shoes/ruby.h"
 #include "shoes/world.h"
 #include "shoes/native.h"

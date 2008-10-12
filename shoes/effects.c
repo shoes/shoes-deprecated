@@ -3,8 +3,8 @@
 // The blurring and shadowing effects.
 //
 #include "shoes/internal.h"
-#include "shoes/canvas.h"
 #include "shoes/app.h"
+#include "shoes/canvas.h"
 #include "shoes/ruby.h"
 #include <math.h>
 

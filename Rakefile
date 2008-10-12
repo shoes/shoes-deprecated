@@ -14,9 +14,11 @@ VERS = ENV['VERSION'] || "0.r#{REVISION}"
 PKG = "#{NAME}-#{VERS}"
 APPARGS = ENV['APPARGS']
 FLAGS = %w[DEBUG VIDEO]
+VLC_VERSION = `vlc --version 2>/dev/null`.split[2]
+VLC_0_8 = VLC_VERSION !~ /^0\.9/
 
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
-CLEAN.include ["{bin,shoes}/#{BIN}", "dist"]
+CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "dist"]
 
 # Guess the environment
 unless ENV['MSVC'] or ENV['DDKBUILDENV']
@@ -217,7 +219,7 @@ when /win32/
     /Ideps\ruby\lib\ruby\1.8\i386-mswin32
     /Ideps\curl\include
     /Ideps\winhttp\include
-    /I. /DWINVER=0x0500 /D_WIN32_WINNT=0x0500
+    /I. /DVLC_0_8 /DWINVER=0x0500 /D_WIN32_WINNT=0x0500
     /O2 /GR /EHsc
   ].gsub(/\n\s*/, ' ')
 
@@ -348,7 +350,14 @@ else
     LINUX_LDFLAGS =" #{`pkg-config --libs gtk+-2.0`.strip} #{`curl-config --libs`.strip} -fPIC -shared"
     LINUX_LIB_NAMES << 'jpeg'
     LINUX_LIB_NAMES << 'rt'
-    LINUX_LIB_NAMES << "vlc" if ENV['VIDEO']
+    if ENV['VIDEO']
+      if VLC_0_8
+        LINUX_CFLAGS << " -DVLC_0_8"
+      else
+        LINUX_CFLAGS << " -I/usr/include/vlc/plugins"
+      end
+      LINUX_LIB_NAMES << "vlc"
+    end
   end
   LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 

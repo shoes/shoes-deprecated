@@ -13,6 +13,30 @@
 #include <cairo.h>
 #include <ruby.h>
 
+#ifdef VIDEO
+#ifdef VLC_0_8
+#include <vlc/libvlc.h>
+#define SHOES_VLC(self_t) self_t->vlc
+#define shoes_libvlc_clear libvlc_playlist_clear
+#define shoes_libvlc_prev  libvlc_playlist_prev
+#define shoes_libvlc_next  libvlc_playlist_next
+#define shoes_libvlc_pause libvlc_playlist_pause
+#define shoes_libvlc_stop  libvlc_playlist_stop
+#else
+#include <vlc/vlc.h>
+#include <vlc/libvlc.h>
+#define libvlc_destroy libvlc_release
+#define vlc_int64_t     libvlc_time_t
+#define shoes_libvlc_clear libvlc_media_player_pause
+#define shoes_libvlc_prev  libvlc_media_player_stop
+#define shoes_libvlc_next  libvlc_media_player_stop
+#define shoes_libvlc_pause libvlc_media_player_pause
+#define shoes_libvlc_stop  libvlc_media_player_stop
+#define SHOES_VLC(self_t) shoes_world->vlc
+#define VLC_0_9
+#endif
+#endif
+
 #include "shoes/canvas.h"
 #include "shoes/code.h"
 #include "shoes/config.h"

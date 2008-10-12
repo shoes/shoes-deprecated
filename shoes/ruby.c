@@ -1238,15 +1238,16 @@ shoes_video_mark(shoes_video *video)
 static void
 shoes_video_free(shoes_video *video)
 {
+#ifdef VLC_0_8
   if (video->vlc != NULL)
     libvlc_destroy(video->vlc);
+#endif
   RUBY_CRITICAL(SHOE_FREE(video));
 }
 
 VALUE
 shoes_video_new(VALUE klass, VALUE path, VALUE attr, VALUE parent)
 {
-  GError *error = NULL;
   shoes_video *video;
   VALUE obj = shoes_video_alloc(klass);
   Data_Get_Struct(obj, shoes_video, video);
@@ -1275,7 +1276,8 @@ shoes_video_alloc(VALUE klass)
 #endif
   obj = Data_Wrap_Struct(klass, shoes_video_mark, shoes_video_free, video);
   libvlc_exception_init(&video->excp);
-  video->vlc = libvlc_new(ppsz_argc, ppsz_argv, NULL);
+  if (SHOES_VLC(video) == NULL)
+    SHOES_VLC(video) = libvlc_new(ppsz_argc, ppsz_argv, NULL);
   video->path = Qnil;
   video->attr = Qnil;
   video->parent = Qnil;
@@ -1328,14 +1330,27 @@ shoes_video_draw(VALUE self, VALUE c, VALUE actual)
       {
         self_t->init = 1;
 
+#ifdef VLC_0_8
         int play_id = libvlc_playlist_add(self_t->vlc, 
           RSTRING_PTR(self_t->path), NULL, &self_t->excp);
+#else
+        libvlc_media_t *play = libvlc_media_new(shoes_world->vlc,
+          RSTRING_PTR(self_t->path), &self_t->excp);
+        shoes_vlc_exception(&self_t->excp);
+        self_t->vlc = libvlc_media_player_new_from_media(play, &self_t->excp);
+        shoes_vlc_exception(&self_t->excp);
+        libvlc_media_release(play);
+#endif
         shoes_vlc_exception(&self_t->excp);
 
         self_t->ref = shoes_native_surface_new(canvas, self, &self_t->place);
         shoes_native_surface_position(self_t->ref, &self_t->place, self, canvas, &place);
 
+#ifdef VLC_0_8
         libvlc_video_set_parent(self_t->vlc, DRAWABLE(self_t->ref), &self_t->excp);
+#else
+        libvlc_media_player_set_drawable(self_t->vlc, DRAWABLE(self_t->ref), &self_t->excp);
+#endif
         shoes_vlc_exception(&self_t->excp);
 
 #ifdef SHOES_QUARTZ
@@ -1354,7 +1369,11 @@ shoes_video_draw(VALUE self, VALUE c, VALUE actual)
         if (RTEST(ATTR(self_t->attr, autoplay)))
         {
           INFO("Starting playlist.\n");
+#ifdef VLC_0_8
           libvlc_playlist_play(self_t->vlc, 0, 0, NULL, &self_t->excp);
+#else
+          libvlc_media_player_play(self_t->vlc, &self_t->excp);
+#endif
           shoes_vlc_exception(&self_t->excp);
         }
       }
@@ -1377,9 +1396,15 @@ shoes_video_is_playing(VALUE self)
   GET_STRUCT(video, self_t);
   if (self_t->init == 1)
   {
+#ifdef VLC_0_8
     int isp = libvlc_playlist_isplaying(self_t->vlc, &self_t->excp);
     shoes_vlc_exception(&self_t->excp);
     return isp == 0 ? Qfalse : Qtrue;
+#else
+    libvlc_state_t s = libvlc_media_player_get_state(self_t->vlc, &self_t->excp);
+    shoes_vlc_exception(&self_t->excp);
+    return s == libvlc_Playing ? Qtrue : Qfalse;
+#endif
   }
   return Qfalse;
 }
@@ -1390,7 +1415,11 @@ shoes_video_play(VALUE self)
   GET_STRUCT(video, self_t);
   if (self_t->init == 1)
   {
+#ifdef VLC_0_8
     libvlc_playlist_play(self_t->vlc, 0, 0, NULL, &self_t->excp);
+#else
+    libvlc_media_player_play(self_t->vlc, &self_t->excp);
+#endif
     shoes_vlc_exception(&self_t->excp);
   }
   return self;
@@ -1403,12 +1432,13 @@ shoes_video_play(VALUE self)
     GET_STRUCT(video, self_t); \
     if (self_t->init == 1) \
     { \
-      libvlc_playlist_##x(self_t->vlc, &self_t->excp); \
+      shoes_libvlc_##x(self_t->vlc, &self_t->excp); \
       shoes_vlc_exception(&self_t->excp); \
     } \
     return self; \
   }
 
+#ifdef VLC_0_8
 #define VIDEO_GET_METHOD(x, ctype, rbtype) \
   VALUE shoes_video_get_##x(VALUE self) \
   { \
@@ -1439,6 +1469,32 @@ shoes_video_play(VALUE self)
     } \
     return val; \
   }
+#else
+#define VIDEO_GET_METHOD(x, ctype, rbtype) \
+  VALUE shoes_video_get_##x(VALUE self) \
+  { \
+    GET_STRUCT(video, self_t); \
+    if (self_t->init == 1) \
+    { \
+      ctype len = libvlc_media_player_get_##x(self_t->vlc, &self_t->excp); \
+      shoes_vlc_exception(&self_t->excp); \
+      return rbtype(len); \
+    } \
+    return Qnil; \
+  }
+
+#define VIDEO_SET_METHOD(x, rbconv) \
+  VALUE shoes_video_set_##x(VALUE self, VALUE val) \
+  { \
+    GET_STRUCT(video, self_t); \
+    if (self_t->init == 1) \
+    { \
+      libvlc_media_player_set_##x(self_t->vlc, rbconv(val), &self_t->excp); \
+      shoes_vlc_exception(&self_t->excp); \
+    } \
+    return val; \
+  }
+#endif
 
 VIDEO_METHOD(clear);
 VIDEO_METHOD(prev);

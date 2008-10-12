@@ -25,6 +25,9 @@ SHOES_EXTERN typedef struct _shoes_world_t {
   cairo_surface_t *blank_image;
   shoes_cached_image *blank_cache;
   PangoFontDescription *default_font;
+#ifdef VLC_0_9
+  libvlc_instance_t *vlc;
+#endif
 } shoes_world_t;
 
 extern SHOES_EXTERN shoes_world_t *shoes_world;
