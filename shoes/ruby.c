@@ -1329,7 +1329,7 @@ shoes_video_draw(VALUE self, VALUE c, VALUE actual)
         self_t->init = 1;
 
 #ifdef VLC_0_8
-        int play_id = libvlc_playlist_add(self_t->vlc, 
+        libvlc_playlist_add(self_t->vlc, 
           RSTRING_PTR(self_t->path), NULL, &self_t->excp);
 #else
         libvlc_media_t *play = libvlc_media_new(shoes_world->vlc,

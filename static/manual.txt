@@ -739,6 +739,249 @@ Changes the location, in order to view a different Shoes URL.
 
 Absolute URLs (such as http://google.com) are okay, but Shoes will be expecting a Shoes application to be at that address.  (So, google.com won't work, as it's an HTML app.)
 
+== The Styles Master List ==
+
+You want to mess with the look of things?  Well, throughout Shoes, styles are used to change the way elements appear.  In some cases, you can even style an entire class of elements.  (Like giving all paragraphs a certain font.)
+
+Styles are easy to spot.  They usually show up when the element is created.
+
+{{{
+ Shoes.app :title => "A Styling Sample" do
+   para "Red with an underline", :stroke => red, :underline => "single"
+ end
+}}}
+
+Here we've got a `:title` style on the app.  And on the paragraph inside the app, a red `:stroke` style and an `:underline` style.
+
+The style hash can also be changed by using the [[Common.style]] method, available on every element and slot.
+
+{{{
+ Shoes.app :title => "A Styling Sample" do
+   @text = para "Red with an underline"
+   @text.style(:stroke => red, :underline => "single")
+ end
+}}}
+
+Most styles can also be set by calling them as methods.  (I'd use the manual search to find the method.)
+
+{{{
+ Shoes.app :title => "A Styling Sample" do
+   @text = para "Red with an underline"
+   @text.stroke = red
+   @text.underline = "single"
+ end
+}}}
+
+Rather than making you plow through the whole manual to figure out what styles go where, this helpful page speeds through every style in Shoes and suggests where that style is used.
+
+=== :angle » a number ===
+
+For: ''background, border, gradient''.
+
+=== :attach » a slot or element ===
+
+For: ''flow, stack''.
+
+=== :autoplay » true or false ===
+
+For: ''video''.
+
+=== :bottom » a number ===
+
+For: ''all slots and elements''.
+
+=== :cap » :curve or :rect or :project ===
+
+For: ''arc, arrow, border, flow, image, mask, rect, star, shape, stack''.
+
+=== :center » true or false ===
+
+For: ''arc, image, oval, rect, shape''.
+
+=== :checked » true or false ===
+
+For: ''check, radio''.
+
+=== :choose » a string ===
+
+For: ''list_box''.
+
+=== :click » a proc ===
+
+For: ''all slots and elements''.
+
+Wait, no, this needs to be split into `change` event as well.
+
+=== :curve » a number ===
+
+For: ''background, border, rect''.
+
+=== :displace_left » a number ===
+
+For: ''all slots and elements''.
+
+Moves a shape, text block or any other kind of object to the left or right.  A positive number displaces to the right by the given number of pixels; a negative number displaces to the left.  Displacing an object doesn't effect the actual layout of the page.  Before using this style, be sure to read the [[Position.displace]] docs, since its behavior can be a bit surprising.
+
+=== :displace_top » a number ===
+
+For: ''all slots and elements''.
+
+Moves a shape, text block or any other kind of object up or down.  A positive number moves the object down by this number of pixels; a negative number moves it up.  Displacing doesn't effect the actual layout of the page or the object's true coordinates.  Read the [[Position.displace]] docs, since its behavior can be a bit surprising.
+
+=== :emphasis » a string ===
+
+For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+
+=== :family » a string ===
+
+For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+
+=== :fill » a hex code, a Shoes::Color or a range of either ===
+
+For: ''arc, arrow, background, banner, caption, code, del, em, flow, image, ins, inscription, line, link, mask, oval, para, rect, shape, span, stack, star, strong, sub, sup, subtitle, tagline, title''.
+
+The color of the background pen.  For shapes, this is the fill color, the paint inside the shape.  For text stuffs, this color is painted in the background (as if marked with a highlighter pen.)
+
+=== :font » a string ===
+
+For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+
+=== :group » a string ===
+
+For: ''radio''.
+
+=== :height » a number ===
+
+For: ''all slots and elements''.
+
+Sets the pixel height of this object.  If the number is a decimal number, the height becomes a percentage of its parent's height (with 0.0 being 0% and 1.0 being 100%.)
+
+=== :hidden » a number ===
+
+For: ''all slots and elements''.
+
+=== :inner » a number ===
+
+For: ''star''.
+
+=== :items » an array ===
+
+For: ''list_box''.
+
+=== :kerning » a number ===
+
+For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+
+=== :leading » a number ===
+
+For: ''banner, caption, inscription, para, subtitle, tagline, title''.
+
+=== :left » a number ===
+
+For: ''all slots and elements''.
+
+Sets the left coordinate of this object to a specific pixel.  Setting `:left => 10` places the object's left edge ten pixels away from the left edge of the slot containing it.  If this style is left unset (or set to `nil`,) the object will flow in with the other objects surrounding it.
+
+=== :margin » a number or an array of four numbers ===
+
+For: ''all slots and elements''.
+
+=== :margin_bottom » a number ===
+
+For: ''all slots and elements''.
+
+=== :margin_left » a number ===
+
+For: ''all slots and elements''.
+
+=== :margin_right » a number ===
+
+For: ''all slots and elements''.
+
+=== :margin_top » a number ===
+
+For: ''all slots and elements''.
+
+=== :outer » a number ===
+
+For: ''star''.
+
+=== :points » a number ===
+
+For: ''star''.
+
+=== :radius » a number ===
+
+For: ''arc, arrow, background, border, gradient, oval, rect, shape''.
+
+=== :right » a number ===
+
+For: ''all slots and elements''.
+
+=== :rise » a number ===
+
+For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+
+=== :scroll » true or false ===
+
+For: ''flow, stack''.
+
+=== :size » a number ===
+
+For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+
+=== :state » a string ===
+
+For: ''button, check, edit_box, edit_line, list_box, radio''.
+
+=== :stretch » a string ===
+
+For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+
+=== :strikethrough » a string ===
+
+For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+
+=== :stroke » a hex code, a Shoes::Color or a range of either ===
+
+For: ''arc, arrow, banner, border, caption, code, del, em, flow, image, ins, inscription, line, link, mask, oval, para, rect, shape, span, stack, star, strong, sub, sup, subtitle, tagline, title''.
+
+The color of the foreground pen.  In the case of shapes, this is the color the lines are drawn with.  For paragraphs and other text, the letters are printed in this color.
+
+=== :strokewidth » a number ===
+
+For: ''arc, arrow, border, flow, image, line, mask, oval, rect, shape, star, stack''.
+
+The thickness of the stroke, in pixels, of the line defining each of these shapes.  For example, the number two would set the strokewidth to 2 pixels.
+
+=== :text » a string ===
+
+For: ''button, edit_box, edit_line, list_box''.
+
+=== :top » a number ===
+
+For: ''all slots and elements''.
+
+Sets the top coordinate for an object, relative to its parent slot.  If an object is set with `:top => 40`, this means the object's top edge will be placed 40 pixels beneath the top edge of the slot that contains it.  If no `:top` style is given, the object is automatically placed in the natural flow of its slot.
+
+=== :underline » a string ===
+
+For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+
+=== :variant » a string ===
+
+For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+
+=== :weight » a number ===
+
+For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+
+=== :width » a number ===
+
+For: ''all slots and elements''.
+
+Sets the pixel width for the element.  If the number is a decimal, the width is converted to a percentage (with 0.0 being 0% and 1.0 being 100%.)  A width of 100% means the object fills its parent slot.
+
 == Classes List ==
 
 Here is a complete list of all the classes introduced by Shoes.  This chart is laid out according to how classes inherits from each other.  Subclasses are indented one level to the right, beneath their parent class.
@@ -857,7 +1100,7 @@ Draws a line using the current line color (aka "stroke") starting at coordinates
 
 === oval(left, top, radius) » Shoes::Shape ===
 
-Draws a circular form at pixel coordinates (left, top) with a width and height of `radius` pixels.  The line and fill colors are used to draw the shape.
+Draws a circular form at pixel coordinates (left, top) with a width and height of `radius` pixels.  The line and fill colors are used to draw the shape.  By default, the coordinates are for the oval's leftmost, top corner, but this can be changed by calling the [[Art.transform]] method or by using the `:center` style on the next method below.
 
 {{{
  #!ruby
@@ -952,7 +1195,7 @@ A shape can also contain other shapes.  So, you can place an [[Art.oval]], a [[A
 
 === star(left, top, points = 10, outer = 100.0, inner = 50.0) » Shoes::Shape ===
 
-Draws a star using the stroke and fill colors.  The star is positioned at coordinates (left, top) with a certain number of `points`.  The `outer` width defines the full radius of the star; the `inner` width specifies the radius of the star's middle, where points stem from.
+Draws a star using the stroke and fill colors.  The star is positioned with its center point at coordinates (left, top) with a certain number of `points`.  The `outer` width defines the full radius of the star; the `inner` width specifies the radius of the star's middle, where points stem from.
 
 === stroke(pattern) » pattern ===
 
@@ -1360,7 +1603,7 @@ Adds elements to the beginning of a slot.
 
 The `para` element is added to the beginning of the `@slot`.
 
-== Styles of a Slot ==
+== Position of a Slot ==
 
 Like any other element, slots can be styled and customized when they are created.
 
@@ -1400,7 +1643,7 @@ The vertical size of the viewable slot in pixels.  So, if this is a scrolling sl
 
 === hide() » self ===
 
-Hides the slot, so that it can't be seen.  See also [[Styles.show]] and [[Styles.toggle]].
+Hides the slot, so that it can't be seen.  See also [[Position.show]] and [[Position.toggle]].
 
 === left() » a number ===
 
@@ -1441,7 +1684,7 @@ Scrolls the slot to a certain coordinate.  This must be between zero and `scroll
 
 === show() » self ===
 
-Reveals the slot, if it is hidden.  See also [[Styles.hide]] and [[Styles.toggle]].
+Reveals the slot, if it is hidden.  See also [[Position.hide]] and [[Position.toggle]].
 
 === style() » styles ===
 
@@ -1520,7 +1763,7 @@ gives you back an Image object. Use the methods of the Image object to change th
 
 A few methods are shared by every little element in Shoes.  Moving, showing, hiding.  Removing an element.  Basic and very general things.  This list encompasses those common commands.
 
-One of the most general methods of all is the `style` method (which is also covered as the [[Styles.style]] method for slots.)
+One of the most general methods of all is the `style` method (which is also covered as the [[Position.style]] method for slots.)
 
 {{{
  #!ruby
@@ -1835,7 +2078,7 @@ Okay, let's add to the above example.
 {{{
  #!ruby
  Shoes.app do
-   @list = ['Frances Johnson', 'Ignatius J. Reilly', 
+   @list = ['Frances Johnson', 'Ignatius J. Reilly',
      'Winston Niles Rumfoord']
 
    stack do
@@ -2028,7 +2271,7 @@ So, the basic size of a list box is about 200 pixels wide and 28 pixels high.  Y
      :width => 120, :choose => "Apricots" do |list|
        @fruit.text = list.text
    end
-   
+
    @fruit = para "No fruit selected"
  end
 }}}
@@ -2074,7 +2317,7 @@ A simple progress bar is 200 pixels wide, but you can use the `:width` style (as
    stack :margin => 0.9 do
      title "Progress example"
      @p = progress :width => 1.0
-     
+
      animate do |i|
        @p.fraction = (i % 100) / 100.0
      end
