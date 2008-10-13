@@ -778,43 +778,69 @@ Rather than making you plow through the whole manual to figure out what styles g
 
 For: ''background, border, gradient''.
 
+The angle at which to apply a gradient.  Normally, gradient colors range from top to bottom.  If the `:angle` is set to 90, the gradient will rotate 90 degrees counter-clockwise and the gradient will go from left to right.
+
 === :attach » a slot or element ===
 
 For: ''flow, stack''.
+
+Pins a slot relative to another slot or element.  Also, one may write `:attach => Window` to position the slot at the window's top, left corner.  Taking this a bit further, the style `:top => 10, :left => 10, :attach => Window` would place the slot at (10, 10) in the window's coordinates.
+
+If a slot is attached to an element that moves, the slot will move with it.  If the attachment is reset to `nil`, the slot will flow in with the other objects that surround, as normal.
 
 === :autoplay » true or false ===
 
 For: ''video''.
 
+Should this video begin playing after it appears?  If set to `true`, the video will start without asking the user.
+
 === :bottom » a number ===
 
 For: ''all slots and elements''.
+
+Sets the bottom coordinate of an element's lower edge.  The edge is placed relative to its container's lower edge.  So, `:bottom => 0` will align the element so that its bottom edge and the bottom edge of its slot touch.
 
 === :cap » :curve or :rect or :project ===
 
 For: ''arc, arrow, border, flow, image, mask, rect, star, shape, stack''.
 
+Sets the shape of the line endpoint, whether curved or square.  See the [[Art.cap]] method for more explanation.
+
 === :center » true or false ===
 
 For: ''arc, image, oval, rect, shape''.
+
+Indicates whether the `:top` and `:left` coordinates refer to the center of the shape or not.  If set to `true`, this is similar to setting the [[Art.transform]] method to `:center`.
+
+=== :change » a proc ===
+
+For: ''edit_box, edit_line, list_box''.
+
+The `change` event handler is stored in this style.  See the [[EditBox.change]] method for the edit_box, as an example.
 
 === :checked » true or false ===
 
 For: ''check, radio''.
 
+Is this checkbox or radio button checked?  If set to `true`, the box is checked.  Also see the [[Check.checked=]] method.
+
 === :choose » a string ===
 
 For: ''list_box''.
 
+Sets the currently chosen item in the list.  More information at [[ListBox.choose]].
+
 === :click » a proc ===
 
-For: ''all slots and elements''.
+For: ''arc, arrow, banner, button, caption, check, flow, image, inscription, line, link, mask, oval, para, radio, rect, shape, stack, star, subtitle, tagline, title''.
 
-Wait, no, this needs to be split into `change` event as well.
+The `click` event handler is stored in this style.  See the [[Events.click]] method for a description.
 
 === :curve » a number ===
 
 For: ''background, border, rect''.
+
+The radius of curved corners on each of these rectangular elements.  As an example, if this is set to 6, the corners of the rectangle are given a curve with a 6-pixel radius.
 
 === :displace_left » a number ===
 
@@ -832,9 +858,19 @@ Moves a shape, text block or any other kind of object up or down.  A positive nu
 
 For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
 
+Styles the text with an emphasis (commonly italicized.)
+
+This style recognizes three possible settings:
+
+ * "normal" - the font is upright.
+ * "oblique" - the font is slanted, but in a roman style.
+ * "italic" - the font is slanted in an italic style. 
+
 === :family » a string ===
 
 For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+
+Styles the text with a given font family.  The string should contain the family name or a comma-separated list of families.
 
 === :fill » a hex code, a Shoes::Color or a range of either ===
 
@@ -846,9 +882,15 @@ The color of the background pen.  For shapes, this is the fill color, the paint 
 
 For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
 
+Styles the text with a font description.  The string is pretty flexible, but can take the form "[FAMILY-LIST] [STYLE-OPTIONS] [SIZE]", where FAMILY-LIST is a comma separated list of families optionally terminated by a comma, STYLE_OPTIONS is a whitespace separated list of words where each WORD describes one of style, variant, weight, stretch, or gravity, and SIZE is a decimal number (size in points) or optionally followed by the unit modifier "px" for absolute size. Any one of the options may be absent. If FAMILY-LIST is absent, then the default font family (Arial) will be used.
+
 === :group » a string ===
 
 For: ''radio''.
+
+Indicates what group a radio button belongs to.  Without this setting, radio buttons are grouped together with other radio buttons in their immediate slot.  "Grouping" radio buttons doesn't mean they'll be grouped next to each other on the screen.  It means that only one radio button from the group can be selected at a time.
+
+By giving this style a string, the radio button will be grouped with other radio buttons that have the same group name.
 
 === :height » a number ===
 
@@ -856,9 +898,11 @@ For: ''all slots and elements''.
 
 Sets the pixel height of this object.  If the number is a decimal number, the height becomes a percentage of its parent's height (with 0.0 being 0% and 1.0 being 100%.)
 
-=== :hidden » a number ===
+=== :hidden » true or false ===
 
 For: ''all slots and elements''.
+
+Hides or shows this object.  Any object with `:hidden => true` are not displayed on the screen.  Neither are its children.
 
 === :inner » a number ===
 
