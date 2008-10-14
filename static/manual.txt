@@ -798,7 +798,7 @@ Should this video begin playing after it appears?  If set to `true`, the video w
 
 For: ''all slots and elements''.
 
-Sets the bottom coordinate of an element's lower edge.  The edge is placed relative to its container's lower edge.  So, `:bottom => 0` will align the element so that its bottom edge and the bottom edge of its slot touch.
+Sets the pixel coordinate of an element's lower edge.  The edge is placed relative to its container's lower edge.  So, `:bottom => 0` will align the element so that its bottom edge and the bottom edge of its slot touch.
 
 === :cap » :curve or :rect or :project ===
 
@@ -908,17 +908,25 @@ Hides or shows this object.  Any object with `:hidden => true` are not displayed
 
 For: ''star''.
 
+The size of the inner radius (in pixels.)  The inner radius describes the solid circle within the star where the points begin to separate.
+
 === :items » an array ===
 
 For: ''list_box''.
+
+The list of selections in the list box.  See the [[Element.list_box]] method for an example.
 
 === :kerning » a number ===
 
 For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
 
+Adds to the natural spacing between letters, in pixels.
+
 === :leading » a number ===
 
 For: ''banner, caption, inscription, para, subtitle, tagline, title''.
+
+Sets the spacing between lines in a text block.  Defaults to 4 pixels.
 
 === :left » a number ===
 
@@ -930,61 +938,124 @@ Sets the left coordinate of this object to a specific pixel.  Setting `:left => 
 
 For: ''all slots and elements''.
 
+Margins space an element out from its surroundings.  Each element has a left, top, right, and bottom margin.  If the `:margin` style is set to a single number, the spacing around the element uniformly matches that number.  In other words, if `:margin => 8` is set, all the margins around the element are set to eight pixels in length.
+
+This style can also be given an array of four numbers in the form `[left, top, right, bottom]`.
+
 === :margin_bottom » a number ===
 
 For: ''all slots and elements''.
+
+Sets the bottom margin of the element to a specific pixel size.
 
 === :margin_left » a number ===
 
 For: ''all slots and elements''.
 
+Sets the left margin of the element to a specific pixel size.
+
 === :margin_right » a number ===
 
 For: ''all slots and elements''.
+
+Sets the right margin of the element to a specific pixel size.
 
 === :margin_top » a number ===
 
 For: ''all slots and elements''.
 
+Sets the top margin of the element to a specific pixel size.
+
 === :outer » a number ===
 
 For: ''star''.
+
+Sets the outer radius (half of the ''total'' width) of the star, in pixels.
 
 === :points » a number ===
 
 For: ''star''.
 
+How many points does this star have?  A style of `:points => 5` creates a five-pointed star.
+
 === :radius » a number ===
 
 For: ''arc, arrow, background, border, gradient, oval, rect, shape''.
+
+Sets the radius (half of the diameter or total width) for each of these elements.  Setting this is equivalent to setting both `:width` and `:height` to double this number.
 
 === :right » a number ===
 
 For: ''all slots and elements''.
 
+Sets the pixel coordinate of an element's right edge.  The edge is placed relative to its container's rightmost edge.  So, `:right => 0` will align the element so that its own right edge and the right edge of its slot touch.  Whereas `:right => 20` will position the right edge of the element off to the left of its slot's right edge by twenty pixels.
+
 === :rise » a number ===
 
 For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+
+Lifts or plunges the font baseline for some text.  For example, a [[Element.sup]] has a `:rise` of 10 pixels.  Conversely, the [[Element.sub]] element has a `:rise` of -10 pixels.
 
 === :scroll » true or false ===
 
 For: ''flow, stack''.
 
+Establishes this slot as a scrolling slot.  If `:scroll => true` is set, the slot will show a scrollbar if any of its contents go past its height.  The scrollbar will appear and disappear as needed.  It will also appear inside the width of the slot, meaning the slot's width will never change, regardless of whether there is a scrollbar or not.
+
 === :size » a number ===
 
 For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+
+Sets the pixel size for the font used inside this text block or text fragment.
+
+Font size may also be augmented, through use of the following strings:
+
+ * "xx-small" - 57% of present size.
+ * "x-small" - 64% of present size.
+ * "small" - 83% of present size.
+ * "medium" - no change in size.
+ * "large" - 120% of present size.
+ * "x-large" - 143% of present size.
+ * "xx-large" - 173% of present size.
 
 === :state » a string ===
 
 For: ''button, check, edit_box, edit_line, list_box, radio''.
 
+The `:state` style is for disabling or locking certain controls, if you don't want them to be edited.
+
+Here are the possible style settings:
+
+ * nil - the control is active and editable.
+ * "readonly" - the control is active but cannot be edited.
+ * "disabled" - the control is not active (grayed out) and cannot be edited.
+
 === :stretch » a string ===
 
 For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
 
+Sets the font stretching used for a text object.
+
+Possible settings are:
+
+ * "condensed" - a smaller width of letters.
+ * "normal" - the standard width of letters.
+ * "expanded" - a larger width of letters.
+
+=== :strikecolor » a Shoes::Color ===
+
+For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+
+The color used to paint any lines stricken through this text.
+
 === :strikethrough » a string ===
 
 For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+
+Is this text stricken through?  Two options here:
+
+ * "none" - no strikethrough
+ * "single" - a single-line strikethrough.
 
 === :stroke » a hex code, a Shoes::Color or a range of either ===
 
@@ -1000,7 +1071,9 @@ The thickness of the stroke, in pixels, of the line defining each of these shape
 
 === :text » a string ===
 
-For: ''button, edit_box, edit_line, list_box''.
+For: ''button, edit_box, edit_line''.
+
+Sets the message displayed on a button control, or the contents of an edit_box or edit_line.
 
 === :top » a number ===
 
@@ -1008,17 +1081,50 @@ For: ''all slots and elements''.
 
 Sets the top coordinate for an object, relative to its parent slot.  If an object is set with `:top => 40`, this means the object's top edge will be placed 40 pixels beneath the top edge of the slot that contains it.  If no `:top` style is given, the object is automatically placed in the natural flow of its slot.
 
+=== :undercolor » a Shoes::Color ===
+
+For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+
+The color used to underline text.
+
 === :underline » a string ===
 
 For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+
+Dictates the style of underline used in the text.
+
+The choices for this setting are:
+
+ * "none" - no underline at all.
+ * "single" - a continuous underline.
+ * "double" - two continuous parallel underlines.
+ * "low" - a lower underline, beneath the font baseline.  (This is generally recommended only for single characters, particularly when showing keyboard accelerators.)
+ * "error" - a wavy underline, usually found indicating a misspelling.
 
 === :variant » a string ===
 
 For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
 
-=== :weight » a number ===
+Vary the font for a group of text.  Two choices:
+
+ * "normal" - standard font.
+ * "smallcaps" - font with the lower case characters replaced by smaller variants of the capital characters. 
+
+=== :weight » a string ===
 
 For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+
+Set the boldness of the text.  Commonly, this style is set to one of the following strings:
+
+ * "ultralight" - the ultralight weight (= 200)
+ * "light" - the light weight (=300)
+ * "normal" - the default weight (= 400)
+ * "semibold" - a weight intermediate between normal and bold (=600)
+ * "bold" - the bold weight (= 700)
+ * "ultrabold" - the ultrabold weight (= 800)
+ * "heavy" - the heavy weight (= 900)
+
+However, you may also pass in the numerical weight directly.
 
 === :width » a number ===
 
