@@ -534,9 +534,12 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
 #define PATTERN_SCALE(self_t, place, sw) \
   if (self_t->cached == NULL) \
   { \
+    double woff = abs(place.iw) + (sw * 2.), hoff = abs(place.ih) + (sw * 2.); \
     cairo_pattern_get_matrix(PATTERN(self_t), &matrix1); \
     cairo_pattern_get_matrix(PATTERN(self_t), &matrix2); \
-    cairo_matrix_scale(&matrix2, 1. / (abs(place.iw) + (sw * 2.)), 1. / (abs(place.ih) + (sw * 2.))); \
+    if (cairo_pattern_get_type(PATTERN(self_t)) == CAIRO_PATTERN_TYPE_RADIAL) \
+      cairo_matrix_translate(&matrix2, (-place.ix * 1.) / woff, (-place.iy * 1.) / hoff); \
+    cairo_matrix_scale(&matrix2, 1. / woff, 1. / hoff); \
     if (sw != 0.0) cairo_matrix_translate(&matrix2, sw, sw); \
     cairo_pattern_set_matrix(PATTERN(self_t), &matrix2); \
   }
