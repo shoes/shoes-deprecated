@@ -572,7 +572,7 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
     else \
     { \
       if (!rb_obj_is_kind_of(p, cPattern)) \
-        ATTRSET(attr, pen, p = rb_funcall(p, s_to_pattern, 0)); \
+        ATTRSET(attr, pen, p = shoes_pattern_new(cPattern, p, Qnil, Qnil)); \
       cairo_matrix_t matrix1, matrix2; \
       shoes_pattern *pattern; \
       Data_Get_Struct(p, shoes_pattern, pattern); \

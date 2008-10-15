@@ -1980,6 +1980,7 @@ shoes_slot_new(VALUE klass, VALUE attr, VALUE parent)
   self_t->parent = parent;
   self_t->app = pc->app;
   self_t->attr = attr;
+  COPY_PENS(self_t->attr, pc->attr);
   int scrolls = RTEST(ATTR(self_t->attr, scroll));
   if ((attr != ssNestSlot && RTEST(ATTR(self_t->attr, height))) || scrolls) {
     //
