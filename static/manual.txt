@@ -1002,6 +1002,12 @@ For: ''flow, stack''.
 
 Establishes this slot as a scrolling slot.  If `:scroll => true` is set, the slot will show a scrollbar if any of its contents go past its height.  The scrollbar will appear and disappear as needed.  It will also appear inside the width of the slot, meaning the slot's width will never change, regardless of whether there is a scrollbar or not.
 
+=== :secret » true or false ===
+
+For: ''ask, edit_line''.
+
+Used for password fields, this setting keeps any characters typed in from becoming visible on the screen.  Instead, a replacement character (such as an asterisk) is show for each letter typed.
+
 === :size » a number ===
 
 For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
