@@ -215,10 +215,12 @@ typedef struct {
   shoes_place place;
   SHOES_CONTROL_REF ref;
   libvlc_exception_t excp;
+#ifdef VIDEO
 #ifdef VLC_0_8
   libvlc_instance_t *vlc;
 #else
   libvlc_media_player_t *vlc;
+#endif
 #endif
   int init;
   VALUE path;
