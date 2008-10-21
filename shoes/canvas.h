@@ -349,7 +349,7 @@ void shoes_canvas_clear(VALUE);
 shoes_canvas *shoes_canvas_init(VALUE, SHOES_SLOT_OS *, VALUE, int, int);
 void shoes_slot_scroll_to(shoes_canvas *, int, int);
 void shoes_canvas_paint(VALUE);
-void shoes_apply_transformation(cairo_t *, shoes_transform *, shoes_place *, unsigned char, unsigned char);
+void shoes_apply_transformation(cairo_t *, shoes_transform *, shoes_place *, unsigned char);
 void shoes_undo_transformation(cairo_t *, shoes_transform *, shoes_place *, unsigned char);
 void shoes_canvas_shape_do(shoes_canvas *, double, double, double, double, unsigned char);
 VALUE shoes_canvas_style(int, VALUE *, VALUE);
