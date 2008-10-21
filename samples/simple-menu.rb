@@ -1,4 +1,4 @@
-class MenuPanel < Widget
+class MenuPanel < Shoes::Widget
   @@boxes = []
   def initialize(color, args)
     @@boxes << self
