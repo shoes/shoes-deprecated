@@ -1533,7 +1533,9 @@ shoes_pattern_gradient(shoes_pattern *pattern, VALUE r1, VALUE r2, VALUE attr)
 {
   double angle = ATTR2(dbl, attr, angle, 0.);
   double rads = angle * SHOES_RAD2PI;
-  double edge = sin(rads) + cos(rads);
+  double dx = sin(rads);
+  double dy = cos(rads);
+  double edge = (fabs(dx) + fabs(dy)) * 0.5;
 
   if (rb_obj_is_kind_of(r1, rb_cString))
     r1 = shoes_color_parse(cColor, r1);
@@ -1549,13 +1551,8 @@ shoes_pattern_gradient(shoes_pattern *pattern, VALUE r1, VALUE r2, VALUE attr)
   }
   else
   {
-    pattern->pattern = cairo_pattern_create_linear(0.0, 0.0, 0.0, edge);
-    if (angle != 0.)
-    {
-      cairo_matrix_t matrix;
-      cairo_matrix_init_rotate(&matrix, rads);
-      cairo_pattern_set_matrix(pattern->pattern, &matrix);
-    }
+    pattern->pattern = cairo_pattern_create_linear(0.5 + (-dx * edge), 0.5 + (-dy * edge),
+      0.5 + (dx * edge), 0.5 + (dy * edge));
   }
   shoes_color_grad_stop(pattern->pattern, 0.0, r1);
   shoes_color_grad_stop(pattern->pattern, 1.0, r2);
