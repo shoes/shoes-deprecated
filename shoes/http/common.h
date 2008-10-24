@@ -34,13 +34,14 @@
         break; \
     if (colon < ptr + realsize) \
     { \
-      shoes_download_event event; \
-      event.stage = SHOES_HTTP_HEADER; \
-      event.hkey = ptr; \
-      event.hkeylen = colon - ptr; \
-      event.hval = val; \
-      event.hvallen = (end - val) + 1; \
-      if (handler != NULL) handler(&event, data); \
+      shoes_download_event *event = SHOE_ALLOC(shoes_download_event); \
+      event->stage = SHOES_HTTP_HEADER; \
+      event->hkey = ptr; \
+      event->hkeylen = colon - ptr; \
+      event->hval = val; \
+      event->hvallen = (end - val) + 1; \
+      if (handler != NULL) handler(event, data); \
+      SHOE_FREE(event); \
     } \
   }
 
@@ -49,20 +50,21 @@
   shoes_get_time(&ts); \
   unsigned long elapsed = shoes_diff_time(&(last), &ts); \
   if (s != SHOES_HTTP_TRANSFER || elapsed > 600 ) { \
-    shoes_download_event event; \
-    event.stage = s; \
-    if (s == SHOES_HTTP_COMPLETED) event.stage = SHOES_HTTP_TRANSFER; \
-    event.percent = perc; \
-    event.transferred = trans;\
-    event.total = tot; \
+    shoes_download_event *event = SHOE_ALLOC(shoes_download_event); \
+    event->stage = s; \
+    if (s == SHOES_HTTP_COMPLETED) event->stage = SHOES_HTTP_TRANSFER; \
+    event->percent = perc; \
+    event->transferred = trans;\
+    event->total = tot; \
     last = ts; \
-    if (handler != NULL && (handler(&event, dat) & SHOES_DOWNLOAD_HALT)) \
-    { abort; } \
-    if (s == SHOES_HTTP_COMPLETED) { event.stage = s; \
-      event.body = bd; \
-      if (handler != NULL && (handler(&event, dat) & SHOES_DOWNLOAD_HALT)) \
-      { abort; } \
+    if (handler != NULL && (handler(event, dat) & SHOES_DOWNLOAD_HALT)) \
+    { SHOE_FREE(event); event = NULL; abort; } \
+    if (event != NULL && s == SHOES_HTTP_COMPLETED) { event->stage = s; \
+      event->body = bd; \
+      if (handler != NULL && (handler(event, dat) & SHOES_DOWNLOAD_HALT)) \
+      { SHOE_FREE(event); event = NULL; abort; } \
     } \
+    if (event != NULL) SHOE_FREE(event); \
   } }
 
 typedef struct {

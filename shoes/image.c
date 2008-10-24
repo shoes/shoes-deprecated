@@ -784,16 +784,59 @@ shoes_load_imagesize(VALUE imgpath, int *width, int *height)
   return SHOES_OK;
 }
 
-typedef struct {
-  char *cachepath, *filepath, *uripath, *etag, *hexdigest;
-  unsigned long status;
-  VALUE slot;
-} shoes_download_image_data;
+void
+shoes_image_downloaded(shoes_image_download_event *idat)
+{
+  int i, j, width, height;
+  SHA1_CTX context;
+  unsigned char *digest = SHOE_ALLOC_N(unsigned char, 20), 
+                *buffer = SHOE_ALLOC_N(unsigned char, 16384);
+
+  if (idat->status == 304)
+  {
+    idat->filepath = idat->cachepath;
+    idat->cachepath = NULL;
+  }
+
+  cairo_surface_t *img = shoes_surface_create_from_file(rb_str_new2(idat->filepath), &width, &height);
+  if (img != NULL)
+  {
+    shoes_cached_image *cached;
+    if (shoes_cache_lookup(idat->uripath, &cached) && cached->surface == shoes_world->blank_image)
+    {
+      cached->surface = img;
+      cached->width = width;
+      cached->height = height;
+      cached->mtime = shoes_file_mtime(idat->filepath);
+
+      if (idat->status != 304)
+      {
+        FILE* fp = fopen(idat->filepath, "rb");
+        SHA1Init(&context);
+        while (!feof(fp)) 
+        {
+          i = fread(buffer, 1, 16384, fp);
+          SHA1Update(&context, buffer, i);
+        }
+        SHA1Final(digest, &context);
+        fclose(fp);
+
+        for (i = 0; i < 5; i++)
+          for (j = 0; j < 4; j++)
+            sprintf(&idat->hexdigest[(i*8)+(j*2)], "%02x", digest[i*4+j]);
+        idat->hexdigest[41] = '\0';
+      }
+    }
+  }
+
+  SHOE_FREE(digest);
+  SHOE_FREE(buffer);
+}
 
 int
 shoes_download_image_handler(shoes_download_event *de, void *data)
 {
-  shoes_download_image_data *idat = (shoes_download_image_data *)data;
+  shoes_image_download_event *idat = (shoes_image_download_event *)data;
   if (de->stage == SHOES_HTTP_STATUS)
   {
     idat->status = de->status;
@@ -809,61 +852,9 @@ shoes_download_image_handler(shoes_download_event *de, void *data)
   }
   else if (de->stage == SHOES_HTTP_COMPLETED)
   {
-    int i, j, width, height;
-    SHA1_CTX context;
-    unsigned char *digest = SHOE_ALLOC_N(unsigned char, 20), *buffer = SHOE_ALLOC_N(unsigned char, 16384);
-
-    if (idat->status == 304)
-    {
-      idat->filepath = idat->cachepath;
-      idat->cachepath = NULL;
-    }
-
-    cairo_surface_t *img = shoes_surface_create_from_file(rb_str_new2(idat->filepath), &width, &height);
-    if (img != NULL)
-    {
-      shoes_cached_image *cached;
-      if (shoes_cache_lookup(idat->uripath, &cached) && cached->surface == shoes_world->blank_image)
-      {
-        shoes_image_download_event *side = SHOE_ALLOC(shoes_image_download_event);
-        SHOE_MEMZERO(side, shoes_image_download_event, 1);
-        cached->surface = img;
-        cached->width = width;
-        cached->height = height;
-        cached->mtime = shoes_file_mtime(idat->filepath);
-
-        if (idat->status != 304)
-        {
-          FILE* fp = fopen(idat->filepath, "rb");
-          SHA1Init(&context);
-          while (!feof(fp)) 
-          {
-            i = fread(buffer, 1, 16384, fp);
-            SHA1Update(&context, buffer, i);
-          }
-          SHA1Final(digest, &context);
-          fclose(fp);
-
-          for (i = 0; i < 5; i++)
-            for (j = 0; j < 4; j++)
-              sprintf(&side->hexdigest[(i*8)+(j*2)], "%02x", digest[i*4+j]);
-          side->hexdigest[41] = '\0';
-        }
-        else
-        {
-          SHOE_MEMCPY(side->hexdigest, idat->hexdigest, char, strlen(idat->hexdigest) + 1);
-        }
-
-        side->filepath = idat->filepath;
-        side->uripath = idat->uripath;
-        side->etag = idat->etag;
-        side->slot = idat->slot;
-        side->status = idat->status;
-        return shoes_throw_message(SHOES_IMAGE_DOWNLOAD, idat->slot, side);
-      }
-    }
-    free(digest);
-    free(buffer);
+    shoes_image_download_event *side = SHOE_ALLOC(shoes_image_download_event);
+    SHOE_MEMCPY(side, idat, shoes_image_download_event, 1);
+    return shoes_throw_message(SHOES_IMAGE_DOWNLOAD, idat->slot, side);
   }
   return SHOES_DOWNLOAD_CONTINUE;
 }
@@ -874,13 +865,14 @@ shoes_load_image(VALUE slot, VALUE imgpath)
   shoes_cached_image *cached = NULL;
   cairo_surface_t *img = NULL;
   VALUE filename = rb_funcall(imgpath, s_downcase, 0);
+  StringValue(filename);
   char *fname = RSTRING_PTR(filename);
   int width = 1, height = 1;
 
   if (shoes_cache_lookup(RSTRING_PTR(imgpath), &cached))
     goto done;
 
-  if (strstr(fname, "http://") == fname)
+  if (strlen(fname) > 7 && strncmp(fname, "http://", 7) == 0)
   {
     struct timeval tv;
     VALUE cache, uext, hdrs, tmppath, uri, host, port, requ, path, cachepath = Qnil, hash = Qnil;
@@ -921,8 +913,8 @@ shoes_load_image(VALUE slot, VALUE imgpath)
 
     shoes_download_request *req = SHOE_ALLOC(shoes_download_request);
     SHOE_MEMZERO(req, shoes_download_request, 1);
-    shoes_download_image_data *idat = SHOE_ALLOC(shoes_download_image_data);
-    SHOE_MEMZERO(idat, shoes_download_image_data, 1);
+    shoes_image_download_event *idat = SHOE_ALLOC(shoes_image_download_event);
+    SHOE_MEMZERO(idat, shoes_image_download_event, 1);
     req->host = RSTRING_PTR(host);
     req->port = 80;
     req->path = RSTRING_PTR(requ);
@@ -932,7 +924,7 @@ shoes_load_image(VALUE slot, VALUE imgpath)
     idat->uripath = strdup(RSTRING_PTR(imgpath));
     idat->slot = slot;
     if (!NIL_P(cachepath)) idat->cachepath = strdup(RSTRING_PTR(cachepath));
-    if (!NIL_P(hash)) idat->hexdigest = strdup(RSTRING_PTR(hash));
+    if (!NIL_P(hash)) SHOE_MEMCPY(idat->hexdigest, RSTRING_PTR(hash), char, min(42, RSTRING_LEN(hash)));
     if (!NIL_P(hdrs)) req->headers = shoes_http_headers(hdrs);
     req->data = idat;
     shoes_queue_download(req);

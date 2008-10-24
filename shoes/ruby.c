@@ -4069,6 +4069,7 @@ int shoes_catch_message(unsigned int name, VALUE obj, void *data) {
     {
       VALUE hash, etag = Qnil, uri, uext, path, realpath;
       shoes_image_download_event *side = (shoes_image_download_event *)data;
+      shoes_image_downloaded(side);
       shoes_canvas_repaint_all(side->slot);
 
       path = rb_str_new2(side->filepath);

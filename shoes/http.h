@@ -9,13 +9,6 @@
 #include "shoes/http/common.h"
 
 typedef struct {
-  unsigned long status;
-  char *filepath, *uripath, *etag;
-  char hexdigest[41];
-  VALUE slot;
-} shoes_image_download_event;
-
-typedef struct {
   char *host;
   int port;
   char *path;

@@ -625,8 +625,16 @@ extern const double SHOES_PIM2, SHOES_PI, SHOES_RAD2PI, SHOES_HALFPI;
 //
 // shoes/image.c
 //
+typedef struct {
+  unsigned long status;
+  char *cachepath, *filepath, *uripath, *etag;
+  char hexdigest[42];
+  VALUE slot;
+} shoes_image_download_event;
+
 shoes_code shoes_load_imagesize(VALUE, int *, int *);
 shoes_cached_image *shoes_cached_image_new(int, int, cairo_surface_t *);
 shoes_cached_image *shoes_load_image(VALUE, VALUE);
+void shoes_image_downloaded(shoes_image_download_event *);
 
 #endif
