@@ -36,12 +36,12 @@ shoes_image_format shoes_image_detect(VALUE, int *, int *);
 #define SIZE_SURFACE ((cairo_surface_t *)1)
 
 typedef struct {
-  unsigned long state[5];
-  unsigned long count[2];
+  unsigned int state[5];
+  unsigned int count[2];
   unsigned char buffer[64];
 } SHA1_CTX;
 
-void SHA1Transform(unsigned long state[5], unsigned char buffer[64]);
+void SHA1Transform(unsigned int state[5], unsigned char buffer[64]);
 void SHA1Init(SHA1_CTX* context);
 void SHA1Update(SHA1_CTX* context, unsigned char* data, unsigned int len);
 void SHA1Final(unsigned char digest[20], SHA1_CTX* context);
@@ -67,12 +67,12 @@ void SHA1Final(unsigned char digest[20], SHA1_CTX* context);
 #define R4(v,w,x,y,z,i) z+=(w^x^y)+blk(i)+0xCA62C1D6+rol(v,5);w=rol(w,30);
 
 /* Hash a single 512-bit block. This is the core of the algorithm. */
-void SHA1Transform(unsigned long state[5], unsigned char buffer[64])
+void SHA1Transform(unsigned int state[5], unsigned char buffer[64])
 {
-unsigned long a, b, c, d, e;
+unsigned int a, b, c, d, e;
 typedef union {
   unsigned char c[64];
-  unsigned long l[16];
+  unsigned int l[16];
 } CHAR64LONG16;
 CHAR64LONG16* block;
 #ifdef SHA1HANDSOFF
@@ -154,7 +154,7 @@ unsigned int i, j;
 /* Add padding and return the message digest. */
 void SHA1Final(unsigned char digest[20], SHA1_CTX* context)
 {
-unsigned long i, j;
+unsigned int i, j;
 unsigned char finalcount[8];
 
   for (i = 0; i < 8; i++) {
