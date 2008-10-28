@@ -223,11 +223,11 @@ Fixed widths on slots are great so you can split the window into columns.
 {{{
  Shoes.app do
    flow do
-     stack :width => 200
+     stack :width => 200 do
        caption "Column one"
        para "is 200 pixels wide"
      end
-     stack :width => -200
+     stack :width => -200 do
        caption "Column two"
        para "is 100% minus 200 pixels wide"
      end
@@ -2102,7 +2102,7 @@ Or, to paint a fifty pixel column on the right-side of the window:
 {{{
  #!ruby
  Shoes.app do
-   background black, :width => 50, :right => 0
+   background black, :width => 50, :right => 50
  end
 }}}
 
@@ -2470,7 +2470,7 @@ A simple progress bar is 200 pixels wide, but you can use the `:width` style (as
 
 {{{
  Shoes.app do
-   stack :margin => 0.9 do
+   stack :margin => 0.1 do
      title "Progress example"
      @p = progress :width => 1.0
 
