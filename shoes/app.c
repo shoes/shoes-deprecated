@@ -9,7 +9,6 @@
 #include "shoes/canvas.h"
 #include "shoes/world.h"
 #include "shoes/native.h"
-#include "node.h"
 
 static void
 shoes_app_mark(shoes_app *app)
@@ -478,7 +477,7 @@ shoes_app_style(shoes_app *app, VALUE klass, VALUE hsh)
 {
   long i;
   VALUE keys = rb_funcall(hsh, s_keys, 0);
-  for ( i = 0; i < RARRAY(keys)->len; i++ )
+  for ( i = 0; i < RARRAY_LEN(keys); i++ )
   {
     VALUE key = rb_ary_entry(keys, i);
     VALUE val = rb_hash_aref(hsh, key);

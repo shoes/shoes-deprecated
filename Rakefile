@@ -80,7 +80,7 @@ end
 
 task "dist/VERSION.txt" do |t|
   File.open(t.name, 'w') do |f|
-    f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION}) [#{PLATFORM}]}
+    f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION}) [#{RUBY_PLATFORM}]}
     %w[VIDEO DEBUG].each { |x| f << " +#{x.downcase}" if ENV[x] }
     f << "\n"
   end
@@ -99,7 +99,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
   end
   %w[req/binject/ext/binject_c req/sqlite3/ext/sqlite3_api req/hpricot/ext/hpricot_scan req/ftsearch/ext/ftsearchrt].each do |xdir|
-    case PLATFORM when /win32/, /darwin/
+    case RUBY_PLATFORM when /win32/, /darwin/
       copy_files "#{xdir}/*.dll", "dist/ruby/lib/#{RUBY_PLATFORM}"
     else
       Dir.chdir(xdir) do
@@ -109,7 +109,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     end
   end
 
-  case PLATFORM when /win32/
+  case RUBY_PLATFORM when /win32/
     copy_files "#{ext_ruby}/bin/*", "dist/"
     copy_files "deps/cairo/bin/*", "dist/"
     copy_files "deps/pango/bin/*", "dist/"
@@ -169,7 +169,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
   cp    "CHANGELOG", "dist/CHANGELOG.txt"
   cp    "COPYING", "dist/COPYING.txt"
   
-  case PLATFORM when /darwin/
+  case RUBY_PLATFORM when /darwin/
     rm_rf "#{APPNAME}.app"
     mkdir "#{APPNAME}.app"
     mkdir "#{APPNAME}.app/Contents"
@@ -195,7 +195,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
 end
 
 # use the platform Ruby claims
-case PLATFORM
+case RUBY_PLATFORM
 when /win32/
   SRC = FileList["shoes/*.c", "shoes/native/windows.c", "shoes/http/winhttp.c", "shoes/http/windownload.c"]
   OBJ = SRC.map do |x|
@@ -304,8 +304,8 @@ else
 
   CC = "gcc"
   SRC = FileList["shoes/*.c",
-    PLATFORM =~ /darwin/ ? "shoes/native/cocoa.m" : "shoes/native/gtk.c",
-    PLATFORM =~ /darwin/ ? "shoes/http/nsurl.m" : "shoes/http/curl.c"]
+    RUBY_PLATFORM =~ /darwin/ ? "shoes/native/cocoa.m" : "shoes/native/gtk.c",
+    RUBY_PLATFORM =~ /darwin/ ? "shoes/http/nsurl.m" : "shoes/http/curl.c"]
   OBJ = SRC.map do |x|
     x.gsub(/\.\w+$/, '.o')
   end
@@ -317,6 +317,9 @@ else
   PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
 
   LINUX_CFLAGS = %[-Wall -I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{Config::CONFIG['archdir']}]
+  if Config::CONFIG['rubyhdrdir']
+    LINUX_CFLAGS << " -I#{Config::CONFIG['rubyhdrdir']} -I#{Config::CONFIG['rubyhdrdir']}/#{RUBY_PLATFORM}"
+  end
   LINUX_LIB_NAMES = %W[#{ruby_so} png cairo pangocairo-1.0 ungif]
   FLAGS.each do |flag|
     LINUX_CFLAGS << " -D#{flag}" if ENV[flag]
@@ -327,7 +330,7 @@ else
     LINUX_CFLAGS << " -O "
   end
 
-  case PLATFORM when /darwin/
+  case RUBY_PLATFORM when /darwin/
     DLEXT = "dylib"
     LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{Config::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions"
     LINUX_LDFLAGS = "-framework Cocoa -framework Carbon -dynamiclib -Wl,-single_module #{Config::CONFIG["LDFLAGS"]} INSTALL_NAME"
@@ -375,7 +378,7 @@ else
     rm_f t.name
     rm_f bin
     sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']}"
-    if PLATFORM !~ /darwin/
+    if RUBY_PLATFORM !~ /darwin/
       rewrite "platform/nix/shoes.launch", t.name, %r!/shoes-bin!, "/#{NAME}-bin"
       sh %{echo 'LD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{t.name}} 
       chmod 0755, t.name
@@ -385,7 +388,7 @@ else
   task "dist/lib#{SONAME}.#{DLEXT}" => ['shoes/version.h'] + OBJ do |t|
     ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
     sh "#{CC} -o #{t.name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
-    case PLATFORM when /darwin/
+    case RUBY_PLATFORM when /darwin/
       %w[libpostproc.dylib libavformat.dylib libavcodec.dylib libavutil.dylib libruby.dylib].each do |libn|
         sh "install_name_tool -change /tmp/dep/lib/#{libn} ./deps/lib/#{libn} #{t.name}"
       end
@@ -400,7 +403,7 @@ else
     sh "#{CC} -I. -c -o#{t.name} #{LINUX_CFLAGS} #{t.source}"
   end
 
-  case PLATFORM when /darwin/
+  case RUBY_PLATFORM when /darwin/
     task :stub do
       ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
       sh "gcc -O -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc -framework Cocoa -o stub platform/mac/stub.m -I."

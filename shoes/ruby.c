@@ -57,8 +57,8 @@ rb_ary_index_of(VALUE ary, VALUE val)
 {
   long i;
  
-  for (i=0; i<RARRAY(ary)->len; i++) {
-    if (rb_equal(RARRAY(ary)->ptr[i], val))
+  for (i=0; i<RARRAY_LEN(ary); i++) {
+    if (rb_equal(RARRAY_PTR(ary)[i], val))
       return i;
   }
 
@@ -278,10 +278,10 @@ VALUE
 rb_str_to_pas(VALUE str)
 {
   VALUE str2;
-  char strlen[2];
-  strlen[0] = RSTRING_LEN(str);
-  strlen[1] = '\0';
-  str2 = rb_str_new2(strlen);
+  char slen[2];
+  slen[0] = RSTRING_LEN(str);
+  slen[1] = '\0';
+  str2 = rb_str_new2(slen);
   rb_str_append(str2, str);
   return str2;
 }
