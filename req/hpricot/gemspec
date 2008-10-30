@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.has_rdoc = true
   s.homepage = %q{http://code.whytheluckystiff.net/hpricot/}
   s.rdoc_options = ["--quiet", "--title", "The Hpricot Reference", "--main", "README", "--inline-source"]
-  s.require_paths = ["lib/universal-darwin9.0", "lib"]
+  s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.0}
   s.summary = %q{a swift, liberal HTML parser with a fantastic library}
 

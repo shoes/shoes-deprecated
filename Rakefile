@@ -67,7 +67,7 @@ def copy_ext xdir, libdir
     Dir.chdir(xdir) do
       `ruby extconf.rb; make`
     end
-    copy_files "#{xdir}/*.so", "dist/ruby/lib/#{RUBY_PLATFORM}"
+    copy_files "#{xdir}/*.so", libdir
   end
 end
 
@@ -113,12 +113,14 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     each { |xdir| copy_ext xdir, "dist/ruby/lib/#{RUBY_PLATFORM}" }
 
   gdir = "dist/ruby/gems/#{Config::CONFIG['ruby_version']}"
-  %w[hpricot sqlite3].each do |gemn|
+  {'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
     spec = eval(File.read("req/#{gemn}/gemspec"))
     mkdir_p "#{gdir}/specifications"
     mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
     FileList["req/#{gemn}/lib/*"].each { |rlib| cp_r rlib, "#{gdir}/gems/#{spec.full_name}/lib" }
-    FileList["req/#{gemn}/ext/*"].each { |elib| copy_ext elib, "#{gdir}/gems/#{spec.full_name}/lib" }
+    mkdir_p "#{gdir}/gems/#{spec.full_name}/#{xdir}"
+    FileList["req/#{gemn}/ext/*"].each { |elib| 
+      copy_ext elib, "#{gdir}/gems/#{spec.full_name}/#{xdir}" }
     cp "req/#{gemn}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
   end
 
