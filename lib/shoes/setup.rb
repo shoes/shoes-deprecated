@@ -12,7 +12,6 @@ class << Gem::Ext::ExtConfBuilder
     make__(dest_path, results)
   end
 end
-class << Gem; attr_accessor :loaded_specs end
 
 # STDIN.reopen("/dev/tty") if STDIN.eof?
 class NotSupportedByShoes < Exception; end
@@ -25,7 +24,7 @@ class Shoes::Setup
   end
 
   def self.gem_reset
-    Gem.use_paths(GEM_DIR, [GEM_DIR])
+    Gem.use_paths(GEM_DIR, [GEM_DIR, GEM_CENTRAL_DIR])
     Gem.source_index.refresh!
   end
 

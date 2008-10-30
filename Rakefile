@@ -60,6 +60,17 @@ def copy_files glob, dir
   FileList[glob].each { |f| cp_r f, dir }
 end
 
+def copy_ext xdir, libdir
+  case RUBY_PLATFORM when /win32/, /darwin/
+    copy_files "#{xdir}/*.dll", libdir
+  else
+    Dir.chdir(xdir) do
+      `ruby extconf.rb; make`
+    end
+    copy_files "#{xdir}/*.so", "dist/ruby/lib/#{RUBY_PLATFORM}"
+  end
+end
+
 ruby_so = Config::CONFIG['RUBY_SO_NAME']
 ext_ruby = "deps/ruby"
 unless File.exists? ext_ruby
@@ -95,18 +106,20 @@ task :build => [:build_os, "dist/VERSION.txt"] do
       rm_rf "dist/ruby/lib/#{libn}"
     end
   end
-  %w[req/rubygems/* req/sqlite3/lib/* req/hpricot/lib/* req/ftsearch/lib/*].each do |rdir|
+  %w[req/rubygems/* req/ftsearch/lib/*].each do |rdir|
     FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
   end
-  %w[req/binject/ext/binject_c req/sqlite3/ext/sqlite3_api req/hpricot/ext/hpricot_scan req/ftsearch/ext/ftsearchrt].each do |xdir|
-    case RUBY_PLATFORM when /win32/, /darwin/
-      copy_files "#{xdir}/*.dll", "dist/ruby/lib/#{RUBY_PLATFORM}"
-    else
-      Dir.chdir(xdir) do
-        `ruby extconf.rb; make`
-      end
-      copy_files "#{xdir}/*.so", "dist/ruby/lib/#{RUBY_PLATFORM}"
-    end
+  %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt].
+    each { |xdir| copy_ext xdir, "dist/ruby/lib/#{RUBY_PLATFORM}" }
+
+  gdir = "dist/ruby/gems/#{Config::CONFIG['ruby_version']}"
+  %w[hpricot sqlite3].each do |gemn|
+    spec = eval(File.read("req/#{gemn}/gemspec"))
+    mkdir_p "#{gdir}/specifications"
+    mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
+    FileList["req/#{gemn}/lib/*"].each { |rlib| cp_r rlib, "#{gdir}/gems/#{spec.full_name}/lib" }
+    FileList["req/#{gemn}/ext/*"].each { |elib| copy_ext elib, "#{gdir}/gems/#{spec.full_name}/lib" }
+    cp "req/#{gemn}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
   end
 
   case RUBY_PLATFORM when /win32/

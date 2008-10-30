@@ -20,7 +20,6 @@ LIB_DIR.gsub! /\\/, '/'
 SITE_LIB_DIR = File.join(LIB_DIR, '+lib')
 GEM_DIR = File.join(LIB_DIR, '+gem')
 CACHE_DIR = File.join(LIB_DIR, '+cache')
-GEM_CENTRAL_DIR = File.join(DIR, "ruby/gems")
 
 mkdir_p(CACHE_DIR)
 $:.unshift SITE_LIB_DIR
@@ -49,4 +48,7 @@ config = {
 }
 Config::CONFIG.merge! config
 Config::MAKEFILE_CONFIG.merge! config
-
+GEM_CENTRAL_DIR = File.join(DIR, 'ruby/gems/' + Config::CONFIG['ruby_version'])
+Dir[GEM_CENTRAL_DIR + "/gems/*"].each do |gdir|
+  $: << "#{gdir}/lib"
+end
