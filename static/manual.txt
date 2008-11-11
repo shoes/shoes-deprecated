@@ -482,7 +482,7 @@ Pops up an "Open folder..." window. It's the standard window which shows all of 
  puts Dir[folder].entries
 }}}
 
-=== ask_save_folder() » a string ===
+=== ask_save_folder() » a string ===»
 
 Pops up a "Save folder..." window, similiar to `ask_open_folder`, described previously. On OS X, this method currently behaves like an alias of `ask_open_folder`.
 
@@ -774,6 +774,16 @@ Most styles can also be set by calling them as methods.  (I'd use the manual sea
 
 Rather than making you plow through the whole manual to figure out what styles go where, this helpful page speeds through every style in Shoes and suggests where that style is used.
 
+=== :align » a string ===
+
+For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''
+
+The alignment of the text. It is either:
+
+ * 'left': Align the text to the left.
+ * 'center': Align the text in the center.
+ * 'right': Align the text to the right.
+
 === :angle » a number ===
 
 For: ''background, border, gradient''.
@@ -915,6 +925,12 @@ The size of the inner radius (in pixels.)  The inner radius describes the solid 
 For: ''list_box''.
 
 The list of selections in the list box.  See the [[Element.list_box]] method for an example.
+
+=== :justify » true or false ===
+
+For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''
+
+Evenly spaces the text horizontally.
 
 === :kerning » a number ===
 
