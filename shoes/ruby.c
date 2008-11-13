@@ -3971,7 +3971,11 @@ shoes_download_threaded(VALUE self, VALUE url, VALUE attr)
   VALUE method = ATTR(attr, method);
   VALUE headers = ATTR(attr, headers);
   VALUE body = ATTR(attr, body);
-  if (!NIL_P(body))    req->body = RSTRING_PTR(body);
+  if (!NIL_P(body))
+  {
+    req->body = RSTRING_PTR(body);
+    req->bodylen = RSTRING_LEN(body);
+  }
   if (!NIL_P(method))  req->method = RSTRING_PTR(method);
   if (!NIL_P(headers)) req->headers = shoes_http_headers(headers);
 

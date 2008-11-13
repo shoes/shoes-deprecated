@@ -14,6 +14,7 @@ typedef struct {
   char *path;
 
   char *method, *body;
+  unsigned long bodylen;
   SHOES_DOWNLOAD_HEADERS headers;
 
   char *mem;

@@ -58,6 +58,12 @@
   flags = req->flags;
   handler = req->handler;
   data = req->data;
+  if (req->headers != NULL)
+    [nsreq setAllHTTPHeaderFields: req->headers];
+  if (req->body != NULL && req->bodylen > 0)
+    [nsreq setHTTPBody: [NSData dataWithBytes: req->body length: req->bodylen]];
+  if (req->method != NULL)
+    [nsreq setHTTPMethod: [NSString stringWithUTF8String: req->method]];
   last.tv_sec = 0;
   last.tv_usec = 0;
   size = total = 0;
@@ -206,5 +212,19 @@ shoes_http_error(SHOES_DOWNLOAD_ERROR code)
 SHOES_DOWNLOAD_HEADERS
 shoes_http_headers(VALUE hsh)
 {
-  return NULL;
+  long i;
+  NSDictionary *d = NULL;
+  VALUE keys = rb_funcall(hsh, s_keys, 0);
+  if (RARRAY_LEN(keys) > 0)
+  {
+    d = [NSMutableDictionary dictionaryWithCapacity: RARRAY_LEN(keys)];
+    for (i = 0; i < RARRAY_LEN(keys); i++)
+    {
+      VALUE key = rb_ary_entry(keys, i);
+      VALUE val = rb_hash_aref(hsh, key);
+      [d setValue: [NSString stringWithUTF8String: RSTRING_PTR(val)]
+         forKey:   [NSString stringWithUTF8String: RSTRING_PTR(key)]];
+    }
+  }
+  return d;
 }

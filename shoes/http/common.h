@@ -71,7 +71,7 @@ typedef struct {
   unsigned char stage;
   unsigned long status;
   char *hkey, *hval, *body;
-  unsigned long hkeylen, hvallen;
+  unsigned long hkeylen, hvallen, bodylen;
   unsigned LONG_LONG total;
   unsigned LONG_LONG transferred;
   unsigned long percent;
