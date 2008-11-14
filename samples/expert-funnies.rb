@@ -13,7 +13,7 @@ class Comic
   end
 
   def latest_image
-    @rss.search("//channel/item/description").first.inner_html.scan(/src="([^"]+\.\w+)"/).first
+    @rss.search("//channel/item").first.inner_html.scan(/src="([^"]+\.\w+)"/).first
   end
 end
 
