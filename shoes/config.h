@@ -202,7 +202,7 @@ typedef struct {
 #define DRAWABLE(ref) (libvlc_drawable_t)ref
 #define APP_WINDOW(app) (app == NULL ? NULL : app->slot->window)
 #define SHOES_TIME DWORD
-#define SHOES_DOWNLOAD_HEADERS char *
+#define SHOES_DOWNLOAD_HEADERS LPWSTR
 #define SHOES_DOWNLOAD_ERROR DWORD
 
 #endif

@@ -193,13 +193,19 @@ shoes_download(shoes_download_request *req)
 {
   ShoesHttp *http = [[ShoesHttp alloc] init];
   [http download: req];
+  if (req->method != NULL) free(req->method);
+  if (req->body != NULL) free(req->body);
+  if (req->headers != NULL) [req->headers release];
+  if (req->mem != NULL) free(req->mem);
+  if (req->filepath != NULL) free(req->filepath);
+  free(req->data);
+  free(req);
 }
 
 void
 shoes_queue_download(shoes_download_request *req)
 {
-  ShoesHttp *http = [[ShoesHttp alloc] init];
-  [http download: req];
+  shoes_download(req);
 }
 
 VALUE

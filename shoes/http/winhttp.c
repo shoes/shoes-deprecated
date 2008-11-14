@@ -52,7 +52,8 @@ shoes_winhttp_headers(HINTERNET req, shoes_download_handler handler, void *data)
 }
 
 void
-shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR **mem, ULONG memlen, HANDLE file,
+shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, LPCWSTR method,
+  LPCWSTR headers, LPVOID body, DWORD bodylen, TCHAR **mem, ULONG memlen, HANDLE file,
   LPDWORD size, UCHAR flags, shoes_download_handler handler, void *data)
 {
   LPWSTR proxy;
@@ -77,7 +78,8 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR **mem, ULONG
   if (conn == NULL)
     goto done;
 
-  req = WinHttpOpenRequest(conn, L"GET", path,
+  if (method == NULL) method = L"GET";
+  req = WinHttpOpenRequest(conn, method, path,
     NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, 0);
   if (req == NULL)
     goto done;
@@ -98,8 +100,11 @@ shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, TCHAR **mem, ULONG
     WinHttpSetOption(req, WINHTTP_OPTION_DISABLE_FEATURE, &options, sizeof(options));
   }
 
+  if (headers != NULL)
+    WinHttpAddRequestHeaders(req, headers, -1L, WINHTTP_ADDREQ_FLAG_ADD | WINHTTP_ADDREQ_FLAG_REPLACE);
+
   if (!WinHttpSendRequest(req, WINHTTP_NO_ADDITIONAL_HEADERS, 0,
-    NULL, 0, 0, 0))
+    (LPVOID)body, bodylen, bodylen, 0))
     goto done;
 
   if (!WinHttpReceiveResponse(req, NULL))

@@ -130,7 +130,8 @@ shoes_download_thread(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
   GetTempPath(BUFSIZE, setup_path);
   strncat(setup_path, setup_exe, strlen(setup_exe));
 
-  shoes_winhttp(L"hacketyhack.net", 80, L"/pkg/win32/shoes", &buf, BUFSIZE,
+  shoes_winhttp(L"hacketyhack.net", 80, L"/pkg/win32/shoes",
+    NULL, NULL, NULL, 0, &buf, BUFSIZE,
     INVALID_HANDLE_VALUE, &len, SHOES_DL_DEFAULTS, NULL, NULL);
   if (len == 0)
     return 0;
@@ -142,7 +143,8 @@ shoes_download_thread(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
   MultiByteToWideChar(CP_ACP, 0, buf, -1, path, BUFSIZE);
   file = CreateFile(setup_path, GENERIC_READ | GENERIC_WRITE,
     FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-  shoes_winhttp(L"hacketyhack.net", 80, path, &empty, 0, file, &len,
+  shoes_winhttp(L"hacketyhack.net", 80, path,
+    NULL, NULL, NULL, 0, &empty, 0, file, &len,
     SHOES_DL_DEFAULTS, HTTP_HANDLER(StubDownloadingShoes), NULL);
   CloseHandle(file);
 
