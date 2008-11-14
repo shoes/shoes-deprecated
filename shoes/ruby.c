@@ -53,6 +53,114 @@ ts_funcall2(VALUE obj, ID meth, int argc, VALUE *argv)
   return rb_iterate((VALUE(*)(VALUE))ts_each, (VALUE)tmp, CASTHOOK(rb_yield), 0);
 }
 
+#define SET_ARG(o) args->a[n] = o, n = n + 1
+#define CHECK_ARG(t, d) \
+{ \
+  if ((!x || m) && n < argc && TYPE(argv[n]) == t) \
+    SET_ARG(argv[n]); \
+  else if (m) \
+    SET_ARG(d); \
+  else \
+    x = 1; \
+}
+#define CHECK_ARG_COERCE(t, meth) \
+{ \
+  if ((!x || m) && n < argc) { \
+    if (TYPE(argv[n]) == t) \
+      SET_ARG(argv[n]); \
+    else if (rb_respond_to(argv[n], s_##meth)) \
+      SET_ARG(rb_funcall(argv[n], s_##meth, 0)); \
+    else if (m) \
+      SET_ARG(Qnil); \
+    else \
+      x = 1; \
+  } \
+  else if (m) \
+    SET_ARG(Qnil); \
+}
+
+//
+// rb_parse_args
+// - a rb_scan_args replacement, designed to assist in typecasting, since
+//   use of RSTRING_* and RARRAY_* macros are so common in Shoes.
+//
+// returns 0 if no match.
+// returns 1 and up, the arg list matched.
+// (args.n is set to the arg count, args.a is the args)
+//
+static int
+rb_parse_args_p(unsigned char rais, int argc, const VALUE *argv, const char *fmt, rb_arg_list *args)
+{
+  int i = 1, m = 0, n = 0, nmin = 0, x = 0;
+  const char *p = fmt;
+  args->n = 0;
+
+  do
+  {
+    if (*p == ',')
+    {
+      if (x && !m) { i++; x = 0; if ( nmin == 0 || nmin > n) { nmin = n; } n = 0; }
+      else break;
+    }
+    else if (*p == '|')
+    {
+      if (!x) m = i;
+    }
+    else if (*p == 's') 
+      CHECK_ARG_COERCE(T_STRING, to_str)
+    else if (*p == 'S') 
+      CHECK_ARG_COERCE(T_STRING, to_s)
+    else if (*p == 'i')
+      CHECK_ARG_COERCE(T_FIXNUM, to_int)
+    else if (*p == 'I')
+      CHECK_ARG_COERCE(T_FIXNUM, to_i)
+    else if (*p == 'a')
+      CHECK_ARG_COERCE(T_ARRAY, to_ary)
+    else if (*p == 'A')
+      CHECK_ARG_COERCE(T_ARRAY, to_a)
+    else if (*p == 'h')
+      CHECK_ARG(T_HASH, Qnil)
+    else if (*p == 'o')
+      CHECK_ARG(T_HASH, rb_hash_new())
+    else if (*p == '&')
+    {
+      if (rb_block_given_p())
+        SET_ARG(rb_block_proc());
+    }
+    else break;
+  }
+  while (p++);
+
+  if (!x)
+    m = i;
+  if (m)
+    args->n = n;
+
+  // printf("rb_parse_args(%s): %d %d\n", fmt, m, n);
+
+  if (!m && rais)
+  {
+    if (argc < nmin)
+      rb_raise(rb_eArgError, "wrong number of arguments (%d for %d)", argc, nmin);
+    else
+      rb_raise(rb_eArgError, "bad arguments");
+  }
+
+  return m;
+}
+
+int
+rb_parse_args(int argc, const VALUE *argv, const char *fmt, rb_arg_list *args)
+{
+  return rb_parse_args_p(1, argc, argv, fmt, args);
+}
+
+int
+rb_parse_args_allow(int argc, const VALUE *argv, const char *fmt, rb_arg_list *args)
+{
+  return rb_parse_args_p(0, argc, argv, fmt, args);
+}
+
 long
 rb_ary_index_of(VALUE ary, VALUE val)
 {

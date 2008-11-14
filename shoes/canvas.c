@@ -682,36 +682,30 @@ shoes_canvas_video(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_image(int argc, VALUE *argv, VALUE self)
 {
-  VALUE path, attr, _w, _h, image, block;
+  rb_arg_list args;
+  VALUE path = Qnil, attr = Qnil, _w, _h, image;
 
-  if (argc == 0 || (argc == 1 && rb_obj_is_kind_of(argv[0], rb_cHash)))
+  switch (rb_parse_args(argc, argv, "ii|o,s|o,|o", &args))
   {
-    rb_scan_args(argc, argv, "01&", &attr, &block);
-    CHECK_HASH(attr);
-    _w = ATTR(attr, width);
-    _h = ATTR(attr, height);
-  }
-  else
-  {
-    rb_scan_args(argc, argv, "12&", &_w, &_h, &attr, &block);
-    CHECK_HASH(attr);
-  }
+    case 1:
+      _w = args.a[0];
+      _h = args.a[1];
+      attr = args.a[2];
+      ATTRSET(attr, width, _w);
+      ATTRSET(attr, height, _h);
+      if (rb_block_given_p()) ATTRSET(attr, draw, rb_block_proc());
+    break;
 
-  if (NIL_P(_w) || FIXNUM_P(_w))
-  {
-    path = Qnil;
-    if (FIXNUM_P(_w)) ATTRSET(attr, width, _w);
-    if (FIXNUM_P(_h)) ATTRSET(attr, height, _h);
-    ATTRSET(attr, draw, block);
-  }
-  else
-  {
-    rb_scan_args(argc, argv, "11&", &path, &attr, &block);
-    if (!NIL_P(block))
-    {
-      CHECK_HASH(attr);
-      ATTRSET(attr, click, block);
-    }
+    case 2:
+      path = args.a[0];
+      attr = args.a[1];
+      if (rb_block_given_p()) ATTRSET(attr, click, rb_block_proc());
+    break;
+
+    case 3:
+      attr = args.a[0];
+      if (rb_block_given_p()) ATTRSET(attr, draw, rb_block_proc());
+    break;
   }
 
   if (rb_obj_is_kind_of(self, cImage))
