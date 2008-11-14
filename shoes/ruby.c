@@ -54,15 +54,25 @@ ts_funcall2(VALUE obj, ID meth, int argc, VALUE *argv)
 }
 
 #define SET_ARG(o) args->a[n] = o, n = n + 1
-#define CHECK_ARG(t, d) \
+#define CHECK_ARG(mac, t, d) \
 { \
-  if ((!x || m) && n < argc && TYPE(argv[n]) == t) \
-    SET_ARG(argv[n]); \
+  if ((!x || m) && n < argc) \
+  { \
+    if (mac(argv[n]) == t) \
+      SET_ARG(argv[n]); \
+    else \
+    { \
+      if (m) m = 0; \
+      x = 1; \
+    } \
+  } \
   else if (m) \
     SET_ARG(d); \
   else \
     x = 1; \
 }
+#define CHECK_ARG_TYPE(t, d) CHECK_ARG(TYPE, t, d)
+#define CHECK_ARG_NOT_NIL()  CHECK_ARG(NIL_P, 0, Qnil)
 #define CHECK_ARG_COERCE(t, meth) \
 { \
   if ((!x || m) && n < argc) { \
@@ -70,13 +80,16 @@ ts_funcall2(VALUE obj, ID meth, int argc, VALUE *argv)
       SET_ARG(argv[n]); \
     else if (rb_respond_to(argv[n], s_##meth)) \
       SET_ARG(rb_funcall(argv[n], s_##meth, 0)); \
-    else if (m) \
-      SET_ARG(Qnil); \
     else \
+    { \
+      if (m) m = 0; \
       x = 1; \
+    } \
   } \
   else if (m) \
     SET_ARG(Qnil); \
+  else \
+    x = 1; \
 }
 
 //
@@ -118,14 +131,18 @@ rb_parse_args_p(unsigned char rais, int argc, const VALUE *argv, const char *fmt
       CHECK_ARG_COERCE(T_ARRAY, to_ary)
     else if (*p == 'A')
       CHECK_ARG_COERCE(T_ARRAY, to_a)
+    else if (*p == 'k')
+      CHECK_ARG_TYPE(T_CLASS, Qnil)
     else if (*p == 'h')
-      CHECK_ARG(T_HASH, Qnil)
+      CHECK_ARG_TYPE(T_HASH, Qnil)
     else if (*p == 'o')
-      CHECK_ARG(T_HASH, rb_hash_new())
+      CHECK_ARG_NOT_NIL()
     else if (*p == '&')
     {
       if (rb_block_given_p())
         SET_ARG(rb_block_proc());
+      else
+        SET_ARG(Qnil);
     }
     else break;
   }
@@ -136,7 +153,7 @@ rb_parse_args_p(unsigned char rais, int argc, const VALUE *argv, const char *fmt
   if (m)
     args->n = n;
 
-  // printf("rb_parse_args(%s): %d %d\n", fmt, m, n);
+  // printf("rb_parse_args(%s): %d %d (%d)\n", fmt, m, n, x);
 
   if (!m && rais)
   {
