@@ -1853,12 +1853,13 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
 VALUE
 shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
 {
-  char h = 0, *n = 0;
+  char oh, h = 0, *n = 0;
   long i;
   int ox = x, oy = y;
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
 
+  oh = self_t->hover;
   h = IS_INSIDE(self_t, x, y);
   CHECK_HOVER(self_t, h, n);
 
@@ -1867,7 +1868,7 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
     y += self_t->slot->scrolly;
     ox = x - self_t->place.ix + self_t->place.dx;
     oy = y - (self_t->place.iy + self_t->place.dy);
-    if (oy < self_t->slot->scrolly || ox < 0 || oy > self_t->slot->scrolly + self_t->place.ih || ox > self_t->place.iw)
+    if (!oh && (oy < self_t->slot->scrolly || ox < 0 || oy > self_t->slot->scrolly + self_t->place.ih || ox > self_t->place.iw))
       return Qnil;
   }
 
