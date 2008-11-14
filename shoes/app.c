@@ -108,7 +108,7 @@ VALUE
 shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner)
 {
   rb_arg_list args;
-  VALUE attr = Qnil, block = Qnil;
+  VALUE attr = Qnil;
   VALUE app = shoes_app_new(self == cDialog ? cDialog : cApp);
   shoes_app *app_t;
   char *url = "/";
@@ -126,7 +126,7 @@ shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner)
     break;
   }
 
-  rb_iv_set(app, "@main_app", block);
+  if (rb_block_given_p()) rb_iv_set(app, "@main_app", rb_block_proc());
   app_t->owner = owner;
   app_t->title = ATTR(attr, title);
   app_t->resizable = (ATTR(attr, resizable) != Qfalse);

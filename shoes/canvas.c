@@ -1426,26 +1426,26 @@ shoes_canvas_insert(VALUE self, long i, VALUE ele, VALUE block)
 VALUE
 shoes_canvas_after(int argc, VALUE *argv, VALUE self)
 {
-  VALUE ele, block;
-  rb_scan_args(argc, argv, "01&", &ele, &block);
-  shoes_canvas_insert(self, -1, ele, block);
+  rb_arg_list args;
+  rb_parse_args(argc, argv, "|e&", &args);
+  shoes_canvas_insert(self, -1, args.a[0], args.a[1]);
   return self;
 }
 
 VALUE
 shoes_canvas_before(int argc, VALUE *argv, VALUE self)
 {
-  VALUE ele, block;
-  rb_scan_args(argc, argv, "01&", &ele, &block);
-  shoes_canvas_insert(self, 0, ele, block);
+  rb_arg_list args;
+  rb_parse_args(argc, argv, "|e&", &args);
+  shoes_canvas_insert(self, 0, args.a[0], args.a[1]);
   return self;
 }
 
 VALUE
 shoes_canvas_append(int argc, VALUE *argv, VALUE self)
 {
-  VALUE block;
-  rb_scan_args(argc, argv, "0&", &block);
+  VALUE block = Qnil;
+  if (rb_block_given_p()) block = rb_block_proc();
   shoes_canvas_insert(self, -1, Qnil, block);
   return self;
 }
@@ -1453,8 +1453,8 @@ shoes_canvas_append(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_prepend(int argc, VALUE *argv, VALUE self)
 {
-  VALUE block;
-  rb_scan_args(argc, argv, "0&", &block);
+  VALUE block = Qnil;
+  if (rb_block_given_p()) block = rb_block_proc();
   shoes_canvas_insert(self, 0, Qnil, block);
   return self;
 }
@@ -1462,10 +1462,10 @@ shoes_canvas_prepend(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_clear_contents(int argc, VALUE *argv, VALUE self)
 {
-  VALUE block;
+  VALUE block = Qnil;
   SETUP();
 
-  rb_scan_args(argc, argv, "0&", &block);
+  if (rb_block_given_p()) block = rb_block_proc();
   shoes_canvas_empty(canvas);
   if (!NIL_P(block))
     shoes_canvas_memdraw(self, block);
@@ -1476,15 +1476,15 @@ shoes_canvas_clear_contents(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_flow(int argc, VALUE *argv, VALUE self)
 {
-  VALUE attr, block, flow;
+  rb_arg_list args;
+  VALUE flow;
   SETUP();
 
-  rb_scan_args(argc, argv, "01&", &attr, &block);
-  CHECK_HASH(attr);
-  flow = shoes_flow_new(attr, self);
-  if (!NIL_P(block))
+  rb_parse_args(argc, argv, "|h&", &args);
+  flow = shoes_flow_new(args.a[0], self);
+  if (!NIL_P(args.a[1]))
   {
-    DRAW(flow, canvas->app, rb_funcall(block, s_call, 0));
+    DRAW(flow, canvas->app, rb_funcall(args.a[1], s_call, 0));
   }
   shoes_add_ele(canvas, flow);
   return flow;
@@ -1493,15 +1493,15 @@ shoes_canvas_flow(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_stack(int argc, VALUE *argv, VALUE self)
 {
-  VALUE attr, block, stack;
+  rb_arg_list args;
+  VALUE stack;
   SETUP();
 
-  rb_scan_args(argc, argv, "01&", &attr, &block);
-  CHECK_HASH(attr);
-  stack = shoes_stack_new(attr, self);
-  if (!NIL_P(block))
+  rb_parse_args(argc, argv, "|h&", &args);
+  stack = shoes_stack_new(args.a[0], self);
+  if (!NIL_P(args.a[1]))
   {
-    DRAW(stack, canvas->app, rb_funcall(block, s_call, 0));
+    DRAW(stack, canvas->app, rb_funcall(args.a[1], s_call, 0));
   }
   shoes_add_ele(canvas, stack);
   return stack;
@@ -1510,15 +1510,15 @@ shoes_canvas_stack(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_mask(int argc, VALUE *argv, VALUE self)
 {
-  VALUE attr, block, mask;
+  rb_arg_list args;
+  VALUE mask;
   SETUP();
 
-  rb_scan_args(argc, argv, "01&", &attr, &block);
-  CHECK_HASH(attr);
-  mask = shoes_mask_new(attr, self);
-  if (!NIL_P(block))
+  rb_parse_args(argc, argv, "|h&", &args);
+  mask = shoes_mask_new(args.a[0], self);
+  if (!NIL_P(args.a[1]))
   {
-    DRAW(mask, canvas->app, rb_funcall(block, s_call, 0));
+    DRAW(mask, canvas->app, rb_funcall(args.a[1], s_call, 0));
   }
   shoes_add_ele(canvas, mask);
   return mask;
@@ -1527,14 +1527,13 @@ shoes_canvas_mask(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_widget(int argc, VALUE *argv, VALUE self)
 {
-  VALUE klass, attr, args, widget;
+  rb_arg_list args;
+  VALUE widget, attr = Qnil;
   SETUP();
 
-  rb_scan_args(argc, argv, "1*", &klass, &args);
-  attr = rb_ary_pop(args);
-  CHECK_HASH(attr);
-
-  widget = shoes_widget_new(klass, attr, self);
+  if (rb_parse_args(argc, argv, "k,kh", &args) == 2)
+    attr = args.a[1];
+  widget = shoes_widget_new(args.a[0], attr, self);
   DRAW(widget, canvas->app, ts_funcall2(widget, rb_intern("initialize"), argc - 1, argv + 1));
   shoes_add_ele(canvas, widget);
   return widget;
