@@ -23,6 +23,14 @@ How does Shoes look on Windows and OS X?  And is it really that easy to get it r
 
 First, let's take a look at Shoes on each of the platforms.
 
+==== Shoes on Linux ====
+
+Here's a screenshot of the '''simple-downloader.rb''' sample running on Ubuntu Linux. !man-look-ubuntu.png!
+
+Notice how the buttons and progress bars are all different from the controls seen in the Windows and OS X examples.  The text and links look much the same, though.
+
+Shapes, text, images and videos all look the same on every platforms.  However, native controls (like edit lines and edit boxes) will match the look of the window theme.
+
 ==== Step 1: Installing Shoes ====
 
 You'll want to visit [[http://shoooes.net/ shoooes.net]] to download the Shoes installer.  Usually, you'll just want one of the installers on the top corner of the home page. !man-builds.png!
