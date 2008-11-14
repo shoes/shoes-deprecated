@@ -21,13 +21,25 @@ So, welcome to Shoes' built-in manual. This manual is a Shoes program itself!
 
 How does Shoes look on Windows and OS X?  And is it really that easy to get it running?  Absolutely!  In just a few minutes you can get comfortable in Shoes.  And this is the page.  It's all you really need.  This page and five minutes.
 
+==== Mac OS X ====
+
 First, let's take a look at Shoes on each of the platforms.
 
-==== Shoes on Linux ====
+Shoes runs on Apple Mac OS X Leopard, as well as Tiger.  Shoes supports PowerPC machines as well, however, there is no video support on that platform. !man-look-tiger.png!
 
-Here's a screenshot of the '''simple-downloader.rb''' sample running on Ubuntu Linux. !man-look-ubuntu.png!
+This is the `simple-sphere.rb` sample running on Tiger.  Notice that the app runs inside a normal OS X window border.
 
-Notice how the buttons and progress bars are all different from the controls seen in the Windows and OS X examples.  The text and links look much the same, though.
+==== Windows ====
+
+Shoes runs on all versions of '''Microsoft Windows XP''', '''Microsoft Windows Vista''', and anything else '''Windows 2000''' compatible. !man-look-vista.png!
+
+Above is pictured the `simple-clock.rb` sample running on Windows Vista.
+
+==== Linux ====
+
+Here's a screenshot of the `simple-downloader.rb` sample running on '''Ubuntu Linux'''. !man-look-ubuntu.png!
+
+Notice how the buttons and progress bars are all different from the controls seen in the OS X example.  The text and links look much the same, though.
 
 Shapes, text, images and videos all look the same on every platforms.  However, native controls (like edit lines and edit boxes) will match the look of the window theme.
 
