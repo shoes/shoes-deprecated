@@ -2089,25 +2089,8 @@ shoes_canvas_set_clipboard(VALUE self, VALUE string)
 VALUE
 shoes_canvas_window(int argc, VALUE *argv, VALUE self)
 {
-  VALUE uri, attr, block;
   SETUP();
-
-  if (rb_block_given_p())
-    return shoes_app_window(argc, argv, cApp, canvas->app->self);
-
-  rb_scan_args(argc, argv, "02&", &uri, &attr, &block);
-  CHECK_HASH(attr);
-  if (rb_obj_is_kind_of(uri, rb_cHash))
-  {
-    attr = uri;
-    uri = Qnil;
-  }
-
-  if (!NIL_P(uri))
-    shoes_load(RSTRING_PTR(uri));
-
-  // TODO: do I send back an array of created App objects I guess?
-  return Qnil;
+  return shoes_app_window(argc, argv, cApp, canvas->app->self);
 }
 
 VALUE

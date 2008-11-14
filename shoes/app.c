@@ -107,15 +107,26 @@ shoes_app_resize(shoes_app *app, int width, int height)
 VALUE
 shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner)
 {
-  VALUE attr, block;
+  rb_arg_list args;
+  VALUE attr = Qnil, block = Qnil;
   VALUE app = shoes_app_new(self == cDialog ? cDialog : cApp);
   shoes_app *app_t;
+  char *url = "/";
   Data_Get_Struct(app, shoes_app, app_t);
 
-  rb_scan_args(argc, argv, "01&", &attr, &block);
-  rb_iv_set(app, "@main_app", block);
+  switch (rb_parse_args(argc, argv, "h,s|h,", &args))
+  {
+    case 1:
+      attr = args.a[0];
+    break;
 
-  CHECK_HASH(attr);
+    case 2:
+      url = RSTRING_PTR(args.a[0]);
+      attr = args.a[1];
+    break;
+  }
+
+  rb_iv_set(app, "@main_app", block);
   app_t->owner = owner;
   app_t->title = ATTR(attr, title);
   app_t->resizable = (ATTR(attr, resizable) != Qfalse);
@@ -123,7 +134,7 @@ shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner)
   shoes_app_resize(app_t, ATTR2(int, attr, width, SHOES_APP_WIDTH), ATTR2(int, attr, height, SHOES_APP_HEIGHT));
   shoes_canvas_init(app_t->canvas, app_t->slot, attr, app_t->width, app_t->height);
   if (shoes_world->mainloop)
-    shoes_app_open(app_t, "/");
+    shoes_app_open(app_t, url);
   return app;
 }
 

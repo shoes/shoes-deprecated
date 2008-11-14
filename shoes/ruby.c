@@ -153,7 +153,7 @@ rb_parse_args_p(unsigned char rais, int argc, const VALUE *argv, const char *fmt
   if (m)
     args->n = n;
 
-  // printf("rb_parse_args(%s): %d %d (%d)\n", fmt, m, n, x);
+  printf("rb_parse_args(%s): %d %d (%d)\n", fmt, m, n, x);
 
   if (!m && rais)
   {
