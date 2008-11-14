@@ -1060,18 +1060,18 @@ shoes_dialog_alert(VALUE self, VALUE msg)
 VALUE
 shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
 {
-  VALUE quiz, attr = Qnil, answer = Qnil;
-  rb_scan_args(argc, argv, "11", &quiz, &attr);
+  rb_arg_list args;
+  VALUE answer = Qnil;
+  rb_parse_args(argc, argv, "s|h", &args);
   GLOBAL_APP(app);
-  quiz = shoes_native_to_s(quiz);
   GtkWidget *dialog = gtk_dialog_new_with_buttons(_(dialog_title),
     APP_WINDOW(app), GTK_DIALOG_MODAL, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
   gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
   gtk_container_set_border_width(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), 6);
-  GtkWidget *question = gtk_label_new(RSTRING_PTR(quiz));
+  GtkWidget *question = gtk_label_new(RSTRING_PTR(args.a[0]));
   gtk_misc_set_alignment(GTK_MISC(question), 0, 0);
   GtkWidget *_answer = gtk_entry_new();
-  if (RTEST(ATTR(attr, secret))) shoes_native_secrecy(_answer);
+  if (RTEST(ATTR(args.a[1], secret))) shoes_native_secrecy(_answer);
   gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), question, FALSE, FALSE, 3);
   gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), _answer, FALSE, TRUE, 3);
   gtk_widget_show_all(dialog);

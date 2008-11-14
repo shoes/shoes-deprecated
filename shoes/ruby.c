@@ -54,12 +54,14 @@ ts_funcall2(VALUE obj, ID meth, int argc, VALUE *argv)
 }
 
 #define SET_ARG(o) args->a[n] = o, n = n + 1
-#define CHECK_ARG(mac, t, d) \
+#define CHECK_ARG(mac, t, d, cond, condarg) \
 { \
   if ((!x || m) && n < argc) \
   { \
     if (mac(argv[n]) == t) \
       SET_ARG(argv[n]); \
+    else if (cond) \
+      SET_ARG(condarg); \
     else \
     { \
       if (m) m = 0; \
@@ -71,26 +73,11 @@ ts_funcall2(VALUE obj, ID meth, int argc, VALUE *argv)
   else \
     x = 1; \
 }
-#define CHECK_ARG_TYPE(t, d) CHECK_ARG(TYPE, t, d)
-#define CHECK_ARG_NOT_NIL()  CHECK_ARG(NIL_P, 0, Qnil)
+#define CHECK_ARG_TYPE(t, d) CHECK_ARG(TYPE, t, d, 0, Qnil)
+#define CHECK_ARG_NOT_NIL()  CHECK_ARG(NIL_P, 0, Qnil, 0, Qnil)
 #define CHECK_ARG_COERCE(t, meth) \
-{ \
-  if ((!x || m) && n < argc) { \
-    if (TYPE(argv[n]) == t) \
-      SET_ARG(argv[n]); \
-    else if (rb_respond_to(argv[n], s_##meth)) \
-      SET_ARG(rb_funcall(argv[n], s_##meth, 0)); \
-    else \
-    { \
-      if (m) m = 0; \
-      x = 1; \
-    } \
-  } \
-  else if (m) \
-    SET_ARG(Qnil); \
-  else \
-    x = 1; \
-}
+  CHECK_ARG(TYPE, t, Qnil, rb_respond_to(argv[n], s_##meth), rb_funcall(argv[n], s_##meth, 0))
+#define CHECK_ARG_DATA(func) CHECK_ARG(TYPE, T_DATA, Qnil, func(argv[n]), argv[n])
 
 //
 // rb_parse_args
@@ -144,6 +131,14 @@ rb_parse_args_p(unsigned char rais, int argc, const VALUE *argv, const char *fmt
       else
         SET_ARG(Qnil);
     }
+
+    //
+    // shoes-specific structures
+    //
+    else if (*p == 'e')
+      CHECK_ARG_DATA(shoes_is_element)
+    else if (*p == 'E')
+      CHECK_ARG_DATA(shoes_is_any)
     else break;
   }
   while (p++);
@@ -570,6 +565,37 @@ shoes_basic_remove(VALUE self)
   return self;
 }
 
+unsigned char
+shoes_is_element_p(VALUE ele, unsigned char any)
+{
+  void *dmark;
+  if (TYPE(ele) != T_DATA)
+    return 0;
+  dmark = RDATA(ele)->dmark;
+  return (dmark == shoes_canvas_mark || dmark == shoes_shape_mark ||
+    dmark == shoes_image_mark || dmark == shoes_effect_mark ||
+    dmark == shoes_pattern_mark || dmark == shoes_color_mark ||
+    dmark == shoes_textblock_mark || dmark == shoes_control_mark ||
+    dmark == shoes_timer_mark || dmark == shoes_download_mark ||
+    (any && (dmark == shoes_link_mark || dmark == shoes_text_mark))
+#ifdef VIDEO
+    || dmark == shoes_video_mark
+#endif
+  );
+}
+
+unsigned char
+shoes_is_element(VALUE ele)
+{
+  return shoes_is_element_p(ele, 0);
+}
+
+unsigned char
+shoes_is_any(VALUE ele)
+{
+  return shoes_is_element_p(ele, 1);
+}
+
 void
 shoes_ele_remove_all(VALUE contents)
 {
@@ -722,7 +748,7 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
 //
 // Shoes::Shape
 //
-static void
+void
 shoes_shape_mark(shoes_shape *path)
 {
   rb_gc_mark_maybe(path->parent);
@@ -1003,7 +1029,7 @@ shoes_shape_send_release(VALUE self, int button, int x, int y)
 //
 // Shoes::Image
 //
-static void
+void
 shoes_image_mark(shoes_image *image)
 {
   rb_gc_mark_maybe(image->path);
@@ -1287,7 +1313,7 @@ shoes_image_send_release(VALUE self, int button, int x, int y)
 //
 // Shoes::Effect
 //
-static void
+void
 shoes_effect_mark(shoes_effect *fx)
 {
   rb_gc_mark_maybe(fx->parent);
@@ -1362,7 +1388,7 @@ static void shoes_vlc_exception(libvlc_exception_t *excp)
   }
 }
 
-static void
+void
 shoes_video_mark(shoes_video *video)
 {
   rb_gc_mark_maybe(video->path);
@@ -1644,7 +1670,7 @@ VIDEO_SET_METHOD(position, NUM2DBL);
 //
 // Shoes::Pattern
 //
-static void
+void
 shoes_pattern_mark(shoes_pattern *pattern)
 {
   rb_gc_mark_maybe(pattern->source);
@@ -1848,7 +1874,7 @@ shoes_subpattern_new(VALUE klass, VALUE pat, VALUE parent)
 //
 // Shoes::Color
 //
-static void
+void
 shoes_color_mark(shoes_color *color)
 {
 }
@@ -2192,7 +2218,7 @@ shoes_app_method_missing(int argc, VALUE *argv, VALUE self)
 //
 // Shoes::LinkUrl
 //
-static void
+void
 shoes_link_mark(shoes_link *link)
 {
 }
@@ -2251,7 +2277,7 @@ shoes_link_at(VALUE self, int index, int blockhover, VALUE *clicked, char *touch
 //
 // Shoes::Text
 //
-static void
+void
 shoes_text_mark(shoes_text *text)
 {
   rb_gc_mark_maybe(text->texts);
@@ -2331,7 +2357,7 @@ shoes_text_children(VALUE self)
 //
 // Shoes::TextBlock
 //
-static void
+void
 shoes_textblock_mark(shoes_textblock *text)
 {
   rb_gc_mark_maybe(text->texts);
@@ -3006,7 +3032,7 @@ shoes_textblock_string(VALUE self)
 //
 // Shoes::Button
 //
-static void
+void
 shoes_control_mark(shoes_control *control)
 {
   rb_gc_mark_maybe(control->parent);
@@ -3791,7 +3817,7 @@ shoes_timer_call(VALUE self)
   }
 }
 
-static void
+void
 shoes_timer_mark(shoes_timer *timer)
 {
   rb_gc_mark_maybe(timer->block);
@@ -3928,7 +3954,7 @@ shoes_msg(ID typ, VALUE str)
 //
 // Shoes::Download
 //
-static void
+void
 shoes_download_mark(shoes_download_klass *dl)
 {
   rb_gc_mark_maybe(dl->parent);

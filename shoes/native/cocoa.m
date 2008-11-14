@@ -1201,15 +1201,15 @@ shoes_dialog_alert(VALUE self, VALUE msg)
 VALUE
 shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
 {
-  VALUE quiz, attr = Qnil, answer = Qnil;
-  rb_scan_args(argc, argv, "11", &quiz, &attr);
-  quiz = shoes_native_to_s(quiz);
+  rb_arg_list args;
+  VALUE answer = Qnil;
+  rb_parse_args(argc, argv, "s|h", &args);
   COCOA_DO({
     NSAlert *alert = [NSAlert alertWithMessageText: @"Shoes asks:"
       defaultButton:@"OK" alternateButton:@"Cancel" otherButton:nil
-      informativeTextWithFormat: [NSString stringWithUTF8String: RSTRING_PTR(quiz)]];
+      informativeTextWithFormat: [NSString stringWithUTF8String: RSTRING_PTR(args.a[0])]];
     NSTextField *input;
-    if (RTEST(ATTR(attr, secret)))
+    if (RTEST(ATTR(args.a[1], secret)))
       input = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(0, 0, 300, 24)];
     else
       input = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 300, 24)];

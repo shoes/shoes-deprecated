@@ -256,7 +256,7 @@ shoes_add_ele(shoes_canvas *canvas, VALUE ele)
   return ele;
 }
 
-static void
+void
 shoes_canvas_mark(shoes_canvas *canvas)
 {
   rb_gc_mark_maybe(canvas->contents);
@@ -1354,20 +1354,15 @@ VALUE
 shoes_canvas_snapshot(int argc, VALUE *argv, VALUE self)
 {
   SETUP();
+  rb_arg_list args;
   ID   s_filename = rb_intern ("filename");
   ID   s_format   = rb_intern ("format");
-  VALUE  block    = Qnil;
-  VALUE _filename = Qnil;
-  VALUE _format   = Qnil;
-  VALUE  hash     = Qnil;
-  argc = rb_scan_args (argc, argv, "1&", &hash, &block);
+  VALUE _filename, _format;
+  rb_parse_args(argc, argv, "h&", &args);
 
-  if (argc == 1 && rb_obj_is_kind_of(hash, rb_cHash))
-  {
-    _filename = ATTR(hash, filename);
-    _format   = ATTR(hash, format);
-  }
-  if (NIL_P(block) || NIL_P(_filename) || NIL_P(_format))
+  _filename = ATTR(args.a[0], filename);
+  _format   = ATTR(args.a[0], format);
+  if (NIL_P(args.a[1]) || NIL_P(_filename) || NIL_P(_format))
   {
     rb_raise(rb_eArgError, "wrong arguments for _snapshot({:filename=>'...',"
                               ":format=>:pdf|:ps|:svg}, &block)\n");
@@ -1386,7 +1381,7 @@ shoes_canvas_snapshot(int argc, VALUE *argv, VALUE self)
     {
       cairo_t * waz_cr = canvas->cr;
       cairo_t * cr     = canvas->cr = cairo_create (surface);
-      DRAW(self, canvas->app, rb_funcall(block, s_call, 0));
+      DRAW(self, canvas->app, rb_funcall(args.a[1], s_call, 0));
       shoes_canvas_draw (self, self, Qfalse);
       shoes_canvas_draw (self, self, Qtrue);
       canvas->cr = waz_cr;

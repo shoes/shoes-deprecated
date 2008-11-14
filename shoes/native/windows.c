@@ -1482,13 +1482,13 @@ shoes_dialog_alert(VALUE self, VALUE msg)
 VALUE
 shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
 {
-  VALUE quiz, attr = Qnil, answer = Qnil;
-  rb_scan_args(argc, argv, "11", &quiz, &attr);
+  rb_arg_list args;
+  VALUE answer = Qnil;
+  rb_parse_args(argc, argv, "s|h", &args);
   GLOBAL_APP(app);
-  quiz = shoes_native_to_s(quiz);
-  win32_dialog_label = RSTRING_PTR(quiz);
+  win32_dialog_label = RSTRING_PTR(args.a[0]);
   int confirm = DialogBox(shoes_world->os.instance,
-    MAKEINTRESOURCE(RTEST(ATTR(attr, secret)) ? ASKSECRETDLG : ASKDLG),
+    MAKEINTRESOURCE(RTEST(ATTR(args.a[1], secret)) ? ASKSECRETDLG : ASKDLG),
     APP_WINDOW(app), shoes_ask_win32proc);
   if (confirm == IDOK)
   {

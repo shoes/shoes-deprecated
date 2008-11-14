@@ -343,6 +343,7 @@ void shoes_debug(const char *fmt, ...);
 void shoes_warn (const char *fmt, ...);
 void shoes_error(const char *fmt, ...);
 
+void shoes_canvas_mark(shoes_canvas *);
 VALUE shoes_canvas_alloc(VALUE);
 VALUE shoes_canvas_new(VALUE, struct _shoes_app *);
 void shoes_canvas_clear(VALUE);
@@ -483,6 +484,7 @@ VALUE shoes_stack_new(VALUE, VALUE);
 VALUE shoes_mask_new(VALUE, VALUE);
 VALUE shoes_widget_new(VALUE, VALUE, VALUE);
 
+void shoes_control_mark(shoes_control *);
 VALUE shoes_control_new(VALUE, VALUE, VALUE);
 VALUE shoes_control_alloc(VALUE);
 void shoes_control_send(VALUE, ID);
@@ -509,6 +511,7 @@ VALUE shoes_list_box_text(VALUE);
 VALUE shoes_list_box_draw(VALUE, VALUE, VALUE);
 VALUE shoes_progress_draw(VALUE, VALUE, VALUE);
 
+void shoes_shape_mark(shoes_shape *);
 VALUE shoes_shape_attr(int, VALUE *, int, ...);
 void shoes_shape_sketch(cairo_t *, ID, shoes_place *, shoes_transform *, VALUE, cairo_path_t *, unsigned char);
 VALUE shoes_shape_new(VALUE, ID, VALUE, shoes_transform *, cairo_path_t *);
@@ -524,6 +527,7 @@ VALUE shoes_shape_send_click(VALUE, int, int, int);
 void shoes_shape_send_release(VALUE, int, int, int);
 
 void shoes_image_ensure_dup(shoes_image *);
+void shoes_image_mark(shoes_image *);
 VALUE shoes_image_new(VALUE, VALUE, VALUE, VALUE, shoes_transform *);
 VALUE shoes_image_alloc(VALUE);
 void shoes_image_image(VALUE, VALUE, VALUE);
@@ -537,11 +541,13 @@ VALUE shoes_image_send_click(VALUE, int, int, int);
 void shoes_image_send_release(VALUE, int, int, int);
 
 shoes_effect_filter shoes_effect_for_type(ID);
+void shoes_effect_mark(shoes_effect *);
 VALUE shoes_effect_new(ID, VALUE, VALUE);
 VALUE shoes_effect_alloc(VALUE);
 VALUE shoes_effect_draw(VALUE, VALUE, VALUE);
 
 #ifdef VIDEO
+void shoes_video_mark(shoes_video *);
 VALUE shoes_video_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_video_alloc(VALUE);
 VALUE shoes_video_draw(VALUE, VALUE, VALUE);
@@ -557,6 +563,7 @@ VALUE shoes_video_remove(VALUE);
 VALUE shoes_pattern_self(VALUE);
 VALUE shoes_pattern_method(VALUE, VALUE);
 VALUE shoes_pattern_args(int, VALUE *, VALUE);
+void shoes_pattern_mark(shoes_pattern *);
 VALUE shoes_pattern_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_pattern_alloc(VALUE);
 VALUE shoes_pattern_motion(VALUE, int, int, char *);
@@ -564,6 +571,7 @@ VALUE shoes_background_draw(VALUE, VALUE, VALUE);
 VALUE shoes_border_draw(VALUE, VALUE, VALUE);
 VALUE shoes_subpattern_new(VALUE, VALUE, VALUE);
 
+void shoes_timer_mark(shoes_timer *);
 VALUE shoes_timer_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_timer_alloc(VALUE);
 VALUE shoes_timer_init(VALUE, VALUE);
@@ -572,6 +580,7 @@ VALUE shoes_timer_start(VALUE);
 VALUE shoes_timer_stop(VALUE);
 void shoes_timer_call(VALUE);
 
+void shoes_color_mark(shoes_color *);
 VALUE shoes_color_new(int, int, int, int);
 VALUE shoes_color_alloc(VALUE);
 VALUE shoes_color_rgb(int, VALUE *, VALUE);
@@ -589,11 +598,14 @@ VALUE shoes_color_to_s(VALUE);
 VALUE shoes_color_to_pattern(VALUE);
 VALUE shoes_color_gradient(int, VALUE *, VALUE);
 
+void shoes_link_mark(shoes_link *);
 VALUE shoes_link_new(VALUE, int, int);
 VALUE shoes_link_alloc(VALUE);
 VALUE shoes_text_new(VALUE, VALUE, VALUE);
 VALUE shoes_text_alloc(VALUE);
 
+void shoes_text_mark(shoes_text *);
+void shoes_textblock_mark(shoes_textblock *);
 VALUE shoes_textblock_new(VALUE, VALUE, VALUE, VALUE, shoes_transform *);
 VALUE shoes_textblock_alloc(VALUE);
 VALUE shoes_textblock_get_top(VALUE);
@@ -607,6 +619,7 @@ VALUE shoes_textblock_motion(VALUE, int, int, char *);
 VALUE shoes_textblock_send_click(VALUE, int, int, int, VALUE *);
 void shoes_textblock_send_release(VALUE, int, int, int);
 
+void shoes_download_mark(shoes_download_klass *);
 VALUE shoes_download_new(VALUE, VALUE, VALUE);
 VALUE shoes_download_alloc(VALUE);
 VALUE shoes_download_threaded(VALUE, VALUE, VALUE);

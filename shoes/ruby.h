@@ -182,6 +182,8 @@ char *shoes_hash_cstr(VALUE, ID, char *);
 VALUE rb_str_to_pas(VALUE);
 void shoes_place_exact(shoes_place *, VALUE, int, int);
 void shoes_place_decide(shoes_place *, VALUE, VALUE, int, int, unsigned char, int);
+unsigned char shoes_is_element(VALUE);
+unsigned char shoes_is_any(VALUE);
 void shoes_ele_remove_all(VALUE);
 void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
 void shoes_cairo_arc(cairo_t *, double, double, double, double, double, double);
