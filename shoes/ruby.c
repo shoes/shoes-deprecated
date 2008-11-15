@@ -3676,17 +3676,17 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   VALUE \
   shoes_##ele##_style(int argc, VALUE *argv, VALUE self) \
   { \
-    VALUE attr; \
+    rb_arg_list args; \
     GET_STRUCT(ele, self_t); \
-    rb_scan_args(argc, argv, "01", &attr); \
-    CHECK_HASH(attr); \
-    if (!NIL_P(attr)) \
-    { \
-      if (NIL_P(self_t->attr)) self_t->attr = rb_hash_new(); \
-      rb_funcall(self_t->attr, s_update, 1, attr); \
-      shoes_canvas_repaint_all(self_t->parent); \
+    switch (rb_parse_args(argc, argv, "h,", &args)) { \
+      case 1: \
+        if (NIL_P(self_t->attr)) self_t->attr = rb_hash_new(); \
+        rb_funcall(self_t->attr, s_update, 1, args.a[0]); \
+        shoes_canvas_repaint_all(self_t->parent); \
+      break; \
+      case 2: return rb_obj_freeze(rb_obj_dup(self_t->attr)); \
     } \
-    return self_t->attr; \
+    return self; \
   } \
   \
   VALUE \

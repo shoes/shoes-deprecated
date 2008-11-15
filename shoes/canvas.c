@@ -153,7 +153,7 @@ shoes_canvas_style(int argc, VALUE *argv, VALUE self)
   rb_arg_list args;
   SETUP();
 
-  switch (rb_parse_args(argc, argv, "kh,h", &args))
+  switch (rb_parse_args(argc, argv, "kh,h,", &args))
   {
     case 1:
       shoes_app_style(canvas->app, args.a[0], args.a[1]);
@@ -164,9 +164,11 @@ shoes_canvas_style(int argc, VALUE *argv, VALUE self)
       rb_funcall(canvas->attr, s_update, 1, args.a[0]);
       shoes_canvas_repaint_all(canvas->parent);
     break;
+
+    case 3: return rb_obj_freeze(rb_obj_dup(canvas->attr));
   }
 
-  return canvas->attr;
+  return self;
 }
 
 #define ELAPSED (shoes_diff_time(&start, &mid) * 0.001)
