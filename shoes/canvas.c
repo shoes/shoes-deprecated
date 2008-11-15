@@ -1601,22 +1601,47 @@ shoes_canvas_repaint_all(VALUE self)
 }
 
 typedef VALUE (*ccallfunc)(VALUE);
+typedef void (*ccallfunc2)(SHOES_CONTROL_REF);
 
 static void
-shoes_canvas_ccall(VALUE self, ccallfunc func)
+shoes_canvas_ccall(VALUE self, ccallfunc func, ccallfunc2 func2, unsigned char check)
 {
-  shoes_canvas *self_t;
+  shoes_canvas *self_t, *pc;
   Data_Get_Struct(self, shoes_canvas, self_t);
+
+  if (check)
+  {
+    pc = self_t;
+    while (!NIL_P(pc->parent))
+    {
+      Data_Get_Struct(pc->parent, shoes_canvas, pc);
+      if (RTEST(ATTR(pc->attr, hidden)))
+        return;
+    }
+  }
+
+  if (!NIL_P(self_t->parent))
+  {
+    Data_Get_Struct(self_t->parent, shoes_canvas, pc);
+    if (DC(self_t->slot) != DC(pc->slot))
+      func2(DC(self_t->slot));
+  }
+
   if (!NIL_P(self_t->contents))
   {
     long i;
     for (i = 0; i < RARRAY_LEN(self_t->contents); i++)
     {
+      shoes_basic *basic;
       VALUE ele = rb_ary_entry(self_t->contents, i);
-      if (rb_obj_is_kind_of(ele, cNative))
-        func(ele);
-      else if (rb_obj_is_kind_of(ele, cCanvas))
-        shoes_canvas_ccall(ele, func);
+      Data_Get_Struct(ele, shoes_basic, basic);
+      if (!RTEST(ATTR(basic->attr, hidden)))
+      {
+        if (rb_obj_is_kind_of(ele, cNative))
+          func(ele);
+        else if (rb_obj_is_kind_of(ele, cCanvas))
+          shoes_canvas_ccall(ele, func, func2, 0);
+      }
     }
   }
 }
@@ -1627,7 +1652,7 @@ shoes_canvas_hide(VALUE self)
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
   ATTRSET(self_t->attr, hidden, Qtrue);
-  shoes_canvas_ccall(self, shoes_control_hide);
+  shoes_canvas_ccall(self, shoes_control_temporary_hide, shoes_native_control_hide, 1);
   shoes_canvas_repaint_all(self);
   return self;
 }
@@ -1638,7 +1663,7 @@ shoes_canvas_show(VALUE self)
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
   ATTRSET(self_t->attr, hidden, Qfalse);
-  shoes_canvas_ccall(self, shoes_control_show);
+  shoes_canvas_ccall(self, shoes_control_temporary_show, shoes_native_control_show, 1);
   shoes_canvas_repaint_all(self);
   return self;
 }

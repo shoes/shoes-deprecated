@@ -3127,11 +3127,27 @@ shoes_control_set_state(VALUE self, VALUE state)
 }
 
 VALUE
+shoes_control_temporary_hide(VALUE self)
+{
+  GET_STRUCT(control, self_t);
+  if (self_t->ref != NULL) shoes_control_hide_ref(self_t->ref);
+  return self;
+}
+
+VALUE
 shoes_control_hide(VALUE self)
 {
   GET_STRUCT(control, self_t);
   ATTRSET(self_t->attr, hidden, Qtrue);
   if (self_t->ref != NULL) shoes_control_hide_ref(self_t->ref);
+  return self;
+}
+
+VALUE
+shoes_control_temporary_show(VALUE self)
+{
+  GET_STRUCT(control, self_t);
+  if (self_t->ref != NULL) shoes_control_show_ref(self_t->ref);
   return self;
 }
 
