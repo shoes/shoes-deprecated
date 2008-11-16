@@ -9,39 +9,53 @@ You see, the trivial Shoes program can be just one line:
  Shoes.app { button("Click me!") { alert("Good job.") } }
 }}}
 
-Shoes programs are written in a language called Ruby.  When Shoes is handed this simple line of Ruby code, a window appears with a button inside reading "Click me!"  When the button is clicked, a message pops up. !{:margin_left => 100}man-shot1.png!
+Shoes programs are written in a language called Ruby.  When Shoes is handed this simple line of Ruby code, a window appears with a button inside reading "Click me!"  When the button is clicked, a message pops up.
+
+On Linux, here's how this might look: !{:margin_left => 100}man-shot1.png!
 
 While lots of Shoes apps are graphical games and art programs, you can also layout text and edit controls easily. !{:margin_left => 40}shoes-manual-apps.gif!
 
 And, ideally, Shoes programs will run on any of the major platforms out there. Microsoft Windows, Apple's Mac OS X, Linux and many others.
 
-So, welcome to Shoes' built-in manual. This manual is a Shoes program itself!
+^So, welcome to Shoes' built-in manual. This manual is a Shoes program itself!^
 
 == Introducing Shoes ==
 
-How does Shoes look on Windows and OS X?  And is it really that easy to get it running?  Absolutely!  In just a few minutes you can get comfortable in Shoes.  And this is the page.  It's all you really need.  This page and five minutes.
+How does Shoes look on OS X and Windows? Does it really look okay? Is it all ugly and awkward? People must immediately convulse! It must be so watered down trying to do everything.
+
+Well, before getting into the stuff about installing and running Shoes, time to just check out some screenshots, to give you an idea of what you can do.
 
 ==== Mac OS X ====
-
-First, let's take a look at Shoes on each of the platforms.
 
 Shoes runs on Apple Mac OS X Leopard, as well as Tiger.  Shoes supports PowerPC machines as well, however, there is no video support on that platform. !man-look-tiger.png!
 
 This is the `simple-sphere.rb` sample running on Tiger.  Notice that the app runs inside a normal OS X window border.
 
+The whole sphere is drawn with blurred ovals and shadows. You can draw and animate shapes and apply effects to those shapes in Shoes.
+
 ==== Windows ====
 
 Shoes runs on all versions of '''Microsoft Windows XP''', '''Microsoft Windows Vista''', and anything else '''Windows 2000''' compatible. !man-look-vista.png!
 
-Above is pictured the `simple-clock.rb` sample running on Windows Vista.
+Above is pictured the `simple-clock.rb` sample running on Windows Vista. This example is also draws ovals and lines to build the clock, which is animated to repaint itself several times each second.
+
+Notice the text on the top of the app, showing the current time. Shoes has the skills to layout words using any color, bold, italics, underlines, and supports loading fonts from a file.
 
 ==== Linux ====
 
 Here's a screenshot of the `simple-downloader.rb` sample running on '''Ubuntu Linux'''. !man-look-ubuntu.png!
 
-Notice how the buttons and progress bars are all different from the controls seen in the OS X example.  The text and links look much the same, though.
+Notice the buttons and progress bars. These types of controls look different on OS X and Windows. The text and links would look the same, though.
 
-Shapes, text, images and videos all look the same on every platforms.  However, native controls (like edit lines and edit boxes) will match the look of the window theme.
+Shapes, text, images and videos all look the same on every platforms.  However, native controls (like edit lines and edit boxes) will match the look of the window theme. Shoes will try to keep native controls all within the size you give them, only the look will vary.
+
+== Installing Shoes ==
+
+Okay, on to installing Shoes. I'm sure you're wondering: do I need to install Ruby? Do I need to unzip anything? What commands to I need to type?
+
+Nope. You don't need Ruby. You don't need WinZip. Nothing to type.
+
+On most systems, starting Shoes is just a matter of running the installer and clicking the Shoes icon.  Shoes comes with everything built in. We'll talk through all the steps, though, just to be clear about it.
 
 ==== Step 1: Installing Shoes ====
 

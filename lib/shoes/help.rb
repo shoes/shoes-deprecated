@@ -22,6 +22,7 @@ module Shoes::Manual
   def dewikify_p(ele, str, *args)
     str = str.gsub(/\n+\s*/, " ").dump.
       gsub(/`(.+?)`/m, '", code("\1"), "').gsub(/\[\[BR\]\]/i, "\n").
+      gsub(/\^(.+?)\^/m, '\1').
       gsub(/@(.+?)@/m, '", strong("\1", :fill => yellow), "').
       gsub(/'''(.+?)'''/m, '", strong("\1"), "').gsub(/''(.+?)''/m, '", em("\1"), "').
       gsub(/\[\[(\S+?)\]\]/m, '", link("\1".split(".", 2).last) { open_link("\1") }, "').
