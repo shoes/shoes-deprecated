@@ -104,7 +104,7 @@ rb_parse_args_p(unsigned char rais, int argc, const VALUE *argv, const char *fmt
     }
     else if (*p == '|')
     {
-      if (!x && n >= argc) m = i;
+      if (!x) m = i;
     }
     else if (*p == 's') 
       CHECK_ARG_COERCE(T_STRING, to_str)

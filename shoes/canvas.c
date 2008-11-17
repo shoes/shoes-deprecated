@@ -1533,8 +1533,9 @@ shoes_canvas_widget(int argc, VALUE *argv, VALUE self)
   VALUE widget, attr = Qnil;
   SETUP();
 
-  if (rb_parse_args(argc, argv, "k,kh", &args) == 2)
-    attr = args.a[1];
+  rb_parse_args(argc, argv, "k|", &args);
+  if (TYPE(argv[argc-1]) == T_HASH)
+    attr = argv[argc-1];
   widget = shoes_widget_new(args.a[0], attr, self);
   DRAW(widget, canvas->app, ts_funcall2(widget, rb_intern("initialize"), argc - 1, argv + 1));
   shoes_add_ele(canvas, widget);
