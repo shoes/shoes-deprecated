@@ -99,12 +99,12 @@ rb_parse_args_p(unsigned char rais, int argc, const VALUE *argv, const char *fmt
   {
     if (*p == ',')
     {
-      if (x && !m) { i++; x = 0; if ( nmin == 0 || nmin > n) { nmin = n; } n = 0; }
+      if ((x && !m) || n < argc) { i++; x = 0; if (nmin == 0 || nmin > n) { nmin = n; } n = 0; }
       else break;
     }
     else if (*p == '|')
     {
-      if (!x) m = i;
+      if (!x && n >= argc) m = i;
     }
     else if (*p == 's') 
       CHECK_ARG_COERCE(T_STRING, to_str)
@@ -143,7 +143,7 @@ rb_parse_args_p(unsigned char rais, int argc, const VALUE *argv, const char *fmt
   }
   while (p++);
 
-  if (!x)
+  if (!x && n >= argc)
     m = i;
   if (m)
     args->n = n;
