@@ -1,3 +1,4 @@
+require 'rubygems'
 require 'rake'
 require 'rake/clean'
 require 'platform/skel'
