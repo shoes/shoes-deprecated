@@ -168,6 +168,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     ln_s  "lib#{ruby_so}.so", "dist/lib#{ruby_so}.so.1.8"
     cp    "/usr/lib/libgif.so", "dist/libgif.so.4"
     cp    "/usr/lib/libjpeg.so", "dist/libjpeg.so.62"
+    cp    "/usr/lib/libcurl.so", "dist/libcurl.so.4"
     if ENV['VIDEO']
       cp    "/usr/lib/libvlc.so", "dist"
       ln_s  "libvlc.so", "dist/libvlc.so.0"
@@ -453,6 +454,7 @@ task :tarball => ['bin/main.c', 'shoes/version.h'] do
   rm "#{PKG}/Rakefile"
   rm "#{PKG}/.gitignore"
   rm "#{PKG}/use-deps"
+  rm_rf "#{PKG}/bugs"
   cp "bin/main.c", "#{PKG}/bin/main.c"
   cp "shoes/version.h", "#{PKG}/shoes/version.h"
   rewrite "README", "#{PKG}/README", 
