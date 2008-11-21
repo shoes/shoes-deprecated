@@ -757,7 +757,7 @@ shoes_canvas_every(int argc, VALUE *argv, VALUE self)
   VALUE ev;
   SETUP();
 
-  rb_parse_args(argc, argv, "|I&", &args);
+  rb_parse_args(argc, argv, "|F&", &args);
   ev = shoes_timer_new(cEvery, args.a[0], args.a[1], self);
   rb_ary_push(canvas->app->extras, ev);
   return ev;

@@ -114,6 +114,10 @@ rb_parse_args_p(unsigned char rais, int argc, const VALUE *argv, const char *fmt
       CHECK_ARG_COERCE(T_FIXNUM, to_int)
     else if (*p == 'I')
       CHECK_ARG_COERCE(T_FIXNUM, to_i)
+    else if (*p == 'f')
+      CHECK_ARG_TYPE(T_FLOAT, Qnil)
+    else if (*p == 'F')
+      CHECK_ARG_COERCE(T_FLOAT, to_f)
     else if (*p == 'a')
       CHECK_ARG_COERCE(T_ARRAY, to_ary)
     else if (*p == 'A')
@@ -3860,6 +3864,7 @@ shoes_timer_new(VALUE klass, VALUE rate, VALUE block, VALUE parent)
     else
       timer->rate = (int)(1000. * NUM2DBL(rate));
   }
+  if (timer->rate < 1) timer->rate = 1;
   timer->parent = parent;
   return obj;
 }
