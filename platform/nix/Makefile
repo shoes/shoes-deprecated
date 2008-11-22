@@ -42,13 +42,11 @@ ifeq (${DEBUG}, 1)
 endif
 
 ifeq (${VIDEO}, 1)
-	CFLAGS += -DVIDEO
+	VLC_0_8 = `vlc --version 2>/dev/null | ruby -ne 'puts $$1 if ~/VLC version (0\.8)/'`
+	CFLAGS += -DVIDEO $(if VLC_0_8, -DVLC_0_8, -I/usr/include/vlc/plugins)
 	LIBS += -lvlc
 	OPTIONS += VIDEO
 	SHOES_IDENT += +video
-	CFLAGS += $(if $(filter 0.8, \
-		`vlc --version 2>/dev/null | ruby -ne 'puts $$1 if ~/VLC version (\d+\.\d+)/')`, \
-		-DVLC_0_8, -I/usr/include/vlc/plugins)
 endif
 
 all: options dist/shoes.launch
