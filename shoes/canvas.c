@@ -791,7 +791,11 @@ shoes_canvas_shape(int argc, VALUE *argv, VALUE self)
   cairo_move_to(canvas->shape, 0, 0);
   if (rb_block_given_p()) rb_yield(Qnil);
 
+#if CAIRO_VERSION_MAJOR == 1 && CAIRO_VERSION_MINOR <= 4
+  cairo_fill_extents(canvas->shape, &x1, &y1, &x2, &y2);
+#else
   cairo_path_extents(canvas->shape, &x1, &y1, &x2, &y2);
+#endif
   x = x2 - x1;
   ATTRSET(attr, width, INT2NUM(x));
   x = y2 - y1;
