@@ -43,7 +43,7 @@ endif
 
 ifeq (${VIDEO}, 1)
 	VLC_0_8 = $(shell vlc --version 2>/dev/null | ruby -ne 'puts $$1 if ~/VLC version (\d+\.\d+)/')
-	CFLAGS += -DVIDEO $(if $(filter 0.8, VLC_0_8), -DVLC_0_8, -I/usr/include/vlc/plugins)
+	CFLAGS += -DVIDEO $(if $(filter 0.8, $(VLC_0_8)), -DVLC_0_8, -I/usr/include/vlc/plugins)
 	LIBS += -lvlc
 	OPTIONS += VIDEO
 	SHOES_IDENT += +video
