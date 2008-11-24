@@ -462,7 +462,7 @@ FunctionEnd
   OutFile "${ShortName}-${AppVersion}.exe"
 
   ;Default installation folder
-  InstallDir "$PROGRAMFILES\Common Files\${AppName}"
+  InstallDir "$COMMONFILES\${AppName}"
   
   ;Get installation folder from registry if available
   InstallDirRegKey HKLM "${InstallKey}" "Base"
