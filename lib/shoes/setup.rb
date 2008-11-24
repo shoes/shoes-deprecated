@@ -96,17 +96,20 @@ class Shoes::Setup
   def gem name, version = nil
     arg = "#{name} #{version}".strip
     name, version = arg.split(/\s+/, 2)
-    if ['hpricot', 'sqlite3-ruby'].include? name
-      warn "#{name} is included with Shoes and cannot be installed as a gem."
+    if Gem.source_index.find_name(name, version).empty?
+      @steps << [:gem, arg]
     else
-      if Gem.source_index.find_name(name, version).empty?
-        @steps << [:gem, arg]
-      end
+      activate_gem(name, version)
     end
   end
 
   def source uri
     @steps << [:source, uri]
+  end
+
+  def activate_gem(name, version)
+    gem = Gem.source_index.find_name(name, version).first
+    Gem.activate(gem.name, "= #{gem.version}")
   end
 
   def start(app)
@@ -124,12 +127,16 @@ class Shoes::Setup
         if Gem.source_index.find_name(name, version).empty?
           ui.title "Installing #{name}"
           installer = Gem::DependencyInstaller.new
-          installer.install(name, version || Gem::Requirement.default)
-          self.class.gem_reset
+          begin
+            installer.install(name, version || Gem::Requirement.default)
+            self.class.gem_reset
+            activate_gem(name, version)
+            ui.say "Finished installing #{name}"
+          rescue Object => e
+            ui.error "while installing #{name}", e
+            raise e
+          end
         end
-        gem = Gem.source_index.find_name(name, version).first
-        Gem.activate(gem.name, "= #{gem.version}")
-        ui.say "Finished installing #{name}"
       when :source
         ui.title "Switching Gem servers"
         ui.say "Pulling from #{arg}"
@@ -293,6 +300,13 @@ class Gem::ShoesFace
   end
   def ask msg
     Kernel.ask(msg)
+  end
+  def error msg, e
+    stat = @status
+    stat.app do
+      error(e)
+      stat.replace link("Error") { Shoes.show_log }, " ", msg
+    end
   end
   def say msg
     @status.replace msg
