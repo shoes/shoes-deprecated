@@ -1,5 +1,9 @@
 require 'rubygems'
 require 'rubygems/dependency_installer'
+module Gem
+  @ruby = (File.join(Config::CONFIG['bindir'], 'shoes') + Config::CONFIG['EXEEXT']).
+          sub(/.*\s.*/m, '"\&"') + " --ruby"
+end
 class << Gem::Ext::ExtConfBuilder
   alias_method :make__, :make
   def make(dest_path, results)
