@@ -784,7 +784,7 @@ shoes_load_imagesize(VALUE imgpath, int *width, int *height)
   return SHOES_OK;
 }
 
-void
+unsigned char
 shoes_image_downloaded(shoes_image_download_event *idat)
 {
   int i, j, width, height;
@@ -796,6 +796,11 @@ shoes_image_downloaded(shoes_image_download_event *idat)
   {
     idat->filepath = idat->cachepath;
     idat->cachepath = NULL;
+  }
+  else if (idat->status != 200)
+  {
+    shoes_error("Shoes could not load the file at %s. [%lu]", idat->uripath, idat->status); 
+    return 0;
   }
 
   cairo_surface_t *img = shoes_surface_create_from_file(rb_str_new2(idat->filepath), &width, &height);
@@ -831,6 +836,7 @@ shoes_image_downloaded(shoes_image_download_event *idat)
 
   SHOE_FREE(digest);
   SHOE_FREE(buffer);
+  return 1;
 }
 
 int

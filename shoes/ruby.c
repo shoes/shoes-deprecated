@@ -4246,21 +4246,23 @@ int shoes_catch_message(unsigned int name, VALUE obj, void *data) {
     {
       VALUE hash, etag = Qnil, uri, uext, path, realpath;
       shoes_image_download_event *side = (shoes_image_download_event *)data;
-      shoes_image_downloaded(side);
-      shoes_canvas_repaint_all(side->slot);
-
-      path = rb_str_new2(side->filepath);
-      uri = rb_str_new2(side->uripath);
-      hash = rb_str_new2(side->hexdigest);
-      if (side->etag != NULL) etag = rb_str_new2(side->etag);
-      uext = rb_funcall(rb_cFile, rb_intern("extname"), 1, path);
-
-      rb_funcall(rb_const_get(rb_cObject, rb_intern("DATABASE")),
-        rb_intern("notify_cache_of"), 3, uri, etag, hash);
-      if (side->status != 304)
+      if (shoes_image_downloaded(side))
       {
-        realpath = rb_funcall(cShoes, rb_intern("image_cache_path"), 2, hash, uext);
-        rename(side->filepath, RSTRING_PTR(realpath));
+        shoes_canvas_repaint_all(side->slot);
+
+        path = rb_str_new2(side->filepath);
+        uri = rb_str_new2(side->uripath);
+        hash = rb_str_new2(side->hexdigest);
+        if (side->etag != NULL) etag = rb_str_new2(side->etag);
+        uext = rb_funcall(rb_cFile, rb_intern("extname"), 1, path);
+
+        rb_funcall(rb_const_get(rb_cObject, rb_intern("DATABASE")),
+          rb_intern("notify_cache_of"), 3, uri, etag, hash);
+        if (side->status != 304)
+        {
+          realpath = rb_funcall(cShoes, rb_intern("image_cache_path"), 2, hash, uext);
+          rename(side->filepath, RSTRING_PTR(realpath));
+        }
       }
 
       free(side->filepath);

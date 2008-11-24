@@ -650,6 +650,6 @@ typedef struct {
 shoes_code shoes_load_imagesize(VALUE, int *, int *);
 shoes_cached_image *shoes_cached_image_new(int, int, cairo_surface_t *);
 shoes_cached_image *shoes_load_image(VALUE, VALUE);
-void shoes_image_downloaded(shoes_image_download_event *);
+unsigned char shoes_image_downloaded(shoes_image_download_event *);
 
 #endif
