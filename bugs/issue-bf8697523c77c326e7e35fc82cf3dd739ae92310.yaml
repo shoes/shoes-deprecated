@@ -1,19 +1,17 @@
 --- !ditz.rubyforge.org,2008-03-06/issue 
 title: add-scale the height or width of an image if only one dimension is supplied
-desc: |-
-  It would be nice if image(), when given a width,                                             
-  or a height, but not both, would size the image to that width/height, and                                             
-  size the other dimension automatically to maintain aspect ratio. For                                                  
-  example:                                                                                                              
-                                                                                                                        
-  If I had a png which is 500x1000 pixels big, and I do image('bigpony.png',                                            
-  :width => 200), it would size height to 400.
+desc: "It would be nice if image(), when given a width,                                             \n\
+  or a height, but not both, would size the image to that width/height, and                                             \n\
+  size the other dimension automatically to maintain aspect ratio. For                                                  \n\
+  example:                                                                                                              \n\n\
+  If I had a png which is 500x1000 pixels big, and I do image('bigpony.png',                                            \n\
+  :width => 200), it would size height to 400."
 type: :feature
 component: shoes
 release: Raisins
 reporter: _why <why@whytheluckystiff.net>
-status: :unstarted
-disposition: 
+status: :closed
+disposition: :fixed
 creation_time: 2008-07-02 15:15:36.994992 Z
 references: []
 
@@ -23,3 +21,7 @@ log_events:
   - _why <why@whytheluckystiff.net>
   - created
   - ""
+- - 2008-11-26 17:18:26.485325 Z
+  - _why <why@whytheluckystiff.net>
+  - closed with disposition fixed
+  - http://github.com/why/shoes/commit/2d2b1aa

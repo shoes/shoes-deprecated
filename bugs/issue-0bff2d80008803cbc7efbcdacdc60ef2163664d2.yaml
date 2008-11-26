@@ -5,8 +5,8 @@ type: :feature
 component: shoes
 release: Raisins
 reporter: "Phlip <phlip2005@gmail.com> "
-status: :unstarted
-disposition: 
+status: :closed
+disposition: :fixed
 creation_time: 2008-07-03 18:49:43.142384 Z
 references: []
 
@@ -16,3 +16,7 @@ log_events:
   - _why <why@whytheluckystiff.net>
   - created
   - ""
+- - 2008-11-26 17:19:26.418235 Z
+  - _why <why@whytheluckystiff.net>
+  - closed with disposition fixed
+  - All native controls now have :disable and :readonly options.

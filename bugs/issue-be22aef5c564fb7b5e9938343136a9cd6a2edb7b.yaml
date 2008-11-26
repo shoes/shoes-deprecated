@@ -5,8 +5,8 @@ type: :bugfix
 component: shoes
 release: Raisins
 reporter: _why <why@whytheluckystiff.net>
-status: :unstarted
-disposition: 
+status: :closed
+disposition: :fixed
 creation_time: 2008-07-10 14:21:45.758870 Z
 references: []
 
@@ -16,3 +16,7 @@ log_events:
   - _why <why@whytheluckystiff.net>
   - created
   - ""
+- - 2008-11-26 17:27:55.495713 Z
+  - _why <why@whytheluckystiff.net>
+  - closed with disposition fixed
+  - Also done.

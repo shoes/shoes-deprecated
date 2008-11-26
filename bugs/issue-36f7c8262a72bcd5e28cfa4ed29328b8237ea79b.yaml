@@ -1,0 +1,20 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Image :data => "...bytes..."
+desc: |-
+  Load an image from a string using the :data option. Suggested by Devyn Cairns.
+  <http://article.gmane.org/gmane.comp.lib.shoes/2231>
+type: :feature
+component: shoes
+release: Murder
+reporter: _why <why@whytheluckystiff.net>
+status: :unstarted
+disposition: 
+creation_time: 2008-11-26 16:01:04.792438 Z
+references: []
+
+id: 36f7c8262a72bcd5e28cfa4ed29328b8237ea79b
+log_events: 
+- - 2008-11-26 16:01:07.588291 Z
+  - _why <why@whytheluckystiff.net>
+  - created
+  - ""
