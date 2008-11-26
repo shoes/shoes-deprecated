@@ -28,6 +28,10 @@ extern const char *dialog_title, *dialog_title_says;
 #define REL_CURSOR  3
 #define REL_TILE    4
 #define REL_STICKY  5
+#define REL_SCALE   8
+
+#define REL_COORDS(x) (x & 0x07)
+#define REL_FLAGS(x)  (x & 0xF8)
 
 #define FLAG_POSITION 0x0F
 #define FLAG_ABSX     0x10
@@ -103,6 +107,12 @@ typedef struct {
   VALUE parent;
   VALUE attr;
 } shoes_basic;
+
+typedef struct {
+  VALUE parent;
+  VALUE attr;
+  shoes_place place;
+} shoes_element;
 
 //
 // shape struct
@@ -234,6 +244,7 @@ typedef struct {
 typedef struct {
   VALUE parent;
   VALUE attr;
+  shoes_place place;
   VALUE source;
   char hover;
   shoes_cached_image *cached;

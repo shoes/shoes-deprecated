@@ -445,6 +445,15 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
   if (!NIL_P(c))
     Data_Get_Struct(c, shoes_canvas, canvas);
 
+  if (REL_FLAGS(rel) & REL_SCALE)
+  {
+    VALUE rw = ATTR(attr, width), rh = ATTR(attr, height);
+    if (NIL_P(rw) && !NIL_P(rh))
+      dw = ((dw * 1.) / dh) * shoes_px(rh, dh, CPW(canvas), 1);
+    else if (NIL_P(rh) && !NIL_P(rw))
+      dh = ((dh * 1.) / dw) * shoes_px(rw, dw, CPW(canvas), 1);
+  }
+
   ATTR_MARGINS(attr, 0, canvas);
   if (padded || dh == 0) dh += tmargin + bmargin;
   if (padded || dw == 0) dw += lmargin + rmargin;
@@ -455,11 +464,11 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
   if (!NIL_P(stuck))
   {
     if (stuck == cShoesWindow)
-      rel = REL_WINDOW;
+      rel = REL_FLAGS(rel) | REL_WINDOW;
     else if (stuck == cMouse)
-      rel = REL_CURSOR;
+      rel = REL_FLAGS(rel) | REL_CURSOR;
     else
-      rel = REL_STICKY;
+      rel = REL_FLAGS(rel) | REL_STICKY;
   }
 
   place->flags = rel;
@@ -475,43 +484,44 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
   {
     int cx, cy, ox, oy, tw = dw, th = dh;
 
-    if (rel == REL_WINDOW)
+    switch (REL_COORDS(rel))
     {
-      cx = 0; cy = 0;
-      ox = 0; oy = canvas->slot->scrolly;
-    }
-    else if (rel == REL_CANVAS)
-    {
-      cx = canvas->cx - CPX(canvas);
-      cy = canvas->cy - CPY(canvas);
-      ox = CPX(canvas);
-      oy = CPY(canvas);
-    }
-    else if (rel == REL_CURSOR)
-    {
-      cx = 0; cy = 0;
-      ox = canvas->app->mousex; oy = canvas->app->mousey;
-    }
-    else if (rel == REL_TILE)
-    {
-      cx = 0; cy = 0;
-      ox = CPX(canvas);
-      oy = CPY(canvas);
-      testw = dw = CPW(canvas);
-      dh = max(canvas->height, CPH(canvas));
-    }
-    else
-    {
-      cx = 0; cy = 0;
-      ox = canvas->cx; oy = canvas->cy;
-      if (rel == REL_STICKY)
-      {
-        if (rb_respond_to(stuck, s_top) && rb_respond_to(stuck, s_left))
+      case REL_WINDOW:
+        cx = 0; cy = 0;
+        ox = 0; oy = canvas->slot->scrolly;
+      break;
+
+      case REL_CANVAS:
+        cx = canvas->cx - CPX(canvas);
+        cy = canvas->cy - CPY(canvas);
+        ox = CPX(canvas);
+        oy = CPY(canvas);
+      break;
+
+      case REL_CURSOR:
+        cx = 0; cy = 0;
+        ox = canvas->app->mousex; oy = canvas->app->mousey;
+      break;
+
+      case REL_TILE:
+        cx = 0; cy = 0;
+        ox = CPX(canvas);
+        oy = CPY(canvas);
+        testw = dw = CPW(canvas);
+        dh = max(canvas->height, CPH(canvas));
+      break;
+
+      default:
+        cx = 0; cy = 0;
+        ox = canvas->cx; oy = canvas->cy;
+        if ((REL_COORDS(rel) & REL_STICKY) && shoes_is_element(stuck))
         {
-          ox = NUM2INT(rb_funcall(stuck, s_left, 0));
-          oy = NUM2INT(rb_funcall(stuck, s_top, 0));
+          shoes_element *element;
+          Data_Get_Struct(stuck, shoes_element, element);
+          ox = element->place.x;
+          oy = element->place.y;
         }
-      }
+      break;
     }
 
     place->w = PX(attr, width, testw, CPW(canvas));
@@ -522,7 +532,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
     }
     place->h = PX(attr, height, dh, CPH(canvas));
 
-    if (rel != REL_TILE)
+    if (REL_COORDS(rel) != REL_TILE)
     {
       tw = place->w;
       th = place->h;
@@ -540,7 +550,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
 
     place->flags |= NIL_P(ATTR(attr, left)) && NIL_P(ATTR(attr, right)) ? 0 : FLAG_ABSX;
     place->flags |= NIL_P(ATTR(attr, top)) && NIL_P(ATTR(attr, bottom)) ? 0 : FLAG_ABSY;
-    if (rel != REL_TILE && ABSY(*place) == 0 && (ck == cStack || place->x + place->w > CPX(canvas) + canvas->place.iw))
+    if (REL_COORDS(rel) != REL_TILE && ABSY(*place) == 0 && (ck == cStack || place->x + place->w > CPX(canvas) + canvas->place.iw))
     {
       canvas->cx = place->x = CPX(canvas);
       canvas->cy = place->y = canvas->endy;
@@ -578,10 +588,11 @@ shoes_is_element_p(VALUE ele, unsigned char any)
   dmark = RDATA(ele)->dmark;
   return (dmark == shoes_canvas_mark || dmark == shoes_shape_mark ||
     dmark == shoes_image_mark || dmark == shoes_effect_mark ||
-    dmark == shoes_pattern_mark || dmark == shoes_color_mark ||
-    dmark == shoes_textblock_mark || dmark == shoes_control_mark ||
-    dmark == shoes_timer_mark || dmark == shoes_download_mark ||
-    (any && (dmark == shoes_link_mark || dmark == shoes_text_mark))
+    dmark == shoes_pattern_mark || dmark == shoes_textblock_mark ||
+    dmark == shoes_control_mark ||
+    (any && (dmark == shoes_download_mark || dmark == shoes_timer_mark ||
+             dmark == shoes_color_mark || dmark == shoes_link_mark ||
+             dmark == shoes_text_mark))
 #ifdef VIDEO
     || dmark == shoes_video_mark
 #endif
@@ -662,7 +673,7 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
   Data_Get_Struct(self, self_type, self_t); \
   Data_Get_Struct(c, shoes_canvas, canvas); \
   if (ATTR(self_t->attr, hidden) == Qtrue) return self; \
-  shoes_place_decide(&place, c, self_t->attr, dw, dh, rel, rel == REL_CANVAS)
+  shoes_place_decide(&place, c, self_t->attr, dw, dh, rel, REL_COORDS(rel) == REL_CANVAS)
 
 #define SETUP_CONTROL(dh, dw, flex) \
   char *msg = ""; \
@@ -1224,7 +1235,7 @@ shoes_image_draw_surface(cairo_t *cr, shoes_image *self_t, shoes_place *place, c
 }
 
 #define SHOES_IMAGE_PLACE(type, imw, imh, surf) \
-  SETUP(shoes_##type, REL_CANVAS, imw, imh); \
+  SETUP(shoes_##type, (REL_CANVAS | REL_SCALE), imw, imh); \
   VALUE ck = rb_obj_class(c); \
   if (RTEST(actual)) \
     shoes_image_draw_surface(CCR(canvas), self_t, &place, surf, imw, imh); \
@@ -1818,6 +1829,7 @@ shoes_background_draw(VALUE self, VALUE c, VALUE actual)
     PATTERN_RESET(self_t);
   }
 
+  self_t->place = place;
   INFO("BACKGROUND: (%d, %d), (%d, %d)\n", place.x, place.y, place.w, place.h);
   return self;
 }
@@ -1855,6 +1867,7 @@ shoes_border_draw(VALUE self, VALUE c, VALUE actual)
     PATTERN_RESET(self_t);
   }
 
+  self_t->place = place;
   INFO("BORDER: (%d, %d), (%d, %d)\n", place.x, place.y, place.w, place.h);
   return self;
 }
