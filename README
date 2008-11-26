@@ -1,7 +1,7 @@
                       
     ((( |||_| ///\ [[[_ (((
      ))) || |  \\/  [[_  )))
-    a cross-platform applikit
+    an artsy any-platform app kit <http://shoooes.net/>
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -91,14 +91,14 @@
 
     For instructions on how to set up your compiler and acquire deps for
     Windows, OS X, and Linux, see the Shoes wiki:
-    <http://code.whytheluckystiff.net/shoes/>  Look for a "Building Shoes"
+    <http://github.com/why/shoes/wikis>  Look for a "Building Shoes"
     link on the front page.
 
 //////////////////////////////////////////////////////////////////////////
 
     LICENSE
 
-    Copyright (c) 2007 why the lucky stiff
+    Copyright (c) 2008 why the lucky stiff
     
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to
