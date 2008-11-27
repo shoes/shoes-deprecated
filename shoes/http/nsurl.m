@@ -42,6 +42,11 @@
   }
   return self;
 }
+- (void)releaseData
+{
+  if (dest != NULL) free(dest);
+  if (data != NULL) free(data);
+}
 - (void)download: (shoes_download_request *)req
 {
   char slash[2] = "/";
@@ -145,6 +150,7 @@
   [bytes getBytes: dest];
   HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, total, total, data, [bytes mutableBytes], 1);
   [c release];
+  [self releaseData];
 }
 - (NSURLRequest *)download: (NSURLDownload *)download
   willSendRequest: (NSURLRequest *)request
@@ -185,6 +191,7 @@
 {
   HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, total, total, data, NULL, 1);
   [download release];
+  [self releaseData];
 }
 @end
 
@@ -196,9 +203,6 @@ shoes_download(shoes_download_request *req)
   if (req->method != NULL) free(req->method);
   if (req->body != NULL) free(req->body);
   if (req->headers != NULL) [req->headers release];
-  if (req->mem != NULL) free(req->mem);
-  if (req->filepath != NULL) free(req->filepath);
-  free(req->data);
   free(req);
 }
 
