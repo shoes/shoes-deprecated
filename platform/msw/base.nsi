@@ -578,6 +578,7 @@ Section "App Section" SecApp
   CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
   CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\${AppName}.lnk" "$INSTDIR\${AppMainEXE}"
   CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\${AppMainEXE}" "--manual"
+  CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Packager.lnk" "$INSTDIR\${AppMainEXE}" "--package"
 
   ;Setup environment vars
   Push "$INSTDIR\.."
@@ -616,6 +617,7 @@ Section "Uninstall"
     
   Delete "$SMPROGRAMS\$MUI_TEMP\${AppName}.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\Manual.lnk"
+  Delete "$SMPROGRAMS\$MUI_TEMP\Packager.lnk"
   
   ;Delete empty start menu parent diretories
   StrCpy $MUI_TEMP "$SMPROGRAMS\$MUI_TEMP"
