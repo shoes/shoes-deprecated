@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
   s.summary = %q{A JSON implementation as a Ruby extension}
   s.test_files = ["tests/runner.rb"]
 
-  if s.respond_to? :specification_version then
+  if s.respond_to? :specification_version= then
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
     s.specification_version = 2
 
