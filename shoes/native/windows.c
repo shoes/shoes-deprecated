@@ -1538,6 +1538,16 @@ shoes_dialog_color(VALUE self, VALUE title)
   return color;
 }
 
+static char *
+shoes_fix_slashes(char *path)
+{
+  char *p;
+  for (p = path; *p != '\0'; p++)
+    if (*p == '\\')
+      *p = '/';
+  return path;
+}
+
 static VALUE
 shoes_dialog_chooser(VALUE self, char *title, DWORD flags)
 {
@@ -1566,7 +1576,7 @@ shoes_dialog_chooser(VALUE self, char *title, DWORD flags)
   else
     ok = GetOpenFileName(&ofn);
   if (ok)
-    path = rb_str_new2(ofn.lpstrFile);
+    path = rb_str_new2(shoes_fix_slashes(ofn.lpstrFile));
   SetCurrentDirectory((LPSTR)dir);
   return path;
 }
@@ -1581,9 +1591,10 @@ shoes_dialog_chooser2(VALUE self, char *title, UINT flags)
   LPITEMIDLIST pidl = SHBrowseForFolder (&bi);
   if (pidl != 0)
   {
+    char *p;
     char _path[MAX_PATH+1];
     if (SHGetPathFromIDList(pidl, _path))
-      path = rb_str_new2(_path);
+      path = rb_str_new2(shoes_fix_slashes(_path));
 
     IMalloc *imalloc = 0;
     if (SUCCEEDED(SHGetMalloc(&imalloc)))
