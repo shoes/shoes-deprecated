@@ -11,3 +11,9 @@ the anal_pe inspection tool.
 
 As such, this library is also GPL.  See the LICENSE file for
 more.
+
+NOTE TO SELF: To cross-compile a static zlib under mingw.
+
+  CC=i586-mingw32msvc-gcc RANLIB=i586-mingw32msvc-ranlib \
+    AR="i586-mingw32msvc-ar rc" ./configure
+  make

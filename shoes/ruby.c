@@ -3771,15 +3771,19 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   VALUE \
   shoes_##ele##_get_left(VALUE self) \
   { \
+    shoes_canvas *canvas = NULL; \
     GET_STRUCT(ele, self_t); \
-    return INT2NUM(self_t->place.x); \
+    if (!NIL_P(self_t->parent)) Data_Get_Struct(self_t->parent, shoes_canvas, canvas); \
+    return INT2NUM(self_t->place.x - CPX(canvas)); \
   } \
   \
   VALUE \
   shoes_##ele##_get_top(VALUE self) \
   { \
+    shoes_canvas *canvas = NULL; \
     GET_STRUCT(ele, self_t); \
-    return INT2NUM(self_t->place.y); \
+    if (!NIL_P(self_t->parent)) Data_Get_Struct(self_t->parent, shoes_canvas, canvas); \
+    return INT2NUM(self_t->place.y - CPY(canvas)); \
   } \
   \
   VALUE \
