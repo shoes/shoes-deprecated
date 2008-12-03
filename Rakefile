@@ -15,7 +15,7 @@ VERS = ENV['VERSION'] || "0.r#{REVISION}"
 PKG = "#{NAME}-#{VERS}"
 APPARGS = ENV['APPARGS']
 FLAGS = %w[DEBUG VIDEO]
-VLC_VERSION = `vlc --version 2>/dev/null`.split[2]
+VLC_VERSION = (RUBY_PLATFORM =~ /win32/ ? "0.8": `vlc --version 2>/dev/null`.split[2])
 VLC_0_8 = VLC_VERSION !~ /^0\.9/
 
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
@@ -63,7 +63,8 @@ end
 
 def copy_ext xdir, libdir
   case RUBY_PLATFORM when /win32/, /darwin/
-    copy_files "#{xdir}/*.dll", libdir
+    dxdir = xdir.gsub %r!^req/\w+/!, 'deps/'
+    copy_files "#{dxdir}/*.so", libdir
   else
     Dir.chdir(xdir) do
       `ruby extconf.rb; make`
