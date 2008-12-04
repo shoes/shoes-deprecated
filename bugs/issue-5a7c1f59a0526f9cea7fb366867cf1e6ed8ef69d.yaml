@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Font smoothing on Windows
+desc: Why is Pango giving me jagged fonts under ClearType?
+type: :bugfix
+component: shoes
+release: Raisins
+reporter: _why <why@whytheluckystiff.net>
+status: :unstarted
+disposition: 
+creation_time: 2008-12-04 22:14:50.467880 Z
+references: []
+
+id: 5a7c1f59a0526f9cea7fb366867cf1e6ed8ef69d
+log_events: 
+- - 2008-12-04 22:14:52.508656 Z
+  - _why <why@whytheluckystiff.net>
+  - created
+  - ""
