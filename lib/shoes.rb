@@ -114,6 +114,55 @@ class Shoes
     Shoes.visit(fname) if fname
   end
 
+  def self.splash
+    font "#{DIR}/fonts/Lacuna.ttf"
+    Shoes.app :width => 400, :height => 300, :resizable => false do  
+      style(Para, :align => "center", :weight => "bold", :font => "Lacuna Regular")
+      style(Link, :stroke => yellow, :underline => nil)
+      style(LinkHover, :stroke => yellow, :fill => nil)
+
+      x1 = 77; y1 = 122
+      x2 = 148; y2 = -122
+      x3 = 245; y3 = 0
+
+      nofill
+      strokewidth 40.0
+
+      @waves = stack :top => 0, :left => 0
+
+      stack :margin => 22 do
+        para "Welcome to", :stroke => "#DFA", :margin => 0
+        para "SHOES", :size => 48, :stroke => "#DFA", :margin_top => 0
+        stack do
+          background black(0.2), :curve => 8
+          para link("Open an App.") { Shoes.show_selector and close }, :margin => 12, :margin_bottom => 4
+          para link("Read the Manual.") { Shoes.show_manual and close }, :margin => 12 
+        end
+        inscription "Alt-Slash opens the console.", :stroke => "#DFA", :align => "center"
+      end
+
+      animate(10) do |ani|
+        a = Math.sin(ani * 0.02) * 20
+        @waves.clear do
+          background white
+          y = -30
+          16.times do |i|
+            shape do
+              move_to x = (-300 - (i*(a*0.8))), y
+              c = (a + 14) * 0.01
+              stroke rgb(i * 0.06, c + 0.1, 0.1, 1.0 - (ani * 0.0003))
+              4.times do
+                curve_to x1 + x, (y1-(i*a)) + y, x2 + x, (y2+(i*a)) + y, x3 + x, y3 + y
+                x += x3
+              end
+            end
+            y += 30
+          end
+        end
+      end
+    end
+  end
+
   def self.make_pack
     require 'shoes/pack'
     Shoes.app(:width => 500, :height => 380, :resizable => false, &PackMake)
@@ -296,15 +345,8 @@ class Shoes
   end
 
   def self.args!
-    if PLATFORM !~ /darwin/
-      if ARGV.empty?
-        fname = ask_open_file
-        if fname
-          ARGV << fname
-        else
-          return false
-        end
-      end
+    if PLATFORM !~ /darwin/ and ARGV.empty?
+      Shoes.splash
     end
     OPTS.parse! ARGV
     ARGV[0] or true

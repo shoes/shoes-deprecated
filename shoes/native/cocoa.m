@@ -34,7 +34,7 @@
   {
     count++;
     if (count == 100 && RARRAY_LEN(shoes_world->apps) == 0)
-      rb_eval_string("Shoes.show_selector");
+      rb_eval_string("Shoes.splash");
   }
   rb_eval_string("sleep(0.001)");
 }
