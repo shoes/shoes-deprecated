@@ -1,0 +1,21 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: SVG support (or convertor)
+desc: |-
+  Since many people may want to draw shapes first in Inkscape or Illustrator,
+  provide a way to at least convert these images into a Shoes script. Or,
+  alternatively, link in an SVG library for loading directly into a shape.
+type: :feature
+component: shoes
+release: Murder
+reporter: _why <why@whytheluckystiff.net>
+status: :unstarted
+disposition: 
+creation_time: 2008-12-04 16:18:41.989286 Z
+references: []
+
+id: 012e9468ddc7b0cb7e1503413a8a11c4f8707b67
+log_events: 
+- - 2008-12-04 16:18:43.103428 Z
+  - _why <why@whytheluckystiff.net>
+  - created
+  - ""
