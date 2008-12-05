@@ -529,6 +529,7 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
   sprintf(icon_path, "%s/static/shoes-icon.png", shoes_world->path);
   gtk_window_set_default_icon_from_file(icon_path, NULL);
   gk->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_position(gk->window, GTK_WIN_POS_CENTER);
   if (!app->resizable)
     gtk_window_set_resizable(GTK_WINDOW(gk->window), FALSE);
   gtk_widget_set_events(gk->window, GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
