@@ -3,7 +3,7 @@ title: Vista window width is wrong
 desc: See simple-bounce.rb on Vista.
 type: :bugfix
 component: shoes
-release: Raisins
+release: Murder
 reporter: _why <why@whytheluckystiff.net>
 status: :unstarted
 disposition: 
@@ -16,3 +16,7 @@ log_events:
   - _why <why@whytheluckystiff.net>
   - created
   - ""
+- - 2008-12-05 22:08:00.787639 Z
+  - _why <why@whytheluckystiff.net>
+  - assigned to release Murder from Raisins
+  - Haven't found the cause of this yet, moving to Murder.

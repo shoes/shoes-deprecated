@@ -3,7 +3,7 @@ title: Font smoothing on Windows
 desc: Why is Pango giving me jagged fonts under ClearType?
 type: :bugfix
 component: shoes
-release: Raisins
+release: Murder
 reporter: _why <why@whytheluckystiff.net>
 status: :unstarted
 disposition: 
@@ -16,3 +16,7 @@ log_events:
   - _why <why@whytheluckystiff.net>
   - created
   - ""
+- - 2008-12-05 22:06:54.332658 Z
+  - _why <why@whytheluckystiff.net>
+  - assigned to release Murder from Raisins
+  - Still researching. Tried creating a 32-bit DIB under windows. Tried changing anti-alias settings in pango and playing with fontconfig. I need to start with a very basic app and see if I can correct it. I suspect the problem is either how I'm creating the DC or how fonts are being loaded.

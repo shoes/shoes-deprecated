@@ -5,8 +5,8 @@ type: :bugfix
 component: shoes
 release: Raisins
 reporter: _why <why@whytheluckystiff.net>
-status: :unstarted
-disposition: 
+status: :closed
+disposition: :fixed
 creation_time: 2008-12-04 22:16:29.970426 Z
 references: []
 
@@ -16,3 +16,7 @@ log_events:
   - _why <why@whytheluckystiff.net>
   - created
   - ""
+- - 2008-12-05 22:03:25.969892 Z
+  - _why <why@whytheluckystiff.net>
+  - closed with disposition fixed
+  - Generally, this is much better, there are more general hover things to solve in the next release.

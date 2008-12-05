@@ -10,7 +10,7 @@ desc: |+
   
 type: :feature
 component: shoes
-release: Raisins
+release: Murder
 reporter: pedromg <pedro@tquadrado.com>
 status: :unstarted
 disposition: 
@@ -23,3 +23,7 @@ log_events:
   - _why <why@whytheluckystiff.net>
   - created
   - ""
+- - 2008-12-05 22:04:45.990114 Z
+  - _why <why@whytheluckystiff.net>
+  - assigned to release Murder from Raisins
+  - Moving to Murder, since further nested stack problems will be cared for in that release.
