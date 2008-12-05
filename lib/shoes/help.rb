@@ -237,12 +237,26 @@ module Shoes::Manual
     end
   end
 
+  def add_next_link(docn, optn)
+    opt1, optn = @docs[docn][1], optn + 1
+    if opt1['sections'][optn]
+      @doc.para "Next: ",
+        link(opt1['sections'][optn][1]['title']) { open_methods(opt1['sections'][optn][0]) },
+        :align => "right"
+    elsif @docs[docn + 1]
+      @doc.para "Next: ",
+        link(@docs[docn + 1][0]) { open_section(@docs[docn + 1][0].gsub(/\W/, '')) },
+        :align => "right"
+    end
+  end
+
   def open_section(sect_s, terms = nil)
     sect_h = @sections[sect_s]
     sect_cls = sect_h['class']
     @toc.each { |k,v| v.send(k == sect_cls ? :show : :hide) }
     @title.replace sect_s
     @doc.clear(&dewikify_hi(sect_h['description'], terms, true)) 
+    add_next_link(@docs.index { |x,| x == sect_s }, -1)
     app.slot.scroll_top = 0
   end
 
@@ -263,6 +277,9 @@ module Shoes::Manual
         end
       end
     end
+    optn = nil
+    docn = @docs.index { |_,h| optn = h['sections'].index { |x,| x == meth_s } }
+    add_next_link(docn, optn)
     app.slot.scroll_top = 0
   end
 
@@ -343,6 +360,7 @@ def Shoes.make_help_page
     @doc =
       stack :margin_left => 130, :margin_top => 20, :margin_bottom => 50, :margin_right => 50 + gutter,
         &dewikify(docs[0][-1]['description'], true)
+    add_next_link(0, -1)
     stack :top => 80, :left => 0, :attach => Window do
       @toc = {}
       stack :margin => 12, :width => 130, :margin_top => 20 do
