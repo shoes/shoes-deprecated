@@ -2270,7 +2270,7 @@ shoes_link_alloc(VALUE klass)
 }
 
 static VALUE
-shoes_link_at(VALUE self, int index, int blockhover, VALUE *clicked, char *touch)
+shoes_link_at(shoes_textblock *t, VALUE self, int index, int blockhover, VALUE *clicked, char *touch)
 {
   char h = 0;
   VALUE url = Qnil;
@@ -2287,6 +2287,7 @@ shoes_link_at(VALUE self, int index, int blockhover, VALUE *clicked, char *touch
 
   self = link->ele;
   CHECK_HOVER(self_t, h, touch);
+  t->hover = (t->hover & HOVER_CLICK) | h;
 
   return url;
 }
@@ -2488,14 +2489,14 @@ shoes_textblock_send_hover(VALUE self, int x, int y, VALUE *clicked, char *t)
   x -= self_t->place.ix + self_t->place.dx;
   y -= self_t->place.iy + self_t->place.dy;
   hover = pango_layout_xy_to_index(self_t->layout, x * PANGO_SCALE, y * PANGO_SCALE, &index, &trailing);
-  if (hover)
+  if (hover != (self_t->hover & HOVER_MOTION))
   {
     shoes_textblock_uncache(self_t, FALSE);
     INFO("HOVER (%d, %d) OVER (%d, %d)\n", x, y, self_t->place.ix + self_t->place.dx, self_t->place.iy + self_t->place.dy);
   }
   for (i = 0; i < RARRAY_LEN(self_t->links); i++)
   {
-    VALUE urll = shoes_link_at(rb_ary_entry(self_t->links, i), index, hover, clicked, t);
+    VALUE urll = shoes_link_at(self_t, rb_ary_entry(self_t->links, i), index, hover, clicked, t);
     if (NIL_P(url)) url = urll;
   }
 
