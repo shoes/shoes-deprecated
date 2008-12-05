@@ -227,7 +227,9 @@ module Shoes::Manual
   end
 
   def open_link(head)
-    if @sections.has_key? head
+    if head == "Search"
+      show_search
+    elsif @sections.has_key? head
       open_section(head)
     elsif @methods.has_key? head
       open_methods(head)

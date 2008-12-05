@@ -412,7 +412,30 @@ So, the rule is: '''keep your temporary classes in the code with the app and kee
 
 = Shoes =
 
-Shoes is all about drawing windows and the stuff inside those windows.  Let's focus on the window itself, for now.  The other sections [[Slots]] and [[Elements]] cover everything that goes inside the window.  And this section sticks to talking about [[Built-in Built-in methods]], the [[App]] window itself and a few general charts you can refer to.
+Shoes is all about drawing windows and the stuff inside those windows.  Let's focus on the window itself, for now.  The other sections [[Slots]] and [[Elements]] cover everything that goes inside the window.
+
+For here on, the manual reads more like a dictionary. Each page is mostly a list of methods you can use for each topic covered. The idea is to be very thorough and clear about everything.
+
+So, if you've hit this far in the manual and you're still hazy about getting started, you should probably either go back to the [[Hello! beginning]] of the manual. Or you could try [[http://hackety.org/press/ Nobody Knows Shoes]], the beginner's leaflet on the web.
+
+==== Finding Your Way ====
+
+This section covers:
+
+ * [[Built-in Built-in methods]] - general methods available anywhere in a Shoes program.
+ * [[App The App window]] - methods found attached to every main Shoes window.
+ * [[Styles The Styles Master List]] - a complete list of every style in Shoes.
+ * [[Classes The Classes list]] - a chart showing what Shoes classes subclass what.
+ * [[Colors The Colors list]] - a chart of all built-in colors and the [[Built-in.rgb]] numbers for each.
+
+If you find yourself paging around a lot and not finding something, give the [[Search]] page a try. It's the quickest way to get around.
+
+After this general reference, there are two other more specific sections:
+
+ * [[Slots]] - covering [[Element.stack]] and [[Element.flow]], the two types of slots.
+ * [[Elements]] - documentation for all the buttons, shapes, images, and so on.
+
+Two really important pages in there are the [[Element Element Creation]] page (which lists all the elements you can add) and the [[Common Common Methods]] page (which lists methods you'll find on any slot or element.)
 
 == Built-in Methods ==
 
