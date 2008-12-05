@@ -2,6 +2,7 @@ module Shoes::Manual
   PATH = "#{DIR}/static/manual.txt"
   PARA_RE = /\s*?(\{{3}(?:.+?)\}{3})|\n\n/m
   CODE_RE = /\{{3}(?:\s*\#![^\n]+)?(.+?)\}{3}/m
+  IMAGE_RE = /\!(\{([^}\n]+)\})?([^!\n]+\.\w+)\!/
   CODE_STYLE = {:size => 9, :margin => 12}
   INTRO_STYLE = {:size => 16, :margin_bottom => 20, :stroke => "#000"}
   SUB_STYLE = {:stroke => "#CCC", :margin_top => 10}
@@ -27,7 +28,7 @@ module Shoes::Manual
       gsub(/'''(.+?)'''/m, '", strong("\1"), "').gsub(/''(.+?)''/m, '", em("\1"), "').
       gsub(/\[\[(\S+?)\]\]/m, '", link("\1".split(".", 2).last) { open_link("\1") }, "').
       gsub(/\[\[(\S+?) (.+?)\]\]/m, '", link("\2") { open_link("\1") }, "').
-      gsub(/\!(\{([^}\n]+)\})?([^!\n]+\.\w+)\!/, '", *args); stack(IMAGE_STYLE.merge({\2})) { image("#{DIR}/static/\3") }; #{ele}("')
+      gsub(IMAGE_RE, '", *args); stack(IMAGE_STYLE.merge({\2})) { image("#{DIR}/static/\3") }; #{ele}("')
     eval("#{ele}(#{str}, *args)")
   end
 
@@ -165,7 +166,8 @@ module Shoes::Manual
         sections = (sparts[1..-1]/2).map do |k2,v2|
           meth = v2.split(/^=== (.+?) ===/)
           k2t = k2[/^(?:The )?([\-\w]+)/, 1]
-          @search.add_document :uri => "T #{k2t}", :body => "#{k2}\n#{meth[0]}".downcase
+          meth_plain = meth[0].gsub(IMAGE_RE, '')
+          @search.add_document :uri => "T #{k2t}", :body => "#{k2}\n#{meth_plain}".downcase
 
           hsh = {'title' => k2, 'section' => k,
             'description' => meth[0],

@@ -665,6 +665,8 @@ To view warnings and errors, open the Shoes console with `Alt-/` (or `⌘-/` on 
 
 An App is a single window running code at a URL. When you switch URLs, a new App object is created and filled up with stacks, flows and other Shoes elements.
 
+The App is the window itself. Which may be closed or cleared and filled with new elements. !{:margin_left => 100}man-app.png!
+
 The App itself, in slot/box terminology, is a flow.  See the ''Slots'' section for more, but this just means that any elements placed directly at the top-level will flow.
 
 === Shoes.app(styles) { ... } » Shoes::App ===
@@ -2144,7 +2146,7 @@ To let Shoes pick the element's width, go with `@b.style(:width => nil)` to empt
 
 == Background ==
 
-A background is a color, a gradient or an image that is painted across an entire slot.  Both backgrounds and borders are a type of Shoes::Pattern.
+A background is a color, a gradient or an image that is painted across an entire slot.  Both backgrounds and borders are a type of Shoes::Pattern. !{:margin_left => 100}man-ele-background.png!
 
 Even though it's called a ''background'', you may still place this element in front of other elements.  If a background comes after something else painted on the slot (like a `rect` or an `oval`,) the background will be painted over that element.
 
@@ -2187,7 +2189,7 @@ Yanks out the color, gradient or image used to paint this background and places 
 
 == Border ==
 
-A border is a color, gradient or image painted in a line around the edge of any slot.  Like the Background element in the last section, a Border is a kind of Shoes::Pattern.
+A border is a color, gradient or image painted in a line around the edge of any slot.  Like the Background element in the last section, a Border is a kind of Shoes::Pattern. !{:margin_left => 100}man-ele-border.png!
 
 The first, crucial thing to know about border is that all borders paint a line around the '''inside''' of a slot, not the outside.  So, if you have a slot which is fifty pixels wide and you paint a five pixel border on it, that means there is a fourty pixel wide area inside the slot which is surrounded by the border.
 
@@ -2229,7 +2231,7 @@ Creates a basic pattern object based on the color, gradient or image used to pai
 
 == Button ==
 
-Buttons are, you know, push buttons.  You click them and they do something.  Buttons are known to say "OK" or "Are you sure?"  And, then, if you're sure, you click the button.
+Buttons are, you know, push buttons.  You click them and they do something.  Buttons are known to say "OK" or "Are you sure?"  And, then, if you're sure, you click the button. !{:margin_left => 100}man-ele-button.png!
 
 {{{
  #!ruby
@@ -2285,7 +2287,7 @@ Moves focus to the button.  The button will be highlighted and, if the user hits
 
 == Check ==
 
-Check boxes are clickable square boxes than can be either checked or unchecked.  A single checkbox usually asks a "yes" or "no" question.  Sets of checkboxes are also seen in to-do lists.
+Check boxes are clickable square boxes than can be either checked or unchecked.  A single checkbox usually asks a "yes" or "no" question.  Sets of checkboxes are also seen in to-do lists. !{:margin_left => 100}man-ele-check.png!
 
 Here's a sample checklist.
 
@@ -2348,7 +2350,7 @@ Moves focus to the check.  The check will be highlighted and, if the user hits E
 
 == EditBox ==
 
-Edit boxes are wide, rectangular boxes for entering text.  On the web, they call these textareas.  These are multi-line edit boxes for entering longer descriptions.  Essays, even!
+Edit boxes are wide, rectangular boxes for entering text.  On the web, they call these textareas.  These are multi-line edit boxes for entering longer descriptions.  Essays, even! !{:margin_left => 100}man-ele-editbox.png!
 
 Without any other styling, edit boxes are sized 200 pixels by 108 pixels.  You can also use `:width` and `:height` styles to set specific sizes.
 
@@ -2395,7 +2397,7 @@ Fills the edit box with the characters of `a string`.
 
 == EditLine ==
 
-Edit lines are a slender, little box for entering text.  While the EditBox is multi-line, an edit line is just one.  Line, that is.  Horizontal, in fact.
+Edit lines are a slender, little box for entering text.  While the EditBox is multi-line, an edit line is just one.  Line, that is.  Horizontal, in fact. !{:margin_left => 100}man-ele-editline.png!
 
 The unstyled edit line is 200 pixels wide and 28 pixels wide.  Roughly.  The height may vary on some platforms.
 
@@ -2431,7 +2433,7 @@ Fills the edit line with the characters of `a string`.
 
 == Image ==
 
-An image is a picture in PNG, JPEG or GIF format.  Shoes can resize images or flow them in with text.  Images can be loaded from a file or directly off the web.
+An image is a picture in PNG, JPEG or GIF format.  Shoes can resize images or flow them in with text.  Images can be loaded from a file or directly off the web. !{:margin_left => 100}man-ele-image.png!
 
 To create an image, use the `image` method in a slot:
 
@@ -2478,7 +2480,7 @@ Swaps the image with a different one, loaded from a file or URL.
 
 == ListBox ==
 
-List boxes (also called "combo boxes" or "drop-down boxes" or "select boxes" in some places) are a list of options that drop down when you click on the box.
+List boxes (also called "combo boxes" or "drop-down boxes" or "select boxes" in some places) are a list of options that drop down when you click on the box. !{:margin_left => 100}man-ele-listbox.png!
 
 A list box gets its options from an array.  An array (a list) of strings, passed into the `:items` style.
 
@@ -2537,7 +2539,7 @@ A string containing whatever text is shown highlighted in the list box right now
 
 == Progress ==
 
-Progress bars show you how far along you are in an activity.  Usually, a progress bar represents a percentage (from 0% to 100%.)  Shoes thinks of progress in terms of the decimal numbers 0.0 to 1.0.
+Progress bars show you how far along you are in an activity.  Usually, a progress bar represents a percentage (from 0% to 100%.)  Shoes thinks of progress in terms of the decimal numbers 0.0 to 1.0. !{:margin_left => 100}man-ele-progress.png!
 
 A simple progress bar is 200 pixels wide, but you can use the `:width` style (as with all Shoes elements) to lengthen it.
 
@@ -2566,7 +2568,7 @@ Sets the progress to a decimal number between 0.0 and 1.0.
 
 == Radio ==
 
-Radio buttons are a group of clickable circles.  Click a circle and it'll be marked.  Only one radio button can be marked at a time.  (This is similar to the ListBox, where only one option can be selected at a time.)
+Radio buttons are a group of clickable circles.  Click a circle and it'll be marked.  Only one radio button can be marked at a time.  (This is similar to the ListBox, where only one option can be selected at a time.) !{:margin_left => 100}man-ele-radio.png!
 
 So, how do you decide when to use radio buttons and when to use list boxes?  Well, list boxes only show one highlighted item unless you click on the box and the drop-down appears.  But radio buttons are all shown, regardless of which is marked.
 
@@ -2643,13 +2645,13 @@ Moves focus to the radio.  The radio will be highlighted and, if the user hits E
 
 == Shape ==
 
-A shape is a path outline usually created by drawing methods like `oval` and `rect`.
+A shape is a path outline usually created by drawing methods like `oval` and `rect`. !{:margin_left => 100}man-ele-shape.png!
 
 See the [[Common]] methods page.  Shapes respond to all of those methods.
 
 == TextBlock ==
 
-The TextBlock object represents a group of text organized as a single element.  A paragraph containing bolded text, for example.  A caption containing links and bolded text.  (So, a `caption` is a TextBlock type.  However, `link` and `strong` are TextClass types.)
+The TextBlock object represents a group of text organized as a single element.  A paragraph containing bolded text, for example.  A caption containing links and bolded text.  (So, a `caption` is a TextBlock type.  However, `link` and `strong` are TextClass types.) !{:margin_left => 100}man-ele-textblock.png!
 
 All of the various types of TextBlock are found on the [[Element Element Creation]] page.
 
@@ -2701,7 +2703,7 @@ If the animation or timer is stopped, it is started.  Otherwise, if it is alread
 
 == Video ==
 
-Shoes supports embedding of QuickTime, Flash video (FLV), DivX, Xvid and various other popular video formats.  This is all thanks to VideoLAN and ffmpeg, two sensational open source libraries.  Use the `video` method on a slot to setup a Shoes::Video object.
+Shoes supports embedding of QuickTime, Flash video (FLV), DivX, Xvid and various other popular video formats.  This is all thanks to VideoLAN and ffmpeg, two sensational open source libraries.  Use the `video` method on a slot to setup a Shoes::Video object. !{:margin_left => 100}man-ele-video.png!
 
 In addition to video formats, some audio formats are also supported, such as MP3, WAV and Ogg Vorbis.
 
