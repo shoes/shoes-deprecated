@@ -1034,7 +1034,7 @@ shoes_shape_send_release(VALUE self, int button, int x, int y)
   GET_STRUCT(shape, self_t);
   if (button == 1 && (self_t->hover & HOVER_CLICK))
   {
-    VALUE proc = rb_hash_aref(self_t->attr, ID2SYM(s_release));
+    VALUE proc = ATTR(self_t->attr, release);
     self_t->hover ^= HOVER_CLICK;
     if (!NIL_P(proc))
       shoes_safe_block(self, proc, rb_ary_new3(1, self));
@@ -1318,7 +1318,7 @@ shoes_image_send_release(VALUE self, int button, int x, int y)
   GET_STRUCT(image, self_t);
   if (button == 1 && (self_t->hover & HOVER_CLICK))
   {
-    VALUE proc = rb_hash_aref(self_t->attr, ID2SYM(s_release));
+    VALUE proc = ATTR(self_t->attr, release);
     self_t->hover ^= HOVER_CLICK;
     if (!NIL_P(proc))
       shoes_safe_block(self, proc, rb_ary_new3(1, self));
@@ -2282,7 +2282,7 @@ shoes_link_at(shoes_textblock *t, VALUE self, int index, int blockhover, VALUE *
   {
     h = 1;
     if (clicked != NULL) *clicked = link->ele;
-    if (!NIL_P(self_t->attr)) url = rb_hash_aref(self_t->attr, ID2SYM(s_click));
+    url = ATTR(self_t->attr, click);
   }
 
   self = link->ele;
@@ -2539,7 +2539,7 @@ shoes_textblock_send_release(VALUE self, int button, int x, int y)
   GET_STRUCT(textblock, self_t);
   if (button == 1 && (self_t->hover & HOVER_CLICK))
   {
-    VALUE proc = rb_hash_aref(self_t->attr, ID2SYM(s_release));
+    VALUE proc = ATTR(self_t->attr, release);
     self_t->hover ^= HOVER_CLICK;
     if (!NIL_P(proc))
       shoes_safe_block(self, proc, rb_ary_new3(1, self));
