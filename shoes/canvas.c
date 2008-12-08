@@ -273,6 +273,7 @@ shoes_add_ele(shoes_canvas *canvas, VALUE ele)
 void
 shoes_canvas_mark(shoes_canvas *canvas)
 {
+  shoes_native_slot_mark(canvas->slot);
   rb_gc_mark_maybe(canvas->contents);
   rb_gc_mark_maybe(canvas->attr);
   rb_gc_mark_maybe(canvas->parent);
