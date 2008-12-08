@@ -4422,6 +4422,7 @@ shoes_ruby_init()
   rb_const_set(cShoes, rb_intern("RELEASE_NAME"), rb_str_new2(SHOES_RELEASE_NAME));
   rb_const_set(cShoes, rb_intern("RELEASE_ID"), INT2NUM(SHOES_RELEASE_ID));
   rb_const_set(cShoes, rb_intern("REVISION"), INT2NUM(SHOES_REVISION));
+  rb_const_set(cShoes, rb_intern("VERSION"), rb_str_new2(SHOES_RELEASE_NAME));
   rb_const_set(cShoes, rb_intern("RAD2PI"), rb_float_new(SHOES_RAD2PI));
   rb_const_set(cShoes, rb_intern("TWO_PI"), rb_float_new(SHOES_PIM2));
   rb_const_set(cShoes, rb_intern("HALF_PI"), rb_float_new(SHOES_HALFPI));

@@ -7,7 +7,7 @@ require 'find'
 include FileUtils
 
 APPNAME = ENV['APPNAME'] || "Shoes"
-RELEASE_ID, RELEASE_NAME = 2, "Raisins"
+RELEASE_ID, RELEASE_NAME = 3, "Policeman"
 NAME = APPNAME.downcase.gsub(/\W+/, '')
 SONAME = 'shoes'
 REVISION = (`#{ENV['GIT'] || "git"} rev-list HEAD`.split.length + 1).to_s
@@ -17,6 +17,10 @@ APPARGS = ENV['APPARGS']
 FLAGS = %w[DEBUG VIDEO]
 VLC_VERSION = (RUBY_PLATFORM =~ /win32/ ? "0.8": `vlc --version 2>/dev/null`.split[2])
 VLC_0_8 = VLC_VERSION !~ /^0\.9/
+
+if File.exists? ".git/refs/tags/#{RELEASE_ID}/#{RELEASE_NAME}"
+  abort "** Rename this release (and add to lib/shoes.rb) #{RELEASE_NAME} has already been tagged."
+end
 
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "dist"]

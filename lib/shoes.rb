@@ -29,7 +29,7 @@ unless Time.respond_to? :today
 end
 
 class Shoes
-  VERSION = "Raisins"
+  RELEASES = %w[Curious Raisins Policeman]
 
   NotFound = proc do
     para "404 NOT FOUND, GUYS!"
