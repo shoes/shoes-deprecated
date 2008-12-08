@@ -36,6 +36,20 @@ shoes_wchar(char *utf8)
   return buffer;
 }
 
+static char *
+shoes_utf8(WCHAR *buffer)
+{
+  char *utf8 = NULL;
+  LONG i8 = 0;
+  if (buffer == NULL) return NULL;
+  i8 = WideCharToMultiByte(CP_UTF8, 0, buffer, -1, NULL, 0, NULL, NULL);
+  if (!i8) return NULL;
+  utf8 = SHOE_ALLOC_N(char, i8);
+  if (!utf8) return NULL;
+  WideCharToMultiByte(CP_UTF8, 0, buffer, -1, utf8, i8, NULL, NULL);
+  return utf8;
+}
+
 static void
 shoes_win32_center(HWND hwnd)
 {
@@ -1181,7 +1195,7 @@ VALUE
 shoes_native_edit_line_get_text(SHOES_CONTROL_REF ref)
 {
   VALUE text;
-  LONG i, i8;
+  LONG i;
   char *utf8 = NULL;
   WCHAR *buffer = NULL;
   i = (LONG)SendMessageW(ref, WM_GETTEXTLENGTH, 0, 0) + 1;
@@ -1190,12 +1204,7 @@ shoes_native_edit_line_get_text(SHOES_CONTROL_REF ref)
   if (!buffer) goto empty;
   SendMessageW(ref, WM_GETTEXT, i, (LPARAM)buffer);
 
-  i8 = WideCharToMultiByte(CP_UTF8, 0, buffer, i, NULL, 0, NULL, NULL);
-  if (!i8) goto empty;
-  utf8 = SHOE_ALLOC_N(char, i8);
-  if (!utf8) goto empty;
-  WideCharToMultiByte(CP_UTF8, 0, buffer, i, utf8, i8, NULL, NULL);
-
+  utf8 = shoes_utf8(buffer);
   text = rb_str_new2(utf8);
   SHOE_FREE(utf8);
   SHOE_FREE(buffer);
@@ -1379,11 +1388,13 @@ shoes_native_clipboard_get(shoes_app *app)
   VALUE paste = Qnil;
   if (OpenClipboard(app->slot->window))
   {
-    HANDLE hclip = GetClipboardData(CF_TEXT);
-    char *buffer = (char *)GlobalLock(hclip);
-    paste = rb_str_new2(buffer);
+    HANDLE hclip = GetClipboardData(CF_UNICODETEXT);
+    WCHAR *buffer = (WCHAR *)GlobalLock(hclip);
+    char *utf8 = shoes_utf8(buffer);
+    paste = rb_str_new2(utf8);
     GlobalUnlock(hclip);
     CloseClipboard();
+    SHOE_FREE(utf8);
   }
   return paste;
 }
@@ -1393,15 +1404,16 @@ shoes_native_clipboard_set(shoes_app *app, VALUE string)
 {
   if (OpenClipboard(app->slot->window))
   {
-    char *buffer;
+    WCHAR *buffer = shoes_wchar(RSTRING_PTR(string));
+    LONG buflen = wcslen(buffer);
     HGLOBAL hclip;
     EmptyClipboard();
-    hclip = GlobalAlloc(GMEM_DDESHARE, RSTRING_LEN(string)+1);
-    buffer = (char *)GlobalLock(hclip);
-    strncpy(buffer, RSTRING_PTR(string), RSTRING_LEN(string)+1);
+    hclip = GlobalAlloc(GMEM_MOVEABLE|GMEM_DDESHARE, (buflen + 1) * sizeof(WCHAR));
+    wcsncpy((WCHAR *)GlobalLock(hclip), buffer, buflen + 1);
     GlobalUnlock(hclip);
-    SetClipboardData(CF_TEXT, hclip);
+    SetClipboardData(CF_UNICODETEXT, hclip);
     CloseClipboard();
+    SHOE_FREE(buffer);
   }
 }
 
