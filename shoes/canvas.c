@@ -1353,12 +1353,6 @@ shoes_canvas_memdraw(VALUE self, VALUE block)
 
 typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
 
-static  cairo_public cairo_surface_t *
-shoes_get_snapshot_nada (const char *filename, double width, double height)
-{
-  return NULL;
-}
-
 static cairo_surface_function_t *
 shoes_get_snapshot_surface(VALUE _format)
 {
@@ -1366,7 +1360,7 @@ shoes_get_snapshot_surface(VALUE _format)
   if (format == rb_intern ("pdf"))  return & cairo_pdf_surface_create;
   if (format == rb_intern ("ps"))   return & cairo_ps_surface_create;
   if (format == rb_intern ("svg"))  return & cairo_svg_surface_create;
-  return shoes_get_snapshot_nada;
+  return NULL;
 }
 
 VALUE
