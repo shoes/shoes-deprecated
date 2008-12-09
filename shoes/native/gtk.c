@@ -269,7 +269,7 @@ shoes_app_gtk_keypress (GtkWidget *widget, GdkEventKey *event, gpointer data)
   shoes_app *app = (shoes_app *)data;
   if (event->keyval == GDK_Return)
   {
-    if (event->state == 0)
+    if ((event->state & (GDK_SHIFT_MASK | GDK_CONTROL_MASK | GDK_MOD1_MASK)) == 0)
       v = rb_str_new2("\n");
     else
       v = ID2SYM(rb_intern("enter"));
