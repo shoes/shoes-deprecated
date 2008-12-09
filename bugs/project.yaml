@@ -20,8 +20,8 @@ releases:
     - The first release of Shoes.
 - !ditz.rubyforge.org,2008-03-06/release 
   name: Raisins
-  status: :unreleased
-  release_time: 
+  status: :released
+  release_time: 2008-12-05 18:37:37.981489 Z
   log_events: 
   - - 2008-04-02 15:17:12.803117 Z
     - _why <why@whytheluckystiff.net>
@@ -31,6 +31,22 @@ releases:
       * Error / logging console
       * OS X improvements
       * Shape events and shape positioning
+  - - 2008-12-09 18:37:37.981511 Z
+    - _why <why@whytheluckystiff.net>
+    - released
+    - http://shoooes.net/about/raisins/
+- !ditz.rubyforge.org,2008-03-06/release 
+  name: Policeman
+  status: :unreleased
+  release_time: 
+  log_events: 
+  - - 2008-12-09 18:37:12.140305 Z
+    - _why <why@whytheluckystiff.net>
+    - created
+    - |-
+      * Stability: fewer crashes, faster painting and text layout.
+      * Upgrade all the dependencies to the latest.
+      * Focus on Windows and OS X improvements.
 - !ditz.rubyforge.org,2008-03-06/release 
   name: Murder
   status: :unreleased
