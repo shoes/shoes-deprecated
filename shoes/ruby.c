@@ -1436,17 +1436,17 @@ VALUE
 shoes_video_alloc(VALUE klass)
 {
   VALUE obj;
+  char *ppsz_argv[10] = {"vlc", "-I", "dummy", "--ignore-config", "--quiet", "--no-stats", 
+    "--no-overlay", "--no-video-on-top", "--no-video-title-show", NULL};
   shoes_video *video = SHOE_ALLOC(shoes_video);
   SHOE_MEMZERO(video, shoes_video, 1);
 #ifndef SHOES_GTK
-  char *ppsz_argv[2] = {"vlc", NULL};
   char pathsw[SHOES_BUFSIZE];
-  int ppsz_argc = 2;
+  int ppsz_argc = 10;
   sprintf(pathsw, "--plugin-path=%s/plugins", shoes_world->path);
-  ppsz_argv[1] = pathsw;
+  ppsz_argv[9] = pathsw;
 #else
-  char *ppsz_argv[1] = {"vlc"};
-  int ppsz_argc = 1;
+  int ppsz_argc = 9;
 #endif
   obj = Data_Wrap_Struct(klass, shoes_video_mark, shoes_video_free, video);
   libvlc_exception_init(&video->excp);
