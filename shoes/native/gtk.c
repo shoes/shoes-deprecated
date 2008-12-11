@@ -763,7 +763,7 @@ shoes_native_control_free(SHOES_CONTROL_REF ref)
 SHOES_SURFACE_REF
 shoes_native_surface_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
 {
-  return gtk_layout_new(NULL, NULL);
+  return gtk_drawing_area_new();
 }
 
 void
