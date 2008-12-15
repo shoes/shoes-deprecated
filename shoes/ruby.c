@@ -1736,6 +1736,55 @@ shoes_pattern_gradient(shoes_pattern *pattern, VALUE r1, VALUE r2, VALUE attr)
 }
 
 VALUE
+shoes_pattern_set_fill(VALUE self, VALUE source)
+{
+  shoes_pattern *pattern;
+  Data_Get_Struct(self, shoes_pattern, pattern);
+
+  if (pattern->pattern != NULL)
+    cairo_pattern_destroy(pattern->pattern);
+  pattern->pattern = NULL;
+
+  if (rb_obj_is_kind_of(source, rb_cRange))
+  {
+    VALUE r1 = rb_funcall(source, s_begin, 0);
+    VALUE r2 = rb_funcall(source, s_end, 0);
+    shoes_pattern_gradient(pattern, r1, r2, pattern->attr);
+  }
+  else
+  {
+    if (!rb_obj_is_kind_of(source, cColor))
+    {
+      VALUE rgb = shoes_color_parse(cColor, source);
+      if (!NIL_P(rgb)) source = rgb;
+    }
+
+    if (rb_obj_is_kind_of(source, cColor))
+    {
+      pattern->pattern = shoes_color_pattern(source);
+    }
+    else
+    {
+      pattern->cached = shoes_load_image(pattern->parent, source);
+      if (pattern->cached != NULL && pattern->cached->pattern == NULL)
+        pattern->cached->pattern = cairo_pattern_create_for_surface(pattern->cached->surface);
+    }
+    cairo_pattern_set_extend(PATTERN(pattern), CAIRO_EXTEND_REPEAT);
+  }
+
+  pattern->source = source;
+  return source;
+}
+
+VALUE
+shoes_pattern_get_fill(VALUE self)
+{
+  shoes_pattern *pattern;
+  Data_Get_Struct(self, shoes_pattern, pattern);
+  return pattern->source;
+}
+
+VALUE
 shoes_pattern_self(VALUE self)
 {
   return self;
@@ -1755,40 +1804,11 @@ shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent)
 {
   shoes_pattern *pattern;
   VALUE obj = shoes_pattern_alloc(klass);
-  VALUE rgb;
   Data_Get_Struct(obj, shoes_pattern, pattern);
   pattern->source = Qnil;
-
-  if (rb_obj_is_kind_of(source, rb_cRange))
-  {
-    VALUE r1 = rb_funcall(source, s_begin, 0);
-    VALUE r2 = rb_funcall(source, s_end, 0);
-    shoes_pattern_gradient(pattern, r1, r2, attr);
-  }
-  else
-  {
-    if (!rb_obj_is_kind_of(source, cColor))
-    {
-      rgb = shoes_color_parse(cColor, source);
-      if (!NIL_P(rgb)) source = rgb;
-    }
-
-    if (rb_obj_is_kind_of(source, cColor))
-    {
-      pattern->pattern = shoes_color_pattern(source);
-    }
-    else
-    {
-      pattern->cached = shoes_load_image(parent, source);
-      pattern->source = source;
-      if (pattern->cached != NULL && pattern->cached->pattern == NULL)
-        pattern->cached->pattern = cairo_pattern_create_for_surface(pattern->cached->surface);
-    }
-    cairo_pattern_set_extend(PATTERN(pattern), CAIRO_EXTEND_REPEAT);
-  }
-
   pattern->attr = attr;
   pattern->parent = parent;
+  shoes_pattern_set_fill(obj, source);
   return obj;
 }
 
@@ -4614,6 +4634,8 @@ shoes_ruby_init()
   rb_define_method(cPattern, "remove", CASTHOOK(shoes_basic_remove), 0);
   rb_define_method(cPattern, "to_pattern", CASTHOOK(shoes_pattern_self), 0);
   rb_define_method(cPattern, "style", CASTHOOK(shoes_pattern_style), -1);
+  rb_define_method(cPattern, "fill", CASTHOOK(shoes_pattern_get_fill), 0);
+  rb_define_method(cPattern, "fill=", CASTHOOK(shoes_pattern_set_fill), 1);
   rb_define_method(cPattern, "hide", CASTHOOK(shoes_pattern_hide), 0);
   rb_define_method(cPattern, "show", CASTHOOK(shoes_pattern_show), 0);
   rb_define_method(cPattern, "toggle", CASTHOOK(shoes_pattern_toggle), 0);
