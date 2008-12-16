@@ -52,7 +52,7 @@ shoes_winhttp_headers(HINTERNET req, shoes_download_handler handler, void *data)
 }
 
 void
-shoes_winhttp(LPCWSTR host, INTERNET_PORT port, LPCWSTR path, LPCWSTR method,
+shoes_winhttp(LPCWSTR scheme, LPCWSTR host, INTERNET_PORT port, LPCWSTR path, LPCWSTR method,
   LPCWSTR headers, LPVOID body, DWORD bodylen, TCHAR **mem, ULONG memlen, HANDLE file,
   LPDWORD size, UCHAR flags, shoes_download_handler handler, void *data)
 {

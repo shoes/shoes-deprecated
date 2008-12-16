@@ -51,7 +51,7 @@
 {
   char slash[2] = "/";
   if (req->path[0] == '/') slash[0] = '\0';
-  NSString *url = [NSString stringWithFormat: @"http://%s:%d%s%s", req->host, req->port, slash, req->path];
+  NSString *url = [NSString stringWithFormat: @"%s://%s:%d%s%s", req->scheme, req->host, req->port, slash, req->path];
   NSString *uagent = [NSString stringWithFormat: @"Shoes/0.r%d (%s) %s/%d", 
     SHOES_REVISION, SHOES_PLATFORM, SHOES_RELEASE_NAME, SHOES_BUILD_DATE];
   NSMutableURLRequest *nsreq = [NSMutableURLRequest requestWithURL: 

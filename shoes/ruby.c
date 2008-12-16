@@ -4084,11 +4084,13 @@ VALUE
 shoes_download_non_threaded(VALUE self, VALUE url)
 {
   if (!rb_respond_to(url, s_host)) url = rb_funcall(rb_mKernel, s_URI, 1, url);
+  VALUE scheme = rb_funcall(url, s_scheme, 0);
   VALUE host = rb_funcall(url, s_host, 0);
   VALUE port = rb_funcall(url, s_port, 0);
   VALUE path = rb_funcall(url, s_request_uri, 0);
   shoes_download_request req;
   SHOE_MEMZERO(&req, shoes_download_request, 1);
+  req.scheme = RSTRING_PTR(scheme);
   req.host = RSTRING_PTR(host);
   req.port = NUM2INT(port);
   req.path = RSTRING_PTR(path);
@@ -4169,12 +4171,14 @@ shoes_download_threaded(VALUE self, VALUE url, VALUE attr)
   GET_STRUCT(canvas, self_t);
 
   if (!rb_respond_to(url, s_host)) url = rb_funcall(rb_mKernel, s_URI, 1, url);
+  VALUE scheme = rb_funcall(url, s_scheme, 0);
   VALUE host = rb_funcall(url, s_host, 0);
   VALUE port = rb_funcall(url, s_port, 0);
   VALUE path = rb_funcall(url, s_request_uri, 0);
 
   shoes_download_request *req = SHOE_ALLOC(shoes_download_request);
   SHOE_MEMZERO(req, shoes_download_request, 1);
+  req->scheme = RSTRING_PTR(scheme);
   req->host = RSTRING_PTR(host);
   req->port = NUM2INT(port);
   req->path = RSTRING_PTR(path);

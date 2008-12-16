@@ -117,7 +117,7 @@ shoes_download(shoes_download_request *req)
   if (curl == NULL) return;
 
   if (req->path[0] == '/') slash[0] = '\0';
-  sprintf(url, "http://%s:%d%s%s", req->host, req->port, slash, req->path);
+  sprintf(url, "%s://%s:%d%s%s", req->scheme, req->host, req->port, slash, req->path);
   sprintf(uagent, "Shoes/0.r%d (%s) %s/%d", SHOES_REVISION, SHOES_PLATFORM,
     SHOES_RELEASE_NAME, SHOES_BUILD_DATE);
 

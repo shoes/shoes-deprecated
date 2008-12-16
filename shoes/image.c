@@ -878,12 +878,13 @@ shoes_load_image(VALUE slot, VALUE imgpath)
   if (shoes_cache_lookup(RSTRING_PTR(imgpath), &cached))
     goto done;
 
-  if (strlen(fname) > 7 && strncmp(fname, "http://", 7) == 0)
+  if (strlen(fname) > 7 && (strncmp(fname, "http://", 7) == 0 || strncmp(fname, "https://", 8) == 0))
   {
     struct timeval tv;
-    VALUE cache, uext, hdrs, tmppath, uri, host, port, requ, path, cachepath = Qnil, hash = Qnil;
+    VALUE cache, uext, hdrs, tmppath, uri, scheme, host, port, requ, path, cachepath = Qnil, hash = Qnil;
     rb_require("shoes/data");
     uri = rb_funcall(cShoes, rb_intern("uri"), 1, imgpath);
+    scheme = rb_funcall(uri, s_scheme, 0);
     host = rb_funcall(uri, s_host, 0);
     port = rb_funcall(uri, s_port, 0);
     requ = rb_funcall(uri, s_request_uri, 0);
@@ -921,8 +922,9 @@ shoes_load_image(VALUE slot, VALUE imgpath)
     SHOE_MEMZERO(req, shoes_download_request, 1);
     shoes_image_download_event *idat = SHOE_ALLOC(shoes_image_download_event);
     SHOE_MEMZERO(idat, shoes_image_download_event, 1);
+    req->scheme = RSTRING_PTR(scheme);
     req->host = RSTRING_PTR(host);
-    req->port = 80;
+    req->port = NUM2INT(port);
     req->path = RSTRING_PTR(requ);
     req->handler = shoes_download_image_handler;
     req->filepath = strdup(RSTRING_PTR(tmppath));

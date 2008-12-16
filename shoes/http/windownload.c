@@ -20,9 +20,11 @@ shoes_download(shoes_download_request *req)
   HANDLE file = INVALID_HANDLE_VALUE;
   INTERNET_PORT _port = req->port;
   LPWSTR _method = NULL, _body = NULL;
+  LPWSTR _scheme = SHOE_ALLOC_N(WCHAR, MAX_PATH);
   LPWSTR _host = SHOE_ALLOC_N(WCHAR, MAX_PATH);
   LPWSTR _path = SHOE_ALLOC_N(WCHAR, MAX_PATH);
   DWORD _size;
+  MultiByteToWideChar(CP_UTF8, 0, req->scheme, -1, _scheme, MAX_PATH);
   MultiByteToWideChar(CP_UTF8, 0, req->host, -1, _host, MAX_PATH);
   MultiByteToWideChar(CP_UTF8, 0, req->path, -1, _path, MAX_PATH);
   if (req->method != NULL)
@@ -34,9 +36,10 @@ shoes_download(shoes_download_request *req)
   if (req->mem == NULL && req->filepath != NULL)
     file = CreateFile(req->filepath, GENERIC_READ | GENERIC_WRITE,
       FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-  shoes_winhttp(_host, _port, _path, _method, req->headers, (LPVOID)req->body, req->bodylen,
+  shoes_winhttp(_scheme, _host, _port, _path, _method, req->headers, (LPVOID)req->body, req->bodylen,
                &req->mem, req->memlen, file, &_size, req->flags, req->handler, req->data);
   req->size = _size;
+  SHOE_FREE(_scheme);
   SHOE_FREE(_host);
   SHOE_FREE(_path);
   if (_method != NULL) SHOE_FREE(_method);
@@ -47,6 +50,7 @@ shoes_download2(LPVOID data)
 {
   shoes_download_request *req = (shoes_download_request *)data;
   shoes_download(req);
+  if (req->scheme != NULL) free(req->scheme);
   if (req->method != NULL) free(req->method);
   if (req->body != NULL) free(req->body);
   if (req->headers != NULL) free(req->headers);
