@@ -70,6 +70,7 @@ typedef struct {
   int nada;
 } shoes_world_gtk, SHOES_WORLD_OS;
 
+#define USTR(str) str
 #define SHOES_CONTROL_REF GtkWidget *
 #define SHOES_SURFACE_REF GtkWidget *
 #define SHOES_BOOL gboolean
@@ -128,6 +129,7 @@ typedef struct {
 #define kShoesBoundEvent  'Boun'
 #define kShoesSlotData    'SLOT'
 
+#define USTR(str) str
 #define SHOES_CONTROL_REF NSControl *
 #define SHOES_SURFACE_REF CGrafPtr
 #define SHOES_BOOL BOOL
@@ -194,6 +196,7 @@ typedef struct {
   ATOM classatom;
 } shoes_world_win32, SHOES_WORLD_OS;
 
+#define USTR(str) (const char *)L##str
 #define SHOES_CONTROL_REF HWND
 #define SHOES_SURFACE_REF HWND
 #define SHOES_BOOL BOOL

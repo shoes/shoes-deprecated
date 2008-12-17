@@ -85,6 +85,7 @@ SHOES_TIMER_REF shoes_native_timer_start(VALUE, shoes_canvas *, unsigned int);
 VALUE shoes_native_clipboard_get(shoes_app *);
 void shoes_native_clipboard_set(shoes_app *, VALUE);
 VALUE shoes_native_to_s(VALUE);
+char *shoes_native_to_utf8(VALUE, int *);
 VALUE shoes_native_window_color(shoes_app *);
 VALUE shoes_native_dialog_color(shoes_app *);
 VALUE shoes_dialog_alert(VALUE, VALUE);

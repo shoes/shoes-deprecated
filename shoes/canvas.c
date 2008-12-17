@@ -32,8 +32,8 @@ const double SHOES_PI     = 3.14159265358979323846;
 const double SHOES_HALFPI = 1.57079632679489661923;
 const double SHOES_RAD2PI = 0.01745329251994329577;
 
-const char *dialog_title = "Shoes asks:";
-const char *dialog_title_says = "Shoes says:";
+const char *dialog_title = USTR("Shoes asks:");
+const char *dialog_title_says = USTR("Shoes says:");
 
 static void shoes_canvas_send_start(VALUE);
 

@@ -1165,12 +1165,14 @@ SHOES_CONTROL_REF
 shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, char *msg)
 {
   int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot->controls);
-  SHOES_CONTROL_REF ref = CreateWindowEx(0, TEXT("BUTTON"), msg,
+  WCHAR *buffer = shoes_wchar(msg);
+  SHOES_CONTROL_REF ref = CreateWindowExW(0, L"BUTTON", buffer,
       WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
       place->ix + place->dx, place->iy + place->dy, place->iw, place->ih,
       canvas->slot->window, (HMENU)cid, 
       (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
       NULL);
+  if (buffer != NULL) SHOE_FREE(buffer);
   shoes_win32_control_font(cid, canvas->slot->window);
   rb_ary_push(canvas->slot->controls, self);
   return ref;
@@ -1441,8 +1443,8 @@ shoes_native_dialog_color(shoes_app *app)
   return shoes_color_new(GetRValue(winc), GetGValue(winc), GetBValue(winc), SHOES_COLOR_OPAQUE);
 }
 
-char *win32_dialog_label = "Ask label";
-char *win32_dialog_answer = NULL;
+LPWSTR win32_dialog_label = NULL;
+LPWSTR win32_dialog_answer = NULL;
 
 BOOL CALLBACK
 shoes_ask_win32proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -1450,7 +1452,12 @@ shoes_ask_win32proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
   switch (message)
   {
     case WM_INITDIALOG:
-      SetDlgItemText(hwnd, IDQUIZ, win32_dialog_label);
+      SetDlgItemTextW(hwnd, IDQUIZ, win32_dialog_label);
+      if (win32_dialog_label != NULL)
+      {
+        SHOE_FREE(win32_dialog_label);
+        win32_dialog_label = NULL;
+      }
       if (win32_dialog_answer != NULL)
       {
         GlobalFree((HANDLE)win32_dialog_answer);
@@ -1467,8 +1474,8 @@ shoes_ask_win32proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
           if(len > 0)
           {
             int i;
-            win32_dialog_answer = (char*)GlobalAlloc(GPTR, len + 1);
-            GetDlgItemText(hwnd, IDQUED, win32_dialog_answer, len + 1);
+            win32_dialog_answer = (LPWSTR)GlobalAlloc(GPTR, (len + 1) * sizeof(WCHAR));
+            GetDlgItemTextW(hwnd, IDQUED, win32_dialog_answer, len + 1);
           }
         }
         case IDCANCEL:
@@ -1487,9 +1494,12 @@ shoes_ask_win32proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 VALUE
 shoes_dialog_alert(VALUE self, VALUE msg)
 {
+  WCHAR *buffer;
   GLOBAL_APP(app);
   msg = shoes_native_to_s(msg);
-  MessageBox(APP_WINDOW(app), RSTRING_PTR(msg), dialog_title_says, MB_OK);
+  buffer = shoes_wchar(RSTRING_PTR(msg));
+  MessageBoxW(APP_WINDOW(app), buffer, (LPCWSTR)dialog_title_says, MB_OK);
+  if (buffer != NULL) SHOE_FREE(buffer);
   return Qnil;
 }
 
@@ -1500,7 +1510,7 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
   VALUE answer = Qnil;
   rb_parse_args(argc, argv, "s|h", &args);
   GLOBAL_APP(app);
-  win32_dialog_label = RSTRING_PTR(args.a[0]);
+  win32_dialog_label = shoes_wchar(RSTRING_PTR(args.a[0]));
   int confirm = DialogBox(shoes_world->os.instance,
     MAKEINTRESOURCE(RTEST(ATTR(args.a[1], secret)) ? ASKSECRETDLG : ASKDLG),
     APP_WINDOW(app), shoes_ask_win32proc);
@@ -1508,7 +1518,9 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
   {
     if (win32_dialog_answer != NULL)
     {
-      answer = rb_str_new2(win32_dialog_answer);
+      char *ans8 = shoes_utf8(win32_dialog_answer);
+      answer = rb_str_new2(ans8);
+      SHOE_FREE(ans8);
       GlobalFree((HANDLE)win32_dialog_answer);
       win32_dialog_answer = NULL;
     }
@@ -1519,12 +1531,15 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_dialog_confirm(VALUE self, VALUE quiz)
 {
+  WCHAR *buffer;
   VALUE answer = Qfalse;
   GLOBAL_APP(app);
   quiz = shoes_native_to_s(quiz);
-  int confirm = MessageBox(APP_WINDOW(app), RSTRING_PTR(quiz), dialog_title, MB_OKCANCEL);
+  buffer = shoes_wchar(RSTRING_PTR(quiz));
+  int confirm = MessageBoxW(APP_WINDOW(app), buffer, (LPCWSTR)dialog_title, MB_OKCANCEL);
   if (confirm == IDOK)
     answer = Qtrue;
+  if (buffer != NULL) SHOE_FREE(buffer);
   return answer;
 }
 
