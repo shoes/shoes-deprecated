@@ -1613,6 +1613,10 @@ Create a Para text block (short for "paragraph") which Shoes styles at 12 pixels
 
 Adds a radio button.  If a `group name` is given, the radio button is considered part of a group.  Among radio buttons in the same group, only one may be checked.  (If no group name is given, the radio button is grouped with any other radio buttons in the same slot.)
 
+=== span(text) » Shoes::Span ===
+
+Creates a Span text fragment, unstyled by default.
+
 === stack(styles) { ... } » Shoes::Stack ===
 
 Creates a new stack.  A stack is a type of slot.  (See the main [[Slots]] page for a full explanation of both stacks and flows.)

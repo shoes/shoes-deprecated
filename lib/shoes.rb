@@ -7,7 +7,7 @@ ARGV.delete_if { |x| x =~ /-psn_/ }
 
 require 'open-uri'
 require 'optparse'
-require 'resolv-replace'
+require 'resolv-replace' if PLATFORM =~ /win/
 require 'shoes/inspect'
 require 'shoes/cache'
 if Object.const_defined? :Shoes
