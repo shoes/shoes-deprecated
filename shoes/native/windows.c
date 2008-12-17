@@ -765,7 +765,8 @@ shoes_classex_init()
   shoes_world->os.classex.cbWndExtra = 0;
   shoes_world->os.classex.hbrBackground = (HBRUSH)COLOR_WINDOW;
 
-  if (!RegisterClassEx(&shoes_world->os.classex))
+  shoes_world->os.classatom = RegisterClassEx(&shoes_world->os.classex);
+  if (!shoes_world->os.classatom)
   {
     QUIT("Couldn't register WIN32 window class.");
   }
@@ -893,7 +894,8 @@ shoes_native_loop()
       if (msgs.message == WM_KEYDOWN || msgs.message == WM_KEYUP)
       {
         shoes_app *appk = (shoes_app *)GetWindowLong(focused, GWL_USERDATA);
-        if (appk != NULL && RARRAY_LEN(appk->slot->controls) > 0)
+        ATOM wndatom = GetClassLong(focused, GCW_ATOM);
+        if (appk != NULL && wndatom == shoes_world->os.classatom && RARRAY_LEN(appk->slot->controls) > 0)
         {
           switch (msgs.wParam)
           {

@@ -191,6 +191,7 @@ typedef struct {
   int style;
   HWND hidden;
   WNDCLASSEX classex, slotex, vlclassex, hiddenex;
+  ATOM classatom;
 } shoes_world_win32, SHOES_WORLD_OS;
 
 #define SHOES_CONTROL_REF HWND
