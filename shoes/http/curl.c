@@ -199,11 +199,7 @@ shoes_download2(void *data)
 {
   shoes_download_request *req = (shoes_download_request *)data;
   shoes_download(req);
-  if (req->method != NULL) free(req->method);
-  if (req->body != NULL) free(req->body);
-  if (req->headers != NULL) curl_slist_free_all(req->headers);
   if (req->mem != NULL) free(req->mem);
-  if (req->filepath != NULL) free(req->filepath);
   free(req->data);
   free(req);
   return NULL;
