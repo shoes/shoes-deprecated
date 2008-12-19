@@ -4073,20 +4073,12 @@ shoes_http_abort(VALUE self)
 }
 
 int
-shoes_dont_handler(shoes_http_event *de, void *data)
-{
-  INFO("EVENT: %d, %lu, %llu, %llu\n", (int)de->stage, de->percent,
-    de->transferred, de->total);
-  return SHOES_DOWNLOAD_CONTINUE;
-}
-
-int
 shoes_message_download(VALUE self, void *data)
 {
   VALUE proc = Qnil;
   shoes_http_event *de = (shoes_http_event *)data;
   GET_STRUCT(http_klass, dl);
-  INFO("EVENT: %d, %lu, %llu, %llu\n", (int)de->stage, de->percent,
+  INFO("EVENT: %d (%d), %lu, %llu, %llu\n", (int)de->stage, (int)de->error, de->percent,
     de->transferred, de->total);
 
   switch (de->stage)

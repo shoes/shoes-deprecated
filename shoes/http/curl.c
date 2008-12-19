@@ -33,13 +33,18 @@ shoes_curl_header_funk(char *ptr, size_t size, size_t nmemb, void *user)
 {
   shoes_curl_data *data = (shoes_curl_data *)user;
   size_t realsize = size * nmemb;
-  if (data->status == 0)
+  if (data->status == 0 && data->handler != NULL)
   {
-    shoes_http_event event;
-    event.stage = SHOES_HTTP_STATUS;
-    curl_easy_getinfo(data->curl, CURLINFO_RESPONSE_CODE, (long *)&event.status);
-    data->status = event.status;
-    if (data->handler != NULL) data->handler(&event, data->data);
+    curl_easy_getinfo(data->curl, CURLINFO_RESPONSE_CODE, (long *)&data->status);
+    if (data->handler != NULL)
+    {
+      shoes_http_event *event = SHOE_ALLOC(shoes_http_event);
+      SHOE_MEMZERO(event, shoes_http_event, 1);
+      event->stage = SHOES_HTTP_STATUS;
+      event->status = data->status;
+      data->handler(event, data->data);
+      SHOE_FREE(event);
+    }
   }
 
   HTTP_HEADER(ptr, realsize, data->handler, data->data);
@@ -178,10 +183,15 @@ shoes_download(shoes_http_request *req)
 
   if (res != CURLE_OK)
   {
-    shoes_http_event event;
-    event.stage = SHOES_HTTP_ERROR;
-    event.error = res;
-    if (req->handler != NULL) req->handler(&event, req->data);
+    if (req->handler != NULL)
+    {
+      shoes_http_event *event = SHOE_ALLOC(shoes_http_event);
+      SHOE_MEMZERO(event, shoes_http_event, 1);
+      event->stage = SHOES_HTTP_ERROR;
+      event->error = res;
+      req->handler(event, req->data);
+      SHOE_FREE(event);
+    }
     goto done;
   }
 

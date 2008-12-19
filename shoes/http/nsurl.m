@@ -89,15 +89,16 @@
 }
 - (void)readHeaders: (NSURLResponse *)response
 {
-  if ([response respondsToSelector:@selector(allHeaderFields)])
+  if ([response respondsToSelector:@selector(allHeaderFields)] && handler != NULL)
   {
+    shoes_http_event *event = SHOE_ALLOC(shoes_http_event);
     NSHTTPURLResponse* httpresp = (NSHTTPURLResponse *)response;
     if ([httpresp statusCode])
     {
-      shoes_http_event event;
-      event.stage = SHOES_HTTP_STATUS;
-      event.status = [httpresp statusCode];
-      if (handler != NULL) handler(&event, data);
+      SHOE_MEMZERO(event, shoes_http_event, 1);
+      event->stage = SHOES_HTTP_STATUS;
+      event->status = [httpresp statusCode];
+      data->handler(event, data);
     }
 
     NSDictionary *hdrs = [httpresp allHeaderFields];
@@ -108,15 +109,17 @@
       while (key = [keys nextObject])
       {
         NSString *val = [hdrs objectForKey: key];
-        shoes_http_event event;
-        event.stage = SHOES_HTTP_HEADER;
-        event.hkey = [key UTF8String];
-        event.hkeylen = strlen(event.hkey);
-        event.hval = [val UTF8String];
-        event.hvallen = strlen(event.hval);
-        if (handler != NULL) handler(&event, data);
+        SHOE_MEMZERO(event, shoes_http_event, 1);
+        event->stage = SHOES_HTTP_HEADER;
+        event->hkey = [key UTF8String];
+        event->hkeylen = strlen(event->hkey);
+        event->hval = [val UTF8String];
+        event->hvallen = strlen(event->hval);
+        handler(event, data);
       }
     }
+
+    SHOE_FREE(event);
   }
 }
 - (NSURLRequest *)connection: (NSURLConnection *)connection

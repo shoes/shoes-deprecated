@@ -114,12 +114,14 @@ shoes_winhttp(LPCWSTR scheme, LPCWSTR host, INTERNET_PORT port, LPCWSTR path, LP
   if (!WinHttpQueryHeaders(req, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
     NULL, &status, &len, NULL))
     goto done;
-  else
+  else if (handler != NULL)
   {
-    shoes_http_event event;
-    event.stage = SHOES_HTTP_STATUS;
-    event.status = status;
-    if (handler != NULL) handler(&event, data);
+    shoes_http_event *event = SHOE_ALLOC(shoes_http_event);
+    SHOE_MEMZERO(event, shoes_http_event, 1);
+    event->stage = SHOES_HTTP_STATUS;
+    event->status = status;
+    handler(event, data);
+    SHOE_FREE(event);
   }
 
   if (handler != NULL) shoes_winhttp_headers(req, handler, data);
@@ -190,10 +192,13 @@ done:
 
   if (!complete)
   {
-    shoes_http_event event;
-    event.stage = SHOES_HTTP_ERROR;
-    event.error = GetLastError();
-    if (handler != NULL) handler(&event, data);
+    shoes_http_event *event = SHOE_ALLOC(shoes_http_event);
+    SHOE_MEMZERO(event, shoes_http_event, 1);
+    event->stage = SHOES_HTTP_ERROR;
+    event->error = GetLastError();
+    int hx = handler(event, data);
+    SHOE_FREE(event);
+    if (hx & SHOES_DOWNLOAD_HALT) goto done;
   }
 
   if (file != INVALID_HANDLE_VALUE)

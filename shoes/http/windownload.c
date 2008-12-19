@@ -66,8 +66,17 @@ VALUE
 shoes_http_err(SHOES_DOWNLOAD_ERROR code)
 {
   TCHAR msg[1024];
-  DWORD msglen = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-    NULL, code, 0, msg, sizeof(msg), NULL);
+  DWORD msglen;
+  if (code > 12000 && code <= 12174)
+  {
+    msglen = FormatMessage(FORMAT_MESSAGE_FROM_HMODULE,
+      GetModuleHandle("WINHTTP.DLL"), code, 0, msg, sizeof(msg), NULL);
+  }
+  else
+  {
+    msglen = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEMi | FORMAT_MESSAGE_IGNORE_INSERTS,
+      NULL, code, 0, msg, sizeof(msg), NULL);
+  }
   msg[msglen] = '\0';
   return rb_str_new2(msg);
 }
