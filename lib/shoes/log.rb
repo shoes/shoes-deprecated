@@ -34,7 +34,9 @@ module Shoes::LogWindow
                 image "#{DIR}/static/icon-#{typ}.png"
               end
               stack :margin => 4, :width => -20 do
-                para " #{msg}", :margin => 4, :margin_top => 0
+                s = "#{msg}"
+                s << "\n#{msg.backtrace.join("\n")}" if msg.kind_of?(Exception)
+                para s, :margin => 4, :margin_top => 0
               end
             end
           end
