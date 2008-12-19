@@ -20,7 +20,7 @@ typedef struct {
   char *body;
   size_t size, total, readpos, bodylen;
   unsigned long status;
-  shoes_download_handler handler;
+  shoes_http_handler handler;
   SHOES_TIME last;
   CURL *curl;
   void *data;
@@ -35,7 +35,7 @@ shoes_curl_header_funk(char *ptr, size_t size, size_t nmemb, void *user)
   size_t realsize = size * nmemb;
   if (data->status == 0)
   {
-    shoes_download_event event;
+    shoes_http_event event;
     event.stage = SHOES_HTTP_STATUS;
     curl_easy_getinfo(data->curl, CURLINFO_RESPONSE_CODE, (long *)&event.status);
     data->status = event.status;
@@ -108,7 +108,7 @@ shoes_curl_progress_funk(void *user, double dltotal, double dlnow, double ultota
 }
 
 void
-shoes_download(shoes_download_request *req)
+shoes_download(shoes_http_request *req)
 {
   char url[SHOES_BUFSIZE], uagent[SHOES_BUFSIZE], slash[2] = "/";
   CURL *curl = curl_easy_init();
@@ -170,7 +170,7 @@ shoes_download(shoes_download_request *req)
 
   if (res != CURLE_OK)
   {
-    shoes_download_event event;
+    shoes_http_event event;
     event.stage = SHOES_HTTP_ERROR;
     event.error = res;
     if (req->handler != NULL) req->handler(&event, req->data);
@@ -197,27 +197,22 @@ done:
 void *
 shoes_download2(void *data)
 {
-  shoes_download_request *req = (shoes_download_request *)data;
+  shoes_http_request *req = (shoes_http_request *)data;
   shoes_download(req);
-  if (req->method != NULL) free(req->method);
-  if (req->body != NULL) free(req->body);
-  if (req->headers != NULL) curl_slist_free_all(req->headers);
-  if (req->mem != NULL) free(req->mem);
-  if (req->filepath != NULL) free(req->filepath);
-  free(req->data);
+  shoes_http_request_free(req);
   free(req);
   return NULL;
 }
 
 void
-shoes_queue_download(shoes_download_request *req)
+shoes_queue_download(shoes_http_request *req)
 {
   pthread_t tid;
   pthread_create(&tid, NULL, shoes_download2, req);
 }
 
 VALUE
-shoes_http_error(SHOES_DOWNLOAD_ERROR code)
+shoes_http_err(SHOES_DOWNLOAD_ERROR code)
 {
   return rb_str_new2(curl_easy_strerror(code));
 }

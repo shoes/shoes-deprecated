@@ -15,7 +15,7 @@
 #include <time.h>
 
 void
-shoes_download(shoes_download_request *req)
+shoes_download(shoes_http_request *req)
 {
   HANDLE file = INVALID_HANDLE_VALUE;
   INTERNET_PORT _port = req->port;
@@ -48,28 +48,22 @@ shoes_download(shoes_download_request *req)
 DWORD WINAPI
 shoes_download2(LPVOID data)
 {
-  shoes_download_request *req = (shoes_download_request *)data;
+  shoes_http_request *req = (shoes_http_request *)data;
   shoes_download(req);
-  if (req->scheme != NULL) free(req->scheme);
-  if (req->method != NULL) free(req->method);
-  if (req->body != NULL) free(req->body);
-  if (req->headers != NULL) free(req->headers);
-  if (req->mem != NULL) free(req->mem);
-  if (req->filepath != NULL) free(req->filepath);
-  free(req->data);
+  shoes_http_request_free(req);
   free(req);
   return TRUE;
 }
 
 void
-shoes_queue_download(shoes_download_request *req)
+shoes_queue_download(shoes_http_request *req)
 {
   DWORD tid;
   CreateThread(0, 0, (LPTHREAD_START_ROUTINE)shoes_download2, (void *)req, 0, &tid);
 }
 
 VALUE
-shoes_http_error(SHOES_DOWNLOAD_ERROR code)
+shoes_http_err(SHOES_DOWNLOAD_ERROR code)
 {
   TCHAR msg[1024];
   DWORD msglen = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,

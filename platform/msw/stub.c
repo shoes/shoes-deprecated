@@ -16,7 +16,7 @@ HWND dlg;
 BOOL http_abort = FALSE;
 
 int
-StubDownloadingShoes(shoes_download_event *event, void *data)
+StubDownloadingShoes(shoes_http_event *event, void *data)
 {
   TCHAR msg[512];
   if (http_abort) return SHOES_DOWNLOAD_HALT;
@@ -118,7 +118,7 @@ shoes_auto_setup(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID vinst)
 }
 
 DWORD WINAPI
-shoes_download_thread(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
+shoes_http_thread(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
 {
   DWORD len = 0;
   WCHAR path[BUFSIZE];
@@ -224,7 +224,7 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
     ShowWindow(dlg, SW_SHOW);
 
     if (setupres == NULL)
-      back_action = (LPTHREAD_START_ROUTINE)shoes_download_thread;
+      back_action = (LPTHREAD_START_ROUTINE)shoes_http_thread;
 
     if (!(th = CreateThread(0, 0, back_action, inst, 0, &tid)))
       return 0;

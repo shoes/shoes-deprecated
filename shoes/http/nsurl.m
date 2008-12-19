@@ -24,7 +24,7 @@
   long long size;
   long long total;
   unsigned char flags;
-  shoes_download_handler handler;
+  shoes_http_handler handler;
   SHOES_TIME last;
   NSMutableData *bytes;
   void *data;
@@ -47,7 +47,7 @@
   if (dest != NULL) free(dest);
   if (data != NULL) free(data);
 }
-- (void)download: (shoes_download_request *)req
+- (void)download: (shoes_http_request *)req
 {
   char slash[2] = "/";
   if (req->path[0] == '/') slash[0] = '\0';
@@ -78,11 +78,13 @@
     destlen = req->memlen;
     conn = [[NSURLConnection alloc] initWithRequest: nsreq
       delegate: self];
+    req->mem = NULL;
   }
   else
   {
     dest = req->filepath;
     down = [[NSURLDownload alloc] initWithRequest: nsreq delegate: self];
+    req->filepath = NULL;
   }
 }
 - (void)readHeaders: (NSURLResponse *)response
@@ -92,7 +94,7 @@
     NSHTTPURLResponse* httpresp = (NSHTTPURLResponse *)response;
     if ([httpresp statusCode])
     {
-      shoes_download_event event;
+      shoes_http_event event;
       event.stage = SHOES_HTTP_STATUS;
       event.status = [httpresp statusCode];
       if (handler != NULL) handler(&event, data);
@@ -106,7 +108,7 @@
       while (key = [keys nextObject])
       {
         NSString *val = [hdrs objectForKey: key];
-        shoes_download_event event;
+        shoes_http_event event;
         event.stage = SHOES_HTTP_HEADER;
         event.hkey = [key UTF8String];
         event.hkeylen = strlen(event.hkey);
@@ -196,24 +198,22 @@
 @end
 
 void
-shoes_download(shoes_download_request *req)
+shoes_download(shoes_http_request *req)
 {
   ShoesHttp *http = [[ShoesHttp alloc] init];
   [http download: req];
-  if (req->method != NULL) free(req->method);
-  if (req->body != NULL) free(req->body);
-  if (req->headers != NULL) [req->headers release];
+  shoes_http_request_free(req);
   free(req);
 }
 
 void
-shoes_queue_download(shoes_download_request *req)
+shoes_queue_download(shoes_http_request *req)
 {
   shoes_download(req);
 }
 
 VALUE
-shoes_http_error(SHOES_DOWNLOAD_ERROR code)
+shoes_http_err(SHOES_DOWNLOAD_ERROR code)
 {
   char *errorString = [[code localizedDescription] UTF8String];
   return rb_str_new2(errorString);

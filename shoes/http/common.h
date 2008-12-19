@@ -34,7 +34,7 @@
         break; \
     if (colon < ptr + realsize) \
     { \
-      shoes_download_event *event = SHOE_ALLOC(shoes_download_event); \
+      shoes_http_event *event = SHOE_ALLOC(shoes_http_event); \
       event->stage = SHOES_HTTP_HEADER; \
       event->hkey = ptr; \
       event->hkeylen = colon - ptr; \
@@ -50,7 +50,7 @@
   shoes_get_time(&ts); \
   unsigned long elapsed = shoes_diff_time(&(last), &ts); \
   if (s != SHOES_HTTP_TRANSFER || elapsed > 600 ) { \
-    shoes_download_event *event = SHOE_ALLOC(shoes_download_event); \
+    shoes_http_event *event = SHOE_ALLOC(shoes_http_event); \
     event->stage = s; \
     if (s == SHOES_HTTP_COMPLETED) event->stage = SHOES_HTTP_TRANSFER; \
     event->percent = perc; \
@@ -76,9 +76,9 @@ typedef struct {
   unsigned LONG_LONG transferred;
   unsigned long percent;
   SHOES_DOWNLOAD_ERROR error;
-} shoes_download_event;
+} shoes_http_event;
 
-typedef int (*shoes_download_handler)(shoes_download_event *, void *);
+typedef int (*shoes_http_handler)(shoes_http_event *, void *);
 
 void shoes_get_time(SHOES_TIME *);
 unsigned long shoes_diff_time(SHOES_TIME *, SHOES_TIME *);
