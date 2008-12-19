@@ -238,3 +238,9 @@ shoes_http_headers(VALUE hsh)
   }
   return d;
 }
+
+void
+shoes_http_headers_free(SHOES_DOWNLOAD_HEADERS headers);
+{
+  [headers release];
+}

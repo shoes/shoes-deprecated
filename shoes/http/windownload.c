@@ -96,3 +96,9 @@ shoes_http_headers(VALUE hsh)
   }
   return hdrs;
 }
+
+void
+shoes_http_headers_free(SHOES_DOWNLOAD_HEADERS headers)
+{
+  SHOE_FREE(headers);
+}

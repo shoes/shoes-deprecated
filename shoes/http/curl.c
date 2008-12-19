@@ -233,3 +233,9 @@ shoes_http_headers(VALUE hsh)
   }
   return slist;
 }
+
+void
+shoes_http_headers_free(struct curl_slist *slist)
+{
+  curl_slist_free_all(req->headers);
+}

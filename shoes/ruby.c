@@ -4150,7 +4150,7 @@ shoes_http_request_free(shoes_http_request *req)
   if (req->method != NULL) free(req->method);
   if (req->filepath != NULL) free(req->filepath);
   if (req->body != NULL) free(req->body);
-  if (req->headers != NULL) curl_slist_free_all(req->headers);
+  if (req->headers != NULL) shoes_http_headers_free(req->headers);
   if (req->mem != NULL) free(req->mem);
 }
 

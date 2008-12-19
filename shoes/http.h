@@ -32,6 +32,7 @@ void shoes_queue_download(shoes_http_request *req);
 VALUE shoes_http_err(SHOES_DOWNLOAD_ERROR error);
 SHOES_DOWNLOAD_HEADERS shoes_http_headers(VALUE hsh);
 void shoes_http_request_free(shoes_http_request *);
+void shoes_http_headers_free(SHOES_DOWNLOAD_HEADERS);
 
 #ifdef SHOES_WIN32
 #include "shoes/http/winhttp.h"
