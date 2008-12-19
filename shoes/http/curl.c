@@ -57,6 +57,18 @@ shoes_curl_header_funk(char *ptr, size_t size, size_t nmemb, void *user)
 }
 
 size_t
+shoes_curl_read_funk(void *ptr, size_t size, size_t nmemb, void *user)
+{
+  shoes_curl_data *data = (shoes_curl_data *)user;
+  size_t realsize = size * nmemb;
+  if (data->readpos == data->bodylen) return 0;
+  if (data->readpos + realsize > data->bodylen) realsize = data->bodylen - data->readpos;
+  SHOE_MEMCPY(ptr, &(data->body[data->readpos]), char, realsize);
+  data->readpos += realsize;
+  return realsize;
+}
+
+size_t
 shoes_curl_write_funk(void *ptr, size_t size, size_t nmemb, void *user)
 {
   shoes_curl_data *data = (shoes_curl_data *)user;
@@ -104,7 +116,7 @@ int my_trace(CURL *handle, curl_infotype type,
 
   switch (type) {
   case CURLINFO_TEXT:
-    INFO("HTTP: %s\n", data);
+    INFO("HTTP: %s", data);
   default: /* in case a new one is introduced to shock us */
     return 0;
 
@@ -128,7 +140,7 @@ int my_trace(CURL *handle, curl_infotype type,
     break;
   }
 
-  INFO("HTTP: %s\n", text);
+  INFO("HTTP: %s", text);
   return 0;
 }
 
@@ -184,7 +196,12 @@ shoes_download(shoes_download_request *req)
   if (req->headers)
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, req->headers);
   if (req->body)
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, req->body);
+  {
+    cdata->body = req->body;
+    curl_easy_setopt(curl, CURLOPT_UPLOAD, 1);
+    curl_easy_setopt(curl, CURLOPT_READFUNCTION, shoes_curl_read_funk);
+    curl_easy_setopt(curl, CURLOPT_READDATA, cdata);
+  }
 
   res = curl_easy_perform(curl);
   req->size = cdata->size;
