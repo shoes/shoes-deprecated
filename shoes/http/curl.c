@@ -96,6 +96,31 @@ shoes_curl_progress_funk(void *user, double dltotal, double dlnow, double ultota
 }
 
 static
+void dump(const char *text,
+          FILE *stream, unsigned char *ptr, size_t size)
+{
+  size_t i;
+  fprintf(stream, "%s, %zd bytes (0x%zx)\n", text, size, size);
+
+  for(i=0; i<size; i+= 1) {
+    /* check for 0D0A; if found, skip past and start a new line of output */
+    if((ptr[i]>=0x20) && (ptr[i]<0x80))
+      fprintf(stream, "%c", ptr[i]);
+    else if (ptr[i]==0x0A)
+      fputc('\n', stream); /* newline */
+    else if (ptr[i]==0x0D && ptr[i+1]==0x0A) {
+      fputc('\n', stream); /* newline */
+      i+= 1;
+    }
+    else
+      fputc('.', stream);
+  }
+  fputc('\n', stream);
+  fflush(stream);
+}
+
+
+static
 int my_trace(CURL *handle, curl_infotype type,
              unsigned char *data, size_t size,
              void *userp)
@@ -129,6 +154,7 @@ int my_trace(CURL *handle, curl_infotype type,
   }
 
   INFO("HTTP: %s\n", text);
+  dump(text, stderr, data, size);
   return 0;
 }
 
