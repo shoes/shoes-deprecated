@@ -107,6 +107,43 @@ shoes_curl_progress_funk(void *user, double dltotal, double dlnow, double ultota
   return 0;
 }
 
+static
+int my_trace(CURL *handle, curl_infotype type,
+             unsigned char *data, size_t size,
+             void *userp)
+{
+  const char *text;
+
+  switch (type) {
+  case CURLINFO_TEXT:
+    INFO("HTTP: %s", data);
+  default: /* in case a new one is introduced to shock us */
+    return 0;
+
+  case CURLINFO_HEADER_OUT:
+    text = "=> Send header";
+    break;
+  case CURLINFO_DATA_OUT:
+    text = "=> Send data";
+    break;
+  case CURLINFO_HEADER_IN:
+    text = "<= Recv header";
+    break;
+  case CURLINFO_DATA_IN:
+    text = "<= Recv data";
+    break;
+  case CURLINFO_SSL_DATA_IN:
+    text = "<= Recv SSL data";
+    break;
+  case CURLINFO_SSL_DATA_OUT:
+    text = "<= Send SSL data";
+    break;
+  }
+
+  INFO("HTTP: %s", text);
+  return 0;
+}
+
 void
 shoes_download(shoes_download_request *req)
 {
@@ -150,6 +187,8 @@ shoes_download(shoes_download_request *req)
   curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, shoes_curl_progress_funk);
   curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, cdata);
   curl_easy_setopt(curl, CURLOPT_USERAGENT, uagent);
+  curl_easy_setopt(curl, CURLOPT_VERBOSE, TRUE);
+  curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, my_trace);
   if (req->flags & SHOES_DL_REDIRECTS)
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
   if (req->method)
