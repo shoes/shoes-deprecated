@@ -4106,6 +4106,8 @@ shoes_message_download(VALUE self, void *data)
       proc = ATTR(dl->attr, error);
       if (!NIL_P(proc))
         shoes_safe_block(dl->parent, proc, rb_ary_new3(2, self, shoes_http_err(de->error)));
+      else
+        shoes_canvas_error(self, shoes_http_err(de->error));
     return 0;
 
     case SHOES_HTTP_COMPLETED:
@@ -4188,14 +4190,17 @@ shoes_http_threaded(VALUE self, VALUE url, VALUE attr)
   if (!NIL_P(headers)) req->headers = shoes_http_headers(headers);
 
   VALUE save = ATTR(attr, save);
-  if (NIL_P(save))
+  if (req->method == NULL || strcmp(req->method, "HEAD") != 0)
   {
-    req->mem = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
-    req->memlen = SHOES_BUFSIZE;
-  }
-  else
-  {
-    req->filepath = strdup(RSTRING_PTR(save));
+    if (NIL_P(save))
+    {
+      req->mem = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
+      req->memlen = SHOES_BUFSIZE;
+    }
+    else
+    {
+      req->filepath = strdup(RSTRING_PTR(save));
+    }
   }
 
   shoes_doth_data *data = SHOE_ALLOC(shoes_doth_data);

@@ -43,7 +43,8 @@ shoes_curl_header_funk(char *ptr, size_t size, size_t nmemb, void *user)
   }
 
   HTTP_HEADER(ptr, realsize, data->handler, data->data);
-  if (strncmp(ptr, content_len_str, strlen(content_len_str)) == 0)
+  if ((data->mem != NULL || data->fp != NULL) &&
+      strncmp(ptr, content_len_str, strlen(content_len_str)) == 0)
   {
     data->total = strtoull(ptr + strlen(content_len_str), NULL, 10);
     if (data->mem != NULL && data->total > data->memlen)
@@ -134,7 +135,7 @@ shoes_download(shoes_http_request *req)
   cdata->curl = curl;
   cdata->body = NULL;
 
-  if (req->mem == NULL)
+  if (req->mem == NULL && req->filepath != NULL)
   {
     cdata->fp = fopen(req->filepath, "wb");
     if (cdata->fp == NULL) goto done;
@@ -144,11 +145,18 @@ shoes_download(shoes_http_request *req)
   curl_easy_setopt(curl, CURLOPT_URL, url);
   curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, shoes_curl_header_funk);
   curl_easy_setopt(curl, CURLOPT_WRITEHEADER, cdata);
-  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, shoes_curl_write_funk);
-  curl_easy_setopt(curl, CURLOPT_WRITEDATA, cdata);
-  curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
-  curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, shoes_curl_progress_funk);
-  curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, cdata);
+  if (cdata->mem != NULL || cdata->fp != NULL)
+  {
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, shoes_curl_write_funk);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, cdata);
+    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+    curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, shoes_curl_progress_funk);
+    curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, cdata);
+  }
+  else
+  {
+    curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
+  }
   curl_easy_setopt(curl, CURLOPT_USERAGENT, uagent);
   if (req->flags & SHOES_DL_REDIRECTS)
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
@@ -237,5 +245,5 @@ shoes_http_headers(VALUE hsh)
 void
 shoes_http_headers_free(struct curl_slist *slist)
 {
-  curl_slist_free_all(req->headers);
+  curl_slist_free_all(slist);
 }
