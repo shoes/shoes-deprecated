@@ -1563,7 +1563,7 @@ shoes_canvas_download(int argc, VALUE *argv, VALUE self)
   CHECK_HASH(attr);
   if (!NIL_P(block))
     ATTRSET(attr, finish, block);
-  obj = shoes_download_threaded(self, url, attr);
+  obj = shoes_http_threaded(self, url, attr);
   rb_ary_push(canvas->app->extras, obj);
   return obj;
 }

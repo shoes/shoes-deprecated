@@ -840,7 +840,7 @@ shoes_image_downloaded(shoes_image_download_event *idat)
 }
 
 int
-shoes_download_image_handler(shoes_download_event *de, void *data)
+shoes_http_image_handler(shoes_http_event *de, void *data)
 {
   shoes_image_download_event *idat = (shoes_image_download_event *)data;
   if (de->stage == SHOES_HTTP_STATUS)
@@ -918,15 +918,15 @@ shoes_load_image(VALUE slot, VALUE imgpath)
     shoes_cache_insert(SHOES_CACHE_FILE, imgpath, cached);
     tmppath = rb_funcall(cShoes, rb_intern("image_temp_path"), 2, uri, uext);
 
-    shoes_download_request *req = SHOE_ALLOC(shoes_download_request);
-    SHOE_MEMZERO(req, shoes_download_request, 1);
+    shoes_http_request *req = SHOE_ALLOC(shoes_http_request);
+    SHOE_MEMZERO(req, shoes_http_request, 1);
     shoes_image_download_event *idat = SHOE_ALLOC(shoes_image_download_event);
     SHOE_MEMZERO(idat, shoes_image_download_event, 1);
-    req->scheme = RSTRING_PTR(scheme);
-    req->host = RSTRING_PTR(host);
+    req->scheme = strdup(RSTRING_PTR(scheme));
+    req->host = strdup(RSTRING_PTR(host));
     req->port = NUM2INT(port);
-    req->path = RSTRING_PTR(requ);
-    req->handler = shoes_download_image_handler;
+    req->path = strdup(RSTRING_PTR(requ));
+    req->handler = shoes_http_image_handler;
     req->filepath = strdup(RSTRING_PTR(tmppath));
     idat->filepath = strdup(RSTRING_PTR(tmppath));
     idat->uripath = strdup(RSTRING_PTR(imgpath));

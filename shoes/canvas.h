@@ -298,7 +298,7 @@ typedef struct {
   unsigned LONG_LONG total;
   unsigned LONG_LONG transferred;
   unsigned long percent;
-} shoes_download_klass;
+} shoes_http_klass;
 
 #define CANVAS_NADA    0
 #define CANVAS_STARTED 1
@@ -632,10 +632,10 @@ VALUE shoes_textblock_motion(VALUE, int, int, char *);
 VALUE shoes_textblock_send_click(VALUE, int, int, int, VALUE *);
 void shoes_textblock_send_release(VALUE, int, int, int);
 
-void shoes_download_mark(shoes_download_klass *);
-VALUE shoes_download_new(VALUE, VALUE, VALUE);
-VALUE shoes_download_alloc(VALUE);
-VALUE shoes_download_threaded(VALUE, VALUE, VALUE);
+void shoes_http_mark(shoes_http_klass *);
+VALUE shoes_http_new(VALUE, VALUE, VALUE);
+VALUE shoes_http_alloc(VALUE);
+VALUE shoes_http_threaded(VALUE, VALUE, VALUE);
 int shoes_message_download(VALUE, void *);
 int shoes_catch_message(unsigned int name, VALUE obj, void *data);
 

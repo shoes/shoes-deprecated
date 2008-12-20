@@ -22,15 +22,17 @@ typedef struct {
   unsigned long memlen;
   char *filepath;
   unsigned LONG_LONG size;
-  shoes_download_handler handler;
+  shoes_http_handler handler;
   void *data;
   unsigned char flags;
-} shoes_download_request;
+} shoes_http_request;
 
-void shoes_download(shoes_download_request *req);
-void shoes_queue_download(shoes_download_request *req);
-VALUE shoes_http_error(SHOES_DOWNLOAD_ERROR error);
+void shoes_download(shoes_http_request *req);
+void shoes_queue_download(shoes_http_request *req);
+VALUE shoes_http_err(SHOES_DOWNLOAD_ERROR error);
 SHOES_DOWNLOAD_HEADERS shoes_http_headers(VALUE hsh);
+void shoes_http_request_free(shoes_http_request *);
+void shoes_http_headers_free(SHOES_DOWNLOAD_HEADERS);
 
 #ifdef SHOES_WIN32
 #include "shoes/http/winhttp.h"

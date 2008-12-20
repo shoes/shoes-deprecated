@@ -590,7 +590,7 @@ shoes_is_element_p(VALUE ele, unsigned char any)
     dmark == shoes_image_mark || dmark == shoes_effect_mark ||
     dmark == shoes_pattern_mark || dmark == shoes_textblock_mark ||
     dmark == shoes_control_mark ||
-    (any && (dmark == shoes_download_mark || dmark == shoes_timer_mark ||
+    (any && (dmark == shoes_http_mark || dmark == shoes_timer_mark ||
              dmark == shoes_color_mark || dmark == shoes_link_mark ||
              dmark == shoes_text_mark))
 #ifdef VIDEO
@@ -4018,7 +4018,7 @@ shoes_msg(ID typ, VALUE str)
 // Shoes::Download
 //
 void
-shoes_download_mark(shoes_download_klass *dl)
+shoes_http_mark(shoes_http_klass *dl)
 {
   rb_gc_mark_maybe(dl->parent);
   rb_gc_mark_maybe(dl->attr);
@@ -4026,29 +4026,29 @@ shoes_download_mark(shoes_download_klass *dl)
 }
 
 static void
-shoes_download_free(shoes_download_klass *dl)
+shoes_http_free(shoes_http_klass *dl)
 {
   RUBY_CRITICAL(free(dl));
 }
 
 VALUE
-shoes_download_new(VALUE klass, VALUE parent, VALUE attr)
+shoes_http_new(VALUE klass, VALUE parent, VALUE attr)
 {
-  shoes_download_klass *dl;
-  VALUE obj = shoes_download_alloc(klass);
-  Data_Get_Struct(obj, shoes_download_klass, dl);
+  shoes_http_klass *dl;
+  VALUE obj = shoes_http_alloc(klass);
+  Data_Get_Struct(obj, shoes_http_klass, dl);
   dl->parent = parent;
   dl->attr = attr;
   return obj;
 }
 
 VALUE
-shoes_download_alloc(VALUE klass)
+shoes_http_alloc(VALUE klass)
 {
   VALUE obj;
-  shoes_download_klass *dl = SHOE_ALLOC(shoes_download_klass);
-  SHOE_MEMZERO(dl, shoes_download_klass, 1);
-  obj = Data_Wrap_Struct(klass, shoes_download_mark, shoes_download_free, dl);
+  shoes_http_klass *dl = SHOE_ALLOC(shoes_http_klass);
+  SHOE_MEMZERO(dl, shoes_http_klass, 1);
+  obj = Data_Wrap_Struct(klass, shoes_http_mark, shoes_http_free, dl);
   dl->parent = Qnil;
   dl->attr = Qnil;
   dl->response = Qnil;
@@ -4056,90 +4056,29 @@ shoes_download_alloc(VALUE klass)
 }
 
 VALUE
-shoes_download_remove(VALUE self)
+shoes_http_remove(VALUE self)
 {
-  GET_STRUCT(download_klass, self_t);
+  GET_STRUCT(http_klass, self_t);
   self_t->state = SHOES_DOWNLOAD_HALT;
   shoes_canvas_remove_item(self_t->parent, self, 0, 1);
   return self;
 }
 
 VALUE
-shoes_download_abort(VALUE self)
+shoes_http_abort(VALUE self)
 {
-  GET_STRUCT(download_klass, self_t);
+  GET_STRUCT(http_klass, self_t);
   self_t->state = SHOES_DOWNLOAD_HALT;
   return self;
-}
-
-int
-shoes_dont_handler(shoes_download_event *de, void *data)
-{
-  INFO("EVENT: %d, %lu, %llu, %llu\n", (int)de->stage, de->percent,
-    de->transferred, de->total);
-  return SHOES_DOWNLOAD_CONTINUE;
-}
-
-shoes_download_request
-*prepare_req(VALUE url, VALUE attr)
-{
-  if (!rb_respond_to(url, s_host)) url = rb_funcall(rb_mKernel, s_URI, 1, url);
-  VALUE scheme = rb_funcall(url, s_scheme, 0);
-  VALUE host = rb_funcall(url, s_host, 0);
-  VALUE port = rb_funcall(url, s_port, 0);
-  VALUE path = rb_funcall(url, s_request_uri, 0);
-
-  shoes_download_request *req = SHOE_ALLOC(shoes_download_request);
-  SHOE_MEMZERO(req, shoes_download_request, 1);
-  req->scheme = RSTRING_PTR(scheme);
-  req->host = RSTRING_PTR(host);
-  req->port = NUM2INT(port);
-  req->path = RSTRING_PTR(path);
-  req->flags = SHOES_DL_DEFAULTS;
-  if (ATTR(attr, redirect) == Qfalse) req->flags ^= SHOES_DL_REDIRECTS;
-
-  VALUE method = ATTR(attr, method);
-  VALUE headers = ATTR(attr, headers);
-  VALUE body = ATTR(attr, body);
-  if (!NIL_P(body))
-  {
-    req->body = RSTRING_PTR(body);
-    req->bodylen = RSTRING_LEN(body);
-  }
-  if (!NIL_P(method))  req->method = RSTRING_PTR(method);
-  if (!NIL_P(headers)) req->headers = shoes_http_headers(headers);
-
-  VALUE save = ATTR(attr, save);
-  if (NIL_P(save))
-  {
-    req->mem = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
-    req->memlen = SHOES_BUFSIZE;
-  }
-  else
-  {
-    req->filepath = strdup(RSTRING_PTR(save));
-  }
-  return req;
-}
-
-VALUE
-shoes_download_non_threaded(VALUE self, VALUE url, VALUE attr)
-{
-  shoes_download_request *req = prepare_req(url, attr);
-  req->handler = shoes_dont_handler;
-  shoes_download(req);
-  VALUE str = rb_str_new(req->mem, req->size);
-  free(req->mem);
-  return str;
 }
 
 int
 shoes_message_download(VALUE self, void *data)
 {
   VALUE proc = Qnil;
-  shoes_download_event *de = (shoes_download_event *)data;
-  GET_STRUCT(download_klass, dl);
-  INFO("EVENT: %d, %lu, %llu, %llu\n", (int)de->stage, de->percent,
+  shoes_http_event *de = (shoes_http_event *)data;
+  GET_STRUCT(http_klass, dl);
+  INFO("EVENT: %d (%d), %lu, %llu, %llu\n", (int)de->stage, (int)de->error, de->percent,
     de->transferred, de->total);
 
   switch (de->stage)
@@ -4158,7 +4097,9 @@ shoes_message_download(VALUE self, void *data)
     case SHOES_HTTP_ERROR:
       proc = ATTR(dl->attr, error);
       if (!NIL_P(proc))
-        shoes_safe_block(dl->parent, proc, rb_ary_new3(2, self, shoes_http_error(de->error)));
+        shoes_safe_block(dl->parent, proc, rb_ary_new3(2, self, shoes_http_err(de->error)));
+      else
+        shoes_canvas_error(self, shoes_http_err(de->error));
     return 0;
 
     case SHOES_HTTP_COMPLETED:
@@ -4186,22 +4127,73 @@ typedef struct {
 } shoes_doth_data;
 
 int
-shoes_doth_handler(shoes_download_event *de, void *data)
+shoes_doth_handler(shoes_http_event *de, void *data)
 {
   shoes_doth_data *doth = (shoes_doth_data *)data;
-  shoes_download_event *de2 = SHOE_ALLOC(shoes_download_event);
-  SHOE_MEMCPY(de2, de, shoes_download_event, 1);
+  shoes_http_event *de2 = SHOE_ALLOC(shoes_http_event);
+  SHOE_MEMCPY(de2, de, shoes_http_event, 1);
   return shoes_throw_message(SHOES_THREAD_DOWNLOAD, doth->download, de2);
 }
 
-VALUE
-shoes_download_threaded(VALUE self, VALUE url, VALUE attr)
+void
+shoes_http_request_free(shoes_http_request *req)
 {
-  VALUE obj = shoes_download_new(cDownload, self, attr);
+  if (req->scheme != NULL) free(req->scheme);
+  if (req->host != NULL) free(req->host);
+  if (req->path != NULL) free(req->path);
+  if (req->method != NULL) free(req->method);
+  if (req->filepath != NULL) free(req->filepath);
+  if (req->body != NULL) free(req->body);
+  if (req->headers != NULL) shoes_http_headers_free(req->headers);
+  if (req->mem != NULL) free(req->mem);
+}
+
+VALUE
+shoes_http_threaded(VALUE self, VALUE url, VALUE attr)
+{
+  VALUE obj = shoes_http_new(cDownload, self, attr);
   GET_STRUCT(canvas, self_t);
 
-  shoes_download_request *req = prepare_req(url, attr);
+  if (!rb_respond_to(url, s_host)) url = rb_funcall(rb_mKernel, s_URI, 1, url);
+  VALUE scheme = rb_funcall(url, s_scheme, 0);
+  VALUE host = rb_funcall(url, s_host, 0);
+  VALUE port = rb_funcall(url, s_port, 0);
+  VALUE path = rb_funcall(url, s_request_uri, 0);
+
+  shoes_http_request *req = SHOE_ALLOC(shoes_http_request);
+  SHOE_MEMZERO(req, shoes_http_request, 1);
+  req->scheme = strdup(RSTRING_PTR(scheme));
+  req->host = strdup(RSTRING_PTR(host));
+  req->port = NUM2INT(port);
+  req->path = strdup(RSTRING_PTR(path));
   req->handler = shoes_doth_handler;
+  req->flags = SHOES_DL_DEFAULTS;
+  if (ATTR(attr, redirect) == Qfalse) req->flags ^= SHOES_DL_REDIRECTS;
+
+  VALUE method = ATTR(attr, method);
+  VALUE headers = ATTR(attr, headers);
+  VALUE body = ATTR(attr, body);
+  if (!NIL_P(body))
+  {
+    req->body = strdup(RSTRING_PTR(body));
+    req->bodylen = RSTRING_LEN(body);
+  }
+  if (!NIL_P(method))  req->method = strdup(RSTRING_PTR(method));
+  if (!NIL_P(headers)) req->headers = shoes_http_headers(headers);
+
+  VALUE save = ATTR(attr, save);
+  if (req->method == NULL || strcmp(req->method, "HEAD") != 0)
+  {
+    if (NIL_P(save))
+    {
+      req->mem = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
+      req->memlen = SHOES_BUFSIZE;
+    }
+    else
+    {
+      req->filepath = strdup(RSTRING_PTR(save));
+    }
+  }
 
   shoes_doth_data *data = SHOE_ALLOC(shoes_doth_data);
   data->download = obj;
@@ -4212,37 +4204,37 @@ shoes_download_threaded(VALUE self, VALUE url, VALUE attr)
 }
 
 VALUE
-shoes_download_length(VALUE self)
+shoes_http_length(VALUE self)
 {
-  GET_STRUCT(download_klass, dl);
+  GET_STRUCT(http_klass, dl);
   return rb_ull2inum(dl->total);
 }
 
 VALUE
-shoes_download_percent(VALUE self)
+shoes_http_percent(VALUE self)
 {
-  GET_STRUCT(download_klass, dl);
+  GET_STRUCT(http_klass, dl);
   return rb_uint2inum(dl->percent);
 }
 
 VALUE
-shoes_download_response(VALUE self)
+shoes_http_response(VALUE self)
 {
-  GET_STRUCT(download_klass, dl);
+  GET_STRUCT(http_klass, dl);
   return dl->response;
 }
 
 VALUE
-shoes_download_transferred(VALUE self)
+shoes_http_transferred(VALUE self)
 {
-  GET_STRUCT(download_klass, dl);
+  GET_STRUCT(http_klass, dl);
   return rb_ull2inum(dl->transferred);
 }
 
-EVENT_COMMON(download, download_klass, start);
-EVENT_COMMON(download, download_klass, progress);
-EVENT_COMMON(download, download_klass, finish);
-EVENT_COMMON(download, download_klass, error);
+EVENT_COMMON(http, http_klass, start);
+EVENT_COMMON(http, http_klass, progress);
+EVENT_COMMON(http, http_klass, finish);
+EVENT_COMMON(http, http_klass, error);
 
 //
 // Shoes::Response
@@ -4794,17 +4786,17 @@ shoes_ruby_init()
   rb_define_method(cColor, "white?", CASTHOOK(shoes_color_is_white), 0);
 
   cDownload   = rb_define_class_under(cShoes, "Download", rb_cObject);
-  rb_define_alloc_func(cDownload, shoes_download_alloc);
-  rb_define_method(cDownload, "abort", CASTHOOK(shoes_download_abort), 0);
-  rb_define_method(cDownload, "finish", CASTHOOK(shoes_download_finish), -1);
-  rb_define_method(cDownload, "remove", CASTHOOK(shoes_download_remove), 0);
-  rb_define_method(cDownload, "length", CASTHOOK(shoes_download_length), 0);
-  rb_define_method(cDownload, "percent", CASTHOOK(shoes_download_percent), 0);
-  rb_define_method(cDownload, "progress", CASTHOOK(shoes_download_progress), -1);
-  rb_define_method(cDownload, "response", CASTHOOK(shoes_download_response), 0);
-  rb_define_method(cDownload, "size", CASTHOOK(shoes_download_length), 0);
-  rb_define_method(cDownload, "start", CASTHOOK(shoes_download_start), -1);
-  rb_define_method(cDownload, "transferred", CASTHOOK(shoes_download_transferred), 0);
+  rb_define_alloc_func(cDownload, shoes_http_alloc);
+  rb_define_method(cDownload, "abort", CASTHOOK(shoes_http_abort), 0);
+  rb_define_method(cDownload, "finish", CASTHOOK(shoes_http_finish), -1);
+  rb_define_method(cDownload, "remove", CASTHOOK(shoes_http_remove), 0);
+  rb_define_method(cDownload, "length", CASTHOOK(shoes_http_length), 0);
+  rb_define_method(cDownload, "percent", CASTHOOK(shoes_http_percent), 0);
+  rb_define_method(cDownload, "progress", CASTHOOK(shoes_http_progress), -1);
+  rb_define_method(cDownload, "response", CASTHOOK(shoes_http_response), 0);
+  rb_define_method(cDownload, "size", CASTHOOK(shoes_http_length), 0);
+  rb_define_method(cDownload, "start", CASTHOOK(shoes_http_start), -1);
+  rb_define_method(cDownload, "transferred", CASTHOOK(shoes_http_transferred), 0);
 
   cResponse   = rb_define_class_under(cDownload, "Response", rb_cObject);
   rb_define_method(cResponse, "body", CASTHOOK(shoes_response_body), 0);
@@ -4969,6 +4961,5 @@ shoes_ruby_init()
   rb_define_method(rb_mKernel, "ask_save_file", CASTHOOK(shoes_dialog_save), 0);
   rb_define_method(rb_mKernel, "ask_open_folder", CASTHOOK(shoes_dialog_open_folder), 0);
   rb_define_method(rb_mKernel, "ask_save_folder", CASTHOOK(shoes_dialog_save_folder), 0);
-  rb_define_method(rb_mKernel, "download_and_wait", CASTHOOK(shoes_download_non_threaded), 2);
   rb_define_method(rb_mKernel, "font", CASTHOOK(shoes_font), 1);
 }

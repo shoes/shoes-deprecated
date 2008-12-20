@@ -20,7 +20,7 @@ typedef struct {
   char *body;
   size_t size, total, readpos, bodylen;
   unsigned long status;
-  shoes_download_handler handler;
+  shoes_http_handler handler;
   SHOES_TIME last;
   CURL *curl;
   void *data;
@@ -33,17 +33,23 @@ shoes_curl_header_funk(char *ptr, size_t size, size_t nmemb, void *user)
 {
   shoes_curl_data *data = (shoes_curl_data *)user;
   size_t realsize = size * nmemb;
-  if (data->status == 0)
+  if (data->status == 0 && data->handler != NULL)
   {
-    shoes_download_event event;
-    event.stage = SHOES_HTTP_STATUS;
-    curl_easy_getinfo(data->curl, CURLINFO_RESPONSE_CODE, (long *)&event.status);
-    data->status = event.status;
-    if (data->handler != NULL) data->handler(&event, data->data);
+    curl_easy_getinfo(data->curl, CURLINFO_RESPONSE_CODE, (long *)&data->status);
+    if (data->handler != NULL)
+    {
+      shoes_http_event *event = SHOE_ALLOC(shoes_http_event);
+      SHOE_MEMZERO(event, shoes_http_event, 1);
+      event->stage = SHOES_HTTP_STATUS;
+      event->status = data->status;
+      data->handler(event, data->data);
+      SHOE_FREE(event);
+    }
   }
 
   HTTP_HEADER(ptr, realsize, data->handler, data->data);
-  if (strncmp(ptr, content_len_str, strlen(content_len_str)) == 0)
+  if ((data->mem != NULL || data->fp != NULL) &&
+      strncmp(ptr, content_len_str, strlen(content_len_str)) == 0)
   {
     data->total = strtoull(ptr + strlen(content_len_str), NULL, 10);
     if (data->mem != NULL && data->total > data->memlen)
@@ -173,7 +179,7 @@ int my_trace(CURL *handle, curl_infotype type,
 }
 
 void
-shoes_download(shoes_download_request *req)
+shoes_download(shoes_http_request *req)
 {
   char url[SHOES_BUFSIZE], uagent[SHOES_BUFSIZE], slash[2] = "/";
   CURL *curl = curl_easy_init();
@@ -199,7 +205,7 @@ shoes_download(shoes_download_request *req)
   cdata->curl = curl;
   cdata->body = NULL;
 
-  if (req->mem == NULL)
+  if (req->mem == NULL && req->filepath != NULL)
   {
     cdata->fp = fopen(req->filepath, "wb");
     if (cdata->fp == NULL) goto done;
@@ -209,11 +215,18 @@ shoes_download(shoes_download_request *req)
   curl_easy_setopt(curl, CURLOPT_URL, url);
   curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, shoes_curl_header_funk);
   curl_easy_setopt(curl, CURLOPT_WRITEHEADER, cdata);
-  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, shoes_curl_write_funk);
-  curl_easy_setopt(curl, CURLOPT_WRITEDATA, cdata);
-  curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
-  curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, shoes_curl_progress_funk);
-  curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, cdata);
+  if (cdata->mem != NULL || cdata->fp != NULL)
+  {
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, shoes_curl_write_funk);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, cdata);
+    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+    curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, shoes_curl_progress_funk);
+    curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, cdata);
+  }
+  else
+  {
+    curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
+  }
   curl_easy_setopt(curl, CURLOPT_USERAGENT, uagent);
   curl_easy_setopt(curl, CURLOPT_VERBOSE, TRUE);
   curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, my_trace);
@@ -239,10 +252,15 @@ shoes_download(shoes_download_request *req)
 
   if (res != CURLE_OK)
   {
-    shoes_download_event event;
-    event.stage = SHOES_HTTP_ERROR;
-    event.error = res;
-    if (req->handler != NULL) req->handler(&event, req->data);
+    if (req->handler != NULL)
+    {
+      shoes_http_event *event = SHOE_ALLOC(shoes_http_event);
+      SHOE_MEMZERO(event, shoes_http_event, 1);
+      event->stage = SHOES_HTTP_ERROR;
+      event->error = res;
+      req->handler(event, req->data);
+      SHOE_FREE(event);
+    }
     goto done;
   }
 
@@ -266,23 +284,22 @@ done:
 void *
 shoes_download2(void *data)
 {
-  shoes_download_request *req = (shoes_download_request *)data;
+  shoes_http_request *req = (shoes_http_request *)data;
   shoes_download(req);
-  if (req->mem != NULL) free(req->mem);
-  free(req->data);
+  shoes_http_request_free(req);
   free(req);
   return NULL;
 }
 
 void
-shoes_queue_download(shoes_download_request *req)
+shoes_queue_download(shoes_http_request *req)
 {
   pthread_t tid;
   pthread_create(&tid, NULL, shoes_download2, req);
 }
 
 VALUE
-shoes_http_error(SHOES_DOWNLOAD_ERROR code)
+shoes_http_err(SHOES_DOWNLOAD_ERROR code)
 {
   return rb_str_new2(curl_easy_strerror(code));
 }
@@ -302,4 +319,10 @@ shoes_http_headers(VALUE hsh)
     slist = curl_slist_append(slist, RSTRING_PTR(header));
   }
   return slist;
+}
+
+void
+shoes_http_headers_free(struct curl_slist *slist)
+{
+  curl_slist_free_all(slist);
 }

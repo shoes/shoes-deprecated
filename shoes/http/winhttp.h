@@ -12,8 +12,8 @@
 #include <shellapi.h>
 #include "shoes/http/common.h"
 
-#define HTTP_HANDLER(x) reinterpret_cast<shoes_download_handler>(x)
+#define HTTP_HANDLER(x) reinterpret_cast<shoes_http_handler>(x)
 
-void shoes_winhttp(LPCWSTR, LPCWSTR, INTERNET_PORT, LPCWSTR, LPCWSTR, LPCWSTR, LPVOID, DWORD, TCHAR **, ULONG, HANDLE, LPDWORD, UCHAR, shoes_download_handler, void *);
+void shoes_winhttp(LPCWSTR, LPCWSTR, INTERNET_PORT, LPCWSTR, LPCWSTR, LPCWSTR, LPVOID, DWORD, TCHAR **, ULONG, HANDLE, LPDWORD, UCHAR, shoes_http_handler, void *);
 
 #endif

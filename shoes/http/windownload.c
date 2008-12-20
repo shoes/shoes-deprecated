@@ -15,7 +15,7 @@
 #include <time.h>
 
 void
-shoes_download(shoes_download_request *req)
+shoes_download(shoes_http_request *req)
 {
   HANDLE file = INVALID_HANDLE_VALUE;
   INTERNET_PORT _port = req->port;
@@ -48,27 +48,35 @@ shoes_download(shoes_download_request *req)
 DWORD WINAPI
 shoes_download2(LPVOID data)
 {
-  shoes_download_request *req = (shoes_download_request *)data;
+  shoes_http_request *req = (shoes_http_request *)data;
   shoes_download(req);
-  if (req->mem != NULL) free(req->mem);
-  free(req->data);
+  shoes_http_request_free(req);
   free(req);
   return TRUE;
 }
 
 void
-shoes_queue_download(shoes_download_request *req)
+shoes_queue_download(shoes_http_request *req)
 {
   DWORD tid;
   CreateThread(0, 0, (LPTHREAD_START_ROUTINE)shoes_download2, (void *)req, 0, &tid);
 }
 
 VALUE
-shoes_http_error(SHOES_DOWNLOAD_ERROR code)
+shoes_http_err(SHOES_DOWNLOAD_ERROR code)
 {
   TCHAR msg[1024];
-  DWORD msglen = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-    NULL, code, 0, msg, sizeof(msg), NULL);
+  DWORD msglen;
+  if (code > 12000 && code <= 12174)
+  {
+    msglen = FormatMessage(FORMAT_MESSAGE_FROM_HMODULE,
+      GetModuleHandle("WINHTTP.DLL"), code, 0, msg, sizeof(msg), NULL);
+  }
+  else
+  {
+    msglen = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEMi | FORMAT_MESSAGE_IGNORE_INSERTS,
+      NULL, code, 0, msg, sizeof(msg), NULL);
+  }
   msg[msglen] = '\0';
   return rb_str_new2(msg);
 }
@@ -96,4 +104,10 @@ shoes_http_headers(VALUE hsh)
     MultiByteToWideChar(CP_UTF8, 0, RSTRING_PTR(headers), -1, hdrs, RSTRING_LEN(headers) + 1);
   }
   return hdrs;
+}
+
+void
+shoes_http_headers_free(SHOES_DOWNLOAD_HEADERS headers)
+{
+  SHOE_FREE(headers);
 }

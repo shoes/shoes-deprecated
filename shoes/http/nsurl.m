@@ -24,7 +24,7 @@
   long long size;
   long long total;
   unsigned char flags;
-  shoes_download_handler handler;
+  shoes_http_handler handler;
   SHOES_TIME last;
   NSMutableData *bytes;
   void *data;
@@ -47,7 +47,7 @@
   if (dest != NULL) free(dest);
   if (data != NULL) free(data);
 }
-- (void)download: (shoes_download_request *)req
+- (void)download: (shoes_http_request *)req
 {
   char slash[2] = "/";
   if (req->path[0] == '/') slash[0] = '\0';
@@ -72,30 +72,33 @@
   last.tv_sec = 0;
   last.tv_usec = 0;
   size = total = 0;
-  if (req->mem != NULL)
+  if (req->filepath != NULL)
+  {
+    dest = req->filepath;
+    down = [[NSURLDownload alloc] initWithRequest: nsreq delegate: self];
+    req->filepath = NULL;
+  }
+  else
   {
     dest = req->mem;
     destlen = req->memlen;
     conn = [[NSURLConnection alloc] initWithRequest: nsreq
       delegate: self];
-  }
-  else
-  {
-    dest = req->filepath;
-    down = [[NSURLDownload alloc] initWithRequest: nsreq delegate: self];
+    req->mem = NULL;
   }
 }
 - (void)readHeaders: (NSURLResponse *)response
 {
-  if ([response respondsToSelector:@selector(allHeaderFields)])
+  if ([response respondsToSelector:@selector(allHeaderFields)] && handler != NULL)
   {
+    shoes_http_event *event = SHOE_ALLOC(shoes_http_event);
     NSHTTPURLResponse* httpresp = (NSHTTPURLResponse *)response;
     if ([httpresp statusCode])
     {
-      shoes_download_event event;
-      event.stage = SHOES_HTTP_STATUS;
-      event.status = [httpresp statusCode];
-      if (handler != NULL) handler(&event, data);
+      SHOE_MEMZERO(event, shoes_http_event, 1);
+      event->stage = SHOES_HTTP_STATUS;
+      event->status = [httpresp statusCode];
+      handler(event, data);
     }
 
     NSDictionary *hdrs = [httpresp allHeaderFields];
@@ -106,15 +109,29 @@
       while (key = [keys nextObject])
       {
         NSString *val = [hdrs objectForKey: key];
-        shoes_download_event event;
-        event.stage = SHOES_HTTP_HEADER;
-        event.hkey = [key UTF8String];
-        event.hkeylen = strlen(event.hkey);
-        event.hval = [val UTF8String];
-        event.hvallen = strlen(event.hval);
-        if (handler != NULL) handler(&event, data);
+        SHOE_MEMZERO(event, shoes_http_event, 1);
+        event->stage = SHOES_HTTP_HEADER;
+        event->hkey = [key UTF8String];
+        event->hkeylen = strlen(event->hkey);
+        event->hval = [val UTF8String];
+        event->hvallen = strlen(event->hval);
+        handler(event, data);
       }
     }
+
+    SHOE_FREE(event);
+  }
+}
+- (void)handleError: (NSError *)error
+{
+  if (handler != NULL)
+  {
+    shoes_http_event *event = SHOE_ALLOC(shoes_http_event);
+    SHOE_MEMZERO(event, shoes_http_event, 1);
+    event->stage = SHOES_HTTP_ERROR;
+    event->error = error;
+    handler(event, data);
+    SHOE_FREE(event);
   }
 }
 - (NSURLRequest *)connection: (NSURLConnection *)connection
@@ -135,6 +152,11 @@
   HTTP_EVENT(handler, SHOES_HTTP_CONNECTED, last, 0, 0, total, data, NULL, [c cancel]);
   [bytes setLength: 0];
 }
+- (void)connection: (NSURLConnection *)c didFailWithError:(NSError *)error
+{
+  [c release];
+  [self handleError: error];
+}
 - (void)connection: (NSURLConnection *)c didReceiveData: (NSData *)chunk
 {
   [bytes appendData: chunk];
@@ -145,9 +167,12 @@
 - (void)connectionDidFinishLoading: (NSURLConnection *)c
 {
   total = [bytes length];
-  if ([bytes length] > destlen)
-    SHOE_REALLOC_N(dest, char, [bytes length]);
-  [bytes getBytes: dest];
+  if (dest != NULL)
+  {
+    if ([bytes length] > destlen)
+      SHOE_REALLOC_N(dest, char, [bytes length]);
+    [bytes getBytes: dest];
+  }
   HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, total, total, data, [bytes mutableBytes], 1);
   [c release];
   [self releaseData];
@@ -181,6 +206,11 @@
   HTTP_EVENT(handler, SHOES_HTTP_CONNECTED, last, 0, 0, total, data, NULL, [download cancel]);
   [self setDownloadResponse: response];
 }
+- (void)download: (NSURLDownload *)download didFailWithError:(NSError *)error
+{
+  [download release];
+  [self handleError: error];
+}
 - (void)download: (NSURLDownload *)download didReceiveDataOfLength: (unsigned)length
 {
   size += length;
@@ -196,21 +226,22 @@
 @end
 
 void
-shoes_download(shoes_download_request *req)
+shoes_download(shoes_http_request *req)
 {
   ShoesHttp *http = [[ShoesHttp alloc] init];
   [http download: req];
+  shoes_http_request_free(req);
   free(req);
 }
 
 void
-shoes_queue_download(shoes_download_request *req)
+shoes_queue_download(shoes_http_request *req)
 {
   shoes_download(req);
 }
 
 VALUE
-shoes_http_error(SHOES_DOWNLOAD_ERROR code)
+shoes_http_err(SHOES_DOWNLOAD_ERROR code)
 {
   char *errorString = [[code localizedDescription] UTF8String];
   return rb_str_new2(errorString);
@@ -234,4 +265,10 @@ shoes_http_headers(VALUE hsh)
     }
   }
   return d;
+}
+
+void
+shoes_http_headers_free(SHOES_DOWNLOAD_HEADERS headers)
+{
+  [headers release];
 }

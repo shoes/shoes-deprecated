@@ -49,12 +49,6 @@ class Shoes
   OPTS = OptionParser.new do |opts|
     opts.banner = "Usage: shoes [options] (app.rb or app.shy)"
     
-    opts.on("-d", "--download",
-            "A download test") do
-      str = download_and_wait "http://hacketyhack.net/pkg/win32/shoes"
-      raise SystemExit, str
-    end
-
     opts.on("-m", "--manual",
             "Open the built-in manual.") do
       show_manual
