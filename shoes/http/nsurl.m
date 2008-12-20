@@ -255,7 +255,7 @@ shoes_http_headers(VALUE hsh)
   VALUE keys = rb_funcall(hsh, s_keys, 0);
   if (RARRAY_LEN(keys) > 0)
   {
-    d = [NSMutableDictionary dictionaryWithCapacity: RARRAY_LEN(keys)];
+    d = [[NSMutableDictionary dictionaryWithCapacity: RARRAY_LEN(keys)] retain];
     for (i = 0; i < RARRAY_LEN(keys); i++)
     {
       VALUE key = rb_ary_entry(keys, i);
