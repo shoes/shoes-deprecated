@@ -251,11 +251,10 @@ SHOES_DOWNLOAD_HEADERS
 shoes_http_headers(VALUE hsh)
 {
   long i;
-  NSDictionary *d = NULL;
+  NSMutableDictionary *d = [[NSMutableDictionary alloc] init];
   VALUE keys = rb_funcall(hsh, s_keys, 0);
   if (RARRAY_LEN(keys) > 0)
   {
-    d = [NSMutableDictionary dictionaryWithCapacity: RARRAY_LEN(keys)];
     for (i = 0; i < RARRAY_LEN(keys); i++)
     {
       VALUE key = rb_ary_entry(keys, i);
