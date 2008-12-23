@@ -922,6 +922,7 @@ shoes_load_image(VALUE slot, VALUE imgpath)
     SHOE_MEMZERO(req, shoes_http_request, 1);
     shoes_image_download_event *idat = SHOE_ALLOC(shoes_image_download_event);
     SHOE_MEMZERO(idat, shoes_image_download_event, 1);
+    req->url = strdup(RSTRING_PTR(imgpath));
     req->scheme = strdup(RSTRING_PTR(scheme));
     req->host = strdup(RSTRING_PTR(host));
     req->port = NUM2INT(port);

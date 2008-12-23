@@ -181,14 +181,12 @@ int my_trace(CURL *handle, curl_infotype type,
 void
 shoes_download(shoes_http_request *req)
 {
-  char url[SHOES_BUFSIZE], uagent[SHOES_BUFSIZE], slash[2] = "/";
+  char uagent[SHOES_BUFSIZE];
   CURL *curl = curl_easy_init();
   CURLcode res;
   shoes_curl_data *cdata = SHOE_ALLOC(shoes_curl_data);
   if (curl == NULL) return;
 
-  if (req->path[0] == '/') slash[0] = '\0';
-  sprintf(url, "%s://%s:%d%s%s", req->scheme, req->host, req->port, slash, req->path);
   sprintf(uagent, "Shoes/0.r%d (%s) %s/%d", SHOES_REVISION, SHOES_PLATFORM,
     SHOES_RELEASE_NAME, SHOES_BUILD_DATE);
 
@@ -212,7 +210,7 @@ shoes_download(shoes_http_request *req)
   } 
 
   curl_easy_setopt(curl, CURLOPT_NOSIGNAL, TRUE);
-  curl_easy_setopt(curl, CURLOPT_URL, url);
+  curl_easy_setopt(curl, CURLOPT_URL, req->url);
   curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, shoes_curl_header_funk);
   curl_easy_setopt(curl, CURLOPT_WRITEHEADER, cdata);
   if (cdata->mem != NULL || cdata->fp != NULL)

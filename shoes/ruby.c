@@ -4138,6 +4138,7 @@ shoes_doth_handler(shoes_http_event *de, void *data)
 void
 shoes_http_request_free(shoes_http_request *req)
 {
+  if (req->url != NULL) free(req->url);
   if (req->scheme != NULL) free(req->scheme);
   if (req->host != NULL) free(req->host);
   if (req->path != NULL) free(req->path);
@@ -4153,15 +4154,28 @@ shoes_http_threaded(VALUE self, VALUE url, VALUE attr)
 {
   VALUE obj = shoes_http_new(cDownload, self, attr);
   GET_STRUCT(canvas, self_t);
+  char *url_string = NULL;
 
-  if (!rb_respond_to(url, s_host)) url = rb_funcall(rb_mKernel, s_URI, 1, url);
+  if (!rb_respond_to(url, s_host)) {
+    url_string = strdup(RSTRING_PTR(url));
+    url = rb_funcall(rb_mKernel, s_URI, 1, url);
+  }
+  
   VALUE scheme = rb_funcall(url, s_scheme, 0);
   VALUE host = rb_funcall(url, s_host, 0);
   VALUE port = rb_funcall(url, s_port, 0);
   VALUE path = rb_funcall(url, s_request_uri, 0);
 
+  if (url_string == NULL) {
+    url_string = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
+    char slash[2] = "/";
+    if (RSTRING_PTR(path)[0] == '/') slash[0] = '\0';
+    sprintf(url_string, "%s://%s:%d%s%s", scheme, host, port, slash, path);
+  }
+  
   shoes_http_request *req = SHOE_ALLOC(shoes_http_request);
   SHOE_MEMZERO(req, shoes_http_request, 1);
+  req->url = url_string;
   req->scheme = strdup(RSTRING_PTR(scheme));
   req->host = strdup(RSTRING_PTR(host));
   req->port = NUM2INT(port);
