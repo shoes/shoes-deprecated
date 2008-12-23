@@ -57,6 +57,7 @@
     cachePolicy: NSURLRequestUseProtocolCachePolicy
     timeoutInterval: 60.0];
   [nsreq setValue: uagent forHTTPHeaderField: @"User-Agent"];
+  [nsreq setHTTPShouldHandleCookies: FALSE];
 
   flags = req->flags;
   handler = req->handler;
