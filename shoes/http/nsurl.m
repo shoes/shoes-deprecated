@@ -259,8 +259,9 @@ shoes_http_headers(VALUE hsh)
     {
       VALUE key = rb_ary_entry(keys, i);
       VALUE val = rb_hash_aref(hsh, key);
-      [d setValue: [NSString stringWithUTF8String: RSTRING_PTR(val)]
-         forKey:   [NSString stringWithUTF8String: RSTRING_PTR(key)]];
+      if(!NIL_P(val))
+        [d setValue: [NSString stringWithUTF8String: RSTRING_PTR(val)]
+           forKey:   [NSString stringWithUTF8String: RSTRING_PTR(key)]];
     }
   }
   return d;
