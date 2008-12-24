@@ -356,7 +356,7 @@ shoes_slot_win32proc(
       break;
 
       case WM_SETFOCUS:
-        if (!NIL_P(canvas->slot->focus))
+        if (!NIL_P(canvas->slot->focus) && TYPE(canvas->slot->focus) != T_FALSE)
         {
           shoes_control_focus(canvas->slot->focus);
         }
