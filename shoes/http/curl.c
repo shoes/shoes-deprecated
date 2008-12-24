@@ -67,10 +67,8 @@ shoes_curl_read_funk(void *ptr, size_t size, size_t nmemb, void *user)
 {
   shoes_curl_data *data = (shoes_curl_data *)user;
   size_t realsize = size * nmemb;
-
   if (realsize > data->bodylen - data->readpos)
     realsize = data->bodylen - data->readpos;
-fprintf(stderr, "realsize: %i, readpos: %i, bodylen: %i\n", realsize, data->readpos, data->bodylen);
   SHOE_MEMCPY(ptr, &(data->body[data->readpos]), char, realsize);
   data->readpos += realsize;
   return realsize;
@@ -112,69 +110,6 @@ shoes_curl_progress_funk(void *user, double dltotal, double dlnow, double ultota
     HTTP_EVENT(data->handler, SHOES_HTTP_TRANSFER, data->last, dlnow * 100.0 / dltotal, dlnow,
                dltotal, data->data, NULL, return 1);
   }
-  return 0;
-}
-
-static
-void dump(const char *text,
-          FILE *stream, unsigned char *ptr, size_t size)
-{
-  size_t i;
-  fprintf(stream, "%s, %zd bytes (0x%zx)\n", text, size, size);
-
-  for(i=0; i<size; i+= 1) {
-    /* check for 0D0A; if found, skip past and start a new line of output */
-    if((ptr[i]>=0x20) && (ptr[i]<0x80))
-      fprintf(stream, "%c", ptr[i]);
-    else if (ptr[i]==0x0A)
-      fputc('\n', stream); /* newline */
-    else if (ptr[i]==0x0D && ptr[i+1]==0x0A) {
-      fputc('\n', stream); /* newline */
-      i+= 1;
-    }
-    else
-      fputc('.', stream);
-  }
-  fputc('\n', stream);
-  fflush(stream);
-}
-
-
-static
-int my_trace(CURL *handle, curl_infotype type,
-             unsigned char *data, size_t size,
-             void *userp)
-{
-  const char *text;
-
-  switch (type) {
-  case CURLINFO_TEXT:
-    INFO("HTTP: %s\n", data);
-  default: /* in case a new one is introduced to shock us */
-    return 0;
-
-  case CURLINFO_HEADER_OUT:
-    text = "=> Send header";
-    break;
-  case CURLINFO_DATA_OUT:
-    text = "=> Send data";
-    break;
-  case CURLINFO_HEADER_IN:
-    text = "<= Recv header";
-    break;
-  case CURLINFO_DATA_IN:
-    text = "<= Recv data";
-    break;
-  case CURLINFO_SSL_DATA_IN:
-    text = "<= Recv SSL data";
-    break;
-  case CURLINFO_SSL_DATA_OUT:
-    text = "<= Send SSL data";
-    break;
-  }
-
-  INFO("HTTP: %s\n", text);
-  dump(text, stderr, data, size);
   return 0;
 }
 
@@ -226,8 +161,6 @@ shoes_download(shoes_http_request *req)
     curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
   }
   curl_easy_setopt(curl, CURLOPT_USERAGENT, uagent);
-  curl_easy_setopt(curl, CURLOPT_VERBOSE, TRUE);
-  curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, my_trace);
   if (req->flags & SHOES_DL_REDIRECTS)
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
   if (req->method)
