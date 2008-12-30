@@ -817,6 +817,11 @@ shoes_image_downloaded(shoes_image_download_event *idat)
       if (idat->status != 304)
       {
         FILE* fp = fopen(idat->filepath, "rb");
+        if (fp == NULL)
+        {
+          shoes_error("Shoes was unable to open the cached file at %s.", idat->filepath);
+          return 0;
+        }
         SHA1Init(&context);
         while (!feof(fp)) 
         {
