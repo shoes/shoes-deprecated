@@ -60,7 +60,7 @@ dist/libshoes.dll: ${OBJ}
 
 dist/shoes-bin: dist/libshoes.dll bin/main.o
 	@echo CC -o $@
-	@${CC} -o shoes.exe ${LDFLAGS} bin/main.o -Ldist -lshoes
+	@${CC} -o dist/shoes.exe ${LDFLAGS} bin/main.o -Ldist -lshoes
 
 dist/shoes.launch: dist/shoes-bin
 	@cp platform/nix/shoes.launch dist/
