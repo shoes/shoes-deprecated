@@ -53,21 +53,20 @@ options:
 	@echo CC $<
 	@${CC} -c ${CFLAGS} -o $@ $<
 
-dist/libshoes.so: ${OBJ} 
+dist/libshoes.dll: ${OBJ} 
 	@echo CC -o $@
 	@mkdir dist
-	@${CC} -o $@ ${OBJ} ${LDFLAGS} -shared
+	@${CC} -DBUILD_DLL -o $@ ${OBJ} ${LDFLAGS} -shared
 
-dist/shoes-bin: dist/libshoes.so bin/main.o
+dist/shoes-bin: dist/libshoes.dll bin/main.o
 	@echo CC -o $@
-	@${CC} -o $@ ${LDFLAGS} bin/main.o -Ldist -lshoes
+	@${CC} -o shoes.exe ${LDFLAGS} bin/main.o -Ldist -lshoes
 
 dist/shoes.launch: dist/shoes-bin
 	@cp platform/nix/shoes.launch dist/
 	@mkdir -p dist/ruby
-	@ln -s ${RUBY_PREFIX}/lib/ruby/1.8 dist/ruby/lib
-	@cp ${RUBY_PREFIX}/lib/lib${RUBY_SO}.so dist
-	@ln -s lib${RUBY_SO}.so dist/libruby.so.1.8
+	@cp -r ${RUBY_PREFIX}/lib/ruby/1.8 dist/ruby/lib
+	@cp ${RUBY_PREFIX}/bin/${RUBY_SO}.dll dist
 	@cp -r lib dist/lib
 	@cp -r req/rubygems/* dist/lib
 	@mkdir -p ${GEM_DIR}/specifications
@@ -89,6 +88,7 @@ dist/shoes.launch: dist/shoes-bin
 	@cp req/json/ext/**/*.so ${GEM_DIR}/gems/${JSON_NAME}/lib/json/ext
 	@cp req/json/gemspec ${GEM_DIR}/specifications/${JSON_NAME}.gemspec
 	@cp -r req/ftsearch/lib/* dist/lib
+	@cp -r /c/mingw/bin/*.dll dist
 	@cd req/ftsearch/ext/ftsearchrt && ruby extconf.rb && make
 	@cp req/ftsearch/ext/ftsearchrt/*.so dist/lib
 	@cd req/binject/ext/binject_c && ruby extconf.rb && make
