@@ -36,7 +36,7 @@ void shoes_http_request_free(shoes_http_request *);
 void shoes_http_headers_free(SHOES_DOWNLOAD_HEADERS);
 
 #ifdef SHOES_WIN32
-#include "shoes/http/winhttp.h"
+#include "shoes/http/wininet.h"
 #else
 #define HTTP_HANDLER(x)
 #endif

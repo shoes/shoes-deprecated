@@ -18,6 +18,10 @@
 #define IDC_HAND MAKEINTRESOURCE(32649)
 #endif
 
+#ifndef BIF_NONEWFOLDERBUTTON
+#define BIF_NONEWFOLDERBUTTON 0x200
+#endif
+
 shoes_code shoes_classex_init();
 LRESULT CALLBACK shoes_app_win32proc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK shoes_slot_win32proc(HWND, UINT, WPARAM, LPARAM);
@@ -537,11 +541,11 @@ shoes_app_win32proc(
     case WM_SYSKEYDOWN:
     case WM_KEYDOWN:
       if (w == VK_CONTROL)
-        app->os.ctrlkey = true;
+        app->os.ctrlkey = TRUE;
       else if (w == VK_MENU)
-        app->os.altkey = true;
+        app->os.altkey = TRUE;
       else if (w == VK_SHIFT)
-        app->os.shiftkey = true;
+        app->os.shiftkey = TRUE;
       KEYPRESS(PRIOR, page_up)
       KEYPRESS(NEXT, page_down)
       KEYPRESS(HOME, home)
@@ -595,11 +599,11 @@ shoes_app_win32proc(
     case WM_SYSKEYUP:
     case WM_KEYUP:
       if (w == VK_CONTROL)
-        app->os.ctrlkey = false;
+        app->os.ctrlkey = FALSE;
       else if (w == VK_MENU)
-        app->os.altkey = false;
+        app->os.altkey = FALSE;
       else if (w == VK_SHIFT)
-        app->os.shiftkey = false;
+        app->os.shiftkey = FALSE;
     break;
 
     case WM_MOUSEWHEEL:
@@ -829,9 +833,9 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
 
   app->slot->controls = Qnil;
   app->slot->focus = Qnil;
-  app->os.ctrlkey = false;
-  app->os.altkey = false;
-  app->os.shiftkey = false;
+  app->os.ctrlkey = FALSE;
+  app->os.altkey = FALSE;
+  app->os.shiftkey = FALSE;
 
   // remove the menu
   rect.left = 0;
@@ -903,13 +907,13 @@ shoes_native_loop()
             case VK_RIGHT: case VK_PRIOR: case VK_NEXT:
               break;
             default:
-              msg = false;
+              msg = FALSE;
           }
         }
-        else msg = false;
+        else msg = FALSE;
       }
       else if (msgs.message == WM_SYSCHAR || msgs.message == WM_CHAR)
-        msg = false;
+        msg = FALSE;
       if (msg)
         msg = IsDialogMessage(focused, &msgs);
 
@@ -1119,7 +1123,7 @@ shoes_native_control_free(SHOES_CONTROL_REF ref)
 
 inline void shoes_win32_control_font(int id, HWND hwnd)
 {
-  SendDlgItemMessage(hwnd, id, WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), MAKELPARAM(true, 0));
+  SendDlgItemMessage(hwnd, id, WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), MAKELPARAM(TRUE, 0));
 }
 
 SHOES_SURFACE_REF
@@ -1183,8 +1187,7 @@ shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VAL
 {
   int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot->controls);
   SHOES_CONTROL_REF ref = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("EDIT"), NULL,
-      WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT | ES_AUTOHSCROLL |
-      (RTEST(ATTR(attr, secret)) ? ES_PASSWORD : NULL),
+      WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT | ES_AUTOHSCROLL,
       place->ix + place->dx, place->iy + place->dy, place->iw, place->ih,
       canvas->slot->window, (HMENU)cid, 
       (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
@@ -1628,8 +1631,8 @@ shoes_dialog_chooser2(VALUE self, char *title, UINT flags)
     IMalloc *imalloc = 0;
     if (SUCCEEDED(SHGetMalloc(&imalloc)))
     {
-      IMalloc_Free(imalloc, pidl);
-      IMalloc_Release(imalloc);
+//      IMalloc_Free(imalloc, pidl);
+//      IMalloc_Release(imalloc);
     }
   }
   return path;

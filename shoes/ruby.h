@@ -30,7 +30,7 @@ extern "C" {
 #ifndef SHOES_RUBY_H
 #define SHOES_RUBY_H
 
-#if SHOES_WIN32
+#if SHOES_WIN32old
 typedef VALUE (*HOOK)(...);
 typedef int (*FOREACH)(...);
 #define CASTFOREACH(x) reinterpret_cast<FOREACH>(x)

@@ -2,7 +2,7 @@
 // shoes/internal.c
 // Internal debug functions.
 //
-#ifdef SHOES_WIN32
+#ifdef SHOES_WIN32aa
 #include <stdio.h>
 #include <stdarg.h>
 #include <ctype.h>
