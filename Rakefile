@@ -66,9 +66,14 @@ def copy_files glob, dir
 end
 
 def copy_ext xdir, libdir
-  case RUBY_PLATFORM when /win32/, /darwin/
+  case RUBY_PLATFORM when /win32/
     dxdir = xdir.gsub %r!^req/\w+/!, 'deps/'
     copy_files "#{dxdir}/*.so", libdir
+  when /darwin/
+    Dir.chdir(xdir) do
+      `ruby extconf.rb; make`
+    end
+    copy_files "#{xdir}/*.bundle", libdir
   else
     Dir.chdir(xdir) do
       `ruby extconf.rb; make`
