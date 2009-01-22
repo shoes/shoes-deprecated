@@ -126,6 +126,7 @@ module Shoes::Manual
       else
         k.ancestors[1..-1].each do |sk|
           break if [Object, Kernel].include? sk
+          next unless sk.is_a? Class #don't show mixins
           (tree[sk.name] ||= []) << c
           c = sk.name
         end
