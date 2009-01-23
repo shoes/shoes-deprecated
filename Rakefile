@@ -120,7 +120,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
   %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt].
     each { |xdir| copy_ext xdir, "dist/ruby/lib/#{RUBY_PLATFORM}" }
 
-  gdir = "dist/ruby/gems/#{Config::CONFIG['ruby_version']}"
+  gdir = "dist/ruby/gems/#{ruby_v}"
   {'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
     spec = eval(File.read("req/#{gemn}/gemspec"))
     mkdir_p "#{gdir}/specifications"
@@ -173,7 +173,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     end
   else
     cp    "#{ext_ruby}/lib/lib#{ruby_so}.so", "dist/lib#{ruby_so}.so"
-    ln_s  "lib#{ruby_so}.so", "dist/lib#{ruby_so}.so.#{ruby_v}"
+    ln_s  "lib#{ruby_so}.so", "dist/lib#{ruby_so}.so.#{ruby_v[/^\d+\.\d+/]}"
     cp    "/usr/lib/libgif.so", "dist/libgif.so.4"
     cp    "/usr/lib/libjpeg.so", "dist/libjpeg.so.62"
     cp    "/usr/lib/libcurl.so", "dist/libcurl.so.4"
