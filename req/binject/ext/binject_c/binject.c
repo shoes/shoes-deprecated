@@ -1,7 +1,15 @@
 
 #include <ruby.h>
+#ifdef HAVE_RUBY_ST_H
+#include <ruby/st.h>
+#else
 #include <st.h>
+#endif
+#ifdef HAVE_RUBY_IO_H
 #include <ruby/io.h>
+#else
+#include <rubyio.h>
+#endif
 #include <stdlib.h>
 #include <zlib.h>
 #include <sys/stat.h>

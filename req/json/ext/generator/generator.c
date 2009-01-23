@@ -1,6 +1,10 @@
 #include <string.h>
 #include "ruby.h"
+#ifdef HAVE_RUBY_ST_H
 #include "ruby/st.h"
+#else
+#include "st.h"
+#endif
 #include "unicode.h"
 #include <math.h>
 

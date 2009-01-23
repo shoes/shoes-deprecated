@@ -1,6 +1,10 @@
 #line 1 "parser.rl"
 #include "ruby.h"
+#ifdef HAVE_RUBY_ST_H
 #include "ruby/st.h"
+#else
+#include "st.h"
+#endif
 #include "unicode.h"
 
 #define EVIL 0x666

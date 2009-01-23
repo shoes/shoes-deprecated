@@ -1,7 +1,15 @@
 
 #include <ruby.h>
+#ifdef HAVE_RUBY_ST_H
+#include <ruby/st.h>
+#else
 #include <st.h>
+#endif
+#ifdef HAVE_RUBY_IO_H
 #include <ruby/io.h>
+#else
+#include <rubyio.h>
+#endif
 #include <stdlib.h>
 
 #define swap(x, a, b) { char *t = x[a]; x[a] = x[b]; x[b] = t; }
@@ -144,22 +152,32 @@ native_ary_to_value_ary(VALUE arr)
   }
 }
 
+#if HAVE_RUBY_RUBY_H
+#define HEAP_PTR(ptr, field) ptr->as.heap.field
+#else
+#define HEAP_PTR(ptr, field) ptr->field
+#endif
+
+#ifdef GetWriteFile
+#define IO_FD(ptr) fileno(GetWriteFile(ptr))
+#else
+#define IO_FD(ptr) ptr->fd
+#endif
 
 static VALUE
 shared_string(void *ptr, int len)
 {
   VALUE ret;
-
 #if HAVE_RB_DEFINE_ALLOC_FUNC
   ret = rb_obj_alloc(rb_cString);
 #else
   ret = rb_str_new2("");
   free(RSTRING_PTR(ret));
 #endif
-  RSTRING(ret)->as.heap.ptr = ptr;
-  RSTRING(ret)->as.heap.len = len;
+  HEAP_PTR(RSTRING(ret), ptr) = ptr;
+  HEAP_PTR(RSTRING(ret), len) = len;
 #if HAVE_RB_DEFINE_ALLOC_FUNC
-  RSTRING(ret)->as.heap.aux.shared = ret;
+  HEAP_PTR(RSTRING(ret), aux.shared) = ret;
   FL_SET(ret, ELTS_SHARED);
 #else
   RSTRING(ret)->orig = ret;
@@ -186,7 +204,7 @@ dump_inline_suffixes(VALUE self, VALUE io, VALUE fulltext)
   if(TYPE(io) == T_FILE) {
       GetOpenFile(io, fptr);
       for(i = 0; i < RARRAY_LEN(new_suffixes); i += NUM2INT(block_size)) {
-          write(fptr->fd, data + NUM2INT(RARRAY_PTR(new_suffixes)[i]), 
+          write(IO_FD(fptr), data + NUM2INT(RARRAY_PTR(new_suffixes)[i]), 
                 NUM2INT(inline_suffix_size));
       }
   } else {
@@ -223,7 +241,7 @@ dump_suffix_array(VALUE self, VALUE io)
   
   if(TYPE(io) == T_FILE) {
       GetOpenFile(io, fptr);
-      write(fptr->fd, RARRAY_PTR(new_suffixes), 
+      write(IO_FD(fptr), RARRAY_PTR(new_suffixes), 
             sizeof(VALUE) * RARRAY_LEN(new_suffixes));
   } else {
       ID write;
@@ -454,7 +472,7 @@ sa_reader_lazyhits_to_offsets(VALUE self, VALUE lazyhits)
          dst = (unsigned long *)RARRAY_PTR(ret), i = 0; i < RSTRING_LEN(str) / 4; i++) {
          *dst++ = INT2NUM(*src++);
      }
-     RARRAY(ret)->as.heap.len = RSTRING_LEN(str) / 4;
+     HEAP_PTR(RARRAY(ret), len) = RSTRING_LEN(str) / 4;
  }
 
  return ret;
