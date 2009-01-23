@@ -78,6 +78,8 @@ def copy_ext xdir, libdir
 end
 
 ruby_so = Config::CONFIG['RUBY_SO_NAME']
+ruby_v = Config::CONFIG['ruby_version']
+RUBY_1_9 = (ruby_v =~ /^1\.9/)
 ext_ruby = "deps/ruby"
 unless File.exists? ext_ruby
   ext_ruby = Config::CONFIG['prefix']
@@ -106,7 +108,7 @@ end
 desc "Does a full compile, for the OS you're running on"
 task :build => [:build_os, "dist/VERSION.txt"] do
   mkdir_p "dist/ruby"
-  cp_r  "#{ext_ruby}/lib/ruby/1.8", "dist/ruby/lib"
+  cp_r  "#{ext_ruby}/lib/ruby/#{ruby_v}", "dist/ruby/lib"
   unless ENV['STANDARD']
     %w[rss soap wsdl xsd].each do |libn|
       rm_rf "dist/ruby/lib/#{libn}"
@@ -171,7 +173,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     end
   else
     cp    "#{ext_ruby}/lib/lib#{ruby_so}.so", "dist/lib#{ruby_so}.so"
-    ln_s  "lib#{ruby_so}.so", "dist/lib#{ruby_so}.so.1.8"
+    ln_s  "lib#{ruby_so}.so", "dist/lib#{ruby_so}.so.#{ruby_v}"
     cp    "/usr/lib/libgif.so", "dist/libgif.so.4"
     cp    "/usr/lib/libjpeg.so", "dist/libjpeg.so.62"
     cp    "/usr/lib/libcurl.so", "dist/libcurl.so.4"
@@ -231,16 +233,16 @@ when /win32/
   MSVC_LIBS2 << " bufferoverflowu.lib" if ENV['DDKBUILDENV']
   MSVC_LIBS << MSVC_LIBS2
 
-  MSVC_CFLAGS = %q[/ML /DWIN32 /DSHOES_WIN32 /DWIN32_LEAN_AND_MEAN /DCINTERFACE /DCOBJMACROS
-    /Ideps\vlc\include
-    /Ideps\cairo\include
-    /Ideps\cairo\include\cairo
-    /Ideps\pango\include\pango-1.0
-    /Ideps\pango\include\glib-2.0
-    /Ideps\pango\lib\glib-2.0\include
-    /Ideps\ruby\lib\ruby\1.8\i386-mswin32
-    /Ideps\curl\include
-    /Ideps\winhttp\include
+  MSVC_CFLAGS = %[/ML /DWIN32 /DSHOES_WIN32 /DWIN32_LEAN_AND_MEAN /DCINTERFACE /DCOBJMACROS
+    /Ideps\\vlc\\include
+    /Ideps\\cairo\\include
+    /Ideps\\cairo\\include\\cairo
+    /Ideps\\pango\\include\\pango-1.0
+    /Ideps\\pango\\include\\glib-2.0
+    /Ideps\\pango\\lib\\glib-2.0\\include
+    /Ideps\\ruby\\lib\\ruby\\#{ruby_v}\\i386-mswin32
+    /Ideps\\curl\\include
+    /Ideps\\winhttp\\include
     /I. /DVLC_0_8 /DWINVER=0x0500 /D_WIN32_WINNT=0x0500
     /O2 /GR /EHsc
   ].gsub(/\n\s*/, ' ')
@@ -254,6 +256,7 @@ when /win32/
     MSVC_CFLAGS << " /Zi"
     MSVC_LDFLAGS << " /DEBUG"
   end
+  MSVC_CFLAGS << " /DRUBY_1_9" if RUBY_1_9
   MSVC_CFLAGS << " /I#{ENV['SDK_INC_PATH']}" if ENV['SDK_INC_PATH']
   MSVC_CFLAGS << " /I#{ENV['CRT_INC_PATH']}" if ENV['CRT_INC_PATH']
   MSVC_LDFLAGS << " /LIBPATH:#{ENV['SDK_LIB_PATH'][0..-2]}\i386" if ENV['SDK_LIB_PATH']
@@ -351,6 +354,7 @@ else
   else
     LINUX_CFLAGS << " -O "
   end
+  LINUX_CFLAGS << " -DRUBY_1_9" if RUBY_1_9
 
   case RUBY_PLATFORM when /darwin/
     DLEXT = "dylib"

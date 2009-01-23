@@ -1,7 +1,6 @@
 #line 1 "parser.rl"
 #include "ruby.h"
-#include "re.h"
-#include "st.h"
+#include "ruby/st.h"
 #include "unicode.h"
 
 #define EVIL 0x666
@@ -1477,7 +1476,7 @@ static VALUE cParser_initialize(int argc, VALUE *argv, VALUE self)
             rb_raise(rb_eArgError, "opts needs to be like a hash");
         } else {
             VALUE tmp = ID2SYM(i_max_nesting);
-            if (st_lookup(RHASH(opts)->tbl, tmp, 0)) {
+            if (st_lookup(RHASH_TBL(opts), tmp, 0)) {
                 VALUE max_nesting = rb_hash_aref(opts, tmp);
                 if (RTEST(max_nesting)) {
                     Check_Type(max_nesting, T_FIXNUM);
@@ -1489,14 +1488,14 @@ static VALUE cParser_initialize(int argc, VALUE *argv, VALUE self)
                 json->max_nesting = 19;
             }
             tmp = ID2SYM(i_allow_nan);
-            if (st_lookup(RHASH(opts)->tbl, tmp, 0)) {
+            if (st_lookup(RHASH_TBL(opts), tmp, 0)) {
                 VALUE allow_nan = rb_hash_aref(opts, tmp);
                 json->allow_nan = RTEST(allow_nan) ? 1 : 0;
             } else {
                 json->allow_nan = 0;
             }
             tmp = ID2SYM(i_create_additions);
-            if (st_lookup(RHASH(opts)->tbl, tmp, 0)) {
+            if (st_lookup(RHASH_TBL(opts), tmp, 0)) {
                 VALUE create_additions = rb_hash_aref(opts, tmp);
                 if (RTEST(create_additions)) {
                     json->create_id = rb_funcall(mJSON, i_create_id, 0);

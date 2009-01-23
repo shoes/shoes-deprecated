@@ -1,7 +1,7 @@
 
 #include <ruby.h>
 #include <st.h>
-#include <rubyio.h>
+#include <ruby/io.h>
 #include <stdlib.h>
 
 #define swap(x, a, b) { char *t = x[a]; x[a] = x[b]; x[b] = t; }
@@ -107,13 +107,13 @@ sort_bang(VALUE self, VALUE text)
   if(TYPE(suffixes) != T_ARRAY) {
       rb_raise(rb_eRuntimeError, "@suffixes must be an array");
   }
-  array   = (char **)RARRAY(suffixes)->ptr;
-  for(i = 0; i < RARRAY(suffixes)->len; i++) {
+  array   = (char **)RARRAY_PTR(suffixes);
+  for(i = 0; i < RARRAY_LEN(suffixes); i++) {
       array[i] = fulltext + FIX2INT(array[i]);
   }
-  ssort(array, RARRAY(suffixes)->len, 0);
-  for(i = 0; i < RARRAY(suffixes)->len; i++) {
-      RARRAY(suffixes)->ptr[i] = INT2NUM(array[i] - fulltext);
+  ssort(array, RARRAY_LEN(suffixes), 0);
+  for(i = 0; i < RARRAY_LEN(suffixes); i++) {
+      RARRAY_PTR(suffixes)[i] = INT2NUM(array[i] - fulltext);
   }
 }
 
@@ -124,7 +124,7 @@ value_ary_to_native_ary(VALUE arr)
   VALUE *vptr;
   int i;
 
-  for(i = 0, vptr = RARRAY(arr)->ptr; i < RARRAY(arr)->len; i++) {
+  for(i = 0, vptr = RARRAY_PTR(arr); i < RARRAY_LEN(arr); i++) {
       *vptr = (VALUE)(NUM2INT(*vptr));
       vptr++;
   }
@@ -138,7 +138,7 @@ native_ary_to_value_ary(VALUE arr)
   VALUE *vptr;
   int i;
 
-  for(i = 0, vptr = RARRAY(arr)->ptr; i < RARRAY(arr)->len; i++) {
+  for(i = 0, vptr = RARRAY_PTR(arr); i < RARRAY_LEN(arr); i++) {
       *vptr = INT2NUM((int)*vptr);
       vptr++;
   }
@@ -154,12 +154,12 @@ shared_string(void *ptr, int len)
   ret = rb_obj_alloc(rb_cString);
 #else
   ret = rb_str_new2("");
-  free(RSTRING(ret)->ptr);
+  free(RSTRING_PTR(ret));
 #endif
-  RSTRING(ret)->ptr = ptr;
-  RSTRING(ret)->len = len;
+  RSTRING(ret)->as.heap.ptr = ptr;
+  RSTRING(ret)->as.heap.len = len;
 #if HAVE_RB_DEFINE_ALLOC_FUNC
-  RSTRING(ret)->aux.shared = ret;
+  RSTRING(ret)->as.heap.aux.shared = ret;
   FL_SET(ret, ELTS_SHARED);
 #else
   RSTRING(ret)->orig = ret;
@@ -172,8 +172,7 @@ static VALUE
 dump_inline_suffixes(VALUE self, VALUE io, VALUE fulltext)
 {
   char *data;
-  OpenFile *fptr;
-  FILE *file;
+  rb_io_t *fptr;
   VALUE block_size, suffixes, new_suffixes, inline_suffix_size;
   int i;
 
@@ -186,16 +185,15 @@ dump_inline_suffixes(VALUE self, VALUE io, VALUE fulltext)
   rb_funcall(io, rb_intern("flush"), 0);
   if(TYPE(io) == T_FILE) {
       GetOpenFile(io, fptr);
-      file = GetWriteFile(fptr);
-      for(i = 0; i < RARRAY(new_suffixes)->len; i += NUM2INT(block_size)) {
-          write(fileno(file), data + NUM2INT(RARRAY(new_suffixes)->ptr[i]), 
+      for(i = 0; i < RARRAY_LEN(new_suffixes); i += NUM2INT(block_size)) {
+          write(fptr->fd, data + NUM2INT(RARRAY_PTR(new_suffixes)[i]), 
                 NUM2INT(inline_suffix_size));
       }
   } else {
       ID write = rb_intern("write");
-      for(i = 0; i < RARRAY(new_suffixes)->len; i += NUM2INT(block_size)) {
+      for(i = 0; i < RARRAY_LEN(new_suffixes); i += NUM2INT(block_size)) {
           rb_funcall(io, write, 1,
-                     shared_string(data + NUM2INT(RARRAY(new_suffixes)->ptr[i]),
+                     shared_string(data + NUM2INT(RARRAY_PTR(new_suffixes)[i]),
                                    NUM2INT(inline_suffix_size)));
       }
   }
@@ -210,8 +208,7 @@ dump_suffix_array(VALUE self, VALUE io)
   VALUE suffixes, new_suffixes;
   int i;
   VALUE *vptr;
-  OpenFile *fptr;
-  FILE *file;
+  rb_io_t *fptr;
 
   suffixes     = rb_ivar_get(self, rb_intern("@suffixes"));
   new_suffixes = rb_funcall(suffixes, rb_intern("to_a"), 0);
@@ -226,9 +223,8 @@ dump_suffix_array(VALUE self, VALUE io)
   
   if(TYPE(io) == T_FILE) {
       GetOpenFile(io, fptr);
-      file = GetWriteFile(fptr);
-      write(fileno(file), RARRAY(new_suffixes)->ptr, 
-            sizeof(VALUE) * RARRAY(new_suffixes)->len);
+      write(fptr->fd, RARRAY_PTR(new_suffixes), 
+            sizeof(VALUE) * RARRAY_LEN(new_suffixes));
   } else {
       ID write;
       /* a GC run at this time would be catastrophic since the
@@ -236,8 +232,8 @@ dump_suffix_array(VALUE self, VALUE io)
       rb_gc_disable();
       write = rb_intern("write");
       rb_funcall(io, write, 1,
-                 shared_string(RARRAY(new_suffixes)->ptr,
-                               sizeof(VALUE) * RARRAY(new_suffixes)->len));
+                 shared_string(RARRAY_PTR(new_suffixes),
+                               sizeof(VALUE) * RARRAY_LEN(new_suffixes)));
       rb_gc_enable();
   }
   
@@ -254,9 +250,9 @@ static VALUE
 whitespace_analyzer_append_suffixes(VALUE self, VALUE array, VALUE text, VALUE offset)
 {
  VALUE str  = StringValue(text);
- char *ptr  = RSTRING(str)->ptr;
+ char *ptr  = RSTRING_PTR(str);
  char *base = ptr;
- char *eof  = ptr + RSTRING(str)->len;
+ char *eof  = ptr + RSTRING_LEN(str);
  int off    = NUM2INT(offset);
 
  while(ptr != eof) {
@@ -275,9 +271,9 @@ static VALUE
 si_analyzer_append_suffixes(VALUE self, VALUE array, VALUE text, VALUE offset)
 {
  VALUE str  = StringValue(text);
- char *ptr  = RSTRING(str)->ptr;
+ char *ptr  = RSTRING_PTR(str);
  char *base = ptr;
- char *eof  = ptr + RSTRING(str)->len;
+ char *eof  = ptr + RSTRING_LEN(str);
  int off    = NUM2INT(offset);
 
  while(ptr != eof) {
@@ -300,11 +296,11 @@ dm_reader_binary_search(VALUE self, VALUE ary, VALUE offset, VALUE from, VALUE t
   _from = NUM2ULONG(from);
   _to   = NUM2ULONG(to);
   /* FIXME: range checking */
-  ptr = RARRAY(ary)->ptr;
+  ptr = RARRAY_PTR(ary);
   while(_to - _from > 1) {
       middle = _from + ((_to - _from) >> 1);
       /* FIXME: type checks */
-      pivot = RARRAY(ptr[middle])->ptr[0];
+      pivot = RARRAY_PTR(ptr[middle])[0];
       if(offset < pivot) {
           _to = middle;
       } else if(offset > pivot) {
@@ -328,9 +324,9 @@ dm_reader_document_uri(VALUE self, VALUE suffix_idx, VALUE offset)
   field_arr = rb_ivar_get(self, rb_intern("@field_arr"));
   /* FIXME: typecheck*/
   idx    = dm_reader_binary_search(self, field_arr, offset,
-                                   INT2FIX(0), INT2NUM(RARRAY(field_arr)->len));
-  doc_id = RARRAY(RARRAY(field_arr)->ptr[NUM2INT(idx)])->ptr[1];
-  return RARRAY(rb_ivar_get(self, rb_intern("@uri_tbl")))->ptr[NUM2INT(doc_id)];
+                                   INT2FIX(0), INT2NUM(RARRAY_LEN(field_arr)));
+  doc_id = RARRAY_PTR(RARRAY_PTR(field_arr)[NUM2INT(idx)])[1];
+  return RARRAY_PTR(rb_ivar_get(self, rb_intern("@uri_tbl")))[NUM2INT(doc_id)];
 }
 
 int
@@ -352,26 +348,26 @@ VALUE dm_reader_rank_offsets(VALUE self, VALUE offsets, VALUE weights)
   weights = rb_funcall(weights, rb_intern("to_a"), 0);
   offsets = rb_funcall(offsets, rb_intern("to_a"), 0);
 
-  for(i = 0; i < (256 < RARRAY(weights)->len ? 256 : RARRAY(weights)->len); i++) {
-      VALUE integer_weight = rb_funcall(RARRAY(weights)->ptr[i], rb_intern("to_i"), 0);
+  for(i = 0; i < (256 < RARRAY_LEN(weights) ? 256 : RARRAY_LEN(weights)); i++) {
+      VALUE integer_weight = rb_funcall(RARRAY_PTR(weights)[i], rb_intern("to_i"), 0);
       int_weights[i] = NUM2INT(integer_weight);
   }
 
   /* TODO: typecheck */
   field_arr = rb_ivar_get(self, rb_intern("@field_arr"));
 
-  hash = st_init_numtable_with_size(RARRAY(offsets)->len / 100);
-  for(i = 0; i < RARRAY(offsets)->len; i++) {
+  hash = st_init_numtable_with_size(RARRAY_LEN(offsets) / 100);
+  for(i = 0; i < RARRAY_LEN(offsets); i++) {
       VALUE info, off;
-      off = dm_reader_binary_search(self, field_arr, RARRAY(offsets)->ptr[i],
-                                    INT2FIX(0), INT2NUM(RARRAY(field_arr)->len));
-      info = RARRAY(field_arr)->ptr[NUM2INT(off)];
+      off = dm_reader_binary_search(self, field_arr, RARRAY_PTR(offsets)[i],
+                                    INT2FIX(0), INT2NUM(RARRAY_LEN(field_arr)));
+      info = RARRAY_PTR(field_arr)[NUM2INT(off)];
       if(TYPE(info) == T_ARRAY) {
           int val = 0;
           
-          st_lookup(hash, RARRAY(info)->ptr[1], (st_data_t *)&val);
-          val += int_weights[FIX2INT(RARRAY(info)->ptr[2])] / (NUM2INT(RARRAY(info)->ptr[3]) + 1);
-          st_insert(hash, RARRAY(info)->ptr[1], val);
+          st_lookup(hash, RARRAY_PTR(info)[1], (st_data_t *)&val);
+          val += int_weights[FIX2INT(RARRAY_PTR(info)[2])] / (NUM2INT(RARRAY_PTR(info)[3]) + 1);
+          st_insert(hash, RARRAY_PTR(info)[1], val);
       }
   }
 
@@ -391,10 +387,10 @@ VALUE dm_reader_rank_offsets_probabilistic(VALUE self, VALUE offsets, VALUE weig
   weights = rb_funcall(weights, rb_intern("to_a"), 0);
   offsets = rb_funcall(offsets, rb_intern("to_a"), 0);
 
-  for(i = 0; i < (256 < RARRAY(weights)->len ? 256 : RARRAY(weights)->len); i++) {
-      VALUE float_val = rb_funcall(RARRAY(weights)->ptr[i], rb_intern("to_f"), 0);
+  for(i = 0; i < (256 < RARRAY_LEN(weights) ? 256 : RARRAY_LEN(weights)); i++) {
+      VALUE float_val = rb_funcall(RARRAY_PTR(weights)[i], rb_intern("to_f"), 0);
       /* TODO: check type */
-      fl_weights[i] = RFLOAT(float_val)->value;
+      fl_weights[i] = RFLOAT_VALUE(float_val);
   }
 
   /* TODO: typecheck */
@@ -405,22 +401,22 @@ VALUE dm_reader_rank_offsets_probabilistic(VALUE self, VALUE offsets, VALUE weig
       VALUE info, off;
       int index;
 
-      index = rand() % RARRAY(offsets)->len;
-      off = dm_reader_binary_search(self, field_arr, RARRAY(offsets)->ptr[index],
-                                    INT2FIX(0), INT2NUM(RARRAY(field_arr)->len));
-      info = RARRAY(field_arr)->ptr[NUM2INT(off)];
+      index = rand() % RARRAY_LEN(offsets);
+      off = dm_reader_binary_search(self, field_arr, RARRAY_PTR(offsets)[index],
+                                    INT2FIX(0), INT2NUM(RARRAY_LEN(field_arr)));
+      info = RARRAY_PTR(field_arr)[NUM2INT(off)];
       if(TYPE(info) == T_ARRAY) {
           double val;
-          VALUE cur = rb_hash_aref(hash, RARRAY(info)->ptr[1]);
+          VALUE cur = rb_hash_aref(hash, RARRAY_PTR(info)[1]);
           if(cur == Qnil) {
               val = 0.0;
           } else {
               /* FIXME: typecheck */
-              val = RFLOAT(cur)->value;
+              val = RFLOAT_VALUE(cur);
           }
-          val += fl_weights[FIX2INT(RARRAY(info)->ptr[2])] / 
-                 NUM2INT(RARRAY(info)->ptr[3]);
-          rb_hash_aset(hash, RARRAY(info)->ptr[1], rb_float_new(val));
+          val += fl_weights[FIX2INT(RARRAY_PTR(info)[2])] / 
+                 NUM2INT(RARRAY_PTR(info)[3]);
+          rb_hash_aset(hash, RARRAY_PTR(info)[1], rb_float_new(val));
       }
   }
 
@@ -454,11 +450,11 @@ sa_reader_lazyhits_to_offsets(VALUE self, VALUE lazyhits)
      if(TYPE(str) != T_STRING) {
          rb_raise(rb_eRuntimeError, "The @io didn't return a String object.");
      }
-     for(src = (unsigned long *)RSTRING(str)->ptr, 
-         dst = (unsigned long *)RARRAY(ret)->ptr, i = 0; i < RSTRING(str)->len / 4; i++) {
+     for(src = (unsigned long *)RSTRING_PTR(str), 
+         dst = (unsigned long *)RARRAY_PTR(ret), i = 0; i < RSTRING_LEN(str) / 4; i++) {
          *dst++ = INT2NUM(*src++);
      }
-     RARRAY(ret)->len = RSTRING(str)->len / 4;
+     RARRAY(ret)->as.heap.len = RSTRING_LEN(str) / 4;
  }
 
  return ret;

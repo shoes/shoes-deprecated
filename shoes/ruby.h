@@ -17,7 +17,9 @@ extern "C" {
 #else
 #include <rubysig.h>
 #include <st.h>
+#ifndef RUBY_1_9
 #include <node.h>
+#endif
 #endif
 
 #if defined(__cplusplus)

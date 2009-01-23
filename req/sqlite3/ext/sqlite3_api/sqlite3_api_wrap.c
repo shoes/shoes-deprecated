@@ -171,10 +171,10 @@ typedef struct {
 #define StringValue(s) RB_STRING_VALUE(s)
 #endif
 #ifndef StringValuePtr
-#define StringValuePtr(s) RSTRING(RB_STRING_VALUE(s))->ptr
+#define StringValuePtr(s) RSTRING_PTR(RB_STRING_VALUE(s))
 #endif
 #ifndef StringValueLen
-#define StringValueLen(s) RSTRING(RB_STRING_VALUE(s))->len
+#define StringValueLen(s) RSTRING_LEN(RB_STRING_VALUE(s))
 #endif
 #ifndef SafeStringValue
 #define SafeStringValue(v) do {\
@@ -1055,7 +1055,7 @@ struct timeval rb_time_timeval(VALUE);
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "rubyio.h"
+#include "ruby/io.h"
 #ifdef __cplusplus
 }
 #endif
@@ -1063,7 +1063,6 @@ extern "C" {
 
 #include <sqlite3.h>
 #include "ruby.h"
-#include "intern.h"
 
 #define Init_API Init_sqlite3_api
 
@@ -1409,7 +1408,7 @@ _wrap_sqlite3_complete16(int argc, VALUE *argv, VALUE self) {
     if ((argc < 1) || (argc > 1))
     rb_raise(rb_eArgError, "wrong # of arguments(%d for 1)",argc);
     {
-        arg1 = (void*)RSTRING(argv[0])->ptr;
+        arg1 = (void*)RSTRING_PTR(argv[0]);
     }
     result = (int)sqlite3_complete16((void const *)arg1);
     
@@ -1534,7 +1533,7 @@ _wrap_sqlite3_open16(int argc, VALUE *argv, VALUE self) {
     if ((argc < 1) || (argc > 1))
     rb_raise(rb_eArgError, "wrong # of arguments(%d for 1)",argc);
     {
-        arg1 = (void*)RSTRING(argv[0])->ptr;
+        arg1 = (void*)RSTRING_PTR(argv[0]);
         arg2 = (sqlite3**)malloc( sizeof( sqlite3* ) );
     }
     result = (int)sqlite3_open16((void const *)arg1,arg2);
@@ -1624,8 +1623,8 @@ _wrap_sqlite3_prepare(int argc, VALUE *argv, VALUE self) {
     rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc);
     SWIG_ConvertPtr(argv[0], (void **) &arg1, SWIGTYPE_p_sqlite3, 0);
     {
-        arg2 = RSTRING(argv[1])->ptr;
-        arg3 = RSTRING(argv[1])->len;
+        arg2 = RSTRING_PTR(argv[1]);
+        arg3 = RSTRING_LEN(argv[1]);
         arg4 = &stmt2;
         arg5 = &errmsg2;
     }
@@ -1660,8 +1659,8 @@ _wrap_sqlite3_prepare16(int argc, VALUE *argv, VALUE self) {
     rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc);
     SWIG_ConvertPtr(argv[0], (void **) &arg1, SWIGTYPE_p_sqlite3, 0);
     {
-        arg2 = RSTRING(argv[1])->ptr;
-        arg3 = RSTRING(argv[1])->len;
+        arg2 = RSTRING_PTR(argv[1]);
+        arg3 = RSTRING_LEN(argv[1]);
         arg4 = &stmt2;
         arg5 = &errmsg2;
     }
@@ -1699,8 +1698,8 @@ _wrap_sqlite3_bind_blob(int argc, VALUE *argv, VALUE self) {
     SWIG_ConvertPtr(argv[0], (void **) &arg1, SWIGTYPE_p_sqlite3_stmt, 0);
     arg2 = NUM2INT(argv[1]);
     {
-        arg3 = (void*)RSTRING(argv[2])->ptr;
-        arg4 = RSTRING(argv[2])->len;
+        arg3 = (void*)RSTRING_PTR(argv[2]);
+        arg4 = RSTRING_LEN(argv[2]);
         arg5 = SQLITE_TRANSIENT;
     }
     result = (int)sqlite3_bind_blob(arg1,arg2,(void const *)arg3,arg4,arg5);
@@ -1805,8 +1804,8 @@ _wrap_sqlite3_bind_text(int argc, VALUE *argv, VALUE self) {
     SWIG_ConvertPtr(argv[0], (void **) &arg1, SWIGTYPE_p_sqlite3_stmt, 0);
     arg2 = NUM2INT(argv[1]);
     {
-        arg3 = RSTRING(argv[2])->ptr;
-        arg4 = RSTRING(argv[2])->len;
+        arg3 = RSTRING_PTR(argv[2]);
+        arg4 = RSTRING_LEN(argv[2]);
         arg5 = SQLITE_TRANSIENT;
     }
     result = (int)sqlite3_bind_text(arg1,arg2,(char const *)arg3,arg4,arg5);
@@ -1831,8 +1830,8 @@ _wrap_sqlite3_bind_text16(int argc, VALUE *argv, VALUE self) {
     SWIG_ConvertPtr(argv[0], (void **) &arg1, SWIGTYPE_p_sqlite3_stmt, 0);
     arg2 = NUM2INT(argv[1]);
     {
-        arg3 = (void*)RSTRING(argv[2])->ptr;
-        arg4 = RSTRING(argv[2])->len;
+        arg3 = (void*)RSTRING_PTR(argv[2]);
+        arg4 = RSTRING_LEN(argv[2]);
         arg5 = SQLITE_TRANSIENT;
     }
     result = (int)sqlite3_bind_text16(arg1,arg2,(void const *)arg3,arg4,arg5);
@@ -2286,7 +2285,7 @@ _wrap_sqlite3_create_function16(int argc, VALUE *argv, VALUE self) {
     rb_raise(rb_eArgError, "wrong # of arguments(%d for 8)",argc);
     SWIG_ConvertPtr(argv[0], (void **) &arg1, SWIGTYPE_p_sqlite3, 0);
     {
-        arg2 = (void*)RSTRING(argv[1])->ptr;
+        arg2 = (void*)RSTRING_PTR(argv[1]);
     }
     arg3 = NUM2INT(argv[2]);
     arg4 = NUM2INT(argv[3]);
@@ -2528,8 +2527,8 @@ _wrap_sqlite3_result_blob(int argc, VALUE *argv, VALUE self) {
     rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc);
     SWIG_ConvertPtr(argv[0], (void **) &arg1, SWIGTYPE_p_sqlite3_context, 0);
     {
-        arg2 = (void*)RSTRING(argv[1])->ptr;
-        arg3 = RSTRING(argv[1])->len;
+        arg2 = (void*)RSTRING_PTR(argv[1]);
+        arg3 = RSTRING_LEN(argv[1]);
         arg4 = SQLITE_TRANSIENT;
     }
     sqlite3_result_blob(arg1,(void const *)arg2,arg3,arg4);
@@ -2563,8 +2562,8 @@ _wrap_sqlite3_result_error(int argc, VALUE *argv, VALUE self) {
     rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc);
     SWIG_ConvertPtr(argv[0], (void **) &arg1, SWIGTYPE_p_sqlite3_context, 0);
     {
-        arg2 = RSTRING(argv[1])->ptr;
-        arg3 = RSTRING(argv[1])->len;
+        arg2 = RSTRING_PTR(argv[1]);
+        arg3 = RSTRING_LEN(argv[1]);
     }
     sqlite3_result_error(arg1,(char const *)arg2,arg3);
     
@@ -2582,8 +2581,8 @@ _wrap_sqlite3_result_error16(int argc, VALUE *argv, VALUE self) {
     rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc);
     SWIG_ConvertPtr(argv[0], (void **) &arg1, SWIGTYPE_p_sqlite3_context, 0);
     {
-        arg2 = (void*)RSTRING(argv[1])->ptr;
-        arg3 = RSTRING(argv[1])->len;
+        arg2 = (void*)RSTRING_PTR(argv[1]);
+        arg3 = RSTRING_LEN(argv[1]);
     }
     sqlite3_result_error16(arg1,(void const *)arg2,arg3);
     
@@ -2634,8 +2633,8 @@ _wrap_sqlite3_result_text(int argc, VALUE *argv, VALUE self) {
     rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc);
     SWIG_ConvertPtr(argv[0], (void **) &arg1, SWIGTYPE_p_sqlite3_context, 0);
     {
-        arg2 = RSTRING(argv[1])->ptr;
-        arg3 = RSTRING(argv[1])->len;
+        arg2 = RSTRING_PTR(argv[1]);
+        arg3 = RSTRING_LEN(argv[1]);
         arg4 = SQLITE_TRANSIENT;
     }
     sqlite3_result_text(arg1,(char const *)arg2,arg3,arg4);
@@ -2655,8 +2654,8 @@ _wrap_sqlite3_result_text16(int argc, VALUE *argv, VALUE self) {
     rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc);
     SWIG_ConvertPtr(argv[0], (void **) &arg1, SWIGTYPE_p_sqlite3_context, 0);
     {
-        arg2 = (void*)RSTRING(argv[1])->ptr;
-        arg3 = RSTRING(argv[1])->len;
+        arg2 = (void*)RSTRING_PTR(argv[1]);
+        arg3 = RSTRING_LEN(argv[1]);
         arg4 = SQLITE_TRANSIENT;
     }
     sqlite3_result_text16(arg1,(void const *)arg2,arg3,arg4);
@@ -2676,8 +2675,8 @@ _wrap_sqlite3_result_text16le(int argc, VALUE *argv, VALUE self) {
     rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc);
     SWIG_ConvertPtr(argv[0], (void **) &arg1, SWIGTYPE_p_sqlite3_context, 0);
     {
-        arg2 = (void*)RSTRING(argv[1])->ptr;
-        arg3 = RSTRING(argv[1])->len;
+        arg2 = (void*)RSTRING_PTR(argv[1]);
+        arg3 = RSTRING_LEN(argv[1]);
         arg4 = SQLITE_TRANSIENT;
     }
     sqlite3_result_text16le(arg1,(void const *)arg2,arg3,arg4);
@@ -2697,8 +2696,8 @@ _wrap_sqlite3_result_text16be(int argc, VALUE *argv, VALUE self) {
     rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc);
     SWIG_ConvertPtr(argv[0], (void **) &arg1, SWIGTYPE_p_sqlite3_context, 0);
     {
-        arg2 = (void*)RSTRING(argv[1])->ptr;
-        arg3 = RSTRING(argv[1])->len;
+        arg2 = (void*)RSTRING_PTR(argv[1]);
+        arg3 = RSTRING_LEN(argv[1]);
         arg4 = SQLITE_TRANSIENT;
     }
     sqlite3_result_text16be(arg1,(void const *)arg2,arg3,arg4);

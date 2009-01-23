@@ -1,6 +1,6 @@
 #include <string.h>
 #include "ruby.h"
-#include "st.h"
+#include "ruby/st.h"
 #include "unicode.h"
 #include <math.h>
 
@@ -86,7 +86,7 @@ static int hash_to_json_state_i(VALUE key, VALUE value, VALUE Vstate)
 }
 
 inline static VALUE mHash_json_transfrom(VALUE self, VALUE Vstate, VALUE Vdepth) {
-    long depth, len = RHASH(self)->tbl->num_entries;
+    long depth, len = RHASH_TBL(self)->num_entries;
     VALUE result;
     GET_STATE(Vstate);
 
@@ -142,7 +142,7 @@ static VALUE mHash_to_json(int argc, VALUE *argv, VALUE self)
     rb_scan_args(argc, argv, "02", &Vstate, &Vdepth);
     depth = NIL_P(Vdepth) ? 0 : FIX2LONG(Vdepth);
     if (NIL_P(Vstate)) {
-        long len = RHASH(self)->tbl->num_entries;
+        long len = RHASH_TBL(self)->num_entries;
         result = rb_str_buf_new(len);
         rb_str_buf_cat2(result, "{");
         rb_hash_foreach(self, hash_to_json_i, result);
@@ -283,7 +283,7 @@ static VALUE mFloat_to_json(int argc, VALUE *argv, VALUE self)
 {
     JSON_Generator_State *state = NULL;
     VALUE Vstate, rest, tmp;
-    double value = RFLOAT(self)->value;
+    double value = RFLOAT_VALUE(self);
     rb_scan_args(argc, argv, "01*", &Vstate, &rest);
     if (!NIL_P(Vstate)) Data_Get_Struct(Vstate, JSON_Generator_State, state);
     if (isinf(value)) {
@@ -488,7 +488,7 @@ static inline VALUE cState_configure(VALUE self, VALUE opts)
         state->object_nl = tmp;
     }
     tmp = ID2SYM(i_check_circular);
-    if (st_lookup(RHASH(opts)->tbl, tmp, 0)) {
+    if (st_lookup(RHASH_TBL(opts), tmp, 0)) {
         tmp = rb_hash_aref(opts, ID2SYM(i_check_circular));
         state->check_circular = RTEST(tmp);
     } else {
@@ -496,7 +496,7 @@ static inline VALUE cState_configure(VALUE self, VALUE opts)
     }
     tmp = ID2SYM(i_max_nesting);
     state->max_nesting = 19;
-    if (st_lookup(RHASH(opts)->tbl, tmp, 0)) {
+    if (st_lookup(RHASH_TBL(opts), tmp, 0)) {
         VALUE max_nesting = rb_hash_aref(opts, tmp);
         if (RTEST(max_nesting)) {
             Check_Type(max_nesting, T_FIXNUM);

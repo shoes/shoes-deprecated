@@ -82,6 +82,21 @@ shoes_world_free(shoes_world_t *world)
     SHOE_FREE(world);
 }
 
+#ifdef RUBY_1_9
+int
+shoes_ruby_embed()
+{
+  VALUE v;
+  char *argv[] = {"ruby", "-e", "1"};
+  RUBY_INIT_STACK;
+  ruby_init();
+  v = (VALUE)ruby_options(3, argv);
+  return !FIXNUM_P(v);
+}
+#else
+#define shoes_ruby_embed ruby_init
+#endif
+
 shoes_code
 shoes_init(SHOES_INIT_ARGS)
 {
@@ -89,7 +104,7 @@ shoes_init(SHOES_INIT_ARGS)
   signal(SIGINT,  shoes_sigint);
   signal(SIGQUIT, shoes_sigint);
 #endif
-  ruby_init();
+  shoes_ruby_embed();
   shoes_ruby_init();
   shoes_world = shoes_world_alloc();
 #ifdef SHOES_WIN32
@@ -167,7 +182,7 @@ shoes_start(char *path, char *uri)
     SHOES_BUFSIZE,
     "begin;"
       "DIR = File.expand_path(File.dirname(%%q<%s>));"
-      "$:.replace([DIR+'/ruby/lib/'+PLATFORM, DIR+'/ruby/lib', DIR+'/lib', '.']);"
+      "$:.replace([DIR+'/ruby/lib/'+RUBY_PLATFORM, DIR+'/ruby/lib', DIR+'/lib', '.']);"
       "require 'shoes';"
       "DIR;"
     "rescue Object => e;"
@@ -185,7 +200,7 @@ shoes_start(char *path, char *uri)
     return SHOES_QUIT;
 
   StringValue(str);
-  strcpy(shoes_world->path, RSTRING(str)->ptr);
+  strcpy(shoes_world->path, RSTRING_PTR(str));
 
   char *load_uri_str = NULL;
   VALUE load_uri = rb_rescue2(CASTHOOK(shoes_start_begin), Qnil, CASTHOOK(shoes_start_exception), Qnil, rb_cObject, 0);

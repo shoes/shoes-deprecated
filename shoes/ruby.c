@@ -3987,11 +3987,19 @@ shoes_timer_draw(VALUE self, VALUE c, VALUE actual)
 void
 shoes_msg(ID typ, VALUE str)
 {
+#ifdef RUBY_1_9
+  ID func = rb_frame_this_func();
+  rb_ary_push(shoes_world->msgs, rb_ary_new3(6, 
+    ID2SYM(typ), str, rb_funcall(rb_cTime, s_now, 0),
+    func ? ID2SYM(func) : Qnil, 
+    rb_str_new2("<unknown>"), INT2NUM(0)));
+#else
   ID func = rb_frame_last_func();
   rb_ary_push(shoes_world->msgs, rb_ary_new3(6, 
     ID2SYM(typ), str, rb_funcall(rb_cTime, s_now, 0),
     func ? ID2SYM(func) : Qnil, 
     rb_str_new2(ruby_sourcefile), INT2NUM(ruby_sourceline)));
+#endif
 }
 
 #define DEBUG_TYPE(t) \

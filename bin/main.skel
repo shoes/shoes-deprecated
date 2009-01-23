@@ -66,10 +66,14 @@ main(argc, argv)
       RUBY_INIT_STACK
       ruby_init();
       rb_eval_string(bootup);
+#ifdef RUBY_1_9
+      return ruby_run_node(ruby_options(argc, argv));
+#else
       ruby_options(argc, argv);
       ruby_run();
+      return 0;
+#endif
     }
-    return 0;
   }
 
   code = shoes_init();

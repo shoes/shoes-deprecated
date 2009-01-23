@@ -140,7 +140,7 @@ VALUE hpricot_scan(VALUE self, VALUE port)
       /* We've used up the entire buffer storing an already-parsed token
        * prefix that must be preserved.  Likely caused by super-long attributes.
        * See ticket #13. */
-      rb_raise(rb_eHpricotParseError, "ran out of buffer space on element <%s>, starting on line %d.", RSTRING(tag)->ptr, curline);
+      rb_raise(rb_eHpricotParseError, "ran out of buffer space on element <%s>, starting on line %d.", RSTRING_PTR(tag), curline);
     }
 
     if ( rb_respond_to( port, s_read ) )
@@ -153,8 +153,8 @@ VALUE hpricot_scan(VALUE self, VALUE port)
     }
 
     StringValue(str);
-    memcpy( p, RSTRING(str)->ptr, RSTRING(str)->len );
-    len = RSTRING(str)->len;
+    memcpy( p, RSTRING_PTR(str), RSTRING_LEN(str) );
+    len = RSTRING_LEN(str);
     nread += len;
 
     /* If this is the last buffer, tack on an EOF. */
@@ -5902,7 +5902,7 @@ case 219:
       free(buf);
       if ( !NIL_P(tag) )
       {
-        rb_raise(rb_eHpricotParseError, "parse error on element <%s>, starting on line %d.\n" NO_WAY_SERIOUSLY, RSTRING(tag)->ptr, curline);
+        rb_raise(rb_eHpricotParseError, "parse error on element <%s>, starting on line %d.\n" NO_WAY_SERIOUSLY, RSTRING_PTR(tag), curline);
       }
       else
       {
