@@ -241,7 +241,7 @@ shoes_http_headers(VALUE hsh)
   long i;
   struct curl_slist *slist = NULL;
   VALUE keys = rb_funcall(hsh, s_keys, 0);
-  for (i = 0; i < RARRAY(keys)->len; i++ )
+  for (i = 0; i < RARRAY_LEN(keys); i++ )
   {
     VALUE key = rb_ary_entry(keys, i);
     VALUE header = rb_str_dup(key);

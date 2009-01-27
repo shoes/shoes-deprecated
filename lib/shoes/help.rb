@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 module Shoes::Manual
   PATH = "#{DIR}/static/manual.txt"
   PARA_RE = /\s*?(\{{3}(?:.+?)\}{3})|\n\n/m
@@ -156,7 +157,11 @@ module Shoes::Manual
 
   def load_docs path
     return @docs if @docs
-    str = File.read(path)
+    str = if RUBY_VERSION =~ /^1\.9/
+            File.open(path, 'r:utf-8') { |f| f.read }
+          else
+            File.read(path)
+          end
     @search = Shoes::Search.new
     @sections, @methods, @mindex = {}, {}, {}
     @docs =

@@ -263,6 +263,15 @@ typedef struct
   VALUE args;
 } shoes_exec;
 
+#ifdef RUBY_1_9
+struct METHOD {
+    VALUE oclass;		/* class that holds the method */
+    VALUE rklass;		/* class of the receiver */
+    VALUE recv;
+    ID id, oid;
+    void *body; /* NODE *body; */
+};
+#else
 struct METHOD {
     VALUE klass, rklass;
     VALUE recv;
@@ -270,6 +279,7 @@ struct METHOD {
     int safe_level;
     NODE *body;
 };
+#endif
 
 static VALUE
 rb_unbound_get_class(VALUE method)

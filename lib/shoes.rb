@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 #
 # lib/shoes.rb
 # The Shoes base app, both a demonstration and the learning tool for
@@ -7,7 +8,7 @@ ARGV.delete_if { |x| x =~ /-psn_/ }
 
 require 'open-uri'
 require 'optparse'
-require 'resolv-replace' if PLATFORM =~ /win/
+require 'resolv-replace' if RUBY_PLATFORM =~ /win/
 require 'shoes/inspect'
 require 'shoes/cache'
 if Object.const_defined? :Shoes
@@ -35,13 +36,9 @@ class Shoes
     para "404 NOT FOUND, GUYS!"
   end
  
+  # Using TOPLEVEL to pacify Ruby 1.9 for now
   def self.anonymous_binding
-    obj = Object.new
-    return \
-      class << obj
-        def self.to_s; "(shoes)" end
-        binding
-      end
+    TOPLEVEL_BINDING
   end
 
   @mounts = []
@@ -339,7 +336,7 @@ class Shoes
   end
 
   def self.args!
-    if PLATFORM !~ /darwin/ and ARGV.empty?
+    if RUBY_PLATFORM !~ /darwin/ and ARGV.empty?
       Shoes.splash
     end
     OPTS.parse! ARGV
