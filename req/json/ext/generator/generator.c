@@ -8,6 +8,10 @@
 #include "unicode.h"
 #include <math.h>
 
+#ifndef RFLOAT_VALUE
+#define RFLOAT_VALUE(f) RFLOAT(f)->value
+#endif
+
 #define check_max_nesting(state, depth) do {                                   \
     long current_nesting = 1 + depth;                                          \
     if (state->max_nesting != 0 && current_nesting > state->max_nesting)       \
