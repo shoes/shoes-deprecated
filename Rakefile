@@ -44,6 +44,8 @@ def env(x)
   ENV[x]
 end
 
+# Execute shell calls through bash if we are compiling with mingw. This breaks us
+# out of the windows command shell if we are compiling from there.
 if RUBY_PLATFORM =~ /mingw/
   def sh(*args)
     cmd = args.join(' ')
@@ -73,9 +75,14 @@ def copy_files glob, dir
 end
 
 def copy_ext xdir, libdir
-  case RUBY_PLATFORM when /win32/, /darwin/
+  case RUBY_PLATFORM when /win32/
     dxdir = xdir.gsub %r!^req/\w+/!, 'deps/'
     copy_files "#{dxdir}/*.so", libdir
+  when /darwin/
+    Dir.chdir(xdir) do
+      `ruby extconf.rb; make`
+    end
+    copy_files "#{xdir}/*.bundle", libdir
   else
     Dir.chdir(xdir) do
       `ruby extconf.rb; make`
@@ -147,9 +154,10 @@ task :build => [:build_os, "dist/VERSION.txt"] do
       copy_files "deps/vlc/bin/*", "dist/"
     end
   when /mingw/
-    cp    "#{ext_ruby}/bin/#{ruby_so}.dll", "dist/#{ruby_so}.dll"
-    cp    "#{ext_ruby}/bin/libungif4.dll", "dist/libungif4.dll"
-    cp    "#{ext_ruby}/bin/libjpeg.dll", "dist/libjpeg.dll"
+    dlls = [ruby_so]
+    dlls += %w{libungif4 libjpeg libcairo-2 libpng12-0 libglib-2.0-0 libgobject-2.0-0 libpango-1.0-0
+      libgmodule-2.0-0 libpangocairo-1.0-0 libpangowin32-1.0-0}
+    dlls.each{|dll| cp "#{ext_ruby}/bin/#{dll}.dll", "dist/"}
     if ENV['VIDEO']
       cp    "/usr/lib/libvlc.so", "dist"
       ln_s  "libvlc.so", "dist/libvlc.so.0"
@@ -357,25 +365,26 @@ else
     x.gsub(/\.\w+$/, '.o')
   end
 
+  # Linux build environment
   if RUBY_PLATFORM =~ /mingw/
     CAIRO_CFLAGS = '-I/mingw/include/glib-2.0 -I/mingw/lib/glib-2.0/include -I/mingw/include/cairo'
     CAIRO_LIB = '-lcairo'
     PANGO_CFLAGS = '-I/mingw/include/pango-1.0'
     PANGO_LIB = '-lpangocairo-1.0 -lpango-1.0'
-    LINUX_LIB_NAMES = %W[#{ruby_so} png12 cairo pangocairo-1.0 ungif]
+    png_lib = 'png12'
   else
-    # Linux build environment
     CAIRO_CFLAGS = ENV['CAIRO_CFLAGS'] || `pkg-config --cflags cairo`.strip
     CAIRO_LIB = ENV['CAIRO_LIB'] ? "-L#{ENV['CAIRO_LIB']}" : `pkg-config --libs cairo`.strip
     PANGO_CFLAGS = ENV['PANGO_CFLAGS'] || `pkg-config --cflags pango`.strip
     PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
-    LINUX_LIB_NAMES = %W[#{ruby_so} png cairo pangocairo-1.0 ungif]
+    png_lib = 'png'
   end
 
   LINUX_CFLAGS = %[-Wall -I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{Config::CONFIG['archdir']}]
   if Config::CONFIG['rubyhdrdir']
     LINUX_CFLAGS << " -I#{Config::CONFIG['rubyhdrdir']} -I#{Config::CONFIG['rubyhdrdir']}/#{RUBY_PLATFORM}"
   end
+  LINUX_LIB_NAMES = %W[#{ruby_so} #{png_lib} cairo pangocairo-1.0 ungif]
   FLAGS.each do |flag|
     LINUX_CFLAGS << " -D#{flag}" if ENV[flag]
   end
