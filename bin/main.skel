@@ -39,6 +39,9 @@ main(argc, argv)
   path = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
   GetModuleFileName(NULL, (LPSTR)path, SHOES_BUFSIZE);
   code = shoes_init(inst, style);
+#ifdef RUBY_1_9
+  rb_w32_sysinit(&argc, &argv);
+#endif
 #else
   path = argv[0];
   if (argc > 1 && strcmp(argv[1], "--ruby") == 0)
