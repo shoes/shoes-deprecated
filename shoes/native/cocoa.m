@@ -1292,7 +1292,7 @@ shoes_dialog_save(VALUE self)
       path = rb_str_new2(filename);
     }
   });
-  return Qnil;
+  return path;
 }
 
 VALUE
