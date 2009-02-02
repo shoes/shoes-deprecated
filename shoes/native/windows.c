@@ -1631,8 +1631,8 @@ shoes_dialog_chooser2(VALUE self, char *title, UINT flags)
     IMalloc *imalloc = 0;
     if (SUCCEEDED(SHGetMalloc(&imalloc)))
     {
-//      IMalloc_Free(imalloc, pidl);
-//      IMalloc_Release(imalloc);
+      IMalloc_Free(imalloc, pidl);
+      IMalloc_Release(imalloc);
     }
   }
   return path;
