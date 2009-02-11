@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 module Shoes::Manual
-  PATH = "#{DIR}/static/manual.txt"
+  #PATH = "#{DIR}/static/manual.txt"
+  PATH = "#{DIR}/static/manual-ja.txt" # temporary change
   PARA_RE = /\s*?(\{{3}(?:.+?)\}{3})|\n\n/m
   CODE_RE = /\{{3}(?:\s*\#![^\n]+)?(.+?)\}{3}/m
   IMAGE_RE = /\!(\{([^}\n]+)\})?([^!\n]+\.\w+)\!/
