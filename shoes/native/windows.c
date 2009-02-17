@@ -149,7 +149,7 @@ void shoes_native_slot_clear(shoes_canvas *canvas)
 
 void shoes_native_slot_paint(SHOES_SLOT_OS *slot)
 {
-  RedrawWindow(slot->window, NULL, NULL, RDW_INVALIDATE|RDW_ALLCHILDREN);
+  RedrawWindow(slot->window, NULL, NULL, RDW_INVALIDATE|RDW_NOCHILDREN);
 }
 
 void shoes_native_slot_lengthen(SHOES_SLOT_OS *slot, int height, int endy)
@@ -842,7 +842,7 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
 
   app->slot->window = CreateWindowEx(
     exStyle, SHOES_SHORTNAME, SHOES_APPNAME,
-    WINDOW_STYLE | WS_CLIPCHILDREN |
+    WINDOW_STYLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS |
       (app->resizable ? (WS_THICKFRAME | WS_MAXIMIZEBOX) : WS_DLGFRAME) |
       WS_VSCROLL | ES_AUTOVSCROLL,
     CW_USEDEFAULT, CW_USEDEFAULT,
@@ -958,7 +958,7 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
     slot->controls = rb_ary_new();
     slot->dc = NULL;
     slot->window = CreateWindowEx(0, SHOES_SLOTCLASS, "Shoes Slot Window",
-      WS_CHILD | WS_CLIPCHILDREN | WS_TABSTOP | WS_VISIBLE,
+      WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_TABSTOP | WS_VISIBLE,
       x, y, width, height, parent->window, NULL, 
       (HINSTANCE)GetWindowLong(parent->window, GWL_HINSTANCE), NULL);
     SetWindowLong(slot->window, GWL_USERDATA, (long)c);
@@ -1127,7 +1127,7 @@ shoes_native_surface_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
 {
   int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot->controls);
   SHOES_SURFACE_REF ref = CreateWindowEx(0, SHOES_VLCLASS, "Shoes VLC Window",
-      WS_CHILD | WS_CLIPCHILDREN | WS_TABSTOP | WS_VISIBLE,
+      WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_TABSTOP | WS_VISIBLE,
       place->ix + place->dx, place->iy + place->dy,
       place->iw, place->ih,
       canvas->slot->window, (HMENU)cid, 

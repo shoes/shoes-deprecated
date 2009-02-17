@@ -1611,7 +1611,7 @@ shoes_canvas_repaint_all(VALUE self)
   Data_Get_Struct(self, shoes_canvas, canvas);
   if (canvas->stage == CANVAS_EMPTY) return;
   shoes_canvas_compute(self);
-  shoes_slot_repaint(canvas->app->slot);
+  shoes_slot_repaint(canvas->slot);
 }
 
 typedef VALUE (*ccallfunc)(VALUE);

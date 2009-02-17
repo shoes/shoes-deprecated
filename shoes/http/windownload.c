@@ -74,7 +74,7 @@ shoes_http_err(SHOES_DOWNLOAD_ERROR code)
   }
   else
   {
-    msglen = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEMi | FORMAT_MESSAGE_IGNORE_INSERTS,
+    msglen = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
       NULL, code, 0, msg, sizeof(msg), NULL);
   }
   msg[msglen] = '\0';
