@@ -4,7 +4,6 @@
 #
 Shoes.app :width => 420, :height => 420, :resizable => false do
   stage, wide, sw, basesize, step = 0, 3.0, 1.0, 600, 60
-  background gray(240)
   stroke gray(127)
   nofill
 
@@ -12,6 +11,7 @@ Shoes.app :width => 420, :height => 420, :resizable => false do
     stage = (1...8).rand if i % 40 == 0
     rotation = -(HALF_PI / wide)
     clear do
+      background gray(240)
       10.times do |i|
         strokewidth sw * i
         size = (basesize / 3) + ((step / 3) * i)
