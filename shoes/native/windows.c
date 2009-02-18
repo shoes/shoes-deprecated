@@ -149,7 +149,7 @@ void shoes_native_slot_clear(shoes_canvas *canvas)
 
 void shoes_native_slot_paint(SHOES_SLOT_OS *slot)
 {
-  RedrawWindow(slot->window, NULL, NULL, RDW_INVALIDATE|RDW_NOCHILDREN);
+  RedrawWindow(slot->window, NULL, NULL, RDW_INVALIDATE|RDW_ALLCHILDREN);
 }
 
 void shoes_native_slot_lengthen(SHOES_SLOT_OS *slot, int height, int endy)
@@ -251,7 +251,7 @@ shoes_canvas_win32_vscroll(shoes_canvas *canvas, int code, int pos)
   SetScrollInfo(canvas->slot->window, SB_VERT, &si, TRUE);
   canvas->slot->scrolly = si.nPos;
   if (DC(canvas->app->slot) == DC(canvas->slot)) canvas->app->slot->scrolly = si.nPos;
-  InvalidateRect(canvas->slot->window, NULL, TRUE);
+  shoes_native_slot_paint(canvas->slot);
 }
 
 LRESULT CALLBACK
@@ -278,7 +278,7 @@ shoes_slot_win32proc(
         INFO("WM_PAINT(slot, %lu)\n", win);
         if (c != canvas->app->canvas)
           shoes_canvas_paint(c);
-      return 1;
+      break;
 
       case WM_VSCROLL:
         shoes_canvas_win32_vscroll(canvas, LOWORD(w), HIWORD(w));
@@ -840,9 +840,10 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
   rect.bottom = app->height;
   AdjustWindowRectEx(&rect, WINDOW_STYLE, FALSE, exStyle);
 
+  exStyle |= WS_EX_COMPOSITED;
   app->slot->window = CreateWindowEx(
     exStyle, SHOES_SHORTNAME, SHOES_APPNAME,
-    WINDOW_STYLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS |
+    WINDOW_STYLE |
       (app->resizable ? (WS_THICKFRAME | WS_MAXIMIZEBOX) : WS_DLGFRAME) |
       WS_VSCROLL | ES_AUTOVSCROLL,
     CW_USEDEFAULT, CW_USEDEFAULT,
@@ -958,9 +959,10 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
     slot->controls = rb_ary_new();
     slot->dc = NULL;
     slot->window = CreateWindowEx(0, SHOES_SLOTCLASS, "Shoes Slot Window",
-      WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_TABSTOP | WS_VISIBLE,
+      WS_CHILD | WS_TABSTOP | WS_VISIBLE,
       x, y, width, height, parent->window, NULL, 
       (HINSTANCE)GetWindowLong(parent->window, GWL_HINSTANCE), NULL);
+    SetWindowPos(slot->window, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOREDRAW);
     SetWindowLong(slot->window, GWL_USERDATA, (long)c);
   }
   if (toplevel) shoes_canvas_size(c, width, height);
@@ -969,11 +971,6 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
 void
 shoes_slot_destroy(shoes_canvas *canvas, shoes_canvas *pc)
 {
-  if (canvas->slot->dc != NULL)
-  {
-    DeleteObject(GetCurrentObject(canvas->slot->dc, OBJ_BITMAP));
-    DeleteDC(canvas->slot->dc);
-  }
   DestroyWindow(canvas->slot->window);
 }
 
@@ -984,19 +981,7 @@ shoes_cairo_create(shoes_canvas *canvas)
     return NULL;
 
   HBITMAP bitmap, bitold;
-  if (DC(canvas->slot) != DC(canvas->app->slot))
-    canvas->slot->dc2 = BeginPaint(canvas->slot->window, &canvas->slot->ps);
-  else
-    canvas->slot->dc2 = GetDC(canvas->slot->window);
-  if (canvas->slot->dc != NULL)
-  {
-    DeleteObject(GetCurrentObject(canvas->slot->dc, OBJ_BITMAP));
-    DeleteDC(canvas->slot->dc);
-  }
-  canvas->slot->dc = CreateCompatibleDC(canvas->slot->dc2);
-  bitmap = CreateCompatibleBitmap(canvas->slot->dc2, canvas->width, canvas->height);
-  bitold = (HBITMAP)SelectObject(canvas->slot->dc, bitmap);
-  DeleteObject(bitold);
+  canvas->slot->dc = BeginPaint(canvas->slot->window, &canvas->slot->ps);
   if (DC(canvas->slot) == DC(canvas->app->slot))
   {
     RECT rc;
@@ -1004,19 +989,6 @@ shoes_cairo_create(shoes_canvas *canvas)
     GetClientRect(canvas->slot->window, &rc);
     FillRect(canvas->slot->dc, &rc, bg);
     DeleteObject(bg);
-  }
-  else
-  {
-    shoes_canvas *parent;
-    Data_Get_Struct(canvas->parent, shoes_canvas, parent);
-
-    if (parent != NULL && parent->slot->dc != NULL)
-    {
-      RECT r;
-      GetClientRect(canvas->slot->window, &r);
-      BitBlt(canvas->slot->dc, 0, 0, r.right - r.left, r.bottom - r.top,
-        parent->slot->dc, canvas->place.ix, canvas->place.iy, SRCCOPY);
-    }
   }
 
   canvas->slot->surface = cairo_win32_surface_create(canvas->slot->dc);
@@ -1028,13 +1000,9 @@ shoes_cairo_create(shoes_canvas *canvas)
 
 void shoes_cairo_destroy(shoes_canvas *canvas)
 {
-  BitBlt(canvas->slot->dc2, 0, 0, canvas->width, canvas->height, canvas->slot->dc, 0, 0, SRCCOPY);
   cairo_surface_destroy(canvas->slot->surface);
   canvas->slot->surface = NULL;
-  if (DC(canvas->slot) != DC(canvas->app->slot))
-    EndPaint(canvas->slot->window, &canvas->slot->ps);
-  else
-    ReleaseDC(canvas->slot->window, canvas->slot->dc2);
+  EndPaint(canvas->slot->window, &canvas->slot->ps);
 }
 
 void
@@ -1127,11 +1095,12 @@ shoes_native_surface_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
 {
   int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot->controls);
   SHOES_SURFACE_REF ref = CreateWindowEx(0, SHOES_VLCLASS, "Shoes VLC Window",
-      WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_TABSTOP | WS_VISIBLE,
+      WS_CHILD | WS_TABSTOP | WS_VISIBLE,
       place->ix + place->dx, place->iy + place->dy,
       place->iw, place->ih,
       canvas->slot->window, (HMENU)cid, 
       (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE), NULL);
+  SetWindowPos(ref, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOREDRAW);
   rb_ary_push(canvas->slot->controls, self);
   return ref;
 }
@@ -1172,6 +1141,7 @@ shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, char *
       canvas->slot->window, (HMENU)cid, 
       (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
       NULL);
+  SetWindowPos(ref, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOREDRAW);
   if (buffer != NULL) SHOE_FREE(buffer);
   shoes_win32_control_font(cid, canvas->slot->window);
   rb_ary_push(canvas->slot->controls, self);
@@ -1189,6 +1159,7 @@ shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VAL
       canvas->slot->window, (HMENU)cid, 
       (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
       NULL);
+  SetWindowPos(ref, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOREDRAW);
   shoes_win32_control_font(cid, canvas->slot->window);
   shoes_native_edit_line_set_text(ref, msg);
   rb_ary_push(canvas->slot->controls, self);
@@ -1240,6 +1211,7 @@ shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALU
     canvas->slot->window, (HMENU)cid, 
     (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
     NULL);
+  SetWindowPos(ref, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOREDRAW);
   shoes_win32_control_font(cid, canvas->slot->window);
   shoes_native_edit_line_set_text(ref, msg);
   rb_ary_push(canvas->slot->controls, self);
@@ -1268,6 +1240,7 @@ shoes_native_list_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALU
       canvas->slot->window, (HMENU)cid, 
       (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
       NULL);
+  SetWindowPos(ref, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOREDRAW);
   shoes_win32_control_font(cid, canvas->slot->window);
   rb_ary_push(canvas->slot->controls, self);
   return ref;
@@ -1310,12 +1283,14 @@ shoes_native_list_box_set_active(SHOES_CONTROL_REF box, VALUE ary, VALUE item)
 SHOES_CONTROL_REF
 shoes_native_progress(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
-  return CreateWindowEx(0, PROGRESS_CLASS, msg,
+  HWND ref = CreateWindowEx(0, PROGRESS_CLASS, msg,
       WS_VISIBLE | WS_CHILD | PBS_SMOOTH,
       place->ix + place->dx, place->iy + place->dy, place->iw, place->ih,
       canvas->slot->window, NULL, 
       (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
       NULL);
+  SetWindowPos(ref, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOREDRAW);
+  return ref;
 }
 
 double
@@ -1340,6 +1315,7 @@ shoes_native_check(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE a
       canvas->slot->window, (HMENU)cid, 
       (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
       NULL);
+  SetWindowPos(ref, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOREDRAW);
   shoes_win32_control_font(cid, canvas->slot->window);
   rb_ary_push(canvas->slot->controls, self);
   return ref;
@@ -1367,6 +1343,7 @@ shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE a
       canvas->slot->window, (HMENU)cid, 
       (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
       NULL);
+  SetWindowPos(ref, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOREDRAW);
   shoes_win32_control_font(cid, canvas->slot->window);
   rb_ary_push(canvas->slot->controls, self);
   return ref;

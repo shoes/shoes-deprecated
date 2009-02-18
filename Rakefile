@@ -248,7 +248,7 @@ when /win32/
     /Ideps\\ruby\\lib\\ruby\\#{ruby_v}\\i386-mswin32
     /Ideps\\curl\\include
     /Ideps\\winhttp\\include
-    /I. /DVLC_0_8 /DWINVER=0x0500 /D_WIN32_WINNT=0x0500
+    /I. /DVLC_0_8 /DWINVER=0x0501 /D_WIN32_WINNT=0x0501
     /O2 /GR /EHsc
   ].gsub(/\n\s*/, ' ')
 
