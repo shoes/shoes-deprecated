@@ -581,6 +581,8 @@ Oh, and, rather than a string, you may also hand exceptions directly to this met
 
 Stops your program. Call this anytime you want to suddenly call it quits.
 
+'''PLEASE NOTE:''' If you need to use Ruby's own `exit` method (like in a forked Ruby process,) call `Kernel.exit`.
+
 === font(message: a string) » an array of font family names ===
 
 Loads a TrueType (or other type of font) from a file.  While TrueType is supported by all platforms, your platform may support other types of fonts.  Shoes uses each operating system's built-in font system to make this work.
