@@ -122,7 +122,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
   %w[req/rubygems/* req/ftsearch/lib/*].each do |rdir|
     FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
   end
-  %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt].
+  %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/ruby].
     each { |xdir| copy_ext xdir, "dist/ruby/lib/#{RUBY_PLATFORM}" }
 
   gdir = "dist/ruby/gems/#{ruby_v}"
