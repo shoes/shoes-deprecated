@@ -152,7 +152,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
          lib/pango/1.6.0/modules/pango-basic-atsui.so etc/pango/pango.modules
          lib/pango/1.6.0/modules/pango-arabic-lang.so lib/pango/1.6.0/modules/pango-arabic-lang.la
          lib/pango/1.6.0/modules/pango-indic-lang.so lib/pango/1.6.0/modules/pango-indic-lang.la
-         lib/libjpeg.62.dylib lib/libungif.4.dylib]
+         lib/libjpeg.62.dylib lib/libungif.4.dylib lib/libportaudio.2.dylib]
       if ENV['VIDEO']
         dylibs.push *%w[lib/liba52.0.dylib lib/libfaac.0.dylib lib/libfaad.0.dylib lib/libmp3lame.0.dylib
           lib/libvorbis.0.dylib lib/libogg.0.dylib
