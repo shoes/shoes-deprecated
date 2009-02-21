@@ -841,9 +841,9 @@ For: ''banner, caption, code, del, em, ins, inscription, link, para, span, stron
 
 The alignment of the text. It is either:
 
- * 'left': Align the text to the left.
- * 'center': Align the text in the center.
- * 'right': Align the text to the right.
+ * "left" - Align the text to the left.
+ * "center" - Align the text in the center.
+ * "right" - Align the text to the right.
 
 === :angle » a number ===
 
@@ -1200,9 +1200,9 @@ For: ''banner, caption, code, del, em, ins, inscription, link, para, span, stron
 Set the boldness of the text.  Commonly, this style is set to one of the following strings:
 
  * "ultralight" - the ultralight weight (= 200)
- * "light" - the light weight (=300)
+ * "light" - the light weight (= 300)
  * "normal" - the default weight (= 400)
- * "semibold" - a weight intermediate between normal and bold (=600)
+ * "semibold" - a weight intermediate between normal and bold (= 600)
  * "bold" - the bold weight (= 700)
  * "ultrabold" - the ultrabold weight (= 800)
  * "heavy" - the heavy weight (= 900)
@@ -1214,6 +1214,16 @@ However, you may also pass in the numerical weight directly.
 For: ''all slots and elements''.
 
 Sets the pixel width for the element.  If the number is a decimal, the width is converted to a percentage (with 0.0 being 0% and 1.0 being 100%.)  A width of 100% means the object fills its parent slot.
+
+=== :wrap » a string ===
+
+For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''
+
+How should the text wrap when it fills its width? Possible options are:
+
+ * "word" - Break lines at word breaks.
+ * "char" - Break lines between characters, thus breaking some words.
+ * "trim" - Cut the line off with an ellipsis if it goes too long.
 
 == Classes List ==
 

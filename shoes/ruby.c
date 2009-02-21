@@ -2581,8 +2581,8 @@ shoes_textblock_send_release(VALUE self, int button, int x, int y)
 #define GET_STYLE(name) \
   attr = NULL; \
   str = Qnil; \
-  if (!NIL_P(oattr)) str = rb_hash_aref(oattr, ID2SYM(rb_intern("" # name))); \
-  if (!NIL_P(hsh) && NIL_P(str)) str = rb_hash_aref(hsh, ID2SYM(rb_intern("" # name)))
+  if (!NIL_P(oattr)) str = rb_hash_aref(oattr, ID2SYM(s_##name)); \
+  if (!NIL_P(hsh) && NIL_P(str)) str = rb_hash_aref(hsh, ID2SYM(s_##name))
 
 #define APPLY_STYLE_COLOR(name, func) \
   GET_STYLE(name); \
@@ -2891,6 +2891,17 @@ shoes_textblock_on_layout(shoes_app *app, VALUE klass, shoes_textblock *block)
       pango_layout_set_alignment(block->layout, PANGO_ALIGN_CENTER);
     else if (strncmp(RSTRING_PTR(str), "right", 5) == 0)
       pango_layout_set_alignment(block->layout, PANGO_ALIGN_RIGHT);
+  }
+
+  GET_STYLE(wrap);
+  if (TYPE(str) == T_STRING)
+  {
+    if (strncmp(RSTRING_PTR(str), "word", 4) == 0)
+      pango_layout_set_wrap(block->layout, PANGO_WRAP_WORD);
+    else if (strncmp(RSTRING_PTR(str), "char", 4) == 0)
+      pango_layout_set_wrap(block->layout, PANGO_WRAP_CHAR);
+    else if (strncmp(RSTRING_PTR(str), "trim", 4) == 0)
+      pango_layout_set_ellipsize(block->layout, PANGO_ELLIPSIZE_END);
   }
 }
 
