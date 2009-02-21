@@ -53,6 +53,13 @@
 }
 @end
 
+@interface ShoesAlert : NSWindow
+{
+  NSWindow *win;
+  BOOL answer;
+}
+@end
+
 @interface ShoesTimer : NSObject
 {
   VALUE object;
