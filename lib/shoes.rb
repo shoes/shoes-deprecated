@@ -478,3 +478,7 @@ class Shoes
     end
   end
 end
+
+def window(*a, &b)
+  Shoes.app(*a, &b)
+end
