@@ -172,7 +172,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
         next unless libn =~ %r!^lib/(.+?\.dylib)$!
         libf = $1
         sh "install_name_tool -id /tmp/dep/#{libn} dist/#{libf}"
-        ['dist/shoes-bin', *Dir['dist/*.dylib']].each do |lib2|
+        ["dist/#{NAME}-bin", *Dir['dist/*.dylib']].each do |lib2|
           sh "install_name_tool -change /tmp/dep/#{libn} @executable_path/#{libf} #{lib2}"
         end
       end
@@ -220,16 +220,16 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     cp_r "dist", "#{APPNAME}.app/Contents/MacOS"
     mkdir "#{APPNAME}.app/Contents/Resources"
     mkdir "#{APPNAME}.app/Contents/Resources/English.lproj"
-    sh "ditto #{APP['icons']['osx']} #{APPNAME}.app/"
-    sh "ditto #{APP['icons']['osx']} #{APPNAME}.app/Contents/Resources/"
+    sh "ditto \"#{APP['icons']['osx']}\" \"#{APPNAME}.app/App.icns\""
+    sh "ditto \"#{APP['icons']['osx']}\" \"#{APPNAME}.app/Contents/Resources/App.icns\""
     rewrite "platform/mac/Info.plist", "#{APPNAME}.app/Contents/Info.plist"
     cp "platform/mac/version.plist", "#{APPNAME}.app/Contents/"
     cp "platform/mac/pangorc", "#{APPNAME}.app/Contents/MacOS/"
     cp "platform/mac/command-manual.rb", "#{APPNAME}.app/Contents/MacOS/"
-    rewrite "platform/mac/shoes-launch", "#{APPNAME}.app/Contents/MacOS/shoes-launch"
-    chmod 0755, "#{APPNAME}.app/Contents/MacOS/shoes-launch"
-    rewrite "platform/mac/shoes", "#{APPNAME}.app/Contents/MacOS/shoes"
-    chmod 0755, "#{APPNAME}.app/Contents/MacOS/shoes"
+    rewrite "platform/mac/shoes-launch", "#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
+    chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
+    rewrite "platform/mac/shoes", "#{APPNAME}.app/Contents/MacOS/#{NAME}"
+    chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}"
     # cp InfoPlist.strings YourApp.app/Contents/Resources/English.lproj/
     `echo -n 'APPL????' > "#{APPNAME}.app/Contents/PkgInfo"`
   when /win32/
