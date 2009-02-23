@@ -14,10 +14,16 @@ SONAME = 'shoes'
 REVISION = (`#{ENV['GIT'] || "git"} rev-list HEAD`.split.length + 1).to_s
 VERS = ENV['VERSION'] || "0.r#{REVISION}"
 PKG = "#{NAME}-#{VERS}"
-APPARGS = ENV['APPARGS']
+APPARGS = APP['run']
 FLAGS = %w[DEBUG VIDEO]
 VLC_VERSION = (RUBY_PLATFORM =~ /win32/ ? "0.8": `vlc --version 2>/dev/null`.split[2])
 VLC_0_8 = VLC_VERSION !~ /^0\.9/
+
+if ENV['APP']
+  APP['icons'].keys.each do |name|
+    APP['icons'][name] = File.join(ENV['APP'], APP['icons'][name])
+  end
+end
 
 if File.exists? ".git/refs/tags/#{RELEASE_ID}/#{RELEASE_NAME}"
   abort "** Rename this release (and add to lib/shoes.rb) #{RELEASE_NAME} has already been tagged."
@@ -191,6 +197,9 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     sh    "strip -x dist/*.so"
   end
 
+  if ENV['APP']
+    cp_r ENV['APP'], "dist/app"
+  end
   cp_r  "fonts", "dist/fonts"
   cp_r  "lib", "dist/lib"
   cp_r  "samples", "dist/samples"
