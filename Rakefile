@@ -6,9 +6,10 @@ require 'fileutils'
 require 'find'
 include FileUtils
 
-APPNAME = ENV['APPNAME'] || "Shoes"
-RELEASE_ID, RELEASE_NAME = 3, "Policeman"
-NAME = APPNAME.downcase.gsub(/\W+/, '')
+APP = YAML.load_file(File.join(ENV['APP'] || ".", "app.yaml"))
+APPNAME = APP['name']
+RELEASE_ID, RELEASE_NAME = APP['version'], APP['release']
+NAME = APP['shortname'] || APP['name'].downcase.gsub(/\W+/, '')
 SONAME = 'shoes'
 REVISION = (`#{ENV['GIT'] || "git"} rev-list HEAD`.split.length + 1).to_s
 VERS = ENV['VERSION'] || "0.r#{REVISION}"
@@ -205,8 +206,8 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     cp_r "dist", "#{APPNAME}.app/Contents/MacOS"
     mkdir "#{APPNAME}.app/Contents/Resources"
     mkdir "#{APPNAME}.app/Contents/Resources/English.lproj"
-    sh "ditto static/Shoes.icns #{APPNAME}.app/"
-    sh "ditto static/Shoes.icns #{APPNAME}.app/Contents/Resources/"
+    sh "ditto #{APP['icons']['osx']} #{APPNAME}.app/"
+    sh "ditto #{APP['icons']['osx']} #{APPNAME}.app/Contents/Resources/"
     rewrite "platform/mac/Info.plist", "#{APPNAME}.app/Contents/Info.plist"
     cp "platform/mac/version.plist", "#{APPNAME}.app/Contents/"
     cp "platform/mac/pangorc", "#{APPNAME}.app/Contents/MacOS/"
@@ -220,6 +221,8 @@ task :build => [:build_os, "dist/VERSION.txt"] do
   when /win32/
     cp "platform/msw/shoes.exe.manifest", "dist/#{NAME}.exe.manifest"
     cp "dist/zlib1.dll", "dist/zlib.dll"
+  else
+    cp APP['icons']['gtk'], "dist/static/app-icon.png"
   end
 end
 
@@ -322,7 +325,7 @@ when /win32/
     mkdir_p "pkg"
     rm_rf "dist/nsis"
     cp_r  "platform/msw", "dist/nsis"
-    cp "shoes/appwin32.ico", "dist/nsis/setup.ico"
+    cp APP['icons']['win32'], "dist/nsis/setup.ico"
     rewrite "dist/nsis/base.nsi", "dist/nsis/#{NAME}.nsi"
     Dir.chdir("dist/nsis") do
       sh "\"#{env('NSIS')}\\makensis.exe\" #{NAME}.nsi"
