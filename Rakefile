@@ -11,7 +11,8 @@ APPNAME = APP['name']
 RELEASE_ID, RELEASE_NAME = APP['version'], APP['release']
 NAME = APP['shortname'] || APP['name'].downcase.gsub(/\W+/, '')
 SONAME = 'shoes'
-REVISION = (`#{ENV['GIT'] || "git"} rev-list HEAD`.split.length + 1).to_s
+GIT = ENV['GIT'] || "git"
+REVISION = (`#{GIT} rev-list HEAD`.split.length + 1).to_s
 VERS = ENV['VERSION'] || "0.r#{REVISION}"
 PKG = "#{NAME}-#{VERS}"
 APPARGS = APP['run']
@@ -198,7 +199,11 @@ task :build => [:build_os, "dist/VERSION.txt"] do
   end
 
   if ENV['APP']
-    cp_r ENV['APP'], "dist/app"
+    if APP['clone']
+      sh APP['clone'].gsub(/^git /, "#{GIT} --git-dir=#{ENV['APP']}/.git ")
+    else
+      cp_r ENV['APP'], "dist/app"
+    end
   end
   cp_r  "fonts", "dist/fonts"
   cp_r  "lib", "dist/lib"
@@ -294,6 +299,7 @@ when /win32/
         end
       end
     end
+    cp APP['icons']['win32'], "shoes/appwin32.ico"
     mkdir_p "dist/pkg"
   end
 
@@ -476,7 +482,7 @@ end
 task :tarball => ['bin/main.c', 'shoes/version.h'] do
   mkdir_p "pkg"
   rm_rf PKG
-  sh "git-checkout-index --prefix=#{PKG}/ -a"
+  sh "#{GIT} checkout-index --prefix=#{PKG}/ -a"
   rm "#{PKG}/bin/main.skel"
   rm "#{PKG}/Rakefile"
   rm "#{PKG}/.gitignore"
