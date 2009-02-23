@@ -419,41 +419,41 @@ Shoesはウィンドウや、それらウィンドウ内部の要素を描くこ
 そして、このマニュアルの難しさにぶつかって、始めることについてまだ分からないなら、おそらくこのマニュアルの[[Hello! beginning]]に戻るべきです。
 または、ウェブ上の初心者のリーフレットである[[http://hackety.org/press/ Nobody Knows Shoes]]を試してください。
 
-==== Finding Your Way ====
+==== 方法の見つけ方 ====
 
-This section covers:
+このセクションは以下を対象とします：
 
- * [[Built-in Built-in methods]] - general methods available anywhere in a Shoes program.
- * [[App The App window]] - methods found attached to every main Shoes window.
- * [[Styles The Styles Master List]] - a complete list of every style in Shoes.
- * [[Classes The Classes list]] - a chart showing what Shoes classes subclass what.
- * [[Colors The Colors list]] - a chart of all built-in colors and the [[Built-in.rgb]] numbers for each.
+ * [[Built-in Built-in methods]] - Shoesプログラムのどこでも利用できる一般的なメソッド。
+ * [[App The App window]] - Shoesのすべてのメインウィンドウに添付されたメソッド。
+ * [[Styles The Styles Master List]] - Shoesのすべてのスタイルの完全な一覧。
+ * [[Classes The Classes list]] - Shoesのクラスやサブクラスについて表示している表。
+ * [[Colors The Colors list]] - すべてのビルトインカラーと[[Built-in.rgb]]におけるそれぞれの数の表。
 
-If you find yourself paging around a lot and not finding something, give the [[Search]] page a try. It's the quickest way to get around.
+ページをよく見ても見つからないものがあれば、[[Search]]ページを試してください。それは問題をさける手っ取り早い方法です。
 
-After this general reference, there are two other more specific sections:
+この一般的なリファレンスのあとに、他の２つの特別なセクションがあります：
 
- * [[Slots]] - covering [[Element.stack]] and [[Element.flow]], the two types of slots.
- * [[Elements]] - documentation for all the buttons, shapes, images, and so on.
+ * [[Slots]] - [[Element.stack]]と[[Element.flow]]を対象とする、２つの種類のスロット。
+ * [[Elements]] - すべてのボタン、形状、画像などのためのドキュメント。
 
-Two really important pages in there are the [[Element Element Creation]] page (which lists all the elements you can add) and the [[Common Common Methods]] page (which lists methods you'll find on any slot or element.)
+ここに[[Element Element Creation]]ページ（追加できるすべてのエレメントの一覧）と[[Common Common Methods]] ページ（すべてのスロットやエレメントにあるメソッドの一覧）の２つのとても大切なページがあります。
 
 == Built-in Methods ==
 
-These methods can be used anywhere throughout Shoes programs.
+これらのメソッドはShoesのプログラムを通してどこでも利用できます。
 
-All of these commands are unusual because you don't attach them with a dot.
-'''Every other method in this manual must be attached to an object with a dot.'''
-But these are built-in methods (also called: Kernel methods.) Which means no dot!
+これらすべてのコマンドは、あなたがドットを彼らに付与しない点が珍しいです。
+'''このマニュアルのほかのすべてのメソッドはオブジェクトにドットを付与すべきです。'''
+しかし、これらのビルトインメソッド（カーネルメソッドとも呼ばれている）はドットがないことを意味します。
 
-A common one is `alert`:
+一般的なものとして`alert`があります：
 
 {{{
  #!ruby
  alert "No dots in sight"
 }}}
 
-Compare that to the method `reverse`, which isn't a Kernel method and is only available for Arrays and Strings:
+これと、カーネルメソッドはなくArrayとStringに対してだけ利用可能な`reverse`メソッドを比較してください：
 
 {{{
  #!ruby
@@ -463,45 +463,45 @@ Compare that to the method `reverse`, which isn't a Kernel method and is only av
   #=> [:snakes, :cows, :dogs]
 }}}
 
-Most Shoes methods for drawing and making buttons and so on are attached to slots.  See the section on [[Slots]] for more.
+描画やボタンを作成したりするための多くのShoesメソッドはスロットへ付与されます。より詳しい情報については[[Slots]]のセクションを見てください。
 
-==== Built-in Constants ====
+==== ビルトイン定数 ====
 
-Shoes also has a handful of built-in constants which may prove useful if you are trying to sniff out what release of Shoes is running.
+Shoesにはいくつかのビルトイン定数があり、それはどんなバージョンのShoesが実行されているかを判別することを証明するのに利用できるかもしれません
 
-'''Shoes::RELEASE_NAME''' contains a string with the name of the Shoes release.  All Shoes releases are named, starting with Curious.
+'''Shoes::RELEASE_NAME''' Shoesリリース名の文字列定数です。Curiousから始まって、すべてのShoesリリースは名付けられます。
 
-'''Shoes::RELEASE_ID''' contains a number representing the Shoes release.  So, for example, Curious is number 1, as it was the first official release.
+'''Shoes::RELEASE_ID''' Shoesリリース表す数字を含みます。そして、例えばCuriousはナンバー1であり、それは初めての公式リリースです。
 
-'''Shoes::REVISION''' is the Subversion revision number for this build.
+'''Shoes::REVISION''' は、そのビルドのSubversionのリビジョン番号です。
 
-'''Shoes::FONTS''' is a complete list of fonts available to the app.  This list includes any fonts loaded by the [[Built-in.font]] method.
+'''Shoes::FONTS''' は、アプリケーションで利用できるフォントの完全な一覧です。この一覧は[[Built-in.font]]メソッドによってロードされたすべてのフォントを含みます。
 
 === alert(message: a string) » nil ===
 
-Pops up a window containing a short message.
+短いメッセージを含むウィンドウをポップアップします。
 
 {{{
  #!ruby
  alert("I'm afraid I must interject!")
 }}}
 
-Please use alerts sparingly, as they are incredibly annoying!  If you are using alerts to show messages to help you debug your program, try checking out the [[Built-in.debug]] or [[Built-in.info]] methods.
+alertは信じられないほど煩わしいので控えめに利用してください！プログラムをデバッグする手助けのメッセージを表示するためにalertを利用するなら、[[Built-in.debug]]または[[Built-in.info]]メソッドを調べてみてください。
 
 === ask(message: a string) » a string ===
 
-Pops up a window and asks a question. For example, you may want to ask someone their name.
+ウィンドウをポップアップして質問をします。例えば、あなたは誰かに名前を尋ねたいかもしれません。
 
 {{{
  #!ruby
  name = ask("Please, enter your name:")
 }}}
 
-When the above script is run, the person at the computer will see a window with a blank box for entering their name. The name will then be saved in the `name` variable.
+上記のスクリプトを実行するとき、コンピュータを利用している人は、名前を入力するための空のボックスを持つウィンドウを見るでしょう。そして、その名前は`name`変数に保存されます。
 
 === ask_color(title: a string) » Shoes::Color ===
 
-Pops up a color picker window. The program will wait for a color to be picked, then gives you back a Color object. See the `Color` help for some ways you can use this color.
+カラーピッカーウィンドウをポップアップします。このプログラムは色が選ばれるのを待ち、そしてあなたに色オブジェクトを与えます。いくつかの方法でこの色を利用するために`Color`ヘルプを見てください。
 
 {{{
  #!ruby
@@ -513,7 +513,7 @@ Pops up a color picker window. The program will wait for a color to be picked, t
 
 === ask_open_file() » a string ===
 
-Pops up an "Open file..." window. It's the standard window which shows all of your folders and lets you select a file to open. Hands you back the name of the file.
+"ファイルを開く。。。"ウィンドウをポップアップします。これは標準のウィンドウであり、すべてのフォルダを表示して開くファイルを選択させます。そしてファイルの名前を返します。
 
 {{{
  #!ruby
@@ -523,7 +523,7 @@ Pops up an "Open file..." window. It's the standard window which shows all of yo
 
 === ask_save_file() » a string ===
 
-Pops up a "Save file..." window, similiar to `ask_open_file`, described previously.
+これは先ほど述べた`ask_open_file`と似ており、"ファイルを保存する。。。"ウィンドウをポップアップします。
 
 {{{
  #!ruby
@@ -532,7 +532,7 @@ Pops up a "Save file..." window, similiar to `ask_open_file`, described previous
 
 === ask_open_folder() » a string ===
 
-Pops up an "Open folder..." window. It's the standard window which shows all of your folders and lets you select a folder to open. Hands you back the name of the folder.
+"フォルダを開く。。。"ウィンドウをポップアップします。これは、すべてのフォルダを表示し、開くフォルダを選択させる標準のウィンドウです。これはあなたにフォルダの名前を渡します。
 
 {{{
  #!ruby
@@ -542,7 +542,7 @@ Pops up an "Open folder..." window. It's the standard window which shows all of 
 
 === ask_save_folder() » a string ===»
 
-Pops up a "Save folder..." window, similiar to `ask_open_folder`, described previously. On OS X, this method currently behaves like an alias of `ask_open_folder`.
+これは先ほど述べた`ask_open_folder`と似ており、"フォルダを保存する。。。"ウィンドウをポップアップします。OS X上では、現在このメソッドは`ask_open_folder`のエイリアスのようになっています。
 
 {{{
  #!ruby
@@ -552,7 +552,7 @@ Pops up a "Save folder..." window, similiar to `ask_open_folder`, described prev
 
 === confirm(question: a string) » true or false ===
 
-Pops up a yes-or-no question. If the person at the computer, clicks '''yes''', you'll get back a `true`. If not, you'll get back `false`.
+yes-または-noの質問をポップアップします。コンピュータの前の人が'''yes'''をクリックするなら、返される`true`を受け取ります。そうでは無いなら、返される`false`を受け取ります。
 
 {{{
  #!ruby
@@ -563,30 +563,31 @@ Pops up a yes-or-no question. If the person at the computer, clicks '''yes''', y
 
 === debug(message: a string) » nil ===
 
-Sends a debug message to the Shoes console.  You can bring up the Shoes console by pressing `Alt-/` on any Shoes window (or `⌘-/` on OS X.)
+Shoesコンソールへデバッグメッセージを送ります。
+どんなShoesウィンドウ上でも、`Alt-/`（または、OS X上では`⌘-/`）を押すことによって、Shoesコンソールを立ち上げることができます。
 
 {{{
  #!ruby
  debug("Running Shoes on " + RUBY_PLATFORM)
 }}}
 
-Also check out the [[Built-in.error]], [[Built-in.warn]] and [[Built-in.info]] methods.
+[[Built-in.error]]、[[Built-in.warn]]と[[Built-in.info]]メソッドも確認してください。
 
 === error(message: a string) » nil ===
 
-Sends an error message to the Shoes console.  This method should only be used to log errors.  Try the [[Built-in.debug]] method for logging messages to yourself.
+Shoesコンソールへエラーメッセージ送ります。このメソッドはエラーをログするためだけに利用すべきです。自分ためのメッセージをログするには[[Built-in.debug]]メソッドを試してください。
 
-Oh, and, rather than a string, you may also hand exceptions directly to this method and they'll be formatted appropriately.
+おお、そして、文字列よりも、直接このメソッドに例外を手渡すべきです。そしてそれは適切にフォーマットされるでしょう。
 
 === exit() ===
 
-Stops your program. Call this anytime you want to suddenly call it quits.
+プログラムを止めます。突然に終了したいときはいつでも、これを呼んでください。
 
 === font(message: a string) » an array of font family names ===
 
-Loads a TrueType (or other type of font) from a file.  While TrueType is supported by all platforms, your platform may support other types of fonts.  Shoes uses each operating system's built-in font system to make this work.
+ファイルからTrueType（または他の種類のフォント）をロードします。TrueTypeはすべてのプラットフォームでサポートされるとはいえ、あなたのプラットフォームは他の種類のフォントをサポートするかもしれません。Shoesはこの動作に、それぞれのオペレーティングシステムのビルトインフォントシステムを利用します。
 
-Here's a rough idea of what fonts work on which platforms:
+ここにどのプラットフォームで何のフォントが動作するかの目安があります。
 
  * Bitmap fonts (.bdf, .pcf, .snf) - Linux
  * Font resource (.fon) - Windows
@@ -598,9 +599,9 @@ Here's a rough idea of what fonts work on which platforms:
  * TrueType font (.ttf) - Mac OS X, Linux, Windows
  * TrueType collection (.ttc) - Mac OS X, Linux, Windows
 
-If the font is properly loaded, you'll get back an array of font names found in the file.  Otherwise, `nil` is returned if no fonts were found in the file.
+フォントが適切にロードされたなら、ファイルに見つかったフォントの名前の配列を取り戻すでしょう。そうではなく、ファイルにはフォントが見つからないなら`nil`が返されます。
 
-Also of interest: the `Shoes::FONTS` constant is a complete list of fonts available to you on this platform.  You can check for a certain font by using `include?`.
+また興味深いことに:`Shoes::FONTS`定数はこのプラットフォームで利用可能なフォントの完全な一覧です。`include?`を利用していくつかのフォントをチェックできます。
 
 {{{
  if Shoes::FONTS.include? "Helvetica"
