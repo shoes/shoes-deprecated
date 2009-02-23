@@ -156,6 +156,9 @@
   INIT;
 
   Data_Get_Struct(app, shoes_app, a);
+  KEY_SYM(ESCAPE, escape)
+  KEY_SYM(INSERT, insert)
+  KEY_SYM(DELETE, delete)
   KEY_SYM(TAB, tab)
   KEY_SYM(BS, backspace)
   KEY_SYM(PRIOR, page_up)
