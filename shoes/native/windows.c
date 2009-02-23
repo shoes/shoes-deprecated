@@ -542,6 +542,9 @@ shoes_app_win32proc(
         app->os.altkey = true;
       else if (w == VK_SHIFT)
         app->os.shiftkey = true;
+      KEYPRESS(ESCAPE, escape)
+      KEYPRESS(INSERT, insert)
+      KEYPRESS(DELETE, delete)
       KEYPRESS(PRIOR, page_up)
       KEYPRESS(NEXT, page_down)
       KEYPRESS(HOME, home)
