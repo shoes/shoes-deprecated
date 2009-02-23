@@ -123,7 +123,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
   mkdir_p "dist/ruby"
   cp_r  "#{ext_ruby}/lib/ruby/#{ruby_v}", "dist/ruby/lib"
   unless ENV['STANDARD']
-    %w[rss soap wsdl xsd].each do |libn|
+    %w[soap wsdl xsd].each do |libn|
       rm_rf "dist/ruby/lib/#{libn}"
     end
   end
