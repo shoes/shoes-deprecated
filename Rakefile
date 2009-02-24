@@ -6,17 +6,25 @@ require 'fileutils'
 require 'find'
 include FileUtils
 
-APPNAME = ENV['APPNAME'] || "Shoes"
-RELEASE_ID, RELEASE_NAME = 3, "Policeman"
-NAME = APPNAME.downcase.gsub(/\W+/, '')
+APP = YAML.load_file(File.join(ENV['APP'] || ".", "app.yaml"))
+APPNAME = APP['name']
+RELEASE_ID, RELEASE_NAME = APP['version'], APP['release']
+NAME = APP['shortname'] || APP['name'].downcase.gsub(/\W+/, '')
 SONAME = 'shoes'
-REVISION = (`#{ENV['GIT'] || "git"} rev-list HEAD`.split.length + 1).to_s
+GIT = ENV['GIT'] || "git"
+REVISION = (`#{GIT} rev-list HEAD`.split.length + 1).to_s
 VERS = ENV['VERSION'] || "0.r#{REVISION}"
 PKG = "#{NAME}-#{VERS}"
-APPARGS = ENV['APPARGS']
+APPARGS = APP['run']
 FLAGS = %w[DEBUG VIDEO]
 VLC_VERSION = (RUBY_PLATFORM =~ /win32/ ? "0.8": `vlc --version 2>/dev/null`.split[2])
 VLC_0_8 = VLC_VERSION !~ /^0\.9/
+
+if ENV['APP']
+  APP['icons'].keys.each do |name|
+    APP['icons'][name] = File.join(ENV['APP'], APP['icons'][name])
+  end
+end
 
 if File.exists? ".git/refs/tags/#{RELEASE_ID}/#{RELEASE_NAME}"
   abort "** Rename this release (and add to lib/shoes.rb) #{RELEASE_NAME} has already been tagged."
@@ -124,14 +132,14 @@ task :build => [:build_os, "dist/VERSION.txt"] do
   mkdir_p "dist/ruby"
   cp_r  "#{ext_ruby}/lib/ruby/#{ruby_v}", "dist/ruby/lib"
   unless ENV['STANDARD']
-    %w[rss soap wsdl xsd].each do |libn|
+    %w[soap wsdl xsd].each do |libn|
       rm_rf "dist/ruby/lib/#{libn}"
     end
   end
   %w[req/rubygems/* req/ftsearch/lib/*].each do |rdir|
     FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
   end
-  %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt].
+  %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops].
     each { |xdir| copy_ext xdir, "dist/ruby/lib/#{RUBY_PLATFORM}" }
 
   gdir = "dist/ruby/gems/#{ruby_v}"
@@ -171,7 +179,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
          lib/pango/1.6.0/modules/pango-basic-atsui.so etc/pango/pango.modules
          lib/pango/1.6.0/modules/pango-arabic-lang.so lib/pango/1.6.0/modules/pango-arabic-lang.la
          lib/pango/1.6.0/modules/pango-indic-lang.so lib/pango/1.6.0/modules/pango-indic-lang.la
-         lib/libjpeg.62.dylib lib/libungif.4.dylib]
+         lib/libjpeg.62.dylib lib/libungif.4.dylib lib/libportaudio.2.dylib]
       if ENV['VIDEO']
         dylibs.push *%w[lib/liba52.0.dylib lib/libfaac.0.dylib lib/libfaad.0.dylib lib/libmp3lame.0.dylib
           lib/libvorbis.0.dylib lib/libogg.0.dylib
@@ -183,7 +191,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
         next unless libn =~ %r!^lib/(.+?\.dylib)$!
         libf = $1
         sh "install_name_tool -id /tmp/dep/#{libn} dist/#{libf}"
-        ['dist/shoes-bin', *Dir['dist/*.dylib']].each do |lib2|
+        ["dist/#{NAME}-bin", *Dir['dist/*.dylib']].each do |lib2|
           sh "install_name_tool -change /tmp/dep/#{libn} @executable_path/#{libf} #{lib2}"
         end
       end
@@ -209,6 +217,13 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     sh    "strip -x dist/*.so"
   end
 
+  if ENV['APP']
+    if APP['clone']
+      sh APP['clone'].gsub(/^git /, "#{GIT} --git-dir=#{ENV['APP']}/.git ")
+    else
+      cp_r ENV['APP'], "dist/app"
+    end
+  end
   cp_r  "fonts", "dist/fonts"
   cp_r  "lib", "dist/lib"
   cp_r  "samples", "dist/samples"
@@ -224,21 +239,23 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     cp_r "dist", "#{APPNAME}.app/Contents/MacOS"
     mkdir "#{APPNAME}.app/Contents/Resources"
     mkdir "#{APPNAME}.app/Contents/Resources/English.lproj"
-    sh "ditto static/Shoes.icns #{APPNAME}.app/"
-    sh "ditto static/Shoes.icns #{APPNAME}.app/Contents/Resources/"
+    sh "ditto \"#{APP['icons']['osx']}\" \"#{APPNAME}.app/App.icns\""
+    sh "ditto \"#{APP['icons']['osx']}\" \"#{APPNAME}.app/Contents/Resources/App.icns\""
     rewrite "platform/mac/Info.plist", "#{APPNAME}.app/Contents/Info.plist"
     cp "platform/mac/version.plist", "#{APPNAME}.app/Contents/"
     cp "platform/mac/pangorc", "#{APPNAME}.app/Contents/MacOS/"
     cp "platform/mac/command-manual.rb", "#{APPNAME}.app/Contents/MacOS/"
-    rewrite "platform/mac/shoes-launch", "#{APPNAME}.app/Contents/MacOS/shoes-launch"
-    chmod 0755, "#{APPNAME}.app/Contents/MacOS/shoes-launch"
-    rewrite "platform/mac/shoes", "#{APPNAME}.app/Contents/MacOS/shoes"
-    chmod 0755, "#{APPNAME}.app/Contents/MacOS/shoes"
+    rewrite "platform/mac/shoes-launch", "#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
+    chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
+    rewrite "platform/mac/shoes", "#{APPNAME}.app/Contents/MacOS/#{NAME}"
+    chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}"
     # cp InfoPlist.strings YourApp.app/Contents/Resources/English.lproj/
     `echo -n 'APPL????' > "#{APPNAME}.app/Contents/PkgInfo"`
   when /win32/
     cp "platform/msw/shoes.exe.manifest", "dist/#{NAME}.exe.manifest"
     cp "dist/zlib1.dll", "dist/zlib.dll"
+  else
+    cp APP['icons']['gtk'], "dist/static/app-icon.png"
   end
 end
 
@@ -301,6 +318,7 @@ when /win32/
         end
       end
     end
+    cp APP['icons']['win32'], "shoes/appwin32.ico"
     mkdir_p "dist/pkg"
   end
 
@@ -341,7 +359,7 @@ when /win32/
     mkdir_p "pkg"
     rm_rf "dist/nsis"
     cp_r  "platform/msw", "dist/nsis"
-    cp "shoes/appwin32.ico", "dist/nsis/setup.ico"
+    cp APP['icons']['win32'], "dist/nsis/setup.ico"
     rewrite "dist/nsis/base.nsi", "dist/nsis/#{NAME}.nsi"
     Dir.chdir("dist/nsis") do
       sh "\"#{env('NSIS')}\\makensis.exe\" #{NAME}.nsi"
@@ -504,7 +522,7 @@ end
 task :tarball => ['bin/main.c', 'shoes/version.h'] do
   mkdir_p "pkg"
   rm_rf PKG
-  sh "git-checkout-index --prefix=#{PKG}/ -a"
+  sh "#{GIT} checkout-index --prefix=#{PKG}/ -a"
   rm "#{PKG}/bin/main.skel"
   rm "#{PKG}/Rakefile"
   rm "#{PKG}/.gitignore"

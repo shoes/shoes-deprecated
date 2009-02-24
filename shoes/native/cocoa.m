@@ -156,6 +156,9 @@
   INIT;
 
   Data_Get_Struct(app, shoes_app, a);
+  KEY_SYM(ESCAPE, escape)
+  KEY_SYM(INSERT, insert)
+  KEY_SYM(DELETE, delete)
   KEY_SYM(TAB, tab)
   KEY_SYM(BS, backspace)
   KEY_SYM(PRIOR, page_up)
@@ -373,6 +376,36 @@
 -(IBAction)handleChange: (id)sender
 {
   shoes_control_send(object, s_change);
+}
+@end
+
+@implementation ShoesAlert
+- (id)init
+{
+  if ((self = [super initWithContentRect: NSMakeRect(0, 0, 340, 140)
+    styleMask: NSTitledWindowMask backing: NSBackingStoreBuffered defer: NO]))
+  {
+    answer = FALSE;
+    [self setDelegate: self];
+  }
+  return self;
+}
+-(IBAction)cancelClick: (id)sender
+{
+  [[NSApplication sharedApplication] stopModal];
+}
+-(IBAction)okClick: (id)sender
+{
+  answer = TRUE;
+  [[NSApplication sharedApplication] stopModal];
+}
+- (void)windowWillClose: (NSNotification *)n
+{
+  [[NSApplication sharedApplication] stopModal];
+}
+- (BOOL)accepted
+{
+  return answer;
 }
 @end
 
@@ -1205,18 +1238,44 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
   VALUE answer = Qnil;
   rb_parse_args(argc, argv, "s|h", &args);
   COCOA_DO({
-    NSAlert *alert = [NSAlert alertWithMessageText: @"Shoes asks:"
-      defaultButton:@"OK" alternateButton:@"Cancel" otherButton:nil
-      informativeTextWithFormat: [NSString stringWithUTF8String: RSTRING_PTR(args.a[0])]];
+    NSApplication *NSApp = [NSApplication sharedApplication];
+    ShoesAlert *alert = [[ShoesAlert alloc] init];
+    NSButton *okButton = [[[NSButton alloc] initWithFrame: 
+      NSMakeRect(244, 10, 88, 30)] autorelease];
+    NSButton *cancelButton = [[[NSButton alloc] initWithFrame: 
+      NSMakeRect(156, 10, 88, 30)] autorelease];
+    NSTextField *text = [[[NSTextField alloc] initWithFrame:
+      NSMakeRect(20, 110, 260, 18)] autorelease];
     NSTextField *input;
     if (RTEST(ATTR(args.a[1], secret)))
-      input = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(0, 0, 300, 24)];
+      input = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(20, 72, 300, 24)];
     else
-      input = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 300, 24)];
+      input = [[NSTextField alloc] initWithFrame:NSMakeRect(20, 72, 300, 24)];
+
+    [alert setTitle: @"Shoes asks:"];
+    [text setStringValue: [NSString stringWithUTF8String: RSTRING_PTR(args.a[0])]];
+    [text setBezeled: NO];
+    [text setBackgroundColor: [NSColor windowBackgroundColor]];
+    [text setEditable: NO];
+    [text setSelectable: NO];
+    [[alert contentView] addSubview: text];
     [input setStringValue:@""];
-    [alert setAccessoryView:input];
-    if ([alert runModal] == NSOKButton)
+    [[alert contentView] addSubview: input];
+    [okButton setTitle: @"OK"];
+    [okButton setBezelStyle: 1];
+    [okButton setTarget: alert];
+    [okButton setAction: @selector(okClick:)];
+    [[alert contentView] addSubview: okButton];
+    [cancelButton setTitle: @"Cancel"];
+    [cancelButton setBezelStyle: 1];
+    [cancelButton setTarget: alert];
+    [cancelButton setAction: @selector(cancelClick:)];
+    [[alert contentView] addSubview: cancelButton];
+    [alert setDefaultButtonCell: okButton];
+    [NSApp runModalForWindow: alert];
+    if ([alert accepted])
       answer = rb_str_new2([[input stringValue] UTF8String]);
+    [alert close];
   });
   return answer;
 }

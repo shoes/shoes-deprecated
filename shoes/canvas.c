@@ -790,7 +790,7 @@ shoes_canvas_shape(int argc, VALUE *argv, VALUE self)
   VALUE attr = shoes_shape_attr(argc, argv, 2, s_left, s_top);
   canvas->shape = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
   cairo_move_to(canvas->shape, 0, 0);
-  if (rb_block_given_p()) rb_yield(Qnil);
+  if (rb_block_given_p()) rb_funcall(rb_block_proc(), s_call, 0);
 
 #if CAIRO_VERSION_MAJOR == 1 && CAIRO_VERSION_MINOR <= 4
   cairo_fill_extents(canvas->shape, &x1, &y1, &x2, &y2);

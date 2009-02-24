@@ -485,7 +485,6 @@ shoes_app_reset_styles(shoes_app *app)
   STYLE(cLink,        stroke, #06E);
   STYLE(cLinkHover,   underline, single);
   STYLE(cLinkHover,   stroke, #039);
-  STYLE(cLinkHover,   fill,   #EEE);
   STYLE(cStrong,      weight, bold);
   STYLE(cSup,         rise,   10);
   STYLE(cSup,         size,   x-small);

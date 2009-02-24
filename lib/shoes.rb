@@ -38,7 +38,13 @@ class Shoes
  
   # Using TOPLEVEL to pacify Ruby 1.9 for now
   def self.anonymous_binding
-    TOPLEVEL_BINDING
+    return TOPLEVEL_BINDING if RUBY_VERSION =~ /^1\.9/
+    obj = Object.new
+    return \
+      class << obj
+        def self.to_s; "(shoes)" end
+        binding
+      end
   end
 
   @mounts = []
@@ -471,4 +477,8 @@ class Shoes
       }
     end
   end
+end
+
+def window(*a, &b)
+  Shoes.app(*a, &b)
 end

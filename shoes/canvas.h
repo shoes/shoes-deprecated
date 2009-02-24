@@ -154,7 +154,7 @@ typedef struct {
   shoes_place place;
   VALUE texts;
   VALUE links;
-  VALUE cursor;
+  int cursor, cursorx, cursory;
   PangoLayout *layout;
   PangoAttrList *pattr;
   GString *text;
