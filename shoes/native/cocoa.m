@@ -72,6 +72,10 @@
   [self setAcceptsMouseMovedEvents: YES];
   [self setDelegate: self];
 }
+- (void)disconnectApp
+{
+  app = Qnil;
+}
 - (void)sendMotion: (NSEvent *)e ofType: (ID)type withButton: (int)b
 {
   shoes_app *a;
@@ -222,9 +226,11 @@
 }
 - (void)windowWillClose: (NSNotification *)n
 {
-  shoes_app *a;
-  Data_Get_Struct(app, shoes_app, a);
-  shoes_app_remove(a);
+  if (!NIL_P(app)) {
+    shoes_app *a;
+    Data_Get_Struct(app, shoes_app, a);
+    shoes_app_remove(a);
+  }
 }
 @end
 
@@ -750,48 +756,84 @@ shoes_native_app_title(shoes_app *app, char *msg)
   COCOA_DO([app->os.window setTitle: [NSString stringWithUTF8String: msg]]);
 }
 
+static ShoesWindow *
+shoes_native_app_window(shoes_app *app, int dialog)
+{
+  ShoesWindow *window;
+  unsigned int mask = NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
+  NSRect rect = NSMakeRect(0, 0, app->width, app->height);
+
+  if (app->resizable)
+    mask |= NSResizableWindowMask;
+  if (app->fullscreen) {
+    mask = NSBorderlessWindowMask;
+    rect = [[NSScreen mainScreen] frame];
+  }
+  window = [[ShoesWindow alloc] initWithContentRect: rect
+    styleMask: mask backing: NSBackingStoreBuffered defer: NO];
+  [window prepareWithApp: app->self];
+  return window;
+}
+
+void
+shoes_native_view_supplant(NSView *from, NSView *to)
+{
+  int i, count = [[from subviews] count];
+  for (i = 0; i < count; i++)
+    [to addSubview: [[from subviews] objectAtIndex: i]];
+}
+
 void
 shoes_native_app_fullscreen(shoes_app *app, char yn)
 {
+  ShoesWindow *old = app->os.window;
   if (yn)
   {
     int level;
     NSRect screen;
     if (CGDisplayCapture(kCGDirectMainDisplay) != kCGErrorSuccess)
       return;
+    app->os.normal = [old frame];
     level = CGShieldingWindowLevel();
     screen = [[NSScreen mainScreen] frame];
-    [app->os.window setFrame: screen display: YES];
-    [app->os.window setLevel: level];
+    COCOA_DO({
+      app->width = screen.size.width;
+      app->height = screen.size.height;
+      app->os.window = shoes_native_app_window(app, 0);
+      [app->os.window setLevel: level];
+      shoes_native_view_supplant([old contentView], [app->os.window contentView]);
+      app->os.view = [app->os.window contentView];
+      [old disconnectApp];
+      [old close];
+      [app->os.window setFrame: screen display: YES];
+    });
   }
   else
   {
-    [app->os.window orderOut: app->os.window];
-    CGDisplayRelease(kCGDirectMainDisplay);
+    COCOA_DO({
+      app->width = app->os.normal.size.width;
+      app->height = app->os.normal.size.height;
+      app->os.window = shoes_native_app_window(app, 0);
+      [app->os.window setLevel: NSNormalWindowLevel];
+      CGDisplayRelease(kCGDirectMainDisplay);
+      shoes_native_view_supplant([old contentView], [app->os.window contentView]);
+      app->os.view = [app->os.window contentView];
+      [old disconnectApp];
+      [old close];
+      [app->os.window setFrame: app->os.normal display: YES];
+    });
   }
 }
 
 shoes_code
 shoes_native_app_open(shoes_app *app, char *path, int dialog)
 {
-  unsigned int mask = NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
   shoes_code code = SHOES_OK;
-  Rect frame = NSMakeRect(0, 0, app->width, app->height);
-
+  app->os.normal = NSMakeRect(0, 0, app->width, app->height);
   COCOA_DO({
-    if (app->resizable)
-      mask |= NSResizableWindowMask;
-    if (app->fullscreen) {
-      mask |= NSBorderlessWindowMask;
-      rect = [[NSScreen mainScreen] frame];
-    }
-    app->os.window = [[ShoesWindow alloc] initWithContentRect: rect
-      styleMask: mask backing: NSBackingStoreBuffered defer: NO];
-    [app->os.window prepareWithApp: app->self];
-    app->slot->view = [[NSView alloc] initWithFrame: [app->os.window frame]];
-    [[app->os.window contentView] addSubview: app->slot->view];
+    app->os.window = shoes_native_app_window(app, dialog);
+    app->slot->view = [app->os.window contentView];
   });
-
 quit:
   return code;
 }
