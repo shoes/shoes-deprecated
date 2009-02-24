@@ -823,6 +823,12 @@ shoes_native_app_title(shoes_app *app, char *msg)
   }
 }
 
+void
+shoes_native_app_fullscreen(shoes_app *app, char yn)
+{
+  ShowWindow(app->slot->window, yn ? SW_SHOW_MAXIMIZED : SW_SHOW_NORMAL);
+}
+
 shoes_code
 shoes_native_app_open(shoes_app *app, char *path, int dialog)
 {
@@ -848,6 +854,7 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
     exStyle, SHOES_SHORTNAME, SHOES_APPNAME,
     WINDOW_STYLE |
       (app->resizable ? (WS_THICKFRAME | WS_MAXIMIZEBOX) : WS_DLGFRAME) |
+      (app->fullscreen ? WS_POPUP : 0) |
       WS_VSCROLL | ES_AUTOVSCROLL,
     CW_USEDEFAULT, CW_USEDEFAULT,
     rect.right-rect.left, rect.bottom-rect.top,

@@ -520,6 +520,15 @@ shoes_native_app_title(shoes_app *app, char *msg)
   gtk_window_set_title(GTK_WINDOW(app->os.window), _(msg));
 }
 
+void
+shoes_native_app_fullscreen(shoes_app *app, char yn)
+{
+  if (yn)
+    gtk_window_fullscreen(GTK_WINDOW(app->os.window));
+  else
+    gtk_window_unfullscreen(GTK_WINDOW(app->os.window));
+}
+
 shoes_code
 shoes_native_app_open(shoes_app *app, char *path, int dialog)
 {
@@ -532,6 +541,8 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
   gtk_window_set_position(GTK_WINDOW(gk->window), GTK_WIN_POS_CENTER);
   if (!app->resizable)
     gtk_window_set_resizable(GTK_WINDOW(gk->window), FALSE);
+  if (app->fullscreen)
+    gtk_window_fullscreen(GTK_WINDOW(gk->window));
   gtk_widget_set_events(gk->window, GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
   g_signal_connect(G_OBJECT(gk->window), "size-allocate",
                    G_CALLBACK(shoes_app_gtk_paint), app);
