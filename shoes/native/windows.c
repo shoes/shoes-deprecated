@@ -540,7 +540,7 @@ shoes_app_win32proc(
     break;
 
     case WM_KEYDOWN:
-      app->os.altkey = false;
+      app->os.altkey = FALSE;
     case WM_SYSKEYDOWN:
       if (w == VK_CONTROL)
         app->os.ctrlkey = TRUE;
