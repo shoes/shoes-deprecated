@@ -194,6 +194,7 @@ void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c)
 // Window-level events
 //
 #define WINDOW_STYLE WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX
+#define WINDOW_STYLE_FULLSCREEN WS_POPUP | WS_VSCROLL | ES_AUTOVSCROLL
 
 #define WM_POINTS() \
   POINT p; \
@@ -538,8 +539,9 @@ shoes_app_win32proc(
       }
     break;
 
-    case WM_SYSKEYDOWN:
     case WM_KEYDOWN:
+      app->os.altkey = false;
+    case WM_SYSKEYDOWN:
       if (w == VK_CONTROL)
         app->os.ctrlkey = TRUE;
       else if (w == VK_MENU)
@@ -827,11 +829,24 @@ shoes_native_app_title(shoes_app *app, char *msg)
   }
 }
 
+void
+shoes_native_app_fullscreen(shoes_app *app, char yn)
+{
+  if (yn)
+    GetWindowRect(app->slot->window, &app->os.normal);
+  SetWindowLong(app->slot->window, GWL_STYLE, yn ? WINDOW_STYLE_FULLSCREEN : app->os.style);
+  ShowWindow(FindWindow("Shell_TrayWnd", NULL), yn ? SW_HIDE : SW_SHOW);
+  if (!yn)
+    MoveWindow(app->slot->window, app->os.normal.left, app->os.normal.top,
+      app->os.normal.right - app->os.normal.left, app->os.normal.bottom - app->os.normal.top, TRUE);
+  ShowWindow(app->slot->window, yn ? SW_SHOWMAXIMIZED : SW_SHOWNORMAL);
+}
+
 shoes_code
 shoes_native_app_open(shoes_app *app, char *path, int dialog)
 {
   shoes_code code = SHOES_OK;
-  RECT rect;
+  LONG style;
   DWORD exStyle = dialog ? WS_EX_WINDOWEDGE : WS_EX_CLIENTEDGE;
 
   app->slot->controls = Qnil;
@@ -841,20 +856,22 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
   app->os.shiftkey = FALSE;
 
   // remove the menu
-  rect.left = 0;
-  rect.top = 0;
-  rect.right = app->width;
-  rect.bottom = app->height;
-  AdjustWindowRectEx(&rect, WINDOW_STYLE, FALSE, exStyle);
+  app->os.normal.left = 0;
+  app->os.normal.top = 0;
+  app->os.normal.right = app->width;
+  app->os.normal.bottom = app->height;
+  AdjustWindowRectEx(&app->os.normal, WINDOW_STYLE, FALSE, exStyle);
 
   exStyle |= WS_EX_COMPOSITED;
+  style = app->os.style = WINDOW_STYLE |
+    (app->resizable ? (WS_THICKFRAME | WS_MAXIMIZEBOX) : WS_DLGFRAME) |
+    WS_VSCROLL | ES_AUTOVSCROLL;
+  if (app->fullscreen)
+    style = WINDOW_STYLE_FULLSCREEN;
   app->slot->window = CreateWindowEx(
-    exStyle, SHOES_SHORTNAME, SHOES_APPNAME,
-    WINDOW_STYLE |
-      (app->resizable ? (WS_THICKFRAME | WS_MAXIMIZEBOX) : WS_DLGFRAME) |
-      WS_VSCROLL | ES_AUTOVSCROLL,
+    exStyle, SHOES_SHORTNAME, SHOES_APPNAME, style,
     CW_USEDEFAULT, CW_USEDEFAULT,
-    rect.right-rect.left, rect.bottom-rect.top,
+    app->os.normal.right-app->os.normal.left, app->os.normal.bottom-app->os.normal.top,
     HWND_DESKTOP,
     NULL,
     shoes_world->os.instance,

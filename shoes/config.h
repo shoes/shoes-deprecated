@@ -119,6 +119,7 @@ typedef struct {
 typedef struct {
   ShoesWindow *window;
   NSView *view;
+  NSRect normal;
 } shoes_app_quartz, SHOES_APP_OS;
 
 typedef struct {
@@ -185,6 +186,8 @@ typedef struct {
 } shoes_group_win32, SHOES_GROUP_OS;
 
 typedef struct {
+  LONG style;
+  RECT normal;
   BOOL ctrlkey, altkey, shiftkey;
 } shoes_app_win32, SHOES_APP_OS;
 

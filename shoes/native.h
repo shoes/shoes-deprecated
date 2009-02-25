@@ -34,6 +34,7 @@ void shoes_native_remove_item(SHOES_SLOT_OS *, VALUE, char);
 shoes_code shoes_app_cursor(shoes_app *, ID);
 void shoes_native_app_resized(shoes_app *);
 void shoes_native_app_title(shoes_app *, char *);
+void shoes_native_app_fullscreen(shoes_app *, char);
 shoes_code shoes_native_app_open(shoes_app *, char *, int);
 void shoes_native_app_show(shoes_app *);
 void shoes_native_loop();
