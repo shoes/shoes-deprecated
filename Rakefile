@@ -4,6 +4,7 @@ require 'rake/clean'
 require 'platform/skel'
 require 'fileutils'
 require 'find'
+require 'yaml'
 include FileUtils
 
 APP = YAML.load_file(File.join(ENV['APP'] || ".", "app.yaml"))
@@ -91,6 +92,11 @@ def copy_ext xdir, libdir
       `ruby extconf.rb; make`
     end
     copy_files "#{xdir}/*.bundle", libdir
+  when /mingw/
+    Dir.chdir(xdir) do
+      sh 'ruby extconf.rb; make'
+    end
+    copy_files "#{xdir}/*.so", libdir
   else
     Dir.chdir(xdir) do
       `ruby extconf.rb; make`

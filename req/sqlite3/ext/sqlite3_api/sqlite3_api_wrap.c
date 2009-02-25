@@ -171,10 +171,10 @@ typedef struct {
 #define StringValue(s) RB_STRING_VALUE(s)
 #endif
 #ifndef StringValuePtr
-#define StringValuePtr(s) RSTRING_PTR(RB_STRING_VALUE(s))
+#define StringValuePtr(s) RSTRING(RB_STRING_VALUE(s))->ptr
 #endif
 #ifndef StringValueLen
-#define StringValueLen(s) RSTRING_LEN(RB_STRING_VALUE(s))
+#define StringValueLen(s) RSTRING(RB_STRING_VALUE(s))->len
 #endif
 #ifndef SafeStringValue
 #define SafeStringValue(v) do {\
@@ -1055,11 +1055,7 @@ struct timeval rb_time_timeval(VALUE);
 #ifdef __cplusplus
 extern "C" {
 #endif
-#ifdef HAVE_RUBY_IO_H
-#include <ruby/io.h>
-#else
-#include <rubyio.h>
-#endif
+#include "rubyio.h"
 #ifdef __cplusplus
 }
 #endif
@@ -1067,6 +1063,14 @@ extern "C" {
 
 #include <sqlite3.h>
 #include "ruby.h"
+
+#ifndef RSTRING_PTR
+#define RSTRING_PTR(s) (RSTRING(s)->ptr)
+#endif
+ 
+#ifndef RSTRING_LEN
+#define RSTRING_LEN(s) (RSTRING(s)->len)
+#endif
 
 #define Init_API Init_sqlite3_api
 
@@ -1077,8 +1081,8 @@ struct CallbackData {
 };
 
 typedef struct CallbackData CallbackData;
-typedef void BLOB;
-typedef void VALBLOB;
+typedef void RUBY_BLOB;
+typedef void RUBY_VALBLOB;
 
 int Sqlite3_ruby_busy_handler(void* data,int value) {
   VALUE result;
@@ -1766,7 +1770,7 @@ _wrap_sqlite3_bind_int64(int argc, VALUE *argv, VALUE self) {
     SWIG_ConvertPtr(argv[0], (void **) &arg1, SWIGTYPE_p_sqlite3_stmt, 0);
     arg2 = NUM2INT(argv[1]);
     {
-        arg3 = rb_big2ll( argv[2] );
+        arg3 = rb_num2ll( argv[2] );
     }
     result = (int)sqlite3_bind_int64(arg1,arg2,arg3);
     
@@ -2039,14 +2043,14 @@ static VALUE
 _wrap_sqlite3_column_blob(int argc, VALUE *argv, VALUE self) {
     sqlite3_stmt *arg1 = (sqlite3_stmt *) 0 ;
     int arg2 ;
-    BLOB *result;
+    RUBY_BLOB *result;
     VALUE vresult = Qnil;
     
     if ((argc < 2) || (argc > 2))
     rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc);
     SWIG_ConvertPtr(argv[0], (void **) &arg1, SWIGTYPE_p_sqlite3_stmt, 0);
     arg2 = NUM2INT(argv[1]);
-    result = (BLOB *)sqlite3_column_blob(arg1,arg2);
+    result = (RUBY_BLOB *)sqlite3_column_blob(arg1,arg2);
     
     {
         vresult = result ?
@@ -2323,13 +2327,13 @@ _wrap_sqlite3_aggregate_count(int argc, VALUE *argv, VALUE self) {
 static VALUE
 _wrap_sqlite3_value_blob(int argc, VALUE *argv, VALUE self) {
     sqlite3_value *arg1 = (sqlite3_value *) 0 ;
-    VALBLOB *result;
+    RUBY_VALBLOB *result;
     VALUE vresult = Qnil;
     
     if ((argc < 1) || (argc > 1))
     rb_raise(rb_eArgError, "wrong # of arguments(%d for 1)",argc);
     SWIG_ConvertPtr(argv[0], (void **) &arg1, SWIGTYPE_p_sqlite3_value, 0);
-    result = (VALBLOB *)sqlite3_value_blob(arg1);
+    result = (RUBY_VALBLOB *)sqlite3_value_blob(arg1);
     
     {
         vresult = result ? rb_str_new( (char*)result, sqlite3_value_bytes( arg1 ) ) : Qnil;
@@ -2618,7 +2622,7 @@ _wrap_sqlite3_result_int64(int argc, VALUE *argv, VALUE self) {
     rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc);
     SWIG_ConvertPtr(argv[0], (void **) &arg1, SWIGTYPE_p_sqlite3_context, 0);
     {
-        arg2 = rb_big2ll( argv[1] );
+        arg2 = rb_num2ll( argv[1] );
     }
     sqlite3_result_int64(arg1,arg2);
     
@@ -2767,7 +2771,7 @@ static swig_type_info _swigt__p_sqlite3_stmt = {"_p_sqlite3_stmt", "sqlite3_stmt
 static swig_type_info _swigt__p_sqlite3_value = {"_p_sqlite3_value", "sqlite3_value *", 0, 0, 0};
 static swig_type_info _swigt__p_sqlite_int64 = {"_p_sqlite_int64", "sqlite_int64 *", 0, 0, 0};
 static swig_type_info _swigt__p_unsigned_long = {"_p_unsigned_long", "unsigned long *|VALUE *", 0, 0, 0};
-static swig_type_info _swigt__p_void = {"_p_void", "void *|VALBLOB *", 0, 0, 0};
+static swig_type_info _swigt__p_void = {"_p_void", "void *|RUBY_VALBLOB *", 0, 0, 0};
 
 static swig_type_info *swig_type_initial[] = {
   &_swigt__p_CallbackData,
