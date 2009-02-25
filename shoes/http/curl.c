@@ -172,6 +172,8 @@ shoes_download(shoes_http_request *req)
   if (req->body)
   {
     cdata->body = req->body;
+    cdata->bodylen = req->bodylen;
+    curl_easy_setopt(curl, CURLOPT_INFILESIZE, req->bodylen);
     curl_easy_setopt(curl, CURLOPT_UPLOAD, 1);
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, shoes_curl_read_funk);
     curl_easy_setopt(curl, CURLOPT_READDATA, cdata);
