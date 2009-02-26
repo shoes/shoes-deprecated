@@ -1379,7 +1379,7 @@ SHOES_TIMER_REF
 shoes_native_timer_start(VALUE self, shoes_canvas *canvas, unsigned int interval)
 {
   long nid = rb_ary_index_of(canvas->app->extras, self);
-  SetTimer(canvas->slot->window, SHOES_CONTROL1 + nid, interval, NULL);
+  SetTimer(canvas->app->slot->window, SHOES_CONTROL1 + nid, interval, NULL);
   return SHOES_CONTROL1 + nid;
 }
 
