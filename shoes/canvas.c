@@ -339,6 +339,7 @@ shoes_canvas_empty(shoes_canvas *canvas)
   unsigned char stage = canvas->stage;
   canvas->stage = CANVAS_EMPTY;
   shoes_ele_remove_all(canvas->contents);
+  shoes_extras_remove_all(canvas);
   canvas->stage = stage;
 }
 
