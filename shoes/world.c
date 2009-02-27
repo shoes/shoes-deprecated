@@ -119,12 +119,9 @@ shoes_init(SHOES_INIT_ARGS)
 void
 shoes_update_fonts(VALUE ary)
 {
-  // TODO: this code uncaches the font map, so we can load new fonts.
-  // however, the font map still has references scattered throughout the
-  // app, in cached text blocks. i need a master list of cached text
-  // blocks that can be invalidated as well, i suppose.
-  g_object_ref(pango_cairo_font_map_get_default());
+#if PANGO_VERSION_MAJOR > 1 || PANGO_VERSION_MINOR >= 22
   pango_cairo_font_map_set_default(NULL);
+#endif
   rb_funcall(rb_const_get(cShoes, rb_intern("FONTS")), rb_intern("replace"), 1, ary);
 }
 
