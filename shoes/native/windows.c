@@ -82,24 +82,22 @@ shoes_load_font(const char *filename)
   return newfonts;
 }
 
-int CALLBACK
-shoes_font_list_iter(const LOGFONTA *font, const TEXTMETRICA *pfont, DWORD type, LPARAM l)
+static int CALLBACK
+shoes_font_list_iter(const ENUMLOGFONTEX *font, const NEWTEXTMETRICA *pfont, DWORD type, LPARAM l)
 {
   VALUE ary = (VALUE)l;
-  rb_ary_push(l, rb_str_new2(font->lfFaceName));
-  return 1;
+  rb_ary_push(l, rb_str_new2(font->elfLogFont.lfFaceName));
+  return TRUE;
 }
 
 VALUE
 shoes_font_list()
 {
-  LOGFONT font;
+  LOGFONT font = {0, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, 0, ""};
   VALUE ary = rb_ary_new();
-  HDC dc = GetDC(shoes_world->os.hidden);
-  SHOE_MEMZERO(&font, LOGFONT, 1);
-  font.lfCharSet = DEFAULT_CHARSET;
-  EnumFontFamiliesEx(dc, &font, shoes_font_list_iter, (LPARAM)ary, 0);
-  ReleaseDC(shoes_world->os.hidden, dc);
+  HDC dc = GetDC(NULL);
+  EnumFontFamiliesEx(dc, &font, (FONTENUMPROC)shoes_font_list_iter, (LPARAM)ary, 0);
+  ReleaseDC(NULL, dc);
   rb_funcall(ary, rb_intern("uniq!"), 0);
   rb_funcall(ary, rb_intern("sort!"), 0);
   return ary;
@@ -362,6 +360,19 @@ shoes_slot_win32proc(
           shoes_control_focus(canvas->slot->focus);
         }
       break;
+
+      /* TODO: use to make controls clear
+      case WM_CTLCOLOREDIT:
+      case WM_CTLCOLORSTATIC:
+        {
+          HDC hdc = (HDC) w;
+          HBRUSH hbrBkcolor = (HBRUSH)GetStockObject(NULL_BRUSH);
+
+          SetBkMode(hdc, TRANSPARENT);
+          return (LRESULT) hbrBkcolor;
+        }
+      break;
+      */
 
       case WM_COMMAND:
         if ((HWND)l)
@@ -978,7 +989,7 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
   {
     slot->controls = rb_ary_new();
     slot->dc = NULL;
-    slot->window = CreateWindowEx(0, SHOES_SLOTCLASS, "Shoes Slot Window",
+    slot->window = CreateWindowEx(WS_EX_TRANSPARENT, SHOES_SLOTCLASS, "Shoes Slot Window",
       WS_CHILD | WS_TABSTOP | WS_VISIBLE,
       x, y, width, height, parent->window, NULL, 
       (HINSTANCE)GetWindowLong(parent->window, GWL_HINSTANCE), NULL);
@@ -1114,7 +1125,7 @@ SHOES_SURFACE_REF
 shoes_native_surface_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
 {
   int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot->controls);
-  SHOES_SURFACE_REF ref = CreateWindowEx(0, SHOES_VLCLASS, "Shoes VLC Window",
+  SHOES_SURFACE_REF ref = CreateWindowEx(WS_EX_TRANSPARENT, SHOES_VLCLASS, "Shoes VLC Window",
       WS_CHILD | WS_TABSTOP | WS_VISIBLE,
       place->ix + place->dx, place->iy + place->dy,
       place->iw, place->ih,
