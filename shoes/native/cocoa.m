@@ -1222,10 +1222,9 @@ SHOES_CONTROL_REF
 shoes_native_slider(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
   INIT;
-  ShoesSlider *pop = [[ShoesSlider alloc] init];
+  ShoesSlider *pop = [[ShoesSlider alloc] initWithObject: self];
   [pop setMinValue: 0.];
   [pop setMaxValue: 100.];
-  [pop setBezeled: YES];
   RELEASE;
   return (NSControl *)pop;
 }
