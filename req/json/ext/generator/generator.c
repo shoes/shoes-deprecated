@@ -8,6 +8,9 @@
 #include "unicode.h"
 #include <math.h>
 
+#ifndef RHASH_TBL(h)
+#define RHASH_TBL(h) RHASH(h)->tbl
+#endif
 #ifndef RFLOAT_VALUE
 #define RFLOAT_VALUE(f) RFLOAT(f)->value
 #endif
