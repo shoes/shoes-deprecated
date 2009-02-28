@@ -170,7 +170,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
   when /mingw/
     dlls = [ruby_so]
     dlls += %w{libungif4 libjpeg libcairo-2 libpng12-0 libglib-2.0-0 libgobject-2.0-0 libpango-1.0-0
-      libgmodule-2.0-0 libpangocairo-1.0-0 libpangowin32-1.0-0 libportaudio-2}
+      libgmodule-2.0-0 libpangocairo-1.0-0 libpangowin32-1.0-0 libportaudio-2 sqlite3}
     dlls.each{|dll| cp "#{ext_ruby}/bin/#{dll}.dll", "dist/"}
     if ENV['VIDEO']
       cp    "/usr/lib/libvlc.so", "dist"
@@ -378,7 +378,7 @@ else
   CC = "gcc"
   file_list = ["shoes/*.c"] + case RUBY_PLATFORM
   when /mingw/
-    %w{shoes/native/windows.c shoes/http/wininet.c shoes/http/windownload.c}
+    %w{shoes/native/windows.c shoes/http/winhttp.c shoes/http/windownload.c}
   when /darwin/
     %w{shoes/native/cocoa.m shoes/http/nsurl.m}
   else
@@ -444,7 +444,7 @@ else
     LINUX_CFLAGS << ' -I. -I/mingw/include -I/mingw/include/ruby-1.9.1/ruby'
     LINUX_CFLAGS << " -DSHOES_WIN32 -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0500 -DWINVER=0x0500 -DCOBJMACROS"
     LINUX_LDFLAGS =" -DBUILD_DLL -lungif -ljpeg -lglib-2.0 -lgobject-2.0 -fPIC -shared"
-    LINUX_LDFLAGS << ' -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 -lole32 -loleaut32 -ladvapi32 -loleacc -lwininet'
+    LINUX_LDFLAGS << ' -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 -lole32 -loleaut32 -ladvapi32 -loleacc -lwinhttp'
   else
     DLEXT = "so"
     LINUX_CFLAGS << " -DSHOES_GTK -fPIC #{`pkg-config --cflags gtk+-2.0`.strip} #{`curl-config --cflags`.strip}"
