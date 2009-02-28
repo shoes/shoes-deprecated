@@ -393,6 +393,23 @@
 }
 @end
 
+@implementation ShoesSlider
+- (id)initWithObject: (VALUE)o
+{
+  if ((self = [super init]))
+  {
+    object = o;
+    [self setTarget: self];
+    [self setAction: @selector(handleChange:)];
+  }
+  return self;
+}
+-(IBAction)handleChange: (id)sender
+{
+  shoes_control_send(object, s_change);
+}
+@end
+
 @implementation ShoesAlert
 - (id)init
 {
@@ -1199,6 +1216,30 @@ void
 shoes_native_progress_set_fraction(SHOES_CONTROL_REF ref, double perc)
 {
   COCOA_DO([(NSProgressIndicator *)ref setDoubleValue: perc * 100.]);
+}
+
+SHOES_CONTROL_REF
+shoes_native_slider(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+  INIT;
+  ShoesSlider *pop = [[ShoesSlider alloc] init];
+  [pop setMinValue: 0.];
+  [pop setMaxValue: 100.];
+  [pop setBezeled: YES];
+  RELEASE;
+  return (NSControl *)pop;
+}
+
+double
+shoes_native_slider_get_fraction(SHOES_CONTROL_REF ref)
+{
+  return [(ShoesSlider *)ref doubleValue] * 0.01;
+}
+
+void
+shoes_native_slider_set_fraction(SHOES_CONTROL_REF ref, double perc)
+{
+  COCOA_DO([(ShoesSlider *)ref setDoubleValue: perc * 100.]);
 }
 
 SHOES_CONTROL_REF

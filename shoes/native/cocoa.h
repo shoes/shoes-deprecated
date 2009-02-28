@@ -53,6 +53,12 @@
 }
 @end
 
+@interface ShoesSlider : NSSlider
+{
+  VALUE object;
+}
+@end
+
 @interface ShoesAlert : NSWindow
 {
   NSWindow *win;
