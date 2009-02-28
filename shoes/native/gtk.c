@@ -696,7 +696,6 @@ static void
 shoes_widget_changed(GtkWidget *ref, gpointer data)
 { 
   VALUE self = (VALUE)data;
-  printf("CHANGED!\n");
   shoes_control_send(self, s_change);
 }
 

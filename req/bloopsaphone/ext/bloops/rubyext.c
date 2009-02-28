@@ -8,6 +8,9 @@
 #include "bloopsaphone.h"
 
 static VALUE cBloops, cSound, cTrack;
+static bloops *Btest;
+static bloopsaphone *Pplain;
+static bloopsatrack *Ttest;
 
 #ifndef RSTRING_LEN
 #define RSTRING_LEN(str) RSTRING(str)->len
@@ -101,6 +104,25 @@ rb_bloops_sound(VALUE self, VALUE type)
   bloopsaphone *P = bloops_square();
   P->type = (unsigned char)NUM2INT(type);
   return Data_Wrap_Struct(cSound, NULL, rb_bloops_sound_free, P);
+}
+
+VALUE
+rb_bloops_reset(VALUE self)
+{
+  bloopsaphone *P;
+  Data_Get_Struct(self, bloopsaphone, P);
+  MEMCPY(P, Pplain, bloopsaphone, 1);
+  return self;
+}
+
+VALUE
+rb_bloops_test(VALUE self)
+{
+  bloopsaphone *P;
+  Data_Get_Struct(self, bloopsaphone, P);
+  Ttest->P = P;
+  bloops_play(Btest);
+  return self;
 }
 
 VALUE
@@ -209,12 +231,20 @@ rb_bloops_track_str(VALUE self)
 void
 Init_bloops()
 {
+  Btest = bloops_new();
+  bloops_tempo(Btest, 1);
+  Pplain = bloops_square();
+  Ttest = bloops_track2(Btest, Pplain, "C");
+  Ttest->notes[0].tone = 0;
+  bloops_track_at(Btest, Ttest, 0);
+
   cBloops = rb_define_class("Bloops", rb_cObject);
   rb_define_alloc_func(cBloops, rb_bloops_alloc);
   rb_define_method(cBloops, "clear", rb_bloops_clear, 0);
   rb_define_method(cBloops, "load", rb_bloops_load, 1);
   rb_define_method(cBloops, "play", rb_bloops_play, 0);
   rb_define_method(cBloops, "sound", rb_bloops_sound, 1);
+  rb_define_singleton_method(cBloops, "sound", rb_bloops_sound, 1);
   rb_define_method(cBloops, "stopped?", rb_bloops_is_stopped, 0);
   rb_define_method(cBloops, "tempo", rb_bloops_get_tempo, 0);
   rb_define_method(cBloops, "tempo=", rb_bloops_set_tempo, 1);
@@ -226,6 +256,8 @@ Init_bloops()
   rb_const_set(cBloops, rb_intern("NOISE"), INT2NUM(BLOOPS_NOISE));
 
   cSound = rb_define_class_under(cBloops, "Sound", rb_cObject);
+  rb_define_method(cSound, "reset", rb_bloops_reset, 0);
+  rb_define_method(cSound, "test", rb_bloops_test, 0);
   rb_define_method(cSound, "arp", rb_bloops_get_arp, 0);
   rb_define_method(cSound, "arp=", rb_bloops_set_arp, 1);
   rb_define_method(cSound, "aspeed", rb_bloops_get_aspeed, 0);
