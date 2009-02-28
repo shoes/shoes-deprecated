@@ -375,6 +375,7 @@ shoes_slot_win32proc(
       */
 
       case WM_HSCROLL:
+      {
         if (LOWORD(w) == TB_THUMBTRACK)
         {
           int id = GetDlgCtrlID((HWND)l);
@@ -382,6 +383,7 @@ shoes_slot_win32proc(
           if (!NIL_P(control))
             shoes_control_send(control, s_change);
         }
+      }
       break;
 
       case WM_COMMAND:
@@ -698,6 +700,18 @@ shoes_app_win32proc(
       {
         shoes_control_focus(app->slot->focus);
       }
+    break;
+
+    case WM_HSCROLL:
+    {
+      if (LOWORD(w) == TB_THUMBTRACK)
+      {
+        int id = GetDlgCtrlID((HWND)l);
+        VALUE control = rb_ary_entry(app->slot->controls, id - SHOES_CONTROL1);
+        if (!NIL_P(control))
+          shoes_control_send(control, s_change);
+      }
+    }
     break;
 
     case WM_COMMAND:
@@ -1349,13 +1363,15 @@ shoes_native_progress_set_fraction(SHOES_CONTROL_REF ref, double perc)
 SHOES_CONTROL_REF
 shoes_native_slider(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
+  int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot->controls);
   HWND ref = CreateWindowEx(WS_EX_TRANSPARENT, TRACKBAR_CLASS, msg,
-      WS_VISIBLE | WS_CHILD | PBS_SMOOTH,
+      WS_VISIBLE | WS_CHILD,
       place->ix + place->dx, place->iy + place->dy, place->iw, place->ih,
-      canvas->slot->window, NULL, 
+      canvas->slot->window, (HMENU)cid,
       (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
       NULL);
   SetWindowPos(ref, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOREDRAW);
+  rb_ary_push(canvas->slot->controls, self);
   return ref;
 }
 
