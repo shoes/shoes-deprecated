@@ -1032,6 +1032,23 @@ shoes_canvas_progress(int argc, VALUE *argv, VALUE self)
 }
 
 VALUE
+shoes_canvas_slider(int argc, VALUE *argv, VALUE self)
+{
+  rb_arg_list args;
+  VALUE slider;
+  SETUP();
+
+  rb_parse_args(argc, argv, "|h&", &args);
+
+  if (!NIL_P(args.a[1]))
+    ATTRSET(args.a[0], change, args.a[1]);
+
+  slider = shoes_control_new(cSlider, args.a[0], self);
+  shoes_add_ele(canvas, slider);
+  return slider;
+}
+
+VALUE
 shoes_canvas_radio(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;

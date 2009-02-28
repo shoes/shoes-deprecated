@@ -374,6 +374,16 @@ shoes_slot_win32proc(
       break;
       */
 
+      case WM_HSCROLL:
+        if (LOWORD(w) == TB_THUMBTRACK)
+        {
+          int id = GetDlgCtrlID((HWND)l);
+          VALUE control = rb_ary_entry(canvas->slot->controls, id - SHOES_CONTROL1);
+          if (!NIL_P(control))
+            shoes_control_send(control, s_change);
+        }
+      break;
+
       case WM_COMMAND:
         if ((HWND)l)
         {
@@ -1334,6 +1344,31 @@ void
 shoes_native_progress_set_fraction(SHOES_CONTROL_REF ref, double perc)
 {
   SendMessage(ref, PBM_SETPOS, (int)(perc * 100), 0L);
+}
+
+SHOES_CONTROL_REF
+shoes_native_slider(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+  HWND ref = CreateWindowEx(WS_EX_TRANSPARENT, TRACKBAR_CLASS, msg,
+      WS_VISIBLE | WS_CHILD | PBS_SMOOTH,
+      place->ix + place->dx, place->iy + place->dy, place->iw, place->ih,
+      canvas->slot->window, NULL, 
+      (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
+      NULL);
+  SetWindowPos(ref, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOREDRAW);
+  return ref;
+}
+
+double
+shoes_native_slider_get_fraction(SHOES_CONTROL_REF ref)
+{
+  return SendMessage(ref, TBM_GETPOS, 0, 0) * 0.01;
+}
+
+void
+shoes_native_slider_set_fraction(SHOES_CONTROL_REF ref, double perc)
+{
+  SendMessage(ref, TBM_SETPOS, (int)(perc * 100), 0L);
 }
 
 SHOES_CONTROL_REF

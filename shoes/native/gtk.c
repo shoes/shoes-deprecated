@@ -696,6 +696,7 @@ static void
 shoes_widget_changed(GtkWidget *ref, gpointer data)
 { 
   VALUE self = (VALUE)data;
+  printf("CHANGED!\n");
   shoes_control_send(self, s_change);
 }
 
@@ -948,6 +949,28 @@ void
 shoes_native_progress_set_fraction(SHOES_CONTROL_REF ref, double perc)
 {
   gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(ref), perc);
+}
+
+SHOES_CONTROL_REF
+shoes_native_slider(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+  SHOES_CONTROL_REF ref = gtk_hscale_new_with_range(0., 1., 0.01);
+  gtk_scale_set_draw_value(GTK_SCALE(ref), FALSE);
+  g_signal_connect(G_OBJECT(ref), "value-changed",
+                   G_CALLBACK(shoes_widget_changed), (gpointer)self);
+  return ref;
+}
+
+double
+shoes_native_slider_get_fraction(SHOES_CONTROL_REF ref)
+{
+  return gtk_range_get_value(GTK_RANGE(ref));
+}
+
+void
+shoes_native_slider_set_fraction(SHOES_CONTROL_REF ref, double perc)
+{
+  gtk_range_set_value(GTK_RANGE(ref), perc);
 }
 
 SHOES_CONTROL_REF
