@@ -83,7 +83,7 @@ typedef struct {
 #define CPX(c)  (c != NULL && (c->place.flags & FLAG_ORIGIN) ? 0 : c->place.ix)
 #define CPY(c)  (c != NULL && (c->place.flags & FLAG_ORIGIN) ? 0 : c->place.iy)
 #define CPB(c)  ((c->place.h - c->place.ih) - (c->place.iy - c->place.y))
-#define CPH(c)  ((c->fully - CPB(c)) - CPY(c))
+#define CPH(c)  (ORIGIN(c->place) ? c->height : (c->fully - CPB(c)) - CPY(c))
 #define CPW(c)  (c->place.iw)
 #define CCR(c)  (c->cr == NULL ? c->app->scratch : c->cr)
 #define SWPOS(x) ((int)sw % 2 == 0 ? x * 1. : x + .5)

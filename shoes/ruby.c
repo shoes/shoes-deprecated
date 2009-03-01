@@ -539,7 +539,8 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
     }
 
     place->x = PX2(attr, left, right, cx, tw, canvas->place.iw) + ox;
-    place->y = PX2(attr, top, bottom, cy, th, canvas->fully) + oy;
+    place->y = PX2(attr, top, bottom, cy, th,
+      ORIGIN(canvas->place) ? canvas->height : canvas->fully) + oy;
     if (!ORIGIN(canvas->place))
     {
       place->dx = canvas->place.dx; 
