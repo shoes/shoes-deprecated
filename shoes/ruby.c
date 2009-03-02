@@ -2438,8 +2438,6 @@ shoes_textblock_uncache(shoes_textblock *text, unsigned char all)
 {
   if (text->pattr != NULL)
     pango_attr_list_unref(text->pattr);
-  if (text->cursor != NULL)
-    text->cursor->attr = NULL;
   text->pattr = NULL;
   if (all)
   {
@@ -2523,6 +2521,7 @@ shoes_textblock_set_cursor(VALUE self, VALUE pos)
     }
   }
   else            self_t->cursor->pos = NUM2INT(pos);
+  shoes_textblock_uncache(self_t, FALSE);
   shoes_canvas_repaint_all(self_t->parent);
   return pos;
 }
@@ -2563,6 +2562,7 @@ shoes_textblock_set_marker(VALUE self, VALUE pos)
 
   if (NIL_P(pos)) self_t->cursor->hi = INT_MAX;
   else            self_t->cursor->hi = NUM2INT(pos);
+  shoes_textblock_uncache(self_t, FALSE);
   shoes_canvas_repaint_all(self_t->parent);
   return pos;
 }
@@ -2970,12 +2970,13 @@ shoes_textblock_make_pango(shoes_app *app, VALUE klass, shoes_textblock *block)
   shoes_textblock_iter_pango(block->texts, block, app);
   shoes_app_style_for(block, app, klass, block->attr, 0, block->len);
 
-  if (block->cursor != NULL)
+  if (block->cursor != NULL && block->cursor->pos != INT_MAX &&
+      block->cursor->hi != INT_MAX && block->cursor->pos != block->cursor->hi)
   {
-    block->cursor->attr = pango_attr_background_new(255 * 255, 255 * 255, 0);
-    block->cursor->attr->start_index = 0;
-    block->cursor->attr->end_index = 0;
-    pango_attr_list_insert(block->pattr, block->cursor->attr);
+    PangoAttribute *attr = pango_attr_background_new(255 * 255, 255 * 255, 0);
+    attr->start_index = min(block->cursor->pos, block->cursor->hi);
+    attr->end_index = max(block->cursor->pos, block->cursor->hi);
+    pango_attr_list_insert(block->pattr, attr);
   }
 
   block->cached = 1;
@@ -2994,12 +2995,6 @@ shoes_textblock_on_layout(shoes_app *app, VALUE klass, shoes_textblock *block)
 
   if (!block->cached || block->pattr == NULL)
     shoes_textblock_make_pango(app, klass, block);
-  if (block->cursor != NULL && block->cursor->pos != INT_MAX &&
-      block->cursor->hi != INT_MAX && block->cursor->pos != block->cursor->hi)
-  {
-    block->cursor->attr->start_index = min(block->cursor->pos, block->cursor->hi);
-    block->cursor->attr->end_index = max(block->cursor->pos, block->cursor->hi);
-  }
   pango_layout_set_text(block->layout, block->text->str, -1);
   pango_layout_set_attributes(block->layout, block->pattr);
 

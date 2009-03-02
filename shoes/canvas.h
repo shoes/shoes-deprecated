@@ -150,7 +150,6 @@ typedef struct {
 //
 typedef struct {
   int pos, x, y, hi;
-  PangoAttribute *attr;
 } shoes_textcursor;
 
 //
