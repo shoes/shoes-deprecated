@@ -2516,6 +2516,12 @@ shoes_textblock_set_cursor(VALUE self, VALUE pos)
   }
 
   if (NIL_P(pos)) shoes_textcursor_reset(self_t->cursor);
+  else if (pos == ID2SYM(s_marker)) {
+    if (self_t->cursor->hi != INT_MAX) {
+      self_t->cursor->pos = min(self_t->cursor->pos, self_t->cursor->hi);
+      self_t->cursor->hi = INT_MAX;
+    }
+  }
   else            self_t->cursor->pos = NUM2INT(pos);
   shoes_canvas_repaint_all(self_t->parent);
   return pos;
@@ -2572,9 +2578,14 @@ shoes_textblock_get_marker(VALUE self)
 VALUE
 shoes_textblock_get_highlight(VALUE self)
 {
+  int marker, start, len;
   GET_STRUCT(textblock, self_t);
-  if (self_t->cursor == NULL || self_t->cursor->pos == INT_MAX || self_t->cursor->hi == INT_MAX) return Qnil;
-  return rb_ary_new3(min(self_t->cursor->pos, self_t->cursor->hi), max(self_t->cursor->pos, self_t->cursor->hi));
+  if (self_t->cursor == NULL || self_t->cursor->pos == INT_MAX) return Qnil;
+  marker = self_t->cursor->hi;
+  if (marker == INT_MAX) marker = self_t->cursor->pos;
+  start = min(self_t->cursor->pos, marker);
+  len = max(self_t->cursor->pos, marker) - start;
+  return rb_ary_new3(2, INT2NUM(start), INT2NUM(len));
 }
 
 static VALUE
@@ -2635,7 +2646,7 @@ shoes_textblock_hit(VALUE self, VALUE _x, VALUE _y)
   GET_STRUCT(textblock, self_t);
   x -= self_t->place.ix + self_t->place.dx;
   y -= self_t->place.iy + self_t->place.dy;
-  if (x < 0 || x > self_t->place.w || y < 0 || y > self_t->place.h)
+  if (x < 0 || x > self_t->place.iw || y < 0 || y > self_t->place.ih)
     return Qnil;
   pango_layout_xy_to_index(self_t->layout, x * PANGO_SCALE, y * PANGO_SCALE, &index, &trailing);
   return INT2NUM(index);
