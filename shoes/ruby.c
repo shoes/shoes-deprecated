@@ -2484,7 +2484,7 @@ shoes_textblock_alloc(VALUE klass)
   text->links = Qnil;
   text->attr = Qnil;
   text->parent = Qnil;
-  text->cursor = INT_MAX;
+  text->cursor = text->cursorhi = INT_MAX;
   text->cursorx = text->cursory = 0;
   return obj;
 }
@@ -2510,6 +2510,7 @@ VALUE
 shoes_textblock_get_cursor(VALUE self)
 {
   GET_STRUCT(textblock, self_t);
+  if (self_t->cursor == INT_MAX) return Qnil;
   return INT2NUM(self_t->cursor);
 }
 
@@ -2525,6 +2526,24 @@ shoes_textblock_cursory(VALUE self)
 {
   GET_STRUCT(textblock, self_t);
   return INT2NUM(self_t->cursory);
+}
+
+VALUE
+shoes_textblock_set_highlight(VALUE self, VALUE pos)
+{
+  GET_STRUCT(textblock, self_t);
+  if (NIL_P(pos)) self_t->cursorhi = INT_MAX;
+  else            self_t->cursorhi = NUM2INT(pos);
+  shoes_canvas_repaint_all(self_t->parent);
+  return pos;
+}
+
+VALUE
+shoes_textblock_get_highlight(VALUE self)
+{
+  GET_STRUCT(textblock, self_t);
+  if (self_t->cursorhi == INT_MAX) return Qnil;
+  return INT2NUM(self_t->cursorhi);
 }
 
 static VALUE
@@ -2908,6 +2927,13 @@ shoes_textblock_make_pango(shoes_app *app, VALUE klass, shoes_textblock *block)
 
   shoes_textblock_iter_pango(block->texts, block, app);
   shoes_app_style_for(block, app, klass, block->attr, 0, block->len);
+  if (block->cursor != INT_MAX && block->cursorhi != INT_MAX && block->cursor != block->cursorhi)
+  {
+    PangoAttribute *attr = pango_attr_background_new(255 * 255, 255 * 255, 0);
+    attr->start_index = min(block->cursor, block->cursorhi);
+    attr->end_index = max(block->cursor, block->cursorhi);
+    pango_attr_list_insert(block->pattr, attr);
+  }
 
   block->cached = 1;
 }
@@ -4762,6 +4788,8 @@ shoes_ruby_init()
   rb_define_method(cTextBlock, "cursor", CASTHOOK(shoes_textblock_get_cursor), 0);
   rb_define_method(cTextBlock, "cursor_left", CASTHOOK(shoes_textblock_cursorx), 0);
   rb_define_method(cTextBlock, "cursor_top", CASTHOOK(shoes_textblock_cursory), 0);
+  rb_define_method(cTextBlock, "highlight=", CASTHOOK(shoes_textblock_set_highlight), 1);
+  rb_define_method(cTextBlock, "highlight", CASTHOOK(shoes_textblock_get_highlight), 0);
   rb_define_method(cTextBlock, "hit", CASTHOOK(shoes_textblock_hit), 2);
   rb_define_method(cTextBlock, "move", CASTHOOK(shoes_textblock_move), 2);
   rb_define_method(cTextBlock, "top", CASTHOOK(shoes_textblock_get_top), 0);
