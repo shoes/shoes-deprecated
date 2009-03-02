@@ -2438,6 +2438,8 @@ shoes_textblock_uncache(shoes_textblock *text, unsigned char all)
 {
   if (text->pattr != NULL)
     pango_attr_list_unref(text->pattr);
+  if (text->cursor != NULL)
+    text->cursor->attr = NULL;
   text->pattr = NULL;
   if (all)
   {
@@ -2453,6 +2455,8 @@ shoes_textblock_free(shoes_textblock *text)
 {
   shoes_transform_release(text->st);
   shoes_textblock_uncache(text, TRUE);
+  if (text->cursor != NULL)
+    SHOE_FREE(text->cursor);
   if (text->layout != NULL)
     g_object_unref(text->layout);
   RUBY_CRITICAL(free(text));
@@ -2484,8 +2488,7 @@ shoes_textblock_alloc(VALUE klass)
   text->links = Qnil;
   text->attr = Qnil;
   text->parent = Qnil;
-  text->cursor = INT_MAX;
-  text->cursorx = text->cursory = 0;
+  text->cursor = NULL;
   return obj;
 }
 
@@ -2496,12 +2499,31 @@ shoes_textblock_children(VALUE self)
   return text->texts;
 }
 
+static void
+shoes_textcursor_reset(shoes_textcursor *c)
+{
+  c->pos = c->hi = c->x = c->y = INT_MAX;
+}
+
 VALUE
 shoes_textblock_set_cursor(VALUE self, VALUE pos)
 {
   GET_STRUCT(textblock, self_t);
-  if (NIL_P(pos)) self_t->cursor = INT_MAX;
-  else            self_t->cursor = NUM2INT(pos);
+  if (self_t->cursor == NULL)
+  {
+    if (NIL_P(pos)) return Qnil;
+    else            shoes_textcursor_reset(self_t->cursor = SHOE_ALLOC(shoes_textcursor));
+  }
+
+  if (NIL_P(pos)) shoes_textcursor_reset(self_t->cursor);
+  else if (pos == ID2SYM(s_marker)) {
+    if (self_t->cursor->hi != INT_MAX) {
+      self_t->cursor->pos = min(self_t->cursor->pos, self_t->cursor->hi);
+      self_t->cursor->hi = INT_MAX;
+    }
+  }
+  else            self_t->cursor->pos = NUM2INT(pos);
+  shoes_canvas_repaint_all(self_t->parent);
   return pos;
 }
 
@@ -2509,21 +2531,61 @@ VALUE
 shoes_textblock_get_cursor(VALUE self)
 {
   GET_STRUCT(textblock, self_t);
-  return INT2NUM(self_t->cursor);
+  if (self_t->cursor == NULL || self_t->cursor->pos == INT_MAX) return Qnil;
+  return INT2NUM(self_t->cursor->pos);
 }
 
 VALUE
 shoes_textblock_cursorx(VALUE self)
 {
   GET_STRUCT(textblock, self_t);
-  return INT2NUM(self_t->cursorx);
+  if (self_t->cursor == NULL || self_t->cursor->x == INT_MAX) return Qnil;
+  return INT2NUM(self_t->cursor->x);
 }
 
 VALUE
 shoes_textblock_cursory(VALUE self)
 {
   GET_STRUCT(textblock, self_t);
-  return INT2NUM(self_t->cursory);
+  if (self_t->cursor == NULL || self_t->cursor->y == INT_MAX) return Qnil;
+  return INT2NUM(self_t->cursor->y);
+}
+
+VALUE
+shoes_textblock_set_marker(VALUE self, VALUE pos)
+{
+  GET_STRUCT(textblock, self_t);
+  if (self_t->cursor == NULL)
+  {
+    if (NIL_P(pos)) return Qnil;
+    else            shoes_textcursor_reset(self_t->cursor = SHOE_ALLOC(shoes_textcursor));
+  }
+
+  if (NIL_P(pos)) self_t->cursor->hi = INT_MAX;
+  else            self_t->cursor->hi = NUM2INT(pos);
+  shoes_canvas_repaint_all(self_t->parent);
+  return pos;
+}
+
+VALUE
+shoes_textblock_get_marker(VALUE self)
+{
+  GET_STRUCT(textblock, self_t);
+  if (self_t->cursor == NULL || self_t->cursor->hi == INT_MAX) return Qnil;
+  return INT2NUM(self_t->cursor->hi);
+}
+
+VALUE
+shoes_textblock_get_highlight(VALUE self)
+{
+  int marker, start, len;
+  GET_STRUCT(textblock, self_t);
+  if (self_t->cursor == NULL || self_t->cursor->pos == INT_MAX) return Qnil;
+  marker = self_t->cursor->hi;
+  if (marker == INT_MAX) marker = self_t->cursor->pos;
+  start = min(self_t->cursor->pos, marker);
+  len = max(self_t->cursor->pos, marker) - start;
+  return rb_ary_new3(2, INT2NUM(start), INT2NUM(len));
 }
 
 static VALUE
@@ -2575,6 +2637,19 @@ shoes_textblock_motion(VALUE self, int x, int y, char *t)
     shoes_app_cursor(canvas->app, s_link);
   }
   return url;
+}
+
+VALUE
+shoes_textblock_hit(VALUE self, VALUE _x, VALUE _y)
+{
+  int x = NUM2INT(_x), y = NUM2INT(_y), index, trailing;
+  GET_STRUCT(textblock, self_t);
+  x -= self_t->place.ix + self_t->place.dx;
+  y -= self_t->place.iy + self_t->place.dy;
+  if (x < 0 || x > self_t->place.iw || y < 0 || y > self_t->place.ih)
+    return Qnil;
+  pango_layout_xy_to_index(self_t->layout, x * PANGO_SCALE, y * PANGO_SCALE, &index, &trailing);
+  return INT2NUM(index);
 }
 
 VALUE
@@ -2895,6 +2970,14 @@ shoes_textblock_make_pango(shoes_app *app, VALUE klass, shoes_textblock *block)
   shoes_textblock_iter_pango(block->texts, block, app);
   shoes_app_style_for(block, app, klass, block->attr, 0, block->len);
 
+  if (block->cursor != NULL)
+  {
+    block->cursor->attr = pango_attr_background_new(255 * 255, 255 * 255, 0);
+    block->cursor->attr->start_index = 0;
+    block->cursor->attr->end_index = 0;
+    pango_attr_list_insert(block->pattr, block->cursor->attr);
+  }
+
   block->cached = 1;
 }
 
@@ -2911,6 +2994,12 @@ shoes_textblock_on_layout(shoes_app *app, VALUE klass, shoes_textblock *block)
 
   if (!block->cached || block->pattr == NULL)
     shoes_textblock_make_pango(app, klass, block);
+  if (block->cursor != NULL && block->cursor->pos != INT_MAX &&
+      block->cursor->hi != INT_MAX && block->cursor->pos != block->cursor->hi)
+  {
+    block->cursor->attr->start_index = min(block->cursor->pos, block->cursor->hi);
+    block->cursor->attr->end_index = max(block->cursor->pos, block->cursor->hi);
+  }
   pango_layout_set_text(block->layout, block->text->str, -1);
   pango_layout_set_attributes(block->layout, block->pattr);
 
@@ -3033,15 +3122,15 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
   pango_layout_line_get_pixel_extents(last, NULL, &lrect);
   pango_layout_get_pixel_size(self_t->layout, &px, &py);
 
-  if (self_t->cursor != INT_MAX)
+  if (self_t->cursor != NULL && self_t->cursor->pos != INT_MAX)
   {
-    int cursor = self_t->cursor;
+    int cursor = self_t->cursor->pos;
     if (cursor < 0) cursor += self_t->text->len + 1;
     pango_layout_index_to_pos(self_t->layout, cursor, &crect);
     crx = (self_t->place.ix + self_t->place.dx) + (crect.x / PANGO_SCALE);
     cry = (self_t->place.iy + self_t->place.dy) + (crect.y / PANGO_SCALE);
-    self_t->cursorx = (int)crx;
-    self_t->cursory = (int)cry;
+    self_t->cursor->x = (int)crx;
+    self_t->cursor->y = (int)cry;
   }
 
   if (RTEST(actual))
@@ -3054,7 +3143,7 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
       pango_cairo_update_layout(cr, self_t->layout);
       pango_cairo_show_layout(cr, self_t->layout);
 
-      if (self_t->cursor != INT_MAX)
+      if (self_t->cursor != NULL && self_t->cursor->pos != INT_MAX)
       {
         cairo_save(cr);
         cairo_new_path(cr);
@@ -4762,6 +4851,10 @@ shoes_ruby_init()
   rb_define_method(cTextBlock, "cursor", CASTHOOK(shoes_textblock_get_cursor), 0);
   rb_define_method(cTextBlock, "cursor_left", CASTHOOK(shoes_textblock_cursorx), 0);
   rb_define_method(cTextBlock, "cursor_top", CASTHOOK(shoes_textblock_cursory), 0);
+  rb_define_method(cTextBlock, "highlight", CASTHOOK(shoes_textblock_get_highlight), 0);
+  rb_define_method(cTextBlock, "hit", CASTHOOK(shoes_textblock_hit), 2);
+  rb_define_method(cTextBlock, "marker=", CASTHOOK(shoes_textblock_set_marker), 1);
+  rb_define_method(cTextBlock, "marker", CASTHOOK(shoes_textblock_get_marker), 0);
   rb_define_method(cTextBlock, "move", CASTHOOK(shoes_textblock_move), 2);
   rb_define_method(cTextBlock, "top", CASTHOOK(shoes_textblock_get_top), 0);
   rb_define_method(cTextBlock, "left", CASTHOOK(shoes_textblock_get_left), 0);

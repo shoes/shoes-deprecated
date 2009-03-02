@@ -749,6 +749,8 @@ shoes_app_cursor(shoes_app *app, ID cursor)
     [[NSCursor pointingHandCursor] set];
   else if (cursor == s_arrow)
     [[NSCursor arrowCursor] set];
+  else if (cursor == s_text)
+    [[NSCursor IBeamCursor] set];
   else
     goto done;
 

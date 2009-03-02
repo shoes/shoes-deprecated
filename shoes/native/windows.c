@@ -761,6 +761,10 @@ shoes_app_cursor(shoes_app *app, ID cursor)
   {
     c = LoadCursor(NULL, IDC_ARROW);
   }
+  else if (cursor == s_text)
+  {
+    c = LoadCursor(NULL, IDC_IBEAM);
+  }
   else
     goto done;
 

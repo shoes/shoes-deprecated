@@ -496,6 +496,10 @@ shoes_app_cursor(shoes_app *app, ID cursor)
   {
     c = gdk_cursor_new(GDK_ARROW);
   }
+  else if (cursor == s_text)
+  {
+    c = gdk_cursor_new(GDK_XTERM);
+  }
   else
     goto done;
 
