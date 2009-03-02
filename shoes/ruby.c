@@ -2502,6 +2502,7 @@ shoes_textblock_set_cursor(VALUE self, VALUE pos)
   GET_STRUCT(textblock, self_t);
   if (NIL_P(pos)) self_t->cursor = INT_MAX;
   else            self_t->cursor = NUM2INT(pos);
+  shoes_canvas_repaint_all(self_t->parent);
   return pos;
 }
 
@@ -2575,6 +2576,19 @@ shoes_textblock_motion(VALUE self, int x, int y, char *t)
     shoes_app_cursor(canvas->app, s_link);
   }
   return url;
+}
+
+VALUE
+shoes_textblock_hit(VALUE self, VALUE _x, VALUE _y)
+{
+  int x = NUM2INT(_x), y = NUM2INT(_y), index, trailing;
+  GET_STRUCT(textblock, self_t);
+  x -= self_t->place.ix + self_t->place.dx;
+  y -= self_t->place.iy + self_t->place.dy;
+  if (x < 0 || x > self_t->place.w || y < 0 || y > self_t->place.h)
+    return Qnil;
+  pango_layout_xy_to_index(self_t->layout, x * PANGO_SCALE, y * PANGO_SCALE, &index, &trailing);
+  return INT2NUM(index);
 }
 
 VALUE
@@ -4748,6 +4762,7 @@ shoes_ruby_init()
   rb_define_method(cTextBlock, "cursor", CASTHOOK(shoes_textblock_get_cursor), 0);
   rb_define_method(cTextBlock, "cursor_left", CASTHOOK(shoes_textblock_cursorx), 0);
   rb_define_method(cTextBlock, "cursor_top", CASTHOOK(shoes_textblock_cursory), 0);
+  rb_define_method(cTextBlock, "hit", CASTHOOK(shoes_textblock_hit), 2);
   rb_define_method(cTextBlock, "move", CASTHOOK(shoes_textblock_move), 2);
   rb_define_method(cTextBlock, "top", CASTHOOK(shoes_textblock_get_top), 0);
   rb_define_method(cTextBlock, "left", CASTHOOK(shoes_textblock_get_left), 0);
