@@ -13,7 +13,7 @@
 #include "shoes/effects.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
+VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cSlider, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE eVlcError, eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot;
@@ -539,7 +539,8 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
     }
 
     place->x = PX2(attr, left, right, cx, tw, canvas->place.iw) + ox;
-    place->y = PX2(attr, top, bottom, cy, th, canvas->fully) + oy;
+    place->y = PX2(attr, top, bottom, cy, th,
+      ORIGIN(canvas->place) ? canvas->height : canvas->fully) + oy;
     if (!ORIGIN(canvas->place))
     {
       place->dx = canvas->place.dx; 
@@ -609,6 +610,26 @@ unsigned char
 shoes_is_any(VALUE ele)
 {
   return shoes_is_element_p(ele, 1);
+}
+
+void
+shoes_extras_remove_all(shoes_canvas *canvas)
+{
+  int i;
+  shoes_basic *basic;
+  shoes_canvas *parent;
+  if (canvas->app == NULL) return;
+  for (i = RARRAY_LEN(canvas->app->extras) - 1; i >= 0; i--)
+  {
+    VALUE ele = rb_ary_entry(canvas->app->extras, i);
+    Data_Get_Struct(ele, shoes_basic, basic);
+    Data_Get_Struct(basic->parent, shoes_canvas, parent);
+    if (parent == canvas)
+    {
+      rb_funcall(ele, s_remove, 0);
+      rb_ary_delete_at(canvas->app->extras, i);
+    }
+  }
 }
 
 void
@@ -3531,6 +3552,47 @@ shoes_check_draw(VALUE self, VALUE c, VALUE actual)
 }
 
 VALUE
+shoes_slider_draw(VALUE self, VALUE c, VALUE actual)
+{
+  SETUP_CONTROL(0, 0, FALSE);
+
+  if (RTEST(actual))
+  {
+    if (self_t->ref == NULL)
+    {
+      self_t->ref = shoes_native_slider(self, canvas, &place, self_t->attr, msg);
+      shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
+    }
+    else
+      shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
+  }
+
+  FINISH();
+
+  return self;
+}
+
+VALUE
+shoes_slider_get_fraction(VALUE self)
+{
+  double perc = 0.;
+  GET_STRUCT(control, self_t);
+  if (self_t->ref != NULL)
+    perc = shoes_native_slider_get_fraction(self_t->ref);
+  return rb_float_new(perc);
+}
+
+VALUE
+shoes_slider_set_fraction(VALUE self, VALUE _perc)
+{
+  double perc = min(max(NUM2DBL(_perc), 0.0), 1.0);
+  GET_STRUCT(control, self_t);
+  if (self_t->ref != NULL)
+    shoes_native_slider_set_fraction(self_t->ref, perc);
+  return self;
+}
+
+VALUE
 shoes_check_is_checked(VALUE self)
 {
   GET_STRUCT(control, self_t);
@@ -4794,6 +4856,11 @@ shoes_ruby_init()
   rb_define_method(cProgress, "draw", CASTHOOK(shoes_progress_draw), 2);
   rb_define_method(cProgress, "fraction", CASTHOOK(shoes_progress_get_fraction), 0);
   rb_define_method(cProgress, "fraction=", CASTHOOK(shoes_progress_set_fraction), 1);
+  cSlider  = rb_define_class_under(cShoes, "Slider", cNative);
+  rb_define_method(cSlider, "draw", CASTHOOK(shoes_slider_draw), 2);
+  rb_define_method(cSlider, "fraction", CASTHOOK(shoes_slider_get_fraction), 0);
+  rb_define_method(cSlider, "fraction=", CASTHOOK(shoes_slider_set_fraction), 1);
+  rb_define_method(cSlider, "change", CASTHOOK(shoes_control_change), -1);
   cCheck  = rb_define_class_under(cShoes, "Check", cNative);
   rb_define_method(cCheck, "draw", CASTHOOK(shoes_check_draw), 2);
   rb_define_method(cCheck, "checked?", CASTHOOK(shoes_check_is_checked), 0);

@@ -119,6 +119,9 @@ shoes_init(SHOES_INIT_ARGS)
 void
 shoes_update_fonts(VALUE ary)
 {
+#if PANGO_VERSION_MAJOR > 1 || PANGO_VERSION_MINOR >= 22
+  pango_cairo_font_map_set_default(NULL);
+#endif
   rb_funcall(rb_const_get(cShoes, rb_intern("FONTS")), rb_intern("replace"), 1, ary);
 }
 

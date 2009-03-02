@@ -77,7 +77,7 @@ static inline void flip_endian(unsigned char* x, int length) {
 
 #undef s_host
 
-extern VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cNative, cShape, cVideo, cImage, cEffect, cEvery, cTimer, cAnim, cPattern, cBorder, cBackground, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextBlock, cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns, cButton, cEditLine, cEditBox, cListBox, cProgress, cCheck, cRadio, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
+extern VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cNative, cShape, cVideo, cImage, cEffect, cEvery, cTimer, cAnim, cPattern, cBorder, cBackground, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextBlock, cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns, cButton, cEditLine, cEditBox, cListBox, cProgress, cSlider, cCheck, cRadio, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 extern VALUE aMsgList;
 extern VALUE eInvMode, eNotImpl, eImageError;
 extern VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
@@ -186,11 +186,12 @@ void shoes_place_exact(shoes_place *, VALUE, int, int);
 void shoes_place_decide(shoes_place *, VALUE, VALUE, int, int, unsigned char, int);
 unsigned char shoes_is_element(VALUE);
 unsigned char shoes_is_any(VALUE);
+void shoes_extras_remove_all(shoes_canvas *);
 void shoes_ele_remove_all(VALUE);
 void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
 void shoes_cairo_arc(cairo_t *, double, double, double, double, double, double);
 
-#define SYMBOL_DEFS(f) f(bind); f(gsub); f(keys); f(update); f(merge); f(new); f(URI); f(now); f(debug); f(info); f(warn); f(error); f(run); f(to_a); f(to_ary); f(to_f); f(to_i); f(to_int); f(to_s); f(to_str); f(to_pattern); f(align); f(angle); f(angle1); f(angle2); f(arrow); f(autoplay); f(begin); f(body); f(cancel); f(call); f(center); f(change); f(checked); f(choose); f(click); f(corner); f(curve); f(distance); f(displace_left); f(displace_top); f(downcase); f(draw); f(emphasis); f(end); f(family); f(fill); f(finish); f(font); f(fullscreen); f(group); f(hand); f(headers); f(hidden); f(host); f(hover); f(href); f(insert); f(inner); f(items); f(justify); f(kerning); f(keypress); f(match); f(method); f(motion); f(link); f(leading); f(leave); f(ok); f(outer); f(path); f(points); f(port); f(progress); f(redirect); f(release); f(request_uri); f(rise); f(scheme); f(save); f(size); f(state); f(wheel); f(scroll); f(stretch); f(strikecolor); f(strikethrough); f(stroke); f(start); f(attach); f(text); f(title); f(top); f(right); f(bottom); f(left); f(up); f(down); f(height); f(remove); f(resizable); f(strokewidth); f(cap); f(width); f(margin); f(margin_left); f(margin_right); f(margin_top); f(margin_bottom); f(radius); f(secret); f(blur); f(glow); f(shadow); f(arc); f(rect); f(oval); f(line); f(shape); f(star); f(project); f(round); f(square); f(undercolor); f(underline); f(variant); f(weight); f(wrap);
+#define SYMBOL_DEFS(f) f(bind); f(gsub); f(keys); f(update); f(merge); f(new); f(URI); f(now); f(debug); f(info); f(warn); f(error); f(run); f(to_a); f(to_ary); f(to_f); f(to_i); f(to_int); f(to_s); f(to_str); f(to_pattern); f(align); f(angle); f(angle1); f(angle2); f(arrow); f(autoplay); f(begin); f(body); f(cancel); f(call); f(center); f(change); f(checked); f(choose); f(click); f(corner); f(curve); f(distance); f(displace_left); f(displace_top); f(downcase); f(draw); f(emphasis); f(end); f(family); f(fill); f(finish); f(font); f(fullscreen); f(group); f(hand); f(headers); f(hidden); f(host); f(hover); f(href); f(insert); f(inner); f(items); f(justify); f(kerning); f(keypress); f(match); f(method); f(motion); f(link); f(leading); f(leave); f(ok); f(outer); f(path); f(points); f(port); f(progress); f(redirect); f(release); f(request_uri); f(rise); f(scheme); f(save); f(size); f(slider); f(state); f(wheel); f(scroll); f(stretch); f(strikecolor); f(strikethrough); f(stroke); f(start); f(attach); f(text); f(title); f(top); f(right); f(bottom); f(left); f(up); f(down); f(height); f(remove); f(resizable); f(strokewidth); f(cap); f(width); f(margin); f(margin_left); f(margin_right); f(margin_top); f(margin_bottom); f(radius); f(secret); f(blur); f(glow); f(shadow); f(arc); f(rect); f(oval); f(line); f(shape); f(star); f(project); f(round); f(square); f(undercolor); f(underline); f(variant); f(weight); f(wrap);
 #define SYMBOL_INTERN(name) s_##name = rb_intern("" # name)
 #define SYMBOL_ID(name) ID s_##name 
 #define SYMBOL_EXTERN(name) extern ID s_##name
@@ -257,6 +258,7 @@ SYMBOL_DEFS(SYMBOL_EXTERN);
   f("+edit_line", edit_line, -1); \
   f("+edit_box", edit_box, -1); \
   f("+progress", progress, -1); \
+  f("+slider", slider, -1); \
   f("+check", check, -1); \
   f("+radio", radio, -1); \
   f(".app", get_app, 0); \
