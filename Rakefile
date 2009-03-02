@@ -142,7 +142,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
       rm_rf "dist/ruby/lib/#{libn}"
     end
   end
-  %w[req/rubygems/* req/ftsearch/lib/*].each do |rdir|
+  %w[req/rubygems/* req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
     FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
   end
   %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops].
@@ -170,7 +170,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
   when /mingw/
     dlls = [ruby_so]
     dlls += %w{libungif4 libjpeg libcairo-2 libpng12-0 libglib-2.0-0 libgobject-2.0-0 libpango-1.0-0
-      libgmodule-2.0-0 libpangocairo-1.0-0 libpangowin32-1.0-0 libportaudio-2 sqlite3}
+      libgmodule-2.0-0 libpangocairo-1.0-0 libpangowin32-1.0-0 libportaudio-2 sqlite3 libssl32}
     dlls.each{|dll| cp "#{ext_ruby}/bin/#{dll}.dll", "dist/"}
     if ENV['VIDEO']
       cp    "/usr/lib/libvlc.so", "dist"
