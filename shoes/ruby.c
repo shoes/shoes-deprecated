@@ -3344,7 +3344,11 @@ shoes_control_remove(VALUE self)
   shoes_canvas_remove_item(self_t->parent, self, 1, 0);
 
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-  if (self_t->ref != NULL) shoes_native_control_remove(self_t->ref, canvas);
+  if (self_t->ref != NULL) {
+    SHOES_CONTROL_REF ref = self_t->ref;
+    self_t->ref = NULL;
+    shoes_native_control_remove(ref, canvas);
+  }
   return self;
 }
 

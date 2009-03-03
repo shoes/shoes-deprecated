@@ -181,6 +181,8 @@ void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c)
     long i = rb_ary_index_of(slot->controls, item);
     if (i >= 0)
       rb_ary_insert_at(slot->controls, i, 1, Qnil);
+    if (item == slot->focus)
+      slot->focus = Qnil;
   }
 }
 
@@ -1139,6 +1141,7 @@ shoes_native_control_focus(SHOES_CONTROL_REF ref)
 void
 shoes_native_control_remove(SHOES_CONTROL_REF ref, shoes_canvas *canvas)
 {
+  if (GetFocus() == ref) SetFocus(canvas->app->slot->window);
   DestroyWindow(ref);
 }
 
