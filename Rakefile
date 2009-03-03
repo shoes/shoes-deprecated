@@ -78,9 +78,9 @@ def copy_ext xdir, libdir
     dxdir = xdir.gsub %r!^req/\w+/!, 'deps/'
     copy_files "#{dxdir}/*.so", libdir
   when /darwin/
-    Dir.chdir(xdir) do
-      `ruby extconf.rb; make`
-    end
+    # Dir.chdir(xdir) do
+    #   `ruby extconf.rb; make`
+    # end
     copy_files "#{xdir}/*.bundle", libdir
   else
     Dir.chdir(xdir) do
