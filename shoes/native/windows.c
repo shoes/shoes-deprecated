@@ -749,6 +749,9 @@ shoes_code
 shoes_app_cursor(shoes_app *app, ID cursor)
 {
   HCURSOR c;
+  if (app->slot == NULL || app->slot->window == NULL || app->cursor == cursor)
+    goto done;
+
   if (cursor == s_hand || cursor == s_link)
   {
     c = LoadCursor(NULL, IDC_HAND);

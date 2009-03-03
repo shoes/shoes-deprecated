@@ -189,6 +189,7 @@ typedef struct {
   LONG style;
   RECT normal;
   BOOL ctrlkey, altkey, shiftkey;
+  HWND window;
 } shoes_app_win32, SHOES_APP_OS;
 
 typedef struct {

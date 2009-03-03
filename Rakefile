@@ -204,6 +204,11 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     else
       cp_r ENV['APP'], "dist/app"
     end
+    if APP['ignore']
+      APP['ignore'].each do |nn|
+        rm_rf "dist/app/#{nn}"
+      end
+    end
   end
   cp_r  "fonts", "dist/fonts"
   cp_r  "lib", "dist/lib"
