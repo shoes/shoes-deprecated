@@ -78,9 +78,9 @@ def copy_ext xdir, libdir
     dxdir = xdir.gsub %r!^req/\w+/!, 'deps/'
     copy_files "#{dxdir}/*.so", libdir
   when /darwin/
-    Dir.chdir(xdir) do
-      `ruby extconf.rb; make`
-    end
+    # Dir.chdir(xdir) do
+    #   `ruby extconf.rb; make`
+    # end
     copy_files "#{xdir}/*.bundle", libdir
   else
     Dir.chdir(xdir) do
@@ -203,6 +203,11 @@ task :build => [:build_os, "dist/VERSION.txt"] do
       sh APP['clone'].gsub(/^git /, "#{GIT} --git-dir=#{ENV['APP']}/.git ")
     else
       cp_r ENV['APP'], "dist/app"
+    end
+    if APP['ignore']
+      APP['ignore'].each do |nn|
+        rm_rf "dist/app/#{nn}"
+      end
     end
   end
   cp_r  "fonts", "dist/fonts"
