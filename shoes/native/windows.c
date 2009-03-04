@@ -281,7 +281,7 @@ shoes_slot_win32proc(
         INFO("WM_PAINT(slot, %lu)\n", win);
         if (c != canvas->app->canvas)
           shoes_canvas_paint(c);
-      break;
+      return 1;
 
       case WM_VSCROLL:
         shoes_canvas_win32_vscroll(canvas, LOWORD(w), HIWORD(w));
@@ -753,6 +753,9 @@ shoes_code
 shoes_app_cursor(shoes_app *app, ID cursor)
 {
   HCURSOR c;
+  if (app->slot == NULL || app->slot->window == NULL || app->cursor == cursor)
+    goto done;
+
   if (cursor == s_hand || cursor == s_link)
   {
     c = LoadCursor(NULL, IDC_HAND);

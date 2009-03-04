@@ -402,7 +402,8 @@ class Shoes
 
   module Basic
     def tween opts, &blk
-      a = parent.animate(opts[:speed] || 20) do
+      @TWEEN.remove if @TWEEN
+      @TWEEN = parent.animate(opts[:speed] || 20) do
 
         # figure out a coordinate halfway between here and there
         cont = opts.select do |k, v|
@@ -417,7 +418,8 @@ class Shoes
 
         # if we're there, get rid of the animation
         if cont.empty?
-          a.remove
+          @TWEEN.remove
+          @TWEEN = nil
           blk.call if blk
         end
       end

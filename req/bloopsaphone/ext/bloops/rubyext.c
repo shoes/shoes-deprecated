@@ -232,10 +232,10 @@ void
 Init_bloops()
 {
   Btest = bloops_new();
-  bloops_tempo(Btest, 1);
+  bloops_tempo(Btest, 120);
   Pplain = bloops_square();
   Ttest = bloops_track2(Btest, Pplain, "C");
-  Ttest->notes[0].tone = 0;
+  Ttest->notes[0].tone = 'n';
   bloops_track_at(Btest, Ttest, 0);
 
   cBloops = rb_define_class("Bloops", rb_cObject);

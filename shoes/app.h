@@ -57,7 +57,8 @@ typedef struct _shoes_app {
   SHOES_SLOT_OS *slot;
   cairo_t *scratch;
   int width, height, mouseb, mousex, mousey,
-    resizable, hidden, started, fullscreen;
+    resizable, hidden, started, fullscreen,
+    minwidth, minheight;
   VALUE self;
   VALUE canvas;
   VALUE nestslot;

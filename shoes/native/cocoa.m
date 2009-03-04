@@ -781,6 +781,7 @@ shoes_native_app_window(shoes_app *app, int dialog)
   ShoesWindow *window;
   unsigned int mask = NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
   NSRect rect = NSMakeRect(0, 0, app->width, app->height);
+  NSSize size = {app->minwidth, app->minheight};
 
   if (app->resizable)
     mask |= NSResizableWindowMask;
@@ -790,6 +791,8 @@ shoes_native_app_window(shoes_app *app, int dialog)
   }
   window = [[ShoesWindow alloc] initWithContentRect: rect
     styleMask: mask backing: NSBackingStoreBuffered defer: NO];
+  if (app->minwidth > 0 || app->minheight > 0)
+    [window setContentMinSize: size];
   [window prepareWithApp: app->self];
   return window;
 }
