@@ -149,7 +149,11 @@ typedef struct {
 #include <commctrl.h>
 #include <shellapi.h>
 #include <cairo-win32.h>
-#include "win32.h"
+#ifdef RUBY_1_9
+#include "win32"
+#else
+#include "win32/win32.h"
+#endif
 
 #ifndef WM_MOUSEWHEEL
 #define WM_MOUSEWHEEL 0x020A
