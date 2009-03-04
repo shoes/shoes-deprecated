@@ -176,7 +176,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
       cp    "/usr/lib/libvlc.so", "dist"
       ln_s  "libvlc.so", "dist/libvlc.so.0"
     end
-    sh    "strip -x dist/*.dll"
+    sh "strip -x dist/*.dll" unless ENV['DEBUG']
   when /darwin/
     if ENV['SHOES_DEPS_PATH']
       dylibs = %w[lib/libcairo.2.dylib lib/libpixman-1.0.dylib lib/libgmodule-2.0.0.dylib lib/libintl.8.dylib lib/libruby.dylib
