@@ -427,6 +427,16 @@ shoes_hidden_win32proc(HWND win, UINT msg, WPARAM w, LPARAM l)
   return DefWindowProc(win, msg, w, l);
 }
 
+static void
+shoes_app_decor(HWND win, int *width, int *height)
+{
+   RECT rect, wrect;
+   GetClientRect(win, &rect);
+   GetWindowRect(win, &wrect);
+   *width = ((wrect.right - wrect.left) - (rect.right - rect.left)) - 2;
+   *height = ((wrect.bottom - wrect.top) - (rect.bottom - rect.top)) - 2;
+}
+
 LRESULT CALLBACK
 shoes_app_win32proc(
   HWND win,
@@ -455,11 +465,12 @@ shoes_app_win32proc(
     //
     case WM_PAINT:
     {
-      RECT rect, wrect;
+      RECT rect;
+      int edgew, edgeh;
       int scrollwidth = GetSystemMetrics(SM_CXVSCROLL);
-      GetClientRect(app->slot->window, &rect);
-      GetWindowRect(app->slot->window, &wrect);
-      if (wrect.right - wrect.left > rect.right + scrollwidth)
+      GetClientRect(win, &rect);
+      shoes_app_decor(win, &edgew, &edgeh);
+      if (edgew > scrollwidth)
         rect.right += scrollwidth;
       app->width = rect.right;
       app->height = rect.bottom;
@@ -468,6 +479,20 @@ shoes_app_win32proc(
       shoes_app_paint(app);
     }
     break;
+
+    case WM_GETMINMAXINFO:
+      if (app != NULL)
+      {
+        int edgew, edgeh;
+        int scrollwidth = GetSystemMetrics(SM_CXVSCROLL);
+        MINMAXINFO *size = (MINMAXINFO *)l;
+        shoes_app_decor(win, &edgew, &edgeh);
+        if (edgew > scrollwidth)
+          edgew -= scrollwidth;
+        size->ptMinTrackSize.x = app->minwidth + edgew;
+        size->ptMinTrackSize.y = app->minheight + edgeh;
+      }
+    return 0;
 
     case WM_LBUTTONDOWN:
     {
