@@ -3155,6 +3155,10 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
     shoes_undo_transformation(cr, self_t->st, &self_t->place, 0);
   }
 
+  if (li == 0) {
+    self_t->place.iw = px;
+    self_t->place.w = px + lmargin + rmargin;
+  }
   self_t->place.ih = py;
   self_t->place.h = py + tmargin + bmargin;
   INFO("TEXT: %d, %d (%d, %d) / (%d: %d, %d: %d) %d, %d [%d]\n", canvas->cx, canvas->cy,
