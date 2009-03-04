@@ -53,6 +53,8 @@ shoes_app_alloc(VALUE klass)
   app->title = Qnil;
   app->width = SHOES_APP_WIDTH;
   app->height = SHOES_APP_HEIGHT;
+  app->minwidth = 0;
+  app->minheight = 0;
   app->fullscreen = FALSE;
   app->resizable = TRUE;
   app->cursor = s_arrow;
@@ -134,6 +136,8 @@ shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner)
   app_t->resizable = (ATTR(attr, resizable) != Qfalse);
   app_t->hidden = (ATTR(attr, hidden) == Qtrue);
   shoes_app_resize(app_t, ATTR2(int, attr, width, SHOES_APP_WIDTH), ATTR2(int, attr, height, SHOES_APP_HEIGHT));
+  app_t->minwidth = app_t->width;
+  app_t->minheight = app_t->height;
   shoes_canvas_init(app_t->canvas, app_t->slot, attr, app_t->width, app_t->height);
   if (shoes_world->mainloop)
     shoes_app_open(app_t, url);
