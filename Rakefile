@@ -188,8 +188,11 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     cp    "#{ext_ruby}/lib/lib#{ruby_so}.so", "dist/lib#{ruby_so}.so"
     ln_s  "lib#{ruby_so}.so", "dist/lib#{ruby_so}.so.#{ruby_v[/^\d+\.\d+/]}"
     cp    "/usr/lib/libgif.so", "dist/libgif.so.4"
+    ln_s  "libgif.so.4", "dist/libungif.so.4"
     cp    "/usr/lib/libjpeg.so", "dist/libjpeg.so.62"
     cp    "/usr/lib/libcurl.so", "dist/libcurl.so.4"
+    cp    "/usr/lib/libportaudio.so", "dist/libportaudio.so.2"
+    cp    "/usr/lib/libsqlite3.so", "dist/libsqlite3.so.0"
     if ENV['VIDEO']
       cp    "/usr/lib/libvlc.so", "dist"
       ln_s  "libvlc.so", "dist/libvlc.so.0"
