@@ -21,8 +21,10 @@ VLC_VERSION = (RUBY_PLATFORM =~ /win32/ ? "0.8": `vlc --version 2>/dev/null`.spl
 VLC_0_8 = VLC_VERSION !~ /^0\.9/
 
 if ENV['APP']
-  APP['icons'].keys.each do |name|
-    APP['icons'][name] = File.join(ENV['APP'], APP['icons'][name])
+  %w[dmg icons].each do |subk|
+    APP[subk].keys.each do |name|
+      APP[subk][name] = File.join(ENV['APP'], APP[subk][name])
+    end
   end
 end
 
@@ -470,13 +472,20 @@ else
     end
 
     task :installer do
+      dmg_ds, dmg_jpg = "platform/mac/dmg_ds_store", "static/shoes-dmg.jpg"
+      if APP['dmg']
+        dmg_ds, dmg_jpg = APP['dmg']['ds_store'], APP['dmg']['background']
+      end
+
       mkdir_p "pkg"
       rm_rf "dmg"
       mkdir_p "dmg"
       cp_r "#{APPNAME}.app", "dmg"
-      mv "dmg/#{APPNAME}.app/Contents/MacOS/samples", "dmg/samples"
+      unless ENV['APP']
+        mv "dmg/#{APPNAME}.app/Contents/MacOS/samples", "dmg/samples"
+      end
       ln_s "/Applications", "dmg/Applications"
-      sh "DYLD_LIBRARY_PATH= platform/mac/pkg-dmg --target pkg/#{PKG}.dmg --source dmg --volname '#{APPNAME}' --copy platform/mac/dmg_ds_store:/.DS_Store --mkdir /.background --copy static/shoes-dmg.jpg:/.background" # --format UDRW"
+      sh "DYLD_LIBRARY_PATH= platform/mac/pkg-dmg --target pkg/#{PKG}.dmg --source dmg --volname '#{APPNAME}' --copy #{dmg_ds}:/.DS_Store --mkdir /.background --copy #{dmg_jpg}:/.background" # --format UDRW"
       rm_rf "dmg"
     end
   else
