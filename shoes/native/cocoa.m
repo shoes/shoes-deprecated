@@ -57,9 +57,42 @@
 {
   rb_eval_string("Shoes.show_log");
 }
+- (void)emulateKey: (NSString *)key modifierFlags: (unsigned int)flags withoutModifiers: (NSString *)key2
+{
+  ShoesWindow *win = [NSApp keyWindow];
+  [win keyDown: [NSEvent keyEventWithType:NSKeyDown
+    location:NSMakePoint(0,0) modifierFlags:flags
+    timestamp:0 windowNumber:0 context:nil
+    characters:key charactersIgnoringModifiers:key2 isARepeat:NO 
+    keyCode:0]];
+}
 - (void)help: (id)sender
 {
   rb_eval_string("Shoes.show_manual");
+}
+- (void)undo: (id)sender
+{
+  [self emulateKey: @"z" modifierFlags: NSCommandKeyMask withoutModifiers: @"z"];
+}
+- (void)redo: (id)sender
+{
+  [self emulateKey: @"Z" modifierFlags: NSCommandKeyMask|NSShiftKeyMask withoutModifiers: @"z"];
+}
+- (void)cut: (id)sender
+{
+  [self emulateKey: @"x" modifierFlags: NSCommandKeyMask withoutModifiers: @"x"];
+}
+- (void)copy: (id)sender
+{
+  [self emulateKey: @"c" modifierFlags: NSCommandKeyMask withoutModifiers: @"c"];
+}
+- (void)paste: (id)sender
+{
+  [self emulateKey: @"v" modifierFlags: NSCommandKeyMask withoutModifiers: @"v"];
+}
+- (void)selectAll: (id)sender
+{
+  [self emulateKey: @"a" modifierFlags: NSCommandKeyMask withoutModifiers: @"a"];
 }
 @end
 
@@ -486,7 +519,7 @@ create_apple_menu(NSMenu *main)
         action:@selector(openFile:) keyEquivalent:@"o"];
     [menuitem setTarget: shoes_world->os.events];
     menuitem = [menuApp addItemWithTitle:@"Package..."
-        action:@selector(package:) keyEquivalent:@"x"];
+        action:@selector(package:) keyEquivalent:@"P"];
     [menuitem setTarget: shoes_world->os.events];
     [menuApp addItemWithTitle:@"Preferences..." action:nil keyEquivalent:@""];
     [menuApp addItem: [NSMenuItem separatorItem]];
@@ -521,6 +554,35 @@ create_apple_menu(NSMenu *main)
     [NSApp setAppleMenu:menuApp];
     add_to_menubar(main, menuApp);
     [menuApp release];
+}
+
+void
+create_edit_menu(NSMenu *main)
+{
+    NSMenuItem *menuitem;
+    NSMenu *menuEdit = [[NSMenu alloc] initWithTitle: @"Edit"];
+
+    menuitem = [menuEdit addItemWithTitle:@"Undo"
+        action:@selector(undo:) keyEquivalent:@"z"];
+    [menuitem setTarget: shoes_world->os.events];
+    menuitem = [menuEdit addItemWithTitle:@"Redo"
+        action:@selector(redo:) keyEquivalent:@"Z"];
+    [menuitem setTarget: shoes_world->os.events];
+    [menuEdit addItem: [NSMenuItem separatorItem]];
+    menuitem = [menuEdit addItemWithTitle:@"Cut"
+        action:@selector(cut:) keyEquivalent:@"x"];
+    [menuitem setTarget: shoes_world->os.events];
+    menuitem = [menuEdit addItemWithTitle:@"Copy"
+        action:@selector(copy:) keyEquivalent:@"c"];
+    [menuitem setTarget: shoes_world->os.events];
+    menuitem = [menuEdit addItemWithTitle:@"Paste"
+        action:@selector(paste:) keyEquivalent:@"v"];
+    [menuitem setTarget: shoes_world->os.events];
+    menuitem = [menuEdit addItemWithTitle:@"Select All"
+        action:@selector(selectAll:) keyEquivalent:@"a"];
+    [menuitem setTarget: shoes_world->os.events];
+    add_to_menubar(main, menuEdit);
+    [menuEdit release];
 }
 
 void
@@ -634,6 +696,7 @@ void shoes_native_init()
   shoes_world->os.events = [[ShoesEvents alloc] init];
   [NSApp setMainMenu: main];
   create_apple_menu(main);
+  create_edit_menu(main);
   create_window_menu(main);
   create_help_menu(main);
   [NSApp setDelegate: shoes_world->os.events];
