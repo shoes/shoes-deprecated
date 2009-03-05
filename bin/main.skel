@@ -41,6 +41,8 @@ main(argc, argv)
   code = shoes_init(inst, style);
 #ifdef RUBY_1_9
   rb_w32_sysinit(&argc, &argv);
+#else
+  NtInitialize(&argc, &argv);
 #endif
 #else
   path = argv[0];
