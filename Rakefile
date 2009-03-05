@@ -234,7 +234,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     sh "ditto \"#{APP['icons']['osx']}\" \"#{APPNAME}.app/Contents/Resources/App.icns\""
     rewrite "platform/mac/Info.plist", "#{APPNAME}.app/Contents/Info.plist"
     cp "platform/mac/version.plist", "#{APPNAME}.app/Contents/"
-    cp "platform/mac/pangorc", "#{APPNAME}.app/Contents/MacOS/"
+    rewrite "platform/mac/pangorc", "#{APPNAME}.app/Contents/MacOS/pangorc"
     cp "platform/mac/command-manual.rb", "#{APPNAME}.app/Contents/MacOS/"
     rewrite "platform/mac/shoes-launch", "#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
     chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
