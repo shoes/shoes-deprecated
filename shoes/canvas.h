@@ -223,6 +223,7 @@ typedef struct {
 } shoes_image;
 
 #ifdef VIDEO
+#define SHOES_VIDEO 1
 //
 // video struct
 //
@@ -243,6 +244,8 @@ typedef struct {
   VALUE path;
   SHOES_SLOT_OS *slot;
 } shoes_video;
+#else
+#define SHOES_VIDEO 0
 #endif
 
 //
