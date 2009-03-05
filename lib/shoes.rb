@@ -402,18 +402,32 @@ class Shoes
 
   module Basic
     def tween opts, &blk
+      opts = opts.dup
+
+      if opts[:upward]
+        opts[:top] = self.top - opts.delete(:upward)
+      elsif opts[:downward]
+        opts[:top] = self.top + opts.delete(:downward)
+      end
+      
+      if opts[:sideways]
+        opts[:left] = self.left + opts.delete(:sideways)
+      end
+      
       @TWEEN.remove if @TWEEN
       @TWEEN = parent.animate(opts[:speed] || 20) do
 
         # figure out a coordinate halfway between here and there
         cont = opts.select do |k, v|
-          n, o = v, self.style[k]
-          if n != o
-            n = o + ((n - o) / 2)
-            n = v if o == n
-            self.send("#{k}=", n)
+          if self.respond_to? k
+            n, o = v, self.send(k)
+            if n != o
+              n = o + ((n - o) / 2)
+              n = v if o == n
+              self.send("#{k}=", n)
+            end
+            self.style[k] != v
           end
-          self.style[k] != v
         end
 
         # if we're there, get rid of the animation
