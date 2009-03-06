@@ -1449,7 +1449,10 @@ shoes_canvas_insert(VALUE self, long i, VALUE ele, VALUE block)
     i = rb_ary_index_of(canvas->contents, ele) - i;
 
   canvas->insertion = i;
-  shoes_canvas_memdraw(self, block);
+  if (rb_respond_to(block, s_widget))
+    rb_funcall(block, s_widget, 1, self);
+  else
+    shoes_canvas_memdraw(self, block);
   canvas->insertion = -2;
   shoes_canvas_repaint_all(self);
 }
@@ -1458,7 +1461,7 @@ VALUE
 shoes_canvas_after(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
-  rb_parse_args(argc, argv, "|e&", &args);
+  rb_parse_args(argc, argv, "eo,e&", &args);
   shoes_canvas_insert(self, -1, args.a[0], args.a[1]);
   return self;
 }
@@ -1467,7 +1470,7 @@ VALUE
 shoes_canvas_before(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
-  rb_parse_args(argc, argv, "|e&", &args);
+  rb_parse_args(argc, argv, "eo,e&", &args);
   shoes_canvas_insert(self, 0, args.a[0], args.a[1]);
   return self;
 }
@@ -1475,18 +1478,18 @@ shoes_canvas_before(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_append(int argc, VALUE *argv, VALUE self)
 {
-  VALUE block = Qnil;
-  if (rb_block_given_p()) block = rb_block_proc();
-  shoes_canvas_insert(self, -1, Qnil, block);
+  rb_arg_list args;
+  rb_parse_args(argc, argv, "o,&", &args);
+  shoes_canvas_insert(self, -1, Qnil, args.a[0]);
   return self;
 }
 
 VALUE
 shoes_canvas_prepend(int argc, VALUE *argv, VALUE self)
 {
-  VALUE block = Qnil;
-  if (rb_block_given_p()) block = rb_block_proc();
-  shoes_canvas_insert(self, 0, Qnil, block);
+  rb_arg_list args;
+  rb_parse_args(argc, argv, "o,&", &args);
+  shoes_canvas_insert(self, 0, Qnil, args.a[0]);
   return self;
 }
 
@@ -1769,9 +1772,9 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
 
   if (ORIGIN(self_t->place))
   {
-    y += self_t->slot->scrolly;
+    oy = y + self_t->slot->scrolly;
     ox = x - self_t->place.ix + self_t->place.dx;
-    oy = y - (self_t->place.iy + self_t->place.dy);
+    oy = oy - (self_t->place.iy + self_t->place.dy);
     if (oy < self_t->slot->scrolly || ox < 0 || oy > self_t->slot->scrolly + self_t->place.ih || ox > self_t->place.iw)
       return Qnil;
   }
@@ -1782,7 +1785,11 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
     {
       VALUE click = ATTR(self_t->attr, click);
       if (!NIL_P(click))
+      {
+        if (ORIGIN(self_t->place))
+          y += self_t->slot->scrolly;
         shoes_safe_block(self, click, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
+      }
     }
 
     for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--)
@@ -1864,9 +1871,9 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
 
   if (ORIGIN(self_t->place))
   {
-    y += self_t->slot->scrolly;
+    oy = y + self_t->slot->scrolly;
     ox = x - self_t->place.ix + self_t->place.dx;
-    oy = y - (self_t->place.iy + self_t->place.dy);
+    oy = oy - (self_t->place.iy + self_t->place.dy);
     if (oy < self_t->slot->scrolly || ox < 0 || oy > self_t->slot->scrolly + self_t->place.ih || ox > self_t->place.iw)
       return;
   }
@@ -1880,6 +1887,8 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
       VALUE release = ATTR(self_t->attr, release);
       if (!NIL_P(release))
       {
+        if (ORIGIN(self_t->place))
+          y += self_t->slot->scrolly;
         shoes_safe_block(self, release, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
       }
     }
