@@ -15,12 +15,23 @@
 #include <unistd.h>
 #include "bloopsaphone.h"
 
+#ifdef PaStream
+#error ** Looks like you're linking against PortAudio 1.8!
+#error ** Bloopsaphone needs PortAudio 1.9 or greater.
+#error ** On Ubuntu, try: aptitude install portaudio19-dev.
+#endif
+
 #define SAMPLE_RATE 44100
 #define rnd(n) (rand() % (n + 1))
 #define tempo2frames(tempo) ((float)SAMPLE_RATE / (tempo / 60.0f))
 #define PI 3.14159265f
 
 static bloopsmix *MIXER = NULL;
+
+static void bloops_synth(int, float *);
+static int bloops_port_callback(const void *, void *,
+  unsigned long, const PaStreamCallbackTimeInfo *,
+  PaStreamCallbackFlags, void *);
 
 float
 frnd(float range)
@@ -328,19 +339,13 @@ bloops_synth(int length, float* buffer)
 }
 
 static int bloops_port_callback(const void *inputBuffer, void *outputBuffer,
-  unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo,
+  unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo *timeInfo,
   PaStreamCallbackFlags statusFlags, void *data)
 {
   int i;
   float *out = (float*)outputBuffer;
   bloops *B = (bloops *)data;
-
   bloops_synth(framesPerBuffer, out);
-  // if (B->play == BLOOPS_PLAY)
-  // else
-  //   for(i = 0; i < framesPerBuffer; i++)
-  //     *out++ = 0.0f;
-  
   return paContinue;
 }
 
