@@ -4,6 +4,7 @@ require 'rake/clean'
 require 'platform/skel'
 require 'fileutils'
 require 'find'
+require 'yaml'
 include FileUtils
 
 APP = YAML.load_file(File.join(ENV['APP'] || ".", "app.yaml"))
