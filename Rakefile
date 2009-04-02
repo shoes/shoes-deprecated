@@ -447,7 +447,7 @@ else
   when /mingw/
     DLEXT = 'dll'
     LINUX_CFLAGS << ' -I. -I/mingw/include -I/mingw/include/ruby-1.9.1/ruby'
-    LINUX_CFLAGS << " -DSHOES_WIN32 -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0500 -DWINVER=0x0500 -DCOBJMACROS"
+    LINUX_CFLAGS << " -DXMD_H -DHAVE_BOOLEAN -DSHOES_WIN32 -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0500 -DWINVER=0x0500 -DCOBJMACROS"
     LINUX_LDFLAGS =" -DBUILD_DLL -lungif -ljpeg -lglib-2.0 -lgobject-2.0 -fPIC -shared"
     LINUX_LDFLAGS << ' -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 -lole32 -loleaut32 -ladvapi32 -loleacc -lwinhttp'
   else
