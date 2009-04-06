@@ -33,7 +33,7 @@ class Shoes
 
     def self.exe(script, opt, &blk)
       size = File.size(script)
-      f = File.open(script)
+      f = File.open(script, 'rb')
       exe = Binject::EXE.new(File.join(DIR, "static", "stubs", "blank.exe"))
       size += script.length
       exe.inject("SHOES_FILENAME", File.basename(script))
