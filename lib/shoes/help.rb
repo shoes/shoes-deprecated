@@ -1,6 +1,5 @@
 # -*- encoding: utf-8 -*-
 module Shoes::Manual
-  PATH = "#{DIR}/static/manual.txt"
   PARA_RE = /\s*?(\{{3}(?:.+?)\}{3})|\n\n/m
   CODE_RE = /\{{3}(?:\s*\#![^\n]+)?(.+?)\}{3}/m
   IMAGE_RE = /\!(\{([^}\n]+)\})?([^!\n]+\.\w+)\!/
@@ -9,6 +8,14 @@ module Shoes::Manual
   SUB_STYLE = {:stroke => "#CCC", :margin_top => 10}
   IMAGE_STYLE = {:margin => 8, :margin_left => 100}
   COLON = ": "
+
+  def self.path
+    path = "#{DIR}/static/manual-#{Shoes.language}.txt"
+    unless File.exists? path
+      path = "#{DIR}/static/manual-en.txt"
+    end
+    path
+  end
 
   def dewikify_hi(str, terms, intro = false)
     if terms
@@ -346,7 +353,7 @@ def Shoes.make_help_page
   font "#{DIR}/fonts/Coolvetica.ttf" unless Shoes::FONTS.include? "Coolvetica"
   proc do
     extend Shoes::Manual
-    docs = load_docs Shoes::Manual::PATH
+    docs = load_docs Shoes::Manual.path
 
     style(Shoes::Image, :margin => 8, :margin_left => 100)
     style(Shoes::Code, :stroke => "#C30")

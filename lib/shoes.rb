@@ -36,6 +36,10 @@ class Shoes
     para "404 NOT FOUND, GUYS!"
   end
  
+  class << self; attr_accessor :locale, :language end
+  @locale = ENV["SHOES_LANG"] || ENV["LC_MESSAGES"] || ENV["LC_ALL"] || ENV["LANG"] || "C"
+  @language = @locale[/^(\w{2})_/, 1] || "en"
+
   @mounts = []
 
   OPTS = OptionParser.new do |opts|
