@@ -36,17 +36,6 @@ class Shoes
     para "404 NOT FOUND, GUYS!"
   end
  
-  # Using TOPLEVEL to pacify Ruby 1.9 for now
-  def self.anonymous_binding
-    return TOPLEVEL_BINDING if RUBY_VERSION =~ /^1\.9/
-    obj = Object.new
-    return \
-      class << obj
-        def self.to_s; "(shoes)" end
-        binding
-      end
-  end
-
   @mounts = []
 
   OPTS = OptionParser.new do |opts|
@@ -388,7 +377,7 @@ class Shoes
       $0.replace path
 
       code = File.read(path)
-      eval(code, Shoes.anonymous_binding, path)
+      eval(code, TOPLEVEL_BINDING, path)
     end
   rescue SettingUp
   rescue Object => e
@@ -452,7 +441,7 @@ class Shoes
 
   {Background => [:angle, :radius, :curve, *BASIC_S],
    Border     => [:angle, :radius, :curve, :strokewidth, *BASIC_S],
-   ::Canvas   => [:scroll, :start, :finish, :keypress, *(MOUSE_S|BASIC_S)],
+   Canvas     => [:scroll, :start, :finish, :keypress, *(MOUSE_S|BASIC_S)],
    Check      => [:click, :checked, *BASIC_S],
    Radio      => [:click, :checked, :group, *BASIC_S],
    EditLine   => [:change, :secret, :text, *BASIC_S],

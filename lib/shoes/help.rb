@@ -153,7 +153,7 @@ module Shoes::Manual
   end
 
   def run_code str
-    eval(str, Shoes.anonymous_binding)
+    eval(str, TOPLEVEL_BINDING)
   end
 
   def load_docs path

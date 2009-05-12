@@ -60,6 +60,7 @@ shoes_app_alloc(VALUE klass)
   app->cursor = s_arrow;
   app->scratch = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
   app->self = Data_Wrap_Struct(klass, shoes_app_mark, shoes_app_free, app);
+  rb_extend_object(app->self, cTypes);
   return app->self;
 }
 
