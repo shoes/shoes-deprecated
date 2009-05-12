@@ -334,12 +334,12 @@ shoes_canvas_new(VALUE klass, shoes_app *app)
 }
 
 static void
-shoes_canvas_empty(shoes_canvas *canvas)
+shoes_canvas_empty(shoes_canvas *canvas, int extras)
 {
   unsigned char stage = canvas->stage;
   canvas->stage = CANVAS_EMPTY;
   shoes_ele_remove_all(canvas->contents);
-  shoes_extras_remove_all(canvas);
+  if (extras) shoes_extras_remove_all(canvas);
   canvas->stage = stage;
 }
 
@@ -358,7 +358,7 @@ shoes_canvas_clear(VALUE self)
   canvas->stl = 0;
   canvas->stt = 0;
   shoes_canvas_reset_transform(canvas);
-  shoes_canvas_empty(canvas);
+  shoes_canvas_empty(canvas, TRUE);
   canvas->contents = rb_ary_new();
   canvas->place.x = canvas->place.y = 0;
   canvas->place.dx = canvas->place.dy = 0;
@@ -1172,7 +1172,7 @@ shoes_canvas_remove(VALUE self)
 {
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
-  shoes_canvas_empty(self_t);
+  shoes_canvas_empty(self_t, TRUE);
   if (!NIL_P(self_t->parent))
   {
     shoes_canvas *pc;
@@ -1500,7 +1500,7 @@ shoes_canvas_clear_contents(int argc, VALUE *argv, VALUE self)
   SETUP();
 
   if (rb_block_given_p()) block = rb_block_proc();
-  shoes_canvas_empty(canvas);
+  shoes_canvas_empty(canvas, FALSE);
   if (!NIL_P(block))
     shoes_canvas_memdraw(self, block);
   shoes_canvas_repaint_all(self);
