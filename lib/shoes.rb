@@ -479,7 +479,7 @@ class Shoes
     end
   end
 
-  class Widget
+  class Types::Widget
     @types = {}
     def self.inherited subc
       methc = subc.to_s[/(^|::)(\w+)$/, 2].
