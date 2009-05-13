@@ -20,6 +20,16 @@ module Hpricot
     # Is this object a stranded end tag?
     def bogusetag?() BogusETag::Trav === self end
 
+    # Parses an HTML string, making an HTML fragment based on
+    # the options used to create the container document.
+    def make(input = nil, &blk)
+      if parent and parent.respond_to? :make
+        parent.make(input, &blk)
+      else
+        Hpricot.make(input, &blk).children
+      end
+    end
+
     # Builds an HTML string from this node and its contents.
     # If you need to write to a stream, try calling <tt>output(io)</tt>
     # as a method on this object.
@@ -41,7 +51,7 @@ module Hpricot
         return i if (x.respond_to?(:name) and name == x.name) or
           (x.text? and name == "text()")
         i += 1
-      end
+      end if children
       -1
     end
 
@@ -109,12 +119,12 @@ module Hpricot
 
     # Adds elements immediately after this element, contained in the +html+ string.
     def after(html = nil, &blk)
-      parent.insert_after(Hpricot.make(html, &blk), self)
+      parent.insert_after(make(html, &blk), self)
     end
 
     # Adds elements immediately before this element, contained in the +html+ string.
     def before(html = nil, &blk)
-      parent.insert_before(Hpricot.make(html, &blk), self)
+      parent.insert_before(make(html, &blk), self)
     end
 
 
@@ -122,7 +132,7 @@ module Hpricot
     # in the +html+ string.
     def swap(html = nil, &blk)
       parent.altered!
-      parent.replace_child(self, Hpricot.make(html, &blk))
+      parent.replace_child(self, make(html, &blk))
     end
 
     def get_subnode(*indexes)
@@ -136,16 +146,20 @@ module Hpricot
     # Builds a string from the text contained in this node.  All
     # HTML elements are removed.
     def to_plain_text
-      if respond_to? :children
+      if respond_to?(:children) and children
         children.map { |x| x.to_plain_text }.join.strip.gsub(/\n{2,}/, "\n\n")
+      else
+        ""
       end
     end
 
     # Builds a string from the text contained in this node.  All
     # HTML elements are removed.
     def inner_text
-      if respond_to? :children
+      if respond_to?(:children) and children
         children.map { |x| x.inner_text }.join
+      else
+        ""
       end
     end
     alias_method :innerText, :inner_text
@@ -158,12 +172,14 @@ module Hpricot
         when Array
           self.children = inner
         else
-          self.children = Hpricot.make(inner, &blk)
+          self.children = make(inner, &blk)
         end
         reparent self.children
       else
-        if respond_to? :children
+        if respond_to?(:children) and children
           children.map { |x| x.output("") }.join
+        else
+          ""
         end
       end
     end
@@ -197,7 +213,7 @@ module Hpricot
         parent.children.each do |e|
           id = sim if e == self
           sim += 1 if e.pathname == self.pathname
-        end
+        end if parent.children
         p = File.join(parent.xpath, self.pathname)
         p += "[#{id+1}]" if sim >= 2
         p
@@ -214,7 +230,7 @@ module Hpricot
         parent.children.each do |e|
           id = sim if e == self
           sim += 1 if e.pathname == self.pathname
-        end
+        end if parent.children
         p = parent.css_path
         p = p ? "#{p} > #{self.pathname}" : self.pathname
         p += ":nth(#{id})" if sim >= 2
@@ -479,13 +495,13 @@ module Hpricot
 
     # +each_child+ iterates over each child.
     def each_child(&block) # :yields: child_node
-      children.each(&block)
+      children.each(&block) if children
       nil
     end
 
     # +each_child_with_index+ iterates over each child.
     def each_child_with_index(&block) # :yields: child_node, index
-      children.each_with_index(&block)
+      children.each_with_index(&block) if children
       nil
     end
 
@@ -513,8 +529,9 @@ module Hpricot
 
     def get_elements_by_tag_name(*a)
       list = Elements[]
+      a.delete("*")
       traverse_element(*a.map { |tag| [tag, "{http://www.w3.org/1999/xhtml}#{tag}"] }.flatten) do |e|
-          list << e
+        list << e if e.elem?
       end
       list
     end
@@ -615,7 +632,7 @@ module Hpricot
   # :stopdoc:
   module Doc::Trav
     def traverse_all_element(&block)
-      children.each {|c| c.traverse_all_element(&block) }
+      children.each {|c| c.traverse_all_element(&block) } if children
     end
     def xpath
       "/"
@@ -628,7 +645,7 @@ module Hpricot
   module Elem::Trav
     def traverse_all_element(&block)
       yield self
-      children.each {|c| c.traverse_all_element(&block) }
+      children.each {|c| c.traverse_all_element(&block) } if children
     end
   end
 
@@ -640,14 +657,14 @@ module Hpricot
 
   module Doc::Trav
     def traverse_some_element(name_set, &block)
-      children.each {|c| c.traverse_some_element(name_set, &block) }
+      children.each {|c| c.traverse_some_element(name_set, &block) } if children
     end
   end
 
   module Elem::Trav
     def traverse_some_element(name_set, &block)
       yield self if name_set.include? self.name
-      children.each {|c| c.traverse_some_element(name_set, &block) }
+      children.each {|c| c.traverse_some_element(name_set, &block) } if children
     end
   end
 
@@ -786,7 +803,7 @@ module Hpricot
   module Doc::Trav
     def root
       es = []
-      children.each {|c| es << c if c.elem? }
+      children.each {|c| es << c if c.elem? } if children
       raise Hpricot::Error, "no element" if es.empty?
       raise Hpricot::Error, "multiple top elements" if 1 < es.length
       es[0]
@@ -806,7 +823,7 @@ module Hpricot
     def set_attribute(name, val)
       altered!
       self.raw_attributes ||= {}
-      self.raw_attributes[name.to_s] = Hpricot.xs(val)
+      self.raw_attributes[name.to_s] = val.fast_xs
     end
     alias_method :[]=, :set_attribute
     def remove_attribute(name)

@@ -473,9 +473,23 @@ module Hpricot
    "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s",
    "samp", "script", "select", "small", "span", "strike", "strong", "sub",
    "sup", "table", "textarea", "tt", "u", "ul", "var"]}
+  ElementContent.keys.each do |k|
+    v = ElementContent[k]
+    if v.is_a? Array
+      ElementContent[k] = v.inject({}) do |h, name|
+        h[name.hash] = true
+        h
+      end
+    end
+  end
 
   ElementInclusions =
 {"head"=>["link", "meta", "object", "script", "style"], "body"=>["del", "ins"]}
+  ElementInclusions.each do |k, v|
+    v.each do |name|
+      ElementContent[k][name.hash] = :allow
+    end
+  end
 
   ElementExclusions =
 {"button"=>
@@ -496,6 +510,11 @@ module Hpricot
    "h1", "h2", "h3", "h4", "h5", "h6", "hr", "isindex", "menu", "noframes",
    "noscript", "ol", "p", "pre", "table", "ul"],
  "label"=>["label"]}
+  ElementExclusions.each do |k, v|
+    v.each do |name|
+      ElementContent[k][name.hash] = :deny
+    end
+  end
 
   OmittedAttrName =
 {"h6"=>
