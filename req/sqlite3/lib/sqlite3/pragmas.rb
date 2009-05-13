@@ -54,8 +54,8 @@ module SQLite3
       case mode
         when String
           case mode.downcase
-            when "on", "yes", "true", "y", "t": mode = "'ON'"
-            when "off", "no", "false", "n", "f": mode = "'OFF'"
+            when "on", "yes", "true", "y", "t"; mode = "'ON'"
+            when "off", "no", "false", "n", "f"; mode = "'OFF'"
             else
               raise Exception,
                 "unrecognized pragma parameter #{mode.inspect}"
