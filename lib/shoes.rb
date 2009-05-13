@@ -380,13 +380,21 @@ class Shoes
 
       $0.replace path
 
-      code = File.read(path)
+      code = read_file(path)
       eval(code, TOPLEVEL_BINDING, path)
     end
   rescue SettingUp
   rescue Object => e
     error(e)
     show_log
+  end
+
+  def self.read_file path
+    if RUBY_VERSION =~ /^1\.9/
+      File.open(path, 'r:utf-8') { |f| f.read }
+    else
+      File.read(path)
+    end
   end
 
   def self.url(path, meth)

@@ -165,11 +165,7 @@ module Shoes::Manual
 
   def load_docs path
     return @docs if @docs
-    str = if RUBY_VERSION =~ /^1\.9/
-            File.open(path, 'r:utf-8') { |f| f.read }
-          else
-            File.read(path)
-          end
+    str = Shoes.read_file(path)
     @search = Shoes::Search.new
     @sections, @methods, @mindex = {}, {}, {}
     @docs =
