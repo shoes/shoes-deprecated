@@ -316,7 +316,7 @@ In this example, one-hundred Oval objects are created.  This isn't too bad.  But
  end
 }}}
 
-Oh, wait.  The ovals aren't filled in this time!  That's because the ovals have been combined into a single hhuge shape.  And Shoes isn't sure where to fill in this case.
+Oh, wait.  The ovals aren't filled in this time!  That's because the ovals have been combined into a single huge shape.  And Shoes isn't sure where to fill in this case.
 
 So you usually only want to combine into a single shape when you're dealing strictly with outlines.
 
