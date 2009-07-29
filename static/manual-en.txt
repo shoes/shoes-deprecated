@@ -410,7 +410,7 @@ When you `require` code, though, that code will stick around.  It will be kept i
 
 So, the rule is: '''keep your temporary classes in the code with the app and keep your permanent classes in requires.'''
 
-= Shoes =
+== Shoes ==
 
 Shoes is all about drawing windows and the stuff inside those windows.  Let's focus on the window itself, for now.  The other sections [[Slots]] and [[Elements]] cover everything that goes inside the window.
 
@@ -1239,7 +1239,7 @@ All of these colors can be used by name.  (So calling the `tomato` method from i
 
 {COLORS}
 
-= Slots =
+== Slots ==
 
 Slots are boxes used to lay out images, text and so on. The two most common slots are `stacks` and `flows`. Slots can also be referred to as "boxes" or "canvases" in Shoes terminology.
 
@@ -1990,7 +1990,7 @@ Lists all elements in a slot.
 
 Gets the object for this element's container.
 
-= Elements =
+== Elements ==
 
 Ah, here's the stuff of Shoes.  An element can be as simple as an oval shape.  Or as complex as
 a video stream.  You've encountered all of these elements before in the Slots section of the
