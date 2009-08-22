@@ -374,7 +374,7 @@ def Shoes.make_help_page
       stack :margin_left => 130, :margin_top => 20, :margin_bottom => 50, :margin_right => 50 + gutter,
         &dewikify(docs[0][-1]['description'], true)
     add_next_link(0, -1)
-    stack :top => 80, :left => 0, :attach => Window do
+    stack :top => 80, :left => 0, :attach => Shoes::Window do
       @toc = {}
       stack :margin => 12, :width => 130, :margin_top => 20 do
         docs.each do |sect_s, sect_h|
