@@ -30,7 +30,7 @@ class Shoes
       
       case opt
       when I_YES then
-        url = "http://rock.nalinuxu.cz/~darktatka/pkg/#{RELEASE_NAME.downcase}/#{platform}/shoes"
+        url = "http://shoes.heroku.com/pkg/#{RELEASE_NAME.downcase}/#{platform}/shoes"
         local_file_path = File.join(LIB_DIR, RELEASE_NAME.downcase, platform, "latest_shoes.#{extension}")
       when I_NOV then
         url = "http://shoes.heroku.com/pkg/#{RELEASE_NAME.downcase}/#{platform}/shoes-novideo"
