@@ -76,11 +76,11 @@
     Shoes development happens at Github.  You can download a current
     tarball of the very latest Shoes from here:
 
-      http://github.com/why/shoes
+      http://github.com/shoes/shoes
 
     Or, if you have git installed, you can clone the repo like so:
 
-      git clone git://github.com/why/shoes.git
+      git clone git://github.com/shoes/shoes.git
 
     Once you have your compiler and dependencies set up, building Shoes
     is as simple as:
