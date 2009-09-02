@@ -410,7 +410,7 @@ Ruby自体はUnicodeを意識しません。そして、UTF-8は一種のUnicode
 
 そして、この規則は：'''アプリケーションのコードに一時的なクラスを保持し、requireに永続的なクラスを保持しなさい'''です。
 
-== Shoes ==
+= Shoes =
 
 Shoesはウィンドウや、それらウィンドウ内部の要素を描くことがすべてです。今はウィンドウ自体に焦点を当てましょう。他のセクションの[[Slots]]や[[Elements]]がウィンドウ内部に関してのすべてを対象としています。
 
@@ -1229,7 +1229,7 @@ All of these colors can be used by name.  (So calling the `tomato` method from i
 
 {COLORS}
 
-== Slots ==
+= Slots =
 
 Slots are boxes used to lay out images, text and so on. The two most common slots are `stacks` and `flows`. Slots can also be referred to as "boxes" or "canvases" in Shoes terminology.
 
@@ -1980,7 +1980,7 @@ Lists all elements in a slot.
 
 Gets the object for this element's container.
 
-== Elements ==
+= Elements =
 
 Ah, here's the stuff of Shoes.  An element can be as simple as an oval shape.  Or as complex as
 a video stream.  You've encountered all of these elements before in the Slots section of the
