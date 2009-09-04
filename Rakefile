@@ -18,7 +18,7 @@ VERS = ENV['VERSION'] || "0.r#{REVISION}"
 PKG = "#{NAME}-#{VERS}"
 APPARGS = APP['run']
 FLAGS = %w[DEBUG VIDEO]
-VLC_VERSION = (RUBY_PLATFORM =~ /win32/ ? "0.8": `vlc --version 2>/dev/null`.split[2])
+VLC_VERSION = (RUBY_PLATFORM =~ /win32|i386-mingw32/ ? "0.8": `vlc --version 2>/dev/null`.split[2])
 VLC_0_8 = VLC_VERSION !~ /^0\.9/
 
 if ENV['APP']
@@ -77,7 +77,7 @@ def copy_files glob, dir
 end
 
 def copy_ext xdir, libdir
-  case RUBY_PLATFORM when /win32/
+  case RUBY_PLATFORM when /win32|i386-mingw32/
     dxdir = xdir.gsub %r!^req/\w+/!, 'deps/'
     copy_files "#{dxdir}/*.so", libdir
   when /darwin/
@@ -148,7 +148,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     cp "req/#{gemn}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
   end
 
-  case RUBY_PLATFORM when /win32/
+  case RUBY_PLATFORM when /win32|i386-mingw32/
     copy_files "#{ext_ruby}/bin/*", "dist/"
     copy_files "deps/cairo/bin/*", "dist/"
     copy_files "deps/pango/bin/*", "dist/"
@@ -243,7 +243,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}"
     # cp InfoPlist.strings YourApp.app/Contents/Resources/English.lproj/
     `echo -n 'APPL????' > "#{APPNAME}.app/Contents/PkgInfo"`
-  when /win32/
+  when /win32|i386-mingw32/
     cp "platform/msw/shoes.exe.manifest", "dist/#{NAME}.exe.manifest"
     cp "dist/zlib1.dll", "dist/zlib.dll"
   else
@@ -253,7 +253,7 @@ end
 
 # use the platform Ruby claims
 case RUBY_PLATFORM
-when /win32/
+when /win32|i386-mingw32/
   SRC = FileList["shoes/*.c", "shoes/native/windows.c", "shoes/http/winhttp.c", "shoes/http/windownload.c"]
   OBJ = SRC.map do |x|
     x.gsub(/\.c$/, '.obj')
