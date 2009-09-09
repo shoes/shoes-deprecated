@@ -16,9 +16,9 @@ class Gem::Commands::UpdateCommand < Gem::Command
     super 'update',
           'Update the named gems (or all installed gems) in the local repository',
       :generate_rdoc => true,
-      :generate_ri => true,
-      :force => false,
-      :test => false
+      :generate_ri   => true,
+      :force         => false,
+      :test          => false
 
     add_install_update_options
 
@@ -54,11 +54,10 @@ class Gem::Commands::UpdateCommand < Gem::Command
         fail "No gem names are allowed with the --system option"
       end
 
-      spec = Gem::Specification.new
-      spec.name = 'rubygems-update'
-      spec.version = Gem::Version.new Gem::RubyGemsVersion
-      spec.version = Gem::Version.new '1.1.1'
-      hig['rubygems-update'] = spec
+      rubygems_update = Gem::Specification.new
+      rubygems_update.name = 'rubygems-update'
+      rubygems_update.version = Gem::Version.new Gem::RubyGemsVersion
+      hig['rubygems-update'] = rubygems_update
 
       options[:user_install] = false
     else
@@ -81,20 +80,27 @@ class Gem::Commands::UpdateCommand < Gem::Command
 
     gems_to_update.uniq.sort.each do |name|
       next if updated.any? { |spec| spec.name == name }
+      success = false
 
       say "Updating #{name}"
-      installer.install name
+      begin
+        installer.install name
+        success = true
+      rescue Gem::InstallError => e
+        alert_error "Error installing #{name}:\n\t#{e.message}"
+        success = false
+      end
 
       installer.installed_gems.each do |spec|
         updated << spec
-        say "Successfully installed #{spec.full_name}"
+        say "Successfully installed #{spec.full_name}" if success
       end
     end
 
     if gems_to_update.include? "rubygems-update" then
       Gem.source_index.refresh!
 
-      update_gems = Gem.source_index.search 'rubygems-update'
+      update_gems = Gem.source_index.find_name 'rubygems-update'
 
       latest_update_gem = update_gems.sort_by { |s| s.version }.last
 
@@ -107,6 +113,20 @@ class Gem::Commands::UpdateCommand < Gem::Command
         say "Nothing to update"
       else
         say "Gems updated: #{updated.map { |spec| spec.name }.join ', '}"
+
+        if options[:generate_ri] then
+          updated.each do |gem|
+            Gem::DocManager.new(gem, options[:rdoc_args]).generate_ri
+          end
+
+          Gem::DocManager.update_ri_cache
+        end
+
+        if options[:generate_rdoc] then
+          updated.each do |gem|
+            Gem::DocManager.new(gem, options[:rdoc_args]).generate_rdoc
+          end
+        end
       end
     end
   end
