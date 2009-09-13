@@ -87,7 +87,9 @@ def copy_ext xdir, libdir
     copy_files "#{xdir}/*.bundle", libdir
   else
     Dir.chdir(xdir) do
-      `ruby extconf.rb; make`
+      unless system "ruby", "extconf.rb" and system "make"
+        raise "Extension build failed"
+      end
     end
     copy_files "#{xdir}/*.so", libdir
   end
