@@ -1,35 +1,3 @@
-#--
-# =============================================================================
-# Copyright (c) 2004, Jamis Buck (jgb3@email.byu.edu)
-# All rights reserved.
-# 
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-# 
-#     * Redistributions of source code must retain the above copyright notice,
-#       this list of conditions and the following disclaimer.
-# 
-#     * Redistributions in binary form must reproduce the above copyright
-#       notice, this list of conditions and the following disclaimer in the
-#       documentation and/or other materials provided with the distribution.
-# 
-#     * The names of its contributors may not be used to endorse or promote
-#       products derived from this software without specific prior written
-#       permission.
-# 
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-# =============================================================================
-#++
-
 require 'sqlite3/errors'
 require 'sqlite3/resultset'
 
@@ -63,6 +31,7 @@ module SQLite3
     # statement (i.e., separated by semicolons), then the #remainder property
     # will be set to the trailing text.
     def initialize( db, sql, utf16=false )
+      raise ArgumentError, "nil argument passed as sql text" unless sql
       @db = db
       @driver = @db.driver
       @closed = false
@@ -122,7 +91,11 @@ module SQLite3
           when Bignum then
             @driver.bind_int64( @handle, param, value )
           when Integer then
-            @driver.bind_int( @handle, param, value )
+            if value >= (2 ** 31)
+              @driver.bind_int64( @handle, param, value )
+            else
+              @driver.bind_int( @handle, param, value )
+            end
           when Numeric then
             @driver.bind_double( @handle, param, value.to_f )
           when Blob then
@@ -221,8 +194,8 @@ module SQLite3
     # that this may execute the statement in order to obtain the metadata; this
     # makes it a (potentially) expensive operation.
     def types
-      get_metadata unless @types
-      return @types
+      get_metadata unless defined?(@types)
+      @types
     end
 
     # A convenience method for obtaining the metadata about the query. Note
