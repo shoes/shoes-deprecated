@@ -862,6 +862,20 @@ shoes_image_downloaded(shoes_image_download_event *idat)
 
       if (idat->status != 304)
       {
+#ifdef SHOES_WIN32
+        HANDLE hFile;
+        hFile = CreateFile( idat->filepath, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL );
+        SHA1Init(&context);
+        DWORD readsize;
+        while (1)
+        {
+          ReadFile( hFile, buffer, 16384, &readsize, NULL );
+          if (readsize != 16384) break;
+          SHA1Update(&context, buffer, readsize);
+        }
+        SHA1Final(digest, &context);
+        CloseHandle( hFile );
+#else
         FILE* fp = fopen(idat->filepath, "rb");
         SHA1Init(&context);
         while (!feof(fp)) 
@@ -871,7 +885,8 @@ shoes_image_downloaded(shoes_image_download_event *idat)
         }
         SHA1Final(digest, &context);
         fclose(fp);
-
+#endif
+        
         for (i = 0; i < 5; i++)
           for (j = 0; j < 4; j++)
             sprintf(&idat->hexdigest[(i*8)+(j*2)], "%02x", digest[i*4+j]);
