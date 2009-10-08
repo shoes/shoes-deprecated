@@ -1225,7 +1225,7 @@ shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, char *
 {
   int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot->controls);
   WCHAR *buffer = shoes_wchar(msg);
-  SHOES_CONTROL_REF ref = CreateWindowExW(WS_EX_TRANSPARENT, L"BUTTON", buffer,
+  SHOES_CONTROL_REF ref = CreateWindowExW(WS_EX_NOPARENTNOTIFY, L"BUTTON", buffer,
       WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
       place->ix + place->dx, place->iy + place->dy, place->iw, place->ih,
       canvas->slot->window, (HMENU)cid, 
