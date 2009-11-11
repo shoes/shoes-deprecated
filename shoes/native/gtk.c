@@ -12,6 +12,8 @@
 #include <fontconfig/fontconfig.h>
 #include <curl/curl.h>
 #include <pthread.h>
+#include <gdk/gdkx.h>
+#include <X11/XKBlib.h>
 
 #define GTK_CHILD(child, ptr) \
   GList *children = gtk_container_get_children(GTK_CONTAINER(ptr)); \
@@ -71,8 +73,13 @@ shoes_load_font(const char *filename)
 
 void shoes_native_init()
 {
+  GdkDisplay *display;
+  Display *xdisplay;
   curl_global_init(CURL_GLOBAL_ALL);
   gtk_init(NULL, NULL);
+  display = gdk_display_get_default();
+  xdisplay = gdk_x11_display_get_xdisplay(display);
+  XkbSetDetectableAutoRepeat(xdisplay, TRUE, NULL);
 }
 
 void shoes_native_cleanup(shoes_world_t *world)
