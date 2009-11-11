@@ -61,6 +61,7 @@ typedef struct _shoes_app {
     minwidth, minheight;
   VALUE self;
   VALUE canvas;
+  VALUE keypresses;
   VALUE nestslot;
   VALUE nesting;
   VALUE extras;
