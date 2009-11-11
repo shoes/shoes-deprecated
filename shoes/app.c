@@ -431,6 +431,13 @@ shoes_app_wheel(shoes_app *app, ID dir, int x, int y)
 }
 
 shoes_code
+shoes_app_keydown(shoes_app *app, VALUE key)
+{
+  shoes_canvas_send_keydown(app->canvas, key);
+  return SHOES_OK;
+}
+
+shoes_code
 shoes_app_keypress(shoes_app *app, VALUE key)
 {
   if (key == symAltSlash)
@@ -441,6 +448,13 @@ shoes_app_keypress(shoes_app *app, VALUE key)
     rb_eval_string("Shoes.show_selector");
   else
     shoes_canvas_send_keypress(app->canvas, key);
+  return SHOES_OK;
+}
+
+shoes_code
+shoes_app_keyup(shoes_app *app, VALUE key)
+{
+  shoes_canvas_send_keyup(app->canvas, key);
   return SHOES_OK;
 }
 
