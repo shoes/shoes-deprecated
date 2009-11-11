@@ -1,6 +1,6 @@
 require 'ftsearch/fragment_writer'
 require 'ftsearch/analysis/simple_identifier_analyzer'
-require 'ftsearchrt'
+#require 'ftsearchrt'
 
 class Shoes::Search
   include FTSearch

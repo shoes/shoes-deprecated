@@ -240,11 +240,23 @@ shoes_png_size(char *filename, int *width, int *height)
 {
   unsigned char *sig = SHOE_ALLOC_N(unsigned char, 32);
   cairo_surface_t *surface = NULL;
+  
+#ifdef SHOES_WIN32
+  HANDLE hFile;
+  hFile = CreateFile( filename, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL );
+  if ( hFile == INVALID_HANDLE_VALUE ) return NULL;
+  DWORD readsize;
+	ReadFile( hFile, sig, 32, &readsize, NULL );
+  if (readsize < 8)
+    goto done; 
+#else
   FILE *image = fopen(filename, "rb");
   if (image == NULL) return NULL;
 
   if (fread(sig, 1, 32, image) < 8)
     goto done; 
+#endif
+  
   if (memcmp(sig, PNG_SIG, 8) != 0)
     goto done;
 
@@ -255,7 +267,11 @@ shoes_png_size(char *filename, int *width, int *height)
 
   surface = SIZE_SURFACE;
 done:
+#ifdef SHOES_WIN32
+  CloseHandle( hFile );
+#else
   fclose(image);
+#endif
   return surface;
 }
 
@@ -401,8 +417,13 @@ done:
 //
 struct shoes_jpeg_file_src {
   struct jpeg_source_mgr pub;   /* public fields */
-
+  
+#ifdef SHOES_WIN32
+  HANDLE infile;        /* source stream */
+#else
   FILE *infile;         /* source stream */
+#endif
+  
   JOCTET *buffer;         /* start of buffer */
   boolean start_of_file;    /* have we gotten any data yet? */
 };
@@ -436,7 +457,13 @@ shoes_jpeg_fill_input_buffer(j_decompress_ptr cinfo)
   shoes_jpeg_file src = (shoes_jpeg_file)cinfo->src;
   size_t nbytes;
 
+#ifdef SHOES_WIN32
+  DWORD readsize;
+	ReadFile( src->infile, src->buffer, JPEG_INPUT_BUF_SIZE, &readsize, NULL );
+  nbytes = readsize;
+#else
   nbytes = fread(src->buffer, 1, JPEG_INPUT_BUF_SIZE, src->infile);
+#endif
 
   if (nbytes <= 0) {
     if (src->start_of_file) /* Treat empty input file as fatal error */
@@ -472,7 +499,11 @@ shoes_jpeg_skip_input_data(j_decompress_ptr cinfo, long num_bytes)
 }
 
 void
+#ifdef SHOES_WIN32
+jpeg_file_src(j_decompress_ptr cinfo, HANDLE infile)
+#else
 jpeg_file_src(j_decompress_ptr cinfo, FILE *infile)
+#endif
 {
   shoes_jpeg_file src;
 
@@ -515,9 +546,16 @@ shoes_surface_create_from_jpeg(char *filename, int *width, int *height, unsigned
   cairo_surface_t *surface = NULL;
   struct jpeg_decompress_struct cinfo;
   struct shoes_jpeg_error_mgr jerr;
+  
+#ifdef SHOES_WIN32
+  HANDLE hFile;
+  hFile = CreateFile( filename, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL );
+  if ( hFile == INVALID_HANDLE_VALUE ) return NULL;
+#else
   FILE *f = fopen(filename, "rb");
   if (!f) return NULL;
-
+#endif
+  
   // TODO: error handling
   cinfo.err = jpeg_std_error(&jerr.pub);
   jerr.pub.error_exit = shoes_jpeg_fatal;
@@ -530,7 +568,11 @@ shoes_surface_create_from_jpeg(char *filename, int *width, int *height, unsigned
   }
 
   jpeg_create_decompress(&cinfo);
+#ifdef SHOES_WIN32
+  jpeg_file_src(&cinfo, hFile);
+#else
   jpeg_file_src(&cinfo, f);
+#endif
   jpeg_read_header(&cinfo, TRUE);
   cinfo.do_fancy_upsampling = FALSE;
   cinfo.do_block_smoothing = FALSE;
@@ -595,7 +637,11 @@ done:
   if (pixels != NULL) free(pixels);
   if (rgb != NULL) free(rgb);
   jpeg_destroy_decompress(&cinfo);
+#ifdef SHOES_WIN32
+  CloseHandle( hFile );
+#else
   fclose(f);
+#endif
   return surface;
 }
 
@@ -816,6 +862,20 @@ shoes_image_downloaded(shoes_image_download_event *idat)
 
       if (idat->status != 304)
       {
+#ifdef SHOES_WIN32
+        HANDLE hFile;
+        hFile = CreateFile( idat->filepath, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL );
+        SHA1Init(&context);
+        DWORD readsize;
+        while (1)
+        {
+          ReadFile( hFile, buffer, 16384, &readsize, NULL );
+          if (readsize != 16384) break;
+          SHA1Update(&context, buffer, readsize);
+        }
+        SHA1Final(digest, &context);
+        CloseHandle( hFile );
+#else
         FILE* fp = fopen(idat->filepath, "rb");
         SHA1Init(&context);
         while (!feof(fp)) 
@@ -825,7 +885,8 @@ shoes_image_downloaded(shoes_image_download_event *idat)
         }
         SHA1Final(digest, &context);
         fclose(fp);
-
+#endif
+        
         for (i = 0; i < 5; i++)
           for (j = 0; j < 4; j++)
             sprintf(&idat->hexdigest[(i*8)+(j*2)], "%02x", digest[i*4+j]);

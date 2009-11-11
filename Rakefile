@@ -262,13 +262,13 @@ when /win32|i386-mingw32/
   end
 
   # MSVC build environment
-  MSVC_LIBS = %[msvcrt-ruby18.lib pango-1.0.lib pangocairo-1.0.lib gobject-2.0.lib glib-2.0.lib cairo.lib giflib.lib jpeg.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib advapi32.lib oleacc.lib winhttp.lib]
+  MSVC_LIBS = %[msvcrt-ruby191.lib pango-1.0.lib pangocairo-1.0.lib gobject-2.0.lib glib-2.0.lib cairo.lib giflib.lib jpeg.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib advapi32.lib oleacc.lib winhttp.lib]
   MSVC_LIBS << " libvlc.lib" if ENV['VIDEO']
   MSVC_LIBS2 = ""
   MSVC_LIBS2 << " bufferoverflowu.lib" if ENV['DDKBUILDENV']
   MSVC_LIBS << MSVC_LIBS2
 
-  MSVC_CFLAGS = %[/ML /DWIN32 /DSHOES_WIN32 /DWIN32_LEAN_AND_MEAN /DCINTERFACE /DCOBJMACROS
+  MSVC_CFLAGS = %[/MT /DWIN32 /DSHOES_WIN32 /DWIN32_LEAN_AND_MEAN /DCINTERFACE /DCOBJMACROS
     /Ideps\\vlc\\include
     /Ideps\\cairo\\include
     /Ideps\\cairo\\include\\cairo
@@ -276,6 +276,8 @@ when /win32|i386-mingw32/
     /Ideps\\pango\\include\\glib-2.0
     /Ideps\\pango\\lib\\glib-2.0\\include
     /Ideps\\ruby\\lib\\ruby\\#{ruby_v}\\i386-mswin32
+    /Ideps\\ruby\\include\\ruby-1.9.1
+    /Ideps\\ruby\\include\\ruby-1.9.1\\i386-mswin32
     /Ideps\\curl\\include
     /Ideps\\winhttp\\include
     /I. /DVLC_0_8 /DWINVER=0x0501 /D_WIN32_WINNT=0x0501
