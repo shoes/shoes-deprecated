@@ -269,10 +269,7 @@ shoes_app_gtk_keypress (GtkWidget *widget, GdkEventKey *event, gpointer data)
   shoes_app *app = (shoes_app *)data;
   if (event->keyval == GDK_Return)
   {
-    if ((event->state & (GDK_SHIFT_MASK | GDK_CONTROL_MASK | GDK_MOD1_MASK)) == 0)
-      v = rb_str_new2("\n");
-    else
-      v = ID2SYM(rb_intern("enter"));
+    v = rb_str_new2("\n");
   }
   KEY_SYM(Escape, escape);
   else if (event->length > 0)
@@ -324,18 +321,30 @@ shoes_app_gtk_keypress (GtkWidget *widget, GdkEventKey *event, gpointer data)
   KEY_SYM(F11, f11);
   KEY_SYM(F12, f12);
 
-  if (SYMBOL_P(v))
-  {
-    if (modifiers & GDK_MOD1_MASK)
-      KEY_STATE(alt);
-    if (modifiers & GDK_SHIFT_MASK)
-      KEY_STATE(shift);
-    if (modifiers & GDK_CONTROL_MASK)
-      KEY_STATE(control);
-  }
+  if (v != Qnil) {
+    if (event->type == GDK_KEY_PRESS) {
+      shoes_app_keydown(app, v);
 
-  if (v != Qnil)
-    shoes_app_keypress(app, v);
+      if (event->keyval == GDK_Return)
+        if ((event->state & (GDK_SHIFT_MASK | GDK_CONTROL_MASK | GDK_MOD1_MASK)) != 0)
+          v = ID2SYM(rb_intern("enter"));
+
+      if (SYMBOL_P(v))
+      {
+        if (modifiers & GDK_MOD1_MASK)
+          KEY_STATE(alt);
+        if (modifiers & GDK_SHIFT_MASK)
+          KEY_STATE(shift);
+        if (modifiers & GDK_CONTROL_MASK)
+          KEY_STATE(control);
+      }
+
+      shoes_app_keypress(app, v);
+    } else {
+      shoes_app_keyup(app, v);
+    }
+  } 
+
   return FALSE;
 }
 
@@ -568,6 +577,8 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
   g_signal_connect(G_OBJECT(gk->window), "scroll-event",
                    G_CALLBACK(shoes_app_gtk_wheel), app);
   g_signal_connect(G_OBJECT(gk->window), "key-press-event",
+                   G_CALLBACK(shoes_app_gtk_keypress), app);
+  g_signal_connect(G_OBJECT(gk->window), "key-release-event",
                    G_CALLBACK(shoes_app_gtk_keypress), app);
   g_signal_connect(G_OBJECT(gk->window), "delete-event",
                    G_CALLBACK(shoes_app_gtk_quit), app);

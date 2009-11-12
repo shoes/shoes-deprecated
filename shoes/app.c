@@ -17,6 +17,7 @@ shoes_app_mark(shoes_app *app)
   rb_gc_mark_maybe(app->title);
   rb_gc_mark_maybe(app->location);
   rb_gc_mark_maybe(app->canvas);
+  rb_gc_mark_maybe(app->keypresses);
   rb_gc_mark_maybe(app->nestslot);
   rb_gc_mark_maybe(app->nesting);
   rb_gc_mark_maybe(app->extras);
@@ -45,6 +46,7 @@ shoes_app_alloc(VALUE klass)
   app->owner = Qnil;
   app->location = Qnil;
   app->canvas = shoes_canvas_new(cShoes, app);
+  app->keypresses = rb_hash_new();
   app->nestslot = Qnil;
   app->nesting = rb_ary_new();
   app->extras = rb_ary_new();
@@ -431,6 +433,16 @@ shoes_app_wheel(shoes_app *app, ID dir, int x, int y)
 }
 
 shoes_code
+shoes_app_keydown(shoes_app *app, VALUE key)
+{
+  if (!RTEST(rb_hash_aref(app->keypresses, key))) {
+    rb_hash_aset(app->keypresses, key, Qtrue);
+    shoes_canvas_send_keydown(app->canvas, key);
+  }
+  return SHOES_OK;
+}
+
+shoes_code
 shoes_app_keypress(shoes_app *app, VALUE key)
 {
   if (key == symAltSlash)
@@ -441,6 +453,14 @@ shoes_app_keypress(shoes_app *app, VALUE key)
     rb_eval_string("Shoes.show_selector");
   else
     shoes_canvas_send_keypress(app->canvas, key);
+  return SHOES_OK;
+}
+
+shoes_code
+shoes_app_keyup(shoes_app *app, VALUE key)
+{
+  rb_hash_aset(app->keypresses, key, Qfalse);
+  shoes_canvas_send_keyup(app->canvas, key);
   return SHOES_OK;
 }
 

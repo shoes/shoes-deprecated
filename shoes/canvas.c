@@ -1731,7 +1731,9 @@ EVENT_HANDLER(hover);
 EVENT_HANDLER(leave);
 EVENT_HANDLER(release);
 EVENT_HANDLER(motion);
+EVENT_HANDLER(keydown);
 EVENT_HANDLER(keypress);
+EVENT_HANDLER(keyup);
 EVENT_HANDLER(start);
 EVENT_HANDLER(finish);
 
@@ -2011,31 +2013,35 @@ shoes_canvas_send_wheel(VALUE self, ID dir, int x, int y)
   }
 }
 
-void
-shoes_canvas_send_keypress(VALUE self, VALUE key)
-{
-  long i;
-  shoes_canvas *self_t;
-  Data_Get_Struct(self, shoes_canvas, self_t);
-
-  if (ATTR(self_t->attr, hidden) != Qtrue)
-  {
-    VALUE keypress = ATTR(self_t->attr, keypress);
-    if (!NIL_P(keypress))
-    {
-      shoes_safe_block(self, keypress, rb_ary_new3(1, key));
-    }
-
-    for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--)
-    {
-      VALUE ele = rb_ary_entry(self_t->contents, i);
-      if (rb_obj_is_kind_of(ele, cCanvas))
-      {
-        shoes_canvas_send_keypress(ele, key);
-      }
-    }
-  }
+#define DEF_SEND_KEY_EVENT(event_name) \
+void \
+shoes_canvas_send_##event_name (VALUE self, VALUE key) \
+{ \
+  long i; \
+  shoes_canvas *self_t; \
+  Data_Get_Struct(self, shoes_canvas, self_t); \
+\
+  if (ATTR(self_t->attr, hidden) != Qtrue) \
+  { \
+    VALUE handler = ATTR(self_t->attr, event_name); \
+    if (!NIL_P(handler)) \
+    { \
+      shoes_safe_block(self, handler, rb_ary_new3(1, key)); \
+    } \
+\
+    for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--) \
+    { \
+      VALUE ele = rb_ary_entry(self_t->contents, i); \
+      if (rb_obj_is_kind_of(ele, cCanvas)) \
+      { \
+        shoes_canvas_send_ ## event_name (ele, key); \
+      } \
+    } \
+  } \
 }
+DEF_SEND_KEY_EVENT(keydown)
+DEF_SEND_KEY_EVENT(keypress)
+DEF_SEND_KEY_EVENT(keyup)
 
 SHOES_SLOT_OS *
 shoes_slot_alloc(shoes_canvas *canvas, SHOES_SLOT_OS *parent, int toplevel)

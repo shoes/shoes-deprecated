@@ -61,6 +61,7 @@ typedef struct _shoes_app {
     minwidth, minheight;
   VALUE self;
   VALUE canvas;
+  VALUE keypresses;
   VALUE nestslot;
   VALUE nesting;
   VALUE extras;
@@ -93,7 +94,9 @@ shoes_code shoes_app_motion(shoes_app *, int, int);
 shoes_code shoes_app_click(shoes_app *, int, int, int);
 shoes_code shoes_app_release(shoes_app *, int, int, int);
 shoes_code shoes_app_wheel(shoes_app *, ID, int, int);
+shoes_code shoes_app_keydown(shoes_app *, VALUE);
 shoes_code shoes_app_keypress(shoes_app *, VALUE);
+shoes_code shoes_app_keyup(shoes_app *, VALUE);
 VALUE shoes_app_close_window(shoes_app *);
 VALUE shoes_sys(char *, int);
 shoes_code shoes_app_goto(shoes_app *, char *);

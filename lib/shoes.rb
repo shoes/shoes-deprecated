@@ -449,11 +449,12 @@ class Shoes
              :rise, :kerning, :emphasis, :strikethrough, :stretch, :underline,
              :variant]
   MOUSE_S = [:click, :motion, :release, :hover, :leave]
+  KEY_S   = [:keydown, :keypress, :keyup]
   COLOR_S = [:stroke, :fill]
 
   {Background => [:angle, :radius, :curve, *BASIC_S],
    Border     => [:angle, :radius, :curve, :strokewidth, *BASIC_S],
-   Canvas     => [:scroll, :start, :finish, :keypress, *(MOUSE_S|BASIC_S)],
+   Canvas     => [:scroll, :start, :finish, *(KEY_S|MOUSE_S|BASIC_S)],
    Check      => [:click, :checked, *BASIC_S],
    Radio      => [:click, :checked, :group, *BASIC_S],
    EditLine   => [:change, :secret, :text, *BASIC_S],
