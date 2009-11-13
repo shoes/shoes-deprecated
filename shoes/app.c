@@ -435,6 +435,7 @@ shoes_app_wheel(shoes_app *app, ID dir, int x, int y)
 shoes_code
 shoes_app_keydown(shoes_app *app, VALUE key)
 {
+  app->pressedkey = key;
   if (!RTEST(rb_hash_aref(app->keypresses, key))) {
     rb_hash_aset(app->keypresses, key, Qtrue);
     shoes_canvas_send_keydown(app->canvas, key);
