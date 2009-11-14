@@ -656,13 +656,19 @@ shoes_app_win32proc(
 
     case WM_SYSKEYUP:
     case WM_KEYUP:
-      shoes_app_keyup(app, app->pressedkey);
       if (w == VK_CONTROL)
         app->os.ctrlkey = false;
       else if (w == VK_MENU)
         app->os.altkey = false;
       else if (w == VK_SHIFT)
         app->os.shiftkey = false;
+      else
+      {
+        VALUE v;
+        char letter = w;
+        v = rb_str_new(&letter, 1);
+        shoes_app_keyup(app, v);
+      }
     break;
 
     case WM_MOUSEWHEEL:
