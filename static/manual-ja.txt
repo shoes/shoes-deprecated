@@ -611,15 +611,15 @@ Shoesコンソールへエラーメッセージ送ります。このメソッド
  end
 }}}
 
-If you have trouble with fonts showing up, make sure your app loads the font before it is used.  Especially on OS X, if fonts are used before they are loaded, the font cache will tend to ignore loaded fonts.
+もしフォントを表示することに問題があるなら、それを利用する前に、アプリケーションがフォントをロードすることを確認してください。特にOS Xでは、もしフォントがロードされる前に利用されたなら、フォントキャッシュはロードされたフォントを無視する傾向があります。
 
 === gradient(color1, color2) » Shoes::Pattern ===
 
-Builds a linear gradient from two colors.  For each color, you may pass in a Shoes::Color object or a string describing the color.
+二つの色から直線勾配を作ります。それぞれの色に、色を描画するためにShoes::Colorオブジェクトか文字列を渡します。
 
 === gray(the numbers: darkness, alpha) » Shoes::Color ===
 
-Create a grayscale color from a level of darkness and, optionally, an alpha level.
+暗さのレベルや、任意的にはアルファレベルからグレースケールカラーを作成します。
 
 {{{
  black = gray(0.0)
@@ -628,52 +628,52 @@ Create a grayscale color from a level of darkness and, optionally, an alpha leve
 
 === info(message: a string) » nil ===
 
-Logs an informational message to the user in the Shoes console.  So, where debug messages are designed to help the program figure out what's happening, `info` messages tell the user extra information about the program.
+Shoesコンソールでユーザへの情報を含むメッセージを記録します。そして、そのデバッグメッセージはプログラムで何が発生したのか見つけることを助けるようにデザインされており、`info`メッセージはプログラムについてユーザに追加の情報を教えます。
 
 {{{
  #!ruby
  info("You just ran the info example on Shoes #{Shoes::RELEASE_NAME}.")
 }}}
 
-For example, whenever a Shy file loads, Shoes prints an informational message in the console describing the author of the Shy and its version.
+例えば、Shyファイルをロードすればいつでも、ShoesはコンソールにShyの著者とバージョンの情報を含むメッセージを印字します。
 
 === rgb(a series of numbers: red, green, blue, alpha) » Shoes::Color ===
 
-Create a color from red, green and blue components.  An alpha level (indicating transparency) can also be added, optionally.
+赤、緑、青の構成要素から色を作成します。アルファレベル（透明度を示す）は任意に加えることができます。
 
-When passing in a whole number, use values from 0 to 255.
+整数を渡すときは、0から255までの値を利用してください。
 
 {{{
  blueviolet = rgb(138, 43, 226)
  darkgreen = rgb(0, 100, 0)
 }}}
 
-Or, use a decimal number from 0.0 to 1.0.
+または、0.0から1.0までの10進数を利用してください。
 
 {{{
  blueviolet = rgb(0.54, 0.17, 0.89)
  darkgreen = rgb(0, 0.4, 0)
 }}}
 
-This method may also be called as `Shoes.rgb`.
+このメソッドは`Shoes.rgb`と呼ばれるかもしれません。
 
 === warn(message: a string) » nil ===
 
-Logs a warning for the user.  A warning is not a catastrophic error (see [[Built-in.error]] for that.)  It is just a notice that the program will be changing in the future or that certain parts of the program aren't reliable yet.
+ユーザのために警告を記録します。警告は壊滅的なエラー（それは[[Built-in.error]]を見てください。）ではありません。これは、プログラムが将来変化したり、プログラムの一部が信頼できなくなるなどの通知です。
 
-To view warnings and errors, open the Shoes console with `Alt-/` (or `⌘-/` on OS X.)
+警告やエラーを見るためには、`Alt-/`(OS Xの場合は`⌘-/`)によりShoesコンソールを開いてください。
 
 == The App Object ==
 
-An App is a single window running code at a URL. When you switch URLs, a new App object is created and filled up with stacks, flows and other Shoes elements.
+アプリケーションはURLでコードを実行する一つのウィンドウです。URLを切り替えるとき、新しいアプリケーションオブジェクトが作成され、スタック、フローや他の要素で満たされます。
 
-The App is the window itself. Which may be closed or cleared and filled with new elements. !{:margin_left => 100}man-app.png!
+アプリケーションはウィンドウ自体です。それは閉じられるか、クリアされるか、新しい要素で満たされるかもしれません。!{:margin_left => 100}man-app.png!
 
-The App itself, in slot/box terminology, is a flow.  See the ''Slots'' section for more, but this just means that any elements placed directly at the top-level will flow.
+スロット／ボックスの用語では、アプリケーション自体がフローです。詳しくは''Slots''セクションを見てください、しかし、これはどんな要素も直接フローのトップレベルに置かれることを単に意味します。
 
 === Shoes.app(styles) { ... } » Shoes::App ===
 
-Starts up a Shoes app window.  This is the starting place for making a Shoes program.  Inside the block, you fill the window with various Shoes elements (buttons, artwork, etc.) and, outside the block, you use the `styles` to describe how big the window is.  Perhaps also the name of the app or if it's resizable.
+Shoesのアプリケーションウィンドウを開始します。これはShoesプログラムを作るための出発地点です。ブロックの内部では、ウィンドウを様々なShoesの要素（ボタン、アートワーク、その他）で満たし、そしてブロックの外では、ウィンドウがどれぐらい大きいのかを説明するために`styles`を利用します。おそらくアプリケーションの名前や、それがリサイズ可能かどうかについてもです。
 
 {{{
  #!ruby
@@ -685,31 +685,34 @@ Starts up a Shoes app window.  This is the starting place for making a Shoes pro
  }
 }}}
 
-In the case above, a small window is built.  200 pixels by 200 pixels.  It's not resizable.  And, inside the window, two elements: a black background and a white circle.
+上記のケースでは、小さなウィンドウを作成します。200×200ピクセルです。それはリサイズ不可能です。そして、そのウィンドウには黒い背景と白い輪の2つの要素があります。
 
-Once an app is created, it is added to the [[App.Shoes.APPS]] list.  If you want an app to spawn more windows, see the [[Element.window]] method and the [[Element.dialog]] method.
+いったんアプリケーションが作成されれば、それは[[App.Shoes.APPS]]の一覧に追加されます。もしあなたがより多くのウィンドウを生成したいなら、[[Element.window]]メソッドや[[Element.dialog]]メソッドを見てください。
 
 === Shoes.APPS() » An array of Shoes::App objects ===
 
-Builds a complete list of all the Shoes apps that are open right now.  Once an app is closed, it is removed from the list.  Yes, you can run many apps at once in Shoes.  It's completely encouraged.
+現在開いているすべてのShoesアプリケーションの完全な一覧を作成します。いったんアプリケーションが閉じられると、その一覧から取り除かれます。そう、Shoesでは一度に多くの実行できます。それはとても元気付けられます。
 
 === clipboard() » a string ===
 
-Returns a string containing all of the text that's on the system clipboard.  This is the global clipboard that every program on the computer cuts and pastes into.
+システムのクリップボードのすべてのテキストを含む文字列を返します。これはコンピュータ上のどのプログラムからでもカットアンドペーストできるグローバルクリップボードです。
 
 === clipboard = a string ===
 
-Stores `a string` of text in the system clipboard.
+システムクリップボードに`a string`のテキストを保存します。
 
 === close() ===
 
-Closes the app window.  If multiple windows are open and you want to close the entire application, use the built-in method `exit`.
+アプリケーションのウィンドウを閉じます。複数のウィンドウを開いていて、すべてのアプリケーションを閉じたいなら、ビルトインメソッドの`exit`を利用してください。
 
 === download(url: a string, styles) ===
 
-Starts a download thread (much like XMLHttpRequest, if you're familiar with JavaScript.)  This method returns immediately and runs the download in the background.  Each download thread also fires `start`, `progress` and `finish` events.  You can send the download to a file or just get back a string (in the `finish` event.)
+ダウンロードのスレッド（あなたがJavaScriptに詳しいのなら、およそXMLHttpRequestのようなものです）を開始します。このメソッドは、すぐに戻り値を返してバックグラウンドでダウンロードを開始します。また、それぞれのダウンロードスレッドが`start`、`progress`や`finish`イベントを開始します。
+downloadにファイルを送ることや、（`finish`イベントの中で）文字列を取り戻すことができます。
 
-If you attach a block to a download, it'll get called as the `finish` event.
+downloadにブロックを付けると、それは`finish`イベントとして呼ばれます。
+
+download
 
 {{{
  #!ruby
@@ -726,9 +729,9 @@ If you attach a block to a download, it'll get called as the `finish` event.
  end
 }}}
 
-And, if we wanted to use the downloaded data, we'd get it using `goog.response.body`.  This example is truly the simplest form of `download`: pulling some web data down into memory and handling it once it's done.
+そして、ダウンロードしたデータを利用したいなら`goog.response.body`を利用することにより行います。この例は本当に`download`の最も簡単な形です：いくつかのウェブデータをメモリに取ってきて、それを一度ハンドリングしています。
 
-Another simple use of `download` is to save some web data to a file, using the `:save` style.
+`download`のもう一つのサンプルはいくつかのウェブデータを、`:save`スタイルを利用してファイルに保存します。
 
 {{{
  #!ruby
@@ -745,9 +748,9 @@ Another simple use of `download` is to save some web data to a file, using the `
  end
 }}}
 
-In this case, you can still get the headers for the downloaded file, but `response.body` will be `nil`, since the data wasn't saved to memory.  You will need to open the file to get the downloaded goods.
+このケースでも、ダウンロードファイルのヘッダを取得することができますが、メモリにそのデータが保存されていないため`response.body`は`nil`になります。ダウンロードしたものを得るためにはそのファイルを開く必要があります。
 
-If you need to send certain headers or actions to the web server, you can use the `:method`, `:headers` and `:body` styles to customize the HTTP request.  (And, if you need to go beyond these, you can always break out Ruby's OpenURI class.)
+特定のヘッダかアクションをウェブサーバへ送る必要があるのならば、HTTPリクエストをカスタマイズするために`:method`、`:headers`や`:body`スタイルを利用することができます。（そして、それら以上の変更の必要があるのなら、いつでもRubyのOpenURIクラスを破壊することができます。）
 
 {{{
  #!ruby
@@ -765,15 +768,15 @@ If you need to send certain headers or actions to the web server, you can use th
  end
 }}}
 
-As you can see from the above example, Shoes includes the Hpricot library for parsing HTML.
+上記の例から、ShoesはHTMLを解析するHpricotなライブラリを含んでいることが分かります。
 
 === location() » a string ===
 
-Gets a string containing the URL of the current app.
+現在のアプリケーションのURLを含む文字列を取得します。
 
 === mouse() » an array of numbers: button, left, top ===
 
-Identifies the mouse cursor's location, along with which button is being pressed.
+どちらのボタンが押されたのかと共に、マウスカーソルの位置を特定します。
 
 {{{
  #!ruby
@@ -788,23 +791,24 @@ Identifies the mouse cursor's location, along with which button is being pressed
 
 === owner() » Shoes::App ===
 
-Gets the app which launched this app.  In most cases, this will be `nil`.  But if this app was launched using the [[Element.window]] method, the owner will be the app which called `window`.
+このアプリケーションを開始したアプリケーションを取得します。多くの場合、これは`nil`でしょう。しかし[[Element.window]]メソッドを利用してアプリケーションが開始されたなら、その所有者は`window`と呼ばれるアプリケーションでしょう。
 
 === started?() » true or false ===
 
-Has the window been fully constructed and displayed?  This is useful for threaded code which may try to use the window before it is completely built.  (Also see the `start` event which fires once the window is open.)
+ウィンドウはすべて構築され、表示されましたか？これは完全に構築される前に、ウィンドウを利用しようとするスレッド化されたコードのために役に立ちます。
+（また、ウィンドウが開くときに実行される`start`イベントも見てください。）
 
 === visit(url: a string) ===
 
-Changes the location, in order to view a different Shoes URL.
+異なるShoesのURLを見るために、ロケーションを変更します。
 
-Absolute URLs (such as http://google.com) are okay, but Shoes will be expecting a Shoes application to be at that address.  (So, google.com won't work, as it's an HTML app.)
+（http://google.comのような）絶対パスのURLは悪くないですが、ShoesはShoesアプリケーションがそのアドレスに存在することを期待するでしょう。（そのため、google.comはHTMLアプリケーションとしては動作しません。）
 
 == The Styles Master List ==
 
-You want to mess with the look of things?  Well, throughout Shoes, styles are used to change the way elements appear.  In some cases, you can even style an entire class of elements.  (Like giving all paragraphs a certain font.)
+外観を変更したいですか？Shoesにおいてはスタイルが要素の表示方法を変更するために利用されます。場合によっては、要素のすべてのクラスのスタイルでさえ設定できます。（すべての段落に特定のフォントを与えるように）
 
-Styles are easy to spot.  They usually show up when the element is created.
+スタイルは簡単にspotできます。通常は要素が生成されるときに現れます。
 
 {{{
  Shoes.app :title => "A Styling Sample" do
@@ -812,9 +816,9 @@ Styles are easy to spot.  They usually show up when the element is created.
  end
 }}}
 
-Here we've got a `:title` style on the app.  And on the paragraph inside the app, a red `:stroke` style and an `:underline` style.
+このappには`:title`スタイルが設定されています。そしてこのappの内部の段落には、赤い`:stroke`スタイルと`:underline`スタイルが設定されます。
 
-The style hash can also be changed by using the [[Common.style]] method, available on every element and slot.
+このスタイルのハッシュは、どんな要素やスロットも利用できる[[Common.style]]メソッドを利用して変更できます。
 
 {{{
  Shoes.app :title => "A Styling Sample" do
@@ -823,7 +827,7 @@ The style hash can also be changed by using the [[Common.style]] method, availab
  end
 }}}
 
-Most styles can also be set by calling them as methods.  (I'd use the manual search to find the method.)
+多くのスタイルもメソッドとして呼び出すことで設定することができます。（メソッドを見つけるために手動での検索を行うでしょう。）
 
 {{{
  Shoes.app :title => "A Styling Sample" do
@@ -833,37 +837,38 @@ Most styles can also be set by calling them as methods.  (I'd use the manual sea
  end
 }}}
 
-Rather than making you plow through the whole manual to figure out what styles go where, this helpful page speeds through every style in Shoes and suggests where that style is used.
+どんなスタイルでも分かるようにすべてのマニュアルを苦労して読ませるよりも、この役に立つページはShoesのあらゆるスタイルを急いで駆け抜けて、どこでスタイルが利用されるかについて示唆します。
 
 === :align » a string ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-The alignment of the text. It is either:
+テキストの整列です。これは次のどれかです：
 
- * 'left': Align the text to the left.
- * 'center': Align the text in the center.
- * 'right': Align the text to the right.
+ * 'left': 左へテキストを整列します。
+ * 'center': 中央へテキストを整列します。
+ * 'right': 右へテキストを整列します。
 
 === :angle » a number ===
 
-For: ''background, border, gradient''.
+''background, border, gradient''で利用できます。
 
-The angle at which to apply a gradient.  Normally, gradient colors range from top to bottom.  If the `:angle` is set to 90, the gradient will rotate 90 degrees counter-clockwise and the gradient will go from left to right.
+グラデーションに摘要する角度です。通常はグラデーションの色の効果は上から下です。`:angle`を90に設定するなら反時計回りに90度回転し、グラデーションは左から右になるでしょう。
 
 === :attach » a slot or element ===
 
-For: ''flow, stack''.
+''flow, stack''で利用できます。
 
-Pins a slot relative to another slot or element.  Also, one may write `:attach => Window` to position the slot at the window's top, left corner.  Taking this a bit further, the style `:top => 10, :left => 10, :attach => Window` would place the slot at (10, 10) in the window's coordinates.
+他のスロットや要素と比較してスロットをピンで止めます。ウィンドウの左上の角からスロットを配置するために`:attach => Window`と書く人もいるかもしれません。
+これについてもう少し取り上げると、`:top => 10, :left => 10, :attach => Window`のスタイルはスロットをウインドウの座標の(10, 10)に配置します。
 
-If a slot is attached to an element that moves, the slot will move with it.  If the attachment is reset to `nil`, the slot will flow in with the other objects that surround, as normal.
+動く要素にスロットがアタッチされた場合は、そのスロットはそれとともに動きます。アタッチメントが`nil`にリセットされるなら、通常はそのスロットはそれを取り囲む他のオブジェクトとともに流れます。
 
 === :autoplay » true or false ===
 
-For: ''video''.
+''video''で利用できます。
 
-Should this video begin playing after it appears?  If set to `true`, the video will start without asking the user.
+ビデオは現れた後で再生を開始すべきですか？`true`を設定すると、ビデオはユーザに尋ねること無く開始するでしょう。
 
 === :bottom » a number ===
 
