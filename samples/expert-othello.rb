@@ -6,6 +6,12 @@
 # FIXME bug if it memorizes it but it's not a valid move
 #
 module Othello
+
+  PIECE_WIDTH  = 62
+  PIECE_HEIGHT = 62
+  TOP_OFFSET = 47
+  LEFT_OFFSET = 12
+
   class Game
     BOARD_SIZE = [8,8]
 
@@ -285,17 +291,13 @@ module Othello
     }
     return false
   end
+
+  GAME = Othello::Game.new
 end
 
 
 Shoes.app :width => 520, :height => 600 do
   extend Othello
-
-  GAME = Othello::Game.new
-  PIECE_WIDTH  = 62
-  PIECE_HEIGHT = 62
-  TOP_OFFSET = 47
-  LEFT_OFFSET = 12
 
   draw_board
   

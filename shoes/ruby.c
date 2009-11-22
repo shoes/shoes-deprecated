@@ -13,7 +13,7 @@
 #include "shoes/effects.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cDialog, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
+VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cSlider, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE eVlcError, eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot;
@@ -539,7 +539,8 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
     }
 
     place->x = PX2(attr, left, right, cx, tw, canvas->place.iw) + ox;
-    place->y = PX2(attr, top, bottom, cy, th, canvas->fully) + oy;
+    place->y = PX2(attr, top, bottom, cy, th,
+      ORIGIN(canvas->place) ? canvas->height : canvas->fully) + oy;
     if (!ORIGIN(canvas->place))
     {
       place->dx = canvas->place.dx; 
@@ -609,6 +610,26 @@ unsigned char
 shoes_is_any(VALUE ele)
 {
   return shoes_is_element_p(ele, 1);
+}
+
+void
+shoes_extras_remove_all(shoes_canvas *canvas)
+{
+  int i;
+  shoes_basic *basic;
+  shoes_canvas *parent;
+  if (canvas->app == NULL) return;
+  for (i = RARRAY_LEN(canvas->app->extras) - 1; i >= 0; i--)
+  {
+    VALUE ele = rb_ary_entry(canvas->app->extras, i);
+    Data_Get_Struct(ele, shoes_basic, basic);
+    Data_Get_Struct(basic->parent, shoes_canvas, parent);
+    if (parent == canvas)
+    {
+      rb_funcall(ele, s_remove, 0);
+      rb_ary_delete_at(canvas->app->extras, i);
+    }
+  }
 }
 
 void
@@ -2406,7 +2427,6 @@ shoes_textblock_mark(shoes_textblock *text)
   rb_gc_mark_maybe(text->links);
   rb_gc_mark_maybe(text->attr);
   rb_gc_mark_maybe(text->parent);
-  rb_gc_mark_maybe(text->cursor);
 }
 
 //
@@ -2433,6 +2453,8 @@ shoes_textblock_free(shoes_textblock *text)
 {
   shoes_transform_release(text->st);
   shoes_textblock_uncache(text, TRUE);
+  if (text->cursor != NULL)
+    SHOE_FREE(text->cursor);
   if (text->layout != NULL)
     g_object_unref(text->layout);
   RUBY_CRITICAL(free(text));
@@ -2464,7 +2486,7 @@ shoes_textblock_alloc(VALUE klass)
   text->links = Qnil;
   text->attr = Qnil;
   text->parent = Qnil;
-  text->cursor = Qnil;
+  text->cursor = NULL;
   return obj;
 }
 
@@ -2475,11 +2497,32 @@ shoes_textblock_children(VALUE self)
   return text->texts;
 }
 
+static void
+shoes_textcursor_reset(shoes_textcursor *c)
+{
+  c->pos = c->hi = c->x = c->y = INT_MAX;
+}
+
 VALUE
 shoes_textblock_set_cursor(VALUE self, VALUE pos)
 {
   GET_STRUCT(textblock, self_t);
-  self_t->cursor = pos;
+  if (self_t->cursor == NULL)
+  {
+    if (NIL_P(pos)) return Qnil;
+    else            shoes_textcursor_reset(self_t->cursor = SHOE_ALLOC(shoes_textcursor));
+  }
+
+  if (NIL_P(pos)) shoes_textcursor_reset(self_t->cursor);
+  else if (pos == ID2SYM(s_marker)) {
+    if (self_t->cursor->hi != INT_MAX) {
+      self_t->cursor->pos = min(self_t->cursor->pos, self_t->cursor->hi);
+      self_t->cursor->hi = INT_MAX;
+    }
+  }
+  else            self_t->cursor->pos = NUM2INT(pos);
+  shoes_textblock_uncache(self_t, FALSE);
+  shoes_canvas_repaint_all(self_t->parent);
   return pos;
 }
 
@@ -2487,7 +2530,62 @@ VALUE
 shoes_textblock_get_cursor(VALUE self)
 {
   GET_STRUCT(textblock, self_t);
-  return self_t->cursor;
+  if (self_t->cursor == NULL || self_t->cursor->pos == INT_MAX) return Qnil;
+  return INT2NUM(self_t->cursor->pos);
+}
+
+VALUE
+shoes_textblock_cursorx(VALUE self)
+{
+  GET_STRUCT(textblock, self_t);
+  if (self_t->cursor == NULL || self_t->cursor->x == INT_MAX) return Qnil;
+  return INT2NUM(self_t->cursor->x);
+}
+
+VALUE
+shoes_textblock_cursory(VALUE self)
+{
+  GET_STRUCT(textblock, self_t);
+  if (self_t->cursor == NULL || self_t->cursor->y == INT_MAX) return Qnil;
+  return INT2NUM(self_t->cursor->y);
+}
+
+VALUE
+shoes_textblock_set_marker(VALUE self, VALUE pos)
+{
+  GET_STRUCT(textblock, self_t);
+  if (self_t->cursor == NULL)
+  {
+    if (NIL_P(pos)) return Qnil;
+    else            shoes_textcursor_reset(self_t->cursor = SHOE_ALLOC(shoes_textcursor));
+  }
+
+  if (NIL_P(pos)) self_t->cursor->hi = INT_MAX;
+  else            self_t->cursor->hi = NUM2INT(pos);
+  shoes_textblock_uncache(self_t, FALSE);
+  shoes_canvas_repaint_all(self_t->parent);
+  return pos;
+}
+
+VALUE
+shoes_textblock_get_marker(VALUE self)
+{
+  GET_STRUCT(textblock, self_t);
+  if (self_t->cursor == NULL || self_t->cursor->hi == INT_MAX) return Qnil;
+  return INT2NUM(self_t->cursor->hi);
+}
+
+VALUE
+shoes_textblock_get_highlight(VALUE self)
+{
+  int marker, start, len;
+  GET_STRUCT(textblock, self_t);
+  if (self_t->cursor == NULL || self_t->cursor->pos == INT_MAX) return Qnil;
+  marker = self_t->cursor->hi;
+  if (marker == INT_MAX) marker = self_t->cursor->pos;
+  start = min(self_t->cursor->pos, marker);
+  len = max(self_t->cursor->pos, marker) - start;
+  return rb_ary_new3(2, INT2NUM(start), INT2NUM(len));
 }
 
 static VALUE
@@ -2542,6 +2640,19 @@ shoes_textblock_motion(VALUE self, int x, int y, char *t)
 }
 
 VALUE
+shoes_textblock_hit(VALUE self, VALUE _x, VALUE _y)
+{
+  int x = NUM2INT(_x), y = NUM2INT(_y), index, trailing;
+  GET_STRUCT(textblock, self_t);
+  x -= self_t->place.ix + self_t->place.dx;
+  y -= self_t->place.iy + self_t->place.dy;
+  if (x < 0 || x > self_t->place.iw || y < 0 || y > self_t->place.ih)
+    return Qnil;
+  pango_layout_xy_to_index(self_t->layout, x * PANGO_SCALE, y * PANGO_SCALE, &index, &trailing);
+  return INT2NUM(index);
+}
+
+VALUE
 shoes_textblock_send_click(VALUE self, int button, int x, int y, VALUE *clicked)
 {
   VALUE v = Qnil;
@@ -2581,8 +2692,8 @@ shoes_textblock_send_release(VALUE self, int button, int x, int y)
 #define GET_STYLE(name) \
   attr = NULL; \
   str = Qnil; \
-  if (!NIL_P(oattr)) str = rb_hash_aref(oattr, ID2SYM(rb_intern("" # name))); \
-  if (!NIL_P(hsh) && NIL_P(str)) str = rb_hash_aref(hsh, ID2SYM(rb_intern("" # name)))
+  if (!NIL_P(oattr)) str = rb_hash_aref(oattr, ID2SYM(s_##name)); \
+  if (!NIL_P(hsh) && NIL_P(str)) str = rb_hash_aref(hsh, ID2SYM(s_##name))
 
 #define APPLY_STYLE_COLOR(name, func) \
   GET_STYLE(name); \
@@ -2859,6 +2970,15 @@ shoes_textblock_make_pango(shoes_app *app, VALUE klass, shoes_textblock *block)
   shoes_textblock_iter_pango(block->texts, block, app);
   shoes_app_style_for(block, app, klass, block->attr, 0, block->len);
 
+  if (block->cursor != NULL && block->cursor->pos != INT_MAX &&
+      block->cursor->hi != INT_MAX && block->cursor->pos != block->cursor->hi)
+  {
+    PangoAttribute *attr = pango_attr_background_new(255 * 255, 255 * 255, 0);
+    attr->start_index = min(block->cursor->pos, block->cursor->hi);
+    attr->end_index = max(block->cursor->pos, block->cursor->hi);
+    pango_attr_list_insert(block->pattr, attr);
+  }
+
   block->cached = 1;
 }
 
@@ -2892,16 +3012,28 @@ shoes_textblock_on_layout(shoes_app *app, VALUE klass, shoes_textblock *block)
     else if (strncmp(RSTRING_PTR(str), "right", 5) == 0)
       pango_layout_set_alignment(block->layout, PANGO_ALIGN_RIGHT);
   }
+
+  GET_STYLE(wrap);
+  if (TYPE(str) == T_STRING)
+  {
+    if (strncmp(RSTRING_PTR(str), "word", 4) == 0)
+      pango_layout_set_wrap(block->layout, PANGO_WRAP_WORD);
+    else if (strncmp(RSTRING_PTR(str), "char", 4) == 0)
+      pango_layout_set_wrap(block->layout, PANGO_WRAP_CHAR);
+    else if (strncmp(RSTRING_PTR(str), "trim", 4) == 0)
+      pango_layout_set_ellipsize(block->layout, PANGO_ELLIPSIZE_END);
+  }
 }
 
 VALUE
 shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
 {
+  double crx = 0., cry = 0.;
   int px, py, pd, li, ld;
   cairo_t *cr;
   shoes_canvas *canvas;
   PangoLayoutLine *last;
-  PangoRectangle lrect;
+  PangoRectangle crect, lrect;
 
   VALUE ck = rb_obj_class(c);
   GET_STRUCT(textblock, self_t);
@@ -2985,6 +3117,17 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
   pango_layout_line_get_pixel_extents(last, NULL, &lrect);
   pango_layout_get_pixel_size(self_t->layout, &px, &py);
 
+  if (self_t->cursor != NULL && self_t->cursor->pos != INT_MAX)
+  {
+    int cursor = self_t->cursor->pos;
+    if (cursor < 0) cursor += self_t->text->len + 1;
+    pango_layout_index_to_pos(self_t->layout, cursor, &crect);
+    crx = (self_t->place.ix + self_t->place.dx) + (crect.x / PANGO_SCALE);
+    cry = (self_t->place.iy + self_t->place.dy) + (crect.y / PANGO_SCALE);
+    self_t->cursor->x = (int)crx;
+    self_t->cursor->y = (int)cry;
+  }
+
   if (RTEST(actual))
   {
     shoes_apply_transformation(cr, self_t->st, &self_t->place, 0);
@@ -2995,17 +3138,8 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
       pango_cairo_update_layout(cr, self_t->layout);
       pango_cairo_show_layout(cr, self_t->layout);
 
-      // draw the cursor
-      if (!NIL_P(self_t->cursor))
+      if (self_t->cursor != NULL && self_t->cursor->pos != INT_MAX)
       {
-        int cursor = NUM2INT(self_t->cursor);
-        PangoRectangle crect;
-        double crx, cry;
-        if (cursor < 0) cursor += self_t->text->len + 1;
-        pango_layout_index_to_pos(self_t->layout, cursor, &crect);
-        crx = (self_t->place.ix + self_t->place.dx) + (crect.x / PANGO_SCALE);
-        cry = (self_t->place.iy + self_t->place.dy) + (crect.y / PANGO_SCALE);
-
         cairo_save(cr);
         cairo_new_path(cr);
         cairo_move_to(cr, crx, cry);
@@ -3021,6 +3155,10 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
     shoes_undo_transformation(cr, self_t->st, &self_t->place, 0);
   }
 
+  if (li == 0) {
+    self_t->place.iw = px;
+    self_t->place.w = px + lmargin + rmargin;
+  }
   self_t->place.ih = py;
   self_t->place.h = py + tmargin + bmargin;
   INFO("TEXT: %d, %d (%d, %d) / (%d: %d, %d: %d) %d, %d [%d]\n", canvas->cx, canvas->cy,
@@ -3210,7 +3348,11 @@ shoes_control_remove(VALUE self)
   shoes_canvas_remove_item(self_t->parent, self, 1, 0);
 
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-  if (self_t->ref != NULL) shoes_native_control_remove(self_t->ref, canvas);
+  if (self_t->ref != NULL) {
+    SHOES_CONTROL_REF ref = self_t->ref;
+    self_t->ref = NULL;
+    shoes_native_control_remove(ref, canvas);
+  }
   return self;
 }
 
@@ -3498,6 +3640,47 @@ shoes_check_draw(VALUE self, VALUE c, VALUE actual)
 
   FINISH();
 
+  return self;
+}
+
+VALUE
+shoes_slider_draw(VALUE self, VALUE c, VALUE actual)
+{
+  SETUP_CONTROL(0, 0, FALSE);
+
+  if (RTEST(actual))
+  {
+    if (self_t->ref == NULL)
+    {
+      self_t->ref = shoes_native_slider(self, canvas, &place, self_t->attr, msg);
+      shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
+    }
+    else
+      shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
+  }
+
+  FINISH();
+
+  return self;
+}
+
+VALUE
+shoes_slider_get_fraction(VALUE self)
+{
+  double perc = 0.;
+  GET_STRUCT(control, self_t);
+  if (self_t->ref != NULL)
+    perc = shoes_native_slider_get_fraction(self_t->ref);
+  return rb_float_new(perc);
+}
+
+VALUE
+shoes_slider_set_fraction(VALUE self, VALUE _perc)
+{
+  double perc = min(max(NUM2DBL(_perc), 0.0), 1.0);
+  GET_STRUCT(control, self_t);
+  if (self_t->ref != NULL)
+    shoes_native_slider_set_fraction(self_t->ref, perc);
   return self;
 }
 
@@ -4416,10 +4599,17 @@ shoes_ruby_init()
   symAltSlash = ID2SYM(rb_intern("alt_/"));
   symAltDot = ID2SYM(rb_intern("alt_."));
 
-  cShoesWindow = rb_define_class("Window", rb_cObject);
-  cMouse = rb_define_class("Mouse", rb_cObject);
+  //
+  // I want all elements to be addressed Shoes::Name, but also available in
+  // a separate mixin (cTypes), for inclusion in every Shoes.app block.
+  //
+  cTypes = rb_define_module("Shoes");
+  rb_mod_remove_const(rb_cObject, rb_str_new2("Shoes"));
 
-  cCanvas = rb_define_class("Canvas", rb_cObject);
+  cShoesWindow = rb_define_class_under(cTypes, "Window", rb_cObject);
+  cMouse = rb_define_class_under(cTypes, "Mouse", rb_cObject);
+
+  cCanvas = rb_define_class_under(cTypes, "Canvas", rb_cObject);
   rb_define_alloc_func(cCanvas, shoes_canvas_alloc);
   rb_define_method(cCanvas, "top", CASTHOOK(shoes_canvas_get_top), 0);
   rb_define_method(cCanvas, "left", CASTHOOK(shoes_canvas_get_left), 0);
@@ -4442,17 +4632,22 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "remove", CASTHOOK(shoes_canvas_remove), 0);
 
   cShoes = rb_define_class("Shoes", cCanvas);
-  rb_const_set(cShoes, rb_intern("RELEASE_NAME"), rb_str_new2(SHOES_RELEASE_NAME));
-  rb_const_set(cShoes, rb_intern("RELEASE_ID"), INT2NUM(SHOES_RELEASE_ID));
-  rb_const_set(cShoes, rb_intern("REVISION"), INT2NUM(SHOES_REVISION));
-  rb_const_set(cShoes, rb_intern("VERSION"), rb_str_new2(SHOES_RELEASE_NAME));
-  rb_const_set(cShoes, rb_intern("RAD2PI"), rb_float_new(SHOES_RAD2PI));
-  rb_const_set(cShoes, rb_intern("TWO_PI"), rb_float_new(SHOES_PIM2));
-  rb_const_set(cShoes, rb_intern("HALF_PI"), rb_float_new(SHOES_HALFPI));
-  rb_const_set(cShoes, rb_intern("PI"), rb_float_new(SHOES_PI));
+  rb_include_module(cShoes, cTypes);
+  rb_const_set(cShoes, rb_intern("Types"), cTypes);
+  rb_const_set(cTypes, rb_intern("RELEASE_NAME"), rb_str_new2(SHOES_RELEASE_NAME));
+  rb_const_set(cTypes, rb_intern("RELEASE_ID"), INT2NUM(SHOES_RELEASE_ID));
+  rb_const_set(cTypes, rb_intern("REVISION"), INT2NUM(SHOES_REVISION));
+  rb_const_set(cTypes, rb_intern("VERSION"), rb_str_new2(SHOES_RELEASE_NAME));
+  rb_const_set(cTypes, rb_intern("RAD2PI"), rb_float_new(SHOES_RAD2PI));
+  rb_const_set(cTypes, rb_intern("TWO_PI"), rb_float_new(SHOES_PIM2));
+  rb_const_set(cTypes, rb_intern("HALF_PI"), rb_float_new(SHOES_HALFPI));
+  rb_const_set(cTypes, rb_intern("PI"), rb_float_new(SHOES_PI));
+  rb_const_set(cTypes, rb_intern("VIDEO"), SHOES_VIDEO ? Qtrue : Qfalse);
 
-  cApp = rb_define_class_under(cShoes, "App", rb_cObject);
+  cApp = rb_define_class_under(cTypes, "App", rb_cObject);
   rb_define_alloc_func(cApp, shoes_app_alloc);
+  rb_define_method(cApp, "fullscreen", CASTHOOK(shoes_app_get_fullscreen), 0);
+  rb_define_method(cApp, "fullscreen=", CASTHOOK(shoes_app_set_fullscreen), 1);
   rb_define_method(cApp, "name", CASTHOOK(shoes_app_get_title), 0);
   rb_define_method(cApp, "name=", CASTHOOK(shoes_app_set_title), 1);
   rb_define_method(cApp, "location", CASTHOOK(shoes_app_location), 0);
@@ -4460,12 +4655,12 @@ shoes_ruby_init()
   rb_define_method(cApp, "width", CASTHOOK(shoes_app_get_width), 0);
   rb_define_method(cApp, "height", CASTHOOK(shoes_app_get_height), 0);
   rb_define_method(cApp, "slot", CASTHOOK(shoes_app_slot), 0);
-  cDialog = rb_define_class_under(cShoes, "Dialog", cApp);
+  cDialog = rb_define_class_under(cTypes, "Dialog", cApp);
 
-  eInvMode = rb_define_class_under(cShoes, "InvalidModeError", rb_eStandardError);
-  eNotImpl = rb_define_class_under(cShoes, "NotImplementedError", rb_eStandardError);
-  eVlcError = rb_define_class_under(cShoes, "VideoError", rb_eStandardError);
-  eImageError = rb_define_class_under(cShoes, "ImageError", rb_eStandardError);
+  eInvMode = rb_define_class_under(cTypes, "InvalidModeError", rb_eStandardError);
+  eNotImpl = rb_define_class_under(cTypes, "NotImplementedError", rb_eStandardError);
+  eVlcError = rb_define_class_under(cTypes, "VideoError", rb_eStandardError);
+  eImageError = rb_define_class_under(cTypes, "ImageError", rb_eStandardError);
   C(HEX_SOURCE, "/^(?:0x|#)?([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})$/i");
   C(HEX3_SOURCE, "/^(?:0x|#)?([0-9A-F])([0-9A-F])([0-9A-F])$/i");
   C(RGB_SOURCE, "/^rgb\\((\\d+), *(\\d+), *(\\d+)\\)$/i");
@@ -4511,12 +4706,12 @@ shoes_ruby_init()
   rb_define_method(rb_mKernel, "warn", CASTHOOK(shoes_canvas_warn), 1);
   rb_define_method(rb_mKernel, "error", CASTHOOK(shoes_canvas_error), 1);
 
-  cFlow       = rb_define_class_under(cShoes, "Flow", cShoes);
-  cStack      = rb_define_class_under(cShoes, "Stack", cShoes);
-  cMask       = rb_define_class_under(cShoes, "Mask", cShoes);
-  cWidget     = rb_define_class_under(cShoes, "Widget", cShoes);
+  cFlow       = rb_define_class_under(cTypes, "Flow", cShoes);
+  cStack      = rb_define_class_under(cTypes, "Stack", cShoes);
+  cMask       = rb_define_class_under(cTypes, "Mask", cShoes);
+  cWidget     = rb_define_class_under(cTypes, "Widget", cShoes);
 
-  cShape    = rb_define_class_under(cShoes, "Shape", rb_cObject);
+  cShape    = rb_define_class_under(cTypes, "Shape", rb_cObject);
   rb_define_alloc_func(cShape, shoes_shape_alloc);
   rb_define_method(cShape, "app", CASTHOOK(shoes_canvas_get_app), 0);
   rb_define_method(cShape, "displace", CASTHOOK(shoes_shape_displace), 2);
@@ -4537,7 +4732,7 @@ shoes_ruby_init()
   rb_define_method(cShape, "hover", CASTHOOK(shoes_shape_hover), -1);
   rb_define_method(cShape, "leave", CASTHOOK(shoes_shape_leave), -1);
 
-  cImage    = rb_define_class_under(cShoes, "Image", rb_cObject);
+  cImage    = rb_define_class_under(cTypes, "Image", rb_cObject);
   rb_define_alloc_func(cImage, shoes_image_alloc);
   rb_define_method(cImage, "[]", CASTHOOK(shoes_image_get_pixel), 2);
   rb_define_method(cImage, "[]=", CASTHOOK(shoes_image_set_pixel), 3);
@@ -4591,13 +4786,13 @@ shoes_ruby_init()
   rb_define_method(cImage, "hover", CASTHOOK(shoes_image_hover), -1);
   rb_define_method(cImage, "leave", CASTHOOK(shoes_image_leave), -1);
 
-  cEffect   = rb_define_class_under(cShoes, "Effect", rb_cObject);
+  cEffect   = rb_define_class_under(cTypes, "Effect", rb_cObject);
   rb_define_alloc_func(cEffect, shoes_effect_alloc);
   rb_define_method(cEffect, "draw", CASTHOOK(shoes_effect_draw), 2);
   rb_define_method(cEffect, "remove", CASTHOOK(shoes_basic_remove), 0);
 
 #ifdef VIDEO
-  cVideo    = rb_define_class_under(cShoes, "Video", rb_cObject);
+  cVideo    = rb_define_class_under(cTypes, "Video", rb_cObject);
   rb_define_alloc_func(cVideo, shoes_video_alloc);
   rb_define_method(cVideo, "app", CASTHOOK(shoes_canvas_get_app), 0);
   rb_define_method(cVideo, "displace", CASTHOOK(shoes_video_displace), 2);
@@ -4626,7 +4821,7 @@ shoes_ruby_init()
   rb_define_method(cVideo, "time=", CASTHOOK(shoes_video_set_time), 1);
 #endif
 
-  cPattern = rb_define_class_under(cShoes, "Pattern", rb_cObject);
+  cPattern = rb_define_class_under(cTypes, "Pattern", rb_cObject);
   rb_define_alloc_func(cPattern, shoes_pattern_alloc);
   rb_define_method(cPattern, "displace", CASTHOOK(shoes_pattern_displace), 2);
   rb_define_method(cPattern, "move", CASTHOOK(shoes_pattern_move), 2);
@@ -4638,12 +4833,12 @@ shoes_ruby_init()
   rb_define_method(cPattern, "hide", CASTHOOK(shoes_pattern_hide), 0);
   rb_define_method(cPattern, "show", CASTHOOK(shoes_pattern_show), 0);
   rb_define_method(cPattern, "toggle", CASTHOOK(shoes_pattern_toggle), 0);
-  cBackground = rb_define_class_under(cShoes, "Background", cPattern);
+  cBackground = rb_define_class_under(cTypes, "Background", cPattern);
   rb_define_method(cBackground, "draw", CASTHOOK(shoes_background_draw), 2);
-  cBorder = rb_define_class_under(cShoes, "Border", cPattern);
+  cBorder = rb_define_class_under(cTypes, "Border", cPattern);
   rb_define_method(cBorder, "draw", CASTHOOK(shoes_border_draw), 2);
 
-  cTextBlock = rb_define_class_under(cShoes, "TextBlock", rb_cObject);
+  cTextBlock = rb_define_class_under(cTypes, "TextBlock", rb_cObject);
   rb_define_alloc_func(cTextBlock, shoes_textblock_alloc);
   rb_define_method(cTextBlock, "app", CASTHOOK(shoes_canvas_get_app), 0);
   rb_define_method(cTextBlock, "contents", CASTHOOK(shoes_textblock_children), 0);
@@ -4653,6 +4848,12 @@ shoes_ruby_init()
   rb_define_method(cTextBlock, "draw", CASTHOOK(shoes_textblock_draw), 2);
   rb_define_method(cTextBlock, "cursor=", CASTHOOK(shoes_textblock_set_cursor), 1);
   rb_define_method(cTextBlock, "cursor", CASTHOOK(shoes_textblock_get_cursor), 0);
+  rb_define_method(cTextBlock, "cursor_left", CASTHOOK(shoes_textblock_cursorx), 0);
+  rb_define_method(cTextBlock, "cursor_top", CASTHOOK(shoes_textblock_cursory), 0);
+  rb_define_method(cTextBlock, "highlight", CASTHOOK(shoes_textblock_get_highlight), 0);
+  rb_define_method(cTextBlock, "hit", CASTHOOK(shoes_textblock_hit), 2);
+  rb_define_method(cTextBlock, "marker=", CASTHOOK(shoes_textblock_set_marker), 1);
+  rb_define_method(cTextBlock, "marker", CASTHOOK(shoes_textblock_get_marker), 0);
   rb_define_method(cTextBlock, "move", CASTHOOK(shoes_textblock_move), 2);
   rb_define_method(cTextBlock, "top", CASTHOOK(shoes_textblock_get_top), 0);
   rb_define_method(cTextBlock, "left", CASTHOOK(shoes_textblock_get_left), 0);
@@ -4671,15 +4872,15 @@ shoes_ruby_init()
   rb_define_method(cTextBlock, "release", CASTHOOK(shoes_textblock_release), -1);
   rb_define_method(cTextBlock, "hover", CASTHOOK(shoes_textblock_hover), -1);
   rb_define_method(cTextBlock, "leave", CASTHOOK(shoes_textblock_leave), -1);
-  cPara = rb_define_class_under(cShoes, "Para", cTextBlock);
-  cBanner = rb_define_class_under(cShoes, "Banner", cTextBlock);
-  cTitle = rb_define_class_under(cShoes, "Title", cTextBlock);
-  cSubtitle = rb_define_class_under(cShoes, "Subtitle", cTextBlock);
-  cTagline = rb_define_class_under(cShoes, "Tagline", cTextBlock);
-  cCaption = rb_define_class_under(cShoes, "Caption", cTextBlock);
-  cInscription = rb_define_class_under(cShoes, "Inscription", cTextBlock);
+  cPara = rb_define_class_under(cTypes, "Para", cTextBlock);
+  cBanner = rb_define_class_under(cTypes, "Banner", cTextBlock);
+  cTitle = rb_define_class_under(cTypes, "Title", cTextBlock);
+  cSubtitle = rb_define_class_under(cTypes, "Subtitle", cTextBlock);
+  cTagline = rb_define_class_under(cTypes, "Tagline", cTextBlock);
+  cCaption = rb_define_class_under(cTypes, "Caption", cTextBlock);
+  cInscription = rb_define_class_under(cTypes, "Inscription", cTextBlock);
 
-  cTextClass = rb_define_class_under(cShoes, "Text", rb_cObject);
+  cTextClass = rb_define_class_under(cTypes, "Text", rb_cObject);
   rb_define_alloc_func(cTextClass, shoes_text_alloc);
   rb_define_method(cTextClass, "app", CASTHOOK(shoes_canvas_get_app), 0);
   rb_define_method(cTextClass, "contents", CASTHOOK(shoes_text_children), 0);
@@ -4690,23 +4891,23 @@ shoes_ruby_init()
   rb_define_method(cTextClass, "text", CASTHOOK(shoes_text_children), 0);
   rb_define_method(cTextClass, "text=", CASTHOOK(shoes_text_replace), -1);
   rb_define_method(cTextClass, "replace", CASTHOOK(shoes_text_replace), -1);
-  cCode      = rb_define_class_under(cShoes, "Code", cTextClass);
-  cDel       = rb_define_class_under(cShoes, "Del", cTextClass);
-  cEm        = rb_define_class_under(cShoes, "Em", cTextClass);
-  cIns       = rb_define_class_under(cShoes, "Ins", cTextClass);
-  cSpan      = rb_define_class_under(cShoes, "Span", cTextClass);
-  cStrong    = rb_define_class_under(cShoes, "Strong", cTextClass);
-  cSub       = rb_define_class_under(cShoes, "Sub", cTextClass);
-  cSup       = rb_define_class_under(cShoes, "Sup", cTextClass);
+  cCode      = rb_define_class_under(cTypes, "Code", cTextClass);
+  cDel       = rb_define_class_under(cTypes, "Del", cTextClass);
+  cEm        = rb_define_class_under(cTypes, "Em", cTextClass);
+  cIns       = rb_define_class_under(cTypes, "Ins", cTextClass);
+  cSpan      = rb_define_class_under(cTypes, "Span", cTextClass);
+  cStrong    = rb_define_class_under(cTypes, "Strong", cTextClass);
+  cSub       = rb_define_class_under(cTypes, "Sub", cTextClass);
+  cSup       = rb_define_class_under(cTypes, "Sup", cTextClass);
 
-  cLink      = rb_define_class_under(cShoes, "Link", cTextClass);
+  cLink      = rb_define_class_under(cTypes, "Link", cTextClass);
   rb_define_method(cTextClass, "click", CASTHOOK(shoes_linktext_click), -1);
   rb_define_method(cTextClass, "release", CASTHOOK(shoes_linktext_release), -1);
   rb_define_method(cTextClass, "hover", CASTHOOK(shoes_linktext_hover), -1);
   rb_define_method(cTextClass, "leave", CASTHOOK(shoes_linktext_leave), -1);
-  cLinkHover = rb_define_class_under(cShoes, "LinkHover", cTextClass);
+  cLinkHover = rb_define_class_under(cTypes, "LinkHover", cTextClass);
 
-  cNative  = rb_define_class_under(cShoes, "Native", rb_cObject);
+  cNative  = rb_define_class_under(cTypes, "Native", rb_cObject);
   rb_define_alloc_func(cNative, shoes_control_alloc);
   rb_define_method(cNative, "app", CASTHOOK(shoes_canvas_get_app), 0);
   rb_define_method(cNative, "parent", CASTHOOK(shoes_control_get_parent), 0);
@@ -4723,53 +4924,58 @@ shoes_ruby_init()
   rb_define_method(cNative, "width", CASTHOOK(shoes_control_get_width), 0);
   rb_define_method(cNative, "height", CASTHOOK(shoes_control_get_height), 0);
   rb_define_method(cNative, "remove", CASTHOOK(shoes_control_remove), 0);
-  cButton  = rb_define_class_under(cShoes, "Button", cNative);
+  cButton  = rb_define_class_under(cTypes, "Button", cNative);
   rb_define_method(cButton, "draw", CASTHOOK(shoes_button_draw), 2);
   rb_define_method(cButton, "click", CASTHOOK(shoes_control_click), -1);
-  cEditLine  = rb_define_class_under(cShoes, "EditLine", cNative);
+  cEditLine  = rb_define_class_under(cTypes, "EditLine", cNative);
   rb_define_method(cEditLine, "text", CASTHOOK(shoes_edit_line_get_text), 0);
   rb_define_method(cEditLine, "text=", CASTHOOK(shoes_edit_line_set_text), 1);
   rb_define_method(cEditLine, "draw", CASTHOOK(shoes_edit_line_draw), 2);
   rb_define_method(cEditLine, "change", CASTHOOK(shoes_control_change), -1);
-  cEditBox  = rb_define_class_under(cShoes, "EditBox", cNative);
+  cEditBox  = rb_define_class_under(cTypes, "EditBox", cNative);
   rb_define_method(cEditBox, "text", CASTHOOK(shoes_edit_box_get_text), 0);
   rb_define_method(cEditBox, "text=", CASTHOOK(shoes_edit_box_set_text), 1);
   rb_define_method(cEditBox, "draw", CASTHOOK(shoes_edit_box_draw), 2);
   rb_define_method(cEditBox, "change", CASTHOOK(shoes_control_change), -1);
-  cListBox  = rb_define_class_under(cShoes, "ListBox", cNative);
+  cListBox  = rb_define_class_under(cTypes, "ListBox", cNative);
   rb_define_method(cListBox, "text", CASTHOOK(shoes_list_box_text), 0);
   rb_define_method(cListBox, "draw", CASTHOOK(shoes_list_box_draw), 2);
   rb_define_method(cListBox, "choose", CASTHOOK(shoes_list_box_choose), 1);
   rb_define_method(cListBox, "change", CASTHOOK(shoes_control_change), -1);
   rb_define_method(cListBox, "items", CASTHOOK(shoes_list_box_items_get), 0);
   rb_define_method(cListBox, "items=", CASTHOOK(shoes_list_box_items_set), 1);
-  cProgress  = rb_define_class_under(cShoes, "Progress", cNative);
+  cProgress  = rb_define_class_under(cTypes, "Progress", cNative);
   rb_define_method(cProgress, "draw", CASTHOOK(shoes_progress_draw), 2);
   rb_define_method(cProgress, "fraction", CASTHOOK(shoes_progress_get_fraction), 0);
   rb_define_method(cProgress, "fraction=", CASTHOOK(shoes_progress_set_fraction), 1);
-  cCheck  = rb_define_class_under(cShoes, "Check", cNative);
+  cSlider  = rb_define_class_under(cTypes, "Slider", cNative);
+  rb_define_method(cSlider, "draw", CASTHOOK(shoes_slider_draw), 2);
+  rb_define_method(cSlider, "fraction", CASTHOOK(shoes_slider_get_fraction), 0);
+  rb_define_method(cSlider, "fraction=", CASTHOOK(shoes_slider_set_fraction), 1);
+  rb_define_method(cSlider, "change", CASTHOOK(shoes_control_change), -1);
+  cCheck  = rb_define_class_under(cTypes, "Check", cNative);
   rb_define_method(cCheck, "draw", CASTHOOK(shoes_check_draw), 2);
   rb_define_method(cCheck, "checked?", CASTHOOK(shoes_check_is_checked), 0);
   rb_define_method(cCheck, "checked=", CASTHOOK(shoes_check_set_checked), 1);
   rb_define_method(cCheck, "click", CASTHOOK(shoes_control_click), -1);
-  cRadio  = rb_define_class_under(cShoes, "Radio", cNative);
+  cRadio  = rb_define_class_under(cTypes, "Radio", cNative);
   rb_define_method(cRadio, "draw", CASTHOOK(shoes_radio_draw), 2);
   rb_define_method(cRadio, "checked?", CASTHOOK(shoes_check_is_checked), 0);
   rb_define_method(cRadio, "checked=", CASTHOOK(shoes_check_set_checked_m), 1);
   rb_define_method(cRadio, "click", CASTHOOK(shoes_control_click), -1);
 
-  cTimerBase   = rb_define_class_under(cShoes, "TimerBase", rb_cObject);
+  cTimerBase   = rb_define_class_under(cTypes, "TimerBase", rb_cObject);
   rb_define_alloc_func(cTimerBase, shoes_timer_alloc);
   rb_define_method(cTimerBase, "draw", CASTHOOK(shoes_timer_draw), 2);
   rb_define_method(cTimerBase, "remove", CASTHOOK(shoes_timer_remove), 0);
   rb_define_method(cTimerBase, "start", CASTHOOK(shoes_timer_start), 0);
   rb_define_method(cTimerBase, "stop", CASTHOOK(shoes_timer_stop), 0);
   rb_define_method(cTimerBase, "toggle", CASTHOOK(shoes_timer_toggle), 0);
-  cAnim    = rb_define_class_under(cShoes, "Animation", cTimerBase);
-  cEvery   = rb_define_class_under(cShoes, "Every", cTimerBase);
-  cTimer   = rb_define_class_under(cShoes, "Timer", cTimerBase);
+  cAnim    = rb_define_class_under(cTypes, "Animation", cTimerBase);
+  cEvery   = rb_define_class_under(cTypes, "Every", cTimerBase);
+  cTimer   = rb_define_class_under(cTypes, "Timer", cTimerBase);
 
-  cColor   = rb_define_class_under(cShoes, "Color", rb_cObject);
+  cColor   = rb_define_class_under(cTypes, "Color", rb_cObject);
   rb_define_alloc_func(cColor, shoes_color_alloc);
   rb_define_method(rb_mKernel, "rgb", CASTHOOK(shoes_color_rgb), -1);
   rb_define_method(rb_mKernel, "gray", CASTHOOK(shoes_color_gray), -1);
@@ -4793,7 +4999,7 @@ shoes_ruby_init()
   rb_define_method(cColor, "transparent?", CASTHOOK(shoes_color_is_transparent), 0);
   rb_define_method(cColor, "white?", CASTHOOK(shoes_color_is_white), 0);
 
-  cDownload   = rb_define_class_under(cShoes, "Download", rb_cObject);
+  cDownload   = rb_define_class_under(cTypes, "Download", rb_cObject);
   rb_define_alloc_func(cDownload, shoes_http_alloc);
   rb_define_method(cDownload, "abort", CASTHOOK(shoes_http_abort), 0);
   rb_define_method(cDownload, "finish", CASTHOOK(shoes_http_finish), -1);
@@ -4815,9 +5021,9 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "method_missing", CASTHOOK(shoes_color_method_missing), -1);
   rb_define_method(cApp, "method_missing", CASTHOOK(shoes_app_method_missing), -1);
 
-  rb_const_set(cShoes, rb_intern("ALL_NAMED_COLORS"), rb_hash_new());
-  cColors = rb_const_get(cShoes, rb_intern("ALL_NAMED_COLORS"));
-  rb_const_set(cShoes, rb_intern("COLORS"), cColors);
+  rb_const_set(cTypes, rb_intern("ALL_NAMED_COLORS"), rb_hash_new());
+  cColors = rb_const_get(cTypes, rb_intern("ALL_NAMED_COLORS"));
+  rb_const_set(cTypes, rb_intern("COLORS"), cColors);
   DEF_COLOR(aliceblue, 240, 248, 255);
   DEF_COLOR(antiquewhite, 250, 235, 215);
   DEF_COLOR(aqua, 0, 255, 255);
@@ -4959,7 +5165,7 @@ shoes_ruby_init()
   DEF_COLOR(yellow, 255, 255, 0);
   DEF_COLOR(yellowgreen, 154, 205, 50);
 
-  cLinkUrl = rb_define_class_under(cShoes, "LinkUrl", rb_cObject);
+  cLinkUrl = rb_define_class_under(cTypes, "LinkUrl", rb_cObject);
 
   rb_define_method(rb_mKernel, "alert", CASTHOOK(shoes_dialog_alert), 1);
   rb_define_method(rb_mKernel, "ask", CASTHOOK(shoes_dialog_ask), -1);

@@ -269,10 +269,7 @@ shoes_app_gtk_keypress (GtkWidget *widget, GdkEventKey *event, gpointer data)
   shoes_app *app = (shoes_app *)data;
   if (event->keyval == GDK_Return)
   {
-    if ((event->state & (GDK_SHIFT_MASK | GDK_CONTROL_MASK | GDK_MOD1_MASK)) == 0)
-      v = rb_str_new2("\n");
-    else
-      v = ID2SYM(rb_intern("enter"));
+    v = rb_str_new2("\n");
   }
   KEY_SYM(Escape, escape);
   else if (event->length > 0)
@@ -324,18 +321,30 @@ shoes_app_gtk_keypress (GtkWidget *widget, GdkEventKey *event, gpointer data)
   KEY_SYM(F11, f11);
   KEY_SYM(F12, f12);
 
-  if (SYMBOL_P(v))
-  {
-    if (modifiers & GDK_MOD1_MASK)
-      KEY_STATE(alt);
-    if (modifiers & GDK_SHIFT_MASK)
-      KEY_STATE(shift);
-    if (modifiers & GDK_CONTROL_MASK)
-      KEY_STATE(control);
-  }
+  if (v != Qnil) {
+    if (event->type == GDK_KEY_PRESS) {
+      shoes_app_keydown(app, v);
 
-  if (v != Qnil)
-    shoes_app_keypress(app, v);
+      if (event->keyval == GDK_Return)
+        if ((event->state & (GDK_SHIFT_MASK | GDK_CONTROL_MASK | GDK_MOD1_MASK)) != 0)
+          v = ID2SYM(rb_intern("enter"));
+
+      if (SYMBOL_P(v))
+      {
+        if (modifiers & GDK_MOD1_MASK)
+          KEY_STATE(alt);
+        if (modifiers & GDK_SHIFT_MASK)
+          KEY_STATE(shift);
+        if (modifiers & GDK_CONTROL_MASK)
+          KEY_STATE(control);
+      }
+
+      shoes_app_keypress(app, v);
+    } else {
+      shoes_app_keyup(app, v);
+    }
+  } 
+
   return FALSE;
 }
 
@@ -496,6 +505,10 @@ shoes_app_cursor(shoes_app *app, ID cursor)
   {
     c = gdk_cursor_new(GDK_ARROW);
   }
+  else if (cursor == s_text)
+  {
+    c = gdk_cursor_new(GDK_XTERM);
+  }
   else
     goto done;
 
@@ -520,18 +533,38 @@ shoes_native_app_title(shoes_app *app, char *msg)
   gtk_window_set_title(GTK_WINDOW(app->os.window), _(msg));
 }
 
+void
+shoes_native_app_fullscreen(shoes_app *app, char yn)
+{
+  gtk_window_set_keep_above(GTK_WINDOW(app->os.window), (gboolean)yn);
+  if (yn)
+    gtk_window_fullscreen(GTK_WINDOW(app->os.window));
+  else
+    gtk_window_unfullscreen(GTK_WINDOW(app->os.window));
+}
+
 shoes_code
 shoes_native_app_open(shoes_app *app, char *path, int dialog)
 {
   char icon_path[SHOES_BUFSIZE];
   shoes_app_gtk *gk = &app->os;
 
-  sprintf(icon_path, "%s/static/shoes-icon.png", shoes_world->path);
+  sprintf(icon_path, "%s/static/app-icon.png", shoes_world->path);
   gtk_window_set_default_icon_from_file(icon_path, NULL);
   gk->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_position(GTK_WINDOW(gk->window), GTK_WIN_POS_CENTER);
+  if (app->minwidth < app->width || app->minheight < app->height)
+  {
+    GdkGeometry hints;
+    hints.min_width = app->minwidth;
+    hints.min_height = app->minheight;
+    gtk_window_set_geometry_hints(GTK_WINDOW(gk->window), NULL,
+      &hints, GDK_HINT_MIN_SIZE);
+  }
   if (!app->resizable)
     gtk_window_set_resizable(GTK_WINDOW(gk->window), FALSE);
+  if (app->fullscreen)
+    shoes_native_app_fullscreen(app, 1);
   gtk_widget_set_events(gk->window, GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
   g_signal_connect(G_OBJECT(gk->window), "size-allocate",
                    G_CALLBACK(shoes_app_gtk_paint), app);
@@ -544,6 +577,8 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
   g_signal_connect(G_OBJECT(gk->window), "scroll-event",
                    G_CALLBACK(shoes_app_gtk_wheel), app);
   g_signal_connect(G_OBJECT(gk->window), "key-press-event",
+                   G_CALLBACK(shoes_app_gtk_keypress), app);
+  g_signal_connect(G_OBJECT(gk->window), "key-release-event",
                    G_CALLBACK(shoes_app_gtk_keypress), app);
   g_signal_connect(G_OBJECT(gk->window), "delete-event",
                    G_CALLBACK(shoes_app_gtk_quit), app);
@@ -936,6 +971,28 @@ void
 shoes_native_progress_set_fraction(SHOES_CONTROL_REF ref, double perc)
 {
   gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(ref), perc);
+}
+
+SHOES_CONTROL_REF
+shoes_native_slider(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+  SHOES_CONTROL_REF ref = gtk_hscale_new_with_range(0., 1., 0.01);
+  gtk_scale_set_draw_value(GTK_SCALE(ref), FALSE);
+  g_signal_connect(G_OBJECT(ref), "value-changed",
+                   G_CALLBACK(shoes_widget_changed), (gpointer)self);
+  return ref;
+}
+
+double
+shoes_native_slider_get_fraction(SHOES_CONTROL_REF ref)
+{
+  return gtk_range_get_value(GTK_RANGE(ref));
+}
+
+void
+shoes_native_slider_set_fraction(SHOES_CONTROL_REF ref, double perc)
+{
+  gtk_range_set_value(GTK_RANGE(ref), perc);
 }
 
 SHOES_CONTROL_REF

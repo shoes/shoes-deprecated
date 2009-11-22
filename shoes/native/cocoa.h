@@ -53,6 +53,19 @@
 }
 @end
 
+@interface ShoesSlider : NSSlider
+{
+  VALUE object;
+}
+@end
+
+@interface ShoesAlert : NSWindow
+{
+  NSWindow *win;
+  BOOL answer;
+}
+@end
+
 @interface ShoesTimer : NSObject
 {
   VALUE object;
@@ -60,6 +73,9 @@
 }
 @end
 
+#define VK_ESCAPE 53
+#define VK_DELETE 117
+#define VK_INSERT 114
 #define VK_TAB   48
 #define VK_BS    51
 #define VK_PRIOR 116

@@ -17,6 +17,7 @@ shoes_app_mark(shoes_app *app)
   rb_gc_mark_maybe(app->title);
   rb_gc_mark_maybe(app->location);
   rb_gc_mark_maybe(app->canvas);
+  rb_gc_mark_maybe(app->keypresses);
   rb_gc_mark_maybe(app->nestslot);
   rb_gc_mark_maybe(app->nesting);
   rb_gc_mark_maybe(app->extras);
@@ -45,6 +46,7 @@ shoes_app_alloc(VALUE klass)
   app->owner = Qnil;
   app->location = Qnil;
   app->canvas = shoes_canvas_new(cShoes, app);
+  app->keypresses = rb_hash_new();
   app->nestslot = Qnil;
   app->nesting = rb_ary_new();
   app->extras = rb_ary_new();
@@ -53,10 +55,14 @@ shoes_app_alloc(VALUE klass)
   app->title = Qnil;
   app->width = SHOES_APP_WIDTH;
   app->height = SHOES_APP_HEIGHT;
+  app->minwidth = 0;
+  app->minheight = 0;
+  app->fullscreen = FALSE;
   app->resizable = TRUE;
   app->cursor = s_arrow;
   app->scratch = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
   app->self = Data_Wrap_Struct(klass, shoes_app_mark, shoes_app_free, app);
+  rb_extend_object(app->self, cTypes);
   return app->self;
 }
 
@@ -129,9 +135,14 @@ shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner)
   if (rb_block_given_p()) rb_iv_set(app, "@main_app", rb_block_proc());
   app_t->owner = owner;
   app_t->title = ATTR(attr, title);
+  app_t->fullscreen = RTEST(ATTR(attr, fullscreen));
   app_t->resizable = (ATTR(attr, resizable) != Qfalse);
   app_t->hidden = (ATTR(attr, hidden) == Qtrue);
   shoes_app_resize(app_t, ATTR2(int, attr, width, SHOES_APP_WIDTH), ATTR2(int, attr, height, SHOES_APP_HEIGHT));
+  if (RTEST(ATTR(attr, width)))
+    app_t->minwidth = app_t->width;
+  if (RTEST(ATTR(attr, height)))
+    app_t->minheight = app_t->height;
   shoes_canvas_init(app_t->canvas, app_t->slot, attr, app_t->width, app_t->height);
   if (shoes_world->mainloop)
     shoes_app_open(app_t, url);
@@ -182,6 +193,23 @@ shoes_app_set_title(VALUE app, VALUE title)
   shoes_app *app_t;
   Data_Get_Struct(app, shoes_app, app_t);
   return app_t->title = title;
+}
+
+VALUE
+shoes_app_get_fullscreen(VALUE app)
+{
+  shoes_app *app_t;
+  Data_Get_Struct(app, shoes_app, app_t);
+  return app_t->fullscreen ? Qtrue : Qfalse;
+}
+
+VALUE
+shoes_app_set_fullscreen(VALUE app, VALUE yn)
+{
+  shoes_app *app_t;
+  Data_Get_Struct(app, shoes_app, app_t);
+  shoes_native_app_fullscreen(app_t, app_t->fullscreen = RTEST(yn));
+  return yn;
 }
 
 void
@@ -405,6 +433,16 @@ shoes_app_wheel(shoes_app *app, ID dir, int x, int y)
 }
 
 shoes_code
+shoes_app_keydown(shoes_app *app, VALUE key)
+{
+  if (!RTEST(rb_hash_aref(app->keypresses, key))) {
+    rb_hash_aset(app->keypresses, key, Qtrue);
+    shoes_canvas_send_keydown(app->canvas, key);
+  }
+  return SHOES_OK;
+}
+
+shoes_code
 shoes_app_keypress(shoes_app *app, VALUE key)
 {
   if (key == symAltSlash)
@@ -415,6 +453,14 @@ shoes_app_keypress(shoes_app *app, VALUE key)
     rb_eval_string("Shoes.show_selector");
   else
     shoes_canvas_send_keypress(app->canvas, key);
+  return SHOES_OK;
+}
+
+shoes_code
+shoes_app_keyup(shoes_app *app, VALUE key)
+{
+  rb_hash_aset(app->keypresses, key, Qfalse);
+  shoes_canvas_send_keyup(app->canvas, key);
   return SHOES_OK;
 }
 
@@ -485,7 +531,6 @@ shoes_app_reset_styles(shoes_app *app)
   STYLE(cLink,        stroke, #06E);
   STYLE(cLinkHover,   underline, single);
   STYLE(cLinkHover,   stroke, #039);
-  STYLE(cLinkHover,   fill,   #EEE);
   STYLE(cStrong,      weight, bold);
   STYLE(cSup,         rise,   10);
   STYLE(cSup,         size,   x-small);

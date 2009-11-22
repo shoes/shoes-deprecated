@@ -74,7 +74,7 @@ shoes_http_err(SHOES_DOWNLOAD_ERROR code)
   }
   else
   {
-    msglen = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEMi | FORMAT_MESSAGE_IGNORE_INSERTS,
+    msglen = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
       NULL, code, 0, msg, sizeof(msg), NULL);
   }
   msg[msglen] = '\0';
@@ -90,7 +90,7 @@ shoes_http_headers(VALUE hsh)
   if (RARRAY_LEN(keys) > 0)
   {
     VALUE headers = rb_str_new2("");
-    for (i = 0; i < RARRAY(keys)->len; i++ )
+    for (i = 0; i < RARRAY(keys)->as.heap.len; i++ )
     {
       VALUE key = rb_ary_entry(keys, i);
       rb_str_append(headers, key);

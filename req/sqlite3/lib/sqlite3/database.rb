@@ -1,36 +1,3 @@
-#--
-# =============================================================================
-# Copyright (c) 2004, Jamis Buck (jgb3@email.byu.edu)
-# All rights reserved.
-# 
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-# 
-#     * Redistributions of source code must retain the above copyright notice,
-#       this list of conditions and the following disclaimer.
-# 
-#     * Redistributions in binary form must reproduce the above copyright
-#       notice, this list of conditions and the following disclaimer in the
-#       documentation and/or other materials provided with the distribution.
-# 
-#     * The names of its contributors may not be used to endorse or promote
-#       products derived from this software without specific prior written
-#       permission.
-# 
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-# =============================================================================
-#++
-
-require 'base64'
 require 'sqlite3/constants'
 require 'sqlite3/errors'
 require 'sqlite3/pragmas'
@@ -45,13 +12,11 @@ module SQLite3
   #
   #   require 'sqlite3'
   #
-  #   db = SQLite3::Database.new( "data.db" )
-  #
-  #   db.execute( "select * from table" ) do |row|
-  #     p row
+  #   SQLite3::Database.new( "data.db" ) do |db|
+  #     db.execute( "select * from table" ) do |row|
+  #       p row
+  #     end
   #   end
-  #
-  #   db.close
   #
   # It wraps the lower-level methods provides by the selected driver, and
   # includes the Pragmas module for access to various pragma convenience
@@ -102,7 +67,7 @@ module SQLite3
     #
     # By default, the new database will return result rows as arrays
     # (#results_as_hash) and has type translation disabled (#type_translation=).
-    def initialize( file_name, options={} )
+    def initialize( file_name, options={} ) # :yields: db
       utf16 = options.fetch(:utf16, false)
       load_driver( options[:driver] )
 
@@ -116,6 +81,14 @@ module SQLite3
       @type_translation = options.fetch(:type_translation,false)
       @translator = nil
       @transaction_active = false
+      
+      if block_given?
+        begin
+          yield self
+        ensure
+          self.close
+        end
+      end
     end
 
     # Return +true+ if the string is a valid (ie, parsable) SQL statement, and
@@ -180,6 +153,9 @@ module SQLite3
 
     # Returns a Statement object representing the given SQL. This does not
     # execute the statement; it merely prepares the statement for execution.
+    #
+    # The Statement can then be executed using Statement#execute.
+    #
     def prepare( sql )
       stmt = @statement_factory.new( self, sql )
       if block_given?
@@ -335,19 +311,19 @@ module SQLite3
     # The handler will be invoked with the name of the resource that was
     # busy, and the number of times it has been retried.
     #
-    # See also #busy_timeout.
+    # See also the mutually exclusive #busy_timeout. 
     def busy_handler( data=nil, &block ) # :yields: data, retries
       result = @driver.busy_handler( @handle, data, &block )
       Error.check( result, self )
     end
 
     # Indicates that if a request for a resource terminates because that
-    # resource is busy, SQLite should wait for the indicated number of
-    # milliseconds before trying again. By default, SQLite does not retry
+    # resource is busy, SQLite should sleep and retry for up to the indicated
+    # number of milliseconds. By default, SQLite does not retry
     # busy resources. To restore the default behavior, send 0 as the
     # +ms+ parameter.
     #
-    # See also #busy_handler.
+    # See also the mutually exclusive #busy_handler.
     def busy_timeout( ms )
       result = @driver.busy_timeout( @handle, ms )
       Error.check( result, self )

@@ -1,35 +1,3 @@
-#--
-# =============================================================================
-# Copyright (c) 2004, Jamis Buck (jgb3@email.byu.edu)
-# All rights reserved.
-# 
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-# 
-#     * Redistributions of source code must retain the above copyright notice,
-#       this list of conditions and the following disclaimer.
-# 
-#     * Redistributions in binary form must reproduce the above copyright
-#       notice, this list of conditions and the following disclaimer in the
-#       documentation and/or other materials provided with the distribution.
-# 
-#     * The names of its contributors may not be used to endorse or promote
-#       products derived from this software without specific prior written
-#       permission.
-# 
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-# =============================================================================
-#++
-
 require 'sqlite3/constants'
 require 'sqlite3/errors'
 
@@ -42,14 +10,23 @@ module SQLite3
   class ResultSet
     include Enumerable
 
-    # A trivial module for adding a +types+ accessor to an object.
-    module TypesContainer
+    # The class of which we return an object in case we want an Array as
+    # result. (ArrayFields is installed.)
+    class ArrayWithTypes < Array
       attr_accessor :types
     end
 
-    # A trivial module for adding a +fields+ accessor to an object.
-    module FieldsContainer
+    # The class of which we return an object in case we want an Array as
+    # result. (ArrayFields is not installed.)
+    class ArrayWithTypesAndFields < Array
+      attr_accessor :types
       attr_accessor :fields
+    end
+
+    # The class of which we return an object in case we want a Hash as
+    # result.
+    class HashWithTypes < Hash
+      attr_accessor :types
     end
 
     # Create a new ResultSet attached to the given database, using the
@@ -65,6 +42,9 @@ module SQLite3
     # to the first row of the result set.
     def commence
       result = @driver.step( @stmt.handle )
+      if result == Constants::ErrorCode::ERROR
+        @driver.reset( @stmt.handle )
+      end
       check result
       @first_row = true
     end
@@ -121,13 +101,16 @@ module SQLite3
       unless @eof
         row = []
         @driver.data_count( @stmt.handle ).times do |column|
-          case @driver.column_type( @stmt.handle, column )
-            when Constants::ColumnType::NULL then
-              row << nil
-            when Constants::ColumnType::BLOB then
-              row << @driver.column_blob( @stmt.handle, column )
-            else
-              row << @driver.column_text( @stmt.handle, column )
+          type	= @driver.column_type( @stmt.handle, column )
+
+          if type == Constants::ColumnType::TEXT
+            row << @driver.column_text( @stmt.handle, column )
+          elsif type == Constants::ColumnType::NULL
+            row << nil
+          elsif type == Constants::ColumnType::BLOB
+            row << @driver.column_blob( @stmt.handle, column )
+          else
+            row << @driver.column_text( @stmt.handle, column )
           end
         end
 
@@ -138,15 +121,22 @@ module SQLite3
         end
 
         if @db.results_as_hash
-          new_row = Hash[ *( @stmt.columns.zip( row ).flatten ) ]
-          row.each_with_index { |value,idx| new_row[idx] = value }
+          new_row = HashWithTypes[ *( @stmt.columns.zip( row ).to_a.flatten ) ]
+          row.each_with_index { |value,idx|
+            value.taint
+            new_row[idx] = value
+          }
           row = new_row
         else
-          row.extend FieldsContainer unless row.respond_to?(:fields)
+          if row.respond_to?(:fields)
+            row = ArrayWithTypes.new(row)
+          else
+            row = ArrayWithTypesAndFields.new(row)
+          end
           row.fields = @stmt.columns
+          row.each { |column| column.taint }
         end
 
-        row.extend TypesContainer
         row.types = @stmt.types
 
         return row

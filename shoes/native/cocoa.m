@@ -57,9 +57,42 @@
 {
   rb_eval_string("Shoes.show_log");
 }
+- (void)emulateKey: (NSString *)key modifierFlags: (unsigned int)flags withoutModifiers: (NSString *)key2
+{
+  ShoesWindow *win = [NSApp keyWindow];
+  [win keyDown: [NSEvent keyEventWithType:NSKeyDown
+    location:NSMakePoint(0,0) modifierFlags:flags
+    timestamp:0 windowNumber:0 context:nil
+    characters:key charactersIgnoringModifiers:key2 isARepeat:NO 
+    keyCode:0]];
+}
 - (void)help: (id)sender
 {
   rb_eval_string("Shoes.show_manual");
+}
+- (void)undo: (id)sender
+{
+  [self emulateKey: @"z" modifierFlags: NSCommandKeyMask withoutModifiers: @"z"];
+}
+- (void)redo: (id)sender
+{
+  [self emulateKey: @"Z" modifierFlags: NSCommandKeyMask|NSShiftKeyMask withoutModifiers: @"z"];
+}
+- (void)cut: (id)sender
+{
+  [self emulateKey: @"x" modifierFlags: NSCommandKeyMask withoutModifiers: @"x"];
+}
+- (void)copy: (id)sender
+{
+  [self emulateKey: @"c" modifierFlags: NSCommandKeyMask withoutModifiers: @"c"];
+}
+- (void)paste: (id)sender
+{
+  [self emulateKey: @"v" modifierFlags: NSCommandKeyMask withoutModifiers: @"v"];
+}
+- (void)selectAll: (id)sender
+{
+  [self emulateKey: @"a" modifierFlags: NSCommandKeyMask withoutModifiers: @"a"];
 }
 @end
 
@@ -71,6 +104,10 @@
   [self makeKeyAndOrderFront: self];
   [self setAcceptsMouseMovedEvents: YES];
   [self setDelegate: self];
+}
+- (void)disconnectApp
+{
+  app = Qnil;
 }
 - (void)sendMotion: (NSEvent *)e ofType: (ID)type withButton: (int)b
 {
@@ -156,6 +193,9 @@
   INIT;
 
   Data_Get_Struct(app, shoes_app, a);
+  KEY_SYM(ESCAPE, escape)
+  KEY_SYM(INSERT, insert)
+  KEY_SYM(DELETE, delete)
   KEY_SYM(TAB, tab)
   KEY_SYM(BS, backspace)
   KEY_SYM(PRIOR, page_up)
@@ -209,11 +249,21 @@
     shoes_app_keypress(a, v);
   RELEASE;
 }
+- (BOOL)canBecomeKeyWindow
+{
+  return YES;
+}
+- (BOOL)canBecomeMainWindow
+{
+  return YES;
+}
 - (void)windowWillClose: (NSNotification *)n
 {
-  shoes_app *a;
-  Data_Get_Struct(app, shoes_app, a);
-  shoes_app_remove(a);
+  if (!NIL_P(app)) {
+    shoes_app *a;
+    Data_Get_Struct(app, shoes_app, a);
+    shoes_app_remove(a);
+  }
 }
 @end
 
@@ -376,6 +426,53 @@
 }
 @end
 
+@implementation ShoesSlider
+- (id)initWithObject: (VALUE)o
+{
+  if ((self = [super init]))
+  {
+    object = o;
+    [self setTarget: self];
+    [self setAction: @selector(handleChange:)];
+  }
+  return self;
+}
+-(IBAction)handleChange: (id)sender
+{
+  shoes_control_send(object, s_change);
+}
+@end
+
+@implementation ShoesAlert
+- (id)init
+{
+  if ((self = [super initWithContentRect: NSMakeRect(0, 0, 340, 140)
+    styleMask: NSTitledWindowMask backing: NSBackingStoreBuffered defer: NO]))
+  {
+    answer = FALSE;
+    [self setDelegate: self];
+  }
+  return self;
+}
+-(IBAction)cancelClick: (id)sender
+{
+  [[NSApplication sharedApplication] stopModal];
+}
+-(IBAction)okClick: (id)sender
+{
+  answer = TRUE;
+  [[NSApplication sharedApplication] stopModal];
+}
+- (void)windowWillClose: (NSNotification *)n
+{
+  [[NSApplication sharedApplication] stopModal];
+}
+- (BOOL)accepted
+{
+  return answer;
+}
+@end
+
 @implementation ShoesTimer
 - (id)initWithTimeInterval: (NSTimeInterval)i andObject: (VALUE)o repeats: (BOOL)r
 {
@@ -422,7 +519,7 @@ create_apple_menu(NSMenu *main)
         action:@selector(openFile:) keyEquivalent:@"o"];
     [menuitem setTarget: shoes_world->os.events];
     menuitem = [menuApp addItemWithTitle:@"Package..."
-        action:@selector(package:) keyEquivalent:@"x"];
+        action:@selector(package:) keyEquivalent:@"P"];
     [menuitem setTarget: shoes_world->os.events];
     [menuApp addItemWithTitle:@"Preferences..." action:nil keyEquivalent:@""];
     [menuApp addItem: [NSMenuItem separatorItem]];
@@ -457,6 +554,35 @@ create_apple_menu(NSMenu *main)
     [NSApp setAppleMenu:menuApp];
     add_to_menubar(main, menuApp);
     [menuApp release];
+}
+
+void
+create_edit_menu(NSMenu *main)
+{
+    NSMenuItem *menuitem;
+    NSMenu *menuEdit = [[NSMenu alloc] initWithTitle: @"Edit"];
+
+    menuitem = [menuEdit addItemWithTitle:@"Undo"
+        action:@selector(undo:) keyEquivalent:@"z"];
+    [menuitem setTarget: shoes_world->os.events];
+    menuitem = [menuEdit addItemWithTitle:@"Redo"
+        action:@selector(redo:) keyEquivalent:@"Z"];
+    [menuitem setTarget: shoes_world->os.events];
+    [menuEdit addItem: [NSMenuItem separatorItem]];
+    menuitem = [menuEdit addItemWithTitle:@"Cut"
+        action:@selector(cut:) keyEquivalent:@"x"];
+    [menuitem setTarget: shoes_world->os.events];
+    menuitem = [menuEdit addItemWithTitle:@"Copy"
+        action:@selector(copy:) keyEquivalent:@"c"];
+    [menuitem setTarget: shoes_world->os.events];
+    menuitem = [menuEdit addItemWithTitle:@"Paste"
+        action:@selector(paste:) keyEquivalent:@"v"];
+    [menuitem setTarget: shoes_world->os.events];
+    menuitem = [menuEdit addItemWithTitle:@"Select All"
+        action:@selector(selectAll:) keyEquivalent:@"a"];
+    [menuitem setTarget: shoes_world->os.events];
+    add_to_menubar(main, menuEdit);
+    [menuEdit release];
 }
 
 void
@@ -570,6 +696,7 @@ void shoes_native_init()
   shoes_world->os.events = [[ShoesEvents alloc] init];
   [NSApp setMainMenu: main];
   create_apple_menu(main);
+  create_edit_menu(main);
   create_window_menu(main);
   create_help_menu(main);
   [NSApp setDelegate: shoes_world->os.events];
@@ -685,6 +812,8 @@ shoes_app_cursor(shoes_app *app, ID cursor)
     [[NSCursor pointingHandCursor] set];
   else if (cursor == s_arrow)
     [[NSCursor arrowCursor] set];
+  else if (cursor == s_text)
+    [[NSCursor IBeamCursor] set];
   else
     goto done;
 
@@ -709,21 +838,87 @@ shoes_native_app_title(shoes_app *app, char *msg)
   COCOA_DO([app->os.window setTitle: [NSString stringWithUTF8String: msg]]);
 }
 
+static ShoesWindow *
+shoes_native_app_window(shoes_app *app, int dialog)
+{
+  ShoesWindow *window;
+  unsigned int mask = NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
+  NSRect rect = NSMakeRect(0, 0, app->width, app->height);
+  NSSize size = {app->minwidth, app->minheight};
+
+  if (app->resizable)
+    mask |= NSResizableWindowMask;
+  if (app->fullscreen) {
+    mask = NSBorderlessWindowMask;
+    rect = [[NSScreen mainScreen] frame];
+  }
+  window = [[ShoesWindow alloc] initWithContentRect: rect
+    styleMask: mask backing: NSBackingStoreBuffered defer: NO];
+  if (app->minwidth > 0 || app->minheight > 0)
+    [window setContentMinSize: size];
+  [window prepareWithApp: app->self];
+  return window;
+}
+
+void
+shoes_native_view_supplant(NSView *from, NSView *to)
+{
+  int i, count = [[from subviews] count];
+  for (i = 0; i < count; i++)
+    [to addSubview: [[from subviews] objectAtIndex: i]];
+}
+
+void
+shoes_native_app_fullscreen(shoes_app *app, char yn)
+{
+  ShoesWindow *old = app->os.window;
+  if (yn)
+  {
+    int level;
+    NSRect screen;
+    if (CGDisplayCapture(kCGDirectMainDisplay) != kCGErrorSuccess)
+      return;
+    app->os.normal = [old frame];
+    level = CGShieldingWindowLevel();
+    screen = [[NSScreen mainScreen] frame];
+    COCOA_DO({
+      app->width = screen.size.width;
+      app->height = screen.size.height;
+      app->os.window = shoes_native_app_window(app, 0);
+      [app->os.window setLevel: level];
+      shoes_native_view_supplant([old contentView], [app->os.window contentView]);
+      app->os.view = [app->os.window contentView];
+      [old disconnectApp];
+      [old close];
+      [app->os.window setFrame: screen display: YES];
+    });
+  }
+  else
+  {
+    COCOA_DO({
+      app->width = app->os.normal.size.width;
+      app->height = app->os.normal.size.height;
+      app->os.window = shoes_native_app_window(app, 0);
+      [app->os.window setLevel: NSNormalWindowLevel];
+      CGDisplayRelease(kCGDirectMainDisplay);
+      shoes_native_view_supplant([old contentView], [app->os.window contentView]);
+      app->os.view = [app->os.window contentView];
+      [old disconnectApp];
+      [old close];
+      [app->os.window setFrame: app->os.normal display: YES];
+    });
+  }
+}
+
 shoes_code
 shoes_native_app_open(shoes_app *app, char *path, int dialog)
 {
-  unsigned int mask = NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
   shoes_code code = SHOES_OK;
-
+  app->os.normal = NSMakeRect(0, 0, app->width, app->height);
   COCOA_DO({
-    if (app->resizable)
-      mask |= NSResizableWindowMask;
-    app->os.window = [[ShoesWindow alloc] initWithContentRect: NSMakeRect(0, 0, app->width, app->height)
-      styleMask: mask backing: NSBackingStoreBuffered defer: NO];
-    [app->os.window prepareWithApp: app->self];
+    app->os.window = shoes_native_app_window(app, dialog);
     app->slot->view = [app->os.window contentView];
   });
-
 quit:
   return code;
 }
@@ -1092,6 +1287,29 @@ shoes_native_progress_set_fraction(SHOES_CONTROL_REF ref, double perc)
 }
 
 SHOES_CONTROL_REF
+shoes_native_slider(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+  INIT;
+  ShoesSlider *pop = [[ShoesSlider alloc] initWithObject: self];
+  [pop setMinValue: 0.];
+  [pop setMaxValue: 100.];
+  RELEASE;
+  return (NSControl *)pop;
+}
+
+double
+shoes_native_slider_get_fraction(SHOES_CONTROL_REF ref)
+{
+  return [(ShoesSlider *)ref doubleValue] * 0.01;
+}
+
+void
+shoes_native_slider_set_fraction(SHOES_CONTROL_REF ref, double perc)
+{
+  COCOA_DO([(ShoesSlider *)ref setDoubleValue: perc * 100.]);
+}
+
+SHOES_CONTROL_REF
 shoes_native_check(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
   INIT;
@@ -1205,18 +1423,44 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
   VALUE answer = Qnil;
   rb_parse_args(argc, argv, "s|h", &args);
   COCOA_DO({
-    NSAlert *alert = [NSAlert alertWithMessageText: @"Shoes asks:"
-      defaultButton:@"OK" alternateButton:@"Cancel" otherButton:nil
-      informativeTextWithFormat: [NSString stringWithUTF8String: RSTRING_PTR(args.a[0])]];
+    NSApplication *NSApp = [NSApplication sharedApplication];
+    ShoesAlert *alert = [[ShoesAlert alloc] init];
+    NSButton *okButton = [[[NSButton alloc] initWithFrame: 
+      NSMakeRect(244, 10, 88, 30)] autorelease];
+    NSButton *cancelButton = [[[NSButton alloc] initWithFrame: 
+      NSMakeRect(156, 10, 88, 30)] autorelease];
+    NSTextField *text = [[[NSTextField alloc] initWithFrame:
+      NSMakeRect(20, 110, 260, 18)] autorelease];
     NSTextField *input;
     if (RTEST(ATTR(args.a[1], secret)))
-      input = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(0, 0, 300, 24)];
+      input = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(20, 72, 300, 24)];
     else
-      input = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 300, 24)];
+      input = [[NSTextField alloc] initWithFrame:NSMakeRect(20, 72, 300, 24)];
+
+    [alert setTitle: @"Shoes asks:"];
+    [text setStringValue: [NSString stringWithUTF8String: RSTRING_PTR(args.a[0])]];
+    [text setBezeled: NO];
+    [text setBackgroundColor: [NSColor windowBackgroundColor]];
+    [text setEditable: NO];
+    [text setSelectable: NO];
+    [[alert contentView] addSubview: text];
     [input setStringValue:@""];
-    [alert setAccessoryView:input];
-    if ([alert runModal] == NSOKButton)
+    [[alert contentView] addSubview: input];
+    [okButton setTitle: @"OK"];
+    [okButton setBezelStyle: 1];
+    [okButton setTarget: alert];
+    [okButton setAction: @selector(okClick:)];
+    [[alert contentView] addSubview: okButton];
+    [cancelButton setTitle: @"Cancel"];
+    [cancelButton setBezelStyle: 1];
+    [cancelButton setTarget: alert];
+    [cancelButton setAction: @selector(cancelClick:)];
+    [[alert contentView] addSubview: cancelButton];
+    [alert setDefaultButtonCell: okButton];
+    [NSApp runModalForWindow: alert];
+    if ([alert accepted])
       answer = rb_str_new2([[input stringValue] UTF8String]);
+    [alert close];
   });
   return answer;
 }

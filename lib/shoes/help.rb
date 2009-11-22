@@ -1,7 +1,5 @@
 # -*- encoding: utf-8 -*-
 module Shoes::Manual
-  #PATH = "#{DIR}/static/manual.txt"
-  PATH = "#{DIR}/static/manual-ja.txt" # temporary change
   PARA_RE = /\s*?(\{{3}(?:.+?)\}{3})|\n\n/m
   CODE_RE = /\{{3}(?:\s*\#![^\n]+)?(.+?)\}{3}/m
   IMAGE_RE = /\!(\{([^}\n]+)\})?([^!\n]+\.\w+)\!/
@@ -10,6 +8,14 @@ module Shoes::Manual
   SUB_STYLE = {:stroke => "#CCC", :margin_top => 10}
   IMAGE_STYLE = {:margin => 8, :margin_left => 100}
   COLON = ": "
+
+  def self.path
+    path = "#{DIR}/static/manual-#{Shoes.language}.txt"
+    unless File.exists? path
+      path = "#{DIR}/static/manual-en.txt"
+    end
+    path
+  end
 
   def dewikify_hi(str, terms, intro = false)
     if terms
@@ -154,16 +160,12 @@ module Shoes::Manual
   end
 
   def run_code str
-    eval(str, Shoes.anonymous_binding)
+    eval(str, TOPLEVEL_BINDING)
   end
 
   def load_docs path
     return @docs if @docs
-    str = if RUBY_VERSION =~ /^1\.9/
-            File.open(path, 'r:utf-8') { |f| f.read }
-          else
-            File.read(path)
-          end
+    str = Shoes.read_file(path)
     @search = Shoes::Search.new
     @sections, @methods, @mindex = {}, {}, {}
     @docs =
@@ -347,7 +349,7 @@ def Shoes.make_help_page
   font "#{DIR}/fonts/Coolvetica.ttf" unless Shoes::FONTS.include? "Coolvetica"
   proc do
     extend Shoes::Manual
-    docs = load_docs Shoes::Manual::PATH
+    docs = load_docs Shoes::Manual.path
 
     style(Shoes::Image, :margin => 8, :margin_left => 100)
     style(Shoes::Code, :stroke => "#C30")
@@ -372,7 +374,7 @@ def Shoes.make_help_page
       stack :margin_left => 130, :margin_top => 20, :margin_bottom => 50, :margin_right => 50 + gutter,
         &dewikify(docs[0][-1]['description'], true)
     add_next_link(0, -1)
-    stack :top => 80, :left => 0, :attach => Window do
+    stack :top => 80, :left => 0, :attach => Shoes::Window do
       @toc = {}
       stack :margin => 12, :width => 130, :margin_top => 20 do
         docs.each do |sect_s, sect_h|

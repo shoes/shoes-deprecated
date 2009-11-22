@@ -130,25 +130,25 @@ module Hpricot
     # Add to the end of the contents inside each element in this list.
     # Pass in an HTML +str+, which is turned into Hpricot elements.
     def append(str = nil, &blk)
-      each { |x| x.html(x.children + Hpricot.make(str, &blk)) }
+      each { |x| x.html(x.children + x.make(str, &blk)) }
     end
 
     # Add to the start of the contents inside each element in this list.
     # Pass in an HTML +str+, which is turned into Hpricot elements.
     def prepend(str = nil, &blk)
-      each { |x| x.html(Hpricot.make(str, &blk) + x.children) }
+      each { |x| x.html(x.make(str, &blk) + x.children) }
     end
  
     # Add some HTML just previous to each element in this list.
     # Pass in an HTML +str+, which is turned into Hpricot elements.
     def before(str = nil, &blk)
-      each { |x| x.parent.insert_before Hpricot.make(str, &blk), x }
+      each { |x| x.parent.insert_before x.make(str, &blk), x }
     end
 
     # Just after each element in this list, add some HTML.
     # Pass in an HTML +str+, which is turned into Hpricot elements.
     def after(str = nil, &blk)
-      each { |x| x.parent.insert_after Hpricot.make(str, &blk), x }
+      each { |x| x.parent.insert_after x.make(str, &blk), x }
     end
 
     # Wraps each element in the list inside the element created by HTML +str+. 
@@ -161,14 +161,14 @@ module Hpricot
     # This code wraps every link on the page inside a +div.link+ and a +div.link_inner+ nest.
     def wrap(str = nil, &blk)
       each do |x|
-        wrap = Hpricot.make(str, &blk)
+        wrap = x.make(str, &blk)
         nest = wrap.detect { |w| w.respond_to? :children }
         unless nest
-          raise Exception, "No wrapping element found."
+          raise "No wrapping element found."
         end
         x.parent.replace_child(x, wrap)
         nest = nest.children.first until nest.empty?
-        nest.html(nest.children + [x])
+        nest.html([x])
       end
     end
 
@@ -261,7 +261,7 @@ module Hpricot
       self      
     end
 
-    ATTR_RE = %r!\[ *(?:(@)([\w\(\)-]+)|([\w\(\)-]+\(\))) *([~\!\|\*$\^=]*) *'?"?([^\]'"]*)'?"? *\]!i
+    ATTR_RE = %r!\[ *(?:(@)([\w\(\)-]+)|([\w\(\)-]+\(\))) *([~\!\|\*$\^=]*) *'?"?([^'"]*)'?"? *\]!i
     BRACK_RE = %r!(\[) *([^\]]*) *\]+!i
     FUNC_RE = %r!(:)?([a-zA-Z0-9\*_-]*)\( *[\"']?([^ \)]*?)['\"]? *\)!
     CUST_RE = %r!(:)([a-zA-Z0-9\*_-]*)()!
@@ -275,7 +275,7 @@ module Hpricot
             expr = $'
             m.compact!
             if m[0] == '@'
-                m[0] = "@#{m.slice!(2,1)}"
+                m[0] = "@#{m.slice!(2,1).join}"
             end
 
             if m[0] == '[' && m[1] =~ /^\d+$/
@@ -300,10 +300,10 @@ module Hpricot
                         args = m[1..-1]
                     end
                 end
-                i = -1
+                args << -1
                 nodes = Elements[*nodes.find_all do |x| 
-                                      i += 1
-                                      x.send(meth, *([*args] + [i])) ? truth : !truth
+                                      args[-1] += 1
+                                      x.send(meth, *args) ? truth : !truth
                                   end]
             end
         end
@@ -422,7 +422,7 @@ module Hpricot
       case arg 
       when 'even'; (parent.containers.index(self) + 1) % 2 == 0
       when 'odd';  (parent.containers.index(self) + 1) % 2 == 1
-      else         self == (parent.containers[arg.to_i + 1])
+      else         self == (parent.containers[arg.to_i - 1])
       end
     end
 
@@ -446,23 +446,23 @@ module Hpricot
       parent.containers.length == 1
     end
 
-    filter :parent do
+    filter :parent do |*a|
       containers.length > 0
     end
 
-    filter :empty do
+    filter :empty do |*a|
       containers.length == 0
     end
 
-    filter :root do
+    filter :root do |*a|
       self.is_a? Hpricot::Doc
     end
     
-    filter 'text' do
+    filter 'text' do |*a|
       self.text?
     end
 
-    filter 'comment' do
+    filter 'comment' do |*a|
       self.comment?
     end
 
@@ -495,7 +495,7 @@ module Hpricot
     end
 
     filter 'text()' do |val,i|
-      !self.inner_text.strip.empty?
+      self.children.grep(Hpricot::Text).detect { |x| x.content =~ /\S/ } if self.children
     end
 
     filter '@' do |attr,val,i|

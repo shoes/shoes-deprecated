@@ -83,7 +83,7 @@ typedef struct {
 #define CPX(c)  (c != NULL && (c->place.flags & FLAG_ORIGIN) ? 0 : c->place.ix)
 #define CPY(c)  (c != NULL && (c->place.flags & FLAG_ORIGIN) ? 0 : c->place.iy)
 #define CPB(c)  ((c->place.h - c->place.ih) - (c->place.iy - c->place.y))
-#define CPH(c)  ((c->fully - CPB(c)) - CPY(c))
+#define CPH(c)  (ORIGIN(c->place) ? c->height : (c->fully - CPB(c)) - CPY(c))
 #define CPW(c)  (c->place.iw)
 #define CCR(c)  (c->cr == NULL ? c->app->scratch : c->cr)
 #define SWPOS(x) ((int)sw % 2 == 0 ? x * 1. : x + .5)
@@ -146,6 +146,13 @@ typedef struct {
 } shoes_link;
 
 //
+// text cursor
+//
+typedef struct {
+  int pos, x, y, hi;
+} shoes_textcursor;
+
+//
 // text block struct
 //
 typedef struct {
@@ -154,7 +161,7 @@ typedef struct {
   shoes_place place;
   VALUE texts;
   VALUE links;
-  VALUE cursor;
+  shoes_textcursor *cursor;
   PangoLayout *layout;
   PangoAttrList *pattr;
   GString *text;
@@ -216,6 +223,7 @@ typedef struct {
 } shoes_image;
 
 #ifdef VIDEO
+#define SHOES_VIDEO 1
 //
 // video struct
 //
@@ -236,6 +244,8 @@ typedef struct {
   VALUE path;
   SHOES_SLOT_OS *slot;
 } shoes_video;
+#else
+#define SHOES_VIDEO 0
 #endif
 
 //
@@ -438,6 +448,7 @@ VALUE shoes_canvas_list_box(int, VALUE *, VALUE);
 VALUE shoes_canvas_edit_line(int, VALUE *, VALUE);
 VALUE shoes_canvas_edit_box(int, VALUE *, VALUE);
 VALUE shoes_canvas_progress(int, VALUE *, VALUE);
+VALUE shoes_canvas_slider(int, VALUE *, VALUE);
 VALUE shoes_canvas_check(int, VALUE *, VALUE);
 VALUE shoes_canvas_radio(int, VALUE *, VALUE);
 VALUE shoes_canvas_contents(VALUE);
@@ -465,7 +476,9 @@ VALUE shoes_canvas_leave(int, VALUE *, VALUE);
 VALUE shoes_canvas_click(int, VALUE *, VALUE);
 VALUE shoes_canvas_release(int, VALUE *, VALUE);
 VALUE shoes_canvas_motion(int, VALUE *, VALUE);
+VALUE shoes_canvas_keydown(int, VALUE *, VALUE);
 VALUE shoes_canvas_keypress(int, VALUE *, VALUE);
+VALUE shoes_canvas_keyup(int, VALUE *, VALUE);
 int shoes_canvas_independent(shoes_canvas *);
 VALUE shoes_find_canvas(VALUE);
 VALUE shoes_canvas_get_app(VALUE);
@@ -476,7 +489,9 @@ VALUE shoes_canvas_send_click(VALUE, int, int, int);
 void shoes_canvas_send_release(VALUE, int, int, int);
 VALUE shoes_canvas_send_motion(VALUE, int, int, VALUE);
 void shoes_canvas_send_wheel(VALUE, ID, int, int);
+void shoes_canvas_send_keydown(VALUE, VALUE);
 void shoes_canvas_send_keypress(VALUE, VALUE);
+void shoes_canvas_send_keyup(VALUE, VALUE);
 VALUE shoes_canvas_get_cursor(VALUE);
 VALUE shoes_canvas_set_cursor(VALUE, VALUE);
 VALUE shoes_canvas_get_clipboard(VALUE);

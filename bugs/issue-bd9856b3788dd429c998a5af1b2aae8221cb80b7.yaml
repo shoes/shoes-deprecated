@@ -1,0 +1,28 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Binject problems on OS X when building EXEs
+desc: |-
+  > 2. In Raisins, running on Windows XP, the packager fails properly
+  > create an EXE for source code containing windows line returns.
+  >
+  > As far as I can tell, the packager is removing all "\r"s from the
+  > source files being added to the EXE. However, the length of the file
+  > is not adjusted, resulting in an extra byte of garbage for each "\r"
+  > appended to the source file when decompressed by Shoes for execution.
+  >
+  > The user sees a message like "Illegal characters \312 \112 ..." in the
+  > shoes console when trying to execute the EXE.
+type: :bugfix
+component: shoes
+release: Policeman
+reporter: _why <why@whytheluckystiff.net>
+status: :unstarted
+disposition: 
+creation_time: 2009-02-10 18:59:11.553167 Z
+references: []
+
+id: bd9856b3788dd429c998a5af1b2aae8221cb80b7
+log_events: 
+- - 2009-02-10 18:59:12.860215 Z
+  - _why <why@whytheluckystiff.net>
+  - created
+  - ""

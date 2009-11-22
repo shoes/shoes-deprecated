@@ -119,6 +119,7 @@ typedef struct {
 typedef struct {
   ShoesWindow *window;
   NSView *view;
+  NSRect normal;
 } shoes_app_quartz, SHOES_APP_OS;
 
 typedef struct {
@@ -148,7 +149,7 @@ typedef struct {
 #include <commctrl.h>
 #include <shellapi.h>
 #include <cairo-win32.h>
-#include "win32/win32.h"
+#include "ruby/win32.h"
 
 #ifndef WM_MOUSEWHEEL
 #define WM_MOUSEWHEEL 0x020A
@@ -185,7 +186,10 @@ typedef struct {
 } shoes_group_win32, SHOES_GROUP_OS;
 
 typedef struct {
+  LONG style;
+  RECT normal;
   BOOL ctrlkey, altkey, shiftkey;
+  HWND window;
 } shoes_app_win32, SHOES_APP_OS;
 
 typedef struct {

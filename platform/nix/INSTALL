@@ -9,7 +9,8 @@
 
       # aptitude install libcairo2-dev libpixman-1-dev libpango1.0-dev \
           libungif4-dev libjpeg62-dev libgtk2.0-dev vlc libvlc-dev \
-          libsqlite3-dev libcurl4-openssl-dev ruby1.8-dev rake
+          libsqlite3-dev libcurl4-openssl-dev libportaudio19-dev \
+          ruby1.8-dev rake
 
     (On Ubuntu older than 8.10, actually you'll need libvlc0-dev.)
 
@@ -17,7 +18,7 @@
      
       # yum install -y giflib-devel cairo-devel libpixman-devel \
           pango-devel libjpeg-devel gtk2-devel sqlite-devel vlc-devel \
-          libcurl-devel ruby-devel
+          libcurl-devel libportaudio-devel ruby-devel
 
 //////////////////////////////////////////////////////////////////////////
 

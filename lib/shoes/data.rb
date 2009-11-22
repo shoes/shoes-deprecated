@@ -25,7 +25,7 @@ class << DATABASE
   def check_cache_for url
     etag, hash, saved = 
       DATABASE.get_first_row("SELECT etag, hash, saved FROM cache WHERE url = ?", url)
-    {:etag => etag, :hash => hash, :saved => saved.to_i}
+    {:etag => etag, :hash => hash, :saved => saved.nil? ? 0 : saved.ctime.to_i}
   end
   def notify_cache_of url, etag, hash
     DATABASE.query %{

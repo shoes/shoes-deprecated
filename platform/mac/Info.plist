@@ -11,7 +11,7 @@
   <key>CFBundleName</key>
   <string>#{APPNAME}</string>
   <key>CFBundleIconFile</key>
-  <string>Shoes.icns</string>
+  <string>App.icns</string>
   <key>CFBundleShortVersionString</key>
   <string>#{VERS}</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -30,7 +30,7 @@
 				<string>shy</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Shoes.icns</string>
+			<string>App.icns</string>
       <key>CFBundleTypeMIMETypes</key>
       <array>
         <string>application/x-shy</string>

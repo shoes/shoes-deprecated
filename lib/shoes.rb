@@ -14,6 +14,7 @@ require 'shoes/cache'
 if Object.const_defined? :Shoes
   require 'shoes/image'
 end
+require 'shoes/shybuilder'
  
 class Range 
   def rand 
@@ -36,10 +37,9 @@ class Shoes
     para "404 NOT FOUND, GUYS!"
   end
  
-  # Using TOPLEVEL to pacify Ruby 1.9 for now
-  def self.anonymous_binding
-    TOPLEVEL_BINDING
-  end
+  class << self; attr_accessor :locale, :language end
+  @locale = ENV["SHOES_LANG"] || ENV["LC_MESSAGES"] || ENV["LC_ALL"] || ENV["LANG"] || "C"
+  @language = @locale[/^(\w{2})_/, 1] || "en"
 
   @mounts = []
 
@@ -105,6 +105,12 @@ class Shoes
     Shoes.visit(fname) if fname
   end
 
+  def self.package_app
+    fname = ask_open_file
+    return false unless fname
+    start_shy_builder fname
+  end
+
   def self.splash
     font "#{DIR}/fonts/Lacuna.ttf"
     Shoes.app :width => 400, :height => 300, :resizable => false do  
@@ -121,12 +127,13 @@ class Shoes
 
       @waves = stack :top => 0, :left => 0
 
-      stack :margin => 22 do
+      stack :margin => 18 do
         para "Welcome to", :stroke => "#DFA", :margin => 0
         para "SHOES", :size => 48, :stroke => "#DFA", :margin_top => 0
         stack do
           background black(0.2), :curve => 8
           para link("Open an App.") { Shoes.show_selector and close }, :margin => 12, :margin_bottom => 4
+          para link("Package an App.") { Shoes.package_app and close }, :margin => 12, :margin_bottom => 4
           para link("Read the Manual.") { Shoes.show_manual and close }, :margin => 12 
         end
         inscription "Alt-Slash opens the console.", :stroke => "#DFA", :align => "center"
@@ -381,13 +388,21 @@ class Shoes
 
       $0.replace path
 
-      code = File.read(path)
-      eval(code, Shoes.anonymous_binding, path)
+      code = read_file(path)
+      eval(code, TOPLEVEL_BINDING, path)
     end
   rescue SettingUp
   rescue Object => e
     error(e)
     show_log
+  end
+
+  def self.read_file path
+    if RUBY_VERSION =~ /^1\.9/
+      File.open(path, 'r:utf-8') { |f| f.read }
+    else
+      File.read(path)
+    end
   end
 
   def self.url(path, meth)
@@ -396,22 +411,38 @@ class Shoes
 
   module Basic
     def tween opts, &blk
-      a = parent.animate(opts[:speed] || 20) do
+      opts = opts.dup
+
+      if opts[:upward]
+        opts[:top] = self.top - opts.delete(:upward)
+      elsif opts[:downward]
+        opts[:top] = self.top + opts.delete(:downward)
+      end
+      
+      if opts[:sideways]
+        opts[:left] = self.left + opts.delete(:sideways)
+      end
+      
+      @TWEEN.remove if @TWEEN
+      @TWEEN = parent.animate(opts[:speed] || 20) do
 
         # figure out a coordinate halfway between here and there
         cont = opts.select do |k, v|
-          n, o = v, self.style[k]
-          if n != o
-            n = o + ((n - o) / 2)
-            n = v if o == n
-            self.send("#{k}=", n)
+          if self.respond_to? k
+            n, o = v, self.send(k)
+            if n != o
+              n = o + ((n - o) / 2)
+              n = v if o == n
+              self.send("#{k}=", n)
+            end
+            self.style[k] != v
           end
-          self.style[k] != v
         end
 
         # if we're there, get rid of the animation
         if cont.empty?
-          a.remove
+          @TWEEN.remove
+          @TWEEN = nil
           blk.call if blk
         end
       end
@@ -426,11 +457,12 @@ class Shoes
              :rise, :kerning, :emphasis, :strikethrough, :stretch, :underline,
              :variant]
   MOUSE_S = [:click, :motion, :release, :hover, :leave]
+  KEY_S   = [:keydown, :keypress, :keyup]
   COLOR_S = [:stroke, :fill]
 
   {Background => [:angle, :radius, :curve, *BASIC_S],
    Border     => [:angle, :radius, :curve, :strokewidth, *BASIC_S],
-   ::Canvas   => [:scroll, :start, :finish, :keypress, *(MOUSE_S|BASIC_S)],
+   Canvas     => [:scroll, :start, :finish, *(KEY_S|MOUSE_S|BASIC_S)],
    Check      => [:click, :checked, *BASIC_S],
    Radio      => [:click, :checked, :group, *BASIC_S],
    EditLine   => [:change, :secret, :text, *BASIC_S],
@@ -456,7 +488,7 @@ class Shoes
     end
   end
 
-  class Widget
+  class Types::Widget
     @types = {}
     def self.inherited subc
       methc = subc.to_s[/(^|::)(\w+)$/, 2].
@@ -471,4 +503,8 @@ class Shoes
       }
     end
   end
+end
+
+def window(*a, &b)
+  Shoes.app(*a, &b)
 end

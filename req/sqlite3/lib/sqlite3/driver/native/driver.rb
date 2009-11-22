@@ -1,36 +1,12 @@
-#--
-# =============================================================================
-# Copyright (c) 2004, Jamis Buck (jgb3@email.byu.edu)
-# All rights reserved.
-# 
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-# 
-#     * Redistributions of source code must retain the above copyright notice,
-#       this list of conditions and the following disclaimer.
-# 
-#     * Redistributions in binary form must reproduce the above copyright
-#       notice, this list of conditions and the following disclaimer in the
-#       documentation and/or other materials provided with the distribution.
-# 
-#     * The names of its contributors may not be used to endorse or promote
-#       products derived from this software without specific prior written
-#       permission.
-# 
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-# =============================================================================
-#++
-
-require 'sqlite3_api'
+# support multiple ruby version (fat binaries under windows)
+begin
+  require 'sqlite3_api'
+rescue LoadError
+  if RUBY_PLATFORM =~ /mingw|mswin/ then
+    RUBY_VERSION =~ /(\d+.\d+)/
+    require "#{$1}/sqlite3_api"
+  end
+end
 
 module SQLite3 ; module Driver ; module Native
 
@@ -191,7 +167,7 @@ module SQLite3 ; module Driver ; module Native
     end
 
     def self.api_delegate( name )
-      define_method( name ) { |*args| API.send( "sqlite3_#{name}", *args ) }
+      eval "def #{name} (*args) API.sqlite3_#{name}( *args ) ; end"
     end
 
     api_delegate :libversion

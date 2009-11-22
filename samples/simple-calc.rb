@@ -51,13 +51,13 @@ Shoes.app :height => 250, :width => 200, :resizable => false do
       %w(7 8 9 / 4 5 6 * 1 2 3 - 0 Clr = +).each do |btn|
         button btn, :width => 46, :height => 46 do
           method = case btn
-            when /[0-9]/: 'press_'+btn
-            when 'Clr': 'press_clear'
-            when '=': 'press_equals'
-            when '+': 'press_add'
-            when '-': 'press_sub'
-            when '*': 'press_times'
-            when '/': 'press_div'
+            when /[0-9]/; 'press_'+btn
+            when 'Clr'; 'press_clear'
+            when '='; 'press_equals'
+            when '+'; 'press_add'
+            when '-'; 'press_sub'
+            when '*'; 'press_times'
+            when '/'; 'press_div'
           end
           
           number.send(method)

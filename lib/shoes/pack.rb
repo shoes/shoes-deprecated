@@ -17,23 +17,66 @@ class Shoes
     end
 
     def self.pkg(platform, opt)
-      url = 
-        case opt
-        when I_YES; "http://hacketyhack.net/pkg/#{platform}/shoes"
-        when I_NOV; "http://hacketyhack.net/pkg/#{platform}/shoes-novideo"
+      extension = case platform
+      when "win32" then
+       "exe"
+      when "linux" then
+       "run"
+      when "osx" then
+       "dmg"
+      else
+       raise "Unknown platform"
+      end
+      
+      case opt
+      when I_YES then
+        url = "http://shoes.heroku.com/pkg/#{RELEASE_NAME.downcase}/#{platform}/shoes"
+        local_file_path = File.join(LIB_DIR, RELEASE_NAME.downcase, platform, "latest_shoes.#{extension}")
+      when I_NOV then
+        url = "http://shoes.heroku.com/pkg/#{RELEASE_NAME.downcase}/#{platform}/shoes-novideo"
+        local_file_path = File.join(LIB_DIR, RELEASE_NAME.downcase, platform, "latest_shoes-novideo.#{extension}")       
+      end
+      
+      FileUtils.makedirs File.join(LIB_DIR, RELEASE_NAME.downcase, platform)
+      
+      begin
+        url = open(url).read.strip
+        debug url
+      rescue Exception => e
+        error e
+        internet_failed = true
+      end
+      
+      unless File.exists? local_file_path 
+        unless internet_failed then
+          begin
+            debug "Downloading #{url}..."
+            downloaded = open(url)
+            debug "Download of #{url} finished"
+          rescue Exception => e
+            error e
+            internet_failed = true
+          end
         end
-      if url
-        url = "http://hacketyhack.net" + open(url).read.strip
-        save = File.join(LIB_DIR, File.basename(url))
-        if File.exists? save; open(save)
-        else                  open(url)
+        unless internet_failed then
+          begin
+            File.open(local_file_path, "wb") do |f|
+              f.write(downloaded.read)
+            end
+            return  open(local_file_path)
+          rescue Exception => e
+            error e
+            alert "Couldnt find local_file_path or download it from internet"
+          end
         end
+      else
+        return  open(local_file_path)
       end
     end
 
     def self.exe(script, opt, &blk)
       size = File.size(script)
-      f = File.open(script)
+      f = File.open(script, 'rb')
       exe = Binject::EXE.new(File.join(DIR, "static", "stubs", "blank.exe"))
       size += script.length
       exe.inject("SHOES_FILENAME", File.basename(script))

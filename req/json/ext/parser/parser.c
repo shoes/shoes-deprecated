@@ -7,6 +7,9 @@
 #endif
 #include "unicode.h"
 
+#ifndef RHASH_TBL(h)
+#define RHASH_TBL(h) RHASH(h)->tbl
+#endif
 #define EVIL 0x666
 
 static VALUE mJSON, mExt, cParser, eParserError, eNestingError;

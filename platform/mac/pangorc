@@ -1,2 +1,2 @@
 [Pango]
-ModuleFiles=/Volumes/Shoes/Shoes.app/Contents/MacOS/pango.modules
+ModuleFiles=/Volumes/#{APPNAME}/#{APPNAME}.app/Contents/MacOS/pango.modules

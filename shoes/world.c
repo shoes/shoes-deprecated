@@ -88,7 +88,10 @@ shoes_ruby_embed()
 {
   VALUE v;
   char *argv[] = {"ruby", "-e", "1"};
+  int sysinit_argc = 0;
+  char**  sysinit_argv = NULL;
   RUBY_INIT_STACK;
+  ruby_sysinit( &sysinit_argc, &sysinit_argv );
   ruby_init();
   v = (VALUE)ruby_options(3, argv);
   return !FIXNUM_P(v);
@@ -119,6 +122,9 @@ shoes_init(SHOES_INIT_ARGS)
 void
 shoes_update_fonts(VALUE ary)
 {
+#if PANGO_VERSION_MAJOR > 1 || PANGO_VERSION_MINOR >= 22
+  pango_cairo_font_map_set_default(NULL);
+#endif
   rb_funcall(rb_const_get(cShoes, rb_intern("FONTS")), rb_intern("replace"), 1, ary);
 }
 
