@@ -14,6 +14,7 @@ require 'shoes/cache'
 if Object.const_defined? :Shoes
   require 'shoes/image'
 end
+require 'shoes/shybuilder'
  
 class Range 
   def rand 
@@ -104,6 +105,12 @@ class Shoes
     Shoes.visit(fname) if fname
   end
 
+  def self.package_app
+    fname = ask_open_file
+    return false unless fname
+    start_shy_builder fname
+  end
+
   def self.splash
     font "#{DIR}/fonts/Lacuna.ttf"
     Shoes.app :width => 400, :height => 300, :resizable => false do  
@@ -120,12 +127,13 @@ class Shoes
 
       @waves = stack :top => 0, :left => 0
 
-      stack :margin => 22 do
+      stack :margin => 18 do
         para "Welcome to", :stroke => "#DFA", :margin => 0
         para "SHOES", :size => 48, :stroke => "#DFA", :margin_top => 0
         stack do
           background black(0.2), :curve => 8
           para link("Open an App.") { Shoes.show_selector and close }, :margin => 12, :margin_bottom => 4
+          para link("Package an App.") { Shoes.package_app and close }, :margin => 12, :margin_bottom => 4
           para link("Read the Manual.") { Shoes.show_manual and close }, :margin => 12 
         end
         inscription "Alt-Slash opens the console.", :stroke => "#DFA", :align => "center"
