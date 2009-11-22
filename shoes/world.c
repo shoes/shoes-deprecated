@@ -88,10 +88,7 @@ shoes_ruby_embed()
 {
   VALUE v;
   char *argv[] = {"ruby", "-e", "1"};
-  int sysinit_argc = 0;
-  char**  sysinit_argv = NULL;
   RUBY_INIT_STACK;
-  ruby_sysinit( &sysinit_argc, &sysinit_argv );
   ruby_init();
   v = (VALUE)ruby_options(3, argv);
   return !FIXNUM_P(v);
