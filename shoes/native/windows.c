@@ -202,7 +202,6 @@ void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c)
   ScreenToClient(canvas->app->slot->window, &p); \
 
 #define KEY_SYM(sym)  shoes_app_keypress(app, ID2SYM(rb_intern("" # sym)))
-#define KEY_SYM2(sym)  shoes_app_keydown(app, ID2SYM(rb_intern("" # sym)))
 #define KEYPRESS(name, sym) \
   else if (w == VK_##name) { \
     VALUE v = ID2SYM(rb_intern("" # sym)); \
@@ -213,7 +212,6 @@ void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c)
     if (app->os.ctrlkey) \
       KEY_STATE(control); \
     shoes_app_keypress(app, v); \
-    shoes_app_keydown(app, v); \
   }
 
 static void
@@ -564,17 +562,14 @@ shoes_app_win32proc(
       {
         case 0x08:
           KEY_SYM(backspace);
-          KEY_SYM2(backspace);
         break;
 
         case 0x09:
           KEY_SYM(tab);
-          KEY_SYM2(tab);
         break;
 
         case 0x0D:
           shoes_app_keypress(app, rb_str_new2("\n"));
-          shoes_app_keydown(app, rb_str_new2("\n"));
         break;
 
         default:
@@ -586,7 +581,6 @@ shoes_app_win32proc(
           str[len] = '\0';
           v = rb_str_new(str, len);
           shoes_app_keypress(app, v);
-          shoes_app_keydown(app, v);
         }
       }
     break;
@@ -594,6 +588,12 @@ shoes_app_win32proc(
     case WM_KEYDOWN:
       app->os.altkey = false;
     case WM_SYSKEYDOWN:
+      {
+        VALUE v;
+        char letter = w;
+        v = rb_str_new(&letter, 1);
+        shoes_app_keydown(app, v);
+      }
       if (w == VK_CONTROL)
         app->os.ctrlkey = true;
       else if (w == VK_MENU)
@@ -649,26 +649,24 @@ shoes_app_win32proc(
         if (app->os.altkey) {
           KEY_STATE(alt);
           shoes_app_keypress(app, v);
-          shoes_app_keydown(app, v);
         }
       }
     break;
 
     case WM_SYSKEYUP:
     case WM_KEYUP:
-      if (w == VK_CONTROL)
-        app->os.ctrlkey = false;
-      else if (w == VK_MENU)
-        app->os.altkey = false;
-      else if (w == VK_SHIFT)
-        app->os.shiftkey = false;
-      else
       {
         VALUE v;
         char letter = w;
         v = rb_str_new(&letter, 1);
         shoes_app_keyup(app, v);
       }
+      if (w == VK_CONTROL)
+        app->os.ctrlkey = false;
+      else if (w == VK_MENU)
+        app->os.altkey = false;
+      else if (w == VK_SHIFT)
+        app->os.shiftkey = false;
     break;
 
     case WM_MOUSEWHEEL:
