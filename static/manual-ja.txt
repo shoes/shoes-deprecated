@@ -872,93 +872,93 @@ download
 
 === :bottom » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Sets the pixel coordinate of an element's lower edge.  The edge is placed relative to its container's lower edge.  So, `:bottom => 0` will align the element so that its bottom edge and the bottom edge of its slot touch.
+要素の下の端の座標にピクセルを設定します。その端はコンテナの下の端に対して配置されます。そのため、`:bottom => 0`は、スロットの下の端とその下の端が接するように要素を配置するでしょう。
 
 === :cap » :curve or :rect or :project ===
 
-For: ''arc, arrow, border, flow, image, mask, rect, star, shape, stack''.
+''arc, arrow, border, flow, image, mask, rect, star, shape, stack''で利用できます。
 
-Sets the shape of the line endpoint, whether curved or square.  See the [[Art.cap]] method for more explanation.
+線の終点の形状を曲がったもの（curved）か角張ったもの（square）に設定します。追加の説明は[[Art.cap]]メソッドを見てください。
 
 === :center » true or false ===
 
-For: ''arc, image, oval, rect, shape''.
+''arc, image, oval, rect, shape''で利用できます。
 
-Indicates whether the `:top` and `:left` coordinates refer to the center of the shape or not.  If set to `true`, this is similar to setting the [[Art.transform]] method to `:center`.
+`:top`と`:left`の座標が形状の中心を意味するかどうか示します。`true`を設定すると、[[Art.transform]]メソッドに`:center`を設定したのと似ています。
 
 === :change » a proc ===
 
-For: ''edit_box, edit_line, list_box''.
+''edit_box, edit_line, list_box''で利用できます。
 
-The `change` event handler is stored in this style.  See the [[EditBox.change]] method for the edit_box, as an example.
+`change`イベントハンドラはスタイルに保存されます。例として、edit_boxの[[EditBox.change]]メソッドを見てください。
 
 === :checked » true or false ===
 
-For: ''check, radio''.
+''check, radio''で利用できます。
 
-Is this checkbox or radio button checked?  If set to `true`, the box is checked.  Also see the [[Check.checked=]] method.
+チェックボックスまたはラジオボタンがクリックされましたか？`true`が設定されるなら、そのボックスはチェックされます。[[Check.checked=]]メソッドも見てください。
 
 === :choose » a string ===
 
-For: ''list_box''.
+''list_box''で利用できます。
 
-Sets the currently chosen item in the list.  More information at [[ListBox.choose]].
+リスト内の現在選択されたアイテムを設定します。追加の情報は[[ListBox.choose]]にあります。
 
 === :click » a proc ===
 
-For: ''arc, arrow, banner, button, caption, check, flow, image, inscription, line, link, mask, oval, para, radio, rect, shape, stack, star, subtitle, tagline, title''.
+''arc, arrow, banner, button, caption, check, flow, image, inscription, line, link, mask, oval, para, radio, rect, shape, stack, star, subtitle, tagline, title''で利用できます。
 
-The `click` event handler is stored in this style.  See the [[Events.click]] method for a description.
+`click`イベントハンドラはスタイルに保存されます。解説は[[Events.click]]メソッドを見てください。
 
 === :curve » a number ===
 
-For: ''background, border, rect''.
+''background, border, rect''で利用できます。
 
-The radius of curved corners on each of these rectangular elements.  As an example, if this is set to 6, the corners of the rectangle are given a curve with a 6-pixel radius.
+長方形の要素のそれぞれの曲がった角の半径です。例として、6を設定した場合、長方形の角は6ピクセルの半径のカーブを与えられます。
 
 === :displace_left » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Moves a shape, text block or any other kind of object to the left or right.  A positive number displaces to the right by the given number of pixels; a negative number displaces to the left.  Displacing an object doesn't effect the actual layout of the page.  Before using this style, be sure to read the [[Position.displace]] docs, since its behavior can be a bit surprising.
+形状、テキストブロックまたはその他のどんな種類のオブジェクトでも左か右に置き換えます。正数は与えられた数のピクセルによって右へ置き換え、負数は左へ置き換えます。オブジェクトを置き換えることはページの実際のレイアウトに影響を与えません。この振る舞いに少し驚くかもしれないので、このスタイルを利用する前に、[[Position.displace]]のドキュメントを読むようにしてください。
 
 === :displace_top » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Moves a shape, text block or any other kind of object up or down.  A positive number moves the object down by this number of pixels; a negative number moves it up.  Displacing doesn't effect the actual layout of the page or the object's true coordinates.  Read the [[Position.displace]] docs, since its behavior can be a bit surprising.
+形状、テキストブロックまたはその他のどんな種類のオブジェクトでも上か下に置き換えます。正数は与えられた数のピクセルによって下へ置き換え、負数は上へ置き換えます。オブジェクトを置き換えることはページの実際のレイアウトやオブジェクトの本当の座標に影響を与えません。この振る舞いに少し驚くかもしれないので、[[Position.displace]]のドキュメントを読んでください。
 
 === :emphasis » a string ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-Styles the text with an emphasis (commonly italicized.)
+強調によってテキストを整えます。（一般的にはイタリック体にされます。）
 
-This style recognizes three possible settings:
+このスタイルは3つの設定ができます：
 
- * "normal" - the font is upright.
- * "oblique" - the font is slanted, but in a roman style.
- * "italic" - the font is slanted in an italic style. 
+ * "normal" - 直立のフォント。
+ * "oblique" - ローマン体の傾いたフォント。
+ * "italic" - イタリック体の傾いたフォント。
 
 === :family » a string ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-Styles the text with a given font family.  The string should contain the family name or a comma-separated list of families.
+与えられたフォントファミリーでテキストを整えます。文字列はフォントファミリー名かカンマで区切られたフォントファミリーの一覧を含むべきです。
 
 === :fill » a hex code, a Shoes::Color or a range of either ===
 
-For: ''arc, arrow, background, banner, caption, code, del, em, flow, image, ins, inscription, line, link, mask, oval, para, rect, shape, span, stack, star, strong, sub, sup, subtitle, tagline, title''.
+''arc, arrow, background, banner, caption, code, del, em, flow, image, ins, inscription, line, link, mask, oval, para, rect, shape, span, stack, star, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-The color of the background pen.  For shapes, this is the fill color, the paint inside the shape.  For text stuffs, this color is painted in the background (as if marked with a highlighter pen.)
+背景のペンの色です。形状では、これは形状の内側を塗りつぶすペンキの色です。テキストなどでは、この色で背景が塗られます。（まるで蛍光ペンでマークされたように）
 
 === :font » a string ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-Styles the text with a font description.  The string is pretty flexible, but can take the form "[FAMILY-LIST] [STYLE-OPTIONS] [SIZE]", where FAMILY-LIST is a comma separated list of families optionally terminated by a comma, STYLE_OPTIONS is a whitespace separated list of words where each WORD describes one of style, variant, weight, stretch, or gravity, and SIZE is a decimal number (size in points) or optionally followed by the unit modifier "px" for absolute size. Any one of the options may be absent. If FAMILY-LIST is absent, then the default font family (Arial) will be used.
+フォントの種類でテキストを整えます。この文字列は非常に柔軟ですが、"[FAMILY-LIST] [STYLE-OPTIONS] [SIZE]"の形である必要があり、FAMILY-LISTの部分は任意にカンマで終わりカンマで区切られたフォントファミリーの一覧、STYLE_OPTIONSはvariant、weight、stretch、またはgravityなどの空白で区切られたスタイルを表現する単語の一覧、そしてSIZEは（ポイントのサイズの）10進数または絶対的なサイズのために単位修飾子"px"を任意に続けます。オプションのどれかは設定されないかもしれません。FAMILY-LISTが設定されない場合は、デフォルトフォントファミリー（Arial）が利用されます。
 
 === :group » a string ===
 
@@ -1457,7 +1457,7 @@ Sets the line size for all drawing within this slot.  Whereas the `stroke` metho
 
 === transform(:center or :corner) » self ===
 
-Should transformations (such as `skew` and `rotate`) be performed around the center of the shape?  Or the corner of the shape?  Shoes defaults to `:corner`.
+（`skew`や`rotate`のような）変化は形状の中心あたりで実行されるべきですか？またはその形状の角ですか？Shoesの初期値は`:corner`です。
 
 === translate(left, top) » self ===
 
