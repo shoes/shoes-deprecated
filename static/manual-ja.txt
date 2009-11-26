@@ -962,59 +962,59 @@ download
 
 === :group » a string ===
 
-For: ''radio''.
+''radio''で利用できます。
 
-Indicates what group a radio button belongs to.  Without this setting, radio buttons are grouped together with other radio buttons in their immediate slot.  "Grouping" radio buttons doesn't mean they'll be grouped next to each other on the screen.  It means that only one radio button from the group can be selected at a time.
+どのグループにラジオボタンが所属するかを示します。この設定がない場合は、ラジオボタンは周辺のスロットのラジオボタンとグループ化されます。ラジオボタンを"グループ化"することはスクリーン上でお互いに隣接してグループ化されることを意味するのではありません。それは、一度にグループから一つだけのラジオボタンだけを選択できることを意味します。
 
-By giving this style a string, the radio button will be grouped with other radio buttons that have the same group name.
+文字列にスタイルを与えることによって、ラジオボタンは同じグループ名を持つ他のラジオボタンとグループ化されます。
 
 === :height » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Sets the pixel height of this object.  If the number is a decimal number, the height becomes a percentage of its parent's height (with 0.0 being 0% and 1.0 being 100%.)
+オブジェクトの高さをピクセルで設定します。数値が10進数なら、その高さは親の高さのパーセンテージになります。（0.0は0%に、1.0は100%になります。）
 
 === :hidden » true or false ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Hides or shows this object.  Any object with `:hidden => true` are not displayed on the screen.  Neither are its children.
+オブジェクトの表示または非表示です。すべてのオブジェクトにとって`:hidden => true`は画面上での非表示になります。その子供のスロットと要素でも同様です。
 
 === :inner » a number ===
 
-For: ''star''.
+''star''で利用できます。
 
-The size of the inner radius (in pixels.)  The inner radius describes the solid circle within the star where the points begin to separate.
+内側の半径のサイズ（ピクセル）です。その内側の半径は点が別れ始める星の中に中空でない円を描きます
 
 === :items » an array ===
 
-For: ''list_box''.
+''list_box''で利用できます。
 
-The list of selections in the list box.  See the [[Element.list_box]] method for an example.
+リストボックスの項目の一覧です。例のために[[Element.list_box]]メソッドを見てください。
 
 === :justify » true or false ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-Evenly spaces the text horizontally.
+均一に水平にテキストの間隔を開けます。
 
 === :kerning » a number ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-Adds to the natural spacing between letters, in pixels.
+文字の間に自然な空白をピクセルで追加します。
 
 === :leading » a number ===
 
-For: ''banner, caption, inscription, para, subtitle, tagline, title''.
+''banner, caption, inscription, para, subtitle, tagline, title''で利用できます。
 
-Sets the spacing between lines in a text block.  Defaults to 4 pixels.
+テキストブロックの行間に空白を設定します。デフォルトは4ピクセルです。
 
 === :left » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Sets the left coordinate of this object to a specific pixel.  Setting `:left => 10` places the object's left edge ten pixels away from the left edge of the slot containing it.  If this style is left unset (or set to `nil`,) the object will flow in with the other objects surrounding it.
+オブジェクトの左の座標を特定のピクセルに設定します。`:left => 10`の設定はそのオブジェクトを含むスロットの左の端からオブジェクトの左の端が10ピクセル離れた位置に配置します。このleftのスタイルが設定されていない（または`nil`が設定される）なら、そのオブジェクトはそれを囲んでいる他のオブジェクトとともに動くでしょう。
 
 === :margin » a number or an array of four numbers ===
 
