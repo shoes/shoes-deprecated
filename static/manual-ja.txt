@@ -1018,132 +1018,134 @@ download
 
 === :margin » a number or an array of four numbers ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Margins space an element out from its surroundings.  Each element has a left, top, right, and bottom margin.  If the `:margin` style is set to a single number, the spacing around the element uniformly matches that number.  In other words, if `:margin => 8` is set, all the margins around the element are set to eight pixels in length.
+マージンは要素の周囲に間隔をあけます。それぞれの要素はleft、top、right、そしてbottomのマージンを持っています。`:margin`スタイルに一つの数が設定されると、要素の周囲の間隔は均一にその数にとなります。言い換えると、`:margin => 8`を設定すると、その要素の周囲のすべてのマージンは8ピクセルの長さに設定されます。
 
-This style can also be given an array of four numbers in the form `[left, top, right, bottom]`.
+このスタイルは4つの数を`[left, top, right, bottom]`の形の配列で与えることもできます。
 
 === :margin_bottom » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Sets the bottom margin of the element to a specific pixel size.
+要素の下側（bottom）のマージンをピクセルで設定します。
 
 === :margin_left » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Sets the left margin of the element to a specific pixel size.
+要素の左側（left）のマージンをピクセルで設定します。
 
 === :margin_right » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Sets the right margin of the element to a specific pixel size.
+要素の右側（right）のマージンをピクセルで設定します。
 
 === :margin_top » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Sets the top margin of the element to a specific pixel size.
+要素の上側（top）のマージンをピクセルで設定します。
 
 === :outer » a number ===
 
-For: ''star''.
+''star''で利用できます。
 
-Sets the outer radius (half of the ''total'' width) of the star, in pixels.
+星の外側の半径（''全''幅の半分）をピクセルで設定します。
 
 === :points » a number ===
 
-For: ''star''.
+''star''で利用できます。
 
-How many points does this star have?  A style of `:points => 5` creates a five-pointed star.
+その星はいくつの頂点を持ちますか？`:points => 5`のスタイルは5つの頂点を持つ星を作成します。
 
 === :radius » a number ===
 
-For: ''arc, arrow, background, border, gradient, oval, rect, shape''.
+''arc, arrow, background, border, gradient, oval, rect, shape''で利用できます。
 
-Sets the radius (half of the diameter or total width) for each of these elements.  Setting this is equivalent to setting both `:width` and `:height` to double this number.
+それらの要素に半径（直径または全幅の半分）を設定します。これを設定することは、この数値の2倍の`:width`と`:height`を設定することと同等です。
 
 === :right » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Sets the pixel coordinate of an element's right edge.  The edge is placed relative to its container's rightmost edge.  So, `:right => 0` will align the element so that its own right edge and the right edge of its slot touch.  Whereas `:right => 20` will position the right edge of the element off to the left of its slot's right edge by twenty pixels.
+要素の右端の座標をピクセルで設定します。その端はコンテナの右端に対して配置されます。そのため、`:right => 0`は、スロットの右端とその右端が接するように要素を配置するでしょう。一方`:right => 20`は要素の右端をそのスロットの右端から左側に向けて20ピクセル離れたところに配置します。
 
 === :rise » a number ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-Lifts or plunges the font baseline for some text.  For example, a [[Element.sup]] has a `:rise` of 10 pixels.  Conversely, the [[Element.sub]] element has a `:rise` of -10 pixels.
+テキストのフォントを基準から上げたり下げたりします。例えば、[[Element.sup]]は10ピクセルの`:rise`を行います。逆に、[[Element.sub]]の要素は-10ピクセルの`:rise`となります。
 
 === :scroll » true or false ===
 
-For: ''flow, stack''.
+''flow, stack''で利用できます。
 
-Establishes this slot as a scrolling slot.  If `:scroll => true` is set, the slot will show a scrollbar if any of its contents go past its height.  The scrollbar will appear and disappear as needed.  It will also appear inside the width of the slot, meaning the slot's width will never change, regardless of whether there is a scrollbar or not.
+スロットをスクロールするスロットとします。`:scroll => true`が設定され、そのコンテンツがスロットの高さ以上の場合はスクロールバーがスロットに表示されます。スクロールバーは必要に応じて表示したり非表示になります。それはスロットの幅の内側で表示されるので、スクロールバーのあるなしに関わらず、スロットの幅は決して変わらないことを意味します。
 
 === :secret » true or false ===
 
-For: ''ask, edit_line''.
+''ask, edit_line''で利用できます。
 
 Used for password fields, this setting keeps any characters typed in from becoming visible on the screen.  Instead, a replacement character (such as an asterisk) is show for each letter typed.
 
+パスワードフィールドのために利用され、この設定は入力された文字を画面上で表示されないようにします。そのかわり、置き換えられた文字（たとえばアスタリスク）をそれぞれの文字が入力されるごとに表示します。
+
 === :size » a number ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-Sets the pixel size for the font used inside this text block or text fragment.
+このテキストブロックまたはテキストの一部の内部で利用されたフォントのサイズをピクセルで設定します。
 
-Font size may also be augmented, through use of the following strings:
+フォントサイズは次の文字列を利用することでも大きくすることができるかもしれません:
 
- * "xx-small" - 57% of present size.
- * "x-small" - 64% of present size.
- * "small" - 83% of present size.
- * "medium" - no change in size.
- * "large" - 120% of present size.
- * "x-large" - 143% of present size.
- * "xx-large" - 173% of present size.
+ * "xx-small" - 現在のサイズの57%
+ * "x-small" - 現在のサイズの64%
+ * "small" - 現在のサイズの83%
+ * "medium" - サイズ変更なし
+ * "large" - 現在のサイズの120%
+ * "x-large" - 現在のサイズの143%
+ * "xx-large" - 現在のサイズの173%
 
 === :state » a string ===
 
-For: ''button, check, edit_box, edit_line, list_box, radio''.
+''button, check, edit_box, edit_line, list_box, radio''で利用できます。
 
-The `:state` style is for disabling or locking certain controls, if you don't want them to be edited.
+この`:state`スタイルは編集されたくないコントロールを利用不能または固定するためにあります。
 
-Here are the possible style settings:
+利用可能なスタイルの設定：
 
- * nil - the control is active and editable.
- * "readonly" - the control is active but cannot be edited.
- * "disabled" - the control is not active (grayed out) and cannot be edited.
+ * nil - コントロールはアクティブで編集可能です。
+ * "readonly" - コントロールはアクティブですが編集不可能です。
+ * "disabled" - コントロールはアクティブはなく（グレイアウト）、編集不可能です。
 
 === :stretch » a string ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-Sets the font stretching used for a text object.
+テキストオブジェクトに伸縮したフォントを設定します。
 
-Possible settings are:
+利用可能な設定：
 
- * "condensed" - a smaller width of letters.
- * "normal" - the standard width of letters.
- * "expanded" - a larger width of letters.
+ * "condensed" - 狭い幅の文字
+ * "normal" - 標準の幅の文字
+ * "expanded" - 広い幅の文字
 
 === :strikecolor » a Shoes::Color ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-The color used to paint any lines stricken through this text.
+テキストに棒線を引いて削除するときの線の色です。
 
 === :strikethrough » a string ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-Is this text stricken through?  Two options here:
+このテキストに棒線を引いて削除しますか？2つのオプションがあります：
 
- * "none" - no strikethrough
- * "single" - a single-line strikethrough.
+ * "none" - 棒線を引いて削除しません。
+ * "single" - 1本の棒線を引いて削除します。
 
 === :stroke » a hex code, a Shoes::Color or a range of either ===
 
