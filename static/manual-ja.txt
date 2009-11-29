@@ -1149,90 +1149,91 @@ Used for password fields, this setting keeps any characters typed in from becomi
 
 === :stroke » a hex code, a Shoes::Color or a range of either ===
 
-For: ''arc, arrow, banner, border, caption, code, del, em, flow, image, ins, inscription, line, link, mask, oval, para, rect, shape, span, stack, star, strong, sub, sup, subtitle, tagline, title''.
+''arc, arrow, banner, border, caption, code, del, em, flow, image, ins, inscription, line, link, mask, oval, para, rect, shape, span, stack, star, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-The color of the foreground pen.  In the case of shapes, this is the color the lines are drawn with.  For paragraphs and other text, the letters are printed in this color.
+フォアグラウンドのペンの色です。形状の場合は描かれる線の色です。段落や他のテキストでは、この色で文字が表示されます。
 
 === :strokewidth » a number ===
 
-For: ''arc, arrow, border, flow, image, line, mask, oval, rect, shape, star, stack''.
+''arc, arrow, border, flow, image, line, mask, oval, rect, shape, star, stack''で利用できます。
 
-The thickness of the stroke, in pixels, of the line defining each of these shapes.  For example, the number two would set the strokewidth to 2 pixels.
+描かれる線のピクセルでの太さで、形状の線を特徴付けます。例えば、数値の2が設定されればstrokewidthは2ピクセルになります。
 
 === :text » a string ===
 
-For: ''button, edit_box, edit_line''.
+''button, edit_box, edit_line''で利用できます。
 
-Sets the message displayed on a button control, or the contents of an edit_box or edit_line.
+edit_boxやedit_lineのコンテンツ、またはボタンコントロールに表示されるメッセージを設定します。
 
 === :top » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Sets the top coordinate for an object, relative to its parent slot.  If an object is set with `:top => 40`, this means the object's top edge will be placed 40 pixels beneath the top edge of the slot that contains it.  If no `:top` style is given, the object is automatically placed in the natural flow of its slot.
+オブジェクトの上側の座標を、その親のスロットに対して設定します。オブジェクトに`:top => 40`が設定されたなら、オブジェクトの上端はそのオブジェクトを含むスロットの上端から40ピクセル下に配置されることを意味します。`:top`スタイルが与えられないなら、そのスロットの自然な流れでオブジェクトは自動的に配置されます。
 
 === :undercolor » a Shoes::Color ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-The color used to underline text.
+テキストの下線に利用される色です。
 
 === :underline » a string ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-Dictates the style of underline used in the text.
+テキストに下線のスタイルを指示します。
 
-The choices for this setting are:
+この設定の選択肢は：
 
- * "none" - no underline at all.
- * "single" - a continuous underline.
- * "double" - two continuous parallel underlines.
- * "low" - a lower underline, beneath the font baseline.  (This is generally recommended only for single characters, particularly when showing keyboard accelerators.)
- * "error" - a wavy underline, usually found indicating a misspelling.
+ * "none" - 下線なし。　
+ * "single" - 途切れのない下線。
+ * "double" - 平行な途切れのない2本の下線。
+ * "low" - フォントの基準より下の低い下線。（一般的に１つの文字に対してだけ、得にキーボードアクセラレータを表示するときに推奨されます。）
+ * "error" - 波状の下線、通常はミススペルの指摘を見つけます。
 
 === :variant » a string ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-Vary the font for a group of text.  Two choices:
+テキストのグループのためにフォントを変化させます。2つの選択肢：
 
- * "normal" - standard font.
- * "smallcaps" - font with the lower case characters replaced by smaller variants of the capital characters. 
+ * "normal" - 通常のフォント。
+ * "smallcaps" - 大文字が小さく変化することによって置き換えられた小文字のフォント。
 
 === :weight » a string ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
 Set the boldness of the text.  Commonly, this style is set to one of the following strings:
+テキストを太文字に設定します。一般的には、このスタイルは次の文字列の内の1つを設定します：
 
- * "ultralight" - the ultralight weight (= 200)
- * "light" - the light weight (=300)
- * "normal" - the default weight (= 400)
- * "semibold" - a weight intermediate between normal and bold (=600)
- * "bold" - the bold weight (= 700)
- * "ultrabold" - the ultrabold weight (= 800)
- * "heavy" - the heavy weight (= 900)
+ * "ultralight" - 超軽量の太さ (= 200)
+ * "light" - 軽量の太さ (=300)
+ * "normal" - 通常の太さ (= 400)
+ * "semibold" - 通常と太文字の中間の太さ (=600)
+ * "bold" - 太文字 (= 700)
+ * "ultrabold" - 極端な太文字の太さ (= 800)
+ * "heavy" - 重厚な太さ (= 900)
 
-However, you may also pass in the numerical weight directly.
+しかしながら、数値で太さを直接渡すこともできます。
 
 === :width » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Sets the pixel width for the element.  If the number is a decimal, the width is converted to a percentage (with 0.0 being 0% and 1.0 being 100%.)  A width of 100% means the object fills its parent slot.
+要素の幅をピクセルで設定します。数値が10進数なら、その幅はパーセンテージに変換されます。（0.0は0%に、1.0は100%になります。）100%の幅は親のスロットを埋め尽くすことを意味します。
 
 == Classes List ==
 
-Here is a complete list of all the classes introduced by Shoes.  This chart is laid out according to how classes inherits from each other.  Subclasses are indented one level to the right, beneath their parent class.
+Shoesで紹介するすべてのクラスの完全な一覧です。この表はどのようにしてクラスがお互いに継承しているかに従ってレイアウトされています。サブクラスは親クラスの下に、1レベル右にインデントされています。
 
 {INDEX}
 
 == Colors List ==
 
-The following list of colors can be used throughout Shoes.  As background colors or border colors.  As stroke and fill colors.  Most of these colors come from the X11 and HTML palettes.
+以下はShoes全体で利用可能な色の一覧です。背景色または枠線の色として。描かれる線や塗りつぶされる色として。これらの色の大部分はX11やHTMLのパレットから来ています。
 
-All of these colors can be used by name.  (So calling the `tomato` method from inside any slot will get you a nice reddish color.)  Below each color, also find the exact numbers which can be used with the [[Built-in.rgb]] method.
+これらの色はすべて名前によって利用できます。（そのため、どんなスロットの内部からでも`tomato`メソッドを呼ぶことで、すてきな赤みがかった色が手に入るでしょう。）それぞれの色の下には、[[Built-in.rgb]]メソッドで利用できる正確な数値を見つけることもできます。
 
 {COLORS}
 
