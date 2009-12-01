@@ -1239,31 +1239,31 @@ Shoesで紹介するすべてのクラスの完全な一覧です。この表は
 
 = Slots =
 
-Slots are boxes used to lay out images, text and so on. The two most common slots are `stacks` and `flows`. Slots can also be referred to as "boxes" or "canvases" in Shoes terminology.
+スロットは画像やテキストなどのレイアウトに使われる箱です。2つの最も一般的なスロットは`スタック（stack）`と`フロー（flow）`です。スロットはShoesの専門用語で"箱"または"キャンバス"とも言えます
 
-Since the mouse wheel and PageUp and PageDown are so pervasive on every platform, vertical scrolling has really become the only overflow that matters. So, in Shoes, just as on the web, width is generally fixed. While height goes on and on.
+マウスホイールやページアップやページダウンはあらゆるプラットフォームで普及しているため、縦のスクロールだけが溢れて問題になりました。そのためShoesでは、まさにWEBのように通常は幅が固定です。一方で高さは際限なく続いて行きます。
 
-Now, you can also just use specific widths and heights for everything, if you want. That'll take some math, but everything could be perfect.
+さて、そうしたいなら、どんなものでも幅や高さを指定することもできます。それはいくらかの数学を用いるでしょうが、完璧かもしれません。
 
-Generally, I'd suggest using stacks and flows. The idea here is that you want to fill up a certain width with things, then advance down the page, filling up further widths. You can think of these as being analogous to HTML's "block" and "inline" styles.
+一般的には、スタックとフローを使うことを提案するでしょう。ここでの目的は、あなたがいくらかの幅を何かで満たして、幅を満たしながら、ページの下に進みたいということです。これらを、HTMLの"ブロック"と"インライン"のスタイルと類似しているのように考えることができます。
 
 ==== Stacks ====
 
-A stack is simply a vertical stack of elements. Each element in a stack is placed directly under the element preceding it.
+スタックは単純に要素の垂直なスタックです。スタック内のそれぞれの要素は、その上位の要素の直下に配置されます。
 
-A stack is also shaped like a box. So if a stack is given a width of 250, that stack is itself an element which is 250 pixels wide.
+また、スタックは箱のように形作られます。そのため、スタックが250の幅を与えられたら、そのスタックはそれ自身が250ピクセルの幅の要素となります。
 
-To create a new stack, use the [[Element.stack]] method, which is available inside any slot.  So stacks can contain other stacks and flows.
+新しいスタックを作成するには[[Element.stack]]メソッドを利用し、それはすべてのスロットの内部で利用できます。そのためスタックは他のスタックやフローを含むことができます。
 
 ==== Flows ====
 
-A flow will pack elements in as tightly as it can. A width will be filled, then will wrap beneath those elements. Text elements placed next to each other will appear as a single paragraph. Images and widgets will run together as a series.
+フローは要素をできるだけしっかりと詰め込みます。幅は満たされ、それらの下の要素を包みます。互いに隣接して配置されたテキストの要素は一つのパラグラフとして表示されます。画像とウィジェットは同じシリーズとして実行されます。
 
-Like the stack, a flow is a box. So stacks and flows can safely be embedded and, without respect to their contents, are identical. They just treat their contents differently.
+スタックのように、フローは箱です。そのためスタックとフローは安全に埋め込むことができ、それらのコンテンツに気を使うことなく、同質です。スタックとフローはそれらのコンテンツだけを異なって扱います。
 
-Making a flow means calling the [[Element.flow]] method.  Flows may contain other flows and stacks.
+フローを作成するには[[Element.flow]]を呼びます。フローは他のフローやスタックを含むかもしれません。
 
-Last thing: The Shoes window itself is a flow.
+最後に：Shoesのウィンドウはそれ自身がフローです。
 
 == Art for Slots ==
 
@@ -1990,19 +1990,15 @@ Gets the object for this element's container.
 
 = Elements =
 
-Ah, here's the stuff of Shoes.  An element can be as simple as an oval shape.  Or as complex as
-a video stream.  You've encountered all of these elements before in the Slots section of the
-manual.
+これはShoesの要素です。要素は楕円の形状と同じくらい単純です。またはビデオストリームと同じくらい複雑です。あなたは以前このマニュアルのスロットのセクションでこれらすべての要素に出会ったことがあります。
 
-Shoes has seven native controls: the Button, the EditLine, the EditBox, the ListBox, the Progress meter, the Check box and the Radio.  By "native" controls, we mean that each of these seven elements is drawn by the operating system.  So, a Progress bar will look one way on Windows and another way on OS X.
+Shoesは7つのネイティブコントロールを持ちます：ボタン（Button）、エディットライン（EditLine）、エディットボックス（EditBox）、リストボックス（ListBox）、プログレスメータ（Progress meter）、チェックボックス（Check box）、ラジオ（Radio）。私たちの言う"native"コントロールとは、それらの7つの要素がオペレーティングシステムによって描画されることを意味します。そのため、プログレスバーのWindowsでの見え方とOS Xでの見え方は違います。
 
-Shoes also has seven basic other types of elements: Background, Border, Image, Shape, TextBlock, Timer and Video.  These all should look and act the same on every operating system.
+またShoesは7つの他の種類の要素を持っています：背景（Background）、ボーダー（Border）、画像（Image）、形状（Shape）、テキストブロック（TextBlock）、タイマー（Timer）、そしてビデオ（Video）。それらすべてはどんなオペレーティングシステムでも同じような見え方と動きになるべきです。
 
-Once an element is created, you will often still want to change it.  To move it or hide it or get
-rid of it.  You'll use the commands in this section to do that sort of stuff.  (Especially check out the [[Common Common Methods]] section for commands you can use on any element.)
+いったん要素を生成した後でも、それを変更したくなるでしょう。それを動かしたり隠したりまたはそれを取り除くために。それらの種類のことを行うために、このセクションのコマンド利用するでしょう。（得にどんな要素上でも利用できるコマンドの[[Common Common Methods]]セクションを確認してください。）
 
-So, for example, use the `image` method of a Slot to place a PNG on the screen. The `image` method
-gives you back an Image object. Use the methods of the Image object to change things up.
+そして、例として、PNGをスクリーンを配置するためにスロットの`image`メソッドを使ってください。この`image`メソッドはイメージオブジェクトを返します。これらをすっかり変更するためにイメージオブジェクトのこのメソッドを使ってみてください。
 
 == Common Methods ==
 
