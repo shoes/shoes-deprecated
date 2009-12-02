@@ -1267,11 +1267,11 @@ Shoesで紹介するすべてのクラスの完全な一覧です。この表は
 
 == Art for Slots ==
 
-Each slot is like a canvas, a blank surface which can be covered with an assortment of colored shapes or gradients.
+それぞれのスロットは、色のついた形状やグラデーションなどでおおうことにできる白紙の表面のキャンバスのようなものです。
 
-Many common shapes can be drawn with methods like `oval` and `rect`.  You'll need to set up the paintbrush colors first, though.
+多くの一般的な形状は`oval`と`rect`メソッドで描かれます。まず、絵筆の色を準備する必要があります。
 
-The `stroke` command sets the line color.  And the `fill` command sets the color used to paint inside the lines.
+`stroke`コマンドは線の色を設定します。`fill`コマンドは線の内部を塗りつぶすために利用する色を設定します。　
 
 {{{
  #!ruby
@@ -1283,37 +1283,35 @@ The `stroke` command sets the line color.  And the `fill` command sets the color
  end
 }}}
 
-That code gives you a blue pie with a red line around it.  One-hundred pixels wide, placed just a few pixels
-southeast of the window's upper left corner.
+このコードはまわりに赤い線のある青いパイを与えます。100ピクセルの幅で、ウィンドウの左上から南東に少しのピクセルを配置します。
 
-The `blue` and `red` methods above are Color objects.  See the section on Colors for more on how to mix
-colors.
+上記の`blue`と`red`メソッドはカラーオブジェクトです。どうやって色を混ぜるかはColorsセクションを見てください。
 
-==== Inspiration from Processing and NodeBox ====
+==== Processing と NodeBox からのインスピレーション ====
 
-The artful methods generally come verbatim from NodeBox, a drawing kit for Python.  In turn, NodeBox gets much of its ideas from Processing, a Java-like language for graphics and animation.  I owe a great debt to the creators of these wonderful programs!
+この技巧的なメソッドの大抵は文字通りPythonのドローイングキットのNodeBoxから来ています。次に、NodeBoxは多くのアイデアを、グラフィックとアニメーションのためのJavaのような言語であるProcessingから得ています。私はそれらのすばらしいプログラムの作者から大きな恩を受けています。
 
-Shoes does a few things differently from NodeBox and Processing.  For example, Shoes has different color methods, including having its own Color objects, though these are very similar to Processing's color methods.  And Shoes also allows images and gradients to be used for drawing lines and filling in shapes.
+ShoesはNodeBoxとProcessingから少しの点が違います。例えば、Shoesはそれ自身のカラーオブジェクトを持っていることを含めて、異なるカラーメソッドを持っていますが、それらはとてもProcessingのカラーメソッドに似ています。そしてShoesは線を描くことや形状内を塗りつぶすために画像やグラデーションを利用することも許しています。
 
-Shoes also borrows some animation ideas from Processing and will continue to closely consult Processing's methods as it expands.
+ShoesはいくつかのアニメーションのアイデアをProcessingから取り入れており、Processingのメソッドをしっかりと参考にしようとしながらそれを拡張しています。
 
 === arc(left, top, width, height, angle1, angle2) » Shoes::Shape ===
 
-Draws an arc shape (a section of an oval) at coordinates (left, top).  This method just give you a bit more control than [[oval]], by offering the `:angle1` and `:angle2` styles.  (In fact, you can mimick the `oval` method by setting `:angle1` to 0 and `:angle2` to `Shoes::TWO_PI`.)
+弧の形状（楕円形の一部）を座標（left, top）に描きます。このメソッドは`:angle1`と`:angle2`のスタイルを提供することにより [[oval]]より少し多くの制御をが行えます。（実際には、`:angle1`に0と`:angle2`に`Shoes::TWO_PI`を設定することにより、`oval`メソッドをまねることができます。）
 
 === arrow(left, top, width) » Shoes::Shape ===
 
-Draws an arrow at coordinates (left, top) with a pixel `width`.
+座標（left, top）に`width`ピクセルの矢を描きます。
 
 === cap(:curve or :rect or :project) » self ===
 
-Sets the line cap, which is the shape at the end of every line you draw.  If set to `:curve`, the end is rounded.  The default is `:rect`, a line which ends abruptly flat.  The `:project` cap is also fat, but sticks out a bit longer.
+描くすべての線の終点の形状である線の頂点を設定します。`:curve`が設定されるなら、終点はまるくなります。デフォルトは`:rect`で、線の終点は突然に平らになります。`:project`の頂点も平らですが、棒の外側は少し長くなります。
 
 === fill(pattern) » pattern ===
 
-Sets the fill bucket to a specific color (or pattern.)  Patterns can be colors, gradients or images.  So, once the fill bucket is set, you can draw shapes and they will be colored in with the pattern you've chosen.
+塗りつぶすバケツの色の指定（またはパターン）を設定します。パターンは色やグラデーションまたは画像が設定できます。そして、一度塗りつぶすバケツが設定されたら、選択されたパターンで色づけられた形状を描くことができます。
 
-To draw a star with an image pattern:
+画像のパターンで星を描くためには：
 
 {{{
  #!ruby
@@ -1323,7 +1321,7 @@ To draw a star with an image pattern:
  end
 }}}
 
-To clear the fill bucket, use `nofill`.  And to set the line color (the border of the star,) use the `stroke` method.
+塗りつぶすバケツをクリアするには`nofill`を使ってください。そして`stroke`メソッドを利用して線（星の枠線）の色を設定してください。
 
 === nofill() » self ===
 
