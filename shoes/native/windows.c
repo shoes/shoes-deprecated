@@ -214,6 +214,135 @@ void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c)
     shoes_app_keypress(app, v); \
   }
 
+#define KEYUPDOWN \
+  VALUE v; \
+  char letter = w; \
+  if (w == VK_CONTROL) \
+    v = ID2SYM(rb_intern("ctrl")); \
+  else if (w == VK_MENU) \
+    v = ID2SYM(rb_intern("alt")); \
+  else if (w == VK_SHIFT) \
+    v = ID2SYM(rb_intern("shift")); \
+  else if (w == VK_ESCAPE) \
+    v = ID2SYM(rb_intern("escape")); \
+  else if (w == VK_INSERT) \
+    v = ID2SYM(rb_intern("insert")); \
+  else if (w == VK_DELETE) \
+    v = ID2SYM(rb_intern("delete")); \
+  else if (w == VK_PRIOR) \
+    v = ID2SYM(rb_intern("page_up")); \
+  else if (w == VK_NEXT) \
+    v = ID2SYM(rb_intern("page_down")); \
+  else if (w == VK_HOME) \
+    v = ID2SYM(rb_intern("home")); \
+  else if (w == VK_END) \
+    v = ID2SYM(rb_intern("end")); \
+  else if (w == VK_LEFT) \
+    v = ID2SYM(rb_intern("left")); \
+  else if (w == VK_UP) \
+    v = ID2SYM(rb_intern("up")); \
+  else if (w == VK_RIGHT) \
+    v = ID2SYM(rb_intern("right")); \
+  else if (w == VK_DOWN) \
+    v = ID2SYM(rb_intern("down")); \
+  else if (w == VK_F1) \
+    v = ID2SYM(rb_intern("f1")); \
+  else if (w == VK_F2) \
+    v = ID2SYM(rb_intern("f2")); \
+  else if (w == VK_F2) \
+    v = ID2SYM(rb_intern("f2")); \
+  else if (w == VK_F3) \
+    v = ID2SYM(rb_intern("f3")); \
+  else if (w == VK_F4) \
+    v = ID2SYM(rb_intern("f4")); \
+  else if (w == VK_F5) \
+    v = ID2SYM(rb_intern("f5")); \
+  else if (w == VK_F6) \
+    v = ID2SYM(rb_intern("f6")); \
+  else if (w == VK_F7) \
+    v = ID2SYM(rb_intern("f7")); \
+  else if (w == VK_F8) \
+    v = ID2SYM(rb_intern("f8")); \
+  else if (w == VK_F9) \
+    v = ID2SYM(rb_intern("f9")); \
+  else if (w == VK_F10) \
+    v = ID2SYM(rb_intern("f10")); \
+  else if (w == VK_F11) \
+    v = ID2SYM(rb_intern("f11")); \
+  else if (w == VK_F12) \
+    v = ID2SYM(rb_intern("f12")); \
+  else if (w == 186) \
+  { \
+    letter = ':'; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 187) \
+  { \
+    letter = ';'; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 188) \
+  { \
+    letter = ','; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 189) \
+  { \
+    letter = '-'; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 190) \
+  { \
+    letter = '.'; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 191) \
+  { \
+    letter = '/'; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 192) \
+  { \
+    letter = '@'; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 219) \
+  { \
+    letter = '['; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 220) \
+  { \
+    letter = '_'; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 221) \
+  { \
+    letter = ']'; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 222) \
+  { \
+    letter = '^'; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 226) \
+  { \
+    letter = '\\'; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 0x08) \
+    v = ID2SYM(rb_intern("backspace")); \
+  else if (w == 0x09) \
+    v = ID2SYM(rb_intern("tab")); \
+  else if (w == 0x0D) \
+    v = ID2SYM(rb_intern("enter")); \
+  else \
+  { \
+    letter = tolower(letter); \
+    v = rb_str_new(&letter, 1); \
+  }
+
 static void
 shoes_canvas_win32_vscroll(shoes_canvas *canvas, int code, int pos)
 {
@@ -589,9 +718,7 @@ shoes_app_win32proc(
       app->os.altkey = false;
     case WM_SYSKEYDOWN:
       {
-        VALUE v;
-        char letter = w;
-        v = rb_str_new(&letter, 1);
+        KEYUPDOWN
         shoes_app_keydown(app, v);
       }
       if (w == VK_CONTROL)
@@ -656,9 +783,7 @@ shoes_app_win32proc(
     case WM_SYSKEYUP:
     case WM_KEYUP:
       {
-        VALUE v;
-        char letter = w;
-        v = rb_str_new(&letter, 1);
+        KEYUPDOWN
         shoes_app_keyup(app, v);
       }
       if (w == VK_CONTROL)
