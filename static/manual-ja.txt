@@ -1325,21 +1325,19 @@ ShoesはいくつかのアニメーションのアイデアをProcessingから�
 
 === nofill() » self ===
 
-Blanks the fill color, so that any shapes drawn will not be filled in.  Instead, shapes will have only a
-lining, leaving the middle transparent.
+塗りつぶす色を削除するため、形状は塗りつぶされずに描かれます。その代わりに、形状は線だけを持ち、中央を透明のままにします。
 
 === nostroke() » self ===
 
-Empties the line color.  Shapes drawn will have no outer line.  If `nofill` is also set, shapes drawn will
-not be visible.
+線の色を空にします。形状は外側の線が描かれなくなります。`nofill`も設定された場合は、形状は表示されずに描かれます。
 
 === line(left, top, x2, y2) » Shoes::Shape ===
 
-Draws a line using the current line color (aka "stroke") starting at coordinates (left, top) and ending at coordinates (x2, y2).
+現在の線の色（別名"stroke"）を使って座標（left, top）から（x2, y2）まで線を描きます。
 
 === oval(left, top, radius) » Shoes::Shape ===
 
-Draws a circular form at pixel coordinates (left, top) with a width and height of `radius` pixels.  The line and fill colors are used to draw the shape.  By default, the coordinates are for the oval's leftmost, top corner, but this can be changed by calling the [[Art.transform]] method or by using the `:center` style on the next method below.
+座標（left, top）ピクセルに`radius`ピクセルの幅と高さの円を描きます。線の色や塗りつぶす色が形状を描くために利用されます。デフォルトでは、座標は楕円形の最も左上の角ですが、これは[[Art.transform]]メソッドを呼ぶことや、次のメソッドの下の`:center`スタイルを使用することによって変更することができます。
 
 {{{
  #!ruby
@@ -1352,26 +1350,24 @@ Draws a circular form at pixel coordinates (left, top) with a width and height o
  end
 }}}
 
-To draw an oval of varied proportions, you may also use the syntax: `oval(left, top, width, height)`.
+様々な比率の楕円形を描くためには、`oval(left, top, width, height)`のシンタックスを利用してもいいです。
 
 === oval(styles) » Shoes::Shape ===
 
-Draw circular form using a style hash.  The following styles are supported:
+スタイルのハッシュを利用して円を描きます。次のスタイルがサポートされています：
 
- * `top`: the y-coordinate for the oval pen.
- * `left`: the x-coordinate for the oval pen.
- * `radius`: the width and height of the circle.
- * `width`: a specific pixel width for the oval.
- * `height`: a specific pixel height for the oval.
- * `center`: do the coordinates specific the oval's center? (true or false)
+ * `top`: 楕円形の囲いのy座標。
+ * `left`: 楕円形の囲いのx座標。
+ * `radius`: 円の幅と高さ。
+ * `width`: 楕円形の幅のピクセルでの指定。
+ * `height`: 楕円形の高さのピクセルでの指定。
+ * `center`: 座標を楕円形の中央に指定しますか？（trueまたはfalse）
 
-These styles may also be altered using the `style` method on the Shape object.
+これらのスタイルはShoesオブジェクトの`style`メソッドを利用して変更されます。
 
 === rect(top, left, width, height, corners = 0) » Shoes::Shape ===
 
-Draws a rectangle starting from coordinates (top, left) with dimensions of width x height.  Optionally, you may give the rectangle rounded corners with a fifth argument: the radius of the corners in pixels.
-
-As with all other shapes, the rectangle is drawn using the stroke and fill colors.
+座標（left, top）からwidth x heightの寸法の長方形を描きます。オプションとして、5番目の引数（ピクセルでの角の半径）により長方形の角を丸くすることもできます。他の形状と同様に、長方形は描く線の色や塗りつぶす色を利用して描かれます。
 
 {{{
  #!ruby
@@ -1382,26 +1378,26 @@ As with all other shapes, the rectangle is drawn using the stroke and fill color
  end
 }}}
 
-The above sample draws a rectangle which fills the area of its parent box, leaving a margin of 10 pixels around the edge.  Also see the `background` method for a rectangle which defaults to filling its parent box.
+上記のサンプルは角の周囲に10ピクセルのマージンを残して、その親の箱の範囲を塗りつぶす長方形を描きます。デフォルトで親の箱を塗りつぶした長方形のためには`background`も見てください。
 
 === rect(styles) » Shoes::Shape ===
 
-Draw a rectangle using a style hash.  The following styles are supported:
+スタイルのハッシュを利用して長方形を描きます。次のスタイルがサポートされています：
 
- * `top`: the y-coordinate for the rectangle.
- * `left`: the x-coordinate for the rectangle.
- * `curve`: the pixel radius of the rectangle's corners.
- * `width`: a specific pixel width for the rectangle.
- * `height`: a specific pixel height for the rectangle.
- * `center`: do the coordinates specific the rectangle's center? (true or false)
+ * `top`: 長方形のy座標。
+ * `left`: 長方形のx座標。
+ * `curve`: 長方形の角の半径のピクセル。
+ * `width`: 長方形のピクセルによる幅。
+ * `height`:長方形のピクセルによる高さ。
+ * `center`: 座標を長方形の中央に指定しますか？（trueまたはfalse）
 
-These styles may also be altered using the `style` method on the Shape object.
+これらのスタイルはShoesオブジェクトの`style`メソッドを利用して変更されます。
 
 === rotate(degrees: a number) » self ===
 
-Rotates the pen used for drawing by a certain number of `degrees`, so that any shapes will be drawn at that angle.
+形状をその角度で描画するために、`度（degrees）`数により描画のために利用される範囲を回転させます。
 
-In this example below, the rectangle drawn at (30, 30) will be rotated 45 degrees.
+下の例では、長方形は(30, 30)に45度回転されて描かれます。
 
 {{{
  #!ruby
@@ -1414,7 +1410,10 @@ In this example below, the rectangle drawn at (30, 30) will be rotated 45 degree
 
 === shape(left, top) { ... } » Shoes::Shape ===
 
-Describes an arbitrary shape to draw, beginning at coordinates (left, top) and continued by calls to `line_to`, `move_to`, `curve_to` and `arc_to` inside the block.  You can look at it as sketching a shape with a long line that curves and arcs and bends.
+(left, top)から開始してブロックの内部で`line_to`、`move_to`、`curve_to`そして`arc_to`を呼ぶことにより
+続く、描かれる任意の形状を表現（記述）します
+
+曲がったり弧を描いたりする長い線の形状をスケッチとして見ることができます。
 
 {{{
  #!ruby
@@ -1430,17 +1429,17 @@ Describes an arbitrary shape to draw, beginning at coordinates (left, top) and c
  end
 }}}
 
-A shape can also contain other shapes.  So, you can place an [[Art.oval]], a [[Art.rect]], a [[Art.line]], a [[Art.star]] or an [[Art.arrow]] (and all of the other methods in this [[Art]] section) inside a shape, but they will not be part of the line.  They will be more like a group of shapes are all drawn as one.
+形状は他の形状を含むこともできます。そして、形状の内部に[[Art.oval]]、[[Art.rect]]、[[Art.line]]、[[Art.star]]または[[Art.arrow]]（さらに、[[Art]]セクションの他のメソッドすべて）を配置することができますが、それらは線の一部ではないでしょう。形状のグループのようなそれらは、すべて1つとして描かれます。
 
 === star(left, top, points = 10, outer = 100.0, inner = 50.0) » Shoes::Shape ===
 
-Draws a star using the stroke and fill colors.  The star is positioned with its center point at coordinates (left, top) with a certain number of `points`.  The `outer` width defines the full radius of the star; the `inner` width specifies the radius of the star's middle, where points stem from.
+描く線の色や塗りつぶす色を利用して星を描きます。星は(left, top)の座標を中心点として`頂点（points）`の数とともに配置されます。`outer`の幅は星の全半径をを定義します；`inner`の幅は頂点の始まる星の中央の半径を指定します。
 
 === stroke(pattern) » pattern ===
 
-Set the active line color for this slot.  The `pattern` may be a color, a gradient or an image, all of which are categorized as "patterns."  The line color is then used to draw the borders of any subsequent shape.
+スロットのアクティブな線の色を設定します。`pattern`は色、グラデーションまたは画像で、それらはすべて"patterns"に分類されます。その線の色はそれに続く形状すべての枠線を描くときに利用されます。
 
-So, to draw an arrow with a red line around it:
+つまり、まわりに赤い線を持つ矢印を描くには：
 
 {{{
  #!ruby
@@ -1450,11 +1449,11 @@ So, to draw an arrow with a red line around it:
  end
 }}}
 
-To clear the line color, use the `nostroke` method.
+線の色をクリアするには、`nostroke`メソッドを利用します。
 
 === strokewidth(a number) » self ===
 
-Sets the line size for all drawing within this slot.  Whereas the `stroke` method alters the line color, the `strokewidth` method alters the line size in pixels.  Calling `strokewidth(4)` will cause lines to be drawn 4 pixels wide.
+スロットの内部で描かれるすべての線のサイズを設定します。`stroke`メソッドが線の色を変更する一方、`strokewidth`メソッドは線のサイズをピクセルで変更します。`strokewidth(4)`を呼ぶことにより4ピクセルの太さで線を描きます。
 
 === transform(:center or :corner) » self ===
 
@@ -1462,17 +1461,17 @@ Sets the line size for all drawing within this slot.  Whereas the `stroke` metho
 
 === translate(left, top) » self ===
 
-Moves the starting point of the drawing pen for this slot.  Normally, the pen starts at (0, 0) in the top-left corner, so that all shapes are drawn from that point.  With `translate`, if the starting point is moved to (10, 20) and a shape is drawn at (50, 60), then the shape is actually drawn at (60, 80) on the slot.
+スロットの描画の範囲を開始する位置を移動します。通常は、すべての形状がこの位置から描くことができるように、その範囲は左上の角の(0, 0)から開始します。`translate`により開始位置が(10, 20)に移動されて、(50, 60)に形状が描かれるなら、その形状は実際にはスロットの(60, 80)に描かれます。
 
 == Element Creation ==
 
-Shoes has a wide variety of elements, many cherry-picked from HTML.  This page describes how to create these elements in a slot.  See the Elements section of the manual for more on how to modify and use these elements after they have been placed.
+Shoesは幅広い種類の要素を持っており、その多くをHTMLからよいところを選んで採用しています。このページはどのようにしてスロットにそれらの要素を作成するかを記述しています。それらの要素を配置した後でさらにどのようにして変更したり利用するのかについては、このマニュアルの要素（Elements）のセクションを見てください。
 
 === animate(fps) { |frame| ... } » Shoes::Animation ===
 
-Starts an animation timer, which runs parallel to the rest of the app.  The `fps` is a number, the frames per seconds.  This number dictates how many times per second the attached block will be called.
+アプリケーションをそのままにして並列で実行するアニメーションタイマーを開始します。`fps`は秒ごとのフレームの数です。この数は付属するブロックが1秒に何回呼ばれるのかを決定します。
 
-The block is given a `frame` number.  Starting with zero, the `frame` number tells the block how many frames of the animation have been shown.
+このブロックは`frame`の数が与えられます。`frame`の数はゼロから始まり、そのブロックが何フレームのアニメーションを表示したのかを教えます
 
 {{{
  #!ruby
@@ -1484,13 +1483,18 @@ The block is given a `frame` number.  Starting with zero, the `frame` number tel
  end
 }}}
 
-The above animation is shown 24 times per second.  If no number is give, the `fps` defaults to 10.
+上記のアニメーションは1秒間に24回表示されます。数が与えられないなら、`fps`のデフォルトは10です。
 
 === background(pattern) » Shoes::Background ===
 
-Draws a Background element with a specific color (or pattern.)  Patterns can be colors, gradients or images.  Colors and images will tile across the background.  Gradients stretch to fill the background.
+色（またはパターン）を指定して背景（Background）要素を描きます。パターンは色、グラデーションまたは画像です。色と画像は背景全体に敷き詰めます。グラデーションは背景を塗りつぶすように伸びます。
 
-'''PLEASE NOTE:''' Backgrounds are actual elements, not styles.  HTML treats backgrounds like styles.  Which means every box can only have one background.  Shoes layers background elements.
+'''PLEASE NOTE:''' Backgrounds are actual elements, not styles.
+HTML treats backgrounds like styles.
+Which means every box can only have one background.
+Shoes layers background elements.
+
+'''注意してください:''' 背景は実際には要素であり、スタイルではありません。HTMLは背景をスタイルのようにあつかいます。それはすべての箱は一つの背景だけを持てることを意味します。Shoesは背景の要素を重ねることができます。
 
 {{{
  #!ruby
@@ -1500,37 +1504,38 @@ Draws a Background element with a specific color (or pattern.)  Patterns can be 
  end
 }}}
 
-The above example paints two backgrounds.  First, a black background is painted over the entire app's surface area.  Then a 50 pixel white stripe is painted along the left side.
+上記の例は二つの背景を塗ります。まず、黒い背景がアプリケーションの表面のエリア全体に塗られます。そして、50ピクセルの白い縞が左側にそって塗られます。
 
 === banner(text) » Shoes::Banner ===
 
-Creates a Banner text block.  Shoes automatically styles this text to 48 pixels high.
+バナー（Banner）のテキストブロックを作成します。Shoesは自動的に48ピクセルの大きさにテキストを整形します。
 
 === border(text, :strokewidth => a number) » Shoes::Border ===
 
-Draws a Border element using a specific color (or pattern.)  Patterns can be colors, gradients or images.  Colors and images will tile across the border.  Gradients stretch to fill the border.
+色（またはパターン）を指定して枠線（Border）の要素を描きます。パターンは色、グラデーションまたは画像です。色と画像は枠線全体に敷き詰めます。グラデーションは背景を塗りつぶすように伸びます。
 
-'''PLEASE NOTE:''' Like Backgrounds, Borders are actual elements, not styles.  HTML treats backgrounds and borders like styles.  Which means every box can only have one borders.  Shoes layers border and background elements, along with text blocks, images, and everything else.
+'''注意してください:''' 背景のように、枠線は実際には要素であり、スタイルではありません。HTMLは背景や枠線をスタイルのようにあつかいます。それはすべての箱は一つの枠線だけを持てることを意味します。Shoesはテキストブロック、画像、他のすべてのものにそって、枠線や背景の要素を重ねることができます。
 
 === button(text) { ... } » Shoes::Button ===
 
-Adds a push button with the message `text` written across its surface.  An optional block can be attached, which is called if the button is pressed.
+表面にわたってメッセージ`テキスト（text）`の書かれた押しボタンを追加します。
+ボタンが押されたときに呼ばれる、任意のブロックを取り付けることができます。
 
 === caption(text) » Shoes::Caption ===
 
-Creates a Caption text block.  Shoes styles this text to 14 pixels high.
+キャプション（Caption）テキストブロックを作成します。Shoesは14ピクセルの大きさにこのテキストを整形します。
 
 === check() » Shoes::Check ===
 
-Adds a check box.
+チェックボックスを追加します。
 
 === code(text) » Shoes::Code ===
 
-Create a Code text fragment.  This text defaults to a monospaced font.
+コード（Code）のテキストの一部を作成します。このテキストはデフォルトで等幅フォントになります。
 
 === del(text) » Shoes::Del ===
 
-Creates a Del text fragment (short for "deleted") which defaults to text with a single strikethrough in its middle.
+デフォルトで中央に1本の棒線を引いてテキストを削除した、削除された（Del）（"deleted"の省略形）テキストの一部を作成します。
 
 === dialog(styles) { ... } » Shoes::App ===
 
