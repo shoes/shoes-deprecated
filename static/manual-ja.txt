@@ -1489,11 +1489,6 @@ Shoesは幅広い種類の要素を持っており、その多くをHTMLから�
 
 色（またはパターン）を指定して背景（Background）要素を描きます。パターンは色、グラデーションまたは画像です。色と画像は背景全体に敷き詰めます。グラデーションは背景を塗りつぶすように伸びます。
 
-'''PLEASE NOTE:''' Backgrounds are actual elements, not styles.
-HTML treats backgrounds like styles.
-Which means every box can only have one background.
-Shoes layers background elements.
-
 '''注意してください:''' 背景は実際には要素であり、スタイルではありません。HTMLは背景をスタイルのようにあつかいます。それはすべての箱は一つの背景だけを持てることを意味します。Shoesは背景の要素を重ねることができます。
 
 {{{
@@ -1539,11 +1534,13 @@ Shoes layers background elements.
 
 === dialog(styles) { ... } » Shoes::App ===
 
-Opens a new app window (just like the [[Element.window]] method does,) but the window is given a dialog box look.
+（まさに [[Element.window]]メソッドを実効したように）新しいアプリケーションのウィンドウを開きますが、そのウィンドウはダイアログボックスの外観を与えられます。
 
 === edit_box(text) » Shoes::EditBox ===
 
-Adds a large, multi-line textarea to this slot.  The `text` is optional and should be a string that will start out the box.  An optional block can be attached here which is called any type the user changes the text in the box.
+スロットに大きなマルチラインのテキストエリアを追加します。
+この`text`はオプションでこの箱の開始時に与えられる文字列です。
+オプションのブロックをここに取り付けることができ、これはボックスのテキストに対するどんな種類のユーザの変更でも呼び出されます。
 
 {{{
  #!ruby
@@ -1556,51 +1553,53 @@ Adds a large, multi-line textarea to this slot.  The `text` is optional and shou
 
 === edit_line(text) » Shoes::EditLine ===
 
-Adds a single-line text box to this slot.  The `text` is optional and should be a string that will start out the box.  An optional block can be attached here which is called any type the user changes the text in the box.
+スロットに一行のテキストボックスを追加します。
+この`text`はオプションでこの箱の開始時に与えられる文字列です。
+オプションのブロックをここに取り付けることができ、これはボックスのテキストに対するどんな種類のユーザの変更でも呼び出されます。
 
 === em(text) » Shoes::Em ===
 
-Creates an Em text fragment (short for "emphasized") which, by default, is styled with italics.
+Em（"emphasized"の省略形）テキストの一部を作成し、これはデフォルトでイタリック体で整形されます。
 
 === every(seconds) { |count| ... } » Shoes::Every ===
 
-A timer similar to the `animation` method, but much slower.  This timer fires a given number of seconds, running the block attached.  So, for example, if you need to check a web site every five minutes, you'd call `every(300)` with a block containing the code to actually ping the web site.
+`animation`メソッドとよく似たタイマーですが、より非常に遅いです。このタイマーは与えられた数の秒（seconds）で、取り付けられたブロックを実行します。そのため、例えば5秒毎にwebサイトを確認する必要があるなら、実際にwebサイトにpingを打つコードを含むブロックと共に`every(300)`を呼び出します。
 
 === flow(styles) { ... } » Shoes::Flow ===
 
-A flow is an invisible box (or "slot") in which you place Shoes elements.  Both flows and stacks are explained in great detail on the main [[Slots]] page.
+フロー（flow）はShoesの要素を配置できる目に見えない箱（または"スロット"）です。フローとスタックのどちらもメインの[[Slots]]のページでとても詳細に説明されます。
 
-Flows organize elements horizontally.  Where one would use a [[Element.stack]] to keep things stacked vertically, a flow places its contents end-to-end across the page.  Once the end of the page is reached, the flow starts a new line of elements.
+フローは要素を水平にまとめます。ものを垂直に積み重ねたままにするために[[Element.stack]]を利用するところで、フローはそのコンテンツをページの端から端にわたって配置します。いったんページの最後に到達したら、フローは要素の新しい行を開始します。
 
 === image(path) » Shoes::Image ===
 
-Creates an [[Image]] element for displaying a picture.  PNG, JPEG and GIF formats are allowed.
+写真を表示するために[[Image]]の要素を作成します。
+PNG、JPEGそしてGIFのフォーマットが許されます。
 
-The `path` can be a file path or a URL.  All images loaded are temporarily cached in memory, but remote images are also cached locally in the user's personal Shoes directory.  Remote images are loaded in the background; as with browsers, the images will not appear right away, but will we shown when they are loaded.
+`path`はファイルのパスまたはURLです。すべての画像はメモリに一時的にキャッシュされ、リモートの画像はローカルのユーザの個人的なShoesディレクトリにもキャッシュされます。リモートの画像はバックグラウンドでロードされます；ブラウザと同様に、画像はすぐには表示されませんが、それらがロードされたときに表示されます。
 
 === imagesize(path) » [width, height] ===
 
-Quickly grab the width and height of an image.  The image won't be loaded into the cache or displayed.
+画像の幅と高さを素早く手に入れます。
+画像はキャッシュにロードされず表示もされません。
 
-URGENT NOTE: This method cannot be used with remote images (loaded from HTTP, rather than the hard drive.)
+緊急の注意：このメソッドはリモートの画像（ハードディスクドライブからではなくHTTPによりロードされた）には利用できません。
 
 === ins(text) » Shoes::Ins ===
 
-Creates an Ins text fragment (short for "inserted") which Shoes styles with a single underline.
+一本の下線のShoesスタイルである、Ins（"inserted"の省略形）テキストの一部を作成します。
 
 === inscription(text) » Shoes::Inscription ===
 
-Creates an Inscription text block.  Shoes styles this text at 10 pixels high.
+題名（Inscription）のテキストブロックを作成します。Shoesは10ピクセルの大きさにこのテキストを整形します。
 
 === link(text, :click => proc or string) » Shoes::Link ===
 
-Creates a Link text block, which Shoes styles with a single underline and colors with a #06E (blue) colored stroke.
-
-The default LinkHover style is also single-underlined with a #039 (dark blue) stroke.
+一本の下線を持ち線の色を#06E（青色）にShoesが整形した、リンクテキストブロックを作成します。デフォルトのリンクホバースタイルも一本の下線を持ち線の色を#039（ダークブルー）に整形します。
 
 === list_box(:items => [strings, ...]) » Shoes::ListBox ===
 
-Adds a drop-down list box containing entries for everything in the `items` array.  An optional block may be attached, which is called if anything in the box becomes selected by the user.
+`items`の配列のすべてのエントリを含むドロップダウンリストボックスを追加します。オプションでブロックが取り付けることができ、これはユーザがボックスの項目を選択したら呼び出されます。
 
 {{{
  #!ruby
@@ -1612,55 +1611,55 @@ Adds a drop-down list box containing entries for everything in the `items` array
  end
 }}}
 
-Call `ListBox#text` to get the selected string.  See the `ListBox` section under `Native` controls for more help.
+選択された文字列をを得るために`ListBox#text`を呼び出します。より多くのヘルプは`リストボックス（ListBox）`のセクションの`ネイティブ`コントロールを見てください。
 
 === progress() » Shoes::Progress ===
 
-Adds a progress bar.
+プログレスバーを追加します。
 
 === para(text) » Shoes::Para ===
 
-Create a Para text block (short for "paragraph") which Shoes styles at 12 pixels high.
+Shoesが12ピクセルの大きさに整形する、Para（"paragraph"の省略形）テキストブロックを作成します。
 
 === radio(group name: a string or symbol) » Shoes::Radio ===
 
-Adds a radio button.  If a `group name` is given, the radio button is considered part of a group.  Among radio buttons in the same group, only one may be checked.  (If no group name is given, the radio button is grouped with any other radio buttons in the same slot.)
+ラジオボタンを追加します。`グループ名（group name）`が与えられたら、ラジオボタンはグループの一部だとみなされます。同じグループのラジオボタンのうちで、1つだけをクリックすることができます。（もしグループ名が与えられなければ、そのラジオボタンは同じスロットの他のすべてのラジオボタンとグループ化されます）
 
 === span(text) » Shoes::Span ===
 
-Creates a Span text fragment, unstyled by default.
+デフォルトでされない、Spanテキストの一部を作成します。
 
 === stack(styles) { ... } » Shoes::Stack ===
 
-Creates a new stack.  A stack is a type of slot.  (See the main [[Slots]] page for a full explanation of both stacks and flows.)
+新しいスタックを作成します。スタックはスロットの一種です。（スタックとフローの完全な説明はメインの[[Slots]]のページを見てください。）
 
-In short, stacks are an invisible box (a "slot") for placing stuff.  As you add things to the stack, such as buttons or images, those things pile up vertically.  Yes, they stack up!
+要するに、スタックは要素を配置するための目に見えない箱（"スロット"）です。スタックにボタンや画像などを追加して、それらは垂直に積み上げられます。そう、それらは重なります。
 
 === strong(text) » Shoes::Strong ===
 
-Creates a Strong text fragment, styled in bold by default.
+デフォルトで太字に整形された、Strongテキストの一部を作成します。
 
 === sub(text) » Shoes::Sub ===
 
-Creates a Sub text fragment (short for "subscript") which defaults to lowering the text by 10 pixels and styling it in an x-small font.
+デフォルトでテキストは10ピクセル（位置を）下げられx-smallフォントに整形された、Sub（"subscript"の省略形）テキストの一部を作成します。
 
 === subtitle(text) » Shoes::Subtitle ===
 
-Creates a Subtitle text block.  Shoes styles this text to 26 pixels high.
+サブタイトル（Subtitle）テキストブロックを作成します。Shoesは26ピクセルの大きさにこのテキストを整形します。
 
 === sup(text) » Shoes::Sup ===
 
-Creates a Sup text fragment (short for "superscript") which defaults to raising the text by 10 pixels and styling it in an x-small font.
+デフォルトでテキストは10ピクセル（位置を）上げられx-smallフォントに整形された、Sup（"superscript"の省略形）テキストの一部を作成します。
 
 === tagline(text) » Shoes::Tagline ===
 
-Creates a Tagline text block.  Shoes styles this text to 18 pixels high.
+タグライン（Tagline）テキストブロックを作成します。Shoesはこのテキストを18ピクセルの大きさに整形します。
 
 === timer(seconds) { ... } » Shoes::Timer ===
 
-A one-shot timer.  If you want to schedule to run some code in a few seconds (or minutes, hours) you can attach the code as a block here.
+1回だけのタイマーです。少しの秒（または分、時）後にいくらかのコードの実行をスケジュールしたいなら、ここにブロックとしてコードを取り付けることができます。
 
-To display an alert box five seconds from now:
+今から5秒後にアラートボックスを表示するためには：
 
 {{{
  #!ruby
@@ -1673,17 +1672,17 @@ To display an alert box five seconds from now:
 
 === title(text) » Shoes::Title ===
 
-Creates a Title text block.  Shoes styles these elements to 34 pixels high.
+タイトル（Title）テキストブロックを作成します。Shoesはこれらの要素を34ピクセルの大きさに整形します。
 
 === video(path or url) » Shoes::Video ===
 
-Embeds a movie in this slot.
+スロットに動画を埋め込みます。
 
 === window(styles) { ... } » Shoes::App ===
 
-Opens a new app window.  This method is almost identical to the [[App.Shoes.app]] method used to start an app in the first place.  The difference is that the `window` method sets the new window's [[App.owner]] property.  (A normal Shoes.app has its `owner` set to `nil`.)
+新しいアプリケーションウィンドウを開きます。このメソッドは初めにアプリケーションを開始するために使われる[[App.Shoes.app]]メソッドとほとんど同一です。違いは`window`メソッドは新しいウィンドウの[[App.owner]]プロパティを設定することです。（普通のShoes.appはその`owner`を`nil`に設定します。）
 
-So, the new window's `owner` will be set to the Shoes::App which launched the window.  This way the child window can call the parent.
+そのため、新しいウィンドウの`owner`はウィンドウを開始したShoes::Appに設定されるでしょう。この方法により子のウィンドウが親を呼べます。
 
 {{{
  #!ruby
