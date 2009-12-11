@@ -217,10 +217,22 @@ void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c)
 #define KEYUPDOWN \
   VALUE v; \
   char letter = w; \
-  if (w == VK_CONTROL) \
+  if (w == VK_LCONTROL) \
+    v = ID2SYM(rb_intern("left_ctrl")); \
+  else if (w == VK_RCONTROL) \
+    v = ID2SYM(rb_intern("right_ctrl")); \
+  else if (w == VK_CONTROL) \
     v = ID2SYM(rb_intern("ctrl")); \
+  else if (w == VK_LMENU) \
+    v = ID2SYM(rb_intern("left_alt")); \
+  else if (w == VK_RMENU) \
+    v = ID2SYM(rb_intern("right_alt")); \
   else if (w == VK_MENU) \
     v = ID2SYM(rb_intern("alt")); \
+  else if (w == VK_LSHIFT) \
+    v = ID2SYM(rb_intern("left_shift")); \
+  else if (w == VK_RSHIFT) \
+    v = ID2SYM(rb_intern("right_shift")); \
   else if (w == VK_SHIFT) \
     v = ID2SYM(rb_intern("shift")); \
   else if (w == VK_ESCAPE) \
