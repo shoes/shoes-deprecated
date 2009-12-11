@@ -340,7 +340,7 @@ void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c)
   } \
   else if (w == 226) \
   { \
-    letter = '\'; \
+    letter = '\\'; \
     v = rb_str_new(&letter, 1); \
   } \
   else if (w == 0x08) \
