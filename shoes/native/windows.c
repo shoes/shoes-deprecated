@@ -18,9 +18,12 @@
 #define IDC_HAND MAKEINTRESOURCE(32649)
 #endif
 
+static WNDPROC shoes_original_edit_line_proc = NULL;
+
 shoes_code shoes_classex_init();
 LRESULT CALLBACK shoes_app_win32proc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK shoes_slot_win32proc(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK shoes_edit_line_win32proc(HWND, UINT, WPARAM, LPARAM);
 
 static WCHAR *
 shoes_wchar(char *utf8)
@@ -1398,11 +1401,21 @@ shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VAL
       canvas->slot->window, (HMENU)cid, 
       (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
       NULL);
+  
+  shoes_original_edit_line_proc = (WNDPROC)GetWindowLong(ref, GWL_WNDPROC);
+  SetWindowLong(ref, GWL_WNDPROC, (LONG)shoes_edit_line_win32proc); 
+  
   SetWindowPos(ref, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOREDRAW);
   shoes_win32_control_font(cid, canvas->slot->window);
   shoes_native_edit_line_set_text(ref, msg);
   rb_ary_push(canvas->slot->controls, self);
   return ref;
+}
+
+LRESULT CALLBACK shoes_edit_line_win32proc(HWND win, UINT msg, WPARAM w, LPARAM l)
+{
+  if (msg == WM_KEYDOWN && w == VK_RETURN) rb_eval_string("Shoes.hook");
+  return CallWindowProc(shoes_original_edit_line_proc, win, msg, w, l);
 }
 
 VALUE
