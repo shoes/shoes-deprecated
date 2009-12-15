@@ -1,9 +1,7 @@
-#!/bin/sh
-if [ 0`readlink $0` = "0" ]; then
-  REALPATH=$0
-else
-  REALPATH=`readlink $0`
-fi
+#!/bin/bash
+
+REALPATH=`readlink -f $0`
+
 APPPATH="${REALPATH%/*}"
 if [ "$APPPATH" = "shoes" ]; then
   APPPATH="."
