@@ -154,6 +154,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     copy_files "#{ext_ruby}/bin/*", "dist/"
     copy_files "deps/cairo/bin/*", "dist/"
     copy_files "deps/pango/bin/*", "dist/"
+    copy_files "deps/ruby/lib/ruby/site_ruby/1.9.1/i386-msvcrt/*", "dist/ruby/lib/#{RUBY_PLATFORM}/"
     if ENV['VIDEO']
       copy_files "deps/vlc/bin/*", "dist/"
     end
