@@ -1697,11 +1697,11 @@ Shoesが12ピクセルの大きさに整形する、Para（"paragraph"の省略�
 
 == Events ==
 
-Wondering how to catch stray mouse clicks or keyboard typing?  Events are sent to a slot whenever a mouse moves inside the slot.  Or whenever a key is pressed.  Even when the slot is created or destroyed.  You can attach a block to each of these events.
+どのようにしてマウスのクリックを離したことやキーボードをタイプしたことが分かるか不思議に思いませんか？スロットの内部でマウスが動いたときはいつでもイベントがスロットに送られます。また、キーが押されたときはいつでも。スロットが作成されたり破壊されたときでさえ。それぞれのそれらのイベントをブロックを取り付けることができます。
 
-Mouse events include `motion`, `click`, `hover` and `leave`.  Keyboard typing is represented by the `keypress` event.  And the `start` and `finish` events indicate when a canvas comes into play or is discarded.
+マウスイベントは`motion`、`click`、`hover`そして`leave`を含みます。キーボードのタイピングは`keypress`イベントによって表されます。そして`start`や`finish`イベントはキャンバスを開始するときや破棄されたときを指し示します。
 
-So, let's say you want to change the background of a slot whenever the mouse floats over it.  We can use the `hover` event to change the background when the mouse comes inside the slot.  And `leave` to change back when the mouse floats away.
+では、マウスでスロットの上をフロートするときに背景を変更したいとしましょう。スロットの内部にマウスがくるときに背景を変更するためには`hover`イベントを使います。そして、マウスがフロートして離れるときに戻すには`leave`を使います。
 
 {{{
  #!ruby
@@ -1720,31 +1720,32 @@ So, let's say you want to change the background of a slot whenever the mouse flo
 
 === click { |button, left, top| ... } » self ===
 
-The click block is called when a mouse button is clicked.  The `button` is the number of the mouse button which has been pressed.  The `left` and `top` are the mouse coordinates at which the click happened.
+マウスボタンがクリックされたときにはclickブロックが呼ばれます。`button`はマウスボタンのどれが押されたかの数です。`left`や`top`はどこがクリックされたかのマウスの座標です。
 
-To catch the moment when the mouse is unclicked, see the [[Events.release]] event.
+マウスのクリックを離した瞬間をとらえるには、[[Events.release]]イベントを見てください。
 
 === finish { |self| ... } » self ===
 
-When a slot is removed, it's finish event occurs.  The finish block is immediately handed `self`, the slot object which has been removed.
+スロットが取り除かれたときは、finishイベントが発生します。finishブロックはすぐに`self`を手渡し、スロットオブジェクトは取り除かれます。
 
 === hover { |self| ... } » self ===
 
-The hover event happens when the mouse enters the slot.  The block gets `self`, meaning the object which was hovered over.
+hoverイベントはスロットにマウスが入ったときに発生します。
+このブロックは`self`を手に入れ、どのオブジェクトの上を通ったかを意味します。
 
-To catch the mouse exiting the slot, check out the [[Events.leave]] event.
+スロットからマウスが出ていくことをとらえるには、[[Events.leave]]イベントを確認してください。
 
 === keypress { |key| ... } » self ===
 
-Whenever a key (or combination of keys) is pressed, the block gets called.  The block is sent a `key` which is a string representing the character (such as the letter or number) on the key.  For special keys and key combos, a Ruby symbol is sent, rather than a string.
+キー（またはキーの組み合わせ）がいつ押されても、そのブロックは呼ばれます。そのブロックはキーの性質を表す文字列である`key`を送ります。特別なキーやキーの組み合わせの場合は、文字列ではなくRubyのシンボルが送られます。
 
-So, for example, if `Shift-a` is pressed, the block will get the string `"A"`.
+そして、例えば、`Shift-a`が押されたなら、そのブロックは`"A"`の文字列を得ます。
 
-However, if the F1 key is pressed, the `:f1` symbol is received.  For `Shift-F1`, the symbol would be `:shift_f1`.
+しかしながら、F1が押されたなら、 `:f1`のシンボルを受けとります。`Shift-F1`なら、そのシンボルは`:shift_f1`です。
 
-The modifier keys are `control`, `shift` and `alt`.  They appear in that order.  If `Shift-Control-Alt-PgUp` is pressed, the symbol will be `:control_shift_alt_page_up`.
+`control`、`shift`そして`alt`は修飾キーです。それらは以下の順番で現れます。`Shift-Control-Alt-PgUp`が押されたなら、そのシンボルは`:control_shift_alt_page_up`になります。
 
-One thing about the shift key.  You won't see the shift key on most keys.  On US keyboards, `Shift-7` is an ampersand.  So you'll get the string `"&"` rather than `:shift_5`.  And, if you press `Shift-Alt-7` on such a keyboard, you'll get the symbol: `:alt_&`.  You'll only see the shift modifier on the special keys listed a few paragraphs down.
+シフトキーについて１つ。多くのキーでシフトキーを見ないでしょう。USキーボードでは、`Shift-7`はアンパサンド（&）です。そのため、`:shift_5`ではなく`"&"`を得ます。そして、そのようなキーボードで`Shift-Alt-7`を押したら、`:alt_&`のシンボルを得ます。いくつか下のパラグラフで特別なキーのシフト修飾子の一覧が見えます。
 
 {{{
  #!ruby
@@ -1756,21 +1757,24 @@ One thing about the shift key.  You won't see the shift key on most keys.  On US
  end
 }}}
 
-Keep in mind that Shoes itself uses a few hotkeys.  Alt-Period (`:alt_.`), Alt-Question (`:alt_?`) and Alt-Slash (`:alt_/`) are reserved for Shoes.
+Shoesがそれ自身のいくつかのホットキーを利用することを覚えておいてください。Alt-ピリオド（`:alt_.`）、Alt-クエッション（`:alt_?`）そしてAlt-スラッシュ(`:alt_/`)はShoesの予約語です。
 
-The list of special keys is as follows: `:escape`, `:delete`, `:backspace`, `:tab`, `:page_up`, `:page_down`, `:home`, `:end`, `:left`, `:up`, `:right`, `:down`, `:f1`, `:f2`, `:f3`, `:f4`, `:f5`, `:f6`, `:f7`, `:f8`, `:f9`, `:f10`, `:f11` and `:f12`.
+以下はスペシャルキーの一覧です: `:escape`、`:delete`、　
+`:backspace`、`:tab`、`:page_up`、`:page_down`、`:home`、`:end`、`:left`、`:up`、　
+`:right`、`:down`、`:f1`、`:f2`、`:f3`、`:f4`、`:f5`、`:f6`、`:f7`、`:f8`、`:f9`、　
+`:f10`、`:f11`そして`:f12`。
 
-One caveat to all of those rules: normally the Return key gives you a string `"\n"`.  When pressed with modifier keys, however, you end up with `:control_enter`, `:control_alt_enter`, `:shift_alt_enter` and the like.
+それらすべてのルールに関する一つの警告：通常はリターンキーは`"\n"`を与えます。しかしながら、修飾キーが押されたときには、最後には`:control_enter`、`:control_alt_enter`、`:shift_alt_enter`になります。
 
 === leave { |self| ... } » self ===
 
-The leave event takes place when the mouse cursor exits a slot.  The moment it no longer is inside the slot's edges.  When that takes place, the block is called with `self`, the slot object which is being left.
+スロットからマウスカーソルが出て行くときleaveイベントが発生します。その瞬間すでにマウスカーソルはスロットの端の中にはありません。leaveイベントが発生するとき、`self`とともにブロックが呼ばれ、そのスロットオブジェクトは取り残されます。
 
-Also see [[Events.hover]] if you'd like to detect the mouse entering a slot.
+スロットにマウスが入ることを見つけたいなら[[Events.hover]]も見てください。
 
 === motion { |left, top| ... } » self ===
 
-The motion block gets called every time the mouse moves around inside the slot.  The block is handed the cursor's `left` and `top` coordinates.
+マウスがスロットの内部を移動するたびにモーションのブロックは呼ばれます。ブロックはカーソルの`left`や`top`の座標を渡します。
 
 {{{
  #!ruby
@@ -1787,21 +1791,21 @@ The motion block gets called every time the mouse moves around inside the slot. 
 
 === release { |button, left, top| ... } » self ===
 
-The release block runs whenever the mouse is unclicked (on mouse up).  When the finger is lifted.  The `button` is the number of the button that was depressed.  The `left` and `top` are the coordinates of the mouse at the time the button was released.
+マウスがアンクリック（マウスアップ）のときにreleaseのブロックは実行されます。それは指が持ち上げられたときです。`button`は押し下げられたボタンに対応する数です。`left`や`top`はボタンが離されたときのマウスのの座標です。
 
-To catch the actual mouse click, use the [[Events.click]] event.
+実際のマウスクリックを捕まえるには、[[Events.click]]イベントを利用してください。
 
 === start { |self| ... } » self ===
 
-The first time the slot is drawn, the start event fires.  The block is handed `self`, the slot object which has just been drawn.
+初めてスロットが描かれるとき、スタート（start）イベントが実行されます。まさに今描かれたスロットオブジェクトが`self`としてブロックに渡されます。
 
 == Manipulation Blocks ==
 
-The manipulation methods below make quick work of shifting around slots and inserting new elements.
+以下のmanipulationメソッドはスロットの周囲を変更したり新しい要素を挿入することを手早く片付けます。
 
 === append() { ... } » self ===
 
-Adds elements to the end of a slot.
+スロットの最後に要素を追加します。
 
 {{{
  #!ruby
@@ -1811,23 +1815,23 @@ Adds elements to the end of a slot.
  end
 }}}
 
-The `title` and `tagline` elements will be added to the end of the `@slot`.
+`title`や`tagline`の要素を`@slot`の最後に追加します。
 
 === after(element) { ... } » self ===
 
-Adds elements to a specific place in a slot, just after the `element` which is a child of the slot.
+スロットの子として`element`のすぐ後に、スロットの指定した箇所に要素を追加します。
 
 === before(element) { ... } » self ===
 
-Adds elements to a specific place in a slot, just before the `element` which is a child of the slot.
+スロットの子として`element`のすぐ前に、スロットの指定した箇所に要素を追加します。
 
 === clear() » self ===
 
-Empties the slot of any elements, timers and nested slots.  This is effectively identical to looping through the contents of the slot and calling each element's `remove` method.
+タイマーやネストしたスロットなど、スロットのすべての要素を空にします。スロットのコンテンツを最初から最後までループしてそれぞれの要素の`remove`メソッドを呼ぶことと効果としては同一です。
 
 === clear() { ... } » self ===
 
-The clear method also takes an optional block.  The block will be used to replace the contents of the slot.
+clearメソッドはオプションでブロックも取ります。このブロックはスロットのコンテンツを置き換えるために利用されます。
 
 {{{
  #!ruby
@@ -1835,11 +1839,11 @@ The clear method also takes an optional block.  The block will be used to replac
  @slot.clear { para "Brand new text" }
 }}}
 
-In this example, the "Old text" paragraph will be cleared out, replaced by the "Brand new text" paragraph.
+この例では、"Old text"パラグラフは排除され、"Brand new text"によって置き換えられます。
 
 === prepend() { ... } » self ===
 
-Adds elements to the beginning of a slot.
+スロットの初めに要素を追加します。
 
 {{{
  #!ruby
@@ -1848,33 +1852,32 @@ Adds elements to the beginning of a slot.
  end
 }}}
 
-The `para` element is added to the beginning of the `@slot`.
+`@slot`の初めに`para`要素を追加します。
 
 == Position of a Slot ==
 
-Like any other element, slots can be styled and customized when they are created.
+他のすべての要素と同様に、スロットは作成されたときに整形することやカスタマイズすることができます。
 
-To set the width of a stack to 150 pixels:
+スタックの幅を150ピクセルに設定するためには：
 
 {{{
  #!ruby
  stack(:width => 150) { para "Now that's precision." }
 }}}
 
-Each style setting also has a method, which can be used to grab that particular setting.  (So,
-like, the `width` method returns the width of the slot in pixels.)
+それぞれのスタイルの設定は、詳細な設定を手に入れるために利用することのできるメソッドも持っています。（そのため、例えば、`width`メソッドはスロットの幅をピクセルで返します。）
 
 === displace(left: a number, top: a number) » self ===
 
-A shortcut method for setting the :displace_left and :displace_top styles.  Displacing is a handy way of moving a slot without altering the layout.  In fact, the `top` and `left` methods will not report displacement at all.  So, generally, displacement is only for temporary animations.  For example, jiggling a button in place.
+:displace_leftと:displace_topスタイルの設定のためのショートカットメソッドです。置き換えはレイアウトを変更しないでスロットを移動する便利な方法です。実際には、`top`と`left`メソッドは置き換えを全く報告しません。そのため、通常、置き換えは一時的なアニメーションのためにあります。例えば、適当な位置にボタンを少し移動するなど。
 
-The `left` and `top` numbers sent to `displace` are added to the slot's own top-left coordinates.  To subtract from the top-left coordinate, use negative numbers.
+`left`と`top`の数は`displace`に送られ、スロット自身のtopとleftの座標に追加されます。topとleftの座標から差し引くには、負数を利用してください。
 
 === gutter() » a number ===
 
-The size of the scrollbar area.  When Shoes needs to show a scrollbar, the scrollbar may end up covering up some elements that touch the edge of the window.  The `gutter` tells you how many pixels to expect the scrollbar to cover.
+スクロールバーエリアの大きさです。Shoesがスクロールバーを表示する必要があるとき、スクロールバーがウィンドウの端にふれているいくつかの要素を隠してしまうかもしれません。`gutter`はどのくらいのピクセルをスクロールバーが隠すことを期待するかを教えます。
 
-This is commonly used to pad elements on the right, like so:
+これは一般的には、次のように右側に詰め物の要素として利用します：
 
 {{{
  #!ruby
@@ -1886,58 +1889,58 @@ This is commonly used to pad elements on the right, like so:
 
 === height() » a number ===
 
-The vertical size of the viewable slot in pixels.  So, if this is a scrolling slot, you'll need to use `scroll_height()` to get the full size of the slot.
+スロットの目に見えるピクセルでの垂直の大きさです。そして、スクロールするスロットの場合は、スロットの全体の大きさを得るために`scroll_height()`の利用を必要とするでしょう。
 
 === hide() » self ===
 
-Hides the slot, so that it can't be seen.  See also [[Position.show]] and [[Position.toggle]].
+見えなくするために、スロットを隠します。[[Position.show]]と[[Position.toggle]]も見てください。
 
 === left() » a number ===
 
 The left pixel location of the slot.  Also known as the x-axis coordinate.
+スロットの位置の左のピクセルです。x-axis座標でも知ることができます。
 
 === move(left, top) » self ===
 
-Moves the slot to specific coordinates, the (left, top) being the upper left hand corner of the slot.
+スロットの左上の角である（left、top）の座標を指定してスロットを移動します。
 
 === remove() » self ===
 
-Removes the slot.  It will no longer be displayed and will not be listed in its parent's contents.  It's gone.
+スロットを削除します。それは表示されなくなり親のコンテンツに記載されなくなります。それは消え去ります。
 
 === scroll() » true or false ===
 
-Is this slot allowed to show a scrollbar?  True or false.  The scrollbar will only appear if
-the height of the slot is also fixed.
+スロットにスクロールバーを表示することを許しますか？trueかfalseです。スロットの高さも固定されているときだけスクロールバーが表示されます。
 
 === scroll_height() » a number ===
 
-The vertical size of the full slot, including any of it which is hidden by scrolling.
+スクロールによって隠されているすべてを含む、スロット全体の垂直の大きさです。
 
 === scroll_max() » a number ===
 
-The top coordinate which this slot can be scrolled down to.  The top coordinate of a scroll bar is always zero.  The bottom coordinate is the full height of the slot minus one page of scrolling.  This bottom coordinate is what `scroll_max` returns.
+このスロットでスクロールダウンできる上側（top）の座標です。スクロールバーの上側（top）の座標はいつもゼロです。下側（bottom）の座標はスロット全体の高さから1ページのスクロール分を引いたものです。この下側（bottom）の座標は`scroll_max`が返す値です。
 
-This is basically a shortcut for writing `slot.scroll_height - slot.height`.
+これは基本的に`slot.scroll_height - slot.height`と書くためのショートカットです。
 
-To scroll to the bottom of a slot, use `slot.scroll_top = slot.scroll_max`.
+スロットの下側にスクロールするためには、`slot.scroll_top = slot.scroll_max`を利用します。
 
 === scroll_top() » a number ===
 
-The top coordinate which this slot is scrolled down to.  So, if the slot is scrolled down twenty pixels, this method will return `20`.
+スロットがスクロールダウンする上側（top）の座標です。そのため、スロットが20ピクセルスクロールダウンされたら、このメソッドは`20`を返します。
 
 === scroll_top = a number ===
 
-Scrolls the slot to a certain coordinate.  This must be between zero and `scroll_max`.
+任意の座標にスロットをスクロールします。ゼロから`scroll_max`までの間である必要があります。
 
 === show() » self ===
 
-Reveals the slot, if it is hidden.  See also [[Position.hide]] and [[Position.toggle]].
+スロットが隠されていた場合、表示します。[[Position.hide]]と[[Position.toggle]]も見てください。
 
 === style() » styles ===
 
-Calling the `style` method with no arguments returns a hash of the styles presently applied to this slot.
+引数なしで`style`メソッドを呼ぶことでスロットに現在適用されているスタイルのハッシュを返します。
 
-While methods such as `height` and `width` return the true pixel dimensions of the slot, you can use `style[:height]` or `style[:width]` to get the dimensions originally requested.
+`height`と`width`などのメソッドはスロットの本当のサイズをピクセルで返しますが、`style[:height]`または`style[:width]`を利用することで初めに要求されたサイズを得ることができます。
 
 {{{
  #!ruby
@@ -1947,11 +1950,11 @@ While methods such as `height` and `width` return the true pixel dimensions of t
  end
 }}}
 
-In this example, the paragraph under the stack will display the string "100%".
+この例では、このスタックの下のパラグラフは"100%"の文字列を表示します。
 
 === style(styles) » styles ===
 
-Alter the slot using a hash of style settings.  Any of the methods on this page (aside from this method, of course) can be used as a style setting.  So, for example, there is a `width` method, thus there is also a `width` style.
+ハッシュのスタイル設定を使ってスロットを修正してください。このページのどんなメソッドでも（もちろん、このメソッドは除いて）スタイルの設定に利用できます。そして、例えば、`width`メソッドがあり、このように`width`スタイルもあります。
 
 {{{
  #!ruby
@@ -1963,32 +1966,29 @@ Alter the slot using a hash of style settings.  Any of the methods on this page 
 
 === toggle() » self ===
 
-Hides the slot, if it is shown.  Or shows the slot, if it is hidden.
+スロットが表示されているなら非表示にします。また、スロットが非表示なら表示します。
 
 === top() » a number ===
 
-The top pixel location of the slot.  Also known as the y-axis coordinate.
+スロットの上（top）の位置です。y軸の座標としても知られています。
 
 === width() » a number ===
 
-The horizontal size of the slot in pixels.
+スロットの水平のピクセルサイズです。
 
 == Traversing the Page ==
 
-You may find yourself needing to loop through the elements inside a slot.  Or maybe you need to
-climb the page, looking for a stack that is the parent of an element.
+スロット内部の要素を最初から最後までループする必要性に気づくかもしれません。または、ページを登って要素の親のスタックを探す必要があるかもしれません。
 
-On any element, you may call the `parent` method to get the slot directly above it.  And on slots,
-you can call the `contents` method to get all of the children.  (Some elements, such as text blocks,
-also have a `contents` method for getting their children.)
+すべての要素で、上位のスロット直接得るために`parent`メソッドを呼ぶことができます。そしてスロットでは、すべての子を得るために`contents`メソッドを呼ぶことができます。（テキストブロックなどのいくつかの要素は、それらの子を得るための`contents`メソッドも持っています。）
 
 === contents() » an array of elements ===
 
-Lists all elements in a slot.
+スロットのすべての要素を一覧にします。
 
 === parent() » a Shoes::Stack or Shoes::Flow ===
 
-Gets the object for this element's container.
+要素のコンテナのオブジェクトを得ます。
 
 = Elements =
 
@@ -1998,15 +1998,15 @@ Shoesは7つのネイティブコントロールを持ちます：ボタン（Bu
 
 またShoesは7つの他の種類の要素を持っています：背景（Background）、ボーダー（Border）、画像（Image）、形状（Shape）、テキストブロック（TextBlock）、タイマー（Timer）、そしてビデオ（Video）。それらすべてはどんなオペレーティングシステムでも同じような見え方と動きになるべきです。
 
-いったん要素を生成した後でも、それを変更したくなるでしょう。それを動かしたり隠したりまたはそれを取り除くために。それらの種類のことを行うために、このセクションのコマンド利用するでしょう。（得にどんな要素上でも利用できるコマンドの[[Common Common Methods]]セクションを確認してください。）
+いったん要素を生成した後でも、それを変更したくなるでしょう。それを動かしたり隠したりまたはそれを取り除くために。それらの種類のことを行うために、このセクションのコマンド利用するでしょう。（特にどんな要素上でも利用できるコマンドの[[Common Common Methods]]セクションを確認してください。）
 
 そして、例として、PNGをスクリーンを配置するためにスロットの`image`メソッドを使ってください。この`image`メソッドはイメージオブジェクトを返します。これらをすっかり変更するためにイメージオブジェクトのこのメソッドを使ってみてください。
 
 == Common Methods ==
 
-A few methods are shared by every little element in Shoes.  Moving, showing, hiding.  Removing an element.  Basic and very general things.  This list encompasses those common commands.
+Shoesでは少しのメソッドがすべての小さな要素によって共有されてます。移動、表示、非表示。要素の削除。基本的でとても一般的なことです。この一覧はそれらの一般的なコマンドを含んでいます。
 
-One of the most general methods of all is the `style` method (which is also covered as the [[Position.style]] method for slots.)
+すべてのメソッドの中でもっとも一般的なメソッドの一つは`style`です。（これはスロットの[[Position.style]]メソッドとしてもカバーされます。）
 
 {{{
  #!ruby
@@ -2025,7 +2025,7 @@ One of the most general methods of all is the `style` method (which is also cove
  end
 }}}
 
-For specific commands, see the other links to the left in the Elements section.  Like if you want to pause or play a video file, check the [[Video]] section, since pausing and playing is peculiar to videos.  No sense pausing a button.
+個別のコマンドについては、左にあるElementsセクションの他のリンクを見てください。ビデオファイルの中断または再生がしたいなら、ビデオの中断や再生は特異なので、[[Video]]セクションを確認してください。中断するボタンという感じではありません。
 
 === displace(left: a number, top: a number) » self ===
 
