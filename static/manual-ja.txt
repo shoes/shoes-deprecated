@@ -2029,9 +2029,9 @@ Shoesでは少しのメソッドがすべての小さな要素によって共有
 
 === displace(left: a number, top: a number) » self ===
 
-Displacing an element moves it.  But without changing the layout around it.  This is great for subtle animations, especially if you want to reserve a place for an element while it is still animating.  Like maybe a quick button shake or a slot sliding into view.
+要素を移動して置き換えます。しかし周囲のレイアウトは変更しません。特にアニメーションしている間でも要素の位置を保持したいなら、これは微妙なアニメーションに重要です。おそらく素早く震えるボタンや視界にスロットを滑り込ませるような。
 
-When you displace an element, it moves relative to the upper-left corner where it was placed.  So, if an element is at the coordinates (20, 40) and you displace it 2 pixels left and 6 pixels on top, you end up with the coordinates (22, 46).
+要素を置き換えるとき、それが配置されている左上の角から相対的に移動します。そのため、要素が(20, 40)の座標にあり、2ピクセル左と6ピクセル上に置き換えるなら、結果的に(22, 46)の座標となります。
 
 {{{
  #!ruby
@@ -2050,31 +2050,29 @@ When you displace an element, it moves relative to the upper-left corner where i
  end
 }}}
 
-Notice that while the second button bounces, the other two buttons stay put.  If we used a normal `move` in this situation, the second button would be moved out of the layout and the buttons would act as if the second button wasn't there at all.  (See the [[Common.move]] example.)
+他の２つのボタンは動かずにじっとしていますが、２番目のボタンが飛び跳ねることに注目してください。この状況で普通の`move`を使うなら、２番目のボタンはレイアウトから取り除かれて、２番目のボタンが全くそこにないかのように振る舞うでしょう。（[[Common.move]]の例を見てください。）
 
-'''Of particular note:''' if you use the `left` and `top` methods to get the coordinates of a displaced element, you'll just get back the normal coordinates.  As if there was no displacement.  Displacing is just intended for quick animations!
+'''特に注意してください：'''表示される要素の座標を得るために`left`と`top`メソッドを利用するなら、通常の座標を得るだけです。それは置き換えが行われていないかのようです。置き換えは即座のアニメーションだけを目的とします。
 
 === height() » a number ===
 
-The vertical screen size of the element in pixels.  In the case of images, this is not the
- full size of the image.  This is the height of the element as it is shown right now.
+エレメントの垂直のピクセルによるスクリーンサイズです。画像の場合には、これは画像全体のサイズではありません。これは要素の現在表示されている高さです。
 
-If you have a 150x150 pixel image and you set the width to 50 pixels, this method will return
-50.
+150x150ピクセルの画像を持っていて50ピクセルに幅を設定するなら、このメソッドは50を返します。
 
-Also see the [[Common.width]] method for an example and some other comments.
+例や他の解説のために[[Common.width]]メソッドも見てください。
 
 === hide() » self ===
 
-Hides the element, so that it can't be seen.  See also [[Common.show]] and [[Common.toggle]].
+要素が見えないように、非表示にします。[[Common.show]]や[[Common.toggle]]も見てください。
 
 === left() » a number ===
 
-Gets you the pixel position of the left edge of the element.
+要素の左端の位置をピクセルで得ます。
 
 === move(left: a number, top: a number) » self  ===
 
-Moves the element to a specific pixel position within its slot.  The element is still inside the slot.  But it will no longer be stacked or flowed in with the other stuff in the slot.  The element will float freely, now absolutely positioned instead.
+スロットの範囲内でピクセルによって指定した位置に要素を移動します。その要素はスロットの内部にあります。しかし、もはやスロットの他の要素と一緒に積み上げられたりフローされたりしません。その要素は絶対的な位置指定ではなく、自由に浮かんでいます。
 
 {{{
  #!ruby
@@ -2093,23 +2091,23 @@ Moves the element to a specific pixel position within its slot.  The element is 
  end
 }}}
 
-The second button is moved to a specific place, allowing the third button to slide over into its place.  If you want to move an element without shifting other pieces, see the [[Common.displace]] method.
+３番目のボタンがその位置にスライドすることを許しており、２番目のボタンは特定の場所に動かされてします。要素を別の場所に変更しないで移動したいなら、[[Common.displace]]メソッドを見てください。
 
 === parent() » a Shoes::Stack or Shoes::Flow ===
 
-Gets the object for this element's container.  Also see the slot's [[Traversing.contents]] to do the opposite: get a container's elements.
+その要素のコンテナのオブジェクトを得ます。反対のことを行うためにはスロットの[[Traversing.contents]]も見てください：コンテナの要素を得ます。
 
 === remove() » self ===
 
-Removes the element from its slot.  (In other words: throws it in the garbage.)  The element will no longer be displayed.
+スロットから要素を削除します。（他の言葉で言い換えると：ガベージに投げます。）その要素はもう表示されません。
 
 === show() » self ===
 
-Reveals the element, if it is hidden.  See also [[Common.hide]] and [[Common.toggle]].
+要素が非表示なら、表示します。[[Common.hide]]や[[Common.toggle]]も見てください。
 
 === style() » styles ===
 
-Gives you the full set of styles applied to this element, in the form of a Hash.  While methods like `width` and `height` and `top` give you back specific pixel dimensions, using `style[:width]` or `style[:top]`, you can get the original setting (things like "100%" for width or "10px" for top.)
+ハッシュの形で、要素に適用するフルセットのスタイルを得ます。`width`や`height`や`top`のようなメソッドは特定のピクセルでのサイズを返しますが、`style[:width]`または`style[:top]`を利用すると、初めの設定を得ることができます。（"100%"の幅または"10px"のトップのような）
 
 {{{
  #!ruby
@@ -2124,21 +2122,21 @@ Gives you the full set of styles applied to this element, in the form of a Hash.
 
 === style(styles) » styles ===
 
-Changes the style of an element.  This could include the `:width` and `:height` of an element, the font `:size` of some text, the `:stroke` and `:fill` of a shape.  Or any other number of style settings.
+要素のスタイルを変更します。これは要素の`:width`と`:height`、テキストのフォントの`:size`、形状の`:stroke`や`:fill`を含みます。または他の多くのスタイルの設定もです。
 
 === toggle() » self ===
 
-Hides an element if it is shown.  Or shows the element, if it is hidden.
+要素が表示されているなら非表示にします。または要素が非表示なら表示します。
 
 === top() » a number ===
 
-Gets the pixel position of the top edge of the element.
+要素の上端のピクセルの位置を得ます。
 
 === width() » a number ===
 
-Gets the pixel width for the full size of the element.  This method always returns an exact pixel size.  In the case of images, this is not the full width of the image, just the size it is shown at.  See the [[Common.height]] method for more.
+要素の全体の大きさの幅をピクセルで得ます。このメソッドはいつも正確なピクセルサイズを返します。画像の場合は、画像の全幅ではなく、表示されているサイズだけです。詳しくは[[Common.height]]メソッドも見てください。
 
-Also, if you create an element with a width of 100% and that element is inside a stack which is 120 pixels wide, you'll get back `120`.  However, if you call `style[:width]`, you'll get `"100%"`.
+However, if you call `style[:width]`, you'll get `"100%"`.また、120ピクセルの幅のスタック内に100%の幅の要素を作成したなら、`120`が返されます。しかしながら、`style[:width]`を呼んだなら、`"100%"`を得ます。
 
 {{{
  #!ruby
@@ -2152,9 +2150,9 @@ Also, if you create an element with a width of 100% and that element is inside a
  end
 }}}
 
-In order to set the width, you'll have to go through the [[Common.style]] method again.  So, to set the button to 150 pixels wide: `@b.style(:width => 150)`.
+幅を設定するためには、[[Common.style]]メソッドをもう一度調べる必要があります。そして、150ピクセルの幅にボタンを設定するには：`@b.style(:width => 150)`。
 
-To let Shoes pick the element's width, go with `@b.style(:width => nil)` to empty out the setting.
+要素の幅を取るには、設定を空にするために`@b.style(:width => nil)`とします
 
 == Background ==
 
