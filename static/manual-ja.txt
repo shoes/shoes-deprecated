@@ -2136,7 +2136,7 @@ Shoesでは少しのメソッドがすべての小さな要素によって共有
 
 要素の全体の大きさの幅をピクセルで得ます。このメソッドはいつも正確なピクセルサイズを返します。画像の場合は、画像の全幅ではなく、表示されているサイズだけです。詳しくは[[Common.height]]メソッドも見てください。
 
-However, if you call `style[:width]`, you'll get `"100%"`.また、120ピクセルの幅のスタック内に100%の幅の要素を作成したなら、`120`が返されます。しかしながら、`style[:width]`を呼んだなら、`"100%"`を得ます。
+また、120ピクセルの幅のスタック内に100%の幅の要素を作成したなら、`120`が返されます。しかしながら、`style[:width]`を呼んだなら、`"100%"`を得ます。
 
 {{{
  #!ruby
@@ -2156,11 +2156,11 @@ However, if you call `style[:width]`, you'll get `"100%"`.また、120ピクセ�
 
 == Background ==
 
-A background is a color, a gradient or an image that is painted across an entire slot.  Both backgrounds and borders are a type of Shoes::Pattern. !{:margin_left => 100}man-ele-background.png!
+背景はスロット全体に渡って塗られた、グラデーションまたは画像の色です。背景と枠線はShoes::Patternの種類の一つです。!{:margin_left => 100}man-ele-background.png!
 
-Even though it's called a ''background'', you may still place this element in front of other elements.  If a background comes after something else painted on the slot (like a `rect` or an `oval`,) the background will be painted over that element.
+''背景（background）''と呼ばれているにも関わらず、この要素は他の要素よりも前面に表示されます。背景がスロットで塗られた何か他のもの（`rect`または`oval`のような）の後にきた場合、背景はその要素の上に塗られます。
 
-The simplest background is just a plain color background, created with the [[Element.background]] method, such as this black background:
+もっとも単純な背景は、黒の背景のような[[Element.background]]メソッドによって作成された、単色の背景です。
 
 {{{
  #!ruby
@@ -2169,11 +2169,11 @@ The simplest background is just a plain color background, created with the [[Ele
  end
 }}}
 
-A simple background like that paints the entire slot that contains it.  (In this case, the whole window is painted black.)
+このような単純な背景はスロットが含むもの全体を塗りつぶします（この場合は、ウィンドウ全体が黒で塗られます。）
 
-You can use styles to cut down the size or move around the background to your liking.
+好きなように背景のサイズを切り詰めたりあちこち移動したりするためのスタイルを利用できます。
 
-To paint a black background across the top fifty pixels of the window:
+ウィンドウの上側を50ピクセルに渡って黒い背景で塗りつぶします：
 
 {{{
  #!ruby
@@ -2182,7 +2182,7 @@ To paint a black background across the top fifty pixels of the window:
  end
 }}}
 
-Or, to paint a fifty pixel column on the right-side of the window:
+または、ウィンドウの右端の50ピクセルの列を塗りつぶします：
 
 {{{
  #!ruby
@@ -2191,21 +2191,21 @@ Or, to paint a fifty pixel column on the right-side of the window:
  end
 }}}
 
-Since Backgrounds are normal elements as well, see also the start of the [[Elements]] section for all of its other methods.
+背景は普通の要素と同様なので、その他のすべてのメソッドについては[[Elements]]セクションの始めの部分も見てください。
 
 === to_pattern() » a Shoes::Pattern ===
 
-Yanks out the color, gradient or image used to paint this background and places it in a normal Shoes::Pattern object.  You can then pass that object to other backgrounds and borders.  Reuse it as you like.
+背景を塗りつぶすために利用されたグラデーションや画像を通常のShoes::Patternオブジェクトに配置し、色をヤンクします。そして、他のオブジェクトに背景や枠線に渡すことができます。好きなように再利用してください。
 
 == Border ==
 
-A border is a color, gradient or image painted in a line around the edge of any slot.  Like the Background element in the last section, a Border is a kind of Shoes::Pattern. !{:margin_left => 100}man-ele-border.png!
+枠線はスロットの周囲の線に塗られた、色やグラデーションや画像です。次のセクションの背景の要素では、枠線（Border）はShoes::Patternの一種です。!{:margin_left => 100}man-ele-border.png!
 
-The first, crucial thing to know about border is that all borders paint a line around the '''inside''' of a slot, not the outside.  So, if you have a slot which is fifty pixels wide and you paint a five pixel border on it, that means there is a fourty pixel wide area inside the slot which is surrounded by the border.
+はじめに、すべての枠線はスロットの周囲の外側ではなく、'''内側'''を塗ることについて知ることは重要です。そのため、50ピクセルの幅のスロットに5ピクセルの枠線を塗るなら、それは枠線で囲まれたスロットが内部に40ピクセルの幅のエリアを持つことを意味します。
 
-This also means that if you paint a Border on top of a [[Background]], the edges of the background will be painted over by the border.
+これは枠線（Border）を[[Background]]の上に塗るなら、その背景の端の上を枠線によって塗られることも意味します。
 
-Here is just such a slot:
+正にそのようなスロットがここにあります：
 
 {{{
  #!ruby
@@ -2217,7 +2217,7 @@ Here is just such a slot:
  end
 }}}
 
-If you want to paint a border around the outside of a slot, you'll need to wrap that slot in another slot.  Then, place the border in the outside slot.
+スロットの外側の修正に枠線を塗りたいなら、もう一つのスロットでそのスロットをラップする必要があります。その結果、スロットの外側に枠線が配置されます。
 
 {{{
  #!ruby
@@ -2231,17 +2231,17 @@ If you want to paint a border around the outside of a slot, you'll need to wrap 
  end
 }}}
 
-In HTML and many other languages, the border is painted on the outside of the box, thus increasing the overall width of the box.  Shoes was designed with consistency in mind, so that if you say that a box is fifty pixels wide, it stays fifty pixels wide regardless of its borders or margins or anything else.
+HTMLや他の多くの言語では、枠線は箱の外側に塗られるため、ボックス全体の幅が増加します。Shoesは一貫性を考慮してデザインされているため、枠線やマージンや他のどんなものも気にしないでそれは50ピクセルの幅のままです。
 
-Please also check out the [[Elements]] section for other methods used on borders.
+枠線に利用する他のメソッドについては[[Elements]]セクションも確認してください。
 
 === to_pattern() » a Shoes::Pattern ===
 
-Creates a basic pattern object based on the color, gradient or image used to paint this border.  The pattern may then be re-used in new borders and backgrounds.
+枠線を塗るための色、グラデーションまたは画像を元にした基本のパターンオブジェクトを作成します。
 
 == Button ==
 
-Buttons are, you know, push buttons.  You click them and they do something.  Buttons are known to say "OK" or "Are you sure?"  And, then, if you're sure, you click the button. !{:margin_left => 100}man-ele-button.png!
+ボタン（Button）は、ご存知のとおり、押しボタンです。それらをクリックしたら何かを行います。ボタンは"OK"または"Are you sure?"などを表示します。そして、よければボタンをクリックします。
 
 {{{
  #!ruby
@@ -2251,7 +2251,7 @@ Buttons are, you know, push buttons.  You click them and they do something.  But
  end
 }}}
 
-The buttons in the example above don't do anything when you click them.  In order to get them to work, you've got to hook up a block to each button.
+上記の例のボタンはそれらがクリックされたときに何も行いません。働きを行わせるためには、それぞれのボタンにブロックを取り付けます。
 
 {{{
  #!ruby
@@ -2265,11 +2265,11 @@ The buttons in the example above don't do anything when you click them.  In orde
  end
 }}}
 
-So now we've got blocks for the buttons.  Each block appends a new paragraph to the page.  The more you click, the more paragraphs get added.
+このようにボタンにブロックを取り付けました。それぞれのブロックはページに新しいパラグラフを取り付けます。クリックする度に、パラグラフが追加されます。
 
-It doesn't go much deeper than that.  A button is just a clickable phrase.
+これはこれ以上深くはしません。ボタンはクリック可能な句でしかありません。
 
-Just to be pedantic, though, here's another way to write that last example.
+厳密に言えば、次に続く例では他の方法でそれを書いています。
 
 {{{
  #!ruby
@@ -2281,19 +2281,19 @@ Just to be pedantic, though, here's another way to write that last example.
  end
 }}}
 
-This looks dramatically different, but it does the same thing.  The first difference: rather than attaching the block directly to the button, the block is attached later, through the `click` method.
+見た目は劇的に違いますが、これは同じ動きです。１つ目の違い：直接ブロックをボタンに取り付けるのではなく、`click`メソッドを通して、ブロックを後で取り付けています。
 
-The second change isn't related to buttons at all.  The `append` block was dropped since Shoes allows you to add new elements directly to the slot.  So we can just call `para` directly.  (This isn't the case with the `prepend`, `before` or `after` methods.)
+２つ目の違いはボタンには全く関係がありません。Shoesがスロットに要素を直接追加することを許しているので、`append`ブロックが取り除かれています。そのため直接`para`を呼ぶことができます。（`prepend`、`before`または`after`メソッドの場合にはできません。）
 
-Beside the methods below, buttons also inherit all of the methods that are [[Common]].
+以下のメソッドに加えて、ボタンは[[Common]]のすべてのメソッドも継承します。
 
 === click() { |self| ... } » self ===
 
-When a button is clicked, its `click` block is called.  The block is handed `self`.  Meaning: the button which was clicked.
+ボタンがクリックされたときには、`click`ブロックが呼ばれます。このブロックは`self`を渡します。意味すること：どちらのボタンでクリックされたか。
 
 === focus() » self ===
 
-Moves focus to the button.  The button will be highlighted and, if the user hits Enter, the button will be clicked.
+ボタンのフォーカスを移動します。そのボタンはハイライトされ、ユーザがエンターキーを打てば、クリックされます。
 
 == Check ==
 
