@@ -2297,9 +2297,9 @@ HTMLや他の多くの言語では、枠線は箱の外側に塗られるため�
 
 == Check ==
 
-Check boxes are clickable square boxes than can be either checked or unchecked.  A single checkbox usually asks a "yes" or "no" question.  Sets of checkboxes are also seen in to-do lists. !{:margin_left => 100}man-ele-check.png!
+チェックボックスはチェックされた状態またはチェックされていない状態になるクリック可能な四角い箱です。１つのチェックボックスでは通常は"はい（yes）"または"いいえ（no）"の質問をたずねます。複数のチェックボックスのセットではto-doリストでも見られます。
 
-Here's a sample checklist.
+ここにチェックリストのサンプルがあります。
 
 {{{
  #!ruby
@@ -2312,9 +2312,9 @@ Here's a sample checklist.
  end
 }}}
 
-You basically have two ways to use a check.  You can attach a block to the check and it'll get called when the check gets clicked.  And/or you can just use the `checked?` method to go back and see if a box has been checked or not.
+基本的にはチェック（check）を利用するための２つの方法があります。チェックにチェックがクリックされたときに呼ばれるブロックを取り付けます。そして／または、ボックスがチェックされているかどうか確認する`checked?`メソッドを利用できます。
 
-Okay, let's add to the above example.
+では、上記の例に追加しましょう。
 
 {{{
  #!ruby
@@ -2336,33 +2336,33 @@ Okay, let's add to the above example.
  end
 }}}
 
-So, when the button gets pressed, each of the checks gets asked for its status, using the `checked?` method.
+そして、ボタンが押されたときに、`checked?`メソッドを利用して、それぞれのチェックはその状態を尋ねます。
 
-Button methods are listed below, but also see the list of [[Common]] methods, which all elements respond to.
+下のボタンメソッドの一覧だけでなく、すべての要素が応答できる、[[Common]]メソッドの一覧も見てください。
 
 === checked?() » true or false ===
 
-Returns whether the box is checked or not.  So, `true` means "yes, the box is checked!"
+その箱がチェックされているかどうかを返します。そして、`true`の意味は"はい、この箱はチェックされています！"です。
 
 === checked = true or false ===
 
-Marks or unmarks the check box.  Using `checked = false`, for instance, unchecks the box.
+チェックボックスをマークしたりマークを外したりします。例えば、`checked = false`を利用して、箱のチェックを外します。
 
 === click() { |self| ... } » self ===
 
-When the check is clicked, its `click` block is called.  The block is handed `self`, which is the check object which was clicked.
+チェックボックスがクリックされたときに、その`click`ブロックが呼ばれます。このブロックは、クリックされたチェックボックスオブジェクトの`self`を渡します。
 
-Clicks are sent for both checking and unchecking the box.
+箱がチェックされるときもチェックを外すときのどちらもクリックが渡されます。
 
 === focus() » self ===
 
-Moves focus to the check.  The check will be highlighted and, if the user hits Enter, the check will be toggled between its checked and unchecked states.
+チェックボックスにフォーカスを移動します。そのチェックボックスはハイライトされ、ユーザがエンターキーを打てば、そのチェックボックスはチェックされた状態とチェックされていない状態の間をトグルします。
 
 == EditBox ==
 
-Edit boxes are wide, rectangular boxes for entering text.  On the web, they call these textareas.  These are multi-line edit boxes for entering longer descriptions.  Essays, even! !{:margin_left => 100}man-ele-editbox.png!
+エディットボックス（Edit box）は、テキストを入力するための幅広い長方形の箱です。webでは、それらはテキストエリアと呼ばれます。それらは長い記述を入力するためのマルチラインエディットボックスです。エッセイでさえ書けます！　!{:margin_left => 100}man-ele-editbox.png!
 
-Without any other styling, edit boxes are sized 200 pixels by 108 pixels.  You can also use `:width` and `:height` styles to set specific sizes.
+スタイルを何も設定しなければ、エディットボックスは200ピクセルx108ピクセルのサイズです。特定のサイズに設定するために`:width`と`:height`のスタイルを利用することもできます。
 
 {{{
  #!ruby
@@ -2372,7 +2372,7 @@ Without any other styling, edit boxes are sized 200 pixels by 108 pixels.  You c
  end
 }}}
 
-Other controls (like [[Button]] and [[Check]]) have only click events, but both [[EditLine]] and EditBox have a `change` event.  The `change` block is called every time someone types into or deletes from the box.
+（[[Button]]や[[Check]]などの）他のコントロールはクリックイベントだけを持っていますが、[[EditLine]]やエディットボックス（EditBox）は`change`イベントも持っています。誰かがタイプしたり箱から削除したら`change`のブロックはいつでも呼ばれます。
 
 {{{
  #!ruby
@@ -2385,31 +2385,31 @@ Other controls (like [[Button]] and [[Check]]) have only click events, but both 
  end
 }}}
 
-Notice that the example also uses the [[EditBox.text]] method inside the block.  That method gives you a string of all the characters typed into the box.
+この例ではブロック内部で[[EditBox.text]]メソッドを利用していることにも注意してください。このメソッドは箱に対してタイプしたすべての文字の文字列をあなたに与えます。
 
-More edit box methods are listed below, but also see the list of [[Common]] methods, which all elements respond to.
+エディットボックスの更なるメソッドは以下に一覧にしますが、すべての要素が応答できる、[[Common]]メソッドの一覧も見てください。
 
 === change() { |self| ... } » self ===
 
-Each time a character is added to or removed from the edit box, its `change` block is called.  The block is given `self`, which is the edit box object which has changed.
+エディットボックスに文字が追加されたり取り除かれるたびに、`chenage`ブロックが呼ばれます。ブロックには変更されたエディットボックスのオブジェクトである`self`が与えられます。
 
 === focus() » self ===
 
-Moves focus to the edit box.  The edit box will be highlighted and the user will be able to type into the edit box.
+エディットボックスにフォーカスを移動します。そのエディットボックスはハイライトされ、ユーザはエディットボックスにタイプできます。
 
 === text() » self ===
 
-Return a string of characters which have been typed into the box.
+箱にタイプされた文字を文字列として返します。
 
 === text = a string ===
 
-Fills the edit box with the characters of `a string`.
+`a string`の文字をエディットボックスに代入します。
 
 == EditLine ==
 
-Edit lines are a slender, little box for entering text.  While the EditBox is multi-line, an edit line is just one.  Line, that is.  Horizontal, in fact. !{:margin_left => 100}man-ele-editline.png!
+エディットライン（Edit line）は細長い、小さなテキストを入力する箱です。エディットボックスはマルチラインですが、エディットラインは１行です。これはエディットラインです。ちなみに水平です。
 
-The unstyled edit line is 200 pixels wide and 28 pixels wide.  Roughly.  The height may vary on some platforms.
+スタイルが設定されていないエディットラインは200ピクセルの幅と28ピクセルの高さです。これはおおよそです。プラットフォームによって高さは様々です。
 
 {{{
  #!ruby
@@ -2421,31 +2421,31 @@ The unstyled edit line is 200 pixels wide and 28 pixels wide.  Roughly.  The hei
  end
 }}}
 
-You can change the size by styling both the `:width` and the `:height`.  However, you generally only want to style the `:width`, as the height will be sized to fit the font.  (And, in current versions of Shoes, the font for edit lines and edit boxes cannot be altered anyway.)
+`:width`と`:height`の両方のスタイルを設定することによりサイズを変更することができます。しかしながら、高さはフォントに合わせて調整されるため、一般的には`:width`だけのスタイルを設定します。（そして、現在のバージョンのShoesでは、エディットラインとエディットボックスフォントはどうやっても変更できません。）
 
-If a block is given to an edit line, it receives `change` events.  Check out the [[EditBox]] page for an example of using a change block.  In fact, the edit box has all the same methods as an edit line.  Also see the list of [[Common]] methods, which all elements respond to.
+エディットラインにブロックが与えられたら、`change`イベントを受けとります。changeブロックを利用した例については[[EditBox]]のページを確認してください。実際には、そのエディットボックスはエディットラインとすべて同じメソッドを持ちます。すべての要素が応答できる、[[Common]]メソッドの一覧も見てください。
 
 === change() { |self| ... } » self ===
 
-Each time a character is added to or removed from the edit line, its `change` block is called.  The block is given `self`, which is the edit line object which has changed.
+エディットラインに文字が追加されたり取り除かれるたびに、`chenage`ブロックが呼ばれます。ブロックには変更されたエディットラインのオブジェクトである`self`が与えられます。
 
 === focus() » self ===
 
-Moves focus to the edit line.  The edit line will be highlighted and the user will be able to type into the edit line.
+エディットラインにフォーカスを移動します。そのエディットラインはハイライトされ、ユーザはエディットラインにタイプできます。
 
 === text() » self ===
 
-Return a string of characters which have been typed into the box.
+箱にタイプされた文字を文字列として返します。
 
 === text = a string ===
 
-Fills the edit line with the characters of `a string`.
+`a string`の文字をエディットボックスに代入します。
 
 == Image ==
 
-An image is a picture in PNG, JPEG or GIF format.  Shoes can resize images or flow them in with text.  Images can be loaded from a file or directly off the web. !{:margin_left => 100}man-ele-image.png!
+画像（image）はPNG、JPEGまたはGIFフォーマットの画像ファイルです。Shoesは画像をリサイズまたはテキストとともにそれらをフローすることができます。!{:margin_left => 100}man-ele-image.png!
 
-To create an image, use the `image` method in a slot:
+画像を作成するために、スロット内部で`image`メソッドを利用します：
 
 {{{
  #!ruby
@@ -2455,9 +2455,9 @@ To create an image, use the `image` method in a slot:
   end
 }}}
 
-When you load any image into Shoes, it is cached in memory.  This means that if you load up many image elements from the same file, it'll only really load the file once.
+Shoesに何らかの画像をロードしたとき、それはメモリにキャッシュされます。それは、同じファイルの画像の要素をたくさんロードした場合でも、それは実際には１回だけファイルをロードすることを意味します。
 
-You can use web URLs directly as well.
+webのURLを直接利用することもできます。
 
 {{{
  #!ruby
@@ -2466,27 +2466,27 @@ You can use web URLs directly as well.
  end
 }}}
 
-When an image is loaded from the web, it's cached on the hard drive as well as in memory.  This prevents a repeat download unless the image has changed.  (In case you're wondering: Shoes keeps track of modification times and etags just like a browser would.)
+webから画像がロードされたとき、それはハードディスクドライブとメモリの両方にキャッシュされます。これは画像が変更されなければ再度ダウンロードをすることを防止します。（不思議に思う場合：正にブラウザが行うetagのようにShoesは変更時間の軌跡を保持します。）
 
-Shoes also loads remote images in the background using system threads.  So, using remote images will not block Ruby or any intense graphical displays you may have going on.
+Shoesはバックグラウンドでシステムのスレッドを使ってリモートの画像もロードします。そのため、リモートの画像を利用することはRubyを妨げることはなく、またどんな強烈なグラフィカルな表示でも進み続けるでしょう。
 
 === full_height() » a number ===
 
-The full pixel height of the image.  Normally, you can just use the [[Common.height]] method to figure out how many pixels high the image is.  But if you've resized the image or styled it to be larger or something, then `height` will return the scaled size.
+画像全体のピクセルでの高さです。通常は、ピクセルでの画像の高さを知るために[[Common.height]]メソッドを利用できます。しかし画像がリサイズされていたりより大きいサイズなどにスタイルが設定されていた場合は、`height`は変更されたサイズを返します。
 
-The `full_height` method gives you the height of image (in pixels) as it was stored in the original file.
+`full_height`メソッドは保存されたオリジナルファイルの画像の（ピクセルでの）高さを与えます。
 
 === full_width() » a number ===
 
-The full pixel width of the image.  See the [[Image.full_height]] method for an explanation of why you might use this method rather than [[Common.width]].
+画像全体のピクセルでの幅です。[[Common.width]]ではなくこのメソッドを使う理由の説明については[[Image.full_height]]メソッドを見てください。
 
 === path() » a string ===
 
-The URL or file name of the image.
+画像のURLまたはファイル名です。
 
 === path = a string ===
 
-Swaps the image with a different one, loaded from a file or URL.
+ファイルまたはURLからロードして、画像を他のものに入れ替えます。
 
 == ListBox ==
 
