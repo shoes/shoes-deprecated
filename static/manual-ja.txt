@@ -2658,123 +2658,123 @@ Shoesはバックグラウンドでシステムのスレッドを使ってリモ
 
 == Shape ==
 
-A shape is a path outline usually created by drawing methods like `oval` and `rect`. !{:margin_left => 100}man-ele-shape.png!
+形状（shape）は通常は`oval`と`rect`のようにドローイングメソッドによって作成されるアウトラインパスです。!{:margin_left => 100}man-ele-shape.png!
 
-See the [[Common]] methods page.  Shapes respond to all of those methods.
+[[Common]]メソッドのページを見てください。形状はそれらすべてのメソッドに応答できます。
 
 == TextBlock ==
 
-The TextBlock object represents a group of text organized as a single element.  A paragraph containing bolded text, for example.  A caption containing links and bolded text.  (So, a `caption` is a TextBlock type.  However, `link` and `strong` are TextClass types.) !{:margin_left => 100}man-ele-textblock.png!
+テキストブロック（TextBlock）オブジェクトは単独の要素にとして形成されるテキストのグループを示します。例えば、太字のテキストを含むパラグラフです。リンクと太字のテキストを含むキャプションです。（そして、`caption`はテキストブロックのタイプです。しかしながら、`link`と`strong`はテキストクラスのタイプです。）!{:margin_left => 100}man-ele-textblock.png!
 
-All of the various types of TextBlock are found on the [[Element Element Creation]] page.
+テキストブロックのすべての種類はタイプは[[Element Element Creation]]ページで確認できます。
 
- * [[Element.banner]], a 48 pixel font.
- * [[Element.title]], a 34 pixel font.
- * [[Element.subtitle]], a 26 pixel font.
- * [[Element.tagline]], an 18 pixel font.
- * [[Element.caption]], a 14 pixel font.
- * [[Element.para]], a 12 pixel font.
- * [[Element.inscription]], a 10 pixel font.
+ * [[Element.banner]], 48ピクセルのフォント。
+ * [[Element.title]], 34ピクセルのフォント。
+ * [[Element.subtitle]], 26ピクセルのフォント。
+ * [[Element.tagline]], 18ピクセルのフォント。
+ * [[Element.caption]], 14ピクセルのフォント。
+ * [[Element.para]], 12ピクセルのフォント。
+ * [[Element.inscription]], 10ピクセルのフォント。
 
 === contents() » an array of elements  ===
 
-Lists all of the strings and styled text objects inside this block.
+ブロック内部の整形された文字列すべてのリストです。
 
 === replace(a string) ===
 
-Replaces the text of the entire block with the characters of `a string`.
+ブロック全体のテキストを`a string`の文字で置き換えます。
 
 === text() » a string ===
 
-Return a string of all of the characters in this text box.  This will strip off any style or text classes and just return the actual characters, as if seen on the screen.
+テキストボックスのすべての文字の文字列を返します。画面に表示されるかのように、すべてのスタイルまたはテキストクラスが取り除かれて実際の文字だけを返します。
 
 === text = a string ===
 
-Replaces the text of the entire block with the characters of `a string`.
+ブロック全体のテキストを`a string`の文字で置き換えます。
 
 === to_s() » a string ===
 
-An alias for [[TextBlock.text]].  Returns a flattened string of all of this TextBlock's contents.
+[[TextBlock.text]]のエイリアスです。テキストブロックのすべてのコンテンツをフラットにした文字列を返します。
 
 == Timers ==
 
-Shoes contains three timer classes: the Animation class, the Every class and the Timer class.  Both Animations and Everies loop over and over after they start.  Timers happen once.  A one-shot timer.
+Shoesは3つのタイマー（timer）クラスを持っています：アニメーション（Animation）クラス、Everyクラスそしてタイマー（Timer）クラスです。アニメーションとEveryの両方は開始してから何度も何度も繰り替えします。タイマーは１度だけ実行されます。１回限りのタイマーです。
 
-Animations and Everies are basically the same thing.  The difference is that Animations usually happen many, many times per second.  And Everies happen only once every few seconds or rarely.
+アニメーションとEveryは基本的には同じものです。違いはアニメーションは普通は１秒間にとてもたくさん実行されます。そしてEveryは数秒間ごとに実行されるか、まれにしか実行されません。
 
 === start() » self ===
 
-Both types of timers automatically start themselves, so there's no need to use this normally.  But if you [[Timers.stop]] a timer and would like to start it up again, then by all means: use this!
+どちらのタイプのタイマーもそれ自身で自動的に開始されるため、通常はこれは利用する必要がありません。しかし、[[Timers.stop]]でタイマーを止めて再開したい場合は、もちろん：これを利用してください！
 
 === stop() » self ===
 
-Pauses the animation or timer.  In the case of a one-shot timer that's already happened, it's already stopped and this method will have no effect.
+アニメーションまたはタイマーを中断します。１回限りのタイマーの場合はこれは既に実行されており、既に停止しているのでこのメソッドの効果はありません。
 
 === toggle() » self ===
 
-If the animation or timer is stopped, it is started.  Otherwise, if it is already running, it is stopped.
+アニメーションまたはタイマーが停止されていれば、開始します。既に実行されていれば、停止します。
 
 == Video ==
 
-Shoes supports embedding of QuickTime, Flash video (FLV), DivX, Xvid and various other popular video formats.  This is all thanks to VideoLAN and ffmpeg, two sensational open source libraries.  Use the `video` method on a slot to setup a Shoes::Video object. !{:margin_left => 100}man-ele-video.png!
+Shoesは埋め込みのQuickTime、Flashビデオ（FLV）、DivX、Xvidそして様々な他の人気のあるビデオフォーマットをサポートしています。これはすべて２つの驚くべきオープンソースライブラリである、VideoLANとffmpegのおかげです。Shoes::Videoオブジェクトをセットアップするためにスロット上で`video`メソッドを利用してください。!{:margin_left => 100}man-ele-video.png!
 
-In addition to video formats, some audio formats are also supported, such as MP3, WAV and Ogg Vorbis.
+ビデオフォーマットに加えて、MP3、WAVとOgg Vorbisのような、いくつかのオーディオフォーマットもサポートされています。
 
-Video support is optional in Shoes and some builds do not support video.  For example, video support is unavailable for PowerPC.  When you download Shoes, the build for your platform will be marked `novideo` in the filename if no video support is available.
+ビデオサポートはShoesではオプションであり、いくつかのビルドではビデオをサポートしていません。例えば、PowerPCではビデオサポートは利用できません。Shoesをダウンロードしたときに、ビデオサポートが利用できないならプラットフォーム用のビルドのファイル名に`novideo`と記されています
 
 === hide() » self ===
 
-Hides the video.  If already playing, the video will continue to play.  This just turns off display of the video.  One possible use of this method is to collapse the video area when it is playing an audio file, such as an MP3.
+ビデオを非表示します。既に再生しているなら、ビデオは再生を続けます。これはビデオの表示をオフにするだけです。このメソッドの有力な使い方の１つは、MP3のようなオーディオファイルを再生するときに、ビデオの範囲を破壊することです。
 
 === length() » a number ===
 
-The full length of the video in milliseconds.  Returns nil if the video is not yet loaded.
+ミリ秒でのビデオ全体の長さです。ビデオがまだロードされていない場合はnilを返します。
 
 === move(left, top) » self ===
 
-Moves the video to specific coordinates, the (left, top) being the upper left hand corner of the video.
+（left, top）はビデオの左上の角であり、特定の座標にビデオを移動します。
 
 === pause() » self ===
 
-Pauses the video, if it is playing.
+ビデオが再生されていれば、一時停止します。
 
 === playing?() » true of false ===
 
-Returns true if the video is currently playing.  Or, false if the video is paused or stopped.
+ビデオを現在再生していれば、trueを返します。または、ビデオが一時停止されていたり停止されている場合はfalseです。
 
 === play() » self ===
 
-Starts playing the video, if it isn't already playing.  If already playing, the video is restarted from the beginning.
+既に再生いなければ、ビデオの再生を開始します。既に再生いるのなら、ビデオは始めから再度開始します。
 
 === position() » a decimal ===
 
-The position of the video as a decimanl number (a Float) between the beginning (0.0) and the end (1.0).  For instance, a Float value of 0.5 indicates the halfway point of the video.
+（0.0）から（1.0）の間の10進数の（Floatの）数によるビデオの位置です。例えば、0.5のFloatの値はビデオの中間の位置を示します。
 
 === position = a decimal ===
 
-Sets the position of the video using a Float value.  To move the video to its 25% position: `@video.position = 0.25`.
+Floatの値を利用してビデオの位置を設定します。25%の位置にビデオを移動するなら：`@video.position = 0.25`。
 
 === remove() » self ===
 
-Removes the video from its slot.  This will stop the video as well.
+ビデオをスロットから取り除きます。なおビデオを停止します。
 
 === show() » self ===
 
-Reveals the video, if it has been hidden by the `hide()` method.
+`hide()`メソッドによって非表示にされていたなら、ビデオを表示します。
 
 === stop() » self ===
 
-Stops the video, if it is playing.
+ビデオが再生されていれば、停止します。
 
 === time() » a number ===
 
-The time position of the video in milliseconds.  So, if the video is 10 seconds into play, this method would return the number 10000.
+ビデオのミリ秒での時間の位置です。そのため、そのビデオが10秒の再生時間なら、このメソッドは10000の数を返します
 
 === time = a number ===
 
-Set the position of the video to a time in milliseconds.
+ミリ秒の時間でビデオの位置を設定します。
 
 === toggle() » self ===
 
-Toggles the visibility of the video.  If the video can be seen, then `hide` is called.  Otherwise, `show` is called.
+ビデオの可視性をトグルします。ビデオが表示されていれば、`hide`が呼ばれます。そうでなければ、`show`が呼ばれます。
 
