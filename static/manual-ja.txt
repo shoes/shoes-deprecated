@@ -2352,7 +2352,7 @@ HTMLや他の多くの言語では、枠線は箱の外側に塗られるため�
 
 チェックボックスがクリックされたときに、その`click`ブロックが呼ばれます。このブロックは、クリックされたチェックボックスオブジェクトの`self`を渡します。
 
-箱がチェックされるときもチェックを外すときのどちらもクリックが渡されます。
+箱がチェックされるときとチェックを外すときのどちらもクリックが渡されます。
 
 === focus() » self ===
 
@@ -2490,9 +2490,9 @@ Shoesはバックグラウンドでシステムのスレッドを使ってリモ
 
 == ListBox ==
 
-List boxes (also called "combo boxes" or "drop-down boxes" or "select boxes" in some places) are a list of options that drop down when you click on the box. !{:margin_left => 100}man-ele-listbox.png!
+リストボックス（List box）（環境によって"コンボボックス（combo box）"または"ドロップダウンボックス（drop-down box）"または"セレクトボックス（select box）"とも呼ばれています。）は箱をクリックしたときドロップダウンしてオプションが一覧として表示されます。!{:margin_left => 100}man-ele-listbox.png!
 
-A list box gets its options from an array.  An array (a list) of strings, passed into the `:items` style.
+リストボックスは配列からオプションを取得します。配列（リスト）の文字列は、`:items`スタイルに渡されます。
 
 {{{
  #!ruby
@@ -2502,7 +2502,7 @@ A list box gets its options from an array.  An array (a list) of strings, passed
  end
 }}}
 
-So, the basic size of a list box is about 200 pixels wide and 28 pixels high.  You can adjust this length using the `:width` style.
+そして、リストボックスの基本のサイズは200ピクセルの幅と28ピクセルの高さです。この長さは`width`スタイルを利用して調整することができます。
 
 {{{
  #!ruby
@@ -2517,41 +2517,41 @@ So, the basic size of a list box is about 200 pixels wide and 28 pixels high.  Y
  end
 }}}
 
-Next to the `:width` style, the example uses another useful option.  The `:choose` option tells the list box which of the items should be highlighted from the beginning.  (There's also a [[ListBox.choose]] method for highlighting an item after the box is created.)
+`:width`スタイルに続いて、この例ではもう１つの便利なオプションを利用します。`:choose`オプションは始めからハイライトされるべきアイテムをリストボックスに教えます。（箱が作成された後でアイテムをハイライトするには[[ListBox.choose]]メソッドもあります。）
 
-List boxes also have a [[ListBox.change]] event.  In the last example, we've got a block hooked up to the list box.  Well, okay, see, that's a `change` block.  The block is called each time someone changes the selected item.
+リストボックスは[[ListBox.change]]イベントも持っています。次の例では、リストボックスにブロックを取り付けました。いいですか、この`change`ブロックを見てください。このブロックは誰かが選択されたアイテムを変更するたびに呼ばれます。
 
-Those are the basics.  Might you also be persuaded to look at the [[Common]] methods page, a complete list of the methods that all elements have?
+これらは基本的なことです。すべての要素が持っているメソッドの完全な一覧である、[[Common]]メソッドのページを見てください。
 
 === change() { |self| ... } » self ===
 
-Whenever someone highlights a new option in the list box (by clicking on an item, for instance,) its `change` block is called.  The block is given `self`, which is the edit line object which has changed.
+誰かがリストボックスの新しいオプションをハイライトするたびに（例えば、アイテムをクリックすることによって）`change`ブロックは呼ばれます。ブロックには変更されたリストボックスのオブジェクトである`self`が与えられます。
 
 === choose(item: a string) » self ===
 
-Selects the option in the list box that matches the string given by `item`.
+`item`として与えられた文字列と一致するリストボックス内のオプションを選択します
 
 === focus() » self ===
 
-Moves focus to the list box.  The list box will be highlighted and, if the user hits the up and down arrow keys, other options in the list will be selected.
+リストボックスにフォーカスを移動します。そのリストはハイライトされ、ユーザが上や下の矢印キーを押した場合、リスト内の別のオプションが選択されます。
 
 === items() » an array of strings ===
 
-Returns the complete list of strings that the list box presently shows as its options.
+リストボックスにオプションとして現在表示されている文字列の完全な一覧を返します。
 
 === items = an array of strings ===
 
-Replaces the list box's options with a new list of strings.
+リストボックスのオプションを新しい文字列の一覧で置き換えます。
 
 === text() » a string ===
 
-A string containing whatever text is shown highlighted in the list box right now.  If nothing is selected, `nil` will be the reply.
+現在リストボックス内でハイライトされて表示されているテキストを含む文字列です。何も選択されていないなら、`nil`が応答されます。
 
 == Progress ==
 
-Progress bars show you how far along you are in an activity.  Usually, a progress bar represents a percentage (from 0% to 100%.)  Shoes thinks of progress in terms of the decimal numbers 0.0 to 1.0. !{:margin_left => 100}man-ele-progress.png!
+プログレスバー（Progress bar）は活動がどこまで進んでいるかを表示します。一般的には、プログレスバーはパーセンテージで示されます。（0%から100%まで）Shoesは0.0から1.0の10進数を使って進行を考えます。!{:margin_left => 100}man-ele-progress.png!
 
-A simple progress bar is 200 pixels wide, but you can use the `:width` style (as with all Shoes elements) to lengthen it.
+シンプルなプログレスバーは200ピクセルの幅ですが、長くするために（すべてのShoesの要素のように）`:width`スタイルは利用できません。
 
 {{{
  Shoes.app do
@@ -2566,21 +2566,21 @@ A simple progress bar is 200 pixels wide, but you can use the `:width` style (as
  end
 }}}
 
-Take a look at the [[Common]] methods page for a list of methods found an all elements, including progress bars.
+プログレスバーを含む、すべての要素に備え付けられたメソッドの一覧については[[Common]]メソッドのページを見てください。
 
 === fraction() » a decimal number ===
 
-Returns a decimal number from 0.0 to 1.0, indicating how far along the progress bar is.
+どこまでプログレスバーが進んでいるかを指し示す、0.0から1.0の10進数の数を返します。
 
 === fraction = a decimal number ===
 
-Sets the progress to a decimal number between 0.0 and 1.0.
+0.0から1.0の間の10進数の数で進行を設定します。
 
 == Radio ==
 
-Radio buttons are a group of clickable circles.  Click a circle and it'll be marked.  Only one radio button can be marked at a time.  (This is similar to the ListBox, where only one option can be selected at a time.) !{:margin_left => 100}man-ele-radio.png!
+ラジオボタン（Radio button）はクリック可能な円のグループです。それをマークするには円をクリックしてください。ラジオボタンは１度に１つだけマークできます。（１度に１つのオプションだけしか選択できないところは、リストボックスに似ています。）!{:margin_left => 100}man-ele-radio.png!
 
-So, how do you decide when to use radio buttons and when to use list boxes?  Well, list boxes only show one highlighted item unless you click on the box and the drop-down appears.  But radio buttons are all shown, regardless of which is marked.
+それでは、リストボックスを利用すべきときと、ラジオボタンを利用すべきときをどのようにして決定しますか？そうですね、リストボックスはボックスをクリックしてドロップダウンを表示することなく１つのハイライトされたアイテムを表示します。しかし、ラジオボタンはどれがマークされているか気にすることなく、すべて表示されます。
 
 {{{
  #!ruby
@@ -2592,9 +2592,9 @@ So, how do you decide when to use radio buttons and when to use list boxes?  Wel
  end
 }}}
 
-Only one of these three radios can be checked at a time, since they are grouped together in the same slot (along with a bunch of `para`.)
+それらは（たくさんの`para`とともに）同じスロット内で一緒にグループ化されているため、３つのラジオボタンから１度に１つだけが選択できます。
 
-If we move them each into their own slot, the example breaks.
+これらをそれら自身のスロットに移動したら、この例は壊れます。
 
 {{{
  #!ruby
@@ -2608,9 +2608,10 @@ If we move them each into their own slot, the example breaks.
  end
 }}}
 
-This can be fixed, though.  You can group together radios from different slots, you just have to give them all the same group name.
+しかし、これは修正できます。
+違うスロットのラジオボタンを一緒にグループ化することができ、それらにすべて同じグループ名を与える必要があります。
 
-Here, let's group all these radios in the `:films` group.
+ここでは`:films`グループにそれらすべてのラジオボタンをグループ化しました。
 
 {{{
  #!ruby
@@ -2633,25 +2634,27 @@ Here, let's group all these radios in the `:films` group.
  end
 }}}
 
-For more methods beyond those listed below, also look into the [[Common]] methods page.  Because you get those methods on every radio as well.
+下にあるそれらの一覧を越える更なるメソッドについては、[[Common]]メソッドのページを詳しく調べてください。それらのメソッドをすべてのラジオボタンで同様に利用できるからです。
 
 === checked?() » true or false ===
 
-Returns whether the radio button is checked or not.  So, `true` means "yes, it is checked!"
+ラジオボタンがチェックされているかどうかを返します。
+そして、`true`の意味は"はい、チェックされています！"です。
 
 === checked = true or false ===
 
-Marks or unmarks the radio button.  Using `checked = false`, for instance, clears the radio.
+ラジオボタンをマークしたりマークを外したりします。例えば、`checked = false`を利用して、ラジオボタンをクリアします。
 
 === click() { |self| ... } » self ===
 
-When the radio button is clicked, its `click` block is called.  The block is handed `self`, which is an object representing the radio which was clicked.
+ラジオボタンがクリックされたとき、その`click`ブロックが呼ばれます。
+このブロックは、クリックされたラジオボタンを示すオブジェクトの`self`を渡します。
 
-Clicks are sent for both marking and unmarking the radio.
+ラジオボタンをマークしたときとマークを外したときの両方で、クリックが送られます。
 
 === focus() » self ===
 
-Moves focus to the radio.  The radio will be highlighted and, if the user hits Enter, the radio will be toggled between its marked and unmarked states.
+ラジオボタンのフォーカスを移動します。そのラジオボタンはハイライトされ、ユーザがエンターキーを打てば、そのラジオボタンはマークされた状態とマークされていない状態の間をトグルします。
 
 == Shape ==
 
