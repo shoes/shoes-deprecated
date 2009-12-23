@@ -155,6 +155,14 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     copy_files "deps/cairo/bin/*", "dist/"
     copy_files "deps/pango/bin/*", "dist/"
     copy_files "deps/ruby/lib/ruby/site_ruby/1.9.1/i386-msvcrt/*", "dist/ruby/lib/#{RUBY_PLATFORM}/"
+    cp_r "deps/ruby/lib/ruby/site_ruby/1.9.1/openssl", "dist/ruby/lib"
+    cp_r "deps/ruby/lib/ruby/site_ruby/1.9.1/openssl.rb", "dist/ruby/lib"
+    %w[gems specifications].each do |d|
+      Dir.glob("deps/ruby/lib/ruby/gems/1.9.1/#{d}/*").each do |file|
+        cp_r file, "dist/ruby/gems/1.9.1/#{d}"
+      end
+    end
+    
     if ENV['VIDEO']
       copy_files "deps/vlc/bin/*", "dist/"
     end
