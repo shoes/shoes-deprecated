@@ -1,5 +1,5 @@
 require 'hpricot/tags'
-require 'fast_xs'
+#require 'fast_xs'
 require 'hpricot/blankslate'
 require 'hpricot/htmlinfo'
 
@@ -47,7 +47,7 @@ module Hpricot
 
     # Write a +string+ to the HTML stream, making sure to escape it.
     def text!(string)
-      add_child Text.new(string.fast_xs)
+      add_child Text.new(string)
     end
 
     # Write a +string+ to the HTML stream without escaping it.
@@ -94,12 +94,12 @@ module Hpricot
         if x.respond_to? :to_html
           Hpricot.make(x.to_html)
         elsif x
-          Text.new(x.fast_xs)
+          Text.new(x)
         end
       end.flatten)
       attrs = attrs.inject({}) do |hsh, ath|
         ath.each do |k, v|
-          hsh[k] = v.to_s.fast_xs if v
+          hsh[k] = v.to_s if v
         end
         hsh
       end

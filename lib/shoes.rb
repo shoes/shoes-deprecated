@@ -248,7 +248,7 @@ class Shoes
         end
       end
 
-      docs = load_docs(Shoes::Manual::PATH)
+      docs = load_docs(Shoes::Manual::path)
       sections = docs.map { |x,| x }
 
       docn = 1
