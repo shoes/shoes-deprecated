@@ -151,7 +151,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
   end
 
   case RUBY_PLATFORM when /win32/
-    copy_files "#{ext_ruby}/bin/*", "dist/"
+    copy_files "#{ext_ruby}/bin/*.dll", "dist/"
     copy_files "deps/cairo/bin/*", "dist/"
     copy_files "deps/pango/bin/*", "dist/"
     copy_files "deps/ruby/lib/ruby/site_ruby/1.9.1/i386-msvcrt/*", "dist/ruby/lib/#{RUBY_PLATFORM}/"
