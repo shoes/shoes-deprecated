@@ -611,15 +611,15 @@ Shoesコンソールへエラーメッセージ送ります。このメソッド
  end
 }}}
 
-If you have trouble with fonts showing up, make sure your app loads the font before it is used.  Especially on OS X, if fonts are used before they are loaded, the font cache will tend to ignore loaded fonts.
+もしフォントを表示することに問題があるなら、それを利用する前に、アプリケーションがフォントをロードすることを確認してください。特にOS Xでは、もしフォントがロードされる前に利用されたなら、フォントキャッシュはロードされたフォントを無視する傾向があります。
 
 === gradient(color1, color2) » Shoes::Pattern ===
 
-Builds a linear gradient from two colors.  For each color, you may pass in a Shoes::Color object or a string describing the color.
+二つの色から直線勾配を作ります。それぞれの色に、色を描画するためにShoes::Colorオブジェクトか文字列を渡します。
 
 === gray(the numbers: darkness, alpha) » Shoes::Color ===
 
-Create a grayscale color from a level of darkness and, optionally, an alpha level.
+暗さのレベルや、任意的にはアルファレベルからグレースケールカラーを作成します。
 
 {{{
  black = gray(0.0)
@@ -628,52 +628,52 @@ Create a grayscale color from a level of darkness and, optionally, an alpha leve
 
 === info(message: a string) » nil ===
 
-Logs an informational message to the user in the Shoes console.  So, where debug messages are designed to help the program figure out what's happening, `info` messages tell the user extra information about the program.
+Shoesコンソールでユーザへの情報を含むメッセージを記録します。そして、そのデバッグメッセージはプログラムで何が発生したのか見つけることを助けるようにデザインされており、`info`メッセージはプログラムについてユーザに追加の情報を教えます。
 
 {{{
  #!ruby
  info("You just ran the info example on Shoes #{Shoes::RELEASE_NAME}.")
 }}}
 
-For example, whenever a Shy file loads, Shoes prints an informational message in the console describing the author of the Shy and its version.
+例えば、Shyファイルをロードすればいつでも、ShoesはコンソールにShyの著者とバージョンの情報を含むメッセージを印字します。
 
 === rgb(a series of numbers: red, green, blue, alpha) » Shoes::Color ===
 
-Create a color from red, green and blue components.  An alpha level (indicating transparency) can also be added, optionally.
+赤、緑、青の構成要素から色を作成します。アルファレベル（透明度を示す）は任意に加えることができます。
 
-When passing in a whole number, use values from 0 to 255.
+整数を渡すときは、0から255までの値を利用してください。
 
 {{{
  blueviolet = rgb(138, 43, 226)
  darkgreen = rgb(0, 100, 0)
 }}}
 
-Or, use a decimal number from 0.0 to 1.0.
+または、0.0から1.0までの10進数を利用してください。
 
 {{{
  blueviolet = rgb(0.54, 0.17, 0.89)
  darkgreen = rgb(0, 0.4, 0)
 }}}
 
-This method may also be called as `Shoes.rgb`.
+このメソッドは`Shoes.rgb`と呼ばれるかもしれません。
 
 === warn(message: a string) » nil ===
 
-Logs a warning for the user.  A warning is not a catastrophic error (see [[Built-in.error]] for that.)  It is just a notice that the program will be changing in the future or that certain parts of the program aren't reliable yet.
+ユーザのために警告を記録します。警告は壊滅的なエラー（それは[[Built-in.error]]を見てください。）ではありません。これは、プログラムが将来変化したり、プログラムの一部が信頼できなくなるなどの通知です。
 
-To view warnings and errors, open the Shoes console with `Alt-/` (or `⌘-/` on OS X.)
+警告やエラーを見るためには、`Alt-/`(OS Xの場合は`⌘-/`)によりShoesコンソールを開いてください。
 
 == The App Object ==
 
-An App is a single window running code at a URL. When you switch URLs, a new App object is created and filled up with stacks, flows and other Shoes elements.
+アプリケーションはURLでコードを実行する一つのウィンドウです。URLを切り替えるとき、新しいアプリケーションオブジェクトが作成され、スタック、フローや他の要素で満たされます。
 
-The App is the window itself. Which may be closed or cleared and filled with new elements. !{:margin_left => 100}man-app.png!
+アプリケーションはウィンドウ自体です。それは閉じられるか、クリアされるか、新しい要素で満たされるかもしれません。!{:margin_left => 100}man-app.png!
 
-The App itself, in slot/box terminology, is a flow.  See the ''Slots'' section for more, but this just means that any elements placed directly at the top-level will flow.
+スロット／ボックスの用語では、アプリケーション自体がフローです。詳しくは''Slots''セクションを見てください、しかし、これはどんな要素も直接フローのトップレベルに置かれることを単に意味します。
 
 === Shoes.app(styles) { ... } » Shoes::App ===
 
-Starts up a Shoes app window.  This is the starting place for making a Shoes program.  Inside the block, you fill the window with various Shoes elements (buttons, artwork, etc.) and, outside the block, you use the `styles` to describe how big the window is.  Perhaps also the name of the app or if it's resizable.
+Shoesのアプリケーションウィンドウを開始します。これはShoesプログラムを作るための出発地点です。ブロックの内部では、ウィンドウを様々なShoesの要素（ボタン、アートワーク、その他）で満たし、そしてブロックの外では、ウィンドウがどれぐらい大きいのかを説明するために`styles`を利用します。おそらくアプリケーションの名前や、それがリサイズ可能かどうかについてもです。
 
 {{{
  #!ruby
@@ -685,31 +685,34 @@ Starts up a Shoes app window.  This is the starting place for making a Shoes pro
  }
 }}}
 
-In the case above, a small window is built.  200 pixels by 200 pixels.  It's not resizable.  And, inside the window, two elements: a black background and a white circle.
+上記のケースでは、小さなウィンドウを作成します。200×200ピクセルです。それはリサイズ不可能です。そして、そのウィンドウには黒い背景と白い輪の2つの要素があります。
 
-Once an app is created, it is added to the [[App.Shoes.APPS]] list.  If you want an app to spawn more windows, see the [[Element.window]] method and the [[Element.dialog]] method.
+いったんアプリケーションが作成されれば、それは[[App.Shoes.APPS]]の一覧に追加されます。もしあなたがより多くのウィンドウを生成したいなら、[[Element.window]]メソッドや[[Element.dialog]]メソッドを見てください。
 
 === Shoes.APPS() » An array of Shoes::App objects ===
 
-Builds a complete list of all the Shoes apps that are open right now.  Once an app is closed, it is removed from the list.  Yes, you can run many apps at once in Shoes.  It's completely encouraged.
+現在開いているすべてのShoesアプリケーションの完全な一覧を作成します。いったんアプリケーションが閉じられると、その一覧から取り除かれます。そう、Shoesでは一度に多くの実行できます。それはとても元気付けられます。
 
 === clipboard() » a string ===
 
-Returns a string containing all of the text that's on the system clipboard.  This is the global clipboard that every program on the computer cuts and pastes into.
+システムのクリップボードのすべてのテキストを含む文字列を返します。これはコンピュータ上のどのプログラムからでもカットアンドペーストできるグローバルクリップボードです。
 
 === clipboard = a string ===
 
-Stores `a string` of text in the system clipboard.
+システムクリップボードに`a string`のテキストを保存します。
 
 === close() ===
 
-Closes the app window.  If multiple windows are open and you want to close the entire application, use the built-in method `exit`.
+アプリケーションのウィンドウを閉じます。複数のウィンドウを開いていて、すべてのアプリケーションを閉じたいなら、ビルトインメソッドの`exit`を利用してください。
 
 === download(url: a string, styles) ===
 
-Starts a download thread (much like XMLHttpRequest, if you're familiar with JavaScript.)  This method returns immediately and runs the download in the background.  Each download thread also fires `start`, `progress` and `finish` events.  You can send the download to a file or just get back a string (in the `finish` event.)
+ダウンロードのスレッド（あなたがJavaScriptに詳しいのなら、およそXMLHttpRequestのようなものです）を開始します。このメソッドは、すぐに戻り値を返してバックグラウンドでダウンロードを開始します。また、それぞれのダウンロードスレッドが`start`、`progress`や`finish`イベントを開始します。
+downloadにファイルを送ることや、（`finish`イベントの中で）文字列を取り戻すことができます。
 
-If you attach a block to a download, it'll get called as the `finish` event.
+downloadにブロックを付けると、それは`finish`イベントとして呼ばれます。
+
+download
 
 {{{
  #!ruby
@@ -726,9 +729,9 @@ If you attach a block to a download, it'll get called as the `finish` event.
  end
 }}}
 
-And, if we wanted to use the downloaded data, we'd get it using `goog.response.body`.  This example is truly the simplest form of `download`: pulling some web data down into memory and handling it once it's done.
+そして、ダウンロードしたデータを利用したいなら`goog.response.body`を利用することにより行います。この例は本当に`download`の最も簡単な形です：いくつかのウェブデータをメモリに取ってきて、それを一度ハンドリングしています。
 
-Another simple use of `download` is to save some web data to a file, using the `:save` style.
+`download`のもう一つのサンプルはいくつかのウェブデータを、`:save`スタイルを利用してファイルに保存します。
 
 {{{
  #!ruby
@@ -745,9 +748,9 @@ Another simple use of `download` is to save some web data to a file, using the `
  end
 }}}
 
-In this case, you can still get the headers for the downloaded file, but `response.body` will be `nil`, since the data wasn't saved to memory.  You will need to open the file to get the downloaded goods.
+このケースでも、ダウンロードファイルのヘッダを取得することができますが、メモリにそのデータが保存されていないため`response.body`は`nil`になります。ダウンロードしたものを得るためにはそのファイルを開く必要があります。
 
-If you need to send certain headers or actions to the web server, you can use the `:method`, `:headers` and `:body` styles to customize the HTTP request.  (And, if you need to go beyond these, you can always break out Ruby's OpenURI class.)
+特定のヘッダかアクションをウェブサーバへ送る必要があるのならば、HTTPリクエストをカスタマイズするために`:method`、`:headers`や`:body`スタイルを利用することができます。（そして、それら以上の変更の必要があるのなら、いつでもRubyのOpenURIクラスを破壊することができます。）
 
 {{{
  #!ruby
@@ -765,15 +768,15 @@ If you need to send certain headers or actions to the web server, you can use th
  end
 }}}
 
-As you can see from the above example, Shoes includes the Hpricot library for parsing HTML.
+上記の例から、ShoesはHTMLを解析するHpricotなライブラリを含んでいることが分かります。
 
 === location() » a string ===
 
-Gets a string containing the URL of the current app.
+現在のアプリケーションのURLを含む文字列を取得します。
 
 === mouse() » an array of numbers: button, left, top ===
 
-Identifies the mouse cursor's location, along with which button is being pressed.
+どちらのボタンが押されたのかと共に、マウスカーソルの位置を特定します。
 
 {{{
  #!ruby
@@ -788,23 +791,24 @@ Identifies the mouse cursor's location, along with which button is being pressed
 
 === owner() » Shoes::App ===
 
-Gets the app which launched this app.  In most cases, this will be `nil`.  But if this app was launched using the [[Element.window]] method, the owner will be the app which called `window`.
+このアプリケーションを開始したアプリケーションを取得します。多くの場合、これは`nil`でしょう。しかし[[Element.window]]メソッドを利用してアプリケーションが開始されたなら、その所有者は`window`と呼ばれるアプリケーションでしょう。
 
 === started?() » true or false ===
 
-Has the window been fully constructed and displayed?  This is useful for threaded code which may try to use the window before it is completely built.  (Also see the `start` event which fires once the window is open.)
+ウィンドウはすべて構築され、表示されましたか？これは完全に構築される前に、ウィンドウを利用しようとするスレッド化されたコードのために役に立ちます。
+（また、ウィンドウが開くときに実行される`start`イベントも見てください。）
 
 === visit(url: a string) ===
 
-Changes the location, in order to view a different Shoes URL.
+異なるShoesのURLを見るために、ロケーションを変更します。
 
-Absolute URLs (such as http://google.com) are okay, but Shoes will be expecting a Shoes application to be at that address.  (So, google.com won't work, as it's an HTML app.)
+（http://google.comのような）絶対パスのURLは悪くないですが、ShoesはShoesアプリケーションがそのアドレスに存在することを期待するでしょう。（そのため、google.comはHTMLアプリケーションとしては動作しません。）
 
 == The Styles Master List ==
 
-You want to mess with the look of things?  Well, throughout Shoes, styles are used to change the way elements appear.  In some cases, you can even style an entire class of elements.  (Like giving all paragraphs a certain font.)
+外観を変更したいですか？Shoesにおいてはスタイルが要素の表示方法を変更するために利用されます。場合によっては、要素のすべてのクラスのスタイルでさえ設定できます。（すべての段落に特定のフォントを与えるように）
 
-Styles are easy to spot.  They usually show up when the element is created.
+スタイルは簡単にspotできます。通常は要素が生成されるときに現れます。
 
 {{{
  Shoes.app :title => "A Styling Sample" do
@@ -812,9 +816,9 @@ Styles are easy to spot.  They usually show up when the element is created.
  end
 }}}
 
-Here we've got a `:title` style on the app.  And on the paragraph inside the app, a red `:stroke` style and an `:underline` style.
+このappには`:title`スタイルが設定されています。そしてこのappの内部の段落には、赤い`:stroke`スタイルと`:underline`スタイルが設定されます。
 
-The style hash can also be changed by using the [[Common.style]] method, available on every element and slot.
+このスタイルのハッシュは、どんな要素やスロットも利用できる[[Common.style]]メソッドを利用して変更できます。
 
 {{{
  Shoes.app :title => "A Styling Sample" do
@@ -823,7 +827,7 @@ The style hash can also be changed by using the [[Common.style]] method, availab
  end
 }}}
 
-Most styles can also be set by calling them as methods.  (I'd use the manual search to find the method.)
+多くのスタイルもメソッドとして呼び出すことで設定することができます。（メソッドを見つけるために手動での検索を行うでしょう。）
 
 {{{
  Shoes.app :title => "A Styling Sample" do
@@ -833,437 +837,441 @@ Most styles can also be set by calling them as methods.  (I'd use the manual sea
  end
 }}}
 
-Rather than making you plow through the whole manual to figure out what styles go where, this helpful page speeds through every style in Shoes and suggests where that style is used.
+どんなスタイルでも分かるようにすべてのマニュアルを苦労して読ませるよりも、この役に立つページはShoesのあらゆるスタイルを急いで駆け抜けて、どこでスタイルが利用されるかについて示唆します。
 
 === :align » a string ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-The alignment of the text. It is either:
+テキストの整列です。これは次のどれかです：
 
- * 'left': Align the text to the left.
- * 'center': Align the text in the center.
- * 'right': Align the text to the right.
+ * 'left': 左へテキストを整列します。
+ * 'center': 中央へテキストを整列します。
+ * 'right': 右へテキストを整列します。
 
 === :angle » a number ===
 
-For: ''background, border, gradient''.
+''background, border, gradient''で利用できます。
 
-The angle at which to apply a gradient.  Normally, gradient colors range from top to bottom.  If the `:angle` is set to 90, the gradient will rotate 90 degrees counter-clockwise and the gradient will go from left to right.
+グラデーションに摘要する角度です。通常はグラデーションの色の効果は上から下です。`:angle`を90に設定するなら反時計回りに90度回転し、グラデーションは左から右になるでしょう。
 
 === :attach » a slot or element ===
 
-For: ''flow, stack''.
+''flow, stack''で利用できます。
 
-Pins a slot relative to another slot or element.  Also, one may write `:attach => Window` to position the slot at the window's top, left corner.  Taking this a bit further, the style `:top => 10, :left => 10, :attach => Window` would place the slot at (10, 10) in the window's coordinates.
+他のスロットや要素と比較してスロットをピンで止めます。ウィンドウの左上の角からスロットを配置するために`:attach => Window`と書く人もいるかもしれません。
+これについてもう少し取り上げると、`:top => 10, :left => 10, :attach => Window`のスタイルはスロットをウインドウの座標の(10, 10)に配置します。
 
-If a slot is attached to an element that moves, the slot will move with it.  If the attachment is reset to `nil`, the slot will flow in with the other objects that surround, as normal.
+動く要素にスロットがアタッチされた場合は、そのスロットはそれとともに動きます。アタッチメントが`nil`にリセットされるなら、通常はそのスロットはそれを取り囲む他のオブジェクトとともに流れます。
 
 === :autoplay » true or false ===
 
-For: ''video''.
+''video''で利用できます。
 
-Should this video begin playing after it appears?  If set to `true`, the video will start without asking the user.
+ビデオは現れた後で再生を開始すべきですか？`true`を設定すると、ビデオはユーザに尋ねること無く開始するでしょう。
 
 === :bottom » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Sets the pixel coordinate of an element's lower edge.  The edge is placed relative to its container's lower edge.  So, `:bottom => 0` will align the element so that its bottom edge and the bottom edge of its slot touch.
+要素の下の端の座標にピクセルを設定します。その端はコンテナの下の端に対して配置されます。そのため、`:bottom => 0`は、スロットの下の端とその下の端が接するように要素を配置するでしょう。
 
 === :cap » :curve or :rect or :project ===
 
-For: ''arc, arrow, border, flow, image, mask, rect, star, shape, stack''.
+''arc, arrow, border, flow, image, mask, rect, star, shape, stack''で利用できます。
 
-Sets the shape of the line endpoint, whether curved or square.  See the [[Art.cap]] method for more explanation.
+線の終点の形状を曲がったもの（curved）か角張ったもの（square）に設定します。追加の説明は[[Art.cap]]メソッドを見てください。
 
 === :center » true or false ===
 
-For: ''arc, image, oval, rect, shape''.
+''arc, image, oval, rect, shape''で利用できます。
 
-Indicates whether the `:top` and `:left` coordinates refer to the center of the shape or not.  If set to `true`, this is similar to setting the [[Art.transform]] method to `:center`.
+`:top`と`:left`の座標が形状の中心を意味するかどうか示します。`true`を設定すると、[[Art.transform]]メソッドに`:center`を設定したのと似ています。
 
 === :change » a proc ===
 
-For: ''edit_box, edit_line, list_box''.
+''edit_box, edit_line, list_box''で利用できます。
 
-The `change` event handler is stored in this style.  See the [[EditBox.change]] method for the edit_box, as an example.
+`change`イベントハンドラはスタイルに保存されます。例として、edit_boxの[[EditBox.change]]メソッドを見てください。
 
 === :checked » true or false ===
 
-For: ''check, radio''.
+''check, radio''で利用できます。
 
-Is this checkbox or radio button checked?  If set to `true`, the box is checked.  Also see the [[Check.checked=]] method.
+チェックボックスまたはラジオボタンがクリックされましたか？`true`が設定されるなら、そのボックスはチェックされます。[[Check.checked=]]メソッドも見てください。
 
 === :choose » a string ===
 
-For: ''list_box''.
+''list_box''で利用できます。
 
-Sets the currently chosen item in the list.  More information at [[ListBox.choose]].
+リスト内の現在選択されたアイテムを設定します。追加の情報は[[ListBox.choose]]にあります。
 
 === :click » a proc ===
 
-For: ''arc, arrow, banner, button, caption, check, flow, image, inscription, line, link, mask, oval, para, radio, rect, shape, stack, star, subtitle, tagline, title''.
+''arc, arrow, banner, button, caption, check, flow, image, inscription, line, link, mask, oval, para, radio, rect, shape, stack, star, subtitle, tagline, title''で利用できます。
 
-The `click` event handler is stored in this style.  See the [[Events.click]] method for a description.
+`click`イベントハンドラはスタイルに保存されます。解説は[[Events.click]]メソッドを見てください。
 
 === :curve » a number ===
 
-For: ''background, border, rect''.
+''background, border, rect''で利用できます。
 
-The radius of curved corners on each of these rectangular elements.  As an example, if this is set to 6, the corners of the rectangle are given a curve with a 6-pixel radius.
+長方形の要素のそれぞれの曲がった角の半径です。例として、6を設定した場合、長方形の角は6ピクセルの半径のカーブを与えられます。
 
 === :displace_left » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Moves a shape, text block or any other kind of object to the left or right.  A positive number displaces to the right by the given number of pixels; a negative number displaces to the left.  Displacing an object doesn't effect the actual layout of the page.  Before using this style, be sure to read the [[Position.displace]] docs, since its behavior can be a bit surprising.
+形状、テキストブロックまたはその他のどんな種類のオブジェクトでも左か右に置き換えます。正数は与えられた数のピクセルによって右へ置き換え、負数は左へ置き換えます。オブジェクトを置き換えることはページの実際のレイアウトに影響を与えません。この振る舞いに少し驚くかもしれないので、このスタイルを利用する前に、[[Position.displace]]のドキュメントを読むようにしてください。
 
 === :displace_top » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Moves a shape, text block or any other kind of object up or down.  A positive number moves the object down by this number of pixels; a negative number moves it up.  Displacing doesn't effect the actual layout of the page or the object's true coordinates.  Read the [[Position.displace]] docs, since its behavior can be a bit surprising.
+形状、テキストブロックまたはその他のどんな種類のオブジェクトでも上か下に置き換えます。正数は与えられた数のピクセルによって下へ置き換え、負数は上へ置き換えます。オブジェクトを置き換えることはページの実際のレイアウトやオブジェクトの本当の座標に影響を与えません。この振る舞いに少し驚くかもしれないので、[[Position.displace]]のドキュメントを読んでください。
 
 === :emphasis » a string ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-Styles the text with an emphasis (commonly italicized.)
+強調によってテキストを整えます。（一般的にはイタリック体にされます。）
 
-This style recognizes three possible settings:
+このスタイルは3つの設定ができます：
 
- * "normal" - the font is upright.
- * "oblique" - the font is slanted, but in a roman style.
- * "italic" - the font is slanted in an italic style. 
+ * "normal" - 直立のフォント。
+ * "oblique" - ローマン体の傾いたフォント。
+ * "italic" - イタリック体の傾いたフォント。
 
 === :family » a string ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-Styles the text with a given font family.  The string should contain the family name or a comma-separated list of families.
+与えられたフォントファミリーでテキストを整えます。文字列はフォントファミリー名かカンマで区切られたフォントファミリーの一覧を含むべきです。
 
 === :fill » a hex code, a Shoes::Color or a range of either ===
 
-For: ''arc, arrow, background, banner, caption, code, del, em, flow, image, ins, inscription, line, link, mask, oval, para, rect, shape, span, stack, star, strong, sub, sup, subtitle, tagline, title''.
+''arc, arrow, background, banner, caption, code, del, em, flow, image, ins, inscription, line, link, mask, oval, para, rect, shape, span, stack, star, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-The color of the background pen.  For shapes, this is the fill color, the paint inside the shape.  For text stuffs, this color is painted in the background (as if marked with a highlighter pen.)
+背景のペンの色です。形状では、これは形状の内側を塗りつぶすペンキの色です。テキストなどでは、この色で背景が塗られます。（まるで蛍光ペンでマークされたように）
 
 === :font » a string ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-Styles the text with a font description.  The string is pretty flexible, but can take the form "[FAMILY-LIST] [STYLE-OPTIONS] [SIZE]", where FAMILY-LIST is a comma separated list of families optionally terminated by a comma, STYLE_OPTIONS is a whitespace separated list of words where each WORD describes one of style, variant, weight, stretch, or gravity, and SIZE is a decimal number (size in points) or optionally followed by the unit modifier "px" for absolute size. Any one of the options may be absent. If FAMILY-LIST is absent, then the default font family (Arial) will be used.
+フォントの種類でテキストを整えます。この文字列は非常に柔軟ですが、"[FAMILY-LIST] [STYLE-OPTIONS] [SIZE]"の形である必要があり、FAMILY-LISTの部分は任意にカンマで終わりカンマで区切られたフォントファミリーの一覧、STYLE_OPTIONSはvariant、weight、stretch、またはgravityなどの空白で区切られたスタイルを表現する単語の一覧、そしてSIZEは（ポイントのサイズの）10進数または絶対的なサイズのために単位修飾子"px"を任意に続けます。オプションのどれかは設定されないかもしれません。FAMILY-LISTが設定されない場合は、デフォルトフォントファミリー（Arial）が利用されます。
 
 === :group » a string ===
 
-For: ''radio''.
+''radio''で利用できます。
 
-Indicates what group a radio button belongs to.  Without this setting, radio buttons are grouped together with other radio buttons in their immediate slot.  "Grouping" radio buttons doesn't mean they'll be grouped next to each other on the screen.  It means that only one radio button from the group can be selected at a time.
+どのグループにラジオボタンが所属するかを示します。この設定がない場合は、ラジオボタンは周辺のスロットのラジオボタンとグループ化されます。ラジオボタンを"グループ化"することはスクリーン上でお互いに隣接してグループ化されることを意味するのではありません。それは、一度にグループから一つだけのラジオボタンだけを選択できることを意味します。
 
-By giving this style a string, the radio button will be grouped with other radio buttons that have the same group name.
+文字列にスタイルを与えることによって、ラジオボタンは同じグループ名を持つ他のラジオボタンとグループ化されます。
 
 === :height » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Sets the pixel height of this object.  If the number is a decimal number, the height becomes a percentage of its parent's height (with 0.0 being 0% and 1.0 being 100%.)
+オブジェクトの高さをピクセルで設定します。数値が10進数なら、その高さは親の高さのパーセンテージになります。（0.0は0%に、1.0は100%になります。）
 
 === :hidden » true or false ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Hides or shows this object.  Any object with `:hidden => true` are not displayed on the screen.  Neither are its children.
+オブジェクトの表示または非表示です。すべてのオブジェクトにとって`:hidden => true`は画面上での非表示になります。その子供のスロットと要素でも同様です。
 
 === :inner » a number ===
 
-For: ''star''.
+''star''で利用できます。
 
-The size of the inner radius (in pixels.)  The inner radius describes the solid circle within the star where the points begin to separate.
+内側の半径のサイズ（ピクセル）です。その内側の半径は点が別れ始める星の中に中空でない円を描きます
 
 === :items » an array ===
 
-For: ''list_box''.
+''list_box''で利用できます。
 
-The list of selections in the list box.  See the [[Element.list_box]] method for an example.
+リストボックスの項目の一覧です。例のために[[Element.list_box]]メソッドを見てください。
 
 === :justify » true or false ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-Evenly spaces the text horizontally.
+均一に水平にテキストの間隔を開けます。
 
 === :kerning » a number ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-Adds to the natural spacing between letters, in pixels.
+文字の間に自然な空白をピクセルで追加します。
 
 === :leading » a number ===
 
-For: ''banner, caption, inscription, para, subtitle, tagline, title''.
+''banner, caption, inscription, para, subtitle, tagline, title''で利用できます。
 
-Sets the spacing between lines in a text block.  Defaults to 4 pixels.
+テキストブロックの行間に空白を設定します。デフォルトは4ピクセルです。
 
 === :left » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Sets the left coordinate of this object to a specific pixel.  Setting `:left => 10` places the object's left edge ten pixels away from the left edge of the slot containing it.  If this style is left unset (or set to `nil`,) the object will flow in with the other objects surrounding it.
+オブジェクトの左の座標を特定のピクセルに設定します。`:left => 10`の設定はそのオブジェクトを含むスロットの左の端からオブジェクトの左の端が10ピクセル離れた位置に配置します。このleftのスタイルが設定されていない（または`nil`が設定される）なら、そのオブジェクトはそれを囲んでいる他のオブジェクトとともに動くでしょう。
 
 === :margin » a number or an array of four numbers ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Margins space an element out from its surroundings.  Each element has a left, top, right, and bottom margin.  If the `:margin` style is set to a single number, the spacing around the element uniformly matches that number.  In other words, if `:margin => 8` is set, all the margins around the element are set to eight pixels in length.
+マージンは要素の周囲に間隔をあけます。それぞれの要素はleft、top、right、そしてbottomのマージンを持っています。`:margin`スタイルに一つの数が設定されると、要素の周囲の間隔は均一にその数にとなります。言い換えると、`:margin => 8`を設定すると、その要素の周囲のすべてのマージンは8ピクセルの長さに設定されます。
 
-This style can also be given an array of four numbers in the form `[left, top, right, bottom]`.
+このスタイルは4つの数を`[left, top, right, bottom]`の形の配列で与えることもできます。
 
 === :margin_bottom » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Sets the bottom margin of the element to a specific pixel size.
+要素の下側（bottom）のマージンをピクセルで設定します。
 
 === :margin_left » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Sets the left margin of the element to a specific pixel size.
+要素の左側（left）のマージンをピクセルで設定します。
 
 === :margin_right » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Sets the right margin of the element to a specific pixel size.
+要素の右側（right）のマージンをピクセルで設定します。
 
 === :margin_top » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Sets the top margin of the element to a specific pixel size.
+要素の上側（top）のマージンをピクセルで設定します。
 
 === :outer » a number ===
 
-For: ''star''.
+''star''で利用できます。
 
-Sets the outer radius (half of the ''total'' width) of the star, in pixels.
+星の外側の半径（''全''幅の半分）をピクセルで設定します。
 
 === :points » a number ===
 
-For: ''star''.
+''star''で利用できます。
 
-How many points does this star have?  A style of `:points => 5` creates a five-pointed star.
+その星はいくつの頂点を持ちますか？`:points => 5`のスタイルは5つの頂点を持つ星を作成します。
 
 === :radius » a number ===
 
-For: ''arc, arrow, background, border, gradient, oval, rect, shape''.
+''arc, arrow, background, border, gradient, oval, rect, shape''で利用できます。
 
-Sets the radius (half of the diameter or total width) for each of these elements.  Setting this is equivalent to setting both `:width` and `:height` to double this number.
+それらの要素に半径（直径または全幅の半分）を設定します。これを設定することは、この数値の2倍の`:width`と`:height`を設定することと同等です。
 
 === :right » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Sets the pixel coordinate of an element's right edge.  The edge is placed relative to its container's rightmost edge.  So, `:right => 0` will align the element so that its own right edge and the right edge of its slot touch.  Whereas `:right => 20` will position the right edge of the element off to the left of its slot's right edge by twenty pixels.
+要素の右端の座標をピクセルで設定します。その端はコンテナの右端に対して配置されます。そのため、`:right => 0`は、スロットの右端とその右端が接するように要素を配置するでしょう。一方`:right => 20`は要素の右端をそのスロットの右端から左側に向けて20ピクセル離れたところに配置します。
 
 === :rise » a number ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-Lifts or plunges the font baseline for some text.  For example, a [[Element.sup]] has a `:rise` of 10 pixels.  Conversely, the [[Element.sub]] element has a `:rise` of -10 pixels.
+テキストのフォントを基準から上げたり下げたりします。例えば、[[Element.sup]]は10ピクセルの`:rise`を行います。逆に、[[Element.sub]]の要素は-10ピクセルの`:rise`となります。
 
 === :scroll » true or false ===
 
-For: ''flow, stack''.
+''flow, stack''で利用できます。
 
-Establishes this slot as a scrolling slot.  If `:scroll => true` is set, the slot will show a scrollbar if any of its contents go past its height.  The scrollbar will appear and disappear as needed.  It will also appear inside the width of the slot, meaning the slot's width will never change, regardless of whether there is a scrollbar or not.
+スロットをスクロールするスロットとします。`:scroll => true`が設定され、そのコンテンツがスロットの高さ以上の場合はスクロールバーがスロットに表示されます。スクロールバーは必要に応じて表示したり非表示になります。それはスロットの幅の内側で表示されるので、スクロールバーのあるなしに関わらず、スロットの幅は決して変わらないことを意味します。
 
 === :secret » true or false ===
 
-For: ''ask, edit_line''.
+''ask, edit_line''で利用できます。
 
 Used for password fields, this setting keeps any characters typed in from becoming visible on the screen.  Instead, a replacement character (such as an asterisk) is show for each letter typed.
 
+パスワードフィールドのために利用され、この設定は入力された文字を画面上で表示されないようにします。そのかわり、置き換えられた文字（たとえばアスタリスク）をそれぞれの文字が入力されるごとに表示します。
+
 === :size » a number ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-Sets the pixel size for the font used inside this text block or text fragment.
+このテキストブロックまたはテキストの一部の内部で利用されたフォントのサイズをピクセルで設定します。
 
-Font size may also be augmented, through use of the following strings:
+フォントサイズは次の文字列を利用することでも大きくすることができるかもしれません:
 
- * "xx-small" - 57% of present size.
- * "x-small" - 64% of present size.
- * "small" - 83% of present size.
- * "medium" - no change in size.
- * "large" - 120% of present size.
- * "x-large" - 143% of present size.
- * "xx-large" - 173% of present size.
+ * "xx-small" - 現在のサイズの57%
+ * "x-small" - 現在のサイズの64%
+ * "small" - 現在のサイズの83%
+ * "medium" - サイズ変更なし
+ * "large" - 現在のサイズの120%
+ * "x-large" - 現在のサイズの143%
+ * "xx-large" - 現在のサイズの173%
 
 === :state » a string ===
 
-For: ''button, check, edit_box, edit_line, list_box, radio''.
+''button, check, edit_box, edit_line, list_box, radio''で利用できます。
 
-The `:state` style is for disabling or locking certain controls, if you don't want them to be edited.
+この`:state`スタイルは編集されたくないコントロールを利用不能または固定するためにあります。
 
-Here are the possible style settings:
+利用可能なスタイルの設定：
 
- * nil - the control is active and editable.
- * "readonly" - the control is active but cannot be edited.
- * "disabled" - the control is not active (grayed out) and cannot be edited.
+ * nil - コントロールはアクティブで編集可能です。
+ * "readonly" - コントロールはアクティブですが編集不可能です。
+ * "disabled" - コントロールはアクティブはなく（グレイアウト）、編集不可能です。
 
 === :stretch » a string ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-Sets the font stretching used for a text object.
+テキストオブジェクトに伸縮したフォントを設定します。
 
-Possible settings are:
+利用可能な設定：
 
- * "condensed" - a smaller width of letters.
- * "normal" - the standard width of letters.
- * "expanded" - a larger width of letters.
+ * "condensed" - 狭い幅の文字
+ * "normal" - 標準の幅の文字
+ * "expanded" - 広い幅の文字
 
 === :strikecolor » a Shoes::Color ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-The color used to paint any lines stricken through this text.
+テキストに棒線を引いて削除するときの線の色です。
 
 === :strikethrough » a string ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-Is this text stricken through?  Two options here:
+このテキストに棒線を引いて削除しますか？2つのオプションがあります：
 
- * "none" - no strikethrough
- * "single" - a single-line strikethrough.
+ * "none" - 棒線を引いて削除しません。
+ * "single" - 1本の棒線を引いて削除します。
 
 === :stroke » a hex code, a Shoes::Color or a range of either ===
 
-For: ''arc, arrow, banner, border, caption, code, del, em, flow, image, ins, inscription, line, link, mask, oval, para, rect, shape, span, stack, star, strong, sub, sup, subtitle, tagline, title''.
+''arc, arrow, banner, border, caption, code, del, em, flow, image, ins, inscription, line, link, mask, oval, para, rect, shape, span, stack, star, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-The color of the foreground pen.  In the case of shapes, this is the color the lines are drawn with.  For paragraphs and other text, the letters are printed in this color.
+フォアグラウンドのペンの色です。形状の場合は描かれる線の色です。段落や他のテキストでは、この色で文字が表示されます。
 
 === :strokewidth » a number ===
 
-For: ''arc, arrow, border, flow, image, line, mask, oval, rect, shape, star, stack''.
+''arc, arrow, border, flow, image, line, mask, oval, rect, shape, star, stack''で利用できます。
 
-The thickness of the stroke, in pixels, of the line defining each of these shapes.  For example, the number two would set the strokewidth to 2 pixels.
+描かれる線のピクセルでの太さで、形状の線を特徴付けます。例えば、数値の2が設定されればstrokewidthは2ピクセルになります。
 
 === :text » a string ===
 
-For: ''button, edit_box, edit_line''.
+''button, edit_box, edit_line''で利用できます。
 
-Sets the message displayed on a button control, or the contents of an edit_box or edit_line.
+edit_boxやedit_lineのコンテンツ、またはボタンコントロールに表示されるメッセージを設定します。
 
 === :top » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Sets the top coordinate for an object, relative to its parent slot.  If an object is set with `:top => 40`, this means the object's top edge will be placed 40 pixels beneath the top edge of the slot that contains it.  If no `:top` style is given, the object is automatically placed in the natural flow of its slot.
+オブジェクトの上側の座標を、その親のスロットに対して設定します。オブジェクトに`:top => 40`が設定されたなら、オブジェクトの上端はそのオブジェクトを含むスロットの上端から40ピクセル下に配置されることを意味します。`:top`スタイルが与えられないなら、そのスロットの自然な流れでオブジェクトは自動的に配置されます。
 
 === :undercolor » a Shoes::Color ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-The color used to underline text.
+テキストの下線に利用される色です。
 
 === :underline » a string ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-Dictates the style of underline used in the text.
+テキストに下線のスタイルを指示します。
 
-The choices for this setting are:
+この設定の選択肢は：
 
- * "none" - no underline at all.
- * "single" - a continuous underline.
- * "double" - two continuous parallel underlines.
- * "low" - a lower underline, beneath the font baseline.  (This is generally recommended only for single characters, particularly when showing keyboard accelerators.)
- * "error" - a wavy underline, usually found indicating a misspelling.
+ * "none" - 下線なし。　
+ * "single" - 途切れのない下線。
+ * "double" - 平行な途切れのない2本の下線。
+ * "low" - フォントの基準より下の低い下線。（一般的に１つの文字に対してだけ、得にキーボードアクセラレータを表示するときに推奨されます。）
+ * "error" - 波状の下線、通常はミススペルの指摘を見つけます。
 
 === :variant » a string ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
-Vary the font for a group of text.  Two choices:
+テキストのグループのためにフォントを変化させます。2つの選択肢：
 
- * "normal" - standard font.
- * "smallcaps" - font with the lower case characters replaced by smaller variants of the capital characters. 
+ * "normal" - 通常のフォント。
+ * "smallcaps" - 大文字が小さく変化することによって置き換えられた小文字のフォント。
 
 === :weight » a string ===
 
-For: ''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''.
+''banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title''で利用できます。
 
 Set the boldness of the text.  Commonly, this style is set to one of the following strings:
+テキストを太文字に設定します。一般的には、このスタイルは次の文字列の内の1つを設定します：
 
- * "ultralight" - the ultralight weight (= 200)
- * "light" - the light weight (=300)
- * "normal" - the default weight (= 400)
- * "semibold" - a weight intermediate between normal and bold (=600)
- * "bold" - the bold weight (= 700)
- * "ultrabold" - the ultrabold weight (= 800)
- * "heavy" - the heavy weight (= 900)
+ * "ultralight" - 超軽量の太さ (= 200)
+ * "light" - 軽量の太さ (=300)
+ * "normal" - 通常の太さ (= 400)
+ * "semibold" - 通常と太文字の中間の太さ (=600)
+ * "bold" - 太文字 (= 700)
+ * "ultrabold" - 極端な太文字の太さ (= 800)
+ * "heavy" - 重厚な太さ (= 900)
 
-However, you may also pass in the numerical weight directly.
+しかしながら、数値で太さを直接渡すこともできます。
 
 === :width » a number ===
 
-For: ''all slots and elements''.
+''すべてのスロットと要素''で利用できます。
 
-Sets the pixel width for the element.  If the number is a decimal, the width is converted to a percentage (with 0.0 being 0% and 1.0 being 100%.)  A width of 100% means the object fills its parent slot.
+要素の幅をピクセルで設定します。数値が10進数なら、その幅はパーセンテージに変換されます。（0.0は0%に、1.0は100%になります。）100%の幅は親のスロットを埋め尽くすことを意味します。
 
 == Classes List ==
 
-Here is a complete list of all the classes introduced by Shoes.  This chart is laid out according to how classes inherits from each other.  Subclasses are indented one level to the right, beneath their parent class.
+Shoesで紹介するすべてのクラスの完全な一覧です。この表はどのようにしてクラスがお互いに継承しているかに従ってレイアウトされています。サブクラスは親クラスの下に、1レベル右にインデントされています。
 
 {INDEX}
 
 == Colors List ==
 
-The following list of colors can be used throughout Shoes.  As background colors or border colors.  As stroke and fill colors.  Most of these colors come from the X11 and HTML palettes.
+以下はShoes全体で利用可能な色の一覧です。背景色または枠線の色として。描かれる線や塗りつぶされる色として。これらの色の大部分はX11やHTMLのパレットから来ています。
 
-All of these colors can be used by name.  (So calling the `tomato` method from inside any slot will get you a nice reddish color.)  Below each color, also find the exact numbers which can be used with the [[Built-in.rgb]] method.
+これらの色はすべて名前によって利用できます。（そのため、どんなスロットの内部からでも`tomato`メソッドを呼ぶことで、すてきな赤みがかった色が手に入るでしょう。）それぞれの色の下には、[[Built-in.rgb]]メソッドで利用できる正確な数値を見つけることもできます。
 
 {COLORS}
 
 = Slots =
 
-Slots are boxes used to lay out images, text and so on. The two most common slots are `stacks` and `flows`. Slots can also be referred to as "boxes" or "canvases" in Shoes terminology.
+スロットは画像やテキストなどのレイアウトに使われる箱です。2つの最も一般的なスロットは`スタック（stack）`と`フロー（flow）`です。スロットはShoesの専門用語で"箱"または"キャンバス"とも言えます
 
-Since the mouse wheel and PageUp and PageDown are so pervasive on every platform, vertical scrolling has really become the only overflow that matters. So, in Shoes, just as on the web, width is generally fixed. While height goes on and on.
+マウスホイールやページアップやページダウンはあらゆるプラットフォームで普及しているため、縦のスクロールだけが溢れて問題になりました。そのためShoesでは、まさにWEBのように通常は幅が固定です。一方で高さは際限なく続いて行きます。
 
-Now, you can also just use specific widths and heights for everything, if you want. That'll take some math, but everything could be perfect.
+さて、そうしたいなら、どんなものでも幅や高さを指定することもできます。それはいくらかの数学を用いるでしょうが、完璧かもしれません。
 
-Generally, I'd suggest using stacks and flows. The idea here is that you want to fill up a certain width with things, then advance down the page, filling up further widths. You can think of these as being analogous to HTML's "block" and "inline" styles.
+一般的には、スタックとフローを使うことを提案するでしょう。ここでの目的は、あなたがいくらかの幅を何かで満たして、幅を満たしながら、ページの下に進みたいということです。これらを、HTMLの"ブロック"と"インライン"のスタイルと類似しているのように考えることができます。
 
 ==== Stacks ====
 
-A stack is simply a vertical stack of elements. Each element in a stack is placed directly under the element preceding it.
+スタックは単純に要素の垂直なスタックです。スタック内のそれぞれの要素は、その上位の要素の直下に配置されます。
 
-A stack is also shaped like a box. So if a stack is given a width of 250, that stack is itself an element which is 250 pixels wide.
+また、スタックは箱のように形作られます。そのため、スタックが250の幅を与えられたら、そのスタックはそれ自身が250ピクセルの幅の要素となります。
 
-To create a new stack, use the [[Element.stack]] method, which is available inside any slot.  So stacks can contain other stacks and flows.
+新しいスタックを作成するには[[Element.stack]]メソッドを利用し、それはすべてのスロットの内部で利用できます。そのためスタックは他のスタックやフローを含むことができます。
 
 ==== Flows ====
 
-A flow will pack elements in as tightly as it can. A width will be filled, then will wrap beneath those elements. Text elements placed next to each other will appear as a single paragraph. Images and widgets will run together as a series.
+フローは要素をできるだけしっかりと詰め込みます。幅は満たされ、それらの下の要素を包みます。互いに隣接して配置されたテキストの要素は一つのパラグラフとして表示されます。画像とウィジェットは同じシリーズとして実行されます。
 
-Like the stack, a flow is a box. So stacks and flows can safely be embedded and, without respect to their contents, are identical. They just treat their contents differently.
+スタックのように、フローは箱です。そのためスタックとフローは安全に埋め込むことができ、それらのコンテンツに気を使うことなく、同質です。スタックとフローはそれらのコンテンツだけを異なって扱います。
 
-Making a flow means calling the [[Element.flow]] method.  Flows may contain other flows and stacks.
+フローを作成するには[[Element.flow]]を呼びます。フローは他のフローやスタックを含むかもしれません。
 
-Last thing: The Shoes window itself is a flow.
+最後に：Shoesのウィンドウはそれ自身がフローです。
 
 == Art for Slots ==
 
-Each slot is like a canvas, a blank surface which can be covered with an assortment of colored shapes or gradients.
+それぞれのスロットは、色のついた形状やグラデーションなどでおおうことにできる白紙の表面のキャンバスのようなものです。
 
-Many common shapes can be drawn with methods like `oval` and `rect`.  You'll need to set up the paintbrush colors first, though.
+多くの一般的な形状は`oval`と`rect`メソッドで描かれます。まず、絵筆の色を準備する必要があります。
 
-The `stroke` command sets the line color.  And the `fill` command sets the color used to paint inside the lines.
+`stroke`コマンドは線の色を設定します。`fill`コマンドは線の内部を塗りつぶすために利用する色を設定します。　
 
 {{{
  #!ruby
@@ -1275,37 +1283,35 @@ The `stroke` command sets the line color.  And the `fill` command sets the color
  end
 }}}
 
-That code gives you a blue pie with a red line around it.  One-hundred pixels wide, placed just a few pixels
-southeast of the window's upper left corner.
+このコードはまわりに赤い線のある青いパイを与えます。100ピクセルの幅で、ウィンドウの左上から南東に少しのピクセルを配置します。
 
-The `blue` and `red` methods above are Color objects.  See the section on Colors for more on how to mix
-colors.
+上記の`blue`と`red`メソッドはカラーオブジェクトです。どうやって色を混ぜるかはColorsセクションを見てください。
 
-==== Inspiration from Processing and NodeBox ====
+==== Processing と NodeBox からのインスピレーション ====
 
-The artful methods generally come verbatim from NodeBox, a drawing kit for Python.  In turn, NodeBox gets much of its ideas from Processing, a Java-like language for graphics and animation.  I owe a great debt to the creators of these wonderful programs!
+この技巧的なメソッドの大抵は文字通りPythonのドローイングキットのNodeBoxから来ています。次に、NodeBoxは多くのアイデアを、グラフィックとアニメーションのためのJavaのような言語であるProcessingから得ています。私はそれらのすばらしいプログラムの作者から大きな恩を受けています。
 
-Shoes does a few things differently from NodeBox and Processing.  For example, Shoes has different color methods, including having its own Color objects, though these are very similar to Processing's color methods.  And Shoes also allows images and gradients to be used for drawing lines and filling in shapes.
+ShoesはNodeBoxとProcessingから少しの点が違います。例えば、Shoesはそれ自身のカラーオブジェクトを持っていることを含めて、異なるカラーメソッドを持っていますが、それらはとてもProcessingのカラーメソッドに似ています。そしてShoesは線を描くことや形状内を塗りつぶすために画像やグラデーションを利用することも許しています。
 
-Shoes also borrows some animation ideas from Processing and will continue to closely consult Processing's methods as it expands.
+ShoesはいくつかのアニメーションのアイデアをProcessingから取り入れており、Processingのメソッドをしっかりと参考にしようとしながらそれを拡張しています。
 
 === arc(left, top, width, height, angle1, angle2) » Shoes::Shape ===
 
-Draws an arc shape (a section of an oval) at coordinates (left, top).  This method just give you a bit more control than [[oval]], by offering the `:angle1` and `:angle2` styles.  (In fact, you can mimick the `oval` method by setting `:angle1` to 0 and `:angle2` to `Shoes::TWO_PI`.)
+弧の形状（楕円形の一部）を座標（left, top）に描きます。このメソッドは`:angle1`と`:angle2`のスタイルを提供することにより [[oval]]より少し多くの制御をが行えます。（実際には、`:angle1`に0と`:angle2`に`Shoes::TWO_PI`を設定することにより、`oval`メソッドをまねることができます。）
 
 === arrow(left, top, width) » Shoes::Shape ===
 
-Draws an arrow at coordinates (left, top) with a pixel `width`.
+座標（left, top）に`width`ピクセルの矢を描きます。
 
 === cap(:curve or :rect or :project) » self ===
 
-Sets the line cap, which is the shape at the end of every line you draw.  If set to `:curve`, the end is rounded.  The default is `:rect`, a line which ends abruptly flat.  The `:project` cap is also fat, but sticks out a bit longer.
+描くすべての線の終点の形状である線の頂点を設定します。`:curve`が設定されるなら、終点はまるくなります。デフォルトは`:rect`で、線の終点は突然に平らになります。`:project`の頂点も平らですが、棒の外側は少し長くなります。
 
 === fill(pattern) » pattern ===
 
-Sets the fill bucket to a specific color (or pattern.)  Patterns can be colors, gradients or images.  So, once the fill bucket is set, you can draw shapes and they will be colored in with the pattern you've chosen.
+塗りつぶすバケツの色の指定（またはパターン）を設定します。パターンは色やグラデーションまたは画像が設定できます。そして、一度塗りつぶすバケツが設定されたら、選択されたパターンで色づけられた形状を描くことができます。
 
-To draw a star with an image pattern:
+画像のパターンで星を描くためには：
 
 {{{
  #!ruby
@@ -1315,25 +1321,23 @@ To draw a star with an image pattern:
  end
 }}}
 
-To clear the fill bucket, use `nofill`.  And to set the line color (the border of the star,) use the `stroke` method.
+塗りつぶすバケツをクリアするには`nofill`を使ってください。そして`stroke`メソッドを利用して線（星の枠線）の色を設定してください。
 
 === nofill() » self ===
 
-Blanks the fill color, so that any shapes drawn will not be filled in.  Instead, shapes will have only a
-lining, leaving the middle transparent.
+塗りつぶす色を削除するため、形状は塗りつぶされずに描かれます。その代わりに、形状は線だけを持ち、中央を透明のままにします。
 
 === nostroke() » self ===
 
-Empties the line color.  Shapes drawn will have no outer line.  If `nofill` is also set, shapes drawn will
-not be visible.
+線の色を空にします。形状は外側の線が描かれなくなります。`nofill`も設定された場合は、形状は表示されずに描かれます。
 
 === line(left, top, x2, y2) » Shoes::Shape ===
 
-Draws a line using the current line color (aka "stroke") starting at coordinates (left, top) and ending at coordinates (x2, y2).
+現在の線の色（別名"stroke"）を使って座標（left, top）から（x2, y2）まで線を描きます。
 
 === oval(left, top, radius) » Shoes::Shape ===
 
-Draws a circular form at pixel coordinates (left, top) with a width and height of `radius` pixels.  The line and fill colors are used to draw the shape.  By default, the coordinates are for the oval's leftmost, top corner, but this can be changed by calling the [[Art.transform]] method or by using the `:center` style on the next method below.
+座標（left, top）ピクセルに`radius`ピクセルの幅と高さの円を描きます。線の色や塗りつぶす色が形状を描くために利用されます。デフォルトでは、座標は楕円形の最も左上の角ですが、これは[[Art.transform]]メソッドを呼ぶことや、次のメソッドの下の`:center`スタイルを使用することによって変更することができます。
 
 {{{
  #!ruby
@@ -1346,26 +1350,24 @@ Draws a circular form at pixel coordinates (left, top) with a width and height o
  end
 }}}
 
-To draw an oval of varied proportions, you may also use the syntax: `oval(left, top, width, height)`.
+様々な比率の楕円形を描くためには、`oval(left, top, width, height)`のシンタックスを利用してもいいです。
 
 === oval(styles) » Shoes::Shape ===
 
-Draw circular form using a style hash.  The following styles are supported:
+スタイルのハッシュを利用して円を描きます。次のスタイルがサポートされています：
 
- * `top`: the y-coordinate for the oval pen.
- * `left`: the x-coordinate for the oval pen.
- * `radius`: the width and height of the circle.
- * `width`: a specific pixel width for the oval.
- * `height`: a specific pixel height for the oval.
- * `center`: do the coordinates specific the oval's center? (true or false)
+ * `top`: 楕円形の囲いのy座標。
+ * `left`: 楕円形の囲いのx座標。
+ * `radius`: 円の幅と高さ。
+ * `width`: 楕円形の幅のピクセルでの指定。
+ * `height`: 楕円形の高さのピクセルでの指定。
+ * `center`: 座標を楕円形の中央に指定しますか？（trueまたはfalse）
 
-These styles may also be altered using the `style` method on the Shape object.
+これらのスタイルはShoesオブジェクトの`style`メソッドを利用して変更されます。
 
 === rect(top, left, width, height, corners = 0) » Shoes::Shape ===
 
-Draws a rectangle starting from coordinates (top, left) with dimensions of width x height.  Optionally, you may give the rectangle rounded corners with a fifth argument: the radius of the corners in pixels.
-
-As with all other shapes, the rectangle is drawn using the stroke and fill colors.
+座標（left, top）からwidth x heightの寸法の長方形を描きます。オプションとして、5番目の引数（ピクセルでの角の半径）により長方形の角を丸くすることもできます。他の形状と同様に、長方形は描く線の色や塗りつぶす色を利用して描かれます。
 
 {{{
  #!ruby
@@ -1376,26 +1378,26 @@ As with all other shapes, the rectangle is drawn using the stroke and fill color
  end
 }}}
 
-The above sample draws a rectangle which fills the area of its parent box, leaving a margin of 10 pixels around the edge.  Also see the `background` method for a rectangle which defaults to filling its parent box.
+上記のサンプルは角の周囲に10ピクセルのマージンを残して、その親の箱の範囲を塗りつぶす長方形を描きます。デフォルトで親の箱を塗りつぶした長方形のためには`background`も見てください。
 
 === rect(styles) » Shoes::Shape ===
 
-Draw a rectangle using a style hash.  The following styles are supported:
+スタイルのハッシュを利用して長方形を描きます。次のスタイルがサポートされています：
 
- * `top`: the y-coordinate for the rectangle.
- * `left`: the x-coordinate for the rectangle.
- * `curve`: the pixel radius of the rectangle's corners.
- * `width`: a specific pixel width for the rectangle.
- * `height`: a specific pixel height for the rectangle.
- * `center`: do the coordinates specific the rectangle's center? (true or false)
+ * `top`: 長方形のy座標。
+ * `left`: 長方形のx座標。
+ * `curve`: 長方形の角の半径のピクセル。
+ * `width`: 長方形のピクセルによる幅。
+ * `height`:長方形のピクセルによる高さ。
+ * `center`: 座標を長方形の中央に指定しますか？（trueまたはfalse）
 
-These styles may also be altered using the `style` method on the Shape object.
+これらのスタイルはShoesオブジェクトの`style`メソッドを利用して変更されます。
 
 === rotate(degrees: a number) » self ===
 
-Rotates the pen used for drawing by a certain number of `degrees`, so that any shapes will be drawn at that angle.
+形状をその角度で描画するために、`度（degrees）`数により描画のために利用される範囲を回転させます。
 
-In this example below, the rectangle drawn at (30, 30) will be rotated 45 degrees.
+下の例では、長方形は(30, 30)に45度回転されて描かれます。
 
 {{{
  #!ruby
@@ -1408,7 +1410,10 @@ In this example below, the rectangle drawn at (30, 30) will be rotated 45 degree
 
 === shape(left, top) { ... } » Shoes::Shape ===
 
-Describes an arbitrary shape to draw, beginning at coordinates (left, top) and continued by calls to `line_to`, `move_to`, `curve_to` and `arc_to` inside the block.  You can look at it as sketching a shape with a long line that curves and arcs and bends.
+(left, top)から開始してブロックの内部で`line_to`、`move_to`、`curve_to`そして`arc_to`を呼ぶことにより
+続く、描かれる任意の形状を表現（記述）します
+
+曲がったり弧を描いたりする長い線の形状をスケッチとして見ることができます。
 
 {{{
  #!ruby
@@ -1424,17 +1429,17 @@ Describes an arbitrary shape to draw, beginning at coordinates (left, top) and c
  end
 }}}
 
-A shape can also contain other shapes.  So, you can place an [[Art.oval]], a [[Art.rect]], a [[Art.line]], a [[Art.star]] or an [[Art.arrow]] (and all of the other methods in this [[Art]] section) inside a shape, but they will not be part of the line.  They will be more like a group of shapes are all drawn as one.
+形状は他の形状を含むこともできます。そして、形状の内部に[[Art.oval]]、[[Art.rect]]、[[Art.line]]、[[Art.star]]または[[Art.arrow]]（さらに、[[Art]]セクションの他のメソッドすべて）を配置することができますが、それらは線の一部ではないでしょう。形状のグループのようなそれらは、すべて1つとして描かれます。
 
 === star(left, top, points = 10, outer = 100.0, inner = 50.0) » Shoes::Shape ===
 
-Draws a star using the stroke and fill colors.  The star is positioned with its center point at coordinates (left, top) with a certain number of `points`.  The `outer` width defines the full radius of the star; the `inner` width specifies the radius of the star's middle, where points stem from.
+描く線の色や塗りつぶす色を利用して星を描きます。星は(left, top)の座標を中心点として`頂点（points）`の数とともに配置されます。`outer`の幅は星の全半径をを定義します；`inner`の幅は頂点の始まる星の中央の半径を指定します。
 
 === stroke(pattern) » pattern ===
 
-Set the active line color for this slot.  The `pattern` may be a color, a gradient or an image, all of which are categorized as "patterns."  The line color is then used to draw the borders of any subsequent shape.
+スロットのアクティブな線の色を設定します。`pattern`は色、グラデーションまたは画像で、それらはすべて"patterns"に分類されます。その線の色はそれに続く形状すべての枠線を描くときに利用されます。
 
-So, to draw an arrow with a red line around it:
+つまり、まわりに赤い線を持つ矢印を描くには：
 
 {{{
  #!ruby
@@ -1444,29 +1449,29 @@ So, to draw an arrow with a red line around it:
  end
 }}}
 
-To clear the line color, use the `nostroke` method.
+線の色をクリアするには、`nostroke`メソッドを利用します。
 
 === strokewidth(a number) » self ===
 
-Sets the line size for all drawing within this slot.  Whereas the `stroke` method alters the line color, the `strokewidth` method alters the line size in pixels.  Calling `strokewidth(4)` will cause lines to be drawn 4 pixels wide.
+スロットの内部で描かれるすべての線のサイズを設定します。`stroke`メソッドが線の色を変更する一方、`strokewidth`メソッドは線のサイズをピクセルで変更します。`strokewidth(4)`を呼ぶことにより4ピクセルの太さで線を描きます。
 
 === transform(:center or :corner) » self ===
 
-Should transformations (such as `skew` and `rotate`) be performed around the center of the shape?  Or the corner of the shape?  Shoes defaults to `:corner`.
+（`skew`や`rotate`のような）変化は形状の中心あたりで実行されるべきですか？またはその形状の角ですか？Shoesの初期値は`:corner`です。
 
 === translate(left, top) » self ===
 
-Moves the starting point of the drawing pen for this slot.  Normally, the pen starts at (0, 0) in the top-left corner, so that all shapes are drawn from that point.  With `translate`, if the starting point is moved to (10, 20) and a shape is drawn at (50, 60), then the shape is actually drawn at (60, 80) on the slot.
+スロットの描画の範囲を開始する位置を移動します。通常は、すべての形状がこの位置から描くことができるように、その範囲は左上の角の(0, 0)から開始します。`translate`により開始位置が(10, 20)に移動されて、(50, 60)に形状が描かれるなら、その形状は実際にはスロットの(60, 80)に描かれます。
 
 == Element Creation ==
 
-Shoes has a wide variety of elements, many cherry-picked from HTML.  This page describes how to create these elements in a slot.  See the Elements section of the manual for more on how to modify and use these elements after they have been placed.
+Shoesは幅広い種類の要素を持っており、その多くをHTMLからよいところを選んで採用しています。このページはどのようにしてスロットにそれらの要素を作成するかを記述しています。それらの要素を配置した後でさらにどのようにして変更したり利用するのかについては、このマニュアルの要素（Elements）のセクションを見てください。
 
 === animate(fps) { |frame| ... } » Shoes::Animation ===
 
-Starts an animation timer, which runs parallel to the rest of the app.  The `fps` is a number, the frames per seconds.  This number dictates how many times per second the attached block will be called.
+アプリケーションをそのままにして並列で実行するアニメーションタイマーを開始します。`fps`は秒ごとのフレームの数です。この数は付属するブロックが1秒に何回呼ばれるのかを決定します。
 
-The block is given a `frame` number.  Starting with zero, the `frame` number tells the block how many frames of the animation have been shown.
+このブロックは`frame`の数が与えられます。`frame`の数はゼロから始まり、そのブロックが何フレームのアニメーションを表示したのかを教えます
 
 {{{
  #!ruby
@@ -1478,13 +1483,13 @@ The block is given a `frame` number.  Starting with zero, the `frame` number tel
  end
 }}}
 
-The above animation is shown 24 times per second.  If no number is give, the `fps` defaults to 10.
+上記のアニメーションは1秒間に24回表示されます。数が与えられないなら、`fps`のデフォルトは10です。
 
 === background(pattern) » Shoes::Background ===
 
-Draws a Background element with a specific color (or pattern.)  Patterns can be colors, gradients or images.  Colors and images will tile across the background.  Gradients stretch to fill the background.
+色（またはパターン）を指定して背景（Background）要素を描きます。パターンは色、グラデーションまたは画像です。色と画像は背景全体に敷き詰めます。グラデーションは背景を塗りつぶすように伸びます。
 
-'''PLEASE NOTE:''' Backgrounds are actual elements, not styles.  HTML treats backgrounds like styles.  Which means every box can only have one background.  Shoes layers background elements.
+'''注意してください:''' 背景は実際には要素であり、スタイルではありません。HTMLは背景をスタイルのようにあつかいます。それはすべての箱は一つの背景だけを持てることを意味します。Shoesは背景の要素を重ねることができます。
 
 {{{
  #!ruby
@@ -1494,45 +1499,48 @@ Draws a Background element with a specific color (or pattern.)  Patterns can be 
  end
 }}}
 
-The above example paints two backgrounds.  First, a black background is painted over the entire app's surface area.  Then a 50 pixel white stripe is painted along the left side.
+上記の例は二つの背景を塗ります。まず、黒い背景がアプリケーションの表面のエリア全体に塗られます。そして、50ピクセルの白い縞が左側にそって塗られます。
 
 === banner(text) » Shoes::Banner ===
 
-Creates a Banner text block.  Shoes automatically styles this text to 48 pixels high.
+バナー（Banner）のテキストブロックを作成します。Shoesは自動的に48ピクセルの大きさにテキストを整形します。
 
 === border(text, :strokewidth => a number) » Shoes::Border ===
 
-Draws a Border element using a specific color (or pattern.)  Patterns can be colors, gradients or images.  Colors and images will tile across the border.  Gradients stretch to fill the border.
+色（またはパターン）を指定して枠線（Border）の要素を描きます。パターンは色、グラデーションまたは画像です。色と画像は枠線全体に敷き詰めます。グラデーションは背景を塗りつぶすように伸びます。
 
-'''PLEASE NOTE:''' Like Backgrounds, Borders are actual elements, not styles.  HTML treats backgrounds and borders like styles.  Which means every box can only have one borders.  Shoes layers border and background elements, along with text blocks, images, and everything else.
+'''注意してください:''' 背景のように、枠線は実際には要素であり、スタイルではありません。HTMLは背景や枠線をスタイルのようにあつかいます。それはすべての箱は一つの枠線だけを持てることを意味します。Shoesはテキストブロック、画像、他のすべてのものにそって、枠線や背景の要素を重ねることができます。
 
 === button(text) { ... } » Shoes::Button ===
 
-Adds a push button with the message `text` written across its surface.  An optional block can be attached, which is called if the button is pressed.
+表面にわたってメッセージ`テキスト（text）`の書かれた押しボタンを追加します。
+ボタンが押されたときに呼ばれる、任意のブロックを取り付けることができます。
 
 === caption(text) » Shoes::Caption ===
 
-Creates a Caption text block.  Shoes styles this text to 14 pixels high.
+キャプション（Caption）テキストブロックを作成します。Shoesは14ピクセルの大きさにこのテキストを整形します。
 
 === check() » Shoes::Check ===
 
-Adds a check box.
+チェックボックスを追加します。
 
 === code(text) » Shoes::Code ===
 
-Create a Code text fragment.  This text defaults to a monospaced font.
+コード（Code）のテキストの一部を作成します。このテキストはデフォルトで等幅フォントになります。
 
 === del(text) » Shoes::Del ===
 
-Creates a Del text fragment (short for "deleted") which defaults to text with a single strikethrough in its middle.
+デフォルトで中央に1本の棒線を引いてテキストを削除した、削除された（Del）（"deleted"の省略形）テキストの一部を作成します。
 
 === dialog(styles) { ... } » Shoes::App ===
 
-Opens a new app window (just like the [[Element.window]] method does,) but the window is given a dialog box look.
+（まさに [[Element.window]]メソッドを実効したように）新しいアプリケーションのウィンドウを開きますが、そのウィンドウはダイアログボックスの外観を与えられます。
 
 === edit_box(text) » Shoes::EditBox ===
 
-Adds a large, multi-line textarea to this slot.  The `text` is optional and should be a string that will start out the box.  An optional block can be attached here which is called any type the user changes the text in the box.
+スロットに大きなマルチラインのテキストエリアを追加します。
+この`text`はオプションでこの箱の開始時に与えられる文字列です。
+オプションのブロックをここに取り付けることができ、これはボックスのテキストに対するどんな種類のユーザの変更でも呼び出されます。
 
 {{{
  #!ruby
@@ -1545,51 +1553,53 @@ Adds a large, multi-line textarea to this slot.  The `text` is optional and shou
 
 === edit_line(text) » Shoes::EditLine ===
 
-Adds a single-line text box to this slot.  The `text` is optional and should be a string that will start out the box.  An optional block can be attached here which is called any type the user changes the text in the box.
+スロットに一行のテキストボックスを追加します。
+この`text`はオプションでこの箱の開始時に与えられる文字列です。
+オプションのブロックをここに取り付けることができ、これはボックスのテキストに対するどんな種類のユーザの変更でも呼び出されます。
 
 === em(text) » Shoes::Em ===
 
-Creates an Em text fragment (short for "emphasized") which, by default, is styled with italics.
+Em（"emphasized"の省略形）テキストの一部を作成し、これはデフォルトでイタリック体で整形されます。
 
 === every(seconds) { |count| ... } » Shoes::Every ===
 
-A timer similar to the `animation` method, but much slower.  This timer fires a given number of seconds, running the block attached.  So, for example, if you need to check a web site every five minutes, you'd call `every(300)` with a block containing the code to actually ping the web site.
+`animation`メソッドとよく似たタイマーですが、より非常に遅いです。このタイマーは与えられた数の秒（seconds）で、取り付けられたブロックを実行します。そのため、例えば5秒毎にwebサイトを確認する必要があるなら、実際にwebサイトにpingを打つコードを含むブロックと共に`every(300)`を呼び出します。
 
 === flow(styles) { ... } » Shoes::Flow ===
 
-A flow is an invisible box (or "slot") in which you place Shoes elements.  Both flows and stacks are explained in great detail on the main [[Slots]] page.
+フロー（flow）はShoesの要素を配置できる目に見えない箱（または"スロット"）です。フローとスタックのどちらもメインの[[Slots]]のページでとても詳細に説明されます。
 
-Flows organize elements horizontally.  Where one would use a [[Element.stack]] to keep things stacked vertically, a flow places its contents end-to-end across the page.  Once the end of the page is reached, the flow starts a new line of elements.
+フローは要素を水平にまとめます。ものを垂直に積み重ねたままにするために[[Element.stack]]を利用するところで、フローはそのコンテンツをページの端から端にわたって配置します。いったんページの最後に到達したら、フローは要素の新しい行を開始します。
 
 === image(path) » Shoes::Image ===
 
-Creates an [[Image]] element for displaying a picture.  PNG, JPEG and GIF formats are allowed.
+写真を表示するために[[Image]]の要素を作成します。
+PNG、JPEGそしてGIFのフォーマットが許されます。
 
-The `path` can be a file path or a URL.  All images loaded are temporarily cached in memory, but remote images are also cached locally in the user's personal Shoes directory.  Remote images are loaded in the background; as with browsers, the images will not appear right away, but will we shown when they are loaded.
+`path`はファイルのパスまたはURLです。すべての画像はメモリに一時的にキャッシュされ、リモートの画像はローカルのユーザの個人的なShoesディレクトリにもキャッシュされます。リモートの画像はバックグラウンドでロードされます；ブラウザと同様に、画像はすぐには表示されませんが、それらがロードされたときに表示されます。
 
 === imagesize(path) » [width, height] ===
 
-Quickly grab the width and height of an image.  The image won't be loaded into the cache or displayed.
+画像の幅と高さを素早く手に入れます。
+画像はキャッシュにロードされず表示もされません。
 
-URGENT NOTE: This method cannot be used with remote images (loaded from HTTP, rather than the hard drive.)
+緊急の注意：このメソッドはリモートの画像（ハードディスクドライブからではなくHTTPによりロードされた）には利用できません。
 
 === ins(text) » Shoes::Ins ===
 
-Creates an Ins text fragment (short for "inserted") which Shoes styles with a single underline.
+一本の下線のShoesスタイルである、Ins（"inserted"の省略形）テキストの一部を作成します。
 
 === inscription(text) » Shoes::Inscription ===
 
-Creates an Inscription text block.  Shoes styles this text at 10 pixels high.
+題名（Inscription）のテキストブロックを作成します。Shoesは10ピクセルの大きさにこのテキストを整形します。
 
 === link(text, :click => proc or string) » Shoes::Link ===
 
-Creates a Link text block, which Shoes styles with a single underline and colors with a #06E (blue) colored stroke.
-
-The default LinkHover style is also single-underlined with a #039 (dark blue) stroke.
+一本の下線を持ち線の色を#06E（青色）にShoesが整形した、リンクテキストブロックを作成します。デフォルトのリンクホバースタイルも一本の下線を持ち線の色を#039（ダークブルー）に整形します。
 
 === list_box(:items => [strings, ...]) » Shoes::ListBox ===
 
-Adds a drop-down list box containing entries for everything in the `items` array.  An optional block may be attached, which is called if anything in the box becomes selected by the user.
+`items`の配列のすべてのエントリを含むドロップダウンリストボックスを追加します。オプションでブロックが取り付けることができ、これはユーザがボックスの項目を選択したら呼び出されます。
 
 {{{
  #!ruby
@@ -1601,55 +1611,55 @@ Adds a drop-down list box containing entries for everything in the `items` array
  end
 }}}
 
-Call `ListBox#text` to get the selected string.  See the `ListBox` section under `Native` controls for more help.
+選択された文字列をを得るために`ListBox#text`を呼び出します。より多くのヘルプは`リストボックス（ListBox）`のセクションの`ネイティブ`コントロールを見てください。
 
 === progress() » Shoes::Progress ===
 
-Adds a progress bar.
+プログレスバーを追加します。
 
 === para(text) » Shoes::Para ===
 
-Create a Para text block (short for "paragraph") which Shoes styles at 12 pixels high.
+Shoesが12ピクセルの大きさに整形する、Para（"paragraph"の省略形）テキストブロックを作成します。
 
 === radio(group name: a string or symbol) » Shoes::Radio ===
 
-Adds a radio button.  If a `group name` is given, the radio button is considered part of a group.  Among radio buttons in the same group, only one may be checked.  (If no group name is given, the radio button is grouped with any other radio buttons in the same slot.)
+ラジオボタンを追加します。`グループ名（group name）`が与えられたら、ラジオボタンはグループの一部だとみなされます。同じグループのラジオボタンのうちで、1つだけをクリックすることができます。（もしグループ名が与えられなければ、そのラジオボタンは同じスロットの他のすべてのラジオボタンとグループ化されます）
 
 === span(text) » Shoes::Span ===
 
-Creates a Span text fragment, unstyled by default.
+デフォルトでされない、Spanテキストの一部を作成します。
 
 === stack(styles) { ... } » Shoes::Stack ===
 
-Creates a new stack.  A stack is a type of slot.  (See the main [[Slots]] page for a full explanation of both stacks and flows.)
+新しいスタックを作成します。スタックはスロットの一種です。（スタックとフローの完全な説明はメインの[[Slots]]のページを見てください。）
 
-In short, stacks are an invisible box (a "slot") for placing stuff.  As you add things to the stack, such as buttons or images, those things pile up vertically.  Yes, they stack up!
+要するに、スタックは要素を配置するための目に見えない箱（"スロット"）です。スタックにボタンや画像などを追加して、それらは垂直に積み上げられます。そう、それらは重なります。
 
 === strong(text) » Shoes::Strong ===
 
-Creates a Strong text fragment, styled in bold by default.
+デフォルトで太字に整形された、Strongテキストの一部を作成します。
 
 === sub(text) » Shoes::Sub ===
 
-Creates a Sub text fragment (short for "subscript") which defaults to lowering the text by 10 pixels and styling it in an x-small font.
+デフォルトでテキストは10ピクセル（位置を）下げられx-smallフォントに整形された、Sub（"subscript"の省略形）テキストの一部を作成します。
 
 === subtitle(text) » Shoes::Subtitle ===
 
-Creates a Subtitle text block.  Shoes styles this text to 26 pixels high.
+サブタイトル（Subtitle）テキストブロックを作成します。Shoesは26ピクセルの大きさにこのテキストを整形します。
 
 === sup(text) » Shoes::Sup ===
 
-Creates a Sup text fragment (short for "superscript") which defaults to raising the text by 10 pixels and styling it in an x-small font.
+デフォルトでテキストは10ピクセル（位置を）上げられx-smallフォントに整形された、Sup（"superscript"の省略形）テキストの一部を作成します。
 
 === tagline(text) » Shoes::Tagline ===
 
-Creates a Tagline text block.  Shoes styles this text to 18 pixels high.
+タグライン（Tagline）テキストブロックを作成します。Shoesはこのテキストを18ピクセルの大きさに整形します。
 
 === timer(seconds) { ... } » Shoes::Timer ===
 
-A one-shot timer.  If you want to schedule to run some code in a few seconds (or minutes, hours) you can attach the code as a block here.
+1回だけのタイマーです。少しの秒（または分、時）後にいくらかのコードの実行をスケジュールしたいなら、ここにブロックとしてコードを取り付けることができます。
 
-To display an alert box five seconds from now:
+今から5秒後にアラートボックスを表示するためには：
 
 {{{
  #!ruby
@@ -1662,17 +1672,17 @@ To display an alert box five seconds from now:
 
 === title(text) » Shoes::Title ===
 
-Creates a Title text block.  Shoes styles these elements to 34 pixels high.
+タイトル（Title）テキストブロックを作成します。Shoesはこれらの要素を34ピクセルの大きさに整形します。
 
 === video(path or url) » Shoes::Video ===
 
-Embeds a movie in this slot.
+スロットに動画を埋め込みます。
 
 === window(styles) { ... } » Shoes::App ===
 
-Opens a new app window.  This method is almost identical to the [[App.Shoes.app]] method used to start an app in the first place.  The difference is that the `window` method sets the new window's [[App.owner]] property.  (A normal Shoes.app has its `owner` set to `nil`.)
+新しいアプリケーションウィンドウを開きます。このメソッドは初めにアプリケーションを開始するために使われる[[App.Shoes.app]]メソッドとほとんど同一です。違いは`window`メソッドは新しいウィンドウの[[App.owner]]プロパティを設定することです。（普通のShoes.appはその`owner`を`nil`に設定します。）
 
-So, the new window's `owner` will be set to the Shoes::App which launched the window.  This way the child window can call the parent.
+そのため、新しいウィンドウの`owner`はウィンドウを開始したShoes::Appに設定されるでしょう。この方法により子のウィンドウが親を呼べます。
 
 {{{
  #!ruby
@@ -1687,11 +1697,11 @@ So, the new window's `owner` will be set to the Shoes::App which launched the wi
 
 == Events ==
 
-Wondering how to catch stray mouse clicks or keyboard typing?  Events are sent to a slot whenever a mouse moves inside the slot.  Or whenever a key is pressed.  Even when the slot is created or destroyed.  You can attach a block to each of these events.
+どのようにしてマウスのクリックを離したことやキーボードをタイプしたことが分かるか不思議に思いませんか？スロットの内部でマウスが動いたときはいつでもイベントがスロットに送られます。また、キーが押されたときはいつでも。スロットが作成されたり破壊されたときでさえ。それぞれのそれらのイベントをブロックを取り付けることができます。
 
-Mouse events include `motion`, `click`, `hover` and `leave`.  Keyboard typing is represented by the `keypress` event.  And the `start` and `finish` events indicate when a canvas comes into play or is discarded.
+マウスイベントは`motion`、`click`、`hover`そして`leave`を含みます。キーボードのタイピングは`keypress`イベントによって表されます。そして`start`や`finish`イベントはキャンバスを開始するときや破棄されたときを指し示します。
 
-So, let's say you want to change the background of a slot whenever the mouse floats over it.  We can use the `hover` event to change the background when the mouse comes inside the slot.  And `leave` to change back when the mouse floats away.
+では、マウスでスロットの上をフロートするときに背景を変更したいとしましょう。スロットの内部にマウスがくるときに背景を変更するためには`hover`イベントを使います。そして、マウスがフロートして離れるときに戻すには`leave`を使います。
 
 {{{
  #!ruby
@@ -1710,31 +1720,32 @@ So, let's say you want to change the background of a slot whenever the mouse flo
 
 === click { |button, left, top| ... } » self ===
 
-The click block is called when a mouse button is clicked.  The `button` is the number of the mouse button which has been pressed.  The `left` and `top` are the mouse coordinates at which the click happened.
+マウスボタンがクリックされたときにはclickブロックが呼ばれます。`button`はマウスボタンのどれが押されたかの数です。`left`や`top`はどこがクリックされたかのマウスの座標です。
 
-To catch the moment when the mouse is unclicked, see the [[Events.release]] event.
+マウスのクリックを離した瞬間をとらえるには、[[Events.release]]イベントを見てください。
 
 === finish { |self| ... } » self ===
 
-When a slot is removed, it's finish event occurs.  The finish block is immediately handed `self`, the slot object which has been removed.
+スロットが取り除かれたときは、finishイベントが発生します。finishブロックはすぐに`self`を手渡し、スロットオブジェクトは取り除かれます。
 
 === hover { |self| ... } » self ===
 
-The hover event happens when the mouse enters the slot.  The block gets `self`, meaning the object which was hovered over.
+hoverイベントはスロットにマウスが入ったときに発生します。
+このブロックは`self`を手に入れ、どのオブジェクトの上を通ったかを意味します。
 
-To catch the mouse exiting the slot, check out the [[Events.leave]] event.
+スロットからマウスが出ていくことをとらえるには、[[Events.leave]]イベントを確認してください。
 
 === keypress { |key| ... } » self ===
 
-Whenever a key (or combination of keys) is pressed, the block gets called.  The block is sent a `key` which is a string representing the character (such as the letter or number) on the key.  For special keys and key combos, a Ruby symbol is sent, rather than a string.
+キー（またはキーの組み合わせ）がいつ押されても、そのブロックは呼ばれます。そのブロックはキーの性質を表す文字列である`key`を送ります。特別なキーやキーの組み合わせの場合は、文字列ではなくRubyのシンボルが送られます。
 
-So, for example, if `Shift-a` is pressed, the block will get the string `"A"`.
+そして、例えば、`Shift-a`が押されたなら、そのブロックは`"A"`の文字列を得ます。
 
-However, if the F1 key is pressed, the `:f1` symbol is received.  For `Shift-F1`, the symbol would be `:shift_f1`.
+しかしながら、F1が押されたなら、 `:f1`のシンボルを受けとります。`Shift-F1`なら、そのシンボルは`:shift_f1`です。
 
-The modifier keys are `control`, `shift` and `alt`.  They appear in that order.  If `Shift-Control-Alt-PgUp` is pressed, the symbol will be `:control_shift_alt_page_up`.
+`control`、`shift`そして`alt`は修飾キーです。それらは以下の順番で現れます。`Shift-Control-Alt-PgUp`が押されたなら、そのシンボルは`:control_shift_alt_page_up`になります。
 
-One thing about the shift key.  You won't see the shift key on most keys.  On US keyboards, `Shift-7` is an ampersand.  So you'll get the string `"&"` rather than `:shift_5`.  And, if you press `Shift-Alt-7` on such a keyboard, you'll get the symbol: `:alt_&`.  You'll only see the shift modifier on the special keys listed a few paragraphs down.
+シフトキーについて１つ。多くのキーでシフトキーを見ないでしょう。USキーボードでは、`Shift-7`はアンパサンド（&）です。そのため、`:shift_5`ではなく`"&"`を得ます。そして、そのようなキーボードで`Shift-Alt-7`を押したら、`:alt_&`のシンボルを得ます。いくつか下のパラグラフで特別なキーのシフト修飾子の一覧が見えます。
 
 {{{
  #!ruby
@@ -1746,21 +1757,24 @@ One thing about the shift key.  You won't see the shift key on most keys.  On US
  end
 }}}
 
-Keep in mind that Shoes itself uses a few hotkeys.  Alt-Period (`:alt_.`), Alt-Question (`:alt_?`) and Alt-Slash (`:alt_/`) are reserved for Shoes.
+Shoesがそれ自身のいくつかのホットキーを利用することを覚えておいてください。Alt-ピリオド（`:alt_.`）、Alt-クエッション（`:alt_?`）そしてAlt-スラッシュ(`:alt_/`)はShoesの予約語です。
 
-The list of special keys is as follows: `:escape`, `:delete`, `:backspace`, `:tab`, `:page_up`, `:page_down`, `:home`, `:end`, `:left`, `:up`, `:right`, `:down`, `:f1`, `:f2`, `:f3`, `:f4`, `:f5`, `:f6`, `:f7`, `:f8`, `:f9`, `:f10`, `:f11` and `:f12`.
+以下はスペシャルキーの一覧です: `:escape`、`:delete`、　
+`:backspace`、`:tab`、`:page_up`、`:page_down`、`:home`、`:end`、`:left`、`:up`、　
+`:right`、`:down`、`:f1`、`:f2`、`:f3`、`:f4`、`:f5`、`:f6`、`:f7`、`:f8`、`:f9`、　
+`:f10`、`:f11`そして`:f12`。
 
-One caveat to all of those rules: normally the Return key gives you a string `"\n"`.  When pressed with modifier keys, however, you end up with `:control_enter`, `:control_alt_enter`, `:shift_alt_enter` and the like.
+それらすべてのルールに関する一つの警告：通常はリターンキーは`"\n"`を与えます。しかしながら、修飾キーが押されたときには、最後には`:control_enter`、`:control_alt_enter`、`:shift_alt_enter`になります。
 
 === leave { |self| ... } » self ===
 
-The leave event takes place when the mouse cursor exits a slot.  The moment it no longer is inside the slot's edges.  When that takes place, the block is called with `self`, the slot object which is being left.
+スロットからマウスカーソルが出て行くときleaveイベントが発生します。その瞬間すでにマウスカーソルはスロットの端の中にはありません。leaveイベントが発生するとき、`self`とともにブロックが呼ばれ、そのスロットオブジェクトは取り残されます。
 
-Also see [[Events.hover]] if you'd like to detect the mouse entering a slot.
+スロットにマウスが入ることを見つけたいなら[[Events.hover]]も見てください。
 
 === motion { |left, top| ... } » self ===
 
-The motion block gets called every time the mouse moves around inside the slot.  The block is handed the cursor's `left` and `top` coordinates.
+マウスがスロットの内部を移動するたびにモーションのブロックは呼ばれます。ブロックはカーソルの`left`や`top`の座標を渡します。
 
 {{{
  #!ruby
@@ -1777,21 +1791,21 @@ The motion block gets called every time the mouse moves around inside the slot. 
 
 === release { |button, left, top| ... } » self ===
 
-The release block runs whenever the mouse is unclicked (on mouse up).  When the finger is lifted.  The `button` is the number of the button that was depressed.  The `left` and `top` are the coordinates of the mouse at the time the button was released.
+マウスがアンクリック（マウスアップ）のときにreleaseのブロックは実行されます。それは指が持ち上げられたときです。`button`は押し下げられたボタンに対応する数です。`left`や`top`はボタンが離されたときのマウスのの座標です。
 
-To catch the actual mouse click, use the [[Events.click]] event.
+実際のマウスクリックを捕まえるには、[[Events.click]]イベントを利用してください。
 
 === start { |self| ... } » self ===
 
-The first time the slot is drawn, the start event fires.  The block is handed `self`, the slot object which has just been drawn.
+初めてスロットが描かれるとき、スタート（start）イベントが実行されます。まさに今描かれたスロットオブジェクトが`self`としてブロックに渡されます。
 
 == Manipulation Blocks ==
 
-The manipulation methods below make quick work of shifting around slots and inserting new elements.
+以下のmanipulationメソッドはスロットの周囲を変更したり新しい要素を挿入することを手早く片付けます。
 
 === append() { ... } » self ===
 
-Adds elements to the end of a slot.
+スロットの最後に要素を追加します。
 
 {{{
  #!ruby
@@ -1801,23 +1815,23 @@ Adds elements to the end of a slot.
  end
 }}}
 
-The `title` and `tagline` elements will be added to the end of the `@slot`.
+`title`や`tagline`の要素を`@slot`の最後に追加します。
 
 === after(element) { ... } » self ===
 
-Adds elements to a specific place in a slot, just after the `element` which is a child of the slot.
+スロットの子として`element`のすぐ後に、スロットの指定した箇所に要素を追加します。
 
 === before(element) { ... } » self ===
 
-Adds elements to a specific place in a slot, just before the `element` which is a child of the slot.
+スロットの子として`element`のすぐ前に、スロットの指定した箇所に要素を追加します。
 
 === clear() » self ===
 
-Empties the slot of any elements, timers and nested slots.  This is effectively identical to looping through the contents of the slot and calling each element's `remove` method.
+タイマーやネストしたスロットなど、スロットのすべての要素を空にします。スロットのコンテンツを最初から最後までループしてそれぞれの要素の`remove`メソッドを呼ぶことと効果としては同一です。
 
 === clear() { ... } » self ===
 
-The clear method also takes an optional block.  The block will be used to replace the contents of the slot.
+clearメソッドはオプションでブロックも取ります。このブロックはスロットのコンテンツを置き換えるために利用されます。
 
 {{{
  #!ruby
@@ -1825,11 +1839,11 @@ The clear method also takes an optional block.  The block will be used to replac
  @slot.clear { para "Brand new text" }
 }}}
 
-In this example, the "Old text" paragraph will be cleared out, replaced by the "Brand new text" paragraph.
+この例では、"Old text"パラグラフは排除され、"Brand new text"によって置き換えられます。
 
 === prepend() { ... } » self ===
 
-Adds elements to the beginning of a slot.
+スロットの初めに要素を追加します。
 
 {{{
  #!ruby
@@ -1838,33 +1852,32 @@ Adds elements to the beginning of a slot.
  end
 }}}
 
-The `para` element is added to the beginning of the `@slot`.
+`@slot`の初めに`para`要素を追加します。
 
 == Position of a Slot ==
 
-Like any other element, slots can be styled and customized when they are created.
+他のすべての要素と同様に、スロットは作成されたときに整形することやカスタマイズすることができます。
 
-To set the width of a stack to 150 pixels:
+スタックの幅を150ピクセルに設定するためには：
 
 {{{
  #!ruby
  stack(:width => 150) { para "Now that's precision." }
 }}}
 
-Each style setting also has a method, which can be used to grab that particular setting.  (So,
-like, the `width` method returns the width of the slot in pixels.)
+それぞれのスタイルの設定は、詳細な設定を手に入れるために利用することのできるメソッドも持っています。（そのため、例えば、`width`メソッドはスロットの幅をピクセルで返します。）
 
 === displace(left: a number, top: a number) » self ===
 
-A shortcut method for setting the :displace_left and :displace_top styles.  Displacing is a handy way of moving a slot without altering the layout.  In fact, the `top` and `left` methods will not report displacement at all.  So, generally, displacement is only for temporary animations.  For example, jiggling a button in place.
+:displace_leftと:displace_topスタイルの設定のためのショートカットメソッドです。置き換えはレイアウトを変更しないでスロットを移動する便利な方法です。実際には、`top`と`left`メソッドは置き換えを全く報告しません。そのため、通常、置き換えは一時的なアニメーションのためにあります。例えば、適当な位置にボタンを少し移動するなど。
 
-The `left` and `top` numbers sent to `displace` are added to the slot's own top-left coordinates.  To subtract from the top-left coordinate, use negative numbers.
+`left`と`top`の数は`displace`に送られ、スロット自身のtopとleftの座標に追加されます。topとleftの座標から差し引くには、負数を利用してください。
 
 === gutter() » a number ===
 
-The size of the scrollbar area.  When Shoes needs to show a scrollbar, the scrollbar may end up covering up some elements that touch the edge of the window.  The `gutter` tells you how many pixels to expect the scrollbar to cover.
+スクロールバーエリアの大きさです。Shoesがスクロールバーを表示する必要があるとき、スクロールバーがウィンドウの端にふれているいくつかの要素を隠してしまうかもしれません。`gutter`はどのくらいのピクセルをスクロールバーが隠すことを期待するかを教えます。
 
-This is commonly used to pad elements on the right, like so:
+これは一般的には、次のように右側に詰め物の要素として利用します：
 
 {{{
  #!ruby
@@ -1876,58 +1889,58 @@ This is commonly used to pad elements on the right, like so:
 
 === height() » a number ===
 
-The vertical size of the viewable slot in pixels.  So, if this is a scrolling slot, you'll need to use `scroll_height()` to get the full size of the slot.
+スロットの目に見えるピクセルでの垂直の大きさです。そして、スクロールするスロットの場合は、スロットの全体の大きさを得るために`scroll_height()`の利用を必要とするでしょう。
 
 === hide() » self ===
 
-Hides the slot, so that it can't be seen.  See also [[Position.show]] and [[Position.toggle]].
+見えなくするために、スロットを隠します。[[Position.show]]と[[Position.toggle]]も見てください。
 
 === left() » a number ===
 
 The left pixel location of the slot.  Also known as the x-axis coordinate.
+スロットの位置の左のピクセルです。x-axis座標でも知ることができます。
 
 === move(left, top) » self ===
 
-Moves the slot to specific coordinates, the (left, top) being the upper left hand corner of the slot.
+スロットの左上の角である（left、top）の座標を指定してスロットを移動します。
 
 === remove() » self ===
 
-Removes the slot.  It will no longer be displayed and will not be listed in its parent's contents.  It's gone.
+スロットを削除します。それは表示されなくなり親のコンテンツに記載されなくなります。それは消え去ります。
 
 === scroll() » true or false ===
 
-Is this slot allowed to show a scrollbar?  True or false.  The scrollbar will only appear if
-the height of the slot is also fixed.
+スロットにスクロールバーを表示することを許しますか？trueかfalseです。スロットの高さも固定されているときだけスクロールバーが表示されます。
 
 === scroll_height() » a number ===
 
-The vertical size of the full slot, including any of it which is hidden by scrolling.
+スクロールによって隠されているすべてを含む、スロット全体の垂直の大きさです。
 
 === scroll_max() » a number ===
 
-The top coordinate which this slot can be scrolled down to.  The top coordinate of a scroll bar is always zero.  The bottom coordinate is the full height of the slot minus one page of scrolling.  This bottom coordinate is what `scroll_max` returns.
+このスロットでスクロールダウンできる上側（top）の座標です。スクロールバーの上側（top）の座標はいつもゼロです。下側（bottom）の座標はスロット全体の高さから1ページのスクロール分を引いたものです。この下側（bottom）の座標は`scroll_max`が返す値です。
 
-This is basically a shortcut for writing `slot.scroll_height - slot.height`.
+これは基本的に`slot.scroll_height - slot.height`と書くためのショートカットです。
 
-To scroll to the bottom of a slot, use `slot.scroll_top = slot.scroll_max`.
+スロットの下側にスクロールするためには、`slot.scroll_top = slot.scroll_max`を利用します。
 
 === scroll_top() » a number ===
 
-The top coordinate which this slot is scrolled down to.  So, if the slot is scrolled down twenty pixels, this method will return `20`.
+スロットがスクロールダウンする上側（top）の座標です。そのため、スロットが20ピクセルスクロールダウンされたら、このメソッドは`20`を返します。
 
 === scroll_top = a number ===
 
-Scrolls the slot to a certain coordinate.  This must be between zero and `scroll_max`.
+任意の座標にスロットをスクロールします。ゼロから`scroll_max`までの間である必要があります。
 
 === show() » self ===
 
-Reveals the slot, if it is hidden.  See also [[Position.hide]] and [[Position.toggle]].
+スロットが隠されていた場合、表示します。[[Position.hide]]と[[Position.toggle]]も見てください。
 
 === style() » styles ===
 
-Calling the `style` method with no arguments returns a hash of the styles presently applied to this slot.
+引数なしで`style`メソッドを呼ぶことでスロットに現在適用されているスタイルのハッシュを返します。
 
-While methods such as `height` and `width` return the true pixel dimensions of the slot, you can use `style[:height]` or `style[:width]` to get the dimensions originally requested.
+`height`と`width`などのメソッドはスロットの本当のサイズをピクセルで返しますが、`style[:height]`または`style[:width]`を利用することで初めに要求されたサイズを得ることができます。
 
 {{{
  #!ruby
@@ -1937,11 +1950,11 @@ While methods such as `height` and `width` return the true pixel dimensions of t
  end
 }}}
 
-In this example, the paragraph under the stack will display the string "100%".
+この例では、このスタックの下のパラグラフは"100%"の文字列を表示します。
 
 === style(styles) » styles ===
 
-Alter the slot using a hash of style settings.  Any of the methods on this page (aside from this method, of course) can be used as a style setting.  So, for example, there is a `width` method, thus there is also a `width` style.
+ハッシュのスタイル設定を使ってスロットを修正してください。このページのどんなメソッドでも（もちろん、このメソッドは除いて）スタイルの設定に利用できます。そして、例えば、`width`メソッドがあり、このように`width`スタイルもあります。
 
 {{{
  #!ruby
@@ -1953,54 +1966,47 @@ Alter the slot using a hash of style settings.  Any of the methods on this page 
 
 === toggle() » self ===
 
-Hides the slot, if it is shown.  Or shows the slot, if it is hidden.
+スロットが表示されているなら非表示にします。また、スロットが非表示なら表示します。
 
 === top() » a number ===
 
-The top pixel location of the slot.  Also known as the y-axis coordinate.
+スロットの上（top）の位置です。y軸の座標としても知られています。
 
 === width() » a number ===
 
-The horizontal size of the slot in pixels.
+スロットの水平のピクセルサイズです。
 
 == Traversing the Page ==
 
-You may find yourself needing to loop through the elements inside a slot.  Or maybe you need to
-climb the page, looking for a stack that is the parent of an element.
+スロット内部の要素を最初から最後までループする必要性に気づくかもしれません。または、ページを登って要素の親のスタックを探す必要があるかもしれません。
 
-On any element, you may call the `parent` method to get the slot directly above it.  And on slots,
-you can call the `contents` method to get all of the children.  (Some elements, such as text blocks,
-also have a `contents` method for getting their children.)
+すべての要素で、上位のスロット直接得るために`parent`メソッドを呼ぶことができます。そしてスロットでは、すべての子を得るために`contents`メソッドを呼ぶことができます。（テキストブロックなどのいくつかの要素は、それらの子を得るための`contents`メソッドも持っています。）
 
 === contents() » an array of elements ===
 
-Lists all elements in a slot.
+スロットのすべての要素を一覧にします。
 
 === parent() » a Shoes::Stack or Shoes::Flow ===
 
-Gets the object for this element's container.
+要素のコンテナのオブジェクトを得ます。
 
 = Elements =
 
-Ah, here's the stuff of Shoes.  An element can be as simple as an oval shape.  Or as complex as
-a video stream.  You've encountered all of these elements before in the Slots section of the
-manual.
+これはShoesの要素です。要素は楕円の形状と同じくらい単純です。またはビデオストリームと同じくらい複雑です。あなたは以前このマニュアルのスロットのセクションでこれらすべての要素に出会ったことがあります。
 
-Shoes has seven native controls: the Button, the EditLine, the EditBox, the ListBox, the Progress meter, the Check box and the Radio.  By "native" controls, we mean that each of these seven elements is drawn by the operating system.  So, a Progress bar will look one way on Windows and another way on OS X.
+Shoesは7つのネイティブコントロールを持ちます：ボタン（Button）、エディットライン（EditLine）、エディットボックス（EditBox）、リストボックス（ListBox）、プログレスメータ（Progress meter）、チェックボックス（Check box）、ラジオ（Radio）。私たちの言う"native"コントロールとは、それらの7つの要素がオペレーティングシステムによって描画されることを意味します。そのため、プログレスバーのWindowsでの見え方とOS Xでの見え方は違います。
 
-Shoes also has seven basic other types of elements: Background, Border, Image, Shape, TextBlock, Timer and Video.  These all should look and act the same on every operating system.
+またShoesは7つの他の種類の要素を持っています：背景（Background）、ボーダー（Border）、画像（Image）、形状（Shape）、テキストブロック（TextBlock）、タイマー（Timer）、そしてビデオ（Video）。それらすべてはどんなオペレーティングシステムでも同じような見え方と動きになるべきです。
 
-Once an element is created, you will often still want to change it.  To move it or hide it or get
-rid of it.  You'll use the commands in this section to do that sort of stuff.  (Especially check out the [[Common Common Methods]] section for commands you can use on any element.)
+いったん要素を生成した後でも、それを変更したくなるでしょう。それを動かしたり隠したりまたはそれを取り除くために。それらの種類のことを行うために、このセクションのコマンド利用するでしょう。（特にどんな要素上でも利用できるコマンドの[[Common Common Methods]]セクションを確認してください。）
 
-So, for example, use the `image` method of a Slot to place a PNG on the screen. The `image` method
-gives you back an Image object. Use the methods of the Image object to change things up.
+そして、例として、PNGをスクリーンを配置するためにスロットの`image`メソッドを使ってください。この`image`メソッドはイメージオブジェクトを返します。これらをすっかり変更するためにイメージオブジェクトのこのメソッドを使ってみてください。
 
 == Common Methods ==
 
-A few methods are shared by every little element in Shoes.  Moving, showing, hiding.  Removing an element.  Basic and very general things.  This list encompasses those common commands.
+Shoesでは少しのメソッドがすべての小さな要素によって共有されてます。移動、表示、非表示。要素の削除。基本的でとても一般的なことです。この一覧はそれらの一般的なコマンドを含んでいます。
 
-One of the most general methods of all is the `style` method (which is also covered as the [[Position.style]] method for slots.)
+すべてのメソッドの中でもっとも一般的なメソッドの一つは`style`です。（これはスロットの[[Position.style]]メソッドとしてもカバーされます。）
 
 {{{
  #!ruby
@@ -2019,13 +2025,13 @@ One of the most general methods of all is the `style` method (which is also cove
  end
 }}}
 
-For specific commands, see the other links to the left in the Elements section.  Like if you want to pause or play a video file, check the [[Video]] section, since pausing and playing is peculiar to videos.  No sense pausing a button.
+個別のコマンドについては、左にあるElementsセクションの他のリンクを見てください。ビデオファイルの中断または再生がしたいなら、ビデオの中断や再生は特異なので、[[Video]]セクションを確認してください。中断するボタンという感じではありません。
 
 === displace(left: a number, top: a number) » self ===
 
-Displacing an element moves it.  But without changing the layout around it.  This is great for subtle animations, especially if you want to reserve a place for an element while it is still animating.  Like maybe a quick button shake or a slot sliding into view.
+要素を移動して置き換えます。しかし周囲のレイアウトは変更しません。特にアニメーションしている間でも要素の位置を保持したいなら、これは微妙なアニメーションに重要です。おそらく素早く震えるボタンや視界にスロットを滑り込ませるような。
 
-When you displace an element, it moves relative to the upper-left corner where it was placed.  So, if an element is at the coordinates (20, 40) and you displace it 2 pixels left and 6 pixels on top, you end up with the coordinates (22, 46).
+要素を置き換えるとき、それが配置されている左上の角から相対的に移動します。そのため、要素が(20, 40)の座標にあり、2ピクセル左と6ピクセル上に置き換えるなら、結果的に(22, 46)の座標となります。
 
 {{{
  #!ruby
@@ -2044,31 +2050,29 @@ When you displace an element, it moves relative to the upper-left corner where i
  end
 }}}
 
-Notice that while the second button bounces, the other two buttons stay put.  If we used a normal `move` in this situation, the second button would be moved out of the layout and the buttons would act as if the second button wasn't there at all.  (See the [[Common.move]] example.)
+他の２つのボタンは動かずにじっとしていますが、２番目のボタンが飛び跳ねることに注目してください。この状況で普通の`move`を使うなら、２番目のボタンはレイアウトから取り除かれて、２番目のボタンが全くそこにないかのように振る舞うでしょう。（[[Common.move]]の例を見てください。）
 
-'''Of particular note:''' if you use the `left` and `top` methods to get the coordinates of a displaced element, you'll just get back the normal coordinates.  As if there was no displacement.  Displacing is just intended for quick animations!
+'''特に注意してください：'''表示される要素の座標を得るために`left`と`top`メソッドを利用するなら、通常の座標を得るだけです。それは置き換えが行われていないかのようです。置き換えは即座のアニメーションだけを目的とします。
 
 === height() » a number ===
 
-The vertical screen size of the element in pixels.  In the case of images, this is not the
- full size of the image.  This is the height of the element as it is shown right now.
+エレメントの垂直のピクセルによるスクリーンサイズです。画像の場合には、これは画像全体のサイズではありません。これは要素の現在表示されている高さです。
 
-If you have a 150x150 pixel image and you set the width to 50 pixels, this method will return
-50.
+150x150ピクセルの画像を持っていて50ピクセルに幅を設定するなら、このメソッドは50を返します。
 
-Also see the [[Common.width]] method for an example and some other comments.
+例や他の解説のために[[Common.width]]メソッドも見てください。
 
 === hide() » self ===
 
-Hides the element, so that it can't be seen.  See also [[Common.show]] and [[Common.toggle]].
+要素が見えないように、非表示にします。[[Common.show]]や[[Common.toggle]]も見てください。
 
 === left() » a number ===
 
-Gets you the pixel position of the left edge of the element.
+要素の左端の位置をピクセルで得ます。
 
 === move(left: a number, top: a number) » self  ===
 
-Moves the element to a specific pixel position within its slot.  The element is still inside the slot.  But it will no longer be stacked or flowed in with the other stuff in the slot.  The element will float freely, now absolutely positioned instead.
+スロットの範囲内でピクセルによって指定した位置に要素を移動します。その要素はスロットの内部にあります。しかし、もはやスロットの他の要素と一緒に積み上げられたりフローされたりしません。その要素は絶対的な位置指定ではなく、自由に浮かんでいます。
 
 {{{
  #!ruby
@@ -2087,23 +2091,23 @@ Moves the element to a specific pixel position within its slot.  The element is 
  end
 }}}
 
-The second button is moved to a specific place, allowing the third button to slide over into its place.  If you want to move an element without shifting other pieces, see the [[Common.displace]] method.
+３番目のボタンがその位置にスライドすることを許しており、２番目のボタンは特定の場所に動かされてします。要素を別の場所に変更しないで移動したいなら、[[Common.displace]]メソッドを見てください。
 
 === parent() » a Shoes::Stack or Shoes::Flow ===
 
-Gets the object for this element's container.  Also see the slot's [[Traversing.contents]] to do the opposite: get a container's elements.
+その要素のコンテナのオブジェクトを得ます。反対のことを行うためにはスロットの[[Traversing.contents]]も見てください：コンテナの要素を得ます。
 
 === remove() » self ===
 
-Removes the element from its slot.  (In other words: throws it in the garbage.)  The element will no longer be displayed.
+スロットから要素を削除します。（他の言葉で言い換えると：ガベージに投げます。）その要素はもう表示されません。
 
 === show() » self ===
 
-Reveals the element, if it is hidden.  See also [[Common.hide]] and [[Common.toggle]].
+要素が非表示なら、表示します。[[Common.hide]]や[[Common.toggle]]も見てください。
 
 === style() » styles ===
 
-Gives you the full set of styles applied to this element, in the form of a Hash.  While methods like `width` and `height` and `top` give you back specific pixel dimensions, using `style[:width]` or `style[:top]`, you can get the original setting (things like "100%" for width or "10px" for top.)
+ハッシュの形で、要素に適用するフルセットのスタイルを得ます。`width`や`height`や`top`のようなメソッドは特定のピクセルでのサイズを返しますが、`style[:width]`または`style[:top]`を利用すると、初めの設定を得ることができます。（"100%"の幅または"10px"のトップのような）
 
 {{{
  #!ruby
@@ -2118,21 +2122,21 @@ Gives you the full set of styles applied to this element, in the form of a Hash.
 
 === style(styles) » styles ===
 
-Changes the style of an element.  This could include the `:width` and `:height` of an element, the font `:size` of some text, the `:stroke` and `:fill` of a shape.  Or any other number of style settings.
+要素のスタイルを変更します。これは要素の`:width`と`:height`、テキストのフォントの`:size`、形状の`:stroke`や`:fill`を含みます。または他の多くのスタイルの設定もです。
 
 === toggle() » self ===
 
-Hides an element if it is shown.  Or shows the element, if it is hidden.
+要素が表示されているなら非表示にします。または要素が非表示なら表示します。
 
 === top() » a number ===
 
-Gets the pixel position of the top edge of the element.
+要素の上端のピクセルの位置を得ます。
 
 === width() » a number ===
 
-Gets the pixel width for the full size of the element.  This method always returns an exact pixel size.  In the case of images, this is not the full width of the image, just the size it is shown at.  See the [[Common.height]] method for more.
+要素の全体の大きさの幅をピクセルで得ます。このメソッドはいつも正確なピクセルサイズを返します。画像の場合は、画像の全幅ではなく、表示されているサイズだけです。詳しくは[[Common.height]]メソッドも見てください。
 
-Also, if you create an element with a width of 100% and that element is inside a stack which is 120 pixels wide, you'll get back `120`.  However, if you call `style[:width]`, you'll get `"100%"`.
+また、120ピクセルの幅のスタック内に100%の幅の要素を作成したなら、`120`が返されます。しかしながら、`style[:width]`を呼んだなら、`"100%"`を得ます。
 
 {{{
  #!ruby
@@ -2146,17 +2150,17 @@ Also, if you create an element with a width of 100% and that element is inside a
  end
 }}}
 
-In order to set the width, you'll have to go through the [[Common.style]] method again.  So, to set the button to 150 pixels wide: `@b.style(:width => 150)`.
+幅を設定するためには、[[Common.style]]メソッドをもう一度調べる必要があります。そして、150ピクセルの幅にボタンを設定するには：`@b.style(:width => 150)`。
 
-To let Shoes pick the element's width, go with `@b.style(:width => nil)` to empty out the setting.
+要素の幅を取るには、設定を空にするために`@b.style(:width => nil)`とします
 
 == Background ==
 
-A background is a color, a gradient or an image that is painted across an entire slot.  Both backgrounds and borders are a type of Shoes::Pattern. !{:margin_left => 100}man-ele-background.png!
+背景はスロット全体に渡って塗られた、グラデーションまたは画像の色です。背景と枠線はShoes::Patternの種類の一つです。!{:margin_left => 100}man-ele-background.png!
 
-Even though it's called a ''background'', you may still place this element in front of other elements.  If a background comes after something else painted on the slot (like a `rect` or an `oval`,) the background will be painted over that element.
+''背景（background）''と呼ばれているにも関わらず、この要素は他の要素よりも前面に表示されます。背景がスロットで塗られた何か他のもの（`rect`または`oval`のような）の後にきた場合、背景はその要素の上に塗られます。
 
-The simplest background is just a plain color background, created with the [[Element.background]] method, such as this black background:
+もっとも単純な背景は、黒の背景のような[[Element.background]]メソッドによって作成された、単色の背景です。
 
 {{{
  #!ruby
@@ -2165,11 +2169,11 @@ The simplest background is just a plain color background, created with the [[Ele
  end
 }}}
 
-A simple background like that paints the entire slot that contains it.  (In this case, the whole window is painted black.)
+このような単純な背景はスロットが含むもの全体を塗りつぶします（この場合は、ウィンドウ全体が黒で塗られます。）
 
-You can use styles to cut down the size or move around the background to your liking.
+好きなように背景のサイズを切り詰めたりあちこち移動したりするためのスタイルを利用できます。
 
-To paint a black background across the top fifty pixels of the window:
+ウィンドウの上側を50ピクセルに渡って黒い背景で塗りつぶします：
 
 {{{
  #!ruby
@@ -2178,7 +2182,7 @@ To paint a black background across the top fifty pixels of the window:
  end
 }}}
 
-Or, to paint a fifty pixel column on the right-side of the window:
+または、ウィンドウの右端の50ピクセルの列を塗りつぶします：
 
 {{{
  #!ruby
@@ -2187,21 +2191,21 @@ Or, to paint a fifty pixel column on the right-side of the window:
  end
 }}}
 
-Since Backgrounds are normal elements as well, see also the start of the [[Elements]] section for all of its other methods.
+背景は普通の要素と同様なので、その他のすべてのメソッドについては[[Elements]]セクションの始めの部分も見てください。
 
 === to_pattern() » a Shoes::Pattern ===
 
-Yanks out the color, gradient or image used to paint this background and places it in a normal Shoes::Pattern object.  You can then pass that object to other backgrounds and borders.  Reuse it as you like.
+背景を塗りつぶすために利用されたグラデーションや画像を通常のShoes::Patternオブジェクトに配置し、色をヤンクします。そして、他のオブジェクトに背景や枠線に渡すことができます。好きなように再利用してください。
 
 == Border ==
 
-A border is a color, gradient or image painted in a line around the edge of any slot.  Like the Background element in the last section, a Border is a kind of Shoes::Pattern. !{:margin_left => 100}man-ele-border.png!
+枠線はスロットの周囲の線に塗られた、色やグラデーションや画像です。次のセクションの背景の要素では、枠線（Border）はShoes::Patternの一種です。!{:margin_left => 100}man-ele-border.png!
 
-The first, crucial thing to know about border is that all borders paint a line around the '''inside''' of a slot, not the outside.  So, if you have a slot which is fifty pixels wide and you paint a five pixel border on it, that means there is a fourty pixel wide area inside the slot which is surrounded by the border.
+はじめに、すべての枠線はスロットの周囲の外側ではなく、'''内側'''を塗ることについて知ることは重要です。そのため、50ピクセルの幅のスロットに5ピクセルの枠線を塗るなら、それは枠線で囲まれたスロットが内部に40ピクセルの幅のエリアを持つことを意味します。
 
-This also means that if you paint a Border on top of a [[Background]], the edges of the background will be painted over by the border.
+これは枠線（Border）を[[Background]]の上に塗るなら、その背景の端の上を枠線によって塗られることも意味します。
 
-Here is just such a slot:
+正にそのようなスロットがここにあります：
 
 {{{
  #!ruby
@@ -2213,7 +2217,7 @@ Here is just such a slot:
  end
 }}}
 
-If you want to paint a border around the outside of a slot, you'll need to wrap that slot in another slot.  Then, place the border in the outside slot.
+スロットの外側の修正に枠線を塗りたいなら、もう一つのスロットでそのスロットをラップする必要があります。その結果、スロットの外側に枠線が配置されます。
 
 {{{
  #!ruby
@@ -2227,17 +2231,17 @@ If you want to paint a border around the outside of a slot, you'll need to wrap 
  end
 }}}
 
-In HTML and many other languages, the border is painted on the outside of the box, thus increasing the overall width of the box.  Shoes was designed with consistency in mind, so that if you say that a box is fifty pixels wide, it stays fifty pixels wide regardless of its borders or margins or anything else.
+HTMLや他の多くの言語では、枠線は箱の外側に塗られるため、ボックス全体の幅が増加します。Shoesは一貫性を考慮してデザインされているため、枠線やマージンや他のどんなものも気にしないでそれは50ピクセルの幅のままです。
 
-Please also check out the [[Elements]] section for other methods used on borders.
+枠線に利用する他のメソッドについては[[Elements]]セクションも確認してください。
 
 === to_pattern() » a Shoes::Pattern ===
 
-Creates a basic pattern object based on the color, gradient or image used to paint this border.  The pattern may then be re-used in new borders and backgrounds.
+枠線を塗るための色、グラデーションまたは画像を元にした基本のパターンオブジェクトを作成します。
 
 == Button ==
 
-Buttons are, you know, push buttons.  You click them and they do something.  Buttons are known to say "OK" or "Are you sure?"  And, then, if you're sure, you click the button. !{:margin_left => 100}man-ele-button.png!
+ボタン（Button）は、ご存知のとおり、押しボタンです。それらをクリックしたら何かを行います。ボタンは"OK"または"Are you sure?"などを表示します。そして、よければボタンをクリックします。
 
 {{{
  #!ruby
@@ -2247,7 +2251,7 @@ Buttons are, you know, push buttons.  You click them and they do something.  But
  end
 }}}
 
-The buttons in the example above don't do anything when you click them.  In order to get them to work, you've got to hook up a block to each button.
+上記の例のボタンはそれらがクリックされたときに何も行いません。働きを行わせるためには、それぞれのボタンにブロックを取り付けます。
 
 {{{
  #!ruby
@@ -2261,11 +2265,11 @@ The buttons in the example above don't do anything when you click them.  In orde
  end
 }}}
 
-So now we've got blocks for the buttons.  Each block appends a new paragraph to the page.  The more you click, the more paragraphs get added.
+このようにボタンにブロックを取り付けました。それぞれのブロックはページに新しいパラグラフを取り付けます。クリックする度に、パラグラフが追加されます。
 
-It doesn't go much deeper than that.  A button is just a clickable phrase.
+これはこれ以上深くはしません。ボタンはクリック可能な句でしかありません。
 
-Just to be pedantic, though, here's another way to write that last example.
+厳密に言えば、次に続く例では他の方法でそれを書いています。
 
 {{{
  #!ruby
@@ -2277,25 +2281,25 @@ Just to be pedantic, though, here's another way to write that last example.
  end
 }}}
 
-This looks dramatically different, but it does the same thing.  The first difference: rather than attaching the block directly to the button, the block is attached later, through the `click` method.
+見た目は劇的に違いますが、これは同じ動きです。１つ目の違い：直接ブロックをボタンに取り付けるのではなく、`click`メソッドを通して、ブロックを後で取り付けています。
 
-The second change isn't related to buttons at all.  The `append` block was dropped since Shoes allows you to add new elements directly to the slot.  So we can just call `para` directly.  (This isn't the case with the `prepend`, `before` or `after` methods.)
+２つ目の違いはボタンには全く関係がありません。Shoesがスロットに要素を直接追加することを許しているので、`append`ブロックが取り除かれています。そのため直接`para`を呼ぶことができます。（`prepend`、`before`または`after`メソッドの場合にはできません。）
 
-Beside the methods below, buttons also inherit all of the methods that are [[Common]].
+以下のメソッドに加えて、ボタンは[[Common]]のすべてのメソッドも継承します。
 
 === click() { |self| ... } » self ===
 
-When a button is clicked, its `click` block is called.  The block is handed `self`.  Meaning: the button which was clicked.
+ボタンがクリックされたときには、`click`ブロックが呼ばれます。このブロックは`self`を渡します。意味すること：どちらのボタンでクリックされたか。
 
 === focus() » self ===
 
-Moves focus to the button.  The button will be highlighted and, if the user hits Enter, the button will be clicked.
+ボタンのフォーカスを移動します。そのボタンはハイライトされ、ユーザがエンターキーを打てば、クリックされます。
 
 == Check ==
 
-Check boxes are clickable square boxes than can be either checked or unchecked.  A single checkbox usually asks a "yes" or "no" question.  Sets of checkboxes are also seen in to-do lists. !{:margin_left => 100}man-ele-check.png!
+チェックボックスはチェックされた状態またはチェックされていない状態になるクリック可能な四角い箱です。１つのチェックボックスでは通常は"はい（yes）"または"いいえ（no）"の質問をたずねます。複数のチェックボックスのセットではto-doリストでも見られます。
 
-Here's a sample checklist.
+ここにチェックリストのサンプルがあります。
 
 {{{
  #!ruby
@@ -2308,9 +2312,9 @@ Here's a sample checklist.
  end
 }}}
 
-You basically have two ways to use a check.  You can attach a block to the check and it'll get called when the check gets clicked.  And/or you can just use the `checked?` method to go back and see if a box has been checked or not.
+基本的にはチェック（check）を利用するための２つの方法があります。チェックにチェックがクリックされたときに呼ばれるブロックを取り付けます。そして／または、ボックスがチェックされているかどうか確認する`checked?`メソッドを利用できます。
 
-Okay, let's add to the above example.
+では、上記の例に追加しましょう。
 
 {{{
  #!ruby
@@ -2332,33 +2336,33 @@ Okay, let's add to the above example.
  end
 }}}
 
-So, when the button gets pressed, each of the checks gets asked for its status, using the `checked?` method.
+そして、ボタンが押されたときに、`checked?`メソッドを利用して、それぞれのチェックはその状態を尋ねます。
 
-Button methods are listed below, but also see the list of [[Common]] methods, which all elements respond to.
+下のボタンメソッドの一覧だけでなく、すべての要素が応答できる、[[Common]]メソッドの一覧も見てください。
 
 === checked?() » true or false ===
 
-Returns whether the box is checked or not.  So, `true` means "yes, the box is checked!"
+その箱がチェックされているかどうかを返します。そして、`true`の意味は"はい、この箱はチェックされています！"です。
 
 === checked = true or false ===
 
-Marks or unmarks the check box.  Using `checked = false`, for instance, unchecks the box.
+チェックボックスをマークしたりマークを外したりします。例えば、`checked = false`を利用して、箱のチェックを外します。
 
 === click() { |self| ... } » self ===
 
-When the check is clicked, its `click` block is called.  The block is handed `self`, which is the check object which was clicked.
+チェックボックスがクリックされたときに、その`click`ブロックが呼ばれます。このブロックは、クリックされたチェックボックスオブジェクトの`self`を渡します。
 
-Clicks are sent for both checking and unchecking the box.
+箱がチェックされるときとチェックを外すときのどちらもクリックが渡されます。
 
 === focus() » self ===
 
-Moves focus to the check.  The check will be highlighted and, if the user hits Enter, the check will be toggled between its checked and unchecked states.
+チェックボックスにフォーカスを移動します。そのチェックボックスはハイライトされ、ユーザがエンターキーを打てば、そのチェックボックスはチェックされた状態とチェックされていない状態の間をトグルします。
 
 == EditBox ==
 
-Edit boxes are wide, rectangular boxes for entering text.  On the web, they call these textareas.  These are multi-line edit boxes for entering longer descriptions.  Essays, even! !{:margin_left => 100}man-ele-editbox.png!
+エディットボックス（Edit box）は、テキストを入力するための幅広い長方形の箱です。webでは、それらはテキストエリアと呼ばれます。それらは長い記述を入力するためのマルチラインエディットボックスです。エッセイでさえ書けます！　!{:margin_left => 100}man-ele-editbox.png!
 
-Without any other styling, edit boxes are sized 200 pixels by 108 pixels.  You can also use `:width` and `:height` styles to set specific sizes.
+スタイルを何も設定しなければ、エディットボックスは200ピクセルx108ピクセルのサイズです。特定のサイズに設定するために`:width`と`:height`のスタイルを利用することもできます。
 
 {{{
  #!ruby
@@ -2368,7 +2372,7 @@ Without any other styling, edit boxes are sized 200 pixels by 108 pixels.  You c
  end
 }}}
 
-Other controls (like [[Button]] and [[Check]]) have only click events, but both [[EditLine]] and EditBox have a `change` event.  The `change` block is called every time someone types into or deletes from the box.
+（[[Button]]や[[Check]]などの）他のコントロールはクリックイベントだけを持っていますが、[[EditLine]]やエディットボックス（EditBox）は`change`イベントも持っています。誰かがタイプしたり箱から削除したら`change`のブロックはいつでも呼ばれます。
 
 {{{
  #!ruby
@@ -2381,31 +2385,31 @@ Other controls (like [[Button]] and [[Check]]) have only click events, but both 
  end
 }}}
 
-Notice that the example also uses the [[EditBox.text]] method inside the block.  That method gives you a string of all the characters typed into the box.
+この例ではブロック内部で[[EditBox.text]]メソッドを利用していることにも注意してください。このメソッドは箱に対してタイプしたすべての文字の文字列をあなたに与えます。
 
-More edit box methods are listed below, but also see the list of [[Common]] methods, which all elements respond to.
+エディットボックスの更なるメソッドは以下に一覧にしますが、すべての要素が応答できる、[[Common]]メソッドの一覧も見てください。
 
 === change() { |self| ... } » self ===
 
-Each time a character is added to or removed from the edit box, its `change` block is called.  The block is given `self`, which is the edit box object which has changed.
+エディットボックスに文字が追加されたり取り除かれるたびに、`chenage`ブロックが呼ばれます。ブロックには変更されたエディットボックスのオブジェクトである`self`が与えられます。
 
 === focus() » self ===
 
-Moves focus to the edit box.  The edit box will be highlighted and the user will be able to type into the edit box.
+エディットボックスにフォーカスを移動します。そのエディットボックスはハイライトされ、ユーザはエディットボックスにタイプできます。
 
 === text() » self ===
 
-Return a string of characters which have been typed into the box.
+箱にタイプされた文字を文字列として返します。
 
 === text = a string ===
 
-Fills the edit box with the characters of `a string`.
+`a string`の文字をエディットボックスに代入します。
 
 == EditLine ==
 
-Edit lines are a slender, little box for entering text.  While the EditBox is multi-line, an edit line is just one.  Line, that is.  Horizontal, in fact. !{:margin_left => 100}man-ele-editline.png!
+エディットライン（Edit line）は細長い、小さなテキストを入力する箱です。エディットボックスはマルチラインですが、エディットラインは１行です。これはエディットラインです。ちなみに水平です。
 
-The unstyled edit line is 200 pixels wide and 28 pixels wide.  Roughly.  The height may vary on some platforms.
+スタイルが設定されていないエディットラインは200ピクセルの幅と28ピクセルの高さです。これはおおよそです。プラットフォームによって高さは様々です。
 
 {{{
  #!ruby
@@ -2417,31 +2421,31 @@ The unstyled edit line is 200 pixels wide and 28 pixels wide.  Roughly.  The hei
  end
 }}}
 
-You can change the size by styling both the `:width` and the `:height`.  However, you generally only want to style the `:width`, as the height will be sized to fit the font.  (And, in current versions of Shoes, the font for edit lines and edit boxes cannot be altered anyway.)
+`:width`と`:height`の両方のスタイルを設定することによりサイズを変更することができます。しかしながら、高さはフォントに合わせて調整されるため、一般的には`:width`だけのスタイルを設定します。（そして、現在のバージョンのShoesでは、エディットラインとエディットボックスフォントはどうやっても変更できません。）
 
-If a block is given to an edit line, it receives `change` events.  Check out the [[EditBox]] page for an example of using a change block.  In fact, the edit box has all the same methods as an edit line.  Also see the list of [[Common]] methods, which all elements respond to.
+エディットラインにブロックが与えられたら、`change`イベントを受けとります。changeブロックを利用した例については[[EditBox]]のページを確認してください。実際には、そのエディットボックスはエディットラインとすべて同じメソッドを持ちます。すべての要素が応答できる、[[Common]]メソッドの一覧も見てください。
 
 === change() { |self| ... } » self ===
 
-Each time a character is added to or removed from the edit line, its `change` block is called.  The block is given `self`, which is the edit line object which has changed.
+エディットラインに文字が追加されたり取り除かれるたびに、`chenage`ブロックが呼ばれます。ブロックには変更されたエディットラインのオブジェクトである`self`が与えられます。
 
 === focus() » self ===
 
-Moves focus to the edit line.  The edit line will be highlighted and the user will be able to type into the edit line.
+エディットラインにフォーカスを移動します。そのエディットラインはハイライトされ、ユーザはエディットラインにタイプできます。
 
 === text() » self ===
 
-Return a string of characters which have been typed into the box.
+箱にタイプされた文字を文字列として返します。
 
 === text = a string ===
 
-Fills the edit line with the characters of `a string`.
+`a string`の文字をエディットボックスに代入します。
 
 == Image ==
 
-An image is a picture in PNG, JPEG or GIF format.  Shoes can resize images or flow them in with text.  Images can be loaded from a file or directly off the web. !{:margin_left => 100}man-ele-image.png!
+画像（image）はPNG、JPEGまたはGIFフォーマットの画像ファイルです。Shoesは画像をリサイズまたはテキストとともにそれらをフローすることができます。!{:margin_left => 100}man-ele-image.png!
 
-To create an image, use the `image` method in a slot:
+画像を作成するために、スロット内部で`image`メソッドを利用します：
 
 {{{
  #!ruby
@@ -2451,9 +2455,9 @@ To create an image, use the `image` method in a slot:
   end
 }}}
 
-When you load any image into Shoes, it is cached in memory.  This means that if you load up many image elements from the same file, it'll only really load the file once.
+Shoesに何らかの画像をロードしたとき、それはメモリにキャッシュされます。それは、同じファイルの画像の要素をたくさんロードした場合でも、それは実際には１回だけファイルをロードすることを意味します。
 
-You can use web URLs directly as well.
+webのURLを直接利用することもできます。
 
 {{{
  #!ruby
@@ -2462,33 +2466,33 @@ You can use web URLs directly as well.
  end
 }}}
 
-When an image is loaded from the web, it's cached on the hard drive as well as in memory.  This prevents a repeat download unless the image has changed.  (In case you're wondering: Shoes keeps track of modification times and etags just like a browser would.)
+webから画像がロードされたとき、それはハードディスクドライブとメモリの両方にキャッシュされます。これは画像が変更されなければ再度ダウンロードをすることを防止します。（不思議に思う場合：正にブラウザが行うetagのようにShoesは変更時間の軌跡を保持します。）
 
-Shoes also loads remote images in the background using system threads.  So, using remote images will not block Ruby or any intense graphical displays you may have going on.
+Shoesはバックグラウンドでシステムのスレッドを使ってリモートの画像もロードします。そのため、リモートの画像を利用することはRubyを妨げることはなく、またどんな強烈なグラフィカルな表示でも進み続けるでしょう。
 
 === full_height() » a number ===
 
-The full pixel height of the image.  Normally, you can just use the [[Common.height]] method to figure out how many pixels high the image is.  But if you've resized the image or styled it to be larger or something, then `height` will return the scaled size.
+画像全体のピクセルでの高さです。通常は、ピクセルでの画像の高さを知るために[[Common.height]]メソッドを利用できます。しかし画像がリサイズされていたりより大きいサイズなどにスタイルが設定されていた場合は、`height`は変更されたサイズを返します。
 
-The `full_height` method gives you the height of image (in pixels) as it was stored in the original file.
+`full_height`メソッドは保存されたオリジナルファイルの画像の（ピクセルでの）高さを与えます。
 
 === full_width() » a number ===
 
-The full pixel width of the image.  See the [[Image.full_height]] method for an explanation of why you might use this method rather than [[Common.width]].
+画像全体のピクセルでの幅です。[[Common.width]]ではなくこのメソッドを使う理由の説明については[[Image.full_height]]メソッドを見てください。
 
 === path() » a string ===
 
-The URL or file name of the image.
+画像のURLまたはファイル名です。
 
 === path = a string ===
 
-Swaps the image with a different one, loaded from a file or URL.
+ファイルまたはURLからロードして、画像を他のものに入れ替えます。
 
 == ListBox ==
 
-List boxes (also called "combo boxes" or "drop-down boxes" or "select boxes" in some places) are a list of options that drop down when you click on the box. !{:margin_left => 100}man-ele-listbox.png!
+リストボックス（List box）（環境によって"コンボボックス（combo box）"または"ドロップダウンボックス（drop-down box）"または"セレクトボックス（select box）"とも呼ばれています。）は箱をクリックしたときドロップダウンしてオプションが一覧として表示されます。!{:margin_left => 100}man-ele-listbox.png!
 
-A list box gets its options from an array.  An array (a list) of strings, passed into the `:items` style.
+リストボックスは配列からオプションを取得します。配列（リスト）の文字列は、`:items`スタイルに渡されます。
 
 {{{
  #!ruby
@@ -2498,7 +2502,7 @@ A list box gets its options from an array.  An array (a list) of strings, passed
  end
 }}}
 
-So, the basic size of a list box is about 200 pixels wide and 28 pixels high.  You can adjust this length using the `:width` style.
+そして、リストボックスの基本のサイズは200ピクセルの幅と28ピクセルの高さです。この長さは`width`スタイルを利用して調整することができます。
 
 {{{
  #!ruby
@@ -2513,41 +2517,41 @@ So, the basic size of a list box is about 200 pixels wide and 28 pixels high.  Y
  end
 }}}
 
-Next to the `:width` style, the example uses another useful option.  The `:choose` option tells the list box which of the items should be highlighted from the beginning.  (There's also a [[ListBox.choose]] method for highlighting an item after the box is created.)
+`:width`スタイルに続いて、この例ではもう１つの便利なオプションを利用します。`:choose`オプションは始めからハイライトされるべきアイテムをリストボックスに教えます。（箱が作成された後でアイテムをハイライトするには[[ListBox.choose]]メソッドもあります。）
 
-List boxes also have a [[ListBox.change]] event.  In the last example, we've got a block hooked up to the list box.  Well, okay, see, that's a `change` block.  The block is called each time someone changes the selected item.
+リストボックスは[[ListBox.change]]イベントも持っています。次の例では、リストボックスにブロックを取り付けました。いいですか、この`change`ブロックを見てください。このブロックは誰かが選択されたアイテムを変更するたびに呼ばれます。
 
-Those are the basics.  Might you also be persuaded to look at the [[Common]] methods page, a complete list of the methods that all elements have?
+これらは基本的なことです。すべての要素が持っているメソッドの完全な一覧である、[[Common]]メソッドのページを見てください。
 
 === change() { |self| ... } » self ===
 
-Whenever someone highlights a new option in the list box (by clicking on an item, for instance,) its `change` block is called.  The block is given `self`, which is the edit line object which has changed.
+誰かがリストボックスの新しいオプションをハイライトするたびに（例えば、アイテムをクリックすることによって）`change`ブロックは呼ばれます。ブロックには変更されたリストボックスのオブジェクトである`self`が与えられます。
 
 === choose(item: a string) » self ===
 
-Selects the option in the list box that matches the string given by `item`.
+`item`として与えられた文字列と一致するリストボックス内のオプションを選択します
 
 === focus() » self ===
 
-Moves focus to the list box.  The list box will be highlighted and, if the user hits the up and down arrow keys, other options in the list will be selected.
+リストボックスにフォーカスを移動します。そのリストはハイライトされ、ユーザが上や下の矢印キーを押した場合、リスト内の別のオプションが選択されます。
 
 === items() » an array of strings ===
 
-Returns the complete list of strings that the list box presently shows as its options.
+リストボックスにオプションとして現在表示されている文字列の完全な一覧を返します。
 
 === items = an array of strings ===
 
-Replaces the list box's options with a new list of strings.
+リストボックスのオプションを新しい文字列の一覧で置き換えます。
 
 === text() » a string ===
 
-A string containing whatever text is shown highlighted in the list box right now.  If nothing is selected, `nil` will be the reply.
+現在リストボックス内でハイライトされて表示されているテキストを含む文字列です。何も選択されていないなら、`nil`が応答されます。
 
 == Progress ==
 
-Progress bars show you how far along you are in an activity.  Usually, a progress bar represents a percentage (from 0% to 100%.)  Shoes thinks of progress in terms of the decimal numbers 0.0 to 1.0. !{:margin_left => 100}man-ele-progress.png!
+プログレスバー（Progress bar）は活動がどこまで進んでいるかを表示します。一般的には、プログレスバーはパーセンテージで示されます。（0%から100%まで）Shoesは0.0から1.0の10進数を使って進行を考えます。!{:margin_left => 100}man-ele-progress.png!
 
-A simple progress bar is 200 pixels wide, but you can use the `:width` style (as with all Shoes elements) to lengthen it.
+シンプルなプログレスバーは200ピクセルの幅ですが、長くするために（すべてのShoesの要素のように）`:width`スタイルは利用できません。
 
 {{{
  Shoes.app do
@@ -2562,21 +2566,21 @@ A simple progress bar is 200 pixels wide, but you can use the `:width` style (as
  end
 }}}
 
-Take a look at the [[Common]] methods page for a list of methods found an all elements, including progress bars.
+プログレスバーを含む、すべての要素に備え付けられたメソッドの一覧については[[Common]]メソッドのページを見てください。
 
 === fraction() » a decimal number ===
 
-Returns a decimal number from 0.0 to 1.0, indicating how far along the progress bar is.
+どこまでプログレスバーが進んでいるかを指し示す、0.0から1.0の10進数の数を返します。
 
 === fraction = a decimal number ===
 
-Sets the progress to a decimal number between 0.0 and 1.0.
+0.0から1.0の間の10進数の数で進行を設定します。
 
 == Radio ==
 
-Radio buttons are a group of clickable circles.  Click a circle and it'll be marked.  Only one radio button can be marked at a time.  (This is similar to the ListBox, where only one option can be selected at a time.) !{:margin_left => 100}man-ele-radio.png!
+ラジオボタン（Radio button）はクリック可能な円のグループです。それをマークするには円をクリックしてください。ラジオボタンは１度に１つだけマークできます。（１度に１つのオプションだけしか選択できないところは、リストボックスに似ています。）!{:margin_left => 100}man-ele-radio.png!
 
-So, how do you decide when to use radio buttons and when to use list boxes?  Well, list boxes only show one highlighted item unless you click on the box and the drop-down appears.  But radio buttons are all shown, regardless of which is marked.
+それでは、リストボックスを利用すべきときと、ラジオボタンを利用すべきときをどのようにして決定しますか？そうですね、リストボックスはボックスをクリックしてドロップダウンを表示することなく１つのハイライトされたアイテムを表示します。しかし、ラジオボタンはどれがマークされているか気にすることなく、すべて表示されます。
 
 {{{
  #!ruby
@@ -2588,9 +2592,9 @@ So, how do you decide when to use radio buttons and when to use list boxes?  Wel
  end
 }}}
 
-Only one of these three radios can be checked at a time, since they are grouped together in the same slot (along with a bunch of `para`.)
+それらは（たくさんの`para`とともに）同じスロット内で一緒にグループ化されているため、３つのラジオボタンから１度に１つだけが選択できます。
 
-If we move them each into their own slot, the example breaks.
+これらをそれら自身のスロットに移動したら、この例は壊れます。
 
 {{{
  #!ruby
@@ -2604,9 +2608,10 @@ If we move them each into their own slot, the example breaks.
  end
 }}}
 
-This can be fixed, though.  You can group together radios from different slots, you just have to give them all the same group name.
+しかし、これは修正できます。
+違うスロットのラジオボタンを一緒にグループ化することができ、それらにすべて同じグループ名を与える必要があります。
 
-Here, let's group all these radios in the `:films` group.
+ここでは`:films`グループにそれらすべてのラジオボタンをグループ化しました。
 
 {{{
  #!ruby
@@ -2629,145 +2634,147 @@ Here, let's group all these radios in the `:films` group.
  end
 }}}
 
-For more methods beyond those listed below, also look into the [[Common]] methods page.  Because you get those methods on every radio as well.
+下にあるそれらの一覧を越える更なるメソッドについては、[[Common]]メソッドのページを詳しく調べてください。それらのメソッドをすべてのラジオボタンで同様に利用できるからです。
 
 === checked?() » true or false ===
 
-Returns whether the radio button is checked or not.  So, `true` means "yes, it is checked!"
+ラジオボタンがチェックされているかどうかを返します。
+そして、`true`の意味は"はい、チェックされています！"です。
 
 === checked = true or false ===
 
-Marks or unmarks the radio button.  Using `checked = false`, for instance, clears the radio.
+ラジオボタンをマークしたりマークを外したりします。例えば、`checked = false`を利用して、ラジオボタンをクリアします。
 
 === click() { |self| ... } » self ===
 
-When the radio button is clicked, its `click` block is called.  The block is handed `self`, which is an object representing the radio which was clicked.
+ラジオボタンがクリックされたとき、その`click`ブロックが呼ばれます。
+このブロックは、クリックされたラジオボタンを示すオブジェクトの`self`を渡します。
 
-Clicks are sent for both marking and unmarking the radio.
+ラジオボタンをマークしたときとマークを外したときの両方で、クリックが送られます。
 
 === focus() » self ===
 
-Moves focus to the radio.  The radio will be highlighted and, if the user hits Enter, the radio will be toggled between its marked and unmarked states.
+ラジオボタンのフォーカスを移動します。そのラジオボタンはハイライトされ、ユーザがエンターキーを打てば、そのラジオボタンはマークされた状態とマークされていない状態の間をトグルします。
 
 == Shape ==
 
-A shape is a path outline usually created by drawing methods like `oval` and `rect`. !{:margin_left => 100}man-ele-shape.png!
+形状（shape）は通常は`oval`と`rect`のようにドローイングメソッドによって作成されるアウトラインパスです。!{:margin_left => 100}man-ele-shape.png!
 
-See the [[Common]] methods page.  Shapes respond to all of those methods.
+[[Common]]メソッドのページを見てください。形状はそれらすべてのメソッドに応答できます。
 
 == TextBlock ==
 
-The TextBlock object represents a group of text organized as a single element.  A paragraph containing bolded text, for example.  A caption containing links and bolded text.  (So, a `caption` is a TextBlock type.  However, `link` and `strong` are TextClass types.) !{:margin_left => 100}man-ele-textblock.png!
+テキストブロック（TextBlock）オブジェクトは単独の要素にとして形成されるテキストのグループを示します。例えば、太字のテキストを含むパラグラフです。リンクと太字のテキストを含むキャプションです。（そして、`caption`はテキストブロックのタイプです。しかしながら、`link`と`strong`はテキストクラスのタイプです。）!{:margin_left => 100}man-ele-textblock.png!
 
-All of the various types of TextBlock are found on the [[Element Element Creation]] page.
+テキストブロックのすべての種類はタイプは[[Element Element Creation]]ページで確認できます。
 
- * [[Element.banner]], a 48 pixel font.
- * [[Element.title]], a 34 pixel font.
- * [[Element.subtitle]], a 26 pixel font.
- * [[Element.tagline]], an 18 pixel font.
- * [[Element.caption]], a 14 pixel font.
- * [[Element.para]], a 12 pixel font.
- * [[Element.inscription]], a 10 pixel font.
+ * [[Element.banner]], 48ピクセルのフォント。
+ * [[Element.title]], 34ピクセルのフォント。
+ * [[Element.subtitle]], 26ピクセルのフォント。
+ * [[Element.tagline]], 18ピクセルのフォント。
+ * [[Element.caption]], 14ピクセルのフォント。
+ * [[Element.para]], 12ピクセルのフォント。
+ * [[Element.inscription]], 10ピクセルのフォント。
 
 === contents() » an array of elements  ===
 
-Lists all of the strings and styled text objects inside this block.
+ブロック内部の整形された文字列すべてのリストです。
 
 === replace(a string) ===
 
-Replaces the text of the entire block with the characters of `a string`.
+ブロック全体のテキストを`a string`の文字で置き換えます。
 
 === text() » a string ===
 
-Return a string of all of the characters in this text box.  This will strip off any style or text classes and just return the actual characters, as if seen on the screen.
+テキストボックスのすべての文字の文字列を返します。画面に表示されるかのように、すべてのスタイルまたはテキストクラスが取り除かれて実際の文字だけを返します。
 
 === text = a string ===
 
-Replaces the text of the entire block with the characters of `a string`.
+ブロック全体のテキストを`a string`の文字で置き換えます。
 
 === to_s() » a string ===
 
-An alias for [[TextBlock.text]].  Returns a flattened string of all of this TextBlock's contents.
+[[TextBlock.text]]のエイリアスです。テキストブロックのすべてのコンテンツをフラットにした文字列を返します。
 
 == Timers ==
 
-Shoes contains three timer classes: the Animation class, the Every class and the Timer class.  Both Animations and Everies loop over and over after they start.  Timers happen once.  A one-shot timer.
+Shoesは3つのタイマー（timer）クラスを持っています：アニメーション（Animation）クラス、Everyクラスそしてタイマー（Timer）クラスです。アニメーションとEveryの両方は開始してから何度も何度も繰り替えします。タイマーは１度だけ実行されます。１回限りのタイマーです。
 
-Animations and Everies are basically the same thing.  The difference is that Animations usually happen many, many times per second.  And Everies happen only once every few seconds or rarely.
+アニメーションとEveryは基本的には同じものです。違いはアニメーションは普通は１秒間にとてもたくさん実行されます。そしてEveryは数秒間ごとに実行されるか、まれにしか実行されません。
 
 === start() » self ===
 
-Both types of timers automatically start themselves, so there's no need to use this normally.  But if you [[Timers.stop]] a timer and would like to start it up again, then by all means: use this!
+どちらのタイプのタイマーもそれ自身で自動的に開始されるため、通常はこれは利用する必要がありません。しかし、[[Timers.stop]]でタイマーを止めて再開したい場合は、もちろん：これを利用してください！
 
 === stop() » self ===
 
-Pauses the animation or timer.  In the case of a one-shot timer that's already happened, it's already stopped and this method will have no effect.
+アニメーションまたはタイマーを中断します。１回限りのタイマーの場合はこれは既に実行されており、既に停止しているのでこのメソッドの効果はありません。
 
 === toggle() » self ===
 
-If the animation or timer is stopped, it is started.  Otherwise, if it is already running, it is stopped.
+アニメーションまたはタイマーが停止されていれば、開始します。既に実行されていれば、停止します。
 
 == Video ==
 
-Shoes supports embedding of QuickTime, Flash video (FLV), DivX, Xvid and various other popular video formats.  This is all thanks to VideoLAN and ffmpeg, two sensational open source libraries.  Use the `video` method on a slot to setup a Shoes::Video object. !{:margin_left => 100}man-ele-video.png!
+Shoesは埋め込みのQuickTime、Flashビデオ（FLV）、DivX、Xvidそして様々な他の人気のあるビデオフォーマットをサポートしています。これはすべて２つの驚くべきオープンソースライブラリである、VideoLANとffmpegのおかげです。Shoes::Videoオブジェクトをセットアップするためにスロット上で`video`メソッドを利用してください。!{:margin_left => 100}man-ele-video.png!
 
-In addition to video formats, some audio formats are also supported, such as MP3, WAV and Ogg Vorbis.
+ビデオフォーマットに加えて、MP3、WAVとOgg Vorbisのような、いくつかのオーディオフォーマットもサポートされています。
 
-Video support is optional in Shoes and some builds do not support video.  For example, video support is unavailable for PowerPC.  When you download Shoes, the build for your platform will be marked `novideo` in the filename if no video support is available.
+ビデオサポートはShoesではオプションであり、いくつかのビルドではビデオをサポートしていません。例えば、PowerPCではビデオサポートは利用できません。Shoesをダウンロードしたときに、ビデオサポートが利用できないならプラットフォーム用のビルドのファイル名に`novideo`と記されています
 
 === hide() » self ===
 
-Hides the video.  If already playing, the video will continue to play.  This just turns off display of the video.  One possible use of this method is to collapse the video area when it is playing an audio file, such as an MP3.
+ビデオを非表示します。既に再生しているなら、ビデオは再生を続けます。これはビデオの表示をオフにするだけです。このメソッドの有力な使い方の１つは、MP3のようなオーディオファイルを再生するときに、ビデオの範囲を破壊することです。
 
 === length() » a number ===
 
-The full length of the video in milliseconds.  Returns nil if the video is not yet loaded.
+ミリ秒でのビデオ全体の長さです。ビデオがまだロードされていない場合はnilを返します。
 
 === move(left, top) » self ===
 
-Moves the video to specific coordinates, the (left, top) being the upper left hand corner of the video.
+（left, top）はビデオの左上の角であり、特定の座標にビデオを移動します。
 
 === pause() » self ===
 
-Pauses the video, if it is playing.
+ビデオが再生されていれば、一時停止します。
 
 === playing?() » true of false ===
 
-Returns true if the video is currently playing.  Or, false if the video is paused or stopped.
+ビデオを現在再生していれば、trueを返します。または、ビデオが一時停止されていたり停止されている場合はfalseです。
 
 === play() » self ===
 
-Starts playing the video, if it isn't already playing.  If already playing, the video is restarted from the beginning.
+既に再生いなければ、ビデオの再生を開始します。既に再生いるのなら、ビデオは始めから再度開始します。
 
 === position() » a decimal ===
 
-The position of the video as a decimanl number (a Float) between the beginning (0.0) and the end (1.0).  For instance, a Float value of 0.5 indicates the halfway point of the video.
+（0.0）から（1.0）の間の10進数の（Floatの）数によるビデオの位置です。例えば、0.5のFloatの値はビデオの中間の位置を示します。
 
 === position = a decimal ===
 
-Sets the position of the video using a Float value.  To move the video to its 25% position: `@video.position = 0.25`.
+Floatの値を利用してビデオの位置を設定します。25%の位置にビデオを移動するなら：`@video.position = 0.25`。
 
 === remove() » self ===
 
-Removes the video from its slot.  This will stop the video as well.
+ビデオをスロットから取り除きます。なおビデオを停止します。
 
 === show() » self ===
 
-Reveals the video, if it has been hidden by the `hide()` method.
+`hide()`メソッドによって非表示にされていたなら、ビデオを表示します。
 
 === stop() » self ===
 
-Stops the video, if it is playing.
+ビデオが再生されていれば、停止します。
 
 === time() » a number ===
 
-The time position of the video in milliseconds.  So, if the video is 10 seconds into play, this method would return the number 10000.
+ビデオのミリ秒での時間の位置です。そのため、そのビデオが10秒の再生時間なら、このメソッドは10000の数を返します
 
 === time = a number ===
 
-Set the position of the video to a time in milliseconds.
+ミリ秒の時間でビデオの位置を設定します。
 
 === toggle() » self ===
 
-Toggles the visibility of the video.  If the video can be seen, then `hide` is called.  Otherwise, `show` is called.
+ビデオの可視性をトグルします。ビデオが表示されていれば、`hide`が呼ばれます。そうでなければ、`show`が呼ばれます。
 

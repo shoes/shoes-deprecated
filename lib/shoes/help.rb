@@ -8,6 +8,10 @@ module Shoes::Manual
   SUB_STYLE = {:stroke => "#CCC", :margin_top => 10}
   IMAGE_STYLE = {:margin => 8, :margin_left => 100}
   COLON = ": "
+  
+  [INTRO_STYLE, SUB_STYLE].each do |h|
+    h[:font] = "MS UI Gothic"
+  end if Shoes.language == 'ja'
 
   def self.path
     path = "#{DIR}/static/manual-#{Shoes.language}.txt"
@@ -358,6 +362,10 @@ def Shoes.make_help_page
     style(Shoes::Tagline, :size => 12, :weight => "bold", :stroke => "#eee", :margin => 6)
     style(Shoes::Caption, :size => 24)
     background "#ddd".."#fff", :angle => 90
+    
+    [Shoes::LinkHover, Shoes::Para, Shoes::Tagline, Shoes::Caption].each do |type|
+      style(type, :font => "MS UI Gothic")
+    end if Shoes.language == 'ja'
 
     stack do
       background black
