@@ -374,6 +374,7 @@ class Shoes
     else
       path = File.expand_path(path.gsub(/\\/, "/"))
       if path =~ /\.shy$/
+        @shy = true
         require 'shoes/shy'
         base = File.basename(path, ".shy")
         tmpdir = "%s/shoes-%s.%d" % [Dir.tmpdir, base, $$]
@@ -382,6 +383,7 @@ class Shoes
         Shoes.debug "Loaded SHY: #{shy.name} #{shy.version} by #{shy.creator}"
         path = shy.launch
       else
+        @shy = false
         Dir.chdir(File.dirname(path))
         path = File.basename(path)
       end
@@ -398,7 +400,7 @@ class Shoes
   end
 
   def self.read_file path
-    if RUBY_VERSION =~ /^1\.9/
+    if RUBY_VERSION =~ /^1\.9/ and !@shy
       File.open(path, 'r:utf-8') { |f| f.read }
     else
       File.read(path)
