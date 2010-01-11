@@ -390,9 +390,7 @@ class Shoes
 
       $0.replace path
       
-      override_path = "#{DIR}/lib/shoes/override"
-      code = "require \"#{override_path}\"\n"
-      code << read_file(path)
+      code = read_file(path)
       eval(code, TOPLEVEL_BINDING, path)
     end
   rescue SettingUp
