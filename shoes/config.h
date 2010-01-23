@@ -149,7 +149,12 @@ typedef struct {
 #include <commctrl.h>
 #include <shellapi.h>
 #include <cairo-win32.h>
+
+#ifdef RUBY_1_9
 #include "ruby/win32.h"
+#else
+#include "win32/win32.h"
+#endif
 
 #ifndef WM_MOUSEWHEEL
 #define WM_MOUSEWHEEL 0x020A
@@ -167,7 +172,7 @@ typedef struct {
 #define SHOES_CONTROL1   3045
 #define SHOES_WM_MESSAGE (WM_APP + 3045)
 #define SHOES_INIT_ARGS  HINSTANCE inst, int style
-#define SHOES_EXTERN     __declspec(dllimport)
+#define SHOES_EXTERN __declspec(dllexport)
 
 typedef struct {
   PAINTSTRUCT ps;

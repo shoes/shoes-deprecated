@@ -55,6 +55,15 @@ def env(x)
   ENV[x]
 end
 
+# Execute shell calls through bash if we are compiling with mingw. This breaks us
+# out of the windows command shell if we are compiling from there.
+if RUBY_PLATFORM =~ /mingw/
+  def sh(*args)
+    cmd = args.join(' ')
+    super "bash.exe --login -i -c \"#{cmd}\""
+  end
+end
+
 # Subs in special variables
 def rewrite before, after, reg = /\#\{(\w+)\}/, reg2 = '\1'
   File.open(after, 'w') do |a|
@@ -85,6 +94,11 @@ def copy_ext xdir, libdir
     #   `ruby extconf.rb; make`
     # end
     copy_files "#{xdir}/*.bundle", libdir
+  when /mingw/
+    Dir.chdir(xdir) do
+      sh 'ruby extconf.rb; make'
+    end
+    copy_files "#{xdir}/*.so", libdir
   else
     Dir.chdir(xdir) do
       unless system "ruby", "extconf.rb" and system "make"
@@ -132,7 +146,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
       rm_rf "dist/ruby/lib/#{libn}"
     end
   end
-  %w[req/rubygems/* req/ftsearch/lib/*].each do |rdir|
+  %w[req/rubygems/* req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
     FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
   end
   %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops].
@@ -166,6 +180,16 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     if ENV['VIDEO']
       copy_files "deps/vlc/bin/*", "dist/"
     end
+  when /mingw/
+    dlls = [ruby_so]
+    dlls += %w{libungif4 libjpeg libcairo-2 libpng12-0 libglib-2.0-0 libgobject-2.0-0 libpango-1.0-0
+      libgmodule-2.0-0 libpangocairo-1.0-0 libpangowin32-1.0-0 libportaudio-2 sqlite3 libssl32 libeay32}
+    dlls.each{|dll| cp "#{ext_ruby}/bin/#{dll}.dll", "dist/"}
+    if ENV['VIDEO']
+      cp    "/usr/lib/libvlc.so", "dist"
+      ln_s  "libvlc.so", "dist/libvlc.so.0"
+    end
+    sh "strip -x dist/*.dll" unless ENV['DEBUG']
   when /darwin/
     if ENV['SHOES_DEPS_PATH']
       dylibs = %w[lib/libcairo.2.dylib lib/libpixman-1.0.dylib lib/libgmodule-2.0.0.dylib lib/libintl.8.dylib lib/libruby.dylib
@@ -375,24 +399,39 @@ else
   require 'rbconfig'
 
   CC = "gcc"
-  SRC = FileList["shoes/*.c",
-    RUBY_PLATFORM =~ /darwin/ ? "shoes/native/cocoa.m" : "shoes/native/gtk.c",
-    RUBY_PLATFORM =~ /darwin/ ? "shoes/http/nsurl.m" : "shoes/http/curl.c"]
+  file_list = ["shoes/*.c"] + case RUBY_PLATFORM
+  when /mingw/
+    %w{shoes/native/windows.c shoes/http/winhttp.c shoes/http/windownload.c}
+  when /darwin/
+    %w{shoes/native/cocoa.m shoes/http/nsurl.m}
+  else
+    %w{shoes/native/gtk.c shoes/http/curl.c}
+  end
+  SRC = FileList[*file_list]
   OBJ = SRC.map do |x|
     x.gsub(/\.\w+$/, '.o')
   end
 
   # Linux build environment
-  CAIRO_CFLAGS = ENV['CAIRO_CFLAGS'] || `pkg-config --cflags cairo`.strip
-  CAIRO_LIB = ENV['CAIRO_LIB'] ? "-L#{ENV['CAIRO_LIB']}" : `pkg-config --libs cairo`.strip
-  PANGO_CFLAGS = ENV['PANGO_CFLAGS'] || `pkg-config --cflags pango`.strip
-  PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
+  if RUBY_PLATFORM =~ /mingw/
+    CAIRO_CFLAGS = '-I/mingw/include/glib-2.0 -I/mingw/lib/glib-2.0/include -I/mingw/include/cairo'
+    CAIRO_LIB = '-lcairo'
+    PANGO_CFLAGS = '-I/mingw/include/pango-1.0'
+    PANGO_LIB = '-lpangocairo-1.0 -lpango-1.0'
+    png_lib = 'png12'
+  else
+    CAIRO_CFLAGS = ENV['CAIRO_CFLAGS'] || `pkg-config --cflags cairo`.strip
+    CAIRO_LIB = ENV['CAIRO_LIB'] ? "-L#{ENV['CAIRO_LIB']}" : `pkg-config --libs cairo`.strip
+    PANGO_CFLAGS = ENV['PANGO_CFLAGS'] || `pkg-config --cflags pango`.strip
+    PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
+    png_lib = 'png'
+  end
 
   LINUX_CFLAGS = %[-Wall -I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{Config::CONFIG['archdir']}]
   if Config::CONFIG['rubyhdrdir']
     LINUX_CFLAGS << " -I#{Config::CONFIG['rubyhdrdir']} -I#{Config::CONFIG['rubyhdrdir']}/#{RUBY_PLATFORM}"
   end
-  LINUX_LIB_NAMES = %W[#{ruby_so} png cairo pangocairo-1.0 ungif]
+  LINUX_LIB_NAMES = %W[#{ruby_so} #{png_lib} cairo pangocairo-1.0 ungif]
   FLAGS.each do |flag|
     LINUX_CFLAGS << " -D#{flag}" if ENV[flag]
   end
@@ -423,6 +462,12 @@ else
       LINUX_LDFLAGS << " -arch ppc"
       ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
     end
+  when /mingw/
+    DLEXT = 'dll'
+    LINUX_CFLAGS << ' -I. -I/mingw/include -I/mingw/include/ruby-1.9.1/ruby'
+    LINUX_CFLAGS << " -DXMD_H -DHAVE_BOOLEAN -DSHOES_WIN32 -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0500 -DWINVER=0x0500 -DCOBJMACROS"
+    LINUX_LDFLAGS =" -DBUILD_DLL -lungif -ljpeg -lglib-2.0 -lgobject-2.0 -fPIC -shared"
+    LINUX_LDFLAGS << ' -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 -lole32 -loleaut32 -ladvapi32 -loleacc -lwinhttp'
   else
     DLEXT = "so"
     LINUX_CFLAGS << " -DSHOES_GTK -fPIC #{`pkg-config --cflags gtk+-2.0`.strip} #{`curl-config --cflags`.strip}"

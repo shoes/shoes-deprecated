@@ -7,8 +7,10 @@
 #endif
 #ifdef HAVE_RUBY_IO_H
 #include <ruby/io.h>
+#define OPEN_FILE rb_io_t
 #else
 #include <rubyio.h>
+#define OPEN_FILE OpenFile
 #endif
 #include <stdlib.h>
 #include <zlib.h>
@@ -19,6 +21,10 @@
 #include <hfs/hfslib.h>
 #include "abstractfile.h"
 #include "pe.h"
+
+#if !defined(GetReadFile)
+#define GetReadFile(fptr) rb_io_stdio_file(fptr)
+#endif
 
 char *pe_pad = "PADDINGXXPADDING";
 char endianness;
@@ -258,7 +264,7 @@ unsigned int
 binject_exe_file_size(VALUE obj)
 {
   struct stat st;
-  rb_io_t *fptr;
+  OPEN_FILE *fptr;
   FILE *fres;
   GetOpenFile(obj, fptr);
   rb_io_check_readable(fptr);
@@ -444,7 +450,7 @@ binject_exe_rewrite(binject_exe_t *binj, char *buf, char *out, int offset, int o
             }
             else
             {
-              rb_io_t *fptr;
+              OPEN_FILE *fptr;
               rdat->Size = binject_exe_file_size(obj);
               GetOpenFile(obj, fptr);
               binject_exe_file_copy(GetReadFile(fptr), binj->out, rdat->Size, 0, binj->datapos, binj->proc);

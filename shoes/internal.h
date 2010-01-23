@@ -24,7 +24,7 @@
 #define max(a, b) ((a) >= (b) ? (a) : (b))
 #endif
 
-#ifdef SHOES_WIN32
+#ifdef _MSC_VER
 
 void odprintf(const char *format, ...);
 static inline void odignore(const char *format, ...) {}

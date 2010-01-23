@@ -90,6 +90,7 @@ shoes_http_headers(VALUE hsh)
   if (RARRAY_LEN(keys) > 0)
   {
     VALUE headers = rb_str_new2("");
+    //for (i = 0; i < RARRAY_LEN(keys); i++ )
     for (i = 0; i < RARRAY(keys)->as.heap.len; i++ )
     {
       VALUE key = rb_ary_entry(keys, i);

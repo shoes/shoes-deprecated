@@ -7,8 +7,13 @@
 #endif
 #ifdef HAVE_RUBY_IO_H
 #include <ruby/io.h>
+#define OPEN_FILE rb_io_t
 #else
 #include <rubyio.h>
+#define OPEN_FILE OpenFile
+#endif
+#ifndef RFLOAT_VALUE
+#define RFLOAT_VALUE(f) RFLOAT(f)->value
 #endif
 #include <stdlib.h>
 
@@ -190,7 +195,7 @@ static VALUE
 dump_inline_suffixes(VALUE self, VALUE io, VALUE fulltext)
 {
   char *data;
-  rb_io_t *fptr;
+  OPEN_FILE *fptr;
   VALUE block_size, suffixes, new_suffixes, inline_suffix_size;
   int i;
 
@@ -226,7 +231,7 @@ dump_suffix_array(VALUE self, VALUE io)
   VALUE suffixes, new_suffixes;
   int i;
   VALUE *vptr;
-  rb_io_t *fptr;
+  OPEN_FILE *fptr;
 
   suffixes     = rb_ivar_get(self, rb_intern("@suffixes"));
   new_suffixes = rb_funcall(suffixes, rb_intern("to_a"), 0);
