@@ -49,9 +49,7 @@
 }
 - (void)download: (shoes_http_request *)req
 {
-  char slash[2] = "/";
-  if (req->path[0] == '/') slash[0] = '\0';
-  NSString *url = [NSString stringWithFormat: @"%s://%s:%d%s%s", req->scheme, req->host, req->port, slash, req->path];
+  NSString *url = [NSString stringWithFormat: @"%s", req->url];
   NSString *uagent = [NSString stringWithFormat: @"Shoes/0.r%d (%s) %s/%d", 
     SHOES_REVISION, SHOES_PLATFORM, SHOES_RELEASE_NAME, SHOES_BUILD_DATE];
   NSMutableURLRequest *nsreq = [NSMutableURLRequest requestWithURL: 
@@ -59,6 +57,7 @@
     cachePolicy: NSURLRequestUseProtocolCachePolicy
     timeoutInterval: 60.0];
   [nsreq setValue: uagent forHTTPHeaderField: @"User-Agent"];
+  [nsreq setHTTPShouldHandleCookies: FALSE];
 
   flags = req->flags;
   handler = req->handler;
@@ -260,8 +259,9 @@ shoes_http_headers(VALUE hsh)
     {
       VALUE key = rb_ary_entry(keys, i);
       VALUE val = rb_hash_aref(hsh, key);
-      [d setValue: [NSString stringWithUTF8String: RSTRING_PTR(val)]
-         forKey:   [NSString stringWithUTF8String: RSTRING_PTR(key)]];
+      if(!NIL_P(val))
+        [d setValue: [NSString stringWithUTF8String: RSTRING_PTR(val)]
+           forKey:   [NSString stringWithUTF8String: RSTRING_PTR(key)]];
     }
   }
   return d;

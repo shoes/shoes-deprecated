@@ -9,6 +9,7 @@
 #include "shoes/http/common.h"
 
 typedef struct {
+  char *url;
   char *scheme;
   char *host;
   int port;

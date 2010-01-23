@@ -67,8 +67,8 @@ shoes_curl_read_funk(void *ptr, size_t size, size_t nmemb, void *user)
 {
   shoes_curl_data *data = (shoes_curl_data *)user;
   size_t realsize = size * nmemb;
-  if (data->readpos == data->bodylen) return 0;
-  if (data->readpos + realsize > data->bodylen) realsize = data->bodylen - data->readpos;
+  if (realsize > data->bodylen - data->readpos)
+    realsize = data->bodylen - data->readpos;
   SHOE_MEMCPY(ptr, &(data->body[data->readpos]), char, realsize);
   data->readpos += realsize;
   return realsize;
@@ -116,14 +116,12 @@ shoes_curl_progress_funk(void *user, double dltotal, double dlnow, double ultota
 void
 shoes_download(shoes_http_request *req)
 {
-  char url[SHOES_BUFSIZE], uagent[SHOES_BUFSIZE], slash[2] = "/";
+  char uagent[SHOES_BUFSIZE];
   CURL *curl = curl_easy_init();
   CURLcode res;
   shoes_curl_data *cdata = SHOE_ALLOC(shoes_curl_data);
   if (curl == NULL) return;
 
-  if (req->path[0] == '/') slash[0] = '\0';
-  sprintf(url, "%s://%s:%d%s%s", req->scheme, req->host, req->port, slash, req->path);
   sprintf(uagent, "Shoes/0.r%d (%s) %s/%d", SHOES_REVISION, SHOES_PLATFORM,
     SHOES_RELEASE_NAME, SHOES_BUILD_DATE);
 
@@ -147,7 +145,7 @@ shoes_download(shoes_http_request *req)
   } 
 
   curl_easy_setopt(curl, CURLOPT_NOSIGNAL, TRUE);
-  curl_easy_setopt(curl, CURLOPT_URL, url);
+  curl_easy_setopt(curl, CURLOPT_URL, req->url);
   curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, shoes_curl_header_funk);
   curl_easy_setopt(curl, CURLOPT_WRITEHEADER, cdata);
   if (cdata->mem != NULL || cdata->fp != NULL)
@@ -173,10 +171,10 @@ shoes_download(shoes_http_request *req)
   {
     cdata->body = req->body;
     cdata->bodylen = req->bodylen;
-    curl_easy_setopt(curl, CURLOPT_INFILESIZE, req->bodylen);
     curl_easy_setopt(curl, CURLOPT_UPLOAD, 1);
+    curl_easy_setopt(curl, CURLOPT_INFILE, cdata);
+    curl_easy_setopt(curl, CURLOPT_INFILESIZE, cdata->bodylen);
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, shoes_curl_read_funk);
-    curl_easy_setopt(curl, CURLOPT_READDATA, cdata);
   }
 
   res = curl_easy_perform(curl);
