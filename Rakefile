@@ -182,7 +182,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     end
   when /mingw/
     dlls = [ruby_so]
-    dlls += %w{libungif4 libjpeg libcairo-2 libpng12-0 libglib-2.0-0 libgobject-2.0-0 libpango-1.0-0
+    dlls += %w{libungif4 libjpeg-8 libcairo-2 libpng12-0 libglib-2.0-0 libgobject-2.0-0 libpango-1.0-0
       libgmodule-2.0-0 libpangocairo-1.0-0 libpangowin32-1.0-0 libportaudio-2 sqlite3 libssl32 libeay32}
     dlls.each{|dll| cp "#{ext_ruby}/bin/#{dll}.dll", "dist/"}
     if ENV['VIDEO']
@@ -483,6 +483,9 @@ else
       LINUX_LIB_NAMES << "vlc"
     end
   end
+  
+  cp APP['icons']['win32'], "shoes/appwin32.ico"
+  
   LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
   task :build_os => [:buildenv_linux, :build_skel, "dist/#{NAME}"]
@@ -494,16 +497,16 @@ else
 
   LINUX_LIBS << " -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB}"
 
-  task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o"] do |t|
-    bin = "#{t.name}-bin"
-    rm_f t.name
+  task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o", "shoes/appwin32.o"] do |t|
+    bin = t.name
     rm_f bin
-    sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']}"
+    sh "#{CC} -Ldist -o #{bin} bin/main.o shoes/appwin32.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']}"
     if RUBY_PLATFORM !~ /darwin/
-      rewrite "platform/nix/shoes.launch", t.name, %r!/shoes-bin!, "/#{NAME}-bin"
+      rewrite "platform/nix/shoes.launch", t.name, %r!/shoes!, "/#{NAME}"
       sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{t.name}}
       chmod 0755, t.name
     end
+    cp "platform/msw/shoes.exe.manifest", "dist/#{NAME}.exe.manifest"
   end
 
   task "dist/lib#{SONAME}.#{DLEXT}" => ['shoes/version.h'] + OBJ do |t|
@@ -514,6 +517,10 @@ else
         sh "install_name_tool -change /tmp/dep/lib/#{libn} ./deps/lib/#{libn} #{t.name}"
       end
     end
+  end
+
+  rule ".o" => ".rc" do |t|
+    sh "windres -I. #{t.source} #{t.name}"
   end
 
   rule ".o" => ".m" do |t|
