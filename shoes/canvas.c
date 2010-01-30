@@ -433,6 +433,14 @@ shoes_canvas_strokewidth(VALUE self, VALUE w)
 }
 
 VALUE
+shoes_canvas_dash(VALUE self, VALUE dash)
+{
+  SETUP_BASIC();
+  ATTRSET(basic->attr, dash, dash);
+  return self;
+}
+
+VALUE
 shoes_canvas_cap(VALUE self, VALUE cap)
 {
   SETUP_BASIC();
