@@ -391,6 +391,7 @@ VALUE shoes_canvas_move(VALUE, VALUE, VALUE);
 VALUE shoes_canvas_nostroke(VALUE);
 VALUE shoes_canvas_stroke(int, VALUE *, VALUE);
 VALUE shoes_canvas_strokewidth(VALUE, VALUE);
+VALUE shoes_canvas_dash(VALUE, VALUE);
 VALUE shoes_canvas_cap(VALUE, VALUE);
 VALUE shoes_canvas_nofill(VALUE);
 VALUE shoes_canvas_fill(int, VALUE *, VALUE);

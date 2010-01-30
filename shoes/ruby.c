@@ -752,12 +752,26 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
   else if (cap == s_square || cap == s_rect) \
     cairo_set_line_cap(cr, CAIRO_LINE_CAP_BUTT)
 
-#define PATH_OUT(cr, attr, place, sw, cap, pen, cfunc) \
+#define DASH_SET(cr, dash) \
+  if (dash == s_onedot) \
+  { \
+    double dashes[] = {50.0, 10.0, 10.0, 10.0}; \
+    int    ndash  = sizeof (dashes)/sizeof(dashes[0]); \
+    double offset = -50.0; \
+    cairo_set_dash(cr, dashes, ndash, offset); \
+  } \
+  else \
+  { \
+    cairo_set_dash(cr, NULL, 0, 0.0); \
+  }
+
+#define PATH_OUT(cr, attr, place, sw, cap, dash, pen, cfunc) \
 { \
   VALUE p = ATTR(attr, pen); \
   if (!NIL_P(p)) \
   { \
     CAP_SET(cr, cap); \
+    DASH_SET(cr, dash); \
     cairo_set_line_width(cr, sw); \
     if (rb_obj_is_kind_of(p, cColor)) \
     { \
@@ -940,8 +954,10 @@ shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, shoes_transform *st
   {
     ID cap = s_rect;
     if (!NIL_P(ATTR(attr, cap))) cap = SYM2ID(ATTR(attr, cap));
-    PATH_OUT(cr, attr, *place, sw, cap, fill, cairo_fill_preserve);
-    PATH_OUT(cr, attr, *place, sw, cap, stroke, cairo_stroke);
+    ID dash = s_nodot;
+    if (!NIL_P(ATTR(attr, dash))) dash = SYM2ID(ATTR(attr, dash));
+    PATH_OUT(cr, attr, *place, sw, cap, dash, fill, cairo_fill_preserve);
+    PATH_OUT(cr, attr, *place, sw, cap, dash, stroke, cairo_stroke);
   }
 }
 
@@ -1884,11 +1900,13 @@ shoes_border_draw(VALUE self, VALUE c, VALUE actual)
 {
   cairo_matrix_t matrix1, matrix2;
   ID cap = s_rect;
+  ID dash = s_nodot;
   double r = 0., sw = 1.;
   SETUP(shoes_pattern, REL_TILE, PATTERN_DIM(self_t, width), PATTERN_DIM(self_t, height));
   r = ATTR2(dbl, self_t->attr, curve, 0.);
   sw = ATTR2(dbl, self_t->attr, strokewidth, 1.);
   if (!NIL_P(ATTR(self_t->attr, cap))) cap = SYM2ID(ATTR(self_t->attr, cap));
+  if (!NIL_P(ATTR(self_t->attr, dash))) dash = SYM2ID(ATTR(self_t->attr, dash));
 
   place.iw -= sw;
   place.ih -= sw;
@@ -1906,6 +1924,7 @@ shoes_border_draw(VALUE self, VALUE c, VALUE actual)
     shoes_cairo_rect(cr, 0, 0, place.iw, place.ih, r);
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE);
     CAP_SET(cr, cap);
+    DASH_SET(cr, dash);
     cairo_set_line_width(cr, sw);
     cairo_stroke(cr);
     cairo_restore(cr);
@@ -4753,6 +4772,7 @@ shoes_ruby_init()
   rb_define_method(cImage, "nostroke", CASTHOOK(shoes_canvas_nostroke), 0);
   rb_define_method(cImage, "stroke", CASTHOOK(shoes_canvas_stroke), -1);
   rb_define_method(cImage, "strokewidth", CASTHOOK(shoes_canvas_strokewidth), 1);
+  rb_define_method(cImage, "dash", CASTHOOK(shoes_canvas_dash), 1);
   rb_define_method(cImage, "cap", CASTHOOK(shoes_canvas_cap), 1);
   rb_define_method(cImage, "nofill", CASTHOOK(shoes_canvas_nofill), 0);
   rb_define_method(cImage, "fill", CASTHOOK(shoes_canvas_fill), -1);
