@@ -183,8 +183,9 @@ task :build => [:build_os, "dist/VERSION.txt"] do
   when /mingw/
     dlls = [ruby_so]
     dlls += %w{libungif4 libjpeg-8 libcairo-2 libpng12-0 libglib-2.0-0 libgobject-2.0-0 libpango-1.0-0
-      libgmodule-2.0-0 libpangocairo-1.0-0 libpangowin32-1.0-0 libportaudio-2 sqlite3 libssl32 libeay32}
+      libgmodule-2.0-0 libpangocairo-1.0-0 libpangowin32-1.0-0 libportaudio-2 sqlite3 libssl32 libeay32 zlib1}
     dlls.each{|dll| cp "#{ext_ruby}/bin/#{dll}.dll", "dist/"}
+    cp "dist/zlib1.dll", "dist/zlib.dll"
     if ENV['VIDEO']
       cp    "/usr/lib/libvlc.so", "dist"
       ln_s  "libvlc.so", "dist/libvlc.so.0"
