@@ -42,35 +42,36 @@ class Shoes
       begin
         url = open(url).read.strip
         debug url
+		internet_ok = true
       rescue Exception => e
         error e
-        internet_failed = true
+        internet_ok = false
       end
       
-      unless File.exists? local_file_path 
-        unless internet_failed then
+      if File.exists? local_file_path
+		  return  open(local_file_path)
+      elsif internet_ok then
           begin
             debug "Downloading #{url}..."
             downloaded = open(url)
             debug "Download of #{url} finished"
           rescue Exception => e
-            error e
-            internet_failed = true
+            error "Could not download from the internet" + e
+            internet_ok = false
           end
-        end
-        unless internet_failed then
+		  if internet_ok then
           begin
             File.open(local_file_path, "wb") do |f|
               f.write(downloaded.read)
             end
             return  open(local_file_path)
           rescue Exception => e
-            error e
-            alert "Couldnt find local_file_path or download it from internet"
+            error "Could not download from the internet" + e
+            alert "Couldnt find #{local_file_path} or download it from internet"
           end
         end
       else
-        return  open(local_file_path)
+         alert "Couldnt find #{local_file_path} or download it from internet"
       end
     end
 
