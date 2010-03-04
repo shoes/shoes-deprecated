@@ -1185,7 +1185,7 @@ shoes_dialog_color(VALUE self, VALUE title)
 }
 
 static VALUE
-shoes_dialog_chooser(VALUE self, char *title, GtkFileChooserAction act, const gchar *button)
+shoes_dialog_chooser(VALUE self, char *title, GtkFileChooserAction act, const gchar *button, VALUE attr)
 {
   VALUE path = Qnil;
   GLOBAL_APP(app);
@@ -1193,6 +1193,22 @@ shoes_dialog_chooser(VALUE self, char *title, GtkFileChooserAction act, const gc
     act, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, button, GTK_RESPONSE_ACCEPT, NULL);
   if (act == GTK_FILE_CHOOSER_ACTION_SAVE)
     gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(dialog), TRUE);
+  if(RTEST(shoes_hash_get(attr, rb_intern("save"))))
+    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dialog),
+            RSTRING_PTR(shoes_hash_get(attr, rb_intern("save"))));
+  if(RTEST(shoes_hash_get(attr, rb_intern("types"))) && TYPE(shoes_hash_get(attr, rb_intern("types"))) == T_HASH) {
+    VALUE hsh = shoes_hash_get(attr, rb_intern("types"));
+    VALUE keys = rb_funcall(hsh, s_keys, 0);
+    int i;
+    for(i = 0; i < RARRAY_LEN(keys); i++) {
+      VALUE key = rb_ary_entry(keys, i);
+      VALUE val = rb_hash_aref(hsh, key);
+      GtkFileFilter *ff = gtk_file_filter_new();
+      gtk_file_filter_set_name(ff, RSTRING_PTR(key));
+      gtk_file_filter_add_pattern(ff, RSTRING_PTR(val));
+      gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), ff);
+    }
+  }
   gint result = gtk_dialog_run(GTK_DIALOG(dialog));
   if (result == GTK_RESPONSE_ACCEPT)
   {
@@ -1205,29 +1221,37 @@ shoes_dialog_chooser(VALUE self, char *title, GtkFileChooserAction act, const gc
 }
 
 VALUE
-shoes_dialog_open(VALUE self)
+shoes_dialog_open(int argc, VALUE *argv, VALUE self)
 {
+  rb_arg_list args;
+  rb_parse_args(argc, argv, "|h", &args);
   return shoes_dialog_chooser(self, "Open file...", GTK_FILE_CHOOSER_ACTION_OPEN,
-    GTK_STOCK_OPEN);
+    GTK_STOCK_OPEN, args.a[0]);
 }
 
 VALUE
-shoes_dialog_save(VALUE self)
+shoes_dialog_save(int argc, VALUE *argv, VALUE self)
 {
+  rb_arg_list args;
+  rb_parse_args(argc, argv, "|h", &args);
   return shoes_dialog_chooser(self, "Save file...", GTK_FILE_CHOOSER_ACTION_SAVE,
-    GTK_STOCK_SAVE);
+    GTK_STOCK_SAVE, args.a[0]);
 }
 
 VALUE
-shoes_dialog_open_folder(VALUE self)
+shoes_dialog_open_folder(int argc, VALUE *argv, VALUE self)
 {
+  rb_arg_list args;
+  rb_parse_args(argc, argv, "|h", &args);
   return shoes_dialog_chooser(self, "Open folder...", GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
-    GTK_STOCK_OPEN);
+    GTK_STOCK_OPEN, args.a[0]);
 }
 
 VALUE
-shoes_dialog_save_folder(VALUE self)
+shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
 {
+  rb_arg_list args;
+  rb_parse_args(argc, argv, "|h", &args);
   return shoes_dialog_chooser(self, "Save folder...", GTK_FILE_CHOOSER_ACTION_CREATE_FOLDER,
-    GTK_STOCK_SAVE);
+    GTK_STOCK_SAVE, args.a[0]);
 }

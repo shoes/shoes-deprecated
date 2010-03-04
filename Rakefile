@@ -368,6 +368,7 @@ else
   require 'rbconfig'
 
   CC = "gcc"
+  CC = ENV['CC'] if ENV['CC']
   SRC = FileList["shoes/*.c",
     RUBY_PLATFORM =~ /darwin/ ? "shoes/native/cocoa.m" : "shoes/native/gtk.c",
     RUBY_PLATFORM =~ /darwin/ ? "shoes/http/nsurl.m" : "shoes/http/curl.c"]
