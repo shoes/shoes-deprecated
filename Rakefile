@@ -18,7 +18,7 @@ VERS = ENV['VERSION'] || "0.r#{REVISION}"
 PKG = "#{NAME}-#{VERS}"
 APPARGS = APP['run']
 FLAGS = %w[DEBUG VIDEO]
-VLC_VERSION = (RUBY_PLATFORM =~ /win32/ ? "0.8": `vlc --version 2>/dev/null`.split[2])
+VLC_VERSION = (RUBY_PLATFORM =~ /win32|i386-mingw32/ ? "0.8": `vlc --version 2>/dev/null`.split[2])
 VLC_0_8 = VLC_VERSION !~ /^0\.9/
 
 if ENV['APP']
@@ -77,7 +77,7 @@ def copy_files glob, dir
 end
 
 def copy_ext xdir, libdir
-  case RUBY_PLATFORM when /win32/
+  case RUBY_PLATFORM when /win32|i386-mingw32/
     dxdir = xdir.gsub %r!^req/\w+/!, 'deps/'
     copy_files "#{dxdir}/*.so", libdir
   when /darwin/
@@ -150,10 +150,11 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     cp "req/#{gemn}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
   end
 
-  case RUBY_PLATFORM when /win32/
+  case RUBY_PLATFORM when /win32|i386-mingw32/
     copy_files "#{ext_ruby}/bin/*", "dist/"
     copy_files "deps/cairo/bin/*", "dist/"
     copy_files "deps/pango/bin/*", "dist/"
+    copy_files "deps/ruby/lib/ruby/site_ruby/1.9.1/i386-msvcrt/*", "dist/ruby/lib/#{RUBY_PLATFORM}/"
     if ENV['VIDEO']
       copy_files "deps/vlc/bin/*", "dist/"
     end
@@ -165,7 +166,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
          lib/pango/1.6.0/modules/pango-basic-atsui.so etc/pango/pango.modules
          lib/pango/1.6.0/modules/pango-arabic-lang.so lib/pango/1.6.0/modules/pango-arabic-lang.la
          lib/pango/1.6.0/modules/pango-indic-lang.so lib/pango/1.6.0/modules/pango-indic-lang.la
-         lib/libjpeg.62.dylib lib/libungif.4.dylib lib/libportaudio.2.dylib]
+         lib/libjpeg.62.dylib lib/libgif.4.dylib lib/libportaudio.2.dylib]
       if ENV['VIDEO']
         dylibs.push *%w[lib/liba52.0.dylib lib/libfaac.0.dylib lib/libfaad.0.dylib lib/libmp3lame.0.dylib
           lib/libvorbis.0.dylib lib/libogg.0.dylib
@@ -243,9 +244,10 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
     rewrite "platform/mac/shoes", "#{APPNAME}.app/Contents/MacOS/#{NAME}"
     chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}"
+    chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}-bin"    
     # cp InfoPlist.strings YourApp.app/Contents/Resources/English.lproj/
     `echo -n 'APPL????' > "#{APPNAME}.app/Contents/PkgInfo"`
-  when /win32/
+  when /win32|i386-mingw32/
     cp "platform/msw/shoes.exe.manifest", "dist/#{NAME}.exe.manifest"
     cp "dist/zlib1.dll", "dist/zlib.dll"
   else
@@ -255,7 +257,7 @@ end
 
 # use the platform Ruby claims
 case RUBY_PLATFORM
-when /win32/
+when /win32|i386-mingw32/
   SRC = FileList["shoes/*.c", "shoes/native/windows.c", "shoes/http/winhttp.c", "shoes/http/windownload.c"]
   OBJ = SRC.map do |x|
     x.gsub(/\.c$/, '.obj')
@@ -383,7 +385,7 @@ else
   if Config::CONFIG['rubyhdrdir']
     LINUX_CFLAGS << " -I#{Config::CONFIG['rubyhdrdir']} -I#{Config::CONFIG['rubyhdrdir']}/#{RUBY_PLATFORM}"
   end
-  LINUX_LIB_NAMES = %W[#{ruby_so} png cairo pangocairo-1.0 ungif]
+  LINUX_LIB_NAMES = %W[#{ruby_so} png cairo pangocairo-1.0 gif]
   FLAGS.each do |flag|
     LINUX_CFLAGS << " -D#{flag}" if ENV[flag]
   end

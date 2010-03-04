@@ -34,45 +34,50 @@ class Shoes
         local_file_path = File.join(LIB_DIR, RELEASE_NAME.downcase, platform, "latest_shoes.#{extension}")
       when I_NOV then
         url = "http://shoes.heroku.com/pkg/#{RELEASE_NAME.downcase}/#{platform}/shoes-novideo"
-        local_file_path = File.join(LIB_DIR, RELEASE_NAME.downcase, platform, "latest_shoes-novideo.#{extension}")       
+        local_file_path = File.join(LIB_DIR, RELEASE_NAME.downcase, platform, "latest_shoes-novideo.#{extension}")  
+	  when I_NET then
+		url = false
       end
       
       FileUtils.makedirs File.join(LIB_DIR, RELEASE_NAME.downcase, platform)
       
-      begin
-        url = open(url).read.strip
-        debug url
-      rescue Exception => e
-        error e
-        internet_failed = true
-      end
-      
-      unless File.exists? local_file_path 
-        unless internet_failed then
-          begin
-            debug "Downloading #{url}..."
-            downloaded = open(url)
-            debug "Download of #{url} finished"
-          rescue Exception => e
-            error e
-            internet_failed = true
-          end
-        end
-        unless internet_failed then
-          begin
-            File.open(local_file_path, "wb") do |f|
-              f.write(downloaded.read)
-            end
-            return  open(local_file_path)
-          rescue Exception => e
-            error e
-            alert "Couldnt find local_file_path or download it from internet"
-          end
-        end
-      else
-        return  open(local_file_path)
-      end
-    end
+	  if url then
+		  begin
+			  url = open(url).read.strip
+			  debug url
+			  internet_ok = true
+		  rescue Exception => e
+			  error e
+			  internet_ok = false
+		  end
+
+		  if File.exists? local_file_path
+			  return  open(local_file_path)
+		  elsif internet_ok then
+			  begin
+				  debug "Downloading #{url}..."
+				  downloaded = open(url)
+				  debug "Download of #{url} finished"
+			  rescue Exception => e
+				  error "Could not download from the internet" + e
+				  internet_ok = false
+			  end
+			  if internet_ok then
+				  begin
+					  File.open(local_file_path, "wb") do |f|
+						  f.write(downloaded.read)
+					  end
+					  return  open(local_file_path)
+				  rescue Exception => e
+					  error "Could not download from the internet" + e
+					  alert "Couldn't find an Shoes at:\n #{local_file_path}\n or download it from the internet to include with the application.\n Will package application without Shoes."
+				  end
+			  end
+		  else
+			  alert "Couldn't find an existing Shoes at:\n #{local_file_path}\n or download it from the internet to include with the application.\n Will package application without Shoes."
+		  end
+	  end
+	end
 
     def self.exe(script, opt, &blk)
       size = File.size(script)
