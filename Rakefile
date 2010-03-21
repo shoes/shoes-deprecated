@@ -182,7 +182,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     end
   when /mingw/
     dlls = [ruby_so]
-    dlls += %w{libungif4 libjpeg-8 libcairo-2 libpng12-0 libglib-2.0-0 libgobject-2.0-0 libpango-1.0-0
+    dlls += %w{libungif4 libjpeg-8 libcairo-2 libglib-2.0-0 libgobject-2.0-0 libpango-1.0-0
       libgmodule-2.0-0 libpangocairo-1.0-0 libpangowin32-1.0-0 libportaudio-2 sqlite3 libssl32 libeay32 zlib1}
     dlls.each{|dll| cp "#{ext_ruby}/bin/#{dll}.dll", "dist/"}
     cp "dist/zlib1.dll", "dist/zlib.dll"
@@ -420,7 +420,6 @@ else
     CAIRO_LIB = '-lcairo'
     PANGO_CFLAGS = '-I/mingw/include/pango-1.0'
     PANGO_LIB = '-lpangocairo-1.0 -lpango-1.0'
-    png_lib = 'png12'
   else
     CAIRO_CFLAGS = ENV['CAIRO_CFLAGS'] || `pkg-config --cflags cairo`.strip
     CAIRO_LIB = ENV['CAIRO_LIB'] ? "-L#{ENV['CAIRO_LIB']}" : `pkg-config --libs cairo`.strip
@@ -433,7 +432,7 @@ else
   if Config::CONFIG['rubyhdrdir']
     LINUX_CFLAGS << " -I#{Config::CONFIG['rubyhdrdir']} -I#{Config::CONFIG['rubyhdrdir']}/#{RUBY_PLATFORM}"
   end
-  LINUX_LIB_NAMES = %W[#{ruby_so} #{png_lib} cairo pangocairo-1.0 ungif]
+  LINUX_LIB_NAMES = %W[#{ruby_so} cairo pangocairo-1.0 ungif]
   FLAGS.each do |flag|
     LINUX_CFLAGS << " -D#{flag}" if ENV[flag]
   end
