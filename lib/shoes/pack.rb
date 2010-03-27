@@ -30,16 +30,16 @@ class Shoes
       
       case opt
       when Shoes::I_YES then
-        url = "http://shoes.heroku.com/pkg/#{RELEASE_NAME.downcase}/#{platform}/shoes"
-        local_file_path = File.join(LIB_DIR, RELEASE_NAME.downcase, platform, "latest_shoes.#{extension}")
+        url = "http://shoes.heroku.com/pkg/#{Shoes::RELEASE_NAME.downcase}/#{platform}/shoes"
+        local_file_path = File.join(LIB_DIR, Shoes::RELEASE_NAME.downcase, platform, "latest_shoes.#{extension}")
       when Shoes::I_NOV then
-        url = "http://shoes.heroku.com/pkg/#{RELEASE_NAME.downcase}/#{platform}/shoes-novideo"
-        local_file_path = File.join(LIB_DIR, RELEASE_NAME.downcase, platform, "latest_shoes-novideo.#{extension}")  
+        url = "http://shoes.heroku.com/pkg/#{Shoes::RELEASE_NAME.downcase}/#{platform}/shoes-novideo"
+        local_file_path = File.join(LIB_DIR, Shoes::RELEASE_NAME.downcase, platform, "latest_shoes-novideo.#{extension}")  
 	  when I_NET then
 		url = false
       end
       
-      FileUtils.makedirs File.join(LIB_DIR, RELEASE_NAME.downcase, platform)
+      FileUtils.makedirs File.join(LIB_DIR, Shoes::RELEASE_NAME.downcase, platform)
       
 	  if url then
 		  begin
@@ -347,6 +347,7 @@ END
           end
           @page2.show 
           @path2.replace File.basename(@path)
+          inc_text = @inc.text
           Thread.start do
             begin
               sofar, stage = 0.0, 1.0 / [@shy.style[:checked], @exe.style[:checked], @dmg.style[:checked], @run.style[:checked]].
@@ -367,7 +368,7 @@ END
               end
               if @exe.style[:checked]
                 @status.replace "Working on an .exe for Windows."
-                #Shoes::Pack.exe(@path, @inc.text, &blk)
+                Shoes::Pack.exe(@path, inc_text, &blk)
                 @prog.style(:width => sofar += stage)
                 debug @prog.style[:width]
               end

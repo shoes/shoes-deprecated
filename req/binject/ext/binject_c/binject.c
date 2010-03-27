@@ -260,7 +260,7 @@ binject_exe_file_size(VALUE obj)
   FILE *fres;
   GetOpenFile(obj, fptr);
   rb_io_check_readable(fptr);
-  fres = GetReadFile(fptr);
+  fres = rb_io_stdio_file(fptr);
   fstat(fileno(fres), &st);
   return (unsigned int)st.st_size;
 }
@@ -445,7 +445,7 @@ binject_exe_rewrite(binject_exe_t *binj, char *buf, char *out, int offset, int o
               rb_io_t *fptr;
               rdat->Size = binject_exe_file_size(obj);
               GetOpenFile(obj, fptr);
-              binject_exe_file_copy(GetReadFile(fptr), binj->out, rdat->Size, 0, binj->datapos, binj->proc);
+              binject_exe_file_copy(rb_io_stdio_file(fptr), binj->out, rdat->Size, 0, binj->datapos, binj->proc);
             }
             binj->datapos += rdat->Size;
             padlen = BINJ_PAD(rdat->Size, 4) - rdat->Size;
@@ -520,7 +520,7 @@ binject_exe_load(VALUE self, VALUE file)
   binject_exe_t *binj;
   Data_Get_Struct(self, binject_exe_t, binj);
 #ifdef RUBY_1_9
-  binj->file = rb_file_open(RSTRING_PTR(file), "rb");
+  binj->file = fopen(RSTRING_PTR(file), "rb");
 #else
   binj->file = rb_fopen(RSTRING_PTR(file), "rb");
 #endif
@@ -566,7 +566,7 @@ binject_exe_save(VALUE self, VALUE file)
   char buf2[BUFSIZE];
   Data_Get_Struct(self, binject_exe_t, binj);
 #ifdef RUBY_1_9
-  binj->out = rb_file_open(RSTRING_PTR(file), "wb");
+  binj->out = fopen(RSTRING_PTR(file), "wb");
 #else
   binj->out = rb_fopen(RSTRING_PTR(file), "wb");
 #endif
@@ -588,7 +588,7 @@ binject_exe_save(VALUE self, VALUE file)
     if (pos == binj->section_header.PointerToRawData)
     {
       MEMZERO(buf2, char, BUFSIZE);
-      len = binject_exe_rewrite(binj, buf, buf2, 0, 0, 0, 0);
+      //len = binject_exe_rewrite(binj, buf, buf2, 0, 0, 0, 0);
       fwrite(buf2, sizeof(char), binj->datastart, binj->out);
       // printf("FINISHING AT: %x / %x\n", binj->dataend, binj->datapos);
       fseek(binj->out, binj->datapos, SEEK_SET);
@@ -664,7 +664,7 @@ binject_dmg_uncompress(VALUE filename, VALUE volname)
 
   file = (gzFile)gzopen(fname, "rb");
 #ifdef RUBY_1_9
-  hfs = rb_file_open(RSTRING_PTR(filename2), "wb");
+  hfs = fopen(RSTRING_PTR(filename2), "wb");
 #else
   hfs = rb_fopen(RSTRING_PTR(filename2), "wb");
 #endif
