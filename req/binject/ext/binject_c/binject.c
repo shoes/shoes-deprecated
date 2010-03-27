@@ -1,16 +1,12 @@
 
 #include <ruby.h>
-#ifdef HAVE_RUBY_ST_H
-#include <ruby/st.h>
-#else
+#ifdef RUBY_1_8
 #include <st.h>
-#endif
-#ifdef HAVE_RUBY_IO_H
-#include <ruby/io.h>
-#define OPEN_FILE rb_io_t
-#else
 #include <rubyio.h>
-#define OPEN_FILE OpenFile
+#endif
+#ifdef RUBY_1_9
+#include <ruby/st.h>
+#include <ruby/io.h>
 #endif
 #include <stdlib.h>
 #include <zlib.h>
@@ -21,10 +17,6 @@
 #include <hfs/hfslib.h>
 #include "abstractfile.h"
 #include "pe.h"
-
-#if !defined(GetReadFile)
-#define GetReadFile(fptr) rb_io_stdio_file(fptr)
-#endif
 
 char *pe_pad = "PADDINGXXPADDING";
 char endianness;
@@ -264,7 +256,7 @@ unsigned int
 binject_exe_file_size(VALUE obj)
 {
   struct stat st;
-  OPEN_FILE *fptr;
+  rb_io_t *fptr;
   FILE *fres;
   GetOpenFile(obj, fptr);
   rb_io_check_readable(fptr);
@@ -450,7 +442,7 @@ binject_exe_rewrite(binject_exe_t *binj, char *buf, char *out, int offset, int o
             }
             else
             {
-              OPEN_FILE *fptr;
+              rb_io_t *fptr;
               rdat->Size = binject_exe_file_size(obj);
               GetOpenFile(obj, fptr);
               binject_exe_file_copy(GetReadFile(fptr), binj->out, rdat->Size, 0, binj->datapos, binj->proc);
@@ -527,8 +519,11 @@ binject_exe_load(VALUE self, VALUE file)
   int i, lfanew;
   binject_exe_t *binj;
   Data_Get_Struct(self, binject_exe_t, binj);
+#ifdef RUBY_1_9
   binj->file = rb_file_open(RSTRING_PTR(file), "rb");
-
+#else
+  binj->file = rb_fopen(RSTRING_PTR(file), "rb");
+#endif
   BINJ_READ(binj, binj->dos_header);
   FLIPENDIANLE(binj->dos_header.e_lfanew);
   fseek(binj->file, binj->dos_header.e_lfanew, SEEK_SET);
@@ -570,8 +565,11 @@ binject_exe_save(VALUE self, VALUE file)
   char buf[BUFSIZE];
   char buf2[BUFSIZE];
   Data_Get_Struct(self, binject_exe_t, binj);
-
+#ifdef RUBY_1_9
   binj->out = rb_file_open(RSTRING_PTR(file), "wb");
+#else
+  binj->out = rb_fopen(RSTRING_PTR(file), "wb");
+#endif
   binj->ids = 0;
   binj->namestart = 0;
   binj->datastart = 0;
@@ -665,7 +663,11 @@ binject_dmg_uncompress(VALUE filename, VALUE volname)
   int pos = 0;
 
   file = (gzFile)gzopen(fname, "rb");
+#ifdef RUBY_1_9
   hfs = rb_file_open(RSTRING_PTR(filename2), "wb");
+#else
+  hfs = rb_fopen(RSTRING_PTR(filename2), "wb");
+#endif
   while ((len = gzread(file, buf, BUFSIZE)) > 0)
   {
     if (pos == 0)
