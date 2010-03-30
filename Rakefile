@@ -399,7 +399,8 @@ else
   case RUBY_PLATFORM when /darwin/
     DLEXT = "dylib"
     LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{Config::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions"
-    LINUX_LDFLAGS = "-framework Cocoa -framework Carbon -dynamiclib -Wl,-single_module #{Config::CONFIG["LDFLAGS"]} INSTALL_NAME"
+    #LINUX_LDFLAGS = "-framework Cocoa -framework Carbon -dynamiclib -Wl,-single_module #{Config::CONFIG["LDFLAGS"]} INSTALL_NAME"
+    LINUX_LDFLAGS = "-framework Cocoa -framework Carbon -dynamiclib -Wl,-single_module  INSTALL_NAME"
     LINUX_LIB_NAMES << 'pixman-1' << 'jpeg.62'
     if ENV['VIDEO']
       if VLC_0_8
@@ -415,6 +416,10 @@ else
       LINUX_CFLAGS << " -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch ppc"
       LINUX_LDFLAGS << " -arch ppc"
       ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
+    elsif ENV['SNOW_LEOPARD']
+      LINUX_CFLAGS << " -isysroot /Developer/SDKs/MacOSX10.6.sdk -arch i386 -m32"
+      LINUX_LDFLAGS << " -arch i386 -m32"
+      ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
     end
   else
     DLEXT = "so"
@@ -446,7 +451,8 @@ else
     bin = "#{t.name}-bin"
     rm_f t.name
     rm_f bin
-    sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']}"
+   # sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']}"
+    sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes -arch i386 -m32"
     if RUBY_PLATFORM !~ /darwin/
       rewrite "platform/nix/shoes.launch", t.name, %r!/shoes-bin!, "/#{NAME}-bin"
       sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{t.name}}
