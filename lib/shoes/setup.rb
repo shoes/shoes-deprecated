@@ -45,7 +45,7 @@ class Shoes::Setup
       stack :margin => 18 do
         title "Shoes Setup", :size => 12, :weight => "bold", :margin => 0
         para "Preparing #{setup.script}", :size => 8, :margin => 0, :margin_top => 8, :width => 220
-        progress :width => 1.0, :top => 70, :height => 20
+        @pr = progress :width => 1.0, :top => 70, :height => 20
         button "Cancel", :top => 98, :left => 0.4 do
           self.close
         end
@@ -70,6 +70,7 @@ class Shoes::Setup
           stroke rgb(0.7, 0.7, 0.9, 1.0 - (i * 0.1))
           oval(@logo.left - i, @logo.top - i, @logo.width + (i * 2)) 
         end
+        @pr.fraction = $fraction
         if @script
           Shoes.visit(@script)
           close
@@ -293,7 +294,8 @@ class Gem::ShoesFace
     @title.replace msg
   end
   def progress count, total
-    @prog.fraction = count.to_f / total.to_f
+    #@prog.fraction = count.to_f / total.to_f
+    $fraction = count.to_f / total.to_f
   end
   def ask_yes_no msg
     Kernel.confirm(msg)
