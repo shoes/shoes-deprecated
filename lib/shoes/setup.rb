@@ -116,7 +116,7 @@ class Shoes::Setup
   def start(app)
     old_ui = Gem::DefaultUserInteraction.ui
     ui = Gem::DefaultUserInteraction.ui = Gem::ShoesFace.new(app)
-    count, total = 0, @steps.length
+    count, total = 0.5, @steps.length
     ui.progress count, total
 
     steps.each do |act, arg|
