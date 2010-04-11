@@ -260,7 +260,11 @@ binject_exe_file_size(VALUE obj)
   FILE *fres;
   GetOpenFile(obj, fptr);
   rb_io_check_readable(fptr);
+#ifdef RUBY_1_9
   fres = rb_io_stdio_file(fptr);
+#else
+  fres = GetReadFile(fptr);
+#endif
   fstat(fileno(fres), &st);
   return (unsigned int)st.st_size;
 }
@@ -445,7 +449,11 @@ binject_exe_rewrite(binject_exe_t *binj, char *buf, char *out, int offset, int o
               rb_io_t *fptr;
               rdat->Size = binject_exe_file_size(obj);
               GetOpenFile(obj, fptr);
+#ifdef RUBY_1_9
               binject_exe_file_copy(rb_io_stdio_file(fptr), binj->out, rdat->Size, 0, binj->datapos, binj->proc);
+#else
+              binject_exe_file_copy(GetReadFile(fptr), binj->out, rdat->Size, 0, binj->datapos, binj->proc);
+#endif
             }
             binj->datapos += rdat->Size;
             padlen = BINJ_PAD(rdat->Size, 4) - rdat->Size;

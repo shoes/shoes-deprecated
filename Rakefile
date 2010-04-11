@@ -112,9 +112,15 @@ end
 ruby_so = Config::CONFIG['RUBY_SO_NAME']
 ruby_v = Config::CONFIG['ruby_version']
 RUBY_1_9 = (ruby_v =~ /^1\.9/)
-ext_ruby = "deps/ruby"
-unless File.exists? ext_ruby
-  ext_ruby = Config::CONFIG['prefix']
+
+case RUBY_PLATFORM
+when /mingw/
+  ext_ruby = "C:/shoes_dev/sandbox/mingw"
+else
+  ext_ruby = "deps/ruby"
+  unless File.exists? ext_ruby
+    ext_ruby = Config::CONFIG['prefix']
+  end
 end
 
 desc "Same as `rake build'"
@@ -131,7 +137,7 @@ end
 
 task "dist/VERSION.txt" do |t|
   File.open(t.name, 'w') do |f|
-    f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION}) [#{RUBY_PLATFORM}]}
+    f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION}) [#{RUBY_PLATFORM} Ruby#{ruby_v}]}
     %w[VIDEO DEBUG].each { |x| f << " +#{x.downcase}" if ENV[x] }
     f << "\n"
   end
@@ -465,9 +471,10 @@ else
     end
   when /mingw/
     DLEXT = 'dll'
-    LINUX_CFLAGS << ' -I. -I/mingw/include -I/mingw/include/ruby-1.9.1/ruby'
+    LINUX_CFLAGS << ' -I. -I/mingw/include'
+    LINUX_CFLAGS << ' -I/mingw/include/ruby-1.9.1/ruby' if RUBY_1_9
     LINUX_CFLAGS << " -DXMD_H -DHAVE_BOOLEAN -DSHOES_WIN32 -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0500 -DWINVER=0x0500 -DCOBJMACROS"
-    LINUX_LDFLAGS =" -DBUILD_DLL -lungif -ljpeg -lglib-2.0 -lgobject-2.0 -fPIC -shared"
+    LINUX_LDFLAGS = " -DBUILD_DLL -lungif -ljpeg -lglib-2.0 -lgobject-2.0 -fPIC -shared"
     LINUX_LDFLAGS << ' -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 -lole32 -loleaut32 -ladvapi32 -loleacc -lwinhttp'
   else
     DLEXT = "so"
@@ -504,7 +511,8 @@ else
     sh "#{CC} -Ldist -o #{bin} bin/main.o shoes/appwin32.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']} -mwindows"
     if RUBY_PLATFORM !~ /darwin/
       rewrite "platform/nix/shoes.launch", t.name, %r!/shoes!, "/#{NAME}"
-      sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{t.name}}
+      sh %{echo 'cd "$OLDPWD"'}
+      sh %{echo 'LD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{t.name}}
       chmod 0755, t.name
     end
     cp "platform/msw/shoes.exe.manifest", "dist/#{NAME}.exe.manifest"
