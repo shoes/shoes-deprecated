@@ -252,6 +252,18 @@ binject_exe_names_len(binject_exe_t *binj)
   return len;
 }
 
+long AnotherGetFileSize ( FILE * hFile )
+{
+  long lCurPos, lEndPos;
+  if ( hFile == NULL )
+    return 0;
+  lCurPos = ftell ( hFile );
+  fseek ( hFile, 0, 2 );
+  lEndPos = ftell ( hFile );
+  fseek ( hFile, lCurPos, 0 );
+  return lEndPos;
+}
+
 unsigned int
 binject_exe_file_size(VALUE obj)
 {
@@ -262,10 +274,11 @@ binject_exe_file_size(VALUE obj)
   rb_io_check_readable(fptr);
 #ifdef RUBY_1_9
   fres = rb_io_stdio_file(fptr);
+  st.st_size = AnotherGetFileSize(fres);
 #else
   fres = GetReadFile(fptr);
-#endif
   fstat(fileno(fres), &st);
+#endif
   return (unsigned int)st.st_size;
 }
 
@@ -596,7 +609,7 @@ binject_exe_save(VALUE self, VALUE file)
     if (pos == binj->section_header.PointerToRawData)
     {
       MEMZERO(buf2, char, BUFSIZE);
-      //len = binject_exe_rewrite(binj, buf, buf2, 0, 0, 0, 0);
+      len = binject_exe_rewrite(binj, buf, buf2, 0, 0, 0, 0);
       fwrite(buf2, sizeof(char), binj->datastart, binj->out);
       // printf("FINISHING AT: %x / %x\n", binj->dataend, binj->datapos);
       fseek(binj->out, binj->datapos, SEEK_SET);
