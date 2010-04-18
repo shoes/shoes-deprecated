@@ -15,7 +15,9 @@ if Object.const_defined? :Shoes
   require 'shoes/image'
 end
 require 'shoes/shybuilder'
- 
+
+def Shoes.hook; end
+
 class Range 
   def rand 
     conv = (Integer === self.end && Integer === self.begin ? :to_i : :to_f)
@@ -401,7 +403,8 @@ class Shoes
 
   def self.read_file path
     if RUBY_VERSION =~ /^1\.9/ and !@shy
-      File.open(path, 'r:utf-8') { |f| f.read }
+      #File.open(path, 'r:utf-8') { |f| f.read }
+      IO.read(path).force_encoding("UTF-8")
     else
       File.read(path)
     end

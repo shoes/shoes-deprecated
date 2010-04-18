@@ -328,6 +328,30 @@ binject_exe_file_copy(FILE *file, FILE *out, unsigned int size, unsigned int pos
   fseek(out, mark2, SEEK_SET);
 }
 
+void
+binject_exe_file_copy1(rb_io_t *fptr, FILE *out, unsigned int size, unsigned int pos1, unsigned int pos2, VALUE proc)
+{
+  char buf[BUFSIZE];
+  FILE *file;
+  file = rb_io_stdio_file(fptr);
+  
+  int mark1 = ftell(file), mark2 = ftell(out);
+  fseek(file, pos1, SEEK_SET);
+  fseek(out, pos2, SEEK_SET);
+  while (size > 0)
+  {
+    unsigned int len = size > BUFSIZE ? BUFSIZE : size;
+    //fread(buf, sizeof(char), len, file);
+    read(fptr->fd, buf, sizeof(char) * len);
+    fwrite(buf, sizeof(char), len, out);
+    if (RTEST(proc))
+      rb_funcall(proc, rb_intern("call"), 1, INT2NUM(len));
+    size -= len;
+  }
+  fseek(file, mark1, SEEK_SET);
+  fseek(out, mark2, SEEK_SET);
+}
+
 int
 binject_exe_offset(binject_exe_t *binj, int level, int res_type)
 {
@@ -463,7 +487,8 @@ binject_exe_rewrite(binject_exe_t *binj, char *buf, char *out, int offset, int o
               rdat->Size = binject_exe_file_size(obj);
               GetOpenFile(obj, fptr);
 #ifdef RUBY_1_9
-              binject_exe_file_copy(rb_io_stdio_file(fptr), binj->out, rdat->Size, 0, binj->datapos, binj->proc);
+              //binject_exe_file_copy(rb_io_stdio_file(fptr), binj->out, rdat->Size, 0, binj->datapos, binj->proc);
+              binject_exe_file_copy1(fptr, binj->out, rdat->Size, 0, binj->datapos, binj->proc);
 #else
               binject_exe_file_copy(GetReadFile(fptr), binj->out, rdat->Size, 0, binj->datapos, binj->proc);
 #endif
