@@ -115,7 +115,7 @@ RUBY_1_9 = (ruby_v =~ /^1\.9/)
 
 case RUBY_PLATFORM
 when /mingw/
-  ext_ruby = "C:/shoes_dev/sandbox/mingw"
+  ext_ruby = "../mingw"
 else
   ext_ruby = "deps/ruby"
   unless File.exists? ext_ruby
