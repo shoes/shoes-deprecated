@@ -30,10 +30,10 @@ class Shoes
       
       case opt
       when Shoes::I_YES then
-        url = "http://shoes.heroku.com/pkg/#{Shoes::RELEASE_NAME.downcase}/#{platform}/shoes"
+        url = "http://www.rin-shun.com/shoes/pkg/#{Shoes::RELEASE_NAME.downcase}/#{platform}/shoes"
         local_file_path = File.join(LIB_DIR, Shoes::RELEASE_NAME.downcase, platform, "latest_shoes.#{extension}")
       when Shoes::I_NOV then
-        url = "http://shoes.heroku.com/pkg/#{Shoes::RELEASE_NAME.downcase}/#{platform}/shoes-novideo"
+        url = "http://www.rin-shun.com/shoes/pkg/#{Shoes::RELEASE_NAME.downcase}/#{platform}/shoes-novideo"
         local_file_path = File.join(LIB_DIR, Shoes::RELEASE_NAME.downcase, platform, "latest_shoes-novideo.#{extension}")  
 	  when I_NET then
 		url = false
@@ -43,8 +43,7 @@ class Shoes
       
 	  if url then
 		  begin
-			  url = open(url).read.strip
-			  debug url
+			  fp = open(url)
 			  internet_ok = true
 		  rescue Exception => e
 			  error e
@@ -56,7 +55,7 @@ class Shoes
 		  elsif internet_ok then
 			  begin
 				  debug "Downloading #{url}..."
-				  downloaded = open(url)
+				  downloaded = fp.read
 				  debug "Download of #{url} finished"
 			  rescue Exception => e
 				  error "Could not download from the internet" + e
@@ -65,7 +64,7 @@ class Shoes
 			  if internet_ok then
 				  begin
 					  File.open(local_file_path, "wb") do |f|
-						  f.write(downloaded.read)
+						  f.write(downloaded)
 					  end
 					  return  open(local_file_path)
 				  rescue Exception => e

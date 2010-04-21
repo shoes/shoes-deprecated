@@ -18,6 +18,10 @@ require 'shoes/shybuilder'
 
 def Shoes.hook; end
 
+class Encoding
+  ASCII_8BIT = 'ASCII-8BIT'
+end
+
 class Range 
   def rand 
     conv = (Integer === self.end && Integer === self.begin ? :to_i : :to_f)
