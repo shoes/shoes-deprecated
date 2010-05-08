@@ -113,6 +113,8 @@ ruby_so = Config::CONFIG['RUBY_SO_NAME']
 ruby_v = Config::CONFIG['ruby_version']
 RUBY_1_9 = (ruby_v =~ /^1\.9/)
 
+ruby_so += '1.9' if RUBY_PLATFORM =~ /linux/ and RUBY_1_9
+
 case RUBY_PLATFORM
 when /mingw/
   ext_ruby = "../mingw"
@@ -231,7 +233,8 @@ task :build => [:build_os, "dist/VERSION.txt"] do
       end
     end
   else
-    cp    "#{ext_ruby}/lib/lib#{ruby_so}.so", "dist/lib#{ruby_so}.so"
+    #cp    "#{ext_ruby}/lib/lib#{ruby_so}.so", "dist/lib#{ruby_so}.so"
+    cp    "/usr/lib/lib#{ruby_so}.so", "dist/lib#{ruby_so}.so"
     ln_s  "lib#{ruby_so}.so", "dist/lib#{ruby_so}.so.#{ruby_v[/^\d+\.\d+/]}"
     cp    "/usr/lib/libgif.so", "dist/libgif.so.4"
     ln_s  "libgif.so.4", "dist/libungif.so.4"
@@ -476,6 +479,7 @@ else
     LINUX_CFLAGS << " -DXMD_H -DHAVE_BOOLEAN -DSHOES_WIN32 -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0500 -DWINVER=0x0500 -DCOBJMACROS"
     LINUX_LDFLAGS = " -DBUILD_DLL -lungif -ljpeg -lglib-2.0 -lgobject-2.0 -fPIC -shared"
     LINUX_LDFLAGS << ' -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 -lole32 -loleaut32 -ladvapi32 -loleacc -lwinhttp'
+    cp APP['icons']['win32'], "shoes/appwin32.ico"
   else
     DLEXT = "so"
     LINUX_CFLAGS << " -DSHOES_GTK -fPIC #{`pkg-config --cflags gtk+-2.0`.strip} #{`curl-config --cflags`.strip}"
@@ -492,8 +496,6 @@ else
     end
   end
   
-  cp APP['icons']['win32'], "shoes/appwin32.ico"
-  
   LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
   task :build_os => [:buildenv_linux, :build_skel, "dist/#{NAME}"]
@@ -505,17 +507,31 @@ else
 
   LINUX_LIBS << " -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB}"
 
-  task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o", "shoes/appwin32.o"] do |t|
-    bin = t.name
-    rm_f bin
-    sh "#{CC} -Ldist -o #{bin} bin/main.o shoes/appwin32.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']} -mwindows"
-    if RUBY_PLATFORM !~ /darwin/
-      rewrite "platform/nix/shoes.launch", t.name, %r!/shoes!, "/#{NAME}"
-      sh %{echo 'cd "$OLDPWD"'}
-      sh %{echo 'LD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{t.name}}
-      chmod 0755, t.name
+  if RUBY_PLATFORM =~ /mingw/
+    task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o", "shoes/appwin32.o"] do |t|
+      bin = t.name
+      rm_f bin
+      sh "#{CC} -Ldist -o #{bin} bin/main.o shoes/appwin32.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']} -mwindows"
+      if RUBY_PLATFORM !~ /darwin/
+        rewrite "platform/nix/shoes.launch", t.name, %r!/shoes!, "/#{NAME}"
+        sh %{echo 'cd "$OLDPWD"'}
+        sh %{echo 'LD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{t.name}}
+        chmod 0755, t.name
+      end
+      cp "platform/msw/shoes.exe.manifest", "dist/#{NAME}.exe.manifest"
     end
-    cp "platform/msw/shoes.exe.manifest", "dist/#{NAME}.exe.manifest"
+  else
+    task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o"] do |t|
+      bin = "#{t.name}-bin"
+      rm_f t.name
+      rm_f bin
+      sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']}"
+      if RUBY_PLATFORM !~ /darwin/
+        rewrite "platform/nix/shoes.launch", t.name, %r!/shoes-bin!, "/#{NAME}-bin"
+        sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{t.name}}
+        chmod 0755, t.name
+      end
+    end
   end
 
   task "dist/lib#{SONAME}.#{DLEXT}" => ['shoes/version.h'] + OBJ do |t|
@@ -528,8 +544,10 @@ else
     end
   end
 
-  rule ".o" => ".rc" do |t|
-    sh "windres -I. #{t.source} #{t.name}"
+  if RUBY_PLATFORM =~ /mingw/
+    rule ".o" => ".rc" do |t|
+      sh "windres -I. #{t.source} #{t.name}"
+    end
   end
 
   rule ".o" => ".m" do |t|
