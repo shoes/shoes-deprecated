@@ -113,8 +113,6 @@ ruby_so = Config::CONFIG['RUBY_SO_NAME']
 ruby_v = Config::CONFIG['ruby_version']
 RUBY_1_9 = (ruby_v =~ /^1\.9/)
 
-ruby_so += '1.9' if RUBY_PLATFORM =~ /linux/ and RUBY_1_9
-
 case RUBY_PLATFORM
 when /mingw/
   ext_ruby = "../mingw"
@@ -233,8 +231,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
       end
     end
   else
-    #cp    "#{ext_ruby}/lib/lib#{ruby_so}.so", "dist/lib#{ruby_so}.so"
-    cp    "/usr/lib/lib#{ruby_so}.so", "dist/lib#{ruby_so}.so"
+    cp    "#{ext_ruby}/lib/lib#{ruby_so}.so", "dist/lib#{ruby_so}.so"
     ln_s  "lib#{ruby_so}.so", "dist/lib#{ruby_so}.so.#{ruby_v[/^\d+\.\d+/]}"
     cp    "/usr/lib/libgif.so", "dist/libgif.so.4"
     ln_s  "libgif.so.4", "dist/libungif.so.4"
