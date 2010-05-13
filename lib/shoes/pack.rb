@@ -374,7 +374,7 @@ END
               end
               if @dmg.style[:checked]
                 @status.replace "Working on a .dmg for Mac OS X."
-                #Shoes::Pack.dmg(@path, @inc.text, &blk)
+                Shoes::Pack.dmg(@path, inc_text, &blk)
                 @prog.style(:width => sofar += stage)
               end
               if @run.style[:checked]

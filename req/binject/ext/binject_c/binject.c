@@ -487,8 +487,11 @@ binject_exe_rewrite(binject_exe_t *binj, char *buf, char *out, int offset, int o
               rdat->Size = binject_exe_file_size(obj);
               GetOpenFile(obj, fptr);
 #ifdef RUBY_1_9
-              //binject_exe_file_copy(rb_io_stdio_file(fptr), binj->out, rdat->Size, 0, binj->datapos, binj->proc);
+#ifdef SHOES_MINGW32
               binject_exe_file_copy1(fptr, binj->out, rdat->Size, 0, binj->datapos, binj->proc);
+#else
+              binject_exe_file_copy(rb_io_stdio_file(fptr), binj->out, rdat->Size, 0, binj->datapos, binj->proc);
+#endif
 #else
               binject_exe_file_copy(GetReadFile(fptr), binj->out, rdat->Size, 0, binj->datapos, binj->proc);
 #endif
