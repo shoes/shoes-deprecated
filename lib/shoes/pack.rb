@@ -379,7 +379,7 @@ END
               end
               if @run.style[:checked]
                 @status.replace "Working on a .run for Linux."
-                #Shoes::Pack.linux(@path, @inc.text, &blk)
+                Shoes::Pack.linux(@path, inc_text, &blk)
                 @prog.style(:width => sofar += stage)
               end
               if @shy_path and not @shy.style[:checked]
