@@ -132,6 +132,9 @@ class Shoes
       strokewidth 40.0
 
       @waves = stack :top => 0, :left => 0
+      
+      require 'shoes/search'
+      require 'shoes/help'
 
       stack :margin => 18 do
         para "Welcome to", :stroke => "#DFA", :margin => 0
