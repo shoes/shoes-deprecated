@@ -1198,7 +1198,10 @@ void shoes_tab_focus(shoes_app *app)
       {
         if (i == n - 1)
         {
-          VALUE nctrl = rb_ary_entry(app->slot->controls, 0);
+          if (app->os.shiftkey)
+            nctrl = rb_ary_entry(app->slot->controls, n - 1);
+          else
+            nctrl = rb_ary_entry(app->slot->controls, 0);
           app->slot->focus = nctrl;
           shoes_control_focus(app->slot->focus);
           break;
