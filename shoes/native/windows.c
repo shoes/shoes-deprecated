@@ -1158,6 +1158,56 @@ shoes_native_app_show(shoes_app *app)
   ShowWindow(app->slot->window, SW_SHOWNORMAL);
 }
 
+void shoes_tab_focus(shoes_app *app)
+{
+  int i, j, n;
+  HWND newFocus = GetFocus();
+  n = RARRAY_LEN(app->slot->controls);
+  
+  for (i = 0; i < n; i++)
+  {
+    if (app->os.shiftkey)
+    {
+      if (i == 0)
+        j = n - 1;
+      else
+        j = i - 1;
+    }
+    else
+    {
+      if (i == n - 1)
+        j = 0;
+      else
+        j = i + 1;
+    }
+    
+    VALUE ctrl = rb_ary_entry(app->slot->controls, i);
+    VALUE nctrl = rb_ary_entry(app->slot->controls, j);
+    
+    if (rb_obj_is_kind_of(ctrl, cNative))
+    {
+      shoes_control *self_t;
+      Data_Get_Struct(ctrl, shoes_control, self_t);
+      if (self_t->ref == newFocus)
+      {
+        app->slot->focus = nctrl;
+        shoes_control_focus(app->slot->focus);
+        break;
+      }
+      else
+      {
+        if (i == n - 1)
+        {
+          VALUE nctrl = rb_ary_entry(app->slot->controls, 0);
+          app->slot->focus = nctrl;
+          shoes_control_focus(app->slot->focus);
+          break;
+        }
+      }
+    }
+  }
+}
+
 void
 shoes_native_loop()
 {
@@ -1176,7 +1226,18 @@ shoes_native_loop()
         {
           switch (msgs.wParam)
           {
-            case VK_TAB: case VK_UP: case VK_LEFT: case VK_DOWN:
+            case VK_SHIFT:
+              if (msgs.message == WM_KEYDOWN)
+                appk->os.shiftkey = TRUE;
+              else
+                appk->os.shiftkey = FALSE;
+              msg = FALSE;
+              break;
+            case VK_TAB:
+              if (msgs.message == WM_KEYUP) shoes_tab_focus(appk);
+              msg = FALSE;
+              break;
+            case VK_UP: case VK_LEFT: case VK_DOWN:
             case VK_RIGHT: case VK_PRIOR: case VK_NEXT:
               break;
             default:
