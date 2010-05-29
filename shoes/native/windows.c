@@ -1392,12 +1392,30 @@ shoes_native_control_position(SHOES_CONTROL_REF ref, shoes_place *p1, VALUE self
 }
 
 void
+shoes_native_control_position_no_pad(SHOES_CONTROL_REF ref, shoes_place *p1, VALUE self,
+  shoes_canvas *canvas, shoes_place *p2)
+{
+  PLACE_COORDS_NO_PAD();
+  MoveWindow(ref, p2->ix + p2->dx, p2->iy + p2->dy, p2->iw, p2->ih, TRUE);
+}
+
+void
 shoes_native_control_repaint(SHOES_CONTROL_REF ref, shoes_place *p1,
   shoes_canvas *canvas, shoes_place *p2)
 {
   p2->iy -= canvas->slot->scrolly;
   if (CHANGED_COORDS())
     shoes_native_control_position(ref, p1, Qnil, canvas, p2);
+  p2->iy += canvas->slot->scrolly;
+}
+
+void
+shoes_native_control_repaint_no_pad(SHOES_CONTROL_REF ref, shoes_place *p1,
+  shoes_canvas *canvas, shoes_place *p2)
+{
+  p2->iy -= canvas->slot->scrolly;
+  if (CHANGED_COORDS_NO_PAD())
+    shoes_native_control_position_no_pad(ref, p1, Qnil, canvas, p2);
   p2->iy += canvas->slot->scrolly;
 }
 
@@ -1493,7 +1511,7 @@ SHOES_CONTROL_REF
 shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
   int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot->controls);
-  SHOES_CONTROL_REF ref = CreateWindowEx(WS_EX_TRANSPARENT, TEXT("EDIT"), NULL,
+  SHOES_CONTROL_REF ref = CreateWindowEx(WS_EX_CLIENTEDGE | WS_EX_TRANSPARENT, TEXT("EDIT"), NULL,
       WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT | ES_AUTOHSCROLL |
       (RTEST(ATTR(attr, secret)) ? ES_PASSWORD : 0),
       place->ix + place->dx, place->iy + place->dy, place->iw, place->ih,
@@ -1555,7 +1573,7 @@ SHOES_CONTROL_REF
 shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
   int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot->controls);
-  SHOES_CONTROL_REF ref = CreateWindowEx(WS_EX_TRANSPARENT, TEXT("EDIT"), NULL,
+  SHOES_CONTROL_REF ref = CreateWindowEx(WS_EX_CLIENTEDGE | WS_EX_TRANSPARENT, TEXT("EDIT"), NULL,
     WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT |
     ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN | ES_NOHIDESEL,
     place->ix + place->dx, place->iy + place->dy, place->iw, place->ih,
