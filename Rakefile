@@ -188,7 +188,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     end
   when /mingw/
     dlls = [ruby_so]
-    dlls += %w{libungif4 libjpeg-8 libcairo-2 libglib-2.0-0 libgobject-2.0-0 libpango-1.0-0
+    dlls += %w{libungif4 libjpeg-8 libcairo-2 libglib-2.0-0 libgobject-2.0-0 libpango-1.0-0 libpangoft2-1.0-0 libgio-2.0-0 libgthread-2.0-0 
       libgmodule-2.0-0 libpangocairo-1.0-0 libpangowin32-1.0-0 libportaudio-2 sqlite3 libssl32 libeay32 zlib1 readline5 libiconv2}
     dlls.each{|dll| cp "#{ext_ruby}/bin/#{dll}.dll", "dist/"}
     cp "dist/zlib1.dll", "dist/zlib.dll"
@@ -425,7 +425,7 @@ else
     CAIRO_CFLAGS = '-I/mingw/include/glib-2.0 -I/mingw/lib/glib-2.0/include -I/mingw/include/cairo'
     CAIRO_LIB = '-lcairo'
     PANGO_CFLAGS = '-I/mingw/include/pango-1.0'
-    PANGO_LIB = '-lpangocairo-1.0 -lpango-1.0'
+    PANGO_LIB = '-lpangocairo-1.0 -lpango-1.0 -lpangoft2-1.0 -lpangowin32-1.0'
   else
     CAIRO_CFLAGS = ENV['CAIRO_CFLAGS'] || `pkg-config --cflags cairo`.strip
     CAIRO_LIB = ENV['CAIRO_LIB'] ? "-L#{ENV['CAIRO_LIB']}" : `pkg-config --libs cairo`.strip
@@ -474,7 +474,7 @@ else
     LINUX_CFLAGS << ' -I. -I/mingw/include'
     LINUX_CFLAGS << ' -I/mingw/include/ruby-1.9.1/ruby' if RUBY_1_9
     LINUX_CFLAGS << " -DXMD_H -DHAVE_BOOLEAN -DSHOES_WIN32 -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0500 -DWINVER=0x0500 -DCOBJMACROS"
-    LINUX_LDFLAGS = " -DBUILD_DLL -lungif -ljpeg -lglib-2.0 -lgobject-2.0 -fPIC -shared"
+    LINUX_LDFLAGS = " -DBUILD_DLL -lungif -ljpeg -lglib-2.0 -lgobject-2.0 -lgio-2.0 -lgmodule-2.0 -lgthread-2.0 -fPIC -shared"
     LINUX_LDFLAGS << ' -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 -lole32 -loleaut32 -ladvapi32 -loleacc -lwinhttp'
     cp APP['icons']['win32'], "shoes/appwin32.ico"
   else
