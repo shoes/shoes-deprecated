@@ -963,7 +963,7 @@ shoes_code
 shoes_app_cursor(shoes_app *app, ID cursor)
 {
   HCURSOR c;
-  if (app->slot == NULL || app->slot->window == NULL || app->cursor == cursor)
+  if (app->slot == NULL || app->slot->window == NULL)
     goto done;
 
   if (cursor == s_hand || cursor == s_link)
@@ -1221,9 +1221,9 @@ shoes_native_loop()
     if (msg)
     {
       HWND focused = GetForegroundWindow();
+      shoes_app *appk = (shoes_app *)GetWindowLong(focused, GWL_USERDATA);
       if (msgs.message == WM_KEYDOWN || msgs.message == WM_KEYUP)
       {
-        shoes_app *appk = (shoes_app *)GetWindowLong(focused, GWL_USERDATA);
         ATOM wndatom = GetClassLong(focused, GCW_ATOM);
         if (appk != NULL && wndatom == shoes_world->os.classatom && RARRAY_LEN(appk->slot->controls) > 0)
         {
@@ -1259,6 +1259,8 @@ shoes_native_loop()
         TranslateMessage(&msgs);
         DispatchMessage(&msgs);
       }
+      
+      shoes_app_cursor(appk, appk->cursor);
     }
     else
     {
