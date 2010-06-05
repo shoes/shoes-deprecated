@@ -1251,6 +1251,9 @@ shoes_native_loop()
       }
       else if (msgs.message == WM_SYSCHAR || msgs.message == WM_CHAR)
         msg = FALSE;
+      else if (msgs.message == WM_MOUSEMOVE)
+        shoes_app_cursor(appk, appk->cursor);
+      
       if (msg)
         msg = IsDialogMessage(focused, &msgs);
 
@@ -1259,8 +1262,6 @@ shoes_native_loop()
         TranslateMessage(&msgs);
         DispatchMessage(&msgs);
       }
-      
-      shoes_app_cursor(appk, appk->cursor);
     }
     else
     {
