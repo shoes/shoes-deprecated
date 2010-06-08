@@ -19,7 +19,9 @@ require 'shoes/shybuilder'
 def Shoes.hook; end
 
 class Encoding
-  ASCII_8BIT = 'ASCII-8BIT'
+ %w[ASCII_8BIT UTF_16BE UTF_16LE UTF_32BE UTF_32LE].each do |ec|
+   eval "#{ec} = '#{ec.sub '_', '-'}'"
+ end unless RUBY_PLATFORM =~ /linux/
 end
 
 class Range 
