@@ -1251,7 +1251,7 @@ shoes_native_loop()
       }
       else if (msgs.message == WM_SYSCHAR || msgs.message == WM_CHAR)
         msg = FALSE;
-      else if (msgs.message == WM_MOUSEMOVE)
+      else if (msgs.message == WM_MOUSEMOVE && focused == GetActiveWindow())
         shoes_app_cursor(appk, appk->cursor);
       
       if (msg)
