@@ -8,7 +8,6 @@
 #include "shoes/world.h"
 #include "shoes/native.h"
 #include "shoes/internal.h"
-#include <Carbon/Carbon.h>
 
 #define HEIGHT_PAD 6
 
@@ -658,7 +657,7 @@ shoes_load_font(const char *filename)
   FSPathMakeRef(filename, &fsRef, &isDir);
   if (FSGetCatalogInfo(&fsRef, kFSCatInfoNone, NULL, NULL, &fsSpec, NULL) == noErr)
   {
-    ATSFontActivateFromFileSpecification(&fsSpec, kATSFontContextLocal, kATSFontFormatUnspecified, 
+    ATSFontActivateFromFileReference(&fsRef, kATSFontContextLocal, kATSFontFormatUnspecified, 
       NULL, kATSOptionFlagsDefault, &ref);
     if (ref != NULL)
     {
@@ -1112,7 +1111,7 @@ shoes_native_control_free(SHOES_CONTROL_REF ref)
 SHOES_SURFACE_REF
 shoes_native_surface_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
 {
-  return GetWindowPort([canvas->app->os.window windowRef]);
+  return canvas->app->os.window;
 }
 
 void
