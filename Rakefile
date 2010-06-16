@@ -160,7 +160,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     end
   when /darwin/
     if ENV['SHOES_DEPS_PATH']
-      dylibs = %w[lib/libcairo.2.dylib lib/libpixman-1.0.dylib lib/libgmodule-2.0.0.dylib lib/libintl.8.dylib lib/libruby.dylib
+      dylibs = %w[lib/libiconv.2.dylib lib/libcairo.2.dylib lib/libpixman-1.0.dylib lib/libgmodule-2.0.0.dylib lib/libintl.8.dylib lib/libruby.dylib
          lib/libglib-2.0.0.dylib lib/libgobject-2.0.0.dylib lib/libgthread-2.0.0.dylib lib/libpng14.14.dylib lib/libpango-1.0.0.dylib 
          lib/pango/1.6.0/modules/pango-basic-atsui.la lib/libpangocairo-1.0.0.dylib 
          lib/pango/1.6.0/modules/pango-basic-atsui.so etc/pango/pango.modules
@@ -496,6 +496,9 @@ else
         mv "dmg/#{APPNAME}.app/Contents/MacOS/samples", "dmg/samples"
       end
       ln_s "/Applications", "dmg/Applications"
+      sh "chmod +x dmg/\"#{APPNAME}.app\"/Contents/MacOS/#{NAME}"
+      sh "chmod +x dmg/\"#{APPNAME}.app\"/Contents/MacOS/#{NAME}-bin"
+      sh "chmod +x dmg/\"#{APPNAME}.app\"/Contents/MacOS/#{NAME}-launch"
       sh "DYLD_LIBRARY_PATH= platform/mac/pkg-dmg --target pkg/#{PKG}.dmg --source dmg --volname '#{APPNAME}' --copy #{dmg_ds}:/.DS_Store --mkdir /.background --copy #{dmg_jpg}:/.background" # --format UDRW"
       rm_rf "dmg"
     end
