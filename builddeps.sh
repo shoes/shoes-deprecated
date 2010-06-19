@@ -35,7 +35,7 @@ cd ../pkg-config-0.20
 make && make install
 export MACOSX_DEPLOYMENT_TARGET=10.6
 export PATH=/tmp/dep/bin:$PATH
-export CFLAGS=-I/tmp/dep/include
+export CFLAGS="-I/tmp/dep/include -w"
 export LDFLAGS=-L/tmp/dep/lib
 export PKG_CONFIG_PATH=/tmp/dep/lib/pkgconfig
 
@@ -86,8 +86,8 @@ make && make install
 
 #build Port Audio 
 cd ../portaudio/
-./configure --disable-mac-universal --prefix=/tmp/dep
-ke && make install
+./configure --prefix=/tmp/dep --disable-mac-universal
+make && make install
 
 #build ruby
 cd ../ruby-1.9.1-p378
