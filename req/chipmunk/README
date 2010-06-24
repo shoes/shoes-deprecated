@@ -1,0 +1,40 @@
+CHIPMUNK VERSION 4.1.0
+(C) Scott Lembcke
+
+IMPORTANT NOTICE:
+
+(1) 1/10/09 Cross-Platform Gem built by John Mair (banisterfiend)
+    * Just go: gem install chipmunk  
+
+(2) Patched for 1.9.1 by Beoran
+
+(3) How to build the gems? (maintainers only)
+    * Install rake-compiler (http://github.com/luislavena/rake-compiler)
+    * Install 1.9.1 and 1.8.6 mingw ruby versions (instructions above)
+    * Type: rake cross native gem RUBY_CC_VERSION=1.8.6:1.9.1
+    * Upload new gems to rubyforge and gemcutter.
+
+FORUM:
+
+  http://www.slembcke.net/forums
+
+CONTACT:
+
+  slembcke@gmail.com (also on Google Talk)
+
+CHANGES SINCE RELEASE 3:
+
+  * Rational versioning scheme: (major.minor.build) Small changes
+    increment the build number. Significant changes that don't affect
+    backwards compatibility increment the minor number. Major changes
+    that will break backwards compatibility will increment the major
+    number.
+
+  * Optimizations: Speed increases of 5-10% should be common.
+
+  * Groove Joint: Similar to a pivot joint, but one of the anchors is
+    on a linear slide instead of being fixed.
+
+  * Comments/cleanup. The code should be much more readable now.
+
+  * Official build paths for working on Linux and MSVC.
