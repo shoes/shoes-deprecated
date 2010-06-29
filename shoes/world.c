@@ -1,4 +1,4 @@
-//
+///
 // shoes/world.c
 // Abstract windowing for GTK, Quartz (OSX) and Win32.
 //
@@ -91,7 +91,9 @@ shoes_ruby_embed()
   int sysinit_argc = 0;
   char**  sysinit_argv = NULL;
   RUBY_INIT_STACK;
+#ifdef SHOES_WIN32
   ruby_sysinit( &sysinit_argc, &sysinit_argv );
+#endif
   ruby_init();
   v = (VALUE)ruby_options(3, argv);
   return !FIXNUM_P(v);

@@ -15,7 +15,15 @@ if Object.const_defined? :Shoes
   require 'shoes/image'
 end
 require 'shoes/shybuilder'
- 
+
+def Shoes.hook; end
+
+class Encoding
+ %w[ASCII_8BIT UTF_16BE UTF_16LE UTF_32BE UTF_32LE].each do |ec|
+   eval "#{ec} = '#{ec.sub '_', '-'}'"
+ end unless RUBY_PLATFORM =~ /linux/
+end
+
 class Range 
   def rand 
     conv = (Integer === self.end && Integer === self.begin ? :to_i : :to_f)
@@ -113,7 +121,7 @@ class Shoes
 
   def self.splash
     font "#{DIR}/fonts/Lacuna.ttf"
-    Shoes.app :width => 400, :height => 325, :resizable => false do  
+    Shoes.app :width => 400, :height => 300, :resizable => false do  
       style(Para, :align => "center", :weight => "bold", :font => "Lacuna Regular", :size => 13)
       style(Link, :stroke => yellow, :underline => nil)
       style(LinkHover, :stroke => yellow, :fill => nil)
@@ -126,15 +134,18 @@ class Shoes
       strokewidth 40.0
 
       @waves = stack :top => 0, :left => 0
+      
+      require 'shoes/search'
+      require 'shoes/help'
 
       stack :margin => 18 do
         para "Welcome to", :stroke => "#DFA", :margin => 0
         para "SHOES", :size => 48, :stroke => "#DFA", :margin_top => 0
         stack do
           background black(0.2), :curve => 8
-          para link("Open an App.") { Shoes.show_selector and close }, :margin => 12, :margin_bottom => 4
-          para link("Package an App.") { Shoes.package_app and close }, :margin => 12, :margin_bottom => 4
-          para link("Read the Manual.") { Shoes.show_manual and close }, :margin => 12 
+          para link("Open an App.") { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
+          para link("Package an App.") { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
+          para link("Read the Manual.") { Shoes.show_manual and close }, :margin => 10
         end
         inscription "Alt-Slash opens the console.", :stroke => "#DFA", :align => "center"
       end
@@ -248,7 +259,7 @@ class Shoes
         end
       end
 
-      docs = load_docs(Shoes::Manual::PATH)
+      docs = load_docs(Shoes::Manual::path)
       sections = docs.map { |x,| x }
 
       docn = 1
@@ -374,6 +385,7 @@ class Shoes
     else
       path = File.expand_path(path.gsub(/\\/, "/"))
       if path =~ /\.shy$/
+        @shy = true
         require 'shoes/shy'
         base = File.basename(path, ".shy")
         tmpdir = "%s/shoes-%s.%d" % [Dir.tmpdir, base, $$]
@@ -382,12 +394,13 @@ class Shoes
         Shoes.debug "Loaded SHY: #{shy.name} #{shy.version} by #{shy.creator}"
         path = shy.launch
       else
+        @shy = false
         Dir.chdir(File.dirname(path))
         path = File.basename(path)
       end
 
       $0.replace path
-
+      
       code = read_file(path)
       eval(code, TOPLEVEL_BINDING, path)
     end
@@ -398,8 +411,9 @@ class Shoes
   end
 
   def self.read_file path
-    if RUBY_VERSION =~ /^1\.9/
-      File.open(path, 'r:utf-8') { |f| f.read }
+    if RUBY_VERSION =~ /^1\.9/ and !@shy
+      #File.open(path, 'r:utf-8') { |f| f.read }
+      IO.read(path).force_encoding("UTF-8")
     else
       File.read(path)
     end

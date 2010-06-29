@@ -55,7 +55,7 @@ class Gem::Validator
       gem_data = file.read
       verify_gem gem_data
     end
-  rescue Errno::ENOENT, Errno::EINVAL
+    rescue Errno::ENOENT, Errno::EINVAL
     raise Gem::VerificationError, "missing gem file #{gem_path}"
   end
 

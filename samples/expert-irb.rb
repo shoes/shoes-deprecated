@@ -79,7 +79,7 @@ Shoes.app do
     case k
     when "\n"
       begin
-        out, obj = IRBalike.run(@cmd)
+        out, obj = IRBalike.run(@cmd + ';')
         @str += ["#@cmd\n",
           span("#{out}=> #{obj.inspect}\n", :stroke => "#fda"),
           "#{CURSOR} "]

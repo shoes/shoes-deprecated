@@ -6,8 +6,12 @@
   (p1->ix != p2->ix || p1->iy != p2->iy || \
    p1->iw != p2->iw || p1->dx != p2->dx || \
    p1->dy != p2->dy || p1->ih - HEIGHT_PAD != p2->ih)
+#define CHANGED_COORDS_NO_PAD() \
+  (p1->ix != p2->ix || p1->iy != p2->iy || \
+   p1->iw != p2->iw || p1->dx != p2->dx || \
+   p1->dy != p2->dy || p1->ih != p2->ih)
 #define PLACE_COORDS() p2->h -= HEIGHT_PAD; p2->ih -= HEIGHT_PAD; *p1 = *p2
-#define PLACE_COORDS_NO_PAD() p2->h -= HEIGHT_PAD; p2->ih -= HEIGHT_PAD; *p1 = *p2
+#define PLACE_COORDS_NO_PAD() *p1 = *p2
 
 #ifndef SHOES_GTK
 #define SHOES_FORCE_RADIO 1
@@ -51,7 +55,11 @@ void shoes_native_control_hide(SHOES_CONTROL_REF);
 void shoes_native_control_show(SHOES_CONTROL_REF);
 void shoes_native_control_position(SHOES_CONTROL_REF, shoes_place *, 
   VALUE, shoes_canvas *, shoes_place *);
+void shoes_native_control_position_no_pad(SHOES_CONTROL_REF, shoes_place *, 
+  VALUE, shoes_canvas *, shoes_place *);
 void shoes_native_control_repaint(SHOES_CONTROL_REF, shoes_place *,
+  shoes_canvas *, shoes_place *);
+void shoes_native_control_repaint_no_pad(SHOES_CONTROL_REF, shoes_place *,
   shoes_canvas *, shoes_place *);
 void shoes_native_control_focus(SHOES_CONTROL_REF);
 void shoes_native_control_state(SHOES_CONTROL_REF, SHOES_BOOL, SHOES_BOOL);

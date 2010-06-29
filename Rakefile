@@ -18,7 +18,7 @@ VERS = ENV['VERSION'] || "0.r#{REVISION}"
 PKG = "#{NAME}-#{VERS}"
 APPARGS = APP['run']
 FLAGS = %w[DEBUG VIDEO]
-VLC_VERSION = (RUBY_PLATFORM =~ /win32|i386-mingw32/ ? "0.8": `vlc --version 2>/dev/null`.split[2])
+VLC_VERSION = (RUBY_PLATFORM =~ /win32/ ? "0.8": `vlc --version 2>/dev/null`.split[2])
 VLC_0_8 = VLC_VERSION !~ /^0\.9/
 
 if ENV['APP']
@@ -55,6 +55,15 @@ def env(x)
   ENV[x]
 end
 
+# Execute shell calls through bash if we are compiling with mingw. This breaks us
+# out of the windows command shell if we are compiling from there.
+if RUBY_PLATFORM =~ /mingw/
+  def sh(*args)
+    cmd = args.join(' ')
+    super "bash.exe --login -i -c \"#{cmd}\""
+  end
+end
+
 # Subs in special variables
 def rewrite before, after, reg = /\#\{(\w+)\}/, reg2 = '\1'
   File.open(after, 'w') do |a|
@@ -77,7 +86,7 @@ def copy_files glob, dir
 end
 
 def copy_ext xdir, libdir
-  case RUBY_PLATFORM when /win32|i386-mingw32/
+  case RUBY_PLATFORM when /win32/
     dxdir = xdir.gsub %r!^req/\w+/!, 'deps/'
     copy_files "#{dxdir}/*.so", libdir
   when /darwin/
@@ -85,6 +94,11 @@ def copy_ext xdir, libdir
        `ruby extconf.rb; make`
     end
     copy_files "#{xdir}/*.bundle", libdir
+  when /mingw/
+    Dir.chdir(xdir) do
+      sh 'ruby extconf.rb; make'
+    end
+    copy_files "#{xdir}/*.so", libdir
   else
     Dir.chdir(xdir) do
       unless system "ruby", "extconf.rb" and system "make"
@@ -98,9 +112,15 @@ end
 ruby_so = Config::CONFIG['RUBY_SO_NAME']
 ruby_v = Config::CONFIG['ruby_version']
 RUBY_1_9 = (ruby_v =~ /^1\.9/)
-ext_ruby = "deps/ruby"
-unless File.exists? ext_ruby
-  ext_ruby = Config::CONFIG['prefix']
+
+case RUBY_PLATFORM
+when /mingw/
+  ext_ruby = "../mingw"
+else
+  ext_ruby = "deps/ruby"
+  unless File.exists? ext_ruby
+    ext_ruby = Config::CONFIG['prefix']
+  end
 end
 
 desc "Same as `rake build'"
@@ -117,7 +137,7 @@ end
 
 task "dist/VERSION.txt" do |t|
   File.open(t.name, 'w') do |f|
-    f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION}) [#{RUBY_PLATFORM}]}
+    f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION}) [#{RUBY_PLATFORM} Ruby#{ruby_v}]}
     %w[VIDEO DEBUG].each { |x| f << " +#{x.downcase}" if ENV[x] }
     f << "\n"
   end
@@ -132,10 +152,10 @@ task :build => [:build_os, "dist/VERSION.txt"] do
       rm_rf "dist/ruby/lib/#{libn}"
     end
   end
-  %w[req/rubygems/* req/ftsearch/lib/*].each do |rdir|
+  %w[req/rubygems/* req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
     FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
   end
-  %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops].
+  %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
     each { |xdir| copy_ext xdir, "dist/ruby/lib/#{RUBY_PLATFORM}" }
 
   gdir = "dist/ruby/gems/#{ruby_v}"
@@ -150,14 +170,34 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     cp "req/#{gemn}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
   end
 
-  case RUBY_PLATFORM when /win32|i386-mingw32/
-    copy_files "#{ext_ruby}/bin/*", "dist/"
+  case RUBY_PLATFORM when /win32/
+    copy_files "#{ext_ruby}/bin/*.dll", "dist/"
     copy_files "deps/cairo/bin/*", "dist/"
     copy_files "deps/pango/bin/*", "dist/"
     copy_files "deps/ruby/lib/ruby/site_ruby/1.9.1/i386-msvcrt/*", "dist/ruby/lib/#{RUBY_PLATFORM}/"
+    cp_r "deps/ruby/lib/ruby/site_ruby/1.9.1/openssl", "dist/ruby/lib"
+    cp_r "deps/ruby/lib/ruby/site_ruby/1.9.1/openssl.rb", "dist/ruby/lib"
+    %w[gems specifications].each do |d|
+      Dir.glob("deps/ruby/lib/ruby/gems/1.9.1/#{d}/*").each do |file|
+        cp_r file, "dist/ruby/gems/1.9.1/#{d}"
+      end
+    end
+    
     if ENV['VIDEO']
       copy_files "deps/vlc/bin/*", "dist/"
     end
+  when /mingw/
+    dlls = [ruby_so]
+    dlls += %w{libungif4 libjpeg-8 libcairo-2 libglib-2.0-0 libgobject-2.0-0 libpango-1.0-0 libpangoft2-1.0-0 libgio-2.0-0 libgthread-2.0-0 
+      libgmodule-2.0-0 libpangocairo-1.0-0 libpangowin32-1.0-0 libportaudio-2 sqlite3 libssl32 libeay32 zlib1 readline5 libiconv2}
+    dlls.each{|dll| cp "#{ext_ruby}/bin/#{dll}.dll", "dist/"}
+    cp "dist/zlib1.dll", "dist/zlib.dll"
+    Dir.glob("../deps_cairo*/*"){|file| cp file, "dist/"}
+    if ENV['VIDEO']
+      cp    "/usr/lib/libvlc.so", "dist"
+      ln_s  "libvlc.so", "dist/libvlc.so.0"
+    end
+    sh "strip -x dist/*.dll" unless ENV['DEBUG']
   when /darwin/
     if ENV['SHOES_DEPS_PATH']
       dylibs = %w[lib/libiconv.2.dylib lib/libcairo.2.dylib lib/libpixman-1.0.dylib lib/libgmodule-2.0.0.dylib lib/libintl.8.dylib lib/libruby.dylib
@@ -244,10 +284,9 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
     rewrite "platform/mac/shoes", "#{APPNAME}.app/Contents/MacOS/#{NAME}"
     chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}"
-    chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}-bin"    
     # cp InfoPlist.strings YourApp.app/Contents/Resources/English.lproj/
     `echo -n 'APPL????' > "#{APPNAME}.app/Contents/PkgInfo"`
-  when /win32|i386-mingw32/
+  when /win32/
     cp "platform/msw/shoes.exe.manifest", "dist/#{NAME}.exe.manifest"
     cp "dist/zlib1.dll", "dist/zlib.dll"
   else
@@ -257,7 +296,7 @@ end
 
 # use the platform Ruby claims
 case RUBY_PLATFORM
-when /win32|i386-mingw32/
+when /win32/
   SRC = FileList["shoes/*.c", "shoes/native/windows.c", "shoes/http/winhttp.c", "shoes/http/windownload.c"]
   OBJ = SRC.map do |x|
     x.gsub(/\.c$/, '.obj')
@@ -368,25 +407,38 @@ else
   require 'rbconfig'
 
   CC = "gcc"
-  CC = ENV['CC'] if ENV['CC']
-  SRC = FileList["shoes/*.c",
-    RUBY_PLATFORM =~ /darwin/ ? "shoes/native/cocoa.m" : "shoes/native/gtk.c",
-    RUBY_PLATFORM =~ /darwin/ ? "shoes/http/nsurl.m" : "shoes/http/curl.c"]
+  file_list = ["shoes/*.c"] + case RUBY_PLATFORM
+  when /mingw/
+    %w{shoes/native/windows.c shoes/http/winhttp.c shoes/http/windownload.c}
+  when /darwin/
+    %w{shoes/native/cocoa.m shoes/http/nsurl.m}
+  else
+    %w{shoes/native/gtk.c shoes/http/curl.c}
+  end
+  SRC = FileList[*file_list]
   OBJ = SRC.map do |x|
     x.gsub(/\.\w+$/, '.o')
   end
 
   # Linux build environment
-  CAIRO_CFLAGS = ENV['CAIRO_CFLAGS'] || `pkg-config --cflags cairo`.strip
-  CAIRO_LIB = ENV['CAIRO_LIB'] ? "-L#{ENV['CAIRO_LIB']}" : `pkg-config --libs cairo`.strip
-  PANGO_CFLAGS = ENV['PANGO_CFLAGS'] || `pkg-config --cflags pango`.strip
-  PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
+  if RUBY_PLATFORM =~ /mingw/
+    CAIRO_CFLAGS = '-I/mingw/include/glib-2.0 -I/mingw/lib/glib-2.0/include -I/mingw/include/cairo'
+    CAIRO_LIB = '-lcairo'
+    PANGO_CFLAGS = '-I/mingw/include/pango-1.0'
+    PANGO_LIB = '-lpangocairo-1.0 -lpango-1.0 -lpangoft2-1.0 -lpangowin32-1.0'
+  else
+    CAIRO_CFLAGS = ENV['CAIRO_CFLAGS'] || `pkg-config --cflags cairo`.strip
+    CAIRO_LIB = ENV['CAIRO_LIB'] ? "-L#{ENV['CAIRO_LIB']}" : `pkg-config --libs cairo`.strip
+    PANGO_CFLAGS = ENV['PANGO_CFLAGS'] || `pkg-config --cflags pango`.strip
+    PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
+    png_lib = 'png'
+  end
 
   LINUX_CFLAGS = %[-Wall -I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{Config::CONFIG['archdir']}]
   if Config::CONFIG['rubyhdrdir']
     LINUX_CFLAGS << " -I#{Config::CONFIG['rubyhdrdir']} -I#{Config::CONFIG['rubyhdrdir']}/#{RUBY_PLATFORM}"
   end
-  LINUX_LIB_NAMES = %W[#{ruby_so} png cairo pangocairo-1.0 gif]
+  LINUX_LIB_NAMES = %W[#{ruby_so} cairo pangocairo-1.0 ungif]
   FLAGS.each do |flag|
     LINUX_CFLAGS << " -D#{flag}" if ENV[flag]
   end
@@ -421,6 +473,14 @@ else
       LINUX_LDFLAGS << " -arch x86_64"
       ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
     end
+  when /mingw/
+    DLEXT = 'dll'
+    LINUX_CFLAGS << ' -I. -I/mingw/include'
+    LINUX_CFLAGS << ' -I/mingw/include/ruby-1.9.1/ruby' if RUBY_1_9
+    LINUX_CFLAGS << " -DXMD_H -DHAVE_BOOLEAN -DSHOES_WIN32 -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0500 -DWINVER=0x0500 -DCOBJMACROS"
+    LINUX_LDFLAGS = " -DBUILD_DLL -lungif -ljpeg -lglib-2.0 -lgobject-2.0 -lgio-2.0 -lgmodule-2.0 -lgthread-2.0 -fPIC -shared"
+    LINUX_LDFLAGS << ' -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 -lole32 -loleaut32 -ladvapi32 -loleacc -lwinhttp'
+    cp APP['icons']['win32'], "shoes/appwin32.ico"
   else
     DLEXT = "so"
     LINUX_CFLAGS << " -DSHOES_GTK -fPIC #{`pkg-config --cflags gtk+-2.0`.strip} #{`curl-config --cflags`.strip}"
@@ -436,6 +496,7 @@ else
       LINUX_LIB_NAMES << "vlc"
     end
   end
+  
   LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
   task :build_os => [:buildenv_linux, :build_skel, "dist/#{NAME}"]
@@ -447,16 +508,30 @@ else
 
   LINUX_LIBS << " -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB}"
 
-  task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o"] do |t|
-    bin = "#{t.name}-bin"
-    rm_f t.name
-    rm_f bin
-   # sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']}"
-    sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes -arch i386 -m32"
-    if RUBY_PLATFORM !~ /darwin/
-      rewrite "platform/nix/shoes.launch", t.name, %r!/shoes-bin!, "/#{NAME}-bin"
-      sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{t.name}}
-      chmod 0755, t.name
+  if RUBY_PLATFORM =~ /mingw/
+    task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o", "shoes/appwin32.o"] do |t|
+      bin = t.name
+      rm_f bin
+      sh "#{CC} -Ldist -o #{bin} bin/main.o shoes/appwin32.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']} -mwindows"
+      if RUBY_PLATFORM !~ /darwin/
+        rewrite "platform/nix/shoes.launch", t.name, %r!/shoes!, "/#{NAME}"
+        sh %{echo 'cd "$OLDPWD"'}
+        sh %{echo 'LD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{t.name}}
+        chmod 0755, t.name
+      end
+      cp "platform/msw/shoes.exe.manifest", "dist/#{NAME}.exe.manifest"
+    end
+  else
+    task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o"] do |t|
+      bin = "#{t.name}-bin"
+      rm_f t.name
+      rm_f bin
+      sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']}"
+      if RUBY_PLATFORM !~ /darwin/
+        rewrite "platform/nix/shoes.launch", t.name, %r!/shoes-bin!, "/#{NAME}-bin"
+        sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{t.name}}
+        chmod 0755, t.name
+      end
     end
   end
 
@@ -467,6 +542,12 @@ else
       %w[libpostproc.dylib libavformat.dylib libavcodec.dylib libavutil.dylib libruby.dylib].each do |libn|
         sh "install_name_tool -change /tmp/dep/lib/#{libn} ./deps/lib/#{libn} #{t.name}"
       end
+    end
+  end
+
+  if RUBY_PLATFORM =~ /mingw/
+    rule ".o" => ".rc" do |t|
+      sh "windres -I. #{t.source} #{t.name}"
     end
   end
 

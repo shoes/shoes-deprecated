@@ -43,7 +43,7 @@ Shoes.app :width => 800, :height => 600 do
             background "#333", :curve => 4
             caption c.title, :stroke => "#CD9", :margin => 4
           end
-          image c.latest_image.to_s, :margin => 8
+          image c.latest_image.first, :margin => 8
         end
       end
     end

@@ -18,6 +18,10 @@
 #define IDC_HAND MAKEINTRESOURCE(32649)
 #endif
 
+#ifndef BIF_NONEWFOLDERBUTTON
+#define BIF_NONEWFOLDERBUTTON 0x200
+#endif
+
 static WNDPROC shoes_original_edit_line_proc = NULL;
 HHOOK hhook;
 VALUE kh_up_v = NULL;
@@ -538,7 +542,7 @@ shoes_slot_win32proc(
       break;
 
       case WM_SETFOCUS:
-        if (!NIL_P(canvas->slot->focus))
+        if (!NIL_P(canvas->slot->focus) && TYPE(canvas->slot->focus) != T_FALSE)
         {
           shoes_control_focus(canvas->slot->focus);
         }
@@ -767,15 +771,15 @@ shoes_app_win32proc(
     break;
 
     case WM_KEYDOWN:
-      app->os.altkey = false;
+      app->os.altkey = FALSE;
     case WM_SYSKEYDOWN:
       shoes_app_keydown(app, kh_down_v);
       if (w == VK_CONTROL)
-        app->os.ctrlkey = true;
+        app->os.ctrlkey = TRUE;
       else if (w == VK_MENU)
-        app->os.altkey = true;
+        app->os.altkey = TRUE;
       else if (w == VK_SHIFT)
-        app->os.shiftkey = true;
+        app->os.shiftkey = TRUE;
       KEYPRESS(ESCAPE, escape)
       KEYPRESS(INSERT, insert)
       KEYPRESS(DELETE, delete)
@@ -833,11 +837,11 @@ shoes_app_win32proc(
     case WM_KEYUP:
       shoes_app_keyup(app, kh_up_v);
       if (w == VK_CONTROL)
-        app->os.ctrlkey = false;
+        app->os.ctrlkey = FALSE;
       else if (w == VK_MENU)
-        app->os.altkey = false;
+        app->os.altkey = FALSE;
       else if (w == VK_SHIFT)
-        app->os.shiftkey = false;
+        app->os.shiftkey = FALSE;
     break;
 
     case WM_MOUSEWHEEL:
@@ -959,7 +963,7 @@ shoes_code
 shoes_app_cursor(shoes_app *app, ID cursor)
 {
   HCURSOR c;
-  if (app->slot == NULL || app->slot->window == NULL || app->cursor == cursor)
+  if (app->slot == NULL || app->slot->window == NULL)
     goto done;
 
   if (cursor == s_hand || cursor == s_link)
@@ -1099,9 +1103,9 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
 
   app->slot->controls = Qnil;
   app->slot->focus = Qnil;
-  app->os.ctrlkey = false;
-  app->os.altkey = false;
-  app->os.shiftkey = false;
+  app->os.ctrlkey = FALSE;
+  app->os.altkey = FALSE;
+  app->os.shiftkey = FALSE;
 
   // remove the menu
   app->os.normal.left = 0;
@@ -1154,6 +1158,59 @@ shoes_native_app_show(shoes_app *app)
   ShowWindow(app->slot->window, SW_SHOWNORMAL);
 }
 
+void shoes_tab_focus(shoes_app *app)
+{
+  int i, j, n;
+  HWND newFocus = GetFocus();
+  n = RARRAY_LEN(app->slot->controls);
+  
+  for (i = 0; i < n; i++)
+  {
+    if (app->os.shiftkey)
+    {
+      if (i == 0)
+        j = n - 1;
+      else
+        j = i - 1;
+    }
+    else
+    {
+      if (i == n - 1)
+        j = 0;
+      else
+        j = i + 1;
+    }
+    
+    VALUE ctrl = rb_ary_entry(app->slot->controls, i);
+    VALUE nctrl = rb_ary_entry(app->slot->controls, j);
+    
+    if (rb_obj_is_kind_of(ctrl, cNative))
+    {
+      shoes_control *self_t;
+      Data_Get_Struct(ctrl, shoes_control, self_t);
+      if (self_t->ref == newFocus)
+      {
+        app->slot->focus = nctrl;
+        shoes_control_focus(app->slot->focus);
+        break;
+      }
+      else
+      {
+        if (i == n - 1)
+        {
+          if (app->os.shiftkey)
+            nctrl = rb_ary_entry(app->slot->controls, n - 1);
+          else
+            nctrl = rb_ary_entry(app->slot->controls, 0);
+          app->slot->focus = nctrl;
+          shoes_control_focus(app->slot->focus);
+          break;
+        }
+      }
+    }
+  }
+}
+
 void
 shoes_native_loop()
 {
@@ -1164,25 +1221,39 @@ shoes_native_loop()
     if (msg)
     {
       HWND focused = GetForegroundWindow();
+      shoes_app *appk = (shoes_app *)GetWindowLong(focused, GWL_USERDATA);
       if (msgs.message == WM_KEYDOWN || msgs.message == WM_KEYUP)
       {
-        shoes_app *appk = (shoes_app *)GetWindowLong(focused, GWL_USERDATA);
         ATOM wndatom = GetClassLong(focused, GCW_ATOM);
         if (appk != NULL && wndatom == shoes_world->os.classatom && RARRAY_LEN(appk->slot->controls) > 0)
         {
           switch (msgs.wParam)
           {
-            case VK_TAB: case VK_UP: case VK_LEFT: case VK_DOWN:
+            case VK_SHIFT:
+              if (msgs.message == WM_KEYDOWN)
+                appk->os.shiftkey = TRUE;
+              else
+                appk->os.shiftkey = FALSE;
+              msg = FALSE;
+              break;
+            case VK_TAB:
+              if (msgs.message == WM_KEYUP) shoes_tab_focus(appk);
+              msg = FALSE;
+              break;
+            case VK_UP: case VK_LEFT: case VK_DOWN:
             case VK_RIGHT: case VK_PRIOR: case VK_NEXT:
               break;
             default:
-              msg = false;
+              msg = FALSE;
           }
         }
-        else msg = false;
+        else msg = FALSE;
       }
       else if (msgs.message == WM_SYSCHAR || msgs.message == WM_CHAR)
-        msg = false;
+        msg = FALSE;
+      else if (msgs.message == WM_MOUSEMOVE && focused == GetActiveWindow())
+        shoes_app_cursor(appk, appk->cursor);
+      
       if (msg)
         msg = IsDialogMessage(focused, &msgs);
 
@@ -1324,12 +1395,30 @@ shoes_native_control_position(SHOES_CONTROL_REF ref, shoes_place *p1, VALUE self
 }
 
 void
+shoes_native_control_position_no_pad(SHOES_CONTROL_REF ref, shoes_place *p1, VALUE self,
+  shoes_canvas *canvas, shoes_place *p2)
+{
+  PLACE_COORDS_NO_PAD();
+  MoveWindow(ref, p2->ix + p2->dx, p2->iy + p2->dy, p2->iw, p2->ih, TRUE);
+}
+
+void
 shoes_native_control_repaint(SHOES_CONTROL_REF ref, shoes_place *p1,
   shoes_canvas *canvas, shoes_place *p2)
 {
   p2->iy -= canvas->slot->scrolly;
   if (CHANGED_COORDS())
     shoes_native_control_position(ref, p1, Qnil, canvas, p2);
+  p2->iy += canvas->slot->scrolly;
+}
+
+void
+shoes_native_control_repaint_no_pad(SHOES_CONTROL_REF ref, shoes_place *p1,
+  shoes_canvas *canvas, shoes_place *p2)
+{
+  p2->iy -= canvas->slot->scrolly;
+  if (CHANGED_COORDS_NO_PAD())
+    shoes_native_control_position_no_pad(ref, p1, Qnil, canvas, p2);
   p2->iy += canvas->slot->scrolly;
 }
 
@@ -1360,7 +1449,7 @@ shoes_native_control_free(SHOES_CONTROL_REF ref)
 
 inline void shoes_win32_control_font(int id, HWND hwnd)
 {
-  SendDlgItemMessage(hwnd, id, WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), MAKELPARAM(true, 0));
+  SendDlgItemMessage(hwnd, id, WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), MAKELPARAM(TRUE, 0));
 }
 
 SHOES_SURFACE_REF
@@ -1425,9 +1514,9 @@ SHOES_CONTROL_REF
 shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
   int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot->controls);
-  SHOES_CONTROL_REF ref = CreateWindowEx(WS_EX_TRANSPARENT, TEXT("EDIT"), NULL,
+  SHOES_CONTROL_REF ref = CreateWindowEx(WS_EX_CLIENTEDGE | WS_EX_TRANSPARENT, TEXT("EDIT"), NULL,
       WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT | ES_AUTOHSCROLL |
-      (RTEST(ATTR(attr, secret)) ? ES_PASSWORD : NULL),
+      (RTEST(ATTR(attr, secret)) ? ES_PASSWORD : 0),
       place->ix + place->dx, place->iy + place->dy, place->iw, place->ih,
       canvas->slot->window, (HMENU)cid, 
       (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
@@ -1487,7 +1576,7 @@ SHOES_CONTROL_REF
 shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
   int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot->controls);
-  SHOES_CONTROL_REF ref = CreateWindowEx(WS_EX_TRANSPARENT, TEXT("EDIT"), NULL,
+  SHOES_CONTROL_REF ref = CreateWindowEx(WS_EX_CLIENTEDGE | WS_EX_TRANSPARENT, TEXT("EDIT"), NULL,
     WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT |
     ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN | ES_NOHIDESEL,
     place->ix + place->dx, place->iy + place->dy, place->iw, place->ih,

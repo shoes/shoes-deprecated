@@ -29,22 +29,22 @@ class Shoes
       end
       
       case opt
-      when I_YES then
-        url = "http://shoes.heroku.com/pkg/#{RELEASE_NAME.downcase}/#{platform}/shoes"
-        local_file_path = File.join(LIB_DIR, RELEASE_NAME.downcase, platform, "latest_shoes.#{extension}")
-      when I_NOV then
-        url = "http://shoes.heroku.com/pkg/#{RELEASE_NAME.downcase}/#{platform}/shoes-novideo"
-        local_file_path = File.join(LIB_DIR, RELEASE_NAME.downcase, platform, "latest_shoes-novideo.#{extension}")  
+      when Shoes::I_YES then
+        url = "http://shoes.heroku.com/pkg/#{Shoes::RELEASE_NAME.downcase}/#{platform}/shoes"
+        local_file_path = File.join(LIB_DIR, Shoes::RELEASE_NAME.downcase, platform, "latest_shoes.#{extension}")
+      when Shoes::I_NOV then
+        url = "http://shoes.heroku.com/pkg/#{Shoes::RELEASE_NAME.downcase}/#{platform}/shoes-novideo"
+        local_file_path = File.join(LIB_DIR, Shoes::RELEASE_NAME.downcase, platform, "latest_shoes-novideo.#{extension}")  
 	  when I_NET then
 		url = false
       end
       
-      FileUtils.makedirs File.join(LIB_DIR, RELEASE_NAME.downcase, platform)
+      FileUtils.makedirs File.join(LIB_DIR, Shoes::RELEASE_NAME.downcase, platform)
       
 	  if url then
 		  begin
 			  url = open(url).read.strip
-			  debug url
+        debug url
 			  internet_ok = true
 		  rescue Exception => e
 			  error e
@@ -263,9 +263,9 @@ END
     end
   end
 
-  I_NET = "No, download Shoes if it's absent."
-  I_YES = "Yes, I want Shoes included."
-  I_NOV = "Yes, include Shoes, but without video support."
+  Shoes::I_NET = "No, download Shoes if it's absent."
+  Shoes::I_YES = "Yes, I want Shoes included."
+  Shoes::I_NOV = "Yes, include Shoes, but without video support."
   PackMake = proc do
     background "#DDD"
 
@@ -283,7 +283,7 @@ END
               para "File:"
               inscription " (or a ", link("directory", &selt), ")"
               edit1 = edit_line :width => -120
-              button "Browse...", :width => 100 do
+              @bb = button "Browse...", :width => 100 do
                 @path = edit1.text = ask_open_file
                 est_recount
               end
@@ -293,7 +293,7 @@ END
               para "Directory:"
               inscription " (or a ", link("single file", &selt), ")"
               edit2 = edit_line :width => -120
-              button "Folder...", :width => 100 do
+              @bf = button "Folder...", :width => 100 do
                 @path = edit2.text = ask_open_folder
                 est_recount
               end
@@ -312,7 +312,7 @@ END
           end
 
           para "Include Shoes with your app? ", :margin => 0
-          @inc = list_box :items => [I_NET, I_YES, I_NOV], :width => 0.6 do
+          @inc = list_box :items => [Shoes::I_NET, Shoes::I_YES, Shoes::I_NOV], :width => 0.6, :height => 30 do
             est_recount
           end
           inscription "(This option doesn't apply to Shoes .shy files.)"
@@ -324,9 +324,9 @@ END
         def est_recount
           base = 
             case @inc.text
-            when I_NET; 70
-            when I_YES; 7000
-            when I_NOV; 2500
+            when Shoes::I_NET; 70
+            when Shoes::I_YES; 7000
+            when Shoes::I_NOV; 2500
             end
           base += ((File.directory?(@path) ? Shy.du(@path) : File.size(@path)) rescue 0) / 1024
           @est.replace "Estimated size of each app: ", strong(base > 1024 ?
@@ -336,7 +336,7 @@ END
           @shy_path = nil
           if File.directory? @path
             @shy_path = @path.gsub(%r![\\/]+$!, '') + ".shy"
-          elsif @shy.checked?
+          elsif @shy.style[:checked]
             @shy_path = @path.gsub(/\.\w+$/, '') + ".shy"
           end
           if @shy_path and not @shy_meta
@@ -347,9 +347,10 @@ END
           end
           @page2.show 
           @path2.replace File.basename(@path)
+          inc_text = @inc.text
           Thread.start do
             begin
-              sofar, stage = 0.0, 1.0 / [@shy.checked?, @exe.checked?, @dmg.checked?, @run.checked?].
+              sofar, stage = 0.0, 1.0 / [@shy.style[:checked], @exe.style[:checked], @dmg.style[:checked], @run.style[:checked]].
                 select { |x| x }.size
               blk = proc do |frac|
                 @prog.style(:width => sofar + (frac * stage))
@@ -363,39 +364,45 @@ END
                 Shy.c(@shy_path, @shy_meta, @path, &pblk)
                 @path = @shy_path
                 @prog.style(:width => sofar += stage)
+                debug @prog.style[:width]
               end
-              if @exe.checked?
+              if @exe.style[:checked]
                 @status.replace "Working on an .exe for Windows."
-                Shoes::Pack.exe(@path, @inc.text, &blk)
+                Shoes::Pack.exe(@path, inc_text, &blk)
                 @prog.style(:width => sofar += stage)
+                debug @prog.style[:width]
               end
-              if @dmg.checked?
+              if @dmg.style[:checked]
                 @status.replace "Working on a .dmg for Mac OS X."
-                Shoes::Pack.dmg(@path, @inc.text, &blk)
+                Shoes::Pack.dmg(@path, inc_text, &blk)
                 @prog.style(:width => sofar += stage)
               end
-              if @run.checked?
+              if @run.style[:checked]
                 @status.replace "Working on a .run for Linux."
-                Shoes::Pack.linux(@path, @inc.text, &blk)
+                Shoes::Pack.linux(@path, inc_text, &blk)
                 @prog.style(:width => sofar += stage)
               end
-              if @shy_path and not @shy.checked?
+              if @shy_path and not @shy.style[:checked]
                 FileUtils.rm_rf(@shy_path)
               end
 
-              @prog.style(:width => 1.0)
-              @page2.hide
-              @page3.show 
-              @path3.replace File.basename(@path)
+              every do
+                if @prog.style[:width] == 1.0
+                  @page2.hide
+                  @page3.show 
+                  @path3.replace File.basename(@path)
+                end
+              end
             rescue => e
               error(e)
             end
           end
         end
+        
         inscription "Using the latest Shoes build (0.r#{Shoes::REVISION})", :margin => 0
         flow :margin_top => 10, :margin_left => 310 do
           button "OK", :margin_right => 4 do
-            @page1.hide
+            @page1.hide; @bb.hide; @bf.hide
             build_thread
           end
           button "Cancel" do
@@ -427,7 +434,7 @@ END
             end
             stack :margin => 10, :width => 0.5 do
               para "Launch"
-              @shy_launch = list_box
+              @shy_launch = list_box :height => 30
             end
           end
         end
@@ -486,10 +493,11 @@ END
     end
 
     start do
-      @exe.checked = true
-      @dmg.checked = true
-      @run.checked = true
-      @inc.choose I_NET
+      @exe.checked = false
+      @dmg.checked = false
+      @run.checked = false
+      @shy.checked = true
+      @inc.choose Shoes::I_NET
     end
   end
 end

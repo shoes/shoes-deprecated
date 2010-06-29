@@ -3,11 +3,11 @@
 # rest of the app below it.
 #
 Shoes.setup do
-  gem 'RedCloth =3.0.4'
+  gem 'bluecloth =2.0.6'
   gem 'metaid'
 end
 
-require 'redcloth'
+require 'bluecloth'
 require 'metaid'
 
 Shoes.app :width => 300, :height => 400, :resizable => false do

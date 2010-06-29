@@ -433,6 +433,14 @@ shoes_canvas_strokewidth(VALUE self, VALUE w)
 }
 
 VALUE
+shoes_canvas_dash(VALUE self, VALUE dash)
+{
+  SETUP_BASIC();
+  ATTRSET(basic->attr, dash, dash);
+  return self;
+}
+
+VALUE
 shoes_canvas_cap(VALUE self, VALUE cap)
 {
   SETUP_BASIC();
@@ -1389,7 +1397,8 @@ shoes_canvas_snapshot(int argc, VALUE *argv, VALUE self)
   ID   s_filename = rb_intern ("filename");
   ID   s_format   = rb_intern ("format");
   VALUE _filename, _format;
-  rb_parse_args(argc, argv, "h&", &args);
+  // rb_parse_args(argc, argv, "h&", &args);
+  rb_parse_args(argc, argv, "h", &args);
 
   _filename = ATTR(args.a[0], filename);
   _format   = ATTR(args.a[0], format);
@@ -1412,10 +1421,10 @@ shoes_canvas_snapshot(int argc, VALUE *argv, VALUE self)
     {
       cairo_t * waz_cr = canvas->cr;
       cairo_t * cr     = canvas->cr = cairo_create (surface);
-      DRAW(self, canvas->app, rb_funcall(args.a[1], s_call, 0));
-      shoes_canvas_draw (self, self, Qfalse);
+      // DRAW(self, canvas->app, rb_funcall(args.a[1], s_call, 0));
+      // shoes_canvas_draw (self, self, Qfalse);
       shoes_canvas_draw (self, self, Qtrue);
-      canvas->cr = waz_cr;
+      // canvas->cr = waz_cr;
       cairo_show_page (cr);
       cairo_destroy (cr);
       cairo_surface_destroy (surface);

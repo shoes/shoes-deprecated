@@ -14,7 +14,7 @@ class << DATABASE
         url   text primary key,
         etag  text,
         hash  varchar(40),
-        saved date
+        saved datetime
       );
       CREATE TABLE upgrades (
         version int primary key
@@ -25,7 +25,7 @@ class << DATABASE
   def check_cache_for url
     etag, hash, saved = 
       DATABASE.get_first_row("SELECT etag, hash, saved FROM cache WHERE url = ?", url)
-    {:etag => etag, :hash => hash, :saved => saved.nil? ? 0 : saved.ctime.to_i}
+    {:etag => etag, :hash => hash, :saved => saved.nil? ? 0 : Time.parse(saved.to_s).to_i}
   end
   def notify_cache_of url, etag, hash
     DATABASE.query %{

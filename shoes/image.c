@@ -877,6 +877,11 @@ shoes_image_downloaded(shoes_image_download_event *idat)
         CloseHandle( hFile );
 #else
         FILE* fp = fopen(idat->filepath, "rb");
+        if (fp == NULL)
+        {
+          shoes_error("Shoes was unable to open the cached file at %s.", idat->filepath);
+          return 0;
+        }
         SHA1Init(&context);
         while (!feof(fp)) 
         {
@@ -983,6 +988,7 @@ shoes_load_image(VALUE slot, VALUE imgpath)
     SHOE_MEMZERO(req, shoes_http_request, 1);
     shoes_image_download_event *idat = SHOE_ALLOC(shoes_image_download_event);
     SHOE_MEMZERO(idat, shoes_image_download_event, 1);
+    req->url = strdup(RSTRING_PTR(imgpath));
     req->scheme = strdup(RSTRING_PTR(scheme));
     req->host = strdup(RSTRING_PTR(host));
     req->port = NUM2INT(port);

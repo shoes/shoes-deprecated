@@ -21,7 +21,7 @@ module Hpricot
       # hide +instance_eval+ or any method beginning with "__".
       def hide(name)
 	undef_method name if
-	  instance_methods.include?(name.to_s) and
+	  instance_methods.include?(name) and
 	  name !~ /^(__|instance_eval)/
       end
     end

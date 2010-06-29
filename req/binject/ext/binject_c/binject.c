@@ -1,14 +1,12 @@
 
 #include <ruby.h>
-#ifdef HAVE_RUBY_ST_H
-#include <ruby/st.h>
-#else
+#ifdef RUBY_1_8
 #include <st.h>
-#endif
-#ifdef HAVE_RUBY_IO_H
-#include <ruby/io.h>
-#else
 #include <rubyio.h>
+#endif
+#ifdef RUBY_1_9
+#include <ruby/st.h>
+#include <ruby/io.h>
 #endif
 #include <stdlib.h>
 #include <zlib.h>
@@ -254,6 +252,18 @@ binject_exe_names_len(binject_exe_t *binj)
   return len;
 }
 
+long AnotherGetFileSize ( FILE * hFile )
+{
+  long lCurPos, lEndPos;
+  if ( hFile == NULL )
+    return 0;
+  lCurPos = ftell ( hFile );
+  fseek ( hFile, 0, 2 );
+  lEndPos = ftell ( hFile );
+  fseek ( hFile, lCurPos, 0 );
+  return lEndPos;
+}
+
 unsigned int
 binject_exe_file_size(VALUE obj)
 {
@@ -262,8 +272,13 @@ binject_exe_file_size(VALUE obj)
   FILE *fres;
   GetOpenFile(obj, fptr);
   rb_io_check_readable(fptr);
+#ifdef RUBY_1_9
+  fres = rb_io_stdio_file(fptr);
+  st.st_size = AnotherGetFileSize(fres);
+#else
   fres = GetReadFile(fptr);
   fstat(fileno(fres), &st);
+#endif
   return (unsigned int)st.st_size;
 }
 
@@ -304,6 +319,30 @@ binject_exe_file_copy(FILE *file, FILE *out, unsigned int size, unsigned int pos
   {
     unsigned int len = size > BUFSIZE ? BUFSIZE : size;
     fread(buf, sizeof(char), len, file);
+    fwrite(buf, sizeof(char), len, out);
+    if (RTEST(proc))
+      rb_funcall(proc, rb_intern("call"), 1, INT2NUM(len));
+    size -= len;
+  }
+  fseek(file, mark1, SEEK_SET);
+  fseek(out, mark2, SEEK_SET);
+}
+
+void
+binject_exe_file_copy1(rb_io_t *fptr, FILE *out, unsigned int size, unsigned int pos1, unsigned int pos2, VALUE proc)
+{
+  char buf[BUFSIZE];
+  FILE *file;
+  file = rb_io_stdio_file(fptr);
+  
+  int mark1 = ftell(file), mark2 = ftell(out);
+  fseek(file, pos1, SEEK_SET);
+  fseek(out, pos2, SEEK_SET);
+  while (size > 0)
+  {
+    unsigned int len = size > BUFSIZE ? BUFSIZE : size;
+    //fread(buf, sizeof(char), len, file);
+    read(fptr->fd, buf, sizeof(char) * len);
     fwrite(buf, sizeof(char), len, out);
     if (RTEST(proc))
       rb_funcall(proc, rb_intern("call"), 1, INT2NUM(len));
@@ -447,7 +486,15 @@ binject_exe_rewrite(binject_exe_t *binj, char *buf, char *out, int offset, int o
               rb_io_t *fptr;
               rdat->Size = binject_exe_file_size(obj);
               GetOpenFile(obj, fptr);
+#ifdef RUBY_1_9
+#ifdef SHOES_MINGW32
+              binject_exe_file_copy1(fptr, binj->out, rdat->Size, 0, binj->datapos, binj->proc);
+#else
+              binject_exe_file_copy(rb_io_stdio_file(fptr), binj->out, rdat->Size, 0, binj->datapos, binj->proc);
+#endif
+#else
               binject_exe_file_copy(GetReadFile(fptr), binj->out, rdat->Size, 0, binj->datapos, binj->proc);
+#endif
             }
             binj->datapos += rdat->Size;
             padlen = BINJ_PAD(rdat->Size, 4) - rdat->Size;
@@ -521,8 +568,11 @@ binject_exe_load(VALUE self, VALUE file)
   int i, lfanew;
   binject_exe_t *binj;
   Data_Get_Struct(self, binject_exe_t, binj);
-  binj->file = rb_file_open(RSTRING_PTR(file), "rb");
-
+#ifdef RUBY_1_9
+  binj->file = fopen(RSTRING_PTR(file), "rb");
+#else
+  binj->file = rb_fopen(RSTRING_PTR(file), "rb");
+#endif
   BINJ_READ(binj, binj->dos_header);
   FLIPENDIANLE(binj->dos_header.e_lfanew);
   fseek(binj->file, binj->dos_header.e_lfanew, SEEK_SET);
@@ -564,8 +614,11 @@ binject_exe_save(VALUE self, VALUE file)
   char buf[BUFSIZE];
   char buf2[BUFSIZE];
   Data_Get_Struct(self, binject_exe_t, binj);
-
-  binj->out = rb_file_open(RSTRING_PTR(file), "wb");
+#ifdef RUBY_1_9
+  binj->out = fopen(RSTRING_PTR(file), "wb");
+#else
+  binj->out = rb_fopen(RSTRING_PTR(file), "wb");
+#endif
   binj->ids = 0;
   binj->namestart = 0;
   binj->datastart = 0;
@@ -659,7 +712,11 @@ binject_dmg_uncompress(VALUE filename, VALUE volname)
   int pos = 0;
 
   file = (gzFile)gzopen(fname, "rb");
-  hfs = rb_file_open(RSTRING_PTR(filename2), "wb");
+#ifdef RUBY_1_9
+  hfs = fopen(RSTRING_PTR(filename2), "wb");
+#else
+  hfs = rb_fopen(RSTRING_PTR(filename2), "wb");
+#endif
   while ((len = gzread(file, buf, BUFSIZE)) > 0)
   {
     if (pos == 0)

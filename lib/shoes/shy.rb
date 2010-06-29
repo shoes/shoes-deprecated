@@ -12,7 +12,7 @@ require 'yaml'
 class Shy
   VERSION = 0x0001
   MAGIC   = "_shy".freeze
-  LAYOUT  = "A4SL".freeze
+  LAYOUT = "A4vV".freeze #Force to Little Endian for all platforms
 
   yaml_as 'tag:hackety.org,2007:shy'
   attr_accessor :name, :creator, :version, :launch

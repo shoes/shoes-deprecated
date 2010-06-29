@@ -923,12 +923,18 @@ module Gem
     @gem_path.uniq!
     @gem_path.each do |path|
       if 0 == File.expand_path(path).index(Gem.user_home)
+<<<<<<< HEAD
         next unless File.directory? Gem.user_home
         unless win_platform? then
           # only create by matching user
           if Etc.getpwuid.nil? || Etc.getpwuid.uid != File::Stat.new(Gem.user_home).uid
             next
           end
+=======
+        unless win_platform? then
+          # only create by matching user
+          next if Etc.getpwuid.uid != File::Stat.new(Gem.user_home).uid
+>>>>>>> ashbb/master
         end
       end
       ensure_gem_subdirectories path

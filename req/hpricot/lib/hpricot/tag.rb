@@ -39,6 +39,7 @@ module Hpricot
   end
 
   class Elem
+    TITLES = {:title => :h1, :subtitle => :h2, :tagline => :h3, :caption => :h4}
     def initialize tag, attrs = nil, children = nil, etag = nil
       self.name, self.raw_attributes, self.children, self.etag =
         tag, attrs, children, etag
@@ -158,6 +159,7 @@ module Hpricot
   end
 
   class DocType
+    attr_accessor :target, :public_id, :system_id
     def initialize target, pub, sys
       self.target, self.public_id, self.system_id = target, pub, sys
     end
