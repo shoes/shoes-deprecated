@@ -1954,7 +1954,7 @@ shoes_fix_slashes(char *path)
 }
 
 static VALUE
-shoes_dialog_chooser(VALUE self, char *title, DWORD flags)
+shoes_dialog_chooser(VALUE self, char *title, DWORD flags, VALUE attr)
 {
   BOOL ok;
   VALUE path = Qnil;
@@ -1976,6 +1976,9 @@ shoes_dialog_chooser(VALUE self, char *title, DWORD flags)
   ofn.nMaxFileTitle = 0;
   ofn.lpstrInitialDir = NULL; // (LPSTR)dir;
   ofn.Flags           = OFN_EXPLORER | flags;
+  VALUE save = ID2SYM(rb_intern("save"));
+  if (RTEST(ATTR(attr, save)))
+	  ofn.lpstrFile = (LPSTR)RSTRING_PTR(rb_hash_aref(attr, save));
   if (flags & OFN_OVERWRITEPROMPT)
     ok = GetSaveFileName(&ofn);
   else
@@ -1987,7 +1990,7 @@ shoes_dialog_chooser(VALUE self, char *title, DWORD flags)
 }
 
 static VALUE
-shoes_dialog_chooser2(VALUE self, char *title, UINT flags)
+shoes_dialog_chooser2(VALUE self, char *title, UINT flags, VALUE attr)
 {
   VALUE path = Qnil;
   BROWSEINFO bi = {0};
@@ -2012,25 +2015,33 @@ shoes_dialog_chooser2(VALUE self, char *title, UINT flags)
 }
 
 VALUE
-shoes_dialog_open(VALUE self)
+shoes_dialog_open(int argc, VALUE *argv, VALUE self)
 {
-  return shoes_dialog_chooser(self, "Open file...", OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST);
+  rb_arg_list args;
+  rb_parse_args(argc, argv, "|h", &args);
+  return shoes_dialog_chooser(self, "Open file...", OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST, args.a[0]);
 }
 
 VALUE
-shoes_dialog_save(VALUE self)
+shoes_dialog_save(int argc, VALUE *argv, VALUE self)
 {
-  return shoes_dialog_chooser(self, "Save file...", OFN_OVERWRITEPROMPT);
+  rb_arg_list args;
+  rb_parse_args(argc, argv, "|h", &args);
+  return shoes_dialog_chooser(self, "Save file...", OFN_OVERWRITEPROMPT, args.a[0]);
 }
 
 VALUE
-shoes_dialog_open_folder(VALUE self)
+shoes_dialog_open_folder(int argc, VALUE *argv, VALUE self)
 {
-  return shoes_dialog_chooser2(self, "Open folder...", BIF_NONEWFOLDERBUTTON | BIF_RETURNONLYFSDIRS);
+  rb_arg_list args;
+  rb_parse_args(argc, argv, "|h", &args);
+  return shoes_dialog_chooser2(self, "Open folder...", BIF_NONEWFOLDERBUTTON | BIF_RETURNONLYFSDIRS, args.a[0]);
 }
 
 VALUE
-shoes_dialog_save_folder(VALUE self)
+shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
 {
-  return shoes_dialog_chooser2(self, "Save folder...", BIF_RETURNONLYFSDIRS);
+  rb_arg_list args;
+  rb_parse_args(argc, argv, "|h", &args);
+  return shoes_dialog_chooser2(self, "Save folder...", BIF_RETURNONLYFSDIRS, args.a[0]);
 }

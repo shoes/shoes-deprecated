@@ -6,3 +6,5 @@ shoes/version.h
 deps
 dist
 pkg
+*.app
+req/*
