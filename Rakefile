@@ -152,7 +152,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
       rm_rf "dist/ruby/lib/#{libn}"
     end
   end
-  %w[req/rubygems/* req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
+  %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
     FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
   end
   %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
@@ -406,7 +406,8 @@ when /win32/
 else
   require 'rbconfig'
 
-  CC = "gcc"
+
+  CC = ENV['CC'] ? ENV['CC'] : "gcc"
   file_list = ["shoes/*.c"] + case RUBY_PLATFORM
   when /mingw/
     %w{shoes/native/windows.c shoes/http/winhttp.c shoes/http/windownload.c}
@@ -526,7 +527,8 @@ else
       bin = "#{t.name}-bin"
       rm_f t.name
       rm_f bin
-      sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']}"
+      #sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']}"
+      sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes -arch i386 -m32"
       if RUBY_PLATFORM !~ /darwin/
         rewrite "platform/nix/shoes.launch", t.name, %r!/shoes-bin!, "/#{NAME}-bin"
         sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{t.name}}
