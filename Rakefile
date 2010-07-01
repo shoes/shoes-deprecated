@@ -406,6 +406,7 @@ when /win32/
 else
   require 'rbconfig'
 
+
   CC = ENV['CC'] ? ENV['CC'] : "gcc"
   file_list = ["shoes/*.c"] + case RUBY_PLATFORM
   when /mingw/
@@ -526,9 +527,10 @@ else
       bin = "#{t.name}-bin"
       rm_f t.name
       rm_f bin
-      #sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']}"
-      sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes -arch i386 -m32"
-      if RUBY_PLATFORM !~ /darwin/
+      if RUBY_PLATFORM =~ /darwin/
+        sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes -arch i386 -m32"
+      else  
+        sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']}"
         rewrite "platform/nix/shoes.launch", t.name, %r!/shoes-bin!, "/#{NAME}-bin"
         sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{t.name}}
         chmod 0755, t.name
