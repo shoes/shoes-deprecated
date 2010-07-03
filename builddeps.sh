@@ -95,6 +95,7 @@ cd ../ruby-1.9.1-p378
 make && make install
 
 #install RubyGems.
+cd ../rubygems-1.3.6
 /tmp/dep/bin/ruby setup.rb
 
 #install rake.

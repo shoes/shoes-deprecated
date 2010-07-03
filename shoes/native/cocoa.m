@@ -1499,7 +1499,7 @@ shoes_dialog_color(VALUE self, VALUE title)
 }
 
 static VALUE
-shoes_dialog_chooser(VALUE self, NSString *title, BOOL directories)
+shoes_dialog_chooser(VALUE self, NSString *title, BOOL directories, VALUE attr)
 {
   VALUE path = Qnil;
   COCOA_DO({
@@ -1518,13 +1518,15 @@ shoes_dialog_chooser(VALUE self, NSString *title, BOOL directories)
 }
 
 VALUE
-shoes_dialog_open(VALUE self)
+shoes_dialog_open(int argc, VALUE *argv, VALUE self)
 {
-  return shoes_dialog_chooser(self, @"Open file...", NO);
+  rb_arg_list args;
+  rb_parse_args(argc, argv, "|h", &args);
+  return shoes_dialog_chooser(self, @"Open file...", NO, args.a[0]);
 }
 
 VALUE
-shoes_dialog_save(VALUE self)
+shoes_dialog_save(int argc, VALUE *argv, VALUE self)
 {
   VALUE path = Qnil;
   COCOA_DO({
@@ -1539,13 +1541,17 @@ shoes_dialog_save(VALUE self)
 }
 
 VALUE
-shoes_dialog_open_folder(VALUE self)
+shoes_dialog_open_folder(int argc, VALUE *argv, VALUE self)
 {
-  return shoes_dialog_chooser(self, @"Open folder...", YES);
+  rb_arg_list args;
+  rb_parse_args(argc, argv, "|h", &args);
+  return shoes_dialog_chooser(self, @"Open folder...", YES, args.a[0]);
 }
 
 VALUE
-shoes_dialog_save_folder(VALUE self)
+shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
 {
-  return shoes_dialog_chooser(self, @"Save folder...", YES);
+  rb_arg_list args;
+  rb_parse_args(argc, argv, "|h", &args);
+  return shoes_dialog_chooser(self, @"Save folder...", YES, args.a[0]);
 }

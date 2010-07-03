@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'rake'
 require 'rake/clean'
-require 'platform/skel'
+require_relative 'platform/skel'
 require 'fileutils'
 require 'find'
 require 'yaml'
@@ -282,6 +282,7 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     cp "platform/mac/command-manual.rb", "#{APPNAME}.app/Contents/MacOS/"
     rewrite "platform/mac/shoes-launch", "#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
     chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
+    chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}-bin"
     rewrite "platform/mac/shoes", "#{APPNAME}.app/Contents/MacOS/#{NAME}"
     chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}"
     # cp InfoPlist.strings YourApp.app/Contents/Resources/English.lproj/
@@ -439,7 +440,11 @@ else
   if Config::CONFIG['rubyhdrdir']
     LINUX_CFLAGS << " -I#{Config::CONFIG['rubyhdrdir']} -I#{Config::CONFIG['rubyhdrdir']}/#{RUBY_PLATFORM}"
   end
-  LINUX_LIB_NAMES = %W[#{ruby_so} cairo pangocairo-1.0 ungif]
+  if RUBY_PLATFORM =~ /darwin/
+    LINUX_LIB_NAMES = %W[#{ruby_so} cairo pangocairo-1.0 gif]
+  else
+    LINUX_LIB_NAMES = %W[#{ruby_so} cairo pangocairo-1.0 ungif]
+  end
   FLAGS.each do |flag|
     LINUX_CFLAGS << " -D#{flag}" if ENV[flag]
   end
@@ -528,7 +533,7 @@ else
       rm_f t.name
       rm_f bin
       if RUBY_PLATFORM =~ /darwin/
-        sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes -arch i386 -m32"
+        sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes -arch x86_64"
       else  
         sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']}"
         rewrite "platform/nix/shoes.launch", t.name, %r!/shoes-bin!, "/#{NAME}-bin"
