@@ -35,7 +35,7 @@ module SQLite3
   class Database
     include Pragmas
 
-    class <<self
+    class << self
 
       alias :open :new
 
@@ -48,12 +48,6 @@ module SQLite3
 
     end
 
-    # The low-level opaque database handle that this object wraps.
-    attr_reader :handle
-
-    # A reference to the underlying SQLite3 driver used by this database.
-    attr_reader :driver
-
     # A boolean that indicates whether rows in result sets should be returned
     # as hashes or not. By default, rows are returned as arrays.
     attr_accessor :results_as_hash
@@ -61,54 +55,6 @@ module SQLite3
     # A boolean indicating whether or not type translation is enabled for this
     # database.
     attr_accessor :type_translation
-
-    # Create a new Database object that opens the given file. If utf16
-    # is +true+, the filename is interpreted as a UTF-16 encoded string.
-    #
-    # By default, the new database will return result rows as arrays
-    # (#results_as_hash) and has type translation disabled (#type_translation=).
-    def initialize( file_name, options={} ) # :yields: db
-      utf16 = options.fetch(:utf16, false)
-      load_driver( options[:driver] )
-
-      @statement_factory = options[:statement_factory] || Statement
-
-      result, @handle = @driver.open( file_name, utf16 )
-      Error.check( result, self, "could not open database" )
-
-      @closed = false
-      @results_as_hash = options.fetch(:results_as_hash,false)
-      @type_translation = options.fetch(:type_translation,false)
-      @translator = nil
-      @transaction_active = false
-      
-      if block_given?
-        begin
-          yield self
-        ensure
-          self.close
-        end
-      end
-    end
-
-    # Return +true+ if the string is a valid (ie, parsable) SQL statement, and
-    # +false+ otherwise. If +utf16+ is +true+, then the string is a UTF-16
-    # character string.
-    def complete?( string, utf16=false )
-      @driver.complete?( string, utf16 )
-    end
-
-    # Return a string describing the last error to have occurred with this
-    # database.
-    def errmsg( utf16=false )
-      @driver.errmsg( @handle, utf16 )
-    end
-
-    # Return an integer representing the last error to have occurred with this
-    # database.
-    def errcode
-      @driver.errcode( @handle )
-    end
 
     # Return the type translator employed by this database instance. Each
     # database instance has its own type translator; this allows for different
@@ -120,35 +66,12 @@ module SQLite3
       @translator ||= Translator.new
     end
 
-    # Closes this database.
-    def close
-      unless @closed
-        result = @driver.close( @handle )
-        Error.check( result, self )
-      end
-      @closed = true
-    end
-
-    # Returns +true+ if this database instance has been closed (see #close).
-    def closed?
-      @closed
-    end
-
-    # Installs (or removes) a block that will be invoked for every SQL
-    # statement executed. The block receives a two parameters: the +data+
-    # argument, and the SQL statement executed. If the block is +nil+,
-    # any existing tracer will be uninstalled.
-    def trace( data=nil, &block )
-      @driver.trace( @handle, data, &block )
-    end
-
     # Installs (or removes) a block that will be invoked for every access
     # to the database. If the block returns 0 (or +nil+), the statement
     # is allowed to proceed. Returning 1 causes an authorization error to
     # occur, and returning 2 causes the access to be silently denied.
-    def authorizer( data=nil, &block )
-      result = @driver.set_authorizer( @handle, data, &block )
-      Error.check( result, self )
+    def authorizer( &block )
+      self.authorizer = block
     end
 
     # Returns a Statement object representing the given SQL. This does not
@@ -156,16 +79,14 @@ module SQLite3
     #
     # The Statement can then be executed using Statement#execute.
     #
-    def prepare( sql )
-      stmt = @statement_factory.new( self, sql )
-      if block_given?
-        begin
-          yield stmt
-        ensure
-          stmt.close
-        end
-      else
-        return stmt
+    def prepare sql
+      stmt = SQLite3::Statement.new( self, sql )
+      return stmt unless block_given?
+
+      begin
+        yield stmt
+      ensure
+        stmt.close
       end
     end
 
@@ -183,13 +104,55 @@ module SQLite3
     #
     # See also #execute2, #query, and #execute_batch for additional ways of
     # executing statements.
-    def execute( sql, *bind_vars )
-      prepare( sql ) do |stmt|
-        result = stmt.execute( *bind_vars )
-        if block_given?
-          result.each { |row| yield row }
+    def execute sql, bind_vars = [], *args, &block
+      # FIXME: This is a terrible hack and should be removed but is required
+      # for older versions of rails
+      hack = Object.const_defined?(:ActiveRecord) && sql =~ /^PRAGMA index_list/
+
+      if bind_vars.nil? || !args.empty?
+        if args.empty?
+          bind_vars = []
         else
-          return result.inject( [] ) { |arr,row| arr << row; arr }
+          bind_vars = [nil] + args
+        end
+
+        warn(<<-eowarn) if $VERBOSE
+#{caller[0]} is calling SQLite3::Database#execute with nil or multiple bind params
+without using an array.  Please switch to passing bind parameters as an array.
+        eowarn
+      end
+
+      prepare( sql ) do |stmt|
+        stmt.bind_params(bind_vars)
+        if type_translation
+          stmt = ResultSet.new(self, stmt).to_a
+        end
+
+        if block_given?
+          stmt.each do |row|
+            if @results_as_hash
+              h = Hash[*stmt.columns.zip(row).flatten]
+              row.each_with_index { |r, i| h[i] = r }
+
+              yield h
+            else
+              yield row
+            end
+          end
+        else
+          if @results_as_hash
+            stmt.map { |row|
+              h = Hash[*stmt.columns.zip(row).flatten]
+              row.each_with_index { |r, i| h[i] = r }
+
+              # FIXME UGH TERRIBLE HACK!
+              h['unique'] = h['unique'].to_s if hack
+
+              h
+            }
+          else
+            stmt.to_a
+          end
         end
       end
     end
@@ -208,10 +171,10 @@ module SQLite3
       prepare( sql ) do |stmt|
         result = stmt.execute( *bind_vars )
         if block_given?
-          yield result.columns
+          yield stmt.columns
           result.each { |row| yield row }
         else
-          return result.inject( [ result.columns ] ) { |arr,row|
+          return result.inject( [ stmt.columns ] ) { |arr,row|
             arr << row; arr }
         end
       end
@@ -225,11 +188,40 @@ module SQLite3
     #
     # This always returns +nil+, making it unsuitable for queries that return
     # rows.
-    def execute_batch( sql, *bind_vars )
+    def execute_batch( sql, bind_vars = [], *args )
+      # FIXME: remove this stuff later
+      unless [Array, Hash].include?(bind_vars.class)
+        bind_vars = [bind_vars]
+        warn(<<-eowarn) if $VERBOSE
+#{caller[0]} is calling SQLite3::Database#execute_batch with bind parameters
+that are not a list of a hash.  Please switch to passing bind parameters as an
+array or hash.
+        eowarn
+      end
+
+      # FIXME: remove this stuff later
+      if bind_vars.nil? || !args.empty?
+        if args.empty?
+          bind_vars = []
+        else
+          bind_vars = [nil] + args
+        end
+
+        warn(<<-eowarn) if $VERBOSE
+#{caller[0]} is calling SQLite3::Database#execute_batch with nil or multiple bind params
+without using an array.  Please switch to passing bind parameters as an array.
+        eowarn
+      end
+
       sql = sql.strip
       until sql.empty? do
         prepare( sql ) do |stmt|
-          stmt.execute( *bind_vars )
+          # FIXME: this should probably use sqlite3's api for batch execution
+          # This implementation requires stepping over the results.
+          if bind_vars.length == stmt.bind_parameter_count
+            stmt.bind_params(bind_vars)
+          end
+          stmt.step
           sql = stmt.remainder.strip
         end
       end
@@ -247,8 +239,22 @@ module SQLite3
     # returned, or you could have problems with locks on the table. If called
     # with a block, +close+ will be invoked implicitly when the block 
     # terminates.
-    def query( sql, *bind_vars )
-      result = prepare( sql ).execute( *bind_vars )
+    def query( sql, bind_vars = [], *args )
+
+      if bind_vars.nil? || !args.empty?
+        if args.empty?
+          bind_vars = []
+        else
+          bind_vars = [nil] + args
+        end
+
+        warn(<<-eowarn) if $VERBOSE
+#{caller[0]} is calling SQLite3::Database#query with nil or multiple bind params
+without using an array.  Please switch to passing bind parameters as an array.
+        eowarn
+      end
+
+      result = prepare( sql ).execute( bind_vars )
       if block_given?
         begin
           yield result
@@ -279,55 +285,7 @@ module SQLite3
       nil
     end
 
-    # Obtains the unique row ID of the last row to be inserted by this Database
-    # instance.
-    def last_insert_row_id
-      @driver.last_insert_rowid( @handle )
-    end
-
-    # Returns the number of changes made to this database instance by the last
-    # operation performed. Note that a "delete from table" without a where
-    # clause will not affect this value.
-    def changes
-      @driver.changes( @handle )
-    end
-
-    # Returns the total number of changes made to this database instance
-    # since it was opened.
-    def total_changes
-      @driver.total_changes( @handle )
-    end
-
-    # Interrupts the currently executing operation, causing it to abort.
-    def interrupt
-      @driver.interrupt( @handle )
-    end
-
-    # Register a busy handler with this database instance. When a requested
-    # resource is busy, this handler will be invoked. If the handler returns
-    # +false+, the operation will be aborted; otherwise, the resource will
-    # be requested again.
-    #
-    # The handler will be invoked with the name of the resource that was
-    # busy, and the number of times it has been retried.
-    #
-    # See also the mutually exclusive #busy_timeout. 
-    def busy_handler( data=nil, &block ) # :yields: data, retries
-      result = @driver.busy_handler( @handle, data, &block )
-      Error.check( result, self )
-    end
-
-    # Indicates that if a request for a resource terminates because that
-    # resource is busy, SQLite should sleep and retry for up to the indicated
-    # number of milliseconds. By default, SQLite does not retry
-    # busy resources. To restore the default behavior, send 0 as the
-    # +ms+ parameter.
-    #
-    # See also the mutually exclusive #busy_handler.
-    def busy_timeout( ms )
-      result = @driver.busy_timeout( @handle, ms )
-      Error.check( result, self )
-    end
+    alias :busy_timeout :busy_timeout=
 
     # Creates a new function for use in SQL statements. It will be added as
     # +name+, with the given +arity+. (For variable arity functions, use
@@ -352,23 +310,12 @@ module SQLite3
     #   end
     #
     #   puts db.get_first_value( "select maim(name) from table" )
-    def create_function( name, arity, text_rep=Constants::TextRep::ANY,
-      &block ) # :yields: func, *args
-    # begin
-      callback = proc do |func,*args|
-        begin
-          block.call( FunctionProxy.new( @driver, func ),
-            *args.map{|v| Value.new(self,v)} )
-        rescue StandardError, Exception => e
-          @driver.result_error( func,
-            "#{e.message} (#{e.class})", -1 )
-        end
+    def create_function name, arity, text_rep=Constants::TextRep::ANY, &block
+      define_function(name) do |*args|
+        fp = FunctionProxy.new
+        block.call(fp, *args)
+        fp.result
       end
-
-      result = @driver.create_function( @handle, name, arity, text_rep, nil,
-        callback, nil, nil )
-      Error.check( result, self )
-
       self
     end
 
@@ -410,47 +357,40 @@ module SQLite3
     # aggregate functions.
     def create_aggregate( name, arity, step=nil, finalize=nil,
       text_rep=Constants::TextRep::ANY, &block )
-    # begin
-      if block
-        proxy = AggregateDefinitionProxy.new
-        proxy.instance_eval(&block)
-        step ||= proxy.step_callback
-        finalize ||= proxy.finalize_callback
-      end
 
-      step_callback = proc do |func,*args|
-        ctx = @driver.aggregate_context( func )
-        unless ctx[:__error]
-          begin
-            step.call( FunctionProxy.new( @driver, func, ctx ),
-              *args.map{|v| Value.new(self,v)} )
-          rescue Exception => e
-            ctx[:__error] = e
-          end
+      factory = Class.new do
+        def self.step( &block )
+          define_method(:step, &block)
+        end
+
+        def self.finalize( &block )
+          define_method(:finalize, &block)
         end
       end
 
-      finalize_callback = proc do |func|
-        ctx = @driver.aggregate_context( func )
-        unless ctx[:__error]
-          begin
-            finalize.call( FunctionProxy.new( @driver, func, ctx ) )
-          rescue Exception => e
-            @driver.result_error( func,
-              "#{e.message} (#{e.class})", -1 )
-          end
-        else
-          e = ctx[:__error]
-          @driver.result_error( func,
-            "#{e.message} (#{e.class})", -1 )
+      if block_given?
+        factory.instance_eval(&block)
+      else
+        factory.class_eval do
+          define_method(:step, step)
+          define_method(:finalize, finalize)
         end
       end
 
-      result = @driver.create_function( @handle, name, arity, text_rep, nil,
-        nil, step_callback, finalize_callback )
-      Error.check( result, self )
+      proxy = factory.new
+      proxy.extend(Module.new {
+        attr_accessor :ctx
 
-      self
+        def step( *args )
+          super(@ctx, *args)
+        end
+
+        def finalize
+          super(@ctx)
+        end
+      })
+      proxy.ctx = FunctionProxy.new
+      define_aggregator(name, proxy)
     end
 
     # This is another approach to creating an aggregate function (see
@@ -500,47 +440,22 @@ module SQLite3
     #   db.create_aggregate_handler( LengthsAggregateHandler )
     #   puts db.get_first_value( "select lengths(name) from A" )
     def create_aggregate_handler( handler )
-      arity = -1
-      text_rep = Constants::TextRep::ANY
+      proxy = Class.new do
+        def initialize handler
+          @handler  = handler
+          @fp       = FunctionProxy.new
+        end
 
-      arity = handler.arity if handler.respond_to?(:arity)
-      text_rep = handler.text_rep if handler.respond_to?(:text_rep)
-      name = handler.name
+        def step( *args )
+          @handler.step(@fp, *args)
+        end
 
-      step = proc do |func,*args|
-        ctx = @driver.aggregate_context( func )
-        unless ctx[ :__error ]
-          ctx[ :handler ] ||= handler.new
-          begin
-            ctx[ :handler ].step( FunctionProxy.new( @driver, func, ctx ),
-              *args.map{|v| Value.new(self,v)} )
-          rescue Exception, StandardError => e
-            ctx[ :__error ] = e
-          end
+        def finalize
+          @handler.finalize @fp
+          @fp.result
         end
       end
-
-      finalize = proc do |func|
-        ctx = @driver.aggregate_context( func )
-        unless ctx[ :__error ]
-          ctx[ :handler ] ||= handler.new
-          begin
-            ctx[ :handler ].finalize( FunctionProxy.new( @driver, func, ctx ) )
-          rescue Exception => e
-            ctx[ :__error ] = e
-          end
-        end
-
-        if ctx[ :__error ]
-          e = ctx[ :__error ]
-          @driver.sqlite3_result_error( func, "#{e.message} (#{e.class})", -1 )
-        end
-      end
-
-      result = @driver.create_function( @handle, name, arity, text_rep, nil,
-        nil, step, finalize )
-      Error.check( result, self )
-
+      define_aggregator(handler.name, proxy.new(handler.new))
       self
     end
 
@@ -604,33 +519,6 @@ module SQLite3
       @transaction_active
     end
 
-    # Loads the corresponding driver, or if it is nil, attempts to locate a
-    # suitable driver.
-    def load_driver( driver )
-      case driver
-        when Class
-          # do nothing--use what was given
-        when Symbol, String
-          require "sqlite3/driver/#{driver.to_s.downcase}/driver"
-          driver = SQLite3::Driver.const_get( driver )::Driver
-        else
-          [ "Native", "DL" ].each do |d|
-            begin
-              require "sqlite3/driver/#{d.downcase}/driver"
-              driver = SQLite3::Driver.const_get( d )::Driver
-              break
-            rescue SyntaxError
-              raise
-            rescue ScriptError, Exception, NameError
-            end
-          end
-          raise "no driver for sqlite3 found" unless driver
-      end
-
-      @driver = driver.new
-    end
-    private :load_driver
-
     # A helper class for dealing with custom functions (see #create_function,
     # #create_aggregate, and #create_aggregate_handler). It encapsulates the
     # opaque function object that represents the current invocation. It also
@@ -640,26 +528,15 @@ module SQLite3
     # This class will almost _always_ be instantiated indirectly, by working
     # with the create methods mentioned above.
     class FunctionProxy
+      attr_accessor :result
 
       # Create a new FunctionProxy that encapsulates the given +func+ object.
       # If context is non-nil, the functions context will be set to that. If
       # it is non-nil, it must quack like a Hash. If it is nil, then none of
       # the context functions will be available.
-      def initialize( driver, func, context=nil )
-        @driver = driver
-        @func = func
-        @context = context
-      end
-
-      # Calls #set_result to set the result of this function.
-      def result=( result )
-        set_result( result )
-      end
-
-      # Set the result of the function to the given value. The function will
-      # then return this value.
-      def set_result( result, utf16=false )
-        @driver.result_text( @func, result, utf16 )
+      def initialize
+        @result   = nil
+        @context  = {}
       end
 
       # Set the result of the function to the given error message.
@@ -672,50 +549,20 @@ module SQLite3
       # that the aggregate has processed so far. This will include the current
       # row, and so will always return at least 1.
       def count
-        ensure_aggregate!
         @driver.aggregate_count( @func )
       end
 
       # Returns the value with the given key from the context. This is only
       # available to aggregate functions.
       def []( key )
-        ensure_aggregate!
         @context[ key ]
       end
 
       # Sets the value with the given key in the context. This is only
       # available to aggregate functions.
       def []=( key, value )
-        ensure_aggregate!
         @context[ key ] = value
       end
-
-      # A function for performing a sanity check, to ensure that the function
-      # being invoked is an aggregate function. This is implied by the
-      # existence of the context variable.
-      def ensure_aggregate!
-        unless @context
-          raise MisuseException, "function is not an aggregate"
-        end
-      end
-      private :ensure_aggregate!
-
     end
-
-    # A proxy used for defining the callbacks to an aggregate function.
-    class AggregateDefinitionProxy # :nodoc:
-      attr_reader :step_callback, :finalize_callback
-
-      def step( &block )
-        @step_callback = block
-      end
-
-      def finalize( &block )
-        @finalize_callback = block
-      end
-    end
-
   end
-
 end
-
