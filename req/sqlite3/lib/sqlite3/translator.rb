@@ -44,7 +44,12 @@ module SQLite3
     # and are always passed straight through regardless of the type parameter.
     def translate( type, value )
       unless value.nil?
-        @translators[ type_name( type ) ].call( type, value )
+        # FIXME: this is a hack to support Sequel
+        if type && %w{ datetime timestamp }.include?(type.downcase)
+          @translators[ type_name( type ) ].call( type, value.to_s )
+        else
+          @translators[ type_name( type ) ].call( type, value )
+        end
       end
     end
 
