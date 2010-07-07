@@ -11,6 +11,7 @@
 #include "shoes/appwin32.h"
 #include <commdlg.h>
 #include <shlobj.h>
+#include <ctype.h>
 
 #define HEIGHT_PAD 6
 
@@ -24,8 +25,8 @@
 
 static WNDPROC shoes_original_edit_line_proc = NULL;
 HHOOK hhook;
-VALUE kh_up_v = NULL;
-VALUE kh_down_v = NULL;
+VALUE kh_up_v = (VALUE)NULL;
+VALUE kh_down_v = (VALUE)NULL;
 
 shoes_code shoes_classex_init();
 LRESULT CALLBACK shoes_app_win32proc(HWND, UINT, WPARAM, LPARAM);
@@ -229,7 +230,6 @@ shoes_load_font(const char *filename)
 static int CALLBACK
 shoes_font_list_iter(const ENUMLOGFONTEX *font, const NEWTEXTMETRICA *pfont, DWORD type, LPARAM l)
 {
-  VALUE ary = (VALUE)l;
   rb_ary_push(l, rb_str_new2(font->elfLogFont.lfFaceName));
   return TRUE;
 }
@@ -265,8 +265,8 @@ LRESULT CALLBACK shoes_keyhook(int n, WPARAM w, LPARAM l)
   VALUE v;
   WPARAM vk;
   
-  kh_up_v = NULL;
-  kh_down_v = NULL;
+  kh_up_v = (VALUE)NULL;
+  kh_down_v = (VALUE)NULL;
   
   if (n == HC_ACTION)
   {
@@ -450,10 +450,9 @@ shoes_slot_win32proc(
   shoes_canvas *canvas;
   VALUE c = (VALUE)GetWindowLong(win, GWL_USERDATA);
 
-  if (c != NULL)
+  if (c != (VALUE)NULL)
   {
     Data_Get_Struct(c, shoes_canvas, canvas);
-    int x = 0, y = 0;
 
     switch (msg)
     {
@@ -630,7 +629,6 @@ shoes_app_win32proc(
   LPARAM l)
 {
   shoes_app *app = (shoes_app *)GetWindowLong(win, GWL_USERDATA);
-  int x = 0, y = 0;
 
   switch (msg)
   {
@@ -1141,7 +1139,6 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
   si.nPos = 0;
   SetScrollInfo(app->slot->window, SB_VERT, &si, TRUE);
 
-quit:
   return code;
 }
 
@@ -1323,7 +1320,6 @@ shoes_cairo_create(shoes_canvas *canvas)
   if (canvas->slot->surface != NULL)
     return NULL;
 
-  HBITMAP bitmap, bitold;
   canvas->slot->dc = BeginPaint(canvas->slot->window, &canvas->slot->ps);
   if (DC(canvas->slot) == DC(canvas->app->slot))
   {
@@ -1849,7 +1845,6 @@ shoes_ask_win32proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
           int len = GetWindowTextLength(GetDlgItem(hwnd, IDQUED));
           if(len > 0)
           {
-            int i;
             win32_dialog_answer = (LPWSTR)GlobalAlloc(GPTR, (len + 1) * sizeof(WCHAR));
             GetDlgItemTextW(hwnd, IDQUED, win32_dialog_answer, len + 1);
           }
@@ -1999,7 +1994,6 @@ shoes_dialog_chooser2(VALUE self, char *title, UINT flags, VALUE attr)
   LPITEMIDLIST pidl = SHBrowseForFolder (&bi);
   if (pidl != 0)
   {
-    char *p;
     char _path[MAX_PATH+1];
     if (SHGetPathFromIDList(pidl, _path))
       path = rb_str_new2(shoes_fix_slashes(_path));
