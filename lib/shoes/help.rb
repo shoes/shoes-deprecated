@@ -212,7 +212,8 @@ module Shoes::Manual
         edit_line :width => -60 do |terms|
           @results.clear do
             termd = terms.text.downcase
-            found = termd.empty? ? [] : manual_search(termd)
+            #found = termd.empty? ? [] : manual_search(termd)
+            found = (termd.empty? or termd[0] == 'z' or termd[0] == 'y') ? [] : manual_search(termd)
             para "#{found.length} matches", :align => "center", :margin_bottom => 0
             found.each do |typ, head|
               flow :margin => 4 do
