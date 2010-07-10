@@ -213,7 +213,8 @@ class SuffixArrayReader
       else
         # FIXME: handle pivot[-1] = 255?
         pivot = pivot.clone
-        pivot[-1] += 1
+        #pivot[-1] += 1
+        pivot.next!
         #puts "TESTING AGAINST new pivot: #{pivot.inspect}" if $DEBUG
         if term > pivot
           from = middle + 1
@@ -253,7 +254,8 @@ class SuffixArrayReader
       else
         # FIXME: handle pivot[-1] = 255?
         pivot = pivot.clone
-        pivot[-1] += 1
+        #pivot[-1] += 1
+        pivot.next!
         #puts "TESTING AGAINST new pivot: #{pivot.inspect}" if $DEBUG
         if term > pivot
           from = middle + 1
