@@ -35,7 +35,7 @@ The whole sphere is drawn with blurred ovals and shadows. You can draw and anima
 
 ==== Windows ====
 
-Shoes runs on all versions of '''Microsoft Windows XP''', '''Microsoft Windows Vista''', and anything else '''Windows 2000''' compatible. !man-look-vista.png!
+Shoes runs on all versions of '''Microsoft Windows XP''', '''Windows Vista''', '''Windows 7''', and anything else '''Windows 2000''' compatible. !man-look-vista.png!
 
 Above is pictured the `simple-clock.rb` sample running on Windows Vista. This example is also draws ovals and lines to build the clock, which is animated to repaint itself several times each second.
 
@@ -51,7 +51,7 @@ Shapes, text, images and videos all look the same on every platforms.  However, 
 
 == Installing Shoes ==
 
-Okay, on to installing Shoes. I'm sure you're wondering: do I need to install Ruby? Do I need to unzip anything? What commands to I need to type?
+Okay, on to installing Shoes. I'm sure you're wondering: do I need to install Ruby? Do I need to unzip anything? What commands do I need to type?
 
 Nope. You don't need Ruby. You don't need WinZip. Nothing to type.
 
@@ -59,7 +59,7 @@ On most systems, starting Shoes is just a matter of running the installer and cl
 
 ==== Step 1: Installing Shoes ====
 
-You'll want to visit [[http://shoooes.net/ shoooes.net]] to download the Shoes installer.  Usually, you'll just want one of the installers on the top corner of the home page. !man-builds.png!
+You'll want to visit [[http://shoes.heroku.com/ the site of Shoes]] to download the Shoes installer.  Usually, you'll just want one of the installers on the downloads page of the site. !man-builds1.png!
 
 Here's how to run the installer:
 
@@ -416,7 +416,7 @@ Shoes is all about drawing windows and the stuff inside those windows.  Let's fo
 
 For here on, the manual reads more like a dictionary. Each page is mostly a list of methods you can use for each topic covered. The idea is to be very thorough and clear about everything.
 
-So, if you've hit this far in the manual and you're still hazy about getting started, you should probably either go back to the [[Hello! beginning]] of the manual. Or you could try [[http://hackety.org/press/ Nobody Knows Shoes]], the beginner's leaflet on the web.
+So, if you've hit this far in the manual and you're still hazy about getting started, you should probably either go back to the [[Hello! beginning]] of the manual. Or you could try [[http://github.com/shoes/shoes/downloads Nobody Knows Shoes]], the beginner's leaflet PDF.
 
 ==== Finding Your Way ====
 
@@ -517,7 +517,9 @@ Pops up an "Open file..." window. It's the standard window which shows all of yo
 {{{
  #!ruby
  filename = ask_open_file
- puts File.read(filename)
+ Shoes.app do
+   para File.read(filename)
+ end
 }}}
 
 === ask_save_file() » a string ===
@@ -536,10 +538,12 @@ Pops up an "Open folder..." window. It's the standard window which shows all of 
 {{{
  #!ruby
  folder = ask_open_folder
- puts Dir[folder].entries
+ Shoes.app do
+   para Dir.entries(folder)
+ end
 }}}
 
-=== ask_save_folder() » a string ===»
+=== ask_save_folder() » a string ===
 
 Pops up a "Save folder..." window, similiar to `ask_open_folder`, described previously. On OS X, this method currently behaves like an alias of `ask_open_folder`.
 
@@ -556,7 +560,7 @@ Pops up a yes-or-no question. If the person at the computer, clicks '''yes''', y
 {{{
  #!ruby
  if confirm("Draw a circle?")
-  oval :top => 0, :left => 0, :radius => 50
+  Shoes.app{ oval :top => 0, :left => 0, :radius => 50 }
  end
 }}}
 
@@ -632,6 +636,7 @@ Logs an informational message to the user in the Shoes console.  So, where debug
 
 {{{
  #!ruby
+ 
  info("You just ran the info example on Shoes #{Shoes::RELEASE_NAME}.")
 }}}
 
