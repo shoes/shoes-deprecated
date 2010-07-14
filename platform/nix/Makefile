@@ -86,8 +86,8 @@ dist/shoes.launch: dist/shoes-bin
 	@cp req/hpricot/gemspec ${GEM_DIR}/specifications/${HPRICOT_NAME}.gemspec
 	@mkdir -p ${GEM_DIR}/gems/${SQLITE_NAME}
 	@cp -r req/sqlite3/lib ${GEM_DIR}/gems/${SQLITE_NAME}/lib
-	@cd req/sqlite3/ext/sqlite3_api && ruby extconf.rb && make
-	@cp req/sqlite3/ext/sqlite3_api/*.so ${GEM_DIR}/gems/${SQLITE_NAME}/lib
+	@cd req/sqlite3/ext/sqlite3 && ruby extconf.rb && make
+	@cp req/sqlite3/ext/sqlite3/*.so ${GEM_DIR}/gems/${SQLITE_NAME}/lib
 	@cp req/sqlite3/gemspec ${GEM_DIR}/specifications/${SQLITE_NAME}.gemspec
 	@mkdir -p ${GEM_DIR}/gems/${JSON_NAME}
 	@cp -r req/json/lib ${GEM_DIR}/gems/${JSON_NAME}/lib
