@@ -152,7 +152,14 @@ module Shoes::Manual
     index_p = proc do |k, subs|
       unless shown.include? k
         stack :margin_left => 20 do
-          para "▸ #{k}"
+          flow do 
+            para "▸ ", :font => case RUBY_PLATFORM
+              when /mingw/; "MS UI Gothic"
+              when /darwin/; "AppleGothic, Arial"
+              else "Arial"
+              end
+            para k
+          end
           subs.uniq.sort.each do |s|
             index_p[s, tree[s]]
           end if subs

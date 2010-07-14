@@ -364,11 +364,15 @@ This is a good test because it proves that the edit box gives back UTF-8 charact
 
 '''Important note:''' if some UTF-8 characters don't display for you, you will need to change the paragraph's font.  This is especially common on OS X.
 
-So, a good Japanese font on OS X is '''AppleGothic'''.
+So, a good Japanese font on OS X is '''AppleGothic''' and on Windows is '''MS UI Gothic'''.
 
 {{{
  Shoes.app do
-   para "てすと (te-su-to)", :font => "AppleGothic, Arial"
+   para "てすと (te-su-to)", :font => case RUBY_PLATFORM
+    when /mingw/; "MS UI Gothic"
+    when /darwin/; "AppleGothic, Arial"
+    else "Arial"
+    end
  end
 }}}
 
