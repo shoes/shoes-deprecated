@@ -2806,3 +2806,13 @@ Set the position of the video to a time in milliseconds.
 
 Toggles the visibility of the video.  If the video can be seen, then `hide` is called.  Otherwise, `show` is called.
 
+= Shoe Box =
+
+A place for sample apps. 
+
+== Sample Apps ==
+
+Have fun!
+
+{SAMPLES}
+

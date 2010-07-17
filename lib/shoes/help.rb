@@ -82,6 +82,8 @@ module Shoes::Manual
           yield :colors, nil
         when /\A\{INDEX\}/
           yield :index, nil
+        when /\A\{SAMPLES\}/
+          yield :samples, nil
         when /\A \* (.+)/m
           yield :list, $1.split(/^ \* /)
         when /\A==== (.+) ====/
@@ -110,6 +112,8 @@ module Shoes::Manual
           color_page
         when :index
           index_page
+        when :samples
+          sample_page
         when :list
           text.each { |t| stack(:margin_left => 30) { 
             fill black; oval -10, 7, 6; dewikify_p :para, t } }
@@ -120,6 +124,27 @@ module Shoes::Manual
     end
   end
 
+  def sample_page
+    default = File.join DIR, 'samples'
+    
+    add_lists = proc do |folder|
+      folder ||= default
+      @slot.clear if @slot
+      @list_area.append do
+        @slot = stack do
+          Dir.glob(File.join folder, '*').each do |file|
+            para link(File.basename file){
+              Dir.chdir(folder){eval IO.read(file), TOPLEVEL_BINDING}
+            } if File.extname(file) == '.rb'
+          end
+        end
+      end
+    end
+    
+    @list_area = stack
+    add_lists[]
+  end
+  
   def color_page
     color_names = (Shoes::COLORS.keys*"\n").split("\n").sort
     flow do
