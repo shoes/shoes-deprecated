@@ -41,7 +41,16 @@ module Shoes::Manual
       gsub(/\[\[(\S+?)\]\]/m, '", link("\1".split(".", 2).last) { open_link("\1") }, "').
       gsub(/\[\[(\S+?) (.+?)\]\]/m, '", link("\2") { open_link("\1") }, "').
       gsub(IMAGE_RE, '", *args); stack(IMAGE_STYLE.merge({\2})) { image("#{DIR}/static/\3") }; #{ele}("')
-    eval("#{ele}(#{str}, *args)")
+    #debug str if str =~ /The list of special keys/
+    a = str.split(', ", ", ')
+    if a.size == 1
+      eval("#{ele}(#{str}, *args)")
+    else
+      flow do
+        a[0...-1].each{|s| eval("#{ele}(#{s}, ',', *args)")}
+        eval("#{ele}(#{a[-1]}, *args)")
+      end
+    end
   end
 
   def dewikify_code(str)
