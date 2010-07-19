@@ -125,24 +125,26 @@ module Shoes::Manual
   end
 
   def sample_page
-    default = File.join DIR, 'samples'
-    
-    add_lists = proc do |folder|
-      folder ||= default
-      @slot.clear if @slot
-      @list_area.append do
-        @slot = stack do
-          Dir.glob(File.join folder, '*').each do |file|
-            para link(File.basename file){
+    folder = File.join DIR, 'samples'
+    h = {}
+    Dir.glob(File.join folder, '*').each do |file|
+      if File.extname(file) == '.rb'
+        key = File.basename(file).split('-')[0]
+        h[key] ? h[key].push(file) : h[key] = [file]
+      end
+    end
+    stack do
+      h.each do |k, v|
+        subtitle k
+        flow do
+          v.each do |file|
+            para link(File.basename(file).split('-')[1..-1].join('-')[0..-4]){
               Dir.chdir(folder){eval IO.read(file), TOPLEVEL_BINDING}
-            } if File.extname(file) == '.rb'
+            }
           end
         end
       end
     end
-    
-    @list_area = stack
-    add_lists[]
   end
   
   def color_page
