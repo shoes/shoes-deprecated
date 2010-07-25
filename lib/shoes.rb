@@ -218,9 +218,9 @@ class Shoes
       man = self
       dir, = args
       FileUtils.mkdir_p File.join(dir, 'static')
-      FileUtils.cp "static/shoes-icon.png", "#{dir}/static"
+      FileUtils.cp "#{DIR}/static/shoes-icon.png", "#{dir}/static"
       %w[manual.css code_highlighter.js code_highlighter_ruby.js].
-        each { |x| FileUtils.cp "static/#{x}", "#{dir}/static" }
+        each { |x| FileUtils.cp "#{DIR}/static/#{x}", "#{dir}/static" }
       html_bits = proc do
         proc do |sym, text|
         case sym when :intro
@@ -253,6 +253,24 @@ class Shoes
         #   index_page
         when :list
           ul { text.each { |x| li { self << man.manual_p(x, dir) } } }
+        when :samples
+          folder = File.join DIR, 'samples'
+          h = {}
+          Dir.glob(File.join folder, '*').each do |file|
+            if File.extname(file) == '.rb'
+              key = File.basename(file).split('-')[0]
+              h[key] ? h[key].push(file) : h[key] = [file]
+            end
+          end
+          h.each do |k, v|
+            p "<h4>#{k}</h4>"
+            samples = []
+            v.each do |file|
+              sample = File.basename(file).split('-')[1..-1].join('-')[0..-4]
+              samples << "<a href=\"http://github.com/shoes/shoes/raw/master/manual-snapshots/#{k}-#{sample}.png\">#{sample}</a>"
+            end
+            p samples.join ' '
+          end
         else
           send(TITLES[sym] || :p) { self << man.manual_p(text, dir) }
         end
