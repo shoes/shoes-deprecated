@@ -36,6 +36,7 @@ const char *dialog_title = USTR("Shoes asks:");
 const char *dialog_title_says = USTR("Shoes says:");
 
 static void shoes_canvas_send_start(VALUE);
+static void shoes_canvas_send_finish(VALUE);
 
 shoes_transform *
 shoes_transform_new(shoes_transform *o)
@@ -1189,6 +1190,7 @@ shoes_canvas_remove(VALUE self)
     if (pc != self_t && DC(self_t->slot) != DC(pc->slot))
       shoes_slot_destroy(self_t, pc);
   }
+  shoes_canvas_send_finish(self);
   return self;
 }
 
@@ -1770,6 +1772,16 @@ shoes_canvas_send_start(VALUE self)
       shoes_safe_block(self, start, rb_ary_new3(1, self));
     }
   }
+}
+
+static void
+shoes_canvas_send_finish(VALUE self)
+{
+  shoes_canvas *canvas;
+  Data_Get_Struct(self, shoes_canvas, canvas);
+  VALUE finish = ATTR(canvas->attr, finish);
+  if (!NIL_P(finish))
+    shoes_safe_block(self, finish, rb_ary_new3(1, self));
 }
 
 static VALUE
