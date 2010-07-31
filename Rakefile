@@ -18,7 +18,7 @@ VERS = ENV['VERSION'] || "0.r#{REVISION}"
 PKG = "#{NAME}-#{VERS}"
 APPARGS = APP['run']
 FLAGS = %w[DEBUG VIDEO]
-VLC_VERSION = (RUBY_PLATFORM =~ /win32/ ? "0.8": `vlc --version 2>/dev/null`.split[2])
+VLC_VERSION = (RUBY_PLATFORM =~ /win32|mingw/ ? "0.8": `vlc --version 2>/dev/null`.split[2])
 VLC_0_8 = VLC_VERSION !~ /^0\.9/
 
 if ENV['APP']
@@ -116,6 +116,15 @@ RUBY_1_9 = (ruby_v =~ /^1\.9/)
 case RUBY_PLATFORM
 when /mingw/
   ext_ruby = "../mingw"
+  if ENV['VIDEO']
+    rm_rf "dist"
+    mkdir_p 'dist'
+    vlc_deps = '../deps_vlc_0.8'
+    copy_files vlc_deps + '/bin/plugins', 'dist'
+    cp_r vlc_deps + '/bin/libvlc.dll', ext_ruby + '/bin'
+    copy_files vlc_deps + '/include/vlc', ext_ruby + '/include'
+    copy_files vlc_deps + '/lib', ext_ruby
+  end
 else
   ext_ruby = "deps/ruby"
   unless File.exists? ext_ruby
@@ -190,13 +199,10 @@ task :build => [:build_os, "dist/VERSION.txt"] do
     dlls = [ruby_so]
     dlls += %w{libungif4 libjpeg-8 libcairo-2 libglib-2.0-0 libgobject-2.0-0 libpango-1.0-0 libpangoft2-1.0-0 libgio-2.0-0 libgthread-2.0-0 
       libgmodule-2.0-0 libpangocairo-1.0-0 libpangowin32-1.0-0 libportaudio-2 sqlite3 libssl32 libeay32 zlib1 readline5 libiconv2}
+    dlls += %w{libvlc} if ENV['VIDEO']
     dlls.each{|dll| cp "#{ext_ruby}/bin/#{dll}.dll", "dist/"}
     cp "dist/zlib1.dll", "dist/zlib.dll"
     Dir.glob("../deps_cairo*/*"){|file| cp file, "dist/"}
-    if ENV['VIDEO']
-      cp    "/usr/lib/libvlc.so", "dist"
-      ln_s  "libvlc.so", "dist/libvlc.so.0"
-    end
     sh "strip -x dist/*.dll" unless ENV['DEBUG']
   when /darwin/
     if ENV['SHOES_DEPS_PATH']
@@ -428,6 +434,12 @@ else
     CAIRO_LIB = '-lcairo'
     PANGO_CFLAGS = '-I/mingw/include/pango-1.0'
     PANGO_LIB = '-lpangocairo-1.0 -lpango-1.0 -lpangoft2-1.0 -lpangowin32-1.0'
+    if ENV['VIDEO']
+      VLC_CFLAGS = '-I/mingw/include/vlc'
+      VLC_LIB = '-llibvlc'
+    else
+      VLC_CFLAGS = VLC_LIB = ''
+    end
   else
     CAIRO_CFLAGS = ENV['CAIRO_CFLAGS'] || `pkg-config --cflags cairo`.strip
     CAIRO_LIB = ENV['CAIRO_LIB'] ? "-L#{ENV['CAIRO_LIB']}" : `pkg-config --libs cairo`.strip
@@ -436,7 +448,7 @@ else
     png_lib = 'png'
   end
 
-  LINUX_CFLAGS = %[-Wall -I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{Config::CONFIG['archdir']}]
+  LINUX_CFLAGS = %[-Wall -I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{VLC_CFLAGS} -I#{Config::CONFIG['archdir']}]
   if Config::CONFIG['rubyhdrdir']
     LINUX_CFLAGS << " -I#{Config::CONFIG['rubyhdrdir']} -I#{Config::CONFIG['rubyhdrdir']}/#{RUBY_PLATFORM}"
   end
@@ -486,6 +498,8 @@ else
     LINUX_CFLAGS << " -DXMD_H -DHAVE_BOOLEAN -DSHOES_WIN32 -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0500 -DWINVER=0x0500 -DCOBJMACROS"
     LINUX_LDFLAGS = " -DBUILD_DLL -lungif -ljpeg -lglib-2.0 -lgobject-2.0 -lgio-2.0 -lgmodule-2.0 -lgthread-2.0 -fPIC -shared"
     LINUX_LDFLAGS << ' -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 -lole32 -loleaut32 -ladvapi32 -loleacc -lwinhttp'
+    LINUX_CFLAGS << " -DVLC_0_8"  if ENV['VIDEO'] and VLC_0_8
+    LINUX_CFLAGS << " -DNOLAYERED"  if ENV['NOLAYERED']
     cp APP['icons']['win32'], "shoes/appwin32.ico"
   else
     DLEXT = "so"
@@ -508,11 +522,13 @@ else
   task :build_os => [:buildenv_linux, :build_skel, "dist/#{NAME}"]
 
   task :buildenv_linux do
-    rm_rf "dist"
-    mkdir_p "dist"
+    unless ENV['VIDEO']
+      rm_rf "dist"
+      mkdir_p "dist"
+    end
   end
 
-  LINUX_LIBS << " -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB}"
+  LINUX_LIBS << " -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB} #{VLC_LIB}"
 
   if RUBY_PLATFORM =~ /mingw/
     task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o", "shoes/appwin32.o"] do |t|
