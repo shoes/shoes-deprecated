@@ -83,6 +83,11 @@ class Shoes
       raise SystemExit, ""
     end
 
+    opts.on("--nolayered", "No WS_EX_LAYERED style option.") do
+      $NOLAYERED = 1
+      Shoes.args!
+    end
+    
     opts.on_tail("-v", "--version", "Display the version info.") do
       raise SystemExit, File.read("#{DIR}/VERSION.txt").strip
     end
