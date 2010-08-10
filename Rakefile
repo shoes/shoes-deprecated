@@ -41,6 +41,23 @@ if File.exists? ".git/refs/tags/#{RELEASE_ID}/#{RELEASE_NAME}"
   abort "** Rename this release (and add to lib/shoes.rb) #{RELEASE_NAME} has already been tagged."
 end
 
+case RUBY_PLATFORM
+when /mingw/
+  require 'rakefile_mingw'
+  Builder = MakeMinGW
+when /darwin/
+  require 'rakefile_darwin'
+  Builder = MakeDarwin
+when /linux/
+  require 'rakefile_linux'
+  Builder = MakeLinux
+else
+  puts "Sorry, your platform [#{RUBY_PLATFORM}] is not supported..."
+end
+
+# --------------------------
+# common platform tasks
+
 desc "Same as `rake build'"
 task :default => [:build]
 
@@ -61,16 +78,38 @@ task "dist/VERSION.txt" do |t|
   end
 end
 
-case RUBY_PLATFORM
-when /mingw/
-	require 'make/mingw/env'
-  require 'rakefile_mingw'
-when /darwin/
-	require 'make/darwin/env'
-  require 'rakefile_darwin'
-when /linux/
-	require 'make/linux/env'
-  require 'rakefile_linux'
-else
-  puts 'Sorry, your platform [#{RUBY_PLATFORM}] is not supported...'
+# shoes is small, if any include changes, go ahead and build from scratch.
+SRC.zip(OBJ).each do |c, o|
+  file o => [c] + Dir["shoes/*.h"]
+end
+
+# --------------------------
+# tasks depending on Builder = MakeLinux|MakeDarwin|MakeMinGW
+
+desc "Does a full compile, for the OS you're running on"
+task :build => [:build_os, "dist/VERSION.txt"] do
+  Builder.common_build
+  Builder.copy_deps_to_dist
+  Builder.copy_files_to_dist
+  Builder.setup_system_resources
+end
+
+task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o"] + ADD_DLL do |t|
+  Builder.make_app t.name
+end
+
+task "dist/lib#{SONAME}.#{DLEXT}" => ['shoes/version.h'] + OBJ do |t|
+  Builder.make_so t.name
+end
+
+rule ".o" => ".m" do |t|
+  Builder.cc t
+end
+
+rule ".o" => ".c" do |t|
+  Builder.cc t
+end
+
+task :installer do
+  Builder.make_installer
 end

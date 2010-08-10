@@ -22,6 +22,8 @@ OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
 end
 
+ADD_DLL = ["shoes/appwin32.o"]
+
 # Linux build environment
 CAIRO_CFLAGS = '-I/mingw/include/glib-2.0 -I/mingw/lib/glib-2.0/include -I/mingw/include/cairo'
 CAIRO_LIB = '-lcairo'

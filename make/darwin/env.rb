@@ -14,6 +14,8 @@ OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
 end
 
+ADD_DLL = []
+
 # Linux build environment
 CAIRO_CFLAGS = ENV['CAIRO_CFLAGS'] || `pkg-config --cflags cairo`.strip
 CAIRO_LIB = ENV['CAIRO_LIB'] ? "-L#{ENV['CAIRO_LIB']}" : `pkg-config --libs cairo`.strip
