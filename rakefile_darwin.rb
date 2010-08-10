@@ -1,4 +1,6 @@
 require 'make/rakefile_common'
+require 'make/darwin/env'
+require 'make/darwin/tasks'
 
 # for Mac
 def copy_ext xdir, libdir

@@ -1,4 +1,6 @@
 require 'make/rakefile_common'
+require 'make/mingw/env'
+require 'make/mingw/tasks'
 
 # Execute shell calls through bash if we are compiling with mingw. This breaks us
 # out of the windows command shell if we are compiling from there.
