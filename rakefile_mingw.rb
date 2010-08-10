@@ -4,7 +4,7 @@ require 'make/mingw/tasks'
 
 desc "Does a full compile, for the OS you're running on"
 task :build => [:build_os, "dist/VERSION.txt"] do
-  common_build
+  MakeMinGW.common_build
   MakeMinGW.copy_deps_to_dist
   MakeMinGW.copy_files_to_dist
   MakeMinGW.setup_system_resources

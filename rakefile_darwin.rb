@@ -4,7 +4,7 @@ require 'make/darwin/tasks'
 
 desc "Does a full compile, for the OS you're running on"
 task :build => [:build_os, "dist/VERSION.txt"] do
-  common_build
+  MakeDarwin.common_build
   MakeDarwin.copy_deps_to_dist
   MakeDarwin.copy_files_to_dist
   MakeDarwin.setup_system_resources

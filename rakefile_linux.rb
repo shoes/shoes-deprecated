@@ -4,7 +4,7 @@ require 'make/linux/tasks'
 
 desc "Does a full compile, for the OS you're running on"
 task :build => [:build_os, "dist/VERSION.txt"] do
-  common_build
+  MakeLinux.common_build
   MakeLinux.copy_deps_to_dist
   MakeLinux.copy_files_to_dist
   MakeLinux.setup_system_resources

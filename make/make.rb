@@ -28,4 +28,58 @@ module Make
     sh "#{CC} -I. -c -o#{t.name} #{LINUX_CFLAGS} #{t.source}"
   end
 
+  # Subs in special variables
+  def rewrite before, after, reg = /\#\{(\w+)\}/, reg2 = '\1'
+    File.open(after, 'w') do |a|
+      File.open(before) do |b|
+        b.each do |line|
+          a << line.gsub(reg) do
+            if reg2.include? '\1'
+              reg2.gsub(%r!\\1!, Object.const_get($1))
+            else
+              reg2
+            end
+          end
+        end
+      end
+    end
+  end
+
+  def copy_files glob, dir
+    FileList[glob].each { |f| cp_r f, dir }
+  end
+
+  def common_build
+    mkdir_p "dist/ruby"
+    cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "dist/ruby/lib"
+    unless ENV['STANDARD']
+      %w[soap wsdl xsd].each do |libn|
+        rm_rf "dist/ruby/lib/#{libn}"
+      end
+    end
+    %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
+      FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
+    end
+    %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
+      each { |xdir| copy_ext xdir, "dist/ruby/lib/#{RUBY_PLATFORM}" }
+
+    gdir = "dist/ruby/gems/#{RUBY_V}"
+    {'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
+      spec = eval(File.read("req/#{gemn}/gemspec"))
+      mkdir_p "#{gdir}/specifications"
+      mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
+      FileList["req/#{gemn}/lib/*"].each { |rlib| cp_r rlib, "#{gdir}/gems/#{spec.full_name}/lib" }
+      mkdir_p "#{gdir}/gems/#{spec.full_name}/#{xdir}"
+      FileList["req/#{gemn}/ext/*"].each { |elib| copy_ext elib, "#{gdir}/gems/#{spec.full_name}/#{xdir}" }
+      cp "req/#{gemn}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
+    end
+  end
+
+  # Check the environment
+  def env(x)
+    unless ENV[x]
+      abort "Your #{x} environment variable is not set!"
+    end
+    ENV[x]
+  end
 end
