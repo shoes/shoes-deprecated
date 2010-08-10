@@ -2,14 +2,6 @@ require 'make/rakefile_common'
 require 'make/darwin/env'
 require 'make/darwin/tasks'
 
-# for Mac
-def copy_ext xdir, libdir
-  Dir.chdir(xdir) do
-    `ruby extconf.rb; make`
-  end
-  copy_files "#{xdir}/*.bundle", libdir
-end
-
 desc "Does a full compile, for the OS you're running on"
 task :build => [:build_os, "dist/VERSION.txt"] do
   common_build
@@ -19,33 +11,19 @@ task :build => [:build_os, "dist/VERSION.txt"] do
 end
 
 task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o"] do |t|
-  bin = "#{t.name}-bin"
-  rm_f t.name
-  rm_f bin
-  if RUBY_PLATFORM =~ /darwin/
-    sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes -arch x86_64"
-  else  
-    sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']}"
-    rewrite "platform/nix/shoes.launch", t.name, %r!/shoes-bin!, "/#{NAME}-bin"
-    sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{t.name}}
-    chmod 0755, t.name
-  end
+  MakeDarwin.make_app t.name
 end
 
 task "dist/lib#{SONAME}.#{DLEXT}" => ['shoes/version.h'] + OBJ do |t|
-  ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
-  sh "#{CC} -o #{t.name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
-  %w[libpostproc.dylib libavformat.dylib libavcodec.dylib libavutil.dylib libruby.dylib].each do |libn|
-    sh "install_name_tool -change /tmp/dep/lib/#{libn} ./deps/lib/#{libn} #{t.name}"
-  end
+  MakeDarwin.make_so t.name
 end
 
 rule ".o" => ".m" do |t|
-  sh "#{CC} -I. -c -o#{t.name} #{LINUX_CFLAGS} #{t.source}"
+  MakeDarwin.cc t
 end
 
 rule ".o" => ".c" do |t|
-  sh "#{CC} -I. -c -o#{t.name} #{LINUX_CFLAGS} #{t.source}"
+  MakeDarwin.cc t
 end
 
 # shoes is small, if any include changes, go ahead and build from scratch.
@@ -54,27 +32,9 @@ SRC.zip(OBJ).each do |c, o|
 end
 
 task :stub do
-  ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
-  sh "gcc -O -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc -framework Cocoa -o stub platform/mac/stub.m -I."
+  MakeDarwin.make_stub
 end
 
 task :installer do
-  dmg_ds, dmg_jpg = "platform/mac/dmg_ds_store", "static/shoes-dmg.jpg"
-  if APP['dmg']
-    dmg_ds, dmg_jpg = APP['dmg']['ds_store'], APP['dmg']['background']
-  end
-
-  mkdir_p "pkg"
-  rm_rf "dmg"
-  mkdir_p "dmg"
-  cp_r "#{APPNAME}.app", "dmg"
-  unless ENV['APP']
-    mv "dmg/#{APPNAME}.app/Contents/MacOS/samples", "dmg/samples"
-  end
-  ln_s "/Applications", "dmg/Applications"
-  sh "chmod +x dmg/\"#{APPNAME}.app\"/Contents/MacOS/#{NAME}"
-  sh "chmod +x dmg/\"#{APPNAME}.app\"/Contents/MacOS/#{NAME}-bin"
-  sh "chmod +x dmg/\"#{APPNAME}.app\"/Contents/MacOS/#{NAME}-launch"
-  sh "DYLD_LIBRARY_PATH= platform/mac/pkg-dmg --target pkg/#{PKG}.dmg --source dmg --volname '#{APPNAME}' --copy #{dmg_ds}:/.DS_Store --mkdir /.background --copy #{dmg_jpg}:/.background" # --format UDRW"
-  rm_rf "dmg"
+  MakeDarwin.make_installer
 end

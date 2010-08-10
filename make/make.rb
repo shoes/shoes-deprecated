@@ -23,4 +23,9 @@ module Make
     cp    "CHANGELOG", "dist/CHANGELOG.txt"
     cp    "COPYING", "dist/COPYING.txt"
   end
+
+  def cc(t)
+    sh "#{CC} -I. -c -o#{t.name} #{LINUX_CFLAGS} #{t.source}"
+  end
+
 end
