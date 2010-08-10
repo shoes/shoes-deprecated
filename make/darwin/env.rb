@@ -1,7 +1,4 @@
-EXT_RUBY = "deps/ruby"
-unless File.exists? EXT_RUBY
-  EXT_RUBY = Config::CONFIG['prefix']
-end
+EXT_RUBY = File.exists?("deps/ruby") ? "deps/ruby" : Config::CONFIG['prefix']
 
 # use the platform Ruby claims
 require 'rbconfig'
