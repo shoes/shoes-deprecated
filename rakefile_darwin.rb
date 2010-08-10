@@ -1,3 +1,5 @@
+require 'make/rakefile_common'
+
 # for Mac
 def copy_ext xdir, libdir
   Dir.chdir(xdir) do
@@ -6,88 +8,12 @@ def copy_ext xdir, libdir
   copy_files "#{xdir}/*.bundle", libdir
 end
 
-EXT_RUBY = "deps/ruby"
-unless File.exists? EXT_RUBY
-  EXT_RUBY = Config::CONFIG['prefix']
-end
-
 desc "Does a full compile, for the OS you're running on"
 task :build => [:build_os, "dist/VERSION.txt"] do
   common_build
-
-  if ENV['SHOES_DEPS_PATH']
-    dylibs = IO.readlines("make/darwin/dylibs.shoes")
-    if ENV['VIDEO']
-      dylibs += IO.readlines("make/darwin/dylibs.video")
-    end
-    dylibs.each do |libn|
-      cp "#{ENV['SHOES_DEPS_PATH']}/#{libn}", "dist/"
-    end.each do |libn|
-      next unless libn =~ %r!^lib/(.+?\.dylib)$!
-      libf = $1
-      sh "install_name_tool -id /tmp/dep/#{libn} dist/#{libf}"
-      ["dist/#{NAME}-bin", *Dir['dist/*.dylib']].each do |lib2|
-        sh "install_name_tool -change /tmp/dep/#{libn} @executable_path/#{libf} #{lib2}"
-      end
-    end
-    if ENV['VIDEO']
-      mkdir_p "dist/plugins"
-      sh "cp -r deps/lib/vlc/**/*.dylib dist/plugins"
-      sh "strip -x dist/*.dylib"
-      sh "strip -x dist/plugins/*.dylib"
-      sh "strip -x dist/ruby/lib/**/*.bundle"
-    end
-  end
-
-  if ENV['APP']
-    if APP['clone']
-      sh APP['clone'].gsub(/^git /, "#{GIT} --git-dir=#{ENV['APP']}/.git ")
-    else
-      cp_r ENV['APP'], "dist/app"
-    end
-    if APP['ignore']
-      APP['ignore'].each do |nn|
-        rm_rf "dist/app/#{nn}"
-      end
-    end
-  end
-  
-  cp_r  "fonts", "dist/fonts"
-  cp_r  "lib", "dist/lib"
-  cp_r  "samples", "dist/samples"
-  cp_r  "static", "dist/static"
-  cp    "README", "dist/README.txt"
-  cp    "CHANGELOG", "dist/CHANGELOG.txt"
-  cp    "COPYING", "dist/COPYING.txt"
-  
-  rm_rf "#{APPNAME}.app"
-  mkdir "#{APPNAME}.app"
-  mkdir "#{APPNAME}.app/Contents"
-  cp_r "dist", "#{APPNAME}.app/Contents/MacOS"
-  mkdir "#{APPNAME}.app/Contents/Resources"
-  mkdir "#{APPNAME}.app/Contents/Resources/English.lproj"
-  sh "ditto \"#{APP['icons']['osx']}\" \"#{APPNAME}.app/App.icns\""
-  sh "ditto \"#{APP['icons']['osx']}\" \"#{APPNAME}.app/Contents/Resources/App.icns\""
-  rewrite "platform/mac/Info.plist", "#{APPNAME}.app/Contents/Info.plist"
-  cp "platform/mac/version.plist", "#{APPNAME}.app/Contents/"
-  rewrite "platform/mac/pangorc", "#{APPNAME}.app/Contents/MacOS/pangorc"
-  cp "platform/mac/command-manual.rb", "#{APPNAME}.app/Contents/MacOS/"
-  rewrite "platform/mac/shoes-launch", "#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
-  chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
-  chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}-bin"
-  rewrite "platform/mac/shoes", "#{APPNAME}.app/Contents/MacOS/#{NAME}"
-  chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}"
-  # cp InfoPlist.strings YourApp.app/Contents/Resources/English.lproj/
-  `echo -n 'APPL????' > "#{APPNAME}.app/Contents/PkgInfo"`
-end
-
-task :build_os => [:buildenv_linux, :build_skel, "dist/#{NAME}"]
-
-task :buildenv_linux do
-  unless ENV['VIDEO']
-    rm_rf "dist"
-    mkdir_p "dist"
-  end
+  MakeDarwin.copy_deps_to_dist
+  MakeDarwin.copy_files_to_dist
+  MakeDarwin.setup_system_resources
 end
 
 task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o"] do |t|

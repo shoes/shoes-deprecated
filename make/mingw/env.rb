@@ -1,3 +1,16 @@
+EXT_RUBY = "../mingw"
+
+# TODO: We really shouldn't perform actions just by including a file
+if ENV['VIDEO']
+  rm_rf "dist"
+  mkdir_p 'dist'
+  vlc_deps = '../deps_vlc_0.8'
+  copy_files vlc_deps + '/bin/plugins', 'dist'
+  cp_r vlc_deps + '/bin/libvlc.dll', EXT_RUBY + '/bin'
+  copy_files vlc_deps + '/include/vlc', EXT_RUBY + '/include'
+  copy_files vlc_deps + '/lib', EXT_RUBY
+end
+
 # use the platform Ruby claims
 require 'rbconfig'
 

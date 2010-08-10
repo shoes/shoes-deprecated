@@ -1,3 +1,9 @@
+EXT_RUBY = "deps/ruby"
+
+unless File.exists? EXT_RUBY
+  EXT_RUBY = Config::CONFIG['prefix']
+end
+
 # use the platform Ruby claims
 require 'rbconfig'
 

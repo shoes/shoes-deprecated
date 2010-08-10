@@ -1,3 +1,5 @@
+require 'make/rakefile_common'
+
 # Execute shell calls through bash if we are compiling with mingw. This breaks us
 # out of the windows command shell if we are compiling from there.
 def sh(*args)
@@ -12,59 +14,12 @@ def copy_ext xdir, libdir
   copy_files "#{xdir}/*.so", libdir
 end
 
-EXT_RUBY = "../mingw"
-
-if ENV['VIDEO']
-  rm_rf "dist"
-  mkdir_p 'dist'
-  vlc_deps = '../deps_vlc_0.8'
-  copy_files vlc_deps + '/bin/plugins', 'dist'
-  cp_r vlc_deps + '/bin/libvlc.dll', EXT_RUBY + '/bin'
-  copy_files vlc_deps + '/include/vlc', EXT_RUBY + '/include'
-  copy_files vlc_deps + '/lib', EXT_RUBY
-end
-
 desc "Does a full compile, for the OS you're running on"
 task :build => [:build_os, "dist/VERSION.txt"] do
   common_build
-  dlls = [RUBY_SO]
-  dlls += IO.readlines("make/mingw/dlls")
-  dlls += %w{libvlc} if ENV['VIDEO']
-  dlls.each{|dll| cp "#{EXT_RUBY}/bin/#{dll}.dll", "dist/"}
-  cp "dist/zlib1.dll", "dist/zlib.dll"
-  Dir.glob("../deps_cairo*/*"){|file| cp file, "dist/"}
-  sh "strip -x dist/*.dll" unless ENV['DEBUG']
-
-  if ENV['APP']
-    if APP['clone']
-      sh APP['clone'].gsub(/^git /, "#{GIT} --git-dir=#{ENV['APP']}/.git ")
-    else
-      cp_r ENV['APP'], "dist/app"
-    end
-    if APP['ignore']
-      APP['ignore'].each do |nn|
-        rm_rf "dist/app/#{nn}"
-      end
-    end
-  end
-  cp_r  "fonts", "dist/fonts"
-  cp_r  "lib", "dist/lib"
-  cp_r  "samples", "dist/samples"
-  cp_r  "static", "dist/static"
-  cp    "README", "dist/README.txt"
-  cp    "CHANGELOG", "dist/CHANGELOG.txt"
-  cp    "COPYING", "dist/COPYING.txt"
-  
-  cp APP['icons']['gtk'], "dist/static/app-icon.png"
-end
-
-task :build_os => [:buildenv_linux, :build_skel, "dist/#{NAME}"]
-
-task :buildenv_linux do
-  unless ENV['VIDEO']
-    rm_rf "dist"
-    mkdir_p "dist"
-  end
+  MakeMinGW.copy_deps_to_dist
+  MakeMinGW.copy_files_to_dist
+  MakeMinGW.setup_system_resources
 end
 
 task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o", "shoes/appwin32.o"] do |t|
