@@ -35,7 +35,7 @@ The whole sphere is drawn with blurred ovals and shadows. You can draw and anima
 
 ==== Windows ====
 
-Shoes runs on all versions of '''Microsoft Windows XP''', '''Microsoft Windows Vista''', and anything else '''Windows 2000''' compatible. !man-look-vista.png!
+Shoes runs on all versions of '''Microsoft Windows XP''', '''Windows Vista''', '''Windows 7''', and anything else '''Windows 2000''' compatible. !man-look-vista.png!
 
 Above is pictured the `simple-clock.rb` sample running on Windows Vista. This example is also draws ovals and lines to build the clock, which is animated to repaint itself several times each second.
 
@@ -51,7 +51,7 @@ Shapes, text, images and videos all look the same on every platforms.  However, 
 
 == Installing Shoes ==
 
-Okay, on to installing Shoes. I'm sure you're wondering: do I need to install Ruby? Do I need to unzip anything? What commands to I need to type?
+Okay, on to installing Shoes. I'm sure you're wondering: do I need to install Ruby? Do I need to unzip anything? What commands do I need to type?
 
 Nope. You don't need Ruby. You don't need WinZip. Nothing to type.
 
@@ -59,7 +59,7 @@ On most systems, starting Shoes is just a matter of running the installer and cl
 
 ==== Step 1: Installing Shoes ====
 
-You'll want to visit [[http://shoooes.net/ shoooes.net]] to download the Shoes installer.  Usually, you'll just want one of the installers on the top corner of the home page. !man-builds.png!
+You'll want to visit [[http://shoes.heroku.com/ the site of Shoes]] to download the Shoes installer.  Usually, you'll just want one of the installers on the downloads page of the site. !man-builds1.png!
 
 Here's how to run the installer:
 
@@ -364,17 +364,23 @@ This is a good test because it proves that the edit box gives back UTF-8 charact
 
 '''Important note:''' if some UTF-8 characters don't display for you, you will need to change the paragraph's font.  This is especially common on OS X.
 
-So, a good Japanese font on OS X is '''AppleGothic'''.
+So, a good Japanese font on OS X is '''AppleGothic''' and on Windows is '''MS UI Gothic'''.
 
 {{{
  Shoes.app do
-   para "てすと (te-su-to)", :font => "AppleGothic, Arial"
+   para "てすと (te-su-to)", :font => case RUBY_PLATFORM
+    when /mingw/; "MS UI Gothic"
+    when /darwin/; "AppleGothic, Arial"
+    else "Arial"
+    end
  end
 }}}
 
 Again, anything which takes a string in Shoes will need a UTF-8 string.  Edit boxes, edit lines, list boxes, window titles and text blocks all take UTF-8. If you give a string with bad characters in it, an error will show up in the console.
 
 ==== The Main App and Its Requires ====
+
+'''NOTE:''' This rule is for Raisins. Policeman uses TOPLEVEL_BINDING. So, you can get `main`, Ruby top-level object, with the first snippet. Although you need to use `Shoes::Para` instead of `Para` outside `Shoes.app` block.
 
 Each Shoes app is given a little room where it can create itself.  You can create classes and set variables and they won't be seen by other Shoes programs.  Each program runs inside its own anonymous class.
 
@@ -416,7 +422,7 @@ Shoes is all about drawing windows and the stuff inside those windows.  Let's fo
 
 For here on, the manual reads more like a dictionary. Each page is mostly a list of methods you can use for each topic covered. The idea is to be very thorough and clear about everything.
 
-So, if you've hit this far in the manual and you're still hazy about getting started, you should probably either go back to the [[Hello! beginning]] of the manual. Or you could try [[http://hackety.org/press/ Nobody Knows Shoes]], the beginner's leaflet on the web.
+So, if you've hit this far in the manual and you're still hazy about getting started, you should probably either go back to the [[Hello! beginning]] of the manual. Or you could try [[http://github.com/shoes/shoes/downloads Nobody Knows Shoes]], the beginner's leaflet PDF.
 
 ==== Finding Your Way ====
 
@@ -517,7 +523,9 @@ Pops up an "Open file..." window. It's the standard window which shows all of yo
 {{{
  #!ruby
  filename = ask_open_file
- puts File.read(filename)
+ Shoes.app do
+   para File.read(filename)
+ end
 }}}
 
 === ask_save_file() » a string ===
@@ -536,10 +544,12 @@ Pops up an "Open folder..." window. It's the standard window which shows all of 
 {{{
  #!ruby
  folder = ask_open_folder
- puts Dir[folder].entries
+ Shoes.app do
+   para Dir.entries(folder)
+ end
 }}}
 
-=== ask_save_folder() » a string ===»
+=== ask_save_folder() » a string ===
 
 Pops up a "Save folder..." window, similiar to `ask_open_folder`, described previously. On OS X, this method currently behaves like an alias of `ask_open_folder`.
 
@@ -556,7 +566,7 @@ Pops up a yes-or-no question. If the person at the computer, clicks '''yes''', y
 {{{
  #!ruby
  if confirm("Draw a circle?")
-  oval :top => 0, :left => 0, :radius => 50
+  Shoes.app{ oval :top => 0, :left => 0, :radius => 50 }
  end
 }}}
 
@@ -632,6 +642,7 @@ Logs an informational message to the user in the Shoes console.  So, where debug
 
 {{{
  #!ruby
+ 
  info("You just ran the info example on Shoes #{Shoes::RELEASE_NAME}.")
 }}}
 
@@ -1320,7 +1331,7 @@ To draw a star with an image pattern:
 {{{
  #!ruby
  Shoes.app do
-   fill "images/shiny.png"
+   fill "static/avatar.png"
    star 200, 200, 5
  end
 }}}
@@ -1351,7 +1362,6 @@ Draws a circular form at pixel coordinates (left, top) with a width and height o
    stroke blue
    strokewidth 4
    fill black
-
    oval 10, 10, 50
  end
 }}}
@@ -1382,7 +1392,7 @@ As with all other shapes, the rectangle is drawn using the stroke and fill color
  Shoes.app do
    stroke rgb(0.5, 0.5, 0.7)
    fill rgb(1.0, 1.0, 0.9)
-   rect 10, 10, self.width - 10, self.height - 10
+   rect 10, 10, self.width - 20, self.height - 20
  end
 }}}
 
@@ -1488,7 +1498,7 @@ The block is given a `frame` number.  Starting with zero, the `frame` number tel
  end
 }}}
 
-The above animation is shown 24 times per second.  If no number is give, the `fps` defaults to 10.
+The above animation is shown 24 times per second.  If no number is given, the `fps` defaults to 10.
 
 === background(pattern) » Shoes::Background ===
 
@@ -1575,7 +1585,7 @@ Flows organize elements horizontally.  Where one would use a [[Element.stack]] t
 
 Creates an [[Image]] element for displaying a picture.  PNG, JPEG and GIF formats are allowed.
 
-The `path` can be a file path or a URL.  All images loaded are temporarily cached in memory, but remote images are also cached locally in the user's personal Shoes directory.  Remote images are loaded in the background; as with browsers, the images will not appear right away, but will we shown when they are loaded.
+The `path` can be a file path or a URL.  All images loaded are temporarily cached in memory, but remote images are also cached locally in the user's personal Shoes directory.  Remote images are loaded in the background; as with browsers, the images will not appear right away, but will be shown when they are loaded.
 
 === imagesize(path) » [width, height] ===
 
@@ -1706,13 +1716,13 @@ So, let's say you want to change the background of a slot whenever the mouse flo
 {{{
  #!ruby
  Shoes.app do
-   stack :width => 200, :height => 200 do
+   s = stack :width => 200, :height => 200 do
      background red
      hover do
-       clear { background blue }
+       s.clear { background blue }
      end
      leave do
-       clear { background red }
+       s.clear { background red }
      end
    end
  end
@@ -1805,9 +1815,14 @@ Adds elements to the end of a slot.
 
 {{{
  #!ruby
- @slot.append do
-   title "Breaking News"
-   tagline "Astronauts arrested for space shuttle DUI."
+ Shoes.app do
+   @slot = stack { para 'Good Morning' }
+   timer 3 do
+     @slot.append do
+       title "Breaking News"
+       tagline "Astronauts arrested for space shuttle DUI."
+     end
+   end
  end
 }}}
 
@@ -1831,8 +1846,12 @@ The clear method also takes an optional block.  The block will be used to replac
 
 {{{
  #!ruby
- @slot = stack { para "Old text" }
- @slot.clear { para "Brand new text" }
+ Shoes.app do
+   @slot = stack { para "Old text" }
+   timer 3 do
+     @slot.clear { para "Brand new text" }
+   end
+ end
 }}}
 
 In this example, the "Old text" paragraph will be cleared out, replaced by the "Brand new text" paragraph.
@@ -1843,8 +1862,11 @@ Adds elements to the beginning of a slot.
 
 {{{
  #!ruby
- @slot.prepend do
-   para "Your car is ready."
+ Shoes.app do
+   @slot = stack { para 'Good Morning' }
+   timer 3 do
+     @slot.prepend { para "Your car is ready." }
+   end
  end
 }}}
 
@@ -1858,7 +1880,9 @@ To set the width of a stack to 150 pixels:
 
 {{{
  #!ruby
- stack(:width => 150) { para "Now that's precision." }
+ Shoes.app do
+   stack(:width => 150) { para "Now that's precision." }
+ end
 }}}
 
 Each style setting also has a method, which can be used to grab that particular setting.  (So,
@@ -1878,9 +1902,10 @@ This is commonly used to pad elements on the right, like so:
 
 {{{
  #!ruby
- stack :margin_right => 20 + gutter do
-   para "Insert fat and ratified declaration of
-     independence here..."
+ Shoes.app do
+   stack :margin_right => 20 + gutter do
+     para "Insert fat and ratified declaration of independence here..."
+   end
  end
 }}}
 
@@ -1956,8 +1981,8 @@ Alter the slot using a hash of style settings.  Any of the methods on this page 
 {{{
  #!ruby
  Shoes.app do
-   @s = stack
-   @s.style(:width => 400)
+   @s = stack { background green }
+   @s.style(:width => 400, :height => 200)
  end
 }}}
 
@@ -2457,7 +2482,7 @@ To create an image, use the `image` method in a slot:
  #!ruby
  Shoes.app do
    para "Nice, nice, very nice.  Busy, busy, busy."
-   image "static/disheveled.gif"
+   image "static/shoes-manual-apps.gif"
   end
 }}}
 
@@ -2468,7 +2493,7 @@ You can use web URLs directly as well.
 {{{
  #!ruby
  Shoes.app do
-   image "http://hacketyhack.net/images/design/Hacky-Mouse-Hand.png"
+   image "http://hacketyhack.heroku.com/images/logo.png"
  end
 }}}
 
@@ -2531,7 +2556,7 @@ Those are the basics.  Might you also be persuaded to look at the [[Common]] met
 
 === change() { |self| ... } » self ===
 
-Whenever someone highlights a new option in the list box (by clicking on an item, for instance,) its `change` block is called.  The block is given `self`, which is the edit line object which has changed.
+Whenever someone highlights a new option in the list box (by clicking on an item, for instance,) its `change` block is called.  The block is given `self`, which is the list box object which has changed.
 
 === choose(item: a string) » self ===
 
@@ -2781,3 +2806,20 @@ Set the position of the video to a time in milliseconds.
 
 Toggles the visibility of the video.  If the video can be seen, then `hide` is called.  Otherwise, `show` is called.
 
+= And so forth =
+
+A place for some other information. 
+
+== Sample Apps ==
+
+Have fun!
+
+{SAMPLES}
+
+== FAQ ==
+
+Hope this helps:
+
+ * You can join [[http://librelist.com/browser/shoes/ Shoes ML]] and feel free ask your questions. 
+ * [[http://github.com/shoes/shoes/ Official Current Source Code]] is on GitHub.
+ * [[http://wiki.github.com/shoes/shoes/recentbuilds/ Recent Builds]] for your platform.

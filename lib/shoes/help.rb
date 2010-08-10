@@ -41,7 +41,16 @@ module Shoes::Manual
       gsub(/\[\[(\S+?)\]\]/m, '", link("\1".split(".", 2).last) { open_link("\1") }, "').
       gsub(/\[\[(\S+?) (.+?)\]\]/m, '", link("\2") { open_link("\1") }, "').
       gsub(IMAGE_RE, '", *args); stack(IMAGE_STYLE.merge({\2})) { image("#{DIR}/static/\3") }; #{ele}("')
-    eval("#{ele}(#{str}, *args)")
+    #debug str if str =~ /The list of special keys/
+    a = str.split(', ", ", ')
+    if a.size == 1
+      eval("#{ele}(#{str}, *args)")
+    else
+      flow do
+        a[0...-1].each{|s| eval("#{ele}(#{s}, ',', *args)")}
+        eval("#{ele}(#{a[-1]}, *args)")
+      end
+    end
   end
 
   def dewikify_code(str)
@@ -73,6 +82,8 @@ module Shoes::Manual
           yield :colors, nil
         when /\A\{INDEX\}/
           yield :index, nil
+        when /\A\{SAMPLES\}/
+          yield :samples, nil
         when /\A \* (.+)/m
           yield :list, $1.split(/^ \* /)
         when /\A==== (.+) ====/
@@ -101,6 +112,8 @@ module Shoes::Manual
           color_page
         when :index
           index_page
+        when :samples
+          sample_page
         when :list
           text.each { |t| stack(:margin_left => 30) { 
             fill black; oval -10, 7, 6; dewikify_p :para, t } }
@@ -111,6 +124,29 @@ module Shoes::Manual
     end
   end
 
+  def sample_page
+    folder = File.join DIR, 'samples'
+    h = {}
+    Dir.glob(File.join folder, '*').each do |file|
+      if File.extname(file) == '.rb'
+        key = File.basename(file).split('-')[0]
+        h[key] ? h[key].push(file) : h[key] = [file]
+      end
+    end
+    stack do
+      h.each do |k, v|
+        subtitle k
+        flow do
+          v.each do |file|
+            para link(File.basename(file).split('-')[1..-1].join('-')[0..-4]){
+              Dir.chdir(folder){eval IO.read(file), TOPLEVEL_BINDING}
+            }
+          end
+        end
+      end
+    end
+  end
+  
   def color_page
     color_names = (Shoes::COLORS.keys*"\n").split("\n").sort
     flow do
@@ -152,7 +188,14 @@ module Shoes::Manual
     index_p = proc do |k, subs|
       unless shown.include? k
         stack :margin_left => 20 do
-          para "▸ #{k}"
+          flow do 
+            para "▸ ", :font => case RUBY_PLATFORM
+              when /mingw/; "MS UI Gothic"
+              when /darwin/; "AppleGothic, Arial"
+              else "Arial"
+              end
+            para k
+          end
           subs.uniq.sort.each do |s|
             index_p[s, tree[s]]
           end if subs
@@ -212,7 +255,8 @@ module Shoes::Manual
         edit_line :width => -60 do |terms|
           @results.clear do
             termd = terms.text.downcase
-            found = termd.empty? ? [] : manual_search(termd)
+            #found = termd.empty? ? [] : manual_search(termd)
+            found = (termd.empty? or termd[0] == 'z' or termd[0] == 'y') ? [] : manual_search(termd)
             para "#{found.length} matches", :align => "center", :margin_bottom => 0
             found.each do |typ, head|
               flow :margin => 4 do
@@ -251,6 +295,9 @@ module Shoes::Manual
     elsif @mindex.has_key? head
       head, sub = @mindex[head]
       open_methods(head, nil, sub)
+    elsif head =~ /^http:\/\//
+      debug head
+      visit head
     end
   end
 
