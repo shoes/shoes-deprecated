@@ -119,11 +119,14 @@ end
 
 case RUBY_PLATFORM
 when /mingw/
+	require 'make/mingw/env'
   require 'rakefile_mingw'
 when /darwin/
+	require 'make/darwin/env'
   require 'rakefile_darwin'
 when /linux/
+	require 'make/linux/env'
   require 'rakefile_linux'
 else
-  puts 'Sorry, your platform is not supported...'
+  puts 'Sorry, your platform [#{RUBY_PLATFORM}] is not supported...'
 end
