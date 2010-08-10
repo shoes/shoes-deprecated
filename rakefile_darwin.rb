@@ -16,17 +16,9 @@ task :build => [:build_os, "dist/VERSION.txt"] do
   common_build
 
   if ENV['SHOES_DEPS_PATH']
-    dylibs = %w[lib/libiconv.2.dylib lib/libcairo.2.dylib lib/libpixman-1.0.dylib lib/libgmodule-2.0.0.dylib lib/libintl.8.dylib lib/libruby.dylib
-       lib/libglib-2.0.0.dylib lib/libgobject-2.0.0.dylib lib/libgthread-2.0.0.dylib lib/libpng14.14.dylib lib/libpango-1.0.0.dylib 
-       lib/pango/1.6.0/modules/pango-basic-atsui.la lib/libpangocairo-1.0.0.dylib 
-       lib/pango/1.6.0/modules/pango-basic-atsui.so etc/pango/pango.modules
-       lib/pango/1.6.0/modules/pango-arabic-lang.so lib/pango/1.6.0/modules/pango-arabic-lang.la
-       lib/pango/1.6.0/modules/pango-indic-lang.so lib/pango/1.6.0/modules/pango-indic-lang.la
-       lib/libjpeg.8.dylib lib/libgif.4.dylib lib/libportaudio.2.dylib]
+    dylibs = IO.readlines("make/darwin/dylibs.shoes")
     if ENV['VIDEO']
-      dylibs.push *%w[lib/liba52.0.dylib lib/libfaac.0.dylib lib/libfaad.0.dylib lib/libmp3lame.0.dylib
-        lib/libvorbis.0.dylib lib/libogg.0.dylib
-        lib/libvorbisenc.2.dylib lib/libpostproc.dylib lib/libavformat.dylib lib/libavcodec.dylib lib/libavutil.dylib]
+      dylibs += IO.readlines("make/darwin/dylibs.video")
     end
     dylibs.each do |libn|
       cp "#{ENV['SHOES_DEPS_PATH']}/#{libn}", "dist/"

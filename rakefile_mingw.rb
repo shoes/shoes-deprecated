@@ -28,8 +28,7 @@ desc "Does a full compile, for the OS you're running on"
 task :build => [:build_os, "dist/VERSION.txt"] do
   common_build
   dlls = [RUBY_SO]
-  dlls += %w{libungif4 libjpeg-8 libcairo-2 libglib-2.0-0 libgobject-2.0-0 libpango-1.0-0 libpangoft2-1.0-0 libgio-2.0-0 libgthread-2.0-0 
-    libgmodule-2.0-0 libpangocairo-1.0-0 libpangowin32-1.0-0 libportaudio-2 sqlite3 libssl32 libeay32 zlib1 readline5 libiconv2}
+  dlls += IO.readlines("make/mingw/dlls")
   dlls += %w{libvlc} if ENV['VIDEO']
   dlls.each{|dll| cp "#{EXT_RUBY}/bin/#{dll}.dll", "dist/"}
   cp "dist/zlib1.dll", "dist/zlib.dll"
