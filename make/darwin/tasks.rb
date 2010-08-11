@@ -15,9 +15,9 @@ class MakeDarwin
 
     def copy_deps_to_dist
       if ENV['SHOES_DEPS_PATH']
-        dylibs = IO.readlines("make/darwin/dylibs.shoes")
+        dylibs = IO.readlines("make/darwin/dylibs.shoes").map(&:chomp)
         if ENV['VIDEO']
-          dylibs += IO.readlines("make/darwin/dylibs.video")
+          dylibs += IO.readlines("make/darwin/dylibs.video").map(&:chomp)
         end
         dylibs.each do |libn|
           cp "#{ENV['SHOES_DEPS_PATH']}/#{libn}", "dist/"

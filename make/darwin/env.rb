@@ -20,6 +20,14 @@ PANGO_CFLAGS = ENV['PANGO_CFLAGS'] || `pkg-config --cflags pango`.strip
 PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
 png_lib = 'png'
 
+# TODO: COPIED FROM LINUX MAKEFILE! FIX!!
+if ENV['VIDEO']
+  VLC_CFLAGS = '-I/usr/include/vlc'
+  VLC_LIB = '-llibvlc'
+else
+  VLC_CFLAGS = VLC_LIB = ''
+end
+
 LINUX_CFLAGS = %[-Wall -I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{VLC_CFLAGS} -I#{Config::CONFIG['archdir']}]
 if Config::CONFIG['rubyhdrdir']
   LINUX_CFLAGS << " -I#{Config::CONFIG['rubyhdrdir']} -I#{Config::CONFIG['rubyhdrdir']}/#{RUBY_PLATFORM}"
@@ -47,7 +55,11 @@ if ENV['VIDEO']
   if VLC_0_8
     LINUX_CFLAGS << " -DVLC_0_8"
   end
-  LINUX_LDFLAGS << " ./deps/lib/libvlc.a  ./deps/lib/vlc/libmemcpymmx.a ./deps/lib/vlc/libi420_rgb_mmx.a ./deps/lib/vlc/libi422_yuy2_mmx.a ./deps/lib/vlc/libi420_ymga_mmx.a ./deps/lib/vlc/libi420_yuy2_mmx.a ./deps/lib/vlc/libmemcpymmxext.a ./deps/lib/vlc/libmemcpy3dn.a ./deps/lib/vlc/libffmpeg.a ./deps/lib/vlc/libstream_out_switcher.a ./deps/lib/vlc/libquicktime.a ./deps/lib/vlc/libauhal.a ./deps/lib/vlc/libmacosx.a -framework vecLib -lpthread -lm -liconv -lintl -liconv -lc -lpostproc -lavformat -lavcodec -lz -la52 -lfaac -lfaad -lmp3lame -lx264 -lxvidcore -lvorbisenc -lavutil -lvorbis -lm -logg -lm -lavformat -lavcodec -lz -la52 -lfaac -lfaad -lmp3lame -lx264 -lxvidcore -lvorbisenc -lavutil -lvorbis -lm -logg -framework QuickTime -lm -framework CoreAudio -framework AudioUnit -framework AudioToolbox -framework IOKit -lobjc -ObjC -framework OpenGL -framework AGL -read_only_relocs suppress"
+  vlc_dir = "./deps/lib/vlc"
+  vlc_deps = IO.readlines("make/darwin/deps.vlc").map(&:chomp)
+  LINUX_LDFLAGS << " ./deps/lib/libvlc.a "
+  LINUX_LDFLAGS << vlc_deps.map {|a| "#{vlc_dir}/#{a}"}.join(" ")
+  LINUX_LDFLAGS << " -framework vecLib -lpthread -lm -liconv -lintl -liconv -lc -lpostproc -lavformat -lavcodec -lz -la52 -lfaac -lfaad -lmp3lame -lx264 -lxvidcore -lvorbisenc -lavutil -lvorbis -lm -logg -lm -lavformat -lavcodec -lz -la52 -lfaac -lfaad -lmp3lame -lx264 -lxvidcore -lvorbisenc -lavutil -lvorbis -lm -logg -framework QuickTime -lm -framework CoreAudio -framework AudioUnit -framework AudioToolbox -framework IOKit -lobjc -ObjC -framework OpenGL -framework AGL -read_only_relocs suppress"
 end
 if ENV['UNIVERSAL']
   LINUX_CFLAGS << " -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc"
