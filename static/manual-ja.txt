@@ -35,7 +35,7 @@ ShoesはアップルのMac OS X Leopardで、同様にTigerでも動作します
 
 ==== Windows ====
 
-Shoesはすべてのバージョンの'''Microsoft Windows XP'''、 '''Microsoft Windows Vista'''で実行でき、他にも'''Windows 2000'''で互換性があります。 !man-look-vista.png!
+Shoesはすべてのバージョンの'''Microsoft Windows XP'''、 '''Windows Vista'''、 '''Windows 7'''で実行でき、他にも'''Windows 2000'''で互換性があります。 !man-look-vista.png!
 
 上記はWindows Vistaで`simple-clock.rb`サンプルが動作している図です。この例でも時計を作るために楕円と線が描かれており、これは一秒に何回かそれ自信が再描画するのので生き生きと描かれます。
 
@@ -59,7 +59,7 @@ Shoesを開始するには、多くのシステムではShoesのアイコンを�
 
 ==== Step 1: Shoesのインストール ====
 
-[[http://shoooes.net/ shoooes.net]]へアクセスしてShoesのインストーラをダウンロードします。通常はホームページの上部の角にあるインストーラのひとつを手に入れます。 !man-builds.png!
+[[http://shoes.heroku.com/ the site of Shoes]]へアクセスしてShoesのインストーラをダウンロードします。通常はホームページの上部の角にあるインストーラのひとつを手に入れます。 !man-builds.png!
 
 ここにインストーラの実行方法があります：
 
@@ -364,17 +364,24 @@ Ruby自体はUnicodeを意識しません。そして、UTF-8は一種のUnicode
 
 '''重要事項：'''もしいくつかのUTF-8の文字が表示されないなら、パラグラフのフォントを変更する必要があります。これは特にOS Xで一般的です。
 
-そして、OS Xでのおすすめの日本語フォントは'''AppleGothic'''です。
+そして、OS Xでのおすすめの日本語フォントは'''AppleGothic'''です。Windowsでは'''MS UI Gothic'''です。
 
 {{{
  Shoes.app do
-   para "てすと (te-su-to)", :font => "AppleGothic, Arial"
+   para "てすと (te-su-to)", :font => case RUBY_PLATFORM
+   when /mingw/; "MS UI Gothic"
+   when /darwin/; "AppleGothic, Arial"
+   else "Arial"
+   end
  end
 }}}
 
 さらに、Shoesで文字列を扱う場合もUTF-8の文字列を必要とします。編集ボックス、編集ライン、リストボックス、ウィンドウタイトルやテキストブロックはすべてUTF-8をとります。間違った文字の入った文字列をあたえた場合は、コンソールにエラーが表示されます。
 
 ==== メインアプリケーションとRequire ====
+
+'''注意:''' このルールはRaisinsのためのものです。PolicemanではTOPLEVEL_BINDINGを使っているので、最初の例では `main` (Rubyトップレベルオブジェクト)が表示されます。`Shoes.app`ブロックの外側では、`Para`ではなく`Shoes::Para`と記述する必要がありますが。
+
 
 それぞれのShoesアプリケーションは、それ自体を作ることができる小さな部屋を与えられます。クラスを作成したり変数を設定できますが、それらは他のShoesプログラムから見ることはできません。それぞれのプログラムはそれ自身の匿名クラス内で実行されます。
 
@@ -417,7 +424,7 @@ Shoesはウィンドウや、それらウィンドウ内部の要素を描くこ
 ここでは、このマニュアルはより辞書のように読んでください。それぞれのページのほとんどは、利用可能なメソッドの一覧であり、各トピックを対象としています。この考えは、すべてに関してとても詳細かつ明確であることです。
 
 そして、このマニュアルの難しさにぶつかって、始めることについてまだ分からないなら、おそらくこのマニュアルの[[Hello! beginning]]に戻るべきです。
-または、ウェブ上の初心者のリーフレットである[[http://hackety.org/press/ Nobody Knows Shoes]]を試してください。
+または、ウェブ上の初心者のリーフレットである[[http://github.com/shoes/shoes/downloads Nobody Knows Shoes]]を試してください。
 
 ==== 方法の見つけ方 ====
 
@@ -518,7 +525,9 @@ alertは信じられないほど煩わしいので控えめに利用してくだ
 {{{
  #!ruby
  filename = ask_open_file
- puts File.read(filename)
+ Shoes.app do
+   para File.read(filename)
+ end
 }}}
 
 === ask_save_file() » a string ===
@@ -537,10 +546,12 @@ alertは信じられないほど煩わしいので控えめに利用してくだ
 {{{
  #!ruby
  folder = ask_open_folder
- puts Dir[folder].entries
+ Shoes.app do
+   para Dir.entries(folder)
+ end
 }}}
 
-=== ask_save_folder() » a string ===»
+=== ask_save_folder() » a string ===
 
 これは先ほど述べた`ask_open_folder`と似ており、"フォルダを保存する。。。"ウィンドウをポップアップします。OS X上では、現在このメソッドは`ask_open_folder`のエイリアスのようになっています。
 
@@ -557,7 +568,7 @@ yes-または-noの質問をポップアップします。コンピュータの�
 {{{
  #!ruby
  if confirm("Draw a circle?")
-  oval :top => 0, :left => 0, :radius => 50
+  Shoes.app{ oval :top => 0, :left => 0, :radius => 50 }
  end
 }}}
 
@@ -632,6 +643,7 @@ Shoesコンソールでユーザへの情報を含むメッセージを記録し
 
 {{{
  #!ruby
+
  info("You just ran the info example on Shoes #{Shoes::RELEASE_NAME}.")
 }}}
 
@@ -1316,7 +1328,7 @@ ShoesはいくつかのアニメーションのアイデアをProcessingから�
 {{{
  #!ruby
  Shoes.app do
-   fill "images/shiny.png"
+   fill "static/avatar.png"
    star 200, 200, 5
  end
 }}}
@@ -1374,7 +1386,7 @@ ShoesはいくつかのアニメーションのアイデアをProcessingから�
  Shoes.app do
    stroke rgb(0.5, 0.5, 0.7)
    fill rgb(1.0, 1.0, 0.9)
-   rect 10, 10, self.width - 10, self.height - 10
+   rect 10, 10, self.width - 20, self.height - 20
  end
 }}}
 
@@ -1706,13 +1718,13 @@ Shoesが12ピクセルの大きさに整形する、Para（"paragraph"の省略�
 {{{
  #!ruby
  Shoes.app do
-   stack :width => 200, :height => 200 do
+   s = stack :width => 200, :height => 200 do
      background red
      hover do
-       clear { background blue }
+       s.clear { background blue }
      end
      leave do
-       clear { background red }
+       s.clear { background red }
      end
    end
  end
@@ -1809,9 +1821,14 @@ Shoesがそれ自身のいくつかのホットキーを利用することを覚
 
 {{{
  #!ruby
- @slot.append do
-   title "Breaking News"
-   tagline "Astronauts arrested for space shuttle DUI."
+ Shoes.app do
+   @slot = stack { para 'Good Morning' }
+   timer 3 do
+     @slot.append do
+       title "Breaking News"
+       tagline "Astronauts arrested for space shuttle DUI."
+     end
+   end
  end
 }}}
 
@@ -1835,8 +1852,12 @@ clearメソッドはオプションでブロックも取ります。このブロ
 
 {{{
  #!ruby
- @slot = stack { para "Old text" }
- @slot.clear { para "Brand new text" }
+  Shoes.app do
+   @slot = stack { para "Old text" }
+   timer 3 do
+     @slot.clear { para "Brand new text" }
+   end
+ end
 }}}
 
 この例では、"Old text"パラグラフは排除され、"Brand new text"によって置き換えられます。
@@ -1847,8 +1868,11 @@ clearメソッドはオプションでブロックも取ります。このブロ
 
 {{{
  #!ruby
- @slot.prepend do
-   para "Your car is ready."
+  Shoes.app do
+   @slot = stack { para 'Good Morning' }
+   timer 3 do
+     @slot.prepend { para "Your car is ready." }
+   end
  end
 }}}
 
@@ -1862,7 +1886,9 @@ clearメソッドはオプションでブロックも取ります。このブロ
 
 {{{
  #!ruby
- stack(:width => 150) { para "Now that's precision." }
+ Shoes.app do
+   stack(:width => 150) { para "Now that's precision." }
+ end
 }}}
 
 それぞれのスタイルの設定は、詳細な設定を手に入れるために利用することのできるメソッドも持っています。（そのため、例えば、`width`メソッドはスロットの幅をピクセルで返します。）
@@ -1881,9 +1907,10 @@ clearメソッドはオプションでブロックも取ります。このブロ
 
 {{{
  #!ruby
- stack :margin_right => 20 + gutter do
-   para "Insert fat and ratified declaration of
-     independence here..."
+ Shoes.app do
+   stack :margin_right => 20 + gutter do
+     para "Insert fat and ratified declaration of independence here..."
+   end
  end
 }}}
 
@@ -1959,8 +1986,8 @@ The left pixel location of the slot.  Also known as the x-axis coordinate.
 {{{
  #!ruby
  Shoes.app do
-   @s = stack
-   @s.style(:width => 400)
+   @s = stack { background green }
+   @s.style(:width => 400, :height => 200)
  end
 }}}
 
@@ -2451,7 +2478,7 @@ HTMLや他の多くの言語では、枠線は箱の外側に塗られるため�
  #!ruby
  Shoes.app do
    para "Nice, nice, very nice.  Busy, busy, busy."
-   image "static/disheveled.gif"
+   image "static/shoes-manual-apps.gif"
   end
 }}}
 
@@ -2462,7 +2489,7 @@ webのURLを直接利用することもできます。
 {{{
  #!ruby
  Shoes.app do
-   image "http://hacketyhack.net/images/design/Hacky-Mouse-Hand.png"
+   image "http://hacketyhack.heroku.com/images/logo.png"
  end
 }}}
 
@@ -2777,4 +2804,22 @@ Floatの値を利用してビデオの位置を設定します。25%の位置に
 === toggle() » self ===
 
 ビデオの可視性をトグルします。ビデオが表示されていれば、`hide`が呼ばれます。そうでなければ、`show`が呼ばれます。
+
+= AndSoForth =
+
+その他の情報をこの場所で。 
+
+== Sample Apps ==
+
+楽しみましょう。
+
+{SAMPLES}
+
+== FAQ ==
+
+お役立ち情報:
+
+ * [[http://librelist.com/browser/shoes/ Shoes ML]] 気軽にメーリングリストへ参加下さい。
+ * [[http://github.com/shoes/shoes/ 最新のソースコード]] は GitHubにあります。
+ * [[http://wiki.github.com/shoes/shoes/recentbuilds/ 最新のビルド]] あなたのプラットフォームに合わせて選んで下さい。
 

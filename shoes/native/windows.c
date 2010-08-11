@@ -1112,7 +1112,11 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
   app->os.normal.bottom = app->height;
   AdjustWindowRectEx(&app->os.normal, WINDOW_STYLE, FALSE, exStyle);
 
-  exStyle |= WS_EX_COMPOSITED|WS_EX_LAYERED;
+  if (rb_eval_string("$NOLAYERED == 1"))
+    exStyle |= WS_EX_COMPOSITED;
+  else
+    exStyle |= WS_EX_COMPOSITED|WS_EX_LAYERED;
+
   style = app->os.style = WINDOW_STYLE |
     (app->resizable ? (WS_THICKFRAME | WS_MAXIMIZEBOX) : WS_DLGFRAME) |
     WS_VSCROLL | ES_AUTOVSCROLL;

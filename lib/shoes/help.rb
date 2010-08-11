@@ -139,7 +139,7 @@ module Shoes::Manual
         flow do
           v.each do |file|
             para link(File.basename(file).split('-')[1..-1].join('-')[0..-4]){
-              Dir.chdir(folder){eval IO.read(file), TOPLEVEL_BINDING}
+              Dir.chdir(folder){eval IO.read(file).force_encoding("UTF-8"), TOPLEVEL_BINDING}
             }
           end
         end

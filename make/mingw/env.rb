@@ -1,3 +1,6 @@
+require 'make/make'
+extend Make
+
 EXT_RUBY = "../mingw"
 
 # TODO: We really shouldn't perform actions just by including a file
