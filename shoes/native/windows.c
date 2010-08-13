@@ -1,5 +1,5 @@
 //
-// shoes/native-carbon.c
+// shoes/native/windows.c
 // Windows-specific code for Shoes.
 //
 #include "shoes/app.h"
@@ -256,7 +256,36 @@ void shoes_native_init()
   shoes_classex_init();
   shoes_world->os.hidden = CreateWindow(SHOES_HIDDENCLS, SHOES_HIDDENCLS, WS_OVERLAPPEDWINDOW,
     CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, shoes_world->os.instance, NULL);
-  
+
+  // Detect Windows Vista
+  OSVERSIONINFOEXW osvi = { 0 };
+  BOOL ret;
+
+  // Try calling GetVersionEx using the OSVERSIONINFOEX structure.
+  // If that fails, try using the OSVERSIONINFO structure.
+
+  osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXW);
+  ret = GetVersionExW ((OSVERSIONINFOW*)&osvi);
+
+  shoes_world->os.doublebuffer = FALSE;
+
+  // Fallback to old version info struct if necessary.
+  if (!ret)
+  {
+    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOW);
+    ret = GetVersionExW((OSVERSIONINFOW*)&osvi);
+  }
+
+  if (!ret)
+  {
+    // Error. Cannot detect version. Assume the worst: it is Vista.
+    shoes_world->os.doublebuffer = TRUE;
+  }
+  else if (osvi.dwPlatformId == VER_PLATFORM_WIN32_NT && osvi.dwMajorVersion == 6 && osvi.dwMinorVersion == 0) {
+    // Detected Windows "6.0", that is, Vista
+    shoes_world->os.doublebuffer = TRUE;
+  }
+
   hhook = SetWindowsHookEx(WH_KEYBOARD_LL, shoes_keyhook, shoes_world->os.instance, 0);
 }
 
@@ -264,7 +293,7 @@ LRESULT CALLBACK shoes_keyhook(int n, WPARAM w, LPARAM l)
 {
   VALUE v;
   WPARAM vk;
-  
+
   kh_up_v = (VALUE)NULL;
   kh_down_v = (VALUE)NULL;
   
@@ -281,7 +310,7 @@ LRESULT CALLBACK shoes_keyhook(int n, WPARAM w, LPARAM l)
         KEYUPDOWN
         kh_up_v = v;
       }
-      break;      
+      break;
       
       case WM_SYSKEYDOWN:
       case WM_KEYDOWN:
@@ -332,6 +361,24 @@ void shoes_native_slot_clear(shoes_canvas *canvas)
 
 void shoes_native_slot_paint(SHOES_SLOT_OS *slot)
 {
+  if (shoes_world->os.doublebuffer && slot->parent != NULL)
+  {
+    HWND parentWindow = GetWindow(slot->window, GW_OWNER);
+
+    if (parentWindow != HWND_DESKTOP && parentWindow != NULL)
+    {
+      VALUE c = (VALUE)GetWindowLong(slot->window, GWL_USERDATA);
+
+      if (c != (VALUE)NULL)
+      {
+        shoes_canvas *canvas;
+        Data_Get_Struct(c, shoes_canvas, canvas);
+        RedrawWindow(canvas->slot->window, NULL, NULL, RDW_INVALIDATE|RDW_ALLCHILDREN);
+        return;
+      }
+    }
+  }
+
   RedrawWindow(slot->window, NULL, NULL, RDW_INVALIDATE|RDW_ALLCHILDREN);
 }
 
@@ -436,7 +483,7 @@ shoes_canvas_win32_vscroll(shoes_canvas *canvas, int code, int pos)
 
   SetScrollInfo(canvas->slot->window, SB_VERT, &si, TRUE);
   canvas->slot->scrolly = si.nPos;
-  if (DC(canvas->app->slot) == DC(canvas->slot)) canvas->app->slot->scrolly = si.nPos;
+  if (canvas->app->slot->dc == canvas->slot->dc) canvas->app->slot->scrolly = si.nPos;
   shoes_native_slot_paint(canvas->slot);
 }
 
@@ -458,6 +505,33 @@ shoes_slot_win32proc(
     {
       case WM_ERASEBKGND:
         return 1;
+
+      case WM_SIZE:
+        if (shoes_world->os.doublebuffer)
+        {
+          // On Vista, flickering still happens due to a bug in Vista's compositing
+          // engine. We circumvent using some old school software double buffering.
+          // Yes. It sucks. Like shifting gears in an automatic... poorly.
+
+          RECT rc;
+          GetClientRect(win, &rc);
+
+          DeleteDC(canvas->slot->dc);
+
+          HDC windowDC = GetDC(canvas->slot->window);
+          canvas->slot->dc = CreateCompatibleDC(windowDC);
+
+          HBITMAP hbmp = CreateCompatibleBitmap(windowDC, rc.right, rc.bottom);
+          SelectObject(canvas->slot->dc, hbmp);
+          DeleteObject(hbmp);
+
+          ReleaseDC(canvas->slot->window, windowDC);
+
+          HBRUSH bg = CreateSolidBrush(GetSysColor(COLOR_WINDOW));
+          FillRect(canvas->slot->dc, &rc, bg);
+          DeleteObject(bg);
+        }
+        break;
 
       case WM_PAINT:
         INFO("WM_PAINT(slot, %lu)\n", win);
@@ -635,10 +709,35 @@ shoes_app_win32proc(
     case WM_DESTROY:
       if (shoes_app_remove(app))
         PostQuitMessage(0);
-    return 0; 
+    return 0;
 
     case WM_ERASEBKGND:
       return 1;
+
+    case WM_SIZE:
+      if (shoes_world->os.doublebuffer)
+      {
+        // On Vista, flickering still happens due to a bug in Vista's compositing
+        // engine. We circumvent using some old school software double buffering.
+        // Yes. It sucks. Like shifting gears in an automatic... poorly.
+
+        RECT rc;
+        GetClientRect(win, &rc);
+
+        HDC windowDC = GetDC(app->slot->window);
+        app->slot->dc = CreateCompatibleDC(windowDC);
+
+        HBITMAP hbmp = CreateCompatibleBitmap(windowDC, rc.right, rc.bottom);
+        SelectObject(app->slot->dc, hbmp);
+        DeleteObject(hbmp);
+
+        ReleaseDC(app->slot->window, windowDC);
+
+        HBRUSH bg = CreateSolidBrush(GetSysColor(COLOR_WINDOW));
+        FillRect(app->slot->dc, &rc, bg);
+        DeleteObject(bg);
+      }
+    break;
 
     //
     // On Windows, I have to ensure the scrollbar's width is added
@@ -652,6 +751,7 @@ shoes_app_win32proc(
       int edgew, edgeh;
       int scrollwidth = GetSystemMetrics(SM_CXVSCROLL);
       GetClientRect(win, &rect);
+
       shoes_app_decor(win, &edgew, &edgeh);
       if (edgew > scrollwidth)
         rect.right += scrollwidth;
@@ -659,7 +759,8 @@ shoes_app_win32proc(
       app->height = rect.bottom;
       shoes_canvas_size(app->canvas, app->width, app->height);
       INFO("WM_PAINT(app, %lu)\n", win);
-      shoes_app_paint(app);
+
+	  shoes_app_paint(app);
     }
     break;
 
@@ -1014,7 +1115,7 @@ shoes_classex_init()
   shoes_world->os.classex.hInstance = shoes_world->os.instance;
   shoes_world->os.classex.lpszClassName = SHOES_SHORTNAME;
   shoes_world->os.classex.lpfnWndProc = shoes_app_win32proc;
-  shoes_world->os.classex.style = CS_HREDRAW | CS_VREDRAW;
+  shoes_world->os.classex.style = 0;
   shoes_world->os.classex.cbSize = sizeof(WNDCLASSEX);
   shoes_world->os.classex.hIcon = LoadIcon(shoes_world->os.instance, IDI_APPLICATION);
   shoes_world->os.classex.hIconSm = LoadIcon(shoes_world->os.instance, IDI_APPLICATION);
@@ -1064,6 +1165,7 @@ shoes_native_app_resized(shoes_app *app)
     r.right = r.left + app->width;
     r.bottom = r.top + app->height;
     AdjustWindowRect(&r, WINDOW_STYLE, FALSE);
+
     MoveWindow(app->slot->window, r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE);
   }
 }
@@ -1101,6 +1203,7 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
 
   app->slot->controls = Qnil;
   app->slot->focus = Qnil;
+  app->slot->parent = NULL;
   app->os.ctrlkey = FALSE;
   app->os.altkey = FALSE;
   app->os.shiftkey = FALSE;
@@ -1112,12 +1215,20 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
   app->os.normal.bottom = app->height;
   AdjustWindowRectEx(&app->os.normal, WINDOW_STYLE, FALSE, exStyle);
 
-  exStyle |= WS_EX_COMPOSITED|WS_EX_LAYERED;
+  if (!shoes_world->os.doublebuffer)
+    exStyle |= WS_EX_COMPOSITED|WS_EX_LAYERED;
+  else
+    exStyle |= WS_EX_COMPOSITED;
+
   style = app->os.style = WINDOW_STYLE |
     (app->resizable ? (WS_THICKFRAME | WS_MAXIMIZEBOX) : WS_DLGFRAME) |
     WS_VSCROLL | ES_AUTOVSCROLL;
   if (app->fullscreen)
     style = WINDOW_STYLE_FULLSCREEN;
+
+  if (shoes_world->os.doublebuffer)
+    style |= WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+
   app->slot->window = CreateWindowEx(
     exStyle, SHOES_SHORTNAME, SHOES_APPNAME, style,
     CW_USEDEFAULT, CW_USEDEFAULT,
@@ -1134,7 +1245,7 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
   si.cbSize = sizeof(SCROLLINFO);
   si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS;
   si.nMin = 0;
-  si.nMax = 0; 
+  si.nMax = 0;
   si.nPage = 0;
   si.nPos = 0;
   SetScrollInfo(app->slot->window, SB_VERT, &si, TRUE);
@@ -1250,7 +1361,7 @@ shoes_native_loop()
         msg = FALSE;
       else if (msgs.message == WM_MOUSEMOVE && focused == GetActiveWindow())
         shoes_app_cursor(appk, appk->cursor);
-      
+
       if (msg)
         msg = IsDialogMessage(focused, &msgs);
 
@@ -1286,6 +1397,7 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
   SHOES_SLOT_OS *slot;
   Data_Get_Struct(c, shoes_canvas, canvas);
   slot = shoes_slot_alloc(canvas, parent, toplevel);
+  slot->parent = parent;
   slot->vscroll = scrolls;
 
   if (toplevel)
@@ -1298,10 +1410,17 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
   {
     slot->controls = rb_ary_new();
     slot->dc = NULL;
-    slot->window = CreateWindowEx(WS_EX_TRANSPARENT, SHOES_SLOTCLASS, "Shoes Slot Window",
-      WS_CHILD | WS_TABSTOP | WS_VISIBLE,
-      x, y, width, height, parent->window, NULL, 
+
+    DWORD exStyle = WS_EX_TRANSPARENT;
+
+    if (shoes_world->os.doublebuffer)
+      exStyle = WS_EX_COMPOSITED;
+
+    slot->window = CreateWindowEx(exStyle, SHOES_SLOTCLASS, "Shoes Slot Window",
+      WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
+      x, y, width, height, parent->window, NULL,
       (HINSTANCE)GetWindowLong(parent->window, GWL_HINSTANCE), NULL);
+
     SetWindowPos(slot->window, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOREDRAW);
     SetWindowLong(slot->window, GWL_USERDATA, (long)c);
   }
@@ -1311,6 +1430,9 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
 void
 shoes_slot_destroy(shoes_canvas *canvas, shoes_canvas *pc)
 {
+  if (shoes_world->os.doublebuffer)
+    DeleteDC(canvas->slot->dc);
+
   DestroyWindow(canvas->slot->window);
 }
 
@@ -1320,12 +1442,54 @@ shoes_cairo_create(shoes_canvas *canvas)
   if (canvas->slot->surface != NULL)
     return NULL;
 
-  canvas->slot->dc = BeginPaint(canvas->slot->window, &canvas->slot->ps);
-  if (DC(canvas->slot) == DC(canvas->app->slot))
+  RECT rc;
+  GetClientRect(canvas->slot->window, &rc);
+
+  if (shoes_world->os.doublebuffer)
   {
-    RECT rc;
+    if (canvas->slot->window == canvas->app->slot->window)
+    {
+      canvas->slot->dc = canvas->app->slot->dc;
+    }
+
+    // So that siblings see the changes, we must copy from siblings beneath us
+    if (canvas->slot->window != canvas->app->slot->window)
+    {
+      HANDLE current = canvas->slot->window;
+      current = GetWindow(current, GW_HWNDLAST);
+
+      RECT canvas_rcw;
+      GetWindowRect(canvas->slot->window, &canvas_rcw);
+      while(current != canvas->slot->window)
+      {
+        shoes_canvas *sibling_canvas;
+        VALUE c = (VALUE)GetWindowLong(current, GWL_USERDATA);
+
+        if (c == (VALUE)NULL)
+        {
+          break;
+        }
+
+        Data_Get_Struct(c, shoes_canvas, sibling_canvas);
+
+        RECT sibling_rc;
+        RECT sibling_rcw;
+        GetClientRect(sibling_canvas->slot->window, &sibling_rc);
+        GetWindowRect(sibling_canvas->slot->window, &sibling_rcw);
+
+        BitBlt(canvas->slot->dc, sibling_rcw.left-canvas_rcw.left, sibling_rcw.top-canvas_rcw.top, sibling_rc.right, sibling_rc.bottom, sibling_canvas->slot->dc, 0, 0, SRCCOPY);
+        current = GetWindow(current, GW_HWNDPREV);
+      }
+    }
+  }
+  else
+  {
+    canvas->slot->dc = BeginPaint(canvas->slot->window, &canvas->slot->ps);
+  }
+
+  if (canvas->slot->window == canvas->app->slot->window)
+  {
     HBRUSH bg = CreateSolidBrush(GetSysColor(COLOR_WINDOW));
-    GetClientRect(canvas->slot->window, &rc);
     FillRect(canvas->slot->dc, &rc, bg);
     DeleteObject(bg);
   }
@@ -1339,8 +1503,87 @@ shoes_cairo_create(shoes_canvas *canvas)
 
 void shoes_cairo_destroy(shoes_canvas *canvas)
 {
+  RECT rc;
+  GetClientRect(canvas->slot->window, &rc);
+
   cairo_surface_destroy(canvas->slot->surface);
   canvas->slot->surface = NULL;
+
+  if (shoes_world->os.doublebuffer)
+  {
+    // We are manually double buffering in Vista, so we need to copy the
+    // image over to the actual display.
+    BeginPaint(canvas->slot->window, &canvas->slot->ps);
+
+    if (canvas->slot->window == canvas->app->slot->window)
+    {
+      canvas->slot->dc = canvas->app->slot->dc;
+    }
+
+    BitBlt(canvas->slot->ps.hdc,
+	  0, 0, rc.right, rc.bottom,
+	  canvas->slot->dc,
+	  0, 0, SRCCOPY);
+
+    RECT rcw;
+    GetWindowRect(canvas->slot->window, &rcw);
+
+    // So children see the changes, we copy to each child
+    HANDLE current;
+
+    current = canvas->slot->window;
+    current = GetWindow(current, GW_CHILD);
+
+    while(current != NULL)
+    {
+      shoes_canvas *child_canvas;
+      VALUE c = (VALUE)GetWindowLong(current, GWL_USERDATA);
+
+      if (c == (VALUE)NULL)
+        break;
+
+      Data_Get_Struct(c, shoes_canvas, child_canvas);
+
+      RECT child_rc;
+      RECT child_rcw;
+      GetClientRect(child_canvas->slot->window, &child_rc);
+      GetWindowRect(child_canvas->slot->window, &child_rcw);
+
+      if (canvas->slot->window == canvas->app->slot->window)
+      {
+        POINT p = {0};
+        ClientToScreen(child_canvas->app->slot->window, &p);
+        BitBlt(child_canvas->slot->dc, 0, 0, child_rc.right, child_rc.bottom, canvas->slot->dc, child_rcw.left-p.x, child_rcw.top-p.y, SRCCOPY);
+      }
+      else
+      {
+        BitBlt(child_canvas->slot->dc, 0, 0, child_rc.right, child_rc.bottom, canvas->slot->dc, child_rcw.left-rcw.left, child_rcw.top-rcw.top, SRCCOPY);
+      }
+      current = GetWindow(current, GW_HWNDNEXT);
+    }
+
+    // update parents
+    SHOES_SLOT_OS *child = canvas->slot;
+
+    while (child->window != canvas->app->slot->window)
+    {
+      SHOES_SLOT_OS *parent;
+      parent = (SHOES_SLOT_OS*)child->parent;
+
+      RECT parent_rcw;
+      RECT canvas_rc;
+      RECT canvas_rcw;
+
+      GetWindowRect(parent->window, &parent_rcw);
+
+	  GetClientRect(child->window, &canvas_rc);
+      GetWindowRect(child->window, &canvas_rcw);
+
+      BitBlt(parent->dc, canvas_rcw.left-parent_rcw.left, canvas_rcw.top-parent_rcw.top, canvas_rc.right, canvas_rc.bottom, child->dc, 0, 0, SRCCOPY);
+      child = parent;
+    }
+  }
+
   EndPaint(canvas->slot->window, &canvas->slot->ps);
 }
 
@@ -1354,13 +1597,13 @@ shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc)
 {
   RECT r;
   GetWindowRect(self_t->slot->window, &r);
-  if (r.left != self_t->place.ix + self_t->place.dx || 
+  if (r.left != self_t->place.ix + self_t->place.dx ||
       r.top != (self_t->place.iy + self_t->place.dy) - pc->slot->scrolly ||
       r.right - r.left != self_t->place.iw ||
       r.bottom - r.top != self_t->place.ih)
   {
-    MoveWindow(self_t->slot->window, self_t->place.ix + self_t->place.dx, 
-      (self_t->place.iy + self_t->place.dy) - pc->slot->scrolly, self_t->place.iw, 
+    MoveWindow(self_t->slot->window, self_t->place.ix + self_t->place.dx,
+      (self_t->place.iy + self_t->place.dy) - pc->slot->scrolly, self_t->place.iw,
       self_t->place.ih, TRUE);
   }
 }
@@ -1368,6 +1611,20 @@ shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc)
 void
 shoes_native_canvas_resize(shoes_canvas *canvas)
 {
+  if (shoes_world->os.doublebuffer)
+  {
+    RECT rc;
+    GetClientRect(canvas->slot->window, &rc);
+
+    HDC windowDC = GetDC(canvas->slot->window);
+    canvas->slot->dc = CreateCompatibleDC(windowDC);
+
+    HBITMAP hbmp = CreateCompatibleBitmap(windowDC, rc.right, rc.bottom);
+    SelectObject(canvas->slot->dc, hbmp);
+    DeleteObject(hbmp);
+
+    ReleaseDC(canvas->slot->window, windowDC);
+  }
 }
 
 void
@@ -1388,6 +1645,20 @@ shoes_native_control_position(SHOES_CONTROL_REF ref, shoes_place *p1, VALUE self
 {
   PLACE_COORDS();
   MoveWindow(ref, p2->ix + p2->dx, p2->iy + p2->dy, p2->iw, p2->ih, TRUE);
+  if (shoes_world->os.doublebuffer)
+  {
+    RECT rc;
+    GetClientRect(canvas->slot->window, &rc);
+
+//    HDC windowDC = GetDC(canvas->slot->window);
+//    canvas->slot->dc = CreateCompatibleDC(windowDC);
+
+    HBITMAP hbmp = CreateCompatibleBitmap(canvas->slot->dc, rc.right, rc.bottom);
+    SelectObject(canvas->slot->dc, hbmp);
+    DeleteObject(hbmp);
+
+//    ReleaseDC(canvas->slot->window, windowDC);
+  }
 }
 
 void
@@ -1396,6 +1667,20 @@ shoes_native_control_position_no_pad(SHOES_CONTROL_REF ref, shoes_place *p1, VAL
 {
   PLACE_COORDS_NO_PAD();
   MoveWindow(ref, p2->ix + p2->dx, p2->iy + p2->dy, p2->iw, p2->ih, TRUE);
+  if (shoes_world->os.doublebuffer)
+  {
+    RECT rc;
+    GetClientRect(canvas->slot->window, &rc);
+
+//    HDC windowDC = GetDC(canvas->slot->window);
+//    canvas->slot->dc = CreateCompatibleDC(windowDC);
+
+    HBITMAP hbmp = CreateCompatibleBitmap(canvas->slot->dc, rc.right, rc.bottom);
+    SelectObject(canvas->slot->dc, hbmp);
+    DeleteObject(hbmp);
+
+//    ReleaseDC(canvas->slot->window, windowDC);
+  }
 }
 
 void
@@ -1572,11 +1857,15 @@ SHOES_CONTROL_REF
 shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
   int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot->controls);
-  SHOES_CONTROL_REF ref = CreateWindowEx(WS_EX_CLIENTEDGE | WS_EX_TRANSPARENT, TEXT("EDIT"), NULL,
+  DWORD exStyle = WS_EX_CLIENTEDGE;
+  if (!shoes_world->os.doublebuffer)
+    exStyle |= WS_EX_TRANSPARENT;
+
+  SHOES_CONTROL_REF ref = CreateWindowEx(exStyle, TEXT("EDIT"), NULL,
     WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT |
     ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN | ES_NOHIDESEL,
     place->ix + place->dx, place->iy + place->dy, place->iw, place->ih,
-    canvas->slot->window, (HMENU)cid, 
+    canvas->slot->window, (HMENU)cid,
     (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
     NULL);
   SetWindowPos(ref, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOREDRAW);
@@ -1930,7 +2219,7 @@ shoes_dialog_color(VALUE self, VALUE title)
   cc.lpCustColors = (LPDWORD) acrCustClr;
   cc.rgbResult = rgbCurrent;
   cc.Flags = CC_FULLOPEN | CC_RGBINIT;
-   
+
   if (ChooseColor(&cc)) {
     color = shoes_color_new(GetRValue(cc.rgbResult), GetGValue(cc.rgbResult), GetBValue(cc.rgbResult),
       SHOES_COLOR_OPAQUE);

@@ -184,6 +184,7 @@ typedef struct {
   int scrolly;
   char vscroll;
   void *owner;
+  void *parent;
 } shoes_slot_win32, SHOES_SLOT_OS;
 
 typedef struct {
@@ -203,6 +204,7 @@ typedef struct {
   HWND hidden;
   WNDCLASSEX classex, slotex, vlclassex, hiddenex;
   ATOM classatom;
+  BOOL doublebuffer;
 } shoes_world_win32, SHOES_WORLD_OS;
 
 #define USTR(str) (const char *)L##str
