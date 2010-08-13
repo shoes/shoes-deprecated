@@ -724,6 +724,9 @@ shoes_app_win32proc(
         RECT rc;
         GetClientRect(win, &rc);
 
+        if (app->slot->dc != NULL)
+          DeleteDC(app->slot->dc);
+
         HDC windowDC = GetDC(app->slot->window);
         app->slot->dc = CreateCompatibleDC(windowDC);
 
