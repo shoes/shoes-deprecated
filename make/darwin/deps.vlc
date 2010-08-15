@@ -1,0 +1,12 @@
+libmemcpymmx.a
+libi420_rgb_mmx.a
+libi422_yuy2_mmx.a
+libi420_ymga_mmx.a
+libi420_yuy2_mmx.a
+libmemcpymmxext.a
+libmemcpy3dn.a
+libffmpeg.a
+libstream_out_switcher.a
+libquicktime.a
+libauhal.a
+libmacosx.a

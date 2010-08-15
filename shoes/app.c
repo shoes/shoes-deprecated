@@ -139,10 +139,10 @@ shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner)
   app_t->resizable = (ATTR(attr, resizable) != Qfalse);
   app_t->hidden = (ATTR(attr, hidden) == Qtrue);
   shoes_app_resize(app_t, ATTR2(int, attr, width, SHOES_APP_WIDTH), ATTR2(int, attr, height, SHOES_APP_HEIGHT));
-  if (RTEST(ATTR(attr, width)))
-    app_t->minwidth = app_t->width;
-  if (RTEST(ATTR(attr, height)))
-    app_t->minheight = app_t->height;
+  if (RTEST(ATTR(attr, minwidth)))
+    app_t->minwidth = (ATTR(attr, minwidth) - 1) / 2;
+  if (RTEST(ATTR(attr, minheight)))
+    app_t->minheight = (ATTR(attr, minheight) -1) / 2;
   shoes_canvas_init(app_t->canvas, app_t->slot, attr, app_t->width, app_t->height);
   if (shoes_world->mainloop)
     shoes_app_open(app_t, url);

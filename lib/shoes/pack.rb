@@ -35,50 +35,50 @@ class Shoes
       when Shoes::I_NOV then
         url = "http://shoes.heroku.com/pkg/#{Shoes::RELEASE_NAME.downcase}/#{platform}/shoes-novideo"
         local_file_path = File.join(LIB_DIR, Shoes::RELEASE_NAME.downcase, platform, "latest_shoes-novideo.#{extension}")  
-	  when I_NET then
-		url = false
+      when I_NET then
+        url = false
       end
       
       FileUtils.makedirs File.join(LIB_DIR, Shoes::RELEASE_NAME.downcase, platform)
       
-	  if url then
-		  begin
-			  url = open(url).read.strip
-        debug url
-			  internet_ok = true
-		  rescue Exception => e
-			  error e
-			  internet_ok = false
-		  end
+      if url then
+        begin
+          url = open(url).read.strip
+          debug url
+          internet_ok = true
+        rescue Exception => e
+          error e
+          internet_ok = false
+        end
 
-		  if File.exists? local_file_path
-			  return  open(local_file_path)
-		  elsif internet_ok then
-			  begin
-				  debug "Downloading #{url}..."
-				  downloaded = open(url)
-				  debug "Download of #{url} finished"
-			  rescue Exception => e
-				  error "Could not download from the internet" + e
-				  internet_ok = false
-			  end
-			  if internet_ok then
-				  begin
-					  File.open(local_file_path, "wb") do |f|
-						  f.write(downloaded.read)
-					  end
-					  return  open(local_file_path)
-				  rescue Exception => e
-					  error "Could not download from the internet" + e
-					  alert "Couldn't find an Shoes at:\n #{local_file_path}\n or download it from the internet to include with the application.\n Will package application without Shoes."
-				  end
-			  end
-		  else
-			  alert "Couldn't find an existing Shoes at:\n #{local_file_path}\n or download it from the internet to include with the application.\n Will package application without Shoes."
-		  end
-	  end
-	end
-
+        if File.exists? local_file_path
+          return  open(local_file_path)
+        elsif internet_ok then
+          begin
+            debug "Downloading #{url}..."
+            downloaded = open(url)
+            debug "Download of #{url} finished"
+          rescue Exception => e
+            error "Could not download from the internet" + e
+            internet_ok = false
+          end
+          if internet_ok then
+            begin
+              File.open(local_file_path, "wb") do |f|
+                f.write(downloaded.read)
+              end
+              return  open(local_file_path)
+            rescue Exception => e
+              error "Could not download from the internet" + e
+              alert "Couldn't find an Shoes at:\n #{local_file_path}\n or download it from the internet to include with the application.\n Will package application without Shoes."
+            end
+          end
+        else
+          alert "Couldn't find an existing Shoes at:\n #{local_file_path}\n or download it from the internet to include with the application.\n Will package application without Shoes."
+        end
+      end
+    end
+    
     def self.exe(script, opt, &blk)
       size = File.size(script)
       f = File.open(script, 'rb')
@@ -92,19 +92,21 @@ class Shoes
         size += File.size(f2.path)
         f3 = File.open(f2.path, 'rb')
         exe.inject("SHOES_SETUP", f3)
-      end
 
-      count, last = 0, 0.0
-      exe.save(script.gsub(/\.\w+$/, '') + ".exe") do |len|
-        count += len
-        prg = count.to_f / size.to_f
-        blk[last = prg] if blk and prg - last > 0.02 and prg < 1.0
-      end
-
-      f.close
-      if f2
+        count, last = 0, 0.0
+        exe.save(script.gsub(/\.\w+$/, '') + ".exe") do |len|
+          count += len
+          prg = count.to_f / size.to_f
+          blk[last = prg] if blk and prg - last > 0.02 and prg < 1.0
+        end
+        
+        f.close
         f2.close
         f3.close
+      else
+        Dir.chdir DIR + '/static/stubs' do
+          `.\\shoes-stub-inject.exe #{script.gsub('/', "\\")}`
+        end
       end
       blk[1.0] if blk
     end
@@ -148,10 +150,10 @@ class Shoes
   <string>Shoes.icns</string>
   <key>CFBundleShortVersionString</key>
   <string>#{vers.join(".")}</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundlePackageType</key>
-	<string>APPL</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
   <key>IFMajorVersion</key>
   <integer>#{vers[0]}</integer>
   <key>IFMinorVersion</key>
@@ -312,7 +314,9 @@ END
           end
 
           para "Include Shoes with your app? ", :margin => 0
-          @inc = list_box :items => [Shoes::I_NET, Shoes::I_YES, Shoes::I_NOV], :width => 0.6, :height => 30 do
+          items = [Shoes::I_YES, Shoes::I_NOV]
+          items.unshift(Shoes::I_NET) if ::RUBY_PLATFORM =~ /mswin|mingw/
+          @inc = list_box :items => items, :width => 0.6, :height => 30 do
             est_recount
           end
           inscription "(This option doesn't apply to Shoes .shy files.)"
@@ -324,9 +328,9 @@ END
         def est_recount
           base = 
             case @inc.text
-            when Shoes::I_NET; 70
-            when Shoes::I_YES; 7000
-            when Shoes::I_NOV; 2500
+            when Shoes::I_NET; 98
+            when Shoes::I_YES; 11600
+            when Shoes::I_NOV; 7000
             end
           base += ((File.directory?(@path) ? Shy.du(@path) : File.size(@path)) rescue 0) / 1024
           @est.replace "Estimated size of each app: ", strong(base > 1024 ?
@@ -364,13 +368,11 @@ END
                 Shy.c(@shy_path, @shy_meta, @path, &pblk)
                 @path = @shy_path
                 @prog.style(:width => sofar += stage)
-                debug @prog.style[:width]
               end
               if @exe.style[:checked]
                 @status.replace "Working on an .exe for Windows."
                 Shoes::Pack.exe(@path, inc_text, &blk)
                 @prog.style(:width => sofar += stage)
-                debug @prog.style[:width]
               end
               if @dmg.style[:checked]
                 @status.replace "Working on a .dmg for Mac OS X."
@@ -497,7 +499,7 @@ END
       @dmg.checked = false
       @run.checked = false
       @shy.checked = true
-      @inc.choose Shoes::I_NET
+      @inc.choose( ::RUBY_PLATFORM =~ /mswin|mingw/ ? Shoes::I_NET : Shoes::I_NOV )
     end
   end
 end
