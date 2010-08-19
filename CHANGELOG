@@ -1,3 +1,11 @@
+= Policeman
+== 17th August, 2010
+* Move to Ruby 1.9.1
+* General stability improvements
+* Updated all dependancies
+* Ported OSX to Cocoa
+* Now works with Windows Vista and Windows 7
+
 = Raisins (0.r1134)
 == 5th December, 2008
 <http://shoooes.net/about/raisins>
