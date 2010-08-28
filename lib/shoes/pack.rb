@@ -59,7 +59,7 @@ class Shoes
             downloaded = open(url)
             debug "Download of #{url} finished"
           rescue Exception => e
-            error "Could not download from the internet" + e
+            error "Could not download from the internet at #{url}\n" + e
             internet_ok = false
           end
           if internet_ok then
@@ -69,12 +69,12 @@ class Shoes
               end
               return  open(local_file_path)
             rescue Exception => e
-              error "Could not download from the internet" + e
-              alert "Couldn't find an Shoes at:\n #{local_file_path}\n or download it from the internet to include with the application.\n Will package application without Shoes."
+                raise "The download failed from\n#{url}\nor could not write to local files" + e
             end
           end
         else
-          alert "Couldn't find an existing Shoes at:\n #{local_file_path}\n or download it from the internet to include with the application.\n Will package application without Shoes."
+		  noHopeMsg = "Failed to find an existing Shoes at:\n#{local_file_path}\nor download from\n#{url} to include with your script."
+		 raise noHopeMsg 
         end
       end
     end
@@ -396,7 +396,12 @@ END
                 end
               end
             rescue => e
-              error(e)
+              @packErrMsg = e
+			  # weirdness begins
+			  @page2.hide
+			  @path3.style  :font => 'italic', :size => 12
+			  @page3.show
+			  @path3.replace @packErrMsg
             end
           end
         end
@@ -405,6 +410,7 @@ END
         flow :margin_top => 10, :margin_left => 310 do
           button "OK", :margin_right => 4 do
             @page1.hide; @bb.hide; @bf.hide
+            @packErrMsg = nil
             build_thread
           end
           button "Cancel" do
@@ -490,6 +496,9 @@ END
           para "Completed:", :margin => 4
           @path3 = para "", :size => 20, :margin => 4
           para "Your files are done, you may close this window.", :margin => 4
+		  button "Quit" do
+			exit
+		  end
         end
       end
     end
