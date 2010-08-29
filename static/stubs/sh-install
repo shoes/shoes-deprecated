@@ -1,6 +1,6 @@
 #!/bin/sh
-shoes_host="http://shoes.heroku.com"
-shoes_url="$shoes_host/pkg/policeman/linux/shoes"
+shoes_host="http://www.rin-shun.com"
+shoes_url="$shoes_host/shoes/shoes3.run"
 this_dir=`pwd`
 
 shoes="$(which shoes)"
