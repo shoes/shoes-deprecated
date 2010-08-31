@@ -179,7 +179,7 @@ class Shoes
 
   def self.make_pack
     require 'shoes/pack'
-    Shoes.app(:width => 500, :height => 380, :resizable => false, &PackMake)
+    Shoes.app(:width => 500, :height => 480, :resizable => true, &PackMake)
   end
 
   def self.manual_p(str, path)
