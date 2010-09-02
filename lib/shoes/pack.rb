@@ -17,6 +17,7 @@ class Shoes
     end
 
     def self.pkg(platform, opt)
+	  $stderr.puts "#{platform} #{opt}"
       extension = case platform
       when "win32" then
        "exe"
@@ -37,6 +38,8 @@ class Shoes
         local_file_path = File.join(LIB_DIR, Shoes::RELEASE_NAME.downcase, platform, "latest_shoes-novideo.#{extension}")  
       when I_NET then
         url = false
+	  else
+		raise "missing download option #{opt}"
       end
       
       FileUtils.makedirs File.join(LIB_DIR, Shoes::RELEASE_NAME.downcase, platform)
@@ -282,12 +285,12 @@ END
           @shy_path = nil
           @sel1 =
             flow do
-              para "File:"
+              para "File to package:"
               inscription " (or a ", link("directory", &selt), ")"
               edit1 = edit_line :width => -120
               @bb = button "Browse...", :width => 100 do
                 @path = edit1.text = ask_open_file
-                est_recount
+                #est_recount
               end
             end
           @sel2 =
@@ -297,41 +300,65 @@ END
               edit2 = edit_line :width => -120
               @bf = button "Folder...", :width => 100 do
                 @path = edit2.text = ask_open_folder
-                est_recount
+                #est_recount
               end
             end
 
-          para "Package for:"
+		  para "Packaging options"
+          para "Should Shoes be included with your script or should the script \
+download Shoes when the user runs it? Not all options are available on all \
+systems. The defaults work."
           flow :margin_left => 20 do
             @shy = check
-            para "Shoes (.shy)", :margin_right => 20
-            @exe = check
-            para "Windows", :margin_right => 20
-            @dmg = check
-            para "OS X", :margin_right => 20
-            @run = check
-            para "Linux"
+            para "Shoes (.shy) for users who have Shoes already", :margin_right => 20
+		  end
+          items = [Shoes::I_NET, Shoes::I_YES, Shoes::I_NOV]
+		  flow :margin_left => 20 do
+			flow :width => 0.25 do
+              @exe = check 
+              para "Windows"
+			end
+            @incWin = list_box :items => items, :width => 0.6, :height => 30, do
+			  @downOpt = @incWin.text
+          	  est_recount 
+            end
+			@incWin.choose(Shoes::I_NET)
+		  end
+		  flow :margin_left => 20 do
+			flow :width => 0.25 do
+              @dmg = check
+              para "OS X", :margin_right => 47
+			end
+			osxop = [Shoes::I_NET, Shoes::I_NOV]
+            @incOSX = list_box :items => osxop, :width => 0.6, :height => 30 do
+			  @downOpt = @incOSX.text
+          	  est_recount
+            end
+			@incOSX.choose(Shoes::I_NOV)
+		  end 
+		  flow :margin_left => 20 do
+			flow :width => 0.25 do
+              @run = check
+              para "Linux", :margin_right => 49 
+			end
+			@incLinux = list_box :items => [Shoes::I_NET], :width => 0.6,
+				:height => 30 do
+			  est_recount
+			end
+			@incLinux.choose(Shoes::I_NET)
           end
-
-          para "Include Shoes with your app? ", :margin => 0
-          items = [Shoes::I_YES, Shoes::I_NOV]
-          items.unshift(Shoes::I_NET) if ::RUBY_PLATFORM =~ /mswin|mingw/
-          @inc = list_box :items => items, :width => 0.6, :height => 30 do
-            est_recount
-          end
-          inscription "(This option doesn't apply to Shoes .shy files.)"
         end
       end
 
       stack :margin => 20 do
-        @est = para "Estimated size of each app: ", strong("0k"), :margin => 0, :margin_bottom => 4
-        def est_recount
-          base = 
-            case @inc.text
+        @est = para "Estimated size of your choice: ", strong("0k"), :margin => 0, :margin_bottom => 4
+        def est_recount 
+		  base = 
+            case  @downOpt
             when Shoes::I_NET; 98
             when Shoes::I_YES; 11600
             when Shoes::I_NOV; 7000
-            end
+		  end
           base += ((File.directory?(@path) ? Shy.du(@path) : File.size(@path)) rescue 0) / 1024
           @est.replace "Estimated size of each app: ", strong(base > 1024 ?
             "%0.1fM" % [base / 1024.0] : "#{base}K")
@@ -351,7 +378,7 @@ END
           end
           @page2.show 
           @path2.replace File.basename(@path)
-          inc_text = @inc.text
+          #inc_text = @inc.text
           Thread.start do
             begin
               sofar, stage = 0.0, 1.0 / [@shy.style[:checked], @exe.style[:checked], @dmg.style[:checked], @run.style[:checked]].
@@ -371,17 +398,17 @@ END
               end
               if @exe.style[:checked]
                 @status.replace "Working on an .exe for Windows."
-                Shoes::Pack.exe(@path, inc_text, &blk)
+                Shoes::Pack.exe(@path, @incWin.text, &blk)
                 @prog.style(:width => sofar += stage)
               end
               if @dmg.style[:checked]
                 @status.replace "Working on a .dmg for Mac OS X."
-                Shoes::Pack.dmg(@path, inc_text, &blk)
+                Shoes::Pack.dmg(@path, @incOSX.text, &blk)
                 @prog.style(:width => sofar += stage)
               end
               if @run.style[:checked]
                 @status.replace "Working on a .run for Linux."
-                Shoes::Pack.linux(@path, inc_text, &blk)
+                Shoes::Pack.linux(@path, @incLinux.text, &blk)
                 @prog.style(:width => sofar += stage)
               end
               if @shy_path and not @shy.style[:checked]
@@ -508,7 +535,7 @@ END
       @dmg.checked = false
       @run.checked = false
       @shy.checked = true
-      @inc.choose( ::RUBY_PLATFORM =~ /mswin|mingw/ ? Shoes::I_NET : Shoes::I_NOV )
+      #@inc.choose( ::RUBY_PLATFORM =~ /mswin|mingw/ ? Shoes::I_NET : Shoes::I_NOV )
     end
   end
 end
