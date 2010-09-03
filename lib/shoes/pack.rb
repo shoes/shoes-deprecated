@@ -17,7 +17,6 @@ class Shoes
     end
 
     def self.pkg(platform, opt)
-	  $stderr.puts "#{platform} #{opt}"
       extension = case platform
       when "win32" then
        "exe"
@@ -107,6 +106,7 @@ class Shoes
         f2.close
         f3.close
       else
+		# doesn't work on Linux or OSX
         Dir.chdir DIR + '/static/stubs' do
           `.\\shoes-stub-inject.exe #{script.gsub('/', "\\")}`
         end
@@ -322,7 +322,7 @@ systems. The defaults work."
 			  @downOpt = @incWin.text
           	  est_recount 
             end
-			@incWin.choose(Shoes::I_NET)
+			@incWin.choose(Shoes::I_NOV)
 		  end
 		  flow :margin_left => 20 do
 			flow :width => 0.25 do
