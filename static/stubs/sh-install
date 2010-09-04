@@ -1,6 +1,6 @@
 #!/bin/sh
-shoes_host="http://www.rin-shun.com"
-shoes_url="$shoes_host/shoes/shoes3.run"
+shoes_host="http://shoes.heroku.com"
+shoes_url="$shoes_host/pkg/policeman/linux/shoes-novideo"
 this_dir=`pwd`
 
 shoes="$(which shoes)"
@@ -38,11 +38,12 @@ if [ ! -x "$shoes" ] ; then
     fi
   fi
 
-  shoes_run="$shoes_host$shoes_pkg"
+  #shoes_run="$shoes_host$shoes_pkg"
+  shoes_run="$shoes_pkg"
   echo "Fetching $shoes_run..."
   mkdir -p $HOME/.shoes
   eval $wget "$shoes_run" > $shoes
   chmod 755 $shoes
 fi
 
-eval $shoes -- "$this_dir/#{SCRIPT}"
+eval $shoes -- "$this_dir/./hello.rb"
