@@ -46,4 +46,4 @@ if [ ! -x "$shoes" ] ; then
   chmod 755 $shoes
 fi
 
-eval $shoes -- "$this_dir/./hello.rb"
+eval $shoes -- "$this_dir/#{SCRIPT}"
