@@ -37,8 +37,8 @@ class Shoes
         local_file_path = File.join(LIB_DIR, Shoes::RELEASE_NAME.downcase, platform, "latest_shoes-novideo.#{extension}")  
       when I_NET then
         url = false
-	  else
-		raise "missing download option #{opt}"
+      else
+        raise "missing download option #{opt}"
       end
       
       FileUtils.makedirs File.join(LIB_DIR, Shoes::RELEASE_NAME.downcase, platform)
@@ -75,8 +75,8 @@ class Shoes
             end
           end
         else
-		  noHopeMsg = "Failed to find an existing Shoes at:\n#{local_file_path}\nor download from\n#{url} to include with your script."
-		 raise noHopeMsg 
+          noHopeMsg = "Failed to find an existing Shoes at:\n#{local_file_path}\nor download from\n#{url} to include with your script."
+         raise noHopeMsg 
         end
       end
     end
@@ -106,7 +106,7 @@ class Shoes
         f2.close
         f3.close
       else
-		# doesn't work on Linux or OSX
+        # doesn't work on Linux or OSX
         Dir.chdir DIR + '/static/stubs' do
           `.\\shoes-stub-inject.exe #{script.gsub('/', "\\")}`
         end
@@ -304,48 +304,49 @@ END
               end
             end
 
-		  para "Packaging options"
+          para "Packaging options"
           para "Should Shoes be included with your script or should the script \
 download Shoes when the user runs it? Not all options are available on all \
 systems. The defaults work."
           flow :margin_left => 20 do
             @shy = check
             para "Shoes (.shy) for users who have Shoes already", :margin_right => 20
-		  end
+          end
           items = [Shoes::I_NET, Shoes::I_YES, Shoes::I_NOV]
-		  flow :margin_left => 20 do
-			flow :width => 0.25 do
+          items.shift unless ::RUBY_PLATFORM =~ /mswin|mingw/
+          flow :margin_left => 20 do
+            flow :width => 0.25 do
               @exe = check 
               para "Windows"
-			end
-            @incWin = list_box :items => items, :width => 0.6, :height => 30, do
-			  @downOpt = @incWin.text
-          	  est_recount 
             end
-			@incWin.choose(Shoes::I_NOV)
-		  end
-		  flow :margin_left => 20 do
-			flow :width => 0.25 do
+            @incWin = list_box :items => items, :width => 0.6, :height => 30, do
+              @downOpt = @incWin.text
+              est_recount 
+            end
+            @incWin.choose items[0]
+          end
+          flow :margin_left => 20 do
+            flow :width => 0.25 do
               @dmg = check
               para "OS X", :margin_right => 47
-			end
-			osxop = [Shoes::I_NET, Shoes::I_NOV]
-            @incOSX = list_box :items => osxop, :width => 0.6, :height => 30 do
-			  @downOpt = @incOSX.text
-          	  est_recount
             end
-			@incOSX.choose(Shoes::I_NOV)
-		  end 
-		  flow :margin_left => 20 do
-			flow :width => 0.25 do
+            osxop = [Shoes::I_NET, Shoes::I_NOV]
+            @incOSX = list_box :items => osxop, :width => 0.6, :height => 30 do
+              @downOpt = @incOSX.text
+              est_recount
+            end
+            @incOSX.choose(Shoes::I_NOV)
+          end 
+          flow :margin_left => 20 do
+            flow :width => 0.25 do
               @run = check
               para "Linux", :margin_right => 49 
-			end
-			@incLinux = list_box :items => [Shoes::I_NET], :width => 0.6,
-				:height => 30 do
-			  est_recount
-			end
-			@incLinux.choose(Shoes::I_NET)
+            end
+            @incLinux = list_box :items => [Shoes::I_NET], :width => 0.6,
+                :height => 30 do
+              est_recount
+            end
+            @incLinux.choose(Shoes::I_NET)
           end
         end
       end
@@ -353,12 +354,12 @@ systems. The defaults work."
       stack :margin => 20 do
         @est = para "Estimated size of your choice: ", strong("0k"), :margin => 0, :margin_bottom => 4
         def est_recount 
-		  base = 
+          base = 
             case  @downOpt
             when Shoes::I_NET; 98
             when Shoes::I_YES; 11600
             when Shoes::I_NOV; 7000
-		  end
+          end
           base += ((File.directory?(@path) ? Shy.du(@path) : File.size(@path)) rescue 0) / 1024
           @est.replace "Estimated size of each app: ", strong(base > 1024 ?
             "%0.1fM" % [base / 1024.0] : "#{base}K")
@@ -378,7 +379,8 @@ systems. The defaults work."
           end
           @page2.show 
           @path2.replace File.basename(@path)
-          #inc_text = @inc.text
+           inc_win_text, inc_osx_text, inc_linux_text = @incWin.text, 
+@incOSX.text, @incLinux.text
           Thread.start do
             begin
               sofar, stage = 0.0, 1.0 / [@shy.style[:checked], @exe.style[:checked], @dmg.style[:checked], @run.style[:checked]].
@@ -398,17 +400,17 @@ systems. The defaults work."
               end
               if @exe.style[:checked]
                 @status.replace "Working on an .exe for Windows."
-                Shoes::Pack.exe(@path, @incWin.text, &blk)
+                Shoes::Pack.exe(@path, inc_win_text, &blk)
                 @prog.style(:width => sofar += stage)
               end
               if @dmg.style[:checked]
                 @status.replace "Working on a .dmg for Mac OS X."
-                Shoes::Pack.dmg(@path, @incOSX.text, &blk)
+                Shoes::Pack.dmg(@path, inc_osx_text, &blk)
                 @prog.style(:width => sofar += stage)
               end
               if @run.style[:checked]
                 @status.replace "Working on a .run for Linux."
-                Shoes::Pack.linux(@path, @incLinux.text, &blk)
+                Shoes::Pack.linux(@path, inc_linux_text, &blk)
                 @prog.style(:width => sofar += stage)
               end
               if @shy_path and not @shy.style[:checked]
@@ -424,11 +426,11 @@ systems. The defaults work."
               end
             rescue => e
               @packErrMsg = e
-			  # weirdness begins
-			  @page2.hide
-			  @path3.style  :font => 'italic', :size => 12
-			  @page3.show
-			  @path3.replace @packErrMsg
+              # weirdness begins
+              @page2.hide
+              @path3.style  :font => 'italic', :size => 12
+              @page3.show
+              @path3.replace @packErrMsg
             end
           end
         end
@@ -523,9 +525,9 @@ systems. The defaults work."
           para "Completed:", :margin => 4
           @path3 = para "", :size => 20, :margin => 4
           para "Your files are done, you may close this window.", :margin => 4
-		  button "Quit" do
-			exit
-		  end
+          button "Quit" do
+            exit
+          end
         end
       end
     end
