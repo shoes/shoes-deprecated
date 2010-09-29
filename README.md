@@ -3,47 +3,43 @@
      ))) || |  \\/  [[_  )))
     an artsy any-platform app kit <http://github.com/shoes/shoes>
 
-//////////////////////////////////////////////////////////////////////////
+    # Hi, guys, thankyou for taking Shoes.
 
-    Hi, guys, thankyou for taking Shoes.
-
-    Shoes is for writing plain old windowing software.  But it borrows a
+    ### Shoes is for writing plain old windowing software.  But it borrows a
     few things I like from the web:
 
-    * Hyperlinks and URLs within Shoes and to the web.
-    * Simple text layout -- though Shoes eschews floats.
-    * Images and colors in the layout and in the background.
-    * Margin and padding.
-    * Resizable layouts.
+    - Hyperlinks and URLs within Shoes and to the web.
+    - Simple text layout -- though Shoes eschews floats.
+    - Images and colors in the layout and in the background.
+    - Margin and padding.
+    - Resizable layouts.
 
     However, layouts can be tough on the web.  Like a two-column layout.
     So rather than using floating divs, Shoes uses two layout types:
     stacks and flows.  More on that later.
 
-    Shoes does keep a few things from traditional windowing toolkits:
+    ### Shoes does keep a few things from traditional windowing toolkits:
 
-    * Buttons.
-    * Text edit (single-line and multi-line).
-    * Progress bars.
-    * Scroll bars.
-    * Dialogs.
+    - Buttons.
+    - Text edit (single-line and multi-line).
+    - Progress bars.
+    - Scroll bars.
+    - Dialogs.
 
-    And, last of all, Shoes gets some inspiration from NodeBox and
+    ### And, last of all, Shoes gets some inspiration from NodeBox and
     Processing:
 
-    * The whole window is a canvas.
-    * Shapes, paths, curves and transformations.
-    * Animation.
-    * Easy event-handling for mouse and keyboard.
+    - The whole window is a canvas.
+    - Shapes, paths, curves and transformations.
+    - Animation.
+    - Easy event-handling for mouse and keyboard.
 
     Lastly, Shoes uses Ruby as its interface language.
 
     That's really about all that's in Shoes.  It's supposed to be light.
     Not much code and not too much ambition.
 
-//////////////////////////////////////////////////////////////////////////
-
-    WHY NOT WXWINDOWS?  WHY NOT THE FOX TOOLKIT?  OR QT??
+    ## WHY NOT WXWINDOWS?  WHY NOT THE FOX TOOLKIT?  OR QT??
 
     Shoes is strictly inspired by stuff like REBOL/View, HyperCard,
     the web itself and, of course, Processing and NodeBox.
@@ -56,33 +52,30 @@
     controls, but people are able to build wildly different pages
     with it that are still immediately accessible to people.
 
-//////////////////////////////////////////////////////////////////////////
 
-    THE INSIDE OF SHOES
+    ## THE INSIDE OF SHOES
 
-    So, to save a bit of work, Shoes relies on a few libraries:
+    ### So, to save a bit of work, Shoes relies on a few libraries:
  
-    * Cairo, for drawing. (http://cairographics.org)
-    * Pango, for text.
-    * Ruby, for programming.
+    - Cairo, for drawing. (http://cairographics.org)
+    - Pango, for text.
+    - Ruby, for programming.
 
     All native widgets use the OS APIs directly.  Half of Shoes is platform
     specific code.  The targets are: OSX, Windows and GTK.
 
-//////////////////////////////////////////////////////////////////////////
+    ## STAYING CURRENT WITH SHOES
 
-    STAYING CURRENT WITH SHOES
-
-    Shoes development happens at Github.  You can download a current
+    ### Shoes development happens at Github.  You can download a current
     tarball of the very latest Shoes from here:
 
-      http://github.com/shoes/shoes
-
+      [http://github.com/shoes/shoes](http://github.com/shoes/shoes)
+     
     Or, if you have git installed, you can clone the repo like so:
 
       git clone git://github.com/shoes/shoes.git
 
-    Once you have your compiler and dependencies set up, building Shoes
+    ### Once you have your compiler and dependencies set up, building Shoes
     is as simple as:
 
       rake
@@ -91,11 +84,9 @@
 
     For instructions on how to set up your compiler and acquire deps for
     Windows, OS X, and Linux, see the Shoes wiki:
-    <http://wiki.github.com/shoes/shoes/BuildingShoes>
+    [http://wiki.github.com/shoes/shoes/BuildingShoes](http://wiki.github.com/shoes/shoes/BuildingShoes)
 
-//////////////////////////////////////////////////////////////////////////
-
-    LICENSE
+    # LICENSE
 
     Copyright (c) 2008 why the lucky stiff
     
