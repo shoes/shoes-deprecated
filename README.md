@@ -1,7 +1,7 @@
                       
-((( |||_| ///\ [[[_ (((
-))) || |  \\/  [[_  )))
-an artsy any-platform app kit <http://github.com/shoes/shoes>
+    ((( |||_| ///\ [[[_ (((
+    ))) || |  \\/  [[_  )))
+an artsy any-platform app kit [http://github.com/shoes/shoes](http://github.com/shoes/shoes)
 
 # Hi, guys, thankyou for taking Shoes.
 
@@ -50,7 +50,7 @@ The unique thing about the web is that it gives you very few controls, but peopl
 
 ### So, to save a bit of work, Shoes relies on a few libraries:
  
-- Cairo, for drawing. (http://cairographics.org)
+- Cairo, for drawing. [http://cairographics.org](http://cairographics.org)
 - Pango, for text.
 - Ruby, for programming.
 
@@ -73,7 +73,7 @@ rake
 Your Shoes build will then appear in the 'dist' directory.
 
 ### For instructions on how to set up your compiler and acquire deps for Windows, OS X, and Linux, see the Shoes wiki:
-    [http://wiki.github.com/shoes/shoes/BuildingShoes](http://wiki.github.com/shoes/shoes/BuildingShoes)
+[http://wiki.github.com/shoes/shoes/BuildingShoesi](http://wiki.github.com/shoes/shoes/BuildingShoes)
 
 # LICENSE
 
