@@ -1,5 +1,5 @@
                       
-    ((( |||_| ///\ [[[_ (((
+    ((( ||_|  //\  [[_ (((
     ))) || |  \\/  [[_  )))
 an artsy any-platform app kit [http://github.com/shoes/shoes](http://github.com/shoes/shoes)
 
