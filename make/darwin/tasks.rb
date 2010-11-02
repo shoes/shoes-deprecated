@@ -1,4 +1,4 @@
-require 'make/make'
+require File.expand_path('make/make')
 
 include FileUtils
 
