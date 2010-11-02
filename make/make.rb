@@ -19,7 +19,7 @@ module Make
     cp_r  "lib", "dist/lib"
     cp_r  "samples", "dist/samples"
     cp_r  "static", "dist/static"
-    cp    "README", "dist/README.txt"
+    cp    "README.md", "dist/README.txt"
     cp    "CHANGELOG", "dist/CHANGELOG.txt"
     cp    "COPYING", "dist/COPYING.txt"
   end
