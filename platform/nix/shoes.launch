@@ -14,7 +14,7 @@ fi
 # an extracted archive, change back to the directory where we launched.
 if [ `pwd | awk '{ sub(/[0-9]+/, ""); print }'` = "/tmp/selfgz" ]; then
   # fix the symlink, this is actually a bug in the minitar lib
-  rm -f libruby.so.1.8
-  ln -s libruby.so libruby.so.1.8
+  rm -f libruby.so.1.9
+  ln -s libruby.so libruby.so.1.9
   cd "$OLDPWD"
 fi
