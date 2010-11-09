@@ -149,7 +149,8 @@ class Shoes
         stack do
           background black(0.2), :curve => 8
           para link("Open an App.") { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
-          para link("Package an App.") { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
+          #para link("Package an App.") { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
+					para link("Package an App.") { Shoes.make_pack and close }, :margin => 10, :margin_bottom => 4
           para link("Read the Manual.") { Shoes.show_manual and close }, :margin => 10
         end
         inscription "Alt-Slash opens the console.", :stroke => "#DFA", :align => "center"

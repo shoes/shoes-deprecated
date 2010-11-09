@@ -17,32 +17,33 @@ class Shoes
     end
 
     def self.pkg(platform, opt)
+      $stderr.puts "#{platform} #{opt}"
       extension = case platform
       when "win32" then
-       "exe"
+        "exe"
       when "linux" then
-       "run"
+        "run"
       when "osx" then
-       "dmg"
+        "dmg"
       else
-       raise "Unknown platform"
+        raise "Unknown platform"
       end
-      
+
       case opt
       when Shoes::I_YES then
         url = "http://shoes.heroku.com/pkg/#{Shoes::RELEASE_NAME.downcase}/#{platform}/shoes"
         local_file_path = File.join(LIB_DIR, Shoes::RELEASE_NAME.downcase, platform, "latest_shoes.#{extension}")
       when Shoes::I_NOV then
         url = "http://shoes.heroku.com/pkg/#{Shoes::RELEASE_NAME.downcase}/#{platform}/shoes-novideo"
-        local_file_path = File.join(LIB_DIR, Shoes::RELEASE_NAME.downcase, platform, "latest_shoes-novideo.#{extension}")  
+        local_file_path = File.join(LIB_DIR, Shoes::RELEASE_NAME.downcase, platform, "latest_shoes-novideo.#{extension}")
       when I_NET then
         url = false
       else
         raise "missing download option #{opt}"
       end
-      
+
       FileUtils.makedirs File.join(LIB_DIR, Shoes::RELEASE_NAME.downcase, platform)
-      
+
       if url then
         begin
           url = open(url).read.strip
@@ -71,16 +72,16 @@ class Shoes
               end
               return  open(local_file_path)
             rescue Exception => e
-                raise "The download failed from\n#{url}\nor could not write to local files" + e
+              raise "The download failed from\n#{url}\nor could not write to local files" + e
             end
           end
         else
           noHopeMsg = "Failed to find an existing Shoes at:\n#{local_file_path}\nor download from\n#{url} to include with your script."
-         raise noHopeMsg 
+          raise noHopeMsg
         end
       end
     end
-    
+
     def self.exe(script, opt, &blk)
       size = File.size(script)
       f = File.open(script, 'rb')
@@ -101,12 +102,11 @@ class Shoes
           prg = count.to_f / size.to_f
           blk[last = prg] if blk and prg - last > 0.02 and prg < 1.0
         end
-        
+
         f.close
         f2.close
         f3.close
       else
-        # doesn't work on Linux or OSX
         Dir.chdir DIR + '/static/stubs' do
           `.\\shoes-stub-inject.exe #{script.gsub('/', "\\")}`
         end
@@ -125,7 +125,7 @@ class Shoes
       FileUtils.rm_rf(tmp_dir)
       FileUtils.mkdir_p(tmp_dir)
       FileUtils.cp(File.join(DIR, "static", "stubs", "blank.hfz"),
-                   File.join(tmp_dir, "blank.hfz"))
+      File.join(tmp_dir, "blank.hfz"))
       app_dir = File.join(tmp_dir, app_app)
       res_dir = File.join(tmp_dir, app_app, "Contents", "Resources")
       mac_dir = File.join(tmp_dir, app_app, "Contents", "MacOS")
@@ -141,26 +141,26 @@ class Shoes
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>CFBundleGetInfoString</key>
-  <string>#{app_name} #{vers.join(".")}</string>
-  <key>CFBundleExecutable</key>
-  <string>#{name}-launch</string>
-  <key>CFBundleIdentifier</key>
-  <string>org.hackety.#{name}</string>
-  <key>CFBundleName</key>
-  <string>#{app_name}</string>
-  <key>CFBundleIconFile</key>
-  <string>Shoes.icns</string>
-  <key>CFBundleShortVersionString</key>
-  <string>#{vers.join(".")}</string>
-  <key>CFBundleInfoDictionaryVersion</key>
-  <string>6.0</string>
-  <key>CFBundlePackageType</key>
-  <string>APPL</string>
-  <key>IFMajorVersion</key>
-  <integer>#{vers[0]}</integer>
-  <key>IFMinorVersion</key>
-  <integer>#{vers[1]}</integer>
+<key>CFBundleGetInfoString</key>
+<string>#{app_name} #{vers.join(".")}</string>
+<key>CFBundleExecutable</key>
+<string>#{name}-launch</string>
+<key>CFBundleIdentifier</key>
+<string>org.hackety.#{name}</string>
+<key>CFBundleName</key>
+<string>#{app_name}</string>
+<key>CFBundleIconFile</key>
+<string>Shoes.icns</string>
+<key>CFBundleShortVersionString</key>
+<string>#{vers.join(".")}</string>
+<key>CFBundleInfoDictionaryVersion</key>
+<string>6.0</string>
+<key>CFBundlePackageType</key>
+<string>APPL</string>
+<key>IFMajorVersion</key>
+<integer>#{vers[0]}</integer>
+<key>IFMinorVersion</key>
+<integer>#{vers[1]}</integer>
 </dict>
 </plist>
 END
@@ -171,14 +171,14 @@ END
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>BuildVersion</key>
-  <string>1</string>
-  <key>CFBundleVersion</key>
-  <string>#{vers.join(".")}</string>
-  <key>ProjectName</key>
-  <string>#{app_name}</string>
-  <key>SourceVersion</key>
-  <string>#{Time.now.strftime("%Y%m%d")}</string>
+<key>BuildVersion</key>
+<string>1</string>
+<key>CFBundleVersion</key>
+<string>#{vers.join(".")}</string>
+<key>ProjectName</key>
+<string>#{app_name}</string>
+<key>SourceVersion</key>
+<string>#{Time.now.strftime("%Y%m%d")}</string>
 </dict>
 </plist>
 END
@@ -194,14 +194,14 @@ echo "[Pango]" > /tmp/pangorc
 echo "ModuleFiles=$SHOESPATH/pango.modules" >> /tmp/pangorc
 if [ ! -d /Applications/Shoes.app ]
   then ./cocoa-install
-fi
-open -a /Applications/Shoes.app "#{File.basename(script)}"
-# DYLD_LIBRARY_PATH=$SHOESPATH PANGO_RC_FILE="$APPPATH/pangorc" $SHOESPATH/shoes-bin "#{File.basename(script)}"
+    fi
+    open -a /Applications/Shoes.app "#{File.basename(script)}"
+    # DYLD_LIBRARY_PATH=$SHOESPATH PANGO_RC_FILE="$APPPATH/pangorc" $SHOESPATH/shoes-bin "#{File.basename(script)}"
 END
       end
       FileUtils.cp(script, File.join(mac_dir, File.basename(script)))
       FileUtils.cp(File.join(DIR, "static", "stubs", "cocoa-install"),
-        File.join(mac_dir, "cocoa-install"))
+      File.join(mac_dir, "cocoa-install"))
 
       dmg = Binject::DMG.new(File.join(tmp_dir, "blank.hfz"), vol_name)
       f2 = pkg("osx", opt)
@@ -240,7 +240,7 @@ END
       FileUtils.cp(script, File.join(tmp_dir, File.basename(script)))
       File.open(File.join(tmp_dir, "sh-install"), 'wb') do |a|
         rewrite a, File.join(DIR, "static", "stubs", "sh-install"),
-          'SCRIPT' => "./#{File.basename(script)}"
+        'SCRIPT' => "./#{File.basename(script)}"
       end
       FileUtils.chmod 0755, File.join(tmp_dir, "sh-install")
 
@@ -251,12 +251,12 @@ END
         end if blk
         Shy.czf(f, tmp_dir, &pblk)
       end
-       
+
       md5, fsize = Shy.md5sum(tgz_path), File.size(tgz_path)
       File.open(run_path, 'wb') do |f|
         rewrite f, File.join(DIR, "static", "stubs", "blank.run"),
-          'CRC' => '0000000000', 'MD5' => md5, 'LABEL' => app_name, 'NAME' => name,
-          'SIZE' => fsize, 'RAWSIZE' => (raw / 1024) + 1, 'TIME' => Time.now, 'FULLSIZE' => raw
+        'CRC' => '0000000000', 'MD5' => md5, 'LABEL' => app_name, 'NAME' => name,
+        'SIZE' => fsize, 'RAWSIZE' => (raw / 1024) + 1, 'TIME' => Time.now, 'FULLSIZE' => raw
         File.open(tgz_path, 'rb') do |f2|
           f.write f2.read(8192) until f2.eof
         end
@@ -284,30 +284,30 @@ END
           @path = ""
           @shy_path = nil
           @sel1 =
-            flow do
-              para "File to package:"
-              inscription " (or a ", link("directory", &selt), ")"
-              edit1 = edit_line :width => -120
-              @bb = button "Browse...", :width => 100 do
-                @path = edit1.text = ask_open_file
-                #est_recount
-              end
+          flow do
+            para "File to package:"
+            inscription " (or a ", link("directory", &selt), ")"
+            edit1 = edit_line :width => -120
+            @bb = button "Browse...", :width => 100 do
+              @path = edit1.text = ask_open_file
+              #est_recount
             end
+          end
           @sel2 =
-            flow :hidden => true do
-              para "Directory:"
-              inscription " (or a ", link("single file", &selt), ")"
-              edit2 = edit_line :width => -120
-              @bf = button "Folder...", :width => 100 do
-                @path = edit2.text = ask_open_folder
-                #est_recount
-              end
+          flow :hidden => true do
+            para "Directory:"
+            inscription " (or a ", link("single file", &selt), ")"
+            edit2 = edit_line :width => -120
+            @bf = button "Folder...", :width => 100 do
+              @path = edit2.text = ask_open_folder
+              #est_recount
             end
+          end
 
           para "Packaging options"
-          para "Should Shoes be included with your script or should the script \
-download Shoes when the user runs it? Not all options are available on all \
-systems. The defaults work."
+          para "Should Shoes be included with your script or should the script ",
+            "download Shoes when the user runs it? Not all options are available on all ",
+            "systems. The defaults work."
           flow :margin_left => 20 do
             @shy = check
             para "Shoes (.shy) for users who have Shoes already", :margin_right => 20
@@ -316,12 +316,12 @@ systems. The defaults work."
           items.shift unless ::RUBY_PLATFORM =~ /mswin|mingw/
           flow :margin_left => 20 do
             flow :width => 0.25 do
-              @exe = check 
+              @exe = check
               para "Windows"
             end
             @incWin = list_box :items => items, :width => 0.6, :height => 30, do
               @downOpt = @incWin.text
-              est_recount 
+              est_recount
             end
             @incWin.choose items[0]
           end
@@ -336,14 +336,14 @@ systems. The defaults work."
               est_recount
             end
             @incOSX.choose(Shoes::I_NOV)
-          end 
+          end
           flow :margin_left => 20 do
             flow :width => 0.25 do
               @run = check
-              para "Linux", :margin_right => 49 
+              para "Linux", :margin_right => 49
             end
             @incLinux = list_box :items => [Shoes::I_NET], :width => 0.6,
-                :height => 30 do
+            :height => 30 do
               est_recount
             end
             @incLinux.choose(Shoes::I_NET)
@@ -353,16 +353,16 @@ systems. The defaults work."
 
       stack :margin => 20 do
         @est = para "Estimated size of your choice: ", strong("0k"), :margin => 0, :margin_bottom => 4
-        def est_recount 
-          base = 
-            case  @downOpt
-            when Shoes::I_NET; 98
-            when Shoes::I_YES; 11600
-            when Shoes::I_NOV; 7000
+        def est_recount
+          base =
+          case  @downOpt
+          when Shoes::I_NET; 98
+          when Shoes::I_YES; 11600
+          when Shoes::I_NOV; 7000
           end
           base += ((File.directory?(@path) ? Shy.du(@path) : File.size(@path)) rescue 0) / 1024
           @est.replace "Estimated size of each app: ", strong(base > 1024 ?
-            "%0.1fM" % [base / 1024.0] : "#{base}K")
+          "%0.1fM" % [base / 1024.0] : "#{base}K")
         end
         def build_thread
           @shy_path = nil
@@ -377,14 +377,14 @@ systems. The defaults work."
             @shy_launch.items = Shy.launchable(@path)
             return
           end
-          @page2.show 
+          @page2.show
           @path2.replace File.basename(@path)
-           inc_win_text, inc_osx_text, inc_linux_text = @incWin.text, 
-@incOSX.text, @incLinux.text
+          #inc_text = @inc.text
+          inc_win_text, inc_osx_text, inc_linux_text = @incWin.text, @incOSX.text, @incLinux.text
           Thread.start do
             begin
               sofar, stage = 0.0, 1.0 / [@shy.style[:checked], @exe.style[:checked], @dmg.style[:checked], @run.style[:checked]].
-                select { |x| x }.size
+              select { |x| x }.size
               blk = proc do |frac|
                 @prog.style(:width => sofar + (frac * stage))
               end
@@ -420,7 +420,7 @@ systems. The defaults work."
               every do
                 if @prog.style[:width] == 1.0
                   @page2.hide
-                  @page3.show 
+                  @page3.show
                   @path3.replace File.basename(@path)
                 end
               end
@@ -434,7 +434,7 @@ systems. The defaults work."
             end
           end
         end
-        
+
         inscription "Using the latest Shoes build (0.r#{Shoes::REVISION})", :margin => 0
         flow :margin_top => 10, :margin_left => 310 do
           button "OK", :margin_right => 4 do
@@ -510,8 +510,8 @@ systems. The defaults work."
         stack :width => -20, :height => 24 do
           @prog = background "#{DIR}/static/stripe.png", :curve => 7
           background "rgb(0, 0, 0, 100)".."rgb(120, 120, 120, 0)", :curve => 6, :height => 16
-          background "rgb(120, 120, 120, 0)".."rgb(0, 0, 0, 100)", :curve => 6, 
-            :height => 16, :top => 8
+          background "rgb(120, 120, 120, 0)".."rgb(0, 0, 0, 100)", :curve => 6,
+          :height => 16, :top => 8
           border "rgb(60, 60, 60, 80)", :curve => 7, :strokewidth => 2
         end
       end
