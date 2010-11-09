@@ -1,86 +1,76 @@
-                      
-    ((( ||_|  //\  [[_ (((
-    ))) || |  \\/  [[_  )))
-an artsy any-platform app kit [http://github.com/shoes/shoes](http://github.com/shoes/shoes)
+<pre>
+    ((( |||_| ///\ [[[_ (((
+     ))) || |  \\/  [[_  )))
+  an artsy any-platform app kit
+      http://shoesrb.com
+</pre>
 
-# Hi, guys, thankyou for taking Shoes.
+# About Shoes
 
-### Shoes is for writing plain old windowing software.  But it borrows a few things I like from the web:
+Shoes is the best little DSL for cross-platform GUI programming there is. It feels like real Ruby, rather than just another C++ library wrapper. If Gtk or wxWidgets is Rails, Shoes is Sinatra.
 
-- Hyperlinks and URLs within Shoes and to the web.
-- Simple text layout -- though Shoes eschews floats.
-- Images and colors in the layout and in the background.
-- Margin and padding.
-- Resizable layouts.
+# Let me tell you a story about Shoes
 
-However, layouts can be tough on the web.  Like a two-column layout.
-So rather than using floating divs, Shoes uses two layout types:
-stacks and flows.  More on that later.
+  Way way back in the day, there was a guy named \_why. He created a project known as [Hackety Hack](http://hackety-hack.com) to teach programming to everyone. In order to reach all corners of the earth, \_why decided to make Hackety Hack work on Windows, Mac OS X, and Linux. This was a lot of work, and so \_why decided to share his toolkit with the world. Thus, Shoes was born.
 
-### Shoes does keep a few things from traditional windowing toolkits:
+Everybody loved Shoes. Many apps were made, and put into [The Shoebox](http://the-shoebox.org/). But, one day, \_why left. In his memory, Team Shoes assembled, and carried on making Shoes. They released Shoes 3 in late summer 2010.
 
-- Buttons.
-- Text edit (single-line and multi-line).
-- Progress bars.
-- Scroll bars.
-- Dialogs.
+# So what do these Shoes look like?
 
-### And, last of all, Shoes gets some inspiration from NodeBox and Processing:
+Here's a little Shoes app. It's a stopwatch!
 
-- The whole window is a canvas.
-- Shapes, paths, curves and transformations.
-- Animation.
-- Easy event-handling for mouse and keyboard.
+    Shoes.app :height => 150, :width => 250 do
+      background rgb(240, 250, 208)
+      stack :margin => 10 do
+        button "Start" do
+          @time = Time.now
+          @label.replace "Stop watch started at #@time"
+        end
+        button "Stop" do
+          @label.replace "Stopped, ", strong("#{Time.now - @time}"), " seconds elapsed."
+        end
+        @label = para "Press ", strong("start"), " to begin timing."
+      end
+    end
 
-Lastly, Shoes uses Ruby as its interface language.
+Here's what it looks like:
 
-That's really about all that's in Shoes.  It's supposed to be light.
-Not much code and not too much ambition.
+![shoes timer](https://github.com/shoes/shoes/raw/develop/manual-snapshots/simple-timer.png)
 
-## WHY NOT WXWINDOWS?  WHY NOT THE FOX TOOLKIT?  OR QT??
+Pretty simple! For more samples, the manual, and a free book, check out [the Shoes website](http://shoesrb.com/).
 
-Shoes is strictly inspired by stuff like REBOL/View, HyperCard, the web itself and, of course, Processing and NodeBox.
+# Using Shoes
 
-I don't like the bulkiness and the layers and layers of wxWindows, FOX, QT, GNOME.  They are big, big libraries and all the apps look identical, devoid of spirit.
+If you'd like to use Shoes to develop some apps... awesome! It's super easy: Just go to the [downloads page on the Shoes website](http://shoesrb.com/downloads) and download a copy of Shoes for your platform. Mac OSX, Windows, and Linux supported!
 
-The unique thing about the web is that it gives you very few controls, but people are able to build wildly different pages with it that are still immediately accessible to people.
+After you install Shoes, run it! You'll get a window like this:
 
+![shoes main window](https://github.com/shoes/shoes/raw/develop/static/shoes_main_window.png)
 
-## THE INSIDE OF SHOES
+You can then open any .rb file with Shoes code inside by choosing "Open an App." It'll open it up and run it, right away.
 
-### So, to save a bit of work, Shoes relies on a few libraries:
- 
-- Cairo, for drawing. [http://cairographics.org](http://cairographics.org)
-- Pango, for text.
-- Ruby, for programming.
+Once you're happy with your app, you can choose "Package an App" to wrap up your app as a .exe, .app, or a .run. Then you can share it with someone without a pair of Shoes to call their own.
 
-All native widgets use the OS APIs directly.  Half of Shoes is platform specific code.  The targets are: OSX, Windows and GTK.
+# Making your own Shoes
 
-## STAYING CURRENT WITH SHOES
+You can make your own pair of Shoes with a little bit of elbow grease. Since there are different instructions on each platform, we've got a page up on the [Shoes development wiki](http://github.com/shoes/shoes/wiki) about it. It's [right here](https://github.com/shoes/shoes/wiki/BuildingShoes).
 
-### Shoes development happens at Github.  You can download a current tarball of the very latest Shoes from here:
+# Shoes Around the Web
 
-[http://github.com/shoes/shoes](http://github.com/shoes/shoes)
-     
-Or, if you have git installed, you can clone the repo like so:
+If you want to keep up to date with what's going on with Shoes, you can find us in various places:
 
-git clone git://github.com/shoes/shoes.git
+* [Official Shoes Site](http://shoesrb.com/)
+* [Source Code @ GitHub](http://github.com/shoes/shoes)
+* [Issue tracker @ GitHub](http://github.com/shoes/shoes/issues)
+* [Mailing List](http://librelist.com/browser/shoes/) (send an email to shoes@librelist.com to join)
+* [Twitter account](http://twitter.com/shoooesrb)
+* [Facebook page](http://www.facebook.com/pages/Shoes/132605040125019)
+* IRC room on Freenode, #shoes
 
-### Once you have your compiler and dependencies set up, building Shoes is as simple as:
+# Helping out with Shoes
 
-rake
+So you'd like to lend a helping hand, eh? Great! We'd love to have you. To submit a patch to Shoes, just fork us, and send a pull request.
 
-Your Shoes build will then appear in the 'dist' directory.
+If you don't have any ideas yourself, take a look at the [Issue tracker](http://github.com/shoes/shoes/issues) and see if anything strikes your fancy. If you need help working on something, don't be afraid to post to the mailing list about it!
 
-### For instructions on how to set up your compiler and acquire deps for Windows, OS X, and Linux, see the Shoes wiki:
-[http://wiki.github.com/shoes/shoes/BuildingShoesi](http://wiki.github.com/shoes/shoes/BuildingShoes)
-
-# LICENSE
-
-Copyright (c) 2008 why the lucky stiff
-    
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-      
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-       
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+If you're not a programmer, you can help Shoes by talking about it! Blog posts, tweets, tell your neighbors, call your grandma, whatever! Share Shoes with everyone!
