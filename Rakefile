@@ -43,13 +43,13 @@ end
 
 case RUBY_PLATFORM
 when /mingw/
-  require 'rakefile_mingw'
+  require File.expand_path('rakefile_mingw')
   Builder = MakeMinGW
 when /darwin/
-  require 'rakefile_darwin'
+  require File.expand_path('rakefile_darwin')
   Builder = MakeDarwin
 when /linux/
-  require 'rakefile_linux'
+  require File.expand_path('rakefile_linux')
   Builder = MakeLinux
 else
   puts "Sorry, your platform [#{RUBY_PLATFORM}] is not supported..."
