@@ -960,20 +960,19 @@ class.)
  #!ruby
  Shoes.app do
    stack do
-     title "POSTing to Google", :size => 16
+     title "GET Google", :size => 16
      @status = para "One moment..."
 
-     download "http://www.stevex.net/dump.php",
-              :method => "POST", :body => "v=1.0&q=shoes" do |dump|
-       require 'hpricot'
-       @status.text = Hpricot(dump.response.body).inner_text
+     download "http://www.google.com/search?q=shoes", 
+         :method => "GET" do |dump|
+       @status.text = dump.response.body
      end
    end
  end
 }}}
 
-As you can see from the above example, Shoes includes the Hpricot library for
-parsing HTML.
+As you can see from the above example, Shoes makes use of the "GET" method to
+query google's search engine.
 
 === location() » a string ===
 
