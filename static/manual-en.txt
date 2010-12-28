@@ -87,7 +87,7 @@ through all the steps, though, just to be clear about it.
 
 ==== Step 1: Installing Shoes ====
 
-You'll want to visit [[http://shoes.heroku.com/ the site of Shoes]] to download
+You'll want to visit [[http://shoesrb.com/ the site of Shoes]] to download
 the Shoes installer.  Usually, you'll just want one of the installers on the
 downloads page of the site. !man-builds1.png!
 
@@ -540,7 +540,7 @@ thorough and clear about everything.
 
 So, if you've hit this far in the manual and you're still hazy about getting
 started, you should probably either go back to the [[Hello! beginning]] of the
-manual. Or you could try [[http://github.com/shoes/shoes/downloads Nobody Knows
+manual. Or you could try [[https://github.com/downloads/shoes/shoes/nks.pdf Nobody Knows
 Shoes]], the beginner's leaflet PDF.
 
 ==== Finding Your Way ====
@@ -3528,4 +3528,4 @@ Hope this helps:
 
  * You can join [[http://librelist.com/browser/shoes/ Shoes ML]] and feel free ask your questions. 
  * [[http://github.com/shoes/shoes/ Official Current Source Code]] is on GitHub.
- * [[http://wiki.github.com/shoes/shoes/recentbuilds/ Recent Builds]] for your platform.
+ * [[http://github.com/shoes/shoes/downloads Recent Builds]] for your platform.
