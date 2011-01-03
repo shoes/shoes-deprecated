@@ -1,7 +1,11 @@
 require 'rubygems'
 require 'rake'
 require 'rake/clean'
+if RUBY_VERSION != '1.8.7'
 require_relative 'platform/skel'
+else
+require File.join(File.dirname(__FILE__), 'platform/skel')
+end
 require 'fileutils'
 require 'find'
 require 'yaml'
@@ -28,6 +32,9 @@ CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "dist"]
 RUBY_SO = Config::CONFIG['RUBY_SO_NAME']
 RUBY_V = Config::CONFIG['ruby_version']
 RUBY_1_9 = (RUBY_V =~ /^1\.9/)
+if RUBY_1_9
+  $: << "."
+end
 
 if ENV['APP']
   %w[dmg icons].each do |subk|

@@ -328,6 +328,7 @@ binject_exe_file_copy(FILE *file, FILE *out, unsigned int size, unsigned int pos
   fseek(out, mark2, SEEK_SET);
 }
 
+#ifdef RUBY_1_9
 void
 binject_exe_file_copy1(rb_io_t *fptr, FILE *out, unsigned int size, unsigned int pos1, unsigned int pos2, VALUE proc)
 {
@@ -351,6 +352,7 @@ binject_exe_file_copy1(rb_io_t *fptr, FILE *out, unsigned int size, unsigned int
   fseek(file, mark1, SEEK_SET);
   fseek(out, mark2, SEEK_SET);
 }
+#endif 
 
 int
 binject_exe_offset(binject_exe_t *binj, int level, int res_type)
