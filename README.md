@@ -53,7 +53,7 @@ Once you're happy with your app, you can choose "Package an App" to wrap up your
 
 # Making your own Shoes
 
-You can make your own pair of Shoes with a little bit of elbow grease. Since there are different instructions on each platform, we've got a page up on the [Shoes development wiki](http://github.com/shoes/shoes/wiki) about it. It's [right here](https://github.com/shoes/shoes/wiki/BuildingShoes).
+You can make your own pair of Shoes with a little bit of elbow grease. Since there are different instructions on each platform, we've got a page up on the [Shoes development wiki](http://github.com/shoes/shoes/wiki) about it. It's [right here](https://github.com/shoes/shoes/wiki/Building-Shoes).
 
 # Shoes Around the Web
 
