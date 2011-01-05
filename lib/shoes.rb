@@ -6,15 +6,19 @@
 #
 ARGV.delete_if { |x| x =~ /-psn_/ }
 
+%w[UTF_7 UTF_16BE UTF_16LE UTF_32BE UTF_32LE].each do |ec|
+  eval "#{ec} = '#{ec.sub '_', '-'}'"
+end unless RUBY_PLATFORM =~ /linux/
+
 require 'open-uri'
 require 'optparse'
 require 'resolv-replace' if RUBY_PLATFORM =~ /win/
 require 'shoes/inspect'
-require 'shoes/cache'
+#require 'shoes/cache'
 if Object.const_defined? :Shoes
   require 'shoes/image'
 end
-require 'shoes/shybuilder'
+#require 'shoes/shybuilder'
 
 def Shoes.hook; end
 
