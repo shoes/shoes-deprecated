@@ -2245,39 +2245,94 @@ shoes_fix_slashes(char *path)
   return path;
 }
 
+static void
+shoes_append_filter_token(char **filters, char *token, int token_len) {
+  memcpy(*filters, token, token_len);
+  (*filters) += token_len;
+  *(*filters)++ = '\0';
+}
+
 static VALUE
 shoes_dialog_chooser(VALUE self, char *title, DWORD flags, VALUE attr)
 {
   BOOL ok;
   VALUE path = Qnil;
   GLOBAL_APP(app);
-  char dir[MAX_PATH+1], _path[MAX_PATH+1];
+  char _path[MAX_PATH+1];
   OPENFILENAME ofn;
   ZeroMemory(&ofn, sizeof(ofn));
-  GetCurrentDirectory(MAX_PATH, (LPSTR)dir);
+  int filter_len = 64;
+  int val_len, key_len = val_len = 0;
+  char *filters;
+
+  if((filters = malloc(filter_len)) == NULL)
+    return Qnil;
+  *filters = '\0';
+
+  if(RTEST(shoes_hash_get(attr, rb_intern("types"))) && 
+           TYPE(shoes_hash_get(attr, rb_intern("types"))) == T_HASH) {
+    char *filters_buff = filters;
+    int i;
+    VALUE hsh = shoes_hash_get(attr, rb_intern("types"));
+    VALUE keys = rb_funcall(hsh, s_keys, 0);
+
+    for(i = 0; i < RARRAY_LEN(keys); i++) {
+      VALUE key = rb_ary_entry(keys, i);
+      char *key_name = RSTRING_PTR(key);
+      char *val = RSTRING_PTR(rb_hash_aref(hsh, key));
+
+      key_len = strlen(key_name);
+      val_len = strlen(val);
+      int pos = filters_buff - filters;
+
+      // ensure there's room for both tokens, thier NULL terminators
+      // and the NULL terminator for the whole filter.
+      if((pos + key_len + val_len + 3) >= filter_len) {
+	filter_len *= 2;
+	if((filters = realloc(filters, filter_len)) == NULL)
+	  return Qnil;
+	filters_buff = filters + pos;
+      }
+
+      // add the tokens on to the filter string
+
+      shoes_append_filter_token(&filters_buff, key_name, key_len);
+      shoes_append_filter_token(&filters_buff, val, val_len);
+    }
+
+    // the whole thing needs a final terminator
+    filters_buff = '\0';
+  } else
+    // old shoes apps under windows may expect this
+    memcpy(filters, "All\0*.*\0Text\0*.TXT\0\0", 20);
+
+  ofn.lpstrFilter     = (LPCTSTR)filters;
   ofn.lStructSize     = sizeof(ofn);
   ofn.hwndOwner       = APP_WINDOW(app);
   ofn.hInstance       = shoes_world->os.instance;
   ofn.lpstrFile       = _path;
   ofn.lpstrTitle      = title;
   ofn.nMaxFile        = sizeof(_path);
-  ofn.lpstrFile[0] = '\0';
-  ofn.lpstrFilter = "All\0*.*\0Text\0*.TXT\0";
-  ofn.nFilterIndex = 1;
-  ofn.lpstrFileTitle = NULL;
-  ofn.nMaxFileTitle = 0;
-  ofn.lpstrInitialDir = NULL; // (LPSTR)dir;
+  ofn.lpstrFile[0]    = '\0';
+  ofn.nFilterIndex    = 1;
+  ofn.lpstrFileTitle  = NULL;
+  ofn.nMaxFileTitle   = 0;
+  ofn.lpstrInitialDir = NULL;
   ofn.Flags           = OFN_EXPLORER | flags;
-  VALUE save = ID2SYM(rb_intern("save"));
+  VALUE save          = ID2SYM(rb_intern("save"));
+
   if (RTEST(ATTR(attr, save)))
-	  ofn.lpstrFile = (LPSTR)RSTRING_PTR(rb_hash_aref(attr, save));
+    ofn.lpstrFile = (LPSTR)RSTRING_PTR(rb_hash_aref(attr, save));
   if (flags & OFN_OVERWRITEPROMPT)
     ok = GetSaveFileName(&ofn);
   else
     ok = GetOpenFileName(&ofn);
+
+  free(filters);
+
   if (ok)
     path = rb_str_new2(shoes_fix_slashes(ofn.lpstrFile));
-  SetCurrentDirectory((LPSTR)dir);
+
   return path;
 }
 
