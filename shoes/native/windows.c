@@ -2295,13 +2295,12 @@ shoes_dialog_chooser(VALUE self, char *title, DWORD flags, VALUE attr)
       }
 
       // add the tokens on to the filter string
-
       shoes_append_filter_token(&filters_buff, key_name, key_len);
       shoes_append_filter_token(&filters_buff, val, val_len);
     }
 
     // the whole thing needs a final terminator
-    filters_buff = '\0';
+    *filters_buff = '\0';
   } else
     // old shoes apps under windows may expect this
     memcpy(filters, "All\0*.*\0Text\0*.TXT\0\0", 20);
