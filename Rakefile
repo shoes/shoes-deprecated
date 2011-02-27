@@ -22,6 +22,9 @@ Rake::TestTask.new do |t|
   t.pattern = "test/*_test.rb" 
 end 
 
+require 'bundler'
+Bundler::GemHelper.install_tasks
+
 GIT = ENV['GIT'] || "git"
 REVISION = (`#{GIT} rev-list HEAD`.split.length + 1).to_s
 VERS = ENV['VERSION'] || "0.r#{REVISION}"
