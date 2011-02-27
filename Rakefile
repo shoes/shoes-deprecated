@@ -17,6 +17,11 @@ RELEASE_ID, RELEASE_NAME = APP['version'], APP['release']
 NAME = APP['shortname'] || APP['name'].downcase.gsub(/\W+/, '')
 SONAME = 'shoes'
 
+require 'rake/testtask'
+Rake::TestTask.new do |t|
+  t.pattern = "test/*_test.rb" 
+end 
+
 GIT = ENV['GIT'] || "git"
 REVISION = (`#{GIT} rev-list HEAD`.split.length + 1).to_s
 VERS = ENV['VERSION'] || "0.r#{REVISION}"
