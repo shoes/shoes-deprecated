@@ -6,15 +6,17 @@
 #
 ARGV.delete_if { |x| x =~ /-psn_/ }
 
+require_relative 'shoes/shoes'
+
 require 'open-uri'
 require 'optparse'
 require 'resolv-replace' if RUBY_PLATFORM =~ /win/
-require 'shoes/inspect'
-require 'shoes/cache'
+#require_relative 'shoes/inspect'
+#require_relative 'shoes/cache'
 if Object.const_defined? :Shoes
-  require 'shoes/image'
+  require_relative 'shoes/image'
 end
-require 'shoes/shybuilder'
+#require_relative 'shoes/shybuilder'
 
 def Shoes.hook; end
 

@@ -324,3 +324,10 @@ deps_list.each do |name, opts|
     end
   end
 end
+
+require 'rake/extensiontask'
+
+Rake::ExtensionTask.new('shoes') do |ext|
+  ext.lib_dir = File.join('lib', 'shoes')
+end
+

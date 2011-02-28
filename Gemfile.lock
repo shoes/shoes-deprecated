@@ -4,9 +4,13 @@ GEM
     mechanize (1.0.0)
       nokogiri (>= 1.2.1)
     nokogiri (1.4.4)
+    rake (0.8.7)
+    rake-compiler (0.7.6)
+      rake
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   mechanize
+  rake-compiler

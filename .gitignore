@@ -10,3 +10,5 @@ pkg
 req/*
 *~
 *.swp
+tmp/
+lib/shoes/shoes.bundle
