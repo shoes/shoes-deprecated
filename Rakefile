@@ -132,18 +132,58 @@ end
 # This is the list of dependancies that Shoes needs. The keys are the filenames
 # in the deps directory, and the values are the URLs where they can be downloaded.
 deps_list = {
-  "deps/pkg-config-0.20" => "http://pkg-config.freedesktop.org/releases/pkg-config-0.20.tar.gz",
-  "deps/libpng-1.4.1" => "http://sourceforge.net/projects/libpng/files/libpng14/older-releases/1.4.1/libpng-1.4.1.tar.gz/download",
-  "deps/giflib-4.1.6" => "http://sourceforge.net/projects/giflib/files/giflib%204.x/giflib-4.1.6/giflib-4.1.6.tar.gz/download",
-  "deps/gettext-0.17" => "http://ftp.gnu.org/gnu/gettext/gettext-0.17.tar.gz",
-  "deps/libiconv-1.13" => "http://ftp.gnu.org/gnu/libiconv/libiconv-1.13.tar.gz",
-  "deps/pixman-0.18.0" => "http://cgit.freedesktop.org/pixman/snapshot/pixman-0.18.0.tar.gz",
-  "deps/pango-1.28.0" => "http://ftp.gnome.org/pub/GNOME/sources/pango/1.28/pango-1.28.0.tar.gz",
-  "deps/portaudio" => "http://portaudio.com/archives/pa_stable_v19_20071207.tar.gz",
-  "deps/cairo-1.8.10" => "http://cairographics.org/releases/cairo-1.8.10.tar.gz",
-  "deps/jpeg-8a" => "http://ijg.org/files/jpegsrc.v8a.tar.gz",
-  "deps/glib-2.24.0" => "http://ftp.gnome.org/pub/gnome/sources/glib/2.24/glib-2.24.0.tar.gz",
-  "deps/ruby-1.9.1-p378" => "http://ftp.ruby-lang.org//pub/ruby/1.9/ruby-1.9.1-p378.tar.gz"
+  "deps/src/pkg-config-0.20" => {
+    :url => "http://pkg-config.freedesktop.org/releases/pkg-config-0.20.tar.gz", 
+    :config => "--prefix=#{File.dirname(__FILE__)}/deps",
+  },
+  "deps/src/libpng-1.4.1" => {
+    :url => "http://sourceforge.net/projects/libpng/files/libpng14/older-releases/1.4.1/libpng-1.4.1.tar.gz/download", 
+    :config => "--prefix=#{File.dirname(__FILE__)}/deps",
+  },
+  "deps/src/giflib-4.1.6" => {
+    :url => "http://sourceforge.net/projects/giflib/files/giflib%204.x/giflib-4.1.6/giflib-4.1.6.tar.gz/download", 
+    :config => "--prefix=#{File.dirname(__FILE__)}/deps",
+  },
+  "deps/src/gettext-0.17" => {
+    :url => "http://ftp.gnu.org/gnu/gettext/gettext-0.17.tar.gz", 
+    :config => "--prefix=#{File.dirname(__FILE__)}/deps",
+  },
+  "deps/src/libiconv-1.13" => {
+    :url => "http://ftp.gnu.org/gnu/libiconv/libiconv-1.13.tar.gz", 
+    :config => "--prefix=#{File.dirname(__FILE__)}/deps",
+  },
+  "deps/src/pixman-0.18.0" => {
+    :url => "http://cgit.freedesktop.org/pixman/snapshot/pixman-0.18.0.tar.gz", 
+    :config => "--prefix=#{File.dirname(__FILE__)}/deps",
+  },
+  "deps/src/pango-1.28.0" => {
+    :url => "http://ftp.gnome.org/pub/GNOME/sources/pango/1.28/pango-1.28.0.tar.gz", 
+    :config => "--prefix=#{File.dirname(__FILE__)}/deps --with-x=no",
+  },
+  "deps/src/portaudio" => {
+    :url => "http://portaudio.com/archives/pa_stable_v19_20071207.tar.gz", 
+    :config => "--prefix=#{File.dirname(__FILE__)}/deps --disable-mac-universal",
+  },
+  "deps/src/cairo-1.8.10" => {
+    :url => "http://cairographics.org/releases/cairo-1.8.10.tar.gz", 
+    :config => "--prefix=#{File.dirname(__FILE__)}/deps --enable-quartz=yes --enable-quartz-font=yes --enable-xlib=no",
+  },
+  "deps/src/jpeg-8a" => {
+    :url => "http://ijg.org/files/jpegsrc.v8a.tar.gz", 
+    :config => "--prefix=#{File.dirname(__FILE__)}/deps --enable-shared",
+  },
+  "deps/src/glib-2.24.0" => {
+    :url => "http://ftp.gnome.org/pub/gnome/sources/glib/2.24/glib-2.24.0.tar.gz", 
+    :config => "--prefix=#{File.dirname(__FILE__)}/deps",
+  },
+  "deps/src/ruby-1.9.1-p378" => {
+    :url => "http://ftp.ruby-lang.org//pub/ruby/1.9/ruby-1.9.1-p378.tar.gz",
+    :config => "--prefix=#{File.dirname(__FILE__)}/deps --enable-shared",
+  },
+  "deps/src/rubygems-1.3.6.tgz" => {
+    :url => "http://production.cf.rubygems.org/rubygems/rubygems-1.3.6.tgz",
+    :config => "",
+  },
 }
 
 desc "Build dependencies on Snow Leopard"
@@ -151,21 +191,31 @@ task "deps" => deps_list.keys do
 
   #ENV['SOMETHING'] = "HELLO"
 
+  # Everything is unzipped. Time to build.
+  cd "deps/src/pkg-config-0.20" do
+    sh "./configure #{deps_list['deps/src/pkg-config-0.20'][:config]}"
+    sh "make && make install"
+  end
+
+  puts "done building deps!"
 
 end
 
 require 'mechanize'
 agent = Mechanize.new
 
-directory "deps/"
+directory "deps/src"
 
-deps_list.each do |name, url|
-  file name => "deps/" do
+deps_list.each do |name, opts|
+  file name => "deps/src" do
+
+    url = opts[:url]
+
     # get just the filename
-    url =~ /([^\/]+\.tar\.gz)/
+    url =~ /([^\/]+(?:(?:\.tar\.gz)|(?:\.tgz)))/
     f = $1
 
-    cd "deps" do
+    cd "deps/src" do
       puts "downloading #{url}"
       agent.get(url).save
 
