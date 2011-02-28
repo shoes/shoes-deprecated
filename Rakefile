@@ -128,3 +128,45 @@ end
 task :installer do
   Builder.make_installer
 end
+
+# This is the list of dependancies that Shoes needs. The keys are the filenames
+# in the deps directory, and the values are the URLs where they can be downloaded.
+deps_list = {
+  "deps/pkg-config-0.20.tar.gz" => "http://pkg-config.freedesktop.org/releases/pkg-config-0.20.tar.gz",
+  "deps/libpng-1.4.1.tar.gz" => "http://sourceforge.net/projects/libpng/files/libpng14/older-releases/1.4.1/libpng-1.4.1.tar.gz/download",
+  "deps/giflib-4.1.6.tar.gz" => "http://sourceforge.net/projects/giflib/files/giflib%204.x/giflib-4.1.6/giflib-4.1.6.tar.gz/download",
+  "deps/gettext-0.17.tar.gz" => "http://ftp.gnu.org/gnu/gettext/gettext-0.17.tar.gz",
+  "deps/libiconv-1.13.tar.gz" => "http://ftp.gnu.org/gnu/libiconv/libiconv-1.13.tar.gz",
+  "deps/pixman-0.18.0.tar.gz" => "http://cgit.freedesktop.org/pixman/snapshot/pixman-0.18.0.tar.gz",
+  "deps/pango-1.28.0.tar.gz" => "http://ftp.gnome.org/pub/GNOME/sources/pango/1.28/pango-1.28.0.tar.gz",
+  "deps/pa_stable_v19_20071207.tar.gz" => "http://portaudio.com/archives/pa_stable_v19_20071207.tar.gz",
+  "deps/cairo-1.8.10.tar.gz" => "http://cairographics.org/releases/cairo-1.8.10.tar.gz",
+  "deps/jpegsrc.v8a.tar.gz" => "http://ijg.org/files/jpegsrc.v8a.tar.gz",
+  "deps/glib-2.24.0.tar.gz" => "http://ftp.gnome.org/pub/gnome/sources/glib/2.24/glib-2.24.0.tar.gz",
+  "deps/ruby-1.9.1-p378.tar.gz" => "http://ftp.ruby-lang.org//pub/ruby/1.9/ruby-1.9.1-p378.tar.gz"
+}
+
+desc "Build dependencies on Snow Leopard"
+task "deps" => deps_list.keys do
+
+  #ENV['SOMETHING'] = "HELLO"
+
+  # For some reason, the pixman downloads with quotes.
+  if File.exists?("deps/\"pixman-0.18.0.tar.gz\"")
+    mv "deps/\"pixman-0.18.0.tar.gz\"", "deps/pixman-0.18.0.tar.gz"
+  end
+
+end
+
+require 'mechanize'
+agent = Mechanize.new
+
+deps_list.each do |name, url|
+  file name do
+    puts "downloading #{url}"
+    mkdir_p 'deps'
+    cd "deps" do
+      agent.get(url).save
+    end
+  end
+end
