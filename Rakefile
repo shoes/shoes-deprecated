@@ -129,8 +129,14 @@ task :installer do
   Builder.make_installer
 end
 
-# This is the list of dependancies that Shoes needs. The keys are the filenames
-# in the deps directory, and the values are the URLs where they can be downloaded.
+# Here's all of the deps that Shoes needs!
+#
+# The key is the directory of each dependency. The values are hashes which
+# have two elements:
+#   :url => The url where that dep can be downloaded from
+#   :config => the option that needs to be passed to ./configure
+#
+# That's it!
 deps_list = {
   "deps/src/pkg-config-0.20" => {
     :url => "http://pkg-config.freedesktop.org/releases/pkg-config-0.20.tar.gz", 
@@ -187,28 +193,50 @@ deps_list = {
 }
 
 desc "Build dependencies on Snow Leopard"
-task "deps" => deps_list.keys do
+task "deps" => deps_list.keys + ["deps/bin/pkg-config"] do
 
-  #ENV['SOMETHING'] = "HELLO"
+  # Now that pkg-config is built, let's set our environment variables up.
+  deps_dir = File.dirname(__FILE__) + "/deps"
+  ENV['MACOSX_DEPLOYMENT_TARGET'] = "10.6"
+  ENV['PATH'] = "#{deps_dir}/bin:$PATH"
+  ENV['CFLAGS'] = "-I#{deps_dir}/include -w"
+  ENV['LDFLAGS'] = "-L/#{deps_dir}/lib"
+  ENV['PKG_CONFIG_PATH'] = "#{deps_dir}/lib/pkgconfig"
+  
+  # Now we can build everything else
+  deps_list.reject{|k| k =~ /pkg-config/ or k =~ /rubygems/ }.each do |k, v|
+    puts "now building #{k}"
+  end
 
-  # Everything is unzipped. Time to build.
+  puts "done building deps!"
+end
+
+file "deps/bin/pkg-config" => "deps/src/pkg-config-0.20" do
+  # Let's build pkg-config
   cd "deps/src/pkg-config-0.20" do
     sh "./configure #{deps_list['deps/src/pkg-config-0.20'][:config]}"
     sh "make && make install"
   end
-
-  puts "done building deps!"
-
 end
 
+
+# Let's use mechanize to download the files we need.
 require 'mechanize'
 agent = Mechanize.new
 
+# We want to make sure that the deps/src directory gets built: that's where
+# all of the source code for our dependencies goes
 directory "deps/src"
 
+# These tasks all download the source for our dependencies.
+#
+# We want to loop through the deps list.
 deps_list.each do |name, opts|
+
+  # Each file depends on having the src directory built
   file name => "deps/src" do
 
+    # Grab the URL we need to download from.
     url = opts[:url]
 
     # get just the filename
