@@ -7,14 +7,14 @@
 #include <stdio.h>
 #include <setjmp.h>
 #include <sys/stat.h>
-#include "shoes/app.h"
-#include "shoes/canvas.h"
-#include "shoes/ruby.h"
-#include "shoes/internal.h"
-#include "shoes/world.h"
-#include "shoes/native.h"
-#include "shoes/version.h"
-#include "shoes/http.h"
+#include "app.h"
+#include "canvas.h"
+#include "shoes_ruby.h"
+#include "internal.h"
+#include "world.h"
+#include "native.h"
+#include "version.h"
+#include "http.h"
 
 #undef HAVE_PROTOTYPES
 #undef HAVE_STDLIB_H

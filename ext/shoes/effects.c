@@ -2,10 +2,10 @@
 // shoes/effects.c
 // The blurring and shadowing effects.
 //
-#include "shoes/internal.h"
-#include "shoes/app.h"
-#include "shoes/canvas.h"
-#include "shoes/ruby.h"
+#include "internal.h"
+#include "app.h"
+#include "canvas.h"
+#include "shoes_ruby.h"
 #include <math.h>
 
 static unsigned char *

@@ -2,13 +2,14 @@
 // shoes/native/windows.c
 // Windows-specific code for Shoes.
 //
-#include "shoes/app.h"
-#include "shoes/ruby.h"
-#include "shoes/config.h"
-#include "shoes/world.h"
-#include "shoes/native.h"
-#include "shoes/internal.h"
-#include "shoes/appwin32.h"
+#ifdef SHOES_WIN32
+#include "app.h"
+#include "shoes_ruby.h"
+#include "config.h"
+#include "world.h"
+#include "native.h"
+#include "internal.h"
+#include "appwin32.h"
 #include <commdlg.h>
 #include <shlobj.h>
 #include <ctype.h>
@@ -2390,3 +2391,4 @@ shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
   rb_parse_args(argc, argv, "|h", &args);
   return shoes_dialog_chooser2(self, "Save folder...", BIF_RETURNONLYFSDIRS, args.a[0]);
 }
+#endif

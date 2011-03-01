@@ -2,15 +2,15 @@
 // shoes/ruby.c
 // Just little bits of Ruby I've become accustomed to.
 //
-#include "shoes/app.h"
-#include "shoes/canvas.h"
-#include "shoes/ruby.h"
-#include "shoes/internal.h"
-#include "shoes/world.h"
-#include "shoes/native.h"
-#include "shoes/version.h"
-#include "shoes/http.h"
-#include "shoes/effects.h"
+#include "app.h"
+#include "canvas.h"
+#include "shoes_ruby.h"
+#include "internal.h"
+#include "world.h"
+#include "native.h"
+#include "version.h"
+#include "http.h"
+#include "effects.h"
 #include <math.h>
 
 VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cSlider, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;

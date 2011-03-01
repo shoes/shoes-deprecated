@@ -7,9 +7,9 @@
 #ifndef SHOES_WORLD_H
 #define SHOES_WORLD_H
 
-#include "shoes/config.h"
-#include "shoes/ruby.h"
-#include "shoes/code.h"
+#include "config.h"
+#include "shoes_ruby.h"
+#include "code.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -2,13 +2,13 @@
 // shoes/canvas.c
 // Ruby methods for all the drawing ops.
 //
-#include "shoes/internal.h"
-#include "shoes/app.h"
-#include "shoes/canvas.h"
-#include "shoes/ruby.h"
-#include "shoes/world.h"
-#include "shoes/native.h"
-#include "shoes/http.h"
+#include "internal.h"
+#include "app.h"
+#include "canvas.h"
+#include "shoes_ruby.h"
+#include "world.h"
+#include "native.h"
+#include "http.h"
 
 #define SETUP() \
   shoes_canvas *canvas; \

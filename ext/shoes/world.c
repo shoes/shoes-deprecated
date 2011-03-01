@@ -2,12 +2,12 @@
 // shoes/world.c
 // Abstract windowing for GTK, Quartz (OSX) and Win32.
 //
-#include "shoes/app.h"
-#include "shoes/ruby.h"
-#include "shoes/config.h"
-#include "shoes/world.h"
-#include "shoes/native.h"
-#include "shoes/internal.h"
+#include "app.h"
+#include "shoes_ruby.h"
+#include "config.h"
+#include "world.h"
+#include "native.h"
+#include "internal.h"
 #ifdef SHOES_SIGNAL
 #include <signal.h>
 

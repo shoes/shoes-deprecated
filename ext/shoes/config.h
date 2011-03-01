@@ -93,7 +93,7 @@ typedef struct {
 # define __OPENTRANSPORTPROTOCOL__
 # define __OPENTRANSPORTPROVIDERS__
 #include <Cocoa/Cocoa.h>
-#include "shoes/native/cocoa.h"
+#include "cocoa.h"
 #include <cairo-quartz.h>
 
 #define SHOES_SIGNAL

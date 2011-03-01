@@ -2,12 +2,13 @@
 // shoes/native-gtk.c
 // GTK+ code for Shoes.
 //
-#include "shoes/app.h"
-#include "shoes/ruby.h"
-#include "shoes/config.h"
-#include "shoes/world.h"
-#include "shoes/native.h"
-#include "shoes/internal.h"
+#ifdef SHOES_GTK
+#include "app.h"
+#include "shoes_ruby.h"
+#include "config.h"
+#include "world.h"
+#include "native.h"
+#include "internal.h"
 
 #include <fontconfig/fontconfig.h>
 #include <curl/curl.h>
@@ -1255,3 +1256,4 @@ shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
   return shoes_dialog_chooser(self, "Save folder...", GTK_FILE_CHOOSER_ACTION_CREATE_FOLDER,
     GTK_STOCK_SAVE, args.a[0]);
 }
+#endif

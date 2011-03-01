@@ -13,8 +13,8 @@
 #include <pango/pangocairo.h>
 #include <ruby.h>
 
-#include "shoes/config.h"
-#include "shoes/code.h"
+#include "config.h"
+#include "code.h"
 
 struct _shoes_app;
 

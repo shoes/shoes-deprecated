@@ -2,12 +2,13 @@
 // shoes/native-cocoa.m
 // ObjC Cocoa-specific code for Shoes.
 //
-#include "shoes/app.h"
-#include "shoes/ruby.h"
-#include "shoes/config.h"
-#include "shoes/world.h"
-#include "shoes/native.h"
-#include "shoes/internal.h"
+#ifdef SHOES_QUARTZ
+#include "app.h"
+#include "shoes_ruby.h"
+#include "config.h"
+#include "world.h"
+#include "native.h"
+#include "internal.h"
 
 #define HEIGHT_PAD 6
 
@@ -1555,3 +1556,4 @@ shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
   rb_parse_args(argc, argv, "|h", &args);
   return shoes_dialog_chooser(self, @"Save folder...", YES, args.a[0]);
 }
+#endif

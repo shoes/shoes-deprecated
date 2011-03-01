@@ -6,7 +6,7 @@
 #ifndef SHOES_HTTP_H
 #define SHOES_HTTP_H
 
-#include "shoes/http/common.h"
+#include "http/common.h"
 
 typedef struct {
   char *url;
@@ -36,7 +36,7 @@ void shoes_http_request_free(shoes_http_request *);
 void shoes_http_headers_free(SHOES_DOWNLOAD_HEADERS);
 
 #ifdef SHOES_WIN32
-#include "shoes/http/winhttp.h"
+#include "http/winhttp.h"
 #else
 #define HTTP_HANDLER(x)
 #endif

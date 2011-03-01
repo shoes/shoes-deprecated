@@ -3,13 +3,19 @@
 // Some defs for Ruby.
 //
 #include <ruby.h>
-#include "shoes/canvas.h"
+#include "canvas.h"
 
 #if defined(__cplusplus)
 extern "C" {
 #if 0
 } /* satisfy cc-mode */
 #endif
+#endif
+
+// Let's make this 1.9 only.
+// NOTE: We should really drop 1.8 support entirely.
+#ifndef RUBY_1_9
+#define RUBY_1_9
 #endif
 
 #ifdef RUBY_RUBY_H
