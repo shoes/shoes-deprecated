@@ -122,6 +122,7 @@ VALUE
 shoes_app_new(VALUE klass)
 {
   VALUE app = shoes_app_alloc(klass);
+  //HERE 1
   rb_ary_push(shoes_world->apps, app);
   return app;
 }
@@ -167,6 +168,7 @@ shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner)
 {
   rb_arg_list args;
   VALUE attr = Qnil;
+  //HERE 2
   VALUE app = shoes_app_new(self == cDialog ? cDialog : cApp);
   shoes_app *app_t;
   char *url = "/";
@@ -184,7 +186,9 @@ shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner)
     break;
   }
 
-  if (rb_block_given_p()) rb_iv_set(app, "@main_app", rb_block_proc());
+  if (rb_block_given_p()) {
+    rb_iv_set(app, "@main_app", rb_block_proc());
+  }
   app_t->owner = owner;
   app_t->title = ATTR(attr, title);
   app_t->fullscreen = RTEST(ATTR(attr, fullscreen));
@@ -204,6 +208,7 @@ shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner)
 VALUE
 shoes_app_main(int argc, VALUE *argv, VALUE self)
 {
+  //HERE 3
   return shoes_app_window(argc, argv, self, Qnil);
 }
 

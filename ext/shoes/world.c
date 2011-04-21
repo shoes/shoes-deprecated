@@ -109,7 +109,15 @@ shoes_init(SHOES_INIT_ARGS)
   signal(SIGINT,  shoes_sigint);
   signal(SIGQUIT, shoes_sigint);
 #endif
-  shoes_ruby_embed();
+  //this is suspicious
+//<internal:prelude>:18: warning: already initialized constant MUTEX_FOR_THREAD_EXCLUSIVE
+//<internal:gem_prelude>:24: warning: already initialized constant ConfigMap
+//<internal:gem_prelude>:115: warning: already initialized constant GEM_PRELUDE_METHODS
+
+  // so apparently this calls that up there on line 87. That seems to init ruby.
+  // This is bad. Why init ruby twice?
+  //shoes_ruby_embed();
+
   shoes_ruby_init();
   shoes_world = shoes_world_alloc();
 #ifdef SHOES_WIN32

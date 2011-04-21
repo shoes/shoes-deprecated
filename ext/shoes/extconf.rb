@@ -70,7 +70,7 @@ unless find_header('gif_lib.h')
 end
 
 # omg only OSX for now
-$CPPFLAGS << "-DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{Config::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions"
+$CPPFLAGS << "-DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{Config::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions -g"
 $LDFLAGS << " -lcairo -lpangocairo-1.0 -lgif -ljpeg"
 
 create_makefile('shoes')
