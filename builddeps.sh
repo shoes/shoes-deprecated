@@ -1,6 +1,6 @@
 #!/bin/bash
 
-rm -rf /tmp/deps
+rm -rf /tmp/dep
 cd /usr/local/src
 
 #make clean all deps
@@ -66,7 +66,7 @@ make && make install
 
 #build glib 
 cd ../glib-2.24.0
-./configure --prefix=/tmp/dep
+./configure --prefix=/tmp/dep --disable-visibility
 make && make install
 
 #build pixman 
@@ -100,3 +100,4 @@ cd ../rubygems-1.3.6
 
 #install rake.
 /tmp/dep/bin/gem install rake
+
