@@ -286,7 +286,7 @@ task "set-env" do
   ENV['PKG_CONFIG_PATH'] = "#{deps_dir}/lib/pkgconfig"
 end
 
-
+begin
 # Let's use mechanize to download the files we need.
 require 'mechanize'
 agent = Mechanize.new
@@ -323,4 +323,8 @@ deps_list.each do |name, opts|
       sh "tar -xzf #{f}"
     end
   end
+end
+
+rescue LoadError
+	puts "mechanize didn't load, can't do the OSX autoinstalling deps rake tasks."
 end
