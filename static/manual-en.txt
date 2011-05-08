@@ -1292,6 +1292,8 @@ Sets the left coordinate of this object to a specific pixel.  Setting `:left =>
 slot containing it.  If this style is left unset (or set to `nil`,) the object
 will flow in with the other objects surrounding it.
 
+You might also want to give it a :top, if it's acting a bit funny. Sometimes it needs both. :)
+
 === :margin » a number or an array of four numbers ===
 
 For: ''all slots and elements''.
@@ -1480,6 +1482,8 @@ object is set with `:top => 40`, this means the object's top edge will be
 placed 40 pixels beneath the top edge of the slot that contains it.  If no
 `:top` style is given, the object is automatically placed in the natural flow
 of its slot.
+
+You should probably give it a :left, too, if it's acting strange. It likes to have both. :)
 
 === :undercolor » a Shoes::Color ===
 
