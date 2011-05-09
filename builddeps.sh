@@ -26,7 +26,7 @@ cd ../pango-1.28.0
 make clean
 cd ../portaudio
 make clean
-cd ../ruby-1.9.1-p378
+cd ../ruby-1.9.2-p180
 make clean
 
 #build pkg-config
@@ -90,14 +90,6 @@ cd ../portaudio/
 make && make install
 
 #build ruby
-cd ../ruby-1.9.1-p378
+cd ../ruby-1.9.2-p180
 ./configure --prefix=/tmp/dep --enable-shared
 make && make install
-
-#install RubyGems.
-cd ../rubygems-1.3.6
-/tmp/dep/bin/ruby setup.rb
-
-#install rake.
-/tmp/dep/bin/gem install rake
-
