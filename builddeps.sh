@@ -1,7 +1,7 @@
 #!/bin/bash
 
 rm -rf /tmp/dep
-cd /usr/local/src
+cd /usr/local/src/
 
 #make clean all deps
 cd pkg-config-0.20
