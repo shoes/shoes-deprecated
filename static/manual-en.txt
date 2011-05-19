@@ -2534,7 +2534,7 @@ Gets the object for this element's container.
 
 Ah, here's the stuff of Shoes. An element can be as simple as an oval shape. Or
 as complex as a video stream. You've encountered all of these elements before
-in the Slots section of th manual.
+in the Slots section of the manual.
 
 Shoes has seven native controls: the Button, the EditLine, the EditBox, the
 ListBox, the Progress meter, the Check box and the Radio.  By "native"
