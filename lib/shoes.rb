@@ -8,7 +8,7 @@ ARGV.delete_if { |x| x =~ /-psn_/ }
 
 class Encoding
   %w[UTF_7 UTF_16BE UTF_16LE UTF_32BE UTF_32LE].each do |enc|
-    eval "class #{enc};end"
+    eval "class #{enc};end" unless const_defined? enc.to_sym
   end
 end
 
