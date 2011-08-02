@@ -1,0 +1,9 @@
+#PATH=/tmp/dep/bin:$PATH; export PATH
+#PKG_CONFIG_PATH=/tmp/dep/lib/pkgconfig; export PKG_CONFIG_PATH
+DYLD_LIBRARY_PATH=/usr/local/Cellar/cairo/1.10.2/lib:/usr/local/Cellar/cairo/1.10.2/include/cairo; export DYLD_LIBRARY_PATH 
+LD_LIBRARY_PATH=/usr/local/Cellar/cairo/1.10.2/lib:/usr/local/Cellar/cairo/1.10.2/include/cairo; export LD_LIBRARY_PATH 
+CAIRO_CFLAGS=-I/usr/local/Cellar/cairo/1.10.2/include
+SHOES_DEPS_PATH=/usr/local; export SHOES_DEPS_PATH
+#RUBYOPT="-I/tmp/dep/lib/ruby/site_ruby/1.9.1 -I/tmp/dep/lib/ruby/1.9.1 -I/tmp/dep/lib/ruby/1.9.1/powerpc-darwin9.8.0"
+#export RUBYOPT
+#
