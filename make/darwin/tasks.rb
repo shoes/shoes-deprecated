@@ -28,6 +28,7 @@ class MakeDarwin
           ["dist/#{NAME}-bin", *Dir['dist/*.dylib']].each do |lib2|
             sh "install_name_tool -change #{ENV['SHOES_DEPS_PATH']}/#{libn} @executable_path/#{libf} #{lib2}"
           end
+        end
         if ENV['VIDEO']
           mkdir_p "dist/plugins"
           sh "cp -r deps/lib/vlc/**/*.dylib dist/plugins"
