@@ -1,7 +1,11 @@
 #!/bin/bash
-
+if test -z "$1"
+then
+  echo "Please include the directory where the dependencies' source code resides."
+  exit
+fi
 rm -rf /tmp/dep
-cd /usr/local/src/
+cd $1
 
 #make clean all deps
 cd pkg-config-0.20
