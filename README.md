@@ -73,4 +73,6 @@ So you'd like to lend a helping hand, eh? Great! We'd love to have you. To submi
 
 If you don't have any ideas yourself, take a look at the [Issue tracker](http://github.com/shoes/shoes/issues) and see if anything strikes your fancy. If you need help working on something, don't be afraid to post to the mailing list about it!
 
+Be sure to [peer into the Shoes Wiki](https://github.com/shoes/shoes/wiki) for instructions on how to get the source code to build, and to learn more knowledge that will come in handy if you want to help out!
+
 If you're not a programmer, you can help Shoes by talking about it! Blog posts, tweets, tell your neighbors, call your grandma, whatever! Share Shoes with everyone!
