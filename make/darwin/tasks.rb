@@ -24,7 +24,7 @@ class MakeDarwin
         end.each do |libn|
           next unless libn =~ %r!^lib/(.+?\.dylib)$!
           libf = $1
-          sh "install_name_tool -id #{ENV['SHOES_DEPS_PATH']}/#{libn} dist/#{libf}"
+          sh "install_name_tool -id @executable_path/#{libf} dist/#{libf}"
           ["dist/#{NAME}-bin", *Dir['dist/*.dylib']].each do |lib2|
             sh "install_name_tool -change #{ENV['SHOES_DEPS_PATH']}/#{libn} @executable_path/#{libf} #{lib2}"
           end
