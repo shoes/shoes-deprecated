@@ -24,9 +24,14 @@ class MakeDarwin
         end.each do |libn|
           next unless libn =~ %r!^lib/(.+?\.dylib)$!
           libf = $1
+          # Get the actual name that the file is calling itself by grabbing
+          # the second line of otool -D:
+          otool_lib_id = `otool -D dist/#{libf} | sed -n 2p`.chomp
+
+          # Set new id 
           sh "install_name_tool -id @executable_path/#{libf} dist/#{libf}"
           ["dist/#{NAME}-bin", *Dir['dist/*.dylib']].each do |lib2|
-            sh "install_name_tool -change #{ENV['SHOES_DEPS_PATH']}/#{libn} @executable_path/#{libf} #{lib2}"
+            sh "install_name_tool -change #{otool_lib_id} @executable_path/#{libf} #{lib2}"
           end
         end
         if ENV['VIDEO']
