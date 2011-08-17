@@ -419,10 +419,6 @@ bloops_load(char* filename)
   if (version != 102)
     return NULL;
 
-  int result = fread;
-  if (result == 0)
-    return NULL;
-
   P = (bloopsaphone *)malloc(sizeof(bloopsaphone));
   fread(&P->type,    1, sizeof(int), file);
 
