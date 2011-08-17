@@ -88,11 +88,12 @@ shoes_ruby_embed()
 {
   VALUE v;
   char *argv[] = {"ruby", "-e", "1"};
-  int sysinit_argc = 0;
+
   char**  sysinit_argv = NULL;
   RUBY_INIT_STACK;
 #ifdef SHOES_WIN32
-  ruby_sysinit( &sysinit_argc, &sysinit_argv );
+  ruby_sysinit( 0, 0 );
+  int sysinit_argc = 0;
 #endif
   ruby_init();
   v = (VALUE)ruby_options(3, argv);
