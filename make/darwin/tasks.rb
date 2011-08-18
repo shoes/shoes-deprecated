@@ -14,6 +14,14 @@ class MakeDarwin
     end
 
     def copy_deps_to_dist
+      # Generate a list of dependencies straight from the generated files
+      
+
+      # Treat ruby separately, since it is managed with RVM, not Homebrew
+      rubydir = Config::CONFIG['prefix']
+      rubylib ='lib/libruby.1.9.1.dylib'
+      cp "#{rubydir}/#{rubylib}", "dist/"
+
       if ENV['SHOES_DEPS_PATH']
         dylibs = IO.readlines("make/darwin/dylibs.shoes").map(&:chomp)
         if ENV['VIDEO']
@@ -21,7 +29,9 @@ class MakeDarwin
         end
         dylibs.each do |libn|
           cp "#{ENV['SHOES_DEPS_PATH']}/#{libn}", "dist/"
-        end.each do |libn|
+        end
+        dylibs << rubylib
+        dylibs.each do |libn|
           next unless libn =~ %r!^lib/(.+?\.dylib)$!
           libf = $1
           # Get the actual name that the file is calling itself by grabbing
