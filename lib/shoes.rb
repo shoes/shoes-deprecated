@@ -15,19 +15,19 @@ end
 require 'open-uri'
 require 'optparse'
 require 'resolv-replace' if RUBY_PLATFORM =~ /win/
-require 'shoes/inspect'
-require 'shoes/cache'
+require_relative 'shoes/inspect'
+require_relative 'shoes/cache'
 if Object.const_defined? :Shoes
-  require 'shoes/image'
+  require_relative 'shoes/image'
 end
-require 'shoes/shybuilder'
+require_relative 'shoes/shybuilder'
 
 def Shoes.hook; end
 
 class Encoding
  %w[ASCII_8BIT UTF_16BE UTF_16LE UTF_32BE UTF_32LE US_ASCII].each do |ec|
    eval "#{ec} = '#{ec.sub '_', '-'}'"
- end unless RUBY_PLATFORM =~ /linux/
+ end unless RUBY_PLATFORM =~ /linux/ or RUBY_PLATFORM =~ /darwin/
 end
 
 class Range 

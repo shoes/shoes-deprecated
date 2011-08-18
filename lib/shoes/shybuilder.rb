@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 # crude shy-building UI; inspired by Jesse's "Shy Makey Thing"
 
-require 'shoes/shy'
+require_relative 'shy'
 
 class Shoes
   def self.start_shy_builder(launch_script)
