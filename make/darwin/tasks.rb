@@ -15,7 +15,6 @@ class MakeDarwin
 
     def copy_deps_to_dist
       # Generate a list of dependencies straight from the generated files
-      
 
       # Treat ruby separately, since it is managed with RVM, not Homebrew
       rubydir = Config::CONFIG['prefix']
