@@ -1,1 +1,2 @@
 script: "bundle exec rake features"
+rvm: 1.9.2
