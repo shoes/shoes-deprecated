@@ -1,5 +1,6 @@
 source "http://rubygems.org"
 
-group :development do
-  gem "mechanize"
-end
+gem "mechanize"
+gem "cucumber"
+gem "rspec"
+gem "rake"

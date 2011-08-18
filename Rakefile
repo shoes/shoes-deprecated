@@ -17,10 +17,12 @@ RELEASE_ID, RELEASE_NAME = APP['version'], APP['release']
 NAME = APP['shortname'] || APP['name'].downcase.gsub(/\W+/, '')
 SONAME = 'shoes'
 
-require 'rake/testtask'
-Rake::TestTask.new do |t|
-  t.pattern = "test/*_test.rb" 
-end 
+require 'cucumber'
+require 'cucumber/rake/task'
+
+Cucumber::Rake::Task.new(:features) do |t|
+  t.cucumber_opts = "--format pretty"
+end
 
 require 'bundler'
 Bundler::GemHelper.install_tasks
