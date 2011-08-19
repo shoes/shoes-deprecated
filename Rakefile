@@ -32,7 +32,7 @@ REVISION = (`#{GIT} rev-list HEAD`.split.length + 1).to_s
 VERS = ENV['VERSION'] || "0.r#{REVISION}"
 PKG = "#{NAME}-#{VERS}"
 APPARGS = APP['run']
-FLAGS = %w[DEBUG VIDEO]
+FLAGS = %w[DEBUG]
 VLC_VERSION = (RUBY_PLATFORM =~ /win32/ ? "0.8": `vlc --version 2>/dev/null`.split[2])
 VLC_0_8 = VLC_VERSION !~ /^0\.9/
 
@@ -90,7 +90,7 @@ end
 task "dist/VERSION.txt" do |t|
   File.open(t.name, 'w') do |f|
     f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION}) [#{RUBY_PLATFORM} Ruby#{RUBY_V}]}
-    %w[VIDEO DEBUG].each { |x| f << " +#{x.downcase}" if ENV[x] }
+    %w[DEBUG].each { |x| f << " +#{x.downcase}" if ENV[x] }
     f << "\n"
   end
 end

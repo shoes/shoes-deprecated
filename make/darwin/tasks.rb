@@ -48,13 +48,6 @@ class MakeDarwin
           sh "install_name_tool -change #{otool_lib_id} @executable_path/#{libf} #{lib2}"
         end
       end
-      if ENV['VIDEO']
-        mkdir_p "dist/plugins"
-        sh "cp -r deps/lib/vlc/**/*.dylib dist/plugins"
-        sh "strip -x dist/*.dylib"
-        sh "strip -x dist/plugins/*.dylib"
-        sh "strip -x dist/ruby/lib/**/*.bundle"
-      end
     end
 
     def setup_system_resources

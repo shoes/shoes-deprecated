@@ -51,16 +51,6 @@ LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes 
 LINUX_LDFLAGS = "-framework Cocoa -framework Carbon -dynamiclib -Wl,-single_module #{Config::CONFIG["LDFLAGS"]} INSTALL_NAME"
 LINUX_LIB_NAMES << 'pixman-1' << 'jpeg.8'
 
-if ENV['VIDEO']
-  if VLC_0_8
-    LINUX_CFLAGS << " -DVLC_0_8"
-  end
-  vlc_dir = "./deps/lib/vlc"
-  vlc_deps = IO.readlines("make/darwin/deps.vlc").map(&:chomp)
-  LINUX_LDFLAGS << " ./deps/lib/libvlc.a "
-  LINUX_LDFLAGS << vlc_deps.map {|a| "#{vlc_dir}/#{a}"}.join(" ")
-  LINUX_LDFLAGS << " -framework vecLib -lpthread -lm -liconv -lintl -liconv -lc -lpostproc -lavformat -lavcodec -lz -la52 -lfaac -lfaad -lmp3lame -lx264 -lxvidcore -lvorbisenc -lavutil -lvorbis -lm -logg -lm -lavformat -lavcodec -lz -la52 -lfaac -lfaad -lmp3lame -lx264 -lxvidcore -lvorbisenc -lavutil -lvorbis -lm -logg -framework QuickTime -lm -framework CoreAudio -framework AudioUnit -framework AudioToolbox -framework IOKit -lobjc -ObjC -framework OpenGL -framework AGL -read_only_relocs suppress"
-end
 if ENV['UNIVERSAL']
   LINUX_CFLAGS << " -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc"
   LINUX_LDFLAGS << " -arch i386 -arch ppc"

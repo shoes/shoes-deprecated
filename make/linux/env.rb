@@ -20,12 +20,7 @@ PANGO_CFLAGS = ENV['PANGO_CFLAGS'] || `pkg-config --cflags pango`.strip
 PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
 png_lib = 'png'
 
-if ENV['VIDEO']
-  VLC_CFLAGS = '-I/usr/include/vlc'
-  VLC_LIB = '-llibvlc'
-else
-  VLC_CFLAGS = VLC_LIB = ''
-end
+VLC_CFLAGS = VLC_LIB = ''
 
 LINUX_CFLAGS = %[-Wall -I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{VLC_CFLAGS} -I#{Config::CONFIG['archdir']}]
 if Config::CONFIG['rubyhdrdir']
@@ -50,15 +45,6 @@ LINUX_CFLAGS << " -DSHOES_GTK -fPIC #{`pkg-config --cflags gtk+-2.0`.strip} #{`c
 LINUX_LDFLAGS =" #{`pkg-config --libs gtk+-2.0`.strip} #{`curl-config --libs`.strip} -fPIC -shared"
 LINUX_LIB_NAMES << 'jpeg'
 LINUX_LIB_NAMES << 'rt'
-
-if ENV['VIDEO']
-  if VLC_0_8
-    LINUX_CFLAGS << " -DVLC_0_8"
-  else
-    LINUX_CFLAGS << " -I/usr/include/vlc/plugins"
-  end
-  LINUX_LIB_NAMES << "vlc"
-end
 
 LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 

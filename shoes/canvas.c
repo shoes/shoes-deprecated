@@ -692,18 +692,7 @@ shoes_canvas_border(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_video(int argc, VALUE *argv, VALUE self)
 {
-#ifdef VIDEO
-  VALUE video;
-  rb_arg_list args;
-  SETUP();
-
-  rb_parse_args(argc, argv, "s|h", &args);
-  video = shoes_video_new(cVideo, args.a[0], args.a[1], self);
-  shoes_add_ele(canvas, video);
-  return video;
-#else
   rb_raise(eNotImpl, "no video support");
-#endif
 }
 
 VALUE
