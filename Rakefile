@@ -138,12 +138,15 @@ end
 
 task :deps do
   sh "brew install cairo"
+  sh "brew link cairo"
+  ENV['CAIRO_LIB']=-L/tmp
+  ENV['CAIRO_LIB']=-L/tmp
+  ENV['PANGO_CFLAGS']=-I/tmp
+  ENV['PANGO_LIB']=-L/tmp  
+  sh "brew install gettext"
+  sh "brew link gettext"
   sh "brew install pango"
   sh "brew install libjpeg"
   sh "brew install giflib"
-  sh "brew install libiconv"
   sh "brew install portaudio"
-  sh "brew install gettext"
-  sh "brew link cairo"
-  sh "brew link gettext"
 end
