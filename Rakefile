@@ -145,6 +145,5 @@ task :deps do
   sh "brew install portaudio"
   sh "brew install gettext"
   sh "brew link cairo"
-  sh "brew link libiconv"
   sh "brew link gettext"
 end
