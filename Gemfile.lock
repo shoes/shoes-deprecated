@@ -24,6 +24,9 @@ GEM
     rspec-expectations (2.6.0)
       diff-lcs (~> 1.1.2)
     rspec-mocks (2.6.0)
+    shoes-cucumber (0.0.1)
+      cucumber
+      rspec
     term-ansicolor (1.0.6)
 
 PLATFORMS
@@ -34,3 +37,4 @@ DEPENDENCIES
   mechanize
   rake
   rspec
+  shoes-cucumber
