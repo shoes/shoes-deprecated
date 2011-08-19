@@ -16,10 +16,14 @@ class MakeDarwin
     def copy_deps_to_dist
       # Generate a list of dependencies straight from the generated files
 
-      # Treat ruby separately, since it is managed with RVM, not Homebrew
-      rubydir = Config::CONFIG['prefix']
-      rubylib ='lib/libruby.1.9.1.dylib'
-      cp "#{rubydir}/#{rubylib}", "dist/"
+      # Treat these libs separately, since they are not managed by Homebrew
+      non_brew_libs = Array.new
+      non_brew_libs << {:libdir => Config::CONFIG['prefix'], :lib => 'lib/libruby.1.9.1.dylib'}
+      non_brew_libs << {:libdir => '/usr', :lib => 'lib/libiconv.2.dylib'}
+
+      non_brew_libs.each do |l|
+        cp "#{l[:libdir]}/#{l[:lib]}", "dist/"
+      end
 
       if ENV['SHOES_DEPS_PATH']
         dylibs = IO.readlines("make/darwin/dylibs.shoes").map(&:chomp)
@@ -29,7 +33,7 @@ class MakeDarwin
         dylibs.each do |libn|
           cp "#{ENV['SHOES_DEPS_PATH']}/#{libn}", "dist/"
         end
-        dylibs << rubylib
+        dylibs += non_brew_libs.map { |l| l[:lib] }
         dylibs.each do |libn|
           next unless libn =~ %r!^lib/(.+?\.dylib)$!
           libf = $1

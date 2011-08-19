@@ -1,4 +1,3 @@
-lib/libiconv.2.dylib
 lib/libcairo.2.dylib
 lib/libpixman-1.0.dylib
 lib/libgmodule-2.0.0.dylib
