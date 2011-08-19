@@ -136,14 +136,34 @@ def vputs(str)
   puts str if Rake.application.options.trace
 end
 
-task :deps do
-  sh "brew install cairo"
-  sh "brew install pango"
-  sh "brew install libjpeg"
-  sh "brew install giflib"
-  sh "brew install libiconv"
-  sh "brew install portaudio"
-  sh "brew install gettext"
-  sh "brew link cairo"
-  sh "brew link gettext"
+task :osx_bootstrap_env do
+  ENV['DYLD_LIBRARY_PATH'] = '/usr/local/Cellar/cairo/1.10.2/lib:/usr/local/Cellar/cairo/1.10.2/include/cairo'
+  ENV['LD_LIBRARY_PATH'] = '/usr/local/Cellar/cairo/1.10.2/lib:/usr/local/Cellar/cairo/1.10.2/include/cairo'
+  ENV['CAIRO_CFLAGS'] = '-I/usr/local/Cellar/cairo/1.10.2/include'
+  ENV['SHOES_DEPS_PATH'] = '/usr/local'
 end
+
+task :osx_deps => :osx_bootstrap_env do
+  homebrew_install "cairo"
+  homebrew_install "pango"
+  homebrew_install "libjpeg"
+  homebrew_install "giflib"
+  homebrew_install "libiconv"
+  homebrew_install "portaudio"
+  homebrew_install "gettext"
+  homebrew_install "cairo"
+  homebrew_install "gettext"
+end
+
+def homebrew_install package
+  output = "1,2>/dev/null" unless Rake.application.options.trace
+
+  sh %{brew list #{package} #{output}} do |ok, res|
+    if ok
+      sh "brew install #{package} #{output}"
+    else
+      vputs "#{package} already exists, continuing"
+    end
+  end
+end
+
