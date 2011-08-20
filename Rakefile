@@ -158,7 +158,7 @@ end
 def homebrew_install package
   sh %{brew list #{package}} do |ok, res|
     if ok
-      sh "brew install #{package} #{output}"
+      sh "brew install #{package}"
     else
       vputs "#{package} already exists, continuing"
     end
