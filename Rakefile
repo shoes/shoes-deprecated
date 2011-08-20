@@ -159,7 +159,7 @@ def homebrew_install package
   output = "1,2>/dev/null" unless Rake.application.options.trace
 
   sh %{brew list #{package} #{output}} do |ok, res|
-    if ok
+    unless ok
       sh "brew install #{package} #{output}"
     else
       vputs "#{package} already exists, continuing"
