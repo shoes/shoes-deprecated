@@ -156,10 +156,8 @@ task :osx_deps => :osx_bootstrap_env do
 end
 
 def homebrew_install package
-  output = "1,2>/dev/null" unless Rake.application.options.trace
-
-  sh %{brew list #{package} #{output}} do |ok, res|
-    unless ok
+  sh %{brew list #{package}} do |ok, res|
+    if ok
       sh "brew install #{package} #{output}"
     else
       vputs "#{package} already exists, continuing"
