@@ -33,8 +33,6 @@ VERS = ENV['VERSION'] || "0.r#{REVISION}"
 PKG = "#{NAME}-#{VERS}"
 APPARGS = APP['run']
 FLAGS = %w[DEBUG]
-VLC_VERSION = (RUBY_PLATFORM =~ /win32/ ? "0.8": `vlc --version 2>/dev/null`.split[2])
-VLC_0_8 = VLC_VERSION !~ /^0\.9/
 
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "dist"]

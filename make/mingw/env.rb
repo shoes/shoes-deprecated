@@ -21,9 +21,7 @@ CAIRO_CFLAGS = '-I/mingw/include/glib-2.0 -I/mingw/lib/glib-2.0/include -I/mingw
 CAIRO_LIB = '-lcairo'
 PANGO_CFLAGS = '-I/mingw/include/pango-1.0'
 PANGO_LIB = '-lpangocairo-1.0 -lpango-1.0 -lpangoft2-1.0 -lpangowin32-1.0'
-VLC_CFLAGS = VLC_LIB = ''
-
-LINUX_CFLAGS = %[-Wall -I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{VLC_CFLAGS} -I#{Config::CONFIG['archdir']}]
+LINUX_CFLAGS = %[-Wall -I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{Config::CONFIG['archdir']}]
 if Config::CONFIG['rubyhdrdir']
   LINUX_CFLAGS << " -I#{Config::CONFIG['rubyhdrdir']} -I#{Config::CONFIG['rubyhdrdir']}/#{RUBY_PLATFORM}"
 end
@@ -50,4 +48,4 @@ cp APP['icons']['win32'], "shoes/appwin32.ico"
   
 LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
-LINUX_LIBS << " -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB} #{VLC_LIB}"
+LINUX_LIBS << " -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB}"
