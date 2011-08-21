@@ -5,6 +5,7 @@
 #include "shoes/internal.h"
 #include "shoes/app.h"
 #include "shoes/canvas.h"
+#include "shoes/effects.h"
 #include "shoes/ruby.h"
 #include <math.h>
 
