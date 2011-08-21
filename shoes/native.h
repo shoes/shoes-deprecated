@@ -21,11 +21,11 @@
 #define SHOES_IMAGE_DOWNLOAD  42
 #define SHOES_MAX_MESSAGE     100
 
-VALUE shoes_font_list();
+VALUE shoes_font_list(void);
 VALUE shoes_load_font(const char *);
-void shoes_native_init();
+void shoes_native_init(void);
 void shoes_native_cleanup(shoes_world_t *world);
-void shoes_native_quit();
+void shoes_native_quit(void);
 int shoes_throw_message(unsigned int, VALUE, void *);
 void shoes_native_slot_mark(SHOES_SLOT_OS *);
 void shoes_native_slot_reset(SHOES_SLOT_OS *);
@@ -41,7 +41,7 @@ void shoes_native_app_title(shoes_app *, char *);
 void shoes_native_app_fullscreen(shoes_app *, char);
 shoes_code shoes_native_app_open(shoes_app *, char *, int);
 void shoes_native_app_show(shoes_app *);
-void shoes_native_loop();
+void shoes_native_loop(void);
 void shoes_native_app_close(shoes_app *);
 void shoes_browser_open(char *);
 void shoes_slot_init(VALUE, SHOES_SLOT_OS *, int, int, int, int, int, int);
