@@ -58,11 +58,21 @@ if File.exists? ".git/refs/tags/#{RELEASE_ID}/#{RELEASE_NAME}"
   abort "** Rename this release (and add to lib/shoes.rb) #{RELEASE_NAME} has already been tagged."
 end
 
+# Same effect as sourcing a shell script before running rake. It's necessary to
+# set these values before the make/{platform}/env.rb files are loaded.
+def osx_bootstrap_env
+  ENV['DYLD_LIBRARY_PATH'] = '/usr/local/Cellar/cairo/1.10.2/lib:/usr/local/Cellar/cairo/1.10.2/include/cairo'
+  ENV['LD_LIBRARY_PATH'] = '/usr/local/Cellar/cairo/1.10.2/lib:/usr/local/Cellar/cairo/1.10.2/include/cairo'
+  ENV['CAIRO_CFLAGS'] = '-I/usr/local/Cellar/cairo/1.10.2/include/cairo'
+  ENV['SHOES_DEPS_PATH'] = '/usr/local'
+end
+
 case RUBY_PLATFORM
 when /mingw/
   require File.expand_path('rakefile_mingw')
   Builder = MakeMinGW
 when /darwin/
+  osx_bootstrap_env
   require File.expand_path('rakefile_darwin')
   Builder = MakeDarwin
 when /linux/
@@ -136,14 +146,7 @@ def vputs(str)
   puts str if Rake.application.options.trace
 end
 
-task :osx_bootstrap_env do
-  ENV['DYLD_LIBRARY_PATH'] = '/usr/local/Cellar/cairo/1.10.2/lib:/usr/local/Cellar/cairo/1.10.2/include/cairo'
-  ENV['LD_LIBRARY_PATH'] = '/usr/local/Cellar/cairo/1.10.2/lib:/usr/local/Cellar/cairo/1.10.2/include/cairo'
-  ENV['CAIRO_CFLAGS'] = '-I/usr/local/Cellar/cairo/1.10.2/include'
-  ENV['SHOES_DEPS_PATH'] = '/usr/local'
-end
-
-task :osx_deps => :osx_bootstrap_env do
+task :osx_deps do
   homebrew_install "cairo"
   homebrew_install "pango"
   homebrew_install "libjpeg"
