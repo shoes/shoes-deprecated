@@ -36,7 +36,7 @@ if ENV['DEBUG']
 else
   LINUX_CFLAGS << " -O "
 end
-LINUX_CFLAGS << " -DRUBY_1_9" if RUBY_1_9
+LINUX_CFLAGS << " -DRUBY_1_9"
 
 DLEXT = "so"
 LINUX_CFLAGS << " -DSHOES_GTK -fPIC #{`pkg-config --cflags gtk+-2.0`.strip} #{`curl-config --cflags`.strip}"

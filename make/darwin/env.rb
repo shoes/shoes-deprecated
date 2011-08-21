@@ -41,7 +41,7 @@ if ENV['DEBUG']
 else
   LINUX_CFLAGS << " -O "
 end
-LINUX_CFLAGS << " -DRUBY_1_9" if RUBY_1_9
+LINUX_CFLAGS << " -DRUBY_1_9"
 
 DLEXT = "dylib"
 LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{Config::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions"

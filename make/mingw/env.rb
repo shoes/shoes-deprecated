@@ -35,11 +35,11 @@ if ENV['DEBUG']
 else
   LINUX_CFLAGS << " -O "
 end
-LINUX_CFLAGS << " -DRUBY_1_9" if RUBY_1_9
+LINUX_CFLAGS << " -DRUBY_1_9"
 
 DLEXT = 'dll'
 LINUX_CFLAGS << ' -I. -I/mingw/include'
-LINUX_CFLAGS << ' -I/mingw/include/ruby-1.9.1/ruby' if RUBY_1_9
+LINUX_CFLAGS << ' -I/mingw/include/ruby-1.9.1/ruby'
 LINUX_CFLAGS << " -DXMD_H -DHAVE_BOOLEAN -DSHOES_WIN32 -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0500 -DWINVER=0x0500 -DCOBJMACROS"
 LINUX_LDFLAGS = " -DBUILD_DLL -lungif -ljpeg -lglib-2.0 -lgobject-2.0 -lgio-2.0 -lgmodule-2.0 -lgthread-2.0 -fPIC -shared"
 LINUX_LDFLAGS << ' -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 -lole32 -loleaut32 -ladvapi32 -loleacc -lwinhttp'
