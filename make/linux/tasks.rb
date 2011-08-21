@@ -24,12 +24,6 @@ class MakeLinux
       cp    "/usr/lib/libcurl.so", "dist/libcurl.so.4"
       cp    "/usr/lib/libportaudio.so", "dist/libportaudio.so.2"
       cp    "/usr/lib/libsqlite3.so", "dist/libsqlite3.so.0"
-
-      if ENV['VIDEO']
-        cp    "/usr/lib/libvlc.so", "dist"
-        ln_s  "libvlc.so", "dist/libvlc.so.0"
-      end
-
       sh    "strip -x dist/*.so.*"
       sh    "strip -x dist/*.so"
     end

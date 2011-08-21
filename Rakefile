@@ -32,9 +32,7 @@ REVISION = (`#{GIT} rev-list HEAD`.split.length + 1).to_s
 VERS = ENV['VERSION'] || "0.r#{REVISION}"
 PKG = "#{NAME}-#{VERS}"
 APPARGS = APP['run']
-FLAGS = %w[DEBUG VIDEO]
-VLC_VERSION = (RUBY_PLATFORM =~ /win32/ ? "0.8": `vlc --version 2>/dev/null`.split[2])
-VLC_0_8 = VLC_VERSION !~ /^0\.9/
+FLAGS = %w[DEBUG]
 
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "dist"]
@@ -100,7 +98,7 @@ end
 task "dist/VERSION.txt" do |t|
   File.open(t.name, 'w') do |f|
     f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION}) [#{RUBY_PLATFORM} Ruby#{RUBY_V}]}
-    %w[VIDEO DEBUG].each { |x| f << " +#{x.downcase}" if ENV[x] }
+    %w[DEBUG].each { |x| f << " +#{x.downcase}" if ENV[x] }
     f << "\n"
   end
 end
@@ -159,11 +157,9 @@ task :osx_deps do
 end
 
 def homebrew_install package
-  output = "1,2>/dev/null" unless Rake.application.options.trace
-
-  sh %{brew list #{package} #{output}} do |ok, res|
+  sh %{brew list #{package}} do |ok, res|
     if ok
-      sh "brew install #{package} #{output}"
+      sh "brew install #{package}"
     else
       vputs "#{package} already exists, continuing"
     end

@@ -222,31 +222,7 @@ typedef struct {
   char hover;
 } shoes_image;
 
-#ifdef VIDEO
-#define SHOES_VIDEO 1
-//
-// video struct
-//
-typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
-  SHOES_CONTROL_REF ref;
-  libvlc_exception_t excp;
-#ifdef VIDEO
-#ifdef VLC_0_8
-  libvlc_instance_t *vlc;
-#else
-  libvlc_media_player_t *vlc;
-#endif
-#endif
-  int init;
-  VALUE path;
-  SHOES_SLOT_OS *slot;
-} shoes_video;
-#else
 #define SHOES_VIDEO 0
-#endif
 
 //
 // pattern struct
@@ -574,20 +550,6 @@ void shoes_effect_mark(shoes_effect *);
 VALUE shoes_effect_new(ID, VALUE, VALUE);
 VALUE shoes_effect_alloc(VALUE);
 VALUE shoes_effect_draw(VALUE, VALUE, VALUE);
-
-#ifdef VIDEO
-void shoes_video_mark(shoes_video *);
-VALUE shoes_video_new(VALUE, VALUE, VALUE, VALUE);
-VALUE shoes_video_alloc(VALUE);
-VALUE shoes_video_draw(VALUE, VALUE, VALUE);
-VALUE shoes_video_show(VALUE);
-VALUE shoes_video_hide(VALUE);
-VALUE shoes_video_get_top(VALUE);
-VALUE shoes_video_get_left(VALUE);
-VALUE shoes_video_get_width(VALUE);
-VALUE shoes_video_get_height(VALUE);
-VALUE shoes_video_remove(VALUE);
-#endif
 
 VALUE shoes_pattern_self(VALUE);
 VALUE shoes_pattern_method(VALUE, VALUE);

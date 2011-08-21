@@ -8,16 +8,14 @@
     To install all of these libraries on Ubuntu or Debian:
 
       # aptitude install libcairo2-dev libpixman-1-dev libpango1.0-dev \
-          libungif4-dev libjpeg62-dev libgtk2.0-dev vlc libvlc-dev \
+          libungif4-dev libjpeg62-dev libgtk2.0-dev \
           libsqlite3-dev libcurl4-openssl-dev libportaudio19-dev \
           ruby1.8-dev rake
-
-    (On Ubuntu older than 8.10, actually you'll need libvlc0-dev.)
 
     To install these libraries on Fedora:
      
       # yum install -y giflib-devel cairo-devel libpixman-devel \
-          pango-devel libjpeg-devel gtk2-devel sqlite-devel vlc-devel \
+          pango-devel libjpeg-devel gtk2-devel sqlite-devel \
           libcurl-devel libportaudio-devel ruby-devel
 
 //////////////////////////////////////////////////////////////////////////
@@ -31,12 +29,11 @@
 
     A few options to be aware of:
 
-      * VIDEO=1 will build in VideoLAN support.
       * PREFIX=/opt/shoes will install to /opt/shoes.
 
     So, a practical use of the two options would be:
 
-      $ make VIDEO=1
+      $ make
       # make PREFIX=/opt/shoes install
 
     This source tarball should work for all Linux and BSD variants, but
