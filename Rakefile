@@ -147,7 +147,7 @@ end
 task :osx_deps do
   homebrew_install "cairo"
   homebrew_install "pango"
-  homebrew_install "libjpeg"
+  homebrew_install "jpeg"
   homebrew_install "giflib"
   homebrew_install "libiconv"
   homebrew_install "portaudio"
@@ -157,12 +157,10 @@ task :osx_deps do
 end
 
 def homebrew_install package
-  sh %{brew list #{package}} do |ok, res|
-    if ok
-      sh "brew install #{package}"
-    else
-      vputs "#{package} already exists, continuing"
-    end
+  if `brew list`.split.include?(package)
+    vputs "#{package} already exists, continuing"
+  else
+    sh "brew install #{package}"
   end
 end
 
