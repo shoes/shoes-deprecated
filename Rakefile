@@ -111,11 +111,13 @@ task :build => [:build_os, "dist/VERSION.txt"] do
   Builder.setup_system_resources
 end
 
+directory 'dist'
+
 task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o"] + ADD_DLL do |t|
   Builder.make_app t.name
 end
 
-task "dist/lib#{SONAME}.#{DLEXT}" => ['shoes/version.h'] + OBJ do |t|
+task "dist/lib#{SONAME}.#{DLEXT}" => ['shoes/version.h', 'dist'] + OBJ do |t|
   Builder.make_so t.name
 end
 
