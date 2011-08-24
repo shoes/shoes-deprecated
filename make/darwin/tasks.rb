@@ -32,7 +32,7 @@ class MakeDarwin
       dylibs = get_dylibs("dist/#{NAME}-bin")
       dylibs.each do |dylib|
         get_dylibs(dylib).each do |d|
-          dylibs << d unless dylibs.include?(d)
+          dylibs << d unless dylibs.map {|lib| File.basename(lib)}.include?(File.basename(d))
         end
       end
       dylibs << '/usr/local/etc/pango/pango.modules'
