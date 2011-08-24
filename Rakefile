@@ -143,7 +143,6 @@ task :osx_deps do
   homebrew_install "pango"
   homebrew_install "jpeg"
   homebrew_install "giflib"
-  homebrew_install "libiconv"
   homebrew_install "portaudio"
   homebrew_install "gettext"
   homebrew_install "cairo"
