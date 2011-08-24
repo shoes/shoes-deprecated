@@ -151,6 +151,17 @@ namespace :osx do
       homebrew_install "cairo"
       homebrew_install "gettext"
     end
+
+    task :bootstrap do
+      # For now, pull in this patched glib formula
+      cd '/usr/local' do
+        unless `git remote`.split.include?('camillol')
+          sh "git remote add camillol git://github.com/camillol/homebrew.git"
+        end
+        sh "git fetch camillol"
+        sh "git merge camillol/glibnativeiconv"
+      end
+    end
   end
 end
 
