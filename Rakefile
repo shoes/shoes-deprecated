@@ -140,7 +140,7 @@ end
 
 namespace :osx do
   namespace :deps do
-    task :install do
+    task :install => :bootstrap do
       homebrew_install "cairo"
       sh "brew link cairo" unless File.exist?("/usr/local/lib/libcairo.2.dylib")
       homebrew_install "pango"
@@ -154,8 +154,8 @@ namespace :osx do
 
     task :bootstrap do
       # For now, pull in this patched glib formula
-      cd '/usr/local' do
-        unless `git remote`.split.include?('camillol')
+      cd `brew --prefix`.chomp do
+        unless `git remote`.split.include?('shoes')
           sh "git remote add shoes git://github.com/wasnotrice/homebrew.git"
         end
         sh "git fetch shoes"
