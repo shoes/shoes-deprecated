@@ -142,6 +142,7 @@ namespace :osx do
   namespace :deps do
     task :install do
       homebrew_install "cairo"
+      sh "brew link cairo" unless File.exist?("/usr/local/lib/libcairo.2.dylib")
       homebrew_install "pango"
       homebrew_install "jpeg"
       homebrew_install "giflib"
