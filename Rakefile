@@ -138,15 +138,19 @@ def vputs(str)
   puts str if Rake.application.options.trace
 end
 
-task :osx_deps do
-  homebrew_install "cairo"
-  homebrew_install "pango"
-  homebrew_install "jpeg"
-  homebrew_install "giflib"
-  homebrew_install "portaudio"
-  homebrew_install "gettext"
-  homebrew_install "cairo"
-  homebrew_install "gettext"
+namespace :osx do
+  namespace :deps do
+    task :install do
+      homebrew_install "cairo"
+      homebrew_install "pango"
+      homebrew_install "jpeg"
+      homebrew_install "giflib"
+      homebrew_install "portaudio"
+      homebrew_install "gettext"
+      homebrew_install "cairo"
+      homebrew_install "gettext"
+    end
+  end
 end
 
 def homebrew_install package
