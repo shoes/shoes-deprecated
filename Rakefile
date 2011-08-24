@@ -156,10 +156,10 @@ namespace :osx do
       # For now, pull in this patched glib formula
       cd '/usr/local' do
         unless `git remote`.split.include?('camillol')
-          sh "git remote add camillol git://github.com/camillol/homebrew.git"
+          sh "git remote add shoes git://github.com/wasnotrice/homebrew.git"
         end
-        sh "git fetch camillol"
-        sh "git merge camillol/glibnativeiconv"
+        sh "git fetch shoes"
+        sh "git merge shoes/shoes"
       end
     end
   end
