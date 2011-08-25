@@ -49,19 +49,30 @@ LINUX_LDFLAGS = "-framework Cocoa -framework Carbon -dynamiclib -Wl,-single_modu
 LINUX_LIB_NAMES << 'pixman-1' << 'jpeg.8'
 
 if ENV['UNIVERSAL']
-  LINUX_CFLAGS << " -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc"
-  LINUX_LDFLAGS << " -arch i386 -arch ppc"
+  OSX_ARCH = '-arch i386 -arch ppc'
+  OSX_SDK = '/Developer/SDKs/MacOSX10.4u.sdk'
   ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
 elsif ENV['PPC']
-  LINUX_CFLAGS << " -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch ppc"
-  LINUX_LDFLAGS << " -arch ppc"
+  OSX_ARCH = '-arch ppc'
+  OSX_SDK = '/Developer/SDKs/MacOSX10.4u.sdk'
   ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
+elsif ENV['i386']
+  OSX_ARCH = '-arch i386'
+  OSX_SDK = '/Developer/SDKs/MacOSX10.6.sdk'
+  ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
+elsif ENV['FAT_INTEL']
+  puts "Setting fat intel env vars"
+  OSX_ARCH = "-arch i386 -arch x86_64"
+  OSX_SDK = '/Developer/SDKs/MacOSX10.6.sdk'
+  ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
 else
-  LINUX_CFLAGS << " -isysroot /Developer/SDKs/MacOSX10.6.sdk -arch x86_64"
-  LINUX_LDFLAGS << " -arch x86_64"
+  OSX_ARCH = '-arch x86_64'
+  OSX_SDK = '/Developer/SDKs/MacOSX10.6.sdk'
   ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
 end
-
+LINUX_CFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH}"
+LINUX_LDFLAGS << " #{OSX_ARCH}"
+ 
 LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
 LINUX_LIBS << " -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB}"
