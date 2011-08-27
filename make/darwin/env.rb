@@ -14,7 +14,9 @@ end
 ADD_DLL = []
 
 # Linux build environment
-if `which pkg-config` != ""
+pkg_config = `which pkg-config` != ""
+pkgs = `pkg-config --list-all`.split("\n").map {|p| p.split.first} unless not pkg_config
+if pkg_config and pkgs.include?("cairo") and pkgs.include?("pango")
   CAIRO_CFLAGS = ENV['CAIRO_CFLAGS'] || `pkg-config --cflags cairo`.strip
   CAIRO_LIB = ENV['CAIRO_LIB'] ? "-L#{ENV['CAIRO_LIB']}" : `pkg-config --libs cairo`.strip
   PANGO_CFLAGS = ENV['PANGO_CFLAGS'] || `pkg-config --cflags pango`.strip
