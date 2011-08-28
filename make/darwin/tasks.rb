@@ -81,7 +81,7 @@ class MakeDarwin
       bin = "#{name}-bin"
       rm_f name
       rm_f bin
-      sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes -arch x86_64"
+      sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{OSX_ARCH}"
     end
 
     def make_so(name)
