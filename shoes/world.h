@@ -37,7 +37,7 @@ extern SHOES_EXTERN shoes_world_t *shoes_world;
   if (RARRAY_LEN(shoes_world->apps) > 0) \
     Data_Get_Struct(rb_ary_entry(shoes_world->apps, 0), shoes_app, appvar)
 
-#define INT(x) ((int)round(x))
+#define ROUND(x) ((x) >= 0 ? (int)round((x)+0.5) : (int)round((x)-0.5))
 
 //
 // Shoes World

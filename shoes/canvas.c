@@ -796,9 +796,9 @@ shoes_canvas_shape(int argc, VALUE *argv, VALUE self)
 #else
   cairo_path_extents(canvas->shape, &x1, &y1, &x2, &y2);
 #endif
-  x = x2 - x1;
+  x = ROUND(x2 - x1);
   ATTRSET(attr, width, INT2NUM(x));
-  x = y2 - y1;
+  x = ROUND(y2 - y1);
   ATTRSET(attr, height, INT2NUM(x));
   line = cairo_copy_path(canvas->shape);
   canvas->shape = shape;
@@ -1748,7 +1748,7 @@ shoes_canvas_send_start(VALUE self)
     int i;
     canvas->stage = CANVAS_STARTED;
 
-    for (i = RARRAY_LEN(canvas->contents) - 1; i >= 0; i--)
+    for (i = (int)RARRAY_LEN(canvas->contents) - 1; i >= 0; i--)
     {
       VALUE ele = rb_ary_entry(canvas->contents, i);
       if (rb_obj_is_kind_of(ele, cCanvas) && shoes_canvas_inherits(ele, canvas))
