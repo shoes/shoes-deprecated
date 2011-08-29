@@ -863,9 +863,8 @@ shoes_native_app_window(shoes_app *app, int dialog)
 void
 shoes_native_view_supplant(NSView *from, NSView *to)
 {
-  int i, count = [[from subviews] count];
-  for (i = 0; i < count; i++)
-    [to addSubview: [[from subviews] objectAtIndex: i]];
+  for (id subview in [from subviews])
+    [to addSubview:subview];
 }
 
 void
@@ -882,8 +881,8 @@ shoes_native_app_fullscreen(shoes_app *app, char yn)
     level = CGShieldingWindowLevel();
     screen = [[NSScreen mainScreen] frame];
     COCOA_DO({
-      app->width = screen.size.width;
-      app->height = screen.size.height;
+      app->width = ROUND(screen.size.width);
+      app->height = ROUND(screen.size.height);
       app->os.window = shoes_native_app_window(app, 0);
       [app->os.window setLevel: level];
       shoes_native_view_supplant([old contentView], [app->os.window contentView]);
@@ -896,8 +895,8 @@ shoes_native_app_fullscreen(shoes_app *app, char yn)
   else
   {
     COCOA_DO({
-      app->width = app->os.normal.size.width;
-      app->height = app->os.normal.size.height;
+      app->width = ROUND(app->os.normal.size.width);
+      app->height = ROUND(app->os.normal.size.height);
       app->os.window = shoes_native_app_window(app, 0);
       [app->os.window setLevel: NSNormalWindowLevel];
       CGDisplayRelease(kCGDirectMainDisplay);
@@ -1248,7 +1247,7 @@ shoes_native_list_box_update(SHOES_CONTROL_REF ref, VALUE ary)
 VALUE
 shoes_native_list_box_get_active(SHOES_CONTROL_REF ref, VALUE items)
 {
-  int sel = [(ShoesPopUpButton *)ref indexOfSelectedItem];
+  NSInteger sel = [(ShoesPopUpButton *)ref indexOfSelectedItem];
   if (sel >= 0)
     return rb_ary_entry(items, sel);
   return Qnil;
@@ -1257,7 +1256,7 @@ shoes_native_list_box_get_active(SHOES_CONTROL_REF ref, VALUE items)
 void
 shoes_native_list_box_set_active(SHOES_CONTROL_REF ref, VALUE ary, VALUE item)
 {
-  int idx = rb_ary_index_of(ary, item);
+  long idx = rb_ary_index_of(ary, item);
   if (idx < 0) return;
   COCOA_DO([(ShoesPopUpButton *)ref selectItemAtIndex: idx]);
 }
