@@ -774,9 +774,10 @@ void shoes_native_slot_lengthen(SHOES_SLOT_OS *slot, int height, int endy)
 {
   if (slot->vscroll)
   {
-    float s = slot->scrolly * 1., e = endy * 1., h = height * 1., d = (endy - height) * 1.;
+    double s = slot->scrolly * 1., e = endy * 1., h = height * 1., d = (endy - height) * 1.;
     COCOA_DO({
-      [slot->vscroll setFloatValue: (d > 0 ? s / d : 0) knobProportion: (h / e)];
+      [slot->vscroll setDoubleValue: (d > 0 ? s / d : 0)];
+      [slot->vscroll setKnobProportion: (h / e)];
       [slot->vscroll setHidden: endy <= height ? YES : NO];
     });
   }
