@@ -165,7 +165,7 @@
 - (void)scrollWheel: (NSEvent *)e
 {
   ID wheel;
-  float dy = [e deltaY];
+  CGFloat dy = [e deltaY];
   NSPoint p = [e locationInWindow];
   shoes_app *a;
 
@@ -181,13 +181,13 @@
 
   Data_Get_Struct(app, shoes_app, a);
   for (; dy > 0.; dy--)
-    shoes_app_wheel(a, wheel, p.x, p.y);
+    shoes_app_wheel(a, wheel, ROUND(p.x), ROUND(p.y));
 }
 - (void)keyDown: (NSEvent *)e
 {
   shoes_app *a;
   VALUE v = Qnil;
-  unsigned int modifier = [e modifierFlags];
+  NSUInteger modifier = [e modifierFlags];
   unsigned short key = [e keyCode];
   INIT;
 
@@ -285,8 +285,8 @@
   NSRect bounds = [self bounds];
   Data_Get_Struct(canvas, shoes_canvas, c);
 
-  c->width = bounds.size.width;
-  c->height = bounds.size.height;
+  c->width = ROUND(bounds.size.width);
+  c->height = ROUND(bounds.size.height);
   if (c->slot->vscroll)
   {
     [c->slot->vscroll setFrame: NSMakeRect(c->width - [NSScroller scrollerWidth], 0,
