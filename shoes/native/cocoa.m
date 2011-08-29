@@ -116,11 +116,11 @@
   Data_Get_Struct(app, shoes_app, a);
   Data_Get_Struct(a->canvas, shoes_canvas, canvas);
   if (type == s_motion)
-    shoes_app_motion(a, INT(p.x), (canvas->height - INT(p.y)) + canvas->slot->scrolly);
+    shoes_app_motion(a, ROUND(p.x), (canvas->height - ROUND(p.y)) + canvas->slot->scrolly);
   else if (type == s_click)
-    shoes_app_click(a, b, INT(p.x), (canvas->height - INT(p.y)) + canvas->slot->scrolly);
+    shoes_app_click(a, b, ROUND(p.x), (canvas->height - ROUND(p.y)) + canvas->slot->scrolly);
   else if (type == s_release)
-    shoes_app_release(a, b, INT(p.x), (canvas->height - INT(p.y)) + canvas->slot->scrolly);
+    shoes_app_release(a, b, ROUND(p.x), (canvas->height - ROUND(p.y)) + canvas->slot->scrolly);
 }
 - (void)mouseDown: (NSEvent *)e
 {
