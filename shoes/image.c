@@ -285,7 +285,7 @@ shoes_surface_create_from_gif(char *filename, int *width, int *height, unsigned 
   GifRecordType rec;
   ColorMapObject *cmap;
   int i, j, bg, r, g, b, w = 0, h = 0, done = 0, transp = -1;
-  float per = 0.0, per_inc;
+  float per = 0.0f, per_inc;
   int intoffset[] = { 0, 4, 2, 1 };
   int intjump[] = { 8, 8, 4, 2 };
 
@@ -368,7 +368,7 @@ shoes_surface_create_from_gif(char *filename, int *width, int *height, unsigned 
     goto done;
 
   ptr = pixels;
-  per_inc = 100.0 / (((float)w) * h);
+  per_inc = 100.0f / (((float)w) * h);
   for (i = 0; i < h; i++)
   {
     for (j = 0; j < w; j++)
@@ -716,7 +716,7 @@ shoes_file_mtime(char *path)
   int mtime = 0;
   struct stat *s = SHOE_ALLOC(struct stat);
   stat(path, s);
-  mtime = s->st_mtime;
+  mtime = (int)s->st_mtime;
   SHOE_FREE(s);
   return mtime;
 }
@@ -770,7 +770,7 @@ shoes_image_detect(VALUE imgpath, int *width, int *height)
   cairo_surface_t *img = NULL;
   VALUE filename = rb_funcall(imgpath, s_downcase, 0);
   char *fname = RSTRING_PTR(filename);
-  int len = RSTRING_LEN(filename);
+  int len = (int)RSTRING_LEN(filename);
 
   if (shoes_cache_lookup(RSTRING_PTR(imgpath), &cached))
   {
@@ -885,7 +885,7 @@ shoes_image_downloaded(shoes_image_download_event *idat)
         SHA1Init(&context);
         while (!feof(fp)) 
         {
-          i = fread(buffer, 1, 16384, fp);
+          i = (int)fread(buffer, 1, 16384, fp);
           SHA1Update(&context, buffer, i);
         }
         SHA1Final(digest, &context);
