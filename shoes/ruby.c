@@ -282,7 +282,7 @@ shoes_safe_block_call(VALUE rb_sb)
   safe_block *sb = (safe_block *)rb_sb;
   for (i = 0; i < RARRAY_LEN(sb->args); i++)
     vargs[i] = rb_ary_entry(sb->args, i);
-  return rb_funcall2(sb->block, s_call, RARRAY_LEN(sb->args), vargs);
+  return rb_funcall2(sb->block, s_call, (int)RARRAY_LEN(sb->args), vargs);
 }
 
 static VALUE
@@ -316,7 +316,7 @@ shoes_px(VALUE obj, int dv, int pv, int nv)
   int px;
   if (TYPE(obj) == T_STRING) {
     char *ptr = RSTRING_PTR(obj);
-    int len = RSTRING_LEN(obj);
+    int len = (int)RSTRING_LEN(obj);
     obj = rb_funcall(obj, s_to_i, 0);
     if (len > 1 && ptr[len - 1] == '%')
     {
@@ -450,9 +450,9 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
   {
     VALUE rw = ATTR(attr, width), rh = ATTR(attr, height);
     if (NIL_P(rw) && !NIL_P(rh))
-      dw = ((dw * 1.) / dh) * shoes_px(rh, dh, CPW(canvas), 1);
+      dw = ROUND(((dw * 1.) / dh) * shoes_px(rh, dh, CPW(canvas), 1));
     else if (NIL_P(rh) && !NIL_P(rw))
-      dh = ((dh * 1.) / dw) * shoes_px(rw, dw, CPW(canvas), 1);
+      dh = ROUND(((dh * 1.) / dw) * shoes_px(rw, dw, CPW(canvas), 1));
   }
 
   ATTR_MARGINS(attr, 0, canvas);
@@ -617,7 +617,7 @@ shoes_extras_remove_all(shoes_canvas *canvas)
   shoes_basic *basic;
   shoes_canvas *parent;
   if (canvas->app == NULL) return;
-  for (i = RARRAY_LEN(canvas->app->extras) - 1; i >= 0; i--)
+  for (i = (int)RARRAY_LEN(canvas->app->extras) - 1; i >= 0; i--)
   {
     VALUE ele = rb_ary_entry(canvas->app->extras, i);
     Data_Get_Struct(ele, shoes_basic, basic);
