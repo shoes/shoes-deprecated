@@ -23,7 +23,7 @@ if pkg_config and pkgs.include?("cairo") and pkgs.include?("pango")
   PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
 else
   # Hack for when pkg-config is not yet installed
-  CAIRO_CFLAGS, CAIRO_LIB, PANGO_CFLAGS, PANGO_LIB = "", "", "", "" if `which pkg-config` == ""
+  CAIRO_CFLAGS, CAIRO_LIB, PANGO_CFLAGS, PANGO_LIB = "", "", "", ""
 end
 png_lib = 'png'
 
