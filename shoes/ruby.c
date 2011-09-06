@@ -895,7 +895,8 @@ shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, shoes_transform *st
   {
     double h, tip, x;
     x = place->x + (place->w / 2.);
-    place->h = h = place->w * 0.8;
+    h = place->w * 0.8;
+    place->h = ROUND(h);
     tip = place->w * 0.42;
 
     shoes_apply_transformation(cr, st, place, 0);
@@ -922,7 +923,7 @@ shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, shoes_transform *st
 
     if (outer > 0)
     {
-      place->w = place->h = outer;
+      place->w = place->h = ROUND(outer);
       shoes_apply_transformation(cr, st, place, 0);
       if (!shoes_shape_check(cr, place))
         return shoes_undo_transformation(cr, st, place, 0);
@@ -1611,10 +1612,10 @@ shoes_border_draw(VALUE self, VALUE c, VALUE actual)
   if (!NIL_P(ATTR(self_t->attr, cap))) cap = SYM2ID(ATTR(self_t->attr, cap));
   if (!NIL_P(ATTR(self_t->attr, dash))) dash = SYM2ID(ATTR(self_t->attr, dash));
 
-  place.iw -= sw;
-  place.ih -= sw;
-  place.ix += sw / 2.;
-  place.iy += sw / 2.;
+  place.iw -= ROUND(sw);
+  place.ih -= ROUND(sw);
+  place.ix += ROUND(sw / 2.);
+  place.iy += ROUND(sw / 2.);
 
   if (RTEST(actual))
   {
