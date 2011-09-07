@@ -2434,7 +2434,7 @@ shoes_textblock_send_release(VALUE self, int button, int x, int y)
   }
 
 static void
-shoes_app_style_for(shoes_textblock *block, shoes_app *app, VALUE klass, VALUE oattr, gsize start_index, gsize end_index)
+shoes_app_style_for(shoes_textblock *block, shoes_app *app, VALUE klass, VALUE oattr, guint start_index, guint end_index)
 {
   VALUE str = Qnil;
   VALUE hsh = rb_hash_aref(app->styles, klass);
