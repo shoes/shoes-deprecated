@@ -2483,7 +2483,7 @@ shoes_app_style_for(shoes_textblock *block, shoes_app *app, VALUE klass, VALUE o
     {
       int i = NUM2INT(str);
       if (i > 0)
-        attr = pango_attr_size_new_absolute(i * PANGO_SCALE * (96./72.));
+        attr = pango_attr_size_new_absolute(ROUND(i * PANGO_SCALE * (96./72.)));
     }
     APPLY_ATTR();
   }
@@ -2644,7 +2644,7 @@ shoes_textblock_iter_pango(VALUE texts, shoes_textblock *block, shoes_app *app)
     if (rb_obj_is_kind_of(v, cTextClass))
     {
       VALUE tklass = rb_obj_class(v);
-      gsize start;
+      guint start;
       shoes_text *text;
       Data_Get_Struct(v, shoes_text, text);
 
@@ -2666,7 +2666,7 @@ shoes_textblock_iter_pango(VALUE texts, shoes_textblock *block, shoes_app *app)
     {
       char *start, *end;
       v = rb_funcall(v, s_to_s, 0);
-      block->len += RSTRING_LEN(v); 
+      block->len += (guint)RSTRING_LEN(v);
       if (!block->cached)
       {
         start = RSTRING_PTR(v);
