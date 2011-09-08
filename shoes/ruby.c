@@ -707,7 +707,7 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
   if (!NIL_P(text)) { \
     text = shoes_native_to_s(text); \
     msg = RSTRING_PTR(text); \
-    if (flex) len = (RSTRING_LEN(text) * 8) + 32; \
+    if (flex) len = ((int)RSTRING_LEN(text) * 8) + 32; \
   } \
   shoes_place_decide(&place, c, self_t->attr, len, 28 + dh, REL_CANVAS, TRUE)
 
@@ -4006,7 +4006,7 @@ shoes_message_download(VALUE self, void *data)
   switch (de->stage)
   {
     case SHOES_HTTP_STATUS:
-      dl->response = shoes_response_new(cResponse, de->status);
+      dl->response = shoes_response_new(cResponse, (int)de->status);
     return 0;
 
     case SHOES_HTTP_HEADER:
