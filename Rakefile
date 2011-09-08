@@ -67,12 +67,11 @@ when /mingw/
 when /darwin/
   osx_bootstrap_env
   require File.expand_path('make/darwin/env')
-  require File.expand_path('make/darwin/tasks')
 
   task :stub do
-    MakeDarwin.make_stub
+    ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
+    sh "gcc -O -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc -framework Cocoa -o stub platform/mac/stub.m -I."
   end
-  Builder = MakeDarwin
   NAMESPACE = :osx
 when /linux/
   require File.expand_path('rakefile_linux')
@@ -164,21 +163,43 @@ task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o"] + ADD_DLL + 
 
 task "dist/lib#{SONAME}.#{DLEXT}" => ['shoes/version.h', 'dist'] + OBJ + ["#{NAMESPACE}:make_so"]
 
+def cc(t)
+  sh "#{CC} -I. -c -o#{t.name} #{LINUX_CFLAGS} #{t.source}"
+end
+
 rule ".o" => ".m" do |t|
-  Builder.cc t
+  cc t
 end
 
 rule ".o" => ".c" do |t|
-  Builder.cc t
+  cc t
 end
 
-task :installer => ["#{NAMESPACE}:installer"] do
-  #Builder.make_installer
-end
+task :installer => ["#{NAMESPACE}:installer"]
 
 # Like puts, but only if we've --trace'd
 def vputs(str)
   puts str if Rake.application.options.trace
+end
+
+def rewrite before, after, reg = /\#\{(\w+)\}/, reg2 = '\1'
+  File.open(after, 'w') do |a|
+    File.open(before) do |b|
+      b.each do |line|
+        a << line.gsub(reg) do
+          if reg2.include? '\1'
+            reg2.gsub(%r!\\1!, Object.const_get($1))
+          else
+            reg2
+          end
+        end
+      end
+    end
+  end
+end
+
+def copy_files glob, dir
+  FileList[glob].each { |f| cp_r f, dir }
 end
 
 namespace :osx do
@@ -208,11 +229,125 @@ namespace :osx do
     end
   end
 
-  task :build => [:build_skel, "dist/#{NAME}", "dist/VERSION.txt"] do
-    Builder.common_build
-    Builder.copy_deps_to_dist
-    Builder.copy_files_to_dist
-    Builder.setup_system_resources
+  task :build => [:build_skel, "dist/#{NAME}", "dist/VERSION.txt", "build_tasks:build"]
+
+  namespace :build_tasks do
+
+    task :build => [:common_build, :copy_deps_to_dist, :copy_files_to_dist, :setup_system_resources]
+    
+    def copy_ext_osx xdir, libdir
+      Dir.chdir(xdir) do
+        `ruby extconf.rb; make`
+      end
+      copy_files "#{xdir}/*.bundle", libdir
+    end
+
+    task :common_build do
+      mkdir_p "dist/ruby"
+      cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "dist/ruby/lib"
+      unless ENV['STANDARD']
+        %w[soap wsdl xsd].each do |libn|
+          rm_rf "dist/ruby/lib/#{libn}"
+        end
+      end
+      %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
+        FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
+      end
+      %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
+        each { |xdir| copy_ext_osx xdir, "dist/ruby/lib/#{RUBY_PLATFORM}" }
+
+      gdir = "dist/ruby/gems/#{RUBY_V}"
+      {'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
+        spec = eval(File.read("req/#{gemn}/gemspec"))
+        mkdir_p "#{gdir}/specifications"
+        mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
+        FileList["req/#{gemn}/lib/*"].each { |rlib| cp_r rlib, "#{gdir}/gems/#{spec.full_name}/lib" }
+        mkdir_p "#{gdir}/gems/#{spec.full_name}/#{xdir}"
+        FileList["req/#{gemn}/ext/*"].each { |elib| copy_ext_osx elib, "#{gdir}/gems/#{spec.full_name}/#{xdir}" }
+        cp "req/#{gemn}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
+      end
+    end
+
+    def get_osx_dylibs lib
+      `otool -L #{lib}`.split("\n").inject([]) do |dylibs, line|
+        if  line =~ /^\S/ or line =~ /System|@executable_path|libobjc/
+          dylibs
+        else
+          dylibs << line.gsub(/\s\(compatibility.*$/, '').strip
+        end
+      end
+    end
+
+    task :copy_deps_to_dist do
+      # Generate a list of dependencies straight from the generated files.
+      # Start with dependencies of shoes-bin, and then add the dependencies
+      # of those dependencies. Finally, add any oddballs that must be
+      # included.
+      dylibs = get_osx_dylibs("dist/#{NAME}-bin")
+      dylibs.each do |dylib|
+        get_osx_dylibs(dylib).each do |d|
+          dylibs << d unless dylibs.map {|lib| File.basename(lib)}.include?(File.basename(d))
+        end
+      end
+      dylibs << '/usr/local/etc/pango/pango.modules'
+      dylibs.each do |libn|
+        cp "#{libn}", "dist/"
+      end.each do |libn|
+        next unless libn =~ %r!/lib/(.+?\.dylib)$!
+        libf = $1
+        # Get the actual name that the file is calling itself
+        otool_lib_id = `otool -D dist/#{libf} | sed -n 2p`.chomp
+        sh "install_name_tool -id @executable_path/#{libf} dist/#{libf}"
+        ["dist/#{NAME}-bin", *Dir['dist/*.dylib']].each do |lib2|
+          sh "install_name_tool -change #{otool_lib_id} @executable_path/#{libf} #{lib2}"
+        end
+      end
+    end
+
+    task :copy_files_to_dist do
+      if ENV['APP']
+        if APP['clone']
+          sh APP['clone'].gsub(/^git /, "#{GIT} --git-dir=#{ENV['APP']}/.git ")
+        else
+          cp_r ENV['APP'], "dist/app"
+        end
+        if APP['ignore']
+          APP['ignore'].each do |nn|
+            rm_rf "dist/app/#{nn}"
+          end
+        end
+      end
+
+      cp_r  "fonts", "dist/fonts"
+      cp_r  "lib", "dist/lib"
+      cp_r  "samples", "dist/samples"
+      cp_r  "static", "dist/static"
+      cp    "README.md", "dist/README.txt"
+      cp    "CHANGELOG", "dist/CHANGELOG.txt"
+      cp    "COPYING", "dist/COPYING.txt"
+    end
+
+    task :setup_system_resources do
+      rm_rf "#{APPNAME}.app"
+      mkdir "#{APPNAME}.app"
+      mkdir "#{APPNAME}.app/Contents"
+      cp_r "dist", "#{APPNAME}.app/Contents/MacOS"
+      mkdir "#{APPNAME}.app/Contents/Resources"
+      mkdir "#{APPNAME}.app/Contents/Resources/English.lproj"
+      sh "ditto \"#{APP['icons']['osx']}\" \"#{APPNAME}.app/App.icns\""
+      sh "ditto \"#{APP['icons']['osx']}\" \"#{APPNAME}.app/Contents/Resources/App.icns\""
+      rewrite "platform/mac/Info.plist", "#{APPNAME}.app/Contents/Info.plist"
+      cp "platform/mac/version.plist", "#{APPNAME}.app/Contents/"
+      rewrite "platform/mac/pangorc", "#{APPNAME}.app/Contents/MacOS/pangorc"
+      cp "platform/mac/command-manual.rb", "#{APPNAME}.app/Contents/MacOS/"
+      rewrite "platform/mac/shoes-launch", "#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
+      chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
+      chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}-bin"
+      rewrite "platform/mac/shoes", "#{APPNAME}.app/Contents/MacOS/#{NAME}"
+      chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}"
+      # cp InfoPlist.strings YourApp.app/Contents/Resources/English.lproj/
+      `echo -n 'APPL????' > "#{APPNAME}.app/Contents/PkgInfo"`
+    end
   end
 
   task :make_app do
