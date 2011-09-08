@@ -216,7 +216,11 @@ namespace :osx do
   end
 
   task :make_app do
-    Builder.make_app "dist/#{NAME}"
+    # Builder.make_app "dist/#{NAME}"
+    bin = "dist/#{NAME}-bin"
+    rm_f "dist/#{NAME}"
+    rm_f bin
+    sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes -arch x86_64"
   end
 
   task :make_so do
