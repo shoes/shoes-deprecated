@@ -213,8 +213,6 @@ namespace :osx do
       homebrew_install "giflib"
       homebrew_install "portaudio"
       homebrew_install "gettext"
-      homebrew_install "cairo"
-      homebrew_install "gettext"
     end
     
     task :bootstrap do

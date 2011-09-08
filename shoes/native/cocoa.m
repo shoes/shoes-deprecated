@@ -8,6 +8,7 @@
 #include "shoes/world.h"
 #include "shoes/native.h"
 #include "shoes/internal.h"
+#include "shoes/http.h"
 
 #define HEIGHT_PAD 6
 
@@ -116,11 +117,11 @@
   Data_Get_Struct(app, shoes_app, a);
   Data_Get_Struct(a->canvas, shoes_canvas, canvas);
   if (type == s_motion)
-    shoes_app_motion(a, p.x, (canvas->height - p.y) + canvas->slot->scrolly);
+    shoes_app_motion(a, ROUND(p.x), (canvas->height - ROUND(p.y)) + canvas->slot->scrolly);
   else if (type == s_click)
-    shoes_app_click(a, b, p.x, (canvas->height - p.y) + canvas->slot->scrolly);
+    shoes_app_click(a, b, ROUND(p.x), (canvas->height - ROUND(p.y)) + canvas->slot->scrolly);
   else if (type == s_release)
-    shoes_app_release(a, b, p.x, (canvas->height - p.y) + canvas->slot->scrolly);
+    shoes_app_release(a, b, ROUND(p.x), (canvas->height - ROUND(p.y)) + canvas->slot->scrolly);
 }
 - (void)mouseDown: (NSEvent *)e
 {
@@ -165,7 +166,7 @@
 - (void)scrollWheel: (NSEvent *)e
 {
   ID wheel;
-  float dy = [e deltaY];
+  CGFloat dy = [e deltaY];
   NSPoint p = [e locationInWindow];
   shoes_app *a;
 
@@ -181,13 +182,13 @@
 
   Data_Get_Struct(app, shoes_app, a);
   for (; dy > 0.; dy--)
-    shoes_app_wheel(a, wheel, p.x, p.y);
+    shoes_app_wheel(a, wheel, ROUND(p.x), ROUND(p.y));
 }
 - (void)keyDown: (NSEvent *)e
 {
   shoes_app *a;
   VALUE v = Qnil;
-  unsigned int modifier = [e modifierFlags];
+  NSUInteger modifier = [e modifierFlags];
   unsigned short key = [e keyCode];
   INIT;
 
@@ -285,8 +286,8 @@
   NSRect bounds = [self bounds];
   Data_Get_Struct(canvas, shoes_canvas, c);
 
-  c->width = bounds.size.width;
-  c->height = bounds.size.height;
+  c->width = ROUND(bounds.size.width);
+  c->height = ROUND(bounds.size.height);
   if (c->slot->vscroll)
   {
     [c->slot->vscroll setFrame: NSMakeRect(c->width - [NSScroller scrollerWidth], 0,
@@ -774,9 +775,10 @@ void shoes_native_slot_lengthen(SHOES_SLOT_OS *slot, int height, int endy)
 {
   if (slot->vscroll)
   {
-    float s = slot->scrolly * 1., e = endy * 1., h = height * 1., d = (endy - height) * 1.;
+    double s = slot->scrolly * 1., e = endy * 1., h = height * 1., d = (endy - height) * 1.;
     COCOA_DO({
-      [slot->vscroll setFloatValue: (d > 0 ? s / d : 0) knobProportion: (h / e)];
+      [slot->vscroll setDoubleValue: (d > 0 ? s / d : 0)];
+      [slot->vscroll setKnobProportion: (h / e)];
       [slot->vscroll setHidden: endy <= height ? YES : NO];
     });
   }
@@ -862,9 +864,8 @@ shoes_native_app_window(shoes_app *app, int dialog)
 void
 shoes_native_view_supplant(NSView *from, NSView *to)
 {
-  int i, count = [[from subviews] count];
-  for (i = 0; i < count; i++)
-    [to addSubview: [[from subviews] objectAtIndex: i]];
+  for (id subview in [from subviews])
+    [to addSubview:subview];
 }
 
 void
@@ -881,8 +882,8 @@ shoes_native_app_fullscreen(shoes_app *app, char yn)
     level = CGShieldingWindowLevel();
     screen = [[NSScreen mainScreen] frame];
     COCOA_DO({
-      app->width = screen.size.width;
-      app->height = screen.size.height;
+      app->width = ROUND(screen.size.width);
+      app->height = ROUND(screen.size.height);
       app->os.window = shoes_native_app_window(app, 0);
       [app->os.window setLevel: level];
       shoes_native_view_supplant([old contentView], [app->os.window contentView]);
@@ -895,8 +896,8 @@ shoes_native_app_fullscreen(shoes_app *app, char yn)
   else
   {
     COCOA_DO({
-      app->width = app->os.normal.size.width;
-      app->height = app->os.normal.size.height;
+      app->width = ROUND(app->os.normal.size.width);
+      app->height = ROUND(app->os.normal.size.height);
       app->os.window = shoes_native_app_window(app, 0);
       [app->os.window setLevel: NSNormalWindowLevel];
       CGDisplayRelease(kCGDirectMainDisplay);
@@ -1247,7 +1248,7 @@ shoes_native_list_box_update(SHOES_CONTROL_REF ref, VALUE ary)
 VALUE
 shoes_native_list_box_get_active(SHOES_CONTROL_REF ref, VALUE items)
 {
-  int sel = [(ShoesPopUpButton *)ref indexOfSelectedItem];
+  NSInteger sel = [(ShoesPopUpButton *)ref indexOfSelectedItem];
   if (sel >= 0)
     return rb_ary_entry(items, sel);
   return Qnil;
@@ -1256,7 +1257,7 @@ shoes_native_list_box_get_active(SHOES_CONTROL_REF ref, VALUE items)
 void
 shoes_native_list_box_set_active(SHOES_CONTROL_REF ref, VALUE ary, VALUE item)
 {
-  int idx = rb_ary_index_of(ary, item);
+  long idx = rb_ary_index_of(ary, item);
   if (idx < 0) return;
   COCOA_DO([(ShoesPopUpButton *)ref selectItemAtIndex: idx]);
 }
@@ -1510,7 +1511,7 @@ shoes_dialog_chooser(VALUE self, NSString *title, BOOL directories, VALUE attr)
     if ( [openDlg runModalForDirectory: nil file: nil] == NSOKButton )
     {
       NSArray* files = [openDlg filenames];
-      char *filename = [[files objectAtIndex: 0] UTF8String];
+      const char *filename = [[files objectAtIndex: 0] UTF8String];
       path = rb_str_new2(filename);
     }
   });
@@ -1533,7 +1534,7 @@ shoes_dialog_save(int argc, VALUE *argv, VALUE self)
     NSSavePanel* saveDlg = [NSSavePanel savePanel];
     if ( [saveDlg runModalForDirectory:nil file:nil] == NSOKButton )
     {
-      char *filename = [[saveDlg filename] UTF8String];
+      const char *filename = [[saveDlg filename] UTF8String];
       path = rb_str_new2(filename);
     }
   });

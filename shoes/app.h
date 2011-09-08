@@ -63,7 +63,7 @@ VALUE shoes_app_set_fullscreen(VALUE, VALUE);
 VALUE shoes_app_slot(VALUE);
 shoes_code shoes_app_start(VALUE, char *);
 shoes_code shoes_app_open(shoes_app *, char *);
-shoes_code shoes_app_loop();
+shoes_code shoes_app_loop(void);
 shoes_code shoes_app_visit(shoes_app *, char *);
 shoes_code shoes_app_paint(shoes_app *);
 shoes_code shoes_app_motion(shoes_app *, int, int);
