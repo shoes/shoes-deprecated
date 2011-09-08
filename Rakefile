@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'rake'
 require 'rake/clean'
-require_relative 'platform/skel'
+# require_relative 'platform/skel'
 require 'fileutils'
 require 'find'
 require 'yaml'
@@ -57,17 +57,27 @@ def osx_bootstrap_env
   ENV['SHOES_DEPS_PATH'] = '/usr/local'
 end
 
+
+
 case RUBY_PLATFORM
 when /mingw/
   require File.expand_path('rakefile_mingw')
   Builder = MakeMinGW
+  NAMESPACE = :win32
 when /darwin/
   osx_bootstrap_env
-  require File.expand_path('rakefile_darwin')
+  require File.expand_path('make/darwin/env')
+  require File.expand_path('make/darwin/tasks')
+
+  task :stub do
+    MakeDarwin.make_stub
+  end
   Builder = MakeDarwin
+  NAMESPACE = :osx
 when /linux/
   require File.expand_path('rakefile_linux')
   Builder = MakeLinux
+  NAMESPACE = :linux
 else
   puts "Sorry, your platform [#{RUBY_PLATFORM}] is not supported..."
 end
@@ -80,6 +90,8 @@ task :default => [:build]
 
 desc "Does a full compile, with installer"
 task :package => [:build, :installer]
+
+task :build_os => [:build_skel, "dist/#{NAME}"]
 
 task "shoes/version.h" do |t|
   File.open(t.name, 'w') do |f|
@@ -100,11 +112,46 @@ SRC.zip(OBJ).each do |c, o|
   file o => [c] + Dir["shoes/*.h"]
 end
 
+# ------
+# skel
+
+def skel_replace(line)
+  line.gsub! /\s+%DEFAULTS%/ do
+    if APPARGS
+      args = APPARGS.split(/\s+/)
+      %{
+        char *default_argv[] = {argv[0], #{args.inspect[1..-2]}};
+        argv = default_argv;
+        argc = #{args.length + 1};
+      }
+    end
+  end
+  line
+end
+
+# preprocess .skel
+task :build_skel do |t|
+  Dir["bin/*.skel"].each do |src|
+    name = src.gsub(/\.skel$/, '.c')
+    File.open(src) do |skel|
+      File.open(name, 'w') do |c|
+        skel.each_line do |line|
+          c << skel_replace(line)
+        end
+      end
+    end
+  end
+end
+
 # --------------------------
 # tasks depending on Builder = MakeLinux|MakeDarwin|MakeMinGW
 
 desc "Does a full compile, for the OS you're running on"
-task :build => [:build_os, "dist/VERSION.txt"] do
+task :build => ["#{NAMESPACE}:build"]
+
+# first refactor ; build calls platform namespaced build;
+# for now, each of those calls the old build method.
+task :old_build => [:build_os, "dist/VERSION.txt"] do
   Builder.common_build
   Builder.copy_deps_to_dist
   Builder.copy_files_to_dist
@@ -113,13 +160,9 @@ end
 
 directory 'dist'
 
-task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o"] + ADD_DLL do |t|
-  Builder.make_app t.name
-end
+task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o"] + ADD_DLL + ["#{NAMESPACE}:make_app"]
 
-task "dist/lib#{SONAME}.#{DLEXT}" => ['shoes/version.h', 'dist'] + OBJ do |t|
-  Builder.make_so t.name
-end
+task "dist/lib#{SONAME}.#{DLEXT}" => ['shoes/version.h', 'dist'] + OBJ + ["#{NAMESPACE}:make_so"]
 
 rule ".o" => ".m" do |t|
   Builder.cc t
@@ -140,6 +183,7 @@ end
 
 namespace :osx do
   namespace :deps do
+    desc "Installs OS X dependencies"
     task :install => :bootstrap do
       homebrew_install "cairo"
       sh "brew link cairo" unless File.exist?("/usr/local/lib/libcairo.2.dylib")
@@ -151,7 +195,7 @@ namespace :osx do
       homebrew_install "cairo"
       homebrew_install "gettext"
     end
-
+    
     task :bootstrap do
       # For now, pull in this patched glib formula
       cd `brew --prefix`.chomp do
@@ -162,6 +206,50 @@ namespace :osx do
         sh "git merge shoes/shoes"
       end
     end
+  end
+
+  task :build => [:build_skel, "dist/#{NAME}", "dist/VERSION.txt"] do
+    Builder.common_build
+    Builder.copy_deps_to_dist
+    Builder.copy_files_to_dist
+    Builder.setup_system_resources
+  end
+
+  task :make_app do
+    Builder.make_app "dist/#{NAME}"
+  end
+
+  task :make_so do
+    name = "dist/lib#{SONAME}.#{DLEXT}"
+    ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
+      sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
+      %w[libpostproc.dylib libavformat.dylib libavcodec.dylib libavutil.dylib libruby.dylib].each do |libn|
+        sh "install_name_tool -change /tmp/dep/lib/#{libn} ./deps/lib/#{libn} #{name}"
+      end
+  end
+end
+
+namespace :win32 do
+  task :build => [:old_build]
+
+  task :make_app do
+    Builder.make_app "dist/#{NAME}"
+  end
+
+  task :make_so do
+    Builder.make_so  "dist/lib#{SONAME}.#{DLEXT}"
+  end
+end
+
+namespace :linux do
+  task :build => [:old_build]
+
+  task :make_app do
+    Builder.make_app "dist/#{NAME}"
+  end
+
+  task :make_so do
+    Builder.make_so  "dist/lib#{SONAME}.#{DLEXT}"
   end
 end
 
