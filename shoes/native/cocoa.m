@@ -8,6 +8,7 @@
 #include "shoes/world.h"
 #include "shoes/native.h"
 #include "shoes/internal.h"
+#include "shoes/http.h"
 
 #define HEIGHT_PAD 6
 
