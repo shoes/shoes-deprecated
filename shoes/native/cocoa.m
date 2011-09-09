@@ -8,6 +8,7 @@
 #include "shoes/world.h"
 #include "shoes/native.h"
 #include "shoes/internal.h"
+#include "shoes/http.h"
 
 #define HEIGHT_PAD 6
 
@@ -1510,7 +1511,7 @@ shoes_dialog_chooser(VALUE self, NSString *title, BOOL directories, VALUE attr)
     if ( [openDlg runModalForDirectory: nil file: nil] == NSOKButton )
     {
       NSArray* files = [openDlg filenames];
-      char *filename = [[files objectAtIndex: 0] UTF8String];
+      const char *filename = [[files objectAtIndex: 0] UTF8String];
       path = rb_str_new2(filename);
     }
   });
@@ -1533,7 +1534,7 @@ shoes_dialog_save(int argc, VALUE *argv, VALUE self)
     NSSavePanel* saveDlg = [NSSavePanel savePanel];
     if ( [saveDlg runModalForDirectory:nil file:nil] == NSOKButton )
     {
-      char *filename = [[saveDlg filename] UTF8String];
+      const char *filename = [[saveDlg filename] UTF8String];
       path = rb_str_new2(filename);
     }
   });

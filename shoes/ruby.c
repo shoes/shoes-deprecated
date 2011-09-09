@@ -282,7 +282,7 @@ shoes_safe_block_call(VALUE rb_sb)
   safe_block *sb = (safe_block *)rb_sb;
   for (i = 0; i < RARRAY_LEN(sb->args); i++)
     vargs[i] = rb_ary_entry(sb->args, i);
-  return rb_funcall2(sb->block, s_call, RARRAY_LEN(sb->args), vargs);
+  return rb_funcall2(sb->block, s_call, (int)RARRAY_LEN(sb->args), vargs);
 }
 
 static VALUE
@@ -316,7 +316,7 @@ shoes_px(VALUE obj, int dv, int pv, int nv)
   int px;
   if (TYPE(obj) == T_STRING) {
     char *ptr = RSTRING_PTR(obj);
-    int len = RSTRING_LEN(obj);
+    int len = (int)RSTRING_LEN(obj);
     obj = rb_funcall(obj, s_to_i, 0);
     if (len > 1 && ptr[len - 1] == '%')
     {
@@ -450,9 +450,9 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
   {
     VALUE rw = ATTR(attr, width), rh = ATTR(attr, height);
     if (NIL_P(rw) && !NIL_P(rh))
-      dw = ((dw * 1.) / dh) * shoes_px(rh, dh, CPW(canvas), 1);
+      dw = ROUND(((dw * 1.) / dh) * shoes_px(rh, dh, CPW(canvas), 1));
     else if (NIL_P(rh) && !NIL_P(rw))
-      dh = ((dh * 1.) / dw) * shoes_px(rw, dw, CPW(canvas), 1);
+      dh = ROUND(((dh * 1.) / dw) * shoes_px(rw, dw, CPW(canvas), 1));
   }
 
   ATTR_MARGINS(attr, 0, canvas);
@@ -617,7 +617,7 @@ shoes_extras_remove_all(shoes_canvas *canvas)
   shoes_basic *basic;
   shoes_canvas *parent;
   if (canvas->app == NULL) return;
-  for (i = RARRAY_LEN(canvas->app->extras) - 1; i >= 0; i--)
+  for (i = (int)RARRAY_LEN(canvas->app->extras) - 1; i >= 0; i--)
   {
     VALUE ele = rb_ary_entry(canvas->app->extras, i);
     Data_Get_Struct(ele, shoes_basic, basic);
@@ -707,7 +707,7 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
   if (!NIL_P(text)) { \
     text = shoes_native_to_s(text); \
     msg = RSTRING_PTR(text); \
-    if (flex) len = (RSTRING_LEN(text) * 8) + 32; \
+    if (flex) len = ((int)RSTRING_LEN(text) * 8) + 32; \
   } \
   shoes_place_decide(&place, c, self_t->attr, len, 28 + dh, REL_CANVAS, TRUE)
 
@@ -895,7 +895,8 @@ shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, shoes_transform *st
   {
     double h, tip, x;
     x = place->x + (place->w / 2.);
-    place->h = h = place->w * 0.8;
+    h = place->w * 0.8;
+    place->h = ROUND(h);
     tip = place->w * 0.42;
 
     shoes_apply_transformation(cr, st, place, 0);
@@ -922,7 +923,7 @@ shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, shoes_transform *st
 
     if (outer > 0)
     {
-      place->w = place->h = outer;
+      place->w = place->h = ROUND(outer);
       shoes_apply_transformation(cr, st, place, 0);
       if (!shoes_shape_check(cr, place))
         return shoes_undo_transformation(cr, st, place, 0);
@@ -1611,10 +1612,10 @@ shoes_border_draw(VALUE self, VALUE c, VALUE actual)
   if (!NIL_P(ATTR(self_t->attr, cap))) cap = SYM2ID(ATTR(self_t->attr, cap));
   if (!NIL_P(ATTR(self_t->attr, dash))) dash = SYM2ID(ATTR(self_t->attr, dash));
 
-  place.iw -= sw;
-  place.ih -= sw;
-  place.ix += sw / 2.;
-  place.iy += sw / 2.;
+  place.iw -= ROUND(sw);
+  place.ih -= ROUND(sw);
+  place.ix += ROUND(sw / 2.);
+  place.iy += ROUND(sw / 2.);
 
   if (RTEST(actual))
   {
@@ -2433,7 +2434,7 @@ shoes_textblock_send_release(VALUE self, int button, int x, int y)
   }
 
 static void
-shoes_app_style_for(shoes_textblock *block, shoes_app *app, VALUE klass, VALUE oattr, gsize start_index, gsize end_index)
+shoes_app_style_for(shoes_textblock *block, shoes_app *app, VALUE klass, VALUE oattr, guint start_index, guint end_index)
 {
   VALUE str = Qnil;
   VALUE hsh = rb_hash_aref(app->styles, klass);
@@ -2482,7 +2483,7 @@ shoes_app_style_for(shoes_textblock *block, shoes_app *app, VALUE klass, VALUE o
     {
       int i = NUM2INT(str);
       if (i > 0)
-        attr = pango_attr_size_new_absolute(i * PANGO_SCALE * (96./72.));
+        attr = pango_attr_size_new_absolute(ROUND(i * PANGO_SCALE * (96./72.)));
     }
     APPLY_ATTR();
   }
@@ -2643,7 +2644,7 @@ shoes_textblock_iter_pango(VALUE texts, shoes_textblock *block, shoes_app *app)
     if (rb_obj_is_kind_of(v, cTextClass))
     {
       VALUE tklass = rb_obj_class(v);
-      gsize start;
+      guint start;
       shoes_text *text;
       Data_Get_Struct(v, shoes_text, text);
 
@@ -2665,7 +2666,7 @@ shoes_textblock_iter_pango(VALUE texts, shoes_textblock *block, shoes_app *app)
     {
       char *start, *end;
       v = rb_funcall(v, s_to_s, 0);
-      block->len += RSTRING_LEN(v); 
+      block->len += (guint)RSTRING_LEN(v);
       if (!block->cached)
       {
         start = RSTRING_PTR(v);
@@ -4005,7 +4006,7 @@ shoes_message_download(VALUE self, void *data)
   switch (de->stage)
   {
     case SHOES_HTTP_STATUS:
-      dl->response = shoes_response_new(cResponse, de->status);
+      dl->response = shoes_response_new(cResponse, (int)de->status);
     return 0;
 
     case SHOES_HTTP_HEADER:

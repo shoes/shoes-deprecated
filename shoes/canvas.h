@@ -165,7 +165,7 @@ typedef struct {
   PangoLayout *layout;
   PangoAttrList *pattr;
   GString *text;
-  gsize len;
+  guint len;
   char cached, hover;
   shoes_transform *st;
 } shoes_textblock;
