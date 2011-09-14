@@ -266,7 +266,7 @@ namespace :osx do
       end
     end
 
-    def get_osx_dylibs lib
+    def dylibs_to_change lib
       `otool -L #{lib}`.split("\n").inject([]) do |dylibs, line|
         if  line =~ /^\S/ or line =~ /System|@executable_path|libobjc/
           dylibs
@@ -276,30 +276,38 @@ namespace :osx do
       end
     end
 
+    def change_install_name libn, options={:change_install_id => true}
+      return unless libn =~ %r!/lib/(.+?\.dylib)$!
+      libf = $1
+      if options[:change_install_id]
+        sh "install_name_tool -id @executable_path/#{libf} dist/#{libf}"
+      end
+      orig_name ||= libn
+      ["dist/#{NAME}-bin", *Dir['dist/*.dylib']].each do |lib2|
+        sh "install_name_tool -change #{orig_name} @executable_path/#{libf} #{lib2}"
+      end
+    end
+
     task :copy_deps_to_dist do
       # Generate a list of dependencies straight from the generated files.
       # Start with dependencies of shoes-bin, and then add the dependencies
       # of those dependencies. Finally, add any oddballs that must be
       # included.
-      dylibs = get_osx_dylibs("dist/#{NAME}-bin")
+      dylibs = dylibs_to_change("dist/#{NAME}-bin")
+      dupes = []
       dylibs.each do |dylib|
-        get_osx_dylibs(dylib).each do |d|
-          dylibs << d unless dylibs.map {|lib| File.basename(lib)}.include?(File.basename(d))
+        dylibs_to_change(dylib).each do |d|
+          if dylibs.map {|lib| File.basename(lib)}.include?(File.basename(d))
+            dupes << d
+          else
+            dylibs << d
+          end
         end
       end
       dylibs << '/usr/local/etc/pango/pango.modules'
-      dylibs.each do |libn|
-        cp "#{libn}", "dist/"
-      end.each do |libn|
-        next unless libn =~ %r!/lib/(.+?\.dylib)$!
-        libf = $1
-        # Get the actual name that the file is calling itself
-        otool_lib_id = `otool -D dist/#{libf} | sed -n 2p`.chomp
-        sh "install_name_tool -id @executable_path/#{libf} dist/#{libf}"
-        ["dist/#{NAME}-bin", *Dir['dist/*.dylib']].each do |lib2|
-          sh "install_name_tool -change #{otool_lib_id} @executable_path/#{libf} #{lib2}"
-        end
-      end
+      dylibs.each {|libn| cp "#{libn}", "dist/"}
+      dylibs.each {|libn| change_install_name libn}
+      (dupes - dylibs).each {|libn| change_install_name libn, :change_install_id => false}
     end
 
     task :copy_files_to_dist do
@@ -352,28 +360,27 @@ namespace :osx do
   task :verify => ['verify:sanity', 'verify:lib_paths']
 
   namespace :verify do
-    def show_error message
+    def report_error message
       STDERR.puts "BUILD ERROR: " + message
     end
 
     task :sanity do
-      show_error "No #{APPNAME}.app file found" unless File.exist? "#{APPNAME}.app"
+      report_error "No #{APPNAME}.app file found" unless File.exist? "#{APPNAME}.app"
       [NAME, "#{NAME}-launch", "#{NAME}-bin"].each do |f|
-        show_error "No #{f} file found" unless File.exist? "#{APPNAME}.app/Contents/MacOS/#{f}"
+        report_error "No #{f} file found" unless File.exist? "#{APPNAME}.app/Contents/MacOS/#{f}"
       end
     end
 
     task :lib_paths do
       cd "#{APPNAME}.app/Contents/MacOS" do
         errors = []
-        files = Dir["*.dylib"] << "#{NAME}-bin"
-        files.each do |f|
-          dylibs = get_osx_dylibs(f)
+        ["#{NAME}-bin", *Dir['*.dylib']].each do |f|
+          dylibs = dylibs_to_change(f)
           dylibs.each do |dylib|
             errors << "Suspect library path on #{f}:\n  #{dylib}\n  (check with `otool -L #{f}`)"
           end
         end
-        errors.each {|e| show_error e}
+        errors.each {|e| report_error e}
       end
     end
   end
