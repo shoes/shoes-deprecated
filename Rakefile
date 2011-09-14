@@ -231,7 +231,7 @@ namespace :osx do
 
   namespace :build_tasks do
 
-    task :build => [:common_build, :copy_deps_to_dist, :copy_files_to_dist, :setup_system_resources]
+    task :build => [:common_build, :copy_deps_to_dist, :copy_files_to_dist, :setup_system_resources, :verify]
     
     def copy_ext_osx xdir, libdir
       Dir.chdir(xdir) do
@@ -345,6 +345,36 @@ namespace :osx do
       chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}"
       # cp InfoPlist.strings YourApp.app/Contents/Resources/English.lproj/
       `echo -n 'APPL????' > "#{APPNAME}.app/Contents/PkgInfo"`
+    end
+  end
+
+  desc "Verify the build products"
+  task :verify => ['verify:sanity', 'verify:lib_paths']
+
+  namespace :verify do
+    def show_error message
+      STDERR.puts "BUILD ERROR: " + message
+    end
+
+    task :sanity do
+      show_error "No #{APPNAME}.app file found" unless File.exist? "#{APPNAME}.app"
+      [NAME, "#{NAME}-launch", "#{NAME}-bin"].each do |f|
+        show_error "No #{f} file found" unless File.exist? "#{APPNAME}.app/Contents/MacOS/#{f}"
+      end
+    end
+
+    task :lib_paths do
+      cd "#{APPNAME}.app/Contents/MacOS" do
+        errors = []
+        files = Dir["*.dylib"] << "#{NAME}-bin"
+        files.each do |f|
+          dylibs = get_osx_dylibs(f)
+          dylibs.each do |dylib|
+            errors << "Suspect library path on #{f}:\n  #{dylib}\n  (check with `otool -L #{f}`)"
+          end
+        end
+        errors.each {|e| show_error e}
+      end
     end
   end
 
