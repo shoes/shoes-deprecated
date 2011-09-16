@@ -283,17 +283,26 @@ namespace :osx do
         sh "install_name_tool -id @executable_path/#{libf} dist/#{libf}"
       end
       orig_name ||= libn
-      ["dist/#{NAME}-bin", *Dir['dist/*.dylib']].each do |lib2|
+      ["dist/#{NAME}-bin", 'dist/pango-querymodules', *Dir['dist/*.dylib']].each do |lib2|
         sh "install_name_tool -change #{orig_name} @executable_path/#{libf} #{lib2}"
       end
     end
 
-    task :copy_deps_to_dist do
+    task :copy_pango_modules_to_dist do
+      modules_file = `brew --prefix`.chomp << '/etc/pango/pango.modules'
+      modules_path = File.open(modules_file) {|f| f.grep(/^# ModulesPath = (.*)$/){$1}.first}
+      mkdir_p 'dist/pango'
+      cp_r modules_path, 'dist/pango'
+      cp `which pango-querymodules`.chomp, 'dist/'
+    end
+
+    task :copy_deps_to_dist => :copy_pango_modules_to_dist do
       # Generate a list of dependencies straight from the generated files.
       # Start with dependencies of shoes-bin, and then add the dependencies
       # of those dependencies. Finally, add any oddballs that must be
       # included.
       dylibs = dylibs_to_change("dist/#{NAME}-bin")
+      dylibs.concat dylibs_to_change("dist/pango-querymodules")
       dupes = []
       dylibs.each do |dylib|
         dylibs_to_change(dylib).each do |d|
@@ -304,7 +313,6 @@ namespace :osx do
           end
         end
       end
-      dylibs << '/usr/local/etc/pango/pango.modules'
       dylibs.each {|libn| cp "#{libn}", "dist/"}
       dylibs.each {|libn| change_install_name libn}
       (dupes - dylibs).each {|libn| change_install_name libn, :change_install_id => false}
@@ -351,6 +359,7 @@ namespace :osx do
       chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}-bin"
       rewrite "platform/mac/shoes", "#{APPNAME}.app/Contents/MacOS/#{NAME}"
       chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}"
+      chmod_R 0755, "#{APPNAME}.app/Contents/MacOS/pango-querymodules"
       # cp InfoPlist.strings YourApp.app/Contents/Resources/English.lproj/
       `echo -n 'APPL????' > "#{APPNAME}.app/Contents/PkgInfo"`
     end
