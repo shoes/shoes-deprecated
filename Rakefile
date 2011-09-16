@@ -283,7 +283,7 @@ namespace :osx do
         sh "install_name_tool -id @executable_path/#{libf} dist/#{libf}"
       end
       orig_name ||= libn
-      ["dist/#{NAME}-bin", 'dist/pango-querymodules', *Dir['dist/*.dylib']].each do |lib2|
+      ["dist/#{NAME}-bin", 'dist/pango-querymodules', *Dir['dist/pango/modules/*'], *Dir['dist/*.dylib']].each do |lib2|
         sh "install_name_tool -change #{orig_name} @executable_path/#{libf} #{lib2}"
       end
     end
