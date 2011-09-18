@@ -399,7 +399,7 @@ namespace :osx do
     bin = "dist/#{NAME}-bin"
     rm_f "dist/#{NAME}"
     rm_f bin
-    sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes -arch x86_64"
+    sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{OSX_ARCH}"
   end
 
   task :make_so do

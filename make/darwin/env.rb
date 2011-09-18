@@ -58,7 +58,7 @@ elsif ENV['PPC']
   OSX_ARCH = '-arch ppc'
   OSX_SDK = '/Developer/SDKs/MacOSX10.4u.sdk'
   ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
-elsif ENV['i386']
+elsif ENV['I386']
   OSX_ARCH = '-arch i386'
   OSX_SDK = '/Developer/SDKs/MacOSX10.6.sdk'
   ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
