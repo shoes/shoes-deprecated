@@ -5,4 +5,5 @@ gem "gherkin"
 gem "cucumber"
 gem "rspec"
 gem "rake"
-gem "shoes-cucumber"
+gem "shoes-cucumber", path: '../shoes-cucumber'
+
