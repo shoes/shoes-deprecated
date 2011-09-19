@@ -7,3 +7,8 @@ Feature: Buttons
     When I append a button to the main window
     Then I should see a button
 
+  Scenario: Buttons can have a text on them
+    Given a Shoes application
+    When I append a button with text "Hello world" to the main window
+    Then I should see a button with text "Hello world"
+
