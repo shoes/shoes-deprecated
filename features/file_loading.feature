@@ -7,4 +7,5 @@ Feature: Simple.rb
     Then I should see a button with text "Close"
     And I should see a paragraph
     And I should see a link with text "A sample link"
+    And I should see an alert with text "Hello!"
 
