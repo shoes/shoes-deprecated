@@ -3,9 +3,19 @@ Feature: Simple.rb
   links and buttons.
 
   Scenario: Buttons can be created
-    Given a Shoes application in "features/example_programs/simple.rb"
+    Given the Shoes application in "features/example_programs/simple.rb"
     Then I should see a button with text "Close"
     And I should see a paragraph
     And I should see a link with text "A sample link"
-    And I should see an alert with text "Hello!"
+    And a popup with text "Hello!" should appear
+
+  Scenario: Clicking on Alert results in a popup
+    Given the Shoes application in "features/example_programs/simple.rb"
+    When I click the button labeled "Alert!"
+    Then a popup with text "Hello World!" should appear
+
+  Scenario: You may also check for multiple things
+    Given the Shoes application in "features/example_programs/simple.rb"
+    Then I should see 2 buttons
+    And I should see 1 link
 
