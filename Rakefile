@@ -231,12 +231,12 @@ namespace :osx do
 
       task :remove_custom_formulas do
         cd `brew --prefix`.chomp do
-          checkout_homebrew_formula "master", "glib"
+          checkout_homebrew_formula "HEAD", "glib"
         end
       end
 
       def checkout_homebrew_formula branch, formula
-        sh "git checkout #{branch} Library/Formula/#{formula}.rb"
+        sh "git checkout #{branch} -- Library/Formula/#{formula}.rb"
       end
     end
   end
