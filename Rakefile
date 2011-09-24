@@ -204,25 +204,39 @@ end
 
 namespace :osx do
   namespace :deps do
-    desc "Installs OS X dependencies"
-    task :install => :bootstrap do
-      homebrew_install "cairo"
-      sh "brew link cairo" unless File.exist?("/usr/local/lib/libcairo.2.dylib")
-      homebrew_install "pango"
-      homebrew_install "jpeg"
-      homebrew_install "giflib"
-      homebrew_install "portaudio"
-      homebrew_install "gettext"
-    end
-    
-    task :bootstrap do
-      # For now, pull in this patched glib formula
-      cd `brew --prefix`.chomp do
-        unless `git remote`.split.include?('shoes')
-          sh "git remote add shoes git://github.com/wasnotrice/homebrew.git"
+    task :install => "homebrew:install"
+    namespace :homebrew do
+      desc "Installs OS X dependencies using Homebrew"
+      task :install => [:add_custom_formulas, :install_libs, :remove_custom_formulas]
+      
+      task :install_libs do
+        homebrew_install "cairo"
+        sh "brew link cairo" unless File.exist?("/usr/local/lib/libcairo.2.dylib")
+        homebrew_install "pango", "--cocoa"
+        homebrew_install "jpeg"
+        homebrew_install "giflib"
+        homebrew_install "portaudio"
+        homebrew_install "gettext"
+      end
+      
+      task :add_custom_formulas do
+        cd `brew --prefix`.chomp do
+          unless `git remote`.split.include?('shoes')
+            sh "git remote add shoes git://github.com/wasnotrice/homebrew.git"
+          end
+          sh "git fetch shoes"
+          checkout_homebrew_formula "shoes", "glib"
         end
-        sh "git fetch shoes"
-        sh "git merge shoes/shoes"
+      end
+
+      task :remove_custom_formulas do
+        cd `brew --prefix`.chomp do
+          checkout_homebrew_formula "master", "glib"
+        end
+      end
+
+      def checkout_homebrew_formula branch, formula
+        sh "git checkout #{branch} Library/Formula/#{formula}.rb"
       end
     end
   end
@@ -465,11 +479,11 @@ namespace :linux do
   end
 end
 
-def homebrew_install package
+def homebrew_install package, args=""
   if `brew list`.split.include?(package)
     vputs "#{package} already exists, continuing"
   else
-    sh "brew install #{package}"
+    sh "brew install #{package} #{args}"
   end
 end
 
