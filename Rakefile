@@ -225,7 +225,7 @@ namespace :osx do
             sh "git remote add shoes git://github.com/wasnotrice/homebrew.git"
           end
           sh "git fetch shoes"
-          checkout_homebrew_formula "shoes", "glib"
+          checkout_homebrew_formula "shoes/shoes", "glib"
         end
       end
 
