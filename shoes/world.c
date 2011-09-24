@@ -190,7 +190,7 @@ shoes_start(char *path, char *uri)
     SHOES_BUFSIZE,
     "begin;"
       "DIR = File.expand_path(File.dirname(%%q<%s>));"
-      "$:.replace([DIR+'/ruby/lib/'+RUBY_PLATFORM, DIR+'/ruby/lib', DIR+'/lib', '.']);"
+      "$:.replace([DIR+'/ruby/lib/'+ENV['SHOES_RUBY_ARCH'], DIR+'/ruby/lib', DIR+'/lib', '.']);"
       "require 'shoes';"
       "DIR;"
     "rescue Object => e;"

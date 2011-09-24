@@ -29,7 +29,7 @@ png_lib = 'png'
 
 LINUX_CFLAGS = %[-Wall -I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{Config::CONFIG['archdir']}]
 if Config::CONFIG['rubyhdrdir']
-  LINUX_CFLAGS << " -I#{Config::CONFIG['rubyhdrdir']} -I#{Config::CONFIG['rubyhdrdir']}/#{RUBY_PLATFORM}"
+  LINUX_CFLAGS << " -I#{Config::CONFIG['rubyhdrdir']} -I#{Config::CONFIG['rubyhdrdir']}/#{Config::CONFIG['arch']}"
 end
   
 LINUX_LIB_NAMES = %W[#{RUBY_SO} cairo pangocairo-1.0 gif]
@@ -47,31 +47,21 @@ LINUX_CFLAGS << " -DRUBY_1_9"
 
 DLEXT = "dylib"
 LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{Config::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions"
-LINUX_LDFLAGS = "-framework Cocoa -framework Carbon -dynamiclib -Wl,-single_module #{Config::CONFIG["LDFLAGS"]} INSTALL_NAME"
+LINUX_LDFLAGS = "-framework Cocoa -framework Carbon -dynamiclib -Wl,-single_module INSTALL_NAME"
 LINUX_LIB_NAMES << 'pixman-1' << 'jpeg.8'
 
-if ENV['UNIVERSAL']
-  OSX_ARCH = '-arch i386 -arch ppc'
-  OSX_SDK = '/Developer/SDKs/MacOSX10.4u.sdk'
-  ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
-elsif ENV['PPC']
-  OSX_ARCH = '-arch ppc'
-  OSX_SDK = '/Developer/SDKs/MacOSX10.4u.sdk'
-  ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
-elsif ENV['I386']
-  OSX_ARCH = '-arch i386'
-  OSX_SDK = '/Developer/SDKs/MacOSX10.6.sdk'
-  ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
-elsif ENV['FAT_INTEL']
-  puts "Setting fat intel env vars"
+OSX_SDK = '/Developer/SDKs/MacOSX10.6.sdk'
+ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
+
+case ENV['SHOES_OSX_ARCH']
+when "universal"
   OSX_ARCH = "-arch i386 -arch x86_64"
-  OSX_SDK = '/Developer/SDKs/MacOSX10.6.sdk'
-  ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
+when "i386"
+  OSX_ARCH = '-arch i386'
 else
   OSX_ARCH = '-arch x86_64'
-  OSX_SDK = '/Developer/SDKs/MacOSX10.6.sdk'
-  ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
 end
+
 LINUX_CFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH}"
 LINUX_LDFLAGS << " #{OSX_ARCH}"
  

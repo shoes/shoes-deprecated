@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'rake'
 require 'rake/clean'
+require 'rspec/core/rake_task'
 # require_relative 'platform/skel'
 require 'fileutils'
 require 'find'
@@ -30,6 +31,10 @@ rescue LoadError
   vputs("Cukes is not loaded")
 end
 
+RSpec::Core::RakeTask.new(:spec) do |t|
+  t.rspec_opts = ["--color"]
+end
+
 require 'bundler'
 Bundler::GemHelper.install_tasks
 
@@ -41,10 +46,11 @@ APPARGS = APP['run']
 FLAGS = %w[DEBUG]
 
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
-CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "dist"]
+CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "dist", "#{NAME}.app"]
 
 RUBY_SO = Config::CONFIG['RUBY_SO_NAME']
 RUBY_V = Config::CONFIG['ruby_version']
+RUBY_ARCH = Config::CONFIG['arch']
 
 if ENV['APP']
   %w[dmg icons].each do |subk|
@@ -77,6 +83,7 @@ when /mingw/
 when /darwin/
   osx_bootstrap_env
   require File.expand_path('make/darwin/env')
+  require_relative "make/darwin/homebrew"
 
   task :stub do
     ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
@@ -174,7 +181,7 @@ task "dist/#{NAME}" => ["dist/lib#{SONAME}.#{DLEXT}", "bin/main.o"] + ADD_DLL + 
 task "dist/lib#{SONAME}.#{DLEXT}" => ['shoes/version.h', 'dist'] + OBJ + ["#{NAMESPACE}:make_so"]
 
 def cc(t)
-  sh "#{CC} -I. -c -o#{t.name} #{LINUX_CFLAGS} #{t.source}"
+  sh "#{CC} -I. -c -o #{t.name} #{LINUX_CFLAGS} #{t.source}"
 end
 
 rule ".o" => ".m" do |t|
@@ -211,39 +218,29 @@ namespace :osx do
   namespace :deps do
     task :install => "homebrew:install"
     namespace :homebrew do
-      desc "Installs OS X dependencies using Homebrew"
-      task :install => [:add_custom_formulas, :install_libs, :remove_custom_formulas]
+      desc "Install OS X dependencies using Homebrew"
+      task :install => [:customize, :install_libs, :uncustomize]
 
       task :install_libs do
-        homebrew_install "gettext"
-        homebrew_install "cairo"
-        sh "brew link cairo" unless File.exist?("/usr/local/lib/libcairo.2.dylib")
-        homebrew_install "pango", "--cocoa"
-        homebrew_install "jpeg"
-        homebrew_install "giflib"
-        homebrew_install "portaudio"
+        brew = Homebrew.new
+        brew.universal if ENV['SHOES_OSX_ARCH'] == "universal"
+        brew.install_packages
       end
 
-      task :add_custom_formulas do
-        cd `brew --prefix`.chomp do
-          unless `git remote`.split.include?('shoes')
-            sh "git remote add shoes git://github.com/wasnotrice/homebrew.git"
-          end
-          sh "git fetch shoes"
-          checkout_homebrew_formula "shoes/shoes", "glib"
-        end
+      task :customize do
+        brew = Homebrew.new
+        brew.universal if ENV['SHOES_OSX_ARCH'] == "universal"
+        brew.add_custom_remote
+        brew.add_custom_formulas
       end
 
-      task :remove_custom_formulas do
-        cd `brew --prefix`.chomp do
-          checkout_homebrew_formula "HEAD", "glib"
-        end
+      task :uncustomize do
+        brew = Homebrew.new
+        brew.universal if ENV['SHOES_OSX_ARCH'] == "universal"
+        brew.remove_custom_formulas
+        brew.remove_custom_remote
       end
-
-      def checkout_homebrew_formula branch, formula
-        sh "git checkout #{branch} -- Library/Formula/#{formula}.rb"
-      end
-    end
+   end
   end
 
   task :build => [:build_skel, "dist/#{NAME}", "dist/VERSION.txt", "build_tasks:build"]
@@ -302,7 +299,7 @@ namespace :osx do
         sh "install_name_tool -id @executable_path/#{libf} dist/#{libf}"
       end
       orig_name ||= libn
-      ["dist/#{NAME}-bin", 'dist/pango-querymodules', *Dir['dist/pango/modules/*'], *Dir['dist/*.dylib']].each do |lib2|
+      ["dist/#{NAME}-bin", 'dist/pango-querymodules', *Dir['dist/pango/modules/*.so'], *Dir['dist/*.dylib']].each do |lib2|
         sh "install_name_tool -change #{orig_name} @executable_path/#{libf} #{lib2}"
       end
     end
