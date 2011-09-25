@@ -5,6 +5,5 @@ gem "gherkin"
 gem "cucumber"
 gem "rspec"
 gem "rake"
-gem "shoes-mocks"
 gem "shoes-cucumber"
 
