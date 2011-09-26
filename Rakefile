@@ -208,17 +208,17 @@ namespace :osx do
     namespace :homebrew do
       desc "Installs OS X dependencies using Homebrew"
       task :install => [:add_custom_formulas, :install_libs, :remove_custom_formulas]
-      
+
       task :install_libs do
+        homebrew_install "gettext"
         homebrew_install "cairo"
         sh "brew link cairo" unless File.exist?("/usr/local/lib/libcairo.2.dylib")
         homebrew_install "pango", "--cocoa"
         homebrew_install "jpeg"
         homebrew_install "giflib"
         homebrew_install "portaudio"
-        homebrew_install "gettext"
       end
-      
+
       task :add_custom_formulas do
         cd `brew --prefix`.chomp do
           unless `git remote`.split.include?('shoes')
@@ -246,7 +246,7 @@ namespace :osx do
   namespace :build_tasks do
 
     task :build => [:common_build, :copy_deps_to_dist, :copy_files_to_dist, :setup_system_resources, :verify]
-    
+
     def copy_ext_osx xdir, libdir
       Dir.chdir(xdir) do
         `ruby extconf.rb; make`
