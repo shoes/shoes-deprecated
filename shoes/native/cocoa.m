@@ -103,6 +103,7 @@
   [self center];
   [self makeKeyAndOrderFront: self];
   [self setAcceptsMouseMovedEvents: YES];
+  [self setAutorecalculatesKeyViewLoop: YES];
   [self setDelegate: self];
 }
 - (void)disconnectApp
