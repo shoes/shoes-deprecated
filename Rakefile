@@ -13,11 +13,21 @@ RELEASE_ID, RELEASE_NAME = APP['version'], APP['release']
 NAME = APP['shortname'] || APP['name'].downcase.gsub(/\W+/, '')
 SONAME = 'shoes'
 
+# Like puts, but only if we've --trace'd
+def vputs(str)
+  puts str if Rake.application.options.trace
+end
+
+begin
 require 'cucumber'
 require 'cucumber/rake/task'
 
 Cucumber::Rake::Task.new(:features) do |t|
   t.cucumber_opts = "--format pretty"
+end
+
+rescue LoadError
+  vputs("Cukes is not loaded")
 end
 
 require 'bundler'
@@ -176,11 +186,6 @@ rule ".o" => ".c" do |t|
 end
 
 task :installer => ["#{NAMESPACE}:installer"]
-
-# Like puts, but only if we've --trace'd
-def vputs(str)
-  puts str if Rake.application.options.trace
-end
 
 def rewrite before, after, reg = /\#\{(\w+)\}/, reg2 = '\1'
   File.open(after, 'w') do |a|
