@@ -347,7 +347,7 @@ differently.  To be sure that the end of the slot is chopped off perfectly, the
 slot becomes a '''nested window'''.  A new layer is created by the operating
 system to keep the slot in a fixed square.
 
-On difference between normal slots and nested window slots is that the latter
+One difference between normal slots and nested window slots is that the latter
 can have scrollbars.
 
 {{{
