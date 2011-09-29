@@ -247,7 +247,17 @@ namespace :osx do
 
   namespace :build_tasks do
 
-    task :build => [:common_build, :copy_deps_to_dist, :copy_files_to_dist, :setup_system_resources, :verify]
+    task :build => [:pre_build, :common_build, :copy_deps_to_dist, :copy_files_to_dist, :setup_system_resources, :verify]
+
+    # Make sure the installed ruby is capable of this build
+    task :check_ruby_arch do
+      build_arch, ruby_arch = [OSX_ARCH, Config::CONFIG['ARCH_FLAG']].map {|s| s.split.reject {|w| w.include?("arch")}}
+      if build_arch.length > 1 and build_arch.sort != ruby_arch.sort
+        abort("To build universal shoes, you must first install a universal ruby")
+      end
+    end
+
+    task :pre_build => :check_ruby_arch
 
     def copy_ext_osx xdir, libdir
       Dir.chdir(xdir) do
@@ -478,14 +488,6 @@ namespace :linux do
 
   task :installer do
     Builder.make_installer
-  end
-end
-
-def homebrew_install package, args=""
-  if `brew list`.split.include?(package)
-    vputs "#{package} already exists, continuing"
-  else
-    sh "brew install #{package} #{args}"
   end
 end
 
