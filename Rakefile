@@ -243,11 +243,11 @@ namespace :osx do
    end
   end
 
-  task :build => [:build_skel, "dist/#{NAME}", "dist/VERSION.txt", "build_tasks:build"]
+  task :build => ["build_tasks:pre_build", :build_skel, "dist/#{NAME}", "dist/VERSION.txt", "build_tasks:build"]
 
   namespace :build_tasks do
 
-    task :build => [:pre_build, :common_build, :copy_deps_to_dist, :copy_files_to_dist, :setup_system_resources, :verify]
+    task :build => [:common_build, :copy_deps_to_dist, :copy_files_to_dist, :setup_system_resources, :verify]
 
     # Make sure the installed ruby is capable of this build
     task :check_ruby_arch do
