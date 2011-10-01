@@ -247,7 +247,7 @@ namespace :osx do
 
   namespace :build_tasks do
 
-    task :build => [:common_build, :copy_deps_to_dist, :copy_files_to_dist, :setup_system_resources, :verify]
+    task :build => [:common_build, :copy_deps_to_dist, :change_install_names, :copy_files_to_dist, :setup_system_resources, :verify]
 
     # Make sure the installed ruby is capable of this build
     task :check_ruby_arch do
@@ -302,15 +302,15 @@ namespace :osx do
       end
     end
 
-    def change_install_name libn, options={:change_install_id => true}
-      return unless libn =~ %r!/lib/(.+?\.dylib)$!
-      libf = $1
-      if options[:change_install_id]
-        sh "install_name_tool -id @executable_path/#{libf} dist/#{libf}"
-      end
-      orig_name ||= libn
-      ["dist/#{NAME}-bin", 'dist/pango-querymodules', *Dir['dist/pango/modules/*.so'], *Dir['dist/*.dylib']].each do |lib2|
-        sh "install_name_tool -change #{orig_name} @executable_path/#{libf} #{lib2}"
+    task :change_install_names do
+      cd "dist" do
+        ["#{NAME}-bin", "pango-querymodules", *Dir['*.dylib'], *Dir['pango/modules/*.so']].each do |f|
+          sh "install_name_tool -id @executable_path/#{File.basename f} #{f}"
+          dylibs = dylibs_to_change(f)
+          dylibs.each do |dylib|
+            sh "install_name_tool -change #{dylib} @executable_path/#{File.basename dylib} #{f}"
+          end
+        end
       end
     end
 
@@ -324,9 +324,8 @@ namespace :osx do
 
     task :copy_deps_to_dist => :copy_pango_modules_to_dist do
       # Generate a list of dependencies straight from the generated files.
-      # Start with dependencies of shoes-bin, and then add the dependencies
-      # of those dependencies. Finally, add any oddballs that must be
-      # included.
+      # Start with dependencies of shoes-bin and pango-querymodules, and then
+      # add the dependencies of those dependencies.
       dylibs = dylibs_to_change("dist/#{NAME}-bin")
       dylibs.concat dylibs_to_change("dist/pango-querymodules")
       dupes = []
@@ -340,8 +339,6 @@ namespace :osx do
         end
       end
       dylibs.each {|libn| cp "#{libn}", "dist/"}
-      dylibs.each {|libn| change_install_name libn}
-      (dupes - dylibs).each {|libn| change_install_name libn, :change_install_id => false}
     end
 
     task :copy_files_to_dist do
@@ -409,7 +406,7 @@ namespace :osx do
     task :lib_paths do
       cd "#{APPNAME}.app/Contents/MacOS" do
         errors = []
-        ["#{NAME}-bin", *Dir['*.dylib'], *Dir['pango/modules/*']].each do |f|
+        ["#{NAME}-bin", "pango-querymodules", *Dir['*.dylib'], *Dir['pango/modules/*.so']].each do |f|
           dylibs = dylibs_to_change(f)
           dylibs.each do |dylib|
             errors << "Suspect library path on #{f}:\n  #{dylib}\n  (check with `otool -L #{File.expand_path f}`)"
