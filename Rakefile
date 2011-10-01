@@ -409,10 +409,10 @@ namespace :osx do
     task :lib_paths do
       cd "#{APPNAME}.app/Contents/MacOS" do
         errors = []
-        ["#{NAME}-bin", *Dir['*.dylib']].each do |f|
+        ["#{NAME}-bin", *Dir['*.dylib'], *Dir['pango/modules/*']].each do |f|
           dylibs = dylibs_to_change(f)
           dylibs.each do |dylib|
-            errors << "Suspect library path on #{f}:\n  #{dylib}\n  (check with `otool -L #{f}`)"
+            errors << "Suspect library path on #{f}:\n  #{dylib}\n  (check with `otool -L #{File.expand_path f}`)"
           end
         end
         errors.each {|e| report_error e}
