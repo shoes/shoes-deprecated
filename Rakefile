@@ -1,7 +1,6 @@
 require 'rubygems'
 require 'rake'
 require 'rake/clean'
-require 'rspec/core/rake_task'
 # require_relative 'platform/skel'
 require 'fileutils'
 require 'find'
@@ -28,15 +27,28 @@ Cucumber::Rake::Task.new(:features) do |t|
 end
 
 rescue LoadError
-  vputs("Cukes is not loaded")
+  vputs("Cukes is not loaded -- please `bundle install`")
 end
 
+begin
+
+require 'rspec/core/rake_task'
 RSpec::Core::RakeTask.new(:spec) do |t|
   t.rspec_opts = ["--color"]
 end
 
+rescue LoadError
+  vputs("RSpec is not loaded -- please `bundle install`")
+end
+
+begin
+
 require 'bundler'
 Bundler::GemHelper.install_tasks
+
+rescue LoadError
+  vputs("Bundler is not loaded -- please `gem install bundler && bundle install`")
+end
 
 GIT = ENV['GIT'] || "git"
 REVISION = (`#{GIT} rev-list HEAD`.split.length + 1).to_s
