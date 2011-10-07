@@ -50,7 +50,7 @@ CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "dist", "#{NAME}.app"]
 
 RUBY_SO = Config::CONFIG['RUBY_SO_NAME']
 RUBY_V = Config::CONFIG['ruby_version']
-RUBY_ARCH = Config::CONFIG['arch']
+SHOES_RUBY_ARCH = Config::CONFIG['arch']
 
 if ENV['APP']
   %w[dmg icons].each do |subk|
