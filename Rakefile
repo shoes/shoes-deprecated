@@ -460,6 +460,7 @@ namespace :osx do
       mv "dmg/#{APPNAME}.app/Contents/MacOS/samples", "dmg/samples"
     end
     ln_s "/Applications", "dmg/Applications"
+    sh "chmod +x dmg/\"#{APPNAME}.app\"/Contents/MacOS/pango-querymodules"
     sh "chmod +x dmg/\"#{APPNAME}.app\"/Contents/MacOS/#{NAME}"
     sh "chmod +x dmg/\"#{APPNAME}.app\"/Contents/MacOS/#{NAME}-bin"
     sh "chmod +x dmg/\"#{APPNAME}.app\"/Contents/MacOS/#{NAME}-launch"
