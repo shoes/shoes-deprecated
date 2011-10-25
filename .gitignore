@@ -7,7 +7,6 @@ deps
 dist
 pkg
 *.app
-req/*
 *~
 *.swp
 tags
