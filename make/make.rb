@@ -61,7 +61,7 @@ module Make
       FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
     end
     %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
-      each { |xdir| copy_ext xdir, "dist/ruby/lib/#{RUBY_PLATFORM}" }
+      each { |xdir| copy_ext xdir, "dist/ruby/lib/#{SHOES_RUBY_ARCH}" }
 
     gdir = "dist/ruby/gems/#{RUBY_V}"
     {'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
