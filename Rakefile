@@ -62,6 +62,7 @@ CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "dist", "*.app"]
 
 RUBY_SO = Config::CONFIG['RUBY_SO_NAME']
 RUBY_V = Config::CONFIG['ruby_version']
+RUBY_PROGRAM_VERSION = Config::CONFIG['RUBY_PROGRAM_VERSION']
 SHOES_RUBY_ARCH = Config::CONFIG['arch']
 
 if ENV['APP']
@@ -129,7 +130,7 @@ end
 
 task "dist/VERSION.txt" do |t|
   File.open(t.name, 'w') do |f|
-    f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION}) [#{SHOES_RUBY_ARCH} Ruby#{RUBY_V}]}
+    f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION}) [#{SHOES_RUBY_ARCH} Ruby#{RUBY_PROGRAM_VERSION}]}
     %w[DEBUG].each { |x| f << " +#{x.downcase}" if ENV[x] }
     f << "\n"
   end
