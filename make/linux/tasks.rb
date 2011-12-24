@@ -36,7 +36,7 @@ class MakeLinux
       #cp    "/usr/lib/libcurl.so", "dist/libcurl.so.4"
       find_and_copy "libcurl.so", "dist/libcurl.so.4"
       cp    "/usr/lib/libportaudio.so", "dist/libportaudio.so.2"
-      cp    "/usr/lib/libsqlite3.so", "dist/libsqlite3.so.0"
+      #cp    "/libsqlite3.so", "dist/libsqlite3.so.0"
       # cp    "/usr/lib/libsqlite3.so", "dist/libsqlite3.so.0"
       find_and_copy  "libsqlite3.so", "dist/libsqlite3.so.0"
       sh    "strip -x dist/*.so.*"
