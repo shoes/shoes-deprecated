@@ -10,3 +10,5 @@ pkg
 *~
 *.swp
 tags
+*.bundle
+*.so
