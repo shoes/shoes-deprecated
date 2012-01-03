@@ -1,0 +1,165 @@
+find_header: checking for sqlite3.h... -------------------- yes
+
+"gcc -o conftest -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1/x86_64-darwin10.8.0 -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1/ruby/backward -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1 -I. -I/usr/local/include -I/opt/local/include -I/usr/include -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE   -isysroot /Developer/SDKs/MacOSX10.6.sdk -arch x86_64 -fno-common -pipe -O3 -Wall -Wcast-qual -Wwrite-strings -Wconversion -Wmissing-noreturn -Winline conftest.c  -L. -L/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/lib -L/usr/local/lib -L/opt/local/lib -L/usr/lib -L. -Wl,-syslibroot /Developer/SDKs/MacOSX10.6.sdk -arch x86_64 -L/usr/local/lib     -lruby.1.9.1-static  -lpthread -ldl -lobjc "
+ld: warning: directory not found for option '-L/opt/local/lib'
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: int main() {return 0;}
+/* end */
+
+"gcc -E -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1/x86_64-darwin10.8.0 -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1/ruby/backward -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1 -I. -I/usr/local/include -I/opt/local/include -I/usr/include -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE   -isysroot /Developer/SDKs/MacOSX10.6.sdk -arch x86_64 -fno-common -pipe -O3 -Wall -Wcast-qual -Wwrite-strings -Wconversion -Wmissing-noreturn -Winline  conftest.c -o conftest.i"
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: #include <sqlite3.h>
+/* end */
+
+--------------------
+
+find_library: checking for sqlite3_libversion_number() in -lsqlite3... -------------------- yes
+
+"gcc -o conftest -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1/x86_64-darwin10.8.0 -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1/ruby/backward -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1 -I. -I/usr/local/include -I/opt/local/include -I/usr/include -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE   -isysroot /Developer/SDKs/MacOSX10.6.sdk -arch x86_64 -fno-common -pipe -O3 -Wall -Wcast-qual -Wwrite-strings -Wconversion -Wmissing-noreturn -Winline conftest.c  -L. -L/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/lib -L/usr/local/lib -L/opt/local/lib -L/usr/lib -L. -Wl,-syslibroot /Developer/SDKs/MacOSX10.6.sdk -arch x86_64 -L/usr/local/lib     -lruby.1.9.1-static -lsqlite3  -lpthread -ldl -lobjc "
+conftest.c: In function ‘t’:
+conftest.c:5: error: ‘sqlite3_libversion_number’ undeclared (first use in this function)
+conftest.c:5: error: (Each undeclared identifier is reported only once
+conftest.c:5: error: for each function it appears in.)
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: /*top*/
+4: int main() {return 0;}
+5: int t() { void ((*volatile p)()); p = (void ((*)()))sqlite3_libversion_number; return 0; }
+/* end */
+
+"gcc -o conftest -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1/x86_64-darwin10.8.0 -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1/ruby/backward -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1 -I. -I/usr/local/include -I/opt/local/include -I/usr/include -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE   -isysroot /Developer/SDKs/MacOSX10.6.sdk -arch x86_64 -fno-common -pipe -O3 -Wall -Wcast-qual -Wwrite-strings -Wconversion -Wmissing-noreturn -Winline conftest.c  -L. -L/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/lib -L/usr/local/lib -L/opt/local/lib -L/usr/lib -L. -Wl,-syslibroot /Developer/SDKs/MacOSX10.6.sdk -arch x86_64 -L/usr/local/lib     -lruby.1.9.1-static -lsqlite3  -lpthread -ldl -lobjc "
+conftest.c: In function ‘t’:
+conftest.c:5: warning: implicit declaration of function ‘sqlite3_libversion_number’
+ld: warning: directory not found for option '-L/opt/local/lib'
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: /*top*/
+4: int main() {return 0;}
+5: int t() { sqlite3_libversion_number(); return 0; }
+/* end */
+
+--------------------
+
+have_func: checking for rb_proc_arity()... -------------------- yes
+
+"gcc -o conftest -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1/x86_64-darwin10.8.0 -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1/ruby/backward -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1 -I. -I/usr/local/include -I/opt/local/include -I/usr/include -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE   -isysroot /Developer/SDKs/MacOSX10.6.sdk -arch x86_64 -fno-common -pipe -O3 -Wall -Wcast-qual -Wwrite-strings -Wconversion -Wmissing-noreturn -Winline conftest.c  -L. -L/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/lib -L/usr/local/lib -L/opt/local/lib -L/usr/lib -L. -Wl,-syslibroot /Developer/SDKs/MacOSX10.6.sdk -arch x86_64 -L/usr/local/lib    -lsqlite3  -lruby.1.9.1-static -lsqlite3  -lpthread -ldl -lobjc "
+ld: warning: directory not found for option '-L/opt/local/lib'
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: /*top*/
+4: int main() {return 0;}
+5: int t() { void ((*volatile p)()); p = (void ((*)()))rb_proc_arity; return 0; }
+/* end */
+
+--------------------
+
+have_func: checking for sqlite3_column_database_name()... -------------------- no
+
+"gcc -o conftest -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1/x86_64-darwin10.8.0 -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1/ruby/backward -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1 -I. -I/usr/local/include -I/opt/local/include -I/usr/include -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE   -isysroot /Developer/SDKs/MacOSX10.6.sdk -arch x86_64 -fno-common -pipe -O3 -Wall -Wcast-qual -Wwrite-strings -Wconversion -Wmissing-noreturn -Winline conftest.c  -L. -L/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/lib -L/usr/local/lib -L/opt/local/lib -L/usr/lib -L. -Wl,-syslibroot /Developer/SDKs/MacOSX10.6.sdk -arch x86_64 -L/usr/local/lib    -lsqlite3  -lruby.1.9.1-static -lsqlite3  -lpthread -ldl -lobjc "
+conftest.c: In function ‘t’:
+conftest.c:5: error: ‘sqlite3_column_database_name’ undeclared (first use in this function)
+conftest.c:5: error: (Each undeclared identifier is reported only once
+conftest.c:5: error: for each function it appears in.)
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: /*top*/
+4: int main() {return 0;}
+5: int t() { void ((*volatile p)()); p = (void ((*)()))sqlite3_column_database_name; return 0; }
+/* end */
+
+"gcc -o conftest -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1/x86_64-darwin10.8.0 -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1/ruby/backward -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1 -I. -I/usr/local/include -I/opt/local/include -I/usr/include -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE   -isysroot /Developer/SDKs/MacOSX10.6.sdk -arch x86_64 -fno-common -pipe -O3 -Wall -Wcast-qual -Wwrite-strings -Wconversion -Wmissing-noreturn -Winline conftest.c  -L. -L/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/lib -L/usr/local/lib -L/opt/local/lib -L/usr/lib -L. -Wl,-syslibroot /Developer/SDKs/MacOSX10.6.sdk -arch x86_64 -L/usr/local/lib    -lsqlite3  -lruby.1.9.1-static -lsqlite3  -lpthread -ldl -lobjc "
+conftest.c: In function ‘t’:
+conftest.c:5: warning: implicit declaration of function ‘sqlite3_column_database_name’
+ld: warning: directory not found for option '-L/opt/local/lib'
+Undefined symbols for architecture x86_64:
+  "_sqlite3_column_database_name", referenced from:
+      _t in cc60aeKV.o
+ld: symbol(s) not found for architecture x86_64
+collect2: ld returned 1 exit status
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: /*top*/
+4: int main() {return 0;}
+5: int t() { sqlite3_column_database_name(); return 0; }
+/* end */
+
+--------------------
+
+have_func: checking for sqlite3_enable_load_extension()... -------------------- yes
+
+"gcc -o conftest -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1/x86_64-darwin10.8.0 -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1/ruby/backward -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1 -I. -I/usr/local/include -I/opt/local/include -I/usr/include -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE   -isysroot /Developer/SDKs/MacOSX10.6.sdk -arch x86_64 -fno-common -pipe -O3 -Wall -Wcast-qual -Wwrite-strings -Wconversion -Wmissing-noreturn -Winline conftest.c  -L. -L/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/lib -L/usr/local/lib -L/opt/local/lib -L/usr/lib -L. -Wl,-syslibroot /Developer/SDKs/MacOSX10.6.sdk -arch x86_64 -L/usr/local/lib    -lsqlite3  -lruby.1.9.1-static -lsqlite3  -lpthread -ldl -lobjc "
+conftest.c: In function ‘t’:
+conftest.c:5: error: ‘sqlite3_enable_load_extension’ undeclared (first use in this function)
+conftest.c:5: error: (Each undeclared identifier is reported only once
+conftest.c:5: error: for each function it appears in.)
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: /*top*/
+4: int main() {return 0;}
+5: int t() { void ((*volatile p)()); p = (void ((*)()))sqlite3_enable_load_extension; return 0; }
+/* end */
+
+"gcc -o conftest -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1/x86_64-darwin10.8.0 -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1/ruby/backward -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1 -I. -I/usr/local/include -I/opt/local/include -I/usr/include -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE   -isysroot /Developer/SDKs/MacOSX10.6.sdk -arch x86_64 -fno-common -pipe -O3 -Wall -Wcast-qual -Wwrite-strings -Wconversion -Wmissing-noreturn -Winline conftest.c  -L. -L/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/lib -L/usr/local/lib -L/opt/local/lib -L/usr/lib -L. -Wl,-syslibroot /Developer/SDKs/MacOSX10.6.sdk -arch x86_64 -L/usr/local/lib    -lsqlite3  -lruby.1.9.1-static -lsqlite3  -lpthread -ldl -lobjc "
+conftest.c: In function ‘t’:
+conftest.c:5: warning: implicit declaration of function ‘sqlite3_enable_load_extension’
+ld: warning: directory not found for option '-L/opt/local/lib'
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: /*top*/
+4: int main() {return 0;}
+5: int t() { sqlite3_enable_load_extension(); return 0; }
+/* end */
+
+--------------------
+
+have_func: checking for sqlite3_load_extension()... -------------------- yes
+
+"gcc -o conftest -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1/x86_64-darwin10.8.0 -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1/ruby/backward -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1 -I. -I/usr/local/include -I/opt/local/include -I/usr/include -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE   -isysroot /Developer/SDKs/MacOSX10.6.sdk -arch x86_64 -fno-common -pipe -O3 -Wall -Wcast-qual -Wwrite-strings -Wconversion -Wmissing-noreturn -Winline conftest.c  -L. -L/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/lib -L/usr/local/lib -L/opt/local/lib -L/usr/lib -L. -Wl,-syslibroot /Developer/SDKs/MacOSX10.6.sdk -arch x86_64 -L/usr/local/lib    -lsqlite3  -lruby.1.9.1-static -lsqlite3  -lpthread -ldl -lobjc "
+conftest.c: In function ‘t’:
+conftest.c:5: error: ‘sqlite3_load_extension’ undeclared (first use in this function)
+conftest.c:5: error: (Each undeclared identifier is reported only once
+conftest.c:5: error: for each function it appears in.)
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: /*top*/
+4: int main() {return 0;}
+5: int t() { void ((*volatile p)()); p = (void ((*)()))sqlite3_load_extension; return 0; }
+/* end */
+
+"gcc -o conftest -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1/x86_64-darwin10.8.0 -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1/ruby/backward -I/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/include/ruby-1.9.1 -I. -I/usr/local/include -I/opt/local/include -I/usr/include -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE   -isysroot /Developer/SDKs/MacOSX10.6.sdk -arch x86_64 -fno-common -pipe -O3 -Wall -Wcast-qual -Wwrite-strings -Wconversion -Wmissing-noreturn -Winline conftest.c  -L. -L/Users/steveklabnik/.rvm/rubies/ruby-1.9.2-p290/lib -L/usr/local/lib -L/opt/local/lib -L/usr/lib -L. -Wl,-syslibroot /Developer/SDKs/MacOSX10.6.sdk -arch x86_64 -L/usr/local/lib    -lsqlite3  -lruby.1.9.1-static -lsqlite3  -lpthread -ldl -lobjc "
+conftest.c: In function ‘t’:
+conftest.c:5: warning: implicit declaration of function ‘sqlite3_load_extension’
+ld: warning: directory not found for option '-L/opt/local/lib'
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: /*top*/
+4: int main() {return 0;}
+5: int t() { sqlite3_load_extension(); return 0; }
+/* end */
+
+--------------------
+
