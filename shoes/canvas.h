@@ -571,22 +571,7 @@ VALUE shoes_timer_start(VALUE);
 VALUE shoes_timer_stop(VALUE);
 void shoes_timer_call(VALUE);
 
-void shoes_color_mark(shoes_color *);
-VALUE shoes_color_new(int, int, int, int);
-VALUE shoes_color_alloc(VALUE);
-VALUE shoes_color_rgb(int, VALUE *, VALUE);
-VALUE shoes_color_gray(int, VALUE *, VALUE);
 cairo_pattern_t *shoes_color_pattern(VALUE);
-void shoes_color_grad_stop(cairo_pattern_t *, double, VALUE);
-VALUE shoes_color_args(int, VALUE *, VALUE);
-VALUE shoes_color_parse(VALUE, VALUE);
-VALUE shoes_color_is_black(VALUE);
-VALUE shoes_color_is_dark(VALUE);
-VALUE shoes_color_is_light(VALUE);
-VALUE shoes_color_is_white(VALUE);
-VALUE shoes_color_invert(VALUE);
-VALUE shoes_color_to_s(VALUE);
-VALUE shoes_color_to_pattern(VALUE);
 VALUE shoes_color_gradient(int, VALUE *, VALUE);
 
 void shoes_link_mark(shoes_link *);

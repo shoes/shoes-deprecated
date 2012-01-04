@@ -1090,7 +1090,12 @@ shoes_native_window_color(shoes_app *app)
 {
   GtkStyle *style = gtk_widget_get_style(GTK_WIDGET(APP_WINDOW(app)));
   GdkColor bg = style->bg[GTK_STATE_NORMAL];
-  return shoes_color_new(bg.red / 257, bg.green / 257, bg.blue / 257 , SHOES_COLOR_OPAQUE);
+  VALUE *colors[4];
+  colors[0] = _color.red/256;
+  colors[1] = _color.green/256;
+  colors[2] = _color.blue/256;
+  colors[3] = 0xFF;
+  return rb_class_new_instance(4, colors, cColor);
 }
 
 VALUE
@@ -1098,7 +1103,12 @@ shoes_native_dialog_color(shoes_app *app)
 {
   GtkStyle *style = gtk_widget_get_style(GTK_WIDGET(APP_WINDOW(app)));
   GdkColor bg = style->bg[GTK_STATE_NORMAL];
-  return shoes_color_new(bg.red / 257, bg.green / 257, bg.blue / 257 , SHOES_COLOR_OPAQUE);
+  VALUE *colors[4];
+  colors[0] = _color.red/257;
+  colors[1] = _color.green/257;
+  colors[2] = _color.blue/257;
+  colors[3] = 0xFF;
+  return rb_class_new_instance(4, colors, cColor);
 }
 
 VALUE
@@ -1178,7 +1188,12 @@ shoes_dialog_color(VALUE self, VALUE title)
     gtk_color_selection_get_current_color(
       GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(dialog)->colorsel),
       &_color);
-    color = shoes_color_new(_color.red/256, _color.green/256, _color.blue/256, SHOES_COLOR_OPAQUE);
+    VALUE *colors[4];
+    colors[0] = _color.red/256;
+    colors[1] = _color.green/256;
+    colors[2] = _color.blue/256;
+    colors[3] = 0xFF;
+    color = rb_class_new_instance(4, colors, cColor);
   }
   gtk_widget_destroy(dialog);
   return color;

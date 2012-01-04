@@ -2102,14 +2102,24 @@ VALUE
 shoes_native_window_color(shoes_app *app)
 {
   DWORD winc = GetSysColor(COLOR_WINDOW);
-  return shoes_color_new(GetRValue(winc), GetGValue(winc), GetBValue(winc), SHOES_COLOR_OPAQUE);
+  VALUE *colors[4];
+  colors[0] = GetRValue(winc);
+  colors[1] = GetGValue(winc);
+  colors[2] = GetBValue(winc);
+  colors[3] = 255;
+  return rb_class_new_instance(4, colors, cColor);
 }
 
 VALUE
 shoes_native_dialog_color(shoes_app *app)
 {
   DWORD winc = GetSysColor(COLOR_3DFACE);
-  return shoes_color_new(GetRValue(winc), GetGValue(winc), GetBValue(winc), SHOES_COLOR_OPAQUE);
+  VALUE *colors[4];
+  colors[0] = GetRValue(winc);
+  colors[1] = GetGValue(winc);
+  colors[2] = GetBValue(winc);
+  colors[3] = 255;
+  return rb_class_new_instance(4, colors, cColor);
 }
 
 LPWSTR win32_dialog_label = NULL;
@@ -2229,8 +2239,12 @@ shoes_dialog_color(VALUE self, VALUE title)
   cc.Flags = CC_FULLOPEN | CC_RGBINIT;
 
   if (ChooseColor(&cc)) {
-    color = shoes_color_new(GetRValue(cc.rgbResult), GetGValue(cc.rgbResult), GetBValue(cc.rgbResult),
-      SHOES_COLOR_OPAQUE);
+    VALUE *colors[4];
+    colors[0] = GetRValue(cc.rgbResult);
+    colors[1] = GetGValue(cc.rgbResult);
+    colors[2] = GetBValue(cc.rgbResult);
+    colors[3] = 255;
+    color = rb_class_new_instance(4, colors, cColor);
   }
   return color;
 }

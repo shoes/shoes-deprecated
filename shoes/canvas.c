@@ -10,6 +10,8 @@
 #include "shoes/native.h"
 #include "shoes/http.h"
 
+extern VALUE cColor;
+
 #define SETUP() \
   shoes_canvas *canvas; \
   cairo_t *cr; \
@@ -353,8 +355,13 @@ shoes_canvas_clear(VALUE self)
   canvas->attr = rb_hash_new();
   ATTRSET(canvas->attr, cap, Qnil);
   ATTRSET(canvas->attr, strokewidth, rb_float_new(1.));
-  ATTRSET(canvas->attr, stroke, shoes_color_new(0, 0, 0, 0xFF));
-  ATTRSET(canvas->attr, fill, shoes_color_new(0, 0, 0, 0xFF));
+  VALUE *colors[4];
+  colors[0] = 0;
+  colors[1] = 0;
+  colors[2] = 0;
+  colors[3] = 0xFF;
+  ATTRSET(canvas->attr, stroke, rb_class_new_instance(4, colors, cColor));
+  ATTRSET(canvas->attr, fill, rb_class_new_instance(4, colors, cColor));
   canvas->parent = Qnil;
   canvas->stl = 0;
   canvas->stt = 0;
@@ -415,6 +422,7 @@ shoes_canvas_stroke(int argc, VALUE *argv, VALUE self)
 {
   VALUE pat;
   SETUP_BASIC();
+  VALUE cColor = rb_const_get(rb_cObject, rb_intern("Shoes::Color"));
   if (argc == 1 && rb_respond_to(argv[0], s_to_pattern))
     pat = argv[0];
   else
@@ -462,6 +470,7 @@ shoes_canvas_fill(int argc, VALUE *argv, VALUE self)
 {
   VALUE pat;
   SETUP_BASIC();
+  VALUE cColor = rb_const_get(rb_cObject, rb_intern("Shoes::Color"));
   if (argc == 1 && rb_respond_to(argv[0], s_to_pattern))
     pat = argv[0];
   else

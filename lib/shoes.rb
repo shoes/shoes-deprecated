@@ -552,3 +552,5 @@ end
 def window(*a, &b)
   Shoes.app(*a, &b)
 end
+
+require_relative 'shoes/color'

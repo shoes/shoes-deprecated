@@ -10,6 +10,8 @@
 #include "shoes/internal.h"
 #include "shoes/http.h"
 
+extern VALUE cColor;
+
 #define HEIGHT_PAD 6
 
 #define INIT    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init]
@@ -1394,7 +1396,12 @@ shoes_native_window_color(shoes_app *app)
   //   getRed: &r green: &g blue: &b alpha: &a];
   // RELEASE;
   // return shoes_color_new((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255));
-  return shoes_color_new(255, 255, 255, 255);
+  VALUE *colors[4];
+  colors[0] = 255;
+  colors[1] = 255;
+  colors[2] = 255;
+  colors[3] = 255;
+  return rb_class_new_instance(4, colors, cColor);
 }
 
 VALUE
@@ -1495,7 +1502,12 @@ shoes_dialog_color(VALUE self, VALUE title)
   title = shoes_native_to_s(title);
   if (GetColor(where, RSTRING_PTR(title), &colwh, &_color))
   {
-    color = shoes_color_new(_color.red/256, _color.green/256, _color.blue/256, SHOES_COLOR_OPAQUE);
+    VALUE *colors[4];
+    colors[0] = _color.red/256;
+    colors[1] = _color.green/256;
+    colors[2] = _color.blue/256;
+    colors[3] = 0xFF;
+    color = rb_class_new_instance(4, colors, cColor);
   }
   return color;
 }

@@ -199,6 +199,7 @@ shoes_layer_blur_filter(cairo_t *cr, VALUE attr, shoes_place *place,
   cairo_set_source_surface(cr2, source, distance, distance);
   cairo_paint(cr2);
   cairo_set_operator(cr2, blur_op);
+  VALUE cColor = rb_const_get(rb_cObject, rb_intern("Shoes::Color"));
   if (NIL_P(fill))
     cairo_set_source_rgb(cr2, 0., 0., 0.);
   else if (rb_obj_is_kind_of(fill, cColor))
