@@ -3,3 +3,7 @@ script: "bundle exec rake && bundle exec rake features"
 rvm: 1.9.2
 notifications:
   irc: "irc.freenode.org#shoes"
+branches:
+  except:
+    - brown_shoes
+
