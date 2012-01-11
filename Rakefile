@@ -205,6 +205,7 @@ rule ".o" => ".c" do |t|
   cc t
 end
 
+desc "Generate an installer for the current platform"
 task :installer => ["#{NAMESPACE}:installer"]
 
 def rewrite before, after, reg = /\#\{(\w+)\}/, reg2 = '\1'
