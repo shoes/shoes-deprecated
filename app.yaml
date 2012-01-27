@@ -1,7 +1,0 @@
-name: Shoes
-version: 3
-release: Policeman
-icons:
-  win32: platform/msw/shoes.ico
-  osx:   static/Shoes.icns
-  gtk:   static/shoes-icon.png

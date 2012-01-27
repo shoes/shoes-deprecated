@@ -1,3 +1,0 @@
-[Pango]
-ModuleFiles=/Volumes/#{APPNAME}/#{APPNAME}.app/Contents/MacOS/pango.modules
-ModulesPath=/Volumes/#{APPNAME}/#{APPNAME}.app/Contents/MacOS/pango/modules

@@ -1,0 +1,5 @@
+#define SHOES_RELEASE_ID 3
+#define SHOES_RELEASE_NAME "Policeman"
+#define SHOES_REVISION 1555
+#define SHOES_BUILD_DATE 20110227
+#define SHOES_PLATFORM "x86_64-darwin10.6.0"

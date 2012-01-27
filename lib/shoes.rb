@@ -6,21 +6,17 @@
 #
 ARGV.delete_if { |x| x =~ /-psn_/ }
 
-class Encoding
-  %w[UTF_7 UTF_16BE UTF_16LE UTF_32BE UTF_32LE].each do |enc|
-    eval "class #{enc};end" unless const_defined? enc.to_sym
-  end
-end
+require_relative 'shoes/shoes'
 
 require 'open-uri'
 require 'optparse'
 require 'resolv-replace' if RUBY_PLATFORM =~ /win/
-require_relative 'shoes/inspect'
-require_relative 'shoes/cache'
+#require_relative 'shoes/inspect'
+#require_relative 'shoes/cache'
 if Object.const_defined? :Shoes
   require_relative 'shoes/image'
 end
-require_relative 'shoes/shybuilder'
+#require_relative 'shoes/shybuilder'
 
 def Shoes.hook; end
 

@@ -12,3 +12,4 @@ pkg
 tags
 *.bundle
 *.so
+tmp

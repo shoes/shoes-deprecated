@@ -1,1 +1,0 @@
-Shoes.show_manual

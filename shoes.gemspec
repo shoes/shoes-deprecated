@@ -12,10 +12,19 @@ Gem::Specification.new do |s|
   s.summary     = %q{Shoes is the best little GUI toolkit for Ruby.}
   s.description = %q{Shoes is the best little GUI toolkit for Ruby. This gem is currently a placeholder until we properly gemfiy Shoes.}
 
-  #s.add_development_dependency "watchr"
+  s.add_development_dependency "mechanize"
+  s.add_development_dependency "rake-compiler"
 
-  s.files         = `git ls-files`.split("\n")
+  #s.add_dependency "bloopsaphone"
+  s.add_dependency "chipmunk"
+  s.add_dependency "hpricot"
+  s.add_dependency "json"
+  s.add_dependency "sqlite3"
+
+  s.extensions << "ext/shoes/extconf.rb"
+
+  s.files         = `git ls-files`.split("\n") + ["lib/shoes/shoes.bundle"]
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   #s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
-  s.require_paths = ["gemlib"]
+  s.require_paths = ["lib"]
 end
