@@ -20,6 +20,7 @@ Gem::Specification.new do |s|
   s.add_dependency "hpricot"
   s.add_dependency "json"
   s.add_dependency "sqlite3"
+  s.add_dependency "redcarpet"
 
   s.extensions << "ext/shoes/extconf.rb"
 
