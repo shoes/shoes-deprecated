@@ -62,9 +62,9 @@ VALUE shoes_app_get_fullscreen(VALUE);
 VALUE shoes_app_set_fullscreen(VALUE, VALUE);
 VALUE shoes_app_slot(VALUE);
 shoes_code shoes_app_start(VALUE, char *);
-shoes_code shoes_app_open(shoes_app *, char *);
+shoes_code shoes_app_open(shoes_app *, const char *);
 shoes_code shoes_app_loop(void);
-shoes_code shoes_app_visit(shoes_app *, char *);
+shoes_code shoes_app_visit(shoes_app *, const char *);
 shoes_code shoes_app_paint(shoes_app *);
 shoes_code shoes_app_motion(shoes_app *, int, int);
 shoes_code shoes_app_click(shoes_app *, int, int, int);
@@ -75,12 +75,13 @@ shoes_code shoes_app_keypress(shoes_app *, VALUE);
 shoes_code shoes_app_keyup(shoes_app *, VALUE);
 VALUE shoes_app_close_window(shoes_app *);
 VALUE shoes_sys(char *, int);
-shoes_code shoes_app_goto(shoes_app *, char *);
+shoes_code shoes_app_goto(shoes_app *, const char *);
 shoes_code shoes_slot_repaint(SHOES_SLOT_OS *);
 void shoes_app_reset_styles(shoes_app *);
 void shoes_app_style(shoes_app *, VALUE, VALUE);
 VALUE shoes_app_location(VALUE);
 VALUE shoes_app_is_started(VALUE);
 VALUE shoes_app_quit(VALUE);
+void shoes_app_title(shoes_app *, VALUE);
 
 #endif
