@@ -275,7 +275,7 @@ namespace :osx do
 
     def copy_ext_osx xdir, libdir
       Dir.chdir(xdir) do
-        `ruby extconf.rb; make`
+        `ruby extconf.rb; make >/dev/null 2>&1`
       end
       copy_files "#{xdir}/*.bundle", libdir
     end
