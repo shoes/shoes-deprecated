@@ -5,74 +5,122 @@
       http://shoesrb.com
 </pre>
 
-# About Shoes
+## About
 
-Shoes is the best little DSL for cross-platform GUI programming there is. It feels like real Ruby, rather than just another C++ library wrapper. If Gtk or wxWidgets is Rails, Shoes is Sinatra.
+Shoes is the best little GUI toolkit. It takes advantage of Ruby's own
+strengths to make writing applications easy and fun!
 
-# Let me tell you a story about Shoes
+Shoes lets you write apps in Ruby that run on Mac OSX, Linux, and Windows. Like this:
 
-  Way way back in the day, there was a guy named \_why. He created a project known as [Hackety Hack](http://hackety-hack.com) to teach programming to everyone. In order to reach all corners of the earth, \_why decided to make Hackety Hack work on Windows, Mac OS X, and Linux. This was a lot of work, and so \_why decided to share his toolkit with the world. Thus, Shoes was born.
+``` ruby
+Shoes.app :height => 150, :width => 250 do
+	background rgb(240, 250, 208)
 
-Everybody loved Shoes. Many apps were made, and put into [The Shoebox](http://the-shoebox.org/). But, one day, \_why left. In his memory, Team Shoes assembled, and carried on making Shoes. They released Shoes 3 in late summer 2010.
+	stack :margin => 10 do
+		button "Start" do
+			@time = Time.now
+			@label.replace "Stop watch started at #{@time}"
+		end
 
-# So what do these Shoes look like?
+		button "Stop" do
+			@label.replace "Stopped, ", strong("#{Time.now - @time}"), " seconds elapsed."
+		end
 
-Here's a little Shoes app. It's a stopwatch!
+		@label = para "Press ", strong("start"), " to begin timing."
+	end
+end
+```
 
-    Shoes.app :height => 150, :width => 250 do
-      background rgb(240, 250, 208)
-      stack :margin => 10 do
-        button "Start" do
-          @time = Time.now
-          @label.replace "Stop watch started at #@time"
-        end
-        button "Stop" do
-          @label.replace "Stopped, ", strong("#{Time.now - @time}"), " seconds elapsed."
-        end
-        @label = para "Press ", strong("start"), " to begin timing."
-      end
-    end
-
-Here's what it looks like:
+If you ran that app with Shoes, you'd see this:
 
 ![shoes timer](https://github.com/shoes/shoes/raw/develop/manual-snapshots/simple-timer.png)
 
-Pretty simple! For more samples, the manual, and a free book, check out [the Shoes website](http://shoesrb.com/).
+Super simple!
 
-# Using Shoes
+## Getting Shoes
 
-If you'd like to use Shoes to develop some apps... awesome! It's super easy: Just go to the [downloads page on the Shoes website](http://shoesrb.com/downloads) and download a copy of Shoes for your platform. Mac OSX, Windows, and Linux supported!
+You can get your own pair of Shoes by swinging by the [Shoes download page](http://shoesrb.com/downloads).
+You can use it to run your own Shoes scripts.
 
-After you install Shoes, run it! You'll get a window like this:
+If you're on Linux, your best bet is to [build Shoes from source](#), which is
+actually pretty easy. Don't despair!
 
-![shoes main window](https://github.com/shoes/shoes/raw/develop/static/shoes_main_window.png)
+## Using Shoes
 
-You can then open any .rb file with Shoes code inside by choosing "Open an App." It'll open it up and run it, right away.
+There's three steps to any Shoes project: learn about Shoes, write your app,
+package your app.
 
-Once you're happy with your app, you can choose "Package an App" to wrap up your app as a .exe, .app, or a .run. Then you can share it with someone without a pair of Shoes to call their own.
+### Learn
 
-# Making your own Shoes
+Of course, it's hard to know what you can do with Shoes without reading more!
+There are two great resources to help you learn: [the manual](#) and [Nobody
+Knows Shoes](#), a book written by Shoes' original author.
 
-You can make your own pair of Shoes with a little bit of elbow grease. Since there are different instructions on each platform, we've got a page up on the [Shoes development wiki](http://github.com/shoes/shoes/wiki) about it. It's [right here](https://github.com/shoes/shoes/wiki/Building-Shoes).
+You can also check out the samples provided in the samples directory, and check
+out even more of them in the [shoes-contrib project](#).
 
-# Shoes Around the Web
+### Write
 
-If you want to keep up to date with what's going on with Shoes, you can find us in various places:
+Next, you'll want to actually create your app. You can do this in your normal
+text editor, just make regular old `.rb` files. Then open them with Shoes,
+and try them out!
 
-* [Official Shoes Site](http://shoesrb.com/)
-* [Source Code @ GitHub](http://github.com/shoes/shoes)
-* [Issue tracker @ GitHub](http://github.com/shoes/shoes/issues)
-* [Mailing List](http://librelist.com/browser/shoes/) (send an email to shoes@librelist.com to join)
-* [Twitter account](http://twitter.com/shoooesrb)
-* [Facebook page](http://www.facebook.com/pages/Shoes/132605040125019)
-* IRC room on Freenode, #shoes
+Don't forget about the Shoes console to help you diagnose errors, you can
+bring it up with `control-/`, `command-/`, or `alt-/` depending on your
+platform.
 
-# Helping out with Shoes
+### Package
 
-So you'd like to lend a helping hand, eh? Great! We'd love to have you. To submit a patch to Shoes, just fork us, and send a pull request.
+Finally, you can make your app into a .exe, .run, or .app file, depending on
+which platform you're on. There are two kinds of packaging: from inside Shoes,
+and from the command line.
 
-If you don't have any ideas yourself, take a look at the [Issue tracker](http://github.com/shoes/shoes/issues) and see if anything strikes your fancy. If you need help working on something, don't be afraid to post to the mailing list about it!
+#### Inside Shoes
 
-Be sure to [peer into the Shoes Wiki](https://github.com/shoes/shoes/wiki) for instructions on how to get the source code to build, and to learn more knowledge that will come in handy if you want to help out!
+Shoes has a 'package an app' command. It'll bring up a window where you can
+make an executable. Just follow the steps!
 
-If you're not a programmer, you can help Shoes by talking about it! Blog posts, tweets, tell your neighbors, call your grandma, whatever! Share Shoes with everyone!
+You can also build a `.shy`, which is a tiny version of your app. Your user
+will have to have Shoes installed to use the `.shy`, though.
+
+#### Command line
+
+This is how [Hackety Hack](http://hackety.com) gets created. However, it's
+not well documented at all, and so is kinda a secret. You can build apps
+with `$ APP=/path/to/app rake`, but it needs certain things to be in
+certain places. We're working on getting documentation done for this.
+
+## Get Help
+
+If you'd like help with Shoes, the first stop is the [shoes mailing
+list](mailto:shoes@librelist.com). Plenty of helpful people await!
+
+Other than that, you can drop by #shoes on Freenode, and some people
+hang out there. It's not super active, but sometimes it is!
+
+## About Development of Shoes
+
+All development is done on [GitHub](https://github.com/shoes/shoes). Nice and
+easy. That's also where the [issues](https://github.com/shoes/shoes/issues)
+live.
+
+We talk about Shoes development on the [mailing list](http://librelist.com/browser/shoes/). You can send an email to shoes@librelist.com to join.
+
+We post updates and links relevant to Shoes on our [Twitter
+account](http://twitter.com/shoooesrb). It's not super high traffic, we try
+to keep it strictly relevant!
+
+## Contributing
+
+Contributing a patch to Shoes is easy, just send us a pull request!
+
+If you're not sure what you want to add or fix, try checking out the
+[issues](http://github.com/shoes/shoes/issues) for a list of problems
+other users have found.
+
+We can always use the following, too:
+
+* Code review by people fluent in C.
+* People with good knowledge of Windows.
+* Anyone who wants to write some more documentation.
+
