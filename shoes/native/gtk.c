@@ -610,7 +610,7 @@ shoes_native_app_close(shoes_app *app)
 void
 shoes_browser_open(char *url)
 {
-  VALUE browser = rb_str_new2("/etc/alternatives/x-www-browser '");
+  VALUE browser = rb_str_new2("xdg-open '");
   rb_str_cat2(browser, url);
   rb_str_cat2(browser, "' 2>/dev/null &");
   shoes_sys(RSTRING_PTR(browser), 1);
