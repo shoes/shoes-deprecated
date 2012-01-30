@@ -11,6 +11,10 @@
 #ifdef SHOES_SIGNAL
 #include <signal.h>
 
+#ifdef __APPLE__
+#include <crt_externs.h>
+#endif
+
 void
 shoes_sigint()
 {
@@ -23,6 +27,51 @@ extern "C" {
 #endif
 
 shoes_world_t *shoes_world = NULL;
+
+void Init_shoes()
+{
+  shoes_code code;
+  char *path = ".";
+#ifdef __APPLE__
+  char **env = *_NSGetEnviron();
+#endif
+#ifdef SHOES_WIN32
+  int argc;
+  char **argv;
+  argc = shoes_win32_cmdvector(GetCommandLine(), &argv);
+#endif
+  //%DEFAULTS%
+
+#ifdef SHOES_WIN32
+  path = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
+  GetModuleFileName(NULL, (LPSTR)path, SHOES_BUFSIZE);
+#ifdef RUBY_1_9
+  rb_w32_sysinit(&argc, &argv);
+#else
+  NtInitialize(&argc, &argv);
+#endif
+#else
+  path = ""; //argv[0];
+#endif
+
+  code = shoes_init();
+  if (code != SHOES_OK)
+    goto done;
+
+  //shoes_set_argv(argc - 1, &argv[1]);
+  code = shoes_start(path, "/");
+  if (code != SHOES_OK)
+    goto done;
+
+done:
+#ifdef SHOES_WIN32
+  if (path != NULL)
+    SHOE_FREE(path);
+#endif
+  shoes_final();
+  return 0;
+
+}
 
 shoes_world_t *
 shoes_world_alloc()
