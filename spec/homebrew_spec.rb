@@ -10,7 +10,7 @@ describe Homebrew do
   end
 
   it "should install a new package" do
-    brew.stub(:installed?) {false}
+    shell.stub(:brew_installed?) {false}
     shell.should_receive(:run).with "brew install cairo"
     brew.install "cairo"
   end
@@ -25,17 +25,22 @@ describe Homebrew do
   end
 
   it "should add a custom remote" do
-    shell.should_receive(:run).with "git fetch shoes"
+    remote = "shoes"
+    remote_url = "https://github.com/wasnotrice/homebrew.git"
+    shell.stub(:git_repo_has_remote?) { false }
+    shell.should_receive(:git_remote_add).with(remote, remote_url)
+    shell.should_receive(:git_fetch).with(remote)
     brew.add_custom_remote
   end
 
   it "should remove custom remote" do
-    shell.should_receive(:run).with "git remote rm shoes"
+    shell.stub(:git_repo_has_remote?) { true }
+    shell.should_receive(:git_remote_rm).with 'shoes'
     brew.remove_custom_remote
   end
 
   it "should checkout custom formulas" do
-    branch = "quartz"
+    branch = "shoes"
     brew.custom_formulas.each do |f|
       shell.should_receive(:run).with "git checkout shoes/#{branch} Library/Formula/#{f}.rb"
     end

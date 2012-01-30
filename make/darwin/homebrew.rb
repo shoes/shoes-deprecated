@@ -52,7 +52,7 @@ class Homebrew
   end
 
   def installed? package
-    `#{@brew_command} list`.split.include?(package)
+    @shell.brew_installed? package
   end
 
   def add_custom_formulas
@@ -77,17 +77,17 @@ class Homebrew
 
   def add_custom_remote remote=@remote, remote_url=@remote_url
     cd @brew_home do
-      unless `#{@git_command} remote`.split.include?(remote)
-        sh "#{@git_command} remote add #{remote} #{remote_url}"
+      unless @shell.git_repo_has_remote?(@remote)
+        @shell.git_remote_add(remote, remote_url)
       end
-      sh "#{@git_command} fetch #{remote}"
+      @shell.git_fetch(@remote)
     end
   end
 
   def remove_custom_remote
     cd @brew_home do
-      if `#{@git_command} remote`.split.include?(@remote)
-        sh "#{@git_command} remote rm #{@remote}"
+      if @shell.git_repo_has_remote?(@remote)
+        @shell.git_remote_rm(@remote)
       end
     end
   end
@@ -98,7 +98,31 @@ class Homebrew
 end
 
 class ShellCommandRunner
+  def initialize
+    @git_command = ENV['GIT'] || "git"
+  end
+
   def run command
     system command
+  end
+
+  def brew_installed? package
+    `#{@brew_command} list`.split.include?(package)
+  end
+
+  def git_fetch remote
+    run "#{@git_command} fetch #{remote}"
+  end
+
+  def git_remote_add remote, remote_url
+    sh "#{@git_command} remote add #{remote} #{remote_url}"
+  end
+
+  def git_remote_rm remote
+    `#{@git_command} remote rm #{remote}`
+  end
+
+  def git_repo_has_remote? remote
+     `#{@git_command} remote`.split.include?(remote)
   end
 end
