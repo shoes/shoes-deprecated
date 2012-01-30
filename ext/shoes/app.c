@@ -19,7 +19,7 @@
 
 void Init_shoes()
 {
-shoes_code code;
+  shoes_code code;
   char *path = ".";
 #ifdef __APPLE__
   char **env = *_NSGetEnviron();
