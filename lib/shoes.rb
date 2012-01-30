@@ -12,7 +12,7 @@ require 'open-uri'
 require 'optparse'
 require 'resolv-replace' if RUBY_PLATFORM =~ /win/
 #require_relative 'shoes/inspect'
-#require_relative 'shoes/cache'
+require_relative 'shoes/cache'
 if Object.const_defined? :Shoes
   require_relative 'shoes/image'
 end
