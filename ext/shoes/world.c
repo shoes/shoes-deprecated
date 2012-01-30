@@ -59,9 +59,10 @@ void Init_shoes()
     goto done;
 
   //shoes_set_argv(argc - 1, &argv[1]);
-  code = shoes_start(path, "/");
-  if (code != SHOES_OK)
-    goto done;
+  // For gem use, we don't want to start Shoes on require
+  /*code = shoes_start(path, "/");*/
+  /*if (code != SHOES_OK)*/
+    /*goto done;*/
 
 done:
 #ifdef SHOES_WIN32
