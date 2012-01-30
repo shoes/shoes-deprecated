@@ -112,7 +112,7 @@ typedef struct {
   int ret;
 } shoes_gtk_msg;
 
-static gboolean 
+static gboolean
 shoes_gtk_catch_message(gpointer user) {
   shoes_gtk_msg *msg = (shoes_gtk_msg *)user;
   pthread_mutex_lock(&msg->mutex);
@@ -199,25 +199,25 @@ void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c)
 //
 // Window-level events
 //
-static gboolean 
-shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) 
-{  
-  GdkModifierType state; 
-  shoes_app *app = (shoes_app *)data; 
-  if (!event->is_hint) 
-  { 
+static gboolean
+shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data)
+{
+  GdkModifierType state;
+  shoes_app *app = (shoes_app *)data;
+  if (!event->is_hint)
+  {
     shoes_canvas *canvas;
     Data_Get_Struct(app->canvas, shoes_canvas, canvas);
-    state = (GdkModifierType)event->state; 
+    state = (GdkModifierType)event->state;
     shoes_app_motion(app, (int)event->x, (int)event->y + canvas->slot->scrolly);
-  } 
-  return TRUE; 
-} 
+  }
+  return TRUE;
+}
 
 static gboolean
 shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, gpointer data)
-{ 
-  shoes_app *app = (shoes_app *)data; 
+{
+  shoes_app *app = (shoes_app *)data;
   shoes_canvas *canvas;
   Data_Get_Struct(app->canvas, shoes_canvas, canvas);
   if (event->type == GDK_BUTTON_PRESS)
@@ -233,9 +233,9 @@ shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, gpointer data)
 
 static gboolean
 shoes_app_gtk_wheel(GtkWidget *widget, GdkEventScroll *event, gpointer data)
-{ 
+{
   ID wheel;
-  shoes_app *app = (shoes_app *)data; 
+  shoes_app *app = (shoes_app *)data;
   switch (event->direction)
   {
     case GDK_SCROLL_UP:    wheel = s_up;    break;
@@ -251,7 +251,7 @@ shoes_app_gtk_wheel(GtkWidget *widget, GdkEventScroll *event, gpointer data)
 
 static void
 shoes_app_gtk_paint (GtkWidget *widget, GdkEventExpose *event, gpointer data)
-{ 
+{
   shoes_app *app = (shoes_app *)data;
   gtk_window_get_size(GTK_WINDOW(app->os.window), &app->width, &app->height);
   shoes_canvas_size(app->canvas, app->width, app->height);
@@ -263,7 +263,7 @@ shoes_app_gtk_paint (GtkWidget *widget, GdkEventExpose *event, gpointer data)
 
 static gboolean
 shoes_app_gtk_keypress (GtkWidget *widget, GdkEventKey *event, gpointer data)
-{ 
+{
   VALUE v = Qnil;
   guint modifiers = event->state;
   shoes_app *app = (shoes_app *)data;
@@ -343,7 +343,7 @@ shoes_app_gtk_keypress (GtkWidget *widget, GdkEventKey *event, gpointer data)
     } else {
       shoes_app_keyup(app, v);
     }
-  } 
+  }
 
   return FALSE;
 }
@@ -366,7 +366,7 @@ shoes_canvas_gtk_paint_children(GtkWidget *widget, gpointer data)
 
 static void
 shoes_canvas_gtk_paint(GtkWidget *widget, GdkEventExpose *event, gpointer data)
-{ 
+{
   VALUE c = (VALUE)data;
   shoes_canvas *canvas;
   INFO("EXPOSE: (%d, %d) (%d, %d) %lu, %d, %d\n", event->area.x, event->area.y,
@@ -404,7 +404,7 @@ shoes_canvas_gtk_size(GtkWidget *widget, GtkAllocation *size, gpointer data)
   VALUE c = (VALUE)data;
   shoes_canvas *canvas;
   Data_Get_Struct(c, shoes_canvas, canvas);
-  if (canvas->slot->vscroll && 
+  if (canvas->slot->vscroll &&
     (size->height != canvas->slot->scrollh || size->width != canvas->slot->scrollw))
   {
     GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot->vscroll));
@@ -424,7 +424,7 @@ shoes_canvas_gtk_size(GtkWidget *widget, GtkAllocation *size, gpointer data)
 
 static void
 shoes_canvas_gtk_scroll(GtkRange *r, gpointer data)
-{ 
+{
   VALUE c = (VALUE)data;
   shoes_canvas *canvas;
   Data_Get_Struct(c, shoes_canvas, canvas);
@@ -432,7 +432,7 @@ shoes_canvas_gtk_scroll(GtkRange *r, gpointer data)
   shoes_slot_repaint(canvas->app->slot);
 }
 
-static gint                                                           
+static gint
 shoes_app_g_poll (GPollFD *fds, guint nfds, gint timeout)
 {
   struct timeval tv;
@@ -467,7 +467,7 @@ shoes_app_g_poll (GPollFD *fds, guint nfds, gint timeout)
   //
   if (timeout == -1 || timeout > 500)
     timeout = 500;
-  
+
   tv.tv_sec = timeout / 1000;
   tv.tv_usec = (timeout % 1000) * 1000;
 
@@ -568,7 +568,7 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
   gtk_widget_set_events(gk->window, GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
   g_signal_connect(G_OBJECT(gk->window), "size-allocate",
                    G_CALLBACK(shoes_app_gtk_paint), app);
-  g_signal_connect(G_OBJECT(gk->window), "motion-notify-event", 
+  g_signal_connect(G_OBJECT(gk->window), "motion-notify-event",
                    G_CALLBACK(shoes_app_gtk_motion), app);
   g_signal_connect(G_OBJECT(gk->window), "button-press-event",
                    G_CALLBACK(shoes_app_gtk_button), app);
@@ -703,7 +703,7 @@ shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc)
   newy = (self_t->place.iy + self_t->place.dy) - pc->slot->scrolly;
 
   if (x != self_t->place.ix + self_t->place.dx || y != newy)
-    gtk_fixed_move(GTK_FIXED(pc->slot->canvas), self_t->slot->canvas, 
+    gtk_fixed_move(GTK_FIXED(pc->slot->canvas), self_t->slot->canvas,
         self_t->place.ix + self_t->place.dx, newy);
 
   if (a->width != self_t->place.iw || a->height != self_t->place.ih)
@@ -717,7 +717,7 @@ shoes_native_canvas_resize(shoes_canvas *canvas)
 
 static void
 shoes_widget_changed(GtkWidget *ref, gpointer data)
-{ 
+{
   VALUE self = (VALUE)data;
   shoes_control_send(self, s_change);
 }
@@ -740,7 +740,7 @@ shoes_native_control_position(SHOES_CONTROL_REF ref, shoes_place *p1, VALUE self
 {
   PLACE_COORDS();
   gtk_widget_set_size_request(ref, p2->iw, p2->ih);
-  gtk_fixed_put(GTK_FIXED(canvas->slot->canvas), 
+  gtk_fixed_put(GTK_FIXED(canvas->slot->canvas),
     ref, p2->ix + p2->dx, p2->iy + p2->dy);
   gtk_widget_show_all(ref);
 }
@@ -752,7 +752,7 @@ shoes_native_control_repaint(SHOES_CONTROL_REF ref, shoes_place *p1,
   p2->iy -= canvas->slot->scrolly;
   if (CHANGED_COORDS()) {
     PLACE_COORDS();
-    gtk_fixed_move(GTK_FIXED(canvas->slot->canvas), 
+    gtk_fixed_move(GTK_FIXED(canvas->slot->canvas),
       ref, p2->ix + p2->dx, p2->iy + p2->dy);
     gtk_widget_set_size_request(ref, p2->iw, p2->ih);
   }
@@ -802,7 +802,7 @@ shoes_native_surface_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
 }
 
 void
-shoes_native_surface_position(SHOES_SURFACE_REF ref, shoes_place *p1, 
+shoes_native_surface_position(SHOES_SURFACE_REF ref, shoes_place *p1,
   VALUE self, shoes_canvas *canvas, shoes_place *p2)
 {
   shoes_native_control_position(ref, p1, self, canvas, p2);
@@ -828,7 +828,7 @@ shoes_native_surface_remove(shoes_canvas *canvas, SHOES_SURFACE_REF ref)
 
 static gboolean
 shoes_button_gtk_clicked(GtkButton *button, gpointer data)
-{ 
+{
   VALUE self = (VALUE)data;
   shoes_control_send(self, s_click);
   return TRUE;
