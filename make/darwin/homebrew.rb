@@ -98,8 +98,11 @@ class Homebrew
 end
 
 class ShellCommandRunner
+  attr_reader :git_command, :brew_command
+
   def initialize
     @git_command = ENV['GIT'] || "git"
+    @brew_command = ENV['BREW'] || "brew"
   end
 
   def run command

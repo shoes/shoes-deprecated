@@ -56,5 +56,19 @@ describe Homebrew do
     shell.should_receive(:run).with "brew link cairo"
     brew.install_packages
   end
+
+  describe ShellCommandRunner do
+    before :each do
+      @shell = ShellCommandRunner.new
+    end
+
+    it "has git command" do
+      @shell.git_command.should_not be_nil
+    end
+
+    it "has brew command" do
+      @shell.brew_command.should_not be_nil
+    end
+  end
 end
 
