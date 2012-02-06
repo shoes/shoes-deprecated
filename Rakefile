@@ -6,6 +6,7 @@ require 'rake/clean'
 CLEAN.include("lib/shoes/shoes.bundle")
 CLEAN.include("dist")
 CLEAN.include("tmp")
+CLEAN.include("Shoes.app")
 
 require 'rake/testtask'
 Rake::TestTask.new do |t|
