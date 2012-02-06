@@ -21,7 +21,7 @@ class Shoes
   NotFound = proc do
     para "404 NOT FOUND, GUYS!"
   end
- 
+
   class << self; attr_accessor :locale, :language end
   @locale = ENV["SHOES_LANG"] || ENV["LC_MESSAGES"] || ENV["LC_ALL"] || ENV["LANG"] || "C"
   @language = @locale[/^(\w{2})_/, 1] || "en"
@@ -104,7 +104,7 @@ class Shoes
       end
 
       $0.replace path
-      
+
       code = read_file(path)
       eval(code, TOPLEVEL_BINDING, path)
     end
@@ -136,11 +136,11 @@ class Shoes
       elsif opts[:downward]
         opts[:top] = self.top + opts.delete(:downward)
       end
-      
+
       if opts[:sideways]
         opts[:left] = self.left + opts.delete(:sideways)
       end
-      
+
       @TWEEN.remove if @TWEEN
       @TWEEN = parent.animate(opts[:speed] || 20) do
 
