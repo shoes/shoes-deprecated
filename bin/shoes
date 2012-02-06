@@ -1,0 +1,146 @@
+#!/usr/bin/env ruby
+ARGV.delete_if { |x| x =~ /-psn_/ }
+
+require 'shoes'
+require 'open-uri'
+require 'optparse'
+require 'resolv-replace' if RUBY_PLATFORM =~ /win/
+
+class Shoes
+  OPTS = OptionParser.new do |opts|
+    opts.banner = "Usage: shoes [options] (app.rb or app.shy)"
+
+    opts.on("-m", "--manual",
+            "Open the built-in manual.") do
+      Manual.show
+    end
+
+    opts.on("-p", "--package",
+            "Package a Shoes app for Windows, OS X and Linux.") do |s|
+      make_pack
+    end
+
+    opts.on("-g", "--gem",
+            "Passes commands to RubyGems.") do
+      require 'shoes/setup'
+      require 'rubygems/gem_runner'
+      Gem::GemRunner.new.run(ARGV)
+      raise SystemExit, ""
+    end
+
+    opts.on("--manual-html DIRECTORY", "Saves the manual to a directory as HTML.") do |dir|
+      Manual.as :html, dir
+      raise SystemExit, "HTML manual in: #{dir}"
+    end
+
+    opts.on("--install MODE SRC DEST", "Installs a file.") do |mode|
+      src, dest = ARGV
+      FileUtils.install src, dest, :mode => mode.to_i(8), :preserve => true
+      raise SystemExit, ""
+    end
+
+    opts.on("--nolayered", "No WS_EX_LAYERED style option.") do
+      $NOLAYERED = 1
+      Shoes.args!
+    end
+
+    opts.on_tail("-v", "--version", "Display the version info.") do
+      raise SystemExit, File.read("#{DIR}/VERSION.txt").strip
+    end
+
+    opts.on_tail("-h", "--help", "Show this message") do
+      raise SystemExit, opts.to_s
+    end
+  end
+
+  def self.args!
+    if RUBY_PLATFORM !~ /darwin/ and ARGV.empty?
+      Shoes.splash
+    end
+    OPTS.parse! ARGV
+    ARGV[0] or true
+  end
+
+  def self.run(path)
+    uri = URI(path)
+    @mounts.each do |mpath, rout|
+      m, *args = *path.match(/^#{mpath}$/)
+      if m
+        unless rout.is_a? Proc
+          rout = rout[0].instance_method(rout[1])
+        end
+        return [rout, args]
+      end
+    end
+    case uri.path when "/"
+      [nil]
+    when SHOES_URL_RE
+      [proc { eval(URI("http://#$1:53045#$2").read) }]
+    else
+      [NotFound]
+    end
+  end
+
+  def self.splash
+    font "#{DIR}/fonts/Lacuna.ttf"
+    Shoes.app :width => 400, :height => 300, :resizable => false do  
+      style(Para, :align => "center", :weight => "bold", :font => "Lacuna Regular", :size => 13)
+      style(Link, :stroke => yellow, :underline => nil)
+      style(LinkHover, :stroke => yellow, :fill => nil)
+
+      x1 = 77; y1 = 122
+      x2 = 148; y2 = -122
+      x3 = 245; y3 = 0
+
+      nofill
+      strokewidth 40.0
+
+      @waves = stack :top => 0, :left => 0
+
+      require 'shoes/search'
+      require 'shoes/help'
+
+      stack :margin => 18 do
+        para "Welcome to", :stroke => "#DFA", :margin => 0
+        para "SHOES", :size => 48, :stroke => "#DFA", :margin_top => 0
+        stack do
+          background black(0.2), :curve => 8
+          para link("Open an App.") { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
+					para link("Package an App.") { Shoes.make_pack and close }, :margin => 10, :margin_bottom => 4
+          para link("Read the Manual.") { Shoes.show_manual and close }, :margin => 10
+        end
+        inscription "Alt-Slash opens the console.", :stroke => "#DFA", :align => "center"
+      end
+
+      animate(10) do |ani|
+        a = Math.sin(ani * 0.02) * 20
+        @waves.clear do
+          background white
+          y = -30
+          16.times do |i|
+            shape do
+              move_to x = (-300 - (i*(a*0.8))), y
+              c = (a + 14) * 0.01
+              stroke rgb(i * 0.06, c + 0.1, 0.1, 1.0 - (ani * 0.0003))
+              4.times do
+                curve_to x1 + x, (y1-(i*a)) + y, x2 + x, (y2+(i*a)) + y, x3 + x, y3 + y
+                x += x3
+              end
+            end
+            y += 30
+          end
+        end
+      end
+    end
+  end
+
+  def self.show_manual
+    Manual.as :shoes
+  end
+
+  def self.make_pack
+    require 'shoes/pack'
+    Shoes.app(:width => 500, :height => 480, :resizable => true, &PackMake)
+  end
+
+end
