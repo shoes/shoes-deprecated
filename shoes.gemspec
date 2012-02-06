@@ -12,8 +12,8 @@ Gem::Specification.new do |s|
   s.summary     = %q{Shoes is the best little GUI toolkit for Ruby.}
   s.description = %q{Shoes is the best little GUI toolkit for Ruby. This gem is currently a placeholder until we properly gemfiy Shoes.}
 
-  s.add_development_dependency "mechanize"
   s.add_development_dependency "rake-compiler"
+  s.add_development_dependency "bundler"
 
   #s.add_dependency "bloopsaphone"
   s.add_dependency "chipmunk"
@@ -26,6 +26,6 @@ Gem::Specification.new do |s|
 
   s.files         = `git ls-files`.split("\n") + ["lib/shoes/shoes.bundle"]
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
-  #s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
+  s.executables   = ["shoes"]
   s.require_paths = ["lib"]
 end
