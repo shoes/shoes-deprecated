@@ -5,7 +5,6 @@ ARGV.delete_if { |x| x =~ /-psn_/ }
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'shoes'
 require 'shoes/manual'
-require 'open-uri'
 require 'optparse'
 require 'resolv-replace' if RUBY_PLATFORM =~ /win/
 
@@ -62,26 +61,6 @@ class Shoes
     end
     OPTS.parse! ARGV
     ARGV[0] or true
-  end
-
-  def self.run(path)
-    uri = URI(path)
-    @mounts.each do |mpath, rout|
-      m, *args = *path.match(/^#{mpath}$/)
-      if m
-        unless rout.is_a? Proc
-          rout = rout[0].instance_method(rout[1])
-        end
-        return [rout, args]
-      end
-    end
-    case uri.path when "/"
-      [nil]
-    when SHOES_URL_RE
-      [proc { eval(URI("http://#$1:53045#$2").read) }]
-    else
-      [NotFound]
-    end
   end
 
   def self.splash

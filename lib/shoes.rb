@@ -4,6 +4,7 @@
 # The Shoes base app, both a demonstration and the learning tool for
 # using Shoes.
 #
+require 'open-uri'
 require_relative 'shoes/shoes'
 require 'shoes/core_ext'
 #require_relative 'shoes/inspect'
@@ -64,6 +65,26 @@ class Shoes
   end
 
   SHOES_URL_RE = %r!^@([^/]+)(.*)$! 
+
+  def self.run(path)
+    uri = URI(path)
+    @mounts.each do |mpath, rout|
+      m, *args = *path.match(/^#{mpath}$/)
+      if m
+        unless rout.is_a? Proc
+          rout = rout[0].instance_method(rout[1])
+        end
+        return [rout, args]
+      end
+    end
+    case uri.path when "/"
+      [nil]
+    when SHOES_URL_RE
+      [proc { eval(URI("http://#$1:53045#$2").read) }]
+    else
+      [NotFound]
+    end
+  end
 
   def self.uri(str)
     if str =~ SHOES_URL_RE
