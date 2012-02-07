@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 # The Shoes Manual
 #
 # Note: This is meant for displaying and/or producing an html version of the

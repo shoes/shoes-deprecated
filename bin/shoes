@@ -1,7 +1,10 @@
 #!/usr/bin/env ruby
+# -*- encoding: utf-8 -*-
 ARGV.delete_if { |x| x =~ /-psn_/ }
 
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'shoes'
+require 'shoes/manual'
 require 'open-uri'
 require 'optparse'
 require 'resolv-replace' if RUBY_PLATFORM =~ /win/
@@ -12,7 +15,7 @@ class Shoes
 
     opts.on("-m", "--manual",
             "Open the built-in manual.") do
-      Manual.show
+      show_manual
     end
 
     opts.on("-p", "--package",
@@ -144,3 +147,5 @@ class Shoes
   end
 
 end
+
+Shoes.args!
