@@ -1,3 +1,8 @@
+libexpat-1
+intl
+libfontconfig-1
+freetype6
+libpng14-14
 libungif4
 libjpeg-8
 libcairo-2
@@ -16,4 +21,4 @@ libssl32
 libeay32
 zlib1
 readline5
-libiconv2
+libiconv-2
