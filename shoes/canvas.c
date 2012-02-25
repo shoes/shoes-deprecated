@@ -692,7 +692,18 @@ shoes_canvas_border(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_video(int argc, VALUE *argv, VALUE self)
 {
+#ifdef VIDEO
+  VALUE video;
+  rb_arg_list args;
+  SETUP();
+
+  rb_parse_args(argc, argv, "s|h", &args);
+  video = shoes_video_new(cVideo, args.a[0], args.a[1], self);
+  shoes_add_ele(canvas, video);
+  return video;
+#else
   rb_raise(eNotImpl, "no video support");
+#endif
 }
 
 VALUE
@@ -796,9 +807,9 @@ shoes_canvas_shape(int argc, VALUE *argv, VALUE self)
 #else
   cairo_path_extents(canvas->shape, &x1, &y1, &x2, &y2);
 #endif
-  x = ROUND(x2 - x1);
+  x = x2 - x1;
   ATTRSET(attr, width, INT2NUM(x));
-  x = ROUND(y2 - y1);
+  x = y2 - y1;
   ATTRSET(attr, height, INT2NUM(x));
   line = cairo_copy_path(canvas->shape);
   canvas->shape = shape;
@@ -1748,7 +1759,7 @@ shoes_canvas_send_start(VALUE self)
     int i;
     canvas->stage = CANVAS_STARTED;
 
-    for (i = (int)RARRAY_LEN(canvas->contents) - 1; i >= 0; i--)
+    for (i = RARRAY_LEN(canvas->contents) - 1; i >= 0; i--)
     {
       VALUE ele = rb_ary_entry(canvas->contents, i);
       if (rb_obj_is_kind_of(ele, cCanvas) && shoes_canvas_inherits(ele, canvas))

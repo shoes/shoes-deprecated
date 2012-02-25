@@ -6,28 +6,26 @@
 #
 ARGV.delete_if { |x| x =~ /-psn_/ }
 
-class Encoding
-  %w[UTF_7 UTF_16BE UTF_16LE UTF_32BE UTF_32LE].each do |enc|
-    eval "class #{enc};end" unless const_defined? enc.to_sym
-  end
-end
+%w[UTF_7 UTF_16BE UTF_16LE UTF_32BE UTF_32LE].each do |ec|
+  eval "#{ec} = '#{ec.sub '_', '-'}'"
+end unless RUBY_PLATFORM =~ /linux/
 
 require 'open-uri'
 require 'optparse'
 require 'resolv-replace' if RUBY_PLATFORM =~ /win/
-require_relative 'shoes/inspect'
-require_relative 'shoes/cache'
+require 'shoes/inspect'
+#require 'shoes/cache'
 if Object.const_defined? :Shoes
-  require_relative 'shoes/image'
+  require 'shoes/image'
 end
-require_relative 'shoes/shybuilder'
+#require 'shoes/shybuilder'
 
 def Shoes.hook; end
 
 class Encoding
  %w[ASCII_8BIT UTF_16BE UTF_16LE UTF_32BE UTF_32LE US_ASCII].each do |ec|
    eval "#{ec} = '#{ec.sub '_', '-'}'"
- end unless RUBY_PLATFORM =~ /linux/ or RUBY_PLATFORM =~ /darwin/
+ end unless RUBY_PLATFORM =~ /linux/
 end
 
 class Range 
@@ -533,15 +531,15 @@ class Shoes
   end
 
   class Types::Widget
-    @@types = {}
+    @types = {}
     def self.inherited subc
       methc = subc.to_s[/(^|::)(\w+)$/, 2].
               gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
               gsub(/([a-z\d])([A-Z])/,'\1_\2').downcase
-      @@types[methc] = subc
+      @types[methc] = subc
       Shoes.class_eval %{
         def #{methc}(*a, &b)
-          a.unshift Widget.class_variable_get("@@types")[#{methc.dump}]
+          a.unshift Widget.instance_variable_get("@types")[#{methc.dump}]
           widget(*a, &b)
         end
       }
