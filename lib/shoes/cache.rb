@@ -27,6 +27,7 @@ $:.unshift GEM_DIR
 ENV['GEM_HOME'] = GEM_DIR
 
 require 'rbconfig'
+SHOES_RUBY_ARCH = Config::CONFIG['arch']
 config = {
   'ruby_install_name' => "shoes --ruby",
   'RUBY_INSTALL_NAME' => "shoes --ruby",
@@ -38,10 +39,10 @@ config = {
   'psdir' => "#{DIR}/doc/${PACKAGE}",
   'htmldir' => "#{DIR}/doc/${PACKAGE}",
   'docdir' => "#{DIR}/doc/${PACKAGE}",
-  'archdir' => "#{DIR}/ruby/lib/#{RUBY_PLATFORM}",
+  'archdir' => "#{DIR}/ruby/lib/#{SHOES_RUBY_ARCH}",
   'sitedir' => SITE_LIB_DIR,
   'sitelibdir' => SITE_LIB_DIR,
-  'sitearchdir' => "#{SITE_LIB_DIR}/#{RUBY_PLATFORM}",
+  'sitearchdir' => "#{SITE_LIB_DIR}/#{SHOES_RUBY_ARCH}",
   'LIBRUBYARG_STATIC' => "",
   'libdir' => "#{DIR}",
   'LDFLAGS' => "-L. -L#{DIR}"

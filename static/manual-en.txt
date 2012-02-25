@@ -95,7 +95,7 @@ Here's how to run the installer:
 
  * On '''Mac OS X''', you'll have a file ending with '''.dmg'''.  Double-click this file and a window should appear with a '''Shoes''' icon and an '''Applications''' folder.  Following the arrow, drag the Shoes icon into the '''Applications''' folder. !man-intro-dmg.png!
  * On '''Windows''', you'll download a '''.exe''' file.  Double-click this file and follow the instructions. !man-intro-exe.png!
- * On '''Linux''', you'll download a file ending with '''.run'''.  Double-click this file and Shoes will start up.  (You can also run this file from a prompt as if it was a shell script.  In fact, it is a shell script!)
+ * On '''Linux''', you'll need to compile your own Shoes. Check out [[https://github.com/shoes/shoes/wiki/Building-Shoes-on-Linux this page]] for more. We want to provide packages eventually!
 
 ==== Step 2: Start a New Text File ====
 
@@ -347,7 +347,7 @@ differently.  To be sure that the end of the slot is chopped off perfectly, the
 slot becomes a '''nested window'''.  A new layer is created by the operating
 system to keep the slot in a fixed square.
 
-On difference between normal slots and nested window slots is that the latter
+One difference between normal slots and nested window slots is that the latter
 can have scrollbars.
 
 {{{
@@ -1292,6 +1292,8 @@ Sets the left coordinate of this object to a specific pixel.  Setting `:left =>
 slot containing it.  If this style is left unset (or set to `nil`,) the object
 will flow in with the other objects surrounding it.
 
+You might also want to give it a :top, if it's acting a bit funny. Sometimes it needs both. :)
+
 === :margin » a number or an array of four numbers ===
 
 For: ''all slots and elements''.
@@ -1480,6 +1482,8 @@ object is set with `:top => 40`, this means the object's top edge will be
 placed 40 pixels beneath the top edge of the slot that contains it.  If no
 `:top` style is given, the object is automatically placed in the natural flow
 of its slot.
+
+You should probably give it a :left, too, if it's acting strange. It likes to have both. :)
 
 === :undercolor » a Shoes::Color ===
 
@@ -2530,7 +2534,7 @@ Gets the object for this element's container.
 
 Ah, here's the stuff of Shoes. An element can be as simple as an oval shape. Or
 as complex as a video stream. You've encountered all of these elements before
-in the Slots section of th manual.
+in the Slots section of the manual.
 
 Shoes has seven native controls: the Button, the EditLine, the EditBox, the
 ListBox, the Progress meter, the Check box and the Radio.  By "native"

@@ -7,6 +7,10 @@ deps
 dist
 pkg
 *.app
-req/*
 *~
 *.swp
+tags
+*.bundle
+*.so
+Makefile
+mkmf.log

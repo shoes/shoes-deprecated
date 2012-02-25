@@ -13,28 +13,39 @@ class MakeDarwin
       copy_files "#{xdir}/*.bundle", libdir
     end
 
+    # Get a list of linked libraries for lib (discard the non-indented lines)
+    def get_dylibs lib
+      `otool -L #{lib}`.split("\n").inject([]) do |dylibs, line|
+        if  line =~ /^\S/ or line =~ /System|@executable_path|libobjc/
+          dylibs
+        else
+          dylibs << line.gsub(/\s\(compatibility.*$/, '').strip
+        end
+      end
+    end
+
     def copy_deps_to_dist
-      if ENV['SHOES_DEPS_PATH']
-        dylibs = IO.readlines("make/darwin/dylibs.shoes").map(&:chomp)
-        if ENV['VIDEO']
-          dylibs += IO.readlines("make/darwin/dylibs.video").map(&:chomp)
+      # Generate a list of dependencies straight from the generated files.
+      # Start with dependencies of shoes-bin, and then add the dependencies
+      # of those dependencies. Finally, add any oddballs that must be
+      # included.
+      dylibs = get_dylibs("dist/#{NAME}-bin")
+      dylibs.each do |dylib|
+        get_dylibs(dylib).each do |d|
+          dylibs << d unless dylibs.map {|lib| File.basename(lib)}.include?(File.basename(d))
         end
-        dylibs.each do |libn|
-          cp "#{ENV['SHOES_DEPS_PATH']}/#{libn}", "dist/"
-        end.each do |libn|
-          next unless libn =~ %r!^lib/(.+?\.dylib)$!
-          libf = $1
-          sh "install_name_tool -id /tmp/dep/#{libn} dist/#{libf}"
-          ["dist/#{NAME}-bin", *Dir['dist/*.dylib']].each do |lib2|
-            sh "install_name_tool -change /tmp/dep/#{libn} @executable_path/#{libf} #{lib2}"
-          end
-        end
-        if ENV['VIDEO']
-          mkdir_p "dist/plugins"
-          sh "cp -r deps/lib/vlc/**/*.dylib dist/plugins"
-          sh "strip -x dist/*.dylib"
-          sh "strip -x dist/plugins/*.dylib"
-          sh "strip -x dist/ruby/lib/**/*.bundle"
+      end
+      dylibs << '/usr/local/etc/pango/pango.modules'
+      dylibs.each do |libn|
+        cp "#{libn}", "dist/"
+      end.each do |libn|
+        next unless libn =~ %r!/lib/(.+?\.dylib)$!
+        libf = $1
+        # Get the actual name that the file is calling itself
+        otool_lib_id = `otool -D dist/#{libf} | sed -n 2p`.chomp
+        sh "install_name_tool -id @executable_path/#{libf} dist/#{libf}"
+        ["dist/#{NAME}-bin", *Dir['dist/*.dylib']].each do |lib2|
+          sh "install_name_tool -change #{otool_lib_id} @executable_path/#{libf} #{lib2}"
         end
       end
     end
@@ -70,7 +81,7 @@ class MakeDarwin
       bin = "#{name}-bin"
       rm_f name
       rm_f bin
-      sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes -arch x86_64"
+      sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{OSX_ARCH}"
     end
 
     def make_so(name)

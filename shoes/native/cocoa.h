@@ -73,6 +73,13 @@
 }
 @end
 
+void add_to_menubar(NSMenu *main, NSMenu *menu);
+void create_apple_menu(NSMenu *main);
+void create_edit_menu(NSMenu *main);
+void create_window_menu(NSMenu *main);
+void create_help_menu(NSMenu *main);
+void shoes_native_view_supplant(NSView *from, NSView *to);
+
 #define VK_ESCAPE 53
 #define VK_DELETE 117
 #define VK_INSERT 114
