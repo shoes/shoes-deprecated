@@ -4676,7 +4676,7 @@ shoes_ruby_init()
   rb_include_module(cShoes, cTypes);
   rb_const_set(cShoes, rb_intern("Types"), cTypes);
   rb_const_set(cTypes, rb_intern("RELEASE_NAME"), rb_str_new2(SHOES_RELEASE_NAME));
-  rb_const_set(cTypes, rb_intern("RELEASE_ID"), INT2NUM(SHOES_RELEASE_ID));
+  rb_const_set(cTypes, rb_intern("RELEASE_ID"), rb_float_new(SHOES_RELEASE_ID));
   rb_const_set(cTypes, rb_intern("REVISION"), INT2NUM(SHOES_REVISION));
   rb_const_set(cTypes, rb_intern("VERSION"), rb_str_new2(SHOES_RELEASE_NAME));
   rb_const_set(cTypes, rb_intern("RAD2PI"), rb_float_new(SHOES_RAD2PI));
