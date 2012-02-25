@@ -1,6 +1,6 @@
 name: Shoes
-version: 3.1
-release: Policeman
+version: 4
+release: WalkAbout
 icons:
   win32: platform/msw/shoes.ico
   osx:   static/Shoes.icns

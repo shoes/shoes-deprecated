@@ -31,8 +31,8 @@ VLC_0_8 = VLC_VERSION !~ /^0\.9/
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "dist"]
 
-RUBY_SO = RbConfig::CONFIG['RUBY_SO_NAME']
-RUBY_V = RbConfig::CONFIG['ruby_version']
+RUBY_SO = Config::CONFIG['RUBY_SO_NAME']
+RUBY_V = Config::CONFIG['ruby_version']
 RUBY_1_9 = (RUBY_V =~ /^1\.9/)
 if RUBY_1_9
   $: << "."
@@ -81,7 +81,7 @@ end
 
 task "dist/VERSION.txt" do |t|
   File.open(t.name, 'w') do |f|
-    f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION}) [#{RUBY_PLATFORM} Ruby#{RUBY_VERSION}]}
+    f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION}) [#{RUBY_PLATFORM} Ruby#{RUBY_V}]}
     %w[VIDEO DEBUG].each { |x| f << " +#{x.downcase}" if ENV[x] }
     f << "\n"
   end
