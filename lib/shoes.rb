@@ -557,3 +557,9 @@ end
 def window(*a, &b)
   Shoes.app(*a, &b)
 end
+
+class Object
+  %w[RELEASE_NAME RELEASE_ID REVISION VERSION RAD2PI TWO_PI HALF_PI PI VIDEO Link LinkHover].each do |v|
+    eval "#{v} = Shoes::#{v}"
+  end
+end
