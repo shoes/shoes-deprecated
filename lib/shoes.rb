@@ -5,17 +5,9 @@
 # using Shoes.
 #
 
-class Dir
-  def self.tmpdir
-    ENV['TMPDIR'] or ENV['TMP'] or ENV['TEMP'] or '/tmp'
-  end
-end
+require 'shoes/encoding'
 
 ARGV.delete_if { |x| x =~ /-psn_/ }
-
-%w[UTF_7 UTF_16BE UTF_16LE UTF_32BE UTF_32LE].each do |ec|
-  eval "#{ec} = '#{ec.sub '_', '-'}'"
-end unless RUBY_PLATFORM =~ /linux/
 
 require 'open-uri'
 require 'optparse'
@@ -28,12 +20,6 @@ end
 require 'shoes/shybuilder'
 
 def Shoes.hook; end
-
-class Encoding
- %w[ASCII_8BIT UTF_16BE UTF_16LE UTF_32BE UTF_32LE US_ASCII].each do |ec|
-   eval "#{ec} = '#{ec.sub '_', '-'}'"
- end unless RUBY_PLATFORM =~ /linux/
-end
 
 class Range 
   def rand 

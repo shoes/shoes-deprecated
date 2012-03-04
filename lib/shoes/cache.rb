@@ -2,7 +2,7 @@ require 'fileutils'
 include FileUtils
 
 # locate ~/.shoes
-#require 'tmpdir'
+require 'tmpdir'
 
 lib_dir = nil
 homes = []

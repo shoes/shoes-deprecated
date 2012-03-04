@@ -32,6 +32,11 @@ class MakeMinGW
     
     def setup_system_resources
       cp APP['icons']['gtk'], "dist/static/app-icon.png"
+      open 'dist/encoding.data', 'w' do |f|
+        Dir.chdir '../mingw/lib/ruby/1.9.1/i386-mingw32/enc' do
+          f.puts Dir["*.so", "*/*.so"]
+        end
+      end
     end
 
     def make_resource(t)

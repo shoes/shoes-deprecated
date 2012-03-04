@@ -6,7 +6,7 @@ require 'digest/md5'
 require 'zlib'
 require_relative 'minitar'
 require 'find'
-#require 'tmpdir'
+require 'tmpdir'
 require 'yaml'
 
 class Shy
