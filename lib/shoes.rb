@@ -362,7 +362,7 @@ class Shoes
         unless rout.is_a? Proc
           rout = rout[0].instance_method(rout[1])
         end
-        return [rout, args]
+        return [rout, args, rout.owner]
       end
     end
     case uri.path when "/"
