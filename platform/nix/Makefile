@@ -9,12 +9,12 @@ INCS = -I. -I/usr/include -I/usr/local/include
 LIBS = -L/usr/lib -L/usr/local/lib -lcairo -lpangocairo-1.0 -lgif -ljpeg -lrt
 
 REVISION = `git rev-list HEAD | wc -l`
-RUBY_INCS = `ruby -rrbconfig -e 'puts Config::CONFIG["archdir"]'`
-RUBY_SO = `ruby -rrbconfig -e 'puts Config::CONFIG["RUBY_SO_NAME"]'`
-RUBY_LIBS = `ruby -rrbconfig -e 'puts Config::CONFIG["LIBRUBYARG_SHARED"]'` -l${RUBY_SO}
-RUBY_PREFIX = `ruby -rrbconfig -e 'puts Config::CONFIG["prefix"]'`
+RUBY_INCS = `ruby -rrbconfig -e 'puts RbConfig::CONFIG["archdir"]'`
+RUBY_SO = `ruby -rrbconfig -e 'puts RbConfig::CONFIG["RUBY_SO_NAME"]'`
+RUBY_LIBS = `ruby -rrbconfig -e 'puts RbConfig::CONFIG["LIBRUBYARG_SHARED"]'` -l${RUBY_SO}
+RUBY_PREFIX = `ruby -rrbconfig -e 'puts RbConfig::CONFIG["prefix"]'`
 RUBY_PLATFORM = `ruby -rrbconfig -e 'puts RUBY_PLATFORM'`
-RUBY_VERSION = `ruby -rrbconfig -e 'puts Config::CONFIG["ruby_version"]'`
+RUBY_VERSION = `ruby -rrbconfig -e 'puts RbConfig::CONFIG["ruby_version"]'`
 CAIRO_CFLAGS = `pkg-config --cflags cairo`
 CAIRO_LIB = `pkg-config --libs cairo`
 PANGO_CFLAGS = `pkg-config --cflags pango`

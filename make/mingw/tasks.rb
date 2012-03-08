@@ -23,7 +23,7 @@ class MakeMinGW
     def copy_deps_to_dist
       dlls = [RUBY_SO]
       dlls += IO.readlines("make/mingw/dlls").map{|dll| dll.chomp}
-      dlls.each{|dll| cp "#{EXT_RUBY}/bin/#{dll}.dll", "dist/"}
+      dlls.each{|dll| cp "#{EXT_RUBY_BIN}/#{dll}.dll", "dist/"}
       cp "dist/zlib1.dll", "dist/zlib.dll"
       Dir.glob("../deps_cairo*/*"){|file| cp file, "dist/"}
       sh "strip -x dist/*.dll" unless ENV['DEBUG']
@@ -40,7 +40,7 @@ class MakeMinGW
     def make_app(name)
       bin = name
       rm_f bin
-      sh "#{CC} -Ldist -o #{bin} bin/main.o shoes/appwin32.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']} -mwindows"
+      sh "#{CC} -Ldist -o #{bin} bin/main.o shoes/appwin32.o #{LINUX_LIBS} -lshoes #{RbConfig::CONFIG['LDFLAGS']} -mwindows"
       rewrite "platform/nix/shoes.launch", name, %r!/shoes!, "/#{NAME}"
       sh %{echo 'cd "$OLDPWD"'}
       sh %{echo 'LD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{name}}

@@ -60,10 +60,10 @@ FLAGS = %w[DEBUG]
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "dist", "*.app"]
 
-RUBY_SO = Config::CONFIG['RUBY_SO_NAME']
-RUBY_V = Config::CONFIG['ruby_version']
-RUBY_PROGRAM_VERSION = Config::CONFIG['RUBY_PROGRAM_VERSION']
-SHOES_RUBY_ARCH = Config::CONFIG['arch']
+RUBY_SO = RbConfig::CONFIG['RUBY_SO_NAME']
+RUBY_V = RbConfig::CONFIG['ruby_version']
+RUBY_PROGRAM_VERSION = RbConfig::CONFIG['RUBY_PROGRAM_VERSION']
+SHOES_RUBY_ARCH = RbConfig::CONFIG['arch']
 
 if ENV['APP']
   %w[dmg icons].each do |subk|
@@ -265,7 +265,7 @@ namespace :osx do
 
     # Make sure the installed ruby is capable of this build
     task :check_ruby_arch do
-      build_arch, ruby_arch = [OSX_ARCH, Config::CONFIG['ARCH_FLAG']].map {|s| s.split.reject {|w| w.include?("arch")}}
+      build_arch, ruby_arch = [OSX_ARCH, RbConfig::CONFIG['ARCH_FLAG']].map {|s| s.split.reject {|w| w.include?("arch")}}
       if build_arch.length > 1 and build_arch.sort != ruby_arch.sort
         abort("To build universal shoes, you must first install a universal ruby")
       end
@@ -282,7 +282,7 @@ namespace :osx do
 
     task :common_build do
       mkdir_p "dist/ruby"
-      cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "dist/ruby/lib"
+      cp_r  "#{EXT_RUBY_LIBRUBY}", "dist/ruby/lib"
       unless ENV['STANDARD']
         %w[soap wsdl xsd].each do |libn|
           rm_rf "dist/ruby/lib/#{libn}"

@@ -51,7 +51,7 @@ module Make
 
   def common_build
     mkdir_p "dist/ruby"
-    cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "dist/ruby/lib"
+    cp_r  "#{EXT_RUBY_LIBRUBY}", "dist/ruby/lib"
     unless ENV['STANDARD']
       %w[soap wsdl xsd].each do |libn|
         rm_rf "dist/ruby/lib/#{libn}"
