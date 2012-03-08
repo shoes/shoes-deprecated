@@ -27,7 +27,7 @@ $:.unshift GEM_DIR
 ENV['GEM_HOME'] = GEM_DIR
 
 require 'rbconfig'
-SHOES_RUBY_ARCH = Config::CONFIG['arch']
+SHOES_RUBY_ARCH = RbConfig::CONFIG['arch']
 config = {
   'ruby_install_name' => "shoes --ruby",
   'RUBY_INSTALL_NAME' => "shoes --ruby",
@@ -47,9 +47,9 @@ config = {
   'libdir' => "#{DIR}",
   'LDFLAGS' => "-L. -L#{DIR}"
 }
-Config::CONFIG.merge! config
+RbConfig::CONFIG.merge! config
 Config::MAKEFILE_CONFIG.merge! config
-GEM_CENTRAL_DIR = File.join(DIR, 'ruby/gems/' + Config::CONFIG['ruby_version'])
+GEM_CENTRAL_DIR = File.join(DIR, 'ruby/gems/' + RbConfig::CONFIG['ruby_version'])
 Dir[GEM_CENTRAL_DIR + "/gems/*"].each do |gdir|
   $: << "#{gdir}/lib"
 end

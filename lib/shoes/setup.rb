@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'rubygems/dependency_installer'
 module Gem
-  @ruby = (File.join(Config::CONFIG['bindir'], 'shoes') + Config::CONFIG['EXEEXT']).
+  @ruby = (File.join(RbConfig::CONFIG['bindir'], 'shoes') + RbConfig::CONFIG['EXEEXT']).
           sub(/.*\s.*/m, '"\&"') + " --ruby"
 end
 class << Gem::Ext::ExtConfBuilder

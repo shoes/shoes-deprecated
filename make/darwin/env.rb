@@ -1,4 +1,7 @@
-EXT_RUBY = File.exists?("deps/ruby") ? "deps/ruby" : Config::CONFIG['prefix']
+EXT_RUBY = File.exists?("deps/ruby") ? "deps/ruby" : RbConfig::CONFIG['prefix']
+EXT_RUBY_BIN = File.exists?("deps/ruby/bin") ? "deps/ruby/bin" : RbConfig::CONFIG['bindir']
+EXT_RUBY_LIB = File.exists?("deps/ruby/lib") ? "deps/ruby/lib" : RbConfig::CONFIG['libdir']
+EXT_RUBY_LIBRUBY = File.exists?("deps/ruby/lib/ruby/#{RUBY_V}") ? "deps/ruby/lib/ruby/#{RUBY_V}" : RbConfig::CONFIG['rubylibdir']
 
 # use the platform Ruby claims
 require 'rbconfig'
@@ -27,9 +30,9 @@ else
 end
 png_lib = 'png'
 
-LINUX_CFLAGS = %[-Wall -I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{Config::CONFIG['archdir']}]
-if Config::CONFIG['rubyhdrdir']
-  LINUX_CFLAGS << " -I#{Config::CONFIG['rubyhdrdir']} -I#{Config::CONFIG['rubyhdrdir']}/#{SHOES_RUBY_ARCH}"
+LINUX_CFLAGS = %[-Wall -I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{RbConfig::CONFIG['archdir']}]
+if RbConfig::CONFIG['rubyhdrdir']
+  LINUX_CFLAGS << " -I#{RbConfig::CONFIG['rubyhdrdir']} -I#{RbConfig::CONFIG['rubyhdrdir']}/#{SHOES_RUBY_ARCH}"
 end
   
 LINUX_LIB_NAMES = %W[#{RUBY_SO} cairo pangocairo-1.0 gif]
@@ -46,7 +49,7 @@ end
 LINUX_CFLAGS << " -DRUBY_1_9"
 
 DLEXT = "dylib"
-LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{Config::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions"
+LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{RbConfig::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions"
 LINUX_LDFLAGS = "-framework Cocoa -framework Carbon -dynamiclib -Wl,-single_module INSTALL_NAME"
 LINUX_LIB_NAMES << 'pixman-1' << 'jpeg.8'
 
@@ -67,5 +70,5 @@ LINUX_LDFLAGS << " #{OSX_ARCH}"
  
 LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
-LINUX_LIBS << " -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB}"
+LINUX_LIBS << " -L#{RbConfig::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB}"
 
