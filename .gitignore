@@ -13,3 +13,10 @@ tags
 *.bundle
 *.so
 tmp
+*.gem
+.bundle
+Gemfile.lock
+pkg/*
+*.swp
+.rbx/
+docs/
