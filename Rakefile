@@ -332,8 +332,13 @@ namespace :osx do
       modules_file = `brew --prefix`.chomp << '/etc/pango/pango.modules'
       modules_path = File.open(modules_file) {|f| f.grep(/^# ModulesPath = (.*)$/){$1}.first}
       mkdir_p 'dist/pango'
-      cp_r modules_path, 'dist/pango'
-      cp `which pango-querymodules`.chomp, 'dist/'
+      unless File.exists?('dist/pango/modules')
+        cp_r modules_path, 'dist/pango'
+      end
+
+      unless File.exists?("dist/pango-querymodules")
+        cp `which pango-querymodules`.chomp, 'dist/'
+      end
     end
 
     task :copy_deps_to_dist => :copy_pango_modules_to_dist do
