@@ -58,7 +58,7 @@ APPARGS = APP['run']
 FLAGS = %w[DEBUG]
 
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
-CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "dist", "*.app"]
+CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "dist/**/*", "dist", "*.app"]
 
 RUBY_SO = RbConfig::CONFIG['RUBY_SO_NAME']
 RUBY_V = RbConfig::CONFIG['ruby_version']
