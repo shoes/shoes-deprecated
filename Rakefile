@@ -316,6 +316,14 @@ namespace :osx do
       end
     end
 
+    # Find additional dylibs needed by other_lib (ignoring duplicates)
+    def additional_dylibs dylibs, other_lib
+      dylibs_to_change(other_lib).delete_if do |d|
+        basenames = dylibs.map { |lib| File.basename(lib) }
+        basenames.include? File.basename(d)
+      end
+    end
+
     task :change_install_names do
       cd "dist" do
         ["#{NAME}-bin", "pango-querymodules", *Dir['*.dylib'], *Dir['pango/modules/*.so']].each do |f|
@@ -346,18 +354,12 @@ namespace :osx do
       # Start with dependencies of shoes-bin and pango-querymodules, and then
       # add the dependencies of those dependencies.
       dylibs = dylibs_to_change("dist/#{NAME}-bin")
-      dylibs.concat dylibs_to_change("dist/pango-querymodules")
-      dupes = []
-      dylibs.each do |dylib|
-        dylibs_to_change(dylib).each do |d|
-          if dylibs.map {|lib| File.basename(lib)}.include?(File.basename(d))
-            dupes << d
-          else
-            dylibs << d
-          end
-        end
+      dylibs.dup.each do |dylib|
+        dylibs.concat additional_dylibs(dylibs, dylib)
       end
       dylibs.each {|libn| cp "#{libn}", "dist/"}
+      # Verbose mode raises an exception (ruby bug?)
+      chmod_R "u+w", "dist/", :verbose => false
     end
 
     task :copy_files_to_dist do
