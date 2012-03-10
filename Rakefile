@@ -1,11 +1,15 @@
-require 'rubygems'
 require 'rake'
 require 'rake/clean'
 # require_relative 'platform/skel'
 require 'fileutils'
 require 'find'
-require 'yaml'
 include FileUtils
+require 'yaml'
+
+YAML::ENGINE.yamler = 'syck' # Use Syck for backward compatibility
+
+# Use Syck for backward compatibility
+YAML::ENGINE.yamler = 'syck'
 
 APP = YAML.load_file(File.join(ENV['APP'] || ".", "app.yaml"))
 APPNAME = APP['name']
