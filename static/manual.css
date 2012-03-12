@@ -119,6 +119,9 @@ p.next {
 }
 
 /* code highlighting */
+code {
+  background: white;
+}
 pre {
   background: white;
   padding: 8px 0;
@@ -126,7 +129,8 @@ pre {
 }
 pre .comment, .ruby .comment {
   color: #696;
-}                                                                                                            pre .string, .ruby .string {
+}
+pre .string, .ruby .string {
   color: teal;
 }
 pre .constant, .ruby .constant {
