@@ -6,4 +6,4 @@ notifications:
 branches:
   except:
     - brown_shoes
-
+    - debian-packaging
