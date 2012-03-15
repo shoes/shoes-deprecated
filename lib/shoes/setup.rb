@@ -287,6 +287,20 @@ class Gem::ShoesFace
     end
   end
 
+  class SilentDownloadReporter
+    def initialize(out_stream, *args)
+    end
+
+    def fetch(filename, filesize)
+    end
+
+    def update(current)
+    end
+
+    def done
+    end
+  end
+
   def initialize app
     @title, @status, @prog, = app.slot.contents[-1].contents
   end
@@ -316,6 +330,9 @@ class Gem::ShoesFace
   def alert msg, quiz=nil
     say(msg)
     ask(quiz) if quiz
+  end
+  def download_reporter(*args)
+    SilentDownloadReporter.new(nil, *args)
   end
   def progress_reporter(*args)
     ProgressReporter.new(@prog, @status, *args)
