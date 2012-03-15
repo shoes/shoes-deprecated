@@ -52,6 +52,9 @@ module Make
   def common_build
     mkdir_p "dist/ruby"
     cp_r  "#{EXT_RUBY_LIBRUBY}", "dist/ruby/lib"
+    if RUBY_LIB_BASE != 'lib'
+      Dir.chdir(File.join(Dir.pwd,"dist/ruby")) { ln_s "lib", RUBY_LIB_BASE }
+    end
     unless ENV['STANDARD']
       %w[soap wsdl xsd].each do |libn|
         rm_rf "dist/ruby/lib/#{libn}"

@@ -62,6 +62,7 @@ CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "dist", "*.app"]
 
 RUBY_SO = RbConfig::CONFIG['RUBY_SO_NAME']
 RUBY_V = RbConfig::CONFIG['ruby_version']
+RUBY_LIB_BASE = File.basename(RbConfig::CONFIG['libdir'])
 RUBY_PROGRAM_VERSION = RbConfig::CONFIG['RUBY_PROGRAM_VERSION']
 SHOES_RUBY_ARCH = RbConfig::CONFIG['arch']
 
@@ -283,6 +284,9 @@ namespace :osx do
     task :common_build do
       mkdir_p "dist/ruby"
       cp_r  "#{EXT_RUBY_LIBRUBY}", "dist/ruby/lib"
+      if RUBY_LIB_BASE != 'lib'
+        Dir.chdir(File.join(Dir.pwd,"dist/ruby")) { ln_s "lib", RUBY_LIB_BASE }
+      end
       unless ENV['STANDARD']
         %w[soap wsdl xsd].each do |libn|
           rm_rf "dist/ruby/lib/#{libn}"
@@ -507,4 +511,3 @@ namespace :linux do
     Builder.make_installer
   end
 end
-
