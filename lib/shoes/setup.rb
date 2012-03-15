@@ -103,6 +103,19 @@ class Shoes::Setup
     @steps << [:gem, arg]
   end
 
+  # TODO: add GUI
+  def bundler options = {}
+    bundler_version = options[:version] || Gem::Requirement.default
+    bundler_file = options[:file] || "Gemfile"
+    Gem::Specification.find_by_name( "bundler", bundler_version ).activate
+  rescue Gem::LoadError
+    Gem::DependencyInstaller.new.install("bundler", bundler_version)
+  ensure
+    require 'bundler'
+    require 'bundler/cli'
+    Bundler::CLI.new(:gemfile => bundler_file).install
+  end
+
   def source uri
     @steps << [:source, uri]
   end
