@@ -1,11 +1,15 @@
-require 'rubygems'
 require 'rake'
 require 'rake/clean'
 # require_relative 'platform/skel'
 require 'fileutils'
 require 'find'
-require 'yaml'
 include FileUtils
+require 'yaml'
+
+YAML::ENGINE.yamler = 'syck' # Use Syck for backward compatibility
+
+# Use Syck for backward compatibility
+YAML::ENGINE.yamler = 'syck'
 
 APP = YAML.load_file(File.join(ENV['APP'] || ".", "app.yaml"))
 APPNAME = APP['name']
@@ -58,7 +62,7 @@ APPARGS = APP['run']
 FLAGS = %w[DEBUG]
 
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
-CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "dist", "*.app"]
+CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "dist/**/*", "dist", "*.app"]
 
 RUBY_SO = RbConfig::CONFIG['RUBY_SO_NAME']
 RUBY_V = RbConfig::CONFIG['ruby_version']
@@ -320,6 +324,14 @@ namespace :osx do
       end
     end
 
+    # Find additional dylibs needed by other_lib (ignoring duplicates)
+    def additional_dylibs dylibs, other_lib
+      dylibs_to_change(other_lib).delete_if do |d|
+        basenames = dylibs.map { |lib| File.basename(lib) }
+        basenames.include? File.basename(d)
+      end
+    end
+
     task :change_install_names do
       cd "dist" do
         ["#{NAME}-bin", "pango-querymodules", *Dir['*.dylib'], *Dir['pango/modules/*.so']].each do |f|
@@ -350,18 +362,12 @@ namespace :osx do
       # Start with dependencies of shoes-bin and pango-querymodules, and then
       # add the dependencies of those dependencies.
       dylibs = dylibs_to_change("dist/#{NAME}-bin")
-      dylibs.concat dylibs_to_change("dist/pango-querymodules")
-      dupes = []
-      dylibs.each do |dylib|
-        dylibs_to_change(dylib).each do |d|
-          if dylibs.map {|lib| File.basename(lib)}.include?(File.basename(d))
-            dupes << d
-          else
-            dylibs << d
-          end
-        end
+      dylibs.dup.each do |dylib|
+        dylibs.concat additional_dylibs(dylibs, dylib)
       end
       dylibs.each {|libn| cp "#{libn}", "dist/"}
+      # Verbose mode raises an exception (ruby bug?)
+      chmod_R "u+w", "dist/", :verbose => false
     end
 
     task :copy_files_to_dist do

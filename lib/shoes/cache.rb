@@ -48,7 +48,7 @@ config = {
   'LDFLAGS' => "-L. -L#{DIR}"
 }
 RbConfig::CONFIG.merge! config
-Config::MAKEFILE_CONFIG.merge! config
+RbConfig::MAKEFILE_CONFIG.merge! config
 GEM_CENTRAL_DIR = File.join(DIR, 'ruby/gems/' + RbConfig::CONFIG['ruby_version'])
 Dir[GEM_CENTRAL_DIR + "/gems/*"].each do |gdir|
   $: << "#{gdir}/lib"

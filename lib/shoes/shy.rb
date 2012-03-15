@@ -9,6 +9,8 @@ require 'find'
 require 'tmpdir'
 require 'yaml'
 
+YAML::ENGINE.yamler = 'syck' # Use Syck for backward compatibility
+
 class Shy
   VERSION = 0x0001
   MAGIC   = "_shy".freeze
