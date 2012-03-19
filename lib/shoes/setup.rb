@@ -104,6 +104,11 @@ class Shoes::Setup
   end
 
   # TODO: add GUI
+  # 
+  # Note: this feature is experimental, and uses private Bundler APIs. Don't
+  # expect this to always work, though it seems to for now. Bundler expects
+  # to be activated before the rest of your application. Please see the
+  # notes here: https://github.com/shoes/shoes/commit/9114457d487353a0c16e521284ad164835c64b4e#diff-0
   def bundler options = {}
     bundler_version = options[:version] || Gem::Requirement.default
     bundler_file = options[:file] || "Gemfile"
