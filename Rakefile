@@ -6,8 +6,6 @@ require 'find'
 include FileUtils
 require 'yaml'
 
-YAML::ENGINE.yamler = 'syck' # Use Syck for backward compatibility
-
 # Use Syck for backward compatibility
 YAML::ENGINE.yamler = 'syck'
 
