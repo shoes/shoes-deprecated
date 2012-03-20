@@ -3,13 +3,9 @@ EXT_RUBY_BIN = File.exists?("deps/ruby/bin") ? "deps/ruby/bin" : RbConfig::CONFI
 EXT_RUBY_LIB = File.exists?("deps/ruby/lib") ? "deps/ruby/lib" : RbConfig::CONFIG['libdir']
 EXT_RUBY_LIBRUBY = File.exists?("deps/ruby/lib/ruby/#{RUBY_V}") ? "deps/ruby/lib/ruby/#{RUBY_V}" : RbConfig::CONFIG['rubylibdir']
 
-# use the platform Ruby claims
-require 'rbconfig'
+CC = ENV['CC'] || "gcc"
+SRC = FileList["shoes/*.c", "shoes/native/cocoa.m", "shoes/http/nsurl.m"]
 
-CC = ENV['CC'] ? ENV['CC'] : "gcc"
-file_list = ["shoes/*.c"] + %w{shoes/native/cocoa.m shoes/http/nsurl.m}
-
-SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
 end
@@ -34,8 +30,8 @@ LINUX_CFLAGS = %[-Wall -I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFL
 if RbConfig::CONFIG['rubyhdrdir']
   LINUX_CFLAGS << " -I#{RbConfig::CONFIG['rubyhdrdir']} -I#{RbConfig::CONFIG['rubyhdrdir']}/#{SHOES_RUBY_ARCH}"
 end
-  
-LINUX_LIB_NAMES = %W[#{RUBY_SO} cairo pangocairo-1.0 gif]
+
+LINUX_LIB_NAMES = %W[#{RUBY_SO} pangocairo-1.0 gif pixman-1 jpeg.8]
 
 FLAGS.each do |flag|
   LINUX_CFLAGS << " -D#{flag}" if ENV[flag]
@@ -51,7 +47,6 @@ LINUX_CFLAGS << " -DRUBY_1_9"
 DLEXT = "dylib"
 LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{RbConfig::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions"
 LINUX_LDFLAGS = "-framework Cocoa -framework Carbon -dynamiclib -Wl,-single_module INSTALL_NAME"
-LINUX_LIB_NAMES << 'pixman-1' << 'jpeg.8'
 
 OSX_SDK = '/Developer/SDKs/MacOSX10.6.sdk'
 ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
