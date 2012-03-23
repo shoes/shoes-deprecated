@@ -292,12 +292,12 @@ module Othello
     return false
   end
 
-  GAME = Othello::Game.new
 end
 
 
 Shoes.app :width => 520, :height => 600 do
   extend Othello
+  GAME = Othello::Game.new
 
   draw_board
   

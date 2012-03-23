@@ -1,5 +1,5 @@
 name: Shoes
-version: 3
+version: 3.1
 release: Policeman
 icons:
   win32: platform/msw/shoes.ico

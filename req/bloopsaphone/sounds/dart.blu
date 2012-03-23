@@ -1,0 +1,10 @@
+type    noise
+punch   0.524
+sustain 0.160
+decay   0.367
+freq    0.296
+slide  -0.373
+vibe    0.665
+vspeed  0.103
+phase   0.141
+psweep -0.005

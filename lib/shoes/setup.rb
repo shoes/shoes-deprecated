@@ -52,7 +52,7 @@ class Shoes::Setup
         end
 
         start do
-          @th = 
+          @th =
             Thread.start(self.app) do |app|
               begin
                 setup.start(app)
@@ -69,7 +69,7 @@ class Shoes::Setup
           fill black(0.2 - (i * 0.02))
           strokewidth(3.0 - (i * 0.2))
           stroke rgb(0.7, 0.7, 0.9, 1.0 - (i * 0.1))
-          oval(@logo.left - i, @logo.top - i, @logo.width + (i * 2)) 
+          oval(@logo.left - i, @logo.top - i, @logo.width + (i * 2))
         end
         @pr.fraction = $fraction
         if @script
@@ -322,19 +322,24 @@ class Gem::ShoesFace
   def initialize app
     @title, @status, @prog, = app.slot.contents[-1].contents
   end
+
   def title msg
     @title.replace msg
   end
+
   def progress count, total
     #@prog.fraction = count.to_f / total.to_f
     $fraction = count.to_f / total.to_f
   end
+
   def ask_yes_no msg
     Kernel.confirm(msg)
   end
+
   def ask msg
     Kernel.ask(msg)
   end
+
   def error msg, e
     stat = @status
     stat.app do
@@ -342,9 +347,11 @@ class Gem::ShoesFace
       stat.replace link("Error") { Shoes.show_log }, " ", msg
     end
   end
+
   def say msg
     @status.replace msg
   end
+
   def alert msg, quiz=nil
     say(msg)
     ask(quiz) if quiz
@@ -362,3 +369,4 @@ class Gem::ShoesFace
 end
 
 Shoes::Setup.init
+

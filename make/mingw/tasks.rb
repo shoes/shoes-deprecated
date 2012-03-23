@@ -23,6 +23,7 @@ class MakeMinGW
     def copy_deps_to_dist
       dlls = [RUBY_SO]
       dlls += IO.readlines("make/mingw/dlls").map{|dll| dll.chomp}
+      dlls += %w{libvlc} if ENV['VIDEO']
       dlls.each{|dll| cp "#{EXT_RUBY_BIN}/#{dll}.dll", "dist/"}
       cp "dist/zlib1.dll", "dist/zlib.dll"
       Dir.glob("../deps_cairo*/*"){|file| cp file, "dist/"}
@@ -31,6 +32,11 @@ class MakeMinGW
     
     def setup_system_resources
       cp APP['icons']['gtk'], "dist/static/app-icon.png"
+      open 'dist/encoding.data', 'w' do |f|
+        Dir.chdir '../mingw/lib/ruby/1.9.1/i386-mingw32/enc' do
+          f.puts Dir["*.so", "*/*.so"]
+        end
+      end
     end
 
     def make_resource(t)

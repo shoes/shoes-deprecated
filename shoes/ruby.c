@@ -11,7 +11,6 @@
 #include "shoes/version.h"
 #include "shoes/http.h"
 #include "shoes/effects.h"
-#include "shoes/ruby.h"
 #include <math.h>
 
 VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cSlider, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
@@ -48,7 +47,7 @@ ts_funcall2(VALUE obj, ID meth, int argc, VALUE *argv)
   if (!rb_block_given_p())
     return rb_funcall2(obj, meth, argc, argv);
   tmp[0] = obj;
-  tmp[1] = (VALUE)meth;
+  tmp[1] = (VALUE)meth; 
   tmp[2] = (VALUE)argc;
   tmp[3] = (VALUE)argv;
   return rb_iterate((VALUE(*)(VALUE))ts_each, (VALUE)tmp, CASTHOOK(rb_yield), 0);
@@ -107,9 +106,9 @@ rb_parse_args_p(unsigned char rais, int argc, const VALUE *argv, const char *fmt
     {
       if (!x) m = i;
     }
-    else if (*p == 's')
+    else if (*p == 's') 
       CHECK_ARG_COERCE(T_STRING, to_str)
-    else if (*p == 'S')
+    else if (*p == 'S') 
       CHECK_ARG_COERCE(T_STRING, to_s)
     else if (*p == 'i')
       CHECK_ARG_COERCE(T_FIXNUM, to_int)
@@ -182,7 +181,7 @@ long
 rb_ary_index_of(VALUE ary, VALUE val)
 {
   long i;
-
+ 
   for (i=0; i<RARRAY_LEN(ary); i++) {
     if (rb_equal(RARRAY_PTR(ary)[i], val))
       return i;
@@ -200,7 +199,7 @@ rb_ary_insert_at(VALUE ary, long index, int len, VALUE ary2)
 
 //
 // from ruby's eval.c
-//
+// 
 static inline VALUE
 call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv)
 {
@@ -282,7 +281,7 @@ shoes_safe_block_call(VALUE rb_sb)
   safe_block *sb = (safe_block *)rb_sb;
   for (i = 0; i < RARRAY_LEN(sb->args); i++)
     vargs[i] = rb_ary_entry(sb->args, i);
-  return rb_funcall2(sb->block, s_call, (int)RARRAY_LEN(sb->args), vargs);
+  return rb_funcall2(sb->block, s_call, RARRAY_LEN(sb->args), vargs);
 }
 
 static VALUE
@@ -304,7 +303,7 @@ shoes_safe_block(VALUE self, VALUE block, VALUE args)
   sb.args = args;
   rb_gc_register_address(&args);
 
-  v = rb_rescue2(CASTHOOK(shoes_safe_block_call), (VALUE)&sb,
+  v = rb_rescue2(CASTHOOK(shoes_safe_block_call), (VALUE)&sb, 
     CASTHOOK(shoes_safe_block_exception), (VALUE)&sb, rb_cObject, 0);
   rb_gc_unregister_address(&args);
   return v;
@@ -316,11 +315,11 @@ shoes_px(VALUE obj, int dv, int pv, int nv)
   int px;
   if (TYPE(obj) == T_STRING) {
     char *ptr = RSTRING_PTR(obj);
-    int len = (int)RSTRING_LEN(obj);
+    int len = RSTRING_LEN(obj);
     obj = rb_funcall(obj, s_to_i, 0);
     if (len > 1 && ptr[len - 1] == '%')
     {
-      obj = rb_funcall(obj, s_mult, 1, rb_float_new(0.01));
+      obj = rb_funcall(obj, s_mult, 1, rb_float_new(0.01)); 
     }
   }
   if (rb_obj_is_kind_of(obj, rb_cFloat)) {
@@ -430,7 +429,7 @@ shoes_place_exact(shoes_place *place, VALUE attr, int ox, int oy)
   x = ATTR(attr, bottom);
   if (!NIL_P(x)) place->ih = place->h = (NUM2INT(x) + oy) - place->y;
 
-  if (RTEST(ATTR(attr, center)))
+  if (RTEST(ATTR(attr, center))) 
   {
     place->ix = place->x = place->x - (place->w / 2);
     place->iy = place->y = place->y - (place->h / 2);
@@ -450,9 +449,9 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
   {
     VALUE rw = ATTR(attr, width), rh = ATTR(attr, height);
     if (NIL_P(rw) && !NIL_P(rh))
-      dw = ROUND(((dw * 1.) / dh) * shoes_px(rh, dh, CPW(canvas), 1));
+      dw = ((dw * 1.) / dh) * shoes_px(rh, dh, CPW(canvas), 1);
     else if (NIL_P(rh) && !NIL_P(rw))
-      dh = ROUND(((dh * 1.) / dw) * shoes_px(rw, dw, CPW(canvas), 1));
+      dh = ((dh * 1.) / dw) * shoes_px(rw, dw, CPW(canvas), 1);
   }
 
   ATTR_MARGINS(attr, 0, canvas);
@@ -544,10 +543,10 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
       ORIGIN(canvas->place) ? canvas->height : canvas->fully) + oy;
     if (!ORIGIN(canvas->place))
     {
-      place->dx = canvas->place.dx;
+      place->dx = canvas->place.dx; 
       place->dy = canvas->place.dy;
     }
-    place->dx += PXN(attr, displace_left, 0, CPW(canvas));
+    place->dx += PXN(attr, displace_left, 0, CPW(canvas)); 
     place->dy += PXN(attr, displace_top, 0, CPH(canvas));
 
     place->flags |= NIL_P(ATTR(attr, left)) && NIL_P(ATTR(attr, right)) ? 0 : FLAG_ABSX;
@@ -595,6 +594,9 @@ shoes_is_element_p(VALUE ele, unsigned char any)
     (any && (dmark == shoes_http_mark || dmark == shoes_timer_mark ||
              dmark == shoes_color_mark || dmark == shoes_link_mark ||
              dmark == shoes_text_mark))
+#ifdef VIDEO
+    || dmark == shoes_video_mark
+#endif
   );
 }
 
@@ -617,7 +619,7 @@ shoes_extras_remove_all(shoes_canvas *canvas)
   shoes_basic *basic;
   shoes_canvas *parent;
   if (canvas->app == NULL) return;
-  for (i = (int)RARRAY_LEN(canvas->app->extras) - 1; i >= 0; i--)
+  for (i = RARRAY_LEN(canvas->app->extras) - 1; i >= 0; i--)
   {
     VALUE ele = rb_ary_entry(canvas->app->extras, i);
     Data_Get_Struct(ele, shoes_basic, basic);
@@ -707,7 +709,7 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
   if (!NIL_P(text)) { \
     text = shoes_native_to_s(text); \
     msg = RSTRING_PTR(text); \
-    if (flex) len = ((int)RSTRING_LEN(text) * 8) + 32; \
+    if (flex) len = (RSTRING_LEN(text) * 8) + 32; \
   } \
   shoes_place_decide(&place, c, self_t->attr, len, 28 + dh, REL_CANVAS, TRUE)
 
@@ -839,7 +841,7 @@ shoes_shape_check(cairo_t *cr, shoes_place *place)
   if (place->iw < 0) ox1 = place->ix - (ox2 = -place->iw);
   if (place->ih < 0) oy1 = place->iy - (oy2 = -place->ih);
   if (cy2 - cy1 == 1.0 && cx2 - cx1 == 1.0) return 1;
-  if ((ox1 < cx1 && ox2 < cx1) || (oy1 < cy1 && oy2 < cy1) ||
+  if ((ox1 < cx1 && ox2 < cx1) || (oy1 < cy1 && oy2 < cy1) || 
       (ox1 > cx2 && ox2 > cx2) || (oy1 > cy2 && oy2 > cy2)) return 0;
   return 1;
 }
@@ -895,8 +897,7 @@ shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, shoes_transform *st
   {
     double h, tip, x;
     x = place->x + (place->w / 2.);
-    h = place->w * 0.8;
-    place->h = ROUND(h);
+    place->h = h = place->w * 0.8;
     tip = place->w * 0.42;
 
     shoes_apply_transformation(cr, st, place, 0);
@@ -923,7 +924,7 @@ shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, shoes_transform *st
 
     if (outer > 0)
     {
-      place->w = place->h = ROUND(outer);
+      place->w = place->h = outer;
       shoes_apply_transformation(cr, st, place, 0);
       if (!shoes_shape_check(cr, place))
         return shoes_undo_transformation(cr, st, place, 0);
@@ -1001,7 +1002,7 @@ shoes_shape_draw(VALUE self, VALUE c, VALUE actual)
   shoes_place_exact(&place, self_t->attr, CPX(canvas), CPY(canvas));
 
   if (RTEST(actual))
-    shoes_shape_sketch(CCR(canvas), self_t->name, &place, self_t->st, self_t->attr, self_t->line, 1);
+    shoes_shape_sketch(CCR(canvas), self_t->name, &place, self_t->st, self_t->attr, self_t->line, 1); 
 
   self_t->place = place;
   return self;
@@ -1026,7 +1027,7 @@ shoes_shape_motion(VALUE self, int x, int y, char *touch)
     //   cairo_append_path(cr, self_t->line);
     // }
     // else
-      shoes_shape_sketch(cr, self_t->name, &self_t->place, self_t->st, self_t->attr, self_t->line, 0);
+      shoes_shape_sketch(cr, self_t->name, &self_t->place, self_t->st, self_t->attr, self_t->line, 0); 
     in_shape = cairo_in_fill(cr, x, y);
     cairo_destroy(cr);
 
@@ -1428,6 +1429,301 @@ shoes_effect_draw(VALUE self, VALUE c, VALUE actual)
 }
 
 //
+// Shoes::Video
+//
+#ifdef VIDEO
+static void shoes_vlc_exception(libvlc_exception_t *excp)
+{
+  if (libvlc_exception_raised(excp))
+  {
+    shoes_error("from VLC: %s", libvlc_exception_get_message(excp)); 
+  }
+}
+
+void
+shoes_video_mark(shoes_video *video)
+{
+  rb_gc_mark_maybe(video->path);
+  rb_gc_mark_maybe(video->parent);
+  rb_gc_mark_maybe(video->attr);
+}
+
+static void
+shoes_video_free(shoes_video *video)
+{
+  if (video->vlc != NULL)
+    libvlc_destroy(video->vlc);
+  RUBY_CRITICAL(SHOE_FREE(video));
+}
+
+VALUE
+shoes_video_new(VALUE klass, VALUE path, VALUE attr, VALUE parent)
+{
+  shoes_video *video;
+  VALUE obj = shoes_video_alloc(klass);
+  Data_Get_Struct(obj, shoes_video, video);
+
+  video->path = path;
+  video->attr = attr;
+  video->parent = parent;
+  return obj;
+}
+
+VALUE
+shoes_video_alloc(VALUE klass)
+{
+  VALUE obj;
+  char *ppsz_argv[10] = {"vlc", "-I", "dummy", "--quiet", "--no-stats",
+    "--no-overlay", "--no-video-on-top", NULL, NULL, NULL};
+  shoes_video *video = SHOE_ALLOC(shoes_video);
+  SHOE_MEMZERO(video, shoes_video, 1);
+#ifndef SHOES_GTK
+  char pathsw[SHOES_BUFSIZE];
+  int ppsz_argc = 8;
+  sprintf(pathsw, "--plugin-path=%s/plugins", shoes_world->path);
+  ppsz_argv[7] = pathsw;
+#else
+  int ppsz_argc = 7;
+#endif
+#ifndef VLC_0_8
+  ppsz_argv[ppsz_argc++] = "--ignore-config";
+  ppsz_argv[ppsz_argc++] = "--no-video-title-show";
+#endif
+  obj = Data_Wrap_Struct(klass, shoes_video_mark, shoes_video_free, video);
+  libvlc_exception_init(&video->excp);
+  if (SHOES_VLC(video) == NULL)
+    SHOES_VLC(video) = libvlc_new(ppsz_argc, ppsz_argv, NULL);
+  video->path = Qnil;
+  video->attr = Qnil;
+  video->parent = Qnil;
+  return obj;
+}
+
+VALUE
+shoes_video_hide(VALUE self)
+{
+  GET_STRUCT(video, self_t);
+  ATTRSET(self_t->attr, hidden, Qtrue);
+  shoes_native_surface_hide(self_t->ref);
+  shoes_canvas_repaint_all(self_t->parent);
+  return self;
+}
+
+VALUE
+shoes_video_show(VALUE self)
+{
+  GET_STRUCT(video, self_t);
+  ATTRSET(self_t->attr, hidden, Qfalse);
+  shoes_native_surface_show(self_t->ref);
+  shoes_canvas_repaint_all(self_t->parent);
+  return self;
+}
+
+VALUE
+shoes_video_remove(VALUE self)
+{
+  shoes_canvas *canvas;
+  GET_STRUCT(video, self_t);
+  shoes_canvas_remove_item(self_t->parent, self, 1, 0);
+
+  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+  shoes_native_surface_remove(canvas, self_t->ref);
+  return self;
+}
+
+VALUE
+shoes_video_draw(VALUE self, VALUE c, VALUE actual)
+{
+  SETUP(shoes_video, REL_CANVAS, 400, 300);
+  VALUE ck = rb_obj_class(c);
+
+  if (RTEST(actual))
+  {
+    if (HAS_DRAWABLE(canvas->slot))
+    {
+      if (self_t->init == 0)
+      {
+        self_t->init = 1;
+
+#ifdef VLC_0_8
+        libvlc_playlist_add(self_t->vlc, 
+          RSTRING_PTR(self_t->path), NULL, &self_t->excp);
+#else
+        libvlc_media_t *play = libvlc_media_new(shoes_world->vlc,
+          RSTRING_PTR(self_t->path), &self_t->excp);
+        shoes_vlc_exception(&self_t->excp);
+        self_t->vlc = libvlc_media_player_new_from_media(play, &self_t->excp);
+        shoes_vlc_exception(&self_t->excp);
+        libvlc_media_release(play);
+#endif
+        shoes_vlc_exception(&self_t->excp);
+
+        self_t->ref = shoes_native_surface_new(canvas, self, &self_t->place);
+        shoes_native_surface_position(self_t->ref, &self_t->place, self, canvas, &place);
+
+#ifdef VLC_0_8
+        libvlc_video_set_parent(self_t->vlc, DRAWABLE(self_t->ref), &self_t->excp);
+#else
+        libvlc_media_player_set_drawable(self_t->vlc, DRAWABLE(self_t->ref), &self_t->excp);
+#endif
+        shoes_vlc_exception(&self_t->excp);
+
+#ifdef SHOES_QUARTZ
+        libvlc_rectangle_t view, clip;
+        view.top = -(self_t->place.iy + self_t->place.dy);
+        view.left = -(self_t->place.ix + self_t->place.dx);
+        view.right = view.left + self_t->place.iw;
+        view.bottom = view.top + self_t->place.ih;
+        clip.top = self_t->place.iy + self_t->place.dy;
+        clip.left = self_t->place.ix + self_t->place.dx;
+        clip.bottom = clip.top + self_t->place.ih; 
+        clip.right = clip.left + self_t->place.iw; 
+        libvlc_video_set_viewport(self_t->vlc, &view, &clip, NULL);
+#endif
+
+        if (RTEST(ATTR(self_t->attr, autoplay)))
+        {
+          INFO("Starting playlist.\n");
+#ifdef VLC_0_8
+          libvlc_playlist_play(self_t->vlc, 0, 0, NULL, &self_t->excp);
+#else
+          libvlc_media_player_play(self_t->vlc, &self_t->excp);
+#endif
+          shoes_vlc_exception(&self_t->excp);
+        }
+      }
+      else
+      {
+#ifndef SHOES_QUARTZ
+        shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
+#endif
+      }
+    }
+  }
+
+  FINISH();
+  return self;
+}
+
+VALUE
+shoes_video_is_playing(VALUE self)
+{
+  GET_STRUCT(video, self_t);
+  if (self_t->init == 1)
+  {
+#ifdef VLC_0_8
+    int isp = libvlc_playlist_isplaying(self_t->vlc, &self_t->excp);
+    shoes_vlc_exception(&self_t->excp);
+    return isp == 0 ? Qfalse : Qtrue;
+#else
+    libvlc_state_t s = libvlc_media_player_get_state(self_t->vlc, &self_t->excp);
+    shoes_vlc_exception(&self_t->excp);
+    return s == libvlc_Playing ? Qtrue : Qfalse;
+#endif
+  }
+  return Qfalse;
+}
+
+VALUE
+shoes_video_play(VALUE self)
+{
+  GET_STRUCT(video, self_t);
+  if (self_t->init == 1)
+  {
+#ifdef VLC_0_8
+    libvlc_playlist_play(self_t->vlc, 0, 0, NULL, &self_t->excp);
+#else
+    libvlc_media_player_play(self_t->vlc, &self_t->excp);
+#endif
+    shoes_vlc_exception(&self_t->excp);
+  }
+  return self;
+}
+
+#define VIDEO_METHOD(x) \
+  VALUE \
+  shoes_video_##x(VALUE self) \
+  { \
+    GET_STRUCT(video, self_t); \
+    if (self_t->init == 1) \
+    { \
+      shoes_libvlc_##x(self_t->vlc, &self_t->excp); \
+      shoes_vlc_exception(&self_t->excp); \
+    } \
+    return self; \
+  }
+
+#ifdef VLC_0_8
+#define VIDEO_GET_METHOD(x, ctype, rbtype) \
+  VALUE shoes_video_get_##x(VALUE self) \
+  { \
+    GET_STRUCT(video, self_t); \
+    if (self_t->init == 1) \
+    { \
+      libvlc_input_t *input = libvlc_playlist_get_input(self_t->vlc, NULL); \
+      if (input != NULL) { \
+        ctype len = libvlc_input_get_##x(input, &self_t->excp); \
+        shoes_vlc_exception(&self_t->excp); \
+        return rbtype(len); \
+      } \
+    } \
+    return Qnil; \
+  }
+
+#define VIDEO_SET_METHOD(x, rbconv) \
+  VALUE shoes_video_set_##x(VALUE self, VALUE val) \
+  { \
+    GET_STRUCT(video, self_t); \
+    if (self_t->init == 1) \
+    { \
+      libvlc_input_t *input = libvlc_playlist_get_input(self_t->vlc, NULL); \
+      if (input != NULL) { \
+        libvlc_input_set_##x(input, rbconv(val), &self_t->excp); \
+        shoes_vlc_exception(&self_t->excp); \
+      } \
+    } \
+    return val; \
+  }
+#else
+#define VIDEO_GET_METHOD(x, ctype, rbtype) \
+  VALUE shoes_video_get_##x(VALUE self) \
+  { \
+    GET_STRUCT(video, self_t); \
+    if (self_t->init == 1) \
+    { \
+      ctype len = libvlc_media_player_get_##x(self_t->vlc, &self_t->excp); \
+      shoes_vlc_exception(&self_t->excp); \
+      return rbtype(len); \
+    } \
+    return Qnil; \
+  }
+
+#define VIDEO_SET_METHOD(x, rbconv) \
+  VALUE shoes_video_set_##x(VALUE self, VALUE val) \
+  { \
+    GET_STRUCT(video, self_t); \
+    if (self_t->init == 1) \
+    { \
+      libvlc_media_player_set_##x(self_t->vlc, rbconv(val), &self_t->excp); \
+      shoes_vlc_exception(&self_t->excp); \
+    } \
+    return val; \
+  }
+#endif
+
+VIDEO_METHOD(clear);
+VIDEO_METHOD(prev);
+VIDEO_METHOD(next);
+VIDEO_METHOD(pause);
+VIDEO_METHOD(stop);
+VIDEO_GET_METHOD(length, vlc_int64_t, INT2NUM);
+VIDEO_GET_METHOD(time, vlc_int64_t, INT2NUM);
+VIDEO_SET_METHOD(time, NUM2INT);
+VIDEO_GET_METHOD(position, float, rb_float_new);
+VIDEO_SET_METHOD(position, NUM2DBL);
+#endif
+
+//
 // Shoes::Pattern
 //
 void
@@ -1612,10 +1908,10 @@ shoes_border_draw(VALUE self, VALUE c, VALUE actual)
   if (!NIL_P(ATTR(self_t->attr, cap))) cap = SYM2ID(ATTR(self_t->attr, cap));
   if (!NIL_P(ATTR(self_t->attr, dash))) dash = SYM2ID(ATTR(self_t->attr, dash));
 
-  place.iw -= ROUND(sw);
-  place.ih -= ROUND(sw);
-  place.ix += ROUND(sw / 2.);
-  place.iy += ROUND(sw / 2.);
+  place.iw -= sw;
+  place.ih -= sw;
+  place.ix += sw / 2.;
+  place.iy += sw / 2.;
 
   if (RTEST(actual))
   {
@@ -1854,16 +2150,11 @@ shoes_color_spaceship(VALUE self, VALUE c2)
   GET_STRUCT(color, color);
   if (!rb_obj_is_kind_of(c2, cColor)) return Qnil;
   Data_Get_Struct(c2, shoes_color, color2);
-  if ((color->r == color2->r) && (color->g == color2->g) && (color->b == color2->b))
-  {
-    return INT2FIX(0);
-  } else
-  {
-    v1 = color->r + color->g + color->b;
-    v2 = color2->r + color2->g + color2->b;
-    if (v1 > v2)  return INT2FIX(1);
-    else          return INT2FIX(-1);
-  }
+  v1 = color->r + color->g + color->b;
+  v2 = color2->r + color2->g + color2->b;
+  if (v1 == v2) return INT2FIX(0);
+  if (v1 > v2)  return INT2FIX(1);
+  else          return INT2FIX(-1);
 }
 
 VALUE
@@ -1950,8 +2241,8 @@ shoes_color_to_s(VALUE self)
 {
   GET_STRUCT(color, color);
 
-  VALUE ary = rb_ary_new3(4,
-    INT2NUM(color->r), INT2NUM(color->g), INT2NUM(color->b),
+  VALUE ary = rb_ary_new3(4, 
+    INT2NUM(color->r), INT2NUM(color->g), INT2NUM(color->b), 
     rb_float_new((color->a * 1.) / 255.));
 
   if (color->a == 255)
@@ -1977,7 +2268,7 @@ shoes_color_method_missing(int argc, VALUE *argv, VALUE self)
   if (NIL_P(c))
   {
     self = rb_inspect(self);
-    rb_raise(rb_eNoMethodError, "undefined method `%s' for %s",
+    rb_raise(rb_eNoMethodError, "undefined method `%s' for %s", 
       rb_id2name(SYM2ID(cname)), RSTRING_PTR(self));
   }
 
@@ -2439,7 +2730,7 @@ shoes_textblock_send_release(VALUE self, int button, int x, int y)
   }
 
 static void
-shoes_app_style_for(shoes_textblock *block, shoes_app *app, VALUE klass, VALUE oattr, guint start_index, guint end_index)
+shoes_app_style_for(shoes_textblock *block, shoes_app *app, VALUE klass, VALUE oattr, gsize start_index, gsize end_index)
 {
   VALUE str = Qnil;
   VALUE hsh = rb_hash_aref(app->styles, klass);
@@ -2488,7 +2779,7 @@ shoes_app_style_for(shoes_textblock *block, shoes_app *app, VALUE klass, VALUE o
     {
       int i = NUM2INT(str);
       if (i > 0)
-        attr = pango_attr_size_new_absolute(ROUND(i * PANGO_SCALE * (96./72.)));
+        attr = pango_attr_size_new_absolute(i * PANGO_SCALE * (96./72.));
     }
     APPLY_ATTR();
   }
@@ -2649,7 +2940,7 @@ shoes_textblock_iter_pango(VALUE texts, shoes_textblock *block, shoes_app *app)
     if (rb_obj_is_kind_of(v, cTextClass))
     {
       VALUE tklass = rb_obj_class(v);
-      guint start;
+      gsize start;
       shoes_text *text;
       Data_Get_Struct(v, shoes_text, text);
 
@@ -2671,12 +2962,12 @@ shoes_textblock_iter_pango(VALUE texts, shoes_textblock *block, shoes_app *app)
     {
       char *start, *end;
       v = rb_funcall(v, s_to_s, 0);
-      block->len += (guint)RSTRING_LEN(v);
+      block->len += RSTRING_LEN(v); 
       if (!block->cached)
       {
         start = RSTRING_PTR(v);
         if (!g_utf8_validate(start, RSTRING_LEN(v), (const gchar **)&end))
-          shoes_error("not a valid UTF-8 string: %.*s", end - start, start);
+          shoes_error("not a valid UTF-8 string: %.*s", end - start, start); 
         if (end > start)
           g_string_append_len(block->text, start, end - start);
       }
@@ -2717,7 +3008,7 @@ shoes_textblock_on_layout(shoes_app *app, VALUE klass, shoes_textblock *block)
   VALUE str = Qnil, hsh = Qnil, oattr = Qnil;
   g_return_if_fail(block != NULL);
   g_return_if_fail(PANGO_IS_LAYOUT(block->layout));
-
+  
   oattr = block->attr;
   hsh = rb_hash_aref(app->styles, klass);
 
@@ -2781,7 +3072,7 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
   self_t->place.y = ATTR2(int, self_t->attr, top, canvas->cy);
   if (!ORIGIN(canvas->place))
   {
-    self_t->place.dx = canvas->place.dx;
+    self_t->place.dx = canvas->place.dx; 
     self_t->place.dy = canvas->place.dy;
   }
   else
@@ -2789,7 +3080,7 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
     self_t->place.dx = 0;
     self_t->place.dy = 0;
   }
-  self_t->place.dx += PXN(self_t->attr, displace_left, 0, CPW(canvas));
+  self_t->place.dx += PXN(self_t->attr, displace_left, 0, CPW(canvas)); 
   self_t->place.dy += PXN(self_t->attr, displace_top, 0, CPH(canvas));
   self_t->place.w = ATTR2(int, self_t->attr, width, canvas->place.iw - (canvas->cx - self_t->place.x));
   self_t->place.iw = self_t->place.w - (lmargin + rmargin);
@@ -2816,7 +3107,7 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
       }
     }
   }
-
+  
   pango_layout_set_width(self_t->layout, self_t->place.iw * PANGO_SCALE);
   pango_layout_set_spacing(self_t->layout, ld * PANGO_SCALE);
   shoes_textblock_on_layout(canvas->app, rb_obj_class(self), self_t);
@@ -2918,7 +3209,7 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
     if (NIL_P(ATTR(self_t->attr, margin)) && NIL_P(ATTR(self_t->attr, margin_top)))
       bmargin = lrect.height;
 
-    INFO("CX: (%d, %d) / LRECT: (%d, %d) / END: (%d, %d)\n",
+    INFO("CX: (%d, %d) / LRECT: (%d, %d) / END: (%d, %d)\n", 
       canvas->cx, canvas->cy,
       lrect.x, lrect.width,
       canvas->endx, canvas->endy);
@@ -3908,15 +4199,15 @@ shoes_msg(ID typ, VALUE str)
 {
 #ifdef RUBY_1_9
   ID func = rb_frame_this_func();
-  rb_ary_push(shoes_world->msgs, rb_ary_new3(6,
+  rb_ary_push(shoes_world->msgs, rb_ary_new3(6, 
     ID2SYM(typ), str, rb_funcall(rb_cTime, s_now, 0),
-    func ? ID2SYM(func) : Qnil,
+    func ? ID2SYM(func) : Qnil, 
     rb_str_new2("<unknown>"), INT2NUM(0)));
 #else
   ID func = rb_frame_last_func();
-  rb_ary_push(shoes_world->msgs, rb_ary_new3(6,
+  rb_ary_push(shoes_world->msgs, rb_ary_new3(6, 
     ID2SYM(typ), str, rb_funcall(rb_cTime, s_now, 0),
-    func ? ID2SYM(func) : Qnil,
+    func ? ID2SYM(func) : Qnil, 
     rb_str_new2(ruby_sourcefile), INT2NUM(ruby_sourceline)));
 #endif
 }
@@ -4011,7 +4302,7 @@ shoes_message_download(VALUE self, void *data)
   switch (de->stage)
   {
     case SHOES_HTTP_STATUS:
-      dl->response = shoes_response_new(cResponse, (int)de->status);
+      dl->response = shoes_response_new(cResponse, de->status);
     return 0;
 
     case SHOES_HTTP_HEADER:
@@ -4087,7 +4378,7 @@ shoes_http_threaded(VALUE self, VALUE url, VALUE attr)
     url_string = strdup(RSTRING_PTR(url));
     url = rb_funcall(rb_mKernel, s_URI, 1, url);
   }
-
+  
   VALUE scheme = rb_funcall(url, s_scheme, 0);
   VALUE host = rb_funcall(url, s_host, 0);
   VALUE port = rb_funcall(url, s_port, 0);
@@ -4099,7 +4390,7 @@ shoes_http_threaded(VALUE self, VALUE url, VALUE attr)
     if (RSTRING_PTR(path)[0] == '/') slash[0] = '\0';
     sprintf(url_string, "%s://%s:%d%s%s", scheme, host, port, slash, path);
   }
-
+  
   shoes_http_request *req = SHOE_ALLOC(shoes_http_request);
   SHOE_MEMZERO(req, shoes_http_request, 1);
   req->url = url_string;
@@ -4385,7 +4676,7 @@ shoes_ruby_init()
   rb_include_module(cShoes, cTypes);
   rb_const_set(cShoes, rb_intern("Types"), cTypes);
   rb_const_set(cTypes, rb_intern("RELEASE_NAME"), rb_str_new2(SHOES_RELEASE_NAME));
-  rb_const_set(cTypes, rb_intern("RELEASE_ID"), INT2NUM(SHOES_RELEASE_ID));
+  rb_const_set(cTypes, rb_intern("RELEASE_ID"), rb_float_new(SHOES_RELEASE_ID));
   rb_const_set(cTypes, rb_intern("REVISION"), INT2NUM(SHOES_REVISION));
   rb_const_set(cTypes, rb_intern("VERSION"), rb_str_new2(SHOES_RELEASE_NAME));
   rb_const_set(cTypes, rb_intern("RAD2PI"), rb_float_new(SHOES_RAD2PI));
@@ -4928,4 +5219,3 @@ shoes_ruby_init()
   rb_define_method(rb_mKernel, "ask_save_folder", CASTHOOK(shoes_dialog_save_folder), -1);
   rb_define_method(rb_mKernel, "font", CASTHOOK(shoes_font), 1);
 }
-
