@@ -78,8 +78,6 @@ RUBY_V = RbConfig::CONFIG['ruby_version']
 RUBY_LIB_BASE = File.basename(RbConfig::CONFIG['libdir'])
 RUBY_PROGRAM_VERSION = RbConfig::CONFIG['RUBY_PROGRAM_VERSION']
 SHOES_RUBY_ARCH = RbConfig::CONFIG['arch']
-RUBY_SO = RbConfig::CONFIG['RUBY_SO_NAME']
-RUBY_V = RbConfig::CONFIG['ruby_version']
 RUBY_1_9 = (RUBY_V =~ /^1\.9/)
 if RUBY_1_9
   $: << "."
@@ -218,11 +216,11 @@ def cc(t)
 end
 
 rule ".o" => ".m" do |t|
-  Builder.cc t
+  cc t
 end
 
 rule ".o" => ".c" do |t|
-  Builder.cc t
+  cc t
 end
 
 desc "Generate an installer for the current platform"

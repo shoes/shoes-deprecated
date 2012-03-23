@@ -17,9 +17,6 @@ if ENV['VIDEO']
   copy_files vlc_deps + '/lib', EXT_RUBY
 end
 
-# use the platform Ruby claims
-require 'rbconfig'
-
 CC = ENV['CC'] ? ENV['CC'] : "gcc"
 file_list = ["shoes/*.c"] + %w{shoes/native/windows.c shoes/http/winhttp.c shoes/http/windownload.c}
 

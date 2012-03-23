@@ -29,7 +29,7 @@ class MakeMinGW
       Dir.glob("../deps_cairo*/*"){|file| cp file, "dist/"}
       sh "strip -x dist/*.dll" unless ENV['DEBUG']
     end
-    
+
     def setup_system_resources
       cp APP['icons']['gtk'], "dist/static/app-icon.png"
       open 'dist/encoding.data', 'w' do |f|
