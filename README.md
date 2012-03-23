@@ -19,19 +19,21 @@ Everybody loved Shoes. Many apps were made, and put into [The Shoebox](http://th
 
 Here's a little Shoes app. It's a stopwatch!
 
-    Shoes.app :height => 150, :width => 250 do
-      background rgb(240, 250, 208)
-      stack :margin => 10 do
-        button "Start" do
-          @time = Time.now
-          @label.replace "Stop watch started at #@time"
-        end
-        button "Stop" do
-          @label.replace "Stopped, ", strong("#{Time.now - @time}"), " seconds elapsed."
-        end
-        @label = para "Press ", strong("start"), " to begin timing."
-      end
+```ruby
+Shoes.app :height => 150, :width => 250 do
+  background rgb(240, 250, 208)
+  stack :margin => 10 do
+    button "Start" do
+      @time = Time.now
+      @label.replace "Stop watch started at #@time"
     end
+    button "Stop" do
+      @label.replace "Stopped, ", strong("#{Time.now - @time}"), " seconds elapsed."
+    end
+    @label = para "Press ", strong("start"), " to begin timing."
+  end
+end
+```
 
 Here's what it looks like:
 
