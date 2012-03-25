@@ -1,0 +1,13 @@
+type      square
+sustain   0.333
+decay     0.380
+freq      0.336
+slide     0.292
+square    0.289
+sweep     0.020
+vibe      0.002
+lpf       0.220
+lsweep    0.015
+resonance 0.875
+aspeed    0.035
+repeat    0.551

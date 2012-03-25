@@ -92,7 +92,8 @@ shoes_ruby_embed()
   char**  sysinit_argv = NULL;
   RUBY_INIT_STACK;
 #ifdef SHOES_WIN32
-  ruby_sysinit(0, 0);
+  int sysinit_argc = 0;
+  ruby_sysinit( &sysinit_argc, &sysinit_argv );
 #endif
   ruby_init();
   v = (VALUE)ruby_options(3, argv);
