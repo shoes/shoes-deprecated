@@ -13,8 +13,6 @@ require 'find'
 require 'yaml'
 include FileUtils
 
-YAML::ENGINE.yamler = 'syck' # Use Syck for backward compatibility
-
 # Use Syck for backward compatibility
 YAML::ENGINE.yamler = 'syck'
 
@@ -115,6 +113,7 @@ when /darwin/
   osx_bootstrap_env
   require File.expand_path('make/darwin/env')
   require_relative "make/darwin/homebrew"
+  import "tasks/req.rake"
 
   task :stub do
     ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
@@ -290,42 +289,6 @@ namespace :osx do
     end
 
     task :pre_build => :check_ruby_arch
-
-    def copy_ext_osx xdir, libdir
-      Dir.chdir(xdir) do
-        `ruby extconf.rb; make >/dev/null 2>&1`
-      end
-      copy_files "#{xdir}/*.bundle", libdir
-    end
-
-    task :common_build do
-      mkdir_p "dist/ruby"
-      cp_r  "#{EXT_RUBY_LIBRUBY}", "dist/ruby/lib"
-      if RUBY_LIB_BASE != 'lib'
-        Dir.chdir(File.join(Dir.pwd,"dist/ruby")) { ln_s "lib", RUBY_LIB_BASE }
-      end
-      unless ENV['STANDARD']
-        %w[soap wsdl xsd].each do |libn|
-          rm_rf "dist/ruby/lib/#{libn}"
-        end
-      end
-      %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
-        FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
-      end
-      %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
-        each { |xdir| copy_ext_osx xdir, "dist/ruby/lib/#{SHOES_RUBY_ARCH}" }
-
-      gdir = "dist/ruby/gems/#{RUBY_V}"
-      {'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
-        spec = eval(File.read("req/#{gemn}/gemspec"))
-        mkdir_p "#{gdir}/specifications"
-        mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
-        FileList["req/#{gemn}/lib/*"].each { |rlib| cp_r rlib, "#{gdir}/gems/#{spec.full_name}/lib" }
-        mkdir_p "#{gdir}/gems/#{spec.full_name}/#{xdir}"
-        FileList["req/#{gemn}/ext/*"].each { |elib| copy_ext_osx elib, "#{gdir}/gems/#{spec.full_name}/#{xdir}" }
-        cp "req/#{gemn}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
-      end
-    end
 
     def dylibs_to_change lib
       `otool -L #{lib}`.split("\n").inject([]) do |dylibs, line|
