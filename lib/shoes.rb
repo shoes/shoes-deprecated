@@ -4,6 +4,8 @@
 # The Shoes base app, both a demonstration and the learning tool for
 # using Shoes.
 #
+require 'shoes/encoding'
+
 ARGV.delete_if { |x| x =~ /-psn_/ }
 
 require 'open-uri'
