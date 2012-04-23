@@ -1426,24 +1426,38 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
   COCOA_DO({
     NSApplication *NSApp = [NSApplication sharedApplication];
     ShoesAlert *alert = [[ShoesAlert alloc] init];
-    NSButton *okButton = [[[NSButton alloc] initWithFrame: 
+    NSButton *okButton = [[[NSButton alloc] initWithFrame:
       NSMakeRect(244, 10, 88, 30)] autorelease];
-    NSButton *cancelButton = [[[NSButton alloc] initWithFrame: 
+    NSButton *cancelButton = [[[NSButton alloc] initWithFrame:
       NSMakeRect(156, 10, 88, 30)] autorelease];
-    NSTextField *text = [[[NSTextField alloc] initWithFrame:
-      NSMakeRect(20, 110, 260, 18)] autorelease];
+    NSRect windowFrame = [alert frame];
+    NSString *str = [[[NSString alloc] initWithUTF8String:
+      RSTRING_PTR(args.a[0])] autorelease];
     NSTextField *input;
     if (RTEST(ATTR(args.a[1], secret)))
       input = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(20, 72, 300, 24)];
     else
       input = [[NSTextField alloc] initWithFrame:NSMakeRect(20, 72, 300, 24)];
 
+    NSTextStorage *textStorage = [[[NSTextStorage alloc] initWithString:str] autorelease];
+    NSTextContainer *textContainer = [[[NSTextContainer alloc] initWithContainerSize:NSMakeSize(260, FLT_MAX)] autorelease];
+    NSLayoutManager *layoutManager = [[[NSLayoutManager alloc] init] autorelease];
+    [layoutManager addTextContainer:textContainer];
+    [textStorage addLayoutManager:layoutManager];
+    [textStorage addAttribute:NSFontAttributeName value:[input font] range:NSMakeRange(0, [textStorage length])];
+    [textContainer setLineFragmentPadding:0.0];
+    (void) [layoutManager glyphRangeForTextContainer:textContainer];
+    CGFloat strheight = [layoutManager usedRectForTextContainer:textContainer].size.height;
+    NSTextView *text = [[[NSTextView alloc] initWithFrame: NSMakeRect(20, 110, 260, strheight)] autorelease];
+
     [alert setTitle: @"Shoes asks:"];
-    [text setStringValue: [NSString stringWithUTF8String: RSTRING_PTR(args.a[0])]];
-    [text setBezeled: NO];
+    windowFrame.size.height = 140 + strheight;
+    [alert setFrame: windowFrame display: TRUE];
+    [text insertText: str];
     [text setBackgroundColor: [NSColor windowBackgroundColor]];
     [text setEditable: NO];
     [text setSelectable: NO];
+    [text setFont:[input font]];
     [[alert contentView] addSubview: text];
     [input setStringValue:@""];
     [[alert contentView] addSubview: input];
