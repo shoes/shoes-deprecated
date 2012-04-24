@@ -553,7 +553,9 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
   gtk_window_set_default_icon_from_file(icon_path, NULL);
   gk->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_position(GTK_WINDOW(gk->window), GTK_WIN_POS_CENTER);
-  if (app->minwidth < app->width || app->minheight < app->height)
+  if (!app->resizable)
+    gtk_window_set_resizable(GTK_WINDOW(gk->window), FALSE);
+  else if (app->minwidth < app->width || app->minheight < app->height)
   {
     GdkGeometry hints;
     hints.min_width = app->minwidth;
@@ -561,8 +563,6 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
     gtk_window_set_geometry_hints(GTK_WINDOW(gk->window), NULL,
       &hints, GDK_HINT_MIN_SIZE);
   }
-  if (!app->resizable)
-    gtk_window_set_resizable(GTK_WINDOW(gk->window), FALSE);
   if (app->fullscreen)
     shoes_native_app_fullscreen(app, 1);
   gtk_widget_set_events(gk->window, GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
