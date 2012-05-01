@@ -20,12 +20,11 @@ end
 require 'shoes/shybuilder'
 
 def Shoes.hook; end
-
-class Range 
+Range.class_eval do
   def rand 
     conv = (Integer === self.end && Integer === self.begin ? :to_i : :to_f)
     ((Kernel.rand * (self.end - self.begin)) + self.begin).send(conv) 
-  end 
+  end
 end
 
 unless Time.respond_to? :today
