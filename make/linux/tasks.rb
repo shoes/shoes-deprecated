@@ -24,7 +24,7 @@ class MakeLinux
           "/usr/lib/i386-linux-gnu/#{thelib}"
         ]
         testpath.each do |tp|
-          if File.exists? tp
+          if File.exists?(tp) && File.file?(tp)
             cp tp, newplace
             return
           end
