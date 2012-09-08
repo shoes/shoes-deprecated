@@ -308,7 +308,7 @@ App object so you can do somefurther editing.
  end
 }}}
 
-As you can imagine, the `app` object changes `self` to the App object.
+As you can imagine, the `app` method changes `self` to the App object.
 
 So the rules here are:
 
