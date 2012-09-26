@@ -147,7 +147,7 @@ end
 
 task "dist/VERSION.txt" do |t|
   File.open(t.name, 'w') do |f|
-    f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION}) [#{RUBY_PLATFORM} Ruby#{RUBY_VERSION}]}
+		f << %{shoes #{RELEASE_ID} \"#{RELEASE_NAME}\" [#{RUBY_PLATFORM} Ruby-#{RUBY_VERSION}]}
     %w[VIDEO DEBUG].each { |x| f << " +#{x.downcase}" if ENV[x] }
     f << "\n"
   end
