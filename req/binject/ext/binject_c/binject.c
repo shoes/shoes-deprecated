@@ -4,7 +4,7 @@
 #include <st.h>
 #include <rubyio.h>
 #endif
-#ifdef RUBY_1_9
+#if defined(RUBY_1_9) || defined(RUBY_2_0)
 #include <ruby/st.h>
 #include <ruby/io.h>
 #endif
