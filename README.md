@@ -13,7 +13,7 @@ Shoes is the best little DSL for cross-platform GUI programming there is. It fee
 
   Way way back in the day, there was a guy named \_why. He created a project known as [Hackety Hack](http://hackety-hack.com) to teach programming to everyone. In order to reach all corners of the earth, \_why decided to make Hackety Hack work on Windows, Mac OS X, and Linux. This was a lot of work, and so \_why decided to share his toolkit with the world. Thus, Shoes was born.
 
-Everybody loved Shoes. Many apps were made, and put into [The Shoebox](http://the-shoebox.org/). But, one day, \_why left. In his memory, Team Shoes assembled, and carried on making Shoes. They released Shoes 3 in late summer 2010.
+Everybody loved Shoes and many apps were made. But, one day, \_why left. In his memory, Team Shoes assembled, and carried on making Shoes. They released Shoes 3 in late summer 2010.
 
 # So what do these Shoes look like?
 
