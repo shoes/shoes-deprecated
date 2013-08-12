@@ -20,9 +20,9 @@ Everybody loved Shoes and many apps were made. But, one day, \_why left. In his 
 Here's a little Shoes app. It's a stopwatch!
 
 ```ruby
-Shoes.app :height => 150, :width => 250 do
+Shoes.app height: 150, width: 250 do
   background rgb(240, 250, 208)
-  stack :margin => 10 do
+  stack margin: 10 do
     button "Start" do
       @time = Time.now
       @label.replace "Stop watch started at #@time"
