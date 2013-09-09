@@ -15,6 +15,12 @@ Shoes is the best little DSL for cross-platform GUI programming there is. It fee
 
 Everybody loved Shoes and many apps were made. But, one day, \_why left. In his memory, Team Shoes assembled, and carried on making Shoes. They released Shoes 3 in late summer 2010.
 
+# Attention: Development moved to [shoes4](https://github.com/shoes/shoes4)
+
+Due to various issues (including compilation/release, stability) with this shoes implementation development moved on to [shoes4](https://github.com/shoes/shoes4). Shoes4 is a complete all Ruby rewrite of shoes. It's goal is to be as close to 100% backwards compatible as it can get e.g. it implements the same DSL.
+
+So what does that mean? Well we accept pull requests but are not actively developing/releasing this shoes version. Our development efforts are now concentrated on shoes4, which is shaping up to become the new default implementation. It is already quite far and a lot of things already work.
+
 # So what do these Shoes look like?
 
 Here's a little Shoes app. It's a stopwatch!
