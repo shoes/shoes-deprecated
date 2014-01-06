@@ -21,4 +21,4 @@ libssl32
 libeay32
 zlib1
 readline5
-libiconv-2
+libiconv2

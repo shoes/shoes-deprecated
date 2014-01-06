@@ -35,11 +35,16 @@ class MakeXMinGW
       dlls.each{|dll| cp "#{XDEPABS}/bin/#{dll}.dll", "dist/"}
       cp "dist/zlib1.dll", "dist/zlib.dll"
       Dir.glob("../deps_cairo*/*"){|file| cp file, "dist/"}
-      #sh "strip -x dist/*.dll" unless ENV['DEBUG']
+      sh "strip -x dist/*.dll" unless ENV['DEBUG']
     end
     
     def setup_system_resources
       cp APP['icons']['gtk'], "dist/static/app-icon.png"
+      open 'dist/encoding.data', 'w' do |f|
+        Dir.chdir "#{XRUBYLIB}/i386-mingw32/enc" do
+          f.puts Dir["*.so", "*/*.so"]
+        end
+      end
     end
 
     def make_resource(t)
@@ -84,11 +89,15 @@ class MakeXMinGW
           rm_rf "dist/ruby/lib/#{libn}"
         end
       end
+      # Windows doesn't have all the unicode support yet. Copy my
+      # version of tmpdir.rb from the patch directory to replace 
+      # the reqular Ruby tmpdir.rb
+      cp "patch/wintmpdir.rb", "dist/ruby/lib/tmpdir.rb"
       # copy the ftsearch and rake Ruby code in Shoes to /dist/ruby/lib
       %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
         FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
       end
-      mkdir_p "dist/ruby/lib/i386-mingw32"
+      #mkdir_p "dist/ruby/lib/i386-mingw32"
       # Now compile the extenstions that have C code
       %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
         each { |xdir| copy_ext xdir, "dist/ruby/lib/i386-mingw32" }

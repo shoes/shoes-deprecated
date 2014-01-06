@@ -4,11 +4,12 @@ extend Make
 XDEPABS = '/home/ccoupe/Projects/xmingw'
 
 # set the relative path to deps directory
-XDEP = "../xmingw"
-
+#XDEP = "../xmingw"
+XDEP = XDEPABS
 
 # set a prefix path to where your cross compiler and tools live
 XTOOLS = '/usr/bin/i586-mingw32msvc-'
+
 # set CC to your mingw cross compiler using XTOOLS.
 CC = "#{XTOOLS}cc"
 
@@ -18,17 +19,18 @@ XINC = "#{XDEP}/include"
 # set where the dependent libs live
 XLIB = "#{XDEP}/lib"
 
+# Where is the cross compiled Ruby kept. Absolute path.
+XRUBY = "/home/ccoupe/Projects/xruby/1.9.2"
 
-# sadly, Ruby includes and libs are in 1.9.1 even for later 1.9.3
+# sadly, Ruby includes and libs are named 1.9.1 even for later 1.9.3
 # define where the ruby includes are for the cross compiled Ruby.
-XRUBYINC = "#{XINC}/ruby-1.9.1"
+XRUBYINC = "#{XRUBY}/include/ruby-1.9.1"
 # and where does the "cross installed" Ruby stdlib (bigdecimal.rb)
-# live - It need to be an absolute path, not relative. 
-XRUBYLIB = "#{XDEPABS}/lib/ruby/1.9.1"
+XRUBYLIB = "#{XRUBY}/lib/ruby/1.9.1"
 # Where are the Wine includes (for 'winhttp.h') 
 #XWINH = "/usr/include/wine/windows"
 XWINH = "#{XDEP}/wineh"
-#  get the rbconfig of the cross compiled ruby
+# get the rbconfig of the cross compiled ruby
 require "#{XRUBYLIB}/i386-mingw32/rbconfig.rb"
 
 

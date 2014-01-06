@@ -1,6 +1,10 @@
 require 'mkmf'
 $ruby = `which ruby`.chomp
+puts "add #{CONFIG['prefix']}"
 dir_config('sqlite3',[ "#{ARGV[0]}"])
+#$LDFLAGS << "-L#{CONFIG['prefix']}/bin"
+#find_library('msvcrt-ruby191','rb_proc_arity',"#{CONFIG['prefix']}/bin")
+
 def asplode missing
   if RUBY_PLATFORM =~ /mswin/
     abort "#{missing} is missing. Install SQLite3 from " +
