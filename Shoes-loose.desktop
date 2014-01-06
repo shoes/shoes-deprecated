@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Shoes
+Exec=/home/ccoupe/.shoes/federales/dist/shoes
+StartupNotify=true
+Terminal=false
+Type=Application
+Icon=/home/ccoupe/.shoes/federales/dist/static/app-icon.png
+Categories=Programming

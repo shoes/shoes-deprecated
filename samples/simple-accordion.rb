@@ -1,3 +1,4 @@
+# encoding: UTF-8
 module Accordion
   def open_page stack
     active = app.slot.contents.map { |x| x.contents[1] }.
@@ -36,9 +37,14 @@ end
 
 Shoes.app do
   extend Accordion
-  style(Link, :stroke => black, :underline => nil, :weight => "strong")
-  style(LinkHover, :stroke => black, :fill => nil, :underline => nil)
-
+  if RUBY_VERSION == '1.9.1'
+    Shoes::Link = Link
+    Shoes::LinkHover = LinkHover
+  end
+  #style(Link,  :stroke => black, :underline => nil, :weight => "strong")
+  #style(LinkHover, :stroke => black, :fill => nil, :underline => nil)
+  style(Shoes::Link,  :stroke => black, :underline => nil, :weight => "strong")
+  style(Shoes::LinkHover, :stroke => black, :fill => nil, :underline => nil)
   page "0.0", <<-'END'
 There is a thought
 I have just had

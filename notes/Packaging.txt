@@ -1,0 +1,24 @@
+Packaging
+
+  For pack.rb: separate the Module pack and the shoes gui into two files.
+    lib/shoes/packfed.rb and lib/shoes/packgui.rb - Removed references/code for Shy.
+    Kept the original pack.rb which mixes it all up, for reference if nothing else
+
+  FIXED: The 1.9.3 issue was Ruby parsing. I had a comma before do in a list of
+   hash arguments.  "... linux.. :a =>'A', :b =>'B',  do". That freaking comma!!
+
+   After refactoring packgui, I've screwed up the Module/class things
+   undefined method 'build_thread' for (Shoes::App "Shoes")
+   
+   App.yaml could be part of a better system (or more docs?)
+
+Shoes Users:
+
+  Package An app with gem and shoes dependecies 
+   --> .deb, rpm, whatever the Shoes4 folks use
+   --> options for arch/os (armel, ia32 vs X64, ...
+       and the ability handle cross compiled shoes
+
+
+  
+

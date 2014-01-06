@@ -1,0 +1,52 @@
+Shoes start up
+
+Since its a native code app, it starts in main() in the file bin/main.c
+I'm going to ignore the Windows code in there because it's awful to see and 
+I'm not using Windows.
+
+It saves argv[0] as the path and starts some checks on argv[1]:
+If its '--ruby' then some ruby code is stuffed in a buffer, ruby is initialized, 
+the buffer is evaluated by Ruby and then the rest of the argc,argv is passed to
+ruby_options and then ruby is run and it returns to the OS (exit).
+
+That's not a shoes startup. If the first arg isn't --ruby then
+it calls shoes_init(), shoes_set_argv( with the rest of the args) and then
+calls shoes_start(path, "/") and calls shoes_final() before exiting to the OS
+
+shoes_init is in world.c (see world.h). It sets up a couple of signal handlers,
+SIGINT, SIGQUIT and calls shoes_ruby_embed(no args) which #ifdefs to calling
+ruby_init() and then ruby_options().  That could be cleaned up if we don't care 
+about early versions of ruby. 
+
+Then its a call to shoes_ruby_init, shoes_world_alloc, shoes_native_init and
+sets up a ruby/shoes Constant, "FONTS", from shoes_font_list() and returns back to
+main() which calls shoes_set_argv and shoes_start(). shoes_set_argv just calls
+ruby_set_argv
+
+So we have ruby initialzed. shoes initialized and the native GUI initialized. 
+
+shoes_start(path, uri = '/') really gets things going. Watch for cleverness!
+
+It creates a block of Ruby code, subsituting in the path arg (using c printf 
+syntax. That should be "shoes" but you can see how it could be something else.
+That block of code is sent to ruby for evaluation. What does it do? 
+It creates a DIR constant in ruby pointing to the shoes - like 
+/home/ccoupe/Projects/shoes3.2/dist - thats where my shoes and shoes-bin live.
+It also requires 'shoes' and returns the DIR value back to the C code (in shoes_start)
+were it gets copied to the shoes_world struct.
+
+Federales changed how that works.
+
+shoes.rb does a lot of things but for my purposes, it requires 'cache.rb'
+That file isn't about caching. It redefines config settings to reflect where
+the ruby libs and gems are (in shoes directories). There are two issues here
+1) Ruby 1.9.2+ complains to the terminal console about redefining the constants.
+That appears to be caused by cache.rb require 'rbconfig'. From everything I've read there is no reason to do that. Ruby appears to do that during it's initialization.
+
+2) Shoes (cache.rb) stuffs it's gem dirs into the $: env variable. It might
+be interesting to contemplate a small (yaml?) file in dist/ that overrides
+these settings with the users choice of gemdirs. 
+
+
+
+

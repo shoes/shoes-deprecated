@@ -1,0 +1,67 @@
+Federales Distribution
+
+There will be several versions of Shoes/Linux Federales
+
+Loose Shoes: 
+  Uses system (or rvm if built from source) Ruby and gems & rbconfig. 
+  No packaging ability, no ext's or builtins. 
+  No LD_LIBRARY_PATH silliness. Links against system libraries - no need
+  to copy libraries and muck around. 
+==> FIXED Default linux build. 
+==> Don't copy the ruby/lib to shoes ? 
+==> Problem with Gems. 
+      CONSTANT Whines from rubygems.rb (s) 
+      It would be nice not to copy the ruby/lib/* to dist/. Related?
+      gem env (-g env) is oddly different. Version #, and 
+      RUBY_EXECUTABLE still has the ../shoes --ruby
+==> FIXED:  define a Shoes::RELEASE_TYPE constant which is a string of
+     "TIGHT_SHOES" or "LOOSE_SHOES"
+==> ftsearch ext and gem need to be gemified (rake-compiler)
+FIXED: Write 'rake install' and gnome launcher. Put in
+    ~/.shoes/federales along with shoes.rb and lib, static, etc
+     Foo. Ubuntu 13.10/Cinnamon ignores .local/share/applications
+     and you have to sudo to copy to /usr/share/applications.
+==> Should shoes be installed 
+===> Distribute as .deb with a launcher?
+
+
+======= Tight Shoes =====
+Tight Shoes: Similar to todays Shoes. 
+  Includes a sandboxed ruby, and any ext's and gems deemed interesting.
+  Requires a purpose built ruby and uses cross compiling features. 
+  Requires arch specific system libs be specified
+==>FIXED Sandbox tested. No Constant whines from ruby or gems
+==>FIXED TGT_DIR - rake clean needs to clean the right dir.
+==>find_and_copy_deps need to be arch specific like {TGT_DIR} pointing 
+  to /home/cross/x86_ or /home/cross/armv6-pi. Set TGT_SYS_DIR manually,
+==> linux:setup:xxxx should actually verify that the cross compiled need
+   libraries are available and set TGT_SYS_DIR there. For now, do it
+   in xxxx_env.rb
+
+
+Includes an embedded Ruby 1.9.3. It is distributed as a .deb (Ubuntu, Debian)
+The installer will check for dependencies (gtk2-dev for example) and install them.
+Shoes will be installed in ~/.shoes/federales/apps/ [that would contain all of dist/*]
+It includes a gnome panel launcher that points to it with icon of course.
+The Shoes splash screen will have entries for Open an app, Save App as 
+.Shy (or whatever the Shoes4 folks use: Zip?) 
+The user would have to install any gems manually 
+
+A separate distribution (.deb), "Cobbler", will require a Shoes install and
+will include a ShoesGems app and a ShoesPackage app (scripts in Shoes) with 
+additional requirements for gems (fpm,bundler...) and systems libs
+(including gcc tool chain, ruby dev, rvm? ...).
+
+Obviously, I need an icon: The Shoes icon with a background of the Mexican Flag?
+Sort of have one - shoes-icon-federales.png. 
+==> The background is not transparent. 
+==> FIXED: App.yaml has to know about the icon file name.  
+==> Will need a shoes.desktop file (ie launcher) in 
+~/.local/share/applications
+  
+ShoesGems - Cobbler?
+  installs gems into the shoes directory (~/.shoes/federales/gems/). It should
+be able to copy them from an existing system/rvm gems directory, detect native 
+gems and compile them. It could use and/or create bundler gemsets?
+  
+

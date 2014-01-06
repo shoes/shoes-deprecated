@@ -4,7 +4,7 @@
 #
 require 'digest/md5'
 require 'zlib'
-require 'shoes/minitar'
+require_relative 'minitar'
 require 'find'
 require 'tmpdir'
 require 'yaml'

@@ -1,0 +1,650 @@
+Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
+  out. 
+  
+2014-01-05
+    Before I go crazy on the MinGW stuff, I should 'get right' with git.  
+
+2014-01-04  MinGW
+    Fired up the Win7/64 VM and install Msys/MinGE, RubyInstaller (32)
+    Then copy c:\msys c:\Ruby193 to a shared folder. Import that to
+    /srv/chroot/mingw32 (not a chroot though)
+    
+DONE: Install or build latest version of Wine. Ubuntu is pretty far
+    behind - 1.4. Will have to configure Wine properly. I expect some
+    trouble. Installed 1.6 via ppa update. It's kind of interesting. 
+    
+DONE: Sadly, rubyinstaller built Ruby w/o the load-relative that shoes
+    needs. I'll attempt to cross compile it. Ruby/Windows has it own
+    ext/dl code so it may cross compile where it wouldn't on the pi.
+    
+--> It does cross compile but I need some dep libs/headers/defs
+    See CrossCompiling.txt
+    
+DONE: Install cross compiler from synaptic/apt. 
+ 
+2013-12-31 Cross Compile (pi)
+    Hacked away at extconf.rb for chipmunk and ftsearch extentions so
+    they are built with the cross compiler and linker and the proper
+DONE: Ruby includes. The mods are kind of brute force. I'll make
+    them elegant in the future, ya sure.
+    
+DONE: Backport those changes in env.rb, task.rb
+DONE: i386 - because this is build in chroot, only the TGT_RUBY_ARCH 
+    matters.
+DONE: x86_64 
+DONE dist 
+    chipmunk fails for other reasons. But the ext compile is good.
+Done: Do a simple packaging. cd to pkg/. mkdir shoes3.2a1-{arch}. 
+    cp ../{arch}/* shoes3.2a1-{arch}. Tar and zip. sftp to the website.
+    
+--> This should be automated even if it's alpha. 
+ 
+2013-12-30 Cross Compile (pi)
+    I can give up and require a ruby that's been compiled on the target
+    (with --load-relative) OR
+    Dig into that ext/dl/mkmf.log before declaring failure. The mkmf.log
+    is pretty clear:
+Using 'dlopen' in statically linked applications requires at runtime the
+shared libraries from the glibc version used for linking
+/srv/chroot/debrpi/usr/lib/arm-linux-gnueabihf/libdl.a(dlopen.o): In function `d
+lopen':
+(.text+0xc): undefined reference to `__dlopen'
+    There is a libdl.so next to libdl.a, it's link to 
+    /lib/arm-linux-gnueabihf/libdl.so.2 which has no symbols? uses
+    $ ldd libdl-2.13.so 
+	    libc.so.6 => /lib/arm-linux-gnueabihf/libc.so.6 (0xf6694000)
+	    /lib/ld-linux-armhf.so.3 (0xf6fd9000)
+    That link can only work if you are inside the chroot. 
+    
+    One solution would be to get the x86_64/arm cross compiler and the ruby source
+    tree inside the chroot (/opt/src/ruby). That would require some qemu
+    magic to emulate both. Might be possible? 
+    
+    Or, do the ruby compile using the emulated gcc-4.6.3. 
+    I t ' s  s l o w ,  r e a l l y   s l o w . But it's working. 
+    It's quite a test of qemu. I'm impressed.
+    For giggles and future fun, the arch ruby chose is 'armv7l-linux-eabi'
+    I have NO IDEA where that triplet came from.
+Fixed: Shoes/pi works with that ruby. I suspect curl opts would croak
+    things. 
+    
+    A crude hack, would be to use a hard link or just copy the ultimate 
+    libdl.so where the cross compiling stuff wants it. I'm not going to
+    do that because it's really easy to bork your system if you make a
+    mistake.
+    
+    A simpler hack would be to comment out the lines in ext/dl/extconf.rb
+    that look for the functions. It compiles. Will it run shoes? No
+    does the hack fail - yes, in serveral ways
+    
+==> Curl - just apt-get install the damn thing in the schroot. Copy the
+    least heavy weight libcurl.so to Shoes.
+    
+
+==> Chipmunk.so is a X86_64 ELF. Could explain some problems if the ext
+   aren't compiled with the correct compiler. Fixing it is an adventure. 
+   
+  
+2013-12-29 (pi cross compile)
+    You'd think I'd see this sooner. Add -I/usr/include (or your-chroot
+    equivalent) early in the gcc flags.  Compiles and links but
+    still has a couple of warnings that aren't right. 
+--> curl related: complaints from bits/socket.h
+--> infinity, nan redef - ruby related. 
+    But, it works! - it's slow to get started and it's gtk3 so there 
+    are known bugs. But the cross compile effort is OK. 
+--> Try using the cross compiled ruby instead of the rvm ruby:
+    Same compiler warnings.
+    Shoes.tar is 7MB smaller - I wonder what is missing ? - Lots of doc,
+    bundler and rvm stuff. 
+    
+    It dies in ruby init-prelude - can't load rubygems.rb.
+==> ext/dl missing on pi, for certain. It might well explain require
+    failures. What does my raspbian choot need that a real raspbian have?
+    In the ruby src code, ext/dl/mkmf.log has the clues. It found dlfcn.h
+    and -ldl is ok, but dlopen() is missing when building/running a test.
+    Do I suspect --sysroot ? Is the Pope Catholic? 
+    
+Fixed: chipmunk.so is missing but there is a 'x86_64-linux' file on the pi
+    see line line 87 (or so) in tasks.env. Damn rakefiles, Bad Cecil! It
+    works for i386 and x86_64 because they run chroot and report as 
+    expected.  
+    
+   
+    I discovered where the shoes.desktop file should go on the Pi. 
+    See that dir named 'Desktop'? it has all the users launchers.
+  
+2013-12-28 (pi cross compile)
+    This could have saved me a week or two of foolishness. Gcc has
+    a --sysroot=<dir> flag in newer compilers. gcc-4.8 for sure and I think
+    gcc-4.7 and net wisdom says maybe in 4.6. Major score for cross compiling.
+DONE: Fixes the jconfig.h issue. 
+    
+DONE: Compiling ruby gets much more interesting. It Can't find -lcrypto 
+    when linking digest/md5.so because you have to use it on both CFLAGS
+    and LDFLAGS. It compiled socket w/o complaining, pysch, openssl, etc.
+    This the first cross compiled ruby that includes everything normal 
+    and that I feel confident about.
+    
+    --sysroot is a Big Deal if I ever get to the mingw cross compile. 
+    
+FIXED: Different include file errors using --sysroot compiling shoes but 
+    that's OK - it was a mess before and it is less messy now.
+    
+--> because the pi compile uses the Ubuntu x86_64 pkg-config, if that
+    gets screwed up by something apt-get (ie me) it can confuse 
+    pkg-config <long-path-to.pc> to not work. Nasty hidden gotcha.
+    Yet another reason to not trust it.
+
+2013-12-27  (pi cross compile)
+==> The features.h/stdc-predef.h errors are back  because the compiler
+    is gcc-4.8.  This time I found a solution and I understand why it 
+    should work https://wiki.mozilla.org/Mobile/Fennec/RaspberryPi
+    That doesn't fix all problems. seems that the raspian includes and
+    libs uses names like 'arm-linux-gnueabihf' and the new compiler uses
+    'arm-linux-gnueabi'
+    
+    Generate a new compile with 'hf' on the end. Doesn't help when 
+    cross compiling ruby dies in file.c:2276 which is bracketed with
+    various #ifdef EVIL TIME CONSTANTS.  I know that hell but I'm tired 
+    of gcc issues, although I learned a lot.
+    
+    Time for plan B. The Qemu emulator in the chroot works well enough
+    to  'apt-get install libreadline6-dev libyaml-dev libssl-dev' and then
+    'apt-get install ruby1.9.3' Time to find the rbconfig.rb and see how
+    it was built. It's at {CHROOT}/usr/lib/ruby/1.9.1/arm-linux-eabihf/rbconfig.rb
+    Sadly it doesn't appear that was built 'load-relative' and Shoes needs
+    that (Tight Shoes). 
+    
+    I also have the pi's rvm built 1.9.3 and 
+    is load relative. It's also 'armv6l-linux-eabi' so it might not
+    use hardfp or it might. It may also conflict with character set in ways
+    I don't want to consider. I'll use the rvm until I can my cross compiler
+    sorted out. 
+Done: Cross Compile a minimal libcurl.so
+Fixed For some reason, the .pc files in chroot are not indexed together
+    
+Fixed jconfig.h in /usr/include/arm...eabihf/ in chroot and pi.
+    Add with that -I include I get the <bits/predefs> bug so it's
+    related to the features.h (which I copied from x-tools/sysroot)
+Done: Does the jpeg8 install put that in the compilers sysroot? instead
+    of the os directories? That would explain a lot. Something like that.
+    
+    Do I have a Plan C? (yes, I do) Get the tool chain that worked best
+    http://elinux.org/RPi_Kernel_Compilation - moved parts of the download
+    to ~/x-tools . Undo the {chroot}/usr/include/feature.h hack. 
+Fixed: Works better until it gets to jconfig.h.
+    
+
+2013-12-26
+   Created a schroot for the raspberry (debrpi) and did the debootstrap
+   thing for raspian. And the debian deps that shoes wants.
+   Installed the qemu-static in the chroot /usr/bin - it works well enough
+   to run many things (slowly) but n
+   
+   I really want a x86_64 crosscompiler to armv6-.... and after much
+   futzing I have one in /home/ccoupe/x-tools . That's not the ideal
+   spot, but good enough for now. Don't fight the defaults. 
+Done: Add it to the regular path.  It will not run in the chroot. 
+Done: Clean up a bunch of other compilers that almost worked. Screw up
+    and rebuild ct-ng and compiler. 
+    
+   
+   i386 and x86_64 cross compiles work well enough (for Shoes-Gtk3)
+  
+2013-12-25
+   Installing Suse/XFCE-64bit in a VM. Easier to deal with than Fedora.
+     libgif.so.4 missing from the Shoes pkg. And the libcurl-gnutls.so.4
+     vbox permissions on the shared folders.  Mostly a Oracle
+     problem not Suse,Fedora or Debian.
+     
+   Setup an debian/64 schroot. Compile ruby and curl in there.
+   Build shoes in there.
+   Verify that it works on Ubuntu-64 -Yes
+   Test on Suse
+    missing libpcre.so.3 
+   /home/ccoupe/x86_64-linux/shoes-bin: symbol lookup error: 
+   /usr/lib64/libgobject-2.0.so.0: undefined symbol: g_unix_fd_source_funcs
+      Why didn't it use the libgobject the came with shoes?
+      I suspect a lib version number issues but I'm giving up for now
+      
+   Test on Fedora
+   /home/ccoupe/x86_64-linux/shoes-bin: symbol lookup error: 
+   /lib64/libgobject-2.0.so.0: undefined symbol: g_unix_fd_source_funcs
+   Hmmm. same error message but slightly different from Suse.
+   After I removed libgobject from the shoes dir, it still has the error.
+   
+    redo the i386 curl, ruby build after getting rid of libcurl-gnutls
+    and git pkgs. Works fine in the chroot and on the debian VM.
+==? i386 Fails to run on Ubuntu-64 bit - cascade of missing libs...
+    not sure I care that much but it did work once. 
+
+    Retry the x86_64 on ubuntu. Works fine in the chroot.
+Done: Fails when run outside chroot. Guess what the error is. Go Ahead
+    /home/ccoupe/Projects/shoes3.2/x86_64-linux/shoes-bin: symbol lookup error:
+    /usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0: undefined symbol: g_unix_fd_source_funcs
+    That turned out be a name issue with the copied libgobject
+    Now complaining the libffi.so.5 is missing. Who call for that? Fixed
+==> /home/ccoupe/Projects/shoes3.2/x86_64-linux/shoes-bin: symbol lookup error:
+   /usr/lib/x86_64-linux-gnu/gio/modules/libdconfsettings.so: undefined symbol: g_mapped_file_get_bytes
+   Could this be related to the curl config -disable version symbols ? Nope.
+   
+==> Don't copy all the Gtk2/Glib stuff - then x86_64 works both in the 
+    Debian chroot and outside it in Ubuntu. Clearly I'm missing some
+    critical knowledge. If gkt2 is on the target system (this case), don't 
+    include my own libaries. It can break multi-arch/lib handling and really
+    there's no good way to know from here where any of the libs are kept in
+    Suse, Fedora, Ubuntu and more.  Give up on Gtk2.
+    
+==> Shoes binaries might be slightly easier for Gkt3 through.
+    Install gtk+-3.0-dev in chroots deb386 and debx86 and try again
+    Yikes - a lot gets dragged into the chroot for gtk+-3.0-dev (libssl,
+    libcurl-gnutls)
+    Don't recompile curl yet but don't be surprised when it pop up again.
+    Status: 
+YES 1. From inside deb386 chroot
+==> 2. From outside deb386 chroot on Ubuntu 64 
+    I have broken apt-get pkgs:i386. sigh.
+YES 3. From Debian 7.2 32bit VM
+YES 4. From inside debx86 chroot 
+YES 5. From outside debx86 chroot (ubuntu 64)
+YES!6. from Suse 64 bit
+YES!7. from Fedora 64 bot
+
+
+   
+
+2013-12-24
+
+Done:  Tight Shoes 386 works fine in the shcroot.
+   
+Done:  Loose Shoes 386 (gtk2) works on Deb 7.2/386 that doesn't have
+   gtk2 installed. 
+   
+Done: Need the X86_64 equivalent. I can't really test it w/o a 64 VM
+    and if I was going to do that, I'd pick something non-debian. 
+    This was too easy. I only needed to fix the env.rb where libungif was.
+
+Next:
+    Fedora 20/X86_64 does'n want to run in OracleBox. Because some idiot
+    at the keyboard didn't select that in the install. Try again.
+    Working much better. Yikes - its been infected by that damn Unity
+    interface. After much futzing getting guest additions installed in 
+    Fedora, and root copy from /media/sf_cross because groups is wrong
+    for vbox:
+$ ./x86_64-linux/shoes
+/home/ccoupe/x86_64-linux/shoes-bin: error while loading shared libraries: 
+libcurl-gnutls.so.4: cannot open shared object file: No such file or directory
+    and
+$ ./i386-gnu-linux/shoes
+./i386-gnu-linux/shoes: /home/ccoupe/i386-gnu-linux/shoes-bin: 
+/lib/ld-linux.so.2: bad ELF interpreter: No such file or directory
+   So it doesn't have i386 multiarch out of the box. Clearly there is
+   some hidden versioning going on with curl - try a rename.
+==> mv libcurl.so.4 libcurl-gnutls.so.4 - works but can't find
+==> libpcre.so.3  - copy it from /lib/x86_64-linux-gnu/libpcre.so.3
+==> librtmp.so.0  - copy from /usr/lib/x86_64-linux-gnu/librtmp.so.0
+==> libssl.so.1.0.0 - anybody see the pattern ? Curl? Don't use the one 
+   in the build system. /lib/x86_64-linux-gnu/libssl.so.1.0.0
+   it will be faster and easier to build a new curl. No - it isn't.
+==> Really should chroot a x86_64 linux and build curl and ruby using
+   its headers and libraries.
+   
+    
+Next:
+    Suse 13.1 netinstall did notice it wasn't running in a 64 bit system and 
+    put up a warning screen. Good for Suse. Install with XFCE because
+    ah, why not? I need to figure out the menu options for shoes. 
+    
+    Try the X86_64 and i386 versions of Shoes on Suse/64
+    Figure out how to chroot Suse and if Shoes doesn't run.
+    mount -o loop ~/Desktop/openSUSE-13.1-NET-x86_64.iso /mnt/cdrom
+    cd into mnt/cdrom/boot. Several squashfs files in there.
+    Hung during downloading of components
+    
+Next:  Raspbian version. That one is a little trickier to setup the
+    chroot and the rakefiles properly since the compiler (and ruby/rake)
+    have to run outside the chroot. 
+    
+Done: Someone ought to tell gcc to stop complaining when compiling 
+   chipmunk. Add -Wno-declaration-after-statement to xextconf.rb
+   Helps a lot with clutter.
+    
+2013-12-23
+   The schroot approach is working well.  I compiled ruby in the chroot
+   using the chroot's gcc-4.7/386 compiler. Compiled and ran shoes (loose)
+   
+   I want to build Shoes from a normal environment.
+FIXED: {chroot}gcc doesn't like be invoked from outside the {chroot}
+   Build a compiler that can be (crosstools-NG) OR build shoes inside
+   schroot. Today, I'm going to do the schroot way because I'm more
+   interested in building tight shoes (gtk2/386) and updating the
+   rakefiles to build a shoes that runs (i386) on both the host system
+   and the debian VM.
+   
+==>Copy the rest of the deps - not very elegant code in env.rb
+   
+==> setup a cron job to do a schroot apt-get update once a week. download
+   and install the latest updates. both i386 and raspbian. 
+  
+2013-12-22
+   I have found a well known issue with gcc-4.8 vs 4.7 that explains
+   the  STDC_ISO and other failures when building the 32 bit Shoes.
+   I could downgrade to 4.7 on my Ubuntu 13.10 64 bit system, or I could
+   set up a chroot (and possibly build the compiler) or poke around with
+   existing mulitlib/multiarch and hacks. I've been fighting with the
+   Shoes rakefiles and I'm tired of mindless hacks.
+   
+   Long term, dealing with chroot might be better. See CrossCompiling.txt
+   
+2013-12-21 - i686 cross compile
+    Copied some more headers and libs from Debian VM after install gtk3-dev 
+    and other deps on it. 
+    
+    Moved the dep lib copies from pre_build to copy_deps_to_dir. Since
+    I haven't fixed the -L link flags, here's the list of deps
+/usr/bin/ld: cannot find -lgtk-3
+/usr/bin/ld: cannot find -lgdk-3
+/usr/bin/ld: cannot find -latk-1.0
+/usr/bin/ld: cannot find -lgio-2.0
+/usr/bin/ld: cannot find -lpangocairo-1.0
+/usr/bin/ld: cannot find -lgdk_pixbuf-2.0
+/usr/bin/ld: cannot find -lcairo-gobject
+/usr/bin/ld: cannot find -lpango-1.0
+/usr/bin/ld: cannot find -lcairo
+/usr/bin/ld: cannot find -lgobject-2.0
+/usr/bin/ld: cannot find -lglib-2.0
+/usr/bin/ld: cannot find -lungif
+/usr/bin/ld: cannot find -lcairo
+/usr/bin/ld: cannot find -lpango-1.0
+/usr/bin/ld: cannot find -lgobject-2.0
+/usr/bin/ld: cannot find -lglib-2.0
+     Add ruby and curl to that list (and a couple more for windows)
+     
+     Im getting that #define __STDC_ISO_10646__ warning. What did I do
+     to correct that before. Rebuild ruby? Didn't fix it.  I think
+     it's an include file - somehow /usr/include/stdc-predef.c is being
+     used. See http://gcc.gnu.org/gcc-4.8/porting_to.html. gcc 4.8.1 is 
+     used for the cross compiler and Debian Wheezy is 4.7.x . This problem
+     went away when I switched pi cross compilers. Add -ffreestanding to
+     LINUX_CFLAGS. And recompile ruby. And fails differently but still
+     dragging from /usr/include/i386-linux-gnu instead of where I say.
+     Hangover from the Multi-arch ? 
+   
+
+
+
+2013-12-20
+    Of course some of those i386 libraries were reinstalled by software
+    update. So far, no harm.
+    
+==> Copy the /lib /usr/lib /usr/include from the Debian i386 VM. 
+    Sigh. The drive/shared folder is mapped strangely. Claims to be ro
+    when creating softlinks. I have to manually create the soft links
+    so "ln -s libjpeg.so.8.4.0 libjpeg.so.8". Shoes only cares about the 
+    major number.  No doubt this will be an issue. 
+    
+FIXED i386: Need Curl, cross compiled from source for i386, no ssl version. 
+    We don't need gopher, imap, pop. smtp, telnet. Keep TFTP for 
+    the embedded folks although I don't think shoes can use it. PITA.
+    
+==>  Cross compile Cairo, Pango. Sigh. It has to be done. Good practice
+    for Mingw32
+    
+2013-12-19
+FIXED: It is possible to get worse. Installing curl:i386 screws up the
+    compile for x86_64 (dist and the crossbuild version). Thank you
+    curl and multiarch Ubuntu. Removed with synaptic. Reinstall the 64 bit.
+    
+FIXED: linking dist/shoes.a "-lungif" not found. What is with this ungif crap
+    I can see the lib, right next to libjpeg.  I removed the :i386 version
+    of libgif and reinstalled libgif-dev.  Boo multiarch. Bad Unbuntu.
+    
+FIXED:  I think I'll remove multi-arch from ubuntu (64) - I have to build the
+    deps for cross compiles (pi, mingw) anyway. What's another arch? 
+    ungif/gif, curl, ruby, glib, gobject.. what could go wrong?
+    OR I could configure multiarch better. What a dreamer I can be.
+    There is still buttload of /usr/lib/i386-linux-gnu files after removal
+    I'm going to ignore them. Maybe ubuntu needs them. 
+    
+    
+==> Here is the Shoes Mentality. I decided to write a dependancy manager in
+    Shoes so the rake files will just grab the <arch>.yaml created by this
+    brain fart and the rake files would be less ugly and more elegant. 
+    Why? Because its fun. And it might work and I really don't want to fix
+    the GTK3 code. I'd rather be scripting in style than find the root problem.
+    Its DepManager.rb and it is brilliant, although 95% unfinished. You 
+    can't abstract your way out broken reality. 
+    
+2013-12-18
+    Taking a break from the pi cross compile suckage.
+    Gtk3 hint from the web" The docs for
+      # gdk_window_begin_paint_region give more details on how this
+      # works.
+    i386:libglib:  Look at what Calibre does (/usr/local/lib/calibre)
+      it includes all the shared libraries of Qt and more in it
+      There is the copy_deps_to_dist task for this. Just need a list of
+==>   If it works glib-2.0, will have to do this for X86_64 and xarmv6-pi
+      Still Fails - its curl.so.4 that is linked to glibc-2.so.specific.version
+      Curl! Damn thee Curl! Down Curl! Down! Bad Curl!
+      
+==> What would a "system" install of shoes look like
+     /usr/local/bin/shoes -- the shell script pointing to --->
+     /usr/local/lib/shoes -- everything else in dist/
+     
+==> Thinking about the deps. I hate that the rake files load the pkg-config
+    -- it never changes and if its wrong, I have to unfix it somehow. 
+    Danger! Danger! Will Robertson! I'm about to re-invent dep handling
+    before fixing that curl problem. See Deps.txt
+     
+2013-12-17
+    Totally frustrated with linking Shoes for the pi.
+    I suspect the curl config is not helping. 
+    
+2013-12-16
+FIXED    Libgif.so.4 has the code. Need a soft link from libungif.so.4 to it.
+==>  Sigh, I wish I'd switched to cmake instead of whacking on the rake files
+FIXED!!! i386 version loads and runs on 64bit multiarch. A couple of Gtk theme
+    warnings but thats gtk-2/386 running under Gtk3/X86_64 shell.  
+    No warnings or whines from ruby. 
+    
+    YES it was a "DUH!" moment. I was passing -shared to the link of shoes-bin
+    you only do that for the link of libshoes. DUH!
+    
+==> On Debian 7.1 wheezy
+    ccoupe@elvis:~$ ./i386-gnu-linux/shoes
+    /home/ccoupe/i386-gnu-linux/shoes-bin: /lib/i386-linux-gnu/i686/cmov/libc.so.6: 
+    version `GLIBC_2.15' not found (required by /home/ccoupe/i386-gnu-linux/libcurl.so.4)
+    
+    I could have many missing dependencies.  Wheezy does have
+ccoupe@elvis:/lib/i386-linux-gnu$ ls -l libglib*
+lrwxrwxrwx 1 root root      23 Jan  9  2013 libglib-2.0.so.0 -> libglib-2.0.so.0.3200.4
+-rw-r--r-- 1 root root 1031056 Jan  9  2013 libglib-2.0.so.0.3200.4
+    and the build system has 
+ccoupe@bronco:/lib/i386-linux-gnu$ ls -l libglib*
+lrwxrwxrwx 1 root root      16 Dec 15 01:51 libglib-2.0.so -> libglib-2.0.so.0
+lrwxrwxrwx 1 root root      23 Oct 19 00:45 libglib-2.0.so.0 -> libglib-2.0.so.0.3800.1
+-rw-r--r-- 1 root root 1059744 Oct 19 00:45 libglib-2.0.so.0.3800.1
+==>   Hmm. That should work.
+
+==> arm pi link of shoes (main.o) is failing - can't find lungif.
+    
+    
+2013-12-15
+    same seg fault when the i386 (Loose) runs on Debian 7 VM
+    Something is wrong with the linked main (shoes-bin)
+ 
+2013-12-14
+    Loose shoes builds on raspberry (if you don't compile bloops since
+    I don't have portaudio on the pi or care to). Runs OK. 
+    
+    Tight Shoes (cross compile) for pi finally builds. Dies with a 
+    seg fault before it gets to main(). Built with rvm ruby.
+==> Curl sys/socket  warnings on compile
+==> Trying cross compiled ruby (no openssl, readline, pysch)
+    Still with the bit/socket.h warning from curl
+    math.h warning about redef of INFINITY and NAN
+==> I'm using the headers for the PI, should I use those headers for
+    the cross compiler? Which did ruby use? 
+    
+==> Many issues with getting Ubuntu 13.10 set up with multi-arch libraries
+    See CrossCompiling.txt. Don't trust pkg-config.
+    Compiles and links now.
+    
+==> i386-linux-gnu/shoes fails. Seg faults (0x1). JUST LIKE THE armv6-pi
+    cross compiled version of Shoes does. Suggests a common fault might 
+    exist in the linking. Do you think? I bet its a face palm discovery.
+    
+  
+2013-12-13 arvm6 building
+==> Lot of issues building the arvmv6 ruby. No Sockets or openssl !!
+    Need to use the pi include files and rebuild?
+    New compiler is slighthly better but still don't have openssl,
+    pysch, readline. Do have socket with --enable-wide-getaddrinfo
+FIXED Removed Ubuntu's arm compiler toolchain. Used this one
+    http://stackoverflow.com/questions/19162072/installing-raspberry-pi-cross-compiler
+    That fixed the warnings about character sets. 
+FIXED: Should test compiling shoes on the pi (default loose shoes, rvm ruby)
+==> Still using the rvm rbconfig, there are some warnings curl related.
+    for the cross compile. no curl warnings for native build.
+
+
+2013-12-12
+   The default build, (Loose Shoes) Works. Mostly.
+FIXED Modify make/linux to use the standard ruby layout. Copy shoes
+    extensions to shoes dirs. Set up a gem loading path for those exts
+    in cache.rb
+==> Hardcoded 1.9.1 in cache.rb
+==> $ dist/shoes -g env
+    undefined method `source_index' for Gem:Module
+==> simple-chipmunk fails on require chipmunk so ext's are not correct
+
+==> Setup rakefiles for i686-gnu-linux cross compile
+==> Build 32 bit Ruby (i386-gnu-linux). Works, w/o readline.
+    Might need more configuring. 
+==> Get the env.rb more correct (see the armv6 env.rb) 
+==> Need 32 bit pkg-config, hdrs, libs for cairo, pango, gobject, glib
+
+
+apt-file -a i386 search libXXX.so
+
+2013-12-11
+FIXED:  Rewrote the rakefile for x86_64-linux to copy the normal ruby directory
+  structure for Shoes. Now ruby finds rubygems when it inits and thats
+  more important for future compatibility with 2.0 and 2.1. It looks like
+  {dist}/
+        libruby.so
+        libshoes.so
+        {deps}.so 
+        shoes (script that runs shoes-bin)
+        shoes-bin (linked main.c)
+        /samples/
+        /fonts/   Move these three to lib/? 
+        /static/
+        /lib/
+            shoes.rb
+            shoes/
+                cache.rb, packrb, ... 
+            ruby/
+                1.9.1/
+                    x86_64-linux/
+                    rubygems/ and more
+                gems/
+                    1.9.1/
+                       gems/
+                       specifications/
+                site_ruby/
+                vendor_ruby/
+            
+Fixed: world.c:shoes_start() to mangle the $: path appropriately
+   For apps/scripts not run under the shoes tree, we still need the '.'
+Fixed: Dies on ftsearch (from shoes.rb:150)
+   rakefile - compile and copy ftsearch ext
+==> clean up cache.rb hacks, debugging..
+==>Expect issues with font, image loading? 
+==>Apply the lessons to building dist (default).
+
+
+ Open
+  Loose Shoes Ubuntu
+    once Shoes causes ruby to load from dist/lib (first 'require' ?)
+    then the odds for getting a second loadpath for gems code is high.
+    Everything should work OK, but the console messages are annoying,
+    particularly with gems like fpm.
+    
+    it would be nice not to copy/pkg all the duplicate Ruby code in dist/
+    
+    ftsearch ext would have to be a gem to get rid of the dups ruby/lib
+    rake compiler?
+    
+    installing the Shoes.desktop file requires root priv. (fpm would be
+    Ok since it's going to check for dependencies it has to sudo anyway)
+  
+  Loose Shoes Pi
+    Gawd awful slow compile. Ruby is slow too (not the pi fp version?)
+    Utf-8 and US-ASCII and .... Complier warnings and runtime.
+    Lxterminal and even terminal(ssh) sometimes looses contact with rvm.
+    Don't know how to create a desktop icon/menu link.  
+    Many dependencies to apt-get (of course that fpm's job) but requiring
+    ruby is a big thing on a slow machine.
+    
+  
+  Tight Shoes Ubuntu
+FIXED:    Compiling my own ruby (--enable-load-relative) fixes the duplicate
+    rbconfig but ruby complains at startup 
+    <internal:gem_prelude>:1:in `require': cannot load such file -- rubygems.rb (LoadError)
+	from <internal:gem_prelude>:1:in `<compiled>'
+    However, it can load gems (the Shoes built/dist ones and the stdlib)
+    so the error message is mostly noise.
+    
+    Possible gem jail break scheme for tight shoes:
+    Have to set the ": and 'require rubygems' 
+FIXED: Sadly a gem load on that new path spits out those lovely 
+    already initialized constants messages for .... guess who ?
+      UTF_16BE, UTF_16LE, UTF_32BE, UTF_32LE
+      
+FIXED: Need to implement the standard Ruby directory layout. At startup
+    Ruby determines the path to libruby.so and then it wants to load from
+    lib/ruby/1.9.1 and lib/ruby/1.9.1/x86_64-linux. No amount of ln -s
+    seems to convince ruby_init_loadpaths() otherwise.  
+    1. copy /home/cross/{arch}/lib/[libruby.so.1.9.1] to {tgt} (x86_64-linux)
+    2. ln -s libruby.so and libruby.so.1.9 to that
+    3. copy /home/cross/{arch}/lib/ruby to {tgt}/ruby
+    4. link libshoes.so as before, into {tgt}
+    5  copy shoes.rb and shoes/ into {tgt}/lib
+    6  may need to adjust shoes.c/world.c to load shoes.rb from there
+    7  will need to fix cache.rb to include the dir with shoes.rb and 
+       shoes/
+
+    
+  
+  Tight Shoes Pi
+    Need to cross compile many of the deps (jpeg, [un]gif, curl-dev and
+    include them with Shoes. PITA but I had to do that with Mingw and 
+    am still alive to remember it.
+    
+    I can also pkg-config on them using my copy of the Pi files. Which is
+    what has to happen even if I built the damn things myself. And also 
+    has to happen for any cross compiled Shoes with dependcies. 
+
+==> The ubuntu cross compiler has a /usr/arm-linux-gnueabi and eahif 
+    includes and libs. These need to be included (in the proper order)
+==> Consider building a more complete toolchain for arm  and mingw
+    (be nice if there was a pkg-config). There are more complete cross
+    compiling systems that would help manage the dependencies. MXE for
+    mingw, crosstoll-NG and CMake. CMake could/would replace the rakefiles
+    
+    Need to cross compile Ruby. Eventually. 
+  
+  All Shoes (Ruby 1.9.3, gtk2)
+    The make/xarmv6-pi/env.rb executes the pkg-config on loading
+    
+  MingW32
+    Not yet - there is enough to do with Linux.
+  
+  i686-linux
+    I do have that Debian 7 32 bit virtual box so it could provide the 
+    libs for cross compiling and to test things. 
+    see cjc-configure.sh - just reverse build and host and build 32 bit
+    with the 64 bit compiler.
+

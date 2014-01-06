@@ -38,7 +38,7 @@ main(argc, argv)
 #ifdef SHOES_WIN32
   path = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
   GetModuleFileName(NULL, (LPSTR)path, SHOES_BUFSIZE);
-#ifdef RUBY_1_9
+#ifndef RUBY_1_8
   rb_w32_sysinit(&argc, &argv);
 #else
   NtInitialize(&argc, &argv);
@@ -71,7 +71,7 @@ main(argc, argv)
       RUBY_INIT_STACK
       ruby_init();
       rb_eval_string(bootup);
-#ifdef RUBY_1_9
+#ifndef RUBY_1_8
       return ruby_run_node(ruby_options(argc, argv));
 #else
       ruby_options(argc, argv);

@@ -1,0 +1,99 @@
+Goals for Shoes 3.1+ 
+-- GTK3 for linux. GTK2 is too old plus GTK3 has some cross platform
+   possibilities. I'm only going to care about Linux. 
+
+   Clean up the rakefiles - get back to simple coding instead of
+   Ruby wowie neato stuff. make/linux/env.rb looks like like
+   accumulated 'get it work' stuff. Most of the rake files are 
+   like that.
+
+   built in gems/extenstions are really old. 
+
+   rake deb target makes a .deb of Shoes (i386, X86, armel). Try that and see
+   what I learn before getting crazy about gem schemes and packagers. Fixes 
+   the su
+
+   Cross compile for raspberry. Pi users might really enjoy sharing their
+   code w/o all the C/C++ stuff. In regular shoes: setup a new packaging
+   target (Raspbian Deb) which downloads the debian/arm shoes (like any other
+   linux) if needed and adds the users choice of gems to package with it.
+   Make a .deb file which the user can share
+
+   
+   Need to deal with adding native gems
+
+   A separate shoes app to compile and install/move gems into shoes' gem
+   repository (both cross-compile and self hosting). Rake-Compiler
+   might help here. 
+
+(test for native
+     compiling...
+
+   Ignore the binject/packaging stuff. Rewrite/rethink. 
+
+Nov 14, 2013
+  It's working Ubuntu 13.10/!  
+    I'm suspicous, of course. Will try samples.
+     Shoes links are broken
+     simple-dialog.rb color selection returns rgb(0,0,0) 
+
+  in lib/shoes/cache.rb need to replace Config:: With RbConfig::
+
+  Manual window can't be made smaller. 
+
+- In config.h, replace GdkEventExpose *expose with
+  cairo_t *drawevent.
+
+- Renamed that canvas->slot->canvas to canvas->slot->oscanvas
+  to better reflect the type of the variable. It helps me
+  remember what kind of canvas is being referenced. config.h,
+  canvas.c, gtk.c
+
+  Make the inital shoes window resizeable? gtk.c:654
+
+Nov 13, 2013
+  Pass -DGTK3 on commandline 
+  
+  figure out how to use gdb with Shoes
+    LD_LIBRARY pointing to libruby.so.1.9
+    gdb> set environment LD_LIBRARY_PATH [=value]
+    Solved: a slightly modified dist/shoes shell script for debugging
+      simples! It lives in dist/dbg - just run it
+    >bt isn't that usefull for a crash but works fine for breakpoints
+
+Nov 12, 2013
+See : https://developer.gnome.org/gtk3/stable/gtk-migrating-2-to-3.html
+
+GdkEventExpose - not used in GTK3? Replace by cairo_something
+  This is a big deal.
+  GTK3 uses draw signal instead of expose, further to coords
+  may differ from what Shoes is written for.
+  Yup, shoes gtk bin complains about signal expose_event for GtkFixed
+
+Finish compiling knowing that gtk.c is wrong.
+X  don't compile bloopsaphone,binject,hpricot to save compile time
+  
+The rakefiles are more than I need and less than I want
+X  get rid of the bundler/gem crap
+  don't build the whole thing for a change in a single c file.
+
+/home/ccoupe/Projects/shoes3.1/shoes/dist/ruby/lib/x86_64-linux/rbconfig.rb:9: warning: already initialized constant TOPDIR
+  also line 11 and 205 of rbconfig
+
+Nov 11, 2013 - Conversion to GKT3
+
+conditioned on #ifdef GTK3 so I keep the old code for reference
+
+Several functions (3) are declared static and Gtk-3 complains
+  I don't understand why
+
+Many gtk-3 helper functions replace Macros. Expect seg faults
+  with * and & errors of mine
+
+Fixing errors first. Then fix the deprecations. 
+  widget vbox might be the gtk_get_content_area
+
+Dialogs have the most changes for GTK3. Test them
+
+It compiles and I have link errors. Good. Some are from
+  compiler warnings / deprecations. 

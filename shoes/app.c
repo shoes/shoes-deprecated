@@ -140,9 +140,9 @@ shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner)
   app_t->hidden = (ATTR(attr, hidden) == Qtrue);
   shoes_app_resize(app_t, ATTR2(int, attr, width, SHOES_APP_WIDTH), ATTR2(int, attr, height, SHOES_APP_HEIGHT));
   if (RTEST(ATTR(attr, minwidth)))
-    app_t->minwidth = (ATTR(attr, minwidth) - 1) / 2;
+    app_t->minwidth = (NUM2INT(ATTR(attr, minwidth)) - 1) / 2;
   if (RTEST(ATTR(attr, minheight)))
-    app_t->minheight = (ATTR(attr, minheight) -1) / 2;
+    app_t->minheight = (NUM2INT(ATTR(attr, minheight) -1)) / 2;
   shoes_canvas_init(app_t->canvas, app_t->slot, attr, app_t->width, app_t->height);
   if (shoes_world->mainloop)
     shoes_app_open(app_t, url);
@@ -291,7 +291,7 @@ typedef struct
   VALUE args;
 } shoes_exec;
 
-#ifdef RUBY_1_9
+#ifndef RUBY_1_8
 struct METHOD {
     VALUE oclass;		/* class that holds the method */
     VALUE rklass;		/* class of the receiver */
@@ -334,7 +334,7 @@ shoes_app_run(VALUE rb_exec)
     VALUE vargs[10];
     for (i = 0; i < RARRAY_LEN(exec->args); i++)
       vargs[i] = rb_ary_entry(exec->args, i);
-    return rb_funcall2(exec->block, s_call, RARRAY_LEN(exec->args), vargs);
+    return rb_funcall2(exec->block, s_call, (int)RARRAY_LEN(exec->args), vargs);
   }
 }
 

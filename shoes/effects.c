@@ -5,6 +5,7 @@
 #include "shoes/internal.h"
 #include "shoes/app.h"
 #include "shoes/canvas.h"
+#include "shoes/effects.h"
 #include "shoes/ruby.h"
 #include <math.h>
 
@@ -93,7 +94,27 @@ box_blur(unsigned char *in, unsigned char *out,
     }
   }
 }
-
+#ifdef GTK3
+#define RAW_FILTER_START(place) \
+  int width, height, stride; \
+  guchar *out; \
+  static const cairo_user_data_key_t key; \
+  cairo_surface_t *source = cairo_get_target(cr); \
+  cairo_surface_t *target; \
+  unsigned char *in = cairo_image_surface_get_data(source); \
+  \
+  place->x = place->y = 0; \
+  place->w = width  = cairo_image_surface_get_width(source); \
+  place->h = height = cairo_image_surface_get_height(source); \
+  stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, width); \
+  \
+  out = (guchar *)g_malloc(4 * width * height); \
+  target = cairo_image_surface_create_for_data((unsigned char *)out, \
+    CAIRO_FORMAT_ARGB32, \
+    width, height, stride); \
+  cairo_surface_set_user_data(target, &key, out, (cairo_destroy_func_t)g_free); \
+  unsigned int len = 4 * width * height
+#else
 #define RAW_FILTER_START(place) \
   int width, height, stride; \
   guchar *out; \
@@ -113,6 +134,7 @@ box_blur(unsigned char *in, unsigned char *out,
     width, height, 4 * width); \
   cairo_surface_set_user_data(target, &key, out, (cairo_destroy_func_t)g_free); \
   unsigned int len = 4 * width * height
+#endif
    
 #define RAW_FILTER_END() \
   cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR); \
@@ -125,8 +147,8 @@ box_blur(unsigned char *in, unsigned char *out,
 void
 shoes_gaussian_blur_filter(cairo_t *cr, VALUE attr, shoes_place *place)
 {
-  float blur_d = ATTR2(dbl, attr, radius, 2.);
-  float blur_x = blur_d, blur_y = blur_d;
+  double blur_d = ATTR2(dbl, attr, radius, 2.);
+  double blur_x = blur_d, blur_y = blur_d;
   RAW_FILTER_START(place);
   if (blur_x < 0 || blur_y < 0)
     return;

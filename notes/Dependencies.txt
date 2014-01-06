@@ -1,0 +1,70 @@
+Dependecies - Deps. (aka deps and DEPS)
+  This an ugly problem for cross compiling. It needs to be more developer
+  friendly if you are going to distribute binaries that work.
+  
+  For a 'build from source' configuration, the deps would be all the
+  apt-get or yum commands to execute before attempting a compile. 
+  build-essential, gtk+-2-dev, curl-dev, jpeg-dev, ...., ruby-1.9.3 
+  These deps could be part of the distribution (a .deb) or as now, just 
+  a list on the website. Whatever is current for the users Linux. 
+  
+  For a binary Shoes distribution, it's more controlled and complex 
+  because of the control. Think of the MingW32 version. It had a crapload
+  of DLL's bundled up in the Shoes install package.  We have to do the
+  same thing for Linux - include the shared libraries that the user might
+  not have or different versions from what he does have.
+  
+  Gtk is an issue here. Gtk2 is not installed on Raspbian, Debian Wheezy(7.1),
+  or Ubuntu 13. Gtk3 is the new normal.  
+  Although the Shoes Gtk3 code has some problems, it is good enough to run
+  many of the samples and if I can't get Gtk3 working, it's all in vain,
+  anyway.
+  
+  So, the cross compiles will only use GTK3 and include libraries for libs
+  the user might not have (requires building ruby, curl, jpeg, ungif from source
+  and for Windows - (Mingw32/64) gobject, glib, many more).  
+  
+  This link explains it better than I.
+  http://www.gtk.org/download/win32.php 
+  
+  Note: For debian based linux, schroot and debootstrap works really
+  well for building a 32 app on a 64 bit system. 
+
+ZLIB ? SSL? 
+  Does Shoes/curl really need this? Disabled in curl for now.
+  
+CURL
+  Then there is libcurl.so  I'd rather not deal with ssl configurations
+  so the curl to be included is pretty damn minimal.  
+  I'm hoping Shoes users won't notice or care.
+  
+RUBY  
+  libruby.so - It really has to be compiled from source if you
+  want to distribute a binary shoes and it has to be compiled correctly.
+  I also had to install libyaml-dev and then build ruby.
+==> Add /usr/lib/i386-linux-gnu/libyaml-0.so.2
+   
+UNGIF - GIF
+  every modern linux has libgif.so and libungif is just a link to it. 
+  Or vice versa. I don't care deeply about old Political Correctness.
+  Copy both of them.  
+
+JPEG 
+  Yes, not every linux has a complete jpeg library. 
+
+GLib, Gobject and it's kinfolk. 
+  It's highly likely that curl is going to depend on Glib (as does Shoes)
+  Pick a version. Build everything against that and include the libraries
+  with shoes, even if you think they aren't needed. Glib has some weird
+  internal versioning mechanism. Don't fight it.
+
+Cairo, Pango & cairoopango
+  Sadly cairo.h is not part of Wheezy bare bones install.
+  Yes, include them because you don't know if the users linux has the 
+  versions we compiled against. 
+  
+Gtk 
+  If I stick with Gtk+-2 then it's libs has to be included. 
+  I wonder if Gtk3 works well enough on Windows for shoes. 
+  
+

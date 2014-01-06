@@ -1,0 +1,346 @@
+Goals for Shoes 3.2 (Federales)
+
+  Ruby 1.9.3 support (2.x.y too?)
+  Gtk3 support
+  Linux only enhancements. No changes for MsWin or OSX
+  Fix gem support. Allow system wide gems to be used or improve
+    Shoes ability to manage its own gems.
+  Packaging - create .deb for shoes, shoes+app+gems
+  Clean up rakefiles
+  Improve cross compilation - specifcally to Raspberry pi
+  
+  SEE Distribution.txt, Packaging.txt Gems-Handling.txt
+
+
+  Added support for GTK3 (incomplete) Set the version in make/linux/env.rb
+!!   Fix draw event handling and clipping.
+
+  Added some support for gdb debugging: use dist/debug instead of dist/shoes
+
+  Builds and runs using Ruby 1.9.1, 1.9.3 and 2.0.0
+    Some samples fail with 1.9.3 and 2.0.0 for constant settings.
+    Some samples fail more with 2.0.0 
+    See below
+
+  Currently doesn't build many extensions or gems - 
+    Takes too long, and way too many warning errors. 
+    AND seriously out of date (sqlite, hpricot, and more)
+    uncomment in make/make.rb as desired.
+
+  Gem handling is out of date. - needs rethinking
+
+  Ruby 1.9.1+ introduced some namespace issues. Shoes constants are now in the
+  Shoes:: namespace. Ruby 1.9.2 or 1.9.3 introduced more namespace changes.
+  Includes the PI constants and Link, LinkHover style settings. 
+  for now, this has to be dealt with by modifying shoes scripts.
+  See samples/simple-accordian.rb, simple-menu.rb, simple-menu1.rb, and others
+  BACKWARD COMPATIBLITY IS BROKEN  (note Ruby 2 breaks thing too)
+
+  Need to fix those console messages about Constants, rbConfig - cache.rb is
+  included by the C startup code. See Startup.txt - comment out require
+  'rbconfig' in cache.rb
+
+  Ruby 2.0.0 and GTK2
+    Note - ruby 2.0.0 spits outs lots Constant complaints on console
+      terminal. 
+    Many things do work. These don't:
+    samples/simple-dialog.rb color selection is just wrong (my GTK2 bug?)
+    samples/simple-download segfaults.
+    samples/simple-rubygems, simple-sqlite3, simple-video won't work
+    samples/expert-definer segfaults (same as simple-download?)
+    samples/expert-funnies requires hpricot - not ported yet
+    samples/othello - namespace issues
+
+===== GTK3 ==== support
+    The big change is "draw" events instead of "expose" events. 
+    Both GTK3 and GTK2 versions exist in gtk.c because I want them side by
+    side to figure out what needs to happen.  make/linux/env.rb can be manually 
+    switched to compile one or another. 
+
+Don't bother trying to separate cairo for Shoes (in C): let Shoes v4
+do that.  The C code is intimately tied to cairo drawing on Shoes canvas and 
+pixel placement of the windows/controls. Shoes performs it's own layout. 
+
+=== Annotated gtk.c ==== (also see native.h)
+
+These are the C fuctions that a "native" GUI wrapper needs to implement.
+I've added the GTK functions (gtk.c) that do implement them 
+along with notable helper functions.
+
+=== Font handling ===
+
+VALUE shoes_font_list(void);
+  calls 
+  static VALUE shoes_make_font_list(FcFontSet *fonts, VALUE ary)
+
+VALUE shoes_load_font(const char *);
+  calls shoes_update_fonts(shoes_font_list());
+
+==== Startup/Quiting/Exceptions ====
+
+void shoes_native_init(void);
+  inits curl and gtk
+
+void shoes_native_cleanup(shoes_world_t *world);
+  closes curl
+
+void shoes_native_quit(void);
+  calls gtk quit
+
+int shoes_throw_message(unsigned int, VALUE, void *);
+
+==== Slots (Flows and Stacks) =====
+
+void shoes_native_slot_mark(SHOES_SLOT_OS *);
+  Does nothing
+void shoes_native_slot_reset(SHOES_SLOT_OS *);
+  Does nothing
+void shoes_native_slot_clear(shoes_canvas *);
+  resets vertical scrollbar if there is one
+  GTK3 mods.
+
+void shoes_native_slot_paint(SHOES_SLOT_OS *);
+  gtk_widget_queue_draw(slot->oscanvas);
+  NEEDS GTK3 MODS OR REVIEW
+
+void shoes_native_slot_lengthen(SHOES_SLOT_OS *, int, int);
+  increases scrollbar range
+  gtk_widget_show or hide 
+
+void shoes_native_slot_scroll_top(SHOES_SLOT_OS *);
+
+int shoes_native_slot_gutter(SHOES_SLOT_OS *);
+  GTK3 mods. returns width of vertical scrollbar.
+
+void shoes_native_remove_item(SHOES_SLOT_OS *, VALUE, char);
+  Does nothing
+
+==== File gtk.c has Gtk EVENT HANDLERS here ====
+
+static gboolean 
+shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) 
+
+static gboolean
+shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, gpointer data)
+
+static gboolean
+shoes_app_gtk_wheel(GtkWidget *widget, GdkEventScroll *event, gpointer data)
+
+static void
+shoes_app_gtk_paint (GtkWidget *widget, GdkEventExpose *event, gpointer data)
+  Sets size of top level window, calls
+  shoes_canvas_size which will call ????
+
+static gboolean
+shoes_app_gtk_keypress (GtkWidget *widget, GdkEventKey *event, gpointer data)
+   GTK3 mod for Backspace
+
+static gboolean
+shoes_app_gtk_quit(GtkWidget *widget, GdkEvent *event, gpointer data)
+  quits things
+
+static void
+shoes_canvas_gtk_paint_children(GtkWidget *widget, gpointer data)
+  GTK3 Mods - it really just handles one child so the name is misleading
+  It sends the draw event to a child. Called from:
+  
+static void
+shoes_canvas_gtk_paint(GtkWidget *widget, cairo_t *cr, gpointer data)
+  GTK3 mods
+  Signal handler was attached to a GtkFixed widget which is associated 
+  with a shoes canvas.
+  Sets up drawing/clipping for widget. calls shoes_canvas_paint
+   (for a slot background e.g)
+  Calls shoes_canvas_gtk_paint_children for each child widget on the slot.
+  
+static void
+shoes_canvas_gtk_size(GtkWidget *widget, GtkAllocation *size, gpointer data)
+  changes size of slot, paying attention to scroll bar settings if there is one
+
+static void
+shoes_canvas_gtk_scroll(GtkRange *r, gpointer data)
+  May trigger repaint of everything by calling
+  shoes_slot_repaint(canvas->app->slot)
+
+static gint                                                           
+shoes_app_g_poll (GPollFD *fds, guint nfds, gint timeout)
+
+shoes_code shoes_app_cursor(shoes_app *, ID);
+  sets cursor
+
+void shoes_native_app_resized(shoes_app *);
+  calls gtk_widget_set_size_request. May be a GTK3 issue.
+
+void shoes_native_app_title(shoes_app *, char *);
+  does as you expect from the name.
+
+void shoes_native_app_fullscreen(shoes_app *, char);
+  does as you expect from the name.
+
+shoes_code shoes_native_app_open(shoes_app *, char *, int);
+  sets up the Top level app window (GTK Window, not widget)
+  attaches these event handlers to the app Window 
+    "size-allocate" -> shoes_app_gtk_paint
+    "motion-notify-event" -> shoes_app_gtk_motion
+    "button-press-event" -> shoes_app_gtk_button
+    "button-release-event" -> shoes_app_gtk_button
+    "scroll-event" -> shoes_app_gtk_wheel
+    "key-press-event" -> shoes_app_gtk_keypress
+    "key-release-event" -> shoes_app_gtk_keypress
+    "delete-event" -> shoes_app_gtk_quit
+
+void shoes_native_app_show(shoes_app *);
+  gtk_widget_show_all(app->os.window);
+
+void shoes_native_loop(void);
+  sets up the polling (see above) with glib and calls gtk_main;
+
+void shoes_native_app_close(shoes_app *);
+  calls shoes_app_gtk_quit
+
+void shoes_browser_open(char *);
+
+  attempts to open browser to a url
+
+====== Slot & Canvas =======
+
+void shoes_slot_init(VALUE, SHOES_SLOT_OS *, int, int, int, int, int, int);
+  A slot has a canvas. Or vice versa. Creates a slot (GtkFixed Widget)
+  Connects event handlers to that Widget which has a shoes canvas
+    "draw" -> shoes_canvas_gtk_paint
+    "size-allocate" -> shoes_canvas_gtk_size
+
+void shoes_slot_destroy(shoes_canvas *, shoes_canvas *);
+
+====== Cairo and canvas =====
+cairo_t *shoes_cairo_create(shoes_canvas *);
+  It does clipping and moving the widget in a container  It's called from 
+    canvas.c:178 shoes_canvas_paint_call()
+    That function goes on to call shoes_canvas_draw() twice, presumable once to 
+    erase and then paint. 
+
+  
+
+void shoes_cairo_destroy(shoes_canvas *);
+  Does nothing ?!?
+
+void shoes_group_clear(SHOES_GROUP_OS *);
+  undo some radio group things
+
+void shoes_native_canvas_place(shoes_canvas *, shoes_canvas *);
+  Some interesting things here. calls gtk_fixed_move and
+  gtk_widget_set_size_request - could trigger a draw event?
+
+void shoes_native_canvas_resize(shoes_canvas *);
+  Does nothing ?!?
+
+Note that canvas.c does a whole lot of cairo calls without going
+through any shoes_native_xxxx 
+
+====== Controls (Widgets) ===== 
+
+shoes_widget_changed(GtkWidget *ref, gpointer data)
+  This is not a function of native.h but it's in gtk.c
+  calls shoes_control_send
+
+void shoes_native_control_hide(SHOES_CONTROL_REF);
+  does the expected gtk call
+
+void shoes_native_control_show(SHOES_CONTROL_REF);
+  does the expected gtk call
+
+void shoes_native_control_position(SHOES_CONTROL_REF, shoes_place *, 
+  VALUE, shoes_canvas *, shoes_place *);
+  Does gtk_widget_set_size_request, gtk_fixed_put, gtk_widget_show_all(ref);
+
+void shoes_native_control_position_no_pad(SHOES_CONTROL_REF, shoes_place *, 
+  VALUE, shoes_canvas *, shoes_place *);
+  Don't have this function in Gtk.c  Assume it's not used by Shoes.
+
+void shoes_native_control_repaint(SHOES_CONTROL_REF, shoes_place *,
+  shoes_canvas *, shoes_place *);
+  Does gtk_fixed_move, gtk_widget_set_size_request
+
+void shoes_native_control_repaint_no_pad(SHOES_CONTROL_REF, shoes_place *,
+  shoes_canvas *, shoes_place *);
+  Don't have this in gtk.c
+
+void shoes_native_control_focus(SHOES_CONTROL_REF);
+   calls gtk_widget_grab_focus
+
+void shoes_native_control_state(SHOES_CONTROL_REF, SHOES_BOOL, SHOES_BOOL);
+   enable/disable text entry?
+
+void shoes_native_control_remove(SHOES_CONTROL_REF, shoes_canvas *);
+   remove control/widget from Slot
+
+void shoes_native_control_free(SHOES_CONTROL_REF);
+    does nothing
+
+SHOES_SURFACE_REF shoes_native_surface_new(shoes_canvas *, VALUE, shoes_place *);
+    return gtk_drawing_area_new()
+
+void shoes_native_surface_position(SHOES_SURFACE_REF, shoes_place *, 
+    VALUE, shoes_canvas *, shoes_place *);
+    calls shoes_native_control_position
+
+void shoes_native_surface_hide(SHOES_SURFACE_REF);
+    calls shoes_native_control_hide
+
+void shoes_native_surface_show(SHOES_SURFACE_REF);
+    calls shoes_native_control_show
+
+void shoes_native_surface_remove(shoes_canvas *, SHOES_SURFACE_REF);
+    calls gtk_container_remove
+
+===== Controls are pretty formulaic from here on =====
+    create the widget, wire it to a signal handler, and code to get or set values.
+
+static gboolean shoes_button_gtk_clicked
+    called from a Gtk for the event.
+    calls shoes_control_send to pass it on.
+
+SHOES_CONTROL_REF shoes_native_button(VALUE, shoes_canvas *, shoes_place *, char *);
+     creates a button, wires the click signal to shoes_button_gtk_clicked
+
+
+SHOES_CONTROL_REF shoes_native_edit_line(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);
+VALUE shoes_native_edit_line_get_text(SHOES_CONTROL_REF);
+void shoes_native_edit_line_set_text(SHOES_CONTROL_REF, char *);
+SHOES_CONTROL_REF shoes_native_edit_box(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);
+VALUE shoes_native_edit_box_get_text(SHOES_CONTROL_REF);
+void shoes_native_edit_box_set_text(SHOES_CONTROL_REF, char *);
+SHOES_CONTROL_REF shoes_native_list_box(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);
+void shoes_native_list_box_update(SHOES_CONTROL_REF, VALUE);
+VALUE shoes_native_list_box_get_active(SHOES_CONTROL_REF, VALUE);
+SHOES_CONTROL_REF shoes_native_progress(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);
+double shoes_native_progress_get_fraction(SHOES_CONTROL_REF);
+void shoes_native_progress_set_fraction(SHOES_CONTROL_REF, double);
+SHOES_CONTROL_REF shoes_native_slider(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);
+double shoes_native_slider_get_fraction(SHOES_CONTROL_REF);
+void shoes_native_slider_set_fraction(SHOES_CONTROL_REF, double);
+SHOES_CONTROL_REF shoes_native_check(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);
+VALUE shoes_native_check_get(SHOES_CONTROL_REF);
+void shoes_native_check_set(SHOES_CONTROL_REF, int);
+void shoes_native_list_box_set_active(SHOES_CONTROL_REF, VALUE, VALUE);
+SHOES_CONTROL_REF shoes_native_radio(VALUE, shoes_canvas *, shoes_place *, VALUE, VALUE);
+
+===== Timers, Misc =====
+void shoes_native_timer_remove(shoes_canvas *, SHOES_TIMER_REF);
+SHOES_TIMER_REF shoes_native_timer_start(VALUE, shoes_canvas *, unsigned int);
+VALUE shoes_native_clipboard_get(shoes_app *);
+void shoes_native_clipboard_set(shoes_app *, VALUE);
+VALUE shoes_native_to_s(VALUE);
+char *shoes_native_to_utf8(VALUE, int *);
+VALUE shoes_native_window_color(shoes_app *);
+
+===== Dialogs ========
+VALUE shoes_native_dialog_color(shoes_app *);
+VALUE shoes_dialog_alert(VALUE, VALUE);
+VALUE shoes_dialog_ask(int argc, VALUE *argv, VALUE self);
+VALUE shoes_dialog_confirm(VALUE, VALUE);
+VALUE shoes_dialog_color(VALUE, VALUE);
+VALUE shoes_dialog_open(int,VALUE*,VALUE);
+VALUE shoes_dialog_save(int,VALUE*,VALUE);
+VALUE shoes_dialog_open_folder(int,VALUE*,VALUE);
+VALUE shoes_dialog_save_folder(int,VALUE*,VALUE);

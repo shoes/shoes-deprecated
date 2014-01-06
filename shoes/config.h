@@ -43,7 +43,6 @@
 #include <gdk/gdkkeysyms.h>
 #include <gdk/gdkx.h>
 #include <curl/curl.h>
-//include <curl/types.h>
 #include <curl/easy.h>
 
 #define SHOES_SIGNAL
@@ -51,8 +50,13 @@
 #define SHOES_EXTERN
 
 typedef struct {
-  GtkWidget *vscroll, *canvas;
+#ifdef GTK3
+  GtkWidget *vscroll, *oscanvas;
+  cairo_t *drawevent;
+#else
+  GtkWidget *vscroll, *oscanvas;
   GdkEventExpose *expose;
+#endif
   int scrolly, scrollh, scrollw;
   void *owner;
 } shoes_slot_gtk, SHOES_SLOT_OS;
@@ -75,7 +79,7 @@ typedef struct {
 #define SHOES_SURFACE_REF GtkWidget *
 #define SHOES_BOOL gboolean
 #define SHOES_TIMER_REF guint
-#define DC(slot) slot->canvas
+#define DC(slot) slot->oscanvas
 #define HAS_DRAWABLE(slot) slot->canvas->window != 0
 #define DRAWABLE(ref) GDK_DRAWABLE_XID(ref->window)
 #define APP_WINDOW(app) (app == NULL ? NULL : GTK_WINDOW(app->os.window))
@@ -150,7 +154,7 @@ typedef struct {
 #include <shellapi.h>
 #include <cairo-win32.h>
 
-#ifdef RUBY_1_9
+#ifndef RUBY_1_8
 #include "ruby/win32.h"
 #else
 #include "win32/win32.h"

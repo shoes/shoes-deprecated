@@ -242,7 +242,7 @@ shoes_queue_download(shoes_http_request *req)
 VALUE
 shoes_http_err(SHOES_DOWNLOAD_ERROR code)
 {
-  char *errorString = [[code localizedDescription] UTF8String];
+  const char *errorString = [[code localizedDescription] UTF8String];
   return rb_str_new2(errorString);
 }
 

@@ -4,26 +4,30 @@
 # The Shoes base app, both a demonstration and the learning tool for
 # using Shoes.
 #
-require 'shoes/encoding'
 
+require_relative 'shoes/cache' # do First thing
 ARGV.delete_if { |x| x =~ /-psn_/ }
+
+class Encoding
+  %w[UTF_7 UTF_16BE UTF_16LE UTF_32BE UTF_32LE].each do |enc|
+    eval "class #{enc};end" unless const_defined? enc.to_sym
+  end
+end
 
 require 'open-uri'
 require 'optparse'
 require 'resolv-replace' if RUBY_PLATFORM =~ /win/
-require 'shoes/inspect'
-require 'shoes/cache'
+require_relative 'shoes/inspect'
 if Object.const_defined? :Shoes
-  require 'shoes/image'
+  require_relative 'shoes/image'
 end
-require 'shoes/shybuilder'
 
 def Shoes.hook; end
 
 class Encoding
- %w[ASCII_8BIT UTF_16BE UTF_16LE UTF_32BE UTF_32LE].each do |ec|
+ %w[ASCII_8BIT UTF_16BE UTF_16LE UTF_32BE UTF_32LE US_ASCII].each do |ec|
    eval "#{ec} = '#{ec.sub '_', '-'}'"
- end unless RUBY_PLATFORM =~ /linux/
+ end unless RUBY_PLATFORM =~ /linux/ or RUBY_PLATFORM =~ /darwin/
 end
 
 class Range 
@@ -41,7 +45,7 @@ unless Time.respond_to? :today
 end
 
 class Shoes
-  RELEASES = %w[Curious Raisins Policeman]
+  RELEASES = %w[Curious Raisins Policeman Federales]
 
   NotFound = proc do
     para "404 NOT FOUND, GUYS!"
@@ -121,6 +125,7 @@ class Shoes
   end
 
   def self.package_app
+    require_relative 'shoes/shybuilder'
     fname = ask_open_file
     return false unless fname
     start_shy_builder fname
@@ -128,7 +133,7 @@ class Shoes
 
   def self.splash
     font "#{DIR}/fonts/Lacuna.ttf"
-    Shoes.app :width => 400, :height => 300, :resizable => false do  
+    Shoes.app :width => 400, :height => 500, :resizable => false do  
       style(Para, :align => "center", :weight => "bold", :font => "Lacuna Regular", :size => 13)
       style(Link, :stroke => yellow, :underline => nil)
       style(LinkHover, :stroke => yellow, :fill => nil)
@@ -151,7 +156,8 @@ class Shoes
         stack do
           background black(0.2), :curve => 8
           para link("Open an App.") { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
-          para link("Package an App.") { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
+          para link("Obsolete: Package my script (shy)") { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
+          para link("Obsolete: Package an App with Shoes") { Shoes.make_pack and close }, :margin => 10, :margin_bottom => 4
           para link("Read the Manual.") { Shoes.show_manual and close }, :margin => 10
         end
         inscription "Alt-Slash opens the console.", :stroke => "#DFA", :align => "center"
@@ -180,8 +186,10 @@ class Shoes
   end
 
   def self.make_pack
-    require 'shoes/pack'
-    Shoes.app(:width => 500, :height => 480, :resizable => true, &PackMake)
+    require 'shoes/packgui'
+    Shoes.app(:width => 500, :height => 480, :resizable => true, &Packshow)
+    #require 'shoes/pack'
+    #Shoes.app(:width => 500, :height => 480, :resizable => true, &PackMake)
   end
 
   def self.manual_p(str, path)

@@ -1,65 +1,58 @@
-EXT_RUBY = File.exists?("deps/ruby") ? "deps/ruby" : Config::CONFIG['prefix']
-
-# use the platform Ruby claims
+# This is for a native build (loose shoes)
+# It is safe and desireable to use RbConfig::CONFIG settings
+#   Will not build gems and most extentions 
+#   Links against system (or rvm) ruby, and libraries. No LD_LIB_PATH
 require 'rbconfig'
 
-CC = ENV['CC'] ? ENV['CC'] : "gcc"
-file_list = ["shoes/*.c"] + %w{shoes/native/gtk.c shoes/http/curl.c}
+# manually set below to what you want to build with/for
+#ENV['DEBUG'] = "true" # turns on the call log in shoes/gtk
+#ENV['GTK'] = "gtk+-3.0" # pick this or the next
+ENV['GTK'] = "gtk+-2.0"
+ENV['GDB'] = "true" # compile -g,  don't strip symbols
+# Pick your optimatization and debugging options
+if ENV['DEBUG'] || ENV['GDB']
+  LINUX_CFLAGS = "-g -O0"
+else
+  LINUX_CFLAGS = "-O -Wall"
+end
+
+# Add the -Defines for shoes code
+LINUX_CFLAGS << " -DRUBY_1_9"
+LINUX_CFLAGS << " -DGTK3" unless ENV['GTK'] == 'gtk+-2.0'
+LINUX_CFLAGS << " -DSHOES_GTK -fPIC -shared"
+# Following line may need handcrafting 
+LINUX_CFLAGS << " -I/usr/include/"
+LINUX_CFLAGS << " #{`pkg-config --cflags #{ENV['GTK']}`.strip}"
+
+CC = "gcc"
+file_list = %w{shoes/native/gtk.c shoes/http/curl.c} + ["shoes/*.c"]
 
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
 end
 
+# Query pkg-config for cflags and link settings
+EXT_RUBY = RbConfig::CONFIG['prefix']
+RUBY_CFLAGS = " #{`pkg-config --cflags #{EXT_RUBY}/lib/pkgconfig/ruby-1.9.pc`.strip}"
+RUBY_LIB = `pkg-config --libs #{EXT_RUBY}/lib/pkgconfig/ruby-1.9.pc`.strip
+CAIRO_CFLAGS = `pkg-config --cflags cairo`.strip
+CAIRO_LIB = `pkg-config --libs cairo`.strip
+PANGO_CFLAGS = `pkg-config --cflags pango`.strip
+PANGO_LIB = `pkg-config --libs pango`.strip
+GTK_FLAGS = "#{`pkg-config --cflags #{ENV['GTK']}`.strip}"
+GTK_LIB = "#{`pkg-config --libs #{ENV['GTK']}`.strip}"
+CURL_LIB = `curl-config --libs`.strip
+MISC_LIB = " -lungif -ljpeg "
+
+# collect flags together
+LINUX_CFLAGS << " #{RUBY_CFLAGS} #{GTK_FLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS}"
+
+# collect link settings together. Does order matter? 
+LINUX_LIBS = "#{RUBY_LIB} #{GTK_LIB} #{CURL_LIB} #{CAIRO_LIB} #{PANGO_LIB} #{MISC_LIB}"
+# the following is only used to link the shoes code with main.o
+LINUX_LDFLAGS = "-L. -rdynamic -Wl,-export-dynamic"
+
+# somebody needs the below Constants
 ADD_DLL = []
-
-# Linux build environment
-CAIRO_CFLAGS = ENV['CAIRO_CFLAGS'] || `pkg-config --cflags cairo`.strip
-CAIRO_LIB = ENV['CAIRO_LIB'] ? "-L#{ENV['CAIRO_LIB']}" : `pkg-config --libs cairo`.strip
-PANGO_CFLAGS = ENV['PANGO_CFLAGS'] || `pkg-config --cflags pango`.strip
-PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
-png_lib = 'png'
-
-if ENV['VIDEO']
-  VLC_CFLAGS = '-I/usr/include/vlc'
-  VLC_LIB = '-llibvlc'
-else
-  VLC_CFLAGS = VLC_LIB = ''
-end
-
-LINUX_CFLAGS = %[-g -Wall -I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{VLC_CFLAGS} -I#{Config::CONFIG['archdir']}]
-if Config::CONFIG['rubyhdrdir']
-  LINUX_CFLAGS << " -I#{Config::CONFIG['rubyhdrdir']} -I#{Config::CONFIG['rubyhdrdir']}/#{RUBY_PLATFORM}"
-end
-
-LINUX_LIB_NAMES = %W[#{RUBY_SO} cairo pangocairo-1.0 ungif]
-
-FLAGS.each do |flag|
-  LINUX_CFLAGS << " -D#{flag}" if ENV[flag]
-end
-
-if ENV['DEBUG']
-  LINUX_CFLAGS << " -g -O0 "
-else
-  LINUX_CFLAGS << " -O "
-end
-LINUX_CFLAGS << " -DRUBY_1_9" if RUBY_1_9
-
 DLEXT = "so"
-LINUX_CFLAGS << " -DSHOES_GTK -fPIC #{`pkg-config --cflags gtk+-2.0`.strip} #{`curl-config --cflags`.strip}"
-LINUX_LDFLAGS =" #{`pkg-config --libs gtk+-2.0`.strip} #{`curl-config --libs`.strip} -fPIC -shared"
-LINUX_LIB_NAMES << 'jpeg'
-LINUX_LIB_NAMES << 'rt'
-
-if ENV['VIDEO']
-  if VLC_0_8
-    LINUX_CFLAGS << " -DVLC_0_8"
-  else
-    LINUX_CFLAGS << " -I/usr/include/vlc/plugins"
-  end
-  LINUX_LIB_NAMES << "vlc"
-end
-
-LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
-
-LINUX_LIBS << " -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB} #{VLC_LIB}"

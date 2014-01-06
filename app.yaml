@@ -1,7 +1,7 @@
 name: Shoes
 version: 3
-release: Policeman
+release: federales
 icons:
   win32: platform/msw/shoes.ico
   osx:   static/Shoes.icns
-  gtk:   static/shoes-icon.png
+  gtk:   static/shoes-icon-federales.png

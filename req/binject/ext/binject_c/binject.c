@@ -3,8 +3,7 @@
 #ifdef RUBY_1_8
 #include <st.h>
 #include <rubyio.h>
-#endif
-#ifdef RUBY_1_9
+#else       /* ifdef RUBY_1_9 */
 #include <ruby/st.h>
 #include <ruby/io.h>
 #endif
@@ -272,7 +271,7 @@ binject_exe_file_size(VALUE obj)
   FILE *fres;
   GetOpenFile(obj, fptr);
   rb_io_check_readable(fptr);
-#ifdef RUBY_1_9
+#ifndef RUBY_1_8
   fres = rb_io_stdio_file(fptr);
   st.st_size = AnotherGetFileSize(fres);
 #else
@@ -328,7 +327,7 @@ binject_exe_file_copy(FILE *file, FILE *out, unsigned int size, unsigned int pos
   fseek(out, mark2, SEEK_SET);
 }
 
-#ifdef RUBY_1_9
+#ifndef RUBY_1_8
 void
 binject_exe_file_copy1(rb_io_t *fptr, FILE *out, unsigned int size, unsigned int pos1, unsigned int pos2, VALUE proc)
 {
@@ -488,7 +487,7 @@ binject_exe_rewrite(binject_exe_t *binj, char *buf, char *out, int offset, int o
               rb_io_t *fptr;
               rdat->Size = binject_exe_file_size(obj);
               GetOpenFile(obj, fptr);
-#ifdef RUBY_1_9
+#ifndef RUBY_1_8
 #ifdef SHOES_MINGW32
               binject_exe_file_copy1(fptr, binj->out, rdat->Size, 0, binj->datapos, binj->proc);
 #else
@@ -570,7 +569,7 @@ binject_exe_load(VALUE self, VALUE file)
   int i, lfanew;
   binject_exe_t *binj;
   Data_Get_Struct(self, binject_exe_t, binj);
-#ifdef RUBY_1_9
+#ifndef RUBY_1_8
   binj->file = fopen(RSTRING_PTR(file), "rb");
 #else
   binj->file = rb_fopen(RSTRING_PTR(file), "rb");
@@ -616,7 +615,7 @@ binject_exe_save(VALUE self, VALUE file)
   char buf[BUFSIZE];
   char buf2[BUFSIZE];
   Data_Get_Struct(self, binject_exe_t, binj);
-#ifdef RUBY_1_9
+#ifndef RUBY_1_8
   binj->out = fopen(RSTRING_PTR(file), "wb");
 #else
   binj->out = rb_fopen(RSTRING_PTR(file), "wb");
@@ -714,7 +713,7 @@ binject_dmg_uncompress(VALUE filename, VALUE volname)
   int pos = 0;
 
   file = (gzFile)gzopen(fname, "rb");
-#ifdef RUBY_1_9
+#ifndef RUBY_1_8
   hfs = fopen(RSTRING_PTR(filename2), "wb");
 #else
   hfs = rb_fopen(RSTRING_PTR(filename2), "wb");

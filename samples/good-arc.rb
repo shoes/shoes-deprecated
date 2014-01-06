@@ -9,7 +9,7 @@ Shoes.app :width => 420, :height => 420, :resizable => false do
 
   animate 40 do |i|
     stage = (1...8).rand if i % 40 == 0
-    rotation = -(HALF_PI / wide)
+    rotation = -(Shoes::HALF_PI / wide)
     clear do
       background gray(240)
       10.times do |i|
@@ -18,7 +18,7 @@ Shoes.app :width => 420, :height => 420, :resizable => false do
         shape do
           arc self.width / 2, self.height / 2,
               size, size,
-              rotation * i, rotation * i + TWO_PI - HALF_PI
+              rotation * i, rotation * i + Shoes::TWO_PI - Shoes::HALF_PI
         end
       end
     end

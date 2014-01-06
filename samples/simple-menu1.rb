@@ -11,8 +11,8 @@ class MenuPanel < Shoes::Widget
 end
 
 Shoes.app :width => 600, :height => 130 do
-  style(Link, :underline => nil)
-  style(LinkHover, :fill => nil, :underline => nil)
+  style(Shoes::Link, :underline => nil)
+  style(Shoes::LinkHover, :fill => nil, :underline => nil)
   
   expand = proc do
     hover do |box|

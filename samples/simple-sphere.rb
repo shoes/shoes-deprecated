@@ -22,7 +22,7 @@ Shoes.app :width => 500, :height => 500, :resizable => false do
     image :top => 150, :left => 40, :width => 320, :height => 260 do
       fill gradient(rgb(0.7, 0.9, 1.0, 0.0), rgb(0.7, 0.9, 1.0, 0.6))
       oval 60, 60, 200, 136
-      blur 20
+      #blur 20
     end
   end
 end

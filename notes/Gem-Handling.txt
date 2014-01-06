@@ -1,0 +1,55 @@
+GEM Management
+
+ Shoes (cache.rb) stuffs it's gem dirs into the $: env variable. It might
+be interesting to contemplate a small (yaml?) file in dist/ that overrides
+these settings with the users choice of gemdirs. There is a ~/.shoes and
+it does contain +gem and +lib directories where 'shoes -g gem install xxxx'
+puts things. It sort of works. Not well, but it works.
+
+It's more confusing. Shoes is pulling libs/gems out of my rvm directories. 
+HUH? I only talked about that, I don't remember doing anything about it!
+Why isn't shoes self contained? Env Vars? Might explain the multiple
+console messages about attempting to set Constants twice with rbconfig.rb
+RVM induced love for lost Ruby?
+
+I wrote a Shoes script 'info-startup.rb' that displays/logs the startup
+Ruby environment. It works in my Shoes/Ruby-1.9.1 and Shoes/Ruby-1.9.3
+and it shows that shoes embedded ruby (1.9.1 or 1.9.3) is finding the rvm
+libraries/gems. Fortunately, it's finding the right ones but it shouldn't
+be poking around in rvm or system rubys. 
+
+I suspect GEM_PATH and/or PATH is the env var that needs cleaning up in
+cache.rb. For my purposes its a feature, not a bug. A feature to enable 
+after it's no longer a bug. I can also see how this might be a problem
+for cross compiled Shoes (mingw or Pi/armel)
+
+Fixed: set GEM_PATH to GEM_DIR - stops loading gems from rvm rubies. 
+
+Still loading some ruby stuff from rvm dirs.
+===>  Right at the top of shoes.rb, the $" list points to rvm so it
+   it's something in shell ENV or where ruby looks at init. Well before
+   cache.rb can patch/hack things. Can't be fixed by patching shoes
+   rbconfig - I think it's compiled in 
+   
+====> Indeed I tried linking shoes to the dist/libruby.so and it still
+  grabs from the .rvm  ruby. Need to build my own ruby. 
+====> See CrossCompiling.txt
+   
+====> Rakefile uses rbconfig settings for linking against the installed
+  ruby instead of the target ruby.
+ 
+
+
+Want to get rid of the shoes/setup.rb stuff for gems eventually and
+manage the gems with a purpose build shoes app.
+
+Fixed: Someone loads shy.rb - shoes.rb is a little too agressive. 
+  Minor problem unless your cpu/disk is really slow. Still it ought
+  not to. 
+
+There is no Ruby versioning for ~/.shoes/gem+ For example Shoes will
+try to load serialport.so and whine about libruby1.8. As it should.
+
+
+  shoes/setup.rb also requires rubygems and rubygems/dependecies-installer
+one or both of those includes rbconfig and I don't want that.

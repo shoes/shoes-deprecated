@@ -82,17 +82,17 @@ shoes_world_free(shoes_world_t *world)
     SHOE_FREE(world);
 }
 
-#ifdef RUBY_1_9
+#ifndef RUBY_1_8
 int
 shoes_ruby_embed()
 {
   VALUE v;
   char *argv[] = {"ruby", "-e", "1"};
-  int sysinit_argc = 0;
+
   char**  sysinit_argv = NULL;
   RUBY_INIT_STACK;
 #ifdef SHOES_WIN32
-  ruby_sysinit( &sysinit_argc, &sysinit_argv );
+  ruby_sysinit(0, 0);
 #endif
   ruby_init();
   v = (VALUE)ruby_options(3, argv);
@@ -190,7 +190,12 @@ shoes_start(char *path, char *uri)
     SHOES_BUFSIZE,
     "begin;"
       "DIR = File.expand_path(File.dirname(%%q<%s>));"
-      "$:.replace([DIR+'/ruby/lib/'+RUBY_PLATFORM, DIR+'/ruby/lib', DIR+'/lib', '.']);"
+#ifdef OLD_SHOES
+      "$:.replace([DIR+'/ruby/lib/'+(ENV['SHOES_RUBY_ARCH'] || RUBY_PLATFORM), DIR+'/ruby/lib', DIR+'/lib', '.']);"
+#else
+      "$:.unshift(DIR+'/lib');"
+      "$:.unshift('.');"
+#endif
       "require 'shoes';"
       "DIR;"
     "rescue Object => e;"
