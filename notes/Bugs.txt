@@ -1,8 +1,26 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out. 
+
+2014-01-06 MinGW 
+    Plan A is to not use a (s)chroot for dependencies.  I may use
+    rake-compiler to build ruby. Or not. 
+    
+    I also plan to use Gtk3/Windows instead of _why's windows code. (or
+    gkt2 or both). That will make for a larger download but the benefits
+    are large (when it works).  Might even convince the OSX folks to try
+    compiling Shoes3.2 with Gtk3/osx. 
+    
+    A cross compiled Gtk3(windows-32bit) test program works on Win7(64) VM
+    AND with wine. See CrossCompiling.txt. I know a cross compiled Ruby
+    can be made to work and curl is an speed bump but the dream of 
+    cross compiling Shoes for Windows (with gtk3) seems very achievable. 
+    
+ 
   
-2014-01-05
-    Before I go crazy on the MinGW stuff, I should 'get right' with git.  
+2014-01-05  MinGW, Github
+DONE: Before I go crazy on the MinGW stuff, I should 'get right' with git.
+    Moved a bunch of stuff around and generated a massive commit. As far
+    as I care, github is current. I promise to commit more often. 
 
 2014-01-04  MinGW
     Fired up the Win7/64 VM and install Msys/MinGE, RubyInstaller (32)
@@ -11,7 +29,8 @@ Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
     
 DONE: Install or build latest version of Wine. Ubuntu is pretty far
     behind - 1.4. Will have to configure Wine properly. I expect some
-    trouble. Installed 1.6 via ppa update. It's kind of interesting. 
+    trouble. Installed 1.6 via ppa update.  
+    I got Adobe Digital Editions installed in wine. 
     
 DONE: Sadly, rubyinstaller built Ruby w/o the load-relative that shoes
     needs. I'll attempt to cross compile it. Ruby/Windows has it own
@@ -20,7 +39,6 @@ DONE: Sadly, rubyinstaller built Ruby w/o the load-relative that shoes
 --> It does cross compile but I need some dep libs/headers/defs
     See CrossCompiling.txt
     
-DONE: Install cross compiler from synaptic/apt. 
  
 2013-12-31 Cross Compile (pi)
     Hacked away at extconf.rb for chipmunk and ftsearch extentions so

@@ -1,5 +1,33 @@
 Cross Compiling Shoes and neccesary libs.
 
+2014-01-06 MinGW
+    Once again, I need to choose between elegant and easier. schroot 
+    really does work well for Linux. You can find instructions on the
+    net for setting up a chroot for Windows cross compiling. It's not
+    that easy and I'm not sure it's maintainable. Not sure it isn't.
+    
+    The easy way is to try using rake-compiler to build the Windows ruby
+    (and convince it to load-relative). I can download the Gtk3 bundle
+    which includes most of the .dll that shoes wants and it's only a 
+    small matter of blood, sweat and tear to create the Shoes make/env.rb
+    and task.rb. Right?
+    
+    And then there is curl.
+    
+    unzip gtk+-bundle_3.6.4-20130921_win32.zip in /srv/chroot/mingw32
+    Oh Crap. That didn't take long.  Check the Readme.
+    pkg-config needs cleaning in the shoes build.  Sigh.
+    WTF is this module path and cache stuff? Must consult the internet.
+    http://www.tarnyko.net/en/?q=node/45
+    OK. that sed script is going to walk over the ruby I built (might be
+    ok and I need to rebuild it anyway) and the win7 stuff I copied. Move
+    them to /home/cross/xmingw32 in case I need them. I'd rather get good
+    with Gtk3 first. 
+    
+    ccoupe@bronco:/srv/chroot/mingw32$ find -name '*.pc' | while read pc; do sed -e "s@^prefix=.*@prefix=$PWD@" -i "$pc"; done
+    ccoupe@bronco:/srv/chroot/mingw32$ PKG_CONFIG_PATH=/srv/chroot/mingw32/lib/pkgconfig/
+
+
 2014-01-04 Mingw - The madness begins.
 
 Ubuntu installed mingw cross compilers are mingw-64 (gcc-4.6.3??)
