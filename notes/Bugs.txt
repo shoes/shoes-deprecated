@@ -1,5 +1,50 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out. 
+  
+2014-01-08 MinGW
+    Curl vs http/win*.c. We don't use curl or pthreads. Need to do
+    Change some timer defs in gtk.c & config.h,
+    
+    How much of the Windows init/close stuff has to be done 
+    for a Gtk3 Windows app. In gtk.c:101 is
+    int shoes_throw_message(unsigned int name, VALUE obj, void *data)
+--> Need to populate the ruby/lib dir
+--> Copy the deps -- see Gtk.org list
+--> Build ext's. Ickk! ldflags, LIBS are wrong in generated Makefile.
+--> Resources, icons and what not
+--> NSIS app packager. 
+--> If it works, then I need to do much tighter integration with Gkt3 
+    and windows/glib.
+  
+2014-01-07 MinGW
+    So Gtk3 works well enough. 
+    Rake-compiler? - no joy same problems as my cross compile.
+--> I'm going to ignore the missing Ruby ext/s for now.
+DONE: Build minimal curl. Really should handle gnutls and openssl.
+    Did I remember shoes/windows doesn't use curl. No, I did remember.
+Fixed:  can't find -lc ?? -- always use --host and --build when cross
+    compiling.
+    Modify the xmingw32 rake files.
+      where is ruby-1.9.pc? It's not created by ruby/mingw cross compile?
+      I edited the one from Windows and it's likely to be wrong for linking
+--> Copied libyaml.dll from the Rubyinstaller. Need to build my own.
+    Modified config.h to not include gdk/gdkx if Windows. Added 
+     -DSHOES_GTK_WIN32 to env.rb and an #ifndef to config.h
+Done: Dies in image.c looking for gif_lib.h
+-->  Does any shoes-er use gif? We should scrap it. If someone did the
+     hard work in image.c. Put this on the futures list. For now, I'll 
+     cross compile libgif. Grrr. Complains about missing xmlto tool. 
+     Make install works and the compile continues.
+Done Dies in world.c. Now it gets challenging mixing GTK and Windows
+     Expect issues with app.c and kin.
+     Hack Alert! search for SHOES_GTK_WIN32. Don't use SIGQUIT in
+     world.c.  Expect to undo and redo this several times. It compiles.
+Done  Dies linking libshoes.so. I predicted that, earlier.  Link 
+     libshoes with -lmsvcrt-ruby191.
+     Dies linking because gtk.c wants pthreads.  
+-->  I should add all the cjc-xxx-cfg.sh scripts to git.
+-->  Recompile one of linux variants to make sure I didn't break anything 
+     with the mingw changes. 
 
 2014-01-06 MinGW 
     Plan A is to not use a (s)chroot for dependencies.  I may use

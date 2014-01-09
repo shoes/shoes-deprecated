@@ -41,10 +41,11 @@
 #ifdef SHOES_GTK
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
+#ifndef SHOES_GTK_WIN32
 #include <gdk/gdkx.h>
 #include <curl/curl.h>
 #include <curl/easy.h>
-
+#endif
 #define SHOES_SIGNAL
 #define SHOES_INIT_ARGS void
 #define SHOES_EXTERN
@@ -78,14 +79,22 @@ typedef struct {
 #define SHOES_CONTROL_REF GtkWidget *
 #define SHOES_SURFACE_REF GtkWidget *
 #define SHOES_BOOL gboolean
+#ifdef SHOES_GTK_WIN32
+#define SHOES_TIMER_REF long
+#define SHOES_TIME DWORD
+#define SHOES_DOWNLOAD_HEADERS LPWSTR
+#define SHOES_DOWNLOAD_ERROR DWORD
+#else
 #define SHOES_TIMER_REF guint
+#define SHOES_TIME struct timespec
+#define SHOES_DOWNLOAD_HEADERS struct curl_slist *
+#define SHOES_DOWNLOAD_ERROR CURLcode
+#endif
 #define DC(slot) slot->oscanvas
 #define HAS_DRAWABLE(slot) slot->canvas->window != 0
 #define DRAWABLE(ref) GDK_DRAWABLE_XID(ref->window)
 #define APP_WINDOW(app) (app == NULL ? NULL : GTK_WINDOW(app->os.window))
-#define SHOES_TIME struct timespec
-#define SHOES_DOWNLOAD_HEADERS struct curl_slist *
-#define SHOES_DOWNLOAD_ERROR CURLcode
+
 #endif
 
 //

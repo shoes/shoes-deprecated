@@ -11,8 +11,10 @@
 #include "shoes/internal.h"
 
 #include <fontconfig/fontconfig.h>
+#ifndef SHOES_GTK_WIN32
 #include <curl/curl.h>
 #include <pthread.h>
+#endif
 
 #define GTK_CHILD(child, ptr) \
   GList *children = gtk_container_get_children(GTK_CONTAINER(ptr)); \
@@ -72,13 +74,17 @@ shoes_load_font(const char *filename)
 
 void shoes_native_init()
 {
+#ifndef SHOES_GTK_WIN32
   curl_global_init(CURL_GLOBAL_ALL);
+#endif
   gtk_init(NULL, NULL);
 }
 
 void shoes_native_cleanup(shoes_world_t *world)
 {
+#ifndef SHOES_GTK_WIN32
   curl_global_cleanup();
+#endif
 }
 
 void shoes_native_quit()
@@ -86,6 +92,16 @@ void shoes_native_quit()
   gtk_main_quit();
 }
 
+
+#ifdef SHOES_GTK_WIN32
+// For Gtk3/Windows  some things are in shoes/http/winhttp.c
+// and some were copied from shoes/native/windows.c
+int shoes_throw_message(unsigned int name, VALUE obj, void *data)
+{
+//  return SendMessage(shoes_world->os.hidden, SHOES_WM_MESSAGE + name, obj, (LPARAM)data);
+}
+
+#else
 void shoes_get_time(SHOES_TIME *ts)
 {
   clock_gettime(CLOCK_REALTIME, ts);
@@ -143,6 +159,7 @@ int shoes_throw_message(unsigned int name, VALUE obj, void *data)
   free(msg);
   return ret;
 }
+#endif
 
 void shoes_native_slot_mark(SHOES_SLOT_OS *slot) {}
 void shoes_native_slot_reset(SHOES_SLOT_OS *slot) {}

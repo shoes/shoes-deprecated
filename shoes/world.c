@@ -107,7 +107,9 @@ shoes_init(SHOES_INIT_ARGS)
 {
 #ifdef SHOES_SIGNAL
   signal(SIGINT,  shoes_sigint);
+#ifndef SHOES_GTK_WIN32
   signal(SIGQUIT, shoes_sigint);
+#endif
 #endif
   shoes_ruby_embed();
   shoes_ruby_init();

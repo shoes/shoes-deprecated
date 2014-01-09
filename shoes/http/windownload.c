@@ -13,6 +13,9 @@
 #include <shellapi.h>
 #include <wchar.h>
 #include <time.h>
+#ifdef SHOES_GTK_WIN32
+#include <winhttp.h>
+#endif
 
 void
 shoes_download(shoes_http_request *req)

@@ -1,110 +1,187 @@
-require File.expand_path('make/make')
+module Make
+  include FileUtils
+
+  def copy_files_to_dist
+    puts "copy_files_to_dist dir=#{pwd}"
+    if ENV['APP']
+      if APP['clone']
+        sh APP['clone'].gsub(/^git /, "#{GIT} --git-dir=#{ENV['APP']}/.git ")
+      else
+        cp_r ENV['APP'], "#{TGT_DIR}/app"
+      end
+      if APP['ignore']
+        APP['ignore'].each do |nn|
+          rm_rf "dist/app/#{nn}"
+        end
+      end
+    end
+
+    cp_r "fonts", "#{TGT_DIR}/fonts"
+    cp   "lib/shoes.rb", "#{TGT_DIR}/lib"
+    cp_r "lib/shoes", "#{TGT_DIR}/lib"
+    cp_r "samples", "#{TGT_DIR}/samples"
+    cp_r "static", "#{TGT_DIR}/static"
+    cp   "README.md", "#{TGT_DIR}/README.txt"
+    cp   "CHANGELOG", "#{TGT_DIR}/CHANGELOG.txt"
+    cp   "COPYING", "#{TGT_DIR}/COPYING.txt"
+  end
+
+  def cc(t)
+    sh "#{CC} -I. -c -o#{t.name} #{LINUX_CFLAGS} #{t.source}"
+  end
+
+  # Subs in special variables
+  def rewrite before, after, reg = /\#\{(\w+)\}/, reg2 = '\1'
+    File.open(after, 'w') do |a|
+      File.open(before) do |b|
+        b.each do |line|
+          a << line.gsub(reg) do
+            if reg2.include? '\1'
+              reg2.gsub(%r!\\1!, Object.const_get($1))
+            else
+              reg2
+            end
+          end
+        end
+      end
+    end
+  end
+
+  def copy_files glob, dir
+    FileList[glob].each { |f| cp_r f, dir }
+  end
+
+  #  Windows cross compile.  Copy the ruby libs
+  #  Then copy the deps.
+  def pre_build
+    puts "pre_build dir=#{`pwd`}"
+    mkdir_p "#{TGT_DIR}/lib"
+    cp_r "#{EXT_RUBY}/lib/ruby", "#{TGT_DIR}/lib"
+    SOLOCS.each_value do |path|
+      cp "#{path}", "#{TGT_DIR}"
+    end
+ end
+
+  # common_build is a misnomer. Builds extentions, gems
+  def common_build
+    puts "common_build dir=#{pwd} #{SHOES_TGT_ARCH}"
+    #mkdir_p "#{TGT_DIR}/ruby"
+    #cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "#{TGT_DIR}/ruby/lib"
+    %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
+      FileList[rdir].each { |rlib| cp_r rlib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}" }
+    end
+    %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
+    #%w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
+      each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_TGT_ARCH}" }
+
+    gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
+    {}.each do |gemn, xdir|
+    #{'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
+      spec = eval(File.read("req/#{gemn}/gemspec"))
+      mkdir_p "#{gdir}/specifications"
+      mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
+      FileList["req/#{gemn}/lib/*"].each { |rlib| cp_r rlib, "#{gdir}/gems/#{spec.full_name}/lib" }
+      mkdir_p "#{gdir}/gems/#{spec.full_name}/#{xdir}"
+      FileList["req/#{gemn}/ext/*"].each { |elib| copy_ext elib, "#{gdir}/gems/#{spec.full_name}/#{xdir}" }
+      cp "req/#{gemn}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
+    end
+  end
+
+  # Check the environment
+  def env(x)
+    unless ENV[x]
+      abort "Your #{x} environment variable is not set!"
+    end
+    ENV[x]
+  end
+end
+
 
 include FileUtils
 
-class MakeXMinGW
+class MakeLinux
   extend Make
 
   class << self
-    # Execute shell calls through bash if we are compiling with mingw. This breaks us
-    # out of the windows command shell if we are compiling from there.
-    #def sh(*args)
-    #  cmd = args.join(' ')
-    #  super "bash.exe --login -i -c \"#{cmd}\""
-    #end
-
-    # a lot happens here. Ruby is called to build Makefiles
-    # and the ext is compiled and then copied into Shoes libdir
-    # I attempt to get the makefiles created using the cross compiler
-    # values by copying rbconfig.rb and deleteing it later.
-    # also I'm going to use a separate xextconf.rb. The extra arg is
-    # the cross environment's headers directory.
     def copy_ext xdir, libdir
-      cp "#{XRUBYLIB}/i386-mingw32/rbconfig.rb", "#{xdir}"
       Dir.chdir(xdir) do
-        sh "ruby -I. xextconf.rb #{XDEPABS}; make"
+        unless system "ruby", "extconf.rb" and system "make"
+          raise "Extension build failed"
+        end
       end
-      rm "#{xdir}/rbconfig.rb"
       copy_files "#{xdir}/*.so", libdir
     end
 
+    # FIXME - depends on setting in env.rb - should be a setting in
+    # crosscompile file written by :linux:setup:xxxx but it isn't.
+    def find_and_copy thelib, newplace
+      tp = "#{TGT_SYS_DIR}usr/lib/#{thelib}"
+      if File.exists? tp
+        cp tp, newplace
+      else
+        puts "Can't find library #{tp}"
+      end
+    end
+
     def copy_deps_to_dist
-      # First copy that msvcrt-ruby191.dll from where it lives
-      dlls = ["msvcrt-ruby191"]
-      dlls += IO.readlines("make/xmingw/dlls").map{|dll| dll.chomp}
-      dlls.each{|dll| cp "#{XDEPABS}/bin/#{dll}.dll", "dist/"}
-      cp "dist/zlib1.dll", "dist/zlib.dll"
-      Dir.glob("../deps_cairo*/*"){|file| cp file, "dist/"}
-      #sh "strip -x dist/*.dll" unless ENV['DEBUG']
+      puts "copy_deps_to_dist dir=#{pwd}"
+      #pre_build task copied this
+      #cp    "#{::EXT_RUBY}/lib/lib#{::RUBY_SO}.so", "dist/lib#{::RUBY_SO}.so"
+      #ln_s  "lib#{::RUBY_SO}.so", "#{TGT_DIR}/lib#{::RUBY_SO}.so.#{::RUBY_V[/^\d+\.\d+/]}"
+      #find_and_copy "libportaudio.so", "#{TGT_DIR}/libportaudio.so.2"
+      #find_and_copy  "libsqlite3.so", "#{TGT_DIR}/libsqlite3.so.0"
+      unless ENV['GDB']
+        sh    "strip -x #{TGT_DIR}/*.so.*"
+        sh    "strip -x #{TGT_DIR}/*.so"
+      end
     end
-    
+
     def setup_system_resources
-      cp APP['icons']['gtk'], "dist/static/app-icon.png"
+      cp APP['icons']['gtk'], "#{TGT_DIR}/static/app-icon.png"
     end
-
-    def make_resource(t)
-      sh "#{XTOOLS}windres -I. #{t.source} #{t.name}"
-    end
-
+ 
+    # name {TGT_DIR}/shoes
     def make_app(name)
-      bin = name+'.exe'
+      puts "make_app dir=#{pwd} arg=#{name}"
+      bin = "#{name}.exe"
+      rm_f name
       rm_f bin
-      #sh "#{CC} -Ldist -o #{bin} bin/main.o shoes/appwin32.o #{LINUX_LIBS} -lshoes #{Config::CONFIG['LDFLAGS']} -mwindows"
-      sh "#{CC} -Ldist -o #{bin} bin/main.o shoes/appwin32.o -L#{XLIB} #{LINUX_LIBS} -lshoes  -mwindows"
-      cp "platform/msw/shoes.exe.manifest", "dist/#{NAME}.exe.manifest"
+      sh "#{CC} -o #{bin} bin/main.o  -L#{TGT_DIR} -mwindows -lshoes #{LINUX_LIBS}"
     end
 
     def make_so(name)
-      ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
+      puts "make_so dir=#{pwd} arg=#{name}"
+      #ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
       sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
 
     def make_installer
-      # assumes you have NSIS installed on your box in the system PATH
-      def sh(*args); super; end
       mkdir_p "pkg"
-      rm_rf "dist/nsis"
-      cp_r  "platform/msw", "dist/nsis"
-      cp APP['icons']['win32'], "dist/nsis/setup.ico"
-      rewrite "dist/nsis/base.nsi", "dist/nsis/#{NAME}.nsi"
-      Dir.chdir("dist/nsis") do
-        #sh "\"#{env('NSIS')}\\makensis.exe\" #{NAME}.nsi"
-        sh "makensis #{NAME}.nsi"
-      end
-      mv "dist/nsis/#{PKG}.exe", "pkg"
+      sh "makeself #{TGT_DIR} pkg/#{PKG}.run '#{APPNAME}' ./#{NAME}"
     end
-
-    # override make/make.rb
-    def common_build
-      # copy the Ruby standard libs (like complex.rb, time.rb)
-      mkdir_p "dist/ruby"
-      cp_r  "#{XRUBYLIB}", "dist/ruby/lib"
-      unless ENV['STANDARD']
-        %w[soap wsdl xsd].each do |libn|
-          rm_rf "dist/ruby/lib/#{libn}"
-        end
-      end
-      # copy the ftsearch and rake Ruby code in Shoes to /dist/ruby/lib
-      %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
-        FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
-      end
-      mkdir_p "dist/ruby/lib/i386-mingw32"
-      # Now compile the extenstions that have C code
-      %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
-        each { |xdir| copy_ext xdir, "dist/ruby/lib/i386-mingw32" }
-      # Now we have the Gems that Shoes includes
-      # NOTE! If the gem (not an extension has a .so/dll/dyld library 
-      # then that shared lib has to be copied into dist/shoes/ Think Sqlite3!
-      gdir = "dist/ruby/gems/#{RUBY_V}"
-      {'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
-        spec = eval(File.read("req/#{gemn}/gemspec"))
-        mkdir_p "#{gdir}/specifications"
-        mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
-        FileList["req/#{gemn}/lib/*"].each { |rlib| cp_r rlib, "#{gdir}/gems/#{spec.full_name}/lib" }
-        mkdir_p "#{gdir}/gems/#{spec.full_name}/#{xdir}"
-        FileList["req/#{gemn}/ext/*"].each { |elib| copy_ext elib, "#{gdir}/gems/#{spec.full_name}/#{xdir}" }
-        cp "req/#{gemn}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
-      end
+    
+    # Remember, this is for the Raspberry pi. Just tar up the xarmv6-pi
+    # dir and sftp it to the pi for testing
+    def make_userinstall
+      sh "tar -cf xarmv6-pi.tar xarmv6-pi"
+      #user = ENV['USER']
+      #home = ENV['HOME']
+      #hdir = "#{home}/.shoes/#{RELEASE_NAME}"
+      #mkdir_p hdir
+      #sh "cp -r #{TGT_DIR}/* #{hdir}"
+      #File.open("Shoes-tight.desktop",'w') do |f|
+      #  f << "[Desktop Entry]\n"
+      # f << "Name=Shoes\n"
+      #  f << "Exec={hdir}/#{TGT_DIR}/shoes\n"
+      #  f << "StartupNotify=true\n"
+      #  f << "Terminal=false\n"
+      #  f << "Type=Application\n"
+      #  f << "Icon={hdir}/#{TGT_DIR}/static/app-icon.png\n"
+      #  f << "Categories=Programming\n"
+      #end
+      #puts "Please copy the 'Shoes-.desktop' to /usr/share/applications"
+      #puts "Or wherever your Linux desktop manager requires. You many need to sudo"
+      #puts "Edit the file if you like."
     end
   end
 end

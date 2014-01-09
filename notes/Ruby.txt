@@ -1,4 +1,11 @@
 Ruby issues 
+Cross Compiling Ruby for MinGW (32 bit)
+  Rake-compiler is no better or worse than my process. 
+  I need to point to the includes and libs from the Gtk3 install
+--> That picked up iconv and zlib. Still missing dbm, ffi, gdbm, openssl,
+  pysch/yaml. There are bin/<x>.dll for those with the Rubyinstaller ruby
+  
+  Why does the dbm test take so long?
 
 Cross Compiling Ruby for Raspberry pi (raspbian) 
 Approach 1
