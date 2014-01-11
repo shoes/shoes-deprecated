@@ -43,11 +43,16 @@
 #include <gdk/gdkkeysyms.h>
 #ifndef SHOES_GTK_WIN32
 #include <gdk/gdkx.h>
+#endif
 #include <curl/curl.h>
 #include <curl/easy.h>
-#endif
+
 #define SHOES_SIGNAL
+#ifdef SHOES_GTK_WIN32
+#define SHOES_INIT_ARGS  HINSTANCE inst, int style
+#else
 #define SHOES_INIT_ARGS void
+#endif
 #define SHOES_EXTERN
 
 typedef struct {
@@ -72,6 +77,10 @@ typedef struct {
 } shoes_app_gtk, SHOES_APP_OS;
 
 typedef struct {
+#ifdef SHOES_GTK_WIN32
+  HINSTANCE instance;
+  int style;
+#endif
   int nada;
 } shoes_world_gtk, SHOES_WORLD_OS;
 
@@ -81,14 +90,14 @@ typedef struct {
 #define SHOES_BOOL gboolean
 #ifdef SHOES_GTK_WIN32
 #define SHOES_TIMER_REF long
-#define SHOES_TIME DWORD
-#define SHOES_DOWNLOAD_HEADERS LPWSTR
-#define SHOES_DOWNLOAD_ERROR DWORD
+#define SHOES_TIME gint64
+#define SHOES_DOWNLOAD_HEADERS struct curl_slist *
+#define SHOES_DOWNLOAD_ERROR CURLcode
 #else
 #define SHOES_TIMER_REF guint
 #define SHOES_TIME struct timespec
-#define SHOES_DOWNLOAD_HEADERS struct curl_slist *
-#define SHOES_DOWNLOAD_ERROR CURLcode
+#define SHOES_DOWNLOAD_HEADERS LPWSTR
+#define SHOES_DOWNLOAD_ERROR DWORD
 #endif
 #define DC(slot) slot->oscanvas
 #define HAS_DRAWABLE(slot) slot->canvas->window != 0

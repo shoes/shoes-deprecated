@@ -132,8 +132,12 @@ shoes_download(shoes_http_request *req)
   cdata->total = 0;
   cdata->handler = req->handler;
   cdata->data = req->data;
+#ifdef  SHOES_GTK_WIN32
+  cdata->last = 0;
+#else
   cdata->last.tv_sec = 0;
   cdata->last.tv_nsec = 0;
+#endif
   cdata->status = 0;
   cdata->curl = curl;
   cdata->body = NULL;

@@ -10,6 +10,9 @@
 #include "shoes/internal.h"
 #ifdef SHOES_SIGNAL
 #include <signal.h>
+#ifdef SHOES_GTK_WIN32
+#define SHOES_WIN32  // For this file.
+#endif
 
 void
 shoes_sigint()

@@ -12,6 +12,9 @@
 #ifdef __APPLE__
 #include <crt_externs.h>
 #endif
+#ifdef SHOES_GTK_WIN32
+#define SHOES_WIN32
+#endif
 
 #ifdef SHOES_WIN32
 int WINAPI

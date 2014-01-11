@@ -1,5 +1,9 @@
 Cross Compiling Shoes and neccesary libs.
 
+2014-01-07 MinGW
+    rake-compiler produces a ruby with the same missing modules as my
+    cross compiled ruby. I'll stick with mine.
+
 2014-01-06 MinGW
     Once again, I need to choose between elegant and easier. schroot 
     really does work well for Linux. You can find instructions on the
@@ -25,8 +29,36 @@ Cross Compiling Shoes and neccesary libs.
     with Gtk3 first. 
     
     ccoupe@bronco:/srv/chroot/mingw32$ find -name '*.pc' | while read pc; do sed -e "s@^prefix=.*@prefix=$PWD@" -i "$pc"; done
-    ccoupe@bronco:/srv/chroot/mingw32$ PKG_CONFIG_PATH=/srv/chroot/mingw32/lib/pkgconfig/
+    ccoupe@bronco:/srv/chroot/mingw32$ export PKG_CONFIG_PATH=/srv/chroot/mingw32/lib/pkgconfig/
+    
+    cd to your test program and compile it:
+    
+    ccoupe@bronco:~/Projects/shoes3.2/gtk3-setup$ i686-w64-mingw32-gcc gtktest.c -o gtktest.exe `pkg-config --cflags --libs gtk+-3.0`^C
+    ccoupe@bronco:~/Projects/shoes3.2/gtk3-setup$ file gtktest.exe 
+    gtktest.exe: PE32 executable (console) Intel 80386, for MS Windows
+    ccoupe@bronco:~/Projects/shoes3.2/gtk3-setup$ ./gtktest.exe 
+    err:module:import_dll Library libgobject-2.0-0.dll (which is needed by L"Z:\\home\\ccoupe\\Projects\\shoes3.2\\gtk3-setup\\gtktest.exe") not found
+    err:module:import_dll Library libgtk-3-0.dll (which is needed by L"Z:\\home\\ccoupe\\Projects\\shoes3.2\\gtk3-setup\\gtktest.exe") not found
+    err:module:LdrInitializeThunk Main exe initialization for L"Z:\\home\\ccoupe\\Projects\\shoes3.2\\gtk3-setup\\gtktest.exe" failed, status c0000135
 
+    That's because I haven't told Wine to install gkt3 nor have I bundled 
+    my exe into a dir with all the dll's like shoes would do. Lets make a
+    bundle.
+    ccoupe@bronco:~/Projects/shoes3.2/gtk3-setup$ mkdir win32
+    ccoupe@bronco:~/Projects/shoes3.2/gtk3-setup$ cp gtktest.exe win32/
+    ccoupe@bronco:~/Projects/shoes3.2/gtk3-setup$ cp /srv/chroot/mingw32/bin/*.dll win32/
+    ccoupe@bronco:~/Projects/shoes3.2/gtk3-setup$ cd win32/
+    ccoupe@bronco:~/Projects/shoes3.2/gtk3-setup/win32$ ./gtktest.exe 
+p11-kit: couldn't load module: /usr/lib/i386-linux-gnu/pkcs11/p11-kit-trust.so: /usr/lib/i386-linux-gnu/pkcs11/p11-kit-trust.so: cannot open shared object file: No such file or directory
+p11-kit: couldn't load module: /usr/lib/i386-linux-gnu/pkcs11/gnome-keyring-pkcs11.so: /usr/lib/i386-linux-gnu/pkcs11/gnome-keyring-pkcs11.so: cannot open shared object file: No such file or directory
+Gtk-Message: Failed to load module "overlay-scrollbar"
+    It works! There is a window with all the right buttons that works
+    correctly. This ia big deal. Obviously I don't have gtk3:i386 completely 
+    configured (pkcs11 - what the hell is that) and the overlay-scrollbar
+    is a gtk3/x86_64 mod of my theme. That always fail to load in my i386
+    apps. I copied that app dir to my Windows 7 VM. It Works. 
+    
+   
 
 2014-01-04 Mingw - The madness begins.
 

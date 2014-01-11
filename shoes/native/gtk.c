@@ -13,8 +13,9 @@
 #include <fontconfig/fontconfig.h>
 #ifndef SHOES_GTK_WIN32
 #include <curl/curl.h>
-#include <pthread.h>
 #endif
+#include <pthread.h>
+
 
 #define GTK_CHILD(child, ptr) \
   GList *children = gtk_container_get_children(GTK_CONTAINER(ptr)); \
@@ -94,13 +95,21 @@ void shoes_native_quit()
 
 
 #ifdef SHOES_GTK_WIN32
-// For Gtk3/Windows  some things are in shoes/http/winhttp.c
-// and some were copied from shoes/native/windows.c
-int shoes_throw_message(unsigned int name, VALUE obj, void *data)
+int
+shoes_win32_cmdvector(const char *cmdline, char ***argv)
 {
-//  return SendMessage(shoes_world->os.hidden, SHOES_WM_MESSAGE + name, obj, (LPARAM)data);
+  return rb_w32_cmdvector(cmdline, argv);
 }
 
+void shoes_get_time(SHOES_TIME *ts)
+{
+	*ts = g_get_monotonic_time();  // Should work for GTK3 w/o win32
+}
+
+unsigned long shoes_diff_time(SHOES_TIME *start, SHOES_TIME *end)
+{
+  return *end - *start;
+}
 #else
 void shoes_get_time(SHOES_TIME *ts)
 {
@@ -119,6 +128,7 @@ unsigned long shoes_diff_time(SHOES_TIME *start, SHOES_TIME *end)
   }
   return usec;
 }
+#endif
 
 typedef struct {
   unsigned int name;
@@ -159,7 +169,6 @@ int shoes_throw_message(unsigned int name, VALUE obj, void *data)
   free(msg);
   return ret;
 }
-#endif
 
 void shoes_native_slot_mark(SHOES_SLOT_OS *slot) {}
 void shoes_native_slot_reset(SHOES_SLOT_OS *slot) {}

@@ -38,7 +38,6 @@ ENV['TGT_RUBY_V'] = '1.9.1'
 pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-1.9.pc"
 pkggtk ="#{uldir}/pkgconfig/#{ENV['GTK']}.pc" 
 # where is curl (lib,include)
-# Actually, we use curl. 
 curlloc = "#{CHROOT}/usr/local"
 CURL_LDFLAGS = `pkg-config --libs #{curlloc}/lib/pkgconfig/libcurl.pc`.strip
 CURL_CFLAGS = `pkg-config --cflags #{curlloc}/lib/pkgconfig/libcurl.pc`.strip
@@ -117,7 +116,7 @@ LINUX_LDFLAGS << `pkg-config --libs "#{pkggtk}"`.strip+" "
 RUBY_LDFLAGS = "-Wl,-export-all-symbols "
 RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lmsvcrt-ruby191 "
 
-LINUX_LDFLAGS << " -lwinhttp -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 "
+LINUX_LDFLAGS << " -lpthread -lwinhttp -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 "
 
 LINUX_LIBS = " -L/usr/lib "
 LINUX_LIBS << LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
@@ -128,7 +127,7 @@ LINUX_LIBS << " #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} "
 # but for now make a hash of all the dep libs that need to be copied.
 # and their location. This should be used in pre_build instead of 
 # copy_deps_to_dist, although either would work. 
-
+# Reference: http://www.gtk.org/download/win32_contentlist.php
 SOLOCS = {}
 SOLOCS['ruby'] = "#{EXT_RUBY}/bin/msvcrt-ruby191.dll"
 SOLOCS['curl'] = "#{curlloc}/bin/libcurl-4.dll"
@@ -136,19 +135,32 @@ SOLOCS['curl'] = "#{curlloc}/bin/libcurl-4.dll"
 SOLOCS['gif'] = "#{ulbin}/libgif-4.dll"
 SOLOCS['jpeg'] = "#{bindll}/libjpeg-9.dll"
 SOLOCS['libyaml'] = "#{bindll}/libyaml-0-2.dll"
-if ENV['GTK'] == 'gtk+-2.0' && COPY_GTK == true
-  SOLOCS['gtk2'] = "#{ularch}/libgtk-x11-2.0.so.0"
-  SOLOCS['gdk2'] = "#{ularch}/libgdk-x11-2.0.so.0"
-  SOLOCS['atk'] = "#{ularch}/libatk-1.0.so.0"
-  SOLOCS['gio'] = "#{ularch}/libgio-2.0.so.0"
-  SOLOCS['pangoft2'] = "#{ularch}/libpangoft2-1.0.so.0"
-  SOLOCS['pangocairo'] = "#{ularch}/libpangocairo-1.0.so.0"
-  SOLOCS['gdk_pixbuf'] = "#{ularch}/libgdk_pixbuf-2.0.so.0"
-  SOLOCS['cairo'] = "#{ularch}/libcairo.so.2"
-  SOLOCS['pango'] = "#{ularch}/libpango-1.0.so.0"
-  SOLOCS['freetype'] = "#{ularch}/libfreetype.so.6"
-  SOLOCS['fontconfig'] = "#{ularch}/libfontconfig.so.1"
-  SOLOCS['pixman'] = "#{ularch}/libpixman-1.so.0"
-  SOLOCS['gobject'] = "#{ularch}/libgobject-2.0.so.0"
-  SOLOCS['glib'] = "#{larch}/libglib-2.0.so.0"
+if ENV['GTK'] == 'gtk+-3.0' && COPY_GTK == true
+  SOLOCS['atk'] = "#{bindll}/libatk-1.0-0.dll"
+  SOLOCS['cairo'] = "#{bindll}/libcairo-2.dll"
+  SOLOCS['cairo-gobj'] = "#{bindll}/libcairo-gobject-2.dll"
+  SOLOCS['ffi'] = "#{bindll}/libffi-6.dll"
+  SOLOCS['fontconfig'] = "#{bindll}/libfontconfig-1.dll"
+  SOLOCS['freetype'] = "#{bindll}/libfreetype-6.dll"
+  SOLOCS['gdkpixbuf'] = "#{bindll}/libgdk_pixbuf-2.0-0.dll"
+  SOLOCS['gdk3'] = "#{bindll}/libgdk-3-0.dll"
+  SOLOCS['gio'] = "#{bindll}/libgio-2.0-0.dll"
+  SOLOCS['glib'] = "#{bindll}/libglib-2.0-0.dll"
+  SOLOCS['gmodule'] = "#{bindll}/libgmodule-2.0-0.dll"
+  SOLOCS['gobject'] = "#{bindll}/libgobject-2.0-0.dll"
+  SOLOCS['gtk3'] = "#{bindll}/libgtk-3-0.dll"
+  SOLOCS['iconv'] = "#{bindll}/libiconv-2.dll"
+  SOLOCS['intl8'] = "#{bindll}/libintl-8.dll"
+  SOLOCS['pango'] = "#{bindll}/libpango-1.0-0.dll"
+  SOLOCS['pangocairo'] = "#{bindll}/libpangocairo-1.0-0.dll"
+  SOLOCS['pangoft'] = "#{bindll}/libpangoft2-1.0-0.dll"
+  SOLOCS['pango32'] = "#{bindll}/libpangowin32-1.0-0.dll"
+  SOLOCS['pixman'] = "#{bindll}/libpixman-1-0.dll"
+  SOLOCS['png15'] = "#{bindll}/libpng15-15.dll"
+  SOLOCS['xml2'] = "#{bindll}/libxml2-2.dll"
+  SOLOCS['pthread'] = "#{bindll}/pthreadGC2.dll"
+  SOLOCS['zlib1'] = "#{bindll}/zlib1.dll"
+  SOLOCS['lzma'] = "#{bindll}/liblzma-5.dll"
+  SOLOCS['pthreadGC2'] = "#{bindll}/pthreadGC2.dll"
+  SOLOCS['pthread'] = "/usr/i686-w64-mingw32/lib/libwinpthread-1.dll"
 end

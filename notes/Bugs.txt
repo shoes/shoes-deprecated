@@ -1,16 +1,57 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out. 
   
+2014-01-10
+   After looking at ruby code win32/win32.c I can see that I'm 
+   not going to converted that to pthreads.  It's also very clear
+   that code needs to be initialized the way Shoes/windows does not and
+   not the simple gtk way (in fact, both are needed).
+   
+   May run afoul of threading problems. See note about deprecated:
+   https://developer.gnome.org/gdk3/stable/gdk3-Threads.html
+   
+--> Why does bin/main.skel get copied to bin/main.c for every rake?
+
+--> I'm getting a Wine graphical "page fault" display. That's kind of
+   good. 
+   WinMain bin/main.c:88 ->
+   shoes_init world.c:117 ->
+   shoes_ruby_embed world.c:98 ->
+   ruby_sysinit ruby.c:1872 ->
+   rb_w32_sysinit win32/win32.c:680 ->
+   rb_w32_cmdvector win32/win32.c:1638  ptr to zero.
+   
+2014-01-09
+   I get a seg fault running shoes.exe in wine:
+   <internal:gem_prelude>:1: [BUG] Segmentation fault
+--> gdb is not setup to work properly with wine loaded code.
+   
+-->I'm re-learning more than I want about mkmf.rb. HACKED it so it
+   works just well enough to compile and link. I'm not proud.
+   Really need to use the TGT's rbconfig in extconf and my rakefiles.
+   
+--> Ruby/Mingw doesn't --enable-load-relative . Might not matter if Z:
+    is set correctly? But What do I know? 
+    
+--> Ruby/MingW DOES NOT use pthread. This is a problem.  Could be. Likely.
+    Not getting that far yet?
+   
+
 2014-01-08 MinGW
     Curl vs http/win*.c. We don't use curl or pthreads. Need to do
-    Change some timer defs in gtk.c & config.h,
+    Changed some timer defs in gtk.c & config.h, Many #if were added.
     
-    How much of the Windows init/close stuff has to be done 
-    for a Gtk3 Windows app. In gtk.c:101 is
+--> How much of the Windows init/close stuff has to be done 
+    for a Gtk3 Windows app? In gtk.c:101 is
     int shoes_throw_message(unsigned int name, VALUE obj, void *data)
---> Need to populate the ruby/lib dir
---> Copy the deps -- see Gtk.org list
---> Build ext's. Ickk! ldflags, LIBS are wrong in generated Makefile.
+DONE: Need to populate the lib/ruby/ dir
+DONE: Copy the deps -- see Gtk.org list
+DONE: GTK3 requires pthreads - can I build ruby to match?
+    in theory, yes --enable-pthread in cjc-ruby-cfg.sh. 
+    Which means I should be able to use pthread.h and friends in gtk.c
+    which means I could use curl instead of shoes/http/win*.c  and
+    undo many changes I made to gtk.c
+DONE: Build ext's. Ickk! ldflags, LIBS are wrong in generated Makefile.
 --> Resources, icons and what not
 --> NSIS app packager. 
 --> If it works, then I need to do much tighter integration with Gkt3 
