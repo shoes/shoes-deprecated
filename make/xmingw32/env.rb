@@ -29,6 +29,7 @@ bindll = "#{TGT_SYS_DIR}bin"
 ulbin = "#{TGT_SYS_DIR}usr/local/bin"
 # Set appropriately (in my PATH, or use abs)
 CC = "i686-w64-mingw32-gcc"
+WINDRES = "i686-w64-mingw32-windres"
 # These ENV vars are used by the extconf.rb files (and tasks.rb)
 ENV['SYSROOT']=CHROOT
 ENV['CC']=CC
@@ -37,7 +38,8 @@ ENV['TGT_ARCH'] = SHOES_TGT_ARCH
 ENV['TGT_RUBY_V'] = '1.9.1'
 pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-1.9.pc"
 pkggtk ="#{uldir}/pkgconfig/#{ENV['GTK']}.pc" 
-# where is curl (lib,include)
+# where is curl (lib,include) Can be commented since we don't use curl
+# for MinGW
 curlloc = "#{CHROOT}/usr/local"
 CURL_LDFLAGS = `pkg-config --libs #{curlloc}/lib/pkgconfig/libcurl.pc`.strip
 CURL_CFLAGS = `pkg-config --cflags #{curlloc}/lib/pkgconfig/libcurl.pc`.strip

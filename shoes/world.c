@@ -95,10 +95,13 @@ shoes_ruby_embed()
   char**  sysinit_argv = NULL;
   RUBY_INIT_STACK;
 #ifdef SHOES_WIN32
-  ruby_sysinit(0, 0);
+  //ruby_sysinit(0, 0);
 #endif
+  printf("starting ruby_init\n");
   ruby_init();
+  printf("back from ruby_init\n");
   v = (VALUE)ruby_options(3, argv);
+  printf("back from ruby_options\n");
   return !FIXNUM_P(v);
 }
 #else
@@ -108,6 +111,7 @@ shoes_ruby_embed()
 shoes_code
 shoes_init(SHOES_INIT_ARGS)
 {
+  printf("starting shoes_init\n");
 #ifdef SHOES_SIGNAL
   signal(SIGINT,  shoes_sigint);
 #ifndef SHOES_GTK_WIN32
@@ -115,13 +119,17 @@ shoes_init(SHOES_INIT_ARGS)
 #endif
 #endif
   shoes_ruby_embed();
+  printf("back from shoes_ruby_embed\n");
   shoes_ruby_init();
+  printf("back from shoes_ruby_init\n");
   shoes_world = shoes_world_alloc();
 #ifdef SHOES_WIN32
   shoes_world->os.instance = inst;
   shoes_world->os.style = style;
 #endif
   shoes_native_init();
+  printf("back from shoes_native_init\n");
+
   rb_const_set(cShoes, rb_intern("FONTS"), shoes_font_list());
   return SHOES_OK;
 }

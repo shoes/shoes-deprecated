@@ -1,16 +1,53 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out. 
-  
+2014-01-11
+   Whoa! On a whim I copied the Windows Shoes directory to my Win 7 VM
+   It Works - sort of. If I select open an app, it complains that there
+   are no GSettings installed. True. It then croaks gracefully. I could
+   browse the manual and bring up the console. Left alone the slash screen
+   eventually gets a 'not repsonding' message.  Good news, bad news. 
+   Good: Gtk3 mostly works on Shoes/Windows. The Wine deadlock is partially
+   a wine issue. Bad news - the bugs above. I'm not ruling out thread
+   problems under windows either. 
+   
+--> Restore the init seq back to ruby first, then gtk. See if thats better
+   or worse in Windows. 
+--> Figure out the GSetting stuff.
+--> Do the packaging thing. 
+
+   Figure out the winedbg. Won't help debug threading though.
+   
+   world.c -- don't do the sysinit(0,0) it's already been called
+   Now I have a thread blocking problem. Looks like the same problem
+   that stumped me two years ago using native windows gui.
+err:ntdll:RtlpWaitForCriticalSection section 0x116838 "?" wait timed out in thread 0009, blocked by 0000, retrying (60 sec)
+err:ntdll:RtlpWaitForCriticalSection section 0x116838 "?" wait timed out in thread 0009, blocked by 0000, retrying (60 sec)
+^C
+(shoes.exe:8): Gtk-CRITICAL **: gtk_main_quit: assertion `main_loops != NULL' failed
+
+--> VERY IMPORTANT CLUE:  Gtk caught the ^C. So Gdk/Glib is running
+  (or trying to). I think Gtk needs to start it's threading before ruby
+  does it's threads. The doc is clear about Gtk and the main thread.  
+  Shouldn't be a problem to init the gui(s) earlier (he says) except for 
+  the legacy --ruby <args> processing. AFIK, thats to handle Shoes.setup
+  which I don't need. Who wants to bet there is a Ruby.thread(shell shoes?)
+  that will burn my ass later. 
+--> That didn't help. still hangs as above.  Some instrumenting printfs
+   and it's hanging in   v = (VALUE)ruby_options(3, argv);, called from
+   shoes_ruby_embed. 
+
+
 2014-01-10
    After looking at ruby code win32/win32.c I can see that I'm 
-   not going to converted that to pthreads.  It's also very clear
-   that code needs to be initialized the way Shoes/windows does not and
+   not going to convert that to pthreads.  It's also very clear
+   that code needs to be initialized the way Shoes/windows does and
    not the simple gtk way (in fact, both are needed).
    
    May run afoul of threading problems. See note about deprecated:
    https://developer.gnome.org/gdk3/stable/gdk3-Threads.html
    
 --> Why does bin/main.skel get copied to bin/main.c for every rake?
+   to rewrite %defaults% - who uses that? Hackety? 
 
 --> I'm getting a Wine graphical "page fault" display. That's kind of
    good. 
@@ -19,7 +56,15 @@ Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
    shoes_ruby_embed world.c:98 ->
    ruby_sysinit ruby.c:1872 ->
    rb_w32_sysinit win32/win32.c:680 ->
-   rb_w32_cmdvector win32/win32.c:1638  ptr to zero.
+   rb_w32_cmdvector win32/win32.c:1638  ptr to zero. 
+   
+   Not that rb_w32_cmdvector can be called (additionally, first?) from
+   gtk.c I suspect the windows startup is buggy. Ya think? Time to see
+   what works (in the ruby code, it's got to do the start up for ruby.exe)
+   or maybe dig up some working shoes code from long ago. Perhaps my
+   changes with #ifndef RUBY_1_8 was incorrect for windows (ya think?)
+   
+   
    
 2014-01-09
    I get a seg fault running shoes.exe in wine:
@@ -84,7 +129,7 @@ Done  Dies linking libshoes.so. I predicted that, earlier.  Link
      libshoes with -lmsvcrt-ruby191.
      Dies linking because gtk.c wants pthreads.  
 -->  I should add all the cjc-xxx-cfg.sh scripts to git.
--->  Recompile one of linux variants to make sure I didn't break anything 
+Done: Recompile one of linux variants to make sure I didn't break anything 
      with the mingw changes. 
 
 2014-01-06 MinGW 

@@ -154,16 +154,12 @@ class MakeLinux
       #ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
       sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
+   
 
-    def make_installer
-      mkdir_p "pkg"
-      sh "makeself #{TGT_DIR} pkg/#{PKG}.run '#{APPNAME}' ./#{NAME}"
-    end
-    
     # Remember, this is for the Raspberry pi. Just tar up the xarmv6-pi
     # dir and sftp it to the pi for testing
     def make_userinstall
-      sh "tar -cf xarmv6-pi.tar xarmv6-pi"
+      #sh "tar -cf xarmv6-pi.tar xarmv6-pi"
       #user = ENV['USER']
       #home = ENV['HOME']
       #hdir = "#{home}/.shoes/#{RELEASE_NAME}"
@@ -183,5 +179,29 @@ class MakeLinux
       #puts "Or wherever your Linux desktop manager requires. You many need to sudo"
       #puts "Edit the file if you like."
     end
+    
+ 
+    def make_resource(t)
+      puts "make resource"
+    end
+
+    
+    def make_installer
+      # assumes you have NSIS installed on your box in the system PATH
+      # def sh(*args); super; end
+      puts "make_installer #{`pwd`}"
+      sh "#{WINDRES} -I. shoes/appwin32.rc shoes/appwin32.o"
+      mkdir_p "pkg"
+      rm_rf "#{TGT_DIR}/nsis"
+      cp_r  "platform/msw", "#{TGT_DIR}/nsis"
+      cp APP['icons']['win32'], "#{TGT_DIR}/nsis/setup.ico"
+      rewrite "#{TGT_DIR}/nsis/base.nsi", "#{TGT_DIR}/nsis/#{NAME}.nsi"
+      Dir.chdir("#{TGT_DIR}/nsis") do
+        #sh "\"#{env('NSIS')}\\makensis.exe\" #{NAME}.nsi"
+        sh "makensis #{NAME}.nsi"
+      end
+      mv "#{TGT_DIR}/nsis/#{PKG}.exe", "pkg"
+    end
+
   end
 end

@@ -91,13 +91,13 @@ typedef struct {
 #ifdef SHOES_GTK_WIN32
 #define SHOES_TIMER_REF long
 #define SHOES_TIME gint64
-#define SHOES_DOWNLOAD_HEADERS struct curl_slist *
-#define SHOES_DOWNLOAD_ERROR CURLcode
+#define SHOES_DOWNLOAD_HEADERS LPWSTR
+#define SHOES_DOWNLOAD_ERROR DWORD
 #else
 #define SHOES_TIMER_REF guint
 #define SHOES_TIME struct timespec
-#define SHOES_DOWNLOAD_HEADERS LPWSTR
-#define SHOES_DOWNLOAD_ERROR DWORD
+#define SHOES_DOWNLOAD_HEADERS struct curl_slist *
+#define SHOES_DOWNLOAD_ERROR CURLcode
 #endif
 #define DC(slot) slot->oscanvas
 #define HAS_DRAWABLE(slot) slot->canvas->window != 0

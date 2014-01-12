@@ -139,6 +139,7 @@ typedef struct {
   int ret;
 } shoes_gtk_msg;
 
+
 static gboolean 
 shoes_gtk_catch_message(gpointer user) {
   shoes_gtk_msg *msg = (shoes_gtk_msg *)user;
@@ -149,6 +150,7 @@ shoes_gtk_catch_message(gpointer user) {
   return FALSE;
 }
 
+// Only called by image.c (Failure to download?)
 int shoes_throw_message(unsigned int name, VALUE obj, void *data)
 {
   int ret;

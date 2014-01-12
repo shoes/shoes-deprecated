@@ -102,10 +102,6 @@ when /linux/
     when /xmingw32/
       require File.expand_path('make/xmingw32/env')
       require File.expand_path('make/xmingw32/tasks')
-
-      rule ".o" => ".rc" do |t|
-        MakeXMinGW.make_resource t
-      end
     else
       puts "Unknown builder for #{TGT_ARCH}, removing setting"
       rm_rf "crosscompile" if File.exists? "crosscompile"
