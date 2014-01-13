@@ -106,8 +106,8 @@ LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/local/include "
 
 #LINUX_CFLAGS << " #{CAIRO_CFLAGS} #{PANGO_CFLAGS} "
  
-
-
+# I don't think the line below belongs in this file. 
+cp APP['icons']['win32'], "shoes/appwin32.ico"
 
 LINUX_LIB_NAMES = %W[gif jpeg]
 

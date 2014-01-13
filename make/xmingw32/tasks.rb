@@ -60,6 +60,11 @@ module Make
     SOLOCS.each_value do |path|
       cp "#{path}", "#{TGT_DIR}"
     end
+    # do some windows things
+    mkdir_p "#{TGT_DIR}/share/glib-2.0/schemas"
+    cp  "#{TGT_SYS_DIR}share/glib-2.0/schemas/gschemas.compiled" ,
+      "#{TGT_DIR}/share/glib-2.0/schemas"
+    sh "#{WINDRES} -I. shoes/appwin32.rc shoes/appwin32.o"
  end
 
   # common_build is a misnomer. Builds extentions, gems
@@ -146,7 +151,7 @@ class MakeLinux
       bin = "#{name}.exe"
       rm_f name
       rm_f bin
-      sh "#{CC} -o #{bin} bin/main.o  -L#{TGT_DIR} -mwindows -lshoes #{LINUX_LIBS}"
+      sh "#{CC} -o #{bin} bin/main.o shoes/appwin32.o -L#{TGT_DIR} -mwindows -lshoes #{LINUX_LIBS}"
     end
 
     def make_so(name)
@@ -190,7 +195,6 @@ class MakeLinux
       # assumes you have NSIS installed on your box in the system PATH
       # def sh(*args); super; end
       puts "make_installer #{`pwd`}"
-      sh "#{WINDRES} -I. shoes/appwin32.rc shoes/appwin32.o"
       mkdir_p "pkg"
       rm_rf "#{TGT_DIR}/nsis"
       cp_r  "platform/msw", "#{TGT_DIR}/nsis"
