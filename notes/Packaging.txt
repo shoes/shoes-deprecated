@@ -1,5 +1,45 @@
 Packaging
 
+Almost as important as proper icons ;^) is a proper version naming scheme. 
+Although I have said app/script packaging with embedded shoes is not likely
+to ever work again, I do want a versioning scheme that would work better 
+if I ever did get around to fixing that.  I've had years to think about
+such a scheme and some recent battle scars with gnu triplets. 
+
+So, package file names will have the following structure 
+  shoes-{cute-name}-{gr}{rn}-{arch}.{ext}
+  
+  {cute-name} is 'federales'. The next C release (3.3) is 'walkabout'
+  {gr} is 'gtk2' or 'gtk3' - the graphics frameworks needed to be installed or 
+     included. 'swt' or 'qt5'for shoes4?
+  {rn} is shoes release type and release number. See below.
+  {arch} 'x86_64', 'i386', 'arme6abhif' 'i586', etc. 'JRuby'?
+  {ext} 'deb', 'rpm', 'exe', 'tgz', 'jar'. The container format.
+
+{arch} is taken from what gcc and/or ruby reports (RUBY_PLATFORM?) 
+it could be one of gnu's triplets with an extra hypthen. The important 
+part in my mind is that it's the last freeform string before the period
+and there is fixed number of '-' to get there.  Think split('-'). 
+
+{rn} is release number. r1540 would be something Red Shoes might produce.
+but a1 or b3 (alpha and beta) wouldn't be out of place.
+
+Of course it all depends on convincing fpm to package that way. 
+  
+2014-01-15 Switch to better version idenfifiers. Begin packaging Shoes
+--> Restore the git based version number to the rakefile when packaging
+    but not when just building - I build a lot and checking git takes too
+    long, (even longer when 'the webs' is down).
+--> Figure out fpm and how to do what I want.
+--> Package the source dist? 
+--> install gkt2 in x86_64 chroot. Build. Package. Try including the GTK2
+--> install gkt2 in i386 chroot. Build. Package
+--> install gtk2 in rasp. chroot. Build. Package
+--> install gtk2 for windows. Build. Package (include Gtk2 of course)
+
+
+--- older ---
+
   For pack.rb: separate the Module pack and the shoes gui into two files.
     lib/shoes/packfed.rb and lib/shoes/packgui.rb - Removed references/code for Shy.
     Kept the original pack.rb which mixes it all up, for reference if nothing else

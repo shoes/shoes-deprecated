@@ -108,6 +108,7 @@ when /linux/
     end
   else
      # This is Loose Shoes setup
+     #TGT_DIR = "dist"
      require File.expand_path('make/linux/env')
      require File.expand_path('make/linux/tasks')
   end
@@ -131,7 +132,7 @@ task :build_os => [:build_skel, "#{TGT_DIR}/#{NAME}"]
 
 task "shoes/version.h" do |t|
   File.open(t.name, 'w') do |f|
-    f << %{#define SHOES_RELEASE_ID #{RELEASE_ID}\n#define SHOES_RELEASE_NAME "#{RELEASE_NAME}"\n#define SHOES_REVISION #{REVISION}\n#define SHOES_BUILD_DATE #{Time.now.strftime("%Y%m%d")}\n#define SHOES_PLATFORM "#{SHOES_RUBY_ARCH}"\n}
+    f << %{#define SHOES_RELEASE_ID #{RELEASE_ID}\n#define SHOES_RELEASE_NAME "#{RELEASE_NAME}"\n#define SHOES_REVISION #{REVISION}\n#define SHOES_BUILD_DATE "#{Time.now.strftime("%Y%m%d")}"\n#define SHOES_PLATFORM "#{SHOES_RUBY_ARCH}"\n}
     if CROSS  
       f << '#define SHOES_STYLE "TIGHT_SHOES"'
     else
@@ -140,6 +141,7 @@ task "shoes/version.h" do |t|
   end
 end
 
+# Left for historical reasons (aka OSX)
 task "#{TGT_DIR}/VERSION.txt" do |t|
   File.open(t.name, 'w') do |f|
     f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION}) [#{SHOES_RUBY_ARCH} Ruby#{RUBY_V}]}
@@ -196,12 +198,23 @@ end
 
 # first refactor ; build calls platform namespaced build;
 # for now, each of those calls the old build method.
-task :old_build => [:pre_build, :build_os, "#{TGT_DIR}/VERSION.txt"] do
+task :old_build => [:pre_build, :build_os] do
   Builder.common_build
   Builder.copy_deps_to_dist
   Builder.copy_files_to_dist
   Builder.setup_system_resources
 end
+
+desc "Install Shoes in your  ~/.shoes Directory"
+task  :install do
+  if CROSS 
+     puts "Sorry. You can't do an install of your source built Shoes"
+     puts "when crosscompiling is setup. Think about the confused children."
+  else
+    Builder.make_userinstall
+  end
+end
+
 
 directory "#{TGT_DIR}"	# was 'dist'
 
@@ -552,13 +565,9 @@ namespace :linux do
     Builder.make_installer
   end
   
-  desc "Install Shoes in your  ~/.shoes Directory"
-  task  :install do
-    Builder.make_userinstall
-  end
 end
 
 # Note the following works: Not pretty but it works
-task "#{TGT_DIR}/libshoes.so" do
-    Builder.make_so  "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
-end
+#task "#{TGT_DIR}/libshoes.so" do
+#   Builder.make_so  "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
+#end

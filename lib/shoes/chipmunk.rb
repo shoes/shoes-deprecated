@@ -1,4 +1,4 @@
-require 'chipmunk'
+require 'chipmunk.so'
 
 module ChipMunk
   def cp_space

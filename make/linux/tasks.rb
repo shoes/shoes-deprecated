@@ -127,19 +127,30 @@ class MakeLinux
       # name is dist/shoes
       rm_f name
       sh "#{CC} -o #{name} bin/main.o dist/shoes.a #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
+      # remove the static lib
+      sh "rm -f #{TGT_DIR}/shoes.a"
    end
 
     # make a static library 
     def make_so(name)
-      puts "FIXME: #{name}"
+      puts "make_so: #{name}"
       name = 'dist/shoes.a'
       sh "ar rc #{name} #{OBJ.join(' ')}"
       sh "ranlib #{name}"
     end
 
     def make_installer
-      mkdir_p "pkg"
-      sh "makeself dist pkg/#{PKG}.run '#{APPNAME}' ./#{NAME}"
+      if !File.exists? "crosscompile" 
+        puts "Sorry, you can't create a binary installer for your Shoes"
+        puts "We can't know where their ruby is installed or how it's" 
+        puts "configured. Rubyies newer than 1.9.1 can hardcode installation information"
+        puts "about where they are installed so they can't be copied to"
+        puts "other systems which is what Shoes does. If your desire is strong"
+        puts "you can set up a cross compiling arrangement. See the notes/"
+        puts "folder"
+      end
+      #mkdir_p "pkg"
+      #sh "makeself dist pkg/#{PKG}.run '#{APPNAME}' ./#{NAME}"
     end
     
     def make_userinstall
@@ -148,19 +159,23 @@ class MakeLinux
       hdir = "#{home}/.shoes/#{RELEASE_NAME}"
       mkdir_p hdir
       sh "cp -r dist/* #{hdir}"
-      File.open("Shoes-loose.desktop",'w') do |f|
+      File.open("Shoes.desktop",'w') do |f|
         f << "[Desktop Entry]\n"
         f << "Name=Shoes\n"
-        f << "Exec=#{hdir}/dist/shoes\n"
+        f << "Exec=#{hdir}/shoes\n"
         f << "StartupNotify=true\n"
         f << "Terminal=false\n"
         f << "Type=Application\n"
-        f << "Icon=#{hdir}/dist/static/app-icon.png\n"
+        f << "Icon=#{hdir}/static/app-icon.png\n"
         f << "Categories=Programming\n"
       end
-      puts "Please copy the 'Shoes-loose.desktop' to /usr/share/applications"
-      puts "Or wherever your Linux desktop manager requires. You many need to sudo"
-      puts "Edit the file if you like."
+      puts "\n ==== NOTE: ====\n"
+      puts "Shoes has been copied to #{hdir}"
+      puts "Please copy the 'Shoes.desktop' to /usr/share/applications"
+      puts "Or wherever your Linux desktop manager requires. You may "
+      puts "need to sudo or be root to do that or create a launcher"
+      puts "with the info in Shoes.desktop"
+      puts "=== Please read above ===="
     end
   end
 end

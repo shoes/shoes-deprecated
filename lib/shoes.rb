@@ -95,8 +95,9 @@ class Shoes
     end
     
     opts.on_tail("-v", "--version", "Display the version info.") do
-      raise SystemExit, File.read("#{DIR}/VERSION.txt").strip
-    end
+      #raise SystemExit, File.read("#{DIR}/VERSION.txt").strip
+      raise SystemExit, "Shoes #{RELEASE_NAME} #{REVISION} #{RELEASE_BUILD_DATE} #{RUBY_PLATFORM} #{RUBY_VERSION}"
+   end
 
     opts.on_tail("-h", "--help", "Show this message") do
       raise SystemExit, opts.to_s

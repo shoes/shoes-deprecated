@@ -151,6 +151,19 @@ class MakeLinux
 
     def setup_system_resources
       cp APP['icons']['gtk'], "#{TGT_DIR}/static/app-icon.png"
+      user = ENV['USER']
+      home = ENV['HOME']
+      hdir = "%home%/.shoes/#{RELEASE_NAME}"
+      File.open("Shoes.desktop",'w') do |f|
+        f << "[Desktop Entry]\n"
+        f << "Name=Shoes\n"
+        f << "Exec={hdir}/shoes\n"
+        f << "StartupNotify=true\n"
+        f << "Terminal=false\n"
+        f << "Type=Application\n"
+        f << "Icon={hdir}/static/app-icon.png\n"
+        f << "Categories=Programming\n"
+      end
     end
  
     # name {TGT_DIR}/shoes
@@ -180,26 +193,10 @@ class MakeLinux
       sh "makeself #{TGT_DIR} pkg/#{PKG}.run '#{APPNAME}' ./#{NAME}"
     end
     
-    # Remember, this is for the Raspberry pi. Just tar up the xarmv6-pi
-    # dir and sftp it to the pi for testing
+
     def make_userinstall
       sh "tar -cf xarmv6-pi.tar xarmv6-pi"
-      #user = ENV['USER']
-      #home = ENV['HOME']
-      #hdir = "#{home}/.shoes/#{RELEASE_NAME}"
-      #mkdir_p hdir
-      #sh "cp -r #{TGT_DIR}/* #{hdir}"
-      #File.open("Shoes-tight.desktop",'w') do |f|
-      #  f << "[Desktop Entry]\n"
-      # f << "Name=Shoes\n"
-      #  f << "Exec={hdir}/#{TGT_DIR}/shoes\n"
-      #  f << "StartupNotify=true\n"
-      #  f << "Terminal=false\n"
-      #  f << "Type=Application\n"
-      #  f << "Icon={hdir}/#{TGT_DIR}/static/app-icon.png\n"
-      #  f << "Categories=Programming\n"
-      #end
-      #puts "Please copy the 'Shoes-.desktop' to /usr/share/applications"
+      #puts "Please copy the 'Shoes.desktop' to /usr/share/applications"
       #puts "Or wherever your Linux desktop manager requires. You many need to sudo"
       #puts "Edit the file if you like."
     end

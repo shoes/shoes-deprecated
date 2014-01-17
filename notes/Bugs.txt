@@ -1,15 +1,88 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
-  out. 
+  out with GKt3
+  
+2014-01-16 Cleanup before packaging experiments
+
+--> Rakefile: task 'install' is only for source builds and task 'package'
+   is only for cross compiled builds. Might screw up MinGW on MinGW 
+   or OSX on OSX, but no one is doing those. 
+   
+--> Try fpm with i386/Gtk2 and debian VM.
+--> Try fpm with x86_64/Gtk2 and Suse VM
+--> Try again to distribute Gkt2.so's in a Linux binary.
+      if require dependencies with fpm doesn't work.
+      Suse, Fedora, Debian.
+--> Do a Gtk2 Windows installer.
+
+done: got rid of VERSION.txt
+  
+2014-01-15  Git and version numbers research
+    VERSION.txt file is incorrect in soo many ways. 
+    I developed a hard on about getting rid of VERSION.txt. It just
+    seems to clutter things up and its only used when processing the
+    command line '-v'  (MacOs doesn't even ask shoes to do that - it
+    uses Version.txt in a shell script to handle -v. 
+Done: New constant Shoes::RELEASE_BUILD_DATE (a string YYYYMMDD)
+Done: Modify shoes.rb to use the constants instead of VERSION.txt
+Done: Remove VERSION.txt rule from Rakefile.
+
+
+    
+--> While researching VERSION I came across this jewel (shoes.rb:447)
+    if RUBY_VERSION =~ /^1\.9/ and !@shy . So much lurking cruft. 
+    1.9.1 is also in cache.rb, rakefiles and god nows what else.
+    
+
+2014-01-14 Get Tight Shoes (aka source build) correct.
+
+    Remember when I said Gtk2 would confuse things. I've changed my mind.
+    I think a working Shoes (Gtk2) is more important than proof of concept
+    See Packaging.txt
+
+Done: Wasted two days chasing the wrong problem.
+    The ruby I copy is hard coded to look in ~/.rvm for rbconfig
+    not the one I copied. 
+    
+Done: shoes/lib/chipmunk.rb - require 'chimpmunk.so' works for Loose Shoes
+    
+    
+Done:  Set jailbreak location to HOME/.shoes/federales (same as user install)
+    
+--> Running info-startup.rb in x86_64 in it's schroot runs into some
+    theme issues (I think). Runs fine if not in the schroot.
+  
+2014-01-13 Loose Shoes (source build)
+
+kindof: require 'chipmunk.so' works but require 'chipmunk' doesn't. 
+    Some sort of namespace issue based on load path? 
+    
+    Rethink Loose Shoes some more. Can't depend on it being load-relative.
+    so we have to copy it and rewrite rbconfig.rb in the copy. 
+    Plan A (I have a lot of plan A's)
+done (1)Move make/linux/* to make/linux/loose for safe keeping. Copy
+    make/x86../files to make/linux and tweek (rewrite and fail)
+    (2) in pre_build we copy the EXT_RUBY and then we link against it.
+Yes   have I mentioned how much I hate these rakefiles? 
+fixed  Does not run chipmunk yet. 
+-->  Theme weirdness Max h and w for info-startup.rb in gtk3 but 
+     not in gtk2
+    (3) add a step to rewrite the (copyied) ruby's rbconfig so it points
+      to where we are building (~/....dist/). DESTDIR or TOPDIR ?
+
+  
 2014-01-12
 
 --> use a Federales Icon for platform/msw/shoes.ico when I get bored. Also 
    figure out how to tame down the nsis progress messages. Damn wordy, that
    
---> Get those missing Ruby ext/libs working on the cross compile.
+--> Get those missing Ruby ext/libs working on the MinGw cross compile.
+    or use the rubyinstaller's libs since ruby on windows doesn't 
+    respect --enable-load-relative nor am I likely to get 
+    --enable-pthread in place of win-threads. 
 
---> Do a simple packaging for Linux.
+--> Do a simple packaging for Linux. fpm?
 
---> Do a Gtk-2 package for Linux? No. It only confuses things.  Same
+--> Do a Gtk-2 binary package for Linux? No. It only confuses things.  Same
    thoughts for a Gtk2-Windows. Fun (perhaps), interesting but lets put
    that in the Plan B file.
    
@@ -18,6 +91,10 @@ Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
        shouldn't screw with installed rubys. It's a hack (that would work)
     (2) copy the libs out of rvm into shoes and hope the duplication 
        doesn't trigger error messages. I kind of think I did that before.
+--> Chipmunk fails. 
+--> The static lib might be the wrong thing to do.
+--> Don't allow a binary package (tight shoes) to be packaged from Loose
+    shoes (ie needs crosscompile file to package)
 
 DONE: Figure out the GSettings for Windows. 
    ccoupe@bronco:/srv/chroot/mingw32$ wine bin/glib-compile-schemas.exe \

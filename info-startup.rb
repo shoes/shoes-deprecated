@@ -1,6 +1,7 @@
 Shoes.app height: 800, width: 800 do
   para "Startup info"
-  para Shoes::RELEASE_NAME
+  para Shoes::RELEASE_NAME+"\n"
+  para Shoes::RELEASE_BUILD_DATE+"\n"
   para Shoes::RELEASE_TYPE+"\n"
   if defined?(ShoesGemJailBreak)
    para "Jailbreak == #{ShoesGemJailBreak}"
@@ -46,7 +47,7 @@ Shoes.app height: 800, width: 800 do
 	  para ct[0].rstrip
 	  @ld2 = edit_box height: 150, width: 0.95, margin: 8
       require 'bigdecimal'
-	  require 'hpricot'
+	  #require 'hpricot'
       if ShoesGemJailBreak
 	    require 'fpm'
         require 'nokogiri'

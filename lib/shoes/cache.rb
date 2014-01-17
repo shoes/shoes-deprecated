@@ -28,12 +28,12 @@ if tight_shoes
   $:.unshift GEM_DIR
   ENV['GEM_HOME'] = GEM_DIR
 else
-  #puts "LOOSE Shoes #{RUBY_VERSION}"
+  #puts "LOOSE Shoes #{RUBY_VERSION} #{DIR}"
   $:.unshift ENV['GEM_HOME'] if ENV['GEM_HOME']
   # FIXME add path for shoes extensions don't hardcode 1.9.1
-  $: << DIR+"/lib/ruby/1.9.1"
-  $: << DIR+"/lib/ruby/1.9.1/#{RbConfig::CONFIG['arch']}"
-  $: << DIR+"/lib/shoes"
+  $:.unshift DIR+"/lib/ruby/1.9.1/#{RbConfig::CONFIG['arch']}"
+  $:.unshift DIR+"/lib/ruby/1.9.1"
+  $:.unshift DIR+"/lib/shoes"
   # May encounter ENV['GEM_PATH'] in the wild.
   #if ENV['GEM_PATH']
   #  ENV['GEM_PATH'].split(':').each {|p| $:.unshift p }
@@ -72,9 +72,10 @@ if tight_shoes
   Dir[GEM_CENTRAL_DIR + "/gems/*"].each do |gdir|
     $: << "#{gdir}/lib"
   end
-  puts "Jailbreak location #{Dir.pwd}"
+  jloc = "#{ENV['HOME']}/.shoes/#{Shoes::RELEASE_NAME}"
+  #puts "Jailbreak location #{jloc}"
   # Jailbreak for Gems. Load then a from a pre-existing ruby's gems
-  if File.exist? 'getoutofjail.card'
+  if File.exist? "#{jloc}/getoutofjail.card"
     if ENV['GEM_PATH']
       ENV['GEM_PATH'].split(':').each {|p| $:.unshift p }
     end

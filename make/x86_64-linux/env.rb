@@ -2,11 +2,11 @@
 # Build a 64 bit Linux Tight Shoes (from a 64 bit host)
 # In this case Unbuntu 13.10 to debian 7.2 in a chroot.
 # Uses a ruby built from source and a minimal curl. 
-# You could modify this to build 
+# You should modify this to build 
 # 
 #ENV['DEBUG'] = "true" # turns on the tracing log
 #ENV['GTK'] = "gtk+-3.0" # pick this or "gtk+-2.0"
-ENV['GTK'] = "gtk+-3.0"
+ENV['GTK'] = "gtk+-2.0"
 # I don't recommend try to copy Gtk2 -it only works mysteriously
 COPY_GTK = false 
 ENV['GDB'] = "SureYouBetcha" # compile -g,  strip symbols when nil
@@ -121,7 +121,7 @@ LINUX_LIBS << " #{CURL_LDFLAGS} #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} "
 SOLOCS = {}
 SOLOCS['curl'] = "#{curlloc}/libcurl.so.4"
 SOLOCS['ungif'] = "#{uldir}/libungif.so.4"
-SOLOCS['gif'] = "#{uldir}/libgif.so.4" # because Suse wants it ??
+SOLOCS['gif'] = "#{uldir}/libgif.so.4" # because Suse wants it
 SOLOCS['jpeg'] = "#{ularch}/libjpeg.so.8"
 SOLOCS['libyaml'] = "#{ularch}/libyaml.so"
 SOLOCS['pcre'] = "#{larch}/libpcre.so.3"
