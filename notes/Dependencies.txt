@@ -28,15 +28,21 @@ Dependecies - Deps. (aka deps and DEPS)
   http://www.gtk.org/download/win32.php 
   
   Note: For debian based linux, schroot and debootstrap works really
-  well for building a 32 app on a 64 bit system. 
+  well for building a 32 Shoes on a 64 bit system and a 64bit Shoes on
+  a 64 bit. 
+
+Windows: No chroot for Windows.
+  I'm going to use two directories one for GTK3 and kin and one for GTK2
+  the gtk2 dir may have soft links into the Gtk3 space 
 
 ZLIB ? SSL? 
-  Does Shoes/curl really need this? Disabled in curl for now.
+  Does Shoes/curl really need this?
   
 CURL
   Then there is libcurl.so  I'd rather not deal with ssl configurations
   so the curl to be included is pretty damn minimal.  
-  I'm hoping Shoes users won't notice or care.
+  Then we have issue that Windows doesn't use curl. I wish linux didn't.
+  So. it's not a dependency for Windos.
   
 RUBY  
   libruby.so - It really has to be compiled from source if you
@@ -46,17 +52,14 @@ RUBY
    
 UNGIF - GIF
   every modern linux has libgif.so and libungif is just a link to it. 
-  Or vice versa. I don't care deeply about old Political Correctness.
-  Copy both of them.  
+  Or vice versa. I don't care about old Political Correctness.
+  I copy both of them.  
 
 JPEG 
   Yes, not every linux has a complete jpeg library. 
 
 GLib, Gobject and it's kinfolk. 
-  It's highly likely that curl is going to depend on Glib (as does Shoes)
-  Pick a version. Build everything against that and include the libraries
-  with shoes, even if you think they aren't needed. Glib has some weird
-  internal versioning mechanism. Don't fight it.
+  Glib has some weird internal versioning mechanism. Don't fight it.
 
 Cairo, Pango & cairoopango
   Sadly cairo.h is not part of Wheezy bare bones install.
@@ -65,6 +68,8 @@ Cairo, Pango & cairoopango
   
 Gtk 
   If I stick with Gtk+-2 then it's libs has to be included. 
-  I wonder if Gtk3 works well enough on Windows for shoes. 
+  I wonder if Gtk3 works well enough on Windows for shoes. It does.
+  Does gtk2 work well enough. Potential threading problems with Ruby and
+  Gtk(x)
   
 

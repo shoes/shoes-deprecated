@@ -62,8 +62,13 @@ module Make
     end
     # do some windows things
     mkdir_p "#{TGT_DIR}/share/glib-2.0/schemas"
-    cp  "#{TGT_SYS_DIR}share/glib-2.0/schemas/gschemas.compiled" ,
-      "#{TGT_DIR}/share/glib-2.0/schemas"
+    if ENV['GTK'] == "gtk+-2.0"
+      cp "#{TGT_SYS_DIR}/share/glib-2.0/schemas/gschema.dtd",
+        "#{TGT_DIR}/share/glib-2.0/schemas"
+    else
+      cp  "#{TGT_SYS_DIR}share/glib-2.0/schemas/gschemas.compiled" ,
+        "#{TGT_DIR}/share/glib-2.0/schemas"
+    end
     sh "#{WINDRES} -I. shoes/appwin32.rc shoes/appwin32.o"
  end
 

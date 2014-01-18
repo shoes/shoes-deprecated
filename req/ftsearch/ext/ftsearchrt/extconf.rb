@@ -11,7 +11,7 @@ if ENV['SYSROOT']
   $topdir = $hdrdir
   $arch_hdrdir = "#{$hdrdir}/#{ENV['TGT_ARCH']}"
   CONFIG['prefix'] = "#{rbroot}"
-  if rbroot =~ /mingw32/
+  if rbroot =~ /mingw/
     $LDFLAGS = "-L #{rbroot}/bin"
     #puts "$LIBS = #{$LIBS}"
     $LIBS = ""

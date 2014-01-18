@@ -1,9 +1,37 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
+2014-01-17 Gtk2 Windows
+    I chose this one first for several reasons. (1) it's pretty easy
+    to delete on Windows after a failure. (2) I really want to see if
+    Gtk2 works on Windows (3) Windows might attract a few more testers
+==> (4) it might remind me to fix some of the missing ruby libs
+    
+done: Make /srv/chroot/mingwgtk2. Populate with gtk2 bundle and symbolic
+    links into the GTK3 dir. Tweek rakefile env.rb to make
+    it work. Link libjpeg, libyaml. 
+--> compile the gtheme schema.dtd? 
+--> Note the README for the gtk2 bundle about themes. I should read the
+    gtk3 README too, me thinks.
+done: redo the pgk-config fixer upper sed script
+done: Soft links to include for jpeg.h and friends. 
+done: Add -lfontconfig to make_so [LDFLAGS] if gkt2
+done: We have a link of shoes.exe ! and a link failure of ftsearch - I wonder
+    if my extconf hack fails somehow? ya think? Yes and easily fixed. 
+==> Do better with extconf.rb like Luis suggests. Kind of low priority.
+--> Just a matter of copying the dlls for Gtk2.  Wine is good at reporting
+    missing dlls.
+    iconv ? intl8? was < intl.dll in gtk2
+    pixman was gdk-pixbuf
+    libxml2 was libexpat-1.dll
+    libgthread instead of pthread (I'm giddy with delight)
+==> Need to revist gtk.c, world.c and not include pthreads. See what
+    happens
+    
+  
 2014-01-16 Cleanup before packaging experiments
 
---> Rakefile: task 'install' is only for source builds and task 'package'
+done Rakefile: task 'install' is only for source builds and task 'package'
    is only for cross compiled builds. Might screw up MinGW on MinGW 
    or OSX on OSX, but no one is doing those. 
    
