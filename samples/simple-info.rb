@@ -49,8 +49,8 @@ Shoes.app height: 800, width: 800 do
       require 'bigdecimal'
 	  #require 'hpricot'
       if ShoesGemJailBreak
-	    require 'fpm'
-        require 'nokogiri'
+	    #require 'fpm'
+        #require 'nokogiri'
       end
 	  $".each do |f|
 	    ct << "#{f}\n" unless hsh[f]
