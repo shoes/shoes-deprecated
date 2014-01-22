@@ -9,10 +9,34 @@ Dependecies - Deps. (aka deps and DEPS)
   a list on the website. Whatever is current for the users Linux. 
   
   For a binary Shoes distribution, it's more controlled and complex 
-  because of the control. Think of the MingW32 version. It had a crapload
+  because of that control. Think of the MingW32 version. It had a crapload
   of DLL's bundled up in the Shoes install package.  We have to do the
   same thing for Linux - include the shared libraries that the user might
   not have or different versions from what he does have.
+  
+  NOTE: For debian based linux, schroot and debootstrap works really
+  well for building a 32 Shoes on a 64 bit system and a 64bit Shoes on
+  a 64 bit. 
+  
+  NOTE: For the raspberry pi, a schroot and qemu really does work for 
+  building ruby and running (it's not fast but you don't have do that part
+  often). 
+  
+  MingGw is a different animal.  Ruby needs to be cross compiled and the
+  gtk version does matter if you are using the bundled packages which is
+  what I'm going to do. Building gtk from source would be even better and
+  a whole lot of build infrastructue I'm not ready to create yet.
+  
+  I set up two directories in my chroot area.  NOTE: these are not real
+  chroots. /srv/chroot/mingw32 and /srv/chroot/mingwgtk2. The first one
+  if for Gtk3 and Ruby de-jure and should future Shoes releases. The second
+  one is not going to get updated with Gtk2 patches or Ruby updates or 
+  changes in dependencies. Frozen in time.  For windows, that frozen 
+  configuration is what Federales is going to be.  Gtk2. Ruby 1.9.3 and 
+  any source code builds that they need. Once that's done and finished
+  then I'll think about Gtk3/Ruby2 and keeping the deps in sync with
+  modern code. 
+
   
   Gtk is an issue here. Gtk2 is not installed on Raspbian, Debian Wheezy(7.1),
   or Ubuntu 13. Gtk3 is the new normal.  
@@ -27,13 +51,10 @@ Dependecies - Deps. (aka deps and DEPS)
   This link explains it better than I.
   http://www.gtk.org/download/win32.php 
   
-  Note: For debian based linux, schroot and debootstrap works really
-  well for building a 32 Shoes on a 64 bit system and a 64bit Shoes on
-  a 64 bit. 
-
+ 
 Windows: No chroot for Windows.
-  I'm going to use two directories one for GTK3 and kin and one for GTK2
-  the gtk2 dir may have soft links into the Gtk3 space 
+  I'm going to use two directories one for GTK3 and one for GTK2
+  Don't mix dll's between them if we avoid it. 
 
 ZLIB ? SSL? 
   Does Shoes/curl really need this?

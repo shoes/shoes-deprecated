@@ -12,8 +12,8 @@ Cross Compiling Shoes and neccesary libs.
     
     The easy way is to try using rake-compiler to build the Windows ruby
     (and convince it to load-relative). I can download the Gtk3 bundle
-    which includes most of the .dll that shoes wants and it's only a 
-    small matter of blood, sweat and tear to create the Shoes make/env.rb
+    which includes some of the .dll that shoes wants and it's only a 
+    small matter of blood, sweat and tears to create the Shoes make/env.rb
     and task.rb. Right?
     
     And then there is curl.

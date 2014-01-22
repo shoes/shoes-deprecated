@@ -16,7 +16,7 @@ if ENV['GTK'] == "gtk+-2.0"
 else
   CHROOT = "/srv/chroot/mingw32"
 end
-# Where does ruby code live? 
+# Where does ruby code live? Please cross compile Ruby. 
 EXT_RUBY = "#{CHROOT}/usr/local"
 SHOES_TGT_ARCH = "i386-mingw32"
 # Specify where the Target system binaries live. 
@@ -45,8 +45,8 @@ pkggtk ="#{uldir}/pkgconfig/#{ENV['GTK']}.pc"
 # where is curl (lib,include) Can be commented since we don't use curl
 # for MinGW
 curlloc = "#{CHROOT}/usr/local"
-CURL_LDFLAGS = `pkg-config --libs #{curlloc}/lib/pkgconfig/libcurl.pc`.strip
-CURL_CFLAGS = `pkg-config --cflags #{curlloc}/lib/pkgconfig/libcurl.pc`.strip
+#CURL_LDFLAGS = `pkg-config --libs #{curlloc}/lib/pkgconfig/libcurl.pc`.strip
+#CURL_CFLAGS = `pkg-config --cflags #{curlloc}/lib/pkgconfig/libcurl.pc`.strip
 
 ENV['PKG_CONFIG_PATH'] = "#{ularch}/pkgconfig"
 
@@ -134,15 +134,23 @@ LINUX_LIBS << " #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} "
 # This could be precomputed by rake linux:setup:xxx 
 # but for now make a hash of all the dep libs that need to be copied.
 # and their location. This should be used in pre_build instead of 
-# copy_deps_to_dist, although either would work. 
+# copy_deps_to_dist, although either could work. 
 # Reference: http://www.gtk.org/download/win32_contentlist.php
 SOLOCS = {}
 SOLOCS['ruby'] = "#{EXT_RUBY}/bin/msvcrt-ruby191.dll"
-SOLOCS['curl'] = "#{curlloc}/bin/libcurl-4.dll"
+#SOLOCS['curl'] = "#{curlloc}/bin/libcurl-4.dll"
 #SOLOCS['ungif'] = "#{uldir}/libungif.so.4"
-SOLOCS['gif'] = "#{ulbin}/libgif-4.dll"
+SOLOCS['gif'] = "#{bindll}/libgif-4.dll"
 SOLOCS['jpeg'] = "#{bindll}/libjpeg-9.dll"
 SOLOCS['libyaml'] = "#{bindll}/libyaml-0-2.dll"
+SOLOCS['intl'] = "#{bindll}/intl.dll"
+SOLOCS['iconv'] = "#{bindll}/libiconv-2.dll"
+SOLOCS['ffi'] = "#{bindll}/libffi-5.dll"
+SOLOCS['eay'] = "#{bindll}/libeay32.dll"
+SOLOCS['gdbm'] = "#{bindll}/libgdbm-3.dll"
+SOLOCS['gdbmc'] = "#{bindll}/libgdbm_compat-3.dll"
+SOLOCS['intl'] = "#{bindll}/ssleay32.dll"
+SOLOCS['intl'] = "#{bindll}/intl.dll"
 if ENV['GTK'] == 'gtk+-3.0' && COPY_GTK == true
   SOLOCS['atk'] = "#{bindll}/libatk-1.0-0.dll"
   SOLOCS['cairo'] = "#{bindll}/libcairo-2.dll"
@@ -176,7 +184,7 @@ if ENV['GTK'] == 'gtk+-2.0' && COPY_GTK == true
   SOLOCS['atk'] = "#{bindll}/libatk-1.0-0.dll"
   SOLOCS['cairo'] = "#{bindll}/libcairo-2.dll"
   SOLOCS['cairo-gobj'] = "#{bindll}/libcairo-gobject-2.dll"
-  SOLOCS['ffi'] = "#{bindll}/libffi-6.dll"
+#  SOLOCS['ffi'] = "#{bindll}/libffi-6.dll"
   SOLOCS['fontconfig'] = "#{bindll}/libfontconfig-1.dll"
   SOLOCS['freetype'] = "#{bindll}/freetype6.dll"
   SOLOCS['gdkpixbuf'] = "#{bindll}/libgdk_pixbuf-2.0-0.dll"
@@ -199,5 +207,5 @@ if ENV['GTK'] == 'gtk+-2.0' && COPY_GTK == true
   SOLOCS['zlib1'] = "#{bindll}/zlib1.dll"
 #  SOLOCS['lzma'] = "#{bindll}/liblzma-5.dll"
 #  SOLOCS['pthreadGC2'] = "#{bindll}/pthreadGC2.dll"
-#  SOLOCS['pthread'] = "/usr/i686-w64-mingw32/lib/libwinpthread-1.dll"
+  SOLOCS['pthread'] = "/usr/i686-w64-mingw32/lib/libwinpthread-1.dll"
 end

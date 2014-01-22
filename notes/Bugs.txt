@@ -1,32 +1,113 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
+2014-01-21 
+done: openssl cross compile for Ruby. Looks simple. It's not. 
+done: still have build minimal curl (even if it's not really used)
+--> I already had icoutils installed - it deals withs msw .ico. Who knew?
+    I must have installed it for my website favicon.ico. 
+    I Have a nicer icon (256x256) that should scale down. Created a
+    federales.ico with 16,24,32,48,64 h/w images. Updated the icons in
+    static/
+--> ffi-5.dll or ffi-6.dll is this a gtk3? 
+  
+2014-01-20 Ruby dependencies
+    knapbuild/knapsack is described here
+    https://groups.google.com/forum/#!searchin/rubyinstaller/knap-build/rubyinstaller/-D9vNo459RU/r81EycDOfyYJ
+    https://groups.google.com/forum/#!searchin/rubyinstaller/knap-build/rubyinstaller/4ulo3o1bQOM/2F1f24XWWaQJ
+--> Sadly wine doesn't like that exe (thread deadlock, same threads involved
+    as Ruby/Gtk<n> There is no gui involved but its got to be ruby/rake 
+    inside.  I should look into the Wine forums about threading issues.
+--> If knap-build is off the menu that leaves mini-portile which is a little
+    more infrastucture work for me than I want to get into. 
+--> For some reason, patches listed on github don't work when when running
+    patch by hand. So, I do them by eye. I suspect its tabs/spacing and 
+    some vicious hard to delete hidden characters. What a waste of time.
+    
+done: gdbm compiles, links (must sudo make install and sudo make install-compat)
+    That was BRUTAL. Nor do I care if a Shoeser tries them and they fail.
+    dbm and gdbm: DONE ENOUGH!
+done: iconv-1.14 - again, nothing I would expect Shoes folks to use. But
+    Ruby finds it when building. 
+done: openssl - there's a reason I saved this for last.  And once again
+    the patch is related to work from the rubyinstaller folks. 
+    
+done: These dlls need to be copied by the rakefile into the target dir
+    
+  
+2014-01-19 Ruby dependencies
+    It finally dawned on me that the reason ruby can't find the libyaml
+    and the like could be that pkg-config isn't correct for the cross
+    compile. That isn't the case (but doesn't hurt)
+done: ffi (ruby fiddle ext) compiles and links. Needed to manually copy
+   ffi.h and ffitarget.h from {prefix}lib/libffi-3.0.9/include/ffi to
+   {prefix}/include. The pc. isn't used by Ruby?
+done: libyaml
+    NOTE: NOTE: NOTE: Luis Lavena (of rubyinstaller) has plowed this
+    ground well and left bread crumbs for me, to mix a metaphor. I'm still
+    amazed that wine will run these test .exe's. 
+    
+    Anyway. Luis has two (related) projects, the gem mini-portfile and
+    knap-build both which use "recipes" to build autoconf stuff that Ruby
+    needs: https://github.com/luislavena/knapsack-recipes. This could be the 
+    infrastructure that I need to maintain the shoes and ruby dependencies.
+  
+2014-01-18 
+    Shoes builds Gtk2/Windows. it does require pthread and it hangs
+    running in wine. Works in Windows and doesn't complain about themes.
+    I Call that success. 
+    
+    There's some potential dll hell between rubyinstaller's ruby and gtk2 
+    (probably gtk3 too) so it is important to compile a copy of ruby
+    to use with Shoes. Since Gtk2 bundle provides some libraries (older)
+    that gtk3-bundle. I should build a ruby to go with Gtk2 after building
+done: jpeg, jpeg-9
+done: gif  giflib-4.2.3
+done: yaml, Frick! 
+done: ffi  libffi-3.0.9 which creates libffi-5.0.dll. Were there any adults 
+      in the version number room?
+      Fails to install ffi.h in $prefix/include 
+done: gdbm gdbm-1.10:
+      flatfile.c:23:24: fatal error: arpa/inet.h: No such file or directory
+      Oh God, the flashbacks! Make them stop!
+      #include winsock.h patch  to flatfile.c 
+      testgdbm.c:30:23: fatal error: sys/ioctl.h: No such file or directory
+      PLEASE Make it stop!  Are these in MSYS? I remember this crap when
+      installing gcc on Solaris. 
+done: iconv      
+done: openssl   
+done: ruby 1.9.3
+
+ 
+    
+    If I've got two windows dists (gtk2, gtk3) then I need a better build
+    infrastructure. Fortunatly, gkt2 & deps is unlikely to get any updates
+    and I can hold the Ruby to 1.9.3 for federales. Might as well use it
+    to learn what's needed.  Off to build the deps. 
+  
 2014-01-17 Gtk2 Windows
     I chose this one first for several reasons. (1) it's pretty easy
     to delete on Windows after a failure. (2) I really want to see if
     Gtk2 works on Windows (3) Windows might attract a few more testers
-==> (4) it might remind me to fix some of the missing ruby libs
+done: (4) it might remind me to fix some of the missing ruby libs
     
 done: Make /srv/chroot/mingwgtk2. Populate with gtk2 bundle and symbolic
     links into the GTK3 dir. Tweek rakefile env.rb to make
-    it work. Link libjpeg, libyaml. 
+    it work. Link to libjpeg, libyaml. 
 --> compile the gtheme schema.dtd? 
 --> Note the README for the gtk2 bundle about themes. I should read the
     gtk3 README too, me thinks.
-done: redo the pgk-config fixer upper sed script
+done: redo the pgk-config fixer-upper sed script
 done: Soft links to include for jpeg.h and friends. 
 done: Add -lfontconfig to make_so [LDFLAGS] if gkt2
 done: We have a link of shoes.exe ! and a link failure of ftsearch - I wonder
     if my extconf hack fails somehow? ya think? Yes and easily fixed. 
 ==> Do better with extconf.rb like Luis suggests. Kind of low priority.
---> Just a matter of copying the dlls for Gtk2.  Wine is good at reporting
+done: Just a matter of copying the dlls for Gtk2.  Wine is good at reporting
     missing dlls.
-    iconv ? intl8? was < intl.dll in gtk2
+    intl8 was intl.dll in gtk2
     pixman was gdk-pixbuf
     libxml2 was libexpat-1.dll
-    libgthread instead of pthread (I'm giddy with delight)
-==> Need to revist gtk.c, world.c and not include pthreads. See what
-    happens
     
   
 2014-01-16 Cleanup before packaging experiments
