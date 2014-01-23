@@ -1,21 +1,13 @@
 #
-# Build shoes for Windows/Gtk[2|3]  Ruby is cross compiled
-# The Gtk3 headers/libs are already rewritten so pkg-config should
-# be ok. Ruby might need rewrites. 
-# Curl is not used on Windows (thank god)
-# It's not really a chroot - it only looks like one and Gtk2/3 is different
+# Build shoes for Windows native GUI  Ruby is cross compiled
+# Curl is not used on Windows (thank god) but might be needed to compile
+# It's not really a chroot - it only looks like one. 
 # Remember, on Windows the dlls are in bin/ and usr/[include|bin] doesn't
-# exist. Nor do the {arch} directories. 
-#ENV['DEBUG'] = "true" # turns on the tracing log
-#ENV['GTK'] = "gtk+-3.0" # pick this or "gtk+-2.0"
-ENV['GTK'] = "gtk+-2.0"
-COPY_GTK = true
+# exist. Nor do the {arch} directories. I'm reusing the chroot (aka deps)
+# that I built for mingwgtk2
+
 ENV['GDB'] = "SureYouBetcha" # compile -g,  strip symbols when nil
-if ENV['GTK'] == "gtk+-2.0"
-  CHROOT = "/srv/chroot/mingwgtk2"
-else
-  CHROOT = "/srv/chroot/mingw32"
-end
+CHROOT = "/srv/chroot/mingwgtk2"
 # Where does ruby code live? Please cross compile Ruby. 
 EXT_RUBY = "#{CHROOT}/usr/local"
 SHOES_TGT_ARCH = "i386-mingw32"
@@ -44,13 +36,13 @@ pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-1.9.pc"
 pkggtk ="#{uldir}/pkgconfig/#{ENV['GTK']}.pc" 
 # where is curl (lib,include) Can be commented since we don't use curl
 # for MinGW
-curlloc = "#{CHROOT}/usr/local"
+#curlloc = "#{CHROOT}/usr/local"
 #CURL_LDFLAGS = `pkg-config --libs #{curlloc}/lib/pkgconfig/libcurl.pc`.strip
 #CURL_CFLAGS = `pkg-config --cflags #{curlloc}/lib/pkgconfig/libcurl.pc`.strip
 
 ENV['PKG_CONFIG_PATH'] = "#{ularch}/pkgconfig"
 
-file_list = %w{shoes/native/gtk.c shoes/http/winhttp.c shoes/http/windownload.c} + ["shoes/*.c"] 
+file_list = %w{shoes/native/windows.c shoes/http/winhttp.c shoes/http/windownload.c} + ["shoes/*.c"] 
 
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
@@ -100,13 +92,11 @@ else
   LINUX_CFLAGS = " -O -Wall"
 end
 
-LINUX_CFLAGS << " -DSHOES_GTK -DSHOES_GTK_WIN32 "
-LINUX_CFLAGS << "-DGTK3 " unless ENV['GTK'] == 'gtk+-2.0'
+LINUX_CFLAGS << " -DXMD_H -DHAVE_BOOLEAN -DSHOES_WIN32 -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0500 -DWINVER=0x0500 -DCOBJMACROS "
 LINUX_CFLAGS << xfixrvmp(`pkg-config --cflags "#{pkgruby}"`.strip)+" "
+LINUX_CFLAGS << "#{CAIRO_CFLAGS} #{PANGO_CFLAGS} "
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/#{arch} "
-LINUX_CFLAGS << xfixip("-I/usr/include")+" "
-LINUX_CFLAGS << xfixip(`pkg-config --cflags "#{pkggtk}"`.strip)+" "
-LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/local/include "
+LINUX_CFLAGS << " -I#{TGT_SYS_DIR}include "
 
 #LINUX_CFLAGS << " #{CAIRO_CFLAGS} #{PANGO_CFLAGS} "
  
@@ -116,9 +106,9 @@ cp APP['icons']['win32'], "shoes/appwin32.ico"
 LINUX_LIB_NAMES = %W[gif jpeg]
 
 DLEXT = "dll"
-LINUX_LDFLAGS = "-fPIC -shared -L#{ularch} "
-LINUX_LDFLAGS << `pkg-config --libs "#{pkggtk}"`.strip+" "
-LINUX_LDFLAGS << "-lfontconfig" if ENV['GTK'] == 'gtk+-2.0'
+LINUX_LDFLAGS = " -DBUILD_DLL -L#{uldir} -lgif -ljpeg -lglib-2.0 -lgobject-2.0 -lgio-2.0 -lgmodule-2.0 -lgthread-2.0 -fPIC -shared"
+LINUX_LDFLAGS << ' -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 -lole32 -loleaut32 -ladvapi32 -loleacc'
+LINUX_LDFLAGS << ' -lpangocairo-1.0'
 
 # dont use the ruby link info
 RUBY_LDFLAGS = "-Wl,-export-all-symbols "
@@ -150,51 +140,21 @@ SOLOCS['eay'] = "#{bindll}/libeay32.dll"
 SOLOCS['gdbm'] = "#{bindll}/libgdbm-3.dll"
 SOLOCS['gdbmc'] = "#{bindll}/libgdbm_compat-3.dll"
 SOLOCS['ssl'] = "#{bindll}/ssleay32.dll"
-if ENV['GTK'] == 'gtk+-3.0' && COPY_GTK == true
-  SOLOCS['atk'] = "#{bindll}/libatk-1.0-0.dll"
-  SOLOCS['cairo'] = "#{bindll}/libcairo-2.dll"
-  SOLOCS['cairo-gobj'] = "#{bindll}/libcairo-gobject-2.dll"
-  SOLOCS['ffi'] = "#{bindll}/libffi-6.dll"
-  SOLOCS['fontconfig'] = "#{bindll}/libfontconfig-1.dll"
-  SOLOCS['freetype'] = "#{bindll}/libfreetype-6.dll"
-  SOLOCS['gdkpixbuf'] = "#{bindll}/libgdk_pixbuf-2.0-0.dll"
-  SOLOCS['gdk3'] = "#{bindll}/libgdk-3-0.dll"
-  SOLOCS['gio'] = "#{bindll}/libgio-2.0-0.dll"
-  SOLOCS['glib'] = "#{bindll}/libglib-2.0-0.dll"
-  SOLOCS['gmodule'] = "#{bindll}/libgmodule-2.0-0.dll"
-  SOLOCS['gobject'] = "#{bindll}/libgobject-2.0-0.dll"
-  SOLOCS['gtk3'] = "#{bindll}/libgtk-3-0.dll"
-  SOLOCS['iconv'] = "#{bindll}/libiconv-2.dll"
-  SOLOCS['intl8'] = "#{bindll}/libintl-8.dll"
-  SOLOCS['pango'] = "#{bindll}/libpango-1.0-0.dll"
-  SOLOCS['pangocairo'] = "#{bindll}/libpangocairo-1.0-0.dll"
-  SOLOCS['pangoft'] = "#{bindll}/libpangoft2-1.0-0.dll"
-  SOLOCS['pango32'] = "#{bindll}/libpangowin32-1.0-0.dll"
-  SOLOCS['pixman'] = "#{bindll}/libpixman-1-0.dll"
-  SOLOCS['png15'] = "#{bindll}/libpng15-15.dll"
-  SOLOCS['xml2'] = "#{bindll}/libxml2-2.dll"
-  SOLOCS['pthread'] = "#{bindll}/pthreadGC2.dll"
-  SOLOCS['zlib1'] = "#{bindll}/zlib1.dll"
-  SOLOCS['lzma'] = "#{bindll}/liblzma-5.dll"
-  SOLOCS['pthreadGC2'] = "#{bindll}/pthreadGC2.dll"
-  SOLOCS['pthread'] = "/usr/i686-w64-mingw32/lib/libwinpthread-1.dll"
-end
-if ENV['GTK'] == 'gtk+-2.0' && COPY_GTK == true
+
   SOLOCS['atk'] = "#{bindll}/libatk-1.0-0.dll"
   SOLOCS['cairo'] = "#{bindll}/libcairo-2.dll"
   SOLOCS['cairo-gobj'] = "#{bindll}/libcairo-gobject-2.dll"
 #  SOLOCS['ffi'] = "#{bindll}/libffi-6.dll"
   SOLOCS['fontconfig'] = "#{bindll}/libfontconfig-1.dll"
   SOLOCS['freetype'] = "#{bindll}/freetype6.dll"
-  SOLOCS['gdkpixbuf'] = "#{bindll}/libgdk_pixbuf-2.0-0.dll"
-  SOLOCS['gdk2'] = "#{bindll}/libgdk-win32-2.0-0.dll"
+#  SOLOCS['gdkpixbuf'] = "#{bindll}/libgdk_pixbuf-2.0-0.dll"
+#  SOLOCS['gdk2'] = "#{bindll}/libgdk-win32-2.0-0.dll"
   SOLOCS['gio'] = "#{bindll}/libgio-2.0-0.dll"
   SOLOCS['glib'] = "#{bindll}/libglib-2.0-0.dll"
   SOLOCS['gmodule'] = "#{bindll}/libgmodule-2.0-0.dll"
   SOLOCS['gobject'] = "#{bindll}/libgobject-2.0-0.dll"
-  SOLOCS['gtk2'] = "#{bindll}/libgtk-win32-2.0-0.dll"
+#  SOLOCS['gtk2'] = "#{bindll}/libgtk-win32-2.0-0.dll"
 #  SOLOCS['iconv'] = "#{bindll}/libiconv-2.dll"
-  SOLOCS['intl'] = "#{bindll}/intl.dll"
   SOLOCS['pango'] = "#{bindll}/libpango-1.0-0.dll"
   SOLOCS['pangocairo'] = "#{bindll}/libpangocairo-1.0-0.dll"
   SOLOCS['pangoft'] = "#{bindll}/libpangoft2-1.0-0.dll"
@@ -207,4 +167,4 @@ if ENV['GTK'] == 'gtk+-2.0' && COPY_GTK == true
 #  SOLOCS['lzma'] = "#{bindll}/liblzma-5.dll"
 #  SOLOCS['pthreadGC2'] = "#{bindll}/pthreadGC2.dll"
   SOLOCS['pthread'] = "/usr/i686-w64-mingw32/lib/libwinpthread-1.dll"
-end
+

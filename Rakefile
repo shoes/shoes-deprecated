@@ -102,7 +102,10 @@ when /linux/
     when /xmingw32/
       require File.expand_path('make/xmingw32/env')
       require File.expand_path('make/xmingw32/tasks')
-    else
+    when /xmsw32/
+      require File.expand_path('make/xmsw32/env')
+      require File.expand_path('make/xmsw32/tasks')
+   else
       puts "Unknown builder for #{TGT_ARCH}, removing setting"
       rm_rf "crosscompile" if File.exists? "crosscompile"
     end
@@ -525,8 +528,14 @@ namespace :linux do
       puts "Cross compile to Raspberry setup"
       sh "echo 'TGT_ARCH=xarmv6-pi' >crosscompile"
     end
-    
-    desc "Cross compile to MingW32"
+
+    desc "Cross compile to Windows Native GUI"
+    task :msw32 do
+      puts "Cross compile for WIN32"
+      sh "echo 'TGT_ARCH=xmsw32' >crosscompile"
+    end
+
+    desc "Cross compile to MingW32 (Gtk)"
     task :mingw32 do
       puts "Cross compile for Windows MingW32"
       sh "echo 'TGT_ARCH=xmingw32' >crosscompile"
