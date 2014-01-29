@@ -1,18 +1,42 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
+2014-01-28
+    All the gtk3 linux seem to have the needed gkt2 libs so no additional
+    deps for deb/rpm to deal with.  All that worry and delay for nought?
+    
+done Install basic Raspbian on SDcard.  Build raspberry shoes. 
+done Doesn't look like I built gdbm in the Pi chroot. libgdbm-dev
+done Rebuild ruby (that'll take a while). Still amazed that qeumu works.
+
+    Then we can test what dependencies are needed.  Freaking none. 
+    I should be happy that I won't have to learn and test fpm built
+    debs and rpms that have dependecies. 
+    NOTE: Pi version of Shoes uses my minimal curl compile. 
+ 
+  
+2014-01-27
+    rather than deal with Windows and Threads I'll do something more
+    Linux useful - fpm packaging of debs and rpms. 
+Done build i386 versions of Shoes/Gtk2.
+    It *appears* that the libgtk2 libraries are in Debian 7.2/386 but not
+    part of any 'package' to remove (install presumably does nothing)
+    There are no additional dependencies for Debian 7.2. Shoes/gtk2/i686 
+    works fine. OpenSuSe 13.1(64) doesn't have 32 bit libs.
+Done build x86_64 version of Shoes/gtk2. Works on opensuse and fedora.
+    No additional dependencies for deb/rpm. 
+ 
+2014-01-25 
+    More thinking about windows threading issues with ruby. I suspect
+    the Wine hang is related to access to the main thread (duh) but
+    what is being accessed is a little more difficult to understand.
+  
 2014-01-22
     Seba reported the windows/gtk2 b1 did hang on him once. sigh.
-    
-    I'm thinking of trying to build a Shoes using the Windows native GUI 
-    My thinking being that if it too has hanging issues then it it would point
-    more fingers at Ruby/Windows threading errors. On the other hand,
-    I don't want to go in there. I might look at the windows code for Ruby
-    2.x though. Maybe they fixed something.
-    
+       
     Setup a rakefile linux:setup:msw32 (native Gui) - it makes sense in
     some circular back to failed future way. On the plus side I can
---> get rid of the crossmingw file and the make/xmingw from the previous
+done: get rid of the crossmingw file and the make/xmingw from the previous
     failure. Updating the fail to current fail. It makes sense.  I can
     already see the problem: gthread requires pthread. Same as GTK2/3.
     A little bit of grunt work and it links. AND it has the same deadlock
@@ -20,7 +44,7 @@ Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
     probably aren't needed - least of the problems). It does run on Win 7
     and it does have SOME bugs in common with the gtk2 version and it also 
     has it's own peculiarites. It's a bit faster. It has more huh? bugs.
-    I'll upload to the website to complete the circle but I'll be easier
+    I'll upload to the website to complete the circle but It'll be easier
     for me to deal with the Gtk2 version.
     
 ==> Big Clue: can gthread be compiled to use whatever ruby is using???   

@@ -188,15 +188,35 @@ class MakeLinux
       sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
 
+    # make a .deb with all the bits and peices. 
     def make_installer
-      mkdir_p "pkg"
-      sh "makeself #{TGT_DIR} pkg/#{PKG}.run '#{APPNAME}' ./#{NAME}"
+      gtkv = ENV['GTK']== 'gtk+-3.0' ? '3' : '2'
+      arch = SHOES_TGT_ARCH.split('-')[0]
+      rlname = "#{PKG}b1-gtk#{gtkv}-#{arch}"
+      puts "Creating Pkg for #{rlname}"
+      mkdir_p "pkg/#{rlname}"
+      sh "cp -r #{TGT_DIR}/* pkg/#{rlname}"
+      #sh "makeself #{TGT_DIR} pkg/#{PKG}.run '#{APPNAME}' ./#{NAME}"
     end
     
 
-    def make_userinstall
-      sh "tar -cf xarmv6-pi.tar xarmv6-pi"
-      #puts "Please copy the 'Shoes.desktop' to /usr/share/applications"
+    def make_desktop
+      #user = ENV['USER']
+      #home = ENV['HOME']
+      #hdir = "#{home}/.shoes/#{RELEASE_NAME}"
+      #mkdir_p hdir
+      #sh "cp -r #{TGT_DIR}/* #{hdir}"
+      #File.open("Shoes.desktop",'w') do |f|
+      #  f << "[Desktop Entry]\n"
+      # f << "Name=Shoes\n"
+      #  f << "Exec={hdir}/#{TGT_DIR}/shoes\n"
+      #  f << "StartupNotify=true\n"
+      #  f << "Terminal=false\n"
+      #  f << "Type=Application\n"
+      #  f << "Icon={hdir}/#{TGT_DIR}/static/app-icon.png\n"
+      #  f << "Categories=Programming\n"
+      #end
+      #puts "Please copy the 'Shoes-.desktop' to /usr/share/applications"
       #puts "Or wherever your Linux desktop manager requires. You many need to sudo"
       #puts "Edit the file if you like."
     end

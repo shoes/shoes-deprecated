@@ -175,21 +175,27 @@ class MakeLinux
       sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
 
+    # make a .deb with all the bits and peices. 
     def make_installer
-      mkdir_p "pkg"
-      sh "makeself #{TGT_DIR} pkg/#{PKG}.run '#{APPNAME}' ./#{NAME}"
+      gtkv = ENV['GTK']== 'gtk+-3.0' ? '3' : '2'
+      arch = SHOES_TGT_ARCH.split('-')[0]
+      rlname = "#{PKG}b1-gtk#{gtkv}-#{arch}"
+      puts "Creating Pkg for #{rlname}"
+      mkdir_p "pkg/#{rlname}"
+      sh "cp -r #{TGT_DIR}/* pkg/#{rlname}"
+      #sh "makeself #{TGT_DIR} pkg/#{PKG}.run '#{APPNAME}' ./#{NAME}"
     end
     
-    # Remember, this is for the Raspberry pi. Just tar up the xarmv6-pi
-    # dir and sftp it to the pi for testing
-    def make_userinstall
-      sh "tar -cf xarmv6-pi.tar xarmv6-pi"
+    #
+    # 
+    def make_desktop
+      #sh "tar -cf xarmv6-pi.tar xarmv6-pi"
       #user = ENV['USER']
       #home = ENV['HOME']
       #hdir = "#{home}/.shoes/#{RELEASE_NAME}"
       #mkdir_p hdir
       #sh "cp -r #{TGT_DIR}/* #{hdir}"
-      #File.open("Shoes-tight.desktop",'w') do |f|
+      #File.open("Shoes.desktop",'w') do |f|
       #  f << "[Desktop Entry]\n"
       # f << "Name=Shoes\n"
       #  f << "Exec={hdir}/#{TGT_DIR}/shoes\n"

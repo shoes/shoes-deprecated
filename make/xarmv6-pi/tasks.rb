@@ -175,33 +175,46 @@ class MakeLinux
       sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
 
+     # make a .deb with all the bits and peices. 
     def make_installer
-      mkdir_p "pkg"
-      sh "makeself #{TGT_DIR} pkg/#{PKG}.run '#{APPNAME}' ./#{NAME}"
+      gtkv = ENV['GTK']== 'gtk+-3.0' ? '3' : '2'
+      arch = SHOES_TGT_ARCH.split('-')[0]
+      rlname = "#{PKG}b1-gtk#{gtkv}-#{arch}"
+      puts "Creating Pkg for #{rlname}"
+      mkdir_p "pkg/#{rlname}"
+      sh "cp -r #{TGT_DIR}/* pkg/#{rlname}"
+      cdir = `pwd`
+      cd "pkg/#{rlname}"
+      make_desktop 
+      make_install_script
     end
     
-    # Remember, this is for the Raspberry pi. Just tar up the xarmv6-pi
-    # dir and sftp it to the pi for testing
-    def make_userinstall
-      sh "tar -cf xarmv6-pi.tar xarmv6-pi"
-      #user = ENV['USER']
-      #home = ENV['HOME']
-      #hdir = "#{home}/.shoes/#{RELEASE_NAME}"
-      #mkdir_p hdir
-      #sh "cp -r #{TGT_DIR}/* #{hdir}"
-      #File.open("Shoes-tight.desktop",'w') do |f|
-      #  f << "[Desktop Entry]\n"
-      # f << "Name=Shoes\n"
-      #  f << "Exec={hdir}/#{TGT_DIR}/shoes\n"
-      #  f << "StartupNotify=true\n"
-      #  f << "Terminal=false\n"
-      #  f << "Type=Application\n"
-      #  f << "Icon={hdir}/#{TGT_DIR}/static/app-icon.png\n"
-      #  f << "Categories=Programming\n"
-      #end
-      #puts "Please copy the 'Shoes-.desktop' to /usr/share/applications"
-      #puts "Or wherever your Linux desktop manager requires. You many need to sudo"
-      #puts "Edit the file if you like."
+
+    def make_desktop
+      File.open("Shoes.desktop",'w') do |f|
+        f << "[Desktop Entry]\n"
+        f << "Name=Shoes Federales\n"
+        f << "Exec={hdir}/.shoes/federales/shoes\n"
+        f << "StartupNotify=true\n"
+        f << "Terminal=false\n"
+        f << "Type=Application\n"
+        f << "Icon={hdir}/.shoes/federales/static/app-icon.png\n"
+        f << "Categories=Programming;Applications\n"
+      end
+    end
+    
+    # the install script that runs on the user's system can be simple. 
+    # Copy things from where it's run to ~/.shoes/federales/ and then
+    # sed the desktop file to the ~/Desktop (for LXFE) to point there
+    # Only problem? It's bash (not my strength) and I'm creating it 
+    # from Ruby. And it might be run as root, so be smarter than normal.
+    def make_install_script
+      File.open("shoes-install.sh", 'w') do |f|
+        f << "#!/bin/bash\n"
+        f << "cdir=$HOME/.shoes/federales\n"
+        f << "echo $cdir\n"
+      end
+      chmod "+x", "shoes-install.sh"
     end
   end
 end

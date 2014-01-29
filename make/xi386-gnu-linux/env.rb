@@ -6,7 +6,7 @@
 # schroot set the PATH to not include rvm.
 #ENV['DEBUG'] = "true" # turns on the tracing log
 #ENV['GTK'] = "gtk+-3.0" # pick this or "gtk+-2.0"
-ENV['GTK'] = "gtk+-3.0"
+ENV['GTK'] = "gtk+-2.0"
 # I don't recommend try to copy Gtk2 -it only works mysteriously
 COPY_GTK = false 
 ENV['GDB'] = "SureYouBetcha" # compile -g,  strip symbols when nil
