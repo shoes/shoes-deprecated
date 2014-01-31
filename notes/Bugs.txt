@@ -1,5 +1,51 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
+
+2014-01-30 Linux Desktop - ick.
+    Of Course. There's a spec for those .desktop files and where they
+    belong. Sort of. Fedora implements differently. Sigh.
+    http://standards.freedesktop.org/basedir-spec/latest/ar01s02.html
+    
+done: Best to just copy to /usr/share/applications and let the user figure
+    it out.  Using gksu to copy the desktop file.  Nope. gksu not available
+    on OpenSuSe or Fedora and sudo is isn't bare Debian. Just su it is.
+    
+done: for .desktop files the category is 'Development' not 'Programming'
+    Which debians may call Programming. Or Not.  Grr. 
+    
+--> Raspberry   Mostly OK. In Education and Programming menu, not in Others?
+    Don't care.
+    
+--> Copy the su/desktop stuff in the default [dist] install. 
+
+done: Debian 7.2 (32 bit) Works. In Programming menu. Bless Debian.
+done: OpenSuse/64/XFCE - Working. Menu item is under 'Development' 
+done: Fedora 20 - Works on the strange Unity like desktop. Search for Shoes
+    drag it to Activities.  
+  
+2014-01-29 
+    Finish raspberry install script (cp, sed), deb creation.
+    Grr - bundler leftovers. I'm not going to tie shoes to a shit load 
+done: of gems it doesn't need.  Renamed Gemfile(s). fpm now works.
+    
+done:  Remove the :build task from packaging (deps can be wrong arch) 
+    plus it's not helpful for testing deb. Already enough trouble with that
+    
+done: dpkg needs to be root. installs pkg in / and USER is root, plus HOME
+    may not be where I want. Not sure what to do. deb/rpm isn't it
+    unless I want shoes in /usr/lib/, /usr/local, /opt or such. Not that
+    it couldn't be done, trivally. Just not what I want.
+    
+    Makeself.sh is pretty clever but can it deal with moving the
+    shoes.desktop file to where it should go?  Raspberry does have gksu
+    so other linux probably do too. 
+done: add 'AddType application/x-makeself .run' to .htaccess at 
+    www.mvmanila.com
+    
+    generate bash script to run after .run is executed on users system
+--> Sed command For raspberry LxDE which has ~/Desktop
+    sed -e "s@^prefix=.*@prefix=$PWD@" -i "$pc";
+
   
 2014-01-28
     All the gtk3 linux seem to have the needed gkt2 libs so no additional

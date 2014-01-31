@@ -175,39 +175,56 @@ class MakeLinux
       sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
 
-    # make a .deb with all the bits and peices. 
+    # make a .run with all the bits and peices. 
     def make_installer
       gtkv = ENV['GTK']== 'gtk+-3.0' ? '3' : '2'
-      arch = SHOES_TGT_ARCH.split('-')[0]
+      arch = 'i686'
       rlname = "#{PKG}b1-gtk#{gtkv}-#{arch}"
       puts "Creating Pkg for #{rlname}"
       mkdir_p "pkg/#{rlname}"
       sh "cp -r #{TGT_DIR}/* pkg/#{rlname}"
-      #sh "makeself #{TGT_DIR} pkg/#{PKG}.run '#{APPNAME}' ./#{NAME}"
+      cdir = `pwd`
+      cd "pkg/#{rlname}"
+      make_desktop 
+      make_install_script
+      cd  "../"
+      sh "makeself #{rlname} #{rlname}.run '#{APPNAME}' \
+./shoes-install.sh "
+   end
+    
+    def make_desktop
+      File.open("Shoes.desktop.tmpl",'w') do |f|
+        f << "[Desktop Entry]\n"
+        f << "Name=Shoes Federales\n"
+        f << "Exec={hdir}/.shoes/federales/shoes\n"
+        f << "StartupNotify=true\n"
+        f << "Terminal=false\n"
+        f << "Type=Application\n"
+        f << "Comment=Ruby Graphical Programming\n"
+        f << "Icon={hdir}/.shoes/federales/static/app-icon.png\n"
+        f << "Categories=Development;Applications;\n"
+      end
     end
     
-    #
-    # 
-    def make_desktop
-      #sh "tar -cf xarmv6-pi.tar xarmv6-pi"
-      #user = ENV['USER']
-      #home = ENV['HOME']
-      #hdir = "#{home}/.shoes/#{RELEASE_NAME}"
-      #mkdir_p hdir
-      #sh "cp -r #{TGT_DIR}/* #{hdir}"
-      #File.open("Shoes.desktop",'w') do |f|
-      #  f << "[Desktop Entry]\n"
-      # f << "Name=Shoes\n"
-      #  f << "Exec={hdir}/#{TGT_DIR}/shoes\n"
-      #  f << "StartupNotify=true\n"
-      #  f << "Terminal=false\n"
-      #  f << "Type=Application\n"
-      #  f << "Icon={hdir}/#{TGT_DIR}/static/app-icon.png\n"
-      #  f << "Categories=Programming\n"
-      #end
-      #puts "Please copy the 'Shoes-.desktop' to /usr/share/applications"
-      #puts "Or wherever your Linux desktop manager requires. You many need to sudo"
-      #puts "Edit the file if you like."
+    # the install script that runs on the user's system can be simple. 
+    # Copy things from where it's run to ~/.shoes/federales/ and then
+    # sed the desktop file and copy it.
+    # Only problem? It's bash (not my strength) and I'm creating it 
+    # from Ruby. Yes, there is a better way. 
+    def make_install_script
+      File.open("shoes-install.sh", 'w') do |f|
+        f << "#!/bin/bash\n"
+        f << "#pwd\n"
+        f << "ddir=$HOME/.shoes/federales\n"
+        f << "#echo $ddir\n"
+        f << "mkdir -p $ddir\n"
+        f << "cp -r * $ddir/\n"
+        f << "sed -e \"s@{hdir}@$HOME@\" <Shoes.desktop.tmpl >Shoes.desktop\n"
+        f << "echo \"Shoes has been copied to $ddir. Need root password\"\n"
+        f << "echo 'to copy Shoes.desktop to /usr/share/applications'\n"
+        f << "su root -c 'cp Shoes.desktop /usr/share/applications'\n"
+      end
+      chmod "+x", "shoes-install.sh"
     end
   end
 end

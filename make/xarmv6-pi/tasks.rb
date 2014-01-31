@@ -175,10 +175,10 @@ class MakeLinux
       sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
 
-     # make a .deb with all the bits and peices. 
+     # make a .run with all the bits and peices. 
     def make_installer
       gtkv = ENV['GTK']== 'gtk+-3.0' ? '3' : '2'
-      arch = SHOES_TGT_ARCH.split('-')[0]
+      arch = 'armhf'
       rlname = "#{PKG}b1-gtk#{gtkv}-#{arch}"
       puts "Creating Pkg for #{rlname}"
       mkdir_p "pkg/#{rlname}"
@@ -187,32 +187,49 @@ class MakeLinux
       cd "pkg/#{rlname}"
       make_desktop 
       make_install_script
+      cd  "../"
+      sh "makeself #{rlname} #{rlname}.run '#{APPNAME}' \
+./shoes-install.sh "
+#      sh "makeself --notemp #{rlname} #{rlname}.run '#{APPNAME}' \
+#./shoes-install.sh "
+      #sh "fpm -s dir -t deb -n #{PKG}b1-gtk#{gtkv} -a armhf \
+#-m ccoupe@cableone.net -v 1 --category Programming \
+#--vendor ccoupe@cableone.net --url www.mvmanila.com \
+#--after-install #{rlname}/shoes-install.sh #{rlname} "
     end
     
 
     def make_desktop
-      File.open("Shoes.desktop",'w') do |f|
+      File.open("Shoes.desktop.tmpl",'w') do |f|
         f << "[Desktop Entry]\n"
         f << "Name=Shoes Federales\n"
         f << "Exec={hdir}/.shoes/federales/shoes\n"
         f << "StartupNotify=true\n"
         f << "Terminal=false\n"
         f << "Type=Application\n"
+        f << "Comment=Ruby Graphical Programming\n"
         f << "Icon={hdir}/.shoes/federales/static/app-icon.png\n"
-        f << "Categories=Programming;Applications\n"
+        f << "Categories=Application;Development;Education;\n"
       end
     end
     
     # the install script that runs on the user's system can be simple. 
     # Copy things from where it's run to ~/.shoes/federales/ and then
-    # sed the desktop file to the ~/Desktop (for LXFE) to point there
+    # sed the desktop file and copy it.
     # Only problem? It's bash (not my strength) and I'm creating it 
-    # from Ruby. And it might be run as root, so be smarter than normal.
+    # from Ruby. Yes, there is a better way. 
     def make_install_script
       File.open("shoes-install.sh", 'w') do |f|
         f << "#!/bin/bash\n"
-        f << "cdir=$HOME/.shoes/federales\n"
-        f << "echo $cdir\n"
+        f << "#pwd\n"
+        f << "ddir=$HOME/.shoes/federales\n"
+        f << "#echo $ddir\n"
+        f << "mkdir -p $ddir\n"
+        f << "cp -r * $ddir/\n"
+        f << "sed -e \"s@{hdir}@$HOME@\" <Shoes.desktop.tmpl >Shoes.desktop\n"
+        f << "echo \"Shoes has been copied to $ddir. Need root password\"\n"
+        f << "echo 'to copy Shoes.desktop to /usr/share/applications'\n"
+        f << "su root -c 'cp Shoes.desktop /usr/share/applications'\n"
       end
       chmod "+x", "shoes-install.sh"
     end

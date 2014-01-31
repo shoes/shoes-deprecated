@@ -127,8 +127,8 @@ end
 desc "Same as `rake build'"
 task :default => [:build]
 
-desc "Does a full compile, with installer"
-task :package => [:build, :installer]
+desc "Package Shoes for distribution"
+task :package => [:installer]
 
 task :build_os => [:build_skel, "#{TGT_DIR}/#{NAME}"]
 

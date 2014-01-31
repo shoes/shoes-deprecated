@@ -18,16 +18,15 @@ CHROOT = "/srv/chroot/debrpi"
 # and the cross compiled Ruby
 #EXT_RUBY = "/home/cross/armv6-pi/usr"
 #SHOES_TGT_ARCH = "arm-linux-eabihf"
-# The one built with inside the choot
+# The one built inside the choot
 EXT_RUBY = "/srv/chroot/debrpi/usr/local"
 SHOES_TGT_ARCH = "armv7l-linux-eabi"
 # Specify where the Target system binaries live. 
 # Trailing slash is important.
 TGT_SYS_DIR = "#{CHROOT}/"
 # Setup some shortcuts for the library locations. 
-# These are not ruby paths. 
+# These are not ruby paths but library paths
 arch = 'arm-linux-gnueabihf'
-  # depends on what ruby was compile to
 uldir = "#{TGT_SYS_DIR}usr/lib"
 ularch = "#{TGT_SYS_DIR}usr/lib/#{arch}"
 larch = "#{TGT_SYS_DIR}lib/#{arch}"
@@ -101,17 +100,11 @@ LINUX_CFLAGS << " -DSHOES_GTK "
 LINUX_CFLAGS << " -DGTK3 " unless ENV['GTK'] == 'gtk+-2.0'
 LINUX_CFLAGS << xfixrvmp(`pkg-config --cflags "#{pkgruby}"`.strip)+" "
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/#{arch} #{CURL_CFLAGS} "
-#LINUX_CFLAGS << " --sysroot=#{CHROOT} -I/usr/include "
-#GTK_FLAGS = `pkg-config --cflags "#{pkggtk}"`.strip
-#LINUX_CFLAGS << " #{GTK_FLAGS} "
 
 LINUX_CFLAGS << xfixip("-I/usr/include")+" "
 LINUX_CFLAGS << xfixip(`pkg-config --cflags "#{pkggtk}"`.strip)+" "
 
 #LINUX_CFLAGS << " #{CAIRO_CFLAGS} #{PANGO_CFLAGS} "
- 
-
-
 
 LINUX_LIB_NAMES = %W[ungif jpeg]
 
@@ -133,10 +126,7 @@ LINUX_LIBS << " #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} #{CURL_LDFLAGS} "
 # This could be precomputed by rake linux:setup:xxx 
 # but for now make a hash of all the dep libs that need to be copied.
 # and their location. This should be used in pre_build instead of 
-# copy_deps_to_dist, although either would work. Clever programmers 
-# might build it out of those LDFLAGS, plus some hand entries. I'm
-# not that clever or maybe I know better.
-
+# copy_deps_to_dist, although either would work. 
 SOLOCS = {}
 SOLOCS['curl'] = "#{curlloc}/lib/libcurl.so.4"
 SOLOCS['ungif'] = "#{uldir}/libungif.so.4"
