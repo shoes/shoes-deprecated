@@ -159,23 +159,26 @@ class MakeLinux
       hdir = "#{home}/.shoes/#{RELEASE_NAME}"
       mkdir_p hdir
       sh "cp -r dist/* #{hdir}"
-      File.open("Shoes.desktop",'w') do |f|
+      File.open("dist/Shoes.desktop",'w') do |f|
         f << "[Desktop Entry]\n"
-        f << "Name=Shoes\n"
+        f << "Name=Shoes Federales\n"
         f << "Exec=#{hdir}/shoes\n"
         f << "StartupNotify=true\n"
         f << "Terminal=false\n"
         f << "Type=Application\n"
+        f << "Comment=Ruby Graphical Programming\n"
         f << "Icon=#{hdir}/static/app-icon.png\n"
-        f << "Categories=Programming\n"
+        f << "Categories=Application;Development;Education;\n"
       end
       puts "\n ==== NOTE: ====\n"
       puts "Shoes has been copied to #{hdir}"
       puts "Please copy the 'Shoes.desktop' to /usr/share/applications"
       puts "Or wherever your Linux desktop manager requires. You may "
-      puts "need to sudo or be root to do that or create a launcher"
-      puts "with the info in Shoes.desktop"
+      puts "need to sudo or be root to do that or create your own launcher"
+      puts "You don't have to enter the password below if you do the copy"
+      puts "yourself"
       puts "=== Please read above ===="
+      sh "su root -c 'cp dist/Shoes.desktop /usr/share/applications'"
     end
   end
 end
