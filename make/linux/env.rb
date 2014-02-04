@@ -15,7 +15,9 @@ if ENV['DEBUG'] || ENV['GDB']
 else
   LINUX_CFLAGS = "-O -Wall"
 end
-
+# figure out which ruby we need.
+rv =  RUBY_VERSION[/\d.\d/]
+#puts "Ruby V: #{rv}"
 # Add the -Defines for shoes code
 LINUX_CFLAGS << " -DRUBY_1_9"
 LINUX_CFLAGS << " -DGTK3" unless ENV['GTK'] == 'gtk+-2.0'
@@ -34,8 +36,8 @@ end
 
 # Query pkg-config for cflags and link settings
 EXT_RUBY = RbConfig::CONFIG['prefix']
-RUBY_CFLAGS = " #{`pkg-config --cflags #{EXT_RUBY}/lib/pkgconfig/ruby-1.9.pc`.strip}"
-RUBY_LIB = `pkg-config --libs #{EXT_RUBY}/lib/pkgconfig/ruby-1.9.pc`.strip
+RUBY_CFLAGS = " #{`pkg-config --cflags #{EXT_RUBY}/lib/pkgconfig/ruby-#{rv}.pc`.strip}"
+RUBY_LIB = `pkg-config --libs #{EXT_RUBY}/lib/pkgconfig/ruby-#{rv}.pc`.strip
 CAIRO_CFLAGS = `pkg-config --cflags cairo`.strip
 CAIRO_LIB = `pkg-config --libs cairo`.strip
 PANGO_CFLAGS = `pkg-config --cflags pango`.strip

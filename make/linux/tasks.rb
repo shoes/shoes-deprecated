@@ -1,15 +1,17 @@
 module Make
   include FileUtils
 
+  # may have symlinks for shoes.rb and shoes/, remove them and
+  # replace with full copies. 
   def copy_files_to_dist
-    cp_r  "fonts", "dist/fonts"
-    cp   "lib/shoes.rb", "#{TGT_DIR}/lib"
-    cp_r "lib/shoes", "#{TGT_DIR}/lib"
-    cp_r  "samples", "dist/samples"
-    cp_r  "static", "dist/static"
-    cp    "README.md", "dist/README.txt"
-    cp    "CHANGELOG", "dist/CHANGELOG.txt"
-    cp    "COPYING", "dist/COPYING.txt"
+    if File.symlink? "dist/lib/shoes.rb" 
+      rm "dist/lib/shoes.rb"
+    end
+    if File.symlink? "dist/lib/shoes"
+      rm_r "dist/lib/shoes"
+    end
+    cp   "lib/shoes.rb", "dist/lib"
+    cp_r "lib/shoes", "dist/lib"
   end
 
   def cc(t)
@@ -37,8 +39,29 @@ module Make
     FileList[glob].each { |f| cp_r f, dir }
   end
 
-  # does nothing. It could check if the dep libraries exist
+  # Set up symlinks to lib/shoes and lib/shoes.rb so that they
+  # can be edited and tested without a rake build every time. Helpful
+  # for testing changes to shoes.rb and files in shoes/
+  # They'll be copied (not linked) when rake install occurs.
   def pre_build
+    puts "Prebuild: #{pwd}"
+    mkdir_p "dist/lib"
+    Dir.chdir('dist/lib') do
+      if File.symlink? "shoes.rb" 
+        rm "shoes.rb"
+      end
+     ln_s "../../lib/shoes.rb", "shoes.rb"
+     if File.symlink? "shoes"
+        rm_r "shoes/"
+      end
+    ln_s "../../lib/shoes", "shoes"
+    end
+    cp_r  "fonts", "dist/fonts"
+    cp_r  "samples", "dist/samples"
+    cp_r  "static", "dist/static"
+    cp    "README.md", "dist/README.txt"
+    cp    "CHANGELOG", "dist/CHANGELOG.txt"
+    cp    "COPYING", "dist/COPYING.txt"
   end
 
   #  Build the extensions, gems and copy to Shoes directories

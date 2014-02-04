@@ -1,7 +1,66 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
+  
+2014-02-02
+--> Save the manual issues for the Mailing list or the Meetup.
 
-2014-01-31 Misc cleanup. Declare Milestone - b2? 
+   Started looking at the gems problems - Ruby 2.0 forces this. 1.9.3 too
+   A lot of changes. It doesn't look *too hard*, just tedious. 
+   
+done? So I don't want to build shoes every time I edit shoes.rb or setup.rb
+   Can I set up symbolic links instead of copying files and then when
+   installing, copy them? Add 'pre_build' task and the use 'copy_files_to
+   dist' as dependency of install (removing any softlinks first)? 
+   Watch out for lib/ruby/... Still need 'common_build' to copy that. 
+   This is fragile - if you don't get it exactly correct then you
+   can end up without lib/shoes.rb or lib/shoes.  Make backups if you play
+   here. It's easy to do it wrong. Just Ask.
+    
+  
+2014-02-02
+--> US-ASCII problem loading manual which is the hardcoded 1.9 test
+   in Shoes. But thats not the only problem. Now, 2.0.0 throws a hissy
+   in sort_by (the tsize value is different 126991 for Ruby 2 and 
+   127439 for 1.9.3) which suggests that something is not parsing 
+   correctly. Both load the same number (str.length) of 112844 'things'
+   Oddly enough file sz is a bit larger 113073.  Best not to worry about
+   that oddity. Both have the same number of sections, methods, mindex.
+   
+   In ftsearch/lib/util.rb is the data method of fulltext_writer. It's
+   a StringIO.new stored in @memory_io. So, something previous to that
+   is writing more/or less data to @memory.io. Good Luck with that Cecil!
+   Is it possible a flush() is needed? It's less than 512 thingies diff.
+   Not likely. its fsync() before close. flush changes nothing. 
+   
+   Back out. Restate the problem. Fails inside 
+    search.rb:20 - @index.finish! ->
+    fragment_writer.rb:101  - > 
+    suffix_array_writer.rb:48 (fulltext differs) -> sort, sort_by
+   
+   Can I use the Shoes 4 code for manual? Surely they reimplemented this
+   nightmare? No ? There's a commit for 1.9.x hash syntax which might
+   be helpful (and about the right size) - seems like a stretch.
+   
+   https://www.ruby-lang.org/en/news/2013/02/24/ruby-2-0-0-p0-is-released/
+
+2014-02-01
+   What to tackle next?
+--> Gkt3
+--> Gem Manager (for binary, windows versions of Shoes)
+--> cron updates/upgrades for chroots
+--> smarter building of Shoes/ruby exts - or convert them to gems
+--> update the many wiki pages about building from source. Assuming
+    my commits are merged into the mainline. 
+--> Update to Ruby 2.0 (Gtk2) 
+
+I'm leaning towards the Ruby 2.0 work (at least for the default build)
+  mostly because it could purge some known uglies in the rakefiles/cache.rb
+  and it might help Windows Threading (or not). 
+done: Add checks for RUBY_VERSION make/linux/env.rb
+done: Loading ftsearch fails. cache.rb - even said FIXME: in the code.
+     
+
+2014-01-31 Misc cleanup. Declare Milestone - b2 next? 
 
 done: Review/close open bugs in this file.
 done: commit and issue pull. May God help Steve in his time of need.

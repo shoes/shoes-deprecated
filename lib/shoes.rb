@@ -448,6 +448,8 @@ class Shoes
     if RUBY_VERSION =~ /^1\.9/ and !@shy
       #File.open(path, 'r:utf-8') { |f| f.read }
       IO.read(path).force_encoding("UTF-8")
+    elsif RUBY_VERSION =~ /^2\.0/ and !@shy
+      IO.read(path).force_encoding("UTF-8")
     else
       File.read(path)
     end

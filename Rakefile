@@ -204,7 +204,6 @@ end
 task :old_build => [:pre_build, :build_os] do
   Builder.common_build
   Builder.copy_deps_to_dist
-  Builder.copy_files_to_dist
   Builder.setup_system_resources
 end
 
@@ -214,6 +213,7 @@ task  :install do
      puts "Sorry. You can't do an install of your source built Shoes"
      puts "when crosscompiling is setup. Think about the confused children."
   else
+    Builder.copy_files_to_dist
     Builder.make_userinstall
   end
 end
