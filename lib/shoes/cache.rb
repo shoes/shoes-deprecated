@@ -30,7 +30,14 @@ if tight_shoes
 else
   #puts "LOOSE Shoes #{RUBY_VERSION} #{DIR}"
   $:.unshift ENV['GEM_HOME'] if ENV['GEM_HOME']
-  # FIXME add path for shoes extensions don't hardcode 1.9.1
+  rv = case RUBY_VERSION
+    when /1.9/
+      '1.9.1'
+    when /2.0.0/
+      '2.0.0'
+    else
+      RUBY_VERSION
+  end
   $:.unshift DIR+"/lib/ruby/1.9.1/#{RbConfig::CONFIG['arch']}"
   $:.unshift DIR+"/lib/ruby/1.9.1"
   $:.unshift DIR+"/lib/shoes"
