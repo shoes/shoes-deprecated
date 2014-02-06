@@ -8,7 +8,7 @@ module Make
       rm "dist/lib/shoes.rb"
     end
     if File.symlink? "dist/lib/shoes"
-      rm_r "dist/lib/shoes"
+      rm "dist/lib/shoes"
     end
     cp   "lib/shoes.rb", "dist/lib"
     cp_r "lib/shoes", "dist/lib"
@@ -52,9 +52,9 @@ module Make
       end
      ln_s "../../lib/shoes.rb", "shoes.rb"
      if File.symlink? "shoes"
-        rm_r "shoes/"
+        rm "shoes"
       end
-    ln_s "../../lib/shoes", "shoes"
+      ln_s "../../lib/shoes", "shoes"
     end
     cp_r  "fonts", "dist/fonts"
     cp_r  "samples", "dist/samples"

@@ -38,8 +38,8 @@ else
     else
       RUBY_VERSION
   end
-  $:.unshift DIR+"/lib/ruby/1.9.1/#{RbConfig::CONFIG['arch']}"
-  $:.unshift DIR+"/lib/ruby/1.9.1"
+  $:.unshift DIR+"/lib/ruby/#{rv}/#{RbConfig::CONFIG['arch']}"
+  $:.unshift DIR+"/lib/ruby/#{rv}"
   $:.unshift DIR+"/lib/shoes"
   # May encounter ENV['GEM_PATH'] in the wild.
   #if ENV['GEM_PATH']

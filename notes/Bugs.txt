@@ -2,9 +2,13 @@ Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
 2014-02-05
+done:? Rakefile changes for linking to lib/shoes works oddly. rake clean
+   can delete it and/or two rakes in a row. I might have fixed this.
+
 done: Setup.rb works with 1.9.3 and 2.0.0
    Thats not very good sample to download a gem that can't be built
    on most windows, many OSX?. There are binarys gems for some windows though
+   if you bump the bluecloth version up. 
    
    Of course RbConfig can be damn near useless for Shoes that move
    around in the file system. 

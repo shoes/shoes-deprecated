@@ -1,8 +1,9 @@
 Shoes.app height: 800, width: 800 do
-  para "Startup info"
-  para Shoes::RELEASE_NAME+"\n"
-  para Shoes::RELEASE_BUILD_DATE+"\n"
-  para Shoes::RELEASE_TYPE+"\n"
+  para "Startup info\n"
+  para "Ruby Version: #{RUBY_VERSION} on #{RUBY_PLATFORM}\n"
+  para "Shoes Release: #{Shoes::RELEASE_NAME}\n"
+  para "    built on #{Shoes::RELEASE_BUILD_DATE}\n"
+  para "    Fit: #{Shoes::RELEASE_TYPE}\n"
   if defined?(ShoesGemJailBreak)
    para "Jailbreak == #{ShoesGemJailBreak}"
   else
