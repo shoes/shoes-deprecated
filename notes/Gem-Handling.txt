@@ -1,5 +1,40 @@
 GEM Management
 
+In Federales (Shoes 3.2+) we can use gems installed in the system or
+rvm as well as the gems in ~/shoes/+gems/ That applies to Linux. Windows
+is probably restricted to +gems that were installed by Shoes/setup.rb
+
+Setup.rb is horribly out of date and doesn't work with Ruby 1.9.3 or better.
+It does seem possible to restore the functionality of setup.rb if I can
+understand what it does with an api that appears to have vanished from the
+web memory.  Most of setup is Shoes gui code so ignore most of that for now.
+Shoes::Setup.init calls gem_reset which sets up the paths from GEM_DIR, 
+GEM_CENTRAL (which were set in cache.rb). init then calls to install 'sources'
+if it's not installed. Comment out that line and you can use gem argments
+on the shoes command line. So we can cross Gemrunner off the worry list.
+
+So what does 'sources' do? It's a base64 encoded something named 
+"sources-0.0.1.gem" which appears to have some leading spaces removed
+from each line.  I happen to have a sources gem in my +gem/cache and its
+a tar file. with two files inside:
+  data.tar.gz
+  metadata.gz
+unzip doesn't like metadata.gz but tar xf on data.tar reveals a sources.rb
+whose simple job is to tell gems that "http://gems.rubyforge.org" is where
+to install from.  OK. Do we need that when Ruby 1.9.3+ has gems built in?
+I don't think so.
+
+It appears the setup.rb I'm working with may never have worked. It certainly
+didn't work with 1.9.3
+
+
+
+
+
+
+
+=== older notes:
+
  Shoes (cache.rb) stuffs it's gem dirs into the $: env variable. It might
 be interesting to contemplate a small (yaml?) file in dist/ that overrides
 these settings with the users choice of gemdirs. There is a ~/.shoes and

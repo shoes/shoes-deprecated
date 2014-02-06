@@ -1,7 +1,55 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
-2014-02-02
+2014-02-05
+done: Setup.rb works with 1.9.3 and 2.0.0
+   Thats not very good sample to download a gem that can't be built
+   on most windows, many OSX?. There are binarys gems for some windows though
+   
+   Of course RbConfig can be damn near useless for Shoes that move
+   around in the file system. 
+   
+done: can compute the progress bar better - we know the inital size and the
+    the amount (bytes) downloaded so far at each update()
+  
+2014-02-04
+   Shoes.setup
+     ex: Gem.source_index.refresh! . Not only was source_index deprecated
+     it was deleted and there isn't much on the net about how to replace it.
+done: $ dist/shoes -g list --local now working. by commenting out #27
+     in setup.rb where it installs the 'sources' gem. So what does sources 
+     do? Good Question it's base64 encoded (see notes/Gem-Handling.txt)
+     I don't think its needed for modern Rubys. 
+     
+-->  Need to test setup with jailbreak y/n
+     Shoes.setup do
+        gem 'bluecloth =2.0.6'
+done I seem to have a shoes/setup.rb that is buggy or incomplete.
+ 
+done: It's got a blueshoes icon - where is that dialog created?
+    Right there at setup.rb:47 dumb shit.
+    
+--> terminal reports a couple of [:download_reporter] messages
+   and then an undef method 'fetch' for nil from net/http via 
+   rubygems/request.rb:139 in block fetch. 
+   HINT:
+   gem list --remote bluecloth
+       BlueCloth (1.0.1)
+       bluecloth (2.2.0, 2.1.0 x86-mingw32 x86-mswin32)
+hint: there's a shit load of bluecloth versions available. None of them
+    install. 
+done: So which bluecloth ? >= 2.0.6 perhaps? - makes a slight difference.
+    It really can't handle multiple possibilities. Actually it can. 
+    It's more explicit now but it still fails to download. At least
+    I know where and what I'm feeding it.
+    
+    I suspect that the :download_reporter callbacks are not wired into
+    the Setup Gui properly and it tries again after the connection is 
+    closed. Just a guess.
+   
+
+  
+2014-02-03
 --> Save the manual issues for the Mailing list or the Meetup.
 
    Started looking at the gems problems - Ruby 2.0 forces this. 1.9.3 too
@@ -14,7 +62,7 @@ done? So I don't want to build shoes every time I edit shoes.rb or setup.rb
    Watch out for lib/ruby/... Still need 'common_build' to copy that. 
    This is fragile - if you don't get it exactly correct then you
    can end up without lib/shoes.rb or lib/shoes.  Make backups if you play
-   here. It's easy to do it wrong. Just Ask.
+   here. It's easy to do it wrong. Just Ask how I know that.
     
   
 2014-02-02
@@ -57,7 +105,7 @@ I'm leaning towards the Ruby 2.0 work (at least for the default build)
   mostly because it could purge some known uglies in the rakefiles/cache.rb
   and it might help Windows Threading (or not). 
 done: Add checks for RUBY_VERSION make/linux/env.rb
-done: Loading ftsearch fails. cache.rb - even said FIXME: in the code.
+done: Loading ftsearch fails. cache.rb - it even said FIXME: in the code.
      
 
 2014-01-31 Misc cleanup. Declare Milestone - b2 next? 

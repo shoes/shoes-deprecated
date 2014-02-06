@@ -1,8 +1,12 @@
 require 'rubygems'
 require 'rubygems/dependency_installer'
+# 2014-02-05 (CJC) There's lots of things in here that aren't needed 
+# or may not work as intended. 
 module Gem
-  @ruby = (File.join(Config::CONFIG['bindir'], 'shoes') + Config::CONFIG['EXEEXT']).
+  if Shoes::RELEASE_TYPE =~ /TIGHT/
+    @ruby = (File.join(RbConfig::CONFIG['bindir'], 'shoes') + RbConfig::CONFIG['EXEEXT']).
           sub(/.*\s.*/m, '"\&"') + " --ruby"
+  end
 end
 class << Gem::Ext::ExtConfBuilder
   alias_method :make__, :make
@@ -24,12 +28,14 @@ class Shoes::Setup
 
   def self.init
     gem_reset
-    install_sources if Gem.source_index.find_name('sources').empty?
+    # defined at end of this file. Why does shoes need this?
+    #install_sources if Gem.source_index.find_name('sources').empty?
   end
 
   def self.gem_reset
     Gem.use_paths(GEM_DIR, [GEM_DIR, GEM_CENTRAL_DIR])
-    Gem.source_index.refresh!
+    #Gem.source_index.refresh!
+    Gem.refresh
   end
 
   def self.setup_app(setup)
@@ -41,7 +47,7 @@ class Shoes::Setup
         (0..158).step(3) { |i| line 0, i, 370, i }
       end
       @pulse = stack :top => 0, :left => 0
-      @logo = image "#{DIR}/static/shoes-icon-blue.png", :top => -20, :right => -20
+      @logo = image "#{DIR}/static/shoes-icon.png", :top => -20, :right => -20
       stack :margin => 18 do
         title "Shoes Setup", :size => 12, :weight => "bold", :margin => 0
         para "Preparing #{setup.script}", :size => 8, :margin => 0, :margin_top => 8, :width => 220
@@ -97,7 +103,8 @@ class Shoes::Setup
   def gem name, version = nil
     arg = "#{name} #{version}".strip
     name, version = arg.split(/\s+/, 2)
-    if Gem.source_index.find_name(name, version).empty?
+    poss = Gem::Specification.find_all_by_name(name, version)
+    if poss.empty?
       @steps << [:gem, arg]
     else
       activate_gem(name, version)
@@ -109,8 +116,8 @@ class Shoes::Setup
   end
 
   def activate_gem(name, version)
-    gem = Gem.source_index.find_name(name, version).first
-    Gem.activate(gem.name, "= #{gem.version}")
+    gem = Gem::Specification.find_all_by_name(name, version).first
+    gem.activate()
   end
 
   def start(app)
@@ -125,13 +132,20 @@ class Shoes::Setup
         name, version = arg.split(/\s+/, 2)
         count += 1
         ui.say "Looking for #{name}"
-        if Gem.source_index.find_name(name, version).empty?
-          ui.title "Installing #{name}"
-          installer = Gem::DependencyInstaller.new
+        # need to handle multiple matching gemspecs
+        installer = Gem::DependencyInstaller.new
+        if poss_gems = installer.find_spec_by_name_and_version(name, version)
+          #poss_gems.each_spec { |g| puts "#{g.name} #{g.version}"}
+          best_set = poss_gems.pick_best!()
+          this_one = nil
+          best_set.each_spec do |s| 
+            this_one = s
+          end
+          ui.title "Installing #{this_one.name} #{this_one.version}"
           begin
-            installer.install(name, version || Gem::Requirement.default)
+            installer.install(this_one.name, this_one.version || Gem::Requirement.default)
             self.class.gem_reset
-            activate_gem(name, version)
+            activate_gem(this_one.name, this_one.version)
             ui.say "Finished installing #{name}"
           rescue Object => e
             ui.error "while installing #{name}", e
@@ -267,7 +281,7 @@ class Shoes::Setup
 end
 
 class Gem::ShoesFace
-  class ProgressReporter
+  class DownloadReporter  #ProgressReporter
     attr_reader :count
 
     def initialize(prog, status, size, initial_message,
@@ -282,7 +296,15 @@ class Gem::ShoesFace
       @count += 1.0
       @prog.fraction = (@count / @total.to_f) * 0.5
     end
-
+    
+    def fetch(filename, len)
+      @total = len
+    end
+    
+    def update(len)
+      @prog.fraction = len.to_f / @total.to_f
+    end
+   
     def done
     end
   end
@@ -317,9 +339,11 @@ class Gem::ShoesFace
     say(msg)
     ask(quiz) if quiz
   end
-  def progress_reporter(*args)
-    ProgressReporter.new(@prog, @status, *args)
+  
+  def download_reporter(*args)
+    DownloadReporter.new(@prog, @status, 0, 'Downloading')
   end
+  
   def method_missing(*args)
     p args
     nil

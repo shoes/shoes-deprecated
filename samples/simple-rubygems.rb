@@ -3,7 +3,7 @@
 # rest of the app below it.
 #
 Shoes.setup do
-  gem 'bluecloth =2.0.6'
+  gem 'bluecloth >=2.0.6'
   gem 'metaid'
 end
 
@@ -15,11 +15,13 @@ Shoes.app :width => 300, :height => 400, :resizable => false do
 
   stack :margin => 40 do
     tagline "Loaded Gems:", :align => "center", :underline => "single"
+    cnt = 0
     Gem.loaded_specs.each do |name, spec|
       para "#{name}\n#{spec.version}", :align => "center"
+      cnt += 1
     end
 
-    caption "Total Gems: #{Gem.source_index.length}", :align => "center", :margin_bottom => 0
+    caption "Total Gems: #{cnt}", :align => "center", :margin_bottom => 0
     para "(includes unloaded gems)", :align => "center", :margin_top => 0
     button "OK", :bottom => 30, :left => 0.4 do
       self.close
