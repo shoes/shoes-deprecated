@@ -1,5 +1,14 @@
 GEM Management
 
+Now that shoes/setup.rb can download and build gems (if needed) and the
+nice gui seems to work. Do we still need a separate Gem Handler app (the
+cobbler in halfbaked/) ? Futhermore, Gems can now include multiple arch 
+binaries - Rakecompiler can build them so Windows folks can 
+
+
+
+==== 
+
 In Federales (Shoes 3.2+) we can use gems installed in the system or
 rvm as well as the gems in ~/shoes/+gems/ That applies to Linux. Windows
 is probably restricted to +gems that were installed by Shoes/setup.rb
@@ -26,11 +35,6 @@ I don't think so.
 
 It appears the setup.rb I'm working with may never have worked. It certainly
 didn't work with 1.9.3
-
-
-
-
-
 
 
 === older notes:

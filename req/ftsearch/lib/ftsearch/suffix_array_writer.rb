@@ -42,20 +42,21 @@ class SuffixArrayWriter
   def finish!(fulltext)
     return if @finished
     if $DEBUG
-      puts "Suffixes: #{@suffixes.size}"
+      $DEBUGF.puts "Ftsz: #{fulltext.size}"
+      $DEBUGF.puts "Suffixes: #{@suffixes.size}"
       t0 = Time.new
     end
     sort!(fulltext)
     if $DEBUG
-      puts "Sorted in #{Time.new - t0}"
+      $DEBUGF.puts "Sorted in #{Time.new - t0}"
     end
     if $DEBUG
-      puts "Dumping suffixes"
+      $DEBUGF.puts "Dumping suffixes"
       t0 = Time.new
     end
     dump_suffixes(fulltext)
     if $DEBUG
-      puts "Dumped in #{Time.new - t0}"
+      $DEBUGF.puts "Dumped in #{Time.new - t0}"
     end
     @finished = true
   end
@@ -91,7 +92,13 @@ class SuffixArrayWriter
   end
 
   def sort!(fulltext)
-    tsize = fulltext.size
+#    tsize = fulltext.size
+    tsize = fulltext.bytesize
+    if $DEBUG
+      $DEBUGF.puts "Sort! #{tsize}"
+      $DEBUGF.puts "Suffixes cnt: #{@suffixes.size}"
+      $DEBUGF.flush
+    end
     @suffixes = @suffixes.sort_by{|offset| fulltext[offset, tsize - offset]}
   end
 end

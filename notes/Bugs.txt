@@ -1,12 +1,72 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
+2014-02-07
+    manual-en.txt has 3 Japanese characters at line 470 that iconv claims
+    is an invalid sequence. They look fine to me, terminal and editor
+    and Ruby 1.9.3. Why would that choke Ruby 2?  Easy way to test: Make
+    a backup, edit the file and see - I See that isn't the problem. Time
+    to instrument deeper.
+    diff ft1.log ft2.log
+    273c273
+    < FragFinish! 127439 127439
+    ---
+    > FragFinish! 126991 127439
+    That's the fulltext.size and fulltext.bytesize values for
+    Ruby [1].9.3 and [2].0.0
+    
+    Now I just have to find where that matters.  Like maybe that sort_by?
+    You think? Sadly, that didn't fix it. But, I know what I need to look
+    for [stringio].size. On a educated guess it set 
+      util.rb in initialize_in_memory_buffer
+      @memory_io.set_encoding("ASCII-8BIT")
+done: IT WORKS. In 1.9.3 and 2.0.0. And it makes sense:  It's a binary file
+     using pack, unpack so anything unicode aware should not think it's
+     UTF-8 (a default for 2.0.0). 
+--> Remove the debugging code in ftsearch/lib, help.rb, search.rb
+
+ 
+2014-02-06
+    back to ftsearch and 2.0 @memory_io has a different size in 2.0
+    by the time the error is reported. Lets figure out where it's changed.
+    I also know the number of loaded bytes from the source file is the same,
+    and the numbers of sections,methods,mindex,suffixes (in help.rb) is 
+    the same.
+    
+--> in fragment_writer.rb:101 dumping fulltext to disk (f.write) produces 
+    in both Ruby 1.9.3 and 2.0.0 identical files 127439 bytes long.
+    BUT ruby's size method returns different values for 2.0.0 - 126991
+    but in 1.9.3 they are the same.  In both, the file produced is the same
+    127439 and no diff for the files.  A difference of 448. The question is
+    why ruby 2.0 does that. fulltext is a (mem)file from pack calls. they are the 
+    same in the buffer - not the same when ruby asks for size.
+    Do I suspect encoding? Hell yes. Ftsearch knows nothing about UTF-x, it
+    wouldn't be hard to confuse it. 
+    
+    Opening the manual in "UTF-8" or "ASCII-8BIT " gets the same error in 2.0
+    Opening the manual with "US-ASCII" gets an invalid byte sequence. Do
+    I suspect some CP-1252 crap? Do I vaguely remember this was a problem
+    discussed on the mailing list and not fixed the way I would like? Maybe.
+    
+--> don't use Shoes.read_file for the manual at help.rb:215. I think in 
+    Ruby 2, everything is UTF-8. That just helps isolate the problem.
+--> Clean out the Windows characters in manual-en.txt. (iconv cmd line?)
+
+   
+   
+
+    Now that setup works and jailbreak, Do we really need better gem 
+    handling? Not for linux. Osx isn't a consideration until someone 
+    steps up to that task. There's no Shoes solution if the user doesn't
+    have the build environment to compile gems, although gems are appearing
+    that have mulitple arch binaries inside. 
+  
 2014-02-05
 done:? Rakefile changes for linking to lib/shoes works oddly. rake clean
    can delete it and/or two rakes in a row. I might have fixed this.
 
 done: Setup.rb works with 1.9.3 and 2.0.0
-   Thats not very good sample to download a gem that can't be built
+   Bluecloth not very good sample to download a gem that can't be built
    on most windows, many OSX?. There are binarys gems for some windows though
    if you bump the bluecloth version up. 
    

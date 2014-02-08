@@ -212,7 +212,10 @@ module Shoes::Manual
 
   def load_docs path
     return @docs if @docs
-    str = Shoes.read_file(path)
+    #str = Shoes.read_file(path)
+    str = IO.read(path).force_encoding("ASCII-8BIT") # or UTF-8
+    #$DEBUG = true
+    #$DEBUGF = File.open("ft#{RUBY_VERSION[/\d/]}.log", 'w')
     @search = Shoes::Search.new
     @sections, @methods, @mindex = {}, {}, {}
     @docs =
@@ -242,6 +245,7 @@ module Shoes::Manual
         @sections[k] = hsh
         [k, hsh]
       end
+    $DEBUGF.flush if $DEBUG
     @search.finish!
     @docs
   end

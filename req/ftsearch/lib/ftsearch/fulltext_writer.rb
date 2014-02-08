@@ -60,6 +60,7 @@ class FulltextWriter
     end
     total_size = stored_fields.inject(0){|s,(_,data)| s + data.size} + stored_fields.size * 9
     # 9 = field ids plus field size plus trailing \0
+    $DEBUGF.puts "doc hdr: #{total_size}" if $DEBUG
     @io.write [total_size].pack("V")
   end
 

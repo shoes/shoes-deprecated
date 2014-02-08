@@ -98,6 +98,10 @@ class FragmentWriter
   def finish!
     @fulltext_writer.finish!
     fulltext = @fulltext_writer.data
+    if $DEBUG
+      $DEBUGF.puts "FragFinish! #{fulltext.size} #{fulltext.bytesize}"
+      $DEBUGF.flush
+    end
     @suffix_array_writer.finish!(fulltext)
     @doc_map_writer.finish!
 
