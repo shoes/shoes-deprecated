@@ -179,7 +179,7 @@ class MakeLinux
     def make_installer
       gtkv = ENV['GTK']== 'gtk+-3.0' ? '3' : '2'
       arch = 'armhf'
-      rlname = "#{PKG}b1-gtk#{gtkv}-#{arch}"
+      rlname = "#{PKG}#{TINYVER}-gtk#{gtkv}-#{arch}"
       puts "Creating Pkg for #{rlname}"
       mkdir_p "pkg/#{rlname}"
       sh "cp -r #{TGT_DIR}/* pkg/#{rlname}"
@@ -190,12 +190,6 @@ class MakeLinux
       cd  "../"
       sh "makeself #{rlname} #{rlname}.run '#{APPNAME}' \
 ./shoes-install.sh "
-#      sh "makeself --notemp #{rlname} #{rlname}.run '#{APPNAME}' \
-#./shoes-install.sh "
-      #sh "fpm -s dir -t deb -n #{PKG}b1-gtk#{gtkv} -a armhf \
-#-m ccoupe@cableone.net -v 1 --category Programming \
-#--vendor ccoupe@cableone.net --url www.mvmanila.com \
-#--after-install #{rlname}/shoes-install.sh #{rlname} "
     end
     
 

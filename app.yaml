@@ -1,5 +1,7 @@
 name: Shoes
-version: 3
+major: 3
+minor: 2
+tiny: b2
 release: federales
 icons:
   win32: platform/msw/shoes.ico

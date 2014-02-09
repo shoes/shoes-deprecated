@@ -179,7 +179,7 @@ class MakeLinux
     def make_installer
       gtkv = ENV['GTK']== 'gtk+-3.0' ? '3' : '2'
       arch = 'i686'
-      rlname = "#{PKG}b1-gtk#{gtkv}-#{arch}"
+      rlname = "#{PKG}#{TINYVER}-gtk#{gtkv}-#{arch}"
       puts "Creating Pkg for #{rlname}"
       mkdir_p "pkg/#{rlname}"
       sh "cp -r #{TGT_DIR}/* pkg/#{rlname}"

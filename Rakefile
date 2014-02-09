@@ -10,7 +10,8 @@ include FileUtils
 
 APP = YAML.load_file(File.join(ENV['APP'] || ".", "app.yaml"))
 APPNAME = APP['name']
-RELEASE_ID, RELEASE_NAME = APP['version'], APP['release']
+APP['version'] = APP['major'] # for historical reasons 
+RELEASE_ID, RELEASE_NAME = APP['major'], APP['release']
 NAME = APP['shortname'] || APP['name'].downcase.gsub(/\W+/, '')
 SONAME = 'shoes'
 
@@ -22,13 +23,12 @@ end
 GIT = ENV['GIT'] || "git"
 #REVISION = (`#{GIT} rev-list HEAD`.split.length + 1).to_s
 #VERS = ENV['VERSION'] || "0.r#{REVISION}"
-REVISION = "3.2"
-VERS = "3.2"
+REVISION = "#{RELEASE_ID}.#{APP['minor']}"
+VERS = "#{REVISION}"
 PKG = "#{NAME}-#{VERS}"
 APPARGS = APP['run']
 FLAGS = %w[DEBUG]
-
-
+TINYVER = APP['tiny']
 
 RUBY_SO = RbConfig::CONFIG['RUBY_SO_NAME']
 RUBY_V = RbConfig::CONFIG['ruby_version']
@@ -204,6 +204,7 @@ end
 # for now, each of those calls the old build method.
 task :old_build => [:pre_build, :build_os] do
   Builder.common_build
+  Builder.copy_files_to_dist
   Builder.copy_deps_to_dist
   Builder.setup_system_resources
 end

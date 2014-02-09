@@ -1,6 +1,21 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
+2014-02-08
+done: tweak Rakefile and app.yaml 
+     NOTE: NOTE: I've modified app.yaml to have major-minor-tiny and
+     modified the Rakefile to use them and still be backward compatible
+     if an OSX developer should appear. Or a Windows developer. 
+done: use cron job to apt-get update chroots: ~/bin/update-chroots
+    Source a script on chroot "user" login, interactive or from cron.
+    .bach_profile copy of .bashrc and some edits to source ~/bin/bash-chroot 
+done: sets things up for debx86 and deb386 
+-->  but doesn't work for debrpi. Not a big deal for the pi.
+done: If that works, I should be able to build x86_64 and i686 Shoes from
+    cron.
+done: Write a cron job to build the raspberry pi Shoes.
+-->  Write a cron job to build the MinGW Shoes (native, and gtk2)
+  
 2014-02-07
     manual-en.txt has 3 Japanese characters at line 470 that iconv claims
     is an invalid sequence. They look fine to me, terminal and editor
@@ -17,7 +32,7 @@ Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
     
     Now I just have to find where that matters.  Like maybe that sort_by?
     You think? Sadly, that didn't fix it. But, I know what I need to look
-    for [stringio].size. On a educated guess it set 
+    for [stringio].size. On a educated guess I set 
       util.rb in initialize_in_memory_buffer
       @memory_io.set_encoding("ASCII-8BIT")
 done: IT WORKS. In 1.9.3 and 2.0.0. And it makes sense:  It's a binary file
@@ -52,9 +67,6 @@ done: IT WORKS. In 1.9.3 and 2.0.0. And it makes sense:  It's a binary file
     Ruby 2, everything is UTF-8. That just helps isolate the problem.
 --> Clean out the Windows characters in manual-en.txt. (iconv cmd line?)
 
-   
-   
-
     Now that setup works and jailbreak, Do we really need better gem 
     handling? Not for linux. Osx isn't a consideration until someone 
     steps up to that task. There's no Shoes solution if the user doesn't
@@ -66,7 +78,7 @@ done:? Rakefile changes for linking to lib/shoes works oddly. rake clean
    can delete it and/or two rakes in a row. I might have fixed this.
 
 done: Setup.rb works with 1.9.3 and 2.0.0
-   Bluecloth not very good sample to download a gem that can't be built
+   Bluecloth is not very good sample to download a gem that can't be built
    on most windows, many OSX?. There are binarys gems for some windows though
    if you bump the bluecloth version up. 
    
@@ -93,7 +105,7 @@ done I seem to have a shoes/setup.rb that is buggy or incomplete.
 done: It's got a blueshoes icon - where is that dialog created?
     Right there at setup.rb:47 dumb shit.
     
---> terminal reports a couple of [:download_reporter] messages
+done: terminal reports a couple of [:download_reporter] messages
    and then an undef method 'fetch' for nil from net/http via 
    rubygems/request.rb:139 in block fetch. 
    HINT:
@@ -114,7 +126,7 @@ done: So which bluecloth ? >= 2.0.6 perhaps? - makes a slight difference.
 
   
 2014-02-03
---> Save the manual issues for the Mailing list or the Meetup.
+done: Save the manual issues for the Mailing list or the Meetup.
 
    Started looking at the gems problems - Ruby 2.0 forces this. 1.9.3 too
    A lot of changes. It doesn't look *too hard*, just tedious. 
@@ -130,7 +142,7 @@ done? So I don't want to build shoes every time I edit shoes.rb or setup.rb
     
   
 2014-02-02
---> US-ASCII problem loading manual which is the hardcoded 1.9 test
+done: US-ASCII problem loading manual which is the hardcoded 1.9 test
    in Shoes. But thats not the only problem. Now, 2.0.0 throws a hissy
    in sort_by (the tsize value is different 126991 for Ruby 2 and 
    127439 for 1.9.3) which suggests that something is not parsing 
@@ -163,7 +175,14 @@ done? So I don't want to build shoes every time I edit shoes.rb or setup.rb
 --> smarter building of Shoes/ruby exts - or convert them to gems
 --> update the many wiki pages about building from source. Assuming
     my commits are merged into the mainline. 
---> Update to Ruby 2.0 (Gtk2) 
+    
+    Update to Ruby 2.0 (Gtk2) 
+done: Source build on Linux (aka Loose Shoes) can use Ruby 2.0.0
+    There's a lot of reasons not to do the following anytime soon.
+--> Binary build for x86
+--> Binary build for i686
+--> Binary build for pi
+--> Binary build for MinGW
 
 I'm leaning towards the Ruby 2.0 work (at least for the default build)
   mostly because it could purge some known uglies in the rakefiles/cache.rb
