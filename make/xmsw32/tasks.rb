@@ -196,12 +196,12 @@ class MakeLinux
       rm_rf "#{TGT_DIR}/nsis"
       cp_r  "platform/msw", "#{TGT_DIR}/nsis"
       cp APP['icons']['win32'], "#{TGT_DIR}/nsis/setup.ico"
-      rewrite "#{TGT_DIR}/nsis/base.nsi", "#{TGT_DIR}/nsis/#{NAME}.nsi"
+      rewrite "#{TGT_DIR}/nsis/base.nsi", "#{TGT_DIR}/nsis/#{WINFNAME}.nsi"
       Dir.chdir("#{TGT_DIR}/nsis") do
         #sh "\"#{env('NSIS')}\\makensis.exe\" #{NAME}.nsi"
-        sh "makensis #{NAME}.nsi"
+        sh "makensis #{WINFNAME}.nsi"
       end
-      mv "#{TGT_DIR}/nsis/#{PKG}.exe", "pkg"
+      mv "#{TGT_DIR}/nsis/#{WINFNAME}.exe", "pkg"
     end
 
   end

@@ -25,10 +25,11 @@ GIT = ENV['GIT'] || "git"
 #VERS = ENV['VERSION'] || "0.r#{REVISION}"
 REVISION = "#{RELEASE_ID}.#{APP['minor']}"
 VERS = "#{REVISION}"
+TINYVER = APP['tiny']
 PKG = "#{NAME}-#{VERS}"
 APPARGS = APP['run']
 FLAGS = %w[DEBUG]
-TINYVER = APP['tiny']
+
 
 RUBY_SO = RbConfig::CONFIG['RUBY_SO_NAME']
 RUBY_V = RbConfig::CONFIG['ruby_version']

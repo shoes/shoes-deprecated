@@ -134,12 +134,28 @@ class Shoes::Setup
         ui.say "Looking for #{name}"
         # need to handle multiple matching gemspecs
         installer = Gem::DependencyInstaller.new
-        if poss_gems = installer.find_spec_by_name_and_version(name, version)
-          #poss_gems.each_spec { |g| puts "#{g.name} #{g.version}"}
+        poss_gems = installer.find_spec_by_name_and_version(name, version)
+        #poss_gems.each_spec { |g| puts "#{g.name} #{g.version}"}
+        this_one = nil
+        if poss_gems.first.kind_of? Gem::Specification
+          #puts "Gem V = older"
+          poss_gems.each { |g| this_one = g}
+          puts this_one
+          ui.title "Installing #{this_one.name} #{this_one.version}"
+          begin
+            installer.install(this_one.name, this_one.version || Gem::Requirement.default)
+            self.class.gem_reset
+            activate_gem(this_one.name, this_one.version)
+            ui.say "Finished installing #{name}"
+          rescue Object => e
+            ui.error "while installing #{name}", e
+            raise e
+          end
+        elsif poss_gems.first.kind_of? Gem::AvailableSet::Tuple
+          #puts "Gem V = newer"
           best_set = poss_gems.pick_best!()
-          this_one = nil
           best_set.each_spec do |s| 
-            this_one = s
+              this_one = s
           end
           ui.title "Installing #{this_one.name} #{this_one.version}"
           begin
@@ -151,6 +167,8 @@ class Shoes::Setup
             ui.error "while installing #{name}", e
             raise e
           end
+         else 
+           puts "cannot determine gems version"
         end
       when :source
         ui.title "Switching Gem servers"

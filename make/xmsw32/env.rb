@@ -102,6 +102,10 @@ LINUX_CFLAGS << " -I#{TGT_SYS_DIR}include "
  
 # I don't think the line below belongs in this file. 
 cp APP['icons']['win32'], "shoes/appwin32.ico"
+# NOTE : CONSTANTS for the picky, picky nsis installer. see platforms/msw/
+# base.nsi and tasks.rb make_installer()
+WINVERSION = "#{REVISION}#{TINYVER}-msw"
+WINFNAME = "#{APPNAME}-#{WINVERSION}"
 
 LINUX_LIB_NAMES = %W[gif jpeg]
 

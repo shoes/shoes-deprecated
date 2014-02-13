@@ -65,7 +65,7 @@ end
 def xfixrvmp(path)
   #puts "path  in: #{path}"
   path.gsub!(/-I\/home\/ccoupe\/\.rvm/, "-I/home/cross/armv6-pi/rvm")
-  path.gsub!(/-I\/usr\/local\//, "-I/#{TGT_SYS_DIR}usr/local/")
+  path.gsub!(/-I\/usr\/local\//, "-I#{TGT_SYS_DIR}usr/local/")
   #puts "path out: #{path}"
   return path
 end

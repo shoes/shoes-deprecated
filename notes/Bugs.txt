@@ -1,6 +1,113 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
+2014-02-12 Gems again
+    So, it turns out that Ruby 1.9.3+ may include rubygems but it doesn't
+    actuall include *recent* rubygems code, but the docs might.
+    Updating rubygems is a separate process - an additional step for
+    ruby installation/cross compiling. 
+    
+    http://rubygems.org/gems/rubygems-update shows the commands to
+    update ruby gems. 
+    
+    There is no value in supporting the older GEM API for Linux/Shoes so
+    have to pick a Gem version to include with Shoes (binaries). It might
+    as well be the latest: 2.2.2
+    
+   In debx86 chroot:
+--> need LANG env set. 
+done: Unable to require openssl, install OpenSSL and rebuild ruby
+--> fails to compile bluecloth because 
+/home/ccoupe/Projects/shoes3.2/x86_64-linux/shoes --ruby extconf.rb
+mkmf.rb can't find header files for ruby at /home/ccoupe/Projects/shoes3.2/x86_64-linux/lib/ruby/include/ruby.h
+
+   That's an interesting message. I could copy the includes to go with
+done: the ruby. The shoes --ruby extconf.rb indicates that it might work.
+   I have my doubts about how many gems can built on a minimal system?
+--> None! It would be possible to detect a build system (ruby, gcc) at
+   gem install time but that doesn't make sense for Linux. If they had
+   all that, they could build Shoes from source. Or use the Jailbreak.
+   Might be worthwhile for Windows and pi.  
+-->Better to move all that into  ShoesCobbler. 
+
+   In deb386 chroot.
+done: installed openssl,libssl-dev, libyaml-dev, libgdbm-dev, libcurl4-openssl-dev
+   rebuild ruby (no missing options now).
+done: Fail to link Shoes because .... Curl. Oops. I had EXT_RUBY as /usr
+   but my ruby was at /usr/local. Who the hell wrote that? 
+done: Also have a lovely message at Shoes startup about curl version numbering
+   change env.rb to copy the system curl.so.4 that I installed a few hours ago
+   instead of the minimal curl I compiled weeks ago. Remove that
+
+done: installing bluecloth gem fails to compile (expected behavior)
+  it fails appropriately on the Debian VM. All is good. 
+--> Oddly enough samples/simple-sphere.rb does not segfault. 
+    it doesn't seqfault when run in 32 bit chroot either.
+==> It's a 32 vs 64 bit Ruby problem. 
+
+==> After shoes/setup installs a gem it throws up the console window (blank)
+    no errors on the starting terminal. 
+    
+--> Update debrpi with rubygems 2.2.2. And latest libyaml-dev. 
+    Rebuild ruby. Gawd awful slow, but it works which is still amazing.
+
+
+
+  
+2014-02-11 explore Ruby Gems Deep Hole. Must climb out.
+--> Nsis installer and rakefiles. APPNAME, NAME and my confusion.
+
+    Should have seen this happening: The gems version is much different
+    between my rvm installed rubys (2.1.11) and the gem code in the rubies
+    I compiled and bundle with shoes (1.8.23) 
+    The gem API is different and rubydoc.org says 1.9.3 is something else.
+--> I'm drawing blanks about how to detect what is available at runtime
+    other than an ugly hack (works for 2.1.11) 
+--> Hack or not, I'm hanging with gems 1.8.23 on x86 cross. Not getting to
+    the hack. Hangs in looking for bluecloth. Perhaps not having permission
+    to write to sysdirs and now +gem? 
+    
+    I don't want to handle older gem versions and for the linux
+    chroots it *shouldn't be that hard* to update gems to something current
+    that supports the newer api. Can test for Gem.rubygems_version - it doesn't
+    exist until gems 2.0.0. See:
+    http://rubygems.rubyforge.org/rubygems-update/History_txt.html
+    
+    How to update rubygems code for a Mingw Ruby fake-not-a chroot? 
+    Wine doesn't appear to be that smart - it will run ruby.exe -v though.
+    
+    
+    
+  
+2014-02-10 
+    Pi build fails to link ftsearch - yup. 
+done: Turns out my build script (for use under cron) needs to source 
+    the rvm script like .bashrc does. That's not comforting!
+--> somewhere/somehow I can end up with samples/samples/ in xarmv6 
+   (and in the pkg)
+--> Great clue: On the pi, samples/simple-rubygems hangs just like Windows
+   does. Message on the terminal 'undefined method pick_best!' 
+   Could that be a Ruby 2 method? It's not listed in 1.9.3 docs.
+--> Oh hell! Now the fancy symlinks in dist/lib have disappeared. 
+   Good night, Gracie. 
+     
+3.3: Time to fix the ext builds (the fakeruby Luis suggested?)
+3.3: All of the cross builds env.rb have some 1.9.1 hardcoding inside. 
+  
+2014-02-09
+    Gems and Win7 
+--> Hangs looking for Bluecloth gem (samples/simple-rubygems.rb)
+--> .gem in home, +gem is not inside the .shoes folder along with .cache
+    nsis to the rescue after a deep dive?
+    Perhaps that funky setup up code is needed?
+--> No .shoes/federales either.
+    Fix the platform/msw/base.nsi and xmsw32 tasks.rb to play better with
+    my version scheme. God that was ugly!  
+--> Now do it again for win/gtk2 and get the Shoes/shoes case correct
+    
+    Fix the pi cron build.
+done: builds from terminal with rake. doesn't build with bin/build-shoes-rpi
+  
 2014-02-08
 done: tweak Rakefile and app.yaml 
      NOTE: NOTE: I've modified app.yaml to have major-minor-tiny and
@@ -213,7 +320,6 @@ done: Raspberry Mostly OK. In Education and Programming menu, not in Others?
     Who knew?
     
 done: Copy the su/desktop stuff in the default [dist] install. 
-
 done: Debian 7.2 (32 bit) Works. In Programming menu. Bless Debian.
 done: OpenSuse/64/XFCE - Working. Menu item is under 'Development' 
 done: Fedora 20 - Works on the strange Unity like desktop. Search for Shoes

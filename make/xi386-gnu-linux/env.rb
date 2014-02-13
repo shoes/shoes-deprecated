@@ -13,7 +13,7 @@ ENV['GDB'] = "SureYouBetcha" # compile -g,  strip symbols when nil
 # CHROOT = "/srv/chroot/deb386"
 CHROOT = ""
 # Where does ruby code live?
-EXT_RUBY = "#{CHROOT}/usr"
+EXT_RUBY = "#{CHROOT}/usr/local"
 SHOES_TGT_ARCH = 'i686-linux'
 # Specify where the Target system binaries live. 
 # Trailing slash is important.
@@ -28,8 +28,9 @@ CC = "gcc"
 
 pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-1.9.pc"
 pkggtk ="#{ularch}/pkgconfig/#{ENV['GTK']}.pc" 
-CURL_LDFLAGS = `pkg-config --libs #{uldir}/pkgconfig/libcurl.pc`.strip
 CURL_CFLAGS = `pkg-config --cflags #{uldir}/pkgconfig/libcurl.pc`.strip
+#CURL_LDFLAGS = `pkg-config --libs #{uldir}/pkgconfig/libcurl.pc`.strip
+CURL_LDFLAGS = `curl-config --libs `.strip
 
 
 file_list = %w{shoes/native/gtk.c shoes/http/curl.c} + ["shoes/*.c"]
@@ -116,7 +117,7 @@ LINUX_LIBS << " #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} #{CURL_LDFLAGS} "
 # not that clever or maybe I know better.
 
 SOLOCS = {}
-SOLOCS['curl'] = "#{uldir}/libcurl.so.4"
+SOLOCS['curl'] = "#{ularch}/libcurl.so.4"
 SOLOCS['ungif'] = "#{uldir}/libungif.so.4"
 SOLOCS['gif'] = "#{uldir}/libgif.so.4"
 SOLOCS['jpeg'] = "#{ularch}/libjpeg.so.8"

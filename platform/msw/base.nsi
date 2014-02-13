@@ -2,9 +2,9 @@
 ;Definitions
 !define AppName    "#{APPNAME}"
 !define AppRelease "#{RELEASE_NAME}"
-!define AppVersion "#{VERS}"
-!define AppMainEXE "#{NAME}.exe"
-!define ShortName  "#{NAME}"
+!define AppVersion "#{WINVERSION}"
+!define AppMainEXE "#{APPNAME}.exe"
+!define ShortName  "#{APPNAME}"
 !define InstallKey "Software\Hackety.org\${AppName}"
 
 ;--------------------------------
