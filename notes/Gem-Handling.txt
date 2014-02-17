@@ -1,10 +1,51 @@
 GEM Management
 
+I'll use bluecloth gem to debug. It builds on my rvm based ruby. 
+and it leaves behind the mkmf.log (Praise the Ruby Gods)
+ccoupe@bronco:~/.rvm/gems/ruby-1.9.3-p484/gems/bluecloth-2.2.0/ext$ 
+and the first check is
+have_func: checking for srand()... -------------------- yes
+
+"gcc -o conftest -I/home/ccoupe/.rvm/rubies/ruby-1.9.3-p484/include/ruby-1.9.1/x
+86_64-linux -I/home/ccoupe/.rvm/rubies/ruby-1.9.3-p484/include/ruby-1.9.1/ruby/b
+ackward -I/home/ccoupe/.rvm/rubies/ruby-1.9.3-p484/include/ruby-1.9.1 -I.    -DV
+ERSION=\"2.0.9\"  -O3 -ggdb -Wall -Wextra -Wno-unused-parameter -Wno-parentheses
+ -Wno-long-long -Wno-missing-field-initializers -Wpointer-arith -Wwrite-strings 
+-Wdeclaration-after-statement -Wimplicit-function-declaration  -fPIC -I. conftes
+t.c  -L. -L/home/ccoupe/.rvm/rubies/ruby-1.9.3-p484/lib -Wl,-R/home/ccoupe/.rvm/
+rubies/ruby-1.9.3-p484/lib -L.  -rdynamic -Wl,-export-dynamic     -Wl,-R -Wl,/ho
+me/ccoupe/.rvm/rubies/ruby-1.9.3-p484/lib -L/home/ccoupe/.rvm/rubies/ruby-1.9.3-
+p484/lib -lruby  -lpthread -lrt -ldl -lcrypt -lm   -lc"
+
+That very first -I is wrong for the cross compile (binary shoes). It's 
+an ugly tale how downloaded gems get compiled in Shoes. The story is not
+finished yet.
+
+====
+
+
+If you detect my rethinking about how to handle gems with Shoes, you are
+correct. 
+
 Now that shoes/setup.rb can download and build gems (if needed) and the
 nice gui seems to work. Do we still need a separate Gem Handler app (the
 cobbler in halfbaked/) ? Futhermore, Gems can now include multiple arch 
-binaries - Rakecompiler can build them so Windows folks can 
+binaries - Rakecompiler can build them so Windows folks wouldn't have
+to have an development setup. 
 
+Sadly, building downloaded gems with C inside just isn't going to work unless
+the user has the tools and libs (or they get a gem with the binary inside)
+Best that can be done is to detect it and not try to compile.
+
+I needed (or will need) to deal with the rubygems code (aka API)
+1. To update the gem version to 2.1.11 from 1.8.23 for Mingw's ruby
+   Download the gems tar ball, expand it. cd in and run 'ruby setup.rb 
+     --prefix <some empty directory>' . Then go to that directory and
+     cd into the lib dir. cp -r * to where the the site-ruby/1.9.1/ that
+     you want to update. It works. 
+2. To properly update Shoes/setup.rb for it's relatively useless role
+
+3. To spec and develop Shoes Cobbler. 
 
 
 ==== 

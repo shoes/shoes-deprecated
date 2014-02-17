@@ -1,6 +1,85 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
+2014-02-16
+     From the /home/cross/gemtest/lib dir copy everything to the site-ruby/1.9.1
+     directory. Build Shoes msw32 and copy it to Win7. Check with simple-info.rb.
+done: It's updated. 
+
+==> The gem download triggers the Thread deadlock bug on Windows 7.
+    I'm done with Windows and Ruby. Only the ruby maintainers can deal 
+    with the issues. Maybe with Ruby 2.x. It appears work has been done
+    there.
+
+--> Re-examining the issues with C source gems and linux. The pi (e.g.)
+    has a ruby and gcc so it should be able to build some gems. 
+done: Include the ruby .files with the .run (x86, i686, pi)
+    Now fails to compile bluecloth because it can't find config.h (pi)
+    because the gems extconf.rb generated Makefile doesn't have a 
+    -I <shoes-include><arch> which is where the config.h is. There is 
+    an error 'uninitialized constant PLATFORM'  from extconf.rb. I can't
+    touch a gem's extconf.rb and the problem appears to be in mkmf.rb.
+    For fun, remember that this a second shoes instance (process) running
+    from the --ruby argument so the solution might be in the C which is
+    bin/main.skel - Got that? 
+
+  
+2014-02-15
+     Gem::Commands::SetupCommand is what I think setup.rb calls
+     $ ruby setup.rb --prefix=/home/cross/gemtest --no-rdoc --no-ri --verbose 2&>test.log
+
+
+2014-02-14
+     There's a load of issues with Windows and gem setup, downloading
+     from Shoes. I want to think to about dealing with rbconfig (for both
+     extconf and gem setup.rb. I'm going finish up the Linux b2 release
+     before dealing with Windows details. 
+-->  Test armhf. It fails to install bluecloth but it says error. expected.
+     Nothing in the console window however. 
+     Just install metaid - it installs (very very slow) and a new blank
+     console window? Half success - it can download and install. 
+==>  Rework setup.rb to only use one Gem API and get rid of the 
+     'it works' hacks. 
+
+Done: Still double up on samples for xarmv6 -- a bug that happens if
+     your rake package, twice.  
+-->  getoutofjail.card parsing. -  make the contents arch specific
+     arch:path where arch is Ruby arch or 'any'.
+     Jailbreak isn't going to be that useful if there is a Cobbler
+--> Win7: - I do have ruby installed (but not devkit or msys) 
+     gem install metaid is lightning fast from the cmd.exe prompt.
+
+
+2014-02-13
+
+done: Overnight build failed for msw32 - chipmunk compile/link. 
+      It's a Cron job so source the right paths. That did it.
+      Also fixed nsis error.
+      
+done? Error window after gem install
+      doesn't in dist compiled, x86, or x32.  I wonder what changed?
+      
+--> get msw32 updated to rubygems 2.2.2 (different setup.rb)
+    Only 2.1.11 available for download as tgz. Same as rvm. It'll be OK.
+==> Confirmed Wine and Ruby do not mix. Same thread deadlock attempting
+    to use wine/ruby.exe setup.rb --help. Join a forum/mailing list/report
+done: Be careful. There is a --prefix=<path> - that's only for the /bin/gem
+    script. I probably overwrote my .rvm 1.9.3 gem code. It seems ok.
+    ***set GEM_HOME shell env before setup.rb helps but not enough.  For me:
+      /srv/chroot/mingw32/usr/local/lib/ruby/gems/1.9.1
+    Thats where the make install of ruby puts it and shoes copies. 
+     It needs to copy to site-ruby at /srv/chroot/.... it doesn't (mingw)
+     Probably another rbconfig mess.
+    
+==> Win7: it hangs downloading ANY gem from shoes/setup.rb 
+   I captured the Shoes/Win env from simple-info - lots of clues and huh?
+   If I cared about Windows. 
+
+==> Definitately have a gem setup problem on Windows. Now hanging with
+   Preparing message. Is this a Windows thread problem? 
+        
+--> read gem paths from getoutofjail.card (cache.rb)
+  
 2014-02-12 Gems again
     So, it turns out that Ruby 1.9.3+ may include rubygems but it doesn't
     actuall include *recent* rubygems code, but the docs might.
@@ -15,7 +94,7 @@ Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
     as well be the latest: 2.2.2
     
    In debx86 chroot:
---> need LANG env set. 
+done: need LANG env set. 
 done: Unable to require openssl, install OpenSSL and rebuild ruby
 --> fails to compile bluecloth because 
 /home/ccoupe/Projects/shoes3.2/x86_64-linux/shoes --ruby extconf.rb
@@ -37,22 +116,19 @@ done: Fail to link Shoes because .... Curl. Oops. I had EXT_RUBY as /usr
    but my ruby was at /usr/local. Who the hell wrote that? 
 done: Also have a lovely message at Shoes startup about curl version numbering
    change env.rb to copy the system curl.so.4 that I installed a few hours ago
-   instead of the minimal curl I compiled weeks ago. Remove that
+   instead of the minimal curl I compiled weeks ago. So many ways be wrong.
 
 done: installing bluecloth gem fails to compile (expected behavior)
   it fails appropriately on the Debian VM. All is good. 
 --> Oddly enough samples/simple-sphere.rb does not segfault. 
     it doesn't seqfault when run in 32 bit chroot either.
-==> It's a 32 vs 64 bit Ruby problem. 
+==> It's a 32 vs 64 bit problem. blur or gradient. 
 
-==> After shoes/setup installs a gem it throws up the console window (blank)
-    no errors on the starting terminal. 
+done? After shoes/setup installs a gem it throws up the console window (blank)
+    no errors on the starting terminal. Then it stopped doing that.
     
---> Update debrpi with rubygems 2.2.2. And latest libyaml-dev. 
+done: Update debrpi with rubygems 2.2.2. And latest libyaml-dev. 
     Rebuild ruby. Gawd awful slow, but it works which is still amazing.
-
-
-
   
 2014-02-11 explore Ruby Gems Deep Hole. Must climb out.
 --> Nsis installer and rakefiles. APPNAME, NAME and my confusion.
@@ -74,10 +150,7 @@ done: installing bluecloth gem fails to compile (expected behavior)
     http://rubygems.rubyforge.org/rubygems-update/History_txt.html
     
     How to update rubygems code for a Mingw Ruby fake-not-a chroot? 
-    Wine doesn't appear to be that smart - it will run ruby.exe -v though.
-    
-    
-    
+    Wine doesn't appear to be that smart.
   
 2014-02-10 
     Pi build fails to link ftsearch - yup. 
@@ -85,7 +158,7 @@ done: Turns out my build script (for use under cron) needs to source
     the rvm script like .bashrc does. That's not comforting!
 --> somewhere/somehow I can end up with samples/samples/ in xarmv6 
    (and in the pkg)
---> Great clue: On the pi, samples/simple-rubygems hangs just like Windows
+done: Great clue: On the pi, samples/simple-rubygems hangs just like Windows
    does. Message on the terminal 'undefined method pick_best!' 
    Could that be a Ruby 2 method? It's not listed in 1.9.3 docs.
 --> Oh hell! Now the fancy symlinks in dist/lib have disappeared. 
@@ -117,11 +190,11 @@ done: use cron job to apt-get update chroots: ~/bin/update-chroots
     Source a script on chroot "user" login, interactive or from cron.
     .bach_profile copy of .bashrc and some edits to source ~/bin/bash-chroot 
 done: sets things up for debx86 and deb386 
--->  but doesn't work for debrpi. Not a big deal for the pi.
+done: but doesn't work for debrpi. Not a big deal for the pi.
 done: If that works, I should be able to build x86_64 and i686 Shoes from
     cron.
 done: Write a cron job to build the raspberry pi Shoes.
--->  Write a cron job to build the MinGW Shoes (native, and gtk2)
+done:  Write a cron job to build the MinGW Shoes (native, and gtk2)
   
 2014-02-07
     manual-en.txt has 3 Japanese characters at line 470 that iconv claims
@@ -170,9 +243,8 @@ done: IT WORKS. In 1.9.3 and 2.0.0. And it makes sense:  It's a binary file
     I suspect some CP-1252 crap? Do I vaguely remember this was a problem
     discussed on the mailing list and not fixed the way I would like? Maybe.
     
---> don't use Shoes.read_file for the manual at help.rb:215. I think in 
-    Ruby 2, everything is UTF-8. That just helps isolate the problem.
---> Clean out the Windows characters in manual-en.txt. (iconv cmd line?)
+done: don't use Shoes.read_file for the manual at help.rb:215. I think in 
+    Ruby 2, everything is UTF-8. This helps isolate the problem.
 
     Now that setup works and jailbreak, Do we really need better gem 
     handling? Not for linux. Osx isn't a consideration until someone 
