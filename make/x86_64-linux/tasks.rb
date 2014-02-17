@@ -196,6 +196,7 @@ class MakeLinux
       arch = 'x86_64'
       rlname = "#{PKG}#{TINYVER}-gtk#{gtkv}-#{arch}"
       puts "Creating Pkg for #{rlname}"
+      rm_r "pkg/#{rlname}" if File.exists? "pkg/#{rlname}"
       mkdir_p "pkg/#{rlname}"
       sh "cp -r #{TGT_DIR}/* pkg/#{rlname}"
       cdir = `pwd`

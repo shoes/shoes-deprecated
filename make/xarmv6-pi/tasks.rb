@@ -64,6 +64,8 @@ module Make
     cp_r "#{EXT_RUBY}/lib/ruby", "#{TGT_DIR}/lib"
     # copy and link libruby.so
     cp "#{EXT_RUBY}/lib/libruby.so.#{RUBY_V}", "#{TGT_DIR}"
+    # copy include files - it might help build gems
+    cp_r "#{EXT_RUBY}/include/ruby-1.9.1/", "#{TGT_DIR}/lib/ruby/include"
     # can't figure out ln -s? push pwd, cd, ln, pop
     cdir = pwd
     cd TGT_DIR
@@ -181,6 +183,7 @@ class MakeLinux
       arch = 'armhf'
       rlname = "#{PKG}#{TINYVER}-gtk#{gtkv}-#{arch}"
       puts "Creating Pkg for #{rlname}"
+      rm_r "pkg/#{rlname}" if File.exists? "pkg/#{rlname}"
       mkdir_p "pkg/#{rlname}"
       sh "cp -r #{TGT_DIR}/* pkg/#{rlname}"
       cdir = `pwd`
