@@ -4,6 +4,7 @@ Shoes.app height: 800, width: 800 do
   para "Shoes Release: #{Shoes::RELEASE_NAME}\n"
   para "    built on #{Shoes::RELEASE_BUILD_DATE}\n"
   para "    Fit: #{Shoes::RELEASE_TYPE}\n"
+  para "Gems Version #{Gem::RubyGemsVersion}"
   if defined?(ShoesGemJailBreak)
    para "Jailbreak == #{ShoesGemJailBreak}"
   else

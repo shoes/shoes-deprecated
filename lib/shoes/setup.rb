@@ -131,7 +131,6 @@ class Shoes::Setup
       when :gem
         name, version = arg.split(/\s+/, 2)
         count += 1
-        ui.say "Looking for #{name}"
         # need to handle multiple matching gemspecs
         installer = Gem::DependencyInstaller.new
         poss_gems = installer.find_spec_by_name_and_version(name, version)
@@ -139,9 +138,10 @@ class Shoes::Setup
         this_one = nil
         if poss_gems.first.kind_of? Gem::Specification
           #puts "Gem V = older"
+          ui.title "Looking for #{name}"
           poss_gems.each { |g| this_one = g}
           puts this_one
-          ui.title "Installing #{this_one.name} #{this_one.version}"
+          ui.title "Installing #{this_one.name} #{this_one.version} Old API"
           begin
             installer.install(this_one.name, this_one.version || Gem::Requirement.default)
             self.class.gem_reset
@@ -152,7 +152,7 @@ class Shoes::Setup
             raise e
           end
         elsif poss_gems.first.kind_of? Gem::AvailableSet::Tuple
-          #puts "Gem V = newer"
+          ui.title "Looking for #{name}"
           best_set = poss_gems.pick_best!()
           best_set.each_spec do |s| 
               this_one = s
@@ -163,8 +163,10 @@ class Shoes::Setup
             self.class.gem_reset
             activate_gem(this_one.name, this_one.version)
             ui.say "Finished installing #{name}"
+            puts "Gem installed and activated: #{this_one.name} #{this_one.version}"
           rescue Object => e
-            ui.error "while installing #{name}", e
+            puts "Gem error: #{this_one.name} #{this_one.version}"
+            ui.error "while installing #{this_one.name}", e
             raise e
           end
          else 
