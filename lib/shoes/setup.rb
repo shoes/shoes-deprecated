@@ -163,9 +163,7 @@ class Shoes::Setup
             self.class.gem_reset
             activate_gem(this_one.name, this_one.version)
             ui.say "Finished installing #{name}"
-            puts "Gem installed and activated: #{this_one.name} #{this_one.version}"
           rescue Object => e
-            puts "Gem error: #{this_one.name} #{this_one.version}"
             ui.error "while installing #{this_one.name}", e
             raise e
           end

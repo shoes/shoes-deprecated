@@ -18,8 +18,9 @@ LIB_DIR = lib_dir || File.join(Dir::tmpdir, "shoes")
 LIB_DIR.gsub! /\\/, '/'
 
 #' Stupid comment quote for Geany syntax color matching bug
-tight_shoes = Shoes::RELEASE_TYPE =~ /TIGHT/
 
+tight_shoes = Shoes::RELEASE_TYPE =~ /TIGHT/
+rbv = RbConfig::CONFIG['ruby_version']
 if tight_shoes
   require 'rbconfig'
   SITE_LIB_DIR = File.join(LIB_DIR, '+lib')
@@ -52,18 +53,25 @@ mkdir_p(CACHE_DIR)
 SHOES_RUBY_ARCH = RbConfig::CONFIG['arch']
 
 if tight_shoes 
+  #puts "Dir: #{DIR} #{RbConfig::CONFIG["oldincludedir"]}"
+  incld = "#{DIR}/lib/ruby/include/ruby-1.9.1"
   config = {
 	  'ruby_install_name' => "shoes --ruby",
 	  'RUBY_INSTALL_NAME' => "shoes --ruby",
 	  'prefix' => "#{DIR}", 
 	  'bindir' => "#{DIR}", 
-	  'rubylibdir' => "#{DIR}/ruby/lib",
+	  'rubylibdir' => "#{DIR}/lib/ruby",
+	  'includedir' => incld,
+	  'rubyhdrdir' => incld,
+	  'vendorhdrdir' => incld,
+	  'sitehdrdir' => incld,
 	  'datarootdir' => "#{DIR}/share",
 	  'dvidir' => "#{DIR}/doc/${PACKAGE}",
 	  'psdir' => "#{DIR}/doc/${PACKAGE}",
 	  'htmldir' => "#{DIR}/doc/${PACKAGE}",
 	  'docdir' => "#{DIR}/doc/${PACKAGE}",
-	  'archdir' => "#{DIR}/ruby/lib/#{SHOES_RUBY_ARCH}",
+#	  'archdir' => "#{DIR}/ruby/lib/#{SHOES_RUBY_ARCH}",
+	  'archdir' => "#{DIR}/lib/ruby/1.9.1/#{SHOES_RUBY_ARCH}",
 	  'sitedir' => SITE_LIB_DIR,
 	  'sitelibdir' => SITE_LIB_DIR,
 	  'sitearchdir' => "#{SITE_LIB_DIR}/#{SHOES_RUBY_ARCH}",

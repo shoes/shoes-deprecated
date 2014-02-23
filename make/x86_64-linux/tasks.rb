@@ -65,6 +65,7 @@ module Make
     # copy and link libruby.so
     cp "#{EXT_RUBY}/lib/libruby.so.#{RUBY_V}", "#{TGT_DIR}"
     # copy include files - it might help build gems
+    mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-1.9.1"
     cp_r "#{EXT_RUBY}/include/ruby-1.9.1/", "#{TGT_DIR}/lib/ruby/include"
     # can't figure out ln -s? push pwd, cd, ln, pop
     cdir = pwd

@@ -52,8 +52,8 @@ main(argc, argv)
       SHOES_BUFSIZE,
       "begin;"
         "DIR = File.expand_path(File.dirname(%%q<%s>));"
-        "$:.replace([DIR+'/ruby/lib/'+PLATFORM, DIR+'/ruby/lib', DIR+'/lib', '.']);"
-        "require 'shoes/cache';"
+        "$:.replace([DIR+'/lib/ruby', DIR+'/lib', '.']);"
+         "require 'shoes/envgem';"
         "DIR;"
       "rescue Object => e;"
         "puts(e.message);"

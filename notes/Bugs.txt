@@ -1,6 +1,32 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
+2014-02-22
+  Success. Bluecloth builds and links and installs in a Tight Shoes 
+  (aka binary distribution) if you have all the tools installed on
+  Linux. Might work on Windows if you have MSYS and the gcc devkit that
+  matches the Ruby inside Shoes. 
+
+2014-02-21
+  So shoes/envgems.rb fails to setup a build. Parity with cache.rb! Same
+  error. mkmf.rb is doing something odd with RbConfig settings. The clues
+  are in the extconf.rb that I hacked for ftsearch and chipmunk Only
+  those were done in the extconf, after the require 'mkmf'. Now I have to 
+  do them before extconf and mkmf. Will that matter?
+
+2014-02-20
+
+  After much tweaks and undos and confusion I think the way forward is 
+  to not use cache.rb for 'shoes --ruby'. Use a separate script when
+  Shoes needs to compile a gem: 'envgem.rb'. 
+  
+2014-02-17 Still working on Shoes/setup.rb and Tight Shoes. 
+done: Bluecloth gem should be able to finish the extconf/mkmf step. It might
+    fail for other reasons but it ought to to create Makefile. I suspect
+    Gem::DependencyInstaller.install is not paying attention to the running
+    RbConfig or the Shoes hack to @ruby isn't doing what the author thought
+    it would do. 
+  
 2014-02-16
      From the /home/cross/gemtest/lib dir copy everything to the site-ruby/1.9.1
      directory. Build Shoes msw32 and copy it to Win7. Check with simple-info.rb.
@@ -11,18 +37,14 @@ done: It's updated.
     with the issues. Maybe with Ruby 2.x. It appears work has been done
     there.
 
---> Re-examining the issues with C source gems and linux. The pi (e.g.)
+done: Re-examining the issues with C source gems and linux. The pi (e.g.)
     has a ruby and gcc so it should be able to build some gems. 
-done: Include the ruby .files with the .run (x86, i686, pi)
+done: Include the ruby .h files with the .run (x86, i686, pi)
     Now fails to compile bluecloth because it can't find config.h (pi)
     because the gems extconf.rb generated Makefile doesn't have a 
     -I <shoes-include><arch> which is where the config.h is. There is 
     an error 'uninitialized constant PLATFORM'  from extconf.rb. I can't
     touch a gem's extconf.rb and the problem appears to be in mkmf.rb.
-    For fun, remember that this a second shoes instance (process) running
-    from the --ruby argument so the solution might be in the C which is
-    bin/main.skel - Got that? 
-
   
 2014-02-15
      Gem::Commands::SetupCommand is what I think setup.rb calls
@@ -137,11 +159,8 @@ done: Update debrpi with rubygems 2.2.2. And latest libyaml-dev.
     between my rvm installed rubys (2.1.11) and the gem code in the rubies
     I compiled and bundle with shoes (1.8.23) 
     The gem API is different and rubydoc.org says 1.9.3 is something else.
---> I'm drawing blanks about how to detect what is available at runtime
+done: I'm drawing blanks about how to detect what is available at runtime
     other than an ugly hack (works for 2.1.11) 
---> Hack or not, I'm hanging with gems 1.8.23 on x86 cross. Not getting to
-    the hack. Hangs in looking for bluecloth. Perhaps not having permission
-    to write to sysdirs and now +gem? 
     
     I don't want to handle older gem versions and for the linux
     chroots it *shouldn't be that hard* to update gems to something current

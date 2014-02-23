@@ -17,7 +17,7 @@ rubies/ruby-1.9.3-p484/lib -L.  -rdynamic -Wl,-export-dynamic     -Wl,-R -Wl,/ho
 me/ccoupe/.rvm/rubies/ruby-1.9.3-p484/lib -L/home/ccoupe/.rvm/rubies/ruby-1.9.3-
 p484/lib -lruby  -lpthread -lrt -ldl -lcrypt -lm   -lc"
 
-That very first -I is wrong for the cross compile (binary shoes). It's 
+That very first -I is wrong for the cross compile (binary/tight shoes). It's 
 an ugly tale how downloaded gems get compiled in Shoes. The story is not
 finished yet.
 
