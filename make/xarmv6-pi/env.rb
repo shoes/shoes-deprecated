@@ -133,6 +133,8 @@ SOLOCS['ungif'] = "#{uldir}/libungif.so.4"
 SOLOCS['gif'] = "#{uldir}/libgif.so.4"
 SOLOCS['jpeg'] = "#{ularch}/libjpeg.so.8"
 SOLOCS['libyaml'] = "#{ularch}/libyaml.so"
+SOLOCS['crypto'] = "#{ularch}/libcrypto.so.1.0.0"
+SOLOCS['ssl'] = "#{ularch}/libssl.so.1.0.0"
 if ENV['GTK'] == 'gtk+-2.0' && COPY_GTK == true
   SOLOCS['gtk2'] = "#{ularch}/libgtk-x11-2.0.so.0"
   SOLOCS['gdk2'] = "#{ularch}/libgdk-x11-2.0.so.0"

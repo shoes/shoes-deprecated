@@ -22,3 +22,6 @@ RbConfig::CONFIG["rubyhdrdir"] = incl
 # Below is used to define $ruby for install of gem
 RbConfig::CONFIG["bindir"] = DIR
 RbConfig::MAKEFILE_CONFIG['ruby_install_name'] = 'shoes --ruby'
+# Below is a check to find libruby.so and set it. 
+RbConfig::MAKEFILE_CONFIG['libdir'] = DIR # needed for Linking ext.so
+RbConfig::CONFIG['libdir'] = DIR # needed for conftest

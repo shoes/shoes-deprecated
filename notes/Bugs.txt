@@ -1,11 +1,21 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
+
+2014-02-23
+done: Set libdir in CONFIG and MAKEFILE_CONFIG. Both. Go figure. envgem.rb
   
 2014-02-22
   Success. Bluecloth builds and links and installs in a Tight Shoes 
   (aka binary distribution) if you have all the tools installed on
-  Linux. Might work on Windows if you have MSYS and the gcc devkit that
-  matches the Ruby inside Shoes. 
+  Linux. x86 and schroot.
+  
+done: armhf/bluecloth can't find -lruby for link of mkmf test prog.  Indeed.
+   -L /home/pi/.shoes/federales/lib -l ruby  is a /lib too deep to find
+   the libruby.so. Also happens for x86_64 on Fedora (it has gcc).
+   
+--> Why doesn't the shoes/pi console have the gem.out error messages?
+   Duh! It does when started from a terminal. Doesn't when started from
+   a menu. That seems fixable. 
 
 2014-02-21
   So shoes/envgems.rb fails to setup a build. Parity with cache.rb! Same

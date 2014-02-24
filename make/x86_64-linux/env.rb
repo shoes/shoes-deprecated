@@ -125,6 +125,8 @@ SOLOCS['gif'] = "#{uldir}/libgif.so.4" # because Suse wants it
 SOLOCS['jpeg'] = "#{ularch}/libjpeg.so.8"
 SOLOCS['libyaml'] = "#{ularch}/libyaml.so"
 SOLOCS['pcre'] = "#{larch}/libpcre.so.3"
+SOLOCS['crypto'] = "#{ularch}/libcrypto.so.1.0.0"
+SOLOCS['ssl'] = "#{ularch}/libssl.so.1.0.0"
 if ENV['GTK'] == 'gtk+-2.0' && COPY_GTK == true
   SOLOCS['gtk2'] = "#{ularch}/libgtk-x11-2.0.so"
   SOLOCS['gdk2'] = "#{ularch}/libgdk-x11-2.0.so"
