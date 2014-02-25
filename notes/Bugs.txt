@@ -1,8 +1,37 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
+  
+2014-02-24 MingW/Ruby2.0.0-p353
+--> Need to change env.rb to find ruby in /opt/local and use ruby-2.1.pc
+    msvcrt-ruby210.dll. No need to copy libyaml.dll
+--> Ruby: socket doesn't configure. --enable-wide-getaddrinfo.
+    now it configures, fails in compile. 
+    In file included from rubysocket.h:103:0, from init.c:11:
+       addrinfo.h:175:13: error: conflicting types for ‘freeaddrinfo’
 
+--> One the bright side, --enable-pthread is obsolete, suggesting that
+    windows/ruby2 might have some improvements in threading. Another 
+    benefit(?) is the extconf.rb for socket demonstrates how clever (tricky?)
+    extconf.rb can be.
+    
+--> Yikes.  Cross Compile Ruby-2.1 for mingw32 works w/o 
+    --enable-wide-getaddrinfo.  I'm pleased about that but I wasn't
+    ready to jump that far ahead.  Still hangs with Wine (1.6)
+    
+done: Need to fix default build for 2.x before tackling mingw and chroots
+    Fun: rvm thinks 2.1.0 is a preview. 'rvm get stable'  Now have 2.1.1 WTF?
+    Start the 2.x bug hunt with default (dist) build of Shoes:
+done: ftsearch failed. Fixed in cache.rb.
+done: envgem.rb needs to handle 1.9.1, 2.0.x, 2.1.x. Note: it's easy to 
+    get confused with all the chroots and rvm versions. Even though it 
+    works for some who downloads a binary shoes.run it's fragile to me.
+    
+--> Don't forget to update Rubygems 
+done: OK for rvm 2.1.1 ruby. 
+    
 2014-02-23
 done: Set libdir in CONFIG and MAKEFILE_CONFIG. Both. Go figure. envgem.rb
+done: Declared Shoes3.2b2 is finished. Available on the website.
   
 2014-02-22
   Success. Bluecloth builds and links and installs in a Tight Shoes 

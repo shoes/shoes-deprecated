@@ -1,4 +1,17 @@
 Ruby issues 
+
+2014-02-24
+  There are reasons to believe that Ruby 2.x plays better on Windows for
+  threading. Cross compiling 2.0.0-p353 for mingw doesn't work - conflicts
+  with ext/socket w, w/o --enable-wide-getaddrinfo.
+  2.1.0 does cross compile 
+  
+  So, lets get a rvm installed 2.1.0 for the default build. 
+  There isn't one. There's a 2.1.1. To install it rvm needs wants apt-get
+  to install/update g++. I feel madness nearby.
+ 
+
+
 Cross Compiling Ruby for MinGW (32 bit)
   Rake-compiler is no better or worse than my process. 
   I need to point to the includes and libs from the Gtk3 install

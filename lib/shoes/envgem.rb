@@ -4,7 +4,7 @@
 # the Shoes startup code in bin/main.skel[.c] for a --ruby <args> to
 # process an extconf.rb (which will require mkmf.rb) DIR was set by
 # the bin/main.skel[.c]
-rblv = RUBY_VERSION < '2.0.0' ? '1.9.1' : RUBY_VERSION
+rblv = RUBY_VERSION < '2.0.0' ? '1.9.1' : RUBY_VERSION[/\d+.\d+/]+'.0'
 incl = "#{DIR}/lib/ruby/include/ruby-#{rblv}"
 incla = "#{incl}/#{RUBY_PLATFORM}"
 # setup paths for ruby to load from

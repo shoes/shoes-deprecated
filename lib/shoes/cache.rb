@@ -36,6 +36,8 @@ else
       '1.9.1'
     when /2.0.0/
       '2.0.0'
+    when /2.1/
+      '2.1.0'
     else
       RUBY_VERSION
   end
