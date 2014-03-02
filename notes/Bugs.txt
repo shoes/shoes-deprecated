@@ -1,6 +1,76 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
+2014-03-01
+done:   Ahh! Ruby-2.0.0p451 changed the arch to "armv7l-linux-eabihf"
+   -- they added the 'hf'. Now I can compile ftsearch. Dies linking.
+   can't find -lruby. Fixed. Odd, chipmunk compiles and links w/o
+   changes to extconf.rb which means I didn't have to futz with extconf.rb
+   Still, I like the changes to extconf.rb - less hacky.
+   
+--> Setup.rb is painfully slow on the pi and just tolerable on faster
+   systems. Part of it is the shoes animation (it and xorg = 50% of the pi)
+   I also suspect there is two much IO going on. Then again, no one should
+   need that feature on linux. 
+   
+--> I added binject to the list of exts built on the pi version. This
+   is mostly to test my extconf.rb hacks. There is an issue. have_library
+   doesn't use the CC hack that create_makefile allows.
+
+  
+2014-02-28 extconf.rb (pi, mingw*)
+   It would be less hacky to set the Configs before requiring mkmf.
+done: Good Lord. I still have crap in pi rakefiles. curl from /home/cross?
+    apt-get install libcurl4-openssl-dev in the chroot. set env.rb 
+    accordingly. 
+
+2014-02-27 
+   Is it possible mkmf.rb changed from 1.9.3 to 2.0.0? envgem.rb isn't
+   working like it did in 1.9.3. Set a few more configs in envgem.rb and
+   i386 version can build and install Bluecloth Gem. 
+   x86_64 builds and installs Bluecloth
+done: pi - ftsearch fails to compile. extconf/mkmf. sigh.
+   I may have pushed my extconf hacks over the breaking point.
+--> mingwgtk version needs the changes for ruby 2.1.0 - even though it
+    won't work. Or Maybe it will.
+--> Madness. Running simple-rubygems from the manual gets an console window
+   after successful installation. No error messages in the window.
+  
+2014-02-26
+done: Ruby 2.0.0p451 does't create the ruby-2.0.pc. 'make ruby-2.0.pc'
+    works. Copy it manually. x86_64. i386 does the right thing. 
+done: update chroots to Ruby 2.0.0-p451
+done: update rubygems to 2.2.0 (rvm/dist, x86_64, i386, pi)
+done: interesting issues with gemenv.rb and i386 environment. Thats where 
+   the .shoes/+gems/x86-linux comes from. should be i(3|6)86-gnu-linux
+--> Verify pi version of Shoes behaves (fix env.rb, task.rb)
+  
+2014-02-25
+   That was almost easy. A few tweaks to the extconf.rb and env.rb and msw32 
+   builds with Ruby 2.1. Will it run? Will it hang? 
+   Oops. need to fix tasks.rb/common_build
+==> AND IT HANGS downloading gems. And crashes simple-download. On the bright
+   side it did trigger a dialog from windows 7 to allow it to download. 
+   so that's interesting and might point to something. 
+   
+   Make the same changes to the mingwgtk env.rb. and task.rb
+   Ruby 2.0.0-p451 released yesterday.  I'll use that one for linux. 
+   It appears that 1.9.3 is now in security fixes only status. 
+   So 2.0.0p451 is the base for Shoes 3.2b3. 
+   Jumping ahead to 2.1.0 wasn't what I wanted to do and didn't help Windows.
+   
+   Harmonize my linux chroots. (64,32,arm) 2.0.0-p451 in /usr (not /usr/local,
+   not /opt/local)
+done: x86_64 -> Ruby 2.0.0.
+    WTF? - there is no ruby-2.0.pc, anywhere? 
+done: i686 - has a ruby-2.0.pc - go figure. 
+    Curl linking in shoes-bin. Nothing shoud have changed but obviously
+    something did. apt-get remove dance. install libcurl4-openssl-dev
+done: Armv6
+  
+   It might be interesting to see what a GTK3 does re: hangs on windows.
+   However, I don't think this a solveable problem by me. 
+   
 2014-02-24 MingW/Ruby2.0.0-p353
 --> Need to change env.rb to find ruby in /opt/local and use ruby-2.1.pc
     msvcrt-ruby210.dll. No need to copy libyaml.dll
@@ -14,7 +84,7 @@ Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
     benefit(?) is the extconf.rb for socket demonstrates how clever (tricky?)
     extconf.rb can be.
     
---> Yikes.  Cross Compile Ruby-2.1 for mingw32 works w/o 
+done: Yikes.  Cross Compile Ruby-2.1 for mingw32 works w/o 
     --enable-wide-getaddrinfo.  I'm pleased about that but I wasn't
     ready to jump that far ahead.  Still hangs with Wine (1.6)
     
@@ -26,7 +96,11 @@ done: envgem.rb needs to handle 1.9.1, 2.0.x, 2.1.x. Note: it's easy to
     get confused with all the chroots and rvm versions. Even though it 
     works for some who downloads a binary shoes.run it's fragile to me.
     
---> Don't forget to update Rubygems 
+--> Don't forget to update Rubygems (to 2.1.xx or better)
+--> x86
+--> x32
+--> crossrpi
+
 done: OK for rvm 2.1.1 ruby. 
     
 2014-02-23

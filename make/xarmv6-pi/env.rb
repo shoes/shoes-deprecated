@@ -2,25 +2,19 @@
 # Build shoes for Raspberry pi.  Ruby is either cross compiled
 # or copied from an .rvm build on the pi.  The system headers and
 # libs come from a schroot (debrpi) and/or the cross compiler.
-# Curl is also separately compiled and located.
+# Curl *may* also separately compiled and located. Or in the chroot.
 #
 #ENV['DEBUG'] = "true" # turns on the tracing log
 #ENV['GTK'] = "gtk+-3.0" # pick this or "gtk+-2.0"
 ENV['GTK'] = "gtk+-2.0"
 # I don't recommend try to copy Gtk2 -it only works mysteriously
 COPY_GTK = false 
-ENV['GDB'] = "SureYouBetcha" # compile -g,  strip symbols when nil
+ENV['GDB'] = nil # compile -g,  strip symbols when nil
 CHROOT = "/srv/chroot/debrpi"
-# Where does ruby code live? For the pi, I have three. A copy of rvm
-# and a cross compiled ruby and one build inside the chroot.  
-#EXT_RUBY = "/home/cross/armv6-pi/rvm/rubies/ruby-1.9.3-p448/"
-#SHOES_TGT_ARCH = "armv6l-linux-eabi"
-# and the cross compiled Ruby
-#EXT_RUBY = "/home/cross/armv6-pi/usr"
-#SHOES_TGT_ARCH = "arm-linux-eabihf"
-# The one built inside the choot
+# Where does ruby code live? For the pi, I build one  
+# inside the chroot but we access it from outside.
 EXT_RUBY = "/srv/chroot/debrpi/usr/local"
-SHOES_TGT_ARCH = "armv7l-linux-eabi"
+SHOES_TGT_ARCH = "armv7l-linux-eabihf"
 # Specify where the Target system binaries live. 
 # Trailing slash is important.
 TGT_SYS_DIR = "#{CHROOT}/"
@@ -33,17 +27,20 @@ larch = "#{TGT_SYS_DIR}lib/#{arch}"
 # Set appropriately (in my PATH, or use abs)
 CC = "arm-linux-gnueabihf-gcc"
 # These ENV vars are used by the extconf.rb files (and tasks.rb)
-ENV['SYSROOT']=CHROOT
-ENV['CC']=CC
-ENV['TGT_RUBY_PATH']=EXT_RUBY
+ENV['SYSROOT'] = CHROOT
+ENV['CC'] = CC
+ENV['TGT_RUBY_PATH'] = EXT_RUBY
 ENV['TGT_ARCH'] = SHOES_TGT_ARCH
-ENV['TGT_RUBY_V'] = '1.9.1'
-pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-1.9.pc"
+#ENV['TGT_RUBY_V'] = '1.9.1'
+ENV['TGT_RUBY_V'] = '2.0.0'
+TGT_RUBY_V = ENV['TGT_RUBY_V'] 
+#pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-1.9.pc"
+pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.0.pc"
 pkggtk ="#{ularch}/pkgconfig/#{ENV['GTK']}.pc" 
 # where is curl (lib,include)
-curlloc = "/home/cross/armv6-pi/usr"
-CURL_LDFLAGS = `pkg-config --libs #{curlloc}/lib/pkgconfig/libcurl.pc`.strip
-CURL_CFLAGS = `pkg-config --cflags #{curlloc}/lib/pkgconfig/libcurl.pc`.strip
+curlloc = "#{TGT_SYS_DIR}usr/lib/arm-linux-gnueabihf/pkgconfig/libcurl.pc"
+CURL_LDFLAGS = `pkg-config --libs #{curlloc}`.strip
+CURL_CFLAGS = `pkg-config --cflags #{curlloc}`.strip
 
 ENV['PKG_CONFIG_PATH'] = "#{ularch}/pkgconfig"
 
@@ -93,7 +90,8 @@ png_lib = 'png'
 if ENV['DEBUG'] || ENV['GDB']
   LINUX_CFLAGS = " -g -O0"
 else
-  LINUX_CFLAGS = " -O -Wall"
+#  LINUX_CFLAGS = " -O -Wall"
+  LINUX_CFLAGS = " -O"
 end
 
 LINUX_CFLAGS << " -DSHOES_GTK " 
@@ -113,7 +111,7 @@ LINUX_LDFLAGS = "-fPIC -shared --sysroot=#{CHROOT} -L#{ularch} "
 LINUX_LDFLAGS << `pkg-config --libs "#{pkggtk}"`.strip+" "
 # dont use the ruby link info
 RUBY_LDFLAGS = "-rdynamic -Wl,-export-dynamic "
-RUBY_LDFLAGS << "-L#{EXT_RUBY}lib -lruby "
+RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lruby "
 #RUBY_LDFLAGS << "-L#{ularch} -lrt -ldl -lcrypt -lm "
 #LINUX_LDFLAGS << " #{CURL_LDFLAGS}"
 #LINUX_LDFLAGS << " -L. -rdynamic -Wl,-export-dynamic"
@@ -128,7 +126,7 @@ LINUX_LIBS << " #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} #{CURL_LDFLAGS} "
 # and their location. This should be used in pre_build instead of 
 # copy_deps_to_dist, although either would work. 
 SOLOCS = {}
-SOLOCS['curl'] = "#{curlloc}/lib/libcurl.so.4"
+SOLOCS['curl'] = "#{ularch}/libcurl.so.4"
 SOLOCS['ungif'] = "#{uldir}/libungif.so.4"
 SOLOCS['gif'] = "#{uldir}/libgif.so.4"
 SOLOCS['jpeg'] = "#{ularch}/libjpeg.so.8"

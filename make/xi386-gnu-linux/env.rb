@@ -13,7 +13,7 @@ ENV['GDB'] = "SureYouBetcha" # compile -g,  strip symbols when nil
 # CHROOT = "/srv/chroot/deb386"
 CHROOT = ""
 # Where does ruby code live?
-EXT_RUBY = "#{CHROOT}/usr/local"
+EXT_RUBY = "#{CHROOT}/usr"
 SHOES_TGT_ARCH = 'i686-linux'
 # Specify where the Target system binaries live. 
 # Trailing slash is important.
@@ -26,7 +26,7 @@ larch = "#{TGT_SYS_DIR}lib/#{arch}"
 # Set appropriately
 CC = "gcc"
 
-pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-1.9.pc"
+pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.0.pc"
 pkggtk ="#{ularch}/pkgconfig/#{ENV['GTK']}.pc" 
 CURL_CFLAGS = `pkg-config --cflags #{uldir}/pkgconfig/libcurl.pc`.strip
 #CURL_LDFLAGS = `pkg-config --libs #{uldir}/pkgconfig/libcurl.pc`.strip

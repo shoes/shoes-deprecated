@@ -25,10 +25,11 @@ larch = "#{TGT_SYS_DIR}lib/#{arch}"
 # Set appropriately
 CC = "gcc"
 # where does your cross compiled Curl live? Don't depend on the hosts
-# curl - it includes all kinds of protocols you have to copy.
+# curl -
 curlloc = "#{uldir}"
 #curlloc = "/home/cross/x86_64-linux/lib"
-pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-1.9.pc"
+#pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-1.9.pc"
+pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.0.pc"
 pkggtk ="#{ularch}/pkgconfig/#{ENV['GTK']}.pc" 
 CURL_LDFLAGS = `pkg-config --libs #{curlloc}/pkgconfig/libcurl.pc`.strip
 CURL_CFLAGS = `pkg-config --cflags #{curlloc}/pkgconfig/libcurl.pc`.strip

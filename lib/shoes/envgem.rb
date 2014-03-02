@@ -19,8 +19,10 @@ include FileUtils
 #$stderr.puts `which gcc`
 # Below is required to find the ruby headers in mkmf.rb
 RbConfig::CONFIG["rubyhdrdir"] = incl
+RbConfig::CONFIG["rubyarchhdrdir"] = incla
 # Below is used to define $ruby for install of gem
 RbConfig::CONFIG["bindir"] = DIR
+RbConfig::MAKEFILE_CONFIG['bindir'] = DIR
 RbConfig::MAKEFILE_CONFIG['ruby_install_name'] = 'shoes --ruby'
 # Below is a check to find libruby.so and set it. 
 RbConfig::MAKEFILE_CONFIG['libdir'] = DIR # needed for Linking ext.so

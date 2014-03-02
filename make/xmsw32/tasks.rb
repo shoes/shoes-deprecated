@@ -70,11 +70,11 @@ module Make
     #mkdir_p "#{TGT_DIR}/ruby"
     #cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "#{TGT_DIR}/ruby/lib"
     %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
-      FileList[rdir].each { |rlib| cp_r rlib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}" }
+      FileList[rdir].each { |rlib| cp_r rlib, "#{TGT_DIR}/lib/ruby/#{TGT_RUBY_V}" }
     end
     %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
     #%w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
-      each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_TGT_ARCH}" }
+      each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{TGT_RUBY_V}/#{SHOES_TGT_ARCH}" }
 
     gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
     {}.each do |gemn, xdir|
@@ -156,33 +156,11 @@ class MakeLinux
       #ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
       sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
-   
 
-    # Remember, this is for the Raspberry pi. Just tar up the xarmv6-pi
-    # dir and sftp it to the pi for testing
-    def make_userinstall
-      #sh "tar -cf xarmv6-pi.tar xarmv6-pi"
-      #user = ENV['USER']
-      #home = ENV['HOME']
-      #hdir = "#{home}/.shoes/#{RELEASE_NAME}"
-      #mkdir_p hdir
-      #sh "cp -r #{TGT_DIR}/* #{hdir}"
-      #File.open("Shoes-tight.desktop",'w') do |f|
-      #  f << "[Desktop Entry]\n"
-      # f << "Name=Shoes\n"
-      #  f << "Exec={hdir}/#{TGT_DIR}/shoes\n"
-      #  f << "StartupNotify=true\n"
-      #  f << "Terminal=false\n"
-      #  f << "Type=Application\n"
-      #  f << "Icon={hdir}/#{TGT_DIR}/static/app-icon.png\n"
-      #  f << "Categories=Programming\n"
-      #end
-      #puts "Please copy the 'Shoes-.desktop' to /usr/share/applications"
-      #puts "Or wherever your Linux desktop manager requires. You many need to sudo"
-      #puts "Edit the file if you like."
+    #  Does nothing for Windows
+    def make_userinstall    
     end
     
- 
     def make_resource(t)
       puts "make resource"
     end

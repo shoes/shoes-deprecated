@@ -9,7 +9,8 @@
 ENV['GDB'] = "SureYouBetcha" # compile -g,  strip symbols when nil
 CHROOT = "/srv/chroot/mingwgtk2"
 # Where does ruby code live? Please cross compile Ruby. 
-EXT_RUBY = "#{CHROOT}/usr/local"
+#EXT_RUBY = "#{CHROOT}/usr/local"  # 1.9.3
+EXT_RUBY = "#{CHROOT}/opt/local"   # 2.1.1
 SHOES_TGT_ARCH = "i386-mingw32"
 # Specify where the Target system binaries live. 
 # Trailing slash is important.
@@ -31,8 +32,13 @@ ENV['SYSROOT']=CHROOT
 ENV['CC']=CC
 ENV['TGT_RUBY_PATH']=EXT_RUBY
 ENV['TGT_ARCH'] = SHOES_TGT_ARCH
-ENV['TGT_RUBY_V'] = '1.9.1'
-pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-1.9.pc"
+#ENV['TGT_RUBY_V'] = '1.9.1'
+ENV['TGT_RUBY_V'] = '2.1.0'
+TGT_RUBY_V = ENV['TGT_RUBY_V'] 
+#ENV['TGT_RUBY_SO'] = "msvcrt-ruby191"
+ENV['TGT_RUBY_SO'] = "msvcrt-ruby210"
+#pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-1.9.pc"
+pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.1.pc"
 pkggtk ="#{uldir}/pkgconfig/#{ENV['GTK']}.pc" 
 # where is curl (lib,include) Can be commented since we don't use curl
 # for MinGW
@@ -60,8 +66,9 @@ end
 
 def xfixrvmp(path)
   #puts "path  in: #{path}"
-  path.gsub!(/-I\/home\/ccoupe\/\.rvm/, "-I/home/cross/armv6-pi/rvm")
-  path.gsub!(/-I\/usr\/local\//, "-I/#{TGT_SYS_DIR}usr/local/")
+#  path.gsub!(/-I\/home\/ccoupe\/\.rvm/, "-I/home/cross/armv6-pi/rvm")
+#  path.gsub!(/-I\/usr\/local\//, "-I/#{TGT_SYS_DIR}usr/local/")
+  path.gsub!(/-I\/opt\/local\//, "-I/#{TGT_SYS_DIR}opt/local/")
   #puts "path out: #{path}"
   return path
 end
@@ -116,7 +123,8 @@ LINUX_LDFLAGS << ' -lpangocairo-1.0'
 
 # dont use the ruby link info
 RUBY_LDFLAGS = "-Wl,-export-all-symbols "
-RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lmsvcrt-ruby191 "
+#RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lmsvcrt-ruby191 "
+RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lmsvcrt-ruby210 "
 
 LINUX_LDFLAGS << " -lpthread -lwinhttp -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 "
 
@@ -131,7 +139,8 @@ LINUX_LIBS << " #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} "
 # copy_deps_to_dist, although either could work. 
 # Reference: http://www.gtk.org/download/win32_contentlist.php
 SOLOCS = {}
-SOLOCS['ruby'] = "#{EXT_RUBY}/bin/msvcrt-ruby191.dll"
+#SOLOCS['ruby'] = "#{EXT_RUBY}/bin/msvcrt-ruby191.dll"
+SOLOCS['ruby'] = "#{EXT_RUBY}/bin/msvcrt-ruby210.dll"
 #SOLOCS['curl'] = "#{curlloc}/bin/libcurl-4.dll"
 #SOLOCS['ungif'] = "#{uldir}/libungif.so.4"
 SOLOCS['gif'] = "#{bindll}/libgif-4.dll"

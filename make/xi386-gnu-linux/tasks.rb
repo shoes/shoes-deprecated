@@ -56,17 +56,19 @@ module Make
   # building a static ar. 
   def pre_build
     puts "pre_build dir=#{`pwd`}"
+    rbvt = RUBY_V
+    rbvm = RUBY_V[/^\d+\.\d+/]
     mkdir_p "#{TGT_DIR}/lib"
     # clean out leftovers from last build
     rm_f "#{TGT_DIR}/libruby.so" if File.exist? "#{TGT_DIR}/libruby.so"
-    rm_f "#{TGT_DIR}/libruby.so.1.9" if File.exist? "#{TGT_DIR}/libruby.so.1.9"
-    rm_f "#{TGT_DIR}/libruby.so.1.9.1" if File.exist? "#{TGT_DIR}/libruby.so.1.9.1"
+    rm_f "#{TGT_DIR}/libruby.so.#{rbvm}" if File.exist? "#{TGT_DIR}/libruby.so.#{rbvm}"
+    rm_f "#{TGT_DIR}/libruby.so.#{rbvt}" if File.exist? "#{TGT_DIR}/libruby.so.#{rbvt}"
     cp_r "#{EXT_RUBY}/lib/ruby", "#{TGT_DIR}/lib"
     # copy and link libruby.so
     cp "#{EXT_RUBY}/lib/libruby.so.#{RUBY_V}", "#{TGT_DIR}"
     # copy include files - it might help build gems
-    mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-1.9.1"
-    cp_r "#{EXT_RUBY}/include/ruby-1.9.1/", "#{TGT_DIR}/lib/ruby/include"
+    mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-#{rbvt}"
+    cp_r "#{EXT_RUBY}/include/ruby-#{rbvt}/", "#{TGT_DIR}/lib/ruby/include"
     # can't figure out ln -s? push pwd, cd, ln, pop
     cdir = pwd
     cd TGT_DIR
