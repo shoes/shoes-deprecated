@@ -1,6 +1,24 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
+2014-03-03
+done: Setup shoes.mvmanila.com and import the Shoes related posts. 
+done: Futz with google analytics, plugins, 
+done: setup static page at www.mvmanila.com w links to blogs beneath
+--> delete shoes content at www.mvmanila.com 
+done: add blogroll at shoes.mvmanila.com
+--> About page/menu
+--> Download menu, directory
+--> Fix links between pages on the build env posts.
+
+--> b3 needs to delete/not copy all the doc/gems stuff and get rid of 1.9.1
+    Might be better to blow off /usr/lib/ruby and rebuild ruby for
+    x86_64 and i686 w/o doc
+    
+--> One of the builds is copying some 1.9.1 stuff.
+
+--> Write Raspberry oriented post/article about Shoes 3.2
+  
 2014-03-01
 done:   Ahh! Ruby-2.0.0p451 changed the arch to "armv7l-linux-eabihf"
    -- they added the 'hf'. Now I can compile ftsearch. Dies linking.
@@ -10,12 +28,14 @@ done:   Ahh! Ruby-2.0.0p451 changed the arch to "armv7l-linux-eabihf"
    
 --> Setup.rb is painfully slow on the pi and just tolerable on faster
    systems. Part of it is the shoes animation (it and xorg = 50% of the pi)
-   I also suspect there is two much IO going on. Then again, no one should
+   I also suspect there is too much IO going on. Then again, no one should
    need that feature on linux. 
    
 --> I added binject to the list of exts built on the pi version. This
    is mostly to test my extconf.rb hacks. There is an issue. have_library
-   doesn't use the CC hack that create_makefile allows.
+   doesn't use the CC hack that create_makefile allows. Fixed. Doesn't link
+   to os libraries like /srv/chroot/debrpi/usr/lib/arm-linux-gnueabihf/libz.so
+   It's a mess for binject/extconf.rb 
 
   
 2014-02-28 extconf.rb (pi, mingw*)
@@ -43,7 +63,7 @@ done: update chroots to Ruby 2.0.0-p451
 done: update rubygems to 2.2.0 (rvm/dist, x86_64, i386, pi)
 done: interesting issues with gemenv.rb and i386 environment. Thats where 
    the .shoes/+gems/x86-linux comes from. should be i(3|6)86-gnu-linux
---> Verify pi version of Shoes behaves (fix env.rb, task.rb)
+done: Verify pi version of Shoes behaves (fix env.rb, task.rb)
   
 2014-02-25
    That was almost easy. A few tweaks to the extconf.rb and env.rb and msw32 
@@ -96,10 +116,10 @@ done: envgem.rb needs to handle 1.9.1, 2.0.x, 2.1.x. Note: it's easy to
     get confused with all the chroots and rvm versions. Even though it 
     works for some who downloads a binary shoes.run it's fragile to me.
     
---> Don't forget to update Rubygems (to 2.1.xx or better)
---> x86
---> x32
---> crossrpi
+    Don't forget to update Rubygems (to 2.1.xx or better)
+done: x86
+done: x32
+done: crossrpi
 
 done: OK for rvm 2.1.1 ruby. 
     
