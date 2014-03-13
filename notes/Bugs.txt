@@ -3,6 +3,12 @@ Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   
 2014-03-13
    If only ln -s could confuse me more. 
+done: I think I have the default (LOOSE Shoes, build from source) set up
+   properly. No need to rake build after editing a .rb in lib/shoes in order
+   to copy it to dist. With symlinks, just edit and run dist/shoes. 
+   rake install to ~.shoes/federales is more complicated than I like
+   but you can rake install as often as you likes with/o clean and builds
+   and multiple rake cleans in a row and multiple builds. 
   
 2014-03-12
 done: set locale properly in chroots. didn't solve manual problem. 
@@ -30,7 +36,7 @@ done: I should report that. Bug #604
 --> possible to use rakecompiler to build nokogiri in chroots? for arm and
     msw? Chipmonk is rumored to be a gem. 
 --> use TIGHT_SHOES or LOOSE_SHOES constant. 
-==> Get the default dist/build working again with symlinks. That would make
+done? Get the default dist/build working again with symlinks. That would make
     all of the above much easier to write and debug. 
   
 2014-03-10
