@@ -2,16 +2,10 @@ module Make
   include FileUtils
 
   # may have symlinks for shoes.rb and shoes/, remove them and
-  # replace with full copies. 
+  # may not be called for.
   def copy_files_to_dist
-    if File.symlink? "dist/lib/shoes.rb" 
-      rm "dist/lib/shoes.rb"
-    end
-    if File.symlink? "dist/lib/shoes"
-      rm "dist/lib/shoes"
-    end
-    cp   "lib/shoes.rb", "dist/lib"
-    cp_r "lib/shoes", "dist/lib"
+    #cp   "lib/shoes.rb", "dist/lib"
+    #cp_r "lib/shoes", "dist/lib"
   end
 
   def cc(t)
@@ -40,21 +34,22 @@ module Make
   end
 
   # Set up symlinks to lib/shoes and lib/shoes.rb so that they
-  # can be edited and tested without a rake build every time. Helpful
-  # for testing changes to shoes.rb and files in shoes/
-  # They'll be copied (not linked) when rake install occurs.
+  # can be edited and tested without a rake clean/build every time we 
+  # change a lib/shoes/*.rb  
+  # They'll be copied (not linked) when rake install occurs. Be very
+  # careful. Only Link to FILES, not to directories. Fileutils.ln_s may
+  # not be the same as linux ln -s. 
   def pre_build
     puts "Prebuild: #{pwd}"
-    mkdir_p "dist/lib"
-    Dir.chdir('dist/lib') do
-      if File.symlink? "shoes.rb" 
-        rm "shoes.rb"
+    mkdir_p "dist/lib/shoes"
+    Dir.chdir "dist/lib/shoes" do
+      Dir["../../../lib/shoes/*.rb"].each do |f|
+        #puts "SymLinking #{f}"
+        ln_s f, "." unless File.symlink? File.basename(f)
       end
-     ln_s "../../lib/shoes.rb", "shoes.rb"
-     if File.symlink? "shoes"
-        rm "shoes"
-      end
-      ln_s "../../lib/shoes", "shoes"
+    end
+    Dir.chdir "dist/lib" do
+      ln_s "../../lib/shoes.rb" , "shoes.rb" unless File.symlink? "shoes.rb"
     end
     cp_r  "fonts", "dist/fonts"
     cp_r  "samples", "dist/samples"
@@ -127,19 +122,6 @@ class MakeLinux
 
     # does nothing
     def copy_deps_to_dist
-      #pre_build task copied this
-      #cp    "#{::EXT_RUBY}/lib/lib#{::RUBY_SO}.so", "dist/lib#{::RUBY_SO}.so"
-      #ln_s  "lib#{::RUBY_SO}.so", "dist/lib#{::RUBY_SO}.so.#{::RUBY_V[/^\d+\.\d+/]}"
-      #cp    "/usr/lib/libgif.so", "dist/libgif.so.4"
-      #ln_s  "libgif.so.4", "dist/libungif.so.4"
-      #cp    "/usr/lib/libungif.so", "dist/libungif.so.4"
-      #find_and_copy "libgif.so", "dist/libungif.so.4"
-      #find_and_copy "libjpeg.so", "dist/libjpeg.so.8"
-      #find_and_copy "libcurl.so", "dist/libcurl.so.4"
-      #find_and_copy "libportaudio.so", "dist/libportaudio.so.2"
-      #find_and_copy  "libsqlite3.so", "dist/libsqlite3.so.0"
-      #sh    "strip -x dist/*.so.*"
-      #sh    "strip -x dist/*.so"
     end
 
     def setup_system_resources
@@ -180,8 +162,26 @@ class MakeLinux
       user = ENV['USER']
       home = ENV['HOME']
       hdir = "#{home}/.shoes/#{RELEASE_NAME}"
+      if File.exists? hdir
+        # so we can install many times to test installing many times
+        puts "Removing old lib"
+        rm_r hdir
+      end
       mkdir_p hdir
-      sh "cp -r dist/* #{hdir}"
+      cp_r  "fonts", "#{hdir}/fonts"
+      cp_r  "samples", "#{hdir}/samples"
+      cp_r  "static", "#{hdir}/static"
+      cp    "README.md", "#{hdir}/README.txt"
+      cp    "CHANGELOG", "#{hdir}/CHANGELOG.txt"
+      cp    "COPYING", "#{hdir}/COPYING.txt"
+      cp "dist/shoes" , "#{hdir}"
+      cp "Shoes.desktop",  "#{hdir}"
+      mkdir_p "#{hdir}/lib"
+      sh "cp -r dist/lib/ruby #{hdir}/lib"
+      # bit of a hack here. Don't copy symlinks in dist/lib
+      sh "cp -r lib/shoes #{hdir}/lib"
+      sh "cp -r lib/shoes.rb #{hdir}/lib/"
+
       File.open("dist/Shoes.desktop",'w') do |f|
         f << "[Desktop Entry]\n"
         f << "Name=Shoes Federales\n"

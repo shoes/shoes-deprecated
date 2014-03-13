@@ -1,21 +1,99 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
-2014-03-03
+2014-03-13
+   If only ln -s could confuse me more. 
+  
+2014-03-12
+done: set locale properly in chroots. didn't solve manual problem. 
+--> Still have some left over 1.9.1 in chroots (site-ruby..)
+--> build/pkg fonts can get doubled up so there are fonts/fonts
+--> remove docs from Ruby that Shoes can never use. lib/ruby/2.0.0/rdoc
+
+2014-03-11 - still have these bugs:
+  Blur on 64 bit.
+  symlinks on dist (default build)
+  Manual and UTF-8:
+    Check ftsearch.c for the TODO and FIXME comments.  Not my comments
+    _why's?
+    Looks like Shoes4 folks rewrote help.rb like I was contemplating. Can I
+    borrow their work? It uses nokogiri which is a binary gem to me so
+    that's a small problem. It also fails in Shoes4 when searching. 
+done: I should report that. Bug #604
+    Still their code could be better than maintaining ftsearch in
+    a UTF world.  I like that its a separate app (mostly)
+    So the work to be done is:
+--> replace hpricot with nokogiri and include it in Shoes3.2 binary builds
+--> requires shoes enhanced extconf.rb for nokogiri
+--> copy their ext/highligther code into 3.2 lib/shoes/ I'll change their
+    help.rb to have a different name so they co-exist for a while
+--> possible to use rakecompiler to build nokogiri in chroots? for arm and
+    msw? Chipmonk is rumored to be a gem. 
+--> use TIGHT_SHOES or LOOSE_SHOES constant. 
+==> Get the default dist/build working again with symlinks. That would make
+    all of the above much easier to write and debug. 
+  
+2014-03-10
+  No warnings when compiling effects.c -Wall w/86_64 gcc.
+  Going way up top: simple-sphere.rb it's the first blur (30) that's failing
+  The other blurs are OK. Using 20 instead of 30 works. 40 fails. 24 OK
+  26- OK. 28 - Fail. 27 -Fail. I have no idea why that would trigger
+  a 64 vs 32 bug unless it's related to cairo (we are drawing into a surface)
+
+==> Blur is part of canvas.effects
+==> lets see what the shoes manual says about blur. NOT A GOD DAMN THING.
+  
+==>  It also appears I've got a ASCII-8BIT vs UTF-8 issue again with the 
+  manual. I'm not gaining on the b4 bug fixes. Going backwards. This one
+  was expected. The ftsearch indexes can't be both index and content. 
+  Rewrite the manual handling so it doesn't use mem.io/pack/unpack or 
+  or it uses wchar and wb_ calls or remove the unicode content from the 
+  manual so that utf and 8bit are the the same for pack/unpack purposes. 
+  Fix or hack? Or write the ftsearch in Ruby with hashes and such.
+  
+2014-3-06
+  Started looking a effects.c to find the 64 vs 32 bit fail. It's not
+  popping out at me with a "Look here". I might suspect the RAW_FILTER_START
+  macro - maybe Gtk2 uses different sizes. Or intermediate promotion to long
+  and silent trucation? Grasping at straws. Run x86 and 386 under gdb and
+  compare? Ugh. 
+  
+--> sigh. dist/ default still has symbolic link issues in pre_build
+  rake clean, before rake. 
+  
+
+2014-03-05
+   Sigh. I missed a bug. When simple-rubygems is run from the manual
+   it installs gems just fine (if the system has the tools) but it
+   throws an error. No error when run from cmd line or splash screen.
+==> Not really that big a deal.
+   
+==> There is a 1.9 vs 2.0 hack in shoes.rb:451
+   Leftover from 1.8.7 vs 1.9.1 days and my hacking.  Not sure @shy 
+   should matter. 
+
+==> Fix the 64 bit bug in blur (sample/simple-sphere)
+  
+2014-03-03 & 04
 done: Setup shoes.mvmanila.com and import the Shoes related posts. 
 done: Futz with google analytics, plugins, 
 done: setup static page at www.mvmanila.com w links to blogs beneath
 --> delete shoes content at www.mvmanila.com 
 done: add blogroll at shoes.mvmanila.com
---> About page/menu
---> Download menu, directory
+done: About page/menu
+--> Download menu -ick!
+done:  directory: public/shoes/federales/
 --> Fix links between pages on the build env posts.
-
---> b3 needs to delete/not copy all the doc/gems stuff and get rid of 1.9.1
-    Might be better to blow off /usr/lib/ruby and rebuild ruby for
-    x86_64 and i686 w/o doc
+done: Do the mime thing on the new blog so .run are presented as binary.
+    AddType application/x-makeself .run
     
---> One of the builds is copying some 1.9.1 stuff.
+done: b3 needs to delete/not copy all the doc/gems stuff and get rid of 1.9.1
+   debx86, deb386. Shock! Ruby-2.0 is still bloated on the pi. +4MB on
+   x86_64. Similar on i686. I shouldn't but I'm ignoring it.
+
+done: declare done with b3. 
+    
+done: some of the builds are copying some 1.9.1 stuff.
 
 --> Write Raspberry oriented post/article about Shoes 3.2
   
