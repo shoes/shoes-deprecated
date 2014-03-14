@@ -7,18 +7,24 @@ done: I think I have the default (LOOSE Shoes, build from source) set up
    properly. No need to rake build after editing a .rb in lib/shoes in order
    to copy it to dist. With symlinks, just edit and run dist/shoes. 
    rake install to ~.shoes/federales is more complicated than I like
-   but you can rake install as often as you likes with/o clean and builds
+   but you can rake install as often as you like with/o clean and builds
    and multiple rake cleans in a row and multiple builds. 
+   
+   Manual bug ASCII-8BIT vs UTF exists with 1.9.3 - I only thought 
+   I fixed it. - Select elements/image from the manual. 
+done: Well that's embarrasing. I must have lost an edit to help.rb:load_docs
+   now reading file in utf-8 and all is well. 
   
 2014-03-12
 done: set locale properly in chroots. didn't solve manual problem. 
 --> Still have some left over 1.9.1 in chroots (site-ruby..)
---> build/pkg fonts can get doubled up so there are fonts/fonts
+done? build/pkg fonts can get doubled up so there are fonts/fonts
 --> remove docs from Ruby that Shoes can never use. lib/ruby/2.0.0/rdoc
+   in pi's chroot.
 
 2014-03-11 - still have these bugs:
   Blur on 64 bit.
-  symlinks on dist (default build)
+done?  symlinks on dist (default build)
   Manual and UTF-8:
     Check ftsearch.c for the TODO and FIXME comments.  Not my comments
     _why's?

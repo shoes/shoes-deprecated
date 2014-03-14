@@ -137,7 +137,7 @@ module Shoes::Manual
       h.each do |k, v|
         subtitle k
         flow do
-          v.each do |file|
+          v.sort.each do |file|
             para link(File.basename(file).split('-')[1..-1].join('-')[0..-4]){
               Dir.chdir(folder){eval IO.read(file).force_encoding("UTF-8"), TOPLEVEL_BINDING}
             }
@@ -212,8 +212,8 @@ module Shoes::Manual
 
   def load_docs path
     return @docs if @docs
-    #str = Shoes.read_file(path)
-    str = IO.read(path).force_encoding("ASCII-8BIT") # or UTF-8
+    #str = IO.read(path).force_encoding("ASCII-8BIT") # or UTF-8
+    str = IO.read(path).force_encoding("UTF-8") # or UTF-8
     #$DEBUG = true
     #$DEBUGF = File.open("ft#{RUBY_VERSION[/\d/]}.log", 'w')
     @search = Shoes::Search.new
