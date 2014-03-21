@@ -1,6 +1,63 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
+2014-03-20 
+   Fix the binject rbconfig so it doesn't invoke the wrong ruby to build
+   the .def file. Save/Restore bindir & ruby_install name  - not helping
+   make sure to rake clean before rake when testing. Also can't figure out
+   what the .def does. It should be two line file "EXPORTS\bInit_binject\n"
+  
+2014-03-19
+   Now I remember. rbconfig is now really picky. I can't load the mingw
+   2.1.0 rbconfig with a 2.1.1 or 2.0.0 Ruby. It's crap like that just
+   makes things harder than need be.  Good thing I have a lot of disk 
+   space on the new machine so I can have rvm install these. That's just
+   to test if ruby -r <path-to-mingw>rbconfig works. Sheesh.
+   
+   -r <path>rbconfig.rb does work (with complaints about TOPDIR, RbConfig::
+   CONFIG and MAKEFILE_CONFIG - I expected those) It created a Makefile
+   and an empty binject-i386-mingw32.def and then died trying 
+/bin/sh: 1: /srv/chroot/mingwgtk2/opt/local/bin/ruby: not found
+make: *** [binject-i386-mingw32.def] Error 127
+   manually invoke 'make' compiles all the .c to .o and craps out on linking
+   the binject.so because of the empty .def. I call it progress.
+    
+  
+2014-03-18
+    Day's comments lost in power failure. Good. I was really annoyed about
+    getting binject extconf.rb working with Mingw. 
+  
+2014-03-17
+    Felt more like debugging the arm extconf.rb today.
+    Well ain't I the clueless hacker. In extconf RbConfig::CONFIG is
+    used for Compiling/linking the conftest progs that mkmf.rb uses.
+    and RbConfig::MAKEFILE_CONFIG vars are for create_makefile. 
+    Except it's not that easy. But, it's one hell of a clue. 
+done: binject compiles for arm (raspberry pi).
+--> It needs to be less hacky and more pretty and tested
+ --> x86 compiles. i686 compiles, arm (of course). MinGW - not so much
+
+2014-03-16  Status, in no particular order.
+    1. simple-shere (blur) on 64bit linux.
+    2. extconf for binject. Getting packaging working is a much deeper
+       hole.  
+    3. running sample-rubygems from Shoes manual works but pretends it
+       didn't.
+    4. distributing nokogiri and sqlite3 (for Ruby 2.0)
+    5. Get gtk3 working.
+    6. Windows threading bugs.
+    
+    Some of those are hard. (6.) may not be possible for me to solve.
+    3. is the easiest but least useful.  Still, a bug is a bug
+    lib/shoes.rb:      eval(code, TOPLEVEL_BINDING, path) --> works.
+    lib/shoes/help.rb:  
+       Dir.chdir(folder){eval IO.read(file).force_encoding("UTF-8"),
+        TOPLEVEL_BINDING}  --> works but empty error console is shown.
+    the 'path' is optional 
+     
+
+    
+  
 2014-03-13
    If only ln -s could confuse me more. 
 done: I think I have the default (LOOSE Shoes, build from source) set up
@@ -13,14 +70,14 @@ done: I think I have the default (LOOSE Shoes, build from source) set up
    Manual bug ASCII-8BIT vs UTF exists with 1.9.3 - I only thought 
    I fixed it. - Select elements/image from the manual. 
 done: Well that's embarrasing. I must have lost an edit to help.rb:load_docs
-   now reading file in utf-8 and all is well. 
+   now reading the file in utf-8 and all is well. 
   
 2014-03-12
 done: set locale properly in chroots. didn't solve manual problem. 
 --> Still have some left over 1.9.1 in chroots (site-ruby..)
 done? build/pkg fonts can get doubled up so there are fonts/fonts
 --> remove docs from Ruby that Shoes can never use. lib/ruby/2.0.0/rdoc
-   in pi's chroot.
+   in pi's chroot. Annoying to see but it's not that much disk space.
 
 2014-03-11 - still have these bugs:
   Blur on 64 bit.
