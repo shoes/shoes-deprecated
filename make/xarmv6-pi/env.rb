@@ -130,7 +130,7 @@ SOLOCS['curl'] = "#{ularch}/libcurl.so.4"
 SOLOCS['ungif'] = "#{uldir}/libungif.so.4"
 SOLOCS['gif'] = "#{uldir}/libgif.so.4"
 SOLOCS['jpeg'] = "#{ularch}/libjpeg.so.8"
-SOLOCS['libyaml'] = "#{ularch}/libyaml.so"
+SOLOCS['libyaml'] = "#{ularch}/libyaml-0.so.2"
 SOLOCS['crypto'] = "#{ularch}/libcrypto.so.1.0.0"
 SOLOCS['ssl'] = "#{ularch}/libssl.so.1.0.0"
 if ENV['GTK'] == 'gtk+-2.0' && COPY_GTK == true

@@ -1,11 +1,59 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
+2014-04-01
+    Time for a status report blog entry.
+2014-03-31 
+   Started a rapsberry pi level tutorial blog post about Shoes gem handling 
+done: and ran into a libyaml.so bug in the rake files. Easily fixed but
+   damn this is annoying. 
+done: Another bug on the pi. su doesn't work on a default raspbian. 
+    workaround 'sudo passwd root'
+--> Need to strip rubies ext so's. Might help reduce download size.
+
+2014-03-30
+  Haven't done much which shoes for a while now. I'm not sure I
+  want to deal with packaging any time soon.
+done: got my ssh config sorted out across the desktop, pi, nas, website
+  and github. (ssh-copy-id was  very helpful) Also got sudo working on
+  pi, & nas.
+
+2014-03-29
+  Weekly build (b4) went fine. Good. I should fix something to prevent
+  success. 
+done: Installed pi OS from scratch again. 
+--> delete the x86_64 chroot /site-ruby/1.9.1/.  then again no one cares.
+
+2014-03-27
+  Haven't done a thing with Shoes. Read some GTK3 docs that suggest it
+  and Ruby threads will never co-exist on Windows. Or maybe I just want 
+  to believe that. 
+  
+2014-03-25
+  Just had a thought. Can the Shoes/Windows code get a thread from whatever
+  mechanism Ruby uses?  Wouldn't help gtk2/gtk3 windows variations but still
+  if Tk/Ruby can run on Windows, Shoes should be able to.
+  
+2014-03-23
+--> Change Windows build (package) to include -32 in the arch position
+    for file names.
+  
+2014-03-21
+done: Fix build-shoes cron job scripts - 
+     you can't rake clean too many times. add 'rvm use 2.1.0' to build msw32
+
+    Looking at static/stubs/sh-install, pack.rb. Much to be done. 
+done: Get select/pkg.rb working at the website. 
+  
 2014-03-20 
    Fix the binject rbconfig so it doesn't invoke the wrong ruby to build
-   the .def file. Save/Restore bindir & ruby_install name  - not helping
-   make sure to rake clean before rake when testing. Also can't figure out
-   what the .def does. It should be two line file "EXPORTS\bInit_binject\n"
+   the .def file. Save/Restore bindir & ruby_install name (MAKEFILE_CONFIG)
+done: It compiles and links with MinGW. It's still not pretty but their
+   is nothing pretty about binject (other than it's audacity and hackiness) 
+   and its for Windows which doesn't work. 
+   
+--> Contemplate using Powershell in Windows stubs and packgui. 
+--> Continuing Contemplating. 
   
 2014-03-19
    Now I remember. rbconfig is now really picky. I can't load the mingw
@@ -34,12 +82,12 @@ make: *** [binject-i386-mingw32.def] Error 127
     and RbConfig::MAKEFILE_CONFIG vars are for create_makefile. 
     Except it's not that easy. But, it's one hell of a clue. 
 done: binject compiles for arm (raspberry pi).
---> It needs to be less hacky and more pretty and tested
- --> x86 compiles. i686 compiles, arm (of course). MinGW - not so much
+    It needs to be less hacky and more pretty and tested
+    x86 compiles. i686 compiles, arm (of course). MinGW - not so much
 
 2014-03-16  Status, in no particular order.
     1. simple-shere (blur) on 64bit linux.
-    2. extconf for binject. Getting packaging working is a much deeper
+done: 2. extconf for binject. Getting packaging working is a much deeper
        hole.  
     3. running sample-rubygems from Shoes manual works but pretends it
        didn't.
