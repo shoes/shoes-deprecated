@@ -1,8 +1,33 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
-  
+
+2014-04-02
+    Sigh. MingW/gtk3 build fails ftsearch/extconf. Been here before.
+done:  That rake file hasn't been updated for quite a while. It builds.
+    And it runs surprisingly well! Hung Once - doing nothing for 5 min.
+Gtk3 bugs: 
+    simple-menu/menu1 work OK
+    simple-accordian, simple-slide Not Ok.
+Windows bugs
+    Console complaint when opening the manual - static/shoes-manual-apps.gif
+      may not be a gif?
+    simple-downloader crashes Shoes. I think it fails in native widgets too
+    version. Given how well the newer http works with setup.rb, perhaps 
+    we don't need windownload or curl. That would be a win for all platforms
+    -g/--gem/--ruby doesn't work from command line (-m does)
+    simple-rubygems works almost as expected
+       Complaint in Shoes console - DL is deprecated, please use Fiddle.
+       metaid downloads and installs
+       bluecloth fails - as it should - it needs a build env.
+       nokogiri downloads and installs it's binary payload - I think.
+         fails on require - ruby or C version mismatch?
+         
+    MinGW/gtk2 build -- seems to work just as well (w/o gtk3 bugs of course)
+    It hangs when covered/uncovered by another window!! 
+    
+    
 2014-04-01
-    Time for a status report blog entry.
+    Time for a status report blog entry. End of b4?
 2014-03-31 
    Started a rapsberry pi level tutorial blog post about Shoes gem handling 
 done: and ran into a libyaml.so bug in the rake files. Easily fixed but

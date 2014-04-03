@@ -80,7 +80,7 @@ module Make
     %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
       FileList[rdir].each { |rlib| cp_r rlib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}" }
     end
-    %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
+    %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk req/binject/ext/binject_c].
     #%w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
       each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_TGT_ARCH}" }
 
@@ -165,31 +165,9 @@ class MakeLinux
       sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
    
-
-    # Remember, this is for the Raspberry pi. Just tar up the xarmv6-pi
-    # dir and sftp it to the pi for testing
+    # does nothing
     def make_userinstall
-      #sh "tar -cf xarmv6-pi.tar xarmv6-pi"
-      #user = ENV['USER']
-      #home = ENV['HOME']
-      #hdir = "#{home}/.shoes/#{RELEASE_NAME}"
-      #mkdir_p hdir
-      #sh "cp -r #{TGT_DIR}/* #{hdir}"
-      #File.open("Shoes-tight.desktop",'w') do |f|
-      #  f << "[Desktop Entry]\n"
-      # f << "Name=Shoes\n"
-      #  f << "Exec={hdir}/#{TGT_DIR}/shoes\n"
-      #  f << "StartupNotify=true\n"
-      #  f << "Terminal=false\n"
-      #  f << "Type=Application\n"
-      #  f << "Icon={hdir}/#{TGT_DIR}/static/app-icon.png\n"
-      #  f << "Categories=Programming\n"
-      #end
-      #puts "Please copy the 'Shoes-.desktop' to /usr/share/applications"
-      #puts "Or wherever your Linux desktop manager requires. You many need to sudo"
-      #puts "Edit the file if you like."
     end
-    
  
     def make_resource(t)
       puts "make resource"
@@ -204,12 +182,12 @@ class MakeLinux
       rm_rf "#{TGT_DIR}/nsis"
       cp_r  "platform/msw", "#{TGT_DIR}/nsis"
       cp APP['icons']['win32'], "#{TGT_DIR}/nsis/setup.ico"
-      rewrite "#{TGT_DIR}/nsis/base.nsi", "#{TGT_DIR}/nsis/#{NAME}.nsi"
+      rewrite "#{TGT_DIR}/nsis/base.nsi", "#{TGT_DIR}/nsis/#{WINFNAME}.nsi"
       Dir.chdir("#{TGT_DIR}/nsis") do
         #sh "\"#{env('NSIS')}\\makensis.exe\" #{NAME}.nsi"
-        sh "makensis #{NAME}.nsi"
+        sh "makensis #{WINFNAME}.nsi"
       end
-      mv "#{TGT_DIR}/nsis/#{PKG}.exe", "pkg"
+      mv "#{TGT_DIR}/nsis/#{WINFNAME}.exe", "pkg"
     end
 
   end

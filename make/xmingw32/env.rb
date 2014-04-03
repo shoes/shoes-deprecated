@@ -17,7 +17,8 @@ else
   CHROOT = "/srv/chroot/mingw32"
 end
 # Where does ruby code live? Please cross compile Ruby. 
-EXT_RUBY = "#{CHROOT}/usr/local"
+# Use ruby 2.1.0
+EXT_RUBY = "/srv/chroot/mingwgtk2/opt/local"
 SHOES_TGT_ARCH = "i386-mingw32"
 # Specify where the Target system binaries live. 
 # Trailing slash is important.
@@ -39,8 +40,14 @@ ENV['SYSROOT']=CHROOT
 ENV['CC']=CC
 ENV['TGT_RUBY_PATH']=EXT_RUBY
 ENV['TGT_ARCH'] = SHOES_TGT_ARCH
-ENV['TGT_RUBY_V'] = '1.9.1'
-pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-1.9.pc"
+#ENV['TGT_RUBY_V'] = '1.9.1'
+ENV['TGT_RUBY_V'] = '2.1.0'
+TGT_RUBY_V = ENV['TGT_RUBY_V'] 
+#ENV['TGT_RUBY_SO'] = "msvcrt-ruby191"
+ENV['TGT_RUBY_SO'] = "msvcrt-ruby210"
+EXT_RBCONFIG = "#{EXT_RUBY}/lib/ruby/#{TGT_RUBY_V}/#{SHOES_TGT_ARCH}/rbconfig.rb"
+ENV['EXT_RBCONFIG'] = EXT_RBCONFIG 
+pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.1.pc"
 pkggtk ="#{uldir}/pkgconfig/#{ENV['GTK']}.pc" 
 # where is curl (lib,include) Can be commented since we don't use curl
 # for MinGW
@@ -49,7 +56,8 @@ curlloc = "#{CHROOT}/usr/local"
 #CURL_CFLAGS = `pkg-config --cflags #{curlloc}/lib/pkgconfig/libcurl.pc`.strip
 
 ENV['PKG_CONFIG_PATH'] = "#{ularch}/pkgconfig"
-
+WINVERSION = "#{REVISION}#{TINYVER}-#{ENV['GTK']=='Gtk+-3.0' ? 'gtk3' : 'gtk2'}-32"
+WINFNAME = "#{APPNAME}-#{WINVERSION}"
 file_list = %w{shoes/native/gtk.c shoes/http/winhttp.c shoes/http/windownload.c} + ["shoes/*.c"] 
 
 SRC = FileList[*file_list]
@@ -113,7 +121,7 @@ LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/local/include "
 # I don't think the line below belongs in this file. 
 cp APP['icons']['win32'], "shoes/appwin32.ico"
 
-LINUX_LIB_NAMES = %W[gif jpeg]
+LINUX_LIB_NAMES = %W[gif-4 jpeg]
 
 DLEXT = "dll"
 LINUX_LDFLAGS = "-fPIC -shared -L#{ularch} "
@@ -122,11 +130,12 @@ LINUX_LDFLAGS << "-lfontconfig" if ENV['GTK'] == 'gtk+-2.0'
 
 # dont use the ruby link info
 RUBY_LDFLAGS = "-Wl,-export-all-symbols "
-RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lmsvcrt-ruby191 "
+RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lmsvcrt-ruby210 "
 
 LINUX_LDFLAGS << " -lpthread -lwinhttp -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 "
 
-LINUX_LIBS = " -L/usr/lib "
+#LINUX_LIBS = " -L/usr/lib "
+LINUX_LIBS = " -L#{bindll} "
 LINUX_LIBS << LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
 LINUX_LIBS << " #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} "
@@ -137,7 +146,8 @@ LINUX_LIBS << " #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} "
 # copy_deps_to_dist, although either could work. 
 # Reference: http://www.gtk.org/download/win32_contentlist.php
 SOLOCS = {}
-SOLOCS['ruby'] = "#{EXT_RUBY}/bin/msvcrt-ruby191.dll"
+#SOLOCS['ruby'] = "#{EXT_RUBY}/bin/msvcrt-ruby191.dll"
+SOLOCS['ruby'] = "#{EXT_RUBY}/bin/msvcrt-ruby210.dll"
 #SOLOCS['curl'] = "#{curlloc}/bin/libcurl-4.dll"
 #SOLOCS['ungif'] = "#{uldir}/libungif.so.4"
 SOLOCS['gif'] = "#{bindll}/libgif-4.dll"
