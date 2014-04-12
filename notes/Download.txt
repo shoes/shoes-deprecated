@@ -1,0 +1,69 @@
+Downloading
+
+It's a problem with Windows. Also curl can be a real pain in the behind.
+In fact, simple-downloader just segfaulted on the pi so the curl isn't quite
+correct either. 
+
+From the source code it's clear that _why wrote a lot of code (curl.c, 
+winhttp.c, nsurl.m) to avoid using Ruby net/http (pre 1.8.7?). From
+what I've seen net/http in 2.0 and 2.1 are much nicer and work well
+with Shoe.setup when downloading gems and reporting progress. Can
+I replace it with calls to ruby? What does Shoes 4 use?
+
+simple-download describes the download method and args
+              dl = download @url.text, :save => File.basename(@url.text),
+                :progress => proc { |dl| 
+                  d.text = "Transferred #{dl.transferred} of #{dl.length} bytes (#{dl.percent}%)"
+                  p.fraction = dl.percent * 0.01 },
+                :finish => proc { |dl| d.text = "Download completed" }
+     
+That seems like it could be replaced without too much effort. Except the C
+level code also gets called from image.c and there is a companion function
+shoes_message_download() involved. Note that the return is a struct like
+object. 
+
+It would be nice to use net/http and do away with curl,objc, and windows
+C, if I could duplicate the C interface and functionality. That would be
+a lot easier for future maintainers - no need for objc skills or windows
+C skills.  There may be Gtk2/Gtk3 routines to do the download as well and
+since the future is Gtk3 for all, that could work too which would be
+easier than calling Ruby. There may be glib/gio version # issues? 
+
+And I'd be inviting thread problems by calling gio from ruby. I like
+the Shoes4 way too. 
+
+It should be easy enough to create an shoes/http/nruby.c and tell the
+rake files (env.rb) to use it instead of curl.c and gdb debugging is a 
+lot easier using the default dist/ build before inflicting it on Tight Shoes
+configs. 
+
+The hacker way would be to separate image_download to just be a sync
+call to open/read(uri).get since it's not reporting GUI progress 
+status and use a pure ruby impl of [Canvas].download. I can imagine a case
+where you want multiple image downloads in parallel - like music album
+thumbnails but I'm not sure I care about that.  Make sure to read OpenURI
+doc. The shoes.download is a lot similar.  
+
+I can monkey patch the 'C' download method with a Ruby script. Getting that
+script to fulfill the API describe in the Shoes manual is challenging for
+me since I'n not all that 'Ruby' aware.  A learning opportunity. Take clues
+from Shoes4. 
+
+Apr 10, 2014
+Sweet!. KCerb finished writing Shoes 4 download.rb before I had to. 
+Still need the headers, body, status methods. 
+
+Apr 11, 2014
+Needs many things to make right. Needs an abort method. 
+Oh sweet Jesus. Different errors for 1.9.3 vs 2.0.0/2.1.0! 
+The uri open does all the calls to progress and the open block is called
+when the download is finished. Read is useless.
+
+
+
+References:
+http://www.ruby-doc.org/stdlib-2.1.1/libdoc/net/http/rdoc/Net/HTTP.html
+shoes3.2/shoes/image.c:947
+http://stackoverflow.com/questions/10622642/fetch-a-file-from-web-in-gtk-using-c
+shoes4/lib/shoes/download.rb
+

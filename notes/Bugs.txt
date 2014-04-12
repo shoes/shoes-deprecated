@@ -1,13 +1,21 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
-
+  
+2014-04-03
+    Started notes/Download.txt to describe what needs to be done to
+    replace [canvas]download and image/download. 
+    
 2014-04-02
+--> This project might be worth poking around in
+    https://github.com/spooner/releasy
+    
     Sigh. MingW/gtk3 build fails ftsearch/extconf. Been here before.
 done:  That rake file hasn't been updated for quite a while. It builds.
     And it runs surprisingly well! Hung Once - doing nothing for 5 min.
 Gtk3 bugs: 
     simple-menu/menu1 work OK
-    simple-accordian, simple-slide Not Ok.
+    simple-accordian, simple-slide Not Ok. It's all about clip (vertical)?
+    
 Windows bugs
     Console complaint when opening the manual - static/shoes-manual-apps.gif
       may not be a gif?
@@ -23,7 +31,9 @@ Windows bugs
          fails on require - ruby or C version mismatch?
          
     MinGW/gtk2 build -- seems to work just as well (w/o gtk3 bugs of course)
-    It hangs when covered/uncovered by another window!! 
+    
+==>  It hangs when covered/uncovered by another window!! ON WINDOWS. 
+    Big find! Solution?
     
     
 2014-04-01

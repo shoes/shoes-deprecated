@@ -1,6 +1,7 @@
 require 'fileutils'
 include FileUtils
-
+# add it download patches
+require_relative 'download.rb'
 # locate ~/.shoes
 require 'tmpdir'
 lib_dir = nil
