@@ -23,11 +23,13 @@ class << DATABASE
     }, DATABASE_VERSION
   end
   def check_cache_for url
+    return nil
     etag, hash, saved = 
       DATABASE.get_first_row("SELECT etag, hash, saved FROM cache WHERE url = ?", url)
     {:etag => etag, :hash => hash, :saved => saved.nil? ? 0 : Time.parse(saved.to_s).to_i}
   end
   def notify_cache_of url, etag, hash
+    return nil
     DATABASE.query %{
       REPLACE INTO cache (url, etag, hash, saved)
       VALUES (?, ?, ?, datetime("now", "localtime"));

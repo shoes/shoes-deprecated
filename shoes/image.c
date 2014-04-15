@@ -1018,3 +1018,4 @@ done:
     cached = shoes_world->blank_cache;
   return cached;
 }
+

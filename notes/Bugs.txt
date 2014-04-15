@@ -1,6 +1,44 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
+2014-04-14
+    Add RUBY_HTTP to make/linux/env.rb which adds -DRUBY_HTTP which I'll 
+    use to #ifdef curl (or winhttp) out of the compile. 
+===> When working, use RUBY_HTTP in all the env.rb and change the link 
+    libs. For now, there is no harm for linking against curl even if it 
+    won't be needed later. It's not later, yet.
+  
+2014-04-13
+    Add msw-gtk build to weekly build.
+done: Test b5 downloading on Windows and Pi - works.
+    Note: Windows firewall doesn't always connect shoes up. Set manually.
+done: upload b5 to site for pi and windows-gtk2. Write a post.
+---> the headers from download.headers are not http.headers. 
+---> test the open_uri options to set headers (agent ...)
+done: Test image http://shoes.mvmanila.com/public/images/dino.jpg
+     and script is sample/simple-download2.rb
+---> Which fails because it can't find sqlite3 - Huh!?!! who required
+    lib/data.rb ? image.c:951     rb_require("shoes/data");
+    Jesus A Chr.. It uses sqlite to cache downloaded images. 
+    See Download.txt
+  
+2014-04-12
+done: Get @percent progress working
+done: get file save working
+done: get headers, status, body working
+  
+2014-04-11
+     Many things are not correct. I suspect thread deadlocks. 
+     at the moment, deep burping on Shoes console from net/http about buffer
+      
+     Oh sweet Jesus. Different errors for 1.9.3 vs 2.0.0/2.1.0  
+       content_length is reported differently (site compression?) 
+       syntax errors not reported differently - parse that twice.
+         
+     Getting close to working. 
+2014-04-10
+     Played with adapting shoes4 downloader to 3.2
+     
 2014-04-03
     Started notes/Download.txt to describe what needs to be done to
     replace [canvas]download and image/download. 

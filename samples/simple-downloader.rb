@@ -15,16 +15,11 @@ Shoes.app do
               d = inscription "Beginning transfer.", :margin => 0
               p = progress :width => 1.0, :height => 14
               dld = download @url.text, :save => File.basename(@url.text),
+                :pause => 1.25,
                 :progress => proc { |dl| 
-                  puts"progress callback"
                   d.text = "Transferred #{dl.transferred} of #{dl.length} bytes (#{dl.percent}%)"
-                  puts "progress return #{dl.transferred} of #{dl.length} bytes (#{dl.percent}%)"
-                  p.fraction = dl.percent
-                  },
-                :finish => proc { |dl| 
-                  puts "finish callback"
-                  d.text = "Download completed"
-                  }
+                  p.fraction = dl.percent },
+                :finish => proc { |dl| d.text = "Download completed"}
             end
           end
         end

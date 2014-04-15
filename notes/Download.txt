@@ -55,11 +55,35 @@ Still need the headers, body, status methods.
 
 Apr 11, 2014
 Needs many things to make right. Needs an abort method. 
-Oh sweet Jesus. Different errors for 1.9.3 vs 2.0.0/2.1.0! 
+Oh sweet Jesus! Different errors for 1.9.3 vs 2.0.0/2.1.0! 
+  Content_length is reported differently is its a compress download.
+  Nasty - 2.0 doesn't report some syntax errors. 
 The uri open does all the calls to progress and the open block is called
-when the download is finished. Read is useless.
+when the download is finished. Read is useless in 1.9.3 and 2.x
 
-
+Apr 13, 2014 
+  -mostly working for the download command and sample/simple-download.rb
+  moving on to image.c replacement.
+  
+  Oh holy fuck! sqlite is used to manage a cache of downloaded images.
+  Quick check of shoes4 suggests they don't cache. They just call download
+  with a :save and load it.  I'm sympathetic to that - it is easier to do
+  and shoes has no user visibile way to 'refresh' the image cache.  Nor do
+  I want to include sqlite with every version of Shoes and if your're 
+  already resource constrained like the 'pi' you don't need a secret copy
+  of sqlite3. 
+  
+  On the other hand, caching could be useful, sdbm is available for basic
+  cross compiled rubies (gdnm and dbm are a bitch for windows cross compile).
+  It wouldn't be that hard to write a clean  'image cache' for the splash screen 
+  and if you're downloading images you need to make sure that image names 
+  are unique to the site (uri) they came from.
+  
+  On the gripping hand: decision time! I'll disable caching until I can 
+  get image.download (to +cache) working w/o curl.
+  I'll need a #ifdef symbol RUBY_HTTP and a new shoes/imagecache.rb - 
+  beware image.rb which is required from shoes.rb
+  Also create a RUBY_HTTP rake constant so the includes and links are 
 
 References:
 http://www.ruby-doc.org/stdlib-2.1.1/libdoc/net/http/rdoc/Net/HTTP.html

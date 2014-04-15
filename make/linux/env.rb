@@ -9,6 +9,8 @@ require 'rbconfig'
 #ENV['GTK'] = "gtk+-3.0" # pick this or the next
 ENV['GTK'] = "gtk+-2.0"
 ENV['GDB'] = "true" # compile -g,  don't strip symbols
+# Use curl or Ruby for http downloads.
+RUBY_HTTP = true
 # Pick your optimatization and debugging options
 if ENV['DEBUG'] || ENV['GDB']
   LINUX_CFLAGS = "-g -O0"
@@ -19,6 +21,8 @@ end
 rv =  RUBY_VERSION[/\d.\d/]
 #puts "Ruby V: #{rv}"
 # Add the -Defines for shoes code
+#  use Ruby for HTTP
+LINUX_CFLAGS << " -DRUBY_HTTP" if RUBY_HTTP
 LINUX_CFLAGS << " -DRUBY_1_9"
 LINUX_CFLAGS << " -DGTK3" unless ENV['GTK'] == 'gtk+-2.0'
 LINUX_CFLAGS << " -DSHOES_GTK -fPIC -shared"
@@ -27,8 +31,11 @@ LINUX_CFLAGS << " -I/usr/include/"
 LINUX_CFLAGS << " #{`pkg-config --cflags #{ENV['GTK']}`.strip}"
 
 CC = "gcc"
-file_list = %w{shoes/native/gtk.c shoes/http/curl.c} + ["shoes/*.c"]
-
+if RUBY_HTTP
+  file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + ["shoes/*.c"]
+else
+  file_list = %w{shoes/native/gtk.c shoes/http/curl.c} + ["shoes/*.c"]
+end
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')

@@ -1,20 +1,30 @@
-# Borrowed/backported from Shoes 4. Then I modified to fix some bugs
+# Borrowed/backported from Shoes 4 which I modified to fix some bugs 
+# and conform better to the Shoes 3.2 manual. I hope. 
 # https://github.com/shoes/shoes4/commit/b0e7cfafe9705f223bcbbd1031acfac02e9f79c6
-# needs headers, body, status @vars handling
 class Shoes
+  class HttpResponse
+     # Struct might be better? 
+     attr_accessor :headers, :body, :status
+     def initalize
+       @headers = {}
+       @body = ''
+       @status = []
+     end
+  end
   class Download
-    attr_reader :progress, :response, :content_length, :gui, :transferred, :length 
-    #length is preserved for Shoes3 compatibility
-    attr_reader :headers, :body, :status, :percent
+    attr_reader :progress, :response, :content_length, :gui, :transferred 
+    # length and percent is preserved for Shoes3 compatibility
+    attr_reader :length , :percent
     UPDATE_STEPS = 100
     
     def initialize(url, opts = {}, &blk)
       @opts = opts
       @blk = blk
+      @response = HttpResponse.new
       #@gui = Shoes.configuration.backend_for(self)
       @finished = false
       @transferred = 0
-      @length = 0.0
+      @length = 0
       start_download url
     end
 
@@ -25,24 +35,18 @@ class Shoes
         uri_opts = {}
         uri_opts[:content_length_proc] = content_length_proc
         uri_opts[:progress_proc] = progress_proc if @opts[:progress]
-        if @opts[:save]
-          @outf = open(@opts[:save], 'wb')
-        else
-          @outf = StringIO.new() # make ASCII-8BIT
-        end
           
-        puts "Thread Start"
+        #puts "Thread Start"
         open url, uri_opts do |f|
-          puts "opened #{url}"
-          # everything has been download at this point.
-          f.read {|chunk| @outf.write chunk}
-          puts "Download.finished #{f.size}"
-          #save_to_file(@opts[:save], download_data) if @opts[:save]
-          @outf.close
+          # everything has been downloaded at this point. f is a tempfile
+          @response.body = f.read
+          @response.status = f.status
+          @response.headers = f.meta
+          #puts "Download.finished #{@response.body.size}"
+          save_to_file(@opts[:save]) if @opts[:save]
           finish_download f
         end
       end
-      @thread.join
     end
       
     def content_length_proc
@@ -55,10 +59,12 @@ class Shoes
     def progress_proc
       lambda do |size|
         # size is number of bytes xferred, so far.
-        if (size - self.transferred) > (content_length / UPDATE_STEPS) #&& !@gui.busy?
+        if size > 0
+#        if (size - self.transferred) > (content_length / UPDATE_STEPS) #&& !@gui.busy?
           #@gui.busy = true
-          @percent = (@length / size)
+          @percent = size.to_f / @length.to_f
           eval_block(@opts[:progress], self)
+          sleep @opts[:pause] if @opts[:pause]
           @transferred = size
         end
       end
@@ -66,14 +72,10 @@ class Shoes
 
     def finish_download(f)
       @finished = true
-      puts "Calling finishers #{f.size}"
-      #@response = StringIO.new(download_data)
-
-      #In case final asyncEvent didn't catch the 100%
-      #@transferred = @content_length
-      #Hangs here:
-      #eval_block(@opts[:progress], self) if @opts[:progress]
-
+      #puts "Calling finishers #{f.size}"
+      # call :progress with 100%, just in case
+      @percent = 1.0
+      eval_block(@opts[:progress], self) if @opts[:progress]
       #:finish and block are the same
       eval_block(@blk, self) if @blk
       eval_block(@opts[:finish], self) if @opts[:finish]
@@ -84,8 +86,11 @@ class Shoes
       # @gui.eval_block(blk, result)
     end
 
-    def save_to_file(file_path, download_data)
-      open(file_path, 'wb') { |fw| fw.print download_data }
+    def save_to_file(str)
+      #puts "Saving to #{str}"
+      @outf = open(str, 'wb')  
+      @outf.print(@response.body)
+      @outf.close
     end
 
     def download_started(content_length)
@@ -93,7 +98,7 @@ class Shoes
       @content_length = content_length
       @percent = 0.0
       @started = true
-      puts "download started #{@length} bytes"
+      #puts "download started #{@length} bytes"
     end
 
   end
@@ -102,7 +107,7 @@ end
 # Monkey patch over the 'C' code. 
 class Shoes::Types::App
   # Shoes::Types::App seems wrong but it works. 
-  def download (url, options, &blk)
+  def download (url, options = {}, &blk)
     Shoes::Download.new(url, options, &blk)
   end
 end
