@@ -1,12 +1,75 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
+2014-04-18
+
+done: Hookup Shoes.image_download_sync (in image.rb) inside rbload.c
+   Download to /tmp/file works. Now turn it into a Shoes image.
+--> create a shoes_image_download_event and call 
+    which calls
+      shoes_image_downloaded (image.c:834)
+    and then calls the notify_cache_of in data.rb 
+
+  
+2014-04-17
+    Time to pause and lookabout. Using thread.exit is a hack that indicates
+    lack of understanding. Setting thread priorities would be even worse.
+    
+    Still more flailing around. My arms are tired. 
+
+--> I'm going to create a new Shoes::image_download_sync method in
+    image.rb can call that from deep inside Shoes (rbload.c)
+    Then download.rb and it's progress reporting can work (or not) with
+    out the complications of internal image handling double duty.
+  
+2014-04-16
+    download.rb - it fulfills the contract in Shoes manual. Kind of sucks
+    at at progress reporting. 
+==> Crap. it works with manual/download run this #1 and fails #2 which
+    is damn near identical to what I do in downloader2/rbload.c/data.rb
+    Oh double crap - the cable modem could have been down. Shit. 
+    And I modifed code to fix it and it's all gone to hell now that the
+    modem is back online. Jesus fucking Christ!
+    
+    The imgage file is in /tmp/ now I need
+    to finish the download the way curl/nsurl.m/winload does so shoes
+    displays the image. May need a working sqlite/sdbm cache
+    
+    Plan C - fix curl cross compile on pi, test gtk2 on windows with
+    opened fire wall. 
+    
+    Plan D - only the hackety folks might be using 'image #{url}' so
+    deprecate the image.c downloading (and curl and sqlite cache and ...)
+  
+2014-04-15 image loading
+    Tough sledding down the ruby.c image.c curl.c slope in order to
+    get rbload.c written. I'm worried about the threading issues.
+--> Need to find cShoes and make a cDownload object and call it.  Hard.
+--> Hack ahead: use the DATABASE constant which acts as a singleton so
+    there may be trouble ahead with ruby versions. see backup plan below
+--> can I use the existing Shoes class Response (see ruby.c) in download.rb
+    and what is the right value for status? 
+==> data.rb - need to wait for the download thread to finish.
+--? Backup plan:
+    Possible to write the image download as part of the data.rb?
+    on a cache miss, call download and then return the etag, hash
+    Just have to figure a ruby version of the hash & copy the file there
+  
 2014-04-14
     Add RUBY_HTTP to make/linux/env.rb which adds -DRUBY_HTTP which I'll 
     use to #ifdef curl (or winhttp) out of the compile. 
 ===> When working, use RUBY_HTTP in all the env.rb and change the link 
     libs. For now, there is no harm for linking against curl even if it 
-    won't be needed later. It's not later, yet.
+    won't be needed. 
+===> Replace sqlite with sdbm in lib/data,rb
+     My loose shoes (dist/) has sqlite3. gem install sqlite3. so
+--->  For now, just return 'not cached' so it always downloads.
+===> write replacement for shoes_queue_download in http/ruby/rbload.c
+done: modify rake file to build http/ruby/rbload.c. Links w/o error.
+     the stub in rbload.c is called. req->uri is the full url
+     req->filepath appears to be where I should write the contents 
+     commit to git and call it a day.
+     
   
 2014-04-13
     Add msw-gtk build to weekly build.

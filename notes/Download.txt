@@ -81,10 +81,33 @@ Apr 13, 2014
   
   On the gripping hand: decision time! I'll disable caching until I can 
   get image.download (to +cache) working w/o curl.
-  I'll need a #ifdef symbol RUBY_HTTP and a new shoes/imagecache.rb - 
-  beware image.rb which is required from shoes.rb
-  Also create a RUBY_HTTP rake constant so the includes and links are 
-
+  I'll need a #ifdef symbol RUBY_HTTP and a new shoes/cache.rb - 
+    returns false (no cache hits) until the download works.
+    then rewrite with sdbm implementation.
+  Beware image.rb which is required from shoes.rb used to create image
+  hash dirs
+  
+  Create a RUBY_HTTP rake constant so the includes and links are conditioned
+  
+  create a http/rbload.c that provides:
+  void shoes_download(shoes_http_request *req)
+    Don't need that one. We monkey patched it out. Need the function
+    for linking however.  
+  void shoes_queue_download(shoes_http_request *req) (does the work)
+  VALUE shoes_http_err(SHOES_DOWNLOAD_ERROR code)
+  SHOES_DOWNLOAD_HEADERS shoes_http_headers(VALUE hsh)
+  void shoes_http_headers_free(SHOES_DOWNLOAD_HEADERS headers)
+  
+Apr 18, 2014
+   download command will be separate from image #{url} command.
+   see download.rb vs image.rb and shoes/http/rbload.c 
+   in rbload I need to finish up by calling all the stuff
+   that Shoes would have called after a curl download:
+     create a shoes_image_download_event and call 
+     which calls
+      shoes_image_downloaded (image.c:834)
+     and then calls the notify_cache_of in data.rb 
+  
 References:
 http://www.ruby-doc.org/stdlib-2.1.1/libdoc/net/http/rdoc/Net/HTTP.html
 shoes3.2/shoes/image.c:947

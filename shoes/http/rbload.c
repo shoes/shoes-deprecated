@@ -23,8 +23,26 @@ shoes_download(shoes_http_request *req)
 void
 shoes_queue_download(shoes_http_request *req)
 {
-  /* does the download */ 
-  printf("shoes_queue_download called\n");
+  //printf("shoes_queue_download called: %s -> %s\n",req->url,req->filepath);
+  VALUE path, url, opts, svsym, dnobj;
+  // convert req->url, req->filepath to ruby strings
+  path = rb_str_new2(req->filepath);
+  url = rb_str_new2(req->url);
+  // make a hash
+  opts = rb_hash_new();
+  // make a :save symbol
+  svsym = ID2SYM(rb_intern("save"));
+  // add :save and filepath to hash
+  rb_hash_aset(opts, svsym, path);
+  // Call Shoes::image_download_sync - defined in image.rb
+  dnobj = rb_funcall(cShoes, 
+      rb_intern("image_download_sync"), 2, url, opts);
+  // convert the fields of dnobj to C ptrs
+ 
+  printf("returned from image_download_sync\n");
+  //shoes_http_request_free(req);
+ // free(req);
+
 }
 
 VALUE
@@ -68,7 +86,7 @@ shoes_http_headers(VALUE hsh)
 void
 shoes_http_headers_free(SHOES_DOWNLOAD_HEADERS headers)
 {
-  /* obvious 
+  /*
     [headers release];
   */
   printf("shoes_headers_free called\n");
