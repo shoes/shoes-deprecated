@@ -12,8 +12,9 @@ Shoes.app do
             stack :margin => 10 do
               dld = nil
               download @url.text do |r| 
-                para "Status: #{r.response.status}\nHeaders:\n"
-                r.response.headers.each {|k,v| para "#{k}: #{v}\n"}
+                puts "in block"
+                para "Status: #{r.response.status}\nHeaders:"
+                r.response.headers.each {|k,v| para "#{k.strip}: #{v.strip}"}
                 sz = r.response.body.size
                 para "Body size: #{sz}\n"
                 if sz > 0
