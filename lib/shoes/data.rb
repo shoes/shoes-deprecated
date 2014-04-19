@@ -29,6 +29,8 @@ class << DATABASE
     {:etag => etag, :hash => hash, :saved => saved.nil? ? 0 : Time.parse(saved.to_s).to_i}
   end
   def notify_cache_of url, etag, hash
+    puts "notify_cache_of called"
+    puts "Insert to sql #{url} #{etag} #{hash}"
     return nil
     DATABASE.query %{
       REPLACE INTO cache (url, etag, hash, saved)
