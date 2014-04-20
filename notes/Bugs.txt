@@ -1,15 +1,26 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
-2014-04-18
 
+2014-04-19
+done: rbload.c has converted the status code and ready to stuff it into 
+   req->idat->status and make the next calls to see what happens. 
+   
+   stepping through with gdb. It works. now finish freeing the headers
+done: and stuff in rbload so we don't leak memory. 
+--> do the sdbm version of data.rb
+
+2014-04-18
 done: Hookup Shoes.image_download_sync (in image.rb) inside rbload.c
    Download to /tmp/file works. Now turn it into a Shoes image.
---> create a shoes_image_download_event and call 
-    which calls
-      shoes_image_downloaded (image.c:834)
-    and then calls the notify_cache_of in data.rb 
+   
+done create a shoes_image_download_event (canvas.h) and call 
+    shoes_catch_message (ruby.c) which calls
+      shoes_image_downloaded (image.c:834) which calcs the digest value
+    and then calls the notify_cache_of in my data.rb 
 
+==> don't forget to test and fix download.rb re:Threading
+==> Write the sdbm cache code. 
   
 2014-04-17
     Time to pause and lookabout. Using thread.exit is a hack that indicates

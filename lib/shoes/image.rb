@@ -26,32 +26,23 @@ class Shoes
   # Synchronous download - no threading. called from the bowels of
   # image.c -> rbload.c -> here. Returns
   # something that rbload.c can deal with
-  class  ImgResp
-     attr_accessor :headers, :body, :status
-     def initalize
-       @headers = {}
-       @body = ''
-       @status = 404
-       @size = 0
-     end
-  end
-  
+  # assumes HttpResponse from download.rb has been require'd
+  # and with magic of duck typing, it looks like cResponse. 
   def self.image_download_sync url, opts
-    puts "image_download_sync called"
+    # puts "image_download_sync called"
     require 'open-uri'
     tmpf = File.open(opts[:save],'wb')
-    result = ImgResp.new
+    result = HttpResponse.new
     open url do |f|
       # everything has been downloaded at this point.
       # f is a tempfile like creature
-      result.status = f.status[0] # 200, 404, etc
-      result.size = f.size
+      result.status = f.status[0].to_i # 200, 404, etc
       result.body = f.read
       tmpf.write(result.body)
       result.headers = f.meta
       tmpf.close
     end
-    puts "image_download_sync finished"
+    # puts "image_download_sync finished"
     return result
   end
  end

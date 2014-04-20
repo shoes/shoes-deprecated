@@ -12,6 +12,7 @@
 #include "shoes/version.h"
 #include "shoes/world.h"
 #include "shoes/native.h"
+#include "shoes/canvas.h"
 
 void
 shoes_download(shoes_http_request *req)
@@ -24,7 +25,7 @@ void
 shoes_queue_download(shoes_http_request *req)
 {
   //printf("shoes_queue_download called: %s -> %s\n",req->url,req->filepath);
-  VALUE path, url, opts, svsym, dnobj;
+  VALUE path, url, opts, svsym, dnobj, stvar;
   // convert req->url, req->filepath to ruby strings
   path = rb_str_new2(req->filepath);
   url = rb_str_new2(req->url);
@@ -37,12 +38,19 @@ shoes_queue_download(shoes_http_request *req)
   // Call Shoes::image_download_sync - defined in image.rb
   dnobj = rb_funcall(cShoes, 
       rb_intern("image_download_sync"), 2, url, opts);
-  // convert the fields of dnobj to C ptrs
- 
-  printf("returned from image_download_sync\n");
-  //shoes_http_request_free(req);
- // free(req);
-
+  // convert the status var of dnobj to a C int and save it in req->idat
+  stvar = rb_funcall(dnobj, rb_intern("status"), 0);
+  int st = NUM2INT(stvar);
+  //printf("returned from image_download_sync %i\n", st);
+  // shoes_image_download_event *idat
+  // shoes_image_download_event in req->data 
+  shoes_image_download_event *side = req->data;
+  side->status = st;
+  shoes_catch_message(SHOES_IMAGE_DOWNLOAD, NULL, side);
+  shoes_http_request_free(req);
+  free(req);
+  // assume Ruby will garbage collect all the VALUE var's. 
+  // after this stack frame pops there's nothing holding them.
 }
 
 VALUE
@@ -59,26 +67,7 @@ shoes_http_err(SHOES_DOWNLOAD_ERROR code)
 SHOES_DOWNLOAD_HEADERS
 shoes_http_headers(VALUE hsh)
 {
-  // appears to copy the Ruby headers into a objc dict
-  // presumably these are the header sent TO the server
-  // unsure who is calling this or when
-  /* long i;
-  NSDictionary *d = NULL;
-  VALUE keys = rb_funcall(hsh, s_keys, 0);
-  if (RARRAY_LEN(keys) > 0)
-  {
-    d = [[NSMutableDictionary dictionaryWithCapacity: RARRAY_LEN(keys)] retain];
-    for (i = 0; i < RARRAY_LEN(keys); i++)
-    {
-      VALUE key = rb_ary_entry(keys, i);
-      VALUE val = rb_hash_aref(hsh, key);
-      if(!NIL_P(val))
-        [d setValue: [NSString stringWithUTF8String: RSTRING_PTR(val)]
-           forKey:   [NSString stringWithUTF8String: RSTRING_PTR(key)]];
-    }
-  }
-  return d;
-  */
+ 
   printf("shoes_http_headers called\n");
   return (SHOES_DOWNLOAD_HEADERS)hsh;
 }
@@ -86,8 +75,5 @@ shoes_http_headers(VALUE hsh)
 void
 shoes_http_headers_free(SHOES_DOWNLOAD_HEADERS headers)
 {
-  /*
-    [headers release];
-  */
   printf("shoes_headers_free called\n");
 }
