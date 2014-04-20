@@ -1,43 +1,23 @@
-require 'sqlite3'
+require 'sdbm'
+data_file = File.join(LIB_DIR, "sdbm-img-cache")
 
-data_file = File.join(LIB_DIR, "+data")
-data_init = !File.exists?(data_file)
-
-DATABASE = SQLite3::Database.new data_file
-DATABASE.type_translation = true
+DATABASE = SDBM.new(data_file)
 
 class << DATABASE
-  DATABASE_VERSION = 1
-  def setup
-    DATABASE.execute_batch %{
-      CREATE TABLE cache (
-        url   text primary key,
-        etag  text,
-        hash  varchar(40),
-        saved datetime
-      );
-      CREATE TABLE upgrades (
-        version int primary key
-      );
-      INSERT INTO upgrades VALUES (?);
-    }, DATABASE_VERSION
-  end
   def check_cache_for url
-    return nil
-    etag, hash, saved = 
-      DATABASE.get_first_row("SELECT etag, hash, saved FROM cache WHERE url = ?", url)
-    {:etag => etag, :hash => hash, :saved => saved.nil? ? 0 : Time.parse(saved.to_s).to_i}
+    t = DATABASE[url]
+    return nil unless t
+    flds = t.split('|')
+    hsh = {:etag => flds[0], :hash => flds[1], :saved => Time.parse(flds[2]).to_i}
+    return hsh
   end
+  
   def notify_cache_of url, etag, hash
-    puts "notify_cache_of called"
-    puts "Insert to sql #{url} #{etag} #{hash}"
-    return nil
-    DATABASE.query %{
-      REPLACE INTO cache (url, etag, hash, saved)
-      VALUES (?, ?, ?, datetime("now", "localtime"));
-    }, url, etag, hash
-    nil
+    if !etag || etag == ''
+      etag = 'numpty'
+    end
+    val = [etag, hash, Time.now].join('|')
+    DATABASE[url] = val
   end
 end
 
-DATABASE.setup if data_init

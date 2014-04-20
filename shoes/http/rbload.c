@@ -41,11 +41,28 @@ shoes_queue_download(shoes_http_request *req)
   // convert the status var of dnobj to a C int and save it in req->idat
   stvar = rb_funcall(dnobj, rb_intern("status"), 0);
   int st = NUM2INT(stvar);
+  // dig the etag field out of headers.
+  VALUE hdrs = rb_funcall(dnobj, rb_intern("headers"), 0);
   //printf("returned from image_download_sync %i\n", st);
   // shoes_image_download_event *idat
   // shoes_image_download_event in req->data 
   shoes_image_download_event *side = req->data;
   side->status = st;
+  VALUE etag = NULL;
+  VALUE keys = rb_funcall(hdrs, s_keys, 0);
+  int i;
+  for (i = 0; i < RARRAY_LEN(keys); i++ )
+  {
+    VALUE key = rb_ary_entry(keys, i);
+    if (strcmp("etag", RSTRING_PTR(key)) == 0) {
+		etag = key;
+		break;
+    }
+    //printf("key=%s\n",RSTRING_PTR(key));
+  }
+  side->etag = RSTRING_PTR(rb_hash_aref(hdrs, etag));
+  //VALUE rbetag = rb_hash_aref(hdrs, rb_intern("etag"));
+  //printf("%s\n",RSTRING_PTR(rbetag));
   shoes_catch_message(SHOES_IMAGE_DOWNLOAD, NULL, side);
   shoes_http_request_free(req);
   free(req);
