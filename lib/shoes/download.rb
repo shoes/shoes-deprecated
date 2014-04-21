@@ -8,7 +8,7 @@ class Shoes
      def initalize
        @headers = {}
        @body = ''
-       @status = []
+       @status = 404
      end
   end
   class Download
@@ -39,12 +39,12 @@ class Shoes
         #puts "Thread Start"
         open url, uri_opts do |f|
           # everything has been downloaded at this point. f is a tempfile
-          puts "Download.finished"
-         finish_download f
+          #puts "Download.finished"
+          finish_download f
+          #puts "end of thread block - joining"
+          @thread.join
         end
       end
-      puts "end of thread block - joining"
-      @thread.join
     end
       
     def content_length_proc
@@ -71,9 +71,9 @@ class Shoes
     def finish_download(f)
       @finished = true
       @response.body = f.read
-      @response.status = f.status
+      @response.status = f.status[0]
       @response.headers = f.meta
-      puts "Calling finishers #{f.size}"
+      #puts "Calling finishers #{f.size}"
       # The download thread needs to quit.
       #@thread.exit if @opts[:save]
       # call :progress with 100%, just in case
@@ -84,7 +84,7 @@ class Shoes
       if @opts[:finish]
         eval_block(@opts[:finish], self) 
       elsif @blk
-        puts "calling download blk"
+        #puts "calling download blk"
         eval_block(@blk, self)
       end
     end
@@ -95,7 +95,7 @@ class Shoes
     end
 
     def save_to_file(str)
-      puts "Saving to #{str}"
+      #puts "Saving to #{str}"
       @outf = open(str, 'wb')  
       @outf.print(@response.body)
       @outf.close
@@ -117,7 +117,7 @@ end
 class Shoes::Types::App
   # Shoes::Types::App seems wrong but it works. 
   def download (url, options = {}, &blk)
-    puts "download #{url} #{options} "
+    #puts "download #{url} #{options} "
     Shoes::Download.new(url, options, &blk)
   end
 end
