@@ -44,8 +44,10 @@
 #ifndef SHOES_GTK_WIN32
 #include <gdk/gdkx.h>
 #endif
+#ifndef RUBY_HTTP
 #include <curl/curl.h>
 #include <curl/easy.h>
+#endif
 
 #define SHOES_SIGNAL
 #ifdef SHOES_GTK_WIN32
@@ -91,14 +93,25 @@ typedef struct {
 #ifdef SHOES_GTK_WIN32
 #define SHOES_TIMER_REF long
 #define SHOES_TIME gint64
+#ifdef RUBY_HTTP
+#define SHOES_DOWNLOAD_HEADERS void *
+#define SHOES_DOWNLOAD_ERROR int
+#else
 #define SHOES_DOWNLOAD_HEADERS LPWSTR
 #define SHOES_DOWNLOAD_ERROR DWORD
+#endif
 #else
 #define SHOES_TIMER_REF guint
 #define SHOES_TIME struct timespec
+#ifdef RUBY_HTTP
+#define SHOES_DOWNLOAD_HEADERS void *
+#define SHOES_DOWNLOAD_ERROR int
+#else
 #define SHOES_DOWNLOAD_HEADERS struct curl_slist *
 #define SHOES_DOWNLOAD_ERROR CURLcode
 #endif
+#endif
+
 #define DC(slot) slot->oscanvas
 #define HAS_DRAWABLE(slot) slot->canvas->window != 0
 #define DRAWABLE(ref) GDK_DRAWABLE_XID(ref->window)

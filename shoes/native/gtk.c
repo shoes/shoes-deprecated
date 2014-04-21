@@ -11,8 +11,10 @@
 #include "shoes/internal.h"
 
 #include <fontconfig/fontconfig.h>
+#ifndef RUBY_HTTP
 #ifndef SHOES_GTK_WIN32
 #include <curl/curl.h>
+#endif
 #endif
 #include <pthread.h>
 
@@ -75,7 +77,7 @@ shoes_load_font(const char *filename)
 
 void shoes_native_init()
 {
-#ifndef SHOES_GTK_WIN32
+#if !defined(RUBY_HTTP) && !defined(SHOES_GTK_WIN32)
   curl_global_init(CURL_GLOBAL_ALL);
 #endif
   gtk_init(NULL, NULL);
@@ -83,7 +85,7 @@ void shoes_native_init()
 
 void shoes_native_cleanup(shoes_world_t *world)
 {
-#ifndef SHOES_GTK_WIN32
+#if !defined(RUBY_HTTP) && !defined(SHOES_GTK_WIN32)
   curl_global_cleanup();
 #endif
 }

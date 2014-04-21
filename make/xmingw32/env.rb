@@ -49,17 +49,17 @@ EXT_RBCONFIG = "#{EXT_RUBY}/lib/ruby/#{TGT_RUBY_V}/#{SHOES_TGT_ARCH}/rbconfig.rb
 ENV['EXT_RBCONFIG'] = EXT_RBCONFIG 
 pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.1.pc"
 pkggtk ="#{uldir}/pkgconfig/#{ENV['GTK']}.pc" 
-# where is curl (lib,include) Can be commented since we don't use curl
-# for MinGW
-curlloc = "#{CHROOT}/usr/local"
-#CURL_LDFLAGS = `pkg-config --libs #{curlloc}/lib/pkgconfig/libcurl.pc`.strip
-#CURL_CFLAGS = `pkg-config --cflags #{curlloc}/lib/pkgconfig/libcurl.pc`.strip
+# winhttp or RUBY?
+RUBY_HTTP = true
 
 ENV['PKG_CONFIG_PATH'] = "#{ularch}/pkgconfig"
 WINVERSION = "#{REVISION}#{TINYVER}-#{ENV['GTK']=='Gtk+-3.0' ? 'gtk3' : 'gtk2'}-32"
 WINFNAME = "#{APPNAME}-#{WINVERSION}"
-file_list = %w{shoes/native/gtk.c shoes/http/winhttp.c shoes/http/windownload.c} + ["shoes/*.c"] 
-
+if RUBY_HTTP
+  file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + ["shoes/*.c"]
+else
+ file_list = %w{shoes/native/gtk.c shoes/http/winhttp.c shoes/http/windownload.c} + ["shoes/*.c"] 
+end
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
@@ -109,6 +109,7 @@ else
 end
 
 LINUX_CFLAGS << " -DSHOES_GTK -DSHOES_GTK_WIN32 "
+LINUX_CFLAGS << "-DRUBY_HTTP " if RUBY_HTTP
 LINUX_CFLAGS << "-DGTK3 " unless ENV['GTK'] == 'gtk+-2.0'
 LINUX_CFLAGS << xfixrvmp(`pkg-config --cflags "#{pkgruby}"`.strip)+" "
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/#{arch} "

@@ -37,14 +37,22 @@ TGT_RUBY_V = ENV['TGT_RUBY_V']
 #pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-1.9.pc"
 pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.0.pc"
 pkggtk ="#{ularch}/pkgconfig/#{ENV['GTK']}.pc" 
+# CURL or RUBY?
+RUBY_HTTP = true
+if !RUBY_HTTP
 # where is curl (lib,include)
 curlloc = "#{TGT_SYS_DIR}usr/lib/arm-linux-gnueabihf/pkgconfig/libcurl.pc"
 CURL_LDFLAGS = `pkg-config --libs #{curlloc}`.strip
 CURL_CFLAGS = `pkg-config --cflags #{curlloc}`.strip
+end
 
 ENV['PKG_CONFIG_PATH'] = "#{ularch}/pkgconfig"
 
-file_list = %w{shoes/native/gtk.c shoes/http/curl.c} + ["shoes/*.c"]
+if RUBY_HTTP
+  file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + ["shoes/*.c"]
+else
+  file_list = %w{shoes/native/gtk.c shoes/http/curl.c} + ["shoes/*.c"]
+end
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
@@ -93,11 +101,11 @@ else
 #  LINUX_CFLAGS = " -O -Wall"
   LINUX_CFLAGS = " -O"
 end
-
+LINUX_CFLAGS << " -DRUBY_HTTP" if RUBY_HTTP
 LINUX_CFLAGS << " -DSHOES_GTK " 
 LINUX_CFLAGS << " -DGTK3 " unless ENV['GTK'] == 'gtk+-2.0'
 LINUX_CFLAGS << xfixrvmp(`pkg-config --cflags "#{pkgruby}"`.strip)+" "
-LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/#{arch} #{CURL_CFLAGS} "
+LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/#{arch} #{CURL_CFLAGS  if !RUBY_HTTP} "
 
 LINUX_CFLAGS << xfixip("-I/usr/include")+" "
 LINUX_CFLAGS << xfixip(`pkg-config --cflags "#{pkggtk}"`.strip)+" "
@@ -119,14 +127,14 @@ RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lruby "
 LINUX_LIBS = "--sysroot=#{CHROOT} -L/usr/lib "
 LINUX_LIBS << LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
-LINUX_LIBS << " #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} #{CURL_LDFLAGS} "
+LINUX_LIBS << " #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} #{CURL_LDFLAGS if !RUBY_HTTP} "
 
 # This could be precomputed by rake linux:setup:xxx 
 # but for now make a hash of all the dep libs that need to be copied.
 # and their location. This should be used in pre_build instead of 
 # copy_deps_to_dist, although either would work. 
 SOLOCS = {}
-SOLOCS['curl'] = "#{ularch}/libcurl.so.4"
+SOLOCS['curl'] = "#{ularch}/libcurl.so.4" if !RUBY_HTTP
 SOLOCS['ungif'] = "#{uldir}/libungif.so.4"
 SOLOCS['gif'] = "#{uldir}/libgif.so.4"
 SOLOCS['jpeg'] = "#{ularch}/libjpeg.so.8"

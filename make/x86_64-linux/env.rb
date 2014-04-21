@@ -24,18 +24,20 @@ ularch = "#{TGT_SYS_DIR}usr/lib/#{arch}"
 larch = "#{TGT_SYS_DIR}lib/#{arch}"
 # Set appropriately
 CC = "gcc"
-# where does your cross compiled Curl live? Don't depend on the hosts
-# curl -
-curlloc = "#{uldir}"
-#curlloc = "/home/cross/x86_64-linux/lib"
-#pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-1.9.pc"
 pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.0.pc"
 pkggtk ="#{ularch}/pkgconfig/#{ENV['GTK']}.pc" 
-CURL_LDFLAGS = `pkg-config --libs #{curlloc}/pkgconfig/libcurl.pc`.strip
-CURL_CFLAGS = `pkg-config --cflags #{curlloc}/pkgconfig/libcurl.pc`.strip
-
-
-file_list = %w{shoes/native/gtk.c shoes/http/curl.c} + ["shoes/*.c"]
+# Use Ruby or curl for downloads
+RUBY_HTTP = true
+if !RUBY_HTTP
+# where does your cross compiled Curl live? Don't depend on the hosts
+# curl -
+  curlloc = "#{uldir}"
+  CURL_LDFLAGS = `pkg-config --libs #{curlloc}/pkgconfig/libcurl.pc`.strip
+  CURL_CFLAGS = `pkg-config --cflags #{curlloc}/pkgconfig/libcurl.pc`.strip
+  file_list = %w{shoes/native/gtk.c shoes/http/curl.c} + ["shoes/*.c"]
+else
+  file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + ["shoes/*.c"]
+end
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
@@ -83,15 +85,12 @@ if ENV['DEBUG'] || ENV['GDB']
 else
   LINUX_CFLAGS = " -O -Wall"
 end
-
+LINUX_CFLAGS << " -DRUBY_HTTP" if RUBY_HTTP
 LINUX_CFLAGS << " -DSHOES_GTK -fPIC" 
 LINUX_CFLAGS << " -DGTK3" unless ENV['GTK'] == 'gtk+-2.0'
-LINUX_CFLAGS << " #{CURL_CFLAGS}  -I#{TGT_SYS_DIR}usr/include "
+LINUX_CFLAGS << " #{CURL_CFLAGS if !RUBY_HTTP}  -I#{TGT_SYS_DIR}usr/include "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkgruby}"`.strip+" "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkggtk}"`.strip+" "
-#LINUX_CFLAGS << xfixip(`pkg-config --cflags "#{ENV['GTK']}"`.strip)+" "
-#LINUX_CFLAGS << " #{CAIRO_CFLAGS} #{PANGO_CFLAGS}"
-#LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/ #{CURL_CFLAGS} " 
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/ " 
 
 
@@ -110,17 +109,11 @@ RUBY_LDFLAGS << "-L#{ularch} -lrt -ldl -lcrypt -lm "
 
 LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
-LINUX_LIBS << " #{CURL_LDFLAGS} #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} "
+LINUX_LIBS << " #{CURL_LDFLAGS if !RUBY_HTTP} #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} "
 
-# This could be precomputed by rake linux:setup:xxx 
-# but for now make a hash of all the dep libs that need to be copied.
-# and their location. This should be used in pre_build instead of 
-# copy_deps_to_dist, although either would work. Clever programmers 
-# might build it out of those LDFLAGS, plus some hand entries. I'm
-# not that clever or maybe I know better.
 
 SOLOCS = {}
-SOLOCS['curl'] = "#{curlloc}/libcurl.so.4"
+SOLOCS['curl'] = "#{curlloc}/libcurl.so.4" if !RUBY_HTTP
 SOLOCS['ungif'] = "#{uldir}/libungif.so.4"
 SOLOCS['gif'] = "#{uldir}/libgif.so.4" # because Suse wants it
 SOLOCS['jpeg'] = "#{ularch}/libjpeg.so.8"

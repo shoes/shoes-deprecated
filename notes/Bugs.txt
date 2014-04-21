@@ -1,6 +1,21 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
+2014-04-20
+done:  sbdm working.
+done:  rbload.c working - should clean up the code but..
+done:  download.rb working for download command (still no fix
+      for the length reporting of an html file (compressed?)
+done: Test the 'run this' examples in the manual
+---> Fix header files to not require curl.h 
+     expect problem with timer on windows?
+done: fix the dist build to not include curl.so or curl.h. tested.
+done: fix the pi build to not include curl.so or curl.h. tested.
+     windows msw -- not sure I care about this one.
+     windows gtk2 Builds. Runs. Tested
+     x86_64, 
+     i686,
+     
 
 2014-04-19
 done: rbload.c has converted the status code and ready to stuff it into 
@@ -8,7 +23,9 @@ done: rbload.c has converted the status code and ready to stuff it into
    
    stepping through with gdb. It works. now finish freeing the headers
 done: and stuff in rbload so we don't leak memory. 
---> do the sdbm version of data.rb
+done: missing etag from the download. Back to rbload. not quite so simple.
+done: do the sdbm version of data.rb
+done: datetime. sigh. 
 
 2014-04-18
 done: Hookup Shoes.image_download_sync (in image.rb) inside rbload.c
@@ -19,8 +36,8 @@ done create a shoes_image_download_event (canvas.h) and call
       shoes_image_downloaded (image.c:834) which calcs the digest value
     and then calls the notify_cache_of in my data.rb 
 
-==> don't forget to test and fix download.rb re:Threading
-==> Write the sdbm cache code. 
+done: don't forget to test and fix download.rb re:Threading
+done: Write the sdbm cache code. 
   
 2014-04-17
     Time to pause and lookabout. Using thread.exit is a hack that indicates

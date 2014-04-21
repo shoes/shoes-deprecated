@@ -58,7 +58,7 @@ MISC_LIB = " -lungif -ljpeg "
 LINUX_CFLAGS << " #{RUBY_CFLAGS} #{GTK_FLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS}"
 
 # collect link settings together. Does order matter? 
-LINUX_LIBS = "#{RUBY_LIB} #{GTK_LIB} #{CURL_LIB} #{CAIRO_LIB} #{PANGO_LIB} #{MISC_LIB}"
+LINUX_LIBS = "#{RUBY_LIB} #{GTK_LIB} #{CURL_LIB if !RUBY_HTTP} #{CAIRO_LIB} #{PANGO_LIB} #{MISC_LIB}"
 # the following is only used to link the shoes code with main.o
 LINUX_LDFLAGS = "-L. -rdynamic -Wl,-export-dynamic"
 

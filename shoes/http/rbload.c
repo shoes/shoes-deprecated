@@ -76,8 +76,9 @@ shoes_http_err(SHOES_DOWNLOAD_ERROR code)
   /* a little unclear what this does or what it returns
   I think it converts the platform 'code' to a Shoes string
   */
-  const char *errorString = "Success"; /* FIXME: */
-  printf("shoes_http_err called\n");
+  const char *errorString;
+  sprintf(errorString, "%i", code);
+  printf("shoes_http_err called%s\n",errorString);
   return rb_str_new2(errorString);
 }
 
@@ -85,12 +86,12 @@ SHOES_DOWNLOAD_HEADERS
 shoes_http_headers(VALUE hsh)
 {
  
-  printf("shoes_http_headers called\n");
+  //printf("shoes_http_headers called\n");
   return (SHOES_DOWNLOAD_HEADERS)hsh;
 }
 
 void
 shoes_http_headers_free(SHOES_DOWNLOAD_HEADERS headers)
 {
-  printf("shoes_headers_free called\n");
+ // printf("shoes_headers_free called\n");
 }
