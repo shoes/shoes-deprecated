@@ -19,7 +19,7 @@ On Linux, here's how this might look: !{:margin_left => 100}man-shot1.png!
 
 While lots of Shoes apps are graphical games and art programs, you can also
 layout text and edit controls easily. !{:margin_left =>
-40}shoes-manual-apps.gif!
+40}shoes-manual-apps.png!
 
 And, ideally, Shoes programs will run on any of the major platforms out there.
 Microsoft Windows, Apple's Mac OS X, Linux and many others.
@@ -3114,7 +3114,7 @@ To create an image, use the `image` method in a slot:
  #!ruby
  Shoes.app do
    para "Nice, nice, very nice.  Busy, busy, busy."
-   image "static/shoes-manual-apps.gif"
+   image "static/shoes-manual-apps.png"
   end
 }}}
 
