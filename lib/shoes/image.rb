@@ -33,14 +33,18 @@ class Shoes
     require 'open-uri'
     tmpf = File.open(opts[:save],'wb')
     result = HttpResponse.new
-    open url do |f|
-      # everything has been downloaded at this point.
-      # f is a tempfile like creature
-      result.status = f.status[0].to_i # 200, 404, etc
-      result.body = f.read
-      tmpf.write(result.body)
-      result.headers = f.meta
-      tmpf.close
+    begin
+      open url do |f|
+        # everything has been downloaded at this point.
+        # f is a tempfile like creature
+        result.status = f.status[0].to_i # 200, 404, etc
+        result.body = f.read
+        tmpf.write(result.body)
+        result.headers = f.meta
+        tmpf.close
+       end
+    rescue 
+      alert "Download failed for #{url}"
     end
     # puts "image_download_sync finished"
     return result
