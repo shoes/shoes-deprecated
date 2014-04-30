@@ -1,21 +1,75 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
+2014-04-29
+   Basics of Cobbler layed out for jailbreak and image cache (clear)
+done: Cobbler works for Tight Shoes Jailbreak
+done: Cobbler works for Tight Shoes cache clearing. 
+---> Make cobbler pretty with colors and swirly stuff.
+  
+2014-04-28 Status Report
+---> Fix compiler warnings / flags on the ext's. 
+done: Handle 404 errors in image.rb (samples/simple-image.rb)
+---> need abort method in rbload.c
+---> Cobbler ideas:
+done: 1. Image cache clear
+done: 2. Jailbreak - need to fix cache.rb
+---> 3. Gem manager?
+---> 4. OS dev dependencies install (apt-get, yum, ..) 
+       Extra points for MinGW and RubyInstaller.
+done: 5. Command line option, splash screen link. -c --cobbler
+     shoes/cobbler.rb
+     
+===> Get ytm.rb working with Shoes 3.2/Ruby 2 because it's multi-screen
+    and I need to test that. 
+fixed: Failing on CSV.open (Ruby 1.8 syntax) use CSV.foreach.
+---> I didn't pay attention to the memo about url and visit.  url 
+    deprecated to vanish land and visit is not so easy to grok (app.c|h)
+  
+2014-04-24
+     I can't handle the Apple eco system. Been there - don't want to go
+     back. Virtualbox provides little support for Hackintosh as a a guest
+     OS. 
+  
+2014-04-22 
+     I wonder if I can install osx 10.8 in virtualbox? And get the tools
+     need to compile and test shoes? I'd need that for Shoes 3.3 walkabout
+     I used to be an registered Apple Dev. I wonder if I can find more 
+     distractions than Jesus had jews?  I installed 10.8 w/o too much
+     trouble. 10.9  and then xcode, is a different story
+ 
+  
+2014-04-21
+     b5 released. 
+===> add image cache clear option to mythical Cobbler app (specs)
+===> Need to handle 404's in sample/simple-image.rb, rbload.c 
+---> Need to update the wiki and shoes pages to offer Shoes 3.2
+done: Need to tar up the source code.
+done: Shoes/Windows Manual & Console complains about 
+     static/shoes-manual-apps.gif It's the only gif in shoes and used
+     twice in each of the en and ja. It is broken on Win7.
+     Convert to png. change the manual-en.txt. Works on Win7.
+---> create a fixed/ dir with bug report snippets that have been fixed
+     and need to be closed at github. Created a bugs/ dir that has samples
+     of old bugs that do need to be fixed. 
+---> Updated the github issues with 3.2 answers. Maybe Steve will wake 
+     up and clear them.
+
 2014-04-20
 done:  sbdm working.
-done:  rbload.c working - should clean up the code but..
+done:  rbload.c working - I should clean up the code but..
 done:  download.rb working for download command (still no fix
       for the length reporting of an html file (compressed?)
 done: Test the 'run this' examples in the manual
----> Fix header files to not require curl.h 
-     expect problem with timer on windows?
+done: Fix header files to not require curl.h 
+--->There is a typdef warning on a function that's never called.
 done: fix the dist build to not include curl.so or curl.h. tested.
 done: fix the pi build to not include curl.so or curl.h. tested.
      windows msw -- not sure I care about this one.
-     windows gtk2 Builds. Runs. Tested
-     x86_64, 
-     i686,
-     
+done: windows gtk2 Builds. Runs. Tested
+done: x86_64 Builds. Runs. Tested.
+done: i686, Builds. Runs. Tested.
+ 
 
 2014-04-19
 done: rbload.c has converted the status code and ready to stuff it into 
@@ -45,7 +99,7 @@ done: Write the sdbm cache code.
     
     Still more flailing around. My arms are tired. 
 
---> I'm going to create a new Shoes::image_download_sync method in
+done: I'm going to create a new Shoes::image_download_sync method in
     image.rb can call that from deep inside Shoes (rbload.c)
     Then download.rb and it's progress reporting can work (or not) with
     out the complications of internal image handling double duty.
@@ -53,11 +107,6 @@ done: Write the sdbm cache code.
 2014-04-16
     download.rb - it fulfills the contract in Shoes manual. Kind of sucks
     at at progress reporting. 
-==> Crap. it works with manual/download run this #1 and fails #2 which
-    is damn near identical to what I do in downloader2/rbload.c/data.rb
-    Oh double crap - the cable modem could have been down. Shit. 
-    And I modifed code to fix it and it's all gone to hell now that the
-    modem is back online. Jesus fucking Christ!
     
     The imgage file is in /tmp/ now I need
     to finish the download the way curl/nsurl.m/winload does so shoes

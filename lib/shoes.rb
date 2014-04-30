@@ -69,6 +69,11 @@ class Shoes
             "Package a Shoes app for Windows, OS X and Linux.") do |s|
       make_pack
     end
+    
+    opts.on("-c", "--cobbler", 
+            "Maintain Shoes installation") do |c|
+      cobbler
+    end
 
     opts.on("-g", "--gem",
             "Passes commands to RubyGems.") do
@@ -134,7 +139,7 @@ class Shoes
 
   def self.splash
     font "#{DIR}/fonts/Lacuna.ttf"
-    Shoes.app :width => 400, :height => 500, :resizable => false do  
+    Shoes.app :width => 400, :height => 500, :resizable => true do  
       style(Para, :align => "center", :weight => "bold", :font => "Lacuna Regular", :size => 13)
       style(Link, :stroke => yellow, :underline => nil)
       style(LinkHover, :stroke => yellow, :fill => nil)
@@ -157,9 +162,10 @@ class Shoes
         stack do
           background black(0.2), :curve => 8
           para link("Open an App.") { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
-          para link("Obsolete: Package my script (shy)") { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
+          para link("Package my script (shy)") { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
           para link("Obsolete: Package an App with Shoes") { Shoes.make_pack and close }, :margin => 10, :margin_bottom => 4
-          para link("Read the Manual.") { Shoes.show_manual and close }, :margin => 10
+          para link("Read the Manual.") { Shoes.show_manual and close }, :margin => 10, :margin_bottom => 4
+          para link("Maintain Shoes") {Shoes.cobbler and close}, :margin => 10
         end
         inscription "Alt-Slash opens the console.", :stroke => "#DFA", :align => "center"
       end
@@ -184,6 +190,10 @@ class Shoes
         end
       end
     end
+  end
+  
+  def self.cobbler
+    require 'shoes/cobbler'
   end
 
   def self.make_pack
