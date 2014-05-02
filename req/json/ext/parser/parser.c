@@ -395,7 +395,7 @@ case 26:
             VALUE klassname = rb_hash_aref(*result, json->create_id);
             if (!NIL_P(klassname)) {
                 VALUE klass = rb_path2class(StringValueCStr(klassname));
-                if RTEST(rb_funcall(klass, i_json_creatable_p, 0)) {
+                if (RTEST(rb_funcall(klass, i_json_creatable_p, 0))) {
                     *result = rb_funcall(klass, i_json_create, 1, *result);
                 }
             }
