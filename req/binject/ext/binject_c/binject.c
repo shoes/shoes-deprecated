@@ -4,10 +4,11 @@
 #include <st.h>
 #include <rubyio.h>
 #endif
-#if defined(RUBY_1_9) || defined(RUBY_2_0)
+#if defined(RUBY_1_9) || defined(RUBY_2_0) || defined(RUBY_2_1)
 #include <ruby/st.h>
 #include <ruby/io.h>
 #endif
+
 #include <stdlib.h>
 #include <zlib.h>
 #include <sys/stat.h>
