@@ -1,11 +1,65 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
+2014-05-04 OSX Shoes
+
+  Homebrew dependecies needed a lot of work and may still be incorrect.
+    A lot of deps are 'kegged' which is a real pain. 
+    Xquartz deps in cairo, pango are worrisome. 
+==> For certain, the instructions to install xquartz before attempting
+   homebrew install needs to be added to the Wiki.
+   Glib was a pain. had to copy glibconfig.h to 'main' includes
+   In Rakefile, add GLIB_PATH, PKG_CONFIG_PATH 
+==> Yes the rakefiles need a lot of love and attention. Grrr.
+==> Seriously slow to compile and link and copy stuff around.
+==> Don't deal with bloopsaphone/portaudio, sqlite, hpricot.
+==> need to arrange dist/lib the Federales way (no dist/ruby in 3.2)
+  
+2014-05-03 Hackintosh.
+
+done:   automount working. 
+  Found the MacOSX10.9.sdk deep in /Applications/Xcode.app/Contents and
+     fixed that in make/darwin/env.rb (10.8 too)
+     
+  compiling app.c:5 tries to include glib.h. I think it's homebrew time!
+--> Home brew failed to install (see notes/homebrew-output.txt) some libs
+--> lockd hang on OSX writing about to Linux (output was finished though)
+
+    I might have missed the homebrew part about install xquartz. Oops.
+      Ick, there's some ugly I didn't need to think about.
+  
+==>   could not find libpng not in pkg-config search path. when
+   compiling cairo. 
+    
+    make/darwin/homebrew.rb has the formulas.
+done?  fix make/darwin/env.rb to use RbConfig.  
+    Why the bundler bs? need xml2 for nokogiri. why is that need to build
+    Shoes? 
+  
+  
+2014-05-02
+   Hackintosh. 10.9.2 upgrade. Xcode installed. System Ruby is 2.0.0-p451
+   which is good. Should really try rvm though.  The OSX VM (IP:10.0.2.15)
+   can talk http and ssh with my 192.168.1.x network
+   
+   Get osx automount to work.
+   
+
+2014-05-01
+   Hackintosh in VirtualBox. 10.9.0
+  
+2014-04-30
+   Trying hackintosh again. I know, I know, but there are hints of
+   fake root and cross compiling from Linux. 
+   Lots of trouble with the niresh dmg using 10.8 and Virtual box/Linux
+   Download his 10.9 iso. 
+  
 2014-04-29
    Basics of Cobbler layed out for jailbreak and image cache (clear)
 done: Cobbler works for Tight Shoes Jailbreak
 done: Cobbler works for Tight Shoes cache clearing. 
 ---> Make cobbler pretty with colors and swirly stuff.
+---> Memory leak in animate?
   
 2014-04-28 Status Report
 ---> Fix compiler warnings / flags on the ext's. 

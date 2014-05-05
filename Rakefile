@@ -52,7 +52,9 @@ end
 def osx_bootstrap_env
   ENV['DYLD_LIBRARY_PATH'] = '/usr/local/Cellar/cairo/1.10.2/lib:/usr/local/Cellar/cairo/1.10.2/include/cairo'
   ENV['LD_LIBRARY_PATH'] = '/usr/local/Cellar/cairo/1.10.2/lib:/usr/local/Cellar/cairo/1.10.2/include/cairo'
-  ENV['CAIRO_CFLAGS'] = '-I/usr/local/Cellar/cairo/1.10.2/include/cairo'
+  ENV['CAIRO_CFLAGS'] = '-I/usr/local/Cellar/cairo/1.12.16_1/include/cairo'
+  ENV['GLIB_CFLAGS'] = '-I/usr/local/Cellar/glib/2.40.0/include/glib-2.0'
+  ENV['PKG_CONFIG_PATH'] = '/opt/x11/lib/pkg-config'
   ENV['SHOES_DEPS_PATH'] = '/usr/local'
 end
 
@@ -300,7 +302,7 @@ namespace :osx do
 
     # Make sure the installed ruby is capable of this build
     task :check_ruby_arch do
-      build_arch, ruby_arch = [OSX_ARCH, Config::CONFIG['ARCH_FLAG']].map {|s| s.split.reject {|w| w.include?("arch")}}
+      build_arch, ruby_arch = [OSX_ARCH, RbConfig::CONFIG['ARCH_FLAG']].map {|s| s.split.reject {|w| w.include?("arch")}}
       if build_arch.length > 1 and build_arch.sort != ruby_arch.sort
         abort("To build universal shoes, you must first install a universal ruby")
       end

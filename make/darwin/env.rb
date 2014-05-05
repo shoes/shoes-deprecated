@@ -1,4 +1,4 @@
-EXT_RUBY = File.exists?("deps/ruby") ? "deps/ruby" : Config::CONFIG['prefix']
+EXT_RUBY = File.exists?("deps/ruby") ? "deps/ruby" : RbConfig::CONFIG['prefix']
 
 # use the platform Ruby claims
 require 'rbconfig'
@@ -13,7 +13,8 @@ end
 
 ADD_DLL = []
 
-# Linux build environment
+# Darwin build environment
+# CJC - overly complicated. Just fail if one of the pkg-config's goes wrong
 pkg_config = `which pkg-config` != ""
 pkgs = `pkg-config --list-all`.split("\n").map {|p| p.split.first} unless not pkg_config
 if pkg_config and pkgs.include?("cairo") and pkgs.include?("pango")
@@ -23,13 +24,15 @@ if pkg_config and pkgs.include?("cairo") and pkgs.include?("pango")
   PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
 else
   # Hack for when pkg-config is not yet installed
+  # CJC - this is ugly. Just fail early 
+  puts "DON'T have pkg-config"
   CAIRO_CFLAGS, CAIRO_LIB, PANGO_CFLAGS, PANGO_LIB = "", "", "", ""
 end
 png_lib = 'png'
 
-LINUX_CFLAGS = %[-Wall -I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{Config::CONFIG['archdir']}]
-if Config::CONFIG['rubyhdrdir']
-  LINUX_CFLAGS << " -I#{Config::CONFIG['rubyhdrdir']} -I#{Config::CONFIG['rubyhdrdir']}/#{SHOES_RUBY_ARCH}"
+LINUX_CFLAGS = %[-Wall #{ENV['GLIB_CFLAGS']} -I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{RbConfig::CONFIG['archdir']}]
+if RbConfig::CONFIG['rubyhdrdir']
+  LINUX_CFLAGS << " -I#{RbConfig::CONFIG['rubyhdrdir']} -I#{RbConfig::CONFIG['rubyhdrdir']}/#{SHOES_RUBY_ARCH}"
 end
   
 LINUX_LIB_NAMES = %W[#{RUBY_SO} cairo pangocairo-1.0 gif]
@@ -46,12 +49,14 @@ end
 LINUX_CFLAGS << " -DRUBY_1_9"
 
 DLEXT = "dylib"
-LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{Config::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions"
+LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{RbConfig::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions"
 LINUX_LDFLAGS = "-framework Cocoa -framework Carbon -dynamiclib -Wl,-single_module INSTALL_NAME"
 LINUX_LIB_NAMES << 'pixman-1' << 'jpeg.8'
 
-OSX_SDK = '/Developer/SDKs/MacOSX10.6.sdk'
-ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
+#OSX_SDK = '/Developer/SDKs/MacOSX10.6.sdk'
+#ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
+OSX_SDK = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk'
+ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
 
 case ENV['SHOES_OSX_ARCH']
 when "universal"
@@ -67,5 +72,5 @@ LINUX_LDFLAGS << " #{OSX_ARCH}"
  
 LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
-LINUX_LIBS << " -L#{Config::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB}"
+LINUX_LIBS << " -L#{RbConfig::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB}"
 
