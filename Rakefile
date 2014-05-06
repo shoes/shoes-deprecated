@@ -298,7 +298,7 @@ namespace :osx do
 
   namespace :build_tasks do
 
-    task :build => [:common_build, :copy_deps_to_dist, :change_install_names, :copy_files_to_dist, :setup_system_resources, :verify]
+    task :build => [:copy_files_to_dist, :common_build, :copy_deps_to_dist, :change_install_names, :setup_system_resources, :verify]
 
     # Make sure the installed ruby is capable of this build
     task :check_ruby_arch do
@@ -318,21 +318,27 @@ namespace :osx do
     end
 
     task :common_build do
-      mkdir_p "dist/ruby"
-      cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "dist/ruby/lib"
+      puts "Entering common_build"
+      mkdir_p "dist/lib/ruby"
+      #cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "dist/ruby/lib"
+      cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "dist/lib/ruby"
       unless ENV['STANDARD']
         %w[soap wsdl xsd].each do |libn|
           rm_rf "dist/ruby/lib/#{libn}"
         end
       end
       %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
-        FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
-      end
-      %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
-        each { |xdir| copy_ext_osx xdir, "dist/ruby/lib/#{SHOES_RUBY_ARCH}" }
+        #FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
+        FileList[rdir].each { |rlib| cp_r rlib, "dist/lib/ruby/#{RUBY_V}" }
+     end
+     #%w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
+     #  each { |xdir| copy_ext_osx xdir, "dist/ruby/lib/#{SHOES_RUBY_ARCH}" }
+     %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
+        each { |xdir| copy_ext_osx xdir, "dist/lib/ruby/#{RUBY_V}/#{SHOES_RUBY_ARCH}" }
 
       gdir = "dist/ruby/gems/#{RUBY_V}"
-      {'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
+      #{'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
+      {}.each do |gemn, xdir|
         spec = eval(File.read("req/#{gemn}/gemspec"))
         mkdir_p "#{gdir}/specifications"
         mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
@@ -366,6 +372,7 @@ namespace :osx do
     end
 
     task :copy_pango_modules_to_dist do
+      puts "Entering copy_pango_modules_to_dist"
       modules_file = `brew --prefix`.chomp << '/etc/pango/pango.modules'
       modules_path = File.open(modules_file) {|f| f.grep(/^# ModulesPath = (.*)$/){$1}.first}
       mkdir_p 'dist/pango'
@@ -374,6 +381,7 @@ namespace :osx do
     end
 
     task :copy_deps_to_dist => :copy_pango_modules_to_dist do
+      puts "Entering copy_deps_to_dist"
       # Generate a list of dependencies straight from the generated files.
       # Start with dependencies of shoes-bin and pango-querymodules, and then
       # add the dependencies of those dependencies.
@@ -389,7 +397,12 @@ namespace :osx do
           end
         end
       end
-      dylibs.each {|libn| cp "#{libn}", "dist/"}
+      #dylibs.each {|libn| cp "#{libn}", "dist/" unless File.exists? "dist/#{libn}"}
+      # clunky hack begins - Homebrew keg issue? ro duplicates do exist
+      dylibs.each do |libn| 
+        cp "#{libn}", "dist/"
+        chmod 0755, "dist/#{File.basename(libn)}"
+      end
     end
 
     task :copy_files_to_dist do

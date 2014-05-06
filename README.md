@@ -1,78 +1,85 @@
-<pre>
+                      
     ((( |||_| ///\ [[[_ (((
      ))) || |  \\/  [[_  )))
-  an artsy any-platform app kit
-      http://shoesrb.com
-</pre>
+    an artsy any-platform app kit <http://github.com/shoes/shoes>
+    
+  The source describe below is at <https://github.com/ccoupe/shoes> and
+  you can follow my blog at <http://shoes.mvmanila.com>
 
-# About Shoes
+//////////////////////////////////////////////////////////////////////////
 
-Shoes is the best little DSL for cross-platform GUI programming there is. It feels like real Ruby, rather than just another C++ library wrapper. If Gtk or wxWidgets is Rails, Shoes is Sinatra.
+This is Shoes 3.2 (Federales). Earlier releases where Policeman (3.0 and 3.1)
+and Raisins. There is a Shoes 4 under development. For historical reasons (the 
+color of the icon in Raisins) It's also called Red Shoes. Red Shows is written
+in C (and Objective C on the Mac). Shoes 4 is written in Java. 
 
-# Let me tell you a story about Shoes
+Federales is one mans attempt to keep Red Shoes current with modern Linux
+distributions and newer versions of Ruby. Federales doesn't really add any new 
+features to Shoes except it works better (Shoes 3.1 barely works)
+As you'll see, Federales removes some things. 
 
-  Way way back in the day, there was a guy named \_why. He created a project known as [Hackety Hack](http://hackety-hack.com) to teach programming to everyone. In order to reach all corners of the earth, \_why decided to make Hackety Hack work on Windows, Mac OS X, and Linux. This was a lot of work, and so \_why decided to share his toolkit with the world. Thus, Shoes was born.
+Let's start with the good news first.
 
-Everybody loved Shoes. Many apps were made, and put into [The Shoebox](http://the-shoebox.org/). But, one day, \_why left. In his memory, Team Shoes assembled, and carried on making Shoes. They released Shoes 3 in late summer 2010.
+  Federales uses Ruby 2.0.0 (or higher) and Rubygems 2.0.14 (or higher) 
+  Linux users really can download a binary that works. Theiy don't have to 
+    build from source. If they do build from source, it's easier. 
+  Added a Raspberry Pi distribution (Raspbian)
+  For Linux, it installs Shoes in your home directory (~/.shoes/federales) 
+    and you get a menu selection. You can start from the commandline if you
+    like, of course.
+  Gem handling is greatly improved, at a cost - more on that below. 
+    Gem.setup is not required. If used, it works better.
+  Windows 7 version seems to work.
+  OSX Mavericks (10.9.2) version is 'not completely terrible' as of 
+    May 5, 2014
+  Does not require Sqlite.
+  Includes a Shoes Cobbler app to clear your image cache and manage your
+    Shoes/gem interface - see below discussion on gems.
+  
 
-# So what do these Shoes look like?
+What doesn't work.
+  Link and Linkhover have to be replaced with Shoes::Link and Shoes::Linkhover
+  There are no built in Gems included. No Hpricot. No Sqlite. No json.
+    Again - see below.
+  Packaging an app to include Shoes with it does not work. It hasn't for
+     years.  I'll let you know when it does. Be very patient. There is
+     much to do first.
+  Samples that use Sqllite or Hpricot. 
+     
+Gem Secret Sauce.
+  If you build Shoes from source on Linux, you'll create a 'Loose' Shoes.
+  If you download a Shoes 3.2 binary distribution, you'll get a 'Tight'
+    shoes. Only gems in your ~/.shoe/+gem directory are allowed and you have
+    to do the Shoes.setup in your code to get them and that may not work 
+    as well as you hope. Just like Shoes 3.0 and 3.1
+    
+  Loose Shoes will use your existing ruby gems. Since you have enough skills
+  to install ruby and the dependecies to build Shoes, you can handle gem
+  version mismatches. Just use your normal ruby 'gem' command line skills to
+  install the gem and Shoes will use them.  I call that a Jailbreak. 
+  
+  If you have a 'Tight' Shoes, and maybe you'd like to have a Get Out Of Jail
+  card, too? There is a way in Federales. Run the Shoes Cobbler from the splash
+  screen or 'shoes -c' from the commandline. You can tell Shoes where those 
+  other Ruby Gems are located. Of course you'll to install a Ruby that matches
+  what your Tight Shoes is running (Rubyinstaller for Windows), rvm for Linux 
+  and OSX. And you'll have to have the compilers and build tools installed 
+  (Devkit for Windows - 32 bit version, or Xcode for OSX or whatever your
+  Linux distribution uses to install gcc/make/autoconf.
+  
+  Perhaps you're thinking, "If I install all that stuff then I could just
+  build Shoes from source!" Correct. You could. Shoe3.2 is a work in progress
+  and Jailbreak is only a 'good idea, and not fully baked'. Now that many gems
+  include binary payloads for Windows, you may not need a developers setup.
+  Or you might. I can't tell what to do after you get out of jail. 
+  
+I highly recommend you run the samples/simple-info.rb script. It'll tell you
+what kind of Shoes 3.2 you have and the gem directories it knows about and 
+has used. It's also a simple script to study. shoes/cobbler.rb is even dumber.
 
-Here's a little Shoes app. It's a stopwatch!
-
-    Shoes.app :height => 150, :width => 250 do
-      background rgb(240, 250, 208)
-      stack :margin => 10 do
-        button "Start" do
-          @time = Time.now
-          @label.replace "Stop watch started at #@time"
-        end
-        button "Stop" do
-          @label.replace "Stopped, ", strong("#{Time.now - @time}"), " seconds elapsed."
-        end
-        @label = para "Press ", strong("start"), " to begin timing."
-      end
-    end
-
-Here's what it looks like:
-
-![shoes timer](https://github.com/shoes/shoes/raw/develop/manual-snapshots/simple-timer.png)
-
-Pretty simple! For more samples, the manual, and a free book, check out [the Shoes website](http://shoesrb.com/).
-
-# Using Shoes
-
-If you'd like to use Shoes to develop some apps... awesome! It's super easy: Just go to the [downloads page on the Shoes website](http://shoesrb.com/downloads) and download a copy of Shoes for your platform. Mac OSX, Windows, and Linux supported!
-
-After you install Shoes, run it! You'll get a window like this:
-
-![shoes main window](https://github.com/shoes/shoes/raw/develop/static/shoes_main_window.png)
-
-You can then open any .rb file with Shoes code inside by choosing "Open an App." It'll open it up and run it, right away.
-
-Once you're happy with your app, you can choose "Package an App" to wrap up your app as a .exe, .app, or a .run. Then you can share it with someone without a pair of Shoes to call their own.
-
-# Making your own Shoes
-
-You can make your own pair of Shoes with a little bit of elbow grease. Since there are different instructions on each platform, we've got a page up on the [Shoes development wiki](http://github.com/shoes/shoes/wiki) about it. It's [right here](https://github.com/shoes/shoes/wiki/Building-Shoes).
-
-# Shoes Around the Web
-
-If you want to keep up to date with what's going on with Shoes, you can find us in various places:
-
-* [Official Shoes Site](http://shoesrb.com/)
-* [Source Code @ GitHub](http://github.com/shoes/shoes)
-* [Issue tracker @ GitHub](http://github.com/shoes/shoes/issues)
-* [Mailing List](http://librelist.com/browser/shoes/) (send an email to shoes@librelist.com to join)
-* [Twitter account](http://twitter.com/shoooesrb)
-* [Facebook page](http://www.facebook.com/pages/Shoes/132605040125019)
-* IRC room on Freenode, #shoes
-
-# Helping out with Shoes
-
-So you'd like to lend a helping hand, eh? Great! We'd love to have you. To submit a patch to Shoes, just fork us, and send a pull request.
-
-If you don't have any ideas yourself, take a look at the [Issue tracker](http://github.com/shoes/shoes/issues) and see if anything strikes your fancy. If you need help working on something, don't be afraid to post to the mailing list about it!
-
-Be sure to [peer into the Shoes Wiki](https://github.com/shoes/shoes/wiki) for instructions on how to get the source code to build, and to learn more knowledge that will come in handy if you want to help out!
-
-If you're not a programmer, you can help Shoes by talking about it! Blog posts, tweets, tell your neighbors, call your grandma, whatever! Share Shoes with everyone!
+It's all easy until it gets hard.
+  
+  
+  
+  Perhaps you're thinking, "Some ruby gems are no distributed with 
+  

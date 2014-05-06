@@ -1,6 +1,14 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
+2014-05-05 Cinco de Mayo! 
+  Fixed some bugs identified yesterday. The Manual works, many samples
+  work. Some have OSX unique bugs (accordion, menu)
+--> Whats the key chord to open the console in OSX
+==> Write a README.Federales and include with binary downloads. 
+--> Shoes doesn't exit. Have to pkill shoes. 
+--> Shoes cursor does'nt highlight clickables on splash screen
+  
 2014-05-04 OSX Shoes
 
   Homebrew dependecies needed a lot of work and may still be incorrect.
@@ -11,10 +19,21 @@ Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
    Glib was a pain. had to copy glibconfig.h to 'main' includes
    In Rakefile, add GLIB_PATH, PKG_CONFIG_PATH 
 ==> Yes the rakefiles need a lot of love and attention. Grrr.
-==> Seriously slow to compile and link and copy stuff around.
-==> Don't deal with bloopsaphone/portaudio, sqlite, hpricot.
-==> need to arrange dist/lib the Federales way (no dist/ruby in 3.2)
-  
+--> Seriously slow to compile and link and copy stuff around.
+    Helped a bit with rsize=8192,wsize=8192 in /etc/automounts/nfs
+    Still too slow. 
+done: Don't build with bloopsaphone/portaudio, sqlite, hpricot,json.
+done: need to arrange dist/lib the Federales way (no dist/ruby in 3.2)
+--> Right/meta (right/Fan on Apple keyboard) on linux Virtual box
+    switch to Left/meta somehow?
+==> Pango/modules don't copy - permission problem. Rakefile?
+    It's trying to copy them twice /usr/local/lib and /usr/local/Cellar
+    Homebrew kegging issue? 
+    My hack doesn't work that well.
+==> Install rvm and Ruby 2.0.0
+==> Why build a Universal version (x86_64, and i386) when Mavericks only
+    runs on X86_64
+
 2014-05-03 Hackintosh.
 
 done:   automount working. 
