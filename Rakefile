@@ -71,7 +71,15 @@ if File.exists? "crosscompile"
   end
 else
   CROSS = false
-  TGT_DIR = 'dist'
+  # is the build directory outside the project dir like
+  # Cecil's weird NFS setup up on his Hackintosh VM guest
+  if ENV['NFS_ALTP']
+    TGT_DIR = ENV['NFS_ALTP']+'dist'
+    mkdir_p "#{TGT_DIR}"
+  else
+    TGT_DIR = 'dist'
+  end
+  puts "TGT_DIR= #{TGT_DIR}"
 end
 
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
@@ -298,7 +306,7 @@ namespace :osx do
    end
   end
 
-  task :build => ["build_tasks:pre_build", :build_skel, "dist/#{NAME}", "dist/VERSION.txt", "build_tasks:build"]
+  task :build => ["build_tasks:pre_build", :build_skel, "#{TGT_DIR}/#{NAME}", "#{TGT_DIR}/VERSION.txt", "build_tasks:build"]
 
   namespace :build_tasks do
 
@@ -323,24 +331,24 @@ namespace :osx do
 
     task :common_build do
       puts "Entering common_build"
-      mkdir_p "dist/lib/ruby"
+      mkdir_p "#{TGT_DIR}/lib/ruby"
       #cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "dist/ruby/lib"
-      cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "dist/lib/ruby"
+      cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "#{TGT_DIR}/lib/ruby"
       unless ENV['STANDARD']
         %w[soap wsdl xsd].each do |libn|
-          rm_rf "dist/ruby/lib/#{libn}"
+          rm_rf "#{TGT_DIR}/ruby/lib/#{libn}"
         end
       end
       %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
         #FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
-        FileList[rdir].each { |rlib| cp_r rlib, "dist/lib/ruby/#{RUBY_V}" }
+        FileList[rdir].each { |rlib| cp_r rlib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}" }
      end
      #%w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
      #  each { |xdir| copy_ext_osx xdir, "dist/ruby/lib/#{SHOES_RUBY_ARCH}" }
      %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
-        each { |xdir| copy_ext_osx xdir, "dist/lib/ruby/#{RUBY_V}/#{SHOES_RUBY_ARCH}" }
+        each { |xdir| copy_ext_osx xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_RUBY_ARCH}" }
 
-      gdir = "dist/ruby/gems/#{RUBY_V}"
+      gdir = "#{TGT_DIR}/ruby/gems/#{RUBY_V}"
       #{'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
       {}.each do |gemn, xdir|
         spec = eval(File.read("req/#{gemn}/gemspec"))
@@ -364,7 +372,7 @@ namespace :osx do
     end
 
     task :change_install_names do
-      cd "dist" do
+      cd "#{TGT_DIR}" do
         ["#{NAME}-bin", "pango-querymodules", *Dir['*.dylib'], *Dir['pango/modules/*.so']].each do |f|
           sh "install_name_tool -id @executable_path/#{File.basename f} #{f}"
           dylibs = dylibs_to_change(f)
@@ -381,13 +389,13 @@ namespace :osx do
       puts "Entering copy_pango_modules_to_dist"
       modules_file = `brew --prefix`.chomp << '/etc/pango/pango.modules'
       modules_path = File.open(modules_file) {|f| f.grep(/^# ModulesPath = (.*)$/){$1}.first}
-      mkdir_p 'dist/pango'
-      cp_r modules_path, 'dist/pango'
+      mkdir_p "#{TGT_DIR}/pango"
+      cp_r modules_path, "#{TGT_DIR}/pango"
       # Another Cecil hack ahead
-      Dir.glob("dist/pango/modules/*").each do |f|
+      Dir.glob("#{TGT_DIR}/pango/modules/*").each do |f|
         chmod 0755, f unless File.writable? f
       end
-      cp `which pango-querymodules`.chomp, 'dist/'
+      cp `which pango-querymodules`.chomp, "#{TGT_DIR}/"
     end
 
     task :copy_deps_to_dist => :copy_pango_modules_to_dist do
@@ -395,8 +403,8 @@ namespace :osx do
       # Generate a list of dependencies straight from the generated files.
       # Start with dependencies of shoes-bin and pango-querymodules, and then
       # add the dependencies of those dependencies.
-      dylibs = dylibs_to_change("dist/#{NAME}-bin")
-      dylibs.concat dylibs_to_change("dist/pango-querymodules")
+      dylibs = dylibs_to_change("#{TGT_DIR}/#{NAME}-bin")
+      dylibs.concat dylibs_to_change("#{TGT_DIR}/pango-querymodules")
       dupes = []
       dylibs.each do |dylib|
         dylibs_to_change(dylib).each do |d|
@@ -414,13 +422,13 @@ namespace :osx do
       dylibs.each do |libn| 
         keyf = File.basename libn
         if !dups[keyf] 
-          cp "#{libn}", "dist/"
+          cp "#{libn}", "#{TGT_DIR}/"
           dups[keyf] = true
-          chmod 0755, "dist/#{keyf}" unless File.writable? "dist/#{keyf}"
+          chmod 0755, "#{TGT_DIR}/#{keyf}" unless File.writable? "#{TGT_DIR}/#{keyf}"
         end
       end
       # more hack
-      chmod 0755, "dist/pango-querymodules"
+      chmod 0755, "#{TGT_DIR}/pango-querymodules"
     end
 
     task :copy_files_to_dist do
@@ -428,29 +436,30 @@ namespace :osx do
         if APP['clone']
           sh APP['clone'].gsub(/^git /, "#{GIT} --git-dir=#{ENV['APP']}/.git ")
         else
-          cp_r ENV['APP'], "dist/app"
+          cp_r ENV['APP'], "#{TGT_DIR}/app"
         end
         if APP['ignore']
           APP['ignore'].each do |nn|
-            rm_rf "dist/app/#{nn}"
+            rm_rf "#{TGT_DIR}/app/#{nn}"
           end
         end
       end
 
-      cp_r  "fonts", "dist/fonts"
-      cp_r  "lib", "dist/lib"
-      cp_r  "samples", "dist/samples"
-      cp_r  "static", "dist/static"
-      cp    "README.md", "dist/README.txt"
-      cp    "CHANGELOG", "dist/CHANGELOG.txt"
-      cp    "COPYING", "dist/COPYING.txt"
+      cp_r  "fonts", "#{TGT_DIR}/fonts"
+      cp_r  "lib", "#{TGT_DIR}/lib"
+      cp_r  "samples", "#{TGT_DIR}/samples"
+      cp_r  "static", "#{TGT_DIR}/static"
+      cp    "README.md", "#{TGT_DIR}/README.txt"
+      cp    "CHANGELOG", "#{TGT_DIR}/CHANGELOG.txt"
+      cp    "COPYING", "#{TGT_DIR}/COPYING.txt"
     end
 
     task :setup_system_resources do
+      puts "Perfoming :setup_system_resources in dir #{`pwd`}"
       rm_rf "#{APPNAME}.app"
       mkdir "#{APPNAME}.app"
       mkdir "#{APPNAME}.app/Contents"
-      cp_r "dist", "#{APPNAME}.app/Contents/MacOS"
+      cp_r "#{TGT_DIR}", "#{APPNAME}.app/Contents/MacOS"
       mkdir "#{APPNAME}.app/Contents/Resources"
       mkdir "#{APPNAME}.app/Contents/Resources/English.lproj"
       sh "ditto \"#{APP['icons']['osx']}\" \"#{APPNAME}.app/App.icns\""
@@ -501,14 +510,14 @@ namespace :osx do
 
   task :make_app do
     # Builder.make_app "dist/#{NAME}"
-    bin = "dist/#{NAME}-bin"
-    rm_f "dist/#{NAME}"
+    bin = "#{TGT_DIR}/#{NAME}-bin"
+    rm_f "#{TGT_DIR}/#{NAME}"
     rm_f bin
-    sh "#{CC} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{OSX_ARCH}"
+    sh "#{CC} -L#{TGT_DIR} -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{OSX_ARCH}"
   end
 
   task :make_so do
-    name = "dist/lib#{SONAME}.#{DLEXT}"
+    name = "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
     ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
       sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
       %w[libpostproc.dylib libavformat.dylib libavcodec.dylib libavutil.dylib libruby.dylib].each do |libn|
