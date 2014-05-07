@@ -9,9 +9,13 @@ require 'rbconfig'
 include FileUtils
 
 APP = YAML.load_file(File.join(ENV['APP'] || ".", "app.yaml"))
-APPNAME = APP['name']
 APP['version'] = APP['major'] # for historical reasons 
 RELEASE_ID, RELEASE_NAME = APP['major'], APP['release']
+if RUBY_PLATFORM =~ /darwin/
+  APPNAME = "#{APP['name']}-#{RELEASE_NAME}"
+else
+  APPNAME = APP['name']
+end
 NAME = APP['shortname'] || APP['name'].downcase.gsub(/\W+/, '')
 SONAME = 'shoes'
 
@@ -365,6 +369,8 @@ namespace :osx do
           sh "install_name_tool -id @executable_path/#{File.basename f} #{f}"
           dylibs = dylibs_to_change(f)
           dylibs.each do |dylib|
+            # another Cecil hack
+            chmod 0755, dylib if File.writable? dylib
             sh "install_name_tool -change #{dylib} @executable_path/#{File.basename dylib} #{f}"
           end
         end
@@ -377,6 +383,10 @@ namespace :osx do
       modules_path = File.open(modules_file) {|f| f.grep(/^# ModulesPath = (.*)$/){$1}.first}
       mkdir_p 'dist/pango'
       cp_r modules_path, 'dist/pango'
+      # Another Cecil hack ahead
+      Dir.glob("dist/pango/modules/*").each do |f|
+        chmod 0755, f unless File.writable? f
+      end
       cp `which pango-querymodules`.chomp, 'dist/'
     end
 
@@ -399,10 +409,18 @@ namespace :osx do
       end
       #dylibs.each {|libn| cp "#{libn}", "dist/" unless File.exists? "dist/#{libn}"}
       # clunky hack begins - Homebrew keg issue? ro duplicates do exist
+      # make my own dups hash - not the same as dupes. 
+      dups = {}
       dylibs.each do |libn| 
-        cp "#{libn}", "dist/"
-        chmod 0755, "dist/#{File.basename(libn)}"
+        keyf = File.basename libn
+        if !dups[keyf] 
+          cp "#{libn}", "dist/"
+          dups[keyf] = true
+          chmod 0755, "dist/#{keyf}" unless File.writable? "dist/#{keyf}"
+        end
       end
+      # more hack
+      chmod 0755, "dist/pango-querymodules"
     end
 
     task :copy_files_to_dist do
@@ -499,25 +517,27 @@ namespace :osx do
   end
 
   task :installer do
+    NFS=ENV['NFS_ALTP'] 
+    puts "NFS=|#{NFS}|"
     dmg_ds, dmg_jpg = "platform/mac/dmg_ds_store", "static/shoes-dmg.jpg"
     if APP['dmg']
       dmg_ds, dmg_jpg = APP['dmg']['ds_store'], APP['dmg']['background']
     end
 
-    mkdir_p "pkg"
-    rm_rf "dmg"
-    mkdir_p "dmg"
-    cp_r "#{APPNAME}.app", "dmg"
+    mkdir_p "#{NFS}pkg"
+    rm_rf "#{NFS}dmg"
+    mkdir_p "#{NFS}dmg"
+    cp_r "#{APPNAME}.app", "#{NFS}dmg"
     unless ENV['APP']
-      mv "dmg/#{APPNAME}.app/Contents/MacOS/samples", "dmg/samples"
+      mv "#{NFS}dmg/#{APPNAME}.app/Contents/MacOS/samples", "#{NFS}dmg/samples"
     end
-    ln_s "/Applications", "dmg/Applications"
-    sh "chmod +x dmg/\"#{APPNAME}.app\"/Contents/MacOS/pango-querymodules"
-    sh "chmod +x dmg/\"#{APPNAME}.app\"/Contents/MacOS/#{NAME}"
-    sh "chmod +x dmg/\"#{APPNAME}.app\"/Contents/MacOS/#{NAME}-bin"
-    sh "chmod +x dmg/\"#{APPNAME}.app\"/Contents/MacOS/#{NAME}-launch"
-    sh "DYLD_LIBRARY_PATH= platform/mac/pkg-dmg --target pkg/#{PKG}.dmg --source dmg --volname '#{APPNAME}' --copy #{dmg_ds}:/.DS_Store --mkdir /.background --copy #{dmg_jpg}:/.background" # --format UDRW"
-    rm_rf "dmg"
+    ln_s "/Applications", "#{NFS}dmg/Applications"
+    sh "chmod +x #{NFS}dmg/\"#{APPNAME}.app\"/Contents/MacOS/pango-querymodules"
+    sh "chmod +x #{NFS}dmg/\"#{APPNAME}.app\"/Contents/MacOS/#{NAME}"
+    sh "chmod +x #{NFS}dmg/\"#{APPNAME}.app\"/Contents/MacOS/#{NAME}-bin"
+    sh "chmod +x #{NFS}dmg/\"#{APPNAME}.app\"/Contents/MacOS/#{NAME}-launch"
+    sh "DYLD_LIBRARY_PATH= platform/mac/pkg-dmg --target #{NFS}pkg/#{PKG}.dmg --source #{NFS}dmg --volname '#{APPNAME}' --copy #{dmg_ds}:/.DS_Store --mkdir /.background --copy #{dmg_jpg}:/.background" # --format UDRW"
+    rm_rf "#{NFS}dmg"
   end
 end
 

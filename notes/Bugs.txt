@@ -1,13 +1,29 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
+2014-05-06 - OSX stuff
+    In OSX, Rakefile checks for ENV var NFS_ALTP which if set, contains
+    a local path for pkg and dist directories. That way the NFS write
+done: traffic is reduced.  "$ export NFS_ALTP=/Users/ccoupe/build/"
+     Is what I use. That trailing slash is critical. 
+---> Installer seems to work. 
+---> Should use Federales icons. 
+done: Should have 'Shoes 3.2' installed name so it doesn't install on top
+     of an older Shoes. Decided to use 'Shoes-federales' instead. 
+---> Do the same NFS thing to dist/ PITA but would save me time - I'll be
+     building shoes often.
+===> Known bugs with samples
+       accordian, menu, menu1.
+       dialog - color - hangs. must be killed. 
+       editor, form - others:  Keystrokes are not delivered to Shoes
+  
 2014-05-05 Cinco de Mayo! 
   Fixed some bugs identified yesterday. The Manual works, many samples
   work. Some have OSX unique bugs (accordion, menu)
 --> Whats the key chord to open the console in OSX
-==> Write a README.Federales and include with binary downloads. 
+done: Write a README.Federales and include with binary downloads. 
 --> Shoes doesn't exit. Have to pkill shoes. 
---> Shoes cursor does'nt highlight clickables on splash screen
+--> Shoes cursor doesn't highlight clickables
   
 2014-05-04 OSX Shoes
 
