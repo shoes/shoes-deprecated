@@ -4,20 +4,23 @@
 Shoes.app do
   stack do
     @menu = flow do
-      button "Clear Image Cache" do 
+      button "Clear Image Cache..." do 
         cachescreen
       end
       if Shoes::RELEASE_TYPE =~ /TIGHT/ 
-        button "Jail Break Gems" do
+        button "Jail Break Gems..." do
           jailscreen
         end
         
-        button "Manage Gems" do 
+        button "Manage Gems..." do 
           gemscreen
         end
-        button "Development Tools" do
+        button "Development Tools..." do
           depscreen
         end
+      end
+      button "Copy Samples..." do
+        cp_samples_screen
       end
       button "Quit" do
          exit
@@ -63,6 +66,39 @@ Shoes.app do
   end
   
   def imgdeletef
+  end
+  
+  def cp_samples_screen
+    @panel.clear
+    @panel.append do
+       para "Copy samples to a directory you can see and edit."
+       para "Chose a directory that you want the Samples directory" 
+       para "to be created inside of."
+       button "Select Directory for a copy of" do
+         # OSX is a bit brain dead for ask_save_folder
+         if destdir = ask_save_folder() 
+           @panel.append do 
+             para "Copy #{DIR}/samples/* to #{destdir}/Samples ?"
+             button "OK" do
+               @panel.append do
+                 @lb = edit_box 
+               end
+               ary = []
+               require 'fileutils'
+               mkdir_p destdir 
+               sampdir = File.join DIR, 'samples'
+               cd sampdir do
+                 Dir.glob('*').each do |fp|
+                   cp fp, destdir
+                   ary << fp
+                   @lb.text = ary.join("\n")
+                 end
+               end
+             end
+           end
+         end
+       end
+    end
   end
   
   def cachescreen

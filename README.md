@@ -61,17 +61,15 @@ Gem Secret Sauce.
   If you have a 'Tight' Shoes, and maybe you'd like to have a Get Out Of Jail
   card, too? There is a way in Federales. Run the Shoes Cobbler from the splash
   screen or 'shoes -c' from the commandline. You can tell Shoes where those 
-  other Ruby Gems are located. Of course you'll to install a Ruby that matches
-  what your Tight Shoes is running (Rubyinstaller for Windows), rvm for Linux 
-  and OSX. And you'll have to have the compilers and build tools installed 
-  (Devkit for Windows - 32 bit version, or Xcode for OSX or whatever your
-  Linux distribution uses to install gcc/make/autoconf.
+  other Ruby Gems are located. You'll have to have the compilers and build 
+  tools installed  (Devkit for Windows - 32 bit version, or Xcode for OSX or
+  whatever your Linux distribution uses to install gcc/make/autoconf.
   
   Perhaps you're thinking, "If I install all that stuff then I could just
-  build Shoes from source!" Correct. You could. Shoe3.2 is a work in progress
-  and Jailbreak is only a 'good idea, and not fully baked'. Now that many gems
+  build Shoes from source!" Correct! Shoe3.2 is a work in progress
+  and Jailbreak is only a 'good idea', and not fully baked. Now that many gems
   include binary payloads for Windows, you may not need a developers setup.
-  Or you might. I can't tell what to do after you get out of jail. 
+  Or you might. I can't tell you what to do after you get out of jail. 
   
 I highly recommend you run the samples/simple-info.rb script. It'll tell you
 what kind of Shoes 3.2 you have and the gem directories it knows about and 
@@ -80,6 +78,4 @@ has used. It's also a simple script to study. shoes/cobbler.rb is even dumber.
 It's all easy until it gets hard.
   
   
-  
-  Perhaps you're thinking, "Some ruby gems are no distributed with 
-  
+

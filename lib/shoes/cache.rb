@@ -22,7 +22,7 @@ LIB_DIR.gsub! /\\/, '/'
 
 tight_shoes = Shoes::RELEASE_TYPE =~ /TIGHT/
 rbv = RbConfig::CONFIG['ruby_version']
-if tight_shoes
+if tight_shoes 
   require 'rbconfig'
   SITE_LIB_DIR = File.join(LIB_DIR, '+lib')
   GEM_DIR = File.join(LIB_DIR, '+gem')
@@ -83,6 +83,7 @@ if tight_shoes
 	  'LDFLAGS' => "-L. -L#{DIR}",
 	  'rubylibprefix' => "#{DIR}/ruby"
   }
+  debug "DYLD = #{ENV['DYLD_LIBRARY_PATH']} DIR = #{DIR}"
   RbConfig::CONFIG.merge! config
   RbConfig::MAKEFILE_CONFIG.merge! config
   # Add refs to Shoes builtin Gems (but not exts?)
@@ -109,7 +110,7 @@ if tight_shoes
   else
     ShoesGemJailBreak = false
   end
-else
+else # Loose Shoes
   ShoesGemJailBreak = true
   # 'rubylibprefix' then 'libdir' for gem's rb and so
   # FIXME -  lib/shoes/setup.rb uses GEM_DIR and GEM_CENTRAL_DIR 
