@@ -1,0 +1,11 @@
+[lib/liba52.0.dylib
+lib/libfaac.0.dylib
+lib/libfaad.0.dylib
+lib/libmp3lame.0.dylib
+lib/libvorbis.0.dylib
+lib/libogg.0.dylib
+lib/libvorbisenc.2.dylib
+lib/libpostproc.dylib
+lib/libavformat.dylib
+lib/libavcodec.dylib
+lib/libavutil.dylib

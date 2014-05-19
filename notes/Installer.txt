@@ -1,0 +1,43 @@
+Installer Thoughts
+
+I think it would be good to describe the ideal state of a installed
+Shoes (for any platform).
+  You want a menu item + icon to start shoes
+  The samples shouldn't be hidden. (linux, msw) or missing (osx)
+    The manual should be able to find the samples and run them
+  Gems should be in ~/shoes. 
+  
+  Cobbler should offer to copy the samples from ~/.shoes (Linux)
+  or Common Files (msw) or from inside the .app (osx)
+  
+  Rakefile CONSTANTS:
+    APPNAME = 'Shoes'
+    NAME = 'shoes'
+    VERS, REVISION = '3.2'
+    PKG = 'shoes-3.2'
+    MENU_NAME = 'Shoes 3.2b7' 
+    download name : shoes-3.2b6-gtk2-armhf.run or shoes-3.2b7-osx-64.tgz
+    
+    
+Linux
+   Change menu
+Windows
+
+OSX
+  In OSX, Shoes is contained in a .dmg file - like Shoes3.2.dmg. Double
+  click and the in the resulting Window, drag the Shoes icon to the
+  Application icon. 
+  
+  Getting the plumbing correct so that it works is 'interesting'. Or 
+  painful. 
+  
+  a dmg is container file - like a loopback mount of an iso in Linux. 
+  There is a hfs+ filesystem inside and of course there Mac oddities that
+  you don't see on a Zip or tar container.  One of those oddities is the
+  DS_store file. It's binary, an only Apple knows what the bits are. 
+  
+  Downloading TextMate.tbz. Finder is quite happy to open it and run it
+  from the Downloads folder. What's a tbz? It an .app in tar.bz2  Drag
+  the app icon to Applications to install. 
+  -- No need for that DMG dance for shoes. or get DS_STRORE working.
+  just tar the app like linux (bz2 -j) So include the samples in the tbz

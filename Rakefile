@@ -12,7 +12,8 @@ APP = YAML.load_file(File.join(ENV['APP'] || ".", "app.yaml"))
 APP['version'] = APP['major'] # for historical reasons 
 RELEASE_ID, RELEASE_NAME = APP['major'], APP['release']
 if RUBY_PLATFORM =~ /darwin/
-  APPNAME = "#{APP['name']}-#{RELEASE_NAME}"
+  #APPNAME = "#{APP['name']}-#{RELEASE_NAME}"
+  APPNAME = APP['name']
 else
   APPNAME = APP['name']
 end
@@ -31,6 +32,7 @@ REVISION = "#{RELEASE_ID}.#{APP['minor']}"
 VERS = "#{REVISION}"
 TINYVER = APP['tiny']
 PKG = "#{NAME}-#{VERS}"
+MENU_NAME = "#{APPNAME} #{VERS}#{TINYVER}"
 APPARGS = APP['run']
 FLAGS = %w[DEBUG]
 
@@ -67,7 +69,12 @@ if File.exists? "crosscompile"
   File.open('crosscompile','r') do |f|
     str = f.readline
     TGT_ARCH = str.split('=')[1].strip
-    TGT_DIR = TGT_ARCH
+    if ENV['NFS_ALTP']
+      TGT_DIR = ENV['NFS_ALTP']+TGT_ARCH
+       mkdir_p "#{TGT_DIR}"
+    else
+      TGT_DIR = TGT_ARCH
+    end
   end
 else
   CROSS = false
@@ -79,7 +86,6 @@ else
   else
     TGT_DIR = 'dist'
   end
-  puts "TGT_DIR= #{TGT_DIR}"
 end
 
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
@@ -97,9 +103,14 @@ when /darwin/
   require File.expand_path('make/darwin/env')
   require_relative "make/darwin/homebrew"
 
-  task :stub do
-    ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
-    sh "gcc -O -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc -framework Cocoa -o stub platform/mac/stub.m -I."
+#  task :stub do
+#    ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
+#    sh "gcc -O -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc -framework Cocoa -o stub platform/mac/stub.m -I."
+#  end
+  if CROSS
+    # Building tight shoes on OSX for OSX
+    require File.expand_path('make/darwin/tasks')
+    Builder = MakeDarwin
   end
   NAMESPACE = :osx
 when /linux/
@@ -152,7 +163,7 @@ task :build_os => [:build_skel, "#{TGT_DIR}/#{NAME}"]
 task "shoes/version.h" do |t|
   File.open(t.name, 'w') do |f|
     f << %{#define SHOES_RELEASE_ID #{RELEASE_ID}\n#define SHOES_RELEASE_NAME "#{RELEASE_NAME}"\n#define SHOES_REVISION #{REVISION}\n#define SHOES_BUILD_DATE "#{Time.now.strftime("%Y%m%d")}"\n#define SHOES_PLATFORM "#{SHOES_RUBY_ARCH}"\n}
-    if CROSS  
+    if CROSS || RUBY_PLATFORM =~ /darwin/
       f << '#define SHOES_STYLE "TIGHT_SHOES"'
     else
       f << '#define SHOES_STYLE "LOOSE_SHOES"'
@@ -303,11 +314,27 @@ namespace :osx do
         brew.remove_custom_formulas
         brew.remove_custom_remote
       end
-   end
+    end
   end
-
-  task :build => ["build_tasks:pre_build", :build_skel, "#{TGT_DIR}/#{NAME}", "#{TGT_DIR}/VERSION.txt", "build_tasks:build"]
-
+  
+  namespace :setup do
+    desc "Setup to build a distributable Shoes"
+    task :mavericks do
+      sh "echo 'TGT_ARCH=mavericks-x86_64' >crosscompile"
+    end
+    
+    desc "Setup to build Shoes just for my Mac (default)"
+    task :clean do
+      rm_rf "crosscompile"
+    end 
+  end
+  
+  if CROSS 
+    task :build => [:old_build]
+  else
+    task :build => ["build_tasks:pre_build", :build_skel, "#{TGT_DIR}/#{NAME}", "#{TGT_DIR}/VERSION.txt", "build_tasks:build"]
+  end
+  
   namespace :build_tasks do
 
     task :build => [:copy_files_to_dist, :common_build, :copy_deps_to_dist, :change_install_names, :setup_system_resources, :verify]
@@ -334,11 +361,7 @@ namespace :osx do
       mkdir_p "#{TGT_DIR}/lib/ruby"
       #cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "dist/ruby/lib"
       cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "#{TGT_DIR}/lib/ruby"
-      unless ENV['STANDARD']
-        %w[soap wsdl xsd].each do |libn|
-          rm_rf "#{TGT_DIR}/ruby/lib/#{libn}"
-        end
-      end
+      cp "#{EXT_RUBY}/lib/libruby.dylib", "#{TGT_DIR}"
       %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
         #FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
         FileList[rdir].each { |rlib| cp_r rlib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}" }
@@ -455,27 +478,31 @@ namespace :osx do
     end
 
     task :setup_system_resources do
-      puts "Perfoming :setup_system_resources in dir #{`pwd`}"
-      rm_rf "#{APPNAME}.app"
-      mkdir "#{APPNAME}.app"
-      mkdir "#{APPNAME}.app/Contents"
-      cp_r "#{TGT_DIR}", "#{APPNAME}.app/Contents/MacOS"
-      mkdir "#{APPNAME}.app/Contents/Resources"
-      mkdir "#{APPNAME}.app/Contents/Resources/English.lproj"
-      sh "ditto \"#{APP['icons']['osx']}\" \"#{APPNAME}.app/App.icns\""
-      sh "ditto \"#{APP['icons']['osx']}\" \"#{APPNAME}.app/Contents/Resources/App.icns\""
-      rewrite "platform/mac/Info.plist", "#{APPNAME}.app/Contents/Info.plist"
-      cp "platform/mac/version.plist", "#{APPNAME}.app/Contents/"
-      rewrite "platform/mac/pangorc", "#{APPNAME}.app/Contents/MacOS/pangorc"
-      cp "platform/mac/command-manual.rb", "#{APPNAME}.app/Contents/MacOS/"
-      rewrite "platform/mac/shoes-launch", "#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
-      chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
-      chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}-bin"
-      rewrite "platform/mac/shoes", "#{APPNAME}.app/Contents/MacOS/#{NAME}"
-      chmod 0755, "#{APPNAME}.app/Contents/MacOS/#{NAME}"
-      chmod_R 0755, "#{APPNAME}.app/Contents/MacOS/pango-querymodules"
+      tmpd = "/tmp"
+      mkdir_p tmpd
+      puts "Perfoming :setup_system_resources from #{`pwd`} to dir #{tmpd} "
+      rm_rf "#{tmpd}/#{APPNAME}.app"
+      mkdir "#{tmpd}/#{APPNAME}.app"
+      mkdir "#{tmpd}/#{APPNAME}.app/Contents"
+      cp_r "#{TGT_DIR}", "#{tmpd}/#{APPNAME}.app/Contents/MacOS"
+      mkdir "#{tmpd}/#{APPNAME}.app/Contents/Resources"
+      mkdir "#{tmpd}/#{APPNAME}.app/Contents/Resources/English.lproj"
+      sh "ditto \"#{APP['icons']['osx']}\" \"#{tmpd}/#{APPNAME}.app/App.icns\""
+      sh "ditto \"#{APP['icons']['osx']}\" \"#{tmpd}/#{APPNAME}.app/Contents/Resources/App.icns\""
+      rewrite "platform/mac/Info.plist", "#{tmpd}/#{APPNAME}.app/Contents/Info.plist"
+      cp "platform/mac/version.plist", "#{tmpd}/#{APPNAME}.app/Contents/"
+      rewrite "platform/mac/pangorc", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/pangorc"
+      cp "platform/mac/command-manual.rb", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/"
+      rewrite "platform/mac/shoes-launch", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
+      chmod 0755, "#{tmpd}/#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
+      chmod 0755, "#{tmpd}/#{APPNAME}.app/Contents/MacOS/#{NAME}-bin"
+      rewrite "platform/mac/shoes", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/#{NAME}"
+      chmod 0755, "#{tmpd}/#{APPNAME}.app/Contents/MacOS/#{NAME}"
+      chmod_R 0755, "#{tmpd}/#{APPNAME}.app/Contents/MacOS/pango-querymodules"
       # cp InfoPlist.strings YourApp.app/Contents/Resources/English.lproj/
-      `echo -n 'APPL????' > "#{APPNAME}.app/Contents/PkgInfo"`
+      `echo -n 'APPL????' > "#{tmpd}/#{APPNAME}.app/Contents/PkgInfo"`
+      rm_rf "#{TGT_DIR}/#{APPNAME}.app"
+      mv "#{tmpd}/#{APPNAME}.app", "#{TGT_DIR}"
     end
   end
 
@@ -488,14 +515,14 @@ namespace :osx do
     end
 
     task :sanity do
-      report_error "No #{APPNAME}.app file found" unless File.exist? "#{APPNAME}.app"
+      report_error "No #{APPNAME}.app file found" unless File.exist? "#{TGT_DIR}/#{APPNAME}.app"
       [NAME, "#{NAME}-launch", "#{NAME}-bin"].each do |f|
-        report_error "No #{f} file found" unless File.exist? "#{APPNAME}.app/Contents/MacOS/#{f}"
+        report_error "No #{f} file found" unless File.exist? "#{TGT_DIR}/#{APPNAME}.app/Contents/MacOS/#{f}"
       end
     end
 
     task :lib_paths do
-      cd "#{APPNAME}.app/Contents/MacOS" do
+      cd "#{TGT_DIR}/#{APPNAME}.app/Contents/MacOS" do
         errors = []
         ["#{NAME}-bin", "pango-querymodules", *Dir['*.dylib'], *Dir['pango/modules/*.so']].each do |f|
           dylibs = dylibs_to_change(f)
@@ -525,9 +552,26 @@ namespace :osx do
       end
   end
 
-  task :installer do
+  #task :installer => ['build_tasks:setup_system_resources', 'verify:sanity', 'verify:lib_paths', 'osx:dmg_create']
+  task :installer => ['osx:tbz_create']
+  
+  task :tbz_create do
+    puts "tbz_create from #{`pwd`}"
+    nfs=ENV['NFS_ALTP'] 
+    mkdir_p "#{nfs}/pkg"
+    distfile = "#{nfs}pkg/#{PKG}#{TINYVER}-osx10.9.tbz"
+    Dir.chdir("#{nfs}dist") do
+      #rm_rf distfile if File.exists? distfile 
+      distname = "#{PKG}#{TINYVER}"
+      sh "tar -cf #{distname}.tar #{APPNAME}.app"
+      sh "bzip2 -f #{distname}.tar"
+      mv "#{distname}.tar.bz2", "#{distfile}"
+    end
+  end 
+  
+  task :dmg_create do
     NFS=ENV['NFS_ALTP'] 
-    puts "NFS=|#{NFS}|"
+    # dmg_ds, dmg_jpg = "platform/mac/dmg_ds_store", "static/shoes-dmg.jpg"
     dmg_ds, dmg_jpg = "platform/mac/dmg_ds_store", "static/shoes-dmg.jpg"
     if APP['dmg']
       dmg_ds, dmg_jpg = APP['dmg']['ds_store'], APP['dmg']['background']
@@ -536,7 +580,8 @@ namespace :osx do
     mkdir_p "#{NFS}pkg"
     rm_rf "#{NFS}dmg"
     mkdir_p "#{NFS}dmg"
-    cp_r "#{APPNAME}.app", "#{NFS}dmg"
+    # cp_r "#{TGT_DIR}/#{APPNAME}.app", "#{NFS}dmg"
+    mv "#{TGT_DIR}/#{APPNAME}.app", "#{NFS}dmg"
     unless ENV['APP']
       mv "#{NFS}dmg/#{APPNAME}.app/Contents/MacOS/samples", "#{NFS}dmg/samples"
     end

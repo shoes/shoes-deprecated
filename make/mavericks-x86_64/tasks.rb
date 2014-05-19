@@ -15,6 +15,7 @@ class MakeDarwin
     
     def pre_build
       abort "osx pre_build #{TGT_DIR} from #{`pwd`}"
+      # copy Ruby, dylib, includes
     end
 
     # Get a list of linked libraries for lib (discard the non-indented lines)

@@ -1,21 +1,133 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
+2014-05-18
+    One thing that might help is to copy Ruby dylibs, includes, to dist
+    in a prebuild step (as I do for the cross compiles) and compile with
+    and link with them. Would need to set things properly in make_so but
+    tinkering there is a given no matter what else happens. 
+    
+    Even better, set up the Rakefile to have separate sections for OSX:
+    Loose Shoes and Tight Shoes.  Tight Shoes will use the old_build
+done: style with make/mavericks-X86_64/env.rb , tasks.rb and do all the 
+    clever re-jiggering of paths
+    
+    Loose shoes currently exists inside the Rakefile. It should be moved
+===> to make/darwin/?? 
+    
+    
+    
+2014-05-17  RVM, OSX
+    First, one must learn about install-name-tool and the hurdles it 
+    inflicts and the improvements - @rpath
+    At this moment, I've copied libruby*.dylib separately but not fixed the
+    path nor told libshoes.dylib about it.  A good place to start:
+    https://mikeash.com/pyblog/friday-qa-2009-11-06-linking-and-install-names.html
+    
+    It think I'll undo my changes and see if I can fix dylibs_to_change
+    
+  
+2014-05-16 OSX and RVM
+    installed RVM and then 2.0.0p451 and 2.1.1. 
+===> compile shoes OSX with 2.1.1. 
+    Rakefile Doesn't copy libruby*.dylib to dist. RVM fun? Been here 
+    before - but different. OSX tries to find the dylibs linked to 'shoes-din'
+    and copy them. dylibs_to_change () Fails to copy a rvm ruby because 
+    it's not allowing for relative paths. The quick fix would be to copy 
+done: it from EXT_RUBY 
+---> (and the includes dir needed for gem building)
+---> Also need to run install-name-tool on the copy. 
+    
+===> Part of me wants to rewrite all the too clever functional code with 
+    something that's less fragile. Should do both. Probably won't. That's
+    how cruft accumlates and no one knows if its right, wrong, unneeded.
+  
+2014-05-15 
+    Cobbler option to copy Samples. Test with Win7 
+done: WTF? cache.rb (tight shoes) doesn't handle ruby 2.0
+     actually that's leftovers from extconf which does things differently
+     in Shoes 3.2
+    OSX is a Tight Shoes. It's using System's Ruby not the included Ruby
+    DYLD_LIBRARY_PATH ? Plist?  cache.rb ? C startup code? 
+  
+2014-05-14 OSX tbz
+done: fix tbz naming in tbz_create. 
+---> fix internal/menu naming for - not so easy for OSX. 
+     OSX,
+     Windows (2), 
+     Linux (all 4 of them)
+===> Jail break for OSX - GEM_DIR setting?
+     
+---> Ask_save_folder is barely usable (Linux: theme? ), crippled (OSX) 
+  
+2014-05-13 Fooling with OSX
+
+done: Perform many thought exercises about next step for OSX. Try to
+    buy used mac mini. Fail.
+    
+    Back to creating an OSX installer (mo' betta) Rakefile
+done: 1. Copy the samples into the .app tree (copy_static_to_dist?) 
+        They always were. still are.
+done: 2. Revert my changes. setup_system_resources belongs in build not
+       install task. - For now.
+       VERY IMPORTANT - must 'open Shoes.app' do not do './shoes-bin'
+       Now keyboard works, console works, things quit. 
+--->  3. For install, just create a tbz of the app. - no dmg BS
+        Revise and review NAME & APPNAME constants and dist filenames
+        for osx/windows/linux. 
+--->  4. Cobbler option to copy samples/ to a user directory. (all OS)
+--->  5  review the launch scripts 
+--->  6. what is bundler helping me with?
+--->  7. Univeral build. Why ? what does rvm ruby do on 10.9
+    
+2014-05-08
+
+done:?  I think the ds_store file has the name embebbeded in it so I just
+    can't change names and expect it to work.  I've managed to get the
+    Federales icon show up on the old installer background. 
+===> For OSX, samples in the manual don't exist. That's a shame. It
+     Why can't they be stored in ~/.shoes/federales . Sure they can't be
+     inside the app/contents. Hmm. That would be good for windows, too. 
+===> Both OSX and Windows Installers (and the Rakefile) are very frustrating
+    about what CONSTANTS are used for what purpose. 
+    
+  
+2014-05-07 OSX stuff
+
+done: finished rakefile mods to help speed with NFS.
+
+done: Used http://iconverticons.com/online/ to create federales.icns in 
+    icon/ 
+---> background image in .app installer is blank (not found). Odd. 
+---> The Hackinosh VM is frustrating. 
+
+  
 2014-05-06 - OSX stuff
     In OSX, Rakefile checks for ENV var NFS_ALTP which if set, contains
     a local path for pkg and dist directories. That way the NFS write
 done: traffic is reduced.  "$ export NFS_ALTP=/Users/ccoupe/build/"
      Is what I use. That trailing slash is critical. 
+     
 ---> Installer seems to work. 
----> Should use Federales icons. 
+---> Should use Federales icons. Deep dive there.
+
 done: Should have 'Shoes 3.2' installed name so it doesn't install on top
      of an older Shoes. Decided to use 'Shoes-federales' instead. 
----> Do the same NFS thing to dist/ PITA but would save me time - I'll be
-     building shoes often.
+     
+done: Do the same NFS thing to dist/ PITA but would save me time - I'll be
+     building shoes often. Sadly, TGT_DIR is what I'll use. 
+     which will contain dist/, pkg/, dmg/
+     
+done: setup_system_resources task should use /tmp instead of implied dist/
+done: Should be in package task, not build task. dist/shoes-bin runs fine 
+     without all the .app building overhead 
+
 ===> Known bugs with samples
-       accordian, menu, menu1.
-       dialog - color - hangs. must be killed. 
-       editor, form - others:  Keystrokes are not delivered to Shoes
+===>   accordian, menu, menu1.
+===>   dialog - color - hangs. must be killed. 
+===>   editor, form - others:  Keystrokes are not delivered to Shoes
+===> Doesn't exit
+
   
 2014-05-05 Cinco de Mayo! 
   Fixed some bugs identified yesterday. The Manual works, many samples
@@ -35,9 +147,9 @@ done: Write a README.Federales and include with binary downloads.
    Glib was a pain. had to copy glibconfig.h to 'main' includes
    In Rakefile, add GLIB_PATH, PKG_CONFIG_PATH 
 ==> Yes the rakefiles need a lot of love and attention. Grrr.
---> Seriously slow to compile and link and copy stuff around.
+done: Seriously slow to compile and link and copy stuff around.
     Helped a bit with rsize=8192,wsize=8192 in /etc/automounts/nfs
-    Still too slow. 
+    Move the dist and pkg dirs to local disk helps a lot.
 done: Don't build with bloopsaphone/portaudio, sqlite, hpricot,json.
 done: need to arrange dist/lib the Federales way (no dist/ruby in 3.2)
 --> Right/meta (right/Fan on Apple keyboard) on linux Virtual box
