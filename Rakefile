@@ -100,17 +100,16 @@ when /mingw/
   NAMESPACE = :win32
 when /darwin/
   osx_bootstrap_env
-  require File.expand_path('make/darwin/env')
-  require_relative "make/darwin/homebrew"
 
-#  task :stub do
-#    ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
-#    sh "gcc -O -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc -framework Cocoa -o stub platform/mac/stub.m -I."
-#  end
   if CROSS
     # Building tight shoes on OSX for OSX
-    require File.expand_path('make/darwin/tasks')
+    require File.expand_path("make/#{TGT_ARCH}/env")
+    require_relative "make/#{TGT_ARCH}/homebrew"
+    require File.expand_path("make/#{TGT_ARCH}/tasks")
     Builder = MakeDarwin
+  else
+    require File.expand_path('make/darwin/env')
+    require_relative "make/darwin/homebrew"
   end
   NAMESPACE = :osx
 when /linux/
@@ -553,7 +552,13 @@ namespace :osx do
   end
 
   #task :installer => ['build_tasks:setup_system_resources', 'verify:sanity', 'verify:lib_paths', 'osx:dmg_create']
-  task :installer => ['osx:tbz_create']
+  if CROSS
+    task :installer do
+      Builder.make_installer
+    end 
+  else
+    task :installer => ['osx:tbz_create']
+  end 
   
   task :tbz_create do
     puts "tbz_create from #{`pwd`}"

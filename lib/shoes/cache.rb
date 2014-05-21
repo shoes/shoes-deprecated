@@ -83,7 +83,7 @@ if tight_shoes
 	  'LDFLAGS' => "-L. -L#{DIR}",
 	  'rubylibprefix' => "#{DIR}/ruby"
   }
-  debug "DYLD = #{ENV['DYLD_LIBRARY_PATH']} DIR = #{DIR}"
+  #debug "DYLD = #{ENV['DYLD_LIBRARY_PATH']} DIR = #{DIR}"
   RbConfig::CONFIG.merge! config
   RbConfig::MAKEFILE_CONFIG.merge! config
   # Add refs to Shoes builtin Gems (but not exts?)

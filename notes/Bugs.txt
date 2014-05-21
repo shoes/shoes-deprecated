@@ -1,6 +1,35 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
+2014-05-20 OSX Tight Shoes
+done:Missing the main font. How odd. Be careful. Pangorc ????
+     pango.modules/ nothing inside. copy code from Rakefile.
+
+done: Can't link against {TGT_DIR} for -lruby.2.1.0. test 2.0.0
+
+----> simple-rubygems works OK  bluecloth compiles and installs. 
+      - some errors on console shoes.rb:124 (from help.rb:142)
+
+done: Add bz2 installer instead of dmg. 
+
+----> Redo Rakefile/OSX for a loose shoes compile. Lots of cruft
+    in their and my Tight Shoes rake files. 
+      
+----> Should x11 stuff be there? redo homebrew with the --quartz ?
+     Take notes this time.
+     
+  
+2014-05-19 OSX - Tight Shoes cfg
+
+done: copy libruby.dylib to dist {$TGT_DIR} in prebuild 
+done: Link with that dylib
+     Have enough ruby working to get splash and right-option-/ 
+     brings up the shoes console with box glyphs for the error messages.
+done: Tied to /System...Ruby. It's the shoes-bin linking (make_app) 
+     Ordering of _-L and -l? BEEN HERE BEFORE. Be wery wery careful.
+done: Get symlinks working before twisting the LDFLAGS/LINUX_LIBS
+done: Copy include dir in prebuild and use for compiling. 
+  
 2014-05-18
     One thing that might help is to copy Ruby dylibs, includes, to dist
     in a prebuild step (as I do for the cross compiles) and compile with

@@ -1,7 +1,12 @@
-EXT_RUBY = File.exists?("deps/ruby") ? "deps/ruby" : RbConfig::CONFIG['prefix']
+# Assumes:
+# (1) Ruby is installed with RVM and installed -C --enable-load-relative
+# (2) {TGT_DIR}/libruby.dylib was copied from rvm before linking.
+# (3) {TGT_DIR}/lib/ruby/2.0.0/include was copied before compiling.
+include FileUtils
+EXT_RUBY = RbConfig::CONFIG['prefix']
 
 # use the platform Ruby claims
-require 'rbconfig'
+# require 'rbconfig' not needed
 
 CC = ENV['CC'] ? ENV['CC'] : "gcc"
 file_list = ["shoes/*.c"] + %w{shoes/native/cocoa.m shoes/http/nsurl.m}
@@ -24,8 +29,8 @@ if pkg_config and pkgs.include?("cairo") and pkgs.include?("pango")
   PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
 else
   # Hack for when pkg-config is not yet installed
-  # CJC - this is ugly. Just fail early 
-  puts "DON'T have pkg-config"
+  # CJC - this is ugly. Just fail early.
+  abort "DON'T have pkg-config"
   CAIRO_CFLAGS, CAIRO_LIB, PANGO_CFLAGS, PANGO_LIB = "", "", "", ""
 end
 png_lib = 'png'
@@ -72,5 +77,7 @@ LINUX_LDFLAGS << " #{OSX_ARCH}"
  
 LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
-LINUX_LIBS << " -L#{RbConfig::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB}"
+#LINUX_LIBS << " -L#{RbConfig::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB}"
+#LINUX_LIBS << " -L#{TGT_DIR}/lib/ruby/#{RUBY_V} #{CAIRO_LIB} #{PANGO_LIB}"
+LINUX_LIBS << " -L#{TGT_DIR} #{CAIRO_LIB} #{PANGO_LIB}"
 
