@@ -1,5 +1,7 @@
 # Cobbler - various Shoes maintenance things
 
+require 'rubygems'
+require 'rubygems/dependency_installer'
 
 Shoes.app do
   stack do
@@ -147,10 +149,78 @@ Shoes.app do
     end
   end
   
+  def geminfo gemstring
+    alert gemstring
+  end
+  
+  def gemremove gemstring
+    confirm "Really delete gem #{gemstring}"
+  end 
+  
+  def geminstall spec
+    confirm "Install #{spec.name},#{spec.version} and dependencies?"
+  end
+  
+
+  def gem_refresh_local
+    gemlist =  Gem::Specification.all().map{|g| [g.name, g.version.to_s].join(',') }
+    gemlist.each do |nm| 
+      @gemlist.append do 
+      flow margin: 5 do
+          button 'info', height: 28, width: 50, left_margin: 10 do
+             geminfo nm
+           end
+           button 'delete', height: 28, width: 60, left_margin: 10 do
+             gemremove nm
+           end
+           para nm
+         end
+       end
+    end
+  end
+  
+  def gemsearch str
+    name, version = str.split(',')
+    #Gem.use_paths(GEM_DIR, [GEM_DIR, GEM_CENTRAL_DIR])
+    #installer = Gem::DependencyInstaller.new
+    poss_gems = Gem::Specification.find_all_by_name(name)
+    poss_gems.each do |g| 
+      puts g.inspect
+      #puts "#{g.name} #{g.version}"
+      @gemlist.append do
+        flow margin: 5 do
+          button 'info', height: 28, width: 50, left_margin: 10 do
+            geminfo str
+          end
+          button 'install', height: 28, width: 60, left_margin: 10 do
+            geminstall g
+          end
+          para "#{g.name},#{g.version}"
+        end
+      end
+    end
+  end
+   
   def gemscreen
     @panel.clear
     @panel.append do
-       para "gem screen - not implemented yet"
+      para "Manage Gems"
+      flow do
+        button 'Show Local' do
+          @gemlist.clear
+          @gemlist.background white
+          gem_refresh_local
+        end
+        @searchphrase = edit_line 
+        button 'Search Remote' do
+          @gemlist.clear
+          @gemlist.background "#EEE".."#9AA"
+          gemsearch @searchphrase.text
+        end
+      end
+      @gemlist = stack width: 0.90, left_margin: 5, top_margin: 5 do     
+        background white  
+      end
     end
   end
   
