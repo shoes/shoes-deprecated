@@ -2,6 +2,7 @@
 
 require 'rubygems'
 require 'rubygems/dependency_installer'
+require 'rubygems/uninstaller'
 
 Shoes.app do
   stack do
@@ -149,48 +150,69 @@ Shoes.app do
     end
   end
   
-  def geminfo gemstring
-    alert gemstring
+  def geminfo gem
+    str = gem
+    if gem.kind_of? Gem::Specification
+      str = "#{gem.name} #{gem.version} #{gem.summary}\nSee: #{gem.homepage}"
+    end
+    alert str
   end
   
-  def gemremove gemstring
-    confirm "Really delete gem #{gemstring}"
+  def gemremove spec
+    if confirm "Really delete gem #{spec.name}"
+      begin 
+        del = Gem::Uninstaller.new(spec)
+        del.remove(spec)
+      rescue Exception => e 
+        alert e
+      end
+      gem_refresh_local
+    end
   end 
   
   def geminstall spec
-    confirm "Install #{spec.name},#{spec.version} and dependencies?"
+    if confirm "Install #{spec.name},#{spec.version} and dependencies?"
+      Shoes.setup do
+        gem spec.name, spec.version
+      end
+      gem_refresh_local
+    end
   end
   
 
   def gem_refresh_local
-    gemlist =  Gem::Specification.all().map{|g| [g.name, g.version.to_s].join(',') }
-    gemlist.each do |nm| 
+    # FIXME: deprecated call, returns []
+    @gemlist.clear
+    @gemlist.background white
+    gemlist =  Gem::Specification.all()
+    gemlist.each do |gs| 
       @gemlist.append do 
       flow margin: 5 do
           button 'info', height: 28, width: 50, left_margin: 10 do
-             geminfo nm
+             geminfo gs
            end
            button 'delete', height: 28, width: 60, left_margin: 10 do
-             gemremove nm
+             gemremove gs
            end
-           para nm
+           para "#{gs.name}, #{gs.version}"
          end
        end
     end
   end
   
   def gemsearch str
-    name, version = str.split(',')
-    #Gem.use_paths(GEM_DIR, [GEM_DIR, GEM_CENTRAL_DIR])
-    #installer = Gem::DependencyInstaller.new
-    poss_gems = Gem::Specification.find_all_by_name(name)
-    poss_gems.each do |g| 
-      puts g.inspect
-      #puts "#{g.name} #{g.version}"
+    installer = Gem::DependencyInstaller.new
+    begin
+      poss_gems = installer.find_spec_by_name_and_version(str, Gem::Requirement.default)
+    rescue Gem::SpecificGemNotFoundException => e
+      @gemlist.append {para "not found"}
+      return
+    end
+    poss_gems.each_spec do |g|   
       @gemlist.append do
         flow margin: 5 do
           button 'info', height: 28, width: 50, left_margin: 10 do
-            geminfo str
+            geminfo g
           end
           button 'install', height: 28, width: 60, left_margin: 10 do
             geminstall g

@@ -1,5 +1,31 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
+
+2014-05-22 Cobbler/Manage Gems
+
+done: search works with exact names. Good enough for now.
+done: catch search failure
+done: Test: installed sqlite3 (which requires a compile). It properly
+     showed an error and suggested I apt-get install libsqlite3-dev.
+     Then it installed it via Shoes.setup and compiled it and then
+----> popped up a second cobbler screen! Like it can't deal with the
+     return. That is very similar to the error running simple-rubygems
+     from inside the manual.
+----> Additional hint: An error from shoes.rb:124 early on. from cobbler:166
+done: write the uninstall code for Cobbler.  Works OK.
+done:  should not allow deletion of System gems. It doesn't. Should
+       catch the exeception. 
+----> Not refreshing after install
+---->  spits out a console message confirming deletion. Need a GEM::UI. ick.
+
+----> Need a better download mechanism on my website.  Wordpress Plugin?
+
+---> Figure out a better remote search like 'gem list foo -r' does.
+
+2014-05-21 Do something fun
+done: Display existing gems in Cobbler?
+done: Rescue search failure
+----> Find all remote gems by name (wildcard)
   
 2014-05-20 OSX Tight Shoes
 done:Missing the main font. How odd. Be careful. Pangorc ????
