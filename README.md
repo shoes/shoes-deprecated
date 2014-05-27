@@ -8,10 +8,10 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-This is Shoes 3.2 (Federales). Earlier releases where Policeman (3.0 and 3.1)
+This is Shoes 3.2 (Federales). Earlier releases were Policeman (3.0 and 3.1)
 and Raisins. There is a Shoes 4 under development. For historical reasons (the 
-color of the icon in Raisins) It's also called Red Shoes. Red Shows is written
-in C (and Objective C on the Mac). Shoes 4 is written in Java. 
+color of the icon in Raisins) It's also called Red Shoes. Red Shoes is written
+in C (and some Objective C on the Mac). Shoes 4 is written in Java. 
 
 Federales is one mans attempt to keep Red Shoes current with modern Linux
 distributions and newer versions of Ruby. Federales doesn't really add any new 
@@ -21,7 +21,7 @@ As you'll see, Federales removes some things.
 Let's start with the good news first.
 
   Federales uses Ruby 2.0.0 (or higher) and Rubygems 2.0.14 (or higher) 
-  Linux users really can download a binary that works. Theiy don't have to 
+  Linux users really can download a binary that works. They don't have to 
     build from source. If they do build from source, it's easier. 
   Added a Raspberry Pi distribution (Raspbian)
   For Linux, it installs Shoes in your home directory (~/.shoes/federales) 
@@ -30,8 +30,8 @@ Let's start with the good news first.
   Gem handling is greatly improved, at a cost - more on that below. 
     Gem.setup is not required. If used, it works better.
   Windows 7 version seems to work.
-  OSX Mavericks (10.9.2) version is 'not completely terrible' as of 
-    May 5, 2014
+  OSX Mavericks (10.9.3) version is 'not completely terrible' as of 
+    May 24, 2014
   Does not require Sqlite.
   Includes a Shoes Cobbler app to clear your image cache and manage your
     Shoes/gem interface - see below discussion on gems.
@@ -73,7 +73,8 @@ Gem Secret Sauce.
   
 I highly recommend you run the samples/simple-info.rb script. It'll tell you
 what kind of Shoes 3.2 you have and the gem directories it knows about and 
-has used. It's also a simple script to study. shoes/cobbler.rb is even dumber.
+has used. It's also a simple script to study. shoes/cobbler.rb also has clues
+about how the jailbreak works and what you can do .
 
 It's all easy until it gets hard.
   
