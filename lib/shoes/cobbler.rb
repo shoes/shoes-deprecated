@@ -14,13 +14,12 @@ Shoes.app do
         button "Jail Break Gems..." do
           jailscreen
         end
-        
-        button "Manage Gems..." do 
-          gemscreen
-        end
         button "Development Tools..." do
           depscreen
         end
+      end
+      button "Manage Gems..." do 
+        gemscreen
       end
       button "Copy Samples..." do
         cp_samples_screen
@@ -150,6 +149,16 @@ Shoes.app do
     end
   end
   
+  # below was copied from shoes.rb, renamed, twerked. 
+  def cobblesetup &blk
+    require 'shoes/setup'
+    script = nil		# because
+    puts "cobbler url: #{location}"
+    setwin = Shoes::Setup.new(script, &blk)
+    puts setwin.inspect
+    setwin.close
+  end
+  
   def geminfo gem
     str = gem
     if gem.kind_of? Gem::Specification
@@ -172,7 +181,7 @@ Shoes.app do
   
   def geminstall spec
     if confirm "Install #{spec.name},#{spec.version} and dependencies?"
-      Shoes.setup do
+      cobblesetup do
         gem spec.name, spec.version
       end
       gem_refresh_local
@@ -181,9 +190,9 @@ Shoes.app do
   
 
   def gem_refresh_local
-    # FIXME: deprecated call, returns []
     @gemlist.clear
     @gemlist.background white
+    # FIXME: deprecated call, returns []
     gemlist =  Gem::Specification.all()
     gemlist.each do |gs| 
       @gemlist.append do 

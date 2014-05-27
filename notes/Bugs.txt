@@ -1,5 +1,24 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
+  
+2014-05-26  Unravel Shoes.setup problems
+done: Major Huh? looking at shoes.rb:124. Copy the whole thing to be
+    a cobbler funtion.  Ah, I see what's happening. Shoes@setups is a cache
+    so that you can't have more than one 'Shoes.setup' block in a script. 
+    That illusion doesn't apply to Cobbler. 
+    
+----> setup.rb:81 does a visit. That's how I got a second screen after
+    calling Setup. Easy enough to set @script to nil - now have to close
+    the dialog after it succeeds.  We are in visit and url territory so
+    it's not procedural call/return which is what I want. Sleep on this.
+    
+done: Move 'manage gems' button to be avail on loose and tight shoes.
+ 
+    
+
+2014-05-24
+done:  Release b8. Not much different from b7. Cobbler improvements.
+      maybe some OSX stuff. 
 
 2014-05-22 Cobbler/Manage Gems
 
@@ -17,6 +36,7 @@ done:  should not allow deletion of System gems. It doesn't. Should
        catch the exeception. 
 ----> Not refreshing after install
 ---->  spits out a console message confirming deletion. Need a GEM::UI. ick.
+----> OSX Cobbler - can only install once. Shoes.setup problem?
 
 ----> Need a better download mechanism on my website.  Wordpress Plugin?
 
