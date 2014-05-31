@@ -1,8 +1,108 @@
 # Cobbler - various Shoes maintenance things
-
+# CJC: the gem handling is kind of ugly. Someone should make it pretty.
 require 'rubygems'
 require 'rubygems/dependency_installer'
 require 'rubygems/uninstaller'
+
+module Gem
+  if Shoes::RELEASE_TYPE =~ /TIGHT/
+    @ruby = (File.join(RbConfig::CONFIG['bindir'], 'shoes') + RbConfig::CONFIG['EXEEXT']).
+          sub(/.*\s.*/m, '"\&"') + " --ruby"
+  end
+end
+class << Gem::Ext::ExtConfBuilder
+  alias_method :make__, :make
+  def make(dest_path, results)
+    raise unless File.exist?('Makefile')
+    mf = File.read('Makefile')
+    mf = mf.gsub(/^INSTALL\s*=\s*.*$/, "INSTALL = $(RUBY) -run -e install -- -vp")
+    mf = mf.gsub(/^INSTALL_PROG\s*=\s*.*$/, "INSTALL_PROG = $(INSTALL) -m 0755")
+    mf = mf.gsub(/^INSTALL_DATA\s*=\s*.*$/, "INSTALL_DATA = $(INSTALL) -m 0644")
+    File.open('Makefile', 'wb') {|f| f.print mf}
+    make__(dest_path, results)
+  end
+end
+
+class Gem::CobblerFace
+  class DownloadReporter  #ProgressReporter
+    attr_reader :count
+
+    def initialize(prog, status, size, initial_message,
+                   terminal_message = "complete")
+      @prog = prog
+      (@status = status).replace initial_message
+      @total = size
+      @count = 0.0
+    end
+
+    def updated(message)
+      @count += 1.0
+      @prog.fraction = (@count / @total.to_f) * 0.5
+    end
+    
+    def fetch(filename, len)
+      @total = len
+    end
+    
+    def update(len)
+      @prog.fraction = len.to_f / @total.to_f
+    end
+   
+    def done
+    end
+  end
+  
+  # init CobblerFace
+  def initialize bar, statline
+    @prog = bar
+    @status = statline
+    #@status, @prog, = app.slot.contents[-1].contents
+    
+  end
+  def title msg
+    @status.text =  msg
+  end
+  def progress count, total
+    @prog.fraction = count.to_f / total.to_f
+    #$fraction = count.to_f / total.to_f
+  end
+  def ask_yes_no msg
+    Kernel.confirm(msg)
+  end
+  def ask msg
+    Kernel.ask(msg)
+  end
+  
+  def error msg, e
+    @status =  link("Error") { Shoes.show_log }, " ", msg
+  end
+  
+  def say msg
+    @status.text =  msg
+  end
+  
+  def alert msg, quiz=nil
+    ask(quiz) if quiz
+  end
+  
+  def download_reporter(*args)
+    DownloadReporter.new(@prog, @status, 0, 'Downloading')
+  end
+  
+  def method_missing(*args)
+    p args
+    nil
+  end
+end
+
+# UI class for delete does nothing - on purpose. Swallows 'success' msg
+class Gem::CobblerDelFace
+ def initialize 
+ end
+ def say msg
+   #puts "CmdFace: say: #{msg}"
+ end
+end
 
 Shoes.app do
   stack do
@@ -14,12 +114,14 @@ Shoes.app do
         button "Jail Break Gems..." do
           jailscreen
         end
-        button "Development Tools..." do
-          depscreen
-        end
       end
       button "Manage Gems..." do 
         gemscreen
+      end
+      if Shoes::RELEASE_TYPE =~ /TIGHT/ 
+        button "Development Tools..." do
+          depscreen
+        end
       end
       button "Copy Samples..." do
         cp_samples_screen
@@ -148,15 +250,29 @@ Shoes.app do
       end
     end
   end
+
+  def gem_reset
+    Gem.use_paths(GEM_DIR, [GEM_DIR, GEM_CENTRAL_DIR])
+    Gem.refresh
+  end
   
-  # below was copied from shoes.rb, renamed, twerked. 
-  def cobblesetup &blk
-    require 'shoes/setup'
-    script = nil		# because
-    puts "cobbler url: #{location}"
-    setwin = Shoes::Setup.new(script, &blk)
-    puts setwin.inspect
-    setwin.close
+ 
+  def gem_install_one spec
+    # setup Gem download ui
+    ui = Gem::DefaultUserInteraction.ui = Gem::CobblerFace.new(@progbar, @status)
+    ui.title "Installing #{spec.name} #{spec.version}"
+    installer = Gem::DependencyInstaller.new
+    begin
+      installer.install(spec.name, spec.version)
+      gem_reset
+      spec.activate
+      ui.say "Finished installing #{spec.name}"
+    rescue Object => e
+       puts "Fail #{e}"
+       @status.replace link("Error") { Shoes.show_log }, " ", e
+       #ui.error "while installing #{spec.name}", e
+       #raise e
+    end
   end
   
   def geminfo gem
@@ -170,6 +286,7 @@ Shoes.app do
   def gemremove spec
     if confirm "Really delete gem #{spec.name}"
       begin 
+        Gem::DefaultUserInteraction.ui = Gem::CobblerDelFace.new()
         del = Gem::Uninstaller.new(spec)
         del.remove(spec)
       rescue Exception => e 
@@ -180,11 +297,16 @@ Shoes.app do
   end 
   
   def geminstall spec
-    if confirm "Install #{spec.name},#{spec.version} and dependencies?"
-      cobblesetup do
-        gem spec.name, spec.version
+   @gemlist.append do 
+     @progbar = progress width: 0.9, margin_left: 0.1, height: 20
+     @progbar.fraction = 0.5
+     @status = inscription 'Initialize', align: :center
+   end
+   if confirm "Install #{spec.name},#{spec.version} and dependencies?"
+      @thread = Thread.new do 
+        gem_install_one spec
+        #gem_refresh_local  # not sure I want this UI wise.
       end
-      gem_refresh_local
     end
   end
   
@@ -193,8 +315,9 @@ Shoes.app do
     @gemlist.clear
     @gemlist.background white
     # FIXME: deprecated call, returns []
-    gemlist =  Gem::Specification.all()
-    gemlist.each do |gs| 
+    #gemlist =  Gem::Specification._all()
+    #gemlist.each do |gs| 
+    Gem::Specification.each do |gs|
       @gemlist.append do 
       flow margin: 5 do
           button 'info', height: 28, width: 50, left_margin: 10 do
@@ -210,7 +333,7 @@ Shoes.app do
   end
   
   def gemsearch str
-    installer = Gem::DependencyInstaller.new
+    installer = Gem::DependencyInstaller.new domain: :remote
     begin
       poss_gems = installer.find_spec_by_name_and_version(str, Gem::Requirement.default)
     rescue Gem::SpecificGemNotFoundException => e

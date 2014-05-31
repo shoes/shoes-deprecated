@@ -1,6 +1,32 @@
 Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
   out with GKt3
   
+2014-05-30  Cobbler
+     Read the rubygems/code spec_fetcher.rb is called from
+     commands/query_command - does the reqexp (-n) search.  Not clear
+     how to do that from API. Undecided if I really want to list the
+     wildcards. 
+     
+done: use Specification._all instead of .all -- keeps the warnings
+     away. Better: .each works.
+  
+2014-05-28  Cobbler
+     Acting OK thread wise and flow of control wise.
+done: Need to get the status messages working.
+done? Deal with gem exceptions
+----> Test simple-rubygems from manual. Still Works?
+      Installs. Complains (attempt to visit the caller url)
+done: Need the replacement for Specification.all
+----> and wildcard remote search
+  
+2014-05-27  Cobbler
+====> I think the best thing for cobbler is to NOT re-purpose Shoes.setup.
+    Just add a progress box to search & install - borrow the code for sure
+    but rewrite it to do what Cobbler wants. Shoes.setup would be 'Legacy'.
+    Non trivial because Shoes.setup was never really finished (by me or
+    the original author).
+    
+  
 2014-05-26  Unravel Shoes.setup problems
 done: Major Huh? looking at shoes.rb:124. Copy the whole thing to be
     a cobbler funtion.  Ah, I see what's happening. Shoes@setups is a cache
@@ -13,8 +39,6 @@ done: Major Huh? looking at shoes.rb:124. Copy the whole thing to be
     it's not procedural call/return which is what I want. Sleep on this.
     
 done: Move 'manage gems' button to be avail on loose and tight shoes.
- 
-    
 
 2014-05-24
 done:  Release b8. Not much different from b7. Cobbler improvements.
@@ -34,11 +58,11 @@ done: Test: installed sqlite3 (which requires a compile). It properly
 done: write the uninstall code for Cobbler.  Works OK.
 done:  should not allow deletion of System gems. It doesn't. Should
        catch the exeception. 
-----> Not refreshing after install
----->  spits out a console message confirming deletion. Need a GEM::UI. ick.
+done: Not refreshing after install
+done:  spits out a console message confirming deletion. Need a GEM::UI. ick.
 ----> OSX Cobbler - can only install once. Shoes.setup problem?
 
-----> Need a better download mechanism on my website.  Wordpress Plugin?
+done: Need a better download mechanism on my website.  Wordpress Plugin?
 
 ---> Figure out a better remote search like 'gem list foo -r' does.
 
