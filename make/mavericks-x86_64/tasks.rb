@@ -102,10 +102,9 @@ class MakeDarwin
     end
     
     def pre_build
-      puts "HELLO! osx pre_build #{TGT_DIR} from #{`pwd`}"
-      # copy Ruby, dylib, includes - need have them in place before
-      # we build exts (ftsearch). Still need some install_name 
-      # dancing. 
+      puts "Entering osx pre_build #{TGT_DIR}"
+      # copy Ruby, dylib, includes - have them in place before
+      # we build exts (ftsearch). 
       puts "Ruby at #{EXT_RUBY}"
       rbvt = RUBY_V
       rbvm = RUBY_V[/^\d+\.\d+/]
@@ -120,16 +119,57 @@ class MakeDarwin
       # copy include files - it might help build gems
       mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-#{rbvt}"
       cp_r "#{EXT_RUBY}/include/ruby-#{rbvt}/", "#{TGT_DIR}/lib/ruby/include"
-      # can't figure out ln -s? push pwd, cd, ln, pop
+      # Softlink run major/minor versions
       cdir = pwd
-      cd TGT_DIR
-      ln_s "libruby.#{rbvt}.dylib", "libruby.dylib"
-      ln_s "libruby.#{rbvt}.dylib", "libruby.#{rbvm}.dylib"
-      cd cdir
-      #abort "Quitting"
+      cd TGT_DIR do
+        ln_s "libruby.#{rbvt}.dylib", "libruby.dylib"
+        ln_s "libruby.#{rbvt}.dylib", "libruby.#{rbvm}.dylib"
+      end
+      # Find ruby's dependent libs in homebrew (/usr/local/
+      cd "#{TGT_DIR}/lib/ruby/#{RUBY_VERSION}/#{RUBY_PLATFORM}" do
+        bundles = *Dir['*.bundle']
+        cplibs = {}
+        bundles.each do |bpath| 
+          `otool -L #{bpath}`.split.each do |lib|
+            cplibs[lib] = lib if File.extname(lib)=='.dylib'
+          end
+        end
+        cplibs.each_key do |k|
+          if k =~ /\/usr\/local\//
+           cp k, "#{TGT_DIR}"
+           chmod 0755, "#{TGT_DIR}/#{File.basename k}"
+           #puts "cp #{k}"
+          end
+        end
+        # -id/-change the lib
+        bundles.each do |f|
+          dylibs = get_dylibs f
+          dylibs.each do |dylib|
+            if dylib =~ /\/usr\/local\//
+              sh "install_name_tool -change #{dylib} @executable_path/#{File.basename dylib} #{f}"
+            end
+          end
+        end
+        # abort "Quitting"
+      end
     end
     
-    def copy_pango_modules_to_dist
+    def change_install_names
+      puts "Entering change_install_names"
+      cd "#{TGT_DIR}" do
+        ["#{NAME}-bin", "pango-querymodules", *Dir['*.dylib'], *Dir['pango/modules/*.so']].each do |f|
+          sh "install_name_tool -id @executable_path/#{File.basename f} #{f}"
+          dylibs = get_dylibs f
+          dylibs.each do |dylib|
+            # another Cecil hack
+            chmod 0755, dylib if File.writable? dylib
+            sh "install_name_tool -change #{dylib} @executable_path/#{File.basename dylib} #{f}"
+          end
+        end
+      end
+    end
+
+    def copy_pango_modules
       puts "Entering copy_pango_modules_to_dist"
       modules_file = `brew --prefix`.chomp << '/etc/pango/pango.modules'
       modules_path = File.open(modules_file) {|f| f.grep(/^# ModulesPath = (.*)$/){$1}.first}
@@ -140,6 +180,7 @@ class MakeDarwin
         chmod 0755, f unless File.writable? f
       end
       cp `which pango-querymodules`.chomp, "#{TGT_DIR}/"
+      chmod 0755, "#{TGT_DIR}/pango-querymodules"
     end
 
     # Get a list of linked libraries for lib (discard the non-indented lines)
@@ -154,32 +195,38 @@ class MakeDarwin
     end
 
     def copy_deps_to_dist
+      puts "Entering copy_deps_to_dist #{TGT_DIR}"
+      copy_pango_modules
       # Generate a list of dependencies straight from the generated files.
       # Start with dependencies of shoes-bin, and then add the dependencies
       # of those dependencies. Finally, add any oddballs that must be
       # included.
-      dylibs = get_dylibs("#{TGT_DIR}/#{NAME}-bin")
+      dylibs = dylibs_to_change("#{TGT_DIR}/#{NAME}-bin")
+      dylibs.concat dylibs_to_change("#{TGT_DIR}/pango-querymodules")
+      dupes = []
       dylibs.each do |dylib|
-        get_dylibs(dylib).each do |d|
-          dylibs << d unless dylibs.map {|lib| File.basename(lib)}.include?(File.basename(d))
+        dylibs_to_change(dylib).each do |d|
+          if dylibs.map {|lib| File.basename(lib)}.include?(File.basename(d))
+            dupes << d
+          else
+            dylibs << d
+          end
         end
       end
-      dylibs << '/usr/local/etc/pango/pango.modules'
-      dylibs.each do |libn|
-        cp "#{libn}", "#{TGT_DIR}/"
-      end.each do |libn|
-        next unless libn =~ %r!/lib/(.+?\.dylib)$!
-        libf = $1
-        chmod 0644, "#{TGT_DIR}/#{libf}"
-        # Get the actual name that the file is calling itself
-        otool_lib_id = `otool -D #{TGT_DIR}/#{libf} | sed -n 2p`.chomp
-        sh "install_name_tool -id @executable_path/#{libf} #{TGT_DIR}/#{libf}"
-        ["#{TGT_DIR}/#{NAME}-bin", *Dir['#{TGT_DIR}/*.dylib']].each do |lib2|
-          sh "install_name_tool -change #{otool_lib_id} @executable_path/#{libf} #{lib2}"
+      #dylibs.each {|libn| cp "#{libn}", "dist/" unless File.exists? "dist/#{libn}"}
+      # clunky hack begins - Homebrew keg issue? ro duplicates do exist
+      # make my own dups hash - not the same as dupes. 
+      dups = {}
+      dylibs.each do |libn| 
+        keyf = File.basename libn
+        if !dups[keyf] 
+          cp "#{libn}", "#{TGT_DIR}/"
+          dups[keyf] = true
+          chmod 0755, "#{TGT_DIR}/#{keyf}" unless File.writable? "#{TGT_DIR}/#{keyf}"
         end
       end
-      copy_pango_modules_to_dist
-    end
+      change_install_names
+   end
 
     def setup_system_resources
       puts "Enter setup_system_resources"

@@ -25,7 +25,7 @@ if pkg_config and pkgs.include?("cairo") and pkgs.include?("pango")
 else
   # Hack for when pkg-config is not yet installed
   # CJC - this is ugly. Just fail early 
-  puts "DON'T have pkg-config"
+  #puts "DON'T have pkg-config"
   CAIRO_CFLAGS, CAIRO_LIB, PANGO_CFLAGS, PANGO_LIB = "", "", "", ""
 end
 png_lib = 'png'

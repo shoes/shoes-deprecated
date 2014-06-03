@@ -29,13 +29,14 @@ class Homebrew
   def install_packages
     install "gettext"
     install "glib"
+    install "libpng"
     install "pixman"
     install "cairo", "--quartz"
     link "cairo"
     install "pango", "--quartz"
     install "jpeg"
     install "giflib"
-    install "portaudio"
+    #install "portaudio"
   end
 
   def link package

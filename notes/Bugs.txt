@@ -1,23 +1,67 @@
-Bugs/Status - stick with Ruby 1.9.3 and gtk2 until things get sorted
+Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-06-02 Mac Rakefiles
+
+Done: Got tight shoes 3.2b9 working for OSX. 
+----> Setup OSX Test VM guest on mac mini (not an ubuntu guest).
+     pango.modules file is still not correct see below:
+     
+----> need to copy/install_name_tool fixup on ruby's ext deps like
+     openssl.bundle They are linked to homebrew's /user/local/opt or 
+     /usr/local/Cellar or ...
+     do this in pre_build where I copy ruby. Two phases
+     copy and fixup (-id, -change) Note: otool works on .bundle
+     
+----> Set up Loose shoes (default) build. No extra copy of ruby, or gems
+     or install_name_tool. ftsearch ext needs cache.rb love, prebuild/copy
+  
+2014-06-01 Mac Mini shoes dev
+----> Don't use the rakefile homebrew install. It's out of date.
+     Update wiki, rakefile to not do this.
+     
+done: pango-querymodules depends on an /opt/X11/lib/libXft.2.dylib thats
+     not copyied and cross linked to pango-querymodules. so pangorc doesn't
+     get created at Shoes.app startup. 
+done: remmina is an OK VNC client. Works OK with OSX. 'Remote Desktop Viewer'
+     (ubuntu) also works nicely. 
+done: b7 osx doesn't have the font problem. has pangorc and pango.modules
+     contents are correct for the context @executable_path.
+  
+2014-05-31  Real Mac Mini
+done:  Tight Shoes: Still needs some libtool work for pango-querymodules
+        Borrow from Rakefile. 
+done: Font problem returns. Pango, oh my Pango.
+----> Loose Shoes: Needs copy ftsearch.so + rb into the proper place.
+
+  
 2014-05-30  Cobbler
-     Read the rubygems/code spec_fetcher.rb is called from
+done: Read the rubygems/code: spec_fetcher.rb is called from
      commands/query_command - does the reqexp (-n) search.  Not clear
-     how to do that from API. Undecided if I really want to list the
-     wildcards. 
+     how to do that from API. I don't think the wildcard search is
+     worth the effort. 
      
 done: use Specification._all instead of .all -- keeps the warnings
      away. Better: .each works.
+     
+----> OSX: pango-querymodules copy - permission problem. Weird. Try again
+    and it's OK.  Neither source or target is NFS. Weird. I think it's
+    rake clean. Must rake clean after rake osx:setup:maverick. 
+----> Something is creating NFS/dist and it shouldn't.
+    Minor problems.
+----> 
   
 2014-05-28  Cobbler
      Acting OK thread wise and flow of control wise.
 done: Need to get the status messages working.
 done? Deal with gem exceptions
-----> Test simple-rubygems from manual. Still Works?
-      Installs. Complains (attempt to visit the caller url)
+done: Test simple-rubygems. still works unless called from Manual.
+      It probably never worked - setup calls visit to return/restart the
+      script. That's a hack.
+====> Deprecate Shoes.setup (change the manual)
+      
 done: Need the replacement for Specification.all
-----> and wildcard remote search
+done: and wildcard remote search - won't do this.
   
 2014-05-27  Cobbler
 ====> I think the best thing for cobbler is to NOT re-purpose Shoes.setup.
@@ -33,11 +77,6 @@ done: Major Huh? looking at shoes.rb:124. Copy the whole thing to be
     so that you can't have more than one 'Shoes.setup' block in a script. 
     That illusion doesn't apply to Cobbler. 
     
-----> setup.rb:81 does a visit. That's how I got a second screen after
-    calling Setup. Easy enough to set @script to nil - now have to close
-    the dialog after it succeeds.  We are in visit and url territory so
-    it's not procedural call/return which is what I want. Sleep on this.
-    
 done: Move 'manage gems' button to be avail on loose and tight shoes.
 
 2014-05-24
@@ -51,25 +90,22 @@ done: catch search failure
 done: Test: installed sqlite3 (which requires a compile). It properly
      showed an error and suggested I apt-get install libsqlite3-dev.
      Then it installed it via Shoes.setup and compiled it and then
-----> popped up a second cobbler screen! Like it can't deal with the
-     return. That is very similar to the error running simple-rubygems
-     from inside the manual.
-----> Additional hint: An error from shoes.rb:124 early on. from cobbler:166
 done: write the uninstall code for Cobbler.  Works OK.
 done:  should not allow deletion of System gems. It doesn't. Should
        catch the exeception. 
 done: Not refreshing after install
 done:  spits out a console message confirming deletion. Need a GEM::UI. ick.
-----> OSX Cobbler - can only install once. Shoes.setup problem?
+done: OSX Cobbler - can only install once.
 
 done: Need a better download mechanism on my website.  Wordpress Plugin?
 
----> Figure out a better remote search like 'gem list foo -r' does.
+done: Figure out a better remote search like 'gem list foo -r' does.
+     5-30-14: decided not to.
 
 2014-05-21 Do something fun
 done: Display existing gems in Cobbler?
 done: Rescue search failure
-----> Find all remote gems by name (wildcard)
+done: Find all remote gems by name (wildcard)
   
 2014-05-20 OSX Tight Shoes
 done:Missing the main font. How odd. Be careful. Pangorc ????
@@ -77,13 +113,13 @@ done:Missing the main font. How odd. Be careful. Pangorc ????
 
 done: Can't link against {TGT_DIR} for -lruby.2.1.0. test 2.0.0
 
-----> simple-rubygems works OK  bluecloth compiles and installs. 
+done: simple-rubygems works OK  bluecloth compiles and installs. 
       - some errors on console shoes.rb:124 (from help.rb:142)
 
 done: Add bz2 installer instead of dmg. 
 
 ----> Redo Rakefile/OSX for a loose shoes compile. Lots of cruft
-    in their and my Tight Shoes rake files. 
+    in there and my Tight Shoes rake files. 
       
 ----> Should x11 stuff be there? redo homebrew with the --quartz ?
      Take notes this time.
@@ -134,10 +170,10 @@ done: style with make/mavericks-X86_64/env.rb , tasks.rb and do all the
     and copy them. dylibs_to_change () Fails to copy a rvm ruby because 
     it's not allowing for relative paths. The quick fix would be to copy 
 done: it from EXT_RUBY 
----> (and the includes dir needed for gem building)
----> Also need to run install-name-tool on the copy. 
+done: (and the includes dir needed for gem building)
+done: Also need to run install-name-tool on the copy. 
     
-===> Part of me wants to rewrite all the too clever functional code with 
+done: Part of me wants to rewrite all the too clever functional code with 
     something that's less fragile. Should do both. Probably won't. That's
     how cruft accumlates and no one knows if its right, wrong, unneeded.
   
