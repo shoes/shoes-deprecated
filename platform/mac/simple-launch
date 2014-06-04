@@ -1,0 +1,5 @@
+#!/bin/bash
+APPPATH="${0%/*}"
+unset DYLD_LIBRARY_PATH
+cd "$APPPATH"
+DYLD_LIBRARY_PATH="$APPPATH" SHOES_RUBY_ARCH="#{SHOES_RUBY_ARCH}" ./#{NAME}-bin "$@"

@@ -162,7 +162,8 @@ task :build_os => [:build_skel, "#{TGT_DIR}/#{NAME}"]
 task "shoes/version.h" do |t|
   File.open(t.name, 'w') do |f|
     f << %{#define SHOES_RELEASE_ID #{RELEASE_ID}\n#define SHOES_RELEASE_NAME "#{RELEASE_NAME}"\n#define SHOES_REVISION #{REVISION}\n#define SHOES_BUILD_DATE "#{Time.now.strftime("%Y%m%d")}"\n#define SHOES_PLATFORM "#{SHOES_RUBY_ARCH}"\n}
-    if CROSS || RUBY_PLATFORM =~ /darwin/
+#   if CROSS || RUBY_PLATFORM =~ /darwin/
+    if CROSS
       f << '#define SHOES_STYLE "TIGHT_SHOES"'
     else
       f << '#define SHOES_STYLE "LOOSE_SHOES"'
@@ -336,7 +337,8 @@ namespace :osx do
   
   namespace :build_tasks do
 
-    task :build => [:copy_files_to_dist, :common_build, :copy_deps_to_dist, :change_install_names, :setup_system_resources, :verify]
+    #task :build => [:copy_files_to_dist, :common_build, :copy_deps_to_dist, :change_install_names, :setup_system_resources, :verify]
+    task :build => [:copy_files_to_dist, :common_build, :setup_system_resources]
 
     # Make sure the installed ruby is capable of this build
     task :check_ruby_arch do
@@ -357,10 +359,16 @@ namespace :osx do
 
     task :common_build do
       puts "Entering common_build"
-      mkdir_p "#{TGT_DIR}/lib/ruby"
+      mkdir_p "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_RUBY_ARCH}"
+      # FIXME: too lazy to figure out install_name_tool for this:
+      cd TGT_DIR do
+        dirp = RbConfig::CONFIG['libdir']
+        so =   RbConfig::CONFIG['LIBRUBY_SO']
+        ln_s "#{dirp}/#{so}", so
+      end
       #cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "dist/ruby/lib"
-      cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "#{TGT_DIR}/lib/ruby"
-      cp "#{EXT_RUBY}/lib/libruby.dylib", "#{TGT_DIR}"
+      #cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "#{TGT_DIR}/lib/ruby"
+      #cp "#{EXT_RUBY}/lib/libruby.dylib", "#{TGT_DIR}"
       %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
         #FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
         FileList[rdir].each { |rlib| cp_r rlib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}" }
@@ -418,6 +426,8 @@ namespace :osx do
         chmod 0755, f unless File.writable? f
       end
       cp `which pango-querymodules`.chomp, "#{TGT_DIR}/"
+      # another hack
+      chmod 0755, "#{TGT_DIR}/pango-querymodules"
     end
 
     task :copy_deps_to_dist => :copy_pango_modules_to_dist do
@@ -449,8 +459,6 @@ namespace :osx do
           chmod 0755, "#{TGT_DIR}/#{keyf}" unless File.writable? "#{TGT_DIR}/#{keyf}"
         end
       end
-      # more hack
-      chmod 0755, "#{TGT_DIR}/pango-querymodules"
     end
 
     task :copy_files_to_dist do
@@ -490,14 +498,14 @@ namespace :osx do
       sh "ditto \"#{APP['icons']['osx']}\" \"#{tmpd}/#{APPNAME}.app/Contents/Resources/App.icns\""
       rewrite "platform/mac/Info.plist", "#{tmpd}/#{APPNAME}.app/Contents/Info.plist"
       cp "platform/mac/version.plist", "#{tmpd}/#{APPNAME}.app/Contents/"
-      rewrite "platform/mac/pangorc", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/pangorc"
+      #rewrite "platform/mac/pangorc", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/pangorc"
       cp "platform/mac/command-manual.rb", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/"
-      rewrite "platform/mac/shoes-launch", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
+      rewrite "platform/mac/simple-launch", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
       chmod 0755, "#{tmpd}/#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
       chmod 0755, "#{tmpd}/#{APPNAME}.app/Contents/MacOS/#{NAME}-bin"
       rewrite "platform/mac/shoes", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/#{NAME}"
       chmod 0755, "#{tmpd}/#{APPNAME}.app/Contents/MacOS/#{NAME}"
-      chmod_R 0755, "#{tmpd}/#{APPNAME}.app/Contents/MacOS/pango-querymodules"
+      #chmod_R 0755, "#{tmpd}/#{APPNAME}.app/Contents/MacOS/pango-querymodules"
       # cp InfoPlist.strings YourApp.app/Contents/Resources/English.lproj/
       `echo -n 'APPL????' > "#{tmpd}/#{APPNAME}.app/Contents/PkgInfo"`
       rm_rf "#{TGT_DIR}/#{APPNAME}.app"
@@ -544,11 +552,12 @@ namespace :osx do
 
   task :make_so do
     name = "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
-    ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
-      sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
-      %w[libpostproc.dylib libavformat.dylib libavcodec.dylib libavutil.dylib libruby.dylib].each do |libn|
-        sh "install_name_tool -change /tmp/dep/lib/#{libn} ./deps/lib/#{libn} #{name}"
-      end
+    #ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
+    ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, ""
+    sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
+    #%w[libpostproc.dylib libavformat.dylib libavcodec.dylib libavutil.dylib libruby.dylib].each do |libn|
+    #    sh "install_name_tool -change /tmp/dep/lib/#{libn} ./deps/lib/#{libn} #{name}"
+    #end
   end
 
   #task :installer => ['build_tasks:setup_system_resources', 'verify:sanity', 'verify:lib_paths', 'osx:dmg_create']
@@ -557,7 +566,11 @@ namespace :osx do
       Builder.make_installer
     end 
   else
-    task :installer => ['osx:tbz_create']
+    task :installer do # => ['osx:tbz_create']
+      abort "Sorry, you can't distribute a Loose Shoes. It's tightly linked to your\
+configuration that the other user won't have. You can build a Tight Shoes\
+which is more universal. See 'rake -T' 'rake osx:setup:mavericks' perhaps?"
+    end
   end 
   
   task :tbz_create do

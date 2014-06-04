@@ -1,0 +1,58 @@
+OSX rake steps/tasks (as of June/2/14)
+
+Old Shoes : In Rakefile 
+   in order with funky syntax to explain. These are rake tasks.
+   build_tasks:pre_build
+   :build_skel
+   "#{dist}/#{shoes}"		# compiles and builds shoes-bin
+   "#{dist}/VERSION.txt
+   copy_files_to_dist,		# copys static, samples, etc
+   :common_build, 			# builds exts, shoes gems if any
+   :copy_pango_modules_to_dist # copies pango-modules and pango-querymodules
+   :copy_deps_to_dist, 		# Create list of all libs used by shoes-bin,
+			# and pango-querymodules and all libs used by those libs
+			# checking for duplicates. Then copies them
+   :change_install_names, 	# from a list of shoes-bin, pango-querymodeles, 
+			# all dylibs and pango/modules/*.so do the install_name_tool
+			# dance of -id and -change for each lib use (and subordinates)
+   :setup_system_resources, 
+   :verify
+   
+Loose Shoes (in Rakefile)
+   build_tasks:pre_build	# sets up path structure for dist/lib/ruby/n.n.n/x86_64-
+   :build_skel
+   "#{dist}/#{shoes}"		# compiles and builds shoes-bin
+   "#{dist}/VERSION.txt
+   copy_files_to_dist,		# copys static, samples, etc
+   :common_build, 			# builds exts, shoes gems if any - copy to
+        # dist
+   #:copy_pango_modules_to_dist # copies pango-modules and pango-querymodules
+   #:copy_deps_to_dist, 		# Create list of all libs used by shoes-bin,
+			# and pango-querymodules and all libs used by those libs
+			# checking for duplicates. Then copies them
+   #:change_install_names, 	# from a list of shoes-bin, pango-querymodeles, 
+			# all dylibs and pango/modules/*.so do the install_name_tool
+			# dance of -id and -change for each lib use (and subordinates)
+   :setup_system_resources, 
+   #:verify
+   NO INSTALLER/PACKAGER - Error message instead
+    
+
+Tight Shoes (in make/mavericks/tasks.rb, env.rb)
+   :pre_build, 
+   :build_os
+    Then the following procedures (functions in tasks.rb)
+    common_build			# builds exts, shoes gems if any
+    copy_files_to_dist		# copys static, samples, etc
+    copy_deps_to_dist
+      copy_pango_modules 	# copies pango-modules and pango-querymodules
+      # Create list of all libs used by shoes-bin,
+	  # and pango-querymodules and all libs used by those libs
+	  # checking for duplicates. Then copies them
+      change_install_names, # from a list of shoes-bin, pango-querymodeles, 
+			# all dylibs and pango/modules/*.so do the install_name_tool
+			# dance of -id and -change for each lib use (and subordinates)
+    Builder.setup_system_resources
+    
+    Need to copy and process the ruby dependent libs like openssl.bundle
+    bundle is the key ext. (in pre build where ruby is copied)

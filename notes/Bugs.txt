@@ -1,13 +1,30 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+  
+2014-06-03 Wrapping up B9 on OSX - Rakefile and B9. Next will be 3.2.10
+
+Done: Fixed Tight Shoes rake files. Works in VM (w/o homebrew or xcode or
+      an installed ruby). 
+----> Disable homebrew patchs/git ...
+----> Loose Shoes
+done:   Rakefile - declare Loose
+done:   Different launch stub w/o/ the pangorc/modules/query
+        Copy libruby.dylib or -id/-change the linkage to it's home.
+---->    Or hack: create a softlink. Fix it. Still not right but Good enough?
+done:    Don't allow 'rake package' or rake 'installer' for Loose Shoes, OSX. 
+        Add -c cobble to Shoes.app menu 
+
+----> Readme.Source
+      how to compile, run Shoes from command-line ....
+  
 2014-06-02 Mac Rakefiles
 
 Done: Got tight shoes 3.2b9 working for OSX. 
-----> Setup OSX Test VM guest on mac mini (not an ubuntu guest).
+Done: Setup OSX Test VM guest on mac mini (not an ubuntu guest).
      pango.modules file is still not correct see below:
      
-----> need to copy/install_name_tool fixup on ruby's ext deps like
+done: need to copy/install_name_tool fixup on ruby's ext deps like
      openssl.bundle They are linked to homebrew's /user/local/opt or 
      /usr/local/Cellar or ...
      do this in pre_build where I copy ruby. Two phases
