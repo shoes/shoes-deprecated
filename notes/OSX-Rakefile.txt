@@ -56,3 +56,16 @@ Tight Shoes (in make/mavericks/tasks.rb, env.rb)
     
     Need to copy and process the ruby dependent libs like openssl.bundle
     bundle is the key ext. (in pre build where ruby is copied)
+
+Here's my homebrew list - installing rvm installed homebrew and populated
+a few more. The rest I added, with and without the help of the Rakefile
+
+~/Projects/shoes3.2$ brew list
+autoconf		gobject-introspection	libtool
+automake		harfbuzz				libyaml
+cairo			icu4c					openssl
+fontconfig		jpeg					pango
+freetype		libffi					pixman
+gettext			libgpg-error			pkg-config
+giflib			libksba					readline
+glib			libpng

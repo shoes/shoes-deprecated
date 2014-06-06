@@ -1,6 +1,16 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-06-04
+     Did I know that 'brew install gtk2' and 'brew install gtk3' is claimed
+     to work? That screams "Try me Cecil! Try me" I must resist the urge
+     to create another set of rakefiles in make/
+     
+---->  Get ~/bin/build-shoes-osx working via ssh 
+done: Get ssh from mainbox to mini working w/o password prompt
+done: PITA cron/ssh/bashrc/bash_profile 
+---->  Add to weekly build script. 
+----> Cut down the warning messages from clang. Good Lord does it complain!
   
 2014-06-03 Wrapping up B9 on OSX - Rakefile and B9. Next will be 3.2.10
 

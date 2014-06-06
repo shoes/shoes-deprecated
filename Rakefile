@@ -323,6 +323,11 @@ namespace :osx do
       sh "echo 'TGT_ARCH=mavericks-x86_64' >crosscompile"
     end
     
+    desc "Setup to build Shoes/Gtk2/OSX 10.9+"
+    task :gtk2 do
+      sh "echo 'TGT_ARCH=osx-gtk2' >crosscompile"
+    end
+    
     desc "Setup to build Shoes just for my Mac (default)"
     task :clean do
       rm_rf "crosscompile"

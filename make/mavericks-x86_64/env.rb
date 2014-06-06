@@ -19,7 +19,6 @@ end
 ADD_DLL = []
 
 # Darwin build environment
-# CJC - overly complicated. Just fail if one of the pkg-config's goes wrong
 pkg_config = `which pkg-config` != ""
 pkgs = `pkg-config --list-all`.split("\n").map {|p| p.split.first} unless not pkg_config
 if pkg_config and pkgs.include?("cairo") and pkgs.include?("pango")
@@ -29,8 +28,6 @@ if pkg_config and pkgs.include?("cairo") and pkgs.include?("pango")
   PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : `pkg-config --libs pango`.strip
 else
   # Hack for when pkg-config is not yet installed
-  # CJC - this is ugly. Just fail early.
-  abort "DON'T have pkg-config"
   CAIRO_CFLAGS, CAIRO_LIB, PANGO_CFLAGS, PANGO_LIB = "", "", "", ""
 end
 png_lib = 'png'
@@ -54,7 +51,8 @@ end
 LINUX_CFLAGS << " -DRUBY_1_9"
 
 DLEXT = "dylib"
-LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{RbConfig::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions"
+#LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{RbConfig::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions"
+LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -fpascal-strings #{RbConfig::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions"
 LINUX_LDFLAGS = "-framework Cocoa -framework Carbon -dynamiclib -Wl,-single_module INSTALL_NAME"
 LINUX_LIB_NAMES << 'pixman-1' << 'jpeg.8'
 

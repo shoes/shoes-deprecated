@@ -103,6 +103,7 @@ class MakeDarwin
     
     def pre_build
       puts "Entering osx pre_build #{TGT_DIR}"
+      rm_rf "#{TGT_DIR}"
       # copy Ruby, dylib, includes - have them in place before
       # we build exts (ftsearch). 
       puts "Ruby at #{EXT_RUBY}"
@@ -113,6 +114,7 @@ class MakeDarwin
       rm_f "#{TGT_DIR}/libruby.dylib" if File.exist? "#{TGT_DIR}/libruby.dylib"
       rm_f "#{TGT_DIR}/libruby.#{rbvm}.dylib" if File.exist? "#{TGT_DIR}/libruby.#{rbvm}.dylib"
       rm_f "#{TGT_DIR}/libruby.#{rbvt}.dylib" if File.exist? "#{TGT_DIR}/libruby.#{rbvt}.dylib"
+      mkdir_p "#{TGT_DIR}/lib/ruby/#{RUBY_VERSION}/#{RUBY_PLATFORM}"
       cp_r "#{EXT_RUBY}/lib/ruby", "#{TGT_DIR}/lib"
       # copy and link libruby.dylib
       cp "#{EXT_RUBY}/lib/libruby.#{rbvt}.dylib", "#{TGT_DIR}"
@@ -213,14 +215,15 @@ class MakeDarwin
           end
         end
       end
-      #dylibs.each {|libn| cp "#{libn}", "dist/" unless File.exists? "dist/#{libn}"}
+      #dylibs.each {|libn| cp "#{libn}", "#{TGT_DIR}/" unless File.exists? "#{TGT_DIR}/#{libn}"}
       # clunky hack begins - Homebrew keg issue? ro duplicates do exist
       # make my own dups hash - not the same as dupes. 
       dups = {}
       dylibs.each do |libn| 
         keyf = File.basename libn
         if !dups[keyf] 
-          cp "#{libn}", "#{TGT_DIR}/"
+          #puts "Copy: #{keyf}"
+          cp "#{libn}", "#{TGT_DIR}/" unless File.exists? "#{TGT_DIR}/#{keyf}"
           dups[keyf] = true
           chmod 0755, "#{TGT_DIR}/#{keyf}" unless File.writable? "#{TGT_DIR}/#{keyf}"
         end
