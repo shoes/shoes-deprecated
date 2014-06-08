@@ -1,16 +1,48 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-06-07
+
+done? undo the damage from installing gtk2 with homebrew.
+
+====> Rakefile:osx_bootstrap_env just seems wrong. Is there no better way?
+
+2014-06-06
+     add export PKG_CONFIG_PATH=/opt/X11/lib/pkgconfig
+     tweek Rakefile to use /opt/X11.. capital X damn it!
+     add SHOES_GTK_OSX  use to condition shoes_get_time
+done: Shoes compiles.
+done: Link shoes.dylib, shoes-bin
+----> install_name doesn't want to fix libcairo for libz
+      Why are we copying /usr/lib/libz.dylib at all? Tweek to not copy/mod
+      if /usr/lib.
+done: Execute: osx/gtk wants a display. It does use env DISPLAY but what's
+      the value for what I've got.  Much googling. Known issue - weird 
+      solutions that are not appropiate for Shoes users. 
+      
+done:  Abandon the experiment. Now link failure for shoes.dylib. I suspect
+     brew install gtk altered something. Grrr.
+  
+2014-06-05 OSX GTK2 experiment
+     Note the ENV var warning (see notes/OSX-Rakefile.txt)
+done: Modify env.rb. Good luck and remember to have fun.
+
+done: rewrite 'What is Federales' for blog,
+----> wiki page.
+     
 2014-06-04
      Did I know that 'brew install gtk2' and 'brew install gtk3' is claimed
      to work? That screams "Try me Cecil! Try me" I must resist the urge
      to create another set of rakefiles in make/
      
----->  Get ~/bin/build-shoes-osx working via ssh 
+done:  Get ~/bin/build-shoes-osx working via ssh 
+       It was harder than I thought.
+
 done: Get ssh from mainbox to mini working w/o password prompt
 done: PITA cron/ssh/bashrc/bash_profile 
----->  Add to weekly build script. 
+done:  Add to weekly build script. 
 ----> Cut down the warning messages from clang. Good Lord does it complain!
+      It's because they use Ruby's -W settings.
   
 2014-06-03 Wrapping up B9 on OSX - Rakefile and B9. Next will be 3.2.10
 
@@ -26,7 +58,7 @@ done:    Don't allow 'rake package' or rake 'installer' for Loose Shoes, OSX.
         Add -c cobble to Shoes.app menu 
 
 ----> Readme.Source
-      how to compile, run Shoes from command-line ....
+      how to compile, run Shoes from command-line .... to be written
   
 2014-06-02 Mac Rakefiles
 

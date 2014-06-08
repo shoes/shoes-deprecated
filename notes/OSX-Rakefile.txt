@@ -1,6 +1,6 @@
 OSX rake steps/tasks (as of June/2/14)
 
-Old Shoes : In Rakefile 
+Old Shoes 3.1: In Rakefile 
    in order with funky syntax to explain. These are rake tasks.
    build_tasks:pre_build
    :build_skel
@@ -57,7 +57,8 @@ Tight Shoes (in make/mavericks/tasks.rb, env.rb)
     Need to copy and process the ruby dependent libs like openssl.bundle
     bundle is the key ext. (in pre build where ruby is copied)
 
-Here's my homebrew list - installing rvm installed homebrew and populated
+Here's my homebrew list - installing rvm installed homebrew (autoconf, automake, ..) 
+and rvm added yaml, openssl, libffi so ruby could build. 
 a few more. The rest I added, with and without the help of the Rakefile
 
 ~/Projects/shoes3.2$ brew list
@@ -69,3 +70,55 @@ freetype		libffi					pixman
 gettext			libgpg-error			pkg-config
 giflib			libksba					readline
 glib			libpng
+
+====== And there was a osx-gtk2 ==========
+  It's crosscrompile aka Tight_Shoes 'experiment' make/osx-gtk2/env.rb ...
+
+mini:~/Projects/shoes3.2$ brew install gtk
+==> Installing dependencies for gtk+: libtiff, gdk-pixbuf, atk
+==> Installing gtk+ dependency: libtiff
+==> Downloading https://downloads.sf.net/project/machomebrew/Bottles/libtiff-4.0
+######################################################################## 100.0%
+==> Pouring libtiff-4.0.3.mavericks.bottle.tar.gz
+🍺  /usr/local/Cellar/libtiff/4.0.3: 254 files, 3.8M
+==> Installing gtk+ dependency: gdk-pixbuf
+==> Downloading https://downloads.sf.net/project/machomebrew/Bottles/gdk-pixbuf-
+######################################################################## 100.0%
+==> Pouring gdk-pixbuf-2.30.8.mavericks.bottle.tar.gz
+==> Caveats
+Programs that require this module need to set the environment variable
+  export GDK_PIXBUF_MODULEDIR="/usr/local/lib/gdk-pixbuf-2.0/2.10.0/loaders"
+If you need to manually update the query loader cache
+  /usr/local/Cellar/gdk-pixbuf/2.30.8/bin/gdk-pixbuf-query-loaders --update-cache
+==> /usr/local/Cellar/gdk-pixbuf/2.30.8/bin/gdk-pixbuf-query-loaders --update-ca
+==> Summary
+🍺  /usr/local/Cellar/gdk-pixbuf/2.30.8: 209 files, 4.3M
+==> Installing gtk+ dependency: atk
+==> Downloading https://downloads.sf.net/project/machomebrew/Bottles/atk-2.12.0.
+######################################################################## 100.0%
+==> Pouring atk-2.12.0.mavericks.bottle.tar.gz
+🍺  /usr/local/Cellar/atk/2.12.0: 205 files, 3.5M
+==> Installing gtk+
+==> Downloading https://downloads.sf.net/project/machomebrew/Bottles/gtk+-2.24.2
+######################################################################## 100.0%
+==> Pouring gtk+-2.24.23.mavericks.bottle.1.tar.gz
+🍺  /usr/local/Cellar/gtk+/2.24.23: 1199 files, 59M
+mini:~/Projects/shoes3.2$ brew list
+atk			glib			libpng
+autoconf		gobject-introspection	libtiff
+automake		gtk+			libtool
+cairo			harfbuzz		libyaml
+fontconfig		icu4c			openssl
+freetype		jpeg			pango
+gdk-pixbuf		libffi			pixman
+gettext			libgpg-error		pkg-config
+giflib			libksba			readline
+
+libtiff? Really?
+
+I'll start with copys of the mavericks env, task and then Create a 
+#ifdef SHOES_GTK_OSX and see what breaks. 
+Actually, it compiles and links. It won't run however without some dancing
+around with X11 which is not something I want users to do.
+
+====== Experiment finished - Fail ==================

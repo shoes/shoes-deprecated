@@ -115,7 +115,11 @@ unsigned long shoes_diff_time(SHOES_TIME *start, SHOES_TIME *end)
 #else
 void shoes_get_time(SHOES_TIME *ts)
 {
+#ifdef SHOES_GTK_OSX
+  gettimeofday(ts, NULL);
+#else
   clock_gettime(CLOCK_REALTIME, ts);
+#endif
 }
 
 unsigned long shoes_diff_time(SHOES_TIME *start, SHOES_TIME *end)
