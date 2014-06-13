@@ -9,7 +9,7 @@ EXT_RUBY = RbConfig::CONFIG['prefix']
 # require 'rbconfig' not needed
 
 CC = ENV['CC'] ? ENV['CC'] : "gcc"
-file_list = ["shoes/*.c"] + %w{shoes/native/cocoa.m shoes/http/nsurl.m}
+file_list =  %w{shoes/native/cocoa.m shoes/http/nsurl.m} + ["shoes/*.c"]
 
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|

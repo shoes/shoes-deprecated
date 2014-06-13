@@ -624,6 +624,27 @@ VALUE
 shoes_font_list()
 {
   INIT;
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
+  VALUE ary = rb_ary_new();
+  CFBooleanRef value= kCFBooleanTrue;
+  int vtrue[1] = {1};
+  CFDictionaryRef dict = CFDictionaryCreate(NULL, 
+					    (const void **)kCTFontCollectionRemoveDuplicatesOption, 
+					    (const void **)&vtrue, 1, NULL, NULL);
+  CTFontCollectionRef fcref = CTFontCollectionCreateFromAvailableFonts(dict);
+  CFArrayRef arrayref = CTFontCollectionCreateMatchingFontDescriptors(fcref);
+  CFRelease(fcref);
+  CFIndex count = CFArrayGetCount(arrayref);
+  CFIndex i;
+ for (i=0; i<count; i++) {
+    CTFontDescriptorRef fdesc =(CTFontDescriptorRef)CFArrayGetValueAtIndex(arrayref, i);
+    CTFontRef font = CTFontCreateWithFontDescriptor(fdesc, 0., NULL);
+	CFStringRef cfname = CTFontCopyFullName(font);
+	static char fname[100];
+	CFStringGetCString(cfname, fname, sizeof(fname), kCFStringEncodingUTF8);
+    rb_ary_push(ary, rb_str_new2(fname));
+  }
+#else
   ATSFontIterator fi = NULL;
   ATSFontRef fontRef = 0;
   NSMutableArray *outArray;
@@ -641,6 +662,7 @@ shoes_font_list()
   }
   
   ATSFontIteratorRelease(&fi);
+#endif
   RELEASE;
   rb_funcall(ary, rb_intern("uniq!"), 0);
   rb_funcall(ary, rb_intern("sort!"), 0);

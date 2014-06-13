@@ -1,6 +1,11 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-06-11  Do something easy on OSX code base
+     OSX Font handling deprecations produce a lot of warning messages.
+----> Fix that. Font handling is part of 'core text' which is a C api,
+    Frameworks within frameworks and .h #import. Needs thinking. 
+  
 2014-06-07
 
 done? undo the damage from installing gtk2 with homebrew.
