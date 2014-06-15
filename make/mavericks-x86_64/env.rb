@@ -32,7 +32,7 @@ else
 end
 png_lib = 'png'
 
-LINUX_CFLAGS = %[-Wall #{ENV['GLIB_CFLAGS']} -I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{RbConfig::CONFIG['archdir']}]
+LINUX_CFLAGS = %[-g -Wall #{ENV['GLIB_CFLAGS']} -I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{RbConfig::CONFIG['archdir']}]
 if RbConfig::CONFIG['rubyhdrdir']
   LINUX_CFLAGS << " -I#{RbConfig::CONFIG['rubyhdrdir']} -I#{RbConfig::CONFIG['rubyhdrdir']}/#{SHOES_RUBY_ARCH}"
 end
