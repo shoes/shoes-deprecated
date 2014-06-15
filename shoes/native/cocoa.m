@@ -626,7 +626,7 @@ shoes_font_list()
   INIT;
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
   VALUE ary = rb_ary_new();
-  CFBooleanRef value= kCFBooleanTrue;
+  // CFBooleanRef value= kCFBooleanTrue;
   int vtrue[1] = {1};
   CFDictionaryRef dict = CFDictionaryCreate(NULL, 
 					    (const void **)kCTFontCollectionRemoveDuplicatesOption, 
@@ -672,6 +672,18 @@ shoes_font_list()
 VALUE
 shoes_load_font(const char *filename)
 {
+#ifndef OLD_SHOES
+  VALUE families = Qnil;
+  CFURLRef cfuref ;
+  bool ok;
+  CFErrorRef err;
+  cfuref = CFURLCreateFromFileSystemRepresentation (NULL, (UInt8 *)filename, strlen(filename), false);
+
+  ok = CTFontManagerRegisterFontsForURL(cfuref, kCTFontManagerScopeProcess, &err);
+  if (!ok ) {
+    NSLog(@"Failed %d",err);
+  }
+#else
   FSRef fsRef;
   FSSpec fsSpec;
   Boolean isDir;
@@ -705,7 +717,7 @@ shoes_load_font(const char *filename)
       }
     }
   }
-
+#endif
   shoes_update_fonts(shoes_font_list());
   return families;
 }
@@ -1531,12 +1543,22 @@ shoes_dialog_chooser(VALUE self, NSString *title, BOOL directories, VALUE attr)
     [openDlg setCanChooseFiles: !directories];
     [openDlg setCanChooseDirectories: directories];
     [openDlg setAllowsMultipleSelection: NO];
+    [openDlg setTitle: title];
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+    if ( [openDlg runModal] == NSOKButton )
+    {
+      NSArray *urls = [openDlg URLs];
+      const char *filename = [[[urls objectAtIndex: 0] path] UTF8String];
+      path = rb_str_new2(filename);
+    }
+#else
     if ( [openDlg runModalForDirectory: nil file: nil] == NSOKButton )
     {
       NSArray* files = [openDlg filenames];
       const char *filename = [[files objectAtIndex: 0] UTF8String];
       path = rb_str_new2(filename);
     }
+#endif
   });
   return path;
 }
@@ -1554,12 +1576,23 @@ shoes_dialog_save(int argc, VALUE *argv, VALUE self)
 {
   VALUE path = Qnil;
   COCOA_DO({
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+    NSSavePanel* saveDlg = [NSSavePanel savePanel];
+    [saveDlg setTitle: @"Save file"];
+    if ( [saveDlg runModal] == NSOKButton )
+    {
+      NSURL *url = [saveDlg URL];
+      const char *filename = [[url path] UTF8String];
+      path = rb_str_new2(filename);
+    }
+#else
     NSSavePanel* saveDlg = [NSSavePanel savePanel];
     if ( [saveDlg runModalForDirectory:nil file:nil] == NSOKButton )
     {
       const char *filename = [[saveDlg filename] UTF8String];
       path = rb_str_new2(filename);
     }
+#endif
   });
   return path;
 }
@@ -1577,5 +1610,22 @@ shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   rb_parse_args(argc, argv, "|h", &args);
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+  VALUE path = Qnil;
+  COCOA_DO({
+    NSSavePanel *saveDlg = [NSSavePanel savePanel];
+    [saveDlg setTitle: @"Save folder..."];
+    [saveDlg setPrompt: @"Save here"];
+    [saveDlg setNameFieldStringValue: @"Any Name"];
+    if ( [saveDlg runModal] == NSOKButton )
+    {
+      NSURL *durl = [saveDlg directoryURL];
+      const char *dirname = [[durl path] UTF8String];
+      path = rb_str_new2(dirname);
+    }
+  });
+  return path;
+#else
   return shoes_dialog_chooser(self, @"Save folder...", YES, args.a[0]);
+#endif
 }

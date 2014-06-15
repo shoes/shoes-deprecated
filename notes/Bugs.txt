@@ -1,10 +1,28 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-06-14 osx shoes/cocoa.m
+      Fixed shoes_load_font.  
+done: runModalForDirectory:file - replace with runModal
+done: Maybe I can fix ask_save_directory. I want the new folder button
+      and that's not available for OpenPanel. It's working OK enough. 
+done: setTitle in file/folder dialogs
+----> should fix Gtk2 save_folder dialogs (if possible)
+  
+2014-06-13 OSX shoes/cocoa.m
+done:  shoes_load_font(filename) is fun. Switch to url instead of FS, ATS
+---->  lldb is the command line debugger.  complains
+        error: '/Users/ccoupe/build/mavericks-x86_64/Shoes.app' doesn't 
+        contain any 'host' platform architectures: x86_64, i386
+      Is that a plist problem? no debugging info in files? Yes, Yes and
+      still doesn't work.
+
+2014-06-12  OSX shoes/cocoa.m
+done: shoes_font_list() appears to work.  Using CT (core text)
+ 
 2014-06-11  Do something easy on OSX code base
      OSX Font handling deprecations produce a lot of warning messages.
-----> Fix that. Font handling is part of 'core text' which is a C api,
-    Frameworks within frameworks and .h #import. Needs thinking. 
+ 
   
 2014-06-07
 
