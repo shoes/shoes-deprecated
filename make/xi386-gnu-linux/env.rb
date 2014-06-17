@@ -13,7 +13,7 @@ ENV['GDB'] = "SureYouBetcha" # compile -g,  strip symbols when nil
 # CHROOT = "/srv/chroot/deb386"
 CHROOT = ""
 # Where does ruby code live?
-EXT_RUBY = "#{CHROOT}/usr"
+EXT_RUBY = "#{CHROOT}/usr/local"
 SHOES_TGT_ARCH = 'i686-linux'
 # Specify where the Target system binaries live. 
 # Trailing slash is important.
@@ -26,7 +26,7 @@ larch = "#{TGT_SYS_DIR}lib/#{arch}"
 # Set appropriately
 CC = "gcc"
 
-pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.0.pc"
+pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.1.pc"
 pkggtk ="#{ularch}/pkgconfig/#{ENV['GTK']}.pc" 
 # Use Ruby or Curl?
 RUBY_HTTP = true
@@ -115,7 +115,7 @@ SOLOCS['curl'] = "#{ularch}/libcurl.so.4" if !RUBY_HTTP
 SOLOCS['ungif'] = "#{uldir}/libungif.so.4"
 SOLOCS['gif'] = "#{uldir}/libgif.so.4"
 SOLOCS['jpeg'] = "#{ularch}/libjpeg.so.8"
-SOLOCS['libyaml'] = "#{ularch}/libyaml.so"
+SOLOCS['libyaml'] = "#{ularch}/libyaml-0.so.2"
 SOLOCS['crypto'] = "#{ularch}/libcrypto.so.1.0.0"
 SOLOCS['ssl'] = "#{ularch}/libssl.so.1.0.0"
 if ENV['GTK'] == 'gtk+-2.0' && COPY_GTK == true
