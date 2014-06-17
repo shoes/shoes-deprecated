@@ -13,7 +13,7 @@ ENV['GDB'] = "SureYouBetcha" # compile -g,  strip symbols when nil
 # CHROOT = "/srv/chroot/deb386"
 CHROOT = ""
 # Where does ruby code live?
-EXT_RUBY = "/usr"
+EXT_RUBY = "/usr/local"
 SHOES_TGT_ARCH = 'x86_64-linux'# Specify where the Target system binaries live. 
 # Trailing slash is important.
 TGT_SYS_DIR = "#{CHROOT}/"
@@ -24,7 +24,7 @@ ularch = "#{TGT_SYS_DIR}usr/lib/#{arch}"
 larch = "#{TGT_SYS_DIR}lib/#{arch}"
 # Set appropriately
 CC = "gcc"
-pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.0.pc"
+pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.1.pc"
 pkggtk ="#{ularch}/pkgconfig/#{ENV['GTK']}.pc" 
 # Use Ruby or curl for downloads
 RUBY_HTTP = true
@@ -44,33 +44,6 @@ OBJ = SRC.map do |x|
 end
 
 ADD_DLL = []
-
-# Hand code for your situation and Ruby purity. Mine is
-# "Church of Whatever Works That I Can Understand"
-def xfixip(path)
-   path.gsub!(/-I\/usr\//, "-I#{TGT_SYS_DIR}usr/")
-   path.gsub!(/x86_64-linux-gnu/,"i386-linux-gnu")
-   return path
-end
-
-def xfixrvmp(path)
-  # This is what happens when you don't cross compile ruby properly
-  # like I told you to do. 
-  #path.gsub!(/-I\/home\/ccoupe\/\.rvm/, "-I#{TGT_SYS_DIR}rvm")
-  return path
-end
-
-#  fix up the -L paths for rvm ruby. Undo when not using an rvm ruby
-def xfixrvml(path)
-  #path.gsub!(/-L\/home\/ccoupe\/\.rvm/, "-L#{TGT_SYS_DIR}rvm")
-  return path
-end
-
-# fixup the -L paths for gtk and other libs
-def xfixil(path) 
-  path.gsub!(/-L\/usr\/lib/, "-L#{TGT_SYS_DIR}usr/lib")
-  return path
-end
 
 # Target environment
 #CAIRO_CFLAGS = `pkg-config --cflags cairo`.strip
@@ -117,7 +90,7 @@ SOLOCS['curl'] = "#{curlloc}/libcurl.so.4" if !RUBY_HTTP
 SOLOCS['ungif'] = "#{uldir}/libungif.so.4"
 SOLOCS['gif'] = "#{uldir}/libgif.so.4" # because Suse wants it
 SOLOCS['jpeg'] = "#{ularch}/libjpeg.so.8"
-SOLOCS['libyaml'] = "#{ularch}/libyaml.so"
+SOLOCS['libyaml'] = "#{ularch}/libyaml-0.so.2"
 SOLOCS['pcre'] = "#{larch}/libpcre.so.3"
 SOLOCS['crypto'] = "#{ularch}/libcrypto.so.1.0.0"
 SOLOCS['ssl'] = "#{ularch}/libssl.so.1.0.0"
