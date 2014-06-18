@@ -32,10 +32,12 @@ ENV['CC'] = CC
 ENV['TGT_RUBY_PATH'] = EXT_RUBY
 ENV['TGT_ARCH'] = SHOES_TGT_ARCH
 #ENV['TGT_RUBY_V'] = '1.9.1'
-ENV['TGT_RUBY_V'] = '2.0.0'
+#ENV['TGT_RUBY_V'] = '2.0.0'
+ENV['TGT_RUBY_V'] = '2.1.0'
 TGT_RUBY_V = ENV['TGT_RUBY_V'] 
 #pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-1.9.pc"
-pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.0.pc"
+#pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.0.pc"
+pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.1.pc"
 pkggtk ="#{ularch}/pkgconfig/#{ENV['GTK']}.pc" 
 # CURL or RUBY?
 RUBY_HTTP = true
