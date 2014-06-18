@@ -114,7 +114,7 @@ class MakeDarwin
       rm_f "#{TGT_DIR}/libruby.dylib" if File.exist? "#{TGT_DIR}/libruby.dylib"
       rm_f "#{TGT_DIR}/libruby.#{rbvm}.dylib" if File.exist? "#{TGT_DIR}/libruby.#{rbvm}.dylib"
       rm_f "#{TGT_DIR}/libruby.#{rbvt}.dylib" if File.exist? "#{TGT_DIR}/libruby.#{rbvt}.dylib"
-      mkdir_p "#{TGT_DIR}/lib/ruby/#{RUBY_VERSION}/#{RUBY_PLATFORM}"
+      mkdir_p "#{TGT_DIR}/lib/ruby/#{rbvm}.0/#{RUBY_PLATFORM}"
       cp_r "#{EXT_RUBY}/lib/ruby", "#{TGT_DIR}/lib"
       # copy and link libruby.dylib
       cp "#{EXT_RUBY}/lib/libruby.#{rbvt}.dylib", "#{TGT_DIR}"
@@ -128,7 +128,7 @@ class MakeDarwin
         ln_s "libruby.#{rbvt}.dylib", "libruby.#{rbvm}.dylib"
       end
       # Find ruby's dependent libs in homebrew (/usr/local/
-      cd "#{TGT_DIR}/lib/ruby/#{RUBY_VERSION}/#{RUBY_PLATFORM}" do
+      cd "#{TGT_DIR}/lib/ruby/#{rbvm}.0/#{RUBY_PLATFORM}" do
         bundles = *Dir['*.bundle']
         cplibs = {}
         bundles.each do |bpath| 
@@ -287,6 +287,11 @@ class MakeDarwin
         sh "tar -cf #{distname}.tar #{APPNAME}.app"
         sh "bzip2 -f #{distname}.tar"
         mv "#{distname}.tar.bz2", "#{distfile}"
+      end
+      if nfs 
+        # copy to /pkg
+        mkdir_p "pkg"
+        sh  "cp #{distfile} pkg/"
       end
     end 
   

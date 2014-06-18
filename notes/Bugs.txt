@@ -1,6 +1,39 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-06-17
+done: arm build - wrong ruby versions, twice the size.
+done: osx - yup the switch to 2.1.2 from 2.1.0 broke the rakefiles because
+      the copied ruby lib is still 2.1.0. Sigh. My bad.
+  
+2014-06-16 
+====> Downloadable VM's images of MSW (XP thru 9.1), 90 day trial,
+      can be re-installed after 90. Just what Shoes needs for win 8 and 8.1
+      https://www.modern.ie/en-us/virtualization-tools#downloads
+      
+done Move Linux chroots to Ruby 2.1.x (osx, windows are 2.1.x so I should
+      bite the bullet. Theres talk of EOL for 2.0.0 already. Might fix
+      the pysch.so problem (I doubt it, but it's possible).
+      It's libyaml.so.... That was updated (debian update) since last test
+      My cleverness with auto update on the chroots. I didn't think about
+      Rebuilding Rubies to link to the newer libs. Yes, upgrading to 2.1.2
+      would have fixed it but I wouldn't have discovered the real problem
+done: Also have to copy libyaml-0.so.2 NOT libyaml.so
+      Install-name-tool is looking smarter than I thought. 
+      
+done: i386: Modify rakefile for 2.1 (/usr/local/ and ruby2.1.0.pc)
+done: x86_64 " 2.1.2p95  - Ubuntu OK, Fedora OK. Suse OK. Open-Fedora is a pig.
+  
+2014-06-15 Testing 3.2.10 (first non beta) VM Tests:
+done: Windows - Shoes OK - Ruby 2.1.0 - installer thinks its 3.2b5
+      The b5 thing is Windows remembering the last install of Shoes. NBD
+done: armhf - no problem other than speed for gem handling.
+done: i386 - Cobbler/Gems can't find pysch.so. Ruby 2.0.0
+done: X86-64/Suse - Shoes OK. Ruby 2.0.0 
+done: X86_64/Fedora - Cobbler/Gems can't find pysch.so. Ruby 2.0.0
+done: OSX/Niresh - doesn't have /usr/local/opt/openssl/lib/libcrypto.1.0.0.dylib
+      need the install-name dance for Ruby's *.bundles
+  
 2014-06-14 osx shoes/cocoa.m
       Fixed shoes_load_font.  
 done: runModalForDirectory:file - replace with runModal
