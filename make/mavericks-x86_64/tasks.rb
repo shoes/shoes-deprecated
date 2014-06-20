@@ -281,7 +281,7 @@ class MakeDarwin
       puts "tbz_create from #{`pwd`}"
       nfs=ENV['NFS_ALTP'] 
       mkdir_p "#{nfs}pkg"
-      distfile = "#{nfs}pkg/#{PKG}#{TINYVER}-osx10.9.tbz"
+      distfile = "#{nfs}pkg/#{PKG}#{TINYVER}-osx-10.9.tbz"
       Dir.chdir("#{TGT_DIR}") do
         distname = "#{PKG}#{TINYVER}"
         sh "tar -cf #{distname}.tar #{APPNAME}.app"
