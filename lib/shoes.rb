@@ -65,14 +65,19 @@ class Shoes
       show_manual
     end
 
-    opts.on("-p", "--package",
-            "Package a Shoes app for Windows, OS X and Linux.") do |s|
+    opts.on("--old-package",
+            "(Obsolete) Package a Shoes app for Windows, OS X and Linux.") do |s|
       make_pack
     end
-    
-    opts.on("-c", "--cobbler", 
+ 
+    opts.on("-p", "--cobbler", 
             "Maintain Shoes installation") do |c|
       cobbler
+    end
+   
+    opts.on("-p", "--package", 
+            "Package Shoes App (new)") do |c|
+      app_package
     end
 
     opts.on("-g", "--gem",
@@ -163,7 +168,8 @@ class Shoes
           background black(0.2), :curve => 8
           para link("Open an App.") { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
           para link("Package my script (shy)") { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
-          para link("Obsolete: Package an App with Shoes") { Shoes.make_pack and close }, :margin => 10, :margin_bottom => 4
+          para link("Package an App with Shoes") {Shoes.app_package and close }, :margin => 10, :margin_bottom => 4
+          para link("Obsolete: Package") { Shoes.make_pack and close }, :margin => 10, :margin_bottom => 4
           para link("Read the Manual.") { Shoes.show_manual and close }, :margin => 10, :margin_bottom => 4
           para link("Maintain Shoes") {Shoes.cobbler and close}, :margin => 10
         end
@@ -194,6 +200,10 @@ class Shoes
   
   def self.cobbler
     require 'shoes/cobbler'
+  end
+  
+  def self.app_package
+    require 'shoes/app_package'
   end
 
   def self.make_pack

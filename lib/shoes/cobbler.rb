@@ -105,8 +105,12 @@ class Gem::CobblerDelFace
 end
 
 Shoes.app do
+  @shoes_home = "#{ENV['HOME']}/.shoes/#{Shoes::RELEASE_NAME}"
   stack do
     @menu = flow do
+      button "Shoes Info.." do
+        infoscreen
+      end
       button "Clear Image Cache..." do 
         cachescreen
       end
@@ -126,6 +130,9 @@ Shoes.app do
       button "Copy Samples..." do
         cp_samples_screen
       end
+      button "Packager URLs..." do
+        pack_screen
+      end
       button "Quit" do
          exit
       end
@@ -133,6 +140,44 @@ Shoes.app do
     @panel = stack do
       @status = para ""
    end
+  end
+  
+  def  pack_screen 
+    @panel.clear
+    @panel.append do
+      flow do
+        para "CGI selector  "
+        sel = edit_line "http://shoes.mvmanila.com/public/select/pkg.rb", width: 400
+        button "Update" do
+          mkdir_p "#{@shoes_home}/package"
+          File.open("#{@shoes_home}/package/selector.url", 'w') do |f|
+            f.write sel.text
+          end
+        end
+      end
+      flow do
+        para "Download  "
+        dnl = edit_line "http://shoes.mvmanila.com/public/shoes", width: 400
+        button "Update" do
+          mkdir_p "#{@shoes_home}/package"
+            File.open("#{@shoes_home}/package/download.url", 'w') do |f|
+            f.write dnl.text
+          end
+        end
+      end
+    end
+  end
+  
+  def infoscreen
+    @panel.clear
+    @panel.append do
+      para "Ruby Version: #{RUBY_VERSION} on #{RUBY_PLATFORM}"
+      para "Shoes Release: #{Shoes::RELEASE_NAME}"
+      para "    built on #{Shoes::RELEASE_BUILD_DATE}"
+      para "    Fit: #{Shoes::RELEASE_TYPE}"
+      para "Shoes Exe Directory: #{DIR}"
+      para "Shoes Home: #{@shoes_home}"
+    end
   end
   
   def jailscreen
