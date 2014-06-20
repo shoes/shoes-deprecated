@@ -1,6 +1,17 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+  
+
+2014-06-18,19 Rewrite packager GUI
+    Still not sure where I'm going with this. or why.
+done: Basics - Get list from server, build buttons to pack them.
+----> Download needs pretty progress bar.
+----> Needs to work too!
+done: Get the url handling 'better'.
+done: Add info button to Cobbler.  
+----> Add Packager URL's button to Cobbler.
+  
 2014-06-17
 done: arm build - wrong ruby versions, twice the size.
 done: osx - yup the switch to 2.1.2 from 2.1.0 broke the rakefiles because

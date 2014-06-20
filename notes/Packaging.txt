@@ -1,5 +1,19 @@
 Packaging
 
+Jun 18, 2014
+   Write a Cobbler panel to add/mod a file in ~/.shoes/federales that 
+   contains the url to download from. That way it can be changed if someone
+   does something better or there's a better site. Default:
+   http://shoes.mvmanila.com/public/federales/pkg.rb (a cgi script)
+   
+   New packager. GUI has a top level layout of 3 stacked 'panels'
+   Menu, select/action and status. Top panel buttons = 'exit', 'get options'
+   will download from the cgi, parse  and build the selection panel offering
+   download buttons for each arch/platform
+
+
+=== older stuff ===
+
 Almost as important as proper icons ;^) is a proper version naming scheme. 
 Although I have said app/script packaging with embedded shoes is not likely
 to ever work again, I do want a versioning scheme that would work better 
