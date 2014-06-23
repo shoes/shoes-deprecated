@@ -3,13 +3,22 @@ Packaging
 Jun 18, 2014
    Write a Cobbler panel to add/mod a file in ~/.shoes/federales that 
    contains the url to download from. That way it can be changed if someone
-   does something better or there's a better site. Default:
-   http://shoes.mvmanila.com/public/federales/pkg.rb (a cgi script)
+   does something better or there's a better site. 
+   in ~/.shoes/federales/package are several files and subdirs (tmp)
+     selector.url - one line, the url of the cgi to list packages
+     download.url - one line, the url path to the directory   Default:
+        http://shoes.mvmanila.com/public/federales/pkg.rb (a cgi script)
    
-   New packager. GUI has a top level layout of 3 stacked 'panels'
+   New packager: GUI has a top level layout of 3 stacked 'panels'
    Menu, select/action and status. Top panel buttons = 'exit', 'get options'
    will download from the cgi, parse  and build the selection panel offering
-   download buttons for each arch/platform
+   download buttons for each arch/platform.
+   
+   Minimal options - just choice of OS. No video. No download if needed.
+   Unlike the 3.0/3.1 packager I'm keeping track of the os/arch and it 
+   will be added to the created '.run' files. 
+   
+
 
 
 === older stuff ===

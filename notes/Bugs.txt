@@ -1,16 +1,35 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-06-22 Package isp.rb (raspberry)
+----> minitar is slow - gui/thread related I suspect. get the progress bar
+      sorted out
+----> No progbar reporting - hint for above.
+----> Add arch to filename. isp-armhf.run
+----> test isp.run on pi ./isp --keep bingo! the lack of symlinks in minitar
+     The 1.9 hack in shoes (.sh) fails.  Fix platfrom/nix/shoes-launch
+
   
+2014-06-20, 21
+done? Get downloader and progress bar working.
+
+    Download is s.l.o.w. Really slow. 
+    
+done: Check dnldir file size => website, timestamp >= website
+    Use cached download if user confirms.
+    
+===> Seriously confused. Now the download goes fast. I'm not sure what 
+     I did. If gem handling worked that fast it would be really good.
+     It has something to do with the Shoes GUI and download.
 
 2014-06-18,19 Rewrite packager GUI
     Still not sure where I'm going with this. or why.
 done: Basics - Get list from server, build buttons to pack them.
-----> Download needs pretty progress bar.
+done: Download needs pretty progress bar.
 ----> Needs to work too!
 done: Get the url handling 'better'.
 done: Add info button to Cobbler.  
-----> Add Packager URL's button to Cobbler.
+done: Add Packager URL's button to Cobbler.
   
 2014-06-17
 done: arm build - wrong ruby versions, twice the size.

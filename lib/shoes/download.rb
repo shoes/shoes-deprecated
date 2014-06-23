@@ -15,6 +15,8 @@ class Shoes
     attr_reader :progress, :response, :content_length, :gui, :transferred 
     # length and percent is preserved for Shoes3 compatibility
     attr_reader :length , :percent
+    # thread is used by packager to sync download
+    attr_reader :thread
     UPDATE_STEPS = 100
     
     def initialize(url, opts = {}, &blk)

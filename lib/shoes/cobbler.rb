@@ -177,6 +177,7 @@ Shoes.app do
       para "    Fit: #{Shoes::RELEASE_TYPE}"
       para "Shoes Exe Directory: #{DIR}"
       para "Shoes Home: #{@shoes_home}"
+      para "LIB_DIR: #{LIB_DIR}"
     end
   end
   
