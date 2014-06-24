@@ -144,8 +144,8 @@ Shoes.app do
     # is not needed.
     @download_needed = false
     if !File.exists?(@work_path) || (
-       File.mtime(@work_path).to_i >= dnlts &&
-       File.size(@work_path).to_i >= dnlsize  &&
+       File.mtime(@work_path).to_i <= dnlts ||
+       File.size(@work_path).to_i <= dnlsize  ||
        !(confirm "Use cached #{@work_path} ?\nCancel will re-download"))
     then
       @download_needed = true
