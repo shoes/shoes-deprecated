@@ -65,16 +65,17 @@ module Make
     rm_f "#{TGT_DIR}/libruby.so.#{rbvt}" if File.exist? "#{TGT_DIR}/libruby.so.#{rbvt}"
     cp_r "#{EXT_RUBY}/lib/ruby", "#{TGT_DIR}/lib"
     # copy and link libruby.so
-    cp "#{EXT_RUBY}/lib/libruby.so.#{RUBY_V}", "#{TGT_DIR}"
+    #cp "#{EXT_RUBY}/lib/libruby.so.#{RUBY_V}", "#{TGT_DIR}"
+    cp "#{EXT_RUBY}/lib/libruby.so.#{rbvm}", "#{TGT_DIR}"
     # copy include files - it might help build gems
     mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-#{rbvt}"
     cp_r "#{EXT_RUBY}/include/ruby-#{rbvt}/", "#{TGT_DIR}/lib/ruby/include"
     # can't figure out ln -s? push pwd, cd, ln, pop
-    cdir = pwd
-    cd TGT_DIR
-    ln_s "libruby.so.#{RUBY_V}", "libruby.so"
-    ln_s "libruby.so.#{RUBY_V}", "libruby.so.#{::RUBY_V[/^\d+\.\d+/]}"
-    cd cdir
+    #cdir = pwd
+    #cd TGT_DIR
+    #ln_s "libruby.so.#{RUBY_V}", "libruby.so"
+    #ln_s "libruby.so.#{RUBY_V}", "libruby.so.#{::RUBY_V[/^\d+\.\d+/]}"
+    #cd cdir
     SOLOCS.each_value do |path|
       cp "#{path}", "#{TGT_DIR}"
     end
