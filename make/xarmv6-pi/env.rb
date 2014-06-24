@@ -9,7 +9,7 @@
 ENV['GTK'] = "gtk+-2.0"
 # I don't recommend try to copy Gtk2 -it only works mysteriously
 COPY_GTK = false 
-ENV['GDB'] = nil # compile -g,  strip symbols when nil
+#ENV['GDB'] = nil # compile -g,  strip symbols when nil
 CHROOT = "/srv/chroot/debrpi"
 # Where does ruby code live? For the pi, I build one  
 # inside the chroot but we access it from outside.
