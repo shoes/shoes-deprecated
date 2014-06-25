@@ -65,7 +65,7 @@ module Make
       FileList[rdir].each { |rlib| cp_r rlib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}" }
     end
     #%w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
-    %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
+    %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
       each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_RUBY_ARCH}" }
 
     gdir = "#{TGT_DIR}/ruby/gems/#{RUBY_V}"
@@ -281,12 +281,15 @@ class MakeDarwin
       puts "tbz_create from #{`pwd`}"
       nfs=ENV['NFS_ALTP'] 
       mkdir_p "#{nfs}pkg"
-      distfile = "#{nfs}pkg/#{PKG}#{TINYVER}-osx-10.9.tbz"
+      #distfile = "#{nfs}pkg/#{PKG}#{TINYVER}-osx-10.9.tbz"
+      distfile = "#{nfs}pkg/#{PKG}#{TINYVER}-osx-10.9.tgz"
       Dir.chdir("#{TGT_DIR}") do
         distname = "#{PKG}#{TINYVER}"
         sh "tar -cf #{distname}.tar #{APPNAME}.app"
-        sh "bzip2 -f #{distname}.tar"
-        mv "#{distname}.tar.bz2", "#{distfile}"
+        sh "gzip #{distname}.tar"
+        sh "mv #{distname}.tar.gz #{distfile}"
+        #sh "bzip2 -f #{distname}.tar"
+        #mv "#{distname}.tar.bz2", "#{distfile}"
       end
       if nfs 
         # copy to /pkg
