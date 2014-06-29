@@ -1,14 +1,43 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-06-24  
+done: modified linux packaging to include arch in the output file.
+----> Shy progress (and minitar) is not up to snuff i.e. Doesn't work.
+done: don't use shy progress. Sadly that doesn't improve the extract speed
+----> can I use gem tar handling? 
+done: Shoes linux can package an .exe that works on Win 7
+
+2014-06-23 packaging for linux
+done: Armhf: One solution is to not create the extra libruby variants that need
+      a symlink.  Worth a try.  Works OK with /tmp/selfgz, --target and --keep
+      although the latter two get an extra full size copy of libruby.so 
+      so the ln -s must be creating it. Changing shoes.launch affects
+      any distributed linux. be careful. test a lot. It appears to work.
+done: X86_64: modify tasks.rb 
+done: i686: modify tasks.rb. 
+
+====>   Using the pi, with a downloaded shoes - try packaging isp.rb for X86_64
+        Downloads OK. Throws gdk error?!? attempting to use it. GUI wiring 
+        not right for those Shy calls? Locale? 
+        Gdk:ERROR:/build/gtk+2.0-x7uJoT/gtk+2.0-2.24.10/gdk/gdkregion-generic.c:1114:miUnionNonO: assertion failed: (r->x1 < r->x2)
+./foo/shoes: line 22: 19394 Aborted                 LD_LIBRARY_PATH=$APPPATH $APPPATH/shoes-bin "$@"
+
+
 2014-06-22 Package isp.rb (raspberry)
 ----> minitar is slow - gui/thread related I suspect. get the progress bar
       sorted out
 ----> No progbar reporting - hint for above.
 ----> Add arch to filename. isp-armhf.run
 ----> test isp.run on pi ./isp --keep bingo! the lack of symlinks in minitar
-     The 1.9 hack in shoes (.sh) fails.  Fix platfrom/nix/shoes-launch
-
+done: The 1.9 hack in shoes (.sh) fails.  Fix platfrom/nix/shoes.launch
+====> Fix only works if /tmp/selfgz -- rethink how it should work (--keep) 
+      or --target - Modify the bash script to check the libruby symlink
+      and modify if needed extracted Shoes or not.
+      
+done: Didn't detect a changed armhf.run timestamp
+      
+      objdump -p libshoes.so | grep NEEDED could be used to 
   
 2014-06-20, 21
 done? Get downloader and progress bar working.

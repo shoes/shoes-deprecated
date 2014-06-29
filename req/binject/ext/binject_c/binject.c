@@ -690,11 +690,11 @@ binject_exe_save(VALUE self, VALUE file)
   fclose(binj->out);
   binj->out = NULL;
 }
-
+// -----------------  Begin DMG code - implements Ruby API
 typedef struct {
   AbstractFile* in;
-	io_func* in_func;
-	Volume* in_vol;
+  io_func* in_func;
+  Volume* in_vol;
   VALUE tmpname;
 } binject_dmg_t;
 
@@ -771,19 +771,19 @@ binject_dmg_load(VALUE self, VALUE filename, VALUE volname)
   binject_dmg_t *binj;
   Data_Get_Struct(self, binject_dmg_t, binj);
   binj->tmpname = binject_dmg_uncompress(filename, volname);
-	binj->in = createAbstractFileFromFile(fopen(RSTRING_PTR(binj->tmpname), "rb+"));
-	if(binj->in == NULL) {
-		fprintf(stderr, "error: Cannot open image-file.\n");
-		return Qnil;
-	}
+  binj->in = createAbstractFileFromFile(fopen(RSTRING_PTR(binj->tmpname), "rb+"));
+  if(binj->in == NULL) {
+    fprintf(stderr, "error: Cannot open image-file.\n");
+    return Qnil;
+  }
 
-	binj->in_func = IOFuncFromAbstractFile(binj->in);
-	binj->in_vol = openVolume(binj->in_func); 
-	if(binj->in_vol == NULL) {
-		fprintf(stderr, "error: Cannot open volume.\n");
-		CLOSE(binj->in_func);
-		return 1;
-	}
+  binj->in_func = IOFuncFromAbstractFile(binj->in);
+  binj->in_vol = openVolume(binj->in_func); 
+  if(binj->in_vol == NULL) {
+    fprintf(stderr, "error: Cannot open volume.\n");
+    CLOSE(binj->in_func);
+    return 1;
+  }
 }
 
 VALUE
@@ -792,7 +792,7 @@ binject_dmg_grow(VALUE self, VALUE megs)
   uint64_t size = (uint64_t)NUM2INT(megs) * (1024 * 1024);
   binject_dmg_t *binj;
   Data_Get_Struct(self, binject_dmg_t, binj);
-	grow_hfs(binj->in_vol, size);
+  grow_hfs(binj->in_vol, size);
   return self;
 }
 
@@ -802,7 +802,7 @@ binject_dmg_inject_dir(VALUE self, VALUE key, VALUE dir)
   binject_dmg_t *binj;
   Data_Get_Struct(self, binject_dmg_t, binj);
   newFolder(RSTRING_PTR(key), binj->in_vol);
-	addall_hfs(binj->in_vol, RSTRING_PTR(dir), RSTRING_PTR(key));
+  addall_hfs(binj->in_vol, RSTRING_PTR(dir), RSTRING_PTR(key));
   return self;
 }
 
@@ -810,13 +810,13 @@ VALUE
 binject_dmg_inject_file(VALUE self, VALUE key, VALUE filename)
 {
   binject_dmg_t *binj;
-	AbstractFile *inFile;
+  AbstractFile *inFile;
   Data_Get_Struct(self, binject_dmg_t, binj);
-	inFile = createAbstractFileFromFile(fopen(RSTRING_PTR(filename), "rb"));
-	if(inFile == NULL) {
+  inFile = createAbstractFileFromFile(fopen(RSTRING_PTR(filename), "rb"));
+  if(inFile == NULL) {
     return Qnil;
-	}
-	add_hfs(binj->in_vol, inFile, RSTRING_PTR(key));
+  }
+  add_hfs(binj->in_vol, inFile, RSTRING_PTR(key));
   return self;
 }
 
@@ -841,11 +841,11 @@ VALUE
 binject_dmg_save(VALUE self, VALUE filename)
 {
   binject_dmg_t *binj;
-	AbstractFile *out;
+  AbstractFile *out;
   Data_Get_Struct(self, binject_dmg_t, binj);
-	out = createAbstractFileFromFile(fopen(RSTRING_PTR(filename), "wb"));
-	if(out == NULL)
-		return Qnil;
+  out = createAbstractFileFromFile(fopen(RSTRING_PTR(filename), "wb"));
+  if(out == NULL)
+    return Qnil;
 
   out->progress = binject_dmg_loop;
   if (rb_block_given_p())
