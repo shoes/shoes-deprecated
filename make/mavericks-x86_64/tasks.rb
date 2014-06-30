@@ -122,11 +122,11 @@ class MakeDarwin
       mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-#{rbvt}"
       cp_r "#{EXT_RUBY}/include/ruby-#{rbvt}/", "#{TGT_DIR}/lib/ruby/include"
       # Softlink run major/minor versions
-      cdir = pwd
-      cd TGT_DIR do
-        ln_s "libruby.#{rbvt}.dylib", "libruby.dylib"
-        ln_s "libruby.#{rbvt}.dylib", "libruby.#{rbvm}.dylib"
-      end
+      #cdir = pwd
+      #cd TGT_DIR do
+      #  ln_s "libruby.#{rbvt}.dylib", "libruby.dylib"
+      #  ln_s "libruby.#{rbvt}.dylib", "libruby.#{rbvm}.dylib"
+      #end
       # Find ruby's dependent libs in homebrew (/usr/local/
       cd "#{TGT_DIR}/lib/ruby/#{rbvm}.0/#{RUBY_PLATFORM}" do
         bundles = *Dir['*.bundle']

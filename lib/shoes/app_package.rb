@@ -2,6 +2,8 @@
 require 'shoes/shy'
 require 'binject'
 require 'open-uri'
+require 'rubygems/package'
+require 'zlib'
 
 Shoes.app do
   # get the urls or default
@@ -178,13 +180,18 @@ Shoes.app do
   
   # We've got @vars with all kinds of info. 
   def platform_repack 
+    @running_windows = RUBY_PLATFORM =~ /mingw/
     @info_panel_clear
     @info_panel.append do
       case @work_path
       when /\.run$/
+        if @running_windows && 
+            confirm("This is unlikely to work\nPlease don't do this. \nOnly a dumb ass clicks cancel")
+          return
+        end
         Thread.new do
           @pkgstat = inscription "Linux repack #{@path} for#{@work_path}"
-          @pkgbar = progress :width => 1.0, :height => 14 
+          #@pkgbar = progress :width => 1.0, :height => 14 
           arch = @work_path[/(\w+)\.run$/] 
           arch.gsub!('.run','')
           repack_linux arch
@@ -195,6 +202,10 @@ Shoes.app do
           repack_exe
         end
       when /osx\-.*.tgz$/
+        if @running_windows && 
+            confirm("This is unlikely to work\nPlease don't do this. \nOnly a dumb ass clicks cancel")
+          return
+        end
         Thread.new do
           @pkgstat = inscription "OSX repack #{@path} for#{@work_path}"
           repack_osx
@@ -215,32 +226,30 @@ Shoes.app do
   
   def repack_linux  arch
     script = @path
-    sofar, stage = 0.0, 3.0 
-    blk = proc do |frac|
-      #@pkgbar.style(:width => sofar + (frac * stage))
-      @pkgbar.fraction = sofar + (frac * stage)
-      #puts "progress #{frac}"
-    end
     name = File.basename(script).gsub(/\.\w+$/, '')
     app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
     run_path = script.gsub(/\.\w+$/, '') + "-#{arch}.run"
     tgz_path = script.gsub(/\.\w+$/, '') + "-#{arch}.tgz"
+    tar_path = script.gsub(/\.\w+$/, '') + "-#{arch}.tar"
     tmp_dir = File.join(LIB_DIR, "+run")
     FileUtils.mkdir_p(tmp_dir)
-    # pkgf = pkg("linux", opt)
-    pkgf = open(@work_path)
-    prog = 1.0
+    pkgf = open(@work_path)  # downloaded/cached .run
     @pkgstat.text = "Expanding #{arch} distribution. Patience is needed"
-    if pkgf
-	  size = Shy.hrun(pkgf)
-	  pblk = Shy.progress(size) do |name, perc, left|
-	    # @pkgdetails.text = name
-	    blk[perc * 0.5]
-	  end if blk
-	  #Shy.xzf(pkgf, tmp_dir, &pblk)
-	  Shy.xzf(pkgf, tmp_dir)
-	  sofar = 0.33
+    # skip to the tar contents in the .run
+	size = Shy.hrun(pkgf)
+	# Copy the rest to a new file
+	wk_dir = File.join(LIB_DIR, "+tmp")
+    FileUtils.mkdir_p(wk_dir)
+	wkf = open(File.join(wk_dir,"run.gz"),'wb')
+	buff = ''
+	while pkgf.read(32768, buff) != nil do
+	   wkf.write(buff) 
     end
+	wkf.close
+	@pkgstat.text = "Start extract"
+	@tarmodes = {}
+	fastxzf(wkf, tmp_dir, @tarmodes)
+    FileUtils.rm_rf(wk_dir)
     @pkgstat.text = "Copy script and stubs"
     FileUtils.cp(script, File.join(tmp_dir, File.basename(script)))
     File.open(File.join(tmp_dir, "sh-install"), 'wb') do |a|
@@ -248,17 +257,34 @@ Shoes.app do
 	    'SCRIPT' => "./#{File.basename(script)}"
     end
     FileUtils.chmod 0755, File.join(tmp_dir, "sh-install")
-    sofar = 0.67
+    # add sh-install and script to the modes list
+    @tarmodes[File.basename(script)] = "0755".oct
+    @tarmodes['sh-install'] = "0755".oct
+    # debug - dump @tarmodes
+    #@tarmodes.each { |k,v| puts "#{k} #{sprintf('%4o',v)}" }
     
+ 
     @pkgstat.text = "Compute size and compress"
     raw = Shy.du(tmp_dir)
-    File.open(tgz_path, 'wb') do |f|
-	  pblk = Shy.progress(raw) do |name, perc, left|
-	    blk[prog + (perc * prog)]
-	  end if blk
-	  Shy.czf(f, tmp_dir, &pblk)
-    end
     
+    #File.open(tgz_path, 'wb') do |f|
+ 	  #Shy.czf(f, tmp_dir)
+    #end
+    
+    #Create tar file with correct modes (he hopes)
+    File.open(tar_path,'wb') do |tf|
+      tb = fastcf(tf, tmp_dir, @tarmodes)
+    end
+    # compress tar file 
+    File.open(tgz_path,'wb') do |tgz|
+      z = Zlib::GzipWriter.new(tgz)
+      File.open(tar_path,'rb') do |tb|
+        z.write tb.read
+      end
+      z.close
+    end
+    FileUtils.rm tar_path
+
     @pkgstat.text = "Checksum, install  and copy"
     md5, fsize = Shy.md5sum(tgz_path), File.size(tgz_path)
     File.open(run_path, 'wb') do |f|
@@ -269,11 +295,10 @@ Shoes.app do
 	     f.write f2.read(8192) until f2.eof
 	  end
     end
-    @pkgstat.text = "Done"
+    @pkgstat.text = "Done packing Linux"
     FileUtils.chmod 0755, run_path
     FileUtils.rm_rf(tgz_path)
     FileUtils.rm_rf(tmp_dir)
-    blk[1.0] if blk
   end
   
   def repack_exe
@@ -302,33 +327,44 @@ Shoes.app do
       f.close
       f2.close
       f3.close
-      @pkgstat.text = "Done"
+      @pkgstat.text = "Done packaging Windows"
    end
 
-   def repack_osx
-      script = @path
-      name = File.basename(script).gsub(/\.\w+$/, '')
-      app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
-      vol_name = name.capitalize.gsub(/[-_](\w)/) { " " + $1.capitalize }
-      app_app = "#{app_name}.app"
-      vers = [1, 0]
+  def repack_osx
+    script = @path
+    name = File.basename(script).gsub(/\.\w+$/, '')
+    app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
+    #vol_name = name.capitalize.gsub(/[-_](\w)/) { " " + $1.capitalize }
+    tgz_path = script.gsub(/\.\w+$/, '') + "-osx.tgz"
+    app_app = "#{app_name}.app"
+    vers = [1, 0]
 
-      tmp_dir = File.join(LIB_DIR, "+dmg")
-      FileUtils.rm_rf(tmp_dir)
-      FileUtils.mkdir_p(tmp_dir)
-      FileUtils.cp(File.join(DIR, "static", "stubs", "blank.hfz"),
-                   File.join(tmp_dir, "blank.hfz"))
-      app_dir = File.join(tmp_dir, app_app)
-      res_dir = File.join(tmp_dir, app_app, "Contents", "Resources")
-      mac_dir = File.join(tmp_dir, app_app, "Contents", "MacOS")
-      [res_dir, mac_dir].map { |x| FileUtils.mkdir_p(x) }
-      FileUtils.cp(File.join(DIR, "static", "Shoes.icns"), app_dir)
-      FileUtils.cp(File.join(DIR, "static", "Shoes.icns"), res_dir)
-      File.open(File.join(app_dir, "Contents", "PkgInfo"), 'w') do |f|
-        f << "APPL????"
-      end
-      File.open(File.join(app_dir, "Contents", "Info.plist"), 'w') do |f|
-        f << <<END
+    tmp_dir = File.join(LIB_DIR, "+dmg")
+    FileUtils.rm_rf(tmp_dir)
+    FileUtils.mkdir_p(tmp_dir)
+    # expand download into ~/.shoes/+dmg/Shoes.app
+    pkgf = open(@work_path)
+    @pkgstat.text = "Expanding OSX distribution. Patience is needed"
+	#Shy.xzf(pkgf, tmp_dir)   
+	fastxzf(pkgf, tmp_dir)
+	
+    #  FileUtils.cp(File.join(DIR, "static", "stubs", "blank.hfz"),
+    #              File.join(tmp_dir, "blank.hfz"))
+    app_dir = File.join(tmp_dir, app_app)
+    # rename Shoes.app to app_dir
+    chdir tmp_dir do
+      mv "Shoes.app", app_app
+    end
+    res_dir = File.join(tmp_dir, app_app, "Contents", "Resources")
+    mac_dir = File.join(tmp_dir, app_app, "Contents", "MacOS")
+    [res_dir, mac_dir].map { |x| FileUtils.mkdir_p(x) }
+    FileUtils.cp(File.join(DIR, "static", "Shoes.icns"), app_dir)
+    FileUtils.cp(File.join(DIR, "static", "Shoes.icns"), res_dir)
+    File.open(File.join(app_dir, "Contents", "PkgInfo"), 'w') do |f|
+      f << "APPL????"
+    end
+    File.open(File.join(app_dir, "Contents", "Info.plist"), 'w') do |f|
+      f << <<END
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -356,9 +392,9 @@ Shoes.app do
 </dict>
 </plist>
 END
-      end
-      File.open(File.join(app_dir, "Contents", "version.plist"), 'w') do |f|
-        f << <<END
+    end
+    File.open(File.join(app_dir, "Contents", "version.plist"), 'w') do |f|
+      f << <<END
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -374,42 +410,93 @@ END
 </dict>
 </plist>
 END
-      end
-      File.open(File.join(mac_dir, "#{name}-launch"), 'w') do |f|
-        f << <<END
+    end
+    File.open(File.join(mac_dir, "#{name}-launch"), 'w') do |f|
+      f << <<END
 #!/bin/bash
-SHOESPATH=/Applications/Shoes.app/Contents/MacOS
 APPPATH="${0%/*}"
 unset DYLD_LIBRARY_PATH
 cd "$APPPATH"
-echo "[Pango]" > /tmp/pangorc
-echo "ModuleFiles=$SHOESPATH/pango.modules" >> /tmp/pangorc
-if [ ! -d /Applications/Shoes.app ]
-  then ./cocoa-install
-fi
-open -a /Applications/Shoes.app "#{File.basename(script)}"
-# DYLD_LIBRARY_PATH=$SHOESPATH PANGO_RC_FILE="$APPPATH/pangorc" $SHOESPATH/shoes-bin "#{File.basename(script)}"
+echo "[Pango]" > pangorc
+echo "ModuleFiles=$APPPATH/pango.modules" >> pangorc
+echo "ModulesPath=$APPPATH/pango/modules" >> pangorc
+PANGO_RC_FILE="$APPPATH/pangorc" ./pango-querymodules > pango.modules
+DYLD_LIBRARY_PATH="$APPPATH" PANGO_RC_FILE="$APPPATH/pangorc" SHOES_RUBY_ARCH="#{SHOES_RUBY_ARCH}" ./shoes-bin "#{File.basename(script)}"
 END
-      end
-      FileUtils.cp(script, File.join(mac_dir, File.basename(script)))
-      FileUtils.cp(File.join(DIR, "static", "stubs", "cocoa-install"),
-        File.join(mac_dir, "cocoa-install"))
-      puts "Create DMG"
-      dmg = Binject::DMG.new(File.join(tmp_dir, "blank.hfz"), vol_name)
-      @pkgstat.text = "reading distribution"
-      f2 = open(@work_path)
-      dmg.grow(10)
-      dmg.inject_file("setup.dmg", f2.path)
-      dmg.inject_dir(app_app, app_dir)
-      dmg.chmod_file(0755, "#{app_app}/Contents/MacOS/#{name}-launch")
-      dmg.chmod_file(0755, "#{app_app}/Contents/MacOS/cocoa-install")
-      dmg.save(script.gsub(/\.\w+$/, '') + ".dmg") do |perc|
-        blk[perc * 0.01] if blk
-      end
-      FileUtils.rm_rf(tmp_dir)
-      @pkgstat.text = 'OSX done'
-      blk[1.0] if blk
+    end
+    chmod 0755, File.join(mac_dir, "#{name}-launch")
+    FileUtils.cp(script, File.join(mac_dir, File.basename(script)))
+    #FileUtils.cp(File.join(DIR, "static", "stubs", "cocoa-install"),
+    #  File.join(mac_dir, "cocoa-install"))
+    @pkgstat.text = "Creating new archive"
+    File.open(tgz_path, 'wb') do |f|
+	  Shy.czf(f, tmp_dir)
+    end
+    FileUtils.rm_rf(tmp_dir)
+    @pkgstat.text = 'OSX done'
   end
 
+  def fastxzf infile, outdir, modes = {}
+	#from blog post http://dracoater.blogspot.com/2013/10/extracting-files-from-targz-with-ruby.html
+	# modified by Cecil Coupe - Jun 27+, 2014. Thanks to Juri Timošin   
+	
+	tar_longlink = '././@LongLink'
+	#tar_gz_archive = '/path/to/archive.tar.gz'
+	#destination = '/where/extract/to'
+	Gem::Package::TarReader.new( Zlib::GzipReader.open infile ) do |tar|
+	  dest = nil
+	  tar.each do |entry|
+	    if entry.full_name == tar_longlink
+	      dest = File.join outdir, entry.read.strip
+	      next
+	    end
+	    dest ||= File.join outdir, entry.full_name
+	    hashname = entry.full_name.gsub('./','')
+	    hashname.chomp!('/')
+	    @pkgstat.text = hashname
+	    modes[hashname] = entry.header.mode
+	    if entry.directory?
+	      FileUtils.rm_rf dest unless File.directory? dest
+	      FileUtils.mkdir_p dest, :mode => entry.header.mode, :verbose => false
+	    elsif entry.file?
+	      FileUtils.rm_rf dest unless File.file? dest
+	      File.open dest, "wb" do |f|
+	        f.print entry.read
+	      end
+	      FileUtils.chmod entry.header.mode, dest, :verbose => false
+	    elsif entry.header.typeflag == '2' #Symlink!
+	      @pkgstat.text = "Symlink #{entry.header.linkname}"
+	      File.symlink entry.header.linkname, dest
+	    end
+	    dest = nil
+	  end
+	end
+  end
   
+  def fastcf outf, indir, modes
+    begin
+	    Gem::Package::TarWriter.new outf do |tar|
+	      Dir[File.join(indir, "**/*")].each do |file|
+	        relative_file = file.sub(/^#{Regexp::escape indir}\/?/, '')
+	        mode = modes[relative_file] 
+	        if !mode
+	          puts "Failed #{relative_file} #{file}"
+	          mode = File.stat(file).mode
+	        end
+	        if File.directory?(file)
+	          tar.mkdir relative_file, mode
+	        else
+	          tar.add_file relative_file, mode do |tf|
+	            File.open(file, "rb") { |f| tf.write f.read }
+	          end
+	        end
+	      end #Dir
+	    end # Tarwriter	  
+	rescue StandardError => e
+	  puts "Exception: #{e}"
+	end
+	outf.rewind
+	outf
+  end
+
 end

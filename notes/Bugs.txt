@@ -1,12 +1,77 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-06-28
+     Keep the OSX build/download as tgz. Untar it into dmg or hfs virtual fs
+       That involves exposing (and much testing) of some of the hfs code
+     Change the OSX build to dmg if that fails. That doesn't fix packing 
+       Linux on Windows
+done: Another solution would be to detect +x mode settings with extracting
+       and creating a hash of the filename => settings
+       and then when creating the run/osx-tgz the tarczf would check the
+       hash.  Requires creating a Gzip::TarWriter.  I create a hash of
+       all the input file/dir names => modes (yes hash collistions might
+       exist) when extracting the run/osx-tgz
+-----> Write the gzip/tarwriter that uses the @tarmodes hash.
+  
+2014-06-27
+----> Pi packaging when downloading has a screen re-layout every 3 seconds
+      or so. Not sure I care that much.
+----> OSX packager - clean out +dmg when done.
+----> Windows oddities.
+done: Shy.xzf is too slow even for Ruby. It's slow in irb so it's not Shoes 
+Yay!  http://dracoater.blogspot.com/2013/10/extracting-files-from-targz-with-ruby.html
+     The (recompressed) file is a little larger. That should bother me.
+done: New fastxzf() stops copying after libruby2.1.0 dylib on Windows
+     symlink? YES!. Do I need to create those symlinks for OSX? - NO.
+====> Untaring in Windows (for pkging Nix or OSX) doesn't save the +x mode
+     bits so shoes-bin, shoes-launch or isp-launch won't run. This is
+     something of a show stopper. Dmg could be made to work again for
+     OSX but Linux .runs? 
+done: Make fastxzf() work with .run (Shy.hrun) - split the file? 
+  
+2014-05-26 Test packaging of isp.rb
+----> Shoes/Windows build for
+OK:   isp.rb runs in Shoes 3.2.11 windows
+      osx - doesn't finish extract
+      linux - doesn't finish extract
+OK:   windows
+      There are oddities on Windows. The isp.exe install 3.2.10 not 11.
+      The installed shoes was built on 6/15/14
+
+OK    Shoes/OSX build for 
+OK    isp.rb runs in Shoes 3.2.11 OSX
+OK    osx,
+OK    linux - raspberry
+OK    windows - builds exe. exe causes Shoes to be installed in system. Runs OK.
+      
+OSX   Shoes/Raspberry build for 
+OK    isp.rb runs in Shoes 3.2.11 raspberry
+OK    osx,
+OK    linux_x86_64 - runs.
+ok?   windows - same size. It'll work.
+  
+2014-06-25 OSX packaging
+done: OSX basics: Untar the download, copy the 'packaged' script/dir into
+     the Contents/MacOS (where shoes-bin and shoes-launch live) and then
+     copy/modify some scripts in there. Then tar it back up.
+     How hard could that be? 
+----> Can Shoes Windows pack OSX and a Linux?
+----> Can osx have two apps in one tree? isp.rb and shoes.rb?
+done: Cocoa-launch tied to /Applications/Shoes.app
+     may call cocoa-install which is a binary that downloads shoes (from heroku?)
+     Don't want that. I want the shoes-launch to be copied and named
+     isp-launch. 
+     
 2014-06-24  
 done: modified linux packaging to include arch in the output file.
 ----> Shy progress (and minitar) is not up to snuff i.e. Doesn't work.
 done: don't use shy progress. Sadly that doesn't improve the extract speed
 ----> can I use gem tar handling? 
 done: Shoes linux can package an .exe that works on Win 7
+----> OSX should be fun. bz2 instead of dmg. tgz appears to be OSX friendly
+      so repack_osx could look a lot like linux? 
+done: Include binject in the osx compile. Oops!
 
 2014-06-23 packaging for linux
 done: Armhf: One solution is to not create the extra libruby variants that need
@@ -28,16 +93,16 @@ done: i686: modify tasks.rb.
 ----> minitar is slow - gui/thread related I suspect. get the progress bar
       sorted out
 ----> No progbar reporting - hint for above.
-----> Add arch to filename. isp-armhf.run
-----> test isp.run on pi ./isp --keep bingo! the lack of symlinks in minitar
+done: Add arch to filename. isp-armhf.run
+done: test isp.run on pi ./isp --keep bingo! the lack of symlinks in minitar
 done: The 1.9 hack in shoes (.sh) fails.  Fix platfrom/nix/shoes.launch
-====> Fix only works if /tmp/selfgz -- rethink how it should work (--keep) 
+done: Fix only works if /tmp/selfgz -- rethink how it should work (--keep) 
       or --target - Modify the bash script to check the libruby symlink
       and modify if needed extracted Shoes or not.
       
 done: Didn't detect a changed armhf.run timestamp
       
-      objdump -p libshoes.so | grep NEEDED could be used to 
+      objdump -p libshoes.so | grep NEEDED could be used like install_name_tool?
   
 2014-06-20, 21
 done? Get downloader and progress bar working.
