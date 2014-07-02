@@ -1,6 +1,39 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+  
+2014-07-01
+     Not likely to be zlib version issue. pkzip doesn't like the +tmp/run.gz
+     file either. Copy it to Linux and unzip doesn't like it. Sizes differ
+     for the run.gz on windows and linux. So windows is reading too far
+     in Shy.hrun or the last block is not copied. Assume the first.
+     Indeed Shy.hrun report two different values for pkgf.pos
+     Linux 9411
+     Win7  15977 The difference, 6566 is exactly the difference between
+     the run.gz sizes. Why does Windows do it wrong? 
+done: pkgf = open(@work_path,'rb')  I didn't have the ',rb' Duh!
+     Works too.
+----> Windows after it downloads, it doesn't move on to actually packaging
+     Might be related to my testing or that warning message. Or not. Windows
+     thinks its unresponsive. it is. Quit and restart works.
+  
+2014-06-30
+----> Ruby/Windows doesn't think the +tmp/run.gz file is a gzip format. 
+     I'm guessing it can't find it from LIB_DIR (on Windows). Wrong guess.
+     So maybe it's a libz version mismatch with windows + linux + ruby.
+     Certainly possible considering where my Windows came from and Ruby 
+     cross compilie and the damn rake files for that. 
+     
+===> find out why/how cobbler and app_package swallow execeptions. It's
+     very difficult to debug my typo errors without the shoes console.
+     
+done: Fix regexp in cache.rb LIBDIR replace Windows \ with /
+     could effect all kinds of things in Shoes/Windows. Or not.
+  
+2014-06-29 writing .tgz from Zlib/Gem::TarWriter
+     Harder task than I thought. Linux works on Linux. 
+     Now Test it with Windows packaging a Linux.
+  
 2014-06-28
      Keep the OSX build/download as tgz. Untar it into dmg or hfs virtual fs
        That involves exposing (and much testing) of some of the hfs code
@@ -12,7 +45,7 @@ done: Another solution would be to detect +x mode settings with extracting
        hash.  Requires creating a Gzip::TarWriter.  I create a hash of
        all the input file/dir names => modes (yes hash collistions might
        exist) when extracting the run/osx-tgz
------> Write the gzip/tarwriter that uses the @tarmodes hash.
+done: Write the gzip/tarwriter that uses the @tarmodes hash.
   
 2014-06-27
 ----> Pi packaging when downloading has a screen re-layout every 3 seconds

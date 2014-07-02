@@ -16,7 +16,7 @@ homes.each do |home_top, home_dir|
   end
 end
 LIB_DIR = lib_dir || File.join(Dir::tmpdir, "shoes")
-LIB_DIR.gsub! /\\/, '/'
+LIB_DIR.gsub! /\\/, '\/'
 
 #' Stupid comment quote for Geany syntax color matching bug
 

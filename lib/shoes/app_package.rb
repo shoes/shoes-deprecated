@@ -185,11 +185,7 @@ Shoes.app do
     @info_panel.append do
       case @work_path
       when /\.run$/
-        if @running_windows && 
-            confirm("This is unlikely to work\nPlease don't do this. \nOnly a dumb ass clicks cancel")
-          return
-        end
-        Thread.new do
+       Thread.new do
           @pkgstat = inscription "Linux repack #{@path} for#{@work_path}"
           #@pkgbar = progress :width => 1.0, :height => 14 
           arch = @work_path[/(\w+)\.run$/] 
@@ -202,10 +198,6 @@ Shoes.app do
           repack_exe
         end
       when /osx\-.*.tgz$/
-        if @running_windows && 
-            confirm("This is unlikely to work\nPlease don't do this. \nOnly a dumb ass clicks cancel")
-          return
-        end
         Thread.new do
           @pkgstat = inscription "OSX repack #{@path} for#{@work_path}"
           repack_osx
@@ -233,7 +225,7 @@ Shoes.app do
     tar_path = script.gsub(/\.\w+$/, '') + "-#{arch}.tar"
     tmp_dir = File.join(LIB_DIR, "+run")
     FileUtils.mkdir_p(tmp_dir)
-    pkgf = open(@work_path)  # downloaded/cached .run
+    pkgf = open(@work_path,'rb')  # downloaded/cached .run
     @pkgstat.text = "Expanding #{arch} distribution. Patience is needed"
     # skip to the tar contents in the .run
 	size = Shy.hrun(pkgf)
@@ -441,8 +433,7 @@ END
 	# modified by Cecil Coupe - Jun 27+, 2014. Thanks to Juri Timošin   
 	
 	tar_longlink = '././@LongLink'
-	#tar_gz_archive = '/path/to/archive.tar.gz'
-	#destination = '/where/extract/to'
+	begin
 	Gem::Package::TarReader.new( Zlib::GzipReader.open infile ) do |tar|
 	  dest = nil
 	  tar.each do |entry|
@@ -470,6 +461,9 @@ END
 	    end
 	    dest = nil
 	  end
+	end
+	rescue StandardError => e
+	   error e
 	end
   end
   
