@@ -327,6 +327,7 @@ Shoes.app do
     name = File.basename(script).gsub(/\.\w+$/, '')
     app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
     #vol_name = name.capitalize.gsub(/[-_](\w)/) { " " + $1.capitalize }
+    tar_path = script.gsub(/\.\w+$/, '') + "-osx.tar"
     tgz_path = script.gsub(/\.\w+$/, '') + "-osx.tgz"
     app_app = "#{app_name}.app"
     vers = [1, 0]
@@ -338,8 +339,11 @@ Shoes.app do
     pkgf = open(@work_path)
     @pkgstat.text = "Expanding OSX distribution. Patience is needed"
 	#Shy.xzf(pkgf, tmp_dir)   
-	fastxzf(pkgf, tmp_dir)
-	
+	@tarmodes = {}
+	fastxzf(pkgf, tmp_dir, @tarmodes, app_app)
+	# debug 
+	# @tarmodes.each_key {|k| puts "entry #{k} = #{@tarmodes[k]}" }
+	# DMG stuff in case I need it:
     #  FileUtils.cp(File.join(DIR, "static", "stubs", "blank.hfz"),
     #              File.join(tmp_dir, "blank.hfz"))
     app_dir = File.join(tmp_dir, app_app)
@@ -352,6 +356,10 @@ Shoes.app do
     [res_dir, mac_dir].map { |x| FileUtils.mkdir_p(x) }
     FileUtils.cp(File.join(DIR, "static", "Shoes.icns"), app_dir)
     FileUtils.cp(File.join(DIR, "static", "Shoes.icns"), res_dir)
+    # make cache entries for two files above just to keep the consoles
+    # messages away. 
+    @tarmodes["#{app_app}/Contents/Resources/Shoes.icns"] = 0644
+    @tarmodes["#{app_app}/Shoes.icns"] = 0644
     File.open(File.join(app_dir, "Contents", "PkgInfo"), 'w') do |f|
       f << "APPL????"
     end
@@ -403,7 +411,7 @@ END
 </plist>
 END
     end
-    File.open(File.join(mac_dir, "#{name}-launch"), 'w') do |f|
+    File.open(File.join(mac_dir, "#{name}-launch"), 'wb') do |f|
       f << <<END
 #!/bin/bash
 APPPATH="${0%/*}"
@@ -416,19 +424,35 @@ PANGO_RC_FILE="$APPPATH/pangorc" ./pango-querymodules > pango.modules
 DYLD_LIBRARY_PATH="$APPPATH" PANGO_RC_FILE="$APPPATH/pangorc" SHOES_RUBY_ARCH="#{SHOES_RUBY_ARCH}" ./shoes-bin "#{File.basename(script)}"
 END
     end
-    chmod 0755, File.join(mac_dir, "#{name}-launch")
+    ls = File.join(mac_dir, "#{name}-launch")
+    chmod 0755, ls
+    @tarmodes["#{app_app}/Contents/MacOS/#{name}-launch"] = 0755
     FileUtils.cp(script, File.join(mac_dir, File.basename(script)))
+    @tarmodes["#{app_app}/Contents/MacOS/#{File.basename(script)}"] = 0644
     #FileUtils.cp(File.join(DIR, "static", "stubs", "cocoa-install"),
     #  File.join(mac_dir, "cocoa-install"))
     @pkgstat.text = "Creating new archive"
-    File.open(tgz_path, 'wb') do |f|
-	  Shy.czf(f, tmp_dir)
+    #File.open(tgz_path, 'wb') do |f|
+	#  Shy.czf(f, tmp_dir)
+    #end
+    # #Create tar file with correct modes (he hopes)
+    File.open(tar_path,'wb') do |tf|
+      tb = fastcf(tf, tmp_dir, @tarmodes)
+    end
+    # compress tar file 
+    File.open(tgz_path,'wb') do |tgz|
+      z = Zlib::GzipWriter.new(tgz)
+      File.open(tar_path,'rb') do |tb|
+        z.write tb.read
+      end
+      z.close
     end
     FileUtils.rm_rf(tmp_dir)
+    FileUtils.rm_rf(tar_path)
     @pkgstat.text = 'OSX done'
   end
 
-  def fastxzf infile, outdir, modes = {}
+  def fastxzf infile, outdir, modes = {}, osx = ''
 	#from blog post http://dracoater.blogspot.com/2013/10/extracting-files-from-targz-with-ruby.html
 	# modified by Cecil Coupe - Jun 27+, 2014. Thanks to Juri Timošin   
 	
@@ -443,6 +467,7 @@ END
 	    end
 	    dest ||= File.join outdir, entry.full_name
 	    hashname = entry.full_name.gsub('./','')
+	    hashname.gsub!(/Shoes.app/, osx) if osx
 	    hashname.chomp!('/')
 	    @pkgstat.text = hashname
 	    modes[hashname] = entry.header.mode

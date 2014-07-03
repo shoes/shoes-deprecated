@@ -1,6 +1,16 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-07-02 
+
+done: OSX packaging from Shoes-Windows. Copy the Linux code/intent.
+     Should be easy (snort). Damn cache. Gsub to replace Shoes.app with
+     <script>.app for caching.
+done:  Sigh. OSX bash doesn't like dos file formats. Create the xxx-launch 
+     script 'wb' seems to work for Windows. 
+     
+----> Should investigate/replace Red shoes icon with mine for Windows
+      installer, but who really cares? 
   
 2014-07-01
      Not likely to be zlib version issue. pkzip doesn't like the +tmp/run.gz
@@ -13,9 +23,11 @@ Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
      the run.gz sizes. Why does Windows do it wrong? 
 done: pkgf = open(@work_path,'rb')  I didn't have the ',rb' Duh!
      Works too.
-----> Windows after it downloads, it doesn't move on to actually packaging
+     
+done? Windows after it downloads, it doesn't move on to actually packaging
      Might be related to my testing or that warning message. Or not. Windows
-     thinks its unresponsive. it is. Quit and restart works.
+     thinks its unresponsive. it is. Quit and restart works. Problem also
+     went away. 
   
 2014-06-30
 ----> Ruby/Windows doesn't think the +tmp/run.gz file is a gzip format. 
