@@ -1,6 +1,120 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-07-20 Ashbb rocks!
+     Old bug report: https://github.com/ashbb/shoes/commit/b9e86ffd6f2e7438d5aae733e9b6d80ffcee37eb
+     has the clue and a patch from Ashbb. Worth trying now that I see
+     whats going on. The rbfuncall to cShoes,s_run did bother me. Now I 
+     know why.
+DONE:  And it works for class-book and my ytm and many bugs
+  
+2014-07-19
+     shoes_app_visit gets called at startup (splash screen) and for opening
+     the console '/' each time. In those cases the 
+     rb_iv_get(app->self, "@main_app") succeeds (non nil). When entering
+     from a script execution (like classbook) it is nil (both 3.0/1.9.1 and
+     3.2/2.1.1. Shoes 3.2/2.1.1 console says
+     'wrong argument type UnboundMethod (expected Data)'
+     
+     The external script will pass the unboundMethod check and use the
+     exec.block of the method. Almost Doesn't make sense. I think
+     it's supposed to xfer the current shoes canvas to the new (shoes) class
+     and rebind the method to the new shoes::canvas.  I Think.
+     
+     Review changes in ruby.c between 3.2 and r1314.
+  
+2014-07-18
+     Wrote a small shoes app (bugs/mod.rb) to show class/module heirarchy
+     ccoupe@bronco:~/Projects/shoes3.2$ diff bugs/mod3.0.txt bugs/mod3.2.txt 
+1c1
+< Shoes::App  (Shoes::App @main_app=(Proc ||))
+---
+> Shoes::Types::App  (Shoes::Types::App "Shoes")
+5c5
+< Module  Shoes 
+---
+> Module  Shoes::Types 
+
+     I don't remember the reason the change was required for 3.1/3.0
+     but the new Types:: module is the clue to fixing app.c
+     
+     I'd list Shoes4 but it's dieing 
+LoadError: Couldn't load backend Shoes::Swt'. Error: no such file to load -- swt
+org/jruby/RubyKernel.java:1085:in `require'
+
+  
+2014-07-17
+     Resurrected Shoes r1314 (Shoes 3.0? ).
+     class-book sample runs. ytm.rb runs (except it has encoding problems
+     with ytmsec.csv but the file is optional for startup).  
+     
+     Clearly, I've lost something in Shoes 3.2 and 3.1
+     I suspect  app.c:362 is not returning what the rest of the code expects
+====> This is fun. if you open class-book or ytm from the Shoes splash screen
+        There is a shoes console message:
+          wrong argument type UnboundMethod (expected Data)
+        when run from shell 'dist/shoes samples/class-book.rb' it seqfaults
+        Sigh. 
+        
+----> for additional confusion, my upgrade to 14.04 and autoremove caused
+      libungif to not be linked up (dist/shoes only)
+
+2014-07-16
+
+----> Get ytm working with Shoes 3.2, package it for Demo purposes.
+      Segfaults at app.c:316 (from 372,484,263,240) it maybe
+      trying to raise and exeception (wrong number of args)? 
+      Check the macro to see what's going on
+      
+      Real deal bug. samples/class-book also dies the same way.
+      What changed ? url handling? Shoes context/modules stuff?
+      
+----> Manual makes no mention of the url command.
+
+done: What's new in 3.2 (developer level) in Wiki.
+
+2014-07-15
+
+done? Website(s) favicon.gif and .ico
+----> Wiki, main page at shoes.mvmanila.com - add links to
+      What's new in 3.2 (user level)
+
+      
+----> Try hacketyhack.
+      .run fails of course. 
+      Get github source zip. Install hpricot, sqlite3 (Loose Shoes)
+      Appears to work. Strange packaging. Not sure I care if the author
+      has abandoned it. Then again someone filed a bug report yesterday.
+      Tar baby. Do not touch.
+  
+2014-07-14
+     Rearrange mvmanila.com
+       create shoesrb.mvmanila.com
+done:         DNS create
+done:         populate with jekyll output
+----> Need a sftp method for changes in _site to get to website.
+       create walkabout.mvmanila.com with WP install
+done:         DNS create
+done:        wordpress db create  - re use 
+done:         export/import shoes.mvmanila.
+done:         wordfence, akisment ....
+done:      Change shoes.mvmanila.com to be static
+done:         jelkyll output (modify url)
+done:         delete all wp stuff except public/ and wp-content/uploads
+
+  
+2014-07-10
+done: Fork shoesrb.com (the website html...) so I can modify it and issue
+     pull requests.
+     
+     Make it work with a local jekyll/webrick 
+done: buttons/links don't work - missing .html
+  
+2014-07-08
+----> Created issue 264 https://github.com/shoes/shoes/issues/264
+     on Linux, checked: true causes the click proc to run when being
+     setup instead of waiting for a user event. 
+  
 2014-07-02 
 
 done: OSX packaging from Shoes-Windows. Copy the Linux code/intent.
