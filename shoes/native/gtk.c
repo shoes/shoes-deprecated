@@ -1189,10 +1189,16 @@ shoes_native_slider_set_fraction(SHOES_CONTROL_REF ref, double perc)
   gtk_range_set_value(GTK_RANGE(ref), perc);
 }
 
+// cjc bug264 - don't trigger callback on setup. 
 SHOES_CONTROL_REF
 shoes_native_check(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
   SHOES_CONTROL_REF ref = gtk_check_button_new();
+  // set visual state before connecting signal
+  if (RTEST(ATTR(attr, checked))) 
+  {
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ref), TRUE);
+  } 
   g_signal_connect(G_OBJECT(ref), "clicked",
                    G_CALLBACK(shoes_button_gtk_clicked),
                    (gpointer)self);
@@ -1208,7 +1214,11 @@ shoes_native_check_get(SHOES_CONTROL_REF ref)
 void
 shoes_native_check_set(SHOES_CONTROL_REF ref, int on)
 {
-  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ref), on ? TRUE : FALSE);
+  // bug264 - don't toggle if already set to desired state.
+  gboolean new_state;
+  new_state = on ? TRUE : FALSE;
+  if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(ref)) != new_state)
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ref), new_state);
 }
 
 SHOES_CONTROL_REF

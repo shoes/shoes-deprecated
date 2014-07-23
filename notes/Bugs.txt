@@ -1,12 +1,18 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-07-22 Bug 264 - checkbox init. Gtk vs Osx. 
+     I think Shoes/Gtk is wrong. the block should only run when the value
+Done: is changed by the end user's mouse and not the script 
+  
 2014-07-20 Ashbb rocks!
      Old bug report: https://github.com/ashbb/shoes/commit/b9e86ffd6f2e7438d5aae733e9b6d80ffcee37eb
      has the clue and a patch from Ashbb. Worth trying now that I see
      whats going on. The rbfuncall to cShoes,s_run did bother me. Now I 
      know why.
 DONE:  And it works for class-book and my ytm and many bugs
+
+DONE: Shoes 3.2.12 released. New src tbz at site. 
   
 2014-07-19
      shoes_app_visit gets called at startup (splash screen) and for opening
