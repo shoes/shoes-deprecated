@@ -1,6 +1,34 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-07-26
+
+done: Implement ShoesTextView setEnabled: with bug authors solution. Took me
+     a while to figure out what's happening.
+  
+2014-07-25
+
+done: Rakefile (osx dist) - common build - don't ln -s to libruby if it
+      exists in dist
+done? OSX dist build doesn't know about NFS_ALTP. It does but
+      sometimes OSX bash env isn't set correctly.	  
+	 
+  
+2014-07-23 Bug 230 - OSX specific
+     It may be an OSX bug but there's another problem - how to enable
+     such a thing. sytle(:state = nil) is what the manual says. Doesn't
+done: work on Gtk. Sigh!  @eb.state = nil does work. 
+     Now we have better test prog. Bug author did provide a solution clue.
+
+     Need a debuggable Shoes/osx. (default dist/ build on OSX)
+     LLDB needs to be pointed at Contents/MacOS/shoes-bin
+done: Then it works. 
+----> generate a .lldb-shoes.init to point there? 
+    
+===> Looks like the App contents and the plist could use a lot of 
+     restructuring. It's not modern. 
+     
+  
 2014-07-22 Bug 264 - checkbox init. Gtk vs Osx. 
      I think Shoes/Gtk is wrong. the block should only run when the value
 Done: is changed by the end user's mouse and not the script 

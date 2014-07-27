@@ -369,7 +369,7 @@ namespace :osx do
       cd TGT_DIR do
         dirp = RbConfig::CONFIG['libdir']
         so =   RbConfig::CONFIG['LIBRUBY_SO']
-        ln_s "#{dirp}/#{so}", so
+        ln_s "#{dirp}/#{so}", so unless File.exist? so
       end
       #cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "dist/ruby/lib"
       #cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "#{TGT_DIR}/lib/ruby"
@@ -514,6 +514,7 @@ namespace :osx do
       # cp InfoPlist.strings YourApp.app/Contents/Resources/English.lproj/
       `echo -n 'APPL????' > "#{tmpd}/#{APPNAME}.app/Contents/PkgInfo"`
       rm_rf "#{TGT_DIR}/#{APPNAME}.app"
+      NFS=ENV['NFS_ALTP']
       mv "#{tmpd}/#{APPNAME}.app", "#{TGT_DIR}"
     end
   end

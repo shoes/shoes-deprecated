@@ -1,7 +1,7 @@
 name: Shoes
 major: 3
 minor: 2
-tiny: ".12"
+tiny: ".13"
 release: federales
 icons:
   win32: platform/msw/shoes.ico
