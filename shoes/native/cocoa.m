@@ -400,6 +400,21 @@
   }
   return self;
 }
+
+// cjc - bug230 2014-07-26 - just had to learn that cocoa setEnabled is
+// called for Shoes widget.state = or widget :state = "disabled"
+
+-(void)setEnabled: (BOOL)enableIt
+{
+	//printf("setState called %d\n", enableIt);
+  [textView setSelectable: enableIt];
+  [textView setEditable: enableIt];
+  if (enableIt)
+    [textView setTextColor: [NSColor controlTextColor]];
+  else
+    [textView setTextColor: [NSColor disabledControlTextColor]];
+}
+
 -(NSTextStorage *)textStorage
 {
   return [textView textStorage];
