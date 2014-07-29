@@ -1,5 +1,12 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
+
+2014-07-28
+
+     Shoes ubuntu (default dist, Loose) can't find -lruby. 
+     'rvm install --disable-binary 2.1.2 -C --enable-load-relative'
+     It looks like -wl,$\{ORIGIN\} wasn't expanded - rvm bug?
+hack: might work on the past and in the future. Loose shoes.
   
 2014-07-26
 

@@ -44,7 +44,14 @@ end
 # Query pkg-config for cflags and link settings
 EXT_RUBY = RbConfig::CONFIG['prefix']
 RUBY_CFLAGS = " #{`pkg-config --cflags #{EXT_RUBY}/lib/pkgconfig/ruby-#{rv}.pc`.strip}"
-RUBY_LIB = `pkg-config --libs #{EXT_RUBY}/lib/pkgconfig/ruby-#{rv}.pc`.strip
+# Ruby 2.1.2 with RVM has a bug. Workaround or wait for perfection?
+rlib = `pkg-config --libs #{EXT_RUBY}/lib/pkgconfig/ruby-#{rv}.pc`.strip
+if rlib[/{ORIGIN/]
+  #abort "Bug found #{rlib}"
+  RUBY_LIB = rlib.gsub(/\$\\{ORIGIN\\}/, "#{EXT_RUBY}/lib")
+else
+  RUBY_LIB = rlib
+end
 CAIRO_CFLAGS = `pkg-config --cflags cairo`.strip
 CAIRO_LIB = `pkg-config --libs cairo`.strip
 PANGO_CFLAGS = `pkg-config --cflags pango`.strip
