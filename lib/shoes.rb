@@ -169,7 +169,7 @@ class Shoes
           para link("Open an App.") { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
           para link("Package my script (shy)") { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
           para link("Package an App with Shoes") {Shoes.app_package and close }, :margin => 10, :margin_bottom => 4
-          para link("Obsolete: Package") { Shoes.make_pack and close }, :margin => 10, :margin_bottom => 4
+#          para link("Obsolete: Package") { Shoes.make_pack and close }, :margin => 10, :margin_bottom => 4
           para link("Read the Manual.") { Shoes.show_manual and close }, :margin => 10, :margin_bottom => 4
           para link("Maintain Shoes") {Shoes.cobbler and close}, :margin => 10
         end
