@@ -70,12 +70,10 @@ module Make
     # copy include files - it might help build gems
     mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-#{rbvt}"
     cp_r "#{EXT_RUBY}/include/ruby-#{rbvt}/", "#{TGT_DIR}/lib/ruby/include"
-    # can't figure out ln -s? push pwd, cd, ln, pop
-    #cdir = pwd
-    #cd TGT_DIR
-    #ln_s "libruby.so.#{RUBY_V}", "libruby.so"
-    #ln_s "libruby.so.#{RUBY_V}", "libruby.so.#{::RUBY_V[/^\d+\.\d+/]}"
-    #cd cdir
+    chdir TGT_DIR do
+      ln_s "libruby.so.#{rbvm}", "libruby.so"
+      #ln_s "libruby.so.#{RUBY_V}", "libruby.so.#{::RUBY_V[/^\d+\.\d+/]}"
+    end
     SOLOCS.each_value do |path|
       cp "#{path}", "#{TGT_DIR}"
     end
@@ -94,7 +92,7 @@ module Make
       each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_TGT_ARCH}" }
 
     gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
-    {}.each do |gemn, xdir|
+    {'hpricot' => 'lib'}.each do |gemn, xdir|
     #{'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
       spec = eval(File.read("req/#{gemn}/gemspec"))
       mkdir_p "#{gdir}/specifications"

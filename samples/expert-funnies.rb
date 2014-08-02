@@ -23,11 +23,12 @@ Shoes.app :width => 800, :height => 600 do
   @title = "Web Funnies"
   @feeds = [
     "http://xkcd.com/rss.xml",
-    "http://feedproxy.google.com/DilbertDailyStrip?format=xml",
-    "http://www.smbc-comics.com/rss.php",
-    "http://www.daybydaycartoon.com/index.xml",
-    "http://www.questionablecontent.net/QCRSS.xml",
-    "http://indexed.blogspot.com/feeds/posts/default?alt=rss"
+    # feeds that crash Shoes
+    #"http://feedproxy.google.com/DilbertDailyStrip?format=xml",
+    #"http://www.smbc-comics.com/rss.php",
+    #"http://www.daybydaycartoon.com/index.xml",
+    #"http://www.questionablecontent.net/QCRSS.xml",
+    #"http://indexed.blogspot.com/feeds/posts/default?alt=rss"
     ]
 
   stack :margin => 10 do
