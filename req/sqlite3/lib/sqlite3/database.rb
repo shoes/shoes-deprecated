@@ -33,6 +33,8 @@ module SQLite3
   # module before performing a query, and if you have not enabled results as
   # hashes, then the results will all be indexible by field name.
   class Database
+    attr_reader :collations
+
     include Pragmas
 
     class << self
@@ -52,9 +54,15 @@ module SQLite3
     # as hashes or not. By default, rows are returned as arrays.
     attr_accessor :results_as_hash
 
-    # A boolean indicating whether or not type translation is enabled for this
-    # database.
-    attr_accessor :type_translation
+    def type_translation= value # :nodoc:
+      warn(<<-eowarn) if $VERBOSE
+#{caller[0]} is calling SQLite3::Database#type_translation=
+SQLite3::Database#type_translation= is deprecated and will be removed
+in version 2.0.0.
+      eowarn
+      @type_translation = value
+    end
+    attr_reader :type_translation # :nodoc:
 
     # Return the type translator employed by this database instance. Each
     # database instance has its own type translator; this allows for different
@@ -86,7 +94,7 @@ module SQLite3
       begin
         yield stmt
       ensure
-        stmt.close
+        stmt.close unless stmt.closed?
       end
     end
 
@@ -113,28 +121,25 @@ module SQLite3
         if args.empty?
           bind_vars = []
         else
-          bind_vars = [nil] + args
+          bind_vars = [bind_vars] + args
         end
 
         warn(<<-eowarn) if $VERBOSE
 #{caller[0]} is calling SQLite3::Database#execute with nil or multiple bind params
 without using an array.  Please switch to passing bind parameters as an array.
+Support for bind parameters as *args will be removed in 2.0.0.
         eowarn
       end
 
       prepare( sql ) do |stmt|
         stmt.bind_params(bind_vars)
-        if type_translation
-          stmt = ResultSet.new(self, stmt).to_a
-        end
+        columns = stmt.columns
+        stmt    = ResultSet.new(self, stmt).to_a if type_translation
 
         if block_given?
           stmt.each do |row|
             if @results_as_hash
-              h = Hash[*stmt.columns.zip(row).flatten]
-              row.each_with_index { |r, i| h[i] = r }
-
-              yield h
+              yield type_translation ? row : ordered_map_for(columns, row)
             else
               yield row
             end
@@ -142,8 +147,7 @@ without using an array.  Please switch to passing bind parameters as an array.
         else
           if @results_as_hash
             stmt.map { |row|
-              h = Hash[*stmt.columns.zip(row).flatten]
-              row.each_with_index { |r, i| h[i] = r }
+              h = type_translation ? row : ordered_map_for(columns, row)
 
               # FIXME UGH TERRIBLE HACK!
               h['unique'] = h['unique'].to_s if hack
@@ -195,7 +199,7 @@ without using an array.  Please switch to passing bind parameters as an array.
         warn(<<-eowarn) if $VERBOSE
 #{caller[0]} is calling SQLite3::Database#execute_batch with bind parameters
 that are not a list of a hash.  Please switch to passing bind parameters as an
-array or hash.
+array or hash. Support for this behavior will be removed in version 2.0.0.
         eowarn
       end
 
@@ -210,34 +214,38 @@ array or hash.
         warn(<<-eowarn) if $VERBOSE
 #{caller[0]} is calling SQLite3::Database#execute_batch with nil or multiple bind params
 without using an array.  Please switch to passing bind parameters as an array.
+Support for this behavior will be removed in version 2.0.0.
         eowarn
       end
 
       sql = sql.strip
       until sql.empty? do
         prepare( sql ) do |stmt|
-          # FIXME: this should probably use sqlite3's api for batch execution
-          # This implementation requires stepping over the results.
-          if bind_vars.length == stmt.bind_parameter_count
-            stmt.bind_params(bind_vars)
+          unless stmt.closed?
+            # FIXME: this should probably use sqlite3's api for batch execution
+            # This implementation requires stepping over the results.
+            if bind_vars.length == stmt.bind_parameter_count
+              stmt.bind_params(bind_vars)
+            end
+            stmt.step
           end
-          stmt.step
           sql = stmt.remainder.strip
         end
       end
+      # FIXME: we should not return `nil` as a success return value
       nil
     end
 
     # This is a convenience method for creating a statement, binding
     # paramters to it, and calling execute:
     #
-    #   result = db.query( "select * from foo where a=?", 5 )
+    #   result = db.query( "select * from foo where a=?", [5])
     #   # is the same as
     #   result = db.prepare( "select * from foo where a=?" ).execute( 5 )
     #
     # You must be sure to call +close+ on the ResultSet instance that is
     # returned, or you could have problems with locks on the table. If called
-    # with a block, +close+ will be invoked implicitly when the block 
+    # with a block, +close+ will be invoked implicitly when the block
     # terminates.
     def query( sql, bind_vars = [], *args )
 
@@ -245,12 +253,13 @@ without using an array.  Please switch to passing bind parameters as an array.
         if args.empty?
           bind_vars = []
         else
-          bind_vars = [nil] + args
+          bind_vars = [bind_vars] + args
         end
 
         warn(<<-eowarn) if $VERBOSE
 #{caller[0]} is calling SQLite3::Database#query with nil or multiple bind params
 without using an array.  Please switch to passing bind parameters as an array.
+Support for this will be removed in version 2.0.0.
         eowarn
       end
 
@@ -271,8 +280,7 @@ without using an array.  Please switch to passing bind parameters as an array.
     #
     # See also #get_first_value.
     def get_first_row( sql, *bind_vars )
-      execute( sql, *bind_vars ) { |row| return row }
-      nil
+      execute( sql, *bind_vars ).first
     end
 
     # A convenience method for obtaining the first value of the first row of a
@@ -296,7 +304,7 @@ without using an array.  Please switch to passing bind parameters as an array.
     # arguments it needs (up to its arity).
     #
     # The block does not return a value directly. Instead, it will invoke
-    # the FunctionProxy#set_result method on the +func+ parameter and
+    # the FunctionProxy#result= method on the +func+ parameter and
     # indicate the return value that way.
     #
     # Example:
@@ -335,7 +343,7 @@ without using an array.  Please switch to passing bind parameters as an array.
     #
     # The +finalize+ parameter must be a +proc+ object that accepts only a
     # single parameter, the FunctionProxy instance representing the current
-    # function invocation. It should invoke FunctionProxy#set_result to
+    # function invocation. It should invoke FunctionProxy#result= to
     # store the result of the function.
     #
     # Example:
@@ -347,7 +355,7 @@ without using an array.  Please switch to passing bind parameters as an array.
     #     end
     #
     #     finalize do |func|
-    #       func.set_result( func[ :total ] || 0 )
+    #       func.result = func[ :total ] || 0
     #     end
     #   end
     #
@@ -423,6 +431,7 @@ without using an array.  Please switch to passing bind parameters as an array.
     #
     #   class LengthsAggregateHandler
     #     def self.arity; 1; end
+    #     def self.name; 'lengths'; end
     #
     #     def initialize
     #       @total = 0
@@ -433,7 +442,7 @@ without using an array.  Please switch to passing bind parameters as an array.
     #     end
     #
     #     def finalize( ctx )
-    #       ctx.set_result( @total )
+    #       ctx.result = @total
     #     end
     #   end
     #
@@ -441,21 +450,28 @@ without using an array.  Please switch to passing bind parameters as an array.
     #   puts db.get_first_value( "select lengths(name) from A" )
     def create_aggregate_handler( handler )
       proxy = Class.new do
-        def initialize handler
-          @handler  = handler
-          @fp       = FunctionProxy.new
+        def initialize klass
+          @klass = klass
+          @fp    = FunctionProxy.new
         end
 
         def step( *args )
-          @handler.step(@fp, *args)
+          instance.step(@fp, *args)
         end
 
         def finalize
-          @handler.finalize @fp
+          instance.finalize @fp
+          @instance = nil
           @fp.result
         end
+
+        private
+
+        def instance
+          @instance ||= @klass.new
+        end
       end
-      define_aggregator(handler.name, proxy.new(handler.new))
+      define_aggregator(handler.name, proxy.new(handler))
       self
     end
 
@@ -477,7 +493,6 @@ without using an array.  Please switch to passing bind parameters as an array.
     # #rollback.
     def transaction( mode = :deferred )
       execute "begin #{mode.to_s} transaction"
-      @transaction_active = true
 
       if block_given?
         abort = false
@@ -500,7 +515,6 @@ without using an array.  Please switch to passing bind parameters as an array.
     # <tt>abort? and rollback or commit</tt>.
     def commit
       execute "commit transaction"
-      @transaction_active = false
       true
     end
 
@@ -510,13 +524,13 @@ without using an array.  Please switch to passing bind parameters as an array.
     # <tt>abort? and rollback or commit</tt>.
     def rollback
       execute "rollback transaction"
-      @transaction_active = false
       true
     end
 
-    # Returns +true+ if there is a transaction active, and +false+ otherwise.
-    def transaction_active?
-      @transaction_active
+    # Returns +true+ if the database has been open in readonly mode
+    # A helper to check before performing any operation
+    def readonly?
+      @readonly
     end
 
     # A helper class for dealing with custom functions (see #create_function,
@@ -563,6 +577,14 @@ without using an array.  Please switch to passing bind parameters as an array.
       def []=( key, value )
         @context[ key ] = value
       end
+    end
+
+    private
+
+    def ordered_map_for columns, row
+      h = Hash[*columns.zip(row).flatten]
+      row.each_with_index { |r, i| h[i] = r }
+      h
     end
   end
 end

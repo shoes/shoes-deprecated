@@ -161,6 +161,7 @@ SOLOCS['eay'] = "#{bindll}/libeay32.dll"
 SOLOCS['gdbm'] = "#{bindll}/libgdbm-3.dll"
 SOLOCS['gdbmc'] = "#{bindll}/libgdbm_compat-3.dll"
 SOLOCS['ssl'] = "#{bindll}/ssleay32.dll"
+SOLOCS['sqlite'] = "#{bindll}/sqlite3.dll"
 if ENV['GTK'] == 'gtk+-3.0' && COPY_GTK == true
   SOLOCS['atk'] = "#{bindll}/libatk-1.0-0.dll"
   SOLOCS['cairo'] = "#{bindll}/libcairo-2.dll"

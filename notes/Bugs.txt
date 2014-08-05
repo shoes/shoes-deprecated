@@ -1,12 +1,66 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
+  
+2014-08-04 Sqlite 1.3.9 cobbled.
+done: raspberry build works. Not pretty inside the  extconf.rb
+--->  Shares the US-ASCII problem
+done: Mingw more troublesome. Use the binject/extconf method and force
+      RbConfig load from the Mingw compiled Ruby.
+  
+2014-08-03 Sqlite
+      Backup current gem.
+      copy ext/ lib/ from 1.3.9
+      apply my fixes to extconf, undo some of theirs. What could go wrong?
+  
+2014-08-01 sqlite 1.3.0 (existing Shoes)
+      The sample/simple-sqlite3.rb script tosses up two errors of US-ASCII
+----> comment out the line for now.
+      sqlite3 working in x86_64,
+      apt-get install libsqlite3-dev on i686 chroot. Works.
+      
+====> little problem finding sqlite3.h on rpi with the extconf 
+      mingw issues. Can't link. Theory: to many -L overriding the one I want.
+====> DAMN - don't use cross compiler for config tests. (rpi, mingw) -- 
+      not going to work. Maybe use sqlite 1.3.9 source? 
+====> I do need to use 1.3.9. 
+  
+2014-07-31 hpricot
+      0.8.1 is the hpricot Shoes has. Stick with it - 0.8.6 build 
+      is much different - do we care about hpricot versions? No.
+      My chroot env makes testing gems difficult for x86 vs i686
+done: samples/expert-funnies.rb - comment out feeds that don't work.
+done: hpricot 0.8.1 (shoes default) builds,runs for x86_64, i686, rpi. mingw
+--->  OSX seems to be OK but there's no image. No errors either.
+===> ssh mini doesn't work but ssh 198.168.1.3 does. Linux issue?
+        
+2014-07-30 pi & Shoes gems: sqlite3, hpricot, ruby 2.1.2
+
+done:  lib/ruby/gems has 2.0.0 and 2.1.0 - don't need 2.0.0
+done:  site_ruby has 2.0.0 stuff. 
+     rpi build is screwed up.  - sqlite3 compile failure but the 
+       Shoes build continued -- bad.
+     Then I looked at the extconf.rb - Ugly. But first:
+----> That $ORIGIN thing can affect gem builds.
+
+done: Rollback to 3.2.13. 
+done: put symlink back in rakefiles. 
+done: Rebuild all (still .13)
+     
+     
+  
+2014-07-29
+     Playing with the missing gems (Loose Shoes)
+     json has a Ruby compile problem. HH doesn't need it.
+     Try hh/sqlite3 on pi
+       it's trying to compile (shoes setup) 
+     All kinds of things wrong with the gems.
 
 2014-07-28
 
      Shoes ubuntu (default dist, Loose) can't find -lruby. 
      'rvm install --disable-binary 2.1.2 -C --enable-load-relative'
      It looks like -wl,$\{ORIGIN\} wasn't expanded - rvm bug?
-hack: might work on the past and in the future. Loose shoes.
+hack: might work on the past and in the future. Loose shoes only.
   
 2014-07-26
 

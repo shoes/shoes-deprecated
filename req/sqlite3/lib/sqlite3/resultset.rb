@@ -10,23 +10,61 @@ module SQLite3
   class ResultSet
     include Enumerable
 
-    # The class of which we return an object in case we want an Array as
-    # result. (ArrayFields is installed.)
-    class ArrayWithTypes < Array
+    class ArrayWithTypes < Array # :nodoc:
       attr_accessor :types
     end
 
-    # The class of which we return an object in case we want an Array as
-    # result. (ArrayFields is not installed.)
-    class ArrayWithTypesAndFields < Array
-      attr_accessor :types
-      attr_accessor :fields
+    class ArrayWithTypesAndFields < Array # :nodoc:
+      attr_writer :types
+      attr_writer :fields
+
+      def types
+        warn(<<-eowarn) if $VERBOSE
+#{caller[0]} is calling #{self.class}#types.  This method will be removed in
+sqlite3 version 2.0.0, please call the `types` method on the SQLite3::ResultSet
+object that created this object
+        eowarn
+        @types
+      end
+
+      def fields
+        warn(<<-eowarn) if $VERBOSE
+#{caller[0]} is calling #{self.class}#fields.  This method will be removed in
+sqlite3 version 2.0.0, please call the `columns` method on the SQLite3::ResultSet
+object that created this object
+        eowarn
+        @fields
+      end
     end
 
     # The class of which we return an object in case we want a Hash as
     # result.
-    class HashWithTypes < Hash
-      attr_accessor :types
+    class HashWithTypesAndFields < Hash # :nodoc:
+      attr_writer :types
+      attr_writer :fields
+
+      def types
+        warn(<<-eowarn) if $VERBOSE
+#{caller[0]} is calling #{self.class}#types.  This method will be removed in
+sqlite3 version 2.0.0, please call the `types` method on the SQLite3::ResultSet
+object that created this object
+        eowarn
+        @types
+      end
+
+      def fields
+        warn(<<-eowarn) if $VERBOSE
+#{caller[0]} is calling #{self.class}#fields.  This method will be removed in
+sqlite3 version 2.0.0, please call the `columns` method on the SQLite3::ResultSet
+object that created this object
+        eowarn
+        @fields
+      end
+
+      def [] key
+        key = fields[key] if key.is_a? Numeric
+        super key
+      end
     end
 
     # Create a new ResultSet attached to the given database, using the
@@ -63,6 +101,10 @@ module SQLite3
     # For hashes, the column names are the keys of the hash, and the column
     # types are accessible via the +types+ property.
     def next
+      if @db.results_as_hash
+        return next_hash
+      end
+
       row = @stmt.step
       return nil if @stmt.done?
 
@@ -72,29 +114,35 @@ module SQLite3
         end
       end
 
-      if @db.results_as_hash
-        new_row = HashWithTypes[*@stmt.columns.zip(row).flatten]
-        row.each_with_index { |value,idx|
-          new_row[idx] = value
-        }
-        row = new_row
+      if row.respond_to?(:fields)
+        # FIXME: this can only happen if the translator returns something
+        # that responds to `fields`.  Since we're removing the translator
+        # in 2.0, we can remove this branch in 2.0.
+        row = ArrayWithTypes.new(row)
       else
-        if row.respond_to?(:fields)
-          row = ArrayWithTypes.new(row)
-        else
-          row = ArrayWithTypesAndFields.new(row)
-        end
-        row.fields = @stmt.columns
+        # FIXME: the `fields` and `types` methods are deprecated on this
+        # object for version 2.0, so we can safely remove this branch
+        # as well.
+        row = ArrayWithTypesAndFields.new(row)
       end
 
+      row.fields = @stmt.columns
       row.types = @stmt.types
       row
     end
 
     # Required by the Enumerable mixin. Provides an internal iterator over the
     # rows of the result set.
-    def each( &block )
+    def each
       while node = self.next
+        yield node
+      end
+    end
+
+    # Provides an internal iterator over the rows of the result set where
+    # each row is yielded as a hash.
+    def each_hash
+      while node = next_hash
         yield node
       end
     end
@@ -121,6 +169,27 @@ module SQLite3
       @stmt.columns
     end
 
-  end
+    # Return the next row as a hash
+    def next_hash
+      row = @stmt.step
+      return nil if @stmt.done?
 
+      # FIXME: type translation is deprecated, so this can be removed
+      # in 2.0
+      if @db.type_translation
+        row = @stmt.types.zip(row).map do |type, value|
+          @db.translator.translate( type, value )
+        end
+      end
+
+      # FIXME: this can be switched to a regular hash in 2.0
+      row = HashWithTypesAndFields[*@stmt.columns.zip(row).flatten]
+
+      # FIXME: these methods are deprecated for version 2.0, so we can remove
+      # this code in 2.0
+      row.fields = @stmt.columns
+      row.types = @stmt.types
+      row
+    end
+  end
 end

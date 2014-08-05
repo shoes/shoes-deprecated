@@ -94,6 +94,7 @@ SOLOCS['libyaml'] = "#{ularch}/libyaml-0.so.2"
 SOLOCS['pcre'] = "#{larch}/libpcre.so.3"
 SOLOCS['crypto'] = "#{ularch}/libcrypto.so.1.0.0"
 SOLOCS['ssl'] = "#{ularch}/libssl.so.1.0.0"
+SOLOCS['sqlite'] = "#{ularch}/libsqlite3.so.0.8.6"
 if ENV['GTK'] == 'gtk+-2.0' && COPY_GTK == true
   SOLOCS['gtk2'] = "#{ularch}/libgtk-x11-2.0.so"
   SOLOCS['gdk2'] = "#{ularch}/libgdk-x11-2.0.so"

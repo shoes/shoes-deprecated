@@ -85,7 +85,7 @@ module Make
       each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_TGT_ARCH}" }
 
     gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
-    {'hpricot' => 'lib'}.each do |gemn, xdir|
+    {'hpricot' => 'lib', 'sqlite3' => 'lib'}.each do |gemn, xdir|
     #{'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
       spec = eval(File.read("req/#{gemn}/gemspec"))
       mkdir_p "#{gdir}/specifications"

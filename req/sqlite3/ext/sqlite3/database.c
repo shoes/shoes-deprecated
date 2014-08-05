@@ -11,14 +11,8 @@ static void deallocate(void * ctx)
 {
   sqlite3RubyPtr c = (sqlite3RubyPtr)ctx;
   sqlite3 * db     = c->db;
-  sqlite3_stmt * stmt;
 
-  if(db) {
-    while((stmt = sqlite3_next_stmt(db, NULL)) != NULL) {
-      sqlite3_finalize(stmt);
-    }
-    sqlite3_close(db);
-  }
+  if(db) sqlite3_close(db);
   xfree(c);
 }
 
@@ -50,15 +44,25 @@ static VALUE initialize(int argc, VALUE *argv, VALUE self)
   VALUE file;
   VALUE opts;
   VALUE zvfs;
+#ifdef HAVE_SQLITE3_OPEN_V2
+  int mode = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
+#endif
   int status;
 
   Data_Get_Struct(self, sqlite3Ruby, ctx);
 
   rb_scan_args(argc, argv, "12", &file, &opts, &zvfs);
+#if defined StringValueCStr
+  StringValuePtr(file);
+  rb_check_safe_obj(file);
+#else
+  Check_SafeStr(file);
+#endif
   if(NIL_P(opts)) opts = rb_hash_new();
+  else Check_Type(opts, T_HASH);
 
 #ifdef HAVE_RUBY_ENCODING_H
-  if(UTF16_LE_P(file)) {
+  if(UTF16_LE_P(file) || UTF16_BE_P(file)) {
     status = sqlite3_open16(utf16_string_value_ptr(file), &ctx->db);
   } else {
 #endif
@@ -73,12 +77,26 @@ static VALUE initialize(int argc, VALUE *argv, VALUE self)
       }
 #endif
 
+      if (Qtrue == rb_hash_aref(opts, ID2SYM(rb_intern("readonly")))) {
+#ifdef HAVE_SQLITE3_OPEN_V2
+        mode = SQLITE_OPEN_READONLY;
+#else
+        rb_raise(rb_eNotImpError, "sqlite3-ruby was compiled against a version of sqlite that does not support readonly databases");
+#endif
+      }
+#ifdef HAVE_SQLITE3_OPEN_V2
       status = sqlite3_open_v2(
           StringValuePtr(file),
           &ctx->db,
-          SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
+          mode,
           NIL_P(zvfs) ? NULL : StringValuePtr(zvfs)
       );
+#else
+      status = sqlite3_open(
+          StringValuePtr(file),
+          &ctx->db
+      );
+#endif
     }
 
 #ifdef HAVE_RUBY_ENCODING_H
@@ -91,8 +109,15 @@ static VALUE initialize(int argc, VALUE *argv, VALUE self)
   rb_iv_set(self, "@authorizer", Qnil);
   rb_iv_set(self, "@encoding", Qnil);
   rb_iv_set(self, "@busy_handler", Qnil);
+  rb_iv_set(self, "@collations", rb_hash_new());
+  rb_iv_set(self, "@functions", rb_hash_new());
   rb_iv_set(self, "@results_as_hash", rb_hash_aref(opts, sym_results_as_hash));
   rb_iv_set(self, "@type_translation", rb_hash_aref(opts, sym_type_translation));
+#ifdef HAVE_SQLITE3_OPEN_V2
+  rb_iv_set(self, "@readonly", mode == SQLITE_OPEN_READONLY ? Qtrue : Qfalse);
+#else
+  rb_iv_set(self, "@readonly", Qfalse);
+#endif
 
   if(rb_block_given_p()) {
     rb_yield(self);
@@ -256,9 +281,16 @@ static VALUE sqlite3val2rb(sqlite3_value * val)
     case SQLITE_TEXT:
       return rb_tainted_str_new2((const char *)sqlite3_value_text(val));
       break;
-    case SQLITE_BLOB:
-      return rb_tainted_str_new2((const char *)sqlite3_value_blob(val));
+    case SQLITE_BLOB: {
+      /* Sqlite warns calling sqlite3_value_bytes may invalidate pointer from sqlite3_value_blob,
+         so we explicitly get the length before getting blob pointer.
+         Note that rb_str_new and rb_tainted_str_new apparently create string with ASCII-8BIT (BINARY) encoding,
+         which is what we want, as blobs are binary
+       */
+      int len = sqlite3_value_bytes(val);
+      return rb_tainted_str_new((const char *)sqlite3_value_blob(val), len);
       break;
+    }
     case SQLITE_NULL:
       return Qnil;
       break;
@@ -276,13 +308,16 @@ static void set_sqlite3_func_result(sqlite3_context * ctx, VALUE result)
     case T_FIXNUM:
       sqlite3_result_int64(ctx, (sqlite3_int64)FIX2LONG(result));
       break;
-    case T_BIGNUM:
+    case T_BIGNUM: {
 #if SIZEOF_LONG < 8
-      if (RBIGNUM_LEN(result) * SIZEOF_BDIGITS <= 8) {
-          sqlite3_result_int64(ctx, NUM2LL(result));
-          break;
+      sqlite3_int64 num64;
+
+      if (bignum_to_int64(result, &num64)) {
+	  sqlite3_result_int64(ctx, num64);
+	  break;
       }
 #endif
+    }
     case T_FLOAT:
       sqlite3_result_double(ctx, NUM2DBL(result));
       break;
@@ -311,7 +346,9 @@ static void rb_sqlite3_func(sqlite3_context * ctx, int argc, sqlite3_value **arg
     params = xcalloc((size_t)argc, sizeof(VALUE *));
 
     for(i = 0; i < argc; i++) {
-      params[i] = sqlite3val2rb(argv[i]);
+      VALUE param = sqlite3val2rb(argv[i]);
+      RB_GC_GUARD(param);
+      params[i] = param;
     }
   }
 
@@ -356,6 +393,8 @@ static VALUE define_function(VALUE self, VALUE name)
   );
 
   CHECK(ctx->db, status);
+
+  rb_hash_aset(rb_iv_get(self, "@functions"), name, block);
 
   return self;
 }
@@ -571,10 +610,68 @@ static VALUE set_busy_timeout(VALUE self, VALUE timeout)
   return self;
 }
 
+int rb_comparator_func(void * ctx, int a_len, const void * a, int b_len, const void * b)
+{
+  VALUE comparator;
+  VALUE a_str;
+  VALUE b_str;
+  VALUE comparison;
+#ifdef HAVE_RUBY_ENCODING_H
+  rb_encoding * internal_encoding;
+
+  internal_encoding = rb_default_internal_encoding();
+#endif
+
+  comparator = (VALUE)ctx;
+  a_str = rb_str_new((const char *)a, a_len);
+  b_str = rb_str_new((const char *)b, b_len);
+
+#ifdef HAVE_RUBY_ENCODING_H
+  rb_enc_associate_index(a_str, rb_utf8_encindex());
+  rb_enc_associate_index(b_str, rb_utf8_encindex());
+
+  if(internal_encoding) {
+    a_str = rb_str_export_to_enc(a_str, internal_encoding);
+    b_str = rb_str_export_to_enc(b_str, internal_encoding);
+  }
+#endif
+
+  comparison = rb_funcall(comparator, rb_intern("compare"), 2, a_str, b_str);
+
+  return NUM2INT(comparison);
+}
+
+/* call-seq: db.collation(name, comparator)
+ *
+ * Add a collation with name +name+, and a +comparator+ object.  The
+ * +comparator+ object should implement a method called "compare" that takes
+ * two parameters and returns an integer less than, equal to, or greater than
+ * 0.
+ */
+static VALUE collation(VALUE self, VALUE name, VALUE comparator)
+{
+  sqlite3RubyPtr ctx;
+  Data_Get_Struct(self, sqlite3Ruby, ctx);
+  REQUIRE_OPEN_DB(ctx);
+
+  CHECK(ctx->db, sqlite3_create_collation(
+        ctx->db,
+        StringValuePtr(name),
+        SQLITE_UTF8,
+        (void *)comparator,
+        NIL_P(comparator) ? NULL : rb_comparator_func));
+
+  /* Make sure our comparator doesn't get garbage collected. */
+  rb_hash_aset(rb_iv_get(self, "@collations"), name, comparator);
+
+  return self;
+}
+
+#ifdef HAVE_SQLITE3_LOAD_EXTENSION
 /* call-seq: db.load_extension(file)
  *
  * Loads an SQLite extension library from the named file. Extension
- * loading must be enabled using db.enable_load_extension(1) prior
+ * loading must be enabled using db.enable_load_extension(true) prior
  * to calling this API.
  */
 static VALUE load_extension(VALUE self, VALUE file)
@@ -596,7 +693,9 @@ static VALUE load_extension(VALUE self, VALUE file)
 
   return self;
 }
+#endif
 
+#ifdef HAVE_SQLITE3_ENABLE_LOAD_EXTENSION
 /* call-seq: db.enable_load_extension(onoff)
  *
  * Enable or disable extension loading.
@@ -604,13 +703,23 @@ static VALUE load_extension(VALUE self, VALUE file)
 static VALUE enable_load_extension(VALUE self, VALUE onoff)
 {
   sqlite3RubyPtr ctx;
+  int onoffparam;
   Data_Get_Struct(self, sqlite3Ruby, ctx);
   REQUIRE_OPEN_DB(ctx);
 
-  CHECK(ctx->db, sqlite3_enable_load_extension(ctx->db, (int)NUM2INT(onoff)));
+  if (Qtrue == onoff) {
+    onoffparam = 1;
+  } else if (Qfalse == onoff) {
+    onoffparam = 0;
+  } else {
+    onoffparam = (int)NUM2INT(onoff);
+  }
+
+  CHECK(ctx->db, sqlite3_enable_load_extension(ctx->db, onoffparam));
 
   return self;
 }
+#endif
 
 #ifdef HAVE_RUBY_ENCODING_H
 static int enc_cb(void * _self, int UNUSED(columns), char **data, char **UNUSED(names))
@@ -623,6 +732,16 @@ static int enc_cb(void * _self, int UNUSED(columns), char **data, char **UNUSED(
 
   return 0;
 }
+#else
+static int enc_cb(void * _self, int UNUSED(columns), char **data, char **UNUSED(names))
+{
+  VALUE self = (VALUE)_self;
+
+  rb_iv_set(self, "@encoding", rb_str_new2(data[0]));
+
+  return 0;
+}
+#endif
 
 /* call-seq: db.encoding
  *
@@ -644,7 +763,20 @@ static VALUE db_encoding(VALUE self)
 
   return rb_iv_get(self, "@encoding");
 }
-#endif
+
+/* call-seq: db.transaction_active?
+ *
+ * Returns +true+ if there is a transaction active, and +false+ otherwise.
+ *
+ */
+static VALUE transaction_active_p(VALUE self)
+{
+  sqlite3RubyPtr ctx;
+  Data_Get_Struct(self, sqlite3Ruby, ctx);
+  REQUIRE_OPEN_DB(ctx);
+
+  return sqlite3_get_autocommit(ctx->db) ? Qfalse : Qtrue;
+}
 
 void init_sqlite3_database()
 {
@@ -656,6 +788,7 @@ void init_sqlite3_database()
 
   rb_define_alloc_func(cSqlite3Database, allocate);
   rb_define_method(cSqlite3Database, "initialize", initialize, -1);
+  rb_define_method(cSqlite3Database, "collation", collation, 2);
   rb_define_method(cSqlite3Database, "close", sqlite3_rb_close, 0);
   rb_define_method(cSqlite3Database, "closed?", closed_p, 0);
   rb_define_method(cSqlite3Database, "total_changes", total_changes, 0);
@@ -671,6 +804,7 @@ void init_sqlite3_database()
   rb_define_method(cSqlite3Database, "authorizer=", set_authorizer, 1);
   rb_define_method(cSqlite3Database, "busy_handler", busy_handler, -1);
   rb_define_method(cSqlite3Database, "busy_timeout=", set_busy_timeout, 1);
+  rb_define_method(cSqlite3Database, "transaction_active?", transaction_active_p, 0);
 
 #ifdef HAVE_SQLITE3_LOAD_EXTENSION
   rb_define_method(cSqlite3Database, "load_extension", load_extension, 1);
@@ -680,9 +814,7 @@ void init_sqlite3_database()
   rb_define_method(cSqlite3Database, "enable_load_extension", enable_load_extension, 1);
 #endif
 
-#ifdef HAVE_RUBY_ENCODING_H
   rb_define_method(cSqlite3Database, "encoding", db_encoding, 0);
-#endif
 
   id_utf16 = rb_intern("utf16");
   sym_utf16 = ID2SYM(id_utf16);

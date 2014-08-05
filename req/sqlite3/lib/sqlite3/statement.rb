@@ -64,6 +64,8 @@ module SQLite3
       bind_params(*bind_vars) unless bind_vars.empty?
       @results = ResultSet.new(@connection, self)
 
+      step if 0 == column_count
+
       yield @results if block_given?
       @results
     end
@@ -118,28 +120,24 @@ module SQLite3
       @types
     end
 
-    # A convenience method for obtaining the metadata about the query. Note
-    # that this will actually execute the SQL, which means it can be a
-    # (potentially) expensive operation.
-    def get_metadata
-      @columns = []
-      @types = []
-
-      column_count.times do |column|
-        @columns << column_name(column)
-        @types << column_decltype(column)
-      end
-
-      @columns.freeze
-      @types.freeze
-    end
-    private :get_metadata
-
     # Performs a sanity check to ensure that the statement is not
     # closed. If it is, an exception is raised.
     def must_be_open! # :nodoc:
       if closed?
         raise SQLite3::Exception, "cannot use a closed statement"
+      end
+    end
+
+    private
+    # A convenience method for obtaining the metadata about the query. Note
+    # that this will actually execute the SQL, which means it can be a
+    # (potentially) expensive operation.
+    def get_metadata
+      @columns = Array.new(column_count) do |column|
+        column_name column
+      end
+      @types = Array.new(column_count) do |column|
+        column_decltype column
       end
     end
   end
