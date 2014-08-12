@@ -73,7 +73,7 @@ typedef struct hpricot_scan {
 // size_t hpricot_scan_execute(hpricot_scan *scan, const char *data, size_t len, size_t off);
 // int hpricot_scan_has_error(hpricot_scan *scan);
 // int hpricot_scan_is_finished(hpricot_scan *scan);
-// 
-// #define hpricot_scan_nread(scan) (scan)->nread 
+//
+// #define hpricot_scan_nread(scan) (scan)->nread
 
 #endif

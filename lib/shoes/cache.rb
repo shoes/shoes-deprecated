@@ -87,7 +87,7 @@ if tight_shoes
   RbConfig::CONFIG.merge! config
   RbConfig::MAKEFILE_CONFIG.merge! config
   # Add refs to Shoes builtin Gems (but not exts?)
-  GEM_CENTRAL_DIR = File.join(DIR, 'ruby/gems/' + RbConfig::CONFIG['ruby_version'])
+  GEM_CENTRAL_DIR = File.join(DIR, 'lib/ruby/gems/' + RbConfig::CONFIG['ruby_version'])
   Dir[GEM_CENTRAL_DIR + "/gems/*"].each do |gdir|
     $: << "#{gdir}/lib"
   end
@@ -108,6 +108,10 @@ if tight_shoes
     require 'rubygems'
     ShoesGemJailBreak = true
   else
+    if ENV['GEM_PATH']
+      # disable GEM_PATH if its in use otherwise funny things occur.
+      ENV.delete('GEM_PATH')
+    end
     ShoesGemJailBreak = false
   end
 else # Loose Shoes

@@ -68,8 +68,8 @@ module Make
     %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
       each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_RUBY_ARCH}" }
 
-    gdir = "#{TGT_DIR}/ruby/gems/#{RUBY_V}"
-    {'hpricot' => 'lib'}.each do |gemn, xdir|
+    gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
+    {'hpricot' => 'lib', 'sqlite3' => 'lib'}.each do |gemn, xdir|
     #{'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
       spec = eval(File.read("req/#{gemn}/gemspec"))
       mkdir_p "#{gdir}/specifications"
@@ -78,6 +78,7 @@ module Make
       mkdir_p "#{gdir}/gems/#{spec.full_name}/#{xdir}"
       FileList["req/#{gemn}/ext/*"].each { |elib| copy_ext elib, "#{gdir}/gems/#{spec.full_name}/#{xdir}" }
       cp "req/#{gemn}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
+      puts "Gems: #{gemn}"
     end
   end
 
@@ -130,6 +131,7 @@ class MakeDarwin
       # Find ruby's dependent libs in homebrew (/usr/local/
       cd "#{TGT_DIR}/lib/ruby/#{rbvm}.0/#{RUBY_PLATFORM}" do
         bundles = *Dir['*.bundle']
+        puts "Bundles #{bundles}"
         cplibs = {}
         bundles.each do |bpath| 
           `otool -L #{bpath}`.split.each do |lib|
@@ -184,6 +186,12 @@ class MakeDarwin
       cp `which pango-querymodules`.chomp, "#{TGT_DIR}/"
       chmod 0755, "#{TGT_DIR}/pango-querymodules"
     end
+    
+    def copy_gem_deplibs
+      puts "Entering copy_gem_deplibs"
+      cp '/usr/lib/libsqlite3.dylib', "#{TGT_DIR}"
+      chmod 0755,"#{TGT_DIR}/libsqlite3.dylib"
+    end
 
     # Get a list of linked libraries for lib (discard the non-indented lines)
     def get_dylibs lib
@@ -198,6 +206,7 @@ class MakeDarwin
 
     def copy_deps_to_dist
       puts "Entering copy_deps_to_dist #{TGT_DIR}"
+      copy_gem_deplibs
       copy_pango_modules
       # Generate a list of dependencies straight from the generated files.
       # Start with dependencies of shoes-bin, and then add the dependencies
@@ -205,6 +214,12 @@ class MakeDarwin
       # included.
       dylibs = dylibs_to_change("#{TGT_DIR}/#{NAME}-bin")
       dylibs.concat dylibs_to_change("#{TGT_DIR}/pango-querymodules")
+      # add the gem's bundles.
+      rbvm = RUBY_V[/^\d+\.\d+/]
+      Dir["#{TGT_DIR}/lib/ruby/gems/#{rbvm}.0/gems/**/*.bundle"].each do |gb|
+        #puts "Bundle: #{gb}"
+        dylibs.concat dylibs_to_change(gb)
+      end
       dupes = []
       dylibs.each do |dylib|
         dylibs_to_change(dylib).each do |d|
@@ -319,5 +334,22 @@ class MakeDarwin
       sh "DYLD_LIBRARY_PATH= platform/mac/pkg-dmg --target pkg/#{PKG}.dmg --source dmg --volname '#{APPNAME}' --copy #{dmg_ds}:/.DS_Store --mkdir /.background --copy #{dmg_jpg}:/.background" # --format UDRW"
       rm_rf "dmg"
     end
+    
+    def gems_build
+      puts "Build gems #{TGT_DIR}"
+      mkdir_p "#{TGT_DIR}/builtins"
+      gdir = "#{TGT_DIR}/builtins"
+      {'hpricot' => 'lib', 'sqlite3' => 'lib'}.each do |gemn, xdir|
+        spec = eval(File.read("req/#{gemn}/gemspec"))
+        mkdir_p "#{gdir}/specifications"
+        mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
+        FileList["req/#{gemn}/lib/*"].each { |rlib| cp_r rlib, "#{gdir}/gems/#{spec.full_name}/lib" }
+        mkdir_p "#{gdir}/gems/#{spec.full_name}/#{xdir}"
+        FileList["req/#{gemn}/ext/*"].each { |elib| copy_ext elib, "#{gdir}/gems/#{spec.full_name}/#{xdir}" }
+        cp "req/#{gemn}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
+        puts "Gems: #{gemn}"
+      end
+    end
+    
   end
 end

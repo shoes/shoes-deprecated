@@ -1,8 +1,12 @@
-#define VERSION	"0.1"
-
 #include <ruby.h>
 #include <assert.h>
-/* #include <stdio.h> */
+
+#ifdef HAVE_RUBY_ENCODING_H
+#include <ruby/encoding.h>
+# define ASSOCIATE_INDEX(s,enc)  rb_enc_associate_index((s), rb_enc_to_index(enc))
+#else
+# define ASSOCIATE_INDEX(s,enc)
+#endif
 
 #ifndef RARRAY_LEN
 #define RARRAY_LEN(arr)  RARRAY(arr)->len
@@ -72,11 +76,6 @@ static const int cp_1252[] = {
 		n = cp_1252[n - 128]; \
 	} while(0)
 
-#define return_const_len(x) do { \
-	memcpy(buf, x, sizeof(x) - 1); \
-	return (sizeof(x) - 1); \
-} while (0)
-
 static inline size_t bytes_for(int n)
 {
 	if (n < 1000)
@@ -91,18 +90,24 @@ static inline size_t bytes_for(int n)
 	return sizeof("&#9999999;") - 1;
 }
 
-static long escape(char *buf, int n)
+static size_t escape(char *buf, int n)
 {
+
+#define return_const_len(x) do { \
+	memcpy(buf, x, sizeof(x) - 1); \
+	return (sizeof(x) - 1); \
+} while (0)
+
 	/* handle ASCII first */
 	if (likely(n < 128)) {
-		if (likely(n >= 0x20 || n == 0x9 || n == 0xA || n == 0xD)) {
-			if (unlikely(n == 34))
+		if (likely(n >= 0x20 || n == '\t' || n == '\n' || n == '\r')) {
+			if (unlikely(n == '"'))
 				return_const_len("&quot;");
-			if (unlikely(n == 38))
+			if (unlikely(n == '&'))
 				return_const_len("&amp;");
-			if (unlikely(n == 60))
+			if (unlikely(n == '<'))
 				return_const_len("&lt;");
-			if (unlikely(n == 62))
+			if (unlikely(n == '>'))
 				return_const_len("&gt;");
 			buf[0] = (char)n;
 			return 1;
@@ -112,16 +117,18 @@ static long escape(char *buf, int n)
 		return 1;
 	}
 
+#undef return_const_len
+
 	CP_1252_ESCAPE(n);
 
 	if (VALID_VALUE(n)) {
 		/* return snprintf(buf, sizeof("&#1114111;"), "&#%i;", n); */
-		RUBY_EXTERN const char ruby_digitmap[];
-		int rv = 3; /* &#; */
+		static const char digitmap[] = "0123456789";
+		size_t rv = sizeof("&#;") - 1;
 		buf += bytes_for(n);
 		*--buf = ';';
 		do {
-			*--buf = ruby_digitmap[(int)(n % 10)];
+			*--buf = digitmap[(int)(n % 10)];
 			++rv;
 		} while (n /= 10);
 		*--buf = '#';
@@ -129,27 +136,6 @@ static long escape(char *buf, int n)
 		return rv;
 	}
 	buf[0] = '*';
-	return 1;
-}
-
-#undef return_const_len
-
-static long escaped_len(int n)
-{
-	if (likely(n < 128)) {
-		if (unlikely(n == 34))
-			return (sizeof("&quot;") - 1);
-		if (unlikely(n == 38))
-			return (sizeof("&amp;") - 1);
-		if (unlikely(n == 60 || n == 62))
-			return (sizeof("&gt;") - 1);
-		return 1;
-	}
-
-	CP_1252_ESCAPE(n);
-
-	if (VALID_VALUE(n))
-		return bytes_for(n);
 	return 1;
 }
 
@@ -163,28 +149,49 @@ static VALUE unpack_uchar(VALUE self)
 	return rb_funcall(self, unpack_id, 1, C_fmt);
 }
 
-VALUE fast_xs(VALUE self)
+/*
+ * escapes strings for XML
+ * The double-quote (") character is translated to "&quot;"
+ */
+static VALUE fast_xs(VALUE self)
 {
 	long i;
-	struct RArray *array;
-	char *s, *c;
-	long s_len = 0;
+	VALUE array;
+	char *c;
+	size_t s_len;
 	VALUE *tmp;
+	VALUE rv;
 
-	array = RARRAY(rb_rescue(unpack_utf8, self, unpack_uchar, self));
+	array = rb_rescue(unpack_utf8, self, unpack_uchar, self);
 
-	tmp = RARRAY_PTR(array);
-	for (i = RARRAY_LEN(array); --i >= 0; tmp++)
-		s_len += escaped_len(NUM2INT(*tmp));
+	for (tmp = RARRAY_PTR(array), s_len = i = RARRAY_LEN(array);
+	     --i >= 0;
+	     tmp++) {
+		int n = NUM2INT(*tmp);
+		if (likely(n < 128)) {
+			if (unlikely(n == '"'))
+				s_len += (sizeof("&quot;") - 2);
+			if (unlikely(n == '&'))
+				s_len += (sizeof("&amp;") - 2);
+			if (unlikely(n == '>' || n == '<'))
+				s_len += (sizeof("&gt;") - 2);
+			continue;
+		}
 
-	c = s = alloca(s_len + 1);
+		CP_1252_ESCAPE(n);
 
-	tmp = RARRAY_PTR(array);
-	for (i = RARRAY_LEN(array); --i >= 0; tmp++)
+		if (VALID_VALUE(n))
+			s_len += bytes_for(n) - 1;
+	}
+
+	rv = rb_str_new(NULL, s_len);
+        ASSOCIATE_INDEX(rv, rb_default_external_encoding());
+	c = RSTRING_PTR(rv);
+
+	for (tmp = RARRAY_PTR(array), i = RARRAY_LEN(array); --i >= 0; tmp++)
 		c += escape(c, NUM2INT(*tmp));
 
-	*c = '\0';
-	return rb_str_new(s, s_len);
+	return rv;
 }
 
 void Init_fast_xs(void)
@@ -193,7 +200,9 @@ void Init_fast_xs(void)
 
 	unpack_id = rb_intern("unpack");
 	U_fmt = rb_str_new("U*", 2);
+        ASSOCIATE_INDEX(U_fmt, rb_ascii8bit_encoding());
 	C_fmt = rb_str_new("C*", 2);
+        ASSOCIATE_INDEX(C_fmt, rb_ascii8bit_encoding());
 	rb_global_variable(&U_fmt);
 	rb_global_variable(&C_fmt);
 

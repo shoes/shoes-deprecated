@@ -235,6 +235,11 @@ task :old_build => [:pre_build, :build_os] do
   Builder.setup_system_resources
 end
 
+#desc "Build Shoes gems"
+#task :gems do
+#  Builder.gems_build
+#end
+
 desc "Install Shoes in your  ~/.shoes Directory"
 task  :install do
   if CROSS 

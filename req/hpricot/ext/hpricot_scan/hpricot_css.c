@@ -1,3 +1,4 @@
+
 #line 1 "hpricot_css.rl"
 /*
  * hpricot_css.rl
@@ -17,17 +18,23 @@
   rb_funcall2(mod, rb_intern(filt), fargs, fvals); \
   rb_ary_clear(tmpt); \
   fargs = 1
-#define PUSH(aps, ape) rb_ary_push(tmpt, fvals[fargs++] = rb_str_new(aps, ape - aps))
+#ifdef HAVE_RUBY_ENCODING_H
+#define STRNEW(a, len)  rb_external_str_new((a), (len))
+#else
+#define STRNEW(a, len)  rb_str_new((a), (len))
+#endif
+#define PUSH(aps, ape) rb_ary_push(tmpt, fvals[fargs++] = STRNEW(aps, ape - aps))
 #define P(id) printf(id ": %.*s\n", te - ts, ts);
 
 
-#line 25 "hpricot_css.c"
+#line 31 "hpricot_css.c"
 static const int hpricot_css_start = 87;
 static const int hpricot_css_error = 0;
 
 static const int hpricot_css_en_main = 87;
 
-#line 87 "hpricot_css.rl"
+
+#line 92 "hpricot_css.rl"
 
 
 VALUE hpricot_css(VALUE self, VALUE mod, VALUE str, VALUE node)
@@ -45,29 +52,30 @@ VALUE hpricot_css(VALUE self, VALUE mod, VALUE str, VALUE node)
 
   if (TYPE(str) != T_STRING)
     rb_raise(rb_eArgError, "bad CSS selector, String only please.");
- 
+
   StringValue(str);
   p = RSTRING_PTR(str);
   pe = p + RSTRING_LEN(str);
 
   
-#line 55 "hpricot_css.c"
+#line 62 "hpricot_css.c"
 	{
 	cs = hpricot_css_start;
 	ts = 0;
 	te = 0;
 	act = 0;
 	}
-#line 110 "hpricot_css.rl"
+
+#line 115 "hpricot_css.rl"
   
-#line 64 "hpricot_css.c"
+#line 72 "hpricot_css.c"
 	{
 	if ( p == pe )
 		goto _test_eof;
 	switch ( cs )
 	{
 tr0:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{	switch( act ) {
 	case 0:
 	{{goto st0;}}
@@ -94,176 +102,176 @@ tr0:
 	}
 	goto st87;
 tr4:
-#line 83 "hpricot_css.rl"
+#line 88 "hpricot_css.rl"
 	{{p = ((te))-1;}}
 	goto st87;
 tr41:
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{{p = ((te))-1;}{ FILTER(PSUEDO); }}
 	goto st87;
 tr46:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{te = p+1;{ FILTER(PSUEDO); }}
 	goto st87;
 tr48:
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{te = p+1;{ FILTER(PSUEDO); }}
 	goto st87;
 tr62:
-#line 79 "hpricot_css.rl"
+#line 84 "hpricot_css.rl"
 	{{p = ((te))-1;}{ FILTER(POS); }}
 	goto st87;
 tr64:
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
-#line 79 "hpricot_css.rl"
+#line 84 "hpricot_css.rl"
 	{te = p+1;{ FILTER(POS); }}
 	goto st87;
 tr66:
-#line 78 "hpricot_css.rl"
+#line 83 "hpricot_css.rl"
 	{{p = ((te))-1;}{ FILTER(CHILD); }}
 	goto st87;
 tr67:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
-#line 78 "hpricot_css.rl"
+#line 83 "hpricot_css.rl"
 	{te = p+1;{ FILTER(CHILD); }}
 	goto st87;
 tr71:
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
-#line 78 "hpricot_css.rl"
+#line 83 "hpricot_css.rl"
 	{te = p+1;{ FILTER(CHILD); }}
 	goto st87;
 tr100:
-#line 75 "hpricot_css.rl"
+#line 80 "hpricot_css.rl"
 	{te = p+1;{ FILTER(ATTR); }}
 	goto st87;
 tr105:
-#line 75 "hpricot_css.rl"
+#line 80 "hpricot_css.rl"
 	{{p = ((te))-1;}{ FILTER(ATTR); }}
 	goto st87;
 tr132:
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
-#line 74 "hpricot_css.rl"
+#line 79 "hpricot_css.rl"
 	{te = p+1;{ FILTER(NAME); }}
 	goto st87;
 tr143:
-#line 82 "hpricot_css.rl"
+#line 87 "hpricot_css.rl"
 	{te = p+1;{ FILTERAUTO(); }}
 	goto st87;
 tr149:
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
-#line 76 "hpricot_css.rl"
+#line 81 "hpricot_css.rl"
 	{te = p;p--;{ FILTER(TAG); }}
 	goto st87;
 tr153:
-#line 83 "hpricot_css.rl"
+#line 88 "hpricot_css.rl"
 	{te = p;p--;}
 	goto st87;
 tr154:
-#line 81 "hpricot_css.rl"
+#line 86 "hpricot_css.rl"
 	{te = p;p--;{ focus = rb_ary_new3(1, node); }}
 	goto st87;
 tr155:
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
-#line 72 "hpricot_css.rl"
+#line 77 "hpricot_css.rl"
 	{te = p;p--;{ FILTER(ID); }}
 	goto st87;
 tr159:
-#line 77 "hpricot_css.rl"
+#line 82 "hpricot_css.rl"
 	{te = p;p--;{ FILTER(MOD); }}
 	goto st87;
 tr162:
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
-#line 73 "hpricot_css.rl"
+#line 78 "hpricot_css.rl"
 	{te = p;p--;{ FILTER(CLASS); }}
 	goto st87;
 tr166:
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{te = p;p--;{ FILTER(PSUEDO); }}
 	goto st87;
 tr173:
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
-#line 79 "hpricot_css.rl"
+#line 84 "hpricot_css.rl"
 	{te = p;p--;{ FILTER(POS); }}
 	goto st87;
 tr192:
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
-#line 78 "hpricot_css.rl"
+#line 83 "hpricot_css.rl"
 	{te = p;p--;{ FILTER(CHILD); }}
 	goto st87;
 tr200:
-#line 75 "hpricot_css.rl"
+#line 80 "hpricot_css.rl"
 	{te = p;p--;{ FILTER(ATTR); }}
 	goto st87;
 st87:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{ts = 0;}
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{act = 0;}
 	if ( ++p == pe )
 		goto _test_eof87;
 case 87:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{ts = p;}
-#line 267 "hpricot_css.c"
+#line 275 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto tr133;
 		case 32: goto tr137;
@@ -307,7 +315,7 @@ st0:
 cs = 0;
 	goto _out;
 tr133:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -316,31 +324,31 @@ st1:
 	if ( ++p == pe )
 		goto _test_eof1;
 case 1:
-#line 320 "hpricot_css.c"
+#line 328 "hpricot_css.c"
 	if ( -88 <= (*p) && (*p) <= -65 )
 		goto tr1;
 	goto tr0;
 tr1:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 76 "hpricot_css.rl"
+#line 81 "hpricot_css.rl"
 	{act = 5;}
 	goto st88;
 tr144:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
-#line 76 "hpricot_css.rl"
+#line 81 "hpricot_css.rl"
 	{act = 5;}
 	goto st88;
 st88:
 	if ( ++p == pe )
 		goto _test_eof88;
 case 88:
-#line 344 "hpricot_css.c"
+#line 352 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st1;
 		case 45: goto tr1;
@@ -366,7 +374,7 @@ case 88:
 		goto st4;
 	goto tr149;
 tr134:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -375,12 +383,12 @@ st2:
 	if ( ++p == pe )
 		goto _test_eof2;
 case 2:
-#line 379 "hpricot_css.c"
+#line 387 "hpricot_css.c"
 	if ( (*p) <= -65 )
 		goto tr1;
 	goto tr0;
 tr135:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -389,12 +397,12 @@ st3:
 	if ( ++p == pe )
 		goto _test_eof3;
 case 3:
-#line 393 "hpricot_css.c"
+#line 401 "hpricot_css.c"
 	if ( (*p) <= -65 )
 		goto st2;
 	goto tr0;
 tr136:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -403,12 +411,12 @@ st4:
 	if ( ++p == pe )
 		goto _test_eof4;
 case 4:
-#line 407 "hpricot_css.c"
+#line 415 "hpricot_css.c"
 	if ( (*p) <= -65 )
 		goto st3;
 	goto tr0;
 tr146:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -417,19 +425,19 @@ st5:
 	if ( ++p == pe )
 		goto _test_eof5;
 case 5:
-#line 421 "hpricot_css.c"
+#line 429 "hpricot_css.c"
 	if ( (*p) == 46 )
 		goto tr1;
 	goto tr0;
 tr137:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
 	goto st89;
 st89:
 	if ( ++p == pe )
 		goto _test_eof89;
 case 89:
-#line 433 "hpricot_css.c"
+#line 441 "hpricot_css.c"
 	switch( (*p) ) {
 		case 32: goto st6;
 		case 44: goto st90;
@@ -486,7 +494,7 @@ case 7:
 		goto tr11;
 	goto st0;
 tr7:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -495,31 +503,31 @@ st8:
 	if ( ++p == pe )
 		goto _test_eof8;
 case 8:
-#line 499 "hpricot_css.c"
+#line 507 "hpricot_css.c"
 	if ( -88 <= (*p) && (*p) <= -65 )
 		goto tr14;
 	goto tr0;
 tr12:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
-#line 72 "hpricot_css.rl"
+#line 77 "hpricot_css.rl"
 	{act = 1;}
 	goto st91;
 tr14:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 72 "hpricot_css.rl"
+#line 77 "hpricot_css.rl"
 	{act = 1;}
 	goto st91;
 st91:
 	if ( ++p == pe )
 		goto _test_eof91;
 case 91:
-#line 523 "hpricot_css.c"
+#line 531 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st8;
 		case 45: goto tr14;
@@ -545,7 +553,7 @@ case 91:
 		goto st11;
 	goto tr155;
 tr9:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -554,12 +562,12 @@ st9:
 	if ( ++p == pe )
 		goto _test_eof9;
 case 9:
-#line 558 "hpricot_css.c"
+#line 566 "hpricot_css.c"
 	if ( (*p) <= -65 )
 		goto tr14;
 	goto tr0;
 tr10:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -568,12 +576,12 @@ st10:
 	if ( ++p == pe )
 		goto _test_eof10;
 case 10:
-#line 572 "hpricot_css.c"
+#line 580 "hpricot_css.c"
 	if ( (*p) <= -65 )
 		goto st9;
 	goto tr0;
 tr11:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -582,12 +590,12 @@ st11:
 	if ( ++p == pe )
 		goto _test_eof11;
 case 11:
-#line 586 "hpricot_css.c"
+#line 594 "hpricot_css.c"
 	if ( (*p) <= -65 )
 		goto st10;
 	goto tr0;
 tr13:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -596,22 +604,22 @@ st12:
 	if ( ++p == pe )
 		goto _test_eof12;
 case 12:
-#line 600 "hpricot_css.c"
+#line 608 "hpricot_css.c"
 	if ( (*p) == 46 )
 		goto tr14;
 	goto tr0;
 tr160:
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
 	goto st92;
 st92:
 	if ( ++p == pe )
 		goto _test_eof92;
 case 92:
-#line 615 "hpricot_css.c"
+#line 623 "hpricot_css.c"
 	switch( (*p) ) {
 		case 43: goto st92;
 		case 45: goto st92;
@@ -621,26 +629,26 @@ case 92:
 		goto st92;
 	goto tr159;
 tr161:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 76 "hpricot_css.rl"
+#line 81 "hpricot_css.rl"
 	{act = 5;}
 	goto st93;
 tr140:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
-#line 76 "hpricot_css.rl"
+#line 81 "hpricot_css.rl"
 	{act = 5;}
 	goto st93;
 st93:
 	if ( ++p == pe )
 		goto _test_eof93;
 case 93:
-#line 644 "hpricot_css.c"
+#line 652 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st1;
 		case 43: goto tr160;
@@ -696,7 +704,7 @@ case 13:
 		goto tr20;
 	goto st0;
 tr17:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -705,31 +713,31 @@ st14:
 	if ( ++p == pe )
 		goto _test_eof14;
 case 14:
-#line 709 "hpricot_css.c"
+#line 717 "hpricot_css.c"
 	if ( -88 <= (*p) && (*p) <= -65 )
 		goto tr23;
 	goto tr0;
 tr21:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
-#line 73 "hpricot_css.rl"
+#line 78 "hpricot_css.rl"
 	{act = 2;}
 	goto st94;
 tr23:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 73 "hpricot_css.rl"
+#line 78 "hpricot_css.rl"
 	{act = 2;}
 	goto st94;
 st94:
 	if ( ++p == pe )
 		goto _test_eof94;
 case 94:
-#line 733 "hpricot_css.c"
+#line 741 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st14;
 		case 45: goto tr23;
@@ -755,7 +763,7 @@ case 94:
 		goto st17;
 	goto tr162;
 tr18:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -764,12 +772,12 @@ st15:
 	if ( ++p == pe )
 		goto _test_eof15;
 case 15:
-#line 768 "hpricot_css.c"
+#line 776 "hpricot_css.c"
 	if ( (*p) <= -65 )
 		goto tr23;
 	goto tr0;
 tr19:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -778,12 +786,12 @@ st16:
 	if ( ++p == pe )
 		goto _test_eof16;
 case 16:
-#line 782 "hpricot_css.c"
+#line 790 "hpricot_css.c"
 	if ( (*p) <= -65 )
 		goto st15;
 	goto tr0;
 tr20:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -792,12 +800,12 @@ st17:
 	if ( ++p == pe )
 		goto _test_eof17;
 case 17:
-#line 796 "hpricot_css.c"
+#line 804 "hpricot_css.c"
 	if ( (*p) <= -65 )
 		goto st16;
 	goto tr0;
 tr22:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -806,7 +814,7 @@ st18:
 	if ( ++p == pe )
 		goto _test_eof18;
 case 18:
-#line 810 "hpricot_css.c"
+#line 818 "hpricot_css.c"
 	if ( (*p) == 46 )
 		goto tr23;
 	goto tr0;
@@ -845,58 +853,58 @@ case 19:
 		goto tr29;
 	goto st0;
 tr26:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
 	goto st20;
 tr174:
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
 	goto st20;
 st20:
 	if ( ++p == pe )
 		goto _test_eof20;
 case 20:
-#line 865 "hpricot_css.c"
+#line 873 "hpricot_css.c"
 	if ( -88 <= (*p) && (*p) <= -65 )
 		goto tr38;
 	goto tr0;
 tr30:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st95;
 tr38:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st95;
 tr179:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st95;
 st95:
 	if ( ++p == pe )
 		goto _test_eof95;
 case 95:
-#line 900 "hpricot_css.c"
+#line 908 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st20;
 		case 40: goto tr169;
@@ -923,80 +931,80 @@ case 95:
 		goto st23;
 	goto tr166;
 tr27:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
 	goto st21;
 tr175:
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
 	goto st21;
 st21:
 	if ( ++p == pe )
 		goto _test_eof21;
 case 21:
-#line 943 "hpricot_css.c"
+#line 951 "hpricot_css.c"
 	if ( (*p) <= -65 )
 		goto tr38;
 	goto tr0;
 tr28:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
 	goto st22;
 tr176:
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
 	goto st22;
 st22:
 	if ( ++p == pe )
 		goto _test_eof22;
 case 22:
-#line 964 "hpricot_css.c"
+#line 972 "hpricot_css.c"
 	if ( (*p) <= -65 )
 		goto st21;
 	goto tr0;
 tr29:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
 	goto st23;
 tr177:
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
 	goto st23;
 st23:
 	if ( ++p == pe )
 		goto _test_eof23;
 case 23:
-#line 985 "hpricot_css.c"
+#line 993 "hpricot_css.c"
 	if ( (*p) <= -65 )
 		goto st22;
 	goto tr0;
 tr169:
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
 	goto st24;
 st24:
 	if ( ++p == pe )
 		goto _test_eof24;
 case 24:
-#line 1000 "hpricot_css.c"
+#line 1008 "hpricot_css.c"
 	switch( (*p) ) {
 		case 34: goto tr43;
 		case 39: goto tr44;
@@ -1005,7 +1013,7 @@ case 24:
 	}
 	goto tr42;
 tr42:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -1014,7 +1022,7 @@ st25:
 	if ( ++p == pe )
 		goto _test_eof25;
 case 25:
-#line 1018 "hpricot_css.c"
+#line 1026 "hpricot_css.c"
 	switch( (*p) ) {
 		case 34: goto tr0;
 		case 40: goto tr0;
@@ -1022,7 +1030,7 @@ case 25:
 	}
 	goto st25;
 tr43:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -1031,7 +1039,7 @@ st26:
 	if ( ++p == pe )
 		goto _test_eof26;
 case 26:
-#line 1035 "hpricot_css.c"
+#line 1043 "hpricot_css.c"
 	switch( (*p) ) {
 		case 34: goto st28;
 		case 40: goto st29;
@@ -1078,7 +1086,7 @@ case 31:
 	}
 	goto tr0;
 tr44:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -1087,7 +1095,7 @@ st32:
 	if ( ++p == pe )
 		goto _test_eof32;
 case 32:
-#line 1091 "hpricot_css.c"
+#line 1099 "hpricot_css.c"
 	switch( (*p) ) {
 		case 34: goto st34;
 		case 39: goto st25;
@@ -1139,7 +1147,7 @@ case 37:
 	}
 	goto tr0;
 tr45:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -1148,7 +1156,7 @@ st38:
 	if ( ++p == pe )
 		goto _test_eof38;
 case 38:
-#line 1152 "hpricot_css.c"
+#line 1160 "hpricot_css.c"
 	if ( (*p) == 41 )
 		goto tr0;
 	goto st39;
@@ -1169,41 +1177,41 @@ case 40:
 	}
 	goto tr0;
 tr31:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
 	goto st41;
 tr180:
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
 	goto st41;
 st41:
 	if ( ++p == pe )
 		goto _test_eof41;
 case 41:
-#line 1189 "hpricot_css.c"
+#line 1197 "hpricot_css.c"
 	if ( (*p) == 46 )
 		goto tr38;
 	goto tr0;
 tr32:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st96;
 st96:
 	if ( ++p == pe )
 		goto _test_eof96;
 case 96:
-#line 1207 "hpricot_css.c"
+#line 1215 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st20;
 		case 40: goto tr169;
@@ -1232,16 +1240,16 @@ case 96:
 		goto st23;
 	goto tr166;
 tr171:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 79 "hpricot_css.rl"
+#line 84 "hpricot_css.rl"
 	{act = 8;}
 	goto st97;
 st97:
 	if ( ++p == pe )
 		goto _test_eof97;
 case 97:
-#line 1245 "hpricot_css.c"
+#line 1253 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto tr174;
 		case 40: goto tr178;
@@ -1268,17 +1276,17 @@ case 97:
 		goto tr177;
 	goto tr173;
 tr178:
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
 	goto st42;
 st42:
 	if ( ++p == pe )
 		goto _test_eof42;
 case 42:
-#line 1282 "hpricot_css.c"
+#line 1290 "hpricot_css.c"
 	switch( (*p) ) {
 		case 34: goto tr43;
 		case 39: goto tr44;
@@ -1289,7 +1297,7 @@ case 42:
 		goto tr63;
 	goto tr42;
 tr63:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -1298,7 +1306,7 @@ st43:
 	if ( ++p == pe )
 		goto _test_eof43;
 case 43:
-#line 1302 "hpricot_css.c"
+#line 1310 "hpricot_css.c"
 	switch( (*p) ) {
 		case 34: goto tr62;
 		case 40: goto tr62;
@@ -1308,16 +1316,16 @@ case 43:
 		goto st43;
 	goto st25;
 tr172:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st98;
 st98:
 	if ( ++p == pe )
 		goto _test_eof98;
 case 98:
-#line 1321 "hpricot_css.c"
+#line 1329 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st20;
 		case 40: goto tr169;
@@ -1345,16 +1353,16 @@ case 98:
 		goto st23;
 	goto tr166;
 tr181:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st99;
 st99:
 	if ( ++p == pe )
 		goto _test_eof99;
 case 99:
-#line 1358 "hpricot_css.c"
+#line 1366 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st20;
 		case 40: goto tr169;
@@ -1382,20 +1390,20 @@ case 99:
 		goto st23;
 	goto tr166;
 tr33:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st100;
 st100:
 	if ( ++p == pe )
 		goto _test_eof100;
 case 100:
-#line 1399 "hpricot_css.c"
+#line 1407 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st20;
 		case 40: goto tr169;
@@ -1423,16 +1431,16 @@ case 100:
 		goto st23;
 	goto tr166;
 tr182:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st101;
 st101:
 	if ( ++p == pe )
 		goto _test_eof101;
 case 101:
-#line 1436 "hpricot_css.c"
+#line 1444 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st20;
 		case 40: goto tr169;
@@ -1460,16 +1468,16 @@ case 101:
 		goto st23;
 	goto tr166;
 tr183:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st102;
 st102:
 	if ( ++p == pe )
 		goto _test_eof102;
 case 102:
-#line 1473 "hpricot_css.c"
+#line 1481 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st20;
 		case 40: goto tr169;
@@ -1497,16 +1505,16 @@ case 102:
 		goto st23;
 	goto tr166;
 tr184:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st103;
 st103:
 	if ( ++p == pe )
 		goto _test_eof103;
 case 103:
-#line 1510 "hpricot_css.c"
+#line 1518 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st20;
 		case 40: goto tr169;
@@ -1534,16 +1542,16 @@ case 103:
 		goto st23;
 	goto tr166;
 tr185:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 79 "hpricot_css.rl"
+#line 84 "hpricot_css.rl"
 	{act = 8;}
 	goto st104;
 st104:
 	if ( ++p == pe )
 		goto _test_eof104;
 case 104:
-#line 1547 "hpricot_css.c"
+#line 1555 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto tr174;
 		case 40: goto tr178;
@@ -1570,27 +1578,27 @@ case 104:
 		goto tr177;
 	goto tr173;
 tr199:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st105;
 tr186:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st105;
 st105:
 	if ( ++p == pe )
 		goto _test_eof105;
 case 105:
-#line 1594 "hpricot_css.c"
+#line 1602 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st20;
 		case 40: goto tr169;
@@ -1618,16 +1626,16 @@ case 105:
 		goto st23;
 	goto tr166;
 tr187:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st106;
 st106:
 	if ( ++p == pe )
 		goto _test_eof106;
 case 106:
-#line 1631 "hpricot_css.c"
+#line 1639 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st20;
 		case 40: goto tr169;
@@ -1655,16 +1663,16 @@ case 106:
 		goto st23;
 	goto tr166;
 tr188:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st107;
 st107:
 	if ( ++p == pe )
 		goto _test_eof107;
 case 107:
-#line 1668 "hpricot_css.c"
+#line 1676 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st20;
 		case 40: goto tr169;
@@ -1692,16 +1700,16 @@ case 107:
 		goto st23;
 	goto tr166;
 tr189:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st108;
 st108:
 	if ( ++p == pe )
 		goto _test_eof108;
 case 108:
-#line 1705 "hpricot_css.c"
+#line 1713 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st20;
 		case 40: goto tr169;
@@ -1729,16 +1737,16 @@ case 108:
 		goto st23;
 	goto tr166;
 tr190:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st109;
 st109:
 	if ( ++p == pe )
 		goto _test_eof109;
 case 109:
-#line 1742 "hpricot_css.c"
+#line 1750 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st20;
 		case 40: goto tr169;
@@ -1766,16 +1774,16 @@ case 109:
 		goto st23;
 	goto tr166;
 tr191:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 78 "hpricot_css.rl"
+#line 83 "hpricot_css.rl"
 	{act = 7;}
 	goto st110;
 st110:
 	if ( ++p == pe )
 		goto _test_eof110;
 case 110:
-#line 1779 "hpricot_css.c"
+#line 1787 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto tr174;
 		case 40: goto tr193;
@@ -1802,17 +1810,17 @@ case 110:
 		goto tr177;
 	goto tr192;
 tr193:
-#line 29 "hpricot_css.rl"
+#line 34 "hpricot_css.rl"
 	{
     ape = p;
-    PUSH(aps, ape); 
+    PUSH(aps, ape);
   }
 	goto st44;
 st44:
 	if ( ++p == pe )
 		goto _test_eof44;
 case 44:
-#line 1816 "hpricot_css.c"
+#line 1824 "hpricot_css.c"
 	switch( (*p) ) {
 		case 34: goto tr43;
 		case 39: goto tr44;
@@ -1828,7 +1836,7 @@ case 44:
 		goto tr68;
 	goto tr42;
 tr68:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -1837,7 +1845,7 @@ st45:
 	if ( ++p == pe )
 		goto _test_eof45;
 case 45:
-#line 1841 "hpricot_css.c"
+#line 1849 "hpricot_css.c"
 	switch( (*p) ) {
 		case 34: goto tr66;
 		case 40: goto tr66;
@@ -1850,7 +1858,7 @@ case 45:
 		goto st45;
 	goto st25;
 tr69:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -1859,7 +1867,7 @@ st46:
 	if ( ++p == pe )
 		goto _test_eof46;
 case 46:
-#line 1863 "hpricot_css.c"
+#line 1871 "hpricot_css.c"
 	switch( (*p) ) {
 		case 34: goto tr66;
 		case 40: goto tr66;
@@ -1900,7 +1908,7 @@ case 49:
 	}
 	goto st25;
 tr70:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -1909,7 +1917,7 @@ st50:
 	if ( ++p == pe )
 		goto _test_eof50;
 case 50:
-#line 1913 "hpricot_css.c"
+#line 1921 "hpricot_css.c"
 	switch( (*p) ) {
 		case 34: goto tr66;
 		case 40: goto tr66;
@@ -1929,20 +1937,20 @@ case 51:
 	}
 	goto st25;
 tr34:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st111;
 st111:
 	if ( ++p == pe )
 		goto _test_eof111;
 case 111:
-#line 1946 "hpricot_css.c"
+#line 1954 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st20;
 		case 40: goto tr169;
@@ -1970,20 +1978,20 @@ case 111:
 		goto st23;
 	goto tr166;
 tr35:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st112;
 st112:
 	if ( ++p == pe )
 		goto _test_eof112;
 case 112:
-#line 1987 "hpricot_css.c"
+#line 1995 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st20;
 		case 40: goto tr169;
@@ -2012,20 +2020,20 @@ case 112:
 		goto st23;
 	goto tr166;
 tr36:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st113;
 st113:
 	if ( ++p == pe )
 		goto _test_eof113;
 case 113:
-#line 2029 "hpricot_css.c"
+#line 2037 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st20;
 		case 40: goto tr169;
@@ -2053,16 +2061,16 @@ case 113:
 		goto st23;
 	goto tr166;
 tr194:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st114;
 st114:
 	if ( ++p == pe )
 		goto _test_eof114;
 case 114:
-#line 2066 "hpricot_css.c"
+#line 2074 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st20;
 		case 40: goto tr169;
@@ -2090,20 +2098,20 @@ case 114:
 		goto st23;
 	goto tr166;
 tr37:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st115;
 st115:
 	if ( ++p == pe )
 		goto _test_eof115;
 case 115:
-#line 2107 "hpricot_css.c"
+#line 2115 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st20;
 		case 40: goto tr169;
@@ -2132,16 +2140,16 @@ case 115:
 		goto st23;
 	goto tr166;
 tr195:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st116;
 st116:
 	if ( ++p == pe )
 		goto _test_eof116;
 case 116:
-#line 2145 "hpricot_css.c"
+#line 2153 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st20;
 		case 40: goto tr169;
@@ -2169,16 +2177,16 @@ case 116:
 		goto st23;
 	goto tr166;
 tr196:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st117;
 st117:
 	if ( ++p == pe )
 		goto _test_eof117;
 case 117:
-#line 2182 "hpricot_css.c"
+#line 2190 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st20;
 		case 40: goto tr169;
@@ -2206,16 +2214,16 @@ case 117:
 		goto st23;
 	goto tr166;
 tr197:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st118;
 st118:
 	if ( ++p == pe )
 		goto _test_eof118;
 case 118:
-#line 2219 "hpricot_css.c"
+#line 2227 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st20;
 		case 40: goto tr169;
@@ -2243,16 +2251,16 @@ case 118:
 		goto st23;
 	goto tr166;
 tr198:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 80 "hpricot_css.rl"
+#line 85 "hpricot_css.rl"
 	{act = 9;}
 	goto st119;
 st119:
 	if ( ++p == pe )
 		goto _test_eof119;
 case 119:
-#line 2256 "hpricot_css.c"
+#line 2264 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st20;
 		case 40: goto tr169;
@@ -2308,7 +2316,7 @@ case 52:
 		goto tr80;
 	goto st0;
 tr77:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -2317,18 +2325,18 @@ st53:
 	if ( ++p == pe )
 		goto _test_eof53;
 case 53:
-#line 2321 "hpricot_css.c"
+#line 2329 "hpricot_css.c"
 	if ( -88 <= (*p) && (*p) <= -65 )
 		goto st54;
 	goto st0;
 tr81:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
 	goto st54;
 tr91:
-#line 34 "hpricot_css.rl"
+#line 39 "hpricot_css.rl"
 	{
     ape = p;
     aps2 = p;
@@ -2338,7 +2346,7 @@ st54:
 	if ( ++p == pe )
 		goto _test_eof54;
 case 54:
-#line 2342 "hpricot_css.c"
+#line 2350 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto tr86;
 		case 32: goto tr90;
@@ -2369,7 +2377,7 @@ case 54:
 		goto tr90;
 	goto tr85;
 tr85:
-#line 34 "hpricot_css.rl"
+#line 39 "hpricot_css.rl"
 	{
     ape = p;
     aps2 = p;
@@ -2379,7 +2387,7 @@ st55:
 	if ( ++p == pe )
 		goto _test_eof55;
 case 55:
-#line 2383 "hpricot_css.c"
+#line 2391 "hpricot_css.c"
 	if ( (*p) == 61 )
 		goto st56;
 	goto st0;
@@ -2397,7 +2405,7 @@ case 56:
 		goto tr96;
 	goto tr95;
 tr95:
-#line 39 "hpricot_css.rl"
+#line 44 "hpricot_css.rl"
 	{
     ape2 = p;
     PUSH(aps, ape);
@@ -2408,12 +2416,12 @@ st57:
 	if ( ++p == pe )
 		goto _test_eof57;
 case 57:
-#line 2412 "hpricot_css.c"
+#line 2420 "hpricot_css.c"
 	if ( (*p) == 93 )
 		goto tr100;
 	goto st57;
 tr96:
-#line 39 "hpricot_css.rl"
+#line 44 "hpricot_css.rl"
 	{
     ape2 = p;
     PUSH(aps, ape);
@@ -2424,7 +2432,7 @@ st58:
 	if ( ++p == pe )
 		goto _test_eof58;
 case 58:
-#line 2428 "hpricot_css.c"
+#line 2436 "hpricot_css.c"
 	switch( (*p) ) {
 		case 32: goto st58;
 		case 34: goto st59;
@@ -2435,7 +2443,7 @@ case 58:
 		goto st58;
 	goto st57;
 tr97:
-#line 39 "hpricot_css.rl"
+#line 44 "hpricot_css.rl"
 	{
     ape2 = p;
     PUSH(aps, ape);
@@ -2446,21 +2454,21 @@ st59:
 	if ( ++p == pe )
 		goto _test_eof59;
 case 59:
-#line 2450 "hpricot_css.c"
+#line 2458 "hpricot_css.c"
 	switch( (*p) ) {
 		case 34: goto st57;
 		case 93: goto tr104;
 	}
 	goto st59;
 tr104:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
 	goto st120;
 st120:
 	if ( ++p == pe )
 		goto _test_eof120;
 case 120:
-#line 2464 "hpricot_css.c"
+#line 2472 "hpricot_css.c"
 	if ( (*p) == 34 )
 		goto st61;
 	goto st60;
@@ -2479,7 +2487,7 @@ case 61:
 		goto tr100;
 	goto tr105;
 tr98:
-#line 39 "hpricot_css.rl"
+#line 44 "hpricot_css.rl"
 	{
     ape2 = p;
     PUSH(aps, ape);
@@ -2490,21 +2498,21 @@ st62:
 	if ( ++p == pe )
 		goto _test_eof62;
 case 62:
-#line 2494 "hpricot_css.c"
+#line 2502 "hpricot_css.c"
 	switch( (*p) ) {
 		case 39: goto st57;
 		case 93: goto tr108;
 	}
 	goto st62;
 tr108:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
 	goto st121;
 st121:
 	if ( ++p == pe )
 		goto _test_eof121;
 case 121:
-#line 2508 "hpricot_css.c"
+#line 2516 "hpricot_css.c"
 	if ( (*p) == 39 )
 		goto st61;
 	goto st63;
@@ -2516,7 +2524,7 @@ case 63:
 		goto st61;
 	goto st63;
 tr86:
-#line 34 "hpricot_css.rl"
+#line 39 "hpricot_css.rl"
 	{
     ape = p;
     aps2 = p;
@@ -2526,14 +2534,14 @@ st64:
 	if ( ++p == pe )
 		goto _test_eof64;
 case 64:
-#line 2530 "hpricot_css.c"
+#line 2538 "hpricot_css.c"
 	if ( (*p) == 61 )
 		goto st56;
 	if ( -88 <= (*p) && (*p) <= -65 )
 		goto st54;
 	goto st0;
 tr87:
-#line 34 "hpricot_css.rl"
+#line 39 "hpricot_css.rl"
 	{
     ape = p;
     aps2 = p;
@@ -2543,14 +2551,14 @@ st65:
 	if ( ++p == pe )
 		goto _test_eof65;
 case 65:
-#line 2547 "hpricot_css.c"
+#line 2555 "hpricot_css.c"
 	if ( (*p) == 61 )
 		goto st56;
 	if ( (*p) <= -65 )
 		goto st54;
 	goto st0;
 tr88:
-#line 34 "hpricot_css.rl"
+#line 39 "hpricot_css.rl"
 	{
     ape = p;
     aps2 = p;
@@ -2560,14 +2568,14 @@ st66:
 	if ( ++p == pe )
 		goto _test_eof66;
 case 66:
-#line 2564 "hpricot_css.c"
+#line 2572 "hpricot_css.c"
 	if ( (*p) == 61 )
 		goto st56;
 	if ( (*p) <= -65 )
 		goto st67;
 	goto st0;
 tr78:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -2576,12 +2584,12 @@ st67:
 	if ( ++p == pe )
 		goto _test_eof67;
 case 67:
-#line 2580 "hpricot_css.c"
+#line 2588 "hpricot_css.c"
 	if ( (*p) <= -65 )
 		goto st54;
 	goto st0;
 tr89:
-#line 34 "hpricot_css.rl"
+#line 39 "hpricot_css.rl"
 	{
     ape = p;
     aps2 = p;
@@ -2591,14 +2599,14 @@ st68:
 	if ( ++p == pe )
 		goto _test_eof68;
 case 68:
-#line 2595 "hpricot_css.c"
+#line 2603 "hpricot_css.c"
 	if ( (*p) == 61 )
 		goto st56;
 	if ( (*p) <= -65 )
 		goto st69;
 	goto st0;
 tr79:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -2607,12 +2615,12 @@ st69:
 	if ( ++p == pe )
 		goto _test_eof69;
 case 69:
-#line 2611 "hpricot_css.c"
+#line 2619 "hpricot_css.c"
 	if ( (*p) <= -65 )
 		goto st67;
 	goto st0;
 tr90:
-#line 34 "hpricot_css.rl"
+#line 39 "hpricot_css.rl"
 	{
     ape = p;
     aps2 = p;
@@ -2622,7 +2630,7 @@ st70:
 	if ( ++p == pe )
 		goto _test_eof70;
 case 70:
-#line 2626 "hpricot_css.c"
+#line 2634 "hpricot_css.c"
 	switch( (*p) ) {
 		case 32: goto st70;
 		case 61: goto st71;
@@ -2631,7 +2639,7 @@ case 70:
 		goto st70;
 	goto st55;
 tr92:
-#line 34 "hpricot_css.rl"
+#line 39 "hpricot_css.rl"
 	{
     ape = p;
     aps2 = p;
@@ -2641,7 +2649,7 @@ st71:
 	if ( ++p == pe )
 		goto _test_eof71;
 case 71:
-#line 2645 "hpricot_css.c"
+#line 2653 "hpricot_css.c"
 	switch( (*p) ) {
 		case 32: goto tr96;
 		case 34: goto tr97;
@@ -2653,7 +2661,7 @@ case 71:
 		goto tr96;
 	goto tr95;
 tr115:
-#line 39 "hpricot_css.rl"
+#line 44 "hpricot_css.rl"
 	{
     ape2 = p;
     PUSH(aps, ape);
@@ -2664,7 +2672,7 @@ st72:
 	if ( ++p == pe )
 		goto _test_eof72;
 case 72:
-#line 2668 "hpricot_css.c"
+#line 2676 "hpricot_css.c"
 	switch( (*p) ) {
 		case 32: goto tr96;
 		case 34: goto tr97;
@@ -2675,7 +2683,7 @@ case 72:
 		goto tr96;
 	goto tr95;
 tr93:
-#line 34 "hpricot_css.rl"
+#line 39 "hpricot_css.rl"
 	{
     ape = p;
     aps2 = p;
@@ -2685,14 +2693,14 @@ st73:
 	if ( ++p == pe )
 		goto _test_eof73;
 case 73:
-#line 2689 "hpricot_css.c"
+#line 2697 "hpricot_css.c"
 	switch( (*p) ) {
 		case 46: goto st54;
 		case 61: goto st56;
 	}
 	goto st0;
 tr80:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -2701,12 +2709,12 @@ st74:
 	if ( ++p == pe )
 		goto _test_eof74;
 case 74:
-#line 2705 "hpricot_css.c"
+#line 2713 "hpricot_css.c"
 	if ( (*p) <= -65 )
 		goto st69;
 	goto st0;
 tr82:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -2715,12 +2723,12 @@ st75:
 	if ( ++p == pe )
 		goto _test_eof75;
 case 75:
-#line 2719 "hpricot_css.c"
+#line 2727 "hpricot_css.c"
 	if ( (*p) == 46 )
 		goto st54;
 	goto st0;
 tr83:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
@@ -2729,7 +2737,7 @@ st76:
 	if ( ++p == pe )
 		goto _test_eof76;
 case 76:
-#line 2733 "hpricot_css.c"
+#line 2741 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto tr86;
 		case 32: goto tr90;
@@ -2761,7 +2769,7 @@ case 76:
 		goto tr90;
 	goto tr85;
 tr116:
-#line 34 "hpricot_css.rl"
+#line 39 "hpricot_css.rl"
 	{
     ape = p;
     aps2 = p;
@@ -2771,7 +2779,7 @@ st77:
 	if ( ++p == pe )
 		goto _test_eof77;
 case 77:
-#line 2775 "hpricot_css.c"
+#line 2783 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto tr86;
 		case 32: goto tr90;
@@ -2803,7 +2811,7 @@ case 77:
 		goto tr90;
 	goto tr85;
 tr117:
-#line 34 "hpricot_css.rl"
+#line 39 "hpricot_css.rl"
 	{
     ape = p;
     aps2 = p;
@@ -2813,7 +2821,7 @@ st78:
 	if ( ++p == pe )
 		goto _test_eof78;
 case 78:
-#line 2817 "hpricot_css.c"
+#line 2825 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto tr86;
 		case 32: goto tr90;
@@ -2845,7 +2853,7 @@ case 78:
 		goto tr90;
 	goto tr85;
 tr118:
-#line 34 "hpricot_css.rl"
+#line 39 "hpricot_css.rl"
 	{
     ape = p;
     aps2 = p;
@@ -2855,7 +2863,7 @@ st79:
 	if ( ++p == pe )
 		goto _test_eof79;
 case 79:
-#line 2859 "hpricot_css.c"
+#line 2867 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto tr86;
 		case 32: goto tr90;
@@ -2886,7 +2894,7 @@ case 79:
 		goto tr90;
 	goto tr85;
 tr119:
-#line 34 "hpricot_css.rl"
+#line 39 "hpricot_css.rl"
 	{
     ape = p;
     aps2 = p;
@@ -2896,7 +2904,7 @@ st80:
 	if ( ++p == pe )
 		goto _test_eof80;
 case 80:
-#line 2900 "hpricot_css.c"
+#line 2908 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto tr120;
 		case 32: goto tr96;
@@ -2930,11 +2938,11 @@ case 80:
 		goto tr96;
 	goto tr95;
 tr120:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
-#line 39 "hpricot_css.rl"
+#line 44 "hpricot_css.rl"
 	{
     ape2 = p;
     PUSH(aps, ape);
@@ -2945,18 +2953,18 @@ st81:
 	if ( ++p == pe )
 		goto _test_eof81;
 case 81:
-#line 2949 "hpricot_css.c"
+#line 2957 "hpricot_css.c"
 	if ( (*p) == 93 )
 		goto tr100;
 	if ( -88 <= (*p) && (*p) <= -65 )
 		goto st82;
 	goto st57;
 tr124:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
-#line 39 "hpricot_css.rl"
+#line 44 "hpricot_css.rl"
 	{
     ape2 = p;
     PUSH(aps, ape);
@@ -2967,7 +2975,7 @@ st82:
 	if ( ++p == pe )
 		goto _test_eof82;
 case 82:
-#line 2971 "hpricot_css.c"
+#line 2979 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st81;
 		case 45: goto st82;
@@ -2994,11 +3002,11 @@ case 82:
 		goto st85;
 	goto st57;
 tr121:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
-#line 39 "hpricot_css.rl"
+#line 44 "hpricot_css.rl"
 	{
     ape2 = p;
     PUSH(aps, ape);
@@ -3009,18 +3017,18 @@ st83:
 	if ( ++p == pe )
 		goto _test_eof83;
 case 83:
-#line 3013 "hpricot_css.c"
+#line 3021 "hpricot_css.c"
 	if ( (*p) == 93 )
 		goto tr100;
 	if ( (*p) <= -65 )
 		goto st82;
 	goto st57;
 tr122:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
-#line 39 "hpricot_css.rl"
+#line 44 "hpricot_css.rl"
 	{
     ape2 = p;
     PUSH(aps, ape);
@@ -3031,18 +3039,18 @@ st84:
 	if ( ++p == pe )
 		goto _test_eof84;
 case 84:
-#line 3035 "hpricot_css.c"
+#line 3043 "hpricot_css.c"
 	if ( (*p) == 93 )
 		goto tr100;
 	if ( (*p) <= -65 )
 		goto st83;
 	goto st57;
 tr123:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
-#line 39 "hpricot_css.rl"
+#line 44 "hpricot_css.rl"
 	{
     ape2 = p;
     PUSH(aps, ape);
@@ -3053,18 +3061,18 @@ st85:
 	if ( ++p == pe )
 		goto _test_eof85;
 case 85:
-#line 3057 "hpricot_css.c"
+#line 3065 "hpricot_css.c"
 	if ( (*p) == 93 )
 		goto tr100;
 	if ( (*p) <= -65 )
 		goto st84;
 	goto st57;
 tr125:
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
-#line 39 "hpricot_css.rl"
+#line 44 "hpricot_css.rl"
 	{
     ape2 = p;
     PUSH(aps, ape);
@@ -3075,27 +3083,27 @@ st86:
 	if ( ++p == pe )
 		goto _test_eof86;
 case 86:
-#line 3079 "hpricot_css.c"
+#line 3087 "hpricot_css.c"
 	switch( (*p) ) {
 		case 46: goto st82;
 		case 93: goto tr100;
 	}
 	goto st57;
 tr147:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
-#line 76 "hpricot_css.rl"
+#line 81 "hpricot_css.rl"
 	{act = 5;}
 	goto st122;
 st122:
 	if ( ++p == pe )
 		goto _test_eof122;
 case 122:
-#line 3099 "hpricot_css.c"
+#line 3107 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st1;
 		case 45: goto tr1;
@@ -3122,16 +3130,16 @@ case 122:
 		goto st4;
 	goto tr149;
 tr201:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 76 "hpricot_css.rl"
+#line 81 "hpricot_css.rl"
 	{act = 5;}
 	goto st123;
 st123:
 	if ( ++p == pe )
 		goto _test_eof123;
 case 123:
-#line 3135 "hpricot_css.c"
+#line 3143 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st1;
 		case 45: goto tr1;
@@ -3158,16 +3166,16 @@ case 123:
 		goto st4;
 	goto tr149;
 tr202:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 76 "hpricot_css.rl"
+#line 81 "hpricot_css.rl"
 	{act = 5;}
 	goto st124;
 st124:
 	if ( ++p == pe )
 		goto _test_eof124;
 case 124:
-#line 3171 "hpricot_css.c"
+#line 3179 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st1;
 		case 45: goto tr1;
@@ -3193,20 +3201,20 @@ case 124:
 		goto st4;
 	goto tr149;
 tr148:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 25 "hpricot_css.rl"
+#line 30 "hpricot_css.rl"
 	{
     aps = p;
   }
-#line 76 "hpricot_css.rl"
+#line 81 "hpricot_css.rl"
 	{act = 5;}
 	goto st125;
 st125:
 	if ( ++p == pe )
 		goto _test_eof125;
 case 125:
-#line 3210 "hpricot_css.c"
+#line 3218 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st1;
 		case 45: goto tr1;
@@ -3233,16 +3241,16 @@ case 125:
 		goto st4;
 	goto tr149;
 tr203:
-#line 1 "hpricot_css.rl"
+#line 1 "NONE"
 	{te = p+1;}
-#line 76 "hpricot_css.rl"
+#line 81 "hpricot_css.rl"
 	{act = 5;}
 	goto st126;
 st126:
 	if ( ++p == pe )
 		goto _test_eof126;
 case 126:
-#line 3246 "hpricot_css.c"
+#line 3254 "hpricot_css.c"
 	switch( (*p) ) {
 		case -60: goto st1;
 		case 45: goto tr1;
@@ -3494,8 +3502,9 @@ case 126:
 
 	_out: {}
 	}
-#line 111 "hpricot_css.rl"
-  
+
+#line 116 "hpricot_css.rl"
+
   rb_gc_unregister_address(&focus);
   rb_gc_unregister_address(&tmpt);
   return focus;

@@ -49,7 +49,7 @@ Shoes.app height: 800, width: 800 do
 	  para ct[0].rstrip
 	  @ld2 = edit_box height: 150, width: 0.95, margin: 8
       require 'bigdecimal'
-	  #require 'hpricot'
+	  require 'hpricot'
       if ShoesGemJailBreak
 	    #require 'fpm'
         #require 'nokogiri'

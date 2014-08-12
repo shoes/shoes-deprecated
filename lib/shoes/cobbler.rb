@@ -356,6 +356,15 @@ Shoes.app do
     end
   end
   
+  def gemloadtest spec
+    begin 
+      require spec.name
+    rescue Exception => e
+      alert e
+    end
+    alert "Loaded"
+  end
+  
 
   def gem_refresh_local
     @gemlist.clear
@@ -371,6 +380,9 @@ Shoes.app do
            end
            button 'delete', height: 28, width: 60, left_margin: 10 do
              gemremove gs
+           end
+           button 'load test', height: 28, width: 60, left_margin: 10 do
+             gemloadtest gs
            end
            para "#{gs.name}, #{gs.version}"
          end

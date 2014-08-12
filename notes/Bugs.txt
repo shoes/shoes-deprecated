@@ -1,11 +1,88 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-08-11
+    For Fedora, there's a feature named 'mock' which migth be similar
+    to schroot & apt-get. FYI
+  
+2014-08-10  - 3.2.14 released
+Done: Shoes/OSX 3.2.14 works (sqlite3 and hpricot)
+     Turns out there was a bug (gasp) in cache.rb that made gems kind of
+     funky. 
+----> Undo the OSX rake gem stuff from yesterday. Unless I want it for 
+     a second gems process.  Comment out for now. 
+----> Cobbler should not look inside specification/defaults or look
+     through some indirection before displaying gems to test
+
+done: Update hpricot to 0.8.6, (save the extconf.rb in fast_xs, hpricot_scan)
+     Not so simple. Copy the code but not the extconf or gemspec.
+     update the gemspec version.
+done sqlite 1.3.9 (preserve the extconf.rb)
+     changed the gemspec for 1.3.9 to match the code copying.
+done Build, test, upload 
+      osx
+      x86_64,
+      i683
+      pi
+      mingw.
+====> expert-funnies.rb (XKD) causes image cache failure. 
+  
+2014-08-09
+     Hmmm. Some built in ruby gems can't be 'require'd by irb. Not just
+     a Shoes problem. That suggests Shoes has no business playing around
+     in the Ruby gems directories. Something to think about:
+       Can I create a new subdir in ~/shoes/federales 'shoesgems' build/
+      copy the hpricot/sqlite there. It's easy enough to create another
+      load directory in cache.rb  
+      
+      Try it with OSX. Directory will be 'builtins'. I'll create a rake task
+			'gems' which will build against {TGT_DIR} Ruby. Only for Tight Shoes. Their
+			will be a make/mavericks/gems.rb file that will do all the work - compile,
+			and the otool, install-name-tool dance.
+			
+			Then modify cache.rb to add builtins to the load list.
+  
+2014-08-08
+     It's ruby (or gem) problem for OSX and the built in gems. 
+     Added a 'load test' button to cobbler that does a require -easier to
+     test load failures. On OSX, there are several Ruby gems that don't as well 
+     as the Shoes gems. Several don't load on Linux either. Hpricot 0.8.1 provides
+     a clue. There is a console message:
+     /home/ccoupe/Projects/shoes3.2/x86_64-linux/lib/ruby/gems/2.1.0/gems/hpricot-0.8.1/lib/hpricot/blankslate.rb:23:
+      warning: undefining `object_id' may cause serious problems
+      
+ ===> Sqlite3 now fails in linux/cobbler. OK in if run from samples. Clue Stick.
+     Spooky weird - I didn't change anything Linux would know about. 
+
+  
+2014-08-07
+     GEM_PATH (and cache.rb) is the culprit. Disable it for Tight Shoes.
+     x86_64 OK - chroot, non chroot, Suse.
+     i686 OK - chroot, debian 7.2 (HH loads)
+     armhf OK
+     Win7 OK (HH wloads)
+     OSX - fails on sqlite/hpricot. I suspect otool/install-name-tool 
+       is missing (sqlite3.dylib is wrong, I suspect ruby linkage is wrong too)
+  
+2014-08-06 
+     Worse than I thought. The linux built in gems don't load either.
+     the specs need to be in specifications/default/ to show on the coobler
+     listing but they don't load. WTF! It's working again (x86_64)
+     What sort of magic have I found? 
+     
+     The difference is running chroot (works) or not.
+  
+2014-08-05 OSX Shoes gems
+----> hpricot,sqlite3 are not showing in the list of gems in Shoes (OSX)
+     all appears to be OK but obviously something is missing.
+  
 2014-08-04 Sqlite 1.3.9 cobbled.
 done: raspberry build works. Not pretty inside the  extconf.rb
 --->  Shares the US-ASCII problem
 done: Mingw more troublesome. Use the binject/extconf method and force
       RbConfig load from the Mingw compiled Ruby.
+----> Mavericks build doesn't handle hpricot, sqlite copy/lib linking
+        appears to compile OK. 
   
 2014-08-03 Sqlite
       Backup current gem.

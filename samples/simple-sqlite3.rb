@@ -1,4 +1,7 @@
 require 'sqlite3'
+if File.exists? 'simple-sqlite3.db'
+  File.delete 'simple-sqlite3.db'
+end
 Shoes.app :width => 350, :height => 130 do
   db = SQLite3::Database.new "simple-sqlite3.db"
   db.execute "create table t1 (t1key INTEGER PRIMARY KEY,data " \
