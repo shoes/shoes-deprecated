@@ -113,13 +113,21 @@ Shoes.app do
         @platforms['Win32'] = ln
       when /\.tbz$/
         return  # ignore 
+      when /\.run$/
+        return  #  short circuit - ignore .runs in 3.2.15+ 
       when /osx\-.*\.tgz$/
         @platforms['OSX'] = ln
-      when /armhf\.run$/
+     when /armhf\.run$/
         @platforms['Linux_Raspberry'] = ln
       when /i686\.run$/
         @platforms['Linux_i686'] = ln
       when /x86_64\.run$/ 
+        @platforms['Linux_x86_64'] = ln
+      when /armhf\.install$/
+        @platforms['Linux_Raspberry'] = ln
+      when /i686\.install$/
+        @platforms['Linux_i686'] = ln
+      when /x86_64\.install$/ 
         @platforms['Linux_x86_64'] = ln
       when /tar\.gz$/
         tarball = ln
@@ -190,6 +198,15 @@ Shoes.app do
           #@pkgbar = progress :width => 1.0, :height => 14 
           arch = @work_path[/(\w+)\.run$/] 
           arch.gsub!('.run','')
+          repack_linux arch
+        end
+      when /\.install$/
+       # Shoes 3.2.15 and later uses .install
+       Thread.new do
+          @pkgstat = inscription "Linux repack #{@path} for#{@work_path}"
+          #@pkgbar = progress :width => 1.0, :height => 14 
+          arch = @work_path[/(\w+)\.install$/] 
+          arch.gsub!('.install','')
           repack_linux arch
         end
       when /.exe$/

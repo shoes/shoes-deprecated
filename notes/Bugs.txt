@@ -1,9 +1,37 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-08-15 
+     Rethink the Linux packaging. Can I make the 'download if needed'
+     work? Install Shoes 3.2 to ~./shoes/federales (if needed)
+     
+done: Name the linux installers with suffix '.install' not 'run'?
+----> Will have to fix app_package.rb (always a good idea)
+----> use gems zip/unzip instead of minitar in shy handling.      
+ 
+     
+2014-08-14 
+done: Start 3.2.15
+
+     Need to strip the ruby libs as well as ext, gems add code to tasks.rb
+     Huge reduction in file size (x86_64, i686 and even more armhf). 
+done:  MingW & linux 8 or 9MB. OSX still large at 14MB but it's stripped.
+     
+----> and remove some  of the rdoc/ri/ and never can be used Ruby stuff.
+     except Shoes could use if someone really needed to. 
+          
+     Add Nokogiri to built in gems for 3.2.15?
+  
 2014-08-11
     For Fedora, there's a feature named 'mock' which migth be similar
     to schroot & apt-get. FYI
+    
+    What next? There's a whole lot of compiler warnings on OSX? 
+    clean up the distributions (strip gem binaries), remove useless 
+    to Shoes code. Build the next Ruby 2.1.2 after p95? 
+    Setup rake compiler to build Shoes gems (for pi, mingw)?
+    Get rights to close bug reports on shoes.gethub.com?
+    Write a 'Shoes on Pi" article ? Linux Mag? 
   
 2014-08-10  - 3.2.14 released
 Done: Shoes/OSX 3.2.14 works (sqlite3 and hpricot)
@@ -17,9 +45,9 @@ Done: Shoes/OSX 3.2.14 works (sqlite3 and hpricot)
 done: Update hpricot to 0.8.6, (save the extconf.rb in fast_xs, hpricot_scan)
      Not so simple. Copy the code but not the extconf or gemspec.
      update the gemspec version.
-done sqlite 1.3.9 (preserve the extconf.rb)
+done: sqlite 1.3.9 (preserve the extconf.rb)
      changed the gemspec for 1.3.9 to match the code copying.
-done Build, test, upload 
+done: Build, test, upload 
       osx
       x86_64,
       i683

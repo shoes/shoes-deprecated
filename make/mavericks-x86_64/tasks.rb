@@ -299,6 +299,12 @@ class MakeDarwin
       #distfile = "#{nfs}pkg/#{PKG}#{TINYVER}-osx-10.9.tbz"
       distfile = "#{nfs}pkg/#{PKG}#{TINYVER}-osx-10.9.tgz"
       Dir.chdir("#{TGT_DIR}") do
+        unless ENV['GDB']
+          Dir.chdir("#{APPNAME}.app/Contents/MacOS") do
+            sh "strip -x *.dylib"
+            Dir.glob("lib/ruby/**/*.bundle").each {|lib| sh "strip -x #{lib}"}
+          end
+        end
         distname = "#{PKG}#{TINYVER}"
         sh "tar -cf #{distname}.tar #{APPNAME}.app"
         sh "gzip #{distname}.tar"
@@ -349,6 +355,12 @@ class MakeDarwin
         cp "req/#{gemn}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
         puts "Gems: #{gemn}"
       end
+    end
+    
+    def make_smaller
+      puts "Shrinking #{`pwd`}"
+      sh "strip *.dylib"
+      Dir.glob("lib/ruby/**/*.so").each {|lib| sh "strip #{lib}"}
     end
     
   end

@@ -179,7 +179,7 @@ class MakeLinux
       sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
 
-    # make a .run with all the bits and peices. 
+    # make a .install with all the bits and peices. 
     def make_installer
       gtkv = ENV['GTK']== 'gtk+-3.0' ? '3' : '2'
       arch = 'i686'
@@ -192,8 +192,9 @@ class MakeLinux
       cd "pkg/#{rlname}"
       make_desktop 
       make_install_script
+      make_smaller unless ENV['GDB']
       cd  "../"
-      sh "makeself #{rlname} #{rlname}.run '#{APPNAME}' \
+      sh "makeself #{rlname} #{rlname}.install '#{APPNAME}' \
 ./shoes-install.sh "
    end
     
@@ -230,6 +231,15 @@ class MakeLinux
         f << "su root -c 'cp Shoes.desktop /usr/share/applications'\n"
       end
       chmod "+x", "shoes-install.sh"
+    end
+    
+    # run strip on the libraries, remove unneeded ruby code (tk,
+    #  readline and more)
+    def make_smaller
+      puts "Shrinking #{`pwd`}"
+      sh "strip *.so"
+      sh "strip *.so.*"
+      Dir.glob("lib/ruby/**/*.so").each {|lib| sh "strip #{lib}"}
     end
   end
 end

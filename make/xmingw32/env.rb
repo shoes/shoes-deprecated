@@ -10,7 +10,7 @@
 #ENV['GTK'] = "gtk+-3.0" # pick this or "gtk+-2.0"
 ENV['GTK'] = "gtk+-2.0"
 COPY_GTK = true
-ENV['GDB'] = "SureYouBetcha" # compile -g,  strip symbols when nil
+#ENV['GDB'] = "SureYouBetcha" # compile -g,  strip symbols when nil
 if ENV['GTK'] == "gtk+-2.0"
   CHROOT = "/srv/chroot/mingwgtk2"
 else

@@ -141,8 +141,8 @@ class MakeLinux
       #find_and_copy "libportaudio.so", "#{TGT_DIR}/libportaudio.so.2"
       #find_and_copy  "libsqlite3.so", "#{TGT_DIR}/libsqlite3.so.0"
       unless ENV['GDB']
-        sh    "strip -x #{TGT_DIR}/*.so.*"
-        sh    "strip -x #{TGT_DIR}/*.so"
+        sh    "strip -x #{TGT_DIR}/*.dll"
+        Dir.glob("#{TGT_DIR}/lib/ruby/**/*.so").each {|lib| sh "strip #{lib}"}
       end
     end
 
