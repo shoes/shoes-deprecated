@@ -1033,6 +1033,19 @@ shoes_native_secrecy(SHOES_CONTROL_REF ref)
   gtk_entry_set_invisible_char(GTK_ENTRY(ref), SHOES_GTK_INVISIBLE_CHAR);
 }
 
+// cjc 8-19-2014
+void 
+shoes_native_enterkey(GtkWidget *ref, gpointer data)
+{
+  VALUE self = (VALUE)data;
+  GET_STRUCT(control, self_t); 
+  VALUE click = ATTR(self_t->attr, donekey);
+  if (!NIL_P(click))
+  {
+    shoes_safe_block(self_t->parent, click, rb_ary_new3(1, self));
+  }
+}
+
 SHOES_CONTROL_REF
 shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
@@ -1042,6 +1055,11 @@ shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VAL
   g_signal_connect(G_OBJECT(ref), "changed",
                    G_CALLBACK(shoes_widget_changed),
                    (gpointer)self);
+  // cjc: try to intercept \n  bug 860 @ shoes4
+  g_signal_connect(G_OBJECT(ref), "activate",
+                   G_CALLBACK(shoes_native_enterkey), // fix name?
+                   (gpointer)self);
+  
   return ref;
 }
 

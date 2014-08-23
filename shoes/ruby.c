@@ -18,7 +18,7 @@ VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStac
 VALUE eVlcError, eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot;
-ID s_checked_q, s_perc, s_aref, s_mult;
+ID s_checked_q, s_perc, s_aref, s_mult, s_donekey;
 SYMBOL_DEFS(SYMBOL_ID);
 
 //
@@ -3152,6 +3152,20 @@ shoes_edit_line_set_text(VALUE self, VALUE text)
   return text;
 }
 
+// cjc: added in Shoes 3.2.15
+VALUE
+shoes_edit_line_enterkey(VALUE self, VALUE proc)
+{
+  // store the proc in the attr
+  GET_STRUCT(control, self_t);
+  if (!NIL_P(proc))
+  {	
+	ATTRSET(self_t->attr, donekey, proc);
+  }
+  printf("%s", "hookup proc\n");
+	
+}
+
 VALUE
 shoes_edit_line_draw(VALUE self, VALUE c, VALUE actual)
 {
@@ -4680,6 +4694,7 @@ shoes_ruby_init()
   rb_define_method(cEditLine, "text=", CASTHOOK(shoes_edit_line_set_text), 1);
   rb_define_method(cEditLine, "draw", CASTHOOK(shoes_edit_line_draw), 2);
   rb_define_method(cEditLine, "change", CASTHOOK(shoes_control_change), -1);
+  rb_define_method(cEditLine, "finish=", CASTHOOK(shoes_edit_line_enterkey), 1);
   cEditBox  = rb_define_class_under(cTypes, "EditBox", cNative);
   rb_define_method(cEditBox, "text", CASTHOOK(shoes_edit_box_get_text), 0);
   rb_define_method(cEditBox, "text=", CASTHOOK(shoes_edit_box_set_text), 1);

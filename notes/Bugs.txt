@@ -1,13 +1,50 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-08-22 bug860 done handler
+done: Change Shoes/Ruby name to 'finish='.  
+done: working in Gtk2 (Linux and MingWGtk)
+----> OSX
+----> Update manual... ick
+  
+2014-08-19 Shoes4 bug 860 - handling \n in edit_line. 
+    Gtk has an "activate" signal see gtk.c:1045 it works but the \n
+    is not entered into the edit_line string. 
+    NSTextField has a textDidEndEditing delegate thingy so it could work
+      somewhere around cocoa.m:1218
+
+done: Add  done= method to editline (in ruby.c) 
+
+done: Add shoes_edit_line_enterkey() to ruby.c. 
+      Store proc in attr hash
+done: Need s_donekey symbol in ruby.c. h....
+done: Gtk.c add a handler for the "activate" signal - handler needs
+        to find the enterkey proc in the attr hash
+done: Segfaults at gtk.c:1044 - 
+        
+  
+2014-08-18  -- Linux packaging 
+    When packaging, Create an 'apps' dir in the downloaded/extracted/Shoes
+    and copy the 'myapp.rb' in there - might work for a hh.shy too.
+----> This has to work for OSX and Windows too. 
+----> Get 'Download if needed option' working for something like HH. That
+    requires packing up binary dir tree (or shy)
+----> sh-install needs some rewrites for arch handling.
+====> Isn't it true that install first (if needed) then install/run
+     app the desired state? and including Shoes is the 'if we have to' 
+     case? (aka Windows). 
+----> Make the shy packaging do the download if needed?
+
+  
 2014-08-15 
      Rethink the Linux packaging. Can I make the 'download if needed'
-     work? Install Shoes 3.2 to ~./shoes/federales (if needed)
+     work? Download & Install Shoes 3.2 to ~./shoes/federales (if needed)
      
 done: Name the linux installers with suffix '.install' not 'run'?
-----> Will have to fix app_package.rb (always a good idea)
-----> use gems zip/unzip instead of minitar in shy handling.      
+      It will package a script in a .run
+done: Will have to fix app_package.rb (always a good idea)
+----> use gems zip/unzip instead of minitar in shy handling. ?   
+
  
      
 2014-08-14 
@@ -18,7 +55,7 @@ done: Start 3.2.15
 done:  MingW & linux 8 or 9MB. OSX still large at 14MB but it's stripped.
      
 ----> and remove some  of the rdoc/ri/ and never can be used Ruby stuff.
-     except Shoes could use if someone really needed to. 
+     except Shoes could use if someone really needed to. I guess.
           
      Add Nokogiri to built in gems for 3.2.15?
   
