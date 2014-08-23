@@ -4,7 +4,10 @@ Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
 2014-08-22 bug860 done handler
 done: Change Shoes/Ruby name to 'finish='.  
 done: working in Gtk2 (Linux and MingWGtk)
-----> OSX
+done: OSX - too easy? add textDidEndEditing implementation
+      that does	shoes_control_send(object, s_donekey);
+      Works with the finish= proc. Works as usual w/o it. TOO EASY.
+
 ----> Update manual... ick
   
 2014-08-19 Shoes4 bug 860 - handling \n in edit_line. 
