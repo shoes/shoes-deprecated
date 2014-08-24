@@ -1,6 +1,16 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+  
+2014-08-23 Update the Shoes Manual
+done: for Dist/shoes, changes inside static/ need a rake clean; rake. BS!
+      dist/shoes/static should be symlinked to - copy them when installed
+done: Update manual for edit_line finish= 
+----> Many changes to manual and pngs to get it current. 
+====> embed 3.2.{teeny} [app.yaml] version number in compiled in constant
+====> Add a tips section at the end (command line things), Cobbler, Packaging
+      
+  
 2014-08-22 bug860 done handler
 done: Change Shoes/Ruby name to 'finish='.  
 done: working in Gtk2 (Linux and MingWGtk)

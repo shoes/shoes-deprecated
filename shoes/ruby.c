@@ -3161,9 +3161,7 @@ shoes_edit_line_enterkey(VALUE self, VALUE proc)
   if (!NIL_P(proc))
   {	
 	ATTRSET(self_t->attr, donekey, proc);
-  }
-  printf("%s", "hookup proc\n");
-	
+  }	
 }
 
 VALUE

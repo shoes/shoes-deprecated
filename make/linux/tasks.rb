@@ -53,7 +53,10 @@ module Make
     end
     cp_r  "fonts", "dist/fonts"
     cp_r  "samples", "dist/samples"
-    cp_r  "static", "dist/static"
+    Dir.chdir "dist" do
+      ln_s  "../static",  "." unless File.symlink? 'static'
+    end
+    #cp_r  "static", "dist/static"
     cp    "README.md", "dist/README.txt"
     cp    "CHANGELOG", "dist/CHANGELOG.txt"
     cp    "COPYING", "dist/COPYING.txt"

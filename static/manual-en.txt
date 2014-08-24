@@ -29,28 +29,33 @@ Microsoft Windows, Apple's Mac OS X, Linux and many others.
 == Introducing Shoes ==
 
 How does Shoes look on OS X and Windows? Does it really look okay? Is it all
-ugly and awkward? People must immediately convulse! It must be so watered down
-trying to do everything.
+ugly and awkward? Is it so watered down trying to do everything that nothing
+looks right? 
 
 Well, before getting into the stuff about installing and running Shoes, time to
 just check out some screenshots, to give you an idea of what you can do.
 
 ==== Mac OS X ====
 
-Shoes runs on Apple Mac OS X Leopard, as well as Tiger.  Shoes supports PowerPC
-machines as well, however, there is no video support on that platform.
-!man-look-tiger.png!
+Shoes runs on Apple Mac OS X 10.9 Mavericks.  Shoes no longer runs on PPC Macs
+or 32 bit Macs because Apple doesn't think they exist. Shoes may run on earlier 
+64 bit Intel versions of OSX like 10.8 but you should not depend on that. 
 
-This is the `simple-sphere.rb` sample running on Tiger.  Notice that the app
-runs inside a normal OS X window border.
+!man-look-mavericks.png!
 
-The whole sphere is drawn with blurred ovals and shadows. You can draw and
-animate shapes and apply effects to those shapes in Shoes.
+Don't worry. You can make things as pretty as you care to. That particular app
+is not worth the effort to prettify. It's utilitarian, a single purpose and odds are only 
+the author cares about it.  It's a very small program - only 77 lines and 3
+lines are about how OSX might not work - clearly it does. 
+
+It does show one reason we love Shoes. You can do clever and pretty things and you
+can write little programs that maybe only you need and it's easier than any
+other method.
 
 ==== Windows ====
 
 Shoes runs on all versions of '''Microsoft Windows XP''', '''Windows Vista''',
-'''Windows 7''', and anything else '''Windows 2000''' compatible.
+'''Windows 7''', and anything else '''Windows 2000''' compatible. 
 !man-look-vista.png!
 
 Above is pictured the `simple-clock.rb` sample running on Windows Vista. This
@@ -93,9 +98,9 @@ downloads page of the site. !man-builds1.png!
 
 Here's how to run the installer:
 
- * On '''Mac OS X''', you'll have a file ending with '''.dmg'''.  Double-click this file and a window should appear with a '''Shoes''' icon and an '''Applications''' folder.  Following the arrow, drag the Shoes icon into the '''Applications''' folder. !man-intro-dmg.png!
+ * On '''Mac OS X''', you'll have a file ending with '''.tbz''' in the Downloads folder.  Double-click this file and a file should appear with a '''Shoes''' icon. You may be asked to trust the download package. Drag the Shoes icon into the '''Applications''' folder. !man-builds2.png!
  * On '''Windows''', you'll download a '''.exe''' file.  Double-click this file and follow the instructions. !man-intro-exe.png!
- * On '''Linux''', you'll need to compile your own Shoes. Check out [[https://github.com/shoes/shoes/wiki/Building-Shoes-on-Linux this page]] for more. We want to provide packages eventually!
+ * On '''Linux''', make the '''.install''' file executable with '''chmod +x Shoes-3.2-stuff.install''' and run that, '''./Shoes-3.2-stuff.install''' It will ask for a the admin password to create a menu entry.
 
 ==== Step 2: Start a New Text File ====
 
@@ -116,15 +121,19 @@ Now, in your blank window, type in the following:
  end
 }}}
 
-Save to your desktop as `welcome.rb`.
+Save to your desktop or home directory as `welcome.rb`.
 
 ==== Step 3: Run It! Go Shoes! ====
 
-To run your program:
+There are several ways to run a Shoes program.  The easiest is from the 'splash' screen
+We're going to use the '''Open an App''' link to browse to where you stored
+`welcome.rb`.  !man-splash.png!
 
- * On '''Mac OS X''', visit your '''Applications''' folder again.  This time, double-click the '''Shoes''' icon in that folder.  You should see the red shoes icon appear in the dock.  Drag your `welcome.rb` from the desktop on to that dock icon. !man-run-osx.png!
- * On '''Windows''', get to the Start menu.  Go into '''All Programs''', then '''Shoes''', then '''Shoes'''.  A file selector box should come up.  Browse to your desktop and select `welcome.rb`.  Click '''OK''' and you're on your way. !man-run-xp.png! !man-run-vista.png!
- * On '''Linux''', run Shoes just like you did in step one.  You should see a file selector box.  Browse to your desktop, select `welcome.rb` and hit '''OK'''.
+To run your program, start Shoes:
+
+ * On '''Mac OS X''', visit your '''Applications''' folder again.  This time, double-click the '''Shoes''' icon in that folder.  You should see the splash screen above. 
+ * On '''Windows''', get to the Start menu.  Go into '''All Programs''', then '''Shoes''', then '''Shoes'''.  You should see the splash screen above.
+ * On '''Linux''', Look for the Shoes icon in the  Programming, Education, or Others Menus. Select it.  You should see the splash screen above.
 
 So, not much of a program yet.  But it's something!  You've got the knack of it, at least!
 
@@ -1124,6 +1133,13 @@ For: ''edit_box, edit_line, list_box''.
 
 The `change` event handler is stored in this style.  See the [[EditBox.change]]
 method for the edit_box, as an example.
+
+=== :finish » a proc ===
+
+For: ''edit_line''.
+
+The `finish` handler is called (if set) when the user presses the Enter
+or Return key in an edit_line.  See [[EditLine.finish]]
 
 === :checked » true or false ===
 
@@ -3087,12 +3103,35 @@ methods, which all elements respond to.
 
 Each time a character is added to or removed from the edit line, its `change`
 block is called. The block is given `self`, which is the edit line object which
-has changed.
+has changed. 
 
 === focus() » self ===
 
 Moves focus to the edit line. The edit line will be highlighted and the user
 will be able to type into the edit line.
+
+=== finish() { |self| ...} » self ===
+
+This is called when the enter key (or return key) is pressed in an edit line control
+It might be useful if you want a search box when something has to happen when
+the enter key is pressed.  Think of it as a 'click' on a hidden button.
+
+It's separate from 'change' event: 
+
+{{{
+ #!ruby
+ Shoes.app do
+  stack do
+    @el = edit_line do |e|
+      para e.text+"\n"
+    end
+    @el.finish = proc { |slf| para "enterkey #{slf.text}\n" }
+  end
+ end
+}}}
+
+
+This only works on Shoes 3.2.
 
 === text() » self ===
 
