@@ -34,6 +34,7 @@ bindll = "#{TGT_SYS_DIR}bin"
 ulbin = "#{TGT_SYS_DIR}usr/local/bin"
 # Set appropriately (in my PATH, or use abs)
 CC = "i686-w64-mingw32-gcc"
+STRIP = "i686-w64-mingw32-strip"
 WINDRES = "i686-w64-mingw32-windres"
 # These ENV vars are used by the extconf.rb files (and tasks.rb)
 ENV['SYSROOT']=CHROOT

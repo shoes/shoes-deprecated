@@ -141,8 +141,8 @@ class MakeLinux
       #find_and_copy "libportaudio.so", "#{TGT_DIR}/libportaudio.so.2"
       #find_and_copy  "libsqlite3.so", "#{TGT_DIR}/libsqlite3.so.0"
       unless ENV['GDB']
-        sh    "strip -x #{TGT_DIR}/*.dll"
-        Dir.glob("#{TGT_DIR}/lib/ruby/**/*.so").each {|lib| sh "strip #{lib}"}
+        sh    "#{STRIP}  #{TGT_DIR}/*.dll"
+        Dir.glob("#{TGT_DIR}/lib/ruby/**/*.so").each {|lib| sh "#{STRIP} #{lib}"}
       end
     end
 
@@ -187,7 +187,12 @@ class MakeLinux
         #sh "\"#{env('NSIS')}\\makensis.exe\" #{NAME}.nsi"
         sh "makensis #{WINFNAME}.nsi"
       end
-      mv "#{TGT_DIR}/nsis/#{WINFNAME}.exe", "pkg"
+      mv "#{TGT_DIR}/nsis/#{WINFNAME}.exe", "pkg/"
+      Dir.chdir('pkg/') do
+        Dir.glob("Shoes*.exe").each do |f|
+          mv f, "#{f.downcase}"
+        end
+      end
     end
 
   end
