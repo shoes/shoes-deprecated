@@ -1,14 +1,34 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-08-27 3.2.15 release
+----> Build all
+  
+2014-08-26 Wiki
+----> place holder wiki posts for these topics:
+     * Dude, where's the secret files?
+     * Shoes command line
+     * Shoes and Ruby Gems
+     * Packaging
+     * Cobbler
+     
+done: Update manual to point to 3.2 wiki, my blog and other schtuff.
+  
+2014-08-25
+done: fixed mingwgtk build to name installer file correctly. hack.
+done: Add crosscompiler strip of mingw symbols. No size diff from 
+      x86_64 linux strip.
+  
   
 2014-08-23 Update the Shoes Manual
-done: for Dist/shoes, changes inside static/ need a rake clean; rake. BS!
+done: for Dist/shoes, changes inside static/ need a rake clean; rake. 
       dist/shoes/static should be symlinked to - copy them when installed
 done: Update manual for edit_line finish= 
 ----> Many changes to manual and pngs to get it current. 
 ====> embed 3.2.{teeny} [app.yaml] version number in compiled in constant
-====> Add a tips section at the end (command line things), Cobbler, Packaging
+====> Add a tips section at the end of manual - link to wiki articles on
+      command line things, Cobbler, Packaging
+====> Convert some of my blog posts/pages to Wiki (cobbler,  gems)
       
   
 2014-08-22 bug860 done handler

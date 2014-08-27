@@ -3555,20 +3555,44 @@ Set the position of the video to a time in milliseconds.
 Toggles the visibility of the video. If the video can be seen, then `hide` is
 called. Otherwise, `show` is called.
 
-= AndSoForth =
-
-A place for some other information. 
+= Furthermore =
+ Run the samples from here, or read more Shoes information on the Internet. 
 
 == Sample Apps ==
 
-Have fun!
+In the Shoes directories are these samples you can run from the manual:
 
 {SAMPLES}
 
-== FAQ ==
+Note: Cobbler (Maintain Shoes) has an option to copy the samples to a directory
+of your choice so you can modify them as you like and you won't have to poke around
+inside Shoes directories and change something you didn't want to change. 
 
-Hope this helps:
+
+== Internet Resources ==
+
+Shoes has many Ruby related features that haven't been described here. How can
+I learn more?
+
+The opening splash screen hints at the secrets. Packaging and Maintaining? What's that? And
+what do all the options and buttons mean when I do run them? Relax, you 
+should know that these resources exist. If you're just beginning, feel free 
+to click around but it can be a firehose of information. You don't need to know it to
+have fun with Shoes. Just know it exists and you can come back here when your ready
+to inhale. 
+
+
+See the [[http://github.com/ccoupe/shoes/wiki Shoes 3.2 Wiki]] and learn about Gems
+and packaging and much more. Find reference links to learning Ruby and more inside Shoes
+details.  
+
+ * [[https://github.com/ccoupe/shoes Shoes 3.2 source code.]] 
+ * You should join the Shoes mailing list by sending an email to shoes@librelist.com
+ * Bookmark the [[http://walkabout.mvmanila.com/ Shoes 3.2 blog]] or the [[http://walkabout.mvmanila.com/feed/ RSS feed]]
+ * Early [[http://shoes.mvmanila.com/public/shoes/ Downloads]] (work in progress) that may not be announced 
+
+Older Shoes Links for historical purposes (may be dead):
 
  * You can join [[http://librelist.com/browser/shoes/ Shoes ML]] and feel free ask your questions. 
- * [[http://github.com/shoes/shoes/ Official Current Source Code]] is on GitHub.
+ * [[http://github.com/shoes/shoes/ Shoes 3.1 Source Code]] is on GitHub.
  * [[http://github.com/shoes/shoes/downloads Recent Builds]] for your platform.
