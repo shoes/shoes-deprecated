@@ -1,6 +1,6 @@
 # The 'New' packager for Shoes 3.2
 require 'shoes/shy'
-require 'binject'
+require 'winject'
 require 'open-uri'
 require 'rubygems/package'
 require 'zlib'
@@ -99,7 +99,7 @@ Shoes.app do
     end
   end
   
-  # FIXME: Assumes lines are sorted by filename at server
+  # Assumes lines are sorted by filename on server (cgi select/pkg.rb)
   def platform_merge ln
     flds = ln.split(' ')
     return if flds[0].to_i == 0
@@ -314,7 +314,11 @@ Shoes.app do
       script = @path
       size = File.size(script)
       f = File.open(script, 'rb')
-      exe = Binject::EXE.new(File.join(DIR, "static", "stubs", "blank.exe"))
+      begin
+        exe = Winject::EXE.new(File.join(DIR, "static", "stubs", "blank.exe"))
+      rescue StandardError => e
+        puts "Failed to create Winject::EXE #{e}"
+      end
       size += script.length
       exe.inject("SHOES_FILENAME", File.basename(script))
       size += File.size(script)

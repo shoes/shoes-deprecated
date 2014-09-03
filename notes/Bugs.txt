@@ -1,8 +1,55 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-09-02
+     Interesting possibilities with jfxruby toolkit. When Shoes is too
+     limited? The jfxruby wiki has good info. https://github.com/jruby/jrubyfx
+     
+     Might work for Android, iOS building. see:
+     http://www.infoq.com/articles/Building-JavaFX-Android-Apps?utm_campaign=infoq_content&utm_source=infoq&utm_medium=feed&utm_term=global
+     
+     
+done: select/pkg.rb cgi script sorts by file name. 
+done: minimized winject to just Windows slinging . Test: creating isp.exe
+done: dist:  9551872 Sep  2 23:13 isp.exe
+      x86_64   9551872
+      i686     9551872
+      armhf    9551872
+      osx      9551872
+      xmingw32 9551872
+done: yes Windows started working again. Not sure why (other than winject
+      name change and try/catch
+      which shouldn't have changed anything but it did
+----> git commit
+----> update issue 265
+----> blog post
+      
+2014-09-01
+done: copy binject to winject and remove the osx/dmg stuff.
+  
+2014-08-31 
+      pay attention to the error message:
+      '126: the specified module could not be found C:/Users/Cecil.../binject.so'
+      
+      If the file is actually missing the error is:
+      'cannot load such file -- binject'
+  
+      Did I screw something related to gem building/handling when I
+      did the hpricot/sqlite3 gem building and loading? I did write
+      the packaging first and reading below I did have gem loading/path
+      issues - perhaps I screwed something up?
+  
+2014-08-28 
+===>: Bug #266 App freezes on Windows (backgrounding)
+  
 2014-08-27 3.2.15 release
-----> Build all
+done: Build all & upload
+done: update shoesrb.mvmanila.com and issue pull request to mothership
+done: Blog announcement
+
+===>: Bug #265 reported. binject.so won't load on Win7. reproducible.
+      co-ext's Ftsearch and chipmonk work fine. It's not the stripped
+      symbols. No problem on Linux. 
   
 2014-08-26 Wiki
 ----> place holder wiki posts for these topics:
@@ -26,7 +73,7 @@ done: for Dist/shoes, changes inside static/ need a rake clean; rake.
 done: Update manual for edit_line finish= 
 ----> Many changes to manual and pngs to get it current. 
 ====> embed 3.2.{teeny} [app.yaml] version number in compiled in constant
-====> Add a tips section at the end of manual - link to wiki articles on
+done: Add a tips section at the end of manual - link to wiki articles on
       command line things, Cobbler, Packaging
 ====> Convert some of my blog posts/pages to Wiki (cobbler,  gems)
       
