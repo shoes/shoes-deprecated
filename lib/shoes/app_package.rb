@@ -38,17 +38,66 @@ Shoes.app do
 	    edit1 = edit_line :width => -120
 	    @bb = button "Browse...", :width => 100 do
 		  @path = edit1.text = ask_open_file
-		  #est_recount
 	    end
 	  end
     @sel2 =
 	  flow :hidden => true do
-	    para "Directory:"
-	    inscription " (or a ", link("single file", &selt), ")"
+	    para "Directory: (select the startup script) in the directory"
+	    inscription " (or a ", link("only a single file", &selt), ")"
 	    edit2 = edit_line :width => -120
-	    @bf = button "Folder...", :width => 100 do
-		  @path = edit2.text = ask_open_folder
-		  #est_recount
+	    @bf = button "Start script", :width => 100 do
+	      # need to create a shy 
+		  @path = edit2.text = ask_open_file
+		  if edit2.text != ""
+		    window do
+		      puts edit2.text
+			  launch_script = File.expand_path(edit2.text)
+			  top_dir = File.dirname(edit2.text)
+			  launch_script = File.basename(edit2.text)
+	          shy_name = "#{top_dir}.shy"
+	          background white
+		      stack do
+		        para "Package #{top_dir} into #{shy_name}"
+		        para "Enter something below that matters to you. "
+		        fields = {}
+		        for label, name in [["Project Name", "name"],
+		                            ["Version", "version"],
+		                            ["Your Name", "creator"]]
+		          flow :width => 1.0 do
+		            para "#{label}: "
+		            fields[name] = edit_line ''
+		          end
+		        end
+		        para "Behaviour when user runs/installs. Untested."
+		        flow { check; para "Create directory in users home?" }
+		        flow { check; para "Install in users menus?" } 
+		        flow do
+			        button "Cancel" do
+			          close
+			        end
+			        button "Build .shy" do
+			          shy_desc = Shy.new
+			          for name in fields.keys
+			            shy_desc.send("#{name}=".intern, fields[name].text)
+			          end
+			          # TODO create a launch_options in shy_desc
+			          shy_desc.launch = launch_script
+			          Shy.c(shy_name, shy_desc, top_dir)
+			          clear
+			          background white
+			          stack do
+			            para "Built #{shy_name}"
+			            button "Ok" do
+			              @path = edit2.text = shy_name
+			              close
+			            end
+			          end
+			        end
+		        end
+		      end
+ 
+		    end
+		  end
 	    end
 	  end
 

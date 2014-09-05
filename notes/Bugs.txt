@@ -1,6 +1,25 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-09-04
+      Before I get too carried away with the new packaging scheme I should
+      fix some bugs in the current scheme.
+done? Do a shy build on a directory (pick a script in the directory)
+----> create an options hash for the Shy.desc in app_package.rb
+      modify shy.rb and the unpackers (linux, osx, windows) to handle that
+  
+2014-09-03 Windows, Windows ...
+      You can package a .shy (tested with ytm.shy on linux) and it works but it
+      installs shoes and not the shy. (Linux)
+      Works well on Windows - if Shoes is installed.
+====> Fails (sort of) if Shoes is not installed - it installs 3.2.10 !!
+      Where the hell did that come from ?! Some resource in the packaging/nsis?
+        a left over hiding somewhere in Windows? It is 3.2.10 too. 
+====> Find and include the Windows gtk2 theme
+      start here http://sourceforge.net/projects/gtk-win/
+====> Get the Federales icons into nsis
+      
+  
 2014-09-02
      Interesting possibilities with jfxruby toolkit. When Shoes is too
      limited? The jfxruby wiki has good info. https://github.com/jruby/jrubyfx
@@ -20,9 +39,9 @@ done: dist:  9551872 Sep  2 23:13 isp.exe
 done: yes Windows started working again. Not sure why (other than winject
       name change and try/catch
       which shouldn't have changed anything but it did
-----> git commit
-----> update issue 265
-----> blog post
+done: git commit
+done: update issue 265
+done: blog post
       
 2014-09-01
 done: copy binject to winject and remove the osx/dmg stuff.

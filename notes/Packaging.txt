@@ -1,5 +1,78 @@
 Packaging
 
+Sep 03, 2014
+    nsis is a lot more powerful than when Shoes was started. Ruby has
+    progressed a lot. 
+    
+    Packaging is different from installing. I've got the installers 
+    sorted out although they might change 
+    
+    Packaging V2 (current) justs stuffs a script into a Shoes install
+    (and not all that well). I consider it useless.
+    
+    Packaging V3 (next) only builds 'download shoes and install if needed'
+    so let's switch perspective to what the package does when the user runs
+    it.
+    1. It checks to see if Shoes 3.2 (or perhaps 4) is installed
+       If not, it downloads and runs the *correct* Shoes installer. 
+    2. It expands the App.container payload into a tmp dir
+       and calls the (newly installed shoes --ruby {app}install.rb script 
+       to finish the install.
+       
+    That scheme requires that the {apt}install.rb could be platform specific ruby
+    or needs to be mulit-platform aware. 
+    
+    The expanded container holds one and optionally 2 more files 
+       {apt}.install.rb  or {app}.rb
+       [ {apt}.shy  (a tar ball) ] optional
+       [ {apt}.gems (a tar ball) ] optional
+    
+    If there is no {app}.install.rb then just run {app}.rb with Shoes
+      and don't bother with the following. 
+    else
+      run Shoes with the {apt}.install.rb 
+    
+    ---- plaform scripting finished. It's all Ruby and Shoes below ----
+    
+    {app}.install.rb is a Shoes script. It could be generic Shoes script 
+    provided by the packager as default or a custom Shoes script. 
+      
+    It's up to {app}install.rb to unpack the {apt.shy} to permanent storage
+    if it wants to (or was asked to). Or just run it with Shoes like V1 and V2
+    shys do. {app}install.rb is also responsible for creating menus or shortcuts
+    or alias or HKEYS.
+    
+    {app}.install.rb also has install the {apt}gems if they exist. These are
+    most likely binary gems. They are installed in ~/.shoes/gems+ if they 
+    not conflict with existing gems in ~/.shoes/gems+
+    
+    ASSUME we can create platform specific APP installers that do the above. 
+    I think that is doable but details can derail. I'm still in the design phase so 
+    ASSUME is OK. 
+    
+    
+    Now we have some ideas to guide what packager has to do. And we have
+    details to consider. 
+    
+    As written, We need nsis to be installed on any system that
+    wants to package for Windows - very problematic.  Can't do that.
+    
+    Someone running Windows that wants to package needs to binject/winject
+    the correct winres BS into the nsis Shoes 'download if needed stub'. Which
+    is the problem for Shoes 3.0 - it has to be done on Windows. 
+    
+    Proof of Concept Tasks:
+    1. Create a nsis.exe stub that downloads Shoes if not present and expands 
+       the payload container to 'tmp'
+    2. How do we pass in values (a config file to read on the destination system)
+       winject the stub?
+    
+    {apt}install.rb could be a generic ruby script or a genric Shoes GUI
+    or an app specifc script that does much more copying and desktop 
+    integration  -- hh.install.rb for example.
+    
+    
+
 Jun 18, 2014
    Write a Cobbler panel to add/mod a file in ~/.shoes/federales that 
    contains the url to download from. That way it can be changed if someone
