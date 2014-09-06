@@ -22,7 +22,14 @@ long_line_behaviour=1
 long_line_column=72
 
 [files]
-current_page=-1
+current_page=0
+FILE_NAME_0=424;None;0;EUTF-8;1;1;0;%2Fhome%2Fccoupe%2FProjects%2Fshoes3.2%2Fnotes%2FBugs.txt;0;4
+FILE_NAME_1=0;Ruby;0;EUTF-8;1;1;0;%2Fhome%2Fccoupe%2FProjects%2Fshoes3.2%2Fmake%2Fxmingw32%2Ftasks.rb;0;4
+FILE_NAME_2=11156;NSIS;0;EUTF-8;1;1;0;%2Fhome%2Fccoupe%2FProjects%2Fshoes3.2%2Fplatform%2Fmsw%2Fbase.nsi;0;4
+FILE_NAME_3=2937;None;0;EUTF-8;1;1;0;%2Fhome%2Fccoupe%2FProjects%2Fshoes3.2%2Fnotes%2FPackaging.txt;0;4
+FILE_NAME_4=0;Ruby;0;EUTF-8;1;1;0;%2Fhome%2Fccoupe%2FProjects%2Fshoes3.2%2Flib%2Fshoes%2Fpack.rb;0;4
+FILE_NAME_5=2220;Ruby;0;EUTF-8;1;1;0;%2Fhome%2Fccoupe%2FProjects%2Fshoes3.2%2Flib%2Fshoes%2Fapp_package.rb;0;4
+FILE_NAME_6=362;Ruby;0;EUTF-8;1;1;0;%2Fhome%2Fccoupe%2FProjects%2Fshoes3.2%2Flib%2Fshoes%2Fshybuilder.rb;0;4
 
 [VTE]
 last_dir=/home

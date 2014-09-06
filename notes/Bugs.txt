@@ -15,6 +15,7 @@ done: copy the manifest to {dist} (in make_app) - where is this used? nsis?
       a mingw compiled stub. 
       
       get stub Cross compile before fixing winject.
+done: modify Rakefile and add :stubs task for xmingw (make/xmingw32/stubs)
   
 2014-09-04
       Before I get too carried away with the new packaging scheme I should
