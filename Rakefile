@@ -128,6 +128,7 @@ when /linux/
     when /xmingw32/
       require File.expand_path('make/xmingw32/env')
       require File.expand_path('make/xmingw32/tasks')
+      require File.expand_path('make/xmingw32/stubs')
     when /xmsw32/
       require File.expand_path('make/xmsw32/env')
       require File.expand_path('make/xmsw32/tasks')
@@ -158,11 +159,9 @@ task :package => [:installer]
 
 task :build_os => [:build_skel, "#{TGT_DIR}/#{NAME}"]
 
-
 task "shoes/version.h" do |t|
   File.open(t.name, 'w') do |f|
     f << %{#define SHOES_RELEASE_ID #{RELEASE_ID}\n#define SHOES_RELEASE_NAME "#{RELEASE_NAME}"\n#define SHOES_REVISION #{REVISION}\n#define SHOES_BUILD_DATE "#{Time.now.strftime("%Y%m%d")}"\n#define SHOES_PLATFORM "#{SHOES_RUBY_ARCH}"\n}
-#   if CROSS || RUBY_PLATFORM =~ /darwin/
     if CROSS
       f << '#define SHOES_STYLE "TIGHT_SHOES"'
     else

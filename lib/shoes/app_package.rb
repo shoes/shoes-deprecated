@@ -364,7 +364,8 @@ Shoes.app do
       size = File.size(script)
       f = File.open(script, 'rb')
       begin
-        exe = Winject::EXE.new(File.join(DIR, "static", "stubs", "blank.exe"))
+        #exe = Winject::EXE.new(File.join(DIR, "static", "stubs", "blank.exe"))
+        exe = Winject::EXE.new(File.join(DIR, "static", "stubs", "shoes-stub.exe"))
       rescue StandardError => e
         puts "Failed to create Winject::EXE #{e}"
       end

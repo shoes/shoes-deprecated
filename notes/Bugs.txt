@@ -1,6 +1,21 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-09-05
+done: Add -x to mingw strip command
+----> Hmm. I'm missing some tasks from the old mingw build. 
+      make_resource(t)
+      :stubs task.
+done: copy the manifest to {dist} (in make_app) - where is this used? nsis?
+        It appears to be unused - move to old/
+====> using shoes-stub.exe instead of blank.exe. Windows 7 doesn't think 
+      isp.exw is a valid executable. A mingw issue? Binject vs mingw ?
+====> Yes! shoes-stub.exe (mingw version of blank.exe) runs (says it's empty
+      which is correct. That means winject doesn't do the right thing on
+      a mingw compiled stub. 
+      
+      get stub Cross compile before fixing winject.
+  
 2014-09-04
       Before I get too carried away with the new packaging scheme I should
       fix some bugs in the current scheme.

@@ -1,14 +1,60 @@
 Packaging
 
+Sep 05, 2014
+    First, fix (finish) the old way or document it's shortfalls. 
+    Back in Raisins days (r1314 or so) pack.rb did not need the mingw
+      shoes-stub-inject.exe step. I can't remember why ashbb was so insistant
+      about it. 
+    
+    Packaged blob (myapp.exe) contains
+      a copy of static/stubs/blank.exe
+    Then binject inserts resources
+      SHOES_FILENAME "myapp.shy" or "myapp.rb"
+      SHOES_PAYLOAD - the binary contents of the SHOES_FILENAME (script or shy)
+      if the user selected 'include shoes' then
+        SHOES_SETUP is inserted (the contents of the downloaded/cached shoes installer.exe)
+    So, blank.exe must have the smarts to detect if SHOES_SETUP is there
+      and download if needed,  & run it if needed.
+      platform/msw/stub.c does just that so it's compiled to blank.exe
+        It uses the winhttp stuff in Shoes which 3.2 no longer uses.
+        
+====> cross compile stub.c, if possible - save a copy of blank.exe first
+        
+    That's the old way. Note: 3.2.<=15 doesn't allow download if needed
+    and that what I want to fix.
+    
+    3.1 (ashbb's mod to it) when 'download if needed' is chosen shells to
+    a windows program 'static/stubs/shoes-stub-inject.exe' with the script/shy
+    as an argument. It throws away all of the binject stuff done previously
+    so what does that do that Shoes + binject not do?
+    
+    platform/msw/stub-inject.c 
+    1. reads the file (arg) myapp.rb or myapp.shy and stores it in var 'data'
+    2. sets outPath to be "myapp.exe"
+    3. Copies shoes-stub.exe to outPath (myapp.exe)
+    4. Opens that for Resource updating and copies
+       SHOES_FILENAME (from the cmd line arg)
+       SHOES_PAYLOAD (from the 'data' var'_
+    5. reads shoes-setup.exe and stores it in SHOES_SETUP resource
+    
+    It does what Shoes+binject does. Perhaps binject doesn't do the right
+    thing for modern Windows? Or the compiler warnings scared him. I don't
+    like them either but everytime I've looked they are harmless. 
+    
+    Ahh, a clue stick! Where does shoes-stub.exe come from? r1314 compiles
+    it - there's no compile to build blank.exe - it's been replaced sooo
+    We should use that instead of 'blank.exe' in the app_package.rb
+      and isp.exe fails to run in Win7. Now I'm getting somewhere!
+
 Sep 03, 2014
     nsis is a lot more powerful than when Shoes was started. Ruby has
-    progressed a lot. 
+    progressed a lot. Perhaps packaging can use some new capabilies.
     
     Packaging is different from installing. I've got the installers 
     sorted out although they might change 
     
     Packaging V2 (current) justs stuffs a script into a Shoes install
-    (and not all that well). I consider it useless.
+    (and not all that well). I consider it useless from a user POV.
     
     Packaging V3 (next) only builds 'download shoes and install if needed'
     so let's switch perspective to what the package does when the user runs
