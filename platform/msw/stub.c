@@ -89,7 +89,11 @@ shoes_silent_install(TCHAR *path)
 char *setup_exe = "shoes-setup.exe";
 
 DWORD WINAPI
+#ifdef __cplusplus
 shoes_auto_setup(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID vinst)
+#else
+shoes_auto_setup(IN DWORD mid, IN WPARAM w, LPARAM l, IN LPVOID vinst)
+#endif
 {
   HINSTANCE inst = (HINSTANCE)vinst;
   TCHAR setup_path[BUFSIZE];
@@ -118,7 +122,11 @@ shoes_auto_setup(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID vinst)
 }
 
 DWORD WINAPI
+#ifdef __cplusplus
 shoes_http_thread(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
+#else
+shoes_http_thread(IN DWORD mid, IN WPARAM w, LPARAM l, IN LPVOID data)
+#endif
 {
   DWORD len = 0;
   WCHAR path[BUFSIZE];

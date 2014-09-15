@@ -11,7 +11,10 @@
 #include "shoes/http/common.h"
 #include "shoes/http/winhttp.h"
 
-#ifndef SHOES_GTK_WIN32
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void shoes_get_time(SHOES_TIME *ts)
 {
   *ts = GetTickCount();
@@ -21,7 +24,6 @@ unsigned long shoes_diff_time(SHOES_TIME *start, SHOES_TIME *end)
 {
   return *end - *start;
 }
-#endif
 
 void
 shoes_winhttp_headers(HINTERNET req, shoes_http_handler handler, void *data)
@@ -215,4 +217,6 @@ done:
   if (sess)
     WinHttpCloseHandle(sess);
 }
-
+#ifdef __cplusplus
+}
+#endif

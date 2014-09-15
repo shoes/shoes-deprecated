@@ -2,7 +2,9 @@
 *.obj
 *.res
 *.bundle
-Shoes3.2.geany
+*.def
+*.geany
+*.exe
 crosscompile
 bin/main.c
 shoes/version.h

@@ -2,8 +2,8 @@
 #include "stub32.h"
 
 IDI_APPLICATION ICON
-"..\\..\\shoes\\appwin32.ico"
-
+ "../../shoes/appwin32.ico"
+//   "..\\..\\shoes\\appwin32.ico"
 ASKDLG DIALOG 20, 20, 199, 59
 STYLE DS_SETFONT |DS_MODALFRAME |WS_POPUP |WS_VISIBLE |WS_SYSMENU |WS_CAPTION
 CAPTION "shoes!! feel yeah!!"
