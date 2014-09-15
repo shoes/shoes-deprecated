@@ -1,6 +1,138 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-09-14
+     I'm Less lost. I need to write exerb 'handlers' for RT_STRING and
+     RT_RCDATA resources. A problem because there can be multiples
+     strings and mulitple Shoes files and PE is not the easiest format to
+     understand. Which is why nobody has taken the time to do it.
+     
+     I want a lib/winject.rb (loaded by app_package.rb) that has
+     methods new(path-to-stub.exe), save, inject_string (name, value) and
+     inject_file(name, binary_contents)
+     
+     Obviously, this would replace binject/winject (the extension and rake
+     files have to be modified to not build them
+     
+     modify rakefiles to copy shoes3.2/lib/exerb/ to builds 
+----> x86
+----> i386
+----> raspberry
+----> windows
+----> osx 
+     (or symlink if its dist/shoes)
+done: linux. bewares. 
+----> osx
+     
+     Winject.rb just front ends exerb. alt.rb needs modification.
+     
+     In exerb I need to add code for RT_STRINGS (adding, packing, unpacking)
+       for the toplevel and the internal storage which is a PASCAL string
+       (length, then characters), or so I'm told.
+  
+2014-09-13
+     get lost in exerb.
+     
+2014-09-12
+     exerb (defunct project?) might load/save PE files (and resources) with
+     pure ruby. That would make lots of people happy if I can figure it out.
+     https://github.com/snaury/exerb-mingw  
+     Author info - https://github.com/snaury
+     - of course the ruby installer folks knew about this.
+     
+done: get it to load from a file, loop through resources
+done: get it to save to a file, compare.
+----> get it to insert the Shoes resources (much testing ahead)
+----> Add exerb to lib/ update all the rakefiles (task.rb to copy or link)
+----> Fix the unpack/pack format strings to allow BigEndian rubies to pack
+     a little endian.  Or don't bother, rasp and intel are LE.
+     
+2014-09-11
+     I think it is confused about the extra sections (symbol tables)
+     and may not be copying them. Actually, winject is doing OK, but there
+     is something past the .rsrc section that doesn't have a section header
+     but those sections refer to it (debugging for sure, maybe more) which is
+     why a stripped shoes-stub.exe *almost* looks like it should work.
+     
+     Wine is OK with an mingw exe with debug symbols. So is Win 7.
+     
+     It looks like Mingw resources might have offsets higher than the section
+     header suggests. 
+     
+     compare mingw vs 
+  
+2014-09-10
+     wrote a test program the calls winject (without the gui) and
+     copies blank.exe and then shoes-stub.exe without injecting anything
+     blank.exe & copy are the same size. shoes-stub.exe wrong, very wrong.
+     
+     (see notes/Stubs.txt for thoughts and data)
+     basically binj->datapos is incorrect after show_exe_rewrite 
+2014-09-09
+----> need to fix url in stub.c (cgi at site?)
+
+      For a simpler test, I comment out all injects - so new and then save
+      should produce nearly identical files - 
+      It does when using blank.exe 81920 bytes in length. 
+        although diff thinks they are different. Both work in Wine.
+        anal_pe thinks they are different but similar. The resources
+        are identical but they live in a slighly different order.
+        
+      Doing that on shoes-stub.exe results in a loss
+        71513 -> 57344 ! 14169 missing
+        
+      It's not the icon that causes the problem. I tried the original 
+      redshoes.ico.
+      
+done: Write a test prog '../path-to-shoes --ruby that does both
+      blank.exe and shoes-stub.exe . call it bugs/winject/copy.sh [.rb]
+      Must include a proc/block to exe.save and they almost print the same
+      result (.rsrc section). 
+look? blank.exe has a 260 byte and shoes-stub.exe has a 282 byte length
+      
+      
+        
+      It just occured to me -- the blackhat hackers probably have tools to
+      inject resources into an exe. 
+  
+2014-09-08
+----> also convert C++ to C, add unicode functions names and stuff
+      clean up the warning errors - something probably is incorrect.
+done: Compiles and links (C) - it works in wine (dialog says empty stub)
+----> When packaging isp.rb for  Shoes/Windows
+Segfault in winject_exe_rewrite (line 455) called from line 638
+      I consider that good news. 
+----> When packaging isp.rb for Windows but with the winject(isp.rb)
+      commented out, it completes but wine says Bad EXE format so
+      parsing of shoes-stub.c (mine or ashbb's) is failing in Winject.
+  
+2014-09-07
+      definately a problem winjecting into a mingw compiled app.
+      
+      MinGW has a pe.h - it's different enough from the winject pe.h 
+      to cause me some worry.
+      
+      FWIW blank.exe (msvc compiled) and shoes-stub.exe both run in Wine.
+      Wine will also *start* isp.exe (shoes-stub.exe version and pops the
+      the dialog with the progress bar half filled, caption "setting up shoes"
+      and the an error dialog "Bad Format". That is similar to Win7 so the
+      debugging just became a bit easier. 
+      
+done:  Fixed all the warning message in winject.c. Still more work to
+       do to clean out the 1.8 useless code. 
+       
+====> cross compile platform/msw/stubs.c to be shoes-stub.exe. We have
+      C compiler issues. I wonder how asshb was able to compile it. 
+      It appears to be C++. That's just wrong. But it compiles with g++
+      and it has something to do with winhttp.c, .h I'm going with C.
+----> need one of those .def files?
+----> shoes_get_time and diff_time (sigh) - in 
+      
+2014-09-06
+      Set the wayback machine to 2007. (B|W)inject comes from anal_pe
+      which does have a listing facility of sorts and it does compile and run
+      in linux. 
+  
 2014-09-05
 done: Add -x to mingw strip command
 ----> Hmm. I'm missing some tasks from the old mingw build. 
@@ -9,10 +141,12 @@ done: Add -x to mingw strip command
 done: copy the manifest to {dist} (in make_app) - where is this used? nsis?
         It appears to be unused - move to old/
 ====> using shoes-stub.exe instead of blank.exe. Windows 7 doesn't think 
-      isp.exw is a valid executable. A mingw issue? Binject vs mingw ?
+      isp.exe is a valid executable. A mingw issue? Binject vs mingw ?
 ====> Yes! shoes-stub.exe (mingw version of blank.exe) runs (says it's empty
       which is correct. That means winject doesn't do the right thing on
-      a mingw compiled stub. 
+      a mingw compiled stub.
+      blank.exe works with winject , shoes-stub.exe doesn't
+done: fix .gitignore
       
       get stub Cross compile before fixing winject.
 done: modify Rakefile and add :stubs task for xmingw (make/xmingw32/stubs)

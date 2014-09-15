@@ -262,6 +262,7 @@ Shoes.app do
         Thread.new do
           @pkgstat = inscription "Windows repack #{@path} for#{@work_path}"
           repack_exe
+          #dnlif_exe
         end
       when /osx\-.*.tgz$/
         Thread.new do
@@ -281,7 +282,48 @@ Shoes.app do
       end
     end
   end
+
+# ==== Download If Need  (dnlif) packaging ===
+  def dnlif_exe
+    # uses exerb 
+    require 'exerb/executable'
+    script = @path
+    size = File.size(script)
+    f = File.open(script, 'rb')
+    rawpe = "" 
+    begin
+      inf = File.join(DIR, "static", "stubs", "shoes-stub.exe")
+      File.open(inf, 'r:ASCII-8BIT') {|file| rawpe = file.read}
+      exe = Exerb::Executable.new(rawpe)
+      size += script.length
+      #exe.inject("SHOES_FILENAME", File.basename(script))
+      #exe.rsrc.add(Exerb::Win32::Const::RT_STRING,
+      size += File.size(script)
+      #exe.inject("SHOES_PAYLOAD", f)
+      f2 = open(@work_path)
+      @pkgstat.text = "Repack Shoes.exe distribution"
+
+      size += File.size(f2.path)
+      f3 = File.open(f2.path, 'rb')
+      #exe.inject("SHOES_SETUP", f3)
+
+      count, last = 0, 0.0
+      exe.save(script.gsub(/\.\w+$/, '') + ".exe") do |len|
+        count += len
+        prg = count.to_f / size.to_f
+        #blk[last = prg] if blk and prg - last > 0.02 and prg < 1.0
+      end
+      rescue StandardError => e
+        puts "Failed to create Winject::EXE #{e}"
+      end
+        
+      f.close
+      f2.close
+      f3.close
+      @pkgstat.text = "Done packaging Windows"
+  end
   
+# ===== full download and package ===  
   def repack_linux  arch
     script = @path
     name = File.basename(script).gsub(/\.\w+$/, '')
@@ -364,27 +406,27 @@ Shoes.app do
       size = File.size(script)
       f = File.open(script, 'rb')
       begin
-        #exe = Winject::EXE.new(File.join(DIR, "static", "stubs", "blank.exe"))
-        exe = Winject::EXE.new(File.join(DIR, "static", "stubs", "shoes-stub.exe"))
-      rescue StandardError => e
-        puts "Failed to create Winject::EXE #{e}"
-      end
+        exe = Winject::EXE.new(File.join(DIR, "static", "stubs", "blank.exe"))
+        #exe = Winject::EXE.new(File.join(DIR, "static", "stubs", "shoes-stub.exe"))
       size += script.length
       exe.inject("SHOES_FILENAME", File.basename(script))
       size += File.size(script)
-      exe.inject("SHOES_PAYLOAD", f)
+      #exe.inject("SHOES_PAYLOAD", f)
       f2 = open(@work_path)
       @pkgstat.text = "Repack Shoes.exe distribution"
 
       size += File.size(f2.path)
       f3 = File.open(f2.path, 'rb')
-      exe.inject("SHOES_SETUP", f3)
+      #exe.inject("SHOES_SETUP", f3)
 
       count, last = 0, 0.0
       exe.save(script.gsub(/\.\w+$/, '') + ".exe") do |len|
         count += len
         prg = count.to_f / size.to_f
         #blk[last = prg] if blk and prg - last > 0.02 and prg < 1.0
+      end
+      rescue StandardError => e
+        puts "Failed to create Winject::EXE #{e}"
       end
         
       f.close

@@ -50,6 +50,8 @@ module Make
     end
     Dir.chdir "dist/lib" do
       ln_s "../../lib/shoes.rb" , "shoes.rb" unless File.symlink? "shoes.rb"
+      # link to exerb
+      ln_s "../../lib/exerb", "exerb"
     end
     cp_r  "fonts", "dist/fonts"
     cp_r  "samples", "dist/samples"
@@ -70,7 +72,7 @@ module Make
     %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
       FileList[rdir].each { |rlib| cp_r rlib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}" }
     end
-    %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk req/winject/ext/winject_c].
+    %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
     #%w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
       each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_RUBY_ARCH}" }
 
