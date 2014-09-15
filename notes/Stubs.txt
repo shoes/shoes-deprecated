@@ -1,0 +1,210 @@
+Because I don't have enough documentation and exerb and pefile don't have
+a lot.
+
+pefile is a python module to list pe's. Instructions only make sense if
+you know python - and I don't
+ $ cd <to pe dir>
+ $ cp <the exe> test.ext
+ $ python
+ >>> import pefile
+ >>> exe_path = "test.exe"
+ >>> pe = pefile.PE(exe_path)
+ >>> pe.print_info()
+ 
+ 
+ which I put in foo.py
+ and do
+ $ python foo.py >foo.lst
+ 
+test.exe is packed isp.rb with blank.exe (not mingw) and has SHOES_FILENAME,
+ SHOES_PAYLOAD and SHOES_SETUP PE types 6 10, 10 , RT_STRING and RC_DATA(two)
+ 
+Since I want to add a SHOES_URL, I'll need to handle multiple RT_STRINGS
+just like multiple RC_DATA.
+
+I hand edited the foo.lst to only shoe the resources I care about.  The
+format from pefile makes a lot more sense to me. I almost understand.
+That file is isp-full.log
+
+Windows Resources layout
+
+http://www.csn.ul.ie/~caolan/pub/winresdump/winresdump/doc/pefile.html
+is a decent overview but I'm still confused.
+
+Many names, make sure you understand which one your dealing with.
+Yes, Image is a terrible name, but there you are. 
+
+xref MSFT names to pe.h (that winject.c uses), under that the exerb mapping
+ 
+
+IMAGE_RESOURCE_DIRECTORY		6 fields	resources_dir_t
+  File: exerb/win32/struct/image_resource_directory.rb
+  Class: Exerb::Win32::Struct::ImageResourceDirectory
+  methods: initalize, pack, unpack
+  
+IMAGE_RESOURCE_DIRECTORY_ENTRY 	2 fields	resource_dir_entry_t
+  File:  exerb/win32/struct/image_resource_directory_entry.rb
+  Class: Exerb::Win32::Struct::ImageResourceDirectoryEntry
+  methods: initialize, pack, unpack
+       many methods to deal with offsets and binary things
+       
+IMAGE_RESOURCE_DATA_ENTRY		4 fields	resource_data_t
+  File:  exerb/win32/struct/image_resource_data_entry.rb
+  Class: Exerb::Win32::Struct::ImageResourceDataEntry
+  Methods: initalize, pack, unpack
+
+In exerb, there are Classes for dos_header and the like but I'm concerned
+with resources.  There is also the file exerb/win32/const/resource.rb
+which defines constants under Exerb::Win32::Const
+
+Exerb provides an upper level abstraction that manages
+the Exerb::Win32::Struct objects.  
+  utility.rb is used by the above. module Exerb::Utility
+  resource_library.rb is not in play for Shoes
+  executable.rb models the whole exe. we need that for load/save.
+  
+  resource.rb is important for Shoes usage. 
+  Class: Exerb::Resource
+  Methods: that handle some exerb desired resources - icon, group_icon, 
+    dialog, version and archive along with 
+    pack, unpack, initialize, remove and merge. 
+    
+  There is another class in resource.rb
+  Class Exerb::Resource::Entry that 
+  
+  There is not a predefined String resource. Or a shoes_payload although
+  archive probablly has some clues. 
+
+
+
+
+
+windres (the mingw one) can create an ascii sort of thing) for an exe
+ignore that for know. lets see what anal_pe says. 
+
+Set 3 leftovers (blank.exe+isp.rb
+
+-rw-rw-r-- 1 ccoupe ccoupe     6 Sep  9 14:41 res84448.bin 'isp.rb' no termination
+-rw-rw-r-- 1 ccoupe ccoupe  2079 Sep  9 14:41 res84456.bin Ruby script, ASCII text
+
+Set 4 leftovers (shoes-stub.exe+isp.rb)
+
+-rw-rw-r-- 1 ccoupe ccoupe     0 Sep  9 13:59 res-1.bin  <-------- extra
+-rw-rw-r-- 1 ccoupe ccoupe     6 Sep  9 13:59 res76278.bin 'isp.rb' no termination
+-rw-rw-r-- 1 ccoupe ccoupe  2079 Sep  9 13:59 res76286.bin Ruby script, ASCII text
+
+Set 5 leftovers (shoes-stub.exe and no winjects, new(load) and save
+Set 6 leftovers (blank.exe and no winjects) -its just like blank.exe
+
+Perhaps winject is mishandling symbol tables on the load (or rewrite)
+   Set 5's copy is smaller in file size. 
+   its 14KB smaller than input.
+   
+   
+winject_exe_load only collects .rsrc segment info
+winject_exe_save re-reads and copies the stub until 
+   something happens:
+   Loop
+      eventually it calls winject_exe_rewrite
+      flushs the remainder to out
+      causes the loop to end (by setting the file pos to end)
+   then it rewinds both in and out
+   reads the first 1024 bytes of the stub
+     and pokes some 32 bit ints into the NT Header (so called optional)
+     assumeablly something computed by winject_exe_rewrite
+   writes the 1024 
+   calls it done
+   
+   It would be nice to know the names of those poked fields but
+   that doesn't appear to be the problem.  At the end of the loop
+   above binj>datapos should be need the end of the file. It's know where
+   close to that on shoes-stub.exe which causes grow to be negative and
+   that's not good.  Sadly, there's a lot to figure out what why datapos
+   is different. 
+ 
+NOW - about those pokes into the first 1K block. That might be
+   different in msvc vs mingw exe's. 
+   supposedly, in blank.exe .rsrc starts at 624 and shoes-stub's .rsrc
+     section starts at 696. Those pokes will cause problems. 
+
+
+So the winject.insert and write is OK.
+
+Of course they aren't dBase or FoxPro or whatever a GLS_BINARY_LSB_FIRST is. 
+That's just file's best guess, but it's consistent finderprinting. let's compare
+by type and size. Five entries
+
+ 1. blank.exe (MSFT) first then 
+ 2. shoe-stub.exe (MINGW).
+ 3. blank.exe winject just isp.rb
+ 4  shoes-stub-exe winject just isp.rb inside (bad Exe Format)
+ 5. shoes-stub.exe winject nothing - should match case 2
+ 
+dos_code.bin
+1.    152 dos_code.bin
+2.     64 dos_code.bin  Worth looking into? 
+3.    152 dos_code.bin
+4.     64 dos_code.bin
+5.     64 dos_code.bin
+    
+win_code_0
+1.  28672 win_code_0.bin C++ would be larger (vtable crud). still ...
+2.  12288 win_code_0.bin   
+3.  28672 win_code_0.bin
+4.  12288 win_code_0.bin
+5.  12288 win_code_0.bin
+
+.pe  (anal_pe's output tree)
+  15422 blank.pe
+  17696 shoes.pe need a deeper compare.
+  21659 isp.pe
+  
+data (different sizes) ----NOTE this seems to have winject 
+1.    260 res84072.bin
+2.    282 res75792.bin
+3.    260 res84188.bin
+===> missing
+4.    282 res75792.bin
+
+==== Stuff that's probably nearly the same ====
+    
+MS Windows icon  - something to look into later. 
+1.     76 res83992.bin 5 icons, 64x64, 256-colors
+2.     76 res76076.bin 5 icons, 16x16, 256-colors
+3.     76 res86536.bin 5 icons, 64x64, 256-colors
+4.     76 res78366.bin 5 icons, 16x16, 256-colors
+5.     76 res76074.bin 5 icons, 16x16, 256-colors
+     
+FoxPro (not really, i'm guessing its the icon data)
+1.   16936 res49584.bin     
+2.   16936 res58856.bin
+3.   16936 res49780.bin
+4.   16936 res59060.bin   
+5.   16936 res58856.bin   
+
+GLS (not really)
+1.    1128 res82864.bin
+2.    1138 res41384.bin verify - might be typo.
+3.    1128 res83060.bin
+4.    1128 res41588.bin 
+5.    1128 res41384.bin     
+  
+dBase (not really)
+1.    9640 res66520.bin
+2.    9640 res49216.bin
+3.    9640 res66716.bin
+4.    ====> missing
+5.    9640 res49216.bin   
+data 
+1.    4264 res76160.bin
+2.    4264 res44952.bin
+3.    4264 res76356.bin
+4.    4264 res45156.bin
+5.    4264 res44952.bin
+
+data
+1.    2440 res80424.bin
+2.    2440 res42512.bin
+3.    2440 res80620.bin
+4.    2440 res42716.bin
+5.    2440 res42512.bin
