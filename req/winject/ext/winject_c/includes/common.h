@@ -8,7 +8,9 @@
 #ifdef WIN32
 #define fseeko fseeko64
 #define ftello ftello64
+#ifndef off_t	// cjc
 #define off_t off64_t
+#endif
 #define mkdir(x, y) mkdir(x)
 #endif
 

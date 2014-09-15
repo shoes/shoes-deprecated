@@ -8,7 +8,7 @@
 #include "common.h"
 #include "pe.h"
 
-char *pe_pad = "PADDINGXXPADDING";
+const char *pe_pad = "PADDINGXXPADDING"; // cjc add const
 char endianness;
 
 void TestByteOrder()
@@ -276,7 +276,7 @@ int
 winject_exe_data_len(winject_exe_t *binj)
 {
   unsigned int i, len = 0;
-  for (i = 0; i < RARRAY_LEN(binj->adds); i++)
+  for (i = 0; i < (unsigned int) RARRAY_LEN(binj->adds); i++)
   {
     VALUE obj = rb_ary_entry(rb_ary_entry(binj->adds, i), 1);
     if (rb_obj_is_kind_of(obj, rb_cFile))
@@ -323,8 +323,7 @@ void
 winject_exe_file_copy1(rb_io_t *fptr, FILE *out, unsigned int size, unsigned int pos1, unsigned int pos2, VALUE proc)
 {
   char buf[BUFSIZE];
-  FILE *file;
-  file = rb_io_stdio_file(fptr);
+  FILE *file =file = rb_io_stdio_file(fptr); //cjc warning message fix
   
   int mark1 = ftell(file), mark2 = ftell(out);
   fseek(file, pos1, SEEK_SET);
@@ -369,11 +368,11 @@ int
 winject_exe_rewrite(winject_exe_t *binj, char *buf, char *out, int offset, int offset2, int level, int res_type)
 {
   int count = 0, i = 0, ins = 0;
-  unsigned int newoff;
+  // unsigned int newoff; // cjc unused? 
   struct resource_dir_t *rd, *rd2;
   struct resource_dir_entry_t *rde, *rde2;
   struct resource_data_t *rdat, *rdat2;
-  // printf("DIR[%d]: %x TO %x\n", level, offset, offset2);
+  printf("DIR[%d]: %x TO %x\n", level, offset, offset2);
   BINJ_COPY(rd2, rd, struct resource_dir_t, offset, offset2);
   FLIPENDIANLE(rd->NumberOfIdEntries);
   FLIPENDIANLE(rd->NumberOfNamedEntries);
@@ -382,7 +381,7 @@ winject_exe_rewrite(winject_exe_t *binj, char *buf, char *out, int offset, int o
   if (level == 0)
   {
     ins = winject_exe_new_ids(binj);
-    rd2->NumberOfIdEntries += winject_exe_new_ids(binj);
+    rd2->NumberOfIdEntries += winject_exe_new_ids(binj); 
     binj->ids = rd2->NumberOfIdEntries;
     binj->namestart = 16 +
       (rd2->NumberOfIdEntries * (8 + sizeof(struct resource_data_t))) + 
@@ -390,7 +389,7 @@ winject_exe_rewrite(winject_exe_t *binj, char *buf, char *out, int offset, int o
     binj->datastart = BINJ_PAD(binj->namestart + winject_exe_names_len(binj), 4);
     binj->datapos = binj->section_header.PointerToRawData + binj->datastart;
     binj->vdelta = binj->section_header.VirtualAddress - binj->section_header.PointerToRawData;
-    // printf("DATAPOS: %x\n", binj->datapos);
+    printf("DATAPOS: %x\n", binj->datapos);
   }
   else
   {
@@ -411,14 +410,14 @@ winject_exe_rewrite(winject_exe_t *binj, char *buf, char *out, int offset, int o
       res_type = rde->Name;
     if (level == 0 && res_type > 10 && ins > 0)
     {
-      VALUE obj, key, ctype;
+      VALUE obj, ctype; // cjc ,key unused
       unsigned int ti = 0, i2 = 0, doff = 0, doff2 = 0, doff3 = 0, doff4 = 0,
                    btype = 0, oc = 0, padlen = 0, oo = 0;
       for (ti = 0; ti < 2; ti++)
       {
         ctype = (ti == 0 ? rb_cString : rb_cFile);
         btype = (ti == 0 ? 6 : 10);
-        // printf("\nNEW ID\n");
+        printf("\nNEW ID\n");
         if (winject_exe_count_type(binj, ctype))
         {
           rde = (struct resource_dir_entry_t *)(buf + offset);
@@ -426,7 +425,7 @@ winject_exe_rewrite(winject_exe_t *binj, char *buf, char *out, int offset, int o
 
           rde2->Name = btype;
           rde2->OffsetToData = rde->OffsetToData + winject_exe_offset(binj, 0, btype) + (ti * 16) + (oc * 8);
-          // printf("STRING ENTRY[0] @ %x (%u, %x)\n", (char *)rde2 - out, rde2->Name, rde2->OffsetToData);
+          printf("STRING ENTRY[0] @ %x (%u, %x)\n", (char *)rde2 - out, rde2->Name, rde2->OffsetToData);
           oo = rde->OffsetToData & 0x7fffffff;
           doff = rde2->OffsetToData & 0x7fffffff;
           FLIPENDIANLE(rde2->Name);
@@ -435,15 +434,15 @@ winject_exe_rewrite(winject_exe_t *binj, char *buf, char *out, int offset, int o
           rd2 = (struct resource_dir_t *)(out + doff);
           rd2->NumberOfNamedEntries = winject_exe_count_type(binj, ctype);
           FLIPENDIANLE(rd2->NumberOfNamedEntries);
-          // printf("STRING DIR[1]: %x\n", doff);
+          printf("STRING DIR[1]: %x\n", doff);
 
-          for (i2 = 0; i2 < winject_exe_count_type(binj, ctype); i2++)
+          for (i2 = 0; i2 < (unsigned int) winject_exe_count_type(binj, ctype); i2++) // cjc
           {
             rde = (struct resource_dir_entry_t *)(buf + oo + 16);
             doff3 = rde->OffsetToData;
             FLIPENDIANLE(doff3);
             rde2 = (struct resource_dir_entry_t *)(out + doff + 16 + (i2 * 8));
-            // printf("STRING ENTRY[1] @ %x / NAME(%x)\n", (char *)rde2 - out, binj->namestart);
+            printf("STRING ENTRY[1] @ %x / NAME(%x)\n", (char *)rde2 - out, binj->namestart);
             rde2->Name = 0x80000000 | binj->namestart;
             rde2->OffsetToData = doff3 + winject_exe_offset(binj, 1, btype) + (oc * 24);
             binj->namestart += winject_exe_write_name(binj, out, ctype, i2);
@@ -455,17 +454,17 @@ winject_exe_rewrite(winject_exe_t *binj, char *buf, char *out, int offset, int o
             rd2 = (struct resource_dir_t *)(out + doff2);
             rd2->NumberOfIdEntries = 1;
             FLIPENDIANLE(rd2->NumberOfIdEntries);
-            // printf("STRING DIR[2]: %x / %x (%x)\n", rde2->Name, rde2->OffsetToData, doff3);
+            printf("STRING DIR[2]: %x / %x (%x)\n", rde2->Name, rde2->OffsetToData, doff3);
             rde = (struct resource_dir_entry_t *)(buf + (doff3 & 0x7fffffff) + 16);
             doff4 = rde->OffsetToData;
             FLIPENDIANLE(doff4);
 
             rde2 = (struct resource_dir_entry_t *)(out + doff2 + 16);
-            // printf("STRING ENTRY[2] @ %x\n", (char *)rde2 - out);
+            printf("STRING ENTRY[2] @ %x\n", (char *)rde2 - out);
             rde2->OffsetToData = doff4 + winject_exe_offset(binj, 2, btype) + (oc * 16);
-            // printf("RESDATA: %x / %x\n", doff4, rde2->OffsetToData);
+            printf("RESDATA: %x / %x\n", doff4, rde2->OffsetToData);
             obj = winject_exe_get_type(binj, ctype, i2);
-            // printf("DATA: %x\n", binj->datapos);
+            printf("DATA: %x\n", binj->datapos);
             rdat = (struct resource_data_t *)(out + (rde2->OffsetToData));
             rdat->OffsetToData = binj->datapos + binj->vdelta;
             if (ctype == rb_cString)
@@ -492,7 +491,7 @@ winject_exe_rewrite(winject_exe_t *binj, char *buf, char *out, int offset, int o
             padlen = BINJ_PAD(rdat->Size, 4) - rdat->Size;
             if (padlen > 0)
             {
-              winject_exe_string_copy(binj, pe_pad, padlen, binj->datapos, binj->proc);
+              winject_exe_string_copy(binj, (char *)pe_pad, padlen, binj->datapos, binj->proc); //cjc
               binj->datapos += padlen;
             }
 
@@ -504,27 +503,29 @@ winject_exe_rewrite(winject_exe_t *binj, char *buf, char *out, int offset, int o
           offset2 += 8;
         }
       }
-    }
+    } 
 
-    // printf("ENTRY[%d]: %x TO %x\n", level, offset, offset2);
+    printf("ENTRY[%d]: %x TO %x\n", level, offset, offset2);
     BINJ_COPY(rde2, rde, struct resource_dir_entry_t, offset, offset2);
 
     // offset every entry to leave a hole for new stuff
     rde2->OffsetToData += winject_exe_offset(binj, level, res_type);
     if ((rde->OffsetToData & 0x80000000) == 0)
     {
-      unsigned int dataoff = offset2 + rde2->OffsetToData;
+      // unsigned int dataoff = offset2 + rde2->OffsetToData; // cjc unused?
       BINJ_COPY(rdat2, rdat, struct resource_data_t, rde->OffsetToData, rde2->OffsetToData);
       FLIPENDIANLE(rdat->Size);
       FLIPENDIANLE(rdat->OffsetToData);
       FLIPENDIANLE(rdat2->Size);
       FLIPENDIANLE(rdat2->OffsetToData);
       rdat2->OffsetToData = binj->datapos + binj->vdelta;
-      // printf("RESDATA: %x TO %x AT %x / %x\n", rde->OffsetToData, rde2->OffsetToData, 
-      //   binj->namestart, binj->datastart);
+      printf("RESDATA: %x TO %x AT %x / %x\n", rde->OffsetToData, rde2->OffsetToData, 
+         binj->namestart, binj->datastart);
       winject_exe_file_copy(binj->file, binj->out, rdat->Size, 
         rdat->OffsetToData - binj->vdelta, binj->datapos, binj->proc);
-      // printf("DATA: %x TO %x\n", rdat->OffsetToData, binj->datapos);
+      printf("DATA: %x TO %x\n", rdat->OffsetToData, binj->datapos);
+      printf("datapos %d, rdat->Size %d, binj->vdelta %d\n", binj->datapos,
+         rdat->Size, binj->vdelta);
       binj->datapos += rdat->Size;
       binj->dataend = (rdat->OffsetToData - binj->vdelta) + rdat->Size;
       FLIPENDIANLE(rdat2->Size);
@@ -557,7 +558,7 @@ winject_exe_rewrite(winject_exe_t *binj, char *buf, char *out, int offset, int o
 VALUE
 winject_exe_load(VALUE self, VALUE file)
 {
-  int i, lfanew;
+  int i;  // cjc , lfanew; //unused
   winject_exe_t *binj;
   Data_Get_Struct(self, winject_exe_t, binj);
 #ifndef RUBY_1_8
@@ -583,10 +584,12 @@ winject_exe_load(VALUE self, VALUE file)
     BINJ_READ(binj, binj->section_header);
     FLIPENDIANLE(binj->section_header.VirtualAddress);
     FLIPENDIANLE(binj->section_header.PointerToRawData);
-
-    if (strcmp(binj->section_header.Name, ".rsrc") == 0)
+    printf("Load section: %s from %d\n",binj->section_header.Name,
+      ftell(binj->file)); // cjc
+    if (strcmp((const char *)binj->section_header.Name, ".rsrc") == 0) // cjc
       winject_exe_resources(binj, 0, 0, 0);
   }
+  return Qnil; // cjc stop compiler whine. 
 }
 
 VALUE
@@ -595,16 +598,22 @@ winject_exe_inject(VALUE self, VALUE key, VALUE obj)
   winject_exe_t *binj;
   Data_Get_Struct(self, winject_exe_t, binj);
   rb_ary_push(binj->adds, rb_ary_new3(2, key, obj));
+  return Qnil; // cjc stop compiler whine. 
 }
 
 VALUE
 winject_exe_save(VALUE self, VALUE file)
 {
-  int i;
+  // int i;  // cjc unused
   size_t len, pos;
   winject_exe_t *binj;
   char buf[BUFSIZE];
   char buf2[BUFSIZE];
+  unsigned int posend;
+  unsigned int grow;
+  unsigned int actual;
+  unsigned int *uninit;
+  int *resd;
   Data_Get_Struct(self, winject_exe_t, binj);
 #ifndef RUBY_1_8
   binj->out = fopen(RSTRING_PTR(file), "wb");
@@ -631,7 +640,7 @@ winject_exe_save(VALUE self, VALUE file)
       MEMZERO(buf2, char, BUFSIZE);
       len = winject_exe_rewrite(binj, buf, buf2, 0, 0, 0, 0);
       fwrite(buf2, sizeof(char), binj->datastart, binj->out);
-      // printf("FINISHING AT: %x / %x\n", binj->dataend, binj->datapos);
+      printf("FINISHING AT: %x / %x\n", binj->dataend, binj->datapos);
       fseek(binj->out, binj->datapos, SEEK_SET);
       fseek(binj->file, 0, SEEK_END);
     }
@@ -642,33 +651,40 @@ winject_exe_save(VALUE self, VALUE file)
     pos += len;
   }
   
-  unsigned int posend = BINJ_PAD(binj->datapos, 0x1000);
-  unsigned int grow = posend - ftell(binj->file);
-  unsigned int actual = binj->datapos - binj->section_header.PointerToRawData;
-  // printf("GROW: %x / ACTUAL: %x (%x / %x)\n", grow, actual, binj->datapos, binj->dataend);
+  posend = BINJ_PAD(binj->datapos, 0x1000);
+  grow = posend - ftell(binj->file);
+  actual = binj->datapos - binj->section_header.PointerToRawData;
+  printf("posend %d, fpos %d, grow %d, dpos %d\n", posend, ftell(binj->file), grow, binj->datapos);
+  printf("e_lfanew = %d\n", binj->dos_header.e_lfanew);
+  printf("GROW: %x / ACTUAL: %x (%x / %x)\n", grow, actual, binj->datapos, binj->dataend);
   fseek(binj->file, 0, SEEK_SET);
   fseek(binj->out, 0, SEEK_SET);
   fread(buf, sizeof(char), 1024, binj->file);
-  unsigned int *uninit = (unsigned int *)(buf + (binj->dos_header.e_lfanew + 32));
+  
+  uninit = (unsigned int *)(buf + (binj->dos_header.e_lfanew + 32));
   FLIPENDIANLE(*uninit);
   *uninit += grow - binj->vdelta;
   FLIPENDIANLE(*uninit);
+  
   uninit = (unsigned int *)(buf + (binj->dos_header.e_lfanew + 80));
   FLIPENDIANLE(*uninit);
   *uninit += grow;
   FLIPENDIANLE(*uninit);
-  int *resd = (int *)(buf + (binj->dos_header.e_lfanew + 140));
+  
+  resd = (int *)(buf + (binj->dos_header.e_lfanew + 140));
   *resd = actual;
   FLIPENDIANLE(*resd);
+  
   resd = (int *)(buf + (binj->dos_header.e_lfanew + 376));
   *resd = actual;
   FLIPENDIANLE(*resd);
+  
   uninit = (unsigned int *)(buf + (binj->dos_header.e_lfanew + 384));
   FLIPENDIANLE(*uninit);
   *uninit += grow;
   FLIPENDIANLE(*uninit);
+  
   fwrite(buf, sizeof(char), 1024, binj->out);
-
   fseek(binj->out, binj->datapos, SEEK_SET);
   while (binj->datapos < posend)
   {
@@ -677,9 +693,10 @@ winject_exe_save(VALUE self, VALUE file)
     fwrite(pe_pad, sizeof(char), len, binj->out);
     binj->datapos += len;
   }
-  // printf("SIZE: %x\n", ftell(binj->out));
+  printf("SIZE: %x\n", ftell(binj->out));
   fclose(binj->out);
   binj->out = NULL;
+  return Qnil; // cjc stop compiler whine. 
 }
 
 

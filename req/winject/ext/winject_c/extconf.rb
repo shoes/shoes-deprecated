@@ -64,6 +64,7 @@ end
 
 $CFLAGS << " -Iincludes "
 $CFLAGS << "-DRUBY_#{RUBY_VERSION[0..2].sub(/\./,'_')} "
+$CFLAGS << ' -Wno-unused-result '
 have_library("z")
 
 if cross
