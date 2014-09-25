@@ -8,6 +8,8 @@ require 'exerb/archive'
 require 'exerb/error'
 require 'exerb/resource'
 require 'exerb/win32/pe_file'
+require 'exerb/string'
+require 'exerb/rcdata'
 
 #==============================================================================#
 

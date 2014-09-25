@@ -33,7 +33,7 @@ class Exerb::Resource
 
   def initialize
     @entries = {}
-  end
+ end
 
   attr_reader :entries
 
@@ -93,6 +93,14 @@ class Exerb::Resource
 
   def add_archive(archive)
     return self.add(Exerb::Resource::RT_EXERB, Exerb::Resource::ID_EXERB, archive)
+  end
+  
+  def add_string(id, contents)
+     return self.add(Exerb::Win32::Const::RT_STRING, id, Exerb::String.new(id, contents))
+  end
+  
+  def add_rcdata(id, contents)
+    return self.add(Exerb::Win32::Const::RT_RCDATA, id, Exerb::Rcdata.new(contents))
   end
 
   def pack(base, reloc = [])
