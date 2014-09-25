@@ -1,6 +1,111 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-09-24
+----> on Win 7, packaged isp.rb - downloads and installs Shoes, starts it
+      Get an error on the Shoes console 
+  
+2014-09-23
+done? exerb can do RCDATA resources. It packs (alt.rb) anal_pe and pefile like it.
+----> wine and win7 {packed stub} dies in the http code. charset ? 
+      I don't see an http log entry on the server for either Wine or Win7
+      a wprintf (wine can do it - yay!) says its dieing in shoes_winhttp
+      The url looks ok.
+      
+      I thought that was working in MingW. ouch! Missing dll, wrong dll?
+done: Nope, it was SHOES_REVISION being compiled into winhttp sent headers
+      with a prinf(%d) and I that to %f instead.
+----> will have to do that for nsurl.m
+  
+2014-09-22
+
+done: stub.c char * shoes_str_load(HINSTANCE inst, UINT resnum) 
+      converts with utf16-le to utf-8. Not pretty. works for now.
+      Probably not needed except for the debugging code. 
+      stub.c is pretty Unicode aware. Irony exists!
+      
+----> Split download url to be more friendly to stub.c -- two resources:
+      SHOES_DOWNLOAD_SITE ex: shoes.mvmanila.com
+      SHOES_DOWNLOAD_PATH ex: /public/select/win32.rb
+      Modify stub.c to use those resouces/
+      
+done? cgi script public/select/win32.rb returns a line/string like
+      '/public/shoes/shoes-3.2.15-gtk2-32.exe'
+       $wget shoes.mvmanila.com/public/select/win32.rb   Works.
+      
+done: Fix alt.rb to pack isp.rb contents
+
+====> Update app_package.rb for windows (dnlif_exe, repack_exe ) to
+     match  all of the above    
+  
+2014-09-21 Deeper and deeper. 
+----> Guiding prinicples http://walkabout.mvmanila.com/2014/09/18/bootstrap-to-the-future/
+----> Use new names for resource constants and numbers
+done: in stub.c, load a string resource by number works.
+      it's utf-16 which screws up the simple C string functions.
+      Which means stub.c needs a Unicode upgrade.  I'll write a
+      function that takes in a String resource number and
+      returns an old school ascii. 
+  
+2014-09-20
+done: The mingw rc string table is UTF16 with leading count. I can pack that
+     of those and pefile and anal_pe are OK with it.
+done: try a second string resource - the id has to change
+
+----> Figure out how to do a 'named' resource id
+  
+2014-09-19
+     Can just go with a STRINGTABLE for the strings in stub.c. int index
+     use LoadString()?  Fallback
+     
+====> For each 'named' STRING inject there is one complete RT_STRING
+     resource tree - the resource entry [string table] only has one entry. 
+     Should simplify exerb. 
+     Multiple [0x6] resources in the pe. One per named string.
+     Not quite - there is one 0x6 in a pe - There are multiple resource_directorys
+      underneath that. 
+      
+----> Get the named part working
+maybe: Then the size.
+     
+     Multiple RC_DATA is the same. 
+  
+2014-09-17 
+     Stop reading and Just do something! 
+     in executable.rb , require 'exerb/string.rb'
+     string.rb is a shallow clone of archive.rb.
+----> pefile_dir$ python setup.py install. Write python script 
+     bugs/winject/strings.py to list
+     String resources in an exe (command line arg)
+     
+----> Package bugs/winject/packme.rb with x86/tight shoes that inject two 
+     strings (packme.exe). winject.c and blank.exe.
+     pefile seems to like it - two Directory entries. Of course blank.exe
+     isn't written to use the second string. Bad news. Wine reports 
+     bad format in the loader dialog box. Win7 says it's an unsupported
+     16 bit app and to contact the vendor for a 64 bit app. 
+     SO we can't depend on winject.c doing the correct thing. ICK!!!
+     
+----> Compile (mingw) with two string resource in the shoes-stub.exe. Start with
+     something that works and build up from there.
+     Even this is not so easy.
+    
+----> My string resource is not a NamedResource. 
+     can't find the second injected string. size is wrong.
+  
+2014-09-16
+     I should not replace winject.c just yet. I should only play with
+     the dist/shoes version (Loose Shoes) when debugging winject.rb/exerb
+     Shipping shoes can use the C code until I get my exerb mods working.
+     I need to genenerate tests files with blank.exe (tight shoes)
+  
+2014-09-15
+     In exerb I need to add code for RT_STRINGS (adding, packing, unpacking)
+       for the toplevel and the internal storage which is a PASCAL string
+       (DWORD length, then characters), or so I read which is 
+       
+     Then do RT_RCDATA
+  
 2014-09-14
      I'm Less lost. I need to write exerb 'handlers' for RT_STRING and
      RT_RCDATA resources. A problem because there can be multiples
@@ -14,21 +119,19 @@ Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
      Obviously, this would replace binject/winject (the extension and rake
      files have to be modified to not build them
      
-     modify rakefiles to copy shoes3.2/lib/exerb/ to builds 
+     modify rakefiles to copy shoes3.2/lib/exerb/ to builds, don't build winject
 ----> x86
 ----> i386
 ----> raspberry
 ----> windows
 ----> osx 
-     (or symlink if its dist/shoes)
-done: linux. bewares. 
-----> osx
+done: linux dist - symlink bewares, I link to directory exerb
+----> osx dist
      
-     Winject.rb just front ends exerb. alt.rb needs modification.
+done: Winject.rb just front ends exerb. 
+done:     alt.rb needs modification.
      
-     In exerb I need to add code for RT_STRINGS (adding, packing, unpacking)
-       for the toplevel and the internal storage which is a PASCAL string
-       (length, then characters), or so I'm told.
+
   
 2014-09-13
      get lost in exerb.

@@ -14,6 +14,42 @@
 
 HWND dlg;
 BOOL http_abort = FALSE;
+WCHAR download_site[256];
+WCHAR download_path[256];
+
+/*
+ * find and load a String resource, convert it from utf-16le to
+ * UTF-8 and or Ascii 8 bit (null terminated string). Alloc from the heap.
+ * Caller will have to free() it, as if someone cares.
+ * 
+ * I am concerned that the reported lengths are several times larger
+ * than the string and skipping the first byte is clearly a hack.
+ * -- cjc
+*/
+char * shoes_str_load(HINSTANCE inst, UINT resnum) 
+{
+  HRSRC res;
+  char msg[256];
+  res = FindResource(inst, MAKEINTRESOURCE(resnum), RT_STRING);
+  if (res == NULL) return NULL;
+  HGLOBAL sres = LoadResource(inst, res);  
+  LPVOID data = LockResource(sres);
+  int len = SizeofResource(inst, res);
+  int olen;
+  olen =  WideCharToMultiByte(CP_UTF8, 0, data, len, msg, 256,
+    NULL, 0);
+#ifdef SHOES_STR_DEBUG
+  char buf[256];
+  sprintf(buf, "Unicode OFF: %d %d %s", len, olen, msg+1);
+  char *s = malloc(strlen(buf)+1);
+  strcpy(s, buf);	
+#else
+  char *s = malloc(olen+1);
+  strncpy(s, msg+1, olen);
+#endif
+  return s;
+}
+
 
 int
 StubDownloadingShoes(shoes_http_event *event, void *data)
@@ -137,8 +173,15 @@ shoes_http_thread(IN DWORD mid, IN WPARAM w, LPARAM l, IN LPVOID data)
   TCHAR setup_path[BUFSIZE];
   GetTempPath(BUFSIZE, setup_path);
   strncat(setup_path, setup_exe, strlen(setup_exe));
-
+  
+ 
+  /*
   shoes_winhttp(NULL, L"www.rin-shun.com", 80, L"/pkg/win32/shoes",
+    NULL, NULL, NULL, 0, &buf, BUFSIZE,
+    INVALID_HANDLE_VALUE, &len, SHOES_DL_DEFAULTS, NULL, NULL);
+  */
+  wprintf(L"Calling first http %s%s\n",download_site,download_path);
+  shoes_winhttp(NULL, download_site, 80, download_path,
     NULL, NULL, NULL, 0, &buf, BUFSIZE,
     INVALID_HANDLE_VALUE, &len, SHOES_DL_DEFAULTS, NULL, NULL);
   if (len == 0)
@@ -149,12 +192,20 @@ shoes_http_thread(IN DWORD mid, IN WPARAM w, LPARAM l, IN LPVOID data)
 
   len = 0;
   MultiByteToWideChar(CP_ACP, 0, buf, -1, path, BUFSIZE);
+  
   file = CreateFile(setup_path, GENERIC_READ | GENERIC_WRITE,
     FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+  // lets check - may screw up threading
+  // MessageBoxW(NULL, download_path, download_site, MB_OK);
+  /*
   shoes_winhttp(NULL, L"www.rin-shun.com", 80, path,
     NULL, NULL, NULL, 0, &empty, 0, file, &len,
     SHOES_DL_DEFAULTS, HTTP_HANDLER(StubDownloadingShoes), NULL);
-  CloseHandle(file);
+  */
+  printf("calling second http\n");
+  shoes_winhttp(NULL, download_site, 80, path,
+    NULL, NULL, NULL, 0, &empty, 0, file, &len,
+    SHOES_DL_DEFAULTS, HTTP_HANDLER(StubDownloadingShoes), NULL);  CloseHandle(file);
 
   shoes_silent_install(setup_path);
   return 0;
@@ -185,10 +236,11 @@ reg_s(HKEY key, char* sub_key, char* val, LPBYTE data, LPDWORD data_len) {
   return FALSE;
 }
 
+
 int WINAPI
 WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
 {
-  HRSRC nameres, shyres, setupres;
+  HRSRC nameres, shyres, setupres, dnlsiteres, dnlpathres;
   DWORD len = 0, rlen = 0, tid = 0;
   LPVOID data = NULL;
   TCHAR buf[BUFSIZE], path[BUFSIZE], cmd[BUFSIZE];
@@ -198,13 +250,30 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
   HANDLE payload, th;
   MSG msg;
   char *key = "SOFTWARE\\Hackety.org\\Shoes";
-
+  
+  
+  // Allow old String lookups first, then id# 
   nameres = FindResource(inst, "SHOES_FILENAME", RT_STRING);
+  if (nameres == NULL) {
+    nameres = FindResource(inst, MAKEINTRESOURCE(SHOES_APP_NAME), RT_STRING);
+  }
   shyres = FindResource(inst, "SHOES_PAYLOAD", RT_RCDATA);
+  if (shyres == NULL) {
+    shyres = FindResource(inst, MAKEINTRESOURCE(SHOES_APP_CONTENT), RT_RCDATA);
+  }
+    
   if (nameres == NULL || shyres == NULL)
   {
-    MessageBox(NULL, "This is an empty Shoes stub.", "shoes!! feel yeah!!", MB_OK);
-    return 0;
+	// Test - find a numbered resource
+
+    if (nameres == NULL) {
+	  MessageBox(NULL, "No Filename", "Magic Happens!!", MB_OK);
+	  return 0;
+    } else {
+      // MessageBox(NULL, "This is an empty Shoes stub.", "shoes!! feel yeah!!", MB_OK);
+      MessageBox(NULL, "Missing contents", "shoes!! feel yeah!!", MB_OK);
+     return 0;
+    }
   }
 
   setupres = FindResource(inst, "SHOES_SETUP", RT_RCDATA);
@@ -221,6 +290,23 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
 
   if (!shoes)
   {
+	/*
+	 * Need to download Shoes installer. Get the site and path
+	 * from the resources and stuff in globals vars - wide strings
+	*/
+	LPVOID tmpptr;
+	int tlen;
+	dnlsiteres = FindResource(inst, MAKEINTRESOURCE(SHOES_DOWNLOAD_SITE), RT_STRING);
+	tmpptr = LoadResource(inst, dnlsiteres);
+    tlen = SizeofResource(inst, dnlsiteres);
+    wcscpy(download_site, tmpptr+2); // cjc: I hate that +2 offset hack
+
+	dnlpathres = FindResource(inst, MAKEINTRESOURCE(SHOES_DOWNLOAD_PATH), RT_STRING);
+	tmpptr = LoadResource(inst, dnlpathres);
+    tlen = SizeofResource(inst, dnlpathres);
+    wcscpy(download_path, tmpptr+2);
+
+    
     LPTHREAD_START_ROUTINE back_action = (LPTHREAD_START_ROUTINE)shoes_auto_setup;
 
     INITCOMMONCONTROLSEX InitCtrlEx;
