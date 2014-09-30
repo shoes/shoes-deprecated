@@ -18,6 +18,25 @@ WCHAR download_site[256];
 WCHAR download_path[256];
 
 /*
+ * Note by Cecil (aka cjc)
+ * This code used to use resources that could be Found with a 'string'
+ * name. That was clever but was too clever to maintain crosss platform
+ * The code below Locates resources by id number (see stub32.h, stub32.rc 
+ * and winject.rb
+ * 
+ * The string contents of the new resources are UTF-16 (wide characters 
+ * in Windows Speak) which have a pascal like count in the first character
+ * position (a DWORD) of the string (and perhaps no trailing null char);
+ * This introduces some odd character-ptr +1 or +2 adjustments. 
+ * Sorry about that.
+ * 
+ * It's a mix of normal C, wide C, and Microsoft Weirdness.
+ * It's compiled with UNICODE being #defined OFF
+ * 
+ * Someone should fix this mess. 
+*/
+
+/*
  * find and load a String resource, convert it from utf-16le to
  * UTF-8 and or Ascii 8 bit (null terminated string). Alloc from the heap.
  * Caller will have to free() it, as if someone cares.
@@ -58,7 +77,7 @@ StubDownloadingShoes(shoes_http_event *event, void *data)
   if (http_abort) return SHOES_DOWNLOAD_HALT;
   if (event->stage == SHOES_HTTP_TRANSFER)
   {
-    sprintf(msg, "Shoes is downloading. (%d%% done)", event->percent);
+    sprintf(msg, "Shoes is downloading. (%d%% done)", (int)event->percent);
     SetDlgItemText(dlg, IDSHOE, msg);
     SendMessage(GetDlgItem(dlg, IDPROG), PBM_SETPOS, event->percent, 0L);
   }
@@ -139,6 +158,9 @@ shoes_auto_setup(IN DWORD mid, IN WPARAM w, LPARAM l, IN LPVOID vinst)
   HANDLE install = CreateFile(setup_path, GENERIC_READ | GENERIC_WRITE,
     FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
   HRSRC setupres = FindResource(inst, "SHOES_SETUP", RT_RCDATA);
+  if (setupres == NULL) {
+	setupres = FindResource(inst, MAKEINTRESOURCE(SHOES_SYS_SETUP), RT_RCDATA);
+  }
   DWORD len = 0, rlen = 0;
   LPVOID data = NULL;
   len = SizeofResource(inst, setupres);
@@ -180,7 +202,6 @@ shoes_http_thread(IN DWORD mid, IN WPARAM w, LPARAM l, IN LPVOID data)
     NULL, NULL, NULL, 0, &buf, BUFSIZE,
     INVALID_HANDLE_VALUE, &len, SHOES_DL_DEFAULTS, NULL, NULL);
   */
-  wprintf(L"Calling first http %s%s\n",download_site,download_path);
   shoes_winhttp(NULL, download_site, 80, download_path,
     NULL, NULL, NULL, 0, &buf, BUFSIZE,
     INVALID_HANDLE_VALUE, &len, SHOES_DL_DEFAULTS, NULL, NULL);
@@ -195,14 +216,11 @@ shoes_http_thread(IN DWORD mid, IN WPARAM w, LPARAM l, IN LPVOID data)
   
   file = CreateFile(setup_path, GENERIC_READ | GENERIC_WRITE,
     FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-  // lets check - may screw up threading
-  // MessageBoxW(NULL, download_path, download_site, MB_OK);
   /*
   shoes_winhttp(NULL, L"www.rin-shun.com", 80, path,
     NULL, NULL, NULL, 0, &empty, 0, file, &len,
     SHOES_DL_DEFAULTS, HTTP_HANDLER(StubDownloadingShoes), NULL);
   */
-  printf("calling second http\n");
   shoes_winhttp(NULL, download_site, 80, path,
     NULL, NULL, NULL, 0, &empty, 0, file, &len,
     SHOES_DL_DEFAULTS, HTTP_HANDLER(StubDownloadingShoes), NULL);  CloseHandle(file);
@@ -223,7 +241,7 @@ file_exists(char *fname)
 static BOOL
 reg_s(HKEY key, char* sub_key, char* val, LPBYTE data, LPDWORD data_len) {
   HKEY hkey;
-  BOOL ret = FALSE;
+  //BOOL ret = FALSE;
   LONG retv;
 
   retv = RegOpenKeyEx(key, sub_key, 0, KEY_QUERY_VALUE, &hkey);
@@ -325,8 +343,9 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
 
     while (WaitForSingleObject(th, 10) != WAIT_OBJECT_0)   
     {       
-        while (PeekMessage(&msg, NULL, NULL, NULL, PM_REMOVE))         
-        {            
+       //while (PeekMessage(&msg, NULL, NULL, NULL, PM_REMOVE))         
+       while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))         
+       {            
             TranslateMessage(&msg);           
             DispatchMessage(&msg);         
         }        
@@ -342,7 +361,7 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
     GetTempPath(BUFSIZE, buf);
     data = LoadResource(inst, nameres);
     len = SizeofResource(inst, nameres);
-    strncat(buf, (LPTSTR)data, len);
+    strncat(buf, (LPTSTR)data+2, len);  // cjc hack
 
     payload = CreateFile(buf, GENERIC_READ | GENERIC_WRITE,
       FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);

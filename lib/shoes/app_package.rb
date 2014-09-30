@@ -1,6 +1,6 @@
 # The 'New' packager for Shoes 3.2
 require 'shoes/shy'
-require 'winject'
+require 'shoes/winject'
 require 'open-uri'
 require 'rubygems/package'
 require 'zlib'
@@ -9,6 +9,8 @@ Shoes.app do
   # get the urls or default
   @shoes_home = "#{ENV['HOME']}/.shoes/#{Shoes::RELEASE_NAME}"
   @selurl = "#{@shoes_home}/package/selector.url"
+  @options = {}
+  @options['inclshoes'] = false
   if File.exists? @selurl
     File.open(@selurl,"r") do |f|
       @home_site = f.read
@@ -68,9 +70,6 @@ Shoes.app do
 		            fields[name] = edit_line ''
 		          end
 		        end
-		        para "Behaviour when user runs/installs. Untested."
-		        flow { check; para "Create directory in users home?" }
-		        flow { check; para "Install in users menus?" } 
 		        flow do
 			        button "Cancel" do
 			          close
@@ -100,10 +99,42 @@ Shoes.app do
 		  end
 	    end
 	  end
-
+    @options_panel = stack do
+      flow do
+        @dlnradio = radio :dnl; para "Shoes will be downloaded if needed."
+      end
+      flow do
+        @inclradio = radio :dnl; para "Shoes will be included with my app."
+      end
+      @inclradio.checked = @options['inclshoes']
+      para "Advanced options -- CAUTION -- may not work everywhere"
+      flow do
+        @noadvopts = radio :advopts; para "No thanks." 
+        @defadvopts = radio :advopts do
+          @advpanel.show if @defadvopts.checked?
+          @advpanel.hide if !@defadvopts.checked?
+        end
+        para "I want advanced options"
+      end
+      @advpanel = stack :hidden => true do
+        flow do
+          para "I have my own install script  "
+          button "Select script"
+        end
+        flow do
+          check; para "Expand shy in users directory"
+        end
+        flow do
+          check; para "I have gems to be installed"
+        end
+        flow do
+          check; para "I have icons for Windows, OSX and Linux"
+        end
+      end
+    end
     @menu_panel = stack do
       flow do 
-        button 'Download Options' do
+        button 'Select Architecture' do
           download @home_site do |r| 
             #para "Status: #{r.response.status}\nHeaders:"
             #r.response.headers.each {|k,v| para "#{k}: #{v}\n"}
@@ -256,13 +287,13 @@ Shoes.app do
           #@pkgbar = progress :width => 1.0, :height => 14 
           arch = @work_path[/(\w+)\.install$/] 
           arch.gsub!('.install','')
-          repack_linux arch
+          @options['arch'] = arch
+          repack_linux 
         end
       when /.exe$/
         Thread.new do
           @pkgstat = inscription "Windows repack #{@path} for#{@work_path}"
           repack_exe
-          #dnlif_exe
         end
       when /osx\-.*.tgz$/
         Thread.new do
@@ -283,44 +314,32 @@ Shoes.app do
     end
   end
 
-# ==== Download If Need  (dnlif) packaging ===
+# ==== Download If Needed  (dnlif) packaging ===
   def dnlif_exe
     # uses exerb 
-    require 'exerb/executable'
+    require 'winject'
     script = @path
     size = File.size(script)
     f = File.open(script, 'rb')
-    rawpe = "" 
+    inf = File.join(DIR, "static", "stubs", 'shoes-stub.exe')
     begin
-      inf = File.join(DIR, "static", "stubs", "shoes-stub.exe")
-      File.open(inf, 'r:ASCII-8BIT') {|file| rawpe = file.read}
-      exe = Exerb::Executable.new(rawpe)
-      size += script.length
-      #exe.inject("SHOES_FILENAME", File.basename(script))
-      #exe.rsrc.add(Exerb::Win32::Const::RT_STRING,
-      size += File.size(script)
-      #exe.inject("SHOES_PAYLOAD", f)
+      exe = Winject::EXE.new(inf)
+      exe.inject_string("SHOES_APP_NAME", File.basename(script))
+      exe.inject_file("SHOES_APP_CONTENT", f)
+      exe.inject_string("SHOES_SYS_SITE", "http://shoes.mvmanila.com/public/pkg/win32")
       f2 = open(@work_path)
       @pkgstat.text = "Repack Shoes.exe distribution"
-
-      size += File.size(f2.path)
       f3 = File.open(f2.path, 'rb')
-      #exe.inject("SHOES_SETUP", f3)
-
-      count, last = 0, 0.0
-      exe.save(script.gsub(/\.\w+$/, '') + ".exe") do |len|
-        count += len
-        prg = count.to_f / size.to_f
-        #blk[last = prg] if blk and prg - last > 0.02 and prg < 1.0
-      end
-      rescue StandardError => e
+      #exe.inject_file("SHOES_SYS_SETUP", f3)
+      exe.save(script.gsub(/\.\w+$/, '') + ".exe") 
+    rescue StandardError => e
         puts "Failed to create Winject::EXE #{e}"
-      end
+    end
         
-      f.close
-      f2.close
-      f3.close
-      @pkgstat.text = "Done packaging Windows"
+    f.close
+    f2.close
+    f3.close
+    @pkgstat.text = "Done packaging Windows"
   end
   
 # ===== full download and package ===  
@@ -406,24 +425,18 @@ Shoes.app do
       size = File.size(script)
       f = File.open(script, 'rb')
       begin
-        exe = Winject::EXE.new(File.join(DIR, "static", "stubs", "blank.exe"))
-        #exe = Winject::EXE.new(File.join(DIR, "static", "stubs", "shoes-stub.exe"))
-      size += script.length
-      exe.inject("SHOES_FILENAME", File.basename(script))
-      size += File.size(script)
-      #exe.inject("SHOES_PAYLOAD", f)
-      f2 = open(@work_path)
-      @pkgstat.text = "Repack Shoes.exe distribution"
-
-      size += File.size(f2.path)
-      f3 = File.open(f2.path, 'rb')
-      #exe.inject("SHOES_SETUP", f3)
-
-      count, last = 0, 0.0
-      exe.save(script.gsub(/\.\w+$/, '') + ".exe") do |len|
-        count += len
-        prg = count.to_f / size.to_f
-        #blk[last = prg] if blk and prg - last > 0.02 and prg < 1.0
+        #exe = Winject::EXE.new(File.join(DIR, "static", "stubs", "blank.exe"))
+        exe = Winject::EXE.new(File.join(DIR, "static", "stubs", "shoes-stub.exe"))
+        exe.inject_string(Winject::EXE::SHOES_APP_NAME, File.basename(script))
+        exe.inject_file(Winject::EXE::SHOES_APP_CONTENT, f.read)
+        exe.inject_string(Winject::EXE::SHOES_DOWNLOAD_SITE, "shoes.mvmanila.com")
+        exe.inject_string(Winject::EXE::SHOES_DOWNLOAD_PATH, "/public/select/win32.rb")
+        if @options['inclshoes'] 
+          f2 = File.open(@work_path,'rb')
+          @pkgstat.text = "Repack Shoes.exe #{@work_path} distribution"
+          exe.inject_file(Winject::EXE::SHOES_SYS_SETUP, f2.read)
+        end
+        exe.save(script.gsub(/\.\w+$/, '') + ".exe") do |len|
       end
       rescue StandardError => e
         puts "Failed to create Winject::EXE #{e}"
@@ -432,7 +445,7 @@ Shoes.app do
       f.close
       f2.close
       f3.close
-      @pkgstat.text = "Done packaging Windows"
+      #@pkgstat.text = "Done packaging Windows"
    end
 
   def repack_osx

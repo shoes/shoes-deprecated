@@ -11,14 +11,14 @@ module Winject
     SHOES_VERSION_NEEDED = 52 # version number string - TBD 
     
     # Constants for RC_DATA resources
-    SHOES_APP_CONTENT = 128  # contents of script of shy
+    SHOES_APP_CONTENT = 128  # contents of script or shy
     SHOES_SYS_SETUP   = 129  # A copy of Shoes installer - the big file
     
     @exe = ''
     attr_accessor :exe
     
     def initialize filepath
-      puts "Winject init from #{filepath}"
+      #puts "Winject init from #{filepath}"
       rawpe = ''
       File.open(filepath, 'r:ASCII-8BIT') {|file| rawpe = file.read}
       # parse the rawpe into Exerb objects
@@ -26,24 +26,24 @@ module Winject
     end
     
     def save filepath
-      puts "Winject writing #{filepath}"
+      #puts "Winject writing #{filepath}"
       @exe.write(filepath)
     end
     
     def inject_string (id, contents)
-      puts "injecting string #{id} = #{contents}"
-      @exe.rsrc.each do |rs| 
-        puts "resource #{rs.id}"
-      end
+      #puts "injecting string #{id} = #{contents}"
+      #@exe.rsrc.each do |rs| 
+      #  puts "resource #{rs.id}"
+      #end
       @exe.rsrc.add_string( id, contents)
-      puts "=== after inject ===="
-      @exe.rsrc.each do |rs| 
-        puts "resource #{rs.id}"
-      end
+      #puts "=== after inject ===="
+      #@exe.rsrc.each do |rs| 
+      #  puts "resource #{rs.id}"
+      #end
     end
     
     def inject_file (id, io)
-      puts "Winject file #{id}"
+      #puts "Winject file #{id}"
       @exe.rsrc.add_rcdata(id, io)
     end
   end

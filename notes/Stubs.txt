@@ -1,5 +1,16 @@
 Because I don't have enough documentation and exerb and pefile don't have
-a lot.
+a lot either.
+
+Modified app_packager.rb to use blank.exe for Tight Shoes and shoes-stub.exe
+  for Loose Shoes.  Inject two Strings (SHOES_FILENAME, SHOES_DOWNLOAD)
+  With two strings, pe is making some sense.  There's only one RT_STRING RESOURCE_DIRECTORY_ENTRY
+  in a pe. It Points to a IMAGE_RESOURCE_DIRECTORY with NumberOfNamedEntries = 2
+ 
+
+
+
+
+=====
 
 pefile is a python module to list pe's. Instructions only make sense if
 you know python - and I don't

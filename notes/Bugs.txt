@@ -1,20 +1,84 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-09-29
+     Fixed compiler warnings (X86) for gtk.c and deprecated rb_thread_select
+     seems to be ok on Linux (dist/shoes x86)
+     On Windows - Shoes runs for a few seconds (30?) then crashes. Probably
+     still using 100% before then. Windows says "Shoes asked to terminated 
+     unusually"
+     
+----> Linux Ruby uses gettimeofday (tv->usec), 
+      MingW Ruby probably uses clock_gettime (tv->nsec)
+      The poll timeout value from GTK  may well be milliseconds.  
+      The rb_thread_fd_select api uses timeval (tv->usec) so
+      Shoes should be OK.   Doesn't crash Windows but still hangs.
+  
+2014-09-28
+     You can tell I'm slow walking this bug. Sadly, I was informed
+     Process Explorer (download from MSFT) will show threads and if 
+     you select one (only 3 for an idles Shoes app) you can see they
+     are often checking the clock.  Ruby dll pretty idle - Shoes is very
+     busy getting the time and checking mutexes. Way too busy. 99%
+     What is Shoes and Gtk looking for and why can't it wait?
+  
+2014-09-27
+     get_time() only appears to be used in canvas.c debugging. and some 
+     unused http code. Not thread a scheduling confounder. 
+     Idle shoe app - 100% CPU - doing nothing - where does the time go?
+       which thread is running and why?
+     Windows event queue filling up so Windows stops shoes app (windows Events)
+       shoes app still runs.
+  
+2014-09-26
+====> Get windows packaging with download working.
+
+====> Complaints about the Windows hang motivated me.
+     perfmon says an idle Shoes app runs 100% cpu. Not Good.
+
+done: wrote a sample unshy shoes app for demo purposes.
+  
+2014-09-25
+----> move alt.rb changes to app_package.rb
+      Add the option for download vs include - build a hash of option
+      to pass to the lower levels.
+----> copy exerb when building Tight Shoes
+    X86_64
+    i686
+    armhf
+    osx
+    mingw32
+---> add 'download if needed' option to app_package
+---> Make all of the above work with OSX target.
+---> Make all of the above work with Linux Targets (3 too test, 1 to write)
+---> replace minitar for shy.
+---> Talk someone into doing a youtube screen cast on how to package
+---> Write a wiki article on compiling stub.c and pe testing apps
+     like anal_pe and pefile.
+---> add {myapp}-installer.rb to app_package for .shy with options
+     to expand the shy in user file system and make links/menus/..
+     bundle gems, deal with icons.  Shoes 3.3?
+  
 2014-09-24
-----> on Win 7, packaged isp.rb - downloads and installs Shoes, starts it
-      Get an error on the Shoes console 
+done: on Win 7, packaged isp.rb - downloads and installs Shoes, starts it
+      Get an error on the Shoes console:
+      Invalid argument @ rb_sysopen - <box char> from shoes.rb, 459->475->475
+      does the isp.rb file have a missing or extra char in the filename?
+      Ascii vs unicode? Actually its the count DWORD in front of the UTF-16
+----> Still need to handle SHOES_SETUP in stub.c
+mostly: Clean up the compiler warnings in stub.c
   
 2014-09-23
 done? exerb can do RCDATA resources. It packs (alt.rb) anal_pe and pefile like it.
-----> wine and win7 {packed stub} dies in the http code. charset ? 
+done: wine and win7 {packed stub} dies in the http code. charset ? 
       I don't see an http log entry on the server for either Wine or Win7
       a wprintf (wine can do it - yay!) says its dieing in shoes_winhttp
       The url looks ok.
       
       I thought that was working in MingW. ouch! Missing dll, wrong dll?
 done: Nope, it was SHOES_REVISION being compiled into winhttp sent headers
-      with a prinf(%d) and I that to %f instead.
+      with a sprinf(%d). I went to %f because I don't have the old version
+      numbers.
 ----> will have to do that for nsurl.m
   
 2014-09-22
@@ -24,7 +88,7 @@ done: stub.c char * shoes_str_load(HINSTANCE inst, UINT resnum)
       Probably not needed except for the debugging code. 
       stub.c is pretty Unicode aware. Irony exists!
       
-----> Split download url to be more friendly to stub.c -- two resources:
+done: Split download url to be more friendly to stub.c -- two resources:
       SHOES_DOWNLOAD_SITE ex: shoes.mvmanila.com
       SHOES_DOWNLOAD_PATH ex: /public/select/win32.rb
       Modify stub.c to use those resouces/
@@ -1571,7 +1635,7 @@ done: Installed pi OS from scratch again.
   if Tk/Ruby can run on Windows, Shoes should be able to.
   
 2014-03-23
---> Change Windows build (package) to include -32 in the arch position
+done: Change Windows build (package) to include -32 in the arch position
     for file names.
   
 2014-03-21
@@ -1587,9 +1651,7 @@ done: Get select/pkg.rb working at the website.
 done: It compiles and links with MinGW. It's still not pretty but their
    is nothing pretty about binject (other than it's audacity and hackiness) 
    and its for Windows which doesn't work. 
-   
---> Contemplate using Powershell in Windows stubs and packgui. 
---> Continuing Contemplating. 
+
   
 2014-03-19
    Now I remember. rbconfig is now really picky. I can't load the mingw
