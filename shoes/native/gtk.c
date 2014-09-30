@@ -535,7 +535,79 @@ shoes_canvas_gtk_scroll(GtkRange *r, gpointer data)
   canvas->slot->scrolly = (int)gtk_range_get_value(r);
   shoes_slot_repaint(canvas->app->slot);
 }
+#ifndef OLD_CODE
+static gint                                                           
+shoes_app_g_poll (GPollFD *fds, guint nfds, gint timeout)
+{
+  struct timeval tv;
 
+  rb_fdset_t rset, wset, xset;
+  GPollFD *f;
+  int ready;
+  int maxfd = 0;
+
+  rb_fd_init(&rset);
+  rb_fd_init(&wset);
+  rb_fd_init(&xset);
+
+  for (f = fds; f < &fds[nfds]; ++f)
+     if (f->fd >= 0)
+     {
+       if (f->events & G_IO_IN)
+         //FD_SET (f->fd, &rset);
+         rb_fd_set(f->fd, &rset);
+       if (f->events & G_IO_OUT)
+         //FD_SET (f->fd, &wset);
+         rb_fd_set(f->fd, &wset);
+      if (f->events & G_IO_PRI)
+         //FD_SET (f->fd, &xset);
+         rb_fd_set(f->fd, &xset);
+       if (f->fd > maxfd && (f->events & (G_IO_IN|G_IO_OUT|G_IO_PRI)))
+         maxfd = f->fd;
+     }
+
+  //
+  // If we poll indefinitely, then the window updates will
+  // pile up for as long as Ruby is churning away.
+  //
+  // Give Ruby half-seconds in which to work, in order to
+  // keep it from completely blocking the GUI.
+  //
+  // cjc: timeout appears to be in millisecs. 
+  if (timeout == -1 || timeout > 500)
+    timeout = 500;
+    
+  tv.tv_sec = timeout / 1000;
+  tv.tv_usec = (timeout % 1000) * 1000;
+
+  ready = rb_thread_fd_select (maxfd + 1, &rset, &wset, &xset, &tv);
+  if (ready > 0)
+     // I think the idea here is that the Ruby threads might cause Gtk events
+     // and that's supposed to pass back in the f->revents
+     // Does Ruby/Windows execute this code more often or incorrectly?
+     for (f = fds; f < &fds[nfds]; ++f)
+     {
+       f->revents = 0;
+       if (f->fd >= 0)
+       {
+         //if (FD_ISSET (f->fd, &rset))
+         if (rb_fd_isset (f->fd, &rset))
+           f->revents |= G_IO_IN;
+         //if (FD_ISSET (f->fd, &wset))
+         if (rb_fd_isset (f->fd, &wset))
+           f->revents |= G_IO_OUT;
+         //if (FD_ISSET (f->fd, &xset))
+         if (rb_fd_isset (f->fd, &xset))
+           f->revents |= G_IO_PRI;
+       }
+     }
+  // Free the allocated storage from rb_fd_init
+  rb_fd_term(&rset);
+  rb_fd_term(&wset);
+  rb_fd_term(&xset);
+  return ready;
+}
+#else // OLD_CODE
 static gint                                                           
 shoes_app_g_poll (GPollFD *fds, guint nfds, gint timeout)
 {
@@ -575,7 +647,7 @@ shoes_app_g_poll (GPollFD *fds, guint nfds, gint timeout)
   tv.tv_sec = timeout / 1000;
   tv.tv_usec = (timeout % 1000) * 1000;
 
-  ready = rb_thread_select (maxfd + 1, &rset, &wset, &xset, &tv);
+  ready = rb_thread_select (maxfd + 1, &rset, &wset, &xset, &tv); //deprecated
   if (ready > 0)
      for (f = fds; f < &fds[nfds]; ++f)
      {
@@ -593,6 +665,7 @@ shoes_app_g_poll (GPollFD *fds, guint nfds, gint timeout)
 
   return ready;
 }
+#endif
 
 shoes_code
 shoes_app_cursor(shoes_app *app, ID cursor)
