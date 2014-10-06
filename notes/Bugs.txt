@@ -1,6 +1,65 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-10-05
+done: download if need for Linux is working.
+----> website is being converted to ubuntu. Further testing will have to
+      wait. 
+  
+2014-10-04 linux dnlif packaging
+
+===> 3.2.15-osx appears to be a bad download from website or packaging
+    mis-step. 
+
+    Install part seems to work.  Starting shoes with script - not so much.
+    unpacked script/shy in /tmp/untar.rb for this test.
+    execute the .run twice and it works.
+    
+    On destination system, it unpacks the shy/script to /tmp/selfgzNNNN
+    then download and runs the installer which unpacks to another /tmp/selfgz
+    and installs
+
+2014-10-03 -- linux dnlif packaging
+done Get rewritten(sh-install.tmpl) to test for Shoes and download   
+      from the cgi (selector)
+done: runs installer
+done: test for existing ~/.shoes/federales/shoes in sh-intall{.tmpl}
+done: package up the script/shy and the rewritten sh-install and blank.run
+     (aka makeself)
+     
+     What's in a abc.run? a makeself (blank.run) + abc.tar.gz
+     In the abc.tar.gz is sh-install (rewritten) file or shy
+
+  
+2014-10-02
+     world.c/windows.c appears to have no code for threading
+     
+2014-10-01
+     Working with Ian. 
+  
+2014-09-30 - working on Linux download if needed processing
+     I'm tired of Windows and the hanging problems. Even better for me,
+     Ian has volunterred to try building and I'd rather help him than
+     deal with the hang bug on Windows 
+     
+done: In app_package.rb, if 'Download If Needed' platform_dlnif - select
+     from 3 new functions to create that kind of packaged script. 
+----> Windows - probably works.
+----> Linux - rewrite static/stubs/sh-install.sh to pass in
+     download host name and path 
+----> and modify the sh-install.sh to use the new scheme. It's only bash.
+----> Copy sh-intall.sh sh-intstall.tmpl. That gets rewritttem and copied.
+      That needs to be rewritten (Bash!)
+        figure out if we have wget or curl. save that command
+        do we have ~/.shoes/federales/shoes
+          if not, download and install Shoes
+            That requires using the {arch}.rb (rewritten vars)
+        check again that we have shoes, if we do then
+        use Shoes to run the script or shy (which could be a Shoes
+          shy installer. 
+done: need armhf.rb, x86_64.rb and i686.rb cgi scripts They return 
+     /public/shoes/shoes-3.2.15-gtk2-i686.install (for example) 
+  
 2014-09-29
      Fixed compiler warnings (X86) for gtk.c and deprecated rb_thread_select
      seems to be ok on Linux (dist/shoes x86)

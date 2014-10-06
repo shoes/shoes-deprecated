@@ -5,7 +5,7 @@ require 'open-uri'
 require 'rubygems/package'
 require 'zlib'
 
-Shoes.app do
+Shoes.app height: 600 do
   # get the urls or default
   @shoes_home = "#{ENV['HOME']}/.shoes/#{Shoes::RELEASE_NAME}"
   @selurl = "#{@shoes_home}/package/selector.url"
@@ -18,15 +18,18 @@ Shoes.app do
   else
     @home_site = 'http://shoes.mvmanila.com/public/select/pkg.rb'
   end
-  @dnlurl = "#{@shoes_home}/package/download.url"
-  if File.exists? @dnlurl
-    File.open(@dnlurl,"r") do |f|
+  dnlurl = "#{@shoes_home}/package/download.url"
+  if File.exists? dnlurl
+    File.open(dnlurl,"r") do |f|
       @dnl_site = f.read.strip
       @dnl_site.gsub!(/\/$/,'')
     end
   else
     @dnl_site = 'http://shoes.mvmanila.com/public/shoes'
   end
+  dnluri = URI.parse(@dnl_site)
+  @dnlhost = dnluri.host
+  @dnlpath = dnluri.path
   
   stack do
     para "Package A Shoes Application"
@@ -101,7 +104,7 @@ Shoes.app do
 	  end
     @options_panel = stack do
       flow do
-        @dlnradio = radio :dnl; para "Shoes will be downloaded if needed."
+        @dnlradio = radio :dnl; para "Shoes will be downloaded if needed."
       end
       flow do
         @inclradio = radio :dnl; para "Shoes will be included with my app."
@@ -155,7 +158,11 @@ Shoes.app do
                   flow margin: 5 do
                     para "#{flds[0]} MB  "
                     button "#{k}", width: 200 do
-                      platform_download flds[2], flds[0], flds[1]
+                      if @dnlradio.checked?
+                        platform_dnlif flds[2]
+                      else
+                        platform_download flds[2], flds[0], flds[1]
+                      end
                     end
                     para " #{parts[0]}  #{parts[1]}"
                   end
@@ -212,7 +219,7 @@ Shoes.app do
       when /tar\.gz$/
         tarball = ln
       else
-        puts "failed match #{ln}"
+        #puts "failed match #{ln}"
     end
     return
   end
@@ -315,31 +322,97 @@ Shoes.app do
   end
 
 # ==== Download If Needed  (dnlif) packaging ===
+  def platform_dnlif arch
+    # No need to thread -this is simple and fast. just call the {platform}_dnilf
+    case arch
+    when /\.exe$/
+      dnlif_exe
+    when /\.install$/
+      dnlif_linux arch
+    else
+      alert "Can't do dnlif #{arch}"
+    end
+  end
+  
+  def dnlif_linux installname
+    # pick apart the installname arg to tease out which linux to put into
+    # the packed install.sh
+    arch = installname[/(\w+)\.install$/]
+    arch.gsub!(/\.install/,"")
+    #alert "Pack for #{arch} #{installname} #{@path}"
+    script = @path
+    name = File.basename(script).gsub(/\.\w+$/, '')
+    app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
+    run_path = script.gsub(/\.\w+$/, '') + "-#{arch}.run"
+    tgz_path = script.gsub(/\.\w+$/, '') + "-#{arch}.tgz"
+    tar_path = script.gsub(/\.\w+$/, '') + "-#{arch}.tar"
+    tmp_dir = File.join(LIB_DIR, "+run")
+    FileUtils.mkdir_p(tmp_dir)
+    # rewrite the static/stubs/sh-install.tmpl to point to the download
+    # website, path and script/shy
+    File.open(File.join(tmp_dir, "sh-install"), 'wb') do |a|
+	  rewrite a, File.join(DIR, "static", "stubs", "sh-install.tmpl"),
+	    'HOST' => @dnlhost, 'ARCH' => arch, 
+	    'PATH' => "/public/select/#{arch}.rb",
+	    'RELNAME' => Shoes::RELEASE_NAME,
+	    'SCRIPT' => "#{File.basename(script)}"
+    end
+    FileUtils.cp(script, File.join(tmp_dir, File.basename(script)))
+    # add sh-install and script to the modes list
+    @tarmodes = {}
+    @tarmodes[File.basename(script)] = "0755".oct
+    @tarmodes['sh-install'] = "0755".oct
+    raw = Shy.du(tmp_dir)
+ 
+    # create a tgz of tmp_dir
+    # Create tar file with correct modes (he hopes)
+    File.open(tar_path,'wb') do |tf|
+      tb = fastcf(tf, tmp_dir, @tarmodes)
+    end
+    # compress tar file 
+    File.open(tgz_path,'wb') do |tgz|
+      z = Zlib::GzipWriter.new(tgz)
+      File.open(tar_path,'rb') do |tb|
+        z.write tb.read
+      end
+      z.close
+    end
+    FileUtils.rm tar_path
+    
+    md5, fsize = Shy.md5sum(tgz_path), File.size(tgz_path)
+    File.open(run_path, 'wb') do |f|
+	  rewrite f, File.join(DIR, "static", "stubs", "blank.run"),
+	   'CRC' => '0000000000', 'MD5' => md5, 'LABEL' => app_name, 'NAME' => name,
+	   'SIZE' => fsize, 'RAWSIZE' => (raw / 1024) + 1, 'TIME' => Time.now, 'FULLSIZE' => raw
+      File.open(tgz_path, 'rb') do |f2|
+	     f.write f2.read(8192) until f2.eof
+	  end
+    end
+    @pkgstat = inscription "Done packaging #{@path} for Linux #{arch}"
+    FileUtils.chmod 0755, run_path
+    FileUtils.rm_rf(tgz_path)
+    FileUtils.rm_rf(tmp_dir)
+   
+  end
+  
   def dnlif_exe
-    # uses exerb 
-    require 'winject'
     script = @path
     size = File.size(script)
     f = File.open(script, 'rb')
     inf = File.join(DIR, "static", "stubs", 'shoes-stub.exe')
     begin
       exe = Winject::EXE.new(inf)
-      exe.inject_string("SHOES_APP_NAME", File.basename(script))
-      exe.inject_file("SHOES_APP_CONTENT", f)
-      exe.inject_string("SHOES_SYS_SITE", "http://shoes.mvmanila.com/public/pkg/win32")
-      f2 = open(@work_path)
-      @pkgstat.text = "Repack Shoes.exe distribution"
-      f3 = File.open(f2.path, 'rb')
-      #exe.inject_file("SHOES_SYS_SETUP", f3)
+      exe.inject_string(Winject::EXE::SHOES_APP_NAME, File.basename(script))
+      exe.inject_file(Winject::EXE::SHOES_APP_CONTENT, f.read)
+      exe.inject_string(Winject::EXE::SHOES_DOWNLOAD_SITE, @dnlhost)
+      exe.inject_string(Winject::EXE::SHOES_DOWNLOAD_PATH, "/public/select/win32.rb")
       exe.save(script.gsub(/\.\w+$/, '') + ".exe") 
     rescue StandardError => e
         puts "Failed to create Winject::EXE #{e}"
     end
         
     f.close
-    f2.close
-    f3.close
-    @pkgstat.text = "Done packaging Windows"
+    @pkgstat = inscription "Done packaging #{@path} for Windows"
   end
   
 # ===== full download and package ===  
@@ -352,7 +425,7 @@ Shoes.app do
     tar_path = script.gsub(/\.\w+$/, '') + "-#{arch}.tar"
     tmp_dir = File.join(LIB_DIR, "+run")
     FileUtils.mkdir_p(tmp_dir)
-    pkgf = open(@work_path,'rb')  # downloaded/cached .run
+    pkgf = open(@work_path,'rb')  # downloaded/cached .run/.install
     @pkgstat.text = "Expanding #{arch} distribution. Patience is needed"
     # skip to the tar contents in the .run
 	size = Shy.hrun(pkgf)
@@ -429,13 +502,11 @@ Shoes.app do
         exe = Winject::EXE.new(File.join(DIR, "static", "stubs", "shoes-stub.exe"))
         exe.inject_string(Winject::EXE::SHOES_APP_NAME, File.basename(script))
         exe.inject_file(Winject::EXE::SHOES_APP_CONTENT, f.read)
-        exe.inject_string(Winject::EXE::SHOES_DOWNLOAD_SITE, "shoes.mvmanila.com")
+        exe.inject_string(Winject::EXE::SHOES_DOWNLOAD_SITE, @dnlhost)
         exe.inject_string(Winject::EXE::SHOES_DOWNLOAD_PATH, "/public/select/win32.rb")
-        if @options['inclshoes'] 
-          f2 = File.open(@work_path,'rb')
-          @pkgstat.text = "Repack Shoes.exe #{@work_path} distribution"
-          exe.inject_file(Winject::EXE::SHOES_SYS_SETUP, f2.read)
-        end
+        f2 = File.open(@work_path,'rb')
+        @pkgstat.text = "Repack Shoes.exe #{@work_path} distribution"
+        exe.inject_file(Winject::EXE::SHOES_SYS_SETUP, f2.read)
         exe.save(script.gsub(/\.\w+$/, '') + ".exe") do |len|
       end
       rescue StandardError => e
@@ -444,8 +515,7 @@ Shoes.app do
         
       f.close
       f2.close
-      f3.close
-      #@pkgstat.text = "Done packaging Windows"
+      @pkgstat.text = "Done packaging Windows"
    end
 
   def repack_osx
