@@ -1336,11 +1336,10 @@ shoes_native_loop()
     BOOL msg = PeekMessage(&msgs, NULL, 0, 0, PM_REMOVE);
     if (msg)
     {
-      HWND focused = GetForegroundWindow();
-      shoes_app *appk = (shoes_app *)GetWindowLong(focused, GWL_USERDATA);
+      shoes_app *appk = (shoes_app *)GetWindowLong(msgs.hwnd, GWL_USERDATA);
       if (msgs.message == WM_KEYDOWN || msgs.message == WM_KEYUP)
       {
-        ATOM wndatom = GetClassLong(focused, GCW_ATOM);
+        ATOM wndatom = GetClassLong(msgs.hwnd, GCW_ATOM);
         if (appk != NULL && wndatom == shoes_world->os.classatom && RARRAY_LEN(appk->slot->controls) > 0)
         {
           switch (msgs.wParam)
@@ -1367,21 +1366,17 @@ shoes_native_loop()
       }
       else if (msgs.message == WM_SYSCHAR || msgs.message == WM_CHAR)
         msg = FALSE;
-      else if (msgs.message == WM_MOUSEMOVE && focused == GetActiveWindow())
+      else if (msgs.message == WM_MOUSEMOVE && msgs.hwnd == GetActiveWindow())
         shoes_app_cursor(appk, appk->cursor);
 
       if (msg)
-        msg = IsDialogMessage(focused, &msgs);
+        msg = IsDialogMessage(msgs.hwnd, &msgs);
 
       if (!msg)
       {
         TranslateMessage(&msgs);
         DispatchMessage(&msgs);
       }
-    }
-    else
-    {
-      rb_eval_string("sleep(0.001)");
     }
   }
 }
