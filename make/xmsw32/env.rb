@@ -101,7 +101,7 @@ else
   LINUX_CFLAGS = " -O -Wall"
 end
 
-LINUX_CFLAGS << " -DXMD_H -DHAVE_BOOLEAN -DSHOES_WIN32 -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0500 -DWINVER=0x0500 -DCOBJMACROS "
+LINUX_CFLAGS << " -mms-bitfields -DXMD_H -DHAVE_BOOLEAN -DSHOES_WIN32 -D_WIN32_IE=0x0501 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -DCOBJMACROS "
 LINUX_CFLAGS << xfixrvmp(`pkg-config --cflags "#{pkgruby}"`.strip)+" "
 LINUX_CFLAGS << "#{CAIRO_CFLAGS} #{PANGO_CFLAGS} "
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/#{arch} "
@@ -182,4 +182,5 @@ SOLOCS['ssl'] = "#{bindll}/ssleay32.dll"
 #  SOLOCS['lzma'] = "#{bindll}/liblzma-5.dll"
 #  SOLOCS['pthreadGC2'] = "#{bindll}/pthreadGC2.dll"
   SOLOCS['pthread'] = "/usr/i686-w64-mingw32/lib/libwinpthread-1.dll"
+  SOLOCS['siji'] = "/usr/lib/gcc/i686-w64-mingw32/4.8/libgcc_s_sjlj-1.dll"
 

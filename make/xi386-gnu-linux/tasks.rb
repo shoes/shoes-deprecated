@@ -19,6 +19,7 @@ module Make
     cp_r "fonts", "#{TGT_DIR}/fonts"
     cp   "lib/shoes.rb", "#{TGT_DIR}/lib"
     cp_r "lib/shoes", "#{TGT_DIR}/lib"
+    cp_r "lib/exerb", "#{TGT_DIR}/lib"
     cp_r "samples", "#{TGT_DIR}/samples"
     cp_r "static", "#{TGT_DIR}/static"
     cp   "README.md", "#{TGT_DIR}/README.txt"
@@ -87,7 +88,7 @@ module Make
     %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
       FileList[rdir].each { |rlib| cp_r rlib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}" }
     end
-    %w[req/winject/ext/winject_c req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
+    %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
     #%w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
       each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_TGT_ARCH}" }
 

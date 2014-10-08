@@ -1,10 +1,83 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
+
+  
+2014-10-08
+====> Just noticed (remembered) that even the the msw variant uses glib
+      (and gthread has to be included)
+      I should install 3.1 exe and see what it does (hang, cpu %)
+      
+2014-10-07
+====> Copy exerb when building, don't compile winject ext, fix some warnings
+      with -Wno-unused-but-set-variable
+done: w32-msw - it's still pretty out of date in the rake files (rbload)
+done: w32-gtk2 - still has symbols so it's 7MB larger! 
+done: x86_64
+done: i686 
+done: armhf
+      osx
+      
+done: update raspberry - new os 
+-----> Running Shoes 3.2.16 on new raspbian
+       (shoes-bin:2539): GLib-GObject-WARNING **: Attempt to add property 
+       GtkSettings::gtk-label-select-on-focus after class was initialised
+
+       so update qemu chroot and rebuild Shoes 3.2.16
+       same warning message 
+       
+---->  nfs mount Projects from raspberry
+  
+     Win/gtk32 hasn't hung yet. Still uses 100%. Hangs when in background
+     and I start Firefox. Or media center. This may be good clue.
+     
+     try 0x601 (win 7) - No help. Reverting to 0x501 (XP). Call me intuitive
+     or stupid but I thinks it's related to the 100% 
+  
+2014-10-06
+
+      platform/mac/stub.m - this will be test. It assumes the download is
+      a .dmg and I'm not going back to binject so it has to be changed to
+      the tgz/tbz - Aka /static/stubs/cocoa-intall
+      Need a stubs rake task
+      in main()
+        It needs to load strings from plist or commandline or ... for 
+        site,selctor_path
+        app_package.rb has to write them.
+      We have to install in /Applications - if it's not there already.
+        since I'm using a tgz and not dmg this might be tricky.
+        
+----> Clues: Cross compiled Shoes Windows (msw && gtk) doesn't specifiy 
+       -D_WIN32_WINNT=0x0501 
+       -D__MINGW_USE_VC2005_COMPAT
+       -mms-bitfields
+
+       
+----> When compiling ruby
+       -DFD_SETSIZE=2048 - might be a problem with gtk- might be a solution.
+       -D__MINGW_USE_VC2005_COMPAT (as used by RubyInstaller) 
+       
+-----> clean up the warnings when cross compiling mingw - some are silly.
+       some maybe not. 
+       
+       http://msdn.microsoft.com/en-us/library/6sehtctf.aspx 
+       
+====> now Shoes/gtk2/Ruby wants libgcc_sjil-1.dll. Could this be progress?  
+       /usr/lib/gcc/i686-w64-mingw32/4.8/libgcc_s_sjlj-1.dll
+       add it to SOLOCS- doesn't fix the hang.
+       add SOLOCS change to msw variant
   
 2014-10-05
 done: download if need for Linux is working.
-----> website is being converted to ubuntu. Further testing will have to
-      wait. 
+done: website is being converted to ubuntu. Further testing for osx 
+      will have to wait. 
+      
+----> Can crosscompile glib w/o pthread - use win32. Would that help?
+----> use -mms-bitfields compiler flag with apps that use glib -according
+      to the 'old' dev notes. Does Ruby need to be built that way too?
+      Native mingw compile does 
+----> Ian's msw windows.c variant uses 100% cpu in shoes_app_loop and shoes_native_loop
+      It drops to near zero if a modal dialog is up (shoe alert)
+      Doesn't hang after many hours in the background/foreground 
   
 2014-10-04 linux dnlif packaging
 

@@ -51,7 +51,7 @@ module Make
     Dir.chdir "dist/lib" do
       ln_s "../../lib/shoes.rb" , "shoes.rb" unless File.symlink? "shoes.rb"
       # link to exerb
-      # ln_s "../../lib/exerb", "exerb"
+      ln_s "../../lib/exerb", "exerb" unless File.symlink? "exerb"
     end
     cp_r  "fonts", "dist/fonts"
     cp_r  "samples", "dist/samples"

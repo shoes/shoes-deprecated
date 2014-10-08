@@ -10,7 +10,7 @@
 #ENV['GTK'] = "gtk+-3.0" # pick this or "gtk+-2.0"
 ENV['GTK'] = "gtk+-2.0"
 COPY_GTK = true
-#ENV['GDB'] = "SureYouBetcha" # compile -g,  strip symbols when nil
+ENV['GDB'] = "SureYouBetcha" # compile -g,  strip symbols when nil
 if ENV['GTK'] == "gtk+-2.0"
   CHROOT = "/srv/chroot/mingwgtk2"
 else
@@ -117,6 +117,8 @@ LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/#{arch} "
 LINUX_CFLAGS << xfixip("-I/usr/include")+" "
 LINUX_CFLAGS << xfixip(`pkg-config --cflags "#{pkggtk}"`.strip)+" "
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/local/include "
+LINUX_CFLAGS << " -Wno-unused-but-set-variable "
+LINUX_CFLAGS << " -mms-bitfields -D__MINGW_USE_VC2005_COMPAT -DXMD_H -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -DCOBJMACROS "
 
 #LINUX_CFLAGS << " #{CAIRO_CFLAGS} #{PANGO_CFLAGS} "
  
@@ -219,5 +221,6 @@ if ENV['GTK'] == 'gtk+-2.0' && COPY_GTK == true
   SOLOCS['zlib1'] = "#{bindll}/zlib1.dll"
 #  SOLOCS['lzma'] = "#{bindll}/liblzma-5.dll"
 #  SOLOCS['pthreadGC2'] = "#{bindll}/pthreadGC2.dll"
+  SOLOCS['siji'] = "/usr/lib/gcc/i686-w64-mingw32/4.8/libgcc_s_sjlj-1.dll"
   SOLOCS['pthread'] = "/usr/i686-w64-mingw32/lib/libwinpthread-1.dll"
 end
