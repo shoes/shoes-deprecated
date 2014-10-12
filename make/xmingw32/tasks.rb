@@ -157,7 +157,11 @@ class MakeLinux
       bin = "#{name}.exe"
       rm_f name
       rm_f bin
-      sh "#{CC} -o #{bin} bin/main.o shoes/appwin32.o -L#{TGT_DIR} -mwindows -lshoes #{LINUX_LIBS}"
+      if lvl = ENV['GDB'] 
+        sh "#{CC} -o #{bin} bin/main.o shoes/appwin32.o -L#{TGT_DIR} #{lvl=='profile'? -pg : ''} -lshoes #{LINUX_LIBS}"
+      else
+        sh "#{CC} -o #{bin} bin/main.o shoes/appwin32.o -L#{TGT_DIR} -mwindows -lshoes #{LINUX_LIBS}"
+       end
     end
 
     def make_so(name)

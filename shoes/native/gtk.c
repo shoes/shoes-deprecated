@@ -156,7 +156,7 @@ shoes_gtk_catch_message(gpointer user) {
   return FALSE;
 }
 
-// Only called by image.c (Failure to download?)
+// Only called by image.c 
 int shoes_throw_message(unsigned int name, VALUE obj, void *data)
 {
   int ret;
@@ -779,7 +779,8 @@ shoes_native_app_show(shoes_app *app)
 void
 shoes_native_loop()
 {
-  g_main_set_poll_func(shoes_app_g_poll);
+  // g_main_set_poll_func(shoes_app_g_poll); //deprecated 
+  g_main_context_set_poll_func(g_main_context_default(), shoes_app_g_poll);
   gtk_main();
 }
 

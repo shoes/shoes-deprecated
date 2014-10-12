@@ -1,21 +1,125 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
+  
+2014-10-11 
+    DependencyWalker.com - show what dlls call what dlls (some false errors?)
+    My glib does not use pthread. Ruby does. One data point confirmed.
+    
+----> compile glib  https://developer.gnome.org/glib/stable/glib-cross-compiling.html
+     set PKG_CONFIG_PATH
+     
+     glib/gmain.c:2047 looks likes now:
+     #if defined(HAVE_MONOTONIC_CLOCK) && !defined(_WIN32) 
+     
+     gthread/gthread-posix.c:150 make it look like 
+#ifdef USE_CLOCK_GETTIME
+#ifdef _WIN32
+ posix_clock = CLOCK_MONOTONIC; // cjc hack
+#else
+ if (sysconf (_SC_MONOTONIC_CLOCK) >= 0)
+   posix_clock = CLOCK_MONOTONIC;
+ else
+   posix_clock = CLOCK_REALTIME;
+#endif
+#endif
+
+----> need to strip libgpthread 'to external PDB' on glib make install
+----> Compiles and links. Copy to Shoes - still hangs and 100%
+----> it could still be dueling init's. Should have one thread model through.
+====> There's a cleanup method in libshoes.dll (cleanu) that's in wait:executive 
+done: Add checks for ENV['GDB'] == 'profile' to xmingw32/env, task
+     
+
+2014-10-10
+     Built a gtk-32 with profiling and w/o -mwindows so we get a console
+     at launch 
+     We have the usual suspects of reinitialized constants Encoding.ASCII_8BIT,
+       UTF_16LE, UTF_16BE, UTF_32LE, UTF_32BE, USASCII
+     maybe -enable-load relative does matter on Windows.
+----> No, it was compiled enable-load-relative. check cache.rb. shoes.rb
+
+----> does enabling the microsoft #defines help with pthread and Ruby.
+
+     Two Pango warnings at startup can't load font Lucuna No Rotated 17.3339..px
+     and 64.0009..px  - substituting expect ugly yada yada. 
+     
+     Need to specify the libshoes.dll to gprof not the shoes.exe
+     Not that much wall/cpu time is attributed to Shoes so it might be
+     in gtk/glib - which isn't instrumented. That is true of the msw too.
+     That can't be co-incidental. Well, it could but I doubt it.
+     
+     I've had this thought before - it's Windows sending Shoes events (idle?)
+     faster than necessary. Perhaps Shoes has a build setting that tells 
+     Windows to do that? 
+     
+     OR Ruby, being init'd first holds a lock (mutex) that the GUI
+     (msw & gtk) wants to set (or enter) so Windows continues to let the
+     app run. I kind of remember that reversing the init's (gui first, then
+     ruby) hung Ruby (Linux?). That's the theory - Ruby is holding something
+     Windows (+- gtk) wants so Windows give it cpu time.
+     
+     How can we tell if the inits are fighting over a lock? can we tell
+     Ruby to release it? That doesn't explain why Linux works and Windows
+     doesn't.
+  
+2014-10-09
+     I can't build a Ruby that doesn't depend on libwinpthreads.dll -
+     this the MinGW 4.8.x compilers magic and 'just the way it is' according
+     to net wisdom. 
+       Wine doesn't like it.  
+       Gthread.dll doesn't seem to know or it doesn't care or hasn't tried.
+       
+----> Cross compiling  glib-2.28 - 
+      Thread options are win32, posix, none
+      gmain.c:2058:24: error: '_SC_MONOTONIC_CLOCK' undeclared (first use in this function)
+      
+      This approach is not going well. BACK UP. TAKE A BREAK!
+      
+      gtk c apps are not linked with a phtread in the gtk-bundle.  We need
+      to compile ruby to do the same.  That would be nice. Or I'm back
+      to compile glib/gthread to use mingw pthreads (libwinpthreads)
+      
+      Does Shoes/gtk3  hang on windows? Can it use libwinpthreads ?
+      It too runs 100% AND it's tied to the pthreadGC2.dll - Why? 
+      
+      
+-----> Can I cross compile gtk3/glib with the proper thread lib? Do I want to?
+
 
   
 2014-10-08
 ====> Just noticed (remembered) that even the the msw variant uses glib
-      (and gthread has to be included)
+      (and gobject/gio/gthread has to be included)
       I should install 3.1 exe and see what it does (hang, cpu %)
+      
+done:  g_main_context_set_poll_func(g_main_context_default(), shoes_app_g_poll);
+       g_main_set_poll is deprecated.  There are others. No errors were fixed.
+       
+       Does the poll works differently between Windows and Linux? It
+       works well enough to run Shoes/Windows. The msw version also goes 100%
+       Why does Windows send events so often?  Is Shoes not telling Windows
+       that the event has been accepted? 
+       
+====>  Try to cross compile a simple Gtk C example - what a mess! ~/Projects/gtk
+       Test it with Wine. Windows (cpu util) 
+       
+       -mms-bitfields is part of the Gtk cflags from  pkg-config gtk+-2.0
+       so it has to be part of Shoes compile and Ruby compile.
+       
+====> Cross compile a later version of GTK (and friends)? with mthreads or
+      whatever Ruby is using.
+      
+***** Frick! MinGW may already have Gtk2 stuff.
       
 2014-10-07
 ====> Copy exerb when building, don't compile winject ext, fix some warnings
       with -Wno-unused-but-set-variable
-done: w32-msw - it's still pretty out of date in the rake files (rbload)
+done: w32-msw - it's still pretty out of date in the rake files (rbload, gems)
 done: w32-gtk2 - still has symbols so it's 7MB larger! 
 done: x86_64
 done: i686 
 done: armhf
-      osx
+====> osx
       
 done: update raspberry - new os 
 -----> Running Shoes 3.2.16 on new raspbian
@@ -25,7 +129,7 @@ done: update raspberry - new os
        so update qemu chroot and rebuild Shoes 3.2.16
        same warning message 
        
----->  nfs mount Projects from raspberry
+---->  Should nfs mount Projects from raspberry
   
      Win/gtk32 hasn't hung yet. Still uses 100%. Hangs when in background
      and I start Firefox. Or media center. This may be good clue.

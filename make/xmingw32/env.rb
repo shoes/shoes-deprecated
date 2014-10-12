@@ -10,7 +10,7 @@
 #ENV['GTK'] = "gtk+-3.0" # pick this or "gtk+-2.0"
 ENV['GTK'] = "gtk+-2.0"
 COPY_GTK = true
-ENV['GDB'] = "SureYouBetcha" # compile -g,  strip symbols when nil
+ENV['GDB'] = "basic" # 'basic' = keep symbols,  or 'profile'
 if ENV['GTK'] == "gtk+-2.0"
   CHROOT = "/srv/chroot/mingwgtk2"
 else
@@ -117,7 +117,10 @@ LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/#{arch} "
 LINUX_CFLAGS << xfixip("-I/usr/include")+" "
 LINUX_CFLAGS << xfixip(`pkg-config --cflags "#{pkggtk}"`.strip)+" "
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/local/include "
-LINUX_CFLAGS << " -Wno-unused-but-set-variable "
+if ENV['GDB']== 'profile'
+  LINUX_CFLAGS <<  '-pg'
+end
+LINUX_CFLAGS << " -Wno-unused-but-set-variable -pthread "
 LINUX_CFLAGS << " -mms-bitfields -D__MINGW_USE_VC2005_COMPAT -DXMD_H -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -DCOBJMACROS "
 
 #LINUX_CFLAGS << " #{CAIRO_CFLAGS} #{PANGO_CFLAGS} "
@@ -136,7 +139,7 @@ LINUX_LDFLAGS << "-lfontconfig" if ENV['GTK'] == 'gtk+-2.0'
 RUBY_LDFLAGS = "-Wl,-export-all-symbols "
 RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lmsvcrt-ruby210 "
 
-LINUX_LDFLAGS << " -lpthread -lwinhttp -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 "
+LINUX_LDFLAGS << " -pg -lwinhttp -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 "
 
 #LINUX_LIBS = " -L/usr/lib "
 LINUX_LIBS = " -L#{bindll} "
@@ -191,8 +194,8 @@ if ENV['GTK'] == 'gtk+-3.0' && COPY_GTK == true
   SOLOCS['pthread'] = "#{bindll}/pthreadGC2.dll"
   SOLOCS['zlib1'] = "#{bindll}/zlib1.dll"
   SOLOCS['lzma'] = "#{bindll}/liblzma-5.dll"
-  SOLOCS['pthreadGC2'] = "#{bindll}/pthreadGC2.dll"
-  SOLOCS['pthread'] = "/usr/i686-w64-mingw32/lib/libwinpthread-1.dll"
+  SOLOCS['pthreadGC2'] = "#{bindll}/pthreadGC2.dll"   # GTK3 
+  SOLOCS['pthread'] = "/usr/i686-w64-mingw32/lib/libwinpthread-1.dll" # Ruby
 end
 if ENV['GTK'] == 'gtk+-2.0' && COPY_GTK == true
   SOLOCS['atk'] = "#{bindll}/libatk-1.0-0.dll"
