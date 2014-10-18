@@ -8,6 +8,7 @@
 require_relative 'shoes/cache' # do First thing
 ARGV.delete_if { |x| x =~ /-psn_/ }
 
+# Probably don't need this 
 class Encoding
   %w[UTF_7 UTF_16BE UTF_16LE UTF_32BE UTF_32LE].each do |enc|
     eval "class #{enc};end" unless const_defined? enc.to_sym
@@ -24,11 +25,12 @@ end
 
 def Shoes.hook; end
 
-class Encoding
- %w[ASCII_8BIT UTF_16BE UTF_16LE UTF_32BE UTF_32LE US_ASCII].each do |ec|
-   eval "#{ec} = '#{ec.sub '_', '-'}'"
- end unless RUBY_PLATFORM =~ /linux/ or RUBY_PLATFORM =~ /darwin/
-end
+ 
+#class Encoding
+# %w[ASCII_8BIT UTF_16BE UTF_16LE UTF_32BE UTF_32LE US_ASCII].each do |ec|
+#   eval "#{ec} = '#{ec.sub '_', '-'}'"
+# end unless RUBY_PLATFORM =~ /linux/ or RUBY_PLATFORM =~ /darwin/ or RUBY_PLATFORM =~ /mingw/
+#end
 
 class Range 
   def rand 

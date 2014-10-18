@@ -120,7 +120,7 @@ LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/local/include "
 if ENV['GDB']== 'profile'
   LINUX_CFLAGS <<  '-pg'
 end
-LINUX_CFLAGS << " -Wno-unused-but-set-variable -pthread "
+LINUX_CFLAGS << " -Wno-unused-but-set-variable "
 LINUX_CFLAGS << " -mms-bitfields -D__MINGW_USE_VC2005_COMPAT -DXMD_H -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -DCOBJMACROS "
 
 #LINUX_CFLAGS << " #{CAIRO_CFLAGS} #{PANGO_CFLAGS} "

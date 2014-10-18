@@ -1,6 +1,112 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-10-17 
+      Make a Magic GSource that handles the Ruby select() and add it to the
+      the GTK main context poll loop.  Go figure, I need a refresher on
+      writing C forward decls.
+      
+      there is a rb_thread_schedule() entry that might do what I want.
+      try it in a g_idle. Worksbut it's 100%
+      try it in a g_timeout_add(100ms). Works better, downloads OK.
+      
+====> Font issues  Gtk/windows pangorc fontconfig dance
+  
+2014-10-16
+      Sigh. rb_fd_select IS NOT deprecated in 2.1.0 WINDOWS. Only Linux
+      I wonder about 2.1.3? 
+      fb_fd_select is returning -1, errno = 9 which is EBADF bad file #
+        no surprise. I'd figured that out before checking.
+      No love mixing select and fd_set stuff - ruby redefines things so
+      plan A and B would get really ugly. 
+      
+      Plan C - don't set the g_poll function. Instead create a GSource
+      and add that to the default g_poll loop. The GSource functions (there
+      are several is what allows Ruby threads to run if needed. it's a 
+      g_idle sort of thing with more control. 
+      
+done: Shoes/Gtk/win32 runs w/o a shoe_g_app_poll. Shoes initiated os thread
+      do run, but slowly. No hangs!!
+  
+2014-10-15
+      Since Gtk doesn't know what a Ruby fd is and and Ruby doesn't 
+      know what a Gtk fd is, don't mix them together. Run two unique
+      selects (ruby first, then gtk).
+      
+      We need to make sure Ruby doesn't block the process IFF there's a
+      real gtk fd to read so we need to send in a fake fd acceptable to 
+      Ruby that say's it has something to NOT block on. Make a note that
+      we fooled the select. We have to copy Ruby's fd's and add our fake.
+      
+      If the only thing returned that needs action is our fake fd we know
+      Ruby has nothing to do so then we can do a  g_io_channel_win32_poll() 
+      of the gtk fds which could block the process until the mouse moves 
+      (for example).  
+      That is the number of events returned to GTK.  Will that work?
+====> Be careful. That g_io_channel_win32_poll is just a call to g_poll
+      which might call me. 
+      
+      Call that Plan B. Plan A is convert gtk GPollFD's to Ruby fds.
+      
+      Plan A:    
+      Test a few things. Count the the number of nfds that changed and
+      compared that with 'ready'. 
+====> Ah, rb_thread_fd_select is returning -1.
+      Don't return more ready events than what we counted. Still 100%
+      but it hangs faster. That might be progress. 
+      
+      Can I convert a Gtk fd to a Ruby fd so that rb_select will be OK?
+----> 1. verify that rb_fd_init(&foo) copies Ruby fd's. defined in thread.c
+         does_rb_set_t have a capa field and a fdest field; Yes. _WIN32 defined
+---->    No it doesn't copy existing fd (sets)
+         
+      2. What does Ruby do
+        Ruby FD_SET(fd, set) which might be a macro does a
+        SOCKET s = _get_osfhandle(fd); 
+        which is something I've seen in the glib_w32 code. It's not a socket!
+        it could be but it's also anything that msft calls a 'stream', aka 
+        open file. Perhaps a thread too?  
+        
+        FD_SET (or the real function) should be called FD_ADD_TO_SET or FD_APPEND
+        because thats what it does. 
+      
+       3. What does Gtk do? It doesn't expose what a struct _GIOWin32Channel is
+       
+      
+  
+      
+      
+  
+2014-10-14
+      Ruby has its own stdio emulation and threading. Glib/mingw does too. 
+      They won't match. Much head scratching.
+      
+      Perhaps I should read up on what select() is intended to do:
+      If none of the fd's (which may be threads) has anything to do, then process
+      is blocked until one of them (which may be a thread) has data available
+      to read/write/exception(aka error or timeout and the number of fd's 
+      passed in to select which wouldn't block on a read/write op is returned
+      
+      I prefer not to know the details of how that happens
+2014-10-13
+!!!!!> test to make sure Ruby doesn't compile windows threads.
+      It does!!! It checks _#if defined(_WIN32) before HAVE_PTHREAD
+      So it doesn't use pthreads but mingw is tied to pthreads.
+      It's getting circular and depressingly deep. 
+====> Gtk/linux poll loop needs more mods - even though it works now.
+----> go back to compiling Ruby with default # of fds. Shoes is not Rails.
+      the linux default is plenty. 
+====> Integrate gtk/win g_poll with Ruby fd's.  Every time I think
+     I know what to do, I'm wrong.
+     
+
+2014-10-12
+    Ahh - in glib/win32 an fd can be a pointer, not a small int< 1024 or
+    <2048. Glib/win32 and Ruby don't share the same FD table is my guess.
+     
+    The best thing might be to tell/compile gio to use Rubys fd table.
+    OR add the gtk/glib/gio FD's to the ruby table. 
+  
 2014-10-11 
     DependencyWalker.com - show what dlls call what dlls (some false errors?)
     My glib does not use pthread. Ruby does. One data point confirmed.
@@ -26,6 +132,7 @@ Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
 ----> need to strip libgpthread 'to external PDB' on glib make install
 ----> Compiles and links. Copy to Shoes - still hangs and 100%
 ----> it could still be dueling init's. Should have one thread model through.
+      There's more visible and descriptive threads.
 ====> There's a cleanup method in libshoes.dll (cleanu) that's in wait:executive 
 done: Add checks for ENV['GDB'] == 'profile' to xmingw32/env, task
      

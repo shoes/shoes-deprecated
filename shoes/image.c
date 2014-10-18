@@ -26,8 +26,8 @@
 #ifdef DrawText
 #undef DrawText
 #endif
-#endif
 #define DrawText gif_DrawText
+#endif
 #include <gif_lib.h>
 
 shoes_image_format shoes_image_detect(VALUE, int *, int *);

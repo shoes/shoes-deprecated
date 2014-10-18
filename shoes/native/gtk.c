@@ -535,7 +535,7 @@ shoes_canvas_gtk_scroll(GtkRange *r, gpointer data)
   canvas->slot->scrolly = (int)gtk_range_get_value(r);
   shoes_slot_repaint(canvas->app->slot);
 }
-#ifndef OLD_CODE
+#ifndef SHOES_GTK_WIN32
 static gint                                                           
 shoes_app_g_poll (GPollFD *fds, guint nfds, gint timeout)
 {
@@ -546,10 +546,12 @@ shoes_app_g_poll (GPollFD *fds, guint nfds, gint timeout)
   int ready;
   int maxfd = 0;
 
-  rb_fd_init(&rset);
+  rb_fd_init(&rset); // was FD_ZERO()
+  if (rset->capa && rset->fdset && rset>max)
+    ready = 0;
   rb_fd_init(&wset);
   rb_fd_init(&xset);
-
+  
   for (f = fds; f < &fds[nfds]; ++f)
      if (f->fd >= 0)
      {
@@ -559,7 +561,7 @@ shoes_app_g_poll (GPollFD *fds, guint nfds, gint timeout)
        if (f->events & G_IO_OUT)
          //FD_SET (f->fd, &wset);
          rb_fd_set(f->fd, &wset);
-      if (f->events & G_IO_PRI)
+       if (f->events & G_IO_PRI)
          //FD_SET (f->fd, &xset);
          rb_fd_set(f->fd, &xset);
        if (f->fd > maxfd && (f->events & (G_IO_IN|G_IO_OUT|G_IO_PRI)))
@@ -607,33 +609,49 @@ shoes_app_g_poll (GPollFD *fds, guint nfds, gint timeout)
   rb_fd_term(&xset);
   return ready;
 }
-#else // OLD_CODE
+#else 
+/*
+ * Fake a rb_fd to always have something to read
+ * Ruby run select
+ * if nothing selected (only the fake is returned) then
+ *   run a poll/select on the Gtk fds
+ *   and return that number.
+ */
+
 static gint                                                           
 shoes_app_g_poll (GPollFD *fds, guint nfds, gint timeout)
 {
   struct timeval tv;
-  fd_set rset, wset, xset;
+  rb_fdset_t rset, wset, xset; //ruby
   GPollFD *f;
   int ready;
   int maxfd = 0;
+  
+  
 
-  FD_ZERO (&rset);
-  FD_ZERO (&wset);
-  FD_ZERO (&xset);
+  rb_fd_init(&rset); // These are ruby rd (sets
+  rb_fd_init(&wset);
+  rb_fd_init(&xset);
 
-  for (f = fds; f < &fds[nfds]; ++f)
-     if (f->fd >= 0)
-     {
+  int i;
+  // On Windows GTK GPollFD.fd could be a handle, not a small int. 
+  for (i = 0; i < nfds; i++)
+  {
+    f = &fds[i];  
+    if (f->fd >= 0)
+    {
        if (f->events & G_IO_IN)
-         FD_SET (f->fd, &rset);
+         rb_fd_set(f->fd, &rset);
        if (f->events & G_IO_OUT)
-         FD_SET (f->fd, &wset);
+         rb_fd_set (f->fd, &wset);
        if (f->events & G_IO_PRI)
-         FD_SET (f->fd, &xset);
-       if (f->fd > maxfd && (f->events & (G_IO_IN|G_IO_OUT|G_IO_PRI)))
-         maxfd = f->fd;
-     }
-
+         rb_fd_set (f->fd, &xset);
+      // if (f->fd > maxfd && (f->events & (G_IO_IN|G_IO_OUT|G_IO_PRI)))
+      //   maxfd = f->fd;
+       if (i > maxfd && (f->events & (G_IO_IN|G_IO_OUT|G_IO_PRI)))
+         maxfd = i;
+    }    
+  }
   //
   // If we poll indefinitely, then the window updates will
   // pile up for as long as Ruby is churning away.
@@ -647,22 +665,39 @@ shoes_app_g_poll (GPollFD *fds, guint nfds, gint timeout)
   tv.tv_sec = timeout / 1000;
   tv.tv_usec = (timeout % 1000) * 1000;
 
-  ready = rb_thread_select (maxfd + 1, &rset, &wset, &xset, &tv); //deprecated
-  if (ready > 0)
+  ready = rb_fd_select (maxfd + 1, &rset, &wset, &xset, &tv); // NOT deprecated in 2.1.0
+  int really_ready = 0;
+  if (ready == 0) 
+  {
      for (f = fds; f < &fds[nfds]; ++f)
      {
        f->revents = 0;
        if (f->fd >= 0)
        {
-         if (FD_ISSET (f->fd, &rset))
+         if (rb_fd_isset (f->fd, &rset)) 
            f->revents |= G_IO_IN;
-         if (FD_ISSET (f->fd, &wset))
+         if (rb_fd_isset (f->fd, &wset))
            f->revents |= G_IO_OUT;
-         if (FD_ISSET (f->fd, &xset))
+         if (rb_fd_isset (f->fd, &xset))
            f->revents |= G_IO_PRI;
+         if (f->revents > 0) really_ready++;
        }
      }
+  }
 
+  rb_fd_term(&rset);
+  rb_fd_term(&wset);
+  rb_fd_term(&xset);
+  if (ready < 0) 
+  {
+    printf("Poll fail %d\n", errno);
+    ready = 0;
+  }
+  if (ready != really_ready)
+  {
+	  printf("R %d. RR %d\n", ready, really_ready);
+	  ready = really_ready;
+  }
   return ready;
 }
 #endif
@@ -776,11 +811,40 @@ shoes_native_app_show(shoes_app *app)
   gtk_widget_show_all(app->os.window);
 }
 
+#ifdef SHOES_GTK_WIN32
+static GSource *gtkrb_source;
+static GSource *gtkrb_init_source();
+static  GSourceFuncs gtkrb_func_tbl;
+/*
+static GSource *gtkrb_init_source() 
+{
+  // fill in the struct
+  gtkrb_source = g_source_new(&gtkrb_func_tbl, (guint) sizeof(gtkrb_func_tbl));
+}
+*/
+
+static gboolean gtkrb_idle() 
+{  rb_thread_schedule();
+	return 1; // keep timeout 
+}
+#endif
+
 void
 shoes_native_loop()
 {
-  // g_main_set_poll_func(shoes_app_g_poll); //deprecated 
+#ifndef SHOES_GTK_WIN32
   g_main_context_set_poll_func(g_main_context_default(), shoes_app_g_poll);
+#else
+  /* Win32 (should work for Linux too when finished)
+   * Build: struct GSourceFuncs
+   * Call: g_source_new() with that struct
+   * Call: g_source_attach() with that
+   */ 
+   //gtkrb_source = gtkrb_init_source();
+   //g_source_attach(gtkrb_source, (gpointer) NULL);
+   //g_idle_add(gtkrb_idle, NULL);
+   g_timeout_add(100, gtkrb_idle, NULL);
+#endif
   gtk_main();
 }
 
