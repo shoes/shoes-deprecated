@@ -68,7 +68,8 @@
     NSURLRequest *req;
     setupURL = [[NSString alloc] initWithData: data
       encoding: NSUTF8StringEncoding];
-    setupURL = [@"http://hacketyhack.net" stringByAppendingString:
+    // setupURL = [@"http://hacketyhack.net" stringByAppendingString:
+    setupURL = [@"http://shoes.mvmanila.com" stringByAppendingString:
       [setupURL stringByTrimmingCharactersInSet: [NSCharacterSet whitespaceAndNewlineCharacterSet]]];
 
     req = [NSURLRequest requestWithURL: [NSURL URLWithString: setupURL]
@@ -148,7 +149,8 @@ main(int argc, char *argv[])
 #ifdef __ppc__
   [events checkForLatestShoesAt: @"http://hacketyhack.net/pkg/osx/shoes-ppc"];
 #else
-  [events checkForLatestShoesAt: @"http://hacketyhack.net/pkg/osx/shoes"];
+  //[events checkForLatestShoesAt: @"http://hacketyhack.net/pkg/osx/shoes"];
+  [events checkForLatestShoesAt: @"http://shoes.mvmanila.com/public/select/osx.rb"];
 #endif
 
   [[win contentView] addSubview: text];
