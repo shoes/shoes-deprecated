@@ -10,7 +10,7 @@
 #ENV['GTK'] = "gtk+-3.0" # pick this or "gtk+-2.0"
 ENV['GTK'] = "gtk+-2.0"
 COPY_GTK = true
-ENV['GDB'] = "basic" # 'basic' = keep symbols,  or 'profile'
+#ENV['GDB'] = "basic" # 'basic' = keep symbols,  or 'profile'
 if ENV['GTK'] == "gtk+-2.0"
   CHROOT = "/srv/chroot/mingwgtk2"
 else

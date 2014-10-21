@@ -547,8 +547,6 @@ shoes_app_g_poll (GPollFD *fds, guint nfds, gint timeout)
   int maxfd = 0;
 
   rb_fd_init(&rset); // was FD_ZERO()
-  if (rset->capa && rset->fdset && rset>max)
-    ready = 0;
   rb_fd_init(&wset);
   rb_fd_init(&xset);
   
