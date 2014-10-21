@@ -1,11 +1,16 @@
 ;--------------------------------
 ;Definitions
-!define AppName    "#{APPNAME}"
-!define AppRelease "#{RELEASE_NAME}"
-!define AppVersion "#{WINVERSION}"
-!define AppMainEXE "#{APPNAME}.exe"
-!define ShortName  "#{APPNAME}"
-!define InstallKey "Software\Hackety.org\${AppName}"
+!define AppName      "#{APPNAME}"
+!define AppRelease   "#{RELEASE_NAME}"
+!define AppVersion   "#{WINVERSION}"
+!define AppWebsite   "http://shoesrb.com/"
+!define AppPublisher "shoesrb"
+!define AppMainEXE   "#{APPNAME}.exe"
+!define ShortName    "#{APPNAME}"
+!define InstallKey   "Software\Hackety.org\${AppName}"
+!define UninstallKey "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AppName}"
+
+!include "FileFunc.nsh"
 
 ;--------------------------------
 ;Path Manipulation Funcs
@@ -564,7 +569,18 @@ Section "App Section" SecApp
   !insertmacro MakeFileAssoc "Shoes" "shy"
 
   ;Create uninstaller
-  WriteUninstaller "$INSTDIR\Uninstall.exe"
+  WriteUninstaller "$INSTDIR\uninst.exe"
+  WriteRegStr HKLM "${InstallKey}" "" "$INSTDIR\${AppMainEXE}"
+  WriteRegStr HKLM "${UninstallKey}" "DisplayName" "${AppName}"
+  WriteRegStr HKLM "${UninstallKey}" "UninstallString" "$INSTDIR\uninst.exe"
+  WriteRegStr HKLM "${UninstallKey}" "DisplayIcon" "$INSTDIR\${AppMainEXE}"
+  WriteRegStr HKLM "${UninstallKey}" "DisplayVersion" "${AppVersion}"
+  WriteRegStr HKLM "${UninstallKey}" "URLInfoAbout" "${AppWebsite}"
+  WriteRegStr HKLM "${UninstallKey}" "Publisher" "${AppPublisher}"
+  
+  ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
+  IntFmt $0 "0x%08X" $0
+  WriteRegDWORD HKLM "${UninstallKey}" "EstimatedSize" "$0"
 
   ;Create batch file
   FileOpen $0 "$INSTDIR\..\shoes.bat" w
@@ -639,6 +655,6 @@ Section "Uninstall"
   Push "$INSTDIR\.."
   Call un.RemoveFromPath
   
+  DeleteRegKey HKLM "${UninstallKey}"
   DeleteRegKey /ifempty HKLM "${InstallKey}"
-
 SectionEnd
