@@ -106,6 +106,7 @@ when /darwin/
     require File.expand_path("make/#{TGT_ARCH}/env")
     require_relative "make/#{TGT_ARCH}/homebrew"
     require File.expand_path("make/#{TGT_ARCH}/tasks")
+    require File.expand_path("make/#{TGT_ARCH}/stubs")
     Builder = MakeDarwin
   else
     require File.expand_path('make/darwin/env')

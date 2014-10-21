@@ -272,8 +272,9 @@ class MakeDarwin
     end
 
     def make_stub
-      ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
-      sh "gcc -O -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc -framework Cocoa -o stub platform/mac/stub.m -I."
+      #ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
+      #sh "gcc -O -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc -framework Cocoa -o stub platform/mac/stub.m -I."
+      sh "gcc -O -isysroot #{OSX_SDK} -framework Cocoa -o stub-osx platform/mac/stub.m -I."
     end
 
     def make_app(name)
