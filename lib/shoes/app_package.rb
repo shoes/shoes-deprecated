@@ -329,6 +329,8 @@ Shoes.app height: 600 do
       dnlif_exe
     when /\.install$/
       dnlif_linux arch
+    when /\.tgz$/
+       dnlif_osx
     else
       alert "Can't do dnlif #{arch}"
     end
@@ -414,6 +416,152 @@ Shoes.app height: 600 do
     f.close
     @pkgstat = inscription "Done packaging #{@path} for Windows"
   end
+
+  def dnlif_osx
+    script = @path
+    name = File.basename(script).gsub(/\.\w+$/, '')
+    app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
+    #vol_name = name.capitalize.gsub(/[-_](\w)/) { " " + $1.capitalize }
+    tar_path = script.gsub(/\.\w+$/, '') + "-osx.tar"
+    tgz_path = script.gsub(/\.\w+$/, '') + "-osx.tgz"
+    app_app = "#{app_name}.app"
+    vers = [1, 0]
+
+    tmp_dir = File.join(LIB_DIR, "+dmg")
+    FileUtils.rm_rf(tmp_dir)
+    FileUtils.mkdir_p(tmp_dir)
+    # What dnlif does is put the stub (cocoa-install) where the shoes executable
+    # would be and fix up the info.plist and dir tree to run it.
+ 	@tarmodes = {}
+   
+    # expand download into ~/.shoes/+dmg/Shoes.app
+    #pkgf = open(@work_path)
+    #@pkgstat.text = "Expanding OSX distribution. Patience is needed"
+	# fastxzf(pkgf, tmp_dir, @tarmodes, app_app)
+	# debug 
+	# @tarmodes.each_key {|k| puts "entry #{k} = #{@tarmodes[k]}" }
+	# DMG stuff in case I need it:
+    #  FileUtils.cp(File.join(DIR, "static", "stubs", "blank.hfz"),
+    #              File.join(tmp_dir, "blank.hfz"))
+    app_dir = File.join(tmp_dir, app_app)
+    # rename Shoes.app to app_dir
+    #chdir tmp_dir do
+    #  mv "Shoes.app", app_app
+    #end
+    res_dir = File.join(tmp_dir, app_app, "Contents", "Resources")
+    mac_dir = File.join(tmp_dir, app_app, "Contents", "MacOS")
+    [res_dir, mac_dir].map { |x| FileUtils.mkdir_p(x) }
+    FileUtils.cp(File.join(DIR, "static", "Shoes.icns"), app_dir)
+    FileUtils.cp(File.join(DIR, "static", "Shoes.icns"), res_dir)
+    # make cache entries for the files above just to keep the console
+    # messages away. 
+    @tarmodes["#{app_app}/Contents/Resources/Shoes.icns"] = 0644
+    @tarmodes["#{app_app}/Shoes.icns"] = 0644
+    # more permissions cache entries 
+    ["#{app_app}", "#{app_app}/Contents", "#{app_app}/Contents/Resources",
+     "#{app_app}/Contents/MacOS" ].each {|d| @tarmodes[d] = 0755}
+    ["#{app_app}/Contents/PkgInfo", "#{app_app}/Contents/version.plist",
+     "#{app_app}/Contents/Info.plist" ].each {|f| @tarmodes[f] = 0644}
+    File.open(File.join(app_dir, "Contents", "PkgInfo"), 'w') do |f|
+      f << "APPL????"
+    end
+    # info.plist with substitutions
+    @dnlsel = '/public/select/osx.rb'
+    File.open(File.join(app_dir, "Contents", "Info.plist"), 'w') do |f|
+      f << <<END
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleGetInfoString</key>
+  <string>#{app_name} #{vers.join(".")}</string>
+  <key>CFBundleExecutable</key>
+  <string>shoes-osx-install</string>
+  <key>CFBundleIdentifier</key>
+  <string>org.hackety.#{name}</string>
+  <key>CFBundleName</key>
+  <string>#{app_name}</string>
+  <key>CFBundleIconFile</key>
+  <string>Shoes.icns</string>
+  <key>CFBundleShortVersionString</key>
+  <string>#{vers.join(".")}</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>IFMajorVersion</key>
+  <integer>#{vers[0]}</integer>
+  <key>IFMinorVersion</key>
+  <integer>#{vers[1]}</integer>
+  <key>SHOES_DOWNLOAD_SITE</key>
+  <string>http://#{@dnlhost}s</string>
+  <key>SHOES_DOWNLOAD_PATH</key>
+  <string>#{@dnlsel}</string>
+  <key>SHOES_APP_NAME<key>
+  <string>#{name}-launch</string>
+</dict>
+</plist>
+END
+    end
+    File.open(File.join(app_dir, "Contents", "version.plist"), 'w') do |f|
+      f << <<END
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>BuildVersion</key>
+  <string>1</string>
+  <key>CFBundleVersion</key>
+  <string>#{vers.join(".")}</string>
+  <key>ProjectName</key>
+  <string>#{app_name}</string>
+  <key>SourceVersion</key>
+  <string>#{Time.now.strftime("%Y%m%d")}</string>
+</dict>
+</plist>
+END
+    end
+    File.open(File.join(mac_dir, "#{name}-launch"), 'wb') do |f|
+      f << <<END
+#!/bin/bash
+APPPATH="${0%/*}"
+unset DYLD_LIBRARY_PATH
+cd "$APPPATH"
+echo "[Pango]" > pangorc
+echo "ModuleFiles=$APPPATH/pango.modules" >> pangorc
+echo "ModulesPath=$APPPATH/pango/modules" >> pangorc
+PANGO_RC_FILE="$APPPATH/pangorc" ./pango-querymodules > pango.modules
+DYLD_LIBRARY_PATH="$APPPATH" PANGO_RC_FILE="$APPPATH/pangorc" SHOES_RUBY_ARCH="#{SHOES_RUBY_ARCH}" ./shoes-bin "#{File.basename(script)}"
+END
+    end
+    ls = File.join(mac_dir, "#{name}-launch")
+    chmod 0755, ls
+    @tarmodes["#{app_app}/Contents/MacOS/#{name}-launch"] = 0755
+    FileUtils.cp(script, File.join(mac_dir, File.basename(script)))
+    @tarmodes["#{app_app}/Contents/MacOS/#{File.basename(script)}"] = 0644
+    FileUtils.cp(File.join(DIR, "static", "stubs", "cocoa-install"),
+      File.join(mac_dir, "shoes-osx-install"))
+    @tarmodes["#{app_app}/Contents/MacOS/shoes-osx-install"] = 0755
+    #@pkgstat.text = "Creating new archive"
+    #File.open(tgz_path, 'wb') do |f|
+	#  Shy.czf(f, tmp_dir)
+    #end
+    # #Create tar file with correct modes (he hopes)
+    File.open(tar_path,'wb') do |tf|
+      tb = fastcf(tf, tmp_dir, @tarmodes)
+    end
+    # compress tar file 
+    File.open(tgz_path,'wb') do |tgz|
+      z = Zlib::GzipWriter.new(tgz)
+      File.open(tar_path,'rb') do |tb|
+        z.write tb.read
+      end
+      z.close
+    end
+    FileUtils.rm_rf(tmp_dir)
+    FileUtils.rm_rf(tar_path)
+    @pkgstat = inscription "Done packaging #{@path} for OSX"
+ end
   
 # ===== full download and package ===  
   def repack_linux  arch

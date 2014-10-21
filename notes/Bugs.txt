@@ -1,16 +1,64 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-10-20
+
+      dnlif packaged isp.rb produces a isp-osx.tgz which when uncompressed
+done: by the end-user double click *SHOULD* run shoes-osx-install which is
+      an osx native app that does the check/download of Shoes and runs
+      isp-launch
+      Plist has keys for SHOES_DOWNLOAD_SITE, SHOES_DOWNLOAD_PATH, and
+      SHOES_APP_NAME that value is isp-launch which which is a shell script
+      to run shoes and pass the 'isp.rb' or untar.shy ...
+
+done: Rakefile mods to compile stub.m and copy to static/stubs/shoes-osx-install
+      -o static/stubs/shoes-osx-install
+       Added stubs.rb to make/mavericks - modifiy Rakefile. Only on cross.
+----> modify hard coded urls to be mine. test that it downloads
+      http log shows it queries the selctor. 
+----> modify stub.m to pick out the Info.plist keys and modify the url
+     it will fail doing dmg BS.
+----> Remove dmg code and shell out to tar xf to
+  
+2014-10-19
+    some basic download if needed design and code in notes/OSX-Rakefile.txt
+    
+    Figure out what the Shoes osx packaging problem is. Downloaded may not
+    work (.15 no .14 yes)
+    
+    Clean out multiple shoes on my box. Then download 3.2.16
+    seems to work fine for me.
+    
+===> radio buttons on OSX don't have a default 
+===> OSX packager the hide for advanced options doesn't work. 
+     
+done: update mac to 10.9.5. Shoes works. 
+  
+2014-10-18
+done: Two reports that the 3.2.16 beta fixes the hang problem. I'm #3.
+
+done: Gtk/Windows doesn't use fontconfig, freetype. I'm going to ignore
+     the pango complaints. 
+     need to create etc/pango and the pango.modules file in there (generated)
+     need to create the pango.rc at Shoes run time (Shoes.bat)
+       many need 
+     need to create the modules (how?)
+     need to copy them to the dist/
+  
 2014-10-17 
       Make a Magic GSource that handles the Ruby select() and add it to the
       the GTK main context poll loop.  Go figure, I need a refresher on
       writing C forward decls.
       
       there is a rb_thread_schedule() entry that might do what I want.
-      try it in a g_idle. Worksbut it's 100%
+      try it in a g_idle. Works but cpu is 100%
       try it in a g_timeout_add(100ms). Works better, downloads OK.
       
-====> Font issues  Gtk/windows pangorc fontconfig dance
+done? Font issues  - Gtk/windows pangorc fontconfig dance do I need the
+      pango-querymodules.exe - probably. Can it be run by the installer? Cobbler option?
+      both? the shoes.bat (OSX style)
+      
+done: moved 3.2.15 osx to beta. 
   
 2014-10-16
       Sigh. rb_fd_select IS NOT deprecated in 2.1.0 WINDOWS. Only Linux
@@ -43,7 +91,7 @@ done: Shoes/Gtk/win32 runs w/o a shoe_g_app_poll. Shoes initiated os thread
       of the gtk fds which could block the process until the mouse moves 
       (for example).  
       That is the number of events returned to GTK.  Will that work?
-====> Be careful. That g_io_channel_win32_poll is just a call to g_poll
+      Be careful. That g_io_channel_win32_poll is just a call to g_poll
       which might call me. 
       
       Call that Plan B. Plan A is convert gtk GPollFD's to Ruby fds.
@@ -51,14 +99,14 @@ done: Shoes/Gtk/win32 runs w/o a shoe_g_app_poll. Shoes initiated os thread
       Plan A:    
       Test a few things. Count the the number of nfds that changed and
       compared that with 'ready'. 
-====> Ah, rb_thread_fd_select is returning -1.
+done: Ah, rb_thread_fd_select is returning -1.
       Don't return more ready events than what we counted. Still 100%
       but it hangs faster. That might be progress. 
       
       Can I convert a Gtk fd to a Ruby fd so that rb_select will be OK?
-----> 1. verify that rb_fd_init(&foo) copies Ruby fd's. defined in thread.c
+done: 1. verify that rb_fd_init(&foo) copies Ruby fd's. defined in thread.c
          does_rb_set_t have a capa field and a fdest field; Yes. _WIN32 defined
----->    No it doesn't copy existing fd (sets)
+         No it doesn't copy existing fd (sets)
          
       2. What does Ruby do
         Ruby FD_SET(fd, set) which might be a macro does a
@@ -93,10 +141,10 @@ done: Shoes/Gtk/win32 runs w/o a shoe_g_app_poll. Shoes initiated os thread
       It does!!! It checks _#if defined(_WIN32) before HAVE_PTHREAD
       So it doesn't use pthreads but mingw is tied to pthreads.
       It's getting circular and depressingly deep. 
-====> Gtk/linux poll loop needs more mods - even though it works now.
-----> go back to compiling Ruby with default # of fds. Shoes is not Rails.
+done: Gtk/linux poll loop needs more mods - even though it works now.
+done: go back to compiling Ruby with default # of fds. Shoes is not Rails.
       the linux default is plenty. 
-====> Integrate gtk/win g_poll with Ruby fd's.  Every time I think
+done: Integrate gtk/win g_poll with Ruby fd's.  Every time I think
      I know what to do, I'm wrong.
      
 
@@ -108,10 +156,10 @@ done: Shoes/Gtk/win32 runs w/o a shoe_g_app_poll. Shoes initiated os thread
     OR add the gtk/glib/gio FD's to the ruby table. 
   
 2014-10-11 
-    DependencyWalker.com - show what dlls call what dlls (some false errors?)
+    DependencyWalker.com - shows what dlls call what dlls (some false errors?)
     My glib does not use pthread. Ruby does. One data point confirmed.
     
-----> compile glib  https://developer.gnome.org/glib/stable/glib-cross-compiling.html
+done: compile glib  https://developer.gnome.org/glib/stable/glib-cross-compiling.html
      set PKG_CONFIG_PATH
      
      glib/gmain.c:2047 looks likes now:
@@ -143,9 +191,9 @@ done: Add checks for ENV['GDB'] == 'profile' to xmingw32/env, task
      We have the usual suspects of reinitialized constants Encoding.ASCII_8BIT,
        UTF_16LE, UTF_16BE, UTF_32LE, UTF_32BE, USASCII
      maybe -enable-load relative does matter on Windows.
-----> No, it was compiled enable-load-relative. check cache.rb. shoes.rb
+done: No, it was compiled enable-load-relative. check cache.rb. shoes.rb
 
-----> does enabling the microsoft #defines help with pthread and Ruby.
+N/A: does enabling the microsoft #defines help with pthread and Ruby.
 
      Two Pango warnings at startup can't load font Lucuna No Rotated 17.3339..px
      and 64.0009..px  - substituting expect ugly yada yada. 
@@ -176,7 +224,7 @@ done: Add checks for ENV['GDB'] == 'profile' to xmingw32/env, task
        Wine doesn't like it.  
        Gthread.dll doesn't seem to know or it doesn't care or hasn't tried.
        
-----> Cross compiling  glib-2.28 - 
+done: Cross compiling  glib-2.28 - 
       Thread options are win32, posix, none
       gmain.c:2058:24: error: '_SC_MONOTONIC_CLOCK' undeclared (first use in this function)
       
@@ -190,7 +238,7 @@ done: Add checks for ENV['GDB'] == 'profile' to xmingw32/env, task
       It too runs 100% AND it's tied to the pthreadGC2.dll - Why? 
       
       
------> Can I cross compile gtk3/glib with the proper thread lib? Do I want to?
+done: Can I cross compile gtk3/glib with the proper thread lib? Do I want to?
 
 
   
@@ -219,7 +267,7 @@ done:  g_main_context_set_poll_func(g_main_context_default(), shoes_app_g_poll);
 ***** Frick! MinGW may already have Gtk2 stuff.
       
 2014-10-07
-====> Copy exerb when building, don't compile winject ext, fix some warnings
+done: Copy exerb when building, don't compile winject ext, fix some warnings
       with -Wno-unused-but-set-variable
 done: w32-msw - it's still pretty out of date in the rake files (rbload, gems)
 done: w32-gtk2 - still has symbols so it's 7MB larger! 

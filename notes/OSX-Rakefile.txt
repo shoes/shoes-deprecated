@@ -1,3 +1,50 @@
+
+OSX packaging (2014-10-19) Download if needed.
+
+   Since I don't use binject::dmg things have to change in
+   how stub.m behaves: (it's only use is dnlif)
+   A script/dir packed dnlif
+      Has to download Shoes if it's not installed (/Applications?)
+      Install the downloaded Shoes into /Applications
+      extract the packaged script/directory 
+      run the script or shy.rb with Shoes.
+
+   In app_package.rb, add two keys and string values to the info.plist
+   <key>SHOES_DOWNLOAD_SITE</key>
+   <string>shoes.mvmanila.com</string>
+   <key>SHOES_DOWNLOAD_PATH</key>
+   <string>/public/select/osx.rb</string>
+   
+   Those strings could come from user specific Shoes configuration file
+   
+    stub.m needs add and modify the following web code snippet
+    to read those keys and replace the values that are hardcoded in.
+ ----    
+    // Create a new NSBundle pointer
+    NSBundle* mainBundle;
+     
+    // The Info.plist is considered the mainBundle.
+    mainBundle = [NSBundle mainBundle];  
+     
+    // Reads the value of the custom key I added to the Info.plist
+    [mainBundle objectForInfoDictionaryKey:@"myCustomKey"]
+ ----- don't need below snippet?    
+    // Another handy thing I had to search around for a little
+    // Get the value for the "Bundle version" from the Info.plist
+    [mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"]
+     
+    // Need the bundle identifier? (probably something like com.mycorp.product)
+    [mainBundle bundleIdentifier]
+----- end snippet
+
+    Need to replace the stub.m dmg handling code with a tgz extraction. 
+      easy way? just shell out to unzip or tar
+      fire up the hackintosh to find out if 10.9 comes with tar. 
+      make sure to untar to /Applications
+    Need to add stub compile task to OSX rakefile(s)
+    pack.rb has old packager dnlif code - don't re-invent the wheel incorrectly
+
+
 OSX rake steps/tasks (as of June/2/14)
 
 Old Shoes 3.1: In Rakefile 
