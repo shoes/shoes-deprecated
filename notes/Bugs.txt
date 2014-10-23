@@ -1,6 +1,43 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-10-23
+====> Clean up the website (stats, block the leachers...)
+====> Convert linux dnlinf for use with OSX install and package
+----> Clean up the naming mess between platform/* and static/stubs
+  
+2014-10-22
+
+done:  osxdnl.m downloads from the server specified location
+     1. its a tgz so NSURLDownload unzips it - 245% progress bar
+        add delgate to not allow expanding. Now 100%
+     2. hardcode the download destination to be something more
+        useful: ~/.shoes/install/ 
+     3. get site and path args from command line.
+     4. terminate when download is finished.
+     5. nslog error messages for download (check console app)
+     
+===> Note: the install script will need to mkdir -p ~/.shoes.install
+     before calling shoes-osx-install <site> <path> which are rewrites from packager.
+     
+2014-10-21
+      Rethink. The downloaded (dnlif) - Isp-osx.tgz --> Isp.App
+      The info.plist will run a shell script - isp-intall.sh
+      The script will check for /Applications/Shoes.app and
+      ~/Applications/Shoes.app - if it doesn't find them
+          execute "osxdnl {site url} {selector_path}"
+          untar it, move to /Applications if needed
+      Then use that to run Shoes -- <path-to>isp.rb 
+      
+      It's more like Linux dnlif - rewrite the SHOES_DOWNLOAD/SHOES_DOWNLOAD_PATH
+      when packaging the {app}-install.sh
+      
+      NSURLConnection vs NSURLDownload - stub.m does both. I could add 
+      some comments.
+
+done: clone stub.m to be osxdnl.m and modify the rakefiles to produce
+      shoes-osx-install. Yes. there is no good reason to change the names
+       
 2014-10-20
 
       dnlif packaged isp.rb produces a isp-osx.tgz which when uncompressed
@@ -14,11 +51,12 @@ done: by the end-user double click *SHOULD* run shoes-osx-install which is
 done: Rakefile mods to compile stub.m and copy to static/stubs/shoes-osx-install
       -o static/stubs/shoes-osx-install
        Added stubs.rb to make/mavericks - modifiy Rakefile. Only on cross.
-----> modify hard coded urls to be mine. test that it downloads
-      http log shows it queries the selctor. 
-----> modify stub.m to pick out the Info.plist keys and modify the url
+done: modify hard code urls to be mine. test that it downloads
+      http log shows it queries the selctor. Hangs
+N/A : modify stub.m to pick out the Info.plist keys and modify the url
      it will fail doing dmg BS.
-----> Remove dmg code and shell out to tar xf to
+N/A : Remove dmg code and shell out to tar xf to unpack the downloaded file.
+     The run it to install Shoes
   
 2014-10-19
     some basic download if needed design and code in notes/OSX-Rakefile.txt
