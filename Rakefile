@@ -558,7 +558,7 @@ namespace :osx do
     bin = "#{TGT_DIR}/#{NAME}-bin"
     rm_f "#{TGT_DIR}/#{NAME}"
     rm_f bin
-    sh "#{CC} -L#{TGT_DIR} -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{OSX_ARCH}"
+    sh "#{CC} -L#{TGT_DIR} -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{OSX_ARCH} -L/usr/local/lib -lgif"
   end
 
   task :make_so do

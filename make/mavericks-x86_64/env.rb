@@ -71,7 +71,7 @@ else
 end
 
 LINUX_CFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH}"
-LINUX_LDFLAGS << " #{OSX_ARCH}"
+LINUX_LDFLAGS << " #{OSX_ARCH} -L/usr/local/lib/ "
  
 LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
