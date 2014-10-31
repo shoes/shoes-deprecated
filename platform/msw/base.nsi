@@ -570,7 +570,7 @@ Section "App Section" SecApp
 
   ;Create uninstaller
   WriteUninstaller "$INSTDIR\uninst.exe"
-  WriteRegStr HKLM "${InstallKey}" "" "$INSTDIR\${AppMainEXE}"
+  ;WriteRegStr HKLM "${InstallKey}" "" "$INSTDIR\${AppMainEXE}"
   WriteRegStr HKLM "${UninstallKey}" "DisplayName" "${AppName}"
   WriteRegStr HKLM "${UninstallKey}" "UninstallString" "$INSTDIR\uninst.exe"
   WriteRegStr HKLM "${UninstallKey}" "DisplayIcon" "$INSTDIR\${AppMainEXE}"

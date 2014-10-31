@@ -1,10 +1,90 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-10-30
+   Setup walkabout.mvmanila.com/public/shoes and /public/select as beta test
+   site. 
+   
+   Aha - bitten by Shoes class. @path is different in the shy window
+     than it is in the packager window. 
+
+2014-10-29
+    Ian insists his nsis installer needs to be used. I can test that again.
+    Build 3.2.17 Ian's installer.  upload 3.2.17, 
+    package up isp.exe and try again.
+     
+  
+2014-10-28
+    Blocked a .br site from downloading. How many times a day do they need
+    to check that the file hasn't changed. 400 seems excessive. It inflates my stats
+    and I do care what people choose to download. Bots? don't care.
+    Also blocked 183.224.1.81, that fool checks for 3.2.14-gtk2-32.exe
+    every three hours. - also no reverse lookup. I care even less for those.
+    Add 117.146.116.136 to that list. 111.23.4.8
+  
+2014-10-27
+     What would an installer script do? It runs on the native plaform
+       inside Shoes.
+     1. Unpack/copy the .shy to permament location - $home/.shoes/apps/<name>
+     2. Create an exe like thing:
+        Linux - create a menu entry pointing to the startup script. 
+          associate an icon with that. modify/point the menu entry to 
+          the launch script. 
+        OSX - create App file structure (already have most of it) in 
+          /Applications, change icons in the plists, point/modify launch script
+        Windows - need to generate an exe/bat,  make the menus
+          and change the icons. The menus are hard unless it can be done
+          from powershell. I'll ask Ian.
+          
+  
+2014-10-25
+----> Radio button defaults in app_package. OSX bug? It appears so. 
+done: Disable advanced options in app_packager for 3.2.16
+done: compile and upload all 5 Shoes.
+done: write blog post
+done: write mailing list post
+done: do more testing before updating shoesrb and issuing a upstream pull
+Works  armhf: Package isp.rb for armhf. Test download and install. 
+----> Many glib-gobject warnings for Attempt to add property GtkSettings::
+      This is the new Raspbian's gtk2
+
+done: mingwgtk2 - installs Shoes - doesn't run isp.rb. reinstalls - overwrites.
+      is this ian's nsis? Yes. reverted to original. Working
+      
+done: osx packaged on Windows. Where the tarmodes hash do matter.
+done: i686 packaged on OSX. Works. 
+done: x86_64 packaged on i686
+
+      
+2014-10-24
+done: dnlif packaging to osx is working. Just needed to get the shell
+     script ENV decoded properly. 
+----> somehow OSX compile can't find libgif.dylib. After yosemite install
+     and I haven't done homebrew update/upgrades, still the files are 
+     there. 
+hack: Added -L /usr/local/lib -lgif to make_so and make_app
+     tasks. 
+----> Gotcha!  - the crosscompile mavericks build uses the make_app 
+      in Rakefile, not the one in in make/mavericks/tasks.rb
+done: Don't need winject in osx build. 
+  
 2014-10-23
-====> Clean up the website (stats, block the leachers...)
-====> Convert linux dnlinf for use with OSX install and package
+done: Clean up the website (stats, block the exe leachers...)
+
+done: Convert linux dnlinf for use with OSX install and package
+      Modify osx-app-install.tmpl
+done: Doesn't run from Info.plist ?
+done? The isp-launch script can't find the right dir
+      modify it in app_package.
+yes:  It's dependent on hard coded /Applications/Shoes.app/
+----> Is SHOES_RUBY_ARCH really needed on the launch cmd line? 
+
 ----> Clean up the naming mess between platform/* and static/stubs
+      I've only made worse. What isn't used? 
+
+----> handle the 'http://' better in osxdnl.m or app_package
+----> All arch: play nicer with the selector url that the user might
+      have in ~/.shoes/federales
   
 2014-10-22
 

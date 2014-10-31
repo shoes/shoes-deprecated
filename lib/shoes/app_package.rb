@@ -91,6 +91,7 @@ Shoes.app height: 600 do
 			            para "Built #{shy_name}"
 			            button "Ok" do
 			              @path = edit2.text = shy_name
+			              puts "Shy is #{@path}"
 			              close
 			            end
 			          end
@@ -105,35 +106,37 @@ Shoes.app height: 600 do
     @options_panel = stack do
       flow do
         @dnlradio = radio :dnl; para "Shoes will be downloaded if needed."
+        @dnlradio.checked = true;  # OSX requires - a bug
       end
       flow do
         @inclradio = radio :dnl; para "Shoes will be included with my app."
       end
       @inclradio.checked = @options['inclshoes']
-      para "Advanced options -- CAUTION -- may not work everywhere"
-      flow do
-        @noadvopts = radio :advopts; para "No thanks." 
-        @defadvopts = radio :advopts do
-          @advpanel.show if @defadvopts.checked?
-          @advpanel.hide if !@defadvopts.checked?
-        end
-        para "I want advanced options"
-      end
-      @advpanel = stack :hidden => true do
-        flow do
-          para "I have my own install script  "
-          button "Select script"
-        end
-        flow do
-          check; para "Expand shy in users directory"
-        end
-        flow do
-          check; para "I have gems to be installed"
-        end
-        flow do
-          check; para "I have icons for Windows, OSX and Linux"
-        end
-      end
+      # comment out 3.2.17 options
+      #para "Advanced options -- CAUTION -- may not work everywhere"
+      #flow do
+      #  @noadvopts = radio :advopts; para "No thanks." 
+      #  @defadvopts = radio :advopts do
+      #    @advpanel.show if @defadvopts.checked?
+      #    @advpanel.hide if !@defadvopts.checked?
+      #  end
+      #  para "I want advanced options"
+      #end
+      #@advpanel = stack :hidden => true do
+      #  flow do
+      #    para "I have my own install script  "
+      #    button "Select script"
+      #  end
+      #  flow do
+      #    check; para "Expand shy in users directory"
+      #  end
+      #  flow do
+      #    check; para "I have gems to be installed"
+      #  end
+      #  flow do
+      #    check; para "I have icons for Windows, OSX and Linux"
+      #  end
+      #end
     end
     @menu_panel = stack do
       flow do 
@@ -323,7 +326,7 @@ Shoes.app height: 600 do
 
 # ==== Download If Needed  (dnlif) packaging ===
   def platform_dnlif arch
-    # No need to thread -this is simple and fast. just call the {platform}_dnilf
+    # No need to thread - this is simple and fast. just call the {platform}_dnilf
     case arch
     when /\.exe$/
       dnlif_exe
@@ -343,6 +346,7 @@ Shoes.app height: 600 do
     arch.gsub!(/\.install/,"")
     #alert "Pack for #{arch} #{installname} #{@path}"
     script = @path
+    puts "script is #{script} #{@path}"
     name = File.basename(script).gsub(/\.\w+$/, '')
     app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
     run_path = script.gsub(/\.\w+$/, '') + "-#{arch}.run"
@@ -425,29 +429,25 @@ Shoes.app height: 600 do
     tar_path = script.gsub(/\.\w+$/, '') + "-osx.tar"
     tgz_path = script.gsub(/\.\w+$/, '') + "-osx.tgz"
     app_app = "#{app_name}.app"
-    vers = [1, 0]
+    vers = [2, 0]
 
     tmp_dir = File.join(LIB_DIR, "+dmg")
     FileUtils.rm_rf(tmp_dir)
     FileUtils.mkdir_p(tmp_dir)
-    # What dnlif does is put the stub (cocoa-install) where the shoes executable
-    # would be and fix up the info.plist and dir tree to run it.
- 	@tarmodes = {}
-   
-    # expand download into ~/.shoes/+dmg/Shoes.app
-    #pkgf = open(@work_path)
-    #@pkgstat.text = "Expanding OSX distribution. Patience is needed"
-	# fastxzf(pkgf, tmp_dir, @tarmodes, app_app)
-	# debug 
-	# @tarmodes.each_key {|k| puts "entry #{k} = #{@tarmodes[k]}" }
-	# DMG stuff in case I need it:
-    #  FileUtils.cp(File.join(DIR, "static", "stubs", "blank.hfz"),
-    #              File.join(tmp_dir, "blank.hfz"))
+    # Produce a tgz that when the user expands it is a 'Myapp.App'
+    # which is a directory tree with all the osx stuff. Info.plist
+    # will run a bash script (Contents/MacOS/osx-app-install) which 
+    # checks if Shoes is already installed in /Applications
+    # if not it will download shoes, and install it
+    # Then the script/shy is run. Actually a MyApp-launch bash script
+    # is whats run - it starts Shoes and pass the Myapp.rb or MyApp.shy on
+    # the commandline. 
+    # Similar to what is done for Linux, but with extra osx flavoring.
+  
+    @tarmodes = {}
+ 
     app_dir = File.join(tmp_dir, app_app)
-    # rename Shoes.app to app_dir
-    #chdir tmp_dir do
-    #  mv "Shoes.app", app_app
-    #end
+
     res_dir = File.join(tmp_dir, app_app, "Contents", "Resources")
     mac_dir = File.join(tmp_dir, app_app, "Contents", "MacOS")
     [res_dir, mac_dir].map { |x| FileUtils.mkdir_p(x) }
@@ -476,7 +476,7 @@ Shoes.app height: 600 do
   <key>CFBundleGetInfoString</key>
   <string>#{app_name} #{vers.join(".")}</string>
   <key>CFBundleExecutable</key>
-  <string>shoes-osx-install</string>
+  <string>osx-app</string>
   <key>CFBundleIdentifier</key>
   <string>org.hackety.#{name}</string>
   <key>CFBundleName</key>
@@ -493,12 +493,6 @@ Shoes.app height: 600 do
   <integer>#{vers[0]}</integer>
   <key>IFMinorVersion</key>
   <integer>#{vers[1]}</integer>
-  <key>SHOES_DOWNLOAD_SITE</key>
-  <string>http://#{@dnlhost}s</string>
-  <key>SHOES_DOWNLOAD_PATH</key>
-  <string>#{@dnlsel}</string>
-  <key>SHOES_APP_NAME<key>
-  <string>#{name}-launch</string>
 </dict>
 </plist>
 END
@@ -525,13 +519,15 @@ END
       f << <<END
 #!/bin/bash
 APPPATH="${0%/*}"
+this_dir=$APPPATH
 unset DYLD_LIBRARY_PATH
+APPPATH=/Applications/Shoes.app/Contents/MacOS
 cd "$APPPATH"
 echo "[Pango]" > pangorc
 echo "ModuleFiles=$APPPATH/pango.modules" >> pangorc
 echo "ModulesPath=$APPPATH/pango/modules" >> pangorc
 PANGO_RC_FILE="$APPPATH/pangorc" ./pango-querymodules > pango.modules
-DYLD_LIBRARY_PATH="$APPPATH" PANGO_RC_FILE="$APPPATH/pangorc" SHOES_RUBY_ARCH="#{SHOES_RUBY_ARCH}" ./shoes-bin "#{File.basename(script)}"
+DYLD_LIBRARY_PATH="$APPPATH" PANGO_RC_FILE="$APPPATH/pangorc" SHOES_RUBY_ARCH="#{SHOES_RUBY_ARCH}" ./shoes-bin "$this_dir/#{File.basename(script)}"
 END
     end
     ls = File.join(mac_dir, "#{name}-launch")
@@ -539,14 +535,22 @@ END
     @tarmodes["#{app_app}/Contents/MacOS/#{name}-launch"] = 0755
     FileUtils.cp(script, File.join(mac_dir, File.basename(script)))
     @tarmodes["#{app_app}/Contents/MacOS/#{File.basename(script)}"] = 0644
-    FileUtils.cp(File.join(DIR, "static", "stubs", "cocoa-install"),
+    # copy the downloader 
+    FileUtils.cp(File.join(DIR, "static", "stubs", "shoes-osx-install"),
       File.join(mac_dir, "shoes-osx-install"))
     @tarmodes["#{app_app}/Contents/MacOS/shoes-osx-install"] = 0755
-    #@pkgstat.text = "Creating new archive"
-    #File.open(tgz_path, 'wb') do |f|
-	#  Shy.czf(f, tmp_dir)
-    #end
-    # #Create tar file with correct modes (he hopes)
+    
+    # make the 1st script to run (installs shoes if needed, runs Shoes
+    File.open(File.join("#{mac_dir}", "osx-app"), 'wb') do |a|
+	  rewrite a, File.join(DIR, "static", "stubs", "osx-app-install.tmpl"),
+	    'HOST' => "http://#{@dnlhost}", 'ARCH' => 'osx', 
+	    'PATH' => "/public/select/osx.rb",
+	    'RELNAME' => Shoes::RELEASE_NAME,
+	    'SCRIPT' => "#{name}-launch"
+    end
+    @tarmodes["#{app_app}/Contents/MacOS/osx-app"] = 0755
+    
+    #Create tar file with correct modes (he hopes)
     File.open(tar_path,'wb') do |tf|
       tb = fastcf(tf, tmp_dir, @tarmodes)
     end
@@ -558,7 +562,7 @@ END
       end
       z.close
     end
-    FileUtils.rm_rf(tmp_dir)
+#    FileUtils.rm_rf(tmp_dir)
     FileUtils.rm_rf(tar_path)
     @pkgstat = inscription "Done packaging #{@path} for OSX"
  end
