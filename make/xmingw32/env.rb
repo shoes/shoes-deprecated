@@ -10,7 +10,7 @@
 #ENV['GTK'] = "gtk+-3.0" # pick this or "gtk+-2.0"
 ENV['GTK'] = "gtk+-2.0"
 COPY_GTK = true
-#ENV['GDB'] = "basic" # 'basic' = keep symbols,  or 'profile'
+ENV['GDB'] = "basic" # 'basic' = keep symbols,  or 'profile'
 if ENV['GTK'] == "gtk+-2.0"
   CHROOT = "/srv/chroot/mingwgtk2"
 else
@@ -18,7 +18,8 @@ else
 end
 # Where does ruby code live? Please cross compile Ruby. 
 # Use ruby 2.1.0
-EXT_RUBY = "/srv/chroot/mingwgtk2/opt/local"
+#EXT_RUBY = "/srv/chroot/mingwgtk2/opt/local"
+EXT_RUBY = "/srv/chroot/mingwgtk2/usr/local"
 SHOES_TGT_ARCH = "i386-mingw32"
 # Specify where the Target system binaries live. 
 # Trailing slash is important.
