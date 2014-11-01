@@ -5,6 +5,9 @@ require 'open-uri'
 require 'rubygems/package'
 require 'zlib'
 
+# I'm going to use a $global for the name of script (or shy).
+# because @path is not the same @path in a different Shoes Window.
+$script_path = ""
 Shoes.app height: 600 do
   # get the urls or default
   @shoes_home = "#{ENV['HOME']}/.shoes/#{Shoes::RELEASE_NAME}"
@@ -34,7 +37,7 @@ Shoes.app height: 600 do
   stack do
     para "Package A Shoes Application"
     selt = proc { @sel1.toggle; @sel2.toggle }
-    @path = ""
+    $script_path = ""
     @shy_path = nil
     @sel1 =
       flow do
@@ -42,7 +45,7 @@ Shoes.app height: 600 do
 	    inscription " (or a ", link("directory", &selt), ")"
 	    edit1 = edit_line :width => -120
 	    @bb = button "Browse...", :width => 100 do
-		  @path = edit1.text = ask_open_file
+		  $script_path = edit1.text = ask_open_file
 	    end
 	  end
     @sel2 =
@@ -52,7 +55,7 @@ Shoes.app height: 600 do
 	    edit2 = edit_line :width => -120
 	    @bf = button "Start script", :width => 100 do
 	      # need to create a shy 
-		  @path = edit2.text = ask_open_file
+		  $script_path = edit2.text = ask_open_file
 		  if edit2.text != ""
 		    window do
 		      puts edit2.text
@@ -90,8 +93,8 @@ Shoes.app height: 600 do
 			          stack do
 			            para "Built #{shy_name}"
 			            button "Ok" do
-			              @path = edit2.text = shy_name
-			              puts "Shy is #{@path}"
+			              $script_path = edit2.text = shy_name
+			              puts "Shy is #{$script_path}"
 			              close
 			            end
 			          end
@@ -230,7 +233,7 @@ Shoes.app height: 600 do
   #here's where the fun begins. Processing one item.  Download it, pull it
   # apart, put the app in and put it back together. Or something like that.
   def platform_download fname, szMB, timestamp
-    if @path == '' 
+    if $script_path == '' 
       alert "Please enter a file name or directory"
       return
     end
@@ -284,7 +287,7 @@ Shoes.app height: 600 do
       case @work_path
       when /\.run$/
        Thread.new do
-          @pkgstat = inscription "Linux repack #{@path} for#{@work_path}"
+          @pkgstat = inscription "Linux repack #{$script_path} for#{@work_path}"
           #@pkgbar = progress :width => 1.0, :height => 14 
           arch = @work_path[/(\w+)\.run$/] 
           arch.gsub!('.run','')
@@ -293,7 +296,7 @@ Shoes.app height: 600 do
       when /\.install$/
        # Shoes 3.2.15 and later uses .install
        Thread.new do
-          @pkgstat = inscription "Linux repack #{@path} for#{@work_path}"
+          @pkgstat = inscription "Linux repack #{$script_path} for#{@work_path}"
           #@pkgbar = progress :width => 1.0, :height => 14 
           arch = @work_path[/(\w+)\.install$/] 
           arch.gsub!('.install','')
@@ -302,12 +305,12 @@ Shoes.app height: 600 do
         end
       when /.exe$/
         Thread.new do
-          @pkgstat = inscription "Windows repack #{@path} for#{@work_path}"
+          @pkgstat = inscription "Windows repack #{$script_path} for#{@work_path}"
           repack_exe
         end
       when /osx\-.*.tgz$/
         Thread.new do
-          @pkgstat = inscription "OSX repack #{@path} for#{@work_path}"
+          @pkgstat = inscription "OSX repack #{$script_path} for#{@work_path}"
           repack_osx
         end
       else
@@ -344,9 +347,9 @@ Shoes.app height: 600 do
     # the packed install.sh
     arch = installname[/(\w+)\.install$/]
     arch.gsub!(/\.install/,"")
-    #alert "Pack for #{arch} #{installname} #{@path}"
-    script = @path
-    puts "script is #{script} #{@path}"
+    #alert "Pack for #{arch} #{installname} #{$script_path}"
+    script = $script_path
+    puts "script is #{script} #{$script_path}"
     name = File.basename(script).gsub(/\.\w+$/, '')
     app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
     run_path = script.gsub(/\.\w+$/, '') + "-#{arch}.run"
@@ -394,7 +397,7 @@ Shoes.app height: 600 do
 	     f.write f2.read(8192) until f2.eof
 	  end
     end
-    @pkgstat = inscription "Done packaging #{@path} for Linux #{arch}"
+    @pkgstat = inscription "Done packaging #{$script_path} for Linux #{arch}"
     FileUtils.chmod 0755, run_path
     FileUtils.rm_rf(tgz_path)
     FileUtils.rm_rf(tmp_dir)
@@ -402,7 +405,8 @@ Shoes.app height: 600 do
   end
   
   def dnlif_exe
-    script = @path
+    script = $script_path
+    debug "win script = #{script}"
     size = File.size(script)
     f = File.open(script, 'rb')
     inf = File.join(DIR, "static", "stubs", 'shoes-stub.exe')
@@ -414,15 +418,16 @@ Shoes.app height: 600 do
       exe.inject_string(Winject::EXE::SHOES_DOWNLOAD_PATH, "/public/select/win32.rb")
       exe.save(script.gsub(/\.\w+$/, '') + ".exe") 
     rescue StandardError => e
+        error "Failed to create Winject::Exe #{e}"
         puts "Failed to create Winject::EXE #{e}"
     end
         
     f.close
-    @pkgstat = inscription "Done packaging #{@path} for Windows"
+    @pkgstat = inscription "Done packaging #{$script_path} for Windows"
   end
 
   def dnlif_osx
-    script = @path
+    script = $script_path
     name = File.basename(script).gsub(/\.\w+$/, '')
     app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
     #vol_name = name.capitalize.gsub(/[-_](\w)/) { " " + $1.capitalize }
@@ -564,12 +569,12 @@ END
     end
 #    FileUtils.rm_rf(tmp_dir)
     FileUtils.rm_rf(tar_path)
-    @pkgstat = inscription "Done packaging #{@path} for OSX"
+    @pkgstat = inscription "Done packaging #{$script_path} for OSX"
  end
   
 # ===== full download and package ===  
   def repack_linux  arch
-    script = @path
+    script = $script_path
     name = File.basename(script).gsub(/\.\w+$/, '')
     app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
     run_path = script.gsub(/\.\w+$/, '') + "-#{arch}.run"
@@ -646,7 +651,7 @@ END
   end
   
   def repack_exe
-      script = @path
+      script = $script_path
       size = File.size(script)
       f = File.open(script, 'rb')
       begin
@@ -671,7 +676,7 @@ END
    end
 
   def repack_osx
-    script = @path
+    script = $script_path
     name = File.basename(script).gsub(/\.\w+$/, '')
     app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
     #vol_name = name.capitalize.gsub(/[-_](\w)/) { " " + $1.capitalize }
