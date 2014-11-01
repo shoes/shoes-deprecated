@@ -1,12 +1,51 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-11-01 
+     write Projects/shytest inside is test.rb and dino.jpg
+     Package dnlif shytest.exe - shoes console on windows complains 
+     about S:1:Invalid char '\x01'  . Shoes is fine with the shytest.shy
+     Is this a problem stuffing the resources into the exe.  UTF16LE vs
+     utf-8 vs ascii. ?
+----> Bring out the pe tools.
+  
+2014-10-31
+----> gmon.out is being generated. Did I compile glib to do that?
+      Yes I did - see 2014-10-10 comment. I need to undo that.
+
+     Need more rigourous testing of packaging with/for windows problems
+----> Bug #1 Windows won't package for Windows
+      Windows Ruby/exerb complains about nt header signature. Ian believes
+      it's Stringio. It could be.
+
+----> Bug #2 From Linux, package ytm dir
+----> 1. dnlif works fine - double check - does it have the data and error 
+         messages - NO. It's not creating a temp dir in Windows
+      2. include shoes - the big ytm.exe downloads shoes! and then runs
+        the ytb script using the Shoes inside the ytm.exe (discarding 
+        the downloaded one). There is no data (or debugging messages)
+        displayed by ytm.exe/ytm.rb
+
+----> Blog post to warn users about Windows packaging bugs. 
+         
+   
+done: Set the windows files to use the beta site.
+done: upload the download.url and selector.url to the beta/share dir.
+done: Cross compile ruby 2.1.4
+done: Which gems version is included with 2.2.2. OK enough for Shoes
+done: Change rake files to use /srv/chroot/mingwgtk2/usr/local
+done: must install 2.1.4 (rvm) on build system. at least it didn't have
+     a prebuilt binary!
+----> didn't fix the nt header problem for Windows from Windows. 
+  
 2014-10-30
    Setup walkabout.mvmanila.com/public/shoes and /public/select as beta test
    site. 
    
    Aha - bitten by Shoes class. @path is different in the shy window
      than it is in the packager window. 
+----> Used a $global. It should be packaging shy as well as single scripts.
+     It's not but it should.
 
 2014-10-29
     Ian insists his nsis installer needs to be used. I can test that again.
