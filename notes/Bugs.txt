@@ -7,11 +7,21 @@ Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
      about S:1:Invalid char '\x01'  . Shoes is fine with the shytest.shy
      Is this a problem stuffing the resources into the exe.  UTF16LE vs
      utf-8 vs ascii. ?
-----> Bring out the pe tools.
-  
+done: Bring out the pe tools.
+     The shy seems to be fine inside the pe RCDATA resource.
+Done: shytest, ytm, isp is working (dnlif) stub.c was not properly
+     getting the string resource - right where it said // cjc hack.
+     Serves me right!
+     
+done: Compiling stubs.c - if ENV['GDB']  -DSTUB_DEBUG
+done: Test full install (ytm?). Still downloads even if shoes is included.
+     do I suspect stub.m? Hell yeh. Fixed, but kind of hacky.
+----> Still has the nt sigature error when packing from Windows to Windows
+----> gmon.out ?
+
 2014-10-31
 ----> gmon.out is being generated. Did I compile glib to do that?
-      Yes I did - see 2014-10-10 comment. I need to undo that.
+done: Yes I did - see 2014-10-10 comment. I need to undo that.
 
      Need more rigourous testing of packaging with/for windows problems
 ----> Bug #1 Windows won't package for Windows

@@ -294,7 +294,10 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
     }
   }
 
-  setupres = FindResource(inst, "SHOES_SETUP", RT_RCDATA);
+  setupres = FindResource(inst, "SHOES_SETUP", RT_RCDATA);  //msvc way
+  if (setupres == NULL) {
+    setupres = FindResource(inst, MAKEINTRESOURCE(SHOES_SYS_SETUP), RT_RCDATA);
+  }
   plen = sizeof(path);
   if (!(shoes = reg_s((hkey=HKEY_LOCAL_MACHINE), key, "", (LPBYTE)&path, &plen)))
     shoes = reg_s((hkey=HKEY_CURRENT_USER), key, "", (LPBYTE)&path, &plen);
@@ -322,7 +325,7 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
 	dnlpathres = FindResource(inst, MAKEINTRESOURCE(SHOES_DOWNLOAD_PATH), RT_STRING);
 	tmpptr = LoadResource(inst, dnlpathres);
     tlen = SizeofResource(inst, dnlpathres);
-    wcscpy(download_path, tmpptr+2);
+    wcscpy(download_path, tmpptr+2); // more hack
 
     
     LPTHREAD_START_ROUTINE back_action = (LPTHREAD_START_ROUTINE)shoes_auto_setup;
@@ -359,9 +362,11 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
   if (shoes)
   {
     GetTempPath(BUFSIZE, buf);
-    data = LoadResource(inst, nameres);
-    len = SizeofResource(inst, nameres);
-    strncat(buf, (LPTSTR)data+2, len);  // cjc hack
+    char *str = shoes_str_load(inst, SHOES_APP_NAME);
+    strcat(buf, (LPTSTR)str);
+    //data = LoadResource(inst, nameres);
+    //len = SizeofResource(inst, nameres);
+    //strncat(buf, (LPTSTR)data+2, len);  // cjc hack
 
     payload = CreateFile(buf, GENERIC_READ | GENERIC_WRITE,
       FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -375,7 +380,11 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
       WriteFile(payload, (LPBYTE)data, len, &rlen, NULL);
     }
     CloseHandle(payload);
-
+#ifdef STUB_DEBUG    
+    printf("payload %s, len: %d\n", buf, len);
+#else
+    printf("payload %s, len: %d\n", buf, len);
+#endif
     sprintf(cmd, "%s\\..\\shoes.bat", path);
     ShellExecute(NULL, "open", cmd, buf, NULL, 0);
   }
