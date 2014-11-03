@@ -381,12 +381,13 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
     }
     CloseHandle(payload);
 #ifdef STUB_DEBUG    
-    printf("payload %s, len: %d\n", buf, len);
-#else
-    printf("payload %s, len: %d\n", buf, len);
+    printf("payload %s, len: %d\n", buf, (int)len);
 #endif
-    sprintf(cmd, "%s\\..\\shoes.bat", path);
-    ShellExecute(NULL, "open", cmd, buf, NULL, 0);
+    //sprintf(cmd, "%s\\..\\shoes.bat", path);
+    sprintf(cmd, "%s\\shoes.exe", path);
+    printf("cmd: %s\n", path);
+    //ShellExecute(NULL, "open", cmd, buf, NULL, 0);
+    ShellExecute(NULL, "open", cmd, path, NULL, 0);
   }
 
   return 0;
