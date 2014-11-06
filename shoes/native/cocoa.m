@@ -364,10 +364,10 @@
 }
 
 // cjc Shoes4 bug860
--(void)textDidEndEditing: (NSNotification *)n
-{
-	shoes_control_send(object, s_donekey);
-}
+//-(void)textDidEndEditing: (NSNotification *)n
+//{
+//	shoes_control_send(object, s_donekey);
+//}
 @end
 
 @implementation ShoesSecureTextField
