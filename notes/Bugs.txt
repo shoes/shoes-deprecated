@@ -1,6 +1,29 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-11-03
+----> osx bug was my edit for edit_line finish proc. comment out for
+      now - then do it properly. 
+----> stub.m should be working properly
+done: found the loose -pg flag that was putting out gmon.out
+  
+2014-11-02 All the bugs to fix soon
+done: find the gmon.out
+----> NT signature bug
+====> Try Ian's newest base.nsi ++ - 
+      seems to work for install/uninstall but I need to fix stub.c
+      to replace bat file for shoes.exe invoke.
+      Ian's nsi doesn't work well with stub.c dnlif or full packaging
+      it always (re)installs or downloads and installs.
+      Can't find the magic to invoke shoes.exe either.
+done: OSX #209 the bug is back - edit_line. related to something I did
+      with the new method? Yah Think?
+done? Ian says turning off the Avast! antivirus system stops the shoes
+      reload/repainting.
+----> Move .shoes to LCLAPPDATA in cache.rb. Make it more friendly for 
+      Windows users. 
+----> OSX/homebrew/rakefiles libgif. 
+  
 2014-11-01 
      write Projects/shytest inside is test.rb and dino.jpg
      Package dnlif shytest.exe - shoes console on windows complains 
@@ -16,11 +39,12 @@ Done: shytest, ytm, isp is working (dnlif) stub.c was not properly
 done: Compiling stubs.c - if ENV['GDB']  -DSTUB_DEBUG
 done: Test full install (ytm?). Still downloads even if shoes is included.
      do I suspect stub.m? Hell yeh. Fixed, but kind of hacky.
+     
 ----> Still has the nt sigature error when packing from Windows to Windows
-----> gmon.out ?
+----> gmon.out 
 
 2014-10-31
-----> gmon.out is being generated. Did I compile glib to do that?
+done: gmon.out is being generated. Did I compile glib to do that?
 done: Yes I did - see 2014-10-10 comment. I need to undo that.
 
      Need more rigourous testing of packaging with/for windows problems
@@ -28,15 +52,15 @@ done: Yes I did - see 2014-10-10 comment. I need to undo that.
       Windows Ruby/exerb complains about nt header signature. Ian believes
       it's Stringio. It could be.
 
-----> Bug #2 From Linux, package ytm dir
-----> 1. dnlif works fine - double check - does it have the data and error 
+done: Bug #2 From Linux, package ytm dir
+done: 1. dnlif works fine - double check - does it have the data and error 
          messages - NO. It's not creating a temp dir in Windows
       2. include shoes - the big ytm.exe downloads shoes! and then runs
         the ytb script using the Shoes inside the ytm.exe (discarding 
         the downloaded one). There is no data (or debugging messages)
         displayed by ytm.exe/ytm.rb
 
-----> Blog post to warn users about Windows packaging bugs. 
+done: Blog post to warn users about Windows packaging bugs. 
          
    
 done: Set the windows files to use the beta site.
@@ -49,13 +73,13 @@ done: must install 2.1.4 (rvm) on build system. at least it didn't have
 ----> didn't fix the nt header problem for Windows from Windows. 
   
 2014-10-30
-   Setup walkabout.mvmanila.com/public/shoes and /public/select as beta test
-   site. 
+     Setup walkabout.mvmanila.com/public/shoes and /public/select as beta 
+     test site. 
    
-   Aha - bitten by Shoes class. @path is different in the shy window
+     Aha - bitten by Shoes class. @path is different in the shy window
      than it is in the packager window. 
-----> Used a $global. It should be packaging shy as well as single scripts.
-     It's not but it should.
+done: Used a $global. It should be packaging shy as well as single scripts.
+     
 
 2014-10-29
     Ian insists his nsis installer needs to be used. I can test that again.

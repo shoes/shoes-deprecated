@@ -140,7 +140,7 @@ LINUX_LDFLAGS << "-lfontconfig" if ENV['GTK'] == 'gtk+-2.0'
 RUBY_LDFLAGS = "-Wl,-export-all-symbols "
 RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lmsvcrt-ruby210 "
 
-LINUX_LDFLAGS << " -pg -lwinhttp -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 "
+LINUX_LDFLAGS << "#{ENV['GDB'] == 'profile' ? '-pg' : ' '} -lwinhttp -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 "
 
 #LINUX_LIBS = " -L/usr/lib "
 LINUX_LIBS = " -L#{bindll} "
