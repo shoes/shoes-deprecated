@@ -3,7 +3,7 @@
 desc "Build stubs (MinGW cross compile only)"
 task :stubs  do
   dbg = ENV['GDB']
-  dbg = 'basic'  # uncomment if needed
+  #dbg = 'basic'  # uncomment if needed
   CPP = "i686-w64-mingw32-g++"
   Dir.chdir("shoes/http") do
     sh "#{CC} #{LINUX_CFLAGS} -I../../ -c winhttp.c"

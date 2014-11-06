@@ -268,7 +268,8 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
   HANDLE payload, th;
   MSG msg;
   char *key = "SOFTWARE\\Hackety.org\\Shoes";
-  
+  //char *key = "Software\\Hackety.org\\Shoes";
+ 
   
   // Allow old String lookups first, then id# 
   nameres = FindResource(inst, "SHOES_FILENAME", RT_STRING);
@@ -304,8 +305,11 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
 
   if (shoes)
   {
-    sprintf(cmd, "%s\\shoes.exe", path);
-    if (!file_exists(cmd)) shoes = FALSE;
+    //sprintf(cmd, "%s\\shoes.exe", path);
+    //printf("bfr: %s\n", cmd);
+    //if (!file_exists(cmd)) shoes = FALSE;
+    //memset(cmd, 0, BUFSIZE);
+    if (!file_exists(path)) shoes = FALSE;
     memset(cmd, 0, BUFSIZE);
   }
 
@@ -382,12 +386,13 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
     CloseHandle(payload);
 #ifdef STUB_DEBUG    
     printf("payload %s, len: %d\n", buf, (int)len);
-#endif
-    //sprintf(cmd, "%s\\..\\shoes.bat", path);
-    sprintf(cmd, "%s\\shoes.exe", path);
     printf("cmd: %s\n", path);
-    //ShellExecute(NULL, "open", cmd, buf, NULL, 0);
-    ShellExecute(NULL, "open", cmd, path, NULL, 0);
+ #endif
+    HINSTANCE retcode;
+    retcode = ShellExecute(NULL, "open", path, buf, NULL, SW_SHOWNORMAL);
+#ifdef STUB_DEBUG
+    printf("Return: %i\n", (int)retcode);
+#endif
   }
 
   return 0;
