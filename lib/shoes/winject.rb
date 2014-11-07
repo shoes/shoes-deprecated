@@ -20,7 +20,8 @@ module Winject
     def initialize filepath
       #puts "Winject init from #{filepath}"
       rawpe = ''
-      File.open(filepath, 'r:ASCII-8BIT') {|file| rawpe = file.read}
+      #File.open(filepath, 'r:ASCII-8BIT') {|file| rawpe = file.read}
+      File.open(filepath, 'rb') {|file| rawpe = file.read}
       # parse the rawpe into Exerb objects
       return @exe = Exerb::Executable.new(rawpe)
     end

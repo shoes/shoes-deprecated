@@ -1,16 +1,27 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
+ 
+2014-11-06
+     write a ruby (no shoes) app 'petest' that doing the packaging thing.
+     put a e.backtrace in the app_package rescue. and turn on all the
+     debugging stuff (again) for windows.
+done: Windows packaging for Windows -nt header error. Fixed by
+     by open stub with 'rb' not 'r:ASCII-8BIT'
+  
+2014-11-05
+done: base.nsi and stub are working together for Windows packaging.
+      .shy or .rb, download if needed or include shoes. 
   
 2014-11-03
 ----> osx bug was my edit for edit_line finish proc. comment out for
       now - then do it properly. 
-----> stub.m should be working properly
+done: stub.c should be working properly
 done: found the loose -pg flag that was putting out gmon.out
   
 2014-11-02 All the bugs to fix soon
 done: find the gmon.out
 ----> NT signature bug
-====> Try Ian's newest base.nsi ++ - 
+done: Try Ian's newest base.nsi ++ - 
       seems to work for install/uninstall but I need to fix stub.c
       to replace bat file for shoes.exe invoke.
       Ian's nsi doesn't work well with stub.c dnlif or full packaging

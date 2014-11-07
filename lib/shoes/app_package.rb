@@ -419,7 +419,9 @@ Shoes.app height: 600 do
       exe.save(script.gsub(/\.\w+$/, '') + ".exe") 
     rescue StandardError => e
         error "Failed to create Winject::Exe #{e}"
+        error e.backtrace.join("\n")
         puts "Failed to create Winject::EXE #{e}"
+        puts e.backtrace.join("\n")
     end
         
     f.close
