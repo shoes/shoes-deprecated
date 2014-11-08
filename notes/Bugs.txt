@@ -1,6 +1,32 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
  
+2014-11-07
+----> Figure out jekyll and shoesrb/.
+----> add user and password to github config for shoesrb/
+Done: cache.rb Use ENV[LOCALAPPDATA] instead of [HOME/.shoes
+      OK on windows and linux.
+----> On Windows, full packaging for Linux never completes.
+done: ML post about 3.2.17
+
+
+     What could be in 3.2.18 ?
+     - use LCLAPPDATA to place .shoes/ .gems/ in APPDATA for Windows.
+     - add the finish proc to OSX edit_line (properly this time)
+     - gtk2 themes for Windows
+     - Save shy contents in Documents/Shoes/<shy-name>/ All platforms
+       Make this the job of the shoes-uber-installer script inside the package
+     - OSX radio buttons default
+     - Windows/gtk App window resize bug. 
+    Has to be done sometime:
+     - compiler warnings and code/rake de-comment, remove puts/printfs
+     - update Federales page on website.
+     - update 3.2 pages on Wiki
+     - Rewrite Build Shoes on Windows at wiki.
+     - OSX/homebrew/rakefiles libgif.
+     - Many glib-gobject warnings for Attempt to add property GtkSettings::
+       This is the new Raspbian's gtk2     
+
 2014-11-06
      write a ruby (no shoes) app 'petest' that doing the packaging thing.
      put a e.backtrace in the app_package rescue. and turn on all the
@@ -20,7 +46,7 @@ done: found the loose -pg flag that was putting out gmon.out
   
 2014-11-02 All the bugs to fix soon
 done: find the gmon.out
-----> NT signature bug
+done: NT signature bug
 done: Try Ian's newest base.nsi ++ - 
       seems to work for install/uninstall but I need to fix stub.c
       to replace bat file for shoes.exe invoke.
@@ -51,15 +77,15 @@ done: Compiling stubs.c - if ENV['GDB']  -DSTUB_DEBUG
 done: Test full install (ytm?). Still downloads even if shoes is included.
      do I suspect stub.m? Hell yeh. Fixed, but kind of hacky.
      
-----> Still has the nt sigature error when packing from Windows to Windows
-----> gmon.out 
+done: Still has the nt sigature error when packing from Windows to Windows
+done: gmon.out 
 
 2014-10-31
 done: gmon.out is being generated. Did I compile glib to do that?
 done: Yes I did - see 2014-10-10 comment. I need to undo that.
 
      Need more rigourous testing of packaging with/for windows problems
-----> Bug #1 Windows won't package for Windows
+done: Bug #1 Windows won't package for Windows
       Windows Ruby/exerb complains about nt header signature. Ian believes
       it's Stringio. It could be.
 
@@ -81,7 +107,7 @@ done: Which gems version is included with 2.2.2. OK enough for Shoes
 done: Change rake files to use /srv/chroot/mingwgtk2/usr/local
 done: must install 2.1.4 (rvm) on build system. at least it didn't have
      a prebuilt binary!
-----> didn't fix the nt header problem for Windows from Windows. 
+done: didn't fix the nt header problem for Windows from Windows. 
   
 2014-10-30
      Setup walkabout.mvmanila.com/public/shoes and /public/select as beta 
