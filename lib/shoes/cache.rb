@@ -6,8 +6,9 @@ require_relative 'download.rb'
 require 'tmpdir'
 lib_dir = nil
 homes = []
-homes << [ENV['HOME'], File.join( ENV['HOME'], '.shoes' )] if ENV['HOME']
+homes << [ENV['LOCALAPPDATA'], File.join( ENV['LOCALAPPDATA'], 'Shoes')] if ENV['LOCALAPPDATA']
 homes << [ENV['APPDATA'], File.join( ENV['APPDATA'], 'Shoes' )] if ENV['APPDATA']
+homes << [ENV['HOME'], File.join( ENV['HOME'], '.shoes' )] if ENV['HOME']
 homes.each do |home_top, home_dir|
   next unless home_top
   if File.exists? home_top
@@ -17,8 +18,6 @@ homes.each do |home_top, home_dir|
 end
 LIB_DIR = lib_dir || File.join(Dir::tmpdir, "shoes")
 LIB_DIR.gsub! /\\/, '\/'
-
-#' Stupid comment quote for Geany syntax color matching bug
 
 tight_shoes = Shoes::RELEASE_TYPE =~ /TIGHT/
 rbv = RbConfig::CONFIG['ruby_version']
