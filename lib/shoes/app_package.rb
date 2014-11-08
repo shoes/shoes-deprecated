@@ -301,7 +301,7 @@ Shoes.app height: 600 do
           arch = @work_path[/(\w+)\.install$/] 
           arch.gsub!('.install','')
           @options['arch'] = arch
-          repack_linux 
+          repack_linux arch
         end
       when /.exe$/
         Thread.new do
