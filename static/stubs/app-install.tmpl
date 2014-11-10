@@ -1,0 +1,65 @@
+# installs #{SHYFILE} in s user specified directory
+require 'shoes/shy'
+require 'fileutils'
+require 'rubygems/package'
+# to test this without going thru packaging
+# create folder 'foo' for example
+# copy a shy built from Shoes to foo
+# copy this script there. Edit and set the shyname var to the avs path
+# of the shy in foo
+# cd into foo and invoke 'shoes this-script'
+Shoes.app do
+  shyname = File.basename("#{SHYFILE}")
+  #shyname = File.basename("/home/ccoupe/Projects/unshy/ytm.shy")
+  curloc = Dir.getwd()    # most likely to be a temp dir somewhere
+  shypath = File.join(curloc,shyname)
+  shyfile = File.open(shypath,'rb')
+  hdr = Shy.__hdr__(shyfile)
+  stack do
+    para "#{hdr.name} version #{hdr.version} from #{hdr.creator} Humbly requests that
+ you pick a folder to put it's files in."
+    flow do
+      @dirfld = edit_line :width => 400 
+      @dirfld.text = "#{ENV['HOME']}/Documents/#{File.basename(shyfile,'.shy')}"
+      button "Select..." do
+        @dirfld.text = ask_save_folder()
+      end
+    end
+    flow do
+      button "Install #{hdr.name}" do
+        mkdir_p @dirfld.text
+        Dir.chdir @dirfld.text do
+          extract shyfile
+          if @run_it.checked?
+            alert "Would be run here"
+          end
+          if confirm("Quit") 
+            quit
+          end
+        end
+      end
+      flow { @run_it = check; para "Start #{hdr.name}" }
+      @run_it.checked = true
+    end
+  end
+  
+  def extract opened_file
+    Gem::Package::TarReader.new( Zlib::GzipReader.new(opened_file)) do |tar|
+      tar.each do |entry|
+        dest = entry.full_name
+	    if entry.directory?
+	      FileUtils.rm_rf dest unless File.directory? dest
+	      FileUtils.mkdir_p dest, :mode => entry.header.mode, :verbose => false
+	    elsif entry.file?
+	      FileUtils.rm_rf dest unless File.file? dest
+	      File.open dest, "wb" do |f|
+	        f.print entry.read
+	       end
+	       FileUtils.chmod entry.header.mode, dest, :verbose => false
+	    elsif entry.header.typeflag == '2' #Symlink!
+	      alert "Cannot convert Symlinks. Contact #{hdr.creator}"
+	    end
+      end
+    end
+  end
+end

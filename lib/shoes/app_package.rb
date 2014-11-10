@@ -115,31 +115,34 @@ Shoes.app height: 600 do
         @inclradio = radio :dnl; para "Shoes will be included with my app."
       end
       @inclradio.checked = @options['inclshoes']
-      # comment out 3.2.17 options
-      #para "Advanced options -- CAUTION -- may not work everywhere"
-      #flow do
-      #  @noadvopts = radio :advopts; para "No thanks." 
-      #  @defadvopts = radio :advopts do
-      #    @advpanel.show if @defadvopts.checked?
-      #    @advpanel.hide if !@defadvopts.checked?
-      #  end
-      #  para "I want advanced options"
-      #end
-      #@advpanel = stack :hidden => true do
-      #  flow do
-      #    para "I have my own install script  "
-      #    button "Select script"
-      #  end
-      #  flow do
-      #    check; para "Expand shy in users directory"
-      #  end
+      # comment out 3.2.18 options
+      para "Advanced installer -- CAUTION -- may not work everywhere"
+      flow do
+        @noadvopts = radio :advopts; para "No thanks." 
+        @defadvopts = radio :advopts do
+          @advpanel.show if @defadvopts.checked?
+          @advpanel.hide if !@defadvopts.checked?
+        end
+        para "I want advanced options"
+      end
+      @advpanel = stack :hidden => true do
+        flow do
+          para "I have my own install script  "
+          button "Select script"
+        end
+        flow do
+          @expandshy = check do 
+            @options['expandshy'] = @expandshy.checked?
+          end
+          para "Expand shy in users directory"
+        end
       #  flow do
       #    check; para "I have gems to be installed"
       #  end
       #  flow do
       #    check; para "I have icons for Windows, OSX and Linux"
       #  end
-      #end
+      end
     end
     @menu_panel = stack do
       flow do 
@@ -348,7 +351,7 @@ Shoes.app height: 600 do
     arch = installname[/(\w+)\.install$/]
     arch.gsub!(/\.install/,"")
     #alert "Pack for #{arch} #{installname} #{$script_path}"
-    script = $script_path
+    script = custom_installer $script_path
     puts "script is #{script} #{$script_path}"
     name = File.basename(script).gsub(/\.\w+$/, '')
     app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
@@ -405,7 +408,7 @@ Shoes.app height: 600 do
   end
   
   def dnlif_exe
-    script = $script_path
+    script = custom_installer $script_path
     debug "win script = #{script}"
     size = File.size(script)
     f = File.open(script, 'rb')
@@ -429,7 +432,7 @@ Shoes.app height: 600 do
   end
 
   def dnlif_osx
-    script = $script_path
+    script = custom_installer $script_path
     name = File.basename(script).gsub(/\.\w+$/, '')
     app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
     #vol_name = name.capitalize.gsub(/[-_](\w)/) { " " + $1.capitalize }
@@ -576,7 +579,7 @@ END
   
 # ===== full download and package ===  
   def repack_linux  arch
-    script = $script_path
+    script = custom_installer $script_path
     name = File.basename(script).gsub(/\.\w+$/, '')
     app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
     run_path = script.gsub(/\.\w+$/, '') + "-#{arch}.run"
@@ -653,7 +656,7 @@ END
   end
   
   def repack_exe
-      script = $script_path
+      script = custom_installer $script_path
       size = File.size(script)
       f = File.open(script, 'rb')
       begin
@@ -678,7 +681,7 @@ END
    end
 
   def repack_osx
-    script = $script_path
+    script = custom_installer $script_path
     name = File.basename(script).gsub(/\.\w+$/, '')
     app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
     #vol_name = name.capitalize.gsub(/[-_](\w)/) { " " + $1.capitalize }
@@ -871,6 +874,45 @@ END
 	end
 	outf.rewind
 	outf
+  end
+  
+  def custom_installer defshy
+    if @options['expandshy'] != true
+        return defshy
+    end
+    if ! defshy[/\.shy$/] then
+        alert "Must be a shy"
+        return defshy
+    end
+    appname = File.basename(defshy,".shy")
+    shydir = File.dirname(defshy)
+    tmp_dir = File.join(LIB_DIR, "+shy", appname)
+    FileUtils.rm_rf(tmp_dir)
+    FileUtils.mkdir_p(tmp_dir)
+    # copy shy to tmp - TODO: Copy User Script here
+    FileUtils.cp(defshy, tmp_dir)
+    # copy app-install.tmpl with rewrite
+    File.open(File.join(tmp_dir, "#{appname}-install.rb"), 'wb') do |a|
+	  rewrite a, File.join(DIR, "static", "stubs", "app-install.tmpl"),
+	    'SHYFILE' => "#{defshy}"
+    end
+    # TODO: Copy icons.zip and gems.zip here.
+    # Create a shy header for the installer.
+    shy_desc = Shy.new
+    shy_desc.launch = "#{appname}-install.rb"
+    shy_desc.name = appname
+    shy_desc.version = "1.0"
+    shy_desc.creator = "Shoes"
+    # Create the new shy. Grrr -- read shy.rb
+    new_shypath = File.join(LIB_DIR, '+shy')
+    Dir.chdir(new_shypath) do
+      Shy.c(appname+'.shy', shy_desc, tmp_dir)
+    end
+    alert "Check your Directories #{new_shypath}\n amd #{defshy}"
+    # write over the incoming shy with the new one
+    FileUtils.cp File.join(new_shypath,"#{appname}.shy"), defshy
+    # delete the +shy temp stuff
+    return defshy
   end
 
 end
