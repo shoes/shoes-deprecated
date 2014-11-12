@@ -116,33 +116,33 @@ Shoes.app height: 600 do
       end
       @inclradio.checked = @options['inclshoes']
       # comment out 3.2.18 options
-      para "Advanced installer -- CAUTION -- may not work everywhere"
-      flow do
-        @noadvopts = radio :advopts; para "No thanks." 
-        @defadvopts = radio :advopts do
-          @advpanel.show if @defadvopts.checked?
-          @advpanel.hide if !@defadvopts.checked?
-        end
-        para "I want advanced options"
-      end
-      @advpanel = stack :hidden => true do
-        flow do
-          para "I have my own install script  "
-          button "Select script"
-        end
-        flow do
-          @expandshy = check do 
-            @options['expandshy'] = @expandshy.checked?
-          end
-          para "Expand shy in users directory"
-        end
+      #para "Advanced installer -- CAUTION -- may not work everywhere"
+      #flow do
+      #  @noadvopts = radio :advopts; para "No thanks." 
+      #  @defadvopts = radio :advopts do
+      #   @advpanel.show if @defadvopts.checked?
+      #   @advpanel.hide if !@defadvopts.checked?
+      # end
+      # para "I want advanced options"
+      #end
+      #@advpanel = stack :hidden => true do
+      # flow do
+      #   para "I have my own install script  "
+      #   button "Select script"
+      # end
+      # flow do
+      #   @expandshy = check do 
+      #     @options['expandshy'] = @expandshy.checked?
+      #   end
+      #   para "Expand shy in users directory"
+      # end
       #  flow do
       #    check; para "I have gems to be installed"
       #  end
       #  flow do
       #    check; para "I have icons for Windows, OSX and Linux"
       #  end
-      end
+      #end
     end
     @menu_panel = stack do
       flow do 

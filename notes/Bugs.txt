@@ -1,23 +1,40 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
+  
+2014-11-11
+----> I'm not sure the extra packaging step is worth the effort.
+      Don't delete the code. Comment out. 
+  
+2014-11-10
+----> try replacing icons with exerb. Projects/petest/iconcopy.rb
+     figure out getting a list of icons from the pe. 
+  
+2014-11-09
+done: Mock up a second level installer that saves the shy contents in
+      User space. Needs work. It's ugly. 
+     
+2014-11-08
+done: Fixed bug for Linux packaging (full)
+----> Call custom_installer from dnlif, repack - 6 places in app_package.rb
+----> Test - do no harm if advanced is not selected.
  
 2014-11-07
 ----> Figure out jekyll and shoesrb/.
 ----> add user and password to github config for shoesrb/
 Done: cache.rb Use ENV[LOCALAPPDATA] instead of [HOME/.shoes
       OK on windows and linux.
-----> On Windows, full packaging for Linux never completes.
+----> Full packaging for Linux never completes - single script
 done: ML post about 3.2.17
 
 
      What could be in 3.2.18 ?
-     - use LCLAPPDATA to place .shoes/ .gems/ in APPDATA for Windows.
+done: use LOCALAPPDATA to place .shoes/ .gems/ in APPDATA for Windows.
      - add the finish proc to OSX edit_line (properly this time)
      - gtk2 themes for Windows
      - Save shy contents in Documents/Shoes/<shy-name>/ All platforms
        Make this the job of the shoes-uber-installer script inside the package
      - OSX radio buttons default
-     - Windows/gtk App window resize bug. 
+done:  Windows/gtk App window resize bug. 
     Has to be done sometime:
      - compiler warnings and code/rake de-comment, remove puts/printfs
      - update Federales page on website.
