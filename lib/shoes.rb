@@ -445,10 +445,10 @@ class Shoes
         @shy = true
         require 'shoes/shy'
         base = File.basename(path, ".shy")
-        tmpdir = "%s/shoes-%s.%d" % [Dir.tmpdir, base, $$]
+        @tmpdir = tmpdir = "%s/shoes-%s.%d" % [Dir.tmpdir, base, $$]
         shy = Shy.x(path, tmpdir)
         Dir.chdir(tmpdir)
-        Shoes.debug "Loaded SHY: #{shy.name} #{shy.version} by #{shy.creator}"
+        #Shoes.debug "Loaded SHY: #{shy.name} #{shy.version} by #{shy.creator}"
         path = shy.launch
       else
         @shy = false
@@ -465,6 +465,10 @@ class Shoes
   rescue Object => e
     error(e)
     show_log
+  end
+
+  def self.clean
+    FileUtils.rm_rf(@tmpdir, :secure => true) if @shy
   end
 
   def self.read_file path

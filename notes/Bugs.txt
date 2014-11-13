@@ -1,13 +1,17 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
+
+2014-11-13
+done: implement, test, commit Ian's tmpdir fix.
+done: comment debug message in Shy loading.
   
 2014-11-11
 ----> I'm not sure the extra packaging step is worth the effort.
-      Don't delete the code. Comment out. 
+      Don't delete the code. Comment out for now. 
   
 2014-11-10
 ----> try replacing icons with exerb. Projects/petest/iconcopy.rb
-     figure out getting a list of icons from the pe. 
+     Not as easy as I hoped. 
   
 2014-11-09
 done: Mock up a second level installer that saves the shy contents in

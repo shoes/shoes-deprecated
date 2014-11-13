@@ -252,6 +252,7 @@ quit:
 shoes_code
 shoes_final()
 {
+  rb_funcall(cShoes, rb_intern("clean"), 0);
   shoes_world_free(shoes_world);
   return SHOES_OK;
 }
