@@ -106,9 +106,10 @@ void shoes_ruby_init(void);
 //
 #define SHOES_META \
   "(class << Shoes; self; end).instance_eval do;"
-#ifdef SHOES_WIN32
+
+#if defined(SHOES_WIN32) && ! defined(SHOES_GTK_WIN32)
 #define QUIT_ALERT_MSG() MessageBox(NULL, RSTRING_PTR(msg), "Shoes", MB_OK)
-#else
+#else  
 #define QUIT_ALERT_MSG() printf("%s\n", RSTRING_PTR(msg))
 #endif
 #define QUIT_ALERT(v) \

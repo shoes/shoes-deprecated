@@ -1,10 +1,46 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
+  
+2014-11-20
+done: OSX dlnif, test.rb OK, GUI OK.
+----> OSX repack test.rb Ok, GUI OK
+      Does not install shoes to /Applications
+  
+2014-11-19
+done: test.rb and gui packager for windows.
+done: test.rb for linux dnlif - OK gui
+done: test.rb for linux repack (full)
+      it doesn't install shoes to ~/.shoes/federales.
+--->  Note this in docs
+
+      
+----> Cobbler could have a "check updates" button. On the get info page?
+====> Document Cobbler in the Shoes manual.
+====> Document packaging in the Shoes manual.
+
+2014-11-18
+     refactor app_package.rb. @options{} has everything. Move non
+     gui code to Module PackShoes
+done: Windows - full pack starts download, hangs, Cancel, Instals OK
+      silly error in test.rb 
+----> Linux
+      test.rb dnlif
+----> OSX
+  
+2014-11-14
+done: building shoes.exe and cshoes.exe (w and w/o -mwindows)
+      Works pretty well.  'cshoes.exe --ruby ' works!
+done: QUIT_ALERT and QUIT_ALERT_MSG from ruby.h to the single
+      place its invoked - world.c
 
 2014-11-13
 done: implement, test, commit Ian's tmpdir fix.
 done: comment debug message in Shy loading.
-  
+done: install RubyInstaller 2.1.4 (32) and devkit (32)
+done: raise SystemExit "message"  is used to write to the console
+      for  (all platforms). Use fprint(stderr ...) for QUIT_ALERT_MSG in
+      ruby.h
+ 
 2014-11-11
 ----> I'm not sure the extra packaging step is worth the effort.
       Don't delete the code. Comment out for now. 
@@ -19,7 +55,7 @@ done: Mock up a second level installer that saves the shy contents in
      
 2014-11-08
 done: Fixed bug for Linux packaging (full)
-----> Call custom_installer from dnlif, repack - 6 places in app_package.rb
+done: Call custom_installer from dnlif, repack - 6 places in app_package.rb
 ----> Test - do no harm if advanced is not selected.
  
 2014-11-07
@@ -27,7 +63,7 @@ done: Fixed bug for Linux packaging (full)
 ----> add user and password to github config for shoesrb/
 Done: cache.rb Use ENV[LOCALAPPDATA] instead of [HOME/.shoes
       OK on windows and linux.
-----> Full packaging for Linux never completes - single script
+done: Full packaging for Linux never completes - single script
 done: ML post about 3.2.17
 
 
