@@ -155,13 +155,14 @@ class MakeLinux
     def make_app(name)
       puts "make_app dir=#{pwd} arg=#{name}"
       bin = "#{name}.exe"
+      binc = bin.gsub(/shoes\.exe/, 'cshoes.exe')
+      puts "binc  = #{binc}"
       rm_f name
       rm_f bin
-      if lvl = ENV['GDB'] 
-        sh "#{CC} -o #{bin} bin/main.o shoes/appwin32.o -L#{TGT_DIR} #{lvl=='profile'? -pg : ''} -lshoes #{LINUX_LIBS}"
-      else
-        sh "#{CC} -o #{bin} bin/main.o shoes/appwin32.o -L#{TGT_DIR} -mwindows -lshoes #{LINUX_LIBS}"
-       end
+      rm_f binc
+      extra = ENV['GDB'] == 'profile' ? '-pg' : ''
+      sh "#{CC} -o #{bin} bin/main.o shoes/appwin32.o -L#{TGT_DIR} -mwindows -lshoes #{LINUX_LIBS}"
+      sh "#{CC} -o #{binc} bin/main.o shoes/appwin32.o -L#{TGT_DIR} #{extra} -lshoes #{LINUX_LIBS}"
     end
 
     def make_so(name)
