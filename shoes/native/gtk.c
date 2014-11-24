@@ -765,8 +765,10 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
   char icon_path[SHOES_BUFSIZE];
   shoes_app_gtk *gk = &app->os;
 
+#if !defined(SHOES_GTK_WIN32)
   sprintf(icon_path, "%s/static/app-icon.png", shoes_world->path);
   gtk_window_set_default_icon_from_file(icon_path, NULL);
+#endif
   gk->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_position(GTK_WINDOW(gk->window), GTK_WIN_POS_CENTER);
   // commit https://github.com/shoes/shoes/commit/4e7982ddcc8713298b6959804dab8d20111c0038

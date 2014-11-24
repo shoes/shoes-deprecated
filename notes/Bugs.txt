@@ -1,10 +1,13 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-11-21 Shoes 3.2.19 
+  
 2014-11-20
 done: OSX dlnif, test.rb OK, GUI OK.
-----> OSX repack test.rb Ok, GUI OK
-      Does not install shoes to /Applications
+done: OSX repack test.rb Ok, GUI OK
+      repack Does not install shoes to /Applications (like linux)
+done: 3.2.18 released.
   
 2014-11-19
 done: test.rb and gui packager for windows.
@@ -13,8 +16,9 @@ done: test.rb for linux repack (full)
       it doesn't install shoes to ~/.shoes/federales.
 --->  Note this in docs
 
-      
 ----> Cobbler could have a "check updates" button. On the get info page?
+      More effort than I want for 3.2.18. Still a good idea. especially
+      if it could download and install the new release. 
 ====> Document Cobbler in the Shoes manual.
 ====> Document packaging in the Shoes manual.
 
@@ -23,9 +27,9 @@ done: test.rb for linux repack (full)
      gui code to Module PackShoes
 done: Windows - full pack starts download, hangs, Cancel, Instals OK
       silly error in test.rb 
-----> Linux
+done: Linux
       test.rb dnlif
-----> OSX
+done: OSX
   
 2014-11-14
 done: building shoes.exe and cshoes.exe (w and w/o -mwindows)
