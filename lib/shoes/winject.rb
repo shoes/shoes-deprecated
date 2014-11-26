@@ -47,5 +47,30 @@ module Winject
       #puts "Winject file #{id}"
       @exe.rsrc.add_rcdata(id, io)
     end
+    
+    def icons_inject_from(iconf_path)
+      # delete existing RT_ICON's and RT_ICON_GROUP
+      @exe.rsrc.remove(Exerb::Win32::Const::RT_ICON)
+      @exe.rsrc.remove(Exerb::Win32::Const::RT_GROUP_ICON)
+      group_icon = Exerb::Resource::GroupIcon.new
+
+      icos = Exerb::Win32::IconFile.read(iconf_path)
+      icos.entries.each_with_index do |entry, index|
+        # Exerb::Win32::IconFile::Entry:
+        # make a new Icon and copy
+        icon = Exerb::Resource::Icon.new
+        icon.width     = entry.width
+        icon.height    = entry.height
+        icon.bit_count = entry.bit_count
+        icon.value     = entry.value
+
+        id   = index + 1
+        #icon = Exerb::Resource::Icon.read(icos, entry.width, entry.height, entry.bit_count)
+        @exe.rsrc.add(Exerb::Win32::Const::RT_ICON, id, icon)
+        group_icon.add(id, icon)
+      end
+      @exe.rsrc.add(Exerb::Win32::Const::RT_GROUP_ICON, 1, group_icon)
+    end
+    
   end
 end

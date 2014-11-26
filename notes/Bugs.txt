@@ -1,7 +1,17 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
-2014-11-21 Shoes 3.2.19 
+2014-11-25 
+done: icons_inject_from(iconf_path) in winject.rb works well enough.
+
+2014-11-24 replacing icons with exerb
+      exerb throws away/mods info reading in a iconfile. 
+      define a pack method for IconFile::Entry? 
+      
+2014-11-23
+done: Commit Ian's patch for gtk.c - 
+
+----- start 3.2.19
   
 2014-11-20
 done: OSX dlnif, test.rb OK, GUI OK.
