@@ -186,6 +186,7 @@ class MakeLinux
       # bit of a hack here. Don't copy symlinks in dist/lib
       sh "cp -r lib/shoes #{hdir}/lib"
       sh "cp -r lib/shoes.rb #{hdir}/lib/"
+      sh "cp -r lib/exerb #{hdir}/lib"
 
       File.open("dist/Shoes.desktop",'w') do |f|
         f << "[Desktop Entry]\n"
