@@ -1,7 +1,8 @@
-# installs #{SHYFILE} in s user specified directory
+# installs #{SHYFILE} user specified directory
 require 'shoes/shy'
 require 'fileutils'
 require 'rubygems/package'
+require 'shoes/winject'
 # to test this without going thru packaging
 # create folder 'foo' for example
 # copy a shy built from Shoes to foo
@@ -16,8 +17,8 @@ Shoes.app do
   shyfile = File.open(shypath,'rb')
   hdr = Shy.__hdr__(shyfile)
   stack do
-    para "#{hdr.name} version #{hdr.version} from #{hdr.creator} Humbly requests that
- you pick a folder to put it's files in."
+    para "#{hdr.name} version #{hdr.version} from #{hdr.creator}, requests that \
+you pick a folder to put it's files in."
     flow do
       @dirfld = edit_line :width => 400 
       @dirfld.text = "#{ENV['HOME']}/Documents/#{File.basename(shyfile,'.shy')}"
@@ -25,24 +26,71 @@ Shoes.app do
         @dirfld.text = ask_save_folder()
       end
     end
+    if RUBY_PLATFORM  =~ /linux/
+      para "Categories list. Separate with ';'. Must end with ';'"
+      @catsfld = edit_line
+    end
     flow do
       button "Install #{hdr.name}" do
         mkdir_p @dirfld.text
+        install_top = curloc
+        app = ''
         Dir.chdir @dirfld.text do
           extract shyfile
-          if @run_it.checked?
-            alert "Would be run here"
+          case RUBY_PLATFORM
+          when /mingw/ 
+              install_windows hdr
+          when /darwin/
+              install_osx hdr
+          else 
+              iconpath = Dir.glob("#{install_top}/*.png")[0]
+              puts "Icon #{iconpath}"
+              app = install_linux hdr, @dirfld.text, iconpath, @catsfld.text
           end
-          if confirm("Quit") 
+          if @run_it.checked?
+            str = File.open(app).read
+            eval(str, TOPLEVEL_BINDING)
+          elsif confirm("Quit") 
             quit
           end
         end
-      end
+      end     
       flow { @run_it = check; para "Start #{hdr.name}" }
       @run_it.checked = true
     end
   end
   
+  def install_windows hdr
+  end
+  
+  def install_osx hdr
+  end
+  
+  def install_linux  hdr, installdir, iconpath, cats
+    # Are in the directory the user selected, installdir
+    # create a menu using ? ?
+    hdir = ENV['HOME']
+    cdir = Dir.getwd()
+    FileUtils.cp iconpath, cdir
+    dtname = hdr.launch.gsub(/\.rb$/,'.desktop')
+    File.open(dtname,'w') do |f|
+        f << "[Desktop Entry]\n"
+        f << "Name=#{hdr.name}\n"
+        f << "Exec=#{hdir}/.shoes/federales/shoes #{installdir}/#{hdr.launch}\n"
+        f << "StartupNotify=true\n"
+        f << "Terminal=false\n"
+        f << "Type=Application\n"
+        f << "Comment=#{hdr.creator}\n"
+        f << "Icon=#{cdir}/#{File.basename(iconpath)}\n"
+        f << "Categories=Other;Applications;#{cats}\n"
+    end
+    if File.exists? '.local/share/Applications' 
+      FileUtils.cp dtname, '.local/share/Applications' 
+    end
+    `gksudo -D #{dtname} cp #{dtname} /usr/share/applications`
+    return "#{installdir}/#{hdr.launch}"
+  end
+ 
   def extract opened_file
     Gem::Package::TarReader.new( Zlib::GzipReader.new(opened_file)) do |tar|
       tar.each do |entry|

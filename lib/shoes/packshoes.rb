@@ -8,7 +8,7 @@ module PackShoes
 
   def PackShoes.dnlif_exe opts
     script = custom_installer opts
-    puts "win script = #{script}"
+    #puts "win script = #{script}"
     size = File.size(script)
     f = File.open(script, 'rb')
     inf = File.join(DIR, "static", "stubs", 'shoes-stub.exe')
@@ -469,11 +469,17 @@ END
   end
 
 # ------- Helpers ------
-
+  # only sub matches. 
   def PackShoes.rewrite a, before, hsh
     File.open(before) do |b|
       b.each do |line|
-        a << line.gsub(/\#\{(\w+)\}/) { hsh[$1] }
+        a << line.gsub(/\#\{(\w+)\}/) {
+          if hsh[$1] 
+            hsh[$1]
+          else
+            '#{'+$1+'}'
+          end
+        }
       end
     end
   end
@@ -546,12 +552,13 @@ END
     if opts['expandshy'] != true
         return defshy
     end
+    #opts.each {|k, v| puts "#{k} => #{v}"}
     if ! defshy[/\.shy$/] then
         raise "Must be a shy"
     end
     appname = File.basename(defshy,".shy")
     shydir = File.dirname(defshy)
-    tmp_dir = File.join(LIB_DIR, "+shy", appname)
+    tmp_dir = File.join(opts['packtmp'], "+shy", appname)
     FileUtils.rm_rf(tmp_dir)
     FileUtils.mkdir_p(tmp_dir)
     # copy shy to tmp - TODO: Copy User Script here
@@ -562,6 +569,9 @@ END
 	    'SHYFILE' => "#{defshy}"
     end
     # TODO: Copy icons.zip and gems.zip here.
+    FileUtils.cp(opts['png'], File.join(tmp_dir,"#{appname}.png")) if opts['png']
+    FileUtils.cp(opts['ico'], File.join(tmp_dir,"#{appname}.ico")) if opts['ico']
+    FileUtils.cp(opts['icns'], File.join(tmp_dir,"#{appname}.icns")) if opts['icns']
     # Create a shy header for the installer.
     shy_desc = Shy.new
     shy_desc.launch = "#{appname}-install.rb"
@@ -575,10 +585,12 @@ END
     end
     #alert "Check your Directories #{new_shypath}\n amd #{defshy}"
     puts "New: #{new_shypath}\n and #{defshy}"
-    # write over the incoming shy with the new one
-    FileUtils.cp File.join(new_shypath,"#{appname}.shy"), defshy
+    # write over the incoming shy with the new one - Bad Idea. Bad Cecil!
+    #FileUtils.cp File.join(new_shypath,"#{appname}.shy"), defshy
+    FileUtils.cp File.join(new_shypath,"#{appname}.shy"), File.join(shydir,"#{appname}-custom.shy")
     # delete the +shy temp stuff
-    return defshy
+    #return defshy
+    return File.join(shydir,"#{appname}-custom.shy")
   end
 
 end

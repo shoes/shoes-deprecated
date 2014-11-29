@@ -117,35 +117,53 @@ Shoes.app height: 600 do
       end
       @inclradio.checked = @options['inclshoes']
       # comment out 3.2.18 options
-      #para "Advanced installer -- CAUTION -- may not work everywhere"
-      #flow do
-      #  @noadvopts = radio :advopts; para "No thanks." 
-      #  @defadvopts = radio :advopts do
-      #   @advpanel.show if @defadvopts.checked?
-      #   @advpanel.hide if !@defadvopts.checked?
-      # end
-      # para "I want advanced options"
-      #end
-      #@advpanel = stack :hidden => true do
-      # flow do
-      #   para "I have my own install script  "
-      #   button "Select script"
-      # end
-      # flow do
-      #   @expandshy = check do 
-      #     @options['expandshy'] = @expandshy.checked?
-      #   end
-      #   para "Expand shy in users directory"
-      # end
-      #  flow do
-      #    check; para "I have gems to be installed"
-      #  end
-      #  flow do
-      #    check; para "I have icons for Windows, OSX and Linux"
-      #  end
-      #end
+      para "Advanced installer -- CAUTION -- Must be a .shy"
+      flow do
+        @noadvopts = radio :advopts; para "No thanks." 
+        @defadvopts = radio :advopts do
+         @advpanel.show if @defadvopts.checked?
+         @advpanel.hide if !@defadvopts.checked?
+      end
+      para "I want advanced options"
+      end
+      @advpanel = stack :hidden => true do
+       flow do
+         para "I have my own install script  "
+         button "Select script" do
+           cf = ask_open_file
+           @options['custominstaller'] = cf if cf
+         end
+       end
+       flow do
+         @expandshy = check do 
+           @options['expandshy'] = true   # @expandshy.checked?
+         end
+         para "Expand shy in users directory. Required!"
+         @expandshy.checked = true
+         @options['expandshy'] = true
+       end
+       #flow do
+       #   check; para "I have gems to be installed"
+       #end
+       para "Add app icons - Don't guess or assume anything"
+       flow do
+          button "Windows .ico file" do
+            wicf = ask_open_file
+            @options['ico'] = wicf if wicf
+          end
+          button "OSX .icns file" do
+            micf = ask_open_file
+            @options['icns'] = micf if micf
+          end
+          button "Linux .png file" do
+            licf = ask_open_file
+            @options['png'] = licf if licf
+          end
+        end
+      end
     end
     @menu_panel = stack do
+      para "Package one of the options below."
       flow do 
         button 'Select Architecture' do
           download @home_site do |r| 
