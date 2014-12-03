@@ -759,6 +759,22 @@ shoes_native_app_fullscreen(shoes_app *app, char yn)
     gtk_window_unfullscreen(GTK_WINDOW(app->os.window));
 }
 
+// new in 3.2.19
+void
+shoes_native_app_set_icon(shoes_app *app, char *icon_path)
+{
+  // replace default icon
+  gboolean err;
+  err = gtk_window_set_icon_from_file(app->slot->oscanvas, icon_path, NULL);
+  err = gtk_window_set_default_icon_from_file(icon_path, NULL);
+}
+
+// new in 3.2.19
+void shoes_native_app_set_wtitle(shoes_app *app, char *wtitle)
+{
+  gtk_window_set_title(GTK_WINDOW(app->slot->oscanvas), _(wtitle));
+}
+
 shoes_code
 shoes_native_app_open(shoes_app *app, char *path, int dialog)
 {

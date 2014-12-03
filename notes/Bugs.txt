@@ -1,8 +1,62 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-12-02
+     write/rename shoes_app_set_icon_path, and shoes_app_set_wtitle
+     and the native's. Don't try to reuse the existing get/set title
+     because that works weirdly from shoes_app_open)
+done: Linux, Windows works fine.
+----> OSX - write the shoes_native_set_icon_path and shoes_native_set_wtitle
+  
+2014-12-01
+      Shoes.app.set_icon works on raspberry pi theme & windows. Not Cinimmon.
+----> reimplement. Lost in git checkout;
+====> shoes_app_set_title() - Shoes.app.name = "string" on gtk doesn't change the window
+      and throws a error (all platforms) 0 args expecting 1..3
+      BECAUSE its a hash arg to Shoes.app do :title => "Foobaz App".
+       
+  
+2014-11-30
+done: Linux app packager. It's good enough for now and better than the 
+      marching ants.
+--->  It is possible for Shoes/Gtk to load app-icon from the app dir
+      instead of the shoes dir - need an Shoes C/Ruby function to do it.
+      Shoes::APP::set_icon(filepath.png)
+      Gtk has a fallback (set by Shoes in world.c/gtk.c) provide a Shoes/Ruby
+      way to call it. In ruby.c:
+        rb_define_method(cApp, "icon=", CASTHOOK(shoes_app_set_icon), 1); # New in 3.2.19
+        which calls shoes_native_app_set_icon (need implementations in gtk.c, cocoa.m)
+     Success depends on the gtk theme?!
+----> Check with Shoes4 folk about how they would do it.
+  
+2014-11-28
+done: So close for Linux. Rewrite in packshoes replaces #{xx} with nothing
+     if xx doesn't match. When copying app-install.tmpl that's an error.
+done: Loose shoes linux doesn't copy exerb on 'install' task.
+done: download and install shoe then run the app install.
+
+  
+2014-11-27
+     app-install.tmpl needs to check for icons and do the right thing
+     Linux, OSX, Windows.
+done: not expanding the desired shy. Actually it is but the ytm.shy is 
+     not what I think - it's the double shy.  Testing problem because
+     I rewrite the original ytm.shy - don't do that.
+---> how deep do I want to do the icon? - replace the one in shoes
+      requires copying shoes (or symlink something) in Linux. So it's a
+      lot like hackety hack packaging. 
+===> the custom installer needs a rethink. Could this be done better when
+     packaging instead of much later. NSIS problem. 
+----> Linux launch and desktop icon
+  
+2014-11-26 
+done: Add icon chosing code to app_packager GUI.
+done: create icons for ytm. for testing advanced packaging.
+----> Create a ytm.shy with all the files inside.
+
+  
 2014-11-25 
-done: icons_inject_from(iconf_path) in winject.rb works well enough.
+done: icons_inject_from(iconf_path) in winject.rb works well enough for now
 
 2014-11-24 replacing icons with exerb
       exerb throws away/mods info reading in a iconfile. 
@@ -29,8 +83,8 @@ done: test.rb for linux repack (full)
 ----> Cobbler could have a "check updates" button. On the get info page?
       More effort than I want for 3.2.18. Still a good idea. especially
       if it could download and install the new release. 
-====> Document Cobbler in the Shoes manual.
-====> Document packaging in the Shoes manual.
+====> Document Cobbler in the Shoes Wiki
+----> Document packaging in the Shoes Wiki. Still needs work.
 
 2014-11-18
      refactor app_package.rb. @options{} has everything. Move non

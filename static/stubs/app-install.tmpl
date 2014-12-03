@@ -42,9 +42,8 @@ you pick a folder to put it's files in."
               install_windows hdr
           when /darwin/
               install_osx hdr
-          else 
+          else # assume linux
               iconpath = Dir.glob("#{install_top}/*.png")[0]
-              puts "Icon #{iconpath}"
               app = install_linux hdr, @dirfld.text, iconpath, @catsfld.text
           end
           if @run_it.checked?

@@ -180,6 +180,29 @@ shoes_app_get_height(VALUE app)
 }
 
 VALUE
+shoes_app_set_icon(VALUE app, VALUE icon_path)
+{
+  shoes_app *app_t;
+  char *path;
+  Data_Get_Struct(app, shoes_app, app_t);
+  path = RSTRING_PTR(icon_path);
+  shoes_native_app_set_icon(app_t, path);
+  return Qtrue;
+}
+
+VALUE
+shoes_app_set_wtitle(VALUE app, VALUE title)
+{
+  shoes_app *app_t;
+  char *wtitle;
+  Data_Get_Struct(app, shoes_app, app_t);
+  app_t->title = title;
+  wtitle = RSTRING_PTR(title);
+  shoes_native_app_set_wtitle(app_t, wtitle);
+  return Qtrue;
+}
+
+VALUE
 shoes_app_get_title(VALUE app)
 {
   shoes_app *app_t;

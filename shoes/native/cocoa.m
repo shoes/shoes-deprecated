@@ -895,6 +895,21 @@ shoes_native_app_title(shoes_app *app, char *msg)
   COCOA_DO([app->os.window setTitle: [NSString stringWithUTF8String: msg]]);
 }
 
+// new with 3.2.19
+void
+shoes_native_app_set_wtitle(shoes_app *app, char *wtitle)
+{
+  COCOA_DO([app->os.window setTitle: [NSString stringWithUTF8String: wtitle]]);
+}
+
+// new with 3.2.19
+void
+shoes_native_app_set_icon(shoes_app *app, char *icon_path)
+{
+	NSImage *icon = [[NSImage alloc] initWithContentsOfFile: [NSString stringWithUTF8String: icon_path]];
+  [NSApp setApplicationIconImage: icon];
+}
+
 static ShoesWindow *
 shoes_native_app_window(shoes_app *app, int dialog)
 {
