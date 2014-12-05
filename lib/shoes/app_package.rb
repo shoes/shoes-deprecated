@@ -108,23 +108,19 @@ Shoes.app height: 600 do
 	    end
 	  end
     @options_panel = stack do
+     para "Include a full copy of Shoes 8 to 15 MB or download if needed?"
       flow do
-        @dnlradio = radio :dnl; para "Shoes will be downloaded if needed."
-        @dnlradio.checked = true;  # OSX requires - a bug
+        @inclcheck = check; para "Shoes will be included with my app."
       end
+      @inclcheck.checked = @options['inclshoes'] = false
+      para "Advanced installer -- Must be a .shy (directory) to package"
       flow do
-        @inclradio = radio :dnl; para "Shoes will be included with my app."
-      end
-      @inclradio.checked = @options['inclshoes']
-      # comment out 3.2.18 options
-      para "Advanced installer -- CAUTION -- Must be a .shy"
-      flow do
-        @noadvopts = radio :advopts; para "No thanks." 
-        @defadvopts = radio :advopts do
-         @advpanel.show if @defadvopts.checked?
-         @advpanel.hide if !@defadvopts.checked?
-      end
-      para "I want advanced options"
+        @defadvopts = check  do
+          @advpanel.show if @defadvopts.checked?
+          @advpanel.hide if !@defadvopts.checked?
+          @options['advopts'] = @defadvopts.checked?
+        end
+        para "I want advanced options"
       end
       @advpanel = stack :hidden => true do
        flow do
@@ -135,17 +131,16 @@ Shoes.app height: 600 do
          end
        end
        flow do
-         @expandshy = check do 
-           @options['expandshy'] = true   # @expandshy.checked?
+        @options['expandshy'] = false
+        @expandshy = check do 
+           @options['expandshy'] = @expandshy.checked?
          end
-         para "Expand shy in users directory. Required!"
-         @expandshy.checked = true
-         @options['expandshy'] = true
+         para "Expand shy in users directory"
        end
        #flow do
        #   check; para "I have gems to be installed"
        #end
-       para "Add app icons - Don't guess or assume anything"
+       para "Add app icons - Always add a .png"
        flow do
           button "Windows .ico file" do
             wicf = ask_open_file
@@ -186,10 +181,10 @@ Shoes.app height: 600 do
                   flow margin: 5 do
                     para "#{flds[0]} MB  "
                     button "#{k}", width: 200 do
-                      if @dnlradio.checked?
-                        platform_dnlif flds[2]
-                      else
+                      if @inclcheck.checked?
                         platform_download flds[2], flds[0], flds[1]
+                      else
+                        platform_dnlif flds[2]
                       end
                     end
                     para " #{parts[0]}  #{parts[1]}"
@@ -303,7 +298,8 @@ Shoes.app height: 600 do
   
   # We've got @vars with all kinds of info. 
   def platform_repack 
-    @running_windows = RUBY_PLATFORM =~ /mingw/
+    #@running_windows = RUBY_PLATFORM =~ /mingw/
+    @options['advopts'] = @defadvopts.checked?
     @info_panel_clear
     @info_panel.append do
       case @work_path
@@ -351,7 +347,8 @@ Shoes.app height: 600 do
 
 # ==== Download If Needed  (dnlif) packaging ===
   def platform_dnlif arch
-    # No need to thread - this is simple and fast. just call the {platform}_dnilf
+    @options['advopts'] = @defadvopts.checked?
+  # No need to thread - this is simple and fast. just call the {platform}_dnilf
     case arch
     when /\.exe$/
       dnlif_exe

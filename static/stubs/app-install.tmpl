@@ -3,12 +3,8 @@ require 'shoes/shy'
 require 'fileutils'
 require 'rubygems/package'
 require 'shoes/winject'
-# to test this without going thru packaging
-# create folder 'foo' for example
-# copy a shy built from Shoes to foo
-# copy this script there. Edit and set the shyname var to the avs path
-# of the shy in foo
-# cd into foo and invoke 'shoes this-script'
+require 'yaml'
+# not easy to debug. Try copying the correct tmp while the installer is on screen
 Shoes.app do
   shyname = File.basename("#{SHYFILE}")
   #shyname = File.basename("/home/ccoupe/Projects/unshy/ytm.shy")
@@ -16,12 +12,21 @@ Shoes.app do
   shypath = File.join(curloc,shyname)
   shyfile = File.open(shypath,'rb')
   hdr = Shy.__hdr__(shyfile)
+  # read the .yaml 
+  @opts = YAML.load_file(File.basename(shypath,'.shy')+'.yaml')
+  if @opts['png']
+    ico = File.basename(@opts['png'])
+    set_window_icon_path(File.join(curloc, ico))
+  else
+    alert "Inform developer that they forgot to include a .png"
+  end
+  set_window_title "#{hdr.name} Installer"
   stack do
     para "#{hdr.name} version #{hdr.version} from #{hdr.creator}, requests that \
 you pick a folder to put it's files in."
     flow do
       @dirfld = edit_line :width => 400 
-      @dirfld.text = "#{ENV['HOME']}/Documents/#{File.basename(shyfile,'.shy')}"
+      @dirfld.text = "#{ENV['HOME']}/Applications/#{File.basename(shyfile,'.shy')}"
       button "Select..." do
         @dirfld.text = ask_save_folder()
       end
@@ -36,7 +41,11 @@ you pick a folder to put it's files in."
         install_top = curloc
         app = ''
         Dir.chdir @dirfld.text do
-          extract shyfile
+          if @opts['expandshy']
+            extract shyfile
+          else
+            FileUtils.cp shyfile, '.'  
+          end
           case RUBY_PLATFORM
           when /mingw/ 
               install_windows hdr
@@ -46,12 +55,22 @@ you pick a folder to put it's files in."
               iconpath = Dir.glob("#{install_top}/*.png")[0]
               app = install_linux hdr, @dirfld.text, iconpath, @catsfld.text
           end
-          if @run_it.checked?
+        end
+        if @run_it.checked?
+            if ! @opts['expandshy'] 
+              base = File.basename(shyfile, ".shy")
+              @tmpdir = tmpdir = "%s/shoes-%s.%d" % [Dir.tmpdir, base, $$]
+              FileUtils.mkdir_p tmpdir
+              Dir.chdir(tmpdir)
+              extract shyfile
+              app = File.join(tmpdir, hdr.launch)
+            else
+              Dir.chdir @dirfld.text
+            end
             str = File.open(app).read
             eval(str, TOPLEVEL_BINDING)
-          elsif confirm("Quit") 
-            quit
-          end
+        elsif confirm("Quit") 
+          quit
         end
       end     
       flow { @run_it = check; para "Start #{hdr.name}" }
@@ -66,16 +85,22 @@ you pick a folder to put it's files in."
   end
   
   def install_linux  hdr, installdir, iconpath, cats
-    # Are in the directory the user selected, installdir
-    # create a menu using ? ?
+    # We are in the directory the user selected, aka installdir
+    # create a menu using "stuff"
     hdir = ENV['HOME']
     cdir = Dir.getwd()
     FileUtils.cp iconpath, cdir
-    dtname = hdr.launch.gsub(/\.rb$/,'.desktop')
+    if @opts['expandshy']
+      dtname = hdr.launch.gsub(/\.rb$/,'.desktop')
+      launch = hdr.launch
+    else
+      dtname = File.basename(@opts['app'],'.shy')+'.desktop'
+      launch = File.basename(@opts['app'])
+    end
     File.open(dtname,'w') do |f|
         f << "[Desktop Entry]\n"
         f << "Name=#{hdr.name}\n"
-        f << "Exec=#{hdir}/.shoes/federales/shoes #{installdir}/#{hdr.launch}\n"
+        f << "Exec=#{hdir}/.shoes/federales/shoes #{installdir}/#{launch}\n"
         f << "StartupNotify=true\n"
         f << "Terminal=false\n"
         f << "Type=Application\n"
@@ -87,7 +112,7 @@ you pick a folder to put it's files in."
       FileUtils.cp dtname, '.local/share/Applications' 
     end
     `gksudo -D #{dtname} cp #{dtname} /usr/share/applications`
-    return "#{installdir}/#{hdr.launch}"
+    return "#{installdir}/#{launch}"
   end
  
   def extract opened_file

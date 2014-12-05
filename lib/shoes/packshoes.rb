@@ -549,7 +549,7 @@ END
 
   def PackShoes.custom_installer opts
     defshy = opts['app']
-    if opts['expandshy'] != true
+    if opts['advopts'] != true
         return defshy
     end
     #opts.each {|k, v| puts "#{k} => #{v}"}
@@ -568,10 +568,12 @@ END
 	  rewrite a, File.join(DIR, "static", "stubs", "app-install.tmpl"),
 	    'SHYFILE' => "#{defshy}"
     end
-    # TODO: Copy icons.zip and gems.zip here.
+    # TODO: Copy gems.zip here.
     FileUtils.cp(opts['png'], File.join(tmp_dir,"#{appname}.png")) if opts['png']
     FileUtils.cp(opts['ico'], File.join(tmp_dir,"#{appname}.ico")) if opts['ico']
     FileUtils.cp(opts['icns'], File.join(tmp_dir,"#{appname}.icns")) if opts['icns']
+    # make a yaml to pass options the installer might need (expandshy for one)
+    File.open(File.join(tmp_dir,"#{appname}.yaml"),'w') {|f| YAML.dump(opts, f)}
     # Create a shy header for the installer.
     shy_desc = Shy.new
     shy_desc.launch = "#{appname}-install.rb"
@@ -583,8 +585,7 @@ END
     Dir.chdir(new_shypath) do
       Shy.c(appname+'.shy', shy_desc, tmp_dir)
     end
-    #alert "Check your Directories #{new_shypath}\n amd #{defshy}"
-    puts "New: #{new_shypath}\n and #{defshy}"
+    #puts "New: #{new_shypath}\n and #{defshy}"
     # write over the incoming shy with the new one - Bad Idea. Bad Cecil!
     #FileUtils.cp File.join(new_shypath,"#{appname}.shy"), defshy
     FileUtils.cp File.join(new_shypath,"#{appname}.shy"), File.join(shydir,"#{appname}-custom.shy")

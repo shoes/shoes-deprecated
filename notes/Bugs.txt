@@ -1,17 +1,46 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-12-04
+done: shy expand/don't expand works in custom installer
+====> set_windows_title can hang the whole Linux system power off hard! 
+      when used as Shoes.set.set_window.title (method missing loop?)
+  
+2014-12-03 Default custom installer.  
+      Tighten up app_package gui. 
+----> Extract contents is an option. It needs written to {appname}.yaml
+      and included in the outer shy along with the icons. 
+done: Use HOME/Applications not Documents
+done: app-install.tmpl use the icon and title facilities. Read the yaml
+done: fix eval() and .desktop when expandshy is false
+
+
+     Linux: it runs after shoes is installed. It should set the icon and
+       title of it's installer screen. 
+       It should copy  ~/.shoes/federales
+       to the users chosen directory and fix up the icons etc
+       Execept Gems will be shared and .shoes/federales is probably hardcoded
+       (effectively). Same with OSX. No point in making a copy of Shoes.
+       
+     OSX: Need to copy the icon, generate the plists and shell scripts.
+     
+     Windows: it should copy shoes to the user chosen directory
+     
+====> Document default custom installer at the Wiki.
+  
 2014-12-02
      write/rename shoes_app_set_icon_path, and shoes_app_set_wtitle
      and the native's. Don't try to reuse the existing get/set title
      because that works weirdly from shoes_app_open)
 done: Linux, Windows works fine.
-----> OSX - write the shoes_native_set_icon_path and shoes_native_set_wtitle
+done: OSX - write the shoes_native_set_icon_path and shoes_native_set_wtitle
+---->  doesn't change the Finders display. 
+     It's far from perfect (linux, osx, windows). It was never intended to be.
   
 2014-12-01
-      Shoes.app.set_icon works on raspberry pi theme & windows. Not Cinimmon.
-----> reimplement. Lost in git checkout;
-====> shoes_app_set_title() - Shoes.app.name = "string" on gtk doesn't change the window
+      Shoes.app.set_icon works on raspberry pi theme & windows. Not Cinammon.
+done: reimplement. Lost in git checkout;
+done: shoes_app_set_title() - Shoes.app.name = "string" on gtk doesn't change the window
       and throws a error (all platforms) 0 args expecting 1..3
       BECAUSE its a hash arg to Shoes.app do :title => "Foobaz App".
        
@@ -19,7 +48,7 @@ done: Linux, Windows works fine.
 2014-11-30
 done: Linux app packager. It's good enough for now and better than the 
       marching ants.
---->  It is possible for Shoes/Gtk to load app-icon from the app dir
+done: It is possible for Shoes/Gtk to load app-icon from the app dir
       instead of the shoes dir - need an Shoes C/Ruby function to do it.
       Shoes::APP::set_icon(filepath.png)
       Gtk has a fallback (set by Shoes in world.c/gtk.c) provide a Shoes/Ruby
@@ -47,12 +76,12 @@ done: not expanding the desired shy. Actually it is but the ytm.shy is
       lot like hackety hack packaging. 
 ===> the custom installer needs a rethink. Could this be done better when
      packaging instead of much later. NSIS problem. 
-----> Linux launch and desktop icon
+done Linux launch and desktop icon
   
 2014-11-26 
 done: Add icon chosing code to app_packager GUI.
 done: create icons for ytm. for testing advanced packaging.
-----> Create a ytm.shy with all the files inside.
+done: Create a ytm.shy with all the files inside.
 
   
 2014-11-25 
