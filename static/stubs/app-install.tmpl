@@ -16,11 +16,11 @@ Shoes.app do
   @opts = YAML.load_file(File.basename(shypath,'.shy')+'.yaml')
   if @opts['png']
     ico = File.basename(@opts['png'])
-    set_window_icon_path(File.join(curloc, ico))
+    app.set_window_icon_path(File.join(curloc, ico))
   else
     alert "Inform developer that they forgot to include a .png"
   end
-  set_window_title "#{hdr.name} Installer"
+  app.set_window_title "#{hdr.name} Installer"
   stack do
     para "#{hdr.name} version #{hdr.version} from #{hdr.creator}, requests that \
 you pick a folder to put it's files in."
@@ -69,6 +69,7 @@ you pick a folder to put it's files in."
             end
             str = File.open(app).read
             eval(str, TOPLEVEL_BINDING)
+            self.close
         elsif confirm("Quit") 
           quit
         end
