@@ -1,14 +1,58 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-12-09
+     xdg-desktop-menu install --novendor ytm.desktop exists in ubuntu, 
+     suse/xfce, fedora, Pi. if called w/o root it installs in users menus
+     this needs testing and modify the Shoes.install template. In fact
+     there is a suite of xdg tools for icons(suites) , creating menus categories
+     and so on. Must do. 
+done:  Building Linux shoes x86_64, i686, pi  - tasks.rb make_install_script()
+       Debian 7.2 required a logout/login to see the menu entries.
+       ytm-custom-x86_64 works on Fedora. Good luck finding Shoes. I hate
+       that search interface of Fedora. 
+done:  Also in Loose Shoes Linux aka rake install
+  
+2014-12-08 
+     The problem may be the ytm.ico is a 32 bit 128 x 128 not 8 bit, multi
+     sizes .ico. Redo icon (don't use completely transparent background)
+     
+     Online ico converters have issues creating 8 bit icons?
+     
+done: When creating ytm-custom.exe (the ytm installer) it should have the
+     ytm.ico.  Gimp 128x182x8 ico works. 
+done: Not displayed on installer title bar. Windows Caching - grrr.
+----> expandshy=true and running Applications/ytm/ytm.exe seems to be
+     not using the Applications/ytm/ytm.rb but something in the temp dir.
+----> Taskbar icons are Shoes federales not ytm.exe (installer or generated)
+     Which suggests that the winject inject_icons is not replacing what 
+     Windows thinks is needed. ID # hard coded into shoes-stub.exe?
+====> anal_pe seg faults on exe's that are winjected with icons. 
+
+     Linux Custom icon Works well on Raspberry so it's not all wrong. 
+----> i686 (debian 7.2) doesn't like gksudo. (icons may be good)
+----> x86_64 - Suse/XFCE - no gksudo. Icons (so far, are good)
+----> Fedora - no graphical sudo at all. 
+====> Show stopper. (assuming I could get exerb/icons working)
+     
+     
+2014-12-07
+     use app.set_window_title - in Shoes.app {bloc} and subclass of Shoes.app
+---->ytm-custom.exe appears to work but Applications/ytm/ytm.exe doesn't have
+     getwd set to launch dir. 
+====> Known Windows problem - For any Shoes app.
+----> need ico inject for Windows to stick. 
+  
 2014-12-04
 done: shy expand/don't expand works in custom installer
-====> set_windows_title can hang the whole Linux system power off hard! 
-      when used as Shoes.set.set_window.title (method missing loop?)
+done: set_windows_title can hang the whole Linux system -- power off 
+      when subclassing Shoes (myclass < Shoes) use app.set_window_title
+      and app.window_set_icon_path. Works for Shoes.app {} and subclassing
+
   
 2014-12-03 Default custom installer.  
       Tighten up app_package gui. 
-----> Extract contents is an option. It needs written to {appname}.yaml
+done: Extract contents is an option. It needs written to {appname}.yaml
       and included in the outer shy along with the icons. 
 done: Use HOME/Applications not Documents
 done: app-install.tmpl use the icon and title facilities. Read the yaml
@@ -26,7 +70,7 @@ done: fix eval() and .desktop when expandshy is false
      
      Windows: it should copy shoes to the user chosen directory
      
-====> Document default custom installer at the Wiki.
+done: Document default custom installer at the blog.
   
 2014-12-02
      write/rename shoes_app_set_icon_path, and shoes_app_set_wtitle

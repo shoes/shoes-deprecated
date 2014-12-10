@@ -199,15 +199,10 @@ class MakeLinux
         f << "Icon=#{hdir}/static/app-icon.png\n"
         f << "Categories=Application;Development;Education;\n"
       end
+      sh "xdg-desktop-menu install --novendor dist/Shoes.desktop"
       puts "\n ==== NOTE: ====\n"
-      puts "Shoes has been copied to #{hdir}"
-      puts "Please copy the 'Shoes.desktop' to /usr/share/applications"
-      puts "Or wherever your Linux desktop manager requires. You may "
-      puts "need to sudo or be root to do that or create your own launcher"
-      puts "You don't have to enter the password below if you do the copy"
-      puts "yourself"
-      puts "=== Please read above ===="
-      sh "su root -c 'cp dist/Shoes.desktop /usr/share/applications'"
+      puts "Shoes has been copied to #{hdir} and menus installed" 
+      puts "Modify and copy the 'Shoes.desktop' if needed."
     end
   end
 end

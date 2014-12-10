@@ -215,10 +215,8 @@ class MakeLinux
     
     # the install script that runs on the user's system can be simple. 
     # Copy things from where it's run to ~/.shoes/federales/ and then
-    # sed the desktop file and copy it.
-    # Only problem? It's bash (not my strength) and I'm creating it 
-    # from Ruby. Yes, there is a better way. 
-    def make_install_script
+    # sed the desktop file and copy it with xdg-desktop-menu
+   def make_install_script
       File.open("shoes-install.sh", 'w') do |f|
         f << "#!/bin/bash\n"
         f << "#pwd\n"
@@ -227,10 +225,10 @@ class MakeLinux
         f << "mkdir -p $ddir\n"
         f << "cp -r * $ddir/\n"
         f << "sed -e \"s@{hdir}@$HOME@\" <Shoes.desktop.tmpl >Shoes.desktop\n"
-        f << "echo \"Shoes has been copied to $ddir. Need root password\"\n"
-        f << "echo 'to copy Shoes.desktop to /usr/share/applications'\n"
-        f << "su root -c 'cp Shoes.desktop /usr/share/applications'\n"
-      end
+        f << "xdg-desktop-menu install --novendor Shoes.desktop\n"
+        f << "echo \"Shoes has been copied to $ddir. and menus created\"\n"
+        f << "echo \"If you don't see Shoes in the menu, logout and login\"\n"
+     end
       chmod "+x", "shoes-install.sh"
     end
     

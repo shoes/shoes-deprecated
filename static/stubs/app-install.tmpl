@@ -35,6 +35,14 @@ you pick a folder to put it's files in."
       para "Categories list. Separate with ';'. Must end with ';'"
       @catsfld = edit_line
     end
+    if RUBY_PLATFORM =~ /mingw/
+      flow do
+        @desklnk = check do
+          @opts['desklnk'] = @desklnk.checked?
+        end
+        para "Create .lnk on Desktop?"
+      end
+    end
     flow do
       button "Install #{hdr.name}" do
         mkdir_p @dirfld.text
@@ -48,12 +56,17 @@ you pick a folder to put it's files in."
           end
           case RUBY_PLATFORM
           when /mingw/ 
-              install_windows hdr
+            iconpath = Dir.glob("#{install_top}/*.ico")[0]
+            if ! (File.exist? iconpath)
+              alert "Developer #{hdr.creator} did not include an .ico! Can not Install."
+              quit
+            end
+            app = install_windows hdr, @dirfld.text, iconpath
           when /darwin/
-              install_osx hdr
+            install_osx hdr
           else # assume linux
-              iconpath = Dir.glob("#{install_top}/*.png")[0]
-              app = install_linux hdr, @dirfld.text, iconpath, @catsfld.text
+            iconpath = Dir.glob("#{install_top}/*.png")[0]
+            app = install_linux hdr, @dirfld.text, iconpath, @catsfld.text
           end
         end
         if @run_it.checked?
@@ -79,7 +92,28 @@ you pick a folder to put it's files in."
     end
   end
   
-  def install_windows hdr
+  def install_windows hdr, installdir, iconpath
+    # we want to create an .exe using the static/shoes-stub.exe and winject
+    # and the .ico file. 
+    if @opts['expandshy']
+      launch = hdr.launch
+    else
+      launch = File.basename(@opts['app'])
+    end
+    f = File.open(launch, 'rb')
+    inf = File.join(DIR, "static", "stubs", 'shoes-stub.exe')
+    exe = Winject::EXE.new(inf)
+    exe.inject_string(Winject::EXE::SHOES_APP_NAME, launch)
+    exe.inject_file(Winject::EXE::SHOES_APP_CONTENT, f.read)
+    exe.inject_string(Winject::EXE::SHOES_DOWNLOAD_SITE, @opts['dnlhost'])
+    exe.inject_string(Winject::EXE::SHOES_DOWNLOAD_PATH, @opts['dnlpath'])
+    exe.inject_icons(iconpath)
+    exe.save(launch.gsub(/\.\w+$/, '') + ".exe") 
+    f.close
+
+    # we want to create a .lnk on the desktop
+    # return path to Shoes/eval - NOT the created exe. 
+    return "#{installdir}/#{launch}"
   end
   
   def install_osx hdr
@@ -112,7 +146,7 @@ you pick a folder to put it's files in."
     if File.exists? '.local/share/Applications' 
       FileUtils.cp dtname, '.local/share/Applications' 
     end
-    `gksudo -D #{dtname} cp #{dtname} /usr/share/applications`
+    `xdg-desktop-menu install --novendor #{dtname}`
     return "#{installdir}/#{launch}"
   end
  
