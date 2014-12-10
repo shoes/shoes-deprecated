@@ -48,7 +48,7 @@ module Winject
       @exe.rsrc.add_rcdata(id, io)
     end
     
-    def icons_inject_from(iconf_path)
+    def inject_icons(iconf_path)
       # delete existing RT_ICON's and RT_ICON_GROUP
       @exe.rsrc.remove(Exerb::Win32::Const::RT_ICON)
       @exe.rsrc.remove(Exerb::Win32::Const::RT_GROUP_ICON)
