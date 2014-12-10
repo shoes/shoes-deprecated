@@ -17,6 +17,9 @@ module PackShoes
     exe.inject_file(Winject::EXE::SHOES_APP_CONTENT, f.read)
     exe.inject_string(Winject::EXE::SHOES_DOWNLOAD_SITE, opts['dnlhost'])
     exe.inject_string(Winject::EXE::SHOES_DOWNLOAD_PATH, opts['dnlpath'])
+    if opts['ico']
+      exe.inject_icons(opts['ico'])
+    end
     exe.save(script.gsub(/\.\w+$/, '') + ".exe") 
     f.close
   end

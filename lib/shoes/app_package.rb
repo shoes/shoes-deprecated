@@ -380,6 +380,8 @@ Shoes.app height: 600 do
     @options['app'] = $script_path
     @options['dnlhost'] = @dnlhost
     @options['dnlpath'] = "/public/select/win32.rb"
+    @options['packtmp'] = LIB_DIR
+    @options['relname'] = Shoes::RELEASE_NAME
     PackShoes.dnlif_exe @options
     @pkgstat = inscription "Done packaging #{$script_path} for Windows"
  end
@@ -417,6 +419,8 @@ Shoes.app height: 600 do
     @options['dnlhost'] = @dnlhost
     @options['dnlpath'] = "/public/select/win32.rb"
     @options['shoesdist'] = @work_path
+    @options['packtmp'] = LIB_DIR
+    @options['relname'] = Shoes::RELEASE_NAME
     PackShoes.repack_exe @options do |msg|
       @pkgstat.text = msg
     end
