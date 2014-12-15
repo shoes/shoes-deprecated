@@ -693,7 +693,7 @@ shoes_font_list()
 VALUE
 shoes_load_font(const char *filename)
 {
-#ifndef OLD_SHOES
+#ifndef OLD_OSX
   VALUE families = Qnil;
   CFURLRef cfuref ;
   bool ok;

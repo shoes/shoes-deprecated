@@ -1,12 +1,48 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-12-14
+done: Produced a build for OSX 10.6. It runs on my 10.10
+done: Use -DOLD_OSX 
+----> Consider 10.6 as new platform target? Would need set of makefiles
+      and some tweaks (he says) to the packaging code. 
+====> pango-querymodues (and all of the homebrew deps) needs to be built
+      for 10.6 (snow leopard) and kept separate from 10.9
+
+2014-12-13
+done: build osx with Ians copy of 10.6 sdk. Shoes fails when starting.
+  
+2014-12-11
+done: build nsis from ubuntu repo, add long string. recipe:
+      https://community.openvpn.net/openvpn/wiki/%3ABuildingMakeNSIS
+      Install new and test. Hold/Lock package to prevent updates
+      
+----> Write a how to use icons and advanced packager wiki article.
+      
+  
+2014-12-10
+done: osx expandshy -  don't run or run from installer
+done: osx don't expandshy - don't run or run from installer
+      Custom icon on the ytm[-custom]-osx.app
+done: dnlif -  advopts + icons, no advopts (Shoes icon)
+----> repack - advopts + icons, no advopts - 
+---->   Be careful to not confuse ourselves.
+        We still share ~/.shoes/ and gems with any other Shoes app
+      Dragons ahead for those who use this option.
+====> Don't have  /home/ccoupe/.shoes/federales/package/shoes-3.2.19-osx.tgz ??
+
+====> Make a better .icns for OSX ( include mutiple sizes 256x256x32 and..
+
+     
+RULES: Always have .png icon in your directory to be packaged. 
+     
 2014-12-09
      xdg-desktop-menu install --novendor ytm.desktop exists in ubuntu, 
      suse/xfce, fedora, Pi. if called w/o root it installs in users menus
      this needs testing and modify the Shoes.install template. In fact
      there is a suite of xdg tools for icons(suites) , creating menus categories
-     and so on. Must do. 
+     and so on.
+---->  Linux - Build a menu system similar to Windows with uninstall ?
 done:  Building Linux shoes x86_64, i686, pi  - tasks.rb make_install_script()
        Debian 7.2 required a logout/login to see the menu entries.
        ytm-custom-x86_64 works on Fedora. Good luck finding Shoes. I hate
@@ -30,14 +66,14 @@ done: Not displayed on installer title bar. Windows Caching - grrr.
 ====> anal_pe seg faults on exe's that are winjected with icons. 
 
      Linux Custom icon Works well on Raspberry so it's not all wrong. 
-----> i686 (debian 7.2) doesn't like gksudo. (icons may be good)
-----> x86_64 - Suse/XFCE - no gksudo. Icons (so far, are good)
-----> Fedora - no graphical sudo at all. 
-====> Show stopper. (assuming I could get exerb/icons working)
+done: i686 (debian 7.2) doesn't like gksudo. (icons may be good)
+done: x86_64 - Suse/XFCE - no gksudo. Icons (so far, are good)
+done: Fedora - no graphical sudo at all. 
+
      
      
 2014-12-07
-     use app.set_window_title - in Shoes.app {bloc} and subclass of Shoes.app
+     use app.set_window_title - in Shoes.app {block} and subclass of Shoes.app
 ---->ytm-custom.exe appears to work but Applications/ytm/ytm.exe doesn't have
      getwd set to launch dir. 
 ====> Known Windows problem - For any Shoes app.
@@ -61,7 +97,7 @@ done: fix eval() and .desktop when expandshy is false
 
      Linux: it runs after shoes is installed. It should set the icon and
        title of it's installer screen. 
-       It should copy  ~/.shoes/federales
+       It could copy  ~/.shoes/federales
        to the users chosen directory and fix up the icons etc
        Execept Gems will be shared and .shoes/federales is probably hardcoded
        (effectively). Same with OSX. No point in making a copy of Shoes.

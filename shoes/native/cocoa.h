@@ -3,7 +3,9 @@
 // Custom Cocoa interfaces for Shoes
 //
 #import <Cocoa/Cocoa.h>
+#ifndef OLD_OSX
 #import <AppKit/NSFontCollection.h>
+#endif
 
 @interface ShoesEvents : NSObject
 {

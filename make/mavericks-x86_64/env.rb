@@ -58,8 +58,11 @@ LINUX_LIB_NAMES << 'pixman-1' << 'jpeg.8'
 
 #OSX_SDK = '/Developer/SDKs/MacOSX10.6.sdk'
 #ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
-OSX_SDK = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk'
-ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
+OSX_SDK = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.6.sdk'
+ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
+LINUX_CFLAGS << ' -DOLD_OSX '
+#OSX_SDK = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk'
+#ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
 
 case ENV['SHOES_OSX_ARCH']
 when "universal"
