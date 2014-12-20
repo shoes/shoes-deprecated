@@ -1,13 +1,58 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-12-19 
+     setup a chroot for 10.6 brew install, ruby building
+
+2014-12-18
+     Ian says to configure zlib with both architectures. Would that fix
+     the install_name_tool problem? The ssl exception?
+     So far, no but I can't compile arch 'ppc' Has bundle format changed 
+     since 10.6 and otool and install_name_tool so that 10.9 can't handle
+     10.6 bundles?
+  
+2014-12-17 Still working on the 10.6
+     My xsnow task.rb needs to fix up (install-name-tool) /usr/lib/libz*
+     to point ruby's bundles (openssl, zlib) to  @executable_path/ 
+     It's not changing any the bundles. Says it is, but it's not. Manual
+     runnomg install_name_tool doesn't solve the openssl error. 
+     
+     Nothing is copying the /usr/local/opt/opensll/engines/ dylibs and 
+     fixing them. This Should be a problem for all OSX.  It works because
+===>  of /usr/lib/libssl.dylib.  Do I need brew openssl for 10.9, 10.6?
+      My rvm ruby 2.1.2 does depend on the /usr/local/opt/openssl/lib/*.dylibs
+      
+      I need a copy of Ian's /usr/local[opt|bin|lib|etc] or I convince
+      brew to have two Cellars. Or I don't support 10.6. I don't have Ian's
+      ruby.
+      
+====> openssl/engines/dylib is still a problem (that nobody knows about)
+====> rewrite issues with OSX mavericks. It doesn't change the Shoe      
+     
+     
+  
+2014-12-16 
+      Ian's OSX 10.6 is very very close. 
+      We both compiled zlib 1.2.8. because his libpng16.16 needed a newer libz
+      that shoes/OSX 10.6 provideds (didn't include until now).
+      Mine has an odd problem - when running Cobbler it throws and ssl 
+      exception. - Related to not linking openssl with libz? 
+  
+2014-12-15
+      Add BREWOCS to xsnow/env.rb points to ~/deps/10.6/
+      Ian had to add 8 X11 related libs to 
+  
 2014-12-14
 done: Produced a build for OSX 10.6. It runs on my 10.10
 done: Use -DOLD_OSX 
 ----> Consider 10.6 as new platform target? Would need set of makefiles
       and some tweaks (he says) to the packaging code. 
 ====> pango-querymodues (and all of the homebrew deps) needs to be built
-      for 10.6 (snow leopard) and kept separate from 10.9
+      for 10.6 (snow leopard) and kept separate from 10.9 OR I COULD copy
+      Ian's and fix them up (already done as part of the build)
+====> create rakefile target osx:setup:snow and rakefiles in make/xsnow
+====> Just need to build the homebrew deps and Ruby with 10.6 frameworks 
+      and cross coompile. 
 
 2014-12-13
 done: build osx with Ians copy of 10.6 sdk. Shoes fails when starting.

@@ -206,16 +206,16 @@ module PackShoes
     tmp_dir = File.join(opts['packtmp'], "+dmg")
     FileUtils.rm_rf(tmp_dir)
     FileUtils.mkdir_p(tmp_dir)
-    # Produce a tgz that when the user expands it is a 'Myapp.App'
-    # which is a directory tree with all the osx stuff. Info.plist
-    # will run a bash script (Contents/MacOS/osx-app-install) which 
-    # checks if Shoes is already installed in /Applications
-    # if not it will download shoes, and install it
-    # Then the script/shy is run. Actually a MyApp-launch bash script
-    # is whats run - it starts Shoes and pass the Myapp.rb or MyApp.shy on
-    # the commandline. 
-    # Similar to what is done for Linux, but with extra osx flavoring.
-  
+    # deal with custom icons. Brutish
+    icon_path = ''
+    if opts['advopts'] && opts['icns'] 
+      icon_path = opts['icns']
+    else
+      # use Shoes
+      icon_path = File.join(DIR, "static", "Shoes.icns")
+    end
+    icon_name = File.basename(icon_path)
+     
     @tarmodes = {}
  
     app_dir = File.join(tmp_dir, app_app)
@@ -223,12 +223,15 @@ module PackShoes
     res_dir = File.join(tmp_dir, app_app, "Contents", "Resources")
     mac_dir = File.join(tmp_dir, app_app, "Contents", "MacOS")
     [res_dir, mac_dir].map { |x| FileUtils.mkdir_p(x) }
-    FileUtils.cp(File.join(DIR, "static", "Shoes.icns"), app_dir)
-    FileUtils.cp(File.join(DIR, "static", "Shoes.icns"), res_dir)
-    # make cache entries for the files above just to keep the console
-    # messages away. 
-    @tarmodes["#{app_app}/Contents/Resources/Shoes.icns"] = 0644
-    @tarmodes["#{app_app}/Shoes.icns"] = 0644
+    #FileUtils.cp(File.join(DIR, "static", "Shoes.icns"), app_dir)
+    #FileUtils.cp(File.join(DIR, "static", "Shoes.icns"), res_dir)
+    FileUtils.cp(icon_path, app_dir)
+    FileUtils.cp(icon_path, res_dir)
+    # make cache entries for the files above to keep the console quiet
+    #@tarmodes["#{app_app}/Contents/Resources/Shoes.icns"] = 0644
+    #@tarmodes["#{app_app}/Shoes.icns"] = 0644
+    @tarmodes["#{app_app}/Contents/Resources/#{icon_name}"] = 0644
+    @tarmodes["#{app_app}/#{icon_name}"] = 0644
     # more permissions cache entries 
     ["#{app_app}", "#{app_app}/Contents", "#{app_app}/Contents/Resources",
      "#{app_app}/Contents/MacOS" ].each {|d| @tarmodes[d] = 0755}
@@ -254,7 +257,7 @@ module PackShoes
   <key>CFBundleName</key>
   <string>#{app_name}</string>
   <key>CFBundleIconFile</key>
-  <string>Shoes.icns</string>
+  <string>#{icon_name}</string>
   <key>CFBundleShortVersionString</key>
   <string>#{vers.join(".")}</string>
   <key>CFBundleInfoDictionaryVersion</key>
@@ -369,15 +372,27 @@ END
     Dir.chdir tmp_dir do
       FileUtils.mv "Shoes.app", app_app
     end
+    # deal with custom icons. Brutish
+    icon_path = ''
+    if  opts['icns'] 
+      icon_path = opts['icns']
+    else
+      # use Shoes icons
+      icon_path = File.join(DIR, "static", "Shoes.icns")
+    end
+    icon_name = File.basename(icon_path)
+ 
     res_dir = File.join(tmp_dir, app_app, "Contents", "Resources")
     mac_dir = File.join(tmp_dir, app_app, "Contents", "MacOS")
     [res_dir, mac_dir].map { |x| FileUtils.mkdir_p(x) }
-    FileUtils.cp(File.join(DIR, "static", "Shoes.icns"), app_dir)
-    FileUtils.cp(File.join(DIR, "static", "Shoes.icns"), res_dir)
+    #FileUtils.cp(File.join(DIR, "static", "Shoes.icns"), app_dir)
+    #FileUtils.cp(File.join(DIR, "static", "Shoes.icns"), res_dir)
+    FileUtils.cp(icon_path, app_dir)
+    FileUtils.cp(icon_path, res_dir)
     # make cache entries for two files above just to keep the consoles
     # messages away. 
-    @tarmodes["#{app_app}/Contents/Resources/Shoes.icns"] = 0644
-    @tarmodes["#{app_app}/Shoes.icns"] = 0644
+    @tarmodes["#{app_app}/Contents/Resources/#{icon_name}"] = 0644
+    @tarmodes["#{app_app}/#{icon_name}"] = 0644
     File.open(File.join(app_dir, "Contents", "PkgInfo"), 'w') do |f|
       f << "APPL????"
     end
@@ -396,7 +411,7 @@ END
   <key>CFBundleName</key>
   <string>#{app_name}</string>
   <key>CFBundleIconFile</key>
-  <string>Shoes.icns</string>
+  <string>#{icon_name}</string>
   <key>CFBundleShortVersionString</key>
   <string>#{vers.join(".")}</string>
   <key>CFBundleInfoDictionaryVersion</key>
