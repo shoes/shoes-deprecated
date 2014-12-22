@@ -133,6 +133,9 @@ when /linux/
     when /xmsw32/
       require File.expand_path('make/xmsw32/env')
       require File.expand_path('make/xmsw32/tasks')
+    when /xsnow/
+      require File.expand_path('make/xsnow/env')
+      require File.expand_path('make/xsnow/tasks')
    else
       puts "Unknown builder for #{TGT_ARCH}, removing setting"
       rm_rf "crosscompile" if File.exists? "crosscompile"
@@ -323,15 +326,20 @@ namespace :osx do
   end
   
   namespace :setup do
-    desc "Setup to build a distributable Shoes"
+    desc "Setup to build Shoes for 10.9+"
     task :mavericks do
       sh "echo 'TGT_ARCH=mavericks-x86_64' >crosscompile"
     end
     
-    desc "Setup to Fail! Shoes/Gtk2/OSX 10.9+"
-    task :gtk2 do
-      sh "echo 'TGT_ARCH=osx-gtk2' >crosscompile"
+    desc "Setup to build for 10.6 to 10.8+"
+    task :snow do
+      sh "echo 'TGT_ARCH=snowleopard' >crosscompile"
     end
+    
+    #desc "Setup to Fail! Shoes/Gtk2/OSX 10.9+"
+    #task :gtk2 do
+    #  sh "echo 'TGT_ARCH=osx-gtk2' >crosscompile"
+    #end
     
     desc "Setup to build Shoes just for my Mac (default)"
     task :clean do
