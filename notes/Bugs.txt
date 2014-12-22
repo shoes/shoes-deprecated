@@ -1,6 +1,17 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2014-12-21
+     The Tooth Fairy left me a 10.6.3 dvd .img Yea!
+     
+     Github. 
+       Convert github://ccoupe/shoes to org  Shoes3 
+       repo is still ccoupe/shoes
+       issues enabled.
+  
+2014-12-20
+      give up on the chroot.
+  
 2014-12-19 
      setup a chroot for 10.6 brew install, ruby building
 
