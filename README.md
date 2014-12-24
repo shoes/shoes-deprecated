@@ -20,35 +20,48 @@ Federales doesn't really add any notable new features to Shoes except it works b
 Let's start with the good news first.
 
   Federales uses Ruby 2.0.0 (or higher) and Rubygems 2.0.14 (or higher) 
+  
   Linux users really can download a binary that works. They don't have to 
-    build from source. If they do build from source, it's easier. 
+    build from source. If they do build from source, it's easier.
+     
   Added a Raspberry Pi distribution (Raspbian)
+  
   For Linux, it installs Shoes in your home directory (~/.shoes/federales) 
     and you get a menu selection. You can start from the commandline if you
     like, of course.
+    
   Gem handling is greatly improved.
     Gem.setup may not be not required. If used, it works better.
+    
   Windows 7+ version works much, much better. Serveral nasty bugs have
     been fixed and the installer is less offensive.
+    
   OSX Mavericks and Yosemite works. Snow Leopard (10.6) is possible.
-  Includes a Shoes Cobbler app to clear your image cache and manage your
-    Shoes/gem interface - see below discussion on gems.
+  
+  Includes a Shoes Cobbler app to clear your image cache and manage your Gems 
+    
   Packaging works again! 
+  
     From all 5 platforms to all 5 platforms.
     No longer tied to a dead website and you can change the website used
     for packaging and downloading without building Shoes from source.
 
 What doesn't work.
+
   Link and Linkhover have to be replaced with Shoes::Link and Shoes::Linkhover
+  
   The json gem is not included. Ruby provides it.
     
-Important Concept.
+Important Concepts
+
   Ruby 1.9.3 brought a feature to ruby that made it very difficult to
   distrubute Shoes 3.0 or 3.1 or package a script with shoes. Shoes 3.2
   has two variants: 
+  
     Tight Shoes - a sandboxed app you download. And send around.
     Loose Shoes - built from source and deeply tied to your system. You cannot
       distribute a Loose Shoes and expect it to work.
+      
   You can use either Loose or Tight to Package but the package will always 
     use a Tight Shoes
     
