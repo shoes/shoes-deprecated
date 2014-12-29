@@ -1,12 +1,20 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
+2014-12-24
+     release 3.2.19. Just fixes the long string bug NSIS.
+     update shoesrb and issue pull
   
 2014-12-23
      Transfered ccoupe/shoes to Shoes3/shoes
 done: test auto redirect
-----> modify my local git/shoes to link to  https://github.com/Shoes3/shoes.git
+done: modify my local git/shoes to link to  https://github.com/Shoes3/shoes.git
+----> need to re-enter username and pass word after git remote set-url
 ----> ccoupe/shoesrb is tied up with gitub.io and jeykl and github pages
-      might keep this under ccoupe
+        keep this under ccoupe for now
+----> modify blog links for shoes3/shoes
+done: modify README.md for shoes3/shoes
+----> modify wiki articles for shoes3/shoes
+----> modify shoes manual for shoes3/shoes
   
 2014-12-22 
      delete empty Shoes3 repo. 
