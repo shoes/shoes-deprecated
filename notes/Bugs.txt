@@ -1,11 +1,34 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
+  
+2014-12-28
+     helping Ian with icon testing.
+     Reference to Apple icns and other high rez screens handling. 
+     https://developer.apple.com/library/mac/documentation/GraphicsAnimation/Conceptual/HighResolutionOSX/Optimizing/Optimizing.html
+     OSX icons are 16, 32, 128, 256, 512 (+ @x2 for 144 dpi) Max 10 icons.
+     
+2014-12-26 
+     discussion about moving shoes3 back to Shoes org.
+     wiki mods
+     updated raspbian. not happy, not a shoes issue.
+     
+done: Start 3.2.20
+----> icons for full pack (can be) different from custom install icons.
+        for full pack, replace app-icon in the outgoing build.
+     
+  
+2014-12-25 Wiki mods
+done: modify blog links for shoes3/shoes
+done: outline for wiki
+done: wrote a bunch of intermediate level doc.
+
 2014-12-24
-     release 3.2.19. Just fixes the long string bug NSIS.
-     update shoesrb and issue pull
+done: release 3.2.19. Just fixes the long string bug NSIS.
+done: update shoesrb and issue pull
+----  delete useless stuff (usedeps, deps) move the icons elsewhere
   
 2014-12-23
-     Transfered ccoupe/shoes to Shoes3/shoes
+done: Transfered ccoupe/shoes to Shoes3/shoes
 done: test auto redirect
 done: modify my local git/shoes to link to  https://github.com/Shoes3/shoes.git
 ----> need to re-enter username and pass word after git remote set-url
@@ -17,10 +40,10 @@ done: modify README.md for shoes3/shoes
 ----> modify shoes manual for shoes3/shoes
   
 2014-12-22 
-     delete empty Shoes3 repo. 
-     add some detail to Shoes 3 org account 
+done: delete empty Shoes3 repo. 
+done: add some detail to Shoes 3 org account 
      Transfer shoesrb repo from ccoupe/shoesrb to org Shoes3 (a test)
-     Then xfer ccoupe/shoes
+done: Then xfer ccoupe/shoes
      
   
 2014-12-21
