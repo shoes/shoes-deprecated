@@ -122,10 +122,14 @@ class MakeDarwin
       # copy include files - it might help build gems
       mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-#{rbvt}"
       cp_r "#{EXT_RUBY}/include/ruby-#{rbvt}/", "#{TGT_DIR}/lib/ruby/include"
+      # build a hash of x.dylib > BrewLoc/**/*.dylib
+      @brew_hsh = {}
+      Dir.glob("#{BREWLOC}/**/*.dylib").each do |path|
+        @brew_hsh[File.basename(path)] = path
+      end
       # copy some stuff before fixing ruby bundles.
       # 10.6 odd ball
-      cp "#{BREWLOC}/lib/libz.1.dylib", "#{TGT_DIR}/"
-      cp "#{BREWLOC}/lib/libXft.2.dylib", "#{TGT_DIR}/"
+      #cp "#{BREWLOC}/lib/libXft.2.dylib", "#{TGT_DIR}/"
       # Softlink run major/minor versions
       #cdir = pwd
       #cd TGT_DIR do
@@ -143,22 +147,25 @@ class MakeDarwin
           end
         end
         cplibs.each_key do |k|
-          if k =~ /\/usr\/local\//
+          cppath = @brew_hsh[File.basename(k)]
+          if cppath
            #cp k, "#{TGT_DIR}"
-           cp "#{BREWLOC}/lib/#{File.basename k}", "#{TGT_DIR}"
+           cp cppath, "#{TGT_DIR}"
            chmod 0755, "#{TGT_DIR}/#{File.basename k}"
-           puts "Copy #{BREWLOC}/lib/#{File.basename k}"
+           puts "Copy #{cppath}"
           end
         end
         # -id/-change the lib
         bundles.each do |f|
           dylibs = get_dylibs f
           dylibs.each do |dylib|
-            if dylib =~ /\/usr\/local\//
+            if @brew_hsh[File.basename(dylib)]
+            #if dylib =~ /\/usr\/local\//
               sh "install_name_tool -change #{dylib} @executable_path/../#{File.basename dylib} #{f}"
-            elsif dylib =~ /libz/ #10.9 has it in /usr/lib/libz.1.dylib
+            #elsif dylib =~ /libz/ #10.9 has it in /usr/lib/libz.1.dylib
+              #sh "install_name_tool -change #{dylib} @executable_path/../#{File.basename dylib} #{f}"
+            else
               puts "Bundle lib missing #{dylib}"
-              sh "install_name_tool -change #{dylib} @executable_path/../#{File.basename dylib} #{f}"
             end
           end
         end
@@ -182,7 +189,7 @@ class MakeDarwin
     end
 
     def copy_pango_modules
-      puts "Entering copy_pango_modules_to_dist #{`pwd`}"
+      puts "Entering copy_pango_modules #{`pwd`}"
       #modules_file = `brew --prefix`.chomp << '/etc/pango/pango.modules'
       #modules_file = "deps/osx/10.6/pango.modules"
       #modules_path = File.open(modules_file) {|f| f.grep(/^# ModulesPath = (.*)$/){$1}.first}
@@ -196,6 +203,7 @@ class MakeDarwin
       #cp `which pango-querymodules`.chomp, "#{TGT_DIR}/"
       cp "#{BREWLOC}/bin/pango-querymodules", "#{TGT_DIR}/"
       chmod 0755, "#{TGT_DIR}/pango-querymodules"
+      puts "Leaving copy_pango_modules"
     end
     
     def copy_gem_deplibs
@@ -223,17 +231,17 @@ class MakeDarwin
       # Start with dependencies of shoes-bin, and then add the dependencies
       # of those dependencies. Finally, add any oddballs that must be
       # included.
-      dylibs = dylibs_to_change("#{TGT_DIR}/#{NAME}-bin")
-      dylibs.concat dylibs_to_change("#{TGT_DIR}/pango-querymodules")
+      dylibs = get_dylibs("#{TGT_DIR}/#{NAME}-bin")
+      dylibs.concat get_dylibs("#{TGT_DIR}/pango-querymodules")
       # add the gem's bundles.
       rbvm = RUBY_V[/^\d+\.\d+/]
       Dir["#{TGT_DIR}/lib/ruby/gems/#{rbvm}.0/gems/**/*.bundle"].each do |gb|
         #puts "Bundle: #{gb}"
-        dylibs.concat dylibs_to_change(gb)
+        dylibs.concat get_dylibs(gb)
       end
       dupes = []
       dylibs.each do |dylib|
-        dylibs_to_change(dylib).each do |d|
+        get_dylibs(dylib).each do |d|
           if dylibs.map {|lib| File.basename(lib)}.include?(File.basename(d))
             dupes << d
           else
@@ -242,17 +250,15 @@ class MakeDarwin
         end
       end
       #dylibs.each {|libn| cp "#{libn}", "#{TGT_DIR}/" unless File.exists? "#{TGT_DIR}/#{libn}"}
-      # clunky hack begins - Homebrew keg issue? ro duplicates do exist
-      # make my own dups hash - not the same as dupes. 
-      dups = {}
       dylibs.each do |libn| 
         keyf = File.basename libn
-        if !dups[keyf] 
+        if @brew_hsh[keyf]
           puts "Copy: #{keyf}"
           #cp "#{libn}", "#{TGT_DIR}/" unless File.exists? "#{TGT_DIR}/#{keyf}"
-          cp "#{BREWLOC}/lib/#{keyf}", "#{TGT_DIR}/" unless File.exists? "#{TGT_DIR}/#{keyf}"
-          dups[keyf] = true
+          cp @brew_hsh[keyf], "#{TGT_DIR}/" unless File.exists? "#{TGT_DIR}/#{keyf}"
           chmod 0755, "#{TGT_DIR}/#{keyf}" unless File.writable? "#{TGT_DIR}/#{keyf}"
+        else
+          puts "Missing #{libn}"
         end
       end
       change_install_names

@@ -6,7 +6,7 @@
 include FileUtils
 EXT_RUBY = RbConfig::CONFIG['prefix']
 # Where are homebrew libs/includes/bin
-BREWLOC = "/Users/ccoupe/shoesdeps/10.6"  # often /usr/local/
+BREWLOC = "/Users/ccoupe/brew-10.6"  # often /usr/local/
 # use the platform Ruby claims
 # require 'rbconfig' not needed
 
