@@ -69,7 +69,7 @@ module Make
       each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_RUBY_ARCH}" }
 
     gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
-    {'hpricot' => 'lib', 'sqlite3' => 'lib'}.each do |gemn, xdir|
+    {'hpricot' => 'lib'}.each do |gemn, xdir|
     #{'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
       spec = eval(File.read("req/#{gemn}/gemspec"))
       mkdir_p "#{gdir}/specifications"
@@ -125,18 +125,19 @@ class MakeDarwin
       # build a hash of x.dylib > BrewLoc/**/*.dylib
       @brew_hsh = {}
       Dir.glob("#{BREWLOC}/**/*.dylib").each do |path|
-        @brew_hsh[File.basename(path)] = path
+        key = File.basename(path)
+        @brew_hsh[key] = path 
       end
-      # copy some stuff before fixing ruby bundles.
-      # 10.6 odd ball
-      #cp "#{BREWLOC}/lib/libXft.2.dylib", "#{TGT_DIR}/"
-      # Softlink run major/minor versions
-      #cdir = pwd
-      #cd TGT_DIR do
-      #  ln_s "libruby.#{rbvt}.dylib", "libruby.dylib"
-      #  ln_s "libruby.#{rbvt}.dylib", "libruby.#{rbvm}.dylib"
-      #end
-      # Find ruby's dependent libs in homebrew (/usr/local/
+      # 
+      # X11 stuff - Add hand crafted X11 libs to brew_hsh
+      ["libxcb-shm.0.dylib", "libxcb-render.0.dylib", "libxcb.1.dylib", "libXrender.1.dylib",
+        "libXext.6.dylib", "libX11.6.dylib", "libXau.6.dylib", "libXdmcp.6.dylib",
+        "libXft.2.dylib"].each do |nm|
+          @brew_hsh[nm] = "#{X11LOC}/lib/#{nm}"
+          cp @brew_hsh[nm], TGT_DIR
+      end
+      
+      # Find ruby's dependent libs in homebrew
       cd "#{TGT_DIR}/lib/ruby/#{rbvm}.0/#{RUBY_PLATFORM}" do
         bundles = *Dir['*.bundle']
         puts "Bundles #{bundles}"
@@ -149,10 +150,12 @@ class MakeDarwin
         cplibs.each_key do |k|
           cppath = @brew_hsh[File.basename(k)]
           if cppath
-           #cp k, "#{TGT_DIR}"
-           cp cppath, "#{TGT_DIR}"
-           chmod 0755, "#{TGT_DIR}/#{File.basename k}"
-           puts "Copy #{cppath}"
+            #cp k, "#{TGT_DIR}"
+            cp cppath, "#{TGT_DIR}" 
+            chmod 0755, "#{TGT_DIR}/#{File.basename k}"
+            puts "Copy #{cppath}"
+          else
+            puts "Missing Ruby: #{k}"
           end
         end
         # -id/-change the lib
@@ -176,11 +179,11 @@ class MakeDarwin
     def change_install_names
       puts "Entering change_install_names"
       cd "#{TGT_DIR}" do
-        ["#{NAME}-bin", "pango-querymodules", *Dir['*.dylib'], *Dir['pango/modules/*.so']].each do |f|
+        ["#{NAME}-bin", "pango-querymodules", *Dir['*.dylib'], *Dir['pango/modules/*/*.so']].each do |f|
           sh "install_name_tool -id @executable_path/#{File.basename f} #{f}"
           dylibs = get_dylibs f
           dylibs.each do |dylib|
-            # another Cecil hack
+            # another Cecil hack Should do the install_name_tool stuff
             chmod 0755, dylib if File.writable? dylib
             sh "install_name_tool -change #{dylib} @executable_path/#{File.basename dylib} #{f}"
           end
@@ -193,12 +196,12 @@ class MakeDarwin
       #modules_file = `brew --prefix`.chomp << '/etc/pango/pango.modules'
       #modules_file = "deps/osx/10.6/pango.modules"
       #modules_path = File.open(modules_file) {|f| f.grep(/^# ModulesPath = (.*)$/){$1}.first}
-      mkdir_p "#{TGT_DIR}/pango"
+      mkdir_p "#{TGT_DIR}/pango/modules"
       #cp_r modules_path, "#{TGT_DIR}/pango"
-      cp_r "#{BREWLOC}/lib/pango", "#{TGT_DIR}"
-      # Another Cecil hack ahead
-      Dir.glob("#{TGT_DIR}/pango/modules/*").each do |f|
-        chmod 0755, f unless File.writable? f
+      #cp_r "#{BREWLOC}/lib/pango", "#{TGT_DIR}"
+      Dir.glob("#{BREWLOC}/lib/pango/**/modules/*.so").each do |f|
+        cp f, "#{TGT_DIR}/pango/modules"
+        chmod 0755, "#{TGT_DIR}/pango/modules/#{File.basename(f)}"
       end
       #cp `which pango-querymodules`.chomp, "#{TGT_DIR}/"
       cp "#{BREWLOC}/bin/pango-querymodules", "#{TGT_DIR}/"
@@ -232,7 +235,8 @@ class MakeDarwin
       # of those dependencies. Finally, add any oddballs that must be
       # included.
       dylibs = get_dylibs("#{TGT_DIR}/#{NAME}-bin")
-      dylibs.concat get_dylibs("#{TGT_DIR}/pango-querymodules")
+      pqlibs = get_dylibs("#{TGT_DIR}/pango-querymodules")
+      dylibs.concat pqlibs
       # add the gem's bundles.
       rbvm = RUBY_V[/^\d+\.\d+/]
       Dir["#{TGT_DIR}/lib/ruby/gems/#{rbvm}.0/gems/**/*.bundle"].each do |gb|
@@ -253,7 +257,7 @@ class MakeDarwin
       dylibs.each do |libn| 
         keyf = File.basename libn
         if @brew_hsh[keyf]
-          puts "Copy: #{keyf}"
+          puts "Copy: #{@brew_hsh[keyf]}"
           #cp "#{libn}", "#{TGT_DIR}/" unless File.exists? "#{TGT_DIR}/#{keyf}"
           cp @brew_hsh[keyf], "#{TGT_DIR}/" unless File.exists? "#{TGT_DIR}/#{keyf}"
           chmod 0755, "#{TGT_DIR}/#{keyf}" unless File.writable? "#{TGT_DIR}/#{keyf}"
@@ -297,19 +301,20 @@ class MakeDarwin
     end
 
     def make_app(name)
+      puts "Enter make_app"
       bin = "#{name}-bin"
       rm_f name
       rm_f bin
-      sh "#{CC} -L#{TGT_DIR} -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{OSX_ARCH} -L/usr/local/lib -lgif"
+      sh "#{CC} -L#{TGT_DIR} -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{OSX_ARCH}"
     end
 
     def make_so(name)
+      puts "Enter make_so"
       ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
-      sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS} -L/usr/local/lib -lglib"
+      sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
       #%w[libpostproc.dylib libavformat.dylib libavcodec.dylib libavutil.dylib libruby.dylib].each do |libn|
       #  sh "install_name_tool -change /tmp/dep/lib/#{libn} ./deps/lib/#{libn} #{name}"
       #end
-      # 
     end
     
     def make_installer
@@ -366,7 +371,8 @@ class MakeDarwin
       puts "Build gems #{TGT_DIR}"
       mkdir_p "#{TGT_DIR}/builtins"
       gdir = "#{TGT_DIR}/builtins"
-      {'hpricot' => 'lib', 'sqlite3' => 'lib'}.each do |gemn, xdir|
+      #{'hpricot' => 'lib', 'sqlite3' => 'lib'}.each do |gemn, xdir|
+      {'hpricot' => 'lib'}.each do |gemn, xdir|
         spec = eval(File.read("req/#{gemn}/gemspec"))
         mkdir_p "#{gdir}/specifications"
         mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"

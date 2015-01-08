@@ -243,7 +243,7 @@ end
 #  Builder.gems_build
 #end
 
-desc "Install Shoes in your  ~/.shoes Directory"
+desc "Install Shoes in your ~/.shoes Directory"
 task  :install do
   if CROSS 
      puts "Sorry. You can't do an install of your source built Shoes"
@@ -256,7 +256,6 @@ end
 
 
 directory "#{TGT_DIR}"	# was 'dist'
-
 
 task "#{TGT_DIR}/#{NAME}" => ["#{TGT_DIR}/lib#{SONAME}.#{DLEXT}", "bin/main.o"] + ADD_DLL + ["#{NAMESPACE}:make_app"]
 
@@ -297,33 +296,72 @@ def copy_files glob, dir
 end
 
 namespace :osx do
-  namespace :deps do
-    task :install => "homebrew:install"
-    namespace :homebrew do
-      desc "Install OS X dependencies using Homebrew"
-      task :install => [:customize, :install_libs, :uncustomize]
-
-      task :install_libs do
-        brew = Homebrew.new
-        brew.universal if ENV['SHOES_OSX_ARCH'] == "universal"
-        brew.install_packages
-      end
-
-      task :customize do
-        brew = Homebrew.new
-        brew.universal if ENV['SHOES_OSX_ARCH'] == "universal"
-        brew.add_custom_remote
-        brew.add_custom_formulas
-      end
-
-      task :uncustomize do
-        brew = Homebrew.new
-        brew.universal if ENV['SHOES_OSX_ARCH'] == "universal"
-        brew.remove_custom_formulas
-        brew.remove_custom_remote
-      end
+  namespace :setup do
+    desc "Setup to build Shoes for 10.9+"
+    task :mavericks do
+      sh "echo 'TGT_ARCH=mavericks-x86_64' >crosscompile"
     end
+    
+    desc "Setup to build for 10.6 to 10.8+"
+    task :snow do
+      sh "echo 'TGT_ARCH=snowleopard' >crosscompile"
+    end
+    
+    #desc "Setup to Fail! Shoes/Gtk2/OSX 10.9+"
+    #task :gtk2 do
+    #  sh "echo 'TGT_ARCH=osx-gtk2' >crosscompile"
+    #end
+    
+    desc "Setup to build Shoes just for my Mac (default)"
+    task :clean do
+      rm_rf "crosscompile"
+    end 
   end
+  
+  task :build => [:old_build]
+
+  task :make_app do
+    Builder.make_app "#{TGT_DIR}/#{NAME}"
+  end
+
+  task :make_so do
+    Builder.make_so  "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
+  end
+
+  task :installer do
+    Builder.make_installer
+  end
+
+end
+
+namespace :xyzosx do
+#  namespace :deps do
+#    task :install => "homebrew:install"
+#    namespace :homebrew do
+#      desc "Install OS X dependencies using Homebrew"
+#      task :install => [:customize, :install_libs, :uncustomize]
+
+#      task :install_libs do
+#        brew = Homebrew.new
+#        brew.universal if ENV['SHOES_OSX_ARCH'] == "universal"
+#        brew.install_packages
+#      end
+
+#      task :customize do
+#        brew = Homebrew.new
+#        brew.universal if ENV['SHOES_OSX_ARCH'] == "universal"
+#        brew.add_custom_remote
+#        brew.add_custom_formulas
+#      end
+
+#      task :uncustomize do
+#        brew = Homebrew.new
+#        brew.universal if ENV['SHOES_OSX_ARCH'] == "universal"
+#        brew.remove_custom_formulas
+#        brew.remove_custom_remote
+#      end
+#    end
+#  end
   
   namespace :setup do
     desc "Setup to build Shoes for 10.9+"
@@ -562,14 +600,19 @@ namespace :osx do
   end
 
   task :make_app do
-    # Builder.make_app "dist/#{NAME}"
-    bin = "#{TGT_DIR}/#{NAME}-bin"
-    rm_f "#{TGT_DIR}/#{NAME}"
-    rm_f bin
-    sh "#{CC} -L#{TGT_DIR} -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{OSX_ARCH} -L/usr/local/lib -lgif"
+    if CROSS
+      Builder.make_app "#{TGT_DIR}/#{NAME}"
+    else
+      puts "Central make_app"
+      bin = "#{TGT_DIR}/#{NAME}-bin"
+      rm_f "#{TGT_DIR}/#{NAME}"
+      rm_f bin
+      sh "#{CC} -L#{TGT_DIR} -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{OSX_ARCH} -L/usr/local/lib -lgif"
+    end
   end
 
   task :make_so do
+    puts "Central make_so"
     name = "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
     #ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
     ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, ""

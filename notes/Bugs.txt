@@ -1,11 +1,60 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
+2015-10-07 
+done:  pango dir structure created wrong.
+----> sqlite3 - there's one in Cellar, and one in SDK 10.6, /usr/lib 
+        which one did extconf/install name tool compile, link with?
+----> attempt to remove sqlite3 from 10.6 build. Failing.
+----> rake package 'strip -x' says it will invalidate code signatures
+----> two arches in some libs -  x86_64 and i386 wasteful, required?
+----> When my 10.6 runs on 10.9: Cobbler/Packager selection from splash
+      Gets an SSL error (Cobbler.rb:204)
+  
+2015-01-06
+     Still need to fix panqo modules.
+  
+2015-01-05
+====> Time to redo the osx:namespace in Rakefile and go back to the 
+      Builder style for every Tight Shoes target and Loose Shoes build.
+====> (re)Write darwin/* files for Loose Shoes.
+done: snowleopard target uses the correct Cellar for compiling.
+done: snowleopard target needs to use the correct Cellar for linking.
+      fontconfig - which version /opt/X11 (no), SDK 10.6 framework?. brew? which brew?
+      Applies to cairo and pango. 
+
+  
+2015-01-04
+     10.9 compiling for 10.6 almost works. committed env.rb and tasks.rb
+     even though they are incomplete.
+  
+2015-01-03
+     Nothing useful happened
+
+2015-01-02
+     Much futzing with OSX 10.6 VM's.
+     Build libz on 10.6 and 10.10
+     Rebuild Ruby on 10.6 and 10.10 to use that libz
+     Tar up 10.6 /usr/local/* and untar somewhere in 10.9
+     Fix Snow rake files to handle 10.6 native or my 10.6 in 10.9
+  
+2014-12-30
+    darwind.iso is a command line boot installer. easier than iboot
+    osx 10.6 problem appears to be a bad .dmg. downloading 10.6.3 .iso
+    In my case, I have to use iboot-ivy and Easybeast doesn't work (yet)
+  
+2014-12-29
+----> Shoes manual, edit_box does not explicitly mention that Styles apply
+     and Styles doesn't mention state: => enable, disable, readonly
+done: remove Shoes/Wine menus. 
+  
 2014-12-28
      helping Ian with icon testing.
      Reference to Apple icns and other high rez screens handling. 
      https://developer.apple.com/library/mac/documentation/GraphicsAnimation/Conceptual/HighResolutionOSX/Optimizing/Optimizing.html
      OSX icons are 16, 32, 128, 256, 512 (+ @x2 for 144 dpi) Max 10 icons.
+     Write a wiki page about creating icons.
+     It's one more reason not to implement Shoes on 10.6.
      
 2014-12-26 
      discussion about moving shoes3 back to Shoes org.

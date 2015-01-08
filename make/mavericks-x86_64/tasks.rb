@@ -278,6 +278,7 @@ class MakeDarwin
     end
 
     def make_app(name)
+      puts "Enter make_app"
       bin = "#{name}-bin"
       rm_f name
       rm_f bin
@@ -285,8 +286,9 @@ class MakeDarwin
     end
 
     def make_so(name)
+      puts "Enter make_so"
       ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
-      sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS} -L/usr/local/lib -lglib"
+      sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS} -L/usr/local/lib -lgif"
       #%w[libpostproc.dylib libavformat.dylib libavcodec.dylib libavutil.dylib libruby.dylib].each do |libn|
       #  sh "install_name_tool -change /tmp/dep/lib/#{libn} ./deps/lib/#{libn} #{name}"
       #end
