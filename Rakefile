@@ -109,8 +109,10 @@ when /darwin/
     require File.expand_path("make/#{TGT_ARCH}/stubs")
     Builder = MakeDarwin
   else
+    # build Loose Shoes on OSX for OSX
     require File.expand_path('make/darwin/env')
-    require_relative "make/darwin/homebrew"
+    require File.expand_path('make/darwin/tasks')
+    #require_relative "make/darwin/homebrew"
   end
   NAMESPACE = :osx
 when /linux/
@@ -302,21 +304,16 @@ namespace :osx do
       sh "echo 'TGT_ARCH=mavericks-x86_64' >crosscompile"
     end
     
-    desc "Setup to build for 10.6 to 10.8+"
+    desc "Setup to build for 10.6+ from 10.6"
     task :snow do
       sh "echo 'TGT_ARCH=snowleopard' >crosscompile"
     end
     
-    desc "Setup 10.6 for 10.6"
-    task "ians" do
-      sh "echo 'TGT_ARCH=ians' >crosscompile"
+    desc "Experimental Build 10.6 from 10.9"
+    task "xsnow" do
+      sh "echo 'TGT_ARCH=xsnow' >crosscompile"
     end
-    
-    #desc "Setup to Fail! Shoes/Gtk2/OSX 10.9+"
-    #task :gtk2 do
-    #  sh "echo 'TGT_ARCH=osx-gtk2' >crosscompile"
-    #end
-    
+        
     desc "Setup to build Shoes just for my Mac (default)"
     task :clean do
       rm_rf "crosscompile"

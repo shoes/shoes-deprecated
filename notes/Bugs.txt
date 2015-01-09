@@ -2,10 +2,14 @@ Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
   
 2015-01-08
-----> get rake files to Build Shoes on 10.6
+----> Issue invite to Ian to join Shoes4
+done: get rake files to Build Shoes on 10.6
       test on 10.6 - runs
-      test on 10.9.  libz issue
+      test on 10.9.  libz issue. Fixed. Runs.
+----> move my snowleopard make/ to xsnow and and Ians to snowleopard
+----> add sqlite3 to the 10.6 build
 ----> move loose shoes osx build code from Rakefile to darwin/env,task
+----> get rid of homebrew.rb and some old stuff in /make/darwin
   
 2015-10-07 
 done:  pango dir structure created wrong.

@@ -5,6 +5,7 @@
 *.def
 *.geany
 *.exe
+._*
 crosscompile
 bin/main.c
 shoes/version.h
@@ -14,5 +15,8 @@ pkg
 i386-gnu-linux
 x86_64-linux
 xarmv6-pi
+xmingw32
+snowleopard
+xsnow
 *.app
 req/*
