@@ -104,7 +104,7 @@ when /darwin/
   if CROSS
     # Building tight shoes on OSX for OSX
     require File.expand_path("make/#{TGT_ARCH}/env")
-    require_relative "make/#{TGT_ARCH}/homebrew"
+    #require_relative "make/#{TGT_ARCH}/homebrew"
     require File.expand_path("make/#{TGT_ARCH}/tasks")
     require File.expand_path("make/#{TGT_ARCH}/stubs")
     Builder = MakeDarwin
@@ -305,6 +305,11 @@ namespace :osx do
     desc "Setup to build for 10.6 to 10.8+"
     task :snow do
       sh "echo 'TGT_ARCH=snowleopard' >crosscompile"
+    end
+    
+    desc "Setup 10.6 for 10.6"
+    task "ians" do
+      sh "echo 'TGT_ARCH=ians' >crosscompile"
     end
     
     #desc "Setup to Fail! Shoes/Gtk2/OSX 10.9+"
