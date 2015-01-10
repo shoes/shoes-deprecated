@@ -225,6 +225,16 @@ class MakeDarwin
         end
       end
     end
+    
+    def dylibs_to_change lib
+      `otool -L #{lib}`.split("\n").inject([]) do |dylibs, line|
+        if  line =~ /^\S/ or line =~ /System|@executable_path|libobjc/
+          dylibs
+        else
+          dylibs << line.gsub(/\s\(compatibility.*$/, '').strip
+        end
+      end
+    end
 
     def copy_deps_to_dist
       puts "Entering copy_deps_to_dist #{TGT_DIR}"
