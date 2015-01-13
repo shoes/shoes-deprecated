@@ -1447,7 +1447,8 @@ shoes_native_timer_start(VALUE self, shoes_canvas *canvas, unsigned int interval
 VALUE
 shoes_native_clipboard_get(shoes_app *app)
 {
-  GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_PRIMARY);
+  //GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_PRIMARY);
+  GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
   if (gtk_clipboard_wait_is_text_available(primary))
   {
     gchar *string = gtk_clipboard_wait_for_text(primary);
@@ -1459,7 +1460,8 @@ shoes_native_clipboard_get(shoes_app *app)
 void
 shoes_native_clipboard_set(shoes_app *app, VALUE string)
 {
-  GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_PRIMARY);
+  //GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_PRIMARY);
+  GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
   gtk_clipboard_set_text(primary, RSTRING_PTR(string), RSTRING_LEN(string));
 }
 
