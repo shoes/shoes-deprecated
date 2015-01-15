@@ -1,15 +1,43 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
+
+2014-01-14 -  Items to mention for 3.2.20
+done: Ian fixed issue #15
+done: Ian added a "Copy this" to the manual
+done: Ian fixed issue #27
+done: Clean up Rakefile, remove things that no longer matter to 3.2
+      Can build on 10.6 (and w/o sqlite3 it will run on 10.6 up to 10.10)
+      
+2014-01-13
+      much discussion about Shoes is not Ruby - the shifting 'self'
+      
+2014-01-12 Bug013
+done: Gtk use GDK_SELECTION_CLIPBOARD in place of GDK_SELECTION_PRIMARY
+      Fixes bug 013
+
+
+2016-01-11
+-----> Sqllite3 crash on OSX 9+ with 10.6 Shoes.
+  
+2016-01-10
+Fixed: Weekly build failures:
+       x86_64-linux failed.
+       Mavericks - ruby is throwing a SSL_V2 hissy fit. old brew, ruby,?
+       http://stackoverflow.com/questions/25492787/ruby-bundle-symbol-not-found-sslv2-client-method-loaderror
+        
+2015-01-09
+      removed most of the osx stuff from Rakefile
+----> Loose Shoes (darwin) doesn't work - copies more than needed.
   
 2015-01-08
 ----> Issue invite to Ian to join Shoes4
 done: get rake files to Build Shoes on 10.6
       test on 10.6 - runs
       test on 10.9.  libz issue. Fixed. Runs.
-----> move my snowleopard make/ to xsnow and and Ians to snowleopard
+done: move my snowleopard make/ to xsnow and and Ians to snowleopard
 ----> add sqlite3 to the 10.6 build
-----> move loose shoes osx build code from Rakefile to darwin/env,task
-----> get rid of homebrew.rb and some old stuff in /make/darwin
+done: move loose shoes osx build code from Rakefile to darwin/env & task
+done: get rid of homebrew.rb and some old stuff in /make/darwin
   
 2015-10-07 
 done:  pango dir structure created wrong.
@@ -18,7 +46,7 @@ done:  pango dir structure created wrong.
 ----> attempt to remove sqlite3 from 10.6 build. Failing.
 ----> rake package 'strip -x' says it will invalidate code signatures
 ----> two arches in some libs -  x86_64 and i386 wasteful, required?
-----> When my 10.6 runs on 10.9: Cobbler/Packager selection from splash
+done: When my 10.6 runs on 10.9: Cobbler/Packager selection from splash
       Gets an SSL error (Cobbler.rb:204)
   
 2015-01-06
@@ -69,7 +97,8 @@ done: remove Shoes/Wine menus.
 2014-12-26 
      discussion about moving shoes3 back to Shoes org.
      wiki mods
-     updated raspbian. not happy, not a shoes issue.
+     updated raspbian. not happy with the new window manager, not a shoes issue
+     but it's difficult to test if you can't run any thing.
      
 done: Start 3.2.20
 ----> icons for full pack (can be) different from custom install icons.

@@ -6,7 +6,6 @@ include FileUtils
 EXT_RUBY = RbConfig::CONFIG['prefix']
 
 # use the platform Ruby claims
-# require 'rbconfig' not needed
 
 CC = ENV['CC'] ? ENV['CC'] : "gcc"
 file_list =  %w{shoes/native/cocoa.m shoes/http/nsurl.m} + ["shoes/*.c"]
@@ -55,6 +54,7 @@ DLEXT = "dylib"
 LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -fpascal-strings #{RbConfig::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions"
 LINUX_LDFLAGS = "-framework Cocoa -framework Carbon -dynamiclib -Wl,-single_module INSTALL_NAME"
 LINUX_LIB_NAMES << 'pixman-1' << 'jpeg.8'
+LINUX_CFLAGS << ' -Wno-incompatible-pointer-types-discards-qualifiers'
 
 #OSX_SDK = '/Developer/SDKs/MacOSX10.6.sdk'
 #ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
