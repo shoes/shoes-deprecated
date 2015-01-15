@@ -113,15 +113,15 @@ Shoes.app height: 600 do
         @inclcheck = check; para "Shoes will be included with my app."
       end
       @inclcheck.checked = @options['inclshoes'] = false
-      para "Advanced installer -- Must be a .shy (directory) to package"
-      flow do
-        @defadvopts = check  do
-          @advpanel.show if @defadvopts.checked?
-          @advpanel.hide if !@defadvopts.checked?
-          @options['advopts'] = @defadvopts.checked?
-        end
-        para "I want advanced options"
-      end
+#      para "Advanced installer -- Must be a .shy (directory) to package"
+#      flow do
+#        @defadvopts = check  do
+#          @advpanel.show if @defadvopts.checked?
+#          @advpanel.hide if !@defadvopts.checked?
+#          @options['advopts'] = @defadvopts.checked?
+#        end
+#       para "I want advanced options"
+#      end
       @advpanel = stack :hidden => true do
        flow do
          para "I have my own install script  "
