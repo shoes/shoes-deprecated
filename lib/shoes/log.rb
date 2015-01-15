@@ -3,11 +3,26 @@ module Shoes::LogWindow
     stack do
       flow do
         background black
-        stack :width => -100 do
+        stack :width => -260 do
           tagline "Shoes Console", :stroke => white
         end
         button "Clear", :margin => 6, :width => 80, :height => 40 do
           Shoes.log.clear
+        end
+        button "Copy", :margin => 6, :width => 80, :height => 40 do
+          self.clipboard = Shoes.log.collect { |typ, msg, at, mid, rbf, rbl|
+            "#{typ.to_s.capitalize} in #{rbf} line #{rbl} | #{at}\n" +
+            "#{msg.kind_of?(Exception) ? msg.backtrace.join("\n") : msg}\n"
+          }.join("\n")
+        end
+        button "Save", :margin => 6, :width => 80, :height => 40 do
+          filename = ask_save_file
+          File.open(filename, "w") { |f|
+            f.write(Shoes.log.collect { |typ, msg, at, mid, rbf, rbl|
+                "#{typ.to_s.capitalize} in #{rbf} line #{rbl} | #{at}\n" +
+                "#{msg.kind_of?(Exception) ? msg.backtrace.join("\n") : msg}\n"
+              }.join("\n"))
+          } if filename
         end
       end
       @log, @hash = stack, nil

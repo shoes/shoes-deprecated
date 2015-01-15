@@ -64,6 +64,11 @@ module Shoes::Manual
           para link("Run this", :stroke => "#eee", :underline => "none") { run_code(str) },
             :margin => 4, :align => 'center', :weight => 'bold', :size => 9
         end
+        stack do
+          background "#8A7", :margin => [0, 2, 0, 2], :curve => 4 
+          para link("Copy this", :stroke => "#eee", :underline => "none") { self.clipboard = str },
+            :margin => 4, :align => 'center', :weight => 'bold', :size => 9
+        end
       end
     end
   end
@@ -256,7 +261,7 @@ module Shoes::Manual
     @doc.clear do
       dewikify_p :para, "Try method names (like `button` or `arrow`) or topics (like `slots`)", :align => 'center'
       flow :margin_left => 60 do
-        edit_line :width => -60 do |terms|
+        @edit_search = edit_line :width => -60 do |terms|
           @results.clear do
             termd = terms.text.downcase
             #found = termd.empty? ? [] : manual_search(termd)
@@ -283,6 +288,7 @@ module Shoes::Manual
             end
           end
         end
+        timer(0) { @edit_search.focus }
       end
       @results = stack
     end
