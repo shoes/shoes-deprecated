@@ -3475,6 +3475,9 @@ already running, it is stopped.
 
 == Video ==
 
+Shoes 3.2 DOES NOT support video widgets. Sorry. 3.1 didn't either except for
+a select group Windows systems. It could also screw up those systems
+
 Shoes supports embedding of QuickTime, Flash video (FLV), DivX, Xvid and
 various other popular video formats. This is all thanks to VideoLAN and ffmpeg,
 two sensational open source libraries. Use the `video` method on a slot to
