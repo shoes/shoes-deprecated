@@ -1,9 +1,16 @@
 require 'sqlite3'
-if File.exists? 'simple-sqlite3.db'
-  File.delete 'simple-sqlite3.db'
+require 'fileutils'
+tmpdir = File.join(LIB_DIR,"sample-data")
+mkdir_p tmpdir
+Dir.chdir(tmpdir)
+dbfile = 'simple-sqlite3.db'
+if File.exists? dbfile
+  # this has a bad habit of failing on Windows
+  rm dbfile
 end
 Shoes.app :width => 350, :height => 130 do
-  db = SQLite3::Database.new "simple-sqlite3.db"
+  info Dir.getwd
+  db = SQLite3::Database.new dbfile
   db.execute "create table t1 (t1key INTEGER PRIMARY KEY,data " \
     "TEXT,num double,timeEnter DATE)"
   db.execute "insert into t1 (data,num) values ('This is sample data',3)"

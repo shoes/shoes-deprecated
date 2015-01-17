@@ -1,14 +1,26 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
+  
+2015-01-16
+done: remove loose files from samples/
+  
+2015-01-15
+done: additional fixing for issue #15
+done: remove sample/simple-video.rb
+done: delete extra lib/shoes/ copys of help and log.
+done: fix manual to say video widgets don't work 
+----> fix samples/simple-sqlite.rb - Windows doesn't like the rm/unlink
+ 
 
-2014-01-14 -  Items to mention for 3.2.20
+
+2015-01-14 -  Items to mention for 3.2.20
 done: Ian fixed issue #15
 done: Ian added a "Copy this" to the manual
 done: Ian fixed issue #27
 done: Clean up Rakefile, remove things that no longer matter to 3.2
       Can build on 10.6 (and w/o sqlite3 it will run on 10.6 up to 10.10)
       
-2014-01-13
+2015-01-13
       much discussion about Shoes is not Ruby - the shifting 'self'
       
 2014-01-12 Bug013
@@ -16,10 +28,10 @@ done: Gtk use GDK_SELECTION_CLIPBOARD in place of GDK_SELECTION_PRIMARY
       Fixes bug 013
 
 
-2016-01-11
+2015-01-11
 -----> Sqllite3 crash on OSX 9+ with 10.6 Shoes.
   
-2016-01-10
+2015-01-10
 Fixed: Weekly build failures:
        x86_64-linux failed.
        Mavericks - ruby is throwing a SSL_V2 hissy fit. old brew, ruby,?
