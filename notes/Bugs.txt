@@ -1,5 +1,15 @@
 Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
   out with GKt3
+
+2015-01-20,19,18 - much discussion
+done: Ian's help.rb supports page up/down, back and forward. Very nice
+done: fixed 10.6 osx build for sqlite3. (also 10.9).  extconf.rb was not
+     using /usr/local/Cellar/?/include/ and lib/  
+====> Pango does funny things if the word at wrap point has a colon prefix
+----> Shoes console gets :wrap => "char" for now
+----> Shoes console gets some autoscroll help.
+
+2015-01-17 Release 3.2.20
   
 2015-01-16
 done: remove loose files from samples/
