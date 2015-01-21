@@ -256,6 +256,7 @@ module Shoes::Manual
   end
 
   def show_search
+    visited("Search")
     @toc.each { |k,v| v.hide }
     @title.replace "Search"
     @doc.clear do
@@ -323,8 +324,29 @@ module Shoes::Manual
         :align => "right"
     end
   end
+  
+  def visited(page)
+    @visited[:forward] = [] unless @visited[:clicked]
+    @visited[:back] << page unless @visited[:back].last.eql?(page)
+  end
+  
+  def visit_back
+     if 1 < @visited[:back].size
+        @visited[:clicked] = true
+        @visited[:forward] << @visited[:back].pop
+        open_link(@visited[:back].last)
+     end
+   end
+
+  def visit_forward
+     unless @visited[:forward].empty?
+        @visited[:clicked] = true
+        open_link(@visited[:forward].pop)
+     end
+  end
 
   def open_section(sect_s, terms = nil)
+    visited(sect_s)
     sect_h = @sections[sect_s]
     sect_cls = sect_h['class']
     @toc.each { |k,v| v.send(k == sect_cls ? :show : :hide) }
@@ -335,6 +357,7 @@ module Shoes::Manual
   end
 
   def open_methods(meth_s, terms = nil, meth_a = nil)
+    visited(meth_s)
     meth_h = @methods[meth_s]
     @title.replace meth_h['title']
     @doc.clear do
@@ -424,6 +447,32 @@ def Shoes.make_help_page
       style(type, :font => "MS UI Gothic")
     end if Shoes.language == 'ja'
 
+    @visited = { :back => ["Hello!"], :forward => [], :clicked => false }
+    click { |n|
+      if 4 == n
+         visit_back
+      elsif 5 == n
+         visit_forward
+      end
+      @visited[:clicked] = false
+    }
+    keypress { |n|
+      if n.eql?(:alt_left)
+         visit_back
+      elsif n.eql?(:alt_right)
+         visit_forward
+      elsif n.eql?(:page_down)
+         app.slot.scroll_top += app.slot.height
+      elsif n.eql?(:page_up)
+         app.slot.scroll_top -= app.slot.height
+      elsif n.eql?(:down)
+         app.slot.scroll_top += 20
+      elsif n.eql?(:up)
+         app.slot.scroll_top -= 20
+      end
+      @visited[:clicked] = false
+    }
+    
     stack do
       background black
       stack :margin_left => 118 do
@@ -439,7 +488,23 @@ def Shoes.make_help_page
       stack :margin_left => 130, :margin_top => 20, :margin_bottom => 50, :margin_right => 50 + gutter,
         &dewikify(docs[0][-1]['description'], true)
     add_next_link(0, -1)
-    stack :top => 80, :left => 0, :attach => Shoes::Window do
+    stack :top => 84, :left => 0, :attach => Shoes::Window do
+      flow :width => 118, :margin_left => 12, :margin_right => 12, :margin_top => 25 do
+         stack :width => 38 do
+            background "#8A7", :margin => [0, 2, 0, 2], :curve => 4 
+            para link("back", :stroke => "#eee", :underline => "none") {
+               visit_back
+               @visited[:clicked] = false
+            }, :margin => 4, :align => 'center', :weight => 'bold', :size => 9
+         end
+         stack :width => 54, :right => 0 do
+            background "#8A7", :margin => [0, 2, 0, 2], :curve => 4 
+            para link("forward", :stroke => "#eee", :underline => "none") {
+               visit_forward
+               @visited[:clicked] = false
+            }, :margin => 4, :align => 'center', :weight => 'bold', :size => 9
+         end
+      end
       @toc = {}
       stack :margin => 12, :width => 130, :margin_top => 20 do
         docs.each do |sect_s, sect_h|
