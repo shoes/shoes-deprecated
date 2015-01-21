@@ -320,8 +320,8 @@ class MakeDarwin
       Dir.chdir("#{TGT_DIR}") do
         unless ENV['GDB']
           Dir.chdir("#{APPNAME}.app/Contents/MacOS") do
-            sh "strip -x *.dylib"
-            Dir.glob("lib/ruby/**/*.bundle").each {|lib| sh "strip -x #{lib}"}
+            #sh "strip -x *.dylib"
+            #Dir.glob("lib/ruby/**/*.bundle").each {|lib| sh "strip -x #{lib}"}
           end
         end
         distname = "#{PKG}#{TINYVER}"
