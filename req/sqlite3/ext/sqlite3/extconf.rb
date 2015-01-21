@@ -85,7 +85,16 @@ if cross
       ["#{ENV['SYSROOT']}/usr/lib", "#{ENV['SYSROOT']}/lib/arm-linux-gnueabihf", "#{ENV['SYSROOT']}/usr/lib/arm-linux-gnueabihf"])
   end
 else 
-  dir_config("sqlite3")
+  # FIXME: OSX sigh. This will bite me on a 10.9 to 10.6 cross.
+  if RUBY_PLATFORM =~ /darwin/
+    # find brew (keg only)
+    versions = Dir.glob('/usr/local/Cellar/sqlite/*')
+    newest = versions[-1]
+    puts "Configure with #{newest}"
+    dir_config("sqlite3","#{newest}/include","#{newest}/lib")
+  else
+    dir_config("sqlite3")
+  end
 end
 # prioritize local builds
 #if enable_config("local", false)
