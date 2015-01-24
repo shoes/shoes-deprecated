@@ -247,7 +247,9 @@
   }
 
   if (v != Qnil)
+  {
     shoes_app_keypress(a, v);
+  }
   RELEASE;
 }
 - (BOOL)canBecomeKeyWindow
