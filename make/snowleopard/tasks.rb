@@ -316,7 +316,7 @@ class MakeDarwin
       nfs=ENV['NFS_ALTP'] 
       mkdir_p "#{nfs}pkg"
       #distfile = "#{nfs}pkg/#{PKG}#{TINYVER}-osx-10.9.tbz"
-      distfile = File.expand_path("#{nfs}pkg/#{PKG}#{TINYVER}-osx-10.6.tgz")
+      distfile = File.expand_path("#{nfs}pkg/#{PKG}#{TINYVER}-osx-#{ENV['MACOSX_DEPLOYMENT_TARGET']}.tgz")
       Dir.chdir("#{TGT_DIR}") do
         unless ENV['GDB']
           Dir.chdir("#{APPNAME}.app/Contents/MacOS") do
