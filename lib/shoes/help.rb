@@ -461,6 +461,8 @@ def Shoes.make_help_page
          visit_back
       elsif n.eql?(:alt_right)
          visit_forward
+      elsif n.eql?(:alt_f)
+         open_link("Search")
       elsif n.eql?(:page_down)
          app.slot.scroll_top += app.slot.height
       elsif n.eql?(:page_up)
