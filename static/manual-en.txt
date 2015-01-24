@@ -3579,10 +3579,9 @@ I learn more?
 
 The opening splash screen hints at the secrets. Packaging and Maintaining? What's that? And
 what do all the options and buttons mean when I do run them? Relax, you 
-should know that these resources exist. If you're just beginning, feel free 
-to click around but it can be a firehose of information. You don't need to know it to
-have fun with Shoes. Just know it exists and you can come back here when your ready
-to inhale. 
+should just know that these resources exist. If you're just getting started, feel free 
+to click around but it can be a firehose of information. You don't need to know it all to
+have fun with Shoes. Just know it exists and you can come back here when your ready.
 
 
 See the [[http://github.com/ccoupe/shoes/wiki Shoes 3.2 Wiki]] and learn about Gems
@@ -3599,3 +3598,26 @@ Older Shoes Links for historical purposes (may be dead):
  * You can join [[http://librelist.com/browser/shoes/ Shoes ML]] and feel free ask your questions. 
  * [[http://github.com/shoes/shoes/ Shoes 3.1 Source Code]] is on GitHub.
  * [[http://github.com/shoes/shoes/downloads Recent Builds]] for your platform.
+
+== Shortcuts ==
+
+Shoes provides the following keyboard shortcuts on every screem:
+
+ * `Alt-/` or `⌘-/` opens '''Shoes Console'''.
+ * `Alt-.` or `⌘-.` opens '''Open File…''' dialog.
+ * `Alt-?` or `⌘-?` opens '''Shoes Manual'''.
+
+Available in 3.2.21+ are nifty new things. The Shoes Manual wants to 
+behave like a web browser so it has some additional 
+shortcut keys you can use.
+
+ * `Alt-left` or `⌘-left` browses back.
+ * `Alt-right` or `⌘-right` browses forward.
+ * `PgUp` and `PgDn` scrolls up and down one page.
+ * `Up` and `Down` scrolls up and down one line. (up and down arrow keys)
+ * `Alt-f` or `⌘-f` opens '''Search''' section.
+
+On the Shoes Console you might see an autoscroll checkbox. There is a keyboard
+short cut for that.
+
+ * `Alt-t` or `⌘-t` toggles autoscroll off and on.
