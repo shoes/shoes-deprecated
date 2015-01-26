@@ -69,6 +69,7 @@ module Make
       each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_RUBY_ARCH}" }
 
     gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
+	#{'hpricot' => 'lib'}.each do |gemn, xdir|
     {'hpricot' => 'lib', 'sqlite3' => 'lib'}.each do |gemn, xdir|
     #{'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
       spec = eval(File.read("req/#{gemn}/gemspec"))
@@ -96,10 +97,11 @@ class MakeDarwin
 
   class << self
     def copy_ext xdir, libdir
+      #puts "Build #{xdir}"
       Dir.chdir(xdir) do
         `ruby extconf.rb; make`
       end
-      copy_files "#{xdir}/*.bundle", libdir
+      copy_files "#{xdir}/*.bundle", libdir   
     end
     
     def pre_build
@@ -149,7 +151,7 @@ class MakeDarwin
         bundles.each do |f|
           dylibs = get_dylibs f
           dylibs.each do |dylib|
-            if dylib =~ /\/usr\/local\//
+            if dylib =~ /\/usr\/local\// || dylib =~ /.rvm\/rubies/
               sh "install_name_tool -change #{dylib} @executable_path/#{File.basename dylib} #{f}"
             end
           end
@@ -203,7 +205,7 @@ class MakeDarwin
         end
       end
     end
-
+    
     def dylibs_to_change lib
       `otool -L #{lib}`.split("\n").inject([]) do |dylibs, line|
         if  line =~ /^\S/ or line =~ /System|@executable_path|libobjc/
@@ -216,7 +218,7 @@ class MakeDarwin
 
     def copy_deps_to_dist
       puts "Entering copy_deps_to_dist #{TGT_DIR}"
-      copy_gem_deplibs
+      #copy_gem_deplibs
       copy_pango_modules
       # Generate a list of dependencies straight from the generated files.
       # Start with dependencies of shoes-bin, and then add the dependencies
@@ -230,6 +232,13 @@ class MakeDarwin
         #puts "Bundle: #{gb}"
         dylibs.concat dylibs_to_change(gb)
       end
+      # IT 14.12.16 adding X11 libs
+	  ["libxcb-shm.0.dylib", "libxcb-render.0.dylib", "libxcb.1.dylib", "libXrender.1.dylib",
+	  "libXext.6.dylib", "libX11.6.dylib", "libXau.6.dylib", "libXdmcp.6.dylib"].each do |dylib|
+		dylibs << "/opt/X11/lib/#{dylib}"
+      end
+      # cjc add zlib 1.2.8+
+      # dylibs << "#{ZLIBLOC}/libz.1.dylib"
       dupes = []
       dylibs.each do |dylib|
         dylibs_to_change(dylib).each do |d|
@@ -288,17 +297,15 @@ class MakeDarwin
     end
 
     def make_app(name)
-      puts "Enter make_app"
       bin = "#{name}-bin"
       rm_f name
       rm_f bin
-      sh "#{CC} -L#{TGT_DIR} -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{OSX_ARCH} -L/usr/local/lib -lgif"
+      sh "#{CC} -L#{TGT_DIR} -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{OSX_ARCH}"
     end
 
     def make_so(name)
-      puts "Enter make_so"
       ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
-      sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS} -L/usr/local/lib -lgif"
+      sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
       #%w[libpostproc.dylib libavformat.dylib libavcodec.dylib libavutil.dylib libruby.dylib].each do |libn|
       #  sh "install_name_tool -change /tmp/dep/lib/#{libn} ./deps/lib/#{libn} #{name}"
       #end
@@ -310,12 +317,12 @@ class MakeDarwin
       nfs=ENV['NFS_ALTP'] 
       mkdir_p "#{nfs}pkg"
       #distfile = "#{nfs}pkg/#{PKG}#{TINYVER}-osx-10.9.tbz"
-      distfile = "#{nfs}pkg/#{PKG}#{TINYVER}-osx-10.9.tgz"
+      distfile = File.expand_path("#{nfs}pkg/#{PKG}#{TINYVER}-osx-#{ENV['MACOSX_DEPLOYMENT_TARGET']}.tgz")
       Dir.chdir("#{TGT_DIR}") do
         unless ENV['GDB']
           Dir.chdir("#{APPNAME}.app/Contents/MacOS") do
-            sh "strip -x *.dylib"
-            Dir.glob("lib/ruby/**/*.bundle").each {|lib| sh "strip -x #{lib}"}
+            #sh "strip -x *.dylib"
+            #Dir.glob("lib/ruby/**/*.bundle").each {|lib| sh "strip -x #{lib}"}
           end
         end
         distname = "#{PKG}#{TINYVER}"
@@ -358,7 +365,8 @@ class MakeDarwin
       puts "Build gems #{TGT_DIR}"
       mkdir_p "#{TGT_DIR}/builtins"
       gdir = "#{TGT_DIR}/builtins"
-      {'hpricot' => 'lib', 'sqlite3' => 'lib'}.each do |gemn, xdir|
+	  {'hpricot' => 'lib'}.each do |gemn, xdir|
+      #{'hpricot' => 'lib', 'sqlite3' => 'lib'}.each do |gemn, xdir|
         spec = eval(File.read("req/#{gemn}/gemspec"))
         mkdir_p "#{gdir}/specifications"
         mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"

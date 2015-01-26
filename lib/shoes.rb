@@ -151,9 +151,16 @@ class Shoes
       style(Link, :stroke => yellow, :underline => nil)
       style(LinkHover, :stroke => yellow, :fill => nil)
 
-      x1 = 77; y1 = 122
-      x2 = 148; y2 = -122
-      x3 = 245; y3 = 0
+      xy = [
+         [app.slot.width / 6, -50],
+         [app.slot.width / 6, app.slot.height / 2],
+         [app.slot.width / 6, app.slot.height + 50]
+      ]
+      colors = [
+         rgb(49, 156, 0, 0.35),
+         rgb(255, 255, 255, 0.35),
+         rgb(222, 33, 16, 0.35)
+      ]
 
       nofill
       strokewidth 40.0
@@ -164,39 +171,39 @@ class Shoes
       require 'shoes/help'
 
       stack :margin => 18 do
-        para "Welcome to", :stroke => "#DFA", :margin => 0
-        para "SHOES", :size => 48, :stroke => "#DFA", :margin_top => 0
+        para "Welcome to", :stroke => "#00", :margin => 0
+        para "SHOES", :size => 48, :stroke => "#00", :margin => 0
+        para Shoes::RELEASE_NAME, :stroke => "#00", :margin => 0
+        para "build #{RELEASE_BUILD_DATE}", :size => 8, :stroke => "#00", :margin_top => 0
         stack do
           background black(0.2), :curve => 8
-          para link("Open an App.") { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
-          para link("Package my script (shy)") { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
-          para link("Package an App with Shoes") {Shoes.app_package and close }, :margin => 10, :margin_bottom => 4
+          para link(strong("Open an App")) { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
+          para link(strong("Package my script (shy)")) { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
+          para link(strong("Package an App with Shoes")) {Shoes.app_package and close }, :margin => 10, :margin_bottom => 4
 #          para link("Obsolete: Package") { Shoes.make_pack and close }, :margin => 10, :margin_bottom => 4
-          para link("Read the Manual.") { Shoes.show_manual and close }, :margin => 10, :margin_bottom => 4
-          para link("Maintain Shoes") {Shoes.cobbler and close}, :margin => 10
+          para link(strong("Read the Manual")) { Shoes.show_manual and close }, :margin => 10, :margin_bottom => 4
+          para link(strong("Maintain Shoes")) {Shoes.cobbler and close}, :margin => 10
         end
-        inscription "Alt-Slash opens the console.", :stroke => "#DFA", :align => "center"
+        inscription "Alt-Slash opens the console", :stroke => "#00", :align => "center"
       end
 
-      animate(10) do |ani|
-        a = Math.sin(ani * 0.02) * 20
-        @waves.clear do
-          background white
-          y = -30
-          16.times do |i|
-            shape do
-              move_to x = (-300 - (i*(a*0.8))), y
-              c = (a + 14) * 0.01
-              stroke rgb(i * 0.06, c + 0.1, 0.1, 1.0 - (ani * 0.0003))
-              4.times do
-                curve_to x1 + x, (y1-(i*a)) + y, x2 + x, (y2+(i*a)) + y, x3 + x, y3 + y
-                x += x3
-              end
-            end
-            y += 30
-          end
-        end
-      end
+      animate(8) { |ani|
+         a = Math.sin(ani * 0.02) * 8
+         @waves.clear do
+            nofill
+            strokewidth app.slot.width / 3
+            6.times { |i|
+               colors.each_with_index { |color, n|
+                  shape do
+                     v = 4.times.collect { rand(0.1) * 100 > 50 ? +1 : -1 }
+                     move_to (dx = n * app.slot.width / 3) + xy[n][0] + (v[0] * i * a * 0.8), xy[0][1]
+                     stroke color
+                     curve_to dx + xy[0][0] + (v[1] * i * a), xy[0][1], dx + xy[1][0] + (v[2] * i * a * 2), xy[1][1], dx + xy[2][0] + (v[3] * i * a), xy[2][1]
+                  end
+               }
+            }
+         end
+      }
     end
   end
   
