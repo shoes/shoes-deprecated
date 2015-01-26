@@ -88,7 +88,11 @@ else
   # FIXME: OSX sigh. This will bite me on a 10.9 to 10.6 cross.
   if RUBY_PLATFORM =~ /darwin/
     # find brew (keg only)
-    versions = Dir.glob('/usr/local/Cellar/sqlite/*')
+    if ENV['SQLLOC']
+      versions = Dir.glob("#{ENV['SQLLOC']}/Cellar/sqlite/*")
+    else
+      versions = Dir.glob('/usr/local/Cellar/sqlite/*')
+    end
     newest = versions[-1]
     puts "Configure with #{newest}"
     dir_config("sqlite3","#{newest}/include","#{newest}/lib")
