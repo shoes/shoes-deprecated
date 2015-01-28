@@ -3270,6 +3270,14 @@ Returns the complete list of strings that the list box presently shows as its op
 
 Replaces the list box's options with a new list of strings.
 
+'''Caution!''' You can manipulate Ruby Arrays in many ways that Shoes '''will not''' detect
+and Shoes will not display the updated array. For example '<<' will not update
+what Shoes displays. += will work because it just happens to be like 
+items = . 
+
+When changing the list box from a Shoes program, always copy the
+items to a new array, manipulated that and then set the items = new_array
+
 === text() » a string ===
 
 A string containing whatever text is shown highlighted in the list box right
