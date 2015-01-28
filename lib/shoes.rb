@@ -146,7 +146,7 @@ class Shoes
 
   def self.splash
     font "#{DIR}/fonts/Lacuna.ttf"
-    Shoes.app :width => 400, :height => 500, :resizable => true do  
+    Shoes.app :width => 400, :height => 500, :resizable => false do  
       style(Para, :align => "center", :weight => "bold", :font => "Lacuna Regular", :size => 13)
       style(Link, :stroke => yellow, :underline => nil)
       style(LinkHover, :stroke => yellow, :fill => nil)
