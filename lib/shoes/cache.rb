@@ -90,7 +90,8 @@ if tight_shoes
   Dir[GEM_CENTRAL_DIR + "/gems/*"].each do |gdir|
     $: << "#{gdir}/lib"
   end
-  jloc = "#{ENV['HOME']}/.shoes/#{Shoes::RELEASE_NAME}/getoutofjail.card"
+  #jloc = "#{ENV['HOME']}/.shoes/#{Shoes::RELEASE_NAME}/getoutofjail.card"
+  jloc = File.join(LIB_DIR, Shoes::RELEASE_NAME, 'getoutofjail.card')
   #puts "Jailbreak location #{jloc}"
   # Jailbreak for Gems. Load them a from a pre-existing ruby's gems
   # or file contents

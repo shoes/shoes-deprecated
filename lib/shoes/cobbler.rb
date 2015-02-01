@@ -105,7 +105,7 @@ class Gem::CobblerDelFace
 end
 
 Shoes.app do
-  @shoes_home = "#{ENV['HOME']}/.shoes/#{Shoes::RELEASE_NAME}"
+  @shoes_home = File.join(LIB_DIR, Shoes::RELEASE_NAME)
   stack do
     @menu = flow do
       button "Shoes Info.." do
@@ -186,7 +186,8 @@ Shoes.app do
     @panel.append do
       para "Use directories below for loading gems"
       dirlist = []
-      jloc = "#{ENV['HOME']}/.shoes/#{Shoes::RELEASE_NAME}/getoutofjail.card"
+      #jloc = "#{ENV['HOME']}/.shoes/#{Shoes::RELEASE_NAME}/getoutofjail.card"
+      jloc = File.join(LIB_DIR, Shoes::RELEASE_NAME, 'getoutofjail.card')
       if File.exist? jloc
         open(jloc, 'r') do |f|
          f.each do |l| 
