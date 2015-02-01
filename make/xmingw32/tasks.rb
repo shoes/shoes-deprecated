@@ -56,8 +56,13 @@ module Make
   #  Then copy the deps.
   def pre_build
     puts "pre_build dir=#{`pwd`}"
+    rbvt = RUBY_V
+    rbvm = RUBY_V[/^\d+\.\d+/]
     mkdir_p "#{TGT_DIR}/lib"
     cp_r "#{EXT_RUBY}/lib/ruby", "#{TGT_DIR}/lib"
+    # copy include files
+    mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-#{rbvt}"
+    cp_r "#{EXT_RUBY}/include/ruby-#{rbvt}/", "#{TGT_DIR}/lib/ruby/include"
     SOLOCS.each_value do |path|
       cp "#{path}", "#{TGT_DIR}"
     end
