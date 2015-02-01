@@ -76,6 +76,7 @@ module Make
         "#{TGT_DIR}/share/glib-2.0/schemas"
     end
     sh "#{WINDRES} -I. shoes/appwin32.rc shoes/appwin32.o"
+    cp 'platform/msw/fonts.conf', TGT_DIR
  end
 
   # common_build is a misnomer. Builds extentions, gems
