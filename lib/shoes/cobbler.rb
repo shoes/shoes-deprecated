@@ -175,6 +175,7 @@ Shoes.app do
       para "Shoes Release: #{Shoes::RELEASE_NAME}"
       para "    built on #{Shoes::RELEASE_BUILD_DATE}"
       para "    Fit: #{Shoes::RELEASE_TYPE}"
+      para "Gems Version #{Gem::RubyGemsVersion}"
       para "Shoes Exe Directory: #{DIR}"
       para "Shoes Home: #{@shoes_home}"
       para "LIB_DIR: #{LIB_DIR}"

@@ -66,7 +66,7 @@ module Make
     end
     #%w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
     %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
-      each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_RUBY_ARCH}" }
+      each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_TGT_ARCH}" }
 
     gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
     {'hpricot' => 'lib'}.each do |gemn, xdir|
@@ -96,6 +96,7 @@ class MakeDarwin
 
   class << self
     def copy_ext xdir, libdir
+      puts "Build #{xdir} -> #{libdir}"
       Dir.chdir(xdir) do
         `ruby extconf.rb; make`
       end
@@ -137,8 +138,8 @@ class MakeDarwin
           cp @brew_hsh[nm], TGT_DIR
       end
       
-      # Find ruby's dependent libs in homebrew
-      cd "#{TGT_DIR}/lib/ruby/#{rbvm}.0/#{RUBY_PLATFORM}" do
+      # Find ruby's dependent libs
+      cd "#{TGT_DIR}/lib/ruby/#{rbvm}.0/#{SHOES_TGT_ARCH}" do
         bundles = *Dir['*.bundle']
         puts "Bundles #{bundles}"
         cplibs = {}
@@ -211,8 +212,10 @@ class MakeDarwin
     
     def copy_gem_deplibs
       puts "Entering copy_gem_deplibs"
-      cp '/usr/lib/libsqlite3.dylib', "#{TGT_DIR}"
-      chmod 0755,"#{TGT_DIR}/libsqlite3.dylib"
+      versions = Dir.glob("#{ENV['SQLLOC']}/Cellar/sqlite/*")
+      newest = versions[-1]
+      #cp "#{newest}/lib/libsqlite3.dylib", "#{TGT_DIR}"
+      #chmod 0755,"#{TGT_DIR}/libsqlite3.dylib"
     end
 
     # Get a list of linked libraries for lib (discard the non-indented lines)
@@ -332,13 +335,12 @@ class MakeDarwin
       nfs=ENV['NFS_ALTP'] 
       mkdir_p "#{nfs}pkg"
       #distfile = "#{nfs}pkg/#{PKG}#{TINYVER}-osx-10.9.tbz"
-      distfile = "#{nfs}pkg/#{PKG}#{TINYVER}-osx-10.9.tgz"
       distfile = "#{nfs}pkg/#{PKG}#{TINYVER}-osx-10.6.tgz"
       Dir.chdir("#{TGT_DIR}") do
         unless ENV['DEBUG']
           Dir.chdir("#{APPNAME}.app/Contents/MacOS") do
-            sh "strip -x *.dylib"
-            Dir.glob("lib/ruby/**/*.bundle").each {|lib| sh "strip -x #{lib}"}
+            #sh "strip -x *.dylib"
+            #Dir.glob("lib/ruby/**/*.bundle").each {|lib| sh "strip -x #{lib}"}
           end
         end
         distname = "#{PKG}#{TINYVER}"

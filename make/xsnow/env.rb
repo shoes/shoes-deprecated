@@ -5,17 +5,19 @@
 # (4) Homebrew installed dependencies for 10.6 are in set in BREWLOC below
 # (5) 10.6 SDK is installed and has the X11 includes and libs which you set X11LOC to
 include FileUtils
-EXT_RUBY = RbConfig::CONFIG['prefix']
 # what system am I running on
 osxver = `sw_vers -productVersion`
 if osxver =~ /10\.6/
+  EXT_RUBY = RbConfig::CONFIG['prefix']
   BREWLOC = "/usr/local"
   X11LOC = "/usr/X11"
 else
-  # build 10.6 on something other than 10.6
+  # build 10.6 on something other than 10.6"
+  EXT_RUBY = "/Users/ccoupe/shoesdeps/10.6/ruby-2.1.5"
   BREWLOC = "/Users/ccoupe/shoesdeps/10.6/brew"  
   X11LOC = "/Users/ccoupe/shoesdeps/10.6/X11"
-  # no, I don't know why that wasn't copied to the xcode dirs but it wasn't.
+  ENV['SQLLOC'] = BREWLOC
+  
 end
 
 # use the platform Ruby claims
@@ -88,6 +90,14 @@ when "i386"
 else
   OSX_ARCH = '-arch x86_64'
 end
+
+# These env vars are used in  ftsearch, chipmunk extconf.rb
+SHOES_TGT_ARCH = 'x86_64-darwin10.0'
+ENV['CC'] = CC
+ENV['TGT_RUBY_PATH'] = EXT_RUBY
+ENV['TGT_ARCH'] = SHOES_TGT_ARCH
+ENV['TGT_RUBY_V'] = '2.1.0'  # library version - all 2.1.x rubys
+ENV['SYSROOT'] = "-isysroot #{OSX_SDK} #{OSX_ARCH}"
 
 LINUX_CFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH}"
 LINUX_LDFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH} -L#{BREWLOC}/lib/ "
