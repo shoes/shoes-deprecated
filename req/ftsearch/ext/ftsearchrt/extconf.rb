@@ -8,6 +8,9 @@ if ENV['SYSROOT']
   RbConfig::CONFIG["rubyarchhdrdir"] = incla
   RbConfig::MAKEFILE_CONFIG['libdir'] = rlib # needed for Linking ext.so
   RbConfig::CONFIG['libdir'] = rlib # needed for conftest
+  if RUBY_PLATFORM =~ /darwin/
+    ARCH_FLAG = ENV['SYSROOT']
+  end
 end
 require 'mkmf'
 # update the CONFIG with the correct values. RbConfig won't work 
