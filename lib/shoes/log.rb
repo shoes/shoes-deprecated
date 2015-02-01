@@ -59,7 +59,7 @@ module Shoes::LogWindow
               stack :margin => 4, :width => -20 do
                 s = msg.to_s.force_encoding "UTF-8"
                 s << "\n#{msg.backtrace.join("\n")}" if msg.kind_of?(Exception)
-                para s, :margin => 4, :margin_top => 0
+                para s, :margin => 4, :margin_top => 0, :wrap => "char"
               end
             end
           end
