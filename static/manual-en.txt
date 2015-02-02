@@ -1680,7 +1680,7 @@ closely consult Processing's methods as it expands.
 === arc(left, top, width, height, angle1, angle2) » Shoes::Shape ===
 
 Draws an arc shape (a section of an oval) at coordinates (left, top).  This
-method just give you a bit more control than [[oval]], by offering the
+method just give you a bit more control than [[Art.oval]], by offering the
 `:angle1` and `:angle2` styles.  (In fact, you can mimick the `oval` method by
 setting `:angle1` to 0 and `:angle2` to `Shoes::TWO_PI`.)
 
