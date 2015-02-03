@@ -66,7 +66,7 @@ module Shoes::LogWindow
           i += 1
         end
       end
+      app.slot.scroll_top = app.slot.scroll_max if @auto_scroll.checked?
     end
-    app.slot.scroll_top = app.slot.scroll_max if @auto_scroll.checked?
   end
 end
