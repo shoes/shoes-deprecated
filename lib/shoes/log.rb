@@ -8,9 +8,9 @@ module Shoes::LogWindow
         end
         flow :margin => 6, :width => 120 do
           @auto_scroll = check
-          para "au", :stroke => white, :margin_right => 0
-          para "t", :stroke => white, :underline => "low", :margin_right => 0
-          para "oscroll?", :stroke => white
+          para span("au", :margin_right => 0), 
+                span("t", :underline => "low", :margin_right => 0),
+                span("oscroll?"), :stroke => white
         end
         @auto_scroll.checked = false # IT prefers true
         keypress { |n| @auto_scroll.checked ^= true if n.eql?(:alt_t) }
