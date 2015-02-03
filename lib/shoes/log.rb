@@ -7,12 +7,9 @@ module Shoes::LogWindow
           tagline "Shoes Console", :stroke => white
         end
         flow :margin => 6, :width => 120 do
-          @auto_scroll = check
-          para span("au", :margin_right => 0), 
-                span("t", :underline => "low", :margin_right => 0),
-                span("oscroll?"), :stroke => white
+          @auto_scroll = check :checked => false # IT prefers true
+          para "au", ins("t"), "oscroll?", :stroke => white
         end
-        @auto_scroll.checked = false # IT prefers true
         keypress { |n| @auto_scroll.checked ^= true if n.eql?(:alt_t) }
         button "Clear", :margin => 6, :width => 80, :height => 40 do
           Shoes.log.clear
@@ -66,6 +63,9 @@ module Shoes::LogWindow
           i += 1
         end
       end
+      # scroll widget is not updated in scrollbar but slot is !
+      # must be done twice !!? slot update is one time behind if not "manually" scrolled between each call
+      app.slot.scroll_top = app.slot.scroll_max if @auto_scroll.checked?
       app.slot.scroll_top = app.slot.scroll_max if @auto_scroll.checked?
     end
   end
