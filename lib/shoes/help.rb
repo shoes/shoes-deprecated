@@ -36,6 +36,7 @@ module Shoes::Manual
     str = str.gsub(/\n+\s*/, " ").dump.
       gsub(/`(.+?)`/m, '", code("\1"), "').gsub(/\[\[BR\]\]/i, "\n").
       gsub(/\^(.+?)\^/m, '\1').
+      gsub(/\[\[(.+\.)?@(.+?)@\]\]/m, '", link(strong("\2".empty? ? "\1" : "\2" , :fill => yellow)) { open_link("\1\2") }, "').
       gsub(/@(.+?)@/m, '", strong("\1", :fill => yellow), "').
       gsub(/'''(.+?)'''/m, '", strong("\1"), "').gsub(/''(.+?)''/m, '", em("\1"), "').
       gsub(/\[\[(\S+?)\]\]/m, '", link("\1".split(".", 2).last) { open_link("\1") }, "').
