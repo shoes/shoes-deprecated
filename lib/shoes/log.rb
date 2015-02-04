@@ -34,7 +34,7 @@ module Shoes::LogWindow
         end
       end
       @log, @hash = stack, nil
-      #update
+      timer(0) { update }
       every(0.2) do
         update
       end
