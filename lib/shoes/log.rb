@@ -7,7 +7,7 @@ module Shoes::LogWindow
           tagline "Shoes Console", :stroke => white
         end
         flow :margin => 6, :width => 120 do
-          @auto_scroll = check :checked => false # IT prefers true
+          @auto_scroll = check :checked => true
           para "au", ins("t"), "oscroll?", :stroke => white
         end
         keypress { |n| @auto_scroll.checked ^= true if n.eql?(:alt_t) }
