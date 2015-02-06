@@ -76,25 +76,22 @@ WIN32_LIBS << RUBY_LDFLAGS
 WIN32_LIBS << CAIRO_LDFLAGS
 WIN32_LIBS << PANGO_LDFLAGS
 
-# Cleaning up duplicates.
-WIN32_CFLAGS = WIN32_CFLAGS.join(' ').split(' ').uniq
-WIN32_LDFLAGS = WIN32_LDFLAGS.join(' ').split(' ').uniq
-WIN32_LIBS = WIN32_LIBS.join(' ').split(' ').uniq
+# Cleaning up duplicates. Clunky. Hell yes.
+wIN32_CFLAGS = WIN32_CFLAGS.join(' ').split(' ').uniq
+wIN32_LDFLAGS = WIN32_LDFLAGS.join(' ').split(' ').uniq
+wIN32_LIBS = WIN32_LIBS.join(' ').split(' ').uniq
 
-LINUX_CFLAGS = WIN32_CFLAGS.join(' ')
-LINUX_LDFLAGS = WIN32_LDFLAGS.join(' ')
-LINUX_LIBS = WIN32_LIBS.join(' ')
+LINUX_CFLAGS = wIN32_CFLAGS.join(' ')
+LINUX_LDFLAGS = wIN32_LDFLAGS.join(' ')
+LINUX_LIBS = wIN32_LIBS.join(' ')
 
-# List of dlls to copy
+# hash of dlls to copy
 ENV['GTK'] = 'gtk+-2.0'
 bindll = "#{ShoesDeps}/bin"
 rubydll = "C:/Ruby21/bin"
 devdll = "C:/Devkit/mingw/bin"
 SOLOCS = {}
-#SOLOCS['ruby'] = "#{EXT_RUBY}/bin/msvcrt-ruby191.dll"
 SOLOCS['ruby'] = "#{EXT_RUBY}/bin/msvcrt-ruby210.dll"
-#SOLOCS['curl'] = "#{curlloc}/bin/libcurl-4.dll"
-#SOLOCS['ungif'] = "#{uldir}/libungif.so.4"
 SOLOCS['gif'] = "#{bindll}/libgif-4.dll"
 SOLOCS['jpeg'] = "#{bindll}/libjpeg-9.dll"
 SOLOCS['libyaml'] = "#{rubydll}/libyaml-0-2.dll"
@@ -129,8 +126,5 @@ if ENV['GTK'] == 'gtk+-2.0'
   SOLOCS['xml2'] = "#{bindll}/libexpat-1.dll"
   SOLOCS['thread'] = "#{bindll}/libgthread-2.0-0.dll"
   SOLOCS['zlib1'] = "#{bindll}/zlib1.dll"
-#  SOLOCS['lzma'] = "#{bindll}/liblzma-5.dll"
-#  SOLOCS['pthreadGC2'] = "#{bindll}/pthreadGC2.dll"
-#  SOLOCS['siji'] = "/usr/lib/gcc/i686-w64-mingw32/4.8/libgcc_s_sjlj-1.dll"
   SOLOCS['pthread'] = "#{devdll}/libwinpthread-1.dll"
 end

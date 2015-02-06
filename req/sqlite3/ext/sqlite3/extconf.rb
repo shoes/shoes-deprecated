@@ -29,7 +29,7 @@ if cross
     require "#{ENV['EXT_RBCONFIG']}"  # causes complaints on terminal
     RbConfig::MAKEFILE_CONFIG['bindir'] = bindir
     RbConfig::MAKEFILE_CONFIG['ruby_install_name'] = rbname
-    # Not all of the below lines are needed for mingw/binject. Doesn't hurt.
+    # Not all of the below lines are needed. Doesn't hurt.
     rblv = ENV['TGT_RUBY_V']
     rbroot = ENV['TGT_RUBY_PATH']
     rlib = rbroot+"/bin"
@@ -42,12 +42,16 @@ if cross
     RbConfig::CONFIG['libdir'] = rlib 
     RbConfig::CONFIG['rubylibdir'] = rlib 
     # for building the ext (in the generated Makefile)
-    RbConfig::MAKEFILE_CONFIG['CC'] = ENV['CC']
     RbConfig::MAKEFILE_CONFIG["rubyhdrdir"] = incl
     RbConfig::MAKEFILE_CONFIG["rubyarchhdrdir"] = incla
     RbConfig::MAKEFILE_CONFIG['libdir'] = rlib 
     RbConfig::MAKEFILE_CONFIG['rubylibdir'] = rlib 
   end
+elsif RUBY_PLATFORM =~ /mingw/
+    # not cross compiling - but for mingw we need to point to include and bin
+    # and CC is not 'gcc'
+    RbConfig::CONFIG['CC'] = ENV['CC'] if ENV['CC']
+    
 end
 require 'mkmf'
 
@@ -96,6 +100,8 @@ else
     newest = versions[-1]
     puts "Configure with #{newest}"
     dir_config("sqlite3","#{newest}/include","#{newest}/lib")
+  elsif RUBY_PLATFORM =~ /mingw/ # native build, not cross
+    dir_config("sqlite3","#{ENV['ShoesDeps']}/include", ["#{ENV['ShoesDeps']}/bin"]) 
   else
     dir_config("sqlite3")
   end
