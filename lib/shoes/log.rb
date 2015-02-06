@@ -7,12 +7,9 @@ module Shoes::LogWindow
           tagline "Shoes Console", :stroke => white
         end
         flow :margin => 6, :width => 120 do
-          @auto_scroll = check
-          para "au", :stroke => white, :margin_right => 0
-          para "t", :stroke => white, :underline => "low", :margin_right => 0
-          para "oscroll?", :stroke => white
+          @auto_scroll = check :checked => true
+          para "au", ins("t"), "oscroll?", :stroke => white
         end
-        @auto_scroll.checked = false # IT prefers true
         keypress { |n| @auto_scroll.checked ^= true if n.eql?(:alt_t) }
         button "Clear", :margin => 6, :width => 80, :height => 40 do
           Shoes.log.clear
@@ -66,7 +63,7 @@ module Shoes::LogWindow
           i += 1
         end
       end
+      timer(0) { app.slot.scroll_top = app.slot.scroll_max if @auto_scroll.checked? }
     end
-    app.slot.scroll_top = app.slot.scroll_max if @auto_scroll.checked?
   end
 end
