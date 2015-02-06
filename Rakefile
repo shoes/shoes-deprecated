@@ -95,9 +95,17 @@ CLEAN.include ["req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
 # for Host building for Host:
 case RUBY_PLATFORM
 when /mingw/
-  require File.expand_path('rakefile_mingw')
+  if CROSS
+    require File.expand_path("make/tightmingw/env")
+    require File.expand_path("make/tightmingw/tasks")
+    require File.expand_path("make/tightmingw/stubs")
+  else
+    require File.expand_path('rakefile_mingw')
+  end
+  
   Builder = MakeMinGW
   NAMESPACE = :win32
+  
 when /darwin/
   osx_bootstrap_env
 
@@ -249,7 +257,7 @@ desc "Install Shoes in your ~/.shoes Directory"
 task  :install do
   if CROSS 
      puts "Sorry. You can't do an install of your source built Shoes"
-     puts "when crosscompiling is setup. Think about the confused children."
+     puts "when crosscompiling is setup."
   else
     Builder.copy_files_to_dist
     Builder.make_userinstall
@@ -338,14 +346,30 @@ end
 
 
 namespace :win32 do
+  
+  namespace :setup do
+    desc "Build for distribution (Tight)"
+    task :tight do
+      puts "Windows tight build"
+      sh "echo TGT_ARCH=tightmingw >crosscompile"      
+    end
+    
+    desc "Loose setup"
+    task :clean do
+      puts "restored to Loose Shoes build"
+      rm_rf "crosscompile" if File.exists? "crosscompile"
+    end
+    
+  end
+  
   task :build => [:old_build]
 
   task :make_app do
-    Builder.make_app "dist/#{NAME}"
+    Builder.make_app "#{TGT_DIR}/#{NAME}"
   end
 
   task :make_so do
-    Builder.make_so  "dist/lib#{SONAME}.#{DLEXT}"
+    Builder.make_so  "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
   end
 
   task :installer do
