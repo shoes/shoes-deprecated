@@ -22,7 +22,7 @@ ADD_DLL = []
 
 CC = "i686-w64-mingw32-gcc"
 ENV['CC'] = CC		# for building sqlite3 gem
-ENV['ShoesDeps'] = ShoesDeps
+ENV['ShoesDeps'] = ShoesDeps # also for sqlite3 gem
 #STRIP = "i686-w64-mingw32-strip -x"
 WINDRES = "windres"
 PKG_CONFIG = "#{ShoesDeps}/bin/pkg-config"  # the one from glib
@@ -76,7 +76,7 @@ WIN32_LIBS << RUBY_LDFLAGS
 WIN32_LIBS << CAIRO_LDFLAGS
 WIN32_LIBS << PANGO_LDFLAGS
 
-# Cleaning up duplicates. Clunky. Hell yes.
+# Cleaning up duplicates. Clunky? Hell yes!
 wIN32_CFLAGS = WIN32_CFLAGS.join(' ').split(' ').uniq
 wIN32_LDFLAGS = WIN32_LDFLAGS.join(' ').split(' ').uniq
 wIN32_LIBS = WIN32_LIBS.join(' ').split(' ').uniq
@@ -85,7 +85,7 @@ LINUX_CFLAGS = wIN32_CFLAGS.join(' ')
 LINUX_LDFLAGS = wIN32_LDFLAGS.join(' ')
 LINUX_LIBS = wIN32_LIBS.join(' ')
 
-# hash of dlls to copy
+# hash of dlls to copy in tasks.rb pre_build
 ENV['GTK'] = 'gtk+-2.0'
 bindll = "#{ShoesDeps}/bin"
 rubydll = "C:/Ruby21/bin"
