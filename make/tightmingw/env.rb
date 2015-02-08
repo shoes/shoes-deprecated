@@ -88,10 +88,10 @@ LINUX_LIBS = wIN32_LIBS.join(' ')
 # hash of dlls to copy in tasks.rb pre_build
 ENV['GTK'] = 'gtk+-2.0'
 bindll = "#{ShoesDeps}/bin"
-rubydll = "C:/Ruby21/bin"
+rubydll = "#{EXT_RUBY}/bin"
 devdll = "C:/Devkit/mingw/bin"
 SOLOCS = {}
-SOLOCS['ruby'] = "#{EXT_RUBY}/bin/msvcrt-ruby210.dll"
+SOLOCS['ruby'] = "#{rubydll}/msvcrt-ruby210.dll"
 SOLOCS['gif'] = "#{bindll}/libgif-4.dll"
 SOLOCS['jpeg'] = "#{bindll}/libjpeg-9.dll"
 SOLOCS['libyaml'] = "#{rubydll}/libyaml-0-2.dll"
@@ -127,4 +127,5 @@ if ENV['GTK'] == 'gtk+-2.0'
   SOLOCS['thread'] = "#{bindll}/libgthread-2.0-0.dll"
   SOLOCS['zlib1'] = "#{bindll}/zlib1.dll"
   SOLOCS['pthread'] = "#{devdll}/libwinpthread-1.dll"
+  SOLOCS['sjlj'] = "#{devdll}/libgcc_s_sjlj-1.dll"
 end
