@@ -2452,6 +2452,13 @@ parent's contents. It's gone.
 Is this slot allowed to show a scrollbar? True or false. The scrollbar will
 only appear if the height of the slot is also fixed.
 
+=== scroll = true or false ===
+
+Establishes this slot as a scrolling slot.  If `scroll = true` is set, the
+slot will show a scrollbar if any of its contents go past its height.  The
+scrollbar will appear and disappear as needed.
+See also the [[Styles.scroll]] style.
+
 === scroll_height() » a number ===
 
 The vertical size of the full slot, including any of it which is hidden by scrolling.
@@ -3678,4 +3685,5 @@ Finally, add a last button for entertainment value. You can press '''up''' or ''
 `f.button("2100s") { @p.replace "2100s" }`
 
 Your '''Interactive Ruby''' console should look like this: !{:margin_left => 60}shoes-irb-sample.png!
+
 
