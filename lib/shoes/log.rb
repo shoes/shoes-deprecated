@@ -9,6 +9,7 @@ module Shoes::LogWindow
         flow :margin => 6, :width => 120 do
           @auto_scroll = check :checked => true
           para "au", ins("t"), "oscroll?", :stroke => white
+          click { @auto_scroll.checked ^= true }
         end
         keypress { |n| @auto_scroll.checked ^= true if n.eql?(:alt_t) }
         button "Clear", :margin => 6, :width => 80, :height => 40 do
@@ -31,7 +32,7 @@ module Shoes::LogWindow
         end
       end
       @log, @hash = stack, nil
-      #update
+      timer(0) { update }
       every(0.2) do
         update
       end

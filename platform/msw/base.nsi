@@ -85,6 +85,7 @@ Section "MainSection" SEC01
    File /r /x nsis ..\*.*
    
    ${EnvVarUpdate} $0 "PATH" "A" HKLM $INSTDIR
+   ${EnvVarUpdate} $0 "FONTCONFIG_FILE" "A" HKLM "$INSTDIR\fonts.conf"
    ${registerExtension} "$INSTDIR\${SHOES_NAME}.exe" ".shy" "Shoes Application"
 SectionEnd
 

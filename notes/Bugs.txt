@@ -1,13 +1,137 @@
-Bugs/Status - stick with Ruby 2.0.0 and gtk2 until things get sorted
-  out with GKt3
+Bugs/Status - stick with Ruby 2.1.x and gtk2 until things get sorted
+  out with GKt3 and later Rubyies
+  
+2014-02-06
+done: upload binary dependecies for native Windows build
+done: upload bundle/src deps for a native Windows build
+done: wiki page for Building shoes on windows doesn't suck.
+----> upload cross compile src bundle, include the ruby deps.
+
+2014-02-05
+done can't run nsis.exe . NOTE native builds are 'Shoes-3.2.xxxx.exe' not 'shoes....'
+----> need to build gif,jpeg,sqlite3 from mysy, gcc ?
+----> the native build is 1Mb larger than the cross build. Extra gems?
+  
+2014-02-04
+done: Don't copy all the gems in rubyinstaller - just the defaults. Ick.
+done: libgif, libjpeg, libsqlite (and more)
+      1. Cross compile headers and dlls 
+         copy cjc-gif.sh cross-gif.sh. Modify so --prefix=~/home/ccoupe/Projects/shoesdeps/mingw
+         jpeg
+      2. Then Build from source and document on wiki
+       
+  
+2015-02-03
+done: start creating windows builder. 
+done: install pkg-config-lite in MinGW
+       Rakefile needs help: 
+       rake win32:setup:tight -> make/tightmingw/ env.rb and tasks.rb
+----> On windows the Loose/Tight is only for jailbreak. 
+done Need to use the gtks+bundles because that's what users would do.
+      Add jpeg, gif, sqlite to deps
+  
+2015-02-02
+done: All ruby's are 2.1.5 and gems 2.4.5
+done: Work on wiki Building Shoes on Windows.  
+
+
+2015-01-31
+done: help luka with .shy confusion
+done: no ruby headers on Windows
+====> Windows, can't build downloaded gems - wrong compiler.
+done: Jailbreak - we moved .shoes on Windows. Also fixed a display bug in info
+----> Not all gems are listed by Cobbler in a jailbreak.
+done: lost the log.rb char wrap
+----> finish font.conf test on Windows - Set the env var.
+
+2015-01-30   ruby 2.1.5 and rubygems 2.4.5
+====> Update ruby gem certificates. Update all to Ruby 2.1.5p273 and
+        rubygems 2.4.25
+        
+done:   Windows, 
+        my ruby - done. 
+        Shoes ruby done.
+        gems update:
+        ruby setup.rb --prefix=/home/cross/gemtest
+        ccoupe@bronco:/home/cross/gemtest/lib$ cp -r * /srv/chroot/mingwgtk2/usr/local/lib/ruby/site_ruby/2.1.0/
+        
+      OSX-10.9 Current?
+      OSX-10.6 Current?
+      Both are broken with pango module (install_name_tools problem
+      
+done: rpi 2.1.5
+        add --with-baseruby="/usr/local/bin/ruby" to config. Grrr
+        sudo apt-get install bison
+        update gems - had to set PATH properly
+      
+done: x86 2.1.5
+done: update rubygems
+done: remove gem rdoc and ri
+        
+done: i686
+done:  update gems 2.4.5
+done:  remove doc (be su)
+       root@bronco:/srv/chroot/deb386/usr/local/lib/ruby/gems/2.1.0# rm -r doc
+       root@bronco:/srv/chroot/deb386/usr/local/lib/ruby/2.1.0# rm -r rdoc
+
+done: Loose shoes. gem 2.4.5
+  
+2015-01-28
+done: 10.6 exts working in xnsow
+===> Restructure the manual a bit for 3.2.21
+  
+2015-01-27
+    Bug046 Ian says fonts.conf is enough to to shutup the fontconfig
+===> warnings on Windows. set FONTCONFIG_FILE=C:\Program Files (x86)\Shoes\fonts.conf
+    It does. Its adds fair amount of time to first startup. The env var
+    needs to be set in ? base.nsi ?
+done: Copy it from platform/msw/font.conf in build.
+    Does not fix Pango Warnings about ugly fonts.
+    
+2015-01-26
+    Bug045 is kind of important. - Shoes only looks like Ruby!
+    listbox.items << 'newitem' is not the same as listbox.items += 'newitem'
+done: Fix the manual
+     
+done: ftsearch/extconf (plus help with xsnow/env.rb and tasks.rb)
+     copied into arch 14.0 and not 10.0
+done: chipmonk/extconf appear to work 10.6 and 10.9
+----> enable build and copy of sqlite3 in xsnow.
+----> sqlite3/extconf 
+
+2015-01-24, 25
+    cross compile 10.6 from 10.9
+----> EXT_RUBY points to copy of 10.6 ruby 2.1.5
+done: Modify extconf.rb for ftsearch and chipmonk to build for the target
+     ruby arch (x86_64_darwin-10.0) not the building arch (x86_64_darwin-14.0)
+  
+2015-01-23
+done: fixed osx 10.9 rake file by setting rvm use 2.1.5. undo many hacks.
+done: OSX key handling determined to be "as expected" - don't fix.
+done: Checkpoint. 
+  
+2015-01-22
+      OSX key handling is pretty bad in Shoes. Deep deep dive into OSX
+done: The rakefile refactor broke mavericks build -
+         ftsearch and chipmunk bundles need otool love for libruby
+         snowleapord shouldn't work either. - unless otool has changed
+      
+2015-01-21
+done: Ian's log.rb throws up a gtk warning:
+      Gtk-CRITICAL **: IA__gtk_toggle_button_get_active: assertion 'GTK_IS_TOGGLE_BUTTON (toggle_button)' failed
+      Shoes control flow strikes again. 
+====> OSX - edit_line/box doesn't pass on the key to keypress() like gtk2
+
 
 2015-01-20,19,18 - much discussion
 done: Ian's help.rb supports page up/down, back and forward. Very nice
 done: fixed 10.6 osx build for sqlite3. (also 10.9).  extconf.rb was not
      using /usr/local/Cellar/?/include/ and lib/  
 ====> Pango does funny things if the word at wrap point has a colon prefix
-----> Shoes console gets :wrap => "char" for now
-----> Shoes console gets some autoscroll help.
+done: Shoes console gets :wrap => "char" for now
+done: Shoes console gets some autoscroll help.
+
+============================================
 
 2015-01-17 Release 3.2.20
   
@@ -52,12 +176,12 @@ Fixed: Weekly build failures:
 ----> Loose Shoes (darwin) doesn't work - copies more than needed.
   
 2015-01-08
-----> Issue invite to Ian to join Shoes4
+done: Issue invite to Ian to join Shoes4
 done: get rake files to Build Shoes on 10.6
       test on 10.6 - runs
       test on 10.9.  libz issue. Fixed. Runs.
 done: move my snowleopard make/ to xsnow and and Ians to snowleopard
-----> add sqlite3 to the 10.6 build
+done: add sqlite3 to the 10.6 build
 done: move loose shoes osx build code from Rakefile to darwin/env & task
 done: get rid of homebrew.rb and some old stuff in /make/darwin
   
@@ -65,9 +189,8 @@ done: get rid of homebrew.rb and some old stuff in /make/darwin
 done:  pango dir structure created wrong.
 ----> sqlite3 - there's one in Cellar, and one in SDK 10.6, /usr/lib 
         which one did extconf/install name tool compile, link with?
-----> attempt to remove sqlite3 from 10.6 build. Failing.
-----> rake package 'strip -x' says it will invalidate code signatures
-----> two arches in some libs -  x86_64 and i386 wasteful, required?
+done: attempt to remove sqlite3 from 10.6 build. Failing.
+done: rake package 'strip -x' says it will invalidate code signatures
 done: When my 10.6 runs on 10.9: Cobbler/Packager selection from splash
       Gets an SSL error (Cobbler.rb:204)
   
