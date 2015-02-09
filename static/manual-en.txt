@@ -2457,7 +2457,7 @@ only appear if the height of the slot is also fixed.
 Establishes this slot as a scrolling slot.  If `scroll = true` is set, the
 slot will show a scrollbar if any of its contents go past its height.  The
 scrollbar will appear and disappear as needed.
-See also the [[Styles.scroll]] style
+See also the [[Styles.scroll]] style.
 
 === scroll_height() » a number ===
 
