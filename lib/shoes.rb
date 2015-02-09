@@ -379,6 +379,10 @@ class Shoes
   def self.show_manual
     manual_as :shoes
   end
+  
+  def self.show_irb
+    require 'shoes/irb'
+  end
 
   def self.show_log
     require 'shoes/log'
