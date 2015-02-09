@@ -95,75 +95,77 @@ CURSOR = ">>"
 IRBalike = MimickIRB.new
 $stdout = StringIO.new
 
-Shoes.app do
-  @history = { :cmd => IRBalike.history, :pointer => 0 }
-  @str, @cmd = [CURSOR + " "], ""
-  stack :width => 1.0, :height => 1.0 do
-    background "#555"
-    stack :width => 1.0, :height => 30 do
-      background white
-      para "Interactive Ruby ready.", :stroke => red
-    end
-    @scroll =
-      stack :width => 1.0, :height => -50, :scroll => true do
-        background "#555"
-        @console = para @str, :font => "Monospace 12px", :stroke => "#dfa", :wrap => "char"
-        @console.cursor = -1
-      end
-  end
-  keypress do |k|
-    case k
-    when "\n"
-      begin
-        @history[:cmd] << @cmd
-        @history[:pointer] = @history[:cmd].size
-        out, obj = IRBalike.run(@cmd)
-        @str += ["#@cmd\n",
-          IRBalike.echo ? 
-            span("#{out}=> #{obj.inspect}\n", :stroke => "#fda") :
-            span("#{out}", :stroke => "#fda"),
-          "#{CURSOR} "]
-        @cmd = ""
-        @console.cursor = -1
-      rescue MimickIRB::Empty
-      rescue MimickIRB::Continue
-        @str += ["#@cmd\n.. "]
-        @cmd = ""
-      rescue Object => e
-        @str += ["#@cmd\n", span("#{e.class}: #{e.message}\n", :stroke => "#fcf"),
-          "#{CURSOR} "]
-        @cmd = ""
-      end
-    when String
-      @cmd.insert(@console.cursor, k)
-    when :backspace
-      @cmd.slice!(@console.cursor)
-    when :delete
-      @cmd.slice!(@console.cursor += 1) if @console.cursor < -1
-    when :tab
-      @cmd += "  "
-    when :alt_q
-      quit
-    when :alt_c
-      self.clipboard = @cmd
-    when :alt_v
-      @cmd += self.clipboard
-    when :left
-      @console.cursor -= 1 unless @cmd.length < -@console.cursor
-    when :right
-      @console.cursor += 1 if @console.cursor < -1
-    when :up
-      if @history[:pointer] > 0
-         @history[:pointer] -= 1
-         @cmd = @history[:cmd][@history[:pointer]].dup
-      end
-    when :down
-      if @history[:pointer] < @history[:cmd].size
-         @history[:pointer] += 1
-         @cmd = @history[:cmd][@history[:pointer]].dup
-      end
-    end
-    @console.replace *(@str + [@cmd])
-    @scroll.scroll_top = @scroll.scroll_max
-  end
+def Shoes.irb
+   Shoes.app do
+     @history = { :cmd => IRBalike.history, :pointer => 0 }
+     @str, @cmd = [CURSOR + " "], ""
+     stack :width => 1.0, :height => 1.0 do
+       background "#555"
+       stack :width => 1.0, :height => 30 do
+         background white
+         para "Interactive Ruby ready.", :stroke => red
+       end
+       @scroll =
+         stack :width => 1.0, :height => -50, :scroll => true do
+           background "#555"
+           @console = para @str, :font => "Monospace 12px", :stroke => "#dfa", :wrap => "char"
+           @console.cursor = -1
+         end
+     end
+     keypress do |k|
+       case k
+       when "\n"
+         begin
+           @history[:cmd] << @cmd
+           @history[:pointer] = @history[:cmd].size
+           out, obj = IRBalike.run(@cmd)
+           @str += ["#@cmd\n",
+             IRBalike.echo ? 
+               span("#{out}=> #{obj.inspect}\n", :stroke => "#fda") :
+               span("#{out}", :stroke => "#fda"),
+             "#{CURSOR} "]
+           @cmd = ""
+           @console.cursor = -1
+         rescue MimickIRB::Empty
+         rescue MimickIRB::Continue
+           @str += ["#@cmd\n.. "]
+           @cmd = ""
+         rescue Object => e
+           @str += ["#@cmd\n", span("#{e.class}: #{e.message}\n", :stroke => "#fcf"),
+             "#{CURSOR} "]
+           @cmd = ""
+         end
+       when String
+         @cmd.insert(@console.cursor, k)
+       when :backspace
+         @cmd.slice!(@console.cursor)
+       when :delete
+         @cmd.slice!(@console.cursor += 1) if @console.cursor < -1
+       when :tab
+         @cmd += "  "
+       when :alt_q
+         quit
+       when :alt_c
+         self.clipboard = @cmd
+       when :alt_v
+         @cmd += self.clipboard
+       when :left
+         @console.cursor -= 1 unless @cmd.length < -@console.cursor
+       when :right
+         @console.cursor += 1 if @console.cursor < -1
+       when :up
+         if @history[:pointer] > 0
+            @history[:pointer] -= 1
+            @cmd = @history[:cmd][@history[:pointer]].dup
+         end
+       when :down
+         if @history[:pointer] < @history[:cmd].size
+            @history[:pointer] += 1
+            @cmd = @history[:cmd][@history[:pointer]].dup
+         end
+       end
+       @console.replace *(@str + [@cmd])
+       @scroll.scroll_top = @scroll.scroll_max
+     end
+   end
 end
