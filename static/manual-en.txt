@@ -1680,7 +1680,7 @@ closely consult Processing's methods as it expands.
 === arc(left, top, width, height, angle1, angle2) » Shoes::Shape ===
 
 Draws an arc shape (a section of an oval) at coordinates (left, top).  This
-method just give you a bit more control than [[oval]], by offering the
+method just give you a bit more control than [[Art.oval]], by offering the
 `:angle1` and `:angle2` styles.  (In fact, you can mimick the `oval` method by
 setting `:angle1` to 0 and `:angle2` to `Shoes::TWO_PI`.)
 
@@ -1824,10 +1824,10 @@ and arcs and bends.
    fill red(0.2)
    shape do
      move_to(90, 55)
-     arc_to(50, 55, 50, 50, 0, PI/2)
-     arc_to(50, 55, 60, 60, PI/2, PI)
-     arc_to(50, 55, 70, 70, PI, TWO_PI-PI/2)
-     arc_to(50, 55, 80, 80, TWO_PI-PI/2, TWO_PI)
+     arc_to(50, 55, 50, 50, 0, Shoes::PI/2)
+     arc_to(50, 55, 60, 60, Shoes::PI/2, Shoes::PI)
+     arc_to(50, 55, 70, 70, Shoes::PI, Shoes::TWO_PI-Shoes::PI/2)
+     arc_to(50, 55, 80, 80, Shoes::TWO_PI-Shoes::PI/2, Shoes::TWO_PI)
    end
  end
 }}}
@@ -3277,6 +3277,14 @@ Returns the complete list of strings that the list box presently shows as its op
 
 Replaces the list box's options with a new list of strings.
 
+'''Caution!''' You can manipulate Ruby Arrays in many ways that Shoes '''will not''' detect
+and Shoes will not display the updated array. For example '<<' will not update
+what Shoes displays. += will work because it just happens to be like 
+items = . 
+
+When changing the list box from a Shoes program, always copy the
+items to a new array, manipulated that and then set the items = new_array
+
 === text() » a string ===
 
 A string containing whatever text is shown highlighted in the list box right
@@ -3606,3 +3614,76 @@ Older Shoes Links for historical purposes (may be dead):
  * You can join [[http://librelist.com/browser/shoes/ Shoes ML]] and feel free ask your questions. 
  * [[http://github.com/shoes/shoes/ Shoes 3.1 Source Code]] is on GitHub.
  * [[http://github.com/shoes/shoes/downloads Recent Builds]] for your platform.
+
+== Shortcuts ==
+
+Shoes provides the following general keyboard shortcuts:
+
+ * `Alt-/` or `⌘-/` opens '''Shoes Console'''.
+ * `Alt-.` or `⌘-.` opens '''Open File…''' dialog.
+ * `Alt-?` or `⌘-?` opens '''Shoes Manual'''.
+ * `Alt-=` or `⌘-=` opens [[IRB '''Shoes Interactive Ruby''']].
+
+Shoes Manual provides the following keyboard shortcut:
+
+ * `Alt-f` or `⌘-f` opens '''Search''' section.
+ * `Alt-left` or `⌘-left` browses back.
+ * `Alt-right` or `⌘-right` browses forward.
+ * `PgUp` and `PgDn` scrolls up and down one page.
+ * `Up` and `Down` scrolls up and down one line.
+
+Shoes Console provides the following keyboard shortcut:
+
+ * `Alt-t` or `⌘-t` disables autoscroll.
+
+== IRB Interactive Ruby ==
+
+Shoes provides an '''Interactive Ruby''' (IRB) console for quick expression evaluations, fast prototyping and manipulate Shoes objects.
+
+Press `Alt-=` or `⌘-=` to open an Interactive Ruby console.
+
+=== Getting started ===
+
+IRB comes with embedded commands to facilitate your interaction. Type '''help''' in your current session to list all available commands. !{:margin_left => 60}shoes-irb-help.png!
+
+[[http://www.ruby-lang.org/en/documentation/quickstart/ Ruby in Twenty Minutes]] is an excellent tutorial on Ruby and the first 3 pages are focused on IRB. You can type in those examples in your Shoes Interactive Ruby console.
+
+=== Interacting with Shoes ===
+
+Now let's interact with Shoes objects in order to incrementally create the following GUI in a fast prototyping fashion. !{:margin_left => 100}shoes-irb-history-lesson.png!
+
+Type the following code in your IRB console to create a [[App.Shoes.app]] with a specific title and size. The variable '''app''' will contain your newly created window but it is possible to search Shoes apps amongst [[App.Shoes.APPS]]. 
+
+`app = Shoes.app(:title => "History Lesson", :height => 75, :width => 300) {}`
+
+A stack is added to contain the text that will display the historical era. You will notice that simply calling [[Element.para]] in IRB will result in a NoMethodError exception. Para is essentially a method that belongs to a [[Slots]], hence '''app.para''' is used here.
+
+`app.stack { @p = app.para }`
+
+The following creates a [[Element.flow]] allowing buttons to align side-by-side and also the first button. The button is clickable immediately after typing the code below.
+
+`f = app.flow { app.button("1800s") { @p.replace "1800s" } }`
+
+It is possible to manipulate elements in any [[Slots]]. Let's add another historical era to your your flow.
+
+`f.button("1900s") { @p.replace "1900s" }`
+
+Shall we verify that those buttons are indeed part of the flow '''f'''?
+
+`f.contents`
+
+Add another button to fill up some space.
+
+`f.button("2000s") { @p.replace "2000s" }`
+
+You can list your command history and see what you have done so far. It is also possible to save the command history to a file by typing '''save'''. For now, let's just take a look at the command '''history'''.
+
+`history`
+
+Finally, add a last button for entertainment value. You can press '''up''' or '''down''' to navigate through your history until you find the previous button, press '''left''' or '''right''' to edit the values, and press '''enter'''.
+
+`f.button("2100s") { @p.replace "2100s" }`
+
+Your '''Interactive Ruby''' console should look like this: !{:margin_left => 60}shoes-irb-sample.png!
+
+
