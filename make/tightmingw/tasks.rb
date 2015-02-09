@@ -209,7 +209,7 @@ class MakeMinGW
 
     
     def make_installer
-      # assumes you have NSIS installed on your box in the system PATH
+      # assumes you have NSIS installed on your box in the system PATH 
       def sh(*args); super; end
       puts "make_installer #{`pwd`}"
       mkdir_p "pkg"
