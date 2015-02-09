@@ -475,6 +475,8 @@ shoes_app_keypress(shoes_app *app, VALUE key)
     rb_eval_string("Shoes.show_manual");
   else if (key == symAltDot)
     rb_eval_string("Shoes.show_selector");
+  else if (key == symAltEqual)
+    rb_eval_string("Shoes.show_irb");
   else
     shoes_canvas_send_keypress(app->canvas, key);
   return SHOES_OK;
