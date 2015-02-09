@@ -2,7 +2,7 @@ require 'irb/ruby-lex'
 require 'stringio'
 
 class MimickIRB < RubyLex
-  attr_accessor :started
+  attr_accessor :started, :history, :echo
 
   class Continue < StandardError; end
   class Empty < StandardError; end
@@ -10,6 +10,9 @@ class MimickIRB < RubyLex
   def initialize
     super
     set_input(StringIO.new)
+    @started = Time.now
+    @history = []
+    @echo = true
   end
 
   def run(str)
@@ -23,7 +26,38 @@ class MimickIRB < RubyLex
       when "reset"
         @line = ""
       when "time"
-        @line = "puts %{You started \#{IRBalike.started.since} ago.}"
+        @line = "puts %{This IRB session started #{Time.at(Time.now.getutc - @started.getutc.to_f).strftime('%H:%M:%S')} ago.}"
+      when /^echo( (.*))?/
+        case $2
+        when "on"
+           @echo = true
+           @line = "puts %{echo is toggled on}"
+        when "off"
+           @echo = false
+           @line = "puts %{echo is toggled off}"
+        else
+           @line = "puts %{echo is toggled #{@echo ? "on" : "off"}}"
+        end
+      when "history"
+        @line = "puts %{#{@history.join("\n")}}"
+      when "save"
+        filename = ask_save_file
+        if filename
+           File.open(filename, "w") { |f| f.write(@history.join("\n")) }
+           @line = "puts %{Command history saved to #{filename.inspect}...}"
+        else
+          @line = ""
+        end
+      when "help"
+        message = <<-END.gsub(/^ {12}/, '')
+            help\tdisplay this help.
+            echo\techo, echo on and echo off to toggle object output. 
+            time\tdisplay time since the IRB session started.
+            history\tlist command history.
+            save\tsave command history to a file.
+            reset\treset terminal.
+        END
+        @line = "puts \"#{message}\""
       else
         @line << l << "\n"
         if @ltype or @continue or @indent > 0
@@ -62,16 +96,18 @@ IRBalike = MimickIRB.new
 $stdout = StringIO.new
 
 Shoes.app do
+  @history = { :cmd => IRBalike.history, :pointer => 0 }
   @str, @cmd = [CURSOR + " "], ""
   stack :width => 1.0, :height => 1.0 do
     background "#555"
-    stack :width => 1.0, :height => 50 do
-      para "Interactive Ruby ready.", :fill => white, :stroke => red
+    stack :width => 1.0, :height => 30 do
+      background white
+      para "Interactive Ruby ready.", :stroke => red
     end
     @scroll =
       stack :width => 1.0, :height => -50, :scroll => true do
         background "#555"
-        @console = para @str, :font => "Monospace 12px", :stroke => "#dfa"
+        @console = para @str, :font => "Monospace 12px", :stroke => "#dfa", :wrap => "char"
         @console.cursor = -1
       end
   end
@@ -79,11 +115,16 @@ Shoes.app do
     case k
     when "\n"
       begin
-        out, obj = IRBalike.run(@cmd + ';')
+        @history[:cmd] << @cmd
+        @history[:pointer] = @history[:cmd].size
+        out, obj = IRBalike.run(@cmd)
         @str += ["#@cmd\n",
-          span("#{out}=> #{obj.inspect}\n", :stroke => "#fda"),
+          IRBalike.echo ? 
+            span("#{out}=> #{obj.inspect}\n", :stroke => "#fda") :
+            span("#{out}", :stroke => "#fda"),
           "#{CURSOR} "]
         @cmd = ""
+        @console.cursor = -1
       rescue MimickIRB::Empty
       rescue MimickIRB::Continue
         @str += ["#@cmd\n.. "]
@@ -94,9 +135,11 @@ Shoes.app do
         @cmd = ""
       end
     when String
-      @cmd += k
+      @cmd.insert(@console.cursor, k)
     when :backspace
-      @cmd.slice!(-1)
+      @cmd.slice!(@console.cursor)
+    when :delete
+      @cmd.slice!(@console.cursor += 1) if @console.cursor < -1
     when :tab
       @cmd += "  "
     when :alt_q
@@ -105,6 +148,20 @@ Shoes.app do
       self.clipboard = @cmd
     when :alt_v
       @cmd += self.clipboard
+    when :left
+      @console.cursor -= 1 unless @cmd.length < -@console.cursor
+    when :right
+      @console.cursor += 1 if @console.cursor < -1
+    when :up
+      if @history[:pointer] > 0
+         @history[:pointer] -= 1
+         @cmd = @history[:cmd][@history[:pointer]].dup
+      end
+    when :down
+      if @history[:pointer] < @history[:cmd].size
+         @history[:pointer] += 1
+         @cmd = @history[:cmd][@history[:pointer]].dup
+      end
     end
     @console.replace *(@str + [@cmd])
     @scroll.scroll_top = @scroll.scroll_max

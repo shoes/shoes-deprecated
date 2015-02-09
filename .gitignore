@@ -16,6 +16,7 @@ i386-gnu-linux
 x86_64-linux
 xarmv6-pi
 xmingw32
+tightmingw
 snowleopard
 xsnow
 *.app
