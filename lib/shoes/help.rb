@@ -337,6 +337,7 @@ module Shoes::Manual
         @visited[:forward] << @visited[:back].pop
         open_link(@visited[:back].last)
      end
+     @visited[:clicked] = false
    end
 
   def visit_forward
@@ -344,6 +345,7 @@ module Shoes::Manual
         @visited[:clicked] = true
         open_link(@visited[:forward].pop)
      end
+     @visited[:clicked] = false
   end
 
   def open_section(sect_s, terms = nil)
@@ -455,7 +457,6 @@ def Shoes.make_help_page
       elsif 5 == n
          visit_forward
       end
-      @visited[:clicked] = false
     }
     keypress { |n|
       if n.eql?(:alt_left)
@@ -473,7 +474,6 @@ def Shoes.make_help_page
       elsif n.eql?(:up)
          app.slot.scroll_top -= 20
       end
-      @visited[:clicked] = false
     }
     
     stack do
@@ -497,14 +497,12 @@ def Shoes.make_help_page
             background "#8A7", :margin => [0, 2, 0, 2], :curve => 4 
             para link("back", :stroke => "#eee", :underline => "none") {
                visit_back
-               @visited[:clicked] = false
             }, :margin => 4, :align => 'center', :weight => 'bold', :size => 9
          end
          stack :width => 54, :right => 0 do
             background "#8A7", :margin => [0, 2, 0, 2], :curve => 4 
             para link("forward", :stroke => "#eee", :underline => "none") {
                visit_forward
-               @visited[:clicked] = false
             }, :margin => 4, :align => 'center', :weight => 'bold', :size => 9
          end
       end

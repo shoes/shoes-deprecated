@@ -9,6 +9,7 @@ class MimickIRB < RubyLex
 
   def initialize
     super
+    $stdout = StringIO.new
     set_input(StringIO.new)
     @started = Time.now
     @history = []
@@ -92,12 +93,11 @@ class MimickIRB < RubyLex
 end
 
 CURSOR = ">>"
-IRBalike = MimickIRB.new
-$stdout = StringIO.new
 
 def Shoes.irb
    Shoes.app do
-     @history = { :cmd => IRBalike.history, :pointer => 0 }
+     irbalike = MimickIRB.new
+     @history = { :cmd => irbalike.history, :pointer => 0 }
      @str, @cmd = [CURSOR + " "], ""
      stack :width => 1.0, :height => 1.0 do
        background "#555"
@@ -118,9 +118,9 @@ def Shoes.irb
          begin
            @history[:cmd] << @cmd
            @history[:pointer] = @history[:cmd].size
-           out, obj = IRBalike.run(@cmd)
+           out, obj = irbalike.run(@cmd)
            @str += ["#@cmd\n",
-             IRBalike.echo ? 
+             irbalike.echo ? 
                span("#{out}=> #{obj.inspect}\n", :stroke => "#fda") :
                span("#{out}", :stroke => "#fda"),
              "#{CURSOR} "]
