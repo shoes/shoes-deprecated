@@ -17,7 +17,8 @@ homes.each do |home_top, home_dir|
   end
 end
 LIB_DIR = lib_dir || File.join(Dir::tmpdir, "shoes")
-LIB_DIR.gsub! /\\/, '\/'
+#LIB_DIR.gsub! /\\/, '\/'
+LIB_DIR.gsub! /\\+/, "/"
 
 tight_shoes = Shoes::RELEASE_TYPE =~ /TIGHT/
 rbv = RbConfig::CONFIG['ruby_version']
