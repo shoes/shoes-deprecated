@@ -14,6 +14,7 @@ require 'mkmf'
 # for cross compiling. This is a bit heavy handed. 
 CONFIG['CC']=ENV['CC'] if ENV['CC']
 $CFLAGS += ' -Wno-declaration-after-statement -std=gnu99 -ffast-math'
+$CFLAGS += ' -Wno-unused-function -Wno-unused-const-variable -Wno-shorten-64-to-32'
 if ENV['SYSROOT']
   if ENV['TGT_RUBY_PATH'] =~ /mingw/
     $LDFLAGS = "-L #{rbroot}/bin"
