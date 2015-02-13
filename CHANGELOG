@@ -1,3 +1,36 @@
+= Federales
+
+== January 2014 to January 2015
+  Move to ruby 2.1.x 
+  * Restructure ruby/lib to match ruby (lib/ruby)
+  * requires properly built Rubies
+  * enables cross compiling on Linux for Windows and other Linux arch.
+  * added Raspberry pi (arch: armhf)
+  Windows uses gtk2 (shared with Linux) instead of native windows calls. 
+  Remove curl, winhttp, sqlite3 dependencies.
+  Gem fixes
+  * Update to current rubygems
+  * Improve odds of success for Shoes.setup
+  * Provide a gem manager written in Shoes.
+  * possible to use gems installed outside of Shoes. 
+  Re-wrote packaging
+  * Not tied to one website. It can be changed. Fixed download stubs.
+  * Web site cgi determines architures and version to display. Shoes adapts.
+  * replace binject (exe and dmg) with better alternatives 
+  Installers
+  * Updated NSIS (Windows).
+  * Linux uses xdg-desktop-menu
+  * Simple .tgz for OSX. 
+  Added Cobbler (Maintain Shoes)
+  * Displays build info
+  * Manages gems
+  * Allows changing websites
+  * Allows 
+  Bug fixes of note:
+  * Windows does not hang or use 100% cpu when idling.
+  Many minor bug fixes.
+  Simplified and complexified Rake files. 
+  
 = Policeman
 == 17th August, 2010
 * Move to Ruby 1.9.1
