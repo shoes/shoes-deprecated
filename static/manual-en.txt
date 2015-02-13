@@ -1838,6 +1838,20 @@ the other methods in this [[Art]] section) inside a shape, but they will not be
 part of the line.  They will be more like a group of shapes are all drawn as
 one.
 
+=== shape(styles) { ... } » Shoes::Shape ===
+
+Describes an arbitrary shape to draw, initialized using a style hash.  The following styles are relevant:
+
+ * `top`: the y-coordinate for the shape.
+ * `left`: the x-coordinate for the shape.
+ * `center`: do the coordinates specifie the rectangle's center? (true or false).
+ * `cap`: sets the line endpoints of the shape.
+ * `stroke`: color of the outline of the shape.                  
+ * `strokewidth`: size of the outline of the shape.
+ * `fill`: color of the shape.
+
+These styles may also be altered using the `style` method on the Shape object.
+
 === star(left, top, points = 10, outer = 100.0, inner = 50.0) » Shoes::Shape ===
 
 Draws a star using the stroke and fill colors.  The star is positioned with its
@@ -2219,9 +2233,35 @@ meaning the object which was hovered over.
 
 To catch the mouse exiting the slot, check out the [[Events.leave]] event.
 
+=== keydown { |key| ... } » self ===
+
+Triggered whenever a single key is pressed, the block gets called. The block is sent a key which is a string representing the character (such as the letter or number) on the key.  For special keys (not modifiers keys), a Ruby symbol is sent, rather than a string, see [[Events.keypress]] for a list of special keys.
+{{{
+ #!ruby
+ Shoes.app {
+   @info = para "Press a key."
+   keydown do |k|
+      @info.replace "#{k} was PRESSED."
+   end
+}
+}}}
+
+=== keyup { |key| ... } » self ===
+
+Triggered whenever a single key is released, the block gets called. The block is sent a key which is a string representing the character (such as the letter or number) on the key.  For special keys (not modifiers keys), a Ruby symbol is sent, rather than a string, see [[Events.keypress]] for a list of special keys.
+{{{
+ #!ruby
+ Shoes.app {
+   @info = para "Press a key and release it."
+   keyup do |k|
+      @info.replace "#{k} was RELEASED."
+   end
+}
+}}}
+
 === keypress { |key| ... } » self ===
 
-Whenever a key (or combination of keys) is pressed, the block gets called.  The
+Whenever a key (or combination of keys) is pressed, the block gets called, and will be repeatedly called as long as it is pressed.  The
 block is sent a `key` which is a string representing the character (such as the
 letter or number) on the key.  For special keys and key combos, a Ruby symbol
 is sent, rather than a string.
