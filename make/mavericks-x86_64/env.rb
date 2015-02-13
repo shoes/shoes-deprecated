@@ -60,6 +60,7 @@ LINUX_CFLAGS << " -DRUBY_1_9"
 DLEXT = "dylib"
 #LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{RbConfig::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions"
 LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -fpascal-strings #{RbConfig::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions"
+LINUX_CFLAGS << " -Wno-incompatible-pointer-types-discards-qualifiers"
 LINUX_LDFLAGS = "-framework Cocoa -framework Carbon -dynamiclib -Wl,-single_module INSTALL_NAME"
 LINUX_LIB_NAMES << 'pixman-1' << 'jpeg.8'
 
