@@ -53,6 +53,7 @@ elsif RUBY_PLATFORM =~ /mingw/
     RbConfig::CONFIG['CC'] = ENV['CC'] if ENV['CC']
     
 end
+puts "Loading sqlite3 mkmf"
 require 'mkmf'
 
 # update the CONFIG with the correct values. RbConfig won't work 
@@ -67,7 +68,12 @@ if ENV['SYSROOT']
     $LIBS = ""
     CONFIG['RUBY_SO_NAME'] = ENV['TGT_RUBY_SO']
     # drastic solution - use rbconfig 
+  elsif ENV['TGT_ARCH'] =~ /darwin10/
+    puts "10.9 xsnow fixup"
+    #$CFLAGS += ENV['SYSROOT']
+    #$LDFLAGS += ENV['SYSROOT']
   else # raspberry armhf
+    puts "rasp? #{ENV['TGT_ARCH']}"
     $CFLAGS += "--sysroot=#{ENV['SYSROOT']}"
     $LDFLAGS += " --sysroot=#{ENV['SYSROOT']}"
   end
@@ -83,6 +89,11 @@ if cross
     puts "rbroot = #{rbroot}"
     dir_config("sqlite3","#{ENV['SYSROOT']}/include", ["#{ENV['SYSROOT']}/bin"])
     # dir_config("ruby", [incl, incla], [rlib])
+  elsif ENV['SQLLOC']  # true when 10.9 is building 10.6
+    versions = Dir.glob("#{ENV['SQLLOC']}/Cellar/sqlite/*")
+    newest = versions[-1]
+    puts "Configure with #{newest}"
+    dir_config("sqlite3","#{newest}/include","#{newest}/lib")    
   else # armhf
     dir_config("sqlite3",
       ["#{ENV['SYSROOT']}/usr/include","#{ENV['SYSROOT']}/usr/include/arm-linux-gnueabihf"], 

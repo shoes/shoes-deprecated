@@ -73,7 +73,6 @@ LINUX_CFLAGS << " -DRUBY_1_9 "
 DLEXT = "dylib"
 #LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{RbConfig::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions"
 LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -fpascal-strings #{RbConfig::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions"
-LINUX_CFLAGS << " -Wno-incompatible-pointer-types-discards-qualifiers"
 LINUX_LDFLAGS = "-framework Cocoa -framework Carbon -dynamiclib -Wl,-single_module INSTALL_NAME"
 LINUX_LIB_NAMES << 'pixman-1' << 'jpeg.8'
 
@@ -92,13 +91,13 @@ else
   OSX_ARCH = '-arch x86_64'
 end
 
-# These env vars are used in  ftsearch, chipmunk extconf.rb
+# These env vars are used in  ftsearch, chipmunk, sqlite3 extconf.rb
 SHOES_TGT_ARCH = 'x86_64-darwin10.0'
 ENV['CC'] = CC
 ENV['TGT_RUBY_PATH'] = EXT_RUBY
 ENV['TGT_ARCH'] = SHOES_TGT_ARCH
 ENV['TGT_RUBY_V'] = '2.1.0'  # library version - all 2.1.x rubys
-ENV['SYSROOT'] = "-isysroot #{OSX_SDK} #{OSX_ARCH}"
+ENV['SYSROOT'] = " -isysroot #{OSX_SDK} #{OSX_ARCH}"
 
 LINUX_CFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH}"
 LINUX_LDFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH} -L#{BREWLOC}/lib/ "
