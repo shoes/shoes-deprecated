@@ -1,16 +1,81 @@
 Bugs/Status - stick with Ruby 2.1.x and gtk2 until things get sorted
   out with GKt3 and later Rubyies
   
+3.2.22 thoughts
+     The alert & ask enhancements.
+     Since linux runs an "installer" can it do the pango query stuff once?
+  
+2014-02-13
+done? sqlite3 for 10.6, built by 10.9
+  
+2014-02-12 
+done: Update CHANGELOG
+----> VERSION.txt doesn't exist in OSX.
+done: OSX compile warnings -Wno-incompatible-pointer-types-discards-qualifiers"
+       for targets mavericks and xsnow
+done: quiet hpricot warnings. (two extconf.rb) 
+        mingw gcc does'nt recognize the options but it doesn't complain much.
+
+  
+2014-02-11
+      get my mac .bashrc/profile working. 
+don't set timezone in build-shoes-all cron script
+done: fix the \/ confusions in LIB_DIR, HOME
+        Ian suggests LIB_DIR.gsub! /\\+/, '/' in cache.rb
+----> samples/simple-sqlite - still can't be run twice from Windows Manual
+----> sneak major/minor/tiny into 3.2.21?
+      
+      Built all 6 platforms: 
+      x86_64 Linux -OK
+      i686 Linxu
+      rpi Linux -OK
+      Windows -OK
+      Mavericks -OK
+      Snow Leopard (cross)
+        didn't build sqlite3 ?
+        
+  
+2014-02-10
+----> Ruby 2.1.5 on deb 7.8 cross, won't build fiddle (ffi). OK on
+      ubuntu
+----> Yaml build issue with deb 7.8 cross 
+      
+2014-02-09
+done: fix bug #58
+done: openssl 1.0.1f fails to cross compile on debian 7.8
+      we should update windows to 1.0.2 - fails on ubuntu - same reason
+      can't find zlib.h
+      PKG_CONFIG_PATH has to be set, revised cjc-configure. (deb 7.8?)
+      
+2014-02-08
+      For fun, install Debian 7.8 (64bit) on OSX VM. 
+      nfs mount shared source.
+      Document Building Shoes on Linux
+        Have ruby?
+        Get RVM, install 2.1.5
+        apt-get stuff
+done:   Build Loose
+      Document Cross compile build of Windows
+        Get mingw cross compiler
+        Build ruby deps
+        Build ruby
+        Build Shoesdeps
+
+2014-02-07
+done: Verified that the windows rake files do work but Ruby installer 2.1.5
+      has a bug. (cross compiled 2.1.5 is fine).
+  
 2014-02-06
 done: upload binary dependecies for native Windows build
 done: upload bundle/src deps for a native Windows build
 done: wiki page for Building shoes on windows doesn't suck.
-----> upload cross compile src bundle, include the ruby deps.
+done: upload cross compile src bundle, include the ruby deps.
 
 2014-02-05
 done can't run nsis.exe . NOTE native builds are 'Shoes-3.2.xxxx.exe' not 'shoes....'
 ----> need to build gif,jpeg,sqlite3 from mysy, gcc ?
-----> the native build is 1Mb larger than the cross build. Extra gems?
+----> the native build is 1Mb larger than the cross build. 
+      Extra gems? readline, tcllib tk?
   
 2014-02-04
 done: Don't copy all the gems in rubyinstaller - just the defaults. Ick.
@@ -26,7 +91,6 @@ done: start creating windows builder.
 done: install pkg-config-lite in MinGW
        Rakefile needs help: 
        rake win32:setup:tight -> make/tightmingw/ env.rb and tasks.rb
-----> On windows the Loose/Tight is only for jailbreak. 
 done Need to use the gtks+bundles because that's what users would do.
       Add jpeg, gif, sqlite to deps
   
@@ -42,10 +106,10 @@ done: no ruby headers on Windows
 done: Jailbreak - we moved .shoes on Windows. Also fixed a display bug in info
 ----> Not all gems are listed by Cobbler in a jailbreak.
 done: lost the log.rb char wrap
-----> finish font.conf test on Windows - Set the env var.
+done: finish font.conf test on Windows - Set the env var.
 
 2015-01-30   ruby 2.1.5 and rubygems 2.4.5
-====> Update ruby gem certificates. Update all to Ruby 2.1.5p273 and
+done: Update ruby gem certificates. Update all to Ruby 2.1.5p273 and
         rubygems 2.4.25
         
 done:   Windows, 
@@ -82,7 +146,7 @@ done: 10.6 exts working in xnsow
   
 2015-01-27
     Bug046 Ian says fonts.conf is enough to to shutup the fontconfig
-===> warnings on Windows. set FONTCONFIG_FILE=C:\Program Files (x86)\Shoes\fonts.conf
+done: warnings on Windows. set FONTCONFIG_FILE=C:\Program Files (x86)\Shoes\fonts.conf
     It does. Its adds fair amount of time to first startup. The env var
     needs to be set in ? base.nsi ?
 done: Copy it from platform/msw/font.conf in build.
