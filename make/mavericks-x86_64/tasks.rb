@@ -26,6 +26,8 @@ module Make
     cp    "README.md", "#{TGT_DIR}/README.txt"
     cp    "CHANGELOG", "#{TGT_DIR}/CHANGELOG.txt"
     cp    "COPYING", "#{TGT_DIR}/COPYING.txt"
+    # things to hate:
+    osx_version_txt "#{TGT_DIR}/VERSION.txt"
   end
 
   def cc(t)

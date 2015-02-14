@@ -79,7 +79,7 @@ if File.exists? "crosscompile"
 else
   CROSS = false
   # is the build directory outside the project dir like
-  # Cecil's weird NFS setup up on his Hackintosh VM guest
+  # Cecil's weird NFS setup for his mac
   if ENV['NFS_ALTP']
     TGT_DIR = ENV['NFS_ALTP']+'dist'
     mkdir_p "#{TGT_DIR}"
@@ -143,9 +143,9 @@ when /linux/
     when /xmsw32/
       require File.expand_path('make/xmsw32/env')
       require File.expand_path('make/xmsw32/tasks')
-    when /xsnow/
-      require File.expand_path('make/xsnow/env')
-      require File.expand_path('make/xsnow/tasks')
+    #when /xsnow/
+    #  require File.expand_path('make/xsnow/env')
+    #  require File.expand_path('make/xsnow/tasks')
    else
       puts "Unknown builder for #{TGT_ARCH}, removing setting"
       rm_rf "crosscompile" if File.exists? "crosscompile"
@@ -187,6 +187,15 @@ end
 # Left for historical reasons (aka OSX)
 task "#{TGT_DIR}/VERSION.txt" do |t|
   File.open(t.name, 'w') do |f|
+    f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION}) [#{SHOES_RUBY_ARCH} Ruby#{RUBY_V}]}
+    %w[DEBUG].each { |x| f << " +#{x.downcase}" if ENV[x] }
+    f << "\n"
+  end
+end
+
+# FIXME: called from osx(s) copy_files_to_dist in task.rb 
+def osx_version_txt t
+  File.open(t, 'w') do |f|
     f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION}) [#{SHOES_RUBY_ARCH} Ruby#{RUBY_V}]}
     %w[DEBUG].each { |x| f << " +#{x.downcase}" if ENV[x] }
     f << "\n"

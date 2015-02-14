@@ -26,7 +26,9 @@ module Make
     cp    "README.md", "#{TGT_DIR}/README.txt"
     cp    "CHANGELOG", "#{TGT_DIR}/CHANGELOG.txt"
     cp    "COPYING", "#{TGT_DIR}/COPYING.txt"
-  end
+    # things to hate:
+    osx_version_txt "#{TGT_DIR}/VERSION.txt"
+   end
 
   def cc(t)
     sh "#{CC} -I. -c -o#{t.name} #{LINUX_CFLAGS} #{t.source}"
