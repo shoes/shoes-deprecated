@@ -296,6 +296,16 @@ module Shoes::Manual
     end
     app.slot.scroll_top = 0
   end
+  
+  def open_url(url)
+    if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/
+      system("start #{url}")
+    elsif RbConfig::CONFIG['host_os'] =~ /darwin/
+      system("open #{url}")
+    elsif RbConfig::CONFIG['host_os'] =~ /linux|bsd/
+      system("xdg-open #{url}")
+    end
+  end
 
   def open_link(head)
     if head == "Search"
@@ -309,7 +319,7 @@ module Shoes::Manual
       open_methods(head, nil, sub)
     elsif head =~ /^http:\/\//
       debug head
-      visit head
+      open_url head
     end
   end
 

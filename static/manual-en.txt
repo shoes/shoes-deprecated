@@ -2236,6 +2236,7 @@ To catch the mouse exiting the slot, check out the [[Events.leave]] event.
 === keydown { |key| ... } » self ===
 
 Triggered whenever a single key is pressed, the block gets called. The block is sent a key which is a string representing the character (such as the letter or number) on the key.  For special keys (not modifiers keys), a Ruby symbol is sent, rather than a string, see [[Events.keypress]] for a list of special keys.
+
 {{{
  #!ruby
  Shoes.app {
@@ -2249,6 +2250,7 @@ Triggered whenever a single key is pressed, the block gets called. The block is 
 === keyup { |key| ... } » self ===
 
 Triggered whenever a single key is released, the block gets called. The block is sent a key which is a string representing the character (such as the letter or number) on the key.  For special keys (not modifiers keys), a Ruby symbol is sent, rather than a string, see [[Events.keypress]] for a list of special keys.
+
 {{{
  #!ruby
  Shoes.app {
