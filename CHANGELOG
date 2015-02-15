@@ -1,9 +1,37 @@
-= Federales
+= Federales - Shoes 3.2
 
+== Feb 15, 2015
+=== New with 3.2.21
+  * Backwards and forward buttons for Shoes Manual
+    https://github.com/Shoes3/shoes3/issues/33
+  * Shoes console performs autoscroll down
+    https://github.com/Shoes3/shoes3/issues/34
+    Also does char wrap instead of word wrap. 
+  * Add IRB like capability
+    https://github.com/Shoes3/shoes3/issues/41
+  * Update downloads to Ruby 2.1.5 and Rubygems 2.4.5. Fixes gem ssl problems.
+    https://github.com/Shoes3/shoes3/issues/52
+  
+=== Bugs fixed in 3.2.21
+  * Can now build Shoes on Windows
+    https://github.com/Shoes3/shoes3/issues/55
+  * font discovery improved on Windows
+    https://github.com/Shoes3/shoes3/issues/46
+  * Fix shape sample in manual
+    https://github.com/Shoes3/shoes3/issues/43
+  * More manual bug fixes.
+    https://github.com/Shoes3/shoes3/issues/51
+    https://github.com/Shoes3/shoes3/issues/37
+    
+=== Animal Shelter
+   * Can build Snowleopard on Snowleopard
+   * Can build Snowleopard from Mavericks (mostly works)
+   * Shoes still works on Windows XP.
+   
 == January 2014 to January 2015
-  Move to ruby 2.1.x 
+  * Move to ruby 2.1.x
   * Restructure ruby/lib to match ruby (lib/ruby)
-  * requires properly built Rubies
+  * requires properly built Rubies (--enable-load-relative)
   * enables cross compiling on Linux for Windows and other Linux arch.
   * added Raspberry pi (arch: armhf)
   Windows uses gtk2 (shared with Linux) instead of native windows calls. 
@@ -12,20 +40,20 @@
   * Update to current rubygems
   * Improve odds of success for Shoes.setup
   * Provide a gem manager written in Shoes.
-  * possible to use gems installed outside of Shoes. 
+  * possible to use gems installed outside of Shoes (aka jailbreak)
   Re-wrote packaging
   * Not tied to one website. It can be changed. Fixed download stubs.
   * Web site cgi determines architures and version to display. Shoes adapts.
-  * replace binject (exe and dmg) with better alternatives 
+  * replace binject (exe and dmg) with ruby alternatives 
   Installers
   * Updated NSIS (Windows).
-  * Linux uses xdg-desktop-menu
+  * Linux installer uses xdg-desktop-menu
   * Simple .tgz for OSX. 
   Added Cobbler (Maintain Shoes)
   * Displays build info
   * Manages gems
   * Allows changing websites
-  * Allows 
+  * Allows jailbreak (gems outside of sandbox)
   Bug fixes of note:
   * Windows does not hang or use 100% cpu when idling.
   Many minor bug fixes.
