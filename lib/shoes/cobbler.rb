@@ -406,7 +406,7 @@ Shoes.app do
           button 'info', height: 28, width: 50, left_margin: 10 do
             geminfo g
           end
-          button 'install', height: 28, width: 60, left_margin: 10 do
+          button 'install', height: 28, width: 62, left_margin: 10 do
             geminstall g
           end
           para "#{g.name},#{g.version}"
