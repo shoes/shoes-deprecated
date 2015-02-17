@@ -1,8 +1,9 @@
 name: Shoes
 major: 3
 minor: 2
-tiny: ".21"
+tiny: ".22"
 release: federales
+revision: git
 icons:
   win32: platform/msw/shoes.ico
   osx:   static/Shoes.icns
