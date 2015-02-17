@@ -3666,11 +3666,11 @@ have fun with Shoes. Just know it exists and you can come back here when your re
 to inhale. 
 
 
-See the [[http://github.com/ccoupe/shoes/wiki Shoes 3.2 Wiki]] and learn about Gems
+See the [[https://github.com/Shoes3/shoes3/wiki Shoes 3.2 Wiki]] and learn about Gems
 and packaging and much more. Find reference links to learning Ruby and more inside Shoes
 details.  
 
- * [[https://github.com/ccoupe/shoes Shoes 3.2 source code.]] 
+ * [[https://github.com/Shoes3/shoes3 Shoes 3.2 source code.]] 
  * You should join the Shoes mailing list by sending an email to shoes@librelist.com
  * Bookmark the [[http://walkabout.mvmanila.com/ Shoes 3.2 blog]] or the [[http://walkabout.mvmanila.com/feed/ RSS feed]]
  * Early [[http://shoes.mvmanila.com/public/shoes/ Downloads]] (work in progress) that may not be announced 
