@@ -608,16 +608,40 @@ slots.  See the section on [[Slots]] for more.
 Shoes also has a handful of built-in constants which may prove useful if you
 are trying to sniff out what release of Shoes is running.
 
-'''Shoes::RELEASE_NAME''' contains a string with the name of the Shoes release.
-All Shoes releases are named, starting with Curious.
+Shoes 3.2.22 introduced new constants that you should use instead of the older ones.
 
-'''Shoes::RELEASE_ID''' contains a number representing the Shoes release.  So,
-for example, Curious is number 1, as it was the first official release.
+'''Shoes::VERSION_NUMBER''' is a string like '3.2.22'
 
-'''Shoes::REVISION''' is the Subversion revision number for this build.
+'''Shoes::VERSION_MAJOR''' is a number, the first one of VERSION_NUMBER
+
+'''Shoes::VERSION_MINOR''' is a number, the second one in VERSION_NUMBER
+
+'''Shoes::VERSION_TINY''' is a number, the last in VERSION_NUMBER
+
+'''Shoes::VERSION_NAME''' is a string with the name of the Shoes release, like 'federales'
+
+'''Shoes::VERSION_REVISION''' is a number. Probably the count of commits but it 
+could have been set to some other number by the builder.
+
+'''Shoes::VERSION_DATE''' is a string. It's the build date.
+
+'''Shoes::VERSION_PLATFORM''' is a string. It's probably the platform your
+Shoes was built on which '''is not the same''' as '''RUBY_PLATFORM'''
 
 '''Shoes::FONTS''' is a complete list of fonts available to the app.  This list
 includes any fonts loaded by the [[Built-in.font]] method.
+
+Deprecated constants:
+
+Shoes::RELEASE_NAME contains a string with the name of the Shoes release.
+All Shoes releases are named, starting with Curious.
+
+Shoes::RELEASE_ID contains a number representing the Shoes release.  So,
+for example, Curious is number 1, as it was the first official release.
+
+Shoes::REVISION is the Subversion revision number for this build.
+
+
 
 === alert(message: a string) » nil ===
 
