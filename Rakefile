@@ -8,8 +8,42 @@ require 'yaml'
 require 'rbconfig'
 include FileUtils
 
+# Like puts, but only if we've --trace'd
+def vputs(str)
+  puts str if Rake.application.options.trace
+end
+
 APP = YAML.load_file(File.join(ENV['APP'] || ".", "app.yaml"))
-APP['version'] = APP['major'] # for historical reasons 
+# APP['version'] = APP['major'] # for historical reasons 
+# populate APP[] with uppercase names and string values
+APP['VERSION'] = "#{APP['major']}.#{APP['minor']}.#{APP['tiny']}"
+APP['MAJOR'] = APP['major'].to_s
+APP['MINOR'] = APP['minor'].to_s
+APP['TINY'] = APP['tiny'].to_s
+APP['NAME'] = APP['release']
+APP['DATE'] = Time.now.to_s
+APP['PLATFORM'] = RbConfig::CONFIG['arch'] # not correct in cross compile
+case APP['revision']
+  when 'git'
+    GIT = ENV['GIT'] || "git"
+    APP['REVISION'] = (`#{GIT} rev-list HEAD`.split.length + 1).to_s
+  when 'file'
+    File.open('VERSION.txt', 'r') do |f|
+      ln = f.read
+      rev = ln[/r\(\d+\)/]
+      APP['REVISION'] = rev[/\d+/]
+    end
+  else
+    if APP['revision'].kind_of? Fixnum
+      APP['REVISION'] = APP['revision'].to_s
+    else
+      APP['REVISION'] = '0009' # make it up 
+    end
+end
+puts "Rev #{APP['REVISION']}"
+
+VERS = "#{APP['MAJOR']}.#{APP['MINOR']}"
+REVISION = VERS
 RELEASE_ID, RELEASE_NAME = APP['major'], APP['release']
 if RUBY_PLATFORM =~ /darwin/
   #APPNAME = "#{APP['name']}-#{RELEASE_NAME}"
@@ -20,19 +54,10 @@ end
 NAME = APP['shortname'] || APP['name'].downcase.gsub(/\W+/, '')
 SONAME = 'shoes'
 
-# Like puts, but only if we've --trace'd
-def vputs(str)
-  puts str if Rake.application.options.trace
-end
 
-GIT = ENV['GIT'] || "git"
-#REVISION = (`#{GIT} rev-list HEAD`.split.length + 1).to_s
-#VERS = ENV['VERSION'] || "0.r#{REVISION}"
-REVISION = "#{RELEASE_ID}.#{APP['minor']}"
-VERS = "#{REVISION}"
 TINYVER = APP['tiny']
 PKG = "#{NAME}-#{VERS}"
-MENU_NAME = "#{APPNAME} #{VERS}#{TINYVER}"
+#MENU_NAME = "#{APPNAME} #{VERS}#{TINYVER}" 
 APPARGS = APP['run']
 FLAGS = %w[DEBUG]
 
@@ -175,7 +200,21 @@ task :build_os => [:build_skel, "#{TGT_DIR}/#{NAME}"]
 
 task "shoes/version.h" do |t|
   File.open(t.name, 'w') do |f|
-    f << %{#define SHOES_RELEASE_ID #{RELEASE_ID}\n#define SHOES_RELEASE_NAME "#{RELEASE_NAME}"\n#define SHOES_REVISION #{REVISION}\n#define SHOES_BUILD_DATE "#{Time.now.strftime("%Y%m%d")}"\n#define SHOES_PLATFORM "#{SHOES_RUBY_ARCH}"\n}
+    f << "// compatatibily pre 3.2.22\n"
+    f << "#define SHOES_RELEASE_ID #{APP['MAJOR']}\n"
+    f << "#define SHOES_REVISION #{APP['REVISION']}\n"
+    f << "#define SHOES_RELEASE_NAME \"#{APP['NAME']}\"\n"
+    f << "#define SHOES_BUILD_DATE \"#{APP['DATE']}\"\n"
+    f << "#define SHOES_PLATFORM \"#{SHOES_RUBY_ARCH}\"\n"
+    f << "// post 3.2.22\n"
+    f << "#define SHOES_VERSION_NUMBER \"#{APP['VERSION']}\"\n"
+    f << "#define SHOES_VERSION_MAJOR #{APP['MAJOR']}\n"
+    f << "#define SHOES_VERSION_MINOR #{APP['MINOR']}\n"
+    f << "#define SHOES_VERSION_TINY #{APP['TINY']}\n"
+    f << "#define SHOES_VERSION_NAME \"#{APP['NAME']}\"\n"
+    f << "#define SHOES_VERSION_REVISION #{APP['REVISION']}\n"
+    f << "#define SHOES_VERSION_DATE \"#{APP['DATE']}\"\n"
+    f << "#define SHOES_VERSION_PLATFORM \"#{APP['PLATFORM']}\"\n"
     if CROSS
       f << '#define SHOES_STYLE "TIGHT_SHOES"'
     else
@@ -184,7 +223,7 @@ task "shoes/version.h" do |t|
   end
 end
 
-# Left for historical reasons (aka OSX)
+# FIXME: Left for historical reasons (aka OSX)
 task "#{TGT_DIR}/VERSION.txt" do |t|
   File.open(t.name, 'w') do |f|
     f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION}) [#{SHOES_RUBY_ARCH} Ruby#{RUBY_V}]}
@@ -193,13 +232,20 @@ task "#{TGT_DIR}/VERSION.txt" do |t|
   end
 end
 
+def create_version_file file_path
+  File.open(file_path, 'w') do |f|
+    f << "shoes #{APP['NAME'].downcase} #{APP['VERSION']} r(#{APP['REVISION']}) #{APP['PLATFORM']} #{APP['DATE']}"
+    f << "\n"
+  end  end
+
 # FIXME: called from osx(s) copy_files_to_dist in task.rb 
 def osx_version_txt t
-  File.open(t, 'w') do |f|
-    f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION}) [#{SHOES_RUBY_ARCH} Ruby#{RUBY_V}]}
-    %w[DEBUG].each { |x| f << " +#{x.downcase}" if ENV[x] }
-    f << "\n"
-  end
+  create_version_file t
+end
+
+desc "create VERSION.txt"
+task :version do
+ create_version_file 'VERSION.txt'
 end
 
 # shoes is small, if any include changes, go ahead and build from scratch.
