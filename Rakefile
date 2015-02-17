@@ -31,7 +31,7 @@ case APP['revision']
     File.open('VERSION.txt', 'r') do |f|
       ln = f.read
       rev = ln[/r\(\d+\)/]
-      APP['REVISION'] = rev[/\d+/]
+      APP['REVISION'] = "#{rev[/\d+/].to_i + 1}"
     end
   else
     if APP['revision'].kind_of? Fixnum
