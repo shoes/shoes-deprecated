@@ -172,8 +172,8 @@ Shoes.app do
     @panel.clear
     @panel.append do
       para "Ruby Version: #{RUBY_VERSION} on #{RUBY_PLATFORM}"
-      para "Shoes Release: #{Shoes::RELEASE_NAME}"
-      para "    built on #{Shoes::RELEASE_BUILD_DATE}"
+      para "Shoes Release: #{Shoes::RELEASE_NAME}   #{Shoes::VERSION_NUMBER}  r(#{Shoes::VERSION_REVISION})"
+      para "    built on #{Shoes::VERSION_DATE}"
       para "    Fit: #{Shoes::RELEASE_TYPE}"
       para "Gems Version #{Gem::RubyGemsVersion}"
       para "Shoes Exe Directory: #{DIR}"
