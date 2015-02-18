@@ -40,7 +40,6 @@ case APP['revision']
       APP['REVISION'] = '0009' # make it up 
     end
 end
-puts "Rev #{APP['REVISION']}"
 
 VERS = "#{APP['MAJOR']}.#{APP['MINOR']}"
 REVISION = VERS
@@ -194,7 +193,7 @@ desc "Same as `rake build'"
 task :default => [:build]
 
 desc "Package Shoes for distribution"
-task :package => [:installer]
+task :package => [:version, :installer]
 
 task :build_os => [:build_skel, "#{TGT_DIR}/#{NAME}"]
 
@@ -236,7 +235,8 @@ def create_version_file file_path
   File.open(file_path, 'w') do |f|
     f << "shoes #{APP['NAME'].downcase} #{APP['VERSION']} r(#{APP['REVISION']}) #{APP['PLATFORM']} #{APP['DATE']}"
     f << "\n"
-  end  end
+  end
+end
 
 # FIXME: called from osx(s) copy_files_to_dist in task.rb 
 def osx_version_txt t
@@ -314,6 +314,7 @@ task  :install do
      puts "Sorry. You can't do an install of your source built Shoes"
      puts "when crosscompiling is setup."
   else
+    create_version_file 'VERSION.txt'
     Builder.copy_files_to_dist
     Builder.make_userinstall
   end

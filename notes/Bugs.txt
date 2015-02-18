@@ -1,16 +1,68 @@
 Bugs/Status - stick with Ruby 2.1.x and gtk2 until things get sorted
   out with GKt3 and later Rubyies
   
+  
+2015-02-17
+done: Rakefile - task 'version' is dependency of package and install.
+----> Update env.rb, tasks.rb to use new constants, clean up stuff - new issue?
+done: Cobbler - show full version, revision 
+  
+2015-02-16
+done: Rakefile - create APP['uppercase']= string to match new scheme
+done: create task 'rake version' to create VERSION.txt
+done: add 'revision: ' to app.yaml values are git, file, nnnn
+done:    file, parse rev
+done: update manual - new constants
+done: wiki article about app.yaml (revision: git, file, nnnn)
+
+2015-02-15
+done: spec out changes to revision, build-date, major, minor, teeny #50
+done: New set of SHOES::constants
+      SHOES::VERSION_NUMBER- string, example "3.2.22"
+      SHOES::VERSION_MAJOR int, example  3
+      SHOES::VERSION_MINOR int,  example 2
+      SHOES::VERSION_TINY  int,  example 22
+      SHOES::VERSION_NAME  string,  example "federales"
+      SHOES::VERSION_REVISION int, example 1854
+      SHOES::VERSION_DATE string Time.now.to_s format.
+      SHOES::VERSION_PLATFORM  string, example "i386-mingw"
+      VERSION.txt example:
+        "Shoes federales 3.2.22 r(1854) x86_64-linux 2015-02-19 21:13:45 -0700"     
+      Change the manual as these are implemented!
+      need a 'rake version' to build revision string from git and create
+      VERSION.txt.  Dependcency of package, install. but can be run standalone
+
+  
 3.2.22 thoughts
      The alert & ask enhancements.
-     Since linux runs an "installer" can it do the pango query stuff once?
-  
+     Pango-querymodules.exe,fontconfig on Windows.
+     Revisit the version issues. (several bugs, shoes3.git/shoes3 org makes
+      the r.1234 useful again
+     reclone shoesrb
+     Furthermore section of the Manual
+     Fix the visits(in the manual)
+     tar and upload 10.6 shoesdep dependencies. 
+     
+============ Shoes 3.2.21 below =========
+     
+2014-02-14 Quiet period - no more commits. 
+     Built all 6 platforms - test - manual/search, chipmunk, sqlite, irb
+      x86_64 Linux - OK
+      i686 Linxu - OK - need to update VM
+      rpi Linux  - OK 
+      Windows 7 - OK
+      OSX Mavericks OK
+      OSX Snow Leopard (cross)
+        on 10.9 - OK
+        on 10.6 -chipmunk fails - everything else is OK, even sqlite3
+          Ian reported some console messages but it's OK. 
+        
 2014-02-13
 done? sqlite3 for 10.6, built by 10.9
   
 2014-02-12 
 done: Update CHANGELOG
-----> VERSION.txt doesn't exist in OSX.
+done: VERSION.txt doesn't exist in OSX. bug #65
 done: OSX compile warnings -Wno-incompatible-pointer-types-discards-qualifiers"
        for targets mavericks and xsnow
 done: quiet hpricot warnings. (two extconf.rb) 
@@ -24,16 +76,7 @@ done: fix the \/ confusions in LIB_DIR, HOME
         Ian suggests LIB_DIR.gsub! /\\+/, '/' in cache.rb
 ----> samples/simple-sqlite - still can't be run twice from Windows Manual
 ----> sneak major/minor/tiny into 3.2.21?
-      
-      Built all 6 platforms: 
-      x86_64 Linux -OK
-      i686 Linxu
-      rpi Linux -OK
-      Windows -OK
-      Mavericks -OK
-      Snow Leopard (cross)
-        didn't build sqlite3 ?
-        
+  
   
 2014-02-10
 ----> Ruby 2.1.5 on deb 7.8 cross, won't build fiddle (ffi). OK on
