@@ -173,8 +173,8 @@ class Shoes
       stack :margin => 18 do
         para "Welcome to", :stroke => "#00", :margin => 0
         para "SHOES", :size => 48, :stroke => "#00", :margin => 0
-        para Shoes::RELEASE_NAME, :stroke => "#00", :margin => 0
-        para "build #{RELEASE_BUILD_DATE}", :size => 8, :stroke => "#00", :margin_top => 0
+        para Shoes::VERSION_NAME, :stroke => "#00", :margin => 0
+        para "build #{Shoes::VERSION_DATE}", :size => 8, :stroke => "#00", :margin_top => 0
         stack do
           background black(0.2), :curve => 8
           para link(strong("Open an App")) { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
