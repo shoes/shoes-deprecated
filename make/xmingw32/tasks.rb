@@ -191,6 +191,7 @@ class MakeLinux
       # def sh(*args); super; end
       puts "make_installer #{`pwd`}"
       mkdir_p "pkg"
+      cp_r "VERSION.txt", "#{TGT_DIR}/VERSION.txt"
       rm_rf "#{TGT_DIR}/nsis"
       cp_r  "platform/msw", "#{TGT_DIR}/nsis"
       cp APP['icons']['win32'], "#{TGT_DIR}/nsis/setup.ico"

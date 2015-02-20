@@ -55,7 +55,8 @@ pkggtk ="#{uldir}/pkgconfig/#{ENV['GTK']}.pc"
 RUBY_HTTP = true
 
 ENV['PKG_CONFIG_PATH'] = "#{ularch}/pkgconfig"
-WINVERSION = "#{REVISION}#{TINYVER}-#{ENV['GTK']=='Gtk+-3.0' ? 'gtk3' : 'gtk2'}-32"
+#WINVERSION = "#{REVISION}#{TINYVER}-#{ENV['GTK']=='Gtk+-3.0' ? 'gtk3' : 'gtk2'}-32"
+WINVERSION = "#{APP['VERSION']}-#{ENV['GTK']=='Gtk+-3.0' ? 'gtk3' : 'gtk2'}-w32"
 WINFNAME = "#{APPNAME}-#{WINVERSION}"
 if RUBY_HTTP
   file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + ["shoes/*.c"]
