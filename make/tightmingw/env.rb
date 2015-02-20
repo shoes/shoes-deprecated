@@ -3,6 +3,7 @@ require "devkit"
 ShoesDeps = "E:/shoesdeps/mingw"
 SHOES_TGT_ARCH = 'i386-mingw32'
 APP['GTK'] = "gtk+-2.0"
+#ENV['GDB'] = "basic" # 'basic' = keep symbols,  or 'profile'
 WINVERSION = "#{APP['VERSION']}-#{APP['GTK']=='Gtk+-3.0' ? 'gtk3' : 'gtk2'}-w32"
 WINFNAME = "#{APPNAME}-#{WINVERSION}"
 WIN32_CFLAGS = []
@@ -22,7 +23,8 @@ ADD_DLL = []
 CC = "i686-w64-mingw32-gcc"
 ENV['CC'] = CC		# for building sqlite3 gem
 ENV['ShoesDeps'] = ShoesDeps # also for sqlite3 gem
-#STRIP = "i686-w64-mingw32-strip -x"
+STRIP = "i686-w64-mingw32-strip -x"
+STRIP = "strip -x"
 WINDRES = "windres"
 PKG_CONFIG = "#{ShoesDeps}/bin/pkg-config"  # the one from glib
 
