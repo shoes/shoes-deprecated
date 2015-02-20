@@ -5,6 +5,7 @@
 *.def
 *.exe
 ._*
+VERSION.txt
 Shoes3.2.geany
 crosscompile
 bin/main.c

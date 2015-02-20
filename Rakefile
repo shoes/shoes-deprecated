@@ -41,6 +41,7 @@ case APP['revision']
     end
 end
 
+# delete from here
 VERS = "#{APP['MAJOR']}.#{APP['MINOR']}"
 REVISION = VERS
 RELEASE_ID, RELEASE_NAME = APP['major'], APP['release']
@@ -59,7 +60,7 @@ PKG = "#{NAME}-#{VERS}"
 #MENU_NAME = "#{APPNAME} #{VERS}#{TINYVER}" 
 APPARGS = APP['run']
 FLAGS = %w[DEBUG]
-
+# to here
 
 RUBY_SO = RbConfig::CONFIG['RUBY_SO_NAME']
 RUBY_V = RbConfig::CONFIG['ruby_version']
@@ -438,16 +439,16 @@ namespace :linux do
 
   namespace :setup do
     desc "Cross compile to Raspberry pi"
-    task :crosspi do
+    task :rpi do
       puts "Cross compile to Raspberry setup"
       sh "echo 'TGT_ARCH=xarmv6-pi' >crosscompile"
     end
 
-    desc "Cross compile to Windows Native GUI"
-    task :msw32 do
-      puts "Cross compile for WIN32"
-      sh "echo 'TGT_ARCH=xmsw32' >crosscompile"
-    end
+#    desc "Cross compile to Windows Native GUI"
+#    task :msw32 do
+#      puts "Cross compile for WIN32"
+#      sh "echo 'TGT_ARCH=xmsw32' >crosscompile"
+#    end
 
     desc "Cross compile to MingW32 (Gtk)"
     task :mingw32 do
