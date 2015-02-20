@@ -1,17 +1,14 @@
 #
 # Build shoes for Windows/Gtk[2|3]  Ruby is cross compiled
-# The Gtk3 headers/libs are already rewritten so pkg-config should
-# be ok. Ruby might need rewrites. 
-# Curl is not used on Windows (thank god)
 # It's not really a chroot - it only looks like one and Gtk2/3 is different
-# Remember, on Windows the dlls are in bin/ and usr/[include|bin] doesn't
-# exist. Nor do the {arch} directories. 
+# Remember, on Windows the dlls are in bin/ 
+
 #ENV['DEBUG'] = "true" # turns on the tracing log
-#ENV['GTK'] = "gtk+-3.0" # pick this or "gtk+-2.0"
-ENV['GTK'] = "gtk+-2.0"
+#APP['GTK'] = "gtk+-3.0" # pick this or "gtk+-2.0"
+APP['GTK'] = "gtk+-2.0"
 COPY_GTK = true
 #ENV['GDB'] = "basic" # 'basic' = keep symbols,  or 'profile'
-if ENV['GTK'] == "gtk+-2.0"
+if APP['GTK'] == "gtk+-2.0"
   CHROOT = "/srv/chroot/mingwgtk2"
 else
   CHROOT = "/srv/chroot/mingw32"
@@ -37,7 +34,7 @@ ulbin = "#{TGT_SYS_DIR}usr/local/bin"
 CC = "i686-w64-mingw32-gcc"
 STRIP = "i686-w64-mingw32-strip -x"
 WINDRES = "i686-w64-mingw32-windres"
-# These ENV vars are used by the extconf.rb files (and tasks.rb)
+# These ENV vars are used by the extconf.rb files
 ENV['SYSROOT']=CHROOT
 ENV['CC']=CC
 ENV['TGT_RUBY_PATH']=EXT_RUBY
@@ -49,14 +46,14 @@ TGT_RUBY_V = ENV['TGT_RUBY_V']
 ENV['TGT_RUBY_SO'] = "msvcrt-ruby210"
 EXT_RBCONFIG = "#{EXT_RUBY}/lib/ruby/#{TGT_RUBY_V}/#{SHOES_TGT_ARCH}/rbconfig.rb"
 ENV['EXT_RBCONFIG'] = EXT_RBCONFIG 
+
 pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.1.pc"
-pkggtk ="#{uldir}/pkgconfig/#{ENV['GTK']}.pc" 
+pkggtk ="#{uldir}/pkgconfig/#{APP['GTK']}.pc" 
 # winhttp or RUBY?
 RUBY_HTTP = true
 
 ENV['PKG_CONFIG_PATH'] = "#{ularch}/pkgconfig"
-#WINVERSION = "#{REVISION}#{TINYVER}-#{ENV['GTK']=='Gtk+-3.0' ? 'gtk3' : 'gtk2'}-32"
-WINVERSION = "#{APP['VERSION']}-#{ENV['GTK']=='Gtk+-3.0' ? 'gtk3' : 'gtk2'}-w32"
+WINVERSION = "#{APP['VERSION']}-#{APP['GTK']=='Gtk+-3.0' ? 'gtk3' : 'gtk2'}-w32"
 WINFNAME = "#{APPNAME}-#{WINVERSION}"
 if RUBY_HTTP
   file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + ["shoes/*.c"]
@@ -70,8 +67,7 @@ end
 
 ADD_DLL = []
 
-# Hand code for your situation and Ruby purity. Mine is
-# "Church of Whatever Works That I Can Understand"
+# Hand code for your situation 
 def xfixip(path)
    path.gsub!(/-I\/usr\//, "-I#{TGT_SYS_DIR}usr/")
    return path
@@ -79,23 +75,11 @@ end
 
 def xfixrvmp(path)
   #puts "path  in: #{path}"
-  path.gsub!(/-I\/home\/ccoupe\/\.rvm/, "-I/home/cross/armv6-pi/rvm")
   path.gsub!(/-I\/usr\/local\//, "-I/#{TGT_SYS_DIR}usr/local/")
   #puts "path out: #{path}"
   return path
 end
 
-#  fix up the -L paths for rvm ruby. Undo when not using an rvm ruby
-def xfixrvml(path)
-  #path.gsub!(/-L\/home\/ccoupe\/\.rvm/, "-L#{TGT_SYS_DIR}rvm")
-  return path
-end
-
-# fixup the -L paths for gtk and other libs
-def xfixil(path) 
-  path.gsub!(/-L\/usr\/lib/, "-L#{TGT_SYS_DIR}usr/lib")
-  return path
-end
 
 # Target environment
 CAIRO_CFLAGS = `pkg-config --cflags "#{ularch}/pkgconfig/cairo.pc"`.strip
@@ -113,7 +97,7 @@ end
 
 LINUX_CFLAGS << " -DSHOES_GTK -DSHOES_GTK_WIN32 "
 LINUX_CFLAGS << "-DRUBY_HTTP " if RUBY_HTTP
-LINUX_CFLAGS << "-DGTK3 " unless ENV['GTK'] == 'gtk+-2.0'
+LINUX_CFLAGS << "-DGTK3 " unless APP['GTK'] == 'gtk+-2.0'
 LINUX_CFLAGS << xfixrvmp(`pkg-config --cflags "#{pkgruby}"`.strip)+" "
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/#{arch} "
 LINUX_CFLAGS << xfixip("-I/usr/include")+" "
@@ -125,8 +109,6 @@ end
 LINUX_CFLAGS << " -Wno-unused-but-set-variable -Wno--Wunused-variable "
 LINUX_CFLAGS << " -mms-bitfields -D__MINGW_USE_VC2005_COMPAT -DXMD_H -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -DCOBJMACROS "
 
-#LINUX_CFLAGS << " #{CAIRO_CFLAGS} #{PANGO_CFLAGS} "
- 
 # I don't think the line below belongs in this file. 
 cp APP['icons']['win32'], "shoes/appwin32.ico"
 
@@ -135,7 +117,7 @@ LINUX_LIB_NAMES = %W[gif-4 jpeg]
 DLEXT = "dll"
 LINUX_LDFLAGS = "-fPIC -shared -L#{ularch} "
 LINUX_LDFLAGS << `pkg-config --libs "#{pkggtk}"`.strip+" "
-LINUX_LDFLAGS << "-lfontconfig" if ENV['GTK'] == 'gtk+-2.0'
+LINUX_LDFLAGS << "-lfontconfig" if APP['GTK'] == 'gtk+-2.0'
 
 # dont use the ruby link info
 RUBY_LDFLAGS = "-Wl,-export-all-symbols "
@@ -149,15 +131,12 @@ LINUX_LIBS << LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
 LINUX_LIBS << " #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} "
 
-# This could be precomputed by rake linux:setup:xxx 
-# but for now make a hash of all the dep libs that need to be copied.
-# and their location. This should be used in pre_build instead of 
-# copy_deps_to_dist, although either could work. 
+# This should be used in pre_build instead of copy_deps_to_dist, 
+# although either could work. 
 # Reference: http://www.gtk.org/download/win32_contentlist.php
 SOLOCS = {}
 #SOLOCS['ruby'] = "#{EXT_RUBY}/bin/msvcrt-ruby191.dll"
 SOLOCS['ruby'] = "#{EXT_RUBY}/bin/msvcrt-ruby210.dll"
-#SOLOCS['curl'] = "#{curlloc}/bin/libcurl-4.dll"
 #SOLOCS['ungif'] = "#{uldir}/libungif.so.4"
 SOLOCS['gif'] = "#{bindll}/libgif-4.dll"
 SOLOCS['jpeg'] = "#{bindll}/libjpeg-9.dll"
@@ -170,7 +149,7 @@ SOLOCS['gdbm'] = "#{bindll}/libgdbm-3.dll"
 SOLOCS['gdbmc'] = "#{bindll}/libgdbm_compat-3.dll"
 SOLOCS['ssl'] = "#{bindll}/ssleay32.dll"
 SOLOCS['sqlite'] = "#{bindll}/sqlite3.dll"
-if ENV['GTK'] == 'gtk+-3.0' && COPY_GTK == true
+if APP['GTK'] == 'gtk+-3.0' && COPY_GTK == true
   SOLOCS['atk'] = "#{bindll}/libatk-1.0-0.dll"
   SOLOCS['cairo'] = "#{bindll}/libcairo-2.dll"
   SOLOCS['cairo-gobj'] = "#{bindll}/libcairo-gobject-2.dll"
@@ -199,7 +178,7 @@ if ENV['GTK'] == 'gtk+-3.0' && COPY_GTK == true
   SOLOCS['pthreadGC2'] = "#{bindll}/pthreadGC2.dll"   # GTK3 
   SOLOCS['pthread'] = "/usr/i686-w64-mingw32/lib/libwinpthread-1.dll" # Ruby
 end
-if ENV['GTK'] == 'gtk+-2.0' && COPY_GTK == true
+if APP['GTK'] == 'gtk+-2.0' && COPY_GTK == true
   SOLOCS['atk'] = "#{bindll}/libatk-1.0-0.dll"
   SOLOCS['cairo'] = "#{bindll}/libcairo-2.dll"
   SOLOCS['cairo-gobj'] = "#{bindll}/libcairo-gobject-2.dll"

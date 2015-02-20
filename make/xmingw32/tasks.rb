@@ -68,7 +68,7 @@ module Make
     end
     # do some windows things
     mkdir_p "#{TGT_DIR}/share/glib-2.0/schemas"
-    if ENV['GTK'] == "gtk+-2.0"
+    if APP['GTK'] == "gtk+-2.0"
       cp "#{TGT_SYS_DIR}/share/glib-2.0/schemas/gschema.dtd",
         "#{TGT_DIR}/share/glib-2.0/schemas"
     else
@@ -82,18 +82,16 @@ module Make
   # common_build is a misnomer. Builds extentions, gems
   def common_build
     puts "common_build dir=#{pwd} #{SHOES_TGT_ARCH}"
-    #mkdir_p "#{TGT_DIR}/ruby"
-    #cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "#{TGT_DIR}/ruby/lib"
     %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
       FileList[rdir].each { |rlib| cp_r rlib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}" }
     end
-    %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
     #%w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
+    %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
       each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_TGT_ARCH}" }
 
     gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
-    {'hpricot' => 'lib', 'sqlite3' => 'lib'}.each do |gemn, xdir|
     #{'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
+    {'hpricot' => 'lib', 'sqlite3' => 'lib'}.each do |gemn, xdir|
       spec = eval(File.read("req/#{gemn}/gemspec"))
       mkdir_p "#{gdir}/specifications"
       mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
@@ -103,14 +101,7 @@ module Make
       cp "req/#{gemn}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
     end
   end
-
-  # Check the environment
-  def env(x)
-    unless ENV[x]
-      abort "Your #{x} environment variable is not set!"
-    end
-    ENV[x]
-  end
+  
 end
 
 
@@ -142,11 +133,6 @@ class MakeLinux
 
     def copy_deps_to_dist
       puts "copy_deps_to_dist dir=#{pwd}"
-      #pre_build task copied this
-      #cp    "#{::EXT_RUBY}/lib/lib#{::RUBY_SO}.so", "dist/lib#{::RUBY_SO}.so"
-      #ln_s  "lib#{::RUBY_SO}.so", "#{TGT_DIR}/lib#{::RUBY_SO}.so.#{::RUBY_V[/^\d+\.\d+/]}"
-      #find_and_copy "libportaudio.so", "#{TGT_DIR}/libportaudio.so.2"
-      #find_and_copy  "libsqlite3.so", "#{TGT_DIR}/libsqlite3.so.0"
       unless ENV['GDB']
         sh    "#{STRIP}  #{TGT_DIR}/*.dll"
         Dir.glob("#{TGT_DIR}/lib/ruby/**/*.so").each {|lib| sh "#{STRIP} #{lib}"}
