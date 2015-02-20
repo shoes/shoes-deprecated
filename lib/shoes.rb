@@ -108,7 +108,9 @@ class Shoes
     
     opts.on_tail("-v", "--version", "Display the version info.") do
       #raise SystemExit, File.read("#{DIR}/VERSION.txt").strip
-      raise SystemExit, "Shoes #{RELEASE_NAME} #{REVISION} #{RELEASE_BUILD_DATE} #{RUBY_PLATFORM} #{RUBY_VERSION}"
+     #str = "Shoes #{Shoes::VERSION_NAME} r#{Shoes::VERSION_REVISION} #{Shoes::VERSION_DATE} #{RUBY_PLATFORM} #{RUBY_VERSION}"
+     #$stderr.puts str
+     raise SystemExit, "Shoes #{Shoes::VERSION_NAME} #{Shoes::VERSION_NUMBER} r#{Shoes::VERSION_REVISION} #{RUBY_PLATFORM} #{RUBY_VERSION}"
    end
 
     opts.on_tail("-h", "--help", "Show this message") do
@@ -174,7 +176,7 @@ class Shoes
         para "Welcome to", :stroke => "#00", :margin => 0
         para "SHOES", :size => 48, :stroke => "#00", :margin => 0
         para Shoes::VERSION_NAME, :stroke => "#00", :margin => 0
-        para "build #{Shoes::VERSION_DATE}", :size => 8, :stroke => "#00", :margin_top => 0
+        para "build #{Shoes::VERSION_NUMBER} r#{Shoes::VERSION_REVISION}", :size => 8, :stroke => "#00", :margin_top => 0
         stack do
           background black(0.2), :curve => 8
           para link(strong("Open an App")) { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
