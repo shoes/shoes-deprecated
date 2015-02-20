@@ -134,77 +134,86 @@ LINUX_LIBS << " #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} "
 # This should be used in pre_build instead of copy_deps_to_dist, 
 # although either could work. 
 # Reference: http://www.gtk.org/download/win32_contentlist.php
-SOLOCS = {}
-#SOLOCS['ruby'] = "#{EXT_RUBY}/bin/msvcrt-ruby191.dll"
-SOLOCS['ruby'] = "#{EXT_RUBY}/bin/msvcrt-ruby210.dll"
-#SOLOCS['ungif'] = "#{uldir}/libungif.so.4"
-SOLOCS['gif'] = "#{bindll}/libgif-4.dll"
-SOLOCS['jpeg'] = "#{bindll}/libjpeg-9.dll"
-SOLOCS['libyaml'] = "#{bindll}/libyaml-0-2.dll"
-SOLOCS['intl'] = "#{bindll}/intl.dll"
-SOLOCS['iconv'] = "#{bindll}/libiconv-2.dll"
-SOLOCS['ffi'] = "#{bindll}/libffi-5.dll"
-SOLOCS['eay'] = "#{bindll}/libeay32.dll"
-SOLOCS['gdbm'] = "#{bindll}/libgdbm-3.dll"
-SOLOCS['gdbmc'] = "#{bindll}/libgdbm_compat-3.dll"
-SOLOCS['ssl'] = "#{bindll}/ssleay32.dll"
-SOLOCS['sqlite'] = "#{bindll}/sqlite3.dll"
+SOLOCS = {
+  #'ruby'   => "#{EXT_RUBY}/bin/msvcrt-ruby191.dll",
+  'ruby'    => "#{EXT_RUBY}/bin/msvcrt-ruby210.dll",
+  #'ungif'  => "#{uldir}/libungif.so.4",
+  'gif'     => "#{bindll}/libgif-4.dll",
+  'jpeg'    => "#{bindll}/libjpeg-9.dll",
+  'libyaml' => "#{bindll}/libyaml-0-2.dll",
+  'intl'    => "#{bindll}/intl.dll",
+  'iconv'   => "#{bindll}/libiconv-2.dll",
+  'ffi'     => "#{bindll}/libffi-5.dll",
+  'eay'     => "#{bindll}/libeay32.dll",
+  'gdbm'    => "#{bindll}/libgdbm-3.dll",
+  'gdbmc'   => "#{bindll}/libgdbm_compat-3.dll",
+  'ssl'     => "#{bindll}/ssleay32.dll",
+  'sqlite'  => "#{bindll}/sqlite3.dll"
+}
 if APP['GTK'] == 'gtk+-3.0' && COPY_GTK == true
-  SOLOCS['atk'] = "#{bindll}/libatk-1.0-0.dll"
-  SOLOCS['cairo'] = "#{bindll}/libcairo-2.dll"
-  SOLOCS['cairo-gobj'] = "#{bindll}/libcairo-gobject-2.dll"
-  SOLOCS['ffi'] = "#{bindll}/libffi-6.dll"
-  SOLOCS['fontconfig'] = "#{bindll}/libfontconfig-1.dll"
-  SOLOCS['freetype'] = "#{bindll}/libfreetype-6.dll"
-  SOLOCS['gdkpixbuf'] = "#{bindll}/libgdk_pixbuf-2.0-0.dll"
-  SOLOCS['gdk3'] = "#{bindll}/libgdk-3-0.dll"
-  SOLOCS['gio'] = "#{bindll}/libgio-2.0-0.dll"
-  SOLOCS['glib'] = "#{bindll}/libglib-2.0-0.dll"
-  SOLOCS['gmodule'] = "#{bindll}/libgmodule-2.0-0.dll"
-  SOLOCS['gobject'] = "#{bindll}/libgobject-2.0-0.dll"
-  SOLOCS['gtk3'] = "#{bindll}/libgtk-3-0.dll"
-  SOLOCS['iconv'] = "#{bindll}/libiconv-2.dll"
-  SOLOCS['intl8'] = "#{bindll}/libintl-8.dll"
-  SOLOCS['pango'] = "#{bindll}/libpango-1.0-0.dll"
-  SOLOCS['pangocairo'] = "#{bindll}/libpangocairo-1.0-0.dll"
-  SOLOCS['pangoft'] = "#{bindll}/libpangoft2-1.0-0.dll"
-  SOLOCS['pango32'] = "#{bindll}/libpangowin32-1.0-0.dll"
-  SOLOCS['pixman'] = "#{bindll}/libpixman-1-0.dll"
-  SOLOCS['png15'] = "#{bindll}/libpng15-15.dll"
-  SOLOCS['xml2'] = "#{bindll}/libxml2-2.dll"
-  SOLOCS['pthread'] = "#{bindll}/pthreadGC2.dll"
-  SOLOCS['zlib1'] = "#{bindll}/zlib1.dll"
-  SOLOCS['lzma'] = "#{bindll}/liblzma-5.dll"
-  SOLOCS['pthreadGC2'] = "#{bindll}/pthreadGC2.dll"   # GTK3 
-  SOLOCS['pthread'] = "/usr/i686-w64-mingw32/lib/libwinpthread-1.dll" # Ruby
+  SOLOCS.merge!(
+    {
+      'atk'         => "#{bindll}/libatk-1.0-0.dll",
+      'cairo'       => "#{bindll}/libcairo-2.dll",
+      'cairo-gobj'  => "#{bindll}/libcairo-gobject-2.dll",
+      'ffi'         => "#{bindll}/libffi-6.dll",
+      'fontconfig'  => "#{bindll}/libfontconfig-1.dll",
+      'freetype'    => "#{bindll}/libfreetype-6.dll",
+      'gdkpixbuf'   => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
+      'gdk3'        => "#{bindll}/libgdk-3-0.dll",
+      'gio'         => "#{bindll}/libgio-2.0-0.dll",
+      'glib'        => "#{bindll}/libglib-2.0-0.dll",
+      'gmodule'     => "#{bindll}/libgmodule-2.0-0.dll",
+      'gobject'     => "#{bindll}/libgobject-2.0-0.dll",
+      'gtk3'        => "#{bindll}/libgtk-3-0.dll",
+      'iconv'       => "#{bindll}/libiconv-2.dll",
+      'intl8'       => "#{bindll}/libintl-8.dll",
+      'pango'       => "#{bindll}/libpango-1.0-0.dll",
+      'pangocairo'  => "#{bindll}/libpangocairo-1.0-0.dll",
+      'pangoft'     => "#{bindll}/libpangoft2-1.0-0.dll",
+      'pango32'     => "#{bindll}/libpangowin32-1.0-0.dll",
+      'pixman'      => "#{bindll}/libpixman-1-0.dll",
+      'png15'       => "#{bindll}/libpng15-15.dll",
+      'xml2'        => "#{bindll}/libxml2-2.dll",
+      'pthread'     => "#{bindll}/pthreadGC2.dll",
+      'zlib1'       => "#{bindll}/zlib1.dll",
+      'lzma'        => "#{bindll}/liblzma-5.dll",
+      'pthreadGC2'  => "#{bindll}/pthreadGC2.dll",  # GTK3 
+      'pthread'     => "/usr/i686-w64-mingw32/lib/libwinpthread-1.dll" # Ruby
+    }
+  )
 end
 if APP['GTK'] == 'gtk+-2.0' && COPY_GTK == true
-  SOLOCS['atk'] = "#{bindll}/libatk-1.0-0.dll"
-  SOLOCS['cairo'] = "#{bindll}/libcairo-2.dll"
-  SOLOCS['cairo-gobj'] = "#{bindll}/libcairo-gobject-2.dll"
-#  SOLOCS['ffi'] = "#{bindll}/libffi-6.dll"
-  SOLOCS['fontconfig'] = "#{bindll}/libfontconfig-1.dll"
-  SOLOCS['freetype'] = "#{bindll}/freetype6.dll"
-  SOLOCS['gdkpixbuf'] = "#{bindll}/libgdk_pixbuf-2.0-0.dll"
-  SOLOCS['gdk2'] = "#{bindll}/libgdk-win32-2.0-0.dll"
-  SOLOCS['gio'] = "#{bindll}/libgio-2.0-0.dll"
-  SOLOCS['glib'] = "#{bindll}/libglib-2.0-0.dll"
-  SOLOCS['gmodule'] = "#{bindll}/libgmodule-2.0-0.dll"
-  SOLOCS['gobject'] = "#{bindll}/libgobject-2.0-0.dll"
-  SOLOCS['gtk2'] = "#{bindll}/libgtk-win32-2.0-0.dll"
-#  SOLOCS['iconv'] = "#{bindll}/libiconv-2.dll"
-  SOLOCS['intl'] = "#{bindll}/intl.dll"
-  SOLOCS['pango'] = "#{bindll}/libpango-1.0-0.dll"
-  SOLOCS['pangocairo'] = "#{bindll}/libpangocairo-1.0-0.dll"
-  SOLOCS['pangoft'] = "#{bindll}/libpangoft2-1.0-0.dll"
-  SOLOCS['pango32'] = "#{bindll}/libpangowin32-1.0-0.dll"
-  SOLOCS['pixman'] = "#{bindll}/libgdk_pixbuf-2.0-0.dll"
-  SOLOCS['png14'] = "#{bindll}/libpng14-14.dll"
-  SOLOCS['xml2'] = "#{bindll}/libexpat-1.dll"
-  SOLOCS['thread'] = "#{bindll}/libgthread-2.0-0.dll"
-  SOLOCS['zlib1'] = "#{bindll}/zlib1.dll"
-#  SOLOCS['lzma'] = "#{bindll}/liblzma-5.dll"
-#  SOLOCS['pthreadGC2'] = "#{bindll}/pthreadGC2.dll"
-  SOLOCS['siji'] = "/usr/lib/gcc/i686-w64-mingw32/4.8/libgcc_s_sjlj-1.dll"
-  SOLOCS['pthread'] = "/usr/i686-w64-mingw32/lib/libwinpthread-1.dll"
+  SOLOCS.merge!(
+    {
+      'atk'         => "#{bindll}/libatk-1.0-0.dll",
+      'cairo'       => "#{bindll}/libcairo-2.dll",
+      'cairo-gobj'  => "#{bindll}/libcairo-gobject-2.dll",
+    #  'ffi'        => "#{bindll}/libffi-6.dll",
+      'fontconfig'  => "#{bindll}/libfontconfig-1.dll",
+      'freetype'    => "#{bindll}/freetype6.dll",
+      'gdkpixbuf'   => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
+      'gdk2'        => "#{bindll}/libgdk-win32-2.0-0.dll",
+      'gio'         => "#{bindll}/libgio-2.0-0.dll",
+      'glib'        => "#{bindll}/libglib-2.0-0.dll",
+      'gmodule'     => "#{bindll}/libgmodule-2.0-0.dll",
+      'gobject'     => "#{bindll}/libgobject-2.0-0.dll",
+      'gtk2'        => "#{bindll}/libgtk-win32-2.0-0.dll",
+    #  'iconv'      => "#{bindll}/libiconv-2.dll",
+      'intl'        => "#{bindll}/intl.dll",
+      'pango'       => "#{bindll}/libpango-1.0-0.dll",
+      'pangocairo'  => "#{bindll}/libpangocairo-1.0-0.dll",
+      'pangoft'     => "#{bindll}/libpangoft2-1.0-0.dll",
+      'pango32'     => "#{bindll}/libpangowin32-1.0-0.dll",
+      'pixman'      => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
+      'png14'       => "#{bindll}/libpng14-14.dll",
+      'xml2'        => "#{bindll}/libexpat-1.dll",
+      'thread'      => "#{bindll}/libgthread-2.0-0.dll",
+      'zlib1'       => "#{bindll}/zlib1.dll",
+    #  'lzma'       => "#{bindll}/liblzma-5.dll",
+    #  'pthreadGC2' => "#{bindll}/pthreadGC2.dll",
+      'siji'        => "/usr/lib/gcc/i686-w64-mingw32/4.8/libgcc_s_sjlj-1.dll",
+      'pthread'     => "/usr/i686-w64-mingw32/lib/libwinpthread-1.dll"
+    }
+  )
 end
