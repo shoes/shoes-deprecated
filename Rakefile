@@ -26,7 +26,7 @@ APP['PLATFORM'] = RbConfig::CONFIG['arch'] # not correct in cross compile
 case APP['revision']
   when 'git'
     GIT = ENV['GIT'] || "git"
-    APP['REVISION'] = (`#{GIT} rev-list HEAD`.split.length + 1).to_s
+    APP['REVISION'] = (`#{GIT} rev-list HEAD`.split.length).to_s
   when 'file'
     File.open('VERSION.txt', 'r') do |f|
       ln = f.read

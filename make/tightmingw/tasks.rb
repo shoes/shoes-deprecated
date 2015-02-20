@@ -90,7 +90,7 @@ module Make
     end
     # setup GTK stuff
     mkdir_p "#{TGT_DIR}/share/glib-2.0/schemas"
-    if ENV['GTK'] == "gtk+-2.0"
+    if APP['GTK'] == "gtk+-2.0"
       cp "#{ShoesDeps}/share/glib-2.0/schemas/gschema.dtd",
         "#{TGT_DIR}/share/glib-2.0/schemas"
     else
@@ -104,19 +104,17 @@ module Make
   # common_build is a misnomer. Builds extentions, gems
   def common_build
     puts "common_build dir=#{pwd} #{SHOES_TGT_ARCH}"
-    #mkdir_p "#{TGT_DIR}/ruby"
-    #cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "#{TGT_DIR}/ruby/lib"
     %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
       FileList[rdir].each { |rlib| cp_r rlib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}" }
     end
-    %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
     #%w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
+    %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
       each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_TGT_ARCH}" }
 
     gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
-    {'hpricot' => 'lib', 'sqlite3' => 'lib'}.each do |gemn, xdir|
     #{'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
-      spec = eval(File.read("req/#{gemn}/gemspec"))
+    {'hpricot' => 'lib', 'sqlite3' => 'lib'}.each do |gemn, xdir|
+     spec = eval(File.read("req/#{gemn}/gemspec"))
       mkdir_p "#{gdir}/specifications"
       mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
       FileList["req/#{gemn}/lib/*"].each { |rlib| cp_r rlib, "#{gdir}/gems/#{spec.full_name}/lib" }
@@ -126,13 +124,6 @@ module Make
     end
   end
 
-  # Check the environment
-  def env(x)
-    unless ENV[x]
-      abort "Your #{x} environment variable is not set!"
-    end
-    ENV[x]
-  end
 end
 
 
@@ -151,24 +142,9 @@ class MakeMinGW
       copy_files "#{xdir}/*.so", libdir
     end
 
-    # FIXME - depends on setting in env.rb - should be a setting in
-    # crosscompile file written by :linux:setup:xxxx but it isn't.
-    def find_and_copy thelib, newplace
-      tp = "#{TGT_SYS_DIR}usr/lib/#{thelib}"
-      if File.exists? tp
-        cp tp, newplace
-      else
-        puts "Can't find library #{tp}"
-      end
-    end
 
     def copy_deps_to_dist
       puts "copy_deps_to_dist dir=#{pwd}"
-      #pre_build task copied this
-      #cp    "#{::EXT_RUBY}/lib/lib#{::RUBY_SO}.so", "dist/lib#{::RUBY_SO}.so"
-      #ln_s  "lib#{::RUBY_SO}.so", "#{TGT_DIR}/lib#{::RUBY_SO}.so.#{::RUBY_V[/^\d+\.\d+/]}"
-      #find_and_copy "libportaudio.so", "#{TGT_DIR}/libportaudio.so.2"
-      #find_and_copy  "libsqlite3.so", "#{TGT_DIR}/libsqlite3.so.0"
       unless ENV['GDB']
         #sh    "#{STRIP}  #{TGT_DIR}/*.dll"
         #Dir.glob("#{TGT_DIR}/lib/ruby/**/*.so").each {|lib| sh "#{STRIP} #{lib}"}
@@ -219,16 +195,10 @@ class MakeMinGW
       cp APP['icons']['win32'], "#{TGT_DIR}/nsis/setup.ico"
       rewrite "#{TGT_DIR}/nsis/base.nsi", "#{TGT_DIR}/nsis/#{WINFNAME}.nsi"
       Dir.chdir("#{TGT_DIR}/nsis") do
-        #sh "\"#{env('NSIS')}\\makensis.exe\" #{NAME}.nsi"
         sh "\"c:\\Program Files (x86)\\NSIS\\Unicode\\makensis.exe\" #{WINFNAME}.nsi" 
         #sh "c:\\Program Files (x86)\\NSIS\\Unicode\\makensis.exe #{WINFNAME}.nsi"
       end
       mv "#{TGT_DIR}/nsis/#{WINFNAME}.exe", "pkg/"
-      #Dir.chdir('pkg/') do
-       # Dir.glob("Shoes*.exe").each do |f|
-       #   mv f, "#{f.downcase}"
-       # end
-      #end
     end
 
   end

@@ -2,9 +2,8 @@ require "devkit"
 # define where your deps are
 ShoesDeps = "E:/shoesdeps/mingw"
 SHOES_TGT_ARCH = 'i386-mingw32'
-#WINVERSION = "#{REVISION}#{TINYVER}"
-#INSTALLER = "#{APPNAME}-#{REVISION}#{TINYVER}"
-WINVERSION = "#{REVISION}#{TINYVER}-#{ENV['GTK']=='Gtk+-3.0' ? 'gtk3' : 'gtk2'}-32"
+APP['GTK'] = "gtk+-2.0"
+WINVERSION = "#{APP['VERSION']}-#{APP['GTK']=='Gtk+-3.0' ? 'gtk3' : 'gtk2'}-w32"
 WINFNAME = "#{APPNAME}-#{WINVERSION}"
 WIN32_CFLAGS = []
 WIN32_LDFLAGS = []
@@ -86,7 +85,6 @@ LINUX_LDFLAGS = wIN32_LDFLAGS.join(' ')
 LINUX_LIBS = wIN32_LIBS.join(' ')
 
 # hash of dlls to copy in tasks.rb pre_build
-ENV['GTK'] = 'gtk+-2.0'
 bindll = "#{ShoesDeps}/bin"
 rubydll = "#{EXT_RUBY}/bin"
 devdll = "#{ENV['RI_DEVKIT']}/mingw/bin"
@@ -131,4 +129,4 @@ SOLOCS.merge!(
     'pthread'     => "#{devdll}/libwinpthread-1.dll",
     'sjlj'        => "#{devdll}/libgcc_s_sjlj-1.dll"
   }
-) if ENV['GTK'] == 'gtk+-2.0'
+) if APP['GTK'] == 'gtk+-2.0'
