@@ -134,7 +134,7 @@ class MakeLinux
     def copy_deps_to_dist
       puts "copy_deps_to_dist dir=#{pwd}"
       unless ENV['GDB']
-        sh    "#{STRIP}  #{TGT_DIR}/*.dll"
+        sh "#{STRIP}  #{TGT_DIR}/*.dll"
         Dir.glob("#{TGT_DIR}/lib/ruby/**/*.so").each {|lib| sh "#{STRIP} #{lib}"}
       end
     end

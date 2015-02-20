@@ -15,14 +15,12 @@ else
 end
 # Where does ruby code live? Please cross compile Ruby. 
 # Use ruby 2.1.0
-#EXT_RUBY = "/srv/chroot/mingwgtk2/opt/local"
 EXT_RUBY = "/srv/chroot/mingwgtk2/usr/local"
 SHOES_TGT_ARCH = "i386-mingw32"
 # Specify where the Target system binaries live. 
 # Trailing slash is important.
 TGT_SYS_DIR = "#{CHROOT}/"
-# Setup some shortcuts for the library locations. 
-# These are not ruby paths. 
+# Setup some shortcuts for the library locations. These are not ruby paths. 
 # depends on what ruby was compiled to produce. Don't guess. 
 arch = 'i386-mingw32'
 uldir = "#{TGT_SYS_DIR}lib"
@@ -32,7 +30,7 @@ bindll = "#{TGT_SYS_DIR}bin"
 ulbin = "#{TGT_SYS_DIR}usr/local/bin"
 # Set appropriately (in my PATH, or use abs)
 CC = "i686-w64-mingw32-gcc"
-STRIP = "i686-w64-mingw32-strip -x"
+STRIP = "strip -x"
 WINDRES = "i686-w64-mingw32-windres"
 # These ENV vars are used by the extconf.rb files
 ENV['SYSROOT']=CHROOT
@@ -53,7 +51,7 @@ pkggtk ="#{uldir}/pkgconfig/#{APP['GTK']}.pc"
 RUBY_HTTP = true
 
 ENV['PKG_CONFIG_PATH'] = "#{ularch}/pkgconfig"
-WINVERSION = "#{APP['VERSION']}-#{APP['GTK']=='Gtk+-3.0' ? 'gtk3' : 'gtk2'}-w32"
+WINVERSION = "#{APP['VERSION']}-#{APP['GTK']=='Gtk+-3.0' ? 'gtk3' : 'gtk2'}-32"
 WINFNAME = "#{APPNAME}-#{WINVERSION}"
 if RUBY_HTTP
   file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + ["shoes/*.c"]
@@ -190,6 +188,7 @@ if APP['GTK'] == 'gtk+-2.0' && COPY_GTK == true
       'cairo'       => "#{bindll}/libcairo-2.dll",
       'cairo-gobj'  => "#{bindll}/libcairo-gobject-2.dll",
     #  'ffi'        => "#{bindll}/libffi-6.dll",
+      'ffi'         => "#{bindll}/libffi-5.dll",
       'fontconfig'  => "#{bindll}/libfontconfig-1.dll",
       'freetype'    => "#{bindll}/freetype6.dll",
       'gdkpixbuf'   => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
