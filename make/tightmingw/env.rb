@@ -23,7 +23,6 @@ ADD_DLL = []
 CC = "i686-w64-mingw32-gcc"
 ENV['CC'] = CC		# for building sqlite3 gem
 ENV['ShoesDeps'] = ShoesDeps # also for sqlite3 gem
-STRIP = "i686-w64-mingw32-strip -x"
 STRIP = "strip -x"
 WINDRES = "windres"
 PKG_CONFIG = "#{ShoesDeps}/bin/pkg-config"  # the one from glib
