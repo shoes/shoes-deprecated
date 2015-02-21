@@ -1,8 +1,0 @@
-[Desktop Entry]
-Name=Shoes
-Exec={hdir}/shoes
-StartupNotify=true
-Terminal=false
-Type=Application
-Icon={hdir}/static/app-icon.png
-Categories=Programming
