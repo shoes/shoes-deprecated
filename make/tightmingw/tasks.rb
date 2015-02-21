@@ -166,8 +166,10 @@ class MakeMinGW
       rm_f binc
       extra = ENV['GDB'] == 'profile' ? '-pg' : ''
       sh "#{CC} -o #{bin} bin/main.o shoes/appwin32.o -L#{TGT_DIR} -mwindows -lshoes #{LINUX_LIBS}"
+      sh "#{STRIP} #{bin}" unless ENV['GDB']
       sh "#{CC} -o #{binc} bin/main.o shoes/appwin32.o -L#{TGT_DIR} #{extra} -lshoes #{LINUX_LIBS}"
-    end
+      sh "#{STRIP} #{binc}" unless ENV['GDB']
+   end
 
     def make_so(name)
       puts "make_so dir=#{pwd} arg=#{name}"
