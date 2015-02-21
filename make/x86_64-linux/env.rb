@@ -1,16 +1,15 @@
 #
 # Build a 64 bit Linux Tight Shoes (from a 64 bit host)
-# In this case Unbuntu 13.10 to debian 7.2 in a chroot.
-# Uses a ruby built from source and a minimal curl. 
+# In this case Unbuntu 14.04 to debian 7.2 in a chroot.
+# Uses a ruby built from source 
 # You should modify this to build 
 # 
 #ENV['DEBUG'] = "true" # turns on the tracing log
 #ENV['GTK'] = "gtk+-3.0" # pick this or "gtk+-2.0"
-ENV['GTK'] = "gtk+-2.0"
+APP['GTK'] = "gtk+-2.0"
 # I don't recommend trying to copy Gtk2 -it only works mysteriously
 COPY_GTK = false 
-#ENV['GDB'] = "SureYouBetcha" # compile -g,  strip symbols when not defined
-# CHROOT = "/srv/chroot/deb386"
+#ENV['GDB'] = "" # compile -g,  strip symbols when not defined
 CHROOT = ""
 # Where does ruby code live?
 EXT_RUBY = "/usr/local"
@@ -25,19 +24,11 @@ larch = "#{TGT_SYS_DIR}lib/#{arch}"
 # Set appropriately
 CC = "gcc"
 pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.1.pc"
-pkggtk ="#{ularch}/pkgconfig/#{ENV['GTK']}.pc" 
+pkggtk ="#{ularch}/pkgconfig/#{APP['GTK']}.pc" 
 # Use Ruby or curl for downloads
 RUBY_HTTP = true
-if !RUBY_HTTP
-# where does your cross compiled Curl live? Don't depend on the hosts
-# curl -
-  curlloc = "#{uldir}"
-  CURL_LDFLAGS = `pkg-config --libs #{curlloc}/pkgconfig/libcurl.pc`.strip
-  CURL_CFLAGS = `pkg-config --cflags #{curlloc}/pkgconfig/libcurl.pc`.strip
-  file_list = %w{shoes/native/gtk.c shoes/http/curl.c} + ["shoes/*.c"]
-else
-  file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + ["shoes/*.c"]
-end
+file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + ["shoes/*.c"]
+
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
@@ -60,8 +51,8 @@ else
 end
 LINUX_CFLAGS << " -DRUBY_HTTP" if RUBY_HTTP
 LINUX_CFLAGS << " -DSHOES_GTK -fPIC -Wno-unused-but-set-variable"
-LINUX_CFLAGS << " -DGTK3" unless ENV['GTK'] == 'gtk+-2.0'
-LINUX_CFLAGS << " #{CURL_CFLAGS if !RUBY_HTTP}  -I#{TGT_SYS_DIR}usr/include "
+LINUX_CFLAGS << " -DGTK3" unless APP['GTK'] == 'gtk+-2.0'
+LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkgruby}"`.strip+" "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkggtk}"`.strip+" "
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/ " 
@@ -76,9 +67,6 @@ LINUX_LDFLAGS << `pkg-config --libs "#{pkggtk}"`.strip+" "
 RUBY_LDFLAGS = "-rdynamic -Wl,-export-dynamic "
 RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lruby "
 RUBY_LDFLAGS << "-L#{ularch} -lrt -ldl -lcrypt -lm "
-#LINUX_LDFLAGS << " #{CURL_LDFLAGS}"
-#LINUX_LDFLAGS << " -L. -rdynamic -Wl,-export-dynamic"
-
 
 LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
@@ -95,7 +83,7 @@ SOLOCS['pcre'] = "#{larch}/libpcre.so.3"
 SOLOCS['crypto'] = "#{ularch}/libcrypto.so.1.0.0"
 SOLOCS['ssl'] = "#{ularch}/libssl.so.1.0.0"
 SOLOCS['sqlite'] = "#{ularch}/libsqlite3.so.0.8.6"
-if ENV['GTK'] == 'gtk+-2.0' && COPY_GTK == true
+if APP['GTK'] == 'gtk+-2.0' && COPY_GTK == true
   SOLOCS['gtk2'] = "#{ularch}/libgtk-x11-2.0.so"
   SOLOCS['gdk2'] = "#{ularch}/libgdk-x11-2.0.so"
   SOLOCS['atk'] = "#{ularch}/libatk-1.0.so.0"

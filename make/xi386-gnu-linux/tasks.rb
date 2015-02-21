@@ -66,14 +66,12 @@ module Make
     rm_f "#{TGT_DIR}/libruby.so.#{rbvt}" if File.exist? "#{TGT_DIR}/libruby.so.#{rbvt}"
     cp_r "#{EXT_RUBY}/lib/ruby", "#{TGT_DIR}/lib"
     # copy and link libruby.so
-    #cp "#{EXT_RUBY}/lib/libruby.so.#{RUBY_V}", "#{TGT_DIR}"
     cp "#{EXT_RUBY}/lib/libruby.so.#{rbvm}", "#{TGT_DIR}"
     # copy include files - it might help build gems
     mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-#{rbvt}"
     cp_r "#{EXT_RUBY}/include/ruby-#{rbvt}/", "#{TGT_DIR}/lib/ruby/include"
     chdir TGT_DIR do
       ln_s "libruby.so.#{rbvm}", "libruby.so"
-      #ln_s "libruby.so.#{RUBY_V}", "libruby.so.#{::RUBY_V[/^\d+\.\d+/]}"
     end
     SOLOCS.each_value do |path|
       cp "#{path}", "#{TGT_DIR}"
@@ -88,13 +86,13 @@ module Make
     %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
       FileList[rdir].each { |rlib| cp_r rlib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}" }
     end
-    %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
     #%w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
+    %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
       each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_TGT_ARCH}" }
 
     gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
-    {'hpricot' => 'lib', 'sqlite3' => 'lib'}.each do |gemn, xdir|
     #{'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
+    {'hpricot' => 'lib', 'sqlite3' => 'lib'}.each do |gemn, xdir|
       spec = eval(File.read("req/#{gemn}/gemspec"))
       mkdir_p "#{gdir}/specifications"
       mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
@@ -105,13 +103,6 @@ module Make
     end
   end
 
-  # Check the environment
-  def env(x)
-    unless ENV[x]
-      abort "Your #{x} environment variable is not set!"
-    end
-    ENV[x]
-  end
 end
 
 
@@ -130,24 +121,8 @@ class MakeLinux
       copy_files "#{xdir}/*.so", libdir
     end
 
-    # FIXME - depends on setting in env.rb - should be a setting in
-    # crosscompile file written by :linux:setup:xxxx but it isn't.
-    def find_and_copy thelib, newplace
-      tp = "#{TGT_SYS_DIR}usr/lib/#{thelib}"
-      if File.exists? tp
-        cp tp, newplace
-      else
-        puts "Can't find library #{tp}"
-      end
-    end
-
     def copy_deps_to_dist
       puts "copy_deps_to_dist dir=#{pwd}"
-      #pre_build task copied this
-      #cp    "#{::EXT_RUBY}/lib/lib#{::RUBY_SO}.so", "dist/lib#{::RUBY_SO}.so"
-      #ln_s  "lib#{::RUBY_SO}.so", "#{TGT_DIR}/lib#{::RUBY_SO}.so.#{::RUBY_V[/^\d+\.\d+/]}"
-      #find_and_copy "libportaudio.so", "#{TGT_DIR}/libportaudio.so.2"
-      #find_and_copy  "libsqlite3.so", "#{TGT_DIR}/libsqlite3.so.0"
       unless ENV['GDB']
         sh    "strip -x #{TGT_DIR}/*.so.*"
         sh    "strip -x #{TGT_DIR}/*.so"
@@ -182,22 +157,26 @@ class MakeLinux
 
     # make a .install with all the bits and peices. 
     def make_installer
-      gtkv = ENV['GTK']== 'gtk+-3.0' ? '3' : '2'
+      gtkv = APP['GTK']== 'gtk+-3.0' ? '3' : '2'
       arch = 'i686'
-      rlname = "#{PKG}#{TINYVER}-gtk#{gtkv}-#{arch}"
-      puts "Creating Pkg for #{rlname}"
+      appname =  "#{APP['name'].downcase}"
+      rlname = "#{appname}-#{APP['VERSION']}-gtk#{gtkv}-#{arch}"
+      #puts "Creating Pkg for #{rlname}"
       rm_r "pkg/#{rlname}" if File.exists? "pkg/#{rlname}"
+      cp_r "VERSION.txt", "#{TGT_DIR}"
       mkdir_p "pkg/#{rlname}"
       sh "cp -r #{TGT_DIR}/* pkg/#{rlname}"
-      cdir = `pwd`
-      cd "pkg/#{rlname}"
-      make_desktop 
-      make_install_script
-      make_smaller unless ENV['GDB']
-      cd  "../"
-      sh "makeself #{rlname} #{rlname}.install '#{APPNAME}' \
+      Dir.chdir "pkg/#{rlname}" do
+        make_desktop 
+        make_install_script
+        make_smaller unless ENV['GDB']
+      end
+      Dir.chdir "pkg" do
+        puts `pwd`
+        sh "makeself #{rlname} #{rlname}.install #{appname} \
 ./shoes-install.sh "
-   end
+      end
+    end
     
     def make_desktop
       File.open("Shoes.desktop.tmpl",'w') do |f|
