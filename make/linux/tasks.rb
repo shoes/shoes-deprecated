@@ -72,13 +72,14 @@ module Make
     %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
       FileList[rdir].each { |rlib| cp_r rlib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}" }
     end
-    %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
     #%w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
-      each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_RUBY_ARCH}" }
+    %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
+     each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_RUBY_ARCH}" }
 
     gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
-    {}.each do |gemn, xdir|
+    # Tight shoes doesn't build gems
     #{'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
+    {}.each do |gemn, xdir|
       spec = eval(File.read("req/#{gemn}/gemspec"))
       mkdir_p "#{gdir}/specifications"
       mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
@@ -89,13 +90,6 @@ module Make
     end
   end
 
-  # Check the environment
-  def env(x)
-    unless ENV[x]
-      abort "Your #{x} environment variable is not set!"
-    end
-    ENV[x]
-  end
 end
 
 
@@ -112,17 +106,6 @@ class MakeLinux
         end
       end
       copy_files "#{xdir}/*.so", libdir
-    end
-
-    def find_and_copy thelib, newplace
-        testpath = ["/usr/lib/#{thelib}", "/usr/lib/x86_64-linux-gnu/#{thelib}",
-          "/usr/lib/i386-linux-gnu/#{thelib}"]
-        testpath.each do |tp|
-          if File.exists? tp
-            cp tp, newplace
-            return
-          end
-        end
     end
 
     # does nothing

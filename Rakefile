@@ -8,11 +8,6 @@ require 'yaml'
 require 'rbconfig'
 include FileUtils
 
-# Like puts, but only if we've --trace'd
-def vputs(str)
-  puts str if Rake.application.options.trace
-end
-
 APP = YAML.load_file(File.join(ENV['APP'] || ".", "app.yaml"))
 # APP['version'] = APP['major'] # for historical reasons 
 # populate APP[] with uppercase names and string values
