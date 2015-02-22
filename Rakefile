@@ -37,44 +37,47 @@ case APP['revision']
 end
 
 # delete from here
-VERS = "#{APP['MAJOR']}.#{APP['MINOR']}"
-REVISION = VERS
-RELEASE_ID, RELEASE_NAME = APP['major'], APP['release']
-if RUBY_PLATFORM =~ /darwin/
+VERS = "#{APP['MAJOR']}.#{APP['MINOR']}"  #OSX ONLY
+#REVISION = VERS
+#RELEASE_ID, RELEASE_NAME = APP['major'], APP['release']
+#if RUBY_PLATFORM =~ /darwin/
   #APPNAME = "#{APP['name']}-#{RELEASE_NAME}"
-  APPNAME = APP['name']
-else
-  APPNAME = APP['name']
-end
-NAME = APP['shortname'] || APP['name'].downcase.gsub(/\W+/, '')
-SONAME = 'shoes'
+#  APPNAME = APP['name']
+#else
+#  APPNAME = APP['name']
+#end
 
 
-TINYVER = APP['tiny']
-PKG = "#{NAME}-#{VERS}"
+#TINYVER = APP['tiny']
+#PKG = "#{NAME}-#{VERS}"
 #MENU_NAME = "#{APPNAME} #{VERS}#{TINYVER}" 
-APPARGS = APP['run']
-FLAGS = %w[DEBUG]
+
+#FLAGS = %w[DEBUG]
 # to here
+NAME = APP['shortname'] || APP['name'].downcase.gsub(/\W+/, '')
+APPNAME = APP['name']
+SONAME = 'shoes'
+APPARGS = APP['run']
 
 RUBY_SO = RbConfig::CONFIG['RUBY_SO_NAME']
 RUBY_V = RbConfig::CONFIG['ruby_version']
 SHOES_RUBY_ARCH = RbConfig::CONFIG['arch']
 
-if ENV['APP']
-  %w[dmg icons].each do |subk|
-    APP[subk].keys.each do |name|
-      APP[subk][name] = File.join(ENV['APP'], APP[subk][name])
-    end
-  end
-end
+#if ENV['APP']
+#  %w[dmg icons].each do |subk|
+#    APP[subk].keys.each do |name|
+#      APP[subk][name] = File.join(ENV['APP'], APP[subk][name])
+#    end
+#  end
+#end
 
-if File.exists? ".git/refs/tags/#{RELEASE_ID}/#{RELEASE_NAME}"
-  abort "** Rename this release (and add to lib/shoes.rb) #{RELEASE_NAME} has already been tagged."
-end
+#if File.exists? ".git/refs/tags/#{RELEASE_ID}/#{RELEASE_NAME}"
+#  abort "** Rename this release (and add to lib/shoes.rb) #{RELEASE_NAME} has already been tagged."
+#end
 
 # Same effect as sourcing a shell script before running rake. It's necessary to
 # set these values before the make/{platform}/env.rb files are loaded.
+# FIXME: cjc This does not belong in Rakefile. 
 def osx_bootstrap_env
   ENV['DYLD_LIBRARY_PATH'] = '/usr/local/Cellar/cairo/1.10.2/lib:/usr/local/Cellar/cairo/1.10.2/include/cairo'
   ENV['LD_LIBRARY_PATH'] = '/usr/local/Cellar/cairo/1.10.2/lib:/usr/local/Cellar/cairo/1.10.2/include/cairo'
@@ -127,7 +130,6 @@ when /mingw/
   NAMESPACE = :win32
   
 when /darwin/
-  osx_bootstrap_env
 
   if CROSS
     # Building tight shoes on OSX for OSX
@@ -138,6 +140,7 @@ when /darwin/
   else
     # build Loose Shoes on OSX for OSX
     puts "Loose Shoes OSX"
+    osx_bootstrap_env
     require File.expand_path('make/darwin/env')
     require File.expand_path('make/darwin/tasks')
   end

@@ -5,6 +5,7 @@
 # (4) You've compiled zlib 1.2.8 or better
 include FileUtils
 EXT_RUBY = RbConfig::CONFIG['prefix']
+BREWLOC = "/usr/local"
 ZLIBLOC = "/usr/local/opt/zlib/lib"
 # use the platform Ruby claims
 # require 'rbconfig' not needed
@@ -32,23 +33,23 @@ else
   # Hack for when pkg-config is not yet installed
   CAIRO_CFLAGS, CAIRO_LIB, PANGO_CFLAGS, PANGO_LIB = "", "", "", ""
 =end
-CAIRO_CFLAGS = "-I/usr/local/opt/cairo/include/cairo"
-CAIRO_LIB = "-L/usr/local/opt/cairo/lib"
+CAIRO_CFLAGS = "-I#{BREWLOC}/opt/cairo/include/cairo"
+CAIRO_LIB = "-L#{BREWLOC}/opt/cairo/lib"
 PANGO_CFLAGS = `pkg-config --cflags pango`.strip
 PANGO_LIB = `pkg-config --libs pango`.strip
 
 png_lib = 'png'
 
-LINUX_CFLAGS = %[-g -Wall #{ENV['GLIB_CFLAGS']} -I#{ENV['SHOES_DEPS_PATH'] || "/usr"}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{RbConfig::CONFIG['archdir']}]
+LINUX_CFLAGS = %[-g -Wall  -I#{BREWLOC}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{RbConfig::CONFIG['archdir']}]
 if RbConfig::CONFIG['rubyhdrdir']
   LINUX_CFLAGS << " -I#{RbConfig::CONFIG['rubyhdrdir']} -I#{RbConfig::CONFIG['rubyhdrdir']}/#{SHOES_RUBY_ARCH}"
 end
   
 LINUX_LIB_NAMES = %W[#{RUBY_SO} cairo pangocairo-1.0 gif]
 
-FLAGS.each do |flag|
-  LINUX_CFLAGS << " -D#{flag}" if ENV[flag]
-end
+#FLAGS.each do |flag|
+#  LINUX_CFLAGS << " -D#{flag}" if ENV[flag]
+#end
 
 if ENV['DEBUG']
   LINUX_CFLAGS << " -g -O0 "

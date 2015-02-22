@@ -85,13 +85,6 @@ module Make
     end
   end
 
-  # Check the environment
-  def env(x)
-    unless ENV[x]
-      abort "Your #{x} environment variable is not set!"
-    end
-    ENV[x]
-  end
 end
 
 class MakeDarwin
@@ -127,12 +120,7 @@ class MakeDarwin
       mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-#{rbvt}"
       cp_r "#{EXT_RUBY}/include/ruby-#{rbvt}/", "#{TGT_DIR}/lib/ruby/include"
       # Softlink run major/minor versions
-      #cdir = pwd
-      #cd TGT_DIR do
-      #  ln_s "libruby.#{rbvt}.dylib", "libruby.dylib"
-      #  ln_s "libruby.#{rbvt}.dylib", "libruby.#{rbvm}.dylib"
-      #end
-      # Find ruby's dependent libs in homebrew (/usr/local/
+     # Find ruby's dependent libs in homebrew (/usr/local/
       cd "#{TGT_DIR}/lib/ruby/#{rbvm}.0/#{RUBY_PLATFORM}" do
         bundles = *Dir['*.bundle']
         puts "Bundles #{bundles}"
@@ -293,8 +281,6 @@ class MakeDarwin
     end
 
     def make_stub
-      #ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
-      #sh "gcc -O -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc -framework Cocoa -o stub platform/mac/stub.m -I."
       sh "gcc -O -isysroot #{OSX_SDK} -framework Cocoa -o stub-osx platform/mac/stub.m -I."
     end
 
@@ -308,10 +294,6 @@ class MakeDarwin
     def make_so(name)
       ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
       sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
-      #%w[libpostproc.dylib libavformat.dylib libavcodec.dylib libavutil.dylib libruby.dylib].each do |libn|
-      #  sh "install_name_tool -change /tmp/dep/lib/#{libn} ./deps/lib/#{libn} #{name}"
-      #end
-      # 
     end
     
     def make_installer
@@ -319,16 +301,19 @@ class MakeDarwin
       nfs=ENV['NFS_ALTP'] 
       mkdir_p "#{nfs}pkg"
       #distfile = "#{nfs}pkg/#{PKG}#{TINYVER}-osx-10.9.tbz"
-      distfile = File.expand_path("#{nfs}pkg/#{PKG}#{TINYVER}-osx-#{ENV['MACOSX_DEPLOYMENT_TARGET']}.tgz")
+      appname = "#{APP['name'].downcase}-#{APP['VERSION']}"
+      distfile = File.expand_path("#{nfs}pkg/#{appname}-osx-#{ENV['MACOSX_DEPLOYMENT_TARGET']}.tgz")
+      puts "distfile = #{distfile}"
       Dir.chdir("#{TGT_DIR}") do
         unless ENV['GDB']
-          Dir.chdir("#{APPNAME}.app/Contents/MacOS") do
+          Dir.chdir("#{APP['name']}.app/Contents/MacOS") do
             #sh "strip -x *.dylib"
             #Dir.glob("lib/ruby/**/*.bundle").each {|lib| sh "strip -x #{lib}"}
           end
         end
-        distname = "#{PKG}#{TINYVER}"
-        sh "tar -cf #{distname}.tar #{APPNAME}.app"
+        #distname = "#{PKG}#{TINYVER}"
+        distname = appname
+        sh "tar -cf #{distname}.tar #{APP['name']}.app"
         sh "gzip #{distname}.tar"
         sh "mv #{distname}.tar.gz #{distfile}"
         #sh "bzip2 -f #{distname}.tar"
