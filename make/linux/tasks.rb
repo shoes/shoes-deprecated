@@ -158,6 +158,7 @@ class MakeLinux
       cp    "README.md", "#{hdir}/README.txt"
       cp    "CHANGELOG", "#{hdir}/CHANGELOG.txt"
       cp    "COPYING", "#{hdir}/COPYING.txt"
+      cp    "VERSION.txt", "#{hdir}"
       cp "dist/shoes" , "#{hdir}"
       #cp "Shoes.desktop",  "#{hdir}"
       mkdir_p "#{hdir}/lib"
