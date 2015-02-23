@@ -1,8 +1,6 @@
 module Make
   include FileUtils
 
-  # may have symlinks for shoes.rb and shoes/, remove them and
-  # may not be called for.
   def copy_files_to_dist
     #cp   "lib/shoes.rb", "dist/lib"
     #cp_r "lib/shoes", "dist/lib"
@@ -77,7 +75,7 @@ module Make
      each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_RUBY_ARCH}" }
 
     gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
-    # Tight shoes doesn't build gems
+    # Loose shoes doesn't build gems
     #{'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
     {}.each do |gemn, xdir|
       spec = eval(File.read("req/#{gemn}/gemspec"))
@@ -142,14 +140,12 @@ class MakeLinux
         puts "you can set up a cross compiling arrangement. See the notes/"
         puts "folder"
       end
-      #mkdir_p "pkg"
-      #sh "makeself dist pkg/#{PKG}.run '#{APPNAME}' ./#{NAME}"
     end
     
     def make_userinstall
       user = ENV['USER']
       home = ENV['HOME']
-      hdir = "#{home}/.shoes/#{RELEASE_NAME}"
+      hdir = "#{home}/.shoes/#{APP['NAME']}"
       if File.exists? hdir
         # so we can install many times to test installing many times
         puts "Removing old lib"
@@ -163,7 +159,7 @@ class MakeLinux
       cp    "CHANGELOG", "#{hdir}/CHANGELOG.txt"
       cp    "COPYING", "#{hdir}/COPYING.txt"
       cp "dist/shoes" , "#{hdir}"
-      cp "Shoes.desktop",  "#{hdir}"
+      #cp "Shoes.desktop",  "#{hdir}"
       mkdir_p "#{hdir}/lib"
       sh "cp -r dist/lib/ruby #{hdir}/lib"
       # bit of a hack here. Don't copy symlinks in dist/lib

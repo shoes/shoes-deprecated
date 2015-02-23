@@ -53,7 +53,8 @@ VERS = "#{APP['MAJOR']}.#{APP['MINOR']}"  #OSX ONLY
 #MENU_NAME = "#{APPNAME} #{VERS}#{TINYVER}" 
 
 #FLAGS = %w[DEBUG]
-# to here
+
+
 NAME = APP['shortname'] || APP['name'].downcase.gsub(/\W+/, '')
 APPNAME = APP['name']
 SONAME = 'shoes'
