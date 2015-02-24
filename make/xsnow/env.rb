@@ -32,6 +32,13 @@ OBJ = SRC.map do |x|
 end
 
 ADD_DLL = []
+ENV['DYLD_LIBRARY_PATH'] = '/usr/local/Cellar/cairo/1.10.2/lib:/usr/local/Cellar/cairo/1.10.2/include/cairo'
+ENV['LD_LIBRARY_PATH'] = '/usr/local/Cellar/cairo/1.10.2/lib:/usr/local/Cellar/cairo/1.10.2/include/cairo'
+ENV['CAIRO_CFLAGS'] = '-I/usr/local/Cellar/cairo/1.12.16_1/include/cairo'
+ENV['GLIB_CFLAGS'] = '-I/usr/local/Cellar/glib/2.40.0/include/glib-2.0'
+#ENV['PKG_CONFIG_PATH'] = '/opt/X11/lib/pkgconfig' # check spelling X11
+ENV['SHOES_DEPS_PATH'] = '/usr/local'
+
 
 def brewsub ln
   ln.gsub('/usr/local',BREWLOC)
@@ -43,6 +50,7 @@ pkg_config = "#{BREWLOC}/bin/pkg-config"
 pkgs = `pkg-config --list-all`.split("\n").map {|p| p.split.first} unless not pkg_config
 if pkg_config and pkgs.include?("cairo") and pkgs.include?("pango")
   CAIRO_CFLAGS = ENV['CAIRO_CFLAGS'] || brewsub(`pkg-config --cflags cairo`.strip)
+  #CAIRO_CFLAGS = brewsub(`pkg-config --cflags cairo`.strip)
   CAIRO_LIB = ENV['CAIRO_LIB'] ? "-L#{ENV['CAIRO_LIB']}" : brewsub(`pkg-config --libs cairo`.strip)
   PANGO_CFLAGS = ENV['PANGO_CFLAGS'] || brewsub(`pkg-config --cflags pango`.strip)
   PANGO_LIB = ENV['PANGO_LIB'] ? "-L#{ENV['PANGO_LIB']}" : brewsub(`pkg-config --libs pango`.strip)
@@ -59,9 +67,9 @@ end
   
 LINUX_LIB_NAMES = %W[#{RUBY_SO} cairo pangocairo-1.0 gif]
 
-FLAGS.each do |flag|
-  LINUX_CFLAGS << " -D#{flag}" if ENV[flag]
-end
+#FLAGS.each do |flag|
+#  LINUX_CFLAGS << " -D#{flag}" if ENV[flag]
+#end
 
 if ENV['DEBUG']
   LINUX_CFLAGS << " -g -O0 "

@@ -156,7 +156,7 @@ class MakeDarwin
       dylibs.each do |libn| 
         keyf = File.basename libn
         if !dups[keyf] 
-          cp "#{libn}", "#{TGT_DIR}/"
+          cp "#{libn}", "#{TGT_DIR}/" unless File.exists? "#{TGT_DIR}/#{keyf}"
           dups[keyf] = true
           chmod 0755, "#{TGT_DIR}/#{keyf}" unless File.writable? "#{TGT_DIR}/#{keyf}"
         end

@@ -53,8 +53,7 @@ VERS = "#{APP['MAJOR']}.#{APP['MINOR']}"  #OSX ONLY
 #MENU_NAME = "#{APPNAME} #{VERS}#{TINYVER}" 
 
 #FLAGS = %w[DEBUG]
-
-
+# to here
 NAME = APP['shortname'] || APP['name'].downcase.gsub(/\W+/, '')
 APPNAME = APP['name']
 SONAME = 'shoes'
@@ -79,14 +78,14 @@ SHOES_RUBY_ARCH = RbConfig::CONFIG['arch']
 # Same effect as sourcing a shell script before running rake. It's necessary to
 # set these values before the make/{platform}/env.rb files are loaded.
 # FIXME: cjc This does not belong in Rakefile. 
-def osx_bootstrap_env
-  ENV['DYLD_LIBRARY_PATH'] = '/usr/local/Cellar/cairo/1.10.2/lib:/usr/local/Cellar/cairo/1.10.2/include/cairo'
-  ENV['LD_LIBRARY_PATH'] = '/usr/local/Cellar/cairo/1.10.2/lib:/usr/local/Cellar/cairo/1.10.2/include/cairo'
-  ENV['CAIRO_CFLAGS'] = '-I/usr/local/Cellar/cairo/1.12.16_1/include/cairo'
-  ENV['GLIB_CFLAGS'] = '-I/usr/local/Cellar/glib/2.40.0/include/glib-2.0'
-  #ENV['PKG_CONFIG_PATH'] = '/opt/X11/lib/pkgconfig' # check spelling X11
-  ENV['SHOES_DEPS_PATH'] = '/usr/local'
-end
+#def osx_bootstrap_env
+#  ENV['DYLD_LIBRARY_PATH'] = '/usr/local/Cellar/cairo/1.10.2/lib:/usr/local/Cellar/cairo/1.10.2/include/cairo'
+#  ENV['LD_LIBRARY_PATH'] = '/usr/local/Cellar/cairo/1.10.2/lib:/usr/local/Cellar/cairo/1.10.2/include/cairo'
+#  ENV['CAIRO_CFLAGS'] = '-I/usr/local/Cellar/cairo/1.12.16_1/include/cairo'
+#  ENV['GLIB_CFLAGS'] = '-I/usr/local/Cellar/glib/2.40.0/include/glib-2.0'
+#  #ENV['PKG_CONFIG_PATH'] = '/opt/X11/lib/pkgconfig' # check spelling X11
+#  ENV['SHOES_DEPS_PATH'] = '/usr/local'
+#end
 
 if File.exists? "crosscompile"
   CROSS = true
@@ -141,7 +140,7 @@ when /darwin/
   else
     # build Loose Shoes on OSX for OSX
     puts "Loose Shoes OSX"
-    osx_bootstrap_env
+    #osx_bootstrap_env
     require File.expand_path('make/darwin/env')
     require File.expand_path('make/darwin/tasks')
   end
