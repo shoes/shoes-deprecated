@@ -866,7 +866,9 @@ shoes_native_loop()
    //g_idle_add(gtkrb_idle, NULL);
    g_timeout_add(100, gtkrb_idle, NULL);
 #endif
-  gtk_main();
+  GLOBAL_APP(app);
+  if (APP_WINDOW(app)) gtk_main();
+  //  gtk_main();
 }
 
 void
