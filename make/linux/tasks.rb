@@ -168,7 +168,7 @@ class MakeLinux
       sh "cp -r lib/shoes.rb #{hdir}/lib/"
       sh "cp -r lib/exerb #{hdir}/lib"
 
-      File.open("dist/Shoes.desktop",'w') do |f|
+      File.open("#{hdir}/Shoes.desktop",'w') do |f|
         f << "[Desktop Entry]\n"
         f << "Name=Shoes Federales\n"
         f << "Exec=#{hdir}/shoes\n"
@@ -179,7 +179,7 @@ class MakeLinux
         f << "Icon=#{hdir}/static/app-icon.png\n"
         f << "Categories=Application;Development;Education;\n"
       end
-      sh "xdg-desktop-menu install --novendor dist/Shoes.desktop"
+      sh "xdg-desktop-menu install --novendor #{hdir}/Shoes.desktop"
       puts "\n ==== NOTE: ====\n"
       puts "Shoes has been copied to #{hdir} and menus installed" 
       puts "Modify and copy the 'Shoes.desktop' if needed."
