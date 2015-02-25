@@ -1513,28 +1513,68 @@ shoes_native_dialog_color(shoes_app *app)
   return shoes_color_new(bg.red / 257, bg.green / 257, bg.blue / 257 , SHOES_COLOR_OPAQUE);
 }
 #endif
+
+
 VALUE
-shoes_dialog_alert(VALUE self, VALUE msg)
+shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
 {
-  GLOBAL_APP(app);
-  msg = shoes_native_to_s(msg);
-  GtkWidget *dialog = gtk_message_dialog_new_with_markup(
-    APP_WINDOW(app), GTK_DIALOG_MODAL,
-    GTK_MESSAGE_INFO, GTK_BUTTONS_OK, "<span size='larger'>%s</span>\n\n%s",
-    _(dialog_title_says), RSTRING_PTR(msg));
-  gtk_dialog_run(GTK_DIALOG(dialog));
-  gtk_widget_destroy(dialog);
-  return Qnil;
+    char *atitle = "Shoes says:";
+    char *msg = "";
+    rb_arg_list args;
+    rb_parse_args(argc, argv, "s|h", &args);
+    msg = RSTRING_PTR(args.a[0]);
+      
+    char *format_string[50];    
+    switch(argc)
+    {
+    case 1:
+        //atitle = "Shoes says:";
+        snprintf(format_string, sizeof(format_string), "<span size='larger'>%s</span>\n\n%s", atitle, msg);
+        break;
+    case 2:
+        if (RTEST(ATTR(args.a[1], title)))
+        {
+            atitle = RSTRING_PTR(ATTR(args.a[1], title));
+            snprintf(format_string, sizeof(format_string), "<span size='larger'>%s</span>\n\n%s", atitle, msg);
+        }
+        else
+        {
+            snprintf(format_string, sizeof(format_string), "%s", msg);
+        }
+        break;
+    }
+    
+    GLOBAL_APP(app);
+    GtkWidget *dialog = gtk_message_dialog_new_with_markup(
+            APP_WINDOW(app), GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_OK, 
+            format_string );
+    
+    gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
+    return Qnil;
 }
+
 
 VALUE
 shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
 {
-  rb_arg_list args;
+  char *atitle = "";
   VALUE answer = Qnil;
+  rb_arg_list args;
   rb_parse_args(argc, argv, "s|h", &args);
+  
+    switch(argc)
+    {
+    case 1:
+        atitle = "Shoes asks:";
+        break;
+    case 2:
+        if (RTEST(ATTR(args.a[1], title))) atitle = RSTRING_PTR(ATTR(args.a[1], title));
+        break;
+    }
+  
   GLOBAL_APP(app);
-  GtkWidget *dialog = gtk_dialog_new_with_buttons(_(dialog_title),
+  GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle,
     APP_WINDOW(app), GTK_DIALOG_MODAL, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
   gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
 #ifdef GTK3
@@ -1564,13 +1604,29 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
   return answer;
 }
 
+
 VALUE
-shoes_dialog_confirm(VALUE self, VALUE quiz)
+shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
 {
   VALUE answer = Qfalse;
+  char *quiz = "";
+  char *atitle = "";
+  rb_arg_list args;
+  rb_parse_args(argc, argv, "s|h", &args);
+  quiz = shoes_native_to_s(args.a[0]);
+  
+    switch(argc)
+    {
+    case 1:
+        atitle = "Shoes asks:";
+        break;
+    case 2:
+        if (RTEST(ATTR(args.a[1], title))) atitle = RSTRING_PTR(ATTR(args.a[1], title));
+        break;
+    }
+    
   GLOBAL_APP(app);
-  quiz = shoes_native_to_s(quiz);
-  GtkWidget *dialog = gtk_dialog_new_with_buttons(_(dialog_title),
+  GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle,
     APP_WINDOW(app), GTK_DIALOG_MODAL, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
   gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
 #ifdef GTK3
