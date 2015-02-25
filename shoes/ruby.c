@@ -4946,7 +4946,9 @@ shoes_ruby_init()
   cLinkUrl = rb_define_class_under(cTypes, "LinkUrl", rb_cObject);
 
   rb_define_method(rb_mKernel, "alert", CASTHOOK(shoes_dialog_alert), 1);
+  rb_define_method(rb_mKernel, "alert3", CASTHOOK(shoes_dialog_alert3), -1);
   rb_define_method(rb_mKernel, "ask", CASTHOOK(shoes_dialog_ask), -1);
+  rb_define_method(rb_mKernel, "ask2", CASTHOOK(shoes_dialog_ask2), -1);
   rb_define_method(rb_mKernel, "confirm", CASTHOOK(shoes_dialog_confirm), 1);
   rb_define_method(rb_mKernel, "ask_color", CASTHOOK(shoes_dialog_color), 1);
   rb_define_method(rb_mKernel, "ask_open_file", CASTHOOK(shoes_dialog_open), -1);
