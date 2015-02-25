@@ -26,8 +26,6 @@ module Make
     cp    "README.md", "#{TGT_DIR}/README.txt"
     cp    "CHANGELOG", "#{TGT_DIR}/CHANGELOG.txt"
     cp    "COPYING", "#{TGT_DIR}/COPYING.txt"
-    # things to hate:
-    osx_version_txt "#{TGT_DIR}/VERSION.txt"
    end
 
   def cc(t)
@@ -327,9 +325,6 @@ class MakeDarwin
       puts "Enter make_so"
       ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
       sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
-      #%w[libpostproc.dylib libavformat.dylib libavcodec.dylib libavutil.dylib libruby.dylib].each do |libn|
-      #  sh "install_name_tool -change /tmp/dep/lib/#{libn} ./deps/lib/#{libn} #{name}"
-      #end
     end
     
     def make_installer
@@ -337,7 +332,7 @@ class MakeDarwin
       nfs=ENV['NFS_ALTP'] 
       mkdir_p "#{nfs}pkg"
       #distfile = "#{nfs}pkg/#{PKG}#{TINYVER}-osx-10.9.tbz"
-      distfile = "#{nfs}pkg/#{PKG}#{TINYVER}-osx-10.6.tgz"
+      distfile = "#{nfs}pkg/#{APPNAME}-#{APP['VERSION']}-osx-10.6.tgz"
       Dir.chdir("#{TGT_DIR}") do
         unless ENV['DEBUG']
           Dir.chdir("#{APPNAME}.app/Contents/MacOS") do
@@ -345,7 +340,7 @@ class MakeDarwin
             #Dir.glob("lib/ruby/**/*.bundle").each {|lib| sh "strip -x #{lib}"}
           end
         end
-        distname = "#{PKG}#{TINYVER}"
+        distname = "#{APPNAME}-#{APP['VERSION']}"
         sh "tar -cf #{distname}.tar #{APPNAME}.app"
         sh "gzip #{distname}.tar"
         sh "mv #{distname}.tar.gz #{distfile}"
