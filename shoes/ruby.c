@@ -3778,6 +3778,7 @@ PLACE_COMMON(textblock)
 CLASS_COMMON2(textblock)
 REPLACE_COMMON(textblock)
 
+
 VALUE
 shoes_textblock_style_m(int argc, VALUE *argv, VALUE self)
 {
