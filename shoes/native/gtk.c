@@ -1524,9 +1524,6 @@ shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
     rb_parse_args(argc, argv, "s|h", &args);
     msg = RSTRING_PTR(args.a[0]);
       
-    GLOBAL_APP(app);
-    //GtkWidget *dialog;
-      
     char *format_string[50];    
     switch(argc)
     {
@@ -1547,6 +1544,7 @@ shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
         break;
     }
     
+    GLOBAL_APP(app);
     GtkWidget *dialog = gtk_message_dialog_new_with_markup(
             APP_WINDOW(app), GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_OK, 
             format_string );
@@ -1574,6 +1572,7 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
         if (RTEST(ATTR(args.a[1], title))) atitle = RSTRING_PTR(ATTR(args.a[1], title));
         break;
     }
+  
   GLOBAL_APP(app);
   GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle,
     APP_WINDOW(app), GTK_DIALOG_MODAL, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
@@ -1607,12 +1606,27 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
 
 
 VALUE
-shoes_dialog_confirm(VALUE self, VALUE quiz)
+shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
 {
   VALUE answer = Qfalse;
+  char *quiz = "";
+  char *atitle = "";
+  rb_arg_list args;
+  rb_parse_args(argc, argv, "s|h", &args);
+  quiz = shoes_native_to_s(args.a[0]);
+  
+    switch(argc)
+    {
+    case 1:
+        atitle = "Shoes asks:";
+        break;
+    case 2:
+        if (RTEST(ATTR(args.a[1], title))) atitle = RSTRING_PTR(ATTR(args.a[1], title));
+        break;
+    }
+    
   GLOBAL_APP(app);
-  quiz = shoes_native_to_s(quiz);
-  GtkWidget *dialog = gtk_dialog_new_with_buttons(_(dialog_title),
+  GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle,
     APP_WINDOW(app), GTK_DIALOG_MODAL, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
   gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
 #ifdef GTK3

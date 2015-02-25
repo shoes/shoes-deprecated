@@ -102,7 +102,7 @@ VALUE shoes_native_window_color(shoes_app *);
 VALUE shoes_native_dialog_color(shoes_app *);
 VALUE shoes_dialog_alert(int argc, VALUE *argv, VALUE self);
 VALUE shoes_dialog_ask(int argc, VALUE *argv, VALUE self);
-VALUE shoes_dialog_confirm(VALUE, VALUE);
+VALUE shoes_dialog_confirm(int argc, VALUE *argv, VALUE self);
 VALUE shoes_dialog_color(VALUE, VALUE);
 VALUE shoes_dialog_open(int,VALUE*,VALUE);
 VALUE shoes_dialog_save(int,VALUE*,VALUE);
