@@ -1476,11 +1476,12 @@ shoes_native_dialog_color(shoes_app *app)
 }
 
 VALUE
-shoes_dialog_alert(VALUE self, VALUE msg)
+shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
 {
   VALUE answer = Qnil;
+	char *msg;
   COCOA_DO({
-    msg = shoes_native_to_s(msg);
+    msg = shoes_native_to_s(argv[0]);
     NSAlert *alert = [NSAlert alertWithMessageText: @"Shoes says:"
       defaultButton: @"OK" alternateButton: nil otherButton: nil 
       informativeTextWithFormat: [NSString stringWithUTF8String: RSTRING_PTR(msg)]];
@@ -1539,11 +1540,13 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
 }
 
 VALUE
-shoes_dialog_confirm(VALUE self, VALUE quiz)
+shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
 {
   char *msg;
+	VALUE quiz;
   VALUE answer = Qnil;
   COCOA_DO({
+		quiz = argv[0];
     quiz = shoes_native_to_s(quiz);
     msg = RSTRING_PTR(quiz);
     NSAlert *alert = [NSAlert alertWithMessageText: @"Shoes asks:"
