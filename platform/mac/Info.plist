@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
   <key>CFBundleGetInfoString</key>
-  <string>#{APPNAME} #{VERS}</string>
+  <string>#{APPNAME} #{APP['MAJOR']}.#{APP['MINOR']}</string>
   <key>CFBundleExecutable</key>
   <string>#{NAME}-launch</string>
   <key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
   <key>CFBundleIconFile</key>
   <string>App.icns</string>
   <key>CFBundleShortVersionString</key>
-  <string>#{VERS}</string>
+  <string>#{APP['MAJOR']}.#{APP['MINOR']}</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>

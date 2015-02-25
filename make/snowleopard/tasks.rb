@@ -318,7 +318,7 @@ class MakeDarwin
       nfs=ENV['NFS_ALTP'] 
       mkdir_p "#{nfs}pkg"
       #distfile = "#{nfs}pkg/#{PKG}#{TINYVER}-osx-10.9.tbz"
-      distfile = File.expand_path("#{nfs}pkg/#{PKG}#{TINYVER}-osx-#{ENV['MACOSX_DEPLOYMENT_TARGET']}.tgz")
+      distfile = File.expand_path("#{nfs}pkg/#{APP['name']}-#{APP['VERSION']}-osx-#{ENV['MACOSX_DEPLOYMENT_TARGET']}.tgz")
       Dir.chdir("#{TGT_DIR}") do
         unless ENV['GDB']
           Dir.chdir("#{APPNAME}.app/Contents/MacOS") do
@@ -326,7 +326,7 @@ class MakeDarwin
             #Dir.glob("lib/ruby/**/*.bundle").each {|lib| sh "strip -x #{lib}"}
           end
         end
-        distname = "#{PKG}#{TINYVER}"
+        distname = "#{APP['name']}-#{APP['VERSION']}"
         sh "tar -cf #{distname}.tar #{APPNAME}.app"
         sh "gzip #{distname}.tar"
         sh "mv #{distname}.tar.gz #{distfile}"
