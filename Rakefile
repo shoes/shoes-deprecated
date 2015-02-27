@@ -38,7 +38,7 @@ end
 
 
 NAME = APP['shortname'] || APP['name'].downcase.gsub(/\W+/, '')
-APPNAME = NAME  # APP['name']
+APPNAME = APP['name'] # OSX needs this
 SONAME = 'shoes'
 APPARGS = APP['run']
 
@@ -78,9 +78,9 @@ CLEAN.include ["req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
 case RUBY_PLATFORM
 when /mingw/
   if CROSS
-    require File.expand_path("make/tightmingw/env")
-    require File.expand_path("make/tightmingw/tasks")
-    require File.expand_path("make/tightmingw/stubs")
+    require File.expand_path("make/win7/env")
+    require File.expand_path("make/win7/tasks")
+    require File.expand_path("make/win7/stubs")
   else
     require File.expand_path('rakefile_mingw')
   end
@@ -118,10 +118,10 @@ when /linux/
     when /xarmv6-pi/
       require File.expand_path('make/xarmv6-pi/env')
       require File.expand_path('make/xarmv6-pi/tasks')
-    when /xmingw32/
-      require File.expand_path('make/xmingw32/env')
-      require File.expand_path('make/xmingw32/tasks')
-      require File.expand_path('make/xmingw32/stubs')
+    when /xwin7/
+      require File.expand_path('make/xwin7/env')
+      require File.expand_path('make/xwin7/tasks')
+      require File.expand_path('make/xwin7/stubs')
     when /xmsw32/
       require File.expand_path('make/xmsw32/env')
       require File.expand_path('make/xmsw32/tasks')
@@ -323,7 +323,7 @@ namespace :osx do
   namespace :setup do
     desc "Setup to build Shoes for 10.9+"
     task :mavericks do
-      sh "echo 'TGT_ARCH=mavericks-x86_64' >crosscompile"
+      sh "echo 'TGT_ARCH=mavericks' >crosscompile"
     end
     
     desc "Setup to build for 10.6+ from 10.6"
@@ -363,9 +363,9 @@ namespace :win32 do
   
   namespace :setup do
     desc "Build for distribution (Tight)"
-    task :tight do
+    task :win7 do
       puts "Windows tight build"
-      sh "echo TGT_ARCH=tightmingw >crosscompile"      
+      sh "echo TGT_ARCH=win7 >crosscompile"      
     end
     
     desc "Loose setup"
@@ -408,9 +408,9 @@ namespace :linux do
 #    end
 
     desc "Cross compile to MingW32 (Gtk)"
-    task :mingw32 do
+    task :xwin7 do
       puts "Cross compile for Windows MingW32"
-      sh "echo 'TGT_ARCH=xmingw32' >crosscompile"
+      sh "echo 'TGT_ARCH=xwin7' >crosscompile"
     end
 
     desc "Cross compile to i686 32bit linux"
