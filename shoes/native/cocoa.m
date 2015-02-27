@@ -1490,9 +1490,10 @@ shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
 		{
       if (RTEST(ATTR(args.a[1], title)))
       {
-        char *tmptitle = RSTRING_PTR(ATTR(args.a[1], title));
+				VALUE tmpstr = shoes_native_to_s(ATTR(args.a[1], title));
+        //char *tmptitle = RSTRING_PTR(ATTR(args.a[1], title));
 				//NSLog(@"getting title string %s", tmptitle);
-        deftitle = [[NSString alloc] initWithUTF8String: tmptitle];
+        deftitle = [[NSString alloc] initWithUTF8String: RSTRING_PTR(tmpstr)];
       }
       else
 			{
@@ -1515,6 +1516,23 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
   VALUE answer = Qnil;
   rb_parse_args(argc, argv, "s|h", &args);
   COCOA_DO({
+    // replace with styles if needed when we have one
+		NSString *deftitle =  @"Shoes says:";
+		if (argc > 1)
+		{
+      if (RTEST(ATTR(args.a[1], title)))
+      {
+				VALUE tmpstr = shoes_native_to_s(ATTR(args.a[1], title));
+        //char *tmptitle = RSTRING_PTR(ATTR(args.a[1], title));
+				//NSLog(@"getting title string %s", tmptitle);
+        deftitle = [[NSString alloc] initWithUTF8String: RSTRING_PTR(tmpstr)];
+      }
+      else
+			{
+				deftitle = [[NSString alloc] initWithUTF8String: ""];
+			}
+		}
+		
     NSApplication *NSApp = [NSApplication sharedApplication];
     ShoesAlert *alert = [[ShoesAlert alloc] init];
     NSButton *okButton = [[[NSButton alloc] initWithFrame: 
@@ -1529,7 +1547,7 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
     else
       input = [[NSTextField alloc] initWithFrame:NSMakeRect(20, 72, 300, 24)];
 
-    [alert setTitle: @"Shoes asks:"];
+    [alert setTitle: deftitle];
     [text setStringValue: [NSString stringWithUTF8String: RSTRING_PTR(args.a[0])]];
     [text setBezeled: NO];
     [text setBackgroundColor: [NSColor windowBackgroundColor]];
@@ -1563,11 +1581,29 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
   char *msg;
 	VALUE quiz;
   VALUE answer = Qnil;
+  rb_arg_list args;
+  rb_parse_args(argc, argv, "s|h", &args);
   COCOA_DO({
+    // replace with styles if needed when we have one
+		NSString *deftitle =  @"Shoes says:";
+		if (argc > 1)
+		{
+      if (RTEST(ATTR(args.a[1], title)))
+      {
+				VALUE tmpstr = shoes_native_to_s(ATTR(args.a[1], title));
+        //char *tmptitle = RSTRING_PTR(ATTR(args.a[1], title));
+				//NSLog(@"getting title string %s", tmptitle);
+        deftitle = [[NSString alloc] initWithUTF8String: RSTRING_PTR(tmpstr)];
+      }
+      else
+			{
+				deftitle = [[NSString alloc] initWithUTF8String: ""];
+			}
+		}
 		quiz = argv[0];
     quiz = shoes_native_to_s(quiz);
     msg = RSTRING_PTR(quiz);
-    NSAlert *alert = [NSAlert alertWithMessageText: @"Shoes asks:"
+    NSAlert *alert = [NSAlert alertWithMessageText: deftitle
       defaultButton: @"OK" alternateButton: @"Cancel" otherButton:nil 
       informativeTextWithFormat: [NSString stringWithUTF8String: msg]];
     answer = ([alert runModal] == NSOKButton ? Qtrue : Qfalse);

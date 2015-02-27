@@ -1534,7 +1534,8 @@ shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
     case 2:
         if (RTEST(ATTR(args.a[1], title)))
         {
-            atitle = RSTRING_PTR(ATTR(args.a[1], title));
+			VALUE tmpstr = ATTR(args.a[1], title);
+            atitle = RSTRING_PTR(shoes_native_to_s(tmpstr));
             snprintf(format_string, sizeof(format_string), "<span size='larger'>%s</span>\n\n%s", atitle, msg);
         }
         else
@@ -1569,7 +1570,11 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
         atitle = "Shoes asks:";
         break;
     case 2:
-        if (RTEST(ATTR(args.a[1], title))) atitle = RSTRING_PTR(ATTR(args.a[1], title));
+        if (RTEST(ATTR(args.a[1], title))) 
+        {
+		  VALUE tmpstr = ATTR(args.a[1], title);
+          atitle = RSTRING_PTR(shoes_native_to_s(tmpstr));
+		}
         break;
     }
   
@@ -1621,7 +1626,11 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
         atitle = "Shoes asks:";
         break;
     case 2:
-        if (RTEST(ATTR(args.a[1], title))) atitle = RSTRING_PTR(ATTR(args.a[1], title));
+        if (RTEST(ATTR(args.a[1], title))) 
+        {
+		  VALUE tmpstr = ATTR(args.a[1], title);
+          atitle = RSTRING_PTR(shoes_native_to_s(tmpstr));
+		}
         break;
     }
     
