@@ -109,15 +109,15 @@ when /linux/
   if CROSS
     # This will be a Tight Shoes setup
     case TGT_ARCH
-    when /x86_64-linux/ 
-      require File.expand_path('make/x86_64-linux/env')
-      require File.expand_path('make/x86_64-linux/tasks')
-    when /i386-gnu-linux/
-      require File.expand_path('make/xi386-gnu-linux/env')
-      require File.expand_path('make/xi386-gnu-linux/tasks')
-    when /xarmv6-pi/
-      require File.expand_path('make/xarmv6-pi/env')
-      require File.expand_path('make/xarmv6-pi/tasks')
+    when /x86_64_linux/ 
+      require File.expand_path('make/x86_64_linux/env')
+      require File.expand_path('make/x86_64_linux/tasks')
+    when /xi686_linux/
+      require File.expand_path('make/xi686_linux/env')
+      require File.expand_path('make/xi686_linux/tasks')
+    when /xarmv6hf/
+      require File.expand_path('make/xarm6hf/env')
+      require File.expand_path('make/xarm6hf/tasks')
     when /xwin7/
       require File.expand_path('make/xwin7/env')
       require File.expand_path('make/xwin7/tasks')
@@ -125,9 +125,6 @@ when /linux/
     when /xmsw32/
       require File.expand_path('make/xmsw32/env')
       require File.expand_path('make/xmsw32/tasks')
-    #when /xsnow/
-    #  require File.expand_path('make/xsnow/env')
-    #  require File.expand_path('make/xsnow/tasks')
    else
       puts "Unknown builder for #{TGT_ARCH}, removing setting"
       rm_rf "crosscompile" if File.exists? "crosscompile"
@@ -331,7 +328,7 @@ namespace :osx do
       sh "echo 'TGT_ARCH=snowleopard' >crosscompile"
     end
     
-    desc "Experimental Build 10.6 from 10.9"
+    desc "Downshift Build 10.6 from 10.9"
     task "xsnow" do
       sh "echo 'TGT_ARCH=xsnow' >crosscompile"
     end
@@ -395,10 +392,9 @@ end
 namespace :linux do
 
   namespace :setup do
-    desc "Cross compile to Raspberry pi"
-    task :rpi do
-      puts "Cross compile to Raspberry setup"
-      sh "echo 'TGT_ARCH=xarmv6-pi' >crosscompile"
+    desc "Cross compile to Raspberry pi 1a, 1b, 2"
+    task :xarm6hf do
+      sh "echo 'TGT_ARCH=xarmv6hf' >crosscompile"
     end
 
 #    desc "Cross compile to Windows Native GUI"
@@ -413,16 +409,16 @@ namespace :linux do
       sh "echo 'TGT_ARCH=xwin7' >crosscompile"
     end
 
-    desc "Cross compile to i686 32bit linux"
-    task :x32 do
+    desc "Cross compile to i686 (32bit linux)"
+    task :xi686_linux do
       puts "Cross complile to i386-gnu-linux setup"
-      sh "echo 'TGT_ARCH=i386-gnu-linux' >crosscompile"
+      sh "echo 'TGT_ARCH=xi686_linux' >crosscompile"
     end
     
-    desc "Cross compile to x86_64-linux"
-    task :x86 do
+    desc "Cross compile to x86_64 (64 bit linux)"
+    task :x86_64_linux do
       puts "Cross complile to x86_64-linux setup"
-      sh "echo 'TGT_ARCH=x86_64-linux' >crosscompile"
+      sh "echo 'TGT_ARCH=x86_64_linux' >crosscompile"
     end
     
     desc "Remove cross compile setup"
