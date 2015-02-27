@@ -3724,7 +3724,11 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   { \
     shoes_canvas *canvas = NULL; \
     GET_STRUCT(ele, self_t); \
-    if (!NIL_P(self_t->parent)) Data_Get_Struct(self_t->parent, shoes_canvas, canvas); \
+    if (!NIL_P(self_t->parent)) { \
+      Data_Get_Struct(self_t->parent, shoes_canvas, canvas); \
+    } else { \
+      Data_Get_Struct(self, shoes_canvas, canvas); \
+    } \
     return INT2NUM(self_t->place.x - CPX(canvas)); \
   } \
   \
@@ -3733,7 +3737,11 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   { \
     shoes_canvas *canvas = NULL; \
     GET_STRUCT(ele, self_t); \
-    if (!NIL_P(self_t->parent)) Data_Get_Struct(self_t->parent, shoes_canvas, canvas); \
+    if (!NIL_P(self_t->parent)) { \
+      Data_Get_Struct(self_t->parent, shoes_canvas, canvas); \
+    } else { \
+      Data_Get_Struct(self, shoes_canvas, canvas); \
+    } \
     return INT2NUM(self_t->place.y - CPY(canvas)); \
   } \
   \
