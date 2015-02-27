@@ -27,9 +27,9 @@ if RbConfig::CONFIG['rubyhdrdir']
 end
 LINUX_LIB_NAMES = %W[#{RUBY_SO} cairo pangocairo-1.0 ungif]
   
-FLAGS.each do |flag|
-  LINUX_CFLAGS << " -D#{flag}" if ENV[flag]
-end
+#FLAGS.each do |flag|
+#  LINUX_CFLAGS << " -D#{flag}" if ENV[flag]
+#end
 if ENV['DEBUG']
   LINUX_CFLAGS << " -g -O0 "
 else
