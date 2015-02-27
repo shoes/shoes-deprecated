@@ -643,7 +643,7 @@ Shoes::REVISION is the Subversion revision number for this build.
 
 
 
-=== alert(message: a string) » nil ===
+=== alert(message: a string, :title => a string or nil) » nil ===
 
 Pops up a window containing a short message.
 
@@ -652,11 +652,23 @@ Pops up a window containing a short message.
  alert("I'm afraid I must interject!")
 }}}
 
+`:title` is optional and replace the default "Shoes says:" with the string you provide or could be set to `nil` in which case the window won't have a title at all.
+
+{{{
+ #!ruby
+ alert("I'm afraid I must interject!", :title => "Sorry but :")
+}}}
+
+{{{
+ #!ruby
+ alert("I'm afraid I must interject!", :title => nil)
+}}}
+
 Please use alerts sparingly, as they are incredibly annoying!  If you are using
 alerts to show messages to help you debug your program, try checking out the
 [[Built-in.debug]] or [[Built-in.info]] methods.
 
-=== ask(message: a string) » a string ===
+=== ask(message: a string, :title => a string or nil) » a string ===
 
 Pops up a window and asks a question. For example, you may want to ask someone
 their name.
@@ -669,6 +681,9 @@ their name.
 When the above script is run, the person at the computer will see a window with
 a blank box for entering their name. The name will then be saved in the `name`
 variable.
+
+`:title` is optional and replace the default "Shoes asks:" with the string you provide or could be set to `nil` in which case the window won't have a title at all.
+See [[Built-in.alert]] method for similar examples.
 
 === ask_color(title: a string) » Shoes::Color ===
 
@@ -734,7 +749,7 @@ previously. On OS X, this method currently behaves like an alias of
 }}}
 
 
-=== confirm(question: a string) » true or false ===
+=== confirm(question: a string, :title => a string or nil) » true or false ===
 
 Pops up a yes-or-no question. If the person at the computer, clicks '''yes''',
 you'll get back a `true`. If not, you'll get back `false`.
@@ -745,6 +760,9 @@ you'll get back a `true`. If not, you'll get back `false`.
   Shoes.app{ oval :top => 0, :left => 0, :radius => 50 }
  end
 }}}
+          
+`:title` is optional and replace the default "Shoes asks:" with the string you provide or could be set to `nil` in which case the window won't have a title at all.
+See [[Built-in.alert]] method for similar examples.
 
 === debug(message: a string) » nil ===
 
