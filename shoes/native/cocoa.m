@@ -1479,10 +1479,28 @@ VALUE
 shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
 {
   VALUE answer = Qnil;
+  rb_arg_list args;
+  rb_parse_args(argc, argv, "s|h", &args);
 	char *msg;
   COCOA_DO({
-    msg = shoes_native_to_s(argv[0]);
-    NSAlert *alert = [NSAlert alertWithMessageText: @"Shoes says:"
+    msg = shoes_native_to_s(args.a[0]);
+    // replace with styles if needed when we have one
+		NSString *deftitle =  @"Shoes says:";
+		if (argc > 1)
+		{
+      if (RTEST(ATTR(args.a[1], title)))
+      {
+        char *tmptitle = RSTRING_PTR(ATTR(args.a[1], title));
+				//NSLog(@"getting title string %s", tmptitle);
+        deftitle = [[NSString alloc] initWithUTF8String: tmptitle];
+      }
+      else
+			{
+				deftitle = [[NSString alloc] initWithUTF8String: ""];
+			}
+		}
+		//NSLog(@"default title |%@|", deftitle);
+    NSAlert *alert = [NSAlert alertWithMessageText: deftitle
       defaultButton: @"OK" alternateButton: nil otherButton: nil 
       informativeTextWithFormat: [NSString stringWithUTF8String: RSTRING_PTR(msg)]];
     [alert runModal];
