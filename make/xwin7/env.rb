@@ -9,13 +9,15 @@ APP['GTK'] = "gtk+-2.0"
 COPY_GTK = true
 #ENV['GDB'] = "basic" # 'basic' = keep symbols,  or 'profile'
 if APP['GTK'] == "gtk+-2.0"
-  CHROOT = "/srv/chroot/mingwgtk2"
+  #CHROOT = "/srv/chroot/mingwgtk2"
+  CHROOT = "/home/ccoupe/Projects/shoesdeps/mingw"
 else
   CHROOT = "/srv/chroot/mingw32"
 end
 # Where does ruby code live? Please cross compile Ruby. 
 # Use ruby 2.1.0
-EXT_RUBY = "/srv/chroot/mingwgtk2/usr/local"
+#EXT_RUBY = "/srv/chroot/mingwgtk2/usr/local"
+EXT_RUBY = "#{CHROOT}/usr/local"
 SHOES_TGT_ARCH = "i386-mingw32"
 # Specify where the Target system binaries live. 
 # Trailing slash is important.
@@ -139,12 +141,13 @@ SOLOCS = {
   'gif'     => "#{bindll}/libgif-4.dll",
   'jpeg'    => "#{bindll}/libjpeg-9.dll",
   'libyaml' => "#{bindll}/libyaml-0-2.dll",
-  'intl'    => "#{bindll}/intl.dll",
+  #'intl'    => "#{bindll}/intl.dll",
   'iconv'   => "#{bindll}/libiconv-2.dll",
   'ffi'     => "#{bindll}/libffi-5.dll",
   'eay'     => "#{bindll}/libeay32.dll",
-  'gdbm'    => "#{bindll}/libgdbm-3.dll",
-  'gdbmc'   => "#{bindll}/libgdbm_compat-3.dll",
+  #'gdbm'    => "#{bindll}/libgdbm-3.dll",
+  #'gdbmc'   => "#{bindll}/libgdbm_compat-3.dll",
+  'gdbm'    => "#{bindll}/libgdbm-4.dll",
   'ssl'     => "#{bindll}/ssleay32.dll",
   'sqlite'  => "#{bindll}/sqlite3.dll"
 }
@@ -187,10 +190,11 @@ if APP['GTK'] == 'gtk+-2.0' && COPY_GTK == true
       'atk'         => "#{bindll}/libatk-1.0-0.dll",
       'cairo'       => "#{bindll}/libcairo-2.dll",
       'cairo-gobj'  => "#{bindll}/libcairo-gobject-2.dll",
-    #  'ffi'        => "#{bindll}/libffi-6.dll",
-      'ffi'         => "#{bindll}/libffi-5.dll",
+    #  'ffi'         => "#{bindll}/libffi-5.dll",
+      'ffi'        => "#{bindll}/libffi-6.dll",
       'fontconfig'  => "#{bindll}/libfontconfig-1.dll",
-      'freetype'    => "#{bindll}/freetype6.dll",
+    #  'freetype'    => "#{bindll}/freetype6.dll",
+      'freetype'    => "#{bindll}/libfreetype-6.dll",
       'gdkpixbuf'   => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
       'gdk2'        => "#{bindll}/libgdk-win32-2.0-0.dll",
       'gio'         => "#{bindll}/libgio-2.0-0.dll",
@@ -198,15 +202,20 @@ if APP['GTK'] == 'gtk+-2.0' && COPY_GTK == true
       'gmodule'     => "#{bindll}/libgmodule-2.0-0.dll",
       'gobject'     => "#{bindll}/libgobject-2.0-0.dll",
       'gtk2'        => "#{bindll}/libgtk-win32-2.0-0.dll",
+      'pixman'      => "#{bindll}/libpixman-1-0.dll", 
     #  'iconv'      => "#{bindll}/libiconv-2.dll",
-      'intl'        => "#{bindll}/intl.dll",
+    #  'intl'        => "#{bindll}/intl.dll",
+      'intl8'        => "#{bindll}/libintl-8.dll",
       'pango'       => "#{bindll}/libpango-1.0-0.dll",
       'pangocairo'  => "#{bindll}/libpangocairo-1.0-0.dll",
       'pangoft'     => "#{bindll}/libpangoft2-1.0-0.dll",
       'pango32'     => "#{bindll}/libpangowin32-1.0-0.dll",
-      'pixman'      => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
-      'png14'       => "#{bindll}/libpng14-14.dll",
-      'xml2'        => "#{bindll}/libexpat-1.dll",
+      'pixbuf'      => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
+      'harfbuzz'    => "#{bindll}/libharfbuzz-0.dll",
+     # 'png14'       => "#{bindll}/libpng14-14.dll",
+      'png16'       => "#{bindll}/libpng16-16.dll",
+     # 'xml2'        => "#{bindll}/libexpat-1.dll",
+      'xml2'        => "#{bindll}/libxml2-2.dll",
       'thread'      => "#{bindll}/libgthread-2.0-0.dll",
       'zlib1'       => "#{bindll}/zlib1.dll",
     #  'lzma'       => "#{bindll}/liblzma-5.dll",

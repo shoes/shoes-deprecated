@@ -77,6 +77,7 @@ module Make
     end
     sh "#{WINDRES} -I. shoes/appwin32.rc shoes/appwin32.o"
     cp 'platform/msw/fonts.conf', TGT_DIR
+    cp 'platform/msw/fc-cache.exe', TGT_DIR
  end
 
   # common_build is a misnomer. Builds extentions, gems

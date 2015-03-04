@@ -1,11 +1,101 @@
 Bugs/Status - stick with Ruby 2.1.x and gtk2 until things get sorted
   out with GKt3 and later Rubyies
   
+2015-03-03
+     can run the exe's in shoesdeps/mingw/bin after adding libwinpthread-1.dll
+     and that libgcc_s_s...
+-----> used old gtk/gdk dlls. - Works on windows, w/o pango complaints.
+====> note changelog - no more dbm gem. use sdbm or gdbm
+  
+2015-03-02
+done: libgdbm - 1.11 needs patch
+----> do we need pixman - it's not copied to the Shoes target. 
+----> copy harfbuzz.dll in env.rb
+----> gtk compile - wants to run /usr/bin/gtk-update-icon-cache
+----> build rbuby (new zlib, gdbm,,,)
+  
+2015-03-01
+done: freetype and fontconfig are a bitch. They all are if you're typo prone.
+done: build libz 1.2.8. Start with empty bin/lib/include/etc
+----> build libpng16
+  
+2015-02-28 Cross compile everything to ~/Projects/shoesdeps/mingw
+----> move to ~/Projects/shoesdeps/src and build everything from source
+done: zlib is a pain - use make -f win32/Makefile/gcc 
+      hints: https://wiki.openttd.org/Cross-compiling_for_Windows#Compiling_zlib
+done: libpng 1.6.16. (remove old 1.14?)
+      cross-png.sh is a template for all others?
+done: freetype
+      had to remove old ft2build.h from shoesdeps/mingw/include
+done: libxml
+done: sed the prefix in all the pkgconfig *.pc
+done: fontconfig 
+      need iconv done
+      need -llibpng  - explicit png16.16
+      need -lharbuzz - disable
+  
+2015-02-17
+done: fontconfig 2.11.1 did not fix the windows pango problem. 
+
+2015-02-26
+done: alert, ask, confirm with optional :title hash arg.
+====> OSX double shoes.app's when running bug059.rb
+done? rename make/xxxx and modify Rakefile
+
+  
+2015-02-25
+done:  hpricot snowleopard compile didn't. gcc -Wno-something failed.
+done:  minimal cocoa.m implementation of new api for ask/alert/confirm
+done"  needs new functions with ruby type conversions.
+       duplicate alerts on OSX. did i delete that extra keybress thing?
+       osx string init. 
+  
+2015-02-24
+     work with passenger and ian on their investigations
+done: clean up snowleopard target rake files - pretty nice
+done: snow  fails to build hpricot (bad compiler Wno-something)
+done: osx Info.plist use "#{APP['MAJOR']}.#{APP['MINOR']}"  instead of #{VERS}
+      
+      Delete old stuff from Rakefile
+2015-02-23
+done: Test Ian's fix for #60
+----> OSX rake files are still ugly
+done: snowleopard native rake files.
+  
+2015-02-22
+done: more cleanup of loose shoes linux rake files
+done: OSX lots of issues with rakefiles
+done: double check linux, Shoes.desktop.
+
+2015-02-21
+done: mavericks rake cleanup
+  
+2015-02-20
+done: cleanup for rpi rake files.
+done: cleanup for xmingw and tightmingw rakefiles.
+done: x86_64 cleanup
+done: i366 cleanup
+done: apt-get install git in x86 and i36 schroots
+done: Loose shoes linux clean up
+done:strip shoes.exe, cshoes.exe
+----> Loose Shoes - mingw - doesn't really exist 
+done: OSX rake clean up (xsnow, mavericks, snow, darwin)
+done: Delete the crud in Rakefile and try a full rebuild
+
+2015-02-19
+done: patch for 2.1.5 mingw - rebuild ruby.
+done: cp VERSION.txt in tasks.rb make_installer 
+     change WINVERSION to use APP['VERSION']
+     
+done: fix -v , splash screen build info
+---> multiple extconf for sqlite3 mac, win, nix? easier to understand.
+---> way to load gems at shoes install ? That way gems could be compiled
+     separately - big help if we need more gems in the future
   
 2015-02-17
 done: Rakefile - task 'version' is dependency of package and install.
-----> Update env.rb, tasks.rb to use new constants, clean up stuff - new issue?
-done: Cobbler - show full version, revision 
+done: Update env.rb, tasks.rb to use new constants, clean up stuff - issue 70
+done: Cobbler - show full version, revision . shoes.rb splash.
   
 2015-02-16
 done: Rakefile - create APP['uppercase']= string to match new scheme
@@ -36,12 +126,12 @@ done: New set of SHOES::constants
 3.2.22 thoughts
      The alert & ask enhancements.
      Pango-querymodules.exe,fontconfig on Windows.
-     Revisit the version issues. (several bugs, shoes3.git/shoes3 org makes
+done:     Revisit the version issues. (several bugs, shoes3.git/shoes3 org makes
       the r.1234 useful again
      reclone shoesrb
      Furthermore section of the Manual
      Fix the visits(in the manual)
-     tar and upload 10.6 shoesdep dependencies. 
+done: tar and upload 10.6 shoesdep dependencies. 
      
 ============ Shoes 3.2.21 below =========
      
