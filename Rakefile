@@ -122,6 +122,7 @@ when /linux/
       require File.expand_path('make/xwin7/env')
       require File.expand_path('make/xwin7/tasks')
       require File.expand_path('make/xwin7/stubs')
+      require File.expand_path('make/xwin7/packdeps')
     when /xmsw32/
       require File.expand_path('make/xmsw32/env')
       require File.expand_path('make/xmsw32/tasks')
