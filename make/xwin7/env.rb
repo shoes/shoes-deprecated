@@ -9,19 +9,19 @@ APP['GTK'] = "gtk+-2.0"
 COPY_GTK = true
 #ENV['GDB'] = "basic" # 'basic' = keep symbols,  or 'profile'
 if APP['GTK'] == "gtk+-2.0"
-  #CHROOT = "/srv/chroot/mingwgtk2"
-  CHROOT = "/home/ccoupe/Projects/shoesdeps/mingw"
+  #ShoesDeps = "/srv/chroot/mingwgtk2"
+  ShoesDeps = "/home/ccoupe/Projects/shoesdeps/mingw"
 else
-  CHROOT = "/srv/chroot/mingw32"
+  ShoesDeps = "/srv/chroot/mingw32"
 end
 # Where does ruby code live? Please cross compile Ruby. 
 # Use ruby 2.1.0
 #EXT_RUBY = "/srv/chroot/mingwgtk2/usr/local"
-EXT_RUBY = "#{CHROOT}/usr/local"
+EXT_RUBY = "#{ShoesDeps}/usr/local"
 SHOES_TGT_ARCH = "i386-mingw32"
 # Specify where the Target system binaries live. 
 # Trailing slash is important.
-TGT_SYS_DIR = "#{CHROOT}/"
+TGT_SYS_DIR = "#{ShoesDeps}/"
 # Setup some shortcuts for the library locations. These are not ruby paths. 
 # depends on what ruby was compiled to produce. Don't guess. 
 arch = 'i386-mingw32'
@@ -35,7 +35,7 @@ CC = "i686-w64-mingw32-gcc"
 STRIP = "strip -x"
 WINDRES = "i686-w64-mingw32-windres"
 # These ENV vars are used by the extconf.rb files
-ENV['SYSROOT']=CHROOT
+ENV['SYSROOT']=ShoesDeps
 ENV['CC']=CC
 ENV['TGT_RUBY_PATH']=EXT_RUBY
 ENV['TGT_ARCH'] = SHOES_TGT_ARCH
@@ -143,7 +143,7 @@ SOLOCS = {
   'libyaml' => "#{bindll}/libyaml-0-2.dll",
   #'intl'    => "#{bindll}/intl.dll",
   'iconv'   => "#{bindll}/libiconv-2.dll",
-  'ffi'     => "#{bindll}/libffi-5.dll",
+  #'ffi'     => "#{bindll}/libffi-5.dll",
   'eay'     => "#{bindll}/libeay32.dll",
   #'gdbm'    => "#{bindll}/libgdbm-3.dll",
   #'gdbmc'   => "#{bindll}/libgdbm_compat-3.dll",

@@ -25,6 +25,19 @@ module Make
     cp   "README.md", "#{TGT_DIR}/README.txt"
     cp   "CHANGELOG", "#{TGT_DIR}/CHANGELOG.txt"
     cp   "COPYING", "#{TGT_DIR}/COPYING.txt"
+    cp 'platform/msw/fonts.conf', TGT_DIR
+    bindir = "#{ShoesDeps}/bin"
+    cp "#{bindir}/fc-cache.exe", TGT_DIR
+    # below for debugging purposes
+    if ENV['GDB'] 
+      cp "#{bindir}/fc-cat.exe", TGT_DIR
+      cp "#{bindir}/fc-list.exe", TGT_DIR
+      cp "#{bindir}/fc-match.exe", TGT_DIR
+      cp "#{bindir}/fc-pattern.exe", TGT_DIR
+      cp "#{bindir}/fc-query.exe", TGT_DIR
+      cp "#{bindir}/fc-scan.exe", TGT_DIR
+      cp "#{bindir}/fc-validate.exe", TGT_DIR
+    end
   end
 
   def cc(t)
