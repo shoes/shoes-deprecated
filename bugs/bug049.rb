@@ -6,8 +6,5 @@ Shoes.app {
    font "#{DIR}/fonts/Lacuna.ttf"
    para "#{Shoes::FONTS}\n"
    para "\n..............................................\n"
-   ft =  ["1", "2", "3"]
-   para ft
-   para "\n******\n"
-   para "#{ft}"
+   Shoes::FONTS.each {|ft| info ft}
 }

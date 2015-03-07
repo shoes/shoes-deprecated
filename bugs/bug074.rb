@@ -15,5 +15,6 @@ Shoes.app {
   info Shoes::Types::App::instance_methods
   info self.class
   info Shoes::method_defined? :top
+  info top
 }
 
