@@ -124,6 +124,7 @@ Section Uninstall
    
    ${unregisterExtension} ".shy" "Shoes Application"
    ${un.EnvVarUpdate} $0 "PATH" "R" HKLM $INSTDIR
+   ${un.EnvVarUpdate} $0 "FONTCONFIG_FILE" "R" HKLM "$INSTDIR\fonts.conf"
 
    DeleteRegKey ${SHOES_UNINST_ROOT_KEY} "${SHOES_UNINST_KEY}"
    DeleteRegKey HKLM "${SHOES_INST_KEY}"
