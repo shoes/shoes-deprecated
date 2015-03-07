@@ -1,26 +1,57 @@
 Bugs/Status - stick with Ruby 2.1.x and gtk2 until things get sorted
   out with GKt3 and later Rubyies
   
+2015-03-06
+done: Mods to gtk.c, fonts.conf and much experimenting.  I'm OK with it.
+----> I'd like nicer font's like Linux produces. But it's OK.
+done: on uninstall, remove ENV var FONTCONFILE_FILE
+----> still produces a missing icon message if file/folder open is invoked.
+----> much editing of wiki articles needed. 
+      Write an INSTALL along with the README? 
+----> create a packdeps script
+  
+2015-03-05
+done: libpangowin32 is in both gtk-2.24.10 and gtk-2.24.26 and both
+      show poor choices for default fonts. 
+      built 2.24.10 from source - it does not have the index.template problem!
+      
+done: bug078.rb shoes the problem with 3.2.22 on windows
+      
+      Consider overiding
+      http://ricardo.ecn.wfu.edu/~cottrell/gtk_win32/
+      it's workable.
+  
+2015-03-04
+     1.Works on Windows but the gtk widget fonts look bitmapped ugly
+done: find out what was dll linked in bundled gtk.pango,fontconfig, freetype.
+done: Dependency Walker on windows can produce a nice text (edit by hand)
+       Harfbuff in 3.2.22 - no surprise.
+       pixman not in 3.2.21 - linked to Cairo in 3.2.22
+done: rebuild gtk. 
+---->  I leave out a post build step according to README.win32
+done:  Hacked index.theme in Makefile.in - 
+
 2015-03-03
      can run the exe's in shoesdeps/mingw/bin after adding libwinpthread-1.dll
      and that libgcc_s_s...
------> used old gtk/gdk dlls. - Works on windows, w/o pango complaints.
+     can run fc-cache.exe
+done: build gtk - beware icon cache issues. we don't create the cache or index.
 ====> note changelog - no more dbm gem. use sdbm or gdbm
   
 2015-03-02
 done: libgdbm - 1.11 needs patch
-----> do we need pixman - it's not copied to the Shoes target. 
-----> copy harfbuzz.dll in env.rb
-----> gtk compile - wants to run /usr/bin/gtk-update-icon-cache
-----> build rbuby (new zlib, gdbm,,,)
+done: do we need pixman - it's not copied to the Shoes target. 
+done: copy harfbuzz.dll in env.rb
+done: gtk compile - wants to run /usr/bin/gtk-update-icon-cache
+done: build rbuby (new zlib, gdbm,,,)
   
 2015-03-01
 done: freetype and fontconfig are a bitch. They all are if you're typo prone.
 done: build libz 1.2.8. Start with empty bin/lib/include/etc
-----> build libpng16
+done: build libpng16
   
 2015-02-28 Cross compile everything to ~/Projects/shoesdeps/mingw
-----> move to ~/Projects/shoesdeps/src and build everything from source
+done: move to ~/Projects/shoesdeps/src and build everything from source
 done: zlib is a pain - use make -f win32/Makefile/gcc 
       hints: https://wiki.openttd.org/Cross-compiling_for_Windows#Compiling_zlib
 done: libpng 1.6.16. (remove old 1.14?)
