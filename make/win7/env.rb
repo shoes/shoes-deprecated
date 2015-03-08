@@ -28,7 +28,7 @@ WINDRES = "windres"
 PKG_CONFIG = "#{ShoesDeps}/bin/pkg-config"  # the one from glib
 
 if ENV['DEBUG'] || ENV['GDB']
-  WIN32_CFLAGS << "-g -O0"
+  WIN32_CFLAGS << "-g3 -O0"
 else
   WIN32_CFLAGS << "-O -Wall"
 end
