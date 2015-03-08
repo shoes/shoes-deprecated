@@ -1,6 +1,7 @@
 require "devkit"
 # define where your deps are
-ShoesDeps = "E:/shoesdeps/mingw"
+#ShoesDeps = "E:/shoesdeps/mingw"
+ShoesDeps = "C:/Users/Cecil/sandbox"
 SHOES_TGT_ARCH = 'i386-mingw32'
 APP['GTK'] = "gtk+-2.0"
 #ENV['GDB'] = "basic" # 'basic' = keep symbols,  or 'profile'
