@@ -58,6 +58,11 @@ module Make
     puts "pre_build dir=#{`pwd`}"
     rbvt = RUBY_V
     rbvm = RUBY_V[/^\d+\.\d+/]
+    # remove leftovers from previous rake.
+    rm_rf "#{TGT_DIR}/lib"
+    rm_rf "#{TGT_DIR}/etc"
+    rm_rf "#{TGT_DIR}/share"
+    rm_rf "#{TGT_DIR}/conf.d"
     mkdir_p "#{TGT_DIR}/lib"
     cp_r "#{EXT_RUBY}/lib/ruby", "#{TGT_DIR}/lib"
     # copy include files
@@ -69,16 +74,23 @@ module Make
     # do some windows things
     mkdir_p "#{TGT_DIR}/share/glib-2.0/schemas"
     if APP['GTK'] == "gtk+-2.0"
-      cp "#{TGT_SYS_DIR}/share/glib-2.0/schemas/gschema.dtd",
+      cp_r"#{TGT_SYS_DIR}/share/glib-2.0/schemas/gschema.dtd",
         "#{TGT_DIR}/share/glib-2.0/schemas"
+      cp_r "#{ShoesDeps}/share/fontconfig", "#{TGT_DIR}/share"
+      cp_r "#{ShoesDeps}/share/themes", "#{TGT_DIR}/share"
+      cp_r "#{ShoesDeps}/share/xml", "#{TGT_DIR}/share"
     else
       cp  "#{TGT_SYS_DIR}share/glib-2.0/schemas/gschemas.compiled" ,
         "#{TGT_DIR}/share/glib-2.0/schemas"
     end
     sh "#{WINDRES} -I. shoes/appwin32.rc shoes/appwin32.o"
-    cp 'platform/msw/fonts.conf', TGT_DIR
+    cp "#{ShoesDeps}/etc/fonts/fonts.conf", TGT_DIR # at root level
+    cp_r "#{ShoesDeps}/etc/fonts/conf.d", TGT_DIR  # need at root? 
+    cp_r "#{ShoesDeps}/etc", TGT_DIR
+    mkdir_p "#{ShoesDeps}/lib"
+    cp_r "#{ShoesDeps}/lib/gtk-2.0", "#{TGT_DIR}/lib" #  shoes, exerb, ruby here
     bindir = "#{ShoesDeps}/bin"
-    cp "#{bindir}/fc-cache.exe", TGT_DIR
+    cp_r "#{bindir}/fc-cache.exe", TGT_DIR
     # below for debugging purposes
     if ENV['GDB'] 
       cp "#{bindir}/fc-cat.exe", TGT_DIR

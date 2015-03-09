@@ -78,7 +78,7 @@ shoes_load_font(const char *filename)
 // FIXME: experiment with font settings 
 // Borrowed from http://ricardo.ecn.wfu.edu/~cottrell/gtk_win32/
 #ifdef G_OS_WIN32
-static char appfontname[128] = "Sans-Serif 12"; /* fallback value */
+static char appfontname[128] = "sans-serif 12"; /* fallback value */
 #else
 static char appfontname[128] = "Sans-Serif 10";  // gtk doc says 'Sans 10'
 #endif
@@ -121,7 +121,7 @@ void shoes_native_init()
   curl_global_init(CURL_GLOBAL_ALL);
 #endif
   gtk_init(NULL, NULL);
-  set_app_font(NULL);  // experiment
+  // set_app_font(NULL);  // experiment
 }
 
 void shoes_native_cleanup(shoes_world_t *world)
