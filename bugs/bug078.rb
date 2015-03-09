@@ -8,6 +8,6 @@ Shoes.app do
     para "and this one uses mono deprecated name", :family =>"mono"
     button "What font is this?"
     para "Lets use a MS font and see what happens."
-    para "Perhaps Palintino works", :font =>"Palintino Linotype"
+    para "Perhaps Palatino works", :font =>"Palatino Linotype"
   end
 end
