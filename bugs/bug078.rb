@@ -1,11 +1,13 @@
 Shoes.app do
-  para "Shoes default - Arial according to manual\n"
-  para "Serif font so I'm told\n", :font => "serif"
-  para "Sans-Serif if we know what to say\n", :font => 'sans-serif'
-  para "This one is monospace\n", :font => "monospace"
-  para "Deprecated name is 'sans serif'\n", :font => 'sans serif'
-  para "Deprecated name is 'sans serif'\n", :font => 'sans-serif'
-  para "Pretty much the same - 'sans'\n", :font => 'Sans'
-  para "and this one uses mono deprecated name\n", :font=>"mono"
-  button "If Serif what now"
+  stack do
+    para "Shoes default - Arial according to manual"
+    para "Serif font so I'm told", :family => "serif"
+    para "Sans-Serif if we know what to say", :family => 'sans-serif'
+    para "This one is monospace", :family => "monospace"
+    para "Deprecated name is 'sans serif'", :family => 'sans'
+    para "and this one uses mono deprecated name", :family =>"mono"
+    button "What font is this?"
+    para "Lets use a MS font and see what happens."
+    para "Perhaps Palintino works", :font =>"Palintino Linotype"
+  end
 end
