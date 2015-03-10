@@ -10,7 +10,7 @@ else
   ShoesDeps = "C:/Users/Cecil/sandbox"
   EXT_RUBY = RbConfig::CONFIG["prefix"]
 end
-puts "Ruby = #{EXT_RUBY} Deps = #{ShoesDeps}"
+#puts "Ruby = #{EXT_RUBY} Deps = #{ShoesDeps}"
 
 SHOES_TGT_ARCH = 'i386-mingw32'
 APP['GTK'] = "gtk+-2.0"
