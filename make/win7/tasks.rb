@@ -106,8 +106,6 @@ module Make
         "#{TGT_DIR}/share/glib-2.0/schemas"
     end
     sh "#{WINDRES} -I. shoes/appwin32.rc shoes/appwin32.o"
-    cp "#{ShoesDeps}/etc/fonts/fonts.conf", TGT_DIR # at root level
-    cp_r "#{ShoesDeps}/etc/fonts/conf.d", TGT_DIR  # need at root? 
     cp_r "#{ShoesDeps}/etc", TGT_DIR
     mkdir_p "#{ShoesDeps}/lib"
     cp_r "#{ShoesDeps}/lib/gtk-2.0", "#{TGT_DIR}/lib" #  shoes, exerb, ruby here
