@@ -1,7 +1,17 @@
 require "devkit"
-# define where your deps are
-#ShoesDeps = "E:/shoesdeps/mingw"
-ShoesDeps = "C:/Users/Cecil/sandbox"
+cf =(ENV['ENV_CUSTOM'] || "env_custom.yaml")
+if File.exists? cf
+  custmz = YAML.load_file(cf)
+  ShoesDeps = custmz['Deps']
+  EXT_RUBY = custmz['Ruby']
+else
+  # define where your deps are
+  #ShoesDeps = "E:/shoesdeps/mingw"
+  ShoesDeps = "C:/Users/Cecil/sandbox"
+  EXT_RUBY = RbConfig::CONFIG["prefix"]
+end
+puts "Ruby = #{EXT_RUBY} Deps = #{ShoesDeps}"
+
 SHOES_TGT_ARCH = 'i386-mingw32'
 APP['GTK'] = "gtk+-2.0"
 #ENV['GDB'] = "basic" # 'basic' = keep symbols,  or 'profile'
@@ -11,7 +21,6 @@ WIN32_CFLAGS = []
 WIN32_LDFLAGS = []
 WIN32_LIBS = []
 
-EXT_RUBY = RbConfig::CONFIG["prefix"]
 
 SRC = FileList[*%w{shoes/native/gtk.c shoes/http/rbload.c shoes/*.c}]
 OBJ = SRC.map do |x|

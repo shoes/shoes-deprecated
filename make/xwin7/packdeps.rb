@@ -14,6 +14,7 @@ task :packdeps  do
   Dir.glob("#{ShoesDeps}/bin/fc*.exe") {|f|
     cp f, bin
   }
+  cp "#{ShoesDeps}/bin//gtk-update-icon-cache.exe", bin
   cp "#{ShoesDeps}/bin/pkg-config.exe", bin
   sh "cp -a #{ShoesDeps}/include mingwdeps"
   cp_r "#{ShoesDeps}/etc", 'mingwdeps'

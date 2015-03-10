@@ -91,6 +91,7 @@ module Make
     cp_r "#{ShoesDeps}/lib/gtk-2.0", "#{TGT_DIR}/lib" #  shoes, exerb, ruby here
     bindir = "#{ShoesDeps}/bin"
     cp_r "#{bindir}/fc-cache.exe", TGT_DIR
+    cp_r "#{bindir}/gtk-update-icon-cache.exe", TGT_DIR
     # below for debugging purposes
     if ENV['GDB'] 
       cp "#{bindir}/fc-cat.exe", TGT_DIR
