@@ -514,6 +514,8 @@ VALUE
 shoes_canvas_oval(int argc, VALUE *argv, VALUE self)
 {
   VALUE attr = shoes_shape_attr(argc, argv, 4, s_left, s_top, s_width, s_height);
+  //VALUE attr = shoes_shape_attr(argc, argv, 3, s_left, s_top, s_radius);
+  //rb_warn("shoes_canvas_oval: %s\n", RSTRING_PTR(rb_inspect(attr)));
   return shoes_add_shape(self, s_oval, attr, NULL);
 }
 
