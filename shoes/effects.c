@@ -63,34 +63,34 @@ box_blur(unsigned char *in, unsigned char *out,
       sums[2] += in[l + 2];
       sums[3] += in[l + 3];
     }
-    for (j2 = c3; j2 < c4; j2++) {
-      if (dir == BOX_H)
-        l2 = l + (j2 << 2);
-      else
-        l2 = stride * j2 + lx;
-      out[l2] = run[sums[0]];
-      out[l2 + 1] = run[sums[1]];
-      out[l2 + 2] = run[sums[2]];
-      out[l2 + 3] = run[sums[3]];
-
-      int tmp = j2 - edge1;
-      int last = max(tmp, c3);
-      int next = min(tmp + boxSize, c4 - 1);
-      if (dir == BOX_H)
-      {
-        l3 = l + (next << 2);
-        l4 = l + (last << 2);
-      }
-      else
-      {
-        l3 = stride * next + lx;
-        l4 = stride * last + lx;
-      }
-
-      sums[0] += in[l3] - in[l4];
-      sums[1] += in[l3 + 1] - in[l4 + 1];
-      sums[2] += in[l3 + 2] - in[l4 + 2];
-      sums[3] += in[l3 + 3] - in[l4 + 3];
+    for (j2 = c3; j2 < c4; j2++) {                        
+      if (dir == BOX_H)                                   
+        l2 = l + (j2 << 2);                               
+      else                                                
+        l2 = stride * j2 + lx;                            
+      out[l2] = run[(int)sums[0]];                        
+      out[l2 + 1] = run[(int)sums[1]];                    
+      out[l2 + 2] = run[(int)sums[2]];                    
+      out[l2 + 3] = run[(int)sums[3]];                    
+                                                          
+      int tmp = j2 - edge1;                               
+      int last = max(tmp, c3);                            
+      int next = min(tmp + boxSize, c4 - 1);              
+      if (dir == BOX_H)                                   
+      {                                                   
+        l3 = l + (next << 2);                             
+        l4 = l + (last << 2);                             
+      }                                                   
+      else                                                
+      {                                                   
+        l3 = stride * next + lx;                          
+        l4 = stride * last + lx;                          
+      }                                                   
+                                                          
+      sums[0] += in[l3] - in[l4];                         
+      sums[1] += in[l3 + 1] - in[l4 + 1];                 
+      sums[2] += in[l3 + 2] - in[l4 + 2];                 
+      sums[3] += in[l3 + 3] - in[l4 + 3];                 
     }
   }
 }
@@ -149,26 +149,25 @@ shoes_gaussian_blur_filter(cairo_t *cr, VALUE attr, shoes_place *place)
 {
   double blur_d = ATTR2(dbl, attr, radius, 2.);
   double blur_x = blur_d, blur_y = blur_d;
+
   RAW_FILTER_START(place);
   if (blur_x < 0 || blur_y < 0)
     return;
-
   if (blur_x == 0 || blur_y == 0)
     memset(out, 0, len);
-
   unsigned int dX, dY;
   dX = (unsigned int) floor(blur_x * 3*sqrt(2*SHOES_PI)/4 + 0.5);
-  dY = (unsigned int) floor(blur_y * 3*sqrt(2*SHOES_PI)/4 + 0.5);
+  dY = (unsigned int) floor((blur_y * 3*sqrt(2*SHOES_PI)/4) + 0.5);
 
   unsigned char *tmp = SHOE_ALLOC_N(unsigned char, len);
-
-  if (dX & 1) {
+  
+  if (dX & 1) {    // odd dX
     unsigned char *run = box_run(2 * (dX / 2) + 1);
     box_blur(in, tmp,  stride, place, dX/2, dX/2, run, BOX_H);
     box_blur(tmp, out, stride, place, dX/2, dX/2, run, BOX_H);
     box_blur(out, tmp, stride, place, dX/2, dX/2, run, BOX_H);
     SHOE_FREE(run);
-  } else {
+  } else {        // even dX
     if (dX == 0) {
       memcpy(tmp, in, len);
     } else {
@@ -181,7 +180,6 @@ shoes_gaussian_blur_filter(cairo_t *cr, VALUE attr, shoes_place *place)
       SHOE_FREE(run2);
     }
   }
-
   if (dY & 1) {
     unsigned char *run = box_run(2 * (dY / 2) + 1);
     box_blur(tmp, out, stride, place, dY/2, dY/2, run, BOX_V);
