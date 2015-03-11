@@ -2,6 +2,19 @@
 # Build shoes for Windows/Gtk[2|3]  Ruby is cross compiled
 # It's not really a chroot - it only looks like one and Gtk2/3 is different
 # Remember, on Windows the dlls are in bin/ 
+cf =(ENV['ENV_CUSTOM'] || "xwin7-custom.yaml")
+if File.exists? cf
+  custmz = YAML.load_file(cf)
+  ShoesDeps = custmz['Deps']
+  EXT_RUBY = custmz['Ruby']
+  ENABLE_MS_THEME = custmz['MS-Theme'] == true
+  ENV['GDB'] = 'basic' if custmz['Debug'] == true
+else
+  # define where your deps are
+  ShoesDeps = "/home/ccoupe/Projects/shoesdeps/mingw"
+  EXT_RUBY = "#{ShoesDeps}/usr/local"
+  ENABLE_MS_THEME = false
+end
 
 #ENV['DEBUG'] = "true" # turns on the tracing log
 #APP['GTK'] = "gtk+-3.0" # pick this or "gtk+-2.0"
@@ -17,7 +30,6 @@ end
 # Where does ruby code live? Please cross compile Ruby. 
 # Use ruby 2.1.0
 #EXT_RUBY = "/srv/chroot/mingwgtk2/usr/local"
-EXT_RUBY = "#{ShoesDeps}/usr/local"
 SHOES_TGT_ARCH = "i386-mingw32"
 # Specify where the Target system binaries live. 
 # Trailing slash is important.
@@ -90,7 +102,7 @@ PANGO_LIB = `pkg-config --libs "#{ularch}/pkgconfig/pango.pc"`.strip
 png_lib = 'png'
 
 if ENV['DEBUG'] || ENV['GDB']
-  LINUX_CFLAGS = " -g -O0"
+  LINUX_CFLAGS = " -g3 -O0"
 else
   LINUX_CFLAGS = " -O -Wall"
 end
@@ -184,7 +196,7 @@ if APP['GTK'] == 'gtk+-3.0' && COPY_GTK == true
     }
   )
 end
-if APP['GTK'] == 'gtk+-2.0' && COPY_GTK == true
+if APP['GTK'] == 'gtk+-2.0'
   SOLOCS.merge!(
     {
       'atk'         => "#{bindll}/libatk-1.0-0.dll",

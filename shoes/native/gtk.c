@@ -86,10 +86,16 @@ static char appfontname[128] = "Sans-Serif 10";  // gtk doc says 'Sans 10'
 void set_app_font (const char *fontname)
 {
   GtkSettings *settings;
+  gchar *themedir;
+  gchar *themename;
 
   if (fontname != NULL && *fontname == 0) return;
 
   settings = gtk_settings_get_default();
+  themedir = gtk_rc_get_theme_dir ();
+  g_object_get(settings, "gtk-theme-name", &themename, NULL);
+  printf("dir=%s, name: %s\n", themedir,themename);
+  
 
   if (fontname == NULL) {
 	g_object_set(G_OBJECT(settings), "gtk-font-name", appfontname, NULL);
@@ -114,6 +120,29 @@ void set_app_font (const char *fontname)
   }
 }
 
+void shoes_native_print_env()
+{
+  GtkSettings *settings;
+  gchar *themedir;
+  gchar *themename;
+  
+  gchar *rcfile = "shoesgtk.rc";
+  gchar *rcfiles[] = {rcfile, NULL};
+  gchar **defs;
+  //gtk_rc_set_default_files(rcfiles);
+  //gtk_rc_parse(rcfile);
+  //printf("ask theme = %s\n", rcfile);
+  defs = gtk_rc_get_default_files ();
+  int i = 0;
+  while ((rcfile = defs[i]) != NULL) {
+	  printf("%d: %s\n", i+1, rcfile);
+	  i++;
+  }
+  settings = gtk_settings_get_default();
+  themedir = gtk_rc_get_theme_dir ();
+  g_object_get(settings, "gtk-theme-name", &themename, NULL);
+  printf("dir=%s, name: %s\n", themedir,themename);
+}
 
 void shoes_native_init()
 {
@@ -121,7 +150,8 @@ void shoes_native_init()
   curl_global_init(CURL_GLOBAL_ALL);
 #endif
   gtk_init(NULL, NULL);
-  // set_app_font(NULL);  // experiment
+  //set_app_font(NULL);  // experiment
+  //shoes_native_print_env();
 }
 
 void shoes_native_cleanup(shoes_world_t *world)

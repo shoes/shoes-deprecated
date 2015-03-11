@@ -122,7 +122,13 @@ module Make
       cp "#{bindir}/fc-scan.exe", TGT_DIR
       cp "#{bindir}/fc-validate.exe", TGT_DIR
     end
- end
+    # disable MS Theme
+    if !ENABLE_MS_THEME 
+      Dir.chdir("#{TGT_DIR}/share/themes/MS-Windows/gtk-2.0/") do
+        mv 'gtkrc', 'disabled-gtkrc'
+      end
+    end
+end
 
   # common_build is a misnomer. Builds extentions, gems
   def common_build

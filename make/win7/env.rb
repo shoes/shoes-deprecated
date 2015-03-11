@@ -1,14 +1,17 @@
 require "devkit"
-cf =(ENV['ENV_CUSTOM'] || "env_custom.yaml")
+cf =(ENV['ENV_CUSTOM'] || "win7_custom.yaml")
 if File.exists? cf
   custmz = YAML.load_file(cf)
   ShoesDeps = custmz['Deps']
   EXT_RUBY = custmz['Ruby']
+  ENABLE_MS_THEME = custmz['MS-Theme'] == true
+  ENV['GDB'] = 'basic' if custmz['Debug'] == true
 else
   # define where your deps are
   #ShoesDeps = "E:/shoesdeps/mingw"
   ShoesDeps = "C:/Users/Cecil/sandbox"
   EXT_RUBY = RbConfig::CONFIG["prefix"]
+  ENABLE_MS_THEME = false
 end
 #puts "Ruby = #{EXT_RUBY} Deps = #{ShoesDeps}"
 

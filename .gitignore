@@ -6,7 +6,7 @@
 *.exe
 ._*
 VERSION.txt
-env_custom.yaml
+*-custom.yaml
 Shoes3.2.geany
 crosscompile
 bin/main.c
