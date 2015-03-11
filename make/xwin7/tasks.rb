@@ -105,6 +105,9 @@ module Make
       Dir.chdir("#{TGT_DIR}/share/themes/MS-Windows/gtk-2.0/") do
         mv 'gtkrc', 'disabled-gtkrc'
       end
+    else
+      # add our overrides to the MS-Windows theme
+      cp "platform/msw/gtkrc", "#{TGT_DIR}/etc/gtk-2.0/"
     end
  end
 

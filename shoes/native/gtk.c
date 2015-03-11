@@ -150,7 +150,7 @@ void shoes_native_init()
   curl_global_init(CURL_GLOBAL_ALL);
 #endif
   gtk_init(NULL, NULL);
-  //set_app_font(NULL);  // experiment
+  //set_app_font(NULL);  // experiment failed
   //shoes_native_print_env();
 }
 
