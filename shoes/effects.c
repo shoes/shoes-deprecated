@@ -234,7 +234,6 @@ shoes_layer_blur_filter(cairo_t *cr, VALUE attr, shoes_place *place,
   }
   cairo_rectangle(cr2, 0, 0, width, height);
   cairo_paint(cr2);
-rb_warn("shoes_layer_blur_filter attr: %s\n", RSTRING_PTR(rb_inspect(attr))); 
   shoes_gaussian_blur_filter(cr2, attr, place);
   cairo_set_operator(cr, merge_op);
   cairo_set_source_surface(cr, target, 0, 0);
