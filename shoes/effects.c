@@ -224,7 +224,7 @@ shoes_layer_blur_filter(cairo_t *cr, VALUE attr, shoes_place *place,
   {
     shoes_color *color;
     Data_Get_Struct(fill, shoes_color, color);
-    cairo_set_source_rgba(cr, color->r / 255., color->g / 255., color->b / 255., color->a / 255.);
+    cairo_set_source_rgba(cr2, color->r / 255., color->g / 255., color->b / 255., color->a / 255.);
   }
   else
   {
