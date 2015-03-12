@@ -79,6 +79,7 @@ module Make
       cp_r "#{ShoesDeps}/share/fontconfig", "#{TGT_DIR}/share"
       cp_r "#{ShoesDeps}/share/themes", "#{TGT_DIR}/share"
       cp_r "#{ShoesDeps}/share/xml", "#{TGT_DIR}/share"
+      cp_r "#{ShoesDeps}/share/icons", "#{TGT_DIR}/share"
     else
       cp  "#{TGT_SYS_DIR}share/glib-2.0/schemas/gschemas.compiled" ,
         "#{TGT_DIR}/share/glib-2.0/schemas"

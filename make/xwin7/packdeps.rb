@@ -25,6 +25,7 @@ task :packdeps  do
   cp_r "#{ShoesDeps}/share/themes", 'mingwdeps/share'
   cp_r "#{ShoesDeps}/share/xml", 'mingwdeps/share'
   cp_r "#{ShoesDeps}/share/fontconfig", 'mingwdeps/share'
+  cp_r "#{ShoesDeps}/share/icons", 'mingwdeps/share'
   Dir.chdir('mingwdeps') do
    sh "zip -r ShoesDeps.zip README.txt etc lib share include bin"
   end
