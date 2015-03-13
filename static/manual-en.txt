@@ -3292,9 +3292,9 @@ The URL or file name of the image.
 === path = a string ===
 
 Swaps the image with a different one, loaded from a file or URL.
+ 
 
-
-== Image-Effects on image blocks ==
+==== Image effects on image blocks ====
 
 You already know how to combine shapes into an image block (See [[Rules]] >> Image and Shape Blocks), using the same technique you can add some effects to those image blocks, namely : blur, shadow and glow, with the help of corresponding methods.
 Just wrap shapes or images into an image block and add effects inside the block 
