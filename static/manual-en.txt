@@ -3297,7 +3297,7 @@ Swaps the image with a different one, loaded from a file or URL.
 == Image-Effects on image blocks ==
 
 You already know how to combine shapes into an image block (See [[Rules]] >> Image and Shape Blocks), using the same technique you can add some effects to those image blocks, namely : blur, shadow and glow, with the help of corresponding methods.
-Just wrap a shape or an image into an image block and add effects inside the block - effects apply to your inside images or shapes - 
+Just wrap shapes or images into an image block and add effects inside the block 
 
 {{{
 #!ruby
@@ -3328,15 +3328,15 @@ Pay attention to some rules :
  * If you experience some artifacts or glitches, that's certainly because your effect doesn't have enough "room" to work correctly ! Try to make your image block bigger and/or move your inside shape/image towards the center of the image block (the idea is to make room for your effect to expand nicely), ultimately you can also decrease the "strength" of the effect (meaning decrease the radius attribute value).
 
 === blur(radius: a number)  ===
-Blurs the image or shape by `radius` amount.
+Blurs the image by `radius` amount.
 
 === glow(radius: a number, :inner  false or true)  ===
-Adds a glow to your image or shape, either outer glow (default) or inner glow (set optional `:inner` style to true), amount of glow is set by `radius` attribute.
+Adds a glow to your image, either outer glow (default) or inner glow (set optional `:inner` style to true), amount of glow is set by `radius` attribute.
 
 Note that you can control the color of the effect with the `:fill` style and the transparency of the effect with the alpha component of the color, ie : rgb(red, green, blue, '''alpha''').
 
 === shadow(distance: a number, radius: a number)  ===
-Adds a shadow to your image or shape, `distance` sets the placement of the shadow along a line going from top-left corner to bottom-right corner, the biggest the attribute the more distant the shadow, blurriness of the shadow is controlled by the `radius` attribute.
+Adds a shadow to your image, `distance` sets the placement of the shadow along a line going from top-left corner to bottom-right corner, the biggest the attribute the more distant the shadow, blurriness of the shadow is controlled by the `radius` attribute.
 
 If you need more precise placement, the method offers two styles for that : `:displace_left` and `:displace_top`, if used they take precedence over the `distance` attribute.
 
