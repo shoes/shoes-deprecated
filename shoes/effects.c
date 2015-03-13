@@ -212,10 +212,15 @@ shoes_layer_blur_filter(cairo_t *cr, VALUE attr, shoes_place *place,
   int width  = cairo_image_surface_get_width(source);
   int height = cairo_image_surface_get_height(source);
   VALUE fill = ATTR(attr, fill);
+  int dx = ATTR2(int, attr, displace_left, 0);
+  int dy = ATTR2(int, attr, displace_top, 0);
 
   cairo_surface_t *target = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
   cairo_t *cr2 = cairo_create(target);
-  cairo_set_source_surface(cr2, source, distance, distance);
+  if (dx != 0 || dy != 0) 
+      cairo_set_source_surface(cr2, source, dx, dy);
+  else
+      cairo_set_source_surface(cr2, source, distance, distance);
   cairo_paint(cr2);
   cairo_set_operator(cr2, blur_op);
   if (NIL_P(fill))
