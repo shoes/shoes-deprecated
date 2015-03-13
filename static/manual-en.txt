@@ -3324,6 +3324,7 @@ Pay attention to some rules :
 
  * Effects are using the alpha channel of your image if any.
  * Shadow effect must be the last one applied to be predictable.
+ * For effects to work correctly you can mix shapes with shapes and images with images but not shapes with images !
  * If you experience some artifacts or glitches, that's certainly because your effect doesn't have enough "room" to work correctly ! Try to make your image block bigger and/or move your inside shape/image towards the center of the image block (the idea is to make room for your effect to expand nicely), ultimately you can also decrease the "strength" of the effect (meaning decrease the radius attribute value).
 
 === blur(radius: a number)  ===
