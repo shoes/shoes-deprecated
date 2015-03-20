@@ -1394,12 +1394,32 @@ shoes_native_check(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE a
 VALUE
 shoes_native_check_get(SHOES_CONTROL_REF ref)
 {
+#ifdef NEW_RADIO
+	if ([ref isKindOfClass:[NSMatrix class]])
+	{
+		NSCell *contents = [ref cellAtRow:(NSInteger) 0
+		         column:(NSInteger) 0];
+		int state = [contents state];
+		NSLog(@"matrix get %i", state);
+		return state ==  NSOnState ? Qtrue : Qfalse;
+	}
+#endif
   return [(ShoesButton *)ref state] == NSOnState ? Qtrue : Qfalse;
 }
 
 void
 shoes_native_check_set(SHOES_CONTROL_REF ref, int on)
 {
+#ifdef NEW_RADIO
+	if ([ref isKindOfClass:[NSMatrix class]])
+	{
+		[ref setState:(NSInteger) on != 0
+	           atRow:(NSInteger)0
+	          column:(NSInteger)0 ];
+		NSLog(@"matrix set to %i", on != 0);
+		return;
+	}
+#endif
   COCOA_DO([(ShoesButton *)ref setState: on ? NSOnState : NSOffState]);
 }
 
@@ -1407,10 +1427,54 @@ SHOES_CONTROL_REF
 shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, VALUE group)
 {
   INIT;
-  ShoesButton *button = [[ShoesButton alloc] initWithType: NSRadioButton
-    andObject: self];
+#ifdef NEW_RADIO
+	if (NIL_P(group))
+		NSLog(@"group: NIL");
+	else
+		NSLog(@"group: %lx", group);
+	// Create a NSMatrix (RadioButton) for each call here. Shoes will manage the 
+	// click and display for the group. Goal: No surface missing errors 
+	// Matrix of 1,1
+
+  // get the class of ShoesButton, matrix will manage that.
+	//Class sbcls = [ShoesButton class];
+  NSButtonCell *prototype = [[NSButtonCell alloc] init];
+  //NSButtonCell *prototype = [[ShoesButton alloc] initWithType: NSRadioButton
+	//	   andObject: self];
+  [prototype setTitle:@""];  // no title would be better
+  [prototype setButtonType:NSRadioButton];
+	// borrowed from ShoesButton:
+  [prototype setBezelStyle: NSRoundedBezelStyle];
+  //[prototype setTarget: self];
+  [prototype setAction: @selector(handleClick:)];
+	
+  //NSRect matrixRect = NSMakeRect(20.0, 20.0, 125.0, 125.0); // compute from place arg;
+  NSRect matrixRect = NSMakeRect(place->ix + place->dx, place->iy + place->dy,
+    place->ix + place->dx + place->iw, place->iy + place->dy + place->ih);
+	NSLog(@"x: %i y: %i dx: %i, dy: %i, w: %i h: %i", place->ix, place->iy, place->dx, place->dy, place->iw, place->ih);
+
+  NSMatrix *myMatrix = [[NSMatrix alloc] initWithFrame:matrixRect
+       mode:NSRadioModeMatrix
+			 prototype:(NSCell *)prototype
+       numberOfRows:1
+       numberOfColumns:1];
+  [myMatrix setAllowsEmptySelection:YES];
+	[myMatrix setState:(NSInteger) 0
+           atRow:(NSInteger)0
+          column:(NSInteger)0 ];
+  //[[[typeField window] contentView] addSubview:myMatrix];
+
+  NSArray *cellArray = [myMatrix cells];
+
+  [[cellArray objectAtIndex:0] setTitle:@""]; // no title would be better
   RELEASE;
-  return (NSControl *)button;
+  return (NSControl *)myMatrix; // matrix is a subclass of NSControl
+#else
+	ShoesButton *button = [[ShoesButton alloc] initWithType: NSRadioButton
+		   andObject: self];
+	 RELEASE;
+	 return (NSControl *)button;
+#endif
 }
 
 void
