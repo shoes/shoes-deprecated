@@ -3504,13 +3504,21 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
       if (NIL_P(group)) group = c;
 
       VALUE glist = shoes_hash_get(canvas->app->groups, group);
+#ifdef SHOES_FORCE_RADIO // aka OSX - create group before realizing widget
+      if (NIL_P(glist))
+        canvas->app->groups = shoes_hash_set(canvas->app->groups, group, (glist = rb_ary_new3(1, self)));
+      else
+        rb_ary_push(glist, self);
+      glist = shoes_hash_get(canvas->app->groups, group);
+      self_t->ref = shoes_native_radio(self, canvas, &place, self_t->attr, glist);
+#else
       self_t->ref = shoes_native_radio(self, canvas, &place, self_t->attr, glist);
 
       if (NIL_P(glist))
         canvas->app->groups = shoes_hash_set(canvas->app->groups, group, (glist = rb_ary_new3(1, self)));
       else
         rb_ary_push(glist, self);
-
+#endif
       if (RTEST(ATTR(self_t->attr, checked))) shoes_native_check_set(self_t->ref, Qtrue);
       shoes_control_check_styles(self_t);
       shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
