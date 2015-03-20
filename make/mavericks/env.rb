@@ -1,12 +1,19 @@
-# Assumes:
-# (1) Ruby is installed with RVM and installed -C --enable-load-relative
-# (2) {TGT_DIR}/libruby.dylib was copied from rvm before linking.
-# (3) {TGT_DIR}/lib/ruby/2.0.0/include was copied before compiling.
-# (4) You've compiled zlib 1.2.8 or better
 include FileUtils
-EXT_RUBY = RbConfig::CONFIG['prefix']
-BREWLOC = "/usr/local"
-ZLIBLOC = "/usr/local/opt/zlib/lib"
+cf =(ENV['ENV_CUSTOM'] || "mavericks-custom.yaml")
+if File.exists? cf
+  custmz = YAML.load_file(cf)
+  BREWLOC = custmz['Deps']
+  ZLIBLOC = custmz['Zlib']
+  EXT_RUBY = custmz['Ruby'] ? custmz['Ruby'] : RbConfig::CONFIG['prefix']
+  ENV['GDB'] = 'basic' if custmz['Debug'] == true
+  ENV['CDEFS'] = custmz['CFLAGS'] if custmz['CFLAGS']
+else
+  EXT_RUBY = RbConfig::CONFIG['prefix']
+  BREWLOC = "/usr/local"
+  ZLIBLOC = "/usr/local/opt/zlib/lib"
+  ENV['DEBUG'] = "yes"
+  ENV['CDEFS'] = '-DNEW_RADIO'
+end
 # use the platform Ruby claims
 # require 'rbconfig' not needed
 
@@ -52,12 +59,14 @@ LINUX_LIB_NAMES = %W[#{RUBY_SO} cairo pangocairo-1.0 gif]
 #end
 
 if ENV['DEBUG']
-  LINUX_CFLAGS << " -g -O0 "
+  LINUX_CFLAGS << " -g3 -O0 "
 else
   LINUX_CFLAGS << " -O "
 end
 LINUX_CFLAGS << " -DRUBY_1_9"
-
+if ENV['CDEFS']
+  LINUX_CFLAGS << " #{ENV['CDEFS']}"
+end
 DLEXT = "dylib"
 #LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{RbConfig::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions"
 LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -fpascal-strings #{RbConfig::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions"
