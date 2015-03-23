@@ -3475,7 +3475,11 @@ shoes_check_set_checked_m(VALUE self, VALUE on)
         VALUE ele = rb_ary_entry(glist, i);
         shoes_check_set_checked(ele, ele == self ? Qtrue : Qfalse);
       }
-    }
+    } 
+		else 
+		{
+			shoes_check_set_checked(self, on);
+		}
     return on;
   }
 #endif
@@ -3490,6 +3494,14 @@ shoes_button_send_click(VALUE control)
     shoes_check_set_checked_m(control, Qtrue);
   shoes_control_send(control, s_click);
 }
+
+#ifdef SHOES_FORCE_RADIO
+void
+shoes_radio_button_click(VALUE control)
+{
+	shoes_check_set_checked_m(control, Qtrue);
+}
+#endif
 
 VALUE
 shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
