@@ -349,6 +349,29 @@
 }
 @end
 
+#ifdef NEW_RADIO
+@implementation ShoesRadioButton
+- (id)initWithType: (NSButtonType)t andObject: (VALUE)o
+{
+  if ((self = [super init]))
+  {
+    object = o;
+    [self setButtonType: NSSwitchButton];  // checkbox for now
+    [self setBezelStyle: NSRoundedBezelStyle];
+    [self setTarget: self];
+    [self setAction: @selector(handleClick:)];
+  }
+  return self;
+}
+-(IBAction)handleClick: (id)sender
+{
+	NSLog(@"radio button handler called on %lx", object); 
+  shoes_button_send_click(object);
+}
+@end
+
+#endif
+
 @implementation ShoesTextField
 - (id)initWithFrame: (NSRect)frame andObject: (VALUE)o
 {
@@ -1394,12 +1417,32 @@ shoes_native_check(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE a
 VALUE
 shoes_native_check_get(SHOES_CONTROL_REF ref)
 {
+#ifdef NEW_RADIO
+	if ([ref isKindOfClass:[NSMatrix class]])
+	{
+		NSCell *contents = [ref cellAtRow:(NSInteger) 0
+		         column:(NSInteger) 0];
+		int state = [contents state];
+		NSLog(@"matrix get %i", state);
+		return state ==  NSOnState ? Qtrue : Qfalse;
+	}
+#endif
   return [(ShoesButton *)ref state] == NSOnState ? Qtrue : Qfalse;
 }
 
 void
 shoes_native_check_set(SHOES_CONTROL_REF ref, int on)
 {
+	NSLog(@"matrix set to %i", on != 0);
+#ifdef NEW_RADIO
+	if ([ref isKindOfClass:[NSMatrix class]])
+	{
+		[ref setState:(NSInteger) on != 0
+	           atRow:(NSInteger)0
+	          column:(NSInteger)0 ];
+		return;
+	}
+#endif
   COCOA_DO([(ShoesButton *)ref setState: on ? NSOnState : NSOffState]);
 }
 
@@ -1407,10 +1450,22 @@ SHOES_CONTROL_REF
 shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, VALUE group)
 {
   INIT;
-  ShoesButton *button = [[ShoesButton alloc] initWithType: NSRadioButton
-    andObject: self];
-  RELEASE;
-  return (NSControl *)button;
+#ifdef NEW_RADIO
+	NSLog(@"shoes_native_radio self: %i, %lx", TYPE(self), self);
+	if (NIL_P(group))
+		NSLog(@"group: NIL");
+  else
+	  NSLog(@"group: %lx", group);
+	ShoesRadioButton *button = [[ShoesRadioButton alloc] initWithType: NSSwitchButton
+		   andObject: self];
+	RELEASE;
+	return (NSControl *)button;
+#else
+	ShoesButton *button = [[ShoesButton alloc] initWithType: NSRadioButton
+		   andObject: self];
+	 RELEASE;
+	 return (NSControl *)button;
+#endif
 }
 
 void

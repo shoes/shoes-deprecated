@@ -31,6 +31,14 @@
 }
 @end
 
+#ifdef NEW_RADIO
+@interface ShoesRadioButton : NSButton
+{
+  VALUE object;
+}
+@end
+#endif
+
 @interface ShoesTextField : NSTextField
 {
   VALUE object;

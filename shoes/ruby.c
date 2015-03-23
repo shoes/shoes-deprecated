@@ -3170,10 +3170,11 @@ shoes_edit_line_draw(VALUE self, VALUE c, VALUE actual)
   SETUP_CONTROL(0, 0, FALSE);
 
 #ifdef SHOES_QUARTZ
-  place.x += 4; place.ix += 4;
-  place.y += 4; place.iy += 4;
+  // cjc 2015-03-15  only change h, ih
+  //place.x += 4; place.ix += 4;
+  //place.y += 4; place.iy += 4;
   place.h += 4; place.ih += 4;
-  place.w += 4; place.iw += 4;
+  //place.w += 4; place.iw += 4;
 #endif
   if (RTEST(actual))
   {
@@ -3477,7 +3478,11 @@ shoes_check_set_checked_m(VALUE self, VALUE on)
         VALUE ele = rb_ary_entry(glist, i);
         shoes_check_set_checked(ele, ele == self ? Qtrue : Qfalse);
       }
-    }
+    } 
+		else 
+		{
+			shoes_check_set_checked(self, on);
+		}
     return on;
   }
 #endif
@@ -3493,6 +3498,14 @@ shoes_button_send_click(VALUE control)
   shoes_control_send(control, s_click);
 }
 
+#ifdef SHOES_FORCE_RADIO
+void
+shoes_radio_button_click(VALUE control)
+{
+	shoes_check_set_checked_m(control, Qtrue);
+}
+#endif
+
 VALUE
 shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
 {
@@ -3506,13 +3519,21 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
       if (NIL_P(group)) group = c;
 
       VALUE glist = shoes_hash_get(canvas->app->groups, group);
+#ifdef SHOES_FORCE_RADIO // aka OSX - create group before realizing widget
+      if (NIL_P(glist))
+        canvas->app->groups = shoes_hash_set(canvas->app->groups, group, (glist = rb_ary_new3(1, self)));
+      else
+        rb_ary_push(glist, self);
+      glist = shoes_hash_get(canvas->app->groups, group);
+      self_t->ref = shoes_native_radio(self, canvas, &place, self_t->attr, glist);
+#else
       self_t->ref = shoes_native_radio(self, canvas, &place, self_t->attr, glist);
 
       if (NIL_P(glist))
         canvas->app->groups = shoes_hash_set(canvas->app->groups, group, (glist = rb_ary_new3(1, self)));
       else
         rb_ary_push(glist, self);
-
+#endif
       if (RTEST(ATTR(self_t->attr, checked))) shoes_native_check_set(self_t->ref, Qtrue);
       shoes_control_check_styles(self_t);
       shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
