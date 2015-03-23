@@ -3425,9 +3425,9 @@ shoes_slider_set_fraction(VALUE self, VALUE _perc)
 {
   double perc = min(max(NUM2DBL(_perc), 0.0), 1.0);
   GET_STRUCT(control, self_t);
-  if (self_t->ref != NULL) {
+  if (self_t->ref != NULL) 
     shoes_native_slider_set_fraction(self_t->ref, perc);
-  }
+  
   return self;
 }
 
