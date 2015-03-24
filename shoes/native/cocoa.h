@@ -31,7 +31,7 @@
 }
 @end
 
-#ifdef NEW_RADIO
+#ifndef OLD_RADIO
 @interface ShoesRadioButton : NSButton
 {
   VALUE object;
