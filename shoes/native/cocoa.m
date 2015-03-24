@@ -1517,13 +1517,17 @@ VALUE
 shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
 {
   VALUE answer = Qnil;
+	GLOBAL_APP(app);
+	char *rbcTitle = RSTRING_PTR(app->title);
+	NSString *appstr = [[NSString alloc] initWithCString: rbcTitle];
   rb_arg_list args;
   rb_parse_args(argc, argv, "s|h", &args);
 	char *msg;
   COCOA_DO({
     msg = shoes_native_to_s(args.a[0]);
     // replace with styles if needed when we have one
-		NSString *deftitle =  @"Shoes says:";
+		NSString *deftitle =  [appstr stringByAppendingString: @" says:"];
+		//NSString *deftitle =  @"Shoes says:";
 		if (argc > 1)
 		{
       if (RTEST(ATTR(args.a[1], title)))
@@ -1552,10 +1556,14 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   VALUE answer = Qnil;
+	GLOBAL_APP(app);
+	char *rbcTitle = RSTRING_PTR(app->title);
+	NSString *appstr = [[NSString alloc] initWithCString: rbcTitle];
   rb_parse_args(argc, argv, "s|h", &args);
   COCOA_DO({
     // replace with styles if needed when we have one
-		NSString *deftitle =  @"Shoes says:";
+		//NSString *deftitle =  @"Shoes says:";
+		NSString *deftitle =  [appstr stringByAppendingString: @" asks:"];
 		if (argc > 1)
 		{
       if (RTEST(ATTR(args.a[1], title)))
@@ -1619,11 +1627,15 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
   char *msg;
 	VALUE quiz;
   VALUE answer = Qnil;
+	GLOBAL_APP(app);
+	char *rbcTitle = RSTRING_PTR(app->title);
+	NSString *appstr = [[NSString alloc] initWithCString: rbcTitle];
   rb_arg_list args;
   rb_parse_args(argc, argv, "s|h", &args);
   COCOA_DO({
     // replace with styles if needed when we have one
-		NSString *deftitle =  @"Shoes says:";
+		//NSString *deftitle =  @"Shoes says:";
+		NSString *deftitle =  [appstr stringByAppendingString: @" asks:"];
 		if (argc > 1)
 		{
       if (RTEST(ATTR(args.a[1], title)))
