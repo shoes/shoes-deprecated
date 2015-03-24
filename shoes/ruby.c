@@ -18,7 +18,7 @@ VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStac
 VALUE eVlcError, eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot, symAltEqual;
-ID s_checked_q, s_perc, s_aref, s_mult, s_donekey;
+ID s_checked_q, s_perc, s_fraction, s_aref, s_mult, s_donekey;
 SYMBOL_DEFS(SYMBOL_ID);
 
 //
@@ -3397,6 +3397,8 @@ shoes_slider_draw(VALUE self, VALUE c, VALUE actual)
     if (self_t->ref == NULL)
     {
       self_t->ref = shoes_native_slider(self, canvas, &place, self_t->attr, msg);
+      shoes_control_check_styles(self_t);
+      if (RTEST(ATTR(self_t->attr, fraction))) shoes_native_slider_set_fraction(self_t->ref, NUM2DBL(ATTR(self_t->attr, fraction)));
       shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
     }
     else
@@ -3423,8 +3425,9 @@ shoes_slider_set_fraction(VALUE self, VALUE _perc)
 {
   double perc = min(max(NUM2DBL(_perc), 0.0), 1.0);
   GET_STRUCT(control, self_t);
-  if (self_t->ref != NULL)
+  if (self_t->ref != NULL) 
     shoes_native_slider_set_fraction(self_t->ref, perc);
+  
   return self;
 }
 
