@@ -1,5 +1,5 @@
 Shoes.app(:width => 450, :height => 250) {
-    #app.set_window_title("I'm not Shoes")
+    app.set_window_title("I'm not Shoes")
     name = ask("Please enter your name:")
     alert "your name is #{name}"
     ans = confirm "is the default title OK?"
