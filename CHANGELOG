@@ -1,5 +1,46 @@
 = Federales - Shoes 3.2
 
+== Mar 2x, 2015
+=== New with 3.2.22
+  * Discovered a Slider widget (Shoes element) that no one documented. 
+    https://github.com/Shoes3/shoes3/issues/88
+  * Documented image effects. Cool stuff that was mostly unknown.
+  * Enabled Gtk2 theme engine on Windows. Better looking UI. Can be 
+    changed by a knowledable user. 
+    https://github.com/Shoes3/shoes3/issues/24
+  * The Ruby included with Shoes doesn't have ancient gdbm compatabibility 
+    It's a feature you probably don't care about. 
+    https://github.com/Shoes3/shoes3/issues/84
+  * alert, ask, confirm dialogs can change the "Shoes says" and "Shoes asks"
+    title string to a user given string (or default) on to none at all.
+    https://github.com/Shoes3/shoes3/issues/59
+    
+=== Bugs fixed in 3.2.22
+  * Fixed a crash in samples/simple-sphere.rb when running on 64 bit 
+    systems. 
+    https://github.com/Shoes3/shoes3/issues/9
+  * OSX: edit_lines would screw up the appearance of later elements
+    https://github.com/Shoes3/shoes3/issues/7
+  * Windows: Cleaned up many font problems and console warnings.
+    https://github.com/Shoes3/shoes3/issues/69
+    https://github.com/Shoes3/shoes3/issues/78
+    https://github.com/Shoes3/shoes3/issues/48
+  * OSX: Radio Buttons (and groups of) now work.
+    https://github.com/Shoes3/shoes3/issues/6 
+    
+=== Developer improvements in 3.2.22
+  * create VERSION.txt like Shoes used to do.
+    https://github.com/Shoes3/shoes3/issues/71
+  * add git based release numbers
+    https://github.com/Shoes3/shoes3/issues/50
+  * continue cleanup of rakefiles. Many consistentcy/small minds fixes.
+    added ability to configure some builds with a xxxx-custom.yaml that
+    won't be overwritten with a git fetch or pull. 
+    https://github.com/Shoes3/shoes3/issues/70
+    https://github.com/Shoes3/shoes3/wiki/Custom.yaml
+  * build newer dependencies for Windows. 
+    https://github.com/Shoes3/shoes3/wiki/Tower-of-Cairo
+    
 == Feb 15, 2015
 === New with 3.2.21
   * New splash screen 
