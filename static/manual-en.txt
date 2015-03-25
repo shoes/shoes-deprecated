@@ -1466,7 +1466,7 @@ Font size may also be augmented, through use of the following strings:
 
 === :state » a string ===
 
-For: ''button, check, edit_box, edit_line, list_box, radio''.
+For: ''button, check, edit_box, edit_line, list_box, radio, slider''.
 
 The `:state` style is for disabling or locking certain controls, if you don't
 want them to be edited.
@@ -3553,6 +3553,48 @@ A shape is a path outline usually created by drawing methods like `oval` and
 `rect`. !{:margin_left => 100}man-ele-shape.png!
 
 See the [[Common]] methods page.  Shapes respond to all of those methods.
+
+== Slider ==
+
+Sliders allows you to adjust a value, from 0.0 to 1.0, thanks to the handle that can be moved with the mouse or by using the arrow keys. !{:margin_left => 100}man-ele-slider.png!
+
+here's a sample showing you a slider in action :
+
+{{{
+ #!ruby
+Shoes.app do
+    stack margin: 10 do
+        flow do
+            @sl = slider fraction: 0.35, state: nil do |sd|
+                @p.text = "value : #{sd.fraction}"
+            end
+            @p = para "", margin_left: 10
+        end
+        button "switch slider state" do
+            @sl.state = (@sl.state == "disabled" ? nil : "disabled")
+        end
+    end
+end 
+}}}
+
+For more methods beyond those listed below, also look into the [[Common]]
+methods page. Because you get those methods on every slider as well.
+
+=== fraction() » a decimal number ===
+
+Returns a decimal number from 0.0 to 1.0, depending on how far along the slider bar we are.
+
+=== fraction = a decimal number ===
+
+Sets the slider to a decimal number between 0.0 and 1.0.
+
+=== state » a string ===
+
+See [[Styles.state]] style for details.
+
+=== state = nil, "disabled" or "readonly" ===
+
+See [[Styles.state]] style for details.
 
 == TextBlock ==
 
