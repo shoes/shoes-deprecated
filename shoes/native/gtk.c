@@ -606,9 +606,10 @@ shoes_canvas_gtk_scroll(GtkRange *r, gpointer data)
   canvas->slot->scrolly = (int)gtk_range_get_value(r);
   shoes_slot_repaint(canvas->app->slot);
 }
+
 #ifndef SHOES_GTK_WIN32
 static gint                                                           
-shoes_app_g_poll (GPollFD *fds, guint nfds, gint timeout)
+shoes_app_g_poll(GPollFD *fds, guint nfds, gint timeout)
 {
   struct timeval tv;
 
