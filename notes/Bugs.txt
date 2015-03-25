@@ -1,14 +1,131 @@
 Bugs/Status - stick with Ruby 2.1.x and gtk2 until things get sorted
   out with GKt3 and later Rubyies
   
+2014-03-24
+----> Prep for 3.2.22 release. 
+  
+2015-03-22, 23
+done: don't use NSMatrix. Create ShoesRadioButton in cocoa.h/m instead.
+      Alter styles to not suck (much). 
+done: Use -DOLD_RADIO for the old crappy osx stuff
+done: use app.set_window_title (3.2.19) 
+  
+2015-03-21
+done: ShoesRadioCell is not return an object that Shoes thinks is a cRadio
+      object (or subclass of);
+      We do clicks out of the NSMatrix and  ShoesRadioCell passes them to
+      Shoes  
+  
+2015-03-20
+done: checked = true working.
+done: no button clicks in matrix passed to Shoes - swallowed by matrix,
+  
+2015-03-19
+done: Not too bad. test @r4.checked = true does nothing. 
+      Doesn't unselect properly
+      
+2015-03-18
+      shoes_native_radio (osx) creats NSMatrix (1x1) for each button.
+      Returns the matrix (an NSControl subclass) but
+done: needs support for selection.. an osx method to convert the matrix
+      choice to the old shoes_button_click. 
+done: much help in creating the buttons visually. title not used 
+      (it's a shoes thing)
+done: #ifdef NEW_RADIO
+
+2015-03-17
+      figure out lldb so I can debug radio's on osx.
+      lldb ~/build/mavericks/Shoes.app/Contents/MacOS/shoes-bin 
+      manually doubleclick on the Shoes icon to launch
+      get the pid of the shoes-bin process and 
+      lldb process attach --pid xyz
+      now set the breakpoints, continue and use Shoes to load the test stript
+      
+      
+done: ruby.c - #ifdef SHOES_RADIO_FORCE
+      create group before calling shoes_native radio
+done: osx: all radios throw warning about bad surface. 
+done: ruby.c create group before calling shoes_radio_draw (gtk does it after)
+
+  
+2015-03-15, 16
+done: Radio buttons. ruby.c handles most (all) of the group handling for a 
+      button click/unclick for NON GTK systems (osx, msw). 
+
+  
+2015-03-14
+done:  Look into bug #7. Truely weird. ruby.c:3172 
+  
+2015-03-12, 13
+      admin stuff - not much else.
+  
+2015-03-11
+done: http://gtk-win.sourceforge.net/home/index.php/Main/Downloads
+      Provides win/gtk themes, engines and a lovely test/install program
+      
+      Gtk Prefs program can modify the font of the current theme an stores
+      that info in ~/.gtktc-2.0 (a file) Shoes will use that .gtkrc. Copy 
+      it to platforms/msw/gtkrc
+done: copy that to {tgt}\etc\gtk-2.0\ and it works. Still more to learn
+      about themes but we're good to go as is.
+done: update shoesdeps with mostly empty share\icons\hicolor - enough to 
+      stop cshoes whines. 
+----> Wiki update to install the hicolor.zip to {shoesdeps} before building
+      gtk2.2.
+ 
+2015-03-10
+     Trouble setting the rc file. It appears to be ignored if there is
+     that ms-windows theme engine (libwimp.dll)
+done: custom.yaml is prefixed with target - win7-custom.yaml, xwin7-custom.yaml
+----> .... implement for arm, _x86, i386, osx variants ?
+done: MS-Theme disabled by default. Can be enabled in win7, xwin7 -custom.yaml  
+done: Add debug setting to *_custom.yaml
+    
+  
+2015-03-09
+----> windows install should also run 'gtk-update-icon-cache.exe on install
+done: which means it needs to be in ShoesDeps.zip 
+done: need hicolor directory with icons and a index.theme
+----> undo icon update hack to mingw build of gtk2
+----> We need to tell Shoes where this icon stuff lives. 
+----> Linux needs to run 'xdg-icon-resource install' when installing and it
+      need something to install (from ~/shoes/federales/share?)
+----> There are packaging implications esp driven by script
+done: Need to adjust the Theme (gtk2rc) - font size in dialog is way too small
+      Theme dir is C:\Program Files (x86)\Shoes\share\themes theme name is
+      'MS-Windows'. A simple rename of the file is sufficent to use the default
+      theme (< 3.2.22)
+      
+  
+2015-03-08
+done: removed gtk.c hack for forcing font name
+      added all the etc/ and share and themes and xml and so on.
+      Fonts working again! Themes started working (happy happy)
+done NSIS: FONTCONFIG_FILE point to etc\fonts\fonts.conf
+done: NSIS should run fc-cache.exe and gtk-update-icon-cache.exe
+      Ian says :
+       In "MainSection" of base.nsi, right before SectionEnd
+
+       DetailPrint "Building font cache, this may take a while..."
+       ExecWait '"$INSTDIR\fc-cache.exe" "-f"'
+
+
+----> manual needs to describe font handling more completely
+----> Deal with the hicolor icon index.template, index/cache for Gtk/Windows
+done: Dialog styles. (ask, alert, confirm...)
+done: Does pi 2 have a newer arch? 1.9.3 is default. NFS mount and Loose 
+      shoes should be easy. It was. Wrote a Wiki article.
+  
+2015-03-07
+done: packdeps task for xwin7. .
+  
 2015-03-06
 done: Mods to gtk.c, fonts.conf and much experimenting.  I'm OK with it.
-----> I'd like nicer font's like Linux produces. But it's OK.
+done: I'd like nicer font's like Linux produces. But it's OK.
 done: on uninstall, remove ENV var FONTCONFILE_FILE
 ----> still produces a missing icon message if file/folder open is invoked.
-----> much editing of wiki articles needed. 
-      Write an INSTALL along with the README? 
-----> create a packdeps script
+----> much editing of wiki articles needed for new build system improvement
+done: create a packdeps script
   
 2015-03-05
 done: libpangowin32 is in both gtk-2.24.10 and gtk-2.24.26 and both

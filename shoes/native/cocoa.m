@@ -349,15 +349,16 @@
 }
 @end
 
-#ifdef NEW_RADIO
+#ifndef OLD_RADIO
 @implementation ShoesRadioButton
 - (id)initWithType: (NSButtonType)t andObject: (VALUE)o
 {
   if ((self = [super init]))
   {
     object = o;
-    [self setButtonType: NSSwitchButton];  // checkbox for now
-    [self setBezelStyle: NSRoundedBezelStyle];
+    [self setButtonType: NSPushOnPushOffButton];  // checkbox for now
+		[self setImagePosition: NSImageOnly];
+    [self setBezelStyle: NSCircularBezelStyle];
     [self setTarget: self];
     [self setAction: @selector(handleClick:)];
   }
@@ -365,7 +366,7 @@
 }
 -(IBAction)handleClick: (id)sender
 {
-	NSLog(@"radio button handler called on %lx", object); 
+	//NSLog(@"radio button handler called on %lx", object); 
   shoes_button_send_click(object);
 }
 @end
@@ -1417,32 +1418,12 @@ shoes_native_check(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE a
 VALUE
 shoes_native_check_get(SHOES_CONTROL_REF ref)
 {
-#ifdef NEW_RADIO
-	if ([ref isKindOfClass:[NSMatrix class]])
-	{
-		NSCell *contents = [ref cellAtRow:(NSInteger) 0
-		         column:(NSInteger) 0];
-		int state = [contents state];
-		NSLog(@"matrix get %i", state);
-		return state ==  NSOnState ? Qtrue : Qfalse;
-	}
-#endif
   return [(ShoesButton *)ref state] == NSOnState ? Qtrue : Qfalse;
 }
 
 void
 shoes_native_check_set(SHOES_CONTROL_REF ref, int on)
 {
-	NSLog(@"matrix set to %i", on != 0);
-#ifdef NEW_RADIO
-	if ([ref isKindOfClass:[NSMatrix class]])
-	{
-		[ref setState:(NSInteger) on != 0
-	           atRow:(NSInteger)0
-	          column:(NSInteger)0 ];
-		return;
-	}
-#endif
   COCOA_DO([(ShoesButton *)ref setState: on ? NSOnState : NSOffState]);
 }
 
@@ -1450,21 +1431,23 @@ SHOES_CONTROL_REF
 shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, VALUE group)
 {
   INIT;
-#ifdef NEW_RADIO
-	NSLog(@"shoes_native_radio self: %i, %lx", TYPE(self), self);
-	if (NIL_P(group))
-		NSLog(@"group: NIL");
-  else
-	  NSLog(@"group: %lx", group);
-	ShoesRadioButton *button = [[ShoesRadioButton alloc] initWithType: NSSwitchButton
-		   andObject: self];
-	RELEASE;
-	return (NSControl *)button;
-#else
+#ifdef OLD_RADIO
 	ShoesButton *button = [[ShoesButton alloc] initWithType: NSRadioButton
 		   andObject: self];
 	 RELEASE;
 	 return (NSControl *)button;
+#else
+ 	/* 
+ 	NSLog(@"shoes_native_radio self: %i, %lx", TYPE(self), self);
+ 	if (NIL_P(group))
+ 		NSLog(@"group: NIL");
+   else
+ 	  NSLog(@"group: %lx", group);
+ 	*/
+ 	ShoesRadioButton *button = [[ShoesRadioButton alloc] initWithType: NSSwitchButton
+ 		   andObject: self];
+ 	RELEASE;
+ 	return (NSControl *)button;
 #endif
 }
 
@@ -1534,13 +1517,17 @@ VALUE
 shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
 {
   VALUE answer = Qnil;
+	GLOBAL_APP(app);
+	char *rbcTitle = RSTRING_PTR(app->title);
+	NSString *appstr = [[NSString alloc] initWithCString: rbcTitle];
   rb_arg_list args;
   rb_parse_args(argc, argv, "s|h", &args);
 	char *msg;
   COCOA_DO({
     msg = shoes_native_to_s(args.a[0]);
     // replace with styles if needed when we have one
-		NSString *deftitle =  @"Shoes says:";
+		NSString *deftitle =  [appstr stringByAppendingString: @" says:"];
+		//NSString *deftitle =  @"Shoes says:";
 		if (argc > 1)
 		{
       if (RTEST(ATTR(args.a[1], title)))
@@ -1569,10 +1556,14 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   VALUE answer = Qnil;
+	GLOBAL_APP(app);
+	char *rbcTitle = RSTRING_PTR(app->title);
+	NSString *appstr = [[NSString alloc] initWithCString: rbcTitle];
   rb_parse_args(argc, argv, "s|h", &args);
   COCOA_DO({
     // replace with styles if needed when we have one
-		NSString *deftitle =  @"Shoes says:";
+		//NSString *deftitle =  @"Shoes says:";
+		NSString *deftitle =  [appstr stringByAppendingString: @" asks:"];
 		if (argc > 1)
 		{
       if (RTEST(ATTR(args.a[1], title)))
@@ -1636,11 +1627,15 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
   char *msg;
 	VALUE quiz;
   VALUE answer = Qnil;
+	GLOBAL_APP(app);
+	char *rbcTitle = RSTRING_PTR(app->title);
+	NSString *appstr = [[NSString alloc] initWithCString: rbcTitle];
   rb_arg_list args;
   rb_parse_args(argc, argv, "s|h", &args);
   COCOA_DO({
     // replace with styles if needed when we have one
-		NSString *deftitle =  @"Shoes says:";
+		//NSString *deftitle =  @"Shoes says:";
+		NSString *deftitle =  [appstr stringByAppendingString: @" asks:"];
 		if (argc > 1)
 		{
       if (RTEST(ATTR(args.a[1], title)))
