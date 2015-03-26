@@ -1,14 +1,29 @@
 Bugs/Status - stick with Ruby 2.1.x and gtk2 until things get sorted
   out with GKt3 and later Rubyies
   
-2014-03-24
-----> Prep for 3.2.22 release. 
+2015-03-25
+----> Manual - Write Special section of Shoes subsection 
+      Test 3.2.22 - osx, windows, ubuntu, pi, suse, fedora, debian 7.2
+      
+----> I suspect the set_window_title is per App and not global singleton.
   
+2015-03-24
+done: Prep for 3.2.22 release. 
+done: Update oraclebox.
+done: Update the VM's (Win7, Debian 7.2 (i386), Suse, Fedora) 
+done:    install latest guestadditions in each.
+done: build betas w/o debugging.
+----> update manual for ask,alert,confirm, set_window_title  
+done: cleanup the gtk.c for ask,alert,confirm. It's not that bad. 
+----> Verify changelog is good enough. It's not yet.
+
 2015-03-22, 23
 done: don't use NSMatrix. Create ShoesRadioButton in cocoa.h/m instead.
       Alter styles to not suck (much). 
 done: Use -DOLD_RADIO for the old crappy osx stuff
 done: use app.set_window_title (3.2.19) 
+done: Use existing app.set_window_title for the ask,alert,confirm
+      
   
 2015-03-21
 done: ShoesRadioCell is not return an object that Shoes thinks is a cRadio

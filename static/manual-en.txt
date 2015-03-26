@@ -436,7 +436,7 @@ will save you some memory and speed.
 
 ==== UTF-8 Everywhere ====
 
-Ruby itself isn't Unicode aware.  And UTF-8 is a type of Unicode.  (See
+Ruby is now very Unicode aware.  And UTF-8 is a type of Unicode.  (See
 [[http://en.wikipedia.org/wiki/UTF-8 Wikipedia]] for a full explanation of
 UTF-8.)
 
@@ -561,6 +561,7 @@ This section covers:
  * [[Styles The Styles Master List]] - a complete list of every style in Shoes.
  * [[Classes The Classes list]] - a chart showing what Shoes classes subclass what.
  * [[Colors The Colors list]] - a chart of all built-in colors and the [[Built-in.rgb]] numbers for each.
+ * [[Special Specialized methods]] - oddities that don't really fit App or Built-in
 
 If you find yourself paging around a lot and not finding something, give the
 [[Search]] page a try. It's the quickest way to get around.
@@ -652,7 +653,7 @@ Pops up a window containing a short message.
  alert("I'm afraid I must interject!")
 }}}
 
-`:title` is optional and replace the default "Shoes says:" with the string you provide or could be set to `nil` in which case the window won't have a title at all.
+`:title` is optional and replaces the default "Shoes says:" with the string you provide or could be set to `nil` in which case the window won't have a title at all.
 
 {{{
  #!ruby
@@ -1631,6 +1632,76 @@ inside any slot will get you a nice reddish color.)  Below each color, also
 find the exact numbers which can be used with the [[Built-in.rgb]] method.
 
 {COLORS}
+
+== Special ==
+
+There are some special methods associated with App that are designed for special situations.
+They affect subtle things and big things. They are a bit dangerous if called incorrectly so
+experiment wisely if you need the feature. You would want to call these early in your Shoes.app
+block. 
+
+Caution: These are not well tested. They exist for folks that might want to 
+write games or hide the Shoes name and icon. 
+
+Another caution - these are methods of an App instance so you need that object.
+Even when they effect more than one instance of App. Shoes seems create an 'app'
+object in the Shoes.app block that you can use (must use?) for some of the following.
+
+=== fullscreen ===
+
+This returns true or false if your script is running in full screen mode
+
+=== fullscreen= ===
+
+Set fullscreen to true or false. If you do this, you should provide a method
+for turning it off. There's nothing more annoying that than a full screen app
+that the user can't figure out how to quit and get back to normal. Don't be
+that kind of programmer. 
+
+=== name ===
+Returns the title string for the App. Usually the string in the window's title bar.
+
+=== name = String ===
+
+Sets the title string of the current window. See set_window_title below. 
+
+=== location ===
+
+Probably returns the Shoes url.
+
+=== started? ===
+
+documented as a [[Built-in]] but be careful. It might not be the same.
+
+=== width ===
+
+Returns the current width.
+
+=== height ===
+
+Returns the current height. Perhaps you need it and the width after going fullscreen 
+to setup your game to the size availavble. 
+
+=== slot ===
+
+No idea what this does.
+
+=== set_window_icon_path(pathname) ===
+
+This sets the icon in the title bar (and the dock or taskbar of your OS)
+for this window and any others you create from this script. It replaces the little Shoes federales icon.
+If you need this, do it very early in the Shoes.app block before you create any stacks, flows or elements.
+
+The icon should be a 128x128 png. Or 256x256 png. 
+
+=== set_window_title(string) ===
+
+This sets the string in the current title bar like name = does but also the default title
+every new window you might create including the alert, ask and confirm dialogs. 
+
+Note: the :title style setting only effects one window. This effects all windows. 
+
+If you need this, do it very early in the Shoes.app block before you create any stacks, flows or elements.
 
 = Slots =
 
