@@ -1637,7 +1637,6 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
   char *atitle[50];
   GLOBAL_APP(app);
   char *apptitle = RSTRING_PTR(app->title);
-  fprintf(stderr, "ask title is %s\n", apptitle);
   VALUE answer = Qnil;
   rb_arg_list args;
   rb_parse_args(argc, argv, "s|h", &args);
