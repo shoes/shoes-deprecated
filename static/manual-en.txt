@@ -1644,49 +1644,45 @@ Caution: These are not well tested. They exist for folks that might want to
 write games or hide the Shoes name and icon. 
 
 Another caution - these are methods of an App instance so you need that object.
-Even when they effect more than one instance of App. Shoes creates an 'app'
-method in the Shoes.app block that you must use for some of the following.
+Even when they effect more than one instance of App. Shoes seems create an 'app'
+object in the Shoes.app block that you can use (must use?) for some of the following.
 
-=== app.fullscreen ===
+=== fullscreen ===
 
 This returns true or false if your script is running in full screen mode
 
-
-=== app.fullscreen=(Boolean) ===
+=== fullscreen= ===
 
 Set fullscreen to true or false. If you do this, you should provide a method
 for turning it off. There's nothing more annoying that than a full screen app
 that the user can't figure out how to quit and get back to normal. Don't be
 that kind of programmer. 
 
-:fullscreen => true is also a style you can set in the Shoes.app.
-
-
-=== app.name ===
+=== name ===
 Returns the title string for the App. Usually the string in the window's title bar.
 
-=== app.name(String) ===
+=== name = String ===
 
 Sets the title string of the current window. See set_window_title below. 
 
-=== app.location ===
+=== location ===
 
-Returns the Shoes url.
+Probably returns the Shoes url.
 
-=== app.started? ===
+=== started? ===
 
-Is the app completely initiailized? 
+documented as a [[Built-in]] but be careful. It might not be the same.
 
-=== app.width ===
+=== width ===
 
 Returns the current width.
 
-=== app.height ===
+=== height ===
 
 Returns the current height. Perhaps you need it and the width after going fullscreen 
 to setup your game to the size availavble. 
 
-=== app.slot ===
+=== slot ===
 
 No idea what this does.
 
@@ -1694,41 +1690,18 @@ No idea what this does.
 
 This sets the icon in the title bar (and the dock or taskbar of your OS)
 for this window and any others you create from this script. It replaces the little Shoes federales icon.
-If you need this, do it for every app.  Depending on your OS, theme and desktop settings,
-the icon may not be displayed at all.
+If you need this, do it very early in the Shoes.app block before you create any stacks, flows or elements.
 
-{{{
- #!ruby
- Shoes.app :title => "I'm Shoes" do
-    button "feeling blue" do
-      Shoes.APPS.each {|a| a.set_window_icon_path("static/shoes-icon-blue.png") }
-      confirm "did all the Shoes icons change? "
-    end
- end
-}}}
 The icon should be a 128x128 png. Or 256x256 png. 
 
 === set_window_title(string) ===
 
 This sets the string in the current title bar like name = does but also the default title
-every new window you might create including the alert, ask and confirm dialogs.  What
-it does not do is change the title of other existing windows. To be 
+every new window you might create including the alert, ask and confirm dialogs. 
 
-Note: the :title style setting only effects one window. This effects all NEW windows. 
+Note: the :title style setting only effects one window. This effects all windows. 
 
-If you need this, loop through all the Apps. 
-{{{
- #!ruby
- Shoes.app :title => "I'm Shoes" do
-    button "change title" do
-      Shoes.APPS.each {|a| a.set_window_title("No Shoes Here") }
-      confirm "did the title change to No Shoes Here"
-    end
- end
-}}}
-
-Notice how it's sticky. 
-
+If you need this, do it very early in the Shoes.app block before you create any stacks, flows or elements.
 
 = Slots =
 
@@ -1845,7 +1818,7 @@ To draw a star with an image pattern:
 {{{
  #!ruby
  Shoes.app do
-   fill "static/avatar.png"
+   fill "#{DIR}/static/avatar.png"
    star 200, 200, 5
  end
 }}}
@@ -3342,7 +3315,7 @@ To create an image, use the `image` method in a slot:
  #!ruby
  Shoes.app do
    para "Nice, nice, very nice.  Busy, busy, busy."
-   image "static/shoes-manual-apps.png"
+   image "#{DIR}/static/shoes-manual-apps.png"
   end
 }}}
 
@@ -3411,7 +3384,7 @@ Shoes.app :width => 400, :height => 450, :resizable => true do
     end
     
     image :width => 700, :height => 500, :top => 180, :left => 20 do
-        image "./static/app-icon.png", :top => 40, :left => 60
+        image "#{DIR}/static/app-icon.png", :top => 40, :left => 60
         glow 10, inner: true, fill: yellow
         shadow radius: 10, fill: rgb(0, 0, 0, 0.75), displace_left: -10, displace_top: 10
     end
