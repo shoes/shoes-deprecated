@@ -1701,7 +1701,7 @@ the icon may not be displayed at all.
  #!ruby
  Shoes.app :title => "I'm Shoes" do
     button "feeling blue" do
-      Shoes.APPS.each {|a| a.set_window_icon_path("static/shoes-icon-blue.png") }
+      Shoes.APPS.each {|a| a.set_window_icon_path("#{DIR}/static/shoes-icon-blue.png") }
       confirm "did all the Shoes icons change? "
     end
  end
