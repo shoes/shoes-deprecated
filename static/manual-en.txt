@@ -1644,45 +1644,49 @@ Caution: These are not well tested. They exist for folks that might want to
 write games or hide the Shoes name and icon. 
 
 Another caution - these are methods of an App instance so you need that object.
-Even when they effect more than one instance of App. Shoes seems create an 'app'
-object in the Shoes.app block that you can use (must use?) for some of the following.
+Even when they effect more than one instance of App. Shoes creates an 'app'
+method in the Shoes.app block that you must use for some of the following.
 
-=== fullscreen ===
+=== app.fullscreen ===
 
 This returns true or false if your script is running in full screen mode
 
-=== fullscreen= ===
+
+=== app.fullscreen=(Boolean) ===
 
 Set fullscreen to true or false. If you do this, you should provide a method
 for turning it off. There's nothing more annoying that than a full screen app
 that the user can't figure out how to quit and get back to normal. Don't be
 that kind of programmer. 
 
-=== name ===
+:fullscreen => true is also a style you can set in the Shoes.app.
+
+
+=== app.name ===
 Returns the title string for the App. Usually the string in the window's title bar.
 
-=== name = String ===
+=== app.name(String) ===
 
 Sets the title string of the current window. See set_window_title below. 
 
-=== location ===
+=== app.location ===
 
-Probably returns the Shoes url.
+Returns the Shoes url.
 
-=== started? ===
+=== app.started? ===
 
-documented as a [[Built-in]] but be careful. It might not be the same.
+Is the app completely initiailized? 
 
-=== width ===
+=== app.width ===
 
 Returns the current width.
 
-=== height ===
+=== app.height ===
 
 Returns the current height. Perhaps you need it and the width after going fullscreen 
 to setup your game to the size availavble. 
 
-=== slot ===
+=== app.slot ===
 
 No idea what this does.
 
@@ -1690,18 +1694,41 @@ No idea what this does.
 
 This sets the icon in the title bar (and the dock or taskbar of your OS)
 for this window and any others you create from this script. It replaces the little Shoes federales icon.
-If you need this, do it very early in the Shoes.app block before you create any stacks, flows or elements.
+If you need this, do it for every app.  Depending on your OS, theme and desktop settings,
+the icon may not be displayed at all.
 
+{{{
+ #!ruby
+ Shoes.app :title => "I'm Shoes" do
+    button "feeling blue" do
+      Shoes.APPS.each {|a| a.set_window_icon_path("static/shoes-icon-blue.png") }
+      confirm "did all the Shoes icons change? "
+    end
+ end
+}}}
 The icon should be a 128x128 png. Or 256x256 png. 
 
 === set_window_title(string) ===
 
 This sets the string in the current title bar like name = does but also the default title
-every new window you might create including the alert, ask and confirm dialogs. 
+every new window you might create including the alert, ask and confirm dialogs.  What
+it does not do is change the title of other existing windows. To be 
 
-Note: the :title style setting only effects one window. This effects all windows. 
+Note: the :title style setting only effects one window. This effects all NEW windows. 
 
-If you need this, do it very early in the Shoes.app block before you create any stacks, flows or elements.
+If you need this, loop through all the Apps. 
+{{{
+ #!ruby
+ Shoes.app :title => "I'm Shoes" do
+    button "change title" do
+      Shoes.APPS.each {|a| a.set_window_title("No Shoes Here") }
+      confirm "did the title change to No Shoes Here"
+    end
+ end
+}}}
+
+Notice how it's sticky. 
+
 
 = Slots =
 
@@ -3931,5 +3958,6 @@ Finally, add a last button for entertainment value. You can press '''up''' or ''
 `f.button("2100s") { @p.replace "2100s" }`
 
 Your '''Interactive Ruby''' console should look like this: !{:margin_left => 60}shoes-irb-sample.png!
+
 
 
