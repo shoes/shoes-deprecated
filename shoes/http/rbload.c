@@ -63,7 +63,7 @@ shoes_queue_download(shoes_http_request *req)
   side->etag = RSTRING_PTR(rb_hash_aref(hdrs, etag));
   //VALUE rbetag = rb_hash_aref(hdrs, rb_intern("etag"));
   //printf("%s\n",RSTRING_PTR(rbetag));
-  shoes_catch_message(SHOES_IMAGE_DOWNLOAD, NULL, side);
+  shoes_catch_message(SHOES_IMAGE_DOWNLOAD, Qnil, side);
   shoes_http_request_free(req);
   free(req);
   // assume Ruby will garbage collect all the VALUE var's. 
@@ -76,9 +76,9 @@ shoes_http_err(SHOES_DOWNLOAD_ERROR code)
   /* a little unclear what this does or what it returns
   I think it converts the platform 'code' to a Shoes string
   */
-  const char *errorString;
+  char errorString[10];
   sprintf(errorString, "%i", code);
-  printf("shoes_http_err called%s\n",errorString);
+  //printf("shoes_http_err called%s\n",errorString);
   return rb_str_new2(errorString);
 }
 

@@ -837,7 +837,7 @@ shoes_native_app_set_icon(shoes_app *app, char *icon_path)
 {
   // replace default icon
   gboolean err;
-  err = gtk_window_set_icon_from_file(app->slot->oscanvas, icon_path, NULL);
+  err = gtk_window_set_icon_from_file((GtkWindow *) app->slot->oscanvas, icon_path, NULL);
   err = gtk_window_set_default_icon_from_file(icon_path, NULL);
 }
 

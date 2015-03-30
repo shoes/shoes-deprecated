@@ -4137,7 +4137,9 @@ shoes_http_threaded(VALUE self, VALUE url, VALUE attr)
     url_string = SHOE_ALLOC_N(char, SHOES_BUFSIZE);
     char slash[2] = "/";
     if (RSTRING_PTR(path)[0] == '/') slash[0] = '\0';
-    sprintf(url_string, "%s://%s:%d%s%s", scheme, host, port, slash, path);
+//    sprintf(url_string, "%s://%s:%d%s%s", RSTRING_PTR(scheme), RSTRING_PTR(host),
+    sprintf(url_string, "%s://%s:%s%s%s", RSTRING_PTR(scheme), RSTRING_PTR(host),
+     RSTRING_PTR(port), slash, RSTRING_PTR(path));
   }
   
   shoes_http_request *req = SHOE_ALLOC(shoes_http_request);
