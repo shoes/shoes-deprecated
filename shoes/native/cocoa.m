@@ -59,7 +59,7 @@
 }
 - (void)emulateKey: (NSString *)key modifierFlags: (unsigned int)flags withoutModifiers: (NSString *)key2
 {
-  ShoesWindow *win = [NSApp keyWindow];
+  ShoesWindow *win = (ShoesWindow *)[NSApp keyWindow];
   [win keyDown: [NSEvent keyEventWithType:NSKeyDown
     location:NSMakePoint(0,0) modifierFlags:flags
     timestamp:0 windowNumber:0 context:nil
@@ -104,7 +104,7 @@
   [self makeKeyAndOrderFront: self];
   [self setAcceptsMouseMovedEvents: YES];
   [self setAutorecalculatesKeyViewLoop: YES];
-  [self setDelegate: self];
+  [self setDelegate: (id <NSWindowDelegate>)self];
 }
 - (void)disconnectApp
 {
@@ -380,7 +380,7 @@
   {
     object = o;
     [self setBezelStyle: NSRegularSquareBezelStyle];
-    [self setDelegate: self];
+    [self setDelegate: (id<NSTextFieldDelegate>)self];
   }
   return self;
 }
@@ -403,7 +403,7 @@
   {
     object = o;
     [self setBezelStyle: NSRegularSquareBezelStyle];
-    [self setDelegate: self];
+    [self setDelegate: (id<NSTextFieldDelegate>)self];
   }
   return self;
 }
@@ -428,7 +428,7 @@
     [self setHasVerticalScroller: YES];
     [self setHasHorizontalScroller: NO];
     [self setDocumentView: textView];
-    [textView setDelegate: self];
+    [textView setDelegate: (id<NSTextViewDelegate>)self];
   }
   return self;
 }
@@ -498,7 +498,7 @@
     styleMask: NSTitledWindowMask backing: NSBackingStoreBuffered defer: NO]))
   {
     answer = FALSE;
-    [self setDelegate: self];
+    [self setDelegate: (id<NSWindowDelegate>)self];
   }
   return self;
 }
@@ -728,7 +728,7 @@ shoes_load_font(const char *filename)
 
   ok = CTFontManagerRegisterFontsForURL(cfuref, kCTFontManagerScopeProcess, &err);
   if (!ok ) {
-    NSLog(@"Failed %d",err);
+    NSLog(@"Failed CTFontManager");
   }
 #else
   FSRef fsRef;
@@ -781,7 +781,7 @@ void shoes_native_init()
   create_edit_menu(main);
   create_window_menu(main);
   create_help_menu(main);
-  [NSApp setDelegate: shoes_world->os.events];
+  [NSApp setDelegate: (id<NSApplicationDelegate>)shoes_world->os.events];
 
   idle = [NSTimer scheduledTimerWithTimeInterval: 0.01
     target: shoes_world->os.events selector: @selector(idle:) userInfo: nil
@@ -1016,7 +1016,7 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
     app->os.window = shoes_native_app_window(app, dialog);
     app->slot->view = [app->os.window contentView];
   });
-quit:
+//quit:
   return code;
 }
 
@@ -1516,13 +1516,14 @@ shoes_native_dialog_color(shoes_app *app)
 VALUE
 shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
 {
-  VALUE answer = Qnil;
+  //VALUE answer = Qnil;
 	GLOBAL_APP(app);
-	char *rbcTitle = RSTRING_PTR(app->title);
-	NSString *appstr = [[NSString alloc] initWithCString: rbcTitle];
+	//char *rbcTitle = RSTRING_PTR(app->title);
+	//NSString *appstr = [[NSString alloc] initWithCString: rbcTitle encoding: NSUTF8StringEncoding];
+	NSString *appstr = [[NSString alloc] initWithUTF8String: RSTRING_PTR(app->title)];
   rb_arg_list args;
   rb_parse_args(argc, argv, "s|h", &args);
-	char *msg;
+	VALUE msg;
   COCOA_DO({
     msg = shoes_native_to_s(args.a[0]);
     // replace with styles if needed when we have one
@@ -1542,7 +1543,7 @@ shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
 				deftitle = [[NSString alloc] initWithUTF8String: ""];
 			}
 		}
-		//NSLog(@"default title |%@|", deftitle);
+		//below form of alert is deprecated in 10.10
     NSAlert *alert = [NSAlert alertWithMessageText: deftitle
       defaultButton: @"OK" alternateButton: nil otherButton: nil 
       informativeTextWithFormat: [NSString stringWithUTF8String: RSTRING_PTR(msg)]];
@@ -1558,7 +1559,7 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
   VALUE answer = Qnil;
 	GLOBAL_APP(app);
 	char *rbcTitle = RSTRING_PTR(app->title);
-	NSString *appstr = [[NSString alloc] initWithCString: rbcTitle];
+	NSString *appstr = [[NSString alloc] initWithCString: rbcTitle encoding: NSUTF8StringEncoding];
   rb_parse_args(argc, argv, "s|h", &args);
   COCOA_DO({
     // replace with styles if needed when we have one
@@ -1629,7 +1630,7 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
   VALUE answer = Qnil;
 	GLOBAL_APP(app);
 	char *rbcTitle = RSTRING_PTR(app->title);
-	NSString *appstr = [[NSString alloc] initWithCString: rbcTitle];
+	NSString *appstr = [[NSString alloc] initWithCString: rbcTitle encoding: NSUTF8StringEncoding];
   rb_arg_list args;
   rb_parse_args(argc, argv, "s|h", &args);
   COCOA_DO({

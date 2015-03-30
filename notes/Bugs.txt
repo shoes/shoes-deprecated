@@ -1,11 +1,38 @@
 Bugs/Status - stick with Ruby 2.1.x and gtk2 until things get sorted
   out with GKt3 and later Rubyies
   
-2015-03-25
-----> Manual - Write Special section of Shoes subsection 
-      Test 3.2.22 - osx, windows, ubuntu, pi, suse, fedora, debian 7.2
+2015-03-29 
+done: gtk.c compiler warnings. Fix xml '&' parsing in alert. 
+ 
+2015-03-28
+     Work on gtk compile warnings. 
+     Work on osx compile warnings - some things do need looking at:
+       non std method for Apple menu
+       some NSAlert options deprecated in 10.10
+  
+2015-03-27
+     Luka reports a font related problem.
+done: manual changes to loop on Shoes.APPS. Add examples
+????? change user installer template to iterate over Shoes.APPS to set
+      title and icon.
+  
+2015-03-26
+done: Test Win7, 
+done: osx 10.9 
+done:  pi 
+done: x86 - suse,
+done:   fedora
+done: i386 - debian 7.2
       
+----> gtk.c has lots of compile warnings related to the ask,alert,confirm
+      glib has utf-8 string functions we should use instead.
+----> cocoa.m has way too may warnings too.
+  
+2015-03-25
+done: Manual - Write Special section of Shoes subsection 
+
 ----> I suspect the set_window_title is per App and not global singleton.
+      File a bug for 3.2.23
   
 2015-03-24
 done: Prep for 3.2.22 release. 

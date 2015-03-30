@@ -50,7 +50,7 @@
 - (void)download: (shoes_http_request *)req
 {
   NSString *url = [NSString stringWithFormat: @"%s", req->url];
-  NSString *uagent = [NSString stringWithFormat: @"Shoes/0.r%d (%s) %s/%d", 
+  NSString *uagent = [NSString stringWithFormat: @"Shoes/0.r%d (%s) %s/%s", 
     SHOES_REVISION, SHOES_PLATFORM, SHOES_RELEASE_NAME, SHOES_BUILD_DATE];
   NSMutableURLRequest *nsreq = [NSMutableURLRequest requestWithURL: 
     [NSURL URLWithString: url]
@@ -74,7 +74,7 @@
   if (req->filepath != NULL)
   {
     dest = req->filepath;
-    down = [[NSURLDownload alloc] initWithRequest: nsreq delegate: self];
+    down = [[NSURLDownload alloc] initWithRequest: nsreq delegate: (id<NSURLDownloadDelegate>)self];
     req->filepath = NULL;
   }
   else
@@ -172,7 +172,8 @@
       SHOE_REALLOC_N(dest, char, [bytes length]);
     [bytes getBytes: dest];
   }
-  HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, total, total, data, [bytes mutableBytes], 1);
+  //HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, total, total, data, [bytes mutableBytes], 1);
+  HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, total, total, data, [bytes mutableBytes], NULL);
   [c release];
   [self releaseData];
 }
@@ -218,7 +219,8 @@
 }
 - (void)downloadDidFinish: (NSURLDownload *)download
 {
-  HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, total, total, data, NULL, 1);
+  //HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, total, total, data, NULL, 1);
+  HTTP_EVENT(handler, SHOES_HTTP_COMPLETED, last, 100, total, total, data, NULL, NULL);
   [download release];
   [self releaseData];
 }
