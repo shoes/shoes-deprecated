@@ -6,8 +6,8 @@ require 'rbconfig'
 
 # manually set below to what you want to build with/for
 #ENV['DEBUG'] = "true" # turns on the call log in shoes/gtk
-#ENV['GTK'] = "gtk+-3.0" # pick this or the next
 APP['GTK'] = "gtk+-2.0"
+#APP['GTK'] = "gtk+-3.0"
 ENV['GDB'] = "true" # compile -g,  don't strip symbols
 # Pick your optimatization and debugging options
 if ENV['DEBUG'] || ENV['GDB']
@@ -59,6 +59,7 @@ LINUX_CFLAGS << " #{RUBY_CFLAGS} #{GTK_FLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS}"
 
 # collect link settings together. Does order matter? 
 LINUX_LIBS = "#{RUBY_LIB} #{GTK_LIB}  #{CAIRO_LIB} #{PANGO_LIB} #{MISC_LIB}"
+LINUX_LIBS << " -lfontconfig" if APP['GTK'] == "gtk+-3.0"
 # the following is only used to link the shoes code with main.o
 LINUX_LDFLAGS = "-L. -rdynamic -Wl,-export-dynamic"
 
