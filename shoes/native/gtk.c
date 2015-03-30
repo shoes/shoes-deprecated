@@ -17,7 +17,7 @@
 #endif
 #endif
 #include <pthread.h>
-
+#include <glib/gprintf.h>
 
 #define GTK_CHILD(child, ptr) \
   GList *children = gtk_container_get_children(GTK_CONTAINER(ptr)); \
@@ -127,7 +127,7 @@ void shoes_native_print_env()
   gchar *themename;
   
   gchar *rcfile = "shoesgtk.rc";
-  gchar *rcfiles[] = {rcfile, NULL};
+  //gchar *rcfiles[] = {rcfile, NULL};
   gchar **defs;
   //gtk_rc_set_default_files(rcfiles);
   //gtk_rc_parse(rcfile);
@@ -1586,36 +1586,71 @@ shoes_native_dialog_color(shoes_app *app)
 }
 #endif
 
-
+#if 1
+// 2015/3/29
 VALUE
 shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
 {
     GLOBAL_APP(app);
-    char *atitle[50];
+    char *apptitle = RSTRING_PTR(app->title); //default is "Shoes"
+    char atitle[50];
+    g_sprintf(atitle, "%s says", apptitle);
+    rb_arg_list args;
+    rb_parse_args(argc, argv, "s|h", &args);
+    char *msg = RSTRING_PTR(args.a[0]);
+      
+    gchar *format_string = "<span size='larger'>%s</span>\n\n%s";
+    if (argc == 2)
+    {
+       if (RTEST(ATTR(args.a[1], title)))
+        {
+			VALUE tmpstr = ATTR(args.a[1], title);
+            strcpy(atitle,RSTRING_PTR(shoes_native_to_s(tmpstr)));
+        }
+        else
+        {
+            g_stpcpy(atitle," ");
+        }
+    }
+    
+    GtkWidget *dialog = gtk_message_dialog_new_with_markup(
+            APP_WINDOW(app), GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_OK, 
+            format_string, atitle, msg );
+    
+    gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
+    return Qnil;
+}
+#else
+VALUE
+shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
+{
+    GLOBAL_APP(app);
+    char atitle[50];
     //char *atitle = "Shoes says:";
     char *apptitle = RSTRING_PTR(app->title);
-    sprintf(atitle, "%s says", apptitle);
+    g_sprintf(atitle, "%s says", apptitle);
     char *msg = "";
     rb_arg_list args;
     rb_parse_args(argc, argv, "s|h", &args);
     msg = RSTRING_PTR(args.a[0]);
       
-    char *format_string[50];    
+    gchar format_string[50];    
     switch(argc)
     {
     case 1:
-        snprintf(format_string, sizeof(format_string), "<span size='larger'>%s</span>\n\n%s", atitle, msg);
+        g_snprintf(format_string, sizeof(format_string), "<span size='larger'>%s</span>\n\n%s", atitle, msg);
         break;
     case 2:
         if (RTEST(ATTR(args.a[1], title)))
         {
 			VALUE tmpstr = ATTR(args.a[1], title);
             strcpy(atitle,RSTRING_PTR(shoes_native_to_s(tmpstr)));
-            snprintf(format_string, sizeof(format_string), "<span size='larger'>%s</span>\n\n%s", atitle, msg);
+            g_snprintf(format_string, sizeof(format_string), "<span size='larger'>%s</span>\n\n%s", atitle, msg);
         }
         else
         {
-            snprintf(format_string, sizeof(format_string), "%s", msg);
+            g_snprintf(format_string, sizeof(format_string), "%s", msg);
         }
         break;
     }
@@ -1629,12 +1664,12 @@ shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
     gtk_widget_destroy(dialog);
     return Qnil;
 }
-
+#endif
 
 VALUE
 shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
 {
-  char *atitle[50];
+  char atitle[50];
   GLOBAL_APP(app);
   char *apptitle = RSTRING_PTR(app->title);
   VALUE answer = Qnil;
@@ -1692,13 +1727,12 @@ VALUE
 shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
 {
   VALUE answer = Qfalse;
-  char *atitle[50];
+  char atitle[50];
   GLOBAL_APP(app);
   char *apptitle = RSTRING_PTR(app->title);
-  char *quiz = "";
   rb_arg_list args;
   rb_parse_args(argc, argv, "s|h", &args);
-  quiz = shoes_native_to_s(args.a[0]);
+  VALUE quiz = shoes_native_to_s(args.a[0]);
   
     switch(argc)
     {

@@ -1,7 +1,8 @@
-Shoes.app(:width => 450, :height => 250) {
+Shoes.app(:title => "Shoes Custom Ask & Alert", :width => 450, :height => 250) {
+    #Shoes.APPS.each {|a| a.set_window_title("Not me") }
     name = ask("Please enter your name:")
     alert "your name is #{name}"
-    ans = confirm "is the default title OK?"
+    #ans = confirm "is the default title OK?"
     # test user supplied title
     #name = ask("Please, enter your name:", title: "May i ?")
     #name = ask("Please, enter your name:", title: 12345)
