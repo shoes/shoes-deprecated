@@ -1,4 +1,4 @@
-Shoes.app(:width => 450, :height => 250) {
+Shoes.app(:title => "You won't see me", :width => 450, :height => 250) {
     Shoes.APPS.each {|a| a.set_window_title("Not me") }
     name = ask("Please enter your name:")
     alert "your name is #{name}"
