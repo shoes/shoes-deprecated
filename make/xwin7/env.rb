@@ -2,7 +2,7 @@
 # Build shoes for Windows/Gtk[2|3]  Ruby is cross compiled
 # It's not really a chroot - it only looks like one and Gtk2/3 is different
 # Remember, on Windows the dlls are in bin/ 
-cf =(ENV['ENV_CUSTOM'] || "xwin7-custom.yaml")
+cf =(ENV['ENV_CUSTOM'] || "#{TGT_ARCH}-custom.yaml")
 if File.exists? cf
   custmz = YAML.load_file(cf)
   ShoesDeps = custmz['Deps']
@@ -15,20 +15,11 @@ else
   EXT_RUBY = "#{ShoesDeps}/usr/local"
   ENABLE_MS_THEME = false
 end
-
 #ENV['DEBUG'] = "true" # turns on the tracing log
 #APP['GTK'] = "gtk+-3.0" # pick this or "gtk+-2.0"
 APP['GTK'] = "gtk+-2.0"
 COPY_GTK = true
 #ENV['GDB'] = "basic" # 'basic' = keep symbols,  or 'profile'
-if APP['GTK'] == "gtk+-2.0"
-  #ShoesDeps = "/srv/chroot/mingwgtk2"
-  ShoesDeps = "/home/ccoupe/Projects/shoesdeps/mingw"
-else
-  ShoesDeps = "/srv/chroot/mingw32"
-end
-# Where does ruby code live? Please cross compile Ruby. 
-# Use ruby 2.1.0
 #EXT_RUBY = "/srv/chroot/mingwgtk2/usr/local"
 SHOES_TGT_ARCH = "i386-mingw32"
 # Specify where the Target system binaries live. 
@@ -51,10 +42,8 @@ ENV['SYSROOT']=ShoesDeps
 ENV['CC']=CC
 ENV['TGT_RUBY_PATH']=EXT_RUBY
 ENV['TGT_ARCH'] = SHOES_TGT_ARCH
-#ENV['TGT_RUBY_V'] = '1.9.1'
 ENV['TGT_RUBY_V'] = '2.1.0'
 TGT_RUBY_V = ENV['TGT_RUBY_V'] 
-#ENV['TGT_RUBY_SO'] = "msvcrt-ruby191"
 ENV['TGT_RUBY_SO'] = "msvcrt-ruby210"
 EXT_RBCONFIG = "#{EXT_RUBY}/lib/ruby/#{TGT_RUBY_V}/#{SHOES_TGT_ARCH}/rbconfig.rb"
 ENV['EXT_RBCONFIG'] = EXT_RBCONFIG 
@@ -70,7 +59,7 @@ WINFNAME = "#{APPNAME}-#{WINVERSION}"
 if RUBY_HTTP
   file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + ["shoes/*.c"]
 else
- file_list = %w{shoes/native/gtk.c shoes/http/winhttp.c shoes/http/windownload.c} + ["shoes/*.c"] 
+  file_list = %w{shoes/native/gtk.c shoes/http/winhttp.c shoes/http/windownload.c} + ["shoes/*.c"] 
 end
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
@@ -118,7 +107,7 @@ LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/local/include "
 if ENV['GDB']== 'profile'
   LINUX_CFLAGS <<  '-pg'
 end
-LINUX_CFLAGS << " -Wno-unused-but-set-variable -Wno--Wunused-variable "
+LINUX_CFLAGS << " -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-function"
 LINUX_CFLAGS << " -mms-bitfields -D__MINGW_USE_VC2005_COMPAT -DXMD_H -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -DCOBJMACROS "
 
 # I don't think the line below belongs in this file. 
@@ -127,7 +116,8 @@ cp APP['icons']['win32'], "shoes/appwin32.ico"
 LINUX_LIB_NAMES = %W[gif-4 jpeg]
 
 DLEXT = "dll"
-LINUX_LDFLAGS = "-fPIC -shared -L#{ularch} "
+#LINUX_LDFLAGS = "-fPIC -shared -L#{ularch} "
+LINUX_LDFLAGS = "-shared -L#{ularch} "
 LINUX_LDFLAGS << `pkg-config --libs "#{pkggtk}"`.strip+" "
 LINUX_LDFLAGS << "-lfontconfig" if APP['GTK'] == 'gtk+-2.0'
 

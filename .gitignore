@@ -1,10 +1,15 @@
 *.o
+*.so
+*.dylib
 *.obj
 *.res
 *.bundle
 *.def
 *.exe
 ._*
+*.rl
+*.log
+Makefile
 VERSION.txt
 *-custom.yaml
 Shoes3.2.geany
@@ -24,4 +29,6 @@ mavericks-x86_64
 snowleopard
 xsnow
 *.app
-req/*
+req/binject
+req/bloopsaphone
+req/json
