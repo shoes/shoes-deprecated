@@ -1406,7 +1406,6 @@ shoes_canvas_snapshot(int argc, VALUE *argv, VALUE self)
     const char      * filename = RSTRING_PTR(_filename);
     cairo_surface_t * surface  = shoes_get_snapshot_surface(_format)
                                       (filename, canvas->width, canvas->height);
-                                 (filename, round(canvas->width*dpi/72), round(canvas->height*dpi/72));
     if (surface == NULL) {
         rb_raise(rb_eArgError, "Failed to create %s surface for file %s\n", 
            RSTRING_PTR(rb_inspect(_format)),
