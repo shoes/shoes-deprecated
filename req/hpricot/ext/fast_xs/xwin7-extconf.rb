@@ -6,7 +6,7 @@ rbname = RbConfig::CONFIG['ruby_install_name']
 RbConfig::send :remove_const, :TOPDIR
 RbConfig::send :remove_const, :CONFIG
 RbConfig::send :remove_const, :MAKEFILE_CONFIG
-#puts "load new consts from #{ENV['EXT_RBCONFIG']}"
+# puts "load new consts from #{ENV['EXT_RBCONFIG']}"
 load "#{ENV['EXT_RBCONFIG']}"
 # restore running ruby path and name
 RbConfig::CONFIG['bindir'] = bindir
@@ -32,11 +32,18 @@ RbConfig::MAKEFILE_CONFIG['libdir'] = rlib
 RbConfig::MAKEFILE_CONFIG['rubylibdir'] = rlib 
 
 require 'mkmf'
+# update the CONFIG with the correct values. RbConfig won't work 
+# for cross compiling. This is a bit heavy handed. 
 CONFIG['CC']=ENV['CC'] if ENV['CC']
-# Add flags to silence compiler warnings.
-$CFLAGS += ' -Wno-declaration-after-statement -std=gnu99 -ffast-math -Wno-unused-variable -Wno-return-type'
+$CFLAGS += ' -Wno-declaration-after-statement -std=gnu99 -ffast-math'
+#$CFLAGS += ' -Wno-unused-function -Wno-unused-const-variable -Wno-shorten-64-to-32'
+$CFLAGS += ' -Wno-unused-function '
 $LDFLAGS = "-L #{rbroot}/bin"
+#puts "$LIBS = #{$LIBS}"
 $LIBS = ""
 CONFIG['RUBY_SO_NAME'] = ENV['TGT_RUBY_SO']
- 
-create_makefile('ftsearchrt')
+
+#have_header('stdio.h') or exit
+dir_config('fast_xs')
+create_makefile('fast_xs')
+#abort "in fast_xs CC = #{CONFIG['CC']}"
