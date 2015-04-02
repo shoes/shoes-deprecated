@@ -562,7 +562,8 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
   if (place->iw < 0) place->iw = 0;
   place->ih = (padded || dh == 0) ? place->h - (tmargin + bmargin) : place->h;
   if (place->ih < 0) place->ih = 0;
-
+  
+ INFO("PLACE: (%d, %d), (%d: %d, %d: %d) [%d, %d] %x\n", place->x, place->y, place->w, place->iw, place->h, place->ih, ABSX(*place), ABSY(*place), place->flags);
 }
 
 //
