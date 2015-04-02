@@ -445,7 +445,6 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
   VALUE stuck = ATTR(attr, attach);
   if (!NIL_P(c))
     Data_Get_Struct(c, shoes_canvas, canvas);
-
   if (REL_FLAGS(rel) & REL_SCALE)
   {
     VALUE rw = ATTR(attr, width), rh = ATTR(attr, height);
@@ -456,8 +455,8 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
   }
 
   ATTR_MARGINS(attr, 0, canvas);
-  if (padded || dh == 0) dh += tmargin + bmargin;
-  if (padded || dw == 0) dw += lmargin + rmargin;
+    if (padded || dh == 0) dh += tmargin + bmargin;
+    if (padded || dw == 0) dw += lmargin + rmargin;
 
   int testw = dw;
   if (testw == 0) testw = lmargin + 1 + rmargin;
@@ -538,7 +537,6 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
       tw = place->w;
       th = place->h;
     }
-
     place->x = PX2(attr, left, right, cx, tw, canvas->place.iw) + ox;
     place->y = PX2(attr, top, bottom, cy, th,
       ORIGIN(canvas->place) ? canvas->height : canvas->fully) + oy;
@@ -558,15 +556,13 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
       canvas->cy = place->y = canvas->endy;
     }
   }
-
   place->ix = place->x + lmargin;
   place->iy = place->y + tmargin;
-  place->iw = place->w - (lmargin + rmargin);
+  place->iw = (padded || dw == 0) ? place->w - (lmargin + rmargin) : place->w;
   if (place->iw < 0) place->iw = 0;
-  place->ih = place->h - (tmargin + bmargin);
+  place->ih = (padded || dh == 0) ? place->h - (tmargin + bmargin) : place->h;
   if (place->ih < 0) place->ih = 0;
 
-  INFO("PLACE: (%d, %d), (%d: %d, %d: %d) [%d, %d] %x\n", place->x, place->y, place->w, place->iw, place->h, place->ih, ABSX(*place), ABSY(*place), place->flags);
 }
 
 //

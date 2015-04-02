@@ -1203,7 +1203,6 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
   VALUE ck = rb_obj_class(self);
   Data_Get_Struct(self, shoes_canvas, self_t);
   Data_Get_Struct(c, shoes_canvas, canvas);
-
 #ifdef SHOES_GTK
   if (!RTEST(actual))
     canvas->group.radios = NULL;
@@ -1222,7 +1221,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
   }
 
   if (ATTR(self_t->attr, hidden) != Qtrue)
-  {
+  {    
     VALUE masks = Qnil;
     cairo_t *cr = NULL, *crc = NULL, *crm = NULL;
     cairo_surface_t *surfc = NULL, *surfm = NULL;
@@ -1245,7 +1244,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
       crc = cairo_create(surfc);
       crm = cairo_create(surfm);
     }
-
+    
     self_t->topy = canvas->cy;
 
     for (i = 0; i < RARRAY_LEN(self_t->contents); i++)
@@ -1263,7 +1262,6 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
           else
             self_t->cr = crc;
         }
-
         rb_funcall(ele, s_draw, 2, self, actual);
 
         if (rb_obj_is_kind_of(ele, cCanvas))
@@ -1271,7 +1269,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
           long j;
           //
           // update the height of all canvases in this row
-          // 
+          //
           for (j = i - 1; j >= 0; j--)
           {
             shoes_canvas *c2;
@@ -1333,7 +1331,6 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
         rb_funcall(ele, s_draw, 2, self, actual);
     }
   }
-
   canvas->endx = canvas->cx = self_t->place.x + self_t->width;
   if (canvas->endy < self_t->endy)
     canvas->endy = self_t->endy;
@@ -1360,7 +1357,6 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
 
   if (self_t->cr == canvas->cr)
     self_t->cr = NULL;
-
   return self;
 }
 
@@ -1541,6 +1537,9 @@ shoes_canvas_stack(int argc, VALUE *argv, VALUE self)
     DRAW(stack, canvas->app, rb_funcall(args.a[1], s_call, 0));
   }
   shoes_add_ele(canvas, stack);
+  
+  shoes_canvas *self_t;
+  Data_Get_Struct(stack, shoes_canvas, self_t);
   return stack;
 }
 
