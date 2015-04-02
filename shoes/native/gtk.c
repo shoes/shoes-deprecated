@@ -546,7 +546,7 @@ shoes_canvas_gtk_paint(GtkWidget *widget, GdkEventExpose *event, gpointer data)
   event->region = gdk_region_rectangle(&canvas->slot->oscanvas->allocation);
   gdk_region_intersect(event->region, region);
   gdk_region_get_clipbox(event->region, &event->area);
-
+  
   shoes_canvas_paint(c);
   gtk_container_forall(GTK_CONTAINER(widget), shoes_canvas_gtk_paint_children, canvas);
 
