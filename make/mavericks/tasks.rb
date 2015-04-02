@@ -93,8 +93,9 @@ class MakeDarwin
   class << self
     def copy_ext xdir, libdir
       #puts "Build #{xdir}"
-      Dir.chdir(xdir) do
-        `ruby extconf.rb; make`
+    Dir.chdir(xdir) do
+         extcnf = (File.exists? "#{TGT_ARCH}-extconf.rb") ? "#{TGT_ARCH}-extconf.rb" : 'extconf.rb'
+         `ruby #{extcnf}; make`
       end
       copy_files "#{xdir}/*.bundle", libdir   
     end
