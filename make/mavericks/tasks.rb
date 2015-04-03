@@ -93,9 +93,11 @@ class MakeDarwin
   class << self
     def copy_ext xdir, libdir
       #puts "Build #{xdir}"
-    Dir.chdir(xdir) do
-         extcnf = (File.exists? "#{TGT_ARCH}-extconf.rb") ? "#{TGT_ARCH}-extconf.rb" : 'extconf.rb'
-         `ruby #{extcnf}; make`
+      Dir.chdir(xdir) do
+        extcnf = (File.exists? "#{TGT_ARCH}-extconf.rb") ? "#{TGT_ARCH}-extconf.rb" : 'extconf.rb'
+        unless system "ruby", "#{extcnf}" and system "make"
+          raise "Extension build failed"
+        end
       end
       copy_files "#{xdir}/*.bundle", libdir   
     end
