@@ -558,12 +558,14 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
   }
   place->ix = place->x + lmargin;
   place->iy = place->y + tmargin;
-  place->iw = (padded || dw == 0) ? place->w - (lmargin + rmargin) : place->w;
+  place->iw = place->w - (lmargin + rmargin);
+  //place->iw = (RTEST(ATTR(attr, width))) ? place->w : place->w - (lmargin + rmargin);
   if (place->iw < 0) place->iw = 0;
-  place->ih = (padded || dh == 0) ? place->h - (tmargin + bmargin) : place->h;
+  place->ih = place->h - (tmargin + bmargin);
+  //place->ih = (RTEST(ATTR(attr, height))) ? place->h : place->h - (tmargin + bmargin);
   if (place->ih < 0) place->ih = 0;
   
- INFO("PLACE: (%d, %d), (%d: %d, %d: %d) [%d, %d] %x\n", place->x, place->y, place->w, place->iw, place->h, place->ih, ABSX(*place), ABSY(*place), place->flags);
+  INFO("PLACE: (%d, %d), (%d: %d, %d: %d) [%d, %d] %x\n", place->x, place->y, place->w, place->iw, place->h, place->ih, ABSX(*place), ABSY(*place), place->flags);
 }
 
 //
@@ -1609,11 +1611,11 @@ shoes_border_draw(VALUE self, VALUE c, VALUE actual)
   if (!NIL_P(ATTR(self_t->attr, cap))) cap = SYM2ID(ATTR(self_t->attr, cap));
   if (!NIL_P(ATTR(self_t->attr, dash))) dash = SYM2ID(ATTR(self_t->attr, dash));
 
-  place.iw -= ROUND(sw);
-  place.ih -= ROUND(sw);
-  place.ix += ROUND(sw / 2.);
-  place.iy += ROUND(sw / 2.);
-
+  place.iw -= (int)round(sw);
+  place.ih -= (int)round(sw);
+  place.ix += (int)round(sw / 2.);
+  place.iy += (int)round(sw / 2.);
+  
   if (RTEST(actual))
   {
     cairo_t *cr = CCR(canvas);
