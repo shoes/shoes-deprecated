@@ -2000,6 +2000,15 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
 }
 
 void
+shoes_canvas_wheel_way(shoes_canvas *self_t, ID dir)
+{
+    if (dir == s_up)
+        shoes_slot_scroll_to(self_t, -16, 1);
+    else if (dir == s_down)
+        shoes_slot_scroll_to(self_t, 16, 1);
+}
+
+void
 shoes_canvas_send_wheel(VALUE self, ID dir, int x, int y)
 {
   long i;
@@ -2008,10 +2017,11 @@ shoes_canvas_send_wheel(VALUE self, ID dir, int x, int y)
 
   if (ATTR(self_t->attr, hidden) != Qtrue)
   {
-    VALUE wheel = ATTR(self_t->attr, wheel);
+    VALUE wheel = ATTR(self_t->attr, wheel); 
     if (!NIL_P(wheel))
     {
-      shoes_safe_block(self, wheel, rb_ary_new3(3, ID2SYM(dir), INT2NUM(x), INT2NUM(y)));
+        if (IS_INSIDE(self_t, x, y))
+            shoes_canvas_wheel_way(self_t, dir);
     }
 
     for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--)
