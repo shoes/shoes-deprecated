@@ -1,5 +1,5 @@
 require "devkit"
-cf =(ENV['ENV_CUSTOM'] || "win7_custom.yaml")
+cf =(ENV['ENV_CUSTOM'] || "win7-custom.yaml")
 if File.exists? cf
   custmz = YAML.load_file(cf)
   ShoesDeps = custmz['Deps']

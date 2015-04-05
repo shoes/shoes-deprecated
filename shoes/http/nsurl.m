@@ -74,7 +74,11 @@
   if (req->filepath != NULL)
   {
     dest = req->filepath;
+#ifdef OLD_OSX
+		down = [[NSURLDownload alloc] initWithRequest: nsreq delegate: self];
+#else
     down = [[NSURLDownload alloc] initWithRequest: nsreq delegate: (id<NSURLDownloadDelegate>)self];
+#endif
     req->filepath = NULL;
   }
   else

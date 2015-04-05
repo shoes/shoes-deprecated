@@ -1391,8 +1391,8 @@ shoes_canvas_snapshot(int argc, VALUE *argv, VALUE self)
   ID   s_filename = rb_intern ("filename");
   ID   s_format   = rb_intern ("format");
   VALUE _filename, _format;
-  // rb_parse_args(argc, argv, "h&", &args);
-  rb_parse_args(argc, argv, "h", &args);
+  rb_parse_args(argc, argv, "h&", &args);
+  //rb_parse_args(argc, argv, "h", &args);
 
   _filename = ATTR(args.a[0], filename);
   _format   = ATTR(args.a[0], format);
@@ -1404,7 +1404,7 @@ shoes_canvas_snapshot(int argc, VALUE *argv, VALUE self)
   else
   {
     const char      * filename = RSTRING_PTR(_filename);
-    cairo_surface_t * surface  = shoes_get_snapshot_surface (_format)
+    cairo_surface_t * surface  = shoes_get_snapshot_surface(_format)
                                       (filename, canvas->width, canvas->height);
     if (surface == NULL) {
         rb_raise(rb_eArgError, "Failed to create %s surface for file %s\n", 
@@ -1414,14 +1414,14 @@ shoes_canvas_snapshot(int argc, VALUE *argv, VALUE self)
     else
     {
       cairo_t * waz_cr = canvas->cr;
-      cairo_t * cr     = canvas->cr = cairo_create (surface);
-      // DRAW(self, canvas->app, rb_funcall(args.a[1], s_call, 0));
-      // shoes_canvas_draw (self, self, Qfalse);
-      shoes_canvas_draw (self, self, Qtrue);
-      // canvas->cr = waz_cr;
-      cairo_show_page (cr);
-      cairo_destroy (cr);
-      cairo_surface_destroy (surface);
+      cairo_t * cr     = canvas->cr = cairo_create(surface);
+      DRAW(self, canvas->app, rb_funcall(args.a[1], s_call, 0));
+      //shoes_canvas_draw (self, self, Qfalse);
+      shoes_canvas_draw(self, self, Qtrue);
+      canvas->cr = waz_cr;
+      cairo_show_page(cr);
+      cairo_destroy(cr);
+      cairo_surface_destroy(surface);
       //  TODO  detect cairo outrages here
     }
   }

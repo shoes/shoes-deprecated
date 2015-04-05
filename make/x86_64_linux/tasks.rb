@@ -112,7 +112,8 @@ class MakeLinux
   class << self
     def copy_ext xdir, libdir
       Dir.chdir(xdir) do
-        unless system "ruby", "extconf.rb" and system "make"
+        extcnf = (File.exists? "#{TGT_ARCH}-extconf.rb") ? "#{TGT_ARCH}-extconf.rb" : 'extconf.rb'
+        unless system "ruby", "#{extcnf}" and system "make"
           raise "Extension build failed"
         end
       end
