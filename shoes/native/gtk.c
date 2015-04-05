@@ -712,7 +712,7 @@ shoes_app_g_poll(GPollFD *fds, guint nfds, gint timeout)
  */
 
 static gint                                                           
-shoes_app_g_poll (GPollFD *fds, guint nfds, gint timeout)
+shoes_app_g_poll(GPollFD *fds, guint nfds, gint timeout)
 {
   struct timeval tv;
   rb_fdset_t rset, wset, xset; //ruby
@@ -880,7 +880,7 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
   sprintf(icon_path, "%s/static/app-icon.png", shoes_world->path);
   gtk_window_set_default_icon_from_file(icon_path, NULL);
 #endif
-  gk->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gk->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_position(GTK_WINDOW(gk->window), GTK_WIN_POS_CENTER);
   // commit https://github.com/shoes/shoes/commit/4e7982ddcc8713298b6959804dab8d20111c0038
   if (!app->resizable)
@@ -989,29 +989,23 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
   Data_Get_Struct(c, shoes_canvas, canvas);
 
   slot = shoes_slot_alloc(canvas, parent, toplevel);
-#ifdef GTK3
   slot->oscanvas = gtk_fixed_new();
   INFO("shoes_slot_init(%lu)\n", c);
+  
+#ifdef GTK3
   g_signal_connect(G_OBJECT(slot->oscanvas), "draw",
                    G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
-  g_signal_connect(G_OBJECT(slot->oscanvas), "size-allocate",
-                   G_CALLBACK(shoes_canvas_gtk_size), (gpointer)c);
-  if (toplevel)
-    gtk_container_add(GTK_CONTAINER(parent->oscanvas), slot->oscanvas);
-  else
-    gtk_fixed_put(GTK_FIXED(parent->oscanvas), slot->oscanvas, x, y);
-#else
-  slot->oscanvas = gtk_fixed_new();
-  INFO("shoes_slot_init(%lu)\n", c);
+#else 
   g_signal_connect(G_OBJECT(slot->oscanvas), "expose-event",
                    G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
+#endif
+  
   g_signal_connect(G_OBJECT(slot->oscanvas), "size-allocate",
                    G_CALLBACK(shoes_canvas_gtk_size), (gpointer)c);
   if (toplevel)
     gtk_container_add(GTK_CONTAINER(parent->oscanvas), slot->oscanvas);
   else
     gtk_fixed_put(GTK_FIXED(parent->oscanvas), slot->oscanvas, x, y);
-#endif
 
   slot->scrollh = slot->scrollw = 0;
   slot->vscroll = NULL;
@@ -1023,25 +1017,21 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
     adj = gtk_range_get_adjustment(GTK_RANGE(slot->vscroll));
     gtk_adjustment_set_step_increment(adj, 16);
     gtk_adjustment_set_page_increment(adj, height - 32);
-    g_signal_connect(G_OBJECT(slot->vscroll), "value-changed",
-                     G_CALLBACK(shoes_canvas_gtk_scroll), (gpointer)c);
-    gtk_fixed_put(GTK_FIXED(slot->oscanvas), slot->vscroll, -100, -100);
-
-    gtk_widget_set_size_request(slot->oscanvas, width, height);
     slot->drawevent = NULL;
 #else
     slot->vscroll = gtk_vscrollbar_new(NULL);
     gtk_range_get_adjustment(GTK_RANGE(slot->vscroll))->step_increment = 16;
     gtk_range_get_adjustment(GTK_RANGE(slot->vscroll))->page_increment = height - 32;
+    slot->expose = NULL;
+#endif
+    
     g_signal_connect(G_OBJECT(slot->vscroll), "value-changed",
                      G_CALLBACK(shoes_canvas_gtk_scroll), (gpointer)c);
     gtk_fixed_put(GTK_FIXED(slot->oscanvas), slot->vscroll, -100, -100);
   
     gtk_widget_set_size_request(slot->oscanvas, width, height);
-    slot->expose = NULL;
-#endif
     
-    if(!toplevel) ATTRSET(canvas->attr, wheel, scrolls);
+    if (!toplevel) ATTRSET(canvas->attr, wheel, scrolls);
   }
   
   if (toplevel) shoes_canvas_size(c, width, height);
@@ -1707,19 +1697,21 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
         break;
     }
   
-  //GLOBAL_APP(app);
   GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle,
     APP_WINDOW(app), GTK_DIALOG_MODAL, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
+  
   gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
 #ifdef GTK3
   gtk_container_set_border_width(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), 6);
 #else
   gtk_container_set_border_width(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), 6);
 #endif
+  
   GtkWidget *question = gtk_label_new(RSTRING_PTR(args.a[0]));
   gtk_misc_set_alignment(GTK_MISC(question), 0, 0);
   GtkWidget *_answer = gtk_entry_new();
   if (RTEST(ATTR(args.a[1], secret))) shoes_native_secrecy(_answer);
+  
 #ifdef GTK3
   gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), question, FALSE, FALSE, 3);
   gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), _answer, FALSE, TRUE, 3);
@@ -1727,6 +1719,7 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
   gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), question, FALSE, FALSE, 3);
   gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), _answer, FALSE, TRUE, 3);
 #endif
+
   gtk_widget_show_all(dialog);
   gint result = gtk_dialog_run(GTK_DIALOG(dialog));
   if (result == GTK_RESPONSE_OK)
@@ -1766,18 +1759,23 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
     
   GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle,
     APP_WINDOW(app), GTK_DIALOG_MODAL, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
+  
   gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
 #ifdef GTK3
   gtk_container_set_border_width(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), 6);
-  GtkWidget *question = gtk_label_new(RSTRING_PTR(quiz));
-  gtk_misc_set_alignment(GTK_MISC(question), 0, 0);
-  gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), question, FALSE, FALSE, 3);
 #else
   gtk_container_set_border_width(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), 6);
+#endif
+
   GtkWidget *question = gtk_label_new(RSTRING_PTR(quiz));
   gtk_misc_set_alignment(GTK_MISC(question), 0, 0);
+  
+#ifdef GTK3
+  gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), question, FALSE, FALSE, 3);
+#else
   gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), question, FALSE, FALSE, 3);
 #endif
+
   gtk_widget_show_all(dialog);
   gint result = gtk_dialog_run(GTK_DIALOG(dialog));
   if (result == GTK_RESPONSE_OK)
