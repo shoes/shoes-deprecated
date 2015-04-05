@@ -371,7 +371,7 @@ shoes_app_gtk_wheel(GtkWidget *widget, GdkEventScroll *event, gpointer data)
     case GDK_SCROLL_RIGHT: wheel = s_right; break;
     default: return TRUE;
   }
-printf("test branching \n");  
+    
   shoes_app_wheel(app, wheel, event->x, event->y);
   return TRUE;
 }
