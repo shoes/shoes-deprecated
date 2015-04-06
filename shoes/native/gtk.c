@@ -1900,3 +1900,4 @@ shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
   return shoes_dialog_chooser(self, "Save folder...", GTK_FILE_CHOOSER_ACTION_CREATE_FOLDER,
     GTK_STOCK_SAVE, args.a[0]);
 }
+

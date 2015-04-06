@@ -502,6 +502,7 @@ def Shoes.make_help_page
         &dewikify(docs[0][-1]['description'], true)
     add_next_link(0, -1)
     stack :top => 84, :left => 0, :attach => Shoes::Window do
+      #flow :width => 94, :margin_left => 12, :margin_right => 12, :margin_top => 25 do ## fix for #100
       flow :width => 118, :margin_left => 12, :margin_right => 12, :margin_top => 25 do
          stack :width => 38 do
             background "#8A7", :margin => [0, 2, 0, 2], :curve => 4 
@@ -532,6 +533,7 @@ def Shoes.make_help_page
             end
         end
       end
+      #stack :margin => 12, :width => 94, :margin_top => 6 do ## fix for #100
       stack :margin => 12, :width => 118, :margin_top => 6 do
         background "#330", :curve => 4
         para "Not finding it? Try ", strong(link("Search", :stroke => white) { show_search }), "!", :stroke => "#ddd", :size => 9, :align => "center", :margin => 6
