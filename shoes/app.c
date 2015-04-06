@@ -142,7 +142,7 @@ shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner)
   if (RTEST(ATTR(attr, minwidth)))
     app_t->minwidth = (NUM2INT(ATTR(attr, minwidth)) - 1) / 2;
   if (RTEST(ATTR(attr, minheight)))
-    app_t->minheight = (NUM2INT(ATTR(attr, minheight) -1)) / 2;
+    app_t->minheight = (NUM2INT(ATTR(attr, minheight)) -1) / 2;
   shoes_canvas_init(app_t->canvas, app_t->slot, attr, app_t->width, app_t->height);
   if (shoes_world->mainloop)
     shoes_app_open(app_t, url);

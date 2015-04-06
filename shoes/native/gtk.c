@@ -834,8 +834,14 @@ done:
 void
 shoes_native_app_resized(shoes_app *app)
 {
+  //int oldw = app->width;
+  //int oldh = app->height;
+  //app->width = app->minwidth;
+  //app->height = app->minheight;
   if (app->os.window != NULL)
     gtk_widget_set_size_request(app->os.window, app->width, app->height);
+  //app->width = oldw;
+  //app->height = oldh;
 }
 
 void
@@ -889,12 +895,15 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
   }
   else if (app->minwidth < app->width || app->minheight < app->height)
   {
+printf("app->minwidth, app->minheight: %d   %d\n", app->minwidth, app->minheight);
+printf("app->width, app->height: %d   %d\n", app->width, app->height);
     GdkGeometry hints;
     hints.min_width = app->minwidth;
     hints.min_height = app->minheight;
     gtk_window_set_geometry_hints(GTK_WINDOW(gk->window), NULL,
-      &hints, GDK_HINT_MIN_SIZE);
+      &hints, GDK_HINT_MIN_SIZE );
   }
+  gtk_window_set_default_size(GTK_WINDOW(gk->window), app->width, app->height);
   
   if (app->fullscreen) shoes_native_app_fullscreen(app, 1);
   
