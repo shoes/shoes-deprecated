@@ -142,7 +142,7 @@ shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner)
   if (RTEST(ATTR(attr, minwidth)))
     app_t->minwidth = (NUM2INT(ATTR(attr, minwidth)) - 1) / 2;
   if (RTEST(ATTR(attr, minheight)))
-    app_t->minheight = (NUM2INT(ATTR(attr, minheight) -1)) / 2;
+    app_t->minheight = (NUM2INT(ATTR(attr, minheight)) -1) / 2;
   shoes_canvas_init(app_t->canvas, app_t->slot, attr, app_t->width, app_t->height);
   if (shoes_world->mainloop)
     shoes_app_open(app_t, url);
@@ -445,13 +445,8 @@ shoes_app_wheel(shoes_app *app, ID dir, int x, int y)
 {
   shoes_canvas *canvas;
   Data_Get_Struct(app->canvas, shoes_canvas, canvas);
-  if (canvas->slot->vscroll)
-  {
-    if (dir == s_up)
-      shoes_slot_scroll_to(canvas, -16, 1);
-    else if (dir == s_down)
-      shoes_slot_scroll_to(canvas, 16, 1);
-  }
+  if (canvas->slot->vscroll) shoes_canvas_wheel_way(canvas, dir);
+  
   shoes_canvas_send_wheel(app->canvas, dir, x, y);
   return SHOES_OK;
 }
