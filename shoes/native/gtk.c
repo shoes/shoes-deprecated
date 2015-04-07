@@ -526,24 +526,14 @@ shoes_canvas_gtk_paint(GtkWidget *widget, cairo_t *cr, gpointer data)
   // cjc: GTK3 doesn't pass a GdkEventExpose struct. 
   canvas->slot->drawevent = cr;		// stash it for the children
           
-  cairo_rectangle_int_t w_rect = {canvas->place.x, canvas->place.y, canvas->place.w, canvas->place.h};
-  cairo_region_t *regionW = cairo_region_create_rectangle(&w_rect);
-  
-  cairo_rectangle_int_t alloc;
-  //gtk_widget_get_allocation(canvas->slot->oscanvas, &alloc);
-  gtk_widget_get_allocation(gtk_widget_get_toplevel(widget), &alloc);
-  cairo_region_t *region = cairo_region_create_rectangle(&alloc);
-  
-  cairo_region_intersect(region, regionW);
-  
   cairo_rectangle_int_t rect;
-  cairo_region_get_extents(region, &rect);
+  gdk_cairo_get_clip_rectangle(cr, &rect);
   
   shoes_canvas_paint(c);
   gtk_container_forall(GTK_CONTAINER(widget), shoes_canvas_gtk_paint_children, canvas);
   
-  cairo_region_destroy(region);
-  cairo_region_destroy(regionW);  
+//  cairo_region_destroy(region);
+//  cairo_region_destroy(regionW);  
   canvas->slot->drawevent = NULL;
 }
 #else
@@ -834,14 +824,9 @@ done:
 void
 shoes_native_app_resized(shoes_app *app)
 {
-  //int oldw = app->width;
-  //int oldh = app->height;
-  //app->width = app->minwidth;
-  //app->height = app->minheight;
-  if (app->os.window != NULL)
-    gtk_widget_set_size_request(app->os.window, app->width, app->height);
-  //app->width = oldw;
-  //app->height = oldh;
+  // Not needed anymore
+  //if (app->os.window != NULL)
+  //  gtk_widget_set_size_request(app->os.window, app->width, app->height);
 }
 
 void
@@ -891,17 +876,16 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
   // commit https://github.com/shoes/shoes/commit/4e7982ddcc8713298b6959804dab8d20111c0038
   if (!app->resizable)
   {
+    gtk_widget_set_size_request(gk->window, app->width, app->height);
     gtk_window_set_resizable(GTK_WINDOW(gk->window), FALSE);
   }
   else if (app->minwidth < app->width || app->minheight < app->height)
   {
-printf("app->minwidth, app->minheight: %d   %d\n", app->minwidth, app->minheight);
-printf("app->width, app->height: %d   %d\n", app->width, app->height);
     GdkGeometry hints;
     hints.min_width = app->minwidth;
     hints.min_height = app->minheight;
     gtk_window_set_geometry_hints(GTK_WINDOW(gk->window), NULL,
-      &hints, GDK_HINT_MIN_SIZE );
+      &hints, GDK_HINT_MIN_SIZE);
   }
   gtk_window_set_default_size(GTK_WINDOW(gk->window), app->width, app->height);
   
@@ -1038,7 +1022,8 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
                      G_CALLBACK(shoes_canvas_gtk_scroll), (gpointer)c);
     gtk_fixed_put(GTK_FIXED(slot->oscanvas), slot->vscroll, -100, -100);
   
-    gtk_widget_set_size_request(slot->oscanvas, width, height);
+    //gtk_widget_set_size_request(slot->oscanvas, width, height);
+    gtk_widget_set_size_request(slot->oscanvas, canvas->app->minwidth, canvas->app->minheight);
     
     if (!toplevel) ATTRSET(canvas->attr, wheel, scrolls);
   }
@@ -1074,13 +1059,14 @@ shoes_cairo_create(shoes_canvas *canvas)
     cairo_rectangle_int_t alloc;
     gtk_widget_get_allocation((GtkWidget *)canvas->slot->oscanvas, &alloc);
     cairo_region_t *region = cairo_region_create_rectangle(&alloc);     
-    cairo_rectangle_int_t w_rect = {canvas->place.ix, canvas->place.iy, canvas->place.w, canvas->place.h};
-    cairo_region_t *regionW = cairo_region_create_rectangle(&w_rect);
-    cairo_region_intersect(region, regionW);
+//    cairo_rectangle_int_t w_rect = {canvas->place.ix, canvas->place.iy, canvas->place.w, canvas->place.h};
+    cairo_rectangle_int_t w_rect;
+    gdk_cairo_get_clip_rectangle(cr, &w_rect);
+    cairo_region_intersect_rectangle(region, &w_rect); 
     gdk_cairo_region(cr, region);
     cairo_clip(cr);
     cairo_region_destroy(region);
-    cairo_region_destroy(regionW);
+    
     cairo_translate(cr, alloc.x, alloc.y - canvas->slot->scrolly);
   }
   return cr;
