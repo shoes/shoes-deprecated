@@ -305,9 +305,8 @@ int shoes_native_slot_gutter(SHOES_SLOT_OS *slot)
   if (slot->vscroll)
   {
 #ifdef GTK3
-    GtkRequisition rmin;
     GtkRequisition rnat;
-    gtk_widget_get_preferred_size(slot->vscroll, &rmin, &rnat);
+    gtk_widget_get_preferred_size(slot->vscroll, NULL, &rnat);
     return rnat.width;
 #else
     GtkRequisition req;
@@ -525,7 +524,8 @@ shoes_canvas_gtk_paint(GtkWidget *widget, cairo_t *cr, gpointer data)
   Data_Get_Struct(c, shoes_canvas, canvas);
   // cjc: GTK3 doesn't pass a GdkEventExpose struct. 
   canvas->slot->drawevent = cr;		// stash it for the children
-          
+  
+  // getting widget dirty area, already clipped 
   cairo_rectangle_int_t rect;
   gdk_cairo_get_clip_rectangle(cr, &rect);
   
@@ -1156,6 +1156,7 @@ shoes_native_control_position(SHOES_CONTROL_REF ref, shoes_place *p1, VALUE self
 {
   PLACE_COORDS();
   gtk_widget_set_size_request(ref, p2->iw, p2->ih);
+  
   gtk_fixed_put(GTK_FIXED(canvas->slot->oscanvas), 
     ref, p2->ix + p2->dx, p2->iy + p2->dy);
   gtk_widget_show_all(ref);
@@ -1356,7 +1357,13 @@ SHOES_CONTROL_REF
 shoes_native_list_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
 #ifdef GTK3
-   SHOES_CONTROL_REF ref = gtk_combo_box_text_new();
+   //SHOES_CONTROL_REF ref = gtk_combo_box_text_new();
+   SHOES_CONTROL_REF ref = gtk_combo_box_text_new_with_entry();
+   
+   //GtkWidget *entry = gtk_bin_get_child((GtkBin *)ref);
+   //gtk_entry_set_width_chars((GtkEntry *)entry, 10);
+   //int *b = gtk_combo_box_get_has_entry((GtkComboBox *)ref);
+   //printf(" ... %s ... ", b ? "true" : "false");
 #else
    SHOES_CONTROL_REF ref = gtk_combo_box_new_text();
 #endif

@@ -12,10 +12,9 @@
 
 #include <cairo.h>
 #include <ruby.h>
-
-#include "shoes/canvas.h"
-#include "shoes/code.h"
 #include "shoes/config.h"
+#include "shoes/code.h"
+#include "shoes/canvas.h"
 
 #define SHOES_APP_HEIGHT 500
 #define SHOES_APP_WIDTH  600

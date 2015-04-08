@@ -8,6 +8,7 @@
 #include "shoes/world.h"
 #include "shoes/native.h"
 #include "shoes/internal.h"
+
 #ifdef SHOES_SIGNAL
 #include <signal.h>
 #ifdef SHOES_GTK_WIN32
