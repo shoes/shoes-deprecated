@@ -1,21 +1,129 @@
 Bugs/Status - stick with Ruby 2.1.x and gtk2 until things get sorted
-  out with GKt3 and later Rubyies
+  out with GKt3 and later Rubies
+  
+2015-04-10
+done? Windows cmd line packaging --console issue #110
+  
+2015-04-09
+----> bug #111 - alert - convert first arg to string if not string
+        like it used to do.
+----> fix osx too! - new code for the depracation issue/ 
+done: bug 110 - 
+        need Winject/Win String Resource constant# - 53
+        Actually it has to be command line option to main.skel --console
+        opts['shoes-arg] = '--console' 
+----> REMEMBER - make/xwin7stubs.rb is set for debug.
+  
+2015-04-08
+done: Bug #110 - new user Kevin! option for packaged apt to use cshoes.exe
+     instead of shoes.exe. Tricky
+done: need PackShoes.make_shy(dest_path, in-dir, desc{} )
+      desc['name'], '
+----> Need gtk3 for windows binary libs
+  
+2015-04-07
+     David's iso-8859-1 encoded csv.
+     Should shoes on linux have a custome gtkrc?
+  
+2015-04-06
+     admin stuff.
+     listbox drop downs are pretty ugly for wide strings on gtk & osx
+     and too small (according to some folks) on Windows/Gtk. Bug #109
+  
+2015-04-05
+done: Gtk3 - Added a remote branch 'gtk3' to shoes3/ and pulled passengers
+      changes. I now have a gtk3 branch. Appears to work but
+----> It segfault once on a double free() once - not repeatable
+done: I get dbus warning (assessbility?) Theme or ?
+        also happens on pi2
+        set NO_AT_BRIDGE=1 in .bashrc - debian/gnome issue. 
+      David posted a Windows font problem (#106). Similar to Luka's?
+      Luka found a fontconfig Cannot load default config file
+      
+      There will be a problem with FONTCONFIG_FILE pointing to the
+      wrong place if there are two Shoes installed:  3.2.21 and 3.2.22
+====> Indeed FONTCONFIG_FILE needs to be replaced at install time, not
+      appended. NSIS coding? 
+
+  
+2015-04-04
+      the osx expert-funnies problem appears to be an image download problem
+      related to the download block (threading problem?)
+      
+done: add splash, manual buttons to cobbler. 
+----> add ':cache => boolean' style to image method. default true
+
+  
+2015-04-03
+      I still question the need to have any built-in gems with Shoes.
+      Nokogiri is a mess of trouble for Shoes. Picky would be even worse.
+      Ftsearch of course and maybe sqlite. Chipmunk? maybe. Hpricot or 
+      nokogiri or other complex creations - no. 
+      
+  
+2015-04-02
+done: win7 extconf.rb's 
+      Nokogiri setup to replace hpricot?
+      mkdir ~/Projects/gems
+      clone https://github.com/sparklemotion/nokogiri
+      needs 
+        libxml2 >=2.6.21 with iconv support 
+          sudo apt-get install libxml2-dev
+        libxslt, built with and supported by the given libxml2 
+          sudo apt-get install libxslt1-dev
+        ruby stuff
+          gem install hoe rake-compiler mini_portile
+          rake newb
+          rake
+          rake gem
+        You think shoes is difficult to build and understand?
+           its in pkg/
+          
+  
+2015-04-01
+done: extconf.rb for mavericks and xsnow
+----> hpricot may be broken for OSX? expert-funnies doesn't work. Gtk OK.
+      or something in download (more likely?). Broken in 3.2.22 - perhaps
+      earlier. 
+  
+2015-03-31
+done: wrote xwin7-extconf.rb for sqlite3 and hpricot gems.
+done: xarmv6hf-extconf.rb - hpricot_scan is still noisy. 
+----> Add copy_ext extconf.rb override check to all tight shoes task.rb
+done: mavericks
+      snowleopard
+done: xsnow
+      win7
+done: x86_64_linux
+done: xi686_linux
+      
+----> Try adding nokogiri gem to Shoes.
+  
+2015-03-30
+done: Luka filed bug 096 - wrote a bug096.rb - works for me windows/linux
+     using shift-ctl-u then the 4 hex digit. 
+----> rewrite osx alert to not use the deprecated convience function.
+done: wrote xwin7-extconf.rb for chipmunk, ftsearch.
+done: figured out how to delete RbConfig:: constants. Dancing in the streets?
   
 2015-03-29 
 done: gtk.c compiler warnings. Fix xml '&' parsing in alert. 
+====> casting struct * can hide problems. Be thee aware.
+done: rbload.c warnings
+done: ruby.c warnings related to http and rbload and VALUE
  
 2015-03-28
      Work on gtk compile warnings. 
      Work on osx compile warnings - some things do need looking at:
        non std method for Apple menu
-       some NSAlert options deprecated in 10.10
+       some NSAlert options deprecated in 10.10 - rewrite code.
   
 2015-03-27
-     Luka reports a font related problem.
 done: manual changes to loop on Shoes.APPS. Add examples
-????? change user installer template to iterate over Shoes.APPS to set
+n/r : change user installer template to iterate over Shoes.APPS to set
       title and icon.
-  
+      
+====== Shoes 3.2.22 released. ========
 2015-03-26
 done: Test Win7, 
 done: osx 10.9 
@@ -24,9 +132,9 @@ done: x86 - suse,
 done:   fedora
 done: i386 - debian 7.2
       
-----> gtk.c has lots of compile warnings related to the ask,alert,confirm
+done: gtk.c has lots of compile warnings related to the ask,alert,confirm
       glib has utf-8 string functions we should use instead.
-----> cocoa.m has way too may warnings too.
+done: cocoa.m has way too may warnings too.
   
 2015-03-25
 done: Manual - Write Special section of Shoes subsection 
