@@ -1359,11 +1359,6 @@ shoes_native_list_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALU
 #ifdef GTK3
    //SHOES_CONTROL_REF ref = gtk_combo_box_text_new();
    SHOES_CONTROL_REF ref = gtk_combo_box_text_new_with_entry();
-   
-   //GtkWidget *entry = gtk_bin_get_child((GtkBin *)ref);
-   //gtk_entry_set_width_chars((GtkEntry *)entry, 10);
-   //int *b = gtk_combo_box_get_has_entry((GtkComboBox *)ref);
-   //printf(" ... %s ... ", b ? "true" : "false");
 #else
    SHOES_CONTROL_REF ref = gtk_combo_box_new_text();
 #endif
