@@ -18,6 +18,7 @@
 #define SHOES_DOWNLOAD_SITE 51
 #define SHOES_DOWNLOAD_PATH 52
 #define SHOES_VERSION_NEEDED 53 // unused for now
+#define SHOES_USE_ARGS  54
 // RC_DATA Resource numbers
 #define SHOES_APP_CONTENT  128
 #define SHOES_SYS_SETUP    129

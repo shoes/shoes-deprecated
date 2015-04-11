@@ -3,6 +3,12 @@ module PackShoes
  require 'shoes/winject'
  require 'rubygems/package'
  require 'zlib'
+ 
+# ----- create a shy ------
+  def PackShoes.make_shy(dest_path, in_dir, desc)
+      #desc is a hash 'name', 'version', 'creator'. 'launch'
+      Shy.c(dest_path, desc, in_dir)
+  end
 
 # ----- Windows -----
 
@@ -17,6 +23,10 @@ module PackShoes
     exe.inject_file(Winject::EXE::SHOES_APP_CONTENT, f.read)
     exe.inject_string(Winject::EXE::SHOES_DOWNLOAD_SITE, opts['dnlhost'])
     exe.inject_string(Winject::EXE::SHOES_DOWNLOAD_PATH, opts['dnlpath'])
+    if opts['winargs']
+      puts "injecting #{opts['winargs']}"
+      exe.inject_string(Winject::EXE::SHOES_USE_ARGS, opts['winargs'])
+    end
     if opts['ico']
       exe.inject_icons(opts['ico'])
     end
@@ -33,6 +43,10 @@ module PackShoes
     exe.inject_file(Winject::EXE::SHOES_APP_CONTENT, f.read)
     exe.inject_string(Winject::EXE::SHOES_DOWNLOAD_SITE, opts['dnlhost'])
     exe.inject_string(Winject::EXE::SHOES_DOWNLOAD_PATH, opts['dnlpath'])
+    if opts['winargs']
+      puts "injecting #{opts['winargs']}"
+      exe.inject_string(Winject::EXE::SHOES_USE_ARGS, opts['winargs'])
+    end
     f2 = File.open(opts['shoesdist'],'rb')
     if blk 
       blk.call "Repack Shoes.exe #{opts['shoesdist']} distribution"

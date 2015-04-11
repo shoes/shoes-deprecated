@@ -5,10 +5,12 @@ module Winject
     require 'exerb/resource'
     
     # Constants for RT_STRING resources
-    SHOES_APP_NAME = 50  # Name of script or shy
+    SHOES_APP_NAME = 50       # Name of script or shy
     SHOES_DOWNLOAD_SITE = 51  # website download  - no http://
     SHOES_DOWNLOAD_PATH = 52  # /path/to/cgi
-    SHOES_VERSION_NEEDED = 52 # version number string - TBD 
+    SHOES_VERSION_NEEDED = 53 # version number string - TBD 
+    SHOES_USE_ARGS = 54        # probably set to '--console'
+    
     
     # Constants for RC_DATA resources
     SHOES_APP_CONTENT = 128  # contents of script or shy

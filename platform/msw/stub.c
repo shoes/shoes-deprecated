@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <wchar.h>
 
 #define LONG_LONG long long
 #define SHOES_TIME DWORD
@@ -258,7 +259,7 @@ reg_s(HKEY key, char* sub_key, char* val, LPBYTE data, LPDWORD data_len) {
 int WINAPI
 WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
 {
-  HRSRC nameres, shyres, setupres, dnlsiteres, dnlpathres;
+  HRSRC nameres, shyres, setupres, dnlsiteres, dnlpathres, replres;
   DWORD len = 0, rlen = 0, tid = 0;
   LPVOID data = NULL;
   TCHAR buf[BUFSIZE], path[BUFSIZE], cmd[BUFSIZE];
@@ -366,11 +367,17 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
   if (shoes)
   {
     GetTempPath(BUFSIZE, buf);
+	/* the things we do for happy users - bug #110 */
+	int bufpos = 0;
+	replres = FindResource(inst, MAKEINTRESOURCE(SHOES_USE_ARGS), RT_STRING);
+	if (replres != NULL) 
+	{
+	  char *args = shoes_str_load(inst, SHOES_USE_ARGS);
+	  strcpy(buf,args);
+	  strcat(buf," ");
+    }
     char *str = shoes_str_load(inst, SHOES_APP_NAME);
     strcat(buf, (LPTSTR)str);
-    //data = LoadResource(inst, nameres);
-    //len = SizeofResource(inst, nameres);
-    //strncat(buf, (LPTSTR)data+2, len);  // cjc hack
 
     payload = CreateFile(buf, GENERIC_READ | GENERIC_WRITE,
       FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -384,6 +391,7 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
       WriteFile(payload, (LPBYTE)data, len, &rlen, NULL);
     }
     CloseHandle(payload);
+    
 #ifdef STUB_DEBUG    
     printf("payload %s, len: %d\n", buf, (int)len);
     printf("cmd: %s\n", path);
