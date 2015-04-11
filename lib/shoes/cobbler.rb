@@ -133,6 +133,12 @@ Shoes.app do
       button "Packager URLs..." do
         pack_screen
       end
+      button "Manual" do
+        Shoes.show_manual
+      end
+      button "Spash" do
+        Shoes.splash
+      end
       button "Quit" do
          exit
       end
