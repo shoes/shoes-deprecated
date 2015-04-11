@@ -1538,8 +1538,8 @@ shoes_canvas_stack(int argc, VALUE *argv, VALUE self)
   }
   shoes_add_ele(canvas, stack);
   
-  shoes_canvas *self_t;
-  Data_Get_Struct(stack, shoes_canvas, self_t);
+  //shoes_canvas *self_t;
+  //Data_Get_Struct(stack, shoes_canvas, self_t);
   return stack;
 }
 
