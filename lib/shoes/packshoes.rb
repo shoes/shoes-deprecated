@@ -3,11 +3,16 @@ module PackShoes
  require 'shoes/winject'
  require 'rubygems/package'
  require 'zlib'
- 
+ require 'fileutils'
 # ----- create a shy ------
   def PackShoes.make_shy(dest_path, in_dir, desc)
-      #desc is a hash 'name', 'version', 'creator'. 'launch'
-      Shy.c(dest_path, desc, in_dir)
+    #desc is a hash 'name', 'version', 'creator'. 'launch'
+    FileUtils.mkdir_p (File.dirname dest_path)
+    shy_desc = Shy.new
+    for name in desc.keys
+      shy_desc.send("#{name}=".intern, desc[name])
+    end
+    Shy.c(dest_path, shy_desc, in_dir)
   end
 
 # ----- Windows -----
