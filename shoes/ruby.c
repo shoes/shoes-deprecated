@@ -3302,7 +3302,7 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE actual)
         if (!NIL_P(ATTR(self_t->attr, choose)))
           shoes_native_list_box_set_active(self_t->ref, items, ATTR(self_t->attr, choose));
       }
-
+      
 #ifdef SHOES_WIN32
       shoes_native_control_position_no_pad(self_t->ref, &self_t->place, self, canvas, &place);
 #else
@@ -3318,7 +3318,7 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE actual)
   }
 
   FINISH();
-
+  
   return self;
 }
 

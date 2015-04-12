@@ -1357,8 +1357,14 @@ SHOES_CONTROL_REF
 shoes_native_list_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
 #ifdef GTK3
-   //SHOES_CONTROL_REF ref = gtk_combo_box_text_new();
-   SHOES_CONTROL_REF ref = gtk_combo_box_text_new_with_entry();
+   SHOES_CONTROL_REF ref = gtk_combo_box_text_new();
+   //SHOES_CONTROL_REF ref = gtk_combo_box_text_new_with_entry();
+   GtkCellArea *area = gtk_cell_layout_get_area((GtkCellLayout *)ref);
+   GList *renderers = gtk_cell_layout_get_cells((GtkCellLayout *)ref);
+   //printf("renderers = %d\n", g_list_length(renderers)); //only one
+   GtkCellRendererText *cell = g_list_first(renderers)->data;
+   gtk_cell_renderer_set_fixed_size((GtkCellRenderer *)cell, 250, 25);
+   g_object_set((GtkCellRenderer *)cell, "ellipsize", PANGO_ELLIPSIZE_END, NULL);
 #else
    SHOES_CONTROL_REF ref = gtk_combo_box_new_text();
 #endif
