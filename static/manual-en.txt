@@ -1132,8 +1132,8 @@ degrees counter-clockwise and the gradient will go from left to right.
 For: ''flow, stack''.
 
 Pins a slot relative to another slot or element.  Also, one may write `:attach
-=> Window` to position the slot at the window's top, left corner.  Taking this
-a bit further, the style `:top => 10, :left => 10, :attach => Window` would
+=> Shoes::Window` to position the slot at the window's top, left corner.  Taking this
+a bit further, the style `:top => 10, :left => 10, :attach => Shoes::Window` would
 place the slot at (10, 10) in the window's coordinates.
 
 If a slot is attached to an element that moves, the slot will move with it.  If
