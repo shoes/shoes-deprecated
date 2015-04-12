@@ -1516,34 +1516,30 @@ shoes_native_dialog_color(shoes_app *app)
 VALUE
 shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
 {
-  //VALUE answer = Qnil;
-	GLOBAL_APP(app);
-	//char *rbcTitle = RSTRING_PTR(app->title);
-	//NSString *appstr = [[NSString alloc] initWithCString: rbcTitle encoding: NSUTF8StringEncoding];
-	NSString *appstr = [[NSString alloc] initWithUTF8String: RSTRING_PTR(app->title)];
+  GLOBAL_APP(app);
+  NSString *appstr = [[NSString alloc] initWithUTF8String: RSTRING_PTR(app->title)];
   rb_arg_list args;
-  rb_parse_args(argc, argv, "s|h", &args);
-	VALUE msg;
+  rb_parse_args(argc, argv, "S|h", &args);
+  VALUE msg;
   COCOA_DO({
     msg = shoes_native_to_s(args.a[0]);
     // replace with styles if needed when we have one
-		NSString *deftitle =  [appstr stringByAppendingString: @" says:"];
-		//NSString *deftitle =  @"Shoes says:";
-		if (argc > 1)
-		{
+    NSString *deftitle =  [appstr stringByAppendingString: @" says:"];
+    if (argc > 1)
+    {
       if (RTEST(ATTR(args.a[1], title)))
       {
-				VALUE tmpstr = shoes_native_to_s(ATTR(args.a[1], title));
+        VALUE tmpstr = shoes_native_to_s(ATTR(args.a[1], title));
         //char *tmptitle = RSTRING_PTR(ATTR(args.a[1], title));
-				//NSLog(@"getting title string %s", tmptitle);
+        //NSLog(@"getting title string %s", tmptitle);
         deftitle = [[NSString alloc] initWithUTF8String: RSTRING_PTR(tmpstr)];
       }
       else
-			{
-				deftitle = [[NSString alloc] initWithUTF8String: ""];
-			}
-		}
-		//below form of alert is deprecated in 10.10
+      {
+        deftitle = [[NSString alloc] initWithUTF8String: ""];
+      }
+    }
+	//below form of alert is deprecated in 10.10
     NSAlert *alert = [NSAlert alertWithMessageText: deftitle
       defaultButton: @"OK" alternateButton: nil otherButton: nil 
       informativeTextWithFormat: [NSString stringWithUTF8String: RSTRING_PTR(msg)]];
@@ -1557,37 +1553,37 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   VALUE answer = Qnil;
-	GLOBAL_APP(app);
-	char *rbcTitle = RSTRING_PTR(app->title);
-	NSString *appstr = [[NSString alloc] initWithCString: rbcTitle encoding: NSUTF8StringEncoding];
-  rb_parse_args(argc, argv, "s|h", &args);
+  GLOBAL_APP(app);
+  char *rbcTitle = RSTRING_PTR(app->title);
+  NSString *appstr = [[NSString alloc] initWithCString: rbcTitle encoding: NSUTF8StringEncoding];
+  rb_parse_args(argc, argv, "S|h", &args);
   COCOA_DO({
     // replace with styles if needed when we have one
-		//NSString *deftitle =  @"Shoes says:";
-		NSString *deftitle =  [appstr stringByAppendingString: @" asks:"];
-		if (argc > 1)
-		{
+    //NSString *deftitle =  @"Shoes says:";
+    NSString *deftitle =  [appstr stringByAppendingString: @" asks:"];
+    if (argc > 1)
+    {
       if (RTEST(ATTR(args.a[1], title)))
       {
-				VALUE tmpstr = shoes_native_to_s(ATTR(args.a[1], title));
+        VALUE tmpstr = shoes_native_to_s(ATTR(args.a[1], title));
         //char *tmptitle = RSTRING_PTR(ATTR(args.a[1], title));
-				//NSLog(@"getting title string %s", tmptitle);
+        //NSLog(@"getting title string %s", tmptitle);
         deftitle = [[NSString alloc] initWithUTF8String: RSTRING_PTR(tmpstr)];
       }
       else
-			{
-				deftitle = [[NSString alloc] initWithUTF8String: ""];
-			}
-		}
+      {
+        deftitle = [[NSString alloc] initWithUTF8String: ""];
+      }
+    }
 		
     NSApplication *NSApp = [NSApplication sharedApplication];
     ShoesAlert *alert = [[ShoesAlert alloc] init];
     NSButton *okButton = [[[NSButton alloc] initWithFrame: 
-      NSMakeRect(244, 10, 88, 30)] autorelease];
+    NSMakeRect(244, 10, 88, 30)] autorelease];
     NSButton *cancelButton = [[[NSButton alloc] initWithFrame: 
-      NSMakeRect(156, 10, 88, 30)] autorelease];
+    NSMakeRect(156, 10, 88, 30)] autorelease];
     NSTextField *text = [[[NSTextField alloc] initWithFrame:
-      NSMakeRect(20, 110, 260, 18)] autorelease];
+    NSMakeRect(20, 110, 260, 18)] autorelease];
     NSTextField *input;
     if (RTEST(ATTR(args.a[1], secret)))
       input = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(20, 72, 300, 24)];
@@ -1595,7 +1591,7 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
       input = [[NSTextField alloc] initWithFrame:NSMakeRect(20, 72, 300, 24)];
 
     [alert setTitle: deftitle];
-    [text setStringValue: [NSString stringWithUTF8String: RSTRING_PTR(args.a[0])]];
+    [text setStringValue: [NSString stringWithUTF8String: RSTRING_PTR(shoes_native_to_s(args.a[0]))]];
     [text setBezeled: NO];
     [text setBackgroundColor: [NSColor windowBackgroundColor]];
     [text setEditable: NO];
@@ -1626,32 +1622,32 @@ VALUE
 shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
 {
   char *msg;
-	VALUE quiz;
+  VALUE quiz;
   VALUE answer = Qnil;
-	GLOBAL_APP(app);
-	char *rbcTitle = RSTRING_PTR(app->title);
-	NSString *appstr = [[NSString alloc] initWithCString: rbcTitle encoding: NSUTF8StringEncoding];
+  GLOBAL_APP(app);
+  char *rbcTitle = RSTRING_PTR(app->title);
+  NSString *appstr = [[NSString alloc] initWithCString: rbcTitle encoding: NSUTF8StringEncoding];
   rb_arg_list args;
-  rb_parse_args(argc, argv, "s|h", &args);
+  rb_parse_args(argc, argv, "S|h", &args);
   COCOA_DO({
     // replace with styles if needed when we have one
-		//NSString *deftitle =  @"Shoes says:";
-		NSString *deftitle =  [appstr stringByAppendingString: @" asks:"];
-		if (argc > 1)
-		{
+    //NSString *deftitle =  @"Shoes says:";
+    NSString *deftitle =  [appstr stringByAppendingString: @" asks:"];
+    if (argc > 1)
+    {
       if (RTEST(ATTR(args.a[1], title)))
       {
-				VALUE tmpstr = shoes_native_to_s(ATTR(args.a[1], title));
+        VALUE tmpstr = shoes_native_to_s(ATTR(args.a[1], title));
         //char *tmptitle = RSTRING_PTR(ATTR(args.a[1], title));
-				//NSLog(@"getting title string %s", tmptitle);
+        //NSLog(@"getting title string %s", tmptitle);
         deftitle = [[NSString alloc] initWithUTF8String: RSTRING_PTR(tmpstr)];
       }
       else
-			{
-				deftitle = [[NSString alloc] initWithUTF8String: ""];
-			}
-		}
-		quiz = argv[0];
+      {
+        deftitle = [[NSString alloc] initWithUTF8String: ""];
+      }
+    }
+    quiz = args.a[0];
     quiz = shoes_native_to_s(quiz);
     msg = RSTRING_PTR(quiz);
     NSAlert *alert = [NSAlert alertWithMessageText: deftitle
