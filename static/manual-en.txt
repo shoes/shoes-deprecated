@@ -1951,6 +1951,38 @@ In this example below, the rectangle drawn at (30, 30) will be rotated 45 degree
  end
 }}}
 
+=== scale(sx: a float, sy: a float) » self ===
+
+Scales the pen used for drawing by sx an sy in width and height respectively, so that any shapes will be drawn at that scale. 
+Second argument is optional, in which case scaling will be the same in both direction.
+
+0.5 means scaling to half the size, 2.0 doubles the size.
+
+{{{
+ #!ruby
+ Shoes.app do
+   nofill
+   rect 30, 30, 100, 100, stroke: red
+   fill "#333"
+   scale 1.2, 0.8
+   rect 30, 30, 100, 100
+ end
+}}}
+
+=== skew(sx: a float, sy: a float) » self ===
+
+Skews the pen used for drawing by sx an sy in width and height respectively, so that any shapes will be drawn skewed by those amounts. 
+Second argument is optional, in which case skew happens only horizontally.
+
+{{{
+ #!ruby
+ Shoes.app do
+   fill "#333"
+   skew 7.5, 9.5
+   rect 30, 30, 100, 100
+ end
+}}}
+
 === shape(left, top) { ... } » Shoes::Shape ===
 
 Describes an arbitrary shape to draw, beginning at coordinates (left, top) and
@@ -3391,6 +3423,46 @@ The URL or file name of the image.
 
 Swaps the image with a different one, loaded from a file or URL.
  
+=== rotate(degrees: a number) » self ===
+
+See [[Art.rotate]] on Shapes for details. 
+Note that unike Shapes one could call the method also directly on Images.
+
+{{{
+#!ruby
+Shoes.app do
+    img = image "#{DIR}/static/man-ele-image.png", left: 70, top: 60
+    img.rotate 45
+end
+}}}
+
+=== scale(sx: a float, sy: a float) » self ===
+
+See [[Art.scale]] on Shapes for details. 
+Note that unike Shapes one could call the method also directly on Images.
+
+{{{
+#!ruby
+Shoes.app do
+    img = image "#{DIR}/static/man-ele-image.png", left: 70, top: 60
+    img.scale 1.2, 0.8
+end
+}}}
+
+=== skew(sx: a float, sy: a float) » self ===
+
+See [[Art.skew]] on Shapes for details. 
+Note that unike Shapes one could call the method also directly on Images.
+
+{{{
+#!ruby
+Shoes.app do
+    img = image "#{DIR}/static/man-ele-image.png", left: 70, top: 60
+    img.skew 7.5, 9.5
+end
+}}}
+
+
 
 ==== Image effects on image blocks ====
 
