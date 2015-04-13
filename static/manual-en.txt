@@ -1132,8 +1132,8 @@ degrees counter-clockwise and the gradient will go from left to right.
 For: ''flow, stack''.
 
 Pins a slot relative to another slot or element.  Also, one may write `:attach
-=> Shoes::Window` to position the slot at the window's top, left corner.  Taking this
-a bit further, the style `:top => 10, :left => 10, :attach => Shoes::Window` would
+=> Window` to position the slot at the window's top, left corner.  Taking this
+a bit further, the style `:top => 10, :left => 10, :attach => Window` would
 place the slot at (10, 10) in the window's coordinates.
 
 If a slot is attached to an element that moves, the slot will move with it.  If
@@ -1948,6 +1948,38 @@ In this example below, the rectangle drawn at (30, 30) will be rotated 45 degree
    fill "#333"
    rotate 45
    rect 30, 30, 40, 40
+ end
+}}}
+
+=== scale(sx: a float, sy: a float) » self ===
+
+Scales the pen used for drawing by sx an sy in width and height respectively, so that any shapes will be drawn at that scale. 
+Second argument is optional, in which case scaling will be the same in both direction.
+
+0.5 means scaling to half the size, 2.0 doubles the size.
+
+{{{
+ #!ruby
+ Shoes.app do
+   nofill
+   rect 30, 30, 100, 100, stroke: red
+   fill "#333"
+   scale 1.2, 0.8
+   rect 30, 30, 100, 100
+ end
+}}}
+
+=== skew(sx: a float, sy: a float) » self ===
+
+Skews the pen used for drawing by sx an sy in width and height respectively, so that any shapes will be drawn skewed by those amounts. 
+Second argument is optional, in which case skew happens only horizontally.
+
+{{{
+ #!ruby
+ Shoes.app do
+   fill "#333"
+   skew 7.5, 9.5
+   rect 30, 30, 100, 100
  end
 }}}
 
@@ -3391,6 +3423,46 @@ The URL or file name of the image.
 
 Swaps the image with a different one, loaded from a file or URL.
  
+=== rotate(degrees: a number) » self ===
+
+See [[Art.rotate]] on Shapes for details. 
+Note that unike Shapes one could call the method also directly on Images.
+
+{{{
+#!ruby
+Shoes.app do
+    img = image "#{DIR}/static/man-ele-image.png", left: 70, top: 60
+    img.rotate 45
+end
+}}}
+
+=== scale(sx: a float, sy: a float) » self ===
+
+See [[Art.scale]] on Shapes for details. 
+Note that unike Shapes one could call the method also directly on Images.
+
+{{{
+#!ruby
+Shoes.app do
+    img = image "#{DIR}/static/man-ele-image.png", left: 70, top: 60
+    img.scale 1.2, 0.8
+end
+}}}
+
+=== skew(sx: a float, sy: a float) » self ===
+
+See [[Art.skew]] on Shapes for details. 
+Note that unike Shapes one could call the method also directly on Images.
+
+{{{
+#!ruby
+Shoes.app do
+    img = image "#{DIR}/static/man-ele-image.png", left: 70, top: 60
+    img.skew 7.5, 9.5
+end
+}}}
+
+
 
 ==== Image effects on image blocks ====
 
