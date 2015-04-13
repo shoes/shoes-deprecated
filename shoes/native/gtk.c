@@ -1670,6 +1670,10 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
 		  VALUE tmpstr = ATTR(args.a[1], title);
           strcpy(atitle, RSTRING_PTR(shoes_native_to_s(tmpstr)));
 		}
+        else
+        {
+            g_stpcpy(atitle," ");
+        }
         break;
     }
   
@@ -1726,7 +1730,11 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
 		  VALUE tmpstr = ATTR(args.a[1], title);
           strcpy(atitle, RSTRING_PTR(shoes_native_to_s(tmpstr)));
 		}
-        break;
+        else
+        {
+            g_stpcpy(atitle," ");
+        }
+         break;
     }
     
   GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle,
