@@ -1558,6 +1558,8 @@ shoes_native_to_s(VALUE text)
 #ifdef GTK3
 //  NOTE: These are untested. I can't find where shoes calls them 
 //  (or if it does) cjc
+// called by window_plain and dialog_plain (tested on linux)
+// a start at styling windows and dialogs differently ?
 VALUE
 shoes_native_window_color(shoes_app *app)
 {
@@ -1700,10 +1702,15 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
         break;
     }
   
-  GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle,
-    APP_WINDOW(app), GTK_DIALOG_MODAL, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
-  
+  GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle, APP_WINDOW(app), GTK_DIALOG_MODAL, 
+#ifdef GTK3
+    _("_Cancel"), GTK_RESPONSE_CANCEL, _("_OK"), GTK_RESPONSE_OK, NULL);
+#else
+    GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
+#endif
+
   gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
+  
 #ifdef GTK3
   gtk_container_set_border_width(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), 6);
 #else
@@ -1760,10 +1767,15 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
         break;
     }
     
-  GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle,
-    APP_WINDOW(app), GTK_DIALOG_MODAL, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
+  GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle, APP_WINDOW(app), GTK_DIALOG_MODAL,
+#ifdef GTK3
+    _("_Cancel"), GTK_RESPONSE_CANCEL, _("_OK"), GTK_RESPONSE_OK, NULL);
+#else
+    GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
+#endif
   
   gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
+  
 #ifdef GTK3
   gtk_container_set_border_width(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), 6);
 #else
@@ -1828,8 +1840,12 @@ shoes_dialog_chooser(VALUE self, char *title, GtkFileChooserAction act, const gc
 {
   VALUE path = Qnil;
   GLOBAL_APP(app);
-  GtkWidget *dialog = gtk_file_chooser_dialog_new(title, APP_WINDOW(app),
-    act, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, button, GTK_RESPONSE_ACCEPT, NULL);
+  GtkWidget *dialog = gtk_file_chooser_dialog_new(title, APP_WINDOW(app), act,
+#ifdef GTK3     
+    _("_Cancel"), GTK_RESPONSE_CANCEL, _("_OK"), GTK_RESPONSE_OK, NULL);
+#else      
+    GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, button, GTK_RESPONSE_ACCEPT, NULL);
+#endif  
   if (act == GTK_FILE_CHOOSER_ACTION_SAVE)
     gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(dialog), TRUE);
   if(RTEST(shoes_hash_get(attr, rb_intern("save"))))
@@ -1865,7 +1881,11 @@ shoes_dialog_open(int argc, VALUE *argv, VALUE self)
   rb_arg_list args;
   rb_parse_args(argc, argv, "|h", &args);
   return shoes_dialog_chooser(self, "Open file...", GTK_FILE_CHOOSER_ACTION_OPEN,
+#ifdef GTK3 
+    _("_Open"), args.a[0]);
+#else
     GTK_STOCK_OPEN, args.a[0]);
+#endif
 }
 
 VALUE
@@ -1874,7 +1894,11 @@ shoes_dialog_save(int argc, VALUE *argv, VALUE self)
   rb_arg_list args;
   rb_parse_args(argc, argv, "|h", &args);
   return shoes_dialog_chooser(self, "Save file...", GTK_FILE_CHOOSER_ACTION_SAVE,
+#ifdef GTK3
+    _("_Save"), args.a[0]);
+#else
     GTK_STOCK_SAVE, args.a[0]);
+#endif
 }
 
 VALUE
@@ -1883,7 +1907,11 @@ shoes_dialog_open_folder(int argc, VALUE *argv, VALUE self)
   rb_arg_list args;
   rb_parse_args(argc, argv, "|h", &args);
   return shoes_dialog_chooser(self, "Open folder...", GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
+#ifdef GTK3 
+    _("_Open"), args.a[0]);
+#else
     GTK_STOCK_OPEN, args.a[0]);
+#endif
 }
 
 VALUE
@@ -1892,6 +1920,10 @@ shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
   rb_arg_list args;
   rb_parse_args(argc, argv, "|h", &args);
   return shoes_dialog_chooser(self, "Save folder...", GTK_FILE_CHOOSER_ACTION_CREATE_FOLDER,
+#ifdef GTK3
+    _("_Save"), args.a[0]);
+#else
     GTK_STOCK_SAVE, args.a[0]);
+#endif
 }
 
