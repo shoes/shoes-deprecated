@@ -309,6 +309,15 @@ shoes_safe_block(VALUE self, VALUE block, VALUE args)
   return v;
 }
 
+
+/* get a dimension, in pixels, given a string, float, int or nil
+**      "90%" or 0.9 or actual dimension as integer or 
+**      amount of pixel to substract from base to compute value 
+**      or nil
+** int dv : default value
+** int pv : a base dimension to process
+** int nv : switch (boolean) to substract or not computed value from base dimension
+*/ 
 int
 shoes_px(VALUE obj, int dv, int pv, int nv)
 {
@@ -335,6 +344,11 @@ shoes_px(VALUE obj, int dv, int pv, int nv)
   return px;
 }
 
+/* get a coordinate, in pixels, given bounds (left/right or top/bottom)
+** int dv : default value
+** int pv : a base dimension to process
+** int dr : a delta to substract if working with :right or :bottom
+*/ 
 int
 shoes_px2(VALUE attr, ID k1, ID k2, int dv, int dr, int pv)
 {
