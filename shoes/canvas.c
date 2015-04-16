@@ -1497,7 +1497,23 @@ shoes_canvas_clear_contents(int argc, VALUE *argv, VALUE self)
 {
   VALUE block = Qnil;
   SETUP();
-
+  
+  int i;
+  for (i = 0; i < RARRAY_LEN(canvas->contents); i++)
+  {
+    VALUE ele = rb_ary_entry(canvas->contents, i);
+    if (rb_obj_class(ele) == cRadio)
+    {
+        shoes_control *self_t;
+        Data_Get_Struct(ele, shoes_control, self_t);
+        
+        VALUE group = ATTR(self_t->attr, group);
+        if (NIL_P(group)) group = self_t->parent;
+        if (!shoes_hash_get(canvas->app->groups, group) == Qnil);
+              shoes_hash_set(canvas->app->groups, group, Qnil);
+    }
+  }
+  
   if (rb_block_given_p()) block = rb_block_proc();
   shoes_canvas_empty(canvas, FALSE);
   if (!NIL_P(block))
