@@ -3468,6 +3468,7 @@ shoes_check_set_checked_m(VALUE self, VALUE on)
   if (RTEST(on))
   {
     VALUE glist = shoes_button_group(self);
+    
     if (!NIL_P(glist))
     {
       long i;
@@ -3477,10 +3478,10 @@ shoes_check_set_checked_m(VALUE self, VALUE on)
         shoes_check_set_checked(ele, ele == self ? Qtrue : Qfalse);
       }
     } 
-		else 
-		{
-			shoes_check_set_checked(self, on);
-		}
+    else 
+    {
+        shoes_check_set_checked(self, on);
+    }
     return on;
   }
 #endif
