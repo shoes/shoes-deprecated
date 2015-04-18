@@ -1,11 +1,53 @@
 Bugs/Status - stick with Ruby 2.1.x and gtk2 until things get sorted
   out with GKt3 and later Rubies
   
+205-04-17
+done: xwin7 and xarmhf can use external shoes gems directory.
+----> win7 can use external gem directory
+----> armhf,i386,x86_64 needs a custom yaml and mods to task.rb
+----> test OSX and external gems
+----> consider hoisting gems.rb up to 'make/gems.rb'
+
+  
+2015-04-16
+----> modify Rakefiles for default ext, gem lists
+----> ftsearch vs ftsearchrt -Grrr
+  
+2015-04-15
+done: make/xwin7/gems.rb
+done: rake gems, rake gemsclean
+----> modify ~/bin/build-mingwgtk for gem building
+
+2015-04-14
+----> remove find_and_copy from xwin7/tasks.rb 
+----> create xwin7/tasks.rb build_ext() 
+      need rake gems: clean up after build.
+----> radio discussion #117 fix or don't fix?
+  
+2015-04-13
+----> Ruby 2.1.6 is out. Sigh.
+----> Consider 3.3 (gtk3, new gem handling..., gtk3 
+      Walkabout - need icon/splash
+----> dig into nokogiri issues - there are so many...
+      1. The only cross compile is mingw 
+      2. Unless it's mingw or java it's a build from source on the
+         users system at install time.
+      3. Defaults to building it's own libxml and xslt with patches and
+         including them in nokogiri.so which is now a huge file - bigger 
+         than all of Shoes in some cases. 
+----> start small - move hpricot out of shoes/req to gems/shoes/{name}
+      modify xwin7/env/tasks/custom to use APP['GEMLOC']
+      
+2015-04-11,12
+      worked on #111 
+done: converted ask on OSX to use non-deprecated methods
+----> still need one more osx fix ""
+  
 2015-04-10
 done? Windows cmd line packaging --console issue #110
   
 2015-04-09
-----> bug #111 - alert - convert first arg to string if not string
+done: bug #111 - alert - convert first arg to string if not string
         like it used to do.
 ----> fix osx too! - new code for the depracation issue/ 
 done: bug 110 - 
