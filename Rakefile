@@ -46,6 +46,12 @@ RUBY_SO = RbConfig::CONFIG['RUBY_SO_NAME']
 RUBY_V = RbConfig::CONFIG['ruby_version']
 SHOES_RUBY_ARCH = RbConfig::CONFIG['arch']
 
+# default exts, gems & locations to build and include - replace with custom.yaml
+APP['GEMLOC'] = File.expand_path('req')
+APP['EXTLOC'] = File.expand_path('req')
+APP['EXTLIST'] = ['ftsearch', 'chipmunk']
+APP['GEMLIST'] = ['hpricot', 'sqlite3']
+
 if File.exists? "crosscompile"
   CROSS = true
   File.open('crosscompile','r') do |f|
@@ -81,6 +87,7 @@ when /mingw/
     require File.expand_path("make/win7/env")
     require File.expand_path("make/win7/tasks")
     require File.expand_path("make/win7/stubs")
+    require File.expand_path("make/win7/gems")
   else
     require File.expand_path('rakefile_mingw')
   end
@@ -118,11 +125,13 @@ when /linux/
     when /xarmv6hf/
       require File.expand_path('make/xarm6hf/env')
       require File.expand_path('make/xarm6hf/tasks')
-    when /xwin7/
+      require File.expand_path('make/xarm6hf/gems')
+   when /xwin7/
       require File.expand_path('make/xwin7/env')
       require File.expand_path('make/xwin7/tasks')
       require File.expand_path('make/xwin7/stubs')
       require File.expand_path('make/xwin7/packdeps')
+      require File.expand_path('make/xwin7/gems')
     when /xmsw32/
       require File.expand_path('make/xmsw32/env')
       require File.expand_path('make/xmsw32/tasks')

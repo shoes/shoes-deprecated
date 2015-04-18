@@ -2,8 +2,10 @@
 # Build shoes for Raspberry pi.  Ruby is built in the chroot/qemu
 #
 #ENV['DEBUG'] = "true" # turns on the tracing log
-APP['GTK'] = "gtk+-3.0" # pick this or "gtk+-2.0"
-#APP['GTK'] = "gtk+-2.0"
+#APP['GTK'] = "gtk+-3.0" # pick this or "gtk+-2.0"
+APP['GTK'] = "gtk+-2.0"
+#APP['GEMLOC'] = '/home/ccoupe/Projects/gems/shoes'
+#APP['EXTLOC'] = '/home/ccoupe/Projects/gems/shoes'
 # I don't recommend try to copy Gtk2 -it only works mysteriously
 COPY_GTK = false 
 #ENV['GDB'] = nil # compile -g,  strip symbols when nil

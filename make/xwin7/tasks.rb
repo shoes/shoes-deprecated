@@ -112,19 +112,49 @@ module Make
     end
  end
 
-  # common_build is a misnomer. Builds extentions, gems
+  # common_build is a misnomer. copies prebuilt extentions & gems
   def common_build
     puts "common_build dir=#{pwd} #{SHOES_TGT_ARCH}"
-    %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
-      FileList[rdir].each { |rlib| cp_r rlib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}" }
+    if APP['EXTLOC']
+      APP['EXTLIST'].each do |ext|
+        puts "copy prebuild ext #{ext}"
+        copy_files "#{APP['EXTLOC']}/built/#{TGT_ARCH}/#{ext}/ext/*.so", "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_TGT_ARCH}" 
+        if  File.exists? "#{APP['EXTLOC']}/built/#{TGT_ARCH}/#{ext}/lib"
+          Dir.glob("#{APP['EXTLOC']}/built/#{TGT_ARCH}/#{ext}/lib/*").each do |lib|
+            cp_r lib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}"
+          end
+        end
+      end
+    else
+      %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
+       FileList[rdir].each { |rlib| cp_r rlib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}" }
+      end
+      #%w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
+      %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
+        each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_TGT_ARCH}" }
     end
-    #%w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
-    %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
-      each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_TGT_ARCH}" }
 
+    
     gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
+    legacy = {'hpricot' => 'lib', 'sqlite3' => 'lib'}
+    if APP['GEMLOC']
+      # precompiled gems here - just copy
+      APP['GEMLIST'].each do |gemn|
+        gemp = "#{APP['GEMLOC']}/built/#{TGT_ARCH}/#{gemn}" 
+        legacy.delete gemn
+        puts "Copying prebuilt gem #{gemp}"
+        spec = eval(File.read("#{gemp}/gemspec"))
+        mkdir_p "#{gdir}/specifications"
+        mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
+        FileList["#{gemp}/lib/*"].each { |rlib| cp_r rlib, "#{gdir}/gems/#{spec.full_name}/lib" }
+        #mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
+        #FileList["#{gemp}/ext/*"].each { |elib| build_gem elib, "#{gdir}/gems/#{spec.full_name}/lib" }
+        cp "#{gemp}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
+      end
+    end
+    
     #{'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
-    {'hpricot' => 'lib', 'sqlite3' => 'lib'}.each do |gemn, xdir|
+    legacy.each do |gemn, xdir|
       spec = eval(File.read("req/#{gemn}/gemspec"))
       mkdir_p "#{gdir}/specifications"
       mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
@@ -154,17 +184,30 @@ class MakeLinux
       end
       copy_files "#{xdir}/*.so", libdir
     end
+    
+    def build_ext xdir, libdir
+      puts "Building in #{xdir} for #{libdir}"
+      Dir.chdir(xdir) do
+        rm_rf "*.o, *.bundle, *.so"
+        extcnf = (File.exists? "#{TGT_ARCH}-extconf.rb") ? "#{TGT_ARCH}-extconf.rb" : 'extconf.rb'
+        unless system "ruby", "#{extcnf}" and system "make"
+        #unless system "ruby", "extconf.rb" and system "make"
+          raise "Extension build failed"
+        end
+      end
+      copy_files "#{xdir}/*.so", libdir
+    end
 
     # FIXME - depends on setting in env.rb - should be a setting in
     # crosscompile file written by :linux:setup:xxxx but it isn't.
-    def find_and_copy thelib, newplace
-      tp = "#{TGT_SYS_DIR}usr/lib/#{thelib}"
-      if File.exists? tp
-        cp tp, newplace
-      else
-        puts "Can't find library #{tp}"
-      end
-    end
+    #def find_and_copy thelib, newplace
+    #  tp = "#{TGT_SYS_DIR}usr/lib/#{thelib}"
+    #  if File.exists? tp
+    #    cp tp, newplace
+    #  else
+    #    puts "Can't find library #{tp}"
+    #  end
+    #end
 
     def copy_deps_to_dist
       puts "copy_deps_to_dist dir=#{pwd}"

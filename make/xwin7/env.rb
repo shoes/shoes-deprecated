@@ -9,12 +9,17 @@ if File.exists? cf
   EXT_RUBY = custmz['Ruby']
   ENABLE_MS_THEME = custmz['MS-Theme'] == true
   ENV['GDB'] = 'basic' if custmz['Debug'] == true
+  APP['GEMLOC'] = custmz['Gemloc'] if custmz['Gemloc']
+  APP['EXTLOC'] = custmz['Extloc'] if custmz['Extloc']
+  APP['EXTLIST'] = custmz['Exts'] if custmz['Exts']
+  APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
 else
   # define where your deps are
   ShoesDeps = "/home/ccoupe/Projects/shoesdeps/mingw"
   EXT_RUBY = "#{ShoesDeps}/usr/local"
   ENABLE_MS_THEME = false
 end
+
 #ENV['DEBUG'] = "true" # turns on the tracing log
 #APP['GTK'] = "gtk+-3.0" # pick this or "gtk+-2.0"
 APP['GTK'] = "gtk+-2.0"
