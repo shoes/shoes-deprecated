@@ -440,6 +440,8 @@ shoes_place_exact(shoes_place *place, VALUE attr, int ox, int oy)
 void
 shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsigned char rel, int padded)
 {
+//  shoes_place_decide2(place, c, attr, dw, dh, rel, padded);
+ 
   shoes_canvas *canvas = NULL;
   VALUE ck = rb_obj_class(c);
   VALUE stuck = ATTR(attr, attach);
@@ -568,6 +570,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
   if (place->ih < 0) place->ih = 0;
   
   INFO("PLACE: (%d, %d), (%d: %d, %d: %d) [%d, %d] %x\n", place->x, place->y, place->w, place->iw, place->h, place->ih, ABSX(*place), ABSY(*place), place->flags);
+
 }
 
 //

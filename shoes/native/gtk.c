@@ -1602,6 +1602,7 @@ shoes_native_dialog_color(shoes_app *app)
 VALUE
 shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
 {
+    //ACTUAL_APP(app);
     GLOBAL_APP(app);
     char *apptitle = RSTRING_PTR(app->title); //default is "Shoes"
     char atitle[50];
