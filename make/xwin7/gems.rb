@@ -51,6 +51,7 @@ module Make
       gemn = File.basename(xdir)
       puts "Building #{gemn} in #{xdir}"
       Dir.glob("#{xdir}/ext/*").each do |ext|
+        next if ext.include? 'java'
         Dir.chdir(ext) do
         extcnf = (File.exists? "#{TGT_ARCH}-extconf.rb") ? "#{TGT_ARCH}-extconf.rb" : 'extconf.rb'
         unless system "ruby", "#{extcnf}" and system "make"

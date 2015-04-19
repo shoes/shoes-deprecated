@@ -1,3 +1,5 @@
+include FileUtils
+require File.expand_path('make/copy-gems')
 module Make
   include FileUtils
 
@@ -114,61 +116,10 @@ module Make
 
   # common_build is a misnomer. copies prebuilt extentions & gems
   def common_build
-    puts "common_build dir=#{pwd} #{SHOES_TGT_ARCH}"
-    if APP['EXTLOC']
-      APP['EXTLIST'].each do |ext|
-        puts "copy prebuild ext #{ext}"
-        copy_files "#{APP['EXTLOC']}/built/#{TGT_ARCH}/#{ext}/ext/*.so", "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_TGT_ARCH}" 
-        if  File.exists? "#{APP['EXTLOC']}/built/#{TGT_ARCH}/#{ext}/lib"
-          Dir.glob("#{APP['EXTLOC']}/built/#{TGT_ARCH}/#{ext}/lib/*").each do |lib|
-            cp_r lib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}"
-          end
-        end
-      end
-    else
-      %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
-       FileList[rdir].each { |rlib| cp_r rlib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}" }
-      end
-      #%w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
-      %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
-        each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_TGT_ARCH}" }
-    end
-
-    
-    gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
-    legacy = {'hpricot' => 'lib', 'sqlite3' => 'lib'}
-    if APP['GEMLOC']
-      # precompiled gems here - just copy
-      APP['GEMLIST'].each do |gemn|
-        gemp = "#{APP['GEMLOC']}/built/#{TGT_ARCH}/#{gemn}" 
-        legacy.delete gemn
-        puts "Copying prebuilt gem #{gemp}"
-        spec = eval(File.read("#{gemp}/gemspec"))
-        mkdir_p "#{gdir}/specifications"
-        mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
-        FileList["#{gemp}/lib/*"].each { |rlib| cp_r rlib, "#{gdir}/gems/#{spec.full_name}/lib" }
-        #mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
-        #FileList["#{gemp}/ext/*"].each { |elib| build_gem elib, "#{gdir}/gems/#{spec.full_name}/lib" }
-        cp "#{gemp}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
-      end
-    end
-    
-    #{'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
-    legacy.each do |gemn, xdir|
-      spec = eval(File.read("req/#{gemn}/gemspec"))
-      mkdir_p "#{gdir}/specifications"
-      mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
-      FileList["req/#{gemn}/lib/*"].each { |rlib| cp_r rlib, "#{gdir}/gems/#{spec.full_name}/lib" }
-      mkdir_p "#{gdir}/gems/#{spec.full_name}/#{xdir}"
-      FileList["req/#{gemn}/ext/*"].each { |elib| copy_ext elib, "#{gdir}/gems/#{spec.full_name}/#{xdir}" }
-      cp "req/#{gemn}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
-    end
+    return copy_gems
   end
   
 end
-
-
-include FileUtils
 
 class MakeLinux
   extend Make
