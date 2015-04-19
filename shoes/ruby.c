@@ -509,6 +509,8 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
         oy = CPY(canvas);
         testw = dw = CPW(canvas);
         dh = max(canvas->height, CPH(canvas));
+        // Fix #2 ?
+        //dh = (max(canvas->height, canvas->fully - CPB(canvas)) - CPY(canvas));
       break;
 
       default:

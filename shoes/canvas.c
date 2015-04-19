@@ -1811,6 +1811,9 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
 
   if (ATTR(self_t->attr, hidden) != Qtrue)
   {
+    if (self_t->app->canvas == self) // when we are the app's slot
+      y -= self_t->slot->scrolly;
+    
     if (IS_INSIDE(self_t, x, y))
     {
       VALUE click = ATTR(self_t->attr, click);
