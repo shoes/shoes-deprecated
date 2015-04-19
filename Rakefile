@@ -103,6 +103,7 @@ when /darwin/
     #require_relative "make/#{TGT_ARCH}/homebrew"
     require File.expand_path("make/#{TGT_ARCH}/tasks")
     require File.expand_path("make/#{TGT_ARCH}/stubs")
+    require File.expand_path("make/#{TGT_ARCH}/gems")
   else
     # build Loose Shoes on OSX for OSX
     puts "Loose Shoes OSX"

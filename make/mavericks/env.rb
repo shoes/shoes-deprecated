@@ -7,7 +7,10 @@ if File.exists? cf
   EXT_RUBY = custmz['Ruby'] ? custmz['Ruby'] : RbConfig::CONFIG['prefix']
   ENV['GDB'] = 'basic' if custmz['Debug'] == true
   ENV['CDEFS'] = custmz['CFLAGS'] if custmz['CFLAGS']
-else
+  APP['GEMLOC'] = custmz['Gemloc'] if custmz['Gemloc']
+  APP['EXTLOC'] = custmz['Extloc'] if custmz['Extloc']
+  APP['EXTLIST'] = custmz['Exts'] if custmz['Exts']
+  APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']else
   EXT_RUBY = RbConfig::CONFIG['prefix']
   BREWLOC = "/usr/local"
   ZLIBLOC = "/usr/local/opt/zlib/lib"
@@ -79,6 +82,8 @@ LINUX_LIB_NAMES << 'pixman-1' << 'jpeg.8'
 #LINUX_CFLAGS << ' -DOLD_OSX '
 OSX_SDK = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk'
 ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
+
+SHOES_TGT_ARCH = 'x86_64-darwin14.0'
 
 case ENV['SHOES_OSX_ARCH']
 when "universal"

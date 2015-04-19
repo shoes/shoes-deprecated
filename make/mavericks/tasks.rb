@@ -2,6 +2,7 @@
 # Ain't going to work otherwise. Well, it could but who cares and has
 # that much free time?
 include FileUtils
+require File.expand_path('make/copy-gems')
 module Make
   include FileUtils
 
@@ -55,34 +56,9 @@ module Make
     FileList[glob].each { |f| cp_r f, dir }
   end
 
+  # common_build is a misnomer. copies prebuilt extentions & gems
   def common_build
-    mkdir_p "#{TGT_DIR}/lib/ruby"
-    cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "#{TGT_DIR}/lib/ruby"
-    unless ENV['STANDARD']
-      %w[soap wsdl xsd].each do |libn|
-       # rm_rf "dist/ruby/lib/#{libn}"
-      end
-    end
-    %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
-      FileList[rdir].each { |rlib| cp_r rlib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}" }
-    end
-    #%w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
-    %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
-      each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_RUBY_ARCH}" }
-
-    gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
-	#{'hpricot' => 'lib'}.each do |gemn, xdir|
-    {'hpricot' => 'lib', 'sqlite3' => 'lib'}.each do |gemn, xdir|
-    #{'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
-      spec = eval(File.read("req/#{gemn}/gemspec"))
-      mkdir_p "#{gdir}/specifications"
-      mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
-      FileList["req/#{gemn}/lib/*"].each { |rlib| cp_r rlib, "#{gdir}/gems/#{spec.full_name}/lib" }
-      mkdir_p "#{gdir}/gems/#{spec.full_name}/#{xdir}"
-      FileList["req/#{gemn}/ext/*"].each { |elib| copy_ext elib, "#{gdir}/gems/#{spec.full_name}/#{xdir}" }
-      cp "req/#{gemn}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
-      puts "Gems: #{gemn}"
-    end
+    return copy_gems # in make/copy-gems.rb
   end
 
 end
