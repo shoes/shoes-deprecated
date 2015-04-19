@@ -1,17 +1,31 @@
 Bugs/Status - stick with Ruby 2.1.x and gtk2 until things get sorted
   out with GKt3 and later Rubies
   
+2015-04-19 
+----> hoist copy_shoes up to to /make
+done: mavericks
+done: xwin7
+done: win7
+----> xsnow - needs custom.yaml too.
+done: xarm6hf - needs custom.yaml too. gtk2 and 3.
+done: x86_64 - needs custom.yaml too.
+done: xi686- needs custom.yaml too.
+----> snow - do we care if xsnow works?
+
+2015-04-18 
+----> passengers gtk3 changes
+----> passengers radio changes - osx OK?
+  
 205-04-17
 done: xwin7 and xarmhf can use external shoes gems directory.
-----> win7 can use external gem directory
-----> armhf,i386,x86_64 needs a custom yaml and mods to task.rb
-----> test OSX and external gems
-----> consider hoisting gems.rb up to 'make/gems.rb'
+done:  win7 can use external gem directory
+done: armhf,i386,x86_64 needs a custom yaml and mods to task.rb
+----> test OSX and external gems 
+----> consider hoisting common_build up to 'make/copy-gems.rb'
 
-  
 2015-04-16
 ----> modify Rakefiles for default ext, gem lists
-----> ftsearch vs ftsearchrt -Grrr
+
   
 2015-04-15
 done: make/xwin7/gems.rb

@@ -120,9 +120,11 @@ when /linux/
     when /x86_64_linux/ 
       require File.expand_path('make/x86_64_linux/env')
       require File.expand_path('make/x86_64_linux/tasks')
+      require File.expand_path("make/#{TGT_ARCH}/gems")
     when /xi686_linux/
       require File.expand_path('make/xi686_linux/env')
       require File.expand_path('make/xi686_linux/tasks')
+      require File.expand_path("make/#{TGT_ARCH}/gems")
     when /xarmv6hf/
       require File.expand_path('make/xarm6hf/env')
       require File.expand_path('make/xarm6hf/tasks')
