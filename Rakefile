@@ -87,7 +87,7 @@ when /mingw/
     require File.expand_path("make/win7/env")
     require File.expand_path("make/win7/tasks")
     require File.expand_path("make/win7/stubs")
-    require File.expand_path("make/win7/gems")
+    require File.expand_path("make/gems")
   else
     require File.expand_path('rakefile_mingw')
   end
@@ -135,7 +135,7 @@ when /linux/
       require File.expand_path('make/xwin7/tasks')
       require File.expand_path('make/xwin7/stubs')
       require File.expand_path('make/xwin7/packdeps')
-      require File.expand_path('make/xwin7/gems')
+      require File.expand_path('make/gems')
     when /xmsw32/
       require File.expand_path('make/xmsw32/env')
       require File.expand_path('make/xmsw32/tasks')

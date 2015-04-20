@@ -1,5 +1,4 @@
 include FileUtils
-require File.expand_path('make/copy-gems')
 module Make
   include FileUtils
 
@@ -116,7 +115,7 @@ module Make
 
   # common_build is a misnomer. copies prebuilt extentions & gems
   def common_build
-    return copy_gems
+    copy_gems
   end
   
 end
@@ -125,40 +124,6 @@ class MakeLinux
   extend Make
 
   class << self
-    def copy_ext xdir, libdir
-      Dir.chdir(xdir) do
-        extcnf = (File.exists? "#{TGT_ARCH}-extconf.rb") ? "#{TGT_ARCH}-extconf.rb" : 'extconf.rb'
-        unless system "ruby", "#{extcnf}" and system "make"
-        #unless system "ruby", "extconf.rb" and system "make"
-          raise "Extension build failed"
-        end
-      end
-      copy_files "#{xdir}/*.so", libdir
-    end
-    
-    def build_ext xdir, libdir
-      puts "Building in #{xdir} for #{libdir}"
-      Dir.chdir(xdir) do
-        rm_rf "*.o, *.bundle, *.so"
-        extcnf = (File.exists? "#{TGT_ARCH}-extconf.rb") ? "#{TGT_ARCH}-extconf.rb" : 'extconf.rb'
-        unless system "ruby", "#{extcnf}" and system "make"
-        #unless system "ruby", "extconf.rb" and system "make"
-          raise "Extension build failed"
-        end
-      end
-      copy_files "#{xdir}/*.so", libdir
-    end
-
-    # FIXME - depends on setting in env.rb - should be a setting in
-    # crosscompile file written by :linux:setup:xxxx but it isn't.
-    #def find_and_copy thelib, newplace
-    #  tp = "#{TGT_SYS_DIR}usr/lib/#{thelib}"
-    #  if File.exists? tp
-    #    cp tp, newplace
-    #  else
-    #    puts "Can't find library #{tp}"
-    #  end
-    #end
 
     def copy_deps_to_dist
       puts "copy_deps_to_dist dir=#{pwd}"
