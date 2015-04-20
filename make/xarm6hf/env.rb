@@ -1,16 +1,26 @@
 #
 # Build shoes for Raspberry pi.  Ruby is built in the chroot/qemu
 #
+cf =(ENV['ENV_CUSTOM'] || "#{TGT_ARCH}-custom.yaml")
+if File.exists? cf
+  custmz = YAML.load_file(cf)
+  ShoesDeps = custmz['Deps']
+  EXT_RUBY = custmz['Ruby']
+  ENV['GDB'] = 'basic' if custmz['Debug'] == true
+  APP['GEMLOC'] = custmz['Gemloc'] if custmz['Gemloc']
+  APP['EXTLOC'] = custmz['Extloc'] if custmz['Extloc']
+  APP['EXTLIST'] = custmz['Exts'] if custmz['Exts']
+  APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
+  APP['GTK'] = custmz['Gtk'] if custmz['Gtk']
+else
+  # define where your deps are
+  ShoesDeps = "/srv/chroot/debrpi"
+  EXT_RUBY = "/srv/chroot/debrpi/usr/local"  
+  APP['GTK'] = "gtk+-2.0"
+end
 #ENV['DEBUG'] = "true" # turns on the tracing log
-APP['GTK'] = "gtk+-3.0" # pick this or "gtk+-2.0"
-#APP['GTK'] = "gtk+-2.0"
-# I don't recommend try to copy Gtk2 -it only works mysteriously
-COPY_GTK = false 
 #ENV['GDB'] = nil # compile -g,  strip symbols when nil
-CHROOT = "/srv/chroot/debrpi"
-# Where does ruby code live? For the pi, I build one  
-# inside the chroot but we access it from outside.
-EXT_RUBY = "/srv/chroot/debrpi/usr/local"
+CHROOT = ShoesDeps
 SHOES_TGT_ARCH = "armv7l-linux-eabihf"
 # Specify where the Target system binaries live. 
 # Trailing slash is important.
@@ -107,19 +117,3 @@ SOLOCS['libyaml'] = "#{ularch}/libyaml-0.so.2"
 SOLOCS['crypto'] = "#{ularch}/libcrypto.so.1.0.0"
 SOLOCS['ssl'] = "#{ularch}/libssl.so.1.0.0"
 SOLOCS['sqlite'] = "#{ularch}/libsqlite3.so.0.8.6"
-if APP['GTK'] == 'gtk+-2.0' && COPY_GTK == true
-  SOLOCS['gtk2'] = "#{ularch}/libgtk-x11-2.0.so.0"
-  SOLOCS['gdk2'] = "#{ularch}/libgdk-x11-2.0.so.0"
-  SOLOCS['atk'] = "#{ularch}/libatk-1.0.so.0"
-  SOLOCS['gio'] = "#{ularch}/libgio-2.0.so.0"
-  SOLOCS['pangoft2'] = "#{ularch}/libpangoft2-1.0.so.0"
-  SOLOCS['pangocairo'] = "#{ularch}/libpangocairo-1.0.so.0"
-  SOLOCS['gdk_pixbuf'] = "#{ularch}/libgdk_pixbuf-2.0.so.0"
-  SOLOCS['cairo'] = "#{ularch}/libcairo.so.2"
-  SOLOCS['pango'] = "#{ularch}/libpango-1.0.so.0"
-  SOLOCS['freetype'] = "#{ularch}/libfreetype.so.6"
-  SOLOCS['fontconfig'] = "#{ularch}/libfontconfig.so.1"
-  SOLOCS['pixman'] = "#{ularch}/libpixman-1.so.0"
-  SOLOCS['gobject'] = "#{ularch}/libgobject-2.0.so.0"
-  SOLOCS['glib'] = "#{larch}/libglib-2.0.so.0"
-end

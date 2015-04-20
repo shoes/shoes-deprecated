@@ -80,25 +80,7 @@ module Make
 
   # common_build is a misnomer. Build extentions, gems
   def common_build
-    puts "common_build dir=#{pwd} #{SHOES_TGT_ARCH}"
-    %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
-      FileList[rdir].each { |rlib| cp_r rlib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}" }
-    end
-    #%w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
-    %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
-      each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_TGT_ARCH}" }
-
-    gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
-    #{'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
-    {'hpricot' => 'lib', 'sqlite3' => 'lib'}.each do |gemn, xdir|
-      spec = eval(File.read("req/#{gemn}/gemspec"))
-      mkdir_p "#{gdir}/specifications"
-      mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
-      FileList["req/#{gemn}/lib/*"].each { |rlib| cp_r rlib, "#{gdir}/gems/#{spec.full_name}/lib" }
-      mkdir_p "#{gdir}/gems/#{spec.full_name}/#{xdir}"
-      FileList["req/#{gemn}/ext/*"].each { |elib| copy_ext elib, "#{gdir}/gems/#{spec.full_name}/#{xdir}" }
-      cp "req/#{gemn}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
-    end
+    copy_gems
   end
 
 end
@@ -110,17 +92,7 @@ class MakeLinux
   extend Make
 
   class << self
-    def copy_ext xdir, libdir
-      Dir.chdir(xdir) do
-        extcnf = (File.exists? "#{TGT_ARCH}-extconf.rb") ? "#{TGT_ARCH}-extconf.rb" : 'extconf.rb'
-        unless system "ruby", "#{extcnf}" and system "make"
-          raise "Extension build failed"
-        end
-      end
-      copy_files "#{xdir}/*.so", libdir
-    end
-
-
+ 
     def copy_deps_to_dist
       puts "copy_deps_to_dist dir=#{pwd}"
       unless ENV['GDB']

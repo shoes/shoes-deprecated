@@ -1,11 +1,91 @@
 Bugs/Status - stick with Ruby 2.1.x and gtk2 until things get sorted
   out with GKt3 and later Rubies
   
+2015-04-20
+-----> bug 119 discussion
+----> gem.rb could be hoisted up one level - just the so/bundle thing. 
+      Combine make/*/gems.rb and copy-gems.rb into make/gems.rb.
+      Clean up copy_ext and common_build
+done:   Mavericks
+done:   xarm6hf
+done:   xwin7
+done:   win7
+---->   xsnow
+done:   x86_64_linux
+done:   i686_linux
+---->   snow - not likely to happen.
+
+====> new dir in Shoes - gempacks/ ? 
+        has Rakefile, and yamls and such - copies to the gems/built
+        could be written in Shoes? 
+        Actually it should be reversed. The shoes script, rakefile etc lives
+        in ~/projects/gems/shoes. Could be a packaged Shoes App!!
+        Create new shoes3 repo for gems (legacy and new)
+  
+2015-04-19 
+done: hoist copy_shoes up to to /make
+
+done: mavericks
+done: xwin7
+done: win7
+done: xsnow - needs custom.yaml too
+done: xarm6hf - needs custom.yaml too. gtk2 and 3.
+done: x86_64 - needs custom.yaml too.
+done: xi686- needs custom.yaml too.
+----> snow - do we care if xsnow works?
+----> image cache problem? expert-funnies osx? 
+      cache sharing issues in ~/ across multiple arch
+
+2015-04-18 
+----> passengers gtk3 changes
+----> passengers radio changes - osx OK?
+  
+205-04-17
+done: xwin7 and xarmhf can use external shoes gems directory.
+done:  win7 can use external gem directory
+done: armhf,i386,x86_64 needs a custom yaml and mods to task.rb
+----> test OSX and external gems 
+----> consider hoisting common_build up to 'make/copy-gems.rb'
+
+2015-04-16
+----> modify Rakefiles for default ext, gem lists
+
+  
+2015-04-15
+done: make/xwin7/gems.rb
+done: rake gems, rake gemsclean
+----> modify ~/bin/build-mingwgtk for gem building
+
+2015-04-14
+----> remove find_and_copy from xwin7/tasks.rb 
+----> create xwin7/tasks.rb build_ext() 
+      need rake gems: clean up after build.
+----> radio discussion #117 fix or don't fix?
+  
+2015-04-13
+----> Ruby 2.1.6 is out. Sigh.
+----> Consider 3.3 (gtk3, new gem handling..., gtk3 
+      Walkabout - need icon/splash
+----> dig into nokogiri issues - there are so many...
+      1. The only cross compile is mingw 
+      2. Unless it's mingw or java it's a build from source on the
+         users system at install time.
+      3. Defaults to building it's own libxml and xslt with patches and
+         including them in nokogiri.so which is now a huge file - bigger 
+         than all of Shoes in some cases. 
+----> start small - move hpricot out of shoes/req to gems/shoes/{name}
+      modify xwin7/env/tasks/custom to use APP['GEMLOC']
+      
+2015-04-11,12
+      worked on #111 
+done: converted ask on OSX to use non-deprecated methods
+----> still need one more osx fix ""
+  
 2015-04-10
 done? Windows cmd line packaging --console issue #110
   
 2015-04-09
-----> bug #111 - alert - convert first arg to string if not string
+done: bug #111 - alert - convert first arg to string if not string
         like it used to do.
 ----> fix osx too! - new code for the depracation issue/ 
 done: bug 110 - 

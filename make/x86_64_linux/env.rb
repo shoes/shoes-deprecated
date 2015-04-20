@@ -1,19 +1,28 @@
-#
 # Build a 64 bit Linux Tight Shoes (from a 64 bit host)
 # In this case Unbuntu 14.04 to debian 7.2 in a chroot.
-# Uses a ruby built from source 
-# You should modify this to build 
-# 
+# You should modify your custom.yaml
+cf =(ENV['ENV_CUSTOM'] || "#{TGT_ARCH}-custom.yaml")
+if File.exists? cf
+  custmz = YAML.load_file(cf)
+  ShoesDeps = custmz['Deps']
+  EXT_RUBY = custmz['Ruby']
+  ENV['GDB'] = 'basic' if custmz['Debug'] == true
+  APP['GEMLOC'] = custmz['Gemloc'] if custmz['Gemloc']
+  APP['EXTLOC'] = custmz['Extloc'] if custmz['Extloc']
+  APP['EXTLIST'] = custmz['Exts'] if custmz['Exts']
+  APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
+  APP['GTK'] = custmz['Gtk'] if custmz['Gtk']
+else
+  # define where your deps are
+  ShoesDeps = ""
+  EXT_RUBY = "/usr/local"
+  APP['GTK'] = "gtk+-2.0"
+end
 #ENV['DEBUG'] = "true" # turns on the tracing log
-#ENV['GTK'] = "gtk+-3.0" # pick this or "gtk+-2.0"
-APP['GTK'] = "gtk+-2.0"
-# I don't recommend trying to copy Gtk2 -it only works mysteriously
-COPY_GTK = false 
 #ENV['GDB'] = "" # compile -g,  strip symbols when not defined
-CHROOT = ""
-# Where does ruby code live?
-EXT_RUBY = "/usr/local"
-SHOES_TGT_ARCH = 'x86_64-linux'# Specify where the Target system binaries live. 
+CHROOT = ShoesDeps
+SHOES_TGT_ARCH = 'x86_64-linux'
+# Specify where the Target system binaries live. 
 # Trailing slash is important.
 TGT_SYS_DIR = "#{CHROOT}/"
 # Setup some shortcuts for the library locations
@@ -57,7 +66,6 @@ LINUX_CFLAGS << `pkg-config --cflags "#{pkgruby}"`.strip+" "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkggtk}"`.strip+" "
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/ " 
 
-
 LINUX_LIB_NAMES = %W[ungif jpeg]
 
 DLEXT = "so"
@@ -72,7 +80,6 @@ LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
 LINUX_LIBS << " #{CURL_LDFLAGS if !RUBY_HTTP} #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} "
 
-
 SOLOCS = {}
 SOLOCS['curl'] = "#{curlloc}/libcurl.so.4" if !RUBY_HTTP
 SOLOCS['ungif'] = "#{uldir}/libungif.so.4"
@@ -83,19 +90,3 @@ SOLOCS['pcre'] = "#{larch}/libpcre.so.3"
 SOLOCS['crypto'] = "#{ularch}/libcrypto.so.1.0.0"
 SOLOCS['ssl'] = "#{ularch}/libssl.so.1.0.0"
 SOLOCS['sqlite'] = "#{ularch}/libsqlite3.so.0.8.6"
-if APP['GTK'] == 'gtk+-2.0' && COPY_GTK == true
-  SOLOCS['gtk2'] = "#{ularch}/libgtk-x11-2.0.so"
-  SOLOCS['gdk2'] = "#{ularch}/libgdk-x11-2.0.so"
-  SOLOCS['atk'] = "#{ularch}/libatk-1.0.so.0"
-  SOLOCS['gio'] = "#{ularch}/libgio-2.0.so.0"
-  SOLOCS['pangoft2'] = "#{ularch}/libpangoft2-1.0.so"
-  SOLOCS['pangocairo'] = "#{ularch}/libpangocairo-1.0.so"
-  SOLOCS['gdk_pixbuf'] = "#{ularch}/libgdk_pixbuf-2.0.so"
-  SOLOCS['cairo'] = "#{ularch}/libcairo.so"
-  SOLOCS['pango'] = "#{ularch}/libpango-1.0.so"
-  SOLOCS['freetype'] = "#{ularch}/libfreetype.so"
-  SOLOCS['fontconfig'] = "#{ularch}/libfontconfig.so"
-  SOLOCS['gobject'] = "#{ularch}/libgobject-2.0.so.0"
-  SOLOCS['glib'] = "#{larch}/libglib-2.0.so.0"
-  SOLOCS['ffi'] = "#{ularch}/libffi.so.5"
-end

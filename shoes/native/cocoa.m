@@ -1540,10 +1540,14 @@ shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
         deftitle = [[NSString alloc] initWithUTF8String: ""];
       }
     }
-	//below form of alert is deprecated in 10.10
-    NSAlert *alert = [NSAlert alertWithMessageText: deftitle
-      defaultButton: @"OK" alternateButton: nil otherButton: nil 
-      informativeTextWithFormat: [NSString stringWithUTF8String: RSTRING_PTR(msg)]];
+    //below form of alert is deprecated in 10.10 
+    //NSAlert *alert = [NSAlert alertWithMessageText: deftitle
+    //  defaultButton: @"OK" alternateButton: nil otherButton: nil 
+    //  informativeTextWithFormat: [NSString stringWithUTF8String: RSTRING_PTR(msg)]];
+    NSAlert *alert = [[NSAlert alloc] init];
+		[alert setMessageText: deftitle];
+		[alert setInformativeText: [NSString stringWithUTF8String: RSTRING_PTR(msg)]];
+
     [alert runModal];
   });
   return Qnil;
