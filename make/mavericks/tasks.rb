@@ -2,7 +2,7 @@
 # Ain't going to work otherwise. Well, it could but who cares and has
 # that much free time?
 include FileUtils
-require File.expand_path('make/copy-gems')
+
 module Make
   include FileUtils
 
@@ -58,7 +58,7 @@ module Make
 
   # common_build is a misnomer. copies prebuilt extentions & gems
   def common_build
-    return copy_gems # in make/copy-gems.rb
+    copy_gems # in make/gems.rb
   end
 
 end
@@ -67,17 +67,7 @@ class MakeDarwin
   extend Make
 
   class << self
-    def copy_ext xdir, libdir
-      #puts "Build #{xdir}"
-      Dir.chdir(xdir) do
-        extcnf = (File.exists? "#{TGT_ARCH}-extconf.rb") ? "#{TGT_ARCH}-extconf.rb" : 'extconf.rb'
-        unless system "ruby", "#{extcnf}" and system "make"
-          raise "Extension build failed"
-        end
-      end
-      copy_files "#{xdir}/*.bundle", libdir   
-    end
-    
+   
     def pre_build
       puts "Entering osx pre_build #{TGT_DIR}"
       rm_rf "#{TGT_DIR}"
@@ -326,24 +316,7 @@ class MakeDarwin
       sh "DYLD_LIBRARY_PATH= platform/mac/pkg-dmg --target pkg/#{PKG}.dmg --source dmg --volname '#{APPNAME}' --copy #{dmg_ds}:/.DS_Store --mkdir /.background --copy #{dmg_jpg}:/.background" # --format UDRW"
       rm_rf "dmg"
     end
-    
-    def gems_build
-      puts "Build gems #{TGT_DIR}"
-      mkdir_p "#{TGT_DIR}/builtins"
-      gdir = "#{TGT_DIR}/builtins"
-	  {'hpricot' => 'lib'}.each do |gemn, xdir|
-      #{'hpricot' => 'lib', 'sqlite3' => 'lib'}.each do |gemn, xdir|
-        spec = eval(File.read("req/#{gemn}/gemspec"))
-        mkdir_p "#{gdir}/specifications"
-        mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
-        FileList["req/#{gemn}/lib/*"].each { |rlib| cp_r rlib, "#{gdir}/gems/#{spec.full_name}/lib" }
-        mkdir_p "#{gdir}/gems/#{spec.full_name}/#{xdir}"
-        FileList["req/#{gemn}/ext/*"].each { |elib| copy_ext elib, "#{gdir}/gems/#{spec.full_name}/#{xdir}" }
-        cp "req/#{gemn}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
-        puts "Gems: #{gemn}"
-      end
-    end
-    
+        
     def make_smaller
       puts "Shrinking #{`pwd`}"
       sh "strip *.dylib"

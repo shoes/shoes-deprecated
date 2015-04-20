@@ -103,7 +103,8 @@ when /darwin/
     #require_relative "make/#{TGT_ARCH}/homebrew"
     require File.expand_path("make/#{TGT_ARCH}/tasks")
     require File.expand_path("make/#{TGT_ARCH}/stubs")
-    require File.expand_path("make/#{TGT_ARCH}/gems")
+    #require File.expand_path("make/#{TGT_ARCH}/gems")
+    require File.expand_path("make/gems")
   else
     # build Loose Shoes on OSX for OSX
     puts "Loose Shoes OSX"
@@ -128,7 +129,7 @@ when /linux/
     when /xarmv6hf/
       require File.expand_path('make/xarm6hf/env')
       require File.expand_path('make/xarm6hf/tasks')
-      require File.expand_path('make/xarm6hf/gems')
+      require File.expand_path('make/gems')
    when /xwin7/
       require File.expand_path('make/xwin7/env')
       require File.expand_path('make/xwin7/tasks')
@@ -270,11 +271,6 @@ task :old_build => [:pre_build, :build_os] do
   Builder.copy_deps_to_dist
   Builder.setup_system_resources
 end
-
-#desc "Build Shoes gems"
-#task :gems do
-#  Builder.gems_build
-#end
 
 desc "Install Shoes in your ~/.shoes Directory"
 task  :install do

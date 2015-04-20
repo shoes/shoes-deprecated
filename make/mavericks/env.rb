@@ -1,5 +1,5 @@
 include FileUtils
-cf =(ENV['ENV_CUSTOM'] || "mavericks-custom.yaml")
+cf =(ENV['ENV_CUSTOM'] || "#{TGT_ARCH}-custom.yaml")
 if File.exists? cf
   custmz = YAML.load_file(cf)
   BREWLOC = custmz['Deps']
@@ -10,7 +10,9 @@ if File.exists? cf
   APP['GEMLOC'] = custmz['Gemloc'] if custmz['Gemloc']
   APP['EXTLOC'] = custmz['Extloc'] if custmz['Extloc']
   APP['EXTLIST'] = custmz['Exts'] if custmz['Exts']
-  APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']else
+  APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
+  ENV['CDEFS'] = custmz['CFLAGS'] if custmz['CFLAGS']
+else
   EXT_RUBY = RbConfig::CONFIG['prefix']
   BREWLOC = "/usr/local"
   ZLIBLOC = "/usr/local/opt/zlib/lib"
