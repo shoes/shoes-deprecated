@@ -1,16 +1,40 @@
 Bugs/Status - stick with Ruby 2.1.x and gtk2 until things get sorted
   out with GKt3 and later Rubies
   
+2015-04-20
+-----> bug 119 discussion
+----> gem.rb could be hoisted up one level - just the so/bundle thing. 
+      Combine make/*/gems.rb and copy-gems.rb into make/gems.rb.
+      Clean up copy_ext and common_build
+done:   Mavericks
+done:   xarm6hf
+done:   xwin7
+done:   win7
+---->   xsnow
+done:   x86_64_linux
+done:   i686_linux
+---->   snow - not likely to happen.
+
+====> new dir in Shoes - gempacks/ ? 
+        has Rakefile, and yamls and such - copies to the gems/built
+        could be written in Shoes? 
+        Actually it should be reversed. The shoes script, rakefile etc lives
+        in ~/projects/gems/shoes. Could be a packaged Shoes App!!
+        Create new shoes3 repo for gems (legacy and new)
+  
 2015-04-19 
-----> hoist copy_shoes up to to /make
+done: hoist copy_shoes up to to /make
+
 done: mavericks
 done: xwin7
 done: win7
-----> xsnow - needs custom.yaml too.
+done: xsnow - needs custom.yaml too
 done: xarm6hf - needs custom.yaml too. gtk2 and 3.
 done: x86_64 - needs custom.yaml too.
 done: xi686- needs custom.yaml too.
 ----> snow - do we care if xsnow works?
+----> image cache problem? expert-funnies osx? 
+      cache sharing issues in ~/ across multiple arch
 
 2015-04-18 
 ----> passengers gtk3 changes

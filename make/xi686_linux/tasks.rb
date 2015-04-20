@@ -1,4 +1,3 @@
-require File.expand_path('make/copy-gems')
 module Make
   include FileUtils
 

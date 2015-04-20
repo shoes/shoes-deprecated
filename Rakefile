@@ -103,7 +103,6 @@ when /darwin/
     #require_relative "make/#{TGT_ARCH}/homebrew"
     require File.expand_path("make/#{TGT_ARCH}/tasks")
     require File.expand_path("make/#{TGT_ARCH}/stubs")
-    #require File.expand_path("make/#{TGT_ARCH}/gems")
     require File.expand_path("make/gems")
   else
     # build Loose Shoes on OSX for OSX
@@ -121,11 +120,11 @@ when /linux/
     when /x86_64_linux/ 
       require File.expand_path('make/x86_64_linux/env')
       require File.expand_path('make/x86_64_linux/tasks')
-      require File.expand_path("make/#{TGT_ARCH}/gems")
+      require File.expand_path("make/gems")
     when /xi686_linux/
       require File.expand_path('make/xi686_linux/env')
       require File.expand_path('make/xi686_linux/tasks')
-      require File.expand_path("make/#{TGT_ARCH}/gems")
+      require File.expand_path("make/gems")
     when /xarmv6hf/
       require File.expand_path('make/xarm6hf/env')
       require File.expand_path('make/xarm6hf/tasks')
