@@ -1,4 +1,3 @@
-require File.expand_path('make/copy-gems')
 module Make
   include FileUtils
 
@@ -81,7 +80,7 @@ module Make
 
   # common_build is a misnomer. copies prebuilt extentions & gems
   def common_build
-    return copy_gems
+    copy_gems
   end
 
 end
