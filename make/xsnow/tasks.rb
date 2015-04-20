@@ -2,6 +2,7 @@
 # Ain't going to work otherwise. Well, it could but who cares and has
 # that much free time?
 include FileUtils
+require File.expand_path('make/copy-gems')
 module Make
   include FileUtils
 
@@ -54,6 +55,7 @@ module Make
   end
 
   def common_build
+    return copy_gems
     mkdir_p "#{TGT_DIR}/lib/ruby"
     cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "#{TGT_DIR}/lib/ruby"
     unless ENV['STANDARD']

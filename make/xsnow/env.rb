@@ -7,7 +7,20 @@
 include FileUtils
 # what system am I running on
 osxver = `sw_vers -productVersion`
-if osxver =~ /10\.6/
+cf =(ENV['ENV_CUSTOM'] || "#{TGT_ARCH}-custom.yaml")
+if File.exists? cf
+  custmz = YAML.load_file(cf)
+  BREWLOC = custmz['Deps']
+  X11LOC = custmz['X11']
+  EXT_RUBY = custmz['Ruby'] ? custmz['Ruby'] : RbConfig::CONFIG['prefix']
+  ENV['GDB'] = 'basic' if custmz['Debug'] == true
+  ENV['CDEFS'] = custmz['CFLAGS'] if custmz['CFLAGS']
+  APP['GEMLOC'] = custmz['Gemloc'] if custmz['Gemloc']
+  APP['EXTLOC'] = custmz['Extloc'] if custmz['Extloc']
+  APP['EXTLIST'] = custmz['Exts'] if custmz['Exts']
+  APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
+  ENV['SQLLOC'] = BREWLOC
+elsif osxver =~ /10\.6/
   EXT_RUBY = RbConfig::CONFIG['prefix']
   BREWLOC = "/usr/local"
   X11LOC = "/usr/X11"
@@ -17,7 +30,7 @@ else
   BREWLOC = "/Users/ccoupe/shoesdeps/10.6/brew"  
   X11LOC = "/Users/ccoupe/shoesdeps/10.6/X11"
   ENV['SQLLOC'] = BREWLOC
-  
+  ENV['CDEFS'] = '-DNEW_RADIO'
 end
 
 # use the platform Ruby claims
