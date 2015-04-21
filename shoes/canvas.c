@@ -1497,7 +1497,23 @@ shoes_canvas_clear_contents(int argc, VALUE *argv, VALUE self)
 {
   VALUE block = Qnil;
   SETUP();
-
+  
+  int i;
+  for (i = 0; i < RARRAY_LEN(canvas->contents); i++)
+    {
+      VALUE ele = rb_ary_entry(canvas->contents, i);
+      if (rb_obj_class(ele) == cRadio)
+      {
+          shoes_control *self_t;
+          Data_Get_Struct(ele, shoes_control, self_t);
+          
+          VALUE group = ATTR(self_t->attr, group);
+          if (NIL_P(group)) group = self_t->parent;
+          if (!shoes_hash_get(canvas->app->groups, group) == Qnil);
+                shoes_hash_set(canvas->app->groups, group, Qnil);
+      }
+    }
+  
   if (rb_block_given_p()) block = rb_block_proc();
   shoes_canvas_empty(canvas, FALSE);
   if (!NIL_P(block))
@@ -1792,9 +1808,11 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
     if (oy < self_t->slot->scrolly || ox < 0 || oy > self_t->slot->scrolly + self_t->place.ih || ox > self_t->place.iw)
       return Qnil;
   }
-
   if (ATTR(self_t->attr, hidden) != Qtrue)
   {
+    if (self_t->app->canvas == self) // when we are the app's slot
+        y -= self_t->slot->scrolly;
+    
     if (IS_INSIDE(self_t, x, y))
     {
       VALUE click = ATTR(self_t->attr, click);

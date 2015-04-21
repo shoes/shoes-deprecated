@@ -11,7 +11,6 @@
 #include "shoes/version.h"
 #include "shoes/http.h"
 #include "shoes/effects.h"
-#include "shoes/ruby.h"
 #include <math.h>
 
 VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cSlider, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
@@ -310,6 +309,15 @@ shoes_safe_block(VALUE self, VALUE block, VALUE args)
   return v;
 }
 
+
+/* get a dimension, in pixels, given a string, float, int or nil
+**      "90%" or 0.9 or actual dimension as integer or 
+**      amount of pixel to substract from base to compute value 
+**      or nil
+** int dv : default value
+** int pv : a base dimension to process
+** int nv : switch (boolean) to substract or not computed value from base dimension
+*/ 
 int
 shoes_px(VALUE obj, int dv, int pv, int nv)
 {
@@ -336,6 +344,11 @@ shoes_px(VALUE obj, int dv, int pv, int nv)
   return px;
 }
 
+/* get a coordinate, in pixels, given bounds (left/right or top/bottom)
+** int dv : default value
+** int pv : a base dimension to process
+** int dr : a delta to substract if working with :right or :bottom
+*/ 
 int
 shoes_px2(VALUE attr, ID k1, ID k2, int dv, int dr, int pv)
 {
@@ -3469,6 +3482,7 @@ shoes_check_set_checked_m(VALUE self, VALUE on)
   if (RTEST(on))
   {
     VALUE glist = shoes_button_group(self);
+    
     if (!NIL_P(glist))
     {
       long i;
@@ -3478,10 +3492,10 @@ shoes_check_set_checked_m(VALUE self, VALUE on)
         shoes_check_set_checked(ele, ele == self ? Qtrue : Qfalse);
       }
     } 
-		else 
-		{
-			shoes_check_set_checked(self, on);
-		}
+    else 
+    {
+        shoes_check_set_checked(self, on);
+    }
     return on;
   }
 #endif
