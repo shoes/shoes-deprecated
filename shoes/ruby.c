@@ -453,21 +453,33 @@ shoes_place_exact(shoes_place *place, VALUE attr, int ox, int oy)
 void
 shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsigned char rel, int padded)
 {
+  
   shoes_canvas *canvas = NULL;
+  if (!NIL_P(c)) Data_Get_Struct(c, shoes_canvas, canvas);
   VALUE ck = rb_obj_class(c);
   VALUE stuck = ATTR(attr, attach);
-  if (!NIL_P(c))
-    Data_Get_Struct(c, shoes_canvas, canvas);
-  if (REL_FLAGS(rel) & REL_SCALE)
-  {
-    VALUE rw = ATTR(attr, width), rh = ATTR(attr, height);
-    if (NIL_P(rw) && !NIL_P(rh))
-      dw = ROUND(((dw * 1.) / dh) * shoes_px(rh, dh, CPW(canvas), 1));
-    else if (NIL_P(rh) && !NIL_P(rw))
-      dh = ROUND(((dh * 1.) / dw) * shoes_px(rw, dw, CPW(canvas), 1));
-  }
+  
+    // for image : we want to scale the image, given only one attribute :width or :height
+    // get dw and dh, set width or height
+    if (REL_FLAGS(rel) & REL_SCALE) {   // 8
+        VALUE rw = ATTR(attr, width), rh = ATTR(attr, height);
+        if (NIL_P(rw) && !NIL_P(rh)) {          // we have height
+                    // fetch height in pixels whatever the input (string, float, positive/negative int)
+            int spx = shoes_px(rh, dh, CPH(canvas), 1);
+                    // compute width with image aspect ratio [(dh == dw) means a square ]
+            dw = (dh == dw) ? spx : ROUND(((dh * 1.) / dw) * spx);
+            dh = spx;                           // now re-init 'dh' for next calculations
+            ATTRSET(attr, width, INT2NUM(dw));  // set calculated width
+          }
+        else if (NIL_P(rh) && !NIL_P(rw)) {
+            int spx = shoes_px(rw, dw, CPW(canvas), 1);
+            dh = (dh == dw) ? spx : ROUND(((dh * 1.) / dw) * spx);
+            dw = spx;
+            ATTRSET(attr, height, INT2NUM(dh));
+        }
+    }
 
-  ATTR_MARGINS(attr, 0, canvas);
+    ATTR_MARGINS(attr, 0, canvas);
     if (padded || dh == 0) dh += tmargin + bmargin;
     if (padded || dw == 0) dw += lmargin + rmargin;
 
@@ -522,6 +534,8 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
         oy = CPY(canvas);
         testw = dw = CPW(canvas);
         dh = max(canvas->height, CPH(canvas));
+        // Fix #2 ?
+        //dh = (max(canvas->height, canvas->fully - CPB(canvas)) - CPY(canvas));
       break;
 
       default:
