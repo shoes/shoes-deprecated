@@ -11,7 +11,6 @@
 #include "shoes/version.h"
 #include "shoes/http.h"
 #include "shoes/effects.h"
-#include "shoes/ruby.h"
 #include <math.h>
 
 VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cSlider, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
@@ -310,6 +309,15 @@ shoes_safe_block(VALUE self, VALUE block, VALUE args)
   return v;
 }
 
+
+/* get a dimension, in pixels, given a string, float, int or nil
+**      "90%" or 0.9 or actual dimension as integer or 
+**      amount of pixel to substract from base to compute value 
+**      or nil
+** int dv : default value
+** int pv : a base dimension to process
+** int nv : switch (boolean) to substract or not computed value from base dimension
+*/ 
 int
 shoes_px(VALUE obj, int dv, int pv, int nv)
 {
@@ -336,6 +344,11 @@ shoes_px(VALUE obj, int dv, int pv, int nv)
   return px;
 }
 
+/* get a coordinate, in pixels, given bounds (left/right or top/bottom)
+** int dv : default value
+** int pv : a base dimension to process
+** int dr : a delta to substract if working with :right or :bottom
+*/ 
 int
 shoes_px2(VALUE attr, ID k1, ID k2, int dv, int dr, int pv)
 {
@@ -440,21 +453,31 @@ shoes_place_exact(shoes_place *place, VALUE attr, int ox, int oy)
 void
 shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsigned char rel, int padded)
 {
-//  shoes_place_decide2(place, c, attr, dw, dh, rel, padded);
- 
-  shoes_canvas *canvas = NULL;
-  VALUE ck = rb_obj_class(c);
-  VALUE stuck = ATTR(attr, attach);
-  if (!NIL_P(c))
-    Data_Get_Struct(c, shoes_canvas, canvas);
-  if (REL_FLAGS(rel) & REL_SCALE)
-  {
-    VALUE rw = ATTR(attr, width), rh = ATTR(attr, height);
-    if (NIL_P(rw) && !NIL_P(rh))
-      dw = ROUND(((dw * 1.) / dh) * shoes_px(rh, dh, CPW(canvas), 1));
-    else if (NIL_P(rh) && !NIL_P(rw))
-      dh = ROUND(((dh * 1.) / dw) * shoes_px(rw, dw, CPW(canvas), 1));
-  }
+    shoes_canvas *canvas = NULL;
+    if (!NIL_P(c)) Data_Get_Struct(c, shoes_canvas, canvas);
+    VALUE ck = rb_obj_class(c);
+    VALUE stuck = ATTR(attr, attach);
+    
+    // for image : we want to scale the image, given only one attribute :width or :height
+    // get dw and dh, set width or height
+    if (REL_FLAGS(rel) & REL_SCALE) {   // 8
+        VALUE rw = ATTR(attr, width), rh = ATTR(attr, height);
+        
+        if (NIL_P(rw) && !NIL_P(rh)) {          // we have height
+                    // fetch height in pixels whatever the input (string, float, positive/negative int)
+            int spx = shoes_px(rh, dh, CPH(canvas), 1);
+                    // compute width with image aspect ratio [(dh == dw) means a square ]
+            dw = (dh == dw) ? spx : ROUND(((dh * 1.) / dw) * spx);
+            dh = spx;                           // now re-init 'dh' for next calculations
+            ATTRSET(attr, width, INT2NUM(dw));  // set calculated width
+        } 
+        else if (NIL_P(rh) && !NIL_P(rw)) {
+            int spx = shoes_px(rw, dw, CPW(canvas), 1);
+            dh = (dh == dw) ? spx : ROUND(((dh * 1.) / dw) * spx);
+            dw = spx;
+            ATTRSET(attr, height, INT2NUM(dh));
+        }
+    }
 
   ATTR_MARGINS(attr, 0, canvas);
     if (padded || dh == 0) dh += tmargin + bmargin;
