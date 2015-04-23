@@ -532,8 +532,6 @@ shoes_canvas_gtk_paint(GtkWidget *widget, cairo_t *cr, gpointer data)
   shoes_canvas_paint(c);
   gtk_container_forall(GTK_CONTAINER(widget), shoes_canvas_gtk_paint_children, canvas);
   
-//  cairo_region_destroy(region);
-//  cairo_region_destroy(regionW);  
   canvas->slot->drawevent = NULL;
 }
 #else
