@@ -1772,7 +1772,11 @@ shoes_canvas_send_start(VALUE self)
       if (rb_obj_is_kind_of(ele, cCanvas) && shoes_canvas_inherits(ele, canvas))
         shoes_canvas_send_start(ele);
     }
-
+    
+    // Do we have a :start style attribute ? This is not the 'start' method/event which
+    // is handled by shoes_canvas_start() build by EVENT_HANDLER(start).
+    // This attribute is set either explicitely with a :start style in the slot declaration
+    // either by the 'start' method/event of a slot (if by mistake, both are used the method takes precedence)
     VALUE start = ATTR(canvas->attr, start);
     if (!NIL_P(start))
     {

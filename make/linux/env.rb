@@ -5,12 +5,12 @@
 require 'rbconfig'
 
 # manually set below to what you want to build with/for
-#ENV['DEBUG'] = "true" # turns on the call log in shoes/gtk
+#ENV['DEBUG'] = "true" # turns on the call log
 #APP['GTK'] = "gtk+-2.0"
 APP['GTK'] = "gtk+-3.0"
 ENV['GDB'] = "true" # compile -g,  don't strip symbols
 # Pick your optimatization and debugging options
-if ENV['DEBUG'] || ENV['GDB']
+if ENV['GDB']
   LINUX_CFLAGS = "-g -O0"
 else
   LINUX_CFLAGS = "-O -Wall"
@@ -20,6 +20,7 @@ rv =  RUBY_VERSION[/\d.\d/]
 
 LINUX_CFLAGS << " -DRUBY_HTTP" 
 LINUX_CFLAGS << " -DRUBY_1_9"
+LINUX_CFLAGS << " -DDEBUG" if ENV['DEBUG']
 LINUX_CFLAGS << " -DGTK3" unless APP['GTK'] == 'gtk+-2.0'
 LINUX_CFLAGS << " -DSHOES_GTK -fPIC -shared"
 # Following line may need handcrafting 
@@ -28,7 +29,7 @@ LINUX_CFLAGS << " #{`pkg-config --cflags #{APP['GTK']}`.strip}"
 
 CC = "gcc"
 
-file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + ["shoes/*.c"]
+file_list = %w{shoes/native/gtk.c shoes/native/gtkfixedalt.c shoes/http/rbload.c} + ["shoes/*.c"]
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')

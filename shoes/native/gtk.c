@@ -19,6 +19,8 @@
 #include <pthread.h>
 #include <glib/gprintf.h>
 
+#include "gtkfixedalt.h"
+
 #define GTK_CHILD(child, ptr) \
   GList *children = gtk_container_get_children(GTK_CONTAINER(ptr)); \
   child = children->data
@@ -581,7 +583,7 @@ shoes_canvas_gtk_size(GtkWidget *widget, GtkAllocation *size, gpointer data)
   {
     GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot->vscroll));
     gtk_widget_set_size_request(canvas->slot->vscroll, -1, size->height);
-    
+    //gtk_widget_set_size_request(GTK_CONTAINER(widget), canvas->app->width, size->height);
 #ifdef GTK3
     GtkAllocation alloc;
     gtk_widget_get_allocation((GtkWidget *)canvas->slot->vscroll, &alloc);
@@ -882,7 +884,7 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
     GdkGeometry hints;
     hints.min_width = app->minwidth;
     hints.min_height = app->minheight;
-    gtk_window_set_geometry_hints(GTK_WINDOW(gk->window), NULL,
+    gtk_window_set_geometry_hints(GTK_WINDOW(gk->window), gk->window,
       &hints, GDK_HINT_MIN_SIZE);
   }
   gtk_window_set_default_size(GTK_WINDOW(gk->window), app->width, app->height);
@@ -980,19 +982,27 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
   Data_Get_Struct(c, shoes_canvas, canvas);
 
   slot = shoes_slot_alloc(canvas, parent, toplevel);
-  slot->oscanvas = gtk_fixed_new();
-  INFO("shoes_slot_init(%lu)\n", c);
   
 #ifdef GTK3
+/* Subclassing GtkFixed so we can override gtk3 size management which creates 
+   problems with slot height being always tied to inside widgets cumulative heights
+   creating heights overflow with no scrollbar ! 
+*/
+  slot->oscanvas = gtkfixed_alt_new();
+  
   g_signal_connect(G_OBJECT(slot->oscanvas), "draw",
                    G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
-#else 
+#else
+  slot->oscanvas = gtk_fixed_new();
+  
   g_signal_connect(G_OBJECT(slot->oscanvas), "expose-event",
                    G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
 #endif
   
   g_signal_connect(G_OBJECT(slot->oscanvas), "size-allocate",
                    G_CALLBACK(shoes_canvas_gtk_size), (gpointer)c);
+  INFO("shoes_slot_init(%lu)\n", c);
+  
   if (toplevel)
     gtk_container_add(GTK_CONTAINER(parent->oscanvas), slot->oscanvas);
   else
