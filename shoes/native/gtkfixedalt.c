@@ -80,10 +80,10 @@ gtkfixed_alt_new()
 static void
 gtkfixed_alt_get_preferred_width(GtkWidget *widget, int *minimal, int *natural)
 {
-	g_return_if_fail(widget != NULL);
-	g_return_if_fail(IS_GTKFIXED_ALT(widget));
+    g_return_if_fail(widget != NULL);
+    g_return_if_fail(IS_GTKFIXED_ALT(widget));
 
-	*minimal = 1;
+    *minimal = 1;
     *natural = 1;
 }
 
@@ -93,9 +93,9 @@ gtkfixed_alt_get_preferred_width(GtkWidget *widget, int *minimal, int *natural)
 static void
 gtkfixed_alt_get_preferred_height(GtkWidget *widget, int *minimal, int *natural)
 {
-	g_return_if_fail(widget != NULL);
-	g_return_if_fail(IS_GTKFIXED_ALT(widget));
-    
+    g_return_if_fail(widget != NULL);
+    g_return_if_fail(IS_GTKFIXED_ALT(widget));
+
     *minimal = 1;
     *natural = 1;
 }
