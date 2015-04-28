@@ -30,7 +30,7 @@ static void gtkfixed_alt_get_preferred_height(GtkWidget *widget,
                                         int *minimal, int *natural);
 //static void gtkfixed_alt_size_allocate(GtkWidget *widget,
 //                                    GtkAllocation *allocation);
-static GType gtkfixed_alt_child_type(GtkContainer *container);
+//static GType gtkfixed_alt_child_type(GtkContainer *container);
 
 /* Define the GtKFixed_Alt type and inherit from GtkFixed */
 G_DEFINE_TYPE(GtKFixed_Alt, gtkfixed_alt, GTK_TYPE_FIXED);

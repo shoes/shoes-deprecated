@@ -1364,21 +1364,31 @@ SHOES_CONTROL_REF
 shoes_native_list_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
 #ifdef GTK3
-   SHOES_CONTROL_REF ref = gtk_combo_box_text_new();
-   //SHOES_CONTROL_REF ref = gtk_combo_box_text_new_with_entry();
-   GtkCellArea *area = gtk_cell_layout_get_area((GtkCellLayout *)ref);
-   GList *renderers = gtk_cell_layout_get_cells((GtkCellLayout *)ref);
-   //printf("renderers = %d\n", g_list_length(renderers)); //only one
-   GtkCellRendererText *cell = g_list_first(renderers)->data;
-   gtk_cell_renderer_set_fixed_size((GtkCellRenderer *)cell, 250, 25);
-   g_object_set((GtkCellRenderer *)cell, "ellipsize", PANGO_ELLIPSIZE_END, NULL);
+  /* emulating gtk2 defaults*/
+  int w = 160, h = 18; 
+  if (RTEST(ATTR(attr, width))) w = NUM2INT(ATTR(attr, width));
+  if (RTEST(ATTR(attr, height))) h = NUM2INT(ATTR(attr, height));
+  ATTR_MARGINS(attr, 2, canvas);
+  ATTRSET(attr, margin_bottom, INT2NUM(bmargin)); // TODO only this one is really needed (not clean though)
+  
+  SHOES_CONTROL_REF ref = gtk_combo_box_text_new();
+  
+  GtkCellArea *area = gtk_cell_layout_get_area((GtkCellLayout *)ref);
+  GList *renderers = gtk_cell_layout_get_cells((GtkCellLayout *)ref);
+  //printf("renderers = %d\n", g_list_length(renderers)); //only one
+  GtkCellRendererText *cell = g_list_first(renderers)->data;
+  gtk_cell_renderer_set_fixed_size((GtkCellRenderer *)cell, w, h);
+  //gtk_widget_set_margin_top((GtkWidget *)ref, 2);
+  //gtk_widget_set_margin_bottom((GtkWidget *)ref, 2);
+  g_object_set((GtkCellRenderer *)cell, "ellipsize", PANGO_ELLIPSIZE_END, NULL);
+//  g_object_set((GtkWidget *)ref, "margin_bottom", 10, NULL);
 #else
-   SHOES_CONTROL_REF ref = gtk_combo_box_new_text();
+  SHOES_CONTROL_REF ref = gtk_combo_box_new_text();
 #endif
-   g_signal_connect(G_OBJECT(ref), "changed",
-                    G_CALLBACK(shoes_widget_changed),
-                    (gpointer)self);
-   return ref;
+  g_signal_connect(G_OBJECT(ref), "changed",
+                   G_CALLBACK(shoes_widget_changed),
+                   (gpointer)self);
+  return ref;
 }
 
 void
