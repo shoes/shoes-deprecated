@@ -340,6 +340,11 @@ namespace :osx do
     task "xsnow" do
       sh "echo 'TGT_ARCH=xsnow' >crosscompile"
     end
+    
+    desc "Experimental OSX/Gtk3"
+    task :osxgtk do
+       sh "echo 'TGT_ARCH=osxgtk' >crosscompile"
+   end
         
     desc "Setup to build Shoes just for my Mac (default)"
     task :clean do
