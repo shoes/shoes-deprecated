@@ -112,7 +112,7 @@ module Make
     end
     gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
     # precompiled gems here - just copy
-    APP['GEMLIST'].each do |gemn|
+    APP['INCLGEMS'].each do |gemn|
       gemp = "#{APP['GEMLOC']}/built/#{TGT_ARCH}/#{gemn}" 
       puts "Copying prebuilt gem #{gemp}"
       spec = eval(File.read("#{gemp}/gemspec"))

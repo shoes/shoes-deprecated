@@ -67,12 +67,12 @@ class MakeDarwin
   extend Make
 
   class << self
-   
+
     def pre_build
       puts "Entering osx pre_build #{TGT_DIR}"
       rm_rf "#{TGT_DIR}"
       # copy Ruby, dylib, includes - have them in place before
-      # we build exts (ftsearch). 
+      # we build exts (ftsearch).
       puts "Ruby at #{EXT_RUBY}"
       rbvt = RUBY_V
       rbvm = RUBY_V[/^\d+\.\d+/]
@@ -94,7 +94,7 @@ class MakeDarwin
         bundles = *Dir['*.bundle']
         puts "Bundles #{bundles}"
         cplibs = {}
-        bundles.each do |bpath| 
+        bundles.each do |bpath|
           `otool -L #{bpath}`.split.each do |lib|
             cplibs[lib] = lib if File.extname(lib)=='.dylib'
           end
@@ -118,11 +118,11 @@ class MakeDarwin
         # abort "Quitting"
       end
     end
-    
+
     def change_install_names
       puts "Entering change_install_names"
       cd "#{TGT_DIR}" do
-        ["#{NAME}-bin", "pango-querymodules", *Dir['*.dylib'], *Dir['pango/modules/*.so']].each do |f|
+        ["#{NAME}-bin", "pango-querymodules", *Dir['*.dylib'], *Dir['lib/ruby/gems/2.1.0/**/*.bundle'], *Dir['pango/modules/*.so']].each do |f|
           sh "install_name_tool -id @executable_path/#{File.basename f} #{f}"
           dylibs = get_dylibs f
           dylibs.each do |dylib|
@@ -147,7 +147,7 @@ class MakeDarwin
       cp `which pango-querymodules`.chomp, "#{TGT_DIR}/"
       chmod 0755, "#{TGT_DIR}/pango-querymodules"
     end
-    
+
     def copy_gem_deplibs
       puts "Entering copy_gem_deplibs"
       cp '/usr/lib/libsqlite3.dylib', "#{TGT_DIR}"
@@ -164,7 +164,7 @@ class MakeDarwin
         end
       end
     end
-    
+
     def dylibs_to_change lib
       `otool -L #{lib}`.split("\n").inject([]) do |dylibs, line|
         if  line =~ /^\S/ or line =~ /System|@executable_path|libobjc/
@@ -188,8 +188,9 @@ class MakeDarwin
       # add the gem's bundles.
       rbvm = RUBY_V[/^\d+\.\d+/]
       Dir["#{TGT_DIR}/lib/ruby/gems/#{rbvm}.0/gems/**/*.bundle"].each do |gb|
-        #puts "Bundle: #{gb}"
+        puts "Bundle: #{gb}"
         dylibs.concat dylibs_to_change(gb)
+        puts "dylibs: #{dylibs}"
       end
       # IT 14.12.16 adding X11 libs
 	  ["libxcb-shm.0.dylib", "libxcb-render.0.dylib", "libxcb.1.dylib", "libXrender.1.dylib",
@@ -210,11 +211,11 @@ class MakeDarwin
       end
       #dylibs.each {|libn| cp "#{libn}", "#{TGT_DIR}/" unless File.exists? "#{TGT_DIR}/#{libn}"}
       # clunky hack begins - Homebrew keg issue? ro duplicates do exist
-      # make my own dups hash - not the same as dupes. 
+      # make my own dups hash - not the same as dupes.
       dups = {}
-      dylibs.each do |libn| 
+      dylibs.each do |libn|
         keyf = File.basename libn
-        if !dups[keyf] 
+        if !dups[keyf]
           #puts "Copy: #{keyf}"
           cp "#{libn}", "#{TGT_DIR}/" unless File.exists? "#{TGT_DIR}/#{keyf}"
           dups[keyf] = true
@@ -262,12 +263,12 @@ class MakeDarwin
 
     def make_so(name)
       ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
-      sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
+      sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
-    
+
     def make_installer
       puts "tbz_create from #{`pwd`}"
-      nfs=ENV['NFS_ALTP'] 
+      nfs=ENV['NFS_ALTP']
       mkdir_p "#{nfs}pkg"
       #distfile = "#{nfs}pkg/#{PKG}#{TINYVER}-osx-10.9.tbz"
       appname = "#{APP['name'].downcase}-#{APP['VERSION']}"
@@ -288,13 +289,13 @@ class MakeDarwin
         #sh "bzip2 -f #{distname}.tar"
         #mv "#{distname}.tar.bz2", "#{distfile}"
       end
-      if nfs 
+      if nfs
         # copy to /pkg
         mkdir_p "pkg"
         sh  "cp #{distfile} pkg/"
       end
-    end 
-  
+    end
+
     # unused - was make_installer
     def make_dmg_installer
       dmg_ds, dmg_jpg = "platform/mac/dmg_ds_store", "static/shoes-dmg.jpg"
@@ -316,12 +317,12 @@ class MakeDarwin
       sh "DYLD_LIBRARY_PATH= platform/mac/pkg-dmg --target pkg/#{PKG}.dmg --source dmg --volname '#{APPNAME}' --copy #{dmg_ds}:/.DS_Store --mkdir /.background --copy #{dmg_jpg}:/.background" # --format UDRW"
       rm_rf "dmg"
     end
-        
+
     def make_smaller
       puts "Shrinking #{`pwd`}"
       sh "strip *.dylib"
       Dir.glob("lib/ruby/**/*.so").each {|lib| sh "strip #{lib}"}
     end
-    
+
   end
 end

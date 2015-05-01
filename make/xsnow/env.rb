@@ -19,18 +19,15 @@ if File.exists? cf
   APP['EXTLOC'] = custmz['Extloc'] if custmz['Extloc']
   APP['EXTLIST'] = custmz['Exts'] if custmz['Exts']
   APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
+  APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
+  ENV['CDEFS'] = custmz['CFLAGS'] if custmz['CFLAGS']
   ENV['SQLLOC'] = BREWLOC
 elsif osxver =~ /10\.6/
   EXT_RUBY = RbConfig::CONFIG['prefix']
   BREWLOC = "/usr/local"
   X11LOC = "/usr/X11"
 else
-  # build 10.6 on something other than 10.6"
-  EXT_RUBY = "/Users/ccoupe/shoesdeps/10.6/ruby-2.1.5"
-  BREWLOC = "/Users/ccoupe/shoesdeps/10.6/brew"  
-  X11LOC = "/Users/ccoupe/shoesdeps/10.6/X11"
-  ENV['SQLLOC'] = BREWLOC
-  ENV['CDEFS'] = '-DNEW_RADIO'
+  abort "You must have a #{TGT_ARCH}-custom.yaml"
 end
 
 # use the platform Ruby claims

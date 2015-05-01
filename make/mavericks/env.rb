@@ -12,6 +12,7 @@ if File.exists? cf
   APP['EXTLIST'] = custmz['Exts'] if custmz['Exts']
   APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
   ENV['CDEFS'] = custmz['CFLAGS'] if custmz['CFLAGS']
+  APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
 else
   EXT_RUBY = RbConfig::CONFIG['prefix']
   BREWLOC = "/usr/local"
@@ -56,7 +57,7 @@ LINUX_CFLAGS = %[-g -Wall  -I#{BREWLOC}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} 
 if RbConfig::CONFIG['rubyhdrdir']
   LINUX_CFLAGS << " -I#{RbConfig::CONFIG['rubyhdrdir']} -I#{RbConfig::CONFIG['rubyhdrdir']}/#{SHOES_RUBY_ARCH}"
 end
-  
+
 LINUX_LIB_NAMES = %W[#{RUBY_SO} cairo pangocairo-1.0 gif]
 
 #FLAGS.each do |flag|
@@ -98,7 +99,7 @@ end
 
 LINUX_CFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH}"
 LINUX_LDFLAGS << " #{OSX_ARCH} -L/usr/local/lib/ "
- 
+
 LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
 #LINUX_LIBS << " -L#{RbConfig::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB}"

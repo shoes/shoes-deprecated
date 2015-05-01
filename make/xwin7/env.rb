@@ -13,6 +13,7 @@ if File.exists? cf
   APP['EXTLOC'] = custmz['Extloc'] if custmz['Extloc']
   APP['EXTLIST'] = custmz['Exts'] if custmz['Exts']
   APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
+  APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
 else
   # define where your deps are
   ShoesDeps = "/home/ccoupe/Projects/shoesdeps/mingw"
