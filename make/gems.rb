@@ -68,6 +68,10 @@ module Make
       rm_rf dest
       mkdir_p dest
       cp "#{xdir}/gemspec", dest
+      # hack to keep spec and gem separate - May 1, 2015
+      spec = eval(File.read("#{xdir}/gemspec"))      
+      dest << "/#{spec.full_name}"
+      mkdir_p dest
       cp "#{xdir}/LICENSE", dest
       cp_r "#{xdir}/lib/", dest
       Dir.glob("#{xdir}/ext/*/*.#{Lext}").each {|so| cp so, "#{dest}/lib" }
@@ -117,9 +121,24 @@ module Make
       puts "Copying prebuilt gem #{gemp}"
       spec = eval(File.read("#{gemp}/gemspec"))
       mkdir_p "#{gdir}/specifications"
+      mkdir_p "#{gdir}/specifications/default"
+      # Just copy lib - bin and doc and such don't matter to Shoes.
       mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
-      FileList["#{gemp}/lib/*"].each { |rlib| cp_r rlib, "#{gdir}/gems/#{spec.full_name}/lib" }
-      cp "#{gemp}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
+      cp_r "#{gemp}/#{spec.full_name}/lib",  "#{gdir}/gems/#{spec.full_name}"
+      # copy everything
+      #mkdir_p "#{gdir}/gems/#{spec.full_name}"
+      #FileList["#{gemp}/#{spec.full_name}/*"].each { |rlib| cp_r rlib, "#{gdir}/gems/#{spec.full_name}" }
+      #
+      # Trick - rubygems 2.4.5 will attempt to build from source unless
+      # we put the gem in default - kind of makes sense.
+      cp "#{gemp}/gemspec", "#{gdir}/specifications/default/#{spec.full_name}.gemspec"
+      # do we need a rpath fixup? linux? probably not. OSX possibly
+      if false
+        FileList["#{gdir}/gems/#{spec.full_name}/**/*.so"].each do |so|
+          puts "FIX rpath #{so}"
+          sh "chrpath #{so} -r '${ORIGIN}/../lib'"
+        end
+      end
     end
   end
 
