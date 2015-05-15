@@ -1,13 +1,102 @@
 Bugs/Status - stick with Ruby 2.1.x and gtk2 until things get sorted
   out with GKt3 and later Rubies
   
+2015-05-13
+     Add byebug to Shoes ? Gempack it? Certainly a good test case since
+     picky/google_hash is too much trouble.
+----> need a ruby script to copygems for pack purposes. 'extract1gem.rb'
+      Not the same as gemcp.rb and Shoes building. 
+----> cobbler.rb  gempack_screen - untar to tmp, copy
+     Flainging on tmpdir
+     
+2015-05-12 more work on CopyGem.rb
+      Test whether picky in ~/.shoes/.gems works - create a tar in CopyGem.rb
+      /untar and copy in Cobbler? or just a script (windows compat)  
+        installgems.rb hardcoded copy.
+----> Do I need to copy the extensions/ in whole for the gem
+      in CopyGems.rb
+      google_hash installs on windows ruby but picky doesn't like it.
+----> Filed issue https://github.com/rdp/google_hash/issues/37
+
+done: Installed Ruby 2.1.6, gem update on win7
+----> Work around - uninstall picky 4.27.1 and use 4.26.1
+      only uses 9 gem (4.27.1 uses 11 gems - google_hash not required)
+      
+2015-05-11 more work on CopyGem.rb
+done: deal with file names - use spec.full_name.
+done: copy files and gem.build_complete - 
+       where does x86_mingw32 come from?  Gem::Platform.local
+----> And then we have url_escape which has no lib but does have an ext/*.so
+----> spec.require_paths is the one[s] to copy. Also weird.
+
+      
+2015-05-10 more work on CopyGem.rb
+
+done: exclude Ruby defaults from Gem Copy. HACK
+
+2015-05-09
+     Started CopyGem.rb a shoes app to copy gems from ruby to
+     the deps area. 
+     
+2015-05-08 Reflection Time on Future.
+     What makes 3.2 important is MRI Ruby and gems and the packager.
+       And the manual - and Cobbler and --ruby, cshoes and friends
+       The 'integration' with the OS.
+       Less important to me is the 'Beginners'. 
+     
+     Is the gem separation good enough to build 'shoes gempacks'?
+       How does that related to Bundler or gemsets?
+       
+     Write a Shoes app to create a 'gempack (tar.gz of gems tars)
+     Write a cobbler panel/app to load a gempack into ~/.shoes/gems
+       an extract button (inplace of test) would be sufficient?
+     
+     Gtk3 for Windows - compiling deps
+     Gtk3 for OSX - debugging
+  
+2015-05-04
+     test nokogiri, bluecloth, sqlite3 gem copy to Shoes's Ruby's Default
+done: x86_64_linux
+done: xi686_linux
+done: xarm6hf 
+done?? xwin7 - require 'nokogiri' returns false in irb but it works 
+done: win7 
+done: mavericks
+      xsnow - nope, I just don't care enough.
+  
+2015-05-02, 03
+     Fool with copying gems nokogiri and / or bluecloth - every thing
+     is fine if they are gem install'ed into Ruby and the copyied at
+     part of the Shoes build. rpath doesn't really matter. Something in
+     the specification.  s.platform perhaps? 
+     
+     Sometimes you have to look in the code - the error is raised by rubygems-2.4.5 update
+     lib/rubygems/specifications.rb(missing_extensions?) 
+DONE! copy spec to specifcations/default or touch (create empty) file
+      extenstions/{arch}/{rubyv}/{gem}/{genm}/gem.build_complete
+      Spec copy is easier and make more sense. 
+       
+  
+2015-05-01
+      Once more - I want to change all the gem handling. Need to copy the 
+      whole gem (for now), not just the lib dir so that changes how built/
+      is structured: built/{arch}/{s.full_name}/gemspec and 
+      built/{arch}/{s.full_name}/{s.fullname}/*
+done: 1. When rake shoesgems - create the structure above
+done: 2. When building Shoes - copy from the structure above
+      3. gemcp.rb - copy to the structure above.
+      
+      Something is missing in the shoes gems that are copied. Default? Cache?
+done: Turns out you need to copy the gemspec to the specifications/default
+      or copy the ext/..../gem.build-compile file 
+      
 2015-04-30
       finish getting custom-yaml set with InclGems: array
 ----> osxgtk compiles (barely), links but fails to run - no messages why.
   
 2015-04-29
 ----> osxgtk env.rb, rakefile - PITA lower priority than gems.
-====> rake shoesgems builds those which can be built (like sqlite3 and hpricot)
+done: rake shoesgems builds those which can be built (like sqlite3 and hpricot)
       custom-yaml InclGems: - the gems to include into Shoes. 
 done:  x86_64_linux-custom.yaml
 done:  i686

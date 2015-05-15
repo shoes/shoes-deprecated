@@ -3,6 +3,7 @@
 require 'rubygems'
 require 'rubygems/dependency_installer'
 require 'rubygems/uninstaller'
+require 'rubygems/package'
 
 module Gem
   if Shoes::RELEASE_TYPE =~ /TIGHT/
@@ -114,7 +115,7 @@ Shoes.app do
       button "Clear Image Cache..." do 
         cachescreen
       end
-      if Shoes::RELEASE_TYPE =~ /TIGHT/ 
+      if Shoes::RELEASE_TYPE =~ /TIGHT/
         button "Jail Break Gems..." do
           jailscreen
         end
@@ -122,9 +123,9 @@ Shoes.app do
       button "Manage Gems..." do 
         gemscreen
       end
-      if Shoes::RELEASE_TYPE =~ /TIGHT/ 
-        button "Development Tools..." do
-          depscreen
+      if Shoes::RELEASE_TYPE =~ /TIGHT/ || true # for testing.
+        button "Install Special Gems..." do
+          gempack_screen
         end
       end
       button "Copy Samples..." do
@@ -444,18 +445,88 @@ Shoes.app do
     end
   end
   
-  def depscreen
+  def tar_extract opened_file
+    Gem::Package::TarReader.new( Zlib::GzipReader.new(opened_file)) do |tar|
+      tar.each do |entry|
+        dest = entry.full_name
+	    if entry.directory?
+	      FileUtils.rm_rf dest unless File.directory? dest
+	      FileUtils.mkdir_p dest, :mode => entry.header.mode, :verbose => false
+	    elsif entry.file?
+	      FileUtils.rm_rf dest unless File.file? dest
+	      File.open dest, "wb" do |f|
+	        f.print entry.read
+	       end
+	       FileUtils.chmod entry.header.mode, dest, :verbose => false
+	    elsif entry.header.typeflag == '2' #Symlink!
+	      alert "Cannot convert Symlinks. Contact #{hdr.creator}"
+	    end
+      end
+    end
+  end
+  
+  def gem_copy_to_home srcdir, dest
+    gems = Dir.glob("#{srcdir}/*/*")
+    mkdir_p dest
+    #return if !confirm "#{gems} from #{srcdir} to #{dest}"
+    gems.each do |gempath|
+      # look inside for the gem.build_complete
+      gemn = File.split(gempath)[1]
+      if File.exists? File.join(gempath,'gem.build_complete')
+        extpath = File.join(dest, 'extensions', "#{Gem::Platform.local}", '2.1.0', gemn)
+        puts extpath
+        mkdir_p extpath
+        cp File.join(gempath,'gem.build_complete'), extpath
+      end
+      # copy the gemspec
+      specpath = File.join(dest, 'specifications')
+      mkdir_p specpath
+      specname = gemn+'.gemspec'
+      cp File.join(gempath,'gemspec'), File.join(specpath, specname)
+      # copy ext if we have one
+      if File.exists? File.join(gempath, 'ext')
+        puts "Copy ext #{gempath}"
+        mkdir_p File.join(dest, 'gems', gemn)
+        cp_r File.join(gempath, 'ext'), File.join(dest,'gems', gemn)
+      end
+      # copy lib if we have it
+      if File.exists? File.join(gempath, 'lib')
+        mkdir_p File.join(dest, 'gems', gemn)
+        cp_r File.join(gempath, 'lib'), File.join(dest,'gems', gemn)
+      end
+    end
+    gemlist = []
+    gems.each {|g| gemlist << File.basename(g) }
+    return gemlist
+  end
+  
+  def gempack_helper tgzpath
+    # make a temp directory and unpack the tgzpath into it
+    # loop thru the 'special' gems in there and copy into GEM_DIR
+    td = Dir.mktmpdir('gempack')
+    tarf = File.open(tgzpath,'rb')
+    Dir.chdir(td) do |d|
+      tar_extract tarf # if confirm "Copy #{tgzpath} to #{GEM_DIR} via #{td}"
+    end
+    #just begining to get ugly -FIXME -- need th
+    return gem_copy_to_home td, GEM_DIR
+  end
+  
+  def gempack_screen
     @panel.clear
     @panel.append do
-      para 'development tools not implemented yet'
-      case RUBY_PLATFORM 
-      when  /linux/
-        # lsb_release not in all Linux distro's
-        para "lsb: #{`lsb_release -i -s`}"
-      when  /darwin/
-        para "OSX Dependencies"
-      else
-        para "Windows Dependecies"
+      para "Load binary gems from a tgz file. Be Careful! - You can break Shoes \
+with the wrong package for your plaftorm!"
+      button "Select file..." do
+        gempack = ask_open_file
+        if gempack 
+          gemslist = gempack_helper gempack
+          gemslist.each do |g|
+            para "Installed #{g}\n"
+          end
+          para "---------------------------\n"
+          para "You must quit and restart Shoes to see these gems"
+        end
       end
     end
    end 

@@ -130,7 +130,8 @@ module Make
       #FileList["#{gemp}/#{spec.full_name}/*"].each { |rlib| cp_r rlib, "#{gdir}/gems/#{spec.full_name}" }
       #
       # Trick - rubygems 2.4.5 will attempt to build from source unless
-      # we put the gem in default - kind of makes sense.
+      # we put the gem in default - kind of makes sense. Or the gem.build_complete 
+      # file is in the extensions/.... location.
       cp "#{gemp}/gemspec", "#{gdir}/specifications/default/#{spec.full_name}.gemspec"
       # do we need a rpath fixup? linux? probably not. OSX possibly
       if false
