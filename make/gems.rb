@@ -122,17 +122,34 @@ module Make
       spec = eval(File.read("#{gemp}/gemspec"))
       mkdir_p "#{gdir}/specifications"
       mkdir_p "#{gdir}/specifications/default"
-      # Just copy lib - bin and doc and such don't matter to Shoes.
-      mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
-      cp_r "#{gemp}/#{spec.full_name}/lib",  "#{gdir}/gems/#{spec.full_name}"
-      # copy everything
-      #mkdir_p "#{gdir}/gems/#{spec.full_name}"
-      #FileList["#{gemp}/#{spec.full_name}/*"].each { |rlib| cp_r rlib, "#{gdir}/gems/#{spec.full_name}" }
-      #
-      # Trick - rubygems 2.4.5 will attempt to build from source unless
-      # we put the gem in default - kind of makes sense. Or the gem.build_complete 
-      # file is in the extensions/.... location.
-      cp "#{gemp}/gemspec", "#{gdir}/specifications/default/#{spec.full_name}.gemspec"
+      # newer gempack compatible directory layout ?
+      if spec.full_name == gemn #newer if true
+        mkdir_p "#{gdir}/gems/#{spec.full_name}"
+        if File.exists? File.join(gemp, 'gem.build_complete')
+          rubyv = RUBY_VERSION[/\d.\d/]+'.0'
+          gemcompl = File.join(gdir, 'extensions', SHOES_GEM_ARCH,
+              rubyv, spec.full_name)
+          mkdir_p gemcompl
+          cp File.join(gemp, 'gem.build_complete'), gemcompl
+        end
+        cp "#{gemp}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec" 
+        if spec.require_paths.include? 'ext'
+          puts "Ext weird copy = #{spec.require_paths}"
+          mkdir_p "#{gdir}/gems/#{spec.full_name}/ext"
+          cp_r "#{gemp}/ext",  "#{gdir}/gems/#{spec.full_name}" 
+        end
+        if spec.require_paths.include? 'lib'
+          puts "Lib copy = #{spec.require_paths}"
+          mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
+          cp_r "#{gemp}/lib",  "#{gdir}/gems/#{spec.full_name}" 
+        end
+      else
+        # Just copy lib - bin and doc and such don't matter to Shoes.
+        mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
+        cp_r "#{gemp}/#{spec.full_name}/lib",  "#{gdir}/gems/#{spec.full_name}"
+        # we put the gem in default - kind of makes sense. 
+        cp "#{gemp}/gemspec", "#{gdir}/specifications/default/#{spec.full_name}.gemspec"
+      end
       # do we need a rpath fixup? linux? probably not. OSX possibly
       if false
         FileList["#{gdir}/gems/#{spec.full_name}/**/*.so"].each do |so|

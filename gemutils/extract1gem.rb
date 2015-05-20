@@ -3,16 +3,18 @@
 # use when the CopyGem.rb won't look into . dot directories - sigh. 
 require 'fileutils'
 include FileUtils
-specpath = ARGV[0]
-destpath = ARGV[1]
+specpath = String.new(ARGV[0])
+destpath = String.new(ARGV[1]) # windows thing.
 spec = eval(File.read(specpath))
-parts = specpath.split('/')
-
-srcpath = File.join(parts[0..-3])
-    if RUBY_PLATFORM =~ /mingw/
-      srcpath.gsub!(/\\/, '/')  
-      destpath.gsub!(/\\/, '/')  
-    end
+if RUBY_PLATFORM =~ /mingw/
+  parts = specpath.split('\\')
+  srcpath = File.join(parts[0..-3])
+  srcpath.gsub!(/\\/, '/')  
+  destpath.gsub!(/\\/, '/')  
+else
+  parts = specpath.split('/')
+  srcpath = File.join(parts[0..-3])
+end
 
 
       puts "copy #{spec.full_name} from #{srcpath} to #{destpath}"

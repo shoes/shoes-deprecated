@@ -20,7 +20,9 @@ else
   EXT_RUBY = "#{ShoesDeps}/usr/local"
   ENABLE_MS_THEME = false
 end
-
+#SHOES_GEM_ARCH = {Gem::Platform.local}
+SHOES_GEM_ARCH = 'x86-mingw32' 
+# used in copy_gems #{Gem::Platform.local}
 #ENV['DEBUG'] = "true" # turns on the tracing log
 #APP['GTK'] = "gtk+-3.0" # pick this or "gtk+-2.0"
 APP['GTK'] = "gtk+-2.0"

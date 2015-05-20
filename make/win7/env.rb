@@ -19,7 +19,7 @@ else
   ENABLE_MS_THEME = false
 end
 #puts "Ruby = #{EXT_RUBY} Deps = #{ShoesDeps}"
-
+SHOES_GEM_ARCH = "#{Gem::Platform.local}"
 SHOES_TGT_ARCH = 'i386-mingw32'
 APP['GTK'] = "gtk+-2.0"
 #ENV['GDB'] = "basic" # 'basic' = keep symbols,  or 'profile'
