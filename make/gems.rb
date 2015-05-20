@@ -139,7 +139,7 @@ module Make
           cp_r "#{gemp}/ext",  "#{gdir}/gems/#{spec.full_name}" 
         end
         if spec.require_paths.include? 'lib'
-          puts "Lib copy = #{spec.require_paths}"
+          puts "Lib copy = #{spec.require_paths[-1]}"
           mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
           cp_r "#{gemp}/lib",  "#{gdir}/gems/#{spec.full_name}" 
         end

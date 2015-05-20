@@ -23,6 +23,7 @@ end
 #ENV['GDB'] = nil # compile -g,  strip symbols when nil
 CHROOT = ShoesDeps
 SHOES_TGT_ARCH = "armv7l-linux-eabihf"
+SHOES_GEM_ARCH = "armv7l-linux"
 # Specify where the Target system binaries live. 
 # Trailing slash is important.
 TGT_SYS_DIR = "#{CHROOT}/"
