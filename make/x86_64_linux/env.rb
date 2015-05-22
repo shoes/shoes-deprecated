@@ -23,6 +23,7 @@ end
 #ENV['GDB'] = "" # compile -g,  strip symbols when not defined
 CHROOT = ShoesDeps
 SHOES_TGT_ARCH = 'x86_64-linux'
+SHOES_GEM_ARCH = "{Gem::Platform.local}"
 # Specify where the Target system binaries live. 
 # Trailing slash is important.
 TGT_SYS_DIR = "#{CHROOT}/"

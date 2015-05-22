@@ -8,7 +8,9 @@
    * Windows: cmd line user packaged app can have a console window.
      #110
    * Changes to gems - nokogiri replaces 'hpricot'
-   * 
+   * Ruby updated to 2.1.6
+   * Ruby gems updated to 2.4.7 plus updates to bigdecimal.. 
+   * byebug gem is included - requires starting shoes from console.
    
 === Fixed with 3.2.23
 
@@ -19,7 +21,7 @@
    * separate compiling gems (more of a ruby thing) and copying gems
      which is what Shoes now. Lots of changes to rakefiles. 
    * Command line jock's can create platfrom specific pre-compiled binary
-     gems that Cobbler can load. 
+     gems that Cobbler can load into ~/+gems. 
    
 
 == Mar 26, 2015

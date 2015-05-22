@@ -22,6 +22,7 @@ end
 #ENV['DEBUG'] = "true" # turns on the tracing log
 CHROOT = ShoesDeps
 SHOES_TGT_ARCH = 'i686-linux'
+SHOES_GEM_ARCH = "#{Gem::Platform.local}"
 # Specify where the Target system binaries live. 
 # Trailing slash is important.
 TGT_SYS_DIR = "#{CHROOT}/"

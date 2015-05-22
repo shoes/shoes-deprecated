@@ -1,13 +1,96 @@
 Bugs/Status - stick with Ruby 2.1.x and gtk2 until things get sorted
   out with GKt3 and later Rubies
   
+2015-05-21
+done: Mavericks updated to 2.1.6, gems 2.4.7, nokogiri, byebug
+----> manually update 2.4.7 gems on xwin7
+        gems update: from https://rubygems.org/pages/download and store the tgz
+        somewhere. cd to somewhere 
+        ruby setup.rb --prefix=/home/cross/gemtest
+        ccoupe@bronco:/home/cross/gemtest/lib$ cp -r * /srv/chroot/mingwgtk2/usr/local/lib/ruby/site_ruby/2.1.0/
+
+----> recreated bug #110 (windows --console)
+  
+2015-05-20
+done: xarm, x86_64, i668 linux byebug 5.0.0, ruby 2.1.6, rubygems 2.4.7  in xarm target
+----> What's new in byebug 5.0.0? - need to update windows with that
+done: schroots (x86, 386, armhf - no rvm stuff)
+     irb(main):001:0> Gem::ConfigFile::SYSTEM_WIDE_CONFIG_FILE
+     copy .gemrc to there as 'gemrc'. - with line 'gem: --no-document'
+     That's how to turn off the documentation. 
+
+2015-05-19 
+====> Special case check in copy_gems (make/gems.rb) to strip un-needed
+      1.8 and 1.9 so's 
+done: byebug in win7, xwin7
+      
+2015-05-18
+      Consider changing shoes.exe to shoesw.exe and cshoes.exe to
+      shoes.exe. Would have to modify nisi file ....
+      and maybe the --console handling.
+      
+      Consider a new Shoe console that has readline abilities and a way to
+      hook rb-readline to gui - used by info/debug.., byebug, irb...
+      byebug/readline is pretty modal and low level. 
+      
+      Fix the builtin gems to have same layout as gempacks. Fix the existing
+      gems in shoes/built and custom.yaml for byebug+  Set constant SHOES_GEM_ARCH 
+      in env.rb 'x86-mingw32' for win7, xwin7. Build/install ruby 2.1.6.
+done: xwin7 - Ruby 2.1.6, custom-yaml, env.rb, test, commit.
+done: win7 
+done: mavericks 
+done: xarm6
+done: x86_64
+done: i686
+      
+  
+2015-05-17
+      Readline -. Rubyinstaller uses the pure ruby implementation which is
+      gem 'rb-readline' which Shoes is happy to install. That means I can 
+      include it easily in Shoes or as a gempack (along with byebug and columize)
+  
+2015-05-16
+----> mention http://rubyonwindowsguides.github.io/ "Ruby on Windows Guides"
+        all that console work is troublesome to my simple mind but ..
+----> install git on windows. 
+----> Gem.pre_install hook is the way to build gems on Windows. - that may
+      fix a bug. http://rubyonwindowsguides.github.io/book/ch02-04.html
+  
+2015-05-15  
+      Need to close up #72 and move on to 'maybe fixing some bugs?'
+      
+done: make/gems.rb - use the newer directory struture and gem.build_complete
+      or describe the difference better? Builtin gems are (cross-compiled) 
+      and have the specialized extconf.rb files (sqlite3, hpricot, 
+      ftsearch, chipmunk).  
+      
+      Gempacks are different. They can be created by users (from existing gems)
+      https://github.com/Shoes3/shoes3/wiki/Gempacks
+      
+----> script (or rake task?) to run extract1gem.rb with a yaml based controller?
+----> update platforms with Ruby 2.1.6 (with readline ext). Figure out
+      how to do this for OSX w/o chroots and vm's and rvm - if possible.
+  
+2015-05-14
+      byebug sort of working on pi2. try xwin7
+----> byebug Ruby xwin7 needs readline - cross compile fun! 
+      Update to 2.1.6 too.
+      i686 needs readline too.
+      osx has readline doesn't respond to byebug invoke
+      byebug invoke in expert-debug.rb lacks sourcefile context.
+done: upload work in progress (WIP) to github repo      
+done: Cobbler screens needs to list the installed gems and require
+      a restart of Shoes.
+----> The builtin gems have a different structure than the gempack one
+      The gempack is better. Update make/gems.rb?
+  
 2015-05-13
      Add byebug to Shoes ? Gempack it? Certainly a good test case since
-     picky/google_hash is too much trouble.
-----> need a ruby script to copygems for pack purposes. 'extract1gem.rb'
+     picky/google_hash is too much trouble and Ian is out of town for 2 mo.
+done: need a ruby script to copygems for pack purposes. 'extract1gem.rb'
       Not the same as gemcp.rb and Shoes building. 
-----> cobbler.rb  gempack_screen - untar to tmp, copy
-     Flainging on tmpdir
+done: cobbler.rb  gempack_screen - untar to tmp, copy
+     
      
 2015-05-12 more work on CopyGem.rb
       Test whether picky in ~/.shoes/.gems works - create a tar in CopyGem.rb
@@ -20,7 +103,7 @@ Bugs/Status - stick with Ruby 2.1.x and gtk2 until things get sorted
 
 done: Installed Ruby 2.1.6, gem update on win7
 ----> Work around - uninstall picky 4.27.1 and use 4.26.1
-      only uses 9 gem (4.27.1 uses 11 gems - google_hash not required)
+      only uses 9 gems (4.27.1 uses 11 gems - google_hash is one of the 2)
       
 2015-05-11 more work on CopyGem.rb
 done: deal with file names - use spec.full_name.
@@ -682,7 +765,7 @@ done: tar and upload 10.6 shoesdep dependencies.
 
 ============ Shoes 3.2.21 below =========
 
-2014-02-14 Quiet period - no more commits.
+2015-02-14 Quiet period - no more commits.
      Built all 6 platforms - test - manual/search, chipmunk, sqlite, irb
       x86_64 Linux - OK
       i686 Linxu - OK - need to update VM
@@ -694,10 +777,10 @@ done: tar and upload 10.6 shoesdep dependencies.
         on 10.6 -chipmunk fails - everything else is OK, even sqlite3
           Ian reported some console messages but it's OK.
 
-2014-02-13
+2015-02-13
 done? sqlite3 for 10.6, built by 10.9
 
-2014-02-12
+2015-02-12
 done: Update CHANGELOG
 done: VERSION.txt doesn't exist in OSX. bug #65
 done: OSX compile warnings -Wno-incompatible-pointer-types-discards-qualifiers"
@@ -706,7 +789,7 @@ done: quiet hpricot warnings. (two extconf.rb)
         mingw gcc does'nt recognize the options but it doesn't complain much.
 
 
-2014-02-11
+2015-02-11
       get my mac .bashrc/profile working.
 don't set timezone in build-shoes-all cron script
 done: fix the \/ confusions in LIB_DIR, HOME
@@ -715,19 +798,19 @@ done: fix the \/ confusions in LIB_DIR, HOME
 ----> sneak major/minor/tiny into 3.2.21?
 
 
-2014-02-10
+2054-02-10
 ----> Ruby 2.1.5 on deb 7.8 cross, won't build fiddle (ffi). OK on
       ubuntu
 ----> Yaml build issue with deb 7.8 cross
 
-2014-02-09
+2015-02-09
 done: fix bug #58
 done: openssl 1.0.1f fails to cross compile on debian 7.8
       we should update windows to 1.0.2 - fails on ubuntu - same reason
       can't find zlib.h
       PKG_CONFIG_PATH has to be set, revised cjc-configure. (deb 7.8?)
 
-2014-02-08
+2015-02-08
       For fun, install Debian 7.8 (64bit) on OSX VM.
       nfs mount shared source.
       Document Building Shoes on Linux
@@ -741,23 +824,23 @@ done:   Build Loose
         Build ruby
         Build Shoesdeps
 
-2014-02-07
+2015-02-07
 done: Verified that the windows rake files do work but Ruby installer 2.1.5
       has a bug. (cross compiled 2.1.5 is fine).
 
-2014-02-06
+2015-02-06
 done: upload binary dependecies for native Windows build
 done: upload bundle/src deps for a native Windows build
 done: wiki page for Building shoes on windows doesn't suck.
 done: upload cross compile src bundle, include the ruby deps.
 
-2014-02-05
+2015-02-05
 done can't run nsis.exe . NOTE native builds are 'Shoes-3.2.xxxx.exe' not 'shoes....'
 ----> need to build gif,jpeg,sqlite3 from mysy, gcc ?
 ----> the native build is 1Mb larger than the cross build.
       Extra gems? readline, tcllib tk?
 
-2014-02-04
+2015-02-04
 done: Don't copy all the gems in rubyinstaller - just the defaults. Ick.
 done: libgif, libjpeg, libsqlite (and more)
       1. Cross compile headers and dlls

@@ -22,6 +22,7 @@ else
 end
 # use the platform Ruby claims
 # require 'rbconfig' not needed
+SHOES_GEM_ARCH = "#{Gem::Platform.local}"
 
 CC = ENV['CC'] ? ENV['CC'] : "gcc"
 file_list =  %w{shoes/native/cocoa.m shoes/http/nsurl.m} + ["shoes/*.c"]
