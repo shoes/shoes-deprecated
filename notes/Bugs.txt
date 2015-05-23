@@ -1,15 +1,20 @@
 Bugs/Status - stick with Ruby 2.1.x and gtk2 until things get sorted
   out with GKt3 and later Rubies
   
+2015-05-22
+done: Fixed #110 - stub.c - also used byebug in the process.
+  
 2015-05-21
 done: Mavericks updated to 2.1.6, gems 2.4.7, nokogiri, byebug
-----> manually update 2.4.7 gems on xwin7
+done: Update xwin7 with Ruby 2.1.6 build
+      manually update 2.4.7 gems on xwin7
         gems update: from https://rubygems.org/pages/download and store the tgz
-        somewhere. cd to somewhere 
+        ~/Projects/shoesdeps/src. Untar. cd in.
         ruby setup.rb --prefix=/home/cross/gemtest
-        ccoupe@bronco:/home/cross/gemtest/lib$ cp -r * /srv/chroot/mingwgtk2/usr/local/lib/ruby/site_ruby/2.1.0/
+        cd into /home/cross/gemtest
+        cp -r lib/* ~/Projects/shoesdeps/mingw/usr/local/lib/ruby/site_ruby/2.1.0/
 
-----> recreated bug #110 (windows --console)
+done: recreated bug #110 (windows --console)
   
 2015-05-20
 done: xarm, x86_64, i668 linux byebug 5.0.0, ruby 2.1.6, rubygems 2.4.7  in xarm target
@@ -36,7 +41,7 @@ done: byebug in win7, xwin7
       Fix the builtin gems to have same layout as gempacks. Fix the existing
       gems in shoes/built and custom.yaml for byebug+  Set constant SHOES_GEM_ARCH 
       in env.rb 'x86-mingw32' for win7, xwin7. Build/install ruby 2.1.6.
-done: xwin7 - Ruby 2.1.6, custom-yaml, env.rb, test, commit.
+----> xwin7 - Ruby 2.1.6, custom-yaml, env.rb, test, commit.
 done: win7 
 done: mavericks 
 done: xarm6

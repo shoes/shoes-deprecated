@@ -442,7 +442,6 @@ class Shoes
 
   def self.visit(path)
     uri = Shoes.uri(path)
-
     case uri
     when URI::HTTP
       str = uri.read

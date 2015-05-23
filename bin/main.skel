@@ -102,8 +102,9 @@ main(argc, argv)
     {
       argv[i] = argv[i+1];
     }
+    argv[i] = NULL;
     argc--;
-    printf("Using new console %s %s \n", argv[0], argv[1]);
+    printf("Using new console: %s %s \n",argv[0], argv[1]);
  }
   code = shoes_init(inst, style);
 #else
@@ -111,7 +112,6 @@ main(argc, argv)
 #endif
   if (code != SHOES_OK)
     goto done;
-
   shoes_set_argv(argc - 1, &argv[1]);
   code = shoes_start(path, "/");
   if (code != SHOES_OK)

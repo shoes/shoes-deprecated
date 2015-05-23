@@ -379,7 +379,9 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
     char *str = shoes_str_load(inst, SHOES_APP_NAME);
     strcat(buf, (LPTSTR)str);
 
-    payload = CreateFile(buf, GENERIC_READ | GENERIC_WRITE,
+    //note: do not create a file with 'buf' -- it may have --console in it
+    // but we need buf to include that when ShellExecute 's 
+    payload = CreateFile(str, GENERIC_READ | GENERIC_WRITE,
       FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
     len = SizeofResource(inst, shyres);
     if (GetFileSize(payload, NULL) != len)
