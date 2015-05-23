@@ -157,6 +157,18 @@ module Make
           sh "chrpath #{so} -r '${ORIGIN}/../lib'"
         end
       end
+      # HACK ! we don't need the nokogiri.so for other ruby versions
+      if spec.full_name  =~ /nokogiri-(\d+.\d+.\d+.\d+)-x86-mingw32/
+        grubyv = RUBY_VERSION[/\d.\d/]
+        Dir.chdir("#{gdir}/gems/#{spec.full_name}/lib/nokogiri/") do
+          Dir.glob('*').each do |dirn|
+            if dirn =~ /\d.\d/ && dirn != grubyv
+              puts "Noko delete: #{dirn}"
+              rm_r dirn
+            end
+          end
+        end
+      end
     end
   end
 
