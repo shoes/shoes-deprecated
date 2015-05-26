@@ -134,9 +134,9 @@ class Shoes
     end
   end
 
-  def self.show_selector
+  def self.show_selector (debug = false)
     fname = ask_open_file
-    Shoes.visit(fname) if fname
+    Shoes.visit(fname, debug) if fname
   end
 
   def self.package_app
@@ -180,6 +180,7 @@ class Shoes
         stack do
           background black(0.2), :curve => 8
           para link(strong("Open an App")) { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
+          para link(strong("Debug an App")) { Shoes.show_selector true and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Package my script (shy)")) { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Package an App with Shoes")) {Shoes.app_package and close }, :margin => 10, :margin_bottom => 4
 #          para link("Obsolete: Package") { Shoes.make_pack and close }, :margin => 10, :margin_bottom => 4
@@ -440,7 +441,7 @@ class Shoes
     end
   end
 
-  def self.visit(path)
+  def self.visit(path, debug=false)
     uri = Shoes.uri(path)
     case uri
     when URI::HTTP
@@ -468,11 +469,24 @@ class Shoes
         Dir.chdir(File.dirname(path))
         path = File.basename(path)
       end
-
-      $0.replace path
-      
-      code = read_file(path)
-      eval(code, TOPLEVEL_BINDING, path)
+      if debug
+        # spin up the console window and call the debugger with the path
+        require 'shoes/debugger' 
+        @console_app =
+          Shoes.app do
+            extend Shoes::Debugger
+            setup path
+            byebug
+            write_string "hello\n"
+            read_line { |cmd|
+              write_string "Result: #{cmd}"
+            }
+          end       
+      else
+        $0.replace path
+        code = read_file(path)
+        eval(code, TOPLEVEL_BINDING, path)
+      end
     end
   rescue SettingUp
   rescue Object => e

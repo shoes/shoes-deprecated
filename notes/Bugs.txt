@@ -1,8 +1,14 @@
 Bugs/Status - stick with Ruby 2.1.x and gtk2 until things get sorted
   out with GKt3 and later Rubies
   
+2015-05-23
+done: Add 'Debug an App' to splash. Modify visit to accept optional debug
+      arg. Shoes.console in shoes/debugger.rb  is just a clone of isp.rb
+      with background and font's more please to me. For now.
+  
 2015-05-22
-done: Fixed #110 - stub.c - also used byebug in the process.
+done: Fixed #110 - stub.c - also used byebug in the process - it's useful.
+----> OSX launch method that has a console. 
   
 2015-05-21
 done: Mavericks updated to 2.1.6, gems 2.4.7, nokogiri, byebug
@@ -25,7 +31,7 @@ done: schroots (x86, 386, armhf - no rvm stuff)
      That's how to turn off the documentation. 
 
 2015-05-19 
-====> Special case check in copy_gems (make/gems.rb) to strip un-needed
+done: Special case check in copy_gems (make/gems.rb) to strip un-needed
       1.8 and 1.9 so's 
 done: byebug in win7, xwin7
       
@@ -41,7 +47,7 @@ done: byebug in win7, xwin7
       Fix the builtin gems to have same layout as gempacks. Fix the existing
       gems in shoes/built and custom.yaml for byebug+  Set constant SHOES_GEM_ARCH 
       in env.rb 'x86-mingw32' for win7, xwin7. Build/install ruby 2.1.6.
-----> xwin7 - Ruby 2.1.6, custom-yaml, env.rb, test, commit.
+done: xwin7 - Ruby 2.1.6, custom-yaml, env.rb, test, commit.
 done: win7 
 done: mavericks 
 done: xarm6
@@ -73,12 +79,12 @@ done: make/gems.rb - use the newer directory struture and gem.build_complete
       https://github.com/Shoes3/shoes3/wiki/Gempacks
       
 ----> script (or rake task?) to run extract1gem.rb with a yaml based controller?
-----> update platforms with Ruby 2.1.6 (with readline ext). Figure out
+done: update platforms with Ruby 2.1.6 (with readline ext). Figure out
       how to do this for OSX w/o chroots and vm's and rvm - if possible.
   
 2015-05-14
       byebug sort of working on pi2. try xwin7
-----> byebug Ruby xwin7 needs readline - cross compile fun! 
+done: byebug Ruby xwin7 needs readline - cross compile fun! 
       Update to 2.1.6 too.
       i686 needs readline too.
       osx has readline doesn't respond to byebug invoke
@@ -86,7 +92,7 @@ done: make/gems.rb - use the newer directory struture and gem.build_complete
 done: upload work in progress (WIP) to github repo      
 done: Cobbler screens needs to list the installed gems and require
       a restart of Shoes.
-----> The builtin gems have a different structure than the gempack one
+done: The builtin gems have a different structure than the gempack one
       The gempack is better. Update make/gems.rb?
   
 2015-05-13
@@ -101,21 +107,21 @@ done: cobbler.rb  gempack_screen - untar to tmp, copy
       Test whether picky in ~/.shoes/.gems works - create a tar in CopyGem.rb
       /untar and copy in Cobbler? or just a script (windows compat)  
         installgems.rb hardcoded copy.
-----> Do I need to copy the extensions/ in whole for the gem
+done: Do I need to copy the extensions/ in whole for the gem
       in CopyGems.rb
       google_hash installs on windows ruby but picky doesn't like it.
-----> Filed issue https://github.com/rdp/google_hash/issues/37
+done: Filed issue https://github.com/rdp/google_hash/issues/37
 
 done: Installed Ruby 2.1.6, gem update on win7
-----> Work around - uninstall picky 4.27.1 and use 4.26.1
+done Work around - uninstall picky 4.27.1 and use 4.26.1
       only uses 9 gems (4.27.1 uses 11 gems - google_hash is one of the 2)
       
 2015-05-11 more work on CopyGem.rb
 done: deal with file names - use spec.full_name.
 done: copy files and gem.build_complete - 
        where does x86_mingw32 come from?  Gem::Platform.local
-----> And then we have url_escape which has no lib but does have an ext/*.so
-----> spec.require_paths is the one[s] to copy. Also weird.
+done: And then we have url_escape which has no lib but does have an ext/*.so
+done: spec.require_paths is the one[s] to copy. Also weird.
 
       
 2015-05-10 more work on CopyGem.rb
@@ -196,7 +202,7 @@ done:  mavericks-custom.yaml
 ---->  xsnow broken don't care
 ---->  snow - not bothering
 
-====> a copied Nokogiri is not correct. s.name vs s.full_name vs ?
+done: a copied Nokogiri is not correct. s.name vs s.full_name vs ?
       Needs more than Lib and .so copied? 
       (x)win7 nokogiri-1.6.6.2-x86-mingw32 DOES WORK when copied. Maybe?
       
@@ -229,7 +235,7 @@ done:   x86_64 - same dance.
       We're picking up gems from rvm that we don't want.
       Ian filed a bug about that (some references inside )
 
-====> it needs to done, ugly as it is to build Shoes specific gempacks
+done: it needs to done, ugly as it is to build Shoes specific gempacks
       Need a way (custom-yaml) to pick from ruby gems and
 
 2015-04-24
@@ -237,13 +243,13 @@ done:   x86_64 - same dance.
       Projects/gems/gemcp.rb works for pi. - needs more testing
 
 2015-04-23
-----> on windows, packaging with the console hack creates an '--console app.shy'
+done: on windows, packaging with the console hack creates an '--console app.shy'
       file when the app.exe is run. might be duplicate of the app.shy in length
 
 ----> passengers bug fix for #2 (aka 229) could affect a lot things.
 
 2015-04-21
-====> Where to go with gems?
+done: Where to go with gems?
       1) scripts to copy exist gem (spec, lib) from any Ruby or Shoes to
          be used in building Shoes - (nokogiri, picky - et all to replace
          hpricot and ftsearch or add to the built-ins for Shoes
@@ -273,10 +279,9 @@ done:   x86_64_linux
 done:   i686_linux
 ---->   snow - not likely to happen.
 
-----> Kevin reports general success with #110 cshoes.exe console packaging.
+done: Kevin reports general success with #110 cshoes.exe console packaging.
       but there are nits.
 done: remove debugging output - in the stub, rebuild, upload.
-
 
 
 2015-04-19
@@ -301,17 +306,17 @@ done: passengers radio changes - osx OK?
 done: xwin7 and xarmhf can use external shoes gems directory.
 done:  win7 can use external gem directory
 done: armhf,i386,x86_64 needs a custom yaml and mods to task.rb
-----> test OSX and external gems
+done: test OSX and external gems
 done: consider hoisting common_build up to 'make/copy-gems.rb'
 
 2015-04-16
-----> modify Rakefiles for default ext, gem lists
+done: modify Rakefiles for default ext, gem lists
 
 
 2015-04-15
 done: make/xwin7/gems.rb
 done: rake gems, rake gemsclean
-----> modify ~/bin/build-mingwgtk for gem building
+done: modify ~/bin/build-mingwgtk for gem building
 
 2015-04-14
 done: remove find_and_copy from xwin7/tasks.rb
@@ -320,7 +325,7 @@ done: create xwin7/tasks.rb build_ext()
 ----> radio discussion #117 fix or don't fix?
 
 2015-04-13
-----> Ruby 2.1.6 is out. Sigh.
+done: Ruby 2.1.6 is out. Sigh.
 ----> Consider 3.3 (gtk3, new gem handling..., gtk3
       Walkabout - need icon/splash
 ----> dig into nokogiri issues - there are so many...
@@ -434,7 +439,7 @@ done: xsnow
 done: x86_64_linux
 done: xi686_linux
 
-----> Try adding nokogiri gem to Shoes.
+done: Try adding nokogiri gem to Shoes.
 
 2015-03-30
 done: Luka filed bug 096 - wrote a bug096.rb - works for me windows/linux
