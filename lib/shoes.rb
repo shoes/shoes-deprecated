@@ -476,11 +476,6 @@ class Shoes
           Shoes.app do
             extend Shoes::Debugger
             setup path
-            byebug
-            write_string "hello\n"
-            read_line { |cmd|
-              write_string "Result: #{cmd}"
-            }
           end       
       else
         $0.replace path

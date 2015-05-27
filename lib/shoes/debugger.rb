@@ -2,46 +2,70 @@
 require 'stringio'
 require 'byebug'
 require 'byebug/runner'
+require 'thread'
 
 module Byebug
 class MimickBye < Byebug::Interface
-  def initialize shoesin_cb
+  # shoesobj is the Shoes.App of the Debugger screen
+  def initialize shoesobj  
     super()
-    input = StringIO.new # just for testing
-    output = StringIO.new
-    error = @output
+    @input = shoesobj
+    @output = shoesobj
+    @error = shoesobj
   end
   
   def read_command(prompt)
-     puts "read_command #{prompt}"
-      super("PROMPT #{prompt}")
+     $stderr.puts "read_command #{prompt}"
+      super("#{prompt}")
   end
 
   def confirm(prompt)
-     puts "confirm_command #{prompt}"
-      super("CONFIRM #{prompt}")
+     $stderr.puts "confirm_command #{prompt}"
+      super("#{prompt}")
   end
 
   def close
-      output.close
+      #output.close
   rescue IOError
       errmsg('Error closing the interface...')
   end
+  
+  def puts(message)
+    $stderr.puts "puts: #{message}"
+    @output.write_string message
+  end
+  
+  def print(message)
+    $stderr.puts "print: #{message}"
+    @output.write_string message
+  end
 
   def readline(prompt)
-     puts "readline #{prompt}"
-      output.puts(prompt)
-
-      result = shoesin_cb  # hook to 
-      fail IOError unless result
-
-      result.chomp
+    $stderr.puts "waiting for signal"
+    @output.write_string(prompt)
+    # wait for input
+    result = ''
+    @input.gets_mutex.synchronize {
+      @input.gets_cv.wait
+      $stderr.puts "back from read_line #{result}"
+      result = @input.cmd
+    }
+    fail IOError unless result
+    result.chomp
   end
 end
 end
 
 module Shoes::Debugger
 
+  attr_accessor :gets_mutex, :gets_cv, :str, :cmd  
+  def write_string  outstr
+    #puts "write: #{@str} #{outstr}"
+    @str += [outstr]
+    @console.replace *(@str)
+    @scroll.scroll_top = @scroll.scroll_max
+  end
+  
   def setup path
     $stdout.puts "Debugger setup called"
     # Byebug::Runner.new.run
@@ -62,26 +86,29 @@ module Shoes::Debugger
           @console.cursor = -1
         end
     end
-    Byebug.debug_load($PROGRAM_NAME, true) # works if handler defaults.
-  end
-  
-  def write_string  outstr
-    #puts "write: #{@str} #{outstr}"
-    @str += [outstr]
-    @console.replace *(@str)
-    @scroll.scroll_top = @scroll.scroll_max
-  end
-  
-  # keychars assembled into string and passed to blk when return/enter is
-  # typed. String will include '\n' so it behaves like gets()  
-  def read_line &blk
+    # Now it gets tricky - need a new thread that runs byebug (and it's gets() )
+    # and we want to make sure the Console window is on screen
+    # and we need a mutex + condition variable
+    gets_mutex = Mutex.new
+    gets_cv = ConditionVariable.new
+    start do # after gui is running
+      byethr = Thread.new {
+        Byebug.debug_load($PROGRAM_NAME, true) # this starts byebug
+      }
+    end
+    
     @cmd = ""
     @console.cursor = -1
       keypress do |k|
        case k
        when "\n"
           @str += ["#{@cmd}\n"]
-          blk.call "#{@cmd}\n"
+          # signal that we have a line to process.
+          gets_mutex.synchronize {
+            $stderr.puts "signal"
+            gets_cv.signal
+          }
+          #write_string "#{@cmd}\n" # just echo for now
           @cmd = ""
           @console.cursor = -1
        when String
