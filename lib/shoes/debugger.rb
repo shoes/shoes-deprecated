@@ -5,60 +5,65 @@ require 'byebug/runner'
 require 'thread'
 
 module Byebug
-class MimickBye < Byebug::Interface
-  # shoesobj is the Shoes.App of the Debugger screen
-  def initialize shoesobj  
-    super()
-    @input = shoesobj
-    @output = shoesobj
-    @error = shoesobj
-  end
+  class MimickBye < Byebug::Interface
+    # shoesobj is the Shoes.App of the Debugger screen
+    def initialize shoesobj  
+      super()
+      @input = shoesobj
+      @output = shoesobj
+      @error = shoesobj
+    end
   
-  def read_command(prompt)
-     $stderr.puts "read_command #{prompt}"
+    def read_command(prompt)
+      $stderr.puts "read_command #{prompt}"
       super("#{prompt}")
-  end
+    end
 
-  def confirm(prompt)
-     $stderr.puts "confirm_command #{prompt}"
+    def confirm(prompt)
+      $stderr.puts "confirm_command #{prompt}"
       super("#{prompt}")
-  end
+    end
 
-  def close
+    def close
       #output.close
-  rescue IOError
+    rescue IOError
       errmsg('Error closing the interface...')
-  end
+    end
   
-  def puts(message)
-    $stderr.puts "puts: #{message}"
-    @output.write_string message
-  end
+    def puts(message)
+      $stderr.puts "puts: #{message}"
+      @output.write_string message
+    end
   
-  def print(message)
-    $stderr.puts "print: #{message}"
-    @output.write_string message
-  end
+    def print(message)
+      $stderr.puts "print: #{message}"
+      @output.write_string message
+    end
 
-  def readline(prompt)
-    $stderr.puts "waiting for signal"
-    @output.write_string(prompt)
-    # wait for input
-    result = ''
-    @input.gets_mutex.synchronize {
-      @input.gets_cv.wait
-      $stderr.puts "back from read_line #{result}"
-      result = @input.cmd
-    }
-    fail IOError unless result
-    result.chomp
+    def readline(prompt)
+      @output.write_string(prompt)
+      # wait for input
+      result = ''
+      $stderr.puts "W-Thr: #{Thread.current.inspect}"
+      $stderr.puts "B-Thr: #{@input.byethr.inspect}"
+      $stderr.puts "W-MTX: #{@input.gets_mutex.object_id}"
+      $stderr.puts "W-CV: #{@input.gets_cv.object_id}"
+      @input.gets_mutex.synchronize {
+        $stderr.puts "waiting for signal"  
+        @input.gets_cv.wait(@input.gets_mutex) #hangs Shoes_thread doesn't wake up
+        result = @input.cmd
+        $stderr.puts "back from read_line #{result}"
+      }
+      fail IOError unless result
+      result.chomp
+    end
   end
-end
 end
 
 module Shoes::Debugger
 
-  attr_accessor :gets_mutex, :gets_cv, :str, :cmd  
+  attr_accessor :gets_mutex, :gets_cv, :str, :cmd, :byethr 
+
   def write_string  outstr
     #puts "write: #{@str} #{outstr}"
     @str += [outstr]
@@ -89,11 +94,16 @@ module Shoes::Debugger
     # Now it gets tricky - need a new thread that runs byebug (and it's gets() )
     # and we want to make sure the Console window is on screen
     # and we need a mutex + condition variable
-    gets_mutex = Mutex.new
-    gets_cv = ConditionVariable.new
+    @gets_mutex = Mutex.new
+    @gets_cv = ConditionVariable.new
+    $stderr.puts "S-Thr: #{Thread.current.inspect}"
+    $stderr.puts "S-MTX: #{@gets_mutex.object_id}"
+    $stderr.puts "S-CV: #{@gets_cv.object_id}"
+
     start do # after gui is running
-      byethr = Thread.new {
+      @byethr = Thread.new {
         Byebug.debug_load($PROGRAM_NAME, true) # this starts byebug
+        $stderr.puts 'byebug return'
       }
     end
     
@@ -104,9 +114,13 @@ module Shoes::Debugger
        when "\n"
           @str += ["#{@cmd}\n"]
           # signal that we have a line to process.
-          gets_mutex.synchronize {
-            $stderr.puts "signal"
-            gets_cv.signal
+          $stderr.puts "S-Thr: #{Thread.current.inspect}"
+          $stderr.puts "S-MTX: #{@gets_mutex.object_id}"
+          $stderr.puts "S-CV: #{@gets_cv.object_id}"
+          @gets_mutex.synchronize {
+            $stderr.puts "signaling"
+            @gets_cv.signal
+            $stderr.puts "signal done"
           }
           #write_string "#{@cmd}\n" # just echo for now
           @cmd = ""
