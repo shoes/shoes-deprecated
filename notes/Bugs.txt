@@ -1,10 +1,39 @@
 Bugs/Status - stick with Ruby 2.1.x and gtk2 until things get sorted
   out with GKt3 and later Rubies
   
+2015-05-27
+done: Locking is working for an echo test.
+====> Byebug might be stopping threads.  Can we pretend to be remote? so 
+      it doesn't suspend shoes threads? 
+====> Remote uses Byebug::DebugThread which is 'C' implemented in the ext
+
+done: Consider implementing the server side. It requires the 'byebug' command
+      in the users source code which is kind of clunky but ...
+      It's also separate from the code I've got so far. Just add hot key
+      combo
+       
+  
+2016-05-26 
+     It would be better to handle readline on the console with a muxtex/signal
+     creature that byebug waits on and the Shoes code releases. See their
+     handling of the remote situation for hints. Pg 147 of pickaxe book.
+     
+done: First we have to hook into byebug's IO. Hook is succeding.
+     
+  
+  
+2015-05-25
+      Have a working write_string, read_line (using a blk.call) 
+      Not optimal api. May not be usuable for byebug. Work in progress
+----> context.rb
+
+2015-05-24
+      Lost in a maze of Modules and classes and confusion
+  
 2015-05-23
 done: Add 'Debug an App' to splash. Modify visit to accept optional debug
       arg. Shoes.console in shoes/debugger.rb  is just a clone of isp.rb
-      with background and font's more please to me. For now.
+      with background and font's more pleasing to me. For now.
   
 2015-05-22
 done: Fixed #110 - stub.c - also used byebug in the process - it's useful.

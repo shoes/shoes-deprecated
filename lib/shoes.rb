@@ -387,6 +387,11 @@ class Shoes
     require 'shoes/irb'
     Shoes.irb
   end
+ 
+  def self.remote_debug
+    require "shoes/remote_debugger.rb"
+    Shoes.rdb
+  end
 
   def self.show_log
     require 'shoes/log'
@@ -471,7 +476,7 @@ class Shoes
       end
       if debug
         # spin up the console window and call the debugger with the path
-        require 'shoes/debugger' 
+        require 'shoes/remote_debugger' 
         @console_app =
           Shoes.app do
             extend Shoes::Debugger
@@ -488,7 +493,7 @@ class Shoes
     error(e)
     show_log
   end
-
+  
   def self.clean
     FileUtils.rm_rf(@tmpdir, :secure => true) if @shy
   end

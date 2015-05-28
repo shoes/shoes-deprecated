@@ -16,7 +16,7 @@
 VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cSlider, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE eVlcError, eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
-VALUE symAltQuest, symAltSlash, symAltDot, symAltEqual;
+VALUE symAltQuest, symAltSlash, symAltDot, symAltEqual, symAltSemiColon;
 ID s_checked_q, s_perc, s_fraction, s_aref, s_mult, s_donekey;
 SYMBOL_DEFS(SYMBOL_ID);
 
@@ -4418,7 +4418,7 @@ shoes_ruby_init()
   symAltSlash = ID2SYM(rb_intern("alt_/"));
   symAltEqual = ID2SYM(rb_intern("alt_="));
   symAltDot = ID2SYM(rb_intern("alt_."));
-
+  symAltSemiColon = ID2SYM(rb_intern("alt_;"));
   //
   // I want all elements to be addressed Shoes::Name, but also available in
   // a separate mixin (cTypes), for inclusion in every Shoes.app block.

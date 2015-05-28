@@ -81,7 +81,7 @@ extern VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow
 extern VALUE aMsgList;
 extern VALUE eInvMode, eNotImpl, eImageError;
 extern VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
-extern VALUE symAltQuest, symAltSlash, symAltDot, symAltEqual;
+extern VALUE symAltQuest, symAltSlash, symAltDot, symAltEqual, symAltSemiColon;
 extern VALUE instance_eval_proc;
 extern ID s_checked_q, s_perc, s_fraction, s_aref, s_mult;
 

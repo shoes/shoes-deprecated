@@ -6,12 +6,16 @@ require 'thread'
 
 module Byebug
   class MimickBye < Byebug::Interface
-    # shoesobj is the Shoes.App of the Debugger screen
+    
+    attr_accessor :cmdl
+    
+    # shoesobj is the Shoes.App of the Debugger window
     def initialize shoesobj  
       super()
       @input = shoesobj
       @output = shoesobj
       @error = shoesobj
+      @cmdl = ""
     end
   
     def read_command(prompt)
@@ -51,11 +55,11 @@ module Byebug
       @input.gets_mutex.synchronize {
         $stderr.puts "waiting for signal"  
         @input.gets_cv.wait(@input.gets_mutex) #hangs Shoes_thread doesn't wake up
-        result = @input.cmd
+        result = String.new(@cmdl)
         $stderr.puts "back from read_line #{result}"
       }
       fail IOError unless result
-      result.chomp
+      return result.chomp
     end
   end
 end
@@ -101,9 +105,14 @@ module Shoes::Debugger
     $stderr.puts "S-CV: #{@gets_cv.object_id}"
 
     start do # after gui is running
-      @byethr = Thread.new {
-        Byebug.debug_load($PROGRAM_NAME, true) # this starts byebug
+      @byethr = Byebug::DebugThread.new {
+        Byebug.debug_load($PROGRAM_NAME, true) # this starts byebug loop
         $stderr.puts 'byebug return'
+        #test - echo
+        #loop {
+        #  str = intf.readline('test: ')
+        #  intf.puts "got: #{str}\n"
+        #}
       }
     end
     
@@ -119,6 +128,7 @@ module Shoes::Debugger
           $stderr.puts "S-CV: #{@gets_cv.object_id}"
           @gets_mutex.synchronize {
             $stderr.puts "signaling"
+            intf.cmdl = "#{@cmd}\n"
             @gets_cv.signal
             $stderr.puts "signal done"
           }

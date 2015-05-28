@@ -3968,6 +3968,7 @@ Shoes provides the following general keyboard shortcuts:
  * `Alt-.` or `⌘-.` opens '''Open File…''' dialog.
  * `Alt-?` or `⌘-?` opens '''Shoes Manual'''.
  * `Alt-=` or `⌘-=` opens [[IRB '''Shoes Interactive Ruby''']].
+ * `Alt-;` or `⌘-;` opens '''Remote byebug server'''.
 
 Shoes Manual provides the following keyboard shortcut:
 
