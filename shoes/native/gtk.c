@@ -1342,6 +1342,12 @@ shoes_native_edit_line_set_text(SHOES_CONTROL_REF ref, char *msg)
   gtk_entry_set_text(GTK_ENTRY(ref), _(msg));
 }
 
+VALUE
+shoes_native_edit_line_cursor_to_end(SHOES_CONTROL_REF ref)
+{
+  gtk_editable_set_position(GTK_EDITABLE(ref), -1);
+}
+
 SHOES_CONTROL_REF
 shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
