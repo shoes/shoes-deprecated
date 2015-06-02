@@ -1870,3 +1870,35 @@ shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
   return shoes_dialog_chooser(self, "Save folder...", GTK_FILE_CHOOSER_ACTION_CREATE_FOLDER,
     GTK_STOCK_SAVE, args.a[0]);
 }
+
+// June 1, 2015 - kind of ugly. 
+#ifdef SHOES_GTK_WIN32
+// hat tip: https://justcheckingonall.wordpress.com/2008/08/29/console-window-win32-app/
+#include <stdio.h>
+#include <io.h>
+#include <fcntl.h>
+int shoes_native_console()
+{
+    AllocConsole();
+
+    HANDLE handle_out = GetStdHandle(STD_OUTPUT_HANDLE);
+    int hCrt = _open_osfhandle((long) handle_out, _O_TEXT);
+    FILE* hf_out = _fdopen(hCrt, "w");
+    setvbuf(hf_out, NULL, _IONBF, 1);
+    *stdout = *hf_out;
+
+    HANDLE handle_in = GetStdHandle(STD_INPUT_HANDLE);
+    hCrt = _open_osfhandle((long) handle_in, _O_TEXT);
+    FILE* hf_in = _fdopen(hCrt, "r");
+    setvbuf(hf_in, NULL, _IONBF, 128);
+    *stdin = *hf_in;
+    printf("created win32 console\n");
+    return 1;
+}
+#else
+int shoes_native_console()
+{
+  printf("gtk console creation\n");
+  return 1;
+}
+#endif

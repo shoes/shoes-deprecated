@@ -1,8 +1,48 @@
 Bugs/Status - stick with Ruby 2.1.x and gtk2 until things get sorted
   out with GKt3 and later Rubies
   
+2015-6-01 
+      Make a 'console' git branch since this console thing wanders all over
+      everything.
+      
+  
+2015-05-30
+    tesi example/terminal is pretty gtk light weight - i think.
+    https://github.com/alanszlosek/tesi/blob/master/examples/gtk-terminal.c
+    It's actually small and compiles (with a fix) and almost works.
+    Doesn't auto scroll - uses a pty (good idea) but it forks to run
+    bash which is not what we want. Still, it's promising.
+    
+    Need a Shoes level command implemented in 'C' to open the console 
+    (if not opened previously) and calls the win32/linux/osx supplied
+    'console opener'
+    
+    The win32 console can just do that AllocConsole thing that --console does
+    The gtk(linux) and osx need to pop a gtk window,  connect up with a pty
+    enter keystrokes, write to chars to the window. manage cursor and scroll
+    
+2015-05-29
+     I filed an issue at byebug.  It definites shuts down Ruby threads 
+     at start up. 
+     
+     Can we have a 'C/Obj-C' console window that isn't part of Ruby level Shoes
+     We know how to allocate a 'C' level terminal in Windows.
+     vte appears https://developer.gnome.org/vte/unstable/VteTerminal.html
+  
+2015-05-28
+----> Clean up the debugger.rb - maybe name it console.rb and 
+      generalize it enough to replace stdin/stdout/stderr with pluggable
+      command processors ?
+      
+----> the remote_debugger.rb code could be moved into shoes.rb
+      
+----> do the gem hook thing for getting Windows gems to compile. That's a real bug.
+      note the envgem.rb is execut
+      
+----> Work on gempack inclusion in second level packaging?
+  
 2015-05-27
-done: Locking is working for an echo test.
+done: Mutext Locking is working for an echo test.
 ====> Byebug might be stopping threads.  Can we pretend to be remote? so 
       it doesn't suspend shoes threads? 
 ====> Remote uses Byebug::DebugThread which is 'C' implemented in the ext
@@ -73,7 +113,7 @@ done: byebug in win7, xwin7
       hook rb-readline to gui - used by info/debug.., byebug, irb...
       byebug/readline is pretty modal and low level. 
       
-      Fix the builtin gems to have same layout as gempacks. Fix the existing
+done: Fix the builtin gems to have same layout as gempacks. Fix the existing
       gems in shoes/built and custom.yaml for byebug+  Set constant SHOES_GEM_ARCH 
       in env.rb 'x86-mingw32' for win7, xwin7. Build/install ruby 2.1.6.
 done: xwin7 - Ruby 2.1.6, custom-yaml, env.rb, test, commit.

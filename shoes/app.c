@@ -614,3 +614,15 @@ shoes_app_quit(VALUE self)
   shoes_native_quit();
   return self;
 }
+
+// Shoes doesn't know much about this - it's mostly C level window stuff
+// to handle stdin/stdout and a native window for keypress and display
+int shoes_global_console = 0;
+VALUE
+shoes_app_console()
+{
+  if (!shoes_global_console) {
+	 shoes_global_console = shoes_native_console();
+  }
+  return shoes_global_console ? Qtrue : Qfalse;
+}

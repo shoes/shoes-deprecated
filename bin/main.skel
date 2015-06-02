@@ -74,27 +74,9 @@ main(argc, argv)
     }
   } 
   // Not --ruby argv
-#ifdef SHOES_WIN32
-  // hat tip: https://justcheckingonall.wordpress.com/2008/08/29/console-window-win32-app/
-#include <stdio.h>
-#include <io.h>
-#include <fcntl.h>
   if (argc > 1 && strcmp(argv[1], "--console") == 0)
   {
-    AllocConsole();
-
-    HANDLE handle_out = GetStdHandle(STD_OUTPUT_HANDLE);
-    int hCrt = _open_osfhandle((long) handle_out, _O_TEXT);
-    FILE* hf_out = _fdopen(hCrt, "w");
-    setvbuf(hf_out, NULL, _IONBF, 1);
-    *stdout = *hf_out;
-
-    HANDLE handle_in = GetStdHandle(STD_INPUT_HANDLE);
-    hCrt = _open_osfhandle((long) handle_in, _O_TEXT);
-    FILE* hf_in = _fdopen(hCrt, "r");
-    setvbuf(hf_in, NULL, _IONBF, 128);
-    *stdin = *hf_in;
-
+    shoes_native_console();
     // use the console just like a normal one - printf(), getchar(), ...
     // remove arg 1, compress argv
     int i;
@@ -106,6 +88,7 @@ main(argc, argv)
     argc--;
     printf("Using new console: %s %s \n",argv[0], argv[1]);
  }
+#ifdef SHOES_WIN32
   code = shoes_init(inst, style);
 #else
   code = shoes_init();

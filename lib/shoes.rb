@@ -476,12 +476,12 @@ class Shoes
       end
       if debug
         # spin up the console window and call the debugger with the path
-        require 'shoes/remote_debugger' 
-        @console_app =
-          Shoes.app do
-            extend Shoes::Debugger
-            setup path
-          end       
+        show_console  
+        #@console_app =
+        #  Shoes.app do
+        #    extend Shoes::Debugger
+        #    setup path
+        #  end       
       else
         $0.replace path
         code = read_file(path)
