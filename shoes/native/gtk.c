@@ -1899,6 +1899,7 @@ int shoes_native_console()
 int shoes_native_console()
 {
   printf("gtk console creation\n");
+  shoes_native_app_console();
   return 1;
 }
 #endif

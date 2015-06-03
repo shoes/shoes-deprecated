@@ -476,7 +476,22 @@ class Shoes
       end
       if debug
         # spin up the console window and call the debugger with the path
+        require 'byebug'
+        show_log   # just to have an app on the screen 
         show_console  
+        Thread.new do
+          loop do
+            $stdout.write "prompt: "
+            ln = $stdin.gets
+            if ln.strip == 'quit' 
+              $stderr.write "really quit (y/n)"
+              ans = $stdin.gets.strip
+              exit if ans == 'y'
+            end
+            $stdout.puts ln
+          end
+        end
+        #Thread.new {Byebug.debug_load(path, true)} # this is incomplete
         #@console_app =
         #  Shoes.app do
         #    extend Shoes::Debugger
