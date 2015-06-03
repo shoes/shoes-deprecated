@@ -29,7 +29,7 @@ LINUX_CFLAGS << " #{`pkg-config --cflags #{APP['GTK']}`.strip}"
 
 CC = "gcc"
 
-file_list = %w{shoes/native/gtk.c shoes/native/gtkfixedalt.c shoes/http/rbload.c} + ["shoes/*.c"]
+file_list = %w{shoes/native/gtk.c shoes/native/gtkfixedalt.c shoes/native/gtkentryalt.c shoes/http/rbload.c} + ["shoes/*.c"]
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')

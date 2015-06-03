@@ -20,6 +20,7 @@
 #include <glib/gprintf.h>
 
 #include "gtkfixedalt.h"
+#include "gtkentryalt.h"
 
 #define GTK_CHILD(child, ptr) \
   GList *children = gtk_container_get_children(GTK_CONTAINER(ptr)); \
@@ -1295,7 +1296,11 @@ shoes_native_enterkey(GtkWidget *ref, gpointer data)
 SHOES_CONTROL_REF
 shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
+#ifdef GTK3
+  SHOES_CONTROL_REF ref = gtkentry_alt_new();
+#else  
   SHOES_CONTROL_REF ref = gtk_entry_new();
+#endif  
   if (RTEST(ATTR(attr, secret))) shoes_native_secrecy(ref);
   gtk_entry_set_text(GTK_ENTRY(ref), _(msg));
   g_signal_connect(G_OBJECT(ref), "changed",
