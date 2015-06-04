@@ -1,9 +1,3 @@
-/* 
- * File:   gtkentryalt.h
- * Author: xy
- *
- * Created on 3 juin 2015, 13:32
- */
 
 #ifndef GTKENTRYALT_H
 #define	GTKENTRYALT_H
