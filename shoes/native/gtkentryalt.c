@@ -11,65 +11,64 @@
 
 /* Private class member */
 #define GTKENTRY_ALT_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE((obj), \
-	GTK_TYPE_ENTRY_ALT, GtKEntry_AltPrivate))
+	GTK_TYPE_ENTRY_ALT, GtkEntry_AltPrivate))
 
-typedef struct _GtKEntry_AltPrivate GtKEntry_AltPrivate;
+typedef struct _GtkEntry_AltPrivate GtkEntry_AltPrivate;
 
-struct _GtKEntry_AltPrivate
+struct _GtkEntry_AltPrivate
 {
-  
+
 };
 
 /* Forward declarations */
-static void gtkentry_alt_get_preferred_width(GtkWidget *widget,
+static void gtk_entry_alt_get_preferred_width(GtkWidget *widget,
                                         int *minimal, int *natural);
-static void gtkentry_alt_get_preferred_height(GtkWidget *widget,
+static void gtk_entry_alt_get_preferred_height(GtkWidget *widget,
                                         int *minimal, int *natural);
 
-/* Define the GtKEntry_Alt type and inherit from GtkEntry */
-G_DEFINE_TYPE(GtKEntry_Alt, gtkentry_alt, GTK_TYPE_ENTRY);
+/* Define the GtkEntry_Alt type and inherit from GtkEntry */
+G_DEFINE_TYPE(GtkEntry_Alt, gtk_entry_alt, GTK_TYPE_ENTRY);
 
-/* Initialize the GtKEntry_Alt class */
+/* Initialize the GtkEntry_Alt class */
 static void
-gtkentry_alt_class_init(GtKEntry_AltClass *klass)
+gtk_entry_alt_class_init(GtkEntry_AltClass *klass)
 {
 	/* Override GtkWidget methods */
 	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
-	widget_class->get_preferred_width = gtkentry_alt_get_preferred_width;
-	widget_class->get_preferred_height = gtkentry_alt_get_preferred_height;
-	//widget_class->size_allocate = gtkfixed_alt_size_allocate;
+	widget_class->get_preferred_width = gtk_entry_alt_get_preferred_width;
+	widget_class->get_preferred_height = gtk_entry_alt_get_preferred_height;
 
 	/* Override GtkEntry methods */
         GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
-	//GtKEntryClass *entry_class = GTK_ENTRY_CLASS(klass);
+				//GtkEntryClass *entry_class = GTK_ENTRY_CLASS(klass);
     // ...
 
 	/* Add private indirection member */
-	g_type_class_add_private(klass, sizeof(GtKEntry_AltPrivate));
+	g_type_class_add_private(klass, sizeof(GtkEntry_AltPrivate));
 }
 
-/* Initialize a new GtKEntry_Alt instance */
+/* Initialize a new GtkEntry_Alt instance */
 static void
-gtkentry_alt_init(GtKEntry_Alt *entryAlt)
+gtk_entry_alt_init(GtkEntry_Alt *entryAlt)
 {
-	/* This means that GtKEntry_Alt doesn't supply its own GdkWindow */
+	/* This means that GtkEntry_Alt doesn't supply its own GdkWindow */
 	gtk_widget_set_has_window(GTK_WIDGET(entryAlt), FALSE);
 
 	/* Initialize private members */
-	GtKEntry_AltPrivate *priv = GTKENTRY_ALT_PRIVATE(entryAlt);
-	
+	GtkEntry_AltPrivate *priv = GTKENTRY_ALT_PRIVATE(entryAlt);
+
 }
 
-/* Return a new GtKEntry_Alt cast to a GtkWidget */
+/* Return a new GtkEntry_Alt cast to a GtkWidget */
 GtkWidget *
-gtkentry_alt_new()
+gtk_entry_alt_new()
 {
-  return GTK_WIDGET(g_object_new(gtkentry_alt_get_type(), NULL));
+  return GTK_WIDGET(g_object_new(gtk_entry_alt_get_type(), NULL));
 }
 
 
 static void
-gtkentry_alt_get_preferred_width(GtkWidget *widget, int *minimal, int *natural)
+gtk_entry_alt_get_preferred_width(GtkWidget *widget, int *minimal, int *natural)
 {
     g_return_if_fail(widget != NULL);
 
@@ -78,11 +77,10 @@ gtkentry_alt_get_preferred_width(GtkWidget *widget, int *minimal, int *natural)
 }
 
 static void
-gtkentry_alt_get_preferred_height(GtkWidget *widget, int *minimal, int *natural)
+gtk_entry_alt_get_preferred_height(GtkWidget *widget, int *minimal, int *natural)
 {
     g_return_if_fail(widget != NULL);
 
     *minimal = 1;
     *natural = 1;
 }
-

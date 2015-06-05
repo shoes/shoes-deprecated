@@ -8,9 +8,9 @@
 require_relative 'shoes/cache' # do First thing
 ARGV.delete_if { |x| x =~ /-psn_/ }
 
-# Probably don't need this 
+# Probably don't need this
 class Encoding
-  %w[UTF_7 UTF_16BE UTF_16LE UTF_32BE UTF_32LE].each do |enc|
+  %w(UTF_7 UTF_16BE UTF_16LE UTF_32BE UTF_32LE).each do |enc|
     eval "class #{enc};end" unless const_defined? enc.to_sym
   end
 end
@@ -19,102 +19,99 @@ require 'open-uri'
 require 'optparse'
 require 'resolv-replace' if RUBY_PLATFORM =~ /win/
 require_relative 'shoes/inspect'
-if Object.const_defined? :Shoes
-  require_relative 'shoes/image'
-end
+require_relative 'shoes/image' if Object.const_defined? :Shoes
 
 def Shoes.hook; end
 
- 
-#class Encoding
+# class Encoding
 # %w[ASCII_8BIT UTF_16BE UTF_16LE UTF_32BE UTF_32LE US_ASCII].each do |ec|
 #   eval "#{ec} = '#{ec.sub '_', '-'}'"
 # end unless RUBY_PLATFORM =~ /linux/ or RUBY_PLATFORM =~ /darwin/ or RUBY_PLATFORM =~ /mingw/
-#end
+# end
 
-class Range 
-  def rand 
+class Range
+  def rand
     conv = (Integer === self.end && Integer === self.begin ? :to_i : :to_f)
-    ((Kernel.rand * (self.end - self.begin)) + self.begin).send(conv) 
-  end 
+    ((Kernel.rand * (self.end - self.begin)) + self.begin).send(conv)
+  end
 end
 
 unless Time.respond_to? :today
   def Time.today
     t = Time.now
-    t - (t.to_i % 86400)
+    t - (t.to_i % 86_400)
   end
 end
 
 class Shoes
-  RELEASES = %w[Curious Raisins Policeman Federales]
+  RELEASES = %w(Curious Raisins Policeman Federales)
 
   NotFound = proc do
-    para "404 NOT FOUND, GUYS!"
+    para '404 NOT FOUND, GUYS!'
   end
- 
+
   class << self; attr_accessor :locale, :language end
-  @locale = ENV["SHOES_LANG"] || ENV["LC_MESSAGES"] || ENV["LC_ALL"] || ENV["LANG"] || "C"
-  @language = @locale[/^(\w{2})_/, 1] || "en"
+  @locale = ENV['SHOES_LANG'] || ENV['LC_MESSAGES'] || ENV['LC_ALL'] || ENV['LANG'] || 'C'
+  @language = @locale[/^(\w{2})_/, 1] || 'en'
 
   @mounts = []
 
   OPTS = OptionParser.new do |opts|
-    opts.banner = "Usage: shoes [options] (app.rb or app.shy)"
-    
-    opts.on("-m", "--manual",
-            "Open the built-in manual.") do
+    opts.banner = 'Usage: shoes [options] (app.rb or app.shy)'
+
+    opts.on('-m', '--manual',
+            'Open the built-in manual.') do
       show_manual
     end
 
-    opts.on("--old-package",
-            "(Obsolete) Package a Shoes app for Windows, OS X and Linux.") do |s|
+    opts.on('--old-package',
+            '(Obsolete) Package a Shoes app for Windows, OS X and Linux.') do |_s|
       make_pack
     end
- 
-    opts.on("-p", "--cobbler", 
-            "Maintain Shoes installation") do |c|
+
+    opts.on('-p', '--cobbler',
+            'Maintain Shoes installation') do |_c|
       cobbler
     end
-   
-    opts.on("-p", "--package", 
-            "Package Shoes App (new)") do |c|
+
+    opts.on('-p', '--package',
+            'Package Shoes App (new)') do |_c|
       app_package
     end
 
-    opts.on("-g", "--gem",
-            "Passes commands to RubyGems.") do
+    opts.on('-g', '--gem',
+            'Passes commands to RubyGems.') do
       require 'shoes/setup'
       require 'rubygems/gem_runner'
       Gem::GemRunner.new.run(ARGV)
-      raise SystemExit, ""
+      fail SystemExit, ''
     end
 
-    opts.on("--manual-html DIRECTORY", "Saves the manual to a directory as HTML.") do |dir|
+    opts.on('--manual-html DIRECTORY', 'Saves the manual to a directory as HTML.') do |dir|
       manual_as :html, dir
-      raise SystemExit, "HTML manual in: #{dir}"
+      fail SystemExit, "HTML manual in: #{dir}"
     end
 
-    opts.on("--install MODE SRC DEST", "Installs a file.") do |mode|
+    opts.on('--install MODE SRC DEST', 'Installs a file.') do |mode|
       src, dest = ARGV
-      FileUtils.install src, dest, :mode => mode.to_i(8), :preserve => true
-      raise SystemExit, ""
+      FileUtils.install src, dest, mode: mode.to_i(8), preserve: true
+      fail SystemExit, ''
     end
 
-    opts.on("--nolayered", "No WS_EX_LAYERED style option.") do
+    opts.on('--nolayered', 'No WS_EX_LAYERED style option.') do
       $NOLAYERED = 1
       Shoes.args!
     end
-    
-    opts.on_tail("-v", "--version", "Display the version info.") do
-      #raise SystemExit, File.read("#{DIR}/VERSION.txt").strip
-     #str = "Shoes #{Shoes::VERSION_NAME} r#{Shoes::VERSION_REVISION} #{Shoes::VERSION_DATE} #{RUBY_PLATFORM} #{RUBY_VERSION}"
-     #$stderr.puts str
-     raise SystemExit, "Shoes #{Shoes::VERSION_NAME} #{Shoes::VERSION_NUMBER} r#{Shoes::VERSION_REVISION} #{RUBY_PLATFORM} #{RUBY_VERSION}"
-   end
 
-    opts.on_tail("-h", "--help", "Show this message") do
-      raise SystemExit, opts.to_s
+    opts.on_tail('-v', '--version', 'Display the version info.') do
+      # raise SystemExit, File.read("#{DIR}/VERSION.txt").strip
+      # str = "Shoes #{Shoes::VERSION_NAME} r#{Shoes::VERSION_REVISION} #{Shoes::VERSION_DATE} #{RUBY_PLATFORM} #{RUBY_VERSION}"
+      # $stderr.puts str
+      fail SystemExit, "Shoes #{Shoes::VERSION_NAME} #{Shoes::VERSION_NUMBER} r#{Shoes::VERSION_REVISION} #{RUBY_PLATFORM} #{RUBY_VERSION}"
+    end
+
+    opts.on_tail('-h', '--help', 'Show this message') do
+      fail SystemExit, opts.to_s
     end
   end
 
@@ -122,16 +119,14 @@ class Shoes
 
   @setups = {}
 
-  def self.setup &blk
+  def self.setup(&blk)
     require 'shoes/setup'
     line = caller[0]
     return if @setups[line]
     script = line[/^(.+?):/, 1]
     set = Shoes::Setup.new(script, &blk)
     @setups[line] = true
-    unless set.no_steps?
-      raise SettingUp
-    end
+    fail SettingUp unless set.no_steps?
   end
 
   def self.show_selector
@@ -148,183 +143,183 @@ class Shoes
 
   def self.splash
     font "#{DIR}/fonts/Lacuna.ttf"
-    Shoes.app :width => 400, :height => 500, :resizable => false do  
-      style(Para, :align => "center", :weight => "bold", :font => "Lacuna Regular", :size => 13)
-      style(Link, :stroke => yellow, :underline => nil)
-      style(LinkHover, :stroke => yellow, :fill => nil)
+    Shoes.app width: 400, height: 500, resizable: false do
+      style(Para, align: 'center', weight: 'bold', font: 'Lacuna Regular', size: 13)
+      style(Link, stroke: yellow, underline: nil)
+      style(LinkHover, stroke: yellow, fill: nil)
 
       xy = [
-         [app.slot.width / 6, -50],
-         [app.slot.width / 6, app.slot.height / 2],
-         [app.slot.width / 6, app.slot.height + 50]
+        [app.slot.width / 6, -50],
+        [app.slot.width / 6, app.slot.height / 2],
+        [app.slot.width / 6, app.slot.height + 50]
       ]
       colors = [
-         rgb(49, 156, 0, 0.35),
-         rgb(255, 255, 255, 0.35),
-         rgb(222, 33, 16, 0.35)
+        rgb(49, 156, 0, 0.35),
+        rgb(255, 255, 255, 0.35),
+        rgb(222, 33, 16, 0.35)
       ]
 
       nofill
       strokewidth 40.0
 
-      @waves = stack :top => 0, :left => 0
-      
+      @waves = stack top: 0, left: 0
+
       require 'shoes/search'
       require 'shoes/help'
 
-      stack :margin => 18 do
-        para "Welcome to", :stroke => "#00", :margin => 0
-        para "SHOES", :size => 48, :stroke => "#00", :margin => 0
-        para Shoes::VERSION_NAME, :stroke => "#00", :margin => 0
-        para "build #{Shoes::VERSION_NUMBER} r#{Shoes::VERSION_REVISION}", :size => 8, :stroke => "#00", :margin_top => 0
+      stack margin: 18 do
+        para 'Welcome to', stroke: '#00', margin: 0
+        para 'SHOES', size: 48, stroke: '#00', margin: 0
+        para Shoes::VERSION_NAME, stroke: '#00', margin: 0
+        para "build #{Shoes::VERSION_NUMBER} r#{Shoes::VERSION_REVISION}", size: 8, stroke: '#00', margin_top: 0
         stack do
-          background black(0.2), :curve => 8
-          para link(strong("Open an App")) { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
-          para link(strong("Package my script (shy)")) { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
-          para link(strong("Package an App with Shoes")) {Shoes.app_package and close }, :margin => 10, :margin_bottom => 4
-#          para link("Obsolete: Package") { Shoes.make_pack and close }, :margin => 10, :margin_bottom => 4
-          para link(strong("Read the Manual")) { Shoes.show_manual and close }, :margin => 10, :margin_bottom => 4
-          para link(strong("Maintain Shoes")) {Shoes.cobbler and close}, :margin => 10
+          background black(0.2), curve: 8
+          para link(strong('Open an App')) { Shoes.show_selector && close }, margin: 10, margin_bottom: 4
+          para link(strong('Package my script (shy)')) { Shoes.package_app && close }, margin: 10, margin_bottom: 4
+          para link(strong('Package an App with Shoes')) { Shoes.app_package && close }, margin: 10, margin_bottom: 4
+          #          para link("Obsolete: Package") { Shoes.make_pack and close }, :margin => 10, :margin_bottom => 4
+          para link(strong('Read the Manual')) { Shoes.show_manual && close }, margin: 10, margin_bottom: 4
+          para link(strong('Maintain Shoes')) { Shoes.cobbler && close }, margin: 10
         end
-        inscription "Alt-Slash opens the console", :stroke => "#00", :align => "center"
+        inscription 'Alt-Slash opens the console', stroke: '#00', align: 'center'
       end
 
-      animate(8) { |ani|
-         a = Math.sin(ani * 0.02) * 8
-         @waves.clear do
-            nofill
-            strokewidth app.slot.width / 3
-            6.times { |i|
-               colors.each_with_index { |color, n|
-                  shape do
-                     v = 4.times.collect { rand(0.1) * 100 > 50 ? +1 : -1 }
-                     move_to (dx = n * app.slot.width / 3) + xy[n][0] + (v[0] * i * a * 0.8), xy[0][1]
-                     stroke color
-                     curve_to dx + xy[0][0] + (v[1] * i * a), xy[0][1], dx + xy[1][0] + (v[2] * i * a * 2), xy[1][1], dx + xy[2][0] + (v[3] * i * a), xy[2][1]
-                  end
-               }
-            }
-         end
-      }
+      animate(8) do |ani|
+        a = Math.sin(ani * 0.02) * 8
+        @waves.clear do
+          nofill
+          strokewidth app.slot.width / 3
+          6.times do |i|
+            colors.each_with_index do |color, n|
+              shape do
+                v = 4.times.collect { rand(0.1) * 100 > 50 ? +1 : -1 }
+                move_to (dx = n * app.slot.width / 3) + xy[n][0] + (v[0] * i * a * 0.8), xy[0][1]
+                stroke color
+                curve_to dx + xy[0][0] + (v[1] * i * a), xy[0][1], dx + xy[1][0] + (v[2] * i * a * 2), xy[1][1], dx + xy[2][0] + (v[3] * i * a), xy[2][1]
+              end
+            end
+          end
+        end
+      end
     end
   end
-  
+
   def self.cobbler
     require 'shoes/cobbler'
   end
-  
+
   def self.app_package
     require 'shoes/app_package'
   end
 
   def self.make_pack
-#    require 'shoes/packgui'
-#    Shoes.app(:width => 500, :height => 480, :resizable => true, &Packshow)
+    #    require 'shoes/packgui'
+    #    Shoes.app(:width => 500, :height => 480, :resizable => true, &Packshow)
     require 'shoes/pack'
-    Shoes.app(:width => 500, :height => 480, :resizable => true, &PackMake)
+    Shoes.app(width: 500, height: 480, resizable: true, &PackMake)
   end
 
   def self.manual_p(str, path)
-    str.gsub(/\n+\s*/, " ").
-      gsub(/&/, '&amp;').gsub(/>/, '&gt;').gsub(/>/, '&lt;').gsub(/"/, '&quot;').
-      gsub(/`(.+?)`/m, '<code>\1</code>').gsub(/\[\[BR\]\]/i, "<br />\n").
-      gsub(/\^(.+?)\^/m, '\1').
-      gsub(/'''(.+?)'''/m, '<strong>\1</strong>').gsub(/''(.+?)''/m, '<em>\1</em>').
-      gsub(/\[\[(http:\/\/\S+?)\]\]/m, '<a href="\1" target="_new">\1</a>').
-      gsub(/\[\[(http:\/\/\S+?) (.+?)\]\]/m, '<a href="\1" target="_new">\2</a>').
-      gsub(/\[\[(\S+?)\]\]/m) do
-        ms, mn = $1.split(".", 2)
+    str.gsub(/\n+\s*/, ' ')
+      .gsub(/&/, '&amp;').gsub(/>/, '&gt;').gsub(/>/, '&lt;').gsub(/"/, '&quot;')
+      .gsub(/`(.+?)`/m, '<code>\1</code>').gsub(/\[\[BR\]\]/i, "<br />\n")
+      .gsub(/\^(.+?)\^/m, '\1')
+      .gsub(/'''(.+?)'''/m, '<strong>\1</strong>').gsub(/''(.+?)''/m, '<em>\1</em>')
+      .gsub(/\[\[(http:\/\/\S+?)\]\]/m, '<a href="\1" target="_new">\1</a>')
+      .gsub(/\[\[(http:\/\/\S+?) (.+?)\]\]/m, '<a href="\1" target="_new">\2</a>')
+      .gsub(/\[\[(\S+?)\]\]/m) do
+        ms, mn = Regexp.last_match(1).split('.', 2)
         if mn
           '<a href="' + ms + '.html#' + mn + '">' + mn + '</a>'
         else
           '<a href="' + ms + '.html">' + ms + '</a>'
         end
-      end.
-      gsub(/\[\[(\S+?) (.+?)\]\]/m, '<a href="\1.html">\2</a>').
-      gsub(/\!(\{[^}\n]+\})?([^!\n]+\.\w+)\!/) do
-        x = "static/#$2"
-        FileUtils.cp("#{DIR}/#{x}", "#{path}/#{x}") if File.exists? "#{DIR}/#{x}"
+      end
+      .gsub(/\[\[(\S+?) (.+?)\]\]/m, '<a href="\1.html">\2</a>')
+      .gsub(/\!(\{[^}\n]+\})?([^!\n]+\.\w+)\!/) do
+        x = "static/#{Regexp.last_match(2)}"
+        FileUtils.cp("#{DIR}/#{x}", "#{path}/#{x}") if File.exist? "#{DIR}/#{x}"
         '<img src="' + x + '" />'
       end
   end
 
-  def self.manual_link(sect)
+  def self.manual_link(_sect)
   end
 
-  TITLES = {:title => :h1, :subtitle => :h2, :tagline => :h3, :caption => :h4}
+  TITLES = { title: :h1, subtitle: :h2, tagline: :h3, caption: :h4 }
 
-  def self.manual_as format, *args
+  def self.manual_as(format, *args)
     require 'shoes/search'
     require 'shoes/help'
 
     case format
     when :shoes
-      Shoes.app(:width => 720, :height => 640, &Shoes::Help)
+      Shoes.app(width: 720, height: 640, &Shoes::Help)
     else
       extend Shoes::Manual
       man = self
       dir, = args
       FileUtils.mkdir_p File.join(dir, 'static')
       FileUtils.cp "#{DIR}/static/shoes-icon.png", "#{dir}/static"
-      %w[manual.css code_highlighter.js code_highlighter_ruby.js].
-        each { |x| FileUtils.cp "#{DIR}/static/#{x}", "#{dir}/static" }
+      %w(manual.css code_highlighter.js code_highlighter_ruby.js)
+        .each { |x| FileUtils.cp "#{DIR}/static/#{x}", "#{dir}/static" }
       html_bits = proc do
         proc do |sym, text|
-        case sym when :intro
-          div.intro { p { self << man.manual_p(text, dir) } }
-        when :code
-          pre { code.rb text.gsub(/^\s*?\n/, '') }
-        when :colors
-          color_names = (Shoes::COLORS.keys*"\n").split("\n").sort
-          color_names.each do |color|
-            c = Shoes::COLORS[color.intern]
-            f = c.dark? ? "white" : "black"
-            div.color(:style => "background: #{c}; color: #{f}") { h3 color; p c }
-          end
-        when :index
-          tree = man.class_tree
-          shown = []
-          i = 0
-          index_p = proc do |k, subs|
-            unless shown.include? k
-              i += 1
-              p "▸ #{k}", :style => "margin-left: #{20*i}px"
-              subs.uniq.sort.each do |s|
-                index_p[s, tree[s]]
-              end if subs
-              i -= 1
-              shown << k
+          case sym when :intro
+                     div.intro { p { self << man.manual_p(text, dir) } }
+          when :code
+            pre { code.rb text.gsub(/^\s*?\n/, '') }
+          when :colors
+            color_names = (Shoes::COLORS.keys * "\n").split("\n").sort
+            color_names.each do |color|
+              c = Shoes::COLORS[color.intern]
+              f = c.dark? ? 'white' : 'black'
+              div.color(style: "background: #{c}; color: #{f}") { h3 color; p c }
             end
-          end
-          tree.sort.each &index_p
-        #   index_page
-        when :list
-          ul { text.each { |x| li { self << man.manual_p(x, dir) } } }
-        when :samples
-          folder = File.join DIR, 'samples'
-          h = {}
-          Dir.glob(File.join folder, '*').each do |file|
-            if File.extname(file) == '.rb'
-              key = File.basename(file).split('-')[0]
-              h[key] ? h[key].push(file) : h[key] = [file]
+          when :index
+            tree = man.class_tree
+            shown = []
+            i = 0
+            index_p = proc do |k, subs|
+              unless shown.include? k
+                i += 1
+                p "▸ #{k}", style: "margin-left: #{20 * i}px"
+                subs.uniq.sort.each do |s|
+                  index_p[s, tree[s]]
+                end if subs
+                i -= 1
+                shown << k
+              end
             end
-          end
-          h.each do |k, v|
-            p "<h4>#{k}</h4>"
-            samples = []
-            v.each do |file|
-              sample = File.basename(file).split('-')[1..-1].join('-')[0..-4]
-              samples << "<a href=\"http://github.com/shoes/shoes/raw/master/manual-snapshots/#{k}-#{sample}.png\">#{sample}</a>"
+            tree.sort.each &index_p
+          #   index_page
+          when :list
+            ul { text.each { |x| li { self << man.manual_p(x, dir) } } }
+          when :samples
+            folder = File.join DIR, 'samples'
+            h = {}
+            Dir.glob(File.join folder, '*').each do |file|
+              if File.extname(file) == '.rb'
+                key = File.basename(file).split('-')[0]
+                h[key] ? h[key].push(file) : h[key] = [file]
+              end
             end
-            p samples.join ' '
+            h.each do |k, v|
+              p "<h4>#{k}</h4>"
+              samples = []
+              v.each do |file|
+                sample = File.basename(file).split('-')[1..-1].join('-')[0..-4]
+                samples << "<a href=\"http://github.com/shoes/shoes/raw/master/manual-snapshots/#{k}-#{sample}.png\">#{sample}</a>"
+              end
+              p samples.join ' '
+            end
+          else
+            send(TITLES[sym] || :p) { self << man.manual_p(text, dir) }
           end
-        else
-          send(TITLES[sym] || :p) { self << man.manual_p(text, dir) }
-        end
         end
       end
 
-      docs = load_docs(Shoes::Manual::path)
+      docs = load_docs(Shoes::Manual.path)
       sections = docs.map { |x,| x }
 
       docn = 1
@@ -336,26 +331,28 @@ class Shoes
 
         path1 = File.join(dir, title1.gsub(/\W/, ''))
         make_html("#{path1}.html", title1, menu) do
-          h2 "The Shoes Manual"
+          h2 'The Shoes Manual'
           h1 title1
           man.wiki_tokens opt1['description'], true, &instance_eval(&html_bits)
-          p.next { text "Next: "
-            a opt1['sections'].first[1]['title'], :href => "#{opt1['sections'].first[0]}.html" }
+          p.next do
+            text 'Next: '
+            a opt1['sections'].first[1]['title'], href: "#{opt1['sections'].first[0]}.html"
+          end
         end
 
         optn = 1
         opt1['sections'].each do |title2, opt2|
           path2 = File.join(dir, title2)
           make_html("#{path2}.html", opt2['title'], menu) do
-            h2 "The Shoes Manual"
+            h2 'The Shoes Manual'
             h1 opt2['title']
             man.wiki_tokens opt2['description'], true, &instance_eval(&html_bits)
             opt2['methods'].each do |title3, desc3|
               sig, val = title3.split(/\s+»\s+/, 2)
               aname = sig[/^[^(=]+=?/].gsub(/\s/, '').downcase
-              a :name => aname
+              a name: aname
               div.method do
-                a sig, :href => "##{aname}"
+                a sig, href: "##{aname}"
                 text " » #{val}" if val
               end
               div.sample do
@@ -363,11 +360,15 @@ class Shoes
               end
             end
             if opt1['sections'][optn]
-              p.next { text "Next: "
-                a opt1['sections'][optn][1]['title'], :href => "#{opt1['sections'][optn][0]}.html" }
+              p.next do
+                text 'Next: '
+                a opt1['sections'][optn][1]['title'], href: "#{opt1['sections'][optn][0]}.html"
+              end
             elsif docs[docn]
-              p.next { text "Next: "
-                a docs[docn][0], :href => "#{docs[docn][0].gsub(/\W/, '')}.html" }
+              p.next do
+                text 'Next: '
+                a docs[docn][0], href: "#{docs[docn][0].gsub(/\W/, '')}.html"
+              end
             end
             optn += 1
           end
@@ -381,7 +382,7 @@ class Shoes
   def self.show_manual
     manual_as :shoes
   end
-  
+
   def self.show_irb
     require 'shoes/irb'
     Shoes.irb
@@ -389,7 +390,7 @@ class Shoes
 
   def self.show_log
     require 'shoes/log'
-    return if @log_app and Shoes.APPS.include? @log_app
+    return if @log_app && Shoes.APPS.include?(@log_app)
     @log_app =
       Shoes.app do
         extend Shoes::LogWindow
@@ -401,40 +402,36 @@ class Shoes
     @mounts << [path, meth || blk]
   end
 
-  SHOES_URL_RE = %r!^@([^/]+)(.*)$! 
+  SHOES_URL_RE = %r{^@([^/]+)(.*)$}
 
   def self.run(path)
     uri = URI(path)
     @mounts.each do |mpath, rout|
       m, *args = *path.match(/^#{mpath}$/)
       if m
-        unless rout.is_a? Proc
-          rout = rout[0].instance_method(rout[1])
-        end
-        #return [rout, args]
+        rout = rout[0].instance_method(rout[1]) unless rout.is_a? Proc
+        # return [rout, args]
         return [rout, args, rout.owner] # requires change in app.c
       end
     end
-    case uri.path when "/"
-      [nil]
+    case uri.path when '/'
+                    [nil]
     when SHOES_URL_RE
-      [proc { eval(URI("http://#$1:53045#$2").read) }]
+      [proc { eval(URI("http://#{Regexp.last_match(1)}:53045#{Regexp.last_match(2)}").read) }]
     else
       [NotFound]
     end
   end
 
   def self.args!
-    if RUBY_PLATFORM !~ /darwin/ and ARGV.empty?
-      Shoes.splash
-    end
+    Shoes.splash if RUBY_PLATFORM !~ /darwin/ && ARGV.empty?
     OPTS.parse! ARGV
-    ARGV[0] or true
+    ARGV[0] || true
   end
 
   def self.uri(str)
     if str =~ SHOES_URL_RE
-      URI("http://#$1:53045#$2")
+      URI("http://#{Regexp.last_match(1)}:53045#{Regexp.last_match(2)}")
     else
       URI(str) rescue nil
     end
@@ -454,15 +451,15 @@ class Shoes
         eval(uri.read)
       end
     else
-      path = File.expand_path(path.gsub(/\\/, "/"))
+      path = File.expand_path(path.gsub(/\\/, '/'))
       if path =~ /\.shy$/
         @shy = true
         require 'shoes/shy'
-        base = File.basename(path, ".shy")
-        @tmpdir = tmpdir = "%s/shoes-%s.%d" % [Dir.tmpdir, base, $$]
+        base = File.basename(path, '.shy')
+        @tmpdir = tmpdir = '%s/shoes-%s.%d' % [Dir.tmpdir, base, $PROCESS_ID]
         shy = Shy.x(path, tmpdir)
         Dir.chdir(tmpdir)
-        #Shoes.debug "Loaded SHY: #{shy.name} #{shy.version} by #{shy.creator}"
+        # Shoes.debug "Loaded SHY: #{shy.name} #{shy.version} by #{shy.creator}"
         path = shy.launch
       else
         @shy = false
@@ -470,8 +467,8 @@ class Shoes
         path = File.basename(path)
       end
 
-      $0.replace path
-      
+      $PROGRAM_NAME.replace path
+
       code = read_file(path)
       eval(code, TOPLEVEL_BINDING, path)
     end
@@ -482,15 +479,15 @@ class Shoes
   end
 
   def self.clean
-    FileUtils.rm_rf(@tmpdir, :secure => true) if @shy
+    FileUtils.rm_rf(@tmpdir, secure: true) if @shy
   end
 
-  def self.read_file path
-    if RUBY_VERSION =~ /^1\.9/ and !@shy
-      #File.open(path, 'r:utf-8') { |f| f.read }
-      IO.read(path).force_encoding("UTF-8")
-    elsif RUBY_VERSION =~ /^2\.0/ and !@shy
-      IO.read(path).force_encoding("UTF-8")
+  def self.read_file(path)
+    if RUBY_VERSION =~ /^1\.9/ && !@shy
+      # File.open(path, 'r:utf-8') { |f| f.read }
+      IO.read(path).force_encoding('UTF-8')
+    elsif RUBY_VERSION =~ /^2\.0/ && !@shy
+      IO.read(path).force_encoding('UTF-8')
     else
       File.read(path)
     end
@@ -501,32 +498,30 @@ class Shoes
   end
 
   module Basic
-    def tween opts, &blk
+    def tween(opts, &blk)
       opts = opts.dup
 
       if opts[:upward]
-        opts[:top] = self.top - opts.delete(:upward)
+        opts[:top] = top - opts.delete(:upward)
       elsif opts[:downward]
-        opts[:top] = self.top + opts.delete(:downward)
+        opts[:top] = top + opts.delete(:downward)
       end
-      
-      if opts[:sideways]
-        opts[:left] = self.left + opts.delete(:sideways)
-      end
-      
+
+      opts[:left] = left + opts.delete(:sideways) if opts[:sideways]
+
       @TWEEN.remove if @TWEEN
       @TWEEN = parent.animate(opts[:speed] || 20) do
-
         # figure out a coordinate halfway between here and there
         cont = opts.select do |k, v|
           if self.respond_to? k
-            n, o = v, self.send(k)
+            n = v
+            o = send(k)
             if n != o
               n = o + ((n - o) / 2)
               n = v if o == n
-              self.send("#{k}=", n)
+              send("#{k}=", n)
             end
-            self.style[k] != v
+            style[k] != v
           end
         end
 
@@ -551,29 +546,29 @@ class Shoes
   KEY_S   = [:keydown, :keypress, :keyup]
   COLOR_S = [:stroke, :fill]
 
-  {Background => [:angle, :radius, :curve, *BASIC_S],
-   Border     => [:angle, :radius, :curve, :strokewidth, *BASIC_S],
-   Canvas     => [:scroll, :start, :finish, *(KEY_S|MOUSE_S|BASIC_S)],
-   Check      => [:click, :checked, *BASIC_S],
-   Radio      => [:click, :checked, :group, *BASIC_S],
-   EditLine   => [:change, :secret, :text, *BASIC_S],
-   EditBox    => [:change, :text, *BASIC_S],
-   Effect     => [:radius, :distance, :inner, *(COLOR_S|BASIC_S)],
-   Image      => MOUSE_S|BASIC_S,
-   ListBox    => [:change, :items, :choose, *BASIC_S],
-   # Pattern    => [:angle, :radius, *BASIC_S],
-   Progress   => BASIC_S,
-   Shape      => COLOR_S|MOUSE_S|BASIC_S,
-   TextBlock  => [:justify, :align, :leading, *(COLOR_S|MOUSE_S|TEXT_S|BASIC_S)],
-   Text       => COLOR_S|MOUSE_S|TEXT_S|BASIC_S}.
-  each do |klass, styles|
+  { Background => [:angle, :radius, :curve, *BASIC_S],
+    Border     => [:angle, :radius, :curve, :strokewidth, *BASIC_S],
+    Canvas     => [:scroll, :start, :finish, *(KEY_S | MOUSE_S | BASIC_S)],
+    Check      => [:click, :checked, *BASIC_S],
+    Radio      => [:click, :checked, :group, *BASIC_S],
+    EditLine   => [:change, :secret, :text, *BASIC_S],
+    EditBox    => [:change, :text, *BASIC_S],
+    Effect     => [:radius, :distance, :inner, *(COLOR_S | BASIC_S)],
+    Image      => MOUSE_S | BASIC_S,
+    ListBox    => [:change, :items, :choose, *BASIC_S],
+    # Pattern    => [:angle, :radius, *BASIC_S],
+    Progress   => BASIC_S,
+    Shape      => COLOR_S | MOUSE_S | BASIC_S,
+    TextBlock  => [:justify, :align, :leading, *(COLOR_S | MOUSE_S | TEXT_S | BASIC_S)],
+    Text       => COLOR_S | MOUSE_S | TEXT_S | BASIC_S }
+    .each do |klass, styles|
     klass.class_eval do
       include Basic
       styles.each do |m|
         case m when *MOUSE_S
-        else
-          define_method(m) { style[m] } unless klass.method_defined? m
-          define_method("#{m}=") { |v| style(m => v) } unless klass.method_defined? "#{m}="
+               else
+                 define_method(m) { style[m] } unless klass.method_defined? m
+                 define_method("#{m}=") { |v| style(m => v) } unless klass.method_defined? "#{m}="
         end
       end
     end
@@ -581,10 +576,10 @@ class Shoes
 
   class Types::Widget
     @types = {}
-    def self.inherited subc
-      methc = subc.to_s[/(^|::)(\w+)$/, 2].
-              gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
-              gsub(/([a-z\d])([A-Z])/,'\1_\2').downcase
+    def self.inherited(subc)
+      methc = subc.to_s[/(^|::)(\w+)$/, 2]
+              .gsub(/([A-Z]+)([A-Z][a-z])/, '\1_\2')
+              .gsub(/([a-z\d])([A-Z])/, '\1_\2').downcase
       @types[methc] = subc
       Shoes.class_eval %{
         def #{methc}(*a, &b)
