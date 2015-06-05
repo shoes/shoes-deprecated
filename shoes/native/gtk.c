@@ -22,6 +22,7 @@
 #include "gtkfixedalt.h"
 #include "gtkentryalt.h"
 #include "gtkcomboboxtextalt.h"
+#include "gtkbuttonalt.h"
 
 #define GTK_CHILD(child, ptr) \
   GList *children = gtk_container_get_children(GTK_CONTAINER(ptr)); \
@@ -1267,7 +1268,12 @@ shoes_button_gtk_clicked(GtkButton *button, gpointer data)
 SHOES_CONTROL_REF
 shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, char *msg)
 {
+#ifdef GTK3
+  SHOES_CONTROL_REF ref = gtk_button_alt_new_with_label(_(msg));
+#else
   SHOES_CONTROL_REF ref = gtk_button_new_with_label(_(msg));
+#endif
+
   g_signal_connect(G_OBJECT(ref), "clicked",
                    G_CALLBACK(shoes_button_gtk_clicked),
                    (gpointer)self);

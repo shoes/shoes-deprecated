@@ -75,7 +75,7 @@ gtkfixed_alt_new()
 
 
 /* Get the width of the container(GtkFixed_Alt)
- * don't ask for children size so we can shrink as in gtk2 
+ * don't ask for children size so we can shrink as in gtk2
 */
 static void
 gtkfixed_alt_get_preferred_width(GtkWidget *widget, int *minimal, int *natural)
@@ -88,7 +88,7 @@ gtkfixed_alt_get_preferred_width(GtkWidget *widget, int *minimal, int *natural)
 }
 
 /* Get the height of the container(GtkFixed_Alt)
- * don't ask for children size so we can shrink as in gtk2 
+ * don't ask for children size so we can shrink as in gtk2
 */
 static void
 gtkfixed_alt_get_preferred_height(GtkWidget *widget, int *minimal, int *natural)
@@ -99,7 +99,3 @@ gtkfixed_alt_get_preferred_height(GtkWidget *widget, int *minimal, int *natural)
     *minimal = 1;
     *natural = 1;
 }
-
-
-
-

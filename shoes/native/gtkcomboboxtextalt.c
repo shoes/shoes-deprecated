@@ -17,7 +17,7 @@ typedef struct _GtkComboBoxText_AltPrivate GtkComboBoxText_AltPrivate;
 
 struct _GtkComboBoxText_AltPrivate
 {
-  
+
 };
 
 /* Forward declarations */
