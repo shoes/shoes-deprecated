@@ -31,7 +31,8 @@ CC = "gcc"
 
 file_list = %w(shoes/native/gtk.c shoes/native/gtkfixedalt.c shoes/native/gtkentryalt.c
                shoes/native/gtkcomboboxtextalt.c shoes/native/gtkbuttonalt.c
-               shoes/native/gtkscrolledwindowalt.c shoes/http/rbload.c) + ["shoes/*.c"]
+               shoes/native/gtkscrolledwindowalt.c shoes/native/gtkprogressbaralt.c 
+               shoes/http/rbload.c) + ["shoes/*.c"]
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')

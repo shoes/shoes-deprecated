@@ -24,6 +24,7 @@
 #include "gtkcomboboxtextalt.h"
 #include "gtkbuttonalt.h"
 #include "gtkscrolledwindowalt.h"
+#include "gtkprogressbaralt.h"
 
 #define GTK_CHILD(child, ptr) \
   GList *children = gtk_container_get_children(GTK_CONTAINER(ptr)); \
@@ -1441,7 +1442,11 @@ shoes_native_list_box_set_active(SHOES_CONTROL_REF combo, VALUE ary, VALUE item)
 SHOES_CONTROL_REF
 shoes_native_progress(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
+#ifdef GTK3  
+  SHOES_CONTROL_REF ref = gtk_progress_bar_alt_new();
+#else  
   SHOES_CONTROL_REF ref = gtk_progress_bar_new();
+#endif  
   gtk_progress_bar_set_text(GTK_PROGRESS_BAR(ref), _(msg));
   return ref;
 }
