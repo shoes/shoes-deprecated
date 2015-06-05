@@ -23,6 +23,7 @@
 #include "gtkentryalt.h"
 #include "gtkcomboboxtextalt.h"
 #include "gtkbuttonalt.h"
+#include "gtkscrolledwindowalt.h"
 
 #define GTK_CHILD(child, ptr) \
   GList *children = gtk_container_get_children(GTK_CONTAINER(ptr)); \
@@ -1338,7 +1339,11 @@ shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALU
 {
   GtkTextBuffer *buffer;
   GtkWidget* textview = gtk_text_view_new();
+#ifdef GTK3  
+  SHOES_CONTROL_REF ref = gtk_scrolled_window_alt_new(NULL, NULL);
+#else  
   SHOES_CONTROL_REF ref = gtk_scrolled_window_new(NULL, NULL);
+#endif  
   gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textview), GTK_WRAP_WORD);
   buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
   gtk_text_buffer_set_text(buffer, _(msg), -1);
