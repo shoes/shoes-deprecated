@@ -16,7 +16,7 @@
 VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cSlider, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE eVlcError, eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
-VALUE symAltQuest, symAltSlash, symAltDot, symAltEqual;
+VALUE symAltQuest, symAltSlash, symAltDot, symAltEqual, symAltSemiColon;
 ID s_checked_q, s_perc, s_fraction, s_aref, s_mult, s_donekey;
 SYMBOL_DEFS(SYMBOL_ID);
 
@@ -3192,6 +3192,13 @@ shoes_edit_line_enterkey(VALUE self, VALUE proc)
 }
 
 VALUE
+shoes_edit_line_cursor_to_end(VALUE self)
+{
+  GET_STRUCT(control, self_t);
+  shoes_native_edit_line_cursor_to_end(self_t->ref);
+}
+
+VALUE
 shoes_edit_line_draw(VALUE self, VALUE c, VALUE actual)
 {
   SETUP_CONTROL(0, 0, FALSE);
@@ -4418,7 +4425,7 @@ shoes_ruby_init()
   symAltSlash = ID2SYM(rb_intern("alt_/"));
   symAltEqual = ID2SYM(rb_intern("alt_="));
   symAltDot = ID2SYM(rb_intern("alt_."));
-
+  symAltSemiColon = ID2SYM(rb_intern("alt_;"));
   //
   // I want all elements to be addressed Shoes::Name, but also available in
   // a separate mixin (cTypes), for inclusion in every Shoes.app block.
@@ -4771,6 +4778,7 @@ shoes_ruby_init()
   rb_define_method(cEditLine, "draw", CASTHOOK(shoes_edit_line_draw), 2);
   rb_define_method(cEditLine, "change", CASTHOOK(shoes_control_change), -1);
   rb_define_method(cEditLine, "finish=", CASTHOOK(shoes_edit_line_enterkey), 1);
+  rb_define_method(cEditLine, "to_end", CASTHOOK(shoes_edit_line_cursor_to_end), 0);
   cEditBox  = rb_define_class_under(cTypes, "EditBox", cNative);
   rb_define_method(cEditBox, "text", CASTHOOK(shoes_edit_box_get_text), 0);
   rb_define_method(cEditBox, "text=", CASTHOOK(shoes_edit_box_set_text), 1);

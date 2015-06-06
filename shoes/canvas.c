@@ -1554,8 +1554,8 @@ shoes_canvas_stack(int argc, VALUE *argv, VALUE self)
   }
   shoes_add_ele(canvas, stack);
   
-  //shoes_canvas *self_t;
-  //Data_Get_Struct(stack, shoes_canvas, self_t);
+  shoes_canvas *self_t;
+  Data_Get_Struct(stack, shoes_canvas, self_t);
   return stack;
 }
 
@@ -2026,9 +2026,9 @@ void
 shoes_canvas_wheel_way(shoes_canvas *self_t, ID dir)
 {
     if (dir == s_up)
-        shoes_slot_scroll_to(self_t, -16, 1);
+        shoes_slot_scroll_to(self_t, -32, 1);
     else if (dir == s_down)
-        shoes_slot_scroll_to(self_t, 16, 1);
+        shoes_slot_scroll_to(self_t, 32, 1);
 }
 
 void

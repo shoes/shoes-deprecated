@@ -82,6 +82,7 @@ shoes_load_font(const char *filename)
   return ary;
 }
 
+#ifndef SHOES_GTK_OSX
 // FIXME: experiment with font settings
 // Borrowed from http://ricardo.ecn.wfu.edu/~cottrell/gtk_win32/
 #ifdef G_OS_WIN32
@@ -150,7 +151,7 @@ void shoes_native_print_env()
   g_object_get(settings, "gtk-theme-name", &themename, NULL);
   printf("dir=%s, name: %s\n", themedir,themename);
 }
-
+#endif
 void shoes_native_init()
 {
 #if !defined(RUBY_HTTP) && !defined(SHOES_GTK_WIN32)
@@ -1333,6 +1334,12 @@ void
 shoes_native_edit_line_set_text(SHOES_CONTROL_REF ref, char *msg)
 {
   gtk_entry_set_text(GTK_ENTRY(ref), _(msg));
+}
+
+VALUE
+shoes_native_edit_line_cursor_to_end(SHOES_CONTROL_REF ref)
+{
+  gtk_editable_set_position(GTK_EDITABLE(ref), -1);
 }
 
 SHOES_CONTROL_REF

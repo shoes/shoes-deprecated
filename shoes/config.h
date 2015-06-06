@@ -41,7 +41,7 @@
 #ifdef SHOES_GTK
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
-#ifndef SHOES_GTK_WIN32
+#if !defined(SHOES_GTK_WIN32) && !defined(SHOES_GTK_OSX)
 #include <gdk/gdkx.h>
 #endif
 #ifndef RUBY_HTTP

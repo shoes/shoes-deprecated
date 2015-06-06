@@ -75,6 +75,7 @@ SHOES_CONTROL_REF shoes_native_button(VALUE, shoes_canvas *, shoes_place *, char
 SHOES_CONTROL_REF shoes_native_edit_line(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);
 VALUE shoes_native_edit_line_get_text(SHOES_CONTROL_REF);
 void shoes_native_edit_line_set_text(SHOES_CONTROL_REF, char *);
+VALUE shoes_native_edit_line_cursor_to_end(SHOES_CONTROL_REF);
 SHOES_CONTROL_REF shoes_native_edit_box(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);
 VALUE shoes_native_edit_box_get_text(SHOES_CONTROL_REF);
 void shoes_native_edit_box_set_text(SHOES_CONTROL_REF, char *);

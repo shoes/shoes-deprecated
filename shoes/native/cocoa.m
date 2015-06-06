@@ -1516,19 +1516,16 @@ shoes_native_dialog_color(shoes_app *app)
 VALUE
 shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
 {
-  //VALUE answer = Qnil;
-	GLOBAL_APP(app);
-	//char *rbcTitle = RSTRING_PTR(app->title);
-	//NSString *appstr = [[NSString alloc] initWithCString: rbcTitle encoding: NSUTF8StringEncoding];
+  //GLOBAL_APP(app);
+  ACTUAL_APP(app);
 	NSString *appstr = [[NSString alloc] initWithUTF8String: RSTRING_PTR(app->title)];
   rb_arg_list args;
-  rb_parse_args(argc, argv, "s|h", &args);
+  rb_parse_args(argc, argv, "S|h", &args);
 	VALUE msg;
   COCOA_DO({
     msg = shoes_native_to_s(args.a[0]);
     // replace with styles if needed when we have one
 		NSString *deftitle =  [appstr stringByAppendingString: @" says:"];
-		//NSString *deftitle =  @"Shoes says:";
 		if (argc > 1)
 		{
       if (RTEST(ATTR(args.a[1], title)))
@@ -1544,9 +1541,13 @@ shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
 			}
 		}
 		//below form of alert is deprecated in 10.10
-    NSAlert *alert = [NSAlert alertWithMessageText: deftitle
-      defaultButton: @"OK" alternateButton: nil otherButton: nil 
-      informativeTextWithFormat: [NSString stringWithUTF8String: RSTRING_PTR(msg)]];
+    //NSAlert *alert = [NSAlert alertWithMessageText: deftitle
+    //  defaultButton: @"OK" alternateButton: nil otherButton: nil 
+    //  informativeTextWithFormat: [NSString stringWithUTF8String: RSTRING_PTR(msg)]];
+    NSAlert *alert = [[NSAlert alloc] init];
+		[alert setMessageText: deftitle];
+		[alert setInformativeText: [NSString stringWithUTF8String: RSTRING_PTR(msg)]];
+
     [alert runModal];
   });
   return Qnil;
@@ -1557,10 +1558,11 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   VALUE answer = Qnil;
-	GLOBAL_APP(app);
+  //GLOBAL_APP(app);
+  ACTUAL_APP(app);
 	char *rbcTitle = RSTRING_PTR(app->title);
 	NSString *appstr = [[NSString alloc] initWithCString: rbcTitle encoding: NSUTF8StringEncoding];
-  rb_parse_args(argc, argv, "s|h", &args);
+  rb_parse_args(argc, argv, "S|h", &args);
   COCOA_DO({
     // replace with styles if needed when we have one
 		//NSString *deftitle =  @"Shoes says:";
@@ -1595,7 +1597,7 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
       input = [[NSTextField alloc] initWithFrame:NSMakeRect(20, 72, 300, 24)];
 
     [alert setTitle: deftitle];
-    [text setStringValue: [NSString stringWithUTF8String: RSTRING_PTR(args.a[0])]];
+    [text setStringValue: [NSString stringWithUTF8String: RSTRING_PTR(shoes_native_to_s(args.a[0]))]];
     [text setBezeled: NO];
     [text setBackgroundColor: [NSColor windowBackgroundColor]];
     [text setEditable: NO];
@@ -1628,11 +1630,12 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
   char *msg;
 	VALUE quiz;
   VALUE answer = Qnil;
-	GLOBAL_APP(app);
+  //GLOBAL_APP(app);
+  ACTUAL_APP(app);
 	char *rbcTitle = RSTRING_PTR(app->title);
 	NSString *appstr = [[NSString alloc] initWithCString: rbcTitle encoding: NSUTF8StringEncoding];
   rb_arg_list args;
-  rb_parse_args(argc, argv, "s|h", &args);
+  rb_parse_args(argc, argv, "S|h", &args);
   COCOA_DO({
     // replace with styles if needed when we have one
 		//NSString *deftitle =  @"Shoes says:";
@@ -1651,7 +1654,7 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
 				deftitle = [[NSString alloc] initWithUTF8String: ""];
 			}
 		}
-		quiz = argv[0];
+    quiz = args.a[0];
     quiz = shoes_native_to_s(quiz);
     msg = RSTRING_PTR(quiz);
     NSAlert *alert = [NSAlert alertWithMessageText: deftitle

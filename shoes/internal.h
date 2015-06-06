@@ -36,7 +36,6 @@ int shoes_snprintf(char* str, size_t size, const char* format, ...);
 #else
 #define INFO odignore
 #endif
-
 #define WARN PUTS
 #define QUIT(msg) \
   if (code == SHOES_OK) code = SHOES_FAIL; \
@@ -49,11 +48,11 @@ int shoes_snprintf(char* str, size_t size, const char* format, ...);
 
 #define PUTS printf
 #ifdef DEBUG
+
 #define INFO(f, s...) PUTS(f, ## s)
 #else
 #define INFO(f, s...)
 #endif
-
 #define WARN(f, s...) PUTS(f, ## s)
 #define QUIT(f, s...) \
   if (code == SHOES_OK) code = SHOES_FAIL; \
