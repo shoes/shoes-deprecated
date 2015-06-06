@@ -17,7 +17,8 @@ typedef struct _GtkComboBoxText_AltPrivate GtkComboBoxText_AltPrivate;
 
 struct _GtkComboBoxText_AltPrivate
 {
-
+  /* to avoid warnings (g_type_class_add_private: assertion `private_size > 0' failed) */
+  gchar dummy;
 };
 
 /* Forward declarations */
@@ -71,8 +72,8 @@ gtk_combo_box_text_alt_get_preferred_width(GtkWidget *widget, int *minimal, int 
 {
     g_return_if_fail(widget != NULL);
 
-    *minimal = 1;
-    *natural = 1;
+    *minimal = 32;
+    *natural = 32;
 }
 
 static void

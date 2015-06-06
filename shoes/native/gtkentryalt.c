@@ -17,7 +17,8 @@ typedef struct _GtkEntry_AltPrivate GtkEntry_AltPrivate;
 
 struct _GtkEntry_AltPrivate
 {
-
+  /* to avoid warnings (g_type_class_add_private: assertion `private_size > 0' failed) */
+  gchar dummy;
 };
 
 /* Forward declarations */

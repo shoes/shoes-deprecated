@@ -16,7 +16,8 @@ typedef struct _GtkProgressBar_AltPrivate GtkProgressBar_AltPrivate;
 
 struct _GtkProgressBar_AltPrivate
 {
-
+  /* to avoid warnings (g_type_class_add_private: assertion `private_size > 0' failed) */
+  gchar dummy;
 };
 
 /* Forward declarations */

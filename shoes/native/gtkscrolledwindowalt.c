@@ -16,7 +16,8 @@ typedef struct _GtkScrolledWindow_AltPrivate GtkScrolledWindow_AltPrivate;
 
 struct _GtkScrolledWindow_AltPrivate
 {
-
+  /* to avoid warnings (g_type_class_add_private: assertion `private_size > 0' failed) */
+  gchar dummy;
 };
 
 /* Forward declarations */
