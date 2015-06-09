@@ -16,7 +16,7 @@ module Othello
     BOARD_SIZE = [8,8]
 
     attr_accessor :p1, :p2, :board, :board_history
-        
+
     def initialize
       @board_history = []
       @p1            = Player.new(:black, pieces_per_player)
@@ -50,7 +50,7 @@ module Othello
         end
       end
     end
-    
+
     # Lay the initial 4 pieces in the middle
     def lay_initial_pieces
       lay_piece([4, 3], false)
@@ -62,7 +62,7 @@ module Othello
       lay_piece([4, 4], false)
       next_turn(false)
     end
-    
+
     def lay_piece(c=[0,0], check_adjacent_pieces=true)
       memorize_board
       piece = current_player.piece
@@ -86,17 +86,17 @@ module Othello
       current_winner = calculate_current_winner
       raise "Game over. Player #{current_winner.piece} wins with #{current_winner.pieces_on_board} pieces!" if @p1.pieces + @p2.pieces == 0
     end
-    
+
     def skip_turn?
       possibles = []
-      @board.each_with_index { |col,col_index| 
-        col.each_with_index { |cell,row_index| 
+      @board.each_with_index { |col,col_index|
+        col.each_with_index { |cell,row_index|
           return false if possible_move?([col_index,row_index])
-        } 
+        }
       }
       true
     end
-    
+
     def possible_move?(c=[0,0])
       return nil if board_at(c) != 0
       possible_moves = []
@@ -114,7 +114,7 @@ module Othello
       return nil if pieces_to_change.compact.all? { |a| a.empty? }
       true
     end
-    
+
     def memorize_board
       dup_board = new_board
       dup_board = []
@@ -133,11 +133,11 @@ module Othello
 
     def calculate_current_winner
       @p1.pieces_on_board, @p2.pieces_on_board = 0, 0
-      @board.each { |row| 
+      @board.each { |row|
         row.each { |cell|
           if cell == 1
             @p1.pieces_on_board += 1
-          else 
+          else
             @p2.pieces_on_board += 1
           end
         }
@@ -164,7 +164,7 @@ module Othello
 
       pieces_in_between.empty? || c_last.nil? ? nil : pieces_in_between
     end
-    
+
     # Find the value of the board at the given coordinate.
     def board_at(c)
       @board[c[0]][c[1]]
@@ -186,7 +186,7 @@ module Othello
     def pieces_per_player
       total_squares / 2
     end
-    
+
     # The total number of squares
     def total_squares
       BOARD_SIZE[0] * BOARD_SIZE[1]
@@ -200,15 +200,15 @@ module Othello
         @pieces_on_board = 0 # used only in calculating winner
         @color = color
       end
-      
+
       def piece
         color == :black ? 1 : 2
       end
-      
+
       def opp_piece
         color == :black ? 2 : 1
       end
-    end 
+    end
   end
 
   def draw_player_1(first_turn=false)
@@ -227,7 +227,7 @@ module Othello
 
   def draw_player_2(first_turn=false)
     stack :top => 550, :left => 0, :margin => 10 do
-      if GAME.current_player==GAME.p2 
+      if GAME.current_player==GAME.p2
         background yellow
         para span("Player 2's (#{GAME.current_player.color}) turn", :stroke => black, :font => "Trebuchet 20px bold"), :margin => 4
       else
@@ -282,12 +282,12 @@ module Othello
   end
 
   def find_piece(x,y)
-    GAME.board.each_with_index { |row_array, row| 
-      row_array.each_with_index { |col_array, col| 
+    GAME.board.each_with_index { |row_array, row|
+      row_array.each_with_index { |col_array, col|
         left, top = left_top_corner_of_piece(col, row).map { |i| i - 5}
         right, bottom = right_bottom_corner_of_piece(col, row).map { |i| i -5 }
         return [col, row] if x >= left && x <= right && y >= top && y <= bottom
-      } 
+      }
     }
     return false
   end
@@ -300,12 +300,12 @@ Shoes.app :width => 520, :height => 600 do
   extend Othello
 
   draw_board
-  
-  click { |button, x, y| 
+
+  click { |button, x, y|
     if coords = find_piece(x,y)
       begin
-        GAME.lay_piece(coords)
-        GAME.next_turn
+        Othello::GAME.lay_piece(coords)
+        Othello::GAME.next_turn
         draw_board
       rescue => e
         draw_board
@@ -316,4 +316,3 @@ Shoes.app :width => 520, :height => 600 do
     end
   }
 end
-

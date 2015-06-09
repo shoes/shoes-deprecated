@@ -71,7 +71,7 @@ static void
 gtk_combo_box_text_alt_get_preferred_width(GtkWidget *widget, int *minimal, int *natural)
 {
     g_return_if_fail(widget != NULL);
-
+    
     *minimal = 32;
     *natural = 32;
 }
@@ -80,7 +80,7 @@ static void
 gtk_combo_box_text_alt_get_preferred_height(GtkWidget *widget, int *minimal, int *natural)
 {
     g_return_if_fail(widget != NULL);
-
+    
     *minimal = 1;
     *natural = 1;
 }
