@@ -221,6 +221,8 @@ gtk_combo_box_text_alt_get_preferred_height_for_width(GtkWidget *widget,
     gtk_cell_renderer_get_padding(cell, &xpad, &ypad);
     gtk_cell_renderer_set_padding(cell, xpad, 0);
     
-    *minimum_size = min_size.height; //cell_height;
-    *natural_size = nat_size.height; //cell_height;
+    *minimum_size = min_size.height;
+    *natural_size = nat_size.height;
+    
 }
+
