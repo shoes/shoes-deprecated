@@ -144,7 +144,7 @@ gtk_combo_box_text_alt_new(VALUE attribs)
   ref = GTK_WIDGET(g_object_new(gtk_combo_box_text_alt_get_type(), NULL));
   
   /* emulating gtk2 defaults*/
-  int w = 160, h = -1; /*h = 30*/
+  int w = 160, h = 30;
   if (RTEST(ATTR(attribs, width))) w = NUM2INT(ATTR(attribs, width));
   if (RTEST(ATTR(attribs, height))) h = NUM2INT(ATTR(attribs, height));
   
@@ -213,14 +213,14 @@ gtk_combo_box_text_alt_get_preferred_height_for_width(GtkWidget *widget,
 {
     GList *renderers = gtk_cell_layout_get_cells((GtkCellLayout *)widget);
     GtkCellRenderer *cell = g_list_first(renderers)->data;    //only one renderer
-  
-    gint cell_width, cell_height;
-    gtk_cell_renderer_get_fixed_size(cell, &cell_width, &cell_height);
+    
+    GtkRequisition min_size, nat_size;
+    gtk_cell_renderer_get_preferred_size(cell, widget, &min_size, &nat_size);
     
     gint xpad, ypad;
     gtk_cell_renderer_get_padding(cell, &xpad, &ypad);
     gtk_cell_renderer_set_padding(cell, xpad, 0);
     
-    *minimum_size = cell_height;
-    *natural_size = cell_height;
+    *minimum_size = min_size.height; //cell_height;
+    *natural_size = nat_size.height; //cell_height;
 }
