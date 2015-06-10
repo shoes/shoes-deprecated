@@ -223,4 +223,6 @@ gtk_combo_box_text_alt_get_preferred_height_for_width(GtkWidget *widget,
     
     *minimum_size = min_size.height; //cell_height;
     *natural_size = nat_size.height; //cell_height;
+    
 }
+
