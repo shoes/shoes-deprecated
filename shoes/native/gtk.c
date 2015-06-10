@@ -1390,12 +1390,12 @@ shoes_native_list_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALU
 {
 #ifdef GTK3
   /* emulating gtk2 defaults*/
-  int w = 160, h = 18;
+  int w = 160, h = 30;
   if (RTEST(ATTR(attr, width))) w = NUM2INT(ATTR(attr, width));
   if (RTEST(ATTR(attr, height))) h = NUM2INT(ATTR(attr, height));
-/*  ATTR_MARGINS(attr, 2, canvas);
+  ATTR_MARGINS(attr, 2, canvas);
   ATTRSET(attr, margin_bottom, INT2NUM(bmargin)); // TODO only this one is really needed (not clean though)
-*/
+
   //SHOES_CONTROL_REF ref = gtk_combo_box_text_new();
   SHOES_CONTROL_REF ref = gtk_combo_box_text_alt_new();
 
