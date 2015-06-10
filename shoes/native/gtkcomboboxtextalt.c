@@ -99,6 +99,8 @@ static void gtk_combo_box_text_alt_get_preferred_height(GtkWidget *widget,
                                         int *minimal, int *natural);
 static void gtk_combo_box_text_alt_get_preferred_height_for_width(GtkWidget *widget, 
                             gint avail_size, gint *minimum_size, gint *natural_size);
+static void gtk_combo_box_text_alt_get_preferred_width_for_height(GtkWidget *widget, 
+                            gint avail_size, gint *minimum_size, gint *natural_size);
 
 /* Define the GtkComboBoxText_Alt type and inherit from GtkComboBoxText */
 G_DEFINE_TYPE(GtkComboBoxText_Alt, gtk_combo_box_text_alt, GTK_TYPE_COMBO_BOX_TEXT);
@@ -112,6 +114,7 @@ gtk_combo_box_text_alt_class_init(GtkComboBoxText_AltClass *klass)
 	widget_class->get_preferred_width = gtk_combo_box_text_alt_get_preferred_width;
 	widget_class->get_preferred_height = gtk_combo_box_text_alt_get_preferred_height;
         widget_class->get_preferred_height_for_width = gtk_combo_box_text_alt_get_preferred_height_for_width;
+        widget_class->get_preferred_width_for_height = gtk_combo_box_text_alt_get_preferred_width_for_height;
 
 	/* Override GtkComboBoxText methods */
         GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
@@ -135,9 +138,23 @@ gtk_combo_box_text_alt_init(GtkComboBoxText_Alt *comboboxtextAlt)
 
 /* Return a new GtkComboBoxText_Alt cast to a GtkWidget */
 GtkWidget *
-gtk_combo_box_text_alt_new()
+gtk_combo_box_text_alt_new(VALUE attribs)
 {
-  return GTK_WIDGET(g_object_new(gtk_combo_box_text_alt_get_type(), NULL));
+  GtkWidget *ref;
+  ref = GTK_WIDGET(g_object_new(gtk_combo_box_text_alt_get_type(), NULL));
+  
+  /* emulating gtk2 defaults*/
+  int w = 160, h = -1; /*h = 30*/
+  if (RTEST(ATTR(attribs, width))) w = NUM2INT(ATTR(attribs, width));
+  if (RTEST(ATTR(attribs, height))) h = NUM2INT(ATTR(attribs, height));
+  
+  //GtkCellArea *area = gtk_cell_layout_get_area((GtkCellLayout *)ref);
+  GList *renderers = gtk_cell_layout_get_cells((GtkCellLayout *)ref);
+  GtkCellRendererText *cell = g_list_first(renderers)->data;    //only one renderer
+  gtk_cell_renderer_set_fixed_size((GtkCellRenderer *)cell, w, h);
+  g_object_set((GtkCellRenderer *)cell, "ellipsize", PANGO_ELLIPSIZE_END, NULL);
+  
+  return ref;
 }
 
 
@@ -146,18 +163,20 @@ gtk_combo_box_text_alt_get_preferred_width(GtkWidget *widget, int *minimal, int 
 {
     g_return_if_fail(widget != NULL);
     
+/*  This is how we can access private data from parent Widget
     GtkComboBox *combo_box = GTK_COMBO_BOX(widget);
-    GtkComboBoxPrivate *priv = combo_box->priv;
-//    gint box_width;
-//    gtk_widget_get_preferred_width(priv->box, &box_width, NULL);
+    GtkComboBoxPrivate *priv = G_TYPE_INSTANCE_GET_PRIVATE(combo_box,
+                                                          GTK_TYPE_COMBO_BOX,
+                                                          GtkComboBoxPrivate);
+    gint box_width;
+    gtk_widget_get_preferred_width(priv->box, &box_width, NULL);
+*/  
     
     GList *renderers = gtk_cell_layout_get_cells((GtkCellLayout *)widget);
     GtkCellRenderer *cell = g_list_first(renderers)->data;    //only one renderer
-  
     gint cell_width, cell_height;
-    //gtk_cell_renderer_get_fixed_size((GtkCellRenderer *)priv->text_renderer, &cell_width, &cell_height);
     gtk_cell_renderer_get_fixed_size(cell, &cell_width, &cell_height);
-    printf("cell_width cell_height : %d, %d\n", cell_width, cell_height);
+    
     *minimal = cell_width;
     *natural = cell_width;
 }
@@ -167,10 +186,23 @@ gtk_combo_box_text_alt_get_preferred_height(GtkWidget *widget, int *minimal, int
 {
     g_return_if_fail(widget != NULL);
     
+    /* Combo box is height-for-width only
+     * (so we always just reserve enough height for the minimum width) */
     gint min_width, nat_width;
     GTK_WIDGET_GET_CLASS (widget)->get_preferred_width(widget, &min_width, &nat_width);
     GTK_WIDGET_GET_CLASS (widget)->get_preferred_height_for_width(widget, min_width, minimal, natural);
     
+}
+
+static void
+gtk_combo_box_text_alt_get_preferred_width_for_height(GtkWidget *widget,
+                                              gint       avail_size,
+                                              gint      *minimum_size,
+                                              gint      *natural_size)
+{
+  /* Combo box is height-for-width only
+   * (so we assume we always reserved enough height for the minimum width) */
+  GTK_WIDGET_GET_CLASS (widget)->get_preferred_width(widget, minimum_size, natural_size);
 }
 
 static void
@@ -183,10 +215,12 @@ gtk_combo_box_text_alt_get_preferred_height_for_width(GtkWidget *widget,
     GtkCellRenderer *cell = g_list_first(renderers)->data;    //only one renderer
   
     gint cell_width, cell_height;
-    //gtk_cell_renderer_get_fixed_size((GtkCellRenderer *)priv->text_renderer, &cell_width, &cell_height);
     gtk_cell_renderer_get_fixed_size(cell, &cell_width, &cell_height);
-    printf("avail_size : %d\n", avail_size);
     
-    minimum_size = cell_height;
-    natural_size = cell_height;
+    gint xpad, ypad;
+    gtk_cell_renderer_get_padding(cell, &xpad, &ypad);
+    gtk_cell_renderer_set_padding(cell, xpad, 0);
+    
+    *minimum_size = cell_height;
+    *natural_size = cell_height;
 }

@@ -4,7 +4,7 @@
 
 #include <glib-object.h>
 #include <gtk/gtk.h>
-
+#include "shoes/ruby.h"
 G_BEGIN_DECLS
 
 #define GTK_TYPE_COMBO_BOX_TEXT_ALT           (gtk_combo_box_text_alt_get_type())
@@ -25,7 +25,8 @@ typedef struct _GtkComboBoxText_AltClass {
 } GtkComboBoxText_AltClass;
 
 GType gtk_combo_box_text_alt_get_type(void) G_GNUC_CONST;
-GtkWidget *gtk_combo_box_text_alt_new(void);
+//GtkWidget *gtk_combo_box_text_alt_new(void);
+GtkWidget *gtk_combo_box_text_alt_new(VALUE attribs);
 
 G_END_DECLS
 

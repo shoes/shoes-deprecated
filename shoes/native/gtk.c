@@ -1389,22 +1389,8 @@ SHOES_CONTROL_REF
 shoes_native_list_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
 #ifdef GTK3
-  /* emulating gtk2 defaults*/
-  int w = 160, h = 30;
-  if (RTEST(ATTR(attr, width))) w = NUM2INT(ATTR(attr, width));
-  if (RTEST(ATTR(attr, height))) h = NUM2INT(ATTR(attr, height));
-  ATTR_MARGINS(attr, 2, canvas);
-  ATTRSET(attr, margin_bottom, INT2NUM(bmargin)); // TODO only this one is really needed (not clean though)
-
   //SHOES_CONTROL_REF ref = gtk_combo_box_text_new();
-  SHOES_CONTROL_REF ref = gtk_combo_box_text_alt_new();
-
-  //GtkCellArea *area = gtk_cell_layout_get_area((GtkCellLayout *)ref);
-  GList *renderers = gtk_cell_layout_get_cells((GtkCellLayout *)ref);
-  GtkCellRendererText *cell = g_list_first(renderers)->data;    //only one renderer
-  gtk_cell_renderer_set_fixed_size((GtkCellRenderer *)cell, w, h);
-  g_object_set((GtkCellRenderer *)cell, "ellipsize", PANGO_ELLIPSIZE_END, NULL);
-
+  SHOES_CONTROL_REF ref = gtk_combo_box_text_alt_new(attr);
 #else
   SHOES_CONTROL_REF ref = gtk_combo_box_new_text();
 #endif
