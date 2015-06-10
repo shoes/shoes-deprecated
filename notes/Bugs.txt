@@ -1,11 +1,13 @@
 Bugs/Status - stick with Ruby 2.1.x and gtk2 until things get sorted
   out with GKt3 and later Rubies
   
-2015-06-09 Back from vacation.
-1.     Merge GTK3 branch & test. @passenger94 thinks it might be OK.
+2015-06-09 Back from vacation. Status check:
+1.   Merge GTK3 branch & test. @passenger94 thinks it might be OK.
 2    Can we launch on OSX and keep the console? - Plist magic?
 3.   Figure out how to set gtk threads so that byebug will not stop them
-4.   If 3 works, Then we can proceed with writing a better console.
+     There is a whitelist mech - can we use it?
+     May have to re-implement the byebug/runner.rb code. 
+4.   If 3 works, then we can proceed with writing a better console.
 
 2015-06-02 on branch 'console'
 
@@ -14,7 +16,7 @@ Bugs/Status - stick with Ruby 2.1.x and gtk2 until things get sorted
      
 ----> byebug needs hooking up instead of the prompt loop.
       With a Shoes/Ruby thread it almost works. Shows some byebug output
-      hangs. The stdio swap works. 
+      hangs. The stdio swap works. It appears that all os threads may be frozen
 
      byebug manages threads from rb_thread_xxx uses. Gtk threads should
      not be part of that. How to init byebug from Shoes/Ruby in
