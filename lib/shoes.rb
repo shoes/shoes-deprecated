@@ -48,7 +48,7 @@ end
 
 class Shoes
   RELEASES = %w[Curious Raisins Policeman Federales]
-
+  
   NotFound = proc do
     para "404 NOT FOUND, GUYS!"
   end
@@ -61,6 +61,10 @@ class Shoes
 
   OPTS = OptionParser.new do |opts|
     opts.banner = "Usage: shoes [options] (app.rb or app.shy)"
+    
+    opts.on('-d', '--debug', 'Debug Shoes script') do
+      ENV['CMDLINE_DEBUG'] = true.to_s
+    end
 
     opts.on("-m", "--manual",
             "Open the built-in manual.") do
@@ -180,7 +184,7 @@ class Shoes
         stack do
           background black(0.2), :curve => 8
           para link(strong("Open an App")) { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
-          para link(strong("Debug an App")) { Shoes.show_selector true and close }, :margin => 10, :margin_bottom => 4
+#          para link(strong("Debug an App")) { Shoes.show_selector true and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Package my script (shy)")) { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Package an App with Shoes")) {Shoes.app_package and close }, :margin => 10, :margin_bottom => 4
 #          para link("Obsolete: Package") { Shoes.make_pack and close }, :margin => 10, :margin_bottom => 4
@@ -474,18 +478,19 @@ class Shoes
         Dir.chdir(File.dirname(path))
         path = File.basename(path)
       end
-      if debug
-        # spin up the console window and call the debugger with the path
-        #require 'shoes/remote_debugger'
-        #@console_app =
-        #  Shoes.app do
-        #    extend Shoes::Debugger
-        #    setup path
-        #  end
+      if ENV['CMDLINE_DEBUG']
         require 'byebug'
         require 'byebug/runner'
         $PROGRAM_NAME = path
         Byebug.debug_load($PROGRAM_NAME, true) # this starts byebug loop
+      elsif debug
+        # spin up the console window and call the debugger with the path
+        require 'shoes/debugger'
+        @console_app =
+          Shoes.app do
+            extend Shoes::Debugger
+            setup path
+          end
       else
         $0.replace path
         code = read_file(path)
