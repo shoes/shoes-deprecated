@@ -8,7 +8,7 @@
 require_relative 'shoes/cache' # do First thing
 ARGV.delete_if { |x| x =~ /-psn_/ }
 
-# Probably don't need this 
+# Probably don't need this
 class Encoding
   %w[UTF_7 UTF_16BE UTF_16LE UTF_32BE UTF_32LE].each do |enc|
     eval "class #{enc};end" unless const_defined? enc.to_sym
@@ -25,18 +25,18 @@ end
 
 def Shoes.hook; end
 
- 
+
 #class Encoding
 # %w[ASCII_8BIT UTF_16BE UTF_16LE UTF_32BE UTF_32LE US_ASCII].each do |ec|
 #   eval "#{ec} = '#{ec.sub '_', '-'}'"
 # end unless RUBY_PLATFORM =~ /linux/ or RUBY_PLATFORM =~ /darwin/ or RUBY_PLATFORM =~ /mingw/
 #end
 
-class Range 
-  def rand 
+class Range
+  def rand
     conv = (Integer === self.end && Integer === self.begin ? :to_i : :to_f)
-    ((Kernel.rand * (self.end - self.begin)) + self.begin).send(conv) 
-  end 
+    ((Kernel.rand * (self.end - self.begin)) + self.begin).send(conv)
+  end
 end
 
 unless Time.respond_to? :today
@@ -48,11 +48,11 @@ end
 
 class Shoes
   RELEASES = %w[Curious Raisins Policeman Federales]
-
+  
   NotFound = proc do
     para "404 NOT FOUND, GUYS!"
   end
- 
+
   class << self; attr_accessor :locale, :language end
   @locale = ENV["SHOES_LANG"] || ENV["LC_MESSAGES"] || ENV["LC_ALL"] || ENV["LANG"] || "C"
   @language = @locale[/^(\w{2})_/, 1] || "en"
@@ -62,6 +62,10 @@ class Shoes
   OPTS = OptionParser.new do |opts|
     opts.banner = "Usage: shoes [options] (app.rb or app.shy)"
     
+    opts.on('-d', '--debug', 'Debug Shoes script') do
+      ENV['CMDLINE_DEBUG'] = true.to_s
+    end
+
     opts.on("-m", "--manual",
             "Open the built-in manual.") do
       show_manual
@@ -71,13 +75,13 @@ class Shoes
             "(Obsolete) Package a Shoes app for Windows, OS X and Linux.") do |s|
       make_pack
     end
- 
-    opts.on("-p", "--cobbler", 
+
+    opts.on("-p", "--cobbler",
             "Maintain Shoes installation") do |c|
       cobbler
     end
-   
-    opts.on("-p", "--package", 
+
+    opts.on("-p", "--package",
             "Package Shoes App (new)") do |c|
       app_package
     end
@@ -105,7 +109,7 @@ class Shoes
       $NOLAYERED = 1
       Shoes.args!
     end
-    
+
     opts.on_tail("-v", "--version", "Display the version info.") do
       #raise SystemExit, File.read("#{DIR}/VERSION.txt").strip
      #str = "Shoes #{Shoes::VERSION_NAME} r#{Shoes::VERSION_REVISION} #{Shoes::VERSION_DATE} #{RUBY_PLATFORM} #{RUBY_VERSION}"
@@ -148,7 +152,7 @@ class Shoes
 
   def self.splash
     font "#{DIR}/fonts/Lacuna.ttf"
-    Shoes.app :width => 400, :height => 500, :resizable => false do  
+    Shoes.app :width => 400, :height => 500, :resizable => false do
       style(Para, :align => "center", :weight => "bold", :font => "Lacuna Regular", :size => 13)
       style(Link, :stroke => yellow, :underline => nil)
       style(LinkHover, :stroke => yellow, :fill => nil)
@@ -168,7 +172,7 @@ class Shoes
       strokewidth 40.0
 
       @waves = stack :top => 0, :left => 0
-      
+
       require 'shoes/search'
       require 'shoes/help'
 
@@ -180,7 +184,7 @@ class Shoes
         stack do
           background black(0.2), :curve => 8
           para link(strong("Open an App")) { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
-          para link(strong("Debug an App")) { Shoes.show_selector true and close }, :margin => 10, :margin_bottom => 4
+#          para link(strong("Debug an App")) { Shoes.show_selector true and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Package my script (shy)")) { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Package an App with Shoes")) {Shoes.app_package and close }, :margin => 10, :margin_bottom => 4
 #          para link("Obsolete: Package") { Shoes.make_pack and close }, :margin => 10, :margin_bottom => 4
@@ -209,11 +213,11 @@ class Shoes
       }
     end
   end
-  
+
   def self.cobbler
     require 'shoes/cobbler'
   end
-  
+
   def self.app_package
     require 'shoes/app_package'
   end
@@ -382,12 +386,12 @@ class Shoes
   def self.show_manual
     manual_as :shoes
   end
-  
+
   def self.show_irb
     require 'shoes/irb'
     Shoes.irb
   end
- 
+
   def self.remote_debug
     require "shoes/remote_debugger.rb"
     Shoes.rdb
@@ -407,7 +411,7 @@ class Shoes
     @mounts << [path, meth || blk]
   end
 
-  SHOES_URL_RE = %r!^@([^/]+)(.*)$! 
+  SHOES_URL_RE = %r!^@([^/]+)(.*)$!
 
   def self.run(path)
     uri = URI(path)
@@ -474,14 +478,19 @@ class Shoes
         Dir.chdir(File.dirname(path))
         path = File.basename(path)
       end
-      if debug
+      if ENV['CMDLINE_DEBUG']
+        require 'byebug'
+        require 'byebug/runner'
+        $PROGRAM_NAME = path
+        Byebug.debug_load($PROGRAM_NAME, true) # this starts byebug loop
+      elsif debug
         # spin up the console window and call the debugger with the path
-        require 'shoes/remote_debugger' 
+        require 'shoes/debugger'
         @console_app =
           Shoes.app do
             extend Shoes::Debugger
             setup path
-          end       
+          end
       else
         $0.replace path
         code = read_file(path)
@@ -493,7 +502,7 @@ class Shoes
     error(e)
     show_log
   end
-  
+
   def self.clean
     FileUtils.rm_rf(@tmpdir, :secure => true) if @shy
   end
@@ -522,11 +531,11 @@ class Shoes
       elsif opts[:downward]
         opts[:top] = self.top + opts.delete(:downward)
       end
-      
+
       if opts[:sideways]
         opts[:left] = self.left + opts.delete(:sideways)
       end
-      
+
       @TWEEN.remove if @TWEEN
       @TWEEN = parent.animate(opts[:speed] || 20) do
 
