@@ -1389,8 +1389,11 @@ SHOES_CONTROL_REF
 shoes_native_list_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
 #ifdef GTK3
+  /*get bottom margin : following macro gives us bmargin (also lmargin,tmargin,rmargin)*/
+  ATTR_MARGINS(attr, 2, canvas);
+  
   //SHOES_CONTROL_REF ref = gtk_combo_box_text_new();
-  SHOES_CONTROL_REF ref = gtk_combo_box_text_alt_new(attr);
+  SHOES_CONTROL_REF ref = gtk_combo_box_text_alt_new(attr, bmargin);
 #else
   SHOES_CONTROL_REF ref = gtk_combo_box_new_text();
 #endif
