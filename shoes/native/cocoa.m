@@ -63,7 +63,7 @@
   [win keyDown: [NSEvent keyEventWithType:NSKeyDown
     location:NSMakePoint(0,0) modifierFlags:flags
     timestamp:0 windowNumber:0 context:nil
-    characters:key charactersIgnoringModifiers:key2 isARepeat:NO 
+    characters:key charactersIgnoringModifiers:key2 isARepeat:NO
     keyCode:0]];
 }
 - (void)help: (id)sender
@@ -366,7 +366,7 @@
 }
 -(IBAction)handleClick: (id)sender
 {
-	//NSLog(@"radio button handler called on %lx", object); 
+	//NSLog(@"radio button handler called on %lx", object);
   shoes_button_send_click(object);
 }
 @end
@@ -423,7 +423,7 @@
       NSMakeRect(0, 0, frame.size.width, frame.size.height)];
     [textView setVerticallyResizable: YES];
     [textView setHorizontallyResizable: YES];
-    
+
     [self setBorderType: NSBezelBorder];
     [self setHasVerticalScroller: YES];
     [self setHasHorizontalScroller: NO];
@@ -635,7 +635,7 @@ create_edit_menu(NSMenu *main)
 
 void
 create_window_menu(NSMenu *main)
-{   
+{
     NSMenu *menuWindows = [[NSMenu alloc] initWithTitle: @"Window"];
 
     [menuWindows addItemWithTitle:@"Minimize"
@@ -653,7 +653,7 @@ create_window_menu(NSMenu *main)
 
 void
 create_help_menu(NSMenu *main)
-{   
+{
     NSMenuItem *menuitem;
     NSMenu *menuHelp = [[NSMenu alloc] initWithTitle: @"Help"];
     menuitem = [menuHelp addItemWithTitle:@"Console"
@@ -675,8 +675,8 @@ shoes_font_list()
   VALUE ary = rb_ary_new();
   // CFBooleanRef value= kCFBooleanTrue;
   int vtrue[1] = {1};
-  CFDictionaryRef dict = CFDictionaryCreate(NULL, 
-					    (const void **)kCTFontCollectionRemoveDuplicatesOption, 
+  CFDictionaryRef dict = CFDictionaryCreate(NULL,
+					    (const void **)kCTFontCollectionRemoveDuplicatesOption,
 					    (const void **)&vtrue, 1, NULL, NULL);
   CTFontCollectionRef fcref = CTFontCollectionCreateFromAvailableFonts(dict);
   CFArrayRef arrayref = CTFontCollectionCreateMatchingFontDescriptors(fcref);
@@ -695,7 +695,7 @@ shoes_font_list()
   ATSFontIterator fi = NULL;
   ATSFontRef fontRef = 0;
   NSMutableArray *outArray;
-  VALUE ary = rb_ary_new(); 
+  VALUE ary = rb_ary_new();
   if (noErr == ATSFontIteratorCreate(kATSFontContextLocal, nil, nil,
          kATSOptionFlagsUnRestrictedScope, &fi))
   {
@@ -707,7 +707,7 @@ shoes_font_list()
         rb_ary_push(ary, rb_str_new2([fontName UTF8String]));
     }
   }
-  
+
   ATSFontIteratorRelease(&fi);
 #endif
   RELEASE;
@@ -740,19 +740,19 @@ shoes_load_font(const char *filename)
   FSPathMakeRef(filename, &fsRef, &isDir);
   if (FSGetCatalogInfo(&fsRef, kFSCatInfoNone, NULL, NULL, &fsSpec, NULL) == noErr)
   {
-    ATSFontActivateFromFileReference(&fsRef, kATSFontContextLocal, kATSFontFormatUnspecified, 
+    ATSFontActivateFromFileReference(&fsRef, kATSFontContextLocal, kATSFontFormatUnspecified,
       NULL, kATSOptionFlagsDefault, &ref);
     if (ref != NULL)
     {
       int i = 0;
       ItemCount count = 0;
       ATSFontRef *fonts;
-      ATSFontFindFromContainer(ref, kATSOptionFlagsDefault, 0, NULL, &count); 
+      ATSFontFindFromContainer(ref, kATSOptionFlagsDefault, 0, NULL, &count);
       families = rb_ary_new();
       if (count > 0)
       {
         fonts = SHOE_ALLOC_N(ATSFontRef, count);
-        ATSFontFindFromContainer(ref, kATSOptionFlagsDefault, count, fonts, &count); 
+        ATSFontFindFromContainer(ref, kATSOptionFlagsDefault, count, fonts, &count);
         for (i = 0; i < count; i++)
         {
           fontName = NULL;
@@ -1064,7 +1064,7 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
     slot->vscroll = NULL;
     if (scrolls)
     {
-      slot->vscroll = [[NSScroller alloc] initWithFrame: 
+      slot->vscroll = [[NSScroller alloc] initWithFrame:
         NSMakeRect(width - [NSScroller scrollerWidth], 0, [NSScroller scrollerWidth], height)];
       [slot->vscroll setEnabled: YES];
       [slot->vscroll setTarget: slot->view];
@@ -1213,7 +1213,7 @@ shoes_native_surface_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
 }
 
 void
-shoes_native_surface_position(SHOES_SURFACE_REF ref, shoes_place *p1, 
+shoes_native_surface_position(SHOES_SURFACE_REF ref, shoes_place *p1,
   VALUE self, shoes_canvas *canvas, shoes_place *p2)
 {
   PLACE_COORDS();
@@ -1283,6 +1283,13 @@ shoes_native_edit_line_set_text(SHOES_CONTROL_REF ref, char *msg)
 {
   COCOA_DO([ref setStringValue: [NSString stringWithUTF8String: msg]]);
 }
+
+VALUE
+shoes_native_edit_line_cursor_to_end(SHOES_CONTROL_REF ref)
+{
+  // TODO: 
+}
+
 
 SHOES_CONTROL_REF
 shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
@@ -1437,7 +1444,7 @@ shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE a
 	 RELEASE;
 	 return (NSControl *)button;
 #else
- 	/* 
+ 	/*
  	NSLog(@"shoes_native_radio self: %i, %lx", TYPE(self), self);
  	if (NIL_P(group))
  		NSLog(@"group: NIL");
@@ -1500,7 +1507,7 @@ shoes_native_window_color(shoes_app *app)
 {
   // float r, g, b, a;
   // INIT;
-  // [[[app->os.window backgroundColor] colorUsingColorSpace: [NSColorSpace genericRGBColorSpace]] 
+  // [[[app->os.window backgroundColor] colorUsingColorSpace: [NSColorSpace genericRGBColorSpace]]
   //   getRed: &r green: &g blue: &b alpha: &a];
   // RELEASE;
   // return shoes_color_new((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255));
@@ -1540,9 +1547,9 @@ shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
         deftitle = [[NSString alloc] initWithUTF8String: ""];
       }
     }
-    //below form of alert is deprecated in 10.10 
+    //below form of alert is deprecated in 10.10
     //NSAlert *alert = [NSAlert alertWithMessageText: deftitle
-    //  defaultButton: @"OK" alternateButton: nil otherButton: nil 
+    //  defaultButton: @"OK" alternateButton: nil otherButton: nil
     //  informativeTextWithFormat: [NSString stringWithUTF8String: RSTRING_PTR(msg)]];
     NSAlert *alert = [[NSAlert alloc] init];
 		[alert setMessageText: deftitle];
@@ -1581,12 +1588,12 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
         deftitle = [[NSString alloc] initWithUTF8String: ""];
       }
     }
-		
+
     NSApplication *NSApp = [NSApplication sharedApplication];
     ShoesAlert *alert = [[ShoesAlert alloc] init];
-    NSButton *okButton = [[[NSButton alloc] initWithFrame: 
+    NSButton *okButton = [[[NSButton alloc] initWithFrame:
     NSMakeRect(244, 10, 88, 30)] autorelease];
-    NSButton *cancelButton = [[[NSButton alloc] initWithFrame: 
+    NSButton *cancelButton = [[[NSButton alloc] initWithFrame:
     NSMakeRect(156, 10, 88, 30)] autorelease];
     NSTextField *text = [[[NSTextField alloc] initWithFrame:
     NSMakeRect(20, 110, 260, 18)] autorelease];
@@ -1658,7 +1665,7 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
     quiz = shoes_native_to_s(quiz);
     msg = RSTRING_PTR(quiz);
     NSAlert *alert = [NSAlert alertWithMessageText: deftitle
-      defaultButton: @"OK" alternateButton: @"Cancel" otherButton:nil 
+      defaultButton: @"OK" alternateButton: @"Cancel" otherButton:nil
       informativeTextWithFormat: [NSString stringWithUTF8String: msg]];
     answer = ([alert runModal] == NSOKButton ? Qtrue : Qfalse);
   });
