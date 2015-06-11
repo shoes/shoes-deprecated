@@ -216,8 +216,6 @@ gtk_combo_box_text_alt_get_preferred_height_for_width(GtkWidget *widget,
     
     GtkRequisition min_size, nat_size;
     gtk_cell_renderer_get_preferred_size(cell, widget, &min_size, &nat_size);
-    gint cell_width, cell_height;
-    gtk_cell_renderer_get_fixed_size(cell, &cell_width, &cell_height);
     
     gint xpad, ypad;
     gtk_cell_renderer_get_padding(cell, &xpad, &ypad);
