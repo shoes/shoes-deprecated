@@ -10,9 +10,9 @@
    * Changes to gems - nokogiri replaces 'hpricot'
    * Ruby updated to 2.1.6
    * Ruby gems updated to 2.4.7 plus updates to bigdecimal.. 
-   * byebug gem is included for remote debugging (a separate terminal or
-     console) and you need Ruby installed - NOT the Ruby inside Shoes. 
+   * byebug gem is included for debugging. 
      https://github.com/Shoes3/shoes3/wiki/Debugging-with-Byebug
+     Yes. it is a 'big deal' and enhances the developer experience. 
    
 === Fixed with 3.2.23
 
@@ -21,7 +21,7 @@
    * add PackShoes.make_shy method and wiki article
      https://github.com/Shoes3/shoes3/wiki/Command-line-packager
    * separate compiling gems (more of a ruby thing) and copying gems
-     which is what Shoes now. Lots of changes to rakefiles. 
+     which is what Shoes does now. Lots of changes to rakefiles. 
    * Command line jock's can create platfrom specific pre-compiled binary
      gems that Cobbler can load into ~/+gems. 
    
