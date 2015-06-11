@@ -26,7 +26,7 @@ typedef struct _GtkComboBoxText_AltClass {
 
 GType gtk_combo_box_text_alt_get_type(void) G_GNUC_CONST;
 //GtkWidget *gtk_combo_box_text_alt_new(void);
-GtkWidget *gtk_combo_box_text_alt_new(VALUE attribs);
+GtkWidget *gtk_combo_box_text_alt_new(VALUE attribs, int bottom_margin);
 
 G_END_DECLS
 

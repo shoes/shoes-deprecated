@@ -138,7 +138,7 @@ gtk_combo_box_text_alt_init(GtkComboBoxText_Alt *comboboxtextAlt)
 
 /* Return a new GtkComboBoxText_Alt cast to a GtkWidget */
 GtkWidget *
-gtk_combo_box_text_alt_new(VALUE attribs)
+gtk_combo_box_text_alt_new(VALUE attribs, int bottom_margin)
 {
   GtkWidget *ref;
   ref = GTK_WIDGET(g_object_new(gtk_combo_box_text_alt_get_type(), NULL));
@@ -147,11 +147,11 @@ gtk_combo_box_text_alt_new(VALUE attribs)
   int w = 160, h = 30;
   if (RTEST(ATTR(attribs, width))) w = NUM2INT(ATTR(attribs, width));
   if (RTEST(ATTR(attribs, height))) h = NUM2INT(ATTR(attribs, height));
-  
+
   //GtkCellArea *area = gtk_cell_layout_get_area((GtkCellLayout *)ref);
   GList *renderers = gtk_cell_layout_get_cells((GtkCellLayout *)ref);
   GtkCellRendererText *cell = g_list_first(renderers)->data;    //only one renderer
-  gtk_cell_renderer_set_fixed_size((GtkCellRenderer *)cell, w, h);
+  gtk_cell_renderer_set_fixed_size((GtkCellRenderer *)cell, w, h-bottom_margin*2);
   g_object_set((GtkCellRenderer *)cell, "ellipsize", PANGO_ELLIPSIZE_END, NULL);
   
   return ref;
@@ -216,6 +216,8 @@ gtk_combo_box_text_alt_get_preferred_height_for_width(GtkWidget *widget,
     
     GtkRequisition min_size, nat_size;
     gtk_cell_renderer_get_preferred_size(cell, widget, &min_size, &nat_size);
+    gint cell_width, cell_height;
+    gtk_cell_renderer_get_fixed_size(cell, &cell_width, &cell_height);
     
     gint xpad, ypad;
     gtk_cell_renderer_get_padding(cell, &xpad, &ypad);
