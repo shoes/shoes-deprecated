@@ -147,10 +147,11 @@ gtk_combo_box_text_alt_new(VALUE attribs, int bottom_margin)
   int w = 160, h = 30;
   if (RTEST(ATTR(attribs, width))) w = NUM2INT(ATTR(attribs, width));
   if (RTEST(ATTR(attribs, height))) h = NUM2INT(ATTR(attribs, height));
-
+  
   //GtkCellArea *area = gtk_cell_layout_get_area((GtkCellLayout *)ref);
   GList *renderers = gtk_cell_layout_get_cells((GtkCellLayout *)ref);
   GtkCellRendererText *cell = g_list_first(renderers)->data;    //only one renderer
+  g_list_free(renderers);
   gtk_cell_renderer_set_fixed_size((GtkCellRenderer *)cell, w, h-bottom_margin*2);
   g_object_set((GtkCellRenderer *)cell, "ellipsize", PANGO_ELLIPSIZE_END, NULL);
   
@@ -174,6 +175,7 @@ gtk_combo_box_text_alt_get_preferred_width(GtkWidget *widget, int *minimal, int 
     
     GList *renderers = gtk_cell_layout_get_cells((GtkCellLayout *)widget);
     GtkCellRenderer *cell = g_list_first(renderers)->data;    //only one renderer
+    g_list_free(renderers);
     gint cell_width, cell_height;
     gtk_cell_renderer_get_fixed_size(cell, &cell_width, &cell_height);
     
@@ -213,10 +215,11 @@ gtk_combo_box_text_alt_get_preferred_height_for_width(GtkWidget *widget,
 {
     GList *renderers = gtk_cell_layout_get_cells((GtkCellLayout *)widget);
     GtkCellRenderer *cell = g_list_first(renderers)->data;    //only one renderer
+    g_list_free(renderers);
     
     GtkRequisition min_size, nat_size;
     gtk_cell_renderer_get_preferred_size(cell, widget, &min_size, &nat_size);
-    
+   
     gint xpad, ypad;
     gtk_cell_renderer_get_padding(cell, &xpad, &ypad);
     gtk_cell_renderer_set_padding(cell, xpad, 0);
@@ -224,5 +227,5 @@ gtk_combo_box_text_alt_get_preferred_height_for_width(GtkWidget *widget,
     *minimum_size = min_size.height;
     *natural_size = nat_size.height;
     
-}
-
+      }
+    
