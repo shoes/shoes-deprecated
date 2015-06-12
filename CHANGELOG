@@ -3,6 +3,7 @@
 === New with 3.2.23
    * snapshot works like image - it collects effects and drawings and 
      writes them to a file (pdf, svg or ps)
+     [needs manual entry/indexing]
    * discovered a skew method. 
    * Cobbler gets a couple of new buttons to show the manual or splash.
    * Windows: cmd line user packaged app can have a console window.
@@ -24,6 +25,7 @@
      which is what Shoes does now. Lots of changes to rakefiles. 
    * Command line jock's can create platfrom specific pre-compiled binary
      gems that Cobbler can load into ~/+gems. 
+     [This needs documentation]
    
 
 == Mar 26, 2015
