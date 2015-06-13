@@ -3766,6 +3766,49 @@ See [[Styles.state]] style for details.
 
 See [[Styles.state]] style for details.
 
+== Snapshot ==
+
+Shoes can draw an image block into a file instead of on the screen by calling
+the snapshot method. The file can be svg, ps, or pdf. 
+
+It's also possible to see it on the screen in certain situations 
+You'll have to decide if thats a bug or feature.
+
+=== snapshot(:format => a type of image, :filename => a path) {...} » snapshot raw data ===
+
+:format could be a svg (default), pdf or ps (it's also the extension of your saved snapshot).
+
+:filename is the path to the file where you save your snapshot (defaults to same filename in same directory as your script file with the choosen extension).
+
+Inside the block you build the image/snapshot you want to end up with :
+
+{{{
+#!ruby
+Shoes.app width: 400, height: 400 do 
+    ext = "svg"
+    ext = "pdf"
+    path = "#{LIB_DIR}/snapshotfile.#{ext}"
+     
+    stack do    
+        button("shoot!") do
+            r = snapshot :format => ext.to_sym, :filename => path  do
+                stroke blue
+                strokewidth 4
+                fill black
+                oval 100, 100, 200
+            end
+            info r.inspect
+            alert path, title: "snapshot saved to :"
+            Shoes.show_log
+            para "Done" # comment this out and the svg does not show
+        end
+    end
+end 
+}}}
+
+note that the method returns the drawing code (text) of the snapshot, so 
+you might take further control about details of your svg image for example.
+
 == TextBlock ==
 
 The TextBlock object represents a group of text organized as a single element.
