@@ -1,30 +1,46 @@
 = Federales - Shoes 3.2
 
 === New with 3.2.23
-   * snapshot works like image - it collects effects and drawings and 
+   * snapshot works like image - it collects image effects and 
      writes them to a file (pdf, svg or ps)
-     [needs manual entry/indexing]
-   * discovered a skew method. 
+     Search the manual for 'snapshot'.
+   * undocumented skew method on images
+     https://github.com/Shoes3/shoes3/issues/103
      Use manual search for 'skew'
    * Cobbler gets a couple of new buttons to show the manual or splash.
    * Windows: cmd line user packaged app can have a console window.
-     #110
+     https://github.com/Shoes3/shoes3/issues/110
    * Changes to gems - nokogiri replaces 'hpricot'
    * Ruby updated to 2.1.6
    * Ruby gems updated to 2.4.7 plus updates to bigdecimal.. 
    * byebug gem is included for debugging Ruby/Shoes scripts and .shy
      https://github.com/Shoes3/shoes3/wiki/Debugging-with-Byebug
-     Yes. it is a 'big deal' and enhances the developer experience. 
+     https://github.com/Shoes3/shoes3/issues/124
    
 === Fixed with 3.2.23
-
-=== Developer improvements
-   * platform specific extconf.rb files
+   * Click event not working when a scroll bar is scrolled down
+     https://github.com/Shoes3/shoes3/issues/35
+   * Scrolling with mousewheel on a scrollbar within a stack is not working
+     https://github.com/Shoes3/shoes3/issues/42
+   * Border are allways at 1 pixel offset in containing slot
+     https://github.com/Shoes3/shoes3/issues/102
+   * radio button, unusual behaviour
+     https://github.com/Shoes3/shoes3/issues/117
+   * scroll wheel speed
+     https://github.com/Shoes3/shoes3/issues/121
+   * Alert placed in the position of first opened window
+     https://github.com/Shoes3/shoes3/issues/119
+     Not fixed for OSX.
+   
+=== Building Shoes 
+   * platform specific extconf.rb files for hpricot, sqlite3, ftsearch, chipmunk
+     https://github.com/Shoes3/shoes3/issues/70
    * add PackShoes.make_shy method and wiki article
      https://github.com/Shoes3/shoes3/wiki/Command-line-packager
-   * separate compiling gems (more of a ruby thing) and copying gems
+   * separate compiling gems (mostly of a Ruby thing) and copying gems
      which is what Shoes does now. Lots of changes to rakefiles. 
-   * Command line jock's can create platfrom specific pre-compiled binary
+     https://github.com/Shoes3/shoes3/issues/72
+   * Command line folks can create platfrom specific pre-compiled binary
      gems that Cobbler can load into ~/+gems. 
      https://github.com/Shoes3/shoes3/wiki/Gempacks
    
