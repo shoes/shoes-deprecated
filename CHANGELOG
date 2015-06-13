@@ -5,13 +5,14 @@
      writes them to a file (pdf, svg or ps)
      [needs manual entry/indexing]
    * discovered a skew method. 
+     Use manual search for 'skew'
    * Cobbler gets a couple of new buttons to show the manual or splash.
    * Windows: cmd line user packaged app can have a console window.
      #110
    * Changes to gems - nokogiri replaces 'hpricot'
    * Ruby updated to 2.1.6
    * Ruby gems updated to 2.4.7 plus updates to bigdecimal.. 
-   * byebug gem is included for debugging. 
+   * byebug gem is included for debugging Ruby/Shoes scripts and .shy
      https://github.com/Shoes3/shoes3/wiki/Debugging-with-Byebug
      Yes. it is a 'big deal' and enhances the developer experience. 
    
@@ -25,7 +26,7 @@
      which is what Shoes does now. Lots of changes to rakefiles. 
    * Command line jock's can create platfrom specific pre-compiled binary
      gems that Cobbler can load into ~/+gems. 
-     [This needs documentation]
+     https://github.com/Shoes3/shoes3/wiki/Gempacks
    
 
 == Mar 26, 2015
