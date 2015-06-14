@@ -3768,13 +3768,17 @@ See [[Styles.state]] style for details.
 
 == Snapshot ==
 
-Shoes in all it's glorious vanity have the ability to take some selfies, so to keep up with the latest trendiness you've been rewarded with the snapshot method; Of course you have choice about the dress code: svg, pdf or ps depending on your mood swings.
+Shoes can draw an image block into a file instead of on the screen by calling
+the snapshot method. The file can be svg, ps, or pdf. 
+
+It's also possible to see it on the screen in certain situations 
+You'll have to decide if thats a bug or feature.
 
 === snapshot(:format => a type of image, :filename => a path) {...} » snapshot raw data ===
 
 :format could be a svg (default), pdf or ps (it's also the extension of your saved snapshot).
 
-:filename is the path to the file where you saved your snapshot (defaults to same filename in same directory as your script file with the choosen extension).
+:filename is the path to the file where you save your snapshot (defaults to same filename in same directory as your script file with the choosen extension).
 
 Inside the block you build the image/snapshot you want to end up with :
 
@@ -3782,6 +3786,7 @@ Inside the block you build the image/snapshot you want to end up with :
 #!ruby
 Shoes.app width: 400, height: 400 do 
     ext = "svg"
+    ext = "pdf"
     path = "#{LIB_DIR}/snapshotfile.#{ext}"
      
     stack do    
@@ -3795,12 +3800,14 @@ Shoes.app width: 400, height: 400 do
             info r.inspect
             alert path, title: "snapshot saved to :"
             Shoes.show_log
+            para "Done" # comment this out and the svg does not show
         end
     end
 end 
 }}}
 
-note that the method returns the inners of the snapshot, so you might take further control about details of your svg image for example.
+note that the method returns the drawing code (text) of the snapshot, so 
+you might take further control about details of your svg image for example.
 
 == TextBlock ==
 
