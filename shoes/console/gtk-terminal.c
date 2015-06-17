@@ -112,13 +112,25 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 
 	/* create a new window */
 	window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-	gtk_widget_set_size_request (GTK_WIDGET (window), 800, 800);
+	gtk_widget_set_size_request (GTK_WIDGET (window), 800, 404);
 	gtk_window_set_title (GTK_WINDOW (window), "TESI Gtk Terminal");
 	g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK (gtk_main_quit), NULL);
 	g_signal_connect_swapped (G_OBJECT (window), "delete_event", G_CALLBACK (gtk_widget_destroy), G_OBJECT (window));
-
+    // like a Shoes stack at the top. 
 	vbox = gtk_vbox_new (FALSE, 2);
 	gtk_container_add (GTK_CONTAINER (window), vbox);
+	
+	// need a box with a string, copy button and clear button
+	GtkWidget *btnpnl = gtk_hbox_new(false, 2); // think flow layout
+	GtkWidget *announce = gtk_label_new("Shoes console");
+	gtk_box_pack_start(GTK_BOX(btnpnl), announce, 0, 0, 0);
+	GtkWidget *clrbtn = gtk_button_new_with_label ("Clear");
+	gtk_box_pack_start (GTK_BOX(btnpnl), clrbtn, 0, 0, 0);
+ 	GtkWidget *cpybtn = gtk_button_new_with_label ("Copy");
+	gtk_box_pack_start (GTK_BOX(btnpnl), cpybtn, 0, 0, 0);
+    gtk_box_pack_start (GTK_BOX(vbox), GTK_CONTAINER(btnpnl), 0, 0, 0);
+
+    // then a widget/panel for the terminal 
 
 	sw = gtk_scrolled_window_new(NULL, NULL);
 	gtk_box_pack_start (GTK_BOX (vbox), GTK_WIDGET(sw), 1, 1, 0);
@@ -129,7 +141,7 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 	pfd = pango_font_description_from_string ("monospace");
 	gtk_widget_modify_font (canvas, pfd);
 
-	t = newTesiObject("/bin/bash", 70, 24);
+	t = newTesiObject("/bin/bash", 80, 24);
 	t->pointer = canvas;
 	t->callback_printCharacter = &tesi_printCharacter;
 	t->callback_eraseCharacter = &tesi_eraseCharacter;

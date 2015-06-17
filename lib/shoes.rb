@@ -67,6 +67,24 @@ class Shoes
       show_manual
     end
 
+    opts.on("--console", "dispaly console") do |c|
+      show_log
+      show_console
+      # begin test loop
+      Thread.new do
+        loop do
+          $stdout.write "prompt: "
+          ln = $stdin.gets
+          if ln.strip == 'quit' 
+            $stderr.write "really quit (y/n)"
+            ans = $stdin.gets.strip
+            exit if ans == 'y'
+          end
+          $stdout.puts ln
+        end
+      end
+    end
+    
     opts.on("--old-package",
             "(Obsolete) Package a Shoes app for Windows, OS X and Linux.") do |s|
       make_pack
@@ -180,7 +198,7 @@ class Shoes
         stack do
           background black(0.2), :curve => 8
           para link(strong("Open an App")) { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
-          para link(strong("Debug an App")) { Shoes.show_selector true and close }, :margin => 10, :margin_bottom => 4
+#         para link(strong("Debug an App")) { Shoes.show_selector true and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Package my script (shy)")) { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Package an App with Shoes")) {Shoes.app_package and close }, :margin => 10, :margin_bottom => 4
 #          para link("Obsolete: Package") { Shoes.make_pack and close }, :margin => 10, :margin_bottom => 4
@@ -476,35 +494,8 @@ class Shoes
       end
       if debug
         # spin up the console window and call the debugger with the path
-        show_log   # just to have an app on the screen 
-        show_console  
-        # demo loop
-        #Thread.new do
-        #  loop do
-        #    $stdout.write "prompt: "
-        #    ln = $stdin.gets
-        #    if ln.strip == 'quit' 
-        #      $stderr.write "really quit (y/n)"
-        #      ans = $stdin.gets.strip
-        #      exit if ans == 'y'
-        #    end
-        #    $stdout.puts ln
-        #  end
-        #end
-        byethr = Thread.new do
-          require 'byebug'
-          require 'byebug/runner'
-          #dbg = Byebug::Runner.new
-          # need to whitelist this thread from being stopped
-          error = Byebug.debug_load(path, true)
-          Byebug.puts "#{status}\n#{status.backtrace}" if error
-        end
-      
-        #@console_app =
-        #  Shoes.app do
-        #    extend Shoes::Debugger
-        #    setup path
-        #  end       
+        #show_log   # just to have an app on the screen 
+        #show_console  
       else
         $0.replace path
         code = read_file(path)

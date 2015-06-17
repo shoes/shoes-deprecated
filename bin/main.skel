@@ -74,6 +74,7 @@ main(argc, argv)
     }
   } 
   // Not --ruby argv
+#ifdef SHOES_WIN32
   if (argc > 1 && strcmp(argv[1], "--console") == 0)
   {
     shoes_native_console();
@@ -88,6 +89,7 @@ main(argc, argv)
     argc--;
     printf("Using new console: %s %s \n",argv[0], argv[1]);
  }
+#endif
 #ifdef SHOES_WIN32
   code = shoes_init(inst, style);
 #else
