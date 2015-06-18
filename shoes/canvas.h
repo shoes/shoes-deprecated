@@ -222,7 +222,6 @@ typedef struct {
   char hover;
 } shoes_image;
 
-#define SHOES_VIDEO 0
 
 //
 // pattern struct

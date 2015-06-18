@@ -113,7 +113,7 @@ typedef struct {
 #endif
 
 #define DC(slot) slot->oscanvas
-#define HAS_DRAWABLE(slot) slot->canvas->window != 0
+#define HAS_DRAWABLE(slot) slot->oscanvas->window != 0
 #define DRAWABLE(ref) GDK_DRAWABLE_XID(ref->window)
 #define APP_WINDOW(app) (app == NULL ? NULL : GTK_WINDOW(app->os.window))
 
