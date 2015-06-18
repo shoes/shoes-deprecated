@@ -67,20 +67,26 @@ class Shoes
       show_manual
     end
 
-    opts.on("--console", "dispaly console") do |c|
-      show_log
+    opts.on("--console", "display console") do |c|
+      show_log # need something on the screen for Shoes- FIXME
       show_console
-      # begin test loop
+      #require 'readline'
+      require 'io/console'
       Thread.new do
         loop do
-          $stdout.write "prompt: "
-          ln = $stdin.gets
+          #$stdout.write "prompt: "
+          #ln = $stdin.gets
+          #ln = $stdin.readline
+          #Readline::vi_editing_mode
+          #ln = Readline::readline('> ', false)
+          ln = STDIN.cooked(&:gets)
+
           if ln.strip == 'quit' 
             $stderr.write "really quit (y/n)"
             ans = $stdin.gets.strip
             exit if ans == 'y'
           end
-          $stdout.puts ln
+          $stdout.puts "Shoes: #{ln}"
         end
       end
     end

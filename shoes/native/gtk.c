@@ -1898,8 +1898,9 @@ int shoes_native_console()
 #else
 int shoes_native_console()
 {
-  printf("gtk console creation\n");
+  printf("init gtk console\n");
   shoes_native_app_console();
+  printf("gtk\010k\011console created\n"); //test \b \t in string
   return 1;
 }
 #endif

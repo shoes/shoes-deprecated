@@ -23,12 +23,12 @@ static gboolean keypress_event(GtkWidget *widget, GdkEvent *event, gpointer data
 	struct tesiObject *t = (struct tesiObject*) data;
 	char *c = ((GdkEventKey*)event)->string;
 	char s = *c;
-
+    
 	write(t->fd_input, &s, 1);
 	return TRUE;
 }
 
-void tesi_printCharacter(void *p, char c) {
+void tesi_printCharacter(void *p, char c, int x, int y) { 
 	char in[129];
 	
 	GtkTextBuffer *buffer;
@@ -37,17 +37,29 @@ void tesi_printCharacter(void *p, char c) {
 	//gtk_text_buffer_get_end_iter(buffer, &i);
 	//printf("Print %c\n", c);
 
-	gtk_text_buffer_insert(buffer, &iter, in, 1);
+	gtk_text_buffer_insert(buffer, &iter, in, 1); 
 }
-void tesi_eraseCharacter(void *p) {
+void tesi_eraseCharacter(void *p, int x, int y) {
 	GtkTextBuffer *buffer;
 	GtkTextIter i;
-	/*
+	
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(p));
-	gtk_text_iter_forward_to_line_end(&i);
+	//gtk_text_iter_forward_to_line_end(&i);
 	gtk_text_buffer_get_iter_at_line_index(buffer, &iter, y, x);
-	gtk_text_buffer_delete(buffer, &iter, &iter);
-	*/
+	//gtk_text_buffer_delete(buffer, &iter, &iter);  // cjc
+	gtk_text_buffer_backspace(buffer, &iter, 1, 1);  // cjc 
+}
+
+void tesi_scrollUp(void *p) {
+	// add line to buffer, scroll up 
+	GtkTextBuffer *buffer;
+	GtkTextIter iter;
+	gint lcnt;
+	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(p));
+	lcnt = gtk_text_buffer_get_line_count(buffer);
+	gtk_text_buffer_get_iter_at_line_index(buffer, &iter, lcnt, 0);
+	gtk_text_buffer_insert(buffer, &iter, "\n", 1);
+	
 }
 void tesi_moveCursor(void *p, int x, int y) {
 	/*
@@ -112,8 +124,8 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 
 	/* create a new window */
 	window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-	gtk_widget_set_size_request (GTK_WIDGET (window), 800, 404);
-	gtk_window_set_title (GTK_WINDOW (window), "TESI Gtk Terminal");
+	gtk_widget_set_size_request (GTK_WIDGET (window), 800, 440);
+	gtk_window_set_title (GTK_WINDOW (window), "Shoes Terminal");
 	g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK (gtk_main_quit), NULL);
 	g_signal_connect_swapped (G_OBJECT (window), "delete_event", G_CALLBACK (gtk_widget_destroy), G_OBJECT (window));
     // like a Shoes stack at the top. 
@@ -123,11 +135,11 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 	// need a box with a string, copy button and clear button
 	GtkWidget *btnpnl = gtk_hbox_new(false, 2); // think flow layout
 	GtkWidget *announce = gtk_label_new("Shoes console");
-	gtk_box_pack_start(GTK_BOX(btnpnl), announce, 0, 0, 0);
+	gtk_box_pack_start(GTK_BOX(btnpnl), announce, 1, 0, 0);
 	GtkWidget *clrbtn = gtk_button_new_with_label ("Clear");
-	gtk_box_pack_start (GTK_BOX(btnpnl), clrbtn, 0, 0, 0);
+	gtk_box_pack_start (GTK_BOX(btnpnl), clrbtn, 1, 0, 0);
  	GtkWidget *cpybtn = gtk_button_new_with_label ("Copy");
-	gtk_box_pack_start (GTK_BOX(btnpnl), cpybtn, 0, 0, 0);
+	gtk_box_pack_start (GTK_BOX(btnpnl), cpybtn, 1, 0, 0);
     gtk_box_pack_start (GTK_BOX(vbox), GTK_CONTAINER(btnpnl), 0, 0, 0);
 
     // then a widget/panel for the terminal 
@@ -148,6 +160,7 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 	t->callback_moveCursor = &tesi_moveCursor;
 	t->callback_insertLine = &tesi_insertLine;
 	t->callback_eraseLine = &tesi_eraseLine;
+	t->callback_scrollUp = &tesi_scrollUp;
 
 	g_signal_connect (G_OBJECT (canvas), "key-press-event", G_CALLBACK (keypress_event), t);
 

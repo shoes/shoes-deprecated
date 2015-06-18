@@ -38,9 +38,9 @@ int tesi_handleInput(struct tesiObject *to) {
 
 	lengthRead = read(to->ptyMaster, input, 128);
 
-	f = fopen("output", "a+");
-	fwrite(input, lengthRead, 1, f);
-	fclose(f);
+	//f = fopen("output", "a+");
+	//fwrite(input, lengthRead, 1, f);
+	//fclose(f);
 
 	pointer = input;
 	for(i = 0; i < lengthRead; i++, pointer++) {
@@ -122,10 +122,10 @@ int tesi_handleControlCharacter(struct tesiObject *to, char c) {
 			to->y++;
 			//if(to->insertMode == 0 && to->linefeedMode == 1)
 				to->x = 0;
-			/*
+			
 			if(i == 1 && to->callback_scrollUp)
 				to->callback_scrollUp(to->pointer);
-			*/
+			
 			tesi_limitCursor(to, 1);
 			break;
 
