@@ -4649,7 +4649,6 @@ shoes_ruby_init()
   rb_define_method(cVideo, "style", CASTHOOK(shoes_video_style), -1);
   rb_define_method(cVideo, "path", CASTHOOK(shoes_video_get_path), 0);
   rb_define_method(cVideo, "path=", CASTHOOK(shoes_video_set_path), 1);
-  
   rb_define_method(cVideo, "hide", CASTHOOK(shoes_video_hide), 0);
   rb_define_method(cVideo, "show", CASTHOOK(shoes_video_show), 0);  
   rb_define_method(cVideo, "move", CASTHOOK(shoes_video_move), 2);

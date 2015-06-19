@@ -15,6 +15,9 @@ if ENV['DEBUG'] || ENV['GDB']
 else
   LINUX_CFLAGS = "-O -Wall"
 end
+
+ENV['VIDEO'] = "true"
+
 # figure out which ruby we need.
 rv =  RUBY_VERSION[/\d.\d/]
 
@@ -28,7 +31,9 @@ LINUX_CFLAGS << " #{`pkg-config --cflags #{APP['GTK']}`.strip}"
 
 CC = "gcc"
 
-file_list = %w{shoes/native/gtk.c shoes/http/rbload.c shoes/video/video.c} + ["shoes/*.c"]
+file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + ["shoes/*.c"]
+file_list << "shoes/video/video.c" if ENV['VIDEO']
+
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
@@ -54,7 +59,6 @@ GTK_LIB = "#{`pkg-config --libs #{APP['GTK']}`.strip}"
 
 MISC_LIB = " -lgif -ljpeg "
 
-ENV['VIDEO'] = "true"
 if ENV['VIDEO']
   VLC_CFLAGS = " -DVIDEO #{`pkg-config --cflags libvlc`.strip}" #'-I/usr/include/vlc -I/usr/include/vlc/plugins' 
   VLC_LIB = "#{`pkg-config --libs libvlc`.strip}" #'-llibvlc -lvlc'
