@@ -123,9 +123,8 @@ int tesi_handleControlCharacter(struct tesiObject *to, char c) {
 			//if(to->insertMode == 0 && to->linefeedMode == 1)
 				to->x = 0;
 			
-			if(i == 1 && to->callback_scrollUp)
-				to->callback_scrollUp(to->pointer);
-			
+			//if(i == 1 && to->callback_scrollUp)
+			//	to->callback_scrollUp(to->pointer);
 			tesi_limitCursor(to, 1);
 			break;
 
@@ -389,43 +388,46 @@ void tesi_bufferPush(struct tesiObject *to, char c) {
 // Returns 1 if cursor was out of bounds
 // however, there are no calls to limitCursor that DON'T want the callback_moveCursor invoked
 // so the parameter is probably not necessary
-int tesi_limitCursor(struct tesiObject *to, int moveCursorRegardless) {
-	// create some local variables for speed
-	int width = to->width;
-	int height = to->height;
-	int a, x;
-	int b, y;
+int tesi_limitCursor(struct tesiObject *tobj, int moveCursorRegardless) {
+	// create some local variables for speed // cjc bad idea not mine
+	//int width = to->width;
+	//int height = to->height;
+	int a; //, x;
+	int b; //, y;
 
-	a = x = to->x;
-	b = y = to->y;
+	a = tobj->x;
+	b = tobj->y;
 
-	if(x == width) {
-		x = 0;
-		y++;
+	if(tobj->x >= tobj->width) {
+		tobj->x = 0;
+		tobj->y = tobj->y + 1;
 	}
-	if(x < 0)
-		x = 0;
+	if(tobj->x < 0)
+		tobj->x = 0;
 #ifdef DEBUG
 	if(a != x)
 		fprintf(stderr, "Cursor out of bounds in X direction: %d\n",a);
 #endif
 
-	if(y == height) {
-		y = height - 1;
-		if(to->callback_scrollUp)
-			to->callback_scrollUp(to->pointer);
+	if(tobj->y >= tobj->height) {
+		//tobj->y = tobj->height - 1; //width,height are 1 based, x,y 0 based
+		tobj->height++;  //wacky
+		if(tobj->callback_scrollUp) {
+			tobj->callback_scrollUp(tobj->pointer);
+		tobj->x = 0;
+		}
 	}
-	if(y < 0)
-		y = 0;
+	if(tobj->y < 0)
+		tobj->y = 0;
 #ifdef DEBUG
 	if(b != y)
 		fprintf(stderr, "Cursor out of bounds in Y direction: %d\n",b);
 #endif
-	if(moveCursorRegardless || a != x || b != y) {
-		if(to->callback_moveCursor)
-			to->callback_moveCursor(to->pointer, x, y);
-		to->x = x;
-		to->y = y;
+	if(moveCursorRegardless || a != tobj->x || b != tobj->y) {
+		if(tobj->callback_moveCursor)
+			tobj->callback_moveCursor(tobj->pointer, tobj->x, tobj->y);
+		//to->x = x;
+		//to->y = y;
 		return 1;
 	}
 	return 0;

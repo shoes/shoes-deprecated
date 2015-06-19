@@ -45,7 +45,7 @@ struct tesiObject {
 	int sequenceLength;
 	//char outputBuffer[129];
 	//int outputBufferLength;
-	void *pointer; // pointer to whatever you want, probably an ncurses window
+	void *pointer; // gtk_text_view
 
 	int parameters[32];
 	int parametersLength;

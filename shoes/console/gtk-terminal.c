@@ -28,13 +28,30 @@ static gboolean keypress_event(GtkWidget *widget, GdkEvent *event, gpointer data
 	return TRUE;
 }
 
+static gboolean clear_console(GtkWidget *widget, GdkEvent *event, gpointer data) {
+	struct tesiObject *tobj = (struct tesiObject*) data;
+	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
+	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
+	printf("cleared buffer and view\n"); // FIXME: do stuff
+	return TRUE;
+}
+
+static gboolean copy_console(GtkWidget *widget, GdkEvent *event, gpointer data) {
+	struct tesiObject *tobj = (struct tesiObject*) data;
+	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
+	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
+	printf("copied to clipboard\n"); // FIXME: do stuff
+	return TRUE;
+}
+
 void tesi_printCharacter(void *p, char c, int x, int y) { 
 	char in[129];
-	
+	GtkTextView *view = GTK_TEXT_VIEW(p);
 	GtkTextBuffer *buffer;
+	GtkTextIter iter;
 	snprintf(in, 128, "%c", c);
-	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(p));
-	//gtk_text_buffer_get_end_iter(buffer, &i);
+	buffer = gtk_text_view_get_buffer(view);
+	gtk_text_buffer_get_end_iter(buffer, &iter);
 	//printf("Print %c\n", c);
 
 	gtk_text_buffer_insert(buffer, &iter, in, 1); 
@@ -57,18 +74,23 @@ void tesi_scrollUp(void *p) {
 	gint lcnt;
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(p));
 	lcnt = gtk_text_buffer_get_line_count(buffer);
-	gtk_text_buffer_get_iter_at_line_index(buffer, &iter, lcnt, 0);
-	gtk_text_buffer_insert(buffer, &iter, "\n", 1);
-	
+	//gtk_text_buffer_get_iter_at_line_index(buffer, &iter, lcnt, 0);
+	gtk_text_buffer_get_iter_at_line_index(buffer, &iter, lcnt+1, 0);
+	// scroll view (*p)
+	gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(p), &iter, 0.0, false, 0.0, 0.0);
+	//gtk_text_buffer_insert(buffer, &iter, "\n", 1);
+	// Move cursor done by test_limitCursor call back to tesi_moveCursor below
+	// gtk_text_view_place_cursor_onscreen (GTK_TEXT_VIEW(p));
 }
+
 void tesi_moveCursor(void *p, int x, int y) {
 	/*
 	Force moving of cursor
 	If line doesn't exist, start at last line and loop while adding newlines
 	If line does exist, but column doesn't, go to line and add spaces at end of line
 	*/
-	//GtkTextBuffer *buffer;
-	//buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(p));
+	GtkTextBuffer *buffer;
+	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(p));
 
 	//printf("Move Cursor to x,y: %d,%d\n", x, y);
 
@@ -78,11 +100,13 @@ void tesi_moveCursor(void *p, int x, int y) {
 		gtk_text_buffer_insert(buffer, &iter, "\n", 1);
 	}
 
-	//gtk_text_buffer_get_iter_at_line_index(buffer, &iter, y, x);
+	gtk_text_buffer_get_iter_at_line_index(buffer, &iter, y, x);
 	gtk_text_iter_forward_to_line_end(&iter);
 	while(gtk_text_iter_get_line_offset(&iter) < x) { // loop and fill out contents to destination column
 		gtk_text_buffer_insert(buffer, &iter, " ", 1);
         }
+        
+	gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(p), &iter, 0.0, false, 0.0, 0.0);
 
 	
 }
@@ -124,7 +148,7 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 
 	/* create a new window */
 	window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-	gtk_widget_set_size_request (GTK_WIDGET (window), 800, 440);
+	gtk_widget_set_size_request (GTK_WIDGET (window), 800, 468);
 	gtk_window_set_title (GTK_WINDOW (window), "Shoes Terminal");
 	g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK (gtk_main_quit), NULL);
 	g_signal_connect_swapped (G_OBJECT (window), "delete_event", G_CALLBACK (gtk_widget_destroy), G_OBJECT (window));
@@ -151,6 +175,18 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 	gtk_container_add (GTK_CONTAINER (sw), canvas);
 	//pfd = pango_font_description_from_string ("courier");
 	pfd = pango_font_description_from_string ("monospace");
+	
+    PangoContext *pc;
+	PangoFont *pfont;
+	PangoFontMetrics *metrics;
+	pc = gtk_widget_get_pango_context(sw);
+	pfont = pango_context_load_font(pc, pfd);
+
+    
+    metrics = pango_font_get_metrics(pfont, NULL);
+    int cwidth = pango_font_metrics_get_approximate_char_width(metrics);
+	
+
 	gtk_widget_modify_font (canvas, pfd);
 
 	t = newTesiObject("/bin/bash", 80, 24);
@@ -163,7 +199,8 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 	t->callback_scrollUp = &tesi_scrollUp;
 
 	g_signal_connect (G_OBJECT (canvas), "key-press-event", G_CALLBACK (keypress_event), t);
-
+    g_signal_connect (G_OBJECT (clrbtn), "clicked", G_CALLBACK (clear_console), t);
+    g_signal_connect (G_OBJECT (cpybtn), "clicked", G_CALLBACK (copy_console), t);
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(canvas));
 	//gtk_text_buffer_set_text(buffer, "This is a\ntest", 14);
 	gtk_text_buffer_get_iter_at_line(buffer, &iter, 0);

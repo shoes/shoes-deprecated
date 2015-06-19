@@ -70,7 +70,7 @@ class Shoes
     opts.on("--console", "display console") do |c|
       show_log # need something on the screen for Shoes- FIXME
       show_console
-      #require 'readline'
+      require 'readline'
       require 'io/console'
       Thread.new do
         loop do
@@ -78,8 +78,8 @@ class Shoes
           #ln = $stdin.gets
           #ln = $stdin.readline
           #Readline::vi_editing_mode
-          #ln = Readline::readline('> ', false)
-          ln = STDIN.cooked(&:gets)
+          ln = Readline::readline('> ', false)
+          #ln = STDIN.cooked(&:gets)
 
           if ln.strip == 'quit' 
             $stderr.write "really quit (y/n)"
