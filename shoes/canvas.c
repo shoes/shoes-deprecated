@@ -701,7 +701,7 @@ shoes_canvas_video(int argc, VALUE *argv, VALUE self)
   SETUP();
 
   rb_parse_args(argc, argv, "s|h", &args);
-  video = shoes_video_new(cVideo, args.a[0], args.a[1], self);
+  video = shoes_video_new(args.a[0], args.a[1], self);
   shoes_add_ele(canvas, video);
   return video;
 #else

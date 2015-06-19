@@ -1263,9 +1263,8 @@ shoes_native_surface_remove(shoes_canvas *canvas, SHOES_CONTROL_REF ref)
   gtk_container_remove(GTK_CONTAINER(canvas->slot->oscanvas), ref);
 }
 
-
-/* only for video support
- * doing this directly on control now
+/* doing this directly on control now
+ * 
 void
 shoes_native_surface_position(SHOES_SURFACE_REF ref, shoes_place *p1,
   VALUE self, shoes_canvas *canvas, shoes_place *p2)

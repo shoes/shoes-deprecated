@@ -4668,6 +4668,8 @@ shoes_ruby_init()
   rb_define_method(cVideo, "position=", CASTHOOK(shoes_video_set_position), 1);
   rb_define_method(cVideo, "time", CASTHOOK(shoes_video_get_time), 0);
   rb_define_method(cVideo, "time=", CASTHOOK(shoes_video_set_time), 1);
+  rb_define_method(cVideo, "volume", CASTHOOK(shoes_video_get_volume), 0);
+  rb_define_method(cVideo, "volume=", CASTHOOK(shoes_video_set_volume), 1);
 #endif
 
   cPattern = rb_define_class_under(cTypes, "Pattern", rb_cObject);
