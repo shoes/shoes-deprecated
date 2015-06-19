@@ -6,8 +6,8 @@
 
 #include "tesi.h"
 
-GtkTextBuffer *buffer;
-GtkTextIter iter;
+//GtkTextBuffer *buffer;
+//GtkTextIter iter;  //cjc this changes too much to be global
 
 /* 
  * modified from https://github.com/alanszlosek/tesi/ 
@@ -31,7 +31,7 @@ static gboolean keypress_event(GtkWidget *widget, GdkEvent *event, gpointer data
 static gboolean clear_console(GtkWidget *widget, GdkEvent *event, gpointer data) {
 	struct tesiObject *tobj = (struct tesiObject*) data;
 	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
-	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
 	printf("cleared buffer and view\n"); // FIXME: do stuff
 	return TRUE;
 }
@@ -39,7 +39,7 @@ static gboolean clear_console(GtkWidget *widget, GdkEvent *event, gpointer data)
 static gboolean copy_console(GtkWidget *widget, GdkEvent *event, gpointer data) {
 	struct tesiObject *tobj = (struct tesiObject*) data;
 	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
-	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
 	printf("copied to clipboard\n"); // FIXME: do stuff
 	return TRUE;
 }
@@ -58,7 +58,7 @@ void tesi_printCharacter(void *p, char c, int x, int y) {
 }
 void tesi_eraseCharacter(void *p, int x, int y) {
 	GtkTextBuffer *buffer;
-	GtkTextIter i;
+	GtkTextIter iter;
 	
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(p));
 	//gtk_text_iter_forward_to_line_end(&i);
@@ -91,7 +91,7 @@ void tesi_moveCursor(void *p, int x, int y) {
 	*/
 	GtkTextBuffer *buffer;
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(p));
-
+    GtkTextIter iter;
 	//printf("Move Cursor to x,y: %d,%d\n", x, y);
 
 	gtk_text_buffer_get_iter_at_line_index(buffer, &iter, y, 0);
@@ -113,12 +113,14 @@ void tesi_moveCursor(void *p, int x, int y) {
 void tesi_insertLine(void *p) {
 	printf("Insert Line\n");
 }
+
 void tesi_eraseLine(void *p) {
-	GtkTextIter s, e;
-	//GtkTextBuffer *buffer;
-	//buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(p));
+	GtkTextIter iter, s, e;
+	GtkTextBuffer *buffer;
+	GtkTextView *view = GTK_TEXT_VIEW(p);
+	buffer = gtk_text_view_get_buffer(view);
 	
-	//gtk_text_buffer_get_end_iter(buffer, &iter);
+	gtk_text_buffer_get_end_iter(buffer, &iter);
 	s = e = iter;
 	gtk_text_iter_backward_line(&s); // move to start of current line (delimiter)
 	gtk_text_iter_forward_to_line_end(&e);
@@ -189,7 +191,7 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 
 	gtk_widget_modify_font (canvas, pfd);
 
-	t = newTesiObject("/bin/bash", 80, 24);
+	t = newTesiObject("/bin/bash", 80, 24); // first arg not used
 	t->pointer = canvas;
 	t->callback_printCharacter = &tesi_printCharacter;
 	t->callback_eraseCharacter = &tesi_eraseCharacter;
@@ -201,23 +203,12 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 	g_signal_connect (G_OBJECT (canvas), "key-press-event", G_CALLBACK (keypress_event), t);
     g_signal_connect (G_OBJECT (clrbtn), "clicked", G_CALLBACK (clear_console), t);
     g_signal_connect (G_OBJECT (cpybtn), "clicked", G_CALLBACK (copy_console), t);
-	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(canvas));
-	//gtk_text_buffer_set_text(buffer, "This is a\ntest", 14);
-	gtk_text_buffer_get_iter_at_line(buffer, &iter, 0);
-	//gtk_text_buffer_insert(buffer, &i, "M", 1);
-
-	/*
-	gtk_text_buffer_get_iter_at_line_index(buffer, &i, 2, 0);
-	if(gtk_text_iter_get_line(&i) != 2)
-		gtk_text_buffer_get_end_iter(buffer, &i);
-	gtk_text_buffer_insert(buffer, &i, "\na", 2);
-	*/
-	//tesi_handleInput(t);
-	//tesi_handleInput(t);
-
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(canvas));
+    gtk_widget_grab_focus(canvas);
 	g_timeout_add(100, &g_tesi_handleInput, t);
 
 	gtk_widget_show_all (window);
+	// should do some clean up here. Free fontdescription etc
 	//gtk_main();
 
 	//kill(t->pid, SIGKILL);

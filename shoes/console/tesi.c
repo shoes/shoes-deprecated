@@ -125,7 +125,7 @@ int tesi_handleControlCharacter(struct tesiObject *to, char c) {
 			
 			//if(i == 1 && to->callback_scrollUp)
 			//	to->callback_scrollUp(to->pointer);
-			tesi_limitCursor(to, 1);
+			tesi_limitCursor(to, 1); 
 			break;
 
 		case '\t': // ht - horizontal tab, ('I' - '@')
