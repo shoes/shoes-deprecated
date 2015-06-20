@@ -51,10 +51,10 @@ void tesi_printCharacter(void *p, char c, int x, int y) {
 	GtkTextIter iter;
 	snprintf(in, 128, "%c", c);
 	buffer = gtk_text_view_get_buffer(view);
-	gtk_text_buffer_get_end_iter(buffer, &iter);
-	//printf("Print %c\n", c);
-
-	gtk_text_buffer_insert(buffer, &iter, in, 1); 
+	gtk_text_buffer_insert_at_cursor(buffer, in, 1);
+	
+	//gtk_text_buffer_get_end_iter(buffer, &iter);
+	//gtk_text_buffer_insert(buffer, &iter, in, 1); 
 }
 void tesi_eraseCharacter(void *p, int x, int y) {
 	GtkTextBuffer *buffer;
@@ -67,6 +67,7 @@ void tesi_eraseCharacter(void *p, int x, int y) {
 	gtk_text_buffer_backspace(buffer, &iter, 1, 1);  // cjc 
 }
 
+ 
 void tesi_scrollUp(void *p) {
 	// add line to buffer, scroll up 
 	GtkTextBuffer *buffer;
@@ -97,15 +98,15 @@ void tesi_moveCursor(void *p, int x, int y) {
 	gtk_text_buffer_get_iter_at_line_index(buffer, &iter, y, 0);
 	while(gtk_text_iter_get_line(&iter) < y) { // loop and fill out contents to destination line
 		gtk_text_buffer_get_end_iter(buffer, &iter);
-		gtk_text_buffer_insert(buffer, &iter, "\n", 1);
+		gtk_text_buffer_insert(buffer, &iter, "\n", 1);  
 	}
-
+    int lcnt = gtk_text_buffer_get_line_count(buffer);
 	gtk_text_buffer_get_iter_at_line_index(buffer, &iter, y, x);
 	gtk_text_iter_forward_to_line_end(&iter);
 	while(gtk_text_iter_get_line_offset(&iter) < x) { // loop and fill out contents to destination column
 		gtk_text_buffer_insert(buffer, &iter, " ", 1);
-        }
-        
+    }
+    gtk_text_buffer_place_cursor(buffer, &iter);
 	gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(p), &iter, 0.0, false, 0.0, 0.0);
 
 	
@@ -171,12 +172,14 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
     // then a widget/panel for the terminal 
 
 	sw = gtk_scrolled_window_new(NULL, NULL);
-	gtk_box_pack_start (GTK_BOX (vbox), GTK_WIDGET(sw), 1, 1, 0);
+	gtk_scrolled_window_set_policy( GTK_SCROLLED_WINDOW(sw), 
+	  GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
+  	gtk_box_pack_start (GTK_BOX (vbox), GTK_WIDGET(sw), 1, 1, 0);
 
 	canvas = gtk_text_view_new();
 	gtk_container_add (GTK_CONTAINER (sw), canvas);
 	//pfd = pango_font_description_from_string ("courier");
-	pfd = pango_font_description_from_string ("monospace");
+	pfd = pango_font_description_from_string ("monospace 12");
 	
     PangoContext *pc;
 	PangoFont *pfont;
