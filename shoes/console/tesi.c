@@ -51,6 +51,11 @@ int tesi_handleInput(struct tesiObject *to) {
 #endif
 			continue;
 		}
+		// has Shoes put a short circuit in? Call it
+		if (to->callback_haveCharacter) {
+			to->callback_haveCharacter(to, c);
+			continue;
+	    }
 
 		if((c >= 1 && c <= 31) || c == 127) {
 			tesi_handleControlCharacter(to, c);
@@ -458,6 +463,7 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
 	to->scrollEnd = height - 1;
 	to->insertMode = 0;
 
+    to->callback_haveCharacter = NULL;
 	to->callback_printCharacter = NULL;
 	to->callback_printString = NULL;
 	to->callback_insertCharacter = NULL;

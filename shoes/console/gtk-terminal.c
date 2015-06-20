@@ -18,13 +18,13 @@
  * Need to make use of a tag table for the colors
  * Track key presses to window/canvas
  * */
+ 
 
 static gboolean keypress_event(GtkWidget *widget, GdkEvent *event, gpointer data) {
-	struct tesiObject *t = (struct tesiObject*) data;
-	char *c = ((GdkEventKey*)event)->string;
+	struct tesiObject *tobj = (struct tesiObject*)data;
+    char *c = ((GdkEventKey*)event)->string;
 	char s = *c;
-    
-	write(t->fd_input, &s, 1);
+	write(tobj->fd_input, &s, 1);
 	return TRUE;
 }
 
@@ -42,6 +42,78 @@ static gboolean copy_console(GtkWidget *widget, GdkEvent *event, gpointer data) 
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
 	printf("copied to clipboard\n"); // FIXME: do stuff
 	return TRUE;
+}
+
+/* 
+ * This is called to handle characters received from the pty
+ * in response to a puts/printf/write from Shoes,Ruby, & C 
+ * I don't manage escape seq, x,y or deal with width and height.
+ * Just write to the end of the buffer and let the view manage it.
+*/
+void console_haveChar(void *p, char c) {
+	struct tesiObject *tobj = (struct tesiObject*)p;
+	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
+    GtkTextIter iter_s, iter_e;
+    GtkTextMark *insert_mark;
+    char in[8];
+    int lcnt;
+
+	int i, j;
+	snprintf(in, 7, "%c", c);
+	if (c >= 32 && c != 127) {
+	    buffer = gtk_text_view_get_buffer(view);
+	    gtk_text_buffer_insert_at_cursor(buffer, in, 1);
+		return;
+    }
+	switch (c) {
+		case '\x1B': // begin escape sequence (aborting previous one if any)
+			//tobj->partialSequence = 1;
+			// possibly flush buffer
+			break;
+
+		case '\r': // carriage return ('M' - '@'). Move cursor to first column.
+			// odds are high this preceeds a \n. Move to the begining of
+			// last line in buffer line.  What happens if we insert
+			break;
+			
+		case '\n':  // line feed ('J' - '@'). Move cursor down line and to first column.
+		    // just insert '\n' into the buffer.
+		    gtk_text_buffer_insert_at_cursor(buffer, in, 1);
+			break;
+
+		case '\t': // ht - horizontal tab, ('I' - '@')
+	 		break;
+
+		case '\a': // bell ('G' - '@')
+	 		// do nothing for now... maybe a visual bell would be nice?
+			break;
+
+	 	case 8: // backspace cub1 cursor back 1 ('H' - '@')
+	 		// what do i do about wrapping back up to previous line?
+	 		// where should that be handled
+	 		// just move cursor, don't print space
+			//tesi_limitCursor(to, 1);
+			//if(tobj->callback_eraseCharacter)
+			//	tobj->callback_eraseCharacter(tobj->pointer, tobj->x, tobj->y);
+			//if (to->x > 0)
+			//	to->x--;
+			printf("\\b");
+			break;
+
+		default:
+#ifdef DEBUG
+			fprintf(stderr, "Unrecognized control char: %d (^%c)\n", c, c + '@');
+#endif
+			break;
+	}
+	// tell the view to show the newest position
+	// from http://www.gtkforums.com/viewtopic.php?t=1307
+	gtk_text_buffer_get_end_iter (buffer, &iter_e); 
+	insert_mark = gtk_text_buffer_get_insert (buffer);
+	gtk_text_buffer_place_cursor(buffer, &iter_e);
+    gtk_text_view_scroll_to_mark( GTK_TEXT_VIEW (view),
+            insert_mark, 0.0, TRUE, 0.0, 1.0);
 }
 
 void tesi_printCharacter(void *p, char c, int x, int y) { 
@@ -142,16 +214,15 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 	GtkScrolledWindow *sw;
 	PangoFontDescription *pfd;
 
-	//GtkTextBuffer *buffer;
-	//GtkTextIter i;
-
 	struct tesiObject *t;
 
-	//gtk_init (&argc, &argv);
+	//gtk_init (&argc, &argv); // No. it's already running
+	
+
 
 	/* create a new window */
 	window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-	gtk_widget_set_size_request (GTK_WIDGET (window), 800, 468);
+    gtk_widget_set_size_request (GTK_WIDGET (window), 800, 468);
 	gtk_window_set_title (GTK_WINDOW (window), "Shoes Terminal");
 	g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK (gtk_main_quit), NULL);
 	g_signal_connect_swapped (G_OBJECT (window), "delete_event", G_CALLBACK (gtk_widget_destroy), G_OBJECT (window));
@@ -159,7 +230,7 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 	vbox = gtk_vbox_new (FALSE, 2);
 	gtk_container_add (GTK_CONTAINER (window), vbox);
 	
-	// need a box with a string, copy button and clear button
+	// need a panel with a string (or icon), copy button and clear button
 	GtkWidget *btnpnl = gtk_hbox_new(false, 2); // think flow layout
 	GtkWidget *announce = gtk_label_new("Shoes console");
 	gtk_box_pack_start(GTK_BOX(btnpnl), announce, 1, 0, 0);
@@ -175,27 +246,29 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 	gtk_scrolled_window_set_policy( GTK_SCROLLED_WINDOW(sw), 
 	  GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
   	gtk_box_pack_start (GTK_BOX (vbox), GTK_WIDGET(sw), 1, 1, 0);
+  	
 
 	canvas = gtk_text_view_new();
 	gtk_container_add (GTK_CONTAINER (sw), canvas);
-	//pfd = pango_font_description_from_string ("courier");
-	pfd = pango_font_description_from_string ("monospace 12");
+	gtk_text_view_set_cursor_visible(canvas, TRUE);
+	gtk_text_view_set_left_margin(canvas, 4);
+	gtk_text_view_set_right_margin(canvas, 4);	
 	
+  	// set font for scrollable window
+ 	pfd = pango_font_description_from_string ("monospace 10");	
+	gtk_widget_modify_font (canvas, pfd);
+	
+	// compute 'char' width and tab settings. Magic needed.	TODO
+	PangoLayout *playout = gtk_widget_create_pango_layout(canvas, "m");
     PangoContext *pc;
 	PangoFont *pfont;
 	PangoFontMetrics *metrics;
-	pc = gtk_widget_get_pango_context(sw);
-	pfont = pango_context_load_font(pc, pfd);
 
-    
-    metrics = pango_font_get_metrics(pfont, NULL);
-    int cwidth = pango_font_metrics_get_approximate_char_width(metrics);
-	
-
-	gtk_widget_modify_font (canvas, pfd);
 
 	t = newTesiObject("/bin/bash", 80, 24); // first arg not used
 	t->pointer = canvas;
+	t->callback_haveCharacter = &console_haveChar;  
+	// cjc - my handler short circuts much of the following callbacks.
 	t->callback_printCharacter = &tesi_printCharacter;
 	t->callback_eraseCharacter = &tesi_eraseCharacter;
 	t->callback_moveCursor = &tesi_moveCursor;

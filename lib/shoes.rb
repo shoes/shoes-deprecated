@@ -68,8 +68,9 @@ class Shoes
     end
 
     opts.on("--console", "display console") do |c|
-      show_log # need something on the screen for Shoes- FIXME
+      #show_log # need something on the screen for Shoes- FIXME
       show_console
+      if ENV['console_loop']
       require 'readline'
       require 'io/console'
       Thread.new do
@@ -88,6 +89,7 @@ class Shoes
           end
           $stdout.puts "Shoes: #{ln}"
         end
+      end
       end
     end
     

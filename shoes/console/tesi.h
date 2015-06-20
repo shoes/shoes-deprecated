@@ -59,6 +59,7 @@ struct tesiObject {
 
 	// callbacks
 	void (*callback_clear)(void*); // clear canvas
+	void (*callback_haveCharacter)(void*, char);
 	void (*callback_printCharacter)(void*, char, int, int); // print character at x, y
 	void (*callback_printString)(void*, char*, int, int, int); // print string of length at x, y
 	void (*callback_insertCharacter)(void*, char, int, int); // insert character at x, y
