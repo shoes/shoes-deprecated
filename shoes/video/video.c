@@ -2,12 +2,7 @@
 #include "video.h"
 
 /* libvlc_exception_t removed since vlc 1.1.0
- * 
  * static void shoes_vlc_exception(libvlc_exception_t *excp)
- * {
- *   if (libvlc_exception_raised(excp)) 
- *     shoes_error("from VLC: %s", libvlc_exception_get_message(excp)); 
- * }
 */
 
 void
@@ -23,6 +18,8 @@ shoes_video_free(shoes_video *video)
 {
   if (video->vlcplayer != NULL)
     libvlc_media_player_release(video->vlcplayer);
+  if (video->vlcListplayer != NULL)
+    libvlc_media_list_player_release(video->vlcListplayer);
   RUBY_CRITICAL(SHOE_FREE(video));
   /* we keep SHOES_VLC(video) one vlc instance for the whole shoes session */
 }
@@ -32,7 +29,7 @@ shoes_video_alloc(VALUE klass)
 {
   VALUE obj;
   const char *ppsz_argv[10] = {"vlc", "-I", "dummy", "--quiet", "--no-stats",
-    "--no-overlay", "--no-video-on-top", NULL, NULL, NULL};
+                        "--no-overlay", "--no-video-on-top", NULL, NULL, NULL};
   shoes_video *video = SHOE_ALLOC(shoes_video);
   SHOE_MEMZERO(video, shoes_video, 1);
   
@@ -74,6 +71,18 @@ shoes_video_new(VALUE path, VALUE attr, VALUE parent)
 }
 
 VALUE
+shoes_video_remove(VALUE self)
+{
+  shoes_canvas *canvas;
+  GET_STRUCT(video, self_t);
+  shoes_canvas_remove_item(self_t->parent, self, 1, 0);
+
+  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+  shoes_native_surface_remove(canvas, self_t->ref);
+  return self;
+}
+
+VALUE
 shoes_video_hide(VALUE self)
 {
   GET_STRUCT(video, self_t);
@@ -95,19 +104,6 @@ shoes_video_show(VALUE self)
   return self;
 }
 
-VALUE
-shoes_video_remove(VALUE self)
-{
-  shoes_canvas *canvas;
-  GET_STRUCT(video, self_t);
-  shoes_canvas_remove_item(self_t->parent, self, 1, 0);
-
-  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-  shoes_native_surface_remove(canvas, self_t->ref);
-  return self;
-}
-
-
 #define FINISH() \
   if (!ABSY(place)) { \
     canvas->cx += place.w; \
@@ -120,26 +116,30 @@ shoes_video_remove(VALUE self)
     canvas->cy = canvas->endy; \
   }
 
-/*static void
-finished_cb(const struct libvlc_event_t *ev, void *data)
+static void  /* Private */
+handle_subitems_site(shoes_video *video)
 {
-  
-}
+//  libvlc_event_manager_t *evm = libvlc_media_player_event_manager(video->vlcplayer);
+//  libvlc_event_type_t evtype = libvlc_MediaPlayerEndReached;
+//  libvlc_event_attach(evm, evtype, finished_cb, &video);
+//  libvlc_media_player_play(video->vlcplayer);
 
-void
-handle_subitems_site()
-{
-  libvlc_media_t *media = libvlc_media_new_location(shoes_world->vlc, RSTRING_PTR(self_t->path));
-  libvlc_media_player_t *mp = libvlc_media_player_new_from_media(media);
+  libvlc_media_list_t *ml = libvlc_media_list_new(SHOES_VLC(video));
+  if (video->vlcListplayer == NULL) 
+    video->vlcListplayer = libvlc_media_list_player_new(SHOES_VLC(video));
   
-  libvlc_event_manager_t *evm = libvlc_media_player_event_manager(mp);
-  libvlc_event_type_t etype = libvlc_MediaPlayerEndReached;
-  libvlc_event_attach(evm, etype, finished_cb, NULL);
+  libvlc_media_list_lock(ml);
+  libvlc_media_list_add_media(ml, video->media);
+  libvlc_media_list_unlock(ml);
   
+  /* not doing this gives a second detached window player (2 players) might be interesting ...*/
+  libvlc_media_list_player_set_media_player(video->vlcListplayer, video->vlcplayer);
   
-  //self_t->path = ;
+  libvlc_media_list_player_set_media_list(video->vlcListplayer, ml);
+  libvlc_media_list_player_play(video->vlcListplayer);
+  
+  libvlc_media_list_release(ml);
 }
-*/
 
 static int  /* Private */
 load_media(shoes_video *self_t)
@@ -226,6 +226,7 @@ shoes_video_draw(VALUE self, VALUE c, VALUE actual)
       if (self_t->init == 0) {
         self_t->init = 1;
         
+        //  TODO using only a media_list_player 
         self_t->vlcplayer = libvlc_media_player_new_from_media(self_t->media);
         libvlc_media_release(self_t->media);
         
@@ -257,8 +258,11 @@ shoes_video_draw(VALUE self, VALUE c, VALUE actual)
         libvlc_audio_set_volume(self_t->vlcplayer, vol);
         
         if (RTEST(ATTR(self_t->attr, autoplay))) {
-          INFO("Starting playlist.\n");
-          libvlc_media_player_play(self_t->vlcplayer);
+          if(strstr(RSTRING_PTR(self_t->path), "youtube") != NULL) {
+            handle_subitems_site(self_t);
+          } else {
+            libvlc_media_player_play(self_t->vlcplayer);
+          }
         }
 
       } else {

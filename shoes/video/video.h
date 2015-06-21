@@ -36,6 +36,7 @@ typedef struct {
   SHOES_CONTROL_REF ref;
   //libvlc_exception_t excp; removed since vlc 1.1.0
   libvlc_media_player_t *vlcplayer;
+  libvlc_media_list_player_t *vlcListplayer;
   libvlc_media_t *media;
   int init;
   VALUE path;
