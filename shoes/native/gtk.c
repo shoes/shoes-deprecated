@@ -1900,7 +1900,7 @@ int shoes_native_console()
 {
   printf("init gtk console\n");
   shoes_native_app_console();
-  //printf("gtk\010k\011console created\n"); //test \b \t in string
+  printf("gtk\010k\t console \t\tcreated\n"); //test \b \t in string
   //int i;
   //for (i=0; i < 24; i++) printf("Line %d\n", i+1);
   //return 1;

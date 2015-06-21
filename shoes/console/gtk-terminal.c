@@ -6,18 +6,9 @@
 
 #include "tesi.h"
 
-//GtkTextBuffer *buffer;
-//GtkTextIter iter;  //cjc this changes too much to be global
-
 /* 
- * modified from https://github.com/alanszlosek/tesi/ 
+ * heavily modified from https://github.com/alanszlosek/tesi/ 
 */
- 
-/*
- * The widget needs to be non-editable, with the cursor focusing at the end of the buffer.
- * Need to make use of a tag table for the colors
- * Track key presses to window/canvas
- * */
  
 
 static gboolean keypress_event(GtkWidget *widget, GdkEvent *event, gpointer data) {
@@ -31,8 +22,10 @@ static gboolean keypress_event(GtkWidget *widget, GdkEvent *event, gpointer data
 static gboolean clear_console(GtkWidget *widget, GdkEvent *event, gpointer data) {
 	struct tesiObject *tobj = (struct tesiObject*) data;
 	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
-	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
-	printf("cleared buffer and view\n"); // FIXME: do stuff
+	GtkTextBuffer *newbuf = gtk_text_buffer_new(NULL);
+	gtk_text_view_set_buffer(view, newbuf);
+	// set a mark to the end? get focus
+	gtk_widget_grab_focus(view);
 	return TRUE;
 }
 
@@ -40,7 +33,11 @@ static gboolean copy_console(GtkWidget *widget, GdkEvent *event, gpointer data) 
 	struct tesiObject *tobj = (struct tesiObject*) data;
 	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
-	printf("copied to clipboard\n"); // FIXME: do stuff
+	GtkTextIter iter_s, iter_e;
+    gtk_text_buffer_get_bounds(buffer, &iter_s, &iter_e);
+	gchar *bigstr = gtk_text_buffer_get_slice(buffer, &iter_s, &iter_e, TRUE);
+	GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+    gtk_clipboard_set_text(primary, bigstr, strlen(bigstr));
 	return TRUE;
 }
 
@@ -48,7 +45,7 @@ static gboolean copy_console(GtkWidget *widget, GdkEvent *event, gpointer data) 
  * This is called to handle characters received from the pty
  * in response to a puts/printf/write from Shoes,Ruby, & C 
  * I don't manage escape seq, x,y or deal with width and height.
- * Just write to the end of the buffer and let the view manage it.
+ * Just write to the end of the buffer and let the gtk_text_view manage it.
 */
 void console_haveChar(void *p, char c) {
 	struct tesiObject *tobj = (struct tesiObject*)p;
@@ -83,6 +80,8 @@ void console_haveChar(void *p, char c) {
 			break;
 
 		case '\t': // ht - horizontal tab, ('I' - '@')
+		    // textview can handle tabs - it claims.
+	        gtk_text_buffer_insert_at_cursor(buffer, in, 1);
 	 		break;
 
 		case '\a': // bell ('G' - '@')
@@ -90,15 +89,8 @@ void console_haveChar(void *p, char c) {
 			break;
 
 	 	case 8: // backspace cub1 cursor back 1 ('H' - '@')
-	 		// what do i do about wrapping back up to previous line?
-	 		// where should that be handled
-	 		// just move cursor, don't print space
-			//tesi_limitCursor(to, 1);
-			//if(tobj->callback_eraseCharacter)
-			//	tobj->callback_eraseCharacter(tobj->pointer, tobj->x, tobj->y);
-			//if (to->x > 0)
-			//	to->x--;
-			printf("\\b");
+            gtk_text_buffer_get_end_iter (buffer, &iter_e);
+            gtk_text_buffer_backspace(buffer, &iter_e, 1, 1);
 			break;
 
 		default:
@@ -222,7 +214,7 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 
 	/* create a new window */
 	window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-    gtk_widget_set_size_request (GTK_WIDGET (window), 800, 468);
+    //gtk_widget_set_size_request (GTK_WIDGET (window), 80*8, 24*17);
 	gtk_window_set_title (GTK_WINDOW (window), "Shoes Terminal");
 	g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK (gtk_main_quit), NULL);
 	g_signal_connect_swapped (G_OBJECT (window), "delete_event", G_CALLBACK (gtk_widget_destroy), G_OBJECT (window));
@@ -258,17 +250,26 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
  	pfd = pango_font_description_from_string ("monospace 10");	
 	gtk_widget_modify_font (canvas, pfd);
 	
-	// compute 'char' width and tab settings. Magic needed.	TODO
-	PangoLayout *playout = gtk_widget_create_pango_layout(canvas, "m");
+	// compute 'char' width and tab settings. 
+	PangoLayout *playout;
+	PangoTabArray *tab_array;
+	gint charwidth, charheight, tabwidth;
+	playout = gtk_widget_create_pango_layout(canvas, "M");
+	pango_layout_set_font_description(playout, pfd);
+	pango_layout_get_pixel_size(playout, &charwidth, &charheight);
+	tabwidth = charwidth * 8;
+    tab_array = pango_tab_array_new(1, TRUE);
+    pango_tab_array_set_tab( tab_array, 0, PANGO_TAB_LEFT, tabwidth);
+	gtk_text_view_set_tabs(GTK_TEXT_VIEW(canvas), tab_array);
     PangoContext *pc;
 	PangoFont *pfont;
 	PangoFontMetrics *metrics;
-
+    gtk_widget_set_size_request (GTK_WIDGET (sw), 80*charwidth, 24*charheight);
 
 	t = newTesiObject("/bin/bash", 80, 24); // first arg not used
 	t->pointer = canvas;
 	t->callback_haveCharacter = &console_haveChar;  
-	// cjc - my handler short circuts much of the following callbacks.
+	// cjc - my handler short circuts much (all?) of these callbacks:
 	t->callback_printCharacter = &tesi_printCharacter;
 	t->callback_eraseCharacter = &tesi_eraseCharacter;
 	t->callback_moveCursor = &tesi_moveCursor;
@@ -285,9 +286,6 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 
 	gtk_widget_show_all (window);
 	// should do some clean up here. Free fontdescription etc
-	//gtk_main();
 
-	//kill(t->pid, SIGKILL);
-	//deleteTesiObject(t);
 	return;
 }
