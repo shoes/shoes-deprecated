@@ -34,7 +34,8 @@ typedef struct {
   shoes_place place;
   SHOES_CONTROL_REF ref;
   //libvlc_exception_t excp; removed since vlc 1.1.0
-  libvlc_media_player_t *vlc;
+  libvlc_media_player_t *vlcplayer;
+  libvlc_media_t *media;
   int init;
   VALUE path;
   SHOES_SLOT_OS *slot;

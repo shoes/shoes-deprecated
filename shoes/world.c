@@ -70,9 +70,7 @@ shoes_world_free_image_cache(char *key, shoes_cache_entry *cached, char *arg)
 void
 shoes_world_free(shoes_world_t *world)
 {
-#ifdef VLC_0_9
   if (world->vlc != NULL) libvlc_release(world->vlc);
-#endif
   shoes_native_cleanup(world);
   st_foreach(world->image_cache, CASTFOREACH(shoes_world_free_image_cache), 0);
   st_free_table(world->image_cache);
