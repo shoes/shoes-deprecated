@@ -152,21 +152,26 @@ load_media(shoes_video *self_t)
     /*  TODO  while waiting for vlc 3 ...
      *  libvlc_media_type_t media_type = libvlc_media_get_type(media);
      *  if (media_type == libvlc_media_type_file) */
-  if(strstr(RSTRING_PTR(self_t->path), "://") != NULL) {      /* a uri */
+  if(strstr(RSTRING_PTR(self_t->path), "://") != NULL) {          /* uri */
     media = libvlc_media_new_location(shoes_world->vlc, RSTRING_PTR(self_t->path));
     self_t->media = media;
-    return 1; /* don't try to fetch video dimensions TODO ?*/
-  } else {                                                    /* a file */
+    return 1;               /* don't try to fetch video dimensions TODO ?*/
+  } else if (strcmp(RSTRING_PTR(self_t->path), "") == 0 ||  !RTEST(self_t->path)) {
+    self_t->media = libvlc_media_new_path(shoes_world->vlc, "");  /* dummy path */
+                                       /* fall back to default video dimentions */
+    return 0;
+  } else {                                                        /* file */
     media = libvlc_media_new_path(shoes_world->vlc, RSTRING_PTR(self_t->path));
     self_t->media = media;
   }
-
+  
   if (media) {
     // wether user supplied width and/or height attributes
     VALUE uw = ATTR(self_t->attr, width), uh = ATTR(self_t->attr, height);
     
     if ( NIL_P(uw) && NIL_P(uh) ) {  /* no attributes check video track dimension */
       libvlc_media_parse(media);
+      
       n_tracks = libvlc_media_tracks_get(media, &tracks);
       for (i = 0; i < n_tracks; i++) {
         libvlc_media_track_t *track = *tracks+i;
@@ -177,8 +182,8 @@ load_media(shoes_video *self_t)
       }
       libvlc_media_tracks_release(tracks, n_tracks);
 
-      ATTRSET(self_t->attr, width, INT2NUM((int)video_width));
-      ATTRSET(self_t->attr, height, INT2NUM((int)video_heigth));
+      ATTRSET(self_t->attr, width, UINT2NUM(video_width));
+      ATTRSET(self_t->attr, height, UINT2NUM(video_heigth));
     }
     return 1;
   }
@@ -205,15 +210,11 @@ shoes_video_draw(VALUE self, VALUE c, VALUE actual)
   if ( !RTEST(actual) &&      /* do this only once at first pass */
         self_t->init == 0 ) { /* and only when loading a media (threading issues at redraw events !!) */
     
-//    rb_warn("actual %s\n", RSTRING_PTR(rb_inspect(actual)));
     int loaded = load_media(self_t);
-//      VALUE msg = rb_str_new2("loaded");
-//      shoes_dialog_alert(1, &msg);    
-//    
-//    if (!loaded) {/*TODO handle error*/ /* i couldn't crash vlc whatever the file i tried to load */
-//      VALUE msg = rb_str_new2("not a file we can load ...");
-//      shoes_dialog_alert(1, &msg, NULL);
-//    }
+    
+    if (!loaded) {/*TODO handle error*/ /* i couldn't crash vlc whatever the file i tried to load */
+      printf("no media loaded");
+    }
   }
   
   shoes_place_decide(&place, c, self_t->attr, 500, 400, REL_CANVAS, TRUE);

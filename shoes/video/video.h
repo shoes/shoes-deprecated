@@ -1,6 +1,7 @@
 
 #include "shoes/world.h"
 #include "shoes/internal.h"
+#include "shoes/app.h"
 
 
 #ifndef VIDEO_H
