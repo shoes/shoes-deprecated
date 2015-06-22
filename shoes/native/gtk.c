@@ -1250,10 +1250,31 @@ shoes_native_control_free(SHOES_CONTROL_REF ref)
 
 // SHOES_SURFACE_REF and SHOES_CONTROL_REF expands the same : GtkWidget *
 // ref in shoes_video struct was a SHOES_CONTROL_REF anyway
-SHOES_CONTROL_REF   //SHOES_SURFACE_REF
-shoes_native_surface_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
+SHOES_CONTROL_REF                       //SHOES_SURFACE_REF
+shoes_native_surface_new(shoes_canvas *canvas, shoes_video *self_t, shoes_place *place)
 {
-  return gtk_drawing_area_new();
+  SHOES_CONTROL_REF da = gtk_drawing_area_new();
+  VALUE uc = ATTR(self_t->attr, bg_color);
+  shoes_color *col;
+  
+#ifdef GTK3
+  // TODO (better with GtkStyleProvider)
+   GdkRGBA color = {.0, .0, .0, 1.0};
+   if (!NIL_P(uc)) {
+     Data_Get_Struct(uc, shoes_color, col);
+     color.red = col->r*255; color.green = col->g*255; color.blue = col->b*255;
+   }
+  gtk_widget_override_background_color(GTK_WIDGET(da), 0, &color);  
+#else  
+  GdkColor color = {0, 0,0,0};
+  if (!NIL_P(uc)) {
+    Data_Get_Struct(uc, shoes_color, col);
+    color.red = col->r*255; color.green = col->g*255; color.blue = col->b*255;
+  }
+  gtk_widget_modify_bg(GTK_WIDGET(da), 0, &color);
+#endif
+
+  return da;
 }
 
 void

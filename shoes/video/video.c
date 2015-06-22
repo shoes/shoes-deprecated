@@ -106,6 +106,115 @@ shoes_video_show(VALUE self)
   return self;
 }
 
+VALUE
+shoes_video_is_playing(VALUE self)
+{
+  GET_STRUCT(video, self_t);
+  if (self_t->init == 1) {
+    return libvlc_media_list_player_is_playing(self_t->vlcListplayer) ? Qtrue : Qfalse;
+  }
+  return Qfalse;
+}
+
+VALUE
+shoes_video_play(VALUE self)
+{
+  GET_STRUCT(video, self_t);
+  if (self_t->init == 1) {
+    libvlc_media_list_player_play(self_t->vlcListplayer);
+  }
+  return self;
+}
+
+#define VIDEO_METHOD(x) \
+  VALUE \
+  shoes_video_##x(VALUE self) \
+  { \
+    GET_STRUCT(video, self_t); \
+    if (self_t->init == 1) \
+    { \
+      shoes_libvlc_##x(self_t->vlcListplayer); \
+    } \
+    return self; \
+  }
+
+#define VIDEO_GET_METHOD(x, ctype, rbtype) \
+  VALUE shoes_video_get_##x(VALUE self) \
+  { \
+    GET_STRUCT(video, self_t); \
+    if (self_t->init == 1) \
+    { \
+      ctype len = libvlc_media_player_get_##x(self_t->vlcplayer); \
+      return rbtype(len); \
+    } \
+    return Qnil; \
+  }
+
+#define VIDEO_SET_METHOD(x, rbconv) \
+  VALUE shoes_video_set_##x(VALUE self, VALUE val) \
+  { \
+    GET_STRUCT(video, self_t); \
+    if (self_t->init == 1) \
+    { \
+      libvlc_media_player_set_##x(self_t->vlcplayer, rbconv(val)); \
+    } \
+    return val; \
+  }
+
+VIDEO_METHOD(pause);
+VIDEO_METHOD(stop);
+//VIDEO_METHOD(prev);
+//VIDEO_METHOD(next);
+
+VIDEO_GET_METHOD(length, vlc_int64_t, INT2NUM);
+VIDEO_GET_METHOD(time, vlc_int64_t, INT2NUM);
+VIDEO_SET_METHOD(time, NUM2INT);
+VIDEO_GET_METHOD(position, float, rb_float_new);
+VIDEO_SET_METHOD(position, NUM2DBL);
+
+
+VALUE
+shoes_video_get_path(VALUE self)
+{
+  GET_STRUCT(video, self_t);
+  return self_t->path;
+}
+
+VALUE
+shoes_video_set_path(VALUE self, VALUE path)
+{
+  GET_STRUCT(video, self_t);
+  if(shoes_video_is_playing(self)) shoes_video_stop(self);
+  
+  self_t->path = path;
+  self_t->init = 0;
+  shoes_canvas_repaint_all(self_t->parent);
+  return path;
+}
+
+VALUE
+shoes_video_get_volume(VALUE self)
+{
+  GET_STRUCT(video, self_t);
+  int vol = -1;
+  if (self_t->init == 1) {
+    vol = libvlc_audio_get_volume(self_t->vlcplayer);
+  }
+  return INT2NUM(vol);
+}
+
+VALUE
+shoes_video_set_volume(VALUE self , VALUE volume)
+{
+  GET_STRUCT(video, self_t);
+  int done = -1;
+  if (self_t->init == 1) {
+    done = libvlc_audio_set_volume(self_t->vlcplayer, NUM2INT(volume));
+  }
+  return INT2NUM(done);
+}
+
+
 #define FINISH() \
   if (!ABSY(place)) { \
     canvas->cx += place.w; \
@@ -221,7 +330,7 @@ shoes_video_draw(VALUE self, VALUE c, VALUE actual)
   
   
   if (RTEST(actual)) {    /*second pass*/
-    if (HAS_DRAWABLE(canvas->slot)) {
+    if (HAS_DRAWABLE(canvas->slot)) {  // not sure what's the use of this
       if (self_t->init == 0) {
         self_t->init = 1;
         
@@ -234,7 +343,7 @@ shoes_video_draw(VALUE self, VALUE c, VALUE actual)
         libvlc_media_release(self_t->media);
         
         if (!self_t->ref)
-          self_t->ref = shoes_native_surface_new(canvas, self, &self_t->place);
+          self_t->ref = shoes_native_surface_new(canvas, self_t, &self_t->place);
         shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
         
         if (libvlc_media_player_get_xwindow(self_t->vlcplayer) == 0)
@@ -276,112 +385,4 @@ shoes_video_draw(VALUE self, VALUE c, VALUE actual)
   FINISH();
   return self;
 }
-
-VALUE
-shoes_video_is_playing(VALUE self)
-{
-  GET_STRUCT(video, self_t);
-  if (self_t->init == 1) {
-    return libvlc_media_list_player_is_playing(self_t->vlcListplayer) ? Qtrue : Qfalse;
-  }
-  return Qfalse;
-}
-
-VALUE
-shoes_video_play(VALUE self)
-{
-  GET_STRUCT(video, self_t);
-  if (self_t->init == 1) {
-    libvlc_media_list_player_play(self_t->vlcListplayer);
-  }
-  return self;
-}
-
-VALUE
-shoes_video_get_path(VALUE self)
-{
-  GET_STRUCT(video, self_t);
-  return self_t->path;
-}
-
-VALUE
-shoes_video_set_path(VALUE self, VALUE path)
-{
-  GET_STRUCT(video, self_t);
-  if(shoes_video_is_playing(self)) shoes_video_stop(self);
-  
-  self_t->path = path;
-  self_t->init = 0;
-  shoes_canvas_repaint_all(self_t->parent);
-  return path;
-}
-
-VALUE
-shoes_video_get_volume(VALUE self)
-{
-  GET_STRUCT(video, self_t);
-  int vol = -1;
-  if (self_t->init == 1) {
-    vol = libvlc_audio_get_volume(self_t->vlcplayer);
-  }
-  return INT2NUM(vol);
-}
-
-VALUE
-shoes_video_set_volume(VALUE self , VALUE volume)
-{
-  GET_STRUCT(video, self_t);
-  int done = -1;
-  if (self_t->init == 1) {
-    done = libvlc_audio_set_volume(self_t->vlcplayer, NUM2INT(volume));
-  }
-  return INT2NUM(done);
-}
-
-#define VIDEO_METHOD(x) \
-  VALUE \
-  shoes_video_##x(VALUE self) \
-  { \
-    GET_STRUCT(video, self_t); \
-    if (self_t->init == 1) \
-    { \
-      shoes_libvlc_##x(self_t->vlcListplayer); \
-    } \
-    return self; \
-  }
-
-#define VIDEO_GET_METHOD(x, ctype, rbtype) \
-  VALUE shoes_video_get_##x(VALUE self) \
-  { \
-    GET_STRUCT(video, self_t); \
-    if (self_t->init == 1) \
-    { \
-      ctype len = libvlc_media_player_get_##x(self_t->vlcplayer); \
-      return rbtype(len); \
-    } \
-    return Qnil; \
-  }
-
-#define VIDEO_SET_METHOD(x, rbconv) \
-  VALUE shoes_video_set_##x(VALUE self, VALUE val) \
-  { \
-    GET_STRUCT(video, self_t); \
-    if (self_t->init == 1) \
-    { \
-      libvlc_media_player_set_##x(self_t->vlcplayer, rbconv(val)); \
-    } \
-    return val; \
-  }
-
-VIDEO_METHOD(pause);
-VIDEO_METHOD(stop);
-//VIDEO_METHOD(prev);
-//VIDEO_METHOD(next);
-
-VIDEO_GET_METHOD(length, vlc_int64_t, INT2NUM);
-VIDEO_GET_METHOD(time, vlc_int64_t, INT2NUM);
-VIDEO_SET_METHOD(time, NUM2INT);
-VIDEO_GET_METHOD(position, float, rb_float_new);
-VIDEO_SET_METHOD(position, NUM2DBL);
-
 
