@@ -1877,7 +1877,9 @@ shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
 #include <stdio.h>
 #include <io.h>
 #include <fcntl.h>
-int shoes_native_console()
+
+// called from main.c(skel) on Windows - works fine
+int shoes_win32_console()
 {
     AllocConsole();
 
@@ -1892,8 +1894,16 @@ int shoes_native_console()
     FILE* hf_in = _fdopen(hCrt, "r");
     setvbuf(hf_in, NULL, _IONBF, 128);
     *stdin = *hf_in;
-    printf("created win32 console\n");
+    
     return 1;
+}
+
+// Called by Shoes after ruby/gtk/shoes is initialized and running
+int shoes_native_console()
+{
+	shoes_win32_console();
+	// switch in the new 'Streams' for what Ruby/Gtk has.
+    printf("created win32 console\n");
 }
 #else
 int shoes_native_console()

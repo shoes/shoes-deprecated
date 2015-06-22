@@ -8,6 +8,7 @@
 
 /* 
  * heavily modified from https://github.com/alanszlosek/tesi/ 
+ * for use in Shoes/Linux
 */
  
 
@@ -204,28 +205,40 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 	GtkWidget *canvas;
 	GtkWidget *vbox;
 	GtkScrolledWindow *sw;
-	PangoFontDescription *pfd;
+	PangoFontDescription *pfd;  // for terminal
+	PangoFontDescription *bpfd; // for Label in button panel
 
 	struct tesiObject *t;
 
-	//gtk_init (&argc, &argv); // No. it's already running
-	
-
+	//gtk_init (&argc, &argv); // Nope. it's already running
 
 	/* create a new window */
 	window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-    //gtk_widget_set_size_request (GTK_WIDGET (window), 80*8, 24*17);
-	gtk_window_set_title (GTK_WINDOW (window), "Shoes Terminal");
+    // size set way below based on font (80x24)
+    gtk_window_set_resizable(window, TRUE);
+	gtk_window_set_title (GTK_WINDOW (window), "Shoes Linux");
+	
 	g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK (gtk_main_quit), NULL);
 	g_signal_connect_swapped (G_OBJECT (window), "delete_event", G_CALLBACK (gtk_widget_destroy), G_OBJECT (window));
     // like a Shoes stack at the top. 
 	vbox = gtk_vbox_new (FALSE, 2);
 	gtk_container_add (GTK_CONTAINER (window), vbox);
 	
-	// need a panel with a string (or icon), copy button and clear button
+	// need a panel with a string (icon?), copy button and clear button
+	GdkColor bg_color, color_white;
+    gdk_color_parse ("black", &bg_color);
+    gdk_color_parse ("white", &color_white);
+
 	GtkWidget *btnpnl = gtk_hbox_new(false, 2); // think flow layout
-	GtkWidget *announce = gtk_label_new("Shoes console");
+ 	gtk_widget_modify_bg(btnpnl, GTK_STATE_NORMAL, &bg_color);  // doesn't work
+	
+    
+    GtkWidget *announce = gtk_label_new("Shoes Console");
+ 	bpfd = pango_font_description_from_string ("Sans-Serif 14");	
+	gtk_widget_modify_font (announce, bpfd);
+	
 	gtk_box_pack_start(GTK_BOX(btnpnl), announce, 1, 0, 0);
+
 	GtkWidget *clrbtn = gtk_button_new_with_label ("Clear");
 	gtk_box_pack_start (GTK_BOX(btnpnl), clrbtn, 1, 0, 0);
  	GtkWidget *cpybtn = gtk_button_new_with_label ("Copy");
@@ -245,6 +258,7 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 	gtk_text_view_set_cursor_visible(canvas, TRUE);
 	gtk_text_view_set_left_margin(canvas, 4);
 	gtk_text_view_set_right_margin(canvas, 4);	
+	gtk_text_view_set_wrap_mode(canvas, GTK_WRAP_CHAR);
 	
   	// set font for scrollable window
  	pfd = pango_font_description_from_string ("monospace 10");	

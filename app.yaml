@@ -3,7 +3,7 @@ major: 3
 minor: 2
 tiny: 24
 release: federales
-revision: git
+revision: git 
 icons:
   win32: platform/msw/shoes.ico
   osx:   static/Shoes.icns
