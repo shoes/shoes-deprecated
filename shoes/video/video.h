@@ -14,12 +14,12 @@
 #include <vlc/vlc.h>       
 #include <vlc/libvlc.h>
 
-#define libvlc_destroy  libvlc_media_player_release
 #define vlc_int64_t     libvlc_time_t
-//#define shoes_libvlc_prev  libvlc_media_player_stop
-//#define shoes_libvlc_next  libvlc_media_player_stop
-#define shoes_libvlc_pause libvlc_media_player_pause
-#define shoes_libvlc_stop  libvlc_media_player_stop
+// TODO
+//#define shoes_libvlc_prev  libvlc_media_list_player_previous
+//#define shoes_libvlc_next  libvlc_media_list_player_next 	
+#define shoes_libvlc_pause libvlc_media_list_player_pause
+#define shoes_libvlc_stop  libvlc_media_list_player_stop
 #define SHOES_VLC(self_t) shoes_world->vlc
 
 SHOES_CONTROL_REF shoes_native_surface_new(shoes_canvas *, VALUE, shoes_place *);
@@ -38,6 +38,7 @@ typedef struct {
   libvlc_media_player_t *vlcplayer;
   libvlc_media_list_player_t *vlcListplayer;
   libvlc_media_t *media;
+  libvlc_media_list_t *mediaList;
   int init;
   VALUE path;
   SHOES_SLOT_OS *slot;

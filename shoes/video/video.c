@@ -16,10 +16,12 @@ shoes_video_mark(shoes_video *video)
 static void
 shoes_video_free(shoes_video *video)
 {
-  if (video->vlcplayer != NULL)
-    libvlc_media_player_release(video->vlcplayer);
+  if (video->mediaList != NULL)
+    libvlc_media_list_release(video->mediaList);
   if (video->vlcListplayer != NULL)
     libvlc_media_list_player_release(video->vlcListplayer);
+  if (video->vlcplayer != NULL)
+    libvlc_media_player_release(video->vlcplayer);
   RUBY_CRITICAL(SHOE_FREE(video));
   /* we keep SHOES_VLC(video) one vlc instance for the whole shoes session */
 }
@@ -117,28 +119,25 @@ shoes_video_show(VALUE self)
   }
 
 static void  /* Private */
-handle_subitems_site(shoes_video *video)
+init_list_player(shoes_video *video)
 {
-//  libvlc_event_manager_t *evm = libvlc_media_player_event_manager(video->vlcplayer);
-//  libvlc_event_type_t evtype = libvlc_MediaPlayerEndReached;
-//  libvlc_event_attach(evm, evtype, finished_cb, &video);
-//  libvlc_media_player_play(video->vlcplayer);
-
-  libvlc_media_list_t *ml = libvlc_media_list_new(SHOES_VLC(video));
-  if (video->vlcListplayer == NULL) 
+  // using a media_list_player for obviously having media_list features but also
+  // gives us the ability to read videos on youtube like sites (lua script, subitems on media)
+  if (!video->vlcListplayer) {
     video->vlcListplayer = libvlc_media_list_player_new(SHOES_VLC(video));
+    libvlc_media_list_player_set_media_player(video->vlcListplayer, video->vlcplayer);
+    
+    video->mediaList = libvlc_media_list_new(SHOES_VLC(video));
+    libvlc_media_list_player_set_media_list(video->vlcListplayer, video->mediaList);
+  }
   
-  libvlc_media_list_lock(ml);
-  libvlc_media_list_add_media(ml, video->media);
-  libvlc_media_list_unlock(ml);
+  libvlc_media_list_lock(video->mediaList);
+    if (libvlc_media_list_count(video->mediaList) != 0) 
+      libvlc_media_list_remove_index(video->mediaList, 0);
+    libvlc_media_list_add_media(video->mediaList, video->media);
+    //printf("medialist count : %d\n", libvlc_media_list_count(video->mediaList));
+  libvlc_media_list_unlock(video->mediaList);
   
-  /* not doing this gives a second detached window player (2 players) might be interesting ...*/
-  libvlc_media_list_player_set_media_player(video->vlcListplayer, video->vlcplayer);
-  
-  libvlc_media_list_player_set_media_list(video->vlcListplayer, ml);
-  libvlc_media_list_player_play(video->vlcListplayer);
-  
-  libvlc_media_list_release(ml);
 }
 
 static int  /* Private */
@@ -226,13 +225,16 @@ shoes_video_draw(VALUE self, VALUE c, VALUE actual)
       if (self_t->init == 0) {
         self_t->init = 1;
         
-        //  TODO using only a media_list_player 
-        self_t->vlcplayer = libvlc_media_player_new_from_media(self_t->media);
+        if (self_t->vlcplayer) {
+          libvlc_media_player_set_media(self_t->vlcplayer, self_t->media);
+        } else {
+          self_t->vlcplayer = libvlc_media_player_new(SHOES_VLC(self_t));
+          libvlc_media_player_set_media(self_t->vlcplayer, self_t->media);
+        }
         libvlc_media_release(self_t->media);
         
-        if (self_t->ref)
-          shoes_native_surface_remove(canvas, self_t->ref);
-        self_t->ref = shoes_native_surface_new(canvas, self, &self_t->place);
+        if (!self_t->ref)
+          self_t->ref = shoes_native_surface_new(canvas, self, &self_t->place);
         shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
         
         if (libvlc_media_player_get_xwindow(self_t->vlcplayer) == 0)
@@ -257,12 +259,10 @@ shoes_video_draw(VALUE self, VALUE c, VALUE actual)
         int vol = ATTR2(int, self_t->attr, volume, 80);
         libvlc_audio_set_volume(self_t->vlcplayer, vol);
         
+        init_list_player(self_t);
+        
         if (RTEST(ATTR(self_t->attr, autoplay))) {
-          if(strstr(RSTRING_PTR(self_t->path), "youtube") != NULL) {
-            handle_subitems_site(self_t);
-          } else {
-            libvlc_media_player_play(self_t->vlcplayer);
-          }
+            libvlc_media_list_player_play(self_t->vlcListplayer);
         }
 
       } else {
@@ -282,8 +282,7 @@ shoes_video_is_playing(VALUE self)
 {
   GET_STRUCT(video, self_t);
   if (self_t->init == 1) {
-    libvlc_state_t s = libvlc_media_player_get_state(self_t->vlcplayer);
-    return s == libvlc_Playing ? Qtrue : Qfalse;
+    return libvlc_media_list_player_is_playing(self_t->vlcListplayer) ? Qtrue : Qfalse;
   }
   return Qfalse;
 }
@@ -293,7 +292,7 @@ shoes_video_play(VALUE self)
 {
   GET_STRUCT(video, self_t);
   if (self_t->init == 1) {
-    libvlc_media_player_play(self_t->vlcplayer);
+    libvlc_media_list_player_play(self_t->vlcListplayer);
   }
   return self;
 }
@@ -309,7 +308,7 @@ VALUE
 shoes_video_set_path(VALUE self, VALUE path)
 {
   GET_STRUCT(video, self_t);
-  if(shoes_video_is_playing(self)) libvlc_media_player_stop(self_t->vlcplayer);
+  if(shoes_video_is_playing(self)) shoes_video_stop(self);
   
   self_t->path = path;
   self_t->init = 0;
@@ -346,7 +345,7 @@ shoes_video_set_volume(VALUE self , VALUE volume)
     GET_STRUCT(video, self_t); \
     if (self_t->init == 1) \
     { \
-      shoes_libvlc_##x(self_t->vlcplayer); \
+      shoes_libvlc_##x(self_t->vlcListplayer); \
     } \
     return self; \
   }
