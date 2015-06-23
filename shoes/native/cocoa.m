@@ -1525,7 +1525,7 @@ shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
 {
   //GLOBAL_APP(app);
   ACTUAL_APP(app);
-  NSString *appstr = [[NSString alloc] initWithUTF8String: RSTRING_PTR(app->title)];
+	NSString *appstr = [[NSString alloc] initWithUTF8String: RSTRING_PTR(app->title)];
   rb_arg_list args;
   rb_parse_args(argc, argv, "S|h", &args);
   VALUE msg;

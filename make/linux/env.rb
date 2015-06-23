@@ -1,16 +1,16 @@
 # This is for a native build (loose shoes)
 # It is safe and desireable to use RbConfig::CONFIG settings
-#   Will not build gems and most extentions 
+#   Will not build gems and most extentions
 #   Links against system (or rvm) ruby, and libraries. No LD_LIB_PATH
 require 'rbconfig'
 
 # manually set below to what you want to build with/for
-#ENV['DEBUG'] = "true" # turns on the call log in shoes/gtk
+#ENV['DEBUG'] = "true" # turns on the call log
 APP['GTK'] = "gtk+-2.0"
 #APP['GTK'] = "gtk+-3.0"
 ENV['GDB'] = "true" # compile -g,  don't strip symbols
 # Pick your optimatization and debugging options
-if ENV['DEBUG'] || ENV['GDB']
+if ENV['GDB']
   LINUX_CFLAGS = "-g -O0"
 else
   LINUX_CFLAGS = "-O -Wall"
@@ -21,17 +21,25 @@ ENV['VIDEO'] = "true"
 # figure out which ruby we need.
 rv =  RUBY_VERSION[/\d.\d/]
 
-LINUX_CFLAGS << " -DRUBY_HTTP" 
+LINUX_CFLAGS << " -DRUBY_HTTP"
 LINUX_CFLAGS << " -DRUBY_1_9"
+LINUX_CFLAGS << " -DDEBUG" if ENV['DEBUG']
 LINUX_CFLAGS << " -DGTK3" unless APP['GTK'] == 'gtk+-2.0'
 LINUX_CFLAGS << " -DSHOES_GTK -fPIC -shared"
-# Following line may need handcrafting 
+# Following line may need handcrafting
 LINUX_CFLAGS << " -I/usr/include/"
 LINUX_CFLAGS << " #{`pkg-config --cflags #{APP['GTK']}`.strip}"
 
 CC = "gcc"
 
-file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + ["shoes/*.c"]
+if APP['GTK'] == 'gtk+-2.0'
+  file_list = %w(shoes/native/gtk.c shoes/http/rbload.c) + ["shoes/*.c"]
+else
+  file_list = %w(shoes/native/gtk.c shoes/native/gtkfixedalt.c shoes/native/gtkentryalt.c
+               shoes/native/gtkcomboboxtextalt.c shoes/native/gtkbuttonalt.c
+               shoes/native/gtkscrolledwindowalt.c shoes/native/gtkprogressbaralt.c 
+               shoes/http/rbload.c) + ["shoes/*.c"]
+end
 file_list << "shoes/video/video.c" if ENV['VIDEO']
 
 SRC = FileList[*file_list]
@@ -69,7 +77,7 @@ end
 # collect flags together
 LINUX_CFLAGS << " #{RUBY_CFLAGS} #{GTK_FLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{VLC_CFLAGS}"
 
-# collect link settings together. Does order matter? 
+# collect link settings together. Does order matter?
 LINUX_LIBS = "#{RUBY_LIB} #{GTK_LIB}  #{CAIRO_LIB} #{PANGO_LIB} #{MISC_LIB} #{VLC_LIB}"
 LINUX_LIBS << " -lfontconfig" if APP['GTK'] == "gtk+-3.0"
 # the following is only used to link the shoes code with main.o
