@@ -499,9 +499,21 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
 #ifndef OLD_PTY_CODE
 	ptySlave = ptsname(to->ptyMaster);
 	to->ptySlave = open(ptySlave, O_RDWR);
+	// need to setup the terminal stuff for the slave side of the pty.
+	struct termios slave_orig_term_settings; // Saved terminal settings
+    struct termios new_term_settings; // Current terminal settings
+    tcgetattr(to->ptySlave, &slave_orig_term_settings);
+	new_term_settings = slave_orig_term_settings;
+    //cfmakeraw (&new_term_settings); 
+    tcsetattr (to->ptySlave, TCSANOW, &new_term_settings); 
 	dup2(to->ptySlave, fileno(stdin));
 	dup2(to->ptySlave, fileno(stdout));
 	dup2(to->ptySlave, fileno(stderr));
+		setenv("TERM","dumb",1); // vt102
+		sprintf(message, "%d", width);
+		setenv("COLUMNS", message, 1);
+		sprintf(message, "%d", height);
+		setenv("LINES", message, 1);
 
 #else
 	to->pid = fork();

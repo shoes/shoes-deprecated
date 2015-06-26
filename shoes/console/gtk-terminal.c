@@ -5,17 +5,20 @@
 #include <signal.h>
 
 #include "tesi.h"
-
+#include <gdk/gdkkeysyms.h>
 /* 
  * heavily modified from https://github.com/alanszlosek/tesi/ 
  * for use in Shoes/Linux
 */
  
 
-static gboolean keypress_event(GtkWidget *widget, GdkEvent *event, gpointer data) {
+static gboolean keypress_event(GtkWidget *widget, GdkEventKey *event, gpointer data) {
 	struct tesiObject *tobj = (struct tesiObject*)data;
     char *c = ((GdkEventKey*)event)->string;
 	char s = *c;
+	if (event->keyval == GDK_BackSpace) {
+		s = 010;
+    }
 	write(tobj->fd_input, &s, 1);
 	return TRUE;
 }
