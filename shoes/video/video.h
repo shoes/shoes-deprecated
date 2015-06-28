@@ -38,12 +38,6 @@ typedef struct {
   SHOES_SLOT_OS *slot;
 } shoes_video;
 
-SHOES_CONTROL_REF shoes_native_surface_new(shoes_canvas *, shoes_video *, shoes_place *);
-void shoes_native_surface_position(SHOES_CONTROL_REF, shoes_place *, 
-                                            VALUE, shoes_canvas *, shoes_place *);
-void shoes_native_surface_hide(SHOES_CONTROL_REF);
-void shoes_native_surface_show(SHOES_CONTROL_REF);
-void shoes_native_surface_remove(shoes_canvas *, SHOES_CONTROL_REF);
 
 void shoes_video_mark(shoes_video *);
 VALUE shoes_video_alloc(VALUE);

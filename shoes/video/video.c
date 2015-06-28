@@ -1,5 +1,6 @@
 
 #include "video.h"
+#include "shoes/native.h"
 
 /* libvlc_exception_t removed since vlc 1.1.0
  * static void shoes_vlc_exception(libvlc_exception_t *excp)
@@ -32,10 +33,7 @@ shoes_video_alloc(VALUE klass)
   VALUE obj;
   const char *ppsz_argv[10] = {"vlc", "-I", "dummy", "--quiet", "--no-stats",
                         "--no-overlay", "--no-video-on-top", NULL, NULL, NULL};
-  shoes_video *video = SHOE_ALLOC(shoes_video);
-  SHOE_MEMZERO(video, shoes_video, 1);
-  
-#ifndef SHOES_GTK
+ #ifndef SHOES_GTK
   char pathsw[SHOES_BUFSIZE];
   int ppsz_argc = 8;
   sprintf(pathsw, "--plugin-path=%s/plugins", shoes_world->path);
@@ -43,9 +41,11 @@ shoes_video_alloc(VALUE klass)
 #else
   int ppsz_argc = 7;
 #endif
-
   ppsz_argv[ppsz_argc++] = "--ignore-config";
-  ppsz_argv[ppsz_argc++] = "--no-video-title-show";
+  ppsz_argv[ppsz_argc++] = "--no-video-title-show"; 
+  
+  shoes_video *video = SHOE_ALLOC(shoes_video);
+  SHOE_MEMZERO(video, shoes_video, 1);
 
   obj = Data_Wrap_Struct(klass, shoes_video_mark, shoes_video_free, video);
   
@@ -277,7 +277,7 @@ load_media(shoes_video *self_t)
     // wether user supplied width and/or height attributes
     VALUE uw = ATTR(self_t->attr, width), uh = ATTR(self_t->attr, height);
     
-    if ( NIL_P(uw) && NIL_P(uh) ) {  /* no attributes check video track dimension */
+    if ( NIL_P(uw) && NIL_P(uh) ) {  /* no attributes at all, check video track dimension */
       libvlc_media_parse(media);
       
       n_tracks = libvlc_media_tracks_get(media, &tracks);
@@ -330,16 +330,16 @@ shoes_video_draw(VALUE self, VALUE c, VALUE actual)
   
   
   if (RTEST(actual)) {    /*second pass*/
-    if (HAS_DRAWABLE(canvas->slot)) {  // not sure what's the use of this
+    
+    // not sure what's the use of this, aren't we sure canvas->slot->oscanvas 
+    // allways have a window ?, Symmetry with osx, Windows ?
+    if (HAS_DRAWABLE(canvas->slot)) {
       if (self_t->init == 0) {
         self_t->init = 1;
         
-        if (self_t->vlcplayer) {
-          libvlc_media_player_set_media(self_t->vlcplayer, self_t->media);
-        } else {
+        if (!self_t->vlcplayer)
           self_t->vlcplayer = libvlc_media_player_new(SHOES_VLC(self_t));
-          libvlc_media_player_set_media(self_t->vlcplayer, self_t->media);
-        }
+        libvlc_media_player_set_media(self_t->vlcplayer, self_t->media);
         libvlc_media_release(self_t->media);
         
         if (!self_t->ref)

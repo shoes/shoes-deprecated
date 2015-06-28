@@ -65,12 +65,13 @@ void shoes_native_control_focus(SHOES_CONTROL_REF);
 void shoes_native_control_state(SHOES_CONTROL_REF, SHOES_BOOL, SHOES_BOOL);
 void shoes_native_control_remove(SHOES_CONTROL_REF, shoes_canvas *);
 void shoes_native_control_free(SHOES_CONTROL_REF);
-//SHOES_CONTROL_REF shoes_native_surface_new(shoes_canvas *, VALUE, shoes_place *);
-//void shoes_native_surface_position(SHOES_SURFACE_REF, shoes_place *, 
-//  VALUE, shoes_canvas *, shoes_place *);
-//void shoes_native_surface_hide(SHOES_SURFACE_REF);
-//void shoes_native_surface_show(SHOES_SURFACE_REF);
-//void shoes_native_surface_remove(shoes_canvas *, SHOES_SURFACE_REF);
+SHOES_CONTROL_REF shoes_native_surface_new(shoes_canvas *, shoes_video *, shoes_place *);
+void shoes_native_surface_remove(shoes_canvas *, SHOES_CONTROL_REF);
+// don't need those in gtk.c but in cocoa.m 
+//void shoes_native_surface_position(SHOES_CONTROL_REF, shoes_place *, 
+//                                            VALUE, shoes_canvas *, shoes_place *)
+//void shoes_native_surface_hide(SHOES_CONTROL_REF);
+//void shoes_native_surface_show(SHOES_CONTROL_REF);
 SHOES_CONTROL_REF shoes_native_button(VALUE, shoes_canvas *, shoes_place *, char *);
 SHOES_CONTROL_REF shoes_native_edit_line(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);
 VALUE shoes_native_edit_line_get_text(SHOES_CONTROL_REF);
