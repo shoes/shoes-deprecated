@@ -27,7 +27,7 @@ int tesi_handleInput(struct tesiObject *to) {
 
        	// use sequenceLength as a local cache for faster ops?
 	// avoid premature optimization ... wait until find bottlenecks
-	
+
 	// use poll for it's speed, allows us to call this function at regular intervals without first checking for input
 	fds[0].fd = to->fd_activity;
 	fds[0].events = POLLIN | POLLPRI;
@@ -127,17 +127,17 @@ int tesi_handleControlCharacter(struct tesiObject *to, char c) {
 			to->y++;
 			//if(to->insertMode == 0 && to->linefeedMode == 1)
 				to->x = 0;
-			
+
 			//if(i == 1 && to->callback_scrollUp)
 			//	to->callback_scrollUp(to->pointer);
-			tesi_limitCursor(to, 1); 
+			tesi_limitCursor(to, 1);
 			break;
 
 		case '\t': // ht - horizontal tab, ('I' - '@')
 #ifdef DEBUG
 			fprintf(stderr, "Tab. %d,%d (x,y)\n", to->x, to->y);
 #endif
-			j = 8 - (to->x % 8);		
+			j = 8 - (to->x % 8);
 			if(j == 0)
 				j = 8;
 			for(i = 0; i < j; i++, to->x++) {
@@ -504,8 +504,8 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
     struct termios new_term_settings; // Current terminal settings
     tcgetattr(to->ptySlave, &slave_orig_term_settings);
 	new_term_settings = slave_orig_term_settings;
-    //cfmakeraw (&new_term_settings); 
-    tcsetattr (to->ptySlave, TCSANOW, &new_term_settings); 
+    //cfmakeraw (&new_term_settings);
+    tcsetattr (to->ptySlave, TCSANOW, &new_term_settings);
 	dup2(to->ptySlave, fileno(stdin));
 	dup2(to->ptySlave, fileno(stdout));
 	dup2(to->ptySlave, fileno(stderr));
@@ -552,7 +552,7 @@ void deleteTesiObject(void *p) {
 
 	//kill(-(getpgid(to->pid)), SIGTERM); // kill all with this process group id
 	kill(to->pid, SIGTERM); // probably don't need this line
-	waitpid(to->pid);
+	//waitpid(to->pid); // don't need this on OSX if never called
 
 	close(to->ptyMaster);
 

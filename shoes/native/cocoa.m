@@ -1778,9 +1778,3 @@ shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
   return shoes_dialog_chooser(self, @"Save folder...", YES, args.a[0]);
 #endif
 }
-
-int shoes_native_console()
-{
-  NSLog(@"Console would be here");
-  return 1;
-}

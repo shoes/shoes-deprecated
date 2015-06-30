@@ -7,7 +7,11 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#ifdef SHOES_QUARTZ
+#include <util.h>
+#else
 #include <pty.h>
+#endif
 #include <utmp.h>
 #include <unistd.h>
 #include <string.h>
