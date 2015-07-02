@@ -8,6 +8,7 @@
 
 #include "cocoa-term.h"
 
+void console_haveChar(void *p, char c); // forward ref
 // Implement
 @implementation ConsoleWindow
 - (void)consoleInit
@@ -27,14 +28,14 @@
   [btnpnl setTitlePosition: NSNoTitle ];
   [btnpnl setAutoresizingMask: NSViewWidthSizable|NSViewMinYMargin];
 
-  clrbtn = [[NSButton alloc] initWithFrame: NSMakeRect(400,2, 60, 28)];
+  clrbtn = [[NSButton alloc] initWithFrame: NSMakeRect(400, 2, 60, 28)];
   [clrbtn setButtonType: NSMomentaryPushInButton];
   [clrbtn setBezelStyle: NSRoundedBezelStyle];
   [clrbtn setTitle: @"Clear"];
   [clrbtn setTarget: self];
   [clrbtn setAction: @selector(handleClear:)];
 
-  cpybtn = [[NSButton alloc] initWithFrame: NSMakeRect(500,2, 60, 28)];
+  cpybtn = [[NSButton alloc] initWithFrame: NSMakeRect(500, 2, 60, 28)];
   [cpybtn setButtonType: NSMomentaryPushInButton];
   [cpybtn setBezelStyle: NSRoundedBezelStyle];
   [cpybtn setTitle: @"Copy"];
@@ -43,15 +44,44 @@
 
   [btnpnl addSubview: clrbtn];
   [btnpnl addSubview: cpybtn];
-  // init termpnl here.
-  cntview = [[NSView alloc] initWithFrame: NSMakeRect(0,0,width,468)];
+  // init termpnl and textview here.
+  // Note NSTextView is subclass of NSText so there are MANY methods to learn
+  // not to mention delagates and protocols
+  termview = [[NSTextView alloc]  initWithFrame: NSMakeRect(0, 0, width, 468-PNLH)];
+
+  termpnl = [[NSScrollView alloc] initWithFrame: NSMakeRect(0, 0, width, 468-PNLH)];
+  [termpnl setHasVerticalScroller: YES];
+  [termpnl setDocumentView: termview];
+
+  // Put the panels in the Window
+  cntview = [[NSView alloc] initWithFrame: NSMakeRect(0, 0 ,width, 468)];
   [cntview setAutoresizesSubviews: YES];
   [cntview addSubview: btnpnl];
-
-  // add termpnl
+  [cntview addSubview: termpnl];
   [self setContentView: cntview];
 
+  // Now init the Tesi object - NOTE tesi callbacks are C,  which calls Objective-C
+  tobj = newTesiObject("/bin/bash", 80, 24); // first arg not used
+  tobj->pointer = (void *)self;
+  tobj->callback_haveCharacter = &console_haveChar;
+  /* cjc - my handler short circuts much (all?) of these callbacks:
+  t->callback_printCharacter = &tesi_printCharacter;
+  t->callback_eraseCharacter = &tesi_eraseCharacter;
+  t->callback_moveCursor = &tesi_moveCursor;
+  t->callback_insertLine = &tesi_insertLine;
+  t->callback_eraseLine = &tesi_eraseLine;
+  t->callback_scrollUp = &tesi_scrollUp;
+  */
+  // try inserting some text.
+  //[termview insertText: @"First Line!"];
+  // need to get the handleInput started
+  // OSX timer res less than 0.1 second not likely
+  NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:0.1
+                            target: self selector:@selector(readStdout:)
+                            userInfo: self repeats:YES];
+  // attach timer to ???
 }
+
 -(IBAction)handleClear: (id)sender
 {
   NSLog(@"Clear button pressed");
@@ -69,6 +99,7 @@
 - (void)keyDown: (NSEvent *)e
 {
   // lots to do here
+  NSLog(@"Key %c", [e keyCode]);
 }
 - (BOOL)canBecomeKeyWindow
 {
@@ -80,9 +111,13 @@
 }
 - (void)windowWillClose: (NSNotification *)n
 {
-
+  tesi_handleInput(tobj);
 }
 
+-(void)readStdout: (NSTimer *)t
+{
+  // do tesi.handleInput
+}
 @end
 
 
@@ -104,4 +139,127 @@ int shoes_native_console()
   // Fire up console window, switch stdin..
   printf("mac\010c\t console \t\tcreated\n"); //test \b \t in string
   return 1;
+}
+
+// C Callbacks
+
+/* these move to Obj-C keyDown, and button handling
+static gboolean keypress_event(GtkWidget *widget, GdkEventKey *event, gpointer data) {
+	struct tesiObject *tobj = (struct tesiObject*)data;
+    char *c = ((GdkEventKey*)event)->string;
+	char s = *c;
+	if (event->keyval == GDK_BackSpace) {
+		s = 010;
+    }
+	write(tobj->fd_input, &s, 1);
+	return TRUE;
+}
+
+static gboolean clear_console(GtkWidget *widget, GdkEvent *event, gpointer data) {
+	struct tesiObject *tobj = (struct tesiObject*) data;
+	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
+	GtkTextBuffer *newbuf = gtk_text_buffer_new(NULL);
+	gtk_text_view_set_buffer(view, newbuf);
+	// set a mark to the end? get focus
+	gtk_widget_grab_focus(view);
+	return TRUE;
+}
+
+static gboolean copy_console(GtkWidget *widget, GdkEvent *event, gpointer data) {
+	struct tesiObject *tobj = (struct tesiObject*) data;
+	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
+	GtkTextIter iter_s, iter_e;
+    gtk_text_buffer_get_bounds(buffer, &iter_s, &iter_e);
+	gchar *bigstr = gtk_text_buffer_get_slice(buffer, &iter_s, &iter_e, TRUE);
+	GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+    gtk_clipboard_set_text(primary, bigstr, strlen(bigstr));
+	return TRUE;
+}
+*/
+
+/*
+ * This is called to handle characters received from the pty
+ * in response to a puts/printf/write from Shoes,Ruby, & C
+ * I don't manage escape seq, x,y or deal with width and height.
+ * Just write to the end of the buffer and let the cocoa textview manage it.
+*/
+void console_haveChar(void *p, char c) {
+	struct tesiObject *tobj = (struct tesiObject*)p;
+  ConsoleWindow * cwin = (ConsoleWindow *)tobj->pointer;
+  NSTextView *tv = cwin->termview; //Be careful!
+
+  char in[8];
+  int lcnt;
+
+	int i, j;
+	//snprintf(in, 7, "%c", c);
+	if (c >= 32 && c != 127) {
+	    //buffer = gtk_text_view_get_buffer(view);
+	    //gtk_text_buffer_insert_at_cursor(buffer, in, 1);
+      NSLog(@"%c", c);
+		return;
+    }
+	switch (c) {
+		case '\x1B': // begin escape sequence (aborting previous one if any)
+			//tobj->partialSequence = 1;
+			// possibly flush buffer
+			break;
+
+		case '\r': // carriage return ('M' - '@'). Move cursor to first column.
+			// odds are high this preceeds a \n. Move to the begining of
+			// last line in buffer line.  What happens if we insert
+			break;
+
+		case '\n':  // line feed ('J' - '@'). Move cursor down line and to first column.
+		    // just insert '\n' into the buffer.
+		    //gtk_text_buffer_insert_at_cursor(buffer, in, 1);
+        NSLog(@"\\n");
+			break;
+
+		case '\t': // ht - horizontal tab, ('I' - '@')
+		    // textview can handle tabs - it claims.
+	      //  gtk_text_buffer_insert_at_cursor(buffer, in, 1);
+        NSLog(@"\\t");
+	 		break;
+
+		case '\a': // bell ('G' - '@')
+	 		// do nothing for now... maybe a visual bell would be nice?
+			break;
+
+	 	case 8: // backspace cub1 cursor back 1 ('H' - '@')
+            //gtk_text_buffer_get_end_iter (buffer, &iter_e);
+            //gtk_text_buffer_backspace(buffer, &iter_e, 1, 1);
+			break;
+
+		default:
+#ifdef DEBUG
+			fprintf(stderr, "Unrecognized control char: %d (^%c)\n", c, c + '@');
+#endif
+			break;
+	}
+	// tell the view to show the newest position
+	// from http://www.gtkforums.com/viewtopic.php?t=1307
+	//gtk_text_buffer_get_end_iter (buffer, &iter_e);
+	//insert_mark = gtk_text_buffer_get_insert (buffer);
+	//gtk_text_buffer_place_cursor(buffer, &iter_e);
+  //  gtk_text_view_scroll_to_mark( GTK_TEXT_VIEW (view),
+  //          insert_mark, 0.0, TRUE, 0.0, 1.0);
+}
+
+void tesi_printCharacter(void *p, char c, int x, int y) {
+}
+void tesi_eraseCharacter(void *p, int x, int y) {
+}
+
+void tesi_scrollUp(void *p) {
+}
+
+void tesi_moveCursor(void *p, int x, int y) {
+}
+
+void tesi_insertLine(void *p) {
+}
+
+void tesi_eraseLine(void *p) {
 }
