@@ -369,19 +369,12 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
     GetTempPath(BUFSIZE, buf);
 	/* the things we do for happy users - bug #110 */
 	int bufpos = 0;
-	replres = FindResource(inst, MAKEINTRESOURCE(SHOES_USE_ARGS), RT_STRING);
-	if (replres != NULL) 
-	{
-	  char *args = shoes_str_load(inst, SHOES_USE_ARGS);
-	  strcpy(buf,args);
-	  strcat(buf," ");
-    }
+
     char *str = shoes_str_load(inst, SHOES_APP_NAME);
     strcat(buf, (LPTSTR)str);
 
-    //note: do not create a file with 'buf' -- it may have --console in it
-    // but we need buf to include that when ShellExecute 's 
-    payload = CreateFile(str, GENERIC_READ | GENERIC_WRITE,
+    // copy payload to temp
+    payload = CreateFile(buf, GENERIC_READ | GENERIC_WRITE,
       FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
     len = SizeofResource(inst, shyres);
     if (GetFileSize(payload, NULL) != len)
@@ -393,13 +386,26 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
       WriteFile(payload, (LPBYTE)data, len, &rlen, NULL);
     }
     CloseHandle(payload);
+    // Now build a commandline args for Execute 
+    char cmdargs[BUFSIZE];
+ 	replres = FindResource(inst, MAKEINTRESOURCE(SHOES_USE_ARGS), RT_STRING);
+	if (replres != NULL) 
+	{
+	  char *args = shoes_str_load(inst, SHOES_USE_ARGS);
+	  strcpy(cmdargs,args);
+	  strcat(cmdargs," ");
+	  strcat(cmdargs,buf);
+    } else {
+	  strcpy(cmdargs, buf);
+    }   
+    
     
 #ifdef STUB_DEBUG    
-    printf("payload %s, len: %d\n", buf, (int)len);
+    printf("payload %s, len: %d\n", cmdargs, (int)len);
     printf("cmd: %s\n", path);
  #endif
     HINSTANCE retcode;
-    retcode = ShellExecute(NULL, "open", path, buf, NULL, SW_SHOWNORMAL);
+    retcode = ShellExecute(NULL, "open", path, cmdargs, NULL, SW_SHOWNORMAL);
 #ifdef STUB_DEBUG
     printf("Return: %i\n", (int)retcode);
 #endif

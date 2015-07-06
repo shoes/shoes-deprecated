@@ -7,7 +7,7 @@
 // see tesi.c and tesi.h. Cocoa version of gtk-terminal.
 
 #include "cocoa-term.h"
-
+#define ENABLE_OUTPUT 1 // need to get they key handling code working first
 void console_haveChar(void *p, char c); // forward ref
 // Implement
 @implementation ConsoleWindow
@@ -61,9 +61,11 @@ void console_haveChar(void *p, char c); // forward ref
   [self setContentView: cntview];
 
   // Now init the Tesi object - NOTE tesi callbacks are C,  which calls Objective-C
+#ifdef ENABLE_OUTPUT
   tobj = newTesiObject("/bin/bash", 80, 24); // first arg not used
   tobj->pointer = (void *)self;
   tobj->callback_haveCharacter = &console_haveChar;
+#endif
   /* cjc - my handler short circuts much (all?) of these callbacks:
   t->callback_printCharacter = &tesi_printCharacter;
   t->callback_eraseCharacter = &tesi_eraseCharacter;
@@ -76,10 +78,12 @@ void console_haveChar(void *p, char c); // forward ref
   //[termview insertText: @"First Line!"];
   // need to get the handleInput started
   // OSX timer res less than 0.1 second not likely
-  NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:0.1
+#ifdef ENABLE_OUTPUT
+  cnvbfr = [[NSMutableString alloc] initWithCapacity: 4];
+  pollTimer = [NSTimer scheduledTimerWithTimeInterval:0.1
                             target: self selector:@selector(readStdout:)
                             userInfo: self repeats:YES];
-  // attach timer to ???
+#endif
 }
 
 -(IBAction)handleClear: (id)sender
@@ -111,12 +115,34 @@ void console_haveChar(void *p, char c); // forward ref
 }
 - (void)windowWillClose: (NSNotification *)n
 {
-  tesi_handleInput(tobj);
 }
 
 -(void)readStdout: (NSTimer *)t
 {
   // do tesi.handleInput
+  tesi_handleInput(tobj);
+}
+- (void)writeStr:(NSString*)text
+{
+  [termview setString:[NSString stringWithFormat:@"%@\n%@", text]];
+#ifdef BE_CLEVER
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSAttributedString* attr = [[NSAttributedString alloc] initWithString:text];
+
+        [[termview textStorage] appendAttributedString: attr];
+        [termview scrollRangeToVisible:NSMakeRange([[termview string] length], 0)];
+    });
+#endif
+}
+
+- (void)writeChr:(char)c
+{
+  char buff[4];
+  buff[0] = c;
+  buff[1] = 0;
+  NSString *cnvbfr = [[NSString alloc] initWithCString: buff encoding: NSUTF8StringEncoding];
+  [self writeStr: cnvbfr];
+  // TODO: Am I leaking memory ? The C programmer in me says "Oh hell yes!"
 }
 @end
 
@@ -198,6 +224,7 @@ void console_haveChar(void *p, char c) {
 	    //buffer = gtk_text_view_get_buffer(view);
 	    //gtk_text_buffer_insert_at_cursor(buffer, in, 1);
       NSLog(@"%c", c);
+      [cwin writeChr: c];
 		return;
     }
 	switch (c) {

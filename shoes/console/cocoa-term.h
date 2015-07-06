@@ -6,6 +6,8 @@
 {
 @public
   struct tesiObject* tobj;
+  NSMutableString *cnvbfr;  // for char to NSString conversion
+  NSTimer *pollTimer;
   NSBox *btnpnl;
   NSButton *clrbtn;
   NSButton *cpybtn;
