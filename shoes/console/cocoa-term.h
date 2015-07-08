@@ -16,9 +16,3 @@
   NSTextView *termview;
 }
 @end
-
-@interface ConsoleContents : NSTextView
-{
-
-}
-@end
