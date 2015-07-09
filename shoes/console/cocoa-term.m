@@ -50,11 +50,11 @@ void console_haveChar(void *p, char c); // forward ref
   // init termpnl and textview here.
   // Note NSTextView is subclass of NSText so there are MANY methods to learn
   // not to mention delagates and protocols
-  termview = [[NSTextView alloc]  initWithFrame: NSMakeRect(0, 0, width, 468-PNLH)];
+  termView = [[ConsoleTermView alloc]  initWithFrame: NSMakeRect(0, 0, width, 468-PNLH)];
 
   termpnl = [[NSScrollView alloc] initWithFrame: NSMakeRect(0, 0, width, 468-PNLH)];
   [termpnl setHasVerticalScroller: YES];
-  [termpnl setDocumentView: termview];
+  [termpnl setDocumentView: termView];
 
   // Put the panels in the Window
   cntview = [[NSView alloc] initWithFrame: NSMakeRect(0, 0 ,width, 468)];
@@ -69,8 +69,8 @@ void console_haveChar(void *p, char c); // forward ref
   tobj->callback_haveCharacter = &console_haveChar;
 
   // try inserting some text.
-  //[[termview textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: @"First Line!\n"]];
-
+  //[[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: @"First Line!\n"]];
+  [termView initView: self];
   // need to get the handleInput started
   // OSX timer resolution less than 0.1 second unlikely
   cnvbfr = [[NSMutableString alloc] initWithCapacity: 4];
@@ -81,26 +81,28 @@ void console_haveChar(void *p, char c); // forward ref
 
 -(IBAction)handleClear: (id)sender
 {
-  NSLog(@"Clear button pressed");
+  //NSLog(@"Clear");
+  [termView setString: @""];
+  fprintf(stdout,"Stdout: Clear button pressed"); // this doesn't show
+  fprintf(stderr,"Stderr: Clear button pressed"); // this doesn't show
 }
 
 -(IBAction)handleCopy: (id)sender
 {
-  NSLog(@"Copy button pressed");
+  printf("Copy button pressed");
 }
 
 - (void)disconnectApp
 {
   //app = Qnil;
 }
+
+/*
 - (void)keyDown: (NSEvent *)e
 {
-  // lots to do here
-  //NSLog(@"Key %c", [e keyCode]);
-  NSString *str = [e charactersIgnoringModifiers];
-  char *utf8 = [str UTF8String];
-  write(tobj->fd_input, utf8, strlen(utf8));
+  // handle upper level keys like cmd and page_up/down?
 }
+*/
 
 - (BOOL)canBecomeKeyWindow
 {
@@ -124,14 +126,14 @@ void console_haveChar(void *p, char c); // forward ref
 
 - (void)writeStr:(NSString*)text
 {
-  [[termview textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: text]];
-  [termview scrollRangeToVisible:NSMakeRange([[termview string] length], 0)];
+  [[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: text]];
+  [termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
 #ifdef BE_CLEVER
     dispatch_async(dispatch_get_main_queue(), ^{
         NSAttributedString* attr = [[NSAttributedString alloc] initWithString:text];
 
-        [[termview textStorage] appendAttributedString: attr];
-        [termview scrollRangeToVisible:NSMakeRange([[termview string] length], 0)];
+        [[termView textStorage] appendAttributedString: attr];
+        [termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
     });
 #endif
 }
@@ -145,9 +147,33 @@ void console_haveChar(void *p, char c); // forward ref
   [self writeStr: cnvbfr];
   // TODO: Am I leaking memory ? The C programmer in me says "Oh hell yes!"
 }
-@end // implementation except for stuff below.
 
-// Called by Shoes via commandline arg or command
+- (void)deleteChar
+{
+  // Remeber, this a \b char in a printf/puts not a key event (although one might get here)
+  int length = [[termView textStorage] length];
+  [[termView textStorage] deleteCharactersInRange:NSMakeRange(length-1, 1)];
+  [termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
+  //TODO: constrain y so it doesn't crawl up the screen
+}
+@end
+
+@implementation ConsoleTermView
+- (void)initView: (ConsoleWindow *)cw
+{
+  cwin = cw;
+  tobj = cw->tobj;  // is this Obj-C ugly? Probably
+}
+- (void)keyDown: (NSEvent *)e
+{
+  // should send events to super (page_up key or cmd-key
+  NSString *str = [e charactersIgnoringModifiers];
+  char *utf8 = [str UTF8String];
+  write(tobj->fd_input, utf8, strlen(utf8));
+}
+@end
+
+// Called by Shoes via commandline arg or command Shoes::show_console
 int shoes_native_console()
 {
   //NSLog(@"Console starting");
@@ -164,7 +190,7 @@ int shoes_native_console()
   //  [window setContentMinSize: size];
   [window consoleInit];
   // Fire up console window, switch stdin..
-  printf("mac\010c\t console \t\tcreated\n"); //test \b \t in string
+  printf("mak\010c\t console \t\tcreated\n"); //test \b \t in string
   return 1;
 }
 
@@ -214,6 +240,7 @@ void console_haveChar(void *p, char c) {
 
 	 	case 8: // backspace cub1 cursor back 1 ('H' - '@')
       // TODO:
+      [cwin deleteChar];
 			break;
 
 		default:

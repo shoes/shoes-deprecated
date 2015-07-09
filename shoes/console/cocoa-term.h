@@ -2,6 +2,14 @@
 #import <Cocoa/Cocoa.h>
 #import <AppKit/NSFontCollection.h>
 #include "tesi.h"
+
+@interface ConsoleTermView : NSTextView
+{
+   void *cwin;  //  points to below
+   struct tesiObject* tobj;
+}
+@end
+
 @interface ConsoleWindow : NSWindow
 {
 @public
@@ -13,6 +21,7 @@
   NSButton *cpybtn;
   NSView *cntview;
   NSScrollView *termpnl;
-  NSTextView *termview;
+  //NSTextView *termview;
+  ConsoleTermView *termView;
 }
 @end
