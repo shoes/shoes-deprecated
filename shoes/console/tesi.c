@@ -20,12 +20,12 @@ interpretSequence
 int tesi_handleInput(struct tesiObject *to) {
 	char input[128];
 	char *pointer, c;
-	int lengthRead;
-	int i, j, sequenceLength;
-	FILE *f;
+	long lengthRead;
+	int i; //, j, sequenceLength;
+	//FILE *f;
 	struct pollfd fds[1];
 
-       	// use sequenceLength as a local cache for faster ops?
+  // use sequenceLength as a local cache for faster ops?
 	// avoid premature optimization ... wait until find bottlenecks
 
 	// use poll for it's speed, allows us to call this function at regular intervals without first checking for input
@@ -441,8 +441,8 @@ int tesi_limitCursor(struct tesiObject *tobj, int moveCursorRegardless) {
 
 struct tesiObject* newTesiObject(char *command, int width, int height) {
 	struct tesiObject *to;
-	struct winsize ws;
-	char message[256];
+	//struct winsize ws;
+	char message[32]; // really just a temp
 	char *ptySlave;
 	to = malloc(sizeof(struct tesiObject));
 	if(to == NULL)
@@ -463,7 +463,7 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
 	to->scrollEnd = height - 1;
 	to->insertMode = 0;
 
-    to->callback_haveCharacter = NULL;
+  to->callback_haveCharacter = NULL;
 	to->callback_printCharacter = NULL;
 	to->callback_printString = NULL;
 	to->callback_insertCharacter = NULL;
@@ -483,13 +483,6 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
 	to->fd_activity = to->ptyMaster; // descriptor to check whether the process has sent output
 	to->fd_input = to->ptyMaster; // descriptor for sending input to child process
 
-	// welcome message
-	/*
-	sprintf(message, "echo \"This %d x %d terminal is controlled by TESI...\"\n", width, height);
-	message[255] = 0;
-	write(to->fd_input, message, strlen(message));
-	*/
-
 	grantpt(to->ptyMaster);
 	unlockpt(to->ptyMaster);
 	/* for shoes we don't fork. pty slave will be used for this process
@@ -501,19 +494,21 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
 	to->ptySlave = open(ptySlave, O_RDWR);
 	// need to setup the terminal stuff for the slave side of the pty.
 	struct termios slave_orig_term_settings; // Saved terminal settings
-    struct termios new_term_settings; // Current terminal settings
-    tcgetattr(to->ptySlave, &slave_orig_term_settings);
+  struct termios new_term_settings; // Current terminal settings
+  tcgetattr(to->ptySlave, &slave_orig_term_settings);
 	new_term_settings = slave_orig_term_settings;
-    //cfmakeraw (&new_term_settings);
-    tcsetattr (to->ptySlave, TCSANOW, &new_term_settings);
+#ifdef SHOES_QUARTZ
+  cfmakeraw (&new_term_settings);
+#endif
+  tcsetattr (to->ptySlave, TCSANOW, &new_term_settings);
 	dup2(to->ptySlave, fileno(stdin));
 	dup2(to->ptySlave, fileno(stdout));
 	dup2(to->ptySlave, fileno(stderr));
-		setenv("TERM","dumb",1); // vt102
-		sprintf(message, "%d", width);
-		setenv("COLUMNS", message, 1);
-		sprintf(message, "%d", height);
-		setenv("LINES", message, 1);
+  setenv("TERM","dumb",1); // vt102
+	sprintf(message, "%d", width);
+	setenv("COLUMNS", message, 1);
+	sprintf(message, "%d", height);
+	setenv("LINES", message, 1);
 
 #else
 	to->pid = fork();

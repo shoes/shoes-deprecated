@@ -7,6 +7,8 @@
 {
    void *cwin;  //  points to below
    struct tesiObject* tobj;
+   NSFont *font;
+   NSMutableDictionary *attrs;
 }
 @end
 
@@ -14,6 +16,7 @@
 {
 @public
   struct tesiObject* tobj;
+  NSFont *monoFont;
   NSMutableString *cnvbfr;  // for char to NSString conversion
   NSTimer *pollTimer;
   NSBox *btnpnl;

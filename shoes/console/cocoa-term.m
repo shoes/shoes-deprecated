@@ -13,12 +13,73 @@
 
 void console_haveChar(void *p, char c); // forward ref
 
+@implementation ConsoleTermView // It's a NSTextView
+- (void)initView: (ConsoleWindow *)cw withFont: (NSFont *)fixedfont
+{
+  cwin = cw;
+  tobj = cw->tobj;  // is this Obj-C ugly? Probably
+  font = fixedfont;
+  attrs = [NSMutableDictionary dictionary];
+  [attrs setObject:font forKey:NSFontAttributeName];
+
+  [self setEditable: YES];
+  [[self textStorage] setFont: font]; // doesn't work
+  [self setFont: font]; //doesn't work
+  [self setTypingAttributes: attrs]; // doesn't hang so thats good. doesn't work either
+  // [[self textStorage] setTypingAttributes: attrs]; // no such selector
+}
+- (void)keyDown: (NSEvent *)e
+{
+  // should send events to super (page_up key or cmd-key
+  NSString *str = [e charactersIgnoringModifiers];
+  char *utf8 = [str UTF8String];
+  write(tobj->fd_input, utf8, strlen(utf8));
+}
+
+- (void)writeChr:(char)c
+{
+  char buff[4];
+  buff[0] = c;
+  buff[1] = 0;
+  NSString *cnvbfr = [[NSString alloc] initWithCString: buff encoding: NSUTF8StringEncoding];
+  //Create a AttributeString using the font.
+  NSAttributedString *attrStr = [[NSAttributedString alloc] initWithString: cnvbfr attributes: attrs];
+  //[[self textStorage] appendAttributedString: [[NSMutableAttributedString alloc] initWithString: cnvbfr attributes: attrs]];
+  [[self textStorage] appendAttributedString: [[NSMutableAttributedString alloc] initWithString: cnvbfr ]];
+  [self scrollRangeToVisible:NSMakeRange([[self string] length], 0)];
+
+  // TODO: Am I leaking memory ? The C programmer in me says "Oh hell yes!"
+  // [obj release] to match the alloc's ?
+}
+
+- (void)deleteChar
+{
+  // Remeber, this a \b char in a printf/puts not a key event (although one might get here)
+  int length = (int)[[self textStorage] length];
+  [[self textStorage] deleteCharactersInRange:NSMakeRange(length-1, 1)];
+  [self scrollRangeToVisible:NSMakeRange([[self string] length], 0)];
+  //TODO: constrain y so it doesn't crawl up the screen
+}
+
+// delegate stuff : be wery wery careful - Elmer Fudd
+- (void)textViewDidChangeSelection:(NSNotification *)notification
+{
+  [self setTypingAttributes:attrs];
+}
+
+@end
+
 @implementation ConsoleWindow
 - (void)consoleInit
 {
   //app = a;
   int width = 600; // window
   int height = 468;
+  //monoFont = [NSFont fontWithName:@"Menlo" size:14.0]; //menlo is monospace
+  monoFont = [NSFont fontWithName:@"Times-Roman" size:14.0]; //menlo is monospace
+  NSString *fontName = [monoFont fontName];  // just for debug purposes.
+  const char *cFontName = [fontName UTF8String];
+  float fh = [monoFont pointSize];  // access properties
 #define PNLH 40
   [self setTitle: @"(New) Shoes Console"];
   //[self center]; // there is a bug report about centering.
@@ -70,26 +131,37 @@ void console_haveChar(void *p, char c); // forward ref
 
   // try inserting some text.
   //[[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: @"First Line!\n"]];
-  [termView initView: self];
+  [termView initView: self withFont: monoFont];
+  NSFont *useFont = [termView font];
+  fontName = [useFont fontName];  // just for debug purposes.
+  cFontName = [fontName UTF8String];
+  fh = [useFont pointSize];  // access properties
+
   // need to get the handleInput started
   // OSX timer resolution less than 0.1 second unlikely
   cnvbfr = [[NSMutableString alloc] initWithCapacity: 4];
   pollTimer = [NSTimer scheduledTimerWithTimeInterval:0.1
                             target: self selector:@selector(readStdout:)
                             userInfo: self repeats:YES];
+  // debug
+  printf("Using %s %3.1f\n", cFontName, fh);
 }
 
 -(IBAction)handleClear: (id)sender
 {
-  //NSLog(@"Clear");
   [termView setString: @""];
-  fprintf(stdout,"Stdout: Clear button pressed"); // this doesn't show
-  fprintf(stderr,"Stderr: Clear button pressed"); // this doesn't show
 }
 
 -(IBAction)handleCopy: (id)sender
 {
-  printf("Copy button pressed");
+  NSString *str = [termView string];
+  //NSPasteboard *pboard;
+  //printf("Copy button (%lu)\n", (unsigned long)[str length]);
+  [[NSPasteboard generalPasteboard] declareTypes: [NSArray arrayWithObject: NSStringPboardType] owner: nil];
+  [[NSPasteboard generalPasteboard] setString: str forType: NSStringPboardType];
+  //pboard = [[NSPasteboard generalPasteboard];
+  //[pboard clearContents];
+  //[pboard setData: str forType: NSPasteboardTypeString];
 }
 
 - (void)disconnectApp
@@ -138,39 +210,7 @@ void console_haveChar(void *p, char c); // forward ref
 #endif
 }
 
-- (void)writeChr:(char)c
-{
-  char buff[4];
-  buff[0] = c;
-  buff[1] = 0;
-  cnvbfr = [[NSMutableString alloc] initWithCString: buff encoding: NSUTF8StringEncoding];
-  [self writeStr: cnvbfr];
-  // TODO: Am I leaking memory ? The C programmer in me says "Oh hell yes!"
-}
 
-- (void)deleteChar
-{
-  // Remeber, this a \b char in a printf/puts not a key event (although one might get here)
-  int length = [[termView textStorage] length];
-  [[termView textStorage] deleteCharactersInRange:NSMakeRange(length-1, 1)];
-  [termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
-  //TODO: constrain y so it doesn't crawl up the screen
-}
-@end
-
-@implementation ConsoleTermView
-- (void)initView: (ConsoleWindow *)cw
-{
-  cwin = cw;
-  tobj = cw->tobj;  // is this Obj-C ugly? Probably
-}
-- (void)keyDown: (NSEvent *)e
-{
-  // should send events to super (page_up key or cmd-key
-  NSString *str = [e charactersIgnoringModifiers];
-  char *utf8 = [str UTF8String];
-  write(tobj->fd_input, utf8, strlen(utf8));
-}
 @end
 
 // Called by Shoes via commandline arg or command Shoes::show_console
@@ -202,12 +242,12 @@ int shoes_native_console()
 */
 void console_haveChar(void *p, char c) {
 	struct tesiObject *tobj = (struct tesiObject*)p;
-  ConsoleWindow * cwin = (ConsoleWindow *)tobj->pointer;
+  ConsoleWindow *cpanel = (ConsoleWindow *)tobj->pointer;
+  ConsoleTermView *cwin = cpanel->termView;
 
-  char in[8];
-  int lcnt;
-
-	int i, j;
+  //char in[8];
+  //int lcnt;
+	//int i, j;
 	//snprintf(in, 7, "%c", c);
 	if (c >= 32 && c != 127) {
       [cwin writeChr: c];
