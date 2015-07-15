@@ -43,7 +43,7 @@ void console_haveChar(void *p, char c); // forward ref
   buff[1] = 0;
   NSString *cnvbfr = [[NSString alloc] initWithCString: buff encoding: NSUTF8StringEncoding];
   //Create a AttributeString using the font.
-  NSAttributedString *attrStr = [[NSAttributedString alloc] initWithString: cnvbfr attributes: attrs];
+  NSMutableAttributedString *attrStr = [[NSMutableAttributedString alloc] initWithString: cnvbfr attributes: attrs]; //hangs Fix ME
   //[[self textStorage] appendAttributedString: [[NSMutableAttributedString alloc] initWithString: cnvbfr attributes: attrs]];
   [[self textStorage] appendAttributedString: [[NSMutableAttributedString alloc] initWithString: cnvbfr ]];
   [self scrollRangeToVisible:NSMakeRange([[self string] length], 0)];
