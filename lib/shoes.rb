@@ -212,14 +212,10 @@ class Shoes
         stack do
           background black(0.2), :curve => 8
           para link(strong("Open an App")) { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
-<<<<<<< HEAD
-#          para link(strong("Debug an App")) { Shoes.show_selector true and close }, :margin => 10, :margin_bottom => 4
-=======
 #         para link(strong("Debug an App")) { Shoes.show_selector true and close }, :margin => 10, :margin_bottom => 4
->>>>>>> console
           para link(strong("Package my script (shy)")) { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Package an App with Shoes")) {Shoes.app_package and close }, :margin => 10, :margin_bottom => 4
-#          para link("Obsolete: Package") { Shoes.make_pack and close }, :margin => 10, :margin_bottom => 4
+#         para link("Obsolete: Package") { Shoes.make_pack and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Read the Manual")) { Shoes.show_manual and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Maintain Shoes")) {Shoes.cobbler and close}, :margin => 10
         end
@@ -517,17 +513,12 @@ class Shoes
         Byebug.debug_load($PROGRAM_NAME, true) # this starts byebug loop
       elsif debug
         # spin up the console window and call the debugger with the path
-<<<<<<< HEAD
         require 'shoes/debugger'
         @console_app =
           Shoes.app do
             extend Shoes::Debugger
             setup path
           end
-=======
-        #show_log   # just to have an app on the screen 
-        #show_console  
->>>>>>> console
       else
         $0.replace path
         code = read_file(path)
