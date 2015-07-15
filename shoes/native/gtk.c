@@ -1876,3 +1876,70 @@ shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
   return shoes_dialog_chooser(self, "Save folder...", GTK_FILE_CHOOSER_ACTION_CREATE_FOLDER,
     GTK_STOCK_SAVE, args.a[0]);
 }
+
+// June 1, 2015 - kind of ugly. 
+#ifdef SHOES_GTK_WIN32
+// hat tip: https://justcheckingonall.wordpress.com/2008/08/29/console-window-win32-app/
+#include <stdio.h>
+#include <io.h>
+#include <fcntl.h>
+
+// called from main.c(skel) on Windows - works fine
+static FILE* shoes_console_out = NULL;
+static FILE* shoes_console_in = NULL;
+
+int shoes_win32_console()
+{
+	
+    if (AllocConsole() == 0) {
+      // cshoes.exe can get here
+      printf("Already have console\n");
+      return 0;
+    }
+
+    HANDLE handle_out = GetStdHandle(STD_OUTPUT_HANDLE);
+    int hCrt = _open_osfhandle((long) handle_out, _O_TEXT);
+    FILE* hf_out = _fdopen(hCrt, "w");
+    setvbuf(hf_out, NULL, _IONBF, 1);
+    *stdout = *hf_out;
+    HANDLE handle_in = GetStdHandle(STD_INPUT_HANDLE);
+    hCrt = _open_osfhandle((long) handle_in, _O_TEXT);
+    FILE* hf_in = _fdopen(hCrt, "r");
+    setvbuf(hf_in, NULL, _IONBF, 128);
+    *stdin = *hf_in;
+    
+    //* stash handles 
+    shoes_console_out = hf_out;
+    shoes_console_in = hf_in;
+    return 1;
+}
+
+// Called by Shoes after ruby/gtk/shoes is initialized and running
+int shoes_native_console()
+{
+	// has a console been setup by --console flag?
+	if (shoes_console_out == NULL) {
+	  if (shoes_win32_console() == 0) // cshoes.exe can do this
+	     return 1;
+	}
+	// convert the (cached) FILE * for what ruby wants for fd[0], [1]...
+    if (dup2(_fileno(shoes_console_out), 1) == -1)
+      printf("failed dup2 of stdout\n");
+    if (dup2(_fileno(shoes_console_out), 2) == -1)
+      printf("failed dup2 of stderr\n");
+    if (dup2(_fileno(shoes_console_in), 0) == -1)
+      printf("failed dup2 of stdin\n");
+    printf("created win32 console\n");
+    return 1;
+}
+#else
+int shoes_native_console()
+{
+  printf("init gtk console\n");
+  shoes_native_app_console();
+  printf("gtk\010k\t console \t\tcreated\n"); //test \b \t in string
+  //int i;
+  //for (i=0; i < 24; i++) printf("Line %d\n", i+1);
+  return 1;
+}
+#endif
