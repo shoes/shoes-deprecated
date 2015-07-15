@@ -1287,7 +1287,7 @@ shoes_native_edit_line_set_text(SHOES_CONTROL_REF ref, char *msg)
 VALUE
 shoes_native_edit_line_cursor_to_end(SHOES_CONTROL_REF ref)
 {
-  // TODO: 
+  // TODO:
 }
 
 
@@ -1523,8 +1523,8 @@ shoes_native_dialog_color(shoes_app *app)
 VALUE
 shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
 {
-  //GLOBAL_APP(app);
-  ACTUAL_APP(app);
+  GLOBAL_APP(app);
+  //ACTUAL_APP(app);
   NSString *appstr = [[NSString alloc] initWithUTF8String: RSTRING_PTR(app->title)];
   rb_arg_list args;
   rb_parse_args(argc, argv, "S|h", &args);
@@ -1565,8 +1565,8 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   VALUE answer = Qnil;
-  //GLOBAL_APP(app);
-  ACTUAL_APP(app);
+  GLOBAL_APP(app);
+  //ACTUAL_APP(app);
   char *rbcTitle = RSTRING_PTR(app->title);
   NSString *appstr = [[NSString alloc] initWithCString: rbcTitle encoding: NSUTF8StringEncoding];
   rb_parse_args(argc, argv, "S|h", &args);
@@ -1637,8 +1637,8 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
   char *msg;
   VALUE quiz;
   VALUE answer = Qnil;
-  //GLOBAL_APP(app);
-  ACTUAL_APP(app);
+  GLOBAL_APP(app);
+  //ACTUAL_APP(app);
   char *rbcTitle = RSTRING_PTR(app->title);
   NSString *appstr = [[NSString alloc] initWithCString: rbcTitle encoding: NSUTF8StringEncoding];
   rb_arg_list args;
