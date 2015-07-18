@@ -91,7 +91,14 @@ void console_haveChar(void *p, char c); // forward ref
   btnpnl = [[NSBox alloc] initWithFrame: NSMakeRect(0,height-PNLH,width,PNLH)];
   [btnpnl setTitlePosition: NSNoTitle ];
   [btnpnl setAutoresizingMask: NSViewWidthSizable|NSViewMinYMargin];
-
+  // draw the icon
+  NSApplication *NSApp = [NSApplication sharedApplication];
+  NSImage *icon = [NSApp applicationIconImage];
+  NSRect iconRect = NSMakeRect(20,-2,32,32); // -2 doesn't make sense but ...
+  NSImageView *ictl = [[NSImageView alloc] initWithFrame: iconRect];
+  [ictl setImage: icon];
+  [ictl setEditable: false];
+  //[icon drawInRect: iconRect];
   clrbtn = [[NSButton alloc] initWithFrame: NSMakeRect(400, 2, 60, 28)];
   [clrbtn setButtonType: NSMomentaryPushInButton];
   [clrbtn setBezelStyle: NSRoundedBezelStyle];
@@ -106,6 +113,7 @@ void console_haveChar(void *p, char c); // forward ref
   [cpybtn setTarget: self];
   [cpybtn setAction: @selector(handleCopy:)];
 
+  [btnpnl addSubview: ictl];
   [btnpnl addSubview: clrbtn];
   [btnpnl addSubview: cpybtn];
   // init termpnl and textview here.

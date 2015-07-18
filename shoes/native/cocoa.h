@@ -70,7 +70,7 @@
 }
 @end
 
-@interface ShoesAlert : NSWindow
+@interface ShoesDialogAsk : NSWindow
 {
   NSWindow *win;
   BOOL answer;
