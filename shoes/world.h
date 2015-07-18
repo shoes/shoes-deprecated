@@ -41,8 +41,8 @@ extern SHOES_EXTERN shoes_world_t *shoes_world;
     Data_Get_Struct(rb_ary_entry(shoes_world->apps, 0), shoes_app, appvar)
 #define ACTUAL_APP(appvar) \
   shoes_app *appvar = NULL; \
-  if (RARRAY_LEN(shoes_world->apps) > 0) \
-      Data_Get_Struct(self, shoes_app, appvar)
+  VALUE actual_app = rb_funcall2(self, rb_intern("app"), 0, NULL); \
+  Data_Get_Struct(actual_app, shoes_app, appvar);
 
 #define ROUND(x) ((x) >= 0 ? (int)round((x)+0.5) : (int)round((x)-0.5))
 
