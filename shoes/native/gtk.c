@@ -1625,8 +1625,10 @@ shoes_native_dialog_color(shoes_app *app)
 VALUE
 shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
 {
-    GLOBAL_APP(app);
+	
+    //GLOBAL_APP(app);
     //ACTUAL_APP(app);
+    GTK_APP_VAR(app);
     char *apptitle = RSTRING_PTR(app->title); //default is "Shoes"
     char atitle[50];
     g_sprintf(atitle, "%s says", apptitle);
@@ -1661,8 +1663,9 @@ VALUE
 shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
 {
   char atitle[50];
-  GLOBAL_APP(app);
+  //GLOBAL_APP(app);
   //ACTUAL_APP(app);
+  GTK_APP_VAR(app);
   char *apptitle = RSTRING_PTR(app->title);
   VALUE answer = Qnil;
   rb_arg_list args;
@@ -1722,8 +1725,9 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
 {
   VALUE answer = Qfalse;
   char atitle[50];
-  GLOBAL_APP(app);
+  //GLOBAL_APP(app);
   //ACTUAL_APP(app);
+  GTK_APP_VAR(app);
   char *apptitle = RSTRING_PTR(app->title);
   rb_arg_list args;
   rb_parse_args(argc, argv, "S|h", &args);

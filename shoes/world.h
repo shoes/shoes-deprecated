@@ -32,11 +32,20 @@ SHOES_EXTERN typedef struct _shoes_world_t {
 
 extern SHOES_EXTERN shoes_world_t *shoes_world;
 
+// OSX uses GLOBAL_APP and event loop of Gtk/windows
 #define GLOBAL_APP(appvar) \
   shoes_app *appvar = NULL; \
   if (RARRAY_LEN(shoes_world->apps) > 0) \
-    Data_Get_Struct(rb_ary_entry(shoes_world->apps, 0), shoes_app, appvar)
-#define ACTUAL_APP(appvar) \
+    Data_Get_Struct(rb_ary_entry(shoes_world->apps, 0), shoes_app, appvar)\
+    
+// gtk uses this   
+#define GTK_APP_VAR(appvar) \
+  shoes_app *appvar = NULL; \
+  VALUE actual_app = rb_funcall2(self, rb_intern("app"), 0, NULL); \
+  Data_Get_Struct(actual_app, shoes_app, appvar);
+  
+// not used?
+#define ACTUAL_APP_NOPE(appvar) \
   shoes_app *appvar = NULL; \
   if (RARRAY_LEN(shoes_world->apps) > 0) \
       Data_Get_Struct(self, shoes_app, appvar)
