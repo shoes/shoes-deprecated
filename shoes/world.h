@@ -32,7 +32,7 @@ SHOES_EXTERN typedef struct _shoes_world_t {
 
 extern SHOES_EXTERN shoes_world_t *shoes_world;
 
-// OSX uses GLOBAL_APP and event loop of Gtk/windows
+// OSX uses GLOBAL_APP 
 #define GLOBAL_APP(appvar) \
   shoes_app *appvar = NULL; \
   if (RARRAY_LEN(shoes_world->apps) > 0) \
@@ -44,7 +44,7 @@ extern SHOES_EXTERN shoes_world_t *shoes_world;
   VALUE actual_app = rb_funcall2(self, rb_intern("app"), 0, NULL); \
   Data_Get_Struct(actual_app, shoes_app, appvar);
   
-// not used?
+// no longer used - TODO: remove after testing.
 #define ACTUAL_APP_NOPE(appvar) \
   shoes_app *appvar = NULL; \
   if (RARRAY_LEN(shoes_world->apps) > 0) \

@@ -29,7 +29,7 @@ static gboolean clear_console(GtkWidget *widget, GdkEvent *event, gpointer data)
 	GtkTextBuffer *newbuf = gtk_text_buffer_new(NULL);
 	gtk_text_view_set_buffer(view, newbuf);
 	// set a mark to the end? get focus
-	gtk_widget_grab_focus(view);
+	gtk_widget_grab_focus(GTK_WIDGET(view));
 	return TRUE;
 }
 
@@ -179,11 +179,11 @@ void tesi_moveCursor(void *p, int x, int y) {
 
 	
 }
-void tesi_insertLine(void *p) {
+void tesi_insertLine(void *p, int y) {
 	printf("Insert Line\n");
 }
 
-void tesi_eraseLine(void *p) {
+void tesi_eraseLine(void *p, int y) {
 	GtkTextIter iter, s, e;
 	GtkTextBuffer *buffer;
 	GtkTextView *view = GTK_TEXT_VIEW(p);
@@ -218,7 +218,7 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 	/* create a new window */
 	window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     // size set way below based on font (80x24)
-    gtk_window_set_resizable(window, TRUE);
+    gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
 	gtk_window_set_title (GTK_WINDOW (window), "Shoes Linux");
 	
 	g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK (gtk_main_quit), NULL);
@@ -246,11 +246,11 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 	gtk_box_pack_start (GTK_BOX(btnpnl), clrbtn, 1, 0, 0);
  	GtkWidget *cpybtn = gtk_button_new_with_label ("Copy");
 	gtk_box_pack_start (GTK_BOX(btnpnl), cpybtn, 1, 0, 0);
-    gtk_box_pack_start (GTK_BOX(vbox), GTK_CONTAINER(btnpnl), 0, 0, 0);
+    gtk_box_pack_start (GTK_BOX(vbox), GTK_WIDGET(btnpnl), 0, 0, 0);
 
     // then a widget/panel for the terminal 
 
-	sw = gtk_scrolled_window_new(NULL, NULL);
+	sw = GTK_SCROLLED_WINDOW(gtk_scrolled_window_new(NULL, NULL));
 	gtk_scrolled_window_set_policy( GTK_SCROLLED_WINDOW(sw), 
 	  GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
   	gtk_box_pack_start (GTK_BOX (vbox), GTK_WIDGET(sw), 1, 1, 0);
@@ -258,10 +258,10 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 
 	canvas = gtk_text_view_new();
 	gtk_container_add (GTK_CONTAINER (sw), canvas);
-	gtk_text_view_set_cursor_visible(canvas, TRUE);
-	gtk_text_view_set_left_margin(canvas, 4);
-	gtk_text_view_set_right_margin(canvas, 4);	
-	gtk_text_view_set_wrap_mode(canvas, GTK_WRAP_CHAR);
+	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(canvas), TRUE);
+	gtk_text_view_set_left_margin(GTK_TEXT_VIEW(canvas), 4);
+	gtk_text_view_set_right_margin(GTK_TEXT_VIEW(canvas), 4);	
+	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(canvas), GTK_WRAP_CHAR);
 	
   	// set font for scrollable window
  	pfd = pango_font_description_from_string ("monospace 10");	
