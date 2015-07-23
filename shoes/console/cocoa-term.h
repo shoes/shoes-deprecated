@@ -8,7 +8,7 @@
    void *cwin;  //  points to below
    struct tesiObject* tobj;
    NSFont *font;
-   NSMutableDictionary *attrs;
+   NSDictionary *attrs;
 }
 @end
 
@@ -24,6 +24,9 @@
   NSButton *cpybtn;
   NSView *cntview;
   NSScrollView *termpnl;
+  NSTextStorage *termStorage;
+  NSLayoutManager *termLayout;
+  NSTextContainer *termContainer;
   //NSTextView *termview;
   ConsoleTermView *termView;
 }
