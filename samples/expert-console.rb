@@ -1,4 +1,4 @@
- def getln_raw () 
+ def getln_raw ()
     ln = ""
     begin
     loop do
@@ -12,7 +12,7 @@
       elsif ch == ?\r
         $stdout.write("\r\n")
         return ln
-      else 
+      else
         $stdout.putc ch
         ln += ch
       end
@@ -27,19 +27,19 @@ Shoes.app do
     para "This will show the console and run a loop that echos keyboard \
 input until you enter 'quit' at the beginning of a line. quit will exit Shoes \n"
     para "Select your input method"
-    flow { @r1 = radio :io; para "io/console raw"}
-    flow { @r2 = radio :io; para "io/console cooked"}
-    flow { @r3 = radio :io; para "readline"}
+    flow { @r1 = radio :io; para "io/console raw (Not for OSX !)"}
+    flow { @r2 = radio :io; para "io/console cooked (Not for OSX !)"}
+    flow { @r3 = radio :io; para "readline (all platforms)" }
     button "run loop" do
       Shoes::show_console
-      if @r1.checked?
+      if @r1.checked? && RUBY_PLATFORM =~ /linux/
         require 'io/console'
         STDIN.raw!
         Thread.new do
           $stdout.write "> "
           loop do
             ln = getln_raw
-            if ln.strip == 'quit' 
+            if ln.strip == 'quit'
               $stderr.write "really quit (y/n)"
               ans = getln_raw.strip
               exit if ans == 'y'
@@ -47,14 +47,14 @@ input until you enter 'quit' at the beginning of a line. quit will exit Shoes \n
             $stdout.puts "IR: #{ln}"
           end
         end
-      elsif @r2.checked?
+      elsif @r2.checked? && RUBY_PLATFORM =~ /linux/
         require 'io/console'
         STDIN.cooked!
         Thread.new do
           $stdout.write "> "
           loop do
             ln = STDIN.cooked(&:gets)
-            if ln.strip == 'quit' 
+            if ln.strip == 'quit'
               $stderr.write "really quit (y/n)"
               ans = $stdin.gets.strip
               exit if ans == 'y'
@@ -67,7 +67,7 @@ input until you enter 'quit' at the beginning of a line. quit will exit Shoes \n
         Thread.new do
           loop do
             ln = Readline.readline('> ', false)
-            if ln.strip == 'quit' 
+            if ln.strip == 'quit'
               $stderr.write "really quit (y/n)"
               ans = Readline.readline.strip
               exit if ans == 'y'
@@ -79,9 +79,3 @@ input until you enter 'quit' at the beginning of a line. quit will exit Shoes \n
     end
   end
 end
-
-     #ln = $stdin.gets
-     #ln = $stdin.readline
-     
-     #ln = STDIN.cooked(&:gets)
- 

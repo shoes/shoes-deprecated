@@ -84,7 +84,7 @@ void console_haveChar(void *p, char c); // forward ref
   [self setDelegate: (id <NSWindowDelegate>)self];
   // setup the copy and clear buttons (yes command key handling would be better)
   //btnpnl = [[NSBox alloc] initWithFrame: NSMakeRect(0,height-PNLH,width,PNLH)];
-  btnpnl = [[NSBox alloc] initWithFrame: NSMakeRect(0,height-btnPanelH,width,btnPanelH)];
+  btnpnl = [[NSBox alloc] initWithFrame: NSMakeRect(0,height,width,btnPanelH)];
   [btnpnl setTitlePosition: NSNoTitle ];
   [btnpnl setAutoresizingMask: NSViewWidthSizable|NSViewMinYMargin];
   // draw the icon
@@ -95,14 +95,14 @@ void console_haveChar(void *p, char c); // forward ref
   [ictl setImage: icon];
   [ictl setEditable: false];
 
-  clrbtn = [[NSButton alloc] initWithFrame: NSMakeRect(400, 2, 60, 28)];
+  clrbtn = [[NSButton alloc] initWithFrame: NSMakeRect(300, 2, 60, 28)];
   [clrbtn setButtonType: NSMomentaryPushInButton];
   [clrbtn setBezelStyle: NSRoundedBezelStyle];
   [clrbtn setTitle: @"Clear"];
   [clrbtn setTarget: self];
   [clrbtn setAction: @selector(handleClear:)];
 
-  cpybtn = [[NSButton alloc] initWithFrame: NSMakeRect(500, 2, 60, 28)];
+  cpybtn = [[NSButton alloc] initWithFrame: NSMakeRect(400, 2, 60, 28)];
   [cpybtn setButtonType: NSMomentaryPushInButton];
   [cpybtn setBezelStyle: NSRoundedBezelStyle];
   [cpybtn setTitle: @"Copy"];
@@ -128,17 +128,21 @@ void console_haveChar(void *p, char c); // forward ref
   [termLayout addTextContainer:termContainer];
 
   //termView = [[ConsoleTermView alloc]  initWithFrame: textViewBounds];
-  termView = [[ConsoleTermView alloc]  initWithFrame: NSMakeRect(0, height, width, height-btnPanelH)];
-  termpnl = [[NSScrollView alloc] initWithFrame: textViewBounds];
+  //termView = [[ConsoleTermView alloc]  initWithFrame: NSMakeRect(0, height, width, height-btnPanelH)];
+  termView = [[ConsoleTermView alloc]  initWithFrame: NSMakeRect(0, 0, width, height)];
+
+  termpnl = [[NSScrollView alloc] initWithFrame: NSMakeRect(0, 0, width, height)];
   [termpnl setHasVerticalScroller: YES];
+  //causes btnpnl to vanish. Fixes many resizing issues though:
+  [termpnl setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
   [termpnl setDocumentView: termView];
 
   // Put the panels in the Window
-  cntview = [[NSView alloc] initWithFrame: NSMakeRect(0,height,width,height)];
+  cntview = [[NSView alloc] initWithFrame: NSMakeRect(0,height+btnPanelH,width,height+btnPanelH)];
+  [self setContentView: cntview];
   [cntview setAutoresizesSubviews: YES];
   [cntview addSubview: btnpnl];
   [cntview addSubview: termpnl];
-  [self setContentView: cntview];
 
   // Now init the Tesi object - NOTE tesi callbacks are C,  which calls Objective-C
   tobj = newTesiObject("/bin/bash", 80, 24); // first arg not used, 2 and 3 not either
@@ -151,13 +155,13 @@ void console_haveChar(void *p, char c); // forward ref
   [termView initView: self withFont: monoFont]; // tell ConsoleTermView what font to use
 
   // need to get the handleInput started
-  // OSX timer resolution less than 0.1 second unlikely
+  // OSX timer resolution less than 0.1 second unlikely?
   cnvbfr = [[NSMutableString alloc] initWithCapacity: 4];
   pollTimer = [NSTimer scheduledTimerWithTimeInterval:0.1
                             target: self selector:@selector(readStdout:)
                             userInfo: self repeats:YES];
   // debug
-  printf("w = %d, h = %d winh = %d \n", width, height, winRect.size.height);
+  // printf("w = %d, h = %d winh = %d \n", width, height, winRect.size.height);
 }
 
 -(IBAction)handleClear: (id)sender
