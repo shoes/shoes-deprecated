@@ -31,10 +31,25 @@ void console_haveChar(void *p, char c); // forward ref
 }
 - (void)keyDown: (NSEvent *)e
 {
-  // should send events to super or the scrollview (page_up key or cmd-key)
+  // works but I do not like it.
   NSString *str = [e charactersIgnoringModifiers];
   char *utf8 = [str UTF8String];
-  write(tobj->fd_input, utf8, strlen(utf8));
+  if (strlen(utf8)==1) {
+    if (utf8[0] == '0x09') {
+      write(tobj->fd_input,"TAB",3);  //never called
+    }
+    write(tobj->fd_input, utf8, strlen(utf8));
+  } else {
+    // this sends the key event (back?) to the responder chain
+    [self interpretKeyEvents:[NSArray arrayWithObject:e]];
+  }
+}
+
+// not called?
+- (void)insertTab:(id)sender {
+   if ([[self window] firstResponder] == self) {
+     write(tobj->fd_input,"TAB",3);
+   }
 }
 
 - (void)writeChr:(char)c
@@ -95,14 +110,24 @@ void console_haveChar(void *p, char c); // forward ref
   [ictl setImage: icon];
   [ictl setEditable: false];
 
-  clrbtn = [[NSButton alloc] initWithFrame: NSMakeRect(300, 2, 60, 28)];
+  NSTextField *labelWidget;
+  labelWidget = [[NSTextField alloc] initWithFrame: NSMakeRect(80, -2, 200, 28)];
+  [labelWidget setStringValue: @"Very Dumb Console"];
+  [labelWidget setBezeled:NO];
+  [labelWidget setDrawsBackground:NO];
+  [labelWidget setEditable:NO];
+  [labelWidget setSelectable:NO];
+  NSFont *labelFont = [NSFont fontWithName:@"Helvetica" size:18.0];
+  [labelWidget setFont: labelFont];
+
+  clrbtn = [[NSButton alloc] initWithFrame: NSMakeRect(300, -2, 60, 28)];
   [clrbtn setButtonType: NSMomentaryPushInButton];
   [clrbtn setBezelStyle: NSRoundedBezelStyle];
   [clrbtn setTitle: @"Clear"];
   [clrbtn setTarget: self];
   [clrbtn setAction: @selector(handleClear:)];
 
-  cpybtn = [[NSButton alloc] initWithFrame: NSMakeRect(400, 2, 60, 28)];
+  cpybtn = [[NSButton alloc] initWithFrame: NSMakeRect(400, -2, 60, 28)];
   [cpybtn setButtonType: NSMomentaryPushInButton];
   [cpybtn setBezelStyle: NSRoundedBezelStyle];
   [cpybtn setTitle: @"Copy"];
@@ -110,6 +135,7 @@ void console_haveChar(void *p, char c); // forward ref
   [cpybtn setAction: @selector(handleCopy:)];
 
   [btnpnl addSubview: ictl];
+  [btnpnl addSubview: labelWidget];
   [btnpnl addSubview: clrbtn];
   [btnpnl addSubview: cpybtn];
   // init termpnl and textview here.
@@ -143,7 +169,7 @@ void console_haveChar(void *p, char c); // forward ref
   [cntview setAutoresizesSubviews: YES];
   [cntview addSubview: btnpnl];
   [cntview addSubview: termpnl];
-
+  [self makeFirstResponder:termView];
   // Now init the Tesi object - NOTE tesi callbacks are C,  which calls Objective-C
   tobj = newTesiObject("/bin/bash", 80, 24); // first arg not used, 2 and 3 not either
   tobj->pointer = (void *)self;
