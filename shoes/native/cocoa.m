@@ -389,11 +389,15 @@
   shoes_control_send(object, s_change);
 }
 
-// cjc Shoes4 bug860
-//-(void)textDidEndEditing: (NSNotification *)n
-//{
-//	shoes_control_send(object, s_donekey);
-//}
+//  Shoes4 bug860, shoes3.2 bug008
+/*
+  TODO: this is a delegate so it's shared with every NSTextField (edit line) on the
+  Shoes window.  Seems to work.
+*/
+-(void)textDidEndEditing: (NSNotification *)n
+{
+	  shoes_control_send(object, s_donekey);
+}
 @end
 
 @implementation ShoesSecureTextField
@@ -943,7 +947,15 @@ shoes_native_app_window(shoes_app *app, int dialog)
   unsigned int mask = NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
   NSRect rect = NSMakeRect(0, 0, app->width, app->height);
   NSSize size = {app->minwidth, app->minheight};
-
+  // 3.2.24 constrain to screen size-docsize-menubar (visibleFrame)
+  // Then minus the window's title bar
+  NSRect screen = [[NSScreen mainScreen] visibleFrame]; //should be a global var?
+  if (app->height > screen.size.height) {
+    app->height = screen.size.height;
+    rect.size.height = screen.size.height;
+    app->height = app->height - 20;
+    rect.size.height = rect.size.height - 20;
+  }
   if (app->resizable)
     mask |= NSResizableWindowMask;
   if (app->fullscreen) {
