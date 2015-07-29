@@ -382,21 +382,34 @@
     [self setBezelStyle: NSRegularSquareBezelStyle];
     [self setDelegate: (id<NSTextFieldDelegate>)self];
   }
+  //printf("Create %u\n",self);
   return self;
 }
--(void)textDidChange: (NSNotification *)n
+-(void)textDidChange: (NSNotification *)note
 {
+  //printf("didChange %u\n", self);
   shoes_control_send(object, s_change);
 }
 
 //  Shoes4 bug860, shoes3.2 bug008
 /*
-  TODO: this is a delegate so it's shared with every NSTextField (edit line) on the
-  Shoes window.  Seems to work.
+  Pay attention for the delicate deleate dance need to implement textShouldEndEditing
+  if we implement textDidEndEditing. 'should' is called before 'end'
 */
--(void)textDidEndEditing: (NSNotification *)n
+-(void)textDidEndEditing: (NSNotification *)note
 {
+    //printf("didEndEditing %u\n", self);
 	  shoes_control_send(object, s_donekey);
+}
+
+// fixes bug that disappeared entered text
+- (BOOL)textShouldEndEditing:(NSText *)textObject
+{
+  NSString *tmp = [textObject string];
+  //printf("shouldEndEditing %u %s\n", self, [tmp UTF8String]);
+  // need to save the contents
+  [self setStringValue: tmp]; // yes, it seems silly but it works.
+  return YES;
 }
 @end
 

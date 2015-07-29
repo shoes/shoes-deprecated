@@ -47,7 +47,7 @@ ts_funcall2(VALUE obj, ID meth, int argc, VALUE *argv)
   if (!rb_block_given_p())
     return rb_funcall2(obj, meth, argc, argv);
   tmp[0] = obj;
-  tmp[1] = (VALUE)meth; 
+  tmp[1] = (VALUE)meth;
   tmp[2] = (VALUE)argc;
   tmp[3] = (VALUE)argv;
   return rb_iterate((VALUE(*)(VALUE))ts_each, (VALUE)tmp, CASTHOOK(rb_yield), 0);
@@ -106,9 +106,9 @@ rb_parse_args_p(unsigned char rais, int argc, const VALUE *argv, const char *fmt
     {
       if (!x) m = i;
     }
-    else if (*p == 's') 
+    else if (*p == 's')
       CHECK_ARG_COERCE(T_STRING, to_str)
-    else if (*p == 'S') 
+    else if (*p == 'S')
       CHECK_ARG_COERCE(T_STRING, to_s)
     else if (*p == 'i')
       CHECK_ARG_COERCE(T_FIXNUM, to_int)
@@ -181,7 +181,7 @@ long
 rb_ary_index_of(VALUE ary, VALUE val)
 {
   long i;
- 
+
   for (i=0; i<RARRAY_LEN(ary); i++) {
     if (rb_equal(RARRAY_PTR(ary)[i], val))
       return i;
@@ -199,7 +199,7 @@ rb_ary_insert_at(VALUE ary, long index, int len, VALUE ary2)
 
 //
 // from ruby's eval.c
-// 
+//
 static inline VALUE
 call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv)
 {
@@ -303,7 +303,7 @@ shoes_safe_block(VALUE self, VALUE block, VALUE args)
   sb.args = args;
   rb_gc_register_address(&args);
 
-  v = rb_rescue2(CASTHOOK(shoes_safe_block_call), (VALUE)&sb, 
+  v = rb_rescue2(CASTHOOK(shoes_safe_block_call), (VALUE)&sb,
     CASTHOOK(shoes_safe_block_exception), (VALUE)&sb, rb_cObject, 0);
   rb_gc_unregister_address(&args);
   return v;
@@ -311,13 +311,13 @@ shoes_safe_block(VALUE self, VALUE block, VALUE args)
 
 
 /* get a dimension, in pixels, given a string, float, int or nil
-**      "90%" or 0.9 or actual dimension as integer or 
-**      amount of pixel to substract from base to compute value 
+**      "90%" or 0.9 or actual dimension as integer or
+**      amount of pixel to substract from base to compute value
 **      or nil
 ** int dv : default value
 ** int pv : a base dimension to process
 ** int nv : switch (boolean) to substract or not computed value from base dimension
-*/ 
+*/
 int
 shoes_px(VALUE obj, int dv, int pv, int nv)
 {
@@ -328,7 +328,7 @@ shoes_px(VALUE obj, int dv, int pv, int nv)
     obj = rb_funcall(obj, s_to_i, 0);
     if (len > 1 && ptr[len - 1] == '%')
     {
-      obj = rb_funcall(obj, s_mult, 1, rb_float_new(0.01)); 
+      obj = rb_funcall(obj, s_mult, 1, rb_float_new(0.01));
     }
   }
   if (rb_obj_is_kind_of(obj, rb_cFloat)) {
@@ -348,7 +348,7 @@ shoes_px(VALUE obj, int dv, int pv, int nv)
 ** int dv : default value
 ** int pv : a base dimension to process
 ** int dr : a delta to substract if working with :right or :bottom
-*/ 
+*/
 int
 shoes_px2(VALUE attr, ID k1, ID k2, int dv, int dr, int pv)
 {
@@ -443,7 +443,7 @@ shoes_place_exact(shoes_place *place, VALUE attr, int ox, int oy)
   x = ATTR(attr, bottom);
   if (!NIL_P(x)) place->ih = place->h = (NUM2INT(x) + oy) - place->y;
 
-  if (RTEST(ATTR(attr, center))) 
+  if (RTEST(ATTR(attr, center)))
   {
     place->ix = place->x = place->x - (place->w / 2);
     place->iy = place->y = place->y - (place->h / 2);
@@ -453,12 +453,12 @@ shoes_place_exact(shoes_place *place, VALUE attr, int ox, int oy)
 void
 shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsigned char rel, int padded)
 {
-  
+
   shoes_canvas *canvas = NULL;
   if (!NIL_P(c)) Data_Get_Struct(c, shoes_canvas, canvas);
   VALUE ck = rb_obj_class(c);
   VALUE stuck = ATTR(attr, attach);
-  
+
     // for image : we want to scale the image, given only one attribute :width or :height
     // get dw and dh, set width or height
     if (REL_FLAGS(rel) & REL_SCALE) {   // 8
@@ -569,10 +569,10 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
       ORIGIN(canvas->place) ? canvas->height : canvas->fully) + oy;
     if (!ORIGIN(canvas->place))
     {
-      place->dx = canvas->place.dx; 
+      place->dx = canvas->place.dx;
       place->dy = canvas->place.dy;
     }
-    place->dx += PXN(attr, displace_left, 0, CPW(canvas)); 
+    place->dx += PXN(attr, displace_left, 0, CPW(canvas));
     place->dy += PXN(attr, displace_top, 0, CPH(canvas));
 
     place->flags |= NIL_P(ATTR(attr, left)) && NIL_P(ATTR(attr, right)) ? 0 : FLAG_ABSX;
@@ -591,7 +591,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
   place->ih = place->h - (tmargin + bmargin);
   //place->ih = (RTEST(ATTR(attr, height))) ? place->h : place->h - (tmargin + bmargin);
   if (place->ih < 0) place->ih = 0;
-  
+
   INFO("PLACE: (%d, %d), (%d: %d, %d: %d) [%d, %d] %x\n", place->x, place->y, place->w, place->iw, place->h, place->ih, ABSX(*place), ABSY(*place), place->flags);
 }
 
@@ -865,7 +865,7 @@ shoes_shape_check(cairo_t *cr, shoes_place *place)
   if (place->iw < 0) ox1 = place->ix - (ox2 = -place->iw);
   if (place->ih < 0) oy1 = place->iy - (oy2 = -place->ih);
   if (cy2 - cy1 == 1.0 && cx2 - cx1 == 1.0) return 1;
-  if ((ox1 < cx1 && ox2 < cx1) || (oy1 < cy1 && oy2 < cy1) || 
+  if ((ox1 < cx1 && ox2 < cx1) || (oy1 < cy1 && oy2 < cy1) ||
       (ox1 > cx2 && ox2 > cx2) || (oy1 > cy2 && oy2 > cy2)) return 0;
   return 1;
 }
@@ -1027,7 +1027,7 @@ shoes_shape_draw(VALUE self, VALUE c, VALUE actual)
   shoes_place_exact(&place, self_t->attr, CPX(canvas), CPY(canvas));
 
   if (RTEST(actual))
-    shoes_shape_sketch(CCR(canvas), self_t->name, &place, self_t->st, self_t->attr, self_t->line, 1); 
+    shoes_shape_sketch(CCR(canvas), self_t->name, &place, self_t->st, self_t->attr, self_t->line, 1);
 
   self_t->place = place;
   return self;
@@ -1052,7 +1052,7 @@ shoes_shape_motion(VALUE self, int x, int y, char *touch)
     //   cairo_append_path(cr, self_t->line);
     // }
     // else
-      shoes_shape_sketch(cr, self_t->name, &self_t->place, self_t->st, self_t->attr, self_t->line, 0); 
+      shoes_shape_sketch(cr, self_t->name, &self_t->place, self_t->st, self_t->attr, self_t->line, 0);
     in_shape = cairo_in_fill(cr, x, y);
     cairo_destroy(cr);
 
@@ -1642,7 +1642,7 @@ shoes_border_draw(VALUE self, VALUE c, VALUE actual)
   place.ih -= (int)round(sw);
   place.ix += (int)round(sw / 2.);
   place.iy += (int)round(sw / 2.);
-  
+
   if (RTEST(actual))
   {
     cairo_t *cr = CCR(canvas);
@@ -1971,8 +1971,8 @@ shoes_color_to_s(VALUE self)
 {
   GET_STRUCT(color, color);
 
-  VALUE ary = rb_ary_new3(4, 
-    INT2NUM(color->r), INT2NUM(color->g), INT2NUM(color->b), 
+  VALUE ary = rb_ary_new3(4,
+    INT2NUM(color->r), INT2NUM(color->g), INT2NUM(color->b),
     rb_float_new((color->a * 1.) / 255.));
 
   if (color->a == 255)
@@ -1998,7 +1998,7 @@ shoes_color_method_missing(int argc, VALUE *argv, VALUE self)
   if (NIL_P(c))
   {
     self = rb_inspect(self);
-    rb_raise(rb_eNoMethodError, "undefined method `%s' for %s", 
+    rb_raise(rb_eNoMethodError, "undefined method `%s' for %s",
       rb_id2name(SYM2ID(cname)), RSTRING_PTR(self));
   }
 
@@ -2697,7 +2697,7 @@ shoes_textblock_iter_pango(VALUE texts, shoes_textblock *block, shoes_app *app)
       {
         start = RSTRING_PTR(v);
         if (!g_utf8_validate(start, RSTRING_LEN(v), (const gchar **)&end))
-          shoes_error("not a valid UTF-8 string: %.*s", end - start, start); 
+          shoes_error("not a valid UTF-8 string: %.*s", end - start, start);
         if (end > start)
           g_string_append_len(block->text, start, end - start);
       }
@@ -2738,7 +2738,7 @@ shoes_textblock_on_layout(shoes_app *app, VALUE klass, shoes_textblock *block)
   VALUE str = Qnil, hsh = Qnil, oattr = Qnil;
   g_return_if_fail(block != NULL);
   g_return_if_fail(PANGO_IS_LAYOUT(block->layout));
-  
+
   oattr = block->attr;
   hsh = rb_hash_aref(app->styles, klass);
 
@@ -2802,7 +2802,7 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
   self_t->place.y = ATTR2(int, self_t->attr, top, canvas->cy);
   if (!ORIGIN(canvas->place))
   {
-    self_t->place.dx = canvas->place.dx; 
+    self_t->place.dx = canvas->place.dx;
     self_t->place.dy = canvas->place.dy;
   }
   else
@@ -2810,7 +2810,7 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
     self_t->place.dx = 0;
     self_t->place.dy = 0;
   }
-  self_t->place.dx += PXN(self_t->attr, displace_left, 0, CPW(canvas)); 
+  self_t->place.dx += PXN(self_t->attr, displace_left, 0, CPW(canvas));
   self_t->place.dy += PXN(self_t->attr, displace_top, 0, CPH(canvas));
   self_t->place.w = ATTR2(int, self_t->attr, width, canvas->place.iw - (canvas->cx - self_t->place.x));
   self_t->place.iw = self_t->place.w - (lmargin + rmargin);
@@ -2837,7 +2837,7 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
       }
     }
   }
-  
+
   pango_layout_set_width(self_t->layout, self_t->place.iw * PANGO_SCALE);
   pango_layout_set_spacing(self_t->layout, ld * PANGO_SCALE);
   shoes_textblock_on_layout(canvas->app, rb_obj_class(self), self_t);
@@ -2939,7 +2939,7 @@ shoes_textblock_draw(VALUE self, VALUE c, VALUE actual)
     if (NIL_P(ATTR(self_t->attr, margin)) && NIL_P(ATTR(self_t->attr, margin_top)))
       bmargin = lrect.height;
 
-    INFO("CX: (%d, %d) / LRECT: (%d, %d) / END: (%d, %d)\n", 
+    INFO("CX: (%d, %d) / LRECT: (%d, %d) / END: (%d, %d)\n",
       canvas->cx, canvas->cy,
       lrect.x, lrect.width,
       canvas->endx, canvas->endy);
@@ -3185,9 +3185,9 @@ shoes_edit_line_enterkey(VALUE self, VALUE proc)
   // store the proc in the attr
   GET_STRUCT(control, self_t);
   if (!NIL_P(proc))
-  {	
+  {
 	ATTRSET(self_t->attr, donekey, proc);
-  }	
+  }
 }
 
 VALUE
@@ -3458,9 +3458,9 @@ shoes_slider_set_fraction(VALUE self, VALUE _perc)
 {
   double perc = min(max(NUM2DBL(_perc), 0.0), 1.0);
   GET_STRUCT(control, self_t);
-  if (self_t->ref != NULL) 
+  if (self_t->ref != NULL)
     shoes_native_slider_set_fraction(self_t->ref, perc);
-  
+
   return self;
 }
 
@@ -3503,7 +3503,7 @@ shoes_check_set_checked_m(VALUE self, VALUE on)
   if (RTEST(on))
   {
     VALUE glist = shoes_button_group(self);
-    
+
     if (!NIL_P(glist))
     {
       long i;
@@ -3512,8 +3512,8 @@ shoes_check_set_checked_m(VALUE self, VALUE on)
         VALUE ele = rb_ary_entry(glist, i);
         shoes_check_set_checked(ele, ele == self ? Qtrue : Qfalse);
       }
-    } 
-    else 
+    }
+    else
     {
         shoes_check_set_checked(self, on);
     }
@@ -3982,15 +3982,15 @@ shoes_msg(ID typ, VALUE str)
 {
 #ifndef RUBY_1_8
   ID func = rb_frame_this_func();
-  rb_ary_push(shoes_world->msgs, rb_ary_new3(6, 
+  rb_ary_push(shoes_world->msgs, rb_ary_new3(6,
     ID2SYM(typ), str, rb_funcall(rb_cTime, s_now, 0),
-    func ? ID2SYM(func) : Qnil, 
+    func ? ID2SYM(func) : Qnil,
     rb_str_new2("<unknown>"), INT2NUM(0)));
 #else
   ID func = rb_frame_last_func();
-  rb_ary_push(shoes_world->msgs, rb_ary_new3(6, 
+  rb_ary_push(shoes_world->msgs, rb_ary_new3(6,
     ID2SYM(typ), str, rb_funcall(rb_cTime, s_now, 0),
-    func ? ID2SYM(func) : Qnil, 
+    func ? ID2SYM(func) : Qnil,
     rb_str_new2(ruby_sourcefile), INT2NUM(ruby_sourceline)));
 #endif
 }
@@ -4161,7 +4161,7 @@ shoes_http_threaded(VALUE self, VALUE url, VALUE attr)
     url_string = strdup(RSTRING_PTR(url));
     url = rb_funcall(rb_mKernel, s_URI, 1, url);
   }
-  
+
   VALUE scheme = rb_funcall(url, s_scheme, 0);
   VALUE host = rb_funcall(url, s_host, 0);
   VALUE port = rb_funcall(url, s_port, 0);
@@ -4175,7 +4175,7 @@ shoes_http_threaded(VALUE self, VALUE url, VALUE attr)
     sprintf(url_string, "%s://%s:%s%s%s", RSTRING_PTR(scheme), RSTRING_PTR(host),
      RSTRING_PTR(port), slash, RSTRING_PTR(path));
   }
-  
+
   shoes_http_request *req = SHOE_ALLOC(shoes_http_request);
   SHOE_MEMZERO(req, shoes_http_request, 1);
   req->url = url_string;

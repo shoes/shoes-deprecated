@@ -43,6 +43,8 @@
 {
   VALUE object;
 }
++ (void)textDidEndEditing: (NSNotification *)note;
+
 @end
 
 @interface ShoesSecureTextField : NSSecureTextField
