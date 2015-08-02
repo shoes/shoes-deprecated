@@ -137,7 +137,7 @@ Shoes.app do
       button "Manual" do
         Shoes.show_manual
       end
-      button "Spash" do
+      button "Splash" do
         Shoes.splash
       end
       button "Quit" do
