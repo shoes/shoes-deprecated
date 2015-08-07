@@ -38,8 +38,7 @@ pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.1.pc"
 pkggtk ="#{ularch}/pkgconfig/#{APP['GTK']}.pc" 
 # Use Ruby or curl for downloads
 RUBY_HTTP = true
-file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + ["shoes/*.c"]
-
+file_list = ["shoes/console/*.c"] + %w{shoes/native/gtk.c shoes/http/rbload.c} + ["shoes/*.c"]
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')

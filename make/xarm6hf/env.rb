@@ -48,7 +48,7 @@ pkggtk ="#{ularch}/pkgconfig/#{APP['GTK']}.pc"
 
 ENV['PKG_CONFIG_PATH'] = "#{ularch}/pkgconfig"
 
-file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + ["shoes/*.c"]
+file_list = ["shoes/console/*.c"] + %w{shoes/native/gtk.c shoes/http/rbload.c} + ["shoes/*.c"]
 
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
