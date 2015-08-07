@@ -2,17 +2,24 @@
 
 === New with 3.2.24
    * added show_console command for OSX and Linux to match Windows. 
-     Still a work in progress for OSX. Dumber that dumb console. 
-     Issue  #127
+     Dumber that dumb console. Works with readline if you don't expect too
+     much. Although -w and --console switches do work on the command line 
+     you probably don't need them now that you can call Shoes::show_console
+     Wiki: https://github.com/Shoes3/shoes3/wiki/Design:-New-Shoes-Console
+     Issue  #127 https://github.com/Shoes3/shoes3/issues/127
      
 === Fixed with 3.2.24
+   * OSX: Fix issue #08 (again) https://github.com/Shoes3/shoes3/issues/8
+   * OSX issue #20 - command line incomplete
+     https://github.com/Shoes3/shoes3/issues/20
+     wiki: https://github.com/Shoes3/shoes3/wiki/Command-line-for-OSX
    * dialog works better
-     Issue #119
-     Issue #136
+     Issue #119 https://github.com/Shoes3/shoes3/issues/119
+     Issue #136 https://github.com/Shoes3/shoes3/issues/136
    * OSX: ask() dialog gets an icon like alert() and confirm()
-     Issue #138
+     Issue #138 https://github.com/Shoes3/shoes3/issues/138
    * Windows: can now find the correct timezone for Time.now
-     Issue #123
+     Issue #123 https://github.com/Shoes3/shoes3/issues/123
 
 === New with 3.2.23
    * snapshot works like image - it collects image effects and 
