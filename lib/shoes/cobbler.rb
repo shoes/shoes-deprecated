@@ -40,25 +40,25 @@ class Gem::CobblerFace
       @count += 1.0
       @prog.fraction = (@count / @total.to_f) * 0.5
     end
-    
+
     def fetch(filename, len)
       @total = len
     end
-    
+
     def update(len)
       @prog.fraction = len.to_f / @total.to_f
     end
-   
+
     def done
     end
   end
-  
+
   # init CobblerFace
   def initialize bar, statline
     @prog = bar
     @status = statline
     #@status, @prog, = app.slot.contents[-1].contents
-    
+
   end
   def title msg
     @status.text =  msg
@@ -73,23 +73,23 @@ class Gem::CobblerFace
   def ask msg
     Kernel.ask(msg)
   end
-  
+
   def error msg, e
     @status =  link("Error") { Shoes.show_log }, " ", msg
   end
-  
+
   def say msg
     @status.text =  msg
   end
-  
+
   def alert msg, quiz=nil
     ask(quiz) if quiz
   end
-  
+
   def download_reporter(*args)
     DownloadReporter.new(@prog, @status, 0, 'Downloading')
   end
-  
+
   def method_missing(*args)
     p args
     nil
@@ -98,7 +98,7 @@ end
 
 # UI class for delete does nothing - on purpose. Swallows 'success' msg
 class Gem::CobblerDelFace
- def initialize 
+ def initialize
  end
  def say msg
    #puts "CmdFace: say: #{msg}"
@@ -112,7 +112,7 @@ Shoes.app do
       button "Shoes Info.." do
         infoscreen
       end
-      button "Clear Image Cache..." do 
+      button "Clear Image Cache..." do
         cachescreen
       end
       if Shoes::RELEASE_TYPE =~ /TIGHT/
@@ -120,7 +120,7 @@ Shoes.app do
           jailscreen
         end
       end
-      button "Manage Gems..." do 
+      button "Manage Gems..." do
         gemscreen
       end
       if Shoes::RELEASE_TYPE =~ /TIGHT/ || true # for testing.
@@ -133,6 +133,11 @@ Shoes.app do
       end
       button "Packager URLs..." do
         pack_screen
+      end
+      if RUBY_PLATFORM =~ /darwin/
+        button "cshoes" do
+          cshoes_screen
+        end
       end
       button "Manual" do
         Shoes.show_manual
@@ -148,8 +153,8 @@ Shoes.app do
       @status = para ""
    end
   end
-  
-  def  pack_screen 
+
+  def  pack_screen
     @panel.clear
     @panel.append do
       flow do
@@ -174,7 +179,7 @@ Shoes.app do
       end
     end
   end
-  
+
   def infoscreen
     @panel.clear
     @panel.append do
@@ -188,7 +193,7 @@ Shoes.app do
       para "LIB_DIR: #{LIB_DIR}"
     end
   end
-  
+
   def jailscreen
     @panel.clear
     @panel.append do
@@ -198,7 +203,7 @@ Shoes.app do
       jloc = File.join(LIB_DIR, Shoes::RELEASE_NAME, 'getoutofjail.card')
       if File.exist? jloc
         open(jloc, 'r') do |f|
-         f.each do |l| 
+         f.each do |l|
            ln = l.strip
            dirlist << ln if ln.length > 0
          end
@@ -206,7 +211,7 @@ Shoes.app do
       end
       @dirbox = edit_box :width => 600
       @dirbox.text = dirlist.join("\n") if dirlist.length > 0
-      flow do 
+      flow do
 	      button "Add Gem Directory" do
 	        dir = ask_open_folder
 	        dirlist << dir if dir
@@ -220,31 +225,31 @@ Shoes.app do
 	        @panel.append {para "Please quit and restart Shoes for changes to take effect"}
 	      end
 	  end
-     
+
     end
   end
-  
+
   def imgdeletef
   end
-  
+
   def cp_samples_screen
     @panel.clear
     @panel.append do
        para "Copy samples to a directory you can see and edit."
-       para "Chose a directory that you want the Samples directory" 
+       para "Chose a directory that you want the Samples directory"
        para "to be created inside of."
        button "Select Directory for a copy of" do
          # OSX is a bit brain dead for ask_save_folder
-         if destdir = ask_save_folder() 
-           @panel.append do 
+         if destdir = ask_save_folder()
+           @panel.append do
              para "Copy #{DIR}/samples/* to #{destdir}/Samples ?"
              button "OK" do
                @panel.append do
-                 @lb = edit_box 
+                 @lb = edit_box
                end
                ary = []
                require 'fileutils'
-               mkdir_p destdir 
+               mkdir_p destdir
                sampdir = File.join DIR, 'samples'
                cd sampdir do
                  Dir.glob('*').each do |fp|
@@ -259,7 +264,7 @@ Shoes.app do
        end
     end
   end
-  
+
   def cachescreen
     @panel.clear
     require 'shoes/data'
@@ -275,7 +280,7 @@ Shoes.app do
       end
       @dblist.items = litems
     end
-    @panel.append do 
+    @panel.append do
       flow do
         button "Delete From Cache" do
           sel = @dblist.text
@@ -283,7 +288,7 @@ Shoes.app do
             fdel = @filestoo.checked?
             if sel == '-all-'
               #puts 'delete all'
-              DATABASE.each do |k, val| 
+              DATABASE.each do |k, val|
                 v = val.split('|')
                 path = Shoes::image_cache_path v[1], File.extname(k)
                 #puts "Deleted #{path}"
@@ -310,8 +315,8 @@ Shoes.app do
     Gem.use_paths(GEM_DIR, [GEM_DIR, GEM_CENTRAL_DIR])
     Gem.refresh
   end
-  
- 
+
+
   def gem_install_one spec
     # setup Gem download ui
     ui = Gem::DefaultUserInteraction.ui = Gem::CobblerFace.new(@progbar, @status)
@@ -329,7 +334,7 @@ Shoes.app do
        #raise e
     end
   end
-  
+
   def geminfo gem
     str = gem
     if gem.kind_of? Gem::Specification
@@ -337,52 +342,52 @@ Shoes.app do
     end
     alert str
   end
-  
+
   def gemremove spec
     if confirm "Really delete gem #{spec.name}"
-      begin 
+      begin
         Gem::DefaultUserInteraction.ui = Gem::CobblerDelFace.new()
         del = Gem::Uninstaller.new(spec)
         del.remove(spec)
-      rescue Exception => e 
+      rescue Exception => e
         alert e
       end
       gem_refresh_local
     end
-  end 
-  
+  end
+
   def geminstall spec
-   @gemlist.append do 
+   @gemlist.append do
      @progbar = progress width: 0.9, margin_left: 0.1, height: 20
      @progbar.fraction = 0.5
      @status = inscription 'Initialize', align: :center
    end
    if confirm "Install #{spec.name},#{spec.version} and dependencies?"
-      @thread = Thread.new do 
+      @thread = Thread.new do
         gem_install_one spec
         #gem_refresh_local  # not sure I want this UI wise.
       end
     end
   end
-  
+
   def gemloadtest spec
-    begin 
+    begin
       require spec.name
     rescue Exception => e
       alert e
     end
     alert "Loaded"
   end
-  
+
 
   def gem_refresh_local
     @gemlist.clear
     @gemlist.background white
     # FIXME: deprecated call, returns []
     #gemlist =  Gem::Specification._all()
-    #gemlist.each do |gs| 
+    #gemlist.each do |gs|
     Gem::Specification.each do |gs|
-      @gemlist.append do 
+      @gemlist.append do
       flow margin: 5 do
           button 'info', height: 28, width: 50, left_margin: 10 do
              geminfo gs
@@ -398,7 +403,7 @@ Shoes.app do
        end
     end
   end
-  
+
   def gemsearch str
     installer = Gem::DependencyInstaller.new domain: :remote
     begin
@@ -407,7 +412,7 @@ Shoes.app do
       @gemlist.append {para "not found"}
       return
     end
-    poss_gems.each_spec do |g|   
+    poss_gems.each_spec do |g|
       @gemlist.append do
         flow margin: 5 do
           button 'info', height: 28, width: 50, left_margin: 10 do
@@ -421,7 +426,7 @@ Shoes.app do
       end
     end
   end
-   
+
   def gemscreen
     @panel.clear
     @panel.append do
@@ -432,19 +437,19 @@ Shoes.app do
           @gemlist.background white
           gem_refresh_local
         end
-        @searchphrase = edit_line 
+        @searchphrase = edit_line
         button 'Search Remote' do
           @gemlist.clear
           @gemlist.background "#EEE".."#9AA"
           gemsearch @searchphrase.text
         end
       end
-      @gemlist = stack width: 0.90, left_margin: 5, top_margin: 5 do     
-        background white  
+      @gemlist = stack width: 0.90, left_margin: 5, top_margin: 5 do
+        background white
       end
     end
   end
-  
+
   def tar_extract opened_file
     Gem::Package::TarReader.new( Zlib::GzipReader.new(opened_file)) do |tar|
       tar.each do |entry|
@@ -464,7 +469,7 @@ Shoes.app do
       end
     end
   end
-  
+
   def gem_copy_to_home srcdir, dest
     gems = Dir.glob("#{srcdir}/*/*")
     mkdir_p dest
@@ -499,7 +504,7 @@ Shoes.app do
     gems.each {|g| gemlist << File.basename(g) }
     return gemlist
   end
-  
+
   def gempack_helper tgzpath
     # make a temp directory and unpack the tgzpath into it
     # loop thru the 'special' gems in there and copy into GEM_DIR
@@ -511,7 +516,7 @@ Shoes.app do
     #just begining to get ugly -FIXME -- need th
     return gem_copy_to_home td, GEM_DIR
   end
-  
+
   def gempack_screen
     @panel.clear
     @panel.append do
@@ -519,7 +524,7 @@ Shoes.app do
 with the wrong package for your plaftorm!"
       button "Select file..." do
         gempack = ask_open_file
-        if gempack 
+        if gempack
           gemslist = gempack_helper gempack
           gemslist.each do |g|
             para "Installed #{g}\n"
@@ -529,8 +534,69 @@ with the wrong package for your plaftorm!"
         end
       end
     end
-   end 
-    
+   end
+
+   # not that pretty at all.
+   def rewrite_with_env before, after, reg = /\#\{(\w+)\}/, reg2 = '\1'
+     File.open(after, 'w') do |a|
+       File.open(before) do |b|
+         b.each do |line|
+           a << line.gsub(reg) do
+             if reg2.include? '\1'
+               reg2.gsub(%r!\\1!, ENV[$1])
+             else
+               reg2
+             end
+           end
+         end
+       end
+     end
+   end
+
+
+  def cshoes_screen
+    @panel.clear
+    @panel.append do
+      stack do
+          para "Create a cshoes shell script for terminal users to use. \
+OSX has to use absolute paths for launching and cshoes script tries to compensate \
+but it needs to know where Shoes is"
+          para "Select the Shoes.app to point to. "
+          this_shoes = "/Applications/Shoes.app"
+          flow do
+            @shoes_loc = edit_line this_shoes, :width => 300
+            button "Select..." do
+              this_shoes = ask_open_file
+              if this_shoes
+                @shoes_loc.text = this_shoes
+              end
+            end
+          end
+          new_loc = "#{ENV['HOME']}"
+          flow do
+            para "Save here:  "
+            @cshoes_loc = edit_line new_loc
+            button "Select ..." do
+              new_loc = ask_save_folder
+              if new_loc
+                @cshoes_loc.text = new_loc
+              end
+            end
+          end
+          flow do
+            para "Ready? "
+            button "Create Script" do
+              if confirm "Create #{@cshoes_loc.text}/cshoes Using #{@shoes_loc.text}"
+                #prepare for rewrite - expect complaints about constants
+                ENV['SHOES_RUBY_ARCH'] = RUBY_PLATFORM
+                ENV['APPNAME'] = 'Shoes'
+                ENV['TGT_DIR'] = @shoes_loc.text
+                rewrite_with_env  File.join(DIR,"static/stubs/cshoes.templ"), "#{@cshoes_loc.text}/cshoes"
+                chmod 0755, "#{@cshoes_loc.text}/cshoes"
+              end
+            end
+          end
+        end
+      end
+    end
 end # App
-
-

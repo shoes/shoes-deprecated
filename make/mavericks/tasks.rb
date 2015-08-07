@@ -248,6 +248,9 @@ class MakeDarwin
       # cp InfoPlist.strings YourApp.app/Contents/Resources/English.lproj/
       `echo -n 'APPL????' > "#{tmpd}/#{APPNAME}.app/Contents/PkgInfo"`
       mv "#{tmpd}/#{APPNAME}.app",  "#{TGT_DIR}"
+      # create cshoes script /Users/ccoupe/build/mavericks/Shoes.app/Contents/MacOS
+      rewrite "platform/mac/cshoes.tmpl", "cshoes"
+      chmod 0755, "cshoes"
     end
 
     def make_stub

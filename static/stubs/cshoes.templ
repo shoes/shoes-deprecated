@@ -1,0 +1,54 @@
+#!/bin/sh
+# next two lines generated
+APPPATH="#{TGT_DIR}/Contents/MacOS"
+SHOES_RUBY_ARCH="#{SHOES_RUBY_ARCH}"
+APPFULLPATH="`cd \"$APPPATH\" 2>/dev/null && pwd`"
+# some args have to be handled by shoes-bin and some by open -a <script> --args
+# TODO: Not that pretty at all -- Warren Zevon
+THISDIR=`pwd`
+RUNARGS="$@"
+ARGC=$#
+#echo "ARGC = $ARGC"
+HAVE_CONSOLE=0
+USE_OPEN=0
+SCRIPT="foo"
+if [ $ARGC -gt 1 ] && ([ $1 = "-w" ] || [ $1 = "--console" ]); then
+  USE_OPEN=1
+  HAVE_CONSOLE=1
+  SCRIPT=$2
+fi
+if [ $ARGC -eq 1 ]; then
+  if  [[ $1 =~ \-.* ]]; then
+    USE_OPEN=0
+  else
+    # not a -switch - pray for a file name
+    USE_OPEN=1
+    SCRIPT=$1
+  fi
+fi
+if [ "$1" = "--ruby" ]; then
+  USE_OPEN=0
+fi
+if [ $USE_OPEN -eq 1 ]; then
+  # expand the script to have a full abs pathname.
+  if ! [[ $SCRIPT =~ ^/.* ]]; then
+    SCRIPT="$THISDIR/$SCRIPT"
+  fi
+fi
+
+if [ $USE_OPEN -eq 0 ]; then
+  #echo "with shoes-bin " $@
+  unset DYLD_LIBRARY_PATH
+  cd "$APPPATH"
+  echo "ModuleFiles=$APPPATH/pango.modules" >> pangorc
+  echo "ModulesPath=$APPPATH/pango/modules" >> pangorc
+  PANGO_RC_FILE="$APPPATH/pangorc" ./pango-querymodules > pango.modules
+  DYLD_LIBRARY_PATH="$APPPATH" PANGO_RC_FILE="$APPPATH/pangorc" SHOES_RUBY_ARCH="$SHOES_RUBY_ARCH" ./shoes-bin $@
+else
+  #echo "with open $SCRIPT $HAVE_CONSOLE"
+  if [ $HAVE_CONSOLE = 1 ]; then
+    open -a "$APPFULLPATH/../../../Shoes.app" $SCRIPT "--args" "-w"
+  else
+    open -a "$APPFULLPATH/../../../Shoes.app" $SCRIPT
+  fi
+fi

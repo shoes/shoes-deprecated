@@ -1,5 +1,19 @@
 = Federales - Shoes 3.2
 
+=== New with 3.2.24
+   * added show_console command for OSX and Linux to match Windows. 
+     Still a work in progress for OSX. Dumber that dumb console. 
+     Issue  #127
+     
+=== Fixed with 3.2.24
+   * dialog works better
+     Issue #119
+     Issue #136
+   * OSX: ask() dialog gets an icon like alert() and confirm()
+     Issue #138
+   * Windows: can now find the correct timezone for Time.now
+     Issue #123
+
 === New with 3.2.23
    * snapshot works like image - it collects image effects and 
      writes them to a file (pdf, svg or ps)

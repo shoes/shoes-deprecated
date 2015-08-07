@@ -48,7 +48,7 @@ end
 
 class Shoes
   RELEASES = %w[Curious Raisins Policeman Federales]
-  
+
   NotFound = proc do
     para "404 NOT FOUND, GUYS!"
   end
@@ -61,7 +61,7 @@ class Shoes
 
   OPTS = OptionParser.new do |opts|
     opts.banner = "Usage: shoes [options] (app.rb or app.shy)"
-    
+
     opts.on('-d', '--debug', 'Debug Shoes script') do
       ENV['CMDLINE_DEBUG'] = true.to_s
     end
@@ -71,7 +71,7 @@ class Shoes
       show_manual
     end
 
-    opts.on("--console", "display console") do |c|
+    opts.on("-w", "--console", "display console") do
       if ENV['console_loop']
         show_log # need something on the screen for Shoes- FIXME
         show_console
@@ -86,7 +86,7 @@ class Shoes
             ln = Readline::readline('> ', false)
             #ln = STDIN.cooked(&:gets)
 
-            if ln.strip == 'quit' 
+            if ln.strip == 'quit'
               $stderr.write "really quit (y/n)"
               ans = $stdin.gets.strip
               exit if ans == 'y'
@@ -95,16 +95,17 @@ class Shoes
           end
         end
       else
+        #ENV['SHOES_CONSOLE'] = true.to_s
         show_console
       end
     end
-    
+
     opts.on("--old-package",
             "(Obsolete) Package a Shoes app for Windows, OS X and Linux.") do |s|
       make_pack
     end
- 
-    opts.on("-c", "--cobbler", 
+
+    opts.on("-c", "--cobbler",
             "Maintain Shoes installation") do |c|
       cobbler
     end
