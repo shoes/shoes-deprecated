@@ -4075,5 +4075,36 @@ Finally, add a last button for entertainment value. You can press '''up''' or ''
 
 Your '''Interactive Ruby''' console should look like this: !{:margin_left => 60}shoes-irb-sample.png!
 
+== Hidden things ==
+
+Things you don't really want to use and don't work the way you think.
+
+=== Console ===
+
+Calling Shoes::show_console will bring up a new window that hooks stdin, stdout and stderr 
+so it displays that output in the new window. This is a very brutal thing to do to the
+perfectly happy C printf() and Ruby puts that don't display. 
+
+But, sometimes, a guy has to do guy things and is willing to accept the downsides: 
+You can't undo the call and switch them back although a serial abuser of
+defenseless stdin's will try. You know who you are. 
+
+If you do call Shoes::show_console and Shoes thinks you're not running from a
+terminal then it brings up a window that looks similar to the Shoes Log Window. 
+Only it isn't. It's not pretty. No color coding. Don't even attempt to send escape
+sequences to it. Which some of you will do on Windows and it might work THERE 
+for YOU. Don't be that person. 
+
+That Window can update slowly. It runs in the background for some platforms.
+It can lose output on a busy system. Once started, Shoes scripts have no control of it.
+NONE, NADA, ZIP. The readline gem (included with Shoes) does works if your
+expecations are low. We will mock and taunt you for attempting to use curses and reporting
+that it doesn't work. Don't be that person.
+
+Still, if you need to write a Shoes script to monitor some long running process that outputs
+to stdout/stderr from some other program and you want to copy the log to the clipboard
+or scroll it back, now you can do that. 
+
+No, it can't fix the horrible Windows console. You get Lowest common denominator.
 
 
