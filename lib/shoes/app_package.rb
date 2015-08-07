@@ -9,7 +9,7 @@ require 'shoes/packshoes'
 # I'm going to use a $global for the name of script (or shy).
 # because @path is not the same @path in a different Shoes Window.
 $script_path = ""
-Shoes.app height: 600 do
+Shoes.app height: 600, :title =>"Shoes Packager" do
   # get the urls or default
   @shoes_home = "#{ENV['HOME']}/.shoes/#{Shoes::RELEASE_NAME}"
   @selurl = "#{@shoes_home}/package/selector.url"

@@ -105,7 +105,7 @@ class Gem::CobblerDelFace
  end
 end
 
-Shoes.app do
+Shoes.app :title => "Shoes Cobbler" do
   @shoes_home = File.join(LIB_DIR, Shoes::RELEASE_NAME)
   stack do
     @menu = flow do
