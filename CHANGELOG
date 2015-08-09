@@ -7,12 +7,18 @@
      you probably don't need them now that you can call Shoes::show_console
      Wiki: https://github.com/Shoes3/shoes3/wiki/Design:-New-Shoes-Console
      Issue  #127 https://github.com/Shoes3/shoes3/issues/127
-     
-=== Fixed with 3.2.24
-   * OSX: Fix issue #08 (again) https://github.com/Shoes3/shoes3/issues/8
-   * OSX issue #20 - command line incomplete
-     https://github.com/Shoes3/shoes3/issues/20
+   * OSX: new cshoes script for using Shoes from the command line.
+     fixes some annoyances.
      wiki: https://github.com/Shoes3/shoes3/wiki/Command-line-for-OSX
+    
+=== Fixed with 3.2.24
+   * Restore old behaviour with ask/alert/confirm auto converting to 
+     string 
+     Issue 111 - https://github.com/Shoes3/shoes3/issues/8
+   * OSX: Fix issue #08 (again) https://github.com/Shoes3/shoes3/issues/8
+   * OSX issue #20, 137 - command line incomplete, multiple apps
+     https://github.com/Shoes3/shoes3/issues/20
+     https://github.com/Shoes3/shoes3/issues/137
    * dialog works better
      Issue #119 https://github.com/Shoes3/shoes3/issues/119
      Issue #136 https://github.com/Shoes3/shoes3/issues/136
@@ -20,6 +26,8 @@
      Issue #138 https://github.com/Shoes3/shoes3/issues/138
    * Windows: can now find the correct timezone for Time.now
      Issue #123 https://github.com/Shoes3/shoes3/issues/123
+   * Windows packaging bug 
+     Issue #128 https://github.com/Shoes3/shoes3/issues/128
 
 === New with 3.2.23
    * snapshot works like image - it collects image effects and 
