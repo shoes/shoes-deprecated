@@ -67,9 +67,12 @@ RUBY_HTTP = true
 ENV['PKG_CONFIG_PATH'] = "#{ularch}/pkgconfig"
 WINVERSION = "#{APP['VERSION']}-#{APP['GTK']=='Gtk+-3.0' ? 'gtk3' : 'gtk2'}-32"
 WINFNAME = "#{APPNAME}-#{WINVERSION}"
-gtk_extra_list = %w(shoes/native/gtkfixedalt.c shoes/native/gtkentryalt.c
+gtk_extra_list = []
+if APP['GTK'] == "gtk+-3.0"
+  gtk_extra_list = %w(shoes/native/gtkfixedalt.c shoes/native/gtkentryalt.c
                shoes/native/gtkcomboboxtextalt.c shoes/native/gtkbuttonalt.c
                shoes/native/gtkscrolledwindowalt.c shoes/native/gtkprogressbaralt.c )
+end
 if RUBY_HTTP
   file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"]
 else
