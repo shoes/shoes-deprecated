@@ -67,11 +67,8 @@ RUBY_HTTP = true
 ENV['PKG_CONFIG_PATH'] = "#{ularch}/pkgconfig"
 WINVERSION = "#{APP['VERSION']}-#{APP['GTK']=='Gtk+-3.0' ? 'gtk3' : 'gtk2'}-32"
 WINFNAME = "#{APPNAME}-#{WINVERSION}"
-gtk_extra_list = %w(shoes/native/gtkfixedalt.c shoes/native/gtkentryalt.c
-               shoes/native/gtkcomboboxtextalt.c shoes/native/gtkbuttonalt.c
-               shoes/native/gtkscrolledwindowalt.c shoes/native/gtkprogressbaralt.c )
 if RUBY_HTTP
-  file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"]
+  file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + ["shoes/*.c"]
 else
   file_list = %w{shoes/native/gtk.c shoes/http/winhttp.c shoes/http/windownload.c} + ["shoes/*.c"] 
 end
@@ -177,12 +174,12 @@ if APP['GTK'] == 'gtk+-3.0' && COPY_GTK == true
       'fontconfig'  => "#{bindll}/libfontconfig-1.dll",
       'freetype'    => "#{bindll}/libfreetype-6.dll",
       'gdkpixbuf'   => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
-      'gdk3'        => "#{bindll}/libgdk-3-0.dll",
+      'gdk2'        => "#{bindll}/libgdk-win32-2.0-0.dll",
       'gio'         => "#{bindll}/libgio-2.0-0.dll",
       'glib'        => "#{bindll}/libglib-2.0-0.dll",
       'gmodule'     => "#{bindll}/libgmodule-2.0-0.dll",
       'gobject'     => "#{bindll}/libgobject-2.0-0.dll",
-      'gtk3'        => "#{bindll}/libgtk-3-0.dll",
+      'gtk2'        => "#{bindll}/libgtk-win32-2.0-0.dll",
       'pixman'      => "#{bindll}/libpixman-1-0.dll", 
       'intl8'        => "#{bindll}/libintl-8.dll",
       'pango'       => "#{bindll}/libpango-1.0-0.dll",

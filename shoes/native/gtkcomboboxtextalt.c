@@ -8,7 +8,7 @@
 #include "shoes/internal.h"
 
 #include "gtkcomboboxtextalt.h"
-#include <gtk/gtkcombobox.h>
+//#include <gtk/gtkcombobox.h>
 
 
 struct _GtkComboBoxPrivate
