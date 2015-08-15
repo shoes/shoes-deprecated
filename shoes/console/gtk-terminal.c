@@ -16,7 +16,11 @@ static gboolean keypress_event(GtkWidget *widget, GdkEventKey *event, gpointer d
 	struct tesiObject *tobj = (struct tesiObject*)data;
     char *c = ((GdkEventKey*)event)->string;
 	char s = *c;
+#ifdef GTK3
+	if (event->keyval == GDK_KEY_BackSpace) {
+#else
 	if (event->keyval == GDK_BackSpace) {
+#endif
 		s = 010;
     }
 	write(tobj->fd_input, &s, 1);
