@@ -311,13 +311,14 @@ shoes_safe_block(VALUE self, VALUE block, VALUE args)
 
 
 /* get a dimension, in pixels, given a string, float, int or nil
-**      "90%" or 0.9 or actual dimension as integer or
-**      amount of pixel to substract from base to compute value
+**      "90%" or 0.9 or actual dimension as integer or 
+**      amount of pixel to substract from base to compute value 
 **      or nil
 ** int dv : default value
 ** int pv : a base dimension to process
 ** int nv : switch (boolean) to substract or not computed value from base dimension
 */
+
 int
 shoes_px(VALUE obj, int dv, int pv, int nv)
 {
@@ -349,6 +350,7 @@ shoes_px(VALUE obj, int dv, int pv, int nv)
 ** int pv : a base dimension to process
 ** int dr : a delta to substract if working with :right or :bottom
 */
+
 int
 shoes_px2(VALUE attr, ID k1, ID k2, int dv, int dr, int pv)
 {
@@ -453,16 +455,16 @@ shoes_place_exact(shoes_place *place, VALUE attr, int ox, int oy)
 void
 shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsigned char rel, int padded)
 {
-
-  shoes_canvas *canvas = NULL;
-  if (!NIL_P(c)) Data_Get_Struct(c, shoes_canvas, canvas);
-  VALUE ck = rb_obj_class(c);
-  VALUE stuck = ATTR(attr, attach);
-
+    shoes_canvas *canvas = NULL;
+    if (!NIL_P(c)) Data_Get_Struct(c, shoes_canvas, canvas);
+    VALUE ck = rb_obj_class(c);
+    VALUE stuck = ATTR(attr, attach);
+    
     // for image : we want to scale the image, given only one attribute :width or :height
     // get dw and dh, set width or height
     if (REL_FLAGS(rel) & REL_SCALE) {   // 8
         VALUE rw = ATTR(attr, width), rh = ATTR(attr, height);
+        
         if (NIL_P(rw) && !NIL_P(rh)) {          // we have height
                     // fetch height in pixels whatever the input (string, float, positive/negative int)
             int spx = shoes_px(rh, dh, CPH(canvas), 1);
@@ -470,7 +472,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
             dw = (dh == dw) ? spx : ROUND(((dh * 1.) / dw) * spx);
             dh = spx;                           // now re-init 'dh' for next calculations
             ATTRSET(attr, width, INT2NUM(dw));  // set calculated width
-          }
+        } 
         else if (NIL_P(rh) && !NIL_P(rw)) {
             int spx = shoes_px(rw, dw, CPW(canvas), 1);
             dh = (dh == dw) ? spx : ROUND(((dh * 1.) / dw) * spx);
@@ -593,6 +595,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
   if (place->ih < 0) place->ih = 0;
 
   INFO("PLACE: (%d, %d), (%d: %d, %d: %d) [%d, %d] %x\n", place->x, place->y, place->w, place->iw, place->h, place->ih, ABSX(*place), ABSY(*place), place->flags);
+
 }
 
 //
@@ -3336,7 +3339,7 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE actual)
         if (!NIL_P(ATTR(self_t->attr, choose)))
           shoes_native_list_box_set_active(self_t->ref, items, ATTR(self_t->attr, choose));
       }
-
+      
 #ifdef SHOES_WIN32
       shoes_native_control_position_no_pad(self_t->ref, &self_t->place, self, canvas, &place);
 #else
@@ -3352,7 +3355,7 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE actual)
   }
 
   FINISH();
-
+  
   return self;
 }
 

@@ -384,7 +384,7 @@ shoes_app_visit(shoes_app *app, char *path)
   shoes_native_slot_clear(canvas);
   shoes_app_clear(app);
   shoes_app_reset_styles(app);
-  meth = rb_funcall(cShoes, s_run, 1, app->location = rb_str_new2(path));
+   meth = rb_funcall(cShoes, s_run, 1, app->location = rb_str_new2(path));
   
   VALUE app_block = rb_iv_get(app->self, "@main_app");
   if (!NIL_P(app_block))

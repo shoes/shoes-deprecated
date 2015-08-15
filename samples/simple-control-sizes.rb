@@ -7,13 +7,13 @@ Shoes.app :width => 360, :height => 600, :resizable => false do
   stack :margin => 20 do
     title "Control Sizes", :size => 16
     para "This app measures various controls against a grid of lines, to be sure they size appropriately despite the platform."
-    stack :top => 122, :left => 40 do
+    stack :top => 122, :left => 30 do
       button "Standard"
-      button "Margin: 2, Height: 28", :margin => 2, :height => 30
+      button "Margin: 2, Height: 30", :margin => 2, :height => 30
       edit_line "Standard", :margin => 1
       edit_line "Margin: 4, Height: 30", :height => 30, :margin => 4
       list_box :items => ["Standard"], :choose => "Standard"
-      list_box :items => ["Margin: 4, Height: 32"], 
+      list_box :items => ["Margin: 4, Height: 32"],
         :choose => "Margin: 4, Height: 32",
         :height => 32, :margin => 4
       progress

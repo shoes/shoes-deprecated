@@ -8,6 +8,7 @@
 #include "shoes/world.h"
 #include "shoes/native.h"
 #include "shoes/internal.h"
+
 #ifdef SHOES_SIGNAL
 #include <signal.h>
 #ifdef SHOES_GTK_WIN32
@@ -101,7 +102,7 @@ shoes_ruby_embed()
   ruby_init();
   //printf("back from ruby_init\n");
   v = (VALUE)ruby_options(3, argv);
-  //printf("back from ruby_options\n");
+  //printf("back from ruby_options : %d\n", !FIXNUM_P(v));
   return !FIXNUM_P(v);
 }
 #else
