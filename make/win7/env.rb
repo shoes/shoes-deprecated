@@ -1,5 +1,6 @@
 require "devkit"
 cf =(ENV['ENV_CUSTOM'] || "win7-custom.yaml")
+gtk_version = '2'
 if File.exists? cf
   custmz = YAML.load_file(cf)
   ShoesDeps = custmz['Deps']
@@ -11,6 +12,7 @@ if File.exists? cf
   APP['EXTLIST'] = custmz['Exts'] if custmz['Exts']
   APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
   APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
+  gtk_version = custmz['GtkVersion'].to_s if custmz['GtkVersion']
 else
   # define where your deps are
   #ShoesDeps = "E:/shoesdeps/mingw"
@@ -21,16 +23,27 @@ end
 #puts "Ruby = #{EXT_RUBY} Deps = #{ShoesDeps}"
 SHOES_GEM_ARCH = "#{Gem::Platform.local}"
 SHOES_TGT_ARCH = 'i386-mingw32'
-APP['GTK'] = "gtk+-2.0"
+APP['GTK'] = "gtk+-#{gtk_version}.0"
 #ENV['GDB'] = "basic" # 'basic' = keep symbols,  or 'profile'
-WINVERSION = "#{APP['VERSION']}-#{APP['GTK']=='Gtk+-3.0' ? 'gtk3' : 'gtk2'}-w32"
+WINVERSION = "#{APP['VERSION']}-#{APP['GTK']=='gtk+-3.0' ? 'gtk3' : 'gtk2'}-w32"
 WINFNAME = "#{APPNAME}-#{WINVERSION}"
 WIN32_CFLAGS = []
 WIN32_LDFLAGS = []
 WIN32_LIBS = []
+RUBY_HTTP = true
+gtk_extra_list = []
+if APP['GTK'] == "gtk+-3.0"
+  gtk_extra_list = %w(shoes/native/gtkfixedalt.c shoes/native/gtkentryalt.c
+               shoes/native/gtkcomboboxtextalt.c shoes/native/gtkbuttonalt.c
+               shoes/native/gtkscrolledwindowalt.c shoes/native/gtkprogressbaralt.c )
+end
+if RUBY_HTTP
+  file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"]
+else
+  file_list = %w{shoes/native/gtk.c shoes/http/winhttp.c shoes/http/windownload.c} + ["shoes/*.c"] 
+end
+SRC = FileList[*file_list]
 
-
-SRC = FileList[*%w{shoes/native/gtk.c shoes/http/rbload.c shoes/*.c}]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
 end
@@ -51,8 +64,8 @@ else
   WIN32_CFLAGS << "-O -Wall"
 end
 
-GTK_CFLAGS = `#{PKG_CONFIG} --cflags gtk+-2.0`.chomp
-GTK_LDFLAGS = `#{PKG_CONFIG} --libs gtk+-2.0`.chomp
+GTK_CFLAGS = `#{PKG_CONFIG} --cflags gtk+-#{gtk_version}.0`.chomp
+GTK_LDFLAGS = `#{PKG_CONFIG} --libs gtk+-#{gtk_version}.0`.chomp
 CAIRO_CFLAGS = `#{PKG_CONFIG} --cflags glib-2.0`.chomp + 
                   `#{PKG_CONFIG} --cflags cairo`.chomp
 CAIRO_LDFLAGS = `#{PKG_CONFIG} --libs cairo`.chomp
@@ -64,6 +77,7 @@ RUBY_LDFLAGS << "-Wl,-export-all-symbols "
 #RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lmsvcrt-ruby210 "
 
 WIN32_CFLAGS << "-DSHOES_GTK -DSHOES_GTK_WIN32 -DRUBY_HTTP"
+WIN32_CFLAGS << "-DGTK3 " unless APP['GTK'] == 'gtk+-2.0'
 WIN32_CFLAGS << "-Wno-unused-but-set-variable"
 WIN32_CFLAGS << "-D__MINGW_USE_VC2005_COMPAT -DXMD_H -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -DCOBJMACROS"
 WIN32_CFLAGS << GTK_CFLAGS
@@ -108,22 +122,53 @@ bindll = "#{ShoesDeps}/bin"
 rubydll = "#{EXT_RUBY}/bin"
 devdll = "#{ENV['RI_DEVKIT']}/mingw/bin"
 SOLOCS = {
-  #'ruby'   => "#{EXT_RUBY}/bin/msvcrt-ruby191.dll",
   'ruby'    => "#{EXT_RUBY}/bin/msvcrt-ruby210.dll",
-  #'ungif'  => "#{uldir}/libungif.so.4",
   'gif'     => "#{bindll}/libgif-4.dll",
   'jpeg'    => "#{bindll}/libjpeg-9.dll",
   'libyaml' => "#{bindll}/libyaml-0-2.dll",
-  #'intl'    => "#{bindll}/intl.dll",
   'iconv'   => "#{bindll}/libiconv-2.dll",
   'eay'     => "#{bindll}/libeay32.dll",
-  #'gdbm'    => "#{bindll}/libgdbm-3.dll",
-  #'gdbmc'   => "#{bindll}/libgdbm_compat-3.dll",
   'gdbm'    => "#{bindll}/libgdbm-4.dll",
   'ssl'     => "#{bindll}/ssleay32.dll",
   'sqlite'  => "#{bindll}/sqlite3.dll"
 }
-SOLOCS.merge!(
+
+if APP['GTK'] == 'gtk+-3.0'
+  SOLOCS.merge!(
+    {
+      'atk'         => "#{bindll}/libatk-1.0-0.dll",
+      'cairo'       => "#{bindll}/libcairo-2.dll",
+      'cairo-gobj'  => "#{bindll}/libcairo-gobject-2.dll",
+      'ffi'        => "#{bindll}/libffi-6.dll",
+      'fontconfig'  => "#{bindll}/libfontconfig-1.dll",
+      'freetype'    => "#{bindll}/libfreetype-6.dll",
+      'gdkpixbuf'   => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
+      'gdk3'        => "#{bindll}/libgdk-3-0.dll",
+      'gio'         => "#{bindll}/libgio-2.0-0.dll",
+      'glib'        => "#{bindll}/libglib-2.0-0.dll",
+      'gmodule'     => "#{bindll}/libgmodule-2.0-0.dll",
+      'gobject'     => "#{bindll}/libgobject-2.0-0.dll",
+      'gtk2'        => "#{bindll}/libgtk-win32-2.0-0.dll", # something is wrong 
+      'gtk3'        => "#{bindll}/libgtk-3-0.dll",
+      'pixman'      => "#{bindll}/libpixman-1-0.dll", 
+      'intl8'        => "#{bindll}/libintl-8.dll",
+      'pango'       => "#{bindll}/libpango-1.0-0.dll",
+      'pangocairo'  => "#{bindll}/libpangocairo-1.0-0.dll",
+      'pangoft'     => "#{bindll}/libpangoft2-1.0-0.dll",
+      'pango32'     => "#{bindll}/libpangowin32-1.0-0.dll",
+      'pixbuf'      => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
+      'harfbuzz'    => "#{bindll}/libharfbuzz-0.dll",
+      'png16'       => "#{bindll}/libpng16-16.dll",
+      'xml2'        => "#{bindll}/libxml2-2.dll",
+      'thread'      => "#{bindll}/libgthread-2.0-0.dll",
+      'zlib1'       => "#{bindll}/zlib1.dll",
+      'pthread'     => "#{devdll}/libwinpthread-1.dll",
+      'sjlj'        => "#{devdll}/libgcc_s_sjlj-1.dll" 
+    }
+  )
+end
+if APP['GTK'] == 'gtk+-2.0'
+  SOLOCS.merge!(
   {
     'atk'         => "#{bindll}/libatk-1.0-0.dll",
     'cairo'       => "#{bindll}/libcairo-2.dll",
@@ -151,4 +196,5 @@ SOLOCS.merge!(
     'pthread'     => "#{devdll}/libwinpthread-1.dll",
     'sjlj'        => "#{devdll}/libgcc_s_sjlj-1.dll"
   }
-) if APP['GTK'] == 'gtk+-2.0'
+)
+end
