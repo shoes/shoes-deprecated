@@ -1814,7 +1814,7 @@ shoes_dialog_color(VALUE self, VALUE title)
   VALUE color = Qnil;
   GLOBAL_APP(app);
   title = shoes_native_to_s(title);
-#if defined(GTK3) && !defined(SHOES_GTK_WIN32)
+#if defined(GTK3) // && !defined(SHOES_GTK_WIN32)
   GtkWidget *dialog = gtk_color_chooser_dialog_new(RSTRING_PTR(title), NULL);
   gint result = gtk_dialog_run(GTK_DIALOG(dialog));
   if (result == GTK_RESPONSE_OK)
