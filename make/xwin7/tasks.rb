@@ -74,21 +74,32 @@ module Make
     end
     # do some windows things
     mkdir_p "#{TGT_DIR}/share/glib-2.0/schemas"
-    if APP['GTK'] == "gtk+-2.0"
+    if APP['GTK'] == "gtk+-2.0" 
       cp_r"#{TGT_SYS_DIR}/share/glib-2.0/schemas/gschema.dtd",
         "#{TGT_DIR}/share/glib-2.0/schemas"
       cp_r "#{ShoesDeps}/share/fontconfig", "#{TGT_DIR}/share"
       cp_r "#{ShoesDeps}/share/themes", "#{TGT_DIR}/share"
       cp_r "#{ShoesDeps}/share/xml", "#{TGT_DIR}/share"
       cp_r "#{ShoesDeps}/share/icons", "#{TGT_DIR}/share"
-    else
+    elsif APP['GTK'] == "gtk+-3.0"
+      cp  "#{TGT_SYS_DIR}share/glib-2.0/schemas/gschemas.compiled" ,
+        "#{TGT_DIR}/share/glib-2.0/schemas"
+      cp_r "#{ShoesDeps}/share/fontconfig", "#{TGT_DIR}/share"
+      cp_r "#{ShoesDeps}/share/themes", "#{TGT_DIR}/share"
+      cp_r "#{ShoesDeps}/share/xml", "#{TGT_DIR}/share"
+      cp_r "#{ShoesDeps}/share/icons", "#{TGT_DIR}/share"
+   else
       cp  "#{TGT_SYS_DIR}share/glib-2.0/schemas/gschemas.compiled" ,
         "#{TGT_DIR}/share/glib-2.0/schemas"
     end
     sh "#{WINDRES} -I. shoes/appwin32.rc shoes/appwin32.o"
     cp_r "#{ShoesDeps}/etc", TGT_DIR
     mkdir_p "#{ShoesDeps}/lib"
-    cp_r "#{ShoesDeps}/lib/gtk-2.0", "#{TGT_DIR}/lib" #  shoes, exerb, ruby here
+    if APP['GTK'] == "gtk+-3.0"
+      cp_r "#{ShoesDeps}/lib/gtk-3.0", "#{TGT_DIR}/lib" #  shoes, exerb, ruby here
+    else
+      cp_r "#{ShoesDeps}/lib/gtk-2.0", "#{TGT_DIR}/lib" #  shoes, exerb, ruby here
+    end
     bindir = "#{ShoesDeps}/bin"
     cp_r "#{bindir}/fc-cache.exe", TGT_DIR
     cp_r "#{bindir}/gtk-update-icon-cache.exe", TGT_DIR
