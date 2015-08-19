@@ -497,7 +497,7 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
   struct termios new_term_settings; // Current terminal settings
   tcgetattr(to->ptySlave, &slave_orig_term_settings);
 	new_term_settings = slave_orig_term_settings;
-#ifdef SHOES_QUARTZ
+#if defined(SHOES_QUARTZ) || defined(SHOES_GTK_OSX)
   cfmakeraw (&new_term_settings);
 #endif
   tcsetattr (to->ptySlave, TCSANOW, &new_term_settings);

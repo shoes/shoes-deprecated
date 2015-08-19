@@ -26,7 +26,11 @@ end
 
 CC = ENV['CC'] ? ENV['CC'] : "gcc"
 RUBY_HTTP = true
-file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + ["shoes/*.c"]
+gtk_extra_list = %w(shoes/native/gtkfixedalt.c shoes/native/gtkentryalt.c
+             shoes/native/gtkcomboboxtextalt.c shoes/native/gtkbuttonalt.c
+             shoes/native/gtkscrolledwindowalt.c shoes/native/gtkprogressbaralt.c )
+# odds are high we need an osxgtk.m to do the setup that cocoa.m does.
+file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"] + ["shoes/console/*.c"]
 #file_list =  %w{shoes/native/cocoa.m shoes/http/nsurl.m} + ["shoes/*.c"]
 
 SRC = FileList[*file_list]

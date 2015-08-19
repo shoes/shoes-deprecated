@@ -6,11 +6,11 @@
 
 #include "tesi.h"
 #include <gdk/gdkkeysyms.h>
-/* 
- * heavily modified from https://github.com/alanszlosek/tesi/ 
+/*
+ * heavily modified from https://github.com/alanszlosek/tesi/
  * for use in Shoes/Linux
 */
- 
+
 
 static gboolean keypress_event(GtkWidget *widget, GdkEventKey *event, gpointer data) {
 	struct tesiObject *tobj = (struct tesiObject*)data;
@@ -49,9 +49,9 @@ static gboolean copy_console(GtkWidget *widget, GdkEvent *event, gpointer data) 
 	return TRUE;
 }
 
-/* 
+/*
  * This is called to handle characters received from the pty
- * in response to a puts/printf/write from Shoes,Ruby, & C 
+ * in response to a puts/printf/write from Shoes,Ruby, & C
  * I don't manage escape seq, x,y or deal with width and height.
  * Just write to the end of the buffer and let the gtk_text_view manage it.
 */
@@ -81,7 +81,7 @@ void console_haveChar(void *p, char c) {
 			// odds are high this preceeds a \n. Move to the begining of
 			// last line in buffer line.  What happens if we insert
 			break;
-			
+
 		case '\n':  // line feed ('J' - '@'). Move cursor down line and to first column.
 		    // just insert '\n' into the buffer.
 		    gtk_text_buffer_insert_at_cursor(buffer, in, 1);
@@ -109,14 +109,14 @@ void console_haveChar(void *p, char c) {
 	}
 	// tell the view to show the newest position
 	// from http://www.gtkforums.com/viewtopic.php?t=1307
-	gtk_text_buffer_get_end_iter (buffer, &iter_e); 
+	gtk_text_buffer_get_end_iter (buffer, &iter_e);
 	insert_mark = gtk_text_buffer_get_insert (buffer);
 	gtk_text_buffer_place_cursor(buffer, &iter_e);
     gtk_text_view_scroll_to_mark( GTK_TEXT_VIEW (view),
             insert_mark, 0.0, TRUE, 0.0, 1.0);
 }
 
-void tesi_printCharacter(void *p, char c, int x, int y) { 
+void tesi_printCharacter(void *p, char c, int x, int y) {
 	char in[129];
 	GtkTextView *view = GTK_TEXT_VIEW(p);
 	GtkTextBuffer *buffer;
@@ -124,24 +124,24 @@ void tesi_printCharacter(void *p, char c, int x, int y) {
 	snprintf(in, 128, "%c", c);
 	buffer = gtk_text_view_get_buffer(view);
 	gtk_text_buffer_insert_at_cursor(buffer, in, 1);
-	
+
 	//gtk_text_buffer_get_end_iter(buffer, &iter);
-	//gtk_text_buffer_insert(buffer, &iter, in, 1); 
+	//gtk_text_buffer_insert(buffer, &iter, in, 1);
 }
 void tesi_eraseCharacter(void *p, int x, int y) {
 	GtkTextBuffer *buffer;
 	GtkTextIter iter;
-	
+
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(p));
 	//gtk_text_iter_forward_to_line_end(&i);
 	gtk_text_buffer_get_iter_at_line_index(buffer, &iter, y, x);
 	//gtk_text_buffer_delete(buffer, &iter, &iter);  // cjc
-	gtk_text_buffer_backspace(buffer, &iter, 1, 1);  // cjc 
+	gtk_text_buffer_backspace(buffer, &iter, 1, 1);  // cjc
 }
 
- 
+
 void tesi_scrollUp(void *p) {
-	// add line to buffer, scroll up 
+	// add line to buffer, scroll up
 	GtkTextBuffer *buffer;
 	GtkTextIter iter;
 	gint lcnt;
@@ -170,7 +170,7 @@ void tesi_moveCursor(void *p, int x, int y) {
 	gtk_text_buffer_get_iter_at_line_index(buffer, &iter, y, 0);
 	while(gtk_text_iter_get_line(&iter) < y) { // loop and fill out contents to destination line
 		gtk_text_buffer_get_end_iter(buffer, &iter);
-		gtk_text_buffer_insert(buffer, &iter, "\n", 1);  
+		gtk_text_buffer_insert(buffer, &iter, "\n", 1);
 	}
     int lcnt = gtk_text_buffer_get_line_count(buffer);
 	gtk_text_buffer_get_iter_at_line_index(buffer, &iter, y, x);
@@ -181,7 +181,7 @@ void tesi_moveCursor(void *p, int x, int y) {
     gtk_text_buffer_place_cursor(buffer, &iter);
 	gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(p), &iter, 0.0, false, 0.0, 0.0);
 
-	
+
 }
 void tesi_insertLine(void *p, int y) {
 	printf("Insert Line\n");
@@ -192,7 +192,7 @@ void tesi_eraseLine(void *p, int y) {
 	GtkTextBuffer *buffer;
 	GtkTextView *view = GTK_TEXT_VIEW(p);
 	buffer = gtk_text_view_get_buffer(view);
-	
+
 	gtk_text_buffer_get_end_iter(buffer, &iter);
 	s = e = iter;
 	gtk_text_iter_backward_line(&s); // move to start of current line (delimiter)
@@ -207,7 +207,7 @@ gboolean g_tesi_handleInput(gpointer data) {
 	return TRUE;
 }
 
-shoes_native_app_console () {  //int main(int argc, char *argv[]) {
+void shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 	GtkWidget *window;
 	GtkWidget *canvas;
 	GtkWidget *vbox;
@@ -224,13 +224,13 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
     // size set way below based on font (80x24)
     gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
 	gtk_window_set_title (GTK_WINDOW (window), "Shoes Linux");
-	
+
 	g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK (gtk_main_quit), NULL);
 	g_signal_connect_swapped (G_OBJECT (window), "delete_event", G_CALLBACK (gtk_widget_destroy), G_OBJECT (window));
-    // like a Shoes stack at the top. 
+    // like a Shoes stack at the top.
 	vbox = gtk_vbox_new (FALSE, 2);
 	gtk_container_add (GTK_CONTAINER (window), vbox);
-	
+
 	// need a panel with a string (icon?), copy button and clear button
 	GdkColor bg_color, color_white;
     gdk_color_parse ("black", &bg_color);
@@ -238,12 +238,12 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 
 	GtkWidget *btnpnl = gtk_hbox_new(false, 2); // think flow layout
  	gtk_widget_modify_bg(btnpnl, GTK_STATE_NORMAL, &bg_color);  // doesn't work
-	
-    
+
+
     GtkWidget *announce = gtk_label_new("Shoes Console");
- 	bpfd = pango_font_description_from_string ("Sans-Serif 14");	
+ 	bpfd = pango_font_description_from_string ("Sans-Serif 14");
 	gtk_widget_modify_font (announce, bpfd);
-	
+
 	gtk_box_pack_start(GTK_BOX(btnpnl), announce, 1, 0, 0);
 
 	GtkWidget *clrbtn = gtk_button_new_with_label ("Clear");
@@ -252,26 +252,26 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 	gtk_box_pack_start (GTK_BOX(btnpnl), cpybtn, 1, 0, 0);
     gtk_box_pack_start (GTK_BOX(vbox), GTK_WIDGET(btnpnl), 0, 0, 0);
 
-    // then a widget/panel for the terminal 
+    // then a widget/panel for the terminal
 
 	sw = GTK_SCROLLED_WINDOW(gtk_scrolled_window_new(NULL, NULL));
-	gtk_scrolled_window_set_policy( GTK_SCROLLED_WINDOW(sw), 
+	gtk_scrolled_window_set_policy( GTK_SCROLLED_WINDOW(sw),
 	  GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
   	gtk_box_pack_start (GTK_BOX (vbox), GTK_WIDGET(sw), 1, 1, 0);
-  	
+
 
 	canvas = gtk_text_view_new();
 	gtk_container_add (GTK_CONTAINER (sw), canvas);
 	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(canvas), TRUE);
 	gtk_text_view_set_left_margin(GTK_TEXT_VIEW(canvas), 4);
-	gtk_text_view_set_right_margin(GTK_TEXT_VIEW(canvas), 4);	
+	gtk_text_view_set_right_margin(GTK_TEXT_VIEW(canvas), 4);
 	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(canvas), GTK_WRAP_CHAR);
-	
+
   	// set font for scrollable window
- 	pfd = pango_font_description_from_string ("monospace 10");	
+ 	pfd = pango_font_description_from_string ("monospace 10");
 	gtk_widget_modify_font (canvas, pfd);
-	
-	// compute 'char' width and tab settings. 
+
+	// compute 'char' width and tab settings.
 	PangoLayout *playout;
 	PangoTabArray *tab_array;
 	gint charwidth, charheight, tabwidth;
@@ -289,7 +289,7 @@ shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 
 	t = newTesiObject("/bin/bash", 80, 24); // first arg not used
 	t->pointer = canvas;
-	t->callback_haveCharacter = &console_haveChar;  
+	t->callback_haveCharacter = &console_haveChar;
 	// cjc - my handler short circuts much (all?) of these callbacks:
 	t->callback_printCharacter = &tesi_printCharacter;
 	t->callback_eraseCharacter = &tesi_eraseCharacter;

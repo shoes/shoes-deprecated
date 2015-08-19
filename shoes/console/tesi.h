@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <sys/types.h>
-#ifdef SHOES_QUARTZ
+#if defined(SHOES_QUARTZ) || defined(SHOES_GTK_OSX)
 #include <util.h>
 #else
 #include <pty.h>
