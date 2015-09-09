@@ -14,6 +14,7 @@
 #include <math.h>
 
 VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cSlider, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
+VALUE cTextEditBox;
 VALUE eVlcError, eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot, symAltEqual, symAltSemiColon;
@@ -311,8 +312,8 @@ shoes_safe_block(VALUE self, VALUE block, VALUE args)
 
 
 /* get a dimension, in pixels, given a string, float, int or nil
-**      "90%" or 0.9 or actual dimension as integer or 
-**      amount of pixel to substract from base to compute value 
+**      "90%" or 0.9 or actual dimension as integer or
+**      amount of pixel to substract from base to compute value
 **      or nil
 ** int dv : default value
 ** int pv : a base dimension to process
@@ -459,12 +460,12 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
     if (!NIL_P(c)) Data_Get_Struct(c, shoes_canvas, canvas);
     VALUE ck = rb_obj_class(c);
     VALUE stuck = ATTR(attr, attach);
-    
+
     // for image : we want to scale the image, given only one attribute :width or :height
     // get dw and dh, set width or height
     if (REL_FLAGS(rel) & REL_SCALE) {   // 8
         VALUE rw = ATTR(attr, width), rh = ATTR(attr, height);
-        
+
         if (NIL_P(rw) && !NIL_P(rh)) {          // we have height
                     // fetch height in pixels whatever the input (string, float, positive/negative int)
             int spx = shoes_px(rh, dh, CPH(canvas), 1);
@@ -472,7 +473,7 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
             dw = (dh == dw) ? spx : ROUND(((dh * 1.) / dw) * spx);
             dh = spx;                           // now re-init 'dh' for next calculations
             ATTRSET(attr, width, INT2NUM(dw));  // set calculated width
-        } 
+        }
         else if (NIL_P(rh) && !NIL_P(rw)) {
             int spx = shoes_px(rw, dw, CPW(canvas), 1);
             dh = (dh == dw) ? spx : ROUND(((dh * 1.) / dw) * spx);
@@ -3275,6 +3276,55 @@ shoes_edit_box_draw(VALUE self, VALUE c, VALUE actual)
   return self;
 }
 
+// text_edit_box methods added in 3.2.25
+VALUE
+shoes_text_edit_box_get_text(VALUE self)
+{
+  GET_STRUCT(control, self_t);
+  if (self_t->ref == NULL) return Qnil;
+  return shoes_native_text_edit_box_get_text(self_t->ref);
+}
+
+VALUE
+shoes_text_edit_box_set_text(VALUE self, VALUE text)
+{
+  char *msg = "";
+  GET_STRUCT(control, self_t);
+  if (!NIL_P(text))
+  {
+    text = shoes_native_to_s(text);
+    ATTRSET(self_t->attr, text, text);
+    msg = RSTRING_PTR(text);
+  }
+  if (self_t->ref != NULL) shoes_native_text_edit_box_set_text(self_t->ref, msg);
+  return text;
+}
+
+
+VALUE
+shoes_text_edit_box_draw(VALUE self, VALUE c, VALUE actual)
+{
+  SETUP_CONTROL(80, 0, FALSE);
+
+  if (RTEST(actual))
+  {
+    if (self_t->ref == NULL)
+    {
+      self_t->ref = shoes_native_text_edit_box(self, canvas, &place, self_t->attr, msg);
+      shoes_control_check_styles(self_t);
+      shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
+    }
+    else
+      shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
+  }
+
+  FINISH();
+
+  return self;
+
+}
+
+
 VALUE
 shoes_list_box_choose(VALUE self, VALUE item)
 {
@@ -3339,7 +3389,7 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE actual)
         if (!NIL_P(ATTR(self_t->attr, choose)))
           shoes_native_list_box_set_active(self_t->ref, items, ATTR(self_t->attr, choose));
       }
-      
+
 #ifdef SHOES_WIN32
       shoes_native_control_position_no_pad(self_t->ref, &self_t->place, self, canvas, &place);
 #else
@@ -3355,7 +3405,7 @@ shoes_list_box_draw(VALUE self, VALUE c, VALUE actual)
   }
 
   FINISH();
-  
+
   return self;
 }
 
@@ -4795,6 +4845,13 @@ shoes_ruby_init()
   rb_define_method(cListBox, "change", CASTHOOK(shoes_control_change), -1);
   rb_define_method(cListBox, "items", CASTHOOK(shoes_list_box_items_get), 0);
   rb_define_method(cListBox, "items=", CASTHOOK(shoes_list_box_items_set), 1);
+  // text_edit_box is new with 3.2.25
+  cTextEditBox  = rb_define_class_under(cTypes, "TextEditBox", cNative);
+  rb_define_method(cTextEditBox, "text", CASTHOOK(shoes_text_edit_box_get_text), 0);
+  rb_define_method(cTextEditBox, "text=", CASTHOOK(shoes_text_edit_box_set_text), 1);
+  rb_define_method(cTextEditBox, "draw", CASTHOOK(shoes_text_edit_box_draw), 2);
+  rb_define_method(cTextEditBox, "change", CASTHOOK(shoes_control_change), -1);
+
   cProgress  = rb_define_class_under(cTypes, "Progress", cNative);
   rb_define_method(cProgress, "draw", CASTHOOK(shoes_progress_draw), 2);
   rb_define_method(cProgress, "fraction", CASTHOOK(shoes_progress_get_fraction), 0);

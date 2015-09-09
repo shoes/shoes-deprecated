@@ -1393,6 +1393,50 @@ shoes_native_edit_box_set_text(SHOES_CONTROL_REF ref, char *msg)
   gtk_text_buffer_set_text(buffer, _(msg), -1);
 }
 
+// text_edit_box is new with 3.2.25
+SHOES_CONTROL_REF
+shoes_native_text_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+  GtkTextBuffer *buffer;
+  GtkWidget* textview = gtk_text_view_new();
+#ifdef GTK3  
+  SHOES_CONTROL_REF ref = gtk_scrolled_window_alt_new(NULL, NULL);
+#else  
+  SHOES_CONTROL_REF ref = gtk_scrolled_window_new(NULL, NULL);
+#endif  
+  gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textview), GTK_WRAP_WORD);
+  buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
+  gtk_text_buffer_set_text(buffer, _(msg), -1);
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(ref),
+                                 GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+  gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(ref), GTK_SHADOW_IN);
+  gtk_container_add(GTK_CONTAINER(ref), textview);
+  g_signal_connect(G_OBJECT(buffer), "changed",
+                   G_CALLBACK(shoes_widget_changed),
+                   (gpointer)self);
+  return ref;
+}
+
+VALUE
+shoes_native_text_edit_box_get_text(SHOES_CONTROL_REF ref)
+{
+  GtkWidget *textview;
+  GTK_CHILD(textview, ref);
+  GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
+  GtkTextIter begin, end;
+  gtk_text_buffer_get_bounds(buffer, &begin, &end);
+  return rb_str_new2(gtk_text_buffer_get_text(buffer, &begin, &end, TRUE));
+}
+
+void
+shoes_native_text_edit_box_set_text(SHOES_CONTROL_REF ref, char *msg)
+{
+  GtkWidget *textview;
+  GTK_CHILD(textview, ref);
+  GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
+  gtk_text_buffer_set_text(buffer, _(msg), -1);
+}
+
 SHOES_CONTROL_REF
 shoes_native_list_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {

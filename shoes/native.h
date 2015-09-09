@@ -79,6 +79,11 @@ VALUE shoes_native_edit_line_cursor_to_end(SHOES_CONTROL_REF);
 SHOES_CONTROL_REF shoes_native_edit_box(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);
 VALUE shoes_native_edit_box_get_text(SHOES_CONTROL_REF);
 void shoes_native_edit_box_set_text(SHOES_CONTROL_REF, char *);
+// 3.2.25 adds 
+SHOES_CONTROL_REF shoes_native_text_edit_box(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);
+VALUE shoes_native_text_edit_box_get_text(SHOES_CONTROL_REF);
+void shoes_native_text_edit_box_set_text(SHOES_CONTROL_REF, char *);
+// 
 SHOES_CONTROL_REF shoes_native_list_box(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);
 void shoes_native_list_box_update(SHOES_CONTROL_REF, VALUE);
 VALUE shoes_native_list_box_get_active(SHOES_CONTROL_REF, VALUE);

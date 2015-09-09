@@ -47,8 +47,7 @@ pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.1.pc"
 pkggtk ="#{ularch}/pkgconfig/#{APP['GTK']}.pc" 
 
 ENV['PKG_CONFIG_PATH'] = "#{ularch}/pkgconfig"
-
-file_list = ["shoes/console/*.c"] + %w{shoes/native/gtk.c shoes/http/rbload.c} + ["shoes/*.c"]
+file_list = ["shoes/console/*.c"] + ["shoes/native/*.c"] + ["shoes/http/rbload.c"] + ["shoes/*.c"]
 
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|

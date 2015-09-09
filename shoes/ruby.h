@@ -77,7 +77,14 @@ static inline void flip_endian(unsigned char* x, int length) {
 
 #undef s_host
 
-extern VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cNative, cShape, cVideo, cImage, cEffect, cEvery, cTimer, cAnim, cPattern, cBorder, cBackground, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextBlock, cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns, cButton, cEditLine, cEditBox, cListBox, cProgress, cSlider, cCheck, cRadio, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
+extern VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas;
+extern VALUE cFlow, cStack, cMask, cNative, cShape, cVideo, cImage, cEffect, cEvery;
+extern VALUE cTimer, cAnim, cPattern, cBorder, cBackground, cPara, cBanner, cTitle;
+extern VALUE cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextBlock;
+extern VALUE cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns, cButton;
+extern VALUE cEditLine, cEditBox, cListBox, cProgress, cSlider, cCheck, cRadio, cColor;
+extern VALUE cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
+extern VALUE cTextEditBox;
 extern VALUE aMsgList;
 extern VALUE eInvMode, eNotImpl, eImageError;
 extern VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
@@ -259,6 +266,7 @@ SYMBOL_DEFS(SYMBOL_EXTERN);
   f("+list_box", list_box, -1); \
   f("+edit_line", edit_line, -1); \
   f("+edit_box", edit_box, -1); \
+  f("+text_edit_box", text_edit_box, -1); \
   f("+progress", progress, -1); \
   f("+slider", slider, -1); \
   f("+check", check, -1); \

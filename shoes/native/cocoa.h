@@ -60,6 +60,13 @@
 }
 @end
 
+@interface ShoesTextEditView : NSScrollView
+{
+  VALUE object;
+  NSTextView *textView;
+}
+@end
+
 @interface ShoesPopUpButton : NSPopUpButton
 {
   VALUE object;
