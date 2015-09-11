@@ -3253,6 +3253,28 @@ shoes_edit_box_set_text(VALUE self, VALUE text)
   return text;
 }
 
+VALUE
+shoes_edit_box_append(VALUE self, VALUE text)
+{
+  char *msg = "";
+  GET_STRUCT(control, self_t);
+  if (!NIL_P(text))
+  {
+    text = shoes_native_to_s(text);
+    ATTRSET(self_t->attr, text, text);
+    msg = RSTRING_PTR(text);
+  }
+  if (self_t->ref != NULL) shoes_native_edit_box_append(self_t->ref, msg);
+  return Qnil;
+ }
+ 
+VALUE
+shoes_edit_box_scroll_to_end(VALUE self)
+{
+  GET_STRUCT(control, self_t);
+  if (self_t->ref != NULL) shoes_native_edit_box_scroll_to_end(self_t->ref);
+  return Qnil;
+}
 
 VALUE
 shoes_edit_box_draw(VALUE self, VALUE c, VALUE actual)
@@ -3298,6 +3320,68 @@ shoes_text_edit_box_set_text(VALUE self, VALUE text)
   }
   if (self_t->ref != NULL) shoes_native_text_edit_box_set_text(self_t->ref, msg);
   return text;
+}
+
+VALUE
+shoes_text_edit_box_append (VALUE self, VALUE text)
+{
+  char *msg = "";
+  VALUE ret;
+  GET_STRUCT(control, self_t);
+  if (!NIL_P(text))
+  {
+    text = shoes_native_to_s(text);
+    ATTRSET(self_t->attr, text, text);
+    msg = RSTRING_PTR(text);
+  }
+  if (self_t->ref != NULL) 
+    ret = shoes_native_text_edit_box_append(self_t->ref, msg);
+  else
+    ret = text;
+  return ret; //TODO: should return updated internal insertion point
+}
+
+VALUE 
+shoes_text_edit_box_insert (VALUE self, VALUE args)
+{
+  // parse args
+  return Qnil;
+}
+
+VALUE
+shoes_text_edit_box_delete( VALUE self, VALUE args)
+{
+  return args;
+}
+
+VALUE
+shoes_text_edit_box_get(VALUE self, VALUE args)
+{
+  return args;
+}
+
+VALUE
+shoes_text_edit_box_create_insertion(VALUE self, VALUE args)
+{
+  return args;
+}
+
+VALUE
+shoes_text_edit_box_current_insertion(VALUE self)
+{
+  return Qnil;
+}
+
+VALUE
+shoes_text_edit_box_scroll_to_insertion(VALUE seff, VALUE insert_pt)
+{
+  return insert_pt; // TODO: wrong
+}
+
+VALUE
+shoes_text_edit_box_scroll_to_end (VALUE self)
+{
+  return self; // TODO: Not even wrong
 }
 
 
@@ -4838,6 +4922,8 @@ shoes_ruby_init()
   rb_define_method(cEditBox, "text=", CASTHOOK(shoes_edit_box_set_text), 1);
   rb_define_method(cEditBox, "draw", CASTHOOK(shoes_edit_box_draw), 2);
   rb_define_method(cEditBox, "change", CASTHOOK(shoes_control_change), -1);
+  rb_define_method(cEditBox, "append", CASTHOOK(shoes_edit_box_append), 1);
+  rb_define_method(cEditBox, "scroll_to_end", CASTHOOK(shoes_edit_box_scroll_to_end), 0);
   cListBox  = rb_define_class_under(cTypes, "ListBox", cNative);
   rb_define_method(cListBox, "text", CASTHOOK(shoes_list_box_text), 0);
   rb_define_method(cListBox, "draw", CASTHOOK(shoes_list_box_draw), 2);
@@ -4851,6 +4937,14 @@ shoes_ruby_init()
   rb_define_method(cTextEditBox, "text=", CASTHOOK(shoes_text_edit_box_set_text), 1);
   rb_define_method(cTextEditBox, "draw", CASTHOOK(shoes_text_edit_box_draw), 2);
   rb_define_method(cTextEditBox, "change", CASTHOOK(shoes_control_change), -1);
+  rb_define_method(cTextEditBox, "append", CASTHOOK(shoes_text_edit_box_append), 1);
+  rb_define_method(cTextEditBox, "insert", CASTHOOK(shoes_text_edit_box_insert), -1);
+  rb_define_method(cTextEditBox, "delete", CASTHOOK(shoes_text_edit_box_delete), 2);
+  rb_define_method(cTextEditBox, "get_from", CASTHOOK(shoes_text_edit_box_get), 2);
+  rb_define_method(cTextEditBox, "new_insertion", CASTHOOK(shoes_text_edit_box_create_insertion), 2);
+  rb_define_method(cTextEditBox, "currrent_insertion", CASTHOOK(shoes_text_edit_box_current_insertion), 0);
+  rb_define_method(cTextEditBox, "scroll_to_insertion", CASTHOOK(shoes_text_edit_box_scroll_to_insertion), 1);
+  rb_define_method(cTextEditBox, "scroll_to_end", CASTHOOK(shoes_text_edit_box_scroll_to_end), 0);
 
   cProgress  = rb_define_class_under(cTypes, "Progress", cNative);
   rb_define_method(cProgress, "draw", CASTHOOK(shoes_progress_draw), 2);

@@ -468,6 +468,10 @@
 {
   return [textView textStorage];
 }
+-(NSTextView *) textView
+{
+  return textView;
+}
 -(void)textDidChange: (NSNotification *)n
 {
   shoes_control_send(object, s_change);
@@ -1390,6 +1394,20 @@ shoes_native_edit_box_set_text(SHOES_CONTROL_REF ref, char *msg)
   COCOA_DO([[[(ShoesTextView *)ref textStorage] mutableString] setString: [NSString stringWithUTF8String: msg]]);
 }
 
+void
+shoes_native_edit_box_append(SHOES_CONTROL_REF ref, char *msg)
+{
+  COCOA_DO([[[(ShoesTextView *)ref textStorage] mutableString] appendString: [NSString stringWithUTF8String: msg]]);
+}
+
+void
+shoes_native_edit_box_scroll_to_end(SHOES_CONTROL_REF ref)
+{
+
+  NSTextView *tv = [(ShoesTextView *) ref textView];
+  [tv scrollRangeToVisible: NSMakeRange(tv.string.length, 0)];
+}
+
 // text_edit_box is new in 3.2.25
 SHOES_CONTROL_REF
 shoes_native_text_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
@@ -1418,6 +1436,26 @@ void
 shoes_native_text_edit_box_set_text(SHOES_CONTROL_REF ref, char *msg)
 {
   COCOA_DO([[[(ShoesTextEditView *)ref textStorage] mutableString] setString: [NSString stringWithUTF8String: msg]]);
+}
+
+VALUE
+shoes_native_text_edit_box_append(SHOES_CONTROL_REF ref, char *msg)
+{
+  COCOA_DO([[[(ShoesTextEditView *)ref textStorage] mutableString] appendString: [NSString stringWithUTF8String: msg]]);
+#ifdef dontwant
+  // do not like
+  NSAttributedString *atext;
+  NSTextStorage *buffer;
+  INIT;
+  NSString *utext = [[NSString alloc] initWithCString: msg encoding: NSUTF8StringEncoding];
+  atext = [[NSAttributedString alloc] initWithString: utext];
+  buffer = [[(ShoesTextEditView *)ref textStorage] mutableString];
+  //  [[self textStorage] appendAttributedString: attrStr];
+  [buffer appendAttributedString: atext];
+  //[self scrollRangeToVisible:NSMakeRange([[self string] length], 0)];
+  RELEASE;
+#endif
+  return Qnil;
 }
 
 //

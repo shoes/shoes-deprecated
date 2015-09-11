@@ -1393,7 +1393,39 @@ shoes_native_edit_box_set_text(SHOES_CONTROL_REF ref, char *msg)
   gtk_text_buffer_set_text(buffer, _(msg), -1);
 }
 
-// text_edit_box is new with 3.2.25
+void
+shoes_native_edit_box_append(SHOES_CONTROL_REF ref, char *msg)
+{
+  GtkWidget *textview;
+  GTK_CHILD(textview, ref);
+  GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
+  GtkTextIter begin, end;
+  gtk_text_buffer_get_bounds(buffer, &begin, &end);
+  gtk_text_buffer_insert(buffer, &end, msg, strlen(msg));
+  gtk_text_buffer_get_bounds(buffer, &begin, &end);
+
+}
+
+void 
+shoes_native_edit_box_scroll_to_end(SHOES_CONTROL_REF ref)
+{
+  GtkWidget *textview;
+  GTK_CHILD(textview, ref);
+  GtkTextIter end;
+  GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
+  gtk_text_buffer_get_end_iter (buffer, &end); 
+   /* get the current ( cursor )mark name */
+  GtkTextMark *insert_mark = gtk_text_buffer_get_insert (buffer);
+ 
+  /* move mark and selection bound to the end */
+  gtk_text_buffer_place_cursor(buffer, &end);
+
+  /* scroll to the end view */
+  gtk_text_view_scroll_to_mark( GTK_TEXT_VIEW (textview),
+            insert_mark, 0.0, TRUE, 0.0, 1.0); 
+}
+
+
 SHOES_CONTROL_REF
 shoes_native_text_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
@@ -1436,6 +1468,23 @@ shoes_native_text_edit_box_set_text(SHOES_CONTROL_REF ref, char *msg)
   GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
   gtk_text_buffer_set_text(buffer, _(msg), -1);
 }
+
+
+VALUE
+shoes_native_text_edit_box_append(SHOES_CONTROL_REF ref, char *msg)
+{
+  GtkWidget *textview;
+  GTK_CHILD(textview, ref);
+  GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
+  GtkTextIter begin, end;
+  gtk_text_buffer_get_bounds(buffer, &begin, &end);
+  gtk_text_buffer_insert(buffer, &end, msg, strlen(msg));
+  gtk_text_buffer_get_bounds(buffer, &begin, &end);
+  // TODO: return something useful 
+  return Qnil;
+  //return rb_str_new2(gtk_text_buffer_get_text(buffer, &begin, &end, TRUE));
+}
+// -- end of shoes_native_text_edit_box methods
 
 SHOES_CONTROL_REF
 shoes_native_list_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
