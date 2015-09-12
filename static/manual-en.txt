@@ -3291,6 +3291,41 @@ Return a string of characters which have been typed into the box.
 
 Fills the edit box with the characters of `a string`.
 
+=== append = a string ===
+
+Appends `a string` to the end of the current contents of the edit_box. 
+If you need a newline then you'll have to add it to `a string`
+
+This method appeared in Shoes 3.2.25 and may not be available in Shoes 4.
+
+=== scroll_to_end ===
+
+Scrolls the end_box so the last line is showing. If you are appending strings
+to the end and want to show them when they scroll out of view, then you
+would want to use this method.
+
+{{{
+ #!ruby
+ Shoes.app height: 400, width: 640 do
+  stack do
+    @tb = edit_box "foo", width: 0.8
+    @tb.text = "Not your everyday edit_box\n"
+    cnt = 0
+    button "append" do
+      cnt = cnt + 1
+      @tb.append("append line #{cnt}\n")
+      @tb.scroll_to_end
+      #puts "text is: #{@tb.text}"
+    end
+    button "check" do
+      confirm @tb.text
+    end
+  end
+end
+}}}
+
+This method appeared in Shoes 3.2.25 and may not be available in Shoes 4.
+
 == EditLine ==
 
 Edit lines are a slender, little box for entering text. While the EditBox is
