@@ -1686,9 +1686,35 @@ Returns the current width.
 Returns the current height. Perhaps you need it and the width after going fullscreen 
 to setup your game to the size availavble. 
 
-=== app.slot ===
+=== app.slots ===
 
-No idea what this does.
+For Advanced users: 
+
+When you want to manage slots and elements from another Shoes.app window you need to
+gets it's app and then get it's slots.contents and then poke around in 
+
+This is the preferred method for getting an array of stacks and flows for the windows
+that Shoes.APPS[] knows about. app.slot also works for compatibility reasons. 
+
+For example you have two windows (apps) and should append a para to all open windows
+
+{{{
+ #!ruby
+ Shoes.app title: "Controller" do
+   $other_win =  window title: "Slave" do
+     stack { para "First"} 
+   end
+   stack do
+     button "Append" do
+       Shoes.APPS.each do |ap| 
+         ap.slots.contents[0].instance_exec () {para "gotcha"} if ap == $other_win
+       end
+     end
+   end
+ end
+}}}
+
+That's the shortest example I could write without getting really deep into meta-programming
 
 === set_window_icon_path(pathname) ===
 

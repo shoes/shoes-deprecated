@@ -165,6 +165,15 @@ shoes_app_slot(VALUE app)
   return app_t->nestslot;
 }
 
+// Shoes 3.2.25 prefers the slots name
+VALUE
+shoes_app_slots(VALUE app)
+{
+  shoes_app *app_t;
+  Data_Get_Struct(app, shoes_app, app_t);
+  return app_t->nestslot;
+}
+
 VALUE
 shoes_app_get_width(VALUE app)
 {
