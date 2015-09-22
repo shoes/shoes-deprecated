@@ -61,7 +61,6 @@ VALUE shoes_app_set_title(VALUE, VALUE);
 VALUE shoes_app_get_fullscreen(VALUE);
 VALUE shoes_app_set_fullscreen(VALUE, VALUE);
 VALUE shoes_app_slot(VALUE);
-VALUE shoes_app_slots(VALUE); // 3.2.25 thinks this is better
 VALUE shoes_app_set_icon(VALUE, VALUE); // New 3.2.19
 VALUE shoes_app_set_wtitle(VALUE, VALUE); // New in 3.2.19
 VALUE shoes_app_console(); // New in 3.2.23 ? 

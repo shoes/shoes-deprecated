@@ -4633,7 +4633,6 @@ shoes_ruby_init()
   rb_define_method(cApp, "width", CASTHOOK(shoes_app_get_width), 0);
   rb_define_method(cApp, "height", CASTHOOK(shoes_app_get_height), 0);
   rb_define_method(cApp, "slot", CASTHOOK(shoes_app_slot), 0);
-  rb_define_method(cApp, "slots", CASTHOOK(shoes_app_slot), 0);  // new ins 3.2.25
   rb_define_method(cApp, "set_window_icon_path", CASTHOOK(shoes_app_set_icon), 1); // New in 3.2.19
   rb_define_method(cApp, "set_window_title", CASTHOOK(shoes_app_set_wtitle), 1); // New in 3.2.19
 
