@@ -497,7 +497,8 @@ class Shoes
         @shy = true
         require 'shoes/shy'
         base = File.basename(path, '.shy')
-        @tmpdir = tmpdir = '%s/shoes-%s.%d' % [Dir.tmpdir, base, $PROCESS_ID]
+        #@tmpdir = tmpdir = '%s/shoes-%s.%d' % [Dir.tmpdir, base, $PROCESS_ID]
+        @tmpdir = tmpdir = "%s/shoes-%s.%d" % [Dir.tmpdir, base, $$]
         shy = Shy.x(path, tmpdir)
         Dir.chdir(tmpdir)
         # Shoes.debug "Loaded SHY: #{shy.name} #{shy.version} by #{shy.creator}"
