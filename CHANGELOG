@@ -1,5 +1,23 @@
 = Federales - Shoes 3.2
 
+=== New with 3.2.25
+   * Added methods to edit_box - append(string) and scroll_to_end
+     https://github.com/Shoes3/shoes3/issues/144
+     https://github.com/Shoes3/shoes3/issues/146 
+
+=== Fixed with 3.2.25
+   * documented app.slot(). Fixes #044
+     https://github.com/Shoes3/shoes3/issues/44
+     wiki: https://github.com/Shoes3/shoes3/wiki/Poking-in-Shoes.app
+   * really remove shy temp file remants on Windows
+     https://github.com/Shoes3/shoes3/issues/19
+   
+=== Infrastructure for 3.2.25
+   * Created a new Shoes Mailing List
+     http://lists.mvmanila.com/listinfo.cgi/shoes-mvmanila.com
+   * Created a new git project to process apache logs for shoes.mvmanila.com
+     https://github.com/Shoes3/shoeslogs
+   
 === New with 3.2.24
    * added show_console command for OSX and Linux to match Windows. 
      Dumber that dumb console. Works with readline if you don't expect too

@@ -4056,13 +4056,13 @@ and packaging and much more. Find reference links to learning Ruby and more insi
 details.  
 
  * [[https://github.com/Shoes3/shoes3 Shoes 3.2 source code.]] 
- * You should join the Shoes mailing list by sending an email to shoes@librelist.com
+ * You should join the [[http://lists.mvmanila.com/listinfo.cgi/shoes-mvmanila.com Shoes mailing list ]]
  * Bookmark the [[http://walkabout.mvmanila.com/ Shoes 3.2 blog]] or the [[http://walkabout.mvmanila.com/feed/ RSS feed]]
  * Early [[http://shoes.mvmanila.com/public/shoes/ Downloads]] (work in progress) that may not be announced 
 
 Older Shoes Links for historical purposes (may be dead):
 
- * You can join [[http://librelist.com/browser/shoes/ Shoes ML]] and feel free ask your questions. 
+ * [[http://librelist.com/browser/shoes/ Old Shoes ML]]  
  * [[http://github.com/shoes/shoes/ Shoes 3.1 Source Code]] is on GitHub.
  * [[http://github.com/shoes/shoes/downloads Recent Builds]] for your platform.
 

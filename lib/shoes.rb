@@ -537,10 +537,6 @@ class Shoes
     if @shy
       Dir.chdir() # do it from HOME 
       FileUtils.rm_rf(@tmpdir, secure: true)
-      # windows bug (#19) 
-      if File.exist?(@tmpdir)
-        $stderr.puts "Failed to delete #{@tmpdir}"
-      end 
     end
   end
 
