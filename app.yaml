@@ -2,7 +2,7 @@ name: Shoes
 major: 3
 minor: 3
 tiny: 0 
-release: federales
+release: walkabout 
 revision: git 
 icons:
   win32: platform/msw/shoes.ico
