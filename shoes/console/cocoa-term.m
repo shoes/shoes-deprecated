@@ -35,9 +35,6 @@ void console_haveChar(void *p, char c); // forward ref
   NSString *str = [e charactersIgnoringModifiers];
   char *utf8 = [str UTF8String];
   if (strlen(utf8)==1) {
-    if (utf8[0] == '0x09') {
-      write(tobj->fd_input,"TAB",3);  //never called
-    }
     write(tobj->fd_input, utf8, strlen(utf8));
   } else {
     // this sends the key event (back?) to the responder chain
@@ -83,7 +80,7 @@ void console_haveChar(void *p, char c); // forward ref
 - (void)consoleInitWithFont: (NSFont *) font
 {
   monoFont = font;
-  NSRect winRect = [[self contentView] frame]; // doesn't do what I think
+  //NSRect winRect = [[self contentView] frame]; // doesn't do what I think
   NSSize charSize = [monoFont maximumAdvancement];
   float fw = charSize.width;
   float fh = [monoFont pointSize]+2.0;

@@ -291,7 +291,7 @@ typedef struct {
 #define CANVAS_PAINT   2
 #define CANVAS_EMPTY   3
 #define CANVAS_REMOVED 4
- 
+
 //
 // temporary canvas (used internally for painting)
 //
@@ -467,6 +467,7 @@ VALUE shoes_canvas_send_click(VALUE, int, int, int);
 void shoes_canvas_send_release(VALUE, int, int, int);
 VALUE shoes_canvas_send_motion(VALUE, int, int, VALUE);
 void shoes_canvas_send_wheel(VALUE, ID, int, int);
+void shoes_canvas_wheel_way(shoes_canvas *, ID);
 void shoes_canvas_send_keydown(VALUE, VALUE);
 void shoes_canvas_send_keypress(VALUE, VALUE);
 void shoes_canvas_send_keyup(VALUE, VALUE);

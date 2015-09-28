@@ -228,21 +228,31 @@ void shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 	g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK (gtk_main_quit), NULL);
 	g_signal_connect_swapped (G_OBJECT (window), "delete_event", G_CALLBACK (gtk_widget_destroy), G_OBJECT (window));
     // like a Shoes stack at the top.
+#ifdef GTK2
 	vbox = gtk_vbox_new (FALSE, 2);
+#else
+	vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 2);
+#endif
 	gtk_container_add (GTK_CONTAINER (window), vbox);
 
 	// need a panel with a string (icon?), copy button and clear button
 	GdkColor bg_color, color_white;
     gdk_color_parse ("black", &bg_color);
     gdk_color_parse ("white", &color_white);
-
+#ifdef GTK2
 	GtkWidget *btnpnl = gtk_hbox_new(false, 2); // think flow layout
  	gtk_widget_modify_bg(btnpnl, GTK_STATE_NORMAL, &bg_color);  // doesn't work
-
+#else
+	GtkWidget *btnpnl = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2); // think flow layout
+#endif
 
     GtkWidget *announce = gtk_label_new("Shoes Console");
  	bpfd = pango_font_description_from_string ("Sans-Serif 14");
+#ifdef GTK2
 	gtk_widget_modify_font (announce, bpfd);
+#else
+	gtk_widget_override_font (announce, bpfd);
+#endif
 
 	gtk_box_pack_start(GTK_BOX(btnpnl), announce, 1, 0, 0);
 
@@ -269,7 +279,11 @@ void shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 
   	// set font for scrollable window
  	pfd = pango_font_description_from_string ("monospace 10");
+#ifdef GTK2
 	gtk_widget_modify_font (canvas, pfd);
+#else
+    gtk_widget_override_font (announce, pfd);
+#endif
 
 	// compute 'char' width and tab settings.
 	PangoLayout *playout;

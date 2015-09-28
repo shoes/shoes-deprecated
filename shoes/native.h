@@ -43,6 +43,9 @@ shoes_code shoes_native_app_open(shoes_app *, char *, int);
 void shoes_native_app_show(shoes_app *);
 void shoes_native_loop(void);
 void shoes_native_app_close(shoes_app *);
+void shoes_native_app_set_icon(shoes_app *, char *);
+void shoes_native_app_set_wtitle(shoes_app *, char*);
+int shoes_native_console();  // Yes it's different
 void shoes_browser_open(char *);
 void shoes_slot_init(VALUE, SHOES_SLOT_OS *, int, int, int, int, int, int);
 cairo_t *shoes_cairo_create(shoes_canvas *);
@@ -53,9 +56,9 @@ void shoes_native_canvas_place(shoes_canvas *, shoes_canvas *);
 void shoes_native_canvas_resize(shoes_canvas *);
 void shoes_native_control_hide(SHOES_CONTROL_REF);
 void shoes_native_control_show(SHOES_CONTROL_REF);
-void shoes_native_control_position(SHOES_CONTROL_REF, shoes_place *, 
+void shoes_native_control_position(SHOES_CONTROL_REF, shoes_place *,
   VALUE, shoes_canvas *, shoes_place *);
-void shoes_native_control_position_no_pad(SHOES_CONTROL_REF, shoes_place *, 
+void shoes_native_control_position_no_pad(SHOES_CONTROL_REF, shoes_place *,
   VALUE, shoes_canvas *, shoes_place *);
 void shoes_native_control_repaint(SHOES_CONTROL_REF, shoes_place *,
   shoes_canvas *, shoes_place *);
@@ -66,7 +69,7 @@ void shoes_native_control_state(SHOES_CONTROL_REF, SHOES_BOOL, SHOES_BOOL);
 void shoes_native_control_remove(SHOES_CONTROL_REF, shoes_canvas *);
 void shoes_native_control_free(SHOES_CONTROL_REF);
 SHOES_SURFACE_REF shoes_native_surface_new(shoes_canvas *, VALUE, shoes_place *);
-void shoes_native_surface_position(SHOES_SURFACE_REF, shoes_place *, 
+void shoes_native_surface_position(SHOES_SURFACE_REF, shoes_place *,
   VALUE, shoes_canvas *, shoes_place *);
 void shoes_native_surface_hide(SHOES_SURFACE_REF);
 void shoes_native_surface_show(SHOES_SURFACE_REF);
@@ -79,11 +82,16 @@ VALUE shoes_native_edit_line_cursor_to_end(SHOES_CONTROL_REF);
 SHOES_CONTROL_REF shoes_native_edit_box(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);
 VALUE shoes_native_edit_box_get_text(SHOES_CONTROL_REF);
 void shoes_native_edit_box_set_text(SHOES_CONTROL_REF, char *);
-// 3.2.25 adds 
+// 3.2.25 adds
+void shoes_native_edit_box_append(SHOES_CONTROL_REF, char *);
+void shoes_native_edit_box_scroll_to_end(SHOES_CONTROL_REF);
+// 3.3.x might add native_text_edit_box
 SHOES_CONTROL_REF shoes_native_text_edit_box(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);
 VALUE shoes_native_text_edit_box_get_text(SHOES_CONTROL_REF);
 void shoes_native_text_edit_box_set_text(SHOES_CONTROL_REF, char *);
-// 
+VALUE shoes_native_text_edit_box_append(SHOES_CONTROL_REF, char *);
+void shoes_native_text_edit_box_scroll_to_end(SHOES_CONTROL_REF);
+//
 SHOES_CONTROL_REF shoes_native_list_box(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);
 void shoes_native_list_box_update(SHOES_CONTROL_REF, VALUE);
 VALUE shoes_native_list_box_get_active(SHOES_CONTROL_REF, VALUE);

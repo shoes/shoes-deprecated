@@ -3192,6 +3192,7 @@ shoes_edit_line_enterkey(VALUE self, VALUE proc)
   {
 	ATTRSET(self_t->attr, donekey, proc);
   }
+  return Qnil;
 }
 
 VALUE
@@ -3199,6 +3200,7 @@ shoes_edit_line_cursor_to_end(VALUE self)
 {
   GET_STRUCT(control, self_t);
   shoes_native_edit_line_cursor_to_end(self_t->ref);
+  return Qnil;
 }
 
 VALUE
@@ -3267,7 +3269,7 @@ shoes_edit_box_append(VALUE self, VALUE text)
   if (self_t->ref != NULL) shoes_native_edit_box_append(self_t->ref, msg);
   return Qnil;
  }
- 
+
 VALUE
 shoes_edit_box_scroll_to_end(VALUE self)
 {
@@ -3334,14 +3336,14 @@ shoes_text_edit_box_append (VALUE self, VALUE text)
     ATTRSET(self_t->attr, text, text);
     msg = RSTRING_PTR(text);
   }
-  if (self_t->ref != NULL) 
+  if (self_t->ref != NULL)
     ret = shoes_native_text_edit_box_append(self_t->ref, msg);
   else
     ret = text;
   return ret; //TODO: should return updated internal insertion point
 }
 
-VALUE 
+VALUE
 shoes_text_edit_box_insert (VALUE self, VALUE args)
 {
   // parse args

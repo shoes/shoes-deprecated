@@ -334,6 +334,8 @@ struct METHOD {
 };
 #endif
 
+/*
+** no longer used
 static VALUE
 rb_unbound_get_class(VALUE method)
 {
@@ -341,6 +343,7 @@ rb_unbound_get_class(VALUE method)
   Data_Get_Struct(method, struct METHOD, data);
   return data->rklass;
 }
+*/
 
 static VALUE
 shoes_app_run(VALUE rb_exec)
@@ -385,7 +388,7 @@ shoes_app_visit(shoes_app *app, char *path)
   shoes_app_clear(app);
   shoes_app_reset_styles(app);
    meth = rb_funcall(cShoes, s_run, 1, app->location = rb_str_new2(path));
-  
+
   VALUE app_block = rb_iv_get(app->self, "@main_app");
   if (!NIL_P(app_block))
     rb_ary_store(meth, 0, app_block);
@@ -448,7 +451,7 @@ shoes_app_wheel(shoes_app *app, ID dir, int x, int y)
   shoes_canvas *canvas;
   Data_Get_Struct(app->canvas, shoes_canvas, canvas);
   if (canvas->slot->vscroll) shoes_canvas_wheel_way(canvas, dir);
-  
+
   shoes_canvas_send_wheel(app->canvas, dir, x, y);
   return SHOES_OK;
 }
