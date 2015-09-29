@@ -61,6 +61,7 @@ else
 end
 
 LINUX_CFLAGS << " -DSHOES_GTK -Wno-unused-but-set-variable" 
+LINUX_CFLAGS << " -DSHOES_GTK -Wno-unused-but-set-variable -Wno-unused-variable"
 LINUX_CFLAGS << " -DRUBY_HTTP" 
 LINUX_CFLAGS << " -DGTK3" unless APP['GTK'] == 'gtk+-2.0'
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include "

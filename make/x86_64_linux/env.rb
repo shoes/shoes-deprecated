@@ -64,7 +64,7 @@ else
   LINUX_CFLAGS = " -O -Wall"
 end
 LINUX_CFLAGS << " -DRUBY_HTTP" if RUBY_HTTP
-LINUX_CFLAGS << " -DSHOES_GTK -fPIC -Wno-unused-but-set-variable"
+LINUX_CFLAGS << " -DSHOES_GTK -fPIC -Wno-unused-but-set-variable -Wno-unused-variable"
 LINUX_CFLAGS << " -DGTK3" unless APP['GTK'] == 'gtk+-2.0'
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkgruby}"`.strip+" "

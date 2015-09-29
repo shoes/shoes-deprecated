@@ -39,7 +39,7 @@ gtk_button_alt_class_init(GtkButton_AltClass *klass)
 	widget_class->get_preferred_height = gtk_button_alt_get_preferred_height;
 
 	/* Override GtkButton methods */
-  // TODO delete: GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+  GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
     // ...
 
 	/* Add private indirection member */
@@ -54,7 +54,7 @@ gtk_button_alt_init(GtkButton_Alt *buttontAlt)
 	gtk_widget_set_has_window(GTK_WIDGET(buttontAlt), FALSE);
 
 	/* Initialize private members */
-	// TODO delete: GtkButton_AltPrivate *priv = GTK_BUTTON_ALT_PRIVATE(buttontAlt);
+	GtkButton_AltPrivate *priv = GTK_BUTTON_ALT_PRIVATE(buttontAlt);
 
 }
 
