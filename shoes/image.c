@@ -27,6 +27,8 @@
 #undef DrawText
 #endif
 #define DrawText gif_DrawText
+#else
+#include <sys/time.h>  
 #endif
 #include <gif_lib.h>
 

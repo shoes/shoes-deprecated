@@ -48,15 +48,15 @@ shoes_queue_download(shoes_http_request *req)
   // shoes_image_download_event in req->data 
   shoes_image_download_event *side = req->data;
   side->status = st;
-  VALUE etag = NULL;
+  VALUE etag = Qnil;
   VALUE keys = rb_funcall(hdrs, s_keys, 0);
   int i;
   for (i = 0; i < RARRAY_LEN(keys); i++ )
   {
     VALUE key = rb_ary_entry(keys, i);
     if (strcmp("etag", RSTRING_PTR(key)) == 0) {
-		etag = key;
-		break;
+		  etag = key;
+		  break;
     }
     //printf("key=%s\n",RSTRING_PTR(key));
   }

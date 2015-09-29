@@ -93,7 +93,7 @@ shoes_ruby_embed()
   VALUE v;
   char *argv[] = {"ruby", "-e", "1"};
 
-  char**  sysinit_argv = NULL;
+  // TODO delete: char**  sysinit_argv = NULL;
   RUBY_INIT_STACK;
 #ifdef SHOES_WIN32
   //ruby_sysinit(0, 0);
