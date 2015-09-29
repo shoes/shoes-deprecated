@@ -59,12 +59,14 @@ void console_haveChar(void *p, char c) {
 	struct tesiObject *tobj = (struct tesiObject*)p;
 	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
-    GtkTextIter iter_s, iter_e;
-    GtkTextMark *insert_mark;
-    char in[8];
-    int lcnt;
-
-	int i, j;
+  GtkTextIter iter_e;
+  GtkTextMark *insert_mark;
+  char in[8];
+	/* TODO - delete
+  GtkTextIter iter_s, iter_e;
+  int lcnt;
+  int i, j;
+  */
 	snprintf(in, 7, "%c", c);
 	if (c >= 32 && c != 127) {
 	    buffer = gtk_text_view_get_buffer(view);
@@ -120,7 +122,7 @@ void tesi_printCharacter(void *p, char c, int x, int y) {
 	char in[129];
 	GtkTextView *view = GTK_TEXT_VIEW(p);
 	GtkTextBuffer *buffer;
-	GtkTextIter iter;
+	// TODO delete GtkTextIter iter;
 	snprintf(in, 128, "%c", c);
 	buffer = gtk_text_view_get_buffer(view);
 	gtk_text_buffer_insert_at_cursor(buffer, in, 1);
@@ -172,7 +174,7 @@ void tesi_moveCursor(void *p, int x, int y) {
 		gtk_text_buffer_get_end_iter(buffer, &iter);
 		gtk_text_buffer_insert(buffer, &iter, "\n", 1);
 	}
-    int lcnt = gtk_text_buffer_get_line_count(buffer);
+  // TODO delete:  int lcnt = gtk_text_buffer_get_line_count(buffer);
 	gtk_text_buffer_get_iter_at_line_index(buffer, &iter, y, x);
 	gtk_text_iter_forward_to_line_end(&iter);
 	while(gtk_text_iter_get_line_offset(&iter) < x) { // loop and fill out contents to destination column
@@ -296,9 +298,11 @@ void shoes_native_app_console () {  //int main(int argc, char *argv[]) {
     tab_array = pango_tab_array_new(1, TRUE);
     pango_tab_array_set_tab( tab_array, 0, PANGO_TAB_LEFT, tabwidth);
 	gtk_text_view_set_tabs(GTK_TEXT_VIEW(canvas), tab_array);
-    PangoContext *pc;
-	PangoFont *pfont;
-	PangoFontMetrics *metrics;
+  /* TODO delete:  
+  PangoContext *pc;
+  PangoFont *pfont;
+  PangoFontMetrics *metrics;
+  */
     gtk_widget_set_size_request (GTK_WIDGET (sw), 80*charwidth, 24*charheight);
 
 	t = newTesiObject("/bin/bash", 80, 24); // first arg not used
@@ -315,7 +319,7 @@ void shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 	g_signal_connect (G_OBJECT (canvas), "key-press-event", G_CALLBACK (keypress_event), t);
     g_signal_connect (G_OBJECT (clrbtn), "clicked", G_CALLBACK (clear_console), t);
     g_signal_connect (G_OBJECT (cpybtn), "clicked", G_CALLBACK (copy_console), t);
-	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(canvas));
+	// TODO delete: GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(canvas));
     gtk_widget_grab_focus(canvas);
 	g_timeout_add(100, &g_tesi_handleInput, t);
 

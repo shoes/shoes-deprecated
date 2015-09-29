@@ -46,6 +46,7 @@ void shoes_native_app_close(shoes_app *);
 void shoes_native_app_set_icon(shoes_app *, char *);
 void shoes_native_app_set_wtitle(shoes_app *, char*);
 int shoes_native_console();  // Yes it's different
+void shoes_native_app_console();
 void shoes_browser_open(char *);
 void shoes_slot_init(VALUE, SHOES_SLOT_OS *, int, int, int, int, int, int);
 cairo_t *shoes_cairo_create(shoes_canvas *);

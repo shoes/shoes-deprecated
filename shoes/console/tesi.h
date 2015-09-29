@@ -7,10 +7,13 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <sys/types.h>
+
 #if defined(SHOES_QUARTZ) || defined(SHOES_GTK_OSX)
 #include <util.h>
 #else
 #include <pty.h>
+extern int posix_openpt(int);   // shut warnings off
+extern int setenv(const char*, const char*, int); // shut warnings off
 #endif
 #include <utmp.h>
 #include <unistd.h>

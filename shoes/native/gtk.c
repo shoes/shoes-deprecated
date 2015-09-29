@@ -1349,6 +1349,7 @@ VALUE
 shoes_native_edit_line_cursor_to_end(SHOES_CONTROL_REF ref)
 {
   gtk_editable_set_position(GTK_EDITABLE(ref), -1);
+  return Qnil;
 }
 
 SHOES_CONTROL_REF
