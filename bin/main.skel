@@ -14,6 +14,8 @@
 #endif
 #ifdef SHOES_GTK_WIN32
 #define SHOES_WIN32
+extern void shoes_win32_console();
+extern void rb_w32_sysinit(int *, char ***);
 #endif
 
 #ifdef SHOES_WIN32
@@ -28,9 +30,11 @@ main(argc, argv)
 {
   shoes_code code;
   char *path = NULL;
+/* TODO delete:
 #ifdef __APPLE__
   char **env = *_NSGetEnviron();
 #endif
+*/
 #ifdef SHOES_WIN32
   int argc;
   char **argv;

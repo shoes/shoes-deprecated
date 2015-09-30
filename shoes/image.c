@@ -28,7 +28,9 @@
 #endif
 #define DrawText gif_DrawText
 #else
-#include <sys/time.h>  
+#ifndef SHOES_GTK_WIN32
+#include <sys/time.h>
+#endif
 #endif
 #include <gif_lib.h>
 
