@@ -62,11 +62,7 @@ void console_haveChar(void *p, char c) {
   GtkTextIter iter_e;
   GtkTextMark *insert_mark;
   char in[8];
-	/* TODO - delete
-  GtkTextIter iter_s, iter_e;
-  int lcnt;
-  int i, j;
-  */
+
 	snprintf(in, 7, "%c", c);
 	if (c >= 32 && c != 127) {
 	    buffer = gtk_text_view_get_buffer(view);
@@ -122,23 +118,19 @@ void tesi_printCharacter(void *p, char c, int x, int y) {
 	char in[129];
 	GtkTextView *view = GTK_TEXT_VIEW(p);
 	GtkTextBuffer *buffer;
-	// TODO delete GtkTextIter iter;
+
 	snprintf(in, 128, "%c", c);
 	buffer = gtk_text_view_get_buffer(view);
 	gtk_text_buffer_insert_at_cursor(buffer, in, 1);
-
-	//gtk_text_buffer_get_end_iter(buffer, &iter);
-	//gtk_text_buffer_insert(buffer, &iter, in, 1);
 }
+
 void tesi_eraseCharacter(void *p, int x, int y) {
 	GtkTextBuffer *buffer;
 	GtkTextIter iter;
 
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(p));
-	//gtk_text_iter_forward_to_line_end(&i);
 	gtk_text_buffer_get_iter_at_line_index(buffer, &iter, y, x);
-	//gtk_text_buffer_delete(buffer, &iter, &iter);  // cjc
-	gtk_text_buffer_backspace(buffer, &iter, 1, 1);  // cjc
+	gtk_text_buffer_backspace(buffer, &iter, 1, 1);  
 }
 
 
@@ -149,13 +141,8 @@ void tesi_scrollUp(void *p) {
 	gint lcnt;
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(p));
 	lcnt = gtk_text_buffer_get_line_count(buffer);
-	//gtk_text_buffer_get_iter_at_line_index(buffer, &iter, lcnt, 0);
 	gtk_text_buffer_get_iter_at_line_index(buffer, &iter, lcnt+1, 0);
-	// scroll view (*p)
 	gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(p), &iter, 0.0, false, 0.0, 0.0);
-	//gtk_text_buffer_insert(buffer, &iter, "\n", 1);
-	// Move cursor done by test_limitCursor call back to tesi_moveCursor below
-	// gtk_text_view_place_cursor_onscreen (GTK_TEXT_VIEW(p));
 }
 
 void tesi_moveCursor(void *p, int x, int y) {
@@ -174,7 +161,7 @@ void tesi_moveCursor(void *p, int x, int y) {
 		gtk_text_buffer_get_end_iter(buffer, &iter);
 		gtk_text_buffer_insert(buffer, &iter, "\n", 1);
 	}
-  // TODO delete:  int lcnt = gtk_text_buffer_get_line_count(buffer);
+ 
 	gtk_text_buffer_get_iter_at_line_index(buffer, &iter, y, x);
 	gtk_text_iter_forward_to_line_end(&iter);
 	while(gtk_text_iter_get_line_offset(&iter) < x) { // loop and fill out contents to destination column
@@ -223,13 +210,13 @@ void shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 
 	/* create a new window */
 	window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-    // size set way below based on font (80x24)
-    gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
+  // size set below based on font (80x24)
+  gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
 	gtk_window_set_title (GTK_WINDOW (window), "Shoes Linux");
 
 	g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK (gtk_main_quit), NULL);
 	g_signal_connect_swapped (G_OBJECT (window), "delete_event", G_CALLBACK (gtk_widget_destroy), G_OBJECT (window));
-    // like a Shoes stack at the top.
+  // like a Shoes stack at the top.
 #ifdef GTK2
 	vbox = gtk_vbox_new (FALSE, 2);
 #else
@@ -239,8 +226,8 @@ void shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 
 	// need a panel with a string (icon?), copy button and clear button
 	GdkColor bg_color, color_white;
-    gdk_color_parse ("black", &bg_color);
-    gdk_color_parse ("white", &color_white);
+  gdk_color_parse ("black", &bg_color);
+  gdk_color_parse ("white", &color_white);
 #ifdef GTK2
 	GtkWidget *btnpnl = gtk_hbox_new(false, 2); // think flow layout
  	gtk_widget_modify_bg(btnpnl, GTK_STATE_NORMAL, &bg_color);  // doesn't work
@@ -248,7 +235,7 @@ void shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 	GtkWidget *btnpnl = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2); // think flow layout
 #endif
 
-    GtkWidget *announce = gtk_label_new("Shoes Console");
+  GtkWidget *announce = gtk_label_new("Shoes Console");
  	bpfd = pango_font_description_from_string ("Sans-Serif 14");
 #ifdef GTK2
 	gtk_widget_modify_font (announce, bpfd);
@@ -262,15 +249,13 @@ void shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 	gtk_box_pack_start (GTK_BOX(btnpnl), clrbtn, 1, 0, 0);
  	GtkWidget *cpybtn = gtk_button_new_with_label ("Copy");
 	gtk_box_pack_start (GTK_BOX(btnpnl), cpybtn, 1, 0, 0);
-    gtk_box_pack_start (GTK_BOX(vbox), GTK_WIDGET(btnpnl), 0, 0, 0);
+  gtk_box_pack_start (GTK_BOX(vbox), GTK_WIDGET(btnpnl), 0, 0, 0);
 
-    // then a widget/panel for the terminal
-
+  // then a widget/panel for the terminal
 	sw = GTK_SCROLLED_WINDOW(gtk_scrolled_window_new(NULL, NULL));
 	gtk_scrolled_window_set_policy( GTK_SCROLLED_WINDOW(sw),
 	  GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
   	gtk_box_pack_start (GTK_BOX (vbox), GTK_WIDGET(sw), 1, 1, 0);
-
 
 	canvas = gtk_text_view_new();
 	gtk_container_add (GTK_CONTAINER (sw), canvas);
@@ -279,7 +264,7 @@ void shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 	gtk_text_view_set_right_margin(GTK_TEXT_VIEW(canvas), 4);
 	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(canvas), GTK_WRAP_CHAR);
 
-  	// set font for scrollable window
+  // set font for scrollable window
  	pfd = pango_font_description_from_string ("monospace 10");
 #ifdef GTK2
 	gtk_widget_modify_font (canvas, pfd);
@@ -295,15 +280,11 @@ void shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 	pango_layout_set_font_description(playout, pfd);
 	pango_layout_get_pixel_size(playout, &charwidth, &charheight);
 	tabwidth = charwidth * 8;
-    tab_array = pango_tab_array_new(1, TRUE);
-    pango_tab_array_set_tab( tab_array, 0, PANGO_TAB_LEFT, tabwidth);
+  tab_array = pango_tab_array_new(1, TRUE);
+  pango_tab_array_set_tab( tab_array, 0, PANGO_TAB_LEFT, tabwidth);
 	gtk_text_view_set_tabs(GTK_TEXT_VIEW(canvas), tab_array);
-  /* TODO delete:  
-  PangoContext *pc;
-  PangoFont *pfont;
-  PangoFontMetrics *metrics;
-  */
-    gtk_widget_set_size_request (GTK_WIDGET (sw), 80*charwidth, 24*charheight);
+
+  gtk_widget_set_size_request (GTK_WIDGET (sw), 80*charwidth, 24*charheight);
 
 	t = newTesiObject("/bin/bash", 80, 24); // first arg not used
 	t->pointer = canvas;
@@ -317,14 +298,13 @@ void shoes_native_app_console () {  //int main(int argc, char *argv[]) {
 	t->callback_scrollUp = &tesi_scrollUp;
 
 	g_signal_connect (G_OBJECT (canvas), "key-press-event", G_CALLBACK (keypress_event), t);
-    g_signal_connect (G_OBJECT (clrbtn), "clicked", G_CALLBACK (clear_console), t);
-    g_signal_connect (G_OBJECT (cpybtn), "clicked", G_CALLBACK (copy_console), t);
-	// TODO delete: GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(canvas));
-    gtk_widget_grab_focus(canvas);
+  g_signal_connect (G_OBJECT (clrbtn), "clicked", G_CALLBACK (clear_console), t);
+  g_signal_connect (G_OBJECT (cpybtn), "clicked", G_CALLBACK (copy_console), t);
+  gtk_widget_grab_focus(canvas);
 	g_timeout_add(100, &g_tesi_handleInput, t);
 
 	gtk_widget_show_all (window);
-	// should do some clean up here. Free fontdescription etc
+	// TODO: should do some clean up here. Free fontdescription etc
 
 	return;
 }
