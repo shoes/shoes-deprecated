@@ -4596,6 +4596,7 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "show", CASTHOOK(shoes_canvas_show), 0);
   rb_define_method(cCanvas, "toggle", CASTHOOK(shoes_canvas_toggle), 0);
   rb_define_method(cCanvas, "remove", CASTHOOK(shoes_canvas_remove), 0);
+  rb_define_method(cCanvas, "refresh_slot", CASTHOOK(shoes_canvas_refresh_slot), 0);
 
   cShoes = rb_define_class("Shoes", cCanvas);
   rb_include_module(cShoes, cTypes);

@@ -1216,6 +1216,12 @@ shoes_canvas_remove(VALUE self)
   return self;
 }
 
+VALUE
+shoes_canvas_refresh_slot(VALUE self)
+{
+  shoes_canvas_repaint_all(self);
+}
+
 static void
 shoes_canvas_place(shoes_canvas *self_t)
 {

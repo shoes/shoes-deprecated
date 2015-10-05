@@ -434,6 +434,7 @@ VALUE shoes_canvas_children(VALUE);
 void shoes_canvas_size(VALUE, int, int);
 VALUE shoes_canvas_clear_contents(int, VALUE *, VALUE);
 VALUE shoes_canvas_remove(VALUE);
+VALUE shoes_canvas_refresh_slot(VALUE);  // 3.3.0
 VALUE shoes_canvas_draw(VALUE, VALUE, VALUE);
 VALUE shoes_canvas_after(int, VALUE *, VALUE);
 VALUE shoes_canvas_before(int, VALUE *, VALUE);
@@ -481,6 +482,7 @@ VALUE shoes_canvas_window_plain(VALUE);
 VALUE shoes_canvas_dialog_plain(VALUE);
 VALUE shoes_canvas_snapshot(int, VALUE *, VALUE);
 VALUE shoes_canvas_download(int, VALUE *, VALUE);
+
 
 SHOES_SLOT_OS *shoes_slot_alloc(shoes_canvas *, SHOES_SLOT_OS *, int);
 VALUE shoes_slot_new(VALUE, VALUE, VALUE);
