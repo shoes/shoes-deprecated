@@ -1211,6 +1211,7 @@ shoes_canvas_remove(VALUE self)
     Data_Get_Struct(self_t->parent, shoes_canvas, pc);
     if (pc != self_t && DC(self_t->slot) != DC(pc->slot))
       shoes_slot_destroy(self_t, pc);
+    shoes_canvas_repaint_all(self);
   }
   shoes_canvas_send_finish(self);
   return self;
