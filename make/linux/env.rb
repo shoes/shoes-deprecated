@@ -47,8 +47,8 @@ RUBY_CFLAGS = " #{`pkg-config --cflags #{EXT_RUBY}/lib/pkgconfig/ruby-#{rv}.pc`.
 rlib = `pkg-config --libs #{EXT_RUBY}/lib/pkgconfig/ruby-#{rv}.pc`.strip
 if rlib[/{ORIGIN/]
   #abort "Bug found #{rlib}"
-  #RUBY_LIB = rlib.gsub(/\$\\{ORIGIN\\}/, "#{EXT_RUBY}/lib")
-  RUBY_LIB = rlib
+  RUBY_LIB = rlib.gsub(/\$\\{ORIGIN\\}/, "#{EXT_RUBY}/lib")
+  #RUBY_LIB = rlib
 else
   RUBY_LIB = rlib
 end
