@@ -2,8 +2,9 @@
 APPPATH="${0%/*}"
 unset DYLD_LIBRARY_PATH
 cd "$APPPATH"
-echo "[Pango]" > pangorc
-echo "ModuleFiles=$APPPATH/pango.modules" >> pangorc
-echo "ModulesPath=$APPPATH/pango/modules" >> pangorc
-PANGO_RC_FILE="$APPPATH/pangorc" ./pango-querymodules > pango.modules
-DYLD_LIBRARY_PATH="$APPPATH" PANGO_RC_FILE="$APPPATH/pangorc" SHOES_RUBY_ARCH="#{SHOES_RUBY_ARCH}" ./#{NAME}-bin "$@"
+#echo "[Pango]" > pangorc
+#echo "ModuleFiles=$APPPATH/pango.modules" >> pangorc
+#echo "ModulesPath=$APPPATH/pango/modules" >> pangorc
+#PANGO_RC_FILE="$APPPATH/pangorc" ./pango-querymodules > pango.modules
+#DYLD_LIBRARY_PATH="$APPPATH" PANGO_RC_FILE="$APPPATH/pangorc" SHOES_RUBY_ARCH="#{SHOES_RUBY_ARCH}" ./#{NAME}-bin "$@"
+DYLD_LIBRARY_PATH="$APPPATH" SHOES_RUBY_ARCH="#{SHOES_RUBY_ARCH}" ./#{NAME}-bin "$@"

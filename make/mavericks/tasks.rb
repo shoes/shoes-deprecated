@@ -122,7 +122,8 @@ class MakeDarwin
     def change_install_names
       puts "Entering change_install_names"
       cd "#{TGT_DIR}" do
-        ["#{NAME}-bin", "pango-querymodules", *Dir['*.dylib'], *Dir['lib/ruby/gems/2.1.0/**/*.bundle'], *Dir['pango/modules/*.so']].each do |f|
+        # ["#{NAME}-bin", "pango-querymodules", *Dir['*.dylib'], *Dir['lib/ruby/gems/2.1.0/**/*.bundle'], *Dir['pango/modules/*.so']].each do |f|
+        ["#{NAME}-bin", *Dir['*.dylib'], *Dir['lib/ruby/gems/2.1.0/**/*.bundle'], *Dir['pango/modules/*.so']].each do |f|
           sh "install_name_tool -id @executable_path/#{File.basename f} #{f}"
           dylibs = get_dylibs f
           dylibs.each do |dylib|
@@ -136,7 +137,8 @@ class MakeDarwin
 
     def copy_pango_modules
       puts "Entering copy_pango_modules_to_dist"
-      modules_file = `brew --prefix`.chomp << '/etc/pango/pango.modules'
+      #modules_file = `brew --prefix`.chomp << '/etc/pango/pango.modules'
+      modules_file = "#{PANGO_MODULES_LOC}/pango.modules"
       modules_path = File.open(modules_file) {|f| f.grep(/^# ModulesPath = (.*)$/){$1}.first}
       mkdir_p "#{TGT_DIR}/pango"
       cp_r modules_path, "#{TGT_DIR}/pango"
@@ -178,13 +180,14 @@ class MakeDarwin
     def copy_deps_to_dist
       puts "Entering copy_deps_to_dist #{TGT_DIR}"
       #copy_gem_deplibs
-      copy_pango_modules
+      # copy_pango_modules # 3.3.0
       # Generate a list of dependencies straight from the generated files.
       # Start with dependencies of shoes-bin, and then add the dependencies
       # of those dependencies. Finally, add any oddballs that must be
       # included.
       dylibs = dylibs_to_change("#{TGT_DIR}/#{NAME}-bin")
-      dylibs.concat dylibs_to_change("#{TGT_DIR}/pango-querymodules")
+      # don't need pango-querymodules in pango-1.38.0 +
+      #dylibs.concat dylibs_to_change("#{TGT_DIR}/pango-querymodules")
       # add the gem's bundles.
       rbvm = RUBY_V[/^\d+\.\d+/]
       Dir["#{TGT_DIR}/lib/ruby/gems/#{rbvm}.0/gems/**/*.bundle"].each do |gb|
@@ -193,10 +196,10 @@ class MakeDarwin
         puts "dylibs: #{dylibs}"
       end
       # IT 14.12.16 adding X11 libs
-	  ["libxcb-shm.0.dylib", "libxcb-render.0.dylib", "libxcb.1.dylib", "libXrender.1.dylib",
-	  "libXext.6.dylib", "libX11.6.dylib", "libXau.6.dylib", "libXdmcp.6.dylib"].each do |dylib|
-		dylibs << "/opt/X11/lib/#{dylib}"
-      end
+      #["libxcb-shm.0.dylib", "libxcb-render.0.dylib", "libxcb.1.dylib", "libXrender.1.dylib",
+      #"libXext.6.dylib", "libX11.6.dylib", "libXau.6.dylib", "libXdmcp.6.dylib"].each do |dylib|
+      #   dylibs << "/opt/X11/lib/#{dylib}"
+      #end
       # cjc add zlib 1.2.8+
       # dylibs << "#{ZLIBLOC}/libz.1.dylib"
       dupes = []

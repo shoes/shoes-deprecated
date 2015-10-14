@@ -34,7 +34,8 @@ end
 # require 'rbconfig' not needed
 
 CC = ENV['CC'] ? ENV['CC'] : "gcc"
-file_list =  %w{shoes/native/cocoa.m shoes/http/nsurl.m} + ["shoes/*.c"]
+#file_list =  %w{shoes/native/cocoa.m shoes/http/nsurl.m} + ["shoes/*.c"]
+file_list =  %w{shoes/console/tesi.c shoes/console/cocoa-term.m shoes/native/cocoa.m shoes/http/nsurl.m} + ["shoes/*.c"]
 
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
@@ -74,7 +75,7 @@ LINUX_CFLAGS = %[-g -Wall #{brewsub(ENV['GLIB_CFLAGS'])} -I#{ENV['SHOES_DEPS_PAT
 if RbConfig::CONFIG['rubyhdrdir']
   LINUX_CFLAGS << " -I#{RbConfig::CONFIG['rubyhdrdir']} -I#{RbConfig::CONFIG['rubyhdrdir']}/#{SHOES_RUBY_ARCH}"
 end
-  
+
 LINUX_LIB_NAMES = %W[#{RUBY_SO} cairo pangocairo-1.0 gif]
 
 #FLAGS.each do |flag|
@@ -119,10 +120,9 @@ ENV['SYSROOT'] = " -isysroot #{OSX_SDK} #{OSX_ARCH}"
 
 LINUX_CFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH}"
 LINUX_LDFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH} -L#{BREWLOC}/lib/ "
- 
+
 #LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 LINUX_LIBS = "-L. -l#{RUBY_SO} -L #{BREWLOC}/lib -l cairo -L #{BREWLOC}/lib -lpangocairo-1.0 -L#{BREWLOC}/lib -lgif -ljpeg"
 #LINUX_LIBS << " -L#{RbConfig::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB}"
 #LINUX_LIBS << " -L#{TGT_DIR}/lib/ruby/#{RUBY_V} #{CAIRO_LIB} #{PANGO_LIB}"
 LINUX_LIBS << " -L#{TGT_DIR} #{CAIRO_LIB} #{PANGO_LIB}"
-
