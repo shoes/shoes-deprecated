@@ -326,7 +326,17 @@ end
 
 namespace :osx do
   namespace :setup do
-    desc "Setup to build Shoes for 10.9+"
+    desc "Setup to build Shoes for 10.1+"
+    task :yosemite do
+      sh "echo 'TGT_ARCH=yosemite' >crosscompile"
+    end
+    
+    desc "Setup to build Shoes for 10.9+ from 10.1+"
+    task :xmavericks do
+      sh "echo 'TGT_ARCH=xmavericks' >crosscompile"
+    end
+    
+    desc "Setup to build Shoes for 10.9+ from 10.9"
     task :mavericks do
       sh "echo 'TGT_ARCH=mavericks' >crosscompile"
     end
@@ -341,10 +351,10 @@ namespace :osx do
       sh "echo 'TGT_ARCH=xsnow' >crosscompile"
     end
     
-    desc "Experimental OSX/Gtk3"
-    task :osxgtk do
-       sh "echo 'TGT_ARCH=osxgtk' >crosscompile"
-   end
+    #desc "Experimental OSX/Gtk3"
+    #task :osxgtk do
+    #  sh "echo 'TGT_ARCH=osxgtk' >crosscompile"
+    #end
         
     desc "Setup to build Shoes just for my Mac (default)"
     task :clean do
