@@ -1,5 +1,24 @@
+= Walkabout - Shoes 3.3
+
+=== new with 3.3.0
+  * refresh slot method
+    Issue 152 https://github.com/Shoes3/shoes3/issues/152
+    
+=== Fixed with 3.3.0
+  * can build Shoes for OSX 10.6 - still an orphan
+  * OSX - do not use home brew to manage dependecies. 
+    wiki: https://github.com/Shoes3/shoes3/wiki/OSX-10.9-Dependencies
+    wiki: https://github.com/Shoes3/shoes3/wiki/OSX-10.6-Dependencies
+  * Remove pango-querymodules from OSX. Yay!
+
+
 = Federales - Shoes 3.2
 
+=== Oct 21, 2015 3.2.26 
+   * patch release (but what a patch!)
+     http://walkabout.mvmanila.com/2015/10/21/too-dumb-for-my-shoes-3-2-26-is-osx-only/ 
+   * OSX only. restore ability to build for 10.9
+   
 === New with 3.2.25
    * Added methods to edit_box - append(string) and scroll_to_end
      https://github.com/Shoes3/shoes3/issues/144

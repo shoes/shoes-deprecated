@@ -1,6 +1,8 @@
 
 #import <Cocoa/Cocoa.h>
+#ifndef OLD_OSX
 #import <AppKit/NSFontCollection.h>
+#endif
 #include "tesi.h"
 
 @interface ConsoleTermView : NSTextView

@@ -9,7 +9,7 @@ require 'rbconfig'
 include FileUtils
 
 APP = YAML.load_file(File.join(ENV['APP'] || ".", "app.yaml"))
-# APP['version'] = APP['major'] # for historical reasons 
+# APP['version'] = APP['major'] # for historical reasons
 # populate APP[] with uppercase names and string values
 APP['VERSION'] = "#{APP['major']}.#{APP['minor']}.#{APP['tiny']}"
 APP['MAJOR'] = APP['major'].to_s
@@ -32,7 +32,7 @@ case APP['revision']
     if APP['revision'].kind_of? Fixnum
       APP['REVISION'] = APP['revision'].to_s
     else
-      APP['REVISION'] = '0009' # make it up 
+      APP['REVISION'] = '0009' # make it up
     end
 end
 
@@ -91,10 +91,10 @@ when /mingw/
   else
     require File.expand_path('rakefile_mingw')
   end
-  
+
   Builder = MakeMinGW
   NAMESPACE = :win32
-  
+
 when /darwin/
 
   if CROSS
@@ -117,7 +117,7 @@ when /linux/
   if CROSS
     # This will be a Tight Shoes setup
     case TGT_ARCH
-    when /x86_64_linux/ 
+    when /x86_64_linux/
       require File.expand_path('make/x86_64_linux/env')
       require File.expand_path('make/x86_64_linux/tasks')
       require File.expand_path("make/gems")
@@ -206,7 +206,7 @@ def create_version_file file_path
   end
 end
 
-# FIXME: called from osx(s) copy_files_to_dist in task.rb 
+# FIXME: called from osx(s) copy_files_to_dist in task.rb
 def osx_version_txt t
   create_version_file t
 end
@@ -273,7 +273,7 @@ end
 
 desc "Install Shoes in your ~/.shoes Directory"
 task  :install do
-  if CROSS 
+  if CROSS
      puts "Sorry. You can't do an install of your source built Shoes"
      puts "when crosscompiling is setup."
   else
@@ -330,38 +330,38 @@ namespace :osx do
     task :yosemite do
       sh "echo 'TGT_ARCH=yosemite' >crosscompile"
     end
-    
+
     desc "Setup to build Shoes for 10.9+ from 10.1+"
     task :xmavericks do
       sh "echo 'TGT_ARCH=xmavericks' >crosscompile"
     end
-    
+
     desc "Setup to build Shoes for 10.9+ from 10.9"
     task :mavericks do
       sh "echo 'TGT_ARCH=mavericks' >crosscompile"
     end
-    
+
     desc "Setup to build for 10.6+ from 10.6"
     task :snow do
-      sh "echo 'TGT_ARCH=snowleopard' >crosscompile"
+      sh "echo 'TGT_ARCH=snow' >crosscompile"
     end
-    
+
     desc "Downshift Build 10.6 from 10.9"
     task "xsnow" do
       sh "echo 'TGT_ARCH=xsnow' >crosscompile"
     end
-    
+
     #desc "Experimental OSX/Gtk3"
     #task :osxgtk do
     #  sh "echo 'TGT_ARCH=osxgtk' >crosscompile"
     #end
-        
+
     desc "Setup to build Shoes just for my Mac (default)"
     task :clean do
       rm_rf "crosscompile"
-    end 
+    end
   end
-  
+
   task :build => [:old_build]
 
   task :make_app do
@@ -380,22 +380,22 @@ end
 
 
 namespace :win32 do
-  
+
   namespace :setup do
     desc "Build for distribution (Tight)"
     task :win7 do
       puts "Windows tight build"
-      sh "echo TGT_ARCH=win7 >crosscompile"      
+      sh "echo TGT_ARCH=win7 >crosscompile"
     end
-    
+
     desc "Loose setup"
     task :clean do
       puts "restored to Loose Shoes build"
       rm_rf "crosscompile" if File.exists? "crosscompile"
     end
-    
+
   end
-  
+
   task :build => [:old_build]
 
   task :make_app do
@@ -437,20 +437,20 @@ namespace :linux do
       puts "Cross complile to i386-gnu-linux setup"
       sh "echo 'TGT_ARCH=xi686_linux' >crosscompile"
     end
-    
+
     desc "Cross compile to x86_64 (64 bit linux)"
     task :x86_64_linux do
       puts "Cross complile to x86_64-linux setup"
       sh "echo 'TGT_ARCH=x86_64_linux' >crosscompile"
     end
-    
+
     desc "Remove cross compile setup"
     task :clean do
       puts "restored to native build"
       rm_rf "crosscompile" if File.exists? "crosscompile"
     end
   end
-  
+
   task :build => [:old_build]
 
   task :make_app do
@@ -464,7 +464,7 @@ namespace :linux do
   task :installer do
     Builder.make_installer
   end
-  
+
 end
 
 # Note the following works: Not pretty but it works
