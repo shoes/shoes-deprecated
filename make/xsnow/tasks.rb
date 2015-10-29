@@ -1,6 +1,3 @@
-# Assumes Ruby is installed with RVM and installed -C --enable-load-relative
-# Ain't going to work otherwise. Well, it could but who cares and has
-# that much free time?
 include FileUtils
 module Make
   include FileUtils
@@ -97,13 +94,7 @@ class MakeDarwin
         key = File.basename(path)
         @brew_hsh[key] = path
       end
-      # don't do this
-      #Dir.glob("#{BREWLOC}/opt/zlib/lib/*.dylib").each do |path|
-      #  key = File.basename(path)
-        #puts "opt dylib: #{key} #{path}"
-      #  @brew_hsh[key] = path
-      #end
-      #
+
       # X11 stuff - Add hand crafted X11 libs to brew_hsh
       ["libICE.6.dylib", "libSM.6.dylib",
          "libX11.6.dylib", "libXau.6.dylib", "libXdmcp.6.dylib"].each do |nm|

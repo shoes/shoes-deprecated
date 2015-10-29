@@ -36,12 +36,6 @@ else
 end
 
 ADD_DLL = []
-# who or what uses these?
-#ENV['DYLD_LIBRARY_PATH'] = '/usr/local/cairo/1.10.2/lib:/usr/local/cairo/1.10.2/include/cairo'
-#ENV['LD_LIBRARY_PATH'] = '/usr/local/cairo/1.10.2/lib:/usr/local/cairo/1.10.2/include/cairo'
-#ENV['CAIRO_CFLAGS'] = '-I/usr/local/cairo/1.12.16_1/include/cairo'
-#ENV['GLIB_CFLAGS'] = '-I/usr/local/glib/2.40.0/include/glib-2.0'
-ENV['SHOES_DEPS_PATH'] = '/usr/local'
 
 # nothing is going to change for 10.9 deps - don't bother with pkg-config
 # because it does go wrong in this situation.
