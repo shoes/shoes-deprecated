@@ -170,7 +170,7 @@ class MakeLinux
 
       File.open("#{hdir}/Shoes.desktop",'w') do |f|
         f << "[Desktop Entry]\n"
-        f << "Name=Shoes Federales\n"
+        f << "Name=Shoes #{APP['NAME'].capitalize}\n"
         f << "Exec=#{hdir}/shoes\n"
         f << "StartupNotify=true\n"
         f << "Terminal=false\n"

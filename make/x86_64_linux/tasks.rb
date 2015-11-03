@@ -150,29 +150,28 @@ class MakeLinux
       end
     end
     
-    #
     def make_desktop
       File.open("Shoes.desktop.tmpl",'w') do |f|
         f << "[Desktop Entry]\n"
-        f << "Name=Shoes Federales\n"
-        f << "Exec={hdir}/.shoes/federales/shoes\n"
+        f << "Name=Shoes #{APP['NAME'].capitalize}\n"
+        f << "Exec={hdir}/.shoes/#{APP['NAME']}/shoes\n"
         f << "StartupNotify=true\n"
         f << "Terminal=false\n"
         f << "Type=Application\n"
         f << "Comment=Ruby Graphical Programming\n"
-        f << "Icon={hdir}/.shoes/federales/static/app-icon.png\n"
-        f << "Categories=Development;Applications;\n"
+        f << "Icon={hdir}/.shoes/#{APP['NAME']}/static/app-icon.png\n"
+        f << "Categories=Application;Development;Education;\n"
       end
     end
     
     # the install script that runs on the user's system can be simple. 
     # Copy things from where it's run to ~/.shoes/federales/ and then
     # sed the desktop file and copy it with xdg-desktop-menu
-   def make_install_script
+    def make_install_script
       File.open("shoes-install.sh", 'w') do |f|
         f << "#!/bin/bash\n"
         f << "#pwd\n"
-        f << "ddir=$HOME/.shoes/federales\n"
+        f << "ddir=$HOME/.shoes/#{APP['NAME']}\n"
         f << "#echo $ddir\n"
         f << "mkdir -p $ddir\n"
         f << "cp -r * $ddir/\n"
@@ -180,7 +179,7 @@ class MakeLinux
         f << "xdg-desktop-menu install --novendor Shoes.desktop\n"
         f << "echo \"Shoes has been copied to $ddir. and menus created\"\n"
         f << "echo \"If you don't see Shoes in the menu, logout and login\"\n"
-     end
+      end
       chmod "+x", "shoes-install.sh"
     end
     
