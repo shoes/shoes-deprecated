@@ -1,4 +1,5 @@
-
+# Modified 2015-Nov-05 by Cecil Coupe to handle 256x256 icons
+# Format below was pre-ancient (w95?)
 #==============================================================================#
 # $Id: icon_file.rb,v 1.4 2005/05/05 02:26:29 yuya Exp $
 #==============================================================================#
@@ -41,8 +42,8 @@ class Exerb::Win32::IconFile
       io.seek(base + icon_dir_entry.image_offset)
 
       entry = Exerb::Win32::IconFile::Entry.new
-      entry.width     = icon_dir_entry.width
-      entry.height    = icon_dir_entry.height
+      entry.width     = icon_dir_entry.width == 0 ? 256 : icon_dir_entry.width
+      entry.height    = icon_dir_entry.height == 0 ? 256 : icon_dir_entry.height
       entry.bit_count = icon_dir_entry.bit_count
       entry.bit_count = 4 if entry.bit_count == 0 && icon_dir_entry.color_count == 16
       entry.bit_count = 8 if entry.bit_count == 0 && icon_dir_entry.bytes_in_res == 2216

@@ -61,8 +61,8 @@ module Winject
         # Exerb::Win32::IconFile::Entry:
         # make a new Icon and copy
         icon = Exerb::Resource::Icon.new
-        icon.width     = entry.width
-        icon.height    = entry.height
+        icon.width     = entry.width == 256 ? 0 : entry.width
+        icon.height    = entry.height == 256 ? 0 : entry.height
         icon.bit_count = entry.bit_count
         icon.value     = entry.value
 
