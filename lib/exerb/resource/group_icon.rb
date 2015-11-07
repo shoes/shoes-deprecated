@@ -1,6 +1,7 @@
 
 #==============================================================================#
 # $Id: group_icon.rb,v 1.8 2005/05/05 02:26:29 yuya Exp $
+# modified by Cecil Coupe Nov 6, 2015
 #==============================================================================#
 
 require 'exerb/win32/struct/icon_header'
@@ -58,6 +59,7 @@ class Exerb::Resource::GroupIcon < Exerb::Resource::Base
       case @bit_count
       when 4 then cc, bc = 16, 4
       when 8 then cc, bc =  0, 8
+      when 24 then cc, bc = 0, 0  # cjc 2015-11-06
       else raise "invalid bit count -- #{@bit_count}"
       end
 

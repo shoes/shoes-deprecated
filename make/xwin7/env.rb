@@ -128,6 +128,7 @@ LINUX_CFLAGS << " -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-
 LINUX_CFLAGS << " -mms-bitfields -D__MINGW_USE_VC2005_COMPAT -DXMD_H -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -DCOBJMACROS "
 
 # I don't think the line below belongs in this file. 
+# It should probably be in tasks/prebuild or tasks/package
 cp APP['icons']['win32'], "shoes/appwin32.ico"
 
 LINUX_LIB_NAMES = %W[gif-4 jpeg]
