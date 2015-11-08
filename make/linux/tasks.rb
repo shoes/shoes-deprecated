@@ -167,22 +167,69 @@ class MakeLinux
       sh "cp -r lib/shoes #{hdir}/lib"
       sh "cp -r lib/shoes.rb #{hdir}/lib/"
       sh "cp -r lib/exerb #{hdir}/lib"
-
-      File.open("#{hdir}/Shoes.desktop",'w') do |f|
+      Dir.chdir hdir do
+        make_desktop 
+        make_uninstall_script
+        make_install_script
+        # run the generated install script to build menus
+        sh "./shoes-install.sh"
+      end
+    end
+     
+    def make_desktop
+      File.open("Shoes.desktop.tmpl",'w') do |f|
         f << "[Desktop Entry]\n"
         f << "Name=Shoes #{APP['NAME'].capitalize}\n"
-        f << "Exec=#{hdir}/shoes\n"
+        f << "Exec={hdir}/.shoes/#{APP['NAME']}/shoes\n"
         f << "StartupNotify=true\n"
         f << "Terminal=false\n"
         f << "Type=Application\n"
         f << "Comment=Ruby Graphical Programming\n"
-        f << "Icon=#{hdir}/static/app-icon.png\n"
+        f << "Icon={hdir}/.shoes/#{APP['NAME']}/static/app-icon.png\n"
         f << "Categories=Application;Development;Education;\n"
       end
-      sh "xdg-desktop-menu install --novendor #{hdir}/Shoes.desktop"
-      puts "\n ==== NOTE: ====\n"
-      puts "Shoes has been copied to #{hdir} and menus installed" 
-      puts "Modify and copy the 'Shoes.desktop' if needed."
+      File.open("Shoes.remove.tmpl",'w') do |f|
+        f << "[Desktop Entry]\n"
+        f << "Name=Uninstall Shoes #{APP['NAME'].capitalize}\n"
+        f << "Exec={hdir}/.shoes/#{APP['NAME']}/shoes-uninstall.sh\n"
+        f << "StartupNotify=true\n"
+        f << "Terminal=false\n"
+        f << "Type=Application\n"
+        f << "Comment=Delete Shoes\n"
+        f << "Icon={hdir}/.shoes/#{APP['NAME']}/static/app-icon.png\n"
+        f << "Categories=Application;Development;Education;\n"
+      end
     end
+    
+    def make_uninstall_script
+      File.open("shoes-uninstall.sh", 'w') do |f|
+        f << "#!/bin/bash\n"
+        f << "#pwd\n"
+        f << "cd $HOME/.shoes/#{APP['NAME']}\n"
+        f << "xdg-desktop-menu uninstall Shoes.remove.desktop\n"
+        f << "xdg-desktop-menu uninstall Shoes.desktop\n"
+        f << "cd ../\n"
+        f << "rm -rf #{APP['NAME']}\n"
+      end
+      chmod "+x", "shoes-uninstall.sh"
+    end
+    
+    # Note: this is different from make_install script for Tight Shoes
+    def make_install_script
+      File.open("shoes-install.sh", 'w') do |f|
+        f << "#!/bin/bash\n"
+        f << "#pwd\n"
+        f << "ddir=$HOME/.shoes/#{APP['NAME']}\n"
+        f << "cd $ddir\n"
+        f << "sed -e \"s@{hdir}@$HOME@\" <Shoes.desktop.tmpl >Shoes.desktop\n"
+        f << "xdg-desktop-menu install --novendor Shoes.desktop\n"
+        f << "sed -e \"s@{hdir}@$HOME@\" <Shoes.remove.tmpl >Shoes.remove.desktop\n"
+        f << "xdg-desktop-menu install --novendor Shoes.remove.desktop\n"
+        f << "echo \"Shoes has been copied to $ddir. and menus created\"\n"
+        f << "echo \"If you don't see Shoes in the menu, logout and login\"\n"
+      end
+      chmod "+x", "shoes-install.sh"
+    end   
+    
   end
 end

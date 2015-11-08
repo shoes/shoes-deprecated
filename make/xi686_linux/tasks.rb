@@ -140,6 +140,7 @@ class MakeLinux
       sh "cp -r #{TGT_DIR}/* pkg/#{rlname}"
       Dir.chdir "pkg/#{rlname}" do
         make_desktop 
+        make_uninstall_script
         make_install_script
         make_smaller unless ENV['GDB']
       end
@@ -150,7 +151,7 @@ class MakeLinux
       end
     end
     
-     def make_desktop
+    def make_desktop
       File.open("Shoes.desktop.tmpl",'w') do |f|
         f << "[Desktop Entry]\n"
         f << "Name=Shoes #{APP['NAME'].capitalize}\n"
@@ -162,6 +163,30 @@ class MakeLinux
         f << "Icon={hdir}/.shoes/#{APP['NAME']}/static/app-icon.png\n"
         f << "Categories=Application;Development;Education;\n"
       end
+      File.open("Shoes.remove.tmpl",'w') do |f|
+        f << "[Desktop Entry]\n"
+        f << "Name=Uninstall Shoes #{APP['NAME'].capitalize}\n"
+        f << "Exec={hdir}/.shoes/#{APP['NAME']}/shoes-uninstall.sh\n"
+        f << "StartupNotify=true\n"
+        f << "Terminal=false\n"
+        f << "Type=Application\n"
+        f << "Comment=Delete Shoes\n"
+        f << "Icon={hdir}/.shoes/#{APP['NAME']}/static/app-icon.png\n"
+        f << "Categories=Application;Development;Education;\n"
+      end
+    end
+    
+    def make_uninstall_script
+      File.open("shoes-uninstall.sh", 'w') do |f|
+        f << "#!/bin/bash\n"
+        f << "#pwd\n"
+        f << "cd $HOME/.shoes/#{APP['NAME']}\n"
+        f << "xdg-desktop-menu uninstall Shoes.remove.desktop\n"
+        f << "xdg-desktop-menu uninstall Shoes.desktop\n"
+        f << "cd ../\n"
+        f << "rm -rf #{APP['NAME']}\n"
+      end
+      chmod "+x", "shoes-uninstall.sh"
     end
     
     # the install script that runs on the user's system can be simple. 
@@ -176,7 +201,11 @@ class MakeLinux
         f << "mkdir -p $ddir\n"
         f << "cp -r * $ddir/\n"
         f << "sed -e \"s@{hdir}@$HOME@\" <Shoes.desktop.tmpl >Shoes.desktop\n"
+        f << "cp Shoes.desktop $ddir/Shoes.desktop\n"
         f << "xdg-desktop-menu install --novendor Shoes.desktop\n"
+        f << "sed -e \"s@{hdir}@$HOME@\" <Shoes.remove.tmpl >Shoes.remove.desktop\n"
+        f << "cp Shoes.remove.desktop $ddir/Shoes.remove.desktop\n"
+        f << "xdg-desktop-menu install --novendor Shoes.remove.desktop\n"
         f << "echo \"Shoes has been copied to $ddir. and menus created\"\n"
         f << "echo \"If you don't see Shoes in the menu, logout and login\"\n"
       end
