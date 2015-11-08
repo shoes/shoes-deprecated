@@ -176,36 +176,20 @@ class Shoes
 
   def self.splash
     font "#{DIR}/fonts/Lacuna.ttf"
-    Shoes.app width: 400, height: 500, resizable: false do
+    Shoes.app width: 500, height: 500, resizable: false do
+      background "static/splash.png"
       style(Para, align: 'center', weight: 'bold', font: 'Lacuna Regular', size: 13)
       style(Link, stroke: yellow, underline: nil)
       style(LinkHover, stroke: yellow, fill: nil)
-
-      xy = [
-        [app.slot.width / 6, -50],
-        [app.slot.width / 6, app.slot.height / 2],
-        [app.slot.width / 6, app.slot.height + 50]
-      ]
-      colors = [
-        rgb(49, 156, 0, 0.35),
-        rgb(255, 255, 255, 0.35),
-        rgb(222, 33, 16, 0.35)
-      ]
-
-      nofill
-      strokewidth 40.0
-
-      @waves = stack top: 0, left: 0
-
 
       require 'shoes/search'
       require 'shoes/help'
 
       stack margin: 18 do
-        para 'Welcome to', stroke: '#00', margin: 0
-        para 'SHOES', size: 48, stroke: '#00', margin: 0
-        para Shoes::VERSION_NAME, stroke: '#00', margin: 0
-        para "build #{Shoes::VERSION_NUMBER} r#{Shoes::VERSION_REVISION}", size: 8, stroke: '#00', margin_top: 0
+        para 'Welcome to', stroke: magenta, size: 32, margin: 0
+        para 'SHOES', size: 60, stroke: magenta, margin: 0
+        para Shoes::VERSION_NAME, stroke: magenta, margin: 0
+        para "build #{Shoes::VERSION_NUMBER} r#{Shoes::VERSION_REVISION}", size: 12, stroke: magenta, margin_top: 0
         stack do
           background black(0.2), :curve => 8
           para link(strong("Open an App")) { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
@@ -217,24 +201,6 @@ class Shoes
           para link(strong("Maintain Shoes")) {Shoes.cobbler and close}, :margin => 10
         end
         inscription 'Alt-Slash opens the console', stroke: '#00', align: 'center'
-      end
-
-      animate(8) do |ani|
-        a = Math.sin(ani * 0.02) * 8
-        @waves.clear do
-          nofill
-          strokewidth app.slot.width / 3
-          6.times do |i|
-            colors.each_with_index do |color, n|
-              shape do
-                v = 4.times.collect { rand(0.1) * 100 > 50 ? +1 : -1 }
-                move_to (dx = n * app.slot.width / 3) + xy[n][0] + (v[0] * i * a * 0.8), xy[0][1]
-                stroke color
-                curve_to dx + xy[0][0] + (v[1] * i * a), xy[0][1], dx + xy[1][0] + (v[2] * i * a * 2), xy[1][1], dx + xy[2][0] + (v[3] * i * a), xy[2][1]
-              end
-            end
-          end
-        end
       end
     end
   end
