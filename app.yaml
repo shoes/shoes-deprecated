@@ -7,4 +7,4 @@ revision: git
 icons:
   win32: platform/msw/shoes.ico
   osx:   static/Shoes.icns
-  gtk:   static/shoes-icon-federales.png
+  gtk:   static/shoes-icon-walkabout.png

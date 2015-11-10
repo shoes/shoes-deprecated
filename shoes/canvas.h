@@ -405,6 +405,7 @@ VALUE shoes_canvas_image(int, VALUE *, VALUE);
 VALUE shoes_canvas_animate(int, VALUE *, VALUE);
 VALUE shoes_canvas_every(int, VALUE *, VALUE);
 VALUE shoes_canvas_timer(int, VALUE *, VALUE);
+VALUE shoes_canvas_svghandle(int, VALUE *, VALUE);
 VALUE shoes_canvas_imagesize(VALUE, VALUE);
 VALUE shoes_canvas_shape(int, VALUE *, VALUE);
 void shoes_canvas_remove_item(VALUE, VALUE, char, char);
@@ -574,6 +575,10 @@ VALUE shoes_timer_remove(VALUE);
 VALUE shoes_timer_start(VALUE);
 VALUE shoes_timer_stop(VALUE);
 void shoes_timer_call(VALUE);
+
+VALUE shoes_svghandle_new(VALUE, VALUE);
+VALUE shoes_svghandle_alloc(VALUE);
+VALUE shoes_svghandle_close(VALUE);
 
 void shoes_color_mark(shoes_color *);
 VALUE shoes_color_new(int, int, int, int);

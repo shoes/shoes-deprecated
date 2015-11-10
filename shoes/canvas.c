@@ -780,6 +780,19 @@ shoes_canvas_timer(int argc, VALUE *argv, VALUE self)
 }
 
 VALUE
+shoes_canvas_svghandle(int argc, VALUE *argv, VALUE self)
+{
+  rb_arg_list args;
+  VALUE handle;
+  SETUP();
+
+  rb_parse_args(argc, argv, "|I&", &args);
+  handle = shoes_svghandle_new(cSvgHandle, self);
+  rb_ary_push(canvas->app->extras, handle);
+  return handle;
+}
+
+VALUE
 shoes_canvas_shape(int argc, VALUE *argv, VALUE self)
 {
   int x;

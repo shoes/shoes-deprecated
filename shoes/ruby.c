@@ -15,6 +15,7 @@
 
 VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cSlider, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE cTextEditBox;
+VALUE cSvgHandle;
 VALUE eVlcError, eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot, symAltEqual, symAltSemiColon;
@@ -4116,6 +4117,25 @@ shoes_timer_draw(VALUE self, VALUE c, VALUE actual)
   return self;
 }
 
+// new in 3.3.0
+
+VALUE
+shoes_svghandle_new(VALUE klass, VALUE arg)
+{
+  return Qnil;
+}
+VALUE
+shoes_svghandle_alloc(VALUE klass)
+{
+  return Qnil;
+}
+
+VALUE
+shoes_svghandle_close(VALUE self)
+{
+  return Qnil;
+}
+
 void
 shoes_msg(ID typ, VALUE str)
 {
@@ -4979,6 +4999,10 @@ shoes_ruby_init()
   cAnim    = rb_define_class_under(cTypes, "Animation", cTimerBase);
   cEvery   = rb_define_class_under(cTypes, "Every", cTimerBase);
   cTimer   = rb_define_class_under(cTypes, "Timer", cTimerBase);
+  
+  cSvgHandle    = rb_define_class_under(cTypes, "SvgHandle", rb_cObject);
+  rb_define_alloc_func(cSvgHandle, shoes_svghandle_alloc);
+  rb_define_method(cSvgHandle, "close", CASTHOOK(shoes_svghandle_close), 0);
 
   cColor   = rb_define_class_under(cTypes, "Color", rb_cObject);
   rb_define_alloc_func(cColor, shoes_color_alloc);

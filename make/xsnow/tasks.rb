@@ -128,10 +128,7 @@ class MakeDarwin
           dylibs = get_dylibs f
           dylibs.each do |dylib|
             if @brew_hsh[File.basename(dylib)]
-            #if dylib =~ /\/usr\/local\//
               sh "install_name_tool -change #{dylib} @executable_path/../#{File.basename dylib} #{f}"
-            #elsif dylib =~ /libz/ #10.9 has it in /usr/lib/libz.1.dylib
-              #sh "install_name_tool -change #{dylib} @executable_path/../#{File.basename dylib} #{f}"
             else
               puts "Bundle lib missing #{dylib}"
             end
@@ -148,7 +145,6 @@ class MakeDarwin
           sh "install_name_tool -id @executable_path/#{File.basename f} #{f}"
           dylibs = get_dylibs f
           dylibs.each do |dylib|
-            # another Cecil hack Should do the install_name_tool stuff
             chmod 0755, dylib if File.writable? dylib
             sh "install_name_tool -change #{dylib} @executable_path/#{File.basename dylib} #{f}"
           end
@@ -158,38 +154,11 @@ class MakeDarwin
 
     def copy_pango_modules
       puts "Entering copy_pango_modules #{`pwd`}"
-      #modules_file = `brew --prefix`.chomp << '/etc/pango/pango.modules'
-      #modules_file = "deps/osx/10.6/pango.modules"
-      #modules_path = File.open(modules_file) {|f| f.grep(/^# ModulesPath = (.*)$/){$1}.first}
-      mkdir_p "#{TGT_DIR}/pango/modules"
-      #cp_r modules_path, "#{TGT_DIR}/pango"
-      #cp_r "#{BREWLOC}/lib/pango", "#{TGT_DIR}"
-      #Dir.glob("#{BREWLOC}/lib/pango/**/modules/*.so").each do |f|
-      #  cp f, "#{TGT_DIR}/pango/modules"
-      #  chmod 0755, "#{TGT_DIR}/pango/modules/#{File.basename(f)}"
-      #end
-      #cp `which pango-querymodules`.chomp, "#{TGT_DIR}/"
-      #cp "#{BREWLOC}/bin/pango-querymodules", "#{TGT_DIR}/"
-      #chmod 0755, "#{TGT_DIR}/pango-querymodules"
       puts "Leaving copy_pango_modules"
     end
 
     def copy_gem_deplibs
       puts "Entering copy_gem_deplibs"
-      #versions = Dir.glob("#{ENV['SQLLOC']}/Cellar/sqlite/*")
-      #newest = versions[-1]
-      #['libsqlite3.dylib'].each do |lib| #, 'libiconv.2.dylib', 'libz.1.dylib',
-         #'libcrypto.dylib'].each do |lib|
-      [].each do |lib|
-        cp "#{BREWLOC}/opt/zlib/lib/#{lib}", "#{TGT_DIR}"
-        chmod 0755, "#{TGT_DIR}/#{lib}"
-      end
-      #['libxml2.dylib', 'libintl.8.dylib']
-      [].each do |lib|
-        cp "#{BREWLOC}/lib/#{lib}", "#{TGT_DIR}"
-        puts "copy_gem_deplibs copied #{lib}"
-        chmod 0755, "#{TGT_DIR}/#{lib}"
-      end
       puts "leaving copy_gem_deplib"
     end
 
@@ -223,8 +192,6 @@ class MakeDarwin
       # of those dependencies. Finally, add any oddballs that must be
       # included.
       dylibs = get_dylibs("#{TGT_DIR}/#{NAME}-bin")
-      #pqlibs = get_dylibs("#{TGT_DIR}/pango-querymodules")
-      #dylibs.concat pqlibs
       # add the gem's bundles.
       rbvm = RUBY_V[/^\d+\.\d+/]
       Dir["#{TGT_DIR}/lib/ruby/gems/#{rbvm}.0/gems/**/*.bundle"].each do |gb|
@@ -254,7 +221,6 @@ class MakeDarwin
           # the code below won't be triggered if they are.
           puts "Adding #{libn}"
           @brew_hsh[keyf] = libn
-          #cp @brew_hsh[keyf], "#{TGT_DIR}/" unless File.exists? "#{TGT_DIR}/#{keyf}"
           cp "#{BREWLOC}/lib/#{keyf}", "#{TGT_DIR}/" unless File.exists? "#{TGT_DIR}/#{keyf}"
           chmod 0755, "#{TGT_DIR}/#{keyf}" unless File.writable? "#{TGT_DIR}/#{keyf}"
         else

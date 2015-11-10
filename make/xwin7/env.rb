@@ -197,6 +197,8 @@ if APP['GTK'] == 'gtk+-3.0' && COPY_GTK == true
       'harfbuzz'    => "#{bindll}/libharfbuzz-0.dll",
       'png16'       => "#{bindll}/libpng16-16.dll",
       'xml2'        => "#{bindll}/libxml2-2.dll",
+      'croco'       => "#{bindll}/libcroco-0.6-3.dll",
+      'rsvg'        => "#{bindll}/librsvg-2-2.dll",
       'thread'      => "#{bindll}/libgthread-2.0-0.dll",
       'zlib1'       => "#{bindll}/zlib1.dll",
       'siji'        => "/usr/lib/gcc/i686-w64-mingw32/4.8/libgcc_s_sjlj-1.dll",
