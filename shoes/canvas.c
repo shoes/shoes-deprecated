@@ -782,13 +782,25 @@ shoes_canvas_timer(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_svghandle(int argc, VALUE *argv, VALUE self)
 {
-  rb_arg_list args;
+  
   VALUE handle;
   SETUP();
-
-  rb_parse_args(argc, argv, "|I&", &args);
-  handle = shoes_svghandle_new(cSvgHandle, self);
-  rb_ary_push(canvas->app->extras, handle);
+  rb_arg_list args;
+  ID  s_filename = rb_intern ("filename");
+  ID  s_fromstring = rb_intern ("from_string");
+  VALUE filename = shoes_hash_get(argv[0], s_filename);
+  VALUE fromstring = shoes_hash_get(argv[0], s_fromstring);
+  
+  if (NIL_P(filename) && NIL_P(fromstring))
+  {
+    rb_raise(rb_eArgError, "wrong arguments for svghandle({:filename=>'...'}) or"
+                              "{:from_string=>'...'})\n");
+  }
+  else
+  {
+    handle = shoes_svghandle_new(cSvgHandle, filename, fromstring, self);
+    canvas->svg = handle;
+  }
   return handle;
 }
 

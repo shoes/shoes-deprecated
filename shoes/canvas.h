@@ -267,6 +267,14 @@ typedef struct {
   SHOES_TIMER_REF ref;
 } shoes_timer;
 
+//
+// svg struct
+//
+typedef struct {
+  VALUE parent;
+  void *handle;  // RsvgHandle
+} shoes_svghandle;
+
 typedef void (*shoes_effect_filter)(cairo_t *, VALUE attr, shoes_place *);
 
 typedef struct {
@@ -293,7 +301,7 @@ typedef struct {
 #define CANVAS_REMOVED 4
 
 //
-// temporary canvas (used internally for painting)
+// not very temporary canvas (used internally for painting)
 //
 typedef struct {
   VALUE parent;
@@ -313,6 +321,7 @@ typedef struct {
   struct _shoes_app *app;
   SHOES_SLOT_OS *slot;
   SHOES_GROUP_OS group;
+  VALUE svg;                // 3.3.0 is there an svg on this canvas
 } shoes_canvas;
 
 void shoes_control_hide_ref(SHOES_CONTROL_REF);
@@ -576,7 +585,7 @@ VALUE shoes_timer_start(VALUE);
 VALUE shoes_timer_stop(VALUE);
 void shoes_timer_call(VALUE);
 
-VALUE shoes_svghandle_new(VALUE, VALUE);
+VALUE shoes_svghandle_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_svghandle_alloc(VALUE);
 VALUE shoes_svghandle_close(VALUE);
 

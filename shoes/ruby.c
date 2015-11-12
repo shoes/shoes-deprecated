@@ -4117,24 +4117,6 @@ shoes_timer_draw(VALUE self, VALUE c, VALUE actual)
   return self;
 }
 
-// new in 3.3.0
-
-VALUE
-shoes_svghandle_new(VALUE klass, VALUE arg)
-{
-  return Qnil;
-}
-VALUE
-shoes_svghandle_alloc(VALUE klass)
-{
-  return Qnil;
-}
-
-VALUE
-shoes_svghandle_close(VALUE self)
-{
-  return Qnil;
-}
 
 void
 shoes_msg(ID typ, VALUE str)

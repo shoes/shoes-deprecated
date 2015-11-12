@@ -59,10 +59,10 @@ PANGO_LIB = `pkg-config --libs pango`.strip
 GTK_FLAGS = "#{`pkg-config --cflags #{APP['GTK']}`.strip}"
 GTK_LIB = "#{`pkg-config --libs #{APP['GTK']}`.strip}"
 
-MISC_LIB = " -lgif -ljpeg "
+MISC_LIB = " -lgif -ljpeg  /usr/lib/x86_64-linux-gnu/librsvg-2.so"
 
 # collect flags together
-LINUX_CFLAGS << " #{RUBY_CFLAGS} #{GTK_FLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS}"
+LINUX_CFLAGS << " #{RUBY_CFLAGS} #{GTK_FLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I/usr/include/librsvg-2.0/librsvg"
 
 # collect link settings together. Does order matter?
 LINUX_LIBS = "#{RUBY_LIB} #{GTK_LIB}  #{CAIRO_LIB} #{PANGO_LIB} #{MISC_LIB}"
