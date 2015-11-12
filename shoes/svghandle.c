@@ -67,9 +67,10 @@ shoes_svghandle_new(VALUE klass, VALUE path, VALUE str, VALUE parent)
     // raise an exception
   }
   obj = shoes_svghandle_alloc(klass); 
-  // get a ptr to the stuct inside obj
+  // get a ptr to the struct inside obj
   shoes_svghandle *svghan;
   Data_Get_Struct(obj, shoes_svghandle, svghan);
+  svghan->parent = parent;
   svghan->handle = rhandle;
   
   return obj;
@@ -84,5 +85,23 @@ shoes_svghandle_close(VALUE self)
   Data_Get_Struct(self, shoes_svghandle, svghan);
   rhan = svghan->handle;
   g_object_unref(rhan);
+  return Qnil;
+}
+
+VALUE
+shoes_svghandle_draw(VALUE self)
+{
+  // unwrap the svghandle
+  shoes_svghandle *svghan = NULL;
+  shoes_canvas *canvas = NULL;
+  RsvgHandle *rhan;
+  Data_Get_Struct(self, shoes_svghandle, svghan);
+  // get the RsvgHandle and the parent (a shoes canvas I hope)
+  rhan = svghan->handle;
+  VALUE parent = svghan->parent;
+  // get the C version of canvas
+  Data_Get_Struct(parent, shoes_canvas, canvas);
+  canvas->cr = shoes_cairo_create(canvas); //platform dependent impl?
+  rsvg_handle_render_cairo(rhan, canvas->cr);
   return Qnil;
 }

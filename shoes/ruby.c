@@ -4985,6 +4985,7 @@ shoes_ruby_init()
   cSvgHandle    = rb_define_class_under(cTypes, "SvgHandle", rb_cObject);
   rb_define_alloc_func(cSvgHandle, shoes_svghandle_alloc);
   rb_define_method(cSvgHandle, "close", CASTHOOK(shoes_svghandle_close), 0);
+  rb_define_method(cSvgHandle, "draw", CASTHOOK(shoes_svghandle_draw), 0);
 
   cColor   = rb_define_class_under(cTypes, "Color", rb_cObject);
   rb_define_alloc_func(cColor, shoes_color_alloc);

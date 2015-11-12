@@ -588,6 +588,7 @@ void shoes_timer_call(VALUE);
 VALUE shoes_svghandle_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_svghandle_alloc(VALUE);
 VALUE shoes_svghandle_close(VALUE);
+VALUE shoes_svghandle_draw(VALUE);
 
 void shoes_color_mark(shoes_color *);
 VALUE shoes_color_new(int, int, int, int);
