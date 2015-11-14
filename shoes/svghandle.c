@@ -11,9 +11,8 @@
 #include "shoes/http.h"
 #include "shoes/effects.h"
 #include <math.h>
-
+#ifdef SVGHANDLE
 #include <rsvg.h>
-
 
 // alloc some memory for a shoes_svghandle; We'll protect it from gc
 // out of caution.
@@ -88,6 +87,16 @@ shoes_svghandle_close(VALUE self)
   return Qnil;
 }
 
+void  shoes_svghandle_repaint(shoes_canvas *canvas) 
+{
+  printf("svg repaint\n");
+  shoes_svghandle *svghan = NULL;
+  RsvgHandle *rhan;
+  Data_Get_Struct(canvas->svg, shoes_svghandle, svghan);
+  canvas->cr = shoes_cairo_create(canvas); //platform dependent impl?
+  rsvg_handle_render_cairo(rhan, canvas->cr);
+}
+
 VALUE
 shoes_svghandle_draw(VALUE self)
 {
@@ -105,3 +114,4 @@ shoes_svghandle_draw(VALUE self)
   rsvg_handle_render_cairo(rhan, canvas->cr);
   return Qnil;
 }
+#endif

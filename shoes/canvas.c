@@ -782,7 +782,7 @@ shoes_canvas_timer(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_svghandle(int argc, VALUE *argv, VALUE self)
 {
-  
+#ifdef SVGHANDLE 
   VALUE handle;
   SETUP();
   rb_arg_list args;
@@ -802,7 +802,11 @@ shoes_canvas_svghandle(int argc, VALUE *argv, VALUE self)
     canvas->svg = handle;
   }
   return handle;
+#else
+  return Qnil;
+#endif
 }
+
 
 VALUE
 shoes_canvas_shape(int argc, VALUE *argv, VALUE self)
@@ -1712,7 +1716,14 @@ shoes_canvas_repaint_all(VALUE self)
   Data_Get_Struct(self, shoes_canvas, canvas);
   if (canvas->stage == CANVAS_EMPTY) return;
   shoes_canvas_compute(self);
+#ifdef SVGHANDLE
+  if (!NIL_P(canvas->svg))
+    shoes_svghandle_repaint(canvas);
+  else
+    shoes_slot_repaint(canvas->slot);
+#else
   shoes_slot_repaint(canvas->slot);
+#endif
 }
 
 typedef VALUE (*ccallfunc)(VALUE);

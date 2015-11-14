@@ -267,6 +267,7 @@ typedef struct {
   SHOES_TIMER_REF ref;
 } shoes_timer;
 
+#ifdef SVGHANDLE
 //
 // svg struct
 //
@@ -274,6 +275,7 @@ typedef struct {
   VALUE parent;
   void *handle;  // RsvgHandle
 } shoes_svghandle;
+#endif
 
 typedef void (*shoes_effect_filter)(cairo_t *, VALUE attr, shoes_place *);
 
@@ -321,7 +323,9 @@ typedef struct {
   struct _shoes_app *app;
   SHOES_SLOT_OS *slot;
   SHOES_GROUP_OS group;
+#ifdef SVGHANDLE
   VALUE svg;                // 3.3.0 is there an svg on this canvas
+#endif
 } shoes_canvas;
 
 void shoes_control_hide_ref(SHOES_CONTROL_REF);
@@ -588,6 +592,7 @@ void shoes_timer_call(VALUE);
 VALUE shoes_svghandle_new(VALUE, VALUE, VALUE, VALUE);
 VALUE shoes_svghandle_alloc(VALUE);
 VALUE shoes_svghandle_close(VALUE);
+void  shoes_svghandle_repaint(shoes_canvas *);
 VALUE shoes_svghandle_draw(VALUE);
 
 void shoes_color_mark(shoes_color *);

@@ -1,5 +1,5 @@
 # simple test of svghandle class - full path name is important
-Shoes.app do
+Shoes.app width: 400 do
   @slot = stack do
     fpath = "/home/ccoupe/Projects/shoes3/icon/brownshoes.svg"
     #svgh = svghandle({:filename => fpath})
