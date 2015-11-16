@@ -780,35 +780,6 @@ shoes_canvas_timer(int argc, VALUE *argv, VALUE self)
 }
 
 VALUE
-shoes_canvas_svghandle(int argc, VALUE *argv, VALUE self)
-{
-#ifdef SVGHANDLE 
-  VALUE handle;
-  SETUP();
-  rb_arg_list args;
-  ID  s_filename = rb_intern ("filename");
-  ID  s_fromstring = rb_intern ("from_string");
-  VALUE filename = shoes_hash_get(argv[0], s_filename);
-  VALUE fromstring = shoes_hash_get(argv[0], s_fromstring);
-  
-  if (NIL_P(filename) && NIL_P(fromstring))
-  {
-    rb_raise(rb_eArgError, "wrong arguments for svghandle({:filename=>'...'}) or"
-                              "{:from_string=>'...'})\n");
-  }
-  else
-  {
-    handle = shoes_svghandle_new(cSvgHandle, filename, fromstring, self);
-    canvas->svg = handle;
-  }
-  return handle;
-#else
-  return Qnil;
-#endif
-}
-
-
-VALUE
 shoes_canvas_shape(int argc, VALUE *argv, VALUE self)
 {
   int x;
@@ -1716,14 +1687,7 @@ shoes_canvas_repaint_all(VALUE self)
   Data_Get_Struct(self, shoes_canvas, canvas);
   if (canvas->stage == CANVAS_EMPTY) return;
   shoes_canvas_compute(self);
-#ifdef SVGHANDLE
-  if (!NIL_P(canvas->svg))
-    shoes_svghandle_repaint(canvas);
-  else
-    shoes_slot_repaint(canvas->slot);
-#else
   shoes_slot_repaint(canvas->slot);
-#endif
 }
 
 typedef VALUE (*ccallfunc)(VALUE);

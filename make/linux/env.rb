@@ -9,7 +9,6 @@ require 'rbconfig'
 #APP['GTK'] = "gtk+-2.0"
 APP['GTK'] = "gtk+-3.0"
 ENV['GDB'] = "true" # true => compile -g,  don't strip symbols
-APP['SVG'] = 'handle' # 'handle' or 'none'
 if ENV['GDB']
   LINUX_CFLAGS = "-g -O0"
 else
@@ -62,10 +61,6 @@ GTK_LIB = "#{`pkg-config --libs #{APP['GTK']}`.strip}"
 
 MISC_LIB = " -lgif -ljpeg"
 MISC_CFLAGS = ' '
-if APP['SVG'] == 'handle' 
- MISC_CFLAGS << "-DSVGHANDLE -I/usr/include/librsvg-2.0/librsvg "
- MISC_LIB << ' /usr/lib/x86_64-linux-gnu/librsvg-2.so'
-end
 
 # collect flags together
 LINUX_CFLAGS << " #{RUBY_CFLAGS} #{GTK_FLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{MISC_CFLAGS}"
