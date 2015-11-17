@@ -15,6 +15,8 @@
 
 #include "shoes/config.h"
 #include "shoes/code.h"
+#include <rsvg.h>
+
 
 struct _shoes_app;
 
@@ -267,16 +269,6 @@ typedef struct {
   SHOES_TIMER_REF ref;
 } shoes_timer;
 
-#ifdef SVGHANDLE
-//
-// svg struct
-//
-typedef struct {
-  VALUE parent;
-  void *handle;  // RsvgHandle
-} shoes_svghandle;
-#endif
-
 typedef void (*shoes_effect_filter)(cairo_t *, VALUE attr, shoes_place *);
 
 typedef struct {
@@ -302,6 +294,19 @@ typedef struct {
 #define CANVAS_EMPTY   3
 #define CANVAS_REMOVED 4
 
+
+//
+// SVG struct
+//
+typedef struct {
+  VALUE parent;
+  VALUE attr;
+  shoes_place place;
+  SHOES_CONTROL_REF ref;
+  RsvgHandle *handle;
+  SHOES_SLOT_OS *slot;
+} shoes_svg;
+
 //
 // not very temporary canvas (used internally for painting)
 //
@@ -323,9 +328,6 @@ typedef struct {
   struct _shoes_app *app;
   SHOES_SLOT_OS *slot;
   SHOES_GROUP_OS group;
-#ifdef SVGHANDLE
-  VALUE svg;                // 3.3.0 is there an svg on this canvas
-#endif
 } shoes_canvas;
 
 void shoes_control_hide_ref(SHOES_CONTROL_REF);
@@ -418,7 +420,7 @@ VALUE shoes_canvas_image(int, VALUE *, VALUE);
 VALUE shoes_canvas_animate(int, VALUE *, VALUE);
 VALUE shoes_canvas_every(int, VALUE *, VALUE);
 VALUE shoes_canvas_timer(int, VALUE *, VALUE);
-VALUE shoes_canvas_svghandle(int, VALUE *, VALUE);
+VALUE shoes_canvas_svg(int, VALUE *, VALUE);
 VALUE shoes_canvas_imagesize(VALUE, VALUE);
 VALUE shoes_canvas_shape(int, VALUE *, VALUE);
 void shoes_canvas_remove_item(VALUE, VALUE, char, char);
@@ -505,6 +507,17 @@ VALUE shoes_stack_new(VALUE, VALUE);
 VALUE shoes_mask_new(VALUE, VALUE);
 VALUE shoes_widget_new(VALUE, VALUE, VALUE);
 
+VALUE shoes_svg_new(VALUE, VALUE, VALUE, VALUE);
+VALUE shoes_svg_alloc(VALUE);
+VALUE shoes_svg_draw(VALUE, VALUE, VALUE);
+VALUE shoes_svg_show(VALUE);
+VALUE shoes_svg_hide(VALUE);
+VALUE shoes_svg_get_top(VALUE);
+VALUE shoes_svg_get_left(VALUE);
+VALUE shoes_svg_get_width(VALUE);
+VALUE shoes_svg_get_height(VALUE);
+VALUE shoes_svg_remove(VALUE);
+
 void shoes_control_mark(shoes_control *);
 VALUE shoes_control_new(VALUE, VALUE, VALUE);
 VALUE shoes_control_alloc(VALUE);
@@ -588,12 +601,6 @@ VALUE shoes_timer_remove(VALUE);
 VALUE shoes_timer_start(VALUE);
 VALUE shoes_timer_stop(VALUE);
 void shoes_timer_call(VALUE);
-
-VALUE shoes_svghandle_new(VALUE, VALUE, VALUE, VALUE);
-VALUE shoes_svghandle_alloc(VALUE);
-VALUE shoes_svghandle_close(VALUE);
-void  shoes_svghandle_repaint(shoes_canvas *);
-VALUE shoes_svghandle_draw(VALUE);
 
 void shoes_color_mark(shoes_color *);
 VALUE shoes_color_new(int, int, int, int);

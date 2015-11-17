@@ -779,10 +779,25 @@ shoes_canvas_timer(int argc, VALUE *argv, VALUE self)
   return timer;
 }
 
+
 VALUE
-shoes_canvas_svghandle(int argc, VALUE *argv, VALUE self)
+shoes_canvas_svg(int argc, VALUE *argv, VALUE self)
 {
-#ifdef SVGHANDLE 
+  VALUE widget, attr = Qnil;
+  SETUP();
+  rb_arg_list args;
+  ID  s_filename = rb_intern ("filename");
+  ID  s_fromstring = rb_intern ("from_string");
+  VALUE filename = shoes_hash_get(argv[0], s_filename);
+  VALUE fromstring = shoes_hash_get(argv[0], s_fromstring);
+  //rb_parse_args(argc, argv, "k|", &args);
+  //if (TYPE(argv[argc-1]) == T_HASH)
+  //  attr = argv[argc-1];
+  widget = shoes_svg_new(cSvg, filename, fromstring, self);
+  //DRAW(widget, canvas->app, ts_funcall2(widget, rb_intern("initialize"), argc - 1, argv + 1));
+  shoes_add_ele(canvas, widget);
+  return widget;
+#ifdef OLD_CODE
   VALUE handle;
   SETUP();
   rb_arg_list args;
@@ -793,17 +808,15 @@ shoes_canvas_svghandle(int argc, VALUE *argv, VALUE self)
   
   if (NIL_P(filename) && NIL_P(fromstring))
   {
-    rb_raise(rb_eArgError, "wrong arguments for svghandle({:filename=>'...'}) or"
+    rb_raise(rb_eArgError, "wrong arguments for svg.new({:filename=>'...'}) or"
                               "{:from_string=>'...'})\n");
   }
   else
   {
-    handle = shoes_svghandle_new(cSvgHandle, filename, fromstring, self);
-    canvas->svg = handle;
+    handle = shoes_svg_new(cSvg, filename, fromstring, self);
+    // add widget
   }
   return handle;
-#else
-  return Qnil;
 #endif
 }
 
@@ -1716,14 +1729,7 @@ shoes_canvas_repaint_all(VALUE self)
   Data_Get_Struct(self, shoes_canvas, canvas);
   if (canvas->stage == CANVAS_EMPTY) return;
   shoes_canvas_compute(self);
-#ifdef SVGHANDLE
-  if (!NIL_P(canvas->svg))
-    shoes_svghandle_repaint(canvas);
-  else
-    shoes_slot_repaint(canvas->slot);
-#else
   shoes_slot_repaint(canvas->slot);
-#endif
 }
 
 typedef VALUE (*ccallfunc)(VALUE);

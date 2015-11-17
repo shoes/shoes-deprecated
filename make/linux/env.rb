@@ -34,6 +34,7 @@ else
   file_list = %w(shoes/native/gtk.c shoes/native/gtkfixedalt.c shoes/native/gtkentryalt.c
                shoes/native/gtkcomboboxtextalt.c shoes/native/gtkbuttonalt.c
                shoes/native/gtkscrolledwindowalt.c shoes/native/gtkprogressbaralt.c 
+               shoes/native/gtksvg.c 
                shoes/http/rbload.c) + ["shoes/*.c"] + ["shoes/console/*.c"]
 end
 SRC = FileList[*file_list]
