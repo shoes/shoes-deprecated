@@ -73,6 +73,8 @@ shoes_svg_new(VALUE klass, VALUE path, VALUE str, VALUE parent)
   // get a ptr to the struct inside obj
   shoes_svg *svghan;
   Data_Get_Struct(obj, shoes_svg, svghan);
+  RsvgDimensionData svgdim;
+  rsvg_handle_get_dimensions (rhandle, &svghan->svgdim);
   svghan->parent = parent;
   svghan->handle = rhandle;
   svghan->init = FALSE;
@@ -96,10 +98,11 @@ VALUE shoes_svg_draw(VALUE self, VALUE c, VALUE actual)
       {
         // still need to finish the new/init
         self_t->ref = shoes_native_svg_new(canvas, self, &canvas->place);
-        shoes_place_decide(&place, c, self_t->attr, 200, 200, REL_CANVAS, TRUE);
+        //shoes_place_decide(&place, c, self_t->attr, 200, 200, REL_CANVAS, TRUE);
+        shoes_place_decide(&place, c, self_t->attr, self_t->svgdim.width, self_t->svgdim.height, REL_CANVAS, TRUE);
         shoes_native_surface_position(self_t->ref, &self_t->place, self, canvas, &place); 
         self_t->init = 1;
-        shoes_native_svg_draw_event(self_t->ref, canvas->cr, Qnil);
+        //shoes_native_svg_draw_event(self_t->ref, canvas->cr, Qnil);
         //rsvg_handle_render_cairo(self_t->handle, canvas->cr);
       }
     }
@@ -140,12 +143,18 @@ VALUE shoes_svg_get_left(VALUE self)
 
 VALUE shoes_svg_get_width(VALUE self)
 {
-  printf("get_width\n");
+  int w;
+  //shoes_svg *self_t;
+  GET_STRUCT(svg, self_t);
+  w = self_t->svgdim.width;
+  return INT2NUM(w);
 }
+  
 
 VALUE shoes_svg_get_height(VALUE self)
 {
-    printf("get_height\n");
+  GET_STRUCT(svg, self_t);
+  return INT2NUM(self_t->svgdim.height);
 }
 
 VALUE shoes_svg_remove(VALUE self)

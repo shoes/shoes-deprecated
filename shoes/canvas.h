@@ -305,6 +305,7 @@ typedef struct {
   SHOES_CONTROL_REF ref;
   int init;
   RsvgHandle *handle;
+  RsvgDimensionData svgdim;
   SHOES_SLOT_OS *slot;
 } shoes_svg;
 
