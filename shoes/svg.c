@@ -73,24 +73,54 @@ shoes_svg_new(VALUE klass, VALUE path, VALUE str, VALUE parent)
   // get a ptr to the struct inside obj
   shoes_svg *svghan;
   Data_Get_Struct(obj, shoes_svg, svghan);
-  svghan->ref = shoes_native_svg_new(canvas, Qnil, Qnil);
   svghan->parent = parent;
   svghan->handle = rhandle;
+  svghan->init = FALSE;
   
   return obj;
 }
 
+// This gets called very often. May be slow for large SVG?
 VALUE shoes_svg_draw(VALUE self, VALUE c, VALUE actual)
 {
-  printf("shoes_svg_draw:\n");
+  shoes_svg *self_t;
+  shoes_canvas *canvas;
+  shoes_place place;
+  Data_Get_Struct(self, shoes_svg, self_t);
+  Data_Get_Struct(c, shoes_canvas, canvas);
+  if (RTEST(actual))
+  {
+    if (HAS_DRAWABLE(canvas->slot))
+    {
+      if (self_t->init == 0)
+      {
+        // still need to finish the new/init
+        self_t->ref = shoes_native_svg_new(canvas, self, &canvas->place);
+        shoes_place_decide(&place, c, self_t->attr, 200, 200, REL_CANVAS, TRUE);
+        shoes_native_surface_position(self_t->ref, &self_t->place, self, canvas, &place); 
+        self_t->init = 1;
+        shoes_native_svg_draw_event(self_t->ref, canvas->cr, Qnil);
+        //rsvg_handle_render_cairo(self_t->handle, canvas->cr);
+      }
+    }
+  }
+  //if (ATTR(selt_t->attr, hidden) == Qtrue) return self;
+  //shoes_place_decide(&place, c, self_t->attr, 200, 200, REL_CANVAS, TRUE);
+  //    REL_COORDS(REL_CANVAS) == REL_CANVAS);
+  //rsvg_handle_render_cairo(svg->handle, canvas->cr);
+  //rsvg_handle_render_cairo(selt_t->handle, canvas->slot->drawevent);
+  //shoes_native_svg_draw_event(svg->ref, canvas->cr, Qnil);
+  return self;
 }
 
 VALUE shoes_svg_show(VALUE self)
 {
+  printf("show");
 }
 
 VALUE shoes_svg_hide(VALUE self) 
 {
+  printf("hide\n");
   GET_STRUCT(svg, self_t);
   ATTRSET(self_t->attr, hidden, Qtrue);
   shoes_native_surface_hide(self_t->ref); // shoes_native_svg_hide ??
@@ -100,22 +130,27 @@ VALUE shoes_svg_hide(VALUE self)
 
 VALUE shoes_svg_get_top(VALUE self)
 {
+  printf("get_top\n");
 }
 
 VALUE shoes_svg_get_left(VALUE self)
 {
+  printf("get_left\n");
 }
 
 VALUE shoes_svg_get_width(VALUE self)
 {
+  printf("get_width\n");
 }
 
 VALUE shoes_svg_get_height(VALUE self)
 {
+    printf("get_height\n");
 }
 
 VALUE shoes_svg_remove(VALUE self)
 {
+  printf("remove\n");
 }
 
 

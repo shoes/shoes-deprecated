@@ -82,6 +82,7 @@ void shoes_native_svg_position(SHOES_SURFACE_REF, shoes_place *,
 void shoes_native_svg_hide(SHOES_SURFACE_REF);
 void shoes_native_svg_show(SHOES_SURFACE_REF);
 void shoes_native_svg_remove(shoes_canvas *, SHOES_SURFACE_REF);
+void shoes_native_svg_draw(SHOES_SURFACE_REF, shoes_canvas *);
 
 SHOES_CONTROL_REF shoes_native_button(VALUE, shoes_canvas *, shoes_place *, char *);
 SHOES_CONTROL_REF shoes_native_edit_line(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);

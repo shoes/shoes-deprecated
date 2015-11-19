@@ -303,6 +303,7 @@ typedef struct {
   VALUE attr;
   shoes_place place;
   SHOES_CONTROL_REF ref;
+  int init;
   RsvgHandle *handle;
   SHOES_SLOT_OS *slot;
 } shoes_svg;

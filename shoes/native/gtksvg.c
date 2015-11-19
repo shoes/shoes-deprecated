@@ -7,7 +7,7 @@
 #include "shoes/internal.h"
 
 gboolean
-shoes_native_svg_draw_callback (GtkWidget *widget, cairo_t *cr, gpointer data)
+shoes_native_svg_draw_event(GtkWidget *widget, cairo_t *cr, gpointer data)
 {
   guint width, height;
   GdkRGBA color;
@@ -25,7 +25,19 @@ shoes_native_svg_draw_callback (GtkWidget *widget, cairo_t *cr, gpointer data)
   gdk_cairo_set_source_rgba (cr, &color);
 
   cairo_fill (cr);
+  printf("draw event\n");
+ return FALSE;
+}
 
+gboolean
+shoes_native_svg_draw_handle(GtkWidget *widget, cairo_t *cr, gpointer data)
+{
+  shoes_svg *self_t;
+  shoes_canvas *canvas;
+  Data_Get_Struct(data, shoes_svg, self_t);
+  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+  rsvg_handle_render_cairo(self_t->handle, canvas->slot->drawevent);
+  printf("draw handle\n");
  return FALSE;
 }
 
@@ -35,7 +47,7 @@ shoes_native_svg_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
   GtkWidget *drawing_area = gtk_drawing_area_new();
   gtk_widget_set_size_request (drawing_area, 200, 200);
   g_signal_connect (G_OBJECT (drawing_area), "draw",
-                    G_CALLBACK (shoes_native_svg_draw_callback), (gpointer)canvas);
+                    G_CALLBACK (shoes_native_svg_draw_handle), (gpointer)self);
   return drawing_area;
 }
 
