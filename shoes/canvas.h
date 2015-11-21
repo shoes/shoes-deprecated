@@ -509,15 +509,18 @@ VALUE shoes_stack_new(VALUE, VALUE);
 VALUE shoes_mask_new(VALUE, VALUE);
 VALUE shoes_widget_new(VALUE, VALUE, VALUE);
 
-VALUE shoes_svg_new(VALUE, VALUE, VALUE, VALUE);
+VALUE shoes_svg_new(int, VALUE*, VALUE);
 VALUE shoes_svg_alloc(VALUE);
 VALUE shoes_svg_draw(VALUE, VALUE, VALUE);
+VALUE shoes_svg_render(VALUE, VALUE, VALUE);
 VALUE shoes_svg_show(VALUE);
 VALUE shoes_svg_hide(VALUE);
 VALUE shoes_svg_get_top(VALUE);
 VALUE shoes_svg_get_left(VALUE);
 VALUE shoes_svg_get_width(VALUE);
 VALUE shoes_svg_get_height(VALUE);
+VALUE shoes_svg_full_height(VALUE);
+VALUE shoes_svg_full_width(VALUE);
 VALUE shoes_svg_remove(VALUE);
 
 void shoes_control_mark(shoes_control *);

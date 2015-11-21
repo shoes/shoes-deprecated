@@ -71,7 +71,8 @@ gtk_extra_list = []
 if APP['GTK'] == "gtk+-3.0"
   gtk_extra_list = %w(shoes/native/gtkfixedalt.c shoes/native/gtkentryalt.c
                shoes/native/gtkcomboboxtextalt.c shoes/native/gtkbuttonalt.c
-               shoes/native/gtkscrolledwindowalt.c shoes/native/gtkprogressbaralt.c )
+               shoes/native/gtkscrolledwindowalt.c shoes/native/gtkprogressbaralt.c
+               shoes/native/gtksvg.c )
 end
 if RUBY_HTTP
   file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"]
@@ -120,6 +121,7 @@ LINUX_CFLAGS << xfixrvmp(`pkg-config --cflags "#{pkgruby}"`.strip)+" "
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/#{arch} "
 LINUX_CFLAGS << xfixip("-I/usr/include")+" "
 LINUX_CFLAGS << xfixip(`pkg-config --cflags "#{pkggtk}"`.strip)+" "
+LINUX_CFLAGS << "-I#{ShoesDeps}/include/librsvg-2.0/librsvg "
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/local/include "
 if ENV['GDB']== 'profile'
   LINUX_CFLAGS <<  '-pg'
@@ -131,7 +133,7 @@ LINUX_CFLAGS << " -mms-bitfields -D__MINGW_USE_VC2005_COMPAT -DXMD_H -D_WIN32_IE
 # It should probably be in tasks/prebuild or tasks/package
 cp APP['icons']['win32'], "shoes/appwin32.ico"
 
-LINUX_LIB_NAMES = %W[gif-4 jpeg]
+LINUX_LIB_NAMES = %W[gif-4 jpeg librsvg-2]
 
 DLEXT = "dll"
 #LINUX_LDFLAGS = "-fPIC -shared -L#{ularch} "

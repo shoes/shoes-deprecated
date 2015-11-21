@@ -4982,11 +4982,13 @@ shoes_ruby_init()
   cEvery   = rb_define_class_under(cTypes, "Every", cTimerBase);
   cTimer   = rb_define_class_under(cTypes, "Timer", cTimerBase);
 
-  cSvg   = rb_define_class_under(cTypes, "Svg", cNative);
+  cSvg   = rb_define_class_under(cTypes, "Svg", rb_cObject);
   rb_define_alloc_func(cSvg, shoes_svg_alloc);
   rb_define_method(cSvg, "draw", CASTHOOK(shoes_svg_draw), 2);
-  rb_define_method(cSvg, "width", CASTHOOK(shoes_svg_get_width), 0);
-  rb_define_method(cSvg, "height", CASTHOOK(shoes_svg_get_height),0);
+  rb_define_method(cSvg, "render", CASTHOOK(shoes_svg_render), -1);
+  rb_define_method(cSvg, "full_width", CASTHOOK(shoes_svg_get_width), 0);
+  rb_define_method(cSvg, "full_height", CASTHOOK(shoes_svg_get_height),0);
+ 
 
   cColor   = rb_define_class_under(cTypes, "Color", rb_cObject);
   rb_define_alloc_func(cColor, shoes_color_alloc);

@@ -36,7 +36,9 @@ shoes_native_svg_draw_handle(GtkWidget *widget, cairo_t *cr, gpointer data)
   shoes_canvas *canvas;
   Data_Get_Struct(data, shoes_svg, self_t);
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-  rsvg_handle_render_cairo(self_t->handle, canvas->slot->drawevent);
+  cairo_scale(cr, (self_t->place.w * 1.0) / self_t->svgdim.width, 
+    (self_t->place.h * 1.0) / self_t->svgdim.height);
+  rsvg_handle_render_cairo(self_t->handle, cr);
   printf("draw handle\n");
  return FALSE;
 }
