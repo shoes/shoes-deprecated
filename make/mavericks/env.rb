@@ -41,10 +41,12 @@ CAIRO_CFLAGS = `pkg-config --cflags cairo`.strip
 CAIRO_LIB = `pkg-config --libs`.strip
 PANGO_CFLAGS = `pkg-config --cflags pango`.strip
 PANGO_LIB = `pkg-config --libs pango`.strip
+MISC_CFLAGS = "-I#{BREWLOC}/include/librsvg-2.0/librsvg -I#{BREWLOC}/include/gdk-pixbuf-2.0"
+MISC_LIB = `pkg-config --libs librsvg-2.0`.strip
 
 png_lib = 'png'
 
-LINUX_CFLAGS = %[-g -Wall  -I#{BREWLOC}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} -I#{RbConfig::CONFIG['archdir']}]
+LINUX_CFLAGS = %[-g -Wall  -I#{BREWLOC}/include #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{MISC_CFLAGS} -I#{RbConfig::CONFIG['archdir']}]
 if RbConfig::CONFIG['rubyhdrdir']
   LINUX_CFLAGS << " -I#{RbConfig::CONFIG['rubyhdrdir']} -I#{RbConfig::CONFIG['rubyhdrdir']}/#{SHOES_RUBY_ARCH}"
 end
@@ -100,7 +102,7 @@ LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
 #LINUX_LIBS << " -L#{RbConfig::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB}"
 #LINUX_LIBS << " -L#{TGT_DIR}/lib/ruby/#{RUBY_V} #{CAIRO_LIB} #{PANGO_LIB}"
-LINUX_LIBS << " -L#{TGT_DIR} #{CAIRO_LIB} #{PANGO_LIB}"
+LINUX_LIBS << " -L#{TGT_DIR} #{CAIRO_LIB} #{PANGO_LIB} #{MISC_LIB}"
 
 
 # Additional Libraries

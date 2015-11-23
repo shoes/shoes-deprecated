@@ -85,7 +85,7 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
     // raise an exception
   }
   Data_Get_Struct(parent, shoes_canvas, canvas);
-  obj = shoes_svg_alloc(klass); 
+  obj = shoes_svg_alloc(klass);
   // get a ptr to the struct inside obj
   shoes_svg *svghan;
   Data_Get_Struct(obj, shoes_svg, svghan);
@@ -95,7 +95,7 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   svghan->parent = parent;
   svghan->handle = rhandle;
   svghan->init = FALSE;
-  
+
   return obj;
 }
 
@@ -118,9 +118,9 @@ VALUE shoes_svg_draw(VALUE self, VALUE c, VALUE actual)
         int h = self_t->place.h;
         self_t->ref = shoes_native_svg_new(canvas, self, &canvas->place);
         shoes_place_decide(&place, c, self_t->attr, w, h, REL_CANVAS, TRUE);
-        //shoes_place_decide(&place, c, self_t->attr, self_t->svgdim.width, self_t->svgdim.height, REL_CANVAS, TRUE);
-        shoes_native_surface_position(self_t->ref, &self_t->place, self, canvas, &place); 
+        shoes_native_surface_position(self_t->ref, &self_t->place, self, canvas, &place);
         self_t->init = 1;
+        shoes_native_svg_draw(self_t->ref, canvas->cr, self);
         //shoes_native_svg_draw_event(self_t->ref, canvas->cr, Qnil);
         //rsvg_handle_render_cairo(self_t->handle, canvas->cr);
       }
@@ -136,7 +136,7 @@ VALUE shoes_svg_draw(VALUE self, VALUE c, VALUE actual)
   return self;
 }
 
-VALUE shoes_svg_render(VALUE self, VALUE argc, VALUE argv) 
+VALUE shoes_svg_render(VALUE self, VALUE argc, VALUE argv)
 {
   printf("render\n");
 }
@@ -146,7 +146,7 @@ VALUE shoes_svg_show(VALUE self)
   printf("show\n");
 }
 
-VALUE shoes_svg_hide(VALUE self) 
+VALUE shoes_svg_hide(VALUE self)
 {
   printf("hide\n");
   GET_STRUCT(svg, self_t);
@@ -184,7 +184,7 @@ VALUE shoes_svg_get_full_width(VALUE self)
   w = self_t->svgdim.width;
   return INT2NUM(w);
 }
-  
+
 VALUE shoes_svg_get_full_height(VALUE self)
 {
   GET_STRUCT(svg, self_t);
@@ -195,5 +195,3 @@ VALUE shoes_svg_remove(VALUE self)
 {
   printf("remove\n");
 }
-
-

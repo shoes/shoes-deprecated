@@ -40,7 +40,8 @@ ADD_DLL = []
 # nothing is going to change for 10.9 deps - don't bother with pkg-config
 # because it does go wrong in this situation.
 GLIB_CFLAGS   = "-I#{BREWLOC}/include/glib-2.0 -I#{BREWLOC}/lib/glib-2.0/include"
-GLIB_LDFLAGS  = "-L#{BREWLOC}/lib -lglib-2.0 -lgobject-2.0 -lintl"
+GLIB_CFLAGS << " -I#{BREWLOC}/include/librsvg-2.0/librsvg -I#{BREWLOC}/include/gdk-pixbuf-2.0/"
+GLIB_LDFLAGS  = "-L#{BREWLOC}/lib -lglib-2.0 -lgobject-2.0 -lintl #{BREWLOC}/lib/librsvg-2.2.dylib"
 CAIRO_CFLAGS  = "-I#{BREWLOC}/include/cairo"
 CAIRO_LDFLAGS = "-L#{BREWLOC}/lib -lcairo"
 PANGO_CFLAGS  = "-I#{BREWLOC}/include/pango-1.0"

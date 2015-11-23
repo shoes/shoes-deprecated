@@ -1310,6 +1310,27 @@ shoes_native_surface_remove(shoes_canvas *canvas, SHOES_SURFACE_REF ref)
 {
 }
 
+// svg
+SHOES_SURFACE_REF
+shoes_native_svg_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
+{
+  return shoes_native_surface_new(canvas, self, place);
+}
+
+shoes_native_svg_draw(SHOES_SURFACE_REF ref, cairo_t *cr, VALUE data)
+{
+  printf("draw handle\n");
+  shoes_svg *self_t;
+  shoes_canvas *canvas;
+  Data_Get_Struct(data, shoes_svg, self_t);
+  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+  cairo_scale(cr, (self_t->place.w * 1.0) / self_t->svgdim.width,
+    (self_t->place.h * 1.0) / self_t->svgdim.height);
+  rsvg_handle_render_cairo(self_t->handle, cr);
+  return FALSE;
+}
+
+
 SHOES_CONTROL_REF
 shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, char *msg)
 {
