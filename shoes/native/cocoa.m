@@ -330,6 +330,35 @@
 }
 @end
 
+@implementation ShoesSvg
+- (id)initWithFrame: (NSRect)frame andSvg: (VALUE)c
+{
+  if ((self = [super initWithFrame: frame]))
+  {
+    svg = c;
+  }
+  return self;
+}
+- (BOOL)isFlipped
+{
+  return YES;
+}
+- (void)drawRect: (NSRect)rect
+{
+  shoes_svg *self_t;
+  shoes_canvas *c;
+  NSRect bounds = [self bounds];
+  Data_Get_Struct(svg, shoes_svg, self_t);
+  Data_Get_Struct(self_t->parent, shoes_canvas, c);
+  c->width = ROUND(bounds.size.width);
+  c->height = ROUND(bounds.size.height);
+  c->place.iw = c->place.w = c->width;
+  c->place.ih = c->place.h = c->height;
+  c->slot->context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
+  shoes_native_svg_paint(self_t->ref, c->cr, svg);
+}
+@end
+
 @implementation ShoesButton
 - (id)initWithType: (NSButtonType)t andObject: (VALUE)o
 {
@@ -357,7 +386,7 @@
   {
     object = o;
     [self setButtonType: NSPushOnPushOffButton];  // checkbox for now
-		[self setImagePosition: NSImageOnly];
+		[self setShoesViewPosition: NSImageOnly];
     [self setBezelStyle: NSCircularBezelStyle];
     [self setTarget: self];
     [self setAction: @selector(handleClick:)];
@@ -1312,21 +1341,19 @@ shoes_native_surface_remove(shoes_canvas *canvas, SHOES_SURFACE_REF ref)
 
 // svg
 SHOES_SURFACE_REF
-shoes_native_svg_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
+shoes_native_svg(shoes_canvas *canvas, VALUE svgobj, shoes_place *place)
 {
-  return shoes_native_surface_new(canvas, self, place);
+  ShoesSvg *svg = [[ShoesSvg alloc] initWithFrame:
+    NSMakeRect(place->ix + place->dx, place->iy + place->dy,
+    place->ix + place->dx + place->iw, place->iy + place->dy + place->ih)
+    andSvg: svgobj];
+  return (SHOES_SURFACE_REF *) svg;
 }
 
-shoes_native_svg_draw(SHOES_SURFACE_REF ref, cairo_t *cr, VALUE data)
+
+shoes_native_svg_paint(SHOES_SURFACE_REF ref, cairo_t *cr, VALUE data)
 {
-  printf("draw handle\n");
-  shoes_svg *self_t;
-  shoes_canvas *canvas;
-  Data_Get_Struct(data, shoes_svg, self_t);
-  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-  cairo_scale(cr, (self_t->place.w * 1.0) / self_t->svgdim.width,
-    (self_t->place.h * 1.0) / self_t->svgdim.height);
-  rsvg_handle_render_cairo(self_t->handle, cr);
+  shoes_svg_paint_svg(cr, (VALUE) data);
   return FALSE;
 }
 

@@ -49,13 +49,15 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   rb_arg_list args;
   VALUE klass = cSvg;
   ID  s_filename = rb_intern ("filename");
-  ID  s_fromstring = rb_intern ("from_string");
+  ID  s_content = rb_intern ("content");
   ID  s_width = rb_intern ("width");
   ID  s_height = rb_intern("height");
+  ID  s_subid = rb_intern("subid");
   VALUE filename = shoes_hash_get(argv[0], s_filename);
-  VALUE fromstring = shoes_hash_get(argv[0], s_fromstring);
+  VALUE fromstring = shoes_hash_get(argv[0], s_content);
   VALUE widthObj = shoes_hash_get(argv[0], s_width);
   VALUE heightObj = shoes_hash_get(argv[0], s_height);
+  VALUE subidObj = shoes_hash_get(argv[0], s_subid);
   int width = 300;  //default
   int height = 300;
   if (!NIL_P(widthObj))
@@ -89,13 +91,33 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   // get a ptr to the struct inside obj
   shoes_svg *svghan;
   Data_Get_Struct(obj, shoes_svg, svghan);
-  rsvg_handle_get_dimensions (rhandle, &svghan->svgdim);
   svghan->place.w = width;
   svghan->place.h = height;
   svghan->parent = parent;
   svghan->handle = rhandle;
+  if (!NIL_P(subidObj) && (RSTRING_LEN(subidObj) > 0))
+  {
+    int error = 0;
+    svghan->subid = RSTRING_PTR(subidObj);
+    if (!rsvg_handle_has_sub(rhandle, svghan->subid))
+      printf("not a id %s\n",svghan->subid);
+    if (!rsvg_handle_get_dimensions_sub(rhandle, &svghan->svgdim, svghan->subid))
+      printf("no dim for %s\n", svghan->subid);
+    if (!rsvg_handle_get_position_sub(rhandle, &svghan->svgpos, svghan->subid))
+      printf("no pos for %s\n",svghan->subid);
+    printf("dim x: %i, y: %i, w: %i, h: %i\n", svghan->svgpos.x, svghan->svgpos.y, 
+      svghan->svgdim.width, svghan->svgdim.height);
+  }
+  else 
+  {
+    rsvg_handle_get_dimensions(rhandle, &svghan->svgdim);
+    svghan->svgpos.x = 0;
+    svghan->svgpos.y = 0;
+    svghan->subid = NULL;
+  }
   svghan->init = FALSE;
-
+  //  Hack alert
+  //rsvg_set_default_dpi(75.0);
   return obj;
 }
 
@@ -116,29 +138,37 @@ VALUE shoes_svg_draw(VALUE self, VALUE c, VALUE actual)
         // still need to finish the new/init
         int w = self_t->place.w; // script requested size
         int h = self_t->place.h;
-        self_t->ref = shoes_native_svg_new(canvas, self, &canvas->place);
+        self_t->ref = shoes_native_svg(canvas, self, &canvas->place);
         shoes_place_decide(&place, c, self_t->attr, w, h, REL_CANVAS, TRUE);
         shoes_native_surface_position(self_t->ref, &self_t->place, self, canvas, &place);
         self_t->init = 1;
-        shoes_native_svg_draw(self_t->ref, canvas->cr, self);
-        //shoes_native_svg_draw_event(self_t->ref, canvas->cr, Qnil);
-        //rsvg_handle_render_cairo(self_t->handle, canvas->cr);
+        shoes_native_svg_paint(self_t->ref, canvas->cr, self);
       }
     }
     printf("svg_draw\n");
   }
-  //if (ATTR(selt_t->attr, hidden) == Qtrue) return self;
-  //shoes_place_decide(&place, c, self_t->attr, 200, 200, REL_CANVAS, TRUE);
-  //    REL_COORDS(REL_CANVAS) == REL_CANVAS);
-  //rsvg_handle_render_cairo(svg->handle, canvas->cr);
-  //rsvg_handle_render_cairo(selt_t->handle, canvas->slot->drawevent);
-  //shoes_native_svg_draw_event(svg->ref, canvas->cr, Qnil);
   return self;
 }
 
-VALUE shoes_svg_render(VALUE self, VALUE argc, VALUE argv)
+// sets the sub id string or nil for all. Causes a repaint.
+VALUE shoes_svg_render(int argc, VALUE *argv, VALUE self)
 {
-  printf("render\n");
+  shoes_canvas *canvas;
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
+  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+  if (argc == 0 || NIL_P(argv[0]))
+    self_t->subid = NULL;
+  else
+  {
+    char *sub = RSTRING_PTR(argv[0]);
+    if (RSTRING_LEN(argv[0]) == 0)
+      self_t->subid = NULL;
+    else
+      self_t->subid = sub;
+  }
+  shoes_native_svg_paint(self_t->ref, canvas->cr, self);
+  return Qnil;
 }
 
 VALUE shoes_svg_show(VALUE self)
@@ -194,4 +224,37 @@ VALUE shoes_svg_get_full_height(VALUE self)
 VALUE shoes_svg_remove(VALUE self)
 {
   printf("remove\n");
+}
+
+/*  This scales and renders the svg . Called from shoes_native_svg_paint
+ *  so those are tiny functions in cocoa.m and gktsvg.c 
+*/
+void
+shoes_svg_paint_svg(cairo_t *cr, VALUE svg)
+{
+  shoes_svg *self_t;
+  shoes_canvas *canvas;
+  Data_Get_Struct(svg, shoes_svg, self_t);
+  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+  if (self_t->subid == NULL)
+  {
+    // Full svg
+    cairo_scale(cr, (self_t->place.w * 1.0) / self_t->svgdim.width, 
+      (self_t->place.h * 1.0) / self_t->svgdim.height);
+    rsvg_handle_render_cairo_sub(self_t->handle, cr, self_t->subid);
+  }
+  else
+  {
+    // Partial svg - getting weird
+    cairo_save(cr);
+    double outw = (double)self_t->place.w;
+    double outh = (double)self_t->place.h;
+    double scalew = outw / self_t->svgdim.width;
+    double scaleh = outh / self_t->svgdim.height;
+    //cairo_translate(cr, self_t->svgpos.x, self_t->svgpos.y);
+    cairo_scale(cr, outw, outh);
+    rsvg_handle_render_cairo_sub(self_t->handle, cr, self_t->subid);
+    cairo_restore(cr);
+  }
+  printf("paint\n");
 }

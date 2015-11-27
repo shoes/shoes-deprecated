@@ -25,6 +25,12 @@
 }
 @end
 
+@interface ShoesSvg : NSView
+{
+  VALUE svg;
+}
+@end
+
 @interface ShoesButton : NSButton
 {
   VALUE object;
