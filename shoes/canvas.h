@@ -306,8 +306,9 @@ typedef struct {
   int init;
   RsvgHandle *handle;
   RsvgDimensionData svgdim;
+  RsvgDimensionData subdim;
+  RsvgPositionData subpos;
   char  *subid;  // null for everything. 
-  RsvgPositionData svgpos; // for current subid.
   SHOES_SLOT_OS *slot;
 } shoes_svg;
 

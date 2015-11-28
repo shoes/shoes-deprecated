@@ -98,21 +98,24 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   if (!NIL_P(subidObj) && (RSTRING_LEN(subidObj) > 0))
   {
     int error = 0;
+    rsvg_handle_get_dimensions(rhandle, &svghan->svgdim);
     svghan->subid = RSTRING_PTR(subidObj);
     if (!rsvg_handle_has_sub(rhandle, svghan->subid))
       printf("not a id %s\n",svghan->subid);
-    if (!rsvg_handle_get_dimensions_sub(rhandle, &svghan->svgdim, svghan->subid))
+    if (!rsvg_handle_get_dimensions_sub(rhandle, &svghan->subdim, svghan->subid))
       printf("no dim for %s\n", svghan->subid);
-    if (!rsvg_handle_get_position_sub(rhandle, &svghan->svgpos, svghan->subid))
+    if (!rsvg_handle_get_position_sub(rhandle, &svghan->subpos, svghan->subid))
       printf("no pos for %s\n",svghan->subid);
-    printf("dim x: %i, y: %i, w: %i, h: %i\n", svghan->svgpos.x, svghan->svgpos.y, 
-      svghan->svgdim.width, svghan->svgdim.height);
+    printf("(outer: w: %i, h: %i) (sub x: %i, y: %i, w: %i, h: %i)\n", 
+      svghan->svgdim.width, svghan->svgdim.height,
+      svghan->subpos.x, svghan->subpos.y, 
+      svghan->subdim.width, svghan->subdim.height);
   }
   else 
   {
     rsvg_handle_get_dimensions(rhandle, &svghan->svgdim);
-    svghan->svgpos.x = 0;
-    svghan->svgpos.y = 0;
+    svghan->subpos.x = 0;
+    svghan->subpos.y = 0;
     svghan->subid = NULL;
   }
   svghan->init = FALSE;
@@ -247,13 +250,16 @@ shoes_svg_paint_svg(cairo_t *cr, VALUE svg)
   {
     // Partial svg - getting weird
     cairo_save(cr);
-    double outw = (double)self_t->place.w;
-    double outh = (double)self_t->place.h;
-    double scalew = outw / self_t->svgdim.width;
-    double scaleh = outh / self_t->svgdim.height;
-    //cairo_translate(cr, self_t->svgpos.x, self_t->svgpos.y);
-    cairo_scale(cr, outw, outh);
+    double outw = self_t->place.w * 1.0;
+    double outh = self_t->place.h * 1.0;
+    //double scalew = outw / self_t->subdim.width;
+    //double scaleh = outh / self_t->subdim.height;
+    double scalew = self_t->subdim.width / outw;
+    double scaleh = self_t->subdim.height /outw;
     rsvg_handle_render_cairo_sub(self_t->handle, cr, self_t->subid);
+    cairo_scale(cr, round(outw), round(outh));
+    cairo_scale(cr, round(outw), round(outh));
+    cairo_translate(cr, self_t->subpos.x, self_t->subpos.y);
     cairo_restore(cr);
   }
   printf("paint\n");
