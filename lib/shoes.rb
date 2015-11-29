@@ -179,19 +179,19 @@ class Shoes
     Shoes.app width: 500, height: 500, resizable: false do
       background "static/splash.png"
       style(Para, align: 'center', weight: 'bold', font: 'Lacuna Regular', size: 13)
-      style(Link, stroke: yellow, underline: nil)
+      style(Link, stroke: khaki, underline: nil)
       style(LinkHover, stroke: yellow, fill: nil)
 
       require 'shoes/search'
       require 'shoes/help'
 
       stack margin: 18 do
-        para 'Welcome to', stroke: magenta, size: 32, margin: 0
-        para 'SHOES', size: 60, stroke: magenta, margin: 0
-        para Shoes::VERSION_NAME, stroke: magenta, margin: 0
-        para "build #{Shoes::VERSION_NUMBER} r#{Shoes::VERSION_REVISION}", size: 12, stroke: magenta, margin_top: 0
+        para 'Welcome to', stroke: ivory, size: 18, margin: 0
+        para 'SHOES', size: 24, stroke: ivory, margin: 0
+        para Shoes::VERSION_NAME, stroke: ivory, size: 14, margin: 0, weight: 'bold'
+        para "build #{Shoes::VERSION_NUMBER} r#{Shoes::VERSION_REVISION}", size: 14, stroke: ivory, margin_top: 0
         stack do
-          background black(0.2), :curve => 8
+          background black(0.3), :curve => 8
           para link(strong("Open an App")) { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
 #         para link(strong("Debug an App")) { Shoes.show_selector true and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Package my script (shy)")) { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
@@ -200,7 +200,7 @@ class Shoes
           para link(strong("Read the Manual")) { Shoes.show_manual and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Maintain Shoes")) {Shoes.cobbler and close}, :margin => 10
         end
-        inscription 'Alt-Slash opens the console', stroke: '#00', align: 'center'
+        para 'Alt-Slash opens the console', stroke: '#00', align: 'center'
       end
     end
   end
