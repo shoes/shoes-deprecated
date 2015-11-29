@@ -230,7 +230,7 @@ VALUE shoes_svg_remove(VALUE self)
 }
 
 /*  This scales and renders the svg . Called from shoes_native_svg_paint
- *  so those are tiny functions in cocoa.m and gktsvg.c 
+ *  so those are just tiny functions in cocoa.m and gktsvg.c 
 */
 void
 shoes_svg_paint_svg(cairo_t *cr, VALUE svg)
@@ -249,7 +249,7 @@ shoes_svg_paint_svg(cairo_t *cr, VALUE svg)
   else
   {
     // Partial svg - getting weird
-    cairo_save(cr);
+    //cairo_save(cr);
     double outw = self_t->place.w * 1.0;
     double outh = self_t->place.h * 1.0;
     //double scalew = outw / self_t->subdim.width;
@@ -258,9 +258,9 @@ shoes_svg_paint_svg(cairo_t *cr, VALUE svg)
     double scaleh = self_t->subdim.height /outw;
     rsvg_handle_render_cairo_sub(self_t->handle, cr, self_t->subid);
     cairo_scale(cr, round(outw), round(outh));
-    cairo_scale(cr, round(outw), round(outh));
-    cairo_translate(cr, self_t->subpos.x, self_t->subpos.y);
-    cairo_restore(cr);
+    cairo_translate(cr, self_t->place.x, self_t->place.y);
+    //cairo_restore(cr);
+
   }
   printf("paint\n");
 }
