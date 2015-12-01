@@ -64,8 +64,8 @@ GTK_LIB = "#{`pkg-config --libs #{APP['GTK']}`.strip}"
 MISC_LIB = " -lgif -ljpeg"
 MISC_CFLAGS = ' '
 if APP['SVG'] == 'handle' 
- MISC_CFLAGS << "-DSVGHANDLE -I/usr/include/librsvg-2.0/librsvg "
- MISC_LIB << ' /usr/lib/x86_64-linux-gnu/librsvg-2.so'
+  MISC_CFLAGS << "-DSVGHANDLE -I/usr/include/librsvg-2.0/librsvg "
+  MISC_LIB << ' /usr/lib/x86_64-linux-gnu/librsvg-2.so'
 end
 
 # collect flags together

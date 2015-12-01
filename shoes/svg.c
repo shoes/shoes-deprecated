@@ -95,6 +95,7 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   svghan->place.h = height;
   svghan->parent = parent;
   svghan->handle = rhandle;
+  rsvg_handle_set_dpi(rhandle, 90.0);
   if (!NIL_P(subidObj) && (RSTRING_LEN(subidObj) > 0))
   {
     int error = 0;
@@ -119,8 +120,6 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
     svghan->subid = NULL;
   }
   svghan->init = FALSE;
-  //  Hack alert
-  //rsvg_set_default_dpi(75.0);
   return obj;
 }
 
@@ -227,6 +226,12 @@ VALUE shoes_svg_get_full_height(VALUE self)
 VALUE shoes_svg_remove(VALUE self)
 {
   printf("remove\n");
+  shoes_svg *self_t;
+  shoes_canvas *canvas;
+  Data_Get_Struct(self, shoes_svg, self_t);
+  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+  shoes_native_svg_remove(canvas, self_t->ref);
+  return Qtrue;
 }
 
 /*  This scales and renders the svg . Called from shoes_native_svg_paint
@@ -248,17 +253,25 @@ shoes_svg_paint_svg(cairo_t *cr, VALUE svg)
   }
   else
   {
-    // Partial svg - getting weird
-    //cairo_save(cr);
+    // Partial svg 
+    cairo_matrix_t matrix;
+
     double outw = self_t->place.w * 1.0;
     double outh = self_t->place.h * 1.0;
-    //double scalew = outw / self_t->subdim.width;
-    //double scaleh = outh / self_t->subdim.height;
-    double scalew = self_t->subdim.width / outw;
-    double scaleh = self_t->subdim.height /outw;
+    double scalew = outw / self_t->subdim.width;
+    double scaleh = outh / self_t->subdim.height;
+    //cairo_scale(cr, round(outw), round(outh));
+    //cairo_translate(cr, self_t->place.x, 
+    //  self_t->place.y);
+    cairo_matrix_init_identity (&matrix);
+    cairo_matrix_scale (&matrix, scalew, scaleh);
+    // note hack suggesting it's the wrong surface. 
+    cairo_matrix_translate (&matrix, self_t->subpos.x * -1.0 , (self_t->subpos.y *-1.0) + 27.0);
+    cairo_set_matrix (cr, &matrix);
+
+
     rsvg_handle_render_cairo_sub(self_t->handle, cr, self_t->subid);
-    cairo_scale(cr, round(outw), round(outh));
-    cairo_translate(cr, self_t->place.x, self_t->place.y);
+
     //cairo_restore(cr);
 
   }

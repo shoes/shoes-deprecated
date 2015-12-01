@@ -4988,7 +4988,7 @@ shoes_ruby_init()
   rb_define_method(cSvg, "render", CASTHOOK(shoes_svg_render), -1);
   rb_define_method(cSvg, "full_width", CASTHOOK(shoes_svg_get_width), 0);
   rb_define_method(cSvg, "full_height", CASTHOOK(shoes_svg_get_height),0);
- 
+  rb_define_method(cSvg, "remove", CASTHOOK(shoes_svg_remove) ,0);
 
   cColor   = rb_define_class_under(cTypes, "Color", rb_cObject);
   rb_define_alloc_func(cColor, shoes_color_alloc);
