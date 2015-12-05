@@ -1,5 +1,6 @@
 /*
- * svghandle -  experimental  in 3.3.0
+ * svghandle -  experimental for 3.3.0
+ * svg (the widget - two different Shoes/Ruby object
 */
 #include "shoes/app.h"
 #include "shoes/canvas.h"
@@ -12,6 +13,108 @@
 #include "shoes/effects.h"
 #include <math.h>
 
+// ------svghandle --------
+// see app.h 
+
+void
+shoes_svghandle_mark(shoes_svghandle *handle)
+{
+  //rb_gc_mark_maybe(handle->handle);
+  //rb_gc_mark_maybe(handle->subid);
+}
+
+static void
+shoes_svghandle_free(shoes_svghandle *handle)
+{
+  if (handle->handle != NULL)
+    ;  // do the g_unref thing
+  RUBY_CRITICAL(SHOE_FREE(handle));
+}
+
+VALUE
+shoes_svghandle_alloc(VALUE klass)
+{
+  VALUE obj;
+  shoes_svghandle *handle = SHOE_ALLOC(shoes_svghandle);
+  SHOE_MEMZERO(handle, shoes_svghandle, 1);
+  obj = Data_Wrap_Struct(klass, shoes_svghandle_mark, shoes_svghandle_free, handle);
+  handle->handle = NULL;
+  handle->subid = NULL;
+  return obj;
+}
+
+VALUE
+shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
+{
+  // parse args for :content or :filename (load file if needed)
+  // parse arg for subid. 
+  VALUE klass = cSvgHandle;
+  ID  s_filename = rb_intern ("filename");
+  ID  s_content = rb_intern ("content");
+  ID  s_subid = rb_intern("subid");
+  VALUE filename = shoes_hash_get(argv[0], s_filename);
+  VALUE fromstring = shoes_hash_get(argv[0], s_content);
+  VALUE subidObj = shoes_hash_get(argv[0], s_subid);
+  VALUE obj = shoes_svghandle_alloc(klass);
+  shoes_svghandle *self_t;
+  Data_Get_Struct(obj, shoes_svghandle, self_t);
+  GError *gerror = NULL;
+  if (!NIL_P(filename)) {
+    // load it from a file
+    char *path = RSTRING_PTR(filename);
+    self_t->handle = rsvg_handle_new_from_file (path, &gerror);
+    if (self_t->handle == NULL) {
+      printf("Failed SVG: %s\n", gerror->message);
+    }
+  } else if (!NIL_P(fromstring)) {
+    // load it from a string
+    char *data = RSTRING_PTR(fromstring);
+    int len = RSTRING_LEN(fromstring);
+    self_t->handle = rsvg_handle_new_from_data (data, len, &gerror);
+    if (self_t->handle == NULL) {
+      printf("Failed SVG: %s\n", gerror->message);
+    }
+  } else {
+    // raise an exception
+  }
+  if (!NIL_P(subidObj) && (RSTRING_LEN(subidObj) > 0))
+  {
+    self_t->subid = RSTRING_PTR(subidObj);
+    if (!rsvg_handle_has_sub(self_t->handle, self_t->subid))
+      printf("not a id %s\n",self_t->subid);
+    if (!rsvg_handle_get_dimensions_sub(self_t->handle, &self_t->svghdim, self_t->subid))
+      printf("no dim for %s\n", self_t->subid);
+    if (!rsvg_handle_get_position_sub(self_t->handle, &self_t->svghpos, self_t->subid))
+      printf("no pos for %s\n",self_t->subid);
+  }
+  else 
+  {
+    rsvg_handle_get_dimensions(self_t->handle, &self_t->svghdim);
+    self_t->svghpos.x = self_t->svghpos.y = 0;
+    self_t->subid = NULL;
+  }
+  printf("sub x: %i, y: %i, w: %i, h: %i)\n", 
+  self_t->svghpos.x, self_t->svghpos.y, 
+  self_t->svghdim.width, self_t->svghdim.height);
+  return obj;
+}
+
+VALUE
+shoes_svghandle_get_width(VALUE self) 
+{
+  GET_STRUCT(svghandle, self_t);
+  return INT2NUM(self_t->svghdim.width);
+}
+
+VALUE
+shoes_svghandle_get_height(VALUE self)
+{
+  GET_STRUCT(svghandle, self_t);
+  return INT2NUM(self_t->svghdim.height);
+}
+
+
+// ------- svg widget -----
 
 // alloc some memory for a shoes_svg; We'll protect it from gc
 // out of caution. fingers crossed.
@@ -42,22 +145,15 @@ shoes_svg_alloc(VALUE klass)
   return obj;
 }
 
-// only one of path or str is non-nil
+
 VALUE
 shoes_svg_new(int argc, VALUE *argv, VALUE parent)
 {
   rb_arg_list args;
   VALUE klass = cSvg;
-  ID  s_filename = rb_intern ("filename");
-  ID  s_content = rb_intern ("content");
-  ID  s_width = rb_intern ("width");
-  ID  s_height = rb_intern("height");
-  ID  s_subid = rb_intern("subid");
-  VALUE filename = shoes_hash_get(argv[0], s_filename);
-  VALUE fromstring = shoes_hash_get(argv[0], s_content);
+ 
   VALUE widthObj = shoes_hash_get(argv[0], s_width);
   VALUE heightObj = shoes_hash_get(argv[0], s_height);
-  VALUE subidObj = shoes_hash_get(argv[0], s_subid);
   int width = 300;  //default
   int height = 300;
   if (!NIL_P(widthObj))
@@ -68,24 +164,7 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   GError *gerror = NULL;
   VALUE obj;
   shoes_canvas *canvas;
-  if (!NIL_P(filename)) {
-    // load it from a file
-    char *path = RSTRING_PTR(filename);
-    rhandle = rsvg_handle_new_from_file (path, &gerror);
-    if (rhandle == NULL) {
-      printf("Failed SVG: %s\n", gerror->message);
-    }
-  } else if (!NIL_P(fromstring)) {
-    // load it from a string
-    char *data = RSTRING_PTR(fromstring);
-    int len = RSTRING_LEN(fromstring);
-    rhandle = rsvg_handle_new_from_data (data, len, &gerror);
-    if (rhandle == NULL) {
-      printf("Failed SVG: %s\n", gerror->message);
-    }
-  } else {
-    // raise an exception
-  }
+
   Data_Get_Struct(parent, shoes_canvas, canvas);
   obj = shoes_svg_alloc(klass);
   // get a ptr to the struct inside obj
@@ -96,29 +175,7 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   svghan->parent = parent;
   svghan->handle = rhandle;
   rsvg_handle_set_dpi(rhandle, 90.0);
-  if (!NIL_P(subidObj) && (RSTRING_LEN(subidObj) > 0))
-  {
-    int error = 0;
-    rsvg_handle_get_dimensions(rhandle, &svghan->svgdim);
-    svghan->subid = RSTRING_PTR(subidObj);
-    if (!rsvg_handle_has_sub(rhandle, svghan->subid))
-      printf("not a id %s\n",svghan->subid);
-    if (!rsvg_handle_get_dimensions_sub(rhandle, &svghan->subdim, svghan->subid))
-      printf("no dim for %s\n", svghan->subid);
-    if (!rsvg_handle_get_position_sub(rhandle, &svghan->subpos, svghan->subid))
-      printf("no pos for %s\n",svghan->subid);
-    printf("(outer: w: %i, h: %i) (sub x: %i, y: %i, w: %i, h: %i)\n", 
-      svghan->svgdim.width, svghan->svgdim.height,
-      svghan->subpos.x, svghan->subpos.y, 
-      svghan->subdim.width, svghan->subdim.height);
-  }
-  else 
-  {
-    rsvg_handle_get_dimensions(rhandle, &svghan->svgdim);
-    svghan->subpos.x = 0;
-    svghan->subpos.y = 0;
-    svghan->subid = NULL;
-  }
+
   svghan->init = FALSE;
   return obj;
 }

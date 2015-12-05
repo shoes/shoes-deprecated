@@ -779,6 +779,11 @@ shoes_canvas_timer(int argc, VALUE *argv, VALUE self)
   return timer;
 }
 
+VALUE
+shoes_canvas_svghandle(int argc, VALUE *argv, VALUE self)
+{
+  return shoes_svghandle_new(argc, argv, self);
+}
 
 VALUE
 shoes_canvas_svg(int argc, VALUE *argv, VALUE self)

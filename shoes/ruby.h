@@ -85,7 +85,7 @@ extern VALUE cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns, cBu
 extern VALUE cEditLine, cEditBox, cListBox, cProgress, cSlider, cCheck, cRadio, cColor;
 extern VALUE cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 extern VALUE cTextEditBox;
-extern VALUE cSvg;
+extern VALUE cSvgHandle, cSvg;
 extern VALUE aMsgList;
 extern VALUE eInvMode, eNotImpl, eImageError;
 extern VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
@@ -251,6 +251,7 @@ SYMBOL_DEFS(SYMBOL_EXTERN);
   f("+every", every, -1); \
   f("+timer", timer, -1); \
   f("+svg", svg, -1); \
+  f("+svghandle", svghandle, -1);\
   f("+shape", shape, -1); \
   f(".move_to", move_to, 2); \
   f(".line_to", line_to, 2); \

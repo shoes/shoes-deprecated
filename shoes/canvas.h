@@ -294,6 +294,14 @@ typedef struct {
 #define CANVAS_EMPTY   3
 #define CANVAS_REMOVED 4
 
+// SvgHandle struct - not a graphical widget
+// new in 3.3.0
+typedef struct _svghandle {
+  RsvgHandle *handle;
+  RsvgDimensionData svghdim;
+  RsvgPositionData svghpos;
+  char *subid;
+} shoes_svghandle;
 
 //
 // SVG struct
@@ -511,6 +519,12 @@ VALUE shoes_flow_new(VALUE, VALUE);
 VALUE shoes_stack_new(VALUE, VALUE);
 VALUE shoes_mask_new(VALUE, VALUE);
 VALUE shoes_widget_new(VALUE, VALUE, VALUE);
+
+VALUE shoes_canvas_svghandle(int argc, VALUE *argv, VALUE self);
+VALUE shoes_svghandle_new(int argc, VALUE *argv, VALUE self);
+VALUE shoes_svghandle_alloc(VALUE);
+VALUE shoes_svghandle_get_width(VALUE);
+VALUE shoes_svghandle_get_height(VALUE);
 
 VALUE shoes_svg_new(int, VALUE *, VALUE);
 VALUE shoes_svg_alloc(VALUE);
