@@ -312,6 +312,7 @@ typedef struct {
   shoes_place place;
   SHOES_CONTROL_REF ref;
   int init;
+  VALUE svghandle;
   RsvgHandle *handle;
   RsvgDimensionData svgdim;
   RsvgDimensionData subdim;
@@ -520,7 +521,6 @@ VALUE shoes_stack_new(VALUE, VALUE);
 VALUE shoes_mask_new(VALUE, VALUE);
 VALUE shoes_widget_new(VALUE, VALUE, VALUE);
 
-VALUE shoes_canvas_svghandle(int argc, VALUE *argv, VALUE self);
 VALUE shoes_svghandle_new(int argc, VALUE *argv, VALUE self);
 VALUE shoes_svghandle_alloc(VALUE);
 VALUE shoes_svghandle_get_width(VALUE);

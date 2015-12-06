@@ -151,32 +151,37 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
 {
   rb_arg_list args;
   VALUE klass = cSvg;
- 
-  VALUE widthObj = shoes_hash_get(argv[0], s_width);
-  VALUE heightObj = shoes_hash_get(argv[0], s_height);
-  int width = 300;  //default
-  int height = 300;
-  if (!NIL_P(widthObj))
-    width = NUM2INT(widthObj);
-  if (!NIL_P(heightObj))
-    height = NUM2INT(heightObj);
-  RsvgHandle *rhandle;
-  GError *gerror = NULL;
+  VALUE svghanObj;
+  VALUE widthObj = argv[0];
+  VALUE heightObj = argv[1];
+  if (TYPE(argv[2]) == T_HASH)
+    svghanObj = shoes_svghandle_new(1, &argv[2], parent);
+  else
+    svghanObj = argv[2];
+  
+  shoes_svghandle *shandle;
+  Data_Get_Struct(svghanObj, shoes_svghandle, shandle);
   VALUE obj;
   shoes_canvas *canvas;
 
   Data_Get_Struct(parent, shoes_canvas, canvas);
   obj = shoes_svg_alloc(klass);
   // get a ptr to the struct inside obj
-  shoes_svg *svghan;
-  Data_Get_Struct(obj, shoes_svg, svghan);
-  svghan->place.w = width;
-  svghan->place.h = height;
-  svghan->parent = parent;
-  svghan->handle = rhandle;
-  rsvg_handle_set_dpi(rhandle, 90.0);
-
-  svghan->init = FALSE;
+  shoes_svg *self_t;
+  Data_Get_Struct(obj, shoes_svg, self_t);
+  self_t->svghandle = svghanObj;
+  self_t->place.w = NUM2INT(widthObj);
+  self_t->place.h = NUM2INT(heightObj);
+  self_t->parent = parent;
+  self_t->svghandle = svghanObj;
+  self_t->init = 0;
+  // FIXME: cheat until the draw code is rewritten for the svghandle;
+  self_t->handle = shandle->handle;
+  self_t->svgdim = shandle->svghdim;
+  self_t->subdim = shandle->svghdim;
+  self_t->subpos = shandle->svghpos;
+  self_t->subid = shandle->subid;
+  rsvg_handle_set_dpi(shandle->handle, 90.0);
   return obj;
 }
 
