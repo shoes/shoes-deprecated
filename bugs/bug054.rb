@@ -1,17 +1,41 @@
-# simple test of svghandle class - full path name is important
-Shoes.app width: 400, height: 400 do
-  @slot = stack do
-    fpath = "/home/ccoupe/Projects/shoes3/brownshoes.svg"
-    #svgh = svghandle({:filename => fpath})
-    #svgh.close
-    fl = File.open(fpath,"r");
-    bigstring = fl.read
-    fl.close
-    para "SVG is #{bigstring.length} bytes"
-    @svg2 = svg({:content => bigstring})
-    button "right-down" do
-      puts "ltwh: #{@svg2.left},#{@svg2.top},#{@svg2.width},#{@svg2.height}"
-      @svg2.move(@svg2.left+10,@svg2.top+10)
+Shoes.app width: 600 do
+  fpath = "/home/ccoupe/Projects/shoes3/brownshoes.svg"
+  cpath = "/home/ccoupe/Projects/shoes3/SVG-cards-2.0.1/paris.svg"
+  svgh1 = app.svghandle({:filename => fpath})
+  fl = File.open(cpath,"r");
+  bigstring = fl.read
+  fl.close
+  svgh2 = app.svghandle({:content =>bigstring, :subid => '#diamond_queen'})
+  widget_rect = 200
+  flow do
+    stack :width => widget_rect do
+      w1 = svgh1.width 
+      h1 = svgh1.height
+      a1 = (w1.to_f) / h1
+      para "w: #{w1} h: #{h1}"
+      para "a: #{a1}"
+      nw1 = widget_rect
+      nh1 = (widget_rect * (1 / a1)).to_i
+      para "nw #{nw1} nh: #{nh1}"
+      para "na: #{nw1.to_f / nh1}"
+      svg nw1,nh1,svgh1
+    end
+    stack width: widget_rect do
+      w2 = svgh2.width 
+      h2 = svgh2.height
+      a2 = w2.to_f / h2
+      nw2 = (widget_rect * a2).to_i
+      nh2 = widget_rect
+      para "w: #{w2} h: #{h2}"
+      para "a: #{a2}"
+      para "nw #{nw2} nh: #{nh2}"
+      para "na: #{nw2.to_f / nh2}"
+      svg 200,200,svgh2
+    end
+    stack width: widget_rect do
+      svg 100, 100, {:filename => fpath}
     end
   end
 end
+
+
