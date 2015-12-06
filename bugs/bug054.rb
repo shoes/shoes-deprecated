@@ -5,7 +5,7 @@ Shoes.app width: 600 do
   fl = File.open(cpath,"r");
   bigstring = fl.read
   fl.close
-  svgh2 = app.svghandle({:content =>bigstring, :subid => '#diamond_queen'})
+  svgh2 = app.svghandle({:content =>bigstring, :layer => '#diamond_queen'})
   widget_rect = 200
   flow do
     stack :width => widget_rect do

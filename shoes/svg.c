@@ -51,7 +51,7 @@ shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
   VALUE klass = cSvgHandle;
   ID  s_filename = rb_intern ("filename");
   ID  s_content = rb_intern ("content");
-  ID  s_subid = rb_intern("subid");
+  ID  s_subid = rb_intern("layer");
   VALUE filename = shoes_hash_get(argv[0], s_filename);
   VALUE fromstring = shoes_hash_get(argv[0], s_content);
   VALUE subidObj = shoes_hash_get(argv[0], s_subid);

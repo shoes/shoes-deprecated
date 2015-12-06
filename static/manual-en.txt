@@ -1641,7 +1641,7 @@ experiment wisely if you need the feature. You would want to call these early in
 block. 
 
 Caution: These are not well tested. They exist for folks that might want to 
-write games or hide the Shoes name and icon. 
+write games or hide the Shoes name and icon and do clever stuff.
 
 Another caution - these are methods of an App instance so you need that object.
 Even when they effect more than one instance of App. Shoes creates an 'app'
@@ -1734,7 +1734,7 @@ the icon may not be displayed at all.
     end
  end
 }}}
-The icon should be a 128x128 png. Or 256x256 png. 
+The icon should be a 128x128 png. Or 256x256 png. 512x512 also works.
 
 === set_window_title(string) ===
 
@@ -1756,6 +1756,29 @@ If you need this, loop through all the Apps.
 }}}
 
 Notice how it's sticky. 
+
+=== app.svghandle ({hash args}) ===
+
+Returns an object of SvgHandle class. 
+
+This is a little weird because an svg file is a little weird and we want to
+allow you to work with them. Svg files have layers so it is a container file
+with lots of vector images inside. How many layers and what the their names are unknown.
+That's up to you figure out. The Inkscape program can help you there.
+
+For example many card game programs have one svg file with 52 or more layers
+inside it.
+
+An svg file is really an xml text file. You can and may probably load to load it into
+a string so you can do some xml queries (gem nokogiri is included with Shoes). Either way
+you have svg layers which Shoes calls 'layer'. An svghandle is a Ruby object
+you create by calling app.svghandle and then you can pass that handle into the
+an svg widget. Its a filename or string, plus an optional 'layer' name. It's like
+a position in a file. 
+
+Since svg files can be a very large you probably don't want read the file 52+
+times. You can create svghandles. And you can dig out some info from svghandle if you app
+need its to before putting it on screen. It's a pretty static image once its on screen.
 
 
 = Slots =
@@ -3828,6 +3851,45 @@ See [[Styles.state]] style for details.
 === state = nil, "disabled" or "readonly" ===
 
 See [[Styles.state]] style for details.
+
+== Svg ==
+
+In Shoes 3.3 we gained the ability to draw svgs. While they may appear to
+look like Images, they are not. It's a diffent widget with its own rules and 
+methods.
+
+=== svg (width, height, {:filename => a path, :content => string, :layer => string} ) ===
+
+You have to specify the width and height you want. There is no default. 
+If you read the svg (a textual xml) file into a string then you would use the :content
+option or you can have svg load the file for you by giving  the :filename) 
+
+One of those is required (unless you use the slightly weird svghandle method below, but even
+then you'll have to have :content or :filename plus :layer)
+
+A svg file has layers. Little drawings grouped together with a string that starts with '#'  
+so in a svg of playing cards you might want to draw '#diamonds_queen'
+That is the layer name. Shoes can not figure out the layer names for you. Sorry. 
+If you don't specify a ':layer' then Shoes draws everything in the svg which may
+or may not be what you want.
+
+=== svg (width, height, svghandle) ===
+
+You can also create a svg widget with a [[App.svhandle]] if you want more
+control
+
+=== width » interger ===
+
+returns the width of the on screen widget.
+
+=== height » integer ===
+
+returns the height of the on screen widget.
+
+=== replace = svghandle ===
+
+replace the widget contents (a drawing) with the new svghandle. Use with 
+wisdom.
 
 == Snapshot ==
 
