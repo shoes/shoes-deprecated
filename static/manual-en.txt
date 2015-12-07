@@ -1762,18 +1762,18 @@ Notice how it's sticky.
 Returns an object of SvgHandle class. 
 
 This is a little weird because an svg file is a little weird and we want to
-allow you to work with them. Svg files have layers so it is a container file
-with lots of vector images inside. How many layers and what the their names are unknown.
+allow you to work with them. Svg files have layers or groups so it is also container file
+with lots of vector images inside. How many groups and what the their names are unknown.
 That's up to you figure out. The Inkscape program can help you there.
 
-For example many card game programs have one svg file with 52 or more layers
+For example many card game programs have one svg file with 52 or more groups
 inside it.
 
 An svg file is really an xml text file. You can and may probably load to load it into
 a string so you can do some xml queries (gem nokogiri is included with Shoes). Either way
-you have svg layers which Shoes calls 'layer'. An svghandle is a Ruby object
+you have svg groups which Shoes calls 'groups'. An svghandle is a Ruby object
 you create by calling app.svghandle and then you can pass that handle into the
-an svg widget. Its a filename or string, plus an optional 'layer' name. It's like
+an svg widget. Its a filename or string, plus an optional 'group' name. It's like
 a position in a file. 
 
 Since svg files can be a very large you probably don't want read the file 52+
@@ -3856,27 +3856,45 @@ See [[Styles.state]] style for details.
 
 In Shoes 3.3 we gained the ability to draw svgs. While they may appear to
 look like Images, they are not. It's a diffent widget with its own rules and 
-methods.
+methods. Some of which may look like Image methods.
 
-=== svg (width, height, {:filename => a path, :content => string, :layer => string} ) ===
+=== svg (width, height, {hash) ===
 
-You have to specify the width and height you want. There is no default. 
-If you read the svg (a textual xml) file into a string then you would use the :content
+You have to specify the width and height you want. There is no default.
+Those the size of the SVG widget 
+
+The hash has many arguments that you can use. You must specify either :filename => a path
+or :content => string or :handle =>svghandle). If you read the svg (a textual xml) file into a string then you would use the :content
 option or you can have svg load the file for you by giving  the :filename) 
 
 One of those is required (unless you use the slightly weird svghandle method below, but even
-then you'll have to have :content or :filename plus :layer)
+then you'll have to have :content or :filename plus :group if needed)
 
-A svg file has layers. Little drawings grouped together with a string that starts with '#'  
-so in a svg of playing cards you might want to draw '#diamonds_queen'
-That is the layer name. Shoes can not figure out the layer names for you. Sorry. 
-If you don't specify a ':layer' then Shoes draws everything in the svg which may
+:group => string
+
+This how you pick one group from the larger svg to display
+
+A svg file has layers or groups. Little drawings grouped together named with a string that starts with '#'  
+so in a svg of playing cards for example you might want to draw '#diamonds_queen'
+That is the group name. Shoes can not figure out the layer names for you. Sorry. 
+If you don't specify a ':group' then Shoes draws everything in the svg which may
 or may not be what you want.
+
+:aspect => "string" 
+
+The string may be "none", "respect" or "center",  The default is "respect"
+and that will keep the aspect ratio of the svg (group) even if that means
+the image width or height is scaled down to fit the widget size. "none" just fills the rectangle
+for the svg widget (stretching width and height as needed) "centered" is like
+"respect" but any left over white space after computing the aspect will be added
+so it appears to be centered within the given space, other wise any free space
+will apear at the bottom or right, depending of course of what the aspect computation
+provides.
 
 === svg (width, height, svghandle) ===
 
 You can also create a svg widget with a [[App.svhandle]] if you want more
-control
+control before thing
 
 === width » interger ===
 
@@ -3885,6 +3903,16 @@ returns the width of the on screen widget.
 === height » integer ===
 
 returns the height of the on screen widget.
+
+=== preferred_width ===
+
+returns the width of the internal svg. This can more or less than what width
+returns. You probably don't want to use this method.
+
+=== preferred_height ===
+
+returns the height of the internal svg. This can more or less than what height
+returns. You probably don't want to use this method.
 
 === replace = svghandle ===
 
