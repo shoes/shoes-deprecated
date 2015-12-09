@@ -4780,15 +4780,19 @@ shoes_ruby_init()
   rb_define_method(cImage, "hover", CASTHOOK(shoes_image_hover), -1);
   rb_define_method(cImage, "leave", CASTHOOK(shoes_image_leave), -1);
   
-  // svg is kind of like an cImage with different methods
-  // do not call draw from shoes scripts - just don't!
+  // svg is kind of like cImage with different methods
+  // do not call draw from Shoes scripts - just don't do it!
   cSvg   = rb_define_class_under(cTypes, "Svg", rb_cObject);
   rb_define_alloc_func(cSvg, shoes_svg_alloc);
   rb_define_method(cSvg, "draw", CASTHOOK(shoes_svg_draw), 2);
-  rb_define_method(cSvg, "render", CASTHOOK(shoes_svg_render), -1);
   rb_define_method(cSvg, "preferred_width", CASTHOOK(shoes_svg_preferred_width), 0);
   rb_define_method(cSvg, "preferred_height", CASTHOOK(shoes_svg_preferred_height),0);
-  rb_define_method(cSvg, "remove", CASTHOOK(shoes_svg_remove) ,0);
+  rb_define_method(cSvg, "remove", CASTHOOK(shoes_svg_remove), 0);
+  rb_define_method(cSvg, "save", CASTHOOK(shoes_svg_save), 2);
+  rb_define_method(cSvg, "handle", CASTHOOK(shoes_svg_get_handle), 0);
+  rb_define_method(cSvg, "handle=", CASTHOOK(shoes_svg_set_handle), 1);
+  rb_define_method(cSvg, "dpi", CASTHOOK(shoes_svg_get_dpi), 0);
+  rb_define_method(cSvg, "dpi=", CASTHOOK(shoes_svg_set_dpi), 1);
 
   cEffect   = rb_define_class_under(cTypes, "Effect", rb_cObject);
   rb_define_alloc_func(cEffect, shoes_effect_alloc);

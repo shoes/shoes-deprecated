@@ -301,6 +301,7 @@ typedef struct _svghandle {
   RsvgDimensionData svghdim;
   RsvgPositionData svghpos;
   char *subid;
+  int aspect;
 } shoes_svghandle;
 
 //
@@ -312,12 +313,7 @@ typedef struct {
   shoes_place place;
   SHOES_CONTROL_REF ref;
   int init;
-  VALUE svghandle;
-//  RsvgHandle *handle;
-//  RsvgDimensionData svgdim;
-//  RsvgDimensionData subdim;
-//  RsvgPositionData subpos;
-  char  *subid;  // null for everything. 
+  VALUE svghandle; 
   SHOES_SLOT_OS *slot;
 } shoes_svg;
 
@@ -529,8 +525,12 @@ VALUE shoes_svghandle_get_height(VALUE);
 VALUE shoes_svg_new(int, VALUE *, VALUE);
 VALUE shoes_svg_alloc(VALUE);
 VALUE shoes_svg_draw(VALUE, VALUE, VALUE);
-VALUE shoes_svg_render(int, VALUE *, VALUE);
 void shoes_svg_paint_svg(cairo_t *, VALUE);
+VALUE shoes_svg_get_handle(VALUE);
+VALUE shoes_svg_set_handle(VALUE, VALUE);
+VALUE shoes_svg_get_dpi(VALUE);
+VALUE shoes_svg_set_dpi(VALUE, VALUE);
+VALUE shoes_svg_save(VALUE, VALUE, VALUE);
 VALUE shoes_svg_show(VALUE);
 VALUE shoes_svg_hide(VALUE);
 VALUE shoes_svg_get_top(VALUE);

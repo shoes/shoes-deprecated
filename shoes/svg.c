@@ -51,10 +51,12 @@ shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
   VALUE klass = cSvgHandle;
   ID  s_filename = rb_intern ("filename");
   ID  s_content = rb_intern ("content");
-  ID  s_subid = rb_intern("layer");
+  ID  s_subid = rb_intern("group");
+  ID  s_aspect = rb_intern("aspect");
   VALUE filename = shoes_hash_get(argv[0], s_filename);
   VALUE fromstring = shoes_hash_get(argv[0], s_content);
   VALUE subidObj = shoes_hash_get(argv[0], s_subid);
+  VALUE aspectObj = shoes_hash_get(argv[0], s_aspect);
   VALUE obj = shoes_svghandle_alloc(klass);
   shoes_svghandle *self_t;
   Data_Get_Struct(obj, shoes_svghandle, self_t);
@@ -77,6 +79,15 @@ shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
   } else {
     // raise an exception
   }
+  if (NIL_P(aspectObj))
+    self_t->aspect = 1;
+  else 
+  {
+    if (strcmp("no", RSTRING_PTR(aspectObj)) == 0)
+      self_t->aspect = 0;
+    else
+      self_t->aspect = 1;
+  }
   if (!NIL_P(subidObj) && (RSTRING_LEN(subidObj) > 0))
   {
     self_t->subid = RSTRING_PTR(subidObj);
@@ -94,8 +105,8 @@ shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
     self_t->subid = NULL;
   }
   printf("sub x: %i, y: %i, w: %i, h: %i)\n", 
-  self_t->svghpos.x, self_t->svghpos.y, 
-  self_t->svghdim.width, self_t->svghdim.height);
+    self_t->svghpos.x, self_t->svghpos.y, 
+    self_t->svghdim.width, self_t->svghdim.height);
   return obj;
 }
 
@@ -128,8 +139,6 @@ shoes_svg_mark(shoes_svg *handle)
 static void
 shoes_svg_free(shoes_svg *handle)
 {
-  if (handle->handle != NULL)
-    ;  // do the g_unref thing
   RUBY_CRITICAL(SHOE_FREE(handle));
 }
 
@@ -140,7 +149,7 @@ shoes_svg_alloc(VALUE klass)
   shoes_svg *handle = SHOE_ALLOC(shoes_svg);
   SHOE_MEMZERO(handle, shoes_svg, 1);
   obj = Data_Wrap_Struct(klass, shoes_svg_mark, shoes_svg_free, handle);
-  handle->handle = NULL;
+  handle->svghandle = Qnil;
   handle->parent = Qnil;
   return obj;
 }
@@ -176,12 +185,12 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   self_t->svghandle = svghanObj;
   self_t->init = 0;
   // FIXME: cheat until the draw code is rewritten for the svghandle;
-  self_t->handle = shandle->handle;
-  self_t->svgdim = shandle->svghdim;
-  self_t->subdim = shandle->svghdim;
-  self_t->subpos = shandle->svghpos;
-  self_t->subid = shandle->subid;
-  rsvg_handle_set_dpi(shandle->handle, 90.0);
+  //self_t->handle = shandle->handle;
+  //self_t->svgdim = shandle->svghdim;
+  //self_t->subdim = shandle->svghdim;
+  //self_t->subpos = shandle->svghpos;
+  //self_t->subid = shandle->subid;
+  rsvg_handle_set_dpi(shandle->handle, 75.0);
   return obj;
 }
 
@@ -214,24 +223,48 @@ VALUE shoes_svg_draw(VALUE self, VALUE c, VALUE actual)
   return self;
 }
 
-// sets the sub id string or nil for all. Causes a repaint.
-VALUE shoes_svg_render(int argc, VALUE *argv, VALUE self)
+VALUE 
+shoes_svg_get_handle(VALUE self)
+{
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
+  return self_t->svghandle;
+}
+
+
+VALUE
+shoes_svg_set_handle(VALUE self, VALUE han)
 {
   shoes_canvas *canvas;
   shoes_svg *self_t;
   Data_Get_Struct(self, shoes_svg, self_t);
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-  if (argc == 0 || NIL_P(argv[0]))
-    self_t->subid = NULL;
+  if ( !NIL_P(han) ) // should test if han/obj is a svghandle
+    self_t->svghandle = han;
   else
   {
-    char *sub = RSTRING_PTR(argv[0]);
-    if (RSTRING_LEN(argv[0]) == 0)
-      self_t->subid = NULL;
-    else
-      self_t->subid = sub;
+    // should raise an error
+    printf("not a handle\n");
   }
   shoes_native_svg_paint(self_t->ref, canvas->cr, self);
+  return han;
+}
+
+VALUE
+shoes_svg_get_dpi(VALUE self)
+{
+  return INT2NUM(75);
+}
+
+VALUE 
+shoes_svg_set_dpi(VALUE dpi, VALUE self)
+{
+  return Qnil;
+}
+  
+// nobody knows what goes in here. 
+VALUE shoes_svg_save(VALUE self, VALUE path, VALUE block)
+{
   return Qnil;
 }
 
@@ -270,19 +303,24 @@ VALUE shoes_svg_get_height(VALUE self)
   printf("height\n");
 }
 
-VALUE shoes_svg_get_full_width(VALUE self)
+VALUE shoes_svg_preferred_width(VALUE self)
 {
   int w;
-  //shoes_svg *self_t;
   GET_STRUCT(svg, self_t);
-  w = self_t->svgdim.width;
+  shoes_svghandle *svghan;
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+  w = svghan->svghdim.width;
   return INT2NUM(w);
 }
 
-VALUE shoes_svg_get_full_height(VALUE self)
+VALUE shoes_svg_preferred_height(VALUE self)
 {
+  int h;
   GET_STRUCT(svg, self_t);
-  return INT2NUM(self_t->svgdim.height);
+  shoes_svghandle *svghan;
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+  h = svghan->svghdim.height;
+  return INT2NUM(h);
 }
 
 VALUE shoes_svg_remove(VALUE self)
@@ -303,36 +341,42 @@ void
 shoes_svg_paint_svg(cairo_t *cr, VALUE svg)
 {
   shoes_svg *self_t;
-  shoes_canvas *canvas;
+  shoes_svghandle *svghan;
   Data_Get_Struct(svg, shoes_svg, self_t);
-  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-  if (self_t->subid == NULL)
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+  double outw = self_t->place.w * 1.0;
+  double outh = self_t->place.h * 1.0;
+  double scalew = outw / svghan->svghdim.width;
+  double scaleh = outh / svghan->svghdim.height;
+  if (svghan->aspect)
+  {
+    // compute new scalew and scaleh
+  }
+  if (svghan->subid == NULL)
   {
     // Full svg
-    cairo_scale(cr, (self_t->place.w * 1.0) / self_t->svgdim.width, 
-      (self_t->place.h * 1.0) / self_t->svgdim.height);
-    rsvg_handle_render_cairo_sub(self_t->handle, cr, self_t->subid);
+    //cairo_scale(cr, (self_t->place.w * 1.0) / svghan->svghdim.width, 
+    // (self_t->place.h * 1.0) / svghan->svghdim.height);
+    cairo_scale(cr, scalew , scaleh);
+    rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
   }
   else
   {
-    // Partial svg 
+    // a partial svg - fun fact:
+    // 0,0 in Shoes (or gdk/gtk ) is left,top. In Cairo and svg, 0,0 is left,bottom)
     cairo_matrix_t matrix;
 
-    double outw = self_t->place.w * 1.0;
-    double outh = self_t->place.h * 1.0;
-    double scalew = outw / self_t->subdim.width;
-    double scaleh = outh / self_t->subdim.height;
-    //cairo_scale(cr, round(outw), round(outh));
-    //cairo_translate(cr, self_t->place.x, 
-    //  self_t->place.y);
-    cairo_matrix_init_identity (&matrix);
-    cairo_matrix_scale (&matrix, scalew, scaleh);
+
+   //cairo_matrix_init_identity (&matrix);
+    //cairo_matrix_scale (&matrix, scalew, scaleh);
     // note hack suggesting it's the wrong surface. 
-    cairo_matrix_translate (&matrix, self_t->subpos.x * -1.0 , (self_t->subpos.y *-1.0) + 27.0);
-    cairo_set_matrix (cr, &matrix);
+    //cairo_matrix_translate (&matrix, self_t->subpos.x * -1.0 , (self_t->subpos.y *-1.0) + 27.0);
+    //cairo_set_matrix (cr, &matrix);
 
 
-    rsvg_handle_render_cairo_sub(self_t->handle, cr, self_t->subid);
+    rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
+    cairo_scale(cr, round(outw), round(outh)*-1.0);
+    cairo_translate(cr, 0, outh);
 
     //cairo_restore(cr);
 
