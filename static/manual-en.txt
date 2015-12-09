@@ -1759,26 +1759,26 @@ Notice how it's sticky.
 
 === app.svghandle ({hash args}) ===
 
-Returns an object of SvgHandle class. 
+Returns an object of SvgHandle class. The hash args are documented in
+Elements, Svg. 
 
-This is a little weird because an svg file is a little weird and we want to
-allow you to work with them. Svg files have layers or groups so it is also container file
+This is may be little weird because an svg file is a little weird and we want to
+allow you to work with them as best we can. Svg files have layers or groups so it is also container file
 with lots of vector images inside. How many groups and what the their names are unknown.
 That's up to you figure out. The Inkscape program can help you there.
 
 For example many card game programs have one svg file with 52 or more groups
-inside it.
+inside it. In Shoes, the groups have names starting with '#' so '#queen_hearts'
+it a group name. Think of svghandle is a marker to an image in a svg file.
 
-An svg file is really an xml text file. You can and may probably load to load it into
-a string so you can do some xml queries (gem nokogiri is included with Shoes). Either way
-you have svg groups which Shoes calls 'groups'. An svghandle is a Ruby object
-you create by calling app.svghandle and then you can pass that handle into the
-an svg widget. Its a filename or string, plus an optional 'group' name. It's like
-a position in a file. 
+An svg file is really an xml text file. You can and probably should load it into
+a string so you can do some xml queries (gem nokogiri is included with Shoes) if 
+needed or to prevent loading the file more times that needed if your going to be using
+groups inside that file. 
 
-Since svg files can be a very large you probably don't want read the file 52+
-times. You can create svghandles. And you can dig out some info from svghandle if you app
-need its to before putting it on screen. It's a pretty static image once its on screen.
+Many people can go merrily along their way without creating or manipulating
+handles.  But, if you want to - you can create with them by calling 'app.svghandle'
+before creating any SVG widgets with them.
 
 
 = Slots =
@@ -3855,13 +3855,13 @@ See [[Styles.state]] style for details.
 == Svg ==
 
 In Shoes 3.3 we gained the ability to draw svgs. While they may appear to
-look like Images, they are not. It's a diffent widget with its own rules and 
+look like Images, they are not. It's a different widget with its own rules and 
 methods. Some of which may look like Image methods.
 
 === svg (width, height, {hash) ===
 
 You have to specify the width and height you want. There is no default.
-Those the size of the SVG widget 
+Those are the size of the SVG widget 
 
 The hash has many arguments that you can use. You must specify either :filename => a path
 or :content => string or :handle =>svghandle). If you read the svg (a textual xml) file into a string then you would use the :content
@@ -3882,19 +3882,18 @@ or may not be what you want.
 
 :aspect => "string" 
 
-The string may be "none", "respect" or "center",  The default is "respect"
+The string may be "yes" or "no".  The default is "yes"
 and that will keep the aspect ratio of the svg (group) even if that means
-the image width or height is scaled down to fit the widget size. "none" just fills the rectangle
-for the svg widget (stretching width and height as needed) "centered" is like
-"respect" but any left over white space after computing the aspect will be added
-so it appears to be centered within the given space, other wise any free space
-will apear at the bottom or right, depending of course of what the aspect computation
-provides.
+the image width or height is scaled down to fit the widget size. "no" just fills the rectangle
+for the svg widget (stretching width and height as needed) 
+
+Any left over white space after computing the aspect will be added be on the right 
+or bottom side.
 
 === svg (width, height, svghandle) ===
 
 You can also create a svg widget with a [[App.svhandle]] if you want more
-control before thing
+control before it's on screen.
 
 === width » interger ===
 
@@ -3914,10 +3913,29 @@ returns. You probably don't want to use this method.
 returns the height of the internal svg. This can more or less than what height
 returns. You probably don't want to use this method.
 
-=== replace = svghandle ===
+=== handle ===
+
+All Svg widgets have an internal svghandle associated with them, whether
+you explicity created one or not. This return it but there isn't aanything
+you can do with it.
+
+=== handle = svghandle ===
 
 replace the widget contents (a drawing) with the new svghandle. Use with 
 wisdom.
+
+=== dpi ===
+
+returns the dots per inch of the svg. Expect a constant value of 72 or 75 no matter
+what. 
+
+=== dpi = number ===
+
+No one knows what this will do or should do.
+
+=== save filename, &block ===
+
+Completely unwritten. Subject to change.
 
 == Snapshot ==
 

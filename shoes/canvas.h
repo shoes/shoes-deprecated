@@ -313,10 +313,10 @@ typedef struct {
   SHOES_CONTROL_REF ref;
   int init;
   VALUE svghandle;
-  RsvgHandle *handle;
-  RsvgDimensionData svgdim;
-  RsvgDimensionData subdim;
-  RsvgPositionData subpos;
+//  RsvgHandle *handle;
+//  RsvgDimensionData svgdim;
+//  RsvgDimensionData subdim;
+//  RsvgPositionData subpos;
   char  *subid;  // null for everything. 
   SHOES_SLOT_OS *slot;
 } shoes_svg;
@@ -537,8 +537,8 @@ VALUE shoes_svg_get_top(VALUE);
 VALUE shoes_svg_get_left(VALUE);
 VALUE shoes_svg_get_width(VALUE);
 VALUE shoes_svg_get_height(VALUE);
-VALUE shoes_svg_full_height(VALUE);
-VALUE shoes_svg_full_width(VALUE);
+VALUE shoes_svg_preferred_height(VALUE);
+VALUE shoes_svg_preferred_width(VALUE);
 VALUE shoes_svg_remove(VALUE);
 
 void shoes_control_mark(shoes_control *);
