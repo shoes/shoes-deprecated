@@ -36,13 +36,19 @@ shoes_native_svg_paint(GtkWidget *widget, cairo_t *cr, gpointer data)
   return FALSE;
 }
 
+// funky: sets selt->surface, cr
 SHOES_SURFACE_REF
 shoes_native_svg(shoes_canvas *canvas, VALUE self, shoes_place *place)
 {
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
   GtkWidget *drawing_area = gtk_drawing_area_new();
-  gtk_widget_set_size_request (drawing_area, 200, 200);
+  gtk_widget_set_size_request (drawing_area, place->w, place->h);
+
   g_signal_connect (G_OBJECT (drawing_area), "draw",
                     G_CALLBACK (shoes_native_svg_paint), (gpointer)self);
+  
+                    
   return drawing_area;
 }
 
@@ -50,6 +56,7 @@ void
 shoes_native_svg_position(SHOES_SURFACE_REF ref, shoes_place *p1,
   VALUE self, shoes_canvas *canvas, shoes_place *p2)
 {
+  printf("svg position\n");
   shoes_native_control_position(ref, p1, self, canvas, p2);
 }
 

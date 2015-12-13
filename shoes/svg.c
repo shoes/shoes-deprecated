@@ -79,15 +79,6 @@ shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
   } else {
     // raise an exception
   }
-  if (NIL_P(aspectObj))
-    self_t->aspect = 1;
-  else 
-  {
-    if (strcmp("no", RSTRING_PTR(aspectObj)) == 0)
-      self_t->aspect = 0;
-    else
-      self_t->aspect = 1;
-  }
   if (!NIL_P(subidObj) && (RSTRING_LEN(subidObj) > 0))
   {
     self_t->subid = RSTRING_PTR(subidObj);
@@ -104,6 +95,12 @@ shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
     self_t->svghpos.x = self_t->svghpos.y = 0;
     self_t->subid = NULL;
   }
+  if (NIL_P(aspectObj) || (strcmp("yes", RSTRING_PTR(aspectObj)) == 0))
+    self_t->aspect = (double) self_t->svghdim.width / (double) self_t->svghdim.height;
+  else 
+  {
+    self_t->aspect = 1.0;
+  } 
   printf("sub x: %i, y: %i, w: %i, h: %i)\n", 
     self_t->svghpos.x, self_t->svghpos.y, 
     self_t->svghdim.width, self_t->svghdim.height);
@@ -181,18 +178,43 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   self_t->svghandle = svghanObj;
   self_t->place.w = NUM2INT(widthObj);
   self_t->place.h = NUM2INT(heightObj);
-  self_t->parent = parent;
+  self_t->parent = shoes_find_canvas(parent);;
   self_t->svghandle = svghanObj;
   self_t->init = 0;
-  // FIXME: cheat until the draw code is rewritten for the svghandle;
-  //self_t->handle = shandle->handle;
-  //self_t->svgdim = shandle->svghdim;
-  //self_t->subdim = shandle->svghdim;
-  //self_t->subpos = shandle->svghpos;
-  //self_t->subid = shandle->subid;
   rsvg_handle_set_dpi(shandle->handle, 75.0);
   return obj;
 }
+
+// Some macros copied from ruby.c (not .h !) renamed from IMAGE to SVG
+#define SETUP(self_type, rel, dw, dh) \
+  self_type *self_t; \
+  shoes_place place; \
+  shoes_canvas *canvas; \
+  Data_Get_Struct(self, self_type, self_t); \
+  Data_Get_Struct(c, shoes_canvas, canvas); \
+  if (ATTR(self_t->attr, hidden) == Qtrue) return self; \
+  shoes_place_decide(&place, c, self_t->attr, dw, dh, rel, REL_COORDS(rel) == REL_CANVAS)
+  
+#define SHOES_SVG_PLACE(type, imw, imh, surf) \
+  SETUP(shoes_##type, (REL_CANVAS | REL_SCALE), imw, imh); \
+  VALUE ck = rb_obj_class(c); \
+  if (RTEST(actual)) \
+    shoes_image_draw_surface(CCR(canvas), self_t, &place, surf, imw, imh); \
+  FINISH(); \
+  return self;
+  
+#define FINISH() \
+  if (!ABSY(place)) { \
+    canvas->cx += place.w; \
+    canvas->cy = place.y; \
+    canvas->endx = canvas->cx; \
+    canvas->endy = max(canvas->endy, place.y + place.h); \
+  } \
+  if (ck == cStack) { \
+    canvas->cx = CPX(canvas); \
+    canvas->cy = canvas->endy; \
+  }
+
 
 // This gets called very often. May be slow for large SVG?
 VALUE shoes_svg_draw(VALUE self, VALUE c, VALUE actual)
@@ -213,7 +235,7 @@ VALUE shoes_svg_draw(VALUE self, VALUE c, VALUE actual)
         int h = self_t->place.h;
         self_t->ref = shoes_native_svg(canvas, self, &canvas->place);
         shoes_place_decide(&place, c, self_t->attr, w, h, REL_CANVAS, TRUE);
-        shoes_native_surface_position(self_t->ref, &self_t->place, self, canvas, &place);
+        shoes_native_svg_position(self_t->ref, &self_t->place, self, canvas, &place);
         self_t->init = 1;
         shoes_native_svg_paint(self_t->ref, canvas->cr, self);
       }
@@ -344,19 +366,32 @@ shoes_svg_paint_svg(cairo_t *cr, VALUE svg)
   shoes_svghandle *svghan;
   Data_Get_Struct(svg, shoes_svg, self_t);
   Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+
   double outw = self_t->place.w * 1.0;
   double outh = self_t->place.h * 1.0;
   double scalew = outw / svghan->svghdim.width;
   double scaleh = outh / svghan->svghdim.height;
-  if (svghan->aspect)
+  double aspect = (double)svghan->svghdim.width / (double)svghan->svghdim.height;
+  if (svghan->aspect != 1.0)
   {
-    // compute new scalew and scaleh
+    // work with pixels.
+    if (svghan->svghdim.width > outw && svghan->svghdim.height > outh)
+    {
+      // shrink svg  to fit
+      scalew = outw / svghan->svghdim.width;
+      scaleh = (outh / svghan->svghdim.height) * (1.0 / aspect);
+    } 
+    if (svghan->svghdim.width < outw && svghan->svghdim.height < outh)
+    {
+      // expand svg to fit
+      scalew = (outw / svghan->svghdim.width) * aspect;
+      scaleh = outh /svghan->svghdim.height;
+    }
   }
+  printf("scalew: %f, scaleh, %f, aspect %f\n", scalew, scaleh, aspect);
   if (svghan->subid == NULL)
   {
     // Full svg
-    //cairo_scale(cr, (self_t->place.w * 1.0) / svghan->svghdim.width, 
-    // (self_t->place.h * 1.0) / svghan->svghdim.height);
     cairo_scale(cr, scalew , scaleh);
     rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
   }
@@ -365,18 +400,17 @@ shoes_svg_paint_svg(cairo_t *cr, VALUE svg)
     // a partial svg - fun fact:
     // 0,0 in Shoes (or gdk/gtk ) is left,top. In Cairo and svg, 0,0 is left,bottom)
     cairo_matrix_t matrix;
-
-
-   //cairo_matrix_init_identity (&matrix);
-    //cairo_matrix_scale (&matrix, scalew, scaleh);
+    cairo_matrix_init_identity (&matrix);
+    cairo_matrix_scale (&matrix, scalew, scaleh);
     // note hack suggesting it's the wrong surface. 
-    //cairo_matrix_translate (&matrix, self_t->subpos.x * -1.0 , (self_t->subpos.y *-1.0) + 27.0);
-    //cairo_set_matrix (cr, &matrix);
+    cairo_matrix_translate (&matrix, svghan->svghpos.x * -1.0 , ((self_t->place.y + svghan->svghpos.y) *-1.0));
+    cairo_set_matrix (cr, &matrix);
 
 
+    //cairo_translate(cr, svghan->svghpos.x * -1, 0.0 - svghan->svghpos.y);
+    //cairo_translate(cr, self_t->place.ix + self_t->place.dx, (self_t->place.iy + self_t->place.dy));
+    //cairo_scale(cr, round(outw), round(outh));
     rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
-    cairo_scale(cr, round(outw), round(outh)*-1.0);
-    cairo_translate(cr, 0, outh);
 
     //cairo_restore(cr);
 

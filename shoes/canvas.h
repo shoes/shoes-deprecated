@@ -301,7 +301,7 @@ typedef struct _svghandle {
   RsvgDimensionData svghdim;
   RsvgPositionData svghpos;
   char *subid;
-  int aspect;
+  double aspect;
 } shoes_svghandle;
 
 //
@@ -311,6 +311,8 @@ typedef struct {
   VALUE parent;
   VALUE attr;
   shoes_place place;
+  cairo_surface_t *surface;
+  cairo_t *cr;
   SHOES_CONTROL_REF ref;
   int init;
   VALUE svghandle; 
