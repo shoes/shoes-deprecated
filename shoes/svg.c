@@ -123,6 +123,9 @@ shoes_svghandle_get_height(VALUE self)
 
 
 // ------- svg widget -----
+// forward declares in this file
+static void
+shoes_svg_draw_surface(cairo_t *, shoes_svg *, shoes_place *, cairo_surface_t *, int, int);
 
 // alloc some memory for a shoes_svg; We'll protect it from gc
 // out of caution. fingers crossed.
@@ -172,78 +175,135 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
 
   Data_Get_Struct(parent, shoes_canvas, canvas);
   obj = shoes_svg_alloc(klass);
-  // get a ptr to the struct inside obj
+
   shoes_svg *self_t;
+  int width, height;
   Data_Get_Struct(obj, shoes_svg, self_t);
   self_t->svghandle = svghanObj;
-  self_t->place.w = NUM2INT(widthObj);
-  self_t->place.h = NUM2INT(heightObj);
+  self_t->place.w = width = NUM2INT(widthObj);
+  self_t->place.h = height = NUM2INT(heightObj);
   self_t->parent = shoes_find_canvas(parent);;
   self_t->svghandle = svghanObj;
-  self_t->init = 0;
-  rsvg_handle_set_dpi(shandle->handle, 75.0);
+  shoes_place place;
+  self_t->surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, place.iw, place.ih);
+  self_t->cr = cairo_create(self_t->surface);
+  shoes_place_exact(&place, self_t->attr, 0, 0);
+  if (place.iw < 1) place.w = place.iw = width;
+  if (place.ih < 1) place.h = place.ih = height;
+  shoes_svg_draw_surface(self_t->cr, self_t, &place, self_t->surface, place.w, place.h);
+
+  //self_t->ref = shoes_native_svg(canvas, obj, &self_t->place);
+  // paint once into that surface
+  //shoes_svg_paint_svg(CCR(canvas), obj, canvas);
   return obj;
 }
 
-// Some macros copied from ruby.c (not .h !) renamed from IMAGE to SVG
-#define SETUP(self_type, rel, dw, dh) \
-  self_type *self_t; \
-  shoes_place place; \
-  shoes_canvas *canvas; \
-  Data_Get_Struct(self, self_type, self_t); \
-  Data_Get_Struct(c, shoes_canvas, canvas); \
-  if (ATTR(self_t->attr, hidden) == Qtrue) return self; \
-  shoes_place_decide(&place, c, self_t->attr, dw, dh, rel, REL_COORDS(rel) == REL_CANVAS)
-  
-#define SHOES_SVG_PLACE(type, imw, imh, surf) \
-  SETUP(shoes_##type, (REL_CANVAS | REL_SCALE), imw, imh); \
-  VALUE ck = rb_obj_class(c); \
-  if (RTEST(actual)) \
-    shoes_image_draw_surface(CCR(canvas), self_t, &place, surf, imw, imh); \
-  FINISH(); \
-  return self;
-  
-#define FINISH() \
-  if (!ABSY(place)) { \
-    canvas->cx += place.w; \
-    canvas->cy = place.y; \
-    canvas->endx = canvas->cx; \
-    canvas->endy = max(canvas->endy, place.y + place.h); \
-  } \
-  if (ck == cStack) { \
-    canvas->cx = CPX(canvas); \
-    canvas->cy = canvas->endy; \
-  }
+static void
+shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, cairo_surface_t *surf, int imw, int imh)
+{
+  shoes_svghandle *svghan;
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+  cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
+  if (place->iw != imw || place->ih != imh)
+    cairo_scale(cr, (place->iw * 1.) / imw, (place->ih * 1.) / imh);
+  cairo_set_source_surface(cr, surf, 0., 0.);
+  rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
+  //cairo_paint(cr);
+  self_t->place = *place;
+  printf("surface\n");
+}
 
-
-// This gets called very often. May be slow for large SVG?
+// This gets called very often by Shoes. May be slow for large SVG?
 VALUE shoes_svg_draw(VALUE self, VALUE c, VALUE actual)
 {
-  shoes_svg *self_t;
-  shoes_canvas *canvas;
-  shoes_place place;
-  Data_Get_Struct(self, shoes_svg, self_t);
-  Data_Get_Struct(c, shoes_canvas, canvas);
-  if (RTEST(actual))
-  {
-    if (HAS_DRAWABLE(canvas->slot))
-    {
-      if (self_t->init == 0)
-      {
-        // still need to finish the new/init
-        int w = self_t->place.w; // script requested size
-        int h = self_t->place.h;
-        self_t->ref = shoes_native_svg(canvas, self, &canvas->place);
-        shoes_place_decide(&place, c, self_t->attr, w, h, REL_CANVAS, TRUE);
-        shoes_native_svg_position(self_t->ref, &self_t->place, self, canvas, &place);
-        self_t->init = 1;
-        shoes_native_svg_paint(self_t->ref, canvas->cr, self);
-      }
-    }
-    printf("svg_draw\n");
+  shoes_svg *self_t; 
+  shoes_place place; 
+  shoes_canvas *canvas; 
+  Data_Get_Struct(self, shoes_svg, self_t); 
+  Data_Get_Struct(c, shoes_canvas, canvas); 
+  if (ATTR(self_t->attr, hidden) == Qtrue) return self; 
+  int rel =(REL_CANVAS | REL_SCALE);
+  shoes_place_decide(&place, c, self_t->attr, self_t->place.w, self_t->place.h, rel, REL_COORDS(rel) == REL_CANVAS);
+  VALUE ck = rb_obj_class(c);
+  if (RTEST(actual)) 
+    shoes_svg_draw_surface( CCR(canvas), self_t, &place, self_t->surface, place.w, place.h);
+  if (!ABSY(place)) { 
+    canvas->cx += place.w; 
+    canvas->cy = place.y; 
+    canvas->endx = canvas->cx; 
+    canvas->endy = max(canvas->endy, place.y + place.h); 
+  } 
+  if(ck == cStack) { 
+    canvas->cx = CPX(canvas); 
+    canvas->cy = canvas->endy; 
   }
+  printf("svg draw\n");
   return self;
+
 }
+
+/*  This scales and renders the svg . Called from shoes_native_svg_paint
+ *  so those are just tiny functions in cocoa.m and gktsvg.c 
+*/
+void
+shoes_svg_paint_svg(cairo_t *cr, VALUE svg, shoes_canvas *canvas)
+{
+  shoes_svg *self_t;
+  shoes_svghandle *svghan;
+  Data_Get_Struct(svg, shoes_svg, self_t);
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+
+  double outw = self_t->place.w * 1.0;
+  double outh = self_t->place.h * 1.0;
+  double scalew = outw / svghan->svghdim.width;
+  double scaleh = outh / svghan->svghdim.height;
+  double aspect = (double)svghan->svghdim.width / (double)svghan->svghdim.height;
+  if (svghan->aspect != 1.0)
+  {
+    // work with pixels.
+    if (svghan->svghdim.width > outw && svghan->svghdim.height > outh)
+    {
+      // shrink svg  to fit
+      scalew = outw / svghan->svghdim.width;
+      scaleh = (outh / svghan->svghdim.height) * (1.0 / aspect);
+    } 
+    if (svghan->svghdim.width < outw && svghan->svghdim.height < outh)
+    {
+      // expand svg to fit
+      scalew = (outw / svghan->svghdim.width) * aspect;
+      scaleh = outh /svghan->svghdim.height;
+    }
+  }
+  printf("scalew: %f, scaleh, %f, aspect %f\n", scalew, scaleh, aspect);
+  if (svghan->subid == NULL)
+  {
+    // Full svg
+    cairo_scale(cr, scalew , scaleh);
+    rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
+  }
+  else
+  {
+    // a partial svg - fun fact:
+    // 0,0 in Shoes (or gdk/gtk ) is left,top. In Cairo and svg, 0,0 is left,bottom)
+    cairo_matrix_t matrix;
+    cairo_matrix_init_identity (&matrix);
+    cairo_matrix_scale (&matrix, scalew, scaleh);
+    //cairo_matrix_translate (&matrix, self_t->place.x * -1.0 , ((self_t->place.y + svghan->svghpos.y) *-1.0));
+    cairo_matrix_translate (&matrix, (svghan->svghpos.x  * -1.0 ), ((canvas->place.y ) *-1.0));
+    cairo_set_matrix (cr, &matrix);
+
+
+    //cairo_translate(cr, svghan->svghpos.x * -1, 0.0 - svghan->svghpos.y);
+    //cairo_translate(cr, self_t->place.ix + self_t->place.dx, (self_t->place.iy + self_t->place.dy));
+    //cairo_scale(cr, round(outw), round(outh));
+    rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
+
+    //cairo_restore(cr);
+
+  }
+  printf("paint\n");
+}
+
 
 VALUE 
 shoes_svg_get_handle(VALUE self)
@@ -268,7 +328,7 @@ shoes_svg_set_handle(VALUE self, VALUE han)
     // should raise an error
     printf("not a handle\n");
   }
-  shoes_native_svg_paint(self_t->ref, canvas->cr, self);
+  //shoes_svg_paint_svg(self_t->ref, canvas->cr, self);
   return han;
 }
 
@@ -352,68 +412,7 @@ VALUE shoes_svg_remove(VALUE self)
   shoes_canvas *canvas;
   Data_Get_Struct(self, shoes_svg, self_t);
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-  shoes_native_svg_remove(canvas, self_t->ref);
+  //shoes_native_svg_remove(canvas, self_t->ref);
   return Qtrue;
 }
 
-/*  This scales and renders the svg . Called from shoes_native_svg_paint
- *  so those are just tiny functions in cocoa.m and gktsvg.c 
-*/
-void
-shoes_svg_paint_svg(cairo_t *cr, VALUE svg)
-{
-  shoes_svg *self_t;
-  shoes_svghandle *svghan;
-  Data_Get_Struct(svg, shoes_svg, self_t);
-  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
-
-  double outw = self_t->place.w * 1.0;
-  double outh = self_t->place.h * 1.0;
-  double scalew = outw / svghan->svghdim.width;
-  double scaleh = outh / svghan->svghdim.height;
-  double aspect = (double)svghan->svghdim.width / (double)svghan->svghdim.height;
-  if (svghan->aspect != 1.0)
-  {
-    // work with pixels.
-    if (svghan->svghdim.width > outw && svghan->svghdim.height > outh)
-    {
-      // shrink svg  to fit
-      scalew = outw / svghan->svghdim.width;
-      scaleh = (outh / svghan->svghdim.height) * (1.0 / aspect);
-    } 
-    if (svghan->svghdim.width < outw && svghan->svghdim.height < outh)
-    {
-      // expand svg to fit
-      scalew = (outw / svghan->svghdim.width) * aspect;
-      scaleh = outh /svghan->svghdim.height;
-    }
-  }
-  printf("scalew: %f, scaleh, %f, aspect %f\n", scalew, scaleh, aspect);
-  if (svghan->subid == NULL)
-  {
-    // Full svg
-    cairo_scale(cr, scalew , scaleh);
-    rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
-  }
-  else
-  {
-    // a partial svg - fun fact:
-    // 0,0 in Shoes (or gdk/gtk ) is left,top. In Cairo and svg, 0,0 is left,bottom)
-    cairo_matrix_t matrix;
-    cairo_matrix_init_identity (&matrix);
-    cairo_matrix_scale (&matrix, scalew, scaleh);
-    // note hack suggesting it's the wrong surface. 
-    cairo_matrix_translate (&matrix, svghan->svghpos.x * -1.0 , ((self_t->place.y + svghan->svghpos.y) *-1.0));
-    cairo_set_matrix (cr, &matrix);
-
-
-    //cairo_translate(cr, svghan->svghpos.x * -1, 0.0 - svghan->svghpos.y);
-    //cairo_translate(cr, self_t->place.ix + self_t->place.dx, (self_t->place.iy + self_t->place.dy));
-    //cairo_scale(cr, round(outw), round(outh));
-    rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
-
-    //cairo_restore(cr);
-
-  }
-  printf("paint\n");
-}

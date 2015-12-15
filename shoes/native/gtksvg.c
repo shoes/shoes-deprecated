@@ -32,11 +32,11 @@ shoes_native_svg_draw_event(GtkWidget *widget, cairo_t *cr, gpointer data)
 gboolean
 shoes_native_svg_paint(GtkWidget *widget, cairo_t *cr, gpointer data)
 {
-  shoes_svg_paint_svg(cr, (VALUE) data);
+  shoes_svg_paint_svg(cr, (VALUE) data, data);
   return FALSE;
 }
 
-// funky: sets selt->surface, cr
+
 SHOES_SURFACE_REF
 shoes_native_svg(shoes_canvas *canvas, VALUE self, shoes_place *place)
 {
@@ -46,7 +46,7 @@ shoes_native_svg(shoes_canvas *canvas, VALUE self, shoes_place *place)
   gtk_widget_set_size_request (drawing_area, place->w, place->h);
 
   g_signal_connect (G_OBJECT (drawing_area), "draw",
-                    G_CALLBACK (shoes_native_svg_paint), (gpointer)self);
+                    G_CALLBACK (shoes_native_svg_paint), (gpointer) self);
   
                     
   return drawing_area;

@@ -527,7 +527,7 @@ VALUE shoes_svghandle_get_height(VALUE);
 VALUE shoes_svg_new(int, VALUE *, VALUE);
 VALUE shoes_svg_alloc(VALUE);
 VALUE shoes_svg_draw(VALUE, VALUE, VALUE);
-void shoes_svg_paint_svg(cairo_t *, VALUE);
+void shoes_svg_paint_svg(cairo_t *, VALUE, shoes_canvas *);
 VALUE shoes_svg_get_handle(VALUE);
 VALUE shoes_svg_set_handle(VALUE, VALUE);
 VALUE shoes_svg_get_dpi(VALUE);
