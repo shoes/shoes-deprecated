@@ -191,10 +191,6 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   if (place.iw < 1) place.w = place.iw = width;
   if (place.ih < 1) place.h = place.ih = height;
   shoes_svg_draw_surface(self_t->cr, self_t, &place, self_t->surface, place.w, place.h);
-
-  //self_t->ref = shoes_native_svg(canvas, obj, &self_t->place);
-  // paint once into that surface
-  //shoes_svg_paint_svg(CCR(canvas), obj, canvas);
   return obj;
 }
 
@@ -203,13 +199,47 @@ shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, cairo
 {
   shoes_svghandle *svghan;
   Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
-  cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
-  if (place->iw != imw || place->ih != imh)
-    cairo_scale(cr, (place->iw * 1.) / imw, (place->ih * 1.) / imh);
-  cairo_set_source_surface(cr, surf, 0., 0.);
-  rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
-  //cairo_paint(cr);
-  self_t->place = *place;
+  double outw = imw * 1.0;
+  double outh = imh * 1.0;
+  double scalew = outw / svghan->svghdim.width;
+  double scaleh = outh / svghan->svghdim.height;
+  double aspect = (double)svghan->svghdim.width / (double)svghan->svghdim.height;
+  if (svghan->aspect != 1.0)
+  {
+    // working with pixels.
+    if (svghan->svghdim.width > outw && svghan->svghdim.height > outh)
+    {
+      // shrink svg  to fit
+      scalew = outw / svghan->svghdim.width;
+      scaleh = (outh / svghan->svghdim.height) * (1.0 / aspect);
+    } 
+    if (svghan->svghdim.width < outw && svghan->svghdim.height < outh)
+    {
+      // expand svg to fit
+      scalew = (outw / svghan->svghdim.width) * aspect;
+      scaleh = outh /svghan->svghdim.height;
+    }
+  }
+  //printf("scalew: %f, scaleh, %f, aspect %f\n", scalew, scaleh, aspect);
+  if (svghan->subid == NULL)
+  {
+    // Full svg contents
+    cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
+    if (place->iw != imw || place->ih != imh)
+      cairo_scale(cr, (place->iw * 1.) / imw, (place->ih * 1.) / imh);
+    cairo_scale(cr, scalew, scaleh);
+    cairo_set_source_surface(cr, surf, 0., 0.);
+    rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
+    self_t->place = *place;
+  }
+  else 
+  {
+    cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
+    cairo_scale(cr, scalew, scaleh);
+    cairo_set_source_surface(cr, surf, 0., 0.);
+    rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
+    self_t->place = *place;
+  }
   printf("surface\n");
 }
 
@@ -297,8 +327,6 @@ shoes_svg_paint_svg(cairo_t *cr, VALUE svg, shoes_canvas *canvas)
     //cairo_translate(cr, self_t->place.ix + self_t->place.dx, (self_t->place.iy + self_t->place.dy));
     //cairo_scale(cr, round(outw), round(outh));
     rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
-
-    //cairo_restore(cr);
 
   }
   printf("paint\n");
