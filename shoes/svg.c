@@ -227,15 +227,12 @@ shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, cairo
   } else if (svghan->aspect > 0.0) {              // don't keep aspect ratio, User aspect ratio
     
     double new_svgdim_height = svghan->svghdim.width / svghan->aspect;
-    double sclh = scalew * new_svgdim_height / svghan->svghdim.height;
-    
     double new_svgdim_width = svghan->svghdim.height * svghan->aspect;
-    double sclw = scaleh * new_svgdim_width / svghan->svghdim.width;
     
     if (outw / new_svgdim_width < outh / new_svgdim_height)
-      scaleh = sclh;
+      scaleh = scalew * new_svgdim_height / svghan->svghdim.height;
     else
-      scalew = sclw;
+      scalew = scaleh * new_svgdim_width / svghan->svghdim.width;
   }
   
   cairo_scale(cr, scalew, scaleh);
