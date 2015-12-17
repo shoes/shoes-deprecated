@@ -89,21 +89,31 @@ shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
     if (!rsvg_handle_get_position_sub(self_t->handle, &self_t->svghpos, self_t->subid))
       printf("no pos for %s\n",self_t->subid);
   }
-  else 
+  else
   {
     rsvg_handle_get_dimensions(self_t->handle, &self_t->svghdim);
     self_t->svghpos.x = self_t->svghpos.y = 0;
     self_t->subid = NULL;
   }
-  if (NIL_P(aspectObj) || (strcmp("yes", RSTRING_PTR(aspectObj)) == 0))
-    self_t->aspect = (double) self_t->svghdim.width / (double) self_t->svghdim.height;
-  else 
-  {
+  
+//  if (NIL_P(aspectObj) || (strcmp("yes", RSTRING_PTR(aspectObj)) == 0)) { // aspect => true or "yes" or not specified
+  if (NIL_P(aspectObj) || (aspectObj == Qtrue))
+  { // :aspect => true or not specified, Keep aspect ratio
     self_t->aspect = 1.0;
+  } 
+  else if (TYPE(aspectObj) == T_FLOAT) 
+  { // :aspect => a double (ie 1.33), Don't keep aspect ratio
+    self_t->aspect = NUM2DBL(aspectObj);
+  }
+  else
+  { // :aspect => false, Don't keep aspect ratio
+    self_t->aspect = 0.0;// not relevant ?
+//    self_t->aspect = (double) self_t->svghdim.width / (double) self_t->svghdim.height; 
   } 
   printf("sub x: %i, y: %i, w: %i, h: %i)\n", 
     self_t->svghpos.x, self_t->svghpos.y, 
     self_t->svghdim.width, self_t->svghdim.height);
+  
   return obj;
 }
 
@@ -170,23 +180,26 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   
   shoes_svghandle *shandle;
   Data_Get_Struct(svghanObj, shoes_svghandle, shandle);
-  VALUE obj;
+  
   shoes_canvas *canvas;
-
   Data_Get_Struct(parent, shoes_canvas, canvas);
+  
+  VALUE obj;
   obj = shoes_svg_alloc(klass);
-
   shoes_svg *self_t;
-  int width, height;
   Data_Get_Struct(obj, shoes_svg, self_t);
+  
   self_t->svghandle = svghanObj;
+  int width, height;
   self_t->place.w = width = NUM2INT(widthObj);
   self_t->place.h = height = NUM2INT(heightObj);
-  self_t->parent = shoes_find_canvas(parent);;
-  self_t->svghandle = svghanObj;
+  self_t->parent = shoes_find_canvas(parent);
+  
   shoes_place place;
-  self_t->surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, place.iw, place.ih);
+//  self_t->surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, place.iw, place.ih); // ??
+  self_t->surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 0, 0);
   self_t->cr = cairo_create(self_t->surface);
+  
   shoes_place_exact(&place, self_t->attr, 0, 0);
   if (place.iw < 1) place.w = place.iw = width;
   if (place.ih < 1) place.h = place.ih = height;
@@ -199,37 +212,32 @@ shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, cairo
 {
   shoes_svghandle *svghan;
   Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
-  double outw = imw * 1.0; // slot width
-  double outh = imh * 1.0; // slot height
-  double scalew = outw / svghan->svghdim.width;
-  double scaleh = outh / svghan->svghdim.height;
-
-  double ratio = MIN(outw / svghan->svghdim.width, outh / svghan->svghdim.height);
-
-  if (svghan->aspect != 1.0)
-  {
-    scalew = scaleh = ratio;
+  double outw = imw * 1.0; // width given to svg() 
+  double outh = imh * 1.0; // height given to svg() 
+  
+  double scalew = outw / svghan->svghdim.width;   // don't keep aspect ratio
+  double scaleh = outh / svghan->svghdim.height;  //
+  
+  if (svghan->aspect == 1.0) {                    // keep aspect ratio
+    scalew = scaleh = MIN(outw / svghan->svghdim.width, outh / svghan->svghdim.height);
   }
-
-  if (svghan->subid == NULL)
-  {
+  
+  cairo_scale(cr, scalew, scaleh);
+  
+  if (svghan->subid == NULL) {
     // Full svg contents
-//    if (place->iw != imw || place->ih != imh)                           // What's the use of this ?
-//      cairo_scale(cr, (place->iw * 1.) / imw, (place->ih * 1.) / imh);  //
-    cairo_scale(cr, scalew, scaleh);
+    if (place->iw != imw || place->ih != imh)
+      cairo_scale(cr, (place->iw * 1.) / imw, (place->ih * 1.) / imh);
     cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
-    cairo_set_source_surface(cr, surf, 0., 0.);
-    rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
-    self_t->place = *place;
-  }
-  else 
-  {
-    cairo_scale(cr, scalew, scaleh);
+  } else {
+    // svg is a group/id manage offsets
     cairo_translate(cr, place->ix + place->dx - svghan->svghpos.x, place->iy + place->dy - svghan->svghpos.y);
-    cairo_set_source_surface(cr, surf, 0., 0.);
-    rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
-    self_t->place = *place;
   }
+  
+  cairo_set_source_surface(cr, surf, 0., 0.);
+  rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
+  self_t->place = *place;
+  
   printf("surface\n");
 }
 
@@ -265,6 +273,7 @@ VALUE shoes_svg_draw(VALUE self, VALUE c, VALUE actual)
 /*  This scales and renders the svg . Called from shoes_native_svg_paint
  *  so those are just tiny functions in cocoa.m and gktsvg.c 
 */
+/* Not used
 void
 shoes_svg_paint_svg(cairo_t *cr, VALUE svg, shoes_canvas *canvas)
 {
@@ -321,7 +330,7 @@ shoes_svg_paint_svg(cairo_t *cr, VALUE svg, shoes_canvas *canvas)
   }
   printf("paint\n");
 }
-
+*/
 
 VALUE 
 shoes_svg_get_handle(VALUE self)
