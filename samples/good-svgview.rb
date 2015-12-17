@@ -1,10 +1,11 @@
 # svg viewer
-Shoes.app width: 400, height: 400, title: "SVG Viewer" do
+Shoes.app width: 500, height: 600, title: "SVG Viewer" do
   fpath = ""
   fl = ''
+  widget_size = 480
   @slot = stack do
     tagline "SVG Viewer"
-    @display_panel = flow width: 1.0, height: 0.8 do
+    @display_panel = flow width: widget_size, height: widget_size do
     end
     @button_panel = flow do
       button "Load" do
@@ -12,34 +13,47 @@ Shoes.app width: 400, height: 400, title: "SVG Viewer" do
         if fpath 
           @display_panel.clear
           @display_panel.append do
-            img = svg({:filename => fpath, :width => 200, height: 200})
-            puts "#{img.inspect}"
-            puts "#{img.methods}"
-            #puts "Svg-l,t,w,h: #{img.left},#{img.width},#{img.height}"
-            puts "button t: #{self.top}"
-            puts "panel t: #{@display_panel.top}"
+            @current_svg = svg  widget_size, widget_size, {:filename => fpath, aspect: true}
           end
         end
       end
       button "save" do
       end
-      button "default" do
-        fpath = "/home/ccoupe/Projects/shoes3/brownshoes.svg"
-        fl = File.open(fpath,"r");
-        defsvg = fl.read
-        fl.close
+       button "quit" do
+        exit
+      end
+      @subid = edit_line :width=> 120, text: "all"
+      button "use group" do
+        id = nil
+        if @subid.text != "all"
+          if (@subid.text[0] != '#') && (confirm "Did you mean \##{@subid.text}")
+            id = "#"+@subid.text
+          else
+            id = @subid.text
+          end
+        end
+        # we should have a svg.group?(str) method
         @display_panel.clear
         @display_panel.append do
-          img = svg({:from_string => defsvg, :width => 200, height: 200})
-          puts "#{img.inspect}"
-          puts "#{img.methods}"
-          #puts "Svg-l,t,w,h: #{img.left},#{img.width},#{img.height}"
-          puts "button t: #{self.top}"
-          puts "panel t: #{@display_panel.top}"
+          @current_svg = svg  widget_size, widget_size, {:filename => fpath, aspect: @aspect.checked?, group: id}
         end
       end
-      button "quit" do
-        exit
+      stack do
+        inscription "Aspect"
+        flow do
+          @aspect = check checked: true do
+            puts "aspect #{@aspect.checked?}"
+            @display_panel.clear
+            @display_panel.append do
+              @current_svg = svg  widget_size, widget_size, {:filename => fpath, aspect: @aspect.checked?}
+            end
+          end 
+          para "use image aspect"
+        end
+        flow do
+          button "Custom aspect:" 
+          @specified = edit_line :width => 50, text: "1.00"
+        end
       end
     end
   end
