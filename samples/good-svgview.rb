@@ -3,6 +3,7 @@ Shoes.app width: 500, height: 600, title: "SVG Viewer" do
   fpath = ""
   fl = ''
   widget_size = 480
+  defaspect = true
   @slot = stack do
     tagline "SVG Viewer"
     @display_panel = flow width: widget_size, height: widget_size do
@@ -13,7 +14,7 @@ Shoes.app width: 500, height: 600, title: "SVG Viewer" do
         if fpath 
           @display_panel.clear
           @display_panel.append do
-            @current_svg = svg  widget_size, widget_size, {:filename => fpath, aspect: true}
+            @current_svg = svg  widget_size, widget_size, {:filename => fpath, aspect: defaspect}
           end
         end
       end
@@ -28,6 +29,7 @@ Shoes.app width: 500, height: 600, title: "SVG Viewer" do
         if @subid.text != "all"
           if (@subid.text[0] != '#') && (confirm "Did you mean \##{@subid.text}")
             id = "#"+@subid.text
+            @subid.text = id
           else
             id = @subid.text
           end
