@@ -96,20 +96,23 @@ shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
     self_t->subid = NULL;
   }
   
-//  if (NIL_P(aspectObj) || (strcmp("yes", RSTRING_PTR(aspectObj)) == 0)) { // aspect => true or "yes" or not specified
   if (NIL_P(aspectObj) || (aspectObj == Qtrue))
   { // :aspect => true or not specified, Keep aspect ratio
-    self_t->aspect = 1.0;
+    self_t->aspect = 0.0;
   } 
+  else if (aspectObj == Qfalse)
+  { // :aspect => false, Don't keep aspect ratio
+    self_t->aspect = -1.0;
+  }
   else if (TYPE(aspectObj) == T_FLOAT) 
   { // :aspect => a double (ie 1.33), Don't keep aspect ratio
     self_t->aspect = NUM2DBL(aspectObj);
   }
   else
-  { // :aspect => false, Don't keep aspect ratio
-    self_t->aspect = 0.0;// not relevant ?
-//    self_t->aspect = (double) self_t->svghdim.width / (double) self_t->svghdim.height; 
-  } 
+  { // fallback on keep aspect ratio
+    self_t->aspect = 0.0;
+  }
+  
   printf("sub x: %i, y: %i, w: %i, h: %i)\n", 
     self_t->svghpos.x, self_t->svghpos.y, 
     self_t->svghdim.width, self_t->svghdim.height);
@@ -215,11 +218,24 @@ shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, cairo
   double outw = imw * 1.0; // width given to svg() 
   double outh = imh * 1.0; // height given to svg() 
   
-  double scalew = outw / svghan->svghdim.width;   // don't keep aspect ratio
-  double scaleh = outh / svghan->svghdim.height;  //
+  double scalew = outw / svghan->svghdim.width;   // don't keep aspect ratio, Adapt to parent canvas
+  double scaleh = outh / svghan->svghdim.height;  // 
   
-  if (svghan->aspect == 1.0) {                    // keep aspect ratio
+  if (svghan->aspect == 0.0) {                    // keep aspect ratio
     scalew = scaleh = MIN(outw / svghan->svghdim.width, outh / svghan->svghdim.height);
+    
+  } else if (svghan->aspect > 0.0) {              // don't keep aspect ratio, User aspect ratio
+    
+    double new_svgdim_height = svghan->svghdim.width / svghan->aspect;
+    double sclh = scalew * new_svgdim_height / svghan->svghdim.height;
+    
+    double new_svgdim_width = svghan->svghdim.height * svghan->aspect;
+    double sclw = scaleh * new_svgdim_width / svghan->svghdim.width;
+    
+    if (outw / new_svgdim_width < outh / new_svgdim_height)
+      scaleh = sclh;
+    else
+      scalew = sclw;
   }
   
   cairo_scale(cr, scalew, scaleh);
@@ -230,7 +246,7 @@ shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, cairo
       cairo_scale(cr, (place->iw * 1.) / imw, (place->ih * 1.) / imh);
     cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
   } else {
-    // svg is a group/id manage offsets
+    // svg is a group/id, manage offsets
     cairo_translate(cr, place->ix + place->dx - svghan->svghpos.x, place->iy + place->dy - svghan->svghpos.y);
   }
   
