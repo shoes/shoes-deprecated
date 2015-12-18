@@ -152,6 +152,8 @@ shoes_svg_mark(shoes_svg *handle)
 static void
 shoes_svg_free(shoes_svg *handle)
 {
+  cairo_destroy(handle->cr);
+  cairo_surface_destroy(handle->surface);
   RUBY_CRITICAL(SHOE_FREE(handle));
 }
 
@@ -403,7 +405,6 @@ VALUE shoes_svg_hide(VALUE self)
   printf("hide\n");
   GET_STRUCT(svg, self_t);
   ATTRSET(self_t->attr, hidden, Qtrue);
-  shoes_native_surface_hide(self_t->ref); // shoes_native_svg_hide ??
   shoes_canvas_repaint_all(self_t->parent);
   return self;
 }

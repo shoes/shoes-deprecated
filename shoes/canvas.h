@@ -313,10 +313,7 @@ typedef struct {
   shoes_place place;
   cairo_surface_t *surface;
   cairo_t *cr;
-  SHOES_CONTROL_REF ref;
-  int init;
   VALUE svghandle; 
-  SHOES_SLOT_OS *slot;
 } shoes_svg;
 
 //
