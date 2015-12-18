@@ -67,8 +67,15 @@ Shoes.app width: 500, height: 600, title: "SVG Viewer" do
           para "use image aspect"
         end
         flow do
-          button "Custom aspect:" 
-          @specified = edit_line :width => 50, text: "1.00"
+          button "Custom aspect:"  do
+            asp = eval(@specified.text).to_f
+            @aspect.checked = false
+            @display_panel.clear
+            @display_panel.append do
+              @current_svg = svg  widget_size, widget_size, {:filename => fpath, aspect: asp}
+            end
+          end
+         @specified = edit_line :width => 50, text: "1.00" 
         end
       end
     end
