@@ -2,7 +2,7 @@
 Shoes.app width: 500, height: 600, title: "SVG Viewer" do
   fpath = ""
   fl = ''
-  widget_size = 480
+  widget_size = 400
   defaspect = true
   @slot = stack do
     tagline "SVG Viewer"
@@ -18,7 +18,21 @@ Shoes.app width: 500, height: 600, title: "SVG Viewer" do
           end
         end
       end
-      button "save" do
+      button "Paris Cards" do
+        fpath = ''
+        if Shoes::RELEASE_TYPE =~ /TIGHT/
+          fpath = "#{DIR}/samples/paris.svg"
+        else
+          fpath = "#{DIR}/../samples/paris.svg"
+        end
+        if ! File.exist? fpath 
+          alert "Can't find #{fpath} - crash ahead"
+        end
+        @display_panel.clear
+        @display_panel.append do
+          puts "#{DIR}/samples/paris.svg"
+          @current_svg = svg widget_size, widget_size, {:filename => fpath}
+        end
       end
        button "quit" do
         exit
