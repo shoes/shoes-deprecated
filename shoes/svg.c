@@ -200,20 +200,13 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
     break;
   }
   
-  VALUE klass = cSvg;
-  VALUE svghanObj;
-  
-//  if (TYPE(argv[2]) == T_HASH)
-//    svghanObj = shoes_svghandle_new(1, &argv[2], parent);
-//  else
-//    svghanObj = argv[2];
   if (strstr(RSTRING_PTR(svg_string), "</svg>") != NULL)
     ATTRSET(attr, content, svg_string);
   else
     ATTRSET(attr, filename, svg_string);
   
   // get an rsvg handle, initialize it
-  svghanObj = shoes_svghandle_new(1, &attr, parent);
+  VALUE svghanObj = shoes_svghandle_new(1, &attr, parent);
   
   shoes_svghandle *shandle;
   Data_Get_Struct(svghanObj, shoes_svghandle, shandle);
@@ -230,9 +223,9 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
     heightObj = (shandle->svghdim.height >= canvas->app->height) ? 
                               INT2NUM(canvas->app->height) : heightObj;
   }
-  printf("app.width, app->height = %i, %i\n",canvas->app->width, canvas->app->height);
+  //printf("app.width, app->height = %i, %i\n",canvas->app->width, canvas->app->height);
   
-  VALUE obj;
+  VALUE klass = cSvg, obj;
   obj = shoes_svg_alloc(klass);
   shoes_svg *self_t;
   Data_Get_Struct(obj, shoes_svg, self_t);
@@ -243,11 +236,10 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   self_t->place.h = height = NUM2INT(heightObj);
   self_t->parent = shoes_find_canvas(parent);
   
-  shoes_place place;
-//  self_t->surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, place.iw, place.ih); // ??
   self_t->surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 0, 0);
   self_t->cr = cairo_create(self_t->surface);
   
+  shoes_place place;
   shoes_place_exact(&place, self_t->attr, 0, 0);
   if (place.iw < 1) place.w = place.iw = width;
   if (place.ih < 1) place.h = place.ih = height;
