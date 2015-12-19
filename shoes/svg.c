@@ -79,6 +79,7 @@ shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
   } else {
     // raise an exception
   }
+  
   if (!NIL_P(subidObj) && (RSTRING_LEN(subidObj) > 0))
   {
     self_t->subid = RSTRING_PTR(subidObj);
@@ -173,23 +174,60 @@ shoes_svg_alloc(VALUE klass)
 VALUE
 shoes_svg_new(int argc, VALUE *argv, VALUE parent)
 {
-  rb_arg_list args;
-  VALUE klass = cSvg;
-  VALUE svghanObj;
-  VALUE widthObj = argv[0];
-  VALUE heightObj = argv[1];
-  if (TYPE(argv[2]) == T_HASH)
-    svghanObj = shoes_svghandle_new(1, &argv[2], parent);
-  else
-    svghanObj = argv[2];
-  
-  shoes_svghandle *shandle;
-  Data_Get_Struct(svghanObj, shoes_svghandle, shandle);
+  VALUE path = Qnil, attr = Qnil, widthObj, heightObj, svg_string;
+  ID  s_subid = rb_intern("group");
+  ID  s_aspect = rb_intern("aspect");
+  ID  s_filename = rb_intern ("filename");
+  ID  s_content = rb_intern ("content");
   
   shoes_canvas *canvas;
   Data_Get_Struct(parent, shoes_canvas, canvas);
   
-  VALUE obj;
+  rb_arg_list args;
+  switch (rb_parse_args(argc, argv, "sii|h,s|h", &args))
+  {
+    case 1:
+      svg_string = args.a[0];
+      widthObj = args.a[1];
+      heightObj = args.a[2];
+      attr = args.a[3];
+//      printf("widthObj, heightObj : %i, %i\n", NUM2INT(widthObj), NUM2INT(heightObj));
+    break;
+
+    case 2:
+      svg_string = args.a[0];
+      attr = args.a[1];
+      widthObj = RTEST(ATTR(canvas->attr, width)) ? ATTR(canvas->attr, width) : Qnil;
+      heightObj = RTEST(ATTR(canvas->attr, height)) ? ATTR(canvas->attr, height) : Qnil;
+    break;
+  }
+  
+  if (strstr(RSTRING_PTR(svg_string), "</svg>") != NULL)
+    ATTRSET(attr, content, svg_string);
+  else
+    ATTRSET(attr, filename, svg_string);
+  
+  // get an rsvg handle, initialize it
+  VALUE svghanObj = shoes_svghandle_new(1, &attr, parent);
+  
+  shoes_svghandle *shandle;
+  Data_Get_Struct(svghanObj, shoes_svghandle, shandle);
+  
+  // we couldn't find the width/height of the parent canvas, now that we have a rsvg handle,
+  // fallback to original size as defined in the svg file
+  if (widthObj == Qnil) {
+    widthObj = INT2NUM(shandle->svghdim.width);
+    widthObj = (shandle->svghdim.width >= canvas->app->width) ? 
+                              INT2NUM(canvas->app->width) : widthObj;
+  }
+  if (heightObj == Qnil) {
+    heightObj = INT2NUM(shandle->svghdim.height);
+    heightObj = (shandle->svghdim.height >= canvas->app->height) ? 
+                              INT2NUM(canvas->app->height) : heightObj;
+  }
+  //printf("app.width, app->height = %i, %i\n",canvas->app->width, canvas->app->height);
+  
+  VALUE klass = cSvg, obj;
   obj = shoes_svg_alloc(klass);
   shoes_svg *self_t;
   Data_Get_Struct(obj, shoes_svg, self_t);
@@ -200,15 +238,15 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   self_t->place.h = height = NUM2INT(heightObj);
   self_t->parent = shoes_find_canvas(parent);
   
-  shoes_place place;
-//  self_t->surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, place.iw, place.ih); // ??
   self_t->surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 0, 0);
   self_t->cr = cairo_create(self_t->surface);
   
+  shoes_place place;
   shoes_place_exact(&place, self_t->attr, 0, 0);
   if (place.iw < 1) place.w = place.iw = width;
   if (place.ih < 1) place.h = place.ih = height;
   shoes_svg_draw_surface(self_t->cr, self_t, &place, self_t->surface, place.w, place.h);
+  
   return obj;
 }
 
@@ -229,15 +267,12 @@ shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, cairo
   } else if (svghan->aspect > 0.0) {              // don't keep aspect ratio, User aspect ratio
     
     double new_svgdim_height = svghan->svghdim.width / svghan->aspect;
-    double sclh = scalew * new_svgdim_height / svghan->svghdim.height;
-    
     double new_svgdim_width = svghan->svghdim.height * svghan->aspect;
-    double sclw = scaleh * new_svgdim_width / svghan->svghdim.width;
     
     if (outw / new_svgdim_width < outh / new_svgdim_height)
-      scaleh = sclh;
+      scaleh = scalew * new_svgdim_height / svghan->svghdim.height;
     else
-      scalew = sclw;
+      scalew = scaleh * new_svgdim_width / svghan->svghdim.width;
   }
   
   cairo_scale(cr, scalew, scaleh);
