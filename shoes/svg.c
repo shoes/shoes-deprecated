@@ -79,6 +79,7 @@ shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
   } else {
     // raise an exception
   }
+  
   if (!NIL_P(subidObj) && (RSTRING_LEN(subidObj) > 0))
   {
     self_t->subid = RSTRING_PTR(subidObj);
@@ -171,21 +172,65 @@ shoes_svg_alloc(VALUE klass)
 VALUE
 shoes_svg_new(int argc, VALUE *argv, VALUE parent)
 {
+  VALUE path = Qnil, attr = Qnil, widthObj, heightObj, svg_string;
+  ID  s_subid = rb_intern("group");
+  ID  s_aspect = rb_intern("aspect");
+  ID  s_filename = rb_intern ("filename");
+  ID  s_content = rb_intern ("content");
+  
+  shoes_canvas *canvas;
+  Data_Get_Struct(parent, shoes_canvas, canvas);
+  
   rb_arg_list args;
+  switch (rb_parse_args(argc, argv, "sii|h,s|h", &args))
+  {
+    case 1:
+      svg_string = args.a[0];
+      widthObj = args.a[1];
+      heightObj = args.a[2];
+      attr = args.a[3];
+//      printf("widthObj, heightObj : %i, %i\n", NUM2INT(widthObj), NUM2INT(heightObj));
+    break;
+
+    case 2:
+      svg_string = args.a[0];
+      attr = args.a[1];
+      widthObj = RTEST(ATTR(canvas->attr, width)) ? ATTR(canvas->attr, width) : Qnil;
+      heightObj = RTEST(ATTR(canvas->attr, height)) ? ATTR(canvas->attr, height) : Qnil;
+    break;
+  }
+  
   VALUE klass = cSvg;
   VALUE svghanObj;
-  VALUE widthObj = argv[0];
-  VALUE heightObj = argv[1];
-  if (TYPE(argv[2]) == T_HASH)
-    svghanObj = shoes_svghandle_new(1, &argv[2], parent);
+  
+//  if (TYPE(argv[2]) == T_HASH)
+//    svghanObj = shoes_svghandle_new(1, &argv[2], parent);
+//  else
+//    svghanObj = argv[2];
+  if (strstr(RSTRING_PTR(svg_string), "</svg>") != NULL)
+    ATTRSET(attr, content, svg_string);
   else
-    svghanObj = argv[2];
+    ATTRSET(attr, filename, svg_string);
+  
+  // get an rsvg handle, initialize it
+  svghanObj = shoes_svghandle_new(1, &attr, parent);
   
   shoes_svghandle *shandle;
   Data_Get_Struct(svghanObj, shoes_svghandle, shandle);
   
-  shoes_canvas *canvas;
-  Data_Get_Struct(parent, shoes_canvas, canvas);
+  // we couldn't find the width/height of the parent canvas, now that we have a rsvg handle,
+  // fallback to original size as defined in the svg file
+  if (widthObj == Qnil) {
+    widthObj = INT2NUM(shandle->svghdim.width);
+    widthObj = (shandle->svghdim.width >= canvas->app->width) ? 
+                              INT2NUM(canvas->app->width) : widthObj;
+  }
+  if (heightObj == Qnil) {
+    heightObj = INT2NUM(shandle->svghdim.height);
+    heightObj = (shandle->svghdim.height >= canvas->app->height) ? 
+                              INT2NUM(canvas->app->height) : heightObj;
+  }
+  printf("app.width, app->height = %i, %i\n",canvas->app->width, canvas->app->height);
   
   VALUE obj;
   obj = shoes_svg_alloc(klass);
@@ -207,6 +252,7 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   if (place.iw < 1) place.w = place.iw = width;
   if (place.ih < 1) place.h = place.ih = height;
   shoes_svg_draw_surface(self_t->cr, self_t, &place, self_t->surface, place.w, place.h);
+  
   return obj;
 }
 
