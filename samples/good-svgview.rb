@@ -14,7 +14,7 @@ Shoes.app width: 500, height: 600, title: "SVG Viewer" do
         if fpath 
           @display_panel.clear
           @display_panel.append do
-            @current_svg = svg  widget_size, widget_size, {:filename => fpath, aspect: defaspect}
+            @current_svg = svg  fpath, widget_size, widget_size, { aspect: defaspect}
           end
         end
       end
@@ -31,7 +31,7 @@ Shoes.app width: 500, height: 600, title: "SVG Viewer" do
         @display_panel.clear
         @display_panel.append do
           puts "#{DIR}/samples/paris.svg"
-          @current_svg = svg widget_size, widget_size, {:filename => fpath}
+          @current_svg = svg fpath, widget_size, widget_size
         end
       end
        button "quit" do
@@ -51,7 +51,7 @@ Shoes.app width: 500, height: 600, title: "SVG Viewer" do
         # we should have a svg.group?(str) method
         @display_panel.clear
         @display_panel.append do
-          @current_svg = svg  widget_size, widget_size, {:filename => fpath, aspect: @aspect.checked?, group: id}
+          @current_svg = svg fpath, widget_size, widget_size, {aspect: @aspect.checked?, group: id}
         end
       end
       stack do
@@ -61,7 +61,7 @@ Shoes.app width: 500, height: 600, title: "SVG Viewer" do
             puts "aspect #{@aspect.checked?}"
             @display_panel.clear
             @display_panel.append do
-              @current_svg = svg  widget_size, widget_size, {:filename => fpath, aspect: @aspect.checked?}
+              @current_svg = svg  fpath, widget_size, widget_size, {aspect: @aspect.checked?}
             end
           end 
           para "use image aspect"
@@ -72,7 +72,7 @@ Shoes.app width: 500, height: 600, title: "SVG Viewer" do
             @aspect.checked = false
             @display_panel.clear
             @display_panel.append do
-              @current_svg = svg  widget_size, widget_size, {:filename => fpath, aspect: asp}
+              @current_svg = svg  fpath, widget_size, widget_size, { aspect: asp}
             end
           end
          @specified = edit_line :width => 50, text: "1.00" 
