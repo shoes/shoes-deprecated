@@ -70,6 +70,9 @@ LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkgruby}"`.strip+" "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkggtk}"`.strip+" "
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/ " 
+LINUX_CFLAGS << "-I/usr/include/librsvg-2.0/librsvg "
+MISC_LIB = ' /usr/lib/x86_64-linux-gnu/librsvg-2.so'
+
 
 LINUX_LIB_NAMES = %W[ungif jpeg]
 
@@ -83,7 +86,7 @@ RUBY_LDFLAGS << "-L#{ularch} -lrt -ldl -lcrypt -lm "
 
 LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
-LINUX_LIBS << " #{CURL_LDFLAGS if !RUBY_HTTP} #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} "
+LINUX_LIBS << " #{CURL_LDFLAGS if !RUBY_HTTP} #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} #{MISC_LIB}"
 
 SOLOCS = {}
 SOLOCS['curl'] = "#{curlloc}/libcurl.so.4" if !RUBY_HTTP
