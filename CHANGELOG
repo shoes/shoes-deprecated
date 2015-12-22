@@ -1,23 +1,47 @@
 = Walkabout - Shoes 3.3
+  The name reflects back to when Shoes creator why_the_lucky_stiff disappeared
+  from the internet. He went walkabout! We changed some icons and backgrounds
+  to relect that whimsical theme.  
+  
+  Walkabout (3.3) will be less compatible with the unmaintained 3.1 and 4.0 (jRuby)
+  We have interesting ideas of we what we do with Shoes that maybe very difficult
+  to immplememt in Shoes 4. 
 
 === new with 3.3.0
-  * Has a new widget to display svg images - similar to Image but NOT the same
-    Has aspect scaling option based on the svg internals.
-    samples/good-svgview.rb also include a svg deck of cards. 
-    Lots of fun - please file bug reports and requests. 
-    Verbose Issue 54 https://github.com/Shoes3/shoes3/issues/54
-  * refresh slot method
+  * Has a new Svg widget to display svg images - similar to Image but 
+    NOT the same. Has aspect scaling options based on the svg internals.
+    See samples/good-svgview.rb and the manual. 
+    We also include a svg deck of playing cards. 
+    It's a  bit fragile  so please file bug reports and feature requests. 
+    Very verbose Issue 54 - https://github.com/Shoes3/shoes3/issues/54
+  * add a refresh slot method
     Issue 152 https://github.com/Shoes3/shoes3/issues/152
+    Issue 151 https://github.com/Shoes3/shoes3/issues/151
   * Uses ruby 2.1.8 and rubygems 2.4.7
     Issue 164 https://github.com/Shoes3/shoes3/issues/164
-    
+  * New splash screen (no animation).
+  * added samples/good-image-rotate.rb because it's fun to watch.
+    Issue 157 - https://github.com/Shoes3/shoes3/issues/157
+  
 === Fixed with 3.3.0
-  * can build Shoes for OSX 10.6 - still an orphan
   * OSX - do not use home brew to manage dependecies. 
-    wiki: https://github.com/Shoes3/shoes3/wiki/OSX-10.9-Dependencies
+    wiki: https://github.com/Shoes3/shoes3/wiki/OSX-10.9-Dependencies15
     wiki: https://github.com/Shoes3/shoes3/wiki/OSX-10.6-Dependencies
   * Remove pango-querymodules from OSX. Yay!
-
+    Issue 156 - https://github.com/Shoes3/shoes3/issues/156
+  * Uninstall Shoes menu item for Linux (for some window managers)
+    Issue 31 - https://github.com/Shoes3/shoes3/issues/31
+  * repaint after slot remove
+    Issue 151 - https://github.com/Shoes3/shoes3/issues/151
+  * Windows: 256x256 icons failed when packaging.
+    Issue 10 - https://github.com/Shoes3/shoes3/issues/10
+  * developer name and RVM and linker info gets embedded in 
+    binary libraries. No solution worth persueing. 
+    Issue 66 - https://github.com/Shoes3/shoes3/issues/66
+  * Windows: fontconfig problems if you build shoes and download shoes
+    Issue 141 - https://github.com/Shoes3/shoes3/issues/141
+    
+  
 
 = Federales - Shoes 3.2
 
