@@ -68,6 +68,8 @@ LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkgruby}"`.strip+" "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkggtk}"`.strip+" "
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/ " 
+LINUX_CFLAGS << "-I/usr/include/librsvg-2.0/librsvg "
+MISC_LIB = ' /usr/lib/i386-linux-gnu/librsvg-2.so'
 
 DLEXT = "so"
 LINUX_LDFLAGS = "-fPIC -shared -L#{ularch} "
@@ -79,7 +81,7 @@ RUBY_LDFLAGS << "-L#{ularch} -lrt -ldl -lcrypt -lm "
 
 LINUX_LIBS =  %W[ungif jpeg].map { |x| "-l#{x}" }.join(' ')
 
-LINUX_LIBS << " #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} "
+LINUX_LIBS << " #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} #{MISC_LIB}"
 
 SOLOCS = {}
 SOLOCS['ungif'] = "#{uldir}/libungif.so.4"
