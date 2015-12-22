@@ -141,7 +141,7 @@ shoes_svghandle_get_height(VALUE self)
 // ------- svg widget -----
 // forward declares in this file
 static void
-shoes_svg_draw_surface(cairo_t *, shoes_svg *, shoes_place *, cairo_surface_t *, int, int);
+shoes_svg_draw_surface(cairo_t *, shoes_svg *, shoes_place *, /*cairo_surface_t *,*/ int, int);
 
 // alloc some memory for a shoes_svg; We'll protect it from gc
 // out of caution. fingers crossed.
@@ -173,25 +173,25 @@ shoes_svg_alloc(VALUE klass)
 void
 svg_aspect_ratio(int imw, int imh, shoes_svg *self_t, shoes_svghandle * svghan)
 {
-    double outw = imw * 1.0; // width given to svg() 
-    double outh = imh * 1.0; // height given to svg() 
-  
-    self_t->scalew = outw / svghan->svghdim.width;   // don't keep aspect ratio, Adapt to parent canvas
-    self_t->scaleh = outh / svghan->svghdim.height;  // 
+  double outw = imw * 1.0; // width given to svg() 
+  double outh = imh * 1.0; // height given to svg() 
 
-    if (svghan->aspect == 0.0) {                    // keep aspect ratio
-      self_t->scalew = self_t->scaleh = MIN(outw / svghan->svghdim.width, outh / svghan->svghdim.height);
+  self_t->scalew = outw / svghan->svghdim.width;   // don't keep aspect ratio, Adapt to parent canvas
+  self_t->scaleh = outh / svghan->svghdim.height;  // 
 
-    } else if (svghan->aspect > 0.0) {              // don't keep aspect ratio, User aspect ratio
+  if (svghan->aspect == 0.0) {                    // keep aspect ratio
+    self_t->scalew = self_t->scaleh = MIN(outw / svghan->svghdim.width, outh / svghan->svghdim.height);
 
-      double new_svgdim_height = svghan->svghdim.width / svghan->aspect;
-      double new_svgdim_width = svghan->svghdim.height * svghan->aspect;
+  } else if (svghan->aspect > 0.0) {              // don't keep aspect ratio, User aspect ratio
 
-      if (outw / new_svgdim_width < outh / new_svgdim_height)
-        self_t->scaleh = self_t->scalew * new_svgdim_height / svghan->svghdim.height;
-      else
-        self_t->scalew = self_t->scaleh * new_svgdim_width / svghan->svghdim.width;
-    }
+    double new_svgdim_height = svghan->svghdim.width / svghan->aspect;
+    double new_svgdim_width = svghan->svghdim.height * svghan->aspect;
+
+    if (outw / new_svgdim_width < outh / new_svgdim_height)
+      self_t->scaleh = self_t->scalew * new_svgdim_height / svghan->svghdim.height;
+    else
+      self_t->scalew = self_t->scaleh * new_svgdim_width / svghan->svghdim.width;
+  }
 }
 
 VALUE
@@ -246,7 +246,7 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   Data_Get_Struct(svghanObj, shoes_svghandle, shandle);
   
   // we couldn't find the width/height of the parent canvas, now that we have a rsvg handle,
-  // fallback to original size as defined in the svg file
+  // fallback to original size as defined in the svg file but no morethan Shoes.app size
   if (widthObj == Qnil) {
     widthObj = INT2NUM(shandle->svghdim.width);
     widthObj = (shandle->svghdim.width >= canvas->app->width) ? 
@@ -269,35 +269,23 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   self_t->place.w = width = NUM2INT(widthObj);
   self_t->place.h = height = NUM2INT(heightObj);
   self_t->parent = parent;
-  
-  printf("svghdim.width, svghdim.height = %i, %i\n", shandle->svghdim.width, shandle->svghdim.height);
-  
-  self_t->surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, shandle->svghdim.width, shandle->svghdim.height);
-  self_t->cr = cairo_create(self_t->surface);
-  if (shandle->subid != NULL) {   // svg is a group/id, manage offsets
-    cairo_translate(self_t->cr, -shandle->svghpos.x, -shandle->svghpos.y);
-  }
-  rsvg_handle_render_cairo_sub(shandle->handle, self_t->cr, shandle->subid);
-  
   self_t->scalew = 0.0;
   self_t->scaleh = 0.0;
   self_t->attr = attr;
-//  rb_warn("svg attr : %s\n", RSTRING_PTR(rb_inspect(self_t->attr))); caution crash, garbage collection and rb_hash_delete !
   
-  // useless ??
+  // useless !!?? needs to be confirmed
 //  shoes_place place;
 //  shoes_place_exact(&place, self_t->attr, 0, 0);
 //  if (place.iw < 1) place.w = place.iw = width;
 //  if (place.ih < 1) place.h = place.ih = height;
-//  self_t->place = place;
-//   useless here ? it's called by shoes_svg_draw
+//  
 //  shoes_svg_draw_surface(self_t->cr, self_t, &place, self_t->surface, place.w, place.h);
   
   return obj;
 }
 
 static void
-shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, cairo_surface_t *surf, int imw, int imh)
+shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, /*cairo_surface_t *surf,*/ int imw, int imh)
 {
   shoes_svghandle *svghan;
   Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
@@ -311,14 +299,16 @@ shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, cairo
   cairo_save(cr);
   cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
   
-  if (svghan->subid == NULL)
+  if (svghan->subid == NULL) {
     if (place->iw != imw || place->ih != imh)
       cairo_scale(cr, (place->iw * 1.) / imw, (place->ih * 1.) / imh);
+    cairo_scale(cr, self_t->scalew, self_t->scaleh);
+  } else {
+    cairo_scale(cr, self_t->scalew, self_t->scaleh); // order of scaling + translate matters !!
+    cairo_translate(cr, -svghan->svghpos.x, -svghan->svghpos.y);
+  }
   
-  cairo_scale(cr, self_t->scalew, self_t->scaleh);
-  
-  cairo_set_source_surface(cr, surf, 0., 0.);
-  cairo_paint(cr);
+  rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
   cairo_restore(cr);
   
   self_t->place = *place;
@@ -339,7 +329,7 @@ VALUE shoes_svg_draw(VALUE self, VALUE c, VALUE actual)
   shoes_place_decide(&place, c, self_t->attr, self_t->place.w, self_t->place.h, rel, REL_COORDS(rel) == REL_CANVAS);
   
   if (RTEST(actual)) 
-    shoes_svg_draw_surface( CCR(canvas), self_t, &place, self_t->surface, place.w, place.h);
+    shoes_svg_draw_surface( CCR(canvas), self_t, &place, /*self_t->surface,*/ place.w, place.h);
   
   if (!ABSY(place)) { 
     canvas->cx += place.w; 
