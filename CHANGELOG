@@ -1,8 +1,15 @@
 = Walkabout - Shoes 3.3
 
 === new with 3.3.0
+  * Has a new widget to display svg images - similar to Image but NOT the same
+    Has aspect scaling option based on the svg internals.
+    samples/good-svgview.rb also include a svg deck of cards. 
+    Lots of fun - please file bug reports and requests. 
+    Verbose Issue 54 https://github.com/Shoes3/shoes3/issues/54
   * refresh slot method
     Issue 152 https://github.com/Shoes3/shoes3/issues/152
+  * Uses ruby 2.1.8 and rubygems 2.4.7
+    Issue 164 https://github.com/Shoes3/shoes3/issues/164
     
 === Fixed with 3.3.0
   * can build Shoes for OSX 10.6 - still an orphan
