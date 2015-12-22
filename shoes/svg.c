@@ -246,7 +246,7 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   Data_Get_Struct(svghanObj, shoes_svghandle, shandle);
   
   // we couldn't find the width/height of the parent canvas, now that we have a rsvg handle,
-  // fallback to original size as defined in the svg file but no morethan Shoes.app size
+  // fallback to original size as defined in the svg file but no more than Shoes.app size
   if (widthObj == Qnil) {
     widthObj = INT2NUM(shandle->svghdim.width);
     widthObj = (shandle->svghdim.width >= canvas->app->width) ? 
@@ -271,6 +271,8 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   self_t->parent = parent;
   self_t->scalew = 0.0;
   self_t->scaleh = 0.0;
+  self_t->balance_margins_w = 0.0;
+  self_t->balance_margins_h = 0.0;
   self_t->attr = attr;
   
   // useless !!?? needs to be confirmed
@@ -300,11 +302,17 @@ shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, /*cai
   cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
   
   if (svghan->subid == NULL) {
-    if (place->iw != imw || place->ih != imh)
-      cairo_scale(cr, (place->iw * 1.) / imw, (place->ih * 1.) / imh);
+    // need to compensate because of margins
+    if (place->iw != imw || place->ih != imh) {     // TODO: works, but must be a better way
+      if (self_t->balance_margins_w == 0.0)                 // first time calculated scale factors 
+        self_t->balance_margins_w = (place->iw * 1.) / imw; // are the good ones, followings are wrong
+      if (self_t->balance_margins_h == 0.0)
+        self_t->balance_margins_h = (place->ih * 1.) / imh;
+      cairo_scale(cr, self_t->balance_margins_w, self_t->balance_margins_h);
+    }
     cairo_scale(cr, self_t->scalew, self_t->scaleh);
   } else {
-    cairo_scale(cr, self_t->scalew, self_t->scaleh); // order of scaling + translate matters !!
+    cairo_scale(cr, self_t->scalew, self_t->scaleh);  // order of scaling + translate matters !!!
     cairo_translate(cr, -svghan->svghpos.x, -svghan->svghpos.y);
   }
   
@@ -498,6 +506,24 @@ VALUE shoes_svg_preferred_width(VALUE self)
   return INT2NUM(w);
 }
 
+VALUE shoes_svg_get_offsetX(VALUE self)
+{
+  GET_STRUCT(svg, self_t);
+  shoes_svghandle *svghan;
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+  int x = svghan->svghpos.x;
+  return INT2NUM(x);
+}
+
+VALUE shoes_svg_get_offsetY(VALUE self)
+{
+  GET_STRUCT(svg, self_t);
+  shoes_svghandle *svghan;
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+  int y = svghan->svghpos.y;
+  return INT2NUM(y);
+}
+
 VALUE shoes_svg_preferred_height(VALUE self)
 {
   int h;
@@ -526,4 +552,6 @@ VALUE shoes_svg_remove(VALUE self)
   printf("remove done\n");
   return Qtrue;
 }
+
+
 

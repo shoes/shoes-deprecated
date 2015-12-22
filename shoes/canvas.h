@@ -313,6 +313,8 @@ typedef struct {
   shoes_place place;
   double scalew;
   double scaleh;
+  double balance_margins_w;
+  double balance_margins_h;
   cairo_surface_t *surface;
   cairo_t *cr;
   SHOES_CONTROL_REF ref;
@@ -541,6 +543,8 @@ VALUE shoes_svg_get_top(VALUE);
 VALUE shoes_svg_get_left(VALUE);
 VALUE shoes_svg_get_width(VALUE);
 VALUE shoes_svg_get_height(VALUE);
+VALUE shoes_svg_get_offsetX(VALUE);
+VALUE shoes_svg_get_offsetY(VALUE);
 VALUE shoes_svg_preferred_height(VALUE);
 VALUE shoes_svg_preferred_width(VALUE);
 VALUE shoes_svg_remove(VALUE);
