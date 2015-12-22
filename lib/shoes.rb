@@ -177,7 +177,7 @@ class Shoes
   def self.splash
     font "#{DIR}/fonts/Lacuna.ttf"
     Shoes.app width: 598, height: 520, resizable: false do
-      background "static/splash.png"
+      background "#{DIR}/static/splash.png"
       style(Para, align: 'center', weight: 'bold', font: 'Lacuna Regular', size: 13)
       style(Link, stroke: khaki, underline: nil)
       style(LinkHover, stroke: yellow, fill: nil)
