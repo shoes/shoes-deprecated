@@ -311,6 +311,8 @@ typedef struct {
   VALUE parent;
   VALUE attr;
   shoes_place place;
+  double scalew;
+  double scaleh;
   cairo_surface_t *surface;
   cairo_t *cr;
   SHOES_CONTROL_REF ref;

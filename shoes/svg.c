@@ -19,15 +19,15 @@
 void
 shoes_svghandle_mark(shoes_svghandle *handle)
 {
-  //rb_gc_mark_maybe(handle->handle);
-  //rb_gc_mark_maybe(handle->subid);
+//  rb_gc_mark_maybe(handle->handle); // handle->handle is not a Ruby object
+  rb_gc_mark_maybe(rb_str_new_cstr(handle->subid));
 }
 
 static void
 shoes_svghandle_free(shoes_svghandle *handle)
 {
   if (handle->handle != NULL)
-    ;  // do the g_unref thing
+    g_object_unref(handle->handle);  // do the g_unref thing
   RUBY_CRITICAL(SHOE_FREE(handle));
 }
 
@@ -48,7 +48,6 @@ shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
 {
   // parse args for :content or :filename (load file if needed)
   // parse arg for subid. 
-  VALUE klass = cSvgHandle;
   ID  s_filename = rb_intern ("filename");
   ID  s_content = rb_intern ("content");
   ID  s_subid = rb_intern("group");
@@ -57,9 +56,12 @@ shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
   VALUE fromstring = shoes_hash_get(argv[0], s_content);
   VALUE subidObj = shoes_hash_get(argv[0], s_subid);
   VALUE aspectObj = shoes_hash_get(argv[0], s_aspect);
+  
+  VALUE klass = cSvgHandle;
   VALUE obj = shoes_svghandle_alloc(klass);
   shoes_svghandle *self_t;
   Data_Get_Struct(obj, shoes_svghandle, self_t);
+  
   GError *gerror = NULL;
   if (!NIL_P(filename)) {
     // load it from a file
@@ -144,63 +146,95 @@ shoes_svg_draw_surface(cairo_t *, shoes_svg *, shoes_place *, cairo_surface_t *,
 // alloc some memory for a shoes_svg; We'll protect it from gc
 // out of caution. fingers crossed.
 void
-shoes_svg_mark(shoes_svg *handle)
+shoes_svg_mark(shoes_svg *svg)
 {
-  rb_gc_mark_maybe(handle->parent);
-  rb_gc_mark_maybe(handle->attr);
+  rb_gc_mark_maybe(svg->parent);
+  rb_gc_mark_maybe(svg->attr);
 }
 
 static void
-shoes_svg_free(shoes_svg *handle)
+shoes_svg_free(shoes_svg *svg)
 {
-  RUBY_CRITICAL(SHOE_FREE(handle));
+  RUBY_CRITICAL(SHOE_FREE(svg));
 }
 
 VALUE
 shoes_svg_alloc(VALUE klass)
 {
   VALUE obj;
-  shoes_svg *handle = SHOE_ALLOC(shoes_svg);
-  SHOE_MEMZERO(handle, shoes_svg, 1);
-  obj = Data_Wrap_Struct(klass, shoes_svg_mark, shoes_svg_free, handle);
-  handle->svghandle = Qnil;
-  handle->parent = Qnil;
+  shoes_svg *svg = SHOE_ALLOC(shoes_svg);
+  SHOE_MEMZERO(svg, shoes_svg, 1);
+  obj = Data_Wrap_Struct(klass, shoes_svg_mark, shoes_svg_free, svg);
+  svg->svghandle = Qnil;
+  svg->parent = Qnil;
   return obj;
 }
 
+void
+svg_aspect_ratio(int imw, int imh, shoes_svg *self_t, shoes_svghandle * svghan)
+{
+    double outw = imw * 1.0; // width given to svg() 
+    double outh = imh * 1.0; // height given to svg() 
+  
+    self_t->scalew = outw / svghan->svghdim.width;   // don't keep aspect ratio, Adapt to parent canvas
+    self_t->scaleh = outh / svghan->svghdim.height;  // 
+
+    if (svghan->aspect == 0.0) {                    // keep aspect ratio
+      self_t->scalew = self_t->scaleh = MIN(outw / svghan->svghdim.width, outh / svghan->svghdim.height);
+
+    } else if (svghan->aspect > 0.0) {              // don't keep aspect ratio, User aspect ratio
+
+      double new_svgdim_height = svghan->svghdim.width / svghan->aspect;
+      double new_svgdim_width = svghan->svghdim.height * svghan->aspect;
+
+      if (outw / new_svgdim_width < outh / new_svgdim_height)
+        self_t->scaleh = self_t->scalew * new_svgdim_height / svghan->svghdim.height;
+      else
+        self_t->scalew = self_t->scaleh * new_svgdim_width / svghan->svghdim.width;
+    }
+}
 
 VALUE
 shoes_svg_new(int argc, VALUE *argv, VALUE parent)
 {
   VALUE path = Qnil, attr = Qnil, widthObj, heightObj, svg_string;
-  ID  s_subid = rb_intern("group");
-  ID  s_aspect = rb_intern("aspect");
+  
   ID  s_filename = rb_intern ("filename");
   ID  s_content = rb_intern ("content");
+  ID  s_subid = rb_intern("group");
+  ID  s_aspect = rb_intern("aspect");
   
   shoes_canvas *canvas;
   Data_Get_Struct(parent, shoes_canvas, canvas);
   
   rb_arg_list args;
-  switch (rb_parse_args(argc, argv, "sii|h,s|h", &args))
+//  switch (rb_parse_args(argc, argv, "sii|h,s|h", &args))
+  switch (rb_parse_args(argc, argv, "s|h", &args))
   {
-    case 1:
+/*    case 1:
       svg_string = args.a[0];
       widthObj = args.a[1];
       heightObj = args.a[2];
       attr = args.a[3];
 //      printf("widthObj, heightObj : %i, %i\n", NUM2INT(widthObj), NUM2INT(heightObj));
     break;
-
-    case 2:
+*/
+    case 1:
       svg_string = args.a[0];
       attr = args.a[1];
-      widthObj = RTEST(ATTR(canvas->attr, width)) ? ATTR(canvas->attr, width) : Qnil;
-      heightObj = RTEST(ATTR(canvas->attr, height)) ? ATTR(canvas->attr, height) : Qnil;
+      if (RTEST(ATTR(attr, width))) {
+        widthObj = rb_hash_delete(attr, ID2SYM(s_width));
+      } else
+        widthObj = RTEST(ATTR(canvas->attr, width)) ? ATTR(canvas->attr, width) : Qnil;
+      
+      if ( RTEST(ATTR(attr, height))) {
+        heightObj = rb_hash_delete(attr, ID2SYM(s_height));
+      } else
+        heightObj = RTEST(ATTR(canvas->attr, height)) ? ATTR(canvas->attr, height) : Qnil;
     break;
   }
   
-  if (strstr(RSTRING_PTR(svg_string), "</svg>") != NULL)
+  if (strstr(RSTRING_PTR(svg_string), "</svg>") != NULL) //TODO
     ATTRSET(attr, content, svg_string);
   else
     ATTRSET(attr, filename, svg_string);
@@ -234,16 +268,30 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   int width, height;
   self_t->place.w = width = NUM2INT(widthObj);
   self_t->place.h = height = NUM2INT(heightObj);
-  self_t->parent = shoes_find_canvas(parent);
+  self_t->parent = parent;
   
-  self_t->surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 0, 0);
+  printf("svghdim.width, svghdim.height = %i, %i\n", shandle->svghdim.width, shandle->svghdim.height);
+  
+  self_t->surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, shandle->svghdim.width, shandle->svghdim.height);
   self_t->cr = cairo_create(self_t->surface);
+  if (shandle->subid != NULL) {   // svg is a group/id, manage offsets
+    cairo_translate(self_t->cr, -shandle->svghpos.x, -shandle->svghpos.y);
+  }
+  rsvg_handle_render_cairo_sub(shandle->handle, self_t->cr, shandle->subid);
   
-  shoes_place place;
-  shoes_place_exact(&place, self_t->attr, 0, 0);
-  if (place.iw < 1) place.w = place.iw = width;
-  if (place.ih < 1) place.h = place.ih = height;
-  shoes_svg_draw_surface(self_t->cr, self_t, &place, self_t->surface, place.w, place.h);
+  self_t->scalew = 0.0;
+  self_t->scaleh = 0.0;
+  self_t->attr = attr;
+//  rb_warn("svg attr : %s\n", RSTRING_PTR(rb_inspect(self_t->attr))); caution crash, garbage collection and rb_hash_delete !
+  
+  // useless ??
+//  shoes_place place;
+//  shoes_place_exact(&place, self_t->attr, 0, 0);
+//  if (place.iw < 1) place.w = place.iw = width;
+//  if (place.ih < 1) place.h = place.ih = height;
+//  self_t->place = place;
+//   useless here ? it's called by shoes_svg_draw
+//  shoes_svg_draw_surface(self_t->cr, self_t, &place, self_t->surface, place.w, place.h);
   
   return obj;
 }
@@ -253,40 +301,26 @@ shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, cairo
 {
   shoes_svghandle *svghan;
   Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
-  double outw = imw * 1.0; // width given to svg() 
-  double outh = imh * 1.0; // height given to svg() 
   
-  double scalew = outw / svghan->svghdim.width;   // don't keep aspect ratio, Adapt to parent canvas
-  double scaleh = outh / svghan->svghdim.height;  // 
-  
-  if (svghan->aspect == 0.0) {                    // keep aspect ratio
-    scalew = scaleh = MIN(outw / svghan->svghdim.width, outh / svghan->svghdim.height);
-    
-  } else if (svghan->aspect > 0.0) {              // don't keep aspect ratio, User aspect ratio
-    
-    double new_svgdim_height = svghan->svghdim.width / svghan->aspect;
-    double new_svgdim_width = svghan->svghdim.height * svghan->aspect;
-    
-    if (outw / new_svgdim_width < outh / new_svgdim_height)
-      scaleh = scalew * new_svgdim_height / svghan->svghdim.height;
-    else
-      scalew = scaleh * new_svgdim_width / svghan->svghdim.width;
+  // calculate aspect ratio only once at initialization ?? needs testing
+  if (self_t->scalew == 0.0 && self_t->scaleh == 0.0) {
+    svg_aspect_ratio(imw, imh, self_t, svghan);
   }
   
-  cairo_scale(cr, scalew, scaleh);
+   // drawing on svg parent's (canvas) surface
+  cairo_save(cr);
+  cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
   
-  if (svghan->subid == NULL) {
-    // Full svg contents
+  if (svghan->subid == NULL)
     if (place->iw != imw || place->ih != imh)
       cairo_scale(cr, (place->iw * 1.) / imw, (place->ih * 1.) / imh);
-    cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
-  } else {
-    // svg is a group/id, manage offsets
-    cairo_translate(cr, place->ix + place->dx - svghan->svghpos.x, place->iy + place->dy - svghan->svghpos.y);
-  }
+  
+  cairo_scale(cr, self_t->scalew, self_t->scaleh);
   
   cairo_set_source_surface(cr, surf, 0., 0.);
-  rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
+  cairo_paint(cr);
+  cairo_restore(cr);
+  
   self_t->place = *place;
   
   printf("surface\n");
@@ -303,16 +337,17 @@ VALUE shoes_svg_draw(VALUE self, VALUE c, VALUE actual)
   if (ATTR(self_t->attr, hidden) == Qtrue) return self; 
   int rel =(REL_CANVAS | REL_SCALE);
   shoes_place_decide(&place, c, self_t->attr, self_t->place.w, self_t->place.h, rel, REL_COORDS(rel) == REL_CANVAS);
-  VALUE ck = rb_obj_class(c);
+  
   if (RTEST(actual)) 
     shoes_svg_draw_surface( CCR(canvas), self_t, &place, self_t->surface, place.w, place.h);
+  
   if (!ABSY(place)) { 
     canvas->cx += place.w; 
     canvas->cy = place.y; 
     canvas->endx = canvas->cx; 
     canvas->endy = max(canvas->endy, place.y + place.h); 
   } 
-  if(ck == cStack) { 
+  if(rb_obj_class(c) == cStack) { 
     canvas->cx = CPX(canvas); 
     canvas->cy = canvas->endy; 
   }
@@ -490,7 +525,15 @@ VALUE shoes_svg_remove(VALUE self)
   shoes_canvas *canvas;
   Data_Get_Struct(self, shoes_svg, self_t);
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-  //shoes_native_svg_remove(canvas, self_t->ref);
+  shoes_svghandle *handle;
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, handle);
+  
+  rb_ary_delete(canvas->contents, self);
+  self_t = NULL;
+  self = Qnil;
+  shoes_svghandle_free(handle);
+  handle = NULL;
+  printf("remove done\n");
   return Qtrue;
 }
 
