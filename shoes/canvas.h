@@ -545,6 +545,7 @@ VALUE shoes_svg_get_offsetY(VALUE);
 VALUE shoes_svg_preferred_height(VALUE);
 VALUE shoes_svg_preferred_width(VALUE);
 VALUE shoes_svg_remove(VALUE);
+VALUE shoes_svg_has_group(VALUE, VALUE);
 
 void shoes_control_mark(shoes_control *);
 VALUE shoes_control_new(VALUE, VALUE, VALUE);

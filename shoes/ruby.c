@@ -4800,6 +4800,7 @@ shoes_ruby_init()
   rb_define_method(cSvg, "dpi", CASTHOOK(shoes_svg_get_dpi), 0);
   rb_define_method(cSvg, "dpi=", CASTHOOK(shoes_svg_set_dpi), 1);
   rb_define_method(cSvg, "style", CASTHOOK(shoes_svg_style), -1);
+  rb_define_method(cSvg, "group?", CASTHOOK(shoes_svg_has_group), 1);
 
   cEffect   = rb_define_class_under(cTypes, "Effect", rb_cObject);
   rb_define_alloc_func(cEffect, shoes_effect_alloc);

@@ -198,6 +198,7 @@ VALUE
 shoes_svg_new(int argc, VALUE *argv, VALUE parent)
 {
   VALUE path = Qnil, attr = Qnil, widthObj, heightObj, svg_string;
+  VALUE svghanObj = Qnil;
   
   ID  s_filename = rb_intern ("filename");
   ID  s_content = rb_intern ("content");
@@ -209,7 +210,8 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   
   rb_arg_list args;
 //  switch (rb_parse_args(argc, argv, "sii|h,s|h", &args))
-  switch (rb_parse_args(argc, argv, "s|h", &args))
+//  switch (rb_parse_args(argc, argv, "s|h", &args))
+  switch (rb_parse_args(argc, argv, "s|h,o|h", &args))
   {
 /*    case 1:
       svg_string = args.a[0];
@@ -222,25 +224,33 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
     case 1:
       svg_string = args.a[0];
       attr = args.a[1];
-      if (RTEST(ATTR(attr, width))) {
-        widthObj = rb_hash_delete(attr, ID2SYM(s_width));
-      } else
-        widthObj = RTEST(ATTR(canvas->attr, width)) ? ATTR(canvas->attr, width) : Qnil;
-      
-      if ( RTEST(ATTR(attr, height))) {
-        heightObj = rb_hash_delete(attr, ID2SYM(s_height));
-      } else
-        heightObj = RTEST(ATTR(canvas->attr, height)) ? ATTR(canvas->attr, height) : Qnil;
+    break;
+    case 2: 
+       //  if first arg is an svghandle 
+       if (rb_obj_is_kind_of(args.a[0], cSvgHandle)) {
+         svghanObj = args.a[0];
+         attr = args.a[1];
+      } else 
+         printf("crash ahead\n");
     break;
   }
-  
-  if (strstr(RSTRING_PTR(svg_string), "</svg>") != NULL) //TODO
-    ATTRSET(attr, content, svg_string);
-  else
-    ATTRSET(attr, filename, svg_string);
-  
-  // get an rsvg handle, initialize it
-  VALUE svghanObj = shoes_svghandle_new(1, &attr, parent);
+  // get width and height out of hash/attr arg
+  if (RTEST(ATTR(attr, width))) {
+    widthObj = rb_hash_delete(attr, ID2SYM(s_width));
+  } else
+    widthObj = RTEST(ATTR(canvas->attr, width)) ? ATTR(canvas->attr, width) : Qnil;
+      
+  if ( RTEST(ATTR(attr, height))) {
+    heightObj = rb_hash_delete(attr, ID2SYM(s_height));
+  } else
+    heightObj = RTEST(ATTR(canvas->attr, height)) ? ATTR(canvas->attr, height) : Qnil;
+  if (NIL_P(svghanObj)) {  // likely case
+    if (strstr(RSTRING_PTR(svg_string), "</svg>") != NULL) //TODO
+      ATTRSET(attr, content, svg_string);
+    else
+      ATTRSET(attr, filename, svg_string);
+    svghanObj = shoes_svghandle_new(1, &attr, parent);
+  }
   
   shoes_svghandle *shandle;
   Data_Get_Struct(svghanObj, shoes_svghandle, shandle);
@@ -531,6 +541,21 @@ VALUE shoes_svg_preferred_height(VALUE self)
   Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
   h = svghan->svghdim.height;
   return INT2NUM(h);
+}
+
+VALUE shoes_svg_has_group(VALUE self, VALUE group)
+{
+  shoes_svg *self_t;
+  shoes_svghandle *handle;
+  int result = 0;
+  Data_Get_Struct(self, shoes_svg, self_t);
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, handle);
+  if (!NIL_P(group) && (TYPE(group) == T_STRING)) {
+    char *grp = RSTRING_PTR(group);
+  }
+  else {
+    // raise error - must be string
+  }
 }
 
 VALUE shoes_svg_remove(VALUE self)
