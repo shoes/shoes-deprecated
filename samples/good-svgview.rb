@@ -14,7 +14,7 @@ Shoes.app width: 500, height: 600, title: "SVG Viewer" do
         if fpath 
           @display_panel.clear
           @display_panel.append do
-            @current_svg = svg  fpath, widget_size, widget_size, { aspect: defaspect}
+            @current_svg = svg  fpath, {width: widget_size, height: widget_size, aspect: defaspect}
           end
         end
       end
@@ -31,7 +31,7 @@ Shoes.app width: 500, height: 600, title: "SVG Viewer" do
         @display_panel.clear
         @display_panel.append do
           puts "#{DIR}/samples/paris.svg"
-          @current_svg = svg fpath, widget_size, widget_size
+          @current_svg = svg fpath, { width: widget_size, height: widget_size}
         end
       end
        button "quit" do
@@ -51,7 +51,7 @@ Shoes.app width: 500, height: 600, title: "SVG Viewer" do
         # we should have a svg.group?(str) method
         @display_panel.clear
         @display_panel.append do
-          @current_svg = svg fpath, widget_size, widget_size, {aspect: @aspect.checked?, group: id}
+          @current_svg = svg fpath, {width: widget_size, height: widget_size, aspect: @aspect.checked?, group: id}
         end
       end
       stack do
@@ -61,7 +61,7 @@ Shoes.app width: 500, height: 600, title: "SVG Viewer" do
             puts "aspect #{@aspect.checked?}"
             @display_panel.clear
             @display_panel.append do
-              @current_svg = svg  fpath, widget_size, widget_size, {aspect: @aspect.checked?}
+              @current_svg = svg  fpath, {width: widget_size, height: widget_size, aspect: @aspect.checked?}
             end
           end 
           para "use image aspect"
