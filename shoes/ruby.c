@@ -3984,6 +3984,10 @@ PLACE_COMMON(textblock)
 CLASS_COMMON2(textblock)
 REPLACE_COMMON(textblock)
 
+CLASS_COMMON(svg);
+//CLASS_COMMON2(svg)
+//PLACE_COMMON(svg)
+//TRANS_COMMON(svg, 1);
 
 VALUE
 shoes_textblock_style_m(int argc, VALUE *argv, VALUE self)
@@ -4787,12 +4791,15 @@ shoes_ruby_init()
   rb_define_method(cSvg, "draw", CASTHOOK(shoes_svg_draw), 2);
   rb_define_method(cSvg, "preferred_width", CASTHOOK(shoes_svg_preferred_width), 0);
   rb_define_method(cSvg, "preferred_height", CASTHOOK(shoes_svg_preferred_height),0);
+  rb_define_method(cSvg, "offset_x", CASTHOOK(shoes_svg_get_offsetX),0);
+  rb_define_method(cSvg, "offset_y", CASTHOOK(shoes_svg_get_offsetY),0);
   rb_define_method(cSvg, "remove", CASTHOOK(shoes_svg_remove), 0);
   rb_define_method(cSvg, "save", CASTHOOK(shoes_svg_save), 2);
   rb_define_method(cSvg, "handle", CASTHOOK(shoes_svg_get_handle), 0);
   rb_define_method(cSvg, "handle=", CASTHOOK(shoes_svg_set_handle), 1);
   rb_define_method(cSvg, "dpi", CASTHOOK(shoes_svg_get_dpi), 0);
   rb_define_method(cSvg, "dpi=", CASTHOOK(shoes_svg_set_dpi), 1);
+  rb_define_method(cSvg, "style", CASTHOOK(shoes_svg_style), -1);
 
   cEffect   = rb_define_class_under(cTypes, "Effect", rb_cObject);
   rb_define_alloc_func(cEffect, shoes_effect_alloc);
