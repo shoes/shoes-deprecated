@@ -449,7 +449,7 @@ shoes_svg_set_handle(VALUE self, VALUE han)
     // should raise an error
     printf("not a handle\n");
   }
-  //shoes_svg_paint_svg(self_t->ref, canvas->cr, self);
+  shoes_canvas_repaint_all(self_t->parent);
   return han;
 }
 
