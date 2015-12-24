@@ -1,9 +1,22 @@
 # svg viewer
+require 'nokogiri'
 Shoes.app width: 500, height: 600, title: "SVG Viewer" do
   fpath = ""
-  fl = ''
   widget_size = 400
   defaspect = true
+  @xml = ''
+  @ids = []
+  def load (path)
+    File.open(path) {|f| @xml = f.read}
+    doc = Nokogiri::XML(@xml)
+    @ids = []
+    #doc.css("g").each_with_object("") { |tag, str| @ids << tag["id"].inspect }
+    ids = doc.css("g[id]")
+    def_ids = doc.css("defs g[id]")
+    groups = ids - def_ids
+    groups.each_with_object("") { |elem, str| @ids << elem.attributes["id"].value.strip }
+    #puts @ids
+  end
   @slot = stack do
     tagline "SVG Viewer"
     @display_panel = flow width: widget_size, height: widget_size do
@@ -12,9 +25,11 @@ Shoes.app width: 500, height: 600, title: "SVG Viewer" do
       button "Load" do
         fpath = ask_open_file
         if fpath 
+          load(fpath)
+          @lb.items = @ids
           @display_panel.clear
           @display_panel.append do
-            @current_svg = svg  fpath, {width: widget_size, height: widget_size, aspect: defaspect}
+            @current_svg = svg  @xml, {width: widget_size, height: widget_size, aspect: defaspect}
           end
         end
       end
@@ -28,14 +43,18 @@ Shoes.app width: 500, height: 600, title: "SVG Viewer" do
         if ! File.exist? fpath 
           alert "Can't find #{fpath} - crash ahead"
         end
+        load(fpath)
+        @lb.items = @ids
         @display_panel.clear
         @display_panel.append do
-          puts "#{DIR}/samples/paris.svg"
-          @current_svg = svg fpath, { width: widget_size, height: widget_size}
+          @current_svg = svg @xml, { width: widget_size, height: widget_size}
         end
       end
        button "quit" do
         exit
+      end
+      @lb = list_box items: @ids do
+        @subid.text = '#'+@lb.text
       end
       @subid = edit_line :width=> 120, text: "all"
       button "use group" do
