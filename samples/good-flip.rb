@@ -59,7 +59,7 @@ Shoes.app do
     run_for = 0
     @animation = animate(10) do 
       r = rand(52)
-      @top_card.handle = handles[pile[r]]
+      @top_card.handle = handles[pile[r+1]]
       run_for = run_for + 1
       if run_for >= 20
         @animation.stop
