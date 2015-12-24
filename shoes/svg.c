@@ -460,7 +460,7 @@ shoes_svg_get_dpi(VALUE self)
 }
 
 VALUE 
-shoes_svg_set_dpi(VALUE dpi, VALUE self)
+shoes_svg_set_dpi(VALUE self, VALUE dpi)
 {
   return Qnil;
 }
