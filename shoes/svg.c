@@ -17,7 +17,11 @@
 // see app.h 
 
 void
-shoes_svghandle_mark(shoes_svghandle *handle) {}
+shoes_svghandle_mark(shoes_svghandle *handle)
+{
+  // rb_gc_mark_maybe(handle->handle); // handle->handle is not a Ruby object
+  // we don't have any Ruby objects to mark.
+}
 
 static void
 shoes_svghandle_free(shoes_svghandle *handle)
@@ -111,11 +115,11 @@ shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
   { // fallback on keep aspect ratio
     self_t->aspect = 0.0;
   }
-  
+/*
   printf("sub x: %i, y: %i, w: %i, h: %i)\n", 
     self_t->svghpos.x, self_t->svghpos.y, 
     self_t->svghdim.width, self_t->svghdim.height);
-  
+*/  
   return obj;
 }
 
@@ -133,6 +137,23 @@ shoes_svghandle_get_height(VALUE self)
   return INT2NUM(self_t->svghdim.height);
 }
 
+VALUE shoes_svghandle_has_group(VALUE self, VALUE group)
+{
+  shoes_svghandle *handle;
+  int result = 0;
+  Data_Get_Struct(self, shoes_svghandle, handle);
+  if (!NIL_P(group) && (TYPE(group) == T_STRING)) {
+    char *grp = RSTRING_PTR(group);
+    int has = rsvg_handle_has_sub(handle->handle, grp);
+    if (has)
+      return Qtrue;
+    else
+      return Qnil;
+  }
+  else {
+    // raise error - must be string
+  }
+}
 
 // ------- svg widget -----
 // forward declares in this file
@@ -144,9 +165,9 @@ shoes_svg_draw_surface(cairo_t *, shoes_svg *, shoes_place *, /*cairo_surface_t 
 void
 shoes_svg_mark(shoes_svg *svg)
 {
-  rb_gc_mark_maybe(svg->svghandle);
   rb_gc_mark_maybe(svg->parent);
   rb_gc_mark_maybe(svg->attr);
+  rb_gc_mark_maybe(svg->svghandle);
 }
 
 static void
@@ -321,7 +342,7 @@ shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, /*cai
   
   self_t->place = *place;
   
-  printf("surface\n");
+  //printf("surface\n");
 }
 
 // This gets called very often by Shoes. May be slow for large SVG?
@@ -349,72 +370,10 @@ VALUE shoes_svg_draw(VALUE self, VALUE c, VALUE actual)
     canvas->cx = CPX(canvas); 
     canvas->cy = canvas->endy; 
   }
-  printf("svg draw\n");
+  //printf("svg draw\n");
   return self;
 
 }
-
-/*  This scales and renders the svg . Called from shoes_native_svg_paint
- *  so those are just tiny functions in cocoa.m and gktsvg.c 
-*/
-/* Not used
-void
-shoes_svg_paint_svg(cairo_t *cr, VALUE svg, shoes_canvas *canvas)
-{
-  shoes_svg *self_t;
-  shoes_svghandle *svghan;
-  Data_Get_Struct(svg, shoes_svg, self_t);
-  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
-
-  double outw = self_t->place.w * 1.0;
-  double outh = self_t->place.h * 1.0;
-  double scalew = outw / svghan->svghdim.width;
-  double scaleh = outh / svghan->svghdim.height;
-  double aspect = (double)svghan->svghdim.width / (double)svghan->svghdim.height;
-  if (svghan->aspect != 1.0)
-  {
-    // work with pixels.
-    if (svghan->svghdim.width > outw && svghan->svghdim.height > outh)
-    {
-      // shrink svg  to fit
-      scalew = outw / svghan->svghdim.width;
-      scaleh = (outh / svghan->svghdim.height) * (1.0 / aspect);
-    } 
-    if (svghan->svghdim.width < outw && svghan->svghdim.height < outh)
-    {
-      // expand svg to fit
-      scalew = (outw / svghan->svghdim.width) * aspect;
-      scaleh = outh /svghan->svghdim.height;
-    }
-  }
-  printf("scalew: %f, scaleh, %f, aspect %f\n", scalew, scaleh, aspect);
-  if (svghan->subid == NULL)
-  {
-    // Full svg
-    cairo_scale(cr, scalew , scaleh);
-    rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
-  }
-  else
-  {
-    // a partial svg - fun fact:
-    // 0,0 in Shoes (or gdk/gtk ) is left,top. In Cairo and svg, 0,0 is left,bottom)
-    cairo_matrix_t matrix;
-    cairo_matrix_init_identity (&matrix);
-    cairo_matrix_scale (&matrix, scalew, scaleh);
-    //cairo_matrix_translate (&matrix, self_t->place.x * -1.0 , ((self_t->place.y + svghan->svghpos.y) *-1.0));
-    cairo_matrix_translate (&matrix, (svghan->svghpos.x  * -1.0 ), ((canvas->place.y ) *-1.0));
-    cairo_set_matrix (cr, &matrix);
-
-
-    //cairo_translate(cr, svghan->svghpos.x * -1, 0.0 - svghan->svghpos.y);
-    //cairo_translate(cr, self_t->place.ix + self_t->place.dx, (self_t->place.iy + self_t->place.dy));
-    //cairo_scale(cr, round(outw), round(outh));
-    rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
-
-  }
-  printf("paint\n");
-}
-*/
 
 VALUE 
 shoes_svg_get_handle(VALUE self)
@@ -450,7 +409,7 @@ shoes_svg_get_dpi(VALUE self)
 }
 
 VALUE 
-shoes_svg_set_dpi(VALUE dpi, VALUE self)
+shoes_svg_set_dpi(VALUE self, VALUE dpi)
 {
   return Qnil;
 }
@@ -542,10 +501,12 @@ VALUE shoes_svg_has_group(VALUE self, VALUE group)
   Data_Get_Struct(self_t->svghandle, shoes_svghandle, handle);
   if (!NIL_P(group) && (TYPE(group) == T_STRING)) {
     char *grp = RSTRING_PTR(group);
+    result = rsvg_handle_has_sub(handle->handle, grp);
   }
   else {
     // raise error - must be string
   }
+  return (result ? Qtrue : Qnil);
 }
 
 VALUE shoes_svg_remove(VALUE self)
@@ -559,10 +520,10 @@ VALUE shoes_svg_remove(VALUE self)
   Data_Get_Struct(self_t->svghandle, shoes_svghandle, handle);
   
   rb_ary_delete(canvas->contents, self);
+  // let ruby gc collect handle (it may be shared) just remove this ref
+  self_t->svghandle = Qnil;
   self_t = NULL;
   self = Qnil;
-  shoes_svghandle_free(handle);
-  handle = NULL;
   
   return Qtrue;
 }
