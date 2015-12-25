@@ -311,6 +311,8 @@ typedef struct {
   VALUE parent;
   VALUE attr;
   shoes_place place;
+  int out_width;
+  int out_height;
   double scalew;
   double scaleh;
   double balance_margins_w;
