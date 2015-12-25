@@ -19,8 +19,8 @@
 void
 shoes_svghandle_mark(shoes_svghandle *handle)
 {
-//  rb_gc_mark_maybe(handle->handle); // handle->handle is not a Ruby object
-  rb_gc_mark_maybe(rb_str_new_cstr(handle->subid));
+  // rb_gc_mark_maybe(handle->handle); // handle->handle is not a Ruby object
+  // we don't have any Ruby objects to mark.
 }
 
 static void
@@ -167,6 +167,7 @@ shoes_svg_mark(shoes_svg *svg)
 {
   rb_gc_mark_maybe(svg->parent);
   rb_gc_mark_maybe(svg->attr);
+  rb_gc_mark_maybe(svg->svghandle);
 }
 
 static void
@@ -507,10 +508,12 @@ VALUE shoes_svg_has_group(VALUE self, VALUE group)
   Data_Get_Struct(self_t->svghandle, shoes_svghandle, handle);
   if (!NIL_P(group) && (TYPE(group) == T_STRING)) {
     char *grp = RSTRING_PTR(group);
+    result = rsvg_handle_has_sub(handle->handle, grp);
   }
   else {
     // raise error - must be string
   }
+  return (result ? Qtrue : Qnil);
 }
 
 VALUE shoes_svg_remove(VALUE self)
@@ -524,10 +527,10 @@ VALUE shoes_svg_remove(VALUE self)
   Data_Get_Struct(self_t->svghandle, shoes_svghandle, handle);
   
   rb_ary_delete(canvas->contents, self);
+  // let ruby gc collect handle (it may be shared) just remove this ref
+  self_t->svghandle = Qnil;
   self_t = NULL;
   self = Qnil;
-  shoes_svghandle_free(handle);
-  handle = NULL;
   printf("remove done\n");
   return Qtrue;
 }

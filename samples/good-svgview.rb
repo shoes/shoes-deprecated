@@ -58,19 +58,13 @@ Shoes.app width: 500, height: 600, title: "SVG Viewer" do
       end
       @subid = edit_line :width=> 120, text: "all"
       button "use group" do
-        id = nil
-        if @subid.text != "all"
-          if (@subid.text[0] != '#') && (confirm "Did you mean \##{@subid.text}")
-            id = "#"+@subid.text
-            @subid.text = id
-          else
-            id = @subid.text
+        id = @subid.text
+        id = '' if id == 'all'
+        if id == '' || id == nil || (@current_svg.group? id)
+          @display_panel.clear
+          @display_panel.append do
+            @current_svg = svg fpath, {width: widget_size, height: widget_size, aspect: @aspect.checked?, group: id}
           end
-        end
-        # we should have a svg.group?(str) method
-        @display_panel.clear
-        @display_panel.append do
-          @current_svg = svg fpath, {width: widget_size, height: widget_size, aspect: @aspect.checked?, group: id}
         end
       end
       stack do
