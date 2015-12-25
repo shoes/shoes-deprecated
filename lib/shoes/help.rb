@@ -401,6 +401,7 @@ module Shoes::Manual
   end
 
   def make_html(path, title, menu, &blk)
+=begin
     require 'hpricot'
     File.open(path, 'w') do |f|
       f << Hpricot do
@@ -439,6 +440,7 @@ module Shoes::Manual
         end
       end.to_html
     end
+=end
   end
 end
 

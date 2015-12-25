@@ -17,11 +17,7 @@
 // see app.h 
 
 void
-shoes_svghandle_mark(shoes_svghandle *handle)
-{
-//  rb_gc_mark_maybe(handle->handle); // handle->handle is not a Ruby object
-  rb_gc_mark_maybe(rb_str_new_cstr(handle->subid));
-}
+shoes_svghandle_mark(shoes_svghandle *handle) {}
 
 static void
 shoes_svghandle_free(shoes_svghandle *handle)
@@ -37,7 +33,7 @@ shoes_svghandle_alloc(VALUE klass)
   VALUE obj;
   shoes_svghandle *handle = SHOE_ALLOC(shoes_svghandle);
   SHOE_MEMZERO(handle, shoes_svghandle, 1);
-  obj = Data_Wrap_Struct(klass, shoes_svghandle_mark, shoes_svghandle_free, handle);
+  obj = Data_Wrap_Struct(klass, NULL, shoes_svghandle_free, handle);
   handle->handle = NULL;
   handle->subid = NULL;
   return obj;
@@ -148,6 +144,7 @@ shoes_svg_draw_surface(cairo_t *, shoes_svg *, shoes_place *, /*cairo_surface_t 
 void
 shoes_svg_mark(shoes_svg *svg)
 {
+  rb_gc_mark_maybe(svg->svghandle);
   rb_gc_mark_maybe(svg->parent);
   rb_gc_mark_maybe(svg->attr);
 }
@@ -209,31 +206,23 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   Data_Get_Struct(parent, shoes_canvas, canvas);
   
   rb_arg_list args;
-//  switch (rb_parse_args(argc, argv, "sii|h,s|h", &args))
 //  switch (rb_parse_args(argc, argv, "s|h", &args))
   switch (rb_parse_args(argc, argv, "s|h,o|h", &args))
   {
-/*    case 1:
-      svg_string = args.a[0];
-      widthObj = args.a[1];
-      heightObj = args.a[2];
-      attr = args.a[3];
-//      printf("widthObj, heightObj : %i, %i\n", NUM2INT(widthObj), NUM2INT(heightObj));
-    break;
-*/
     case 1:
       svg_string = args.a[0];
       attr = args.a[1];
     break;
     case 2: 
-       //  if first arg is an svghandle 
-       if (rb_obj_is_kind_of(args.a[0], cSvgHandle)) {
-         svghanObj = args.a[0];
-         attr = args.a[1];
+      //  if first arg is an svghandle 
+      if (rb_obj_is_kind_of(args.a[0], cSvgHandle)) {
+        svghanObj = args.a[0];
+        attr = args.a[1];
       } else 
-         printf("crash ahead\n");
+        printf("crash ahead\n");
     break;
   }
+  
   // get width and height out of hash/attr arg
   if (RTEST(ATTR(attr, width))) {
     widthObj = rb_hash_delete(attr, ID2SYM(s_width));
@@ -244,6 +233,7 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
     heightObj = rb_hash_delete(attr, ID2SYM(s_height));
   } else
     heightObj = RTEST(ATTR(canvas->attr, height)) ? ATTR(canvas->attr, height) : Qnil;
+  
   if (NIL_P(svghanObj)) {  // likely case
     if (strstr(RSTRING_PTR(svg_string), "</svg>") != NULL) //TODO
       ATTRSET(attr, content, svg_string);
@@ -573,7 +563,7 @@ VALUE shoes_svg_remove(VALUE self)
   self = Qnil;
   shoes_svghandle_free(handle);
   handle = NULL;
-  printf("remove done\n");
+  
   return Qtrue;
 }
 
