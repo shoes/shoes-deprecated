@@ -420,6 +420,7 @@ VALUE shoes_svg_save(VALUE self, VALUE path, VALUE block)
   return Qnil;
 }
 
+/* MACROS in ruby.c
 VALUE shoes_svg_show(VALUE self)
 {
   printf("show\n");
@@ -453,6 +454,7 @@ VALUE shoes_svg_get_height(VALUE self)
 {
   printf("height\n");
 }
+*/
 
 VALUE shoes_svg_preferred_width(VALUE self)
 {
@@ -462,6 +464,16 @@ VALUE shoes_svg_preferred_width(VALUE self)
   Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
   w = svghan->svghdim.width;
   return INT2NUM(w);
+}
+
+VALUE shoes_svg_preferred_height(VALUE self)
+{
+  int h;
+  GET_STRUCT(svg, self_t);
+  shoes_svghandle *svghan;
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+  h = svghan->svghdim.height;
+  return INT2NUM(h);
 }
 
 VALUE shoes_svg_get_offsetX(VALUE self)
@@ -480,16 +492,6 @@ VALUE shoes_svg_get_offsetY(VALUE self)
   Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
   int y = svghan->svghpos.y;
   return INT2NUM(y);
-}
-
-VALUE shoes_svg_preferred_height(VALUE self)
-{
-  int h;
-  GET_STRUCT(svg, self_t);
-  shoes_svghandle *svghan;
-  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
-  h = svghan->svghdim.height;
-  return INT2NUM(h);
 }
 
 VALUE shoes_svg_has_group(VALUE self, VALUE group)

@@ -3984,8 +3984,7 @@ PLACE_COMMON(textblock)
 CLASS_COMMON2(textblock)
 REPLACE_COMMON(textblock)
 
-CLASS_COMMON(svg);
-//CLASS_COMMON2(svg)
+CLASS_COMMON2(svg);
 //PLACE_COMMON(svg)
 //TRANS_COMMON(svg, 1);
 
@@ -4801,6 +4800,11 @@ shoes_ruby_init()
   rb_define_method(cSvg, "dpi", CASTHOOK(shoes_svg_get_dpi), 0);
   rb_define_method(cSvg, "dpi=", CASTHOOK(shoes_svg_set_dpi), 1);
   rb_define_method(cSvg, "style", CASTHOOK(shoes_svg_style), -1);
+  rb_define_method(cSvg, "move", CASTHOOK(shoes_svg_move), 2);
+  rb_define_method(cSvg, "displace", CASTHOOK(shoes_svg_displace), 2);
+  rb_define_method(cSvg, "hide", CASTHOOK(shoes_svg_hide), 0);
+  rb_define_method(cSvg, "show", CASTHOOK(shoes_svg_show), 0);
+  rb_define_method(cSvg, "toggle", CASTHOOK(shoes_svg_toggle), 0);
   rb_define_method(cSvg, "group?", CASTHOOK(shoes_svg_has_group), 1);
 
   cEffect   = rb_define_class_under(cTypes, "Effect", rb_cObject);
