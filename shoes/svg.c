@@ -37,7 +37,7 @@ shoes_svghandle_alloc(VALUE klass)
   VALUE obj;
   shoes_svghandle *handle = SHOE_ALLOC(shoes_svghandle);
   SHOE_MEMZERO(handle, shoes_svghandle, 1);
-  obj = Data_Wrap_Struct(klass, shoes_svghandle_mark, shoes_svghandle_free, handle);
+  obj = Data_Wrap_Struct(klass, NULL, shoes_svghandle_free, handle);
   handle->handle = NULL;
   handle->subid = NULL;
   return obj;
@@ -227,31 +227,23 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   Data_Get_Struct(parent, shoes_canvas, canvas);
   
   rb_arg_list args;
-//  switch (rb_parse_args(argc, argv, "sii|h,s|h", &args))
 //  switch (rb_parse_args(argc, argv, "s|h", &args))
   switch (rb_parse_args(argc, argv, "s|h,o|h", &args))
   {
-/*    case 1:
-      svg_string = args.a[0];
-      widthObj = args.a[1];
-      heightObj = args.a[2];
-      attr = args.a[3];
-//      printf("widthObj, heightObj : %i, %i\n", NUM2INT(widthObj), NUM2INT(heightObj));
-    break;
-*/
     case 1:
       svg_string = args.a[0];
       attr = args.a[1];
     break;
     case 2: 
-       //  if first arg is an svghandle 
-       if (rb_obj_is_kind_of(args.a[0], cSvgHandle)) {
-         svghanObj = args.a[0];
-         attr = args.a[1];
+      //  if first arg is an svghandle 
+      if (rb_obj_is_kind_of(args.a[0], cSvgHandle)) {
+        svghanObj = args.a[0];
+        attr = args.a[1];
       } else 
-         printf("crash ahead\n");
+        printf("crash ahead\n");
     break;
   }
+  
   // get width and height out of hash/attr arg
   if (RTEST(ATTR(attr, width))) {
     widthObj = rb_hash_delete(attr, ID2SYM(s_width));
@@ -262,6 +254,7 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
     heightObj = rb_hash_delete(attr, ID2SYM(s_height));
   } else
     heightObj = RTEST(ATTR(canvas->attr, height)) ? ATTR(canvas->attr, height) : Qnil;
+  
   if (NIL_P(svghanObj)) {  // likely case
     if (strstr(RSTRING_PTR(svg_string), "</svg>") != NULL) //TODO
       ATTRSET(attr, content, svg_string);
@@ -427,6 +420,7 @@ VALUE shoes_svg_save(VALUE self, VALUE path, VALUE block)
   return Qnil;
 }
 
+/* MACROS in ruby.c
 VALUE shoes_svg_show(VALUE self)
 {
   printf("show\n");
@@ -460,6 +454,7 @@ VALUE shoes_svg_get_height(VALUE self)
 {
   printf("height\n");
 }
+*/
 
 VALUE shoes_svg_preferred_width(VALUE self)
 {
@@ -469,6 +464,16 @@ VALUE shoes_svg_preferred_width(VALUE self)
   Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
   w = svghan->svghdim.width;
   return INT2NUM(w);
+}
+
+VALUE shoes_svg_preferred_height(VALUE self)
+{
+  int h;
+  GET_STRUCT(svg, self_t);
+  shoes_svghandle *svghan;
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+  h = svghan->svghdim.height;
+  return INT2NUM(h);
 }
 
 VALUE shoes_svg_get_offsetX(VALUE self)
@@ -487,16 +492,6 @@ VALUE shoes_svg_get_offsetY(VALUE self)
   Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
   int y = svghan->svghpos.y;
   return INT2NUM(y);
-}
-
-VALUE shoes_svg_preferred_height(VALUE self)
-{
-  int h;
-  GET_STRUCT(svg, self_t);
-  shoes_svghandle *svghan;
-  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
-  h = svghan->svghdim.height;
-  return INT2NUM(h);
 }
 
 VALUE shoes_svg_has_group(VALUE self, VALUE group)
@@ -531,7 +526,7 @@ VALUE shoes_svg_remove(VALUE self)
   self_t->svghandle = Qnil;
   self_t = NULL;
   self = Qnil;
-  printf("remove done\n");
+  
   return Qtrue;
 }
 

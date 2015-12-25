@@ -315,8 +315,8 @@ typedef struct {
   double scaleh;
   double balance_margins_w;
   double balance_margins_h;
-  cairo_surface_t *surface;
-  cairo_t *cr;
+  /*cairo_surface_t *surface;*/
+  /*cairo_t *cr;*/
   VALUE svghandle; 
 } shoes_svg;
 
