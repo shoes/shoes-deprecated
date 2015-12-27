@@ -4649,7 +4649,7 @@ shoes_ruby_init()
   rb_define_alloc_func(cSvgHandle, shoes_svghandle_alloc);
   rb_define_method(cSvgHandle, "width", CASTHOOK(shoes_svghandle_get_width), 0);
   rb_define_method(cSvgHandle, "height", CASTHOOK(shoes_svghandle_get_height), 0);
-  rb_define_method(cSvgHandle, "group?", CASTHOOK(shoes_svghandle_has_group), 1);
+//  rb_define_method(cSvgHandle, "group?", CASTHOOK(shoes_svghandle_has_group), 1);
 
   cDialog = rb_define_class_under(cTypes, "Dialog", cApp);
 
