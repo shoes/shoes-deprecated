@@ -300,6 +300,8 @@ typedef struct _svghandle {
   RsvgHandle *handle;
   RsvgDimensionData svghdim;
   RsvgPositionData svghpos;
+  char *path;
+  char *data;
   char *subid;
   double aspect;
 } shoes_svghandle;
@@ -311,15 +313,13 @@ typedef struct {
   VALUE parent;
   VALUE attr;
   shoes_place place;
-  int out_width;
-  int out_height;
   double scalew;
   double scaleh;
   double balance_margins_w;
   double balance_margins_h;
-  /*cairo_surface_t *surface;*/
-  /*cairo_t *cr;*/
-  VALUE svghandle; 
+  VALUE svghandle;
+  char hover;
+  shoes_transform *st;
 } shoes_svg;
 
 //
@@ -526,17 +526,16 @@ VALUE shoes_svghandle_new(int argc, VALUE *argv, VALUE self);
 VALUE shoes_svghandle_alloc(VALUE);
 VALUE shoes_svghandle_get_width(VALUE);
 VALUE shoes_svghandle_get_height(VALUE);
-VALUE shoes_svghandle_has_group(VALUE, VALUE);
+//VALUE shoes_svghandle_has_group(VALUE, VALUE);
 
 VALUE shoes_svg_new(int, VALUE *, VALUE);
 VALUE shoes_svg_alloc(VALUE);
 VALUE shoes_svg_draw(VALUE, VALUE, VALUE);
-//void shoes_svg_paint_svg(cairo_t *, VALUE, shoes_canvas *);
 VALUE shoes_svg_get_handle(VALUE);
 VALUE shoes_svg_set_handle(VALUE, VALUE);
 VALUE shoes_svg_get_dpi(VALUE);
 VALUE shoes_svg_set_dpi(VALUE, VALUE);
-VALUE shoes_svg_save(VALUE, VALUE, VALUE);
+//VALUE shoes_svg_save(VALUE, VALUE, VALUE);
 VALUE shoes_svg_show(VALUE);
 VALUE shoes_svg_hide(VALUE);
 VALUE shoes_svg_get_top(VALUE);
@@ -549,6 +548,9 @@ VALUE shoes_svg_preferred_height(VALUE);
 VALUE shoes_svg_preferred_width(VALUE);
 VALUE shoes_svg_remove(VALUE);
 VALUE shoes_svg_has_group(VALUE, VALUE);
+VALUE shoes_svg_motion(VALUE, int, int, char *);
+VALUE shoes_svg_send_click(VALUE, int, int, int);
+void shoes_svg_send_release(VALUE, int, int, int);
 
 void shoes_control_mark(shoes_control *);
 VALUE shoes_control_new(VALUE, VALUE, VALUE);

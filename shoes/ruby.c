@@ -3984,9 +3984,9 @@ PLACE_COMMON(textblock)
 CLASS_COMMON2(textblock)
 REPLACE_COMMON(textblock)
 
-CLASS_COMMON2(svg);
-//PLACE_COMMON(svg)
-//TRANS_COMMON(svg, 1);
+CLASS_COMMON2(svg)
+PLACE_COMMON(svg);
+TRANS_COMMON(svg, 1);
 
 VALUE
 shoes_textblock_style_m(int argc, VALUE *argv, VALUE self)
@@ -4649,7 +4649,7 @@ shoes_ruby_init()
   rb_define_alloc_func(cSvgHandle, shoes_svghandle_alloc);
   rb_define_method(cSvgHandle, "width", CASTHOOK(shoes_svghandle_get_width), 0);
   rb_define_method(cSvgHandle, "height", CASTHOOK(shoes_svghandle_get_height), 0);
-  rb_define_method(cSvgHandle, "group?", CASTHOOK(shoes_svghandle_has_group), 1);
+//  rb_define_method(cSvgHandle, "group?", CASTHOOK(shoes_svghandle_has_group), 1);
 
   cDialog = rb_define_class_under(cTypes, "Dialog", cApp);
 
@@ -4794,7 +4794,7 @@ shoes_ruby_init()
   rb_define_method(cSvg, "offset_x", CASTHOOK(shoes_svg_get_offsetX),0);
   rb_define_method(cSvg, "offset_y", CASTHOOK(shoes_svg_get_offsetY),0);
   rb_define_method(cSvg, "remove", CASTHOOK(shoes_svg_remove), 0);
-  rb_define_method(cSvg, "save", CASTHOOK(shoes_svg_save), 2);
+//  rb_define_method(cSvg, "save", CASTHOOK(shoes_svg_save), 2);
   rb_define_method(cSvg, "handle", CASTHOOK(shoes_svg_get_handle), 0);
   rb_define_method(cSvg, "handle=", CASTHOOK(shoes_svg_set_handle), 1);
   rb_define_method(cSvg, "dpi", CASTHOOK(shoes_svg_get_dpi), 0);
@@ -4805,7 +4805,21 @@ shoes_ruby_init()
   rb_define_method(cSvg, "hide", CASTHOOK(shoes_svg_hide), 0);
   rb_define_method(cSvg, "show", CASTHOOK(shoes_svg_show), 0);
   rb_define_method(cSvg, "toggle", CASTHOOK(shoes_svg_toggle), 0);
+  rb_define_method(cSvg, "click", CASTHOOK(shoes_svg_click), -1);
+  rb_define_method(cSvg, "release", CASTHOOK(shoes_svg_release), -1);
+  rb_define_method(cSvg, "hover", CASTHOOK(shoes_svg_hover), -1);
+  rb_define_method(cSvg, "leave", CASTHOOK(shoes_svg_leave), -1);
+  rb_define_method(cSvg, "parent", CASTHOOK(shoes_svg_get_parent), 0);
+  rb_define_method(cSvg, "top", CASTHOOK(shoes_svg_get_top), 0);
+  rb_define_method(cSvg, "left", CASTHOOK(shoes_svg_get_left), 0);
+  rb_define_method(cSvg, "width", CASTHOOK(shoes_svg_get_width), 0);
+  rb_define_method(cSvg, "height", CASTHOOK(shoes_svg_get_height), 0);
   rb_define_method(cSvg, "group?", CASTHOOK(shoes_svg_has_group), 1);
+  rb_define_method(cSvg, "transform", CASTHOOK(shoes_svg_transform), 1);
+  rb_define_method(cSvg, "translate", CASTHOOK(shoes_svg_translate), 2);
+  rb_define_method(cSvg, "rotate", CASTHOOK(shoes_svg_rotate), 1);
+  rb_define_method(cSvg, "scale", CASTHOOK(shoes_svg_scale), -1);
+  rb_define_method(cSvg, "skew", CASTHOOK(shoes_svg_skew), -1);
 
   cEffect   = rb_define_class_under(cTypes, "Effect", rb_cObject);
   rb_define_alloc_func(cEffect, shoes_effect_alloc);

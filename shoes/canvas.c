@@ -1892,6 +1892,11 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
         v = shoes_image_send_click(ele, button, ox, oy);
         *clicked = ele;
       }
+      else if (rb_obj_is_kind_of(ele, cSvg))
+      {
+        v = shoes_svg_send_click(ele, button, ox, oy);
+        *clicked = ele;
+      }
       else if (rb_obj_is_kind_of(ele, cShape))
       {
         v = shoes_shape_send_click(ele, button, ox, oy);
@@ -1991,6 +1996,10 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
       {
         shoes_image_send_release(ele, button, ox, oy);
       }
+      else if (rb_obj_is_kind_of(ele, cSvg))
+      {
+        shoes_svg_send_release(ele, button, ox, oy);
+      }
       else if (rb_obj_is_kind_of(ele, cShape))
       {
         shoes_shape_send_release(ele, button, ox, oy);
@@ -2045,6 +2054,10 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
       else if (rb_obj_is_kind_of(ele, cImage))
       {
         urll = shoes_image_motion(ele, ox, oy, NULL);
+      }
+      else if (rb_obj_is_kind_of(ele, cSvg))
+      {
+        urll = shoes_svg_motion(ele, ox, oy, NULL);
       }
       else if (rb_obj_is_kind_of(ele, cShape))
       {
