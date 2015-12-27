@@ -317,7 +317,8 @@ typedef struct {
   double scaleh;
   double balance_margins_w;
   double balance_margins_h;
-  VALUE svghandle; 
+  VALUE svghandle;
+  char hover;
 } shoes_svg;
 
 //
@@ -533,7 +534,7 @@ VALUE shoes_svg_get_handle(VALUE);
 VALUE shoes_svg_set_handle(VALUE, VALUE);
 VALUE shoes_svg_get_dpi(VALUE);
 VALUE shoes_svg_set_dpi(VALUE, VALUE);
-VALUE shoes_svg_save(VALUE, VALUE, VALUE);
+//VALUE shoes_svg_save(VALUE, VALUE, VALUE);
 VALUE shoes_svg_show(VALUE);
 VALUE shoes_svg_hide(VALUE);
 VALUE shoes_svg_get_top(VALUE);
@@ -546,6 +547,9 @@ VALUE shoes_svg_preferred_height(VALUE);
 VALUE shoes_svg_preferred_width(VALUE);
 VALUE shoes_svg_remove(VALUE);
 VALUE shoes_svg_has_group(VALUE, VALUE);
+VALUE shoes_svg_motion(VALUE, int, int, char *);
+VALUE shoes_svg_send_click(VALUE, int, int, int);
+void shoes_svg_send_release(VALUE, int, int, int);
 
 void shoes_control_mark(shoes_control *);
 VALUE shoes_control_new(VALUE, VALUE, VALUE);

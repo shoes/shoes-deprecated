@@ -392,11 +392,9 @@ shoes_svg_set_handle(VALUE self, VALUE han)
   Data_Get_Struct(self, shoes_svg, self_t);
   
   if ( !NIL_P(han) && (rb_obj_is_kind_of(han, cSvgHandle)) ) {
-    shoes_svghandle *svghan;
-    Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
-    shoes_svghandle_free(svghan);
-    
     self_t->svghandle = han;
+    
+    shoes_svghandle *svghan;
     Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
     svg_aspect_ratio(ATTR(self_t->attr, width), ATTR(self_t->attr, height), self_t, svghan);
     self_t->scalew = self_t->scalew/2; self_t->scaleh = self_t->scaleh/2;
@@ -448,7 +446,7 @@ shoes_svg_set_dpi(VALUE self, VALUE dpi)
   shoes_svghandle *svghan;
   Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
   
-  /* We have to handle the change in dpi ourselves as nothing in Shoes has a clue of the meaning of dpi 
+  /* We have to handle the change in dpi ourselves as nothing in Shoes has a clue of what actually a dpi is
    * Default is 90 as per rsvg specification, so if dpi is set to 180 we have to 
    * provide twice the number of pixels in x, twice in y,
    * IF at any moment it has a meaning inside the Shoes environment !!!
@@ -459,23 +457,18 @@ shoes_svg_set_dpi(VALUE self, VALUE dpi)
   return Qnil;
 }
   
+/*
+VALUE shoes_svg_export(VALUE self, Value dpi, VALUE path=Qnil) {
+  if (NIL_P(path))
+    VALUE path = shoes_dialog_save();
+  
+ }
+
 // nobody knows what goes in here. 
 VALUE shoes_svg_save(VALUE self, VALUE path, VALUE block)
 {
   return Qnil;
 }
-
-/* MACROS in ruby.c
-VALUE shoes_svg_show(VALUE self) {} // Done
-VALUE shoes_svg_hide(VALUE self) {} // Done
-
-VALUE shoes_svg_get_top(VALUE self) { printf("get_top\n"); }
-
-VALUE shoes_svg_get_left(VALUE self) { printf("get_left\n"); }
-
-VALUE shoes_svg_get_width(VALUE self) { printf("width\n"); }
-
-VALUE shoes_svg_get_height(VALUE self) { printf("height\n"); }
 */
 
 VALUE shoes_svg_preferred_width(VALUE self)
@@ -552,5 +545,66 @@ VALUE shoes_svg_remove(VALUE self)
   return Qtrue;
 }
 
+//called by shoes_svg_send_click and shoes_canvas_send_motion
+VALUE
+shoes_svg_motion(VALUE self, int x, int y, char *touch)
+{
+  char h = 0;
+  VALUE click;
+  GET_STRUCT(svg, self_t);
 
+  click = ATTR(self_t->attr, click);
+
+  if (IS_INSIDE(self_t, x, y)) {
+    if (!NIL_P(click)) {
+      shoes_canvas *canvas;
+      Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+      shoes_app_cursor(canvas->app, s_link);
+    }
+    h = 1;
+  }
+  
+  /* Checks if element is hovered, clicked, released, leaved
+   * and eventually calls hover and/or leave callbacks
+   *   if hovered:  self_t->hover == 1
+   *   if leaved:   self_t->hover == 0
+   *   if clicked and not yet released:
+   *     if hovered + clicked: self_t->hover == 3 
+   *     if leaved + clicked:  self_t->hover == 2
+   */
+  CHECK_HOVER(self_t, h, touch);
+
+  return h ? click : Qnil;
+}
+
+// called by shoes_canvas_send_click --> shoes_canvas_send_click2
+VALUE
+shoes_svg_send_click(VALUE self, int button, int x, int y)
+{
+  VALUE v = Qnil;
+
+  if (button == 1) {
+    GET_STRUCT(svg, self_t);
+    v = shoes_svg_motion(self, x, y, NULL);
+    if (self_t->hover & HOVER_MOTION)             // ok, cursor is over the element, proceed
+      self_t->hover = HOVER_MOTION | HOVER_CLICK; // we have been clicked, but not yet released
+  }
+  
+  // if we found a click callback send it back to shoes_canvas_send_click method
+  // where it will be processed
+  return v;
+}
+
+// called by shoes_canvas_send_release
+void
+shoes_svg_send_release(VALUE self, int button, int x, int y)
+{
+  GET_STRUCT(svg, self_t);
+  if (button == 1 && (self_t->hover & HOVER_CLICK)) {
+    VALUE proc = ATTR(self_t->attr, release);
+    self_t->hover ^= HOVER_CLICK; // we have been clicked and released
+    if (!NIL_P(proc))
+      shoes_safe_block(self, proc, rb_ary_new3(1, self));
+  }
+}
 
