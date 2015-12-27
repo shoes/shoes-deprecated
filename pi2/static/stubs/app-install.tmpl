@@ -1,0 +1,273 @@
+# installs #{SHYFILE} user specified directory
+require 'shoes/shy'
+require 'fileutils'
+require 'rubygems/package'
+require 'shoes/winject'
+require 'yaml'
+# not easy to debug. Try copying the correct tmp while the installer is on screen
+Shoes.app do
+  shyname = File.basename("#{SHYFILE}")
+  #shyname = File.basename("/home/ccoupe/Projects/unshy/ytm.shy")
+  curloc = Dir.getwd()    # most likely to be a temp dir somewhere
+  shypath = File.join(curloc,shyname)
+  shyfile = File.open(shypath,'rb')
+  hdr = Shy.__hdr__(shyfile)
+  # read the .yaml 
+  @opts = YAML.load_file(File.basename(shypath,'.shy')+'.yaml')
+  if @opts['png']
+    ico = File.basename(@opts['png'])
+    app.set_window_icon_path(File.join(curloc, ico))
+  else
+    alert "Inform developer that they forgot to include a .png"
+  end
+  app.set_window_title "#{hdr.name} Installer"
+  stack do
+    para "#{hdr.name} version #{hdr.version} from #{hdr.creator}, requests that \
+you pick a folder to put it's files in."
+    flow do
+      @dirfld = edit_line :width => 400 
+      @dirfld.text = "#{ENV['HOME']}/Applications/#{File.basename(shyfile,'.shy')}"
+      button "Select..." do
+        @dirfld.text = ask_save_folder()
+      end
+    end
+    if RUBY_PLATFORM  =~ /linux/
+      para "Categories list. Separate with ';'. Must end with ';'"
+      @catsfld = edit_line
+    end
+    if RUBY_PLATFORM =~ /mingw/
+      flow do
+        @desklnk = check do
+          @opts['desklnk'] = @desklnk.checked?
+        end
+        para "Create .lnk on Desktop?"
+      end
+    end
+    flow do
+      button "Install #{hdr.name}" do
+        mkdir_p @dirfld.text
+        install_top = curloc
+        app = ''
+        Dir.chdir @dirfld.text do
+          if @opts['expandshy']
+            extract shyfile
+          else
+            FileUtils.cp shyfile, '.'  
+          end
+          case RUBY_PLATFORM
+          when /mingw/ 
+            iconpath = Dir.glob("#{install_top}/*.ico")[0]
+            if ! (File.exist? iconpath)
+              alert "Developer #{hdr.creator} did not include an .ico! Can not Install."
+              quit
+            end
+            app = install_windows hdr, @dirfld.text, iconpath
+          when /darwin/
+            iconpath = Dir.glob("#{install_top}/*.icns")[0]
+            if ! (File.exist? iconpath)
+              alert "Developer #{hdr.creator} did not include an .icns! Can not Install."
+              quit
+            end
+            app = install_osx hdr, @dirfld.text, iconpath
+          else # assume linux
+            iconpath = Dir.glob("#{install_top}/*.png")[0]
+            app = install_linux hdr, @dirfld.text, iconpath, @catsfld.text
+            alert "Will launch #{app}"
+          end
+        end
+        if @run_it.checked?
+            if ! @opts['expandshy'] 
+              base = File.basename(shyfile, ".shy")
+              @tmpdir = tmpdir = "%s/shoes-%s.%d" % [Dir.tmpdir, base, $$]
+              FileUtils.mkdir_p tmpdir
+              Dir.chdir(tmpdir)
+              extract shyfile
+              app = File.join(tmpdir, hdr.launch)
+           else
+              Dir.chdir @dirfld.text
+            end
+            str = File.open(app).read
+            eval(str, TOPLEVEL_BINDING)
+            self.close
+        elsif confirm("Quit") 
+          quit
+        end
+      end     
+      flow { @run_it = check; para "Start #{hdr.name}" }
+      @run_it.checked = true
+    end
+  end
+  
+  # all the install_OS methods return the full path to the app(.shy or .rb)
+  # needed to launch it directly from Shoes.
+  # current dir is set to installdir before calling
+  #
+  def install_windows hdr, installdir, iconpath
+    # we want to create an .exe using the static/shoes-stub.exe and winject
+    # and the .ico file. 
+    if @opts['expandshy']
+      launch = hdr.launch
+    else
+      launch = File.basename(@opts['app'])
+    end
+    f = File.open(launch, 'rb')
+    inf = File.join(DIR, "static", "stubs", 'shoes-stub.exe')
+    exe = Winject::EXE.new(inf)
+    exe.inject_string(Winject::EXE::SHOES_APP_NAME, launch)
+    exe.inject_file(Winject::EXE::SHOES_APP_CONTENT, f.read)
+    exe.inject_string(Winject::EXE::SHOES_DOWNLOAD_SITE, @opts['dnlhost'])
+    exe.inject_string(Winject::EXE::SHOES_DOWNLOAD_PATH, @opts['dnlpath'])
+    exe.inject_icons(iconpath)
+    exe.save(launch.gsub(/\.\w+$/, '') + ".exe") 
+    f.close
+
+    # we want to create a .lnk on the desktop
+    # return path to Shoes/eval - NOT the created exe. 
+    return "#{installdir}/#{launch}"
+  end
+  
+  def install_osx hdr, installdir, iconpath
+    name = File.basename(hdr.launch).gsub(/\.\w+$/, '')
+    app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
+    app_app = "#{app_name}.app"
+    vers = [2, 0]
+    tmp_dir = installdir
+    FileUtils.mkdir_p(tmp_dir)
+    
+    icon_name = File.basename(iconpath).capitalize
+    app_dir = File.join(tmp_dir, app_app)
+    res_dir = File.join(tmp_dir, app_app, "Contents", "Resources")
+    mac_dir = File.join(tmp_dir, app_app, "Contents", "MacOS")
+    [res_dir, mac_dir].map { |x| FileUtils.mkdir_p(x) }
+    FileUtils.cp(iconpath, File.join(app_dir,icon_name))
+    FileUtils.cp(iconpath, File.join(res_dir,icon_name))
+    File.open(File.join(app_dir, "Contents", "PkgInfo"), 'w') do |f|
+      f << "APPL????"
+    end
+
+    # Make the Info.plist
+    File.open(File.join(app_dir, "Contents", "Info.plist"), 'w') do |f|
+      f << <<END
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleGetInfoString</key>
+  <string>#{app_name} #{vers.join(".")}</string>
+  <key>CFBundleExecutable</key>
+  <string>#{name}-launch</string>
+  <key>CFBundleIdentifier</key>
+  <string>org.hackety.#{name}</string>
+  <key>CFBundleName</key>
+  <string>#{app_name}</string>
+  <key>CFBundleIconFile</key>
+  <string>#{icon_name}</string>
+  <key>CFBundleShortVersionString</key>
+  <string>#{vers.join(".")}</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>IFMajorVersion</key>
+  <integer>#{vers[0]}</integer>
+  <key>IFMinorVersion</key>
+  <integer>#{vers[1]}</integer>
+</dict>
+</plist>
+END
+    end
+    File.open(File.join(app_dir, "Contents", "version.plist"), 'w') do |f|
+      f << <<END
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>BuildVersion</key>
+  <string>1</string>
+  <key>CFBundleVersion</key>
+  <string>#{vers.join(".")}</string>
+  <key>ProjectName</key>
+  <string>#{app_name}</string>
+  <key>SourceVersion</key>
+  <string>#{Time.now.strftime("%Y%m%d")}</string>
+</dict>
+</plist>
+END
+    end
+    # launch shy or .rb?
+    if @opts['expandshy'] 
+       launch = hdr.launch 
+    else 
+       launch = File.basename(@opts['app'])
+    end
+    File.open(File.join(mac_dir, "#{name}-launch"), 'wb') do |f|
+      f << <<END
+#!/bin/bash
+APPPATH="${0%/*}"
+this_dir=$APPPATH
+unset DYLD_LIBRARY_PATH
+APPPATH=/Applications/Shoes.app/Contents/MacOS
+cd "$APPPATH"
+echo "[Pango]" > pangorc
+echo "ModuleFiles=$APPPATH/pango.modules" >> pangorc
+echo "ModulesPath=$APPPATH/pango/modules" >> pangorc
+PANGO_RC_FILE="$APPPATH/pangorc" ./pango-querymodules > pango.modules
+DYLD_LIBRARY_PATH="$APPPATH" PANGO_RC_FILE="$APPPATH/pangorc" SHOES_RUBY_ARCH="x86_64-linux" ./shoes-bin "#{installdir}/#{launch}"
+END
+    end
+    FileUtils.chmod 0755, File.join(mac_dir, "#{name}-launch")
+    # figure out return for direct launch from Shoes. 
+    return "#{installdir}/#{launch}"
+  end
+  
+  def install_linux  hdr, installdir, iconpath, cats
+    # We are in the directory the user selected, aka installdir
+    # create a menu using "stuff"
+    hdir = ENV['HOME']
+    cdir = Dir.getwd()
+    FileUtils.cp iconpath, cdir
+    if @opts['expandshy']
+      dtname = hdr.launch.gsub(/\.rb$/,'.desktop')
+      launch = hdr.launch
+    else
+      dtname = File.basename(@opts['app'],'.shy')+'.desktop'
+      launch = File.basename(@opts['app'])
+    end
+    File.open(dtname,'w') do |f|
+        f << "[Desktop Entry]\n"
+        f << "Name=#{hdr.name}\n"
+        f << "Exec=#{hdir}/.shoes/federales/shoes #{installdir}/#{launch}\n"
+        f << "StartupNotify=true\n"
+        f << "Terminal=false\n"
+        f << "Type=Application\n"
+        f << "Comment=#{hdr.creator}\n"
+        f << "Icon=#{cdir}/#{File.basename(iconpath)}\n"
+        f << "Categories=Other;Applications;#{cats}\n"
+    end
+    if File.exists? '.local/share/Applications' 
+      FileUtils.cp dtname, '.local/share/Applications' 
+    end
+    `xdg-desktop-menu install --novendor #{dtname}`
+    return "#{installdir}/#{launch}"
+  end
+ 
+  def extract opened_file
+    Gem::Package::TarReader.new( Zlib::GzipReader.new(opened_file)) do |tar|
+      tar.each do |entry|
+        dest = entry.full_name
+	    if entry.directory?
+	      FileUtils.rm_rf dest unless File.directory? dest
+	      FileUtils.mkdir_p dest, :mode => entry.header.mode, :verbose => false
+	    elsif entry.file?
+	      FileUtils.rm_rf dest unless File.file? dest
+	      File.open dest, "wb" do |f|
+	        f.print entry.read
+	       end
+	       FileUtils.chmod entry.header.mode, dest, :verbose => false
+	    elsif entry.header.typeflag == '2' #Symlink!
+	      alert "Cannot convert Symlinks. Contact #{hdr.creator}"
+	    end
+      end
+    end
+  end
+end
