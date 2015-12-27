@@ -125,10 +125,6 @@ when /linux/
       require File.expand_path('make/xi686_linux/env')
       require File.expand_path('make/xi686_linux/tasks')
       require File.expand_path("make/gems")
-    when /pi2/
-      require File.expand_path('make/pi2/env')
-      require File.expand_path('make/pi2/tasks')
-      require File.expand_path("make/gems")
     when /xarmv6hf/
       require File.expand_path('make/xarm6hf/env')
       require File.expand_path('make/xarm6hf/tasks')
@@ -422,11 +418,6 @@ namespace :linux do
     desc "Cross compile to Raspberry pi 1a, 1b, 2"
     task :xarm6hf do
       sh "echo 'TGT_ARCH=xarmv6hf' >crosscompile"
-    end
-    
-    desc "Native pi2 build"
-    task :pi2 do
-      sh "echo 'TGT_ARCH=pi2' >crosscompile"
     end
 
 #    desc "Cross compile to Windows Native GUI"
