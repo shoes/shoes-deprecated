@@ -319,6 +319,7 @@ typedef struct {
   double balance_margins_h;
   VALUE svghandle;
   char hover;
+  shoes_transform *st;
 } shoes_svg;
 
 //

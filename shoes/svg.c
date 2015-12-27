@@ -156,7 +156,11 @@ VALUE shoes_svghandle_has_group(VALUE self, VALUE group)
 }
 */
 
-// ------- svg widget -----
+
+/*  ------- SVG widget -----
+ *  several methods are defined in ruby.c Macros (CLASS_COMMON2, PLACE_COMMON, TRANS_COMMON)
+ */
+
 // forward declares in this file
 static void
 shoes_svg_draw_surface(cairo_t *, shoes_svg *, shoes_place *, /*cairo_surface_t *,*/ int, int);
@@ -174,6 +178,7 @@ shoes_svg_mark(shoes_svg *svg)
 static void
 shoes_svg_free(shoes_svg *svg)
 {
+  shoes_transform_release(svg->st);
   RUBY_CRITICAL(SHOE_FREE(svg));
 }
 
@@ -186,6 +191,7 @@ shoes_svg_alloc(VALUE klass)
   obj = Data_Wrap_Struct(klass, shoes_svg_mark, shoes_svg_free, svg);
   svg->svghandle = Qnil;
   svg->parent = Qnil;
+  svg->st = NULL;
   return obj;
 }
 
@@ -296,6 +302,8 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   self_t->balance_margins_w = 0.0;
   self_t->balance_margins_h = 0.0;
   self_t->attr = attr;
+  // initialize cairo matrice used in transform methods (rotate, scale, skew, translate)
+  self_t->st = shoes_transform_touch(canvas->st);
   
   // useless !!?? needs to be confirmed
 //  shoes_place place;
@@ -321,6 +329,9 @@ shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, int i
   
    // drawing on svg parent's (canvas) surface
   cairo_save(cr);
+  // applying any trasform : translate, rotate, scale, skew
+  shoes_apply_transformation(cr, self_t->st, place, 0);
+  
   cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
   
   if (svghan->subid == NULL) {
@@ -339,6 +350,8 @@ shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, int i
   }
   
   rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
+  
+  shoes_undo_transformation(cr, self_t->st, place, 0);
   cairo_restore(cr);
   
   self_t->place = *place;
