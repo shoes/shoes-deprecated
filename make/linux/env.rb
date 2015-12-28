@@ -61,11 +61,21 @@ GTK_FLAGS = "#{`pkg-config --cflags #{APP['GTK']}`.strip}"
 GTK_LIB = "#{`pkg-config --libs #{APP['GTK']}`.strip}"
 
 MISC_LIB = " -lgif -ljpeg"
+
+# don't use pkg-config for librsvg-2.0 - a warning.
 MISC_CFLAGS = ' '
-if APP['SVG'] == 'handle' 
-  MISC_CFLAGS << "-DSVGHANDLE -I/usr/include/librsvg-2.0/librsvg "
-  MISC_LIB << ' /usr/lib/x86_64-linux-gnu/librsvg-2.so'
+if File.exist? 'usr/lib/arm-linux-gnueabihf'
+  ularch = 'arm-linux-gnueabihf'
+elsif File.exist? '/usr/lib/x86_64-linux-gnu'
+  ularch = 'x86_64-linux-gnu'
+elsif File.exist? '/usr/lib/i386-linux-gnu'
+  ularch = 'i386-linux-gnu'
+else
+  abort 'unknown architecture'
 end
+MISC_CFLAGS << "-I/usr/include/librsvg-2.0/librsvg "
+MISC_LIB << " /usr/lib/#{ularch}/librsvg-2.so"
+
 
 # collect flags together
 LINUX_CFLAGS << " #{RUBY_CFLAGS} #{GTK_FLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{MISC_CFLAGS}"
