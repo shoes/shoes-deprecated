@@ -235,20 +235,17 @@ shoes_canvas_paint(VALUE self)
 void
 shoes_apply_transformation(cairo_t *cr, shoes_transform *st, shoes_place *place, unsigned char force)
 {
-  double x, y, w, h;
   cairo_save(cr);
-  w = place->iw / 2.;
-  h = place->ih / 2.;
-  if (st != NULL)
-  {
-    x = (place->ix + place->dx) + w;
-    y = (place->iy + place->dy) + h;
+  
+  if (st != NULL) {
+    double w = place->iw / 2.;
+    double h = place->ih / 2.;
+    double x = (place->ix + place->dx) + w;
+    double y = (place->iy + place->dy) + h;
 
-    if (st->mode == s_center)
-      cairo_translate(cr, x, y);
-     cairo_transform(cr, &st->tf);
-    if (st->mode == s_center)
-      cairo_translate(cr, -x, -y);
+    if (st->mode == s_center) cairo_translate(cr, x, y);
+    cairo_transform(cr, &st->tf);
+    if (st->mode == s_center) cairo_translate(cr, -x, -y);
   }
 }
 
