@@ -327,13 +327,12 @@ shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, int i
     svg_aspect_ratio(imw, imh, self_t, svghan);
   }
   
-   // drawing on svg parent's (canvas) surface
-  cairo_save(cr);
-  // applying any trasform : translate, rotate, scale, skew
-  shoes_apply_transformation(cr, self_t->st, place, 0);
-  
+  /* drawing on svg parent's (canvas) surface */
+  // applying any transform : translate, rotate, scale, skew
+  shoes_apply_transformation(cr, self_t->st, place, 0);  // cairo_save(cr) inside
+
   cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
-  
+
   if (svghan->subid == NULL) {
     // need to compensate because of margins
     if (place->iw != imw || place->ih != imh) {     // TODO: works, but must be a better way
@@ -348,11 +347,10 @@ shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, int i
     cairo_scale(cr, self_t->scalew, self_t->scaleh);  // order of scaling + translate matters !!!
     cairo_translate(cr, -svghan->svghpos.x, -svghan->svghpos.y);
   }
-  
+
   rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
-  
-  shoes_undo_transformation(cr, self_t->st, place, 0);
-  cairo_restore(cr);
+
+  shoes_undo_transformation(cr, self_t->st, place, 0); // doing cairo_restore(cr)
   
   self_t->place = *place;
   
