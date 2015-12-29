@@ -526,7 +526,7 @@ VALUE shoes_svghandle_new(int argc, VALUE *argv, VALUE self);
 VALUE shoes_svghandle_alloc(VALUE);
 VALUE shoes_svghandle_get_width(VALUE);
 VALUE shoes_svghandle_get_height(VALUE);
-//VALUE shoes_svghandle_has_group(VALUE, VALUE);
+VALUE shoes_svghandle_has_group(VALUE, VALUE);
 
 VALUE shoes_svg_new(int, VALUE *, VALUE);
 VALUE shoes_svg_alloc(VALUE);
