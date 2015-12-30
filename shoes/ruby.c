@@ -3902,6 +3902,15 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
     shoes_canvas_repaint_all(self_t->parent); \
     return self; \
   } \
+  \
+  VALUE \
+  shoes_##ele##_is_hidden(VALUE self) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    if (RTEST(ATTR(self_t->attr, hidden))) \
+      return ATTR(self_t->attr, hidden); \
+    else return Qfalse; \
+  } \
   CLASS_COMMON(ele); \
   EVENT_COMMON(ele, ele, change); \
   EVENT_COMMON(ele, ele, click); \
@@ -4805,6 +4814,7 @@ shoes_ruby_init()
   rb_define_method(cSvg, "hide", CASTHOOK(shoes_svg_hide), 0);
   rb_define_method(cSvg, "show", CASTHOOK(shoes_svg_show), 0);
   rb_define_method(cSvg, "toggle", CASTHOOK(shoes_svg_toggle), 0);
+  rb_define_method(cSvg, "hidden?", CASTHOOK(shoes_svg_is_hidden), 0);
   rb_define_method(cSvg, "click", CASTHOOK(shoes_svg_click), -1);
   rb_define_method(cSvg, "release", CASTHOOK(shoes_svg_release), -1);
   rb_define_method(cSvg, "hover", CASTHOOK(shoes_svg_hover), -1);
