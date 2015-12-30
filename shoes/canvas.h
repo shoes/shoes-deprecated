@@ -315,8 +315,6 @@ typedef struct {
   shoes_place place;
   double scalew;
   double scaleh;
-  double balance_margins_w;
-  double balance_margins_h;
   VALUE svghandle;
   char hover;
   shoes_transform *st;

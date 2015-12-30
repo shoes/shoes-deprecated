@@ -298,8 +298,6 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   self_t->parent = parent;
   self_t->scalew = 0.0;
   self_t->scaleh = 0.0;
-  self_t->balance_margins_w = 0.0;
-  self_t->balance_margins_h = 0.0;
   self_t->attr = attr;
   // initialize cairo matrice used in transform methods (rotate, scale, skew, translate)
   self_t->st = shoes_transform_touch(canvas->st);
