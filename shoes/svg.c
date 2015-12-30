@@ -404,6 +404,7 @@ shoes_svg_set_handle(VALUE self, VALUE han)
   
   if ( !NIL_P(han) && (rb_obj_is_kind_of(han, cSvgHandle)) ) {
     self_t->svghandle = han;
+    rb_gc();
     
     shoes_svghandle *svghan;
     Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
@@ -424,7 +425,12 @@ shoes_svg_set_handle(VALUE self, VALUE han)
       ATTRSET(self_t->attr, subid, rb_str_new_cstr(svghan->subid));
     else ATTRSET(self_t->attr, subid, Qnil);
     ID  s_aspect = rb_intern("aspect");
-    ATTRSET(self_t->attr, aspect, DBL2NUM(svghan->aspect));
+    if (svghan->aspect == -1.0) 
+      ATTRSET(self_t->attr, aspect, Qfalse);
+    else if (svghan->aspect == 0.0 || svghan->aspect == 1.0) 
+      ATTRSET(self_t->attr, aspect, Qtrue);
+    else
+      ATTRSET(self_t->attr, aspect, DBL2NUM(svghan->aspect));
     
     shoes_canvas_repaint_all(self_t->parent);
     
