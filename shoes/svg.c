@@ -136,7 +136,7 @@ shoes_svghandle_get_height(VALUE self)
   return INT2NUM(self_t->svghdim.height);
 }
 
-/* Not needed
+/* Needed for some odd situations -samples/good-flip.rb */
 VALUE shoes_svghandle_has_group(VALUE self, VALUE group)
 {
   shoes_svghandle *handle;
@@ -154,7 +154,6 @@ VALUE shoes_svghandle_has_group(VALUE self, VALUE group)
     // raise error - must be string
   }
 }
-*/
 
 
 /*  ------- SVG widget -----
