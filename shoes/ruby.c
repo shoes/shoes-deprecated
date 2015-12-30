@@ -4822,8 +4822,8 @@ shoes_ruby_init()
   rb_define_method(cSvg, "parent", CASTHOOK(shoes_svg_get_parent), 0);
   rb_define_method(cSvg, "top", CASTHOOK(shoes_svg_get_top), 0);
   rb_define_method(cSvg, "left", CASTHOOK(shoes_svg_get_left), 0);
-  rb_define_method(cSvg, "width", CASTHOOK(shoes_svg_get_width), 0);
-  rb_define_method(cSvg, "height", CASTHOOK(shoes_svg_get_height), 0);
+  rb_define_method(cSvg, "width", CASTHOOK(shoes_svg_get_actual_width), 0);
+  rb_define_method(cSvg, "height", CASTHOOK(shoes_svg_get_actual_height), 0);
   rb_define_method(cSvg, "group?", CASTHOOK(shoes_svg_has_group), 1);
   rb_define_method(cSvg, "transform", CASTHOOK(shoes_svg_transform), 1);
   rb_define_method(cSvg, "translate", CASTHOOK(shoes_svg_translate), 2);

@@ -333,17 +333,9 @@ shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, int i
   cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
 
   if (svghan->subid == NULL) {
-    // need to compensate because of margins
-    if (place->iw != imw || place->ih != imh) {     // TODO: works, but must be a better way
-      if (self_t->balance_margins_w == 0.0)                 // first time calculated scale factors 
-        self_t->balance_margins_w = (place->iw * 1.) / imw; // are the good ones, followings are wrong
-      if (self_t->balance_margins_h == 0.0)
-        self_t->balance_margins_h = (place->ih * 1.) / imh;
-      cairo_scale(cr, self_t->balance_margins_w, self_t->balance_margins_h);
-    }
     cairo_scale(cr, self_t->scalew, self_t->scaleh);
   } else {
-    cairo_scale(cr, self_t->scalew, self_t->scaleh);  // order of scaling + translate matters !!!
+    cairo_scale(cr, self_t->scalew, self_t->scaleh);          // order of scaling + translate matters !!!
     cairo_translate(cr, -svghan->svghpos.x, -svghan->svghpos.y);
   }
 
@@ -352,7 +344,6 @@ shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, int i
   shoes_undo_transformation(cr, self_t->st, place, 0); // doing cairo_restore(cr)
   
   self_t->place = *place;
-  
   //printf("surface\n");
 }
 
@@ -486,6 +477,24 @@ VALUE shoes_svg_save(VALUE self, VALUE path, VALUE block)
   return Qnil;
 }
 */
+
+VALUE
+shoes_svg_get_actual_width(VALUE self)
+{
+  GET_STRUCT(svg, self_t);
+  shoes_svghandle *svghan;
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+  return INT2NUM((int)floor(svghan->svghdim.width*self_t->scalew));
+}
+
+VALUE
+shoes_svg_get_actual_height(VALUE self)
+{
+  GET_STRUCT(svg, self_t);
+  shoes_svghandle *svghan;
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+  return INT2NUM((int)floor(svghan->svghdim.height*self_t->scaleh));
+}
 
 VALUE shoes_svg_preferred_width(VALUE self)
 {
