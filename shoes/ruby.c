@@ -3994,7 +3994,6 @@ CLASS_COMMON2(textblock)
 REPLACE_COMMON(textblock)
 
 CLASS_COMMON2(svg)
-PLACE_COMMON(svg);
 TRANS_COMMON(svg, 1);
 
 VALUE
@@ -4820,8 +4819,8 @@ shoes_ruby_init()
   rb_define_method(cSvg, "hover", CASTHOOK(shoes_svg_hover), -1);
   rb_define_method(cSvg, "leave", CASTHOOK(shoes_svg_leave), -1);
   rb_define_method(cSvg, "parent", CASTHOOK(shoes_svg_get_parent), 0);
-  rb_define_method(cSvg, "top", CASTHOOK(shoes_svg_get_top), 0);
-  rb_define_method(cSvg, "left", CASTHOOK(shoes_svg_get_left), 0);
+  rb_define_method(cSvg, "top", CASTHOOK(shoes_svg_get_actual_top), 0);
+  rb_define_method(cSvg, "left", CASTHOOK(shoes_svg_get_actual_left), 0);
   rb_define_method(cSvg, "width", CASTHOOK(shoes_svg_get_actual_width), 0);
   rb_define_method(cSvg, "height", CASTHOOK(shoes_svg_get_actual_height), 0);
   rb_define_method(cSvg, "group?", CASTHOOK(shoes_svg_has_group), 1);

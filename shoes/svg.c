@@ -342,6 +342,8 @@ shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, int i
   shoes_undo_transformation(cr, self_t->st, place, 0); // doing cairo_restore(cr)
   
   self_t->place = *place;
+  printf("place : w = %d, h = %d, iw = %d, ih = %d, x = %d, ix = %d, y = %d, iy = %d, dx = %d, dy = %d\n", self_t->place.w, self_t->place.h, self_t->place.iw, self_t->place.ih, self_t->place.x, self_t->place.ix, self_t->place.y, self_t->place.iy, self_t->place.dx, self_t->place.dy);
+  printf("***** scaled : sw = %f, sh = %f\n", svghan->svghdim.width*self_t->scalew, svghan->svghdim.height*self_t->scaleh);
   //printf("surface\n");
 }
 
@@ -476,6 +478,16 @@ VALUE shoes_svg_save(VALUE self, VALUE path, VALUE block)
 }
 */
 
+/*  Not using PLACE_COMMMON Macro in ruby.c, as we do the svg rendering a bit differently
+ *  than other widgets [parent, left, top, width, height ruby methods]
+ */
+VALUE
+shoes_svg_get_parent(VALUE self)
+{
+  GET_STRUCT(svg, self_t);
+  return self_t->parent;
+}
+
 VALUE
 shoes_svg_get_actual_width(VALUE self)
 {
@@ -492,6 +504,20 @@ shoes_svg_get_actual_height(VALUE self)
   shoes_svghandle *svghan;
   Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
   return INT2NUM((int)floor(svghan->svghdim.height*self_t->scaleh));
+}
+
+VALUE
+shoes_svg_get_actual_left(VALUE self)
+{
+  GET_STRUCT(svg, self_t);
+  return INT2NUM(self_t->place.ix + self_t->place.dx);
+}
+
+VALUE
+shoes_svg_get_actual_top(VALUE self)
+{
+  GET_STRUCT(svg, self_t);
+  return INT2NUM(self_t->place.iy + self_t->place.dy);
 }
 
 VALUE shoes_svg_preferred_width(VALUE self)
