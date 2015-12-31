@@ -298,8 +298,6 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   self_t->parent = parent;
   self_t->scalew = 0.0;
   self_t->scaleh = 0.0;
-  self_t->balance_margins_w = 0.0;
-  self_t->balance_margins_h = 0.0;
   self_t->attr = attr;
   // initialize cairo matrice used in transform methods (rotate, scale, skew, translate)
   self_t->st = shoes_transform_touch(canvas->st);
@@ -333,17 +331,9 @@ shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, int i
   cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
 
   if (svghan->subid == NULL) {
-    // need to compensate because of margins
-    if (place->iw != imw || place->ih != imh) {     // TODO: works, but must be a better way
-      if (self_t->balance_margins_w == 0.0)                 // first time calculated scale factors 
-        self_t->balance_margins_w = (place->iw * 1.) / imw; // are the good ones, followings are wrong
-      if (self_t->balance_margins_h == 0.0)
-        self_t->balance_margins_h = (place->ih * 1.) / imh;
-      cairo_scale(cr, self_t->balance_margins_w, self_t->balance_margins_h);
-    }
     cairo_scale(cr, self_t->scalew, self_t->scaleh);
   } else {
-    cairo_scale(cr, self_t->scalew, self_t->scaleh);  // order of scaling + translate matters !!!
+    cairo_scale(cr, self_t->scalew, self_t->scaleh);          // order of scaling + translate matters !!!
     cairo_translate(cr, -svghan->svghpos.x, -svghan->svghpos.y);
   }
 
@@ -352,7 +342,6 @@ shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, int i
   shoes_undo_transformation(cr, self_t->st, place, 0); // doing cairo_restore(cr)
   
   self_t->place = *place;
-  
   //printf("surface\n");
 }
 
@@ -403,6 +392,7 @@ shoes_svg_set_handle(VALUE self, VALUE han)
   
   if ( !NIL_P(han) && (rb_obj_is_kind_of(han, cSvgHandle)) ) {
     self_t->svghandle = han;
+    rb_gc();
     
     shoes_svghandle *svghan;
     Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
@@ -423,7 +413,12 @@ shoes_svg_set_handle(VALUE self, VALUE han)
       ATTRSET(self_t->attr, subid, rb_str_new_cstr(svghan->subid));
     else ATTRSET(self_t->attr, subid, Qnil);
     ID  s_aspect = rb_intern("aspect");
-    ATTRSET(self_t->attr, aspect, DBL2NUM(svghan->aspect));
+    if (svghan->aspect == -1.0) 
+      ATTRSET(self_t->attr, aspect, Qfalse);
+    else if (svghan->aspect == 0.0 || svghan->aspect == 1.0) 
+      ATTRSET(self_t->attr, aspect, Qtrue);
+    else
+      ATTRSET(self_t->attr, aspect, DBL2NUM(svghan->aspect));
     
     shoes_canvas_repaint_all(self_t->parent);
     
@@ -480,6 +475,48 @@ VALUE shoes_svg_save(VALUE self, VALUE path, VALUE block)
   return Qnil;
 }
 */
+
+/*  Not using PLACE_COMMMON Macro in ruby.c, as we do the svg rendering a bit differently
+ *  than other widgets [parent, left, top, width, height ruby methods]
+ */
+VALUE
+shoes_svg_get_parent(VALUE self)
+{
+  GET_STRUCT(svg, self_t);
+  return self_t->parent;
+}
+
+VALUE
+shoes_svg_get_actual_width(VALUE self)
+{
+  GET_STRUCT(svg, self_t);
+  shoes_svghandle *svghan;
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+  return INT2NUM((int)floor(svghan->svghdim.width*self_t->scalew));
+}
+
+VALUE
+shoes_svg_get_actual_height(VALUE self)
+{
+  GET_STRUCT(svg, self_t);
+  shoes_svghandle *svghan;
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+  return INT2NUM((int)floor(svghan->svghdim.height*self_t->scaleh));
+}
+
+VALUE
+shoes_svg_get_actual_left(VALUE self)
+{
+  GET_STRUCT(svg, self_t);
+  return INT2NUM(self_t->place.ix + self_t->place.dx);
+}
+
+VALUE
+shoes_svg_get_actual_top(VALUE self)
+{
+  GET_STRUCT(svg, self_t);
+  return INT2NUM(self_t->place.iy + self_t->place.dy);
+}
 
 VALUE shoes_svg_preferred_width(VALUE self)
 {

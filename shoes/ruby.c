@@ -3902,6 +3902,15 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
     shoes_canvas_repaint_all(self_t->parent); \
     return self; \
   } \
+  \
+  VALUE \
+  shoes_##ele##_is_hidden(VALUE self) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    if (RTEST(ATTR(self_t->attr, hidden))) \
+      return ATTR(self_t->attr, hidden); \
+    else return Qfalse; \
+  } \
   CLASS_COMMON(ele); \
   EVENT_COMMON(ele, ele, change); \
   EVENT_COMMON(ele, ele, click); \
@@ -3985,7 +3994,6 @@ CLASS_COMMON2(textblock)
 REPLACE_COMMON(textblock)
 
 CLASS_COMMON2(svg)
-PLACE_COMMON(svg);
 TRANS_COMMON(svg, 1);
 
 VALUE
@@ -4805,15 +4813,16 @@ shoes_ruby_init()
   rb_define_method(cSvg, "hide", CASTHOOK(shoes_svg_hide), 0);
   rb_define_method(cSvg, "show", CASTHOOK(shoes_svg_show), 0);
   rb_define_method(cSvg, "toggle", CASTHOOK(shoes_svg_toggle), 0);
+  rb_define_method(cSvg, "hidden?", CASTHOOK(shoes_svg_is_hidden), 0);
   rb_define_method(cSvg, "click", CASTHOOK(shoes_svg_click), -1);
   rb_define_method(cSvg, "release", CASTHOOK(shoes_svg_release), -1);
   rb_define_method(cSvg, "hover", CASTHOOK(shoes_svg_hover), -1);
   rb_define_method(cSvg, "leave", CASTHOOK(shoes_svg_leave), -1);
   rb_define_method(cSvg, "parent", CASTHOOK(shoes_svg_get_parent), 0);
-  rb_define_method(cSvg, "top", CASTHOOK(shoes_svg_get_top), 0);
-  rb_define_method(cSvg, "left", CASTHOOK(shoes_svg_get_left), 0);
-  rb_define_method(cSvg, "width", CASTHOOK(shoes_svg_get_width), 0);
-  rb_define_method(cSvg, "height", CASTHOOK(shoes_svg_get_height), 0);
+  rb_define_method(cSvg, "top", CASTHOOK(shoes_svg_get_actual_top), 0);
+  rb_define_method(cSvg, "left", CASTHOOK(shoes_svg_get_actual_left), 0);
+  rb_define_method(cSvg, "width", CASTHOOK(shoes_svg_get_actual_width), 0);
+  rb_define_method(cSvg, "height", CASTHOOK(shoes_svg_get_actual_height), 0);
   rb_define_method(cSvg, "group?", CASTHOOK(shoes_svg_has_group), 1);
   rb_define_method(cSvg, "transform", CASTHOOK(shoes_svg_transform), 1);
   rb_define_method(cSvg, "translate", CASTHOOK(shoes_svg_translate), 2);
