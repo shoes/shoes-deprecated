@@ -8,33 +8,39 @@ Shoes.app do
   @topcard = 0  # numeric index of the handle that is currently shown in
   @top_card = nil # the on screen svg widget
   @names = []   # contains svg group ids (strings)
-  
+
   def shuffle_me(array)
     (array.size-1).downto(1) do |i|
      j = rand(i+1)
      array[i], array[j] = array[j], array[i]
     end
     array
-  end 
-  
+  end
+
   def kill_anim
-   if @animation 
+   if @animation
      @animation.stop
      @animation.remove
      @animation = nil
    end
   end
-  
+
   def get_handle (idx)
     # create handle when needed
+    puts "query #{idx}"
     if @handles[idx] == nil
       str = @names[idx]
       puts "load: #{idx}:#{str}"
-      @handles[idx] = app.svghandle ( {content: @xmlstring, group: str} )
+      han = app.svghandle ( {content: @xmlstring, group: str} )
+      if han.is_a? Array
+        puts "handle array"
+        han = han[0]
+      end
+      @handles[idx] = han
     end
     @handles[idx]
   end
-  
+
   def init_with_path(path)
     File.open(path) {|f| @xmlstring = f.read}
     (1..52).each {|i| @pile[i] = i}
@@ -47,9 +53,10 @@ Shoes.app do
       alert "Can't find order"
     end
     @handles = [] # let gc handle old ones
-    idx = 1
     @handles[0] = app.svghandle( {content: @xmlstring, group: '#back'})
     @names[0] = "#back"
+    @handles[0] = get_handle(0);
+    idx = 1
     ['club', 'diamond', 'heart', 'spade'].each do |suite|
       ['1','2','3','4','5','6','7','8','9', '10','jack', 'queen', 'king'].each do |card|
         @names[idx] = @suite_first ? "\##{suite}_#{card}" : "\##{card}_#{suite}"
@@ -57,31 +64,56 @@ Shoes.app do
       end
     end
   end
-  
-  def tap 
+
+  def tap
     kill_anim
     @topcard = @topcard + 1
     if @topcard == 52
       @topcard = 0
     end
+    if @top_card.is_a? Array
+      puts "Tap converts #{@topcard}"
+      @top_card = @top_card[0]
+    end
     @top_card.handle = get_handle @pile[@topcard]
   end
-  
-  if Shoes::RELEASE_TYPE =~ /TIGHT/
-    fpath = "#{DIR}/samples/paris.svg"
-  else
-    fpath = "#{DIR}/../samples/paris.svg"
+
+  # finding script resources is odd when developing a samples/myprogram.rb
+  # particularly on osx when invoked with ./cshoes mydir/myprogram.rb
+  # DIR is not sufficient.
+  # its best to return a full path.
+  def find_paris
+    cdir = Dir.getwd
+    if File.exist? "paris.svg"
+      "#{cdir}/paris.svg"
+    elsif File.exist? "#{DIR}/paris.svg"
+      "#{DIR}/paris.svg"
+    else
+      ask_open_file "Locate paris.svg"
+    end
   end
-  if ! File.exist? fpath 
+
+  fpath = find_paris
+  if ! File.exist? fpath
     alert "Can't find #{fpath} - crash ahead"
   end
   init_with_path(fpath)
 
   @animation = nil
-  flow do 
+  flow do
     # display back of deck at startup
-    stack width: 200, height: 200 do
-      @top_card = svg @handles[0], {width: 200, height: 200, click: proc { tap }  }
+    stack width: 180, height: 270 do
+      @backgrd = background orange, width: 181, height: 270, margin: 8, curve: 10
+      han = get_handle(0) #back of deck
+      if han.is_a? Array
+        puts "Converting array"
+        han = han[0]
+      end
+      @top_card = svg han, {width: 160, height: 250,margin: 10, aspect: false, click: proc { tap }  }
+      if @top_card.is_a? Array
+        @top_card = @top_card.detect {|obj| obj.class == Shoes::Types::Svg }
+        puts "convert in setup"
+      end
     end
     stack width: 100 do
       button "shuffle" do
@@ -90,7 +122,7 @@ Shoes.app do
         (1..52).each {|i| temp_deck[i] = i}
         @pile = shuffle_me(temp_deck)
         run_for = 0
-        @animation = animate(10) do 
+        @animation = animate(10) do
           r = rand(52)
           # @top_card.handle = @handles[@pile[r+1]]
           @top_card.handle = get_handle @pile[r+1]
@@ -98,7 +130,7 @@ Shoes.app do
           if run_for >= 20
             @animation.stop
             top_card = 0
-            @top_card.handle = @handles[0]  # back of deck 
+            @top_card.handle = get_handle(0)  # back of deck
             kill_anim
           end
         end
@@ -108,8 +140,9 @@ Shoes.app do
         temp_deck = []
         (1..52).each {|i| temp_deck[i] = i}
         @pile = temp_deck
+        @pile[0] = 0
         @topcard = 0
-        @top_card.handle = @handles[0] # back of deck
+        @top_card.handle = get_handle(0) # back of deck
       end
       button "quit" do
         exit
@@ -118,10 +151,10 @@ Shoes.app do
         fpath = ask_open_file
         if fpath
           init_with_path(fpath)
-          @top_card.handle = @handles[0]
+          @top_card.handle = get_handle(0)
           @topcard = 0
         end
       end
-    end 
-  end 
+    end
+  end
 end
