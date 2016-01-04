@@ -30,7 +30,7 @@ OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
 end
 if ENV['DEBUG'] || ENV['GDB']
-  LINUX_CFLAGS = " -g -O0"
+  LINUX_CFLAGS = " -g"
 else
   LINUX_CFLAGS = " -O"
 end
