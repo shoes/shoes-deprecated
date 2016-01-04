@@ -655,7 +655,8 @@ shoes_extras_remove_all(shoes_canvas *canvas)
     Data_Get_Struct(basic->parent, shoes_canvas, parent);
     if (parent == canvas)
     {
-      rb_funcall(ele, s_remove, 0);
+      if (!NIL_P(ele))
+        rb_funcall(ele, s_remove, 0);
       rb_ary_delete_at(canvas->app->extras, i);
     }
   }
@@ -671,7 +672,8 @@ shoes_ele_remove_all(VALUE contents)
     ary = rb_ary_dup(contents);
     rb_gc_register_address(&ary);
     for (i = 0; i < RARRAY_LEN(ary); i++)
-      rb_funcall(rb_ary_entry(ary, i), s_remove, 0);
+      if (!NIL_P(rb_ary_entry(ary, i)))
+        rb_funcall(rb_ary_entry(ary, i), s_remove, 0);
     rb_gc_unregister_address(&ary);
     rb_ary_clear(contents);
   }
