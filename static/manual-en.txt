@@ -3650,8 +3650,11 @@ methods page, a complete list of the methods that all elements have?
 There is also a much reguested option introduced in Shoes 3.3.0 that
 allows you to specify the font to be used when you create the list_box.
 The string you give is not as flexible as the textblock options for font handling
-mention in Styles.  Be careful. This option or the font you choose may not work 
-on other platforms. 
+mention in Styles.  Experiment. For example a simple font: "6" does work for setting the 
+size of  the default font. Don't go crazy. This could change in the future.
+
+Note: this feature does nothing on OSX because OSX handles long list_box
+items much better than Linux or Windows. 
 
 {{{
 #!ruby
