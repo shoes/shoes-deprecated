@@ -153,6 +153,10 @@ gtk_combo_box_text_alt_new(VALUE attribs, int bottom_margin)
   GtkCellRendererText *cell = g_list_first(renderers)->data;    //only one renderer
   g_list_free(renderers);
   gtk_cell_renderer_set_fixed_size((GtkCellRenderer *)cell, w, h-bottom_margin*2);
+  if (RTEST(ATTR(attribs, font))) {
+    char *fontnm = RSTRING_PTR(ATTR(attribs, font));
+    g_object_set((GtkCellRenderer *)cell, "font", fontnm, NULL);
+  }
   g_object_set((GtkCellRenderer *)cell, "ellipsize", PANGO_ELLIPSIZE_END, NULL);
   
   return ref;

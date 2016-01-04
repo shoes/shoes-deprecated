@@ -1269,7 +1269,7 @@ if marked with a highlighter pen.)
 === :font » a string ===
 
 For: ''banner, caption, code, del, em, ins, inscription, link, para, span,
-strong, sub, sup, subtitle, tagline, title''.
+strong, sub, sup, subtitle, tagline, title, list_box''.
 
 Styles the text with a font description.  The string is pretty flexible, but
 can take the form "[FAMILY-LIST] [STYLE-OPTIONS] [SIZE]", where FAMILY-LIST is
@@ -1279,6 +1279,10 @@ one of style, variant, weight, stretch, or gravity, and SIZE is a decimal
 number (size in points) or optionally followed by the unit modifier "px" for
 absolute size. Any one of the options may be absent. If FAMILY-LIST is absent,
 then the default font family (Arial) will be used.
+
+Note: The list_box control will accept a font string when created but it is
+not as flexible as textblock based font settings and there are no methods for
+getting the current font or changing it after creation.
 
 === :group » a string ===
 
@@ -3642,6 +3646,27 @@ The block is called each time someone changes the selected item.
 
 Those are the basics. Might you also be persuaded to look at the [[Common]]
 methods page, a complete list of the methods that all elements have?
+
+There is also a much reguested option introduced in Shoes 3.3.0 that
+allows you to specify the font to be used when you create the list_box.
+The string you give is not as flexible as the textblock options for font handling
+mention in Styles.  Be careful. This option or the font you choose may not work 
+on other platforms. 
+
+{{{
+#!ruby
+ Shoes.app :width => 400, :height => 100 do
+ stack do
+   items = []
+   items[0]= "No! Don't tell me"
+   items[1]= "Let me tell you a story about how octal numbers fell out of \
+favor and were replaced with hexidecimal numbers."
+   list_box :items => items, :choose => items[1], font: "Sans Bold 6"
+  end
+ end
+}}}
+
+
 
 === change() { |self| ... } » self ===
 
