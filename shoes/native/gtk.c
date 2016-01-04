@@ -531,16 +531,16 @@ shoes_canvas_gtk_paint(GtkWidget *widget, cairo_t *cr, gpointer data)
   VALUE c = (VALUE)data;
   shoes_canvas *canvas;
   Data_Get_Struct(c, shoes_canvas, canvas);
-  // cjc: GTK3 doesn't pass a GdkEventExpose struct.
   canvas->slot->drawevent = cr;		// stash it for the children
 
   // getting widget dirty area, already clipped
   cairo_rectangle_int_t rect;
   gdk_cairo_get_clip_rectangle(cr, &rect);
-
+  
   shoes_canvas_paint(c);
-  gtk_container_forall(GTK_CONTAINER(widget), shoes_canvas_gtk_paint_children, canvas);
-
+  // Gtk3 doc says gtk_container_foreach is preferable over gtk_container_forall
+  gtk_container_foreach(GTK_CONTAINER(widget), shoes_canvas_gtk_paint_children, canvas);
+  
   canvas->slot->drawevent = NULL;
 }
 #else

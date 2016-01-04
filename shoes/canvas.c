@@ -1158,6 +1158,7 @@ shoes_canvas_remove_item(VALUE self, VALUE item, char c, char t)
     i = rb_ary_index_of(self_t->app->extras, item);
     if (i >= 0)
       rb_ary_insert_at(self_t->app->extras, i, 1, Qnil);
+//      rb_ary_delete(self_t->app->extras, item);
   }
   rb_ary_delete(self_t->contents, item);
 }
@@ -1211,6 +1212,7 @@ shoes_canvas_remove(VALUE self)
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
   shoes_canvas_empty(self_t, TRUE);
+  self_t->stage = CANVAS_EMPTY; // to be able to remove everything in shoes_canvas_repaint_all 
   if (!NIL_P(self_t->parent))
   {
     shoes_canvas *pc;
@@ -1804,7 +1806,7 @@ shoes_canvas_send_start(VALUE self)
 {
   shoes_canvas *canvas;
   Data_Get_Struct(self, shoes_canvas, canvas);
-
+  
   if (canvas->stage == CANVAS_NADA)
   {
     int i;
@@ -1817,8 +1819,6 @@ shoes_canvas_send_start(VALUE self)
         shoes_canvas_send_start(ele);
     }
     
-    // Do we have a :start style attribute ? This is not the 'start' method/event which
-    // is handled by shoes_canvas_start() build by EVENT_HANDLER(start).
     // This attribute is set either explicitely with a :start style in the slot declaration
     // either by the 'start' method/event of a slot (if by mistake, both are used the method takes precedence)
     VALUE start = ATTR(canvas->attr, start);

@@ -19,7 +19,6 @@
 void
 shoes_svghandle_mark(shoes_svghandle *handle)
 {
-  // rb_gc_mark_maybe(handle->handle); // handle->handle is not a Ruby object
   // we don't have any Ruby objects to mark.
 }
 
@@ -78,7 +77,7 @@ shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
     } else self_t->data = data;
     
   } else {
-    // raise an exception
+    // never reached, handled by shoes_svg_new
   }
   
   if (!NIL_P(subidObj) && (RSTRING_LEN(subidObj) > 0))
@@ -140,7 +139,6 @@ shoes_svghandle_get_height(VALUE self)
 VALUE shoes_svghandle_has_group(VALUE self, VALUE group)
 {
   shoes_svghandle *handle;
-  int result = 0;
   Data_Get_Struct(self, shoes_svghandle, handle);
   if (!NIL_P(group) && (TYPE(group) == T_STRING)) {
     char *grp = RSTRING_PTR(group);
@@ -151,18 +149,18 @@ VALUE shoes_svghandle_has_group(VALUE self, VALUE group)
       return Qnil;
   }
   else {
-    // raise error - must be string
+    rb_raise(rb_eArgError, "bad argument, expecting a String \n");
   }
 }
 
 
 /*  ------- SVG widget -----
- *  several methods are defined in ruby.c Macros (CLASS_COMMON2, PLACE_COMMON, TRANS_COMMON)
+ *  several methods are defined in ruby.c Macros (CLASS_COMMON2, TRANS_COMMON)
  */
 
 // forward declares in this file
 static void
-shoes_svg_draw_surface(cairo_t *, shoes_svg *, shoes_place *, /*cairo_surface_t *,*/ int, int);
+shoes_svg_draw_surface(cairo_t *, shoes_svg *, shoes_place *, int, int);
 
 // alloc some memory for a shoes_svg; We'll protect it from gc
 // out of caution. fingers crossed.
@@ -246,7 +244,7 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
         svghanObj = args.a[0];
         attr = args.a[1];
       } else 
-        printf("crash ahead\n");
+        rb_raise(rb_eArgError, "bad argument, expecting a String or a Shoes::SvgHandle \n");
     break;
   }
   
@@ -287,8 +285,7 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   ATTRSET(attr, width, widthObj);
   ATTRSET(attr, height, heightObj);
   
-  VALUE klass = cSvg, obj;
-  obj = shoes_svg_alloc(klass);
+  VALUE obj = shoes_svg_alloc(cSvg);
   shoes_svg *self_t;
   Data_Get_Struct(obj, shoes_svg, self_t);
   
@@ -392,6 +389,7 @@ shoes_svg_set_handle(VALUE self, VALUE han)
   
   if ( !NIL_P(han) && (rb_obj_is_kind_of(han, cSvgHandle)) ) {
     self_t->svghandle = han;
+    // force a garbage collection, cSvgHandles could pile up if set at a fast rate
     rb_gc();
     
     shoes_svghandle *svghan;
@@ -423,7 +421,7 @@ shoes_svg_set_handle(VALUE self, VALUE han)
     shoes_canvas_repaint_all(self_t->parent);
     
   } else {
-    rb_raise(rb_eArgError, "bad argument, expecting a cSvgHandle \n");
+    rb_raise(rb_eArgError, "bad argument, expecting a Shoes::SvgHandle \n");
   }
   
   return han;
@@ -568,7 +566,7 @@ VALUE shoes_svg_has_group(VALUE self, VALUE group)
     result = rsvg_handle_has_sub(handle->handle, grp);
   }
   else {
-    // raise error - must be string
+    rb_raise(rb_eArgError, "bad argument, expecting a String \n");
   }
   return (result ? Qtrue : Qnil);
 }
@@ -580,10 +578,10 @@ VALUE shoes_svg_remove(VALUE self)
   shoes_canvas *canvas;
   Data_Get_Struct(self, shoes_svg, self_t);
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-  shoes_svghandle *handle;
-  Data_Get_Struct(self_t->svghandle, shoes_svghandle, handle);
   
-  rb_ary_delete(canvas->contents, self);
+  rb_ary_delete(canvas->contents, self);    // shoes_basic_remove does it this way
+  shoes_canvas_repaint_all(self_t->parent); //
+  
   // let ruby gc collect handle (it may be shared) just remove this ref
   self_t->svghandle = Qnil;
   self_t = NULL;

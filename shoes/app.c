@@ -84,6 +84,9 @@ static void
 shoes_app_clear(shoes_app *app)
 {
   shoes_ele_remove_all(app->extras);
+//  shoes_canvas *canvas;
+//  Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+//  shoes_extras_remove_all(canvas);
   shoes_canvas_clear(app->canvas);
   app->nestslot = Qnil;
   app->groups = Qnil;
