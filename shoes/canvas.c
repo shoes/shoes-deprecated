@@ -1211,6 +1211,7 @@ shoes_canvas_remove(VALUE self)
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
   shoes_canvas_empty(self_t, TRUE);
+  self_t->stage = CANVAS_EMPTY;
   if (!NIL_P(self_t->parent))
   {
     shoes_canvas *pc;
