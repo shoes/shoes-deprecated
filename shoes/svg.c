@@ -573,7 +573,7 @@ VALUE shoes_svg_has_group(VALUE self, VALUE group)
 
 VALUE shoes_svg_remove(VALUE self)
 {
-  printf("remove\n");
+  //printf("remove\n");
   shoes_svg *self_t;
   shoes_canvas *canvas;
   Data_Get_Struct(self, shoes_svg, self_t);
