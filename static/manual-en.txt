@@ -1637,184 +1637,6 @@ find the exact numbers which can be used with the [[Built-in.rgb]] method.
 
 {COLORS}
 
-== Special ==
-
-There are some special methods associated with App that are designed for special situations.
-They affect subtle things and big things. They are a bit dangerous if called incorrectly so
-experiment wisely if you need the feature. You would want to call these early in your Shoes.app
-block. 
-
-Caution: These are not well tested. They exist for folks that might want to 
-write games or hide the Shoes name and icon and do clever stuff.
-
-Another caution - these are methods of an App instance so you need that object.
-Even when they effect more than one instance of App. Shoes creates an 'app'
-method in the Shoes.app block that you must use for some of the following.
-
-=== app.fullscreen ===
-
-This returns true or false if your script is running in full screen mode
-
-
-=== app.fullscreen=(Boolean) ===
-
-Set fullscreen to true or false. If you do this, you should provide a method
-for turning it off. There's nothing more annoying that than a full screen app
-that the user can't figure out how to quit and get back to normal. Don't be
-that kind of programmer. 
-
-:fullscreen => true is also a style you can set in the Shoes.app.
-
-
-=== app.name ===
-Returns the title string for the App. Usually the string in the window's title bar.
-
-=== app.name(String) ===
-
-Sets the title string of the current window. See set_window_title below. 
-
-=== app.location ===
-
-Returns the Shoes url.
-
-=== app.started? ===
-
-Is the app completely initiailized? 
-
-=== app.width ===
-
-Returns the current width.
-
-=== app.height ===
-
-Returns the current height. Perhaps you need it and the width after going fullscreen 
-to setup your game to the size availavble. 
-
-=== app.slot ===
-
-For Advanced users: 
-
-When you want to manage slots and elements from another Shoes.app window you need to
-gets it's app and then get it's slots.contents and then you can poke around in in the 
-stacks and flows and elements. 
-
-This is the preferred method for getting an array of stacks and flows for the windows
-that Shoes.APPS[] knows about.  
-
-For example you have two windows (apps) and want append a para to all but a specific window (app)
-
-{{{
- #!ruby
- Shoes.app title: "Controller" do
-   $other_win =  window title: "Slave" do
-     stack { para "First"} 
-   end
-   stack do
-     button "Append" do
-       Shoes.APPS.each do |ap| 
-         ap.slot.contents[0].instance_exec () {para "gotcha"} if ap == $other_win
-       end
-     end
-   end
- end
-}}}
-
-There is much more discover for advanced users on this topic. See IRB in this manual
-and at the wiki.
-
-=== app.set_window_icon_path(pathname) ===
-
-This sets the icon in the title bar (and the dock or taskbar of your OS)
-for this window and any others you create from this script. It replaces the little Shoes federales icon.
-If you need this, do it for every app.  Depending on your OS, theme and desktop settings,
-the icon may not be displayed at all.
-
-{{{
- #!ruby
- Shoes.app :title => "I'm Shoes" do
-    button "feeling blue" do
-      Shoes.APPS.each {|a| a.set_window_icon_path("#{DIR}/static/shoes-icon-blue.png") }
-      confirm "did all the Shoes icons change? "
-    end
- end
-}}}
-The icon should be a 128x128 png. Or 256x256 png. 512x512 also works.
-
-=== app.set_window_title(string) ===
-
-This sets the string in the current title bar like name = does but also the default title
-every new window you might create including the alert, ask and confirm dialogs.  What
-it does not do is change the title of other existing windows. To be 
-
-Note: the :title style setting only effects one window. This effects all NEW windows. 
-
-If you need this, loop through all the Apps. 
-{{{
- #!ruby
- Shoes.app :title => "I'm Shoes" do
-    button "change title" do
-      Shoes.APPS.each {|a| a.set_window_title("No Shoes Here") }
-      confirm "did the title change to No Shoes Here"
-    end
- end
-}}}
-
-Notice how it's sticky. 
-
-=== svghandle ===
-
-An svghandle is a non visual place holder into a svg (xml) file. Like an sqlite
-query handle is a temporary place inside the database. Every Svg
-widget has a handle (perhaps created by default).  You can do some manipulations
-and creation of svghandles without an onscreen widget.
-
-Many people can go merrily along their way without creating or manipulating
-svghandles.  But, if you want to or need to - you can create with them by calling 'app.svghandle'
-before creating any SVG widgets with them. Due to a lovely feature of Shoes
-you do need parens () around the {hash args}. Please examine the samples/good-cardflip.rb 
-to see how to use svghandles.
-
-=== app.svghandle ({hash args}) ===
-
-Returns an object of SvgHandle class. The hash args and methods are documented below.
-
-First listed are the hash args which should be combined in one call. Then we'll show the methods
-you can call on a svghandle.
-
-=== app.svhandle ( {filename: path} ) ===
-
-path is the pathname to an .svg file. If you are going to create multiple svghandles
-from one file (a deck of cards for example) then you really should read it
-into a ruby string and use the contents: below instead of reading the file
-multiple times.
-
-=== app.svhandle ( {contents: xmlstring} ) ===
-
-Creates an svghandle from xmlstring. More useful when you provide a group.
-
-=== app.svghandle( {group: string} ) ===
-
-Creates an svghandle for the given group name (the string must start with a '#')
-
-=== app.svghandle( {aspect: boolean or float} ) ===
-
-The aspect can be 'true` which is the the default. false has the effect
-of streching or shrinking it to the size of the Svg widget it will be shown
-in and float will show it in the given w/h ratio. 
-
-=== svghandle.width ===
-
-Returns the internal svg handle (group?) width. Not very useful. 
-
-=== svghandle.height ===
-
-Returns the internal svg handle (group?) height. Not very useful.
-
-=== svghandle.group? string ===
-
-Returns true or false (nil) if the svghandle has a group matching the string
-which starts with '#'
-
 = Slots =
 
 Slots are boxes used to lay out images, text and so on. The two most common
@@ -3943,8 +3765,7 @@ You have to specify the width and height you want. There is no default.
 Those are the size of the SVG widget on screen in pixels
 
 `source` is a file pathname to the svg or a string containing the svg xml or
-and svghandle. Svghandle is a bit weird for the casual Shoes user (see [[Special.svghandle]] definition
-and [[Special]] for the methods).
+an svghandle. Svghandle is a bit weird for the casual Shoes user (see [[Svghandle]])
 
 
 The hash has some other `options`:
@@ -4367,8 +4188,183 @@ Your '''Interactive Ruby''' console should look like this: !{:margin_left => 60}
 
 == AppMethods ==
 
+There are some special methods associated with App that are designed for special situations.
+They affect subtle things and big things. They are a bit dangerous if called incorrectly so
+experiment wisely if you need the feature. You would want to call these early in your Shoes.app
+block. 
+
+Another caution - these are methods of an App instance so you need that object.
+Even when they effect more than one instance of App. Shoes creates an 'app'
+method in the Shoes.app block that you must use for the following.
+
+=== app.fullscreen » boolean ===
+
+This returns true or false if your script is running in full screen mode
+
+
+=== app.fullscreen=(Boolean) ===
+
+Set fullscreen to true or false. If you do this, you should provide a method
+for turning it off. There's nothing more annoying that than a full screen app
+that the user can't figure out how to quit and get back to normal. 
+
+Parenthesis are required.
+
+:fullscreen => true is also a style you can set in the Shoes.app.
+
+=== app.name » string ===
+Returns the title string for the App. Usually the string in the window's title bar.
+
+=== app.name(String) ===
+
+Sets the title string of the current window. See set_window_title below. 
+Parenthesis are required.
+
+=== app.location » shoes-url ===
+
+Returns the Shoes url. Be careful. It's a shoes-url so it might not be what
+you think.
+
+=== app.started? » boolean ===
+
+Is the app completely initiailized? 
+
+=== app.width » a number ===
+
+Returns the current width.
+
+=== app.height » a number ===
+
+Returns the current height. Perhaps you need it and the width after going fullscreen 
+to setup your game to the size availavble. 
+
+=== app.slot » Array ===
+
+For Advanced users: 
+
+When you want to manage slots and elements from another Shoes.app window you need to
+gets it's app and then get it's slots.contents and then you can poke around in in the 
+stacks and flows and elements. 
+
+This is the preferred method for getting an array of stacks and flows for the windows
+that Shoes.APPS[] knows about.  
+
+For example you have two windows (apps) and want append a para to all but a specific window (app)
+
+{{{
+ #!ruby
+ Shoes.app title: "Controller" do
+   $other_win =  window title: "Slave" do
+     stack { para "First"} 
+   end
+   stack do
+     button "Append" do
+       Shoes.APPS.each do |ap| 
+         ap.slot.contents[0].instance_exec () {para "gotcha"} if ap == $other_win
+       end
+     end
+   end
+ end
+}}}
+
+There is much more to discover for advanced users on this topic. See IRB in this manual
+and at the wiki.
+
+=== app.set_window_icon_path(pathname) ===
+
+This sets the icon in the title bar (and the dock or taskbar of your OS)
+for this window and any others you create from this script. It replaces the little Shoes federales icon.
+If you need this, do it for every app.  Depending on your OS, theme and desktop settings,
+the icon may not be displayed at all.
+
+{{{
+ #!ruby
+ Shoes.app :title => "I'm Shoes" do
+    button "feeling blue" do
+      Shoes.APPS.each {|a| a.set_window_icon_path("#{DIR}/static/shoes-icon-blue.png") }
+      confirm "did all the Shoes icons change? "
+    end
+ end
+}}}
+The icon should be a 128x128 png. Or 256x256 png. 512x512 also works.
+
+=== app.set_window_title(string) ===
+
+This sets the string in the current title bar like name = does but also the default title
+every new window you might create including the alert, ask and confirm dialogs.  What
+it does not do is change the title of other existing windows. To be 
+
+Note: the :title style setting only effects one window. This effects all ```NEW``` windows. 
+
+If you need this, loop through all the Apps. 
+{{{
+ #!ruby
+ Shoes.app :title => "I'm Shoes" do
+    button "change title" do
+      Shoes.APPS.each {|a| a.set_window_title("No Shoes Here") }
+      confirm "did the title change to No Shoes Here"
+    end
+ end
+}}}
+
+Notice how the title is very sticky. 
+
 == Svghandle ==
 
+An svghandle is a non visual place holder into a svg (xml) file. Like an sqlite
+query handle is a temporary place inside the database. Every Svg
+widget has a handle (perhaps created by default).  You can do some manipulations
+and creation of svghandles without an onscreen widget.
+
+Many people can go merrily along their way without creating or manipulating
+svghandles.  But, if you want to or need to - you can create with them by calling 'app.svghandle'
+before creating any SVG widgets with them. Due to a lovely feature of Shoes
+you do need parens () around the {hash args}. Please examine the samples/good-cardflip.rb 
+to see how to use svghandles.
+
+=== app.svghandle ({hash args})» svghandle ===
+
+Returns an object of SvgHandle class. 
+
+First we'll discuss the hash args which must be combined in one call. Then we'll show the methods
+you can call on a svghandle.
+
+Yes, parenthesis are required around the hash . Yes it is ugly.
+
+=== app.svhandle ( {filename: path} ) ===
+
+path is the pathname to an .svg file. If you are going to create multiple svghandles
+from one file (a deck of cards for example) then you really should read it
+into a ruby string and use the contents: below instead of reading the file
+multiple times.
+
+=== app.svhandle ( {contents: xmlstring} ) ===
+
+Creates an svghandle from xmlstring. More useful when you provide a group.
+
+=== app.svghandle( {group: string} ) ===
+
+Creates an svghandle for the given group name (the string must start with a '#')
+
+=== app.svghandle( {aspect: boolean or float} ) ===
+
+The aspect can be 'true` which is the the default. false has the effect
+of streching or shrinking it to the size of the Svg widget it will be shown
+in and float will show it in the given w/h ratio. 
+
+=== svghandle.width » a number ===
+
+Returns the internal svg handle (group?) width. Not very useful. 
+
+=== svghandle.height » a number ===
+
+Returns the internal svg handle (group?) height. Not very useful.
+
+=== svghandle.group? string » boolean ===
+
+Returns true or false (nil) if the svghandle has a group matching the string
+which starts with '#'
+»
 == Console ==
 
 Sometimes you want a logging window or even a window you can read keystrokes
