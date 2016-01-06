@@ -85,7 +85,7 @@ Shoes.app width: 500, height: 610, title: "SVG Viewer" do
       @subid = edit_line :width => 120, text: ""
 
       @lbw = list_box do |lb|
-        @subid.text = '#'+ lb.text
+        @subid.text = '#' + (lb.text.nil? ? "": lb.text)
       end
     end
 

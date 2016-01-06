@@ -1761,9 +1761,7 @@ If you need this, loop through all the Apps.
 
 Notice how it's sticky. 
 
-=== app.svghandle ({hash args}) ===
-
-Returns an object of SvgHandle class. The hash args and methods are documented below.
+=== svghandle ===
 
 An svghandle is a non visual place holder into a svg (xml) file. Like an sqlite
 query handle is a temporary place inside the database. Every Svg
@@ -1775,6 +1773,10 @@ svghandles.  But, if you want to or need to - you can create with them by callin
 before creating any SVG widgets with them. Due to a lovely feature of Shoes
 you do need parens () around the {hash args}. Please examine the samples/good-cardflip.rb 
 to see how to use svghandles.
+
+=== app.svghandle ({hash args}) ===
+
+Returns an object of SvgHandle class. The hash args and methods are documented below.
 
 First listed are the hash args which should be combined in one call. Then we'll show the methods
 you can call on a svghandle.
@@ -3940,12 +3942,14 @@ section of the furthermore->samples that you should study good-svgview and good-
 You have to specify the width and height you want. There is no default.
 Those are the size of the SVG widget on screen in pixels
 
-source is a file pathname to the svg or a string containing the svg xml or
-and svghandle. Svghandle is a bit weird for Shoes user (see [[App]] section
+`source` is a file pathname to the svg or a string containing the svg xml or
+and svghandle. Svghandle is a bit weird for the casual Shoes user (see [[Special.svghandle]] definition
+and [[Special]] for the methods).
 
-The hash has some options.
 
-:group => string
+The hash has some other `options`:
+
+`:group => string`
 
 This how you pick one group from the larger svg to display The string starts with '#'  
 so in a svg of playing cards for example you might want to draw '#diamonds_queen'
@@ -3953,9 +3957,9 @@ That is the group name. Shoes can not figure out the group names for you. Sorry.
 If you don't specify a ':group' then Shoes draws everything in the svg which may
 or may not be what you want.
 
-:aspect => "string" 
+`:aspect => boolean or float`
 
-The string may be "yes" or "no".  The default is "yes"
+The aspect may be "true" or "false".  The default is "true"
 and that will keep the aspect ratio of the svg (group) even if that means
 the image width or height is scaled down to fit the widget size. "no" just fills the rectangle
 for the svg widget (stretching width and height as needed) 
@@ -3963,83 +3967,82 @@ for the svg widget (stretching width and height as needed)
 Aspect can also be a floating point number.  Advanced users.
 
 Any left over white space after computing the aspect will be added be on the right 
-or bottom side.
-
+or bottom side. Generally, you should know before you create an svg what size
+you want it to be and accept the aspect default. Then you'll have no excess 
+white space to think about.
 
 Svg has many of the methods of Image or other controls aka widgets. These 
-include remove, move, displace, hide, show, toggle, hidden?, click, release,
-hover, leave, parent, top, left, width, and height.
+include `remove, move, displace, hide, show, toggle, hidden?, click, release,
+hover, leave, parent, top, left, width, and height`.
 
 Below are the new or diffent methods for Svg, and we mention methods that
 exist that you should not use or use with extreme caution.
 
-=== style ===
+=== style(styles) » styles ===
 
-returns the Shoes styles for the Svg. Warning: this may return the xml in 
-the content: style which is not something you want to do. Also note there
-is no style = method. Useless? Probably.
+Changes the style of an svg.  This could include the `:width` and `:height`
+of an svg or any other number of style settings.
 
-=== style = {styles} ===
+Warning: this may return a copy of the xml in the `content:` style which is not 
+something you want to do. Don't try to set `content:` this way. 
 
-Not implemented. Unlikely to be implemented.
-
-=== preferred_width ===
+=== preferred_width » a number ===
 
 returns the width of the internal svg. This can be more or less than what width
 returns. You probably don't want to use this method.
 
-=== preferred_height ===
+=== preferred_height » a number ===
 
 returns the height of the internal svg. This can be more or less than what height
 returns. You probably don't want to use this method.
 
-=== offset_x ===
+=== offset_x » a number ===
 
 For experts working with groups. returns the group x offset.
 
-=== offset_y ===
+=== offset_y » a number ===
 
 For experts working with groups. returns the group y offset.
 
-=== group? string ===
+=== group? string » boolean ===
 
-return true or false (nil) if the string is a svg group. Remember that
+return true if the string is a svg group or false (nil) if not. Remember that
 you have to have a '#' in the front of the string
 
 === transform(:center or :corner) » self ===
 
-See  [[Slots]] Art.
+Behaves like [[Art.transform]].
 
-=== translate ===
+=== translate(left, top) » self ===
 
-Behaves like [[Slots]] Art.
+Behaves like [[Art.translate]]
 
-=== rotate ===
+=== rotate(degrees: a number) » self ===
 
-Behaves like [[Slots]] Art.
+Behaves like [[Art.rotate]].
 
-=== scale ===
+=== scale(sx: a float, sy: a float) » self ===
 
-Behaves like [[Slots]] Art.
+Behaves like [[Art.scale]]
 
-=== skew ===
+=== skew(sx: a float, sy: a float) » self ===
 
-Behaves like [[Slots]] Art.
+Behaves like [Art.skew]
 
-=== handle ===
+=== handle » svghandle ===
 
 All Svg widgets have an internal svghandle associated with them, whether
 you explicity created one or not. This returns it.
 
-=== handle = svghandle ===
+=== handle = svghandle » ===
 
 Replaces the widget contents (on screen drawing) with the new svghandle drawing. 
 In some situations this can be much faster than removing an svg widget and
 creating a new svg widget.  Advanced users.
 
-=== dpi ===
+=== dpi » a number ===
 
-returns the dots per inch of the svg. Expect a constant value of 72 or 75 no matter
+returns the dots per inch of the svg. Expect a constant value of 72.0 or 75.0 no matter
 what. Probably useless. 
 
 === export filename {dpi: float} ===
@@ -4356,15 +4359,26 @@ Finally, add a last button for entertainment value. You can press '''up''' or ''
 
 Your '''Interactive Ruby''' console should look like this: !{:margin_left => 60}shoes-irb-sample.png!
 
-== Hidden things ==
 
-Things you don't really want to use and don't work the way you think.
 
-=== Console ===
+= Advanced =
 
-Calling Shoes::show_console will bring up a new window that hooks stdin, stdout and stderr 
+  Shoes has some features that don't quite fit into the Shoes is easy model.
+
+== AppMethods ==
+
+== Svghandle ==
+
+== Console ==
+
+Sometimes you want a logging window or even a window you can read keystrokes
+from like an old school terminal. Shoes does have one. It's not very clever and
+most people don't need it. But, if you do
+
+=== Shoes::show_console ===
+Will bring up a new window that hooks stdin, stdout and stderr 
 so it displays that output in the new window. This is a very brutal thing to do to the
-perfectly happy C printf() and Ruby puts that don't display. 
+perfectly happy C `printf()` and Ruby `puts` that don't normallly display. 
 
 But, sometimes, a guy has to do guy things and is willing to accept the downsides: 
 You can't undo the call and switch them back although a serial abuser of
@@ -4386,6 +4400,15 @@ Still, if you need to write a Shoes script to monitor some long running process 
 to stdout/stderr from some other program and you want to copy the log to the clipboard
 or scroll it back, now you can do that. 
 
-No, it can't fix the horrible Windows console. You get Lowest common denominator.
+No, it can't fix the horrible Windows console and you shouldn't try too.
 
+== CommandLine ==
 
+For folks that like to use their terminal or Windows console to run Shoes there is
+a pretty rich and useful set of options 
+
+=== cshoes.exe (Windows) ===
+
+=== ./cshoes (OSX) ===
+
+=== ./cshoes (Linux) ===
