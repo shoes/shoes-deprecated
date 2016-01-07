@@ -489,53 +489,28 @@ boxes, edit lines, list boxes, window titles and text blocks all take UTF-8. If
 you give a string with bad characters in it, an error will show up in the
 console.
 
-==== The Main App and Its Requires ====
+==== App and Its Scope ====
 
-'''NOTE:''' This rule is for Raisins. Policeman uses TOPLEVEL_BINDING. So, you
-can get `main`, Ruby top-level object, with the first snippet. Although you
-need to use `Shoes::Para` instead of `Para` outside `Shoes.app` block.
+Modern Shoes uses TOPLEVEL_BINDING.  Binding is not an easy concept so anything you
+read here needs a large grain of salt. Any method or class defined before Ruby 
+reads the Shoe.app {block} belongs to Ruby 'main' binding and anyhing defined
+inside the Shoes.app {block} belongs to that app binding. Inside the app binding you 
+can call on those `main` bound methods but those methods can't (easily) invoke methods in
+a Shoes.app binding. Confused? Join the crowd.
 
-Each Shoes app is given a little room where it can create itself.  You can
-create classes and set variables and they won't be seen by other Shoes
-programs.  Each program runs inside its own anonymous class.
+Each Shoes.app {} or Window {} you create in your scripts gets a different `binding`
+so the "@@my_button in one window is a different object from a @@my_button in 
+the other window (for example). Different windows, different bindings for the same name.
 
-{{{
- main = self
- Shoes.app do
-   para main.to_s
- end
-}}}
+This isolates one window from another. Some consider this a `good thing`. It's not going
+to change however,  so some say `live with it` [[https://github.com/Shoes3/shoes3/wiki/Poking-in-Shoes.app
+Poking in Shoes]] explore how to use APP[] and app but it only a starter course
+in a very long menu.
 
-This anonymous class is called `(shoes)` and it's just an empty, unnamed class.
-The `Shoes` module is mixed into this class (using `include Shoes`) so that you
-can use either `Para` or `Shoes::Para` when referring to the paragraph class.
+For complex, multi-window Shoes apps that need to share some things and not
+others it's still unknown best practices. There might be more information
+in [[Structuring]] or on the wiki.
 
-The advantages of this approach are:
-
- * Shoes apps cannot share local variables.
- * Classes created in the main app code are temporary.
- * The Shoes module can be mixed in to the anonymous class, but not the top-level environment of Ruby itself.
- * Garbage collection can clean up apps entirely once they complete.
-
-The second part is especially important to remember.
-
-{{{
- class Storage; end
-
- Shoes.app do
-   para Storage.new
- end
-}}}
-
-The `Storage` class will disappear once the app completes.  Other apps aren't
-able to use the Storage class.  And it can't be gotten to from files that are
-loaded using `require`.
-
-When you `require` code, though, that code will stick around.  It will be kept
-in the Ruby top-level environment.
-
-So, the rule is: '''keep your temporary classes in the code with the app and
-keep your permanent classes in requires.'''
 
 = Shoes =
 
@@ -3737,15 +3712,16 @@ See [[Styles.state]] style for details.
 == Svg ==
 
 In Shoes 3.3 we gained the ability to draw svgs. While they may appear to
-look like Images, and they respond to many methods that Images respond to 
+look like Images, and they respond to many methods that Images respond to, 
 they are not the same. It's a different widget with its own rules, some of
 them may be quite surprising.
 
 Svg's are xml text files that contain vector grapic drawing instructions.
 They don't really have heights and widths. They can stretch or shrink in
-any direction. They also have feature they call 'groups' An Svg file can contain
-sub images in it. The best example the a deck of playing cards, 'paris.svg' 
-that we include in the Shoes samples directory. Each card in the svg file
+any direction. They also have a feature they call 'groups' An Svg file can contain
+sub images in it. The best example is a deck of playing cards.  'paris.svg' 
+We include the card deck 'paris.svg' in the Shoes samples directory. 
+Without a group name it's a large picture of all cards. Each card in the svg file
 has a group name. 
 
 Before you can make use of an svg file. You need to learn what's in it
@@ -4408,3 +4384,14 @@ a pretty rich and useful set of options
 === ./cshoes (OSX) ===
 
 === ./cshoes (Linux) ===
+
+== Structuring ==
+
+Using muliple ruby/shoes files to build an application is one way to group
+code.
+
+=== bindings and apps ===
+
+=== url and visit ===
+
+
