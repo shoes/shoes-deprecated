@@ -483,8 +483,17 @@ VALUE shoes_svg_export(int argc, VALUE *argv, VALUE self) {
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
   shoes_place place = self_t->place;
   
-  if (NIL_P(path))
-    path = shoes_dialog_chooser(self, "Save file...", GTK_FILE_CHOOSER_ACTION_SAVE, _("_Save"), NULL);
+  if (NIL_P(path)) {
+    VALUE attr = rb_hash_new(), typ = rb_hash_new();
+    rb_hash_aset(typ, rb_str_new2("PNG files only "), rb_str_new2("*.png"));
+    ID s_types = rb_intern("types");
+    ATTRSET(attr, types, typ);
+    path = shoes_dialog_chooser(self, "Save file...", GTK_FILE_CHOOSER_ACTION_SAVE, _("_Save"), attr);
+  }
+  if (NIL_P(path)) {
+    shoes_canvas_info(self_t->parent, rb_str_new2("Save dialog was cancelled, no file selected to export Svg !"));
+    return;
+  }
   
   if (!NIL_P(dpi)) {
     ratio = (NUM2INT(dpi)/90.0);
@@ -496,7 +505,6 @@ VALUE shoes_svg_export(int argc, VALUE *argv, VALUE self) {
   surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int)(canvas->width*ratio), (int)(canvas->height*ratio));
   cairo_t *cr = cairo_create(surf);
   cairo_scale(cr, ratio, ratio);
-
 //  cairo_translate(cr, -(place.ix + place.dx), -(place.iy + place.dy));
 
   shoes_svg_draw_surface(cr, self_t, &place, (int)(place.w*ratio), (int)(place.h*ratio));
