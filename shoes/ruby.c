@@ -4804,6 +4804,7 @@ shoes_ruby_init()
   rb_define_method(cSvg, "offset_x", CASTHOOK(shoes_svg_get_offsetX),0);
   rb_define_method(cSvg, "offset_y", CASTHOOK(shoes_svg_get_offsetY),0);
   rb_define_method(cSvg, "remove", CASTHOOK(shoes_svg_remove), 0);
+  rb_define_method(cSvg, "export", CASTHOOK(shoes_svg_export), -1);
 //  rb_define_method(cSvg, "save", CASTHOOK(shoes_svg_save), 2);
   rb_define_method(cSvg, "handle", CASTHOOK(shoes_svg_get_handle), 0);
   rb_define_method(cSvg, "handle=", CASTHOOK(shoes_svg_set_handle), 1);
