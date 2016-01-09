@@ -22,7 +22,7 @@ Shoes.app width: 500, height: 610, title: "SVG Viewer" do
     @display_panel.clear do
       @current_svg = svg @xml, width: @widget_sizeW, height: @widget_sizeH, aspect: true
       if @current_svg.is_a? Array
-        puts "Converting array"
+        #puts "Converting array"
         @current_svg = @current_svg[0]
       end
     end
@@ -70,7 +70,7 @@ Shoes.app width: 500, height: 610, title: "SVG Viewer" do
           @current_svg = svg @xml, width: @widget_sizeW, height: @widget_sizeH, group: id, aspect: asp
           if @current_svg.is_a? Array
             @current_svg = @current_svg[0]
-            puts "Converted in Render"
+            #puts "Converted in Render"
           end
         end
         @details.text = get_details
@@ -85,7 +85,7 @@ Shoes.app width: 500, height: 610, title: "SVG Viewer" do
       @subid = edit_line :width => 120, text: ""
 
       @lbw = list_box do |lb|
-        @subid.text = '#'+ lb.text
+        @subid.text = '#' + (lb.text.nil? ? "": lb.text)
       end
     end
 

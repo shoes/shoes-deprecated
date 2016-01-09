@@ -489,53 +489,28 @@ boxes, edit lines, list boxes, window titles and text blocks all take UTF-8. If
 you give a string with bad characters in it, an error will show up in the
 console.
 
-==== The Main App and Its Requires ====
+==== App and Its Scope ====
 
-'''NOTE:''' This rule is for Raisins. Policeman uses TOPLEVEL_BINDING. So, you
-can get `main`, Ruby top-level object, with the first snippet. Although you
-need to use `Shoes::Para` instead of `Para` outside `Shoes.app` block.
+Modern Shoes uses TOPLEVEL_BINDING.  Binding is not an easy concept so anything you
+read here needs a large grain of salt. Any method or class defined before Ruby 
+reads the Shoe.app {block} belongs to Ruby 'main' binding and anyhing defined
+inside the Shoes.app {block} belongs to that app binding. Inside the app binding you 
+can call on those `main` bound methods but those methods can't (easily) invoke methods in
+a Shoes.app binding. Confused? Join the crowd.
 
-Each Shoes app is given a little room where it can create itself.  You can
-create classes and set variables and they won't be seen by other Shoes
-programs.  Each program runs inside its own anonymous class.
+Each Shoes.app {} or Window {} you create in your scripts gets a different `binding`
+so the "@@my_button in one window is a different object from a @@my_button in 
+the other window (for example). Different windows, different bindings for the same name.
 
-{{{
- main = self
- Shoes.app do
-   para main.to_s
- end
-}}}
+This isolates one window from another. Some consider this a `good thing`. It's not going
+to change however,  so some say `live with it` [[https://github.com/Shoes3/shoes3/wiki/Poking-in-Shoes.app
+Poking in Shoes]] explore how to use APP[] and app but it only a starter course
+in a very long menu.
 
-This anonymous class is called `(shoes)` and it's just an empty, unnamed class.
-The `Shoes` module is mixed into this class (using `include Shoes`) so that you
-can use either `Para` or `Shoes::Para` when referring to the paragraph class.
+For complex, multi-window Shoes apps that need to share some things and not
+others it's still unknown best practices. There might be more information
+in [[Structuring]] or on the wiki.
 
-The advantages of this approach are:
-
- * Shoes apps cannot share local variables.
- * Classes created in the main app code are temporary.
- * The Shoes module can be mixed in to the anonymous class, but not the top-level environment of Ruby itself.
- * Garbage collection can clean up apps entirely once they complete.
-
-The second part is especially important to remember.
-
-{{{
- class Storage; end
-
- Shoes.app do
-   para Storage.new
- end
-}}}
-
-The `Storage` class will disappear once the app completes.  Other apps aren't
-able to use the Storage class.  And it can't be gotten to from files that are
-loaded using `require`.
-
-When you `require` code, though, that code will stick around.  It will be kept
-in the Ruby top-level environment.
-
-So, the rule is: '''keep your temporary classes in the code with the app and
-keep your permanent classes in requires.'''
 
 = Shoes =
 
@@ -1609,7 +1584,7 @@ converted to a percentage (with 0.0 being 0% and 1.0 being 100%.)  A width of
 === :wrap » a string ===
 
 For: ''banner, caption, code, del, em, ins, inscription, link, para, span,
-strong, sub, sup, subtitle, tagline, title''
+strong, sub, sup, subtitle, tagline, title, list_box''
 
 How should the text wrap when it fills its width? Possible options are:
 
@@ -1636,154 +1611,6 @@ inside any slot will get you a nice reddish color.)  Below each color, also
 find the exact numbers which can be used with the [[Built-in.rgb]] method.
 
 {COLORS}
-
-== Special ==
-
-There are some special methods associated with App that are designed for special situations.
-They affect subtle things and big things. They are a bit dangerous if called incorrectly so
-experiment wisely if you need the feature. You would want to call these early in your Shoes.app
-block. 
-
-Caution: These are not well tested. They exist for folks that might want to 
-write games or hide the Shoes name and icon and do clever stuff.
-
-Another caution - these are methods of an App instance so you need that object.
-Even when they effect more than one instance of App. Shoes creates an 'app'
-method in the Shoes.app block that you must use for some of the following.
-
-=== app.fullscreen ===
-
-This returns true or false if your script is running in full screen mode
-
-
-=== app.fullscreen=(Boolean) ===
-
-Set fullscreen to true or false. If you do this, you should provide a method
-for turning it off. There's nothing more annoying that than a full screen app
-that the user can't figure out how to quit and get back to normal. Don't be
-that kind of programmer. 
-
-:fullscreen => true is also a style you can set in the Shoes.app.
-
-
-=== app.name ===
-Returns the title string for the App. Usually the string in the window's title bar.
-
-=== app.name(String) ===
-
-Sets the title string of the current window. See set_window_title below. 
-
-=== app.location ===
-
-Returns the Shoes url.
-
-=== app.started? ===
-
-Is the app completely initiailized? 
-
-=== app.width ===
-
-Returns the current width.
-
-=== app.height ===
-
-Returns the current height. Perhaps you need it and the width after going fullscreen 
-to setup your game to the size availavble. 
-
-=== app.slot ===
-
-For Advanced users: 
-
-When you want to manage slots and elements from another Shoes.app window you need to
-gets it's app and then get it's slots.contents and then you can poke around in in the 
-stacks and flows and elements. 
-
-This is the preferred method for getting an array of stacks and flows for the windows
-that Shoes.APPS[] knows about.  
-
-For example you have two windows (apps) and want append a para to all but a specific window (app)
-
-{{{
- #!ruby
- Shoes.app title: "Controller" do
-   $other_win =  window title: "Slave" do
-     stack { para "First"} 
-   end
-   stack do
-     button "Append" do
-       Shoes.APPS.each do |ap| 
-         ap.slot.contents[0].instance_exec () {para "gotcha"} if ap == $other_win
-       end
-     end
-   end
- end
-}}}
-
-There is much more discover for advanced users on this topic. See IRB in this manual
-and at the wiki.
-
-=== set_window_icon_path(pathname) ===
-
-This sets the icon in the title bar (and the dock or taskbar of your OS)
-for this window and any others you create from this script. It replaces the little Shoes federales icon.
-If you need this, do it for every app.  Depending on your OS, theme and desktop settings,
-the icon may not be displayed at all.
-
-{{{
- #!ruby
- Shoes.app :title => "I'm Shoes" do
-    button "feeling blue" do
-      Shoes.APPS.each {|a| a.set_window_icon_path("#{DIR}/static/shoes-icon-blue.png") }
-      confirm "did all the Shoes icons change? "
-    end
- end
-}}}
-The icon should be a 128x128 png. Or 256x256 png. 512x512 also works.
-
-=== set_window_title(string) ===
-
-This sets the string in the current title bar like name = does but also the default title
-every new window you might create including the alert, ask and confirm dialogs.  What
-it does not do is change the title of other existing windows. To be 
-
-Note: the :title style setting only effects one window. This effects all NEW windows. 
-
-If you need this, loop through all the Apps. 
-{{{
- #!ruby
- Shoes.app :title => "I'm Shoes" do
-    button "change title" do
-      Shoes.APPS.each {|a| a.set_window_title("No Shoes Here") }
-      confirm "did the title change to No Shoes Here"
-    end
- end
-}}}
-
-Notice how it's sticky. 
-
-=== app.svghandle ({hash args}) ===
-
-Returns an object of SvgHandle class. The hash args are documented in
-Elements, Svg. 
-
-This is may be little weird because an svg file is a little weird and we want to
-allow you to work with them as best we can. Svg files have layers or groups so it is also container file
-with lots of vector images inside. How many groups and what the their names are unknown.
-That's up to you figure out. The Inkscape program can help you there.
-
-For example many card game programs have one svg file with 52 or more groups
-inside it. In Shoes, the groups have names starting with '#' so '#queen_hearts'
-it a group name. Think of svghandle is a marker to an image in a svg file.
-
-An svg file is really an xml text file. You can and probably should load it into
-a string so you can do some xml queries (gem nokogiri is included with Shoes) if 
-needed or to prevent loading the file more times that needed if your going to be using
-groups inside that file. 
-
-Many people can go merrily along their way without creating or manipulating
-handles.  But, if you want to - you can create with them by calling 'app.svghandle'
-before creating any SVG widgets with them.
-
 
 = Slots =
 
@@ -3651,9 +3478,11 @@ There is also a much reguested option introduced in Shoes 3.3.0 that
 allows you to specify the font to be used when you create the list_box.
 The string you give is not as flexible as the textblock options for font handling
 mention in Styles.  Experiment. For example a simple font: "6" does work for setting the 
-size of  the default font. Don't go crazy. This could change in the future.
+size of the default font. 
 
-Note: this feature does nothing on OSX because OSX handles long list_box
+List_box will also accept the wrap style. 
+
+Note: the font and wrap styles does nothing on OSX because OSX handles long list_box
 items much better than Linux or Windows. 
 
 {{{
@@ -3883,87 +3712,140 @@ See [[Styles.state]] style for details.
 == Svg ==
 
 In Shoes 3.3 we gained the ability to draw svgs. While they may appear to
-look like Images, they are not. It's a different widget with its own rules and 
-methods. Some of which may look like Image methods.
+look like Images, and they respond to many methods that Images respond to, 
+they are not the same. It's a different widget with its own rules, some of
+them may be quite surprising.
 
-=== svg (width, height, {hash) ===
+Svg's are xml text files that contain vector grapic drawing instructions.
+They don't really have heights and widths. They can stretch or shrink in
+any direction. They also have a feature they call 'groups' An Svg file can contain
+sub images in it. The best example is a deck of playing cards.  'paris.svg' 
+We include the card deck 'paris.svg' in the Shoes samples directory. 
+Without a group name it's a large picture of all cards. Each card in the svg file
+has a group name. 
+
+Before you can make use of an svg file. You need to learn what's in it
+and what you want to do with it (in total or by group). Shoes can help you
+much with that task. Inkscape is a cross platform, free application that
+you can use to view, change and create svg's. It's not for beginners but
+it's the best you can find for free. 
+
+In order to get Svgs working in Shoes and be Shoes compatible you have to
+specify the height and width (and the source ) There two samples in the good
+section of the furthermore->samples that you should study good-svgview and good-flip
+
+
+=== svg  source {width: integer, height: integer, options} ===
 
 You have to specify the width and height you want. There is no default.
-Those are the size of the SVG widget 
+Those are the size of the SVG widget on screen in pixels
 
-The hash has many arguments that you can use. You must specify either :filename => a path
-or :content => string or :handle =>svghandle). If you read the svg (a textual xml) file into a string then you would use the :content
-option or you can have svg load the file for you by giving  the :filename) 
+`source` is a file pathname to the svg or a string containing the svg xml or
+an svghandle. Svghandle is a bit weird for the casual Shoes user (see [[Svghandle]])
 
-One of those is required (unless you use the slightly weird svghandle method below, but even
-then you'll have to have :content or :filename plus :group if needed)
 
-:group => string
+The hash has some other `options`:
 
-This how you pick one group from the larger svg to display
+`:group => string`
 
-A svg file has layers or groups. Little drawings grouped together named with a string that starts with '#'  
+This how you pick one group from the larger svg to display The string starts with '#'  
 so in a svg of playing cards for example you might want to draw '#diamonds_queen'
-That is the group name. Shoes can not figure out the layer names for you. Sorry. 
+That is the group name. Shoes can not figure out the group names for you. Sorry. 
 If you don't specify a ':group' then Shoes draws everything in the svg which may
 or may not be what you want.
 
-:aspect => "string" 
+`:aspect => boolean or float`
 
-The string may be "yes" or "no".  The default is "yes"
+The aspect may be "true" or "false".  The default is "true"
 and that will keep the aspect ratio of the svg (group) even if that means
 the image width or height is scaled down to fit the widget size. "no" just fills the rectangle
 for the svg widget (stretching width and height as needed) 
 
+Aspect can also be a floating point number.  Advanced users.
+
 Any left over white space after computing the aspect will be added be on the right 
-or bottom side.
+or bottom side. Generally, you should know before you create an svg what size
+you want it to be and accept the aspect default. Then you'll have no excess 
+white space to think about.
 
-=== svg (width, height, svghandle) ===
+Svg has many of the methods of Image or other controls aka widgets. These 
+include `remove, move, displace, hide, show, toggle, hidden?, click, release,
+hover, leave, parent, top, left, width, and height`.
 
-You can also create a svg widget with a [[App.svhandle]] if you want more
-control before it's on screen.
+Below are the new or diffent methods for Svg, and we mention methods that
+exist that you should not use or use with extreme caution.
 
-=== width » interger ===
+=== style(styles) » styles ===
 
-returns the width of the on screen widget.
+Changes the style of an svg.  This could include the `:width` and `:height`
+of an svg or any other number of style settings.
 
-=== height » integer ===
+Warning: this may return a copy of the xml in the `content:` style which is not 
+something you want to do. Don't try to set `content:` this way. 
 
-returns the height of the on screen widget.
+=== preferred_width » a number ===
 
-=== preferred_width ===
-
-returns the width of the internal svg. This can more or less than what width
+returns the width of the internal svg. This can be more or less than what width
 returns. You probably don't want to use this method.
 
-=== preferred_height ===
+=== preferred_height » a number ===
 
-returns the height of the internal svg. This can more or less than what height
+returns the height of the internal svg. This can be more or less than what height
 returns. You probably don't want to use this method.
 
-=== handle ===
+=== offset_x » a number ===
+
+For experts working with groups. returns the group x offset.
+
+=== offset_y » a number ===
+
+For experts working with groups. returns the group y offset.
+
+=== group? string » boolean ===
+
+return true if the string is a svg group or false (nil) if not. Remember that
+you have to have a '#' in the front of the string
+
+=== transform(:center or :corner) » self ===
+
+Behaves like [[Art.transform]].
+
+=== translate(left, top) » self ===
+
+Behaves like [[Art.translate]]
+
+=== rotate(degrees: a number) » self ===
+
+Behaves like [[Art.rotate]].
+
+=== scale(sx: a float, sy: a float) » self ===
+
+Behaves like [[Art.scale]]
+
+=== skew(sx: a float, sy: a float) » self ===
+
+Behaves like [Art.skew]
+
+=== handle » svghandle ===
 
 All Svg widgets have an internal svghandle associated with them, whether
-you explicity created one or not. This return it but there isn't aanything
-you can do with it.
+you explicity created one or not. This returns it.
 
-=== handle = svghandle ===
+=== handle = svghandle » ===
 
-replace the widget contents (a drawing) with the new svghandle. Use with 
-wisdom.
+Replaces the widget contents (on screen drawing) with the new svghandle drawing. 
+In some situations this can be much faster than removing an svg widget and
+creating a new svg widget.  Advanced users.
 
-=== dpi ===
+=== dpi » a number ===
 
-returns the dots per inch of the svg. Expect a constant value of 72 or 75 no matter
-what. 
+returns the dots per inch of the svg. Expect a constant value of 72.0 or 75.0 no matter
+what. Probably useless. 
 
-=== dpi = number ===
+=== export filename {dpi: float} ===
 
-No one knows what this will do or should do.
-
-=== save filename, &block ===
-
-Completely unwritten. Subject to change.
+This code hasn't been written yet. It will attempt to convert the svg to 
+a png or jpg (raster, pixels) image or a ps, pdf or, svg
 
 == Snapshot ==
 
@@ -4274,15 +4156,201 @@ Finally, add a last button for entertainment value. You can press '''up''' or ''
 
 Your '''Interactive Ruby''' console should look like this: !{:margin_left => 60}shoes-irb-sample.png!
 
-== Hidden things ==
 
-Things you don't really want to use and don't work the way you think.
 
-=== Console ===
+= Advanced =
 
-Calling Shoes::show_console will bring up a new window that hooks stdin, stdout and stderr 
+  Shoes has some features that don't quite fit into the Shoes is easy model.
+
+== AppMethods ==
+
+There are some special methods associated with App that are designed for special situations.
+They affect subtle things and big things. They are a bit dangerous if called incorrectly so
+experiment wisely if you need the feature. You would want to call these early in your Shoes.app
+block. 
+
+Another caution - these are methods of an App instance so you need that object.
+Even when they effect more than one instance of App. Shoes creates an 'app'
+method in the Shoes.app block that you must use for the following.
+
+=== app.fullscreen » boolean ===
+
+This returns true or false if your script is running in full screen mode
+
+
+=== app.fullscreen=(Boolean) ===
+
+Set fullscreen to true or false. If you do this, you should provide a method
+for turning it off. There's nothing more annoying that than a full screen app
+that the user can't figure out how to quit and get back to normal. 
+
+Parenthesis are required.
+
+:fullscreen => true is also a style you can set in the Shoes.app.
+
+=== app.name » string ===
+Returns the title string for the App. Usually the string in the window's title bar.
+
+=== app.name(String) ===
+
+Sets the title string of the current window. See set_window_title below. 
+Parenthesis are required.
+
+=== app.location » shoes-url ===
+
+Returns the Shoes url. Be careful. It's a shoes-url so it might not be what
+you think.
+
+=== app.started? » boolean ===
+
+Is the app completely initiailized? 
+
+=== app.width » a number ===
+
+Returns the current width.
+
+=== app.height » a number ===
+
+Returns the current height. Perhaps you need it and the width after going fullscreen 
+to setup your game to the size availavble. 
+
+=== app.slot » Array ===
+
+For Advanced users: 
+
+When you want to manage slots and elements from another Shoes.app window you need to
+gets it's app and then get it's slots.contents and then you can poke around in in the 
+stacks and flows and elements. 
+
+This is the preferred method for getting an array of stacks and flows for the windows
+that Shoes.APPS[] knows about.  
+
+For example you have two windows (apps) and want append a para to all but a specific window (app)
+
+{{{
+ #!ruby
+ Shoes.app title: "Controller" do
+   $other_win =  window title: "Slave" do
+     stack { para "First"} 
+   end
+   stack do
+     button "Append" do
+       Shoes.APPS.each do |ap| 
+         ap.slot.contents[0].instance_exec () {para "gotcha"} if ap == $other_win
+       end
+     end
+   end
+ end
+}}}
+
+There is much more to discover for advanced users on this topic. See IRB in this manual
+and at the wiki.
+
+=== app.set_window_icon_path(pathname) ===
+
+This sets the icon in the title bar (and the dock or taskbar of your OS)
+for this window and any others you create from this script. It replaces the little Shoes federales icon.
+If you need this, do it for every app.  Depending on your OS, theme and desktop settings,
+the icon may not be displayed at all.
+
+{{{
+ #!ruby
+ Shoes.app :title => "I'm Shoes" do
+    button "feeling blue" do
+      Shoes.APPS.each {|a| a.set_window_icon_path("#{DIR}/static/shoes-icon-blue.png") }
+      confirm "did all the Shoes icons change? "
+    end
+ end
+}}}
+The icon should be a 128x128 png. Or 256x256 png. 512x512 also works.
+
+=== app.set_window_title(string) ===
+
+This sets the string in the current title bar like name = does but also the default title
+every new window you might create including the alert, ask and confirm dialogs.  What
+it does not do is change the title of other existing windows. To be 
+
+Note: the :title style setting only effects one window. This effects all ```NEW``` windows. 
+
+If you need this, loop through all the Apps. 
+{{{
+ #!ruby
+ Shoes.app :title => "I'm Shoes" do
+    button "change title" do
+      Shoes.APPS.each {|a| a.set_window_title("No Shoes Here") }
+      confirm "did the title change to No Shoes Here"
+    end
+ end
+}}}
+
+Notice how the title is very sticky. 
+
+== Svghandle ==
+
+An svghandle is a non visual place holder into a svg (xml) file. Like an sqlite
+query handle is a temporary place inside the database. Every Svg
+widget has a handle (perhaps created by default).  You can do some manipulations
+and creation of svghandles without an onscreen widget.
+
+Many people can go merrily along their way without creating or manipulating
+svghandles.  But, if you want to or need to - you can create with them by calling 'app.svghandle'
+before creating any SVG widgets with them. Due to a lovely feature of Shoes
+you do need parens () around the {hash args}. Please examine the samples/good-cardflip.rb 
+to see how to use svghandles.
+
+=== app.svghandle ({hash args})» svghandle ===
+
+Returns an object of SvgHandle class. 
+
+First we'll discuss the hash args which must be combined in one call. Then we'll show the methods
+you can call on a svghandle.
+
+Yes, parenthesis are required around the hash . Yes it is ugly.
+
+=== app.svhandle ( {filename: path} ) ===
+
+path is the pathname to an .svg file. If you are going to create multiple svghandles
+from one file (a deck of cards for example) then you really should read it
+into a ruby string and use the contents: below instead of reading the file
+multiple times.
+
+=== app.svhandle ( {contents: xmlstring} ) ===
+
+Creates an svghandle from xmlstring. More useful when you provide a group.
+
+=== app.svghandle( {group: string} ) ===
+
+Creates an svghandle for the given group name (the string must start with a '#')
+
+=== app.svghandle( {aspect: boolean or float} ) ===
+
+The aspect can be 'true` which is the the default. false has the effect
+of streching or shrinking it to the size of the Svg widget it will be shown
+in and float will show it in the given w/h ratio. 
+
+=== svghandle.width » a number ===
+
+Returns the internal svg handle (group?) width. Not very useful. 
+
+=== svghandle.height » a number ===
+
+Returns the internal svg handle (group?) height. Not very useful.
+
+=== svghandle.group? string » boolean ===
+
+Returns true or false (nil) if the svghandle has a group matching the string
+which starts with '#'
+»
+== Console ==
+
+Sometimes you want a logging window or even a window you can read keystrokes
+from like an old school terminal. Shoes does have one. It's not very clever and
+most people don't need it. But, if you do
+
+=== Shoes::show_console ===
+Will bring up a new window that hooks stdin, stdout and stderr 
 so it displays that output in the new window. This is a very brutal thing to do to the
-perfectly happy C printf() and Ruby puts that don't display. 
+perfectly happy C `printf()` and Ruby `puts` that don't normallly display. 
 
 But, sometimes, a guy has to do guy things and is willing to accept the downsides: 
 You can't undo the call and switch them back although a serial abuser of
@@ -4304,6 +4372,26 @@ Still, if you need to write a Shoes script to monitor some long running process 
 to stdout/stderr from some other program and you want to copy the log to the clipboard
 or scroll it back, now you can do that. 
 
-No, it can't fix the horrible Windows console. You get Lowest common denominator.
+No, it can't fix the horrible Windows console and you shouldn't try too.
+
+== CommandLine ==
+
+For folks that like to use their terminal or Windows console to run Shoes there is
+a pretty rich and useful set of options 
+
+=== cshoes.exe (Windows) ===
+
+=== ./cshoes (OSX) ===
+
+=== ./cshoes (Linux) ===
+
+== Structuring ==
+
+Using muliple ruby/shoes files to build an application is one way to group
+code.
+
+=== bindings and apps ===
+
+=== url and visit ===
 
 

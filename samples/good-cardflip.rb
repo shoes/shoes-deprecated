@@ -27,13 +27,13 @@ Shoes.app do
 
   def get_handle (idx)
     # create handle when needed
-    puts "query #{idx}"
+    #puts "query #{idx}"
     if @handles[idx] == nil
       str = @names[idx]
-      puts "load: #{idx}:#{str}"
+      #puts "load: #{idx}:#{str}"
       han = app.svghandle ( {content: @xmlstring, group: str} )
       if han.is_a? Array
-        puts "handle array"
+        #puts "handle array"
         han = han[0]
       end
       @handles[idx] = han
@@ -72,7 +72,7 @@ Shoes.app do
       @topcard = 0
     end
     if @top_card.is_a? Array
-      puts "Tap converts #{@topcard}"
+      #puts "Tap converts #{@topcard}"
       @top_card = @top_card[0]
     end
     @top_card.handle = get_handle @pile[@topcard]
@@ -106,13 +106,13 @@ Shoes.app do
       @backgrd = background orange, width: 181, height: 270, margin: 8, curve: 10
       han = get_handle(0) #back of deck
       if han.is_a? Array
-        puts "Converting array"
+        #puts "Converting array"
         han = han[0]
       end
       @top_card = svg han, {width: 160, height: 250,margin: 10, aspect: false, click: proc { tap }  }
       if @top_card.is_a? Array
         @top_card = @top_card.detect {|obj| obj.class == Shoes::Types::Svg }
-        puts "convert in setup"
+        #puts "convert in setup"
       end
     end
     stack width: 100 do
