@@ -357,7 +357,7 @@
   {
     object = o;
     [self setButtonType: NSPushOnPushOffButton];  // checkbox for now
-		[self setImagePosition: NSImageOnly];
+		[self setShoesViewPosition: NSImageOnly];
     [self setBezelStyle: NSCircularBezelStyle];
     [self setTarget: self];
     [self setAction: @selector(handleClick:)];
@@ -1309,6 +1309,7 @@ void
 shoes_native_surface_remove(shoes_canvas *canvas, SHOES_SURFACE_REF ref)
 {
 }
+
 
 SHOES_CONTROL_REF
 shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, char *msg)

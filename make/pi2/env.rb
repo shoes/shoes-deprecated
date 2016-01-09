@@ -22,13 +22,13 @@ end
 #ENV['DEBUG'] = "true" # turns on the tracing log
 #ENV['GDB'] = "" # compile -g,  strip symbols when not defined
 CHROOT = ShoesDeps
-SHOES_TGT_ARCH = 'x86_64-linux'
+SHOES_TGT_ARCH = 'armv7l-linux-eabihf'
 SHOES_GEM_ARCH = "#{Gem::Platform.local}"
 # Specify where the Target system binaries live. 
 # Trailing slash is important.
 TGT_SYS_DIR = "#{CHROOT}/"
 # Setup some shortcuts for the library locations
-arch = 'x86_64-linux-gnu'
+arch = 'arm-linux-gnueabihf'
 uldir = "#{TGT_SYS_DIR}usr/lib"
 ularch = "#{TGT_SYS_DIR}usr/lib/#{arch}"
 larch = "#{TGT_SYS_DIR}lib/#{arch}"
@@ -71,11 +71,14 @@ LINUX_CFLAGS << `pkg-config --cflags "#{pkgruby}"`.strip+" "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkggtk}"`.strip+" "
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/ " 
 LINUX_CFLAGS << "-I/usr/include/librsvg-2.0/librsvg "
-MISC_LIB = ' /usr/lib/x86_64-linux-gnu/librsvg-2.so'
+MISC_LIB = " #{ularch}/librsvg-2.so"
 
-
-LINUX_LIB_NAMES = %W[ungif jpeg]
-
+justgif = File.exist? "#{ularch}/libgif.so.4"
+if justgif
+  LINUX_LIB_NAMES = %W[gif jpeg]
+else
+  LINUX_LIB_NAMES = %W[ungif jpeg]
+end
 DLEXT = "so"
 LINUX_LDFLAGS = "-fPIC -shared -L#{ularch} "
 LINUX_LDFLAGS << `pkg-config --libs "#{pkggtk}"`.strip+" "
@@ -90,8 +93,8 @@ LINUX_LIBS << " #{CURL_LDFLAGS if !RUBY_HTTP} #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PAN
 
 SOLOCS = {}
 SOLOCS['curl'] = "#{curlloc}/libcurl.so.4" if !RUBY_HTTP
-SOLOCS['ungif'] = "#{uldir}/libungif.so.4"
-SOLOCS['gif'] = "#{uldir}/libgif.so.4" # because Suse wants it
+SOLOCS['ungif'] = "#{uldir}/libungif.so.4" if !justgif
+SOLOCS['gif'] = "#{ularch}/libgif.so.4"  if justgif
 SOLOCS['jpeg'] = "#{ularch}/libjpeg.so.8"
 SOLOCS['libyaml'] = "#{ularch}/libyaml-0.so.2"
 SOLOCS['pcre'] = "#{larch}/libpcre.so.3"

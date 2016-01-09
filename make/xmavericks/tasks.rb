@@ -222,7 +222,11 @@ class MakeDarwin
         end
       end
       change_install_names
-
+      # 2015-11-22 Hack Alert librsvg2 drags in some libs that are not
+      # good Shoes citizens - So after the change_install_names - remove them
+      ['libresolv.9.dylib', 'libicucore.A.dylib', 'libc++.1.dylib', 'libc++abi.dylib'].each do |lib|
+        rm "#{TGT_DIR}/#{lib}" if File.exists? "#{TGT_DIR}/#{lib}"
+      end
    end
 
     def setup_system_resources

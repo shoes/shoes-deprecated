@@ -95,7 +95,8 @@ LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/#{arch} "
 
 LINUX_CFLAGS << xfixip("-I/usr/include")+" "
 LINUX_CFLAGS << xfixip(`pkg-config --cflags "#{pkggtk}"`.strip)+" "
-
+LINUX_CFLAGS << xfixip("-I/usr/include/librsvg-2.0/librsvg")+" "
+MISC_LIB = '  /srv/chroot/debrpi/usr/lib/arm-linux-gnueabihf/librsvg-2.so'
 LINUX_LIB_NAMES = %W[ungif jpeg]
 
 DLEXT = "so"
@@ -109,7 +110,7 @@ RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lruby "
 LINUX_LIBS = "--sysroot=#{CHROOT} -L/usr/lib "
 LINUX_LIBS << LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
-LINUX_LIBS << " #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} "
+LINUX_LIBS << " #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} #{MISC_LIB}"
 
 # This chould be used in pre_build instead of 
 # copy_deps_to_dist, although either would work. 

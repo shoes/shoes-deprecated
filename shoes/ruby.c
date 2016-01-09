@@ -15,6 +15,7 @@
 
 VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cSlider, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE cTextEditBox;
+VALUE cSvgHandle, cSvg;
 VALUE eVlcError, eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot, symAltEqual, symAltSemiColon;
@@ -654,7 +655,8 @@ shoes_extras_remove_all(shoes_canvas *canvas)
     Data_Get_Struct(basic->parent, shoes_canvas, parent);
     if (parent == canvas)
     {
-      rb_funcall(ele, s_remove, 0);
+      if (!NIL_P(ele))
+        rb_funcall(ele, s_remove, 0);
       rb_ary_delete_at(canvas->app->extras, i);
     }
   }
@@ -670,7 +672,8 @@ shoes_ele_remove_all(VALUE contents)
     ary = rb_ary_dup(contents);
     rb_gc_register_address(&ary);
     for (i = 0; i < RARRAY_LEN(ary); i++)
-      rb_funcall(rb_ary_entry(ary, i), s_remove, 0);
+      if (!NIL_P(rb_ary_entry(ary, i)))
+        rb_funcall(rb_ary_entry(ary, i), s_remove, 0);
     rb_gc_unregister_address(&ary);
     rb_ary_clear(contents);
   }
@@ -3901,6 +3904,15 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
     shoes_canvas_repaint_all(self_t->parent); \
     return self; \
   } \
+  \
+  VALUE \
+  shoes_##ele##_is_hidden(VALUE self) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    if (RTEST(ATTR(self_t->attr, hidden))) \
+      return ATTR(self_t->attr, hidden); \
+    else return Qfalse; \
+  } \
   CLASS_COMMON(ele); \
   EVENT_COMMON(ele, ele, change); \
   EVENT_COMMON(ele, ele, click); \
@@ -3983,6 +3995,8 @@ PLACE_COMMON(textblock)
 CLASS_COMMON2(textblock)
 REPLACE_COMMON(textblock)
 
+CLASS_COMMON2(svg)
+TRANS_COMMON(svg, 1);
 
 VALUE
 shoes_textblock_style_m(int argc, VALUE *argv, VALUE self)
@@ -4639,6 +4653,13 @@ shoes_ruby_init()
   rb_define_method(cApp, "slot", CASTHOOK(shoes_app_slot), 0);
   rb_define_method(cApp, "set_window_icon_path", CASTHOOK(shoes_app_set_icon), 1); // New in 3.2.19
   rb_define_method(cApp, "set_window_title", CASTHOOK(shoes_app_set_wtitle), 1); // New in 3.2.19
+  rb_define_method(cApp, "svghandle", CASTHOOK(shoes_svghandle_new), -1); 
+  
+  cSvgHandle = rb_define_class_under(cTypes, "SvgHandle", rb_cObject); // new with 3.3.0
+  rb_define_alloc_func(cSvgHandle, shoes_svghandle_alloc);
+  rb_define_method(cSvgHandle, "width", CASTHOOK(shoes_svghandle_get_width), 0);
+  rb_define_method(cSvgHandle, "height", CASTHOOK(shoes_svghandle_get_height), 0);
+  rb_define_method(cSvgHandle, "group?", CASTHOOK(shoes_svghandle_has_group), 1);
 
   cDialog = rb_define_class_under(cTypes, "Dialog", cApp);
 
@@ -4772,6 +4793,44 @@ shoes_ruby_init()
   rb_define_method(cImage, "release", CASTHOOK(shoes_image_release), -1);
   rb_define_method(cImage, "hover", CASTHOOK(shoes_image_hover), -1);
   rb_define_method(cImage, "leave", CASTHOOK(shoes_image_leave), -1);
+  
+  // svg is kind of like cImage with different methods
+  // do not call draw from Shoes scripts - just don't do it!
+  cSvg   = rb_define_class_under(cTypes, "Svg", rb_cObject);
+  rb_define_alloc_func(cSvg, shoes_svg_alloc);
+  rb_define_method(cSvg, "draw", CASTHOOK(shoes_svg_draw), 2);
+  rb_define_method(cSvg, "preferred_width", CASTHOOK(shoes_svg_preferred_width), 0);
+  rb_define_method(cSvg, "preferred_height", CASTHOOK(shoes_svg_preferred_height),0);
+  rb_define_method(cSvg, "offset_x", CASTHOOK(shoes_svg_get_offsetX),0);
+  rb_define_method(cSvg, "offset_y", CASTHOOK(shoes_svg_get_offsetY),0);
+  rb_define_method(cSvg, "remove", CASTHOOK(shoes_svg_remove), 0);
+//  rb_define_method(cSvg, "save", CASTHOOK(shoes_svg_save), 2);
+  rb_define_method(cSvg, "handle", CASTHOOK(shoes_svg_get_handle), 0);
+  rb_define_method(cSvg, "handle=", CASTHOOK(shoes_svg_set_handle), 1);
+  rb_define_method(cSvg, "dpi", CASTHOOK(shoes_svg_get_dpi), 0);
+  rb_define_method(cSvg, "dpi=", CASTHOOK(shoes_svg_set_dpi), 1);
+  rb_define_method(cSvg, "style", CASTHOOK(shoes_svg_style), -1);
+  rb_define_method(cSvg, "move", CASTHOOK(shoes_svg_move), 2);
+  rb_define_method(cSvg, "displace", CASTHOOK(shoes_svg_displace), 2);
+  rb_define_method(cSvg, "hide", CASTHOOK(shoes_svg_hide), 0);
+  rb_define_method(cSvg, "show", CASTHOOK(shoes_svg_show), 0);
+  rb_define_method(cSvg, "toggle", CASTHOOK(shoes_svg_toggle), 0);
+  rb_define_method(cSvg, "hidden?", CASTHOOK(shoes_svg_is_hidden), 0);
+  rb_define_method(cSvg, "click", CASTHOOK(shoes_svg_click), -1);
+  rb_define_method(cSvg, "release", CASTHOOK(shoes_svg_release), -1);
+  rb_define_method(cSvg, "hover", CASTHOOK(shoes_svg_hover), -1);
+  rb_define_method(cSvg, "leave", CASTHOOK(shoes_svg_leave), -1);
+  rb_define_method(cSvg, "parent", CASTHOOK(shoes_svg_get_parent), 0);
+  rb_define_method(cSvg, "top", CASTHOOK(shoes_svg_get_actual_top), 0);
+  rb_define_method(cSvg, "left", CASTHOOK(shoes_svg_get_actual_left), 0);
+  rb_define_method(cSvg, "width", CASTHOOK(shoes_svg_get_actual_width), 0);
+  rb_define_method(cSvg, "height", CASTHOOK(shoes_svg_get_actual_height), 0);
+  rb_define_method(cSvg, "group?", CASTHOOK(shoes_svg_has_group), 1);
+  rb_define_method(cSvg, "transform", CASTHOOK(shoes_svg_transform), 1);
+  rb_define_method(cSvg, "translate", CASTHOOK(shoes_svg_translate), 2);
+  rb_define_method(cSvg, "rotate", CASTHOOK(shoes_svg_rotate), 1);
+  rb_define_method(cSvg, "scale", CASTHOOK(shoes_svg_scale), -1);
+  rb_define_method(cSvg, "skew", CASTHOOK(shoes_svg_skew), -1);
 
   cEffect   = rb_define_class_under(cTypes, "Effect", rb_cObject);
   rb_define_alloc_func(cEffect, shoes_effect_alloc);
@@ -4980,6 +5039,7 @@ shoes_ruby_init()
   cAnim    = rb_define_class_under(cTypes, "Animation", cTimerBase);
   cEvery   = rb_define_class_under(cTypes, "Every", cTimerBase);
   cTimer   = rb_define_class_under(cTypes, "Timer", cTimerBase);
+
   cColor   = rb_define_class_under(cTypes, "Color", rb_cObject);
   rb_define_alloc_func(cColor, shoes_color_alloc);
   rb_define_method(rb_mKernel, "rgb", CASTHOOK(shoes_color_rgb), -1);

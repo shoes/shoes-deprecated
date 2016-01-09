@@ -235,20 +235,17 @@ shoes_canvas_paint(VALUE self)
 void
 shoes_apply_transformation(cairo_t *cr, shoes_transform *st, shoes_place *place, unsigned char force)
 {
-  double x, y, w, h;
   cairo_save(cr);
-  w = place->iw / 2.;
-  h = place->ih / 2.;
-  if (st != NULL)
-  {
-    x = (place->ix + place->dx) + w;
-    y = (place->iy + place->dy) + h;
+  
+  if (st != NULL) {
+    double w = place->iw / 2.;
+    double h = place->ih / 2.;
+    double x = (place->ix + place->dx) + w;
+    double y = (place->iy + place->dy) + h;
 
-    if (st->mode == s_center)
-      cairo_translate(cr, x, y);
-     cairo_transform(cr, &st->tf);
-    if (st->mode == s_center)
-      cairo_translate(cr, -x, -y);
+    if (st->mode == s_center) cairo_translate(cr, x, y);
+    cairo_transform(cr, &st->tf);
+    if (st->mode == s_center) cairo_translate(cr, -x, -y);
   }
 }
 
@@ -780,6 +777,16 @@ shoes_canvas_timer(int argc, VALUE *argv, VALUE self)
 }
 
 VALUE
+shoes_canvas_svg(int argc, VALUE *argv, VALUE self)
+{
+  VALUE widget;
+  SETUP();
+  widget = shoes_svg_new(argc, argv, self);
+  shoes_add_ele(canvas, widget);
+}
+
+
+VALUE
 shoes_canvas_shape(int argc, VALUE *argv, VALUE self)
 {
   int x;
@@ -1151,6 +1158,7 @@ shoes_canvas_remove_item(VALUE self, VALUE item, char c, char t)
     i = rb_ary_index_of(self_t->app->extras, item);
     if (i >= 0)
       rb_ary_insert_at(self_t->app->extras, i, 1, Qnil);
+//      rb_ary_delete(self_t->app->extras, item);
   }
   rb_ary_delete(self_t->contents, item);
 }
@@ -1204,6 +1212,7 @@ shoes_canvas_remove(VALUE self)
   shoes_canvas *self_t;
   Data_Get_Struct(self, shoes_canvas, self_t);
   shoes_canvas_empty(self_t, TRUE);
+  self_t->stage = CANVAS_EMPTY; // to be able to remove everything in shoes_canvas_repaint_all 
   if (!NIL_P(self_t->parent))
   {
     shoes_canvas *pc;
@@ -1797,7 +1806,7 @@ shoes_canvas_send_start(VALUE self)
 {
   shoes_canvas *canvas;
   Data_Get_Struct(self, shoes_canvas, canvas);
-
+  
   if (canvas->stage == CANVAS_NADA)
   {
     int i;
@@ -1810,8 +1819,6 @@ shoes_canvas_send_start(VALUE self)
         shoes_canvas_send_start(ele);
     }
     
-    // Do we have a :start style attribute ? This is not the 'start' method/event which
-    // is handled by shoes_canvas_start() build by EVENT_HANDLER(start).
     // This attribute is set either explicitely with a :start style in the slot declaration
     // either by the 'start' method/event of a slot (if by mistake, both are used the method takes precedence)
     VALUE start = ATTR(canvas->attr, start);
@@ -1880,6 +1887,11 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
       else if (rb_obj_is_kind_of(ele, cImage))
       {
         v = shoes_image_send_click(ele, button, ox, oy);
+        *clicked = ele;
+      }
+      else if (rb_obj_is_kind_of(ele, cSvg))
+      {
+        v = shoes_svg_send_click(ele, button, ox, oy);
         *clicked = ele;
       }
       else if (rb_obj_is_kind_of(ele, cShape))
@@ -1981,6 +1993,10 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
       {
         shoes_image_send_release(ele, button, ox, oy);
       }
+      else if (rb_obj_is_kind_of(ele, cSvg))
+      {
+        shoes_svg_send_release(ele, button, ox, oy);
+      }
       else if (rb_obj_is_kind_of(ele, cShape))
       {
         shoes_shape_send_release(ele, button, ox, oy);
@@ -2035,6 +2051,10 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
       else if (rb_obj_is_kind_of(ele, cImage))
       {
         urll = shoes_image_motion(ele, ox, oy, NULL);
+      }
+      else if (rb_obj_is_kind_of(ele, cSvg))
+      {
+        urll = shoes_svg_motion(ele, ox, oy, NULL);
       }
       else if (rb_obj_is_kind_of(ele, cShape))
       {
