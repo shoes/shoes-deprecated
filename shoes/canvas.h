@@ -533,6 +533,7 @@ VALUE shoes_svg_get_handle(VALUE);
 VALUE shoes_svg_set_handle(VALUE, VALUE);
 VALUE shoes_svg_get_dpi(VALUE);
 VALUE shoes_svg_set_dpi(VALUE, VALUE);
+VALUE shoes_svg_export(int argc, VALUE *argv, VALUE self);
 //VALUE shoes_svg_save(VALUE, VALUE, VALUE);
 VALUE shoes_svg_show(VALUE);
 VALUE shoes_svg_hide(VALUE);
