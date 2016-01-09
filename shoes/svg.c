@@ -459,14 +459,53 @@ shoes_svg_set_dpi(VALUE self, VALUE dpi)
   
   return Qnil;
 }
+
+VALUE shoes_svg_export(int argc, VALUE *argv, VALUE self) {
+  VALUE dpi = Qnil, path = Qnil;
+  double ratio = 1.0;
   
-/*
-VALUE shoes_svg_export(VALUE self, Value dpi, VALUE path=Qnil) {
+  rb_arg_list args;
+  switch (rb_parse_args(argc, argv, "i|s,s,", &args))
+  {
+    case 1:
+      dpi = args.a[0];
+      if (!NIL_P(args.a[1])) path = args.a[1];
+    break;
+
+    case 2:
+      path = args.a[0];
+    break;
+  }
+  
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
+  shoes_canvas *canvas;
+  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+  shoes_place place = self_t->place;
+  
   if (NIL_P(path))
-    VALUE path = shoes_dialog_save();
+    path = shoes_dialog_chooser(self, "Save file...", GTK_FILE_CHOOSER_ACTION_SAVE, _("_Save"), NULL);
   
+  if (!NIL_P(dpi)) {
+    ratio = (NUM2INT(dpi)/90.0);
+  }
+  
+  cairo_surface_t *surf;
+//  surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 
+//          NUM2INT(shoes_svg_get_actual_width(self)), NUM2INT(shoes_svg_get_actual_height(self)));
+  surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int)(canvas->width*ratio), (int)(canvas->height*ratio));
+  cairo_t *cr = cairo_create(surf);
+  cairo_scale(cr, ratio, ratio);
+
+//  cairo_translate(cr, -(place.ix + place.dx), -(place.iy + place.dy));
+
+  shoes_svg_draw_surface(cr, self_t, &place, (int)(place.w*ratio), (int)(place.h*ratio));
+    
+  cairo_status_t r = cairo_surface_write_to_png(surf, RSTRING_PTR(path));
+  r == CAIRO_STATUS_SUCCESS ? Qtrue : Qfalse;
  }
 
+/*
 // nobody knows what goes in here. 
 VALUE shoes_svg_save(VALUE self, VALUE path, VALUE block)
 {
