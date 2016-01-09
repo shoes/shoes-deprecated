@@ -505,7 +505,6 @@ VALUE shoes_svg_export(int argc, VALUE *argv, VALUE self) {
   surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int)(canvas->width*ratio), (int)(canvas->height*ratio));
   cairo_t *cr = cairo_create(surf);
   cairo_scale(cr, ratio, ratio);
-  
 //  cairo_translate(cr, -(place.ix + place.dx), -(place.iy + place.dy));
 
   shoes_svg_draw_surface(cr, self_t, &place, (int)(place.w*ratio), (int)(place.h*ratio));
