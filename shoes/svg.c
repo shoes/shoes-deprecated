@@ -14,7 +14,6 @@
 #include <math.h>
 
 // ------svghandle --------
-// see app.h 
 
 void
 shoes_svghandle_mark(shoes_svghandle *handle)
@@ -159,7 +158,7 @@ VALUE shoes_svghandle_has_group(VALUE self, VALUE group)
  */
 
 // forward declares in this file
-static void
+static int
 shoes_svg_draw_surface(cairo_t *, shoes_svg *, shoes_place *, int, int);
 
 // alloc some memory for a shoes_svg; We'll protect it from gc
@@ -221,12 +220,6 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
 {
   VALUE path = Qnil, attr = Qnil, widthObj, heightObj, svg_string;
   VALUE svghanObj = Qnil;
-  
-  ID  s_filename = rb_intern ("filename");
-  ID  s_content = rb_intern ("content");
-  ID  s_subid = rb_intern("group");
-  ID  s_aspect = rb_intern("aspect");
-  
   shoes_canvas *canvas;
   Data_Get_Struct(parent, shoes_canvas, canvas);
   
@@ -247,6 +240,7 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
         rb_raise(rb_eArgError, "bad argument, expecting a String or a Shoes::SvgHandle \n");
     break;
   }
+  if (NIL_P(attr)) attr = rb_hash_new();
   
   // get width and height out of hash/attr arg
   if (RTEST(ATTR(attr, width))) {
@@ -261,9 +255,9 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   
   if (NIL_P(svghanObj)) {  // likely case
     if (strstr(RSTRING_PTR(svg_string), "</svg>") != NULL) //TODO
-      ATTRSET(attr, content, svg_string);
+      shoes_hash_set(attr, rb_intern("content"), svg_string);
     else
-      ATTRSET(attr, filename, svg_string);
+      shoes_hash_set(attr, rb_intern("filename"), svg_string);
     svghanObj = shoes_svghandle_new(1, &attr, parent);
   }
   
@@ -310,13 +304,13 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   return obj;
 }
 
-static void
+static int
 shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, int imw, int imh)
 {
   shoes_svghandle *svghan;
   Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
   
-  // calculate aspect ratio only once at initialization ?? needs testing
+  // calculate aspect ratio only once at initialization
   if (self_t->scalew == 0.0 && self_t->scaleh == 0.0) {
     svg_aspect_ratio(imw, imh, self_t, svghan);
   }
@@ -334,12 +328,13 @@ shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, int i
     cairo_translate(cr, -svghan->svghpos.x, -svghan->svghpos.y);
   }
 
-  rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
+  int result = rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
 
   shoes_undo_transformation(cr, self_t->st, place, 0); // doing cairo_restore(cr)
   
   self_t->place = *place;
-  //printf("surface\n");
+  
+  return result;
 }
 
 // This gets called very often by Shoes. May be slow for large SVG?
@@ -398,25 +393,21 @@ shoes_svg_set_handle(VALUE self, VALUE han)
     self_t->scalew = self_t->scalew/2; self_t->scaleh = self_t->scaleh/2;
     
     // updating cSvg attributes
-    ID  s_filename = rb_intern ("filename");
-    if (svghan->path)
-       ATTRSET(self_t->attr, filename, rb_str_new_cstr(svghan->path));
-    else ATTRSET(self_t->attr, filename, Qnil);
-    ID  s_content = rb_intern ("content");
-    if (svghan->data)
-      ATTRSET(self_t->attr, content, rb_str_new_cstr(svghan->data));
-    else ATTRSET(self_t->attr, content, Qnil);
-    ID  s_subid = rb_intern("group");
-    if ( svghan->subid )
-      ATTRSET(self_t->attr, subid, rb_str_new_cstr(svghan->subid));
-    else ATTRSET(self_t->attr, subid, Qnil);
-    ID  s_aspect = rb_intern("aspect");
+    shoes_hash_set(self_t->attr, rb_intern("filename"), 
+            svghan->path ? rb_str_new_cstr(svghan->path) : Qnil);
+    
+    shoes_hash_set(self_t->attr, rb_intern("content"),
+            svghan->data ? rb_str_new_cstr(svghan->data) : Qnil);
+    
+    shoes_hash_set(self_t->attr, rb_intern("group"),
+            svghan->subid ? rb_str_new_cstr(svghan->subid) : Qnil);
+    
     if (svghan->aspect == -1.0) 
-      ATTRSET(self_t->attr, aspect, Qfalse);
+      shoes_hash_set(self_t->attr, rb_intern("aspect"), Qfalse);
     else if (svghan->aspect == 0.0 || svghan->aspect == 1.0) 
-      ATTRSET(self_t->attr, aspect, Qtrue);
+      shoes_hash_set(self_t->attr, rb_intern("aspect"), Qtrue);
     else
-      ATTRSET(self_t->attr, aspect, DBL2NUM(svghan->aspect));
+      shoes_hash_set(self_t->attr, rb_intern("aspect"), DBL2NUM(svghan->aspect));
     
     shoes_canvas_repaint_all(self_t->parent);
     
@@ -460,67 +451,102 @@ shoes_svg_set_dpi(VALUE self, VALUE dpi)
   return Qnil;
 }
 
-VALUE shoes_svg_export(int argc, VALUE *argv, VALUE self) {
-  VALUE dpi = Qnil, path = Qnil;
-  double ratio = 1.0;
-  
-  rb_arg_list args;
-  switch (rb_parse_args(argc, argv, "i|s,s,", &args))
-  {
-    case 1:
-      dpi = args.a[0];
-      if (!NIL_P(args.a[1])) path = args.a[1];
-    break;
+typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
 
-    case 2:
-      path = args.a[0];
-    break;
-  }
-  
+static cairo_surface_function_t *
+get_vector_surface(char *format)
+{
+  if (strstr(format, "pdf") != NULL) return & cairo_pdf_surface_create;
+  if (strstr(format, "ps") != NULL)  return & cairo_ps_surface_create;
+  if (strstr(format, "svg") != NULL) return & cairo_svg_surface_create;
+  return NULL;
+}
+
+static cairo_surface_t* 
+buid_surface(VALUE self, VALUE docanvas, double scale, int *result, char *filename, char *format) 
+{
   shoes_svg *self_t;
   Data_Get_Struct(self, shoes_svg, self_t);
   shoes_canvas *canvas;
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
   shoes_place place = self_t->place;
-  
-  if (NIL_P(path)) {
-    VALUE attr = rb_hash_new(), typ = rb_hash_new();
-    rb_hash_aset(typ, rb_str_new2("PNG files only "), rb_str_new2("*.png"));
-    ID s_types = rb_intern("types");
-    ATTRSET(attr, types, typ);
-    path = shoes_dialog_chooser(self, "Save file...", GTK_FILE_CHOOSER_ACTION_SAVE, _("_Save"), attr);
-  }
-  if (NIL_P(path)) {
-    shoes_canvas_info(self_t->parent, rb_str_new2("Save dialog was cancelled, no file selected to export Svg !"));
-    return;
-  }
-  
-  if (!NIL_P(dpi)) {
-    ratio = (NUM2INT(dpi)/90.0);
-  }
-  
   cairo_surface_t *surf;
-//  surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 
-//          NUM2INT(shoes_svg_get_actual_width(self)), NUM2INT(shoes_svg_get_actual_height(self)));
-  surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int)(canvas->width*ratio), (int)(canvas->height*ratio));
-  cairo_t *cr = cairo_create(surf);
-  cairo_scale(cr, ratio, ratio);
-//  cairo_translate(cr, -(place.ix + place.dx), -(place.iy + place.dy));
-
-  shoes_svg_draw_surface(cr, self_t, &place, (int)(place.w*ratio), (int)(place.h*ratio));
+  cairo_t *cr;
+  
+  if (docanvas == Qtrue) {
+    if (format != NULL)
+      surf = get_vector_surface(format)(filename, canvas->width*scale, canvas->height*scale);
+    else
+      surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int)(canvas->width*scale), (int)(canvas->height*scale));
+    cr = cairo_create(surf);
     
-  cairo_status_t r = cairo_surface_write_to_png(surf, RSTRING_PTR(path));
-  cairo_destroy(cr); cairo_surface_destroy(surf);
-  return r == CAIRO_STATUS_SUCCESS ? Qtrue : Qfalse;
- }
-
-/*
-// nobody knows what goes in here. 
-VALUE shoes_svg_save(VALUE self, VALUE path, VALUE block)
-{
-  return Qnil;
+    if (scale != 1.0) cairo_scale(cr, scale, scale);
+    *result = shoes_svg_draw_surface(cr, self_t, &place, (int)(place.w*scale), (int)(place.h*scale));
+  } else {
+    int w = (int)(NUM2INT(shoes_svg_get_actual_width(self))*scale);
+    int h = (int)(NUM2INT(shoes_svg_get_actual_height(self))*scale);
+    if (format != NULL)
+      surf = get_vector_surface(format)(filename, w, h);
+    else
+      surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h);
+    cr = cairo_create(surf);
+    
+    if (scale != 1.0) cairo_scale(cr, scale, scale);
+    cairo_translate(cr, -(place.ix + place.dx), -(place.iy + place.dy));
+    *result = shoes_svg_draw_surface(cr, self_t, &place, w, h);
+  }
+  if (format != NULL) cairo_show_page(cr);
+  cairo_destroy(cr);
+  
+  return surf;
 }
-*/
+
+VALUE shoes_svg_export(VALUE self, VALUE attr) 
+{
+  VALUE _filename, _dpi, _docanvas;
+  _filename = shoes_hash_get(attr, rb_intern("filename"));
+  _dpi = shoes_hash_get(attr, rb_intern("dpi"));
+  _docanvas = shoes_hash_get(attr, rb_intern("canvas"));
+  double scale = 1.0;
+  int result;
+  
+  if (NIL_P(_filename)) {
+    rb_raise(rb_eArgError, "wrong arguments for svg export ({:filename=>'...', "
+                            "[:dpi=>90, :canvas=>true|false] })\n:filename is mandatory\n");
+  }
+  
+  if (!NIL_P(_dpi)) scale = NUM2INT(_dpi)/90.0;
+  
+  cairo_surface_t *surf = buid_surface(self, _docanvas, scale, &result, NULL, NULL);
+  
+  cairo_status_t r = cairo_surface_write_to_png(surf, RSTRING_PTR(_filename));
+  cairo_surface_destroy(surf);
+  
+  return r == CAIRO_STATUS_SUCCESS ? Qtrue : Qfalse;
+}
+  
+VALUE shoes_svg_save(VALUE self, VALUE attr)
+{
+  VALUE _filename, _format, _docanvas;
+  _filename = shoes_hash_get(attr, rb_intern("filename"));
+  _format = shoes_hash_get(attr, rb_intern("format"));
+  _docanvas = shoes_hash_get(attr, rb_intern("canvas"));
+  int result;
+  
+  if (NIL_P(_filename) || NIL_P(_format)) {
+    rb_raise(rb_eArgError, "wrong arguments for svg save ({:filename=>'...', "
+      ":format=>'pdf'|'ps'|'svg' [, :canvas=>true|false] })\n:filename and :format are mandatory");
+  }
+  
+  char *filename = RSTRING_PTR(_filename);
+  char *format = RSTRING_PTR(_format);
+
+  cairo_surface_t *surf = buid_surface(self, _docanvas, 1.0, &result, filename, format);
+  cairo_surface_destroy(surf);
+  
+  return result == 0 ? Qfalse : Qtrue;
+}
+
 
 /*  Not using PLACE_COMMMON Macro in ruby.c, as we do the svg rendering a bit differently
  *  than other widgets [parent, left, top, width, height ruby methods]
@@ -589,8 +615,7 @@ VALUE shoes_svg_get_offsetX(VALUE self)
   GET_STRUCT(svg, self_t);
   shoes_svghandle *svghan;
   Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
-  int x = svghan->svghpos.x;
-  return INT2NUM(x);
+  return INT2NUM(svghan->svghpos.x);
 }
 
 VALUE shoes_svg_get_offsetY(VALUE self)
@@ -598,8 +623,7 @@ VALUE shoes_svg_get_offsetY(VALUE self)
   GET_STRUCT(svg, self_t);
   shoes_svghandle *svghan;
   Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
-  int y = svghan->svghpos.y;
-  return INT2NUM(y);
+  return INT2NUM(svghan->svghpos.y);
 }
 
 VALUE shoes_svg_has_group(VALUE self, VALUE group)
