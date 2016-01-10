@@ -159,7 +159,7 @@ VALUE shoes_svghandle_has_group(VALUE self, VALUE group)
  */
 
 // forward declares in this file
-static void
+static int
 shoes_svg_draw_surface(cairo_t *, shoes_svg *, shoes_place *, int, int);
 
 // alloc some memory for a shoes_svg; We'll protect it from gc
@@ -310,7 +310,7 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
   return obj;
 }
 
-static void
+static int
 shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, int imw, int imh)
 {
   shoes_svghandle *svghan;
@@ -334,12 +334,13 @@ shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, int i
     cairo_translate(cr, -svghan->svghpos.x, -svghan->svghpos.y);
   }
 
-  rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
+  int success = rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
 
   shoes_undo_transformation(cr, self_t->st, place, 0); // doing cairo_restore(cr)
   
   self_t->place = *place;
   //printf("surface\n");
+  return success;
 }
 
 // This gets called very often by Shoes. May be slow for large SVG?
@@ -460,67 +461,104 @@ shoes_svg_set_dpi(VALUE self, VALUE dpi)
   return Qnil;
 }
 
-VALUE shoes_svg_export(int argc, VALUE *argv, VALUE self) {
-  VALUE dpi = Qnil, path = Qnil;
-  double ratio = 1.0;
-  
-  rb_arg_list args;
-  switch (rb_parse_args(argc, argv, "i|s,s,", &args))
-  {
-    case 1:
-      dpi = args.a[0];
-      if (!NIL_P(args.a[1])) path = args.a[1];
-    break;
+typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
 
-    case 2:
-      path = args.a[0];
-    break;
-  }
-  
+static cairo_surface_function_t *
+get_vector_surface(char *format)
+{
+  if (strstr(format, "pdf") != NULL) return & cairo_pdf_surface_create;
+  if (strstr(format, "ps") != NULL)  return & cairo_ps_surface_create;
+  if (strstr(format, "svg") != NULL) return & cairo_svg_surface_create;
+  return NULL;
+}
+
+static cairo_surface_t* 
+buid_surface(VALUE self, VALUE docanvas, double scale, int *result, char *filename, char *format) 
+{
   shoes_svg *self_t;
   Data_Get_Struct(self, shoes_svg, self_t);
   shoes_canvas *canvas;
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
   shoes_place place = self_t->place;
-  
-  if (NIL_P(path)) {
-    VALUE attr = rb_hash_new(), typ = rb_hash_new();
-    rb_hash_aset(typ, rb_str_new2("PNG files only "), rb_str_new2("*.png"));
-    ID s_types = rb_intern("types");
-    ATTRSET(attr, types, typ);
-    path = shoes_dialog_chooser(self, "Save file...", GTK_FILE_CHOOSER_ACTION_SAVE, _("_Save"), attr);
-  }
-  if (NIL_P(path)) {
-    shoes_canvas_info(self_t->parent, rb_str_new2("Save dialog was cancelled, no file selected to export Svg !"));
-    return;
-  }
-  
-  if (!NIL_P(dpi)) {
-    ratio = (NUM2INT(dpi)/90.0);
-  }
-  
   cairo_surface_t *surf;
-//  surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 
-//          NUM2INT(shoes_svg_get_actual_width(self)), NUM2INT(shoes_svg_get_actual_height(self)));
-  surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int)(canvas->width*ratio), (int)(canvas->height*ratio));
-  cairo_t *cr = cairo_create(surf);
-  cairo_scale(cr, ratio, ratio);
-//  cairo_translate(cr, -(place.ix + place.dx), -(place.iy + place.dy));
-
-  shoes_svg_draw_surface(cr, self_t, &place, (int)(place.w*ratio), (int)(place.h*ratio));
+  cairo_t *cr;
+  
+  if (docanvas == Qtrue) {
+    if (format != NULL)
+      surf = get_vector_surface(format)(filename, canvas->width*scale, canvas->height*scale);
+    else
+      surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int)(canvas->width*scale), (int)(canvas->height*scale));
+    cr = cairo_create(surf);
     
-  cairo_status_t r = cairo_surface_write_to_png(surf, RSTRING_PTR(path));
-  cairo_destroy(cr); cairo_surface_destroy(surf);
-  return r == CAIRO_STATUS_SUCCESS ? Qtrue : Qfalse;
- }
-
-/*
-// nobody knows what goes in here. 
-VALUE shoes_svg_save(VALUE self, VALUE path, VALUE block)
-{
-  return Qnil;
+    if (scale != 1.0) cairo_scale(cr, scale, scale);
+    *result = shoes_svg_draw_surface(cr, self_t, &place, (int)(place.w*scale), (int)(place.h*scale));
+  } else {
+    int w = (int)(NUM2INT(shoes_svg_get_actual_width(self))*scale);
+    int h = (int)(NUM2INT(shoes_svg_get_actual_height(self))*scale);
+    if (format != NULL)
+      surf = get_vector_surface(format)(filename, w, h);
+    else
+      surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h);
+    cr = cairo_create(surf);
+    
+    if (scale != 1.0) cairo_scale(cr, scale, scale);
+    cairo_translate(cr, -(place.ix + place.dx), -(place.iy + place.dy));
+    *result = shoes_svg_draw_surface(cr, self_t, &place, w, h);
+  }
+  cairo_show_page(cr);
+  cairo_destroy(cr);
+  
+  return surf;
 }
-*/
+
+VALUE shoes_svg_export(VALUE self, VALUE attr) 
+{
+  VALUE dpi = Qnil, path = Qnil;
+  ID s_filename = rb_intern ("filename");
+  ID s_dpi   = rb_intern ("dpi");
+  ID s_docanvas = rb_intern ("canvas");
+  VALUE _filename, _dpi, _docanvas;
+  _filename = ATTR(attr, filename);
+  _dpi = ATTR(attr, dpi);
+  _docanvas = ATTR(attr, docanvas);
+  double scale = 1.0;
+  int result;
+  
+  if (!NIL_P(_dpi)) scale = NUM2INT(_dpi)/90.0;
+  
+  cairo_surface_t *surf = buid_surface(self, _docanvas, scale, &result, NULL, NULL);
+  
+  cairo_status_t r = cairo_surface_write_to_png(surf, RSTRING_PTR(_filename));
+  cairo_surface_destroy(surf);
+  
+  return r == CAIRO_STATUS_SUCCESS ? Qtrue : Qfalse;
+}
+  
+VALUE shoes_svg_save(VALUE self, VALUE attr)
+{
+  ID s_filename = rb_intern ("filename");
+  ID s_format   = rb_intern ("format");
+  ID s_docanvas = rb_intern ("canvas");
+  VALUE _filename, _format, _docanvas;
+  _filename = ATTR(attr, filename);
+  _format   = ATTR(attr, format);
+  _docanvas = ATTR(attr, docanvas);
+  int result;
+  
+  if (NIL_P(_filename) || NIL_P(_format)) {
+    rb_raise(rb_eArgError, "wrong arguments for svg save ({:filename=>'...', "
+                            ":format=>'pdf'|'ps'|'svg' [, :canvas=>true|false] })\n");
+  } else {
+    char *filename = RSTRING_PTR(_filename);
+    char *format = RSTRING_PTR(_format);
+    
+    cairo_surface_t *surf = buid_surface(self, _docanvas, 1.0, &result, filename, format);
+    cairo_surface_destroy(surf);
+  }
+
+  return result == 0 ? Qfalse : Qtrue;
+}
+
 
 /*  Not using PLACE_COMMMON Macro in ruby.c, as we do the svg rendering a bit differently
  *  than other widgets [parent, left, top, width, height ruby methods]
