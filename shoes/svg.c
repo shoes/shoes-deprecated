@@ -240,6 +240,7 @@ shoes_svg_new(int argc, VALUE *argv, VALUE parent)
         rb_raise(rb_eArgError, "bad argument, expecting a String or a Shoes::SvgHandle \n");
     break;
   }
+  if (NIL_P(attr)) attr = rb_hash_new();
   
   // get width and height out of hash/attr arg
   if (RTEST(ATTR(attr, width))) {
