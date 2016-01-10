@@ -513,7 +513,6 @@ buid_surface(VALUE self, VALUE docanvas, double scale, int *result, char *filena
 
 VALUE shoes_svg_export(VALUE self, VALUE attr) 
 {
-  VALUE dpi = Qnil, path = Qnil;
   ID s_filename = rb_intern ("filename");
   ID s_dpi   = rb_intern ("dpi");
   ID s_docanvas = rb_intern ("canvas");
@@ -523,6 +522,11 @@ VALUE shoes_svg_export(VALUE self, VALUE attr)
   _docanvas = ATTR(attr, docanvas);
   double scale = 1.0;
   int result;
+  
+  if (NIL_P(_filename)) {
+    rb_raise(rb_eArgError, "wrong arguments for svg export ({:filename=>'...', "
+                            "[:dpi=>90, :canvas=>true|false] })\n:filename is mandatory\n");
+  }
   
   if (!NIL_P(_dpi)) scale = NUM2INT(_dpi)/90.0;
   
@@ -547,15 +551,15 @@ VALUE shoes_svg_save(VALUE self, VALUE attr)
   
   if (NIL_P(_filename) || NIL_P(_format)) {
     rb_raise(rb_eArgError, "wrong arguments for svg save ({:filename=>'...', "
-                            ":format=>'pdf'|'ps'|'svg' [, :canvas=>true|false] })\n");
-  } else {
-    char *filename = RSTRING_PTR(_filename);
-    char *format = RSTRING_PTR(_format);
-    
-    cairo_surface_t *surf = buid_surface(self, _docanvas, 1.0, &result, filename, format);
-    cairo_surface_destroy(surf);
+      ":format=>'pdf'|'ps'|'svg' [, :canvas=>true|false] })\n:filename and :format are mandatory");
   }
+  
+  char *filename = RSTRING_PTR(_filename);
+  char *format = RSTRING_PTR(_format);
 
+  cairo_surface_t *surf = buid_surface(self, _docanvas, 1.0, &result, filename, format);
+  cairo_surface_destroy(surf);
+  
   return result == 0 ? Qfalse : Qtrue;
 }
 
