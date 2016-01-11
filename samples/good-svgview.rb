@@ -75,8 +75,23 @@ Shoes.app width: 500, height: 610, title: "SVG Viewer" do
         end
         @details.text = get_details
       end
+      
+      button "Save" do
+        savep = ask_save_file
+        if savep
+          ext = File.extname(savep)
+          case ext
+          when  '.png'
+            @current_svg.export filename: savep
+          when '.svg', '.pdf', '.ps'
+            @current_svg.save filename: savep, format: ext
+          else
+            alert "not png, svg, ps or pdf"
+          end
+        end
+      end
 
-      button "Quit", margin: [80,0,0,0] do; exit; end
+      button "Quit", margin: [10,0,0,0] do; exit; end
     end
 
     flow do
