@@ -3758,7 +3758,7 @@ or may not be what you want.
 
 The aspect may be "true" or "false".  The default is "true"
 and that will keep the aspect ratio of the svg (group) even if that means
-the image width or height is scaled down to fit the widget size. "no" just fills the rectangle
+the image width or height is scaled down to fit the widget size. "false" just fills the rectangle
 for the svg widget (stretching width and height as needed) 
 
 Aspect can also be a floating point number.  Advanced users.
