@@ -3842,10 +3842,32 @@ creating a new svg widget.  Advanced users.
 returns the dots per inch of the svg. Expect a constant value of 72.0 or 75.0 no matter
 what. Probably useless. 
 
-=== export filename {dpi: float} ===
+===  export {filename: "...", dpi: 90, canvas: true||false}  ===
 
-This code hasn't been written yet. It will attempt to convert the svg to 
-a png or jpg (raster, pixels) image or a ps, pdf or, svg
+This creates a raster (png only) file for the filename: . The `dpi:` setting
+is optional (and useless at this time). The `canvas:` setting controls
+what's written. If `canvas: true`, then the on screen image is written as
+is seen which includes any transparent space on the bottom or right. If the
+`canvas: false` is chosen (it's the default) then only the visible part of
+the svg image is written. 
+
+`Note` the filename `is not parsed` for the extention to determine if there
+is a .png at the end
+
+=== save {filename: "...", format: "svg"|"ps"|"pdf", canvas: true||false| ===
+
+This saves the onscreen svg to the vector formats of ps, pdf, or svg as specified in the :format 
+setting in the hash. The filename `is not parsed` for the extention to determine
+what format to use when creating the file.
+
+If `canvas: true`, then the on screen image is written as
+is seen which includes any transparent space on the bottom or right. If the
+`canvas: false` is chosen (it's the default) then only the visible part of
+the svg image is written.
+
+`Note:` When creating an svg file from a svg group this will copy/create a lot of
+xml into the ouput which is going produce a larger then you expect file.
+Pdf is a better choice if this matters to you and you can use it.
 
 == Snapshot ==
 
@@ -4372,18 +4394,60 @@ Still, if you need to write a Shoes script to monitor some long running process 
 to stdout/stderr from some other program and you want to copy the log to the clipboard
 or scroll it back, now you can do that. 
 
-No, it can't fix the horrible Windows console and you shouldn't try too.
+No, it can't fix the horrible Windows console and you shouldn't try too either.
 
 == CommandLine ==
 
 For folks that like to use their terminal or Windows console to run Shoes there is
-a pretty rich and useful set of options 
+a pretty rich and useful set of options if you know where the Shoes program is. Where
+is actually a bit tricky so we many need to create an command for it which we call
+`cshoes` 
+
+{{{ $ cshoes -h
+Usage: shoes [options] (app.rb or app.shy)
+    -d, --debug                      Debug Shoes script
+    -m, --manual                     Open the built-in manual.
+    -w, --console                    display console
+        --old-package                (Obsolete) Package a Shoes app for Windows, OS X and Linux.
+    -c, --cobbler                    Maintain Shoes installation
+    -p, --package                    Package Shoes App (new)
+    -g, --gem                        Passes commands to RubyGems.
+        --manual-html DIRECTORY      Saves the manual to a directory as HTML.
+        --install MODE SRC DEST      Installs a file.
+        --nolayered                  No WS_EX_LAYERED style option.
+    -v, --version                    Display the version info.
+    -h, --help                       Show this message
+}}}
+
+You can't run that from this manual. Some of those command switches are
+obvious.  Don't expect --manual-html, --install or --nolayered to work.
+
+There is a another  option that can be really useful for some folks.
+{{{ --ruby rubyargments }}} This one uses the ruby inside Shoes to execute the 
+`rubyargments` One of those arguments would be a script to execute with 
+Shoes ruby. One can package apps this way. See the wiki for details.
+
+Likewise -g manipulates gems inside the Shoes location. `-g env` for example or
+`-g install myoddball-1.0`. Be careful - with great power comes great responsibility.
+
 
 === cshoes.exe (Windows) ===
 
+Shoes on Windows has shoes.exe and cshoes.exe. If you want to use the Windows
+Console for development or testing, please use cshoes.exe.
+
 === ./cshoes (OSX) ===
 
-=== ./cshoes (Linux) ===
+Life is not so easy on OSX. You have to use Maintain Shoes (cobbler) to create
+a bash script that almost does what you want. 
+
+=== cshoes (Linux) ===
+
+Linux doesn't have a ./cshoes but you can create one if you're willing to
+modify .bashrc/.bash_profile or what ever shell you're using. For example
+
+`alias cshoes='~/.shoes/walkabout/shoes'` 
+
 
 == Structuring ==
 
@@ -4393,5 +4457,59 @@ code.
 === bindings and apps ===
 
 === url and visit ===
+
+This is a mostly unknown way to structure a larger Shoes application. Lets say you
+want three windows, a startup window, a data entry window and a help window. 
+You subclass Shoes and use the url command to define the window names.
+{{{
+class MyApp < Shoes
+	url "/", :setupscreen
+	url "/entry", :entryscreen
+	url "/help", :helpscreen
+  
+  def setupscreen
+    stack do 
+      para "Welcome to My Demo app"
+      flow do
+        button "entry" do visit '/entry'end
+        button "help" do visit '/help' end
+      end
+    end
+  end
+  
+  def entryscreen
+    stack do 
+      para "Entry Screen - whats your secret?"
+      @the_secret = edit_line text: "Secret"
+      flow do
+        button "home" do visit '/'end
+        button "help" do visit '/help' end
+      end
+    end
+  end
+  
+  def helpscreen
+     stack do 
+      para "This page describes MyApp, a very demo for structuring a Shoes application "
+      flow do
+        button "entry" do visit '/entry'end
+        button "home" do visit '/' end
+      end
+    end end
+end
+Shoes.app :width => 400, :height => 300, :margin => 5
+}}}
+
+That one you can run from the manual. It's also in samples/expert-url.rb
+
+Is the @the_secret.text available in the other screens? No? How would you
+find it? What if each screen did a `require "./helper_methods"` or something
+that added methods to Module.Shoes ? 
+
+There's no `one` proper way that I know of and probably six ways to Sunday to do it.
+
+There is a limit on how far you are willing to push Shoes when you start down this path.
+
+Remember to have fun!
 
 
