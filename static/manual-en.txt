@@ -3865,9 +3865,9 @@ is seen which includes any transparent space on the bottom or right. If the
 `canvas: false` is chosen (it's the default) then only the visible part of
 the svg image is written.
 
-`Note:` When creating an svg file from a svg group this will copy/create a lot of
-xml into the ouput which is going produce a larger then you expect file.
-Pdf is a better choice if this matters to you and you can use it.
+`Note:` When creating an svg file from a svg group this will can create an
+svg file that is quite small (or quite larger) which may not pass muster for
+strict svg parsing. 
 
 == Snapshot ==
 
