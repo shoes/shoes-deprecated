@@ -45,6 +45,11 @@ EXT_RUBY = RbConfig::CONFIG['prefix']
 RUBY_CFLAGS = " #{`pkg-config --cflags #{EXT_RUBY}/lib/pkgconfig/ruby-#{rv}.pc`.strip}"
 # Ruby 2.1.2 with RVM has a bug. Workaround or wait for perfection?
 rlib = `pkg-config --libs #{EXT_RUBY}/lib/pkgconfig/ruby-#{rv}.pc`.strip
+# 2.2.3 is missing  -L'$${ORIGIN}/../lib' in LIBRUBYARG_SHARED in .pc
+if !rlib[/\-L/]
+  #puts "missing -L in #{rlib}" 
+  rlib = "-L#{EXT_RUBY}/lib "+rlib
+end
 if rlib[/{ORIGIN/]
   #abort "Bug found #{rlib}"
   RUBY_LIB = rlib.gsub(/\$\\{ORIGIN\\}/, "#{EXT_RUBY}/lib")
