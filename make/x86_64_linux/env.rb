@@ -34,7 +34,8 @@ ularch = "#{TGT_SYS_DIR}usr/lib/#{arch}"
 larch = "#{TGT_SYS_DIR}lib/#{arch}"
 # Set appropriately
 CC = "gcc"
-pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.1.pc"
+# pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.1.pc"
+pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.2.pc"
 pkggtk ="#{ularch}/pkgconfig/#{APP['GTK']}.pc" 
 # Use Ruby or curl for downloads
 RUBY_HTTP = true
