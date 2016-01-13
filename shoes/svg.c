@@ -481,7 +481,13 @@ buid_surface(VALUE self, VALUE docanvas, double scale, int *result, char *filena
     cr = cairo_create(surf);
     
     if (scale != 1.0) cairo_scale(cr, scale, scale);
-    *result = shoes_svg_draw_surface(cr, self_t, &place, (int)(place.w*scale), (int)(place.h*scale));
+//    *result = shoes_svg_draw_surface(cr, self_t, &place, (int)(place.w*scale), (int)(place.h*scale));
+    place.w = (int)(place.w*scale); place.h = (int)(place.h*scale);
+    cairo_t *waz_cr = canvas->cr;
+    canvas->cr = cr;
+    shoes_canvas_draw(self_t->parent, self_t->parent, Qtrue);
+    canvas->cr = waz_cr;
+    *result = 1; //TODO
   } else {
     int w = (int)(NUM2INT(shoes_svg_get_actual_width(self))*scale);
     int h = (int)(NUM2INT(shoes_svg_get_actual_height(self))*scale);
