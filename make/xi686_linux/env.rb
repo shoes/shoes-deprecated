@@ -34,7 +34,8 @@ larch = "#{TGT_SYS_DIR}lib/#{arch}"
 # Set appropriately
 CC = "gcc"
 
-pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.1.pc"
+#pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.1.pc"
+pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.2.pc"
 pkggtk ="#{ularch}/pkgconfig/#{APP['GTK']}.pc" 
 if APP['GTK']== 'gtk+-2.0'
   file_list = ["shoes/console/*.c"] + ["shoes/native/gtk.c"] + ["shoes/http/rbload.c"] + ["shoes/*.c"]
