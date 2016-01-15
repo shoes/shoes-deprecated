@@ -53,13 +53,16 @@ ENV['SYSROOT']=ShoesDeps
 ENV['CC']=CC
 ENV['TGT_RUBY_PATH']=EXT_RUBY
 ENV['TGT_ARCH'] = SHOES_TGT_ARCH
-ENV['TGT_RUBY_V'] = '2.1.0'
+#ENV['TGT_RUBY_V'] = '2.1.0'
+ENV['TGT_RUBY_V'] = '2.2.0'
 TGT_RUBY_V = ENV['TGT_RUBY_V'] 
-ENV['TGT_RUBY_SO'] = "msvcrt-ruby210"
+#ENV['TGT_RUBY_SO'] = "msvcrt-ruby210"
+ENV['TGT_RUBY_SO'] = "msvcrt-ruby220"
 EXT_RBCONFIG = "#{EXT_RUBY}/lib/ruby/#{TGT_RUBY_V}/#{SHOES_TGT_ARCH}/rbconfig.rb"
 ENV['EXT_RBCONFIG'] = EXT_RBCONFIG 
 
-pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.1.pc"
+#pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.1.pc"
+pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.2.pc"
 pkggtk ="#{uldir}/pkgconfig/#{APP['GTK']}.pc" 
 # winhttp or RUBY?
 RUBY_HTTP = true
@@ -142,7 +145,8 @@ LINUX_LDFLAGS << "-lfontconfig" if APP['GTK'] == 'gtk+-2.0'
 
 # dont use the ruby link info
 RUBY_LDFLAGS = "-Wl,-export-all-symbols "
-RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lmsvcrt-ruby210 "
+#RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lmsvcrt-ruby210 "
+RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lmsvcrt-ruby220 "
 
 LINUX_LDFLAGS << "#{ENV['GDB'] == 'profile' ? '-pg' : ' '} -lwinhttp -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 "
 
@@ -157,7 +161,8 @@ LINUX_LIBS << " #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} "
 # Reference: http://www.gtk.org/download/win32_contentlist.php
 SOLOCS = {
   #'ruby'   => "#{EXT_RUBY}/bin/msvcrt-ruby191.dll",
-  'ruby'    => "#{EXT_RUBY}/bin/msvcrt-ruby210.dll",
+  #'ruby'    => "#{EXT_RUBY}/bin/msvcrt-ruby210.dll",
+  'ruby'    => "#{EXT_RUBY}/bin/msvcrt-ruby220.dll",
   #'ungif'  => "#{uldir}/libungif.so.4",
   'gif'     => "#{bindll}/libgif-4.dll",
   'jpeg'    => "#{bindll}/libjpeg-9.dll",

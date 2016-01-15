@@ -180,7 +180,7 @@ void shoes_native_quit()
 int
 shoes_win32_cmdvector(const char *cmdline, char ***argv)
 {
-  return rb_w32_cmdvector(cmdline, argv);
+//  return rb_w32_cmdvector(cmdline, argv);
 }
 
 void shoes_get_time(SHOES_TIME *ts)
