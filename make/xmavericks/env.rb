@@ -46,7 +46,8 @@ CAIRO_CFLAGS  = "-I#{BREWLOC}/include/cairo"
 CAIRO_LDFLAGS = "-L#{BREWLOC}/lib -lcairo"
 PANGO_CFLAGS  = "-I#{BREWLOC}/include/pango-1.0"
 PANGO_LDFLAGS = "-L#{BREWLOC}/lib -lpango-1.0"
-RUBY_CFLAGS   = "-I#{BREWLOC}/include/ruby-2.1.0/x86_64-darwin13.0 -I#{BREWLOC}/include/ruby-2.1.0 "
+#RUBY_CFLAGS   = "-I#{BREWLOC}/include/ruby-2.1.0/x86_64-darwin13.0 -I#{BREWLOC}/include/ruby-2.1.0 "
+RUBY_CFLAGS   = "-I#{BREWLOC}/include/ruby-2.2.0/x86_64-darwin13 -I#{BREWLOC}/include/ruby-2.2.0 "
 RUBY_LDFLAGS  = "-L#{BREWLOC}lib/ -Wl,-undefined,dynamic_lookup -Wl,-multiply_defined,suppress -lruby.2.1.0 -lpthread -ldl -lobjc "
 
 LINUX_CFLAGS << " -I#{BREWLOC}/include #{GLIB_CFLAGS} #{RUBY_CFLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS}"
@@ -70,7 +71,8 @@ LINUX_CFLAGS << ' -Wno-incompatible-pointer-types-discards-qualifiers'
 
 OSX_ARCH = '-arch x86_64'
 # These env vars are used in ftsearch, chipmunk extconf.rb
-SHOES_TGT_ARCH = SHOES_GEM_ARCH ='x86_64-darwin13.0'
+#SHOES_TGT_ARCH = SHOES_GEM_ARCH ='x86_64-darwin13.0'
+SHOES_TGT_ARCH = SHOES_GEM_ARCH ='x86_64-darwin13'
 ENV['CC'] = CC
 ENV['TGT_RUBY_PATH'] = EXT_RUBY
 ENV['TGT_ARCH'] = SHOES_TGT_ARCH

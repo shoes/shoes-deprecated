@@ -83,7 +83,8 @@ OSX_SDK = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/
 ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
 
 # LINUX_CFLAGS << ' -mmacosx-version-min=10.9'
-SHOES_TGT_ARCH = 'x86_64-darwin13.0'
+#SHOES_TGT_ARCH = 'x86_64-darwin13.0'
+SHOES_TGT_ARCH = 'x86_64-darwin13'
 #SHOES_TGT_ARCH = 'x86_64-darwin14.0'
 
 case ENV['SHOES_OSX_ARCH']
