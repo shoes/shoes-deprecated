@@ -39,8 +39,9 @@ main(argc, argv)
   int argc;
   char **argv;
   //argc = shoes_win32_cmdvector(GetCommandLine(), &argv);
-  char *cmdline = GetCommandLine();
-  argv = CommandLineToArgvW(cmdline, &argv);
+  // do we need the next two lines?
+  //char *cmdline = GetCommandLine();
+  //argv = CommandLineToArgvW(cmdline, &argc);
 #endif
   %DEFAULTS%
 
