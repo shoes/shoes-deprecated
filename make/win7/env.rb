@@ -83,6 +83,7 @@ WIN32_CFLAGS << "-D__MINGW_USE_VC2005_COMPAT -DXMD_H -D_WIN32_IE=0x0500 -D_WIN32
 WIN32_CFLAGS << GTK_CFLAGS
 WIN32_CFLAGS << CAIRO_CFLAGS
 WIN32_CFLAGS << PANGO_CFLAGS
+WIN32_CFLAGS << "-I#{ShoesDeps}/include/librsvg-2.0/librsvg "
 RbConfig::CONFIG.select { |k, _| k[/hdrdir/] }.each_key do |v|
    WIN32_CFLAGS << "-I#{RbConfig::CONFIG[v]}"
 end
@@ -107,6 +108,7 @@ WIN32_LDFLAGS << RUBY_LDFLAGS
 WIN32_LIBS << RUBY_LDFLAGS
 WIN32_LIBS << CAIRO_LDFLAGS
 WIN32_LIBS << PANGO_LDFLAGS
+WIN32_LIBS << "-L#{ShoesDeps}/lib -lrsvg-2"
 
 # Cleaning up duplicates. Clunky? Hell yes!
 wIN32_CFLAGS = WIN32_CFLAGS.join(' ').split(' ').uniq
@@ -122,7 +124,8 @@ bindll = "#{ShoesDeps}/bin"
 rubydll = "#{EXT_RUBY}/bin"
 devdll = "#{ENV['RI_DEVKIT']}/mingw/bin"
 SOLOCS = {
-  'ruby'    => "#{EXT_RUBY}/bin/msvcrt-ruby210.dll",
+#  'ruby'    => "#{EXT_RUBY}/bin/msvcrt-ruby210.dll",
+  'ruby'    => "#{EXT_RUBY}/bin/msvcrt-ruby220.dll",
   'gif'     => "#{bindll}/libgif-4.dll",
   'jpeg'    => "#{bindll}/libjpeg-9.dll",
   'libyaml' => "#{bindll}/libyaml-0-2.dll",
@@ -151,7 +154,7 @@ if APP['GTK'] == 'gtk+-3.0'
       'gtk2'        => "#{bindll}/libgtk-win32-2.0-0.dll", # something is wrong 
       'gtk3'        => "#{bindll}/libgtk-3-0.dll",
       'pixman'      => "#{bindll}/libpixman-1-0.dll", 
-      'intl8'        => "#{bindll}/libintl-8.dll",
+      'intl8'       => "#{bindll}/libintl-8.dll",
       'pango'       => "#{bindll}/libpango-1.0-0.dll",
       'pangocairo'  => "#{bindll}/libpangocairo-1.0-0.dll",
       'pangoft'     => "#{bindll}/libpangoft2-1.0-0.dll",
@@ -159,6 +162,8 @@ if APP['GTK'] == 'gtk+-3.0'
       'pixbuf'      => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
       'harfbuzz'    => "#{bindll}/libharfbuzz-0.dll",
       'png16'       => "#{bindll}/libpng16-16.dll",
+      'croco'       => "#{bindll}/libcroco-0.6-3.dll",
+      'rsvg'        => "#{bindll}/librsvg-2-2.dll",
       'xml2'        => "#{bindll}/libxml2-2.dll",
       'thread'      => "#{bindll}/libgthread-2.0-0.dll",
       'zlib1'       => "#{bindll}/zlib1.dll",
