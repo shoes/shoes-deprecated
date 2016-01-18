@@ -94,7 +94,7 @@ else
 end
 
 # collect flags together
-LINUX_CFLAGS << " #{RUBY_CFLAGS} #{GTK_FLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{VLC_CFLAGS}"
+LINUX_CFLAGS << " #{RUBY_CFLAGS} #{GTK_FLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{MISC_CFLAGS} #{VLC_CFLAGS}"
 
 # collect link settings together. Does order matter?
 LINUX_LIBS = "#{RUBY_LIB} #{GTK_LIB}  #{CAIRO_LIB} #{PANGO_LIB} #{MISC_LIB} #{VLC_LIB}"
