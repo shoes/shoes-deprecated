@@ -10,6 +10,9 @@
 #include "shoes/config.h"
 #include "shoes/ruby.h"
 #include "shoes/code.h"
+#ifdef VIDEO
+#include "shoes/video/video.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,7 +28,7 @@ SHOES_EXTERN typedef struct _shoes_world_t {
   cairo_surface_t *blank_image;
   shoes_cached_image *blank_cache;
   PangoFontDescription *default_font;
-#ifdef VLC_0_9
+#ifdef VIDEO
   libvlc_instance_t *vlc;
 #endif
 } shoes_world_t;
@@ -47,8 +50,8 @@ extern SHOES_EXTERN shoes_world_t *shoes_world;
 // no longer used - TODO: remove after testing.
 #define ACTUAL_APP_NOPE(appvar) \
   shoes_app *appvar = NULL; \
-  if (RARRAY_LEN(shoes_world->apps) > 0) \
-      Data_Get_Struct(self, shoes_app, appvar)
+  VALUE actual_app = rb_funcall2(self, rb_intern("app"), 0, NULL); \
+  Data_Get_Struct(actual_app, shoes_app, appvar);
 
 #define ROUND(x) ((x) >= 0 ? (int)round((x)+0.5) : (int)round((x)-0.5))
 

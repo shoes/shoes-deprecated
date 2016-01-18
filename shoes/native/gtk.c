@@ -880,7 +880,7 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
   sprintf(icon_path, "%s/static/app-icon.png", shoes_world->path);
   gtk_window_set_default_icon_from_file(icon_path, NULL);
 #endif
-  gk->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gk->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_position(GTK_WINDOW(gk->window), GTK_WIN_POS_CENTER);
   // commit https://github.com/shoes/shoes/commit/4e7982ddcc8713298b6959804dab8d20111c0038
   if (!app->resizable)
@@ -1179,8 +1179,7 @@ shoes_native_control_position(SHOES_CONTROL_REF ref, shoes_place *p1, VALUE self
 {
   PLACE_COORDS();
   gtk_widget_set_size_request(ref, p2->iw, p2->ih);
-  gtk_fixed_put(GTK_FIXED(canvas->slot->oscanvas),
-    ref, p2->ix + p2->dx, p2->iy + p2->dy);
+  gtk_fixed_put(GTK_FIXED(canvas->slot->oscanvas), ref, p2->ix + p2->dx, p2->iy + p2->dy);
   gtk_widget_show_all(ref);
 }
 
@@ -1238,36 +1237,72 @@ shoes_native_control_free(SHOES_CONTROL_REF ref)
   //
 }
 
-SHOES_SURFACE_REF
-shoes_native_surface_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
+
+/*
+ * video support
+ */
+
+// SHOES_SURFACE_REF and SHOES_CONTROL_REF expands the same : GtkWidget *
+// ref in shoes_video struct was a SHOES_CONTROL_REF anyway
+SHOES_CONTROL_REF                       //SHOES_SURFACE_REF
+shoes_native_surface_new(shoes_canvas *canvas, shoes_video *self_t, shoes_place *place)
 {
-  return gtk_drawing_area_new();
+  SHOES_CONTROL_REF da = gtk_drawing_area_new();
+  VALUE uc = ATTR(self_t->attr, bg_color);
+  shoes_color *col;
+
+#ifdef GTK3
+  // TODO (better with GtkStyleProvider)
+   GdkRGBA color = {.0, .0, .0, 1.0};
+   if (!NIL_P(uc)) {
+     Data_Get_Struct(uc, shoes_color, col);
+     color.red = col->r*255; color.green = col->g*255; color.blue = col->b*255;
+  }
+  gtk_widget_override_background_color(GTK_WIDGET(da), 0, &color);  
+#else
+  GdkColor color = {0, 0,0,0};
+  if (!NIL_P(uc)) {
+    Data_Get_Struct(uc, shoes_color, col);
+    color.red = col->r*255; color.green = col->g*255; color.blue = col->b*255;
+}
+  gtk_widget_modify_bg(GTK_WIDGET(da), 0, &color);
+#endif
+
+  return da;
 }
 
+void
+//shoes_native_surface_remove(shoes_canvas *canvas, SHOES_SURFACE_REF ref)
+shoes_native_surface_remove(shoes_canvas *canvas, SHOES_CONTROL_REF ref)
+{
+  gtk_container_remove(GTK_CONTAINER(canvas->slot->oscanvas), ref);
+}
+
+/* doing this directly on control now
+ * 
 void
 shoes_native_surface_position(SHOES_SURFACE_REF ref, shoes_place *p1,
   VALUE self, shoes_canvas *canvas, shoes_place *p2)
 {
-  shoes_native_control_position(ref, p1, self, canvas, p2);
+  shoes_native_control_position((SHOES_CONTROL_REF)ref, p1, self, canvas, p2);
 }
 
 void
-shoes_native_surface_hide(SHOES_SURFACE_REF ref)
+//shoes_native_surface_hide(SHOES_SURFACE_REF ref)
+shoes_native_surface_hide(SHOES_CONTROL_REF ref)
 {
   shoes_native_control_hide(ref);
 }
 
 void
-shoes_native_surface_show(SHOES_SURFACE_REF ref)
+//shoes_native_surface_show(SHOES_SURFACE_REF ref)
+shoes_native_surface_show(SHOES_CONTROL_REF ref)
 {
   shoes_native_control_show(ref);
 }
+*/
 
-void
-shoes_native_surface_remove(shoes_canvas *canvas, SHOES_SURFACE_REF ref)
-{
-  gtk_container_remove(GTK_CONTAINER(canvas->slot->oscanvas), ref);
-}
+
 
 static gboolean
 shoes_button_gtk_clicked(GtkButton *button, gpointer data)
