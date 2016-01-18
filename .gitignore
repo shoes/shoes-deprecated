@@ -35,6 +35,14 @@ xsnow
 req/binject
 req/bloopsaphone
 req/json
+<<<<<<< HEAD
 /Playing Cards.zip
 /Hqueen_simple.svg
 /Color_52_Faces_simple.svg
+=======
+/Gemfile.lock
+/nbproject/project.properties
+/nbproject/project.xml
+/shoes/native/libgtk-3.so.0.1200.2
+/shoes/rubytest.c
+>>>>>>> video_gtk3

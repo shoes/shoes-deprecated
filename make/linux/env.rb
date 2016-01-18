@@ -14,6 +14,9 @@ if ENV['GDB']
 else
   LINUX_CFLAGS = "-O -Wall"
 end
+
+ENV['VIDEO'] = "true"
+
 # figure out which ruby we need.
 rv =  RUBY_VERSION[/\d.\d/]
 
@@ -27,6 +30,7 @@ LINUX_CFLAGS << " -I/usr/include/"
 LINUX_CFLAGS << " #{`pkg-config --cflags #{APP['GTK']}`.strip}"
 
 CC = "gcc"
+
 if APP['GTK'] == 'gtk+-2.0'
   file_list = %w(shoes/native/gtk.c shoes/http/rbload.c) + ["shoes/*.c"] + ["shoes/console/*.c"]
 else
@@ -35,6 +39,8 @@ else
                shoes/native/gtkscrolledwindowalt.c shoes/native/gtkprogressbaralt.c 
                shoes/http/rbload.c) + ["shoes/*.c"] + ["shoes/console/*.c"]
 end
+file_list << "shoes/video/video.c" if ENV['VIDEO']
+
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
@@ -80,11 +86,18 @@ end
 MISC_CFLAGS << "-I/usr/include/librsvg-2.0/librsvg "
 MISC_LIB << " /usr/lib/#{ularch}/librsvg-2.so"
 
+if ENV['VIDEO']
+  VLC_CFLAGS = " -DVIDEO #{`pkg-config --cflags libvlc`.strip}" #'-I/usr/include/vlc -I/usr/include/vlc/plugins' 
+  VLC_LIB = "#{`pkg-config --libs libvlc`.strip}" #'-llibvlc -lvlc'
+else
+  VLC_CFLAGS = VLC_LIB = ''
+end
+
 # collect flags together
-LINUX_CFLAGS << " #{RUBY_CFLAGS} #{GTK_FLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{MISC_CFLAGS}"
+LINUX_CFLAGS << " #{RUBY_CFLAGS} #{GTK_FLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{MISC_CFLAGS} #{VLC_CFLAGS}"
 
 # collect link settings together. Does order matter?
-LINUX_LIBS = "#{RUBY_LIB} #{GTK_LIB}  #{CAIRO_LIB} #{PANGO_LIB} #{MISC_LIB}"
+LINUX_LIBS = "#{RUBY_LIB} #{GTK_LIB}  #{CAIRO_LIB} #{PANGO_LIB} #{MISC_LIB} #{VLC_LIB}"
 LINUX_LIBS << " -lfontconfig" if APP['GTK'] == "gtk+-3.0"
 # the following is only used to link the shoes code with main.o
 LINUX_LDFLAGS = "-L. -rdynamic -Wl,-export-dynamic"
