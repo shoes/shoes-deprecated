@@ -5,7 +5,6 @@ require 'rubygems/package'
 require 'shoes/winject'
 require 'yaml'
 # not easy to debug. Perhaps byebug could help?
-require 'byebug'
 Shoes.app do
   shyname = File.basename("#{SHYFILE}")
   curloc = Dir.getwd()    # most likely to be a temp dir somewhere
@@ -228,7 +227,6 @@ END
     # create a menu using "stuff"
     hdir = ENV['HOME']
     cdir = Dir.getwd()
-    byebug
     FileUtils.cp iconpath, cdir
     if @opts['expandshy']
       dtname = hdr.launch.gsub(/\.rb$/,'.desktop')
