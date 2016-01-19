@@ -108,14 +108,14 @@ Shoes.app height: 600, :title =>"Shoes Packager" do
 	    end
 	  end
     @options_panel = stack do
-     para "Include a full copy of Shoes (8 to 15 MB) or download if needed?"
+     para "Include a full copy of Shoes (10 to 17 MB) or download if needed?"
       flow do
         @inclcheck = check; para "Shoes will be included with my app."
       end
       @inclcheck.checked = @options['inclshoes'] = false
       para "Advanced installer -- Must be a .shy (directory) to package"
       flow do
-        @defadvopts = check :checked => false, :state =>"disabled" do
+        @defadvopts = check :checked => false, :state =>"enabled" do
           @advpanel.show if @defadvopts.checked?
           @advpanel.hide if !@defadvopts.checked?
           @options['advopts'] = @defadvopts.checked?

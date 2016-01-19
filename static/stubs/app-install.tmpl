@@ -4,11 +4,14 @@ require 'fileutils'
 require 'rubygems/package'
 require 'shoes/winject'
 require 'yaml'
-# not easy to debug. Try copying the correct tmp while the installer is on screen
+# not easy to debug. Perhaps byebug could help?
+require 'byebug'
 Shoes.app do
   shyname = File.basename("#{SHYFILE}")
-  #shyname = File.basename("/home/ccoupe/Projects/unshy/ytm.shy")
   curloc = Dir.getwd()    # most likely to be a temp dir somewhere
+  Shoes::show_console
+  require 'byebug'
+  #byebug
   shypath = File.join(curloc,shyname)
   shyfile = File.open(shypath,'rb')
   hdr = Shy.__hdr__(shyfile)
@@ -225,6 +228,7 @@ END
     # create a menu using "stuff"
     hdir = ENV['HOME']
     cdir = Dir.getwd()
+    byebug
     FileUtils.cp iconpath, cdir
     if @opts['expandshy']
       dtname = hdr.launch.gsub(/\.rb$/,'.desktop')
@@ -233,10 +237,11 @@ END
       dtname = File.basename(@opts['app'],'.shy')+'.desktop'
       launch = File.basename(@opts['app'])
     end
+    
     File.open(dtname,'w') do |f|
         f << "[Desktop Entry]\n"
         f << "Name=#{hdr.name}\n"
-        f << "Exec=#{hdir}/.shoes/federales/shoes #{installdir}/#{launch}\n"
+        f << "Exec=#{hdir}/.shoes/#{Shoes::RELEASE_NAME}/shoes #{installdir}/#{launch}\n"
         f << "StartupNotify=true\n"
         f << "Terminal=false\n"
         f << "Type=Application\n"
@@ -248,6 +253,35 @@ END
       FileUtils.cp dtname, '.local/share/Applications' 
     end
     `xdg-desktop-menu install --novendor #{dtname}`
+    
+    # create an uninstall script - tricksy.
+    appname = dtname.gsub(/\.desktop$/, '');
+    File.open("#{appname}-uninstall.sh", 'w') do |f|
+        f << "#!/bin/bash\n"
+        f << "#pwd\n"
+        f << "cd {launchdir}\n"
+        f << "xdg-desktop-menu uninstall #{appname}.remove.desktop\n"
+        f << "xdg-desktop-menu uninstall #{appname}.desktop\n"
+        f << "cd ../\n"
+        f << "rm -rf #{installdir}\n"
+      end
+    chmod "+x", "#{appname}-uninstall.sh"
+      
+    # create the uninstall menu (.destop file)
+    File.open("#{appname}.remove.desktop",'w') do |f|
+        f << "[Desktop Entry]\n"
+        f << "Name=#{hdr.name} Uninstall\n"
+        f << "Exec=#{installdir}/#{appname}-uninstall.sh\n"
+        f << "StartupNotify=true\n"
+        f << "Terminal=false\n"
+        f << "Type=Application\n"
+        f << "Comment=#{hdr.creator}\n"
+        f << "Icon=#{cdir}/#{File.basename(iconpath)}\n"
+        f << "Categories=Other;Applications;#{cats}\n"
+    end
+    # finally create the uninstall menu
+    `xdg-desktop-menu install --novendor #{appname}.remove.desktop`
+    
     return "#{installdir}/#{launch}"
   end
  
