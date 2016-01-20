@@ -52,6 +52,9 @@ module PackShoes
       puts "injecting #{opts['winargs']}"
       exe.inject_string(Winject::EXE::SHOES_USE_ARGS, opts['winargs'])
     end
+    if opts['ico']
+      exe.inject_icons(opts['ico'])
+    end
     f2 = File.open(opts['shoesdist'],'rb')
     if blk 
       blk.call "Repack Shoes.exe #{opts['shoesdist']} distribution"
