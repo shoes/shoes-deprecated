@@ -120,7 +120,7 @@ Shoes.app height: 600, :title =>"Shoes Packager" do
           @advpanel.hide if !@defadvopts.checked?
           @options['advopts'] = @defadvopts.checked?
         end
-       para "I want advanced options [coming soon!]"
+       para "I want advanced install options"
       end
       @advpanel = stack :hidden => true do
        flow do
@@ -140,7 +140,14 @@ Shoes.app height: 600, :title =>"Shoes Packager" do
        #flow do
        #   check; para "I have gems to be installed"
        #end
-       para "Add app icons - Always add a .png"
+       para "Installer icon (.png) only. Mandatory!"
+       flow do
+         button "Installer icon:" do
+           icf = ask_open_file
+           @options['installer-icon'] = icf if icf
+         end
+       end
+       para "Add App icons for the destination"
        flow do
           button "Windows .ico file" do
             wicf = ask_open_file
@@ -289,7 +296,7 @@ Shoes.app height: 600, :title =>"Shoes Packager" do
 		          @dnlstat.text = "Download completed"
 		          platform_repack
 		        }
-	    end
+	      end
       end
     else
       platform_repack
@@ -382,6 +389,7 @@ Shoes.app height: 600, :title =>"Shoes Packager" do
     @options['dnlpath'] = "/public/select/win32.rb"
     @options['packtmp'] = LIB_DIR
     @options['relname'] = Shoes::RELEASE_NAME
+    puts @options
     PackShoes.dnlif_exe @options
     @pkgstat = inscription "Done packaging #{$script_path} for Windows"
  end

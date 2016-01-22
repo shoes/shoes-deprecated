@@ -9,18 +9,15 @@ Shoes.app do
   shyname = File.basename("#{SHYFILE}")
   curloc = Dir.getwd()    # most likely to be a temp dir somewhere
   Shoes::show_console
-  require 'byebug'
-  #byebug
   shypath = File.join(curloc,shyname)
   shyfile = File.open(shypath,'rb')
   hdr = Shy.__hdr__(shyfile)
   # read the .yaml 
   @opts = YAML.load_file(File.basename(shypath,'.shy')+'.yaml')
-  if @opts['png']
-    ico = File.basename(@opts['png'])
-    app.set_window_icon_path(File.join(curloc, ico))
+  if File.exist? 'installer-icon.png'
+    app.set_window_icon_path('installer-icon.png')
   else
-    alert "Inform developer that they forgot to include a .png"
+    alert "Inform developer that they forgot to include an installer-icon.png"
   end
   app.set_window_title "#{hdr.name} Installer"
   stack do
@@ -123,7 +120,8 @@ you pick a folder to put it's files in."
     exe.save(launch.gsub(/\.\w+$/, '') + ".exe") 
     f.close
 
-    # we want to create a .lnk on the desktop
+    # we want to create a .lnk on the desktop here
+
     # return path to Shoes/eval - NOT the created exe. 
     return "#{installdir}/#{launch}"
   end

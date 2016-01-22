@@ -609,6 +609,7 @@ END
 	    'SHYFILE' => "#{defshy}"
     end
     # TODO: Copy gems.zip here.
+    FileUtils.cp(opts['installer-icon'], File.join(tmp_dir, "installer-icon.png"))
     FileUtils.cp(opts['png'], File.join(tmp_dir,"#{appname}.png")) if opts['png']
     FileUtils.cp(opts['ico'], File.join(tmp_dir,"#{appname}.ico")) if opts['ico']
     FileUtils.cp(opts['icns'], File.join(tmp_dir,"#{appname}.icns")) if opts['icns']
