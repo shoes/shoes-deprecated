@@ -39,8 +39,22 @@ you pick a folder to put it's files in."
         @desklnk = check do
           @opts['desklnk'] = @desklnk.checked?
         end
-        para "Create .lnk on Desktop?"
+        para "Create Shortcut on Desktop?"
       end
+      flow do 
+        @opts['replicon'] = false
+        @replicon = check do
+          @opts['replicon'] = @replicon.checked?
+         end
+        para "Change Shoes icon to yours. Not recommended."
+      end
+    end
+    flow do
+      @opts['gem-install'] = true;
+      @gemsOK = check do
+        @opts['gem-install'] = @gemsOK.checked?
+      end
+      para "Allow gems to be installed? This can change Shoes for all."
     end
     flow do
       button "Install #{hdr.name}" do
@@ -300,4 +314,5 @@ END
       end
     end
   end
+  
 end
