@@ -137,9 +137,12 @@ Shoes.app height: 600, :title =>"Shoes Packager" do
          end
          para "Expand shy in users directory"
        end
-       #flow do
-       #   check; para "I have gems to be installed"
-       #end
+       flow do
+          button "Gempack..." do
+           gp = ask_open_file
+           @options['gempack'] = gp if gp
+          end
+       end
        para "Installer icon (.png) only. Mandatory!"
        flow do
          button "Installer icon:" do
