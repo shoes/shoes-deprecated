@@ -13,7 +13,7 @@
 #include "shoes/effects.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cVideo, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cSlider, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
+VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cSlider, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE cTextEditBox;
 VALUE cSvgHandle, cSvg;
 VALUE eVlcError, eImageError, eInvMode, eNotImpl;
@@ -626,9 +626,6 @@ shoes_is_element_p(VALUE ele, unsigned char any)
     (any && (dmark == shoes_http_mark || dmark == shoes_timer_mark ||
              dmark == shoes_color_mark || dmark == shoes_link_mark ||
              dmark == shoes_text_mark))
-#ifdef VIDEO
-    || dmark == shoes_video_mark
-#endif
   );
 }
 
@@ -3979,7 +3976,7 @@ EVENT_COMMON(control, control, click)
 EVENT_COMMON(control, control, change)
 CLASS_COMMON(text)
 REPLACE_COMMON(text)
-#ifdef VIDEO
+#ifdef VIDEO_C_VLC
 PLACE_COMMON(video)
 CLASS_COMMON(video)
 #endif
@@ -4615,6 +4612,8 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "toggle", CASTHOOK(shoes_canvas_toggle), 0);
   rb_define_method(cCanvas, "remove", CASTHOOK(shoes_canvas_remove), 0);
   rb_define_method(cCanvas, "refresh_slot", CASTHOOK(shoes_canvas_refresh_slot), 0);
+  rb_define_method(cCanvas, "cursor=", CASTHOOK(shoes_canvas_get_cursor), 0);
+  rb_define_method(cCanvas, "cursor=", CASTHOOK(shoes_canvas_set_cursor), 1);
 
   cShoes = rb_define_class("Shoes", cCanvas);
   rb_include_module(cShoes, cTypes);
@@ -4840,39 +4839,8 @@ shoes_ruby_init()
   rb_define_alloc_func(cEffect, shoes_effect_alloc);
   rb_define_method(cEffect, "draw", CASTHOOK(shoes_effect_draw), 2);
   rb_define_method(cEffect, "remove", CASTHOOK(shoes_basic_remove), 0);
-
-#ifdef VIDEO
-  cVideo    = rb_define_class_under(cTypes, "Video", rb_cObject);
-  rb_define_alloc_func(cVideo, shoes_video_alloc);
-  rb_define_method(cVideo, "draw", CASTHOOK(shoes_video_draw), 2);
-  rb_define_method(cVideo, "remove", CASTHOOK(shoes_video_remove), 0);
-  rb_define_method(cVideo, "app", CASTHOOK(shoes_canvas_get_app), 0);
-  rb_define_method(cVideo, "parent", CASTHOOK(shoes_video_get_parent), 0);
-  rb_define_method(cVideo, "style", CASTHOOK(shoes_video_style), -1);
-  rb_define_method(cVideo, "path", CASTHOOK(shoes_video_get_path), 0);
-  rb_define_method(cVideo, "path=", CASTHOOK(shoes_video_set_path), 1);
-  rb_define_method(cVideo, "hide", CASTHOOK(shoes_video_hide), 0);
-  rb_define_method(cVideo, "show", CASTHOOK(shoes_video_show), 0);  
-  rb_define_method(cVideo, "move", CASTHOOK(shoes_video_move), 2);
-  rb_define_method(cVideo, "displace", CASTHOOK(shoes_video_displace), 2);  
-  rb_define_method(cVideo, "top", CASTHOOK(shoes_video_get_top), 0);
-  rb_define_method(cVideo, "left", CASTHOOK(shoes_video_get_left), 0);
-  rb_define_method(cVideo, "width", CASTHOOK(shoes_video_get_width), 0);
-  rb_define_method(cVideo, "height", CASTHOOK(shoes_video_get_height), 0);
-  rb_define_method(cVideo, "playing?", CASTHOOK(shoes_video_is_playing), 0);
-  rb_define_method(cVideo, "play", CASTHOOK(shoes_video_play), 0);
-//  rb_define_method(cVideo, "previous", CASTHOOK(shoes_video_prev), 0);
-//  rb_define_method(cVideo, "next", CASTHOOK(shoes_video_next), 0);
-  rb_define_method(cVideo, "pause", CASTHOOK(shoes_video_pause), 0);
-  rb_define_method(cVideo, "stop", CASTHOOK(shoes_video_stop), 0);
-  rb_define_method(cVideo, "length", CASTHOOK(shoes_video_get_length), 0);
-  rb_define_method(cVideo, "position", CASTHOOK(shoes_video_get_position), 0);
-  rb_define_method(cVideo, "position=", CASTHOOK(shoes_video_set_position), 1);
-  rb_define_method(cVideo, "time", CASTHOOK(shoes_video_get_time), 0);
-  rb_define_method(cVideo, "time=", CASTHOOK(shoes_video_set_time), 1);
-  rb_define_method(cVideo, "volume", CASTHOOK(shoes_video_get_volume), 0);
-  rb_define_method(cVideo, "volume=", CASTHOOK(shoes_video_set_volume), 1);
-#endif
+  
+  shoes_ruby_video_init();
 
   cPattern = rb_define_class_under(cTypes, "Pattern", rb_cObject);
   rb_define_alloc_func(cPattern, shoes_pattern_alloc);

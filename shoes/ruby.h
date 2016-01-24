@@ -106,6 +106,7 @@ long rb_ary_index_of(VALUE, VALUE);
 VALUE rb_ary_insert_at(VALUE, long, int, VALUE);
 VALUE shoes_safe_block(VALUE, VALUE, VALUE);
 void shoes_ruby_init(void);
+void shoes_ruby_video_init(void);
 
 #define BEZIER 0.55228475;
 
@@ -241,7 +242,7 @@ SYMBOL_DEFS(SYMBOL_EXTERN);
   f(".sup", sup, -1); \
   f("+background", background, -1); \
   f("+border", border, -1); \
-  f("+video", video, -1); \
+  /*f("+video", video, -1);*/ \
   f(".blur", blur, -1); \
   f(".glow", glow, -1); \
   f(".shadow", shadow, -1); \
@@ -305,6 +306,6 @@ SYMBOL_DEFS(SYMBOL_EXTERN);
   f(".dialog", dialog, -1); \
   f(".window_plain", window_plain, 0); \
   f(".dialog_plain", dialog_plain, 0); \
-  f("._snapshot", snapshot, -1)
+  f("._snapshot", snapshot, -1); \
 
 #endif
