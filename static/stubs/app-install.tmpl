@@ -1,10 +1,11 @@
-# installs #{SHYFILE} user specified directory
+# installs #{SHYFILE} into user specified directory
+# This code runs in the DESTINATION Shoes, not in the packaging Shoes
 require 'shoes/shy'
 require 'fileutils'
 require 'rubygems/package'
 require 'shoes/winject'
 require 'yaml'
-# not easy to debug. Perhaps byebug could help?
+# not easy to debug. 
 Shoes.app do
   shyname = File.basename("#{SHYFILE}")
   curloc = Dir.getwd()    # most likely to be a temp dir somewhere
@@ -37,17 +38,18 @@ you pick a folder to put it's files in."
     end
     if RUBY_PLATFORM =~ /mingw/
       flow do
-        @desklnk = check do
+        @opts['desklnk']= true
+        @desklnk = check :checked => true do
           @opts['desklnk'] = @desklnk.checked?
         end
         para "Create Shortcut on Desktop?"
       end
       flow do 
         @opts['replicon'] = false
-        @replicon = check do
+        @replicon = check :checked => false do
           @opts['replicon'] = @replicon.checked?
          end
-        para "Change Shoes icon to yours. Not recommended."
+        para "Delete Shoes from Desktop. Not recommended."
       end
     end
     if gempack
@@ -76,43 +78,33 @@ you pick a folder to put it's files in."
           when /mingw/ 
             iconpath = Dir.glob("#{install_top}/*.ico")[0]
             if ! (File.exist? iconpath)
-              alert "Developer #{hdr.creator} did not include an .ico! Can not Install."
+              alert "Developer #{hdr.creator} did not include an .ico file! Can not Install."
               quit
             end
+            # Delete Shoes desktop .lnk
+            if @opts['replicon'] 
+              FileUtils.rm File.join("#{ENV['HOME']}",'Desktop/Shoes.lnk')
+            end
             app = install_windows hdr, @dirfld.text, iconpath
+            alert "Installed. Please launch from from Desktop or installation directory"
           when /darwin/
             iconpath = Dir.glob("#{install_top}/*.icns")[0]
             if ! (File.exist? iconpath)
-              alert "Developer #{hdr.creator} did not include an .icns! Can not Install."
+              alert "Developer #{hdr.creator} did not include an .icns file! Can not Install."
               quit
             end
             app = install_osx hdr, @dirfld.text, iconpath
+            alert "Installed. Please launch from where you installed it"
           else # assume linux
             iconpath = Dir.glob("#{install_top}/*.png")[0]
             app = install_linux hdr, @dirfld.text, iconpath, @catsfld.text
-            alert "Will launch #{app}"
+            alert "Installed. Check your menus. You may need to re-login"
           end
         end
-        if @run_it.checked?
-            if ! @opts['expandshy'] 
-              base = File.basename(shyfile, ".shy")
-              @tmpdir = tmpdir = "%s/shoes-%s.%d" % [Dir.tmpdir, base, $$]
-              FileUtils.mkdir_p tmpdir
-              Dir.chdir(tmpdir)
-              extract shyfile
-              app = File.join(tmpdir, hdr.launch)
-           else
-              Dir.chdir @dirfld.text
-            end
-            str = File.open(app).read
-            eval(str, TOPLEVEL_BINDING)
-            self.close
-        elsif confirm("Quit") 
-          quit
-        end
-      end     
-      flow { @run_it = check; para "Start #{hdr.name}" }
-      @run_it.checked = true
+        # still  in the install button context and its finished it's work
+        # clean up. Lots of temps in Windows that have to be deleted
+        quit
+      end
     end
   end
   
@@ -122,25 +114,46 @@ you pick a folder to put it's files in."
   #
   def install_windows hdr, installdir, iconpath
     # we want to create an .exe using the static/shoes-stub.exe and winject
-    # and the .ico file. 
+    # and the .ico file and a tiny script. So it looks like an app.exe
+    # The Tiny script launches the real script in the new directory
+    # Butt ugly, but works.
     if @opts['expandshy']
       launch = hdr.launch
     else
       launch = File.basename(@opts['app'])
     end
-    f = File.open(launch, 'rb')
+    # launch is the real script. curloc is where it is.
+    curloc = Dir.getwd
+    tiny_script = "tiny-#{launch}"
+    File.open(tiny_script, 'w') do |f|
+      f.write "Dir.chdir(\"#{curloc}\") do\n"
+      f.write "  eval(File.read(\"#{launch}\"))\n"
+      f.write "end\n"
+    end
+    f = File.open(tiny_script, 'rb')
     inf = File.join(DIR, "static", "stubs", 'shoes-stub.exe')
     exe = Winject::EXE.new(inf)
-    exe.inject_string(Winject::EXE::SHOES_APP_NAME, launch)
+    exe.inject_string(Winject::EXE::SHOES_APP_NAME, tiny_script)
     exe.inject_file(Winject::EXE::SHOES_APP_CONTENT, f.read)
     exe.inject_string(Winject::EXE::SHOES_DOWNLOAD_SITE, @opts['dnlhost'])
     exe.inject_string(Winject::EXE::SHOES_DOWNLOAD_PATH, @opts['dnlpath'])
     exe.inject_icons(iconpath)
-    exe.save(launch.gsub(/\.\w+$/, '') + ".exe") 
+    exepath = launch.gsub(/\.\w+$/, '') + ".exe"
+    exe.save(exepath) 
     f.close
-
-    # we want to create a .lnk on the desktop here
-
+    # delete tiny_script
+    FileUtils.rm tiny_script
+    # Create a .lnk on the desktop - pointing to the .exe we built
+    if @opts['desklnk']
+      require 'win32/shortcut'
+      exepath = File.join(curloc, exepath)
+      Win32::Shortcut.new("#{ENV['HOME']}/Desktop/#{hdr.name}.lnk") do |s|
+        s.description = hdr.name
+        s.path = File.join exepath
+        s.show_cmd = Win32::Shortcut::SHOWNORMAL
+        s.working_directory = curloc
+      end
+    end
     # return path to Shoes/eval - NOT the created exe. 
     return "#{installdir}/#{launch}"
   end
