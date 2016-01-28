@@ -85,43 +85,89 @@ module Vlc
         'char *psz_description' 
     ]
     
+    Media_stats = struct [
+        #/* Input */
+        'int         i_read_bytes',
+        'float       f_input_bitrate',
+        #/* Demux */
+        'int         i_demux_read_bytes',
+        'float       f_demux_bitrate',
+        'int         i_demux_corrupted',
+        'int         i_demux_discontinuity',
+        #/* Decoders */
+        'int         i_decoded_video',
+        'int         i_decoded_audio',
+        #/* Video Output */
+        'int         i_displayed_pictures',
+        'int         i_lost_pictures',
+        #/* Audio output */
+        'int         i_played_abuffers',
+        'int         i_lost_abuffers',
+        #/* Stream output */
+        'int         i_sent_packets',
+        'int         i_sent_bytes',
+        'float       f_send_bitrate'
+    ]
+    
     @@vlc_import_done = false
     def self.import_symbols    
         typealias "uint32_t", "unsigned int"
         typealias "libvlc_time_t", "long long"
-        typealias "libvlc_instance_t", "libvlc_instance_t"
-        typealias "libvlc_media_t", "libvlc_media_t"
         typealias "libvlc_track_type_t", "int"
-        typealias "libvlc_media_player_t", "libvlc_media_player_t"
-
 
         extern 'libvlc_instance_t * libvlc_new( int , const char* )'
+        extern 'const char* libvlc_get_version()'
+        
         ### Media
-        extern 'libvlc_media_t * libvlc_media_new_path(libvlc_instance_t*, const char* )'
+        extern 'libvlc_media_t* libvlc_media_new_path(libvlc_instance_t*, const char* )'
+        extern 'libvlc_media_t* libvlc_media_new_location(libvlc_instance_t*, const char* )'
         extern 'void libvlc_media_parse( libvlc_media_t* )'
+        extern 'int libvlc_media_is_parsed( libvlc_media_t* )'
         extern 'unsigned int libvlc_media_tracks_get( libvlc_media_t*, libvlc_media_track_t*** )'
         extern 'void libvlc_media_tracks_release( libvlc_media_track_t**, unsigned int )'
         extern 'void libvlc_media_release( libvlc_media_t* )'
+        extern 'int libvlc_media_get_stats( libvlc_media_t*, struct libvlc_media_stats_t* )'
 
         ### Media player
         extern 'libvlc_media_player_t* libvlc_media_player_new( libvlc_instance_t* )'
-        extern 'void libvlc_media_player_set_media( libvlc_media_player_t*, libvlc_media_t* )'
-        extern 'int libvlc_media_player_play( libvlc_media_player_t* )'
-        extern 'void libvlc_media_player_stop( libvlc_media_player_t* )'
-        extern 'void libvlc_media_player_pause( libvlc_media_player_t* )'
+#        extern 'void libvlc_media_player_set_media( libvlc_media_player_t*, libvlc_media_t* )'
+#        extern 'int libvlc_media_player_play( libvlc_media_player_t* )'
+#        extern 'void libvlc_media_player_stop( libvlc_media_player_t* )'
+#        extern 'void libvlc_media_player_pause( libvlc_media_player_t* )'
+#        extern 'int libvlc_media_player_is_playing( libvlc_media_player_t*)'
         extern 'uint32_t libvlc_media_player_get_xwindow( libvlc_media_player_t*)'
         extern 'void libvlc_media_player_set_xwindow( libvlc_media_player_t*, uint32_t)'
-        extern 'int libvlc_media_player_is_playing( libvlc_media_player_t*)'
         extern 'libvlc_time_t libvlc_media_player_get_time( libvlc_media_player_t* )'
         extern 'void libvlc_media_player_set_time(libvlc_media_player_t*, libvlc_time_t )'
         extern 'libvlc_time_t libvlc_media_player_get_length( libvlc_media_player_t* )'
         extern 'float libvlc_media_player_get_position( libvlc_media_player_t* )'
         extern 'void libvlc_media_player_set_position( libvlc_media_player_t*, float )'
         
+        ### Media List
+        extern 'libvlc_media_list_t* libvlc_media_list_new( libvlc_instance_t* )'
+        extern 'int libvlc_media_list_add_media( libvlc_media_list_t*, libvlc_media_t* )'
+        extern 'int libvlc_media_list_remove_index( libvlc_media_list_t*, int )'
+        extern 'int libvlc_media_list_count( libvlc_media_list_t* )'
+        extern 'void libvlc_media_list_lock( libvlc_media_list_t* )'
+        extern 'void libvlc_media_list_unlock( libvlc_media_list_t* )'
+        
+        ### Media List Player
+        extern 'libvlc_media_list_player_t* libvlc_media_list_player_new(libvlc_instance_t* )'
+#        Not avalaible in vlc 2.2.0
+#        extern 'libvlc_media_player_t* libvlc_media_list_player_get_media_player( libvlc_media_list_player_t* )'
+        extern 'void libvlc_media_list_player_set_media_player( libvlc_media_list_player_t*, libvlc_media_player_t* )'
+        extern 'void libvlc_media_list_player_set_media_list( libvlc_media_list_player_t*, libvlc_media_list_t* )'
+        extern 'int libvlc_media_list_player_play( libvlc_media_list_player_t* )'
+        extern 'void libvlc_media_list_player_stop( libvlc_media_list_player_t* )'
+        extern 'void libvlc_media_list_player_pause( libvlc_media_list_player_t* )'
+        extern 'int libvlc_media_list_player_is_playing( libvlc_media_list_player_t* )'
+        
         ### Audio controls
         extern 'int libvlc_audio_get_volume( libvlc_media_player_t* )'
         extern 'int libvlc_audio_set_volume( libvlc_media_player_t*, int )'
         
+        ### Video Controls
+        extern 'int libvlc_video_get_size( libvlc_media_player_t*, unsigned int, unsigned int*, unsigned int* )'
         
         @@vlc_import_done = true
     end
@@ -172,18 +218,24 @@ class Shoes::VideoVlc
     include Vlc
     
     attr_accessor :autoplay
-    attr_reader :path, :player, :width, :height, :loaded
+    attr_reader :path, :player, :width, :height, :loaded, :version,
+                :track_width, :track_height
     
     def initialize(app, path, attr=nil, audio=false)
         @path = path
         attr ||= {}
-        @autoplay = (attr[:autoplay]) || false
+        @autoplay = attr[:autoplay] || false
         
         # what should we do with "--no-xlib"/XInitThreads(), seems controversial ...
         # Do we need threaded xlib in shoes/vlc ?
         @vlci = libvlc_new(0, nil)
+        @version = libvlc_get_version
         
-        @player = Vlc::libvlc_media_player_new(@vlci)
+        @player = libvlc_media_player_new(@vlci)
+        @list_player = libvlc_media_list_player_new(@vlci)
+        libvlc_media_list_player_set_media_player(@list_player, @player)
+        @medialist = libvlc_media_list_new(@vlci)
+        libvlc_media_list_player_set_media_list(@list_player, @medialist)
         
         @loaded = load_media @path
         
@@ -191,7 +243,7 @@ class Shoes::VideoVlc
             attr[:width] = attr[:height] = 0
             attr[:hidden] = true
         end    
-        @video = app.video2 attr
+        @video = app.video_c attr
         
         
         @video.parent.start { 
@@ -207,62 +259,41 @@ class Shoes::VideoVlc
         } 
     end
     
-    # would like to get info on tracks, notably width and height of video tracks
-    # not mandatory !
     def load_media(path)
-        @media = Vlc::libvlc_media_new_path(@vlci, path)
-        if @media.null? or @path == ""
-            return nil
+        @media = 
+        if path =~ /:\/\//
+            libvlc_media_new_location(@vlci, path)
         else
-            libvlc_media_player_set_media(@player, @media)
-            libvlc_media_release(@media)
+            libvlc_media_new_path(@vlci, path)
         end
+        return nil if (@media.null? or @path == "")
         
-        Vlc::libvlc_media_parse(@media)
+        libvlc_media_list_lock(@medialist)
+        libvlc_media_list_remove_index(@medialist, 0) if (libvlc_media_list_count(@medialist) != 0) 
+        libvlc_media_list_add_media(@medialist, @media);
+        libvlc_media_list_unlock(@medialist)
         
-        # allocating space for 5 tracks [ 10, more ? ]
-#        tracks_alloc = Fiddle::Pointer[' ' * Vlc::Media_track.size * 5]
-        tracks_alloc = Fiddle::Pointer.malloc(Vlc::Media_track.size * 5)
-        n_tracks = Vlc::libvlc_media_tracks_get( @media, tracks_alloc.ref )
+        libvlc_media_parse(@media)
+#        parsed = libvlc_media_is_parsed(@media)
+#        puts "parsed ? #{parsed}"
+        libvlc_media_release(@media)
+        
+        tracks_buf = Fiddle::Pointer[' ' * Media_track.size * 5].ptr
+        n_tracks = libvlc_media_tracks_get( @media, tracks_buf.ref )
+#        puts " n tracks = #{n_tracks}"
+
         
         (0...n_tracks).each do |i|
-            track = Vlc::Media_track.new(tracks_alloc.to_i + (Vlc::Media_track.size*i))
-            
-            puts "      i_type : #{track.i_type.unfold('I!')}"
-            if track.i_type.to_s.unpack('i')[0] == Vlc::LIBVLC_TRACK_VIDEO
-                puts "      VIDEO on track n #{i}"
-#                @width = track.mt_union.video.i_width
-#                @height = track.mt_union.video.i_height
-            end
-            if track.i_type == Vlc::LIBVLC_TRACK_AUDIO
-                puts "      AUDIO on track n #{i}"
+            w_ptr = ' ' * 4
+            h_ptr = ' ' * 4
+            vid = libvlc_video_get_size(@player, i, w_ptr, h_ptr)
+            if vid == 0
+                @track_width =  w_ptr.unpack("I")[0]
+                @track_height = h_ptr.unpack("I")[0]
             end
             
-            puts "set_media ** track " + track.inspect
-            puts "      i_codec : #{track.i_codec.to_s}" # .unpack('L')
-            puts "      i_original_fourcc #{track.i_original_fourcc.to_s}" # .unpack('L')
-            puts "      i_id : #{track.i_id.to_s}" # .unpack('i')
-            puts "      i_type.to_s : #{track.i_type.to_s}"
-            puts "      i_type : #{track.i_type.to_s.unpack('i')}"
-                
-#            puts "      i_bitrate : #{track.i_bitrate.to_s.unpack('I')}"
-#            unless track.psz_language.null?
-#                puts "      psz_language : #{track.psz_language.unfold('c')}"
-#            end
-#            unless track.psz_description.null? 
-#                puts "      psz_description : #{track.psz_description.inspect}" if i == 0
-#            end
-            
-            # get a pointer pointing at the beginning of the ruby array 'kind' : Fiddle::Pointer[track.kind[0]]
-            # get the address : to_i
-            # create a pointer of length 8 bytes at that address, should be a pointer to the element of the 'fake' union
-            fp = Fiddle::Pointer.new(Fiddle::Pointer[track.kind[0]].to_i, 8)
-            puts "      MT_union Video i_height? : #{Vlc::Video_track.new(fp.ref).i_height.to_s.unpack("I")}" if i == 0
-            puts "      MT_union Video i_frame_rate_den? : #{Vlc::Video_track.new(fp.ref).i_frame_rate_den.to_s.unpack("I")}" if i == 0
-            puts "      MT_union Audio i_channels? : #{Vlc::Audio_track.new(fp.ref).i_channels.to_s.unpack("I")}" if i == 1
-
         end
-        Vlc::libvlc_media_tracks_release(tracks_alloc, n_tracks);
+        libvlc_media_tracks_release(tracks_buf, n_tracks);
         
         true
     end
@@ -276,20 +307,20 @@ class Shoes::VideoVlc
     end
     
     def play
-        libvlc_media_player_play(@player)
+        libvlc_media_list_player_play(@list_player)
     end
     
     def pause
-        libvlc_media_player_pause(@player)
+        libvlc_media_list_player_pause(@list_player)
     end
     
     def stop
-        libvlc_media_player_stop(@player)
+        libvlc_media_list_player_stop(@list_player)
     end
     
     def playing?
 #        if (self_t->init == 1) # TODO check if needed on medialistplayer
-        libvlc_media_player_is_playing(@player) == 1 ? true : false
+        libvlc_media_list_player_is_playing(@list_player) == 1 ? true : false
     end
     
     def volume
@@ -304,7 +335,7 @@ class Shoes::VideoVlc
     
     def length
         # in ms, or -1 if there is no media.
-        libvlc_media_player_get_length(@player) #(bug, might be removed)
+        libvlc_media_player_get_length(@player) #(buggy, might be removed)
     end
     
     def time
@@ -324,12 +355,14 @@ class Shoes::VideoVlc
      
     def position=(pos)
         #  percentage between 0.0 and 1.0
-        libvlc_media_player_get_position(@player, pos)
+        libvlc_media_player_set_position(@player, pos)
     end
     
-    # redirecting to C video methods
+    # redirecting to shoes C video methods
     def show; @video.show; end
     def hide; @video.hide; end
+    def parent; @video.parent; end
+    def remove; @video.remove; end
     def displace(x, y); @video.displace(x, y); end
     
 end
