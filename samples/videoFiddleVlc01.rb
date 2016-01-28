@@ -134,7 +134,7 @@ Shoes.app width: 625, height: 540, resizable: false do
             @ctrls = para CtrlsText
             para "    autoplay :" 
             @chk = check checked: @svlc.autoplay, margin: [0,0,10,0] do |c| 
-                @svlc.autoplay = c.checked? ? true : false
+                @svlc.autoplay = c.checked?
             end
             
             driven = @svlc.method(:volume=)
@@ -150,11 +150,35 @@ Shoes.app width: 625, height: 540, resizable: false do
                     @svlc.path = file 
                     @info.text = ""
                     @svlc.autoplay ? set_controls : reset_controls
-                    @anim.start
                 end
+                @anim.start
+            end
+            
+            button "Open stream" do
+                @url_slot.show; @url.show
+                @url.focus
+                app.slot.scroll_top = app.slot.scroll_max
             end
             
             button "Quit", margin_left: 50 do; exit end;
+        end
+        
+        @url_slot = flow hidden: true do
+            para  "enter the url of the media you would like to be entertained with"
+            @url = edit_line "", width: 450
+            button "Play" do
+                unless @url.text.nil? or @url.text.empty?
+                    @anim.stop
+                    @svlc.path = @url.text
+                    @info.text = ""
+                    @url.text = ""
+                    @svlc.autoplay ? set_controls : reset_controls
+                    @anim.start
+                end
+                
+                @url_slot.hide; @url.hide
+            end
+            button("cancel") { @url_slot.hide; @url.hide }
         end
         
     end
@@ -173,6 +197,7 @@ Shoes.app width: 625, height: 540, resizable: false do
         @controls.style(*LinkStyleStoppeddHover)
         @controls.style(*LinkStyleStopped)
         @controls.refresh_slot
+        @ctrls.text = CtrlsText
         @vol_knob.tint = red
     end
     

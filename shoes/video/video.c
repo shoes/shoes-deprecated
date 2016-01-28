@@ -174,12 +174,13 @@ VALUE shoes_app_c_video(int argc, VALUE *argv, VALUE self) {
   return shoes_canvas_c_video(argc, argv, canvas);
 }
 
-void shoes_ruby_video_init() {       // called inside shoes_ruby_init, ruby.c
+
+// called inside shoes_ruby_init, ruby.c
+void shoes_ruby_video_init() {       
   
-  
-  /* video2 so we can use method 'video' on ruby side */ //TODO better name
-  rb_define_method(cCanvas, "+video2" + 1, CASTHOOK(shoes_canvas_c_video), -1); /* from CANVAS_DEFS(RUBY_M) in ruby.c */
-  rb_define_method(cApp, "+video2" + 1, CASTHOOK(shoes_app_c_video), -1);       /**/
+  /* video_c so we can use method 'video' on ruby side */ 
+  rb_define_method(cCanvas, "+video_c" + 1, CASTHOOK(shoes_canvas_c_video), -1); /* from CANVAS_DEFS(RUBY_M) in ruby.c */
+  rb_define_method(cApp, "+video_c" + 1, CASTHOOK(shoes_app_c_video), -1);       /**/
   
   cVideo = rb_define_class_under(cTypes, "Video", rb_cObject);
   rb_define_alloc_func(cVideo, shoes_video_alloc);

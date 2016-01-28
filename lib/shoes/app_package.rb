@@ -108,19 +108,19 @@ Shoes.app height: 600, :title =>"Shoes Packager" do
 	    end
 	  end
     @options_panel = stack do
-     para "Include a full copy of Shoes (8 to 15 MB) or download if needed?"
+     para "Include a full copy of Shoes (10 to 17 MB) or download if needed?"
       flow do
         @inclcheck = check; para "Shoes will be included with my app."
       end
       @inclcheck.checked = @options['inclshoes'] = false
       para "Advanced installer -- Must be a .shy (directory) to package"
       flow do
-        @defadvopts = check :checked => false, :state =>"disabled" do
+        @defadvopts = check :checked => false, :state =>"enabled" do
           @advpanel.show if @defadvopts.checked?
           @advpanel.hide if !@defadvopts.checked?
           @options['advopts'] = @defadvopts.checked?
         end
-       para "I want advanced options [coming soon!]"
+       para "I want advanced install options"
       end
       @advpanel = stack :hidden => true do
        flow do
@@ -137,10 +137,20 @@ Shoes.app height: 600, :title =>"Shoes Packager" do
          end
          para "Expand shy in users directory"
        end
-       #flow do
-       #   check; para "I have gems to be installed"
-       #end
-       para "Add app icons - Always add a .png"
+       flow do
+          button "Gempack..." do
+           gp = ask_open_file
+           @options['gempack'] = gp if gp
+          end
+       end
+       para "Installer icon (.png) only. Mandatory!"
+       flow do
+         button "Installer icon:" do
+           icf = ask_open_file
+           @options['installer-icon'] = icf if icf
+         end
+       end
+       para "Add App icons for the destination"
        flow do
           button "Windows .ico file" do
             wicf = ask_open_file
@@ -289,7 +299,7 @@ Shoes.app height: 600, :title =>"Shoes Packager" do
 		          @dnlstat.text = "Download completed"
 		          platform_repack
 		        }
-	    end
+	      end
       end
     else
       platform_repack
@@ -382,6 +392,7 @@ Shoes.app height: 600, :title =>"Shoes Packager" do
     @options['dnlpath'] = "/public/select/win32.rb"
     @options['packtmp'] = LIB_DIR
     @options['relname'] = Shoes::RELEASE_NAME
+    puts @options
     PackShoes.dnlif_exe @options
     @pkgstat = inscription "Done packaging #{$script_path} for Windows"
  end

@@ -52,6 +52,9 @@ module PackShoes
       puts "injecting #{opts['winargs']}"
       exe.inject_string(Winject::EXE::SHOES_USE_ARGS, opts['winargs'])
     end
+    if opts['ico']
+      exe.inject_icons(opts['ico'])
+    end
     f2 = File.open(opts['shoesdist'],'rb')
     if blk 
       blk.call "Repack Shoes.exe #{opts['shoesdist']} distribution"
@@ -605,10 +608,15 @@ END
 	  rewrite a, File.join(DIR, "static", "stubs", "app-install.tmpl"),
 	    'SHYFILE' => "#{defshy}"
     end
-    # TODO: Copy gems.zip here.
+    FileUtils.cp(opts['installer-icon'], File.join(tmp_dir, "installer-icon.png"))
     FileUtils.cp(opts['png'], File.join(tmp_dir,"#{appname}.png")) if opts['png']
     FileUtils.cp(opts['ico'], File.join(tmp_dir,"#{appname}.ico")) if opts['ico']
     FileUtils.cp(opts['icns'], File.join(tmp_dir,"#{appname}.icns")) if opts['icns']
+    # Copy gemspack 
+    if opts['gempack'] 
+      puts "Copy gempack"
+      FileUtils.cp(opts['gempack'], File.join(tmp_dir, 'gempack.tgz'))
+    end
     # make a yaml to pass options the installer might need (expandshy for one)
     File.open(File.join(tmp_dir,"#{appname}.yaml"),'w') {|f| YAML.dump(opts, f)}
     # Create a shy header for the installer.
@@ -629,6 +637,26 @@ END
     # delete the +shy temp stuff
     #return defshy
     return File.join(shydir,"#{appname}-custom.shy")
+  end
+  
+  def PackShoes.tar_extract opened_file
+    Gem::Package::TarReader.new( Zlib::GzipReader.new(opened_file)) do |tar|
+      tar.each do |entry|
+        dest = entry.full_name
+	      if entry.directory?
+	        FileUtils.rm_rf dest unless File.directory? dest
+          FileUtils.mkdir_p dest, :mode => entry.header.mode, :verbose => false
+	      elsif entry.file?
+	        FileUtils.rm_rf dest unless File.file? dest
+	        File.open dest, "wb" do |f|
+	          f.print entry.read
+	         end
+	         FileUtils.chmod entry.header.mode, dest, :verbose => false
+        elsif entry.header.typeflag == '2' #Symlink!
+	         alert "Cannot convert Symlinks. Contact #{hdr.creator}"
+        end
+      end
+    end
   end
 
 end
