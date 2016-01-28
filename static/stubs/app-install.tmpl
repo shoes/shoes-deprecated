@@ -1,25 +1,26 @@
-# installs #{SHYFILE} user specified directory
+# installs #{SHYFILE} into user specified directory
+# This code runs in the DESTINATION Shoes, not in the packaging Shoes
 require 'shoes/shy'
 require 'fileutils'
 require 'rubygems/package'
 require 'shoes/winject'
 require 'yaml'
-# not easy to debug. Try copying the correct tmp while the installer is on screen
+# not easy to debug. 
 Shoes.app do
   shyname = File.basename("#{SHYFILE}")
-  #shyname = File.basename("/home/ccoupe/Projects/unshy/ytm.shy")
   curloc = Dir.getwd()    # most likely to be a temp dir somewhere
+  Shoes::show_console
   shypath = File.join(curloc,shyname)
   shyfile = File.open(shypath,'rb')
   hdr = Shy.__hdr__(shyfile)
   # read the .yaml 
   @opts = YAML.load_file(File.basename(shypath,'.shy')+'.yaml')
-  if @opts['png']
-    ico = File.basename(@opts['png'])
-    app.set_window_icon_path(File.join(curloc, ico))
+  if File.exist? 'installer-icon.png'
+    app.set_window_icon_path('installer-icon.png')
   else
-    alert "Inform developer that they forgot to include a .png"
+    alert "Inform developer that they forgot to include an installer-icon.png"
   end
+  gempack = File.exist? 'gempack.tgz'
   app.set_window_title "#{hdr.name} Installer"
   stack do
     para "#{hdr.name} version #{hdr.version} from #{hdr.creator}, requests that \
@@ -37,10 +38,24 @@ you pick a folder to put it's files in."
     end
     if RUBY_PLATFORM =~ /mingw/
       flow do
-        @desklnk = check do
+        @opts['desklnk']= true
+        @desklnk = check :checked => true do
           @opts['desklnk'] = @desklnk.checked?
         end
-        para "Create .lnk on Desktop?"
+        para "Create Shortcut on Desktop?"
+      end
+      flow do 
+        @opts['replicon'] = false
+        @replicon = check :checked => false do
+          @opts['replicon'] = @replicon.checked?
+         end
+        para "Delete Shoes from Desktop. Not recommended."
+      end
+    end
+    if gempack
+      flow do
+        @gemsOK = check :checked => true 
+        para "Allow gems to be installed?"
       end
     end
     flow do
@@ -48,6 +63,11 @@ you pick a folder to put it's files in."
         mkdir_p @dirfld.text
         install_top = curloc
         app = ''
+        if gempack && @gemsOK.checked?
+          if confirm "Install gems" 
+            gempack_helper 
+          end 
+        end
         Dir.chdir @dirfld.text do
           if @opts['expandshy']
             extract shyfile
@@ -58,43 +78,33 @@ you pick a folder to put it's files in."
           when /mingw/ 
             iconpath = Dir.glob("#{install_top}/*.ico")[0]
             if ! (File.exist? iconpath)
-              alert "Developer #{hdr.creator} did not include an .ico! Can not Install."
+              alert "Developer #{hdr.creator} did not include an .ico file! Can not Install."
               quit
             end
+            # Delete Shoes desktop .lnk
+            if @opts['replicon'] 
+              FileUtils.rm File.join("#{ENV['HOME']}",'Desktop/Shoes.lnk')
+            end
             app = install_windows hdr, @dirfld.text, iconpath
+            alert "Installed. Please launch from from Desktop or installation directory"
           when /darwin/
             iconpath = Dir.glob("#{install_top}/*.icns")[0]
             if ! (File.exist? iconpath)
-              alert "Developer #{hdr.creator} did not include an .icns! Can not Install."
+              alert "Developer #{hdr.creator} did not include an .icns file! Can not Install."
               quit
             end
             app = install_osx hdr, @dirfld.text, iconpath
+            alert "Installed. Please launch from where you installed it"
           else # assume linux
             iconpath = Dir.glob("#{install_top}/*.png")[0]
             app = install_linux hdr, @dirfld.text, iconpath, @catsfld.text
-            alert "Will launch #{app}"
+            alert "Installed. Check your menus. You may need to re-login"
           end
         end
-        if @run_it.checked?
-            if ! @opts['expandshy'] 
-              base = File.basename(shyfile, ".shy")
-              @tmpdir = tmpdir = "%s/shoes-%s.%d" % [Dir.tmpdir, base, $$]
-              FileUtils.mkdir_p tmpdir
-              Dir.chdir(tmpdir)
-              extract shyfile
-              app = File.join(tmpdir, hdr.launch)
-           else
-              Dir.chdir @dirfld.text
-            end
-            str = File.open(app).read
-            eval(str, TOPLEVEL_BINDING)
-            self.close
-        elsif confirm("Quit") 
-          quit
-        end
-      end     
-      flow { @run_it = check; para "Start #{hdr.name}" }
-      @run_it.checked = true
+        # still  in the install button context and its finished it's work
+        # clean up. Lots of temps in Windows that have to be deleted
+        quit
+      end
     end
   end
   
@@ -104,24 +114,46 @@ you pick a folder to put it's files in."
   #
   def install_windows hdr, installdir, iconpath
     # we want to create an .exe using the static/shoes-stub.exe and winject
-    # and the .ico file. 
+    # and the .ico file and a tiny script. So it looks like an app.exe
+    # The Tiny script launches the real script in the new directory
+    # Butt ugly, but works.
     if @opts['expandshy']
       launch = hdr.launch
     else
       launch = File.basename(@opts['app'])
     end
-    f = File.open(launch, 'rb')
+    # launch is the real script. curloc is where it is.
+    curloc = Dir.getwd
+    tiny_script = "tiny-#{launch}"
+    File.open(tiny_script, 'w') do |f|
+      f.write "Dir.chdir(\"#{curloc}\") do\n"
+      f.write "  eval(File.read(\"#{launch}\"))\n"
+      f.write "end\n"
+    end
+    f = File.open(tiny_script, 'rb')
     inf = File.join(DIR, "static", "stubs", 'shoes-stub.exe')
     exe = Winject::EXE.new(inf)
-    exe.inject_string(Winject::EXE::SHOES_APP_NAME, launch)
+    exe.inject_string(Winject::EXE::SHOES_APP_NAME, tiny_script)
     exe.inject_file(Winject::EXE::SHOES_APP_CONTENT, f.read)
     exe.inject_string(Winject::EXE::SHOES_DOWNLOAD_SITE, @opts['dnlhost'])
     exe.inject_string(Winject::EXE::SHOES_DOWNLOAD_PATH, @opts['dnlpath'])
     exe.inject_icons(iconpath)
-    exe.save(launch.gsub(/\.\w+$/, '') + ".exe") 
+    exepath = launch.gsub(/\.\w+$/, '') + ".exe"
+    exe.save(exepath) 
     f.close
-
-    # we want to create a .lnk on the desktop
+    # delete tiny_script
+    FileUtils.rm tiny_script
+    # Create a .lnk on the desktop - pointing to the .exe we built
+    if @opts['desklnk']
+      require 'win32/shortcut'
+      exepath = File.join(curloc, exepath)
+      Win32::Shortcut.new("#{ENV['HOME']}/Desktop/#{hdr.name}.lnk") do |s|
+        s.description = hdr.name
+        s.path = File.join exepath
+        s.show_cmd = Win32::Shortcut::SHOWNORMAL
+        s.working_directory = curloc
+      end
+    end
     # return path to Shoes/eval - NOT the created exe. 
     return "#{installdir}/#{launch}"
   end
@@ -233,10 +265,11 @@ END
       dtname = File.basename(@opts['app'],'.shy')+'.desktop'
       launch = File.basename(@opts['app'])
     end
+    
     File.open(dtname,'w') do |f|
         f << "[Desktop Entry]\n"
         f << "Name=#{hdr.name}\n"
-        f << "Exec=#{hdir}/.shoes/federales/shoes #{installdir}/#{launch}\n"
+        f << "Exec=#{hdir}/.shoes/#{Shoes::RELEASE_NAME}/shoes #{installdir}/#{launch}\n"
         f << "StartupNotify=true\n"
         f << "Terminal=false\n"
         f << "Type=Application\n"
@@ -248,6 +281,35 @@ END
       FileUtils.cp dtname, '.local/share/Applications' 
     end
     `xdg-desktop-menu install --novendor #{dtname}`
+    
+    # create an uninstall script - tricksy.
+    appname = dtname.gsub(/\.desktop$/, '');
+    File.open("#{appname}-uninstall.sh", 'w') do |f|
+        f << "#!/bin/bash\n"
+        f << "#pwd\n"
+        f << "cd {launchdir}\n"
+        f << "xdg-desktop-menu uninstall #{appname}.remove.desktop\n"
+        f << "xdg-desktop-menu uninstall #{appname}.desktop\n"
+        f << "cd ../\n"
+        f << "rm -rf #{installdir}\n"
+      end
+    chmod "+x", "#{appname}-uninstall.sh"
+      
+    # create the uninstall menu (.destop file)
+    File.open("#{appname}.remove.desktop",'w') do |f|
+        f << "[Desktop Entry]\n"
+        f << "Name=#{hdr.name} Uninstall\n"
+        f << "Exec=#{installdir}/#{appname}-uninstall.sh\n"
+        f << "StartupNotify=true\n"
+        f << "Terminal=false\n"
+        f << "Type=Application\n"
+        f << "Comment=#{hdr.creator}\n"
+        f << "Icon=#{cdir}/#{File.basename(iconpath)}\n"
+        f << "Categories=Other;Applications;#{cats}\n"
+    end
+    # finally create the uninstall menu
+    `xdg-desktop-menu install --novendor #{appname}.remove.desktop`
+    
     return "#{installdir}/#{launch}"
   end
  
@@ -270,4 +332,51 @@ END
       end
     end
   end
+  
+  def gem_copy_to_home srcdir, dest
+    gems = Dir.glob("#{srcdir}/*/*")
+    mkdir_p dest
+    #return if !confirm "#{gems} from #{srcdir} to #{dest}"
+    gems.each do |gempath|
+      # look inside for the gem.build_complete
+      gemn = File.split(gempath)[1]
+      if File.exists? File.join(gempath,'gem.build_complete')
+        extpath = File.join(dest, 'extensions', "#{Gem::Platform.local}", '2.1.0', gemn)
+        puts extpath
+        mkdir_p extpath
+        cp File.join(gempath,'gem.build_complete'), extpath
+      end
+      # copy the gemspec
+      specpath = File.join(dest, 'specifications')
+      mkdir_p specpath
+      specname = gemn+'.gemspec'
+      cp File.join(gempath,'gemspec'), File.join(specpath, specname)
+      # copy ext if we have one
+      if File.exists? File.join(gempath, 'ext')
+        puts "Copy ext #{gempath}"
+        mkdir_p File.join(dest, 'gems', gemn)
+        cp_r File.join(gempath, 'ext'), File.join(dest,'gems', gemn)
+      end
+      # copy lib if we have it
+      if File.exists? File.join(gempath, 'lib')
+        mkdir_p File.join(dest, 'gems', gemn)
+        cp_r File.join(gempath, 'lib'), File.join(dest,'gems', gemn)
+      end
+    end
+    gemlist = []
+    gems.each {|g| gemlist << File.basename(g) }
+    return gemlist
+  end
+
+  def gempack_helper tgzpath
+    # make a temp directory and unpack the tgzpath into it
+    # loop thru the 'special' gems in there and copy into GEM_DIR
+    td = Dir.mktmpdir('gempack')
+    tarf = File.open(tgzpath,'rb')
+    Dir.chdir(td) do |d|
+      tar_extract tarf # if confirm "Copy #{tgzpath} to #{GEM_DIR} via #{td}"
+    end
+    return gem_copy_to_home td, GEM_DIR
+  end
+  
 end
