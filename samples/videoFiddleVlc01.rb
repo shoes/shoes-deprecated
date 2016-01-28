@@ -125,7 +125,6 @@ Shoes.app width: 625, height: 540, resizable: false do
         @info = para "", margin_left: 25
         @cont = stack width: 600, height: 400 do
             @svlc = video "", width: 600, height: 400, margin_left: 25, autoplay: true
-            #@svlc = video "http://www.youtube.com/watch?v=N3R4qwsAafY", width: 600, height: 400, margin_left: 25, autoplay: true
         end
         
         @timeline = progress width: 1.0, height: 10, margin: [25,0,25,0]
