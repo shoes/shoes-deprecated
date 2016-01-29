@@ -4,6 +4,7 @@ require 'shoes/shy'
 require 'fileutils'
 require 'rubygems/package'
 require 'shoes/winject'
+require 'shoes/packshoes'
 require 'yaml'
 # not easy to debug. 
 Shoes.app do
@@ -64,9 +65,7 @@ you pick a folder to put it's files in."
         install_top = curloc
         app = ''
         if gempack && @gemsOK.checked?
-          if confirm "Install gems" 
-            gempack_helper 
-          end 
+          gempack_helper 'gempack.tgz'
         end
         Dir.chdir @dirfld.text do
           if @opts['expandshy']
@@ -374,9 +373,11 @@ END
     td = Dir.mktmpdir('gempack')
     tarf = File.open(tgzpath,'rb')
     Dir.chdir(td) do |d|
-      tar_extract tarf # if confirm "Copy #{tgzpath} to #{GEM_DIR} via #{td}"
+      PackShoes.tar_extract tarf # if confirm "Copy #{tgzpath} to #{GEM_DIR} via #{td}"
     end
-    return gem_copy_to_home td, GEM_DIR
+    gem_copy_to_home td, GEM_DIR
+    rm_r td
+    return
   end
   
 end

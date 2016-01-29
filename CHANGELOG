@@ -6,6 +6,12 @@
   Walkabout (3.3) will be less compatible with the unmaintained 3.1 and 4.0 (jRuby)
   We have interesting ideas of we what we do with Shoes that maybe very difficult
   to immplememt in Shoes 4. 
+  
+=== New with 3.3.1
+  * Uses Ruby 2.2.4. If you have native Gems that were built by earlier
+    versions, they may not work. - Uninstall and reinstall the gem. 
+  * Windows: Shoes comes with win32-shortcut gem. Undocumented and the
+    online docs you do find are not uptodate. 
 
 === new with 3.3.0
   * Uses Gtk3 (not gtk2) for Linux and Windows. This will change visuals
