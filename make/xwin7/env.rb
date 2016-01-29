@@ -16,6 +16,7 @@ if File.exists? cf
   APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
   APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
   gtk_version = custmz['GtkVersion'].to_s if custmz['GtkVersion']
+  APP['VIDEO'] = true
 else
   # define where your deps are
   ShoesDeps = "/home/ccoupe/Projects/shoesdeps/mingw"
@@ -81,6 +82,7 @@ if RUBY_HTTP
 else
   file_list = %w{shoes/native/gtk.c shoes/http/winhttp.c shoes/http/windownload.c} + ["shoes/*.c"] 
 end
+file_list << "shoes/video/video.c" if APP['VIDEO']
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
@@ -116,7 +118,7 @@ else
   LINUX_CFLAGS = " -O -Wall"
 end
 
-LINUX_CFLAGS << " -DSHOES_GTK -DSHOES_GTK_WIN32 "
+LINUX_CFLAGS << " -DSHOES_GTK -DSHOES_GTK_WIN32 -DVIDEO "
 LINUX_CFLAGS << "-DRUBY_HTTP " if RUBY_HTTP
 LINUX_CFLAGS << "-DGTK3 " unless APP['GTK'] == 'gtk+-2.0'
 LINUX_CFLAGS << xfixrvmp(`pkg-config --cflags "#{pkgruby}"`.strip)+" "
@@ -135,7 +137,7 @@ LINUX_CFLAGS << " -mms-bitfields -D__MINGW_USE_VC2005_COMPAT -DXMD_H -D_WIN32_IE
 # It should probably be in tasks/prebuild or tasks/package
 cp APP['icons']['win32'], "shoes/appwin32.ico"
 
-LINUX_LIB_NAMES = %W[gif-4 jpeg librsvg-2]
+LINUX_LIB_NAMES = %W[gif-4 jpeg librsvg-2 libffi]
 
 DLEXT = "dll"
 #LINUX_LDFLAGS = "-fPIC -shared -L#{ularch} "
@@ -183,7 +185,7 @@ if APP['GTK'] == 'gtk+-3.0' && COPY_GTK == true
       'atk'         => "#{bindll}/libatk-1.0-0.dll",
       'cairo'       => "#{bindll}/libcairo-2.dll",
       'cairo-gobj'  => "#{bindll}/libcairo-gobject-2.dll",
-      'ffi'        => "#{bindll}/libffi-6.dll",
+      'ffi'         => "#{bindll}/libffi-6.dll",
       'fontconfig'  => "#{bindll}/libfontconfig-1.dll",
       'freetype'    => "#{bindll}/libfreetype-6.dll",
       'gdkpixbuf'   => "#{bindll}/libgdk_pixbuf-2.0-0.dll",

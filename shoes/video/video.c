@@ -1,6 +1,75 @@
 #include "video.h"
 #include "shoes/native.h"
-#include "shoes/ruby.c"
+#include "shoes/ruby.h"
+/* from ruby.c = Seriously not good */
+ //
+// from ruby's eval.c
+//
+static inline VALUE
+call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv)
+{
+  if (len >= 0 && argc != len) {
+    rb_raise(rb_eArgError, "wrong number of arguments (%d for %d)",
+      argc, len);
+  }
+
+  switch (len) {
+    case -2:
+    return (*func)(recv, rb_ary_new4(argc, argv));
+    case -1:
+    return (*func)(argc, argv, recv);
+    case 0:
+    return (*func)(recv);
+    case 1:
+    return (*func)(recv, argv[0]);
+    case 2:
+    return (*func)(recv, argv[0], argv[1]);
+    case 3:
+    return (*func)(recv, argv[0], argv[1], argv[2]);
+    case 4:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3]);
+    case 5:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3], argv[4]);
+    case 6:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3], argv[4],
+               argv[5]);
+    case 7:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3], argv[4],
+               argv[5], argv[6]);
+    case 8:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3], argv[4],
+               argv[5], argv[6], argv[7]);
+    case 9:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3], argv[4],
+               argv[5], argv[6], argv[7], argv[8]);
+    case 10:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3], argv[4],
+               argv[5], argv[6], argv[7], argv[8], argv[9]);
+    case 11:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3], argv[4],
+               argv[5], argv[6], argv[7], argv[8], argv[9], argv[10]);
+    case 12:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3], argv[4],
+               argv[5], argv[6], argv[7], argv[8], argv[9],
+               argv[10], argv[11]);
+    case 13:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3], argv[4],
+               argv[5], argv[6], argv[7], argv[8], argv[9], argv[10],
+               argv[11], argv[12]);
+    case 14:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3], argv[4],
+               argv[5], argv[6], argv[7], argv[8], argv[9], argv[10],
+               argv[11], argv[12], argv[13]);
+    case 15:
+    return (*func)(recv, argv[0], argv[1], argv[2], argv[3], argv[4],
+               argv[5], argv[6], argv[7], argv[8], argv[9], argv[10],
+               argv[11], argv[12], argv[13], argv[14]);
+    default:
+    rb_raise(rb_eArgError, "too many arguments (%d)", len);
+    break;
+  }
+  return Qnil;        /* not reached */
+}
 
 /* from canvas.c */
 VALUE shoes_canvas_video(int argc, VALUE *argv, VALUE self) {
@@ -61,8 +130,11 @@ VALUE shoes_video_new(VALUE attr, VALUE parent)
 VALUE shoes_video_get_drawable(VALUE self) {
   shoes_video *self_t;
   Data_Get_Struct(self, shoes_video, self_t);
-  
+#ifdef SHOES_GTK_WIN32
+  return ULONG2NUM(GDK_WINDOW_HWND(gtk_widget_get_window(self_t->ref)));
+#else
   return ULONG2NUM(GDK_WINDOW_XID(gtk_widget_get_window(self_t->ref)));
+#endif 
 }
 
 VALUE shoes_video_draw(VALUE self, VALUE c, VALUE actual) {
