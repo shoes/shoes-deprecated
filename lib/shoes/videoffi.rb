@@ -178,14 +178,15 @@ module Vlc
             @vlc_lib = path
         else
             case RUBY_PLATFORM
-    #        when /win|mswin|msys|mingw|cygwin/     
-    #            lib = 'libvlc.dll'                 
-    #            @vlc_lib = "C:\Program Files\VideoLAN\VLC\#{lib}"
-    #        when /darwin/                          
-    #            lib = 'libvlc.dylib'               
-    #            @vlc_lib = "/Applications/VLC.app/Contents/MacOS/lib/#{lib}"                      
-            when /linux/    
-                @vlc_lib = 'libvlc.so'
+            when /win|mswin|msys|mingw|cygwin/     
+                lib = 'libvlc.dll'                 
+                @vlc_lib = "C:\Program Files\VideoLAN\VLC\#{lib}"
+            when /darwin/                          
+               lib = 'libvlc.dylib'               
+                @vlc_lib = "/Applications/VLC.app/Contents/MacOS/lib/#{lib}"                      
+            when /linux/
+                # need to search ?
+                @vlc_lib = 'libvlc.so.5'
             else
                 raise "Sorry, your platform [#{RUBY_PLATFORM}] is not supported..."
             end
