@@ -87,8 +87,11 @@ MISC_CFLAGS << "-I/usr/include/librsvg-2.0/librsvg "
 MISC_LIB << " /usr/lib/#{ularch}/librsvg-2.so"
 
 if ENV['VIDEO']
-  VLC_CFLAGS = " -DVIDEO #{`pkg-config --cflags libvlc`.strip}" #'-I/usr/include/vlc -I/usr/include/vlc/plugins' 
-  VLC_LIB = "#{`pkg-config --libs libvlc`.strip}" #'-llibvlc -lvlc'
+  #VLC_CFLAGS = " -DVIDEO #{`pkg-config --cflags libvlc`.strip}" #'-I/usr/include/vlc -I/usr/include/vlc/plugins' 
+  #VLC_LIB = "#{`pkg-config --libs libvlc`.strip}" #'-llibvlc -lvlc'
+  
+   VLC_CFLAGS = ' -DVIDEO'
+   VLC_LIB = ''
 else
   VLC_CFLAGS = VLC_LIB = ''
 end
