@@ -178,28 +178,38 @@ module Vlc
             @vlc_lib = path
         else
             case RUBY_PLATFORM
-            when /mingw/     
-                lib = 'libvlc.dll'                 
-                @vlc_lib = lib
+            when /mingw/
+                # Oddness - dlload on Windows only works this way
+                # so every platform has to 
+                Dir.chdir('C:/Program Files (x86)/VideoLAN/VLC') do
+                  p = Dir.glob('libvlc.dll')
+                  begin
+                    dlload p[0]
+                  rescue => e
+                    raise "Sorry, No Video support !\n unable to find libvlc : #{Dir.getwd}  #{p[0]}"
+                  end
+                end
             when /darwin/                          
-               lib = 'libvlc.dylib'               
-                @vlc_lib = "/Applications/VLC.app/Contents/MacOS/lib/#{lib}"                      
+                @vlc_lib = "/Applications/VLC.app/Contents/MacOS/lib/libvlc.dylib"     
+                begin 
+                  dlload @vlc_lib
+                rescue
+                  raise "Sorry, No Video support !\n unable to find libvlc :  #{@vlc_lib}"
+                end
             when /linux/
                 Dir.glob('/usr/lib/libvlc.so*') do |p|
                   @vlc_lib = p if ! File.symlink?(p)
                 end
-                #@vlc_lib = 'libvlc.so.5.4.0'
+                begin
+                  dlload @vlc_lib
+                rescue => e
+                  raise "Sorry, No Video support !\n unable to find libvlc :  #{@vlc_lib}"
+                end
             else
                 raise "Sorry, your platform [#{RUBY_PLATFORM}] is not supported..."
             end
         end
-        
-        begin
-            dlload @vlc_lib
-        rescue => e
-            raise "Sorry, No Video support !\n unable to find libvlc :  #{@vlc_lib}"
-        end
-        
+              
         import_symbols() unless @@vlc_import_done
         
         # just in case ... other functions in Fiddle::Importer are using it
