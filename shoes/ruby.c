@@ -3009,7 +3009,7 @@ VALUE
 shoes_control_focus(VALUE self)
 {
   GET_STRUCT(control, self_t);
-  ATTRSET(self_t->attr, hidden, Qtrue);
+//  ATTRSET(self_t->attr, hidden, Qtrue);
   if (self_t->ref != NULL) shoes_native_control_focus(self_t->ref);
   return self;
 }

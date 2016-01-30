@@ -33,7 +33,14 @@ VALUE shoes_video_get_drawable(VALUE);
 VALUE shoes_video_remove(VALUE);
 VALUE shoes_video_show(VALUE);
 VALUE shoes_video_hide(VALUE);
+VALUE shoes_video_toggle(VALUE self);
+VALUE shoes_video_style(int, VALUE*, VALUE);
 VALUE shoes_video_displace(VALUE, VALUE, VALUE);
+VALUE shoes_video_move(VALUE, VALUE, VALUE);
+VALUE shoes_video_get_width(VALUE);
+VALUE shoes_video_get_height(VALUE);
+VALUE shoes_video_get_left(VALUE);
+VALUE shoes_video_get_top(VALUE);
 
 #else
 #define SHOES_VIDEO 0
