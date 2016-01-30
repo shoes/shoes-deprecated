@@ -262,9 +262,17 @@ class Shoes::VideoVlc
         @video.parent.start { 
             # Connect the video rendering to a prepared custom Drawing Area.
             drID = @video.drawable  # xlib window / HWND / NSView  id
-            if libvlc_media_player_get_xwindow(@player) == 0
-                libvlc_media_player_set_xwindow(@player, drID)
+            case RUBY_PLATFORM
+              when /linux/
+                if libvlc_media_player_get_xwindow(@player) == 0
+                  libvlc_media_player_set_xwindow(@player, drID)
+                end
+              when /mingw/
                 # libvlc_media_player_set_hwnd       on Windows
+                if libvlc_media_player_get_hwnd(@player) == 0
+                  libvlc_media_player_set_hwnd(@player, drID)
+                end
+              when /darwin/
                 # libvlc_media_player_set_nsobject   on osx
             end
             
