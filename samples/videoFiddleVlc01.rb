@@ -122,9 +122,9 @@ Shoes.app width: 625, height: 540, resizable: false do
                 link("-5 sec") { @svlc.time -= 5000 } , "   "
     
     stack do
-        @info = para "", margin_left: 25
-        @cont = stack width: 600, height: 400 do
-            @svlc = video "", width: 600, height: 400, margin_left: 25, autoplay: true
+        @info = para "", margin_left: 25, size: 11
+        @cont = stack  do   #  width: 600, height: 400 
+            @svlc = video "", margin_left: 25, autoplay: true, width: 600, height: 400
         end
         
         @timeline = progress width: 1.0, height: 10, margin: [25,0,25,0]
