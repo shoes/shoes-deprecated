@@ -135,8 +135,14 @@ module Vlc
 #        extern 'void libvlc_media_player_stop( libvlc_media_player_t* )'
 #        extern 'void libvlc_media_player_pause( libvlc_media_player_t* )'
 #        extern 'int libvlc_media_player_is_playing( libvlc_media_player_t*)'
+        ## Platform specific
         extern 'uint32_t libvlc_media_player_get_xwindow( libvlc_media_player_t*)'
-        extern 'void libvlc_media_player_set_xwindow( libvlc_media_player_t*, uint32_t)'
+        extern 'void libvlc_media_player_set_xwindow( libvlc_media_player_t*, uint32_t )'
+        extern 'void* libvlc_media_player_get_hwnd( libvlc_media_player_t* )'
+        extern 'void libvlc_media_player_set_hwnd( libvlc_media_player_t*, void* )'
+        extern 'void* libvlc_media_player_get_nsobject( libvlc_media_player_t* )'
+        extern 'void libvlc_media_player_set_nsobject( libvlc_media_player_t*, void* )'
+        
         extern 'libvlc_time_t libvlc_media_player_get_time( libvlc_media_player_t* )'
         extern 'void libvlc_media_player_set_time(libvlc_media_player_t*, libvlc_time_t )'
         extern 'libvlc_time_t libvlc_media_player_get_length( libvlc_media_player_t* )'
@@ -161,6 +167,8 @@ module Vlc
         extern 'void libvlc_media_list_player_stop( libvlc_media_list_player_t* )'
         extern 'void libvlc_media_list_player_pause( libvlc_media_list_player_t* )'
         extern 'int libvlc_media_list_player_is_playing( libvlc_media_list_player_t* )'
+        extern 'int libvlc_media_list_player_next( libvlc_media_list_player_t* )'
+        extern 'int libvlc_media_list_player_previous( libvlc_media_list_player_t* )'
         
         ### Audio controls
         extern 'int libvlc_audio_get_volume( libvlc_media_player_t* )'
@@ -176,7 +184,12 @@ module Vlc
     def self.load_lib(path = nil)
         if path
             @vlc_lib = path
-        else
+            begin
+              dlload @vlc_lib
+            rescue => e #TODO
+              raise "Sorry, No Video support !\n unable to find libvlc :  #{@vlc_lib}"
+          end
+       else
             case RUBY_PLATFORM
             when /mingw/
                 # Oddness - dlload on Windows only works this way
@@ -209,7 +222,7 @@ module Vlc
                 raise "Sorry, your platform [#{RUBY_PLATFORM}] is not supported..."
             end
         end
-              
+
         import_symbols() unless @@vlc_import_done
         
         # just in case ... other functions in Fiddle::Importer are using it
@@ -231,8 +244,7 @@ class Shoes::VideoVlc
     include Vlc
     
     attr_accessor :autoplay
-    attr_reader :path, :player, :width, :height, :loaded, :version,
-                :track_width, :track_height
+    attr_reader :path, :player, :loaded, :version, :track_width, :track_height
     
     def initialize(app, path, attr=nil, audio=false)
         @path = path
@@ -255,11 +267,11 @@ class Shoes::VideoVlc
         if audio
             attr[:width] = attr[:height] = 0
             attr[:hidden] = true
-        end    
+        end
         @video = app.video_c attr
         
         
-        @video.parent.start { 
+        @video.parent.start {
             # Connect the video rendering to a prepared custom Drawing Area.
             drID = @video.drawable  # xlib window / HWND / NSView  id
             case RUBY_PLATFORM
@@ -289,41 +301,49 @@ class Shoes::VideoVlc
         end
         return nil if (@media.null? or @path == "")
         
-        libvlc_media_list_lock(@medialist)
-        libvlc_media_list_remove_index(@medialist, 0) if (libvlc_media_list_count(@medialist) != 0) 
-        libvlc_media_list_add_media(@medialist, @media);
-        libvlc_media_list_unlock(@medialist)
+        access_media_list do |medialist|
+            libvlc_media_list_remove_index(medialist, 0) if (libvlc_media_list_count(medialist) != 0)
+            libvlc_media_list_add_media(medialist, @media);
+        end
         
         libvlc_media_parse(@media)
 #        parsed = libvlc_media_is_parsed(@media)
 #        puts "parsed ? #{parsed}"
-        libvlc_media_release(@media)
         
         tracks_buf = Fiddle::Pointer[' ' * Media_track.size * 5].ptr
         n_tracks = libvlc_media_tracks_get( @media, tracks_buf.ref )
 #        puts " n tracks = #{n_tracks}"
-
+        libvlc_media_release(@media)
         
         (0...n_tracks).each do |i|
-            w_ptr = ' ' * 4
-            h_ptr = ' ' * 4
-            vid = libvlc_video_get_size(@player, i, w_ptr, h_ptr)
-            if vid == 0
-                @track_width =  w_ptr.unpack("I")[0]
-                @track_height = h_ptr.unpack("I")[0]
-            end
-            
+            # gives the size displayed on screen not the internal "real size"
+            # Back to fidddling with tracks_buf !!! >_>
+#            w_ptr = ' ' * 4
+#            h_ptr = ' ' * 4
+#            vid = libvlc_video_get_size(@player, i, w_ptr, h_ptr)
+#            puts " vid = #{vid}"
+#            if vid == 0 # Doesn't work on 1rst pass
+#                @track_width =  w_ptr.unpack("I")[0]
+#                @track_height = h_ptr.unpack("I")[0]
+#                puts "width : #{@track_width}"
+#                puts "height : #{@track_height}"
+#            end
         end
         libvlc_media_tracks_release(tracks_buf, n_tracks);
         
         true
     end
     
+    def access_media_list
+        libvlc_media_list_lock(@medialist)
+        yield @medialist
+        libvlc_media_list_unlock(@medialist)
+    end
+    
     def path=(path)
         stop if playing?
         @path = path
         @loaded = load_media(@path)
-        # self_t->init = 0;
         play if @loaded && @autoplay
     end
     
@@ -340,7 +360,6 @@ class Shoes::VideoVlc
     end
     
     def playing?
-#        if (self_t->init == 1) # TODO check if needed on medialistplayer
         libvlc_media_list_player_is_playing(@list_player) == 1 ? true : false
     end
     
@@ -379,12 +398,29 @@ class Shoes::VideoVlc
         libvlc_media_player_set_position(@player, pos)
     end
     
+    def next_media
+        r = libvlc_media_list_player_next(@list_player)
+        return r == 0 ? true : false
+    end
+    
+    def previous_media
+        r = libvlc_media_list_player_previous(@list_player)
+        return r == 0 ? true : false
+    end
+    
     # redirecting to shoes C video methods
     def show; @video.show; end
     def hide; @video.hide; end
+    def toggle; @video.toggle; end
     def parent; @video.parent; end
     def remove; @video.remove; end
+    def style(attr=nil); @video.style(attr); end
     def displace(x, y); @video.displace(x, y); end
+    def move(x, y); @video.move(x, y); end
+    def width; @video.width; end
+    def height; @video.height; end
+    def left; @video.left; end
+    def top; @video.top; end
     
 end
 

@@ -108,23 +108,23 @@ end
 require 'shoes/videoffi'
 Vlc.load_lib  #'/usr/lib/libvlc.so.5.5.0', #"./libvlc.so" 
 
-Shoes.app width: 625, height: 540, resizable: false do
+Shoes.app width: 625, height: 580, resizable: true do
     LinkStyleStopped = [Shoes::Link, stroke: black, underline: "none"]
     LinkStyleStoppeddHover = [Shoes::LinkHover, stroke: darkred, underline: "none"]
     style(*LinkStyleStopped); style(*LinkStyleStoppeddHover)
     CtrlsText = "    ",
-                link("play")  { play_media }    , "   ",
-                link("pause") { toggle_media }  , "   ",
-                link("stop")  { stop_media }    , "      ",
-                link("hide")  { @svlc.hide }    , "   ",
-                link("show")  { @svlc.show }    , "      ",
+                link("play")   { play_media }    , "   ",
+                link("pause")  { toggle_media }  , "   ",
+                link("stop")   { stop_media }    , "      ",
+                link("<<")     { @svlc.previous_media } , "   ",
+                link(">>")     { @svlc.next_media } , "      ",
                 link("+5 sec") { @svlc.time += 5000 } , "   ",
                 link("-5 sec") { @svlc.time -= 5000 } , "   "
     
     stack do
-        @info = para "", margin_left: 25
-        @cont = stack width: 600, height: 400 do
-            @svlc = video "", width: 600, height: 400, margin_left: 25, autoplay: true
+        @info = para "", margin_left: 25, size: 11
+        @cont = stack  do   #  width: 600, height: 400 
+            @svlc = video "", margin_left: 25, autoplay: true, width: 600, height: 400
         end
         
         @timeline = progress width: 1.0, height: 10, margin: [25,0,25,0]
@@ -140,9 +140,39 @@ Shoes.app width: 625, height: 540, resizable: false do
             driven = @svlc.method(:volume=)
             @vol_knob = knob driven, fraction: 75, padding: 20, size: 0.75, color: red,
                             click: proc { |but,left,t| @vol_knob.tweak(left) }
+                            
         end
         
-        flow margin: [10,10,0,5] do
+        flow margin: [100,0,0,0] do
+            button("half size") { @svlc.style(width: 300, height: 200) }
+            button("normal size") { @svlc.style(width: 600, height: 400) }
+            button("double size") { @svlc.style(width: 1200, height: 800) }
+            para "show video   " 
+            check checked: true do |c|
+                c.checked? ? @svlc.show : @svlc.hide
+            end
+        end
+                
+        @url_slot = flow hidden: true, margin_bottom: 5 do
+            para  "enter the url of the media you would like to be entertained with : "
+            @url_edit = edit_line "", width: 450
+            
+            button "Play" do
+                unless @url_edit.text.nil? or @url_edit.text.empty?
+                    @anim.stop
+                    @svlc.path = @url_edit.text
+                    @info.text = ""
+                    @url_edit.text = ""
+                    @svlc.autoplay ? set_controls : reset_controls
+                    @anim.start
+                end
+                
+                @url_slot.hide#; @url_edit.hide
+            end
+            button("cancel") { @url_slot.hide } #; @url_edit.hide
+        end
+        
+        flow margin: [10,0,0,5] do
             button "Open file" do
                 @anim.stop
                 file = ask_open_file
@@ -155,31 +185,14 @@ Shoes.app width: 625, height: 540, resizable: false do
             end
             
             button "Open stream" do
-                @url_slot.show; @url.show
-                @url.focus
+                @url_slot.show#; @url_edit.show
+                @url_edit.focus
                 app.slot.scroll_top = app.slot.scroll_max
             end
             
             button "Quit", margin_left: 50 do; exit end;
         end
-        
-        @url_slot = flow hidden: true do
-            para  "enter the url of the media you would like to be entertained with"
-            @url = edit_line "", width: 450
-            button "Play" do
-                unless @url.text.nil? or @url.text.empty?
-                    @anim.stop
-                    @svlc.path = @url.text
-                    @info.text = ""
-                    @url.text = ""
-                    @svlc.autoplay ? set_controls : reset_controls
-                    @anim.start
-                end
-                
-                @url_slot.hide; @url.hide
-            end
-            button("cancel") { @url_slot.hide; @url.hide }
-        end
+
         
     end
     
@@ -210,6 +223,7 @@ Shoes.app width: 625, height: 540, resizable: false do
     def toggle_media
         @svlc.playing? ? reset_controls(rgb(170,170,170)) : set_controls
         @svlc.pause
+        info "width = #{@svlc.width}, height = #{@svlc.height}, left = #{@svlc.left}, top = #{@svlc.top}"
     end
     
     def stop_media

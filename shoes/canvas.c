@@ -1702,7 +1702,7 @@ shoes_canvas_ccall(VALUE self, ccallfunc func, ccallfunc2 func2, unsigned char c
   shoes_canvas *self_t, *pc;
   Data_Get_Struct(self, shoes_canvas, self_t);
 
-  if (check)
+  if (check) // check if already hidden by a parent canvas
   {
     pc = self_t;
     while (!NIL_P(pc->parent))
@@ -1716,7 +1716,7 @@ shoes_canvas_ccall(VALUE self, ccallfunc func, ccallfunc2 func2, unsigned char c
   if (!NIL_P(self_t->parent))
   {
     Data_Get_Struct(self_t->parent, shoes_canvas, pc);
-    if (DC(self_t->slot) != DC(pc->slot))
+    if (DC(self_t->slot) != DC(pc->slot)) // if actual canvas native widget != parent canvas native widget
       func2(DC(self_t->slot));
   }
 

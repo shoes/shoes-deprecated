@@ -1245,9 +1245,11 @@ shoes_native_control_free(SHOES_CONTROL_REF ref)
 // SHOES_SURFACE_REF and SHOES_CONTROL_REF expands the same : GtkWidget *
 // ref in shoes_video struct was a SHOES_CONTROL_REF anyway
 SHOES_CONTROL_REF
-shoes_native_surface_new2(VALUE attr)
+shoes_native_surface_new(VALUE attr)
 {
   SHOES_CONTROL_REF da = gtk_drawing_area_new();
+  gtk_widget_set_size_request(da, NUM2INT(ATTR(attr, width)), NUM2INT(ATTR(attr, height)));
+  
   VALUE uc;
   if (!NIL_P(attr)) uc = ATTR(attr, bg_color);
 
