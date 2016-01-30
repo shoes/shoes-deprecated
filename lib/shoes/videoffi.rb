@@ -185,8 +185,10 @@ module Vlc
                lib = 'libvlc.dylib'               
                 @vlc_lib = "/Applications/VLC.app/Contents/MacOS/lib/#{lib}"                      
             when /linux/
-                # need to search ?
-                @vlc_lib = 'libvlc.so.5.4.0'
+                Dir.glob('/usr/lib/libvlc.so*') do |p|
+                  @vlc_lib = p if ! File.symlink?(p)
+                end
+                #@vlc_lib = 'libvlc.so.5.4.0'
             else
                 raise "Sorry, your platform [#{RUBY_PLATFORM}] is not supported..."
             end
