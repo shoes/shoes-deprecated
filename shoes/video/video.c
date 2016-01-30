@@ -49,8 +49,18 @@ VALUE shoes_video_new(VALUE attr, VALUE parent)
   
   if (NIL_P(attr)) attr = rb_hash_new();
   video->attr = attr;
-  video->parent = parent;
-  video->ref = shoes_native_surface_new2(attr);
+  video->parent = shoes_find_canvas(parent);
+  
+  shoes_canvas *canvas;
+  Data_Get_Struct(video->parent, shoes_canvas, canvas);
+  if ( !RTEST(ATTR(attr, width)) )
+    if ( RTEST(ATTR(canvas->attr, width)) ) ATTRSET(attr, width, canvas->attr);
+    else ATTRSET(attr, width, INT2NUM(1));
+  if ( !RTEST(ATTR(attr, height)) )
+    if ( RTEST(ATTR(canvas->attr, height)) ) ATTRSET(attr, height, canvas->attr);
+    else ATTRSET(attr, height, INT2NUM(1));
+  
+  video->ref = shoes_native_surface_new(attr);
   return obj;
 }
 
@@ -62,8 +72,21 @@ VALUE shoes_video_get_drawable(VALUE self) {
   shoes_video *self_t;
   Data_Get_Struct(self, shoes_video, self_t);
   
-  return ULONG2NUM(GDK_WINDOW_XID(gtk_widget_get_window(self_t->ref)));
+  return UINT2NUM(GDK_WINDOW_XID(gtk_widget_get_window(self_t->ref)));
 }
+
+/* from ruby.c */
+#define FINISH() \
+  if (!ABSY(place)) { \
+    canvas->cx += place.w; \
+    canvas->cy = place.y; \
+    canvas->endx = canvas->cx; \
+    canvas->endy = max(canvas->endy, place.y + place.h); \
+  } \
+  if (ck == cStack) { \
+    canvas->cx = CPX(canvas); \
+    canvas->cy = canvas->endy; \
+  }
 
 VALUE shoes_video_draw(VALUE self, VALUE c, VALUE actual) {
   shoes_video *self_t;
@@ -91,18 +114,40 @@ VALUE shoes_video_draw(VALUE self, VALUE c, VALUE actual) {
       self_t->init = 1;
       
       if (!self_t->ref)
-        self_t->ref = shoes_native_surface_new2(self_t->attr);
+        self_t->ref = shoes_native_surface_new(self_t->attr);
       shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
       
     } else {
       shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
     }
   }
+  FINISH()
 }
+
 
 VALUE shoes_video_get_parent(VALUE self) {
   GET_STRUCT(video, self_t);
   return self_t->parent;
+}
+
+VALUE shoes_video_get_left(VALUE self) {
+  GET_STRUCT(video, self_t);
+  return INT2NUM(self_t->place.ix + self_t->place.dx);
+}
+
+VALUE shoes_video_get_top(VALUE self) {
+  GET_STRUCT(video, self_t);
+  return INT2NUM(self_t->place.iy + self_t->place.dy);
+}
+
+VALUE shoes_video_get_height(VALUE self) {
+  GET_STRUCT(video, self_t);
+  return INT2NUM(self_t->place.h);
+}
+
+VALUE shoes_video_get_width(VALUE self) {
+  GET_STRUCT(video, self_t);
+  return INT2NUM(self_t->place.w);
 }
 
 VALUE shoes_video_show(VALUE self) {
@@ -121,6 +166,12 @@ VALUE shoes_video_hide(VALUE self) {
   return self;
 }
 
+VALUE shoes_video_toggle(VALUE self) {
+  GET_STRUCT(video, self_t);
+  ATTR(self_t->attr, hidden) == Qtrue ? 
+    shoes_video_show(self) : shoes_video_hide(self);
+}
+
 VALUE shoes_video_remove(VALUE self) {
   GET_STRUCT(video, self_t);
   shoes_canvas *canvas;
@@ -135,6 +186,20 @@ VALUE shoes_video_remove(VALUE self) {
   return Qtrue;
 }
 
+VALUE shoes_video_style(int argc, VALUE *argv, VALUE self) {
+  rb_arg_list args;
+  GET_STRUCT(video, self_t);
+  switch (rb_parse_args(argc, argv, "h,", &args)) {
+    case 1:
+      if (NIL_P(self_t->attr)) self_t->attr = rb_hash_new();
+      rb_funcall(self_t->attr, s_update, 1, args.a[0]);
+      shoes_canvas_repaint_all(self_t->parent);
+    break;
+    case 2: return rb_obj_freeze(rb_obj_dup(self_t->attr));
+  }
+  return self;
+}
+
 VALUE shoes_video_displace(VALUE self, VALUE x, VALUE y) {
   GET_STRUCT(video, self_t);
   ATTRSET(self_t->attr, displace_left, x);
@@ -142,6 +207,14 @@ VALUE shoes_video_displace(VALUE self, VALUE x, VALUE y) {
   shoes_canvas_repaint_all(self_t->parent);
   return self;
 }
+
+VALUE shoes_video_move(VALUE self, VALUE x, VALUE y) {
+    GET_STRUCT(video, self_t);
+    ATTRSET(self_t->attr, left, x);
+    ATTRSET(self_t->attr, top, y);
+    shoes_canvas_repaint_all(self_t->parent);
+    return self;
+  }
 
 /* from  CANVAS_DEFS(FUNC_M) in ruby.c */
 VALUE shoes_canvas_c_video(int argc, VALUE *argv, VALUE self) {
@@ -190,7 +263,14 @@ void shoes_ruby_video_init() {
   rb_define_method(cVideo, "remove", CASTHOOK(shoes_video_remove), 0);
   rb_define_method(cVideo, "show", CASTHOOK(shoes_video_show), 0);
   rb_define_method(cVideo, "hide", CASTHOOK(shoes_video_hide), 0);
+  rb_define_method(cVideo, "toggle", CASTHOOK(shoes_video_toggle), 0);
+  rb_define_method(cVideo, "style", CASTHOOK(shoes_video_style), -1);
   rb_define_method(cVideo, "displace", CASTHOOK(shoes_video_displace), 2);
+  rb_define_method(cVideo, "move", CASTHOOK(shoes_video_move), 2);
+  rb_define_method(cVideo, "width", CASTHOOK(shoes_video_get_width), 0);
+  rb_define_method(cVideo, "height", CASTHOOK(shoes_video_get_height), 0);
+  rb_define_method(cVideo, "left", CASTHOOK(shoes_video_get_left), 0);
+  rb_define_method(cVideo, "top", CASTHOOK(shoes_video_get_top), 0);
   
 }
 
