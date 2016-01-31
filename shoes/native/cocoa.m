@@ -1280,11 +1280,24 @@ shoes_native_control_free(SHOES_CONTROL_REF ref)
 {
 }
 
+// This changed in 3.3.1 - only video uses it (so far)
+/*
 SHOES_SURFACE_REF
 shoes_native_surface_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
 {
   return canvas->app->os.window;
 }
+*/
+
+SHOES_CONTROL_REF
+shoes_native_surface_new(VALUE attr)
+{
+  // Create an NSVIEW
+  int w = NUM2INT(ATTR(attr, width));
+  int h = NUM2INT(ATTR(attr, height));
+
+}
+
 
 void
 shoes_native_surface_position(SHOES_SURFACE_REF ref, shoes_place *p1,
