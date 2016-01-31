@@ -142,7 +142,11 @@ VALUE shoes_video_get_drawable(VALUE self) {
 #ifdef SHOES_GTK_WIN32
   return ULONG2NUM(GDK_WINDOW_HWND(gtk_widget_get_window(self_t->ref)));
 #else
+#ifdef SHOES_QUARTZ
   return ULONG2NUM(GDK_WINDOW_XID(gtk_widget_get_window(self_t->ref)));
+#else
+  return ULONG2NUM(self_t->ref);
+#ifdef
 #endif 
 
 }

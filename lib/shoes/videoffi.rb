@@ -286,6 +286,7 @@ class Shoes::VideoVlc
                 end
               when /darwin/
                 # libvlc_media_player_set_nsobject   on osx
+                libvlc_media_player_set_nsobject(@player, drID)
             end
             
             play if @loaded && @autoplay

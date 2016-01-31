@@ -25,6 +25,7 @@ end
 
 CC = ENV['CC'] ? ENV['CC'] : "gcc"
 file_list =  %w{shoes/console/tesi.c shoes/console/cocoa-term.m shoes/native/cocoa.m shoes/http/nsurl.m} + ["shoes/*.c"]
+file_list << 'shoes/video/video.c'
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
@@ -58,7 +59,7 @@ LINUX_CFLAGS << " -DRUBY_1_9 "
 
 DLEXT = "dylib"
 #LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{RbConfig::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions"
-LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -fpascal-strings -x objective-c -fobjc-exceptions"
+LINUX_CFLAGS << " -DVIDEO -DSHOES_QUARTZ -Wall -fpascal-strings -x objective-c -fobjc-exceptions"
 LINUX_LDFLAGS = "-framework Cocoa -framework Carbon -dynamiclib -Wl,-single_module INSTALL_NAME"
 LINUX_LIB_NAMES << 'pixman-1' << 'jpeg.8'
 
