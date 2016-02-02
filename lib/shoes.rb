@@ -44,7 +44,7 @@ unless Time.respond_to? :today
 end
 
 class Shoes
-  RELEASES = %w(Curious Raisins Policeman Federales)
+  RELEASES = %w(Curious Raisins Policeman Federales Walkabout)
 
   NotFound = proc do
     para '404 NOT FOUND, GUYS!'
@@ -111,7 +111,7 @@ class Shoes
             "Package Shoes App (new)") do |c|
       app_package
     end
-
+    
     opts.on('-g', '--gem',
             'Passes commands to RubyGems.') do
       require 'shoes/setup'
@@ -135,7 +135,11 @@ class Shoes
       $NOLAYERED = 1
       Shoes.args!
     end
-
+    
+    opts.on('-f', '--file', 'path to script [OSX packaging uses this]') do
+      #puts "-f ARGV: #{ARGV}"
+    end
+    
     opts.on_tail('-v', '--version', 'Display the version info.') do
       # raise SystemExit, File.read("#{DIR}/VERSION.txt").strip
       # str = "Shoes #{Shoes::VERSION_NAME} r#{Shoes::VERSION_REVISION} #{Shoes::VERSION_DATE} #{RUBY_PLATFORM} #{RUBY_VERSION}"

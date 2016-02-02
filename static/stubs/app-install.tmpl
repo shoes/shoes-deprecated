@@ -239,11 +239,13 @@ this_dir=$APPPATH
 unset DYLD_LIBRARY_PATH
 APPPATH=/Applications/Shoes.app/Contents/MacOS
 cd "$APPPATH"
-echo "[Pango]" > pangorc
-echo "ModuleFiles=$APPPATH/pango.modules" >> pangorc
-echo "ModulesPath=$APPPATH/pango/modules" >> pangorc
-PANGO_RC_FILE="$APPPATH/pangorc" ./pango-querymodules > pango.modules
-DYLD_LIBRARY_PATH="$APPPATH" PANGO_RC_FILE="$APPPATH/pangorc" SHOES_RUBY_ARCH="x86_64-linux" ./shoes-bin "#{installdir}/#{launch}"
+#echo "[Pango]" > pangorc
+#echo "ModuleFiles=$APPPATH/pango.modules" >> pangorc
+#echo "ModulesPath=$APPPATH/pango/modules" >> pangorc
+#PANGO_RC_FILE="$APPPATH/pangorc" ./pango-querymodules > pango.modules
+#DYLD_LIBRARY_PATH="$APPPATH" PANGO_RC_FILE="$APPPATH/pangorc" SHOES_RUBY_ARCH="x86_64-linux" ./shoes-bin "#{installdir}/#{launch}"
+DYLD_LIBRARY_PATH="$APPPATH"  SHOES_RUBY_ARCH="x86_64-linux" ./shoes-bin "#{installdir}/#{launch}"
+open -a /Applications/Shoes.app "#{installdir}/#{launch}"
 END
     end
     FileUtils.chmod 0755, File.join(mac_dir, "#{name}-launch")

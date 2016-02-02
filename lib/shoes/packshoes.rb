@@ -320,11 +320,12 @@ this_dir=$APPPATH
 unset DYLD_LIBRARY_PATH
 APPPATH=/Applications/Shoes.app/Contents/MacOS
 cd "$APPPATH"
-echo "[Pango]" > pangorc
-echo "ModuleFiles=$APPPATH/pango.modules" >> pangorc
-echo "ModulesPath=$APPPATH/pango/modules" >> pangorc
-PANGO_RC_FILE="$APPPATH/pangorc" ./pango-querymodules > pango.modules
-DYLD_LIBRARY_PATH="$APPPATH" PANGO_RC_FILE="$APPPATH/pangorc" SHOES_RUBY_ARCH="#{opts['shoesruby']}" ./shoes-bin "$this_dir/#{File.basename(script)}"
+#echo "[Pango]" > pangorc
+#echo "ModuleFiles=$APPPATH/pango.modules" >> pangorc
+#echo "ModulesPath=$APPPATH/pango/modules" >> pangorc
+#PANGO_RC_FILE="$APPPATH/pangorc" ./pango-querymodules > pango.modules
+#DYLD_LIBRARY_PATH="$APPPATH" SHOES_RUBY_ARCH="#{opts['shoesruby']}" ./shoes-bin "$this_dir/#{File.basename(script)}"
+open -a /Applications/Shoes.app "$this_dir/#{File.basename(script)}"
 END
     end
     ls = File.join(mac_dir, "#{name}-launch")
@@ -473,10 +474,10 @@ APPPATH="${0%/*}"
 unset DYLD_LIBRARY_PATH
 cd "$APPPATH"
 echo "[Pango]" > pangorc
-echo "ModuleFiles=$APPPATH/pango.modules" >> pangorc
-echo "ModulesPath=$APPPATH/pango/modules" >> pangorc
-PANGO_RC_FILE="$APPPATH/pangorc" ./pango-querymodules > pango.modules
-DYLD_LIBRARY_PATH="$APPPATH" PANGO_RC_FILE="$APPPATH/pangorc" SHOES_RUBY_ARCH="#{opts['shoesruby']}" ./shoes-bin "#{File.basename(script)}"
+#echo "ModuleFiles=$APPPATH/pango.modules" >> pangorc
+#echo "ModulesPath=$APPPATH/pango/modules" >> pangorc
+#PANGO_RC_FILE="$APPPATH/pangorc" ./pango-querymodules > pango.modules
+DYLD_LIBRARY_PATH="$APPPATH" PANGO_RC_FILE="$APPPATH/pangorc" SHOES_RUBY_ARCH="#{opts['shoesruby']}" ./shoes-bin -f "#{File.basename(script)}"
 END
     end
     ls = File.join(mac_dir, "#{name}-launch")
