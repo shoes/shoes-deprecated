@@ -395,7 +395,7 @@ END
     Dir.chdir tmp_dir do
       FileUtils.mv "Shoes.app", app_app
     end
-    # deal with custom icons. Brutish
+    # deal with custom icons. 
     icon_path = ''
     if  opts['icns'] 
       icon_path = opts['icns']
