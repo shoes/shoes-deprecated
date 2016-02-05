@@ -310,8 +310,18 @@ END
         f << "Icon=#{cdir}/#{File.basename(iconpath)}\n"
         f << "Categories=Other;Applications;#{cats}\n"
     end
-    # finally create the uninstall menu
+    # Create the uninstall menu
     `xdg-desktop-menu install --novendor #{appname}.remove.desktop`
+    
+    # Are we running from /tmp/selfgz[d]/shoes-bin (aka repack)
+    # and shoes is not installed? 
+    install_here = "#{ENV['HOME']}/.shoes/#{Shoes::RELEASE_NAME}"
+    if DIR =~ /\/tmp\/selfgz/ && ! (File.exist? install_here)
+      FileUtils.mkdir_p install_here
+      Dir.glob("#{DIR}/*") do |p| 
+       FileUtils.cp_r p, install_here
+      end
+    end
     
     return "#{installdir}/#{launch}"
   end

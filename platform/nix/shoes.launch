@@ -15,6 +15,6 @@ fi
 if [ `pwd | awk '{ sub(/[0-9]+/, ""); print }'` = "/tmp/selfgz" ]; then
   # fix the symlink, this is actually a bug in the minitar lib
   #rm -f libruby.so.2.1
-  ln -s libruby.so.2.1 libruby.so.2.1.0
+  #ln -s libruby.so.2.1 libruby.so.2.1.0
   cd "$OLDPWD"
 fi

@@ -602,12 +602,17 @@ END
     tmp_dir = File.join(opts['packtmp'], "+shy", appname)
     FileUtils.rm_rf(tmp_dir)
     FileUtils.mkdir_p(tmp_dir)
-    # copy shy to tmp - TODO: Copy User Script here
+
     FileUtils.cp(defshy, tmp_dir)
-    # copy app-install.tmpl with rewrite
-    File.open(File.join(tmp_dir, "#{appname}-install.rb"), 'wb') do |a|
-	  rewrite a, File.join(DIR, "static", "stubs", "app-install.tmpl"),
-	    'SHYFILE' => "#{defshy}"
+    if opts['custominstaller'] 
+      # user knows best!
+      FileUtils.cp opts['custominstaller'], File.join(tmp_dir, "#{appname}-install.rb")
+    else
+      # default custom installer - copy app-install.tmpl with rewrite
+      File.open(File.join(tmp_dir, "#{appname}-install.rb"), 'wb') do |a|
+	      rewrite a, File.join(DIR, "static", "stubs", "app-install.tmpl"),
+	        'SHYFILE' => "#{defshy}"
+      end
     end
     FileUtils.cp(opts['installer-icon'], File.join(tmp_dir, "installer-icon.png"))
     FileUtils.cp(opts['png'], File.join(tmp_dir,"#{appname}.png")) if opts['png']
