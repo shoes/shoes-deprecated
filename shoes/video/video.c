@@ -146,7 +146,7 @@ VALUE shoes_video_get_drawable(VALUE self) {
   return ULONG2NUM(GDK_WINDOW_XID(gtk_widget_get_window(self_t->ref)));
 #else
   return ULONG2NUM(self_t->ref);
-#ifdef
+#endif
 #endif 
 
 }
