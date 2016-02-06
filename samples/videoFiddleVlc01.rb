@@ -1,7 +1,7 @@
 # encoding: UTF-8
 
 class Shoes::Knob < Shoes::Widget
-    attr_reader :slot, :fraction, :tint
+    attr_reader :canvas, :fraction, :tint
     attr_accessor :range, :tick, :active
 
     def initialize(driven, opts = {})
@@ -83,7 +83,7 @@ class Shoes::Knob < Shoes::Widget
     # args is an array of the arguments given to the method
     # if method has more than one argument, the driven argument is the one, in the array, marqued as "driver",
     #       ie: for shape.displace(x,y) --> tweak(left, ["driver", 5]) 
-    #       displace.x beeing driven by knob, capturing mouse's left coordinates'
+    #       displace.x beeing driven by knob, capturing mouse's left coordinates
     # other arguments are given default values 
     def tweak(origin_left, args = nil)
         @released = false
@@ -120,17 +120,23 @@ Shoes.app width: 625, height: 580, resizable: true do
                 link(">>")     { @svlc.next_media } , "      ",
                 link("+5 sec") { @svlc.time += 5000 } , "   ",
                 link("-5 sec") { @svlc.time -= 5000 } , "   "
+    start_vol = 75
     
     stack do
         @info = para "", margin_left: 25, size: 11
-        @cont = stack  do   #  width: 600, height: 400 
-            @svlc = video "", margin_left: 25, autoplay: true, width: 600, height: 400
+        @cont = flow do   #  width: 600, height: 400 
+            @svlc = video "", margin_left: 25, autoplay: true,  
+                            width: 600, height: 400, volume: start_vol, bg_color: rgb(20,20,20)
         end
         
-        @timeline = progress width: 1.0, height: 10, margin: [25,0,25,0]
+        @timeline = progress width: 1.0, height: 10, margin: [25,0,0,0]
+        @cont.start { |slot| @timeline.width = slot.width-25 }
         
-        @controls = flow margin: [0,10,0,0] do
-            @bckgrd = background ghostwhite
+        @controls = flow margin: [0,10,0,0], height: 47 do
+            # slot needs a height, here, for background to work correctly
+            # an alternative is to put @controls slot following (gui) code into a @controls.start {} block
+            @bckgrd = background rgb(242,241,240)
+            
             @ctrls = para CtrlsText
             para "    autoplay :" 
             @chk = check checked: @svlc.autoplay, margin: [0,0,10,0] do |c| 
@@ -138,23 +144,22 @@ Shoes.app width: 625, height: 580, resizable: true do
             end
             
             driven = @svlc.method(:volume=)
-            @vol_knob = knob driven, fraction: 75, padding: 20, size: 0.75, color: red,
+            @vol_knob = knob driven, fraction: start_vol, padding: 20, size: 0.75, color: red,
                             click: proc { |but,left,t| @vol_knob.tweak(left) }
-                            
         end
         
         flow margin: [100,0,0,0] do
-            button("half size") { @svlc.style(width: 300, height: 200) }
-            button("normal size") { @svlc.style(width: 600, height: 400) }
-            button("double size") { @svlc.style(width: 1200, height: 800) }
-            para "show video   " 
+            button("half size") { @svlc.style(width: 300, height: 200); @timeline.width = 300 }
+            button("normal size") { @svlc.style(width: 600, height: 400); @timeline.width = 600 }
+            button("double size") { @svlc.style(width: 1200, height: 800); @timeline.width = 1200 }
+            para "  show video   "
             check checked: true do |c|
                 c.checked? ? @svlc.show : @svlc.hide
             end
         end
                 
         @url_slot = flow hidden: true, margin_bottom: 5 do
-            para  "enter the url of the media you would like to be entertained with : "
+            para  "Enter the url of the media you would like to be entertained with : "
             @url_edit = edit_line "", width: 450
             
             button "Play" do
@@ -163,7 +168,7 @@ Shoes.app width: 625, height: 580, resizable: true do
                     @svlc.path = @url_edit.text
                     @info.text = ""
                     @url_edit.text = ""
-                    @svlc.autoplay ? set_controls : reset_controls
+                    set_controls
                     @anim.start
                 end
                 
@@ -192,7 +197,6 @@ Shoes.app width: 625, height: 580, resizable: true do
             
             button "Quit", margin_left: 50 do; exit end;
         end
-
         
     end
     
@@ -200,16 +204,14 @@ Shoes.app width: 625, height: 580, resizable: true do
         @bckgrd.fill = color
         @controls.style(Shoes::LinkHover, stroke: black, underline: "none")
         @controls.style(Shoes::Link, stroke: lawngreen, underline: "none")
-        @controls.refresh_slot
         @ctrls.text = CtrlsText # won't refresh until mouse hovering, otherwise 
         @vol_knob.tint = lawngreen
     end
     
-    def reset_controls(color=ghostwhite)
+    def reset_controls(color=rgb(242,241,240))
         @bckgrd.fill = color
         @controls.style(*LinkStyleStoppeddHover)
         @controls.style(*LinkStyleStopped)
-        @controls.refresh_slot
         @ctrls.text = CtrlsText
         @vol_knob.tint = red
     end
