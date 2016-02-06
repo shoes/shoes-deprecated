@@ -1821,6 +1821,11 @@ shoes_canvas_send_start(VALUE self)
       shoes_safe_block(self, start, rb_ary_new3(1, self));
     }
   }
+  
+  /* internal private attribute used in fiddle-video protocol 
+     letting Shoes know when drawable is avalaible, so we don't hijack start event
+   */ 
+  shoes_hash_set(canvas->attr, rb_intern("started"), Qtrue);
 }
 
 static void

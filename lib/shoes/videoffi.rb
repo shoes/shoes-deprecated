@@ -226,12 +226,14 @@ class Shoes::VideoVlc
     include Vlc
     
     attr_accessor :autoplay
-    attr_reader :path, :player, :loaded, :version, :track_width, :track_height
+    attr_reader :path, :player, :loaded, :version
     
-    def initialize(app, path, attr=nil, audio=false)
+    def initialize(app, path, attr=nil)
         @path = path
         attr ||= {}
         @autoplay = attr[:autoplay] || false
+        
+        @video = app.video_c attr
         
         # what should we do with "--no-xlib"/XInitThreads(), seems controversial ...
         # Do we need threaded xlib in shoes/vlc ?
@@ -245,25 +247,36 @@ class Shoes::VideoVlc
         libvlc_media_list_player_set_media_list(@list_player, @medialist)
         
         @loaded = load_media @path
+        vol = attr[:volume] || 85
+        libvlc_audio_set_volume(@player, vol)
         
-        if audio
-            attr[:width] = attr[:height] = 0
-            attr[:hidden] = true
-        end
-        @video = app.video_c attr
-        
-        
-        @video.parent.start {
-            # Connect the video rendering to a prepared custom Drawing Area.
-            drID = @video.drawable  # xlib window / HWND / NSView  id
-            if libvlc_media_player_get_xwindow(@player) == 0
-                libvlc_media_player_set_xwindow(@player, drID)
-                # libvlc_media_player_set_hwnd       on Windows
-                # libvlc_media_player_set_nsobject   on osx
+        # we must wait for parent (hence video itself) to be drawn in order to get the widget drawable
+        # (keep "start" event free for possible use in Shoes script)
+        th = Thread.new do
+            wait = 0.01
+            begin
+                until @video.parent.style[:started] do
+                    sleep 0.01
+                    wait += 0.01
+                    raise( "Incomplete Video support : Vlc couldn't connect to a proper Shoes Drawable !" )  if wait > 2
+                end
+
+                drID = @video.drawable  # xlib window / HWND / NSView  id
+                if libvlc_media_player_get_xwindow(@player) == 0
+                    libvlc_media_player_set_xwindow(@player, drID)
+                    # libvlc_media_player_set_hwnd       on Windows
+                    # libvlc_media_player_set_nsobject   on osx
+                end
+
+                play if @loaded && @autoplay
+                
+            rescue Exception => e
+                error "#{e.message}\nTimed out after #{wait}s"
+                Shoes.show_log
             end
-            
-            play if @loaded && @autoplay
-        } 
+        end
+        th.abort_on_exception = true
+        
     end
     
     def load_media(path)
@@ -391,8 +404,8 @@ class Shoes::VideoVlc
     def style(attr=nil); @video.style(attr); end
     def displace(x, y); @video.displace(x, y); end
     def move(x, y); @video.move(x, y); end
-    def width; @video.width; end
-    def height; @video.height; end
+    def width; @video.width; end    # widget width, not video track width
+    def height; @video.height; end  # ditto
     def left; @video.left; end
     def top; @video.top; end
     
@@ -404,6 +417,9 @@ def video(path, attr=nil)
     Shoes::VideoVlc.new(self, path, attr)
 end
 
+# convenience method, hiding away the widget
 def audio(path, attr=nil)
-    Shoes::VideoVlc.new(self, path, attr, true)
+    attr ||= {}
+    attr.merge!( {width: 0, height: 0, hidden: true} )
+    Shoes::VideoVlc.new(self, path, attr)
 end
