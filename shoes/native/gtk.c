@@ -1254,11 +1254,11 @@ shoes_native_surface_new(VALUE attr)
   if (!NIL_P(attr)) uc = ATTR(attr, bg_color);
 
   // TODO (better with GtkStyleProvider)
-  shoes_color *col;
   GdkRGBA color = {.0, .0, .0, 1.0};
   if (!NIL_P(uc)) {
-     Data_Get_Struct(uc, shoes_color, col);
-     color.red = col->r*255; color.green = col->g*255; color.blue = col->b*255;
+    shoes_color *col;
+    Data_Get_Struct(uc, shoes_color, col);
+    color.red = col->r/255.0; color.green = col->g/255.0; color.blue = col->b/255.0;
   }
   gtk_widget_override_background_color(GTK_WIDGET(da), 0, &color);  
 
