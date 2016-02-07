@@ -282,16 +282,15 @@ class Shoes::VideoVlc
                     libvlc_media_player_set_xwindow(@player, drID)
                 end
               when /mingw/
-                app.info "mingw ! "
-    #             if libvlc_media_player_get_hwnd(@player) == 0
+                if libvlc_media_player_get_hwnd(@player).null?
                   libvlc_media_player_set_hwnd(@player, drID)
-    #             end
+                end
               when /darwin/
-    #             # if libvlc_media_player_set_nsobject(@player) == 0
-                    libvlc_media_player_set_nsobject(@player, drID)
+    #             # if libvlc_media_player_set_nsobject(@player).null?
+    #             #   libvlc_media_player_set_nsobject(@player, drID)
     #             # end
             end
-    #
+    
             play if @loaded && @autoplay
 
           end
