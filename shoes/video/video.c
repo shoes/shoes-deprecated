@@ -145,10 +145,9 @@ VALUE shoes_video_get_drawable(VALUE self) {
 #ifdef SHOES_QUARTZ
   return ULONG2NUM(self_t->ref);
 #else
-  return ULONG2NUM(self_t->ref);
+  return UINT2NUM(GDK_WINDOW_XID(gtk_widget_get_window(self_t->ref)));
 #endif
 #endif
-
 }
 
 /* from ruby.c */

@@ -125,8 +125,8 @@ Shoes.app width: 625, height: 580, resizable: true do
     stack do
         @info = para "", margin_left: 25, size: 11
         @cont = flow do   #  width: 600, height: 400 
-            @svlc = video "", margin_left: 25, autoplay: true,  
-                            width: 600, height: 400, volume: start_vol, bg_color: rgb(20,20,20)
+        @svlc = video "", margin_left: 25, autoplay: true,  
+                          width: 600, height: 400, volume: start_vol, bg_color: rgb(20,20,20)
         end
         
         @timeline = progress width: 1.0, height: 10, margin: [25,0,0,0]
