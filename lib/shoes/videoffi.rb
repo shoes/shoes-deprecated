@@ -270,52 +270,33 @@ class Shoes::VideoVlc
         
         # we must wait for parent (hence video itself) to be drawn in order to get the widget drawable
         # (keep "start" event free for possible use in Shoes script)
-        th = Thread.new do
-            wait = 0.01
-            begin
-                until @video.parent.style[:started] do
-                    sleep 0.01
-                    wait += 0.01
-                    raise( "Incomplete Video support : Vlc couldn't connect to a proper Shoes Drawable !" )  if wait > 2
-                end
-
-                drID = @video.drawable  # xlib window / HWND / NSView  id
-                if libvlc_media_player_get_xwindow(@player) == 0
-                    libvlc_media_player_set_xwindow(@player, drID)
-                    # libvlc_media_player_set_hwnd       on Windows
-                    # libvlc_media_player_set_nsobject   on osx
-                end
-
-                play if @loaded && @autoplay
-                
-            rescue Exception => e
-                error "#{e.message}\nTimed out after #{wait}s"
-                Shoes.show_log
-            end
-        end
-        th.abort_on_exception = true
-        
-        @video.parent.start {
-            # Connect the video rendering to a prepared custom Drawing Area.
-            drID = @video.drawable  # xlib window / HWND / NSView  id
+        # using "animate" method because of the underlying "g_timeout_add" function (let's have peaceful relations with gtk)
+        @wait_ready = app.animate(100) do |fr|
+          if @video.parent.style[:started]
+            @wait_ready.stop
+            drID = @video.drawable   # xlib window / HWND / NSView  id
+            
             case RUBY_PLATFORM
               when /linux/
                 if libvlc_media_player_get_xwindow(@player) == 0
-                  libvlc_media_player_set_xwindow(@player, drID)
+                    libvlc_media_player_set_xwindow(@player, drID)
                 end
               when /mingw/
-                # libvlc_media_player_set_hwnd       on Windows
-                if libvlc_media_player_get_hwnd(@player) == 0
+                app.info "mingw ! "
+    #             if libvlc_media_player_get_hwnd(@player) == 0
                   libvlc_media_player_set_hwnd(@player, drID)
-                end
+    #             end
               when /darwin/
-                # libvlc_media_player_set_nsobject   on osx
-                libvlc_media_player_set_nsobject(@player, drID)
+    #             # if libvlc_media_player_set_nsobject(@player) == 0
+                    libvlc_media_player_set_nsobject(@player, drID)
+    #             # end
             end
-            
+    #
             play if @loaded && @autoplay
-        } 
 
+          end
+        end
+        
     end
     
     def load_media(path)
