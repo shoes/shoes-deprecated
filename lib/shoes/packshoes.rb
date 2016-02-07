@@ -320,11 +320,12 @@ this_dir=$APPPATH
 unset DYLD_LIBRARY_PATH
 APPPATH=/Applications/Shoes.app/Contents/MacOS
 cd "$APPPATH"
-echo "[Pango]" > pangorc
-echo "ModuleFiles=$APPPATH/pango.modules" >> pangorc
-echo "ModulesPath=$APPPATH/pango/modules" >> pangorc
-PANGO_RC_FILE="$APPPATH/pangorc" ./pango-querymodules > pango.modules
-DYLD_LIBRARY_PATH="$APPPATH" PANGO_RC_FILE="$APPPATH/pangorc" SHOES_RUBY_ARCH="#{opts['shoesruby']}" ./shoes-bin "$this_dir/#{File.basename(script)}"
+#echo "[Pango]" > pangorc
+#echo "ModuleFiles=$APPPATH/pango.modules" >> pangorc
+#echo "ModulesPath=$APPPATH/pango/modules" >> pangorc
+#PANGO_RC_FILE="$APPPATH/pangorc" ./pango-querymodules > pango.modules
+#DYLD_LIBRARY_PATH="$APPPATH" SHOES_RUBY_ARCH="#{opts['shoesruby']}" ./shoes-bin "$this_dir/#{File.basename(script)}"
+open -a /Applications/Shoes.app "$this_dir/#{File.basename(script)}"
 END
     end
     ls = File.join(mac_dir, "#{name}-launch")
@@ -394,7 +395,7 @@ END
     Dir.chdir tmp_dir do
       FileUtils.mv "Shoes.app", app_app
     end
-    # deal with custom icons. Brutish
+    # deal with custom icons. 
     icon_path = ''
     if  opts['icns'] 
       icon_path = opts['icns']
@@ -473,10 +474,10 @@ APPPATH="${0%/*}"
 unset DYLD_LIBRARY_PATH
 cd "$APPPATH"
 echo "[Pango]" > pangorc
-echo "ModuleFiles=$APPPATH/pango.modules" >> pangorc
-echo "ModulesPath=$APPPATH/pango/modules" >> pangorc
-PANGO_RC_FILE="$APPPATH/pangorc" ./pango-querymodules > pango.modules
-DYLD_LIBRARY_PATH="$APPPATH" PANGO_RC_FILE="$APPPATH/pangorc" SHOES_RUBY_ARCH="#{opts['shoesruby']}" ./shoes-bin "#{File.basename(script)}"
+#echo "ModuleFiles=$APPPATH/pango.modules" >> pangorc
+#echo "ModulesPath=$APPPATH/pango/modules" >> pangorc
+#PANGO_RC_FILE="$APPPATH/pangorc" ./pango-querymodules > pango.modules
+DYLD_LIBRARY_PATH="$APPPATH" PANGO_RC_FILE="$APPPATH/pangorc" SHOES_RUBY_ARCH="#{opts['shoesruby']}" ./shoes-bin -f "#{File.basename(script)}"
 END
     end
     ls = File.join(mac_dir, "#{name}-launch")
@@ -601,12 +602,17 @@ END
     tmp_dir = File.join(opts['packtmp'], "+shy", appname)
     FileUtils.rm_rf(tmp_dir)
     FileUtils.mkdir_p(tmp_dir)
-    # copy shy to tmp - TODO: Copy User Script here
+
     FileUtils.cp(defshy, tmp_dir)
-    # copy app-install.tmpl with rewrite
-    File.open(File.join(tmp_dir, "#{appname}-install.rb"), 'wb') do |a|
-	  rewrite a, File.join(DIR, "static", "stubs", "app-install.tmpl"),
-	    'SHYFILE' => "#{defshy}"
+    if opts['custominstaller'] 
+      # user knows best!
+      FileUtils.cp opts['custominstaller'], File.join(tmp_dir, "#{appname}-install.rb")
+    else
+      # default custom installer - copy app-install.tmpl with rewrite
+      File.open(File.join(tmp_dir, "#{appname}-install.rb"), 'wb') do |a|
+	      rewrite a, File.join(DIR, "static", "stubs", "app-install.tmpl"),
+	        'SHYFILE' => "#{defshy}"
+      end
     end
     FileUtils.cp(opts['installer-icon'], File.join(tmp_dir, "installer-icon.png"))
     FileUtils.cp(opts['png'], File.join(tmp_dir,"#{appname}.png")) if opts['png']

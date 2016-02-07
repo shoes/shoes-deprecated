@@ -4,12 +4,13 @@ require 'shoes/shy'
 require 'fileutils'
 require 'rubygems/package'
 require 'shoes/winject'
+require 'shoes/packshoes'
 require 'yaml'
 # not easy to debug. 
 Shoes.app do
   shyname = File.basename("#{SHYFILE}")
   curloc = Dir.getwd()    # most likely to be a temp dir somewhere
-  Shoes::show_console
+  #Shoes::show_console
   shypath = File.join(curloc,shyname)
   shyfile = File.open(shypath,'rb')
   hdr = Shy.__hdr__(shyfile)
@@ -52,6 +53,11 @@ you pick a folder to put it's files in."
         para "Delete Shoes from Desktop. Not recommended."
       end
     end
+    if RUBY_PLATFORM =~ /darwin/ && ! File.exist?("/Applications/Shoes.app")
+      # Running Shoes from somewhere else (aka custom-repack in a download dir)
+      para "The Shoes Platform is not in /Applications. It will be created there."
+      @opts['osxrepack'] = DIR
+    end
     if gempack
       flow do
         @gemsOK = check :checked => true 
@@ -63,10 +69,11 @@ you pick a folder to put it's files in."
         mkdir_p @dirfld.text
         install_top = curloc
         app = ''
+        if @opts['osxrepack']
+          create_shoes
+        end
         if gempack && @gemsOK.checked?
-          if confirm "Install gems" 
-            gempack_helper 
-          end 
+          gempack_helper 'gempack.tgz'
         end
         Dir.chdir @dirfld.text do
           if @opts['expandshy']
@@ -240,11 +247,7 @@ this_dir=$APPPATH
 unset DYLD_LIBRARY_PATH
 APPPATH=/Applications/Shoes.app/Contents/MacOS
 cd "$APPPATH"
-echo "[Pango]" > pangorc
-echo "ModuleFiles=$APPPATH/pango.modules" >> pangorc
-echo "ModulesPath=$APPPATH/pango/modules" >> pangorc
-PANGO_RC_FILE="$APPPATH/pangorc" ./pango-querymodules > pango.modules
-DYLD_LIBRARY_PATH="$APPPATH" PANGO_RC_FILE="$APPPATH/pangorc" SHOES_RUBY_ARCH="x86_64-linux" ./shoes-bin "#{installdir}/#{launch}"
+DYLD_LIBRARY_PATH="$APPPATH"  SHOES_RUBY_ARCH="x86_64-linux" ./shoes-bin -f "#{installdir}/#{launch}"
 END
     end
     FileUtils.chmod 0755, File.join(mac_dir, "#{name}-launch")
@@ -307,10 +310,109 @@ END
         f << "Icon=#{cdir}/#{File.basename(iconpath)}\n"
         f << "Categories=Other;Applications;#{cats}\n"
     end
-    # finally create the uninstall menu
+    # Create the uninstall menu
     `xdg-desktop-menu install --novendor #{appname}.remove.desktop`
     
+    # Are we running from /tmp/selfgz[d]/shoes-bin (aka repack)
+    # and shoes is not installed? 
+    install_here = "#{ENV['HOME']}/.shoes/#{Shoes::RELEASE_NAME}"
+    if DIR =~ /\/tmp\/selfgz/ && ! (File.exist? install_here)
+      FileUtils.mkdir_p install_here
+      Dir.glob("#{DIR}/*") do |p| 
+       FileUtils.cp_r p, install_here
+      end
+    end
+    
     return "#{installdir}/#{launch}"
+  end
+  
+  # More OSX fun. Create /Applications/Shoes.app from the running #{DIR}
+  # 
+  def create_shoes 
+    name = 'shoes'
+    app_name = name.capitalize.gsub(/[-_](\w)/) { $1.capitalize }
+    app_app = "#{app_name}.app"
+    vers = [3, 0]
+    tmp_dir = "/Applications"
+    iconpath = "#{DIR}/static/Shoes.icns"
+    
+    icon_name = 'Shoes.icns'
+    app_dir = File.join(tmp_dir, app_app)
+    res_dir = File.join(tmp_dir, app_app, "Contents", "Resources")
+    mac_dir = File.join(tmp_dir, app_app, "Contents", "MacOS")
+    [res_dir, mac_dir].map { |x| FileUtils.mkdir_p(x) }
+    FileUtils.cp(iconpath, File.join(app_dir,icon_name))
+    FileUtils.cp(iconpath, File.join(res_dir,icon_name))
+    File.open(File.join(app_dir, "Contents", "PkgInfo"), 'w') do |f|
+      f << "APPL????"
+    end
+    # Copy running app
+    Dir.glob("#{DIR}/*") do |f|
+      FileUtils.cp_r f, mac_dir
+    end
+    # Make the Info.plist
+    File.open(File.join(app_dir, "Contents", "Info.plist"), 'w') do |f|
+      f << <<END
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleGetInfoString</key>
+  <string>#{app_name} #{vers.join(".")}</string>
+  <key>CFBundleExecutable</key>
+  <string>#{name}-launch</string>
+  <key>CFBundleIdentifier</key>
+  <string>org.hackety.#{name}</string>
+  <key>CFBundleName</key>
+  <string>#{app_name}</string>
+  <key>CFBundleIconFile</key>
+  <string>#{icon_name}</string>
+  <key>CFBundleShortVersionString</key>
+  <string>#{vers.join(".")}</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>IFMajorVersion</key>
+  <integer>#{vers[0]}</integer>
+  <key>IFMinorVersion</key>
+  <integer>#{vers[1]}</integer>
+</dict>
+</plist>
+END
+    end
+    File.open(File.join(app_dir, "Contents", "version.plist"), 'w') do |f|
+      f << <<END
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>BuildVersion</key>
+  <string>1</string>
+  <key>CFBundleVersion</key>
+  <string>#{vers.join(".")}</string>
+  <key>ProjectName</key>
+  <string>#{app_name}</string>
+  <key>SourceVersion</key>
+  <string>#{Time.now.strftime("%Y%m%d")}</string>
+</dict>
+</plist>
+END
+    end
+
+    File.open(File.join(mac_dir, "#{name}-launch"), 'wb') do |f|
+      f << <<END
+#!/bin/bash
+APPPATH="${0%/*}"
+this_dir=$APPPATH
+unset DYLD_LIBRARY_PATH
+APPPATH=/Applications/Shoes.app/Contents/MacOS
+cd "$APPPATH"
+DYLD_LIBRARY_PATH="$APPPATH"  SHOES_RUBY_ARCH="x86_64-linux" ./shoes-bin "$@"
+END
+    end
+    FileUtils.chmod 0755, File.join(mac_dir, "#{name}-launch")
+    # figure out return for direct launch from Shoes. 
   end
  
   def extract opened_file
@@ -374,9 +476,11 @@ END
     td = Dir.mktmpdir('gempack')
     tarf = File.open(tgzpath,'rb')
     Dir.chdir(td) do |d|
-      tar_extract tarf # if confirm "Copy #{tgzpath} to #{GEM_DIR} via #{td}"
+      PackShoes.tar_extract tarf # if confirm "Copy #{tgzpath} to #{GEM_DIR} via #{td}"
     end
-    return gem_copy_to_home td, GEM_DIR
+    gem_copy_to_home td, GEM_DIR
+    rm_r td
+    return
   end
   
 end
