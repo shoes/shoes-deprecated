@@ -41,9 +41,13 @@
 #ifdef SHOES_GTK
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
-#if !defined(SHOES_GTK_WIN32) && !defined(SHOES_GTK_OSX)
+// choose gdk
+#if defined(SHOES_GTK_WIN32) 
+#include <gdk/gdkwin32.h>
+#else
 #include <gdk/gdkx.h>
 #endif
+
 #ifndef RUBY_HTTP
 #include <curl/curl.h>
 #include <curl/easy.h>
