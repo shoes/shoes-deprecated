@@ -1,3 +1,4 @@
+#include "shoes/ruby.h"
 #include "shoes/world.h"
 #include "shoes/internal.h"
 #include "shoes/app.h"
@@ -47,4 +48,3 @@ VALUE shoes_video_get_top(VALUE);
 #endif
 
 #endif	/* VIDEO_H */
-

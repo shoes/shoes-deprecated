@@ -75,7 +75,7 @@ VALUE shoes_canvas_video(int argc, VALUE *argv, VALUE self) {
   rb_arg_list args;
   rb_parse_args(argc, argv, "|h", &args);
   VALUE video = shoes_video_new(args.a[0], self);
-  
+
   shoes_canvas *canvas;
   Data_Get_Struct(self, shoes_canvas, canvas);
   cairo_t *cr;
@@ -114,11 +114,11 @@ VALUE shoes_video_new(VALUE attr, VALUE parent)
   shoes_video *video;
   VALUE obj = shoes_video_alloc(cVideo);
   Data_Get_Struct(obj, shoes_video, video);
-  
+
   if (NIL_P(attr)) attr = rb_hash_new();
   video->attr = attr;
   video->parent = shoes_find_canvas(parent);
-  
+
   shoes_canvas *canvas;
   Data_Get_Struct(video->parent, shoes_canvas, canvas);
   if ( !RTEST(ATTR(attr, width)) )
@@ -127,12 +127,12 @@ VALUE shoes_video_new(VALUE attr, VALUE parent)
   if ( !RTEST(ATTR(attr, height)) )
     if ( RTEST(ATTR(canvas->attr, height)) ) ATTRSET(attr, height, canvas->attr);
     else ATTRSET(attr, height, INT2NUM(1));
-  
+
   video->ref = shoes_native_surface_new(attr);
   return obj;
 }
 
-/* 
+/*
  * Get the drawable area so vlc can draw on it
  * in ruby side via Fiddle
  */
@@ -143,11 +143,11 @@ VALUE shoes_video_get_drawable(VALUE self) {
   return ULONG2NUM(GDK_WINDOW_HWND(gtk_widget_get_window(self_t->ref)));
 #else
 #ifdef SHOES_QUARTZ
-  return ULONG2NUM(GDK_WINDOW_XID(gtk_widget_get_window(self_t->ref)));
+  return ULONG2NUM(self_t->ref);
 #else
   return ULONG2NUM(self_t->ref);
 #endif
-#endif 
+#endif
 
 }
 
@@ -170,29 +170,29 @@ VALUE shoes_video_draw(VALUE self, VALUE c, VALUE actual) {
   shoes_canvas *canvas;
   Data_Get_Struct(self, shoes_video, self_t);
   Data_Get_Struct(c, shoes_canvas, canvas);
-  
+
   /* to be used with medialistPlayer i think TODO */
   if ( !RTEST(actual) &&      /* do this only once at first pass */
         self_t->init == 0 ) { /* and only when loading a media (threading issues at redraw events !!) */
-    
+
 //    int loaded = load_media(self_t);
-//    
+//
 //    if (!loaded) {/*TODO handle error*/ /* i couldn't crash vlc whatever the file i tried to load */
 //      printf("no media loaded");
 //    }
   }
-  
+
   shoes_place_decide(&place, c, self_t->attr, canvas->place.iw, canvas->place.ih, REL_CANVAS, TRUE);
   VALUE ck = rb_obj_class(c); // flow vs stack management in FINISH macro
-  
+
   if (RTEST(actual)) {
     if (self_t->init == 0) {
       self_t->init = 1;
-      
+
       if (!self_t->ref)
         self_t->ref = shoes_native_surface_new(self_t->attr);
       shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
-      
+
     } else {
       shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
     }
@@ -244,7 +244,7 @@ VALUE shoes_video_hide(VALUE self) {
 
 VALUE shoes_video_toggle(VALUE self) {
   GET_STRUCT(video, self_t);
-  ATTR(self_t->attr, hidden) == Qtrue ? 
+  ATTR(self_t->attr, hidden) == Qtrue ?
     shoes_video_show(self) : shoes_video_hide(self);
 }
 
@@ -252,11 +252,11 @@ VALUE shoes_video_remove(VALUE self) {
   GET_STRUCT(video, self_t);
   shoes_canvas *canvas;
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-  
+
   shoes_canvas_remove_item(self_t->parent, self, 1, 0);
   shoes_native_surface_remove(canvas, self_t->ref);
   shoes_canvas_repaint_all(self_t->parent);
-  
+
   self_t = NULL;
   self = Qnil;
   return Qtrue;
@@ -325,12 +325,12 @@ VALUE shoes_app_c_video(int argc, VALUE *argv, VALUE self) {
 
 
 // called inside shoes_ruby_init, ruby.c
-void shoes_ruby_video_init() {       
-  
-  /* video_c so we can use method 'video' on ruby side */ 
+void shoes_ruby_video_init() {
+
+  /* video_c so we can use method 'video' on ruby side */
   rb_define_method(cCanvas, "+video_c" + 1, CASTHOOK(shoes_canvas_c_video), -1); /* from CANVAS_DEFS(RUBY_M) in ruby.c */
   rb_define_method(cApp, "+video_c" + 1, CASTHOOK(shoes_app_c_video), -1);       /**/
-  
+
   cVideo = rb_define_class_under(cTypes, "Video", rb_cObject);
   rb_define_alloc_func(cVideo, shoes_video_alloc);
   rb_define_method(cVideo, "draw", CASTHOOK(shoes_video_draw), 2);
@@ -347,6 +347,5 @@ void shoes_ruby_video_init() {
   rb_define_method(cVideo, "height", CASTHOOK(shoes_video_get_height), 0);
   rb_define_method(cVideo, "left", CASTHOOK(shoes_video_get_left), 0);
   rb_define_method(cVideo, "top", CASTHOOK(shoes_video_get_top), 0);
-  
-}
 
+}
