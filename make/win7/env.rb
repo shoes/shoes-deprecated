@@ -13,6 +13,7 @@ if File.exists? cf
   APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
   APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
   gtk_version = custmz['GtkVersion'].to_s if custmz['GtkVersion']
+  APP['VIDEO'] = true
 else
   # define where your deps are
   #ShoesDeps = "E:/shoesdeps/mingw"
@@ -42,6 +43,7 @@ if RUBY_HTTP
 else
   file_list = %w{shoes/native/gtk.c shoes/http/winhttp.c shoes/http/windownload.c} + ["shoes/*.c"] 
 end
+file_list << "shoes/video/video.c" if APP['VIDEO']
 SRC = FileList[*file_list]
 
 OBJ = SRC.map do |x|
@@ -76,7 +78,7 @@ RUBY_LDFLAGS = "-L#{RbConfig::CONFIG["bindir"]} #{RbConfig::CONFIG["LIBRUBYARG"]
 RUBY_LDFLAGS << "-Wl,-export-all-symbols "
 #RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lmsvcrt-ruby210 "
 
-WIN32_CFLAGS << "-DSHOES_GTK -DSHOES_GTK_WIN32 -DRUBY_HTTP"
+WIN32_CFLAGS << "-DSHOES_GTK -DSHOES_GTK_WIN32 -DRUBY_HTTP -DVIDEO"
 WIN32_CFLAGS << "-DGTK3 " unless APP['GTK'] == 'gtk+-2.0'
 WIN32_CFLAGS << "-Wno-unused-but-set-variable"
 WIN32_CFLAGS << "-D__MINGW_USE_VC2005_COMPAT -DXMD_H -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -DCOBJMACROS"
