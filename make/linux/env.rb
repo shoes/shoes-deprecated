@@ -25,6 +25,7 @@ LINUX_CFLAGS << " -DRUBY_1_9"
 LINUX_CFLAGS << " -DDEBUG" if ENV['DEBUG']
 LINUX_CFLAGS << " -DGTK3" unless APP['GTK'] == 'gtk+-2.0'
 LINUX_CFLAGS << " -DSHOES_GTK -fPIC -shared"
+LINUX_CFLAGS << " -DVIDEO" if ENV['VIDEO']
 # Following line may need handcrafting
 LINUX_CFLAGS << " -I/usr/include/"
 LINUX_CFLAGS << " #{`pkg-config --cflags #{APP['GTK']}`.strip}"
@@ -86,18 +87,11 @@ end
 MISC_CFLAGS << "-I/usr/include/librsvg-2.0/librsvg "
 MISC_LIB << " /usr/lib/#{ularch}/librsvg-2.so"
 
-if ENV['VIDEO']
-  VLC_CFLAGS = " -DVIDEO #{`pkg-config --cflags libvlc`.strip}" #'-I/usr/include/vlc -I/usr/include/vlc/plugins' 
-  VLC_LIB = "#{`pkg-config --libs libvlc`.strip}" #'-llibvlc -lvlc'
-else
-  VLC_CFLAGS = VLC_LIB = ''
-end
-
 # collect flags together
-LINUX_CFLAGS << " #{RUBY_CFLAGS} #{GTK_FLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{MISC_CFLAGS} #{VLC_CFLAGS}"
+LINUX_CFLAGS << " #{RUBY_CFLAGS} #{GTK_FLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{MISC_CFLAGS}"
 
 # collect link settings together. Does order matter?
-LINUX_LIBS = "#{RUBY_LIB} #{GTK_LIB}  #{CAIRO_LIB} #{PANGO_LIB} #{MISC_LIB} #{VLC_LIB}"
+LINUX_LIBS = "#{RUBY_LIB} #{GTK_LIB}  #{CAIRO_LIB} #{PANGO_LIB} #{MISC_LIB}"
 LINUX_LIBS << " -lfontconfig" if APP['GTK'] == "gtk+-3.0"
 # the following is only used to link the shoes code with main.o
 LINUX_LDFLAGS = "-L. -rdynamic -Wl,-export-dynamic"
