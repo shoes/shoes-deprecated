@@ -114,7 +114,6 @@ module Vlc
         typealias "libvlc_time_t", "long long"
         typealias "libvlc_track_type_t", "int"
 
-        #extern 'libvlc_instance_t * libvlc_new( int , const char* )'
         extern 'libvlc_instance_t * libvlc_new( int , const char* )'
         extern 'const char* libvlc_get_version()'
 
@@ -267,13 +266,15 @@ class Shoes::VideoVlc
           argv = app.video_mkargv args
           argc = args.length
           @vlci = libvlc_new(argc, argv)
-        else 
+					@version = libvlc_get_version
+					raise "vlc version OSX #{@version} #{@vlci.inspect}" if @vlci.null?
+        else
           # what should we do with "--no-xlib"/XInitThreads(), seems controversial ...
           # Do we need threaded xlib in shoes/vlc ?
           @vlci = libvlc_new(0, nil)
+					@version = libvlc_get_version
+					raise "vlc version #{@version} #{@vlci.inspect}" if @vlci.null?
         end
-        @version = libvlc_get_version
-				raise "vlc version#{@version} #{@vlci.inspect}" if @vlci.null?
         @player = libvlc_media_player_new(@vlci)
         @list_player = libvlc_media_list_player_new(@vlci)
         libvlc_media_list_player_set_media_player(@list_player, @player)
