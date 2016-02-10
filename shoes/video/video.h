@@ -25,6 +25,7 @@ VALUE cVideo; // ruby.c line 16
 VALUE shoes_canvas_video(int, VALUE*, VALUE);
 VALUE shoes_canvas_c_video(int, VALUE*, VALUE);
 VALUE shoes_app_c_video(int, VALUE*, VALUE);
+VALUE shoes_app_video_mkargv(VALUE, VALUE);
 
 VALUE shoes_video_alloc(VALUE);
 VALUE shoes_video_new(VALUE, VALUE);
