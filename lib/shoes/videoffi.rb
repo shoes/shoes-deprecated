@@ -202,7 +202,7 @@ module Vlc
                   end
                 end
             when /darwin/
-                @vlc_lib = "/Applications/VLC.app/Contents/MacOS/lib/libvlc.dylib"
+                @vlc_lib = "/Applications/VLC.app/Contents/MacOS/lib/libvlc.5.dylib"
                 begin
                   dlload @vlc_lib
                 rescue

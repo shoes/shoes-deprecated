@@ -7,4 +7,4 @@ cd "$APPPATH"
 #echo "ModulesPath=$APPPATH/pango/modules" >> pangorc
 #PANGO_RC_FILE="$APPPATH/pangorc" ./pango-querymodules > pango.modules
 #DYLD_LIBRARY_PATH="$APPPATH" PANGO_RC_FILE="$APPPATH/pangorc" SHOES_RUBY_ARCH="#{SHOES_RUBY_ARCH}" ./#{NAME}-bin "$@"
-DYLD_LIBRARY_PATH="$APPPATH" SHOES_RUBY_ARCH="#{SHOES_RUBY_ARCH}" ./#{NAME}-bin "$@"
+DYLD_LIBRARY_PATH="$APPPATH:/Applications/VLC.app/Contents/MacOS/lib" SHOES_RUBY_ARCH="#{SHOES_RUBY_ARCH}" ./#{NAME}-bin "$@"
