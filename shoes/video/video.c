@@ -322,42 +322,12 @@ VALUE shoes_app_c_video(int argc, VALUE *argv, VALUE self) {
   return shoes_canvas_c_video(argc, argv, canvas);
 }
 
-VALUE shoes_app_video_mkargv(VALUE self, VALUE array) {
-  Check_Type(array, T_ARRAY);
-  int cnt = RARRAY_LEN(array);
-  int ptrsz = sizeof (void *);
-  char *argv[cnt]; 
-  int i;
-  for (i = 0; i < cnt; i++) {
-    char * tempstr;
-    VALUE obj = rb_ary_entry(array, i);
-    Check_Type(obj, T_STRING);
-    tempstr = RSTRING_PTR(obj);
-    argv[i] = tempstr;
-  }
-  argv[i] = (char *) 0;
-  // copy from stack to heap - remember these are RSTRING_PTRS
-  char **newargv;
-  newargv = malloc((cnt+1) * ptrsz);
-  memcpy(newargv, argv, ptrsz * cnt);
-  /* for testing
-  int j;
-  for (j=0; j < cnt; j++) {
-    printf("mkargv[%d]: %s\n", j, newargv[j] );
-  }
-  */
-  // Return a value that fiddle will coerce to what ever the arg sig is. 
-  // Leaks memory? I thing so too.
-  return ULONG2NUM(newargv);
-}
-
 // called inside shoes_ruby_init, ruby.c
 void shoes_ruby_video_init() {
 
   /* video_c so we can use method 'video' on ruby side */
   rb_define_method(cCanvas, "+video_c" + 1, CASTHOOK(shoes_canvas_c_video), -1); /* from CANVAS_DEFS(RUBY_M) in ruby.c */
   rb_define_method(cApp, "+video_c" + 1, CASTHOOK(shoes_app_c_video), -1);       /**/
-  rb_define_method(cApp, "+video_mkargv" + 1, CASTHOOK(shoes_app_video_mkargv), 1);
 
   cVideo = rb_define_class_under(cTypes, "Video", rb_cObject);
   rb_define_alloc_func(cVideo, shoes_video_alloc);

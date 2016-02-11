@@ -202,7 +202,9 @@ module Vlc
                   end
                 end
             when /darwin/
-                @vlc_lib = "/Applications/VLC.app/Contents/MacOS/lib/libvlc.5.dylib"
+								Dir.glob('/Applications/VLC.app/Contents/MacOS/lib/libvlc.*dylib') do |p|
+                  @vlc_lib = p if ! File.symlink?(p)
+                end
                 begin
                   dlload @vlc_lib
                 rescue
@@ -254,24 +256,16 @@ class Shoes::VideoVlc
 
 
         if RUBY_PLATFORM =~ /darwin/
-          args = ["--play-and-pause",                  # We want every movie to pause instead of stopping at eof
-                "--no-color",                          # Don't use color in output (Xcode doesn't show it)
-                "--no-video-title-show",               # Don't show the title on overlay when starting to play
-                "--verbose=4",                         # Let's not wreck the logs
-                "--no-sout-keep",
-                "--vout=macosx",                       # Select Mac OS X video output
-                "--text-renderer=quartztext",          # our CoreText-based renderer
-                "--extraintf=macosx_dialog_provider"]  #Some extra dialog (login, progress) may come up from here
-          # convert args tp C style argv (char *[])
-          argv = app.video_mkargv args
-          argc = args.length
-          @vlci = libvlc_new(argc, argv)
+					ENV['VLC_PLUGIN_PATH']="/Applications/VLC.app/Contents/MacOS/plugins"
+          @vlci = libvlc_new(0, nil)
 					@version = libvlc_get_version
 					raise "vlc version OSX #{@version} #{@vlci.inspect}" if @vlci.null?
         else
           # what should we do with "--no-xlib"/XInitThreads(), seems controversial ...
           # Do we need threaded xlib in shoes/vlc ?
-          @vlci = libvlc_new(0, nil)
+					# if you need to pass command line args in,  then create them like this:
+          # libvlc_new(2, ["--no-xlib", "--no-video-title-show"].pack('p2'))
+					@vlci = libvlc_new(0, nil)
 					@version = libvlc_get_version
 					raise "vlc version #{@version} #{@vlci.inspect}" if @vlci.null?
         end
