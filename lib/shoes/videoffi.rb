@@ -192,8 +192,8 @@ module Vlc
             case RUBY_PLATFORM
             when /mingw/
                 # Oddness - dlload on Windows only works this way
-                # so every platform has to
-                Dir.chdir('C:/Program Files (x86)/VideoLAN/VLC') do
+                # Probably the space in "Program Files (x86)"
+                Dir.chdir("#{ENV['ProgramFiles(x86)']}/VideoLAN/VLC") do
                   p = Dir.glob('libvlc.dll')
                   begin
                     dlload p[0]
