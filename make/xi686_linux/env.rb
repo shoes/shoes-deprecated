@@ -19,6 +19,7 @@ else
   EXT_RUBY = "/usr/local"
   APP['GTK'] = "gtk+-2.0"
 end
+APP['VIDEO'] = true
 #ENV['DEBUG'] = "true" # turns on the tracing log
 CHROOT = ShoesDeps
 SHOES_TGT_ARCH = 'i686-linux'
@@ -42,6 +43,7 @@ if APP['GTK']== 'gtk+-2.0'
 else
   file_list = ["shoes/console/*.c"] + ["shoes/native/*.c"] + ["shoes/http/rbload.c"] + ["shoes/*.c"]
 end 
+file_list << "shoes/video/video.c" if APP['VIDEO']
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
@@ -61,8 +63,8 @@ else
   LINUX_CFLAGS = " -O -Wall"
 end
 
-LINUX_CFLAGS << " -DSHOES_GTK -Wno-unused-but-set-variable" 
 LINUX_CFLAGS << " -DSHOES_GTK -Wno-unused-but-set-variable -Wno-unused-variable"
+LINUX_CFLAGS << " -DVIDEO" if APP['VIDEO']
 LINUX_CFLAGS << " -DRUBY_HTTP" 
 LINUX_CFLAGS << " -DGTK3" unless APP['GTK'] == 'gtk+-2.0'
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include "
@@ -92,4 +94,5 @@ SOLOCS['libyaml'] = "#{ularch}/libyaml-0.so.2"
 SOLOCS['crypto'] = "#{ularch}/libcrypto.so.1.0.0"
 SOLOCS['ssl'] = "#{ularch}/libssl.so.1.0.0"
 SOLOCS['sqlite'] = "#{ularch}/libsqlite3.so.0.8.6"
+SOLOCS['ffi'] = "#{ularch}/libffi.so"  if APP['VIDEO']
 SOLOCS['rsvg2'] = "#{ularch}/librsvg-2.so"
