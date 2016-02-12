@@ -188,7 +188,7 @@ module Vlc
             rescue => e #TODO
               raise "Sorry, No Video support !\n unable to find libvlc :  #{@vlc_lib}"
           end
-       else
+        else
             case RUBY_PLATFORM
             when /mingw/
                 # Oddness - dlload on Windows only works this way
@@ -211,13 +211,14 @@ module Vlc
                   raise "Sorry, No Video support !\n unable to find libvlc :  #{@vlc_lib}"
                 end
             when /linux/
+                @vlc_lib = '/completely/missing'
                 Dir.glob('/usr/lib/libvlc.so*') do |p|
                   @vlc_lib = p if ! File.symlink?(p)
-                end
+                end                
                 begin
                   dlload @vlc_lib
                 rescue => e
-                  raise "Sorry, No Video support !\n unable to find libvlc :  #{@vlc_lib}"
+                  raise "Sorry, No Video support !\n unable to find libvlc"
                 end
             else
                 raise "Sorry, your platform [#{RUBY_PLATFORM}] is not supported..."
@@ -269,6 +270,7 @@ class Shoes::VideoVlc
 					@version = libvlc_get_version
 					raise "vlc version #{@version} #{@vlci.inspect}" if @vlci.null?
         end
+
         @player = libvlc_media_player_new(@vlci)
         @list_player = libvlc_media_list_player_new(@vlci)
         libvlc_media_list_player_set_media_player(@list_player, @player)
