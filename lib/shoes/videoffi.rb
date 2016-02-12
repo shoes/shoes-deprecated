@@ -115,7 +115,7 @@ module Vlc
         typealias "libvlc_track_type_t", "int"
 
         extern 'libvlc_instance_t * libvlc_new( int , const char* )'
-        extern 'const char* libvlc_get_version()'
+        #extern 'const char* libvlc_get_version()'
 
         ### Media
         extern 'libvlc_media_t* libvlc_media_new_path(libvlc_instance_t*, const char* )'
@@ -224,7 +224,13 @@ module Vlc
                 raise "Sorry, your platform [#{RUBY_PLATFORM}] is not supported..."
             end
         end
-
+        # do a version check to make sure it is 2.1 or 2.2
+        extern 'const char* libvlc_get_version()'
+        version = libvlc_get_version().to_s[/\d.\d/]
+        if version != '2.1' &&  version != '2.2'
+          raise "You need a newer VLC, 2.1 or 2.2"
+        end
+        info "VLC: #{version}"
         import_symbols() unless @@vlc_import_done
 
         # just in case ... other functions in Fiddle::Importer are using it
