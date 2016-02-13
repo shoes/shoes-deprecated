@@ -192,16 +192,23 @@ module Vlc
             case RUBY_PLATFORM
             when /mingw/
                 # Oddness - dlload on Windows only works this way
-                # Probably the space in "Program Files (x86)"
-                Dir.chdir("#{ENV['ProgramFiles(x86)']}/VideoLAN/VLC") do
-                  p = Dir.glob('libvlc.dll')
+                # Probably the space in "Program Files (x86)" - known Ruby fun.
+                pfdir = ENV['ProgramFiles(x86)']
+                pfdir = ENV['ProgramFiles'] if !pfdir 
+                Dir.chdir(pfdir) do
+                  if ! File.exist? File.join(pfdir, "VideoLAN", "VLC", "libvlc.dll")
+                    raise "Sorry, No Video support !\n unable to find #{pfdir}/VideoLAN/VLC/libvlc.dll"
+                  end
+                end
+                Dir.chdir("#{pfdir}/VideoLAN/VLC") do
                   begin
-                    dlload p[0]
+                    dlload 'libvlc.dll'
                   rescue => e
-                    raise "Sorry, No Video support !\n unable to find libvlc : #{Dir.getwd}  #{p[0]}"
+                    raise "Sorry, libvlc.dll failed to load"
                   end
                 end
             when /darwin/
+							  @vlc_lib = '/completely/missing'
 								Dir.glob('/Applications/VLC.app/Contents/MacOS/lib/libvlc.*dylib') do |p|
                   @vlc_lib = p if ! File.symlink?(p)
                 end
@@ -214,7 +221,7 @@ module Vlc
                 @vlc_lib = '/completely/missing'
                 Dir.glob('/usr/lib/libvlc.so*') do |p|
                   @vlc_lib = p if ! File.symlink?(p)
-                end                
+                end
                 begin
                   dlload @vlc_lib
                 rescue => e
