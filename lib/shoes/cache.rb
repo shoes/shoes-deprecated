@@ -130,3 +130,8 @@ else # Loose Shoes
     puts "Please set GEM_HOME env var or use rvm"
   end
 end
+# find vlc libs
+require_relative 'vlcpath'
+yamlp = File.join(LIB_DIR, Shoes::RELEASE_NAME, 'vlc.yaml')
+Vlc_path.load yamlp
+

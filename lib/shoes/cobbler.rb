@@ -139,6 +139,9 @@ Shoes.app :title => "Shoes Cobbler" do
           cshoes_screen
         end
       end
+      button "VLC setup" do
+        vlc_screen
+      end
       button "Manual" do
         Shoes.show_manual
       end
@@ -175,6 +178,45 @@ Shoes.app :title => "Shoes Cobbler" do
             File.open("#{@shoes_home}/package/download.url", 'w') do |f|
             f.write dnl.text
           end
+        end
+      end
+    end
+  end
+  
+  def vlc_screen
+    require_relative 'vlcpath'
+    Vlc_path.load File.join(LIB_DIR, Shoes::RELEASE_NAME, 'vlc.yaml')
+    @panel.clear
+    @panel.append do
+      para "Set paths for your VLC Installation"
+      flow do
+        para "VLC dll/so/dylib"
+        @vlcapp = edit_line "#{ENV['VLC_APP_PATH']}", width: 350
+        button "Update" do
+          vlcp = ask_open_file
+          if vlcp
+            @vlcapp.text = vlcp
+          end
+        end
+      end
+      flow do
+        para "VLC Plugin Path "
+        @vlcplug = edit_line "#{ENV['VLC_PLUGIN_PATH']}", width: 350
+        button "Update" do
+       end
+     end
+      flow do
+        button "Save" do
+          if ! (Vlc_path.check @vlcapp.text, @vlcplug.text)
+            alert "Those are not good paths. Try again."
+          else 
+            mkdir_p File.join(LIB_DIR, Shoes::RELEASE_NAME)
+            Vlc_path.save File.join(LIB_DIR, Shoes::RELEASE_NAME, 'vlc.yaml')
+          end
+        end
+        button "reset" do
+          @vlcapp.text = ''
+          @vlcplug.text = ''
         end
       end
     end
