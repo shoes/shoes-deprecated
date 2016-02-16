@@ -106,7 +106,8 @@ end
 
 
 require 'shoes/videoffi'
-Vlc.load_lib  #'/usr/lib/libvlc.so.5.5.0', #"./libvlc.so" 
+Vlc.load_lib 
+#Vlc.load_lib path: '/home/xy/NBWorkspace/vlc/lib/.libs/libvlc.so.5.5.0', plugin_path: "/home/xy/NBWorkspace/vlc/modules" 
 
 Shoes.app width: 625, height: 580, resizable: true do
     LinkStyleStopped = [Shoes::Link, stroke: black, underline: "none"]
@@ -125,8 +126,8 @@ Shoes.app width: 625, height: 580, resizable: true do
     stack do
         @info = para "", margin_left: 25, size: 11
         @cont = flow do   #  width: 600, height: 400 
-        @svlc = video "", margin_left: 25, autoplay: true,  
-                          width: 600, height: 400, volume: start_vol, bg_color: rgb(20,20,20)
+        @svlc = video "", margin_left: 25, autoplay: true, #width: 600, height: 400,
+                          volume: start_vol, bg_color: rgb(20,20,20)
         end
         
         @timeline = progress width: 1.0, height: 10, margin: [25,0,0,0]
@@ -149,9 +150,9 @@ Shoes.app width: 625, height: 580, resizable: true do
         end
         
         flow margin: [100,0,0,0] do
-            button("half size") { @svlc.style(width: 300, height: 200); @timeline.width = 300 }
-            button("normal size") { @svlc.style(width: 600, height: 400); @timeline.width = 600 }
-            button("double size") { @svlc.style(width: 1200, height: 800); @timeline.width = 1200 }
+            button("half size") { set_video_dim 0.5 }
+            button("real size") { set_video_dim 1 }
+            button("double size") { set_video_dim 2 }
             para "  show video   "
             check checked: true do |c|
                 c.checked? ? @svlc.show : @svlc.hide
@@ -172,9 +173,9 @@ Shoes.app width: 625, height: 580, resizable: true do
                     @anim.start
                 end
                 
-                @url_slot.hide#; @url_edit.hide
+                @url_slot.hide
             end
-            button("cancel") { @url_slot.hide } #; @url_edit.hide
+            button("cancel") { @url_slot.hide }
         end
         
         flow margin: [10,0,0,5] do
@@ -182,7 +183,8 @@ Shoes.app width: 625, height: 580, resizable: true do
                 @anim.stop
                 file = ask_open_file
                 unless file.nil?
-                    @svlc.path = file 
+                    @svlc.stop
+                    @svlc.path = file
                     @info.text = ""
                     @svlc.autoplay ? set_controls : reset_controls
                 end
@@ -190,7 +192,7 @@ Shoes.app width: 625, height: 580, resizable: true do
             end
             
             button "Open stream" do
-                @url_slot.show#; @url_edit.show
+                @url_slot.show
                 @url_edit.focus
                 app.slot.scroll_top = app.slot.scroll_max
             end
@@ -198,6 +200,12 @@ Shoes.app width: 625, height: 580, resizable: true do
             button "Quit", margin_left: 50 do; exit end;
         end
         
+    end
+    
+    def set_video_dim(dim)
+        @svlc.style(width: (@svlc.video_track_width.to_f*dim).to_i, 
+                    height: (@svlc.video_track_height.to_f*dim).to_i)
+        @timeline.width = (@svlc.video_track_width.to_f*dim).to_i
     end
     
     def set_controls(color=gray)
@@ -234,6 +242,14 @@ Shoes.app width: 625, height: 580, resizable: true do
         @anim.stop
     end
     
+    def s2hms(seconds)
+        return "0s" if seconds <= 0
+        minutes = seconds/60
+        seconds -= minutes*60
+        hours = minutes/60
+        minutes -= hours * 60
+        "" + (hours > 0 ? "#{hours}h " : "") + (minutes > 0 ? "#{minutes}m " : "") + "#{seconds}s"
+    end
     
     set_controls if @svlc.loaded && @svlc.autoplay
     
@@ -241,8 +257,9 @@ Shoes.app width: 625, height: 580, resizable: true do
         now = @svlc.time/1000
         total = @svlc.length/1000
         
+        @timeline.width = @svlc.have_video_track ? @svlc.width : app.width-25
         @timeline.fraction = @svlc.position.round(2)
-        @info.text = strong("#{File.basename(@svlc.path)}"), "  playing  #{now}s / #{total}s"
+        @info.text = strong("#{File.basename(@svlc.path)}"), "  playing  #{s2hms(now)} / #{s2hms(total)}"
     end
 end
 

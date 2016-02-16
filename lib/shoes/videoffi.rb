@@ -54,18 +54,6 @@ module Vlc
     
     Subtitle_track = struct ['char *psz_encoding']
     
-#    MT_union = union [
-#        'libvlc_audio_track_t *audio',
-#        'libvlc_video_track_t *video',
-#        'libvlc_subtitle_track_t *subtitle'
-#    ]
-#    MT_union_alloc = Fiddle::Pointer.malloc(MT_union.size)
-    MT_union = union [
-        'Audio_track *audio',
-        'Video_track *video',
-        'Subtitle_track *subtitle'
-    ]
-    
     Media_track = struct [
         'unsigned int i_codec',
         'unsigned int i_original_fourcc',
@@ -76,9 +64,9 @@ module Vlc
         'int i_profile',                                # size of track->i_original_fourcc : 4
         'int i_level',                                  # size of track->i_id : 4
                                                         # size of track->i_type : 4
-        # union inside struct ??                        # size of track->i_profile : 4
-        # using an aggregate of same bytes length       # size of track->i_level : 4
-        'char kind[8]', # 8 bytes                       # size of track->video : 8 (union)
+        # union inside struct                           # size of track->i_profile : 4
+        # using a void pointer                          # size of track->i_level : 4
+        'void* kind',                                   # size of track->video : 8 (union)
                                                         # size of track->i_bitrate : 4
         'unsigned int i_bitrate',                       # size of track->psz_language : 8
         'char *psz_language',                           # size of track->psz_description : 8
@@ -116,7 +104,6 @@ module Vlc
         typealias "libvlc_track_type_t", "int"
 
         extern 'libvlc_instance_t * libvlc_new( int , const char* )'
-        extern 'const char* libvlc_get_version()'
         
         ### Media
         extern 'libvlc_media_t* libvlc_media_new_path(libvlc_instance_t*, const char* )'
@@ -181,7 +168,7 @@ module Vlc
     end
     
     # Load native library.
-    def self.load_lib(path = nil)
+    def self.load_lib(path: nil, plugin_path: nil)
         if path
             @vlc_lib = path
             begin
@@ -222,8 +209,13 @@ module Vlc
                 raise "Sorry, your platform [#{RUBY_PLATFORM}] is not supported..."
             end
         end
-
+        
+        extern 'const char* libvlc_get_version()'
+        puts "vlc version : #{libvlc_get_version}"
+        
         import_symbols() unless @@vlc_import_done
+        
+        ENV['VLC_PLUGIN_PATH'] = plugin_path if plugin_path
         
         # just in case ... other functions in Fiddle::Importer are using it
         # The variable is declared in 'dlload'
@@ -233,29 +225,22 @@ module Vlc
 end
 
 
-class Object
-    def unfold(template)
-        to_s.unpack(template)[0]
-    end
-end
-
-
 class Shoes::VideoVlc
     include Vlc
     
     attr_accessor :autoplay
-    attr_reader :path, :player, :loaded, :version
+    attr_reader :path, :player, :loaded, :version, :have_video_track, :have_audio_track, 
+                :video_track_width, :video_track_height
     
     def initialize(app, path, attr=nil)
         @path = path
         attr ||= {}
         @autoplay = attr[:autoplay] || false
         
-        @video = app.video_c attr
-        
         # what should we do with "--no-xlib"/XInitThreads(), seems controversial ...
         # Do we need threaded xlib in shoes/vlc ?
-        @vlci = libvlc_new(0, nil)
+        @vlci = libvlc_new(2, ["--no-xlib", "--no-video-title-show"].pack('p2'))
+#        @vlci = libvlc_new(0, nil)
         @version = libvlc_get_version
         
         @player = libvlc_media_player_new(@vlci)
@@ -267,6 +252,10 @@ class Shoes::VideoVlc
         @loaded = load_media @path
         vol = attr[:volume] || 85
         libvlc_audio_set_volume(@player, vol)
+        attr[:video_width] = video_track_width if video_track_width
+        attr[:video_height] = video_track_height if video_track_height
+        
+        @video = app.video_c attr
         
         # we must wait for parent (hence video itself) to be drawn in order to get the widget drawable
         # (keep "start" event free for possible use in Shoes script)
@@ -290,15 +279,19 @@ class Shoes::VideoVlc
     #             #   libvlc_media_player_set_nsobject(@player, drID)
     #             # end
             end
-    
+            
             play if @loaded && @autoplay
 
           end
+          @wait_ready.remove
         end
         
     end
     
     def load_media(path)
+        @have_video_track = @have_audio_track = nil
+        @video_track_width = @video_track_height = nil
+        
         @media = 
         if path =~ /:\/\//
             libvlc_media_new_location(@vlci, path)
@@ -312,28 +305,44 @@ class Shoes::VideoVlc
             libvlc_media_list_add_media(medialist, @media);
         end
         
+        ### Get some info about the tracks inside the @media 
+        ### how to deal with a C array OUT parameter (tracks_buf.ref)
         libvlc_media_parse(@media)
-#        parsed = libvlc_media_is_parsed(@media)
-#        puts "parsed ? #{parsed}"
         
-        tracks_buf = Fiddle::Pointer[' ' * Media_track.size * 5].ptr
+        tracks_buf = Fiddle::Pointer.malloc(Media_track.size)
         n_tracks = libvlc_media_tracks_get( @media, tracks_buf.ref )
-#        puts " n tracks = #{n_tracks}"
         libvlc_media_release(@media)
         
+        ptr_size, unpkf = 8, 'Q'      # 64 bits arch
+        if Fiddle::SIZEOF_VOIDP == 4  # 32 bits arch
+          ptr_size = 4
+          unpkf = 'L'
+        end
+#        We could also have taken the unpack route
+#        (0...n_tracks).each do |i|
+#           tr_p = tracks_buf[ptr_size*i, ptr_size]
+#           tr_pv = Fiddle::Pointer.new(tr_p.unpack(unpkf)[0])[0, Media_track.size] 
+#           i_type = tr_pv[12,4].unpack('i')[0]
+#           ...
+#        end
+        
         (0...n_tracks).each do |i|
-            # gives the size displayed on screen not the internal "real size"
-            # Back to fidddling with tracks_buf !!! >_>
-#            w_ptr = ' ' * 4
-#            h_ptr = ' ' * 4
-#            vid = libvlc_video_get_size(@player, i, w_ptr, h_ptr)
-#            puts " vid = #{vid}"
-#            if vid == 0 # Doesn't work on 1rst pass
-#                @track_width =  w_ptr.unpack("I")[0]
-#                @track_height = h_ptr.unpack("I")[0]
-#                puts "width : #{@track_width}"
-#                puts "height : #{@track_height}"
-#            end
+          tr_p = tracks_buf[ptr_size*i, ptr_size]   # get the pointer (4/8 bytes) at index i of the tracks_buf array
+          tr_pa = tr_p.unpack(unpkf)[0]             # get the address (integer) of that pointer
+          mdt = Media_track.new(tr_pa)              # use Fiddle structure wrapper
+          
+          if mdt.i_type == LIBVLC_TRACK_VIDEO
+              @have_video_track = true
+              v = Video_track.new Fiddle::Pointer[mdt.kind]
+              @video_track_width = v.i_width
+              @video_track_height = v.i_height
+          end
+          
+          if mdt.i_type == LIBVLC_TRACK_AUDIO
+              @have_audio_track = true
+#              a = Audio_track.new Fiddle::Pointer[mdt.kind]
+          end
+#          puts "mdt.psz_language : #{mdt.psz_language}" unless mdt.psz_language.null?
         end
         libvlc_media_tracks_release(tracks_buf, n_tracks);
         
@@ -350,6 +359,15 @@ class Shoes::VideoVlc
         stop if playing?
         @path = path
         @loaded = load_media(@path)
+        if @video.style[:using_video_dim]
+            if @have_video_track    # no dimensions provided, relying on video track size
+                @video.show
+                @video.style(width: video_track_width, height: video_track_height)
+            else                    # no dimensions provided, nothing to show (audio track)
+                @video.style(width: 0, height: 0)
+                @video.hide
+            end
+        end
         play if @loaded && @autoplay
     end
     
@@ -420,7 +438,10 @@ class Shoes::VideoVlc
     def toggle; @video.toggle; end
     def parent; @video.parent; end
     def remove; @video.remove; end
-    def style(attr=nil); @video.style(attr); end
+    def style(attrb=nil)
+        return @video.style if attrb == nil
+        @video.style(attrb)
+    end
     def displace(x, y); @video.displace(x, y); end
     def move(x, y); @video.move(x, y); end
     def width; @video.width; end    # widget width, not video track width
