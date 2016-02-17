@@ -1297,6 +1297,9 @@ shoes_native_surface_new(VALUE attr)
   int h = NUM2INT(ATTR(attr, height));
   NSRect rect = NSMakeRect(0, 0, w, h);
   NSView *nativeView = [[NSView alloc] initWithFrame: rect];
+  // Paint It Black
+  [nativeView setWantsLayer:YES];
+  [nativeView.layer setBackgroundColor:[[NSColor blackColor] CGColor]];
   return (SHOES_CONTROL_REF)nativeView;
 }
 

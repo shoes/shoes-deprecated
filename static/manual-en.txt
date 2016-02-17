@@ -3981,21 +3981,50 @@ already running, it is stopped.
 
 == Video ==
 
-Shoes 3.2 DOES NOT support video widgets. Sorry. 3.1 didn't either except for
-a select group Windows systems. It could also screw up those systems
+Shoes 3.3.1 restores the old Video widget capabilies. But differently for
+those who remember the old ways: You can't package your app with the VLC libraries included. 
+There is no separate video/non-video version of Shoes. There are no buttons
+or links created for you. 
 
-Shoes supports embedding of QuickTime, Flash video (FLV), DivX, Xvid and
-various other popular video formats. This is all thanks to VideoLAN and ffmpeg,
-two sensational open source libraries. Use the `video` method on a slot to
-setup a Shoes::Video object. !{:margin_left => 100}man-ele-video.png!
+What Shoes does is to look for VLC installed on the running system and if its a recent
+enough version of VLC (2.1, 2,2) then Shoes will use it. This has implications for
+folks that write scripts for other people:  Those end users will have to install
+VLC from videolan.org, and they should install it in the default place that
+VLC suggests, because thats where Shoes will look.  If you are just write Shoes code
+for yourself you also need to install VLC, just like anybody else.
 
-In addition to video formats, some audio formats are also supported, such as
-MP3, WAV and Ogg Vorbis.
+Shoes looks for VLC in /usr/lib (for linux), /Applications/VLC.app (osx) and
+C:\"Program Files (x86)"\VideoLAN\VLC which is where VLC installs it's self.
+If you don't install VLC in the correct place, then Shoes won't find it.
 
-Video support is optional in Shoes and some builds do not support video. For
-example, video support is unavailable for PowerPC. When you download Shoes, the
-build for your platform will be marked `novideo` in the filename if no video
-support is available.
+You also have to draw your own buttons or links and hook them up so they 
+call the methods to pause, play, fast forward and so on. Take a look at the
+expert-video-player in Furthermore->Samples which is tour-de-force of how to create a 
+custom widget and wire up. We might get an easier method built in the future but 
+for now, you need to do it the hard way.
+
+To add a video you need to 
+{{{require 'shoes/videoffi'
+Vlc.load_lib 
+}}}
+
+=== Vlc.load_lib ===
+
+This checks that VLC is installed and makes it's api's available to Shoes. 
+
+There is an argument (not shown) that is the path to the VLC location which will almost
+certainly fail for you unless you are "much, much smarter than the average bear" . So, don't do that.
+
+=== video {styles} » video-widget ===
+
+This creates the on screen widget with the styles args like width and height some unique settings.
+This is the widget you control with the methods below.
+
+There are some styles that are unique to Video widgets:
+
+autoplay: true or false
+
+volume: integer 0..100
 
 === hide() » self ===
 

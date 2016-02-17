@@ -3,7 +3,7 @@ require 'fiddle/import'
 
 module Vlc
 	extend Fiddle::Importer
-    
+
     # Fiddle's default 'extern' stores all methods into local variable '@func_map', that makes difficult to 'include Vlc'.
     # So override it and replace '@func_map' into 'VLC_FUNCTIONS_MAP'.
     # Ref.: /lib/ruby/2.0.0/fiddle/import.rb
@@ -30,19 +30,18 @@ module Vlc
         module_function(name)
         f
     end
-    
-    
+
     # libvlc_track_type_t
-    LIBVLC_TRACK_UNKNOWN = -1	
+    LIBVLC_TRACK_UNKNOWN = -1
     LIBVLC_TRACK_AUDIO   = 0
     LIBVLC_TRACK_VIDEO 	 = 1
     LIBVLC_TRACK_TEXT    = 2
-    
+
     Audio_track = struct [
         'unsigned int i_channels',
         'unsigned int i_rate'
     ]
-    
+
     Video_track = struct [
         'unsigned int i_height',
         'unsigned int i_width',
@@ -51,9 +50,9 @@ module Vlc
         'unsigned int i_frame_rate_num',
         'unsigned int i_frame_rate_den'
     ]
-    
+
     Subtitle_track = struct ['char *psz_encoding']
-    
+
     Media_track = struct [
         'unsigned int i_codec',
         'unsigned int i_original_fourcc',
@@ -71,7 +70,7 @@ module Vlc
         'char *psz_language',
         'char *psz_description'
     ]
-    
+
     Media_stats = struct [
         #/* Input */
         'int         i_read_bytes',
@@ -95,15 +94,15 @@ module Vlc
         'int         i_sent_bytes',
         'float       f_send_bitrate'
     ]
-    
+
     @@vlc_import_done = false
-    def self.import_symbols    
+    def self.import_symbols
         typealias "uint32_t", "unsigned int"
         typealias "libvlc_time_t", "long long"
         typealias "libvlc_track_type_t", "int"
 
         extern 'libvlc_instance_t * libvlc_new( int , const char* )'
-        
+
         ### Media
         extern 'libvlc_media_t* libvlc_media_new_path(libvlc_instance_t*, const char* )'
         extern 'libvlc_media_t* libvlc_media_new_location(libvlc_instance_t*, const char* )'
@@ -128,13 +127,13 @@ module Vlc
         extern 'void libvlc_media_player_set_hwnd( libvlc_media_player_t*, void* )'
         extern 'void* libvlc_media_player_get_nsobject( libvlc_media_player_t* )'
         extern 'void libvlc_media_player_set_nsobject( libvlc_media_player_t*, void* )'
-        
+
         extern 'libvlc_time_t libvlc_media_player_get_time( libvlc_media_player_t* )'
         extern 'void libvlc_media_player_set_time(libvlc_media_player_t*, libvlc_time_t )'
         extern 'libvlc_time_t libvlc_media_player_get_length( libvlc_media_player_t* )'
         extern 'float libvlc_media_player_get_position( libvlc_media_player_t* )'
         extern 'void libvlc_media_player_set_position( libvlc_media_player_t*, float )'
-        
+
         ### Media List
         extern 'libvlc_media_list_t* libvlc_media_list_new( libvlc_instance_t* )'
         extern 'int libvlc_media_list_add_media( libvlc_media_list_t*, libvlc_media_t* )'
@@ -142,7 +141,7 @@ module Vlc
         extern 'int libvlc_media_list_count( libvlc_media_list_t* )'
         extern 'void libvlc_media_list_lock( libvlc_media_list_t* )'
         extern 'void libvlc_media_list_unlock( libvlc_media_list_t* )'
-        
+
         ### Media List Player
         extern 'libvlc_media_list_player_t* libvlc_media_list_player_new(libvlc_instance_t* )'
 #        Not avalaible in vlc 2.2.0
@@ -155,17 +154,17 @@ module Vlc
         extern 'int libvlc_media_list_player_is_playing( libvlc_media_list_player_t* )'
         extern 'int libvlc_media_list_player_next( libvlc_media_list_player_t* )'
         extern 'int libvlc_media_list_player_previous( libvlc_media_list_player_t* )'
-        
+
         ### Audio controls
         extern 'int libvlc_audio_get_volume( libvlc_media_player_t* )'
         extern 'int libvlc_audio_set_volume( libvlc_media_player_t*, int )'
-        
+
         ### Video Controls
         extern 'int libvlc_video_get_size( libvlc_media_player_t*, unsigned int, unsigned int*, unsigned int* )'
-        
+
         @@vlc_import_done = true
     end
-    
+
     # Load native library.
     def self.load_lib(path: nil, plugin_path: nil)
         if path
@@ -174,48 +173,73 @@ module Vlc
               dlload @vlc_lib
             rescue => e #TODO
               raise "Sorry, No Video support !\n unable to find libvlc :  #{@vlc_lib}"
+            end
+
+        elsif ENV['VLC_APP_PATH']  #preferred method
+          vlcpath = ENV['VLC_APP_PATH']
+          Dir.chdir(File.dirname(vlcpath)) do 
+            puts "VLC opening with ENV: #{vlcpath}"
+            begin
+              dlload(File.basename(vlcpath))
+            rescue
+              raise "Sorry, #{vlcpath} doesn't load - is it correct"
+            end
           end
         else
-            case RUBY_PLATFORM
-            when /mingw/
-                # Oddness - dlload on Windows only works this way
-                # so every platform has to 
-                Dir.chdir('C:/Program Files (x86)/VideoLAN/VLC') do
-                  p = Dir.glob('libvlc.dll')
-                  begin
-                    dlload p[0]
-                  rescue => e
-                    raise "Sorry, No Video support !\n unable to find libvlc : #{Dir.getwd}  #{p[0]}"
-                  end
-                end
-            when /darwin/                          
-                @vlc_lib = "/Applications/VLC.app/Contents/MacOS/lib/libvlc.dylib"     
-                begin 
-                  dlload @vlc_lib
-                rescue
-                  raise "Sorry, No Video support !\n unable to find libvlc :  #{@vlc_lib}"
-                end
-            when /linux/
-                Dir.glob('/usr/lib/libvlc.so*') do |p|
-                  @vlc_lib = p if ! File.symlink?(p)
-                end
-                begin
-                  dlload @vlc_lib
-                rescue => e
-                  raise "Sorry, No Video support !\n unable to find libvlc :  #{@vlc_lib}"
-                end
-            else
-                raise "Sorry, your platform [#{RUBY_PLATFORM}] is not supported..."
+          case RUBY_PLATFORM
+          when /mingw/
+            # Oddness - dlload on Windows only works this way
+            # Probably the space in "Program Files (x86)" - known Ruby fun.
+            pfdir = ENV['ProgramFiles(x86)']
+            pfdir = ENV['ProgramFiles'] if !pfdir 
+            Dir.chdir(pfdir) do
+              if ! File.exist? File.join(pfdir, "VideoLAN", "VLC", "libvlc.dll")
+                raise "Sorry, No Video support !\n unable to find #{pfdir}/VideoLAN/VLC/libvlc.dll"
+              end
             end
+            Dir.chdir("#{pfdir}/VideoLAN/VLC") do
+              begin
+                dlload 'libvlc.dll'
+              rescue => e
+                raise "Sorry, libvlc.dll failed to load"
+              end
+            end
+          when /darwin/
+            @vlc_lib = '/completely/missing'
+              Dir.glob('/Applications/VLC.app/Contents/MacOS/lib/libvlc.*dylib') do |p|
+            @vlc_lib = p if ! File.symlink?(p)
+            end
+            begin
+              dlload @vlc_lib
+            rescue
+              raise "Sorry, No Video support !\n unable to find libvlc :  #{@vlc_lib}"
+            end
+          when /linux/
+            @vlc_lib = '/completely/missing'
+            Dir.glob('/usr/lib/libvlc.so*') do |p|
+              @vlc_lib = p if ! File.symlink?(p)
+            end
+            begin
+              dlload @vlc_lib
+            rescue => e
+              raise "Sorry, No Video support !\n unable to find libvlc"
+            end
+          else
+            raise "Sorry, your platform [#{RUBY_PLATFORM}] is not supported..."
+          end
         end
-        
+
+        # do a version check to make sure it is 2.1 or 2.2
         extern 'const char* libvlc_get_version()'
-        puts "vlc version : #{libvlc_get_version}"
-        
+        versionstr = libvlc_get_version().to_s
+        version = versionstr[/\d.\d/]
+        verno = version.to_f
+        if verno < 2.1
+          raise "You need a newer VLC: 2.1 or better"
+        end
+        info "using VLC: #{versionstr}"
         import_symbols() unless @@vlc_import_done
-        
-        ENV['VLC_PLUGIN_PATH'] = plugin_path if plugin_path
-        
+
         # just in case ... other functions in Fiddle::Importer are using it
         # The variable is declared in 'dlload'
         @func_map = VLC_FUNCTIONS_MAP
@@ -226,7 +250,7 @@ end
 
 class Shoes::VideoVlc
     include Vlc
-    
+
     attr_accessor :autoplay
     attr_reader :path, :player, :loaded, :version, :have_video_track, :have_audio_track, 
                 :video_track_width, :video_track_height
@@ -235,19 +259,28 @@ class Shoes::VideoVlc
         @path = path
         attr ||= {}
         @autoplay = attr[:autoplay] || false
-        
-        # what should we do with "--no-xlib"/XInitThreads(), seems controversial ...
-        # Do we need threaded xlib in shoes/vlc ?
-        @vlci = libvlc_new(2, ["--no-xlib", "--no-video-title-show"].pack('p2'))
-#        @vlci = libvlc_new(0, nil)
-        @version = libvlc_get_version
-        
+
+        if RUBY_PLATFORM =~ /darwin/
+		  ENV['VLC_PLUGIN_PATH']="/Applications/VLC.app/Contents/MacOS/plugins"
+          @vlci = libvlc_new(0, nil)
+          @version = libvlc_get_version
+          raise "vlc version OSX #{@version} #{@vlci.inspect}" if @vlci.null?
+        else
+          # what should we do with "--no-xlib"/XInitThreads(), seems controversial ...
+          # Do we need threaded xlib in shoes/vlc ?
+          # if you need to pass command line args in, then create them like this:
+          # libvlc_new(2, ["--no-xlib", "--no-video-title-show"].pack('p2'))
+          @vlci = libvlc_new(0, nil)
+          @version = libvlc_get_version
+          raise "vlc version #{@version} #{@vlci.inspect}" if @vlci.null?
+        end
+
         @player = libvlc_media_player_new(@vlci)
         @list_player = libvlc_media_list_player_new(@vlci)
         libvlc_media_list_player_set_media_player(@list_player, @player)
         @medialist = libvlc_media_list_new(@vlci)
         libvlc_media_list_player_set_media_list(@list_player, @medialist)
-        
+
         @loaded = load_media @path
         vol = attr[:volume] || 85
         libvlc_audio_set_volume(@player, vol)
@@ -255,7 +288,7 @@ class Shoes::VideoVlc
         attr[:video_height] = video_track_height if video_track_height
         
         @video = app.video_c attr
-        
+
         # we must wait for parent (hence video itself) to be drawn in order to get the widget drawable
         # (keep "start" event free for possible use in Shoes script)
         # using "animate" method because of the underlying "g_timeout_add" function (let's have peaceful relations with gtk)
@@ -263,7 +296,7 @@ class Shoes::VideoVlc
           if @video.parent.style[:started]
             @wait_ready.stop
             drID = @video.drawable   # xlib window / HWND / NSView  id
-            
+
             case RUBY_PLATFORM
               when /linux/
                 if libvlc_media_player_get_xwindow(@player) == 0
@@ -274,19 +307,19 @@ class Shoes::VideoVlc
                   libvlc_media_player_set_hwnd(@player, drID)
                 end
               when /darwin/
-    #             # if libvlc_media_player_set_nsobject(@player).null?
-    #             #   libvlc_media_player_set_nsobject(@player, drID)
-    #             # end
+                 if libvlc_media_player_get_nsobject(@player).null?
+                   libvlc_media_player_set_nsobject(@player, drID)
+                 end
             end
-            
+
             play if @loaded && @autoplay
 
           end
           @wait_ready.remove
         end
-        
+
     end
-    
+
     def load_media(path)
         @have_video_track = @have_audio_track = nil
         @video_track_width = @video_track_height = nil
@@ -298,7 +331,7 @@ class Shoes::VideoVlc
             libvlc_media_new_path(@vlci, path)
         end
         return nil if (@media.null? or @path == "")
-        
+
         access_media_list do |medialist|
             libvlc_media_list_remove_index(medialist, 0) if (libvlc_media_list_count(medialist) != 0)
             libvlc_media_list_add_media(medialist, @media);
@@ -324,7 +357,7 @@ class Shoes::VideoVlc
 #           i_type = tr_pv[12,4].unpack('i')[0]
 #           ...
 #        end
-        
+
         (0...n_tracks).each do |i|
           tr_p = tracks_buf[ptr_size*i, ptr_size]   # get the pointer (4/8 bytes) at index i of the tracks_buf array
           tr_pa = tr_p.unpack(unpkf)[0]             # get the address (integer) of that pointer
@@ -344,16 +377,16 @@ class Shoes::VideoVlc
 #          puts "mdt.psz_language : #{mdt.psz_language}" unless mdt.psz_language.null?
         end
         libvlc_media_tracks_release(tracks_buf, n_tracks);
-        
+
         true
     end
-    
+
     def access_media_list
         libvlc_media_list_lock(@medialist)
         yield @medialist
         libvlc_media_list_unlock(@medialist)
     end
-    
+
     def path=(path)
         stop if playing?
         @path = path
@@ -369,68 +402,68 @@ class Shoes::VideoVlc
         end
         play if @loaded && @autoplay
     end
-    
+
     def play
         libvlc_media_list_player_play(@list_player)
     end
-    
+
     def pause
         libvlc_media_list_player_pause(@list_player)
     end
-    
+
     def stop
         libvlc_media_list_player_stop(@list_player)
     end
-    
+
     def playing?
         libvlc_media_list_player_is_playing(@list_player) == 1 ? true : false
     end
-    
+
     def volume
-        # software volume in percents (0 = mute, 100 = nominal / 0dB) 
+        # software volume in percents (0 = mute, 100 = nominal / 0dB)
         libvlc_audio_get_volume(@player)
     end
-    
+
     def volume=(vol)
-        # software volume in percents (0 = mute, 100 = nominal / 0dB) 
+        # software volume in percents (0 = mute, 100 = nominal / 0dB)
         libvlc_audio_set_volume(@player, vol)
     end
-    
+
     def length
         # in ms, or -1 if there is no media.
         libvlc_media_player_get_length(@player) #(buggy, might be removed)
     end
-    
+
     def time
         # in ms
         libvlc_media_player_get_time(@player)
     end
-    
+
     def time=(time)
         # in ms
         libvlc_media_player_set_time(@player, time)
     end
-    
+
     def position
         #  percentage between 0.0 and 1.0
         libvlc_media_player_get_position(@player)
     end
-     
+
     def position=(pos)
         #  percentage between 0.0 and 1.0
         libvlc_media_player_set_position(@player, pos)
     end
-    
+
     def next_media
         r = libvlc_media_list_player_next(@list_player)
         return r == 0 ? true : false
     end
-    
+
     def previous_media
         r = libvlc_media_list_player_previous(@list_player)
         return r == 0 ? true : false
     end
-    
+
     # redirecting to shoes C video methods
     def show; @video.show; end
     def hide; @video.hide; end
@@ -447,7 +480,7 @@ class Shoes::VideoVlc
     def height; @video.height; end  # ditto
     def left; @video.left; end
     def top; @video.top; end
-    
+
 end
 
 

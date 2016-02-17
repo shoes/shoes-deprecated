@@ -44,6 +44,7 @@ if APP['GTK']== 'gtk+-2.0'
 else
   file_list = ["shoes/console/*.c"] + ["shoes/native/*.c"] + ["shoes/http/rbload.c"] + ["shoes/*.c"]
 end 
+file_list << "shoes/video/video.c"
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
@@ -65,7 +66,7 @@ else
   LINUX_CFLAGS = " -O -Wall"
 end
 LINUX_CFLAGS << " -DRUBY_HTTP" if RUBY_HTTP
-LINUX_CFLAGS << " -DSHOES_GTK -fPIC -Wno-unused-but-set-variable -Wno-unused-variable"
+LINUX_CFLAGS << " -DSHOES_GTK -DVIDEO -fPIC -Wno-unused-but-set-variable -Wno-unused-variable"
 LINUX_CFLAGS << " -DGTK3" unless APP['GTK'] == 'gtk+-2.0'
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkgruby}"`.strip+" "
@@ -99,4 +100,5 @@ SOLOCS['pcre'] = "#{larch}/libpcre.so.3"
 SOLOCS['crypto'] = "#{ularch}/libcrypto.so.1.0.0"
 SOLOCS['ssl'] = "#{ularch}/libssl.so.1.0.0"
 SOLOCS['sqlite'] = "#{ularch}/libsqlite3.so.0.8.6"
+SOLOCS['ffi'] = "#{ularch}/libffi.so.5"
 SOLOCS['rsvg2'] = "#{ularch}/librsvg-2.so"

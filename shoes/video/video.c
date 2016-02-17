@@ -332,7 +332,6 @@ VALUE shoes_app_c_video(int argc, VALUE *argv, VALUE self) {
   return shoes_canvas_c_video(argc, argv, canvas);
 }
 
-
 // called inside shoes_ruby_init, ruby.c
 void shoes_ruby_video_init() {
 
