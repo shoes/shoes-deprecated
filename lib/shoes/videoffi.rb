@@ -58,19 +58,18 @@ module Vlc
         'unsigned int i_codec',
         'unsigned int i_original_fourcc',
         'int i_id',
-        'int i_type', # libvlc_track_type_t             ### via regular c lib, vlc call :
-                                                        # size of track : 56
-        # Codec specific                                # size of track->i_codec : 4
-        'int i_profile',                                # size of track->i_original_fourcc : 4
-        'int i_level',                                  # size of track->i_id : 4
-                                                        # size of track->i_type : 4
-        # union inside struct                           # size of track->i_profile : 4
-        # using a void pointer                          # size of track->i_level : 4
-        'void* kind',                                   # size of track->video : 8 (union)
-                                                        # size of track->i_bitrate : 4
-        'unsigned int i_bitrate',                       # size of track->psz_language : 8
-        'char *psz_language',                           # size of track->psz_description : 8
-        'char *psz_description' 
+        'int i_type', # libvlc_track_type_t
+        
+        # Codec specific
+        'int i_profile',
+        'int i_level',
+        
+        # a void pointer representing an union
+        'void* kind',
+        
+        'unsigned int i_bitrate',
+        'char *psz_language',
+        'char *psz_description'
     ]
     
     Media_stats = struct [
@@ -176,7 +175,7 @@ module Vlc
             rescue => e #TODO
               raise "Sorry, No Video support !\n unable to find libvlc :  #{@vlc_lib}"
           end
-       else
+        else
             case RUBY_PLATFORM
             when /mingw/
                 # Oddness - dlload on Windows only works this way
