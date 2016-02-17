@@ -34,12 +34,12 @@ module Vlc_path
       begin 
         # it's a Windows Ruby thing with the spaces in the path
         Dir.chdir(File.dirname(vlc_app_path)) do |p|
-          if File.exist? File.basename(vlc_app_path) 
-            mostly_ok = true
-          end
+          mostly_ok = File.exist? File.basename(vlc_app_path)
         end
       rescue 
+        puts "vlc not at standard location "
         vlc_app_path = nil
+        mostly_ok = false
       end
     end
     if vlc_app_path && vlc_plugin_path && mostly_ok

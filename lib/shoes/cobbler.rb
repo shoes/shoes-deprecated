@@ -188,10 +188,11 @@ Shoes.app :title => "Shoes Cobbler" do
     Vlc_path.load File.join(LIB_DIR, Shoes::RELEASE_NAME, 'vlc.yaml')
     @panel.clear
     @panel.append do
-      para "Set paths for your VLC Installation"
+      para "Set paths for your VLC Installation. Pick the libvlc.dll for \
+the first selection and then the Folder named plugins"
       flow do
-        para "VLC dll/so/dylib"
-        @vlcapp = edit_line "#{ENV['VLC_APP_PATH']}", width: 350
+        para "libvlc.dll [.so, .dylib]"
+        @vlcapp = edit_line "#{ENV['VLC_APP_PATH']}", width: 320
         button "Update" do
           vlcp = ask_open_file
           if vlcp
@@ -203,6 +204,10 @@ Shoes.app :title => "Shoes Cobbler" do
         para "VLC Plugin Path "
         @vlcplug = edit_line "#{ENV['VLC_PLUGIN_PATH']}", width: 350
         button "Update" do
+          vlpp = ask_open_folder
+          if vlpp
+            @vlcplug.text = vlpp
+          end
        end
      end
       flow do
@@ -210,13 +215,16 @@ Shoes.app :title => "Shoes Cobbler" do
           if ! (Vlc_path.check @vlcapp.text, @vlcplug.text)
             alert "Those are not good paths. Try again."
           else 
+            ENV['VLC_APP_PATH'] = @vlcapp.text
+            ENV['VLC_PLUGIN_PATH'] = @vlcplug.text
             mkdir_p File.join(LIB_DIR, Shoes::RELEASE_NAME)
             Vlc_path.save File.join(LIB_DIR, Shoes::RELEASE_NAME, 'vlc.yaml')
           end
         end
-        button "reset" do
-          @vlcapp.text = ''
-          @vlcplug.text = ''
+        button "Remove" do
+          ENV['VLC_APP_PATH'] =  @vlcapp.text = ''
+          ENV['VLC_PLUGIN_PATH'] = @vlcplug.text = ''
+          rm File.join(LIB_DIR, Shoes::RELEASE_NAME, 'vlc.yaml')
         end
       end
     end

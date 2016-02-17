@@ -188,6 +188,16 @@ module Vlc
             rescue => e #TODO
               raise "Sorry, No Video support !\n unable to find libvlc :  #{@vlc_lib}"
           end
+        elsif ENV['VLC_APP_PATH']  #preferred method
+          vlcpath = ENV['VLC_APP_PATH']
+          Dir.chdir(File.dirname(vlcpath)) do 
+            puts "VLC opening with ENV: #{vlcpath}"
+            begin
+              dlload(File.basename(vlcpath))
+            rescue
+              raise "Sorry, #{vlcpath} doesn't load - is it correct"
+            end
+          end
         else
             case RUBY_PLATFORM
             when /mingw/
@@ -233,11 +243,13 @@ module Vlc
         end
         # do a version check to make sure it is 2.1 or 2.2
         extern 'const char* libvlc_get_version()'
-        version = libvlc_get_version().to_s[/\d.\d/]
-        if version != '2.1' &&  version != '2.2'
-          raise "You need a newer VLC, 2.1 or 2.2"
+        versionstr = libvlc_get_version().to_s
+        version = versionstr[/\d.\d/]
+        verno = version.to_f
+        if verno < 2.1
+          raise "You need a newer VLC: 2.1 or better"
         end
-        info "VLC: #{version}"
+        info "using VLC: #{versionstr}"
         import_symbols() unless @@vlc_import_done
 
         # just in case ... other functions in Fiddle::Importer are using it

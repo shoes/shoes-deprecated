@@ -105,10 +105,16 @@ class Shoes::Knob < Shoes::Widget
 end
 
 
-require 'shoes/videoffi'
-Vlc.load_lib  #'/usr/lib/libvlc.so.5.5.0', #"./libvlc.so" 
+#require 'shoes/videoffi'
+#Vlc.load_lib  #'/usr/lib/libvlc.so.5.5.0', #"./libvlc.so" 
 
 Shoes.app width: 625, height: 580, resizable: true do
+    require 'shoes/videoffi'
+    if !ENV['VLC_APP_PATH']
+      alert "Your VLC setup can not be found"
+    end
+    Vlc.load_lib  #'/usr/lib/libvlc.so.5.5.0', #"./libvlc.so" 
+
     LinkStyleStopped = [Shoes::Link, stroke: black, underline: "none"]
     LinkStyleStoppeddHover = [Shoes::LinkHover, stroke: darkred, underline: "none"]
     style(*LinkStyleStopped); style(*LinkStyleStoppeddHover)
