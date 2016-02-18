@@ -172,6 +172,7 @@ module Vlc
       begin
         dlload @vlc_lib
       rescue => e #TODO
+        Shoes.show_log
         raise "Sorry, No Video support !\n unable to find libvlc :  #{@vlc_lib}"
       end
       
@@ -182,6 +183,7 @@ module Vlc
         begin
           dlload(File.basename(vlcpath))
         rescue
+          Shoes.show_log
           raise "Sorry, #{vlcpath} doesn't load - is it correct"
         end
       end
@@ -194,6 +196,7 @@ module Vlc
         pfdir = ENV['ProgramFiles'] if !pfdir 
         Dir.chdir(pfdir) do
           if ! File.exist? File.join(pfdir, "VideoLAN", "VLC", "libvlc.dll")
+            Shoes.show_log
             raise "Sorry, No Video support !\n unable to find #{pfdir}/VideoLAN/VLC/libvlc.dll"
           end
         end
@@ -201,6 +204,7 @@ module Vlc
           begin
             dlload 'libvlc.dll'
           rescue => e
+            Shoes.show_log
             raise "Sorry, libvlc.dll failed to load"
           end
         end
@@ -212,6 +216,7 @@ module Vlc
         begin
           dlload @vlc_lib
         rescue
+          Shoes.show_log
           raise "Sorry, No Video support !\n unable to find libvlc :  #{@vlc_lib}"
         end
       when /linux/
@@ -222,6 +227,7 @@ module Vlc
         begin
           dlload @vlc_lib
         rescue => e
+          Shoes.show_log
           raise "Sorry, No Video support !\n unable to find libvlc"
         end
       else
@@ -235,6 +241,7 @@ module Vlc
     version = versionstr[/\d.\d/]
     verno = version.to_f
     if verno < 2.1
+      Shoes.show_log
       raise "You need a newer VLC: 2.1 or better"
     end
     info "using VLC: #{versionstr}"
