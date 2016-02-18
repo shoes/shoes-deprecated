@@ -109,11 +109,6 @@ require 'shoes/videoffi'
 Vlc.load_lib 
 
 Shoes.app width: 625, height: 580, resizable: true do
-    require 'shoes/videoffi'
-    if !ENV['VLC_APP_PATH']
-      alert "Your VLC setup can not be found"
-    end
-    Vlc.load_lib  #'/usr/lib/libvlc.so.5.5.0', #"./libvlc.so" 
 
     LinkStyleStopped = [Shoes::Link, stroke: black, underline: "none"]
     LinkStyleStoppeddHover = [Shoes::LinkHover, stroke: darkred, underline: "none"]
@@ -131,7 +126,7 @@ Shoes.app width: 625, height: 580, resizable: true do
     stack do
         @info = para "", margin_left: 25, size: 11
         @cont = flow do   #  width: 600, height: 400 
-        @svlc = video "", margin_left: 25, autoplay: true, #width: 600, height: 400,
+        @svlc = video "", margin_left: 25, autoplay: true, width: 600, height: 400,
                           volume: start_vol, bg_color: rgb(20,20,20)
         end
         
