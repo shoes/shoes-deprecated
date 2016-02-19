@@ -180,17 +180,6 @@ VALUE shoes_video_draw(VALUE self, VALUE c, VALUE actual) {
   Data_Get_Struct(self, shoes_video, self_t);
   Data_Get_Struct(c, shoes_canvas, canvas);
 
-  /* to be used with medialistPlayer i think TODO */
-  if ( !RTEST(actual) &&      /* do this only once at first pass */
-        self_t->init == 0 ) { /* and only when loading a media (threading issues at redraw events !!) */
-
-//    int loaded = load_media(self_t);
-//
-//    if (!loaded) {/*TODO handle error*/ /* i couldn't crash vlc whatever the file i tried to load */
-//      printf("no media loaded");
-//    }
-  }
-
   shoes_place_decide(&place, c, self_t->attr, canvas->place.iw, canvas->place.ih, REL_CANVAS, TRUE);
   VALUE ck = rb_obj_class(c); // flow vs stack management in FINISH macro
 

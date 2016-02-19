@@ -219,7 +219,7 @@ module Vlc
           dlload @vlc_lib
         rescue
           Shoes.show_log
-          raise "Sorry, No Video support !\n unable to find libvlc :  #{@vlc_lib}"
+          raise "Sorry, No Video support !\n unable to find libvlc : #{@vlc_lib}"
         end
       when /linux/
         @vlc_lib = '/completely/missing'
@@ -230,7 +230,7 @@ module Vlc
           dlload @vlc_lib
         rescue => e
           Shoes.show_log
-          raise "Sorry, No Video support !\n unable to find libvlc"
+          raise "Sorry, No Video support !\n unable to find libvlc : #{@vlc_lib}"
         end
       else
         raise "Sorry, your platform [#{RUBY_PLATFORM}] is not supported..."
@@ -325,7 +325,7 @@ class Shoes::VideoVlc
     @video_track_width = @video_track_height = nil
 
     @media = 
-    if path =~ /:\/\//
+    if path =~ %r{://}
       libvlc_media_new_location(@vlci, path)
     else
       libvlc_media_new_path(@vlci, path)
