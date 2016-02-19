@@ -17,8 +17,13 @@ module Vlc_path
     if !vlc_app_path
       case RUBY_PLATFORM
         when /ming/
-          vlc_app_path = "C:/Program Files (x86)/VideoLAN/VLC/libvlc.dll"
-          vlc_plugin_path = "C:/Program Files (x86)/VideoLan/VLC/plugins"
+          if ENV['ProgramFiles(x86)']
+            vlc_app_path = "C:/Program Files (x86)/VideoLAN/VLC/libvlc.dll"
+            vlc_plugin_path = "C:/Program Files (x86)/VideoLan/VLC/plugins"
+          else
+            vlc_app_path = "C:/Program Files/VideoLAN/VLC/libvlc.dll"
+            vlc_plugin_path = "C:/Program Files/VideoLan/VLC/plugins"
+          end
         when /linux/
           Dir.glob('/usr/lib/libvlc.so*') do |p|
             vlc_app_path = p if ! File.symlink?(p)

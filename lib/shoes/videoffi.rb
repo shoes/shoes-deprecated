@@ -169,6 +169,7 @@ module Vlc
   def self.load_lib(path: nil, plugin_path: nil)
     if path
       @vlc_lib = path
+      ENV['VLC_PLUGIN_PATH'] = plugin_path if plugin_path
       begin
         dlload @vlc_lib
       rescue => e #TODO
@@ -178,7 +179,7 @@ module Vlc
     elsif ENV['VLC_APP_PATH']  #preferred method
       vlcpath = ENV['VLC_APP_PATH']
       Dir.chdir(File.dirname(vlcpath)) do 
-        puts "VLC opening with ENV: #{vlcpath}"
+        #puts "VLC opening with ENV: #{vlcpath}"
         begin
           dlload(File.basename(vlcpath))
         rescue
@@ -186,6 +187,7 @@ module Vlc
         end
       end
     else
+      # is this needed now?
       case RUBY_PLATFORM
       when /mingw/
         # Oddness - dlload on Windows only works this way
