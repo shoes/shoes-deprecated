@@ -316,6 +316,7 @@ class Shoes::VideoVlc
 
       end
       @wait_ready.remove
+      @wait_ready = nil
     end
 
   end
@@ -340,8 +341,9 @@ class Shoes::VideoVlc
     ### Get some info about the tracks inside the @media 
     ### how to deal with a C array OUT parameter (tracks_buf.ref)
     libvlc_media_parse(@media)
-
-    tracks_buf = Fiddle::Pointer.malloc(Media_track.size)
+    
+    free = Fiddle::Function.new(Fiddle::RUBY_FREE, [Fiddle::TYPE_VOIDP], Fiddle::TYPE_VOID)
+    tracks_buf = Fiddle::Pointer.malloc(Media_track.size, free)
     n_tracks = libvlc_media_tracks_get( @media, tracks_buf.ref )
     libvlc_media_release(@media)
 
