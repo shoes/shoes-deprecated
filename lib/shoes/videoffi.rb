@@ -260,18 +260,11 @@ class Shoes::VideoVlc
     attr ||= {}
     @autoplay = attr[:autoplay] || false
 
-    if RUBY_PLATFORM =~ /darwin/
-      ENV['VLC_PLUGIN_PATH']="/Applications/VLC.app/Contents/MacOS/plugins"
-      @vlci = libvlc_new(0, nil)
-      @version = libvlc_get_version
-      raise "vlc version OSX #{@version} #{@vlci.inspect}" if @vlci.null?
-    else
-      # if you need to pass command line args in, then create them like this:
-      # libvlc_new(2, ["--no-xlib", "--no-video-title-show"].pack('p2'))
-      @vlci = libvlc_new(0, nil)
-      @version = libvlc_get_version
-      raise "vlc version #{@version} #{@vlci.inspect}" if @vlci.null?
-    end
+    # if you need to pass command line args in, then create them like this:
+    # libvlc_new(2, ["--no-xlib", "--no-video-title-show"].pack('p2'))
+    @vlci = libvlc_new(0, nil)
+    @version = libvlc_get_version
+    raise "vlc version #{@version} #{@vlci.inspect}" if @vlci.null?
 
     @player = libvlc_media_player_new(@vlci)
     @list_player = libvlc_media_list_player_new(@vlci)
