@@ -293,12 +293,9 @@ class Shoes::VideoVlc
     # (keep "start" event free for possible use in Shoes script)
     # using "animate" method because of the underlying "g_timeout_add" function (let's have peaceful relations with gtk)
     @wait_ready = app.animate(100) do |fr|
-        info "@wait_ready "
       if @video.parent.style[:started]
-          info "@video.parent.style[:started "
         @wait_ready.stop
         drID = @video.drawable   # xlib window / HWND / NSView  id
-        info "drID = #{drID}"
         case RUBY_PLATFORM
           when /linux/
             if libvlc_media_player_get_xwindow(@player) == 0
