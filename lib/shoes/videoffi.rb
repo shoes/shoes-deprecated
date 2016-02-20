@@ -296,7 +296,6 @@ class Shoes::VideoVlc
       if @video.parent.style[:started]
         @wait_ready.stop
         drID = @video.drawable   # xlib window / HWND / NSView  id
-
         case RUBY_PLATFORM
           when /linux/
             if libvlc_media_player_get_xwindow(@player) == 0
@@ -313,10 +312,10 @@ class Shoes::VideoVlc
         end
 
         play if @loaded && @autoplay
-
+        
+        @wait_ready.remove
+        @wait_ready = nil
       end
-      @wait_ready.remove
-      @wait_ready = nil
     end
 
   end
