@@ -219,7 +219,7 @@ module Vlc
           dlload @vlc_lib
         rescue
           Shoes.show_log
-          raise "Sorry, No Video support !\n unable to find libvlc :  #{@vlc_lib}"
+          raise "Sorry, No Video support !\n unable to find libvlc : #{@vlc_lib}"
         end
       when /linux/
         @vlc_lib = '/completely/missing'
@@ -230,7 +230,7 @@ module Vlc
           dlload @vlc_lib
         rescue => e
           Shoes.show_log
-          raise "Sorry, No Video support !\n unable to find libvlc"
+          raise "Sorry, No Video support !\n unable to find libvlc : #{@vlc_lib}"
         end
       else
         raise "Sorry, your platform [#{RUBY_PLATFORM}] is not supported..."
@@ -316,6 +316,7 @@ class Shoes::VideoVlc
 
       end
       @wait_ready.remove
+      @wait_ready = nil
     end
 
   end
@@ -325,7 +326,7 @@ class Shoes::VideoVlc
     @video_track_width = @video_track_height = nil
 
     @media = 
-    if path =~ /:\/\//
+    if path =~ %r{://}
       libvlc_media_new_location(@vlci, path)
     else
       libvlc_media_new_path(@vlci, path)
@@ -340,8 +341,9 @@ class Shoes::VideoVlc
     ### Get some info about the tracks inside the @media 
     ### how to deal with a C array OUT parameter (tracks_buf.ref)
     libvlc_media_parse(@media)
-
-    tracks_buf = Fiddle::Pointer.malloc(Media_track.size)
+    
+    free = Fiddle::Function.new(Fiddle::RUBY_FREE, [Fiddle::TYPE_VOIDP], Fiddle::TYPE_VOID)
+    tracks_buf = Fiddle::Pointer.malloc(Media_track.size, free)
     n_tracks = libvlc_media_tracks_get( @media, tracks_buf.ref )
     libvlc_media_release(@media)
 
