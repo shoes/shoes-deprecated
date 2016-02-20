@@ -656,8 +656,7 @@ shoes_extras_remove_all(shoes_canvas *canvas)
       Data_Get_Struct(basic->parent, shoes_canvas, parent);
       if (parent == canvas)
       {
-        if (!NIL_P(ele))
-          rb_funcall(ele, s_remove, 0);
+        rb_funcall(ele, s_remove, 0);
         rb_ary_delete_at(canvas->app->extras, i);
       }
     }
