@@ -214,7 +214,7 @@ class MakeMinGW
       rewrite "#{TGT_DIR}/nsis/base.nsi", "#{TGT_DIR}/nsis/#{WINFNAME}.nsi"
       Dir.chdir("#{TGT_DIR}/nsis") do
         sh "\"c:\\Program Files (x86)\\NSIS\\Unicode\\makensis.exe\" #{WINFNAME}.nsi" 
-        #sh "c:\\Program Files (x86)\\NSIS\\Unicode\\makensis.exe #{WINFNAME}.nsi"
+        #sh "\"c:\\Program Files (x86)\\NSIS\\makensis.exe\" #{WINFNAME}.nsi" 
       end
       mv "#{TGT_DIR}/nsis/#{WINFNAME}.exe", "pkg/"
     end
