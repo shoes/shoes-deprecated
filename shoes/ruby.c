@@ -4641,7 +4641,8 @@ shoes_ruby_init()
   rb_const_set(cTypes, rb_intern("TWO_PI"), rb_float_new(SHOES_PIM2));
   rb_const_set(cTypes, rb_intern("HALF_PI"), rb_float_new(SHOES_HALFPI));
   rb_const_set(cTypes, rb_intern("PI"), rb_float_new(SHOES_PI));
-  rb_const_set(cTypes, rb_intern("VIDEO"), SHOES_VIDEO ? Qtrue : Qfalse);
+  //rb_const_set(cTypes, rb_intern("VIDEO"), SHOES_VIDEO ? Qtrue : Qfalse);
+  rb_const_set(cTypes, rb_intern("VIDEO"),  Qtrue);
 
   cApp = rb_define_class_under(cTypes, "App", rb_cObject);
   rb_define_alloc_func(cApp, shoes_app_alloc);
