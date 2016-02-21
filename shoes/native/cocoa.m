@@ -1324,7 +1324,7 @@ shoes_native_surface_show(SHOES_SURFACE_REF ref)
 }
 
 void
-shoes_native_surface_remove(shoes_canvas *canvas, SHOES_SURFACE_REF ref)
+shoes_native_surface_remove(SHOES_SURFACE_REF ref)
 {
 }
 

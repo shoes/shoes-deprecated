@@ -252,7 +252,7 @@ VALUE shoes_video_remove(VALUE self) {
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
 
   rb_ary_delete(canvas->contents, self);
-  shoes_native_surface_remove(canvas, self_t->ref);
+  shoes_native_surface_remove(self_t->ref);
   self_t->ref = NULL;
   shoes_canvas_repaint_all(self_t->parent);
 
