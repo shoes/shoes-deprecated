@@ -651,13 +651,14 @@ shoes_extras_remove_all(shoes_canvas *canvas)
   for (i = (int)RARRAY_LEN(canvas->app->extras) - 1; i >= 0; i--)
   {
     VALUE ele = rb_ary_entry(canvas->app->extras, i);
-    Data_Get_Struct(ele, shoes_basic, basic);
-    Data_Get_Struct(basic->parent, shoes_canvas, parent);
-    if (parent == canvas)
-    {
-      if (!NIL_P(ele))
+    if (!NIL_P(ele)) {
+      Data_Get_Struct(ele, shoes_basic, basic);
+      Data_Get_Struct(basic->parent, shoes_canvas, parent);
+      if (parent == canvas)
+      {
         rb_funcall(ele, s_remove, 0);
-      rb_ary_delete_at(canvas->app->extras, i);
+        rb_ary_delete_at(canvas->app->extras, i);
+      }
     }
   }
 }
