@@ -6,7 +6,7 @@
 #ifndef VIDEO_H
 #define	VIDEO_H
 
-#ifdef VIDEO
+//#ifdef VIDEO
 
 #define SHOES_VIDEO 1
 
@@ -43,8 +43,8 @@ VALUE shoes_video_get_height(VALUE);
 VALUE shoes_video_get_left(VALUE);
 VALUE shoes_video_get_top(VALUE);
 
-#else
-#define SHOES_VIDEO 0
-#endif
+//#else
+//#define SHOES_VIDEO 0
+//#endif
 
 #endif	/* VIDEO_H */

@@ -3,6 +3,10 @@
 // GTK+ code for Shoes.
 //   Modified for Gtk-3.0 by Cecil Coupe (cjc)
 //
+#ifndef GTK3
+// fail only used for shoes_native_window_color will be deleted 
+#define GTK3 
+#endif 
 #include "shoes/app.h"
 #include "shoes/ruby.h"
 #include "shoes/config.h"
@@ -265,11 +269,7 @@ void shoes_native_slot_clear(shoes_canvas *canvas)
   if (canvas->slot->vscroll)
   {
     GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot->vscroll));
-#ifdef GTK3
     gtk_adjustment_set_value(adj, gtk_adjustment_get_lower(adj));
-#else
-    gtk_adjustment_set_value(adj, adj->lower);
-#endif
   }
 }
 
@@ -283,19 +283,11 @@ void shoes_native_slot_lengthen(SHOES_SLOT_OS *slot, int height, int endy)
   if (slot->vscroll)
   {
     GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(slot->vscroll));
-#ifdef GTK3
     if (gtk_adjustment_get_upper(adj) != (gdouble)endy)
     {
       gtk_range_set_range(GTK_RANGE(slot->vscroll), 0., (gdouble)endy);
 
       if (gtk_adjustment_get_page_size(adj) >= gtk_adjustment_get_upper(adj))
-#else
-    if (adj->upper != (gdouble)endy)
-    {
-      gtk_range_set_range(GTK_RANGE(slot->vscroll), 0., (gdouble)endy);
-
-      if (adj->page_size >= adj->upper)
-#endif
         gtk_widget_hide(slot->vscroll);
       else
         gtk_widget_show(slot->vscroll);
@@ -313,15 +305,9 @@ int shoes_native_slot_gutter(SHOES_SLOT_OS *slot)
 {
   if (slot->vscroll)
   {
-#ifdef GTK3
     GtkRequisition rnat;
     gtk_widget_get_preferred_size(slot->vscroll, NULL, &rnat);
     return rnat.width;
-#else
-    GtkRequisition req;
-    gtk_widget_size_request(slot->vscroll, &req);
-    return req.width;
-#endif
   }
   return 0;
 }
@@ -384,28 +370,17 @@ shoes_app_gtk_wheel(GtkWidget *widget, GdkEventScroll *event, gpointer data)
   return TRUE;
 }
 
-#ifdef GTK3
 static void
 shoes_app_gtk_paint(GtkWidget *widget, cairo_t *cr, gpointer data)
-#else
-static void
-shoes_app_gtk_paint(GtkWidget *widget, GdkEventExpose *event, gpointer data)
-#endif
 {
   shoes_app *app = (shoes_app *)data;
   gtk_window_get_size(GTK_WINDOW(app->os.window), &app->width, &app->height);
   shoes_canvas_size(app->canvas, app->width, app->height);
 }
 
-#ifdef GTK3
 #define KEY_SYM(name, sym) \
   else if (event->keyval == GDK_KEY_##name) \
     v = ID2SYM(rb_intern("" # sym))
-#else
-#define KEY_SYM(name, sym) \
-  else if (event->keyval == GDK_##name) \
-    v = ID2SYM(rb_intern("" # sym))
-#endif
 
 static gboolean
 shoes_app_gtk_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
@@ -413,17 +388,11 @@ shoes_app_gtk_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
   VALUE v = Qnil;
   guint modifiers = event->state;
   shoes_app *app = (shoes_app *)data;
-#ifdef GTK3
   if (event->keyval == GDK_KEY_Return)
-#else
-  if (event->keyval == GDK_Return)
-#endif
   {
     v = rb_str_new2("\n");
   }
-#ifdef GTK3
   KEY_SYM(BackSpace, backspace);	// GTK3 <bs> has length of 1. Go figure.
-#endif
   KEY_SYM(Escape, escape);
   else if (event->length > 0)
   {
@@ -450,9 +419,6 @@ shoes_app_gtk_keypress(GtkWidget *widget, GdkEventKey *event, gpointer data)
   }
   KEY_SYM(Insert, insert);
   KEY_SYM(Delete, delete);
-#ifndef GTK3
-  KEY_SYM(BackSpace, backspace);
-#endif
   KEY_SYM(Tab, tab);
   KEY_SYM(ISO_Left_Tab, tab);
   KEY_SYM(Page_Up, page_up);
@@ -516,15 +482,10 @@ static void
 shoes_canvas_gtk_paint_children(GtkWidget *widget, gpointer data)
 {
   shoes_canvas *canvas = (shoes_canvas *)data;
-#ifdef GTK3
   gtk_container_propagate_draw(GTK_CONTAINER(canvas->slot->oscanvas), widget,
-    canvas->slot->drawevent);  // cjc  Is this Wrong?
-#else
-  gtk_container_propagate_expose(GTK_CONTAINER(canvas->slot->oscanvas), widget, canvas->slot->expose);
-#endif
+    canvas->slot->drawevent); 
 }
 
-#ifdef GTK3
 static void
 shoes_canvas_gtk_paint(GtkWidget *widget, cairo_t *cr, gpointer data)
 {
@@ -543,41 +504,6 @@ shoes_canvas_gtk_paint(GtkWidget *widget, cairo_t *cr, gpointer data)
   
   canvas->slot->drawevent = NULL;
 }
-#else
-static void
-shoes_canvas_gtk_paint(GtkWidget *widget, GdkEventExpose *event, gpointer data)
-{
-  VALUE c = (VALUE)data;
-  shoes_canvas *canvas;
-  INFO("EXPOSE: (%d, %d) (%d, %d) %lu, %d, %d\n", event->area.x, event->area.y,
-    event->area.width, event->area.height, c, (int)event->send_event, event->count);
-  Data_Get_Struct(c, shoes_canvas, canvas);
-
-  //
-  // Since I'm using a GtkFixed container, I need to force it to be clipped on its boundaries.
-  // This could be done by using a whole lot of gdk_window_begin_paint_region calls, but that
-  // would also mean masking every region for every element... This approach is simple.  Clip
-  // the expose region and pass it on.
-  //
-  canvas->slot->expose = event;
-  GdkRegion *region = event->region;
-  GdkRectangle rect = event->area;
-  event->region = gdk_region_rectangle(&canvas->slot->oscanvas->allocation);
-  gdk_region_intersect(event->region, region);
-  gdk_region_get_clipbox(event->region, &event->area);
-
-  shoes_canvas_paint(c);
-  gtk_container_forall(GTK_CONTAINER(widget), shoes_canvas_gtk_paint_children, canvas);
-
-  //
-  // Restore the full region to the event.
-  //
-  gdk_region_destroy(event->region);
-  event->region = region;
-  event->area = rect;
-  canvas->slot->expose = NULL;
-}
-#endif
 
 static void
 shoes_canvas_gtk_size(GtkWidget *widget, GtkAllocation *size, gpointer data)
@@ -592,7 +518,7 @@ shoes_canvas_gtk_size(GtkWidget *widget, GtkAllocation *size, gpointer data)
     gtk_widget_set_size_request(canvas->slot->vscroll, -1, size->height);
 
     //gtk_widget_set_size_request(GTK_CONTAINER(widget), canvas->app->width, size->height);
-#ifdef GTK3
+
     GtkAllocation alloc;
     gtk_widget_get_allocation((GtkWidget *)canvas->slot->vscroll, &alloc);
     gtk_fixed_move(GTK_FIXED(canvas->slot->oscanvas), canvas->slot->vscroll,
@@ -601,15 +527,6 @@ shoes_canvas_gtk_size(GtkWidget *widget, GtkAllocation *size, gpointer data)
     gtk_adjustment_set_page_increment(adj, size->height - 32);
 
     if (gtk_adjustment_get_page_size(adj) >= gtk_adjustment_get_upper(adj))
-#else
-    gtk_fixed_move(GTK_FIXED(canvas->slot->oscanvas), canvas->slot->vscroll,
-        size->width - canvas->slot->vscroll->allocation.width, 0);
-    adj->page_size = size->height;
-    adj->page_increment = size->height - 32;
-
-    if (adj->page_size >= adj->upper)
-
-#endif
       gtk_widget_hide(canvas->slot->vscroll);
     else
       gtk_widget_show(canvas->slot->vscroll);
@@ -797,11 +714,7 @@ shoes_app_g_poll(GPollFD *fds, guint nfds, gint timeout)
 shoes_code
 shoes_app_cursor(shoes_app *app, ID cursor)
 {
-#ifdef GTK3
   if (app->os.window == NULL || gtk_widget_get_window(app->os.window)== NULL || app->cursor == cursor)
-#else
-  if (app->os.window == NULL || app->os.window->window == NULL || app->cursor == cursor)
-#endif
     goto done;
 
   GdkCursor *c;
@@ -819,11 +732,8 @@ shoes_app_cursor(shoes_app *app, ID cursor)
   }
   else
     goto done;
-#ifdef GTK3
+    
   gdk_window_set_cursor(gtk_widget_get_window(app->os.window), c);
-#else
-  gdk_window_set_cursor(app->os.window->window, c);
-#endif
   app->cursor = cursor;
 
 done:
@@ -896,13 +806,7 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog)
     gtk_window_set_geometry_hints(GTK_WINDOW(gk->window), gk->window,
       &hints, GDK_HINT_MIN_SIZE);
   }
-#ifdef GTK3
-  // TODO - does GTk2 need this?
   gtk_window_set_default_size(GTK_WINDOW(gk->window), app->width, app->height);
-#else
-  // CJC - Yes, gtk2 does need it.
-  gtk_window_set_default_size(GTK_WINDOW(gk->window), app->width, app->height);
-#endif
 
   if (app->fullscreen) shoes_native_app_fullscreen(app, 1);
 
@@ -998,21 +902,14 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
 
   slot = shoes_slot_alloc(canvas, parent, toplevel);
 
-#ifdef GTK3
-/* Subclassing GtkFixed so we can override gtk3 size management which creates
-   problems with slot height being always tied to inside widgets cumulative heights
-   creating heights overflow with no scrollbar !
-*/
+  /* Subclassing GtkFixed so we can override gtk3 size management which creates
+     problems with slot height being always tied to inside widgets cumulative heights
+     creating heights overflow with no scrollbar !
+  */
   slot->oscanvas = gtkfixed_alt_new();
 
   g_signal_connect(G_OBJECT(slot->oscanvas), "draw",
                    G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
-#else
-  slot->oscanvas = gtk_fixed_new();
-
-  g_signal_connect(G_OBJECT(slot->oscanvas), "expose-event",
-                   G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
-#endif
 
   g_signal_connect(G_OBJECT(slot->oscanvas), "size-allocate",
                    G_CALLBACK(shoes_canvas_gtk_size), (gpointer)c);
@@ -1027,19 +924,12 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
   slot->vscroll = NULL;
   if (scrolls)
   {
-#ifdef GTK3
     slot->vscroll = gtk_scrollbar_new(GTK_ORIENTATION_VERTICAL,NULL);
     GtkAdjustment *adj;
     adj = gtk_range_get_adjustment(GTK_RANGE(slot->vscroll));
     gtk_adjustment_set_step_increment(adj, 16);
     gtk_adjustment_set_page_increment(adj, height - 32);
     slot->drawevent = NULL;
-#else
-    slot->vscroll = gtk_vscrollbar_new(NULL);
-    gtk_range_get_adjustment(GTK_RANGE(slot->vscroll))->step_increment = 16;
-    gtk_range_get_adjustment(GTK_RANGE(slot->vscroll))->page_increment = height - 32;
-    slot->expose = NULL;
-#endif
 
     g_signal_connect(G_OBJECT(slot->vscroll), "value-changed",
                      G_CALLBACK(shoes_canvas_gtk_scroll), (gpointer)c);
@@ -1071,14 +961,11 @@ shoes_slot_destroy(shoes_canvas *canvas, shoes_canvas *pc)
 cairo_t *
 shoes_cairo_create(shoes_canvas *canvas)
 {
-#ifdef GTK3
   GdkWindow *win = gtk_widget_get_window(canvas->slot->oscanvas);
   cairo_t *cr = gdk_cairo_create(win);
   if (canvas->slot->drawevent != NULL &&
      gtk_cairo_should_draw_window(canvas->slot->drawevent, win))
   {
-    // Happens inside larger draw events (signal)
-    // Pay attention - this could be wrong. cjc
     cairo_rectangle_int_t alloc;
     gtk_widget_get_allocation((GtkWidget *)canvas->slot->oscanvas, &alloc);
     cairo_region_t *region = cairo_region_create_rectangle(&alloc);
@@ -1094,20 +981,6 @@ shoes_cairo_create(shoes_canvas *canvas)
   }
   return cr;
 }
-#else
-  cairo_t *cr = gdk_cairo_create(canvas->slot->oscanvas->window);
-  if (canvas->slot->expose != NULL)
-  {
-    GdkRegion *region = gdk_region_rectangle(&canvas->slot->oscanvas->allocation);
-    gdk_region_intersect(region, canvas->slot->expose->region);
-    gdk_cairo_region(cr, region);
-    gdk_region_destroy(region);
-    cairo_clip(cr);
-    cairo_translate(cr, canvas->slot->oscanvas->allocation.x, canvas->slot->oscanvas->allocation.y - canvas->slot->scrolly);
-  }
-  return cr;
-}
-#endif
 
 void
 shoes_cairo_destroy(shoes_canvas *canvas)
@@ -1125,7 +998,7 @@ void
 shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc)
 {
   int x, y, newy;
-#ifdef GTK3
+
   GtkAllocation a;
   gtk_widget_get_allocation(self_t->slot->oscanvas, &a);
   gtk_widget_translate_coordinates(self_t->slot->oscanvas, pc->slot->oscanvas, 0, 0, &x, &y);
@@ -1136,17 +1009,6 @@ shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc)
         self_t->place.ix + self_t->place.dx, newy);
   if (a.width != self_t->place.iw || a.height != self_t->place.ih)
     gtk_widget_set_size_request(self_t->slot->oscanvas, self_t->place.iw, self_t->place.ih);
-#else
-  GtkAllocation *a = &self_t->slot->oscanvas->allocation;
-  gtk_widget_translate_coordinates(self_t->slot->oscanvas, pc->slot->oscanvas, 0, 0, &x, &y);
-  newy = (self_t->place.iy + self_t->place.dy) - pc->slot->scrolly;
-
-  if (x != self_t->place.ix + self_t->place.dx || y != newy)
-    gtk_fixed_move(GTK_FIXED(pc->slot->oscanvas), self_t->slot->oscanvas,
-        self_t->place.ix + self_t->place.dx, newy);
-  if (a->width != self_t->place.iw || a->height != self_t->place.ih)
-    gtk_widget_set_size_request(self_t->slot->oscanvas, self_t->place.iw, self_t->place.ih);
-#endif
 }
 
 void
@@ -1200,11 +1062,7 @@ shoes_native_control_repaint(SHOES_CONTROL_REF ref, shoes_place *p1,
 void
 shoes_native_control_focus(SHOES_CONTROL_REF ref)
 {
-#ifdef GTK3
   if (gtk_widget_get_can_focus(ref)) gtk_widget_grab_focus(ref);
-#else
-  if (GTK_WIDGET_CAN_FOCUS(ref)) gtk_widget_grab_focus(ref);
-#endif
 }
 
 void
@@ -1308,11 +1166,7 @@ shoes_button_gtk_clicked(GtkButton *button, gpointer data)
 SHOES_CONTROL_REF
 shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, char *msg)
 {
-#ifdef GTK3
   SHOES_CONTROL_REF ref = gtk_button_alt_new_with_label(_(msg));
-#else
-  SHOES_CONTROL_REF ref = gtk_button_new_with_label(_(msg));
-#endif
 
   g_signal_connect(G_OBJECT(ref), "clicked",
                    G_CALLBACK(shoes_button_gtk_clicked),
@@ -1327,7 +1181,6 @@ shoes_native_secrecy(SHOES_CONTROL_REF ref)
   gtk_entry_set_invisible_char(GTK_ENTRY(ref), SHOES_GTK_INVISIBLE_CHAR);
 }
 
-// cjc 8-19-2014
 void
 shoes_native_enterkey(GtkWidget *ref, gpointer data)
 {
@@ -1343,11 +1196,7 @@ shoes_native_enterkey(GtkWidget *ref, gpointer data)
 SHOES_CONTROL_REF
 shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
-#ifdef GTK3
   SHOES_CONTROL_REF ref = gtk_entry_alt_new();
-#else
-  SHOES_CONTROL_REF ref = gtk_entry_new();
-#endif
   if (RTEST(ATTR(attr, secret))) shoes_native_secrecy(ref);
   gtk_entry_set_text(GTK_ENTRY(ref), _(msg));
   g_signal_connect(G_OBJECT(ref), "changed",
@@ -1385,11 +1234,7 @@ shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALU
 {
   GtkTextBuffer *buffer;
   GtkWidget* textview = gtk_text_view_new();
-#ifdef GTK3  
   SHOES_CONTROL_REF ref = gtk_scrolled_window_alt_new(NULL, NULL);
-#else  
-  SHOES_CONTROL_REF ref = gtk_scrolled_window_new(NULL, NULL);
-#endif  
   gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textview), GTK_WRAP_WORD);
   buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
   gtk_text_buffer_set_text(buffer, _(msg), -1);
@@ -1461,11 +1306,7 @@ shoes_native_text_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place,
 {
   GtkTextBuffer *buffer;
   GtkWidget* textview = gtk_text_view_new();
-#ifdef GTK3  
   SHOES_CONTROL_REF ref = gtk_scrolled_window_alt_new(NULL, NULL);
-#else  
-  SHOES_CONTROL_REF ref = gtk_scrolled_window_new(NULL, NULL);
-#endif  
   gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textview), GTK_WRAP_WORD);
   buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
   gtk_text_buffer_set_text(buffer, _(msg), -1);
@@ -1518,15 +1359,10 @@ shoes_native_text_edit_box_append(SHOES_CONTROL_REF ref, char *msg)
 SHOES_CONTROL_REF
 shoes_native_list_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
-#ifdef GTK3
   /*get bottom margin : following macro gives us bmargin (also lmargin,tmargin,rmargin)*/
   ATTR_MARGINS(attr, 0, canvas);
   
-  //SHOES_CONTROL_REF ref = gtk_combo_box_text_new();
   SHOES_CONTROL_REF ref = gtk_combo_box_text_alt_new(attr, bmargin);
-#else
-  SHOES_CONTROL_REF ref = gtk_combo_box_new_text();
-#endif
   g_signal_connect(G_OBJECT(ref), "changed",
                    G_CALLBACK(shoes_widget_changed),
                    (gpointer)self);
@@ -1541,11 +1377,7 @@ shoes_native_list_box_update(SHOES_CONTROL_REF combo, VALUE ary)
   for (i = 0; i < RARRAY_LEN(ary); i++)
   {
     VALUE msg = shoes_native_to_s(rb_ary_entry(ary, i));
-#ifdef GTK3
     gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(combo), NULL, _(RSTRING_PTR(msg)));
-#else
-    gtk_combo_box_append_text(GTK_COMBO_BOX(combo), _(RSTRING_PTR(msg)));
-#endif
   }
 }
 
@@ -1569,11 +1401,7 @@ shoes_native_list_box_set_active(SHOES_CONTROL_REF combo, VALUE ary, VALUE item)
 SHOES_CONTROL_REF
 shoes_native_progress(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
-#ifdef GTK3  
   SHOES_CONTROL_REF ref = gtk_progress_bar_alt_new();
-#else  
-  SHOES_CONTROL_REF ref = gtk_progress_bar_new();
-#endif  
   gtk_progress_bar_set_text(GTK_PROGRESS_BAR(ref), _(msg));
   return ref;
 }
@@ -1593,11 +1421,7 @@ shoes_native_progress_set_fraction(SHOES_CONTROL_REF ref, double perc)
 SHOES_CONTROL_REF
 shoes_native_slider(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
-#ifdef GTK3
   SHOES_CONTROL_REF ref = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0., 1., 0.01);
-#else
-  SHOES_CONTROL_REF ref = gtk_hscale_new_with_range(0., 1., 0.01);
-#endif
   gtk_scale_set_draw_value(GTK_SCALE(ref), FALSE);
   g_signal_connect(G_OBJECT(ref), "value-changed",
                    G_CALLBACK(shoes_widget_changed), (gpointer)self);
@@ -1616,7 +1440,6 @@ shoes_native_slider_set_fraction(SHOES_CONTROL_REF ref, double perc)
   gtk_range_set_value(GTK_RANGE(ref), perc);
 }
 
-// cjc bug264 - don't trigger callback on setup.
 SHOES_CONTROL_REF
 shoes_native_check(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
@@ -1830,30 +1653,18 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
 
   // GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle,
   // APP_WINDOW(app), GTK_DIALOG_MODAL, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
-   GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle, APP_WINDOW(app), GTK_DIALOG_MODAL,
-#ifdef GTK3
+  GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle, APP_WINDOW(app), GTK_DIALOG_MODAL,
     _("_Cancel"), GTK_RESPONSE_CANCEL, _("_OK"), GTK_RESPONSE_OK, NULL);
-#else
-    GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
-#endif
 
   gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
-#ifdef GTK3
   gtk_container_set_border_width(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), 6);
-#else
-  gtk_container_set_border_width(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), 6);
-#endif
   GtkWidget *question = gtk_label_new(RSTRING_PTR(shoes_native_to_s(args.a[0])));
   gtk_misc_set_alignment(GTK_MISC(question), 0, 0);
   GtkWidget *_answer = gtk_entry_new();
   if (RTEST(ATTR(args.a[1], secret))) shoes_native_secrecy(_answer);
-#ifdef GTK3
   gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), question, FALSE, FALSE, 3);
   gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), _answer, FALSE, TRUE, 3);
-#else
-  gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), question, FALSE, FALSE, 3);
-  gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), _answer, FALSE, TRUE, 3);
-#endif
+
   gtk_widget_show_all(dialog);
   gint result = gtk_dialog_run(GTK_DIALOG(dialog));
   if (result == GTK_RESPONSE_OK)
@@ -1899,27 +1710,16 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
 
 
   GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle, APP_WINDOW(app), GTK_DIALOG_MODAL,
-#ifdef GTK3
     _("_Cancel"), GTK_RESPONSE_CANCEL, _("_OK"), GTK_RESPONSE_OK, NULL);
-#else
-    GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
-#endif
+
 
   gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
-#ifdef GTK3
   gtk_container_set_border_width(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), 6);
-#else
-  gtk_container_set_border_width(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), 6);
-#endif
 
   GtkWidget *question = gtk_label_new(RSTRING_PTR(quiz));
   gtk_misc_set_alignment(GTK_MISC(question), 0, 0);
 
-#ifdef GTK3
   gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), question, FALSE, FALSE, 3);
-#else
-  gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), question, FALSE, FALSE, 3);
-#endif
 
   gtk_widget_show_all(dialog);
   gint result = gtk_dialog_run(GTK_DIALOG(dialog));
@@ -1936,7 +1736,6 @@ shoes_dialog_color(VALUE self, VALUE title)
   VALUE color = Qnil;
   GLOBAL_APP(app);
   title = shoes_native_to_s(title);
-#if defined(GTK3) 
   GtkWidget *dialog = gtk_color_chooser_dialog_new(RSTRING_PTR(title), NULL);
   gint result = gtk_dialog_run(GTK_DIALOG(dialog));
   if (result == GTK_RESPONSE_OK)
@@ -1946,37 +1745,19 @@ shoes_dialog_color(VALUE self, VALUE title)
     color = shoes_color_new((int)(_color.red*255), (int)(_color.green*255),
       (int)(_color.blue*255), SHOES_COLOR_OPAQUE);
   }
-#else
-  GtkWidget *dialog = gtk_color_selection_dialog_new(RSTRING_PTR(title));
-  gint result = gtk_dialog_run(GTK_DIALOG(dialog));
-  if (result == GTK_RESPONSE_OK)
-  {
-    GdkColor _color;
-    gtk_color_selection_get_current_color(
-      GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(dialog)->colorsel),
-      &_color);
-    color = shoes_color_new(_color.red/256, _color.green/256, _color.blue/256, SHOES_COLOR_OPAQUE);
-  }
-#endif
+
   gtk_widget_destroy(dialog);
   return color;
 }
 
-#ifdef GTK3
+
 VALUE
-#else
-static VALUE
-#endif
 shoes_dialog_chooser(VALUE self, char *title, GtkFileChooserAction act, const gchar *button, VALUE attr)
 {
   VALUE path = Qnil;
   GLOBAL_APP(app);
   GtkWidget *dialog = gtk_file_chooser_dialog_new(title, APP_WINDOW(app), act,
-#ifdef GTK3
     _("_Cancel"), GTK_RESPONSE_CANCEL, button, GTK_RESPONSE_ACCEPT, NULL);
-#else
-    GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, button, GTK_RESPONSE_ACCEPT, NULL);
-#endif
   if (act == GTK_FILE_CHOOSER_ACTION_SAVE)
     gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(dialog), TRUE);
   if(RTEST(shoes_hash_get(attr, rb_intern("save"))))
@@ -2012,11 +1793,7 @@ shoes_dialog_open(int argc, VALUE *argv, VALUE self)
   rb_arg_list args;
   rb_parse_args(argc, argv, "|h", &args);
   return shoes_dialog_chooser(self, "Open file...", GTK_FILE_CHOOSER_ACTION_OPEN,
-#ifdef GTK3
     _("_Open"), args.a[0]);
-#else
-    GTK_STOCK_OPEN, args.a[0]);
-#endif
 }
 
 VALUE
@@ -2025,11 +1802,7 @@ shoes_dialog_save(int argc, VALUE *argv, VALUE self)
   rb_arg_list args;
   rb_parse_args(argc, argv, "|h", &args);
   return shoes_dialog_chooser(self, "Save file...", GTK_FILE_CHOOSER_ACTION_SAVE,
-#ifdef GTK3
     _("_Save"), args.a[0]);
-#else
-    GTK_STOCK_SAVE, args.a[0]);
-#endif
 }
 
 VALUE
@@ -2038,11 +1811,7 @@ shoes_dialog_open_folder(int argc, VALUE *argv, VALUE self)
   rb_arg_list args;
   rb_parse_args(argc, argv, "|h", &args);
   return shoes_dialog_chooser(self, "Open folder...", GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
-#ifdef GTK3
     _("_Open"), args.a[0]);
-#else
-    GTK_STOCK_OPEN, args.a[0]);
-#endif
 }
 
 VALUE
@@ -2051,11 +1820,7 @@ shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
   rb_arg_list args;
   rb_parse_args(argc, argv, "|h", &args);
   return shoes_dialog_chooser(self, "Save folder...", GTK_FILE_CHOOSER_ACTION_CREATE_FOLDER,
-#ifdef GTK3
     _("_Save"), args.a[0]);
-#else
-    GTK_STOCK_SAVE, args.a[0]);
-#endif
 }
 
 // June 1, 2015 - kind of ugly. 
@@ -2119,8 +1884,6 @@ int shoes_native_console()
   printf("init gtk console\n");
   shoes_native_app_console();
   printf("gtk\010k\t console \t\tcreated\n"); //test \b \t in string
-  //int i;
-  //for (i=0; i < 24; i++) printf("Line %d\n", i+1);
   return 1;
 }
 #endif
