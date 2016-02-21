@@ -1268,7 +1268,7 @@ shoes_native_surface_new(VALUE attr)
 void
 shoes_native_surface_remove(shoes_canvas *canvas, SHOES_CONTROL_REF ref)
 {
-  gtk_container_remove(GTK_CONTAINER(canvas->slot->oscanvas), ref);
+  gtk_widget_destroy(ref);
 }
 
 /* doing this directly on control now
