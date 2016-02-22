@@ -12,14 +12,11 @@ if File.exists? cf
   APP['EXTLIST'] = custmz['Exts'] if custmz['Exts']
   APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
   APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
-  APP['GTK'] = custmz['Gtk'] if custmz['Gtk']
+  #APP['GTK'] = custmz['Gtk'] if custmz['Gtk']
 else
-  # define where your deps are
-  ShoesDeps = ""
-  EXT_RUBY = "/usr/local"
-  APP['GTK'] = "gtk+-2.0"
+  abort "You need a custom.yaml"
 end
-APP['VIDEO'] = true
+APP['GTK'] = "gtk+-3.0"
 #ENV['DEBUG'] = "true" # turns on the tracing log
 CHROOT = ShoesDeps
 SHOES_TGT_ARCH = 'i686-linux'
@@ -34,16 +31,10 @@ ularch = "#{TGT_SYS_DIR}usr/lib/#{arch}"
 larch = "#{TGT_SYS_DIR}lib/#{arch}"
 # Set appropriately
 CC = "gcc"
-
-#pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.1.pc"
 pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.2.pc"
-pkggtk ="#{ularch}/pkgconfig/#{APP['GTK']}.pc" 
-if APP['GTK']== 'gtk+-2.0'
-  file_list = ["shoes/console/*.c"] + ["shoes/native/gtk.c"] + ["shoes/http/rbload.c"] + ["shoes/*.c"]
-else
-  file_list = ["shoes/console/*.c"] + ["shoes/native/*.c"] + ["shoes/http/rbload.c"] + ["shoes/*.c"]
-end 
-file_list << "shoes/video/video.c" if APP['VIDEO']
+pkggtk ="#{ularch}/pkgconfig/gtk+-3.0.pc" 
+file_list = ["shoes/console/*.c"] + ["shoes/native/*.c"] + ["shoes/http/rbload.c"] + ["shoes/*.c"]
+file_list << "shoes/video/video.c" 
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
@@ -64,9 +55,7 @@ else
 end
 
 LINUX_CFLAGS << " -DSHOES_GTK -Wno-unused-but-set-variable -Wno-unused-variable"
-LINUX_CFLAGS << " -DVIDEO" if APP['VIDEO']
 LINUX_CFLAGS << " -DRUBY_HTTP" 
-LINUX_CFLAGS << " -DGTK3" unless APP['GTK'] == 'gtk+-2.0'
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkgruby}"`.strip+" "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkggtk}"`.strip+" "
@@ -94,5 +83,5 @@ SOLOCS['libyaml'] = "#{ularch}/libyaml-0.so.2"
 SOLOCS['crypto'] = "#{ularch}/libcrypto.so.1.0.0"
 SOLOCS['ssl'] = "#{ularch}/libssl.so.1.0.0"
 SOLOCS['sqlite'] = "#{ularch}/libsqlite3.so.0.8.6"
-SOLOCS['ffi'] = "#{ularch}/libffi.so"  if APP['VIDEO']
+SOLOCS['ffi'] = "#{ularch}/libffi.so" 
 SOLOCS['rsvg2'] = "#{ularch}/librsvg-2.so"
