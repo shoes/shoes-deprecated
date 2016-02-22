@@ -1,9 +1,8 @@
 #
-# Build shoes for Windows/Gtk[2|3]  Ruby is cross compiled
-# It's not really a chroot - it only looks like one and Gtk2/3 is different
+# Build shoes for Windows/Gtk3  Ruby is cross compiled
+# It's not really a chroot - it only looks like one
 # Remember, on Windows the dlls are in bin/ 
 cf =(ENV['ENV_CUSTOM'] || "#{TGT_ARCH}-custom.yaml")
-gtk_version = '3'
 if File.exists? cf
   custmz = YAML.load_file(cf)
   ShoesDeps = custmz['Deps']
@@ -25,12 +24,9 @@ else
 end
 #SHOES_GEM_ARCH = {Gem::Platform.local}
 SHOES_GEM_ARCH = 'x86-mingw32' 
-# used in copy_gems #{Gem::Platform.local}
+
 #ENV['DEBUG'] = "true" # turns on the tracing log
-APP['GTK'] = "gtk+-#{gtk_version}.0"
-COPY_GTK = true
 #ENV['GDB'] = "basic" # 'basic' = keep symbols,  or 'profile'
-#EXT_RUBY = "/srv/chroot/mingwgtk2/usr/local"
 SHOES_TGT_ARCH = "i386-mingw32"
 # Specify where the Target system binaries live. 
 # Trailing slash is important.
@@ -52,35 +48,26 @@ ENV['SYSROOT']=ShoesDeps
 ENV['CC']=CC
 ENV['TGT_RUBY_PATH']=EXT_RUBY
 ENV['TGT_ARCH'] = SHOES_TGT_ARCH
-#ENV['TGT_RUBY_V'] = '2.1.0'
 ENV['TGT_RUBY_V'] = '2.2.0'
 TGT_RUBY_V = ENV['TGT_RUBY_V'] 
-#ENV['TGT_RUBY_SO'] = "msvcrt-ruby210"
 ENV['TGT_RUBY_SO'] = "msvcrt-ruby220"
 EXT_RBCONFIG = "#{EXT_RUBY}/lib/ruby/#{TGT_RUBY_V}/#{SHOES_TGT_ARCH}/rbconfig.rb"
 ENV['EXT_RBCONFIG'] = EXT_RBCONFIG 
 
-#pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.1.pc"
 pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.2.pc"
-pkggtk ="#{uldir}/pkgconfig/#{APP['GTK']}.pc" 
+pkggtk ="#{uldir}/pkgconfig/gtk+-3.0.pc" 
 # winhttp or RUBY?
 RUBY_HTTP = true
 
 ENV['PKG_CONFIG_PATH'] = "#{ularch}/pkgconfig"
-WINVERSION = "#{APP['VERSION']}-#{APP['GTK']=='gtk+-3.0' ? 'gtk3' : 'gtk2'}-32"
+WINVERSION = "#{APP['VERSION']}-gtk3-32"
 WINFNAME = "#{APPNAME}-#{WINVERSION}"
-gtk_extra_list = []
-#if APP['GTK'] == "gtk+-3.0"
-  gtk_extra_list = %w(shoes/native/gtkfixedalt.c shoes/native/gtkentryalt.c
+
+gtk_extra_list = %w(shoes/native/gtkfixedalt.c shoes/native/gtkentryalt.c
                shoes/native/gtkcomboboxtextalt.c shoes/native/gtkbuttonalt.c
                shoes/native/gtkscrolledwindowalt.c shoes/native/gtkprogressbaralt.c)
-#end
-#if RUBY_HTTP
-  file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"]
-#else
-#  file_list = %w{shoes/native/gtk.c shoes/http/winhttp.c shoes/http/windownload.c} + ["shoes/*.c"] 
-#end
-file_list << "shoes/video/video.c" #if APP['VIDEO']
+file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"]
+file_list << "shoes/video/video.c" 
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
@@ -95,9 +82,7 @@ def xfixip(path)
 end
 
 def xfixrvmp(path)
-  #puts "path  in: #{path}"
   path.gsub!(/-I\/usr\/local\//, "-I/#{TGT_SYS_DIR}usr/local/")
-  #puts "path out: #{path}"
   return path
 end
 
@@ -117,7 +102,7 @@ else
 end
 
 LINUX_CFLAGS << " -DSHOES_GTK -DSHOES_GTK_WIN32 "
-LINUX_CFLAGS << "-DRUBY_HTTP " if RUBY_HTTP
+LINUX_CFLAGS << "-DRUBY_HTTP "
 LINUX_CFLAGS << xfixrvmp(`pkg-config --cflags "#{pkgruby}"`.strip)+" "
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/#{arch} "
 LINUX_CFLAGS << xfixip("-I/usr/include")+" "
@@ -137,19 +122,15 @@ cp APP['icons']['win32'], "shoes/appwin32.ico"
 LINUX_LIB_NAMES = %W[gif-4 jpeg librsvg-2 libffi]
 
 DLEXT = "dll"
-#LINUX_LDFLAGS = "-fPIC -shared -L#{ularch} "
 LINUX_LDFLAGS = "-shared -L#{ularch} "
 LINUX_LDFLAGS << `pkg-config --libs "#{pkggtk}"`.strip+" "
-#LINUX_LDFLAGS << "-lfontconfig" if APP['GTK'] == 'gtk+-2.0'
 
 # dont use the ruby link info
 RUBY_LDFLAGS = "-Wl,-export-all-symbols "
-#RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lmsvcrt-ruby210 "
 RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lmsvcrt-ruby220 "
 
 LINUX_LDFLAGS << "#{ENV['GDB'] == 'profile' ? '-pg' : ' '} -lwinhttp -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 "
 
-#LINUX_LIBS = " -L/usr/lib "
 LINUX_LIBS = " -L#{bindll} "
 LINUX_LIBS << LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
@@ -159,8 +140,6 @@ LINUX_LIBS << " #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} "
 # although either could work. 
 # Reference: http://www.gtk.org/download/win32_contentlist.php
 SOLOCS = {
-  #'ruby'   => "#{EXT_RUBY}/bin/msvcrt-ruby191.dll",
-  #'ruby'    => "#{EXT_RUBY}/bin/msvcrt-ruby210.dll",
   'ruby'    => "#{EXT_RUBY}/bin/msvcrt-ruby220.dll",
   #'ungif'  => "#{uldir}/libungif.so.4",
   'gif'     => "#{bindll}/libgif-4.dll",
@@ -176,8 +155,8 @@ SOLOCS = {
   'ssl'     => "#{bindll}/ssleay32.dll",
   'sqlite'  => "#{bindll}/sqlite3.dll"
 }
-if APP['GTK'] == 'gtk+-3.0' && COPY_GTK == true
-  SOLOCS.merge!(
+
+SOLOCS.merge!(
     {
       'atk'         => "#{bindll}/libatk-1.0-0.dll",
       'cairo'       => "#{bindll}/libcairo-2.dll",
@@ -210,4 +189,4 @@ if APP['GTK'] == 'gtk+-3.0' && COPY_GTK == true
       'pthread'     => "/usr/i686-w64-mingw32/lib/libwinpthread-1.dll" 
     }
   )
-end
+
