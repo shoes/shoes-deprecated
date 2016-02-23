@@ -286,7 +286,7 @@ class Shoes::VideoVlc
     libvlc_audio_set_volume(@player, vol)
     attr[:video_width] = video_track_width if video_track_width
     attr[:video_height] = video_track_height if video_track_height
-
+    
     @video = app.video_c attr
 
     # we must wait for parent (hence video itself) to be drawn in order to get the widget drawable

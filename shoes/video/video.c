@@ -132,12 +132,12 @@ VALUE shoes_video_new(VALUE attr, VALUE parent)
     if ( RTEST(ATTR(canvas->attr, height)) ) ATTRSET(attr, height, ATTR(canvas->attr, height));
     else {
       if (RTEST(rb_hash_aref(attr, ID2SYM(rb_intern("video_height"))))) {
-        rb_hash_aset(attr, s_height, rb_hash_aref(attr, ID2SYM(rb_intern("video_height"))));
+        ATTRSET(attr, height, rb_hash_aref(attr, ID2SYM(rb_intern("video_height"))));
       } else ATTRSET(attr, height, INT2NUM(0));
       /* No dimensions provided, using the video track size, make info avalaible to Shoes */
       rb_hash_aset(attr, ID2SYM(rb_intern("using_video_dim")), Qtrue);
     }
-
+  
   video->ref = shoes_native_surface_new(attr);
   return obj;
 }
