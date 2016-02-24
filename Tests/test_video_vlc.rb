@@ -25,7 +25,7 @@ Shoes.app title: "Testing Shoes video" do
                 # There could be only one console at a time (we safely can call it many times)
                 Shoes.show_console
                 Thread.new {
-                    [VideoVlcTest1, VideoVlcTest2, VideoVlcTest3
+                    [VideoVlcTest1, VideoVlcTest2, VideoVlcTest3, VideoVlcTest4
                     ].each { |t| Test::Unit::UI::Console::TestRunner.run(t.suite); puts}
                 }
             end
@@ -36,7 +36,8 @@ Shoes.app title: "Testing Shoes video" do
                 Shoes.show_console
                 @run_test.call(VideoVlcTest1.suite)
             end
-            para "VideoVlcTest1 : \nTesting initialisation of video widget without a given path to a media"
+            para "VideoVlcTest1 : \nTesting initialisation of video widget without a given path to a media\n" \
+                    "Testing procedure to wait for Drawing Area to be ready for vlc to use it"
         end
         flow do 
             button "run Test" do
@@ -53,6 +54,14 @@ Shoes.app title: "Testing Shoes video" do
                 @run_test.call(VideoVlcTest3.suite)
             end
             para "VideoVlcTest3 : \nTesting audio facility"
+        end
+        
+        flow do 
+            button "run Test" do
+                Shoes.show_console
+                @run_test.call(VideoVlcTest4.suite)
+            end
+            para "VideoVlcTest4 : \nTesting media loading"
         end
     end
     
