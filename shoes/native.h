@@ -75,7 +75,7 @@ void shoes_native_surface_position(SHOES_SURFACE_REF, shoes_place *,
   VALUE, shoes_canvas *, shoes_place *);
 void shoes_native_surface_hide(SHOES_SURFACE_REF);
 void shoes_native_surface_show(SHOES_SURFACE_REF);
-void shoes_native_surface_remove(shoes_canvas *, SHOES_SURFACE_REF);
+void shoes_native_surface_remove(SHOES_SURFACE_REF);
 
 //SHOES_SURFACE_REF shoes_native_svg(shoes_canvas *, VALUE, shoes_place *);
 //void shoes_native_svg_position(SHOES_SURFACE_REF, shoes_place *,
