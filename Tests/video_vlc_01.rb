@@ -11,7 +11,7 @@ class VideoVlcTestBase < Test::Unit::TestCase
     end
     
     def teardown
-        @cont.remove
+        @cont.remove if @cont
         @cont = nil
         @vid = nil
     end  
@@ -185,6 +185,29 @@ class VideoVlcTest4 < VideoVlcTestBase
         assert_nil @vid.have_video_track
         assert_nil @vid.have_audio_track
         
+    end
+end
+
+class VideoVlcTest5 < VideoVlcTestBase
+    def setup
+        super
+        @media = "AnemicCinema1926marcelDuchampCut.mp4"
+    end
+    
+    def test_libvlc_options
+        vid = nil
+        @cont = @@app.flow width: 300, height: 200 do 
+            vid = Shoes::VideoVlc.new( @@app, @media, bg_color: rgb(20,250,20),
+                                        vlc_options: ["--no-xlib"] )
+        end
+        
+        sleep 0.5
+        assert_not_nil vid
+        vlci = vid.instance_variable_get(:@vlci)
+        assert_not_nil vlci
+        assert_instance_of Fiddle::Pointer, vlci
+        assert_false vlci.null?
+        assert_false vid.style.include?(:vlc_options)
     end
 end
 

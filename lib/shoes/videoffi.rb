@@ -269,12 +269,16 @@ class Shoes::VideoVlc
     attr ||= {}
     @autoplay = attr[:autoplay] || false
 
-    # if you need to pass command line args in, then create them like this:
-    # libvlc_new(2, ["--no-xlib", "--no-video-title-show"].pack('p2'))
-    @vlci = libvlc_new(0, nil)
     @version = libvlc_get_version
+    # user gives an array of string options i.e.
+    #   vlc_options: ["--no-xlib", "--no-video-title-show"]
+    #   libvlc expects : libvlc_new(2, ["--no-xlib", "--no-video-title-show"].pack('p2'))
+    opts = attr.delete(:vlc_options)
+    size, args = opts.nil? ? [0, nil] : [opts.size, opts.pack("p#{size}")]
+    
+    @vlci = libvlc_new(size, args)
     raise "vlc version #{@version} #{@vlci.inspect}" if @vlci.null?
-
+    
     @player = libvlc_media_player_new(@vlci)
     @list_player = libvlc_media_list_player_new(@vlci)
     libvlc_media_list_player_set_media_player(@list_player, @player)
