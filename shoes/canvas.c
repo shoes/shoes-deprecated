@@ -1835,9 +1835,6 @@ shoes_canvas_send_start(VALUE self)
 
     for (i = (int)RARRAY_LEN(canvas->contents) - 1; i >= 0; i--) {
       VALUE ele = rb_ary_entry(canvas->contents, i);
-//      if (rb_obj_is_kind_of(ele, cTagline))
-//        VALUE t = shoes_textblock_string(ele);
-//      
       if (rb_obj_is_kind_of(ele, cCanvas) && shoes_canvas_inherits(ele, canvas))
         shoes_canvas_send_start(ele);
     }
