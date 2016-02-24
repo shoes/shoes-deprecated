@@ -23,8 +23,19 @@ class VideoVlcTest1 < VideoVlcTestBase
     def test_video_noPath_noDim
         @cont = @@app.flow do 
             @vid = Shoes::VideoVlc.new( @@app, '')
-        end
+        end.start { @started = true }
+        
+        ## First test! Let's see if widget is working at it's most basic level
+        ## don't wait here on start event, so in case of major failure
+        ## we're not stuck in an infinite loop
+        sleep 0.5
+        
+        assert_not_nil @vid
         assert_instance_of Shoes::VideoVlc, @vid
+        vlci = @vid.instance_variable_get(:@vlci)
+        assert_not_nil vlci
+        assert_instance_of Fiddle::Pointer, vlci
+        assert_false vlci.null?
         assert_equal 0, @vid.width
     end
     
@@ -45,14 +56,9 @@ class VideoVlcTest1 < VideoVlcTestBase
             @vid = Shoes::VideoVlc.new( @@app, '', width: 250, height: 200 )
         end.start { @started = true }
         
-        ## TODO start event is not launched
-        ## related to @cont not having a height, hence beeing split, internally in C, in two canvases ... 
-        ## see start method enhancement at github https://github.com/passenger94/shoes3/blob/338a3d40421efe37b6fe8b6b4578565d0afbc483/shoes/canvas.c#L1821
-        sleep 0.1 
-        #puts "@started = #{@started }" ; puts "@cont : #{@cont.style.inspect}"
-        #while not @started do; end
+        while not @started do; end
         
-        #assert_true @cont.style[:started]
+        assert_true @cont.style[:started]
         assert_instance_of Shoes::VideoVlc, @vid
         assert_equal 250, @vid.width
     end
@@ -83,10 +89,9 @@ class VideoVlcTest2 < VideoVlcTestBase
             @vid = Shoes::VideoVlc.new( @@app, @movie )
         end.start { @started = true }
         
-        sleep 0.1
-        #while not @started do; end
+        while not @started do; end
         
-        #assert_true @cont.style[:started]
+        assert_true @cont.style[:started]
         assert_instance_of Shoes::VideoVlc, @vid
         assert_equal 640, @vid.width
         assert_equal 480, @vid.height
@@ -109,10 +114,9 @@ class VideoVlcTest2 < VideoVlcTestBase
             @vid = Shoes::VideoVlc.new( @@app, @movie, width: 250, height: 200 )
         end.start { @started = true }
         
-        sleep 0.1 
-        #while not @started do; end
+        while not @started do; end
         
-        #assert_true @cont.style[:started]
+        assert_true @cont.style[:started]
         assert_instance_of Shoes::VideoVlc, @vid
         assert_equal 250, @vid.width
     end
@@ -156,6 +160,9 @@ class VideoVlcTest4 < VideoVlcTestBase
         super
         @mediav = "AnemicCinema1926marcelDuchampCut.mp4"
         @mediaa = "indian.m4a"
+        # not relying on internet's mood swings for the test
+        fakestream = "file://#{File.expand_path('./AnemicCinema1926marcelDuchampCut.mp4')}"
+        @medias = fakestream
     end
     
     def test_load_media
@@ -185,6 +192,9 @@ class VideoVlcTest4 < VideoVlcTestBase
         assert_nil @vid.have_video_track
         assert_nil @vid.have_audio_track
         
+        @vid.path = @medias
+        assert_equal @medias, @vid.path
+        assert_true @vid.loaded
     end
 end
 
@@ -198,10 +208,11 @@ class VideoVlcTest5 < VideoVlcTestBase
         vid = nil
         @cont = @@app.flow width: 300, height: 200 do 
             vid = Shoes::VideoVlc.new( @@app, @media, bg_color: rgb(20,250,20),
-                                        vlc_options: ["--no-xlib"] )
-        end
+                                        vlc_options: ["--no-xlib", "--no-video-title-show"] )
+        end.start { @started = true }
+        while not @started do; end
         
-        sleep 0.5
+        #sleep 0.5
         assert_not_nil vid
         vlci = vid.instance_variable_get(:@vlci)
         assert_not_nil vlci

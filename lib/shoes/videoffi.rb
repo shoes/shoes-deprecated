@@ -274,10 +274,18 @@ class Shoes::VideoVlc
     #   vlc_options: ["--no-xlib", "--no-video-title-show"]
     #   libvlc expects : libvlc_new(2, ["--no-xlib", "--no-video-title-show"].pack('p2'))
     opts = attr.delete(:vlc_options)
-    size, args = opts.nil? ? [0, nil] : [opts.size, opts.pack("p#{size}")]
+    sz, args = 0, nil
+    if opts
+        sz = opts.size
+        args = opts.pack("p#{sz}")
+    end
     
-    @vlci = libvlc_new(size, args)
-    raise "vlc version #{@version} #{@vlci.inspect}" if @vlci.null?
+    @vlci = libvlc_new(sz, args)
+    if @vlci.null?
+        Shoes.show_log
+        raise "Unable to initialize libvlc\nlibvlc_new() failed with  :vlc_options => #{opts.inspect}\n" \
+               "and returned : \n#{@vlci.inspect}" 
+    end
     
     @player = libvlc_media_player_new(@vlci)
     @list_player = libvlc_media_list_player_new(@vlci)
