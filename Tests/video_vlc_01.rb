@@ -129,3 +129,27 @@ class VideoVlcTest2 < VideoVlcTestBase
         assert_equal 250, @vid.width
     end
 end
+
+class VideoVlcTest3 < VideoVlcTestBase
+    def setup
+        super
+        @audio = "indian.m4a"
+    end
+    
+    def test_audio
+        @cont = @@app.flow width: 300, height: 200 do 
+            @vid = Shoes::VideoVlc.new( @@app, @audio, width: 0, height: 0, hidden: true )
+        end.start { @started = true }
+        
+        while not @started do; end
+        
+        assert_true @cont.style[:started]
+        assert_instance_of Shoes::VideoVlc, @vid
+        assert_equal 0, @vid.width
+        assert_true @vid.style[:hidden]
+    end
+    
+end
+
+
+
