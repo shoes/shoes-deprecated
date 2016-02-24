@@ -192,115 +192,119 @@ gboolean g_tesi_handleInput(gpointer data) {
 	return TRUE;
 }
 
-void shoes_native_app_console () {  //int main(int argc, char *argv[]) {
-	GtkWidget *window;
-	GtkWidget *canvas;
-	GtkWidget *vbox;
-	GtkScrolledWindow *sw;
-	PangoFontDescription *pfd;  // for terminal
-	PangoFontDescription *bpfd; // for Label in button panel
+// access to shoes_global_console
+#include "shoes/app.h"
 
-	struct tesiObject *t;
+static gboolean clean(GtkWidget *widget, GdkEvent *event, gpointer data) {
+  struct tesiObject *to = (struct tesiObject*)data;
+  g_source_remove(to->ides); // remove g_timeout_add
+  g_source_destroy(g_main_context_find_source_by_id(NULL, to->ides));
+  
+  deleteTesiObject(data); // FIXME see deleteTesiObject
+  
+  shoes_global_console = 0;
+  return FALSE;
+}
 
-	//gtk_init (&argc, &argv); // Nope. it's already running
+void shoes_native_app_console() {
+  GtkWidget *window;
+  GtkWidget *canvas;
+  GtkWidget *vbox;
+  GtkScrolledWindow *sw;
+  PangoFontDescription *pfd;  // for terminal
+  PangoFontDescription *bpfd; // for Label in button panel
 
-	/* create a new window */
-	window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  struct tesiObject *t;
+
+  //gtk_init (&argc, &argv); // Nope. it's already running
+
+  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   // size set below based on font (80x24)
   gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
-	gtk_window_set_title (GTK_WINDOW (window), "Shoes Linux");
-
-	g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK (gtk_main_quit), NULL);
-	g_signal_connect_swapped (G_OBJECT (window), "delete_event", G_CALLBACK (gtk_widget_destroy), G_OBJECT (window));
+  gtk_window_set_title (GTK_WINDOW (window), "Shoes Linux");
+  
   // like a Shoes stack at the top.
-#ifdef GTK2
-	vbox = gtk_vbox_new (FALSE, 2);
-#else
-	vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 2);
-#endif
-	gtk_container_add (GTK_CONTAINER (window), vbox);
+  vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 2);
+  gtk_container_add (GTK_CONTAINER (window), vbox);
 
-	// need a panel with a string (icon?), copy button and clear button
-	GdkColor bg_color, color_white;
+  // need a panel with a string (icon?), copy button and clear button
+  GdkColor bg_color, color_white;
   gdk_color_parse ("black", &bg_color);
   gdk_color_parse ("white", &color_white);
-#ifdef GTK2
-	GtkWidget *btnpnl = gtk_hbox_new(false, 2); // think flow layout
- 	gtk_widget_modify_bg(btnpnl, GTK_STATE_NORMAL, &bg_color);  // doesn't work
-#else
-	GtkWidget *btnpnl = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2); // think flow layout
-#endif
+
+  GtkWidget *btnpnl = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2); // think flow layout
 
   GtkWidget *announce = gtk_label_new("Shoes Console");
- 	bpfd = pango_font_description_from_string ("Sans-Serif 14");
-#ifdef GTK2
-	gtk_widget_modify_font (announce, bpfd);
-#else
-	gtk_widget_override_font (announce, bpfd);
-#endif
+  bpfd = pango_font_description_from_string ("Sans-Serif 14");
+  gtk_widget_override_font (announce, bpfd);
 
-	gtk_box_pack_start(GTK_BOX(btnpnl), announce, 1, 0, 0);
+  gtk_box_pack_start(GTK_BOX(btnpnl), announce, 1, 0, 0);
 
-	GtkWidget *clrbtn = gtk_button_new_with_label ("Clear");
-	gtk_box_pack_start (GTK_BOX(btnpnl), clrbtn, 1, 0, 0);
- 	GtkWidget *cpybtn = gtk_button_new_with_label ("Copy");
-	gtk_box_pack_start (GTK_BOX(btnpnl), cpybtn, 1, 0, 0);
+  GtkWidget *clrbtn = gtk_button_new_with_label ("Clear");
+  gtk_box_pack_start (GTK_BOX(btnpnl), clrbtn, 1, 0, 0);
+  GtkWidget *cpybtn = gtk_button_new_with_label ("Copy");
+  gtk_box_pack_start (GTK_BOX(btnpnl), cpybtn, 1, 0, 0);
   gtk_box_pack_start (GTK_BOX(vbox), GTK_WIDGET(btnpnl), 0, 0, 0);
 
   // then a widget/panel for the terminal
-	sw = GTK_SCROLLED_WINDOW(gtk_scrolled_window_new(NULL, NULL));
-	gtk_scrolled_window_set_policy( GTK_SCROLLED_WINDOW(sw),
-	  GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
-  	gtk_box_pack_start (GTK_BOX (vbox), GTK_WIDGET(sw), 1, 1, 0);
+  sw = GTK_SCROLLED_WINDOW(gtk_scrolled_window_new(NULL, NULL));
+  gtk_scrolled_window_set_policy( GTK_SCROLLED_WINDOW(sw),
+    GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
+  gtk_box_pack_start (GTK_BOX (vbox), GTK_WIDGET(sw), 1, 1, 0);
 
-	canvas = gtk_text_view_new();
-	gtk_container_add (GTK_CONTAINER (sw), canvas);
-	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(canvas), TRUE);
-	gtk_text_view_set_left_margin(GTK_TEXT_VIEW(canvas), 4);
-	gtk_text_view_set_right_margin(GTK_TEXT_VIEW(canvas), 4);
-	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(canvas), GTK_WRAP_CHAR);
+  canvas = gtk_text_view_new();
+  gtk_container_add (GTK_CONTAINER (sw), canvas);
+  gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(canvas), TRUE);
+  gtk_text_view_set_left_margin(GTK_TEXT_VIEW(canvas), 4);
+  gtk_text_view_set_right_margin(GTK_TEXT_VIEW(canvas), 4);
+  gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(canvas), GTK_WRAP_CHAR);
 
   // set font for scrollable window
- 	pfd = pango_font_description_from_string ("monospace 10");
-#ifdef GTK2
-	gtk_widget_modify_font (canvas, pfd);
-#else
-    gtk_widget_override_font (announce, pfd);
-#endif
+  pfd = pango_font_description_from_string ("monospace 10");
+  gtk_widget_override_font (announce, pfd);
 
-	// compute 'char' width and tab settings.
-	PangoLayout *playout;
-	PangoTabArray *tab_array;
-	gint charwidth, charheight, tabwidth;
-	playout = gtk_widget_create_pango_layout(canvas, "M");
-	pango_layout_set_font_description(playout, pfd);
-	pango_layout_get_pixel_size(playout, &charwidth, &charheight);
-	tabwidth = charwidth * 8;
+  // compute 'char' width and tab settings.
+  PangoLayout *playout;
+  PangoTabArray *tab_array;
+  gint charwidth, charheight, tabwidth;
+  playout = gtk_widget_create_pango_layout(canvas, "M");
+  pango_layout_set_font_description(playout, pfd);
+  pango_layout_get_pixel_size(playout, &charwidth, &charheight);
+  tabwidth = charwidth * 8;
   tab_array = pango_tab_array_new(1, TRUE);
   pango_tab_array_set_tab( tab_array, 0, PANGO_TAB_LEFT, tabwidth);
-	gtk_text_view_set_tabs(GTK_TEXT_VIEW(canvas), tab_array);
-
+  gtk_text_view_set_tabs(GTK_TEXT_VIEW(canvas), tab_array);
+  
   gtk_widget_set_size_request (GTK_WIDGET (sw), 80*charwidth, 24*charheight);
 
-	t = newTesiObject("/bin/bash", 80, 24); // first arg not used
-	t->pointer = canvas;
-	t->callback_haveCharacter = &console_haveChar;
-	// cjc - my handler short circuts much (all?) of these callbacks:
-	t->callback_printCharacter = &tesi_printCharacter;
-	t->callback_eraseCharacter = &tesi_eraseCharacter;
-	t->callback_moveCursor = &tesi_moveCursor;
-	t->callback_insertLine = &tesi_insertLine;
-	t->callback_eraseLine = &tesi_eraseLine;
-	t->callback_scrollUp = &tesi_scrollUp;
+  t = newTesiObject("/bin/bash", 80, 24); // first arg not used
+  t->pointer = canvas;
+  t->callback_haveCharacter = &console_haveChar;
+  // cjc - my handler short circuts much (all?) of these callbacks:
+  t->callback_printCharacter = &tesi_printCharacter;
+  t->callback_eraseCharacter = &tesi_eraseCharacter;
+  t->callback_moveCursor = &tesi_moveCursor;
+  t->callback_insertLine = &tesi_insertLine;
+  t->callback_eraseLine = &tesi_eraseLine;
+  t->callback_scrollUp = &tesi_scrollUp;
+  
+  g_signal_connect(G_OBJECT(window), "delete_event", G_CALLBACK(clean), t);
+//  g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK (gtk_main_quit), NULL);
 
-	g_signal_connect (G_OBJECT (canvas), "key-press-event", G_CALLBACK (keypress_event), t);
+  g_signal_connect (G_OBJECT (canvas), "key-press-event", G_CALLBACK (keypress_event), t);
   g_signal_connect (G_OBJECT (clrbtn), "clicked", G_CALLBACK (clear_console), t);
   g_signal_connect (G_OBJECT (cpybtn), "clicked", G_CALLBACK (copy_console), t);
+  
   gtk_widget_grab_focus(canvas);
-	g_timeout_add(100, &g_tesi_handleInput, t);
+  unsigned int ides = g_timeout_add(100, &g_tesi_handleInput, t);
+  t->ides = ides;
 
-	gtk_widget_show_all (window);
-	// TODO: should do some clean up here. Free fontdescription etc
-
-	return;
+  gtk_widget_show_all (window);
+  
+  // TODO: some clean up here. Complete ?
+  pango_font_description_free(pfd);
+  pango_font_description_free(bpfd);
+  pango_tab_array_free(tab_array);
+  g_object_unref(playout);
+  return;
 }

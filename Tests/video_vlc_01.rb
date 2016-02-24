@@ -129,3 +129,63 @@ class VideoVlcTest2 < VideoVlcTestBase
         assert_equal 250, @vid.width
     end
 end
+
+class VideoVlcTest3 < VideoVlcTestBase
+    def setup
+        super
+        @audio = "indian.m4a"
+    end
+    
+    def test_audio
+        @cont = @@app.flow width: 300, height: 200 do 
+            @vid = Shoes::VideoVlc.new( @@app, @audio, width: 0, height: 0, hidden: true )
+        end.start { @started = true }
+        
+        while not @started do; end
+        
+        assert_true @cont.style[:started]
+        assert_instance_of Shoes::VideoVlc, @vid
+        assert_equal 0, @vid.width
+        assert_true @vid.style[:hidden]
+    end
+    
+end
+
+class VideoVlcTest4 < VideoVlcTestBase
+    def setup
+        super
+        @mediav = "AnemicCinema1926marcelDuchampCut.mp4"
+        @mediaa = "indian.m4a"
+    end
+    
+    def test_load_media
+        @cont = @@app.flow width: 300, height: 200 do 
+            @vid = Shoes::VideoVlc.new( @@app, '' )
+        end.start { @started = true }
+        while not @started do; end
+        
+        @vid.path = @mediav
+        
+        assert_equal @mediav, @vid.path
+        assert_true @vid.loaded
+        assert_true @vid.have_video_track
+        assert_equal 640, @vid.video_track_width
+        assert_equal 480, @vid.video_track_height
+        assert_true @vid.have_audio_track
+        
+        @vid.path = @mediaa
+        
+        assert_equal @mediaa, @vid.path
+        assert_true @vid.loaded
+        assert_nil @vid.have_video_track
+        assert_true @vid.have_audio_track
+        
+        @vid.path = ""
+        assert_nil @vid.loaded
+        assert_nil @vid.have_video_track
+        assert_nil @vid.have_audio_track
+        
+    end
+end
+
+
