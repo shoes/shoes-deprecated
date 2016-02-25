@@ -1554,10 +1554,11 @@ shoes_canvas_clear_contents(int argc, VALUE *argv, VALUE self)
     }
   }
   
-  if (rb_block_given_p()) block = rb_block_proc();
   shoes_canvas_empty(canvas, FALSE);
-  if (!NIL_P(block))
-    shoes_canvas_memdraw(self, block);
+  if (rb_block_given_p()) {
+    shoes_canvas_memdraw(self, rb_block_proc());
+  }
+  
   shoes_canvas_repaint_all(self);
   return self;
 }
@@ -1792,8 +1793,34 @@ EVENT_HANDLER(motion);
 EVENT_HANDLER(keydown);
 EVENT_HANDLER(keypress);
 EVENT_HANDLER(keyup);
-EVENT_HANDLER(start);
+//EVENT_HANDLER(start);
 EVENT_HANDLER(finish);
+
+VALUE
+shoes_canvas_start(int argc, VALUE *argv, VALUE self)
+  {
+    VALUE val, block;
+    SETUP();
+    rb_scan_args(argc, argv, "01&", &val, &block);
+    ATTRSET(canvas->attr, start, NIL_P(block) ? val : block);
+    
+    // those two canvas are not necessarily the same !
+    // they are the same when canvas has a :height 
+    canvas->stage = CANVAS_PAINT;
+    ((shoes_canvas *)canvas->slot->owner)->stage = CANVAS_PAINT;
+    
+    return self;
+  }
+
+static gboolean
+start_wait(gpointer data) {
+  VALUE rbcanvas = (VALUE)data;
+  shoes_canvas *canvas;
+  Data_Get_Struct(rbcanvas, shoes_canvas, canvas);
+  
+  shoes_safe_block(rbcanvas, ATTR(canvas->attr, start), rb_ary_new3(1, rbcanvas));
+  return FALSE; // timeout will be stopped and destroyed
+}
 
 static void
 shoes_canvas_send_start(VALUE self)
@@ -1801,24 +1828,37 @@ shoes_canvas_send_start(VALUE self)
   shoes_canvas *canvas;
   Data_Get_Struct(self, shoes_canvas, canvas);
   
-  if (canvas->stage == CANVAS_NADA)
-  {
+  if (canvas->stage == CANVAS_NADA || canvas->stage == CANVAS_PAINT) {
     int i;
-    canvas->stage = CANVAS_STARTED;
+    if (canvas->stage == CANVAS_NADA)
+      canvas->stage = CANVAS_STARTED;
 
-    for (i = (int)RARRAY_LEN(canvas->contents) - 1; i >= 0; i--)
-    {
+    for (i = (int)RARRAY_LEN(canvas->contents) - 1; i >= 0; i--) {
       VALUE ele = rb_ary_entry(canvas->contents, i);
       if (rb_obj_is_kind_of(ele, cCanvas) && shoes_canvas_inherits(ele, canvas))
         shoes_canvas_send_start(ele);
     }
     
-    // This attribute is set either explicitely with a :start style in the slot declaration
-    // either by the 'start' method/event of a slot (if by mistake, both are used the method takes precedence)
+    /* This attribute is set 
+     *    either explicitely with a :start style in the slot declaration
+     * or later with the style method,
+     *    either by the 'start' method/event of a slot
+     */
     VALUE start = ATTR(canvas->attr, start);
-    if (!NIL_P(start))
-    {
-      shoes_safe_block(self, start, rb_ary_new3(1, self));
+    if (!NIL_P(start)) {
+      if (canvas->stage == CANVAS_PAINT) {
+        canvas->stage = CANVAS_STARTED;
+        ((shoes_canvas *)canvas->slot->owner)->stage = CANVAS_STARTED;
+        g_timeout_add_full(G_PRIORITY_DEFAULT, 1, start_wait, (gpointer)self, NULL);
+      } else {
+//        canvas->stage = CANVAS_STARTED;
+//        ((shoes_canvas *)canvas->slot->owner)->stage = CANVAS_STARTED;
+        shoes_safe_block(self, start, rb_ary_new3(1, self));
+      }
+    } else if (NIL_P(start) && canvas->stage == CANVAS_PAINT) {
+//      printf("no start attr !! canvas->stage : %d\n", canvas->stage );
+      canvas->stage = CANVAS_STARTED;
+      ((shoes_canvas *)canvas->slot->owner)->stage = CANVAS_STARTED;
     }
   }
   
@@ -1826,6 +1866,7 @@ shoes_canvas_send_start(VALUE self)
      letting Shoes know when drawable is avalaible, so we don't hijack start event
    */ 
   shoes_hash_set(canvas->attr, rb_intern("started"), Qtrue);
+
 }
 
 static void
