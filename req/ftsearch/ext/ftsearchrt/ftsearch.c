@@ -16,6 +16,7 @@
 #define RFLOAT_VALUE(f) RFLOAT(f)->value
 #endif
 #include <stdlib.h>
+#include <ctype.h> // (silent compiler warning for isalpha, etc...)
 
 #define swap(x, a, b) { char *t = x[a]; x[a] = x[b]; x[b] = t; }
 #define i2c(x, i, depth) x[i][depth]
@@ -128,6 +129,7 @@ sort_bang(VALUE self, VALUE text)
   for(i = 0; i < RARRAY_LEN(suffixes); i++) {
       RARRAY_PTR(suffixes)[i] = INT2NUM(array[i] - fulltext);
   }
+  return Qtrue; // added Feb 2016, function is supposed to return a VALUE ! (silent compiler warning)
 }
 
 // TODO: 64-bit 
@@ -229,8 +231,8 @@ static VALUE
 dump_suffix_array(VALUE self, VALUE io)
 {
   VALUE suffixes, new_suffixes;
-  int i;
-  VALUE *vptr;
+//  int i;          // (silent compiler warning)
+//  VALUE *vptr;    //ditto
   OPEN_FILE *fptr;
 
   suffixes     = rb_ivar_get(self, rb_intern("@suffixes"));

@@ -1,11 +1,14 @@
 # encoding: UTF-8
 
 class VideoVlcTestBase < Test::Unit::TestCase
-    
-    def self.init(app)
-        @@app = app
+    class << self
+        def init(app)
+            @@app = app
+        end
+        #def startup; end
+        #def shutdown; end
     end
-       
+    
     def setup
         @started = false
     end
@@ -22,7 +25,7 @@ class VideoVlcTest1 < VideoVlcTestBase
     description "no dimensions provided, no path/url, nothing to draw"
     def test_video_noPath_noDim
         @cont = @@app.flow do 
-            @vid = Shoes::VideoVlc.new( @@app, '')
+            @vid = Shoes::VideoVlc.new( @@app, '' )
         end.start { @started = true }
         
         ## First test! Let's see if widget is working at it's most basic level
@@ -40,9 +43,9 @@ class VideoVlcTest1 < VideoVlcTestBase
     end
     
     def test_video_noPath_slotDim
-        @cont = @@app.flow width: 300, height: 200  do 
+        @cont = @@app.flow width: 300, height: 200, start: proc { @started = true }  do 
             @vid = Shoes::VideoVlc.new( @@app, '')
-        end.start { @started = true }
+        end
         
         while not @started do; end
         
@@ -212,7 +215,6 @@ class VideoVlcTest5 < VideoVlcTestBase
         end.start { @started = true }
         while not @started do; end
         
-        #sleep 0.5
         assert_not_nil vid
         vlci = vid.instance_variable_get(:@vlci)
         assert_not_nil vlci

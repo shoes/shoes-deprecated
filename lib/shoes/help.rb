@@ -60,11 +60,12 @@ module Shoes::Manual
       background rgb(210, 210, 210), :curve => 4
       para code(str), CODE_STYLE 
       stack :top => 0, :right => 2, :width => 70 do
-        stack do
+        rnts = stack do
           background "#8A7", :margin => [0, 2, 0, 2], :curve => 4 
           para link("Run this", :stroke => "#eee", :underline => "none") { run_code(str) },
             :margin => 4, :align => 'center', :weight => 'bold', :size => 9
         end
+        rnts.hide if str.match(/Shoes.app/).nil?
         stack do
           background "#8A7", :margin => [0, 2, 0, 2], :curve => 4 
           para link("Copy this", :stroke => "#eee", :underline => "none") { self.clipboard = str },
