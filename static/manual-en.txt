@@ -17,9 +17,7 @@ this simple line of Ruby code, a window appears with a button inside reading
 
 On Linux, here's how this might look: !{:margin_left => 100}man-shot1.png!
 
-While lots of Shoes apps are graphical games and art programs, you can also
-layout text and edit controls easily. !{:margin_left =>
-40}shoes-manual-apps.png!
+While lots of Shoes apps are graphical games and art programs, you can also layout text and edit controls easily. !{:margin_left => 40}shoes-manual-apps.png!
 
 And, ideally, Shoes programs will run on any of the major platforms out there.
 Microsoft Windows, Apple's Mac OS X, Linux and many others.
@@ -233,9 +231,7 @@ All of the `self`s in the above example are the App object.  Shoes uses Ruby's
 
 These instance variables will all end up inside the App object.
 
-'''Whenever you create a new window, `self` is also changed.'''  So, this means
-the [[Element.window]] and [[Element.dialog]] methods, in addition to
-Shoes.app.
+'''Whenever you create a new window, `self` is also changed.'''  So, this means the [[Element.window]] and [[Element.dialog]] methods, in addition to Shoes.app.
 
 {{{
  Shoes.app :title => "MAIN" do
@@ -499,12 +495,11 @@ can call on those `main` bound methods but those methods can't (easily) invoke m
 a Shoes.app binding. Confused? Join the crowd.
 
 Each Shoes.app {} or Window {} you create in your scripts gets a different `binding`
-so the "@@my_button in one window is a different object from a @@my_button in 
+so the variable "my_button" in one window is a different object from a variable "my_button" in 
 the other window (for example). Different windows, different bindings for the same name.
 
 This isolates one window from another. Some consider this a `good thing`. It's not going
-to change however,  so some say `live with it` [[https://github.com/Shoes3/shoes3/wiki/Poking-in-Shoes.app
-Poking in Shoes]] explore how to use APP[] and app but it only a starter course
+to change however,  so some say `live with it` [[https://github.com/Shoes3/shoes3/wiki/Poking-in-Shoes.app Poking in Shoes]] explore how to use APP[] and app but it only a starter course
 in a very long menu.
 
 For complex, multi-window Shoes apps that need to share some things and not
@@ -524,8 +519,7 @@ thorough and clear about everything.
 
 So, if you've hit this far in the manual and you're still hazy about getting
 started, you should probably either go back to the [[Hello! beginning]] of the
-manual. Or you could try [[https://github.com/downloads/shoes/shoes/nks.pdf Nobody Knows
-Shoes]], the beginner's leaflet PDF.
+manual. Or you could try [[https://github.com/downloads/shoes/shoes/nks.pdf Nobody Knows Shoes]], the beginner's leaflet PDF.
 
 ==== Finding Your Way ====
 
@@ -3540,8 +3534,7 @@ now. If nothing is selected, `nil` will be the reply.
 
 Progress bars show you how far along you are in an activity. Usually, a
 progress bar represents a percentage (from 0% to 100%.) Shoes thinks of
-progress in terms of the decimal numbers 0.0 to 1.0. !{:margin_left =>
-100}man-ele-progress.png!
+progress in terms of the decimal numbers 0.0 to 1.0. !{:margin_left => 100}man-ele-progress.png!
 
 A simple progress bar is 200 pixels wide, but you can use the `:width` style
 (as with all Shoes elements) to lengthen it.
@@ -3574,8 +3567,7 @@ Sets the progress to a decimal number between 0.0 and 1.0.
 
 Radio buttons are a group of clickable circles. Click a circle and it'll be
 marked. Only one radio button can be marked at a time. (This is similar to the
-ListBox, where only one option can be selected at a time.) !{:margin_left =>
-100}man-ele-radio.png!
+ListBox, where only one option can be selected at a time.) !{:margin_left => 100}man-ele-radio.png!
 
 So, how do you decide when to use radio buttons and when to use list boxes?
 Well, list boxes only show one highlighted item unless you click on the box and
@@ -3919,8 +3911,7 @@ A paragraph containing bolded text, for example. A caption containing links and
 bolded text. (So, a `caption` is a TextBlock type.  However, `link` and
 `strong` are TextClass types.) !{:margin_left => 100}man-ele-textblock.png!
 
-All of the various types of TextBlock are found on the [[Element Element
-Creation]] page.
+All of the various types of TextBlock are found on the [[Element Element Creation]] page.
 
  * [[Element.banner]], a 48 pixel font.
  * [[Element.title]], a 34 pixel font.
@@ -3995,7 +3986,6 @@ for yourself you also need to install VLC, just like anybody else.
 
 Shoes looks for VLC in /usr/lib (for linux), /Applications/VLC.app (osx) and
 C:\"Program Files (x86)"\VideoLAN\VLC which is where VLC installs it's self.
-If you don't install VLC in the correct place, then Shoes won't find it.
 
 You also have to draw your own buttons or links and hook them up so they 
 call the methods to pause, play, fast forward and so on. Take a look at the
@@ -4003,8 +3993,10 @@ expert-video-player in Furthermore->Samples which is tour-de-force of how to cre
 custom widget and wire up. We might get an easier method built in the future but 
 for now, you need to do it the hard way.
 
-To add a video you need to 
-{{{require 'shoes/videoffi'
+To add a video you need to
+
+{{{
+require 'shoes/videoffi'
 Vlc.load_lib 
 }}}
 
@@ -4012,25 +4004,58 @@ Vlc.load_lib
 
 This checks that VLC is installed and makes it's api's available to Shoes. 
 
-There is an argument (not shown) that is the path to the VLC location which will almost
-certainly fail for you unless you are "much, much smarter than the average bear" . So, don't do that.
+If Shoes can't find VLC on it's own, and you know you have installed it, you can help Shoes : just go to the Cobbler (you'll find him by clicking on '''Maintain Shoes''' button at the start screen) once in Cobbler's atelier, click on '''VLC setup button''' ...). 
 
-=== video {styles} » video-widget ===
+=== video(path/url: a string, optional styles) » video-widget ===
 
-This creates the on screen widget with the styles args like width and height some unique settings.
-This is the widget you control with the methods below.
+This creates the on screen widget with the styles args like width and height and some unique settings. This is the widget you control with the methods below.
+
+"path/url" is the path to a file or an address of a stream as a String (everything Vlc can read on your hard drive or over the internet, you're pretty much spoilt for choice !), this parameter is mandatory, note that you can pass "" i.e. an empty string, if you want to start with an empty media player and later load a media with path= method (see below).
 
 There are some styles that are unique to Video widgets:
 
-autoplay: true or false
+ * `:autoplay` => true or false
 
-volume: integer 0..100
+Start playing given media immediately and every time you load a new media. You can change this later by means of autoplay= method (see below). Defaults to `false`.
+
+ * `:volume` => integer 0..100
+
+Defaults to `85`.
+
+ * `:bg_color` => a Shoes color
+
+Sets the background of the video area. Defaults to `black`, rgb(0,0,0).
+
+ * `:vlc_options` => an array of String
+
+Advanced users ! Vlc player options, if you really need to customize Vlc - you're on your own here, lookup for '''libvlc_new''' arguments -.
+
+
+=== autoplay() » true or false ===
+
+Checks if Vlc is in autoplay mode.
+
+=== autoplay = true or false ===
+ 
+Sets Vlc autoplay mode.
+
+=== have_audio_track() » true or nil ===
+
+Checks if media have an audio track.
+
+=== have_video_track() » true or nil ===
+
+Checks if media have a video track.
 
 === hide() » self ===
 
 Hides the video. If already playing, the video will continue to play. This just
 turns off display of the video. One possible use of this method is to collapse
 the video area when it is playing an audio file, such as an MP3.
+
+=== loaded() » true or nil ===
+
+If you want to check whether Vlc has loaded or not your media.
 
 === length() » a number ===
 
@@ -4042,9 +4067,21 @@ yet loaded.
 Moves the video to specific coordinates, the (left, top) being the upper left
 hand corner of the video.
 
+=== next_media » true or false ===
+
+When a playlist has been loaded, changes the actual media to the next item in the playlist. Returns true upon success, false if there isn't a next item.
+
+=== path() » a String ===
+
+Returns the path or url of the media actually loaded, empty string if no media have been yet loaded.
+
+=== path= a String ===
+
+Loads a new media into your player, could be a file : video, audio, playlist, image or a stream on the web: from popular video sites, radio, etc... Whatever your Vlc could digest.
+
 === pause() » self ===
 
-Pauses the video, if it is playing.
+Pauses the video, if it is playing. To resume playing, call that method again - not the play() method, it will restart from the beginning -.
 
 === playing?() » true of false ===
 
@@ -4066,6 +4103,10 @@ halfway point of the video.
 
 Sets the position of the video using a Float value. To move the video to its
 25% position: `@video.position = 0.25`.
+
+=== previous_media » true or false ===
+
+When a playlist has been loaded, changes the actual media to the previous item in the playlist. Returns true upon success, false if there isn't a previous item.
 
 === remove() » self ===
 
@@ -4092,6 +4133,15 @@ Set the position of the video to a time in milliseconds.
 
 Toggles the visibility of the video. If the video can be seen, then `hide` is
 called. Otherwise, `show` is called.
+
+=== video_track_height() » an number ===
+
+If loaded media has a video track, fetches it's real height. This is not necessarily the height of the widget, because most of the times you gave some dimensions to your widget and Vlc will accomodate for them.
+
+=== video_track_width() » an number ===
+
+If loaded media has a video track, fetches it's real width. See video_track_height() above.
+
 
 = Furthermore =
  Run the samples from here, or read more Shoes information on the Internet. 
@@ -4323,15 +4373,16 @@ it does not do is change the title of other existing windows. To be
 
 Note: the :title style setting only effects one window. This effects all ```NEW``` windows. 
 
-If you need this, loop through all the Apps. 
+If you need this, loop through all the Apps.
+
 {{{
- #!ruby
- Shoes.app :title => "I'm Shoes" do
-    button "change title" do
-      Shoes.APPS.each {|a| a.set_window_title("No Shoes Here") }
-      confirm "did the title change to No Shoes Here"
-    end
- end
+#!ruby
+Shoes.app :title => "I'm Shoes" do
+   button "change title" do
+     Shoes.APPS.each {|a| a.set_window_title("No Shoes Here") }
+     confirm "did the title change to No Shoes Here"
+   end
+end
 }}}
 
 Notice how the title is very sticky. 
@@ -4432,7 +4483,8 @@ a pretty rich and useful set of options if you know where the Shoes program is. 
 is actually a bit tricky so we many need to create an command for it which we call
 `cshoes` 
 
-{{{ $ cshoes -h
+{{{ 
+$ cshoes -h
 Usage: shoes [options] (app.rb or app.shy)
     -d, --debug                      Debug Shoes script
     -m, --manual                     Open the built-in manual.
