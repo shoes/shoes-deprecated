@@ -51,8 +51,9 @@ static void
 gtk_scrolled_window_alt_init(GtkScrolledWindow_Alt *scrolledwindowAlt)
 {
 	/* This means that GtkScrolledWindow_Alt doesn't supply its own GdkWindow */
-	gtk_widget_set_has_window(GTK_WIDGET(scrolledwindowAlt), FALSE);
-
+	//gtk_widget_set_has_window(GTK_WIDGET(scrolledwindowAlt), FALSE);
+  gtk_widget_set_has_window(GTK_WIDGET(scrolledwindowAlt), gtk_widget_get_has_window(scrolledwindowAlt));
+  
 	/* Initialize private members */
 	GtkScrolledWindow_AltPrivate *priv = GTK_SCROLLED_WINDOW_ALT_PRIVATE(scrolledwindowAlt);
 
