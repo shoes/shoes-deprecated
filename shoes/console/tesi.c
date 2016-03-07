@@ -490,25 +490,25 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
 	 * This may be a bad idea or not work or leave zombie processses
 	*/
 #ifndef OLD_PTY_CODE
-	ptySlave = ptsname(to->ptyMaster);
-	to->ptySlave = open(ptySlave, O_RDWR);
-	// need to setup the terminal stuff for the slave side of the pty.
-	struct termios slave_orig_term_settings; // Saved terminal settings
+  ptySlave = ptsname(to->ptyMaster);
+  to->ptySlave = open(ptySlave, O_RDWR);
+  // need to setup the terminal stuff for the slave side of the pty.
+  struct termios slave_orig_term_settings; // Saved terminal settings
   struct termios new_term_settings; // Current terminal settings
   tcgetattr(to->ptySlave, &slave_orig_term_settings);
-	new_term_settings = slave_orig_term_settings;
+  new_term_settings = slave_orig_term_settings;
 #if defined(SHOES_QUARTZ) || defined(SHOES_GTK_OSX)
   cfmakeraw (&new_term_settings);
 #endif
   tcsetattr (to->ptySlave, TCSANOW, &new_term_settings);
-	dup2(to->ptySlave, fileno(stdin));
-	dup2(to->ptySlave, fileno(stdout));
-	dup2(to->ptySlave, fileno(stderr));
+  dup2(to->ptySlave, fileno(stdin));
+  dup2(to->ptySlave, fileno(stdout));
+  dup2(to->ptySlave, fileno(stderr));
   setenv("TERM","dumb",1); // vt102
-	sprintf(message, "%d", width);
-	setenv("COLUMNS", message, 1);
-	sprintf(message, "%d", height);
-	setenv("LINES", message, 1);
+  sprintf(message, "%d", width);
+  setenv("COLUMNS", message, 1);
+  sprintf(message, "%d", height);
+  setenv("LINES", message, 1);
 
 #else
 	to->pid = fork();
@@ -543,17 +543,21 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
  * So that you don't have to cast before you pass the parameter
  * */
 void deleteTesiObject(void *p) {
-	struct tesiObject *to = (struct tesiObject*) p;
+  struct tesiObject *to = (struct tesiObject*) p;
+  
+  //kill(-(getpgid(to->pid)), SIGTERM); // kill all with this process group id
+  
+//  This freezes Shoes when closing console ! unecessary ? FIXME, looks like to->pid == 0, not used
+//  kill(to->pid, SIGTERM); // probably don't need this line
+  
+  //waitpid(to->pid); // don't need this on OSX if never called
 
-	//kill(-(getpgid(to->pid)), SIGTERM); // kill all with this process group id
-	kill(to->pid, SIGTERM); // probably don't need this line
-	//waitpid(to->pid); // don't need this on OSX if never called
+  close(to->ptyMaster);
 
-	close(to->ptyMaster);
-
-	free(to->sequence);
-	free(to->command[0]);
-	if(to->command[1])
-		free(to->command[1]);
-	free(to);
+  free(to->sequence);
+  free(to->command[0]);
+  if(to->command[1])
+    free(to->command[1]);
+  free(to);
+// FIXME Is all this enough ?
 }
