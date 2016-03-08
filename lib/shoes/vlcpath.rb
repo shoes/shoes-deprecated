@@ -42,7 +42,7 @@ module Vlc_path
           mostly_ok = File.exist? File.basename(vlc_app_path)
         end
       rescue 
-        puts "vlc not at standard location "
+        #puts "vlc not at standard location "
         vlc_app_path = nil
         mostly_ok = false
       end

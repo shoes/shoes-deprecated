@@ -407,10 +407,6 @@ class Shoes
         setup
       end
   end
-
-  #def self.mount(path, meth, &blk)
-  # @mounts << [path, meth || blk]
-  #end
   
   def self.mount(path, meth, &blk)
     unless @mounts.empty?
