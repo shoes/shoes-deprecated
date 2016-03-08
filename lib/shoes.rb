@@ -408,10 +408,17 @@ class Shoes
       end
   end
 
+  #def self.mount(path, meth, &blk)
+  # @mounts << [path, meth || blk]
+  #end
+  
   def self.mount(path, meth, &blk)
+    unless @mounts.empty?
+      # checking if app changed
+      @mounts.clear if meth[0] != @mounts[0][1][0]
+    end
     @mounts << [path, meth || blk]
   end
-
 
   # SHOES_URL_RE = %r!^@([^/]+)(.*)$!
   SHOES_URL_RE = %r{^@([^/]+)(.*)$}
