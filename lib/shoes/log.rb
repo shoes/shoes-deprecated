@@ -1,6 +1,6 @@
 module Shoes::LogWindow
   def setup
-    stack do
+    @main_slot = stack do
       flow do
         background black
         stack :width => -380 do
@@ -64,7 +64,7 @@ module Shoes::LogWindow
           i += 1
         end
       end
-      timer(0) { app.slot.scroll_top = app.slot.scroll_max if @auto_scroll.checked? }
+      @main_slot.start { app.slot.scroll_top = app.slot.scroll_max if @auto_scroll.checked? }
     end
   end
 end

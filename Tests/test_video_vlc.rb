@@ -16,13 +16,13 @@ Shoes.app title: "Testing Shoes video" do
                             stroke: darkred),
                         "Testing procedure to wait for Drawing Area to be ready for vlc to use it"],
         VideoVlcTest2 => "Testing initialisation of video widget with a given path to a movie\n" \
-                        "relaying on video track size if no widget or parent canvas dimensions provided", 
+                        "relying on video track size if no widget or parent canvas dimensions provided", 
         VideoVlcTest3 => "Testing audio facility", 
         VideoVlcTest4 => "Testing media loading",
         VideoVlcTest5 => "Passing vlc options to underlaying libvlc_new() C method"
     }
     # we must wait for shoes asynchronous drawing events to occur
-    @run_test = -> (suite) { Thread.new {Test::Unit::UI::Console::TestRunner.run(suite)}; puts }
+    @run_test = -> (suite) { Thread.new {Test::Unit::UI::Console::TestRunner.run(suite)}; puts '='*40 }
     
     style(Shoes::Para, size: 10)
     stack do
@@ -33,7 +33,9 @@ Shoes.app title: "Testing Shoes video" do
                 # There could be only one console at a time (we can safely call it many times)
                 Shoes.show_console
                 Thread.new {
-                    TESTS.each { |t,d| Test::Unit::UI::Console::TestRunner.run(t.suite); puts}
+                    tests = Test::Unit::TestSuite.new("All Tests")
+                    TESTS.each { |t,d| tests << t.suite }
+                    @run_test.call(tests)
                 }
             end
             para "  in order of appearance, top to bottom"
@@ -51,17 +53,5 @@ Shoes.app title: "Testing Shoes video" do
         end
         
     end
-
-    
-    ### shows alternative to build a suite
-    #def run_test01
-    #    my_tests = Test::Unit::TestSuite.new("My Tests")
-    #    my_tests << VideoVlcTest1.new('test_video_noPath_noDim')
-    #    my_tests << VideoVlcTest1.new('test_video_noPath_videoWidgetDim')
-    #    my_tests << VideoVlcTest1.new('test_video_noPath_slotDim')
-    #    my_tests << VideoVlcTest1.new('test_video_noPath_slotVideoWidgetDim')
-    #    
-    #    @run_test.call(my_tests)
-    #end
     
 end
