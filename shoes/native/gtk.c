@@ -38,6 +38,7 @@
 
 #define SHOES_GTK_INVISIBLE_CHAR (gunichar)0x2022
 
+#ifndef SHOES_GTK_WIN32
 static VALUE
 shoes_make_font_list(FcFontSet *fonts, VALUE ary)
 {
@@ -85,6 +86,7 @@ shoes_load_font(const char *filename)
   shoes_update_fonts(shoes_font_list());
   return ary;
 }
+#endif
 
 #if 0
 // FIXME: experiment with font settings
@@ -1825,6 +1827,41 @@ shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
 
 // June 1, 2015 - kind of ugly. 
 #ifdef SHOES_GTK_WIN32
+//  the Font handling code from Shoes 3.1 windows.c
+VALUE
+shoes_load_font(const char *filename)
+{
+  VALUE allfonts, newfonts, oldfonts;
+  int fonts = AddFontResourceEx(filename, FR_PRIVATE, 0);
+  if (!fonts) return Qnil;
+  allfonts = shoes_font_list();
+  oldfonts = rb_const_get(cShoes, rb_intern("FONTS"));
+  newfonts = rb_funcall(allfonts, rb_intern("-"), 1, oldfonts);
+  shoes_update_fonts(allfonts);
+  return newfonts;
+}
+
+static int CALLBACK
+shoes_font_list_iter(const ENUMLOGFONTEX *font, const NEWTEXTMETRICA *pfont, DWORD type, LPARAM l)
+{
+  VALUE ary = (VALUE)l;
+  rb_ary_push(l, rb_str_new2(font->elfLogFont.lfFaceName));
+  return TRUE;
+}
+
+VALUE
+shoes_font_list()
+{
+  LOGFONT font = {0, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, 0, ""};
+  VALUE ary = rb_ary_new();
+  HDC dc = GetDC(NULL);
+  EnumFontFamiliesEx(dc, &font, (FONTENUMPROC)shoes_font_list_iter, (LPARAM)ary, 0);
+  ReleaseDC(NULL, dc);
+  rb_funcall(ary, rb_intern("uniq!"), 0);
+  rb_funcall(ary, rb_intern("sort!"), 0);
+  return ary;
+}
+
 // hat tip: https://justcheckingonall.wordpress.com/2008/08/29/console-window-win32-app/
 #include <stdio.h>
 #include <io.h>
