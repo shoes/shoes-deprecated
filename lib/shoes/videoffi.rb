@@ -102,6 +102,7 @@ module Vlc
     typealias "libvlc_track_type_t", "int"
   
     extern 'libvlc_instance_t * libvlc_new( int , const char* )'
+    extern 'void libvlc_release( libvlc_instance_t* )'
   
     ### Media
     extern 'libvlc_media_t* libvlc_media_new_path(libvlc_instance_t*, const char* )'
@@ -115,6 +116,7 @@ module Vlc
   
     ### Media player
     extern 'libvlc_media_player_t* libvlc_media_player_new( libvlc_instance_t* )'
+    extern 'void libvlc_media_player_release( libvlc_media_player_t* )'
 #    extern 'void libvlc_media_player_set_media( libvlc_media_player_t*, libvlc_media_t* )'
 #    extern 'int libvlc_media_player_play( libvlc_media_player_t* )'
 #    extern 'void libvlc_media_player_stop( libvlc_media_player_t* )'
@@ -136,6 +138,7 @@ module Vlc
   
     ### Media List
     extern 'libvlc_media_list_t* libvlc_media_list_new( libvlc_instance_t* )'
+    extern 'void libvlc_media_list_release( libvlc_media_list_t* )'
     extern 'int libvlc_media_list_add_media( libvlc_media_list_t*, libvlc_media_t* )'
     extern 'int libvlc_media_list_remove_index( libvlc_media_list_t*, int )'
     extern 'int libvlc_media_list_count( libvlc_media_list_t* )'
@@ -144,6 +147,7 @@ module Vlc
   
     ### Media List Player
     extern 'libvlc_media_list_player_t* libvlc_media_list_player_new(libvlc_instance_t* )'
+    extern 'void libvlc_media_list_player_release( libvlc_media_list_player_t* )'
 #     Not avalaible in vlc 2.2.0
 #     extern 'libvlc_media_player_t* libvlc_media_list_player_get_media_player( libvlc_media_list_player_t* )'
     extern 'void libvlc_media_list_player_set_media_player( libvlc_media_list_player_t*, libvlc_media_player_t* )'
@@ -154,6 +158,8 @@ module Vlc
     extern 'int libvlc_media_list_player_is_playing( libvlc_media_list_player_t* )'
     extern 'int libvlc_media_list_player_next( libvlc_media_list_player_t* )'
     extern 'int libvlc_media_list_player_previous( libvlc_media_list_player_t* )'
+    extern 'int libvlc_media_list_player_play_item_at_index( libvlc_media_list_player_t*, int )'
+    extern 'int libvlc_media_list_player_play_item( libvlc_media_list_player_t*, libvlc_media_t* )'
   
     ### Audio controls
     extern 'int libvlc_audio_get_volume( libvlc_media_player_t* )'
@@ -305,7 +311,7 @@ class Shoes::VideoVlc
     # (keep "start" event free for possible use in Shoes script)
     # using "animate" method because of the underlying "g_timeout_add" function (let's have peaceful relations with gtk)
     @wait_ready = app.animate(100) do |fr|
-      if @video.parent.style[:started]
+      if @video.drawable_ready?
         @wait_ready.stop
         drID = @video.drawable   # xlib window / HWND / NSView  id
         case RUBY_PLATFORM
@@ -404,16 +410,18 @@ class Shoes::VideoVlc
     stop if playing?
     @path = path
     @loaded = load_media(@path)
-    if @video.style[:using_video_dim]
-      if @have_video_track    # no dimensions provided, relying on video track size
-        @video.show
-        @video.style(width: video_track_width, height: video_track_height)
-      else                    # no dimensions provided, nothing to show (audio track)
-        @video.style(width: 0, height: 0)
-        @video.hide
+    if @loaded
+      if @video.style[:using_video_dim]
+        if @have_video_track    # no dimensions provided, relying on video track size
+          @video.show
+          @video.style(width: video_track_width, height: video_track_height)
+        else                    # no dimensions provided, nothing to show (audio track)
+          @video.style(width: 0, height: 0)
+          @video.hide
+        end
       end
+      play if @autoplay
     end
-    play if @loaded && @autoplay
   end
 
   def play
@@ -477,12 +485,36 @@ class Shoes::VideoVlc
     return r == 0 ? true : false
   end
 
+  def play_media(path)
+      media = libvlc_media_new_path(@vlci, path)
+      libvlc_media_list_player_play_item(@list_player, media)
+  end
+  
+  def play_list_add(path)
+      access_media_list do |medialist|
+        libvlc_media_list_add_media(medialist, libvlc_media_new_path(@vlci, path))
+      end
+  end
+  
+  def play_at(index)
+      r = libvlc_media_list_player_play_item_at_index(@list_player, index)
+      return r == 0 ? true : false
+  end
+
   # redirecting to shoes C video methods
   def show; @video.show; end
   def hide; @video.hide; end
   def toggle; @video.toggle; end
   def parent; @video.parent; end
-  def remove; @video.remove; end
+  def remove
+#    libvlc_media_list_release(@medialist)
+#    libvlc_media_player_release(@player)
+#    libvlc_media_list_player_release(@list_player)
+#    libvlc_release(@vlci)
+    @video.remove
+    @video = nil
+  end
+  
   def style(attrb=nil)
     return @video.style if attrb == nil
     @video.style(attrb)

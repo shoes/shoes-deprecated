@@ -1290,14 +1290,14 @@ shoes_native_surface_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
 */
 
 SHOES_CONTROL_REF
-shoes_native_surface_new(VALUE attr)
+shoes_native_surface_new(VALUE attr, VALUE video)
 {
   // Create an NSView
   int w = NUM2INT(ATTR(attr, width));
   int h = NUM2INT(ATTR(attr, height));
   NSRect rect = NSMakeRect(0, 0, w, h);
   NSView *nativeView = [[NSView alloc] initWithFrame: rect];
-  // Paint It Black
+  // Paint It Black  Hot Stuff !
   [nativeView setWantsLayer:YES];
   [nativeView.layer setBackgroundColor:[[NSColor blackColor] CGColor]];
   return (SHOES_CONTROL_REF)nativeView;

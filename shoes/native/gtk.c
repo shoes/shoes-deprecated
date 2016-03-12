@@ -29,6 +29,7 @@
 #include "gtkbuttonalt.h"
 #include "gtkscrolledwindowalt.h"
 #include "gtkprogressbaralt.h"
+#include "shoes/video/video.h"
 
 #define GTK_CHILD(child, ptr) \
   GList *children = gtk_container_get_children(GTK_CONTAINER(ptr)); \
@@ -1100,10 +1101,18 @@ shoes_native_control_free(SHOES_CONTROL_REF ref)
  * video support
  */
 
+void
+surface_on_realize(SHOES_CONTROL_REF ref, gpointer data) {
+  VALUE rbvideo = (VALUE)data;
+  shoes_video *video;
+  Data_Get_Struct(rbvideo, shoes_video, video);
+  video->realized = 1;
+}
+
 // SHOES_SURFACE_REF and SHOES_CONTROL_REF expands the same : GtkWidget *
 // ref in shoes_video struct was a SHOES_CONTROL_REF anyway
 SHOES_CONTROL_REF
-shoes_native_surface_new(VALUE attr)
+shoes_native_surface_new(VALUE attr, VALUE video)
 {
   SHOES_CONTROL_REF da = gtk_drawing_area_new();
   gtk_widget_set_size_request(da, NUM2INT(ATTR(attr, width)), NUM2INT(ATTR(attr, height)));
@@ -1119,6 +1128,10 @@ shoes_native_surface_new(VALUE attr)
     color.red = col->r/255.0; color.green = col->g/255.0; color.blue = col->b/255.0;
   }
   gtk_widget_override_background_color(GTK_WIDGET(da), 0, &color);  
+
+  g_signal_connect(G_OBJECT(da), "realize", 
+                   G_CALLBACK(surface_on_realize), 
+                   (gpointer)video);
 
   return da;
 }
