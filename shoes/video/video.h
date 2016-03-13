@@ -15,6 +15,7 @@ typedef struct {
   VALUE attr;
   shoes_place place;
   SHOES_CONTROL_REF ref;
+  int realized;
   SHOES_SLOT_OS *slot;
   int init;
 } shoes_video;
@@ -31,6 +32,7 @@ VALUE shoes_video_new(VALUE, VALUE);
 VALUE shoes_video_draw(VALUE, VALUE, VALUE);
 VALUE shoes_video_get_parent(VALUE);
 VALUE shoes_video_get_drawable(VALUE);
+VALUE shoes_video_get_realized(VALUE);
 VALUE shoes_video_remove(VALUE);
 VALUE shoes_video_show(VALUE);
 VALUE shoes_video_hide(VALUE);
