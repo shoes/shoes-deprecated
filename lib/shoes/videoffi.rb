@@ -254,6 +254,12 @@ module Vlc
     end
     info "using VLC: #{versionstr}"
     import_symbols() unless @@vlc_import_done
+    
+    # import some platform specific symbols
+    unless RUBY_PLATFORM =~ /darwin/
+      extern 'void libvlc_video_set_mouse_input( libvlc_media_player_t *, unsigned int )'
+      extern 'void libvlc_video_set_key_input( libvlc_media_player_t *, unsigned int )'
+    end
   
     # just in case ... other functions in Fiddle::Importer are using it
     # The variable is declared in 'dlload'
@@ -328,6 +334,14 @@ class Shoes::VideoVlc
               libvlc_media_player_set_nsobject(@player, drID)
             end
         end
+        
+        # By default, mouse and keyboard events are handled by 
+        # the LibVLC video widget, disabling them now!
+        # only avalaible on x11 and win32
+        unless RUBY_PLATFORM =~ /darwin/
+          libvlc_video_set_mouse_input(@player, 0)
+          libvlc_video_set_key_input(@player, 0)
+        end
 
         play if @loaded && @autoplay
         
@@ -359,8 +373,7 @@ class Shoes::VideoVlc
     ### how to deal with a C array OUT parameter (tracks_buf.ref)
     libvlc_media_parse(@media)
     
-    free = Fiddle::Function.new(Fiddle::RUBY_FREE, [Fiddle::TYPE_VOIDP], Fiddle::TYPE_VOID)
-    tracks_buf = Fiddle::Pointer.malloc(Media_track.size, free)
+    tracks_buf = Fiddle::Pointer.malloc(Media_track.size)
     n_tracks = libvlc_media_tracks_get( @media, tracks_buf.ref )
     libvlc_media_release(@media)
 
@@ -410,8 +423,9 @@ class Shoes::VideoVlc
     stop if playing?
     @path = path
     @loaded = load_media(@path)
+    
     if @loaded
-      if @video.style[:using_video_dim]
+      if @video.style[:using_video_dim] # no dimensions provided
         if @have_video_track    # no dimensions provided, relying on video track size
           @video.show
           @video.style(width: video_track_width, height: video_track_height)
@@ -491,9 +505,11 @@ class Shoes::VideoVlc
   end
   
   def play_list_add(path)
+      r = nil
       access_media_list do |medialist|
-        libvlc_media_list_add_media(medialist, libvlc_media_new_path(@vlci, path))
+        r = libvlc_media_list_add_media(medialist, libvlc_media_new_path(@vlci, path))
       end
+      r == 0 ? true : false
   end
   
   def play_at(index)
@@ -507,10 +523,11 @@ class Shoes::VideoVlc
   def toggle; @video.toggle; end
   def parent; @video.parent; end
   def remove
-#    libvlc_media_list_release(@medialist)
-#    libvlc_media_player_release(@player)
-#    libvlc_media_list_player_release(@list_player)
-#    libvlc_release(@vlci)
+    libvlc_media_list_release(@medialist)
+    libvlc_media_player_release(@player)
+    libvlc_media_list_player_release(@list_player)
+    libvlc_release(@vlci)
+    @vlci  = @list_player = @player = @medialist = nil
     @video.remove
     @video = nil
   end
