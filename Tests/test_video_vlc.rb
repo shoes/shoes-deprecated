@@ -40,15 +40,16 @@ Shoes.app title: "Testing Shoes video" do
                            cont_args: {width: 36, height: 21},
                            widget_args: ['', bg_color: yellow ]
                          },
-        VideoVlcTestAudio => { desc: "audio method",
-                               cont_args: {width: 35, height: 20},
-                               widget_args: ['indian.m4a', width: 350, height: 20]
-                             },                 
-        VideoVlcTest7 => { desc: "Passing vlc options to underlaying libvlc_new() C method",
+        VideoVlcTest6 => { desc: "Passing vlc options to underlaying libvlc_new() C method",
                            cont_args: {width: 36, height: 21},
                            widget_args: ['AnemicCinema1926marcelDuchampCut.mp4', 
                                           vlc_options: ["--no-xlib", "--no-video-title-show"] ]
-                         },
+                         },                 
+        VideoVlcTestAudio => { desc: "audio method + volume, volume= methods",
+                               cont_args: {width: 35, height: 20},
+                               widget_args: ['indian.m4a', width: 350, height: 20]
+                             },                 
+         
     }
     
     
@@ -74,20 +75,14 @@ Shoes.app title: "Testing Shoes video" do
         
         # waiting for shoes asynchronous drawing events to occur.
         @cont.start {
-            #an = animate(10) { |fr|
-            #if fr == 2
-                #an.stop
-                ## There could be only one console at a time (we can safely call it many times)
-                #Shoes.show_console
-                
-                Test::Unit::UI::Console::TestRunner.run(t.suite)
-                
-                puts "#{'='*40}\n\n"
-                @sand_box.clear { para "Next test !" }
-                @sand_box.start { @test_complete = true }
-                #an.remove; an = nil
-            #end
-            #}
+            ## There could be only one console at a time (we can safely call it many times)
+            #Shoes.show_console
+            
+            Test::Unit::UI::Console::TestRunner.run(t.suite)
+            
+            puts "#{'='*40}\n\n"
+            @sand_box.clear
+            @sand_box.start { @test_complete = true }
         }
     end
     

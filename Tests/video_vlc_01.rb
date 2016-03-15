@@ -214,17 +214,7 @@ class VideoVlcTest5  < VideoVlcTestBase
     end
 end
 
-class VideoVlcTestAudio  < VideoVlcTestBase
-    def test_audioMethod
-        assert_not_nil @@app.vid
-        assert_instance_of Shoes::VideoVlc, @@app.vid
-        
-        assert_equal 0, @@app.vid.width
-        assert_true @@app.vid.style[:hidden]
-    end
-end
-
-class VideoVlcTest7  < VideoVlcTestBase
+class VideoVlcTest6  < VideoVlcTestBase
     def test_libvlcOptions
         assert_not_nil @@app.vid
         vlci = @@app.vid.instance_variable_get(:@vlci)
@@ -235,5 +225,18 @@ class VideoVlcTest7  < VideoVlcTestBase
     end
 end
 
+class VideoVlcTestAudio  < VideoVlcTestBase
+    def test_audioMethod
+        assert_not_nil @@app.vid
+        assert_instance_of Shoes::VideoVlc, @@app.vid
+        
+        assert_equal 0, @@app.vid.width
+        assert_true @@app.vid.style[:hidden]
+        
+        assert_equal 85, @@app.vid.volume
+        @@app.vid.volume = 72
+        assert_equal 72, @@app.vid.volume
+    end
+end
 
 

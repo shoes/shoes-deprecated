@@ -1808,6 +1808,8 @@ shoes_canvas_start(int argc, VALUE *argv, VALUE self)
     // they are the same when canvas has a :height 
     canvas->stage = CANVAS_PAINT;
     ((shoes_canvas *)canvas->slot->owner)->stage = CANVAS_PAINT;
+//    printf("app nesting size = : %ld\n", RARRAY_LEN(canvas->app->nesting));
+//    printf("same canvas ? : %s\n", (canvas == ((shoes_canvas *)canvas->slot->owner)) ? "yes" : "no");
     
     return self;
   }
