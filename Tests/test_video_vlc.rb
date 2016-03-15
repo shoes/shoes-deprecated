@@ -76,9 +76,9 @@ Shoes.app title: "Testing Shoes video" do
         # waiting for shoes asynchronous drawing events to occur.
         @cont.start {
             ## There could be only one console at a time (we can safely call it many times)
-            #Shoes.show_console
+            Shoes.show_console
             
-            Test::Unit::UI::Console::TestRunner.run(t.suite)
+            @test_result = Test::Unit::UI::Console::TestRunner.run(t.suite)
             
             puts "#{'='*40}\n\n"
             @sand_box.clear
@@ -86,41 +86,71 @@ Shoes.app title: "Testing Shoes video" do
         }
     end
     
-    @top = stack do
+    stack margin_left: 10, margin_right: 10 do
         para "\t\tLaunches Shoes terminal to collect results of Tests"
         
-        @sand_box = stack(height: 50) {}
+        flow do
+            @sand_box = stack(height: 50, width: 279) {}
+            flow width: 300 do
+                para "stop tests on failure : "
+                @stop_on_failure = check checked: false
+                @visual = rect 200, 0, 30, 30, 5, fill: white
+            end
+        end
         
-        flow margin: [0,0,0,10] do
+        flow margin: [0,0,0,5] do
             button "run ALL Tests" do
+                @visual.style(fill: white)
                 
                 # We have to wait for each test to complete (asynchronous drawing)
                 @test_complete = true
                 tenum = TESTS.each_with_index
                 anm = animate(20) do
-                    if @test_complete
-                        @test_complete = false
-                        h,i = tenum.next
-                        build_test_gui.call(h[0], h[1])
                     
-                        if i == TESTS.size-1
-                            anm.stop
-                            anm.remove; anm = nil
+                    if @test_complete
+                        if @test_result && @test_result.failure_occurred?
+                            if @stop_on_failure.checked?
+                                anm.stop
+                                anm.remove; anm = nil
+                            end
+                            @test_result = nil
+                            @visual.style(fill: red)
+                        else
+                            @test_complete = false
+                            h,i = tenum.next
+                            build_test_gui.call(h[0], h[1])
+                            
+                            if i == TESTS.size-1
+                                anm.stop
+                                anm.remove; anm = nil
+                                @visual.style(fill: green) unless @visual.style[:fill] == red
+                            end
                         end
                     end
                 end
             end
             
-            para "  in order of appearance, top to bottom"
+            para "  in order of appearance, top to bottom, click below to show detailed tests"
         end
         
-        TESTS.each do |t, details|
-            flow do
-                button "run Test" do
-                    build_test_gui.call(t, details)
-                end
+        flow height: 30, margin_bottom: 5 do
+            bg = background "#fff".."#eed"
+            hover { |s| bg.fill = "#ddd".."#ba9"; s.refresh_slot }
+            leave { |s| bg.fill = "#fff".."#eed"; s.refresh_slot }
+            click { |s| @tests_slot.toggle }
+            
+            para "click to see/hide detailed list of tests", margin_left: 50
+        end
+        
+        @tests_slot = stack hidden: true do
+            TESTS.each do |t, details|
+                flow do
+                    button "run Test" do
+                        build_test_gui.call(t, details)
+                    end
 
-                para *(["#{t.to_s} : \n"] << details[:desc])
+                    para *(["#{t.to_s} : \n"] << details[:desc])
+                end
             end
         end
         
