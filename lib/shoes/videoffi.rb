@@ -304,7 +304,8 @@ class Shoes::VideoVlc
     libvlc_media_list_player_set_media_player(@list_player, @player)
     @medialist = libvlc_media_list_new(@vlci)
     libvlc_media_list_player_set_media_list(@list_player, @medialist)
-
+    
+    raise "can't find #{path}" unless File.exist? path
     @loaded = load_media @path
     vol = attr[:volume] || 85
     libvlc_audio_set_volume(@player, vol)
