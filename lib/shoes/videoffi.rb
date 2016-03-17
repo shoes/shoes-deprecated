@@ -103,6 +103,7 @@ module Vlc
   
     extern 'libvlc_instance_t * libvlc_new( int , const char* )'
     extern 'void libvlc_release( libvlc_instance_t* )'
+    extern 'const char* libvlc_errmsg(void)'
   
     ### Media
     extern 'libvlc_media_t* libvlc_media_new_path(libvlc_instance_t*, const char* )'
@@ -305,7 +306,6 @@ class Shoes::VideoVlc
     @medialist = libvlc_media_list_new(@vlci)
     libvlc_media_list_player_set_media_list(@list_player, @medialist)
     
-    raise "can't find #{path}" unless File.exist? path
     @loaded = load_media @path
     vol = attr[:volume] || 85
     libvlc_audio_set_volume(@player, vol)
@@ -356,14 +356,25 @@ class Shoes::VideoVlc
   def load_media(path)
     @have_video_track = @have_audio_track = nil
     @video_track_width = @video_track_height = nil
-
+    
+    # empty string given, nothing to do, waiting for media to be loaded later
+    return nil if @path.empty?
+    
     @media = 
     if path =~ %r{://}
       libvlc_media_new_location(@vlci, path)
     else
+      unless File.exists? path
+        Shoes.show_log
+        raise "Sorry, That File doesn't exists :\n#{path} !"
+      end
       libvlc_media_new_path(@vlci, path)
     end
-    return nil if (@media.null? or @path == "")
+    
+    if @media.null?  # TODO media is not a null pointer in case of failure ...
+        Shoes.show_log
+        raise "Sorry, i can't load that media! :\n#{path}"
+    end
 
     access_media_list do |medialist|
       libvlc_media_list_remove_index(medialist, 0) if (libvlc_media_list_count(medialist) != 0)
@@ -548,6 +559,11 @@ end
 
 
 def video(path, attr=nil)
+  if path.nil? || (not path.kind_of? String)
+    Shoes.show_log
+    raise "You must, at least, provide an empty path as first agument ! :\n "\
+          "video(\"\", optional_attriutes) or audio(\"\", optional_attriutes)\n"
+  end
   # self is the calling app
   Shoes::VideoVlc.new(self, path, attr)
 end
@@ -556,5 +572,5 @@ end
 def audio(path, attr=nil)
   attr ||= {}
   attr.merge!( {width: 0, height: 0, hidden: true} )
-  Shoes::VideoVlc.new(self, path, attr)
+  video(path, attr)
 end
