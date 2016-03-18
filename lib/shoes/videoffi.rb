@@ -173,75 +173,20 @@ module Vlc
   end
   
   # Load native library.
-  def self.load_lib(path: nil, plugin_path: nil)
-    if path
-      @vlc_lib = path
-      ENV['VLC_PLUGIN_PATH'] = plugin_path if plugin_path
-      begin
-        dlload @vlc_lib
-      rescue => e #TODO
-        Shoes.show_log
-        raise "Sorry, No Video support !\n unable to find libvlc :  #{@vlc_lib}"
-      end
-      
-    elsif ENV['VLC_APP_PATH']  #preferred method
+  def self.load_lib
+    if ENV['VLC_APP_PATH']
       vlcpath = ENV['VLC_APP_PATH']
       Dir.chdir(File.dirname(vlcpath)) do 
         #puts "VLC opening with ENV: #{vlcpath}"
         begin
           dlload(File.basename(vlcpath))
         rescue
-          Shoes.show_log
-          raise "Sorry, #{vlcpath} doesn't load - is it correct"
+          upraise "Sorry, #{vlcpath} doesn't load - is it correct"
         end
       end
     else
-      # is this needed now?
-      case RUBY_PLATFORM
-      when /mingw/
-        # Oddness - dlload on Windows only works this way
-        # Probably the space in "Program Files (x86)" - known Ruby fun.
-        pfdir = ENV['ProgramFiles(x86)']
-        pfdir = ENV['ProgramFiles'] if !pfdir 
-        Dir.chdir(pfdir) do
-          if ! File.exist? File.join(pfdir, "VideoLAN", "VLC", "libvlc.dll")
-            Shoes.show_log
-            raise "Sorry, No Video support !\n unable to find #{pfdir}/VideoLAN/VLC/libvlc.dll"
-          end
-        end
-        Dir.chdir("#{pfdir}/VideoLAN/VLC") do
-          begin
-            dlload 'libvlc.dll'
-          rescue => e
-            Shoes.show_log
-            raise "Sorry, libvlc.dll failed to load"
-          end
-        end
-      when /darwin/
-        @vlc_lib = '/completely/missing'
-        Dir.glob('/Applications/VLC.app/Contents/MacOS/lib/libvlc.*dylib') do |p|
-            @vlc_lib = p if ! File.symlink?(p)
-        end
-        begin
-          dlload @vlc_lib
-        rescue
-          Shoes.show_log
-          raise "Sorry, No Video support !\n unable to find libvlc : #{@vlc_lib}"
-        end
-      when /linux/
-        @vlc_lib = '/completely/missing'
-        Dir.glob('/usr/lib/libvlc.so*') do |p|
-          @vlc_lib = p if ! File.symlink?(p)
-        end
-        begin
-          dlload @vlc_lib
-        rescue => e
-          Shoes.show_log
-          raise "Sorry, No Video support !\n unable to find libvlc : #{@vlc_lib}"
-        end
-      else
-        raise "Sorry, your platform [#{RUBY_PLATFORM}] is not supported..."
-      end
+      upraise "I can't find 'VLC_APP_PATH' environment variable.\n" \
+              "Please check with the Cobbler ('Maintain Shoes' at startup splash)"
     end
   
     # do a version check to make sure it is 2.1 or 2.2
@@ -250,8 +195,7 @@ module Vlc
     version = versionstr[/\d.\d/]
     verno = version.to_f
     if verno < 2.1
-      Shoes.show_log
-      raise "You need a newer VLC: 2.1 or better"
+      upraise "You need a newer VLC: 2.1 or better"
     end
     info "using VLC: #{versionstr}"
     import_symbols() unless @@vlc_import_done
@@ -269,6 +213,10 @@ module Vlc
   
 end
 
+def upraise(message)
+  Shoes.show_log
+  raise message
+end
 
 class Shoes::VideoVlc
   include Vlc
@@ -281,8 +229,10 @@ class Shoes::VideoVlc
     @path = path
     attr ||= {}
     @autoplay = attr[:autoplay] || false
-
+    
+    Vlc.load_lib
     @version = libvlc_get_version
+    
     # user gives an array of string options i.e.
     #   vlc_options: ["--no-xlib", "--no-video-title-show"]
     #   libvlc expects : libvlc_new(2, ["--no-xlib", "--no-video-title-show"].pack('p2'))
@@ -295,8 +245,7 @@ class Shoes::VideoVlc
     
     @vlci = libvlc_new(sz, args)
     if @vlci.null?
-        Shoes.show_log
-        raise "Unable to initialize libvlc\nlibvlc_new() failed with  :vlc_options => #{opts.inspect}\n" \
+        upraise "Unable to initialize libvlc\nlibvlc_new() failed with  :vlc_options => #{opts.inspect}\n" \
                "and returned : \n#{@vlci.inspect}" 
     end
     
@@ -364,16 +313,12 @@ class Shoes::VideoVlc
     if path =~ %r{://}
       libvlc_media_new_location(@vlci, path)
     else
-      unless File.exists? path
-        Shoes.show_log
-        raise "Sorry, That File doesn't exists :\n#{path} !"
-      end
+      upraise "Sorry, That File doesn't exists :\n#{path} !" unless File.exists? path
       libvlc_media_new_path(@vlci, path)
     end
     
     if @media.null?  # TODO media is not a null pointer in case of failure ...
-        Shoes.show_log
-        raise "Sorry, i can't load that media! :\n#{path}"
+        upraise "Sorry, i can't load that media! :\n#{path}"
     end
 
     access_media_list do |medialist|
@@ -560,8 +505,7 @@ end
 
 def video(path, attr=nil)
   if path.nil? || (not path.kind_of? String)
-    Shoes.show_log
-    raise "You must, at least, provide an empty path as first agument ! :\n "\
+    upraise "You must, at least, provide an empty path as first agument ! :\n "\
           "video(\"\", optional_attriutes) or audio(\"\", optional_attriutes)\n"
   end
   # self is the calling app
