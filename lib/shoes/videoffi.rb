@@ -102,6 +102,8 @@ module Vlc
     typealias "libvlc_track_type_t", "int"
   
     extern 'libvlc_instance_t * libvlc_new( int , const char* )'
+    extern 'void libvlc_release( libvlc_instance_t* )'
+    extern 'const char* libvlc_errmsg(void)'
   
     ### Media
     extern 'libvlc_media_t* libvlc_media_new_path(libvlc_instance_t*, const char* )'
@@ -115,6 +117,7 @@ module Vlc
   
     ### Media player
     extern 'libvlc_media_player_t* libvlc_media_player_new( libvlc_instance_t* )'
+    extern 'void libvlc_media_player_release( libvlc_media_player_t* )'
 #    extern 'void libvlc_media_player_set_media( libvlc_media_player_t*, libvlc_media_t* )'
 #    extern 'int libvlc_media_player_play( libvlc_media_player_t* )'
 #    extern 'void libvlc_media_player_stop( libvlc_media_player_t* )'
@@ -136,6 +139,7 @@ module Vlc
   
     ### Media List
     extern 'libvlc_media_list_t* libvlc_media_list_new( libvlc_instance_t* )'
+    extern 'void libvlc_media_list_release( libvlc_media_list_t* )'
     extern 'int libvlc_media_list_add_media( libvlc_media_list_t*, libvlc_media_t* )'
     extern 'int libvlc_media_list_remove_index( libvlc_media_list_t*, int )'
     extern 'int libvlc_media_list_count( libvlc_media_list_t* )'
@@ -144,6 +148,7 @@ module Vlc
   
     ### Media List Player
     extern 'libvlc_media_list_player_t* libvlc_media_list_player_new(libvlc_instance_t* )'
+    extern 'void libvlc_media_list_player_release( libvlc_media_list_player_t* )'
 #     Not avalaible in vlc 2.2.0
 #     extern 'libvlc_media_player_t* libvlc_media_list_player_get_media_player( libvlc_media_list_player_t* )'
     extern 'void libvlc_media_list_player_set_media_player( libvlc_media_list_player_t*, libvlc_media_player_t* )'
@@ -154,6 +159,8 @@ module Vlc
     extern 'int libvlc_media_list_player_is_playing( libvlc_media_list_player_t* )'
     extern 'int libvlc_media_list_player_next( libvlc_media_list_player_t* )'
     extern 'int libvlc_media_list_player_previous( libvlc_media_list_player_t* )'
+    extern 'int libvlc_media_list_player_play_item_at_index( libvlc_media_list_player_t*, int )'
+    extern 'int libvlc_media_list_player_play_item( libvlc_media_list_player_t*, libvlc_media_t* )'
   
     ### Audio controls
     extern 'int libvlc_audio_get_volume( libvlc_media_player_t* )'
@@ -248,6 +255,12 @@ module Vlc
     end
     info "using VLC: #{versionstr}"
     import_symbols() unless @@vlc_import_done
+    
+    # import some platform specific symbols
+    unless RUBY_PLATFORM =~ /darwin/
+      extern 'void libvlc_video_set_mouse_input( libvlc_media_player_t *, unsigned int )'
+      extern 'void libvlc_video_set_key_input( libvlc_media_player_t *, unsigned int )'
+    end
   
     # just in case ... other functions in Fiddle::Importer are using it
     # The variable is declared in 'dlload'
@@ -292,7 +305,7 @@ class Shoes::VideoVlc
     libvlc_media_list_player_set_media_player(@list_player, @player)
     @medialist = libvlc_media_list_new(@vlci)
     libvlc_media_list_player_set_media_list(@list_player, @medialist)
-
+    
     @loaded = load_media @path
     vol = attr[:volume] || 85
     libvlc_audio_set_volume(@player, vol)
@@ -305,7 +318,7 @@ class Shoes::VideoVlc
     # (keep "start" event free for possible use in Shoes script)
     # using "animate" method because of the underlying "g_timeout_add" function (let's have peaceful relations with gtk)
     @wait_ready = app.animate(100) do |fr|
-      if @video.parent.style[:started]
+      if @video.drawable_ready?
         @wait_ready.stop
         drID = @video.drawable   # xlib window / HWND / NSView  id
         case RUBY_PLATFORM
@@ -322,6 +335,14 @@ class Shoes::VideoVlc
               libvlc_media_player_set_nsobject(@player, drID)
             end
         end
+        
+        # By default, mouse and keyboard events are handled by 
+        # the LibVLC video widget, disabling them now!
+        # only avalaible on x11 and win32
+        unless RUBY_PLATFORM =~ /darwin/
+          libvlc_video_set_mouse_input(@player, 0)
+          libvlc_video_set_key_input(@player, 0)
+        end
 
         play if @loaded && @autoplay
         
@@ -335,14 +356,25 @@ class Shoes::VideoVlc
   def load_media(path)
     @have_video_track = @have_audio_track = nil
     @video_track_width = @video_track_height = nil
-
+    
+    # empty string given, nothing to do, waiting for media to be loaded later
+    return nil if @path.empty?
+    
     @media = 
     if path =~ %r{://}
       libvlc_media_new_location(@vlci, path)
     else
+      unless File.exists? path
+        Shoes.show_log
+        raise "Sorry, That File doesn't exists :\n#{path} !"
+      end
       libvlc_media_new_path(@vlci, path)
     end
-    return nil if (@media.null? or @path == "")
+    
+    if @media.null?  # TODO media is not a null pointer in case of failure ...
+        Shoes.show_log
+        raise "Sorry, i can't load that media! :\n#{path}"
+    end
 
     access_media_list do |medialist|
       libvlc_media_list_remove_index(medialist, 0) if (libvlc_media_list_count(medialist) != 0)
@@ -353,8 +385,7 @@ class Shoes::VideoVlc
     ### how to deal with a C array OUT parameter (tracks_buf.ref)
     libvlc_media_parse(@media)
     
-    free = Fiddle::Function.new(Fiddle::RUBY_FREE, [Fiddle::TYPE_VOIDP], Fiddle::TYPE_VOID)
-    tracks_buf = Fiddle::Pointer.malloc(Media_track.size, free)
+    tracks_buf = Fiddle::Pointer.malloc(Media_track.size)
     n_tracks = libvlc_media_tracks_get( @media, tracks_buf.ref )
     libvlc_media_release(@media)
 
@@ -404,16 +435,19 @@ class Shoes::VideoVlc
     stop if playing?
     @path = path
     @loaded = load_media(@path)
-    if @video.style[:using_video_dim]
-      if @have_video_track    # no dimensions provided, relying on video track size
-        @video.show
-        @video.style(width: video_track_width, height: video_track_height)
-      else                    # no dimensions provided, nothing to show (audio track)
-        @video.style(width: 0, height: 0)
-        @video.hide
+    
+    if @loaded
+      if @video.style[:using_video_dim] # no dimensions provided
+        if @have_video_track    # no dimensions provided, relying on video track size
+          @video.show
+          @video.style(width: video_track_width, height: video_track_height)
+        else                    # no dimensions provided, nothing to show (audio track)
+          @video.style(width: 0, height: 0)
+          @video.hide
+        end
       end
+      play if @autoplay
     end
-    play if @loaded && @autoplay
   end
 
   def play
@@ -477,12 +511,39 @@ class Shoes::VideoVlc
     return r == 0 ? true : false
   end
 
+  def play_media(path)
+      media = libvlc_media_new_path(@vlci, path)
+      libvlc_media_list_player_play_item(@list_player, media)
+  end
+  
+  def play_list_add(path)
+      r = nil
+      access_media_list do |medialist|
+        r = libvlc_media_list_add_media(medialist, libvlc_media_new_path(@vlci, path))
+      end
+      r == 0 ? true : false
+  end
+  
+  def play_at(index)
+      r = libvlc_media_list_player_play_item_at_index(@list_player, index)
+      return r == 0 ? true : false
+  end
+
   # redirecting to shoes C video methods
   def show; @video.show; end
   def hide; @video.hide; end
   def toggle; @video.toggle; end
   def parent; @video.parent; end
-  def remove; @video.remove; end
+  def remove
+    libvlc_media_list_release(@medialist)
+    libvlc_media_player_release(@player)
+    libvlc_media_list_player_release(@list_player)
+    libvlc_release(@vlci)
+    @vlci  = @list_player = @player = @medialist = nil
+    @video.remove
+    @video = nil
+  end
+  
   def style(attrb=nil)
     return @video.style if attrb == nil
     @video.style(attrb)
@@ -498,6 +559,11 @@ end
 
 
 def video(path, attr=nil)
+  if path.nil? || (not path.kind_of? String)
+    Shoes.show_log
+    raise "You must, at least, provide an empty path as first agument ! :\n "\
+          "video(\"\", optional_attriutes) or audio(\"\", optional_attriutes)\n"
+  end
   # self is the calling app
   Shoes::VideoVlc.new(self, path, attr)
 end
@@ -506,5 +572,5 @@ end
 def audio(path, attr=nil)
   attr ||= {}
   attr.merge!( {width: 0, height: 0, hidden: true} )
-  Shoes::VideoVlc.new(self, path, attr)
+  video(path, attr)
 end

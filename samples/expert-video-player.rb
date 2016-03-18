@@ -47,16 +47,8 @@ class Shoes::Knob < Shoes::Widget
     
     def tint=(color)
         @tint = color
-        @needle.remove
-        @ovl.remove
-        
-        @canvas.append do
-            strokewidth 2
-            stroke @tint
-            fill @tint
-            @ovl = oval :left => @cx - (3*@size), :top => @cy - (3*@size), :radius => (3*@size)
-            @needle = radial_line 225 + ((270.0 / @range.end) * @fraction), 0..(12*@size)
-        end
+        @ovl.style(fill: @tint, stroke: @tint)
+        @needle.style(fill: @tint, stroke: @tint)
     end
     
     def ticks; @range.end / @tick end

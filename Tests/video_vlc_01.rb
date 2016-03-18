@@ -5,222 +5,237 @@ class VideoVlcTestBase < Test::Unit::TestCase
         def init(app)
             @@app = app
         end
-        #def startup; end
-        #def shutdown; end
+        def startup
+            @@mediav = "AnemicCinema1926marcelDuchampCut.mp4"
+            @@mediaa = "indian.m4a"
+            # a fake stream : not relying on internet's mood swings for the test
+            @@mediast = "file://#{File.expand_path('./AnemicCinema1926marcelDuchampCut.mp4')}"
+        end
+        
+        def shutdown
+            @@mediav = nil
+            @@mediaa = nil
+            @@mediast = nil
+        end
     end
-    
-    def setup
-        @started = false
+
+    def setup; end
+    def teardown; end
+end
+
+class VideoVlcTest0 < VideoVlcTestBase
+
+    description "no dimensions provided, no path/url, nothing to draw"
+    def test_video_noPath_noDim
+        
+        assert_not_nil @@app.vid
+        assert_instance_of Shoes::VideoVlc, @@app.vid
+        vidc = @@app.vid.instance_variable_get(:@video)
+        assert_true vidc.drawable_ready?
+        
+        vlci = @@app.vid.instance_variable_get(:@vlci)
+        assert_not_nil vlci
+        assert_instance_of Fiddle::Pointer, vlci
+        assert_false vlci.null?
+        
+        assert_equal 0, @@app.vid.width
     end
-    
-    def teardown
-        @cont.remove if @cont
-        @cont = nil
-        @vid = nil
-    end  
 end
 
 class VideoVlcTest1 < VideoVlcTestBase
     
-    description "no dimensions provided, no path/url, nothing to draw"
-    def test_video_noPath_noDim
-        @cont = @@app.flow do 
-            @vid = Shoes::VideoVlc.new( @@app, '' )
-        end.start { @started = true }
-        
-        ## First test! Let's see if widget is working at it's most basic level
-        ## don't wait here on start event, so in case of major failure
-        ## we're not stuck in an infinite loop
-        sleep 0.5
-        
-        assert_not_nil @vid
-        assert_instance_of Shoes::VideoVlc, @vid
-        vlci = @vid.instance_variable_get(:@vlci)
-        assert_not_nil vlci
-        assert_instance_of Fiddle::Pointer, vlci
-        assert_false vlci.null?
-        assert_equal 0, @vid.width
+    def test_slotDim_noPath
+        assert_not_nil @@app.vid
+        assert_instance_of Shoes::VideoVlc, @@app.vid
+        assert_equal 30, @@app.vid.width
     end
     
-    def test_video_noPath_slotDim
-        @cont = @@app.flow width: 300, height: 200, start: proc { @started = true }  do 
-            @vid = Shoes::VideoVlc.new( @@app, '')
-        end
+    def test_slotDim_movie
+        @@app.vid.path = @@mediav
         
-        while not @started do; end
+        assert_not_nil @@app.vid
+        assert_instance_of Shoes::VideoVlc, @@app.vid
+        assert_equal 30, @@app.vid.width
         
-        assert_true @cont.style[:started]
-        assert_instance_of Shoes::VideoVlc, @vid
-        assert_equal 300, @vid.width
+        assert_equal @@mediav, @@app.vid.path
+        assert_true @@app.vid.loaded
+        assert_true @@app.vid.have_video_track
+        assert_equal 640, @@app.vid.video_track_width
+        assert_equal 480, @@app.vid.video_track_height
+        assert_true @@app.vid.have_audio_track
     end
-     
-    def test_video_noPath_videoWidgetDim
-        @cont = @@app.flow do 
-            @vid = Shoes::VideoVlc.new( @@app, '', width: 250, height: 200 )
-        end.start { @started = true }
+    
+    def test_slotDim_audio
+        @@app.vid.path = @@mediaa
         
-        while not @started do; end
+        assert_not_nil @@app.vid
+        assert_instance_of Shoes::VideoVlc, @@app.vid
+        assert_equal 30, @@app.vid.width
         
-        assert_true @cont.style[:started]
-        assert_instance_of Shoes::VideoVlc, @vid
-        assert_equal 250, @vid.width
+        assert_equal @@mediaa, @@app.vid.path
+        assert_true @@app.vid.loaded
+        assert_true @@app.vid.have_audio_track
+        assert_nil @@app.vid.have_video_track
+        assert_nil @@app.vid.video_track_width
+        assert_nil @@app.vid.video_track_height
     end
-     
-    def test_video_noPath_slotVideoWidgetDim
-        @cont = @@app.flow width: 300, height: 200 do 
-            @vid = Shoes::VideoVlc.new( @@app, '', {width: 250, height: 200} )
-        end.start { @started = true }
+    
+    def test_slotDim_stream
+        @@app.vid.path = @@mediast
         
-        while not @started do; end
+        assert_not_nil @@app.vid
+        assert_instance_of Shoes::VideoVlc, @@app.vid
+        assert_equal 30, @@app.vid.width
         
-        assert_true @cont.style[:started]
-        assert_instance_of Shoes::VideoVlc, @vid
-        assert_equal 250, @vid.width
+        assert_equal @@mediast, @@app.vid.path
+        assert_true @@app.vid.loaded
     end
 end
 
 class VideoVlcTest2 < VideoVlcTestBase
-
-    def setup
-        super
-        @movie = "AnemicCinema1926marcelDuchampCut.mp4"
+    
+    def test_widgetDim_noPath
+        assert_not_nil @@app.vid
+        assert_instance_of Shoes::VideoVlc, @@app.vid
+        assert_equal 25, @@app.vid.width
     end
     
-    description "no dimensions provided, relying on video track size"
-    def test_video_path_noDim
-        @cont = @@app.flow do 
-            @vid = Shoes::VideoVlc.new( @@app, @movie )
-        end.start { @started = true }
+    def test_widgetDim_movie
+        @@app.vid.path = @@mediav
         
-        while not @started do; end
+        assert_not_nil @@app.vid
+        assert_instance_of Shoes::VideoVlc, @@app.vid
+        assert_equal 25, @@app.vid.width
         
-        assert_true @cont.style[:started]
-        assert_instance_of Shoes::VideoVlc, @vid
-        assert_equal 640, @vid.width
-        assert_equal 480, @vid.height
+        assert_equal @@mediav, @@app.vid.path
+        assert_true @@app.vid.loaded
+        assert_true @@app.vid.have_video_track
+        assert_equal 640, @@app.vid.video_track_width
+        assert_equal 480, @@app.vid.video_track_height
+        assert_true @@app.vid.have_audio_track
     end
     
-    def test_video_path_slotDim
-        @cont = @@app.flow width: 300, height: 200  do 
-            @vid = Shoes::VideoVlc.new( @@app, @movie )
-        end.start { @started = true }
+    def test_widgetDim_audio
+        @@app.vid.path = @@mediaa
         
-        while not @started do; end
+        assert_not_nil @@app.vid
+        assert_instance_of Shoes::VideoVlc, @@app.vid
+        assert_equal 25, @@app.vid.width
         
-        assert_true @cont.style[:started]
-        assert_instance_of Shoes::VideoVlc, @vid
-        assert_equal 300, @vid.width
+        assert_equal @@mediaa, @@app.vid.path
+        assert_true @@app.vid.loaded
+        assert_true @@app.vid.have_audio_track
+        assert_nil @@app.vid.have_video_track
+        assert_nil @@app.vid.video_track_width
+        assert_nil @@app.vid.video_track_height
     end
-     
-    def test_video_path_videoWidgetDim
-        @cont = @@app.flow do 
-            @vid = Shoes::VideoVlc.new( @@app, @movie, width: 250, height: 200 )
-        end.start { @started = true }
+    
+    def test_widgetDim_stream
+        @@app.vid.path = @@mediast
         
-        while not @started do; end
+        assert_not_nil @@app.vid
+        assert_instance_of Shoes::VideoVlc, @@app.vid
+        assert_equal 25, @@app.vid.width
         
-        assert_true @cont.style[:started]
-        assert_instance_of Shoes::VideoVlc, @vid
-        assert_equal 250, @vid.width
-    end
-     
-    def test_video_path_slotVideoWidgetDim
-        @cont = @@app.flow width: 300, height: 200 do 
-            @vid = Shoes::VideoVlc.new( @@app, @movie, width: 250, height: 200 )
-        end.start { @started = true }
-        
-        while not @started do; end
-        
-        assert_true @cont.style[:started]
-        assert_instance_of Shoes::VideoVlc, @vid
-        assert_equal 250, @vid.width
+        assert_equal @@mediast, @@app.vid.path
+        assert_true @@app.vid.loaded
     end
 end
 
 class VideoVlcTest3 < VideoVlcTestBase
-    def setup
-        super
-        @audio = "indian.m4a"
+    
+    def test_slotDim_widgetDim_noPath
+        assert_not_nil @@app.vid
+        assert_instance_of Shoes::VideoVlc, @@app.vid
+        assert_equal 20, @@app.vid.width
     end
     
-    def test_audio
-        @cont = @@app.flow width: 300, height: 200 do 
-            @vid = Shoes::VideoVlc.new( @@app, @audio, width: 0, height: 0, hidden: true )
-        end.start { @started = true }
+    def test_slotDim_widgetDim_movie
+        @@app.vid.path = @@mediav
         
-        while not @started do; end
+        assert_not_nil @@app.vid
+        assert_instance_of Shoes::VideoVlc, @@app.vid
+        assert_equal 20, @@app.vid.width
         
-        assert_true @cont.style[:started]
-        assert_instance_of Shoes::VideoVlc, @vid
-        assert_equal 0, @vid.width
-        assert_true @vid.style[:hidden]
+        assert_equal @@mediav, @@app.vid.path
+        assert_true @@app.vid.loaded
+        assert_true @@app.vid.have_video_track
+        assert_equal 640, @@app.vid.video_track_width
+        assert_equal 480, @@app.vid.video_track_height
+        assert_true @@app.vid.have_audio_track
     end
     
-end
-
-class VideoVlcTest4 < VideoVlcTestBase
-    def setup
-        super
-        @mediav = "AnemicCinema1926marcelDuchampCut.mp4"
-        @mediaa = "indian.m4a"
-        # not relying on internet's mood swings for the test
-        fakestream = "file://#{File.expand_path('./AnemicCinema1926marcelDuchampCut.mp4')}"
-        @medias = fakestream
+    def test_slotDim_widgetDim_audio
+        @@app.vid.path = @@mediaa
+        
+        assert_not_nil @@app.vid
+        assert_instance_of Shoes::VideoVlc, @@app.vid
+        assert_equal 20, @@app.vid.width
+        
+        assert_equal @@mediaa, @@app.vid.path
+        assert_true @@app.vid.loaded
+        assert_true @@app.vid.have_audio_track
+        assert_nil @@app.vid.have_video_track
+        assert_nil @@app.vid.video_track_width
+        assert_nil @@app.vid.video_track_height
     end
     
-    def test_load_media
-        @cont = @@app.flow width: 300, height: 200 do 
-            @vid = Shoes::VideoVlc.new( @@app, '' )
-        end.start { @started = true }
-        while not @started do; end
+    def test_slotDim_widgetDim_stream
+        @@app.vid.path = @@mediast
         
-        @vid.path = @mediav
+        assert_not_nil @@app.vid
+        assert_instance_of Shoes::VideoVlc, @@app.vid
+        assert_equal 20, @@app.vid.width
         
-        assert_equal @mediav, @vid.path
-        assert_true @vid.loaded
-        assert_true @vid.have_video_track
-        assert_equal 640, @vid.video_track_width
-        assert_equal 480, @vid.video_track_height
-        assert_true @vid.have_audio_track
-        
-        @vid.path = @mediaa
-        
-        assert_equal @mediaa, @vid.path
-        assert_true @vid.loaded
-        assert_nil @vid.have_video_track
-        assert_true @vid.have_audio_track
-        
-        @vid.path = ""
-        assert_nil @vid.loaded
-        assert_nil @vid.have_video_track
-        assert_nil @vid.have_audio_track
-        
-        @vid.path = @medias
-        assert_equal @medias, @vid.path
-        assert_true @vid.loaded
+        assert_equal @@mediast, @@app.vid.path
+        assert_true @@app.vid.loaded
     end
 end
 
-class VideoVlcTest5 < VideoVlcTestBase
-    def setup
-        super
-        @media = "AnemicCinema1926marcelDuchampCut.mp4"
-    end
-    
-    def test_libvlc_options
-        vid = nil
-        @cont = @@app.flow width: 300, height: 200 do 
-            vid = Shoes::VideoVlc.new( @@app, @media, bg_color: rgb(20,250,20),
-                                        vlc_options: ["--no-xlib", "--no-video-title-show"] )
-        end.start { @started = true }
-        while not @started do; end
+class VideoVlcTest4  < VideoVlcTestBase
+    def test_videoTrackDim
+        assert_not_nil @@app.vid
+        assert_instance_of Shoes::VideoVlc, @@app.vid
         
-        assert_not_nil vid
-        vlci = vid.instance_variable_get(:@vlci)
+        assert_equal 640, @@app.vid.width
+        assert_equal 480, @@app.vid.height
+    end
+end
+
+class VideoVlcTest5  < VideoVlcTestBase
+    def test_backgroundColor
+        assert_not_nil @@app.vid
+        assert_instance_of Shoes::VideoVlc, @@app.vid
+        assert_equal 36, @@app.vid.width
+        
+        assert_equal 255, @@app.vid.style[:bg_color].red
+        assert_equal 255, @@app.vid.style[:bg_color].green
+        assert_equal 0, @@app.vid.style[:bg_color].blue
+    end
+end
+
+class VideoVlcTest6  < VideoVlcTestBase
+    def test_libvlcOptions
+        assert_not_nil @@app.vid
+        vlci = @@app.vid.instance_variable_get(:@vlci)
         assert_not_nil vlci
         assert_instance_of Fiddle::Pointer, vlci
         assert_false vlci.null?
-        assert_false vid.style.include?(:vlc_options)
+        assert_false @@app.vid.style.include?(:vlc_options)
+    end
+end
+
+class VideoVlcTestAudio  < VideoVlcTestBase
+    def test_audioMethod
+        assert_not_nil @@app.vid
+        assert_instance_of Shoes::VideoVlc, @@app.vid
+        
+        assert_equal 0, @@app.vid.width
+        assert_true @@app.vid.style[:hidden]
+        
+        assert_equal 85, @@app.vid.volume
+        @@app.vid.volume = 72
+        assert_equal 72, @@app.vid.volume
     end
 end
 

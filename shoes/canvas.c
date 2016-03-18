@@ -1808,6 +1808,8 @@ shoes_canvas_start(int argc, VALUE *argv, VALUE self)
     // they are the same when canvas has a :height 
     canvas->stage = CANVAS_PAINT;
     ((shoes_canvas *)canvas->slot->owner)->stage = CANVAS_PAINT;
+//    printf("app nesting size = : %ld\n", RARRAY_LEN(canvas->app->nesting));
+//    printf("same canvas ? : %s\n", (canvas == ((shoes_canvas *)canvas->slot->owner)) ? "yes" : "no");
     
     return self;
   }
@@ -1849,7 +1851,7 @@ shoes_canvas_send_start(VALUE self)
       if (canvas->stage == CANVAS_PAINT) {
         canvas->stage = CANVAS_STARTED;
         ((shoes_canvas *)canvas->slot->owner)->stage = CANVAS_STARTED;
-        g_timeout_add_full(G_PRIORITY_DEFAULT, 1, start_wait, (gpointer)self, NULL);
+        g_timeout_add_full(G_PRIORITY_HIGH, 1, start_wait, (gpointer)self, NULL);
       } else {
 //        canvas->stage = CANVAS_STARTED;
 //        ((shoes_canvas *)canvas->slot->owner)->stage = CANVAS_STARTED;
@@ -1861,12 +1863,6 @@ shoes_canvas_send_start(VALUE self)
       ((shoes_canvas *)canvas->slot->owner)->stage = CANVAS_STARTED;
     }
   }
-  
-  /* internal private attribute used in fiddle-video protocol 
-     letting Shoes know when drawable is avalaible, so we don't hijack start event
-   */ 
-  shoes_hash_set(canvas->attr, rb_intern("started"), Qtrue);
-
 }
 
 static void

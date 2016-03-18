@@ -106,6 +106,7 @@ VALUE shoes_video_alloc(VALUE klass) {
   VALUE obj = Data_Wrap_Struct(klass, shoes_video_mark, shoes_video_free, video);
   video->attr = Qnil;
   video->parent = Qnil;
+  video->realized = 0;
   return obj;
 }
 
@@ -138,7 +139,7 @@ VALUE shoes_video_new(VALUE attr, VALUE parent)
       rb_hash_aset(attr, ID2SYM(rb_intern("using_video_dim")), Qtrue);
     }
   
-  video->ref = shoes_native_surface_new(attr);
+  video->ref = shoes_native_surface_new(attr, obj);
   return obj;
 }
 
@@ -158,6 +159,17 @@ VALUE shoes_video_get_drawable(VALUE self) {
   return UINT2NUM(GDK_WINDOW_XID(gtk_widget_get_window(self_t->ref)));
 #endif
 #endif
+}
+
+/* internal method used in fiddle-video protocol 
+*  letting Shoes know when drawable is avalaible 
+*/ 
+VALUE
+shoes_video_get_realized(VALUE self) {
+  shoes_video *self_t;
+  Data_Get_Struct(self, shoes_video, self_t);
+  
+  return self_t->realized ? Qtrue : Qfalse;
 }
 
 /* from ruby.c */
@@ -188,7 +200,7 @@ VALUE shoes_video_draw(VALUE self, VALUE c, VALUE actual) {
       self_t->init = 1;
 
       if (!self_t->ref)
-        self_t->ref = shoes_native_surface_new(self_t->attr);
+        self_t->ref = shoes_native_surface_new(self_t->attr, self);
       shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
 
     } else {
@@ -334,6 +346,7 @@ void shoes_ruby_video_init() {
   rb_define_method(cVideo, "draw", CASTHOOK(shoes_video_draw), 2);
   rb_define_method(cVideo, "parent", CASTHOOK(shoes_video_get_parent), 0);
   rb_define_method(cVideo, "drawable", CASTHOOK(shoes_video_get_drawable), 0);
+  rb_define_method(cVideo, "drawable_ready?", CASTHOOK(shoes_video_get_realized), 0);
   rb_define_method(cVideo, "remove", CASTHOOK(shoes_video_remove), 0);
   rb_define_method(cVideo, "show", CASTHOOK(shoes_video_show), 0);
   rb_define_method(cVideo, "hide", CASTHOOK(shoes_video_hide), 0);
