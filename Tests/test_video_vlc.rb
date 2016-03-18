@@ -76,7 +76,11 @@ Shoes.app title: "Testing Shoes video" do
         # waiting for shoes asynchronous drawing events to occur.
         @cont.start {
             ## There could be only one console at a time (we can safely call it many times)
-            Shoes.show_console
+            #Shoes.show_console
+            Shoes::show_console
+            if RUBY_PLATFORM =~ /darwin/
+              $stdout = $stderr
+            end
             
             @test_result = Test::Unit::UI::Console::TestRunner.run(t.suite)
             
