@@ -98,7 +98,6 @@ end
 
 
 require 'shoes/videoffi'
-Vlc.load_lib 
 
 Shoes.app width: 625, height: 580, resizable: true do
 

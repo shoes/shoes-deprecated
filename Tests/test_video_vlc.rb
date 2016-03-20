@@ -2,11 +2,9 @@
 
 require 'test/unit'
 require 'test/unit/ui/console/testrunner'
+require 'video_vlc_01.rb'
 
 require 'shoes/videoffi'
-Vlc.load_lib
-
-require 'video_vlc_01.rb'
 
 Shoes.app title: "Testing Shoes video" do
     
