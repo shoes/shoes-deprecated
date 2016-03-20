@@ -106,7 +106,11 @@ Shoes.app title: "Testing Shoes video" do
                 anm = animate(20) do
                     
                     if @test_complete
-                        if @test_result && @test_result.failure_occurred?
+                        if @test_result && @test_result.error_occurred?
+                            anm.stop; anm.remove; anm = nil
+                            @test_result = nil
+                            @visual.style(fill: yellow)
+                        elsif @test_result && @test_result.failure_occurred?
                             if @stop_on_failure.checked?
                                 anm.stop
                                 anm.remove; anm = nil
