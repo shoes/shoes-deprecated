@@ -85,10 +85,7 @@ Section "MainSection" SEC01
    File /r /x nsis ..\*.*
    
    ${EnvVarUpdate} $0 "PATH" "A" HKLM $INSTDIR
-   ${EnvVarUpdate} $0 "FONTCONFIG_FILE" "A" HKLM "$INSTDIR\etc\fonts\fonts.conf"
    ${registerExtension} "$INSTDIR\${SHOES_NAME}.exe" ".shy" "Shoes Application"
-   DetailPrint "Building font cache, this may take a while..."
-   ExecWait '"$INSTDIR\fc-cache.exe" "-f"'
 SectionEnd
 
 Section -AdditionalIcons
@@ -126,7 +123,6 @@ Section Uninstall
    
    ${unregisterExtension} ".shy" "Shoes Application"
    ${un.EnvVarUpdate} $0 "PATH" "R" HKLM $INSTDIR
-   ${un.EnvVarUpdate} $0 "FONTCONFIG_FILE" "R" HKLM "$INSTDIR\etc\fonts\fonts.conf"
 
    DeleteRegKey ${SHOES_UNINST_ROOT_KEY} "${SHOES_UNINST_KEY}"
    DeleteRegKey HKLM "${SHOES_INST_KEY}"
