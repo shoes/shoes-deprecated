@@ -168,7 +168,14 @@ module Vlc
   
     ### Video Controls
     extern 'int libvlc_video_get_size( libvlc_media_player_t*, unsigned int, unsigned int*, unsigned int* )'
-  
+    
+        
+    # import some platform specific symbols
+    unless RUBY_PLATFORM =~ /darwin/
+      extern 'void libvlc_video_set_mouse_input( libvlc_media_player_t *, unsigned int )'
+      extern 'void libvlc_video_set_key_input( libvlc_media_player_t *, unsigned int )'
+    end
+    
     @@vlc_import_done = true
   end
   
@@ -198,17 +205,16 @@ module Vlc
       upraise "You need a newer VLC: 2.1 or better"
     end
     info "using VLC: #{versionstr}"
-    import_symbols() unless @@vlc_import_done
     
-    # import some platform specific symbols
-    unless RUBY_PLATFORM =~ /darwin/
-      extern 'void libvlc_video_set_mouse_input( libvlc_media_player_t *, unsigned int )'
-      extern 'void libvlc_video_set_key_input( libvlc_media_player_t *, unsigned int )'
-    end
+    import_symbols()
   
     # just in case ... other functions in Fiddle::Importer are using it
     # The variable is declared in 'dlload'
     @func_map = VLC_FUNCTIONS_MAP
+  end
+  
+  def self.vlc_import_done
+      @@vlc_import_done
   end
   
 end
@@ -230,7 +236,7 @@ class Shoes::VideoVlc
     attr ||= {}
     @autoplay = attr[:autoplay] || false
     
-    Vlc.load_lib
+    Vlc.load_lib unless Vlc.vlc_import_done
     @version = libvlc_get_version
     
     # user gives an array of string options i.e.
