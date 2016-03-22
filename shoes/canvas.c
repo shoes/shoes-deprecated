@@ -1814,16 +1814,6 @@ shoes_canvas_start(int argc, VALUE *argv, VALUE self)
     return self;
   }
 
-static gboolean
-start_wait(gpointer data) {
-  VALUE rbcanvas = (VALUE)data;
-  shoes_canvas *canvas;
-  Data_Get_Struct(rbcanvas, shoes_canvas, canvas);
-  
-  shoes_safe_block(rbcanvas, ATTR(canvas->attr, start), rb_ary_new3(1, rbcanvas));
-  return FALSE; // timeout will be stopped and destroyed
-}
-
 static void
 shoes_canvas_send_start(VALUE self)
 {
@@ -1851,7 +1841,8 @@ shoes_canvas_send_start(VALUE self)
       if (canvas->stage == CANVAS_PAINT) {
         canvas->stage = CANVAS_STARTED;
         ((shoes_canvas *)canvas->slot->owner)->stage = CANVAS_STARTED;
-        g_timeout_add_full(G_PRIORITY_HIGH, 1, start_wait, (gpointer)self, NULL);
+        shoes_native_canvas_oneshot(1, self);
+        //g_timeout_add_full(G_PRIORITY_HIGH, 1, start_wait, (gpointer)self, NULL);
       } else {
 //        canvas->stage = CANVAS_STARTED;
 //        ((shoes_canvas *)canvas->slot->owner)->stage = CANVAS_STARTED;

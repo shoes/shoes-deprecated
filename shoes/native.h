@@ -118,6 +118,7 @@ void shoes_native_list_box_set_active(SHOES_CONTROL_REF, VALUE, VALUE);
 SHOES_CONTROL_REF shoes_native_radio(VALUE, shoes_canvas *, shoes_place *, VALUE, VALUE);
 void shoes_native_timer_remove(shoes_canvas *, SHOES_TIMER_REF);
 SHOES_TIMER_REF shoes_native_timer_start(VALUE, shoes_canvas *, unsigned int);
+int shoes_native_canvas_oneshot(int, VALUE);
 VALUE shoes_native_clipboard_get(shoes_app *);
 void shoes_native_clipboard_set(shoes_app *, VALUE);
 VALUE shoes_native_to_s(VALUE);

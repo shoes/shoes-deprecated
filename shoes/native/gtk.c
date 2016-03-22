@@ -1019,6 +1019,23 @@ shoes_native_canvas_resize(shoes_canvas *canvas)
 {
 }
 
+/* 
+ * one shot timer for start{} on slot. Canvas internal use. 
+*/
+static gboolean
+start_wait(gpointer data) {
+  VALUE rbcanvas = (VALUE)data;
+  shoes_canvas *canvas;
+  Data_Get_Struct(rbcanvas, shoes_canvas, canvas);
+  
+  shoes_safe_block(rbcanvas, ATTR(canvas->attr, start), rb_ary_new3(1, rbcanvas));
+  return FALSE; // timeout will be stopped and destroyed
+}
+
+int shoes_native_canvas_oneshot(int ms, VALUE canvas) {
+  g_timeout_add_full(G_PRIORITY_HIGH, 1, start_wait, (gpointer)canvas, NULL);
+}
+
 static void
 shoes_widget_changed(GtkWidget *ref, gpointer data)
 {
