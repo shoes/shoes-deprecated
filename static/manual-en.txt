@@ -2192,6 +2192,7 @@ A one-shot timer.  If you want to schedule to run some code in a few seconds
 
 To display an alert box five seconds from now:
 
+
 {{{
  #!ruby
  Shoes.app do
@@ -2200,6 +2201,9 @@ To display an alert box five seconds from now:
    end
  end
 }}}
+
+You can can create timers for fractions of a second: timer(0.1) is something
+you might see if you poke around inside Shoes 
 
 === title(text) » Shoes::Title ===
 
