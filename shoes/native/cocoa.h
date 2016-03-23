@@ -93,6 +93,13 @@
 }
 @end
 
+@interface CanvasOneShot : NSObject
+{
+  VALUE *object;
+  NSTimer *timer;
+}
+@end
+
 void add_to_menubar(NSMenu *main, NSMenu *menu);
 void create_apple_menu(NSMenu *main);
 void create_edit_menu(NSMenu *main);
