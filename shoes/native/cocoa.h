@@ -25,6 +25,12 @@
 }
 @end
 
+@interface ShoesVideoView : NSView
+{
+  VALUE video; // shoes internal
+}
+@end
+
 @interface ShoesButton : NSButton
 {
   VALUE object;

@@ -330,6 +330,31 @@
 }
 @end
 
+@implementation ShoesVideoView
+- (id)initWithFrame: (NSRect)frame andVideo: (VALUE)vid
+{
+  if ((self = [super initWithFrame: frame]))
+  {
+    video = vid;
+    // Paint It Black
+    [self setWantsLayer:YES];
+    [self.layer setBackgroundColor:[[NSColor blackColor] CGColor]];
+  }
+  return self;
+}
+
+- (id)viewDidMoveToWindow
+{
+  if (self.window != nil)    // how access a property. who knew?
+  {
+    NSLog(@"vid moved to Window");
+    shoes_video *vid;
+    Data_Get_Struct(video, shoes_video, vid);
+    vid->realized = 1;
+  }
+}
+@end
+
 @implementation ShoesButton
 - (id)initWithType: (NSButtonType)t andObject: (VALUE)o
 {
@@ -1338,13 +1363,13 @@ shoes_native_surface_new(VALUE attr, VALUE video)
   int w = NUM2INT(ATTR(attr, width));
   int h = NUM2INT(ATTR(attr, height));
   NSRect rect = NSMakeRect(0, 0, w, h);
-  NSView *nativeView = [[NSView alloc] initWithFrame: rect];
+  ShoesVideoView *nativeView = [[ShoesVideoView alloc] initWithFrame: rect andVideo: video];
   // Paint It Black  Hot Stuff !
-  [nativeView setWantsLayer:YES];
-  [nativeView.layer setBackgroundColor:[[NSColor blackColor] CGColor]];
-  shoes_video *vid;
-  Data_Get_Struct(video, shoes_video, vid);
-  vid->realized = 1;
+  //[nativeView setWantsLayer:YES];
+  //[nativeView.layer setBackgroundColor:[[NSColor blackColor] CGColor]];
+  //shoes_video *vid;
+  //Data_Get_Struct(video, shoes_video, vid);
+  //vid->realized = 1;
   return (SHOES_CONTROL_REF)nativeView;
 }
 
@@ -1371,6 +1396,7 @@ shoes_native_surface_show(SHOES_SURFACE_REF ref)
 void
 shoes_native_surface_remove(SHOES_SURFACE_REF ref)
 {
+  NSLog(@"native surface removed");
 }
 
 
