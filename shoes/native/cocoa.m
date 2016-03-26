@@ -347,7 +347,7 @@
 {
   if (self.window != nil)    // how access a property. who knew?
   {
-    NSLog(@"vid moved to Window");
+    // NSLog(@"vid moved to Window");
     shoes_video *vid;
     Data_Get_Struct(video, shoes_video, vid);
     vid->realized = 1;
@@ -1396,7 +1396,8 @@ shoes_native_surface_show(SHOES_SURFACE_REF ref)
 void
 shoes_native_surface_remove(SHOES_SURFACE_REF ref)
 {
-  NSLog(@"native surface removed");
+  COCOA_DO([ref removeFromSuperview]);
+  //NSLog(@"native surface removed");
 }
 
 
