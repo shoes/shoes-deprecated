@@ -5,7 +5,7 @@ def Shoes.rdb
     para "Then use the spash screen to load the program that has the 'byebug'"
     para "command where you want to start the debugging from. Or"
     para "otherwise cause a 'byebug' to be invoked."
-    require 'byebug'
+    require 'byebug/core'
     bye_thr = Thread.new {
       Byebug.wait_connection = true
       Byebug.start_server('localhost', 8989)
