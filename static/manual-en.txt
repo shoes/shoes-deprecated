@@ -2471,6 +2471,10 @@ Adds elements to the beginning of a slot.
 
 The `para` element is added to the beginning of the `@slot`.
 
+=== refresh_slot() ===
+
+Sometimes you want the slot to be drawn as soon as possible, to update an inside background color for example. That methods urges Shoes to do so.
+
 == Position of a Slot ==
 
 Like any other element, slots can be styled and customized when they are created.
@@ -4001,16 +4005,17 @@ To add a video you need to
 
 {{{
 require 'shoes/videoffi'
-Vlc.load_lib 
 }}}
 
-=== Vlc.load_lib ===
+'''Vlc.load_lib'''
 
-This checks that VLC is installed and makes it's api's available to Shoes. 
+This checks that VLC is installed and makes it's api's available to Shoes.  
+This call to '''load_lib''' method is happening transparently when you create a new widget, you don't need it in your scripts.
 
 If Shoes can't find VLC on it's own, and you know you have installed it, you can help Shoes : just go to the Cobbler (you'll find him by clicking on '''Maintain Shoes''' button at the start screen) once in Cobbler's atelier, click on '''VLC setup button''' ...). 
 
-=== video(path/url: a string, optional styles) » video-widget ===
+[[BR]]
+    '''video(path/url: a string, optional styles) » video-widget''' 
 
 This creates the on screen widget with the styles args like width and height and some unique settings. This is the widget you control with the methods below.
 
@@ -4032,7 +4037,16 @@ Sets the background of the video area. Defaults to `black`, rgb(0,0,0).
 
  * `:vlc_options` => an array of String
 
-Advanced users ! Vlc player options, if you really need to customize Vlc - you're on your own here, lookup for '''libvlc_new''' arguments -.
+'''Advanced users !''' Vlc player options, if you really need to customize Vlc ! - you're on your own here, lookup for '''libvlc_new''' arguments -.
+
+One option is worth mentionning, though : "--play-and-pause" [[BR]]
+It is related to the '''play_list_add''' method (see below).
+Note that, as mentionned in Vlc doc, there is no guaranty about cross-platform implementation or even between vlc release.
+
+[[BR]]
+    '''audio(path/url: a string, optional styles) » video-widget'''
+
+Just a convenience method, hiding away the widget. If you need sounds only in your app and don't want a visible widget on screen
 
 
 === autoplay() » true or false ===
@@ -4083,7 +4097,7 @@ Returns the path or url of the media actually loaded, empty string if no media h
 
 Loads a new media into your player, could be a file : video, audio, playlist, image or a stream on the web: from popular video sites, radio, etc... Whatever your Vlc could digest.
 
-=== pause() » self ===
+=== pause() ===
 
 Pauses the video, if it is playing. To resume playing, call that method again - not the play() method, it will restart from the beginning -.
 
@@ -4092,10 +4106,31 @@ Pauses the video, if it is playing. To resume playing, call that method again - 
 Returns true if the video is currently playing. Or, false if the video is
 paused or stopped.
 
-=== play() » self ===
+=== play() » int ===
 
 Starts playing the video, if it isn't already playing. If already playing, the
 video is restarted from the beginning.
+
+=== play_list_add(path : a String) » true of false ===
+
+Adds a new media into the play list. Shoes uses a play list internally, usually there is only one media in it, the one you loaded, but if you want to build a play list dynamically, this is the method you are going to use.
+
+It can be usefull, coupled with the :vlc_options "--play-and-pause", if you want to prepare some media to be played at some point later.[[BR]]
+By default a play list keep on playing one media after the other without stopping at the end of one media, that option can change this.[[BR]]
+Create a video widget with "--play-and-pause" option, add medias to the play list, use '''play_at''' method to play the desired media at the specified index in the play list.
+
+for example, say you create a game and want some sounds to be played at some events :
+{{{
+SOUNDS = ["path/to/media1", "path/to/media2", "path/to/media3"]
+player = audio '', autoplay: false, vlc_options: ["--play-and-pause"]
+SOUNDS.each { |snd| player.play_list_add(snd) }
+
+player.play_at 1 # player.play_at 2 or 0 depending on the event
+}}}
+
+=== play_at(idx : an Integer) » true of false ===
+
+Plays the media at index idx in the play list. See '''play_list_add'''.
 
 === position() » a decimal ===
 
