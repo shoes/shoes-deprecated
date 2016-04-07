@@ -500,6 +500,7 @@ void shoes_canvas_wheel_way(shoes_canvas *, ID);
 void shoes_canvas_send_keydown(VALUE, VALUE);
 void shoes_canvas_send_keypress(VALUE, VALUE);
 void shoes_canvas_send_keyup(VALUE, VALUE);
+void shoes_canvas_send_finish(VALUE);
 VALUE shoes_canvas_get_cursor(VALUE);
 VALUE shoes_canvas_set_cursor(VALUE, VALUE);
 VALUE shoes_canvas_get_clipboard(VALUE);

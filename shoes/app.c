@@ -99,6 +99,9 @@ shoes_app_clear(shoes_app *app)
 int
 shoes_app_remove(shoes_app *app)
 {
+  // gives a chance to cleanup before quit
+  shoes_canvas_send_finish(app->canvas);
+  
   shoes_app_clear(app);
   rb_ary_delete(shoes_world->apps, app->self);
   return (RARRAY_LEN(shoes_world->apps) == 0);
