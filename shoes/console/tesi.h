@@ -31,17 +31,7 @@ extern int setenv(const char*, const char*, int); // shut warnings off
 
 #define TESI_OUTPUT_BUFFER_LENGTH 128
 
-struct tesiObject;
-
-/*
- * should I pass this to the callbacks instead?
- * It's nice to have the x,y info right there
-struct tesiPointer {
-	int *x;
-	int *y;
-	void *pointer;
-}
-*/
+struct tesiObject; // forward declare for C compilier
 
 struct tesiObject {
 	// file descriptor for  "select"ing whether there are terminal sequences to be processed
@@ -52,7 +42,7 @@ struct tesiObject {
 	int sequenceLength;
 	//char outputBuffer[129];
 	//int outputBufferLength;
-	void *pointer; // gtk_text_view
+	void *pointer; // *gtk_text_view or *NSTextView
 
 	int parameters[32];
 	int parametersLength;
@@ -64,25 +54,28 @@ struct tesiObject {
 	int ptySlave;
 	char *command[3];
 
-	// callbacks
-	void (*callback_clear)(void*); // clear canvas
-	void (*callback_haveCharacter)(void*, char);
-	void (*callback_printCharacter)(void*, char, int, int); // print character at x, y
+	// callbacks - void means no value returned.
+	void (*callback_haveCharacter)(struct tesiObject *, char); // No longer used???
+	void (*callback_printCharacter)(struct tesiObject *, char, int, int); // print character at x, y
+  void (*callback_handleRTN)(struct tesiObject *, int, int); 
+  void (*callback_handleNL)(struct tesiObject *, int, int);
+  void (*callback_handleBS)(struct tesiObject *, int, int);
+  void (*callback_handleBEL)(struct tesiObject *, int, int);
+  void (*callback_handleTAB)(struct tesiObject *, int, int);
 	void (*callback_printString)(void*, char*, int, int, int); // print string of length at x, y
-	void (*callback_insertCharacter)(void*, char, int, int); // insert character at x, y
-	void (*callback_insertLine)(void*, int); // insert line at line y
-	void (*callback_eraseLine)(void*, int); // erase line at line y
-	void (*callback_eraseCharacter)(void*, int, int); // erase character at x, y
-	//void (*callback_printString)(void*, char, x, y); // print string at x, y
-	void (*callback_moveCursor)(void*, int, int);
-	void (*callback_attributes)(void*, short, short, short, short, short, short, short); // bold, blink, inverse, underline, foreground, background, charset
-	void (*callback_scrollRegion)(void*,int,int);
-	void (*callback_scrollUp)(void*);
-	void (*callback_scrollDown)(void*);
-	void (*callback_bell)(void*);
-	void (*callback_invertColors)(void*);
+	void (*callback_clearScreen)(struct tesiObject *); // clear canvas
+	void (*callback_insertCharacter)(struct tesiObject *, char, int, int); // insert character at x, y
+	void (*callback_insertLine)(struct tesiObject *, int); // insert line at line y
+	void (*callback_eraseLine)(struct tesiObject *, int); // erase line at line y
+	void (*callback_eraseCharacter)(struct tesiObject *, int, int); // erase character at x, y
+	void (*callback_moveCursor)(struct tesiObject *, int, int);
+	void (*callback_attributes)(struct tesiObject *, short, short, short, short, short, short, short); // bold, blink, inverse, underline, foreground, background, charset
+	void (*callback_scrollRegion)(struct tesiObject *,int,int);
+	void (*callback_scrollUp)(struct tesiObject *);
+	void (*callback_scrollDown)(struct tesiObject *);
+	void (*callback_invertColors)(struct tesiObject *);
     
-    unsigned int ides; // event source id from g_timeout_add
+  unsigned int ides; // event source id from g_timeout_add
 	int x, y, x2, y2, width, height, scrollBegin, scrollEnd; // cursor x,y and window width,height
 	//int alternativeChar;
 };

@@ -48,7 +48,7 @@ static gboolean copy_console(GtkWidget *widget, GdkEvent *event, gpointer data) 
 /*
  * This is called to handle characters received from the pty
  * in response to a puts/printf/write from Shoes,Ruby, & C
- * I don't manage escape seq, x,y or deal with width and height.
+ * It does't manage escape seq, x,y or deal with width and height.
  * Just write to the end of the buffer and let the gtk_text_view manage it.
 */
 void console_haveChar(void *p, char c) {
@@ -106,49 +106,102 @@ void console_haveChar(void *p, char c) {
 	gtk_text_buffer_get_end_iter (buffer, &iter_e);
 	insert_mark = gtk_text_buffer_get_insert (buffer);
 	gtk_text_buffer_place_cursor(buffer, &iter_e);
-    gtk_text_view_scroll_to_mark( GTK_TEXT_VIEW (view),
-            insert_mark, 0.0, TRUE, 0.0, 1.0);
+  gtk_text_view_scroll_to_mark( GTK_TEXT_VIEW (view),
+      insert_mark, 0.0, TRUE, 0.0, 1.0);
 }
 
-void tesi_printCharacter(void *p, char c, int x, int y) {
-	char in[129];
-	GtkTextView *view = GTK_TEXT_VIEW(p);
-	GtkTextBuffer *buffer;
+// for more control, implement this
 
-	snprintf(in, 128, "%c", c);
-	buffer = gtk_text_view_get_buffer(view);
-	gtk_text_buffer_insert_at_cursor(buffer, in, 1);
+void console_visAscii(struct tesiObject *tobj, char c, int x, int y) {
+	char in[8];
+	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
+  GtkTextIter iter_e;
+  GtkTextMark *insert_mark;
+  
+	snprintf(in, 7, "%c", c);
+  gtk_text_buffer_insert_at_cursor(buffer, in, 1);
+  // update on screen
+	gtk_text_buffer_get_end_iter (buffer, &iter_e);
+	insert_mark = gtk_text_buffer_get_insert (buffer);
+	gtk_text_buffer_place_cursor(buffer, &iter_e);
+  gtk_text_view_scroll_to_mark( GTK_TEXT_VIEW (view),
+      insert_mark, 0.0, TRUE, 0.0, 1.0);
 }
 
-void tesi_eraseCharacter(void *p, int x, int y) {
-	GtkTextBuffer *buffer;
-	GtkTextIter iter;
+void console_return(struct tesiObject *tobj, int x, int y) {
+  // do nothing for now
+}
 
-	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(p));
-	gtk_text_buffer_get_iter_at_line_index(buffer, &iter, y, x);
-	gtk_text_buffer_backspace(buffer, &iter, 1, 1);  
+void console_newline(struct tesiObject *tobj, int x, int y) {
+	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
+  GtkTextIter iter_e;
+  GtkTextMark *insert_mark;
+
+  gtk_text_buffer_insert_at_cursor(buffer, "\n", 1);
+  // update on screen
+	gtk_text_buffer_get_end_iter (buffer, &iter_e);
+	insert_mark = gtk_text_buffer_get_insert (buffer);
+	gtk_text_buffer_place_cursor(buffer, &iter_e);
+  gtk_text_view_scroll_to_mark( GTK_TEXT_VIEW (view),
+      insert_mark, 0.0, TRUE, 0.0, 1.0);
+}
+
+void console_backspace(struct tesiObject *tobj, int x, int y) {
+	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
+  GtkTextIter iter_e;
+  GtkTextMark *insert_mark;
+
+  gtk_text_buffer_get_end_iter (buffer, &iter_e);
+  gtk_text_buffer_backspace(buffer, &iter_e, 1, 1);
+  
+  // update on screen
+	gtk_text_buffer_get_end_iter (buffer, &iter_e);
+	insert_mark = gtk_text_buffer_get_insert (buffer);
+	gtk_text_buffer_place_cursor(buffer, &iter_e);
+  gtk_text_view_scroll_to_mark( GTK_TEXT_VIEW (view),
+      insert_mark, 0.0, TRUE, 0.0, 1.0);
+}
+
+void console_tab(struct tesiObject *tobj, int x, int y) {
+  return console_visAscii(tobj, '\t', x, y);
+}
+
+// The follow console_functions are incomplete 
+
+void console_eraseCharacter(struct tesiObject *tobj, int x, int y) {
+	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
+  GtkTextIter iter_e;
+  
+	//buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(p)); ?
+	gtk_text_buffer_get_iter_at_line_index(buffer, &iter_e, y, x);
+	gtk_text_buffer_backspace(buffer, &iter_e, 1, 1);  
 }
 
 
-void tesi_scrollUp(void *p) {
+void console_scrollUp(struct tesiObject *tobj) {
 	// add line to buffer, scroll up
 	GtkTextBuffer *buffer;
 	GtkTextIter iter;
 	gint lcnt;
-	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(p));
+	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(tobj->pointer));
 	lcnt = gtk_text_buffer_get_line_count(buffer);
 	gtk_text_buffer_get_iter_at_line_index(buffer, &iter, lcnt+1, 0);
-	gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(p), &iter, 0.0, false, 0.0, 0.0);
+	gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(tobj->pointer), &iter, 0.0, false, 0.0, 0.0);
 }
 
-void tesi_moveCursor(void *p, int x, int y) {
+void console_moveCursor(struct tesiObject *tobj, int x, int y) {
 	/*
 	Force moving of cursor
 	If line doesn't exist, start at last line and loop while adding newlines
 	If line does exist, but column doesn't, go to line and add spaces at end of line
 	*/
+  
 	GtkTextBuffer *buffer;
-	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(p));
+	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(tobj->pointer));
     GtkTextIter iter;
 	//printf("Move Cursor to x,y: %d,%d\n", x, y);
 
@@ -164,18 +217,18 @@ void tesi_moveCursor(void *p, int x, int y) {
 		gtk_text_buffer_insert(buffer, &iter, " ", 1);
     }
     gtk_text_buffer_place_cursor(buffer, &iter);
-	gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(p), &iter, 0.0, false, 0.0, 0.0);
+	gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(tobj->pointer), &iter, 0.0, false, 0.0, 0.0);
 
 
 }
-void tesi_insertLine(void *p, int y) {
+void console_insertLine(struct tesiObject *tobj, int y) {
 	printf("Insert Line\n");
 }
 
-void tesi_eraseLine(void *p, int y) {
+void console_eraseLine(struct tesiObject *tobj, int y) {
 	GtkTextIter iter, s, e;
 	GtkTextBuffer *buffer;
-	GtkTextView *view = GTK_TEXT_VIEW(p);
+	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
 	buffer = gtk_text_view_get_buffer(view);
 
 	gtk_text_buffer_get_end_iter(buffer, &iter);
@@ -186,6 +239,7 @@ void tesi_eraseLine(void *p, int y) {
 	gtk_text_buffer_delete(buffer, &s, &e);
 	printf("Erase Line\n");
 }
+// end of incomplete/untested  functions 
 
 gboolean g_tesi_handleInput(gpointer data) {
 	tesi_handleInput( (struct tesiObject*) data);
@@ -279,14 +333,19 @@ void shoes_native_app_console() {
 
   t = newTesiObject("/bin/bash", 80, 24); // first arg not used
   t->pointer = canvas;
-  t->callback_haveCharacter = &console_haveChar;
-  // cjc - my handler short circuts much (all?) of these callbacks:
-  t->callback_printCharacter = &tesi_printCharacter;
-  t->callback_eraseCharacter = &tesi_eraseCharacter;
-  t->callback_moveCursor = &tesi_moveCursor;
-  t->callback_insertLine = &tesi_insertLine;
-  t->callback_eraseLine = &tesi_eraseLine;
-  t->callback_scrollUp = &tesi_scrollUp;
+  //t->callback_haveCharacter = &console_haveChar;
+  // cjc - havCharacter short circuts much (all?) of these callbacks:
+  t->callback_handleNL = &console_newline;
+  t->callback_handleRTN = &console_return;
+  t->callback_handleBS = &console_backspace;
+  t->callback_handleTAB = console_tab; 
+  t->callback_handleBEL = NULL;
+  t->callback_printCharacter = &console_visAscii;
+  t->callback_eraseCharacter = NULL; // &console_eraseCharacter;
+  t->callback_moveCursor = NULL; // &console_moveCursor;
+  t->callback_insertLine = NULL; //&console_insertLine;
+  t->callback_eraseLine = NULL; //&console_eraseLine;
+  t->callback_scrollUp = NULL; // &console_scrollUp;
   
   g_signal_connect(G_OBJECT(window), "delete_event", G_CALLBACK(clean), t);
 //  g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK (gtk_main_quit), NULL);

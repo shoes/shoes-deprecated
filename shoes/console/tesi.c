@@ -1,20 +1,47 @@
 #include "tesi.h"
-// tesInterpreter
-/*
-Interprets TESI escape sequences.
-See terminfo definition
+/* 
+ * This is a state machine to parse a subset of xterm-256 escape sequences 
+ * that arrive on a pty (slave side) and call back into gtk/cocoa functions
+ * to implement that sequence 'clear_screen' or 'setcolor' or ...
+ * 
+ * Those call back functions have nothing to do with Shoes. The window they
+ * draw to is invisible to Shoes scripts and won't call any shoes internal code
+ * 
+ * NOTE: the terminal may have x, y (e.g width 80, height 24). Gtk/cocoa
+ * code maintains a large scroll back buffer,  so x=1,y=24 might mean
+ * the first character of the last line shown if the last line of the
+ * scrollback buffer is visible. Also possible the x,y a zero relative
+ * so becareful.
+ * 
+ * Some keypad keys the user presses are sent to yet more callbacks and 
+ * some are sent as 'escape' sequences
+ * 
+ * If you don't setup a console_haveChar() callback (the short-circuit)
+ * then you need to implement the following call backs in gtk & cocoa
+ * 
+ * Required 
+ *  callback_printChar          Required
+ *  callback_handleNL           Required for Shoes
+ *  callback_handleBS           Required for Shoes
+ *  cakkback_handleTAB          Required for Shoes (set to printChar)
+ *  callback_insertCharacter    optional, be careful of x, y
+ *  callback_printString        not needed for Shoes?
+ *  callback_insertCharacter    optional
+ *  callback_eraseLine          optional
+ *  callback_eraseCharacter     optional
+ * 	callback_moveCursor         be very careful with scrolled buffers.
+ *  callback_attributes         Recommended for Shoes
+ *	callback_scrollUp           Dragons Here!
+ *  callback_scrollDown         Dragons Here!
+ *  callback_bell               Dragons Here!
+ *  callback_invertColors       God Forbid. 
+ * 
 */
-
 //#define DEBUG 1
 
 /*
 handleInput
 	- reads data from file descriptor into buffer
-	-
-
-interpretSequence
-	- once sequence has been completely read from buffer, it's passed here
-	- it is interpreted and makes calls to appropriate callbacks
 */
 
 int tesi_handleInput(struct tesiObject *to) {
@@ -81,15 +108,15 @@ int tesi_handleInput(struct tesiObject *to) {
 				to->parametersLength = 0;
 			}
 		} else { // standard text, not part of any escape sequence
-			if(to->partialSequence == 0) {
+      if(to->partialSequence == 0) {
 				// newlines aren't in visible range, so they shouldn't be a problem
 				if(to->insertMode == 0 && to->callback_printCharacter) {
-					to->callback_printCharacter(to->pointer, c, to->x, to->y);
+					to->callback_printCharacter(to, c, to->x, to->y);
 					to->x++;
 					tesi_limitCursor(to, 1);
 				}
 				if(to->insertMode == 1 && to->callback_insertCharacter) {
-					to->callback_insertCharacter(to->pointer, c, to->x, to->y);
+					to->callback_insertCharacter(to, c, to->x, to->y);
 				}
 			}
 		}
@@ -116,8 +143,8 @@ int tesi_handleControlCharacter(struct tesiObject *to, char c) {
 			fprintf(stderr, "Carriage return\n");
 #endif
 			to->x = 0;
-			if(to->callback_moveCursor)
-				to->callback_moveCursor(to->pointer, to->x, to->y);
+			if(to->callback_handleRTN)
+				to->callback_handleRTN(to, to->x, to->y);
 			break;
 
 		case '\n':  // line feed ('J' - '@'). Move cursor down line and to first column.
@@ -131,12 +158,18 @@ int tesi_handleControlCharacter(struct tesiObject *to, char c) {
 			//if(i == 1 && to->callback_scrollUp)
 			//	to->callback_scrollUp(to->pointer);
 			tesi_limitCursor(to, 1);
+      if (to->callback_handleNL)
+        to->callback_handleNL(to, to->x, to->y);
 			break;
 
 		case '\t': // ht - horizontal tab, ('I' - '@')
 #ifdef DEBUG
 			fprintf(stderr, "Tab. %d,%d (x,y)\n", to->x, to->y);
 #endif
+      if (to->callback_handleTAB) {
+        to->callback_handleTAB(to, to->x, to->y);
+        break; // This prevents tesi from writing spaces
+      }
 			j = 8 - (to->x % 8);
 			if(j == 0)
 				j = 8;
@@ -144,9 +177,9 @@ int tesi_handleControlCharacter(struct tesiObject *to, char c) {
 				if(tesi_limitCursor(to, 1))
 					break;
 				if(to->callback_moveCursor)
-					to->callback_moveCursor(to->pointer, to->x, to->y);
+					to->callback_moveCursor(to , to->x, to->y);
 				if(to->callback_printCharacter)
-					to->callback_printCharacter(to->pointer, ' ', to->x, to->y);
+					to->callback_printCharacter(to , ' ', to->x, to->y);
 			}
 #ifdef DEBUG
 			fprintf(stderr, "End of Tab processing\n");
@@ -155,8 +188,8 @@ int tesi_handleControlCharacter(struct tesiObject *to, char c) {
 
 		case '\a': // bell ('G' - '@')
 	 		// do nothing for now... maybe a visual bell would be nice?
-			if(to->callback_bell)
-				to->callback_bell(to->pointer);
+			if(to->callback_handleBEL)
+				to->callback_handleBEL(to, to->x, to->y);
 			break;
 
 	 	case 8: // backspace cub1 cursor back 1 ('H' - '@')
@@ -165,7 +198,7 @@ int tesi_handleControlCharacter(struct tesiObject *to, char c) {
 	 		// just move cursor, don't print space
 			tesi_limitCursor(to, 1);
 			if(to->callback_eraseCharacter)
-				to->callback_eraseCharacter(to->pointer, to->x, to->y);
+				to->callback_eraseCharacter(to, to->x, to->y);
 			if (to->x > 0)
 				to->x--;
 			break;
@@ -181,6 +214,8 @@ int tesi_handleControlCharacter(struct tesiObject *to, char c) {
 }
 
 /*
+ * once ab escape sequence has been completely read from buffer, it's passed here
+ * it is interpreted and makes calls to appropriate callbacks
  * This skips the [ present in most sequences
  */
 void tesi_interpretSequence(struct tesiObject *to) {
@@ -238,26 +273,30 @@ void tesi_interpretSequence(struct tesiObject *to) {
 #ifdef DEBUG
 				fprintf(stderr, "Clear screen\n");
 #endif
+        if (to->callback_clearScreen) {
+          to->callback_clearScreen(to);
+          break; // don't do ugly clear
+        }
 
 				for(i = 0; i < to->height; i++) {
 					if(to->callback_moveCursor)
-						to->callback_moveCursor(to->pointer, 0, i);
+						to->callback_moveCursor(to, 0, i);
 					if(to->callback_eraseLine)
-						to->callback_eraseLine(to->pointer, i);
+						to->callback_eraseLine(to, i);
 				}
 				to->x = to->y = 0;
 				if(to->callback_moveCursor)
-						to->callback_moveCursor(to->pointer, to->x, to->y);
+						to->callback_moveCursor(to, to->x, to->y);
 				break;
 
 			// LINE-RELATED
 			case 'c': // clear line
 				if(to->callback_eraseLine)
-					to->callback_eraseLine(to->pointer, to->y);
+					to->callback_eraseLine(to, to->y);
 				break;
 			case 'L': // insert line
 				if(to->callback_insertLine)
-					to->callback_insertLine(to->pointer, to->y);
+					to->callback_insertLine(to, to->y);
 				break;
 
 			// ATTRIBUTES AND MODES
@@ -295,18 +334,18 @@ void tesi_interpretSequence(struct tesiObject *to) {
 					to->scrollBegin = i;
 					to->scrollEnd = j;
 					if(to->callback_scrollRegion)
-						to->callback_scrollRegion(to->pointer, i,j);
+						to->callback_scrollRegion(to, i,j);
 				} else {
 					//0, 0
 				}
 				break;
 			case 'D': // scroll down
 				if(to->callback_scrollDown)
-					to->callback_scrollDown(to->pointer);
+					to->callback_scrollDown(to);
 				break;
 			case 'U': // scroll up
 				if(to->callback_scrollUp)
-					to->callback_scrollUp(to->pointer);
+					to->callback_scrollUp(to);
 				// cursor shouldn't change positions after a scroll
 				// but this means the next output line (like a new prompt invoked after Enter on last line)
 				// will be indented
@@ -378,7 +417,7 @@ void tesi_processAttributes(struct tesiObject *to) {
 	}
 
 	if(to->callback_attributes)
-		to->callback_attributes(to->pointer, to->attributes[4], to->attributes[3], to->attributes[2], to->attributes[1], to->attributes[5], to->attributes[6], 0);
+		to->callback_attributes(to, to->attributes[4], to->attributes[3], to->attributes[2], to->attributes[1], to->attributes[5], to->attributes[6], 0);
 }
 /*
 void tesi_bufferPush(struct tesiObject *to, char c) {
@@ -418,7 +457,7 @@ int tesi_limitCursor(struct tesiObject *tobj, int moveCursorRegardless) {
 		//tobj->y = tobj->height - 1; //width,height are 1 based, x,y 0 based
 		tobj->height++;  //wacky but Shoes likes it.
 		if(tobj->callback_scrollUp) {
-		  tobj->callback_scrollUp(tobj->pointer);
+		  tobj->callback_scrollUp(tobj);
 		  tobj->x = 0;
 		}
 	}
@@ -430,7 +469,7 @@ int tesi_limitCursor(struct tesiObject *tobj, int moveCursorRegardless) {
 #endif
 	if(moveCursorRegardless || a != tobj->x || b != tobj->y) {
 		if(tobj->callback_moveCursor)
-			tobj->callback_moveCursor(tobj->pointer, tobj->x, tobj->y);
+			tobj->callback_moveCursor(tobj, tobj->x, tobj->y);
 		//to->x = x;
 		//to->y = y;
 		return 1;
@@ -438,6 +477,7 @@ int tesi_limitCursor(struct tesiObject *tobj, int moveCursorRegardless) {
 	return 0;
 }
 
+// ----  initialize 
 
 struct tesiObject* newTesiObject(char *command, int width, int height) {
 	struct tesiObject *to;
@@ -462,10 +502,18 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
 	to->scrollBegin = 0;
 	to->scrollEnd = height - 1;
 	to->insertMode = 0;
-
-  to->callback_haveCharacter = NULL;
+  // simple callbacks 
+  to->callback_haveCharacter = NULL; // The shortcircuit to be replaced
+  to->callback_handleRTN = NULL;
+  to->callback_handleNL = NULL;
+  to->callback_handleBS = NULL;
+  to->callback_handleTAB = NULL;
+	to->callback_handleBEL = NULL;
 	to->callback_printCharacter = NULL;
-	to->callback_printString = NULL;
+  to->callback_printString = NULL;
+  // more complex processing
+  to->callback_attributes = NULL;
+  to->callback_clearScreen = NULL;
 	to->callback_insertCharacter = NULL;
 	to->callback_eraseLine = NULL;
 	to->callback_eraseCharacter = NULL;
@@ -473,7 +521,6 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
 	to->callback_attributes = NULL;
 	to->callback_scrollUp = NULL;
 	to->callback_scrollDown = NULL;
-	to->callback_bell = NULL;
 	to->callback_invertColors = NULL;
 
 	to->command[0] = to->command[1] = to->command[2] = NULL;
@@ -489,7 +536,6 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
 	 * stdin/out/err  which replaces what was there in this process.
 	 * This may be a bad idea or not work or leave zombie processses
 	*/
-#ifndef OLD_PTY_CODE
   ptySlave = ptsname(to->ptyMaster);
   to->ptySlave = open(ptySlave, O_RDWR);
   // need to setup the terminal stuff for the slave side of the pty.
@@ -504,38 +550,11 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
   dup2(to->ptySlave, fileno(stdin));
   dup2(to->ptySlave, fileno(stdout));
   dup2(to->ptySlave, fileno(stderr));
-  setenv("TERM","dumb",1); // vt102
+  setenv("TERM","xterm-256",1); // vt102
   sprintf(message, "%d", width);
   setenv("COLUMNS", message, 1);
   sprintf(message, "%d", height);
   setenv("LINES", message, 1);
-
-#else
-	to->pid = fork();
-	//setpgid(to->pid, to->pid); // set new process group id for easy killing of shell children
-	if(to->pid == 0) { // inside child
-		ptySlave = ptsname(to->ptyMaster);
-		to->ptySlave = open(ptySlave, O_RDWR);
-		// dup fds to stdin and stdout, or something like, then exec /bin/bash
-		dup2(to->ptySlave, fileno(stdin));
-		dup2(to->ptySlave, fileno(stdout));
-		dup2(to->ptySlave, fileno(stderr));
-
-		//clearenv(); // don't clear because we want to keep all other variables
-		setenv("TERM","tesi",1); // vt102
-		sprintf(message, "%d", width);
-		setenv("COLUMNS", message, 1);
-		sprintf(message, "%d", height);
-		setenv("LINES", message, 1);
-
-		//fflush(stdout); // flush output now because it will be cleared upon execv
-
-		//if(execl("/bin/bash", "/bin/bash", "--noediting", NULL) == -1)
-		if(execl("/bin/bash", "/bin/bash", NULL) == -1)
-		//if(execl("/bin/cat", "/bin/cat", NULL) == -1)
-			exit(EXIT_FAILURE); // exit and become zombie until parent cares....
-	}
-#endif
 	return to;
 }
 /*
