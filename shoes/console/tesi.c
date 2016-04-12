@@ -197,8 +197,8 @@ int tesi_handleControlCharacter(struct tesiObject *to, char c) {
 	 		// where should that be handled
 	 		// just move cursor, don't print space
 			tesi_limitCursor(to, 1);
-			if(to->callback_eraseCharacter)
-				to->callback_eraseCharacter(to, to->x, to->y);
+			if(to->callback_handleBS)
+				to->callback_handleBS(to, to->x, to->y);
 			if (to->x > 0)
 				to->x--;
 			break;
