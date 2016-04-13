@@ -11,7 +11,7 @@
 */
 #include "cocoa-term.h"
 
-void console_haveChar(void *p, char c); // forward ref
+void console_haveChar(struct tesiObject *tobj, char c); // forward ref
 
 @implementation ConsoleTermView // It's a NSTextView
 - (void)initView: (ConsoleWindow *)cw withFont: (NSFont *)fixedfont
@@ -287,8 +287,7 @@ int shoes_native_console()
  * I don't manage escape seq, x,y or deal with width and height.
  * Just write to the end of the buffer and let cocoa textview manage it.
 */
-void console_haveChar(void *p, char c) {
-	struct tesiObject *tobj = (struct tesiObject*)p;
+void console_haveChar(struct tesiObject *tobj, char c) {
   ConsoleWindow *cpanel = (ConsoleWindow *)tobj->pointer;
   ConsoleTermView *cwin = cpanel->termView;
 
@@ -331,9 +330,6 @@ void console_haveChar(void *p, char c) {
 			break;
 
 		default:
-#ifdef DEBUG
-			fprintf(stderr, "Unrecognized control char: %d (^%c)\n", c, c + '@');
-#endif
 			break;
 	}
 }
