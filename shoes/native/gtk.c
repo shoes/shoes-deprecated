@@ -1775,7 +1775,7 @@ shoes_dialog_color(VALUE self, VALUE title)
     GdkRGBA _color;
     gtk_color_chooser_get_rgba((GtkColorChooser *)dialog, &_color);
     color = shoes_color_new((int)(_color.red*255), (int)(_color.green*255),
-      (int)(_color.blue*255), SHOES_COLOR_OPAQUE);
+      (int)(_color.blue*255), (int)(_color.alpha*255));
   }
 
   gtk_widget_destroy(dialog);

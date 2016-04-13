@@ -1943,7 +1943,7 @@ shoes_dialog_color(VALUE self, VALUE title)
   title = shoes_native_to_s(title);
   if (GetColor(where, RSTRING_PTR(title), &colwh, &_color))
   {
-    color = shoes_color_new(_color.red/256, _color.green/256, _color.blue/256, SHOES_COLOR_OPAQUE);
+    color = shoes_color_new(_color.red/256, _color.green/256, _color.blue/256, _color.alpha/256);
   }
   return color;
 }
