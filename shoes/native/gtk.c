@@ -1946,10 +1946,10 @@ int shoes_native_console()
     return 1;
 }
 #else
-int shoes_native_console()
+int shoes_native_console(char *app_path)
 {
-  printf("init gtk console\n");
-  shoes_native_app_console();
+  //printf("init gtk console\n");
+  shoes_native_app_console(app_path);
   printf("gtk\010k\t console \t\tcreated\n"); //test \b \t in string
   return 1;
 }

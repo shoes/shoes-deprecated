@@ -296,16 +296,13 @@ static gboolean clean(GtkWidget *widget, GdkEvent *event, gpointer data) {
   return FALSE;
 }
 
-void shoes_native_app_console() {
+void shoes_native_app_console(char *app_dir) {
   GtkWidget *window;
   GtkWidget *canvas;
   GtkWidget *vbox;
   GtkScrolledWindow *sw;
   PangoFontDescription *pfd;  // for terminal
   PangoFontDescription *bpfd; // for Label in button panel
-  
-  // get DIR (a path) from Shoes.
-  char *app_path;
 
   struct tesiObject *t;
 
@@ -314,7 +311,7 @@ void shoes_native_app_console() {
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   // size set below based on font (80x24)
   gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
-  gtk_window_set_title (GTK_WINDOW (window), "Shoes Linux");
+  gtk_window_set_title (GTK_WINDOW (window), "Shoes Terminal");
   
   // like a Shoes stack at the top.
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 2);
@@ -326,20 +323,22 @@ void shoes_native_app_console() {
   gdk_color_parse ("white", &color_white);
 
   GtkWidget *btnpnl = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2); // think flow layout
-
+  // create widgets for btnpnl - icon, label, clear, copy
+  // icon is wicked 
+  char icon_path[256];
+  sprintf(icon_path, "%s/static/app-icon.png", app_dir);
+  GdkPixbuf *icon_pix = gdk_pixbuf_new_from_file_at_size(icon_path, 32, 32, NULL);
+  GtkWidget *icon = gtk_image_new_from_pixbuf(icon_pix);
+  gtk_box_pack_start (GTK_BOX(btnpnl), icon, 1, 0, 0);
+  
   GtkWidget *announce = gtk_label_new("Shoes Terminal");
   bpfd = pango_font_description_from_string ("Sans-Serif 14");
   gtk_widget_override_font (announce, bpfd);
-
   gtk_box_pack_start(GTK_BOX(btnpnl), announce, 1, 0, 0);
-  // create widgets for btnpnl
-  // icon is first
-  GdkPixbuf * icon_pixbuf = gtk_window_get_icon (window);
-  GtkWidget *icon = gtk_image_new_from_pixbuf (icon_pixbuf);
-  gtk_box_pack_start (GTK_BOX(btnpnl), icon, 1, 0, 0);
   
   GtkWidget *clrbtn = gtk_button_new_with_label ("Clear");
   gtk_box_pack_start (GTK_BOX(btnpnl), clrbtn, 1, 0, 0);
+  
   GtkWidget *cpybtn = gtk_button_new_with_label ("Copy");
   gtk_box_pack_start (GTK_BOX(btnpnl), cpybtn, 1, 0, 0);
   gtk_box_pack_start (GTK_BOX(vbox), GTK_WIDGET(btnpnl), 0, 0, 0);

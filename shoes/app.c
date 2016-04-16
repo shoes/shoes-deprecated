@@ -625,10 +625,14 @@ shoes_app_quit(VALUE self)
 // to handle stdin/stdout and a native window for keypress and display
 int shoes_global_console = 0;
 VALUE
-shoes_app_console()
+shoes_app_console(VALUE self)
 {
   if (!shoes_global_console) {
-	 shoes_global_console = shoes_native_console();
+    // Dig out DIR constant 
+    VALUE dir_val;
+    dir_val = rb_const_get(self, rb_intern("DIR"));
+    char *dir_path = RSTRING_PTR(dir_val);
+	  shoes_global_console = shoes_native_console(dir_path);
   }
   return shoes_global_console ? Qtrue : Qfalse;
 }
