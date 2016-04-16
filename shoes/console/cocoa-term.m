@@ -5,6 +5,12 @@
    text lines. There is a minimal keyboard support so keypresses are sent to
    a pty and characters are read from that pty and displayed in the window.
    see tesi.c and tesi.h.
+   
+   Things are even more confusing with Stdout since OSX pretends Gui
+   apps don't have it so it's a bitbucket. So, before we create the pty
+   we have to create something useful for stdout (a pipe). We setup a handler to
+   read the pipe and pass the chars to tesi like it was read from the pty.
+   (yes that makes the pty almost useless on OSX) Almost.
 
    NOTE: Use of NSLog will cause confusion &  misbehaviour. Don't use it if
    console is showing.
@@ -167,6 +173,14 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   [cntview addSubview: btnpnl];
   [cntview addSubview: termpnl];
   [self makeFirstResponder:termView];
+  
+  // Create a stdout that read from a pty
+  pipe = [NSPipe pipe];
+  pipeReadHandle = [pipe fileHandleForWriting];
+  dup2([[pipe fileHandleForWriting] fileDescriptor], fileno(stdout)) ;
+  [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(handleNotification:) name: NSFileHandleReadCompletionNotification object: pipeReadHandle] ;
+  [pipeReadHandle readInBackgroundAndNotify] ;
+  
   // Now init the Tesi object - NOTE tesi callbacks are C,  which calls Objective-C
   tobj = newTesiObject("/bin/bash", 80, 24); // first arg not used, 2 and 3 not either
   tobj->pointer = (void *)self;
@@ -230,7 +244,7 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
 {
 }
 
--(void)readStdout: (NSTimer *)t
+- (void)readStdout: (NSTimer *)t
 {
   // do tesi.handleInput
   tesi_handleInput(tobj);
@@ -240,16 +254,16 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
 {
   [[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: text]];
   [termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
-#ifdef BE_CLEVER
-    dispatch_async(dispatch_get_main_queue(), ^{
-        NSAttributedString* attr = [[NSAttributedString alloc] initWithString:text];
-
-        [[termView textStorage] appendAttributedString: attr];
-        [termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
-    });
-#endif
 }
 
+- (void)handleNotification: (NSNotification *)notification
+{
+  [pipeReadHandle readInBackgroundAndNotify] ;
+  NSString *str = [[NSString alloc] initWithData: [[notification userInfo] objectForKey: NSFileHandleNotificationDataItem] encoding: NSASCIIStringEncoding] ;
+  // Do whatever you want with str 
+  [[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: str]];
+  [termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
+}
 
 @end
 

@@ -164,12 +164,48 @@ void console_backspace(struct tesiObject *tobj, int x, int y) {
   gtk_text_view_scroll_to_mark( GTK_TEXT_VIEW (view),
       insert_mark, 0.0, TRUE, 0.0, 1.0);
 }
-
 void console_tab(struct tesiObject *tobj, int x, int y) {
   return console_visAscii(tobj, '\t', x, y);
 }
 
-// The follow console_functions are incomplete 
+/*  
+ * Handle terminal attributes to Gtk Textview/buffer settings
+ * 
+*/
+
+static GdkRGBA colortable[10];
+static void initattr() {
+  gdk_rgba_parse (&colortable[0], "black");
+  gdk_rgba_parse (&colortable[1], "red");
+  gdk_rgba_parse (&colortable[2], "green");
+  gdk_rgba_parse (&colortable[3], "brown");
+  gdk_rgba_parse (&colortable[4], "blue");
+  gdk_rgba_parse (&colortable[5], "magenta");
+  gdk_rgba_parse (&colortable[6], "cyan");
+  gdk_rgba_parse (&colortable[7], "white");
+  gdk_rgba_parse (&colortable[8], "black");  // weird one not used? default?
+  gdk_rgba_parse (&colortable[9], "black");  // weird one not used? default?
+  // set tabs ? 
+}
+
+void terminal_attreset(struct tesiObject *tobj) {
+  // reset all attibutes (color, blink,...)
+  GtkWidget *view = GTK_WIDGET(tobj->pointer);
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));
+  // This changes the whole buffer/view which is not what we want.    
+  //gtk_widget_override_color (view, GTK_STATE_FLAG_NORMAL, NULL);
+}
+
+void terminal_setfgcolor(struct tesiObject *tobj, int fg) {
+  GtkWidget *view = GTK_WIDGET(tobj->pointer);
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));
+  // This changes the whole buffer/view which is not what we want. 
+  // Might be useful for initializing the whole    
+  GdkRGBA rgba = colortable[fg - 30];
+  gtk_widget_override_color (view, GTK_STATE_FLAG_NORMAL, &rgba);
+}
+
+// functions that haven't been tested. May not work or incomplete
 
 void console_eraseCharacter(struct tesiObject *tobj, int x, int y) {
 	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
@@ -267,6 +303,9 @@ void shoes_native_app_console() {
   GtkScrolledWindow *sw;
   PangoFontDescription *pfd;  // for terminal
   PangoFontDescription *bpfd; // for Label in button panel
+  
+  // get DIR (a path) from Shoes.
+  char *app_path;
 
   struct tesiObject *t;
 
@@ -288,12 +327,17 @@ void shoes_native_app_console() {
 
   GtkWidget *btnpnl = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2); // think flow layout
 
-  GtkWidget *announce = gtk_label_new("Shoes Console");
+  GtkWidget *announce = gtk_label_new("Shoes Terminal");
   bpfd = pango_font_description_from_string ("Sans-Serif 14");
   gtk_widget_override_font (announce, bpfd);
 
   gtk_box_pack_start(GTK_BOX(btnpnl), announce, 1, 0, 0);
-
+  // create widgets for btnpnl
+  // icon is first
+  GdkPixbuf * icon_pixbuf = gtk_window_get_icon (window);
+  GtkWidget *icon = gtk_image_new_from_pixbuf (icon_pixbuf);
+  gtk_box_pack_start (GTK_BOX(btnpnl), icon, 1, 0, 0);
+  
   GtkWidget *clrbtn = gtk_button_new_with_label ("Clear");
   gtk_box_pack_start (GTK_BOX(btnpnl), clrbtn, 1, 0, 0);
   GtkWidget *cpybtn = gtk_button_new_with_label ("Copy");
@@ -312,6 +356,9 @@ void shoes_native_app_console() {
   gtk_text_view_set_left_margin(GTK_TEXT_VIEW(canvas), 4);
   gtk_text_view_set_right_margin(GTK_TEXT_VIEW(canvas), 4);
   gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(canvas), GTK_WRAP_CHAR);
+  
+  // init attributes
+  initattr();
 
   // set font for scrollable window
   pfd = pango_font_description_from_string ("monospace 10");
@@ -334,13 +381,19 @@ void shoes_native_app_console() {
   t = newTesiObject("/bin/bash", 80, 24); // first arg not used
   t->pointer = canvas;
   //t->callback_haveCharacter = &console_haveChar;
-  // cjc - havCharacter short circuts much (all?) of these callbacks:
+  // cjc - haveCharacter short circuts much (all?) of these callbacks:
   t->callback_handleNL = &console_newline;
   t->callback_handleRTN = &console_return;
   t->callback_handleBS = &console_backspace;
-  t->callback_handleTAB = console_tab; 
+  t->callback_handleTAB = &console_tab; 
   t->callback_handleBEL = NULL;
   t->callback_printCharacter = &console_visAscii;
+  t->callback_attreset = &terminal_attreset;
+  t->callback_charattr = NULL;
+  t->callback_setfgcolor= &terminal_setfgcolor;
+  t->callback_setbgcolor = NULL;
+  t->callback_attributes = NULL; // old tesi
+
   t->callback_eraseCharacter = NULL; // &console_eraseCharacter;
   t->callback_moveCursor = NULL; // &console_moveCursor;
   t->callback_insertLine = NULL; //&console_insertLine;

@@ -29,7 +29,9 @@
   NSTextStorage *termStorage;
   NSLayoutManager *termLayout;
   NSTextContainer *termContainer;
-  //NSTextView *termview;
   ConsoleTermView *termView;
+  // Trick for stdout
+  NSPipe *pipe;
+  NSFileHandle *pipeReadHandle;
 }
 @end

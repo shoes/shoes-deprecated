@@ -239,7 +239,7 @@ void tesi_interpretSequence(struct tesiObject *to) {
 		p++;
 
 	// parse numeric parameters
-	q = p;
+	q = p++; //cjc: add ++
 	c = *p;
 	while ((c >= '0' && c <= '9') || c == ';') {
 		if (c == ';') {
@@ -301,6 +301,9 @@ void tesi_interpretSequence(struct tesiObject *to) {
 
 			// ATTRIBUTES AND MODES
 			case 'a': // change output attributes
+				tesi_processAttributes(to);
+				break;
+      case 'm':  // what really works; 
 				tesi_processAttributes(to);
 				break;
 			case 'I': // enter/exit insert mode
@@ -379,46 +382,28 @@ void tesi_interpretSequence(struct tesiObject *to) {
 }
 
 
-void tesi_processAttributes(struct tesiObject *to) {
-	//short bold, underline, blink, reverse, foreground, background, charset, i;
-
-	//standout, underline, reverse, blink, dim, bold, foreground, background
-	// no need for invisible or dim, right?
-	switch(to->parameters[0]) {
-		case 0: // all off
-			to->attributes[0] = to->attributes[1] = to->attributes[2] = to->attributes[3] = to->attributes[4] = to->attributes[5] = to->attributes[6] = to->attributes[7] = 0;
-			//bold = underline = blink = reverse = foreground = background = charset = 0;
-			break;
-		case 1: // standout
-			to->attributes[4] = to->parameters[1];
-			break;
-		case 2: // underline
-			to->attributes[1] = to->parameters[1];
-			break;
-		case 3: // reverse
-			to->attributes[2] = 1;
-			break;
-		case 4: // blink
-			to->attributes[3] = 1;
-			break;
-		case 5: // bold
-			to->attributes[4] = 1;
-			break;
-		case 6: // foreground color
-			to->attributes[5] = to->parameters[1];
-			// setf
-			// black blue green cyan red magenta yellow white
-			// setaf
-			// black, red green yellow blue magenta cyan white
-			break;
-		case 7: // background color
-			to->attributes[6] = to->parameters[1];
-			break;
-	}
-
-	if(to->callback_attributes)
-		to->callback_attributes(to, to->attributes[4], to->attributes[3], to->attributes[2], to->attributes[1], to->attributes[5], to->attributes[6], 0);
+void tesi_processAttributes(struct tesiObject *to ) {
+  // cjc: modify for ECMA 48 SGR terminals. attributes in tesi
+  // are useless. Maintain them in the caller as needed
+  // http://man7.org/linux/man-pages/man4/console_codes.4.html
+  int attr = to->parameters[0];
+  if (attr == 0) {
+    if (to->callback_attreset)
+        to->callback_attreset(to);
+  } else if (attr > 0 && attr < 30) { // 1..29
+     if (to->callback_charattr) 
+       to->callback_charattr(to, attr); 
+  } else if (attr > 29 && attr < 38) { // 30..37
+      if (to->callback_setfgcolor)
+        to->callback_setfgcolor(to, attr);
+  } else if (attr >= 40 &&  attr < 50) {
+      if (to->callback_setbgcolor) 
+        to->callback_setbgcolor(to, attr);
+  } else {
+      // 38 and 39 are ignored. 
+  }
 }
+
 /*
 void tesi_bufferPush(struct tesiObject *to, char c) {
 	if(to->outputBufferLength == TESI_OUTPUT_BUFFER_LENGTH) {
