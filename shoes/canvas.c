@@ -36,7 +36,8 @@ const double SHOES_RAD2PI = 0.01745329251994329577;
 //const char *dialog_title_says = USTR("Shoes says:");
 
 static void shoes_canvas_send_start(VALUE);
-static void shoes_canvas_send_finish(VALUE);
+// made it public to hook to an app quit event
+//static void shoes_canvas_send_finish(VALUE);
 
 shoes_transform *
 shoes_transform_new(shoes_transform *o)
@@ -1856,7 +1857,7 @@ shoes_canvas_send_start(VALUE self)
   }
 }
 
-static void
+void
 shoes_canvas_send_finish(VALUE self)
 {
   shoes_canvas *canvas;
