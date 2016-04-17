@@ -6,6 +6,11 @@
 
 #include "tesi.h"
 #include <gdk/gdkkeysyms.h>
+#ifdef USE_VTE
+#include <vte/vte.h>
+#endif
+
+#ifndef USE_VTE
 /*
  * heavily modified from https://github.com/alanszlosek/tesi/
  * for use in Shoes/Linux
@@ -419,3 +424,177 @@ void shoes_native_app_console(char *app_dir) {
   g_object_unref(playout);
   return;
 }
+
+#else
+/*
+ * VTE code here - doesn't share much with the code above. 
+*/
+static gboolean keypress_event(GtkWidget *widget, GdkEventKey *event, gpointer data) {
+	struct tesiObject *tobj = (struct tesiObject*)data;
+    char *c = ((GdkEventKey*)event)->string;
+	char s = *c;
+	if (event->keyval == GDK_KEY_BackSpace) {
+		s = 010;
+    }
+	write(tobj->fd_input, &s, 1);
+	return TRUE;
+}
+
+static gboolean clear_console(GtkWidget *widget, GdkEvent *event, gpointer data) {
+	struct tesiObject *tobj = (struct tesiObject*) data;
+  VteTerminal *vte = tobj->pointer;
+  vte_terminal_reset(vte, TRUE, TRUE);
+	return TRUE;
+}
+
+static gboolean copy_console(GtkWidget *widget, GdkEvent *event, gpointer data) {
+	struct tesiObject *tobj = (struct tesiObject*) data;
+  VteTerminal *vte = tobj->pointer;
+  vte_terminal_select_all(vte);
+  vte_terminal_copy_clipboard(vte);
+  vte_terminal_select_none(vte);
+	return TRUE;
+}
+
+/*
+ * This is called to handle characters received from the pty
+ * in response to a puts/printf/write from Shoes,Ruby, & C
+ * it passes the characters on to VTE
+*/
+void terminal_haveChar(struct tesiObject *p, char c) {
+	struct tesiObject *tobj = (struct tesiObject*)p;
+  char chr = c;
+  VteTerminal *vte = tobj->pointer;
+  vte_terminal_feed(vte, &c, 1);
+
+}
+
+// access to shoes_global_console
+#include "shoes/app.h"
+
+gboolean g_tesi_handleInput(gpointer data) {
+	tesi_handleInput( (struct tesiObject*) data);
+	return TRUE;
+}
+
+static gboolean clean(GtkWidget *widget, GdkEvent *event, gpointer data) {
+  struct tesiObject *to = (struct tesiObject*)data;
+  g_source_remove(to->ides); // remove g_timeout_add
+  g_source_destroy(g_main_context_find_source_by_id(NULL, to->ides));
+  
+  deleteTesiObject(data); // FIXME see deleteTesiObject
+  
+  shoes_global_console = 0;
+  return FALSE;
+}
+
+void shoes_native_app_console(char *app_dir) {
+  GtkWidget *window;
+  GtkWidget *vte;  
+  VteTerminal *terminal;
+  GtkWidget *vbox;
+  GtkScrolledWindow *sw;
+  //PangoFontDescription *pfd;  // for terminal
+  PangoFontDescription *bpfd; // for Label in button panel
+
+  struct tesiObject *t;
+
+  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  // size set below based on font (80x24)
+  gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
+  gtk_window_set_title (GTK_WINDOW (window), "Shoes Terminal");
+  
+  // like a Shoes stack at the top.
+  vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 2);
+  gtk_container_add (GTK_CONTAINER (window), vbox);
+
+  // need a panel with a string (icon?), copy button and clear button
+
+  GtkWidget *btnpnl = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2); // think flow layout
+  // create widgets for btnpnl - icon, label, clear, copy
+  // icon is wicked 
+  char icon_path[256];
+  sprintf(icon_path, "%s/static/app-icon.png", app_dir);
+  GdkPixbuf *icon_pix = gdk_pixbuf_new_from_file_at_size(icon_path, 32, 32, NULL);
+  GtkWidget *icon = gtk_image_new_from_pixbuf(icon_pix);
+  gtk_box_pack_start (GTK_BOX(btnpnl), icon, 1, 0, 0);
+  
+  GtkWidget *announce = gtk_label_new("Shoes Terminal");
+  bpfd = pango_font_description_from_string ("Sans-Serif 14");
+  gtk_widget_override_font (announce, bpfd);
+  gtk_box_pack_start(GTK_BOX(btnpnl), announce, 1, 0, 0);
+  
+  GtkWidget *clrbtn = gtk_button_new_with_label ("Clear");
+  gtk_box_pack_start (GTK_BOX(btnpnl), clrbtn, 1, 0, 0);
+  
+  GtkWidget *cpybtn = gtk_button_new_with_label ("Copy");
+  gtk_box_pack_start (GTK_BOX(btnpnl), cpybtn, 1, 0, 0);
+  gtk_box_pack_start (GTK_BOX(vbox), GTK_WIDGET(btnpnl), 0, 0, 0);
+  
+  GdkColor fg_color, bg_color;
+  gdk_color_parse ("black", &fg_color);
+  gdk_color_parse ("white", &bg_color);
+
+  // then a widget/panel for the terminal
+  vte = vte_terminal_new();
+  terminal = VTE_TERMINAL (vte);
+  vte_terminal_set_background_transparent(VTE_TERMINAL(vte), FALSE); //deprecated
+  vte_terminal_set_size(terminal, 80, 25);
+  vte_terminal_set_color_background(terminal, &bg_color); 
+  vte_terminal_set_color_foreground(terminal, &fg_color);
+  vte_terminal_set_scrollback_lines(terminal, -1); /* infinite scrollback */
+  vte_terminal_set_scroll_on_keystroke(VTE_TERMINAL (vte), TRUE);
+
+  sw = GTK_SCROLLED_WINDOW(gtk_scrolled_window_new(NULL, NULL));
+  gtk_scrolled_window_set_policy( GTK_SCROLLED_WINDOW(sw),
+    GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
+  gtk_box_pack_start (GTK_BOX (vbox), vte, 1, 1, 0);
+  gtk_box_pack_start (GTK_BOX (vbox), GTK_WIDGET(sw), 1, 1, 0);
+
+
+
+  // printf("%s\n", vte_terminal_get_emulation(VTE_TERMINAL (vte)));
+
+  // setup the pty and callback 
+  t = newTesiObject("/bin/bash", 80, 24); // first arg not used
+  t->pointer = terminal;
+  t->callback_haveCharacter = &terminal_haveChar;
+  /* cjc - haveCharacter short circuts all of these callbacks:
+  t->callback_handleNL = &console_newline;
+  t->callback_handleRTN = &console_return;
+  t->callback_handleBS = &console_backspace;
+  t->callback_handleTAB = &console_tab; 
+  t->callback_handleBEL = NULL;
+  t->callback_printCharacter = &console_visAscii;
+  t->callback_attreset = &terminal_attreset;
+  t->callback_charattr = NULL;
+  t->callback_setfgcolor= &terminal_setfgcolor;
+  t->callback_setbgcolor = NULL;
+  t->callback_attributes = NULL; // old tesi
+
+  t->callback_eraseCharacter = NULL; // &console_eraseCharacter;
+  t->callback_moveCursor = NULL; // &console_moveCursor;
+  t->callback_insertLine = NULL; //&console_insertLine;
+  t->callback_eraseLine = NULL; //&console_eraseLine;
+  t->callback_scrollUp = NULL; // &console_scrollUp;
+  */
+  g_signal_connect(G_OBJECT(window), "delete_event", G_CALLBACK(clean), t);
+  g_signal_connect (G_OBJECT (vte), "key-press-event", G_CALLBACK (keypress_event), t);
+  g_signal_connect (G_OBJECT (clrbtn), "clicked", G_CALLBACK (clear_console), t);
+  g_signal_connect (G_OBJECT (cpybtn), "clicked", G_CALLBACK (copy_console), t);
+  
+  gtk_widget_grab_focus(vte);
+  unsigned int ides = g_timeout_add(100, &g_tesi_handleInput, t);
+  t->ides = ides;
+
+  gtk_widget_show_all (window);
+  
+  // TODO: some clean up here. Complete ?
+  // pango_font_description_free(pfd);
+  pango_font_description_free(bpfd);
+  // pango_tab_array_free(tab_array);
+  // g_object_unref(playout);
+  return;
+}
+
+#endif
