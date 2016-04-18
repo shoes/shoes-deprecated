@@ -178,36 +178,64 @@ void console_tab(struct tesiObject *tobj, int x, int y) {
  * 
 */
 
-static GdkRGBA colortable[10];
-static void initattr() {
-  gdk_rgba_parse (&colortable[0], "black");
-  gdk_rgba_parse (&colortable[1], "red");
-  gdk_rgba_parse (&colortable[2], "green");
-  gdk_rgba_parse (&colortable[3], "brown");
-  gdk_rgba_parse (&colortable[4], "blue");
-  gdk_rgba_parse (&colortable[5], "magenta");
-  gdk_rgba_parse (&colortable[6], "cyan");
-  gdk_rgba_parse (&colortable[7], "white");
-  gdk_rgba_parse (&colortable[8], "black");  // weird one not used? default?
-  gdk_rgba_parse (&colortable[9], "black");  // weird one not used? default?
-  // set tabs ? 
+static  GtkTextTag *colortag[10];
+
+static void initattr(GtkTextBuffer *buffer) {
+  colortag[0] =  gtk_text_buffer_create_tag(buffer, "blackfb","foreground", "black", NULL);
+  colortag[1] =  gtk_text_buffer_create_tag(buffer, "redfb","foreground", "red", NULL);
+  colortag[2] =  gtk_text_buffer_create_tag(buffer, "greenfb","foreground", "green", NULL);
+  colortag[3] =  gtk_text_buffer_create_tag(buffer, "brownfb","foreground", "brown", NULL);
+  colortag[4] =  gtk_text_buffer_create_tag(buffer, "bluefb","foreground", "blue", NULL);
+  colortag[5] =  gtk_text_buffer_create_tag(buffer, "magentafb","foreground", "magenta", NULL);
+  colortag[6] =  gtk_text_buffer_create_tag(buffer, "cyanfb","foreground", "cyan", NULL);
+  colortag[7] =  gtk_text_buffer_create_tag(buffer, "white","foreground", "white", NULL);
+  colortag[8] =  gtk_text_buffer_create_tag(buffer, "odd1fb","foreground", "black", NULL);
+  colortag[9] =  gtk_text_buffer_create_tag(buffer, "odd2fb","foreground", "black", NULL);
+  // background tags here
 }
+
+struct tagcapture {
+  int open;
+  GtkTextTag *tag;;
+  int begpos; // buffer offsets - marks and iters are troublesome
+  int endpos; 
+} capture;
 
 void terminal_attreset(struct tesiObject *tobj) {
   // reset all attibutes (color, blink,...)
   GtkWidget *view = GTK_WIDGET(tobj->pointer);
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));
-  // This changes the whole buffer/view which is not what we want.    
-  //gtk_widget_override_color (view, GTK_STATE_FLAG_NORMAL, NULL);
-}
+  // close the tagcapture - apply the save color from saved pt to where
+  // the cursor is now. These are buffer offsets converted to iters.
+  if (capture.open > 0) {
+    GtkTextIter start;
+    GtkTextIter end;
+    GtkTextMark *endmark;
+    endmark = gtk_text_buffer_get_insert(buffer); // cursor 'insert' mark
+    gtk_text_buffer_get_iter_at_mark(buffer, &end, endmark);
+    // convert begpos (correct offset) to start iter;
+    gtk_text_buffer_get_iter_at_offset(buffer, &start, capture.begpos);
+    gtk_text_buffer_apply_tag(buffer, capture.tag, &start, &end);
+    capture.open = 0;
+    // should delete or unref marks and otherwise clean up memory
+  }
+} 
 
 void terminal_setfgcolor(struct tesiObject *tobj, int fg) {
   GtkWidget *view = GTK_WIDGET(tobj->pointer);
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));
-  // This changes the whole buffer/view which is not what we want. 
-  // Might be useful for initializing the whole    
-  GdkRGBA rgba = colortable[fg - 30];
-  gtk_widget_override_color (view, GTK_STATE_FLAG_NORMAL, &rgba);
+  // open a tagcapture (what ever that is)
+  // store the cursor pt in it. and the ptr to the color tag
+  capture.open = 1;
+  capture.tag = colortag[fg - 30];
+  GtkTextMark *mark = gtk_text_buffer_get_insert(buffer); // cursor mark named 'insert'
+  GtkTextIter start;
+  // convert mark to iter to pos
+  gtk_text_buffer_get_iter_at_mark(buffer, &start, mark);
+  capture.begpos = gtk_text_iter_get_offset(&start); 
+  //capture.startmark = gtk_text_buffer_create_mark(buffer, "stcolor", &start, FALSE);
+  // iter's don't live if characters in its range are modified (and they will be here)
+  // since they are arriving from the pty
 }
 
 // functions that haven't been tested. May not work or incomplete
@@ -361,11 +389,9 @@ void shoes_native_app_console(char *app_dir) {
   gtk_text_view_set_right_margin(GTK_TEXT_VIEW(canvas), 4);
   gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(canvas), GTK_WRAP_CHAR);
   
-  // init attributes
-  initattr();
 
   // set font for scrollable window
-  pfd = pango_font_description_from_string ("monospace 10");
+  pfd = pango_font_description_from_string ("monospace 12");
   gtk_widget_override_font (announce, pfd);
 
   // compute 'char' width and tab settings.
@@ -379,6 +405,9 @@ void shoes_native_app_console(char *app_dir) {
   tab_array = pango_tab_array_new(1, TRUE);
   pango_tab_array_set_tab( tab_array, 0, PANGO_TAB_LEFT, tabwidth);
   gtk_text_view_set_tabs(GTK_TEXT_VIEW(canvas), tab_array);
+  
+  // init attributes
+  initattr(gtk_text_view_get_buffer(GTK_TEXT_VIEW(canvas)));
   
   gtk_widget_set_size_request (GTK_WIDGET (sw), 80*charwidth, 24*charheight);
 
