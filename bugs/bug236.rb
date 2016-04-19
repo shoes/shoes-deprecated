@@ -12,8 +12,8 @@ Shoes.app do
       puts "Way to go!"
       puts "\033[32mGood in green?\033[00m or is \033\[35mthis better\033\[00m"
       puts "\033[31m\033[40mRed on Black\033[0m OK? \033[01mBold?\033[0m"
-      puts "And \033[04;33mUnderline joy?\033\[0m"
-      $stderr.puts "We can perform some cursor test - enter 'q' to quit, 'n' to skip"
+      puts "And \033[04;33;46mUnderline joy?\033\[0m"
+      $stderr.puts "We can perform some cursor tests - enter 'q' to quit, 'n' to skip"
       require 'readline'
       Thread.new do
         loop do
