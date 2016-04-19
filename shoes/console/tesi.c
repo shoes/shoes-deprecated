@@ -390,17 +390,20 @@ void tesi_processAttributes(struct tesiObject *to ) {
   if (attr == 0) {
     if (to->callback_attreset)
         to->callback_attreset(to);
-  } else if (attr > 0 && attr < 30) { // 1..29
+  } else if (attr > 0 && attr <= 27) { // 1..27
      if (to->callback_charattr) 
        to->callback_charattr(to, attr); 
-  } else if (attr > 29 && attr < 38) { // 30..37
+  } else if (attr >= 30 && attr <= 37) { // 30..37
       if (to->callback_setfgcolor)
         to->callback_setfgcolor(to, attr);
-  } else if (attr >= 40 &&  attr < 50) {
+  } else if (attr >= 40 &&  attr <= 47) {
       if (to->callback_setbgcolor) 
         to->callback_setbgcolor(to, attr);
+  } else if ((attr == 38) || (attr == 39) || (attr = 49)) {
+      if (to->callback_setdefcolor)
+        to->callback_setdefcolor(to, attr);
   } else {
-      // 38 and 39 are ignored. 
+      // ignored. 
   }
 }
 
@@ -535,7 +538,11 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
   dup2(to->ptySlave, fileno(stdin));
   dup2(to->ptySlave, fileno(stdout));
   dup2(to->ptySlave, fileno(stderr));
-  setenv("TERM","xterm-256",1); // vt102
+#ifdef SHOES_QUARTZ
+  setenv("TERM","xterm-256",1); 
+#else
+  setenv("TERM","xterm",1); 
+#endif
   sprintf(message, "%d", width);
   setenv("COLUMNS", message, 1);
   sprintf(message, "%d", height);

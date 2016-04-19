@@ -65,9 +65,10 @@ struct tesiObject {
 	void (*callback_printString)(void*, char*, int, int, int); // print string of length at x, y
   
   void (*callback_attreset)(struct tesiObject *);  // reset all attributes
-  void (*callback_charattr)(struct tesiObject *, int);  // char based attributes 1..29
-  void (*callback_setbgcolor)(struct tesiObject *, int);  // attr 40..49
+  void (*callback_charattr)(struct tesiObject *, int);  // char based attributes 1..27
+  void (*callback_setbgcolor)(struct tesiObject *, int);  // attr 40..47
   void (*callback_setfgcolor)(struct tesiObject *, int); // set text color attribute 30..37
+  void (*callback_setdefcolor)(struct tesiObject *, int); // 38,39,49 set default color
 
 	void (*callback_clearScreen)(struct tesiObject *); // clear canvas
 	void (*callback_insertCharacter)(struct tesiObject *, char, int, int); // insert character at x, y

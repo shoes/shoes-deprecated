@@ -117,7 +117,7 @@ void console_haveChar(void *p, char c) {
 
 // for more control, implement this
 
-void console_visAscii(struct tesiObject *tobj, char c, int x, int y) {
+void terminal_visAscii(struct tesiObject *tobj, char c, int x, int y) {
 	char in[8];
 	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
@@ -134,11 +134,11 @@ void console_visAscii(struct tesiObject *tobj, char c, int x, int y) {
       insert_mark, 0.0, TRUE, 0.0, 1.0);
 }
 
-void console_return(struct tesiObject *tobj, int x, int y) {
+void terminal_return(struct tesiObject *tobj, int x, int y) {
   // do nothing for now
 }
 
-void console_newline(struct tesiObject *tobj, int x, int y) {
+void terminal_newline(struct tesiObject *tobj, int x, int y) {
 	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
   GtkTextIter iter_e;
@@ -153,7 +153,7 @@ void console_newline(struct tesiObject *tobj, int x, int y) {
       insert_mark, 0.0, TRUE, 0.0, 1.0);
 }
 
-void console_backspace(struct tesiObject *tobj, int x, int y) {
+void terminal_backspace(struct tesiObject *tobj, int x, int y) {
 	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
   GtkTextIter iter_e;
@@ -169,40 +169,51 @@ void console_backspace(struct tesiObject *tobj, int x, int y) {
   gtk_text_view_scroll_to_mark( GTK_TEXT_VIEW (view),
       insert_mark, 0.0, TRUE, 0.0, 1.0);
 }
-void console_tab(struct tesiObject *tobj, int x, int y) {
-  return console_visAscii(tobj, '\t', x, y);
+void terminal_tab(struct tesiObject *tobj, int x, int y) {
+  return terminal_visAscii(tobj, '\t', x, y);
 }
 
 /*  
  * Handle terminal attributes to Gtk Textview/buffer settings
  * 
 */
-
-static  GtkTextTag *colortag[10];
-
-static void initattr(GtkTextBuffer *buffer) {
-  colortag[0] =  gtk_text_buffer_create_tag(buffer, "blackfb","foreground", "black", NULL);
-  colortag[1] =  gtk_text_buffer_create_tag(buffer, "redfb","foreground", "red", NULL);
-  colortag[2] =  gtk_text_buffer_create_tag(buffer, "greenfb","foreground", "green", NULL);
-  colortag[3] =  gtk_text_buffer_create_tag(buffer, "brownfb","foreground", "brown", NULL);
-  colortag[4] =  gtk_text_buffer_create_tag(buffer, "bluefb","foreground", "blue", NULL);
-  colortag[5] =  gtk_text_buffer_create_tag(buffer, "magentafb","foreground", "magenta", NULL);
-  colortag[6] =  gtk_text_buffer_create_tag(buffer, "cyanfb","foreground", "cyan", NULL);
-  colortag[7] =  gtk_text_buffer_create_tag(buffer, "white","foreground", "white", NULL);
-  colortag[8] =  gtk_text_buffer_create_tag(buffer, "odd1fb","foreground", "black", NULL);
-  colortag[9] =  gtk_text_buffer_create_tag(buffer, "odd2fb","foreground", "black", NULL);
-  // background tags here
-}
-
 struct tagcapture {
   int open;
-  GtkTextTag *tag;;
-  int begpos; // buffer offsets - marks and iters are troublesome
-  int endpos; 
+  GtkTextTag *tag[8]; // this many tags in a Esc [ 1;2;  8m
+  int begpos;         // buffer offsets - marks and iters are troublesome
+  int endpos;         // Be wery, wery careful -- Elmer Fudd
 } capture;
 
+static  GtkTextTag *fgcolortag[8];
+static  GtkTextTag *bgcolortag[8];
+static  GtkTextTag *chartags[4];
+
+static void initattr(GtkTextBuffer *buffer) {
+  fgcolortag[0] =  gtk_text_buffer_create_tag(buffer, "blackfb","foreground", "black", NULL);
+  fgcolortag[1] =  gtk_text_buffer_create_tag(buffer, "redfb","foreground", "red", NULL);
+  fgcolortag[2] =  gtk_text_buffer_create_tag(buffer, "greenfb","foreground", "green", NULL);
+  fgcolortag[3] =  gtk_text_buffer_create_tag(buffer, "brownfb","foreground", "brown", NULL);
+  fgcolortag[4] =  gtk_text_buffer_create_tag(buffer, "bluefb","foreground", "blue", NULL);
+  fgcolortag[5] =  gtk_text_buffer_create_tag(buffer, "magentafb","foreground", "magenta", NULL);
+  fgcolortag[6] =  gtk_text_buffer_create_tag(buffer, "cyanfb","foreground", "cyan", NULL);
+  fgcolortag[7] =  gtk_text_buffer_create_tag(buffer, "white","foreground", "white", NULL);
+  
+  bgcolortag[0] =  gtk_text_buffer_create_tag(buffer, "blackbg","background", "black", NULL);
+  bgcolortag[1] =  gtk_text_buffer_create_tag(buffer, "redbg","background", "red", NULL);
+  bgcolortag[2] =  gtk_text_buffer_create_tag(buffer, "greenbg","background", "green", NULL);
+  bgcolortag[3] =  gtk_text_buffer_create_tag(buffer, "brownbg","background", "brown", NULL);
+  bgcolortag[4] =  gtk_text_buffer_create_tag(buffer, "bluebg","background", "blue", NULL);
+  bgcolortag[5] =  gtk_text_buffer_create_tag(buffer, "magentabg","background", "magenta", NULL);
+  bgcolortag[6] =  gtk_text_buffer_create_tag(buffer, "cyanbg","background", "cyan", NULL);
+  bgcolortag[7] =  gtk_text_buffer_create_tag(buffer, "whitebg","background", "white", NULL);
+  
+  chartags[0] = gtk_text_buffer_create_tag(buffer, "boldtag","weight", PANGO_WEIGHT_BOLD, NULL);
+  chartags[1] = gtk_text_buffer_create_tag(buffer, "underlinetag","underline", PANGO_UNDERLINE_SINGLE, NULL);
+  capture.open = 0;
+}
+
 void terminal_attreset(struct tesiObject *tobj) {
-  // reset all attibutes (color, blink,...)
+  // reset all attibutes (color, bold,...)
   GtkWidget *view = GTK_WIDGET(tobj->pointer);
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));
   // close the tagcapture - apply the save color from saved pt to where
@@ -215,7 +226,10 @@ void terminal_attreset(struct tesiObject *tobj) {
     gtk_text_buffer_get_iter_at_mark(buffer, &end, endmark);
     // convert begpos (correct offset) to start iter;
     gtk_text_buffer_get_iter_at_offset(buffer, &start, capture.begpos);
-    gtk_text_buffer_apply_tag(buffer, capture.tag, &start, &end);
+    int j;
+    for (j = 0; j < capture.open; j++) {
+      gtk_text_buffer_apply_tag(buffer, capture.tag[j], &start, &end);
+    }
     capture.open = 0;
     // should delete or unref marks and otherwise clean up memory
   }
@@ -224,18 +238,47 @@ void terminal_attreset(struct tesiObject *tobj) {
 void terminal_setfgcolor(struct tesiObject *tobj, int fg) {
   GtkWidget *view = GTK_WIDGET(tobj->pointer);
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));
-  // open a tagcapture (what ever that is)
-  // store the cursor pt in it. and the ptr to the color tag
-  capture.open = 1;
-  capture.tag = colortag[fg - 30];
+  capture.tag[capture.open] = fgcolortag[fg - 30];
   GtkTextMark *mark = gtk_text_buffer_get_insert(buffer); // cursor mark named 'insert'
   GtkTextIter start;
   // convert mark to iter to pos
   gtk_text_buffer_get_iter_at_mark(buffer, &start, mark);
   capture.begpos = gtk_text_iter_get_offset(&start); 
+  capture.open++; // make room for the next tag
   //capture.startmark = gtk_text_buffer_create_mark(buffer, "stcolor", &start, FALSE);
   // iter's don't live if characters in its range are modified (and they will be here)
-  // since they are arriving from the pty
+}
+
+void terminal_setbgcolor(struct tesiObject *tobj, int bg) {
+  GtkWidget *view = GTK_WIDGET(tobj->pointer);
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));
+  capture.tag[capture.open] = bgcolortag[bg - 40];
+  GtkTextMark *mark = gtk_text_buffer_get_insert(buffer); // cursor mark named 'insert'
+  GtkTextIter start;
+  // convert mark to iter to pos
+  gtk_text_buffer_get_iter_at_mark(buffer, &start, mark);
+  capture.begpos = gtk_text_iter_get_offset(&start); 
+  capture.open++; // make room for the next tag  
+}
+
+void terminal_charattr(struct tesiObject *tobj, int attr) {
+  GtkTextTag *tag = NULL;
+  if (attr == 1) {
+    tag = chartags[0];
+  } else if (attr == 4) {
+    tag = chartags[1];
+  }
+  if (tag != NULL) {
+    GtkWidget *view = GTK_WIDGET(tobj->pointer);
+	  GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));
+    capture.tag[capture.open] = tag;
+    GtkTextMark *mark = gtk_text_buffer_get_insert(buffer); // cursor mark named 'insert'
+    GtkTextIter start;
+    // convert mark to iter to pos
+    gtk_text_buffer_get_iter_at_mark(buffer, &start, mark);
+    capture.begpos = gtk_text_iter_get_offset(&start); 
+    capture.open++; // make room for the next tag    
+  }
 }
 
 // functions that haven't been tested. May not work or incomplete
@@ -415,16 +458,17 @@ void shoes_native_app_console(char *app_dir) {
   t->pointer = canvas;
   //t->callback_haveCharacter = &console_haveChar;
   // cjc - haveCharacter short circuts much (all?) of these callbacks:
-  t->callback_handleNL = &console_newline;
-  t->callback_handleRTN = &console_return;
-  t->callback_handleBS = &console_backspace;
-  t->callback_handleTAB = &console_tab; 
+  t->callback_handleNL = &terminal_newline;
+  t->callback_handleRTN = &terminal_return;
+  t->callback_handleBS = &terminal_backspace;
+  t->callback_handleTAB = &terminal_tab; 
   t->callback_handleBEL = NULL;
-  t->callback_printCharacter = &console_visAscii;
+  t->callback_printCharacter = &terminal_visAscii;
   t->callback_attreset = &terminal_attreset;
-  t->callback_charattr = NULL;
+  t->callback_charattr = terminal_charattr;
   t->callback_setfgcolor= &terminal_setfgcolor;
-  t->callback_setbgcolor = NULL;
+  t->callback_setbgcolor = &terminal_setbgcolor;
+  t->callback_setdefcolor = NULL;
   t->callback_attributes = NULL; // old tesi
 
   t->callback_eraseCharacter = NULL; // &console_eraseCharacter;
