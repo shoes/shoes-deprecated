@@ -281,7 +281,10 @@ void terminal_charattr(struct tesiObject *tobj, int attr) {
   }
 }
 
+void terminal_clearscreen(struct tesiObject *tobj) {
+}
 // functions that haven't been tested. May not work or incomplete
+
 
 void console_eraseCharacter(struct tesiObject *tobj, int x, int y) {
 	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
@@ -470,7 +473,8 @@ void shoes_native_app_console(char *app_dir) {
   t->callback_setbgcolor = &terminal_setbgcolor;
   t->callback_setdefcolor = NULL;
   t->callback_attributes = NULL; // old tesi
-
+  
+  t->callback_clearScreen = &terminal_clearscreen;
   t->callback_eraseCharacter = NULL; // &console_eraseCharacter;
   t->callback_moveCursor = NULL; // &console_moveCursor;
   t->callback_insertLine = NULL; //&console_insertLine;
@@ -478,7 +482,6 @@ void shoes_native_app_console(char *app_dir) {
   t->callback_scrollUp = NULL; // &console_scrollUp;
   
   g_signal_connect(G_OBJECT(window), "delete_event", G_CALLBACK(clean), t);
-//  g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK (gtk_main_quit), NULL);
 
   g_signal_connect (G_OBJECT (canvas), "key-press-event", G_CALLBACK (keypress_event), t);
   g_signal_connect (G_OBJECT (clrbtn), "clicked", G_CALLBACK (clear_console), t);

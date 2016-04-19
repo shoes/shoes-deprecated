@@ -65,31 +65,24 @@ int tesi_handleInput(struct tesiObject *to) {
 
 	lengthRead = read(to->ptyMaster, input, 128);
 
-	//f = fopen("output", "a+");
-	//fwrite(input, lengthRead, 1, f);
-	//fclose(f);
-
 	pointer = input;
 	for(i = 0; i < lengthRead; i++, pointer++) {
 		c = *pointer;
 		if(c == 0) { // skip NULL for unicode?
-#ifdef DEBUG
-			fprintf(stderr, "Skipped a NULL character\n");
-#endif
 			continue;
 		}
 		// has Shoes put a short circuit in? Call it
 		if (to->callback_haveCharacter) {
 			to->callback_haveCharacter(to, c);
 			continue;
-	    }
+    }
 
 		if((c >= 1 && c <= 31) || c == 127) {
 			tesi_handleControlCharacter(to, c);
 			continue;
 		}
 
-		if(to->partialSequence) {
+		if(to->partialSequence) { // was set in tesi_handleControlCharacter()
 			// keep track of the sequence type. some
 			to->sequence[ to->sequenceLength++ ] = c;
 			to->sequence[ to->sequenceLength ] = 0;
@@ -100,10 +93,7 @@ int tesi_handleInput(struct tesiObject *to) {
 				to->partialSequence = 0;
 
 			if(to->partialSequence == 0) {
-#ifdef DEBUG
-				fprintf(stderr, "Sequence: %s\n", to->sequence);
-#endif
-				tesi_interpretSequence(to);
+				tesi_interpretSequence(to); // we've got everything in th esc sequence
 				to->sequenceLength = 0;
 				to->parametersLength = 0;
 			}
@@ -214,7 +204,7 @@ int tesi_handleControlCharacter(struct tesiObject *to, char c) {
 }
 
 /*
- * once ab escape sequence has been completely read from buffer, it's passed here
+ * once an escape sequence has been completely read from buffer, it's passed here
  * it is interpreted and makes calls to appropriate callbacks
  * This skips the [ present in most sequences
  */
@@ -226,18 +216,37 @@ void tesi_interpretSequence(struct tesiObject *to) {
 	char operation = to->sequence[to->sequenceLength - 1];
 	int i,j;
 
-#ifdef DEBUG
-	//fprintf(stderr, "Operation: %c\n", operation);
-#endif
-
 	// preliminary reset of parameters
 	for(i=0; i<6; i++)
 		to->parameters[i] = 0;
 	to->parametersLength = 0;
 
-	if(*secondChar == '?')
+	if(*secondChar == '?')   //ignore it
 		p++;
-
+  // in ecma 48 terms, we are in a CSI and we have all the chars.
+  // is 'm' at the end (SGR?)
+  int endptr = strlen(to->sequence);
+  if (to->sequence[endptr-1] == 'm') {
+    p++;  // past the '['
+    c = *p;
+    int accum = 0;
+    while ((c >= '0' && c <= '9') ||  c == ';' || c == 'm')  {
+      if (c == ';') {
+        tesi_processAttributes(to, accum);
+        accum = 0;
+      } else if (c == 'm') {
+        tesi_processAttributes(to, accum);
+        accum = 0;
+        return;
+      } else {
+        accum = accum * 10;
+        accum += c - '0';
+     }
+      p++;
+      c = *p;
+    }
+    return;
+  }
 	// parse numeric parameters
 	q = p++; //cjc: add ++
 	c = *p;
@@ -264,9 +273,9 @@ void tesi_interpretSequence(struct tesiObject *to) {
 			// RESET INITIALIZATIONS
 			case 'R': // defaults
 				to->parameters[0] = 0;
-				tesi_processAttributes(to);
+				tesi_processAttributes(to, to->parameters[0]) ; // FIXME:
 				to->parameters[0] = 1;
-				tesi_processAttributes(to);
+				tesi_processAttributes(to, to->parameters[0]); // FIXME:
 				// scroll regions, colors, etc.
 				break;
 			case 'C': // clear screen
@@ -301,10 +310,10 @@ void tesi_interpretSequence(struct tesiObject *to) {
 
 			// ATTRIBUTES AND MODES
 			case 'a': // change output attributes
-				tesi_processAttributes(to);
+				tesi_processAttributes(to, 0); // FIXME
 				break;
       case 'm':  // what really works; 
-				tesi_processAttributes(to);
+				tesi_processAttributes(to, 0); // FIXME
 				break;
 			case 'I': // enter/exit insert mode
 				break;
@@ -382,11 +391,10 @@ void tesi_interpretSequence(struct tesiObject *to) {
 }
 
 
-void tesi_processAttributes(struct tesiObject *to ) {
+void tesi_processAttributes(struct tesiObject *to, int attr) {
   // cjc: modify for ECMA 48 SGR terminals. attributes in tesi
   // are useless. Maintain them in the caller as needed
   // http://man7.org/linux/man-pages/man4/console_codes.4.html
-  int attr = to->parameters[0];
   if (attr == 0) {
     if (to->callback_attreset)
         to->callback_attreset(to);

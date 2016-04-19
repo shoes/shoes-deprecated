@@ -68,7 +68,7 @@ input until you enter 'quit' at the beginning of a line. quit will exit Shoes \n
           loop do
             ln = Readline.readline('> ', false)
             if ln.strip == 'quit'
-              $stderr.write "really quit (y/n)"
+              $stderr.write "really quit (y/n) "
               ans = Readline.readline.strip
               exit if ans == 'y'
             end
