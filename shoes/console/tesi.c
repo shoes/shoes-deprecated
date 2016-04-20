@@ -205,7 +205,7 @@ int tesi_handleControlCharacter(struct tesiObject *to, char c) {
 
 /*
  * once an escape sequence has been completely read from buffer, it's passed here
- * it is interpreted and makes calls to appropriate callbacks
+ * It is interpreted and makes calls to appropriate callbacks
  * This skips the [ present in most sequences
  */
 void tesi_interpretSequence(struct tesiObject *to) {
@@ -216,13 +216,14 @@ void tesi_interpretSequence(struct tesiObject *to) {
 	char operation = to->sequence[to->sequenceLength - 1];
 	int i,j;
 
-	// preliminary reset of parameters
+	// init parameters to zero
 	for(i=0; i<6; i++)
 		to->parameters[i] = 0;
 	to->parametersLength = 0;
 
 	if(*secondChar == '?')   //ignore it
 		p++;
+#if 0
   // in ecma 48 terms, we are in a CSI and we have all the chars.
   // is 'm' at the end (SGR?)
   int endptr = strlen(to->sequence);
@@ -247,13 +248,15 @@ void tesi_interpretSequence(struct tesiObject *to) {
     }
     return;
   }
+#endif
 	// parse numeric parameters
 	q = p++; //cjc: add ++
 	c = *p;
+  
 	while ((c >= '0' && c <= '9') || c == ';') {
 		if (c == ';') {
-			//if (to->parametersLength >= MAX_CSI_ES_PARAMS)
-				//return;
+			if (to->parametersLength > 6)
+				return;  // too many - best to ignore.
 			to->parametersLength++;
 		} else {
 			j = to->parameters[ to->parametersLength ];
@@ -271,35 +274,33 @@ void tesi_interpretSequence(struct tesiObject *to) {
 		int j;
 		switch(operation) {
 			// RESET INITIALIZATIONS
-			case 'R': // defaults
+			case 'l': // defaults
 				to->parameters[0] = 0;
 				tesi_processAttributes(to, to->parameters[0]) ; // FIXME:
 				to->parameters[0] = 1;
 				tesi_processAttributes(to, to->parameters[0]); // FIXME:
 				// scroll regions, colors, etc.
 				break;
-			case 'C': // clear screen
-#ifdef DEBUG
-				fprintf(stderr, "Clear screen\n");
-#endif
-        if (to->callback_clearScreen) {
-          to->callback_clearScreen(to);
-          break; // don't do ugly clear
+			case 'J': // clear screen
+        if  (to->parameters[0] >= 2) {
+          if (to->callback_clearScreen) {
+            to->callback_clearScreen(to, to->parameters == 3);
+          } else {
+            for(i = 0; i < to->height; i++) {
+					    if(to->callback_moveCursor)
+						    to->callback_moveCursor(to, 0, i);
+					    if(to->callback_eraseLine)
+						    to->callback_eraseLine(to, i);
+				    }
+          }
+				  to->x = to->y = 0;
+				  if(to->callback_moveCursor)
+						  to->callback_moveCursor(to, to->x, to->y);
         }
-
-				for(i = 0; i < to->height; i++) {
-					if(to->callback_moveCursor)
-						to->callback_moveCursor(to, 0, i);
-					if(to->callback_eraseLine)
-						to->callback_eraseLine(to, i);
-				}
-				to->x = to->y = 0;
-				if(to->callback_moveCursor)
-						to->callback_moveCursor(to, to->x, to->y);
 				break;
 
 			// LINE-RELATED
-			case 'c': // clear line
+			case 'K': // clear line -- 
 				if(to->callback_eraseLine)
 					to->callback_eraseLine(to, to->y);
 				break;
@@ -309,17 +310,15 @@ void tesi_interpretSequence(struct tesiObject *to) {
 				break;
 
 			// ATTRIBUTES AND MODES
-			case 'a': // change output attributes
-				tesi_processAttributes(to, 0); // FIXME
+      case 'm':  // SGR attributes 
+        for (i = 0; i < to->parametersLength; i++) 
+				  tesi_processAttributes(to, to->parameters[i]);
 				break;
-      case 'm':  // what really works; 
-				tesi_processAttributes(to, 0); // FIXME
-				break;
-			case 'I': // enter/exit insert mode
+			case 'h': // enter/exit insert mode
 				break;
 
 			// CURSOR RELATED
-			case 'M': // cup. move to col, row, cursor to home
+			case 'H': // CUP. move to col, row, cursor to home
 #ifdef DEBUG
 				//fprintf(stderr, "Move cursor (x,y): %d %d\n", to->x, to->y);
 #endif

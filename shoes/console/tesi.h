@@ -70,7 +70,7 @@ struct tesiObject {
   void (*callback_setfgcolor)(struct tesiObject *, int); // set text color attribute 30..37
   void (*callback_setdefcolor)(struct tesiObject *, int); // 38,39,49 set default color
 
-	void (*callback_clearScreen)(struct tesiObject *); // clear canvas
+	void (*callback_clearScreen)(struct tesiObject *, int scrollback); // clear canvas
 	void (*callback_insertCharacter)(struct tesiObject *, char, int, int); // insert character at x, y
 	void (*callback_insertLine)(struct tesiObject *, int); // insert line at line y
 	void (*callback_eraseLine)(struct tesiObject *, int); // erase line at line y
