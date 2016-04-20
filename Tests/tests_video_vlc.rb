@@ -2,11 +2,13 @@
 
 require 'test/unit'
 require 'test/unit/ui/console/testrunner'
-require 'video_vlc_01.rb'
+require 'video_vlc.rb'
 
 require 'shoes/videoffi'
 
 Shoes.app title: "Testing Shoes video" do
+    
+    TestRunner = Test::Unit::UI::Console::TestRunner
     
     TESTS = {
         VideoVlcTest0 => { desc: ["Most Basic unique Test : no path/url, no dimensions\n",
@@ -53,7 +55,7 @@ Shoes.app title: "Testing Shoes video" do
     
     style(Shoes::Para, size: 10)
     
-    build_test_gui = -> (t, details) do
+    build_test_gui = -> (t, details, silent) do
         # if we try to draw tests widgets in a non visible area, drawing events are not triggered and
         # Test processing hangs (waits) - start event is not fired -
         # So we create a sand_box at top of Shoes app and scroll back there if necessary to 
@@ -74,34 +76,45 @@ Shoes.app title: "Testing Shoes video" do
         # waiting for shoes asynchronous drawing events to occur.
         @cont.start {
             ## There could be only one console at a time (we can safely call it many times)
-            #Shoes.show_console
-            Shoes::show_console
+            Shoes.show_console unless silent
             if RUBY_PLATFORM =~ /darwin/
               $stdout = $stderr
             end
             
-            @test_result = Test::Unit::UI::Console::TestRunner.run(t.suite)
+            out_level = silent ? TestRunner::SILENT : TestRunner::NORMAL
+            @test_result = TestRunner.run(t.suite, output_level: out_level)
             
-            puts "#{'='*40}\n\n"
+            puts "#{'='*40}\n\n" unless silent
             @sand_box.clear
+            @vid = nil
             @sand_box.start { @test_complete = true }
         }
     end
     
     stack margin_left: 10, margin_right: 10 do
-        para "\t\tLaunches Shoes terminal to collect results of Tests"
+        para "Launches Shoes terminal to collect results of Tests", align: "center"
         
         flow do
             @sand_box = stack(height: 50, width: 279) {}
             flow width: 300 do
-                para "stop tests on failure : "
-                @stop_on_failure = check checked: false
+                stack do
+                    flow do
+                        para "Silent tests : "
+                        @no_output = check checked: true
+                    end
+                    flow do
+                        para "stop tests on failure : "
+                        @stop_on_failure = check checked: false
+                    end
+                end
                 @visual = rect 200, 0, 30, 30, 5, fill: white
             end
         end
         
         flow margin: [0,0,0,5] do
+            
             button "run ALL Tests" do
+                @got_failure = false
                 @visual.style(fill: white)
                 
                 # We have to wait for each test to complete (asynchronous drawing)
@@ -111,25 +124,28 @@ Shoes.app title: "Testing Shoes video" do
                     
                     if @test_complete
                         if @test_result && @test_result.error_occurred?
-                            anm.stop; anm.remove; anm = nil
                             @test_result = nil
                             @visual.style(fill: yellow)
+                            anm.stop; anm.remove; anm = nil
                         elsif @test_result && @test_result.failure_occurred?
+                            @got_failure = true
+                            
                             if @stop_on_failure.checked?
-                                anm.stop
-                                anm.remove; anm = nil
+                                @visual.style(fill: red)
+                                anm.stop; anm.remove; anm = nil
                             end
                             @test_result = nil
-                            @visual.style(fill: red)
                         else
-                            @test_complete = false
-                            h,i = tenum.next
-                            build_test_gui.call(h[0], h[1])
-                            
-                            if i == TESTS.size-1
-                                anm.stop
-                                anm.remove; anm = nil
-                                @visual.style(fill: green) unless @visual.style[:fill] == red
+                            @test_result = nil
+                            begin
+                                h,i = tenum.next
+                                
+                                @test_complete = false
+                                build_test_gui.call(h[0], h[1], @no_output.checked?)
+                                
+                            rescue StopIteration
+                                @visual.style(fill: @got_failure ? red : green)
+                                anm.stop; anm.remove; anm = nil
                             end
                         end
                     end
@@ -152,7 +168,9 @@ Shoes.app title: "Testing Shoes video" do
             TESTS.each do |t, details|
                 flow do
                     button "run Test" do
-                        build_test_gui.call(t, details)
+                        @visual.style(fill: white)
+                        # always show output (output_level == NORMAL)
+                        build_test_gui.call(t, details, false)
                     end
 
                     para *(["#{t.to_s} : \n"] << details[:desc])
