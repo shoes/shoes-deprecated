@@ -17,7 +17,7 @@ Shoes.app do
       require 'readline'
       Thread.new do
         loop do
-          ans = Readline.readline('Clear screen? ', false).strip
+          ans = Readline.readline('Clear screen? [q/y/n] ', false).strip
           exit if ans == 'q'
           #puts "\033[2J" unless ans == 'n'
           #ans = Readline.readline('Cursor down? ' , false).strip

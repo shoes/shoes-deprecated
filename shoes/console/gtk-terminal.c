@@ -467,7 +467,7 @@ void shoes_native_app_console(char *app_dir) {
   t = newTesiObject("/bin/bash", 80, 24); // first arg not used
   t->pointer = canvas;
   //t->callback_haveCharacter = &console_haveChar;
-  // cjc - haveCharacter short circuts much (all?) of these callbacks:
+  // cjc - haveCharacter short circuts  all? of these callbacks:
   t->callback_handleNL = &terminal_newline;
   t->callback_handleRTN = &terminal_return;
   t->callback_handleBS = &terminal_backspace;
@@ -478,13 +478,16 @@ void shoes_native_app_console(char *app_dir) {
   t->callback_charattr = terminal_charattr;
   t->callback_setfgcolor= &terminal_setfgcolor;
   t->callback_setbgcolor = &terminal_setbgcolor;
+  // that's the minimum set of call backs;
   t->callback_setdefcolor = NULL;
+  t->callback_deleteLines = NULL;
+  t->callback_insertLines = NULL;
   t->callback_attributes = NULL; // old tesi - not used.
   
   t->callback_clearScreen = NULL; //&terminal_clearscreen;
   t->callback_eraseCharacter = NULL; // &console_eraseCharacter;
   t->callback_moveCursor = NULL; // &console_moveCursor;
-  t->callback_insertLine = NULL; //&console_insertLine;
+  t->callback_insertLines = NULL; //&console_insertLine;
   t->callback_eraseLine = NULL; //&console_eraseLine;
   t->callback_scrollUp = NULL; // &console_scrollUp;
   
@@ -584,7 +587,8 @@ void shoes_native_app_console(char *app_dir) {
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   // size set below based on font (80x24)
-  gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
+  //gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
+  gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
   gtk_window_set_title (GTK_WINDOW (window), "Shoes Terminal");
   
   // like a Shoes stack at the top.

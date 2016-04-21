@@ -54,7 +54,6 @@ struct tesiObject {
 	int ptySlave;
 	char *command[3];
 
-	// callbacks - void means no value returned.
 	void (*callback_haveCharacter)(struct tesiObject *, char); // No longer used???
 	void (*callback_printCharacter)(struct tesiObject *, char, int, int); // print character at x, y
   void (*callback_handleRTN)(struct tesiObject *, int, int); 
@@ -69,13 +68,18 @@ struct tesiObject {
   void (*callback_setbgcolor)(struct tesiObject *, int);  // attr 40..47
   void (*callback_setfgcolor)(struct tesiObject *, int); // set text color attribute 30..37
   void (*callback_setdefcolor)(struct tesiObject *, int); // 38,39,49 set default color
-
-	void (*callback_clearScreen)(struct tesiObject *, int scrollback); // clear canvas
+  // cursor based callbacks - caution - maybe not be implemented 
+  // and probably don't do what you think should be done.
+	void (*callback_eraseLine)(struct tesiObject *, int, int, int); // erase line at from_x, to_x, line y
+ 	void (*callback_moveCursor)(struct tesiObject *, int, int); // move to x, y 
+  void (*callback_deleteLines) (struct tesiObject *, int);  // delete is not erase
+ 	void (*callback_insertLines)(struct tesiObject *, int); // insert lines at lines
+   
+	void (*callback_clearScreen)(struct tesiObject *, int scrollback); // 
+  
 	void (*callback_insertCharacter)(struct tesiObject *, char, int, int); // insert character at x, y
-	void (*callback_insertLine)(struct tesiObject *, int); // insert line at line y
-	void (*callback_eraseLine)(struct tesiObject *, int); // erase line at line y
+
 	void (*callback_eraseCharacter)(struct tesiObject *, int, int); // erase character at x, y
-	void (*callback_moveCursor)(struct tesiObject *, int, int);
 	void (*callback_attributes)(struct tesiObject *, short, short, short, short, short, short, short); // bold, blink, inverse, underline, foreground, background, charset
 	void (*callback_scrollRegion)(struct tesiObject *,int,int);
 	void (*callback_scrollUp)(struct tesiObject *);
@@ -87,7 +91,7 @@ struct tesiObject {
 	//int alternativeChar;
 };
 
-// PRIVATE
+// PRIVATE: as if C has that ability! Illusions will continue
 int tesi_handleControlCharacter(struct tesiObject*, char);
 void tesi_interpretSequence(struct tesiObject*);
 // limit cursor to terminal boundaries. return 1 if cursor out of bounds

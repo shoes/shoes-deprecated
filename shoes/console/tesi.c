@@ -1,20 +1,18 @@
 #include "tesi.h"
 /* 
- * This is a state machine to parse a subset of xterm-256 escape sequences 
+ * This is a state machine to parse a subset of xterm[-256] escape sequences 
  * that arrive on a pty (slave side) and call back into gtk/cocoa functions
  * to implement that sequence 'clear_screen' or 'setcolor' or ...
  * 
  * Those call back functions have nothing to do with Shoes. The window they
- * draw to is invisible to Shoes scripts and won't call any shoes internal code
+ * draw to is invisible to Shoes scripts and we won't call any Shoes or Ruby 
+ * internal code 
  * 
- * NOTE: the terminal may have x, y (e.g width 80, height 24). Gtk/cocoa
- * code maintains a large scroll back buffer,  so x=1,y=24 might mean
- * the first character of the last line shown if the last line of the
- * scrollback buffer is visible. Also possible the x,y a zero relative
- * so becareful.
- * 
- * Some keypad keys the user presses are sent to yet more callbacks and 
- * some are sent as 'escape' sequences
+ * The code expects row & colunm numbers in escape sequences (1,1) is the 
+ * top left for escape sequences and width and height of 80 and 24 or 25
+ * are common. The gtk/cocoa backends expect (0,0) so this code is a fine
+ * source of 'off by one' errors and confusion. Internally, the main struct
+ * tesiObject is 0,0 based for x,y
  * 
  * If you don't setup a console_haveChar() callback (the short-circuit)
  * then you need to implement the following call backs in gtk & cocoa
@@ -30,7 +28,6 @@
  *  callback_eraseLine          optional
  *  callback_eraseCharacter     optional
  * 	callback_moveCursor         be very careful with scrolled buffers.
- *  callback_attributes         Recommended for Shoes
  *	callback_scrollUp           Dragons Here!
  *  callback_scrollDown         Dragons Here!
  *  callback_bell               Dragons Here!
@@ -39,6 +36,10 @@
 */
 //#define DEBUG 1
 
+// forward declares - these are private to tesi.c - they may simulate behaviour
+// or do nothing at all. 
+static void tesi_seqED(struct tesiObject *to); // Erase Display
+static void tesi_seqEL(struct tesiObject *to); // Erase Line
 /*
 handleInput
 	- reads data from file descriptor into buffer
@@ -129,18 +130,12 @@ int tesi_handleControlCharacter(struct tesiObject *to, char c) {
 			break;
 
 		case '\r': // carriage return ('M' - '@'). Move cursor to first column.
-#ifdef DEBUG
-			fprintf(stderr, "Carriage return\n");
-#endif
 			to->x = 0;
 			if(to->callback_handleRTN)
 				to->callback_handleRTN(to, to->x, to->y);
 			break;
 
 		case '\n':  // line feed ('J' - '@'). Move cursor down line and to first column.
-#ifdef DEBUG
-			fprintf(stderr, "Newline\n");
-#endif
 			to->y++;
 			//if(to->insertMode == 0 && to->linefeedMode == 1)
 				to->x = 0;
@@ -153,12 +148,9 @@ int tesi_handleControlCharacter(struct tesiObject *to, char c) {
 			break;
 
 		case '\t': // ht - horizontal tab, ('I' - '@')
-#ifdef DEBUG
-			fprintf(stderr, "Tab. %d,%d (x,y)\n", to->x, to->y);
-#endif
       if (to->callback_handleTAB) {
         to->callback_handleTAB(to, to->x, to->y);
-        break; // This prevents tesi from writing spaces
+        break; // This prevents tesi from writing spaces it's way
       }
 			j = 8 - (to->x % 8);
 			if(j == 0)
@@ -171,9 +163,6 @@ int tesi_handleControlCharacter(struct tesiObject *to, char c) {
 				if(to->callback_printCharacter)
 					to->callback_printCharacter(to , ' ', to->x, to->y);
 			}
-#ifdef DEBUG
-			fprintf(stderr, "End of Tab processing\n");
-#endif
 	 		break;
 
 		case '\a': // bell ('G' - '@')
@@ -194,9 +183,6 @@ int tesi_handleControlCharacter(struct tesiObject *to, char c) {
 			break;
 
 		default:
-#ifdef DEBUG
-			fprintf(stderr, "Unrecognized control char: %d (^%c)\n", c, c + '@');
-#endif
 			return false;
 			break;
 	}
@@ -204,9 +190,10 @@ int tesi_handleControlCharacter(struct tesiObject *to, char c) {
 }
 
 /*
- * once an escape sequence has been completely read from buffer, it's passed here
+ * once an escape sequence has been completely read from buffer, it's passed here.
  * It is interpreted and makes calls to appropriate callbacks
- * This skips the [ present in most sequences
+ * This skips the [ present in most sequences, then collects the optional
+ * parameters (ascii decimal characters), separated by ';' if more than one
  */
 void tesi_interpretSequence(struct tesiObject *to) {
 	char *p = to->sequence;
@@ -223,34 +210,8 @@ void tesi_interpretSequence(struct tesiObject *to) {
 
 	if(*secondChar == '?')   //ignore it
 		p++;
-#if 0
-  // in ecma 48 terms, we are in a CSI and we have all the chars.
-  // is 'm' at the end (SGR?)
-  int endptr = strlen(to->sequence);
-  if (to->sequence[endptr-1] == 'm') {
-    p++;  // past the '['
-    c = *p;
-    int accum = 0;
-    while ((c >= '0' && c <= '9') ||  c == ';' || c == 'm')  {
-      if (c == ';') {
-        tesi_processAttributes(to, accum);
-        accum = 0;
-      } else if (c == 'm') {
-        tesi_processAttributes(to, accum);
-        accum = 0;
-        return;
-      } else {
-        accum = accum * 10;
-        accum += c - '0';
-     }
-      p++;
-      c = *p;
-    }
-    return;
-  }
-#endif
 	// parse numeric parameters
-	q = p++; //cjc: add ++
+	q = p++; // move past esc [
 	c = *p;
   
 	while ((c >= '0' && c <= '9') || c == ';') {
@@ -281,34 +242,23 @@ void tesi_interpretSequence(struct tesiObject *to) {
 				tesi_processAttributes(to, to->parameters[0]); // FIXME:
 				// scroll regions, colors, etc.
 				break;
-			case 'J': // clear screen
-        if  (to->parameters[0] >= 2) {
-          if (to->callback_clearScreen) {
-            to->callback_clearScreen(to, to->parameters == 3);
-          } else {
-            for(i = 0; i < to->height; i++) {
-					    if(to->callback_moveCursor)
-						    to->callback_moveCursor(to, 0, i);
-					    if(to->callback_eraseLine)
-						    to->callback_eraseLine(to, i);
-				    }
-          }
-				  to->x = to->y = 0;
-				  if(to->callback_moveCursor)
-						  to->callback_moveCursor(to, to->x, to->y);
-        }
+			case 'J': // ED erase display
+        tesi_seqED(to);
 				break;
 
 			// LINE-RELATED
 			case 'K': // clear line -- 
-				if(to->callback_eraseLine)
-					to->callback_eraseLine(to, to->y);
+        tesi_seqEL(to);
 				break;
-			case 'L': // insert line
-				if(to->callback_insertLine)
-					to->callback_insertLine(to, to->y);
+			case 'L': // insert line(s)
+				if(to->callback_insertLines)
+					to->callback_insertLines(to, to->parameters[0]);
 				break;
-
+      case 'M': // delelete line(s)
+        if (to->callback_deleteLines)
+          to->callback_deleteLines(to, to->parameters[0]);
+        break;
+        
 			// ATTRIBUTES AND MODES
       case 'm':  // SGR attributes 
         for (i = 0; i < to->parametersLength; i++) 
@@ -318,10 +268,51 @@ void tesi_interpretSequence(struct tesiObject *to) {
 				break;
 
 			// CURSOR RELATED
-			case 'H': // CUP. move to col, row, cursor to home
-#ifdef DEBUG
-				//fprintf(stderr, "Move cursor (x,y): %d %d\n", to->x, to->y);
-#endif
+      case 'A': // CUU  Move cursor up the indicated # of rows.
+        j = to->parameters[0];
+        if (j == 0) j = 1;
+        to->y -= j;
+        tesi_limitCursor(to, 1);
+        break;
+      case 'B': // CUD Move cursor down the indicated # of rows.
+        j = to->parameters[0];
+        if (j == 0) j = 1;
+        to->y += j;
+        tesi_limitCursor(to, 1);
+        break;
+      case 'C': // CUF Move cursor right the indicated # of columns.
+        j = to->parameters[0];
+        if (j == 0) j = 1;
+        to->x += j;
+        tesi_limitCursor(to, 1);
+        break;
+      case 'D': // CUB Move cursor left the indicated # of columns.
+        j = to->parameters[0];
+        if (j == 0) j = 1;
+        to->x -= j;
+        tesi_limitCursor(to, 1);
+        break;
+      case 'E': // CNL Move cursor down the indicated # of rows, to column 1.
+        j = to->parameters[0];
+        if (j == 0) j = 1;
+        to->y += j;
+        to->x = 0;
+        tesi_limitCursor(to, 1);
+        break;
+      case 'F': // CPL Move cursor up the indicated # of rows, to column 1.
+        j = to->parameters[0];
+        if (j == 0) j = 1;
+        to->y -= j;
+        to->x = 0;
+        tesi_limitCursor(to, 1);
+        break;
+      case 'G': // CHA Move cursor to indicated column in current row.
+        j = to->parameters[0];
+        to->y = j - 1; // escape cursor address is 1..80, not 0..79
+        tesi_limitCursor(to, 1);
+        break;
+      case 'f': // HVP
+			case 'H': // CUP. move cursor to row, column
 				// parameters should be 1 more than the real value
 				if(to->parametersLength == 0)
 					to->x = to->y = 0;
@@ -329,11 +320,10 @@ void tesi_interpretSequence(struct tesiObject *to) {
 					to->x = to->parameters[1];
 					to->y = to->parameters[0];
 				}
-
 				// limit cursor to boundaries
 				tesi_limitCursor(to, 1);
 				break;
-
+      
 			// SCROLLING RELATED
 			case 'r': // change scrolling region
 #ifdef DEBUG
@@ -350,6 +340,7 @@ void tesi_interpretSequence(struct tesiObject *to) {
 					//0, 0
 				}
 				break;
+#if 0 // no such thing in xterm 
 			case 'D': // scroll down
 				if(to->callback_scrollDown)
 					to->callback_scrollDown(to);
@@ -361,31 +352,8 @@ void tesi_interpretSequence(struct tesiObject *to) {
 				// but this means the next output line (like a new prompt invoked after Enter on last line)
 				// will be indented
 				break;
-
-			// INPUT RELATED
-			/*
-			case 'h': // left arrow
-				if(to->x > 0) {
-				       to->x--;
-				}
-				break;
-			case 'l': // right arrow
-				if(to->x < to->width) {
-					to->x++;
-				}
-				break;
-			case 'k': // up arrow
-				if(to->y > 0) {
-					to->y--;
-				}
-				break;
-			case 'j': // down arrow
-				if(to->y < to->height) {
-					to->y++;
-				}
-				break;
-			*/
-		}
+#endif
+  	}
 	}
 }
 
@@ -414,62 +382,94 @@ void tesi_processAttributes(struct tesiObject *to, int attr) {
   }
 }
 
-/*
-void tesi_bufferPush(struct tesiObject *to, char c) {
-	if(to->outputBufferLength == TESI_OUTPUT_BUFFER_LENGTH) {
-		// PRINT
-	}
-	to->outputBuffer[ to->outputBufferLength++ ] = c;
-	//to->sequence[ to->sequenceLength ] = 0; // don't use null as terminator
-}
-*/
-
 // Returns 1 if cursor was out of bounds
 // however, there are no calls to limitCursor that DON'T want the callback_moveCursor invoked
 // so the parameter is probably not necessary
+// x, y are 0 based. height and width are 1 based
 int tesi_limitCursor(struct tesiObject *tobj, int moveCursorRegardless) {
-	// create some local variables for speed // cjc bad idea not mine
-	//int width = to->width;
-	//int height = to->height;
-	int a; //, x;
-	int b; //, y;
+	int oldx = tobj->x;
+	int oldy = tobj->y;
 
-	a = tobj->x;
-	b = tobj->y;
-
+  // auto wrap - cjc: do not like
 	if(tobj->x >= tobj->width) {
 		tobj->x = 0;
 		tobj->y = tobj->y + 1;
 	}
 	if(tobj->x < 0)
 		tobj->x = 0;
-#ifdef DEBUG
-	if(a != x)
-		fprintf(stderr, "Cursor out of bounds in X direction: %d\n",a);
-#endif
-
 	if(tobj->y >= tobj->height) {
-		//tobj->y = tobj->height - 1; //width,height are 1 based, x,y 0 based
-		tobj->height++;  //wacky but Shoes likes it.
+		tobj->y = tobj->height - 1; //width,height are 1 based, x,y 0 based
+		// tobj->height++;  //wacky but Shoes likes it.
 		if(tobj->callback_scrollUp) {
 		  tobj->callback_scrollUp(tobj);
 		  tobj->x = 0;
 		}
 	}
+
 	if(tobj->y < 0)
 		tobj->y = 0;
-#ifdef DEBUG
-	if(b != y)
-		fprintf(stderr, "Cursor out of bounds in Y direction: %d\n",b);
-#endif
-	if(moveCursorRegardless || a != tobj->x || b != tobj->y) {
+    
+	if(moveCursorRegardless || oldx != tobj->x || oldy != tobj->y) {
 		if(tobj->callback_moveCursor)
 			tobj->callback_moveCursor(tobj, tobj->x, tobj->y);
-		//to->x = x;
-		//to->y = y;
 		return 1;
 	}
 	return 0;
+}
+
+/* 
+ * Process those xterm sequences - each is quirky 
+ * They could be implemented differently (conditional compile) for
+ * Linux and osx or NOT IMPLEMENTED.
+*/ 
+
+// various forms of Erase Display
+static void tesi_seqED(struct tesiObject *to) {
+  int i;
+  switch(to->parameters[0]) {
+    case 0:  // from cursor to end of display
+      break;
+    case 1:  // from start (1,1) to end of display;
+      break;
+    case 2:  // whole display
+    case 3:  // whole display and scrollback buffer (linux only?)
+      if (to->callback_clearScreen) {
+        to->callback_clearScreen(to, to->parameters[0] == 3);
+      } else {
+        for(i = 0; i < to->height; i++) {
+          if(to->callback_moveCursor)
+            to->callback_moveCursor(to, 0, i);
+          if(to->callback_eraseLine)
+            to->callback_eraseLine(to, 0, to->width-1, i);
+        }
+      }
+      to->x = to->y = 0;
+      if(to->callback_moveCursor)
+        to->callback_moveCursor(to, to->x, to->y);
+      break;
+    default:
+      break;
+  }
+}
+// various forms of Erase Line (EL)
+// you would expect that ' ' would replace the backing buffer and
+// reflected visually
+static void tesi_seqEL(struct tesiObject *to) {
+  int arg = 0;
+  switch(to->parameters[0]) {
+    case 0: // erase line from cursor to end of line
+      if(to->callback_eraseLine)
+        to->callback_eraseLine(to, to->x, to->width-1 , to->y);
+      break;
+    case 1: // erase line from start to cursor
+      if(to->callback_eraseLine)
+        to->callback_eraseLine(to, 0, to->x , to->y);
+      break;
+    case 2: // erase whole line
+      if(to->callback_eraseLine)
+        to->callback_eraseLine(to, 0, to->width-1, to->y);
+      break;
+  }
 }
 
 // ----  initialize 
@@ -562,20 +562,15 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
  * */
 void deleteTesiObject(void *p) {
   struct tesiObject *to = (struct tesiObject*) p;
-  
-  //kill(-(getpgid(to->pid)), SIGTERM); // kill all with this process group id
-  
-//  This freezes Shoes when closing console ! unecessary ? FIXME, looks like to->pid == 0, not used
-//  kill(to->pid, SIGTERM); // probably don't need this line
-  
-  //waitpid(to->pid); // don't need this on OSX if never called
-
-  close(to->ptyMaster);
-
+   close(to->ptyMaster);
   free(to->sequence);
   free(to->command[0]);
   if(to->command[1])
     free(to->command[1]);
   free(to);
-// FIXME Is all this enough ?
+// FIXME Is all ?
 }
+
+/* 
+ *  stuff that may never be called or work
+*/ 
