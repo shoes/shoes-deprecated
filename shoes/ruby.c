@@ -4689,6 +4689,7 @@ shoes_ruby_init()
   rb_define_singleton_method(cShoes, "p", CASTHOOK(shoes_p), 1);
   rb_define_singleton_method(cShoes, "log", CASTHOOK(shoes_log), 0);
   rb_define_singleton_method(cShoes, "show_console", CASTHOOK(shoes_app_console), 0); // New in 3.2.23
+  rb_define_singleton_method(cShoes, "terminal", CASTHOOK(shoes_app_terminal), -1); // New in 3.3.2 replaces console
 
   //
   // Canvas methods

@@ -94,7 +94,7 @@ int tesi_handleInput(struct tesiObject *to) {
 				to->partialSequence = 0;
 
 			if(to->partialSequence == 0) {
-				tesi_interpretSequence(to); // we've got everything in th esc sequence
+				tesi_interpretSequence(to); // we've got everything in the esc sequence
 				to->sequenceLength = 0;
 				to->parametersLength = 0;
 			}
@@ -104,8 +104,9 @@ int tesi_handleInput(struct tesiObject *to) {
 				if(to->insertMode == 0 && to->callback_printCharacter) {
 					to->callback_printCharacter(to, c, to->x, to->y);
 					to->x++;
-					tesi_limitCursor(to, 1);
+					//tesi_limitCursor(to, 1);
 				}
+        // cjc: we don't do insert mode
 				if(to->insertMode == 1 && to->callback_insertCharacter) {
 					to->callback_insertCharacter(to, c, to->x, to->y);
 				}
@@ -142,7 +143,7 @@ int tesi_handleControlCharacter(struct tesiObject *to, char c) {
 
 			//if(i == 1 && to->callback_scrollUp)
 			//	to->callback_scrollUp(to->pointer);
-			tesi_limitCursor(to, 1);
+			//tesi_limitCursor(to, 1);
       if (to->callback_handleNL)
         to->callback_handleNL(to, to->x, to->y);
 			break;
@@ -175,7 +176,7 @@ int tesi_handleControlCharacter(struct tesiObject *to, char c) {
 	 		// what do i do about wrapping back up to previous line?
 	 		// where should that be handled
 	 		// just move cursor, don't print space
-			tesi_limitCursor(to, 1);
+			//tesi_limitCursor(to, 1);
 			if(to->callback_handleBS)
 				to->callback_handleBS(to, to->x, to->y);
 			if (to->x > 0)
@@ -317,8 +318,8 @@ void tesi_interpretSequence(struct tesiObject *to) {
 				if(to->parametersLength == 0)
 					to->x = to->y = 0;
 				else {
-					to->x = to->parameters[1];
-					to->y = to->parameters[0];
+					to->x = to->parameters[1] - 1;
+					to->y = to->parameters[0] - 1;
 				}
 				// limit cursor to boundaries
 				tesi_limitCursor(to, 1);

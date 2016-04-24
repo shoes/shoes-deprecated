@@ -14,16 +14,29 @@
 /*
  * heavily modified from https://github.com/alanszlosek/tesi/
  * for use in Shoes/Linux
+ * 
+ * There are some restrictions - there is only one tesiObject because
+ * it hooks stdin/out/err and there's only one of those in a Shoes/Ruby/C 
+ * process. 
+ * 
+ * We can also switch the gtk_text_view buffer from log like/readline buffer
+ * to a legacy buffer (with 80 * 24/25 lines of characters)
 */
-
+static struct tesiObject *tobj;
+static GtkWidget *terminal_window;
+static GtkTextView *view;
+static GtkTextBuffer *buffer;
+static gboolean log_mode = TRUE; 
+static GtkTextBuffer *log_buffer = NULL;
+static GtkTextBuffer *game_buffer = NULL;
 
 static gboolean keypress_event(GtkWidget *widget, GdkEventKey *event, gpointer data) {
 	struct tesiObject *tobj = (struct tesiObject*)data;
-    char *c = ((GdkEventKey*)event)->string;
+  char *c = ((GdkEventKey*)event)->string;
 	char s = *c;
 	if (event->keyval == GDK_KEY_BackSpace) {
 		s = 010;
-    }
+  }
 	write(tobj->fd_input, &s, 1);
 	return TRUE;
 }
@@ -55,6 +68,8 @@ static gboolean copy_console(GtkWidget *widget, GdkEvent *event, gpointer data) 
  * in response to a puts/printf/write from Shoes,Ruby, & C
  * It does't manage escape seq, x,y or deal with width and height.
  * Just write to the end of the buffer and let the gtk_text_view manage it.
+ * 
+ * In 3.3.2 this won't be used.
 */
 void console_haveChar(void *p, char c) {
 	struct tesiObject *tobj = (struct tesiObject*)p;
@@ -115,7 +130,7 @@ void console_haveChar(void *p, char c) {
       insert_mark, 0.0, TRUE, 0.0, 1.0);
 }
 
-// for more control, implement this
+// for more control, we implemented these callbacks in 3.3.2
 
 void terminal_visAscii(struct tesiObject *tobj, char c, int x, int y) {
 	char in[8];
@@ -169,6 +184,7 @@ void terminal_backspace(struct tesiObject *tobj, int x, int y) {
   gtk_text_view_scroll_to_mark( GTK_TEXT_VIEW (view),
       insert_mark, 0.0, TRUE, 0.0, 1.0);
 }
+
 void terminal_tab(struct tesiObject *tobj, int x, int y) {
   return terminal_visAscii(tobj, '\t', x, y);
 }
@@ -284,8 +300,35 @@ void terminal_charattr(struct tesiObject *tobj, int attr) {
 /* 
  * NOTE - cursor based drawing is discouraged - assume it doesn't work
  * because if it does work, it won't be what you want in the scrollback
- * buffer. 
+ * buffer.  
+ * 
+ * When a cursor based callback is called it will check the log_mode
+ * and if true, call start_cursor_mode. No return to log mode is possible
+ * Brutal, unholy things happen when switching to this mode.
+ * 
+ * Very UTF-8 unfriendly. Have I mentioned that you shouldn't do this?
 */
+
+void start_cursor_mode(struct tesiObject *tobj) {
+  if (log_mode == FALSE) return;  // was called before
+  GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
+
+  GtkTextBuffer *newbuf = gtk_text_buffer_new(NULL);
+  gtk_text_view_set_buffer(view, newbuf);
+  char *blank_line  = malloc(tobj->width+2);
+  int i;
+  GtkTextIter topIter;
+  for (i = 0; i < tobj->width; i++) { blank_line[i] = ' ';}
+  blank_line[tobj->width] = '\n';
+  blank_line[tobj->width + 1] = '\0';
+  int lnlen = strlen(blank_line);  // for debugging
+  gtk_text_buffer_get_start_iter(buffer, &topIter);
+  gtk_text_buffer_place_cursor(buffer, &topIter);
+  for (i = 0; i < tobj->height; i++) {
+    gtk_text_buffer_insert_at_cursor(buffer, blank_line, lnlen);
+  }
+  log_mode = FALSE;
+}
 
 void terminal_clearscreen(struct tesiObject *tobj, int scrollback) {
   // if (scrollback) then clear it too.
@@ -315,17 +358,16 @@ void console_scrollUp(struct tesiObject *tobj) {
 	gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(tobj->pointer), &iter, 0.0, false, 0.0, 0.0);
 }
 
-void console_moveCursor(struct tesiObject *tobj, int x, int y) {
+void terminal_moveCursor(struct tesiObject *tobj, int x, int y) {
 	/*
 	Force moving of cursor
 	If line doesn't exist, start at last line and loop while adding newlines
 	If line does exist, but column doesn't, go to line and add spaces at end of line
 	*/
-  
-	GtkTextBuffer *buffer;
-	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(tobj->pointer));
-    GtkTextIter iter;
-	//printf("Move Cursor to x,y: %d,%d\n", x, y);
+  GtkWidget *view = GTK_WIDGET(tobj->pointer);
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));  
+  GtkTextIter iter;
+	if (log_mode == TRUE) start_cursor_mode(tobj);
 
 	gtk_text_buffer_get_iter_at_line_index(buffer, &iter, y, 0);
 	while(gtk_text_iter_get_line(&iter) < y) { // loop and fill out contents to destination line
@@ -337,8 +379,8 @@ void console_moveCursor(struct tesiObject *tobj, int x, int y) {
 	gtk_text_iter_forward_to_line_end(&iter);
 	while(gtk_text_iter_get_line_offset(&iter) < x) { // loop and fill out contents to destination column
 		gtk_text_buffer_insert(buffer, &iter, " ", 1);
-    }
-    gtk_text_buffer_place_cursor(buffer, &iter);
+  }
+  gtk_text_buffer_place_cursor(buffer, &iter);
 	gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(tobj->pointer), &iter, 0.0, false, 0.0, 0.0);
 
 
@@ -378,11 +420,19 @@ static gboolean clean(GtkWidget *widget, GdkEvent *event, gpointer data) {
   
   deleteTesiObject(data); // FIXME see deleteTesiObject
   
-  shoes_global_console = 0;
+  shoes_global_terminal = 0;
+  // closing the console window does not restore stdin/stdout/stderr
   return FALSE;
 }
 
-void shoes_native_app_console(char *app_dir) {
+// callback for mode switch checkbox
+static gboolean mode_switch(GtkWidget *widget, GdkEvent *event, gpointer data)
+{
+  // not written yet
+}
+void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
+    int fontsize, char* fg, char *bg, char* title) 
+{
   GtkWidget *window;
   GtkWidget *canvas;
   GtkWidget *vbox;
@@ -394,22 +444,19 @@ void shoes_native_app_console(char *app_dir) {
 
   //gtk_init (&argc, &argv); // Nope. it's already running
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  // size set below based on font (80x24)
-  gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
-  gtk_window_set_title (GTK_WINDOW (window), "Shoes Terminal");
+  terminal_window = window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  // size set below based on font (rows*columns)
+  //gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
+  gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
+  gtk_window_set_title (GTK_WINDOW (window), title);
   
   // like a Shoes stack at the top.
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 2);
   gtk_container_add (GTK_CONTAINER (window), vbox);
 
   // need a panel with a string (icon?), copy button and clear button
-  GdkColor bg_color, color_white;
-  gdk_color_parse ("black", &bg_color);
-  gdk_color_parse ("white", &color_white);
-
   GtkWidget *btnpnl = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2); // think flow layout
-  // create widgets for btnpnl - icon, label, clear, copy
+  // create widgets for btnpnl - icon, checkbox, clear, copy
   // icon is wicked 
   char icon_path[256];
   sprintf(icon_path, "%s/static/app-icon.png", app_dir);
@@ -417,10 +464,18 @@ void shoes_native_app_console(char *app_dir) {
   GtkWidget *icon = gtk_image_new_from_pixbuf(icon_pix);
   gtk_box_pack_start (GTK_BOX(btnpnl), icon, 1, 0, 0);
   
+  /*
   GtkWidget *announce = gtk_label_new("Shoes Terminal");
-  bpfd = pango_font_description_from_string ("Sans-Serif 14");
+  bpfd = pango_font_description_from_string ("Sans-Serif Italic 14");
   gtk_widget_override_font (announce, bpfd);
   gtk_box_pack_start(GTK_BOX(btnpnl), announce, 1, 0, 0);
+  */
+  GtkWidget *mode_check = gtk_check_button_new_with_label("game mode (not recommended)");
+  bpfd = pango_font_description_from_string ("Sans-Serif Italic 10");
+  gtk_widget_override_font (mode_check, bpfd);
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(mode_check), (mode == 1 ? FALSE: TRUE));
+  g_signal_connect (G_OBJECT (mode_check), "clicked", G_CALLBACK (mode_switch), NULL);
+  gtk_box_pack_start(GTK_BOX(btnpnl), mode_check, 1, 0, 0);
   
   GtkWidget *clrbtn = gtk_button_new_with_label ("Clear");
   gtk_box_pack_start (GTK_BOX(btnpnl), clrbtn, 1, 0, 0);
@@ -434,18 +489,35 @@ void shoes_native_app_console(char *app_dir) {
   gtk_scrolled_window_set_policy( GTK_SCROLLED_WINDOW(sw),
     GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
   gtk_box_pack_start (GTK_BOX (vbox), GTK_WIDGET(sw), 1, 1, 0);
-
+  
   canvas = gtk_text_view_new();
+  view = GTK_TEXT_VIEW(canvas);
   gtk_container_add (GTK_CONTAINER (sw), canvas);
   gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(canvas), TRUE);
   gtk_text_view_set_left_margin(GTK_TEXT_VIEW(canvas), 4);
   gtk_text_view_set_right_margin(GTK_TEXT_VIEW(canvas), 4);
   gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(canvas), GTK_WRAP_CHAR);
   
-
+  // Deal with the colors of the terminal widget. Note: these functions
+  // are deprecated at gtk 3.16
+  GdkRGBA bg_color, fg_color;
+  if (fg) 
+    gdk_rgba_parse(&fg_color, fg);
+  else
+    gdk_rgba_parse(&fg_color, "black");
+  gtk_widget_override_color(canvas, GTK_STATE_FLAG_NORMAL, &fg_color);
+  if (bg)
+    gdk_rgba_parse(&bg_color, bg);
+  else
+    gdk_rgba_parse(&bg_color, "white");
+  gtk_widget_override_background_color(canvas, GTK_STATE_FLAG_NORMAL, &bg_color);
+  
   // set font for scrollable window
-  pfd = pango_font_description_from_string ("monospace 12");
-  gtk_widget_override_font (announce, pfd);
+  char fontnm[64];
+  sprintf(fontnm,"monospace %d", fontsize);
+  pfd = pango_font_description_from_string (fontnm);
+  //pfd = pango_font_description_from_string ("monospace 12");
+  gtk_widget_override_font (canvas, pfd);
 
   // compute 'char' width and tab settings.
   PangoLayout *playout;
@@ -459,12 +531,15 @@ void shoes_native_app_console(char *app_dir) {
   pango_tab_array_set_tab( tab_array, 0, PANGO_TAB_LEFT, tabwidth);
   gtk_text_view_set_tabs(GTK_TEXT_VIEW(canvas), tab_array);
   
-  // init attributes
-  initattr(gtk_text_view_get_buffer(GTK_TEXT_VIEW(canvas)));
+  // init buffers
+  log_buffer = gtk_text_view_get_buffer(view); // default
+  initattr(log_buffer);
   
-  gtk_widget_set_size_request (GTK_WIDGET (sw), 80*charwidth, 24*charheight);
+  //gtk_widget_set_size_request (GTK_WIDGET (sw), 80*charwidth, 24*charheight);
+  gtk_widget_set_size_request (GTK_WIDGET (sw), columns*charwidth, rows*charheight);
 
-  t = newTesiObject("/bin/bash", 80, 24); // first arg not used
+  t = newTesiObject("/bin/bash", columns, rows); // first arg not used
+  tobj = t;
   t->pointer = canvas;
   //t->callback_haveCharacter = &console_haveChar;
   // cjc - haveCharacter short circuts  all? of these callbacks:
@@ -482,11 +557,11 @@ void shoes_native_app_console(char *app_dir) {
   t->callback_setdefcolor = NULL;
   t->callback_deleteLines = NULL;
   t->callback_insertLines = NULL;
-  t->callback_attributes = NULL; // old tesi - not used.
+  t->callback_attributes = NULL; // old tesi - not used? 
   
   t->callback_clearScreen = NULL; //&terminal_clearscreen;
   t->callback_eraseCharacter = NULL; // &console_eraseCharacter;
-  t->callback_moveCursor = NULL; // &console_moveCursor;
+  t->callback_moveCursor = NULL; //&terminal_moveCursor; 
   t->callback_insertLines = NULL; //&console_insertLine;
   t->callback_eraseLine = NULL; //&console_eraseLine;
   t->callback_scrollUp = NULL; // &console_scrollUp;
@@ -587,8 +662,8 @@ void shoes_native_app_console(char *app_dir) {
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   // size set below based on font (80x24)
-  //gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
-  gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
+  gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
+
   gtk_window_set_title (GTK_WINDOW (window), "Shoes Terminal");
   
   // like a Shoes stack at the top.
