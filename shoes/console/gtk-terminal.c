@@ -497,6 +497,7 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   gtk_text_view_set_left_margin(GTK_TEXT_VIEW(canvas), 4);
   gtk_text_view_set_right_margin(GTK_TEXT_VIEW(canvas), 4);
   gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(canvas), GTK_WRAP_CHAR);
+  //gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(canvas), GTK_WRAP_NONE);
   
   // Deal with the colors of the terminal widget. Note: these functions
   // are deprecated at gtk 3.16
@@ -536,7 +537,8 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   initattr(log_buffer);
   
   //gtk_widget_set_size_request (GTK_WIDGET (sw), 80*charwidth, 24*charheight);
-  gtk_widget_set_size_request (GTK_WIDGET (sw), columns*charwidth, rows*charheight);
+  int slop = charwidth * 3; // probably the 4 pixel margins.
+  gtk_widget_set_size_request (GTK_WIDGET (sw), (columns*charwidth)+slop, rows*charheight);
 
   t = newTesiObject("/bin/bash", columns, rows); // first arg not used
   tobj = t;
