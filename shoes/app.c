@@ -637,7 +637,8 @@ shoes_app_console(VALUE self)
     dir_val = rb_const_get(self, rb_intern("DIR"));
     char *dir_path = RSTRING_PTR(dir_val);
 	  //shoes_global_terminal = shoes_native_console(dir_path);
-	  shoes_global_terminal = shoes_native_terminal(dir_path, 1, 80, 24, 10, "black", "white", "Shoes Terminal");
+	  shoes_native_terminal(dir_path, 1, 80, 24, 10, "black", "white", "Shoes Terminal");
+    shoes_global_terminal = 1;
   }
   return shoes_global_terminal ? Qtrue : Qfalse;
 }
@@ -656,24 +657,30 @@ shoes_app_terminal(int argc, VALUE *argv, VALUE self) {
     char *dir_path = RSTRING_PTR(dir_val);
     if (argc == 1) {
       // parse the hash args
-        VALUE argtitle = shoes_hash_get(argv[0], rb_intern("title"));
-        if (!(NIL_P(argtitle)))
-          title = RSTRING_PTR(argtitle);
-        VALUE argcol = shoes_hash_get(argv[0], rb_intern("columns"));
-        if (!(NIL_P(argcol)))
-          columns = NUM2INT(argcol);
-        VALUE argrow = shoes_hash_get(argv[0], rb_intern("rows"));
-        if (!NIL_P(argrow))
-          rows = NUM2INT(argrow);
-        VALUE argfz = shoes_hash_get(argv[0], rb_intern("fontsize"));
-        if (!NIL_P(argfz))
-          fontsize = NUM2INT(argfz);
-        VALUE argfg = shoes_hash_get(argv[0], rb_intern("fg"));
-        if (!NIL_P(argfg))
-          fg = RSTRING_PTR(argfg);
-        VALUE argbg = shoes_hash_get(argv[0], rb_intern("bg"));
-        if (!NIL_P(argbg))
-          bg = RSTRING_PTR(argbg);
+      VALUE argtitle = shoes_hash_get(argv[0], rb_intern("title"));
+      if (!(NIL_P(argtitle)))
+        title = RSTRING_PTR(argtitle);
+      VALUE argcol = shoes_hash_get(argv[0], rb_intern("columns"));
+      if (!(NIL_P(argcol)))
+        columns = NUM2INT(argcol);
+      VALUE argrow = shoes_hash_get(argv[0], rb_intern("rows"));
+      if (!NIL_P(argrow))
+        rows = NUM2INT(argrow);
+      VALUE argfz = shoes_hash_get(argv[0], rb_intern("fontsize"));
+      if (!NIL_P(argfz))
+        fontsize = NUM2INT(argfz);
+      VALUE argfg = shoes_hash_get(argv[0], rb_intern("fg"));
+      if (!NIL_P(argfg))
+        fg = RSTRING_PTR(argfg);
+      VALUE argbg = shoes_hash_get(argv[0], rb_intern("bg"));
+      if (!NIL_P(argbg))
+        bg = RSTRING_PTR(argbg);
+      VALUE modearg = shoes_hash_get(argv[0], rb_intern("mode"));
+      if (!NIL_P(modearg)) {
+        char *arg = RSTRING_PTR(modearg);
+        if (strcmp(arg, "game") == 0)
+          mode = 0;
+      }
     }
 	  shoes_native_terminal(dir_path, mode, columns, rows, fontsize, fg, bg, title);
     shoes_global_terminal = 1;
