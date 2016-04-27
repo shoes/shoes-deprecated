@@ -29,6 +29,9 @@ static GtkTextBuffer *buffer;
 static gboolean log_mode = TRUE; 
 static GtkTextBuffer *log_buffer = NULL;
 static GtkTextBuffer *game_buffer = NULL;
+static char *blank_line; // has columns number of spaces + nl & null
+static GtkTextMark **begline;
+static GtkTextMark *endline[];
 
 static gboolean keypress_event(GtkWidget *widget, GdkEventKey *event, gpointer data) {
 	struct tesiObject *tobj = (struct tesiObject*)data;
@@ -134,13 +137,29 @@ void console_haveChar(void *p, char c) {
 
 void terminal_visAscii(struct tesiObject *tobj, char c, int x, int y) {
 	char in[8];
-	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
-	GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
+	//GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
+	//GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
   GtkTextIter iter_e;
   GtkTextMark *insert_mark;
   
 	snprintf(in, 7, "%c", c);
-  gtk_text_buffer_insert_at_cursor(buffer, in, 1);
+  if (log_mode) {
+    gtk_text_buffer_insert_at_cursor(buffer, in, 1);
+  } else {
+    // FIXME: so horribly inefficient and it doesn't work.
+    // constrain x to avoid GTK wrap. does'nt always do that
+    if (x >= tobj->width) {
+      x = tobj->width = (tobj->width -1);
+    }
+    GtkTextIter iter_s;
+    gtk_text_buffer_get_iter_at_line_offset(buffer, &iter_s, y, x);
+    gtk_text_buffer_get_iter_at_line_offset(buffer, &iter_e, y, x+1);
+    gtk_text_buffer_delete(buffer, &iter_s, &iter_e); // invalidates iters maybe
+    gtk_text_buffer_get_iter_at_line_offset(buffer, &iter_s, y, x);
+    gtk_text_buffer_place_cursor(buffer, &iter_s);
+    gtk_text_buffer_insert_at_cursor(buffer, in, 1);
+    return; // don't scroll
+  }
   // update on screen
 	gtk_text_buffer_get_end_iter (buffer, &iter_e);
 	insert_mark = gtk_text_buffer_get_insert (buffer);
@@ -150,16 +169,34 @@ void terminal_visAscii(struct tesiObject *tobj, char c, int x, int y) {
 }
 
 void terminal_return(struct tesiObject *tobj, int x, int y) {
-  // do nothing for now
+  GtkTextIter iter;
+  
+  if (!log_mode) {
+    gtk_text_buffer_get_iter_at_mark (buffer, &iter, begline[y]);
+    //gtk_text_buffer_get_iter_at_line_index(buffer, &iter, y, 0);
+    gtk_text_buffer_place_cursor(buffer, &iter);
+  }
 }
 
 void terminal_newline(struct tesiObject *tobj, int x, int y) {
-	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
-	GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
+	//GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
+	//GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
   GtkTextIter iter_e;
   GtkTextMark *insert_mark;
 
-  gtk_text_buffer_insert_at_cursor(buffer, "\n", 1);
+  if (log_mode) {
+    gtk_text_buffer_insert_at_cursor(buffer, "\n", 1);
+  } else {
+    // tesi moved y for us. double check it's in Gtk range
+    if (y >= tobj->height) {
+       tobj->y = y = (tobj->height - 1);
+       // real terminals did this
+    }
+    gtk_text_buffer_get_iter_at_mark (buffer, &iter_e, begline[y]);
+    //gtk_text_buffer_get_iter_at_line(buffer, &iter_e, buf_y);
+    gtk_text_buffer_place_cursor(buffer, &iter_e);
+    return; // don't scroll
+  }
   // update on screen
 	gtk_text_buffer_get_end_iter (buffer, &iter_e);
 	insert_mark = gtk_text_buffer_get_insert (buffer);
@@ -169,8 +206,8 @@ void terminal_newline(struct tesiObject *tobj, int x, int y) {
 }
 
 void terminal_backspace(struct tesiObject *tobj, int x, int y) {
-	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
-	GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
+//	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
+//	GtkTextBuffer *buffer = gtk_text_view_get_buffer(view);
   GtkTextIter iter_e;
   GtkTextMark *insert_mark;
 
@@ -228,10 +265,34 @@ static void initattr(GtkTextBuffer *buffer) {
   capture.open = 0;
 }
 
+static void initgame(columns, rows) {
+  blank_line = malloc(columns+2);
+  int i;
+  for (i = 0; i < columns; i++) blank_line[i] = ' ';
+  blank_line[i++] = '\n';
+  blank_line[i] = 0;
+  int len = strlen(blank_line);
+  GtkTextIter iter;
+  gtk_text_view_set_wrap_mode(view, GTK_WRAP_NONE);
+  //gtk_text_view_set_overwrite (view, TRUE);
+  begline = malloc(sizeof (GtkTextMark*) * rows);
+  gtk_text_buffer_get_iter_at_line_index(buffer, &iter, 0, 0);
+  gtk_text_buffer_place_cursor (buffer, &iter);
+  for (i = 0; i < rows; i++) {
+    gtk_text_buffer_get_iter_at_line (buffer, &iter, i);
+    begline[i] = gtk_text_buffer_create_mark(buffer, NULL, &iter, TRUE);
+    gtk_text_buffer_insert (buffer, &iter, blank_line, len);
+  }
+  gtk_text_buffer_get_iter_at_line_index(buffer, &iter, 0, 0);
+  gtk_text_buffer_place_cursor (buffer, &iter);
+  // below returns 1 line more than I inserted. Documented behaviour.
+  //int nlines = gtk_text_buffer_get_line_count(buffer);
+}
+
 void terminal_attreset(struct tesiObject *tobj) {
   // reset all attibutes (color, bold,...)
-  GtkWidget *view = GTK_WIDGET(tobj->pointer);
-	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));
+  //GtkWidget *view = GTK_WIDGET(tobj->pointer);
+	//GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));
   // close the tagcapture - apply the save color from saved pt to where
   // the cursor is now. These are buffer offsets converted to iters.
   if (capture.open > 0) {
@@ -252,8 +313,8 @@ void terminal_attreset(struct tesiObject *tobj) {
 } 
 
 void terminal_setfgcolor(struct tesiObject *tobj, int fg) {
-  GtkWidget *view = GTK_WIDGET(tobj->pointer);
-	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));
+  //GtkWidget *view = GTK_WIDGET(tobj->pointer);
+	//GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));
   capture.tag[capture.open] = fgcolortag[fg - 30];
   GtkTextMark *mark = gtk_text_buffer_get_insert(buffer); // cursor mark named 'insert'
   GtkTextIter start;
@@ -266,8 +327,8 @@ void terminal_setfgcolor(struct tesiObject *tobj, int fg) {
 }
 
 void terminal_setbgcolor(struct tesiObject *tobj, int bg) {
-  GtkWidget *view = GTK_WIDGET(tobj->pointer);
-	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));
+  //GtkWidget *view = GTK_WIDGET(tobj->pointer);
+	//GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));
   capture.tag[capture.open] = bgcolortag[bg - 40];
   GtkTextMark *mark = gtk_text_buffer_get_insert(buffer); // cursor mark named 'insert'
   GtkTextIter start;
@@ -285,8 +346,8 @@ void terminal_charattr(struct tesiObject *tobj, int attr) {
     tag = chartags[1];
   }
   if (tag != NULL) {
-    GtkWidget *view = GTK_WIDGET(tobj->pointer);
-	  GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));
+    //GtkWidget *view = GTK_WIDGET(tobj->pointer);
+	  //GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));
     capture.tag[capture.open] = tag;
     GtkTextMark *mark = gtk_text_buffer_get_insert(buffer); // cursor mark named 'insert'
     GtkTextIter start;
@@ -311,22 +372,6 @@ void terminal_charattr(struct tesiObject *tobj, int attr) {
 
 void start_cursor_mode(struct tesiObject *tobj) {
   if (log_mode == FALSE) return;  // was called before
-  GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
-
-  GtkTextBuffer *newbuf = gtk_text_buffer_new(NULL);
-  gtk_text_view_set_buffer(view, newbuf);
-  char *blank_line  = malloc(tobj->width+2);
-  int i;
-  GtkTextIter topIter;
-  for (i = 0; i < tobj->width; i++) { blank_line[i] = ' ';}
-  blank_line[tobj->width] = '\n';
-  blank_line[tobj->width + 1] = '\0';
-  int lnlen = strlen(blank_line);  // for debugging
-  gtk_text_buffer_get_start_iter(buffer, &topIter);
-  gtk_text_buffer_place_cursor(buffer, &topIter);
-  for (i = 0; i < tobj->height; i++) {
-    gtk_text_buffer_insert_at_cursor(buffer, blank_line, lnlen);
-  }
   log_mode = FALSE;
 }
 
@@ -359,32 +404,11 @@ void console_scrollUp(struct tesiObject *tobj) {
 }
 
 void terminal_moveCursor(struct tesiObject *tobj, int x, int y) {
-	/*
-	Force moving of cursor
-	If line doesn't exist, start at last line and loop while adding newlines
-	If line does exist, but column doesn't, go to line and add spaces at end of line
-	*/
-  GtkWidget *view = GTK_WIDGET(tobj->pointer);
-	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));  
   GtkTextIter iter;
-	if (log_mode == TRUE) start_cursor_mode(tobj);
-
-	gtk_text_buffer_get_iter_at_line_index(buffer, &iter, y, 0);
-	while(gtk_text_iter_get_line(&iter) < y) { // loop and fill out contents to destination line
-		gtk_text_buffer_get_end_iter(buffer, &iter);
-		gtk_text_buffer_insert(buffer, &iter, "\n", 1);
-	}
- 
-	gtk_text_buffer_get_iter_at_line_index(buffer, &iter, y, x);
-	gtk_text_iter_forward_to_line_end(&iter);
-	while(gtk_text_iter_get_line_offset(&iter) < x) { // loop and fill out contents to destination column
-		gtk_text_buffer_insert(buffer, &iter, " ", 1);
-  }
-  gtk_text_buffer_place_cursor(buffer, &iter);
-	gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(tobj->pointer), &iter, 0.0, false, 0.0, 0.0);
-
-
+  gtk_text_buffer_get_iter_at_line_index(buffer, &iter, y, x);
+  gtk_text_buffer_place_cursor (buffer, &iter);
 }
+
 void console_insertLine(struct tesiObject *tobj, int y) {
 	printf("Insert Line\n");
 }
@@ -520,7 +544,7 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   //pfd = pango_font_description_from_string ("monospace 12");
   gtk_widget_override_font (canvas, pfd);
 
-  // compute 'char' width and tab settings.
+  // compute 'char' width, and tab settings.
   PangoLayout *playout;
   PangoTabArray *tab_array;
   gint charwidth, charheight, tabwidth;
@@ -532,9 +556,16 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   pango_tab_array_set_tab( tab_array, 0, PANGO_TAB_LEFT, tabwidth);
   gtk_text_view_set_tabs(GTK_TEXT_VIEW(canvas), tab_array);
   
-  // init buffers
-  log_buffer = gtk_text_view_get_buffer(view); // default
-  initattr(log_buffer);
+  // init buffers base on mode.
+  if (mode == 0) {
+    log_mode = 0;
+    game_buffer = buffer = gtk_text_view_get_buffer(view);
+    initattr(game_buffer);
+    initgame(columns, rows);
+  } else { // default
+    log_buffer = buffer = gtk_text_view_get_buffer(view); 
+    initattr(log_buffer);
+  }
   
   //gtk_widget_set_size_request (GTK_WIDGET (sw), 80*charwidth, 24*charheight);
   int slop = charwidth * 3; // probably the 4 pixel margins.
@@ -544,7 +575,7 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   tobj = t;
   t->pointer = canvas;
   //t->callback_haveCharacter = &console_haveChar;
-  // cjc - haveCharacter short circuts  all? of these callbacks:
+  // cjc - haveCharacter short circuts  all? of the callbacks below:
   t->callback_handleNL = &terminal_newline;
   t->callback_handleRTN = &terminal_return;
   t->callback_handleBS = &terminal_backspace;
@@ -563,7 +594,7 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   
   t->callback_clearScreen = NULL; //&terminal_clearscreen;
   t->callback_eraseCharacter = NULL; // &console_eraseCharacter;
-  t->callback_moveCursor = NULL; //&terminal_moveCursor; 
+  t->callback_moveCursor = &terminal_moveCursor; 
   t->callback_insertLines = NULL; //&console_insertLine;
   t->callback_eraseLine = NULL; //&console_eraseLine;
   t->callback_scrollUp = NULL; // &console_scrollUp;

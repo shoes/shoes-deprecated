@@ -398,6 +398,7 @@ int tesi_limitCursor(struct tesiObject *tobj, int moveCursorRegardless) {
 	}
 	if(tobj->x < 0)
 		tobj->x = 0;
+    
 	if(tobj->y >= tobj->height) {
 		tobj->y = tobj->height - 1; //width,height are 1 based, x,y 0 based
 		// tobj->height++;  //wacky but Shoes likes it.
