@@ -31,7 +31,7 @@ static GtkTextBuffer *log_buffer = NULL;
 static GtkTextBuffer *game_buffer = NULL;
 static char *blank_line; // has columns number of spaces + nl & null
 static GtkTextMark **begline;
-static GtkTextMark *endline[];
+static GtkTextMark **endline;
 
 static gboolean keypress_event(GtkWidget *widget, GdkEventKey *event, gpointer data) {
 	struct tesiObject *tobj = (struct tesiObject*)data;
@@ -276,12 +276,16 @@ static void initgame(columns, rows) {
   gtk_text_view_set_wrap_mode(view, GTK_WRAP_NONE);
   //gtk_text_view_set_overwrite (view, TRUE);
   begline = malloc(sizeof (GtkTextMark*) * rows);
+  endline = malloc(sizeof (GtkTextMark*) * rows);
   gtk_text_buffer_get_iter_at_line_index(buffer, &iter, 0, 0);
   gtk_text_buffer_place_cursor (buffer, &iter);
   for (i = 0; i < rows; i++) {
     gtk_text_buffer_get_iter_at_line (buffer, &iter, i);
     begline[i] = gtk_text_buffer_create_mark(buffer, NULL, &iter, TRUE);
     gtk_text_buffer_insert (buffer, &iter, blank_line, len);
+    // endline[] May not be needed
+    //gtk_text_buffer_get_iter_at_line_offset(buffer, &iter, i, columns -1); 
+    //endline[i] = gtk_text_buffer_create_mark(buffer, NULL, &iter, TRUE);
   }
   gtk_text_buffer_get_iter_at_line_index(buffer, &iter, 0, 0);
   gtk_text_buffer_place_cursor (buffer, &iter);
@@ -405,7 +409,7 @@ void console_scrollUp(struct tesiObject *tobj) {
 
 void terminal_moveCursor(struct tesiObject *tobj, int x, int y) {
   GtkTextIter iter;
-  gtk_text_buffer_get_iter_at_line_index(buffer, &iter, y, x);
+  gtk_text_buffer_get_iter_at_line_offset(buffer, &iter, y, x);
   gtk_text_buffer_place_cursor (buffer, &iter);
 }
 
@@ -413,19 +417,14 @@ void console_insertLine(struct tesiObject *tobj, int y) {
 	printf("Insert Line\n");
 }
 
-void console_eraseLine(struct tesiObject *tobj, int y) {
+void terminal_eraseLine(struct tesiObject *tobj, int startx, int endx, int y) {
 	GtkTextIter iter, s, e;
-	GtkTextBuffer *buffer;
-	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
-	buffer = gtk_text_view_get_buffer(view);
-
-	gtk_text_buffer_get_end_iter(buffer, &iter);
-	s = e = iter;
-	gtk_text_iter_backward_line(&s); // move to start of current line (delimiter)
-	gtk_text_iter_forward_to_line_end(&e);
-	gtk_text_iter_backward_char(&e);
-	gtk_text_buffer_delete(buffer, &s, &e);
-	printf("Erase Line\n");
+  int len = endx - startx;
+  gtk_text_buffer_get_iter_at_line_offset(buffer, &s, y, startx);
+  gtk_text_buffer_get_iter_at_line_offset(buffer, &e, y, endx);
+  gtk_text_buffer_delete (buffer, &s, &e);
+  gtk_text_buffer_get_iter_at_line_offset(buffer, &s, y, startx);
+  gtk_text_buffer_insert(buffer, &s, blank_line, len);
 }
 // end of incomplete/untested  functions 
 
@@ -592,11 +591,11 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   t->callback_insertLines = NULL;
   t->callback_attributes = NULL; // old tesi - not used? 
   
-  t->callback_clearScreen = NULL; //&terminal_clearscreen;
+  t->callback_clearScreen = NULL;  //&terminal_clearscreen;
   t->callback_eraseCharacter = NULL; // &console_eraseCharacter;
   t->callback_moveCursor = &terminal_moveCursor; 
   t->callback_insertLines = NULL; //&console_insertLine;
-  t->callback_eraseLine = NULL; //&console_eraseLine;
+  t->callback_eraseLine = &terminal_eraseLine;
   t->callback_scrollUp = NULL; // &console_scrollUp;
   
   g_signal_connect(G_OBJECT(window), "delete_event", G_CALLBACK(clean), t);

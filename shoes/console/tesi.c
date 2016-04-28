@@ -428,10 +428,20 @@ int tesi_limitCursor(struct tesiObject *tobj, int moveCursorRegardless) {
 // various forms of Erase Display
 static void tesi_seqED(struct tesiObject *to) {
   int i;
+  if ((! to->callback_eraseLine) || (! to->callback_moveCursor)) return;
   switch(to->parameters[0]) {
     case 0:  // from cursor to end of display
+      to->callback_eraseLine(to, to->x, to->width, to->y);
+      for (i = to->y+1; i < to->height; i++) {
+        to->callback_eraseLine(to, 0, to->width, i);
+      }
+      // cursor doesn't change
       break;
-    case 1:  // from start (1,1) to end of display;
+    case 1:  // from start (1,1) to cursor
+      for (i = 0; i < to->y; i++) {
+        to->callback_eraseLine(to, 0, to->width, i);
+      }
+      to->callback_eraseLine(to, 0, to->x, to->y);
       break;
     case 2:  // whole display
     case 3:  // whole display and scrollback buffer (linux only?)
@@ -442,7 +452,7 @@ static void tesi_seqED(struct tesiObject *to) {
           if(to->callback_moveCursor)
             to->callback_moveCursor(to, 0, i);
           if(to->callback_eraseLine)
-            to->callback_eraseLine(to, 0, to->width-1, i);
+            to->callback_eraseLine(to, 0, to->width, i);
         }
       }
       to->x = to->y = 0;
@@ -461,7 +471,7 @@ static void tesi_seqEL(struct tesiObject *to) {
   switch(to->parameters[0]) {
     case 0: // erase line from cursor to end of line
       if(to->callback_eraseLine)
-        to->callback_eraseLine(to, to->x, to->width-1 , to->y);
+        to->callback_eraseLine(to, to->x, to->width, to->y);
       break;
     case 1: // erase line from start to cursor
       if(to->callback_eraseLine)
@@ -469,7 +479,7 @@ static void tesi_seqEL(struct tesiObject *to) {
       break;
     case 2: // erase whole line
       if(to->callback_eraseLine)
-        to->callback_eraseLine(to, 0, to->width-1, to->y);
+        to->callback_eraseLine(to, 0, to->width, to->y);
       break;
   }
 }
