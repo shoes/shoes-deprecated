@@ -44,7 +44,7 @@ static void tesi_seqEL(struct tesiObject *to); // Erase Line
 handleInput
 	- reads data from file descriptor into buffer
 */
-
+#ifdef USE_PTY // aka Linux, not osx, not windows
 int tesi_handleInput(struct tesiObject *to) {
 	char input[128];
 	char *pointer, c;
@@ -65,7 +65,11 @@ int tesi_handleInput(struct tesiObject *to) {
 	}
 
 	lengthRead = read(to->ptyMaster, input, 128);
-
+#else
+int tesi_handleInput(struct tesiObject *to, char *input, int lengthRead) {
+	char *pointer, c;
+	int i;
+#endif
 	pointer = input;
 	for(i = 0; i < lengthRead; i++, pointer++) {
 		c = *pointer;
@@ -467,7 +471,6 @@ static void tesi_seqED(struct tesiObject *to) {
 // you would expect that ' ' would replace the backing buffer and
 // reflected visually
 static void tesi_seqEL(struct tesiObject *to) {
-  int arg = 0;
   switch(to->parameters[0]) {
     case 0: // erase line from cursor to end of line
       if(to->callback_eraseLine)
@@ -490,7 +493,9 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
 	struct tesiObject *to;
 	//struct winsize ws;
 	char message[32]; // really just a temp
+#ifdef USE_PTY
 	char *ptySlave;
+#endif
 	to = malloc(sizeof(struct tesiObject));
 	if(to == NULL)
 		return NULL;
@@ -509,18 +514,18 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
 	to->scrollBegin = 0;
 	to->scrollEnd = height - 1;
 	to->insertMode = 0;
-  // simple callbacks 
-  to->callback_haveCharacter = NULL; // The shortcircuit to be replaced
-  to->callback_handleRTN = NULL;
-  to->callback_handleNL = NULL;
-  to->callback_handleBS = NULL;
-  to->callback_handleTAB = NULL;
+    // simple callbacks 
+    to->callback_haveCharacter = NULL; // The shortcircuit to be replaced
+    to->callback_handleRTN = NULL;
+    to->callback_handleNL = NULL;
+    to->callback_handleBS = NULL;
+    to->callback_handleTAB = NULL;
 	to->callback_handleBEL = NULL;
 	to->callback_printCharacter = NULL;
-  to->callback_printString = NULL;
-  // more complex processing
-  to->callback_attributes = NULL;
-  to->callback_clearScreen = NULL;
+    to->callback_printString = NULL;
+    // more complex processing
+    to->callback_attributes = NULL;
+    to->callback_clearScreen = NULL;
 	to->callback_insertCharacter = NULL;
 	to->callback_eraseLine = NULL;
 	to->callback_eraseCharacter = NULL;
@@ -532,6 +537,7 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
 
 	to->command[0] = to->command[1] = to->command[2] = NULL;
 	to->pid = 0;
+#ifdef USE_PTY
 	to->ptyMaster = posix_openpt(O_RDWR|O_NOCTTY);
 
 	to->fd_activity = to->ptyMaster; // descriptor to check whether the process has sent output
@@ -557,8 +563,10 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
   dup2(to->ptySlave, fileno(stdin));
   dup2(to->ptySlave, fileno(stdout));
   dup2(to->ptySlave, fileno(stderr));
+#endif // USE_PTY
+
 #ifdef SHOES_QUARTZ
-  setenv("TERM","xterm-256",1); 
+  setenv("TERM","xterm-256color",1); 
 #else
   setenv("TERM","xterm",1); 
 #endif

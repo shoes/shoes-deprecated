@@ -33,5 +33,15 @@
   // Trick for stdout
   NSPipe *pipe;
   NSFileHandle *pipeReadHandle;
+  // Stderr 
+  NSPipe *errPipe;
+  NSFileHandle *errReadHandle;
 }
 @end
+// C level declares
+extern void terminal_visAscii(struct tesiObject *, char, int, int );
+extern void terminal_return(struct tesiObject *, int, int);
+extern void terminal_newline(struct tesiObject *, int, int);
+extern void terminal_backspace(struct tesiObject *, int, int);
+extern void terminal_tab(struct tesiObject *, int, int);
+extern void terminal_attreset(struct tesiObject *);

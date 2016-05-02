@@ -8,6 +8,10 @@
 #include <fcntl.h>
 #include <sys/types.h>
 
+#if !defined(SHOES_QUARTZ)
+#define USE_PTY
+#endif
+
 #if defined(SHOES_QUARTZ) || defined(SHOES_GTK_OSX)
 #include <util.h>
 #else
@@ -56,23 +60,23 @@ struct tesiObject {
 
 	void (*callback_haveCharacter)(struct tesiObject *, char); // No longer used???
 	void (*callback_printCharacter)(struct tesiObject *, char, int, int); // print character at x, y
-  void (*callback_handleRTN)(struct tesiObject *, int, int); 
-  void (*callback_handleNL)(struct tesiObject *, int, int);
-  void (*callback_handleBS)(struct tesiObject *, int, int);
-  void (*callback_handleBEL)(struct tesiObject *, int, int);
-  void (*callback_handleTAB)(struct tesiObject *, int, int);
+    void (*callback_handleRTN)(struct tesiObject *, int, int); 
+    void (*callback_handleNL)(struct tesiObject *, int, int);
+    void (*callback_handleBS)(struct tesiObject *, int, int);
+    void (*callback_handleBEL)(struct tesiObject *, int, int);
+    void (*callback_handleTAB)(struct tesiObject *, int, int);
 	void (*callback_printString)(void*, char*, int, int, int); // print string of length at x, y
   
-  void (*callback_attreset)(struct tesiObject *);  // reset all attributes
-  void (*callback_charattr)(struct tesiObject *, int);  // char based attributes 1..27
-  void (*callback_setbgcolor)(struct tesiObject *, int);  // attr 40..47
-  void (*callback_setfgcolor)(struct tesiObject *, int); // set text color attribute 30..37
-  void (*callback_setdefcolor)(struct tesiObject *, int); // 38,39,49 set default color
-  // cursor based callbacks - caution - maybe not be implemented 
-  // and probably don't do what you think should be done.
+    void (*callback_attreset)(struct tesiObject *);  // reset all attributes
+    void (*callback_charattr)(struct tesiObject *, int);  // char based attributes 1..27
+    void (*callback_setbgcolor)(struct tesiObject *, int);  // attr 40..47
+    void (*callback_setfgcolor)(struct tesiObject *, int); // set text color attribute 30..37
+    void (*callback_setdefcolor)(struct tesiObject *, int); // 38,39,49 set default color
+    // cursor based callbacks - caution - maybe not be implemented 
+    // and probably don't do what you think should be done.
 	void (*callback_eraseLine)(struct tesiObject *, int, int, int); // erase line at from_x, to_x, line y
  	void (*callback_moveCursor)(struct tesiObject *, int, int); // move to x, y 
-  void (*callback_deleteLines) (struct tesiObject *, int);  // delete is not erase
+    void (*callback_deleteLines) (struct tesiObject *, int);  // delete is not erase
  	void (*callback_insertLines)(struct tesiObject *, int); // insert lines at lines
    
 	void (*callback_clearScreen)(struct tesiObject *, int scrollback); // 
@@ -102,6 +106,9 @@ void tesi_processAttributes(struct tesiObject*, int);
 // PUBLIC
 struct tesiObject* newTesiObject(char*, int, int);
 void deleteTesiObject(void*);
+#ifdef USE_PTY
 int tesi_handleInput(struct tesiObject*);
-
+#else
+int tesi_handleInput(struct tesiObject*, char *, int);
+#endif
 #endif

@@ -174,23 +174,62 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   [cntview addSubview: termpnl];
   [self makeFirstResponder:termView];
   
-  // Create a stdout that read from a pty
+  // Somehow we need to create and fd for stdout and read it.
+  // Create a pipe for stdout writing and read it in a notification method
   pipe = [NSPipe pipe];
-  pipeReadHandle = [pipe fileHandleForWriting];
+  pipeReadHandle = [pipe fileHandleForReading] ;
   dup2([[pipe fileHandleForWriting] fileDescriptor], fileno(stdout)) ;
-  [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(handleNotification:) name: NSFileHandleReadCompletionNotification object: pipeReadHandle] ;
-  [pipeReadHandle readInBackgroundAndNotify] ;
+  // [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(handleNotification:) name: NSFileHandleReadCompletionNotification object: pipeReadHandle] ;
+  // [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(stdoutDataAvail:) name: NSFileHandleDataAvailableNotification object: pipeReadHandle] ;
+  //[pipeReadHandle readInBackgroundAndNotify] ;
+  [[NSNotificationCenter defaultCenter] addObserver: self
+                                        selector: @selector(stdoutDataAvail:)
+                                        name: NSFileHandleDataAvailableNotification
+                                        object: pipeReadHandle];
+  [pipeReadHandle waitForDataInBackgroundAndNotify];
+
+  errPipe = [NSPipe pipe];
+  errReadHandle = [errPipe fileHandleForReading];
+  dup2([[errPipe fileHandleForWriting] fileDescriptor], fileno(stderr));
+  [[NSNotificationCenter defaultCenter] addObserver: self
+                                        selector: @selector(stdErrDataAvail:)
+                                        name: NSFileHandleDataAvailableNotification
+                                        object: errReadHandle];
+  [errReadHandle waitForDataInBackgroundAndNotify];
+
   
   // Now init the Tesi object - NOTE tesi callbacks are C,  which calls Objective-C
   tobj = newTesiObject("/bin/bash", 80, 24); // first arg not used, 2 and 3 not either
   tobj->pointer = (void *)self;
-  tobj->callback_haveCharacter = &console_haveChar;
+  //tobj->callback_haveCharacter = &console_haveChar; // short circuit - to be fixed
+  tobj->callback_handleNL = &terminal_newline;
+  tobj->callback_handleRTN = NULL; // &terminal_return;
+  tobj->callback_handleBS = &terminal_backspace;
+  tobj->callback_handleTAB = &terminal_tab; 
+  tobj->callback_handleBEL = NULL;
+  tobj->callback_printCharacter = &terminal_visAscii;
+  tobj->callback_attreset = &terminal_attreset;
+  tobj->callback_charattr = NULL; // terminal_charattr;
+  tobj->callback_setfgcolor= NULL; // &terminal_setfgcolor;
+  tobj->callback_setbgcolor = NULL; //&terminal_setbgcolor;
+  // that's the minimum set of call backs;
+  tobj->callback_setdefcolor = NULL;
+  tobj->callback_deleteLines = NULL;
+  tobj->callback_insertLines = NULL;
+  tobj->callback_attributes = NULL; // old tesi - not used? 
+  
+  tobj->callback_clearScreen = NULL;  //&terminal_clearscreen;
+  tobj->callback_eraseCharacter = NULL; // &console_eraseCharacter;
+  tobj->callback_moveCursor = NULL; //&terminal_moveCursor; 
+  tobj->callback_insertLines = NULL; //&console_insertLine;
+  tobj->callback_eraseLine = NULL; // &terminal_eraseLine;
+  tobj->callback_scrollUp = NULL; // &console_scrollUp;
 
   // try inserting some text.
   //[[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: @"First Line!\n"]];
-
+  
   [termView initView: self withFont: monoFont]; // tell ConsoleTermView what font to use
-
+#if 0
   // need to get the handleInput started
   // OSX timer resolution less than 0.1 second unlikely?
   cnvbfr = [[NSMutableString alloc] initWithCapacity: 4];
@@ -198,6 +237,9 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
                             target: self selector:@selector(readStdout:)
                             userInfo: self repeats:YES];
   // debug
+#endif
+  fprintf(stderr, "From C stderr\n");
+  fprintf(stdout, "From C stdout\n");  // Nothing, Damn it!
   // printf("w = %d, h = %d winh = %d \n", width, height, winRect.size.height);
 }
 
@@ -244,25 +286,64 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
 {
 }
 
+/*
 - (void)readStdout: (NSTimer *)t
 {
-  // do tesi.handleInput
+  // do tesi.Input
   tesi_handleInput(tobj);
 }
-
+*/
 - (void)writeStr:(NSString*)text
 {
   [[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: text]];
   [termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
 }
 
+// Hints are this stopped working in 10.7 - doesn't work for me on 10.10
 - (void)handleNotification: (NSNotification *)notification
 {
-  [pipeReadHandle readInBackgroundAndNotify] ;
-  NSString *str = [[NSString alloc] initWithData: [[notification userInfo] objectForKey: NSFileHandleNotificationDataItem] encoding: NSASCIIStringEncoding] ;
-  // Do whatever you want with str 
-  [[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: str]];
-  [termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
+  NSData *obj  = [[notification userInfo] objectForKey: NSFileHandleNotificationDataItem];
+  if ([obj length] ) {
+    NSString *str = [[NSString alloc] initWithData: obj encoding: NSASCIIStringEncoding] ;
+    // Do whatever you want with str 
+    [[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: str]];
+    [termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
+    [pipeReadHandle readInBackgroundAndNotify] ;
+  }
+} 
+
+- (void) stdoutDataAvail: (NSNotification *) notification
+{
+  NSFileHandle *fh = (NSFileHandle *) [notification object];
+  NSData *data = [fh availableData];
+  if ([data length]) {
+    // use it
+    NSString *str = [[NSString alloc] initWithData: data encoding: NSASCIIStringEncoding] ;
+    [[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: str]];
+    [termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
+    [fh waitForDataInBackgroundAndNotify];
+  } else {
+    // eof? close?
+  }
+}
+
+- (void) stdErrDataAvail: (NSNotification *) notification
+{
+  NSFileHandle *fh = (NSFileHandle *) [notification object];
+  NSData *data = [fh availableData];
+  int len = [data length];
+  if (len) {
+    char *s = (char *)[data bytes];  // odds are high this is UTF16-LE
+    s[len] = '\0';
+    // feed  str to tesi and it will callback into other C code defined here.
+    tesi_handleInput(tobj, s, len);
+    //NSString *str = [[NSString alloc] initWithData: data encoding: NSASCIIStringEncoding] ;
+    //[[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: str]];
+    //[termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
+    [fh waitForDataInBackgroundAndNotify];
+  } else {
+    // eof? close?
+  }
 }
 
 @end
@@ -293,6 +374,35 @@ int shoes_native_console()
   // Fire up console window, switch stdin..
   printf("Mak\010c\t console \t\tcreated\n"); //test \b \t in string
   return 1;
+}
+
+void shoes_native_terminal() {
+  shoes_native_console();
+}
+
+void terminal_visAscii (struct tesiObject *tobj, char c, int x, int y) {
+  ConsoleWindow *cpanel = (ConsoleWindow *)tobj->pointer;
+  ConsoleTermView *cwin = cpanel->termView;
+  [cwin writeChr: c];
+}
+
+void terminal_attreset(struct tesiObject *tobj) {
+}
+
+void terminal_backspace(struct tesiObject *tobj, int x, int y) {
+  ConsoleWindow *cpanel = (ConsoleWindow *)tobj->pointer;
+  ConsoleTermView *cwin = cpanel->termView;
+  [cwin deleteChar];
+}
+
+void terminal_newline (struct tesiObject *tobj, int x, int y) {
+  ConsoleWindow *cpanel = (ConsoleWindow *)tobj->pointer;
+  ConsoleTermView *cwin = cpanel->termView;
+  [cwin writeChr: '\n'];
+}
+
+void terminal_tab(struct tesiObject *tobj, int x, int y) {
+  return terminal_visAscii(tobj, '\t', x, y);
 }
 
 /*
@@ -347,3 +457,4 @@ void console_haveChar(struct tesiObject *tobj, char c) {
 			break;
 	}
 }
+
