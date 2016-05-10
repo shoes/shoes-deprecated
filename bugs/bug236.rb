@@ -2,13 +2,12 @@ Shoes.app do
   stack do
     para "Terminal test"
     button "do it" do
-      #Shoes.show_console
       columns = 80
       Shoes.terminal columns: columns, rows: 24, fontsize: 12, title: "Bug236",
         fg: "yellow", bg: "black"
       if RUBY_PLATFORM =~ /darwin/
         #$stderr.puts "Filenums #{STDOUT.fileno} #{STDERR.fileno}"
-        $stdout = $stderr
+        #$stdout = $stderr
       end
       $stderr.puts "STDERR OK"
       $stdout.puts "STDOUT OK" 

@@ -17,6 +17,11 @@
 */
 #include "cocoa-term.h"
 
+/* there can only be one termina so only one tesi_object.
+ I'll keep a global Obj-C ref to tesi
+*/
+static struct tesiObject* shadow_tobj;
+
 void console_haveChar(struct tesiObject *tobj, char c); // forward ref
 
 @implementation ConsoleTermView // It's a NSTextView
@@ -90,7 +95,7 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   NSSize charSize = [monoFont maximumAdvancement];
   float fw = charSize.width;
   float fh = [monoFont pointSize]+2.0;
-  int width = (int)(fw * 80.0);
+  int width = (int)(fw * (80.0+8));
   int height = (int)(fh * 24);
   int btnPanelH = 40;
 //#define PNLH 40
@@ -174,32 +179,88 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   [cntview addSubview: termpnl];
   [self makeFirstResponder:termView];
   
-  // Somehow we need to create and fd for stdout and read it.
-  // Create a pipe for stdout writing and read it in a notification method
-  pipe = [NSPipe pipe];
-  pipeReadHandle = [pipe fileHandleForReading] ;
-  dup2([[pipe fileHandleForWriting] fileDescriptor], fileno(stdout)) ;
-  // [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(handleNotification:) name: NSFileHandleReadCompletionNotification object: pipeReadHandle] ;
-  // [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(stdoutDataAvail:) name: NSFileHandleDataAvailableNotification object: pipeReadHandle] ;
-  //[pipeReadHandle readInBackgroundAndNotify] ;
-  [[NSNotificationCenter defaultCenter] addObserver: self
-                                        selector: @selector(stdoutDataAvail:)
-                                        name: NSFileHandleDataAvailableNotification
-                                        object: pipeReadHandle];
-  [pipeReadHandle waitForDataInBackgroundAndNotify];
-
+  // This works nicely for stderr
   errPipe = [NSPipe pipe];
   errReadHandle = [errPipe fileHandleForReading];
-  dup2([[errPipe fileHandleForWriting] fileDescriptor], fileno(stderr));
-  [[NSNotificationCenter defaultCenter] addObserver: self
+  if (dup2([[errPipe fileHandleForWriting] fileDescriptor], fileno(stderr)) != -1) {
+    [[NSNotificationCenter defaultCenter] addObserver: self
                                         selector: @selector(stdErrDataAvail:)
                                         name: NSFileHandleDataAvailableNotification
                                         object: errReadHandle];
-  [errReadHandle waitForDataInBackgroundAndNotify];
+    [errReadHandle waitForDataInBackgroundAndNotify];
+  }
+  // Somehow we need to create an fd for stdout and read it.
+  // OSX Stdout is weird. Lets do some discovery to print later to stderr
+  NSFileHandle *orgh = [NSFileHandle fileHandleWithStandardOutput];
+  int outfd = fileno(stdout);
+  int pipewrfd, piperdfd;
+  int dup2fail = 0;
+  int rtn = 0;
+  /* 
+   * many ways below to attempt stdout hooking
+  */ 
 
+#define TRY_STDOUT 2
+#if (TRY_STDOUT == 0) // one pipe two fd's - doesn't work
+   if (dup2(fileno(stderr), fileno(stdout)) == -1) {
+     // failed
+     dup2fail = errno;
+  }
+
+#elif (TRY_STDOUT == 1)
+  // call ruby and eval ("$stdout=$stderr"); // won't work for C printf
+  // last resort!
+#else // methods that use a different pipe for stdout
+  outPipe = [NSPipe pipe];
+  outReadHandle = [outPipe fileHandleForReading] ;
+  outWriteHandle = [outPipe fileHandleForWriting];
+  pipewrfd = [[outPipe fileHandleForWriting] fileDescriptor];
+  piperdfd = [[outPipe fileHandleForReading] fileDescriptor];
+  // fclose(stdout) // Don't do this!!
+  rtn = dup2(pipewrfd, fileno(stdout));
+  // do some checking on dup2 and stdout
+  NSFileHandle *newh = [NSFileHandle fileHandleWithStandardOutput];
+  int newfd = [newh fileDescriptor];
   
+  char *pipeWrStr = "Explicict Write to Pipe FileWriteHandle\n";
+  NSData *pipeMsgData = [NSData dataWithBytes: pipeWrStr length: strlen(pipeWrStr)];
+  if (rtn != -1) { 
+#if (TRY_STDOUT == 2) 
+    [[NSNotificationCenter defaultCenter] addObserver: self
+                                        selector: @selector(stdOutDataAvail:)
+                                        name: NSFileHandleDataAvailableNotification
+                                        object: outReadHandle];
+    [outReadHandle waitForDataInBackgroundAndNotify];
+#elif (TRY_STDOUT == 3)
+   [[NSNotificationCenter defaultCenter] addObserver: self
+                                        selector: @selector(handleNotification:)
+                                        name: NSFileHandleReadCompletionNotification
+                                        object: outReadHandle];
+   [outReadHandle readInBackgroundAndNotify] ;
+#elif (TRY_STDOUT == 4)
+   // instead of a notifcation (asynch) call back, go direct. 
+   stdout->_write = terminal_hook;
+#endif
+    // issue some test messages for fd, file*, FileHandle*
+    char *foo = "Explicit write() to pipe wrfd\n";
+    write(pipewrfd,  foo, strlen(foo)); 
+    char *foo1 ="Explicit write() to stdout fd\n";
+    write(fileno(stdout), foo1, strlen(foo1));
+    // above results in one call to stdOutDataAvail
+    
+    stdout = fdopen(pipewrfd, "w");
+    printf("Hello from FILE* stdout"); // not working
+    
+    [outWriteHandle writeData: pipeMsgData];
+ 
+    
+  } else {
+    dup2fail = errno;
+  }
+#endif 
   // Now init the Tesi object - NOTE tesi callbacks are C,  which calls Objective-C
-  tobj = newTesiObject("/bin/bash", 80, 24); // first arg not used, 2 and 3 not either
+  tobj = newTesiObject("/bin/bash", 80, 24); // first arg is not used
+  shadow_tobj = tobj; 
   tobj->pointer = (void *)self;
   //tobj->callback_haveCharacter = &console_haveChar; // short circuit - to be fixed
   tobj->callback_handleNL = &terminal_newline;
@@ -238,7 +299,11 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
                             userInfo: self repeats:YES];
   // debug
 #endif
-  fprintf(stderr, "From C stderr\n");
+  outfd = fileno(stdout);
+  fprintf(stderr, "About C stdout after:\n");
+  fprintf(stderr, "fd: %d, pipewrfd: %d, piperdfd: %d\n", outfd, pipewrfd, piperdfd);
+  fprintf(stderr, "dup2 errorno: %d, %s\n", dup2fail, strerror(dup2fail));
+  
   fprintf(stdout, "From C stdout\n");  // Nothing, Damn it!
   // printf("w = %d, h = %d winh = %d \n", width, height, winRect.size.height);
 }
@@ -302,26 +367,37 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
 // Hints are this stopped working in 10.7 - doesn't work for me on 10.10
 - (void)handleNotification: (NSNotification *)notification
 {
-  NSData *obj  = [[notification userInfo] objectForKey: NSFileHandleNotificationDataItem];
-  if ([obj length] ) {
-    NSString *str = [[NSString alloc] initWithData: obj encoding: NSASCIIStringEncoding] ;
-    // Do whatever you want with str 
-    [[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: str]];
-    [termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
-    [pipeReadHandle readInBackgroundAndNotify] ;
+  NSData *data  = [[notification userInfo] objectForKey: NSFileHandleNotificationDataItem];
+  int len = [data length];
+  if (len) {
+    char *s = (char *)[data bytes];
+    s[len] = '\0';
+    tesi_handleInput(tobj, s, len);
+    
+    //NSString *str = [[NSString alloc] initWithData: obj encoding: NSASCIIStringEncoding] ;
+    //[[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: str]];
+    //[termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
+    
+    [outReadHandle readInBackgroundAndNotify] ;
   }
 } 
 
-- (void) stdoutDataAvail: (NSNotification *) notification
+- (void) stdOutDataAvail: (NSNotification *) notification
 {
   NSFileHandle *fh = (NSFileHandle *) [notification object];
   NSData *data = [fh availableData];
-  if ([data length]) {
-    // use it
-    NSString *str = [[NSString alloc] initWithData: data encoding: NSASCIIStringEncoding] ;
-    [[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: str]];
-    [termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
-    [fh waitForDataInBackgroundAndNotify];
+  int len = [data length];
+  if (len) {
+    char *s = (char *)[data bytes];  // odds are high this is UTF16-LE
+    s[len] = '\0';
+    // feed  str to tesi and it will callback into other C code defined here.
+    tesi_handleInput(tobj, s, len);
+    
+    //NSString *str = [[NSString alloc] initWithData: data encoding: NSASCIIStringEncoding] ;
+    //[[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: str]];
+    //[termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
+    
+    [outReadHandle waitForDataInBackgroundAndNotify];
   } else {
     // eof? close?
   }
@@ -337,9 +413,11 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
     s[len] = '\0';
     // feed  str to tesi and it will callback into other C code defined here.
     tesi_handleInput(tobj, s, len);
+    
     //NSString *str = [[NSString alloc] initWithData: data encoding: NSASCIIStringEncoding] ;
     //[[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: str]];
     //[termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
+    
     [fh waitForDataInBackgroundAndNotify];
   } else {
     // eof? close?
@@ -458,3 +536,6 @@ void console_haveChar(struct tesiObject *tobj, char c) {
 	}
 }
 
+int terminal_hook(void *inFD, const char *buffer, int size) {
+  tesi_handleInput(shadow_tobj, buffer, size);
+}

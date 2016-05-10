@@ -30,9 +30,10 @@
   NSLayoutManager *termLayout;
   NSTextContainer *termContainer;
   ConsoleTermView *termView;
-  // Trick for stdout
-  NSPipe *pipe;
-  NSFileHandle *pipeReadHandle;
+  // For stdout
+  NSPipe *outPipe;
+  NSFileHandle *outReadHandle;
+  NSFileHandle *outWriteHandle;
   // Stderr 
   NSPipe *errPipe;
   NSFileHandle *errReadHandle;
@@ -45,3 +46,4 @@ extern void terminal_newline(struct tesiObject *, int, int);
 extern void terminal_backspace(struct tesiObject *, int, int);
 extern void terminal_tab(struct tesiObject *, int, int);
 extern void terminal_attreset(struct tesiObject *);
+extern int terminal_hook(void *, const char *, int);
