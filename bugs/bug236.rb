@@ -8,7 +8,7 @@ Shoes.app do
       if RUBY_PLATFORM =~ /darwin/
         #$stderr.puts "Filenums #{STDOUT.fileno} #{STDERR.fileno}"
         #$stdout = $stderr
-        #$stdout.reopen($stdout)
+        #$stdout.reopen(IO.new(1, 'w'))
         #$stdout = IO.new(1, 'w')
       end
       $stderr.puts "STDERR OK"

@@ -222,7 +222,7 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   NSFileHandle *newh = [NSFileHandle fileHandleWithStandardOutput];
   int newfd = [newh fileDescriptor];
   
-  char *pipeWrStr = "Explicict Write to Pipe FileWriteHandle\n";
+  char *pipeWrStr = "Explicit Write to Pipe FileWriteHandle\n";
   NSData *pipeMsgData = [NSData dataWithBytes: pipeWrStr length: strlen(pipeWrStr)];
   if (rtn != -1) { 
 #if (TRY_STDOUT == 2) 
@@ -237,9 +237,6 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
                                         name: NSFileHandleReadCompletionNotification
                                         object: outReadHandle];
    [outReadHandle readInBackgroundAndNotify] ;
-#elif (TRY_STDOUT == 4)
-   // instead of a notifcation (asynch) call back, go direct. 
-   stdout->_write = terminal_hook;
 #endif
     // issue some test messages for fd, file*, FileHandle*
     char *foo = "Explicit write() to pipe wrfd\n";
@@ -256,8 +253,13 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
     printf("Hello from FILE* stdout\n"); // Yay!!
     
     [outWriteHandle writeData: pipeMsgData];
-    // now convince Ruby to use the new stdout
-    rb_eval_string("$stdout = $stderr");
+    
+    // now convince Ruby to use the new stdout - sadly it's not line buffered
+    // BEWARE the monkey patch!
+    char evalstr[256];
+    //sprintf(evalstr, "$stdout.reopen(IO.new(%d, 'w'))",pipewrfd);
+    //sprintf(evalstr, "$stdout = IO.new(1, 'w')); $stdout.flush"); 
+    //rb_eval_string(evalstr);
   } else {
     dup2fail = errno;
   }
