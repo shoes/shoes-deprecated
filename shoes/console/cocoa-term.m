@@ -249,11 +249,15 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
     // above results in one call to stdOutDataAvail
     
     stdout = fdopen(pipewrfd, "w");
-    printf("Hello from FILE* stdout"); // not working
+    if (setlinebuf(stdout) != 0) {
+      fprintf(stderr, "failed setlinebuffer()\n");
+    }
+    fflush(stdout);  // doesn't work
+    printf("Hello from FILE* stdout\n"); // Yay!!
     
     [outWriteHandle writeData: pipeMsgData];
- 
-    
+    // now convince Ruby to use the new stdout
+    rb_eval_string("$stdout = $stderr");
   } else {
     dup2fail = errno;
   }
