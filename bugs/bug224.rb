@@ -9,12 +9,12 @@ Shoes.app do
         # flush anything terminal C code might have written
         $stderr.flush
         $stdout.flush
-        class IO
-          def puts args
-            super args
-            self.flush if self.fileno < 3
-          end
-        end
+        #class IO
+        #  def puts args
+        #    super args
+        #    self.flush if self.fileno < 3
+        #  end
+        #end
       end
       $stderr.puts "STDERR OK"; 
       $stdout.puts "STDOUT OK"; 

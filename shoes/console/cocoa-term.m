@@ -190,15 +190,11 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
     [errReadHandle waitForDataInBackgroundAndNotify];
   }
   // Somehow we need to create an fd for stdout and read it.
-  // OSX Stdout is weird. Lets do some discovery to print later to stderr
-  NSFileHandle *orgh = [NSFileHandle fileHandleWithStandardOutput];
-  int outfd = fileno(stdout);
+  // OSX Stdout is weird. Lets do some discovery to print later to stderrnewfd
+  //int outfd = fileno(stdout);
   int pipewrfd, piperdfd;
   int dup2fail = 0;
   int rtn = 0;
-  /* 
-   * many ways below to attempt stdout hooking
-  */ 
 
 #define TRY_STDOUT 2
 #if (TRY_STDOUT == 0) // one pipe two fd's - doesn't work
@@ -207,9 +203,6 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
      dup2fail = errno;
   }
 
-#elif (TRY_STDOUT == 1)
-  // call ruby and eval ("$stdout=$stderr"); // won't work for C printf
-  // last resort!
 #else // methods that use a different pipe for stdout
   outPipe = [NSPipe pipe];
   outReadHandle = [outPipe fileHandleForReading] ;
@@ -219,11 +212,8 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   // fclose(stdout) // Don't do this!!
   rtn = dup2(pipewrfd, fileno(stdout));
   // do some checking on dup2 and stdout
-  NSFileHandle *newh = [NSFileHandle fileHandleWithStandardOutput];
-  int newfd = [newh fileDescriptor];
-  
-  char *pipeWrStr = "Explicit Write to Pipe FileWriteHandle\n";
-  NSData *pipeMsgData = [NSData dataWithBytes: pipeWrStr length: strlen(pipeWrStr)];
+  //char *pipeWrStr = "Explicit Write to Pipe FileWriteHandle\n";
+  //NSData *pipeMsgData = [NSData dataWithBytes: pipeWrStr length: strlen(pipeWrStr)];
   if (rtn != -1) { 
 #if (TRY_STDOUT == 2) 
     [[NSNotificationCenter defaultCenter] addObserver: self
@@ -238,6 +228,7 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
                                         object: outReadHandle];
    [outReadHandle readInBackgroundAndNotify] ;
 #endif
+    /*
     // issue some test messages for fd, file*, FileHandle*
     char *foo = "Explicit write() to pipe wrfd\n";
     write(pipewrfd,  foo, strlen(foo)); 
@@ -253,13 +244,19 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
     printf("Hello from FILE* stdout\n"); // Yay!!
     
     [outWriteHandle writeData: pipeMsgData];
-    
+    */
     // now convince Ruby to use the new stdout - sadly it's not line buffered
     // BEWARE the monkey patch!
     char evalstr[256];
     //sprintf(evalstr, "$stdout.reopen(IO.new(%d, 'w'))",pipewrfd);
     //sprintf(evalstr, "$stdout = IO.new(1, 'w')); $stdout.flush"); 
-    //rb_eval_string(evalstr);
+    strcpy(evalstr, "class IO \n\
+          def puts args \n\
+            super args \n\
+            self.flush if self.fileno < 3 \n\
+          end \n\
+        end\n");
+    rb_eval_string(evalstr);
   } else {
     dup2fail = errno;
   }
@@ -305,6 +302,7 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
                             userInfo: self repeats:YES];
   // debug
 #endif
+  /*
   outfd = fileno(stdout);
   fprintf(stderr, "About C stdout after:\n");
   fprintf(stderr, "fd: %d, pipewrfd: %d, piperdfd: %d\n", outfd, pipewrfd, piperdfd);
@@ -312,6 +310,7 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   
   fprintf(stdout, "From C stdout\n");  // Nothing, Damn it!
   // printf("w = %d, h = %d winh = %d \n", width, height, winRect.size.height);
+  */
 }
 
 -(IBAction)handleClear: (id)sender
@@ -457,6 +456,7 @@ int shoes_native_console()
   [window consoleInitWithFont: font];
   // Fire up console window, switch stdin..
   printf("Mak\010c\t console \t\tcreated\n"); //test \b \t in string
+  fflush(stdout); // OSX pipes are not line buffered
   return 1;
 }
 
@@ -540,8 +540,4 @@ void console_haveChar(struct tesiObject *tobj, char c) {
 		default:
 			break;
 	}
-}
-
-int terminal_hook(void *inFD, const char *buffer, int size) {
-  tesi_handleInput(shadow_tobj, buffer, size);
 }
