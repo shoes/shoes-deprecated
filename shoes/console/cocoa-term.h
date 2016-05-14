@@ -20,10 +20,19 @@
   struct tesiObject* tobj;
   NSFont *monoFont;
   NSMutableString *cnvbfr;  // for char to NSString conversion
-  NSTimer *pollTimer;
+  NSTimer *pollTimer;		// no longer used in 3.3.2
   NSBox *btnpnl;
   NSButton *clrbtn;
   NSButton *cpybtn;
+  // args to shoes_native_terminal are saved here if needed
+  NSString *reg_dir;
+  int req_cols;
+  int req_rows;
+  int req_mode;
+  int req_fontsize;
+  NSMutableDictionary *colorTable;
+  NSColor *bgColor;
+  NSColor *fgColor;
   NSView *cntview;
   NSScrollView *termpnl;
   NSTextStorage *termStorage;

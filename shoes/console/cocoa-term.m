@@ -17,7 +17,7 @@
 */
 #include "cocoa-term.h"
 
-/* there can only be one termina so only one tesi_object.
+/* there can only be one terminal so only one tesi_object.
  I'll keep a global Obj-C ref to tesi
 */
 static struct tesiObject* shadow_tobj;
@@ -68,7 +68,6 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   NSString *cnvbfr = [[NSString alloc] initWithCString: buff encoding: NSUTF8StringEncoding];
   //Create a AttributeString using the font.
   NSAttributedString *attrStr = [[NSAttributedString alloc] initWithString: cnvbfr attributes: attrs];
-  //[[self textStorage] appendAttributedString: [[NSMutableAttributedString alloc] initWithString: cnvbfr attributes: attrs]];
   [[self textStorage] appendAttributedString: attrStr];
   [self scrollRangeToVisible:NSMakeRange([[self string] length], 0)];
 
@@ -88,28 +87,62 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
 @end
 
 @implementation ConsoleWindow
-- (void)consoleInitWithFont: (NSFont *) font
+
+- (void)initAttributes 
+{
+  colorTable = [NSMutableDictionary dictionaryWithCapacity: 9];
+  [colorTable setObject: [NSColor blackColor] forKey: @"black"];
+  [colorTable setObject: [NSColor redColor] forKey: @"red"];
+  [colorTable setObject: [NSColor greenColor] forKey: @"green"];
+  [colorTable setObject: [NSColor brownColor] forKey: @"brown"];
+  [colorTable setObject: [NSColor blueColor] forKey: @"blue"];
+  [colorTable setObject: [NSColor magentaColor] forKey: @"magenta"];
+  [colorTable setObject: [NSColor cyanColor] forKey: @"cyan"];
+  [colorTable setObject: [NSColor whiteColor] forKey: @"white"];
+  [colorTable setObject: [NSColor yellowColor] forKey: @"yellow"];
+}
+
+
+- (void)consoleInitWithFont: (NSFont *)font app_dir: (char *)app_dir 
+      mode: (int)mode columns: (int)columns rows: (int)rows foreground: (char *)fg
+      background: (char *)bg title: (char *)title
 {
   monoFont = font;
+  req_mode = mode;
+  req_cols = columns;
+  req_rows = rows;
+  [self initAttributes];
+  // TOTO: fg and bg are really Shoes colors names so we should ask Shoes
+  // for the cocoa color object; 
+  bgColor = [NSColor whiteColor];
+  if (bg != NULL) {
+    bgColor = [colorTable objectForKey: [[NSString alloc] initWithUTF8String: bg]];
+  }
+  fgColor = [NSColor blackColor];
+  if (fg != NULL) {
+    fgColor = [colorTable objectForKey: [[NSString alloc] initWithUTF8String: fg]];
+  }
+  
   //NSRect winRect = [[self contentView] frame]; // doesn't do what I think
   NSSize charSize = [monoFont maximumAdvancement];
   float fw = charSize.width;
   float fh = [monoFont pointSize]+2.0;
-  int width = (int)(fw * (80.0+8));
-  int height = (int)(fh * 24);
+  int width = (int)(fw * (req_cols + 8));
+  int height = (int)(fh * req_rows);
   int btnPanelH = 40;
-//#define PNLH 40
-  [self setTitle: @"(New) Shoes Console"];
-  //[self center]; // there is a bug report about centering.
+  
+  NSString *reqTitle = [[NSString alloc] initWithUTF8String: title];
+  [self setTitle: reqTitle];
   [self makeKeyAndOrderFront: self];
   [self setAcceptsMouseMovedEvents: YES];
   [self setAutorecalculatesKeyViewLoop: YES];
   [self setDelegate: (id <NSWindowDelegate>)self];
+  
   // setup the copy and clear buttons (yes command key handling would be better)
-  //btnpnl = [[NSBox alloc] initWithFrame: NSMakeRect(0,height-PNLH,width,PNLH)];
   btnpnl = [[NSBox alloc] initWithFrame: NSMakeRect(0,height,width,btnPanelH)];
   [btnpnl setTitlePosition: NSNoTitle ];
   [btnpnl setAutoresizingMask: NSViewWidthSizable|NSViewMinYMargin];
+  
   // draw the icon
   NSApplication *NSApp = [NSApplication sharedApplication];
   NSImage *icon = [NSApp applicationIconImage];
@@ -120,13 +153,15 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
 
   NSTextField *labelWidget;
   labelWidget = [[NSTextField alloc] initWithFrame: NSMakeRect(80, -2, 200, 28)];
-  [labelWidget setStringValue: @"Very Dumb Console"];
+  //[labelWidget setStringValue: @"Very Dumb Console"];
+  [labelWidget setStringValue: reqTitle];
   [labelWidget setBezeled:NO];
   [labelWidget setDrawsBackground:NO];
   [labelWidget setEditable:NO];
   [labelWidget setSelectable:NO];
   NSFont *labelFont = [NSFont fontWithName:@"Helvetica" size:18.0];
   [labelWidget setFont: labelFont];
+  // TODO: instead of labelWidget we should have a checkbox for game mode
 
   clrbtn = [[NSButton alloc] initWithFrame: NSMakeRect(300, -2, 60, 28)];
   [clrbtn setButtonType: NSMomentaryPushInButton];
@@ -161,13 +196,13 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   termContainer = [[NSTextContainer alloc] initWithContainerSize:textViewBounds.size];
   [termLayout addTextContainer:termContainer];
 
-  //termView = [[ConsoleTermView alloc]  initWithFrame: textViewBounds];
-  //termView = [[ConsoleTermView alloc]  initWithFrame: NSMakeRect(0, height, width, height-btnPanelH)];
   termView = [[ConsoleTermView alloc]  initWithFrame: NSMakeRect(0, 0, width, height)];
+  termView.backgroundColor =  bgColor; // fun with Properties!!
+  termView.drawsBackground = true;
+  //[termView setTextColor: fgColor]; set attrs color:
 
   termpnl = [[NSScrollView alloc] initWithFrame: NSMakeRect(0, 0, width, height)];
   [termpnl setHasVerticalScroller: YES];
-  //causes btnpnl to vanish. Fixes many resizing issues though:
   [termpnl setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
   [termpnl setDocumentView: termView];
 
@@ -179,7 +214,8 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   [cntview addSubview: termpnl];
   [self makeFirstResponder:termView];
   
-  // This works nicely for stderr
+  /* -- done with most of visual setup -- now for the io stuff setup. */
+  
   errPipe = [NSPipe pipe];
   errReadHandle = [errPipe fileHandleForReading];
   if (dup2([[errPipe fileHandleForWriting] fileDescriptor], fileno(stderr)) != -1) {
@@ -228,8 +264,7 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
                                         object: outReadHandle];
    [outReadHandle readInBackgroundAndNotify] ;
 #endif
-    /*
-    // issue some test messages for fd, file*, FileHandle*
+    /*  issue some test messages for fd, file*, FileHandle*
     char *foo = "Explicit write() to pipe wrfd\n";
     write(pipewrfd,  foo, strlen(foo)); 
     char *foo1 ="Explicit write() to stdout fd\n";
@@ -245,11 +280,10 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
     
     [outWriteHandle writeData: pipeMsgData];
     */
+    
     // now convince Ruby to use the new stdout - sadly it's not line buffered
     // BEWARE the monkey patch!
     char evalstr[256];
-    //sprintf(evalstr, "$stdout.reopen(IO.new(%d, 'w'))",pipewrfd);
-    //sprintf(evalstr, "$stdout = IO.new(1, 'w')); $stdout.flush"); 
     strcpy(evalstr, "class IO \n\
           def puts args \n\
             super args \n\
@@ -261,11 +295,12 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
     dup2fail = errno;
   }
 #endif 
+
   // Now init the Tesi object - NOTE tesi callbacks are C,  which calls Objective-C
-  tobj = newTesiObject("/bin/bash", 80, 24); // first arg is not used
+  tobj = newTesiObject("/bin/bash", req_cols, req_rows); // first arg is not used
   shadow_tobj = tobj; 
   tobj->pointer = (void *)self;
-  //tobj->callback_haveCharacter = &console_haveChar; // short circuit - to be fixed
+  //tobj->callback_haveCharacter = &console_haveChar; // short circuit - to be deleted
   tobj->callback_handleNL = &terminal_newline;
   tobj->callback_handleRTN = NULL; // &terminal_return;
   tobj->callback_handleBS = &terminal_backspace;
@@ -431,16 +466,19 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
 
 @end
 
-// Called by Shoes via commandline arg or command Shoes::show_console
-int shoes_native_console()
+void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
+    int fontsize, char* fg, char *bg, char* title) 
 {
-  //NSLog(@"Console starting");
-  NSFont *font = [NSFont fontWithName:@"Menlo" size:11.0]; //menlo is monospace
+  
+  //NSFont *font = [NSFont fontWithName:@"Menlo" size:11.0]; //menlo is monospace
+  NSFont *font = [NSFont fontWithName:@"Menlo" size: (double)fontsize]; //menlo is monospace
   NSSize charSize = [font maximumAdvancement];
   float fw = charSize.width;
   float fh = [font pointSize]+2.0;
-  int width = (int)(fw * 80.0);
-  int height = (int)(fh * 24);
+  //int width = (int)(fw * 80.0);
+  //int height = (int)(fh * 24);
+  int width = fw * (columns+1);
+  int height = fh * rows;
   int btnPanelH = 40; //TODO: dont hardcode this here
   ConsoleWindow *window;
   unsigned int mask = NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
@@ -453,16 +491,16 @@ int shoes_native_console()
     styleMask: mask backing: NSBackingStoreBuffered defer: NO];
   //if (app->minwidth > 0 || app->minheight > 0)
   //  [window setContentMinSize: size];
-  [window consoleInitWithFont: font];
+  [window consoleInitWithFont: font app_dir: app_dir mode: mode columns: columns
+      rows: rows foreground: fg background: bg title: title];
   // Fire up console window, switch stdin..
   printf("Mak\010c\t console \t\tcreated\n"); //test \b \t in string
   fflush(stdout); // OSX pipes are not line buffered
-  return 1;
 }
 
-void shoes_native_terminal() {
-  shoes_native_console();
-}
+//void shoes_native_console() {
+//  shoes_native_terminal(NULL, 1, 80, 24, 12, NULL, NULL, "Shoes" );
+//}
 
 void terminal_visAscii (struct tesiObject *tobj, char c, int x, int y) {
   ConsoleWindow *cpanel = (ConsoleWindow *)tobj->pointer;

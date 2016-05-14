@@ -3,7 +3,7 @@ Shoes.app do
     para "Terminal test"
     button "do it" do
       columns = 80
-      Shoes.terminal 
+      Shoes.show_console
       if RUBY_PLATFORM =~ /darwin/
         $stdout = IO.new(1, 'w')
         # flush anything terminal C code might have written
