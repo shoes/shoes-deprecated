@@ -10,7 +10,9 @@
    void *cwin;  //  points to below
    struct tesiObject* tobj;
    NSFont *font;
-   NSDictionary *attrs;
+   // attrs is the CURRENT attributes for drawing a character (font, colors, ...)
+   // They get added, deleted, and changed.
+   NSMutableDictionary *attrs;
 }
 @end
 

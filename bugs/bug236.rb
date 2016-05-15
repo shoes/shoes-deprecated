@@ -4,13 +4,7 @@ Shoes.app do
     button "do it" do
       columns = 80
       Shoes.terminal columns: columns, rows: 24, fontsize: 12, title: "Bug236",
-        fg: "yellow", bg: "cyan"
-      if RUBY_PLATFORM =~ /darwin/
-        #$stderr.puts "Filenums #{STDOUT.fileno} #{STDERR.fileno}"
-        #$stdout = $stderr
-        #$stdout.reopen(IO.new(1, 'w'))
-        #$stdout = IO.new(1, 'w')
-      end
+        fg: "yellow", bg: "black"
       $stderr.puts "STDERR OK"
       $stdout.puts "STDOUT OK" 
       puts "Way to go!"

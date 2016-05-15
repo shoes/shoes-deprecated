@@ -30,9 +30,10 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   cwin = cw;
   tobj = cw->tobj;  // is this Obj-C ugly? Probably
   font = fixedfont;
-  //attrs = [NSMutableDictionary dictionary];
-  //[attrs setObject:font forKey:NSFontAttributeName];
-  attrs = [NSDictionary dictionaryWithObject:font forKey:NSFontAttributeName];
+  //attrs = [NSDictionary dictionaryWithObject:font forKey:NSFontAttributeName];
+  attrs = [[NSMutableDictionary alloc] init];
+  [attrs setObject: font forKey: NSFontAttributeName];
+  [attrs setObject:  cw->fgColor  forKey: NSForegroundColorAttributeName];
   [self setEditable: YES];
   [self setRichText: false];
   [[self textStorage] setFont: font]; // doesn't work
@@ -66,7 +67,7 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   buff[0] = c;
   buff[1] = 0;
   NSString *cnvbfr = [[NSString alloc] initWithCString: buff encoding: NSUTF8StringEncoding];
-  //Create a AttributeString using the font.
+  //Create a AttributeString using the font, fg color...
   NSAttributedString *attrStr = [[NSAttributedString alloc] initWithString: cnvbfr attributes: attrs];
   [[self textStorage] appendAttributedString: attrStr];
   [self scrollRangeToVisible:NSMakeRange([[self string] length], 0)];
