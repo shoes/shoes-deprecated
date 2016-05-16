@@ -4,7 +4,7 @@ Shoes.app do
     button "do it" do
       columns = 80
       Shoes.terminal columns: columns, rows: 24, fontsize: 12, title: "Bug236",
-        fg: "yellow", bg: "black"
+        fg: "black", bg: "white"
       $stderr.puts "STDERR OK"
       $stdout.puts "STDOUT OK" 
       puts "Way to go!"

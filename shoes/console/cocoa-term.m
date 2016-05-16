@@ -33,13 +33,12 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   //attrs = [NSDictionary dictionaryWithObject:font forKey:NSFontAttributeName];
   attrs = [[NSMutableDictionary alloc] init];
   [attrs setObject: font forKey: NSFontAttributeName];
-  [attrs setObject:  cw->fgColor  forKey: NSForegroundColorAttributeName];
+  [attrs setObject:  cw->defaultFgColor  forKey: NSForegroundColorAttributeName];
   [self setEditable: YES];
   [self setRichText: false];
   [[self textStorage] setFont: font]; // doesn't work
   [self setFont: font]; //doesn't work
   [self setTypingAttributes: attrs]; // doesn't hang so thats good. doesn't work either
-  // [[self textStorage] setTypingAttributes: attrs]; // no such selector
 }
 - (void)keyDown: (NSEvent *)e
 {
@@ -71,7 +70,8 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   NSAttributedString *attrStr = [[NSAttributedString alloc] initWithString: cnvbfr attributes: attrs];
   [[self textStorage] appendAttributedString: attrStr];
   [self scrollRangeToVisible:NSMakeRange([[self string] length], 0)];
-
+  [attrStr release];
+  [cnvbfr release];
   // TODO: Am I leaking memory ? The C programmer in me says "Oh hell yes!"
   // [obj release] to match the alloc's ?
 }
@@ -101,6 +101,10 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   [colorTable setObject: [NSColor cyanColor] forKey: @"cyan"];
   [colorTable setObject: [NSColor whiteColor] forKey: @"white"];
   [colorTable setObject: [NSColor yellowColor] forKey: @"yellow"];
+  colorAttr = [[NSArray alloc] initWithObjects:
+      [NSColor blackColor],[NSColor redColor],[NSColor greenColor],
+      [NSColor brownColor],[NSColor blueColor],[NSColor magentaColor],
+      [NSColor cyanColor], [NSColor whiteColor], nil];
 }
 
 
@@ -109,19 +113,21 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
       background: (char *)bg title: (char *)title
 {
   monoFont = font;
+  monoBold = [[NSFontManager sharedFontManager] convertFont: font
+                                                toHaveTrait: NSBoldFontMask]; 
   req_mode = mode;
   req_cols = columns;
   req_rows = rows;
   [self initAttributes];
-  // TOTO: fg and bg are really Shoes colors names so we should ask Shoes
+  // TODO: fg and bg are really Shoes colors names so we should ask Shoes
   // for the cocoa color object; 
-  bgColor = [NSColor whiteColor];
+  defaultBgColor = [NSColor whiteColor];
   if (bg != NULL) {
-    bgColor = [colorTable objectForKey: [[NSString alloc] initWithUTF8String: bg]];
+    defaultBgColor = [colorTable objectForKey: [[NSString alloc] initWithUTF8String: bg]];
   }
-  fgColor = [NSColor blackColor];
+  defaultFgColor = [NSColor blackColor];
   if (fg != NULL) {
-    fgColor = [colorTable objectForKey: [[NSString alloc] initWithUTF8String: fg]];
+    defaultFgColor = [colorTable objectForKey: [[NSString alloc] initWithUTF8String: fg]];
   }
   
   //NSRect winRect = [[self contentView] frame]; // doesn't do what I think
@@ -198,9 +204,8 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   [termLayout addTextContainer:termContainer];
 
   termView = [[ConsoleTermView alloc]  initWithFrame: NSMakeRect(0, 0, width, height)];
-  termView.backgroundColor =  bgColor; // fun with Properties!!
+  termView.backgroundColor =  defaultBgColor; // fun with Properties!!
   termView.drawsBackground = true;
-  //[termView setTextColor: fgColor]; set attrs color:
 
   termpnl = [[NSScrollView alloc] initWithFrame: NSMakeRect(0, 0, width, height)];
   [termpnl setHasVerticalScroller: YES];
@@ -215,7 +220,7 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   [cntview addSubview: termpnl];
   [self makeFirstResponder:termView];
   
-  /* -- done with most of visual setup -- now for the io stuff setup. */
+  /* -- done with most of visual setup -- now for the confusing io setup. */
   
   errPipe = [NSPipe pipe];
   errReadHandle = [errPipe fileHandleForReading];
@@ -309,9 +314,9 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   tobj->callback_handleBEL = NULL;
   tobj->callback_printCharacter = &terminal_visAscii;
   tobj->callback_attreset = &terminal_attreset;
-  tobj->callback_charattr = NULL; // terminal_charattr;
-  tobj->callback_setfgcolor= NULL; // &terminal_setfgcolor;
-  tobj->callback_setbgcolor = NULL; //&terminal_setbgcolor;
+  tobj->callback_charattr = &terminal_charattr;
+  tobj->callback_setfgcolor= &terminal_setfgcolor;
+  tobj->callback_setbgcolor = &terminal_setbgcolor;
   // that's the minimum set of call backs;
   tobj->callback_setdefcolor = NULL;
   tobj->callback_deleteLines = NULL;
@@ -471,7 +476,6 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
     int fontsize, char* fg, char *bg, char* title) 
 {
   
-  //NSFont *font = [NSFont fontWithName:@"Menlo" size:11.0]; //menlo is monospace
   NSFont *font = [NSFont fontWithName:@"Menlo" size: (double)fontsize]; //menlo is monospace
   NSSize charSize = [font maximumAdvancement];
   float fw = charSize.width;
@@ -494,7 +498,7 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   //  [window setContentMinSize: size];
   [window consoleInitWithFont: font app_dir: app_dir mode: mode columns: columns
       rows: rows foreground: fg background: bg title: title];
-  // Fire up console window, switch stdin..
+
   printf("Mak\010c\t console \t\tcreated\n"); //test \b \t in string
   fflush(stdout); // OSX pipes are not line buffered
 }
@@ -509,8 +513,6 @@ void terminal_visAscii (struct tesiObject *tobj, char c, int x, int y) {
   [cwin writeChr: c];
 }
 
-void terminal_attreset(struct tesiObject *tobj) {
-}
 
 void terminal_backspace(struct tesiObject *tobj, int x, int y) {
   ConsoleWindow *cpanel = (ConsoleWindow *)tobj->pointer;
@@ -528,6 +530,54 @@ void terminal_tab(struct tesiObject *tobj, int x, int y) {
   return terminal_visAscii(tobj, '\t', x, y);
 }
 
+// deal with terminal character attributes - we just update the attr hash
+// used for inserting chars into the NSTextView and hope for the best. 
+// TODO: these are called on the ConsoleTermView object not ConsoleWindow
+
+void terminal_setfgcolor(struct tesiObject *tobj, int fg) {
+  NSColor *clr;
+  ConsoleWindow *cpanel = (ConsoleWindow *)tobj->pointer;
+  ConsoleTermView *cwin = cpanel->termView;
+  NSArray *clrtab = cpanel->colorAttr;
+  clr = [clrtab objectAtIndex: fg - 30];
+  [cwin->attrs setObject: clr forKey: NSForegroundColorAttributeName];
+}
+
+void terminal_setbgcolor(struct tesiObject *tobj, int bg) {
+  NSColor *clr;
+  ConsoleWindow *cpanel = (ConsoleWindow *)tobj->pointer;
+  ConsoleTermView *cwin = cpanel->termView;
+  NSArray *clrtab = cpanel->colorAttr;
+  clr = [clrtab objectAtIndex: bg - 40];
+  [cwin->attrs setObject: clr forKey: NSBackgroundColorAttributeName];
+}
+
+// we only care about a few of the possible tags values like bold,
+// underline. Might be tricky.
+
+void terminal_charattr(struct tesiObject *tobj, int attr) {
+  ConsoleWindow *cpanel = (ConsoleWindow *)tobj->pointer;
+  ConsoleTermView *cwin = cpanel->termView;
+  // 1 => bold, 4  => underline
+  if (attr == 4) {
+    [cwin->attrs setObject: [NSNumber numberWithInt:NSUnderlineStyleSingle] forKey: NSUnderlineStyleAttributeName]; 
+  } else if (attr == 1) {
+    // cause a crash 
+    //[cwin->attrs setObject: cpanel->monoBold forKey: NSFontAttributeName];
+  }
+}
+
+void terminal_attreset(struct tesiObject *tobj) {
+  // reset all attibutes (color, bold,...)
+  ConsoleWindow *cpanel = (ConsoleWindow *)tobj->pointer;
+  ConsoleTermView *cwin = cpanel->termView;
+  [cwin->attrs setObject: cpanel->defaultBgColor forKey: NSBackgroundColorAttributeName];
+  [cwin->attrs setObject: cpanel->defaultFgColor forKey: NSForegroundColorAttributeName];
+  [cwin->attrs removeObjectForKey: NSUnderlineStyleAttributeName];
+  [cwin->attrs setObject: cpanel->monoFont forKey: NSFontAttributeName];
+}
+
+#ifdef UNUSED
 /*
  * This is called to handle characters received from the pty
  * in response to a puts/printf/write from Shoes,Ruby, & C
@@ -580,3 +630,4 @@ void console_haveChar(struct tesiObject *tobj, char c) {
 			break;
 	}
 }
+#endif
