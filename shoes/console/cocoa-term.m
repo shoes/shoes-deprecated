@@ -30,15 +30,17 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   cwin = cw;
   tobj = cw->tobj;  // is this Obj-C ugly? Probably
   font = fixedfont;
-  //attrs = [NSDictionary dictionaryWithObject:font forKey:NSFontAttributeName];
+  //boldFont = [[NSFontManager sharedFontManager] convertFont: font
+  //                                             toHaveTrait: NSBoldFontMask];
+  boldFont = [NSFont fontWithName:@"Menlo bold" size: 14.0];
   attrs = [[NSMutableDictionary alloc] init];
   [attrs setObject: font forKey: NSFontAttributeName];
   [attrs setObject:  cw->defaultFgColor  forKey: NSForegroundColorAttributeName];
   [self setEditable: YES];
   [self setRichText: false];
-  [[self textStorage] setFont: font]; // doesn't work
-  [self setFont: font]; //doesn't work
-  [self setTypingAttributes: attrs]; // doesn't hang so thats good. doesn't work either
+  //[[self textStorage] setFont: boldFont]; // doesn't work
+  //[self setFont: boldFont]; //doesn't work
+  //[self setTypingAttributes: attrs]; // doesn't hang so thats good. doesn't work either
 }
 - (void)keyDown: (NSEvent *)e
 {
@@ -113,8 +115,6 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
       background: (char *)bg title: (char *)title
 {
   monoFont = font;
-  monoBold = [[NSFontManager sharedFontManager] convertFont: font
-                                                toHaveTrait: NSBoldFontMask]; 
   req_mode = mode;
   req_cols = columns;
   req_rows = rows;
@@ -219,6 +219,7 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   [cntview addSubview: btnpnl];
   [cntview addSubview: termpnl];
   [self makeFirstResponder:termView];
+  [termView initView: self withFont: monoFont]; // tell ConsoleTermView what font to use
   
   /* -- done with most of visual setup -- now for the confusing io setup. */
   
@@ -333,7 +334,6 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   // try inserting some text.
   //[[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: @"First Line!\n"]];
   
-  [termView initView: self withFont: monoFont]; // tell ConsoleTermView what font to use
 #if 0
   // need to get the handleInput started
   // OSX timer resolution less than 0.1 second unlikely?
@@ -344,13 +344,13 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   // debug
 #endif
   /*
-  outfd = fileno(stdout);
-  fprintf(stderr, "About C stdout after:\n");
-  fprintf(stderr, "fd: %d, pipewrfd: %d, piperdfd: %d\n", outfd, pipewrfd, piperdfd);
-  fprintf(stderr, "dup2 errorno: %d, %s\n", dup2fail, strerror(dup2fail));
+  * outfd = fileno(stdout);
+  * fprintf(stderr, "About C stdout after:\n");
+  * fprintf(stderr, "fd: %d, pipewrfd: %d, piperdfd: %d\n", outfd, pipewrfd, piperdfd);
+  * fprintf(stderr, "dup2 errorno: %d, %s\n", dup2fail, strerror(dup2fail));
   
-  fprintf(stdout, "From C stdout\n");  // Nothing, Damn it!
-  // printf("w = %d, h = %d winh = %d \n", width, height, winRect.size.height);
+  * fprintf(stdout, "From C stdout\n");  // Nothing, Damn it!
+  * // printf("w = %d, h = %d winh = %d \n", width, height, winRect.size.height);
   */
 }
 
@@ -562,8 +562,9 @@ void terminal_charattr(struct tesiObject *tobj, int attr) {
   if (attr == 4) {
     [cwin->attrs setObject: [NSNumber numberWithInt:NSUnderlineStyleSingle] forKey: NSUnderlineStyleAttributeName]; 
   } else if (attr == 1) {
-    // cause a crash 
-    //[cwin->attrs setObject: cpanel->monoBold forKey: NSFontAttributeName];
+    // cause a crash using attributes
+    //[cwin->attrs setObject: cwin->boldFont forKey: NSFontAttributeName];
+    [cpanel->termStorage setFont: cwin->boldFont];
   }
 }
 
@@ -574,7 +575,8 @@ void terminal_attreset(struct tesiObject *tobj) {
   [cwin->attrs setObject: cpanel->defaultBgColor forKey: NSBackgroundColorAttributeName];
   [cwin->attrs setObject: cpanel->defaultFgColor forKey: NSForegroundColorAttributeName];
   [cwin->attrs removeObjectForKey: NSUnderlineStyleAttributeName];
-  [cwin->attrs setObject: cpanel->monoFont forKey: NSFontAttributeName];
+  //[cwin->attrs setObject: cwin->font forKey: NSFontAttributeName];
+  //[cpanel->termStorage setFont: cwin->font];
 }
 
 #ifdef UNUSED

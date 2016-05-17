@@ -5,6 +5,8 @@
 #endif
 #include "tesi.h"
 
+// TODO: Don't subclass NSTextView - it was a bad idea 
+
 @interface ConsoleTermView : NSTextView
 {
 @public
@@ -14,7 +16,7 @@
    void *cwin;  //  points to below
    struct tesiObject* tobj;
    NSFont *font;
-
+   NSFont *boldFont;
 }
 @end
 
@@ -23,7 +25,6 @@
 @public
   struct tesiObject* tobj;
   NSFont *monoFont;
-  NSFont *monoBold;
   NSMutableString *cnvbfr;  // for char to NSString conversion
   NSTimer *pollTimer;		// no longer used in 3.3.2?
   NSBox *btnpnl;
