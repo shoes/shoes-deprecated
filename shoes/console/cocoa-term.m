@@ -1,19 +1,18 @@
-/* cocoa-term is a very minimal and dumb terminal emulator
-   for use in Shoes, mostly for logging purposes.
+/* cocoa-term is a very minimal terminal emulator for use in Shoes, 
+   mostly for logging purposes. This is not a window that you can manage
+   from Shoes.  
    Gui wise it is a Window with a small panel on top that has a static message
    and two buttons (copy and clear) and the a larger scrollable panel of
-   text lines. There is a minimal keyboard support so keypresses are sent to
-   a pty and characters are read from that pty and displayed in the window.
-   see tesi.c and tesi.h.
+   text lines. There is a minimal keyboard support.
    
-   Things are even more confusing with Stdout since OSX pretends Gui
-   apps don't have it so it's a bitbucket. So, before we create the pty
-   we have to create something useful for stdout (a pipe). We setup a handler to
-   read the pipe and pass the chars to tesi like it was read from the pty.
-   (yes that makes the pty almost useless on OSX) Almost.
-
-   NOTE: Use of NSLog will cause confusion &  misbehaviour. Don't use it if
-   console is showing.
+   Stdio/Stdout/Stderr are re-implemnted using pipes instead of a pty
+   because OSX is just damn weird about stdout depending on how you
+   launch Shoes. Since pipes can not be line bufffered, we need to call
+   flush when needed. The code here does not r/w from stdio/out/err except
+   for diagnostic purposes. fd[0,1,2]] have their C/Objective-C/Ruby expected
+   definitions.  Sadly, we have to tell Ruby that they have changed since 
+   the Ruby init process grabbed the old (bad on OSX) fd's. 
+   
 */
 #include "cocoa-term.h"
 
@@ -22,47 +21,9 @@
 */
 static struct tesiObject* shadow_tobj;
 
-void console_haveChar(struct tesiObject *tobj, char c); // forward ref
+@implementation TerminalWindow
 
-@implementation ConsoleTermView // It's a NSTextView
-- (void)initView: (ConsoleWindow *)cw withFont: (NSFont *)fixedfont
-{
-  cwin = cw;
-  tobj = cw->tobj;  // is this Obj-C ugly? Probably
-  font = fixedfont;
-  //boldFont = [[NSFontManager sharedFontManager] convertFont: font
-  //                                             toHaveTrait: NSBoldFontMask];
-  boldFont = [NSFont fontWithName:@"Menlo bold" size: 14.0];
-  attrs = [[NSMutableDictionary alloc] init];
-  [attrs setObject: font forKey: NSFontAttributeName];
-  [attrs setObject:  cw->defaultFgColor  forKey: NSForegroundColorAttributeName];
-  [self setEditable: YES];
-  [self setRichText: false];
-  //[[self textStorage] setFont: boldFont]; // doesn't work
-  //[self setFont: boldFont]; //doesn't work
-  //[self setTypingAttributes: attrs]; // doesn't hang so thats good. doesn't work either
-}
-- (void)keyDown: (NSEvent *)e
-{
-  // works but I do not like it.
-  NSString *str = [e charactersIgnoringModifiers];
-  char *utf8 = [str UTF8String];
-  if (strlen(utf8)==1) {
-    write(tobj->fd_input, utf8, strlen(utf8));
-  } else {
-    // this sends the key event (back?) to the responder chain
-    [self interpretKeyEvents:[NSArray arrayWithObject:e]];
-  }
-}
-
-// not called?
-- (void)insertTab:(id)sender {
-   if ([[self window] firstResponder] == self) {
-     write(tobj->fd_input,"TAB",3);
-   }
-}
-
-- (void)writeChr:(char)c
+- (void)displayChar:(char)c
 {
   char buff[4];
   buff[0] = c;
@@ -70,26 +31,13 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   NSString *cnvbfr = [[NSString alloc] initWithCString: buff encoding: NSUTF8StringEncoding];
   //Create a AttributeString using the font, fg color...
   NSAttributedString *attrStr = [[NSAttributedString alloc] initWithString: cnvbfr attributes: attrs];
-  [[self textStorage] appendAttributedString: attrStr];
-  [self scrollRangeToVisible:NSMakeRange([[self string] length], 0)];
+  [[termView textStorage] appendAttributedString: attrStr];
+  [termView scrollRangeToVisible:NSMakeRange([[termStorage string] length], 0)];
   [attrStr release];
   [cnvbfr release];
   // TODO: Am I leaking memory ? The C programmer in me says "Oh hell yes!"
   // [obj release] to match the alloc's ?
 }
-
-- (void)deleteChar
-{
-  // Remeber, this a \b char in a printf/puts not a key event (although one might get here)
-  int length = (int)[[self textStorage] length];
-  [[self textStorage] deleteCharactersInRange:NSMakeRange(length-1, 1)];
-  [self scrollRangeToVisible:NSMakeRange([[self string] length], 0)];
-  //TODO: constrain y so it doesn't crawl up the screen
-}
-
-@end
-
-@implementation ConsoleWindow
 
 - (void)initAttributes 
 {
@@ -129,6 +77,10 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   if (fg != NULL) {
     defaultFgColor = [colorTable objectForKey: [[NSString alloc] initWithUTF8String: fg]];
   }
+  attrs = [[NSMutableDictionary alloc] init];
+  [attrs setObject: font forKey: NSFontAttributeName];
+  [attrs setObject:  defaultFgColor  forKey: NSForegroundColorAttributeName];
+
   
   //NSRect winRect = [[self contentView] frame]; // doesn't do what I think
   NSSize charSize = [monoFont maximumAdvancement];
@@ -203,7 +155,7 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   termContainer = [[NSTextContainer alloc] initWithContainerSize:textViewBounds.size];
   [termLayout addTextContainer:termContainer];
 
-  termView = [[ConsoleTermView alloc]  initWithFrame: NSMakeRect(0, 0, width, height)];
+  termView = [[NSTextView alloc]  initWithFrame: NSMakeRect(0, 0, width, height)];
   termView.backgroundColor =  defaultBgColor; // fun with Properties!!
   termView.drawsBackground = true;
 
@@ -219,7 +171,7 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   [cntview addSubview: btnpnl];
   [cntview addSubview: termpnl];
   [self makeFirstResponder:termView];
-  [termView initView: self withFont: monoFont]; // tell ConsoleTermView what font to use
+  //[termView initView: self withFont: monoFont]; // tell ConsoleTermView what font to use
   
   /* -- done with most of visual setup -- now for the confusing io setup. */
   
@@ -331,8 +283,8 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   tobj->callback_eraseLine = NULL; // &terminal_eraseLine;
   tobj->callback_scrollUp = NULL; // &console_scrollUp;
 
-  // try inserting some text.
-  //[[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: @"First Line!\n"]];
+  // try inserting some text. Debugging purposes
+  // [[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: @"First Line!\n"]];
   
 #if 0
   // need to get the handleInput started
@@ -379,8 +331,17 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
 /*
 - (void)keyDown: (NSEvent *)e
 {
-  // handle upper level keys like cmd and page_up/down?
+  // works but I do not like it.
+  NSString *str = [e charactersIgnoringModifiers];
+  char *utf8 = [str UTF8String];
+  if (strlen(utf8)==1) {
+    //write(tobj->fd_input, utf8, strlen(utf8));
+  } else {
+    // this sends the key event (back?) to the responder chain
+    [self interpretKeyEvents:[NSArray arrayWithObject:e]];
+  }
 }
+
 */
 
 - (BOOL)canBecomeKeyWindow
@@ -403,12 +364,13 @@ void console_haveChar(struct tesiObject *tobj, char c); // forward ref
   // do tesi.Input
   tesi_handleInput(tobj);
 }
-*/
+
 - (void)writeStr:(NSString*)text
 {
   [[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: text]];
   [termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
 }
+*/
 
 // Hints are this stopped working in 10.7 - doesn't work for me on 10.10
 - (void)handleNotification: (NSNotification *)notification
@@ -485,14 +447,14 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   int width = fw * (columns+1);
   int height = fh * rows;
   int btnPanelH = 40; //TODO: dont hardcode this here
-  ConsoleWindow *window;
+  TerminalWindow *window;
   unsigned int mask = NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
   NSRect rect = NSMakeRect(0, 0, width, height+btnPanelH); //Screen co-ords?
   //NSSize size = {app->minwidth, app->minheight};
 
   //if (app->resizable)
     mask |= NSResizableWindowMask;
-  window = [[ConsoleWindow alloc] initWithContentRect: rect
+  window = [[TerminalWindow alloc] initWithContentRect: rect
     styleMask: mask backing: NSBackingStoreBuffered defer: NO];
   //if (app->minwidth > 0 || app->minheight > 0)
   //  [window setContentMinSize: size];
@@ -508,22 +470,25 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
 //}
 
 void terminal_visAscii (struct tesiObject *tobj, char c, int x, int y) {
-  ConsoleWindow *cpanel = (ConsoleWindow *)tobj->pointer;
-  ConsoleTermView *cwin = cpanel->termView;
-  [cwin writeChr: c];
+  TerminalWindow *cpanel = (TerminalWindow *)tobj->pointer;
+  [cpanel displayChar: c];
+  //ConsoleTermView *cwin = cpanel->termView;
+  //[cwin writeChr: c];
 }
 
 
 void terminal_backspace(struct tesiObject *tobj, int x, int y) {
-  ConsoleWindow *cpanel = (ConsoleWindow *)tobj->pointer;
-  ConsoleTermView *cwin = cpanel->termView;
-  [cwin deleteChar];
+  TerminalWindow *cpanel = (TerminalWindow *)tobj->pointer;
+  [cpanel displayChar: '\b'];
+  //ConsoleTermView *cwin = cpanel->termView;
+  //[cwin deleteChar];
 }
 
 void terminal_newline (struct tesiObject *tobj, int x, int y) {
-  ConsoleWindow *cpanel = (ConsoleWindow *)tobj->pointer;
-  ConsoleTermView *cwin = cpanel->termView;
-  [cwin writeChr: '\n'];
+  TerminalWindow *cpanel = (TerminalWindow *)tobj->pointer;
+  [cpanel displayChar: '\n'];
+  //ConsoleTermView *cwin = cpanel->termView;
+  //[cwin writeChr: '\n'];
 }
 
 void terminal_tab(struct tesiObject *tobj, int x, int y) {
@@ -532,104 +497,48 @@ void terminal_tab(struct tesiObject *tobj, int x, int y) {
 
 // deal with terminal character attributes - we just update the attr hash
 // used for inserting chars into the NSTextView and hope for the best. 
-// TODO: these are called on the ConsoleTermView object not ConsoleWindow
+// TODO: these are called on the ConsoleTermView object not TerminalWindow
 
 void terminal_setfgcolor(struct tesiObject *tobj, int fg) {
   NSColor *clr;
-  ConsoleWindow *cpanel = (ConsoleWindow *)tobj->pointer;
-  ConsoleTermView *cwin = cpanel->termView;
+  TerminalWindow *cpanel = (TerminalWindow *)tobj->pointer;
+  //ConsoleTermView *cwin = cpanel->termView;
   NSArray *clrtab = cpanel->colorAttr;
   clr = [clrtab objectAtIndex: fg - 30];
-  [cwin->attrs setObject: clr forKey: NSForegroundColorAttributeName];
+  [cpanel->attrs setObject: clr forKey: NSForegroundColorAttributeName];
 }
 
 void terminal_setbgcolor(struct tesiObject *tobj, int bg) {
   NSColor *clr;
-  ConsoleWindow *cpanel = (ConsoleWindow *)tobj->pointer;
-  ConsoleTermView *cwin = cpanel->termView;
+  TerminalWindow *cpanel = (TerminalWindow *)tobj->pointer;
+  //ConsoleTermView *cwin = cpanel->termView;
   NSArray *clrtab = cpanel->colorAttr;
   clr = [clrtab objectAtIndex: bg - 40];
-  [cwin->attrs setObject: clr forKey: NSBackgroundColorAttributeName];
+  [cpanel->attrs setObject: clr forKey: NSBackgroundColorAttributeName];
 }
 
 // we only care about a few of the possible tags values like bold,
 // underline. Might be tricky.
 
 void terminal_charattr(struct tesiObject *tobj, int attr) {
-  ConsoleWindow *cpanel = (ConsoleWindow *)tobj->pointer;
-  ConsoleTermView *cwin = cpanel->termView;
+  TerminalWindow *cpanel = (TerminalWindow *)tobj->pointer;
+  //ConsoleTermView *cwin = cpanel->termView;
   // 1 => bold, 4  => underline
   if (attr == 4) {
-    [cwin->attrs setObject: [NSNumber numberWithInt:NSUnderlineStyleSingle] forKey: NSUnderlineStyleAttributeName]; 
+    [cpanel->attrs setObject: [NSNumber numberWithInt:NSUnderlineStyleSingle] forKey: NSUnderlineStyleAttributeName]; 
   } else if (attr == 1) {
     // cause a crash using attributes
     //[cwin->attrs setObject: cwin->boldFont forKey: NSFontAttributeName];
-    [cpanel->termStorage setFont: cwin->boldFont];
   }
 }
 
 void terminal_attreset(struct tesiObject *tobj) {
   // reset all attibutes (color, bold,...)
-  ConsoleWindow *cpanel = (ConsoleWindow *)tobj->pointer;
-  ConsoleTermView *cwin = cpanel->termView;
-  [cwin->attrs setObject: cpanel->defaultBgColor forKey: NSBackgroundColorAttributeName];
-  [cwin->attrs setObject: cpanel->defaultFgColor forKey: NSForegroundColorAttributeName];
-  [cwin->attrs removeObjectForKey: NSUnderlineStyleAttributeName];
+  TerminalWindow *cpanel = (TerminalWindow *)tobj->pointer;
+  //ConsoleTermView *cwin = cpanel->termView;
+  [cpanel->attrs setObject: cpanel->defaultBgColor forKey: NSBackgroundColorAttributeName];
+  [cpanel->attrs setObject: cpanel->defaultFgColor forKey: NSForegroundColorAttributeName];
+  [cpanel->attrs removeObjectForKey: NSUnderlineStyleAttributeName];
   //[cwin->attrs setObject: cwin->font forKey: NSFontAttributeName];
   //[cpanel->termStorage setFont: cwin->font];
 }
-
-#ifdef UNUSED
-/*
- * This is called to handle characters received from the pty
- * in response to a puts/printf/write from Shoes,Ruby, & C
- * I don't manage escape seq, x,y or deal with width and height.
- * Just write to the end of the buffer and let cocoa textview manage it.
-*/
-void console_haveChar(struct tesiObject *tobj, char c) {
-  ConsoleWindow *cpanel = (ConsoleWindow *)tobj->pointer;
-  ConsoleTermView *cwin = cpanel->termView;
-
-  //char in[8];
-  //int lcnt;
-	//int i, j;
-	//snprintf(in, 7, "%c", c);
-	if (c >= 32 && c != 127) {
-      [cwin writeChr: c];
-		return;
-    }
-	switch (c) {
-		case '\x1B': // begin escape sequence (aborting previous one if any)
-			//tobj->partialSequence = 1;
-			// possibly flush buffer
-			break;
-
-		case '\r': // carriage return ('M' - '@'). Move cursor to first column.
-			// odds are high this preceeds a \n. Move to the begining of
-			// last line in buffer line.  What happens if we insert
-			break;
-
-		case '\n':  // line feed ('J' - '@'). Move cursor down line and to first column.
-		    // just insert '\n' into the buffer.
-        [cwin writeChr: c];
-			break;
-
-		case '\t': // ht - horizontal tab, ('I' - '@')
-		    // textview can handle tabs - it claims.
-       [cwin writeChr: c];
-	 		 break;
-
-		case '\a': // bell ('G' - '@')
-	 	  // do nothing for now... maybe a visual bell would be nice?
-			break;
-
-	 	case 8: // backspace cub1 cursor back 1 ('H' - '@')
-      // TODO:
-      [cwin deleteChar];
-			break;
-
-		default:
-			break;
-	}
-}
-#endif

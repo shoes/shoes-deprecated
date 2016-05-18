@@ -5,28 +5,13 @@
 #endif
 #include "tesi.h"
 
-// TODO: Don't subclass NSTextView - it was a bad idea 
-
-@interface ConsoleTermView : NSTextView
-{
-@public
-   // attrs is the CURRENT attributes for drawing a character (font, colors, ...)
-   // They get added, deleted, and changed.
-   NSMutableDictionary *attrs;
-   void *cwin;  //  points to below
-   struct tesiObject* tobj;
-   NSFont *font;
-   NSFont *boldFont;
-}
-@end
-
-@interface ConsoleWindow : NSWindow
+@interface TerminalWindow : NSWindow
 {
 @public
   struct tesiObject* tobj;
   NSFont *monoFont;
-  NSMutableString *cnvbfr;  // for char to NSString conversion
-  NSTimer *pollTimer;		// no longer used in 3.3.2?
+  //NSMutableString *cnvbfr;  // for char to NSString conversion
+  //NSTimer *pollTimer;		// no longer used in 3.3.2?
   NSBox *btnpnl;
   NSButton *clrbtn;
   NSButton *cpybtn;
@@ -40,12 +25,15 @@
   NSArray *colorAttr; 
   NSColor *defaultBgColor;
   NSColor *defaultFgColor;
+  // attrs is the CURRENT attributes for drawing a character (font, colors, ...)
+  // They get added, deleted, and changed.
+  NSMutableDictionary *attrs;
   NSView *cntview;
   NSScrollView *termpnl;
   NSTextStorage *termStorage;
   NSLayoutManager *termLayout;
   NSTextContainer *termContainer;
-  ConsoleTermView *termView;
+  NSTextView *termView;
   // For stdout
   NSPipe *outPipe;
   NSFileHandle *outReadHandle;
