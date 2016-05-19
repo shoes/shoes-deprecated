@@ -10,6 +10,7 @@
 @public
   struct tesiObject* tobj;
   NSFont *monoFont;
+  NSFont *monoBold;
   //NSMutableString *cnvbfr;  // for char to NSString conversion
   //NSTimer *pollTimer;		// no longer used in 3.3.2?
   NSBox *btnpnl;
@@ -28,6 +29,10 @@
   // attrs is the CURRENT attributes for drawing a character (font, colors, ...)
   // They get added, deleted, and changed.
   NSMutableDictionary *attrs;
+  // bold attributes appear to be need applied after writing to the textstorage
+  // kind of like how gtk-terminal does 'tags' only simpler. Maybe.
+  int boldActive;
+  int boldStart;   //this will be a textStorage position
   NSView *cntview;
   NSScrollView *termpnl;
   NSTextStorage *termStorage;

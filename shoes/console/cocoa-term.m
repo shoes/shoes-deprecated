@@ -63,6 +63,10 @@ static struct tesiObject* shadow_tobj;
       background: (char *)bg title: (char *)title
 {
   monoFont = font;
+  monoBold = [[NSFontManager sharedFontManager] 
+      convertFont: font
+      toHaveTrait: NSBoldFontMask];
+  boldActive = FALSE;
   req_mode = mode;
   req_cols = columns;
   req_rows = rows;
@@ -78,8 +82,8 @@ static struct tesiObject* shadow_tobj;
     defaultFgColor = [colorTable objectForKey: [[NSString alloc] initWithUTF8String: fg]];
   }
   attrs = [[NSMutableDictionary alloc] init];
-  [attrs setObject: font forKey: NSFontAttributeName];
-  [attrs setObject:  defaultFgColor  forKey: NSForegroundColorAttributeName];
+  [attrs setObject: monoFont forKey: NSFontAttributeName];
+  [attrs setObject: defaultFgColor  forKey: NSForegroundColorAttributeName];
 
   
   //NSRect winRect = [[self contentView] frame]; // doesn't do what I think
@@ -522,13 +526,16 @@ void terminal_setbgcolor(struct tesiObject *tobj, int bg) {
 
 void terminal_charattr(struct tesiObject *tobj, int attr) {
   TerminalWindow *cpanel = (TerminalWindow *)tobj->pointer;
-  //ConsoleTermView *cwin = cpanel->termView;
   // 1 => bold, 4  => underline
   if (attr == 4) {
     [cpanel->attrs setObject: [NSNumber numberWithInt:NSUnderlineStyleSingle] forKey: NSUnderlineStyleAttributeName]; 
   } else if (attr == 1) {
-    // cause a crash using attributes
-    //[cwin->attrs setObject: cwin->boldFont forKey: NSFontAttributeName];
+    // causes a crash using attributes:
+    //[cpanel->attrs setObject: cpanel->monoBold forKey: NSFontAttributeName];
+    
+    // note the place in textStorage where bold begins
+    cpanel->boldActive = true;
+    cpanel->boldStart = [[[cpanel->termView textStorage] string] length] - 1 ;
   }
 }
 
@@ -539,6 +546,13 @@ void terminal_attreset(struct tesiObject *tobj) {
   [cpanel->attrs setObject: cpanel->defaultBgColor forKey: NSBackgroundColorAttributeName];
   [cpanel->attrs setObject: cpanel->defaultFgColor forKey: NSForegroundColorAttributeName];
   [cpanel->attrs removeObjectForKey: NSUnderlineStyleAttributeName];
-  //[cwin->attrs setObject: cwin->font forKey: NSFontAttributeName];
-  //[cpanel->termStorage setFont: cwin->font];
+  if (cpanel->boldActive) {
+     int boldEnd = [[[cpanel->termView textStorage] string] length]; // off by one?
+     NSRange rng = NSMakeRange(cpanel->boldStart, boldEnd - cpanel->boldStart);
+     
+     NSMutableAttributedString* text = [cpanel->termView textStorage];
+     [text applyFontTraits:NSBoldFontMask range: rng];     
+     cpanel->boldActive = false;
+  }
+  [cpanel->attrs setObject: cpanel->monoFont forKey: NSFontAttributeName];
 }
