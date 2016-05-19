@@ -418,13 +418,16 @@ void console_insertLine(struct tesiObject *tobj, int y) {
 }
 
 void terminal_eraseLine(struct tesiObject *tobj, int startx, int endx, int y) {
-	GtkTextIter iter, s, e;
-  int len = endx - startx;
-  gtk_text_buffer_get_iter_at_line_offset(buffer, &s, y, startx);
-  gtk_text_buffer_get_iter_at_line_offset(buffer, &e, y, endx);
-  gtk_text_buffer_delete (buffer, &s, &e);
-  gtk_text_buffer_get_iter_at_line_offset(buffer, &s, y, startx);
-  gtk_text_buffer_insert(buffer, &s, blank_line, len);
+  // we can ignore this in log mode - readline will do this for a \b
+  if (!log_mode) {
+	  GtkTextIter iter, s, e;
+    int len = endx - startx;
+    gtk_text_buffer_get_iter_at_line_offset(buffer, &s, y, startx);
+    gtk_text_buffer_get_iter_at_line_offset(buffer, &e, y, endx);
+    gtk_text_buffer_delete (buffer, &s, &e);
+    gtk_text_buffer_get_iter_at_line_offset(buffer, &s, y, startx);
+    gtk_text_buffer_insert(buffer, &s, blank_line, len);
+  }
 }
 // end of incomplete/untested  functions 
 

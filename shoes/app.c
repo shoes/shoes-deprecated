@@ -625,9 +625,16 @@ shoes_app_quit(VALUE self)
 // Shoes doesn't know much about this - it's mostly C level window stuff
 // to handle stdin/stdout and a native window for keypress and display
 // 
+// Ugly: default font size 
+#ifdef SHOES_QUARTZ
+#define TERM_FONT_SZ 12
+#else
+#define TERM_FONT_SZ 10
+#endif
 int shoes_global_terminal = 0;
 // this called by the Shoes.show_console or using the -w flag on the
 // command line.  The next method is the preferred way.
+
 VALUE
 shoes_app_console(VALUE self)
 {
@@ -637,7 +644,7 @@ shoes_app_console(VALUE self)
     dir_val = rb_const_get(self, rb_intern("DIR"));
     char *dir_path = RSTRING_PTR(dir_val);
 	  //shoes_global_terminal = shoes_native_console(dir_path);
-	  shoes_native_terminal(dir_path, 1, 80, 24, 12, "black", "white", "Shoes Terminal");
+	  shoes_native_terminal(dir_path, 1, 80, 24, TERM_FONT_SZ, "black", "white", "Shoes Terminal");
     shoes_global_terminal = 1;
   }
   return shoes_global_terminal ? Qtrue : Qfalse;
@@ -652,7 +659,7 @@ shoes_app_terminal(int argc, VALUE *argv, VALUE self) {
     VALUE dir_val;
     dir_val = rb_const_get(self, rb_intern("DIR"));
     // set sensible defaults to be replaced if specified 
-    int mode = 1, columns = 80, rows = 24, fontsize = 12;
+    int mode = 1, columns = 80, rows = 24, fontsize = TERM_FONT_SZ;
     char *fg = "black"; char* bg = "white"; char* title = "Shoes Terminal";
     char *dir_path = RSTRING_PTR(dir_val);
     if (argc == 1) {
