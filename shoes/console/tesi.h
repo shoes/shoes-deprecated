@@ -10,6 +10,8 @@
 
 #if !defined(SHOES_QUARTZ)
 #define USE_PTY
+#else
+#define HALF_PTY 
 #endif
 
 #if defined(SHOES_QUARTZ) || defined(SHOES_GTK_OSX)
@@ -90,7 +92,7 @@ struct tesiObject {
 	void (*callback_scrollDown)(struct tesiObject *);
 	void (*callback_invertColors)(struct tesiObject *);
     
-  unsigned int ides; // event source id from g_timeout_add
+    unsigned int ides; // event source id from g_timeout_add
 	int x, y, x2, y2, width, height, scrollBegin, scrollEnd; // cursor x,y and window width,height
 	//int alternativeChar;
 };

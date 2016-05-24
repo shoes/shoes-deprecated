@@ -493,7 +493,7 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
 	struct tesiObject *to;
 	//struct winsize ws;
 	char message[32]; // really just a temp
-#ifdef USE_PTY
+#if defined(USE_PTY) || defined(HALF_PTY)
 	char *ptySlave;
 #endif
 	to = malloc(sizeof(struct tesiObject));
@@ -537,7 +537,7 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
 
 	to->command[0] = to->command[1] = to->command[2] = NULL;
 	to->pid = 0;
-#ifdef USE_PTY
+#if defined(USE_PTY) || defined(HALF_PTY)
 	to->ptyMaster = posix_openpt(O_RDWR|O_NOCTTY);
 
 	to->fd_activity = to->ptyMaster; // descriptor to check whether the process has sent output
@@ -561,8 +561,10 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
 #endif
   tcsetattr (to->ptySlave, TCSANOW, &new_term_settings);
   dup2(to->ptySlave, fileno(stdin));
+#ifndef HALF_PTY
   dup2(to->ptySlave, fileno(stdout));
   dup2(to->ptySlave, fileno(stderr));
+#endif
 #endif // USE_PTY
 
 #ifdef SHOES_QUARTZ

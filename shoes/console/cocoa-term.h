@@ -5,6 +5,15 @@
 #endif
 #include "tesi.h"
 
+// Sadly, for keyDown to work we have to subclass NSTextView
+// so that uglifies (TM) things.
+
+@interface DisplayView : NSTextView
+{
+@public
+}
+@end 
+
 @interface TerminalWindow : NSWindow
 {
 @public
@@ -38,7 +47,8 @@
   NSTextStorage *termStorage;
   NSLayoutManager *termLayout;
   NSTextContainer *termContainer;
-  NSTextView *termView;
+  //NSTextView *termView;
+  DisplayView *termView;
   // For stdout
   NSPipe *outPipe;
   NSFileHandle *outReadHandle;
@@ -46,6 +56,9 @@
   // Stderr 
   NSPipe *errPipe;
   NSFileHandle *errReadHandle;
+  // Just in case you think nothing it too Weird
+  char *lineBuffer;
+  int linePos;
 }
 @end
 // C level declares to make the compiler happy

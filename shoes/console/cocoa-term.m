@@ -5,13 +5,18 @@
    and two buttons (copy and clear) and the a larger scrollable panel of
    text lines. There is a minimal keyboard support.
    
-   Stdio/Stdout/Stderr are re-implemnted using pipes instead of a pty
+   Stdout/Stderr are re-implemnted using pipes instead of a pty
    because OSX is just damn weird about stdout depending on how you
    launch Shoes. Since pipes can not be line bufffered, we need to call
    flush when needed. The code here does not r/w from stdio/out/err except
    for diagnostic purposes. fd[0,1,2]] have their C/Objective-C/Ruby expected
    definitions.  Sadly, we have to tell Ruby that they have changed since 
    the Ruby init process grabbed the old (bad on OSX) fd's. 
+   
+   To confuse you more, we use a Pty for sending chars (keystrokes) to
+   stdin.
+   
+   We have subclass NSTextView (see comments in cocoa-term.h)
    
 */
 #include "cocoa-term.h"
@@ -20,6 +25,60 @@
  I'll keep a global Obj-C ref to tesi
 */
 static struct tesiObject* shadow_tobj;
+
+
+@implementation DisplayView
+
+- (void)keyDown: (NSEvent *)e
+{
+#ifdef HALF_PTY
+  /* 
+   * This gets pretty weird - readline probably expects a canical terminal
+   * setting where the pty does the line editing/echoing only
+   * we don't have a pty stdout/stderr. SO we have to maintain a 'line'
+   * buffer that matches the on screen view and then write that to
+   * to the pty fd when \n arrives so readline gets it.
+   *
+   * Since textStorage buffer is actually correct could track the
+   * line start and end points in buffer OR manage a duplicate which
+   * is probably easier so thats what I do.
+   * 
+   */
+  NSString *str = [e charactersIgnoringModifiers];
+  char *utf8 = [str UTF8String];
+  char ch = utf8[0];
+  if (strlen(utf8)==1) {
+    TerminalWindow *tw = (TerminalWindow *) shadow_tobj->pointer;
+    // OSX delete key produces 0x7f but we want 0x8
+    if (ch == 0x7f) { 
+      // delete/bs key - because it's OSX!
+      int length = [[[tw->termView textStorage] string] length];
+      [[tw->termView textStorage] deleteCharactersInRange:NSMakeRange(length-1, 1)];
+      [tw->termView scrollRangeToVisible:NSMakeRange([[tw->termView string] length], 0)];
+      if (tw->linePos > 0) tw->lineBuffer[--tw->linePos] = '\0';
+    } else if (ch == '\t') {
+      tw->lineBuffer[tw->linePos++] = ' '; // better one than a computation of spaces.
+      [tw displayChar: ch];
+    } else if (ch == '\r') {
+      // not conical - remember? 
+      [tw displayChar: ch];
+      tw->lineBuffer[tw->linePos++] = '\r';
+      //write(shadow_tobj->fd_input, tw->lineBuffer, strlen(tw->lineBuffer));
+      write(shadow_tobj->fd_input, tw->lineBuffer, tw->linePos);
+      tw->linePos = 0;
+      tw->lineBuffer[0] = '\0';
+    } else {
+      tw->lineBuffer[tw->linePos++] = ch; 
+      [tw displayChar: utf8[0]];
+    }
+  } else {
+    // this sends the key event (back?) to the responder chain
+    [self interpretKeyEvents:[NSArray arrayWithObject:e]];
+  }
+#endif
+}
+
+@end
 
 @implementation TerminalWindow
 
@@ -159,9 +218,11 @@ static struct tesiObject* shadow_tobj;
   termContainer = [[NSTextContainer alloc] initWithContainerSize:textViewBounds.size];
   [termLayout addTextContainer:termContainer];
 
-  termView = [[NSTextView alloc]  initWithFrame: NSMakeRect(0, 0, width, height)];
+  termView = [[DisplayView alloc]  initWithFrame: NSMakeRect(0, 0, width, height)];
   termView.backgroundColor =  defaultBgColor; // fun with Properties!!
   termView.drawsBackground = true;
+  [termView setEditable: YES];
+  [termView setRichText: false];
 
   termpnl = [[NSScrollView alloc] initWithFrame: NSMakeRect(0, 0, width, height)];
   [termpnl setHasVerticalScroller: YES];
@@ -228,20 +289,20 @@ static struct tesiObject* shadow_tobj;
    [outReadHandle readInBackgroundAndNotify] ;
 #endif
     /*  issue some test messages for fd, file*, FileHandle*
-    char *foo = "Explicit write() to pipe wrfd\n";
-    write(pipewrfd,  foo, strlen(foo)); 
-    char *foo1 ="Explicit write() to stdout fd\n";
-    write(fileno(stdout), foo1, strlen(foo1));
-    // above results in one call to stdOutDataAvail
+      char *foo = "Explicit write() to pipe wrfd\n";
+      write(pipewrfd,  foo, strlen(foo)); 
+      char *foo1 ="Explicit write() to stdout fd\n";
+      write(fileno(stdout), foo1, strlen(foo1));
+      // above results in one call to stdOutDataAvail
     
-    stdout = fdopen(pipewrfd, "w");
-    if (setlinebuf(stdout) != 0) {
-      fprintf(stderr, "failed setlinebuffer()\n");
-    }
-    fflush(stdout);  // doesn't work
-    printf("Hello from FILE* stdout\n"); // Yay!!
+      stdout = fdopen(pipewrfd, "w");
+      if (setlinebuf(stdout) != 0) {
+        fprintf(stderr, "failed setlinebuffer()\n");
+      }
+      fflush(stdout);  // doesn't work
+      printf("Hello from FILE* stdout\n"); // Yay!!
     
-    [outWriteHandle writeData: pipeMsgData];
+      [outWriteHandle writeData: pipeMsgData];
     */
     
     // now convince Ruby to use the new stdout - sadly it's not line buffered
@@ -258,7 +319,9 @@ static struct tesiObject* shadow_tobj;
     dup2fail = errno;
   }
 #endif 
-
+  // create a buffer to input line chars
+  lineBuffer = malloc(req_cols);
+  linePos = 0;
   // Now init the Tesi object - NOTE tesi callbacks are C,  which calls Objective-C
   tobj = newTesiObject("/bin/bash", req_cols, req_rows); // first arg is not used
   shadow_tobj = tobj; 
@@ -339,14 +402,14 @@ static struct tesiObject* shadow_tobj;
   NSString *str = [e charactersIgnoringModifiers];
   char *utf8 = [str UTF8String];
   if (strlen(utf8)==1) {
-    //write(tobj->fd_input, utf8, strlen(utf8));
+    write(tobj->fd_input, utf8, strlen(utf8));
   } else {
     // this sends the key event (back?) to the responder chain
     [self interpretKeyEvents:[NSArray arrayWithObject:e]];
   }
 }
-
 */
+
 
 - (BOOL)canBecomeKeyWindow
 {
@@ -482,8 +545,11 @@ void terminal_visAscii (struct tesiObject *tobj, char c, int x, int y) {
 
 
 void terminal_backspace(struct tesiObject *tobj, int x, int y) {
-  TerminalWindow *cpanel = (TerminalWindow *)tobj->pointer;
-  [cpanel displayChar: '\b'];
+  TerminalWindow *tw = (TerminalWindow *)tobj->pointer;
+  int length = [[[tw->termView textStorage] string] length];
+  [[tw->termView textStorage] deleteCharactersInRange:NSMakeRange(length-1, 1)];
+  [tw->termView scrollRangeToVisible:NSMakeRange([[tw->termView string] length], 0)];
+  
   //ConsoleTermView *cwin = cpanel->termView;
   //[cwin deleteChar];
 }
