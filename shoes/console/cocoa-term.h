@@ -12,6 +12,8 @@
 {
 @public
 }
+
+- (void)keyDown: (NSEvent *)e;
 @end 
 
 @interface TerminalWindow : NSWindow
@@ -60,6 +62,8 @@
   char *lineBuffer;
   int linePos;
 }
+
+- (void)displayChar:(char)c ;
 @end
 // C level declares to make the compiler happy
 extern void terminal_visAscii(struct tesiObject *, char, int, int );

@@ -61,10 +61,10 @@ static struct tesiObject* shadow_tobj;
       [tw displayChar: ch];
     } else if (ch == '\r') {
       // not conical - remember? 
-      [tw displayChar: ch];
       tw->lineBuffer[tw->linePos++] = '\r';
       //write(shadow_tobj->fd_input, tw->lineBuffer, strlen(tw->lineBuffer));
       write(shadow_tobj->fd_input, tw->lineBuffer, tw->linePos);
+      [tw displayChar: ch];
       tw->linePos = 0;
       tw->lineBuffer[0] = '\0';
     } else {
