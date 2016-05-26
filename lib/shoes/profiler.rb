@@ -139,42 +139,64 @@ class DiyProf < Shoes
     # TODO find how to construct a graph with connected nodes (like Graphviz) ...
     
     url "/", :index
-    
+    url "/graphical", :graphscreen
+    url "/terminal", :textscreen
     def index
         stack do
-            button "choose file", margin: 10 do
+            para "Select the starting script for your app. If you choose the GUI ",
+            "display you may want to expand this Window first. ",
+            "You MUST end profiling manually" 
+            flow do
+              flow {@gui_display = check checked: true; para "GUI display or Terminal"}
+            end
+            flow do 
+            button "choose file" do
                 @file = ask_open_file
                 if @file
                     @file_para.text = @file
                     @trace_button.state = nil
                 else
-                    @file_para.text = "no rubies, no trace !"
+                    @file_para.text = "no script, no trace !"
                     @trace_button.state = "disabled"
                 end
             end
-            
-            flow margin: 20 do
-                stack width: 200 do
-                    @r1 = radio_label text:"count", active: true 
-                    @r2 = radio_label text:"self time"
-                    @r3 = radio_label text:"total time"
-                    flow(margin_top: 5) { @cc = check checked: false; para "include C methods call" }
-                end
-                @trace_button = button 'trace', state: "disabled" do
-                    Dir.chdir(File.dirname(@file)) do
-                      nodes, links = trace { eval IO.read(@file).force_encoding("UTF-8"), TOPLEVEL_BINDING }
-                      # need a clever way to hook to the window close of the target - then compute and display results
-                      build_nodes(nodes, links)
-                    end
-                end
-                @file_para = para ""
+            @trace_button = button 'start profile', state: "disabled" do
+              Dir.chdir(File.dirname(@file)) do
+                @nodes, @links = trace { eval IO.read(@file).force_encoding("UTF-8"), TOPLEVEL_BINDING }
+              end
             end
+            @end_button = button 'end profile' do
+                if @gui_display.checked? 
+                  visit "/graphical"
+                else
+                end
+            end
+            end # flow
+            @file_para = para ""
+            
+
             
             @units = para "", margin_left: 20
             @result_slot = flow(margin: 5) {}
             
         end
     end
+    
+    def graphscreen 
+      stack do
+        flow margin: 20 do
+          stack width: 200 do
+            @r1 = radio_label text:"count", active: true
+            @r2 = radio_label text:"self time"
+            @r3 = radio_label text:"total time"
+            flow(margin_top: 5) { @cc = check checked: false; para "include C methods call" }
+          end
+          button "Show choice" do
+            build_nodes(@nodes, @links)
+          end
+        end
+      end
+    end 
     
     def trace
         @tracer = nil if @tracer
@@ -215,4 +237,4 @@ class DiyProf < Shoes
         
     end
 end
-Shoes.app width: 900, height: 700, title: "Tracer"
+Shoes.app width: 600, height: 400, resizeable: true, title: "Profiler"
