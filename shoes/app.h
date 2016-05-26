@@ -63,7 +63,8 @@ VALUE shoes_app_set_fullscreen(VALUE, VALUE);
 VALUE shoes_app_slot(VALUE);
 VALUE shoes_app_set_icon(VALUE, VALUE); // New 3.2.19
 VALUE shoes_app_set_wtitle(VALUE, VALUE); // New in 3.2.19
-VALUE shoes_app_console(); // New in 3.2.23 ? 
+VALUE shoes_app_console(VALUE); // New in 3.2.23 ? 
+VALUE shoes_app_terminal(int, VALUE*, VALUE); //new in 3.3.2 
 shoes_code shoes_app_start(VALUE, char *);
 shoes_code shoes_app_open(shoes_app *, char *);
 shoes_code shoes_app_loop(void);
@@ -87,6 +88,6 @@ VALUE shoes_app_is_started(VALUE);
 VALUE shoes_app_quit(VALUE);
 
 // global var for console up and running
-extern int shoes_global_console;
+extern int shoes_global_terminal;
 
 #endif
