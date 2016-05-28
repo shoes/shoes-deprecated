@@ -197,62 +197,56 @@ class DiyProf < Shoes
         end
       end
       @end_button = button 'end profile' do
-        para "Nodes: #{$shoes_profiler.nodes.length}"
         if @gui_display.checked? 
           visit "/graphical"
         else
           visit "/terminal"
         end
       end
-    end # flow
+    end 
     @file_para = para ""
-
   end
 end
+
+def filter_by(filter)
+  max = $shoes_profiler.nodes.sort_by { |n,mi| n.length }[-1][0].length
+  sorted = $shoes_profiler.nodes.sort_by { |n,mi| mi.send(filter) }
+  usage = sorted.map {|arr| arr[1].send(filter) }
+  unik = usage.uniq
+        
+  pre_nodes = sorted.reverse.reduce({}) do |memo,(name, method_info)|
+      ca = 1.0/unik.size*(unik.index(method_info.send(filter))+1)
+      memo.merge "#{name}": { node: [name, method_info], size: max, 
+              color_alpha: ca, info: method_info.send(filter).to_s }
+  end
+  return pre_nodes
+end       
     
 def graphscreen # get here from a visit(url)
   stack do
-    flow margin: 20 do
-      stack width: 200 do
-        #radio buttons have OSX problems. Always specify a group and dont
-        # get clever with them when subclassing in Shoes. It's a troublesome widget
-        # better yet - don't use them. 
-        @r1 = radio :metric; para "count"
-        @r2 = radio :metric; para "self time"
-        @r3 = radio :metric; para "total time"
+    flow  do
+      button "Counts", margin: 4 do
+        @units.text = "number of times method is called"
+        @result_slot.clear { filter_by(:count).each { |k,v| node_widget v } }
       end
-      button "Show metric" do
-        max = $shoes_profiler.nodes.sort_by { |n,mi| n.length }[-1][0].length
-        
-        filter = 
-        if @r1.checked?
-            @units.text = "number of times method is called"
-            :count
-        elsif @r2.checked?
-            @units.text = "total time spent by the method alone in microseconds"
-            :self_time
-        else
-            @units.text = "total time spent by the method and subsequent other methods calls in microseconds"
-            :total_time
-        end
-        
-        sorted = $shoes_profiler.nodes.sort_by { |n,mi| mi.send(filter) }
-        usage = sorted.map {|arr| arr[1].send(filter) }
-        unik = usage.uniq
-        
-        pre_nodes = sorted.reverse.reduce({}) do |memo,(name, method_info)|
-            ca = 1.0/unik.size*(unik.index(method_info.send(filter))+1)
-            memo.merge "#{name}": { node: [name, method_info], size: max, 
-                                    color_alpha: ca, info: method_info.send(filter).to_s }
-        end
-        
-        @result_slot.clear { pre_nodes.each { |k,v| node_widget v } }
+      button "Method Time", margin: 4 do
+         @units.text = "total time spent by the method alone in microseconds"
+        @result_slot.clear { filter_by(:self_time).each { |k,v| node_widget v } }
       end
+      button "Total Time", margin: 4 do
+        @units.text = "total time spent by the method and subsequent other methods calls in microseconds"
+        @result_slot.clear { filter_by(:total_time).each { |k,v| node_widget v } }
+      end 
     end
     @units = para ""
     @result_slot = flow(margin: 5) {}
   end
 end 
+
+def textscreen 
+  Shoes.terminal
+  puts "This is not written yet. Stay tuned"
+end
 
 end
 Shoes.app width: 600, height: 400, resizeable: true, title: "Profiler"
