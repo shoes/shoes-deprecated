@@ -3,7 +3,14 @@
 # 
 # Credits, inspiration goes to : 
 # https://github.com/emilsoman/diy_prof/tree/dot-reporter
-# 
+# Also, thanks to @passenger94 at github for showing what could be done
+# and how to do it.
+
+# This uses the url/visit method of structuring a Shoes app and those
+# Windows/Scripts need a common data source. I don't trust @@ vars so
+# I'm going to keep common things in a global $shoe_profiler class.
+# For better or for worse.
+
 
 module TimeHelpers
     # These methods make use of `clock_gettime` method introduced in Ruby 2.1
@@ -133,83 +140,89 @@ class NodeWidget < Shoes::Widget
     end
 end
 
+$shoes_profiler = nil;
+class ProfilerDB 
+  attr_accessor :nodes, :links, :add_c_calls
+  nodes = {}
+  links = {}
+  def trace
+    @tracer = nil if @tracer
+    @tracer = Tracer.new(Reporter.new, add_c_calls)
+        
+    @tracer.enable
+    yield
+    @tracer.disable
+    @tracer.result
+  end
+end
+
 
 
 class DiyProf < Shoes
-    # TODO find how to construct a graph with connected nodes (like Graphviz) ...
-    
-    url "/", :index
-    url "/graphical", :graphscreen
-    url "/terminal", :textscreen
-    def index
-        stack do
-            para "Select the starting script for your app. If you choose the GUI ",
-            "display you may want to expand this Window first. ",
-            "You MUST end profiling manually" 
-            flow do
-              flow {@gui_display = check checked: true; para "GUI display or Terminal"}
-            end
-            flow do 
-            button "choose file" do
-                @file = ask_open_file
-                if @file
-                    @file_para.text = @file
-                    @trace_button.state = nil
-                else
-                    @file_para.text = "no script, no trace !"
-                    @trace_button.state = "disabled"
-                end
-            end
-            @trace_button = button 'start profile', state: "disabled" do
-              Dir.chdir(File.dirname(@file)) do
-                @nodes, @links = trace { eval IO.read(@file).force_encoding("UTF-8"), TOPLEVEL_BINDING }
-              end
-            end
-            @end_button = button 'end profile' do
-                if @gui_display.checked? 
-                  visit "/graphical"
-                else
-                end
-            end
-            end # flow
-            @file_para = para ""
-            
-
-            
-            @units = para "", margin_left: 20
-            @result_slot = flow(margin: 5) {}
-            
-        end
-    end
-    
-    def graphscreen 
-      stack do
-        flow margin: 20 do
-          stack width: 200 do
-            @r1 = radio_label text:"count", active: true
-            @r2 = radio_label text:"self time"
-            @r3 = radio_label text:"total time"
-            flow(margin_top: 5) { @cc = check checked: false; para "include C methods call" }
-          end
-          button "Show choice" do
-            build_nodes(@nodes, @links)
-          end
+  # TODO find how to construct a graph with connected nodes (like Graphviz) ...
+  $shoes_profiler = ProfilerDB.new()
+  url "/", :index
+  url  "/graphical", :graphscreen
+  url "/terminal", :textscreen
+  def index
+    stack do
+      para "Select the starting script for your app. If you choose the GUI ",
+        "display you may want to expand this Window first. ",
+        "You MUST end profiling manually" 
+      flow do
+        flow {@gui_display = check checked: true; para "GUI display or Terminal"}
+      end
+      flow(margin_top: 5) do 
+        @cc = check checked: true;
+        para "include C methods call" 
+      end
+      flow do 
+      button "choose file" do
+        @file = ask_open_file
+        if @file
+          @file_para.text = @file
+          @trace_button.state = nil
+        else
+          @file_para.text = "no script, no trace !"
+          @trace_button.state = "disabled"
         end
       end
-    end 
+      @trace_button = button 'start profile', state: "disabled" do
+        $shoes_profiler.add_c_calls = @cc.checked?
+        Dir.chdir(File.dirname(@file)) do
+        nodes, links = $shoes_profiler.trace { eval IO.read(@file).force_encoding("UTF-8"), TOPLEVEL_BINDING }
+        $shoes_profiler.nodes = nodes
+        $shoes_profiler.links = links
+        para "Nodes: #{nodes.length} Links: #{links.length}"
+        end
+      end
+      @end_button = button 'end profile' do
+        para "Nodes: #{$shoes_profiler.nodes.length}"
+        if @gui_display.checked? 
+          visit "/graphical"
+        else
+          visit "/terminal"
+        end
+      end
+    end # flow
+    @file_para = para ""
+
+  end
+end
     
-    def trace
-        @tracer = nil if @tracer
-        @tracer = Tracer.new(Reporter.new, @cc.checked?)
-        
-        @tracer.enable
-        yield
-        @tracer.disable
-        @tracer.result
-    end
-    
-    def build_nodes(nodes, links)
-        max = nodes.sort_by { |n,mi| n.length }[-1][0].length
+def graphscreen # get here from a visit(url)
+  stack do
+    flow margin: 20 do
+      stack width: 200 do
+        #radio buttons have OSX problems. Always specify a group and dont
+        # get clever with them when subclassing in Shoes. It's a troublesome widget
+        # better yet - don't use them. 
+        @r1 = radio :metric; para "count"
+        @r2 = radio :metric; para "self time"
+        @r3 = radio :metric; para "total time"
+      end
+      button "Show metric" do
+        max = $shoes_profiler.nodes.sort_by { |n,mi| n.length }[-1][0].length
         
         filter = 
         if @r1.checked?
@@ -223,7 +236,7 @@ class DiyProf < Shoes
             :total_time
         end
         
-        sorted = nodes.sort_by { |n,mi| mi.send(filter) }
+        sorted = $shoes_profiler.nodes.sort_by { |n,mi| mi.send(filter) }
         usage = sorted.map {|arr| arr[1].send(filter) }
         unik = usage.uniq
         
@@ -234,7 +247,12 @@ class DiyProf < Shoes
         end
         
         @result_slot.clear { pre_nodes.each { |k,v| node_widget v } }
-        
+      end
     end
+    @units = para ""
+    @result_slot = flow(margin: 5) {}
+  end
+end 
+
 end
 Shoes.app width: 600, height: 400, resizeable: true, title: "Profiler"
