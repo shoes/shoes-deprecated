@@ -87,8 +87,8 @@ class Shoes
       app_package
     end
     
-    opts.on("-e", "--profile", "Profile app") do |c|
-      profiler
+    opts.on("-e", "--profile [script]", "Profile app") do |c|
+      profiler(c)
     end
     
     opts.on('-g', '--gem',
@@ -187,7 +187,10 @@ class Shoes
     alert "Not implmented"
   end
   
-  def self.profiler
+  def self.profiler(file = nil)
+    # ugly but it works
+    $shoes_examine_file = file
+    #$stderr.puts "profile: #{$shoes_examine_file }"
     require 'shoes/profiler'
   end
 

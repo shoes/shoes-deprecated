@@ -142,9 +142,10 @@ end
 
 $shoes_profiler = nil;
 class ProfilerDB 
-  attr_accessor :nodes, :links, :add_c_calls
+  attr_accessor :nodes, :links, :add_c_calls, :file
   nodes = {}
   links = {}
+  file = ''
   def start
     @tracer = nil if @tracer
     @tracer = Tracer.new(Reporter.new, add_c_calls)
@@ -163,50 +164,50 @@ end
 class DiyProf < Shoes
   # TODO find how to construct a graph with connected nodes (like Graphviz) ...
   $shoes_profiler = ProfilerDB.new()
-  if ARGV[0] 
-    @file= ARGV[0]
-  else
-    @file = nil
-  end
+  $shoes_profiler.file = $shoes_examine_file # passed on the commandline with '-e file' or nil
+  $stderr.puts "got it: #{$shoes_profiler.file}"
   url "/", :index
   url  "/graphical", :graphscreen
   url "/terminal", :textscreen
   def index
+    @file = $shoes_profiler.file
     stack do
       para "Select the starting script for your app. If you choose the GUI ",
         "display you may want to expand this Window first. ",
-        "You MUST end profiling manually" 
+        "You MUST end profiling manually by clicking the 'End Profiling' button" 
+      para "Once profiling is stopped, you can examine the results"
       flow do
-        flow {@gui_display = check checked: true; para "GUI display or Terminal"}
+        flow {@gui_display = check checked: true; para "GUI display [default] or Terminal"}
       end
       flow(margin_top: 5) do 
         @cc = check checked: true;
         para "include C methods call" 
       end
       flow do 
-        @file_button = button "choose file" do
-        @file = ask_open_file 
-        if @file
-          @file_para.text = @file
-          @trace_button.state = nil
-        else
-          @file_para.text = "no script, no trace !"
-          @trace_button.state = "disabled"
+        if @file == nil
+          @file_button = button "choose file" do
+            @file = ask_open_file 
+            if @file
+              @file_para.text = @file
+              @trace_button.state = nil
+            else
+              @file_para.text = "no script, no trace !"
+              @trace_button.state = "disabled"
+            end
+          end 
         end
-      end
       
-      @trace_button = button 'start profile', state: "disabled" do
+      @trace_button = button 'Start Profile', state: (@file == nil ? "disabled": nil) do
         $shoes_profiler.add_c_calls = @cc.checked?
         Dir.chdir(File.dirname(@file)) do
-          $shoes_profiler.start{ eval IO.read(@file).force_encoding("UTF-8"), TOPLEVEL_BINDING }
+          $shoes_profiler.start{ eval IO.read(File.basename(@file)).force_encoding("UTF-8"), TOPLEVEL_BINDING }
 
         end
       end
-      @end_button = button 'end profile' do
+      @end_button = button 'End Profile' do
         nodes, links = $shoes_profiler.stop
         $shoes_profiler.nodes = nodes
         $shoes_profiler.links = links
-        $shoes_profiler.stop
         if @gui_display.checked? 
           visit "/graphical"
         else
@@ -214,7 +215,7 @@ class DiyProf < Shoes
         end
       end
     end 
-    @file_para = para ""
+    @file_para = para @file
 
   end
 end
@@ -235,6 +236,7 @@ end
     
 def graphscreen # get here from a visit(url)
   stack do
+    para "Results for #{$shoes_profiler.file}"
     para "Nodes: #{$shoes_profiler.nodes.length} Links: #{$shoes_profiler.links.length}"
     flow  do
       button "Counts", margin: 4 do
@@ -249,6 +251,9 @@ def graphscreen # get here from a visit(url)
         @units.text = "total time spent by the method and subsequent other methods calls in microseconds"
         @result_slot.clear { filter_by(:total_time).each { |k,v| node_widget v } }
       end 
+      button "Show text report", margin: 4 do 
+        visit "/terminal"
+      end
     end
     @units = para ""
     @result_slot = flow(margin: 5) {}
@@ -256,8 +261,13 @@ def graphscreen # get here from a visit(url)
 end 
 
 def textscreen # get here from a visit(url)
-  Shoes.terminal
-  puts "This is not written yet. Stay tuned"
+  stack do
+    button "GUI Display" do
+      visit "/graphical"
+    end
+    Shoes.terminal
+    puts "This is not written yet. Stay tuned"
+  end
 end
 
 end
