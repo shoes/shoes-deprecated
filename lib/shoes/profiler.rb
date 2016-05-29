@@ -165,7 +165,7 @@ class DiyProf < Shoes
   # TODO find how to construct a graph with connected nodes (like Graphviz) ...
   $shoes_profiler = ProfilerDB.new()
   $shoes_profiler.file = $shoes_examine_file # passed on the commandline with '-e file' or nil
-  $stderr.puts "got it: #{$shoes_profiler.file}"
+  #$stderr.puts "got it: #{$shoes_profiler.file}"
   url "/", :index
   url  "/graphical", :graphscreen
   url "/terminal", :textscreen
