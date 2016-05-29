@@ -145,12 +145,14 @@ class ProfilerDB
   attr_accessor :nodes, :links, :add_c_calls
   nodes = {}
   links = {}
-  def trace
+  def start
     @tracer = nil if @tracer
     @tracer = Tracer.new(Reporter.new, add_c_calls)
         
     @tracer.enable
     yield
+  end
+  def stop
     @tracer.disable
     @tracer.result
   end
@@ -161,6 +163,11 @@ end
 class DiyProf < Shoes
   # TODO find how to construct a graph with connected nodes (like Graphviz) ...
   $shoes_profiler = ProfilerDB.new()
+  if ARGV[0] 
+    @file= ARGV[0]
+  else
+    @file = nil
+  end
   url "/", :index
   url  "/graphical", :graphscreen
   url "/terminal", :textscreen
@@ -177,8 +184,8 @@ class DiyProf < Shoes
         para "include C methods call" 
       end
       flow do 
-      button "choose file" do
-        @file = ask_open_file
+        @file_button = button "choose file" do
+        @file = ask_open_file 
         if @file
           @file_para.text = @file
           @trace_button.state = nil
@@ -187,16 +194,19 @@ class DiyProf < Shoes
           @trace_button.state = "disabled"
         end
       end
+      
       @trace_button = button 'start profile', state: "disabled" do
         $shoes_profiler.add_c_calls = @cc.checked?
         Dir.chdir(File.dirname(@file)) do
-        nodes, links = $shoes_profiler.trace { eval IO.read(@file).force_encoding("UTF-8"), TOPLEVEL_BINDING }
-        $shoes_profiler.nodes = nodes
-        $shoes_profiler.links = links
-        para "Nodes: #{nodes.length} Links: #{links.length}"
+          $shoes_profiler.start{ eval IO.read(@file).force_encoding("UTF-8"), TOPLEVEL_BINDING }
+
         end
       end
       @end_button = button 'end profile' do
+        nodes, links = $shoes_profiler.stop
+        $shoes_profiler.nodes = nodes
+        $shoes_profiler.links = links
+        $shoes_profiler.stop
         if @gui_display.checked? 
           visit "/graphical"
         else
@@ -205,6 +215,7 @@ class DiyProf < Shoes
       end
     end 
     @file_para = para ""
+
   end
 end
 
@@ -224,6 +235,7 @@ end
     
 def graphscreen # get here from a visit(url)
   stack do
+    para "Nodes: #{$shoes_profiler.nodes.length} Links: #{$shoes_profiler.links.length}"
     flow  do
       button "Counts", margin: 4 do
         @units.text = "number of times method is called"
@@ -243,7 +255,7 @@ def graphscreen # get here from a visit(url)
   end
 end 
 
-def textscreen 
+def textscreen # get here from a visit(url)
   Shoes.terminal
   puts "This is not written yet. Stay tuned"
 end
