@@ -6,16 +6,8 @@ Shoes.app do
   @handles = [] # card handles by suite, rank. Numeric 0..52
   @pile = []    # the deck of cards (shuffled?). Numeric 0..52
   @topcard = 0  # numeric index of the handle that is currently shown in
-  @top_card = nil # the on screen svg widget
+  @top_card = nil # the on screen svg widget so it has widget methods
   @names = []   # contains svg group ids (strings)
-
-  def shuffle_me(array)
-    (array.size-1).downto(1) do |i|
-     j = rand(i+1)
-     array[i], array[j] = array[j], array[i]
-    end
-    array
-  end
 
   def kill_anim
    if @animation
@@ -32,8 +24,9 @@ Shoes.app do
       str = @names[idx]
       #puts "load: #{idx}:#{str}"
       han = app.svghandle ( {content: @xmlstring, group: str} )
+      debug "han = #{han.inspect}"
       if han.is_a? Array
-        #puts "handle array"
+        alert "Array instead of svghandle #{han.inspect}"
         han = han[0]
       end
       @handles[idx] = han
@@ -50,12 +43,12 @@ Shoes.app do
     elsif full_deck.group? "#1_club"
       @suite_first = false
     else
-      alert "Can't find order"
+      debug "Can't find order"
     end
     @handles = [] # let gc handle old ones
     @handles[0] = app.svghandle( {content: @xmlstring, group: '#back'})
     @names[0] = "#back"
-    @handles[0] = get_handle(0);
+    #@handles[0] = get_handle(0);
     idx = 1
     ['club', 'diamond', 'heart', 'spade'].each do |suite|
       ['1','2','3','4','5','6','7','8','9', '10','jack', 'queen', 'king'].each do |card|
@@ -68,15 +61,14 @@ Shoes.app do
   def tap
     kill_anim
     @topcard = @topcard + 1
-    if @topcard == 52
+    if @topcard >= 53
       @topcard = 0
     end
-    if @top_card.is_a? Array
-      #puts "Tap converts #{@topcard}"
-      @top_card = @top_card[0]
-    end
-    @top_card.handle = get_handle @pile[@topcard]
-  end
+    han = get_handle @pile[@topcard]
+    info "tap #{han.inspect} @top_card: #{@top_card.inspect}"
+    
+    @top_card.handle = han
+end
 
   # finding script resources is odd when developing a samples/myprogram.rb
   # particularly on osx when invoked with ./cshoes mydir/myprogram.rb
@@ -105,26 +97,29 @@ Shoes.app do
     stack width: 180, height: 270 do
       @backgrd = background orange, width: 181, height: 270, margin: 8, curve: 10
       han = get_handle(0) #back of deck
+      info "Back handle is #{han.inspect}"
       if han.is_a? Array
-        #puts "Converting array"
+        info "Converting array for #back"
         han = han[0]
       end
       @top_card = svg han, {width: 160, height: 250,margin: 10, aspect: false, click: proc { tap }  }
+      info "@top_card back is #{@top_card.inspect}"
       if @top_card.is_a? Array
-        @top_card = @top_card.detect {|obj| obj.class == Shoes::Types::Svg }
-        #puts "convert in setup"
+        @top_card = @top_card.detect {|obj| obj.class == Shoes::Types::SvgHandle }
+        info "convert top card in setup"
       end
     end
     stack width: 100 do
       button "shuffle" do
         kill_anim
         temp_deck = []
-        (1..52).each {|i| temp_deck[i] = i}
-        @pile = shuffle_me(temp_deck)
+        (1..52).each {|i| temp_deck[i-1] = i}
+        @pile = temp_deck.shuffle
+        @pile.unshift( 0)
         run_for = 0
         @animation = animate(10) do
           r = rand(52)
-          # @top_card.handle = @handles[@pile[r+1]]
+          t = r+1
           @top_card.handle = get_handle @pile[r+1]
           run_for = run_for + 1
           if run_for >= 20
