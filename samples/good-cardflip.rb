@@ -24,11 +24,6 @@ Shoes.app do
       str = @names[idx]
       #puts "load: #{idx}:#{str}"
       han = app.svghandle ( {content: @xmlstring, group: str} )
-      debug "han = #{han.inspect}"
-      if han.is_a? Array
-        alert "Array instead of svghandle #{han.inspect}"
-        han = han[0]
-      end
       @handles[idx] = han
     end
     @handles[idx]
@@ -65,8 +60,6 @@ Shoes.app do
       @topcard = 0
     end
     han = get_handle @pile[@topcard]
-    info "tap #{han.inspect} @top_card: #{@top_card.inspect}"
-    
     @top_card.handle = han
 end
 
@@ -96,18 +89,8 @@ end
     # display back of deck at startup
     stack width: 180, height: 270 do
       @backgrd = background orange, width: 181, height: 270, margin: 8, curve: 10
-      han = get_handle(0) #back of deck
-      info "Back handle is #{han.inspect}"
-      if han.is_a? Array
-        info "Converting array for #back"
-        han = han[0]
-      end
-      @top_card = svg han, {width: 160, height: 250,margin: 10, aspect: false, click: proc { tap }  }
-      info "@top_card back is #{@top_card.inspect}"
-      if @top_card.is_a? Array
-        @top_card = @top_card.detect {|obj| obj.class == Shoes::Types::SvgHandle }
-        info "convert top card in setup"
-      end
+      han = get_handle(0) #back of deck  
+      @top_card = svg han, {width: 160, height: 250, margin: 10, aspect: false, click: proc { tap }  }
     end
     stack width: 100 do
       button "shuffle" do

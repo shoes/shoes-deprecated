@@ -778,6 +778,7 @@ shoes_canvas_svg(int argc, VALUE *argv, VALUE self)
   SETUP();
   widget = shoes_svg_new(argc, argv, self);
   shoes_add_ele(canvas, widget);
+  return widget;
 }
 
 

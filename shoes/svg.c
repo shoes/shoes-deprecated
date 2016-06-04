@@ -69,6 +69,8 @@ shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
     // load it from a string
     char *data = RSTRING_PTR(fromstring);
     int len = RSTRING_LEN(fromstring);
+    // being Ruby, those are UTF-8, may not be what rsvg wants (const guint8 *)
+    // Problem for OSX ? 
     self_t->handle = rsvg_handle_new_from_data (data, len, &gerror);
     if (self_t->handle == NULL) {
       self_t->data = NULL;
@@ -218,7 +220,7 @@ svg_aspect_ratio(int imw, int imh, shoes_svg *self_t, shoes_svghandle *svghan)
 VALUE
 shoes_svg_new(int argc, VALUE *argv, VALUE parent)
 {
-  VALUE path = Qnil, attr = Qnil, widthObj, heightObj, svg_string;
+  VALUE attr = Qnil, widthObj, heightObj, svg_string;
   VALUE svghanObj = Qnil;
   shoes_canvas *canvas;
   Data_Get_Struct(parent, shoes_canvas, canvas);
