@@ -1226,6 +1226,7 @@ VALUE
 shoes_canvas_refresh_slot(VALUE self)
 {
   shoes_canvas_repaint_all(self);
+  return self;
 }
 
 static void
@@ -1537,7 +1538,7 @@ shoes_canvas_prepend(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_clear_contents(int argc, VALUE *argv, VALUE self)
 {
-  VALUE block = Qnil;
+  // VALUE block = Qnil;
   SETUP();
   
   int i;
@@ -1551,8 +1552,13 @@ shoes_canvas_clear_contents(int argc, VALUE *argv, VALUE self)
         
         VALUE group = ATTR(self_t->attr, group);
         if (NIL_P(group)) group = self_t->parent;
-        if (!shoes_hash_get(canvas->app->groups, group) == Qnil);
-              shoes_hash_set(canvas->app->groups, group, Qnil);
+        // OSX clang compiler doesn't like that semicolon. it doesn't
+        // like the Qnill to boolean comparison either
+        //if (!shoes_hash_get(canvas->app->groups, group) == Qnil);
+        if (NIL_P(shoes_hash_get(canvas->app->groups, group)))
+        {
+           shoes_hash_set(canvas->app->groups, group, Qnil);
+        }
     }
   }
   
