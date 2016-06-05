@@ -121,16 +121,22 @@ VALUE shoes_video_new(VALUE attr, VALUE parent)
   video->parent = shoes_find_canvas(parent);
   
   /* getting surface dimensions, first try at video widget, then parent canvas, then video track size */
+  // TODO: this needs review to make sure it does what was intended
   shoes_canvas *canvas;
   Data_Get_Struct(video->parent, shoes_canvas, canvas);
-  if ( !RTEST(ATTR(attr, width)) )
-    if ( RTEST(ATTR(canvas->attr, width)) ) ATTRSET(attr, width, ATTR(canvas->attr, width));
+  if ( !RTEST(ATTR(attr, width)) ) {
+    if ( RTEST(ATTR(canvas->attr, width)) ) {
+      ATTRSET(attr, width, ATTR(canvas->attr, width));
+    }
     else {
       ATTRSET(attr, width, RTEST(rb_hash_aref(attr, ID2SYM(rb_intern("video_width")))) ? 
                       rb_hash_aref(attr, ID2SYM(rb_intern("video_width"))) : INT2NUM(0));
     }
-  if ( !RTEST(ATTR(attr, height)) )
-    if ( RTEST(ATTR(canvas->attr, height)) ) ATTRSET(attr, height, ATTR(canvas->attr, height));
+  }
+  if ( !RTEST(ATTR(attr, height)) ) {
+    if ( RTEST(ATTR(canvas->attr, height)) ) {
+	  ATTRSET(attr, height, ATTR(canvas->attr, height));
+	}
     else {
       if (RTEST(rb_hash_aref(attr, ID2SYM(rb_intern("video_height"))))) {
         ATTRSET(attr, height, rb_hash_aref(attr, ID2SYM(rb_intern("video_height"))));
@@ -138,7 +144,7 @@ VALUE shoes_video_new(VALUE attr, VALUE parent)
       /* No dimensions provided, using the video track size, make info avalaible to Shoes */
       rb_hash_aset(attr, ID2SYM(rb_intern("using_video_dim")), Qtrue);
     }
-  
+  }
   video->ref = shoes_native_surface_new(attr, obj);
   return obj;
 }
@@ -154,7 +160,7 @@ VALUE shoes_video_get_drawable(VALUE self) {
   return ULONG2NUM(GDK_WINDOW_HWND(gtk_widget_get_window(self_t->ref)));
 #else
 #ifdef SHOES_QUARTZ
-  return ULONG2NUM(self_t->ref);
+  return ULONG2NUM((unsigned long)self_t->ref);
 #else
   return UINT2NUM(GDK_WINDOW_XID(gtk_widget_get_window(self_t->ref)));
 #endif
@@ -208,6 +214,7 @@ VALUE shoes_video_draw(VALUE self, VALUE c, VALUE actual) {
     }
   }
   FINISH()
+  return self;
 }
 
 
@@ -255,7 +262,9 @@ VALUE shoes_video_hide(VALUE self) {
 VALUE shoes_video_toggle(VALUE self) {
   GET_STRUCT(video, self_t);
   ATTR(self_t->attr, hidden) == Qtrue ?
-    shoes_video_show(self) : shoes_video_hide(self);
+  shoes_video_show(self) : shoes_video_hide(self);
+  // TODO: return value needs documenting and testing
+  return (ATTR(self_t->attr, hidden) == Qtrue ? Qtrue : Qfalse);
 }
 
 VALUE shoes_video_remove(VALUE self) {
@@ -264,7 +273,11 @@ VALUE shoes_video_remove(VALUE self) {
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
 
   rb_ary_delete(canvas->contents, self);
+#ifdef SHOES_QUARTZ
+  shoes_native_surface_remove((CGrafPtr)self_t->ref);
+#else
   shoes_native_surface_remove(self_t->ref);
+#endif
   self_t->ref = NULL;
   shoes_canvas_repaint_all(self_t->parent);
 

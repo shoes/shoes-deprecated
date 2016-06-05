@@ -71,7 +71,7 @@ shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
     int len = RSTRING_LEN(fromstring);
     // being Ruby, those are UTF-8, may not be what rsvg wants (const guint8 *)
     // Problem for OSX ? 
-    self_t->handle = rsvg_handle_new_from_data (data, len, &gerror);
+    self_t->handle = rsvg_handle_new_from_data ((const unsigned char *)data, len, &gerror);
     if (self_t->handle == NULL) {
       self_t->data = NULL;
       printf("Failed SVG: %s\n", gerror->message);

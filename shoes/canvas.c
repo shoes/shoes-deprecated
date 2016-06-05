@@ -1726,7 +1726,11 @@ shoes_canvas_ccall(VALUE self, ccallfunc func, ccallfunc2 func2, unsigned char c
   {
     Data_Get_Struct(self_t->parent, shoes_canvas, pc);
     if (DC(self_t->slot) != DC(pc->slot)) // if actual canvas native widget != parent canvas native widget
+#ifdef SHOES_QUARTZ
+      func2(DC((NSControl *)self_t->slot));
+#else
       func2(DC(self_t->slot));
+#endif
   }
 
   if (!NIL_P(self_t->contents))
