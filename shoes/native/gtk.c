@@ -1032,7 +1032,7 @@ start_wait(gpointer data) {
   return FALSE; // timeout will be stopped and destroyed
 }
 
-int shoes_native_canvas_oneshot(int ms, VALUE canvas) {
+void shoes_native_canvas_oneshot(int ms, VALUE canvas) {
   g_timeout_add_full(G_PRIORITY_HIGH, 1, start_wait, (gpointer)canvas, NULL);
 }
 

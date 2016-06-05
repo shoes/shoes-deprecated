@@ -49,7 +49,7 @@
 {
   VALUE object;
 }
-+ (void)textDidEndEditing: (NSNotification *)note;
+- (void)textDidEndEditing: (NSNotification *)note;
 
 @end
 
@@ -99,13 +99,15 @@
 }
 @end
 
+// Who needs this?: shoes_canvas_send_start (canvas.c)
 @interface CanvasOneShot : NSObject
 {
-  VALUE *object;
+  VALUE object;
   NSTimer *timer;
 }
 @end
 
+// declares to stop compiler whining
 void add_to_menubar(NSMenu *main, NSMenu *menu);
 void create_apple_menu(NSMenu *main);
 void create_edit_menu(NSMenu *main);

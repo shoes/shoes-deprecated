@@ -343,7 +343,7 @@
   return self;
 }
 
-- (id)viewDidMoveToWindow
+- (void)viewDidMoveToWindow
 {
   if (self.window != nil)    // how access a property. who knew?
   {
@@ -375,6 +375,7 @@
 @end
 
 #ifndef OLD_RADIO
+// TODO: Radios are pretty broken and this one is too.
 @implementation ShoesRadioButton
 - (id)initWithType: (NSButtonType)t andObject: (VALUE)o
 {
@@ -382,7 +383,7 @@
   {
     object = o;
     [self setButtonType: NSPushOnPushOffButton];  // checkbox for now
-		[self setShoesViewPosition: NSImageOnly];
+	// [self setShoesViewPosition: NSImageOnly]; // unknown what this was supposed to do
     [self setBezelStyle: NSCircularBezelStyle];
     [self setTarget: self];
     [self setAction: @selector(handleClick:)];
@@ -391,7 +392,7 @@
 }
 -(IBAction)handleClick: (id)sender
 {
-	//NSLog(@"radio button handler called on %lx", object);
+  //NSLog(@"radio button handler called on %lx", object);
   shoes_button_send_click(object);
 }
 @end
@@ -418,13 +419,14 @@
 
 //  Shoes4 bug860, shoes3.2 bug008
 /*
-  Pay attention for the delicate deleate dance need to implement textShouldEndEditing
+  Pay attention to the delicate delegate dance need to implement textShouldEndEditing
   if we implement textDidEndEditing. 'should' is called before 'end'
 */
+
 -(void)textDidEndEditing: (NSNotification *)note
 {
     //printf("didEndEditing %u\n", self);
-	  shoes_control_send(object, s_donekey);
+	shoes_control_send(object, s_donekey);
 }
 
 // fixes bug that disappeared entered text
@@ -1269,15 +1271,15 @@ start_wait(VALUE data) {
 }
 @end
 
-int
+
+void
 shoes_native_canvas_oneshot(int ms, VALUE canvas)
 {
   INIT;
   CanvasOneShot *timer = [[CanvasOneShot alloc] initWithTimeInterval: ms * 0.001
     andObject: canvas repeats: NO];
   RELEASE;
-  return timer;
-  
+  //return timer;
 }
 
 void
@@ -1453,6 +1455,7 @@ VALUE
 shoes_native_edit_line_cursor_to_end(SHOES_CONTROL_REF ref)
 {
   // TODO:
+  return Qnil;
 }
 
 
@@ -1930,6 +1933,7 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
     return answer;
 }
 
+// TODO: replace with Cocoa and return the alpha channel
 VALUE
 shoes_dialog_color(VALUE self, VALUE title)
 {
