@@ -263,8 +263,7 @@ VALUE shoes_video_toggle(VALUE self) {
   GET_STRUCT(video, self_t);
   ATTR(self_t->attr, hidden) == Qtrue ?
   shoes_video_show(self) : shoes_video_hide(self);
-  // TODO: return value needs documenting and testing
-  return (ATTR(self_t->attr, hidden) == Qtrue ? Qtrue : Qfalse);
+  return self; 
 }
 
 VALUE shoes_video_remove(VALUE self) {
