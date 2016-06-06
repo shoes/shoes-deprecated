@@ -1276,7 +1276,8 @@ void
 shoes_native_canvas_oneshot(int ms, VALUE canvas)
 {
   INIT;
-  CanvasOneShot *timer = [[CanvasOneShot alloc] initWithTimeInterval: ms * 0.001
+  // CanvasOneShot *timer = 
+  [[CanvasOneShot alloc] initWithTimeInterval: ms * 0.001
     andObject: canvas repeats: NO];
   RELEASE;
   //return timer;
@@ -1386,20 +1387,23 @@ shoes_native_surface_position(SHOES_SURFACE_REF ref, shoes_place *p1,
 void
 shoes_native_surface_hide(SHOES_SURFACE_REF ref)
 {
-  HIViewSetVisible(ref, false);
+  ShoesVideoView *vidView = (ShoesVideoView *)ref;
+  vidView.hidden = true;
+  // HIViewSetVisible(vidView, false); // probably wrong
 }
 
 void
 shoes_native_surface_show(SHOES_SURFACE_REF ref)
 {
-  HIViewSetVisible(ref, true);
+  ShoesVideoView *vidView = (ShoesVideoView *)ref;
+  vidView.hidden = false;
+  // HIViewSetVisible(vidView, true); // probably wrong
 }
 
 void
 shoes_native_surface_remove(SHOES_SURFACE_REF ref)
 {
-  COCOA_DO([ref removeFromSuperview]);
-  //NSLog(@"native surface removed");
+  COCOA_DO([(ShoesVideoView *)ref removeFromSuperview]);
 }
 
 

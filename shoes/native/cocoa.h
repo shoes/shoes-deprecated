@@ -115,6 +115,8 @@ void create_window_menu(NSMenu *main);
 void create_help_menu(NSMenu *main);
 void shoes_native_view_supplant(NSView *from, NSView *to);
 void gettimeofday(void *ts, void *extra);
+// some Carbon call's to replace at some time in the future
+
 
 #define VK_ESCAPE 53
 #define VK_DELETE 117
