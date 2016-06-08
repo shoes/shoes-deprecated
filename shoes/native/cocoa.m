@@ -505,7 +505,7 @@
 }
 @end
 
-// new for 3.2.25
+// new for 3.2.25 - Subclass of ShoesTextView
 @implementation ShoesTextEditView
 - (id)initWithFrame: (NSRect)frame andObject: (VALUE)o
 {
@@ -1353,8 +1353,6 @@ shoes_native_control_state(SHOES_CONTROL_REF ref, BOOL sensitive, BOOL setting)
   }
 }
 
-// TODO: focus might need some help like control_state has above
-// very old bug!!
 void
 shoes_native_control_focus(SHOES_CONTROL_REF ref)
 {

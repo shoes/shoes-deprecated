@@ -67,10 +67,10 @@
 }
 @end
 
-@interface ShoesTextEditView : NSScrollView
+@interface ShoesTextEditView : ShoesTextView
 {
-  VALUE object;
-  NSTextView *textView;
+  //VALUE object;
+  //NSTextView *textView;
 }
 @end
 
