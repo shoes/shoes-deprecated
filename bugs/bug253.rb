@@ -14,5 +14,10 @@ Shoes.app do
         @eb.state = nil
       end
     end
+    para "use Enable buttons first for focus tests"
+    flow do
+      button "Focus el" do @el.focus end
+      button "Focus eb" do @eb.focus end
+    end
   end 
 end

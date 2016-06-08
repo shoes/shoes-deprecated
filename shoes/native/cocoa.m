@@ -1342,7 +1342,7 @@ shoes_native_control_state(SHOES_CONTROL_REF ref, BOOL sensitive, BOOL setting)
   if ([ref isKindOfClass: [NSControl class]]) {
     [ref setEnabled: sensitive];
     if ([ref respondsToSelector: @selector(setEditable:)]) {
-      [ref setEditable: setting];
+      [(NSTextField *)ref setEditable: setting];
     }
   } else if ([ref isKindOfClass: [NSScrollView class]]) {
       ShoesTextView *sv = (ShoesTextView *)ref;
