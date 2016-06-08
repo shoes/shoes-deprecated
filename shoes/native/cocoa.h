@@ -61,6 +61,7 @@
 
 @interface ShoesTextView : NSScrollView
 {
+@public
   VALUE object;
   NSTextView *textView;
 }

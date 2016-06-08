@@ -1329,16 +1329,32 @@ shoes_native_control_repaint(SHOES_CONTROL_REF ref, shoes_place *p1,
   p2->iy += canvas->slot->scrolly;
 }
 
+/*  
+ * In Cocoa, control refs can be different cocoa classes so
+ * buttons don't have the same methods and properties as say an edit_box
+ * buttons are NSControl
+ * COCOA_DO macro can't be stepped through with lldb and we shouldn't depend
+ * on try/release to help us for this function.
+ */
 void
 shoes_native_control_state(SHOES_CONTROL_REF ref, BOOL sensitive, BOOL setting)
 {
-  COCOA_DO({
+  if ([ref isKindOfClass: [NSControl class]]) {
     [ref setEnabled: sensitive];
-    if ([ref respondsToSelector: @selector(setEditable:)])
+    if ([ref respondsToSelector: @selector(setEditable:)]) {
       [ref setEditable: setting];
-  });
+    }
+  } else if ([ref isKindOfClass: [NSScrollView class]]) {
+      ShoesTextView *sv = (ShoesTextView *)ref;
+      NSTextView *tv = sv->textView;
+      [tv setEditable: setting];
+  } else {
+    fprintf(stderr, "control is unknown type\n");
+  }
 }
 
+// TODO: focus might need some help like control_state has above
+// very old bug!!
 void
 shoes_native_control_focus(SHOES_CONTROL_REF ref)
 {
