@@ -10,6 +10,8 @@
 #include "shoes/internal.h"
 #include "shoes/http.h"
 
+#import <Carbon/Carbon.h>
+
 #define HEIGHT_PAD 6
 
 #define INIT    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init]
@@ -694,7 +696,7 @@ create_apple_menu(NSMenu *main)
     [menuApp addItem: menuitem];
     [menuitem release];
 
-    [NSApp setAppleMenu:menuApp];
+    [NSApp setAppleMenu: menuApp];
     add_to_menubar(main, menuApp);
     [menuApp release];
 }
@@ -1891,7 +1893,7 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
     [cancelButton setAction: @selector(cancelClick:)];
     [[alert contentView] addSubview: cancelButton];
     //[ctlPanelView addSubview: cancelButton];
-    [alert setDefaultButtonCell: okButton];
+    [alert setDefaultButtonCell: (NSButtonCell *)okButton];
     [NSApp runModalForWindow: alert];
     if ([alert accepted])
       answer = rb_str_new2([[input stringValue] UTF8String]);
@@ -1951,10 +1953,43 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
     return answer;
 }
 
+#ifndef CARBON_COLOR
 // TODO: replace with Cocoa and return the alpha channel
+@implementation ShoesDialogColor
+- (id)init
+{
+  if ((self = [super initWithContentRect: NSMakeRect(0, 0, 340, 140)
+    styleMask: NSTitledWindowMask backing: NSBackingStoreBuffered defer: NO]))
+  {
+    answer = [NSColor whiteColor];
+    [self setDelegate: (id<NSWindowDelegate>)self];
+  }
+  return self;
+}
+-(IBAction)cancelClick: (id)sender
+{
+  [[NSApplication sharedApplication] stopModal];
+}
+-(IBAction)okClick: (id)sender
+{
+  //answer = TRUE;
+  [[NSApplication sharedApplication] stopModal];
+}
+- (void)windowWillClose: (NSNotification *)n
+{
+  [[NSApplication sharedApplication] stopModal];
+}
+- (BOOL)accepted
+{
+  return answer;
+}
+@end
+#endif 
+
 VALUE
 shoes_dialog_color(VALUE self, VALUE title)
 {
+#ifdef CARBON_COLOR
   Point where;
   RGBColor colwh = { 0xFFFF, 0xFFFF, 0xFFFF };
   RGBColor _color;
@@ -1962,13 +1997,68 @@ shoes_dialog_color(VALUE self, VALUE title)
   GLOBAL_APP(app);
 
   where.h = where.v = 0;
-  title = shoes_native_to_s(title);
-  if (GetColor(where, RSTRING_PTR(title), &colwh, &_color))
+  //title = shoes_native_to_s(title);
+  ConstStr255Param defTitle = (ConstStr255Param) RSTRING_PTR(title);
+  if (GetColor(where, defTitle, &colwh, &_color))
   {
     //color = shoes_color_new(_color.red/256, _color.green/256, _color.blue/256, _color.alpha/256);
     color = shoes_color_new(_color.red/256, _color.green/256, _color.blue/256, SHOES_COLOR_OPAQUE);
   }
   return color;
+#else
+/* New dialog for Shoes 3.3.2 - not simples!
+ * Create a window of class ShoesDialogColor
+ *   set title to user specified app name or 'Shoes' 
+ * Add NSColorPanel to window
+ * Add button panel to Window
+ * add buttons to button panel
+ * wire buttons to actions
+ * make it modal and start it.
+ **** NOTE: colorpanel is weird and this doesn't work.
+*/
+  rb_arg_list args;
+  VALUE answer = Qnil;
+  GLOBAL_APP(app);
+  //ACTUAL_APP(app);
+  NSString *defTitle = [NSString stringWithUTF8String: RSTRING_PTR(title)];
+  //COCOA_DO({
+
+    ShoesDialogColor *alert = [[ShoesDialogColor alloc] init];
+    NSRect ctlPanelRect = NSMakeRect(81, 0, 220, 300);
+    NSView *ctlPanelView = [[NSView alloc] initWithFrame: ctlPanelRect];
+    [[alert contentView] addSubview: ctlPanelView];
+
+    NSButton *okButton = [[[NSButton alloc] initWithFrame:
+      NSMakeRect(244, 10, 88, 30)] autorelease];
+    NSButton *cancelButton = [[[NSButton alloc] initWithFrame:
+      NSMakeRect(156, 10, 88, 30)] autorelease];
+    NSTextField *text = [[[NSTextField alloc] initWithFrame:
+      NSMakeRect(20, 110, 260, 18)] autorelease];
+
+    [alert setTitle: defTitle];
+    NSColorPanel *colorPanel = [NSColorPanel sharedColorPanel];
+    [ctlPanelView addSubview: colorPanel];
+    [okButton setTitle: @"OK"];
+    [okButton setBezelStyle: 1];
+    [okButton setTarget: alert];
+    [okButton setAction: @selector(okClick:)];
+    [[alert contentView] addSubview: okButton];
+    //[ctlPanelView addSubview: okButton];
+    [cancelButton setTitle: @"Cancel"];
+    [cancelButton setBezelStyle: 1];
+    [cancelButton setTarget: alert];
+    [cancelButton setAction: @selector(cancelClick:)];
+    [[alert contentView] addSubview: cancelButton];
+    //[ctlPanelView addSubview: cancelButton];
+    [alert setDefaultButtonCell: okButton];
+    [NSApp runModalForWindow: alert];
+    if ([alert accepted])
+      //answer = rb_str_new2([[input stringValue] UTF8String]);
+    [alert close];
+  //});
+  return answer;
+
+#endif
 }
 
 static VALUE
