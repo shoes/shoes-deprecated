@@ -7,7 +7,7 @@
 #import <AppKit/NSFontCollection.h>
 #endif
 #ifndef CARBON_COLOR
-#define CARBON_COLOR // comment this line to use cocoa color picker
+//#define CARBON_COLOR // comment this line to use cocoa color picker
 #endif
 
 @interface ShoesEvents : NSObject

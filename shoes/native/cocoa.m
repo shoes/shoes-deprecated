@@ -2021,8 +2021,9 @@ shoes_dialog_color(VALUE self, VALUE title)
   GLOBAL_APP(app);
   //ACTUAL_APP(app);
   NSString *defTitle = [NSString stringWithUTF8String: RSTRING_PTR(title)];
+  VALUE color = Qnil;
   //COCOA_DO({
-
+/*
     ShoesDialogColor *alert = [[ShoesDialogColor alloc] init];
     NSRect ctlPanelRect = NSMakeRect(81, 0, 220, 300);
     NSView *ctlPanelView = [[NSView alloc] initWithFrame: ctlPanelRect];
@@ -2051,10 +2052,30 @@ shoes_dialog_color(VALUE self, VALUE title)
     [[alert contentView] addSubview: cancelButton];
     //[ctlPanelView addSubview: cancelButton];
     [alert setDefaultButtonCell: okButton];
-    [NSApp runModalForWindow: alert];
-    if ([alert accepted])
-      //answer = rb_str_new2([[input stringValue] UTF8String]);
-    [alert close];
+    //[NSApp runModalForWindow: alert];
+*/
+    NSInteger returnCode;
+    NSColor *nscolor;
+    NSColorPanel *colorPanel = [NSColorPanel sharedColorPanel];
+    [colorPanel orderOut:NSApp];
+    [colorPanel setContinuous:NO];
+    [colorPanel setBecomesKeyOnlyIfNeeded:NO];
+    [colorPanel setShowsAlpha: YES];
+    [colorPanel _setUseModalAppearance:YES];
+    returnCode = [NSApp runModalForWindow: colorPanel];
+    if (returnCode == NSOKButton) {
+	  nscolor = [[colorPanel color] colorUsingColorSpace:
+		        [NSColorSpace genericRGBColorSpace]];
+	  CGFloat components[4];
+      [nscolor getComponents:components];
+      color = shoes_color_new(components[0] * 255, components[1] * 255, 
+          components[2] * 255, components[3] * 255);
+      return color;
+    }
+    return Qnil;
+    //if ([alert accepted])
+    //  answer = rb_str_new2([[input stringValue] UTF8String]);
+    //[alert close];
   //});
   return answer;
 
