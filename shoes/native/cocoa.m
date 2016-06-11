@@ -695,8 +695,13 @@ create_apple_menu(NSMenu *main)
     [menuitem setTarget: NSApp];
     [menuApp addItem: menuitem];
     [menuitem release];
-
-    [NSApp setAppleMenu: menuApp];
+    // Turn off a warning message: laugh or cry?
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-method-access"
+    // TODO: This undocumented method is required if you don't 
+    // load a nib file which ties us up into xcode. Lesser to two evils.
+    [NSApp setAppleMenu: menuApp]; 
+#pragma clang diagnostic pop
     add_to_menubar(main, menuApp);
     [menuApp release];
 }
@@ -1758,12 +1763,12 @@ shoes_native_to_s(VALUE text)
 VALUE
 shoes_native_window_color(shoes_app *app)
 {
-  // float r, g, b, a;
-  // INIT;
-  // [[[app->os.window backgroundColor] colorUsingColorSpace: [NSColorSpace genericRGBColorSpace]]
-  //   getRed: &r green: &g blue: &b alpha: &a];
-  // RELEASE;
-  // return shoes_color_new((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255));
+  CGFloat r, g, b, a;
+  INIT;
+  [[[app->os.window backgroundColor] colorUsingColorSpace: [NSColorSpace genericRGBColorSpace]]
+     getRed: &r green: &g blue: &b alpha: &a];
+  RELEASE;
+  //return shoes_color_new((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255));
   return shoes_color_new(255, 255, 255, 255);
 }
 
@@ -1953,7 +1958,7 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
     return answer;
 }
 
-#ifndef CARBON_COLOR
+#if 0
 // TODO: replace with Cocoa and return the alpha channel
 @implementation ShoesDialogColor
 - (id)init
@@ -2001,84 +2006,42 @@ shoes_dialog_color(VALUE self, VALUE title)
   ConstStr255Param defTitle = (ConstStr255Param) RSTRING_PTR(title);
   if (GetColor(where, defTitle, &colwh, &_color))
   {
-    //color = shoes_color_new(_color.red/256, _color.green/256, _color.blue/256, _color.alpha/256);
     color = shoes_color_new(_color.red/256, _color.green/256, _color.blue/256, SHOES_COLOR_OPAQUE);
   }
   return color;
 #else
-/* New dialog for Shoes 3.3.2 - not simples!
- * Create a window of class ShoesDialogColor
- *   set title to user specified app name or 'Shoes' 
- * Add NSColorPanel to window
- * Add button panel to Window
- * add buttons to button panel
- * wire buttons to actions
- * make it modal and start it.
- **** NOTE: colorpanel is weird and this doesn't work.
-*/
-  rb_arg_list args;
-  VALUE answer = Qnil;
+  /*
+   * New dialog for Shoes 3.3.2 - doesn't use Carbon
+   * Implements Alpha selection
+  */
   GLOBAL_APP(app);
-  //ACTUAL_APP(app);
   NSString *defTitle = [NSString stringWithUTF8String: RSTRING_PTR(title)];
   VALUE color = Qnil;
-  //COCOA_DO({
-/*
-    ShoesDialogColor *alert = [[ShoesDialogColor alloc] init];
-    NSRect ctlPanelRect = NSMakeRect(81, 0, 220, 300);
-    NSView *ctlPanelView = [[NSView alloc] initWithFrame: ctlPanelRect];
-    [[alert contentView] addSubview: ctlPanelView];
-
-    NSButton *okButton = [[[NSButton alloc] initWithFrame:
-      NSMakeRect(244, 10, 88, 30)] autorelease];
-    NSButton *cancelButton = [[[NSButton alloc] initWithFrame:
-      NSMakeRect(156, 10, 88, 30)] autorelease];
-    NSTextField *text = [[[NSTextField alloc] initWithFrame:
-      NSMakeRect(20, 110, 260, 18)] autorelease];
-
-    [alert setTitle: defTitle];
-    NSColorPanel *colorPanel = [NSColorPanel sharedColorPanel];
-    [ctlPanelView addSubview: colorPanel];
-    [okButton setTitle: @"OK"];
-    [okButton setBezelStyle: 1];
-    [okButton setTarget: alert];
-    [okButton setAction: @selector(okClick:)];
-    [[alert contentView] addSubview: okButton];
-    //[ctlPanelView addSubview: okButton];
-    [cancelButton setTitle: @"Cancel"];
-    [cancelButton setBezelStyle: 1];
-    [cancelButton setTarget: alert];
-    [cancelButton setAction: @selector(cancelClick:)];
-    [[alert contentView] addSubview: cancelButton];
-    //[ctlPanelView addSubview: cancelButton];
-    [alert setDefaultButtonCell: okButton];
-    //[NSApp runModalForWindow: alert];
-*/
-    NSInteger returnCode;
-    NSColor *nscolor;
-    NSColorPanel *colorPanel = [NSColorPanel sharedColorPanel];
-    [colorPanel orderOut:NSApp];
-    [colorPanel setContinuous:NO];
-    [colorPanel setBecomesKeyOnlyIfNeeded:NO];
-    [colorPanel setShowsAlpha: YES];
-    [colorPanel _setUseModalAppearance:YES];
-    returnCode = [NSApp runModalForWindow: colorPanel];
-    if (returnCode == NSOKButton) {
+  NSInteger returnCode;
+  NSColor *nscolor;
+  NSColorPanel *colorPanel = [NSColorPanel sharedColorPanel];
+  [colorPanel setTitle: defTitle];
+  [colorPanel orderOut:NSApp];
+  [colorPanel setContinuous:NO];
+  [colorPanel setBecomesKeyOnlyIfNeeded:NO];
+  [colorPanel setShowsAlpha: YES];
+  // Turn off a warning message: laugh or cry?
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-method-access"
+  [colorPanel _setUseModalAppearance:YES]; // must do but undocumented!!
+#pragma clang diagnostic pop
+  returnCode = [NSApp runModalForWindow: colorPanel];
+  if (returnCode == NSOKButton) {
 	  nscolor = [[colorPanel color] colorUsingColorSpace:
 		        [NSColorSpace genericRGBColorSpace]];
 	  CGFloat components[4];
+	  components[3] = [colorPanel alpha];
       [nscolor getComponents:components];
       color = shoes_color_new(components[0] * 255, components[1] * 255, 
           components[2] * 255, components[3] * 255);
       return color;
     }
     return Qnil;
-    //if ([alert accepted])
-    //  answer = rb_str_new2([[input stringValue] UTF8String]);
-    //[alert close];
-  //});
-  return answer;
-
 #endif
 }
 

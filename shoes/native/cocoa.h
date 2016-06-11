@@ -6,9 +6,6 @@
 #ifndef OLD_OSX
 #import <AppKit/NSFontCollection.h>
 #endif
-#ifndef CARBON_COLOR
-//#define CARBON_COLOR // comment this line to use cocoa color picker
-#endif
 
 @interface ShoesEvents : NSObject
 {
@@ -96,15 +93,6 @@
 }
 @end
 
-#ifndef CARBON_COLOR
-@interface ShoesDialogColor : NSWindow
-{
-  NSWindow *win;
-  NSColor *answer;
-}
-@end
-#endif
-
 @interface ShoesTimer : NSObject
 {
   VALUE object;
@@ -112,7 +100,7 @@
 }
 @end
 
-// Who needs this?: shoes_canvas_send_start (canvas.c)
+// Who needs this? shoes_canvas_send_start (canvas.c)
 @interface CanvasOneShot : NSObject
 {
   VALUE object;
@@ -128,7 +116,6 @@ void create_window_menu(NSMenu *main);
 void create_help_menu(NSMenu *main);
 void shoes_native_view_supplant(NSView *from, NSView *to);
 void gettimeofday(void *ts, void *extra);
-// some Carbon call's to replace at some time in the future
 
 
 #define VK_ESCAPE 53

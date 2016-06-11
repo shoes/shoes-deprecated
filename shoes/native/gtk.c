@@ -1574,10 +1574,6 @@ shoes_native_to_s(VALUE text)
 }
 
 #if defined(GTK3) && !defined(SHOES_GTK_WIN32)
-//  NOTE: These are untested. I can't find where shoes calls them
-//  (or if it does) cjc
-// called by window_plain and dialog_plain (tested on linux)
-// a start at styling windows and dialogs differently ?
 VALUE
 shoes_native_window_color(shoes_app *app)
 {
