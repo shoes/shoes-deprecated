@@ -16,7 +16,7 @@
    To confuse you more, we use a Pty for sending chars (keystrokes) to
    stdin.
    
-   We have subclass NSTextView (see comments in cocoa-term.h)
+   We have to subclass NSTextView (see comments in cocoa-term.h)
    
 */
 #include "cocoa-term.h"
@@ -307,14 +307,16 @@ static struct tesiObject* shadow_tobj;
     
     // now convince Ruby to use the new stdout - sadly it's not line buffered
     // BEWARE the monkey patch!
+#if 0
     char evalstr[256];
     strcpy(evalstr, "class IO \n\
-          def puts args \n\
+          def puts (args='\n') \n\
             super args \n\
             self.flush if self.fileno < 3 \n\
           end \n\
         end\n");
     rb_eval_string(evalstr);
+#endif
   } else {
     dup2fail = errno;
   }

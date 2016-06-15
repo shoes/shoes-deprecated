@@ -1,5 +1,10 @@
 # encoding: UTF-8
 
+Shoes.terminal
+$stdout.puts "TERM=#{ENV['TERM']}"
+STDOUT.puts "STDOUT"  
+$stdout.puts #fails ?
+$stdout.puts "tests are ready"
 require 'test/unit'
 require 'test/unit/ui/console/testrunner'
 require 'svg.rb'
@@ -118,13 +123,11 @@ Shoes.app title: "Testing Shoes::Svg", resizable: false do
         # waiting for shoes asynchronous drawing events to occur.
         @cont.start {
             ## There could be only one console at a time (we can safely call it many times)
-            Shoes.show_console unless silent
-            if RUBY_PLATFORM =~ /darwin/
-              $stdout = $stderr
-            end
-            
+            Shoes.terminal unless silent
+           
             out_level = silent ? TestRunner::SILENT : TestRunner::NORMAL
-            @test_result = TestRunner.run(t.suite, output_level: out_level)
+            @test_result = TestRunner.run(t.suite, {output_level: out_level,
+				output: $stderr})
             
             puts "#{'='*40}\n\n" unless silent
             @sand_box.clear
@@ -142,7 +145,8 @@ Shoes.app title: "Testing Shoes::Svg", resizable: false do
                 stack do
                     flow do
                         para "Silent tests : "
-                        @no_output = check checked: true
+                        #@no_output = check checked: true
+                        @no_output = check checked: false
                     end
                     flow do
                         para "stop tests on failure : "

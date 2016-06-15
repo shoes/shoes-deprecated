@@ -75,11 +75,8 @@ Shoes.app title: "Testing Shoes video" do
         
         # waiting for shoes asynchronous drawing events to occur.
         @cont.start {
-            ## There could be only one console at a time (we can safely call it many times)
-            Shoes.show_console unless silent
-            if RUBY_PLATFORM =~ /darwin/
-              $stdout = $stderr
-            end
+            ## There can be only one shoes terminal (we can safely call it many times)
+            Shoes.terminal unless silent
             
             out_level = silent ? TestRunner::SILENT : TestRunner::NORMAL
             @test_result = TestRunner.run(t.suite, output_level: out_level)
@@ -100,7 +97,8 @@ Shoes.app title: "Testing Shoes video" do
                 stack do
                     flow do
                         para "Silent tests : "
-                        @no_output = check checked: true
+                        #@no_output = check checked: true
+                        @no_output = check checked: false
                     end
                     flow do
                         para "stop tests on failure : "
