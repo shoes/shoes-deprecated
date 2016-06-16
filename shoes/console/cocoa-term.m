@@ -307,21 +307,22 @@ static struct tesiObject* shadow_tobj;
     
     // now convince Ruby to use the new stdout - sadly it's not line buffered
     // BEWARE the monkey patch!
-#if 0
     char evalstr[256];
-    strcpy(evalstr, "class IO \n\
-          def puts (args='\n') \n\
+#if 1
+    strcpy(evalstr, 
+      "class IO \n\
+          def puts (args=nil) \n\
             super args \n\
-            self.flush if self.fileno < 3 \n\
+            self.flush \n\
           end \n\
         end\n");
-    rb_eval_string(evalstr);
+   rb_eval_string(evalstr);
 #endif
   } else {
     dup2fail = errno;
   }
 #endif 
-  // create a buffer to input line chars
+  // create a buffer for input line chars
   lineBuffer = malloc(req_cols);
   linePos = 0;
   // Now init the Tesi object - NOTE tesi callbacks are C,  which calls Objective-C

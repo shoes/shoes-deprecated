@@ -1,10 +1,14 @@
 # encoding: UTF-8
 
 Shoes.terminal
+Object::send :remove_const, :STDOUT
+STDOUT = $stdout
+Object::send :remove_const, :STDERR
+STDERR = $stderr
 $stdout.puts "TERM=#{ENV['TERM']}"
 STDOUT.puts "STDOUT"  
 $stdout.puts #fails ?
-$stdout.puts "tests are ready"
+STDERR.puts "tests are ready"
 require 'test/unit'
 require 'test/unit/ui/console/testrunner'
 require 'svg.rb'
