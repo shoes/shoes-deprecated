@@ -23,11 +23,14 @@
   RELEASE; \
 } while (0)
 
+extern void shoes_osx_stdout_sink(); // in cocoa-term.m
+
 @implementation ShoesEvents
 - (id)init
 {
   if ((self = [super init]))
     count = 0;
+  shoes_osx_stdout_sink(); // 2nd stage of stdout setup
   return self;
 }
 - (void)idle: (NSTimer *)t

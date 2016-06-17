@@ -16,6 +16,19 @@
 - (void)keyDown: (NSEvent *)e;
 @end 
 
+// a 'clever' hack for STDOUT
+@interface StdoutBridge : NSObject
+{
+@public
+  // For stdout
+  NSFileHandle *oldHandle;
+  NSPipe *outPipe;
+  NSFileHandle *outReadHandle;
+  NSFileHandle *outWriteHandle;
+}
+
+@end
+
 @interface TerminalWindow : NSWindow
 {
 @public

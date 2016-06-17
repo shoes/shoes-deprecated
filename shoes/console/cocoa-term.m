@@ -23,9 +23,33 @@
 
 /* there can only be one terminal so only one tesi_object.
  I'll keep a global Obj-C ref to tesi
+ and the very odd bridge object
 */
 static struct tesiObject* shadow_tobj;
+static StdoutBridge *bridge = NULL;
 
+@implementation StdoutBridge
+- (StdoutBridge *) init
+{
+  oldHandle = [NSFileHandle fileHandleWithStandardInput];
+  return self;
+}
+@end
+
+void shoes_osx_setup_stdout() {
+    bridge = [[StdoutBridge alloc] init];
+}
+
+/*  
+ *  this is called when event loop is started (cocoa.m )
+ *  create a notification observer that reads the pipe (flushing)
+ *  but nothing else.
+*/
+void shoes_osx_stdout_sink() {
+  if (bridge == NULL) {
+    return;  
+  }
+}
 
 @implementation DisplayView
 
@@ -625,3 +649,9 @@ void terminal_attreset(struct tesiObject *tobj) {
   }
   [cpanel->attrs setObject: cpanel->monoFont forKey: NSFontAttributeName];
 }
+
+// ------  deal with StdoutBrigde object: -----
+
+
+
+

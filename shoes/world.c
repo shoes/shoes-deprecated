@@ -25,7 +25,9 @@ shoes_sigint()
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+#ifdef SHOES_QUARTZ 
+extern void shoes_osx_setup_stdout();
+#endif
 shoes_world_t *shoes_world = NULL;
 
 shoes_world_t *
@@ -115,6 +117,11 @@ shoes_init(SHOES_INIT_ARGS)
 #ifndef SHOES_GTK_WIN32
   signal(SIGQUIT, shoes_sigint);
 #endif
+#endif
+#ifdef SHOES_QUARTZ 
+  // init some OSX things our way before Ruby inits.
+  // setenv("TERM", "xterm-256color", 1); // mostly harmless, also not needed.
+  shoes_osx_setup_stdout();
 #endif
   shoes_ruby_embed();
   //printf("back from shoes_ruby_embed\n");
