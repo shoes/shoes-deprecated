@@ -34,8 +34,10 @@ static StdoutBridge *bridge = NULL;
   oldHandle = [NSFileHandle fileHandleWithStandardInput];
   return self;
 }
+
 @end
 
+// create the bridge object
 void shoes_osx_setup_stdout() {
     bridge = [[StdoutBridge alloc] init];
 }
@@ -43,7 +45,6 @@ void shoes_osx_setup_stdout() {
 /*  
  *  this is called when event loop is started (cocoa.m )
  *  create a notification observer that reads the pipe (flushing)
- *  but nothing else.
 */
 void shoes_osx_stdout_sink() {
   if (bridge == NULL) {
