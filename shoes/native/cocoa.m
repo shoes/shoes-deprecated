@@ -30,9 +30,9 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 {
   if ((self = [super init]))
     count = 0;
-  shoes_osx_stdout_sink(); // 2nd stage of stdout setup
   return self;
 }
+
 - (void)idle: (NSTimer *)t
 {
   if (count < 100)
@@ -43,6 +43,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
   }
   rb_eval_string("sleep(0.001)");
 }
+
 - (BOOL) application: (NSApplication *) anApplication
     openFile: (NSString *) aFileName
 {
@@ -50,6 +51,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 
   return YES;
 }
+
 - (void)openFile: (id)sender
 {
   rb_eval_string("Shoes.show_selector");
@@ -892,6 +894,8 @@ void shoes_native_init()
     target: shoes_world->os.events selector: @selector(idle:) userInfo: nil
     repeats: YES];
   [[NSRunLoop currentRunLoop] addTimer: idle forMode: NSEventTrackingRunLoopMode];
+  // 2nd stage of stdout setup. Is this the right spot in time?
+  shoes_osx_stdout_sink();
   RELEASE;
 }
 

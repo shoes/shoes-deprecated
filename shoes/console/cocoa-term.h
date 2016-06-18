@@ -64,10 +64,6 @@
   NSTextContainer *termContainer;
   //NSTextView *termView;
   DisplayView *termView;
-  // For stdout
-  NSPipe *outPipe;
-  NSFileHandle *outReadHandle;
-  NSFileHandle *outWriteHandle;
   // Stderr 
   NSPipe *errPipe;
   NSFileHandle *errReadHandle;

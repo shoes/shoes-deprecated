@@ -21,9 +21,8 @@
 */
 #include "cocoa-term.h"
 
-/* there can only be one terminal so only one tesi_object.
- I'll keep a global Obj-C ref to tesi
- and the very odd bridge object
+/* there can only be one terminal so only one tesi struct.
+ I'll keep a global Obj-C ref to tesi and to the very odd bridge object
 */
 static struct tesiObject* shadow_tobj;
 static StdoutBridge *bridge = NULL;
@@ -32,24 +31,65 @@ static StdoutBridge *bridge = NULL;
 - (StdoutBridge *) init
 {
   oldHandle = [NSFileHandle fileHandleWithStandardInput];
+  // OSX Stdout is weird. This is too.
+  int pipewrfd, piperdfd;
+  int rtn = 0;
+  outPipe = [NSPipe pipe];
+  outReadHandle = [outPipe fileHandleForReading] ;
+  outWriteHandle = [outPipe fileHandleForWriting];
+  pipewrfd = [[outPipe fileHandleForWriting] fileDescriptor];
+  piperdfd = [[outPipe fileHandleForReading] fileDescriptor];
+  // fclose(stdout) // Don't do this!!
+  rtn = dup2(pipewrfd, fileno(stdout));
+
   return self;
 }
 
+- (void) setSink
+{
+  [[NSNotificationCenter defaultCenter] addObserver: self
+                                        selector: @selector(stdOutDataSink:)
+                                        name: @"ShoesStdoutSink"
+                                        object: outReadHandle];
+  [outReadHandle waitForDataInBackgroundAndNotify];}
+
+- (void) removeSink
+{
+  [[NSNotificationCenter defaultCenter] removeObserver: self
+										name: @"ShoesStdoutSink"
+									    object: outReadHandle];
+}
+
+- (void) stdOutDataSink: (NSNotification *) notification
+{
+  NSFileHandle *fh = (NSFileHandle *) [notification object];
+  NSData *data = [fh availableData];
+  int len = [data length];
+  if (len) {
+     // write data to oldHandle - what ever stdout OSX gave us.
+     // Might be /dev/null or the launch terminal
+    [oldHandle writeData: data];
+    [outReadHandle waitForDataInBackgroundAndNotify];
+  } else {
+    // eof? close?
+  }
+}
 @end
 
-// create the bridge object
+// create the bridge object before Ruby is initialized called from
+// world.c 
 void shoes_osx_setup_stdout() {
     bridge = [[StdoutBridge alloc] init];
 }
 
 /*  
- *  this is called when event loop is started (cocoa.m )
- *  create a notification observer that reads the pipe (flushing)
+ * this is called when event loop is started (cocoa.m )
 */
 void shoes_osx_stdout_sink() {
   if (bridge == NULL) {
     return;  
   }
+  [bridge setSink];
 }
 
 @implementation DisplayView
@@ -116,7 +156,7 @@ void shoes_osx_stdout_sink() {
   //Create a AttributeString using the font, fg color...
   NSAttributedString *attrStr = [[NSAttributedString alloc] initWithString: cnvbfr attributes: attrs];
   [[termView textStorage] appendAttributedString: attrStr];
-  [termView scrollRangeToVisible:NSMakeRange([[termStorage string] length], 0)];
+  [termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
   [attrStr release];
   [cnvbfr release];
   // TODO: Am I leaking memory ? The C programmer in me says "Oh hell yes!"
@@ -274,62 +314,22 @@ void shoes_osx_stdout_sink() {
                                         object: errReadHandle];
     [errReadHandle waitForDataInBackgroundAndNotify];
   }
-  // Somehow we need to create an fd for stdout and read it.
-  // OSX Stdout is weird. Lets do some discovery to print later to stderrnewfd
-  //int outfd = fileno(stdout);
-  int pipewrfd, piperdfd;
-  int dup2fail = 0;
-  int rtn = 0;
-
-#define TRY_STDOUT 2
-#if (TRY_STDOUT == 0) // one pipe two fd's - doesn't work
-   if (dup2(fileno(stderr), fileno(stdout)) == -1) {
-     // failed
-     dup2fail = errno;
-  }
-
-#else // methods that use a different pipe for stdout
-  outPipe = [NSPipe pipe];
-  outReadHandle = [outPipe fileHandleForReading] ;
-  outWriteHandle = [outPipe fileHandleForWriting];
-  pipewrfd = [[outPipe fileHandleForWriting] fileDescriptor];
-  piperdfd = [[outPipe fileHandleForReading] fileDescriptor];
-  // fclose(stdout) // Don't do this!!
-  rtn = dup2(pipewrfd, fileno(stdout));
-  // do some checking on dup2 and stdout
-  //char *pipeWrStr = "Explicit Write to Pipe FileWriteHandle\n";
-  //NSData *pipeMsgData = [NSData dataWithBytes: pipeWrStr length: strlen(pipeWrStr)];
-  if (rtn != -1) { 
-#if (TRY_STDOUT == 2) 
-    [[NSNotificationCenter defaultCenter] addObserver: self
+  // Replace the bridge's sink observer with one that puts the chars on the
+  // new window
+  [bridge removeSink];
+#if 1
+  [[NSNotificationCenter defaultCenter] addObserver: self
                                         selector: @selector(stdOutDataAvail:)
-                                        name: NSFileHandleDataAvailableNotification
-                                        object: outReadHandle];
-    [outReadHandle waitForDataInBackgroundAndNotify];
-#elif (TRY_STDOUT == 3)
+                                        name: @"ShoesStdout"
+                                        object: bridge->outReadHandle];
+  [bridge->outReadHandle waitForDataInBackgroundAndNotify];
+#else
    [[NSNotificationCenter defaultCenter] addObserver: self
                                         selector: @selector(handleNotification:)
                                         name: NSFileHandleReadCompletionNotification
                                         object: outReadHandle];
    [outReadHandle readInBackgroundAndNotify] ;
-#endif
-    /*  issue some test messages for fd, file*, FileHandle*
-      char *foo = "Explicit write() to pipe wrfd\n";
-      write(pipewrfd,  foo, strlen(foo)); 
-      char *foo1 ="Explicit write() to stdout fd\n";
-      write(fileno(stdout), foo1, strlen(foo1));
-      // above results in one call to stdOutDataAvail
-    
-      stdout = fdopen(pipewrfd, "w");
-      if (setlinebuf(stdout) != 0) {
-        fprintf(stderr, "failed setlinebuffer()\n");
-      }
-      fflush(stdout);  // doesn't work
-      printf("Hello from FILE* stdout\n"); // Yay!!
-    
-      [outWriteHandle writeData: pipeMsgData];
-    */
-    
+#endif  
     // now convince Ruby to use the new stdout - sadly it's not line buffered
     // BEWARE the monkey patch!
     char evalstr[256];
@@ -343,10 +343,6 @@ void shoes_osx_stdout_sink() {
         end\n");
    rb_eval_string(evalstr);
 #endif
-  } else {
-    dup2fail = errno;
-  }
-#endif 
   // create a buffer for input line chars
   lineBuffer = malloc(req_cols);
   linePos = 0;
@@ -467,23 +463,6 @@ void shoes_osx_stdout_sink() {
 }
 */
 
-// Hints are this stopped working in 10.7 - doesn't work for me on 10.10
-- (void)handleNotification: (NSNotification *)notification
-{
-  NSData *data  = [[notification userInfo] objectForKey: NSFileHandleNotificationDataItem];
-  int len = [data length];
-  if (len) {
-    char *s = (char *)[data bytes];
-    s[len] = '\0';
-    tesi_handleInput(tobj, s, len);
-    
-    //NSString *str = [[NSString alloc] initWithData: obj encoding: NSASCIIStringEncoding] ;
-    //[[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: str]];
-    //[termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
-    
-    [outReadHandle readInBackgroundAndNotify] ;
-  }
-} 
 
 - (void) stdOutDataAvail: (NSNotification *) notification
 {
@@ -500,7 +479,7 @@ void shoes_osx_stdout_sink() {
     //[[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: str]];
     //[termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
     
-    [outReadHandle waitForDataInBackgroundAndNotify];
+    [bridge->outReadHandle waitForDataInBackgroundAndNotify];
   } else {
     // eof? close?
   }
@@ -650,8 +629,6 @@ void terminal_attreset(struct tesiObject *tobj) {
   }
   [cpanel->attrs setObject: cpanel->monoFont forKey: NSFontAttributeName];
 }
-
-// ------  deal with StdoutBrigde object: -----
 
 
 
