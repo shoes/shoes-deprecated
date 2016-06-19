@@ -49,14 +49,14 @@ static StdoutBridge *bridge = NULL;
 {
   [[NSNotificationCenter defaultCenter] addObserver: self
                                         selector: @selector(stdOutDataSink:)
-                                        name: @"ShoesStdoutSink"
+                                        name: NSFileHandleDataAvailableNotification
                                         object: outReadHandle];
   [outReadHandle waitForDataInBackgroundAndNotify];}
 
 - (void) removeSink
 {
   [[NSNotificationCenter defaultCenter] removeObserver: self
-										name: @"ShoesStdoutSink"
+										name: NSFileHandleDataAvailableNotification
 									    object: outReadHandle];
 }
 
@@ -316,12 +316,13 @@ void shoes_osx_stdout_sink() {
   }
   // Replace the bridge's sink observer with one that puts the chars on the
   // new window
+  outReadHandle = bridge->outReadHandle;
   [bridge removeSink];
 #if 1
   [[NSNotificationCenter defaultCenter] addObserver: self
                                         selector: @selector(stdOutDataAvail:)
-                                        name: @"ShoesStdout"
-                                        object: bridge->outReadHandle];
+                                        name: NSFileHandleDataAvailableNotification
+                                        object: outReadHandle];
   [bridge->outReadHandle waitForDataInBackgroundAndNotify];
 #else
    [[NSNotificationCenter defaultCenter] addObserver: self
