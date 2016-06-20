@@ -30,7 +30,15 @@ static StdoutBridge *bridge = NULL;
 @implementation StdoutBridge
 - (StdoutBridge *) init
 {
-  oldHandle = [NSFileHandle fileHandleWithStandardInput];
+  printf("old stdout\n");
+  oldHandle = [NSFileHandle fileHandleWithStandardOutput];
+  NSFileHandle *nullHandle = [NSFileHandle fileHandleWithNullDevice];
+  if (oldHandle == nullHandle) {
+    printf("This is stdout = dev/null\n");
+  }
+  char *pipeWrStr = "saved handle\n";
+  NSData *pipeMsgData = [NSData dataWithBytes: pipeWrStr length: strlen(pipeWrStr)];
+  [oldHandle writeData: pipeMsgData];
   // OSX Stdout is weird. This is too.
   int pipewrfd, piperdfd;
   int rtn = 0;
@@ -41,7 +49,10 @@ static StdoutBridge *bridge = NULL;
   piperdfd = [[outPipe fileHandleForReading] fileDescriptor];
   // fclose(stdout) // Don't do this!!
   rtn = dup2(pipewrfd, fileno(stdout));
-
+  write(fileno(stdout), "new fd\n", 7);
+  printf("new stdout\n");
+  
+ 
   return self;
 }
 
