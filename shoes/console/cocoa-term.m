@@ -51,6 +51,7 @@ static StdoutBridge *bridge = NULL;
   rtn = dup2(pipewrfd, fileno(stdout));
   write(fileno(stdout), "new fd\n", 7);
   printf("new stdout\n");
+  fprintf(stderr,"At least we have stderr?\n");
   
  
   return self;

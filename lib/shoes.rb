@@ -98,11 +98,6 @@ class Shoes
       Gem::GemRunner.new.run(ARGV)
       fail SystemExit, ''
     end
-
-#    opts.on('--manual-html DIRECTORY', 'Saves the manual to a directory as HTML.') do |dir|
-#     manual_as :html, dir
-#      fail SystemExit, "HTML manual in: #{dir}"
-#    end
         
     opts.on('-f', '--file', 'path to script [OSX packaging uses this]') do
       #puts "-f ARGV: #{ARGV}"
