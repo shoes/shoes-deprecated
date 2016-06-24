@@ -7,6 +7,23 @@
   We have interesting ideas of we what we do with Shoes that maybe very difficult
   to immplememt in Shoes 4. 
   
+-------------- Shoes 3.3.2 ----------------------------------
+
+=== New with 3.3.2
+  * Rudimentary profiler. Fun but may not be all that useful. Written in
+    Shoes so you can modify it if you like. May not work on Windows.
+  * Shoes.show_console is now Shoes.terminal with many options for size, and
+    colors. It can handle some common escape sequences (colors etc)  
+    Use Msys>  cshoes.exe -w [script] on Windows if you want colors.
+
+=== Fixed with 3.3.2
+  * A new launch script for OSX (cshoes) that works like Linux and Windows
+    from the command line.
+
+=== Developer isssues for 3.3.2
+
+----------------------------------------------------------
+  
 === New with 3.3.1
   * Video widget. If you have VLC installed, Shoes will find it (and
     you can tell Shoes where your VLC is). Once found, you can use it. 
@@ -49,6 +66,8 @@
     https://github.com/Shoes3/shoes3/wiki/Mingw-Dependencies
     Download from http://shoes.mvmanila.com/public/shoesdeps/mingw/ming-Shoes-3.3.1.tar.gz
     if you need them - it's a huge file!
+
+--------------------------------------------------------
 
 === new with 3.3.0
   * Uses Gtk3 (not gtk2) for Linux and Windows. This will change visuals
@@ -93,7 +112,7 @@
   * Windows: fontconfig problems if you build shoes and download shoes
     Issue 141 - https://github.com/Shoes3/shoes3/issues/141
     
-  
+------------------------------------------------------------- 
 
 = Federales - Shoes 3.2
 
@@ -119,6 +138,8 @@
      http://lists.mvmanila.com/listinfo.cgi/shoes-mvmanila.com
    * Created a new git project to process apache logs for shoes.mvmanila.com
      https://github.com/Shoes3/shoeslogs
+
+-------------------------------------------------------
    
 === New with 3.2.24
    * added show_console command for OSX and Linux to match Windows. 
@@ -148,6 +169,8 @@
      Issue #123 https://github.com/Shoes3/shoes3/issues/123
    * Windows packaging bug 
      Issue #128 https://github.com/Shoes3/shoes3/issues/128
+     
+----------------------------------------------------------
 
 === New with 3.2.23
    * snapshot works like image - it collects image effects and 
