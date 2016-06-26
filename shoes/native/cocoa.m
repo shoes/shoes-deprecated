@@ -47,8 +47,11 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 - (BOOL) application: (NSApplication *) anApplication
     openFile: (NSString *) aFileName
 {
-  shoes_load([aFileName UTF8String]);
-
+  if (osx_cshoes_launch) {
+    // fprintf(stdout, "skipping NSApplication arg\n");
+  } else {
+    shoes_load([aFileName UTF8String]);
+  }
   return YES;
 }
 

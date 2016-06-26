@@ -56,11 +56,13 @@ class Shoes
 
   @mounts = []
 
+  SHOES_CMD_OPTS = {}
   OPTS = OptionParser.new do |opts|
     opts.banner = "Usage: shoes [options] (app.rb or app.shy)"
 
-    opts.on('-d', '--debug', 'Debug Shoes script') do
-      ENV['CMDLINE_DEBUG'] = true.to_s
+    opts.on('-d=Script', '--debug=Script', 'Debug Shoes <script>') do |c|
+      #ENV['CMDLINE_DEBUG'] = true.to_s
+      SHOES_CMD_OPTS['debug'] = c
     end
 
     opts.on("-m", "--manual",
@@ -256,9 +258,17 @@ class Shoes
   end
 
   def self.args!
-    Shoes.splash if RUBY_PLATFORM !~ /darwin/ && ARGV.empty?
-    OPTS.parse! ARGV
-    ARGV[0] || true
+    if ARGV.empty?
+      Shoes.splash 
+      return true
+    else
+      OPTS.parse! ARGV   
+     if SHOES_CMD_OPTS['debug']
+        puts "debug this: #{SHOES_CMD_OPTS['debug']}"
+      else
+        return ARGV[0] || true
+      end
+    end
   end
 
   def self.uri(str)

@@ -26,19 +26,23 @@
 */
 static struct tesiObject* shadow_tobj;
 static StdoutBridge *bridge = NULL;
+int osx_cshoes_launch = 0; 		// extern in app.h
 
 @implementation StdoutBridge
 - (StdoutBridge *) init
 {
-  printf("old stdout\n");
+  if (osx_cshoes_launch) {
+    return self;
+  }
+  //printf("old stdout\n");
   oldHandle = [NSFileHandle fileHandleWithStandardOutput];
   NSFileHandle *nullHandle = [NSFileHandle fileHandleWithNullDevice];
   if (oldHandle == nullHandle) {
     printf("This is stdout = dev/null\n");
   }
-  char *pipeWrStr = "saved handle\n";
-  NSData *pipeMsgData = [NSData dataWithBytes: pipeWrStr length: strlen(pipeWrStr)];
-  [oldHandle writeData: pipeMsgData];
+  //char *pipeWrStr = "saved handle\n";
+  //NSData *pipeMsgData = [NSData dataWithBytes: pipeWrStr length: strlen(pipeWrStr)];
+  //[oldHandle writeData: pipeMsgData];
   // OSX Stdout is weird. This is too.
   int pipewrfd, piperdfd;
   int rtn = 0;
@@ -49,9 +53,9 @@ static StdoutBridge *bridge = NULL;
   piperdfd = [[outPipe fileHandleForReading] fileDescriptor];
   // fclose(stdout) // Don't do this!!
   rtn = dup2(pipewrfd, fileno(stdout));
-  write(fileno(stdout), "new fd\n", 7);
-  printf("new stdout\n");
-  fprintf(stderr,"At least we have stderr?\n");
+  //write(fileno(stdout), "new fd\n", 7);
+  //printf("new stdout\n");
+  //fprintf(stderr,"At least we have stderr?\n");
   
  
   return self;
@@ -91,7 +95,11 @@ static StdoutBridge *bridge = NULL;
 // create the bridge object before Ruby is initialized called from
 // world.c 
 void shoes_osx_setup_stdout() {
+  if (osx_cshoes_launch) {
+    bridge = NULL;
+  } else {
     bridge = [[StdoutBridge alloc] init];
+  }
 }
 
 /*  
@@ -326,10 +334,17 @@ void shoes_osx_stdout_sink() {
                                         object: errReadHandle];
     [errReadHandle waitForDataInBackgroundAndNotify];
   }
+  // Is there a stdout bridge setup ? Probably not, so set it up.
+  if (! bridge) {
+    osx_cshoes_launch = 0;
+    bridge = [[StdoutBridge alloc] init];
+    [bridge setSink];
+  }
   // Replace the bridge's sink observer with one that puts the chars on the
   // new window
   outReadHandle = bridge->outReadHandle;
   [bridge removeSink];
+  
 #if 1
   [[NSNotificationCenter defaultCenter] addObserver: self
                                         selector: @selector(stdOutDataAvail:)

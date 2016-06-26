@@ -97,6 +97,21 @@ main(argc, argv)
     printf("Using new console: %s %s \n",argv[0], argv[1]);
  }
 #endif
+#ifdef SHOES_QUARTZ
+  if (argc > 1 && strcmp(argv[1], "--osx") == 0)
+  {
+    // only the cshoes script sets this flag. An open -a launch will not.
+    osx_cshoes_launch = 1;  
+    // remove arg 1, compress argv
+    int i;
+    for (i=1; i< argc; i++) 
+    {
+      argv[i] = argv[i+1];
+    }
+    argv[i] = NULL;
+    argc--;
+ }
+#endif 
 #ifdef SHOES_WIN32
   code = shoes_init(inst, style);
 #else
