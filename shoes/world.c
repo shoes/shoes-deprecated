@@ -187,11 +187,21 @@ shoes_set_argv(int argc, char **argv)
   ruby_set_argv(argc, argv);
 }
 
+#ifdef SHOES_QUARTZ
+static VALUE
+shoes_start_begin(VALUE v)
+{
+  char str[128]; 
+  sprintf(str, "$SHOES_URI = Shoes.args!(%d)", osx_cshoes_launch);
+  return rb_eval_string(str);
+}
+#else
 static VALUE
 shoes_start_begin(VALUE v)
 {
   return rb_eval_string("$SHOES_URI = Shoes.args!");
 }
+#endif
 
 static VALUE
 shoes_start_exception(VALUE v, VALUE exc)

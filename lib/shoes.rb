@@ -257,13 +257,13 @@ class Shoes
     end
   end
 
-  def self.args!
-    if ARGV.empty?
+  def self.args!(osx_launch = nil)
+    if ARGV.empty? && osx_launch == '0'
       Shoes.splash 
       return true
     else
       OPTS.parse! ARGV   
-     if SHOES_CMD_OPTS['debug']
+      if SHOES_CMD_OPTS['debug']
         puts "debug this: #{SHOES_CMD_OPTS['debug']}"
       else
         return ARGV[0] || true

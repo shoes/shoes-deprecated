@@ -47,9 +47,8 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 - (BOOL) application: (NSApplication *) anApplication
     openFile: (NSString *) aFileName
 {
-  if (osx_cshoes_launch) {
-    // fprintf(stdout, "skipping NSApplication arg\n");
-  } else {
+  // if launched from terminal (cshoes), DON'T allow this duplicated 
+  if (! osx_cshoes_launch) {
     shoes_load([aFileName UTF8String]);
   }
   return YES;
