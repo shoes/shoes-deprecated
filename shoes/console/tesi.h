@@ -91,7 +91,9 @@ struct tesiObject {
 	void (*callback_scrollUp)(struct tesiObject *);
 	void (*callback_scrollDown)(struct tesiObject *);
 	void (*callback_invertColors)(struct tesiObject *);
-    
+#ifdef USE_PTY // Linux only
+  void (*callback_rawCapture) (struct tesiObject *, char *, int);
+#endif
     unsigned int ides; // event source id from g_timeout_add
 	int x, y, x2, y2, width, height, scrollBegin, scrollEnd; // cursor x,y and window width,height
 	//int alternativeChar;

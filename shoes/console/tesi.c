@@ -65,6 +65,9 @@ int tesi_handleInput(struct tesiObject *to) {
 	}
 
 	lengthRead = read(to->ptyMaster, input, 128);
+  if (to->callback_rawCapture) {
+    to->callback_rawCapture(to, input, lengthRead);
+  }
 #else
 int tesi_handleInput(struct tesiObject *to, char *input, int lengthRead) {
 	char *pointer, c;
@@ -345,6 +348,9 @@ void tesi_interpretSequence(struct tesiObject *to) {
 					//0, 0
 				}
 				break;
+			case 'c': // Identify your self. Ick!
+			    fprintf(stderr, "recevied ESC [ c\n");
+			    break;
 #if 0 // no such thing in xterm 
 			case 'D': // scroll down
 				if(to->callback_scrollDown)
@@ -373,13 +379,13 @@ void tesi_processAttributes(struct tesiObject *to, int attr) {
   } else if (attr > 0 && attr <= 27) { // 1..27
      if (to->callback_charattr) 
        to->callback_charattr(to, attr); 
-  } else if (attr >= 30 && attr <= 37) { // 30..37
+  } else if (attr >= 30 && attr <= 38) { // 30..37 38 is special
       if (to->callback_setfgcolor)
         to->callback_setfgcolor(to, attr);
-  } else if (attr >= 40 &&  attr <= 47) {
+  } else if (attr >= 40 &&  attr <= 48) {
       if (to->callback_setbgcolor) 
         to->callback_setbgcolor(to, attr);
-  } else if ((attr == 38) || (attr == 39) || (attr = 49)) {
+  } else if ((attr == 39) || (attr = 49)) {
       if (to->callback_setdefcolor)
         to->callback_setdefcolor(to, attr);
   } else {
@@ -568,9 +574,11 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
 #endif // USE_PTY
 
 #ifdef SHOES_QUARTZ
-  setenv("TERM","xterm-256color",1); 
+  //setenv("TERM","xterm-256color",1); 
+  setenv("TERM","xterm-16color",1); 
 #else
   setenv("TERM","xterm",1); 
+  //setenv("TERM","ansi", 1);
 #endif
   sprintf(message, "%d", width);
   setenv("COLUMNS", message, 1);
