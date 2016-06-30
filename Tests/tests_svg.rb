@@ -1,14 +1,5 @@
 # encoding: UTF-8
 
-Shoes.terminal
-Object::send :remove_const, :STDOUT
-STDOUT = $stdout
-Object::send :remove_const, :STDERR
-STDERR = $stderr
-$stdout.puts "TERM=#{ENV['TERM']}"
-STDOUT.puts "STDOUT"  
-$stdout.puts #fails ?
-STDERR.puts "tests are ready"
 require 'test/unit'
 require 'test/unit/ui/console/testrunner'
 require 'svg.rb'
@@ -131,7 +122,7 @@ Shoes.app title: "Testing Shoes::Svg", resizable: false do
            
             out_level = silent ? TestRunner::SILENT : TestRunner::NORMAL
             @test_result = TestRunner.run(t.suite, {output_level: out_level,
-				output: $stderr})
+                use_color: true})
             
             puts "#{'='*40}\n\n" unless silent
             @sand_box.clear
