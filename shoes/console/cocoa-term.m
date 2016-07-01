@@ -358,6 +358,8 @@ void shoes_osx_stdout_sink() {
                                         object: outReadHandle];
    [outReadHandle readInBackgroundAndNotify] ;
 #endif  
+    // For debugging init a buffer
+     rawBuffer = [[NSMutableData alloc] initWithCapacity: 2048];
     // now convince Ruby to use the new stdout - sadly it's not line buffered
     // BEWARE the monkey patch!
     char evalstr[256];
@@ -433,13 +435,14 @@ void shoes_osx_stdout_sink() {
 -(IBAction)handleCopy: (id)sender
 {
   NSString *str = [termView string];
-  //NSPasteboard *pboard;
-  //printf("Copy button (%lu)\n", (unsigned long)[str length]);
   [[NSPasteboard generalPasteboard] declareTypes: [NSArray arrayWithObject: NSStringPboardType] owner: nil];
-  [[NSPasteboard generalPasteboard] setString: str forType: NSStringPboardType];
-  //pboard = [[NSPasteboard generalPasteboard];
-  //[pboard clearContents];
-  //[pboard setData: str forType: NSPasteboardTypeString];
+  [[NSPasteboard generalPasteboard] setString: str forType: NSStringPboardType]; 
+  /*
+   * debug - comment out later. Save rawBuffer (utf-16le?) to
+   * ~/shoes-capture.txt
+  */
+  NSString *path = @"~/shoes-capture.txt";
+  [rawBuffer writeToFile: [path stringByExpandingTildeInPath] atomically: YES];
 }
 
 - (void)disconnectApp
@@ -496,6 +499,8 @@ void shoes_osx_stdout_sink() {
 {
   NSFileHandle *fh = (NSFileHandle *) [notification object];
   NSData *data = [fh availableData];
+  // Debug capture
+  [rawBuffer appendData: data];
   int len = [data length];
   if (len) {
     char *s = (char *)[data bytes];  // odds are high this is UTF16-LE

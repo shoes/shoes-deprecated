@@ -71,6 +71,9 @@
   // Just in case you think nothing it too Weird
   char *lineBuffer;
   int linePos;
+  // for debugging = Capture the raw stdout bytes here. Comment out
+  // for Production. 
+  NSMutableData *rawBuffer;
 }
 
 - (void)displayChar:(char)c ;
