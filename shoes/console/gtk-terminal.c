@@ -323,35 +323,18 @@ void terminal_attreset(struct tesiObject *tobj) {
 } 
 
 void terminal_setfgcolor(struct tesiObject *tobj, int fg) {
-  //GtkWidget *view = GTK_WIDGET(tobj->pointer);
-	//GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));
-  if (fg == 38) {
-    // this is a hack.
-    int xtermidx = tobj->parameters[2];
-    int map; 
-    if (xtermidx == 46) // 00FF00 green
-      map = 2;
-    else if (xtermidx == 196) // ff0000 red
-      map = 1;
-    else
-      return;
-    capture.tag[capture.open] = fgcolortag[map];
-  } else {
-    capture.tag[capture.open] = fgcolortag[fg - 30];
-  }
+
+  capture.tag[capture.open] = fgcolortag[fg - 30];
   GtkTextMark *mark = gtk_text_buffer_get_insert(buffer); // cursor mark named 'insert'
   GtkTextIter start;
   // convert mark to iter to pos
   gtk_text_buffer_get_iter_at_mark(buffer, &start, mark);
   capture.begpos = gtk_text_iter_get_offset(&start); 
   capture.open++; // make room for the next tag
-  //capture.startmark = gtk_text_buffer_create_mark(buffer, "stcolor", &start, FALSE);
-  // iter's don't live if characters in its range are modified (and they will be here)
 }
 
 void terminal_setbgcolor(struct tesiObject *tobj, int bg) {
-  //GtkWidget *view = GTK_WIDGET(tobj->pointer);
-	//GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));
+
   capture.tag[capture.open] = bgcolortag[bg - 40];
   GtkTextMark *mark = gtk_text_buffer_get_insert(buffer); // cursor mark named 'insert'
   GtkTextIter start;

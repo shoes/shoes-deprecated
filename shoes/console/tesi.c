@@ -245,9 +245,9 @@ void tesi_interpretSequence(struct tesiObject *to) {
 			// RESET INITIALIZATIONS
 			case 'l': // defaults
 				to->parameters[0] = 0;
-				tesi_processAttributes(to, to->parameters[0]) ; // FIXME:
+				tesi_processAttributes(to, to->parameters[0], 0) ; // FIXME:
 				to->parameters[0] = 1;
-				tesi_processAttributes(to, to->parameters[0]); // FIXME:
+				tesi_processAttributes(to, to->parameters[0], 0); // FIXME:
 				// scroll regions, colors, etc.
 				break;
 			case 'J': // ED erase display
@@ -270,7 +270,7 @@ void tesi_interpretSequence(struct tesiObject *to) {
 			// ATTRIBUTES AND MODES
       case 'm':  // SGR attributes 
         for (i = 0; i < to->parametersLength; i++) 
-				  tesi_processAttributes(to, to->parameters[i]);
+				  tesi_processAttributes(to, to->parameters[i], i);
 				break;
 			case 'h': // enter/exit insert mode
 				break;
@@ -368,28 +368,69 @@ void tesi_interpretSequence(struct tesiObject *to) {
 	}
 }
 
+// If we ever get a 256 color table then, no guessing is required
+// but we'd need some new callbacks and much change in gtk/cocoa-terminal
+// It's a hack until then
+static int make_color8(int in) {
+  int rtn;
+  switch (in) {
+    case 46: 
+      rtn = 2; // green
+      break;
+    case 196:
+      rtn = 1; // red
+      break;
+    case 124:
+      rtn = 3; // brown or yellow
+      break;
+    case 231:
+      rtn = 7; // grey or white
+      break;
+    case 34:
+      rtn = 2; // green is close
+      break;
+    default: 
+     rtn = 6;  // Trouble ahead, Trouble behind, Cyan better watch your speed
+  }
+  return rtn;
+}
 
-void tesi_processAttributes(struct tesiObject *to, int attr) {
+void tesi_processAttributes(struct tesiObject *to, int attr, int idx) {
   // cjc: modify for ECMA 48 SGR terminals. attributes in tesi
-  // are useless. Maintain them in the caller as needed
+  // are tricky. Particularly 38 and 48 
   // http://man7.org/linux/man-pages/man4/console_codes.4.html
+  // idx is current point in to->parameters[], attr is the value there.
   if (attr == 0) {
     if (to->callback_attreset)
         to->callback_attreset(to);
   } else if (attr > 0 && attr <= 27) { // 1..27
      if (to->callback_charattr) 
        to->callback_charattr(to, attr); 
-  } else if (attr >= 30 && attr <= 38) { // 30..37 38 is special
+  } else if (attr >= 30 && attr <= 37) { // 30..37  
       if (to->callback_setfgcolor)
         to->callback_setfgcolor(to, attr);
-  } else if (attr >= 40 &&  attr <= 48) {
+  } else if (attr == 38) { // Hack ahead
+    if (to->callback_setfgcolor) {
+      to->parameters[++idx] = 255; // skip 5; 2; would be worse so don't look
+      int c8 = make_color8(to->parameters[++idx]);
+      to->parameters[idx] = 255; // nullify the color 
+      to->callback_setfgcolor(to, c8+30);
+    }
+  } else if (attr >= 40 &&  attr <= 47) {
       if (to->callback_setbgcolor) 
         to->callback_setbgcolor(to, attr);
+  } else if (attr == 48) { // Hack ahead 
+    if (to->callback_setbgcolor) {
+      to->parameters[++idx] = 255; // skip 5; 2; would be worse so don't try
+      int c8 = make_color8(to->parameters[++idx]);
+      to->parameters[idx] = 255; 
+      to->callback_setbgcolor(to, c8+40);
+    }
   } else if ((attr == 39) || (attr = 49)) {
       if (to->callback_setdefcolor)
         to->callback_setdefcolor(to, attr);
   } else {
-      // ignored. 
+      // ignored. This behaviour is needed
   }
 }
 

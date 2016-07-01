@@ -105,7 +105,7 @@ void tesi_interpretSequence(struct tesiObject*);
 // limit cursor to terminal boundaries. return 1 if cursor out of bounds
 // set second param to 1 to invoke moveCursor callback whether or not cursor is out of bounds
 int tesi_limitCursor(struct tesiObject*, int);
-void tesi_processAttributes(struct tesiObject*, int);
+void tesi_processAttributes(struct tesiObject*, int, int);
 
 // PUBLIC
 struct tesiObject* newTesiObject(char*, int, int);
