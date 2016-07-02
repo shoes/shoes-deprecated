@@ -40,6 +40,7 @@
   NSBox *btnpnl;
   NSButton *clrbtn;
   NSButton *cpybtn;
+  NSButton *rawbtn;
   // args to shoes_native_terminal are saved here if needed
   NSString *reg_dir;
   int req_cols;

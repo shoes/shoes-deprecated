@@ -283,11 +283,20 @@ void shoes_osx_stdout_sink() {
   [cpybtn setTitle: @"Copy"];
   [cpybtn setTarget: self];
   [cpybtn setAction: @selector(handleCopy:)];
+  
+  rawbtn = [[NSButton alloc] initWithFrame: NSMakeRect(480, -2, 100, 28)];
+  [rawbtn setButtonType: NSMomentaryPushInButton];
+  [rawbtn setBezelStyle: NSRoundedBezelStyle];
+  [rawbtn setTitle: @"copy raw"];
+  [rawbtn setTarget: self];
+  [rawbtn setAction: @selector(handleRawCopy:)];
 
   [btnpnl addSubview: ictl];
   [btnpnl addSubview: labelWidget];
   [btnpnl addSubview: clrbtn];
   [btnpnl addSubview: cpybtn];
+  [btnpnl addSubview: rawbtn];
+  
   // init termpnl and textview here.
   // Note NSTextView is subclass of NSText so there are MANY methods to learn
   // not to mention delagates and protocols
@@ -430,6 +439,8 @@ void shoes_osx_stdout_sink() {
 -(IBAction)handleClear: (id)sender
 {
   [termView setString: @""];
+  [rawBuffer release];
+  rawBuffer = [[NSMutableData alloc] initWithCapacity: 2048];
 }
 
 -(IBAction)handleCopy: (id)sender
@@ -437,12 +448,13 @@ void shoes_osx_stdout_sink() {
   NSString *str = [termView string];
   [[NSPasteboard generalPasteboard] declareTypes: [NSArray arrayWithObject: NSStringPboardType] owner: nil];
   [[NSPasteboard generalPasteboard] setString: str forType: NSStringPboardType]; 
-  /*
-   * debug - comment out later. Save rawBuffer (utf-16le?) to
-   * ~/shoes-capture.txt
-  */
-  NSString *path = @"~/shoes-capture.txt";
-  [rawBuffer writeToFile: [path stringByExpandingTildeInPath] atomically: YES];
+}
+
+-(IBAction)handleRawCopy: (id)sender
+{
+  NSString *str = [[NSString alloc] initWithData: rawBuffer encoding: NSUTF8StringEncoding];
+  [[NSPasteboard generalPasteboard] declareTypes: [NSArray arrayWithObject: NSStringPboardType] owner: nil];
+  [[NSPasteboard generalPasteboard] setString: str forType: NSStringPboardType]; 
 }
 
 - (void)disconnectApp
