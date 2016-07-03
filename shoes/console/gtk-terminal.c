@@ -6,7 +6,7 @@
 
 #include "tesi.h"
 #include <gdk/gdkkeysyms.h>
-
+#include "colortab.c"
 /*
  * heavily modified from https://github.com/alanszlosek/tesi/
  * for use in Shoes/Linux
@@ -243,29 +243,58 @@ struct tagcapture {
   int endpos;         // Be wery, wery careful -- Elmer Fudd
 } capture;
 
-static  GtkTextTag *fgcolortag[8];
-static  GtkTextTag *bgcolortag[8];
+static  GtkTextTag *fgcolortag[256];
+static  GtkTextTag *bgcolortag[256];
 static  GtkTextTag *chartags[4];
 
+static GdkRGBA colortable[256]; 
+
+
 static void initattr(GtkTextBuffer *buffer) {
+#if 1
+  int i; 
+  for (i = 0; i < 256; i++) {
+    char *cstr = strdup(colorstrings[i]); // can't write into code sections
+    char *hyphen = strchr(cstr, '-');
+    *hyphen = '\0';
+    char *name = cstr;
+    char *rgbstr = ++hyphen;
+    gdk_rgba_parse(&colortable[i], rgbstr);
+    char bgname[8], fgname[8];
+    sprintf(fgname, "%s-fg", name);
+    sprintf(bgname, "%s-bg", name);
+    fgcolortag[i] =  gtk_text_buffer_create_tag(buffer, fgname,"foreground-rgba", &colortable[i], NULL);
+    bgcolortag[i] =  gtk_text_buffer_create_tag(buffer, bgname,"background-rgba", &colortable[i], NULL);
+    free(cstr); 
+  }
+#else  
   fgcolortag[0] =  gtk_text_buffer_create_tag(buffer, "blackfb","foreground", "black", NULL);
-  fgcolortag[1] =  gtk_text_buffer_create_tag(buffer, "redfb","foreground", "red", NULL);
-  fgcolortag[2] =  gtk_text_buffer_create_tag(buffer, "greenfb","foreground", "green", NULL);
+  //fgcolortag[1] =  gtk_text_buffer_create_tag(buffer, "redfb","foreground", "red", NULL);
+  GdkRGBA temp; temp.red = 0.5; temp.green = 0.0; temp.blue =0.0; temp.alpha = 1.0;
+  colortable[1] = temp;
+  colortable[2].red = 0.0; colortable[2].green = 0.5; colortable[2].blue = 0.0; colortable[2].alpha = 1.0;
+  fgcolortag[1] =  gtk_text_buffer_create_tag(buffer, "redfg","foreground-rgba", &colortable[1], NULL);
+  //fgcolortag[2] =  gtk_text_buffer_create_tag(buffer, "greenfb","foreground", "green", NULL);
+  fgcolortag[2] =  gtk_text_buffer_create_tag(buffer, "greenfb","foreground-rgba", &colortable[2], NULL);
   fgcolortag[3] =  gtk_text_buffer_create_tag(buffer, "brownfb","foreground", "brown", NULL);
   fgcolortag[4] =  gtk_text_buffer_create_tag(buffer, "bluefb","foreground", "blue", NULL);
-  fgcolortag[5] =  gtk_text_buffer_create_tag(buffer, "magentafb","foreground", "magenta", NULL);
+  //fgcolortag[5] =  gtk_text_buffer_create_tag(buffer, "magentafb","foreground", "magenta", NULL);
+  char *tstr = "#800080";
+  gdk_rgba_parse(&colortable[5], tstr);
+  fgcolortag[5] =  gtk_text_buffer_create_tag(buffer, tstr,"foreground-rgba", &colortable[5], NULL);
   fgcolortag[6] =  gtk_text_buffer_create_tag(buffer, "cyanfb","foreground", "cyan", NULL);
   fgcolortag[7] =  gtk_text_buffer_create_tag(buffer, "white","foreground", "white", NULL);
   
   bgcolortag[0] =  gtk_text_buffer_create_tag(buffer, "blackbg","background", "black", NULL);
   bgcolortag[1] =  gtk_text_buffer_create_tag(buffer, "redbg","background", "red", NULL);
+  //bgcolortag[1] =  gtk_text_buffer_create_tag(buffer, "redbg", "background-rgba", colortable[1], NULL);
   bgcolortag[2] =  gtk_text_buffer_create_tag(buffer, "greenbg","background", "green", NULL);
   bgcolortag[3] =  gtk_text_buffer_create_tag(buffer, "brownbg","background", "brown", NULL);
   bgcolortag[4] =  gtk_text_buffer_create_tag(buffer, "bluebg","background", "blue", NULL);
   bgcolortag[5] =  gtk_text_buffer_create_tag(buffer, "magentabg","background", "magenta", NULL);
   bgcolortag[6] =  gtk_text_buffer_create_tag(buffer, "cyanbg","background", "cyan", NULL);
   bgcolortag[7] =  gtk_text_buffer_create_tag(buffer, "whitebg","background", "white", NULL);
-  
+#endif  
   chartags[0] = gtk_text_buffer_create_tag(buffer, "boldtag","weight", PANGO_WEIGHT_BOLD, NULL);
   chartags[1] = gtk_text_buffer_create_tag(buffer, "underlinetag","underline", PANGO_UNDERLINE_SINGLE, NULL);
   capture.open = 0;
@@ -301,8 +330,6 @@ static void initgame(columns, rows) {
 
 void terminal_attreset(struct tesiObject *tobj) {
   // reset all attibutes (color, bold,...)
-  //GtkWidget *view = GTK_WIDGET(tobj->pointer);
-	//GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));
   // close the tagcapture - apply the save color from saved pt to where
   // the cursor is now. These are buffer offsets converted to iters.
   if (capture.open > 0) {
@@ -318,13 +345,13 @@ void terminal_attreset(struct tesiObject *tobj) {
       gtk_text_buffer_apply_tag(buffer, capture.tag[j], &start, &end);
     }
     capture.open = 0;
-    // should delete or unref marks and otherwise clean up memory
+    // should delete or unref marks and otherwise clean up memory? TODO
   }
 } 
 
 void terminal_setfgcolor(struct tesiObject *tobj, int fg) {
 
-  capture.tag[capture.open] = fgcolortag[fg - 30];
+  capture.tag[capture.open] = fgcolortag[(fg - 30)+8]; // go for the brigh colors
   GtkTextMark *mark = gtk_text_buffer_get_insert(buffer); // cursor mark named 'insert'
   GtkTextIter start;
   // convert mark to iter to pos
@@ -335,7 +362,7 @@ void terminal_setfgcolor(struct tesiObject *tobj, int fg) {
 
 void terminal_setbgcolor(struct tesiObject *tobj, int bg) {
 
-  capture.tag[capture.open] = bgcolortag[bg - 40];
+  capture.tag[capture.open] = bgcolortag[(bg - 40)];
   GtkTextMark *mark = gtk_text_buffer_get_insert(buffer); // cursor mark named 'insert'
   GtkTextIter start;
   // convert mark to iter to pos
@@ -497,7 +524,7 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
 
   // need a panel with a string (icon?), copy button and clear button
   GtkWidget *btnpnl = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2); // think flow layout
-  // create widgets for btnpnl - icon, checkbox, clear, copy
+  // create widgets for btnpnl - icon, checkbox, clear, copy, copy-raw
   // icon is wicked 
   char icon_path[256];
   sprintf(icon_path, "%s/static/app-icon.png", app_dir);
@@ -511,6 +538,7 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   gtk_widget_override_font (announce, bpfd);
   gtk_box_pack_start(GTK_BOX(btnpnl), announce, 1, 0, 0);
   */
+  
   GtkWidget *raw_check = gtk_check_button_new_with_label("save raw");
   bpfd = pango_font_description_from_string ("Sans-Serif Italic 10");
   gtk_widget_override_font (raw_check, bpfd);
@@ -518,12 +546,18 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   g_signal_connect (G_OBJECT (raw_check), "clicked", G_CALLBACK (raw_switch), NULL);
   gtk_box_pack_start(GTK_BOX(btnpnl), raw_check, 1, 0, 0);
   
+  
   GtkWidget *clrbtn = gtk_button_new_with_label ("Clear");
   gtk_box_pack_start (GTK_BOX(btnpnl), clrbtn, 1, 0, 0);
   
   GtkWidget *cpybtn = gtk_button_new_with_label ("Copy");
   gtk_box_pack_start (GTK_BOX(btnpnl), cpybtn, 1, 0, 0);
+  gtk_box_pack_start (GTK_BOX(vbox), GTK_WIDGET(btnpnl), 0, 0, 0);  
+#if 0
+  GtkWidget *rawbtn = gtk_button_new_with_label ("copy raw");
+  gtk_box_pack_start (GTK_BOX(btnpnl), rawbtn, 1, 0, 0);
   gtk_box_pack_start (GTK_BOX(vbox), GTK_WIDGET(btnpnl), 0, 0, 0);
+#endif
 
   // then a widget/panel for the terminal
   sw = GTK_SCROLLED_WINDOW(gtk_scrolled_window_new(NULL, NULL));
