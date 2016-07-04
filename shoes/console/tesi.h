@@ -73,7 +73,9 @@ struct tesiObject {
     void (*callback_charattr)(struct tesiObject *, int);  // char based attributes 1..27
     void (*callback_setbgcolor)(struct tesiObject *, int);  // attr 40..47
     void (*callback_setfgcolor)(struct tesiObject *, int); // set text color attribute 30..37
-    void (*callback_setdefcolor)(struct tesiObject *, int); // 38,39,49 set default color
+    void (*callback_setfg256)(struct tesiObject *, int); // 38;5;x
+    void (*callback_setbg256)(struct tesiObject *, int); // 48;5;x
+    void (*callback_setdefcolor)(struct tesiObject *, int); // 39,49 set default color
     // cursor based callbacks - caution - maybe not be implemented 
     // and probably don't do what you think should be done.
 	void (*callback_eraseLine)(struct tesiObject *, int, int, int); // erase line at from_x, to_x, line y

@@ -20,6 +20,7 @@
    
 */
 #include "cocoa-term.h"
+extern char *colorstrings[];
 
 /* there can only be one terminal so only one tesi struct.
  I'll keep a global Obj-C ref to tesi and to the very odd bridge object
@@ -195,10 +196,29 @@ void shoes_osx_stdout_sink() {
   [colorTable setObject: [NSColor cyanColor] forKey: @"cyan"];
   [colorTable setObject: [NSColor whiteColor] forKey: @"white"];
   [colorTable setObject: [NSColor yellowColor] forKey: @"yellow"];
+#if 0
   colorAttr = [[NSArray alloc] initWithObjects:
       [NSColor blackColor],[NSColor redColor],[NSColor greenColor],
       [NSColor brownColor],[NSColor blueColor],[NSColor magentaColor],
       [NSColor cyanColor], [NSColor whiteColor], nil];
+#else
+  colorAttr = [[NSMutableArray alloc]  initWithCapacity: 256];
+  int i;
+  for (i = 0; i < 256; i++) {
+    char *hashc = strchr(colorstrings[i], '#');
+    int rgb;
+    int r, g, b;
+    sscanf(++hashc,"%x", &rgb);
+    b = rgb & 255; rgb = rgb >> 8;
+    g = rgb & 255; rgb = rgb >> 8;
+    r = rgb & 255;
+    CGFloat rg = (CGFloat)r / 255;
+    CGFloat gb = (CGFloat)g / 255;
+    CGFloat bb = (CGFloat)b / 255;
+    NSColor *clr = [NSColor colorWithCalibratedRed: rg green: gb blue: bb alpha: 1.0];
+    [colorAttr insertObject: clr atIndex: i];
+  }
+#endif
 }
 
 
@@ -400,6 +420,8 @@ void shoes_osx_stdout_sink() {
   tobj->callback_charattr = &terminal_charattr;
   tobj->callback_setfgcolor= &terminal_setfgcolor;
   tobj->callback_setbgcolor = &terminal_setbgcolor;
+  tobj->callback_setfg256= &terminal_setfg256;
+  tobj->callback_setbg256 = &terminal_setbg256;
   // that's the minimum set of call backs;
   tobj->callback_setdefcolor = NULL;
   tobj->callback_deleteLines = NULL;
@@ -626,7 +648,7 @@ void terminal_setfgcolor(struct tesiObject *tobj, int fg) {
   TerminalWindow *cpanel = (TerminalWindow *)tobj->pointer;
   //ConsoleTermView *cwin = cpanel->termView;
   NSArray *clrtab = cpanel->colorAttr;
-  clr = [clrtab objectAtIndex: fg - 30];
+  clr = [clrtab objectAtIndex: (fg - 30)+8]; // use brigher color
   [cpanel->attrs setObject: clr forKey: NSForegroundColorAttributeName];
 }
 
@@ -635,7 +657,25 @@ void terminal_setbgcolor(struct tesiObject *tobj, int bg) {
   TerminalWindow *cpanel = (TerminalWindow *)tobj->pointer;
   //ConsoleTermView *cwin = cpanel->termView;
   NSArray *clrtab = cpanel->colorAttr;
-  clr = [clrtab objectAtIndex: bg - 40];
+  clr = [clrtab objectAtIndex: (bg - 40)]; // use bright range +8?
+  [cpanel->attrs setObject: clr forKey: NSBackgroundColorAttributeName];
+}
+
+void terminal_setfg256(struct tesiObject *tobj, int fg) {
+  NSColor *clr;
+  TerminalWindow *cpanel = (TerminalWindow *)tobj->pointer;
+  //ConsoleTermView *cwin = cpanel->termView;
+  NSArray *clrtab = cpanel->colorAttr;
+  clr = [clrtab objectAtIndex: fg];
+  [cpanel->attrs setObject: clr forKey: NSForegroundColorAttributeName];
+}
+
+void terminal_setbg256(struct tesiObject *tobj, int bg) {
+  NSColor *clr;
+  TerminalWindow *cpanel = (TerminalWindow *)tobj->pointer;
+  //ConsoleTermView *cwin = cpanel->termView;
+  NSArray *clrtab = cpanel->colorAttr;
+  clr = [clrtab objectAtIndex: bg ];
   [cpanel->attrs setObject: clr forKey: NSBackgroundColorAttributeName];
 }
 

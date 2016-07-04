@@ -48,7 +48,7 @@
   int req_mode;
   int req_fontsize;
   NSMutableDictionary *colorTable; // terminal defaults
-  NSArray *colorAttr; 
+  NSMutableArray *colorAttr; 
   NSColor *defaultBgColor;
   NSColor *defaultFgColor;
   // attrs is the CURRENT attributes for drawing a character (font, colors, ...)
@@ -72,8 +72,6 @@
   // Just in case you think nothing it too Weird
   char *lineBuffer;
   int linePos;
-  // for debugging = Capture the raw stdout bytes here. Comment out
-  // for Production. 
   NSMutableData *rawBuffer;
 }
 
@@ -89,5 +87,7 @@ extern void terminal_attreset(struct tesiObject *);
 extern void terminal_charattr(struct tesiObject *, int);
 extern void terminal_setfgcolor(struct tesiObject *, int);
 extern void terminal_setbgcolor(struct tesiObject *, int);
+extern void terminal_setfg256(struct tesiObject *, int);
+extern void terminal_setbg256(struct tesiObject *, int);
 extern int terminal_hook(void *, const char *, int);
 extern void rb_eval_string(char *);

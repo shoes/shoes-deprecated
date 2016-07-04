@@ -351,7 +351,7 @@ void terminal_attreset(struct tesiObject *tobj) {
 
 void terminal_setfgcolor(struct tesiObject *tobj, int fg) {
 
-  capture.tag[capture.open] = fgcolortag[(fg - 30)+8]; // go for the brigh colors
+  capture.tag[capture.open] = fgcolortag[(fg - 30)+8]; // go for the bright colors
   GtkTextMark *mark = gtk_text_buffer_get_insert(buffer); // cursor mark named 'insert'
   GtkTextIter start;
   // convert mark to iter to pos
@@ -363,6 +363,28 @@ void terminal_setfgcolor(struct tesiObject *tobj, int fg) {
 void terminal_setbgcolor(struct tesiObject *tobj, int bg) {
 
   capture.tag[capture.open] = bgcolortag[(bg - 40)];
+  GtkTextMark *mark = gtk_text_buffer_get_insert(buffer); // cursor mark named 'insert'
+  GtkTextIter start;
+  // convert mark to iter to pos
+  gtk_text_buffer_get_iter_at_mark(buffer, &start, mark);
+  capture.begpos = gtk_text_iter_get_offset(&start); 
+  capture.open++; // make room for the next tag  
+}
+
+void terminal_setfg256(struct tesiObject *tobj, int fg) {
+
+  capture.tag[capture.open] = fgcolortag[fg]; // go for the bright colors
+  GtkTextMark *mark = gtk_text_buffer_get_insert(buffer); // cursor mark named 'insert'
+  GtkTextIter start;
+  // convert mark to iter to pos
+  gtk_text_buffer_get_iter_at_mark(buffer, &start, mark);
+  capture.begpos = gtk_text_iter_get_offset(&start); 
+  capture.open++; // make room for the next tag
+}
+
+void terminal_setbg256(struct tesiObject *tobj, int bg) {
+
+  capture.tag[capture.open] = bgcolortag[bg];
   GtkTextMark *mark = gtk_text_buffer_get_insert(buffer); // cursor mark named 'insert'
   GtkTextIter start;
   // convert mark to iter to pos
@@ -637,6 +659,8 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   t->callback_charattr = terminal_charattr;
   t->callback_setfgcolor= &terminal_setfgcolor;
   t->callback_setbgcolor = &terminal_setbgcolor;
+  t->callback_setfg256 = &terminal_setfg256;
+  t->callback_setbg256 = &terminal_setbg256;
   // that's the minimum set of call backs;
   t->callback_setdefcolor = NULL;
   t->callback_deleteLines = NULL;

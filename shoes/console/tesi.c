@@ -368,33 +368,6 @@ void tesi_interpretSequence(struct tesiObject *to) {
 	}
 }
 
-// If we ever get a 256 color table then, no guessing is required
-// but we'd need some new callbacks and much change in gtk/cocoa-terminal
-// It's a hack until then
-static int make_color8(int in) {
-  int rtn;
-  switch (in) {
-    case 46: 
-      rtn = 2; // green
-      break;
-    case 196:
-      rtn = 1; // red
-      break;
-    case 124:
-      rtn = 3; // brown or yellow
-      break;
-    case 231:
-      rtn = 7; // grey or white
-      break;
-    case 34:
-      rtn = 2; // green is close
-      break;
-    default: 
-     rtn = 6;  // Trouble ahead, Trouble behind, Cyan better watch your speed
-  }
-  return rtn;
-}
-
 void tesi_processAttributes(struct tesiObject *to, int attr, int idx) {
   // cjc: modify for ECMA 48 SGR terminals. attributes in tesi
   // are tricky. Particularly 38 and 48 
@@ -409,28 +382,28 @@ void tesi_processAttributes(struct tesiObject *to, int attr, int idx) {
   } else if (attr >= 30 && attr <= 37) { // 30..37  
       if (to->callback_setfgcolor)
         to->callback_setfgcolor(to, attr);
-  } else if (attr == 38) { // Hack ahead
-    if (to->callback_setfgcolor) {
-      to->parameters[++idx] = 255; // skip 5; 2; would be worse so don't look
-      int c8 = make_color8(to->parameters[++idx]);
+  } else if (attr == 38) { 
+    if (to->callback_setfg256) {
+      to->parameters[++idx] = 255; // skip 5; 2; 
+      int c8 = to->parameters[++idx];
       to->parameters[idx] = 255; // nullify the color 
-      to->callback_setfgcolor(to, c8+30);
+      to->callback_setfg256(to, c8);
     }
   } else if (attr >= 40 &&  attr <= 47) {
       if (to->callback_setbgcolor) 
         to->callback_setbgcolor(to, attr);
   } else if (attr == 48) { // Hack ahead 
-    if (to->callback_setbgcolor) {
-      to->parameters[++idx] = 255; // skip 5; 2; would be worse so don't try
-      int c8 = make_color8(to->parameters[++idx]);
+    if (to->callback_setbg256) {
+      to->parameters[++idx] = 255; // skip 5; 2; could be worse so don't look
+      int c8 = to->parameters[++idx];
       to->parameters[idx] = 255; 
-      to->callback_setbgcolor(to, c8+40);
+      to->callback_setbg256(to, c8);
     }
   } else if ((attr == 39) || (attr = 49)) {
       if (to->callback_setdefcolor)
         to->callback_setdefcolor(to, attr);
   } else {
-      // ignored. This behaviour is needed
+      // ignored. This behaviour is needed for those 255 above
   }
 }
 
@@ -615,11 +588,10 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
 #endif // USE_PTY
 
 #ifdef SHOES_QUARTZ
-  //setenv("TERM","xterm-256color",1); 
-  setenv("TERM","xterm-16color",1); 
+  setenv("TERM","xterm-256color",1); 
+  //setenv("TERM","xterm",1);
 #else
   setenv("TERM","xterm",1); 
-  //setenv("TERM","ansi", 1);
 #endif
   sprintf(message, "%d", width);
   setenv("COLUMNS", message, 1);
