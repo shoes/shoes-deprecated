@@ -57,21 +57,23 @@ static gboolean clear_console(GtkWidget *widget, GdkEvent *event, gpointer data)
 
 static gboolean copy_console(GtkWidget *widget, GdkEvent *event, gpointer data) {
 	struct tesiObject *tobj = (struct tesiObject*) data;
-  if (saveRaw) {
-    GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
-    gtk_clipboard_set_text(primary, rawBuffer->str, rawBuffer->len );
-  } else {
-    GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
-    GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
-    GtkTextIter iter_s, iter_e;
-    gtk_text_buffer_get_bounds(buffer, &iter_s, &iter_e);
-    gchar *bigstr = gtk_text_buffer_get_slice(buffer, &iter_s, &iter_e, TRUE);
-    GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
-    gtk_clipboard_set_text(primary, bigstr, strlen(bigstr));
-  }
+
+  GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
+  GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
+  GtkTextIter iter_s, iter_e;
+  gtk_text_buffer_get_bounds(buffer, &iter_s, &iter_e);
+  gchar *bigstr = gtk_text_buffer_get_slice(buffer, &iter_s, &iter_e, TRUE);
+  GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+  gtk_clipboard_set_text(primary, bigstr, strlen(bigstr));
 	return TRUE;
 }
 
+static gboolean raw_copy(GtkWidget *widget, GdkEvent *event, gpointer data) {
+	struct tesiObject *tobj = (struct tesiObject*) data;
+  GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+  gtk_clipboard_set_text(primary, rawBuffer->str, rawBuffer->len );
+  return TRUE;
+}
 /*
  * This is called to handle characters received from the pty
  * in response to a puts/printf/write from Shoes,Ruby, & C
@@ -502,12 +504,6 @@ static gboolean clean(GtkWidget *widget, GdkEvent *event, gpointer data) {
   return FALSE;
 }
 
-// callback for raw mode checkbox
-static gboolean raw_switch(GtkWidget *widget, GdkEvent *event, gpointer data)
-{
-  saveRaw = gtk_toggle_button_get_active((GtkToggleButton *)widget);
-}
-
 #ifdef USE_PTY // Linux only. Debug only. TODO !! 
 // callback for raw capture
 static void terminal_raw (struct tesiObject *tobj, char *raw, int len) 
@@ -546,7 +542,7 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
 
   // need a panel with a string (icon?), copy button and clear button
   GtkWidget *btnpnl = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2); // think flow layout
-  // create widgets for btnpnl - icon, checkbox, clear, copy, copy-raw
+  // create widgets for btnpnl - icon, title, clear, copy, copy-raw
   // icon is wicked 
   char icon_path[256];
   sprintf(icon_path, "%s/static/app-icon.png", app_dir);
@@ -554,32 +550,22 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   GtkWidget *icon = gtk_image_new_from_pixbuf(icon_pix);
   gtk_box_pack_start (GTK_BOX(btnpnl), icon, 1, 0, 0);
   
-  /*
-  GtkWidget *announce = gtk_label_new("Shoes Terminal");
+  GtkWidget *announce = gtk_label_new(title? title : "Shoes Terminal");
   bpfd = pango_font_description_from_string ("Sans-Serif Italic 14");
   gtk_widget_override_font (announce, bpfd);
   gtk_box_pack_start(GTK_BOX(btnpnl), announce, 1, 0, 0);
-  */
-  
-  GtkWidget *raw_check = gtk_check_button_new_with_label("save raw");
-  bpfd = pango_font_description_from_string ("Sans-Serif Italic 10");
-  gtk_widget_override_font (raw_check, bpfd);
-  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(raw_check), (mode == 1 ? FALSE: TRUE));
-  g_signal_connect (G_OBJECT (raw_check), "clicked", G_CALLBACK (raw_switch), NULL);
-  gtk_box_pack_start(GTK_BOX(btnpnl), raw_check, 1, 0, 0);
-  
   
   GtkWidget *clrbtn = gtk_button_new_with_label ("Clear");
   gtk_box_pack_start (GTK_BOX(btnpnl), clrbtn, 1, 0, 0);
   
   GtkWidget *cpybtn = gtk_button_new_with_label ("Copy");
   gtk_box_pack_start (GTK_BOX(btnpnl), cpybtn, 1, 0, 0);
-  gtk_box_pack_start (GTK_BOX(vbox), GTK_WIDGET(btnpnl), 0, 0, 0);  
-#if 0
+
   GtkWidget *rawbtn = gtk_button_new_with_label ("copy raw");
   gtk_box_pack_start (GTK_BOX(btnpnl), rawbtn, 1, 0, 0);
+  
   gtk_box_pack_start (GTK_BOX(vbox), GTK_WIDGET(btnpnl), 0, 0, 0);
-#endif
+
 
   // then a widget/panel for the terminal
   sw = GTK_SCROLLED_WINDOW(gtk_scrolled_window_new(NULL, NULL));
@@ -682,6 +668,7 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   g_signal_connect (G_OBJECT (canvas), "key-press-event", G_CALLBACK (keypress_event), t);
   g_signal_connect (G_OBJECT (clrbtn), "clicked", G_CALLBACK (clear_console), t);
   g_signal_connect (G_OBJECT (cpybtn), "clicked", G_CALLBACK (copy_console), t);
+  g_signal_connect (G_OBJECT (rawbtn), "clicked", G_CALLBACK (raw_copy), t);  
   
   gtk_widget_grab_focus(canvas);
   unsigned int ides = g_timeout_add(100, &g_tesi_handleInput, t);
