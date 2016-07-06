@@ -1851,15 +1851,27 @@ shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
     _("_Save"), args.a[0]);
 }
 
-// June 1, 2015 - kind of ugly. 
+// July 2016 - Windows Ugly!
 #ifdef SHOES_GTK_WIN32
-//  the Font handling code from Shoes 3.1 windows.c
+/* uses the Font handling code from Shoes 3.1 windows.c
+ * This only called when a shoe script uses the font(filename) command
+ * so file name is lacuna.ttf, coolvetica.ttr from shoes splash or the
+ * manual or a user supplied font. 
+ * In Windows, we have to convince pango/ft/fontconfig just add these fonts
+ * along with the system fonts, without creating the gawd awful scan of all
+ * fonts. We DO NOT WANT fontconfig to scan everything in the system.
+*/
 VALUE
 shoes_load_font(const char *filename)
 {
   VALUE allfonts, newfonts, oldfonts;
+  fprintf(stderr, "requested font %s\n", filename);
   int fonts = AddFontResourceEx(filename, FR_PRIVATE, 0);
   if (!fonts) return Qnil;
+  // Magic happens here. Adding it to app privtate space doens't
+  // tell pango that its available.
+  
+  // the Shoes api says an array of all fonts is returned. Do that here
   allfonts = shoes_font_list();
   oldfonts = rb_const_get(cShoes, rb_intern("FONTS"));
   newfonts = rb_funcall(allfonts, rb_intern("-"), 1, oldfonts);
