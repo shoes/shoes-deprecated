@@ -3,5 +3,5 @@ Shoes.app {
    para "#{Shoes::FONTS}\n", font: "Vivaldi"
    para "#{Shoes::FONTS}\n", font: "Symbol"
    para "\n..............................................\n"
-   start {}
+   button "quit" do exit end 
 }
