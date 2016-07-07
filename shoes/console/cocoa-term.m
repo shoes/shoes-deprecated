@@ -249,8 +249,6 @@ void shoes_osx_stdout_sink() {
   [attrs setObject: monoFont forKey: NSFontAttributeName];
   [attrs setObject: defaultFgColor  forKey: NSForegroundColorAttributeName];
 
-  
-  //NSRect winRect = [[self contentView] frame]; // doesn't do what I think
   NSSize charSize = [monoFont maximumAdvancement];
   float fw = charSize.width;
   float fh = [monoFont pointSize]+2.0;
@@ -280,7 +278,6 @@ void shoes_osx_stdout_sink() {
 
   NSTextField *labelWidget;
   labelWidget = [[NSTextField alloc] initWithFrame: NSMakeRect(80, -2, 200, 28)];
-  //[labelWidget setStringValue: @"Very Dumb Console"];
   [labelWidget setStringValue: reqTitle];
   [labelWidget setBezeled:NO];
   [labelWidget setDrawsBackground:NO];
@@ -288,7 +285,6 @@ void shoes_osx_stdout_sink() {
   [labelWidget setSelectable:NO];
   NSFont *labelFont = [NSFont fontWithName:@"Helvetica" size:18.0];
   [labelWidget setFont: labelFont];
-  // TODO: instead of labelWidget we should have a checkbox for game mode
 
   clrbtn = [[NSButton alloc] initWithFrame: NSMakeRect(300, -2, 60, 28)];
   [clrbtn setButtonType: NSMomentaryPushInButton];
@@ -319,19 +315,27 @@ void shoes_osx_stdout_sink() {
   
   // init termpnl and textview here.
   // Note NSTextView is subclass of NSText so there are MANY methods to learn
-  // not to mention delagates and protocols
+  // along with delegates and protocols. It's also very MVC.
 
   // compute the Size of the window for the font and size
   NSRect textViewBounds = NSMakeRect(0, 0, width, height);
 
-  // setup internals for NSTextView - there are many
+  // setup internals for NSTextView  - storage(model) and Layout(control)
   termStorage = [[NSTextStorage alloc] init];
   [termStorage setFont: monoFont];
   termLayout = [[NSLayoutManager alloc] init];
   [termStorage addLayoutManager:termLayout];
   termContainer = [[NSTextContainer alloc] initWithContainerSize:textViewBounds.size];
   [termLayout addTextContainer:termContainer];
-
+  
+  /*
+   * Now deal with the View part of MVC. Scrolling adds confusion. 
+   * According to Apple, you setup the NSScrollView, then the NSTextView to
+   * fit that.
+  */
+  // Bump the width by the size of a Vertical scollbar ?
+  //width += [NSScroller scrollerWidth]; 
+  
   termView = [[DisplayView alloc]  initWithFrame: NSMakeRect(0, 0, width, height)];
   termView.backgroundColor =  defaultBgColor; // fun with Properties!!
   termView.drawsBackground = true;
