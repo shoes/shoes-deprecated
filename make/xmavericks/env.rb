@@ -24,7 +24,7 @@ else
 end
 
 CC = ENV['CC'] ? ENV['CC'] : "gcc"
-file_list =  %w{shoes/console/tesi.c shoes/console/cocoa-term.m shoes/native/cocoa.m shoes/http/nsurl.m} + ["shoes/*.c"]
+file_list =  %w{shoes/console/tesi.c shoes/console/colortab.c shoes/console/cocoa-term.m shoes/native/cocoa.m shoes/http/nsurl.m} + ["shoes/*.c"]
 file_list << 'shoes/video/video.c'
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|

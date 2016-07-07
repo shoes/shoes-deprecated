@@ -89,5 +89,8 @@ VALUE shoes_app_quit(VALUE);
 
 // global var for console up and running
 extern int shoes_global_terminal;
+#ifdef SHOES_QUARTZ
+extern int osx_cshoes_launch;
+#endif
 
 #endif

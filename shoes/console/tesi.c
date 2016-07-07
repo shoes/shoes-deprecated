@@ -65,6 +65,9 @@ int tesi_handleInput(struct tesiObject *to) {
 	}
 
 	lengthRead = read(to->ptyMaster, input, 128);
+  if (to->callback_rawCapture) {
+    to->callback_rawCapture(to, input, lengthRead);
+  }
 #else
 int tesi_handleInput(struct tesiObject *to, char *input, int lengthRead) {
 	char *pointer, c;
@@ -242,9 +245,9 @@ void tesi_interpretSequence(struct tesiObject *to) {
 			// RESET INITIALIZATIONS
 			case 'l': // defaults
 				to->parameters[0] = 0;
-				tesi_processAttributes(to, to->parameters[0]) ; // FIXME:
+				tesi_processAttributes(to, to->parameters[0], 0) ; // FIXME:
 				to->parameters[0] = 1;
-				tesi_processAttributes(to, to->parameters[0]); // FIXME:
+				tesi_processAttributes(to, to->parameters[0], 0); // FIXME:
 				// scroll regions, colors, etc.
 				break;
 			case 'J': // ED erase display
@@ -267,7 +270,7 @@ void tesi_interpretSequence(struct tesiObject *to) {
 			// ATTRIBUTES AND MODES
       case 'm':  // SGR attributes 
         for (i = 0; i < to->parametersLength; i++) 
-				  tesi_processAttributes(to, to->parameters[i]);
+				  tesi_processAttributes(to, to->parameters[i], i);
 				break;
 			case 'h': // enter/exit insert mode
 				break;
@@ -345,6 +348,9 @@ void tesi_interpretSequence(struct tesiObject *to) {
 					//0, 0
 				}
 				break;
+			case 'c': // Identify your self. Ick!
+			    fprintf(stderr, "recevied ESC [ c\n");
+			    break;
 #if 0 // no such thing in xterm 
 			case 'D': // scroll down
 				if(to->callback_scrollDown)
@@ -362,28 +368,42 @@ void tesi_interpretSequence(struct tesiObject *to) {
 	}
 }
 
-
-void tesi_processAttributes(struct tesiObject *to, int attr) {
+void tesi_processAttributes(struct tesiObject *to, int attr, int idx) {
   // cjc: modify for ECMA 48 SGR terminals. attributes in tesi
-  // are useless. Maintain them in the caller as needed
+  // are tricky. Particularly 38 and 48 
   // http://man7.org/linux/man-pages/man4/console_codes.4.html
+  // idx is current point in to->parameters[], attr is the value there.
   if (attr == 0) {
     if (to->callback_attreset)
         to->callback_attreset(to);
   } else if (attr > 0 && attr <= 27) { // 1..27
      if (to->callback_charattr) 
        to->callback_charattr(to, attr); 
-  } else if (attr >= 30 && attr <= 37) { // 30..37
+  } else if (attr >= 30 && attr <= 37) { // 30..37  
       if (to->callback_setfgcolor)
         to->callback_setfgcolor(to, attr);
+  } else if (attr == 38) { 
+    if (to->callback_setfg256) {
+      to->parameters[++idx] = 255; // skip 5; 2; 
+      int c8 = to->parameters[++idx];
+      to->parameters[idx] = 255; // nullify the color 
+      to->callback_setfg256(to, c8);
+    }
   } else if (attr >= 40 &&  attr <= 47) {
       if (to->callback_setbgcolor) 
         to->callback_setbgcolor(to, attr);
-  } else if ((attr == 38) || (attr == 39) || (attr = 49)) {
+  } else if (attr == 48) { // Hack ahead 
+    if (to->callback_setbg256) {
+      to->parameters[++idx] = 255; // skip 5; 2; could be worse so don't look
+      int c8 = to->parameters[++idx];
+      to->parameters[idx] = 255; 
+      to->callback_setbg256(to, c8);
+    }
+  } else if ((attr == 39) || (attr = 49)) {
       if (to->callback_setdefcolor)
         to->callback_setdefcolor(to, attr);
   } else {
-      // ignored. 
+      // ignored. This behaviour is needed for those 255 above
   }
 }
 
@@ -569,6 +589,7 @@ struct tesiObject* newTesiObject(char *command, int width, int height) {
 
 #ifdef SHOES_QUARTZ
   setenv("TERM","xterm-256color",1); 
+  //setenv("TERM","xterm",1);
 #else
   setenv("TERM","xterm",1); 
 #endif

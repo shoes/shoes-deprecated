@@ -109,29 +109,33 @@ Shoes.app :title => "Shoes Cobbler" do
   @shoes_home = File.join(LIB_DIR, Shoes::RELEASE_NAME)
   stack do
     @menu = flow do
-      button "Shoes Info.." do
+      button "Shoes Info" do
         infoscreen
       end
-      button "Clear Image Cache..." do
+      button "Clear Image Cache" do
         cachescreen
       end
       if Shoes::RELEASE_TYPE =~ /TIGHT/
-        button "Jail Break Gems..." do
+        button "Jail Break Gems" do
           jailscreen
         end
       end
-      button "Manage Gems..." do
+      button "Manage Gems" do
         gemscreen
       end
       if Shoes::RELEASE_TYPE =~ /TIGHT/ || true # for testing.
-        button "Install Special Gems..." do
+        button "Install Gempack" do
           gempack_screen
         end
       end
-      button "Copy Samples..." do
+      button "Profile" do
+        require 'shoes/profiler'
+        Shoes.profile(nil)
+      end
+      button "Copy Samples" do
         cp_samples_screen
       end
-      button "Packager URLs..." do
+      button "Packager URLs" do
         pack_screen
       end
       if RUBY_PLATFORM =~ /darwin/

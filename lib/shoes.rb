@@ -56,11 +56,13 @@ class Shoes
 
   @mounts = []
 
+  SHOES_CMD_OPTS = {}
   OPTS = OptionParser.new do |opts|
     opts.banner = "Usage: shoes [options] (app.rb or app.shy)"
 
-    opts.on('-d', '--debug', 'Debug Shoes script') do
-      ENV['CMDLINE_DEBUG'] = true.to_s
+    opts.on('-d=Script', '--debug=Script', 'Debug Shoes <script>') do |c|
+      #ENV['CMDLINE_DEBUG'] = true.to_s
+      SHOES_CMD_OPTS['debug'] = c
     end
 
     opts.on("-m", "--manual",
@@ -87,8 +89,8 @@ class Shoes
       app_package
     end
     
-    opts.on("-e", "--profile [script]", "Profile app") do |c|
-      profiler(c)
+    opts.on("-e", "--profile=Script", "Profile app") do |c|
+      SHOES_CMD_OPTS['profile'] = c
     end
     
     opts.on('-g', '--gem',
@@ -98,11 +100,6 @@ class Shoes
       Gem::GemRunner.new.run(ARGV)
       fail SystemExit, ''
     end
-
-#    opts.on('--manual-html DIRECTORY', 'Saves the manual to a directory as HTML.') do |dir|
-#     manual_as :html, dir
-#      fail SystemExit, "HTML manual in: #{dir}"
-#    end
         
     opts.on('-f', '--file', 'path to script [OSX packaging uses this]') do
       #puts "-f ARGV: #{ARGV}"
@@ -187,11 +184,10 @@ class Shoes
     alert "Not implmented"
   end
   
-  def self.profiler(file = nil)
-    # ugly but it works
-    $shoes_examine_file = file
-    #$stderr.puts "profile: #{$shoes_examine_file }"
+  # from the splash screen
+  def self.profiler
     require 'shoes/profiler'
+    Shoes.profile(nil)
   end
 
 # def self.make_pack
@@ -260,10 +256,21 @@ class Shoes
     end
   end
 
-  def self.args!
-    Shoes.splash if RUBY_PLATFORM !~ /darwin/ && ARGV.empty?
-    OPTS.parse! ARGV
-    ARGV[0] || true
+  def self.args!(osx_launch = nil)
+    if ARGV.empty? 
+      Shoes.splash if  !osx_launch || osx_launch == '0'
+      return true
+    else
+      OPTS.parse! ARGV   
+      if SHOES_CMD_OPTS['debug']
+        puts "debug this: #{SHOES_CMD_OPTS['debug']}"
+      elsif SHOES_CMD_OPTS['profile']
+        require 'shoes/profiler'
+        Shoes.profile SHOES_CMD_OPTS['profile']
+      else
+        return ARGV[0] || true
+      end
+    end
   end
 
   def self.uri(str)

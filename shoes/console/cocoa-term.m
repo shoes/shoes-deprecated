@@ -20,12 +20,98 @@
    
 */
 #include "cocoa-term.h"
+extern char *colorstrings[];
 
-/* there can only be one terminal so only one tesi_object.
- I'll keep a global Obj-C ref to tesi
+/* there can only be one terminal so only one tesi struct.
+ I'll keep a global Obj-C ref to tesi and to the very odd bridge object
 */
 static struct tesiObject* shadow_tobj;
+static StdoutBridge *bridge = NULL;
+int osx_cshoes_launch = 0; 		// extern in app.h
 
+@implementation StdoutBridge
+- (StdoutBridge *) init
+{
+  if (osx_cshoes_launch) {
+    return self;
+  }
+  //printf("old stdout\n");
+  oldHandle = [NSFileHandle fileHandleWithStandardOutput];
+  NSFileHandle *nullHandle = [NSFileHandle fileHandleWithNullDevice];
+  if (oldHandle == nullHandle) {
+    printf("This is stdout = dev/null\n");
+  }
+  //char *pipeWrStr = "saved handle\n";
+  //NSData *pipeMsgData = [NSData dataWithBytes: pipeWrStr length: strlen(pipeWrStr)];
+  //[oldHandle writeData: pipeMsgData];
+  // OSX Stdout is weird. This is too.
+  int pipewrfd, piperdfd;
+  int rtn = 0;
+  outPipe = [NSPipe pipe];
+  outReadHandle = [outPipe fileHandleForReading] ;
+  outWriteHandle = [outPipe fileHandleForWriting];
+  pipewrfd = [[outPipe fileHandleForWriting] fileDescriptor];
+  piperdfd = [[outPipe fileHandleForReading] fileDescriptor];
+  // fclose(stdout) // Don't do this!!
+  rtn = dup2(pipewrfd, fileno(stdout));
+  //write(fileno(stdout), "new fd\n", 7);
+  //printf("new stdout\n");
+  //fprintf(stderr,"At least we have stderr?\n");
+  
+ 
+  return self;
+}
+
+- (void) setSink
+{
+  [[NSNotificationCenter defaultCenter] addObserver: self
+                                        selector: @selector(stdOutDataSink:)
+                                        name: NSFileHandleDataAvailableNotification
+                                        object: outReadHandle];
+  [outReadHandle waitForDataInBackgroundAndNotify];}
+
+- (void) removeSink
+{
+  [[NSNotificationCenter defaultCenter] removeObserver: self
+										name: NSFileHandleDataAvailableNotification
+									    object: outReadHandle];
+}
+
+- (void) stdOutDataSink: (NSNotification *) notification
+{
+  NSFileHandle *fh = (NSFileHandle *) [notification object];
+  NSData *data = [fh availableData];
+  int len = [data length];
+  if (len) {
+     // write data to oldHandle - what ever stdout OSX gave us.
+     // Might be /dev/null or the launch terminal
+    [oldHandle writeData: data];
+    [outReadHandle waitForDataInBackgroundAndNotify];
+  } else {
+    // eof? close?
+  }
+}
+@end
+
+// create the bridge object before Ruby is initialized called from
+// world.c 
+void shoes_osx_setup_stdout() {
+  if (osx_cshoes_launch) {
+    bridge = NULL;
+  } else {
+    bridge = [[StdoutBridge alloc] init];
+  }
+}
+
+/*  
+ * this is called when event loop is started (cocoa.m )
+*/
+void shoes_osx_stdout_sink() {
+  if (bridge == NULL) {
+    return;  
+  }
+  [bridge setSink];
+}
 
 @implementation DisplayView
 
@@ -91,7 +177,7 @@ static struct tesiObject* shadow_tobj;
   //Create a AttributeString using the font, fg color...
   NSAttributedString *attrStr = [[NSAttributedString alloc] initWithString: cnvbfr attributes: attrs];
   [[termView textStorage] appendAttributedString: attrStr];
-  [termView scrollRangeToVisible:NSMakeRange([[termStorage string] length], 0)];
+  [termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
   [attrStr release];
   [cnvbfr release];
   // TODO: Am I leaking memory ? The C programmer in me says "Oh hell yes!"
@@ -110,10 +196,29 @@ static struct tesiObject* shadow_tobj;
   [colorTable setObject: [NSColor cyanColor] forKey: @"cyan"];
   [colorTable setObject: [NSColor whiteColor] forKey: @"white"];
   [colorTable setObject: [NSColor yellowColor] forKey: @"yellow"];
+#if 0
   colorAttr = [[NSArray alloc] initWithObjects:
       [NSColor blackColor],[NSColor redColor],[NSColor greenColor],
       [NSColor brownColor],[NSColor blueColor],[NSColor magentaColor],
       [NSColor cyanColor], [NSColor whiteColor], nil];
+#else
+  colorAttr = [[NSMutableArray alloc]  initWithCapacity: 256];
+  int i;
+  for (i = 0; i < 256; i++) {
+    char *hashc = strchr(colorstrings[i], '#');
+    int rgb;
+    int r, g, b;
+    sscanf(++hashc,"%x", &rgb);
+    b = rgb & 255; rgb = rgb >> 8;
+    g = rgb & 255; rgb = rgb >> 8;
+    r = rgb & 255;
+    CGFloat rg = (CGFloat)r / 255;
+    CGFloat gb = (CGFloat)g / 255;
+    CGFloat bb = (CGFloat)b / 255;
+    NSColor *clr = [NSColor colorWithCalibratedRed: rg green: gb blue: bb alpha: 1.0];
+    [colorAttr insertObject: clr atIndex: i];
+  }
+#endif
 }
 
 
@@ -144,8 +249,6 @@ static struct tesiObject* shadow_tobj;
   [attrs setObject: monoFont forKey: NSFontAttributeName];
   [attrs setObject: defaultFgColor  forKey: NSForegroundColorAttributeName];
 
-  
-  //NSRect winRect = [[self contentView] frame]; // doesn't do what I think
   NSSize charSize = [monoFont maximumAdvancement];
   float fw = charSize.width;
   float fh = [monoFont pointSize]+2.0;
@@ -175,7 +278,6 @@ static struct tesiObject* shadow_tobj;
 
   NSTextField *labelWidget;
   labelWidget = [[NSTextField alloc] initWithFrame: NSMakeRect(80, -2, 200, 28)];
-  //[labelWidget setStringValue: @"Very Dumb Console"];
   [labelWidget setStringValue: reqTitle];
   [labelWidget setBezeled:NO];
   [labelWidget setDrawsBackground:NO];
@@ -183,7 +285,6 @@ static struct tesiObject* shadow_tobj;
   [labelWidget setSelectable:NO];
   NSFont *labelFont = [NSFont fontWithName:@"Helvetica" size:18.0];
   [labelWidget setFont: labelFont];
-  // TODO: instead of labelWidget we should have a checkbox for game mode
 
   clrbtn = [[NSButton alloc] initWithFrame: NSMakeRect(300, -2, 60, 28)];
   [clrbtn setButtonType: NSMomentaryPushInButton];
@@ -198,26 +299,43 @@ static struct tesiObject* shadow_tobj;
   [cpybtn setTitle: @"Copy"];
   [cpybtn setTarget: self];
   [cpybtn setAction: @selector(handleCopy:)];
+  
+  rawbtn = [[NSButton alloc] initWithFrame: NSMakeRect(480, -2, 100, 28)];
+  [rawbtn setButtonType: NSMomentaryPushInButton];
+  [rawbtn setBezelStyle: NSRoundedBezelStyle];
+  [rawbtn setTitle: @"copy raw"];
+  [rawbtn setTarget: self];
+  [rawbtn setAction: @selector(handleRawCopy:)];
 
   [btnpnl addSubview: ictl];
   [btnpnl addSubview: labelWidget];
   [btnpnl addSubview: clrbtn];
   [btnpnl addSubview: cpybtn];
+  [btnpnl addSubview: rawbtn];
+  
   // init termpnl and textview here.
   // Note NSTextView is subclass of NSText so there are MANY methods to learn
-  // not to mention delagates and protocols
+  // along with delegates and protocols. It's also very MVC.
 
   // compute the Size of the window for the font and size
   NSRect textViewBounds = NSMakeRect(0, 0, width, height);
 
-  // setup internals for NSTextView - there are many
+  // setup internals for NSTextView  - storage(model) and Layout(control)
   termStorage = [[NSTextStorage alloc] init];
   [termStorage setFont: monoFont];
   termLayout = [[NSLayoutManager alloc] init];
   [termStorage addLayoutManager:termLayout];
   termContainer = [[NSTextContainer alloc] initWithContainerSize:textViewBounds.size];
   [termLayout addTextContainer:termContainer];
-
+  
+  /*
+   * Now deal with the View part of MVC. Scrolling adds confusion. 
+   * According to Apple, you setup the NSScrollView, then the NSTextView to
+   * fit that.
+  */
+  // Bump the width by the size of a Vertical scollbar ?
+  //width += [NSScroller scrollerWidth]; 
+  
   termView = [[DisplayView alloc]  initWithFrame: NSMakeRect(0, 0, width, height)];
   termView.backgroundColor =  defaultBgColor; // fun with Properties!!
   termView.drawsBackground = true;
@@ -249,62 +367,32 @@ static struct tesiObject* shadow_tobj;
                                         object: errReadHandle];
     [errReadHandle waitForDataInBackgroundAndNotify];
   }
-  // Somehow we need to create an fd for stdout and read it.
-  // OSX Stdout is weird. Lets do some discovery to print later to stderrnewfd
-  //int outfd = fileno(stdout);
-  int pipewrfd, piperdfd;
-  int dup2fail = 0;
-  int rtn = 0;
-
-#define TRY_STDOUT 2
-#if (TRY_STDOUT == 0) // one pipe two fd's - doesn't work
-   if (dup2(fileno(stderr), fileno(stdout)) == -1) {
-     // failed
-     dup2fail = errno;
+  // Is there a stdout bridge setup ? Probably not, so set it up.
+  if (! bridge) {
+    osx_cshoes_launch = 0;
+    bridge = [[StdoutBridge alloc] init];
+    [bridge setSink];
   }
-
-#else // methods that use a different pipe for stdout
-  outPipe = [NSPipe pipe];
-  outReadHandle = [outPipe fileHandleForReading] ;
-  outWriteHandle = [outPipe fileHandleForWriting];
-  pipewrfd = [[outPipe fileHandleForWriting] fileDescriptor];
-  piperdfd = [[outPipe fileHandleForReading] fileDescriptor];
-  // fclose(stdout) // Don't do this!!
-  rtn = dup2(pipewrfd, fileno(stdout));
-  // do some checking on dup2 and stdout
-  //char *pipeWrStr = "Explicit Write to Pipe FileWriteHandle\n";
-  //NSData *pipeMsgData = [NSData dataWithBytes: pipeWrStr length: strlen(pipeWrStr)];
-  if (rtn != -1) { 
-#if (TRY_STDOUT == 2) 
-    [[NSNotificationCenter defaultCenter] addObserver: self
+  // Replace the bridge's sink observer with one that puts the chars on the
+  // new window
+  outReadHandle = bridge->outReadHandle;
+  [bridge removeSink];
+  
+#if 1
+  [[NSNotificationCenter defaultCenter] addObserver: self
                                         selector: @selector(stdOutDataAvail:)
                                         name: NSFileHandleDataAvailableNotification
                                         object: outReadHandle];
-    [outReadHandle waitForDataInBackgroundAndNotify];
-#elif (TRY_STDOUT == 3)
+  [bridge->outReadHandle waitForDataInBackgroundAndNotify];
+#else
    [[NSNotificationCenter defaultCenter] addObserver: self
                                         selector: @selector(handleNotification:)
                                         name: NSFileHandleReadCompletionNotification
                                         object: outReadHandle];
    [outReadHandle readInBackgroundAndNotify] ;
-#endif
-    /*  issue some test messages for fd, file*, FileHandle*
-      char *foo = "Explicit write() to pipe wrfd\n";
-      write(pipewrfd,  foo, strlen(foo)); 
-      char *foo1 ="Explicit write() to stdout fd\n";
-      write(fileno(stdout), foo1, strlen(foo1));
-      // above results in one call to stdOutDataAvail
-    
-      stdout = fdopen(pipewrfd, "w");
-      if (setlinebuf(stdout) != 0) {
-        fprintf(stderr, "failed setlinebuffer()\n");
-      }
-      fflush(stdout);  // doesn't work
-      printf("Hello from FILE* stdout\n"); // Yay!!
-    
-      [outWriteHandle writeData: pipeMsgData];
-    */
-    
+#endif  
+    // For debugging init a buffer
+     rawBuffer = [[NSMutableData alloc] initWithCapacity: 2048];
     // now convince Ruby to use the new stdout - sadly it's not line buffered
     // BEWARE the monkey patch!
     char evalstr[256];
@@ -318,10 +406,6 @@ static struct tesiObject* shadow_tobj;
         end\n");
    rb_eval_string(evalstr);
 #endif
-  } else {
-    dup2fail = errno;
-  }
-#endif 
   // create a buffer for input line chars
   lineBuffer = malloc(req_cols);
   linePos = 0;
@@ -340,6 +424,8 @@ static struct tesiObject* shadow_tobj;
   tobj->callback_charattr = &terminal_charattr;
   tobj->callback_setfgcolor= &terminal_setfgcolor;
   tobj->callback_setbgcolor = &terminal_setbgcolor;
+  tobj->callback_setfg256= &terminal_setfg256;
+  tobj->callback_setbg256 = &terminal_setbg256;
   // that's the minimum set of call backs;
   tobj->callback_setdefcolor = NULL;
   tobj->callback_deleteLines = NULL;
@@ -379,18 +465,22 @@ static struct tesiObject* shadow_tobj;
 -(IBAction)handleClear: (id)sender
 {
   [termView setString: @""];
+  [rawBuffer release];
+  rawBuffer = [[NSMutableData alloc] initWithCapacity: 2048];
 }
 
 -(IBAction)handleCopy: (id)sender
 {
   NSString *str = [termView string];
-  //NSPasteboard *pboard;
-  //printf("Copy button (%lu)\n", (unsigned long)[str length]);
   [[NSPasteboard generalPasteboard] declareTypes: [NSArray arrayWithObject: NSStringPboardType] owner: nil];
-  [[NSPasteboard generalPasteboard] setString: str forType: NSStringPboardType];
-  //pboard = [[NSPasteboard generalPasteboard];
-  //[pboard clearContents];
-  //[pboard setData: str forType: NSPasteboardTypeString];
+  [[NSPasteboard generalPasteboard] setString: str forType: NSStringPboardType]; 
+}
+
+-(IBAction)handleRawCopy: (id)sender
+{
+  NSString *str = [[NSString alloc] initWithData: rawBuffer encoding: NSUTF8StringEncoding];
+  [[NSPasteboard generalPasteboard] declareTypes: [NSArray arrayWithObject: NSStringPboardType] owner: nil];
+  [[NSPasteboard generalPasteboard] setString: str forType: NSStringPboardType]; 
 }
 
 - (void)disconnectApp
@@ -442,28 +532,13 @@ static struct tesiObject* shadow_tobj;
 }
 */
 
-// Hints are this stopped working in 10.7 - doesn't work for me on 10.10
-- (void)handleNotification: (NSNotification *)notification
-{
-  NSData *data  = [[notification userInfo] objectForKey: NSFileHandleNotificationDataItem];
-  int len = [data length];
-  if (len) {
-    char *s = (char *)[data bytes];
-    s[len] = '\0';
-    tesi_handleInput(tobj, s, len);
-    
-    //NSString *str = [[NSString alloc] initWithData: obj encoding: NSASCIIStringEncoding] ;
-    //[[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: str]];
-    //[termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
-    
-    [outReadHandle readInBackgroundAndNotify] ;
-  }
-} 
 
 - (void) stdOutDataAvail: (NSNotification *) notification
 {
   NSFileHandle *fh = (NSFileHandle *) [notification object];
   NSData *data = [fh availableData];
+  // Debug capture
+  [rawBuffer appendData: data];
   int len = [data length];
   if (len) {
     char *s = (char *)[data bytes];  // odds are high this is UTF16-LE
@@ -475,7 +550,7 @@ static struct tesiObject* shadow_tobj;
     //[[termView textStorage] appendAttributedString: [[NSAttributedString alloc] initWithString: str]];
     //[termView scrollRangeToVisible:NSMakeRange([[termView string] length], 0)];
     
-    [outReadHandle waitForDataInBackgroundAndNotify];
+    [bridge->outReadHandle waitForDataInBackgroundAndNotify];
   } else {
     // eof? close?
   }
@@ -577,7 +652,7 @@ void terminal_setfgcolor(struct tesiObject *tobj, int fg) {
   TerminalWindow *cpanel = (TerminalWindow *)tobj->pointer;
   //ConsoleTermView *cwin = cpanel->termView;
   NSArray *clrtab = cpanel->colorAttr;
-  clr = [clrtab objectAtIndex: fg - 30];
+  clr = [clrtab objectAtIndex: (fg - 30)+8]; // use brigher color
   [cpanel->attrs setObject: clr forKey: NSForegroundColorAttributeName];
 }
 
@@ -586,7 +661,25 @@ void terminal_setbgcolor(struct tesiObject *tobj, int bg) {
   TerminalWindow *cpanel = (TerminalWindow *)tobj->pointer;
   //ConsoleTermView *cwin = cpanel->termView;
   NSArray *clrtab = cpanel->colorAttr;
-  clr = [clrtab objectAtIndex: bg - 40];
+  clr = [clrtab objectAtIndex: (bg - 40)]; // use bright range +8?
+  [cpanel->attrs setObject: clr forKey: NSBackgroundColorAttributeName];
+}
+
+void terminal_setfg256(struct tesiObject *tobj, int fg) {
+  NSColor *clr;
+  TerminalWindow *cpanel = (TerminalWindow *)tobj->pointer;
+  //ConsoleTermView *cwin = cpanel->termView;
+  NSArray *clrtab = cpanel->colorAttr;
+  clr = [clrtab objectAtIndex: fg];
+  [cpanel->attrs setObject: clr forKey: NSForegroundColorAttributeName];
+}
+
+void terminal_setbg256(struct tesiObject *tobj, int bg) {
+  NSColor *clr;
+  TerminalWindow *cpanel = (TerminalWindow *)tobj->pointer;
+  //ConsoleTermView *cwin = cpanel->termView;
+  NSArray *clrtab = cpanel->colorAttr;
+  clr = [clrtab objectAtIndex: bg ];
   [cpanel->attrs setObject: clr forKey: NSBackgroundColorAttributeName];
 }
 
@@ -625,3 +718,7 @@ void terminal_attreset(struct tesiObject *tobj) {
   }
   [cpanel->attrs setObject: cpanel->monoFont forKey: NSFontAttributeName];
 }
+
+
+
+

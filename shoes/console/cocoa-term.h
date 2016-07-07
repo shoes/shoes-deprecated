@@ -16,6 +16,19 @@
 - (void)keyDown: (NSEvent *)e;
 @end 
 
+// a 'clever' hack for STDOUT
+@interface StdoutBridge : NSObject
+{
+@public
+  // For stdout
+  NSFileHandle *oldHandle;
+  NSPipe *outPipe;
+  NSFileHandle *outReadHandle;
+  NSFileHandle *outWriteHandle;
+}
+
+@end
+
 @interface TerminalWindow : NSWindow
 {
 @public
@@ -27,6 +40,7 @@
   NSBox *btnpnl;
   NSButton *clrbtn;
   NSButton *cpybtn;
+  NSButton *rawbtn;
   // args to shoes_native_terminal are saved here if needed
   NSString *reg_dir;
   int req_cols;
@@ -34,7 +48,7 @@
   int req_mode;
   int req_fontsize;
   NSMutableDictionary *colorTable; // terminal defaults
-  NSArray *colorAttr; 
+  NSMutableArray *colorAttr; 
   NSColor *defaultBgColor;
   NSColor *defaultFgColor;
   // attrs is the CURRENT attributes for drawing a character (font, colors, ...)
@@ -51,16 +65,14 @@
   NSTextContainer *termContainer;
   //NSTextView *termView;
   DisplayView *termView;
-  // For stdout
-  NSPipe *outPipe;
-  NSFileHandle *outReadHandle;
-  NSFileHandle *outWriteHandle;
+  NSFileHandle *outReadHandle; 
   // Stderr 
   NSPipe *errPipe;
   NSFileHandle *errReadHandle;
   // Just in case you think nothing it too Weird
   char *lineBuffer;
   int linePos;
+  NSMutableData *rawBuffer;
 }
 
 - (void)displayChar:(char)c ;
@@ -75,5 +87,7 @@ extern void terminal_attreset(struct tesiObject *);
 extern void terminal_charattr(struct tesiObject *, int);
 extern void terminal_setfgcolor(struct tesiObject *, int);
 extern void terminal_setbgcolor(struct tesiObject *, int);
+extern void terminal_setfg256(struct tesiObject *, int);
+extern void terminal_setbg256(struct tesiObject *, int);
 extern int terminal_hook(void *, const char *, int);
 extern void rb_eval_string(char *);

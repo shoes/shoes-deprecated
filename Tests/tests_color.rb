@@ -133,7 +133,6 @@ Shoes.app title: "Testing Shoes::Color" do
     tests = Test::Unit::TestSuite.new("All Color methods Tests")
     [ColorOpaque, ColorAlpha].each { |t| tests << t.suite }
     
-    Shoes.show_console
-    @test_result = Test::Unit::UI::Console::TestRunner.run(tests)
-    
+    Shoes.terminal
+    @test_result = Test::Unit::UI::Console::TestRunner.run(tests, {use_color: true})
 end

@@ -23,6 +23,8 @@
   RELEASE; \
 } while (0)
 
+extern void shoes_osx_stdout_sink(); // in cocoa-term.m
+
 @implementation ShoesEvents
 - (id)init
 {
@@ -30,6 +32,7 @@
     count = 0;
   return self;
 }
+
 - (void)idle: (NSTimer *)t
 {
   if (count < 100)
@@ -40,13 +43,17 @@
   }
   rb_eval_string("sleep(0.001)");
 }
+
 - (BOOL) application: (NSApplication *) anApplication
     openFile: (NSString *) aFileName
 {
-  shoes_load([aFileName UTF8String]);
-
+  // if launched from terminal (cshoes), DON'T allow this duplicated 
+  if (! osx_cshoes_launch) {
+    shoes_load([aFileName UTF8String]);
+  }
   return YES;
 }
+
 - (void)openFile: (id)sender
 {
   rb_eval_string("Shoes.show_selector");
@@ -889,6 +896,8 @@ void shoes_native_init()
     target: shoes_world->os.events selector: @selector(idle:) userInfo: nil
     repeats: YES];
   [[NSRunLoop currentRunLoop] addTimer: idle forMode: NSEventTrackingRunLoopMode];
+  // 2nd stage of stdout setup. Is this the right spot in time?
+  shoes_osx_stdout_sink();
   RELEASE;
 }
 

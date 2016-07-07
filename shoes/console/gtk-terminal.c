@@ -6,19 +6,15 @@
 
 #include "tesi.h"
 #include <gdk/gdkkeysyms.h>
-#ifdef USE_VTE
-#include <vte/vte.h>
-#endif
-
-#ifndef USE_VTE
+#include "colortab.c"
 /*
  * heavily modified from https://github.com/alanszlosek/tesi/
  * for use in Shoes/Linux
  * 
  * There are some restrictions - there is only one tesiObject because
- * it hooks stdin/out/err and there's only one of those in a Shoes/Ruby/C 
+ * it hooks to stdin/out/err and there's only one of those in a Shoes/Ruby/C 
  * process. 
- * 
+ *  *
  * We can also switch the gtk_text_view buffer from log like/readline buffer
  * to a legacy buffer (with 80 * 24/25 lines of characters)
 */
@@ -32,6 +28,8 @@ static GtkTextBuffer *game_buffer = NULL;
 static char *blank_line; // has columns number of spaces + nl & null
 static GtkTextMark **begline;
 static GtkTextMark **endline;
+static gboolean saveRaw = FALSE;
+static GString *rawBuffer; 
 
 static gboolean keypress_event(GtkWidget *widget, GdkEventKey *event, gpointer data) {
 	struct tesiObject *tobj = (struct tesiObject*)data;
@@ -51,21 +49,31 @@ static gboolean clear_console(GtkWidget *widget, GdkEvent *event, gpointer data)
 	gtk_text_view_set_buffer(view, newbuf);
 	// set a mark to the end? get focus
 	gtk_widget_grab_focus(GTK_WIDGET(view));
+  // clean out rawBuffer
+  g_string_free (rawBuffer,TRUE);
+  rawBuffer = g_string_sized_new(4096);
 	return TRUE;
 }
 
 static gboolean copy_console(GtkWidget *widget, GdkEvent *event, gpointer data) {
 	struct tesiObject *tobj = (struct tesiObject*) data;
-	GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
-	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
-	GtkTextIter iter_s, iter_e;
-    gtk_text_buffer_get_bounds(buffer, &iter_s, &iter_e);
-	gchar *bigstr = gtk_text_buffer_get_slice(buffer, &iter_s, &iter_e, TRUE);
-	GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
-    gtk_clipboard_set_text(primary, bigstr, strlen(bigstr));
+
+  GtkTextView *view = GTK_TEXT_VIEW(tobj->pointer);
+  GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
+  GtkTextIter iter_s, iter_e;
+  gtk_text_buffer_get_bounds(buffer, &iter_s, &iter_e);
+  gchar *bigstr = gtk_text_buffer_get_slice(buffer, &iter_s, &iter_e, TRUE);
+  GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+  gtk_clipboard_set_text(primary, bigstr, strlen(bigstr));
 	return TRUE;
 }
 
+static gboolean raw_copy(GtkWidget *widget, GdkEvent *event, gpointer data) {
+	struct tesiObject *tobj = (struct tesiObject*) data;
+  GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+  gtk_clipboard_set_text(primary, rawBuffer->str, rawBuffer->len );
+  return TRUE;
+}
 /*
  * This is called to handle characters received from the pty
  * in response to a puts/printf/write from Shoes,Ruby, & C
@@ -237,29 +245,58 @@ struct tagcapture {
   int endpos;         // Be wery, wery careful -- Elmer Fudd
 } capture;
 
-static  GtkTextTag *fgcolortag[8];
-static  GtkTextTag *bgcolortag[8];
+static  GtkTextTag *fgcolortag[256];
+static  GtkTextTag *bgcolortag[256];
 static  GtkTextTag *chartags[4];
 
+static GdkRGBA colortable[256]; 
+
+
 static void initattr(GtkTextBuffer *buffer) {
+#if 1
+  int i; 
+  for (i = 0; i < 256; i++) {
+    char *cstr = strdup(colorstrings[i]); // can't write into code sections
+    char *hyphen = strchr(cstr, '-');
+    *hyphen = '\0';
+    char *name = cstr;
+    char *rgbstr = ++hyphen;
+    gdk_rgba_parse(&colortable[i], rgbstr);
+    char bgname[8], fgname[8];
+    sprintf(fgname, "%s-fg", name);
+    sprintf(bgname, "%s-bg", name);
+    fgcolortag[i] =  gtk_text_buffer_create_tag(buffer, fgname,"foreground-rgba", &colortable[i], NULL);
+    bgcolortag[i] =  gtk_text_buffer_create_tag(buffer, bgname,"background-rgba", &colortable[i], NULL);
+    free(cstr); 
+  }
+#else  
   fgcolortag[0] =  gtk_text_buffer_create_tag(buffer, "blackfb","foreground", "black", NULL);
-  fgcolortag[1] =  gtk_text_buffer_create_tag(buffer, "redfb","foreground", "red", NULL);
-  fgcolortag[2] =  gtk_text_buffer_create_tag(buffer, "greenfb","foreground", "green", NULL);
+  //fgcolortag[1] =  gtk_text_buffer_create_tag(buffer, "redfb","foreground", "red", NULL);
+  GdkRGBA temp; temp.red = 0.5; temp.green = 0.0; temp.blue =0.0; temp.alpha = 1.0;
+  colortable[1] = temp;
+  colortable[2].red = 0.0; colortable[2].green = 0.5; colortable[2].blue = 0.0; colortable[2].alpha = 1.0;
+  fgcolortag[1] =  gtk_text_buffer_create_tag(buffer, "redfg","foreground-rgba", &colortable[1], NULL);
+  //fgcolortag[2] =  gtk_text_buffer_create_tag(buffer, "greenfb","foreground", "green", NULL);
+  fgcolortag[2] =  gtk_text_buffer_create_tag(buffer, "greenfb","foreground-rgba", &colortable[2], NULL);
   fgcolortag[3] =  gtk_text_buffer_create_tag(buffer, "brownfb","foreground", "brown", NULL);
   fgcolortag[4] =  gtk_text_buffer_create_tag(buffer, "bluefb","foreground", "blue", NULL);
-  fgcolortag[5] =  gtk_text_buffer_create_tag(buffer, "magentafb","foreground", "magenta", NULL);
+  //fgcolortag[5] =  gtk_text_buffer_create_tag(buffer, "magentafb","foreground", "magenta", NULL);
+  char *tstr = "#800080";
+  gdk_rgba_parse(&colortable[5], tstr);
+  fgcolortag[5] =  gtk_text_buffer_create_tag(buffer, tstr,"foreground-rgba", &colortable[5], NULL);
   fgcolortag[6] =  gtk_text_buffer_create_tag(buffer, "cyanfb","foreground", "cyan", NULL);
   fgcolortag[7] =  gtk_text_buffer_create_tag(buffer, "white","foreground", "white", NULL);
   
   bgcolortag[0] =  gtk_text_buffer_create_tag(buffer, "blackbg","background", "black", NULL);
   bgcolortag[1] =  gtk_text_buffer_create_tag(buffer, "redbg","background", "red", NULL);
+  //bgcolortag[1] =  gtk_text_buffer_create_tag(buffer, "redbg", "background-rgba", colortable[1], NULL);
   bgcolortag[2] =  gtk_text_buffer_create_tag(buffer, "greenbg","background", "green", NULL);
   bgcolortag[3] =  gtk_text_buffer_create_tag(buffer, "brownbg","background", "brown", NULL);
   bgcolortag[4] =  gtk_text_buffer_create_tag(buffer, "bluebg","background", "blue", NULL);
   bgcolortag[5] =  gtk_text_buffer_create_tag(buffer, "magentabg","background", "magenta", NULL);
   bgcolortag[6] =  gtk_text_buffer_create_tag(buffer, "cyanbg","background", "cyan", NULL);
   bgcolortag[7] =  gtk_text_buffer_create_tag(buffer, "whitebg","background", "white", NULL);
-  
+#endif  
   chartags[0] = gtk_text_buffer_create_tag(buffer, "boldtag","weight", PANGO_WEIGHT_BOLD, NULL);
   chartags[1] = gtk_text_buffer_create_tag(buffer, "underlinetag","underline", PANGO_UNDERLINE_SINGLE, NULL);
   capture.open = 0;
@@ -295,8 +332,6 @@ static void initgame(columns, rows) {
 
 void terminal_attreset(struct tesiObject *tobj) {
   // reset all attibutes (color, bold,...)
-  //GtkWidget *view = GTK_WIDGET(tobj->pointer);
-	//GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));
   // close the tagcapture - apply the save color from saved pt to where
   // the cursor is now. These are buffer offsets converted to iters.
   if (capture.open > 0) {
@@ -312,28 +347,46 @@ void terminal_attreset(struct tesiObject *tobj) {
       gtk_text_buffer_apply_tag(buffer, capture.tag[j], &start, &end);
     }
     capture.open = 0;
-    // should delete or unref marks and otherwise clean up memory
+    // should delete or unref marks and otherwise clean up memory? TODO
   }
 } 
 
 void terminal_setfgcolor(struct tesiObject *tobj, int fg) {
-  //GtkWidget *view = GTK_WIDGET(tobj->pointer);
-	//GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));
-  capture.tag[capture.open] = fgcolortag[fg - 30];
+
+  capture.tag[capture.open] = fgcolortag[(fg - 30)+8]; // go for the bright colors
   GtkTextMark *mark = gtk_text_buffer_get_insert(buffer); // cursor mark named 'insert'
   GtkTextIter start;
   // convert mark to iter to pos
   gtk_text_buffer_get_iter_at_mark(buffer, &start, mark);
   capture.begpos = gtk_text_iter_get_offset(&start); 
   capture.open++; // make room for the next tag
-  //capture.startmark = gtk_text_buffer_create_mark(buffer, "stcolor", &start, FALSE);
-  // iter's don't live if characters in its range are modified (and they will be here)
 }
 
 void terminal_setbgcolor(struct tesiObject *tobj, int bg) {
-  //GtkWidget *view = GTK_WIDGET(tobj->pointer);
-	//GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (view));
-  capture.tag[capture.open] = bgcolortag[bg - 40];
+
+  capture.tag[capture.open] = bgcolortag[(bg - 40)];
+  GtkTextMark *mark = gtk_text_buffer_get_insert(buffer); // cursor mark named 'insert'
+  GtkTextIter start;
+  // convert mark to iter to pos
+  gtk_text_buffer_get_iter_at_mark(buffer, &start, mark);
+  capture.begpos = gtk_text_iter_get_offset(&start); 
+  capture.open++; // make room for the next tag  
+}
+
+void terminal_setfg256(struct tesiObject *tobj, int fg) {
+
+  capture.tag[capture.open] = fgcolortag[fg]; // go for the bright colors
+  GtkTextMark *mark = gtk_text_buffer_get_insert(buffer); // cursor mark named 'insert'
+  GtkTextIter start;
+  // convert mark to iter to pos
+  gtk_text_buffer_get_iter_at_mark(buffer, &start, mark);
+  capture.begpos = gtk_text_iter_get_offset(&start); 
+  capture.open++; // make room for the next tag
+}
+
+void terminal_setbg256(struct tesiObject *tobj, int bg) {
+
+  capture.tag[capture.open] = bgcolortag[bg];
   GtkTextMark *mark = gtk_text_buffer_get_insert(buffer); // cursor mark named 'insert'
   GtkTextIter start;
   // convert mark to iter to pos
@@ -451,11 +504,17 @@ static gboolean clean(GtkWidget *widget, GdkEvent *event, gpointer data) {
   return FALSE;
 }
 
-// callback for mode switch checkbox
-static gboolean mode_switch(GtkWidget *widget, GdkEvent *event, gpointer data)
+#ifdef USE_PTY // Linux only. Debug only. TODO !! 
+// callback for raw capture
+static void terminal_raw (struct tesiObject *tobj, char *raw, int len) 
 {
-  // not written yet
+  int i;
+  for (i = 0; i < len; i++) {
+    g_string_append_c(rawBuffer, (gchar) raw[i]);
+  }
 }
+#endif
+
 void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
     int fontsize, char* fg, char *bg, char* title) 
 {
@@ -467,8 +526,9 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   PangoFontDescription *bpfd; // for Label in button panel
 
   struct tesiObject *t;
-
-  //gtk_init (&argc, &argv); // Nope. it's already running
+  // create the debugging capture buffer. expands as needed.
+  //  Not a lot of memory all things considered. 
+  rawBuffer = g_string_sized_new (4096);
 
   terminal_window = window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   // size set below based on font (rows*columns)
@@ -482,7 +542,7 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
 
   // need a panel with a string (icon?), copy button and clear button
   GtkWidget *btnpnl = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2); // think flow layout
-  // create widgets for btnpnl - icon, checkbox, clear, copy
+  // create widgets for btnpnl - icon, title, clear, copy, copy-raw
   // icon is wicked 
   char icon_path[256];
   sprintf(icon_path, "%s/static/app-icon.png", app_dir);
@@ -490,25 +550,22 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   GtkWidget *icon = gtk_image_new_from_pixbuf(icon_pix);
   gtk_box_pack_start (GTK_BOX(btnpnl), icon, 1, 0, 0);
   
-  /*
-  GtkWidget *announce = gtk_label_new("Shoes Terminal");
+  GtkWidget *announce = gtk_label_new(title? title : "Shoes Terminal");
   bpfd = pango_font_description_from_string ("Sans-Serif Italic 14");
   gtk_widget_override_font (announce, bpfd);
   gtk_box_pack_start(GTK_BOX(btnpnl), announce, 1, 0, 0);
-  */
-  GtkWidget *mode_check = gtk_check_button_new_with_label("game mode (not recommended)");
-  bpfd = pango_font_description_from_string ("Sans-Serif Italic 10");
-  gtk_widget_override_font (mode_check, bpfd);
-  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(mode_check), (mode == 1 ? FALSE: TRUE));
-  g_signal_connect (G_OBJECT (mode_check), "clicked", G_CALLBACK (mode_switch), NULL);
-  gtk_box_pack_start(GTK_BOX(btnpnl), mode_check, 1, 0, 0);
   
   GtkWidget *clrbtn = gtk_button_new_with_label ("Clear");
   gtk_box_pack_start (GTK_BOX(btnpnl), clrbtn, 1, 0, 0);
   
   GtkWidget *cpybtn = gtk_button_new_with_label ("Copy");
   gtk_box_pack_start (GTK_BOX(btnpnl), cpybtn, 1, 0, 0);
+
+  GtkWidget *rawbtn = gtk_button_new_with_label ("copy raw");
+  gtk_box_pack_start (GTK_BOX(btnpnl), rawbtn, 1, 0, 0);
+  
   gtk_box_pack_start (GTK_BOX(vbox), GTK_WIDGET(btnpnl), 0, 0, 0);
+
 
   // then a widget/panel for the terminal
   sw = GTK_SCROLLED_WINDOW(gtk_scrolled_window_new(NULL, NULL));
@@ -588,6 +645,8 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   t->callback_charattr = terminal_charattr;
   t->callback_setfgcolor= &terminal_setfgcolor;
   t->callback_setbgcolor = &terminal_setbgcolor;
+  t->callback_setfg256 = &terminal_setfg256;
+  t->callback_setbg256 = &terminal_setbg256;
   // that's the minimum set of call backs;
   t->callback_setdefcolor = NULL;
   t->callback_deleteLines = NULL;
@@ -600,12 +659,16 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   t->callback_insertLines = NULL; //&console_insertLine;
   t->callback_eraseLine = &terminal_eraseLine;
   t->callback_scrollUp = NULL; // &console_scrollUp;
+#ifdef USE_PTY // Linux only
+  t->callback_rawCapture = &terminal_raw; //debugging -remove it later!!
+#endif
   
   g_signal_connect(G_OBJECT(window), "delete_event", G_CALLBACK(clean), t);
 
   g_signal_connect (G_OBJECT (canvas), "key-press-event", G_CALLBACK (keypress_event), t);
   g_signal_connect (G_OBJECT (clrbtn), "clicked", G_CALLBACK (clear_console), t);
   g_signal_connect (G_OBJECT (cpybtn), "clicked", G_CALLBACK (copy_console), t);
+  g_signal_connect (G_OBJECT (rawbtn), "clicked", G_CALLBACK (raw_copy), t);  
   
   gtk_widget_grab_focus(canvas);
   unsigned int ides = g_timeout_add(100, &g_tesi_handleInput, t);
@@ -621,177 +684,3 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   return;
 }
 
-#else
-/*
- * VTE code here - doesn't share much with the code above. 
-*/
-static gboolean keypress_event(GtkWidget *widget, GdkEventKey *event, gpointer data) {
-	struct tesiObject *tobj = (struct tesiObject*)data;
-    char *c = ((GdkEventKey*)event)->string;
-	char s = *c;
-	if (event->keyval == GDK_KEY_BackSpace) {
-		s = 010;
-    }
-	write(tobj->fd_input, &s, 1);
-	return TRUE;
-}
-
-static gboolean clear_console(GtkWidget *widget, GdkEvent *event, gpointer data) {
-	struct tesiObject *tobj = (struct tesiObject*) data;
-  VteTerminal *vte = tobj->pointer;
-  vte_terminal_reset(vte, TRUE, TRUE);
-	return TRUE;
-}
-
-static gboolean copy_console(GtkWidget *widget, GdkEvent *event, gpointer data) {
-	struct tesiObject *tobj = (struct tesiObject*) data;
-  VteTerminal *vte = tobj->pointer;
-  vte_terminal_select_all(vte);
-  vte_terminal_copy_clipboard(vte);
-  vte_terminal_select_none(vte);
-	return TRUE;
-}
-
-/*
- * This is called to handle characters received from the pty
- * in response to a puts/printf/write from Shoes,Ruby, & C
- * it passes the characters on to VTE
-*/
-void terminal_haveChar(struct tesiObject *p, char c) {
-	struct tesiObject *tobj = (struct tesiObject*)p;
-  char chr = c;
-  VteTerminal *vte = tobj->pointer;
-  vte_terminal_feed(vte, &c, 1);
-
-}
-
-// access to shoes_global_console
-#include "shoes/app.h"
-
-gboolean g_tesi_handleInput(gpointer data) {
-	tesi_handleInput( (struct tesiObject*) data);
-	return TRUE;
-}
-
-static gboolean clean(GtkWidget *widget, GdkEvent *event, gpointer data) {
-  struct tesiObject *to = (struct tesiObject*)data;
-  g_source_remove(to->ides); // remove g_timeout_add
-  g_source_destroy(g_main_context_find_source_by_id(NULL, to->ides));
-  
-  deleteTesiObject(data); // FIXME see deleteTesiObject
-  
-  shoes_global_console = 0;
-  return FALSE;
-}
-
-void shoes_native_app_console(char *app_dir) {
-  GtkWidget *window;
-  GtkWidget *vte;  
-  VteTerminal *terminal;
-  GtkWidget *vbox;
-  GtkScrolledWindow *sw;
-  //PangoFontDescription *pfd;  // for terminal
-  PangoFontDescription *bpfd; // for Label in button panel
-
-  struct tesiObject *t;
-
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  // size set below based on font (80x24)
-  gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
-
-  gtk_window_set_title (GTK_WINDOW (window), "Shoes Terminal");
-  
-  // like a Shoes stack at the top.
-  vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 2);
-  gtk_container_add (GTK_CONTAINER (window), vbox);
-
-  // need a panel with a string (icon?), copy button and clear button
-
-  GtkWidget *btnpnl = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2); // think flow layout
-  // create widgets for btnpnl - icon, label, clear, copy
-  // icon is wicked 
-  char icon_path[256];
-  sprintf(icon_path, "%s/static/app-icon.png", app_dir);
-  GdkPixbuf *icon_pix = gdk_pixbuf_new_from_file_at_size(icon_path, 32, 32, NULL);
-  GtkWidget *icon = gtk_image_new_from_pixbuf(icon_pix);
-  gtk_box_pack_start (GTK_BOX(btnpnl), icon, 1, 0, 0);
-  
-  GtkWidget *announce = gtk_label_new("Shoes Terminal");
-  bpfd = pango_font_description_from_string ("Sans-Serif 14");
-  gtk_widget_override_font (announce, bpfd);
-  gtk_box_pack_start(GTK_BOX(btnpnl), announce, 1, 0, 0);
-  
-  GtkWidget *clrbtn = gtk_button_new_with_label ("Clear");
-  gtk_box_pack_start (GTK_BOX(btnpnl), clrbtn, 1, 0, 0);
-  
-  GtkWidget *cpybtn = gtk_button_new_with_label ("Copy");
-  gtk_box_pack_start (GTK_BOX(btnpnl), cpybtn, 1, 0, 0);
-  gtk_box_pack_start (GTK_BOX(vbox), GTK_WIDGET(btnpnl), 0, 0, 0);
-  
-  GdkColor fg_color, bg_color;
-  gdk_color_parse ("black", &fg_color);
-  gdk_color_parse ("white", &bg_color);
-
-  // then a widget/panel for the terminal
-  vte = vte_terminal_new();
-  terminal = VTE_TERMINAL (vte);
-  vte_terminal_set_background_transparent(VTE_TERMINAL(vte), FALSE); //deprecated
-  vte_terminal_set_size(terminal, 80, 25);
-  vte_terminal_set_color_background(terminal, &bg_color); 
-  vte_terminal_set_color_foreground(terminal, &fg_color);
-  vte_terminal_set_scrollback_lines(terminal, -1); /* infinite scrollback */
-  vte_terminal_set_scroll_on_keystroke(VTE_TERMINAL (vte), TRUE);
-
-  sw = GTK_SCROLLED_WINDOW(gtk_scrolled_window_new(NULL, NULL));
-  gtk_scrolled_window_set_policy( GTK_SCROLLED_WINDOW(sw),
-    GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
-  gtk_box_pack_start (GTK_BOX (vbox), vte, 1, 1, 0);
-  gtk_box_pack_start (GTK_BOX (vbox), GTK_WIDGET(sw), 1, 1, 0);
-
-
-
-  // printf("%s\n", vte_terminal_get_emulation(VTE_TERMINAL (vte)));
-
-  // setup the pty and callback 
-  t = newTesiObject("/bin/bash", 80, 24); // first arg not used
-  t->pointer = terminal;
-  t->callback_haveCharacter = &terminal_haveChar;
-  /* cjc - haveCharacter short circuts all of these callbacks:
-  t->callback_handleNL = &console_newline;
-  t->callback_handleRTN = &console_return;
-  t->callback_handleBS = &console_backspace;
-  t->callback_handleTAB = &console_tab; 
-  t->callback_handleBEL = NULL;
-  t->callback_printCharacter = &console_visAscii;
-  t->callback_attreset = &terminal_attreset;
-  t->callback_charattr = NULL;
-  t->callback_setfgcolor= &terminal_setfgcolor;
-  t->callback_setbgcolor = NULL;
-  t->callback_attributes = NULL; // old tesi
-
-  t->callback_eraseCharacter = NULL; // &console_eraseCharacter;
-  t->callback_moveCursor = NULL; // &console_moveCursor;
-  t->callback_insertLine = NULL; //&console_insertLine;
-  t->callback_eraseLine = NULL; //&console_eraseLine;
-  t->callback_scrollUp = NULL; // &console_scrollUp;
-  */
-  g_signal_connect(G_OBJECT(window), "delete_event", G_CALLBACK(clean), t);
-  g_signal_connect (G_OBJECT (vte), "key-press-event", G_CALLBACK (keypress_event), t);
-  g_signal_connect (G_OBJECT (clrbtn), "clicked", G_CALLBACK (clear_console), t);
-  g_signal_connect (G_OBJECT (cpybtn), "clicked", G_CALLBACK (copy_console), t);
-  
-  gtk_widget_grab_focus(vte);
-  unsigned int ides = g_timeout_add(100, &g_tesi_handleInput, t);
-  t->ides = ides;
-
-  gtk_widget_show_all (window);
-  
-  // TODO: some clean up here. Complete ?
-  // pango_font_description_free(pfd);
-  pango_font_description_free(bpfd);
-  // pango_tab_array_free(tab_array);
-  // g_object_unref(playout);
-  return;
-}
-
-#endif

@@ -25,7 +25,9 @@ shoes_sigint()
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+#ifdef SHOES_QUARTZ 
+extern void shoes_osx_setup_stdout();
+#endif
 shoes_world_t *shoes_world = NULL;
 
 shoes_world_t *
@@ -116,6 +118,11 @@ shoes_init(SHOES_INIT_ARGS)
   signal(SIGQUIT, shoes_sigint);
 #endif
 #endif
+#ifdef SHOES_QUARTZ 
+  // init some OSX things our way before Ruby inits.
+  // setenv("TERM", "xterm-256color", 1); // mostly harmless, also not needed.
+  shoes_osx_setup_stdout();
+#endif
   shoes_ruby_embed();
   //printf("back from shoes_ruby_embed\n");
   shoes_ruby_init();
@@ -180,11 +187,21 @@ shoes_set_argv(int argc, char **argv)
   ruby_set_argv(argc, argv);
 }
 
+#ifdef SHOES_QUARTZ
+static VALUE
+shoes_start_begin(VALUE v)
+{
+  char str[128]; 
+  sprintf(str, "$SHOES_URI = Shoes.args!(%d)", osx_cshoes_launch);
+  return rb_eval_string(str);
+}
+#else
 static VALUE
 shoes_start_begin(VALUE v)
 {
   return rb_eval_string("$SHOES_URI = Shoes.args!");
 }
+#endif
 
 static VALUE
 shoes_start_exception(VALUE v, VALUE exc)

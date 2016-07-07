@@ -79,7 +79,8 @@ Shoes.app title: "Testing Shoes video" do
             Shoes.terminal unless silent
             
             out_level = silent ? TestRunner::SILENT : TestRunner::NORMAL
-            @test_result = TestRunner.run(t.suite, output_level: out_level)
+            @test_result = TestRunner.run(t.suite, {output_level: out_level, 
+            use_color: true})
             
             puts "#{'='*40}\n\n" unless silent
             @sand_box.clear

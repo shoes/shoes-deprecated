@@ -73,7 +73,9 @@ struct tesiObject {
     void (*callback_charattr)(struct tesiObject *, int);  // char based attributes 1..27
     void (*callback_setbgcolor)(struct tesiObject *, int);  // attr 40..47
     void (*callback_setfgcolor)(struct tesiObject *, int); // set text color attribute 30..37
-    void (*callback_setdefcolor)(struct tesiObject *, int); // 38,39,49 set default color
+    void (*callback_setfg256)(struct tesiObject *, int); // 38;5;x
+    void (*callback_setbg256)(struct tesiObject *, int); // 48;5;x
+    void (*callback_setdefcolor)(struct tesiObject *, int); // 39,49 set default color
     // cursor based callbacks - caution - maybe not be implemented 
     // and probably don't do what you think should be done.
 	void (*callback_eraseLine)(struct tesiObject *, int, int, int); // erase line at from_x, to_x, line y
@@ -91,7 +93,9 @@ struct tesiObject {
 	void (*callback_scrollUp)(struct tesiObject *);
 	void (*callback_scrollDown)(struct tesiObject *);
 	void (*callback_invertColors)(struct tesiObject *);
-    
+#ifdef USE_PTY // Linux only
+  void (*callback_rawCapture) (struct tesiObject *, char *, int);
+#endif
     unsigned int ides; // event source id from g_timeout_add
 	int x, y, x2, y2, width, height, scrollBegin, scrollEnd; // cursor x,y and window width,height
 	//int alternativeChar;
@@ -103,7 +107,7 @@ void tesi_interpretSequence(struct tesiObject*);
 // limit cursor to terminal boundaries. return 1 if cursor out of bounds
 // set second param to 1 to invoke moveCursor callback whether or not cursor is out of bounds
 int tesi_limitCursor(struct tesiObject*, int);
-void tesi_processAttributes(struct tesiObject*, int);
+void tesi_processAttributes(struct tesiObject*, int, int);
 
 // PUBLIC
 struct tesiObject* newTesiObject(char*, int, int);
