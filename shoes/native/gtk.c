@@ -1851,27 +1851,26 @@ shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
     _("_Save"), args.a[0]);
 }
 
-// July 2016 - Windows Ugly!
+// July 2016 - Windows Fun!
 #ifdef SHOES_GTK_WIN32
 /*
- * This only called when a shoe script uses the font(filename) command
- * so file name is lacuna.ttf, coolvetica.ttr from Shoes splash or the
- * Shoes manual or a user supplied font in a script. 
- * In Windows, we have to convince pango/ft/fontconfig just add these fonts
- * along with the system fonts, without creating the gawd awful scan of all
- * fonts. We DO NOT WANT fontconfig to scan everything in the system.
+ * This is only called when a shoe script uses the font(filename) command
+ * so the file name is lacuna.ttf, coolvetica.ttf (Shoes splash or the
+ * Shoes manual) or a user supplied font 
 */
 VALUE
 shoes_load_font(const char *filename)
 {
   VALUE allfonts, newfonts, oldfonts;
-  fprintf(stderr, "requested font %s\n", filename);
-  // get current fconfig. 
+  // get current fconfig. Add the font to it so pango can find it.
   FcConfig *fc = FcConfigGetCurrent();
   FcBool yay = FcConfigAppFontAddFile(fc, (const FcChar8 *)filename);
-  //fprintf("Add %s to ftconfig: %d\n", filename, yay);
-  // the Shoes api says an array of all fonts is returned. And after a 
-  // font load, it's updated. Try the much faster Windows scan
+  if (yay == FcFalse) {
+     fprintf("failed to add font %s ?\n", filename);
+  }
+  // the Shoes api says an array of all fonts is returned. After a 
+  // font load, the Shoes fontlist must be updated. Use the much faster
+  // Windows api. First, make sure Windows knows about the new one.
   int fonts = AddFontResourceEx(filename, FR_PRIVATE, 0);
   if (!fonts) return Qnil;
   allfonts = shoes_font_list();
