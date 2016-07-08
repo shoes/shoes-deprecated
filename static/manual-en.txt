@@ -4482,44 +4482,86 @@ Returns the internal svg handle (group?) height. Not very useful.
 Returns true or false (nil) if the svghandle has a group matching the string
 which starts with '#'
 »
-== Console ==
+== Terminal ==
 
 Sometimes you want a logging window or even a window you can read keystrokes
 from like an old school terminal. Shoes does have one. It's not very clever and
-most people don't need it. But, if you do
+most people don't need it. Still, it has its uses.  The name changed in Shoes 3.3.2
+to avoid confusion with all the existing uses of the word 'console' which usually
+mean the log window (alt-/). 
+
+Windows users can't use any of the tailoring options (they are silently ignored) so 
+it's kind of cross platform and Windows does create a new 'console' and it
+works within the limitations of MSFT's definition of a terminal. 
 
 === Shoes::show_console ===
+
+That is the old (deprecated) way. It just calls Shoes.terminal with defaults.
+
+=== Shoes.terminal {hash args} » nothing useful ===
+
 Will bring up a new window that hooks stdin, stdout and stderr 
 so it displays that output in the new window. This is a very brutal thing to do to the
-perfectly happy C `printf()` and Ruby `puts` that don't normallly display. 
+perfectly happy C `printf()` and Ruby `puts` that don't normally display. 
 
-But, sometimes, a guy has to do guy things and is willing to accept the downsides: 
-You can't undo the call and switch them back although a serial abuser of
-defenseless stdin's will try. You know who you are. 
+The terminal window cannot be controlled by other Shoes method calls other than its
+creation. There can be only one terminal because there is only one stdout, stderr, and 
+stdin. 
 
-If you do call Shoes::show_console and Shoes thinks you're not running from a
-terminal then it brings up a window that looks similar to the Shoes Log Window. 
-Only it isn't. It's not pretty. No color coding. Don't even attempt to send escape
-sequences to it. Which some of you will do on Windows and it might work THERE 
-for YOU. Don't be that person. 
+Note: Terminals are not cross platform so what works on Linux may not work on 
+Windows.  Windows is pretty dumb about consoles although I've heared Win 10
+is much better.
 
-That Window can update slowly. It runs in the background for some platforms.
-It can lose output on a busy system. Once started, Shoes scripts have no control of it.
-NONE, NADA, ZIP. The readline gem (included with Shoes) does works if your
-expecations are low. We will mock and taunt you for attempting to use curses and reporting
-that it doesn't work. Don't be that person.
+Windows also behaves differently if you launch your Shoes script that calls Shoes.terminal
+from the commandline - it uses that launch 'console' for display. If you launch a Shoes script
+that calls Shoes.terminal from the menus/shortcuts then it will create a 
+new dos console window. It's not really a problem that needs solving.
 
-Still, if you need to write a Shoes script to monitor some long running process that outputs
-to stdout/stderr from some other program and you want to copy the log to the clipboard
-or scroll it back, now you can do that. 
+You can modify what is printed on the Shoes.terminal by embedding escape
+sequences in the string you write to stdout or stderr. Shoes Linux and Shoes OSX
+pretend to be xterm and xterm-256color devices and support a subset of color and 
+character highlighting. Mostly to accomodate gems like test/unit. Windows is
+not an xterm so those escape sequence will fail unless the end user has installed
+one of those ANSI.dll things or Windows escape sequences are sent from the 
+script or gem. NOT Something Shoes can fix. 
 
-No, it can't fix the horrible Windows console and you shouldn't try too either.
+Those optional hash args to configure the terminal are described below.
+They have to be combined into one hash arg for the one any only call you 
+can make. You can call Shoes.terminal as many times as you like but only 
+the first call sticks.
+
+Note: on Shoes/OSX ruby's stdout.tty? may return nil depending on lauch method. 
+Your gem (eg" test/unit) may need additional arguments {use_color: true}. Another
+problem Shoes can fix.
+
+=== Shoes.terminal {title: "string"} ===
+
+defaults to "Shoes Terminal"
+
+=== Shoes.terminal {columns: integer, rows: integer} ===
+
+number of characters across and lines down. 80 x 24 is the default.
+
+=== Shoes.terminal {fontsize: integer} ===
+
+default is 10 for Linux and 12 for OSX. Point size.
+
+=== Shoes.terminal {fg: "color", bg: "color"} ===
+
+default is "black" text foreground (fg) on a "white" background (bg).
+
+They do have to be strings. Although Linux has a long list of color names available, OSX only
+has "black", "red", "green", "brown", "blue", "magenta","cyan","white" and
+"yellow" 
+
+As mentioned above none of these args matter to Windows.  Choose wisely
+if you're going to set these colors. "Choose wisely" is kind of like " just don't". 
 
 == CommandLine ==
 
 For folks that like to use their terminal or Windows console to run Shoes there is
 a pretty rich and useful set of options if you know where the Shoes program is. Where
-is actually a bit tricky so we many need to create an command for it which we call
+it is actually a bit tricky so we may need to create an command for it which we call
 `cshoes` 
 
 {{{ 

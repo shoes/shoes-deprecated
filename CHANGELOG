@@ -10,18 +10,25 @@
 -------------- Shoes 3.3.2 ----------------------------------
 
 === New with 3.3.2
-  * Rudimentary profiler. Fun but may not be all that useful. Written in
+  * Rudimentary profiler. Fun and pretty but may not be all that useful. Written in
     Shoes so you can modify it if you like. May not work on Windows.
   * Shoes.show_console is now Shoes.terminal with many options for size, and
     colors. It can handle some common escape sequences (colors etc)  
-    Use Msys>  cshoes.exe -w [script] on Windows if you want colors.
+    On Windows:
+      Use Msys>  cshoes.exe
+      or install one of those ANSI dll things for your DOS era console. 
+      Rumor: Win 10 does support ansi escape sequences on it's console.
+    Useful for running unit tests of Shoes and other weird stuff.
 
 === Fixed with 3.3.2
   * A new launch script for OSX (cshoes) that works like Linux and Windows
     from the command line.
+  * Windows: bug261 - fix font loading
 
 === Developer isssues for 3.3.2
-
+  * Most of the above are developer issues. osx cshoes is the biggest
+    followed by some command line parsing changes.
+  
 ----------------------------------------------------------
   
 === New with 3.3.1

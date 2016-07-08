@@ -6,7 +6,7 @@
 
 #include "tesi.h"
 #include <gdk/gdkkeysyms.h>
-#include "colortab.c"
+extern char *colorstrings[];
 /*
  * heavily modified from https://github.com/alanszlosek/tesi/
  * for use in Shoes/Linux
