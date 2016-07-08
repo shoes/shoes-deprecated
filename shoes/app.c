@@ -685,12 +685,14 @@ shoes_app_terminal(int argc, VALUE *argv, VALUE self) {
       VALUE argbg = shoes_hash_get(argv[0], rb_intern("bg"));
       if (!NIL_P(argbg))
         bg = RSTRING_PTR(argbg);
+#if 0
       VALUE modearg = shoes_hash_get(argv[0], rb_intern("mode"));
       if (!NIL_P(modearg)) {
         char *arg = RSTRING_PTR(modearg);
         if (strcmp(arg, "game") == 0)
           mode = 0;
       }
+#endif
     }
 	  shoes_native_terminal(dir_path, mode, columns, rows, fontsize, fg, bg, title);
     shoes_global_terminal = 1;

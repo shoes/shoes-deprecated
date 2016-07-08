@@ -4509,7 +4509,7 @@ creation. There can be only one terminal because there is only one stdout, stder
 stdin. 
 
 Note: Terminals are not cross platform so what works on Linux may not work on 
-Windows.  Windows is pretty dumb about consoles although I've heared Win 10
+Windows.  Windows is pretty dumb about consoles although I've heard Win 10
 is much better.
 
 Windows also behaves differently if you launch your Shoes script that calls Shoes.terminal
