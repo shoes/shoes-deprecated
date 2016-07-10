@@ -260,13 +260,39 @@ def graphscreen # get here from a visit(url)
   end
 end 
 
+def tfilter_by(filter)
+  max = $shoes_profiler.nodes.sort_by { |n,mi| n.length }[-1][0].length
+  sorted = $shoes_profiler.nodes.sort_by { |n,mi| mi.send(filter) }
+  usage = sorted.map {|arr| arr[1].send(filter) }
+  unik = usage.uniq
+        
+  pre_nodes = sorted.reverse.reduce({}) do |memo,(name, method_info)|
+      ca = 1.0/unik.size*(unik.index(method_info.send(filter))+1)
+      memo.merge "#{name}": { node: [name, method_info], size: max, 
+              color_alpha: ca, info: method_info.send(filter).to_s }
+  end
+  return pre_nodes
+end   
+
 def textscreen # get here from a visit(url)
   stack do
     button "GUI Display" do
       visit "/graphical"
     end
-    Shoes.terminal
-    puts "This is not written yet. Stay tuned"
+    app_name = File.basename($shoes_profiler.file);
+    Shoes.terminal title: "Profile #{app_name}"
+    puts "Profile for #{File.expand_path($shoes_profiler.file)}\n"
+    puts "Number of times method is called:"
+    puts "\033[01m       Method            Count     mTime-ms  tTime-ms ms-call %total?\033[0m"
+    tfilter_by(:count).each do |k,v| 
+      count = v[:info]
+      node = v[:node]
+      method_info = node[1]
+      s_time = method_info.self_time / 1000.0
+      t_time = method_info.total_time / 1000.0 
+      ms_call = t_time / count.to_i
+      printf("  %-20.20s   % 8d  %-8.4f % 8.4f %8.4f\n", k, count, s_time, t_time, ms_call)
+    end
   end
 end
 
