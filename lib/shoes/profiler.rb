@@ -142,19 +142,37 @@ end
 
 $shoes_profiler = nil;
 class ProfilerDB 
+  include TimeHelpers
   attr_accessor :nodes, :links, :add_c_calls, :file
-  nodes = {}
-  links = {}
-  file = ''
+  attr_accessor :load_wall_st, :load_wall_end, :prof_wall_st, :prof_wall_end
+  attr_accessor :cpu_st, :cpu_end
+  def initialize
+    nodes = {}
+    links = {}
+    file = ''
+    load_wall_st = 0
+    load_wall_end = 0
+    prof_wall_st = 0
+    prof_wall_end = 0
+    cpu_st = 0;
+    cpu_end = 0;
+  end
+  
   def start
     @tracer = nil if @tracer
     @tracer = Tracer.new(Reporter.new, add_c_calls)
-        
+    @cpu_st = cpu_time
     @tracer.enable
     yield
   end
-  def stop
+  
+  def stop(ld_st, ld_end, pf_end)
+    @cpu_end = cpu_time
     @tracer.disable
+    @load_wall_st = ld_st
+    @load_wall_end = ld_end
+    @prof_wall_st = ld_end
+    @prof_wall_end = pf_end
     @tracer.result
   end
 end
@@ -171,6 +189,9 @@ class DiyProf < Shoes
   url "/terminal", :textscreen
   def index
     @file = $shoes_profiler.file
+    load_st = 0
+    load_end = 0
+    prof_end = 0
     stack do
       para "Select the starting script for your app. If you choose the GUI ",
         "display you may want to expand this Window first. ",
@@ -198,14 +219,15 @@ class DiyProf < Shoes
         end
       
       @trace_button = button 'Start Profile', state: (@file == nil ? "disabled": nil) do
+        load_st = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
         $shoes_profiler.add_c_calls = @cc.checked?
         Dir.chdir(File.dirname(@file)) do
           $shoes_profiler.start{ eval IO.read(File.basename(@file)).force_encoding("UTF-8"), TOPLEVEL_BINDING }
-
+          load_end = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
         end
       end
       @end_button = button 'End Profile' do
-        nodes, links = $shoes_profiler.stop
+        nodes, links = $shoes_profiler.stop(load_st, load_end, Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond))
         $shoes_profiler.nodes = nodes
         $shoes_profiler.links = links
         if @gui_display.checked? 
@@ -282,16 +304,41 @@ def textscreen # get here from a visit(url)
     app_name = File.basename($shoes_profiler.file);
     Shoes.terminal title: "Profile #{app_name}"
     puts "Profile for #{File.expand_path($shoes_profiler.file)}\n"
-    puts "Number of times method is called:"
-    puts "\033[01m       Method            Count     mTime-ms  tTime-ms ms-call %total?\033[0m"
+    load_time = $shoes_profiler.load_wall_end - $shoes_profiler.load_wall_st
+    puts "Script Load (wall time, ms) #{load_time / 1000.0}\n"
+    puts "Script Run (Wall_time, sec) #{($shoes_profiler.prof_wall_end - $shoes_profiler.prof_wall_st) / 1000000.0}"
+    total_cpu = ($shoes_profiler.cpu_end - $shoes_profiler.cpu_st) / 1000.0
+    puts "Script Run (cpu, ms) #{total_cpu}"
+    puts "mTime is time in method. tTime: time in method plus other calls.\n\n"
+    puts "\033[37;42mBy call count\033[00m"
+    fmtstr ="%-20.20<method>s   % 8<count>d  %9.4<sstime>f %10.4<ttime>f %8.4<mscall>f %7.4<pmtot>f %7.4<pttot>f\n"
+    hdrstr = "\033[01m   Method Called          Count   mTime-ms   tTime-ms   ms-call %m-cpu %t-cpu?\033[0m"
+    puts hdrstr
     tfilter_by(:count).each do |k,v| 
-      count = v[:info]
+      @count = v[:info]
       node = v[:node]
       method_info = node[1]
+      count = method_info.count
       s_time = method_info.self_time / 1000.0
       t_time = method_info.total_time / 1000.0 
       ms_call = t_time / count.to_i
-      printf("  %-20.20s   % 8d  %-8.4f % 8.4f %8.4f\n", k, count, s_time, t_time, ms_call)
+      pmtot = (s_time / total_cpu) * 100.0
+      pttot = (t_time / total_cpu) * 100.0
+      printf(fmtstr, method:k, count: count, sstime: s_time, ttime: t_time, mscall: ms_call, pmtot: pmtot, pttot: pttot)
+    end
+    puts 
+    puts "\033[37;42mBy method time\033[00m"
+    puts hdrstr
+    tfilter_by(:self_time).each do |k,v| 
+      node = v[:node]
+      method_info = node[1]
+      count = method_info.count
+      s_time = method_info.self_time / 1000.0
+      t_time = method_info.total_time / 1000.0 
+      ms_call = t_time / count.to_i
+      pmtot = (s_time / total_cpu) * 100.0
+      pttot = (t_time / total_cpu) * 100.0
+      printf(fmtstr, method:k, count: count, sstime: s_time, ttime: t_time, mscall: ms_call, pmtot: pmtot, pttot: pttot)
     end
   end
 end
