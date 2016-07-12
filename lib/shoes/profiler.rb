@@ -11,8 +11,8 @@
 # I'm going to keep common things in a global $shoe_profiler class.
 # For better or for worse.
 
-if RUBY_PLATFORM =~ /mingw/
-  module TimeHelpers
+module TimeHelpers
+  if RUBY_PLATFORM =~ /mingw/
     # These methods make use of `clock_gettime` method introduced in Ruby 2.1
     # to measure CPU time and Wall clock time. (microsecond is second / 1 000 000)
     def cpu_time
@@ -23,9 +23,7 @@ if RUBY_PLATFORM =~ /mingw/
     def wall_time
         Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
     end
-  end
-else
-  module TimeHelpers
+  else
     # These methods make use of `clock_gettime` method introduced in Ruby 2.1
     # to measure CPU time and Wall clock time. (microsecond is second / 1 000 000)
     def cpu_time
@@ -36,7 +34,7 @@ else
         Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
     end
   end
-end #
+end #module
 
 class Tracer
     include TimeHelpers
@@ -235,14 +233,17 @@ class DiyProf < Shoes
       
       @trace_button = button 'Start Profile', state: (@file == nil ? "disabled": nil) do
         load_st = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
+        #load_st = wall_time
         $shoes_profiler.add_c_calls = @cc.checked?
         Dir.chdir(File.dirname(@file)) do
           $shoes_profiler.start{ eval IO.read(File.basename(@file)).force_encoding("UTF-8"), TOPLEVEL_BINDING }
           load_end = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
+          #load_st = wall_time
         end
       end
       @end_button = button 'End Profile' do
         nodes, links = $shoes_profiler.stop(load_st, load_end, Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond))
+        #nodes, links = $shoes_profiler.stop(load_st, load_end, wall_time)
         $shoes_profiler.nodes = nodes
         $shoes_profiler.links = links
         if @gui_display.checked? 
