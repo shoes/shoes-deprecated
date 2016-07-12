@@ -11,8 +11,21 @@
 # I'm going to keep common things in a global $shoe_profiler class.
 # For better or for worse.
 
+if RUBY_PLATFORM =~ /mingw/
+  module TimeHelpers
+    # These methods make use of `clock_gettime` method introduced in Ruby 2.1
+    # to measure CPU time and Wall clock time. (microsecond is second / 1 000 000)
+    def cpu_time
+        #Process.clock_gettime(Process::CLOCK_PROCESS_CPUTIME_ID, :microsecond)
+        Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
+    end
 
-module TimeHelpers
+    def wall_time
+        Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
+    end
+  end
+else
+  module TimeHelpers
     # These methods make use of `clock_gettime` method introduced in Ruby 2.1
     # to measure CPU time and Wall clock time. (microsecond is second / 1 000 000)
     def cpu_time
@@ -22,7 +35,8 @@ module TimeHelpers
     def wall_time
         Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
     end
-end
+  end
+end #
 
 class Tracer
     include TimeHelpers
@@ -184,6 +198,7 @@ class DiyProf < Shoes
   #$shoes_profiler = ProfilerDB.new()
   #$shoes_profiler.file = $shoes_examine_file # passed on the commandline with '-e file' or nil
   #$stderr.puts "got it: #{$shoes_profiler.file}"
+  include TimeHelpers
   url "/", :index
   url  "/graphical", :graphscreen
   url "/terminal", :textscreen
