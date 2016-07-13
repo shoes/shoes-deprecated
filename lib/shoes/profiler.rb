@@ -11,21 +11,21 @@
 # I'm going to keep common things in a global $shoe_profiler class.
 # For better or for worse.
 
-module TimeHelpers
-  if RUBY_PLATFORM =~ /mingw/
-    # These methods make use of `clock_gettime` method introduced in Ruby 2.1
-    # to measure CPU time and Wall clock time. (microsecond is second / 1 000 000)
-    def cpu_time
-        #Process.clock_gettime(Process::CLOCK_PROCESS_CPUTIME_ID, :microsecond)
-        Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
-    end
+# These methods make use of `clock_gettime` method introduced in Ruby 2.1
+# to measure CPU time and Wall clock time. (microsecond is second / 1 000 000)
+# Sadly, Windows Ruby does not have cpu time so we have to use wall clock
+# for both. Should Ruby/Windows grow such a clock then this would pick it up.
 
-    def wall_time
-        Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
-    end
-  else
-    # These methods make use of `clock_gettime` method introduced in Ruby 2.1
-    # to measure CPU time and Wall clock time. (microsecond is second / 1 000 000)
+$cpu_clock = false
+begin
+  cpuclock = Process.clock_gettime(Process::CLOCK_PROCESS_CPUTIME_ID, :microsecond)
+  $cpu_clock = true
+rescue Exception
+  $cpu_clock = false
+end
+
+if $cpu_clock 
+  module TimeHelpers
     def cpu_time
         Process.clock_gettime(Process::CLOCK_PROCESS_CPUTIME_ID, :microsecond)
     end
@@ -33,8 +33,18 @@ module TimeHelpers
     def wall_time
         Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
     end
-  end
-end #module
+  end #module
+else
+  module TimeHelpers
+    def cpu_time
+        Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
+    end
+
+    def wall_time
+        Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
+    end
+  end #module
+end #if
 
 class Tracer
     include TimeHelpers
@@ -210,6 +220,9 @@ class DiyProf < Shoes
         "display you may want to expand this Window first. ",
         "You MUST end profiling manually by clicking the 'End Profiling' button" 
       para "Once profiling is stopped, you can examine the results"
+      if !$cpu_clock 
+        para "You don't have a cpu_clock, using wall time instead"
+      end
       flow do
         flow {@gui_display = check checked: true; para "GUI display [default] or Terminal"}
       end
@@ -315,28 +328,28 @@ def textscreen # get here from a visit(url)
       visit "/graphical"
     end
     app_name = File.basename($shoes_profiler.file);
-    cpuclock = nil
-    begin
-      cpuclock = Process.clock_gettime(Process::CLOCK_PROCESS_CPUTIME_ID, :microsecond)
-      cputclock = true
-    rescue Exception
-      cpuclock = false
-    end
+    #cpuclock = nil
+    #begin
+    #  cpuclock = Process.clock_gettime(Process::CLOCK_PROCESS_CPUTIME_ID, :microsecond)
+    #  cputclock = true
+    #rescue Exception
+    #  cpuclock = false
+    #end
     Shoes.terminal title: "Profile #{app_name}"
     puts "Profile for #{File.expand_path($shoes_profiler.file)}\n"
     load_time = $shoes_profiler.load_wall_end - $shoes_profiler.load_wall_st
     puts "Script Load (wall time, ms) #{load_time / 1000.0}\n"
     puts "Script Run (Wall_time, sec) #{($shoes_profiler.prof_wall_end - $shoes_profiler.prof_wall_st) / 1000000.0}"
     total_cpu = ($shoes_profiler.cpu_end - $shoes_profiler.cpu_st) / 1000.0
-    if cpuclock 
+    if $cpu_clock 
       puts "Script Run (cpu, ms) #{total_cpu}" 
     else
       puts "Cpu clock is not available - using wall time"
     end
-    puts "mTime is time in method. tTime: time in method plus other calls.\n\n"
+    puts "mTime is time in method. tTime: is time in method plus other calls.\n\n"
     puts "\033[37;42mBy call count\033[00m"
     fmtstr ="%-20.20<method>s   % 8<count>d  %9.4<sstime>f %10.4<ttime>f %8.4<mscall>f %7.4<pmtot>f %7.4<pttot>f\n"
-    hdrstr = "\033[01m   Method Called          Count   mTime-ms   tTime-ms   ms-call %m-cpu %t-cpu?\033[0m"
+    hdrstr = "\033[01m   Method Called          Count   mTime-ms   tTime-ms  ms-call  %m-cpu  %t-cpu\033[0m"
     puts hdrstr
     tfilter_by(:count).each do |k,v| 
       @count = v[:info]
