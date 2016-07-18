@@ -671,7 +671,8 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   g_signal_connect (G_OBJECT (rawbtn), "clicked", G_CALLBACK (raw_copy), t);  
   
   gtk_widget_grab_focus(canvas);
-  unsigned int ides = g_timeout_add(100, &g_tesi_handleInput, t);
+  //unsigned int ides = g_timeout_add(100, &g_tesi_handleInput, t);
+  unsigned int ides = g_timeout_add(20, &g_tesi_handleInput, t);
   t->ides = ides;
 
   gtk_widget_show_all (window);
