@@ -60,8 +60,8 @@ class Shoes
   OPTS = OptionParser.new do |opts|
     opts.banner = "Usage: shoes [options] (app.rb or app.shy)"
 
-    opts.on('-d=Script', '--debug=Script', 'Debug Shoes <script>') do |c|
-      #ENV['CMDLINE_DEBUG'] = true.to_s
+    opts.on('-d', '--debug [Script]', 'Debug Shoes [Script]',
+      'or Shoes internals if no script given') do |c|
       SHOES_CMD_OPTS['debug'] = c
     end
 
@@ -161,7 +161,7 @@ class Shoes
           para link(strong("Run an App")) { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Read the Manual")) { Shoes.show_manual and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Maintain Shoes")) {Shoes.cobbler and close}, :margin => 10
-          para link(strong("Debug an App")) {Shoes.debugger and close}, :margin => 10, :margin_bottom => 4
+          para link(strong("Debug an App (remote)")) {Shoes.remote_debug and close}, :margin => 10, :margin_bottom => 4
           para link(strong("Profile an App")) {Shoes.profiler and close}, :margin => 10, :margin_bottom => 4
           para link(strong("Bundle an App (shy)")) { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Package an App with Shoes")) {Shoes.app_package and close }, :margin => 10, :margin_bottom => 4
@@ -180,8 +180,8 @@ class Shoes
     require 'shoes/app_package'
   end
   
-  def self.debugger
-    alert "Not implmented"
+  def self.remote_debugger
+    alert "Launching debuger is not implmented yet"
   end
   
   # from the splash screen
@@ -257,13 +257,30 @@ class Shoes
   end
 
   def self.args!(osx_launch = nil)
-    if ARGV.empty? 
+    if (ARGV.empty?)
       Shoes.splash if  !osx_launch || osx_launch == '0'
       return true
     else
-      OPTS.parse! ARGV   
-      if SHOES_CMD_OPTS['debug']
-        puts "debug this: #{SHOES_CMD_OPTS['debug']}"
+      OPTS.parse! ARGV 
+      if SHOES_CMD_OPTS.has_key?('debug')
+        # We ASSUME this was called from a command line invocation. We
+        # ASSUME that console is working.
+        who = SHOES_CMD_OPTS['debug']
+        if (who) 
+          puts "debugging scripg: #{who}"
+          return self.visit(who, true)
+        else
+          puts "Debugging Shoes - Set BreakPoints in Shoes now and/or set ARGV"
+          require 'byebug'
+          byebug
+          if ARGV.empty?
+            Shoes.splash
+            return true;
+          else
+            SHOES_CMD_OPTS.clear
+            return self.args!(osx_launch);
+          end
+        end
       elsif SHOES_CMD_OPTS['profile']
         require 'shoes/profiler'
         Shoes.profile SHOES_CMD_OPTS['profile']
@@ -310,19 +327,16 @@ class Shoes
         Dir.chdir(File.dirname(path))
         path = File.basename(path)
       end
-      if ENV['CMDLINE_DEBUG']
+      if debug
         require 'byebug'
         require 'byebug/runner'
+        puts "debgging script at #{path}"
+        # we need a white list of threads that shouldn't be blocked by
+        # byebug. Ruby and GTK and OSX gui. Basicially every thing we can see
+        # then create a new Ruby thread to run byebug under so it only blocks
+        # the thread (shoes script) being debugged. Danger Ahead!
         $PROGRAM_NAME = path
         Byebug.debug_load($PROGRAM_NAME, true) # this starts byebug loop
-      elsif debug
-        # spin up the console window and call the debugger with the path
-        require 'shoes/debugger'
-        @console_app =
-          Shoes.app do
-            extend Shoes::Debugger
-            setup path
-          end
       else
         $0.replace path
         code = read_file(path)
