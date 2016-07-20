@@ -247,8 +247,9 @@ class Shoes
         return [rout, args, rout.owner] # requires change in app.c
       end
     end
-    case uri.path when '/'
-                    [nil]
+    case uri.path 
+    when '/'
+      [nil]
     when SHOES_URL_RE
       [proc { eval(URI("http://#{Regexp.last_match(1)}:53045#{Regexp.last_match(2)}").read) }]
     else
@@ -267,7 +268,6 @@ class Shoes
         # ASSUME that console is working.
         who = SHOES_CMD_OPTS['debug']
         if (who) 
-          puts "debugging scripg: #{who}"
           return self.visit(who, true)
         else
           puts "Debugging Shoes - Set BreakPoints in Shoes now and/or set ARGV"
@@ -330,13 +330,22 @@ class Shoes
       if debug
         require 'byebug'
         require 'byebug/runner'
-        puts "debgging script at #{path}"
-        # we need a white list of threads that shouldn't be blocked by
-        # byebug. Ruby and GTK and OSX gui. Basicially every thing we can see
-        # then create a new Ruby thread to run byebug under so it only blocks
-        # the thread (shoes script) being debugged. Danger Ahead!
-        $PROGRAM_NAME = path
-        Byebug.debug_load($PROGRAM_NAME, true) # this starts byebug loop
+        puts "debugging script  #{path}"
+        # Danger Ahead! At this point in Shoes startup, we haven't really
+        # initialized the complete GUI. On Linux, there's only one thread
+        # (for ruby). 
+        #thr_list = Thread.list
+        #thr_list.each {|t| puts t.inspect }
+        #  Method 1
+        ARGV.unshift(path)
+        Byebug::Runner.new.run
+        #  Method 2
+        #code = "ARGV.unshift(\"#{path}\"); Byebug::Runner.new.run"
+        #puts code
+        #eval(code, TOPLEVEL_BINDING)
+        # Method 3 (older)
+        #$PROGRAM_NAME = path
+        #Byebug.debug_load($PROGRAM_NAME, true) # this starts byebug loop
       else
         $0.replace path
         code = read_file(path)
