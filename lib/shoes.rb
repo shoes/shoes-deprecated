@@ -333,17 +333,20 @@ class Shoes
         puts "debugging script  #{path}"
         # Danger Ahead! At this point in Shoes startup, we haven't really
         # initialized the complete GUI. On Linux, there's only one thread
-        # (for ruby). 
+        # (for ruby). None of the three methods work!
         #thr_list = Thread.list
         #thr_list.each {|t| puts t.inspect }
         #  Method 1
         ARGV.unshift(path)
+        ARGV.unshift('-shoes-debug')
+        ARGV.unshift(path)
+        puts "before #{ARGV}"
         Byebug::Runner.new.run
         #  Method 2
         #code = "ARGV.unshift(\"#{path}\"); Byebug::Runner.new.run"
         #puts code
         #eval(code, TOPLEVEL_BINDING)
-        # Method 3 (older)
+        #  Method 3 (older times)
         #$PROGRAM_NAME = path
         #Byebug.debug_load($PROGRAM_NAME, true) # this starts byebug loop
       else
