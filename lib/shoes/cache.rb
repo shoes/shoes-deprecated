@@ -1,6 +1,6 @@
 require 'fileutils'
 include FileUtils
-# add it download patches
+# add it download.rb monkey patches Shoes download -replaces curl
 require_relative 'download.rb'
 # locate ~/.shoes
 require 'tmpdir'

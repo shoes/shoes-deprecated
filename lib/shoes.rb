@@ -4,7 +4,10 @@
 # The Shoes base app, both a demonstration and the learning tool for
 # using Shoes.
 #
-
+if SHOES_DEBUG
+  require 'byebug'
+  byebug
+end
 require_relative 'shoes/cache' # do First thing
 ARGV.delete_if { |x| x =~ /-psn_/ }
 
@@ -60,10 +63,10 @@ class Shoes
   OPTS = OptionParser.new do |opts|
     opts.banner = "Usage: shoes [options] (app.rb or app.shy)"
     
-    opts.on('-d', '--debug [Script]', 'Debug Shoes [Script]',
-      'or Shoes internals if no script given') do |c|
-      SHOES_CMD_OPTS['debug'] = c
-    end
+    #opts.on('-d', '--debug [Script]', 'Debug Shoes [Script]',
+    #  'or Shoes internals if no script given') do |c|
+    #  SHOES_CMD_OPTS['debug'] = c
+    #end
 
     opts.on("-m", "--manual",
             "Open the built-in manual.") do
@@ -101,12 +104,7 @@ class Shoes
       fail SystemExit, ''
     end
     
-    opts.on("--sdb", "Shoes internal Ruby debug") do 
-      require 'byebug'
-      byebug
-    end
-       
-    opts.on('-f', '--file', 'path to script [OSX packaging uses this]') do
+   opts.on('-f', '--file', 'path to script [OSX packaging uses this]') do
       #puts "-f ARGV: #{ARGV}"
     end
     
@@ -269,6 +267,7 @@ class Shoes
     else
       OPTS.parse! ARGV 
       if SHOES_CMD_OPTS.has_key?('debug')
+        # TODO July 22, 2016 - this is dead end code. 
         # We ASSUME this was called from a command line invocation. We
         # ASSUME that console is working.
         who = SHOES_CMD_OPTS['debug']

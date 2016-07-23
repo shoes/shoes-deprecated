@@ -30,6 +30,7 @@ main(argc, argv)
 {
   shoes_code code;
   char *path = NULL;
+  int debug = 0;
 /* TODO delete:
 #ifdef __APPLE__
   char **env = *_NSGetEnviron();
@@ -112,6 +113,20 @@ main(argc, argv)
     argc--;
  }
 #endif 
+// check for --sdb the secret flag to invoke byebug in shoes.rb
+// must be the first arg.
+  if (argc > 1 && strcmp(argv[1], "--sdb") == 0)
+  {
+    debug = 1;  
+    // remove arg 1, compress argv
+    int i;
+    for (i=1; i< argc; i++) 
+    {
+      argv[i] = argv[i+1];
+    }
+    argv[i] = NULL;
+    argc--;
+ }
 #ifdef SHOES_WIN32
   code = shoes_init(inst, style);
 #else
@@ -120,7 +135,7 @@ main(argc, argv)
   if (code != SHOES_OK)
     goto done;
   shoes_set_argv(argc - 1, &argv[1]);
-  code = shoes_start(path, "/");
+  code = shoes_start(path, "/", debug);
   if (code != SHOES_OK)
     goto done;
 

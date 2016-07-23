@@ -210,10 +210,13 @@ shoes_start_exception(VALUE v, VALUE exc)
 }
 
 shoes_code
-shoes_start(char *path, char *uri)
+shoes_start(char *path, char *uri, int debug)
 {
   shoes_code code = SHOES_OK;
   char bootup[SHOES_BUFSIZE];
+  char dbstr[64]; 
+  sprintf(dbstr, "SHOES_DEBUG=%s", (debug ? "true" : "false"));
+  rb_eval_string(dbstr);
   int len = shoes_snprintf(bootup,
     SHOES_BUFSIZE,
     "begin;"

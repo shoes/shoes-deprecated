@@ -64,7 +64,7 @@ void shoes_update_fonts(VALUE);
 // 
 SHOES_EXTERN shoes_code shoes_init(SHOES_INIT_ARGS);
 SHOES_EXTERN shoes_code shoes_load(char *);
-SHOES_EXTERN shoes_code shoes_start(char *, char *);
+SHOES_EXTERN shoes_code shoes_start(char *, char *, int);
 #if defined(SHOES_WIN32) || defined(SHOES_GTK_WIN32)
 SHOES_EXTERN int shoes_win32_cmdvector(const char *, char ***);
 #endif
