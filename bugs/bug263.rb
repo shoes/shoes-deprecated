@@ -1,7 +1,4 @@
 # some tests of debugging
-# next over: 
-puts require 'irb'
-puts require 'pry'
 puts "Starting #{ARGV} __FILE__ #{__FILE__}"
 if ARGV.find_index('-me')
     require 'byebug'

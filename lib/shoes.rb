@@ -59,7 +59,7 @@ class Shoes
   SHOES_CMD_OPTS = {}
   OPTS = OptionParser.new do |opts|
     opts.banner = "Usage: shoes [options] (app.rb or app.shy)"
-
+    
     opts.on('-d', '--debug [Script]', 'Debug Shoes [Script]',
       'or Shoes internals if no script given') do |c|
       SHOES_CMD_OPTS['debug'] = c
@@ -70,7 +70,7 @@ class Shoes
       show_manual
     end
 
-    opts.on("-w", "--console", "display console") do
+    opts.on("-w", "--console", "show terminal") do
       Shoes.terminal
     end
 
@@ -89,7 +89,7 @@ class Shoes
       app_package
     end
     
-    opts.on("-e", "--profile=Script", "Profile app") do |c|
+    opts.on("-e", "--profile [Script]", "Profile app") do |c|
       SHOES_CMD_OPTS['profile'] = c
     end
     
@@ -100,7 +100,12 @@ class Shoes
       Gem::GemRunner.new.run(ARGV)
       fail SystemExit, ''
     end
-        
+    
+    opts.on("--sdb", "Shoes internal Ruby debug") do 
+      require 'byebug'
+      byebug
+    end
+       
     opts.on('-f', '--file', 'path to script [OSX packaging uses this]') do
       #puts "-f ARGV: #{ARGV}"
     end
