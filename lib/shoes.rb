@@ -62,11 +62,6 @@ class Shoes
   SHOES_CMD_OPTS = {}
   OPTS = OptionParser.new do |opts|
     opts.banner = "Usage: shoes [options] (app.rb or app.shy)"
-    
-    #opts.on('-d', '--debug [Script]', 'Debug Shoes [Script]',
-    #  'or Shoes internals if no script given') do |c|
-    #  SHOES_CMD_OPTS['debug'] = c
-    #end
 
     opts.on("-m", "--manual",
             "Open the built-in manual.") do
@@ -86,6 +81,9 @@ class Shoes
             "Maintain Shoes installation") do |c|
       cobbler
     end
+    
+    # display for -h - it's not in ARGV when used.
+    opts.on("-d [shoes args]", "Debug Shoes - must be first argument")
 
     opts.on("-p", "--package",
             "Package Shoes App (new)") do |c|
@@ -266,26 +264,7 @@ class Shoes
       return true
     else
       OPTS.parse! ARGV 
-      if SHOES_CMD_OPTS.has_key?('debug')
-        # TODO July 22, 2016 - this is dead end code. 
-        # We ASSUME this was called from a command line invocation. We
-        # ASSUME that console is working.
-        who = SHOES_CMD_OPTS['debug']
-        if (who) 
-          return self.visit(who, true)
-        else
-          puts "Debugging Shoes - Set BreakPoints in Shoes now and/or set ARGV"
-          require 'byebug'
-          byebug
-          if ARGV.empty?
-            Shoes.splash
-            return true;
-          else
-            SHOES_CMD_OPTS.clear
-            return self.args!(osx_launch);
-          end
-        end
-      elsif SHOES_CMD_OPTS['profile']
+      if SHOES_CMD_OPTS['profile']
         require 'shoes/profiler'
         Shoes.profile SHOES_CMD_OPTS['profile']
       else

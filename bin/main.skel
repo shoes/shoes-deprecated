@@ -113,9 +113,9 @@ main(argc, argv)
     argc--;
  }
 #endif 
-// check for --sdb the secret flag to invoke byebug in shoes.rb
+// check for the -d secret?  flag to invoke byebug in shoes.rb
 // must be the first arg.
-  if (argc > 1 && strcmp(argv[1], "--sdb") == 0)
+  if (argc > 1 && strcmp(argv[1], "-d") == 0)
   {
     debug = 1;  
     // remove arg 1, compress argv
