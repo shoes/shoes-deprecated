@@ -4,11 +4,12 @@
 # The Shoes base app, both a demonstration and the learning tool for
 # using Shoes.
 #
+
+require_relative 'shoes/cache' # do First thing
 if SHOES_DEBUG
   require 'byebug'
   byebug
 end
-require_relative 'shoes/cache' # do First thing
 ARGV.delete_if { |x| x =~ /-psn_/ }
 
 # Probably don't need this
