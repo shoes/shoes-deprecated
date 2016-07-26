@@ -94,7 +94,7 @@ end
 
 CURSOR = ">>"
 
-def Shoes.irb
+def Shoes.shoes_irb
    Shoes.app do
      irbalike = MimickIRB.new
      @history = { :cmd => irbalike.history, :pointer => 0 }

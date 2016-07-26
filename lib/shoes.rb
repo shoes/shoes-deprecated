@@ -208,9 +208,10 @@ class Shoes
     Shoes.app(width: 720, height: 640, &Shoes::Help)
   end
 
+  # called with alt-= keystroke.
   def self.show_irb
-    require 'shoes/irb'
-    Shoes.irb
+    require "shoes/shoes_irb.rb"
+    Shoes.shoes_irb
   end
 
   def self.remote_debug
