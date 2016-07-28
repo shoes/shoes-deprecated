@@ -4704,6 +4704,8 @@ shoes_ruby_init()
   rb_define_singleton_method(cShoes, "log", CASTHOOK(shoes_log), 0);
   rb_define_singleton_method(cShoes, "show_console", CASTHOOK(shoes_app_console), 0); // New in 3.2.23
   rb_define_singleton_method(cShoes, "terminal", CASTHOOK(shoes_app_terminal), -1); // New in 3.3.2 replaces console
+  rb_define_singleton_method(cShoes, "quit", CASTHOOK(shoes_app_quit), 0);
+  rb_define_singleton_method(cShoes, "exit", CASTHOOK(shoes_app_quit), 0);
 
   //
   // Canvas methods
@@ -4724,8 +4726,9 @@ shoes_ruby_init()
   rb_define_method(rb_mKernel, "gray", CASTHOOK(shoes_color_gray), -1);
   rb_define_method(rb_mKernel, "gradient", CASTHOOK(shoes_color_gradient), -1);
   rb_define_method(rb_mKernel, "pattern", CASTHOOK(shoes_pattern_method), 1);
-  rb_define_method(rb_mKernel, "quit", CASTHOOK(shoes_app_quit), 0);
-  rb_define_method(rb_mKernel, "exit", CASTHOOK(shoes_app_quit), 0);
+  //rb_define_method(rb_mKernel, "quit", CASTHOOK(shoes_app_quit), 0);
+  //rb_define_method(rb_mKernel, "exit", CASTHOOK(shoes_app_quit), 0);
+  rb_define_method(rb_mKernel, "secret_exit_hook", CASTHOOK(shoes_exit_setup),0);
 
   rb_define_method(rb_mKernel, "debug", CASTHOOK(shoes_canvas_debug), 1);
   rb_define_method(rb_mKernel, "info", CASTHOOK(shoes_canvas_info), 1);
@@ -5235,4 +5238,9 @@ shoes_ruby_init()
   rb_define_method(rb_mKernel, "ask_open_folder", CASTHOOK(shoes_dialog_open_folder), -1);
   rb_define_method(rb_mKernel, "ask_save_folder", CASTHOOK(shoes_dialog_save_folder), -1);
   rb_define_method(rb_mKernel, "font", CASTHOOK(shoes_font), 1);
+}
+
+VALUE shoes_exit_setup(VALUE self) {
+  rb_define_method(rb_mKernel, "quit", CASTHOOK(shoes_app_quit), 0);
+  rb_define_method(rb_mKernel, "exit", CASTHOOK(shoes_app_quit), 0);
 }

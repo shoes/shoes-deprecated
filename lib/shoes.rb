@@ -9,6 +9,10 @@ require_relative 'shoes/cache' # do First thing
 if SHOES_DEBUG
   require 'byebug'
   byebug
+else
+  # Normal shoes: 
+  # redefine quit and exit in Ruby to be Shoes implemented methods.
+  secret_exit_hook
 end
 ARGV.delete_if { |x| x =~ /-psn_/ }
 
@@ -269,6 +273,10 @@ class Shoes
       if SHOES_CMD_OPTS['profile']
         require 'shoes/profiler'
         Shoes.profile SHOES_CMD_OPTS['profile']
+      elsif SHOES_DEBUG && ARGV[0]
+        # clear ARGV so byebug/irb won't get confused
+        script = ARGV.delete_at(0)
+        return script
       else
         return ARGV[0] || true
       end

@@ -1,6 +1,7 @@
 # some tests of debugging
 puts "Starting #{ARGV} __FILE__ #{__FILE__}"
-if ARGV.find_index('-me')
+if ARGV.find_index('-d')
+    ARGV.delete_if {|x| true}
     require 'byebug'
     byebug
 end

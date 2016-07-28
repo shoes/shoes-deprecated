@@ -108,7 +108,7 @@ VALUE rb_ary_insert_at(VALUE, long, int, VALUE);
 VALUE shoes_safe_block(VALUE, VALUE, VALUE);
 void shoes_ruby_init(void);
 void shoes_ruby_video_init(void);
-
+VALUE shoes_exit_setup(VALUE);
 #define BEZIER 0.55228475;
 
 //
