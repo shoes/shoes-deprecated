@@ -12,7 +12,7 @@ if SHOES_DEBUG
 else
   # Normal shoes: 
   # redefine quit and exit in Ruby to be Shoes implemented methods.
-  secret_exit_hook
+  # secret_exit_hook # or not
 end
 ARGV.delete_if { |x| x =~ /-psn_/ }
 

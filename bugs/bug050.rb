@@ -10,7 +10,13 @@ Shoes.app do
     end
     @eb = edit_box  clist.join("\n"), :width => 400, height: 400
     button 'quit' do
-      exit
+      if Shoes.respond_to?(:quit)
+        puts "Better quit"
+        Shoes.exit
+        return true
+      else 
+        exit
+      end
     end
   end
 end
