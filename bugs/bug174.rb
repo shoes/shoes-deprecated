@@ -1,7 +1,7 @@
 # mix of problems with testing framework, cshoes, #174, #224
 Shoes.app do
   @stk = stack do
-    button "quit" do quit end
+    button "quit" do Shoes.quit end
   end
   @stk.start do
   #timer(0.1) do
