@@ -123,7 +123,7 @@ end
         @top_card.handle = get_handle(0) # back of deck
       end
       button "quit" do
-        exit
+        Shoes.quit
       end
       button "Change Deck" do
         fpath = ask_open_file

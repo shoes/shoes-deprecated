@@ -11,7 +11,7 @@ input until you enter 'quit' at the beginning of a line. quit will exit Shoes \n
           if ln.strip == 'quit'
             $stderr.write "really quit (y/n) "
             ans = Readline.readline.strip
-            exit if ans == 'y'
+            Shoes.quit if ans == 'y'
           end
           $stdout.puts "RL: #{ln}"
         end

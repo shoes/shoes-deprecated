@@ -188,7 +188,7 @@ Shoes.app width: 625, height: 580, resizable: true do
                 app.slot.scroll_top = app.slot.scroll_max
             end
             
-            button "Quit", margin_left: 50 do; exit end;
+            button "Quit", margin_left: 50 do; Shoes.quit end;
         end
         
     end

@@ -17,7 +17,7 @@ Shoes.app :height => 500, :width => 450 do
     when :tab
       str += "  "
     when :alt_q
-      quit
+      Shoes.quit
     when :alt_c
       self.clipboard = str
     when :alt_v
