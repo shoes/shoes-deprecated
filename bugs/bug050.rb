@@ -10,7 +10,7 @@ Shoes.app do
     end
     @eb = edit_box  clist.join("\n"), :width => 400, height: 400
     button 'quit' do
-      exit
+      Shoes.quit
     end
   end
 end

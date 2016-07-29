@@ -17,7 +17,7 @@ Shoes.app do
       if ln.strip == 'quit' 
         $stderr.write "really quit (y/n)"
         ans = $stdin.gets.strip
-        exit if ans == 'y'
+        Shoes.quit if ans == 'y'
       end
       $stdout.puts "Shoes: #{ln}"
     end

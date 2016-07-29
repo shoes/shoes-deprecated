@@ -91,7 +91,7 @@ Shoes.app width: 500, height: 610, title: "SVG Viewer" do
         end
       end
 
-      button "Quit", margin: [10,0,0,0] do; Shoes.exit; end
+      button "Quit", margin: [10,0,0,0] do; Shoes.quit; end
     end
 
     flow do

@@ -12,6 +12,6 @@ Shoes.app do
     end
   end
   button "OK", :top => 0.5, :left => 0.5 do
-    quit unless confirm "You ARE sure you're OK??"
+    Shoes.quit unless confirm "You ARE sure you're OK??"
   end
 end
