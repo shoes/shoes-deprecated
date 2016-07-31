@@ -14,21 +14,23 @@
     Written in Shoes and Ruby so you can modify it if you like. 
     https://github.com/Shoes3/shoes3/issues/232
   * Shoes.show_console is now Shoes.terminal with many options for size, and
-    colors. It can handle some common escape sequences (colors etc)  
+    colors. It can handle some common escape sequences (colors and bolding)  
     On Windows:
       Use Msys>  cshoes.exe
       or install one of those ANSI dll things for your DOS era console. 
       Rumor: Win 10 does support ansi escape sequences on it's console.
+      Sometimes Win7 does ok with some escape sequence. 
     Useful for running unit tests of Shoes and other terminal stuff like the
     profiler text report.
     https://github.com/Shoes3/shoes3/issues/236
-  * exit should no long be used. Use Shoes.quit
+  * exit should no long be used. Please use Shoes.quit
     https://github.com/Shoes3/shoes3/issues/263
 
 === Fixed with 3.3.2
   * A new launch script for OSX (cshoes) that works like Linux and Windows
-    from the command line. Use 
+    from the command line. Use Cobbler to create you osx cshoes script.
   * Windows: bug261 - fix font loading
+    https://github.com/Shoes3/shoes3/issues/261
   * debugging with byebug is much better.
     https://github.com/Shoes3/shoes3/issues/263
     https://github.com/Shoes3/shoes3/wiki/Debugging-with-Byebug
