@@ -12,7 +12,7 @@ if SHOES_DEBUG
 else
   # Normal shoes: 
   # redefine quit and exit in Ruby to be Shoes implemented methods.
-  # secret_exit_hook # or not
+  secret_exit_hook # maintains backwards compatibility
 end
 ARGV.delete_if { |x| x =~ /-psn_/ }
 
@@ -167,8 +167,8 @@ class Shoes
           para link(strong("Run an App")) { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Read the Manual")) { Shoes.show_manual and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Maintain Shoes")) {Shoes.cobbler and close}, :margin => 10
-          para link(strong("Debug an App (remote)")) {Shoes.remote_debug and close}, :margin => 10, :margin_bottom => 4
-          para link(strong("Profile an App")) {Shoes.profiler and close}, :margin => 10, :margin_bottom => 4
+          #para link(strong("Debug an App (remote)")) {Shoes.remote_debug and close}, :margin => 10, :margin_bottom => 4
+          #para link(strong("Profile an App")) {Shoes.profiler and close}, :margin => 10, :margin_bottom => 4
           para link(strong("Bundle an App (shy)")) { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Package an App with Shoes")) {Shoes.app_package and close }, :margin => 10, :margin_bottom => 4
 #         para link("Obsolete: Package") { Shoes.make_pack and close }, :margin => 10, :margin_bottom => 4
@@ -264,6 +264,7 @@ class Shoes
     end
   end
 
+  # This is the real entry point for shows. It's called from the C startup code
   def self.args!(osx_launch = nil)
     if (ARGV.empty?)
       Shoes.splash if  !osx_launch || osx_launch == '0'

@@ -9,6 +9,7 @@
 ._*
 *.rl
 *.log
+.byebug_history
 Makefile
 VERSION.txt
 *-custom.yaml
