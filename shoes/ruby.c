@@ -5240,7 +5240,7 @@ shoes_ruby_init()
   rb_define_method(rb_mKernel, "font", CASTHOOK(shoes_font), 1);
 }
 
-// unused
+// unused?
 VALUE shoes_exit_setup(VALUE self) {
   rb_define_method(rb_mKernel, "quit", CASTHOOK(shoes_app_quit), 0);
   rb_define_method(rb_mKernel, "exit", CASTHOOK(shoes_app_quit), 0);

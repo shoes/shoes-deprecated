@@ -756,12 +756,23 @@ yourself.
 Oh, and, rather than a string, you may also hand exceptions directly to this
 method and they'll be formatted appropriately.
 
-=== exit() ===
+=== Shoes.quit() ===
 
 Stops your program. Call this anytime you want to suddenly call it quits.
+It stops all the graphical things in a graceful way and eventually terminate
+your program. 
+
+=== exit() ===
+
+This is no longer recommended as the way to quit a Shoes program. Instead 
+use Shoes.quit(). Overriding the Ruby exit method has some undesired behaviour 
+in some situations such as:
 
 '''PLEASE NOTE:''' If you need to use Ruby's own `exit` method (like in a
 forked Ruby process,) call `Kernel.exit`.
+
+exit it can also confuse the debugger (the code) and you. So Shoes.quit 
+is better.
 
 === font(message: a string) » an array of font family names ===
 
