@@ -153,7 +153,7 @@ Shoes.app :title => "Shoes Cobbler" do
         Shoes.splash
       end
       button "Quit" do
-         exit
+         Shoes.quit
       end
     end
     @panel = stack do

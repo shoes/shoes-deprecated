@@ -9,13 +9,14 @@ OPTIND=1
 if [ $# -gt 1 ] && ([ $1="--ruby" ] || [ $1='-g' ] || [ $1='--gem' ]) ; then
   FLAGS=$@
 else
-  while getopts "w:f:e:dghvcp" opt; do
+  while getopts "w:f:e:dghvcpm" opt; do
     case "$opt" in
     h) FLAGS="-h" ;;
     v) FLAGS="-v" ;;
     c) FLAGS="-c" ;;
     p) FLAGS='-p' ;;
-    d) FLAGS='=d' ;;
+    d) FLAGS='-d' ;;
+    m) FLAGS='-m' ;;
     w) SCRIPT=$OPTARG; FLAGS="-w" ;;
     f) SCRIPT=$OPTARG; FLAGS="-f" ;;
     e) SCRIPT=$OPTARG; FLAGS="-e" ;;
