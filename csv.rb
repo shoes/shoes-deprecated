@@ -40,7 +40,7 @@ class TestCsv
     puts "end   #{ds.values[ds.endpt]} #{ds.endpt}"
     rdidx = rand(ds.values.length);
     rkey = ds.ary[rdidx]
-    puts "random: #{rdidx}: is #{rkey} value: #{ds.values[rkey]}"
+    puts "random: #{rdidx}: is key #{rkey} value: #{ds.valueAtTime(rkey)}"
     return ds
   end
 end
