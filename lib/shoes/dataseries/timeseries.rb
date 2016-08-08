@@ -15,17 +15,17 @@ class TimeSeries
   end
   
   #this is the heavy lifter (expanding arrays and hashes)
-  def append(dt, value)
+  def append(dt, v)
     @maxv = v if v > @maxv
     @minv = v if v < @minv
-    if @idx = 0
+    if @idx == 0
       @startpt = dt
     else
       @endpt = dt
     end
-    @bool = false if value != 0.0 or value != 1.0
-    @values[idx] = v
-    @dthash[dt] = idx
+    @bool = false if v != 0.0 or v != 1.0
+    @values[@idx] = v
+    @dthash[dt] = @idx
     @idx += 1
   end 
   
@@ -54,11 +54,11 @@ class TimeSeries
   end
    
   # return value at idx (integer)
-  def value_at_Index(idx)
+  def value_at_index(idx)
     return @values[idx]
   end
   
-  def [] 
+  def [] (idx)
     return @values[idx]
   end
   
@@ -67,14 +67,14 @@ class TimeSeries
   end
   
   def bool?
-    return @bool?
+    return @bool
   end
   
   def start_date
     return @startpt
   end
   
-  def end_data
+  def end_date
     return @endpt
   end 
   
@@ -87,7 +87,7 @@ class TimeSeries
   end
   
   def vrange 
-    return [@minv @maxv]
+    return [@minv, @maxv]
   end
   
 end
