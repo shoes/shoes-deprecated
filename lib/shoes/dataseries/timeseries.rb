@@ -10,7 +10,6 @@ class TimeSeries
     @startpt = 0  # replaced with a DateTime
     @endpt = 0    # replaced with a DateTime
     @maxv = 0.0
-    #@minv = 100000.0 # Float.MAX doesn't work
     @minv = Float::MAX 
     @idx = 0
   end
