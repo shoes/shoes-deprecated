@@ -16,7 +16,7 @@ class Graph < Shoes::Widget
   end
   
   
-  def draw_series
+  def draw_all_series
     @@series_collection.each do |ser| 
       @canvas.stroke blue
       #assume top left is 0,0 bottom right is 800,500
@@ -43,7 +43,7 @@ class Graph < Shoes::Widget
   
   def add_series(series)
     @@series_collection << series
-    draw_series
+    draw_all_series
   end
   
   def remove_series(series)
