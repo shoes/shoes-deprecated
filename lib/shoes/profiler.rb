@@ -247,10 +247,10 @@ class DiyProf < Shoes
       @trace_button = button 'Start Profile', state: (@file == nil ? "disabled": nil) do
         load_st = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
         $shoes_profiler.add_c_calls = @cc.checked?
-        Dir.chdir(File.dirname(@file)) do
+        Dir.chdir(File.dirname(@file)) #do
           $shoes_profiler.start{ eval IO.read(File.basename(@file)).force_encoding("UTF-8"), TOPLEVEL_BINDING }
           load_end = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
-        end
+        #end
       end
       @end_button = button 'End Profile' do
         nodes, links = $shoes_profiler.stop(load_st, load_end, Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond))
