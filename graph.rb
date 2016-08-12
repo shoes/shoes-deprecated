@@ -41,6 +41,7 @@ class Graph < Shoes::Widget
     end
   end
   
+  
   def add_series(series)
     @@series_collection << series
     draw_all_series
@@ -69,12 +70,13 @@ Shoes.app width: 620, height: 610 do
     #para "random: #{rdidx}: is  #{v}"
     widget_width = 600
     widget_height = 400
-    @grf = graph width: widget_width, height: widget_height
-    @grf.add_series(tseries)
+    #@grf = graph width: widget_width, height: widget_height
+    #@grf.add_series(tseries)
+    @grf = plot widget_width, widget_height
+    @grf.add tseries 
     flow do 
       button "quit" do Shoes.quit end
       button "redraw" do
-        @grf.draw_series(tseries)
       end
     end
   end

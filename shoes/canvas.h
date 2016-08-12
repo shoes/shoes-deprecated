@@ -319,6 +319,23 @@ typedef struct {
   shoes_transform *st;
 } shoes_svg;
 
+
+//
+// Plot struct
+//
+typedef struct {
+  VALUE parent;
+  VALUE attr;
+  shoes_place place;
+  int seriescnt;
+  VALUE maxvs;  // these will be Ruby arrays
+  VALUE minvs;
+  VALUE values;
+  VALUE names;  
+  char hover;
+  shoes_transform *st;
+} shoes_plot;
+
 //
 // not very temporary canvas (used internally for painting)
 //
@@ -433,6 +450,7 @@ VALUE shoes_canvas_animate(int, VALUE *, VALUE);
 VALUE shoes_canvas_every(int, VALUE *, VALUE);
 VALUE shoes_canvas_timer(int, VALUE *, VALUE);
 VALUE shoes_canvas_svg(int, VALUE *, VALUE);
+VALUE shoes_canvas_plot(int, VALUE *, VALUE);
 VALUE shoes_canvas_imagesize(VALUE, VALUE);
 VALUE shoes_canvas_shape(int, VALUE *, VALUE);
 void shoes_canvas_remove_item(VALUE, VALUE, char, char);
@@ -551,6 +569,22 @@ VALUE shoes_svg_has_group(VALUE, VALUE);
 VALUE shoes_svg_motion(VALUE, int, int, char *);
 VALUE shoes_svg_send_click(VALUE, int, int, int);
 void shoes_svg_send_release(VALUE, int, int, int);
+
+VALUE shoes_plot_new(int, VALUE *, VALUE);
+VALUE shoes_plot_alloc(VALUE);
+VALUE shoes_plot_draw(VALUE, VALUE, VALUE);
+VALUE shoes_plot_redraw(VALUE);
+VALUE shoes_plot_add(VALUE, VALUE);
+VALUE shoes_plot_delete(VALUE, VALUE);
+VALUE shoes_plot_export(VALUE, VALUE);
+VALUE shoes_plot_save(VALUE, VALUE);
+VALUE shoes_plot_show(VALUE);
+VALUE shoes_plot_hide(VALUE);
+VALUE shoes_plot_get_parent(VALUE);
+VALUE shoes_plot_remove(VALUE);
+VALUE shoes_plot_motion(VALUE, int, int, char *);
+VALUE shoes_plot_send_click(VALUE, int, int, int);
+void shoes_plot_send_release(VALUE, int, int, int);
 
 void shoes_control_mark(shoes_control *);
 VALUE shoes_control_new(VALUE, VALUE, VALUE);

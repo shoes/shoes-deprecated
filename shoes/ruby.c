@@ -15,7 +15,7 @@
 
 VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cSlider, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE cTextEditBox;
-VALUE cSvgHandle, cSvg;
+VALUE cSvgHandle, cSvg, cPlot, cTimeSeries;
 VALUE eVlcError, eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot, symAltEqual, symAltSemiColon;
@@ -4854,6 +4854,39 @@ shoes_ruby_init()
   rb_define_method(cSvg, "rotate", CASTHOOK(shoes_svg_rotate), 1);
   rb_define_method(cSvg, "scale", CASTHOOK(shoes_svg_scale), -1);
   rb_define_method(cSvg, "skew", CASTHOOK(shoes_svg_skew), -1);
+  
+  cPlot   = rb_define_class_under(cTypes, "Plot", rb_cObject);
+  rb_define_alloc_func(cPlot, shoes_plot_alloc);
+  rb_define_method(cPlot, "draw", CASTHOOK(shoes_plot_draw), 2);
+  rb_define_method(cPlot, "add", CASTHOOK(shoes_plot_add), 1);
+  rb_define_method(cPlot, "redraw", CASTHOOK(shoes_plot_redraw), 0);
+  rb_define_method(cPlot, "delete", CASTHOOK(shoes_plot_delete), 1);
+  rb_define_method(cPlot, "remove", CASTHOOK(shoes_plot_remove), 0);
+  rb_define_method(cPlot, "parent", CASTHOOK(shoes_plot_get_parent), 0);
+  // TODO: add the commented out code to canvas.h and plot.c
+  //rb_define_method(cPlot, "export", CASTHOOK(shoes_plot_export), 1);
+  //rb_define_method(cPlot, "save", CASTHOOK(shoes_plot_save), 1);
+  //rb_define_method(cPlot, "style", CASTHOOK(shoes_plot_style), -1);
+  //rb_define_method(cPlot, "move", CASTHOOK(shoes_plot_move), 2);
+  //rb_define_method(cPlot, "displace", CASTHOOK(shoes_plot_displace), 2);
+  //rb_define_method(cPlot, "hide", CASTHOOK(shoes_plot_hide), 0);
+  //rb_define_method(cPlot, "show", CASTHOOK(shoes_plot_show), 0);
+  //rb_define_method(cPlot, "toggle", CASTHOOK(shoes_plot_toggle), 0);
+  //rb_define_method(cPlot, "hidden?", CASTHOOK(shoes_plot_is_hidden), 0);
+  //rb_define_method(cPlot, "click", CASTHOOK(shoes_plot_click), -1);
+  //rb_define_method(cPlot, "release", CASTHOOK(shoes_plot_release), -1);
+  //rb_define_method(cPlot, "hover", CASTHOOK(shoes_plot_hover), -1);
+  //rb_define_method(cPlot, "leave", CASTHOOK(shoes_plot_leave), -1);
+  //rb_define_method(cPlot, "top", CASTHOOK(shoes_plot_get_actual_top), 0);
+  //rb_define_method(cPlot, "left", CASTHOOK(shoes_plot_get_actual_left), 0);
+  //rb_define_method(cPlot, "width", CASTHOOK(shoes_plot_get_actual_width), 0);
+  //rb_define_method(cPlot, "height", CASTHOOK(shoes_plot_get_actual_height), 0);
+  //rb_define_method(cPlot, "transform", CASTHOOK(shoes_plot_transform), 1);
+  //rb_define_method(cPlot, "translate", CASTHOOK(shoes_plot_translate), 2);
+  //rb_define_method(cPlot, "rotate", CASTHOOK(shoes_plot_rotate), 1);
+  //rb_define_method(cPlot, "scale", CASTHOOK(shoes_plot_scale), -1);
+  //rb_define_method(cPlot, "skew", CASTHOOK(shoes_plot_skew), -1);
+
 
   cEffect   = rb_define_class_under(cTypes, "Effect", rb_cObject);
   rb_define_alloc_func(cEffect, shoes_effect_alloc);
