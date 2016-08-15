@@ -17,11 +17,13 @@
  *  several methods are defined in ruby.c Macros (CLASS_COMMON2, TRANS_COMMON)
  */
 
-// forward declares in this file
+// forward declares in this file:
 static int
 shoes_plot_draw_surface(cairo_t *, shoes_plot *, shoes_place *, int, int);
+static void shoes_plot_draw_title(shoes_canvas *, shoes_plot *);
+static void shoes_plot_draw_caption(shoes_canvas *,shoes_plot *);
 
-// alloc some memory for a shoes_plot; We'll protect it from gc
+// alloc some memory for a shoes_plot; We'll protect it's Ruby VALUES from gc
 // out of caution. fingers crossed.
 void
 shoes_plot_mark(shoes_plot *plot)
@@ -32,6 +34,10 @@ shoes_plot_mark(shoes_plot *plot)
   rb_gc_mark_maybe(plot->minvs);
   rb_gc_mark_maybe(plot->maxvs);
   rb_gc_mark_maybe(plot->names);
+  rb_gc_mark_maybe(plot->sizes);
+  rb_gc_mark_maybe(plot->long_names);
+  rb_gc_mark_maybe(plot->title);
+  rb_gc_mark_maybe(plot->caption);
 }
 
 static void
@@ -48,10 +54,13 @@ shoes_plot_alloc(VALUE klass)
   shoes_plot *plot = SHOE_ALLOC(shoes_plot);
   SHOE_MEMZERO(plot, shoes_plot, 1);
   obj = Data_Wrap_Struct(klass, shoes_plot_mark, shoes_plot_free, plot);
-  plot->values = Qnil;
-  plot->minvs = Qnil;
-  plot->maxvs = Qnil;
-  plot->names = Qnil;
+  plot->values = rb_ary_new();
+  plot->xobs  = rb_ary_new();
+  plot->minvs = rb_ary_new();
+  plot->maxvs = rb_ary_new();
+  plot->names = rb_ary_new();
+  plot->sizes = rb_ary_new();
+  plot->long_names = rb_ary_new();
   plot->parent = Qnil;
   plot->st = NULL;
   return obj;
@@ -86,19 +95,31 @@ plot_aspect_ratio(int imw, int imh, shoes_plot *self_t, shoes_plothandle *plotha
 VALUE
 shoes_plot_new(int argc, VALUE *argv, VALUE parent)
 {
-  VALUE attr = Qnil, widthObj, heightObj;
+  VALUE attr = Qnil, widthObj, heightObj, optsArg;
+  VALUE title, caption;
   shoes_canvas *canvas;
   Data_Get_Struct(parent, shoes_canvas, canvas);
   
   rb_arg_list args;
   // TODO parse args
-  switch (rb_parse_args(argc, argv, "ii", &args))
+  switch (rb_parse_args(argc, argv, "iih", &args))
   {
     case 1: 
      widthObj  = args.a[0];
      heightObj = args.a[1];
+     optsArg = args.a[2];
     break;
   }
+  if (!NIL_P(optsArg)) {
+    // TODO pick out :title and :caption if given and other style args
+    title = shoes_hash_get(optsArg, rb_intern("title"));
+    caption = shoes_hash_get(optsArg, rb_intern("caption"));
+#if 1
+    // C debugging
+    if (!NIL_P(title)) printf("have title: %s\n", RSTRING_PTR(title));
+    if (!NIL_P(caption)) printf("have caption: %s\n", RSTRING_PTR(caption));
+#endif
+  } 
 
   VALUE obj = shoes_plot_alloc(cPlot);
   shoes_plot *self_t;
@@ -107,8 +128,31 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   
   self_t->place.w = NUM2INT(widthObj);
   self_t->place.h = NUM2INT(heightObj);
+  /* TODO should call something(self_t) to recompute x,y,w,h on resize
+   * TODO fontmetrics for title and caption (and arg parsing)
+   * and may more - width of Y axis label space. Challenging.
+   * at this time, we have't been placed on screen so computing x and y
+   * is kind of tricky as these are relative to where ever that happens
+   * to be. These are offsets, I suppsose.
+  */
+  if (!NIL_P(title)) {
+    self_t->title = title;
+  }
+  self_t->title_h = 20;
+  self_t->title_x = 0;
+  self_t->title_y = 20; 
+  self_t->title_w = 0;
+  
+  if (!NIL_P(caption)) {
+    self_t->caption = caption;
+  }
+  self_t->caption_h = 20;
+  self_t->caption_w = 0;
+  self_t->caption_x = 0;
+  self_t->caption_y = 20;
   self_t->parent = parent;
   self_t->attr = Qnil;
+  
   // initialize cairo matrice used in transform methods (rotate, scale, skew, translate)
   self_t->st = shoes_transform_touch(canvas->st);
   
@@ -149,6 +193,7 @@ shoes_plot_draw_surface(cairo_t *cr, shoes_plot *self_t, shoes_place *place, int
   return result;
 }
 #endif 
+
 // This gets called very often by Shoes. May be slow for large plot?
 VALUE shoes_plot_draw(VALUE self, VALUE c, VALUE actual)
 {
@@ -175,20 +220,82 @@ VALUE shoes_plot_draw(VALUE self, VALUE c, VALUE actual)
     canvas->cy = canvas->endy; 
   }
   // TODO lots of code to be added
+  shoes_plot_draw_title(canvas, self_t);
   printf("leaving shoes_plot_draw\n");
   return self;
 }
 
+static void shoes_plot_draw_title(shoes_canvas *canvas, shoes_plot *plot) 
+{
+  char *t = RSTRING_PTR(plot->title);
+  int x,y;
+  // no in the cairo co-ord system? so up is down. or vice versa.
+  x = canvas->cx + plot->title_x; // TODO: missing centerting 
+  y = canvas->cy - plot->title_y + 15; 
+  cairo_move_to(canvas->cr, x, y);
+  cairo_show_text(canvas->cr, t);
+}
+
+static void shoes_plot_draw_caption(shoes_canvas *canvas, shoes_plot *plot)
+{
+}
+
+
 VALUE shoes_plot_add(VALUE self, VALUE newseries) 
 {
+  shoes_plot *self_t;
+  VALUE rbsz, rbvals, rbobs, rbmin, rbmax, rbshname, rblgname;
+  Data_Get_Struct(self, shoes_plot, self_t); 
+  int i = self_t->seriescnt; // track number of series to plot.
   if (TYPE(newseries) == T_HASH) {
-    printf("shoes_plot_add using hash\n");
-  }
-  if (rb_obj_class(newseries) == cTimeSeries) {
-    printf("shoes_plot_add using TimeSeries\n");
+
+    rbsz = shoes_hash_get(newseries, rb_intern("num_obs"));
+    rbvals = shoes_hash_get(newseries, rb_intern("values"));
+    rbobs = shoes_hash_get(newseries, rb_intern("xobs"));
+    rbmin = shoes_hash_get(newseries, rb_intern("minv"));
+    rbmax = shoes_hash_get(newseries, rb_intern("maxv"));
+    rbshname = shoes_hash_get(newseries, rb_intern("name"));
+    rblgname = shoes_hash_get(newseries, rb_intern("long_name"));
+    if ( NIL_P(rbvals) || TYPE(rbvals) != T_ARRAY ) {
+      rb_raise(rb_eArgError, "Missing an Array of values");
+    }
+    if ( NIL_P(rbobs) ) {
+      // we can fake it - poorly - responds to_str might be important later
+      int l = NUM2INT(rbsz);
+      int i;
+      rbobs = rb_ary_new2(l);
+      for (i = 0; i < l; i++) {
+        rb_ary_store(rbobs, i, INT2NUM(i+1));
+      }
+    }
+    if ( TYPE(rbobs) != T_ARRAY ) {
+      rb_raise(rb_eArgError, "xobs is not an array");
+    }
+ #if 0   
+    //  For C debugging 
+    if (NIL_P(rblgname)) {
+      rblgname = rbshname;
+    }
+    int l = NUM2INT(rbsz);
+    double  min = NUM2DBL(rbmin);
+    double  max = NUM2DBL(rbmax);
+    char *shname = RSTRING_PTR(rbshname);
+    char *lgname = RSTRING_PTR(rblgname);
+    printf("shoes_plot_add using hash: num_obs: %i range %f, %f, |%s|, |%s| \n",
+       l, min, max, shname, lgname); 
+#endif
   } else {
-    printf("shoes_plot_add: assumes timeseries\n");
+    // throw exception here
+    printf("shoes_plot_add: misssing something\n");
   }
+  rb_ary_store(self_t->sizes, i, rbsz);
+  rb_ary_store(self_t->values, i, rbvals);
+  rb_ary_store(self_t->xobs, i, rbobs);
+  rb_ary_store(self_t->maxvs, i, rbmax);
+  rb_ary_store(self_t->minvs, i, rbmin);
+  rb_ary_store(self_t->names, i, rbshname);
+  rb_ary_store(self_t->long_names, i, rblgname);
+  self_t->seriescnt++;
   return self;
 }
 

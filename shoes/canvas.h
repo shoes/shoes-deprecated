@@ -328,11 +328,30 @@ typedef struct {
   VALUE attr;
   shoes_place place;
   int seriescnt;
-  VALUE maxvs;  // these will be Ruby arrays
+  VALUE maxvs;  // these will be Ruby arrays of things (0..seriescnt)
   VALUE minvs;
   VALUE values;
   VALUE names;  
-  char hover;
+  VALUE long_names; // for y axis display? someday?
+  VALUE xobs; 
+  VALUE sizes;
+  // now the singles for the plot
+  VALUE title;  
+  VALUE legend; // may not be used? 
+  VALUE caption;
+  int title_h;
+  int title_w;
+  int title_x; // centered ?
+  int title_y;
+  int caption_h;
+  int caption_w;
+  int caption_x;
+  int caption_y;
+  int graph_h;  // where the dots are drawn
+  int graph_w;
+  int graph_x;
+  int graph_y;
+  char hover;   // may not be used?
   shoes_transform *st;
 } shoes_plot;
 
