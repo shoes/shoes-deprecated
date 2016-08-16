@@ -22,6 +22,8 @@ static int
 shoes_plot_draw_surface(cairo_t *, shoes_plot *, shoes_place *, int, int);
 static void shoes_plot_draw_title(shoes_canvas *, shoes_plot *);
 static void shoes_plot_draw_caption(shoes_canvas *,shoes_plot *);
+static void shoes_plot_draw_fill(shoes_canvas *, shoes_plot *);
+
 
 // alloc some memory for a shoes_plot; We'll protect it's Ruby VALUES from gc
 // out of caution. fingers crossed.
@@ -149,7 +151,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   self_t->caption_h = 20;
   self_t->caption_w = 0;
   self_t->caption_x = 0;
-  self_t->caption_y = 20;
+  self_t->caption_y = 1;
   self_t->parent = parent;
   self_t->attr = Qnil;
   
@@ -159,40 +161,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   return obj;
 }
 
-#if 0
-static int
-shoes_plot_draw_surface(cairo_t *cr, shoes_plot *self_t, shoes_place *place, int imw, int imh)
-{
-  //shoes_plothandle *plothan;
-  //(self_t->plothandle, shoes_plothandle, plothan);
-  
-  // calculate aspect ratio only once at initialization
-  //if (self_t->scalew == 0.0 && self_t->scaleh == 0.0) {
-  //  plot_aspect_ratio(imw, imh, self_t, plothan);
-  //}
-  
-  /* drawing on plot parent's (canvas) surface */
-  // applying any transform : translate, rotate, scale, skew
-  shoes_apply_transformation(cr, self_t->st, place, 0);  // cairo_save(cr) inside
 
-  cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
-
-  if (plothan->subid == NULL) {
-    cairo_scale(cr, self_t->scalew, self_t->scaleh);
-  } else {
-    cairo_scale(cr, self_t->scalew, self_t->scaleh);          // order of scaling + translate matters !!!
-    cairo_translate(cr, -plothan->plothpos.x, -plothan->plothpos.y);
-  }
-
-  int result = rplot_handle_render_cairo_sub(plothan->handle, cr, plothan->subid);
-
-  shoes_undo_transformation(cr, self_t->st, place, 0); // doing cairo_restore(cr)
-  
-  self_t->place = *place;
-  
-  return result;
-}
-#endif 
 
 // This gets called very often by Shoes. May be slow for large plot?
 VALUE shoes_plot_draw(VALUE self, VALUE c, VALUE actual)
@@ -206,8 +175,38 @@ VALUE shoes_plot_draw(VALUE self, VALUE c, VALUE actual)
   int rel =(REL_CANVAS | REL_SCALE);
   shoes_place_decide(&place, c, self_t->attr, self_t->place.w, self_t->place.h, rel, REL_COORDS(rel) == REL_CANVAS);
   
-  //if (RTEST(actual)) 
-  //  shoes_plot_draw_surface( CCR(canvas), self_t, &place, place.w, place.h);
+  if (RTEST(actual)) {
+    cairo_t *cr = CCR(canvas);
+    shoes_apply_transformation(cr, self_t->st, &place, 0);  // cairo_save(cr) inside
+    cairo_translate(cr, place.ix + place.dx, place.iy + place.dy);
+    // draw widget box and fill with color (mostly white). 
+    shoes_plot_draw_fill(canvas, self_t);
+    // draw title TODO - should use pango/fontmetrics
+    cairo_select_font_face(cr, "Helvitica", CAIRO_FONT_SLANT_NORMAL,
+      CAIRO_FONT_WEIGHT_BOLD);
+    cairo_set_font_size(cr, 16);
+    shoes_plot_draw_title(canvas, self_t);
+  
+    // draw caption TODO - should use pango/fontmetrics
+    cairo_select_font_face(cr, "Helvitica", CAIRO_FONT_SLANT_NORMAL,
+      CAIRO_FONT_WEIGHT_NORMAL);
+    cairo_set_font_size(cr, 12);  
+    shoes_plot_draw_caption(canvas, self_t);
+    
+    plot->graph_h - plot->place.h - (plot->title_h + plot->caption_h);
+    plot->graph_y = plot->place.h - plot->title.h;
+    ylabelsz = 45; // TODO TODO run TOTO!
+    plot->graph_w = plot->place.w - ylabelsz * 2;
+    plot->graph_x = ylabelsz;
+    
+    // draw ticks and x,y labels.
+    // draw data
+  
+    // drawing finished
+    shoes_undo_transformation(cr, self_t->st, &place, 0); // doing cairo_restore(cr)
+    self_t->place = place;
+    printf("leaving shoes_plot_draw\n"); 
+  } 
   
   if (!ABSY(place)) { 
     canvas->cx += place.w; 
@@ -219,26 +218,43 @@ VALUE shoes_plot_draw(VALUE self, VALUE c, VALUE actual)
     canvas->cx = CPX(canvas); 
     canvas->cy = canvas->endy; 
   }
-  // TODO lots of code to be added
-  shoes_plot_draw_title(canvas, self_t);
-  printf("leaving shoes_plot_draw\n");
   return self;
+}
+
+static void shoes_plot_draw_fill(shoes_canvas *canvas, shoes_plot *plot)
+{
+  cairo_set_source_rgb(canvas->cr, 0.99, 0.99, 0.99);
+  cairo_set_line_width(canvas->cr, 1);
+  cairo_rectangle(canvas->cr, 0, 0, plot->place.w, plot->place.h);
+  cairo_stroke_preserve(canvas->cr);
+  cairo_fill(canvas->cr);
+  cairo_set_source_rgb(canvas->cr, 0.1, 0.1, 0.1);
 }
 
 static void shoes_plot_draw_title(shoes_canvas *canvas, shoes_plot *plot) 
 {
   char *t = RSTRING_PTR(plot->title);
-  int x,y;
-  // no in the cairo co-ord system? so up is down. or vice versa.
-  x = canvas->cx + plot->title_x; // TODO: missing centerting 
-  y = canvas->cy - plot->title_y + 15; 
+  int x, y;
+  // TODO simplistic centering assumes helveitca 16 bold
+  int offset = (plot->place.w / 2) - (strlen(t) * 8);
+  x = plot->place.ix + offset;
+  y = plot->title_h;
   cairo_move_to(canvas->cr, x, y);
   cairo_show_text(canvas->cr, t);
 }
 
 static void shoes_plot_draw_caption(shoes_canvas *canvas, shoes_plot *plot)
 {
-}
+  char *t = RSTRING_PTR(plot->caption);
+  int x, y;
+  // TODO simplistic centering assumes helveitca 12 normal
+  int offset = (plot->place.w / 2) - (strlen(t) * 6);
+  x = plot->place.ix + offset;
+  //y = plot->place.h - plot->caption_h; 
+  y = plot->place.h; 
+  y -= 2;
+  cairo_move_to(canvas->cr, x, y);
+  cairo_show_text(canvas->cr, t);}
 
 
 VALUE shoes_plot_add(VALUE self, VALUE newseries) 
