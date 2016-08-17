@@ -1,6 +1,24 @@
 # expert-graph.rb? draw timeseries data - using Shoes::Widget
-require 'lib/shoes/dataseries/csvseries.rb'
-tseries = CsvSeries.create('Tests/tstest.csv') 
+class Series
+  attr_accessor :size, :minv, :maxv, :ary
+  
+  def initialize(opts = {})
+    if opts[:values]
+     @ary = opts[:values]
+     @size = @ary.size
+    else
+      raise "must specifiy an :values array"
+    end
+    @size = opts[:num_obs] ? opts[:num_obs] : @ary.size
+    @maxv = opts[:maxv] ? opts[:maxv] : @ary.max
+    @minv = opts[:minv] ? opts[:minv] : @ary.min
+  end
+  
+  def [] (idx)
+    return @ary[idx]
+  end
+  
+end
 class Graph < Shoes::Widget
   @@series_collection = Array.new
   attr_accessor :width, :height, :canvas, :series_collection
@@ -14,7 +32,7 @@ class Graph < Shoes::Widget
       background white
     end
   end
-  
+
   
   def draw_all_series
     @@series_collection.each do |ser| 
@@ -23,7 +41,7 @@ class Graph < Shoes::Widget
       wid = @widget_w
       hgt = @widget_h
       vscale = hgt / (ser.maxv - ser.minv)
-      hscale = wid / ser.length
+      hscale = wid / ser.size
       oldx = 0
       oldy = 0
       (0..ser.size-1).each do |i|
@@ -51,25 +69,15 @@ class Graph < Shoes::Widget
 end
 
 Shoes.app width: 620, height: 610 do
+  @values1 = [24, 22, 10, 15, 12, 8]
+  @x_axis1 = ['a','b','c','d','e','f']
   stack do
-    tsname = tseries.name
-    tstype = tseries.bool?
-    tsminv = tseries.minv
-    tsmaxv = tseries.maxv
-    tsbeg = tseries.start_date # datetime
-    tsend = tseries.end_date    # datetime
-
-    para "have  #{tsname}  boolean?: #{tstype}  vrange: #{tsminv} to #{tsmaxv}"
-    para "First [0] #{tseries.value_at_index(0)}"
-    para "Last  [#{tseries.size-1}] #{tseries.value_at_index(tseries.size-1)}"
-    para "start #{tseries.value_at_date(tseries.start_date)} #{tseries.start_date} "
-    para "end   #{tseries.value_at_date(tseries.end_date)} #{tseries.end_date}"
-    rdidx = rand(tseries.length);
-    v = tseries[rdidx]
-    #para "random: #{rdidx}: is  #{v}"
+    para "Just Art Graph Demo"
     widget_width = 600
     widget_height = 400
     @grf = graph width: widget_width, height: widget_height
+    tseries = Series.new num_obs: @values1.size, values: @values1, xobs: @x_axis1,
+       name: "foobar", minv: 6, maxv: 26 , long_name: "foobar values"
     @grf.add_series(tseries)
     flow do 
       button "quit" do Shoes.quit end
