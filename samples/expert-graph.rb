@@ -69,8 +69,8 @@ class Graph < Shoes::Widget
 end
 
 Shoes.app width: 620, height: 610 do
-  @values1 = [24, 22, 10, 15, 12, 8]
-  @x_axis1 = ['a','b','c','d','e','f']
+  @values1 = [24, 22, 10, 15, 12, 8, 22]
+  @x_axis1 = ['a','b','c','d','e','f','g']
   stack do
     para "Just Art Graph Demo"
     widget_width = 600

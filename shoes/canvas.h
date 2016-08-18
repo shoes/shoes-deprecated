@@ -347,6 +347,7 @@ typedef struct {
   int caption_w;
   int caption_x;
   int caption_y;
+  int yaxis_offset;
   int graph_h;  // where the dots are drawn
   int graph_w;
   int graph_x;
