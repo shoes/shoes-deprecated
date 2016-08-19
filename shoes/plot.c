@@ -293,7 +293,7 @@ static void shoes_plot_draw_datapts(shoes_canvas *canvas, shoes_plot *plot)
     int height = bottom - top;
     int width = right - left; 
     float vScale = height / (maximum - minimum);
-    float hScale = width / (double) size - 1;
+    float hScale = width / (double) (size - 1);
     /* java 
 			g.setColor(colors[i % colors.length]);
     */
