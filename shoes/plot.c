@@ -372,7 +372,10 @@ static void shoes_plot_draw_ticks_and_labels(shoes_canvas *canvas, shoes_plot *p
             shoes_plot_draw_tick(canvas, plot, x, y, HORIZONTALLY);
             shoes_plot_draw_label(canvas, plot, x, y, tstr, LEFT);
         } else {        // right side y presentation
-        }
+          x = right;
+          printf("hoz right %i, %i, %s\n", (int)x, (int)y,tstr);
+          shoes_plot_draw_tick(canvas, plot, x, y, HORIZONTALLY);
+          shoes_plot_draw_label(canvas, plot, x, y, tstr, RIGHT);        }
       }
     }
 }
@@ -607,6 +610,9 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
     if ( NIL_P(rbvals) || TYPE(rbvals) != T_ARRAY ) {
       rb_raise(rb_eArgError, "Missing an Array of values");
     }
+    if (NIL_P(rbmin) || NIL_P(rbmax)) {
+      rb_raise(rb_eArgError, "Missing minv: or maxv: option");
+    }
     if ( NIL_P(rbobs) ) {
       // we can fake it - poorly - TODO better. Please.
       int l = NUM2INT(rbsz);
@@ -622,11 +628,11 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
     if ( TYPE(rbobs) != T_ARRAY ) {
       rb_raise(rb_eArgError, "xobs is not an array");
     }
- #if 0   
-    //  For C debugging 
     if (NIL_P(rblgname)) {
       rblgname = rbshname;
     }
+#if 1
+    //  For C debugging 
     int l = NUM2INT(rbsz);
     double  min = NUM2DBL(rbmin);
     double  max = NUM2DBL(rbmax);
