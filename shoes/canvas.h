@@ -328,17 +328,20 @@ typedef struct {
   VALUE attr;
   shoes_place place;
   int seriescnt;
+  int optflags; // bit mask
   VALUE maxvs;  // these will be Ruby arrays of things (0..seriescnt)
   VALUE minvs;
   VALUE values;
   VALUE names;  
-  VALUE long_names; // for y axis display? someday?
+  VALUE long_names; // for y axis display?? in place of data set names? 
   VALUE xobs; 
   VALUE sizes;
   // now the singles for the plot
   VALUE title;  
   VALUE legend; // may not be used? 
   VALUE caption;
+  int beg_idx;  //used for zooming in
+  int end_idx;  // and zooming out
   int title_h;
   int title_w;
   int title_x; // centered ?

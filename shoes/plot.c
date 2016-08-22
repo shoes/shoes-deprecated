@@ -25,6 +25,16 @@ static void shoes_plot_draw_caption(shoes_canvas *,shoes_plot *);
 static void shoes_plot_draw_fill(shoes_canvas *, shoes_plot *);
 static void shoes_plot_draw_adornments(shoes_canvas *, shoes_plot *);
 static void shoes_plot_draw_datapts(shoes_canvas *, shoes_plot *);
+static void shoes_plot_draw_ticks_and_labels(shoes_canvas *, shoes_plot *);
+static void shoes_plot_draw_legend_marker(shoes_canvas *, shoes_plot *);
+static void shoes_plot_draw_tick(shoes_canvas *, shoes_plot *, int, int, int);
+static void shoes_plot_draw_label(shoes_canvas *, shoes_plot *, int, int , char*, int);
+// ugly defines only used in this file?  Could use fancy new C enum? Or Not.
+#define VERTICALLY 0
+#define HORIZONTALLY 1
+#define LEFT 0
+#define BELOW 1
+#define RIGHT 2
 
 // alloc some memory for a shoes_plot; We'll protect it's Ruby VALUES from gc
 // out of caution. fingers crossed.
@@ -169,7 +179,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
 
 
 
-// This gets called very often by Shoes. May be slow for large plot?
+// This gets called very often by Shoes. May be slow for large plots?
 VALUE shoes_plot_draw(VALUE self, VALUE c, VALUE actual)
 {
   shoes_plot *self_t, *plot; 
@@ -195,7 +205,7 @@ VALUE shoes_plot_draw(VALUE self, VALUE c, VALUE actual)
     cairo_set_font_size(cr, 16);
     shoes_plot_draw_title(canvas, self_t);
   
-    // draw caption TODO - should use pango/fontmetrics
+    // draw caption TODO: should use pango/fontmetrics
     cairo_select_font_face(cr, "Helvitica", CAIRO_FONT_SLANT_NORMAL,
       CAIRO_FONT_WEIGHT_NORMAL);
     cairo_set_font_size(cr, 12);  
@@ -245,7 +255,6 @@ static void shoes_plot_draw_fill(shoes_canvas *canvas, shoes_plot *plot)
 static void shoes_plot_draw_adornments(shoes_canvas *canvas, shoes_plot *plot)
 {
   // draw box around data area (plot->graph_?)
-  //cairo_set_source_rgb(canvas->cr, 0.5, 0.5, 0.5);
   cairo_set_line_width(canvas->cr, 1);
   int t,l,b,r;
   l = plot->graph_x; t = plot->graph_y;
@@ -258,8 +267,212 @@ static void shoes_plot_draw_adornments(shoes_canvas *canvas, shoes_plot *plot)
   cairo_line_to(canvas->cr, l, b);  // across bottom
   cairo_line_to(canvas->cr, l, t);  // up left
   cairo_stroke(canvas->cr);
-  // Draw many fun things here: TODO
-  
+  shoes_plot_draw_ticks_and_labels(canvas, plot);
+  shoes_plot_draw_legend_marker(canvas, plot);
+}
+
+static void shoes_plot_draw_ticks_and_labels(shoes_canvas *canvas, shoes_plot *plot)
+{
+  int top, left, bottom, right; // these are cairo abs for plot->graph
+  int width, height;   // full plot space so it includes everything
+  int range;
+  int h_padding = 45; // default width of tick TODO: an option in plot-> 
+  int v_padding = 15; // default height of tick TODO: an option in plot->
+  left = plot->graph_x; top = plot->graph_y;
+  right = plot->graph_w; bottom = plot->graph_h; 
+  range = plot->end_idx - plot->beg_idx;
+  width = right - left; 
+  height = bottom - top;
+  /* java 
+		double hScale = width / (double) (end - 1);
+		int hInterval = (int) Math.ceil(hPadding / hScale);
+  */
+  double h_scale; 
+  int h_interval; 
+  h_scale = width / (double) (range -1);
+  h_interval = (int) ceil(h_padding / h_scale);
+ 
+  // draw x axis - labels and tick mark uses plot->xobs - assumes it's string
+  // in the array -- TODO: allow a proc to be called to create the string. at 'i'
+  int i;
+  VALUE xobs = rb_ary_entry(plot->xobs, 0); // first series is x axis descripter
+  if (NIL_P(xobs)) printf("FAIL: getting first xobs\n");
+  if (TYPE(xobs) != T_ARRAY) printf("FAIL: xobs in not array\n");
+  /* java
+		for (int i = 1; i < end - 1; i++) {
+      int x = (int) Math.round(i * hScale);
+      int y = height;
+      if (i % hInterval == 0) {
+        Date dt = DataSeries.idxToDate(i+begIdx);
+        StringBuffer hLabel = new StringBuffer(dTF.format(dt));
+			  drawTick(g, x, y, width, height, VERTICALLY);
+			  drawLabel(g, x, y, hLabel.toString(), BELOW);
+      }
+    }
+  */
+  for (i = 0 ; i < range; i++ ) {
+    int x = (int) roundl(i * h_scale);
+    x += left;
+    long y = bottom;
+    if ((i % h_interval) == 0) {
+      VALUE rbstr = rb_ary_entry(xobs, i + plot->beg_idx);
+      if (NIL_P(rbstr)) {
+        rb_raise(rb_eArgError, "FAIL: can't get xobs[%i]\n", i+plot->beg_idx);
+      }
+      char *rawstr = RSTRING_PTR(rbstr);
+      //printf("x label i: %i, x: %i, y: %i, \"%s\" %i %f \n", i, (int) x, (int) y, rawstr, h_interval, h_scale);
+      shoes_plot_draw_tick(canvas, plot, x, y, VERTICALLY);
+      shoes_plot_draw_label(canvas, plot, x, y, rawstr, BELOW);
+    }
+  }
+    /* java 
+		// Draw the vertical ticks for the first two series
+		for (int j = 0; j < Math.min(2,numSeries); j++) {
+			double maximum = ((Double)maximums.at(j)).doubleValue();
+			double minimum = ((Double)minimums.at(j)).doubleValue();
+			double vScale = height / (maximum - minimum);
+			int vInterval = (int) Math.ceil(vPadding / vScale);
+
+			for (long i = (long) minimum + 1; i < ((long) Math.round(maximum)); i=i+vInterval)
+			{
+				int x = 0;
+				int y = (int) (height - Math.round((i - minimum) * vScale));
+				if (j==0) {
+	            	String vLabel = new String(new Double(i).toString());
+	            	drawTick(g, x, y, width, height, HORIZONTALLY);
+	            	drawLabel(g, x, y, vLabel, LEFT);
+		  		}
+		  		else { // Right side Ticks and Labels
+	            	String vLabel = new String(new Double(i).toString());
+	            	drawTick(g, width+1, y, width+30, height, HORIZONTALLY);
+	            	drawLabel(g, width+2, y, vLabel, RIGHT);
+		  		}
+			} // for i
+		 // for j}
+     */
+    int j;
+    for (j = 0; j < min(2, plot->seriescnt); j++) {
+      VALUE rbmax = rb_ary_entry(plot->maxvs, j);
+      double maximum = NUM2DBL(rbmax);
+      VALUE rbmin = rb_ary_entry(plot->minvs, j);
+      double minimum = NUM2DBL(rbmin);
+      //double v_scale = plot->graph_h / (maximum - minimum);
+      double v_scale = height / (maximum - minimum);
+      int v_interval = (int) ceil(v_padding / v_scale);
+      VALUE rbser = rb_ary_entry(plot->values, j);
+      char tstr[16];
+      long i;
+      for (i = ((long) minimum) + 1 ; i < ((long) roundl(maximum)); i = i + roundl(v_interval)) {
+        int y = (int) (bottom - roundl((i - minimum) * v_scale));
+        int x = 0;
+        sprintf(tstr, "%i",  (int)i); // not correct for floats? 
+        if (j == 0) { // left side y presentation 
+            x = left;
+            //printf("hoz left %i, %i, %s\n", (int)x, (int)y,tstr);
+            shoes_plot_draw_tick(canvas, plot, x, y, HORIZONTALLY);
+            shoes_plot_draw_label(canvas, plot, x, y, tstr, LEFT);
+        } else {        // right side y presentation
+        }
+      }
+    }
+}
+static void shoes_plot_draw_legend_marker(shoes_canvas *canvas, shoes_plot *plot)
+{
+  // replace caption with name[s] unless there is one
+  //printf("TODO: shoes_plot_draw_legend_marker  called\n");
+}
+
+static void shoes_plot_draw_tick(shoes_canvas *canvas, shoes_plot *plot,
+    int x, int y, int orientation) 
+{
+  /* java
+		int tickSize = 3;
+		Color save = g.getColor();
+
+		g.setColor(Color.black);      
+
+		// Draw the tick mark, gridline, and shading.      
+		if (orientation == VERTICALLY)
+		{
+			g.drawLine(x , y - tickSize, x, y);
+			g.setColor(Color.gray);
+			g.drawLine(x , y - (tickSize + 1), x, 0);
+			g.setColor(Color.white);
+			g.drawLine(x + 1 , y , x + 1, 0);
+		}
+		else // HORIZONTALLY
+		{
+			g.drawLine(x, y , x + tickSize, y);
+			g.setColor(Color.gray);
+			g.drawLine(x + (tickSize + 1), y , width, y);
+			g.setColor(Color.white);
+			g.drawLine(x, y + 1, width, y + 1);
+		}
+		g.setColor(save);
+  */
+  int tick_size = 3;
+  if (orientation == VERTICALLY) {
+    cairo_move_to(canvas->cr, x, y);
+    cairo_line_to(canvas->cr, x, plot->graph_y);
+  } else if (orientation == HORIZONTALLY) {
+    cairo_move_to(canvas->cr, x, y);
+    cairo_line_to(canvas->cr, plot->graph_w, y);
+  } else {
+    printf("FAIL: shoes_plot_draw_tick  orientation\n");
+  }
+  cairo_stroke(canvas->cr);
+}
+
+static void shoes_plot_draw_label(shoes_canvas *canvas, shoes_plot *plot,
+    int x, int y, char *str, int where)
+{
+  /* java
+		Color save = g.getColor();
+		char characters[] = label.toCharArray();
+		int theLength = label.length();
+		FontMetrics metrics = getFontMetrics(font);
+		int stringWidth = metrics.charsWidth(characters, 0, theLength);
+
+		g.setFont(font);
+		g.setColor(Color.black);
+  */
+  // TODO: Font was previously set to Helvetica 12 and color was setup
+  // keep them for now
+  cairo_text_extents_t ct;
+  cairo_text_extents(canvas->cr, str, &ct);
+  int str_w = (int) ct.width;
+  int str_h = (int) ct.height;
+  /* java 
+		if (where == LEFT) {
+			int newx = x - (stringWidth + 3);
+			int newy = y;
+			g.drawChars(characters, 0, theLength, newx, newy);
+		} else if (where == RIGHT) {
+			g.drawChars(characters, 0, theLength, x, y);
+		} else { // BELOW 
+			int newx = x - (stringWidth / 2);
+			int newy = y + metrics.getHeight() + 3;
+			g.drawChars(characters, 0, theLength, newx, newy);
+		}
+		g.setColor(save);
+  */
+  int newx;
+  int newy;
+  if (where == LEFT) { // left side y-axis
+    newx = x - (str_w + 3);
+    newy = y + (str_h -(str_h / 2));
+  } else if (where == RIGHT) { // right side y-axis
+    newx = x;
+    newx = y;
+  } else if (where == BELOW) { // bottom side x axis
+    newx = x - (str_w / 2);
+    newy = y + str_h + 3;
+  } else { 
+    printf("FAIL: shoes_plot_draw_label 'where ?'\n");
+  }
+  cairo_move_to(canvas->cr, newx, newy);
+  cairo_show_text(canvas->cr, str);
+  // printf("TODO: shoes_plot_draw_label called\n");
 }
 
 static void shoes_plot_draw_datapts(shoes_canvas *canvas, shoes_plot *plot)
@@ -282,7 +495,6 @@ static void shoes_plot_draw_datapts(shoes_canvas *canvas, shoes_plot *plot)
     VALUE rbsize = rb_ary_entry(plot->sizes, i);
     double maximum = NUM2DBL(rbmaxv);
     double minimum = NUM2DBL(rbminv);
-    int size = NUM2INT(rbsize);
     /* java 
 			double vScale = height / (maximum - minimum);
 			int range = endIdx - begIdx;
@@ -292,8 +504,9 @@ static void shoes_plot_draw_datapts(shoes_canvas *canvas, shoes_plot *plot)
     // Shoes: Remember - we use ints for x, y, w, h and for drawing lines and points
     int height = bottom - top;
     int width = right - left; 
+    int range = plot->end_idx - plot->beg_idx; // zooming adj
     float vScale = height / (maximum - minimum);
-    float hScale = width / (double) (size - 1);
+    float hScale = width / (double) (range - 1);
     /* java 
 			g.setColor(colors[i % colors.length]);
     */
@@ -308,7 +521,7 @@ static void shoes_plot_draw_datapts(shoes_canvas *canvas, shoes_plot *plot)
       case 2: // green-ish
         cairo_set_source_rgb(canvas->cr, 0.0, 0.9, 0.0);
         break;
-      default:
+      default: // TODO should have more colors
         cairo_set_source_rgb(canvas->cr, 0.9, 0.9, 0.9);
     }
     /* java
@@ -330,13 +543,14 @@ static void shoes_plot_draw_datapts(shoes_canvas *canvas, shoes_plot *plot)
 			}
       */
     int j;
-    for (j = 0; j < size; j++) {
-      VALUE rbdp = rb_ary_entry(rbvalues, j);
+    for (j = 0; j < range; j++) {
+      VALUE rbdp = rb_ary_entry(rbvalues, j + plot->beg_idx);
       double v = NUM2DBL(rbdp);
       long x = roundl(j * hScale);
       long y = height - roundl((v - minimum) *vScale);
       x += left;
       y += top;
+      //printf("draw i: %i, x: %i, y: %i %f \n", j, (int) x, (int) y, hScale);
       if (j == 0)
         cairo_move_to(canvas->cr, x, y);
       else
@@ -394,12 +608,15 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
       rb_raise(rb_eArgError, "Missing an Array of values");
     }
     if ( NIL_P(rbobs) ) {
-      // we can fake it - poorly - responds to_str might be important later
+      // we can fake it - poorly - TODO better. Please.
       int l = NUM2INT(rbsz);
       int i;
       rbobs = rb_ary_new2(l);
       for (i = 0; i < l; i++) {
-        rb_ary_store(rbobs, i, INT2NUM(i+1));
+        char t[8];
+        sprintf(t, "%i", i+1);
+        VALUE foostr = rb_str_new2(t);
+        rb_ary_store(rbobs, i, foostr);
       }
     }
     if ( TYPE(rbobs) != T_ARRAY ) {
@@ -420,7 +637,7 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
 #endif
   } else {
     // throw exception here
-    printf("shoes_plot_add: misssing something\n");
+    printf("TODO:shoes_plot_add: misssing something\n");
   }
   rb_ary_store(self_t->sizes, i, rbsz);
   rb_ary_store(self_t->values, i, rbvals);
@@ -429,19 +646,21 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
   rb_ary_store(self_t->minvs, i, rbmin);
   rb_ary_store(self_t->names, i, rbshname);
   rb_ary_store(self_t->long_names, i, rblgname);
+  self_t->beg_idx = 0;
+  self_t->end_idx = NUM2INT(rbsz);
   self_t->seriescnt++;
   return self;
 }
 
 VALUE shoes_plot_delete(VALUE self, VALUE series) 
 {
-  printf("shoes_plot_add called\n");
+  printf("TODO: shoes_plot_add called\n");
   return self;
 }
 
 VALUE shoes_plot_redraw(VALUE self) 
 {
-  printf("shoes_plot_redraw called\n");
+  printf("TODO: shoes_plot_redraw called\n");
   return self;
 }
 
