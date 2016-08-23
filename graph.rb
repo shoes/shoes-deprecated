@@ -11,7 +11,7 @@ Shoes.app width: 620, height: 610 do
     widget_width = 600
     widget_height = 400
     @grf = plot widget_width, widget_height, title:"My Graph", caption: 
-      "Look at that! Booyah!!" #, font: "UnPilgi"
+      "Look at that! Booyah!!" , font: "UnPilgi"
     @grf.add num_obs: @values1.size, values: @values1, #xobs: @x_axis1,
        name: "foobar", minv: 6, maxv: 26 , long_name: "foobar values"
     button "add #2" do
