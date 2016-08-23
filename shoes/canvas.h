@@ -338,18 +338,17 @@ typedef struct {
   VALUE sizes;
   // now the singles for the plot
   VALUE title;  
-  VALUE legend; // may not be used? 
+  VALUE legend; 
   VALUE caption;
+  char  *fontname; // not a Shoes name, cairo "toy" name
   int beg_idx;  //used for zooming in
   int end_idx;  // and zooming out
   int title_h;
-  int title_w;
-  int title_x; // centered ?
-  int title_y;
+  int title_fh; // font height
+  int legend_h; 
+  int legend_fh; 
   int caption_h;
-  int caption_w;
-  int caption_x;
-  int caption_y;
+  int caption_fh;
   int yaxis_offset;
   int graph_h;  // where the dots are drawn
   int graph_w;

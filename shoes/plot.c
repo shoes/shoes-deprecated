@@ -26,7 +26,7 @@ static void shoes_plot_draw_fill(shoes_canvas *, shoes_plot *);
 static void shoes_plot_draw_adornments(shoes_canvas *, shoes_plot *);
 static void shoes_plot_draw_datapts(shoes_canvas *, shoes_plot *);
 static void shoes_plot_draw_ticks_and_labels(shoes_canvas *, shoes_plot *);
-static void shoes_plot_draw_legend_marker(shoes_canvas *, shoes_plot *);
+static void shoes_plot_draw_legend(shoes_canvas *, shoes_plot *);
 static void shoes_plot_draw_tick(shoes_canvas *, shoes_plot *, int, int, int);
 static void shoes_plot_draw_label(shoes_canvas *, shoes_plot *, int, int , char*, int);
 // ugly defines only used in this file?  Could use fancy new C enum? Or Not.
@@ -109,7 +109,7 @@ VALUE
 shoes_plot_new(int argc, VALUE *argv, VALUE parent)
 {
   VALUE attr = Qnil, widthObj, heightObj, optsArg;
-  VALUE title, caption;
+  VALUE title, caption, fontreq;
   shoes_canvas *canvas;
   Data_Get_Struct(parent, shoes_canvas, canvas);
   
@@ -127,6 +127,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     // TODO pick out :title and :caption if given and other style args
     title = shoes_hash_get(optsArg, rb_intern("title"));
     caption = shoes_hash_get(optsArg, rb_intern("caption"));
+    fontreq = shoes_hash_get(optsArg, rb_intern("font"));
 #if 0
     // C debugging
     if (!NIL_P(title)) printf("have title: %s\n", RSTRING_PTR(title));
@@ -141,28 +142,32 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   
   self_t->place.w = NUM2INT(widthObj);
   self_t->place.h = NUM2INT(heightObj);
-  /* TODO should call something(self_t) to recompute x,y,w,h on resize
-   * TODO fontmetrics for title and caption (and arg parsing)
+  /* 
+   * TODO: pangocairo fontmetrics for title and caption 
    * and many more - width of Y axis label space. Challenging.
    * at this time, we have't been placed on screen so computing x and y
    * is kind of tricky as these are relative to where ever that happens
-   * to be. Conside these are offsets.
+   * to be. 
   */
+  if (! NIL_P(fontreq)) {
+    self_t->fontname = RSTRING_PTR(fontreq);
+  } else {
+    self_t->fontname = "Helvitica";
+  }
+  
   if (!NIL_P(title)) {
     self_t->title = title;
   }
-  self_t->title_h = 20;
-  self_t->title_x = 0;
-  self_t->title_y = 20; 
-  self_t->title_w = 0;
+
   
+  self_t->title_h = 50;
+
   if (!NIL_P(caption)) {
     self_t->caption = caption;
   }
-  self_t->caption_h = 20;
-  self_t->caption_w = 0;
-  self_t->caption_x = 0;
-  self_t->caption_y = 1;
+  self_t->legend_h = 25;
+  self_t->caption_h = 25;
+
   // width of y axis on left and right of plot, in pixels
   // really should be computed based on the data being presented.
   // TODO Of course.
@@ -200,20 +205,21 @@ VALUE shoes_plot_draw(VALUE self, VALUE c, VALUE actual)
     // draw widget box and fill with color (mostly white). 
     shoes_plot_draw_fill(canvas, self_t);
     // draw title TODO - should use pango/fontmetrics
-    cairo_select_font_face(cr, "Helvitica", CAIRO_FONT_SLANT_NORMAL,
+    cairo_select_font_face(cr, plot->fontname, CAIRO_FONT_SLANT_NORMAL,
       CAIRO_FONT_WEIGHT_BOLD);
     cairo_set_font_size(cr, 16);
     shoes_plot_draw_title(canvas, self_t);
   
     // draw caption TODO: should use pango/fontmetrics
-    cairo_select_font_face(cr, "Helvitica", CAIRO_FONT_SLANT_NORMAL,
+    // cairo_select_font_face(cr, "Helvitica", CAIRO_FONT_SLANT_NORMAL,
+    cairo_select_font_face(cr, plot->fontname, CAIRO_FONT_SLANT_NORMAL,
       CAIRO_FONT_WEIGHT_NORMAL);
     cairo_set_font_size(cr, 12);  
     shoes_plot_draw_caption(canvas, self_t);
     
     plot->graph_h = plot->place.h - (plot->title_h + plot->caption_h);
     plot->graph_y = plot->title_h + 3;
-    plot->yaxis_offset = 50; // TODO TODO run TOTO, run!
+    plot->yaxis_offset = 50; // TODO:  run TOTO, run!
     plot->graph_w = plot->place.w - plot->yaxis_offset;
     plot->graph_x = plot->yaxis_offset;
 
@@ -268,7 +274,7 @@ static void shoes_plot_draw_adornments(shoes_canvas *canvas, shoes_plot *plot)
   cairo_line_to(canvas->cr, l, t);  // up left
   cairo_stroke(canvas->cr);
   shoes_plot_draw_ticks_and_labels(canvas, plot);
-  shoes_plot_draw_legend_marker(canvas, plot);
+  shoes_plot_draw_legend(canvas, plot);
 }
 
 static void shoes_plot_draw_ticks_and_labels(shoes_canvas *canvas, shoes_plot *plot)
@@ -373,16 +379,14 @@ static void shoes_plot_draw_ticks_and_labels(shoes_canvas *canvas, shoes_plot *p
             shoes_plot_draw_label(canvas, plot, x, y, tstr, LEFT);
         } else {        // right side y presentation
           x = right;
-          printf("hoz right %i, %i, %s\n", (int)x, (int)y,tstr);
           shoes_plot_draw_tick(canvas, plot, x, y, HORIZONTALLY);
           shoes_plot_draw_label(canvas, plot, x, y, tstr, RIGHT);        }
       }
     }
 }
-static void shoes_plot_draw_legend_marker(shoes_canvas *canvas, shoes_plot *plot)
+static void shoes_plot_draw_legend(shoes_canvas *canvas, shoes_plot *plot)
 {
-  // replace caption with name[s] unless there is one
-  //printf("TODO: shoes_plot_draw_legend_marker  called\n");
+  // kind of tricksy using the cairo toy api's. 
 }
 
 static void shoes_plot_draw_tick(shoes_canvas *canvas, shoes_plot *plot,
@@ -444,7 +448,7 @@ static void shoes_plot_draw_label(shoes_canvas *canvas, shoes_plot *plot,
   cairo_text_extents_t ct;
   cairo_text_extents(canvas->cr, str, &ct);
   int str_w = (int) ct.width;
-  int str_h = (int) ct.height;
+  int str_h = (int) ceil(ct.height);
   /* java 
 		if (where == LEFT) {
 			int newx = x - (stringWidth + 3);
@@ -462,11 +466,12 @@ static void shoes_plot_draw_label(shoes_canvas *canvas, shoes_plot *plot,
   int newx;
   int newy;
   if (where == LEFT) { // left side y-axis
-    newx = x - (str_w + 3);
+    newx = x - (str_w + 3) - 1 ;
     newy = y + (str_h -(str_h / 2));
   } else if (where == RIGHT) { // right side y-axis
     newx = x;
-    newx = y;
+    newy = y + (str_h -(str_h / 2));
+    //printf("lbl rightx: %i, y: %i, %s\n", (int)newx, (int)newy, str);
   } else if (where == BELOW) { // bottom side x axis
     newx = x - (str_w / 2);
     newy = y + str_h + 3;
@@ -559,6 +564,7 @@ static void shoes_plot_draw_datapts(shoes_canvas *canvas, shoes_plot *plot)
       else
         cairo_line_to(canvas->cr, x, y);
     }
+    cairo_stroke(canvas->cr);
   } // end of drawing one series
   // tell cairo to draw all lines (and points)
   cairo_stroke(canvas->cr); 
@@ -568,28 +574,36 @@ static void shoes_plot_draw_datapts(shoes_canvas *canvas, shoes_plot *plot)
 
 static void shoes_plot_draw_title(shoes_canvas *canvas, shoes_plot *plot) 
 {
-  char *t = RSTRING_PTR(plot->title);
+  char *str = RSTRING_PTR(plot->title);
   int x, y;
-  // TODO simplistic centering assumes helveitca 16 bold
-  int offset = (plot->place.w / 2) - (strlen(t) * 8);
-  x = plot->place.ix + offset;
-  y = plot->title_h;
+  cairo_text_extents_t te;
+  cairo_text_extents(canvas->cr, str, &te);
+  int xoffset = (plot->place.w / 2) - (te.width / 2);
+  int yhalf = (plot->title_h / 2 ); 
+  int yoffset = yhalf + (te.height / 2);
+  x = plot->place.ix + xoffset;
+  //y = plot->title_h;
+  y = yoffset;
   cairo_move_to(canvas->cr, x, y);
-  cairo_show_text(canvas->cr, t);
+  cairo_show_text(canvas->cr, str);
 }
 
 static void shoes_plot_draw_caption(shoes_canvas *canvas, shoes_plot *plot)
 {
-  char *t = RSTRING_PTR(plot->caption);
+  char *str = RSTRING_PTR(plot->caption);
   int x, y;
-  // TODO simplistic centering assumes helveitca 12 normal
-  int offset = (plot->place.w / 2) - (strlen(t) * 6);
-  x = plot->place.ix + offset;
+  cairo_text_extents_t te;
+  cairo_text_extents(canvas->cr, str, &te);
+  int xoffset = (plot->place.w / 2) - (te.width / 2);
+  int yhalf = (plot->caption_h / 2 ); 
+  int yoffset = yhalf + (te.height / 2);
+  //int offset = (plot->place.w / 2) - (strlen(t) * 6);
+  x = plot->place.ix + xoffset;
   //y = plot->place.h - plot->caption_h; 
   y = plot->place.h; 
-  y -= 2;
+  y -= yoffset;
   cairo_move_to(canvas->cr, x, y);
-  cairo_show_text(canvas->cr, t);}
+  cairo_show_text(canvas->cr, str);}
 
 
 VALUE shoes_plot_add(VALUE self, VALUE newseries) 
@@ -631,7 +645,7 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
     if (NIL_P(rblgname)) {
       rblgname = rbshname;
     }
-#if 1
+#if 0
     //  For C debugging 
     int l = NUM2INT(rbsz);
     double  min = NUM2DBL(rbmin);
@@ -655,6 +669,7 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
   self_t->beg_idx = 0;
   self_t->end_idx = NUM2INT(rbsz);
   self_t->seriescnt++;
+  shoes_canvas_repaint_all(self_t->parent);
   return self;
 }
 
