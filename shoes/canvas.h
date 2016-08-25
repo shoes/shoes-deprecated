@@ -328,7 +328,7 @@ typedef struct {
   VALUE attr;
   shoes_place place;
   int seriescnt;
-  int optflags; // bit mask
+  int auto_grid; 
   VALUE maxvs;  // these will be Ruby arrays of things (0..seriescnt)
   VALUE minvs;
   VALUE values;

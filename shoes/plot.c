@@ -29,6 +29,16 @@ static void shoes_plot_draw_ticks_and_labels(shoes_canvas *, shoes_plot *);
 static void shoes_plot_draw_legend(shoes_canvas *, shoes_plot *);
 static void shoes_plot_draw_tick(shoes_canvas *, shoes_plot *, int, int, int);
 static void shoes_plot_draw_label(shoes_canvas *, shoes_plot *, int, int , char*, int);
+
+static float plot_colors[6][3] = {
+  { 0.0, 0.0, 0.9 }, // 0 is blue
+  { 0.9, 0.0, 0.0 }, // 1 is red
+  { 0.0, 0.9, 0.0 }, // 2 is green
+  { 0.9, 0.9, 0.9 }, // 3 is yellow
+  { 0.9, 0.5, 0.0 }, // 4 is orange-ish
+  { 0.5, 0.0, 0.9 }  // 5 is purple
+} ;
+
 // ugly defines only used in this file?  Could use fancy new C enum? Or Not.
 #define VERTICALLY 0
 #define HORIZONTALLY 1
@@ -76,40 +86,15 @@ shoes_plot_alloc(VALUE klass)
   plot->long_names = rb_ary_new();
   plot->parent = Qnil;
   plot->st = NULL;
+  plot->auto_grid = 0;
   return obj;
 }
-
-#if 0
-void
-plot_aspect_ratio(int imw, int imh, shoes_plot *self_t, shoes_plothandle *plothan)
-{
-  double outw = imw * 1.0; // width given to plot() 
-  double outh = imh * 1.0; // height given to plot() 
-
-  self_t->scalew = outw / plothan->plothdim.width;   // don't keep aspect ratio, Fill provided or deduced dimensions
-  self_t->scaleh = outh / plothan->plothdim.height;  // 
-
-  if (plothan->aspect == 0.0) {                    // keep aspect ratio
-    self_t->scalew = self_t->scaleh = MIN(outw / plothan->plothdim.width, outh / plothan->plothdim.height);
-
-  } else if (plothan->aspect > 0.0) {              // don't keep aspect ratio, User aspect ratio
-
-    double new_plotdim_height = plothan->plothdim.width / plothan->aspect;
-    double new_plotdim_width = plothan->plothdim.height * plothan->aspect;
-
-    if (outw / new_plotdim_width < outh / new_plotdim_height)
-      self_t->scaleh = self_t->scalew * new_plotdim_height / plothan->plothdim.height;
-    else
-      self_t->scalew = self_t->scaleh * new_plotdim_width / plothan->plothdim.width;
-  }
-}
-#endif
 
 VALUE
 shoes_plot_new(int argc, VALUE *argv, VALUE parent)
 {
-  VALUE attr = Qnil, widthObj, heightObj, optsArg;
-  VALUE title, caption, fontreq;
+  VALUE attr = Qnil, widthObj = Qnil, heightObj = Qnil, optsArg = Qnil;
+  VALUE title = Qnil, caption = Qnil, fontreq = Qnil, auto_grid = Qnil;
   shoes_canvas *canvas;
   Data_Get_Struct(parent, shoes_canvas, canvas);
   
@@ -128,6 +113,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     title = shoes_hash_get(optsArg, rb_intern("title"));
     caption = shoes_hash_get(optsArg, rb_intern("caption"));
     fontreq = shoes_hash_get(optsArg, rb_intern("font"));
+    auto_grid = shoes_hash_get(optsArg, rb_intern("auto_grid"));
 #if 0
     // C debugging
     if (!NIL_P(title)) printf("have title: %s\n", RSTRING_PTR(title));
@@ -158,6 +144,11 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   if (!NIL_P(title)) {
     self_t->title = title;
   }
+  self_t->auto_grid = 0;
+  if (! NIL_P(auto_grid)) {
+    if (RTEST(auto_grid))
+      self_t->auto_grid = 1;
+  } 
 
   
   self_t->title_h = 50;
@@ -386,12 +377,61 @@ static void shoes_plot_draw_ticks_and_labels(shoes_canvas *canvas, shoes_plot *p
 }
 static void shoes_plot_draw_legend(shoes_canvas *canvas, shoes_plot *plot)
 {
-  // kind of tricksy using the cairo toy api's. 
+  // kind of tricksy using the cairo toy api's.
+  // compute width of all name plus some space between them
+  // compute left point, move_to there. for each name
+  // pick and set the color, draw string and a space or two
+  // repeat for next series
+  
+  int top, left, bottom, right; 
+  int width, height;   
+  left = plot->place.x; top = plot->graph_h + 5;
+  right = plot->place.w; bottom = top + plot->legend_h; 
+  width = right - left; 
+  height = bottom - top;
+  
+  int i, bigstrlen = 0;
+  VALUE rbstr; 
+  char *strary[6];
+  for (i = 0; i <  6; i++) strary[i] = 0;
+  for (i = 0; i < plot->seriescnt; i++) {
+    rbstr = rb_ary_entry(plot->long_names, i);
+    strary[i] = RSTRING_PTR(rbstr);
+    bigstrlen += strlen(strary[i]);
+    bigstrlen += 2; // TODO number of space
+  }
+  char *space_str = "  ";
+  char *bigstr = malloc(bigstrlen);
+  bigstr[0] = '\0';
+  for (i = 0; i < plot->seriescnt; i++) {
+    strcat(bigstr, strary[i]);
+    strcat(bigstr, space_str);
+  }
+  // TODO - cairo doesn't like the extents calls - UTF-8 issues and/or seqfaults.
+  cairo_set_font_size(canvas->cr, 14);
+  
+  cairo_text_extents_t bigstr_ct;
+  cairo_text_extents(canvas->cr, bigstr, &bigstr_ct);
+
+  free(bigstr);
+  // where to position the drawing pt?
+  int pos_x;
+  pos_x = (width - (int) bigstr_ct.width) / 2;
+  //printf("middle? w: %i, l: %i  pos_x: %i, strw: %i\n", width, left, pos_x, (int)bigstr_ct.width);
+  cairo_move_to(canvas->cr, pos_x, bottom+5); //TODO: compute baseline
+  for (i = 0; i < plot->seriescnt; i++) {
+     cairo_set_source_rgb(canvas->cr, plot_colors[i][0], plot_colors[i][1],
+         plot_colors[i][2]);
+     cairo_show_text(canvas->cr, strary[i]);
+     cairo_show_text(canvas->cr, space_str);
+  }
+  
 }
 
 static void shoes_plot_draw_tick(shoes_canvas *canvas, shoes_plot *plot,
     int x, int y, int orientation) 
 {
+  if (plot->auto_grid == 0) return;
   /* java
 		int tickSize = 3;
 		Color save = g.getColor();
@@ -448,7 +488,10 @@ static void shoes_plot_draw_label(shoes_canvas *canvas, shoes_plot *plot,
   cairo_text_extents_t ct;
   cairo_text_extents(canvas->cr, str, &ct);
   int str_w = (int) ct.width;
-  int str_h = (int) ceil(ct.height);
+  // measure the max height of the font not the string.
+  cairo_font_extents_t ft;
+  cairo_font_extents(canvas->cr, &ft);
+  int str_h = (int) ceil(ft.height);
   /* java 
 		if (where == LEFT) {
 			int newx = x - (stringWidth + 3);
@@ -519,19 +562,9 @@ static void shoes_plot_draw_datapts(shoes_canvas *canvas, shoes_plot *plot)
 			g.setColor(colors[i % colors.length]);
     */
     // TODO: color should be part of the series description
-    switch (i) {
-      case 0: // blue-ish
-        cairo_set_source_rgb(canvas->cr, 0.0, 0.0, 0.9);
-        break;
-      case 1: // red-ish
-        cairo_set_source_rgb(canvas->cr, 0.9, 0.0, 0.0);
-        break;
-      case 2: // green-ish
-        cairo_set_source_rgb(canvas->cr, 0.0, 0.9, 0.0);
-        break;
-      default: // TODO should have more colors
-        cairo_set_source_rgb(canvas->cr, 0.9, 0.9, 0.9);
-    }
+    cairo_set_source_rgb(canvas->cr, plot_colors[i][0], plot_colors[i][1],
+        plot_colors[i][2]);
+
     /* java
 			for (int j = 0; j < range; j++) 
 			{
@@ -605,13 +638,15 @@ static void shoes_plot_draw_caption(shoes_canvas *canvas, shoes_plot *plot)
   cairo_move_to(canvas->cr, x, y);
   cairo_show_text(canvas->cr, str);}
 
-
 VALUE shoes_plot_add(VALUE self, VALUE newseries) 
 {
   shoes_plot *self_t;
   VALUE rbsz, rbvals, rbobs, rbmin, rbmax, rbshname, rblgname;
   Data_Get_Struct(self, shoes_plot, self_t); 
   int i = self_t->seriescnt; // track number of series to plot.
+  if (i >= 6) {
+    rb_raise(rb_eArgError, "Maximum of 6 series");
+  }
   if (TYPE(newseries) == T_HASH) {
 
     rbsz = shoes_hash_get(newseries, rb_intern("num_obs"));
@@ -656,8 +691,7 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
        l, min, max, shname, lgname); 
 #endif
   } else {
-    // throw exception here
-    printf("TODO:shoes_plot_add: misssing something\n");
+    rb_raise(rb_eArgError, misssing something in plot.add \n");
   }
   rb_ary_store(self_t->sizes, i, rbsz);
   rb_ary_store(self_t->values, i, rbvals);
