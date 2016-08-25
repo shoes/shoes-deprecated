@@ -340,6 +340,8 @@ typedef struct {
   VALUE title;  
   VALUE legend; 
   VALUE caption;
+  int x_ticks;   // number of x_axis (which means a vertical drid line draw)
+  int y_ticks;   // number of (left side) y axis horizontial grid lines)
   char  *fontname; // not a Shoes name, cairo "toy" name
   int beg_idx;  //used for zooming in
   int end_idx;  // and zooming out

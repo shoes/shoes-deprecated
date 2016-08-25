@@ -87,6 +87,8 @@ shoes_plot_alloc(VALUE klass)
   plot->parent = Qnil;
   plot->st = NULL;
   plot->auto_grid = 0;
+  plot->x_ticks = 8;
+  plot->y_ticks = 6;
   return obj;
 }
 
@@ -95,6 +97,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
 {
   VALUE attr = Qnil, widthObj = Qnil, heightObj = Qnil, optsArg = Qnil;
   VALUE title = Qnil, caption = Qnil, fontreq = Qnil, auto_grid = Qnil;
+  VALUE x_ticks = Qnil, y_ticks = Qnil;
   shoes_canvas *canvas;
   Data_Get_Struct(parent, shoes_canvas, canvas);
   
@@ -109,17 +112,16 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     break;
   }
   if (!NIL_P(optsArg)) {
-    // TODO pick out :title and :caption if given and other style args
+    // TODO pick out :title and :caption if given (and other 'style' args?)
     title = shoes_hash_get(optsArg, rb_intern("title"));
     caption = shoes_hash_get(optsArg, rb_intern("caption"));
     fontreq = shoes_hash_get(optsArg, rb_intern("font"));
     auto_grid = shoes_hash_get(optsArg, rb_intern("auto_grid"));
-#if 0
-    // C debugging
-    if (!NIL_P(title)) printf("have title: %s\n", RSTRING_PTR(title));
-    if (!NIL_P(caption)) printf("have caption: %s\n", RSTRING_PTR(caption));
-#endif
-  } 
+    x_ticks = shoes_hash_get(optsArg, rb_intern("x_ticks"));
+    y_ticks = shoes_hash_get(optsArg, rb_intern("y_ticks"));
+  } else {
+    rb_raise(rb_eArgError, "Plot: missing {options}");
+  }
 
   VALUE obj = shoes_plot_alloc(cPlot);
   shoes_plot *self_t;
@@ -143,6 +145,8 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   
   if (!NIL_P(title)) {
     self_t->title = title;
+  } else {
+    self_t->title = rb_str_new2("Missing a title:");
   }
   self_t->auto_grid = 0;
   if (! NIL_P(auto_grid)) {
@@ -150,11 +154,12 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
       self_t->auto_grid = 1;
   } 
 
-  
   self_t->title_h = 50;
 
   if (!NIL_P(caption)) {
     self_t->caption = caption;
+  } else {
+    self_t->caption = rb_str_new2("Missing a caption:");
   }
   self_t->legend_h = 25;
   self_t->caption_h = 25;
@@ -164,6 +169,11 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   // TODO Of course.
   self_t->yaxis_offset = 50; 
   
+  if (!NIL_P(x_ticks))
+    self_t->x_ticks = NUM2INT(x_ticks);
+  if (!NIL_P(y_ticks))
+    self_t->y_ticks = NUM2INT(y_ticks);
+    
   self_t->parent = parent;
   self_t->attr = Qnil;
   
@@ -193,7 +203,7 @@ VALUE shoes_plot_draw(VALUE self, VALUE c, VALUE actual)
     shoes_apply_transformation(cr, self_t->st, &place, 0);  // cairo_save(cr) inside
     cairo_translate(cr, place.ix + place.dx, place.iy + place.dy);
     
-    // draw widget box and fill with color (mostly white). 
+    // draw widget box and fill with color (nearly white). 
     shoes_plot_draw_fill(canvas, self_t);
     // draw title TODO - should use pango/fontmetrics
     cairo_select_font_face(cr, plot->fontname, CAIRO_FONT_SLANT_NORMAL,
@@ -213,13 +223,13 @@ VALUE shoes_plot_draw(VALUE self, VALUE c, VALUE actual)
     plot->yaxis_offset = 50; // TODO:  run TOTO, run!
     plot->graph_w = plot->place.w - plot->yaxis_offset;
     plot->graph_x = plot->yaxis_offset;
-
-    // draw  box, ticks and x,y labels.
-    shoes_plot_draw_adornments(canvas, plot);
+    if (plot->seriescnt) {
+      // draw  box, ticks and x,y labels.
+      shoes_plot_draw_adornments(canvas, plot);
     
-    // draw data
-    shoes_plot_draw_datapts(canvas, plot);
-    
+      // draw data
+      shoes_plot_draw_datapts(canvas, plot);
+    }
     // drawing finished
     shoes_undo_transformation(cr, self_t->st, &place, 0); // doing cairo_restore(cr)
     self_t->place = place;
@@ -273,13 +283,15 @@ static void shoes_plot_draw_ticks_and_labels(shoes_canvas *canvas, shoes_plot *p
   int top, left, bottom, right; // these are cairo abs for plot->graph
   int width, height;   // full plot space so it includes everything
   int range;
-  int h_padding = 45; // default width of tick TODO: an option in plot-> 
-  int v_padding = 15; // default height of tick TODO: an option in plot->
+  int h_padding = 65; // default width of horizontal tick cell TODO: an option in plot-> 
+  int v_padding = 25; // default height of tick TODO: an option in plot->
   left = plot->graph_x; top = plot->graph_y;
   right = plot->graph_w; bottom = plot->graph_h; 
   range = plot->end_idx - plot->beg_idx;
   width = right - left; 
   height = bottom - top;
+  h_padding = width / plot->x_ticks;
+  v_padding = height / plot->y_ticks;
   /* java 
 		double hScale = width / (double) (end - 1);
 		int hInterval = (int) Math.ceil(hPadding / hScale);
@@ -293,20 +305,8 @@ static void shoes_plot_draw_ticks_and_labels(shoes_canvas *canvas, shoes_plot *p
   // in the array -- TODO: allow a proc to be called to create the string. at 'i'
   int i;
   VALUE xobs = rb_ary_entry(plot->xobs, 0); // first series is x axis descripter
-  if (NIL_P(xobs)) printf("FAIL: getting first xobs\n");
-  if (TYPE(xobs) != T_ARRAY) printf("FAIL: xobs in not array\n");
-  /* java
-		for (int i = 1; i < end - 1; i++) {
-      int x = (int) Math.round(i * hScale);
-      int y = height;
-      if (i % hInterval == 0) {
-        Date dt = DataSeries.idxToDate(i+begIdx);
-        StringBuffer hLabel = new StringBuffer(dTF.format(dt));
-			  drawTick(g, x, y, width, height, VERTICALLY);
-			  drawLabel(g, x, y, hLabel.toString(), BELOW);
-      }
-    }
-  */
+  if (NIL_P(xobs) || TYPE(xobs) != T_ARRAY) rb_raise (rb_eArgError, "xobs must be an array");
+ 
   for (i = 0 ; i < range; i++ ) {
     int x = (int) roundl(i * h_scale);
     x += left;
@@ -657,10 +657,10 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
     rbshname = shoes_hash_get(newseries, rb_intern("name"));
     rblgname = shoes_hash_get(newseries, rb_intern("long_name"));
     if ( NIL_P(rbvals) || TYPE(rbvals) != T_ARRAY ) {
-      rb_raise(rb_eArgError, "Missing an Array of values");
+      rb_raise(rb_eArgError, "plot.add: Missing an Array of values");
     }
     if (NIL_P(rbmin) || NIL_P(rbmax)) {
-      rb_raise(rb_eArgError, "Missing minv: or maxv: option");
+      rb_raise(rb_eArgError, "plot.add: Missing minv: or maxv: option");
     }
     if ( NIL_P(rbobs) ) {
       // we can fake it - poorly - TODO better. Please.
@@ -675,8 +675,10 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
       }
     }
     if ( TYPE(rbobs) != T_ARRAY ) {
-      rb_raise(rb_eArgError, "xobs is not an array");
+      rb_raise(rb_eArgError, "plot.add xobs is not an array");
     }
+    if (NIL_P(rbshname)) 
+      rb_raise(rb_eArgError, "plot.add missing name:");
     if (NIL_P(rblgname)) {
       rblgname = rbshname;
     }
@@ -691,7 +693,7 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
        l, min, max, shname, lgname); 
 #endif
   } else {
-    rb_raise(rb_eArgError, misssing something in plot.add \n");
+    rb_raise(rb_eArgError, "misssing something in plot.add \n");
   }
   rb_ary_store(self_t->sizes, i, rbsz);
   rb_ary_store(self_t->values, i, rbvals);
