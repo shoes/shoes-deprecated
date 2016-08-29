@@ -1,7 +1,9 @@
 # good-graph.rb
 Shoes.app width: 620, height: 610 do
-  @values1 = [24, 22, 10, 13, 20, 8, 22]
-  @x_axis1 = ['a','b','c','d','e','f', 'g']
+  #@values1 = [24, 22, 10, 13, 20, 8, 22]
+  #@x_axis1 = ['a','b','c','d','e','f', 'g']
+  @values1 = [24, 22, nil, 13, 20, 8, 22]
+  @x_axis1 = ['a','b',nil,'d','e','f', 'g']
   @values2 = [200, 150, 75, 125, 75, 50, 125]
   stack do
     para "Plot Widget Demo"
@@ -14,9 +16,42 @@ Shoes.app width: 620, height: 610 do
       "Look at that! Booyah!!" , font: "Helvetica", auto_grid: true
     @grf.add num_obs: @values1.size, values: @values1, xobs: @x_axis1,
        name: "foobar", minv: 6, maxv: 26 , long_name: "foobar Yy"
-    button "add #2" do
-      @grf.add num_obs: @values2.size, values: @values2,
-        name: "bartab", minv: @values2.min, maxv: @values2.max
+    flow do 
+      button "add #2" do
+        @grf.add num_obs: @values2.size, values: @values2,
+          name: "bartab", minv: @values2.min, maxv: @values2.max
+      end
+      button "delete #2" do
+        @grf.delete(1)
+      end
+      button "drop two right" do
+        last = @grf.last
+        puts "chopping #{last} bye two"
+        @grf.set_last last-2
+      end
+      button "drop one left" do
+        @grf.set_first (@grf.first + 1)
+      end
+    end
+    button "Add points to #1" do
+      #puts "Have #{@grf.count} series"
+      #s1 = @grf.id("foobar")
+      #puts "found first: #{s1}"
+      s2 = @grf.id("bartab")
+      @grf.delete(s2) if s2  # make sure only series1 is on screen
+      idx = @values1.size
+      m =  @values1.min
+      rng = @values1.max - m
+      i = 0
+      tmr = every(1) do
+        tmr.stop if i >= 5 
+        rv = rand(rng) + m
+        idx = idx + 1
+        @values1 << rv
+        @x_axis1 << idx.to_s
+        @grf.redraw_to(idx) #problematic
+        i = i + 1
+      end
     end
   end
 end

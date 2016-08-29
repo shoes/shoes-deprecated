@@ -4857,15 +4857,23 @@ shoes_ruby_init()
   
   cPlot   = rb_define_class_under(cTypes, "Plot", rb_cObject);
   rb_define_alloc_func(cPlot, shoes_plot_alloc);
-  rb_define_method(cPlot, "draw", CASTHOOK(shoes_plot_draw), 2);
+  // methods unique to plot
   rb_define_method(cPlot, "add", CASTHOOK(shoes_plot_add), 1);
-  rb_define_method(cPlot, "redraw", CASTHOOK(shoes_plot_redraw), 0);
+  rb_define_method(cPlot, "redraw_to", CASTHOOK(shoes_plot_redraw_to), 1);
   rb_define_method(cPlot, "delete", CASTHOOK(shoes_plot_delete), 1);
+  rb_define_method(cPlot, "id",  CASTHOOK(shoes_plot_find_name), 1);
+  rb_define_method(cPlot, "count", CASTHOOK(shoes_plot_get_count), 0);
+  rb_define_method(cPlot, "first", CASTHOOK(shoes_plot_get_first), 0);
+  rb_define_method(cPlot, "set_first", CASTHOOK(shoes_plot_set_first), 1);
+  rb_define_method(cPlot, "last", CASTHOOK(shoes_plot_get_last), 0);
+  rb_define_method(cPlot, "set_last", CASTHOOK(shoes_plot_set_last), 1);
+  //rb_define_method(cPlot, "export", CASTHOOK(shoes_plot_export), 1);
+  //rb_define_method(cPlot, "save", CASTHOOK(shoes_plot_save), 1);
+  // methods commom to many Shoes widgets
+  rb_define_method(cPlot, "draw", CASTHOOK(shoes_plot_draw), 2);
   rb_define_method(cPlot, "remove", CASTHOOK(shoes_plot_remove), 0);
   rb_define_method(cPlot, "parent", CASTHOOK(shoes_plot_get_parent), 0);
   // TODO: add the commented out code to canvas.h and plot.c
-  //rb_define_method(cPlot, "export", CASTHOOK(shoes_plot_export), 1);
-  //rb_define_method(cPlot, "save", CASTHOOK(shoes_plot_save), 1);
   //rb_define_method(cPlot, "style", CASTHOOK(shoes_plot_style), -1);
   //rb_define_method(cPlot, "move", CASTHOOK(shoes_plot_move), 2);
   //rb_define_method(cPlot, "displace", CASTHOOK(shoes_plot_displace), 2);

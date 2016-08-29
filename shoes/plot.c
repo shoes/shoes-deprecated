@@ -12,23 +12,25 @@
 #include "shoes/effects.h"
 #include <math.h>
 
+/* -------- plot_series object - not a widget -----
+*/
 
 /*  ------- Plot widget -----
  *  several methods are defined in ruby.c Macros (CLASS_COMMON2, TRANS_COMMON)
  */
 
 // forward declares in this file:
-static int
-shoes_plot_draw_surface(cairo_t *, shoes_plot *, shoes_place *, int, int);
-static void shoes_plot_draw_title(shoes_canvas *, shoes_plot *);
-static void shoes_plot_draw_caption(shoes_canvas *,shoes_plot *);
-static void shoes_plot_draw_fill(shoes_canvas *, shoes_plot *);
-static void shoes_plot_draw_adornments(shoes_canvas *, shoes_plot *);
-static void shoes_plot_draw_datapts(shoes_canvas *, shoes_plot *);
-static void shoes_plot_draw_ticks_and_labels(shoes_canvas *, shoes_plot *);
-static void shoes_plot_draw_legend(shoes_canvas *, shoes_plot *);
-static void shoes_plot_draw_tick(shoes_canvas *, shoes_plot *, int, int, int);
-static void shoes_plot_draw_label(shoes_canvas *, shoes_plot *, int, int , char*, int);
+//static int shoes_plot_draw_surface(cairo_t *, shoes_plot *, shoes_place *, int, int); // for svg save?
+static void shoes_plot_draw_title(cairo_t *, shoes_plot *);
+static void shoes_plot_draw_caption(cairo_t *,shoes_plot *);
+static void shoes_plot_draw_fill(cairo_t *, shoes_plot *);
+static void shoes_plot_draw_adornments(cairo_t *, shoes_plot *);
+static void shoes_plot_draw_datapts(cairo_t *, shoes_plot *);
+static void shoes_plot_draw_ticks_and_labels(cairo_t *, shoes_plot *);
+static void shoes_plot_draw_legend(cairo_t *, shoes_plot *);
+static void shoes_plot_draw_tick(cairo_t *, shoes_plot *, int, int, int);
+static void shoes_plot_draw_label(cairo_t *, shoes_plot *, int, int , char*, int);
+static void shoes_plot_draw_everything(cairo_t *, shoes_place *, shoes_plot *);
 
 static float plot_colors[6][3] = {
   { 0.0, 0.0, 0.9 }, // 0 is blue
@@ -39,12 +41,16 @@ static float plot_colors[6][3] = {
   { 0.5, 0.0, 0.9 }  // 5 is purple
 } ;
 
-// ugly defines only used in this file?  Could use fancy new C enum? Or Not.
+// ugly defines used only in this file?  Could use fancy new C enum? Or Not.
 #define VERTICALLY 0
 #define HORIZONTALLY 1
 #define LEFT 0
 #define BELOW 1
 #define RIGHT 2
+#define MISSING_SKIP 0
+#define MISSING_MIN 1
+#define MISSING_MAX 2
+
 
 // alloc some memory for a shoes_plot; We'll protect it's Ruby VALUES from gc
 // out of caution. fingers crossed.
@@ -89,6 +95,7 @@ shoes_plot_alloc(VALUE klass)
   plot->auto_grid = 0;
   plot->x_ticks = 8;
   plot->y_ticks = 6;
+  plot->missing = MISSING_SKIP;
   return obj;
 }
 
@@ -98,6 +105,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   VALUE attr = Qnil, widthObj = Qnil, heightObj = Qnil, optsArg = Qnil;
   VALUE title = Qnil, caption = Qnil, fontreq = Qnil, auto_grid = Qnil;
   VALUE x_ticks = Qnil, y_ticks = Qnil;
+  VALUE missing = Qnil; 
   shoes_canvas *canvas;
   Data_Get_Struct(parent, shoes_canvas, canvas);
   
@@ -119,6 +127,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     auto_grid = shoes_hash_get(optsArg, rb_intern("auto_grid"));
     x_ticks = shoes_hash_get(optsArg, rb_intern("x_ticks"));
     y_ticks = shoes_hash_get(optsArg, rb_intern("y_ticks"));
+    missing = shoes_hash_get(optsArg, rb_intern("missing"));
   } else {
     rb_raise(rb_eArgError, "Plot: missing {options}");
   }
@@ -153,6 +162,11 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     if (RTEST(auto_grid))
       self_t->auto_grid = 1;
   } 
+  
+  
+  if (!NIL_P(missing)) {
+    // TODO
+  } 
 
   self_t->title_h = 50;
 
@@ -183,57 +197,21 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   return obj;
 }
 
-
-
 // This gets called very often by Shoes. May be slow for large plots?
 VALUE shoes_plot_draw(VALUE self, VALUE c, VALUE actual)
 {
-  shoes_plot *self_t, *plot; 
+  shoes_plot *self_t; 
   shoes_place place; 
   shoes_canvas *canvas; 
   Data_Get_Struct(self, shoes_plot, self_t); 
-  plot = self_t;  // I don't always remember to type self_t
   Data_Get_Struct(c, shoes_canvas, canvas); 
   if (ATTR(self_t->attr, hidden) == Qtrue) return self; 
   int rel =(REL_CANVAS | REL_SCALE);
   shoes_place_decide(&place, c, self_t->attr, self_t->place.w, self_t->place.h, rel, REL_COORDS(rel) == REL_CANVAS);
   
   if (RTEST(actual)) {
-    cairo_t *cr = CCR(canvas);
-    shoes_apply_transformation(cr, self_t->st, &place, 0);  // cairo_save(cr) inside
-    cairo_translate(cr, place.ix + place.dx, place.iy + place.dy);
-    
-    // draw widget box and fill with color (nearly white). 
-    shoes_plot_draw_fill(canvas, self_t);
-    // draw title TODO - should use pango/fontmetrics
-    cairo_select_font_face(cr, plot->fontname, CAIRO_FONT_SLANT_NORMAL,
-      CAIRO_FONT_WEIGHT_BOLD);
-    cairo_set_font_size(cr, 16);
-    shoes_plot_draw_title(canvas, self_t);
-  
-    // draw caption TODO: should use pango/fontmetrics
-    // cairo_select_font_face(cr, "Helvitica", CAIRO_FONT_SLANT_NORMAL,
-    cairo_select_font_face(cr, plot->fontname, CAIRO_FONT_SLANT_NORMAL,
-      CAIRO_FONT_WEIGHT_NORMAL);
-    cairo_set_font_size(cr, 12);  
-    shoes_plot_draw_caption(canvas, self_t);
-    
-    plot->graph_h = plot->place.h - (plot->title_h + plot->caption_h);
-    plot->graph_y = plot->title_h + 3;
-    plot->yaxis_offset = 50; // TODO:  run TOTO, run!
-    plot->graph_w = plot->place.w - plot->yaxis_offset;
-    plot->graph_x = plot->yaxis_offset;
-    if (plot->seriescnt) {
-      // draw  box, ticks and x,y labels.
-      shoes_plot_draw_adornments(canvas, plot);
-    
-      // draw data
-      shoes_plot_draw_datapts(canvas, plot);
-    }
-    // drawing finished
-    shoes_undo_transformation(cr, self_t->st, &place, 0); // doing cairo_restore(cr)
-    self_t->place = place;
-    // printf("leaving shoes_plot_draw\n"); 
+    shoes_plot_draw_everything(CCR(canvas), &place, self_t);
+    //self_t->place = place;
   } 
   
   if (!ABSY(place)) { 
@@ -249,36 +227,71 @@ VALUE shoes_plot_draw(VALUE self, VALUE c, VALUE actual)
   return self;
 }
 
-static void shoes_plot_draw_fill(shoes_canvas *canvas, shoes_plot *plot)
-{
-  cairo_set_source_rgb(canvas->cr, 0.99, 0.99, 0.99);
-  cairo_set_line_width(canvas->cr, 1);
-  cairo_rectangle(canvas->cr, 0, 0, plot->place.w, plot->place.h);
-  cairo_stroke_preserve(canvas->cr);
-  cairo_fill(canvas->cr);
-  cairo_set_source_rgb(canvas->cr, 0.1, 0.1, 0.1);
+// this is called by both shoes_plot_draw (general Shoes refresh events)
+// and by shoes_plot_redraw_to(). Doesn't work on the latter.
+static void shoes_plot_draw_everything(cairo_t *cr, shoes_place *place, shoes_plot *self_t) {
+    
+    shoes_apply_transformation(cr, self_t->st, place, 0);  // cairo_save(cr) is inside
+    cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
+    
+    // draw widget box and fill with color (nearly white). 
+    shoes_plot_draw_fill(cr, self_t);
+    // draw title TODO - should use pangocairo/fontmetrics
+    cairo_select_font_face(cr, self_t->fontname, CAIRO_FONT_SLANT_NORMAL,
+      CAIRO_FONT_WEIGHT_BOLD);
+    cairo_set_font_size(cr, 16);
+    shoes_plot_draw_title(cr, self_t);
+  
+    // draw caption TODO: should use pangocairo/fontmetrics
+    cairo_select_font_face(cr, self_t->fontname, CAIRO_FONT_SLANT_NORMAL,
+      CAIRO_FONT_WEIGHT_NORMAL);
+    cairo_set_font_size(cr, 12);  
+    shoes_plot_draw_caption(cr, self_t);
+    
+    self_t->graph_h = self_t->place.h - (self_t->title_h + self_t->caption_h);
+    self_t->graph_y = self_t->title_h + 3;
+    self_t->yaxis_offset = 50; // TODO:  run TOTO, run!
+    self_t->graph_w = self_t->place.w - self_t->yaxis_offset;
+    self_t->graph_x = self_t->yaxis_offset;
+    if (self_t->seriescnt) {
+      // draw  box, ticks and x,y labels.
+      shoes_plot_draw_adornments(cr, self_t);
+    
+      // draw data
+      shoes_plot_draw_datapts(cr, self_t);
+    }
+    // drawing finished
+    shoes_undo_transformation(cr, self_t->st, place, 0); // doing cairo_restore(cr)
 }
 
-static void shoes_plot_draw_adornments(shoes_canvas *canvas, shoes_plot *plot)
+static void shoes_plot_draw_fill(cairo_t *cr, shoes_plot *plot)
+{
+  cairo_set_source_rgb(cr, 0.99, 0.99, 0.99);
+  cairo_set_line_width(cr, 1);
+  cairo_rectangle(cr, 0, 0, plot->place.w, plot->place.h);
+  cairo_stroke_preserve(cr);
+  cairo_fill(cr);
+  cairo_set_source_rgb(cr, 0.1, 0.1, 0.1);
+}
+
+static void shoes_plot_draw_adornments(cairo_t *cr, shoes_plot *plot)
 {
   // draw box around data area (plot->graph_?)
-  cairo_set_line_width(canvas->cr, 1);
+  cairo_set_line_width(cr, 1);
   int t,l,b,r;
   l = plot->graph_x; t = plot->graph_y;
   r = plot->graph_w; b = plot->graph_h;
-  //cairo_move_to(canvas->cr, l, t);
-  //cairo_show_text(canvas->cr,"foobar");
-  cairo_move_to(canvas->cr, l, t);
-  cairo_line_to(canvas->cr, r, t);  // across top
-  cairo_line_to(canvas->cr, r, b);  // down right side
-  cairo_line_to(canvas->cr, l, b);  // across bottom
-  cairo_line_to(canvas->cr, l, t);  // up left
-  cairo_stroke(canvas->cr);
-  shoes_plot_draw_ticks_and_labels(canvas, plot);
-  shoes_plot_draw_legend(canvas, plot);
+  cairo_move_to(cr, l, t);
+  cairo_line_to(cr, r, t);  // across top
+  cairo_line_to(cr, r, b);  // down right side
+  cairo_line_to(cr, l, b);  // across bottom
+  cairo_line_to(cr, l, t);  // up left
+  cairo_stroke(cr);
+  shoes_plot_draw_ticks_and_labels(cr, plot);
+  shoes_plot_draw_legend(cr, plot);
 }
 
-static void shoes_plot_draw_ticks_and_labels(shoes_canvas *canvas, shoes_plot *plot)
+static void shoes_plot_draw_ticks_and_labels(cairo_t *cr, shoes_plot *plot)
 {
   int top, left, bottom, right; // these are cairo abs for plot->graph
   int width, height;   // full plot space so it includes everything
@@ -292,10 +305,7 @@ static void shoes_plot_draw_ticks_and_labels(shoes_canvas *canvas, shoes_plot *p
   height = bottom - top;
   h_padding = width / plot->x_ticks;
   v_padding = height / plot->y_ticks;
-  /* java 
-		double hScale = width / (double) (end - 1);
-		int hInterval = (int) Math.ceil(hPadding / hScale);
-  */
+ 
   double h_scale; 
   int h_interval; 
   h_scale = width / (double) (range -1);
@@ -312,70 +322,48 @@ static void shoes_plot_draw_ticks_and_labels(shoes_canvas *canvas, shoes_plot *p
     x += left;
     long y = bottom;
     if ((i % h_interval) == 0) {
+      char *rawstr;
       VALUE rbstr = rb_ary_entry(xobs, i + plot->beg_idx);
       if (NIL_P(rbstr)) {
-        rb_raise(rb_eArgError, "FAIL: can't get xobs[%i]\n", i+plot->beg_idx);
+        rawstr = " ";
+      } else {
+        rawstr = RSTRING_PTR(rbstr);
       }
-      char *rawstr = RSTRING_PTR(rbstr);
       //printf("x label i: %i, x: %i, y: %i, \"%s\" %i %f \n", i, (int) x, (int) y, rawstr, h_interval, h_scale);
-      shoes_plot_draw_tick(canvas, plot, x, y, VERTICALLY);
-      shoes_plot_draw_label(canvas, plot, x, y, rawstr, BELOW);
+      shoes_plot_draw_tick(cr, plot, x, y, VERTICALLY);
+      shoes_plot_draw_label(cr, plot, x, y, rawstr, BELOW);
     }
   }
-    /* java 
-		// Draw the vertical ticks for the first two series
-		for (int j = 0; j < Math.min(2,numSeries); j++) {
-			double maximum = ((Double)maximums.at(j)).doubleValue();
-			double minimum = ((Double)minimums.at(j)).doubleValue();
-			double vScale = height / (maximum - minimum);
-			int vInterval = (int) Math.ceil(vPadding / vScale);
-
-			for (long i = (long) minimum + 1; i < ((long) Math.round(maximum)); i=i+vInterval)
-			{
-				int x = 0;
-				int y = (int) (height - Math.round((i - minimum) * vScale));
-				if (j==0) {
-	            	String vLabel = new String(new Double(i).toString());
-	            	drawTick(g, x, y, width, height, HORIZONTALLY);
-	            	drawLabel(g, x, y, vLabel, LEFT);
-		  		}
-		  		else { // Right side Ticks and Labels
-	            	String vLabel = new String(new Double(i).toString());
-	            	drawTick(g, width+1, y, width+30, height, HORIZONTALLY);
-	            	drawLabel(g, width+2, y, vLabel, RIGHT);
-		  		}
-			} // for i
-		 // for j}
-     */
-    int j;
-    for (j = 0; j < min(2, plot->seriescnt); j++) {
-      VALUE rbmax = rb_ary_entry(plot->maxvs, j);
-      double maximum = NUM2DBL(rbmax);
-      VALUE rbmin = rb_ary_entry(plot->minvs, j);
-      double minimum = NUM2DBL(rbmin);
-      //double v_scale = plot->graph_h / (maximum - minimum);
-      double v_scale = height / (maximum - minimum);
-      int v_interval = (int) ceil(v_padding / v_scale);
-      VALUE rbser = rb_ary_entry(plot->values, j);
-      char tstr[16];
-      long i;
-      for (i = ((long) minimum) + 1 ; i < ((long) roundl(maximum)); i = i + roundl(v_interval)) {
-        int y = (int) (bottom - roundl((i - minimum) * v_scale));
-        int x = 0;
-        sprintf(tstr, "%i",  (int)i); // not correct for floats? 
-        if (j == 0) { // left side y presentation 
-            x = left;
-            //printf("hoz left %i, %i, %s\n", (int)x, (int)y,tstr);
-            shoes_plot_draw_tick(canvas, plot, x, y, HORIZONTALLY);
-            shoes_plot_draw_label(canvas, plot, x, y, tstr, LEFT);
-        } else {        // right side y presentation
-          x = right;
-          shoes_plot_draw_tick(canvas, plot, x, y, HORIZONTALLY);
-          shoes_plot_draw_label(canvas, plot, x, y, tstr, RIGHT);        }
+  int j;
+  for (j = 0; j < min(2, plot->seriescnt); j++) {
+    VALUE rbmax = rb_ary_entry(plot->maxvs, j);
+    double maximum = NUM2DBL(rbmax);
+    VALUE rbmin = rb_ary_entry(plot->minvs, j);
+    double minimum = NUM2DBL(rbmin);
+    //double v_scale = plot->graph_h / (maximum - minimum);
+    double v_scale = height / (maximum - minimum);
+    int v_interval = (int) ceil(v_padding / v_scale);
+    VALUE rbser = rb_ary_entry(plot->values, j);
+    char tstr[16];
+    long i;
+    for (i = ((long) minimum) + 1 ; i < ((long) roundl(maximum)); i = i + roundl(v_interval)) {
+      int y = (int) (bottom - roundl((i - minimum) * v_scale));
+      int x = 0;
+      sprintf(tstr, "%i",  (int)i); // TODO user specificed format? 
+      if (j == 0) { // left side y presentation 
+        x = left;
+        //printf("hoz left %i, %i, %s\n", (int)x, (int)y,tstr);
+        shoes_plot_draw_tick(cr, plot, x, y, HORIZONTALLY);
+        shoes_plot_draw_label(cr, plot, x, y, tstr, LEFT);
+      } else {        // right side y presentation
+        x = right;
+        shoes_plot_draw_tick(cr, plot, x, y, HORIZONTALLY);
+        shoes_plot_draw_label(cr, plot, x, y, tstr, RIGHT); 
       }
     }
+  }
 }
-static void shoes_plot_draw_legend(shoes_canvas *canvas, shoes_plot *plot)
+static void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
 {
   // kind of tricksy using the cairo toy api's.
   // compute width of all name plus some space between them
@@ -407,105 +395,54 @@ static void shoes_plot_draw_legend(shoes_canvas *canvas, shoes_plot *plot)
     strcat(bigstr, strary[i]);
     strcat(bigstr, space_str);
   }
-  // TODO - cairo doesn't like the extents calls - UTF-8 issues and/or seqfaults.
-  cairo_set_font_size(canvas->cr, 14);
-  
+  cairo_set_font_size(cr, 14);
   cairo_text_extents_t bigstr_ct;
-  cairo_text_extents(canvas->cr, bigstr, &bigstr_ct);
+  cairo_text_extents(cr, bigstr, &bigstr_ct);
 
   free(bigstr);
   // where to position the drawing pt?
   int pos_x;
   pos_x = (width - (int) bigstr_ct.width) / 2;
   //printf("middle? w: %i, l: %i  pos_x: %i, strw: %i\n", width, left, pos_x, (int)bigstr_ct.width);
-  cairo_move_to(canvas->cr, pos_x, bottom+5); //TODO: compute baseline
+  cairo_move_to(cr, pos_x, bottom+5); //TODO: compute baseline
   for (i = 0; i < plot->seriescnt; i++) {
-     cairo_set_source_rgb(canvas->cr, plot_colors[i][0], plot_colors[i][1],
+     cairo_set_source_rgb(cr, plot_colors[i][0], plot_colors[i][1],
          plot_colors[i][2]);
-     cairo_show_text(canvas->cr, strary[i]);
-     cairo_show_text(canvas->cr, space_str);
+     cairo_show_text(cr, strary[i]);
+     cairo_show_text(cr, space_str);
   }
   
 }
 
-static void shoes_plot_draw_tick(shoes_canvas *canvas, shoes_plot *plot,
+static void shoes_plot_draw_tick(cairo_t *cr, shoes_plot *plot,
     int x, int y, int orientation) 
 {
   if (plot->auto_grid == 0) return;
-  /* java
-		int tickSize = 3;
-		Color save = g.getColor();
-
-		g.setColor(Color.black);      
-
-		// Draw the tick mark, gridline, and shading.      
-		if (orientation == VERTICALLY)
-		{
-			g.drawLine(x , y - tickSize, x, y);
-			g.setColor(Color.gray);
-			g.drawLine(x , y - (tickSize + 1), x, 0);
-			g.setColor(Color.white);
-			g.drawLine(x + 1 , y , x + 1, 0);
-		}
-		else // HORIZONTALLY
-		{
-			g.drawLine(x, y , x + tickSize, y);
-			g.setColor(Color.gray);
-			g.drawLine(x + (tickSize + 1), y , width, y);
-			g.setColor(Color.white);
-			g.drawLine(x, y + 1, width, y + 1);
-		}
-		g.setColor(save);
-  */
   int tick_size = 3;
   if (orientation == VERTICALLY) {
-    cairo_move_to(canvas->cr, x, y);
-    cairo_line_to(canvas->cr, x, plot->graph_y);
+    cairo_move_to(cr, x, y);
+    cairo_line_to(cr, x, plot->graph_y);
   } else if (orientation == HORIZONTALLY) {
-    cairo_move_to(canvas->cr, x, y);
-    cairo_line_to(canvas->cr, plot->graph_w, y);
+    cairo_move_to(cr, x, y);
+    cairo_line_to(cr, plot->graph_w, y);
   } else {
     printf("FAIL: shoes_plot_draw_tick  orientation\n");
   }
-  cairo_stroke(canvas->cr);
+  cairo_stroke(cr);
 }
 
-static void shoes_plot_draw_label(shoes_canvas *canvas, shoes_plot *plot,
+static void shoes_plot_draw_label(cairo_t *cr, shoes_plot *plot,
     int x, int y, char *str, int where)
 {
-  /* java
-		Color save = g.getColor();
-		char characters[] = label.toCharArray();
-		int theLength = label.length();
-		FontMetrics metrics = getFontMetrics(font);
-		int stringWidth = metrics.charsWidth(characters, 0, theLength);
-
-		g.setFont(font);
-		g.setColor(Color.black);
-  */
   // TODO: Font was previously set to Helvetica 12 and color was setup
   // keep them for now
   cairo_text_extents_t ct;
-  cairo_text_extents(canvas->cr, str, &ct);
+  cairo_text_extents(cr, str, &ct);
   int str_w = (int) ct.width;
   // measure the max height of the font not the string.
   cairo_font_extents_t ft;
-  cairo_font_extents(canvas->cr, &ft);
+  cairo_font_extents(cr, &ft);
   int str_h = (int) ceil(ft.height);
-  /* java 
-		if (where == LEFT) {
-			int newx = x - (stringWidth + 3);
-			int newy = y;
-			g.drawChars(characters, 0, theLength, newx, newy);
-		} else if (where == RIGHT) {
-			g.drawChars(characters, 0, theLength, x, y);
-		} else { // BELOW 
-			int newx = x - (stringWidth / 2);
-			int newy = y + metrics.getHeight() + 3;
-			g.drawChars(characters, 0, theLength, newx, newy);
-		}
-		g.setColor(save);
-  */
   int newx;
   int newy;
   if (where == LEFT) { // left side y-axis
@@ -521,12 +458,12 @@ static void shoes_plot_draw_label(shoes_canvas *canvas, shoes_plot *plot,
   } else { 
     printf("FAIL: shoes_plot_draw_label 'where ?'\n");
   }
-  cairo_move_to(canvas->cr, newx, newy);
-  cairo_show_text(canvas->cr, str);
+  cairo_move_to(cr, newx, newy);
+  cairo_show_text(cr, str);
   // printf("TODO: shoes_plot_draw_label called\n");
 }
 
-static void shoes_plot_draw_datapts(shoes_canvas *canvas, shoes_plot *plot)
+static void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot)
 {
   int i, num_series;
   int top,left,bottom,right;
@@ -535,98 +472,77 @@ static void shoes_plot_draw_datapts(shoes_canvas *canvas, shoes_plot *plot)
   for (i = 0; i < plot->seriescnt; i++) {
     int oldx = 0;
     int oldy = plot->graph_h; // Needed?
-    /* java
-      float points[] = (float []) dataSets.at(i);
-      double maximum = ((Double)maximums.at(i)).doubleValue();
-      double minimum = ((Double)minimums.at(i)).doubleValue();
-    */
     VALUE rbvalues = rb_ary_entry(plot->values, i);
     VALUE rbmaxv = rb_ary_entry(plot->maxvs, i);
     VALUE rbminv = rb_ary_entry(plot->minvs, i);
     VALUE rbsize = rb_ary_entry(plot->sizes, i);
     double maximum = NUM2DBL(rbmaxv);
     double minimum = NUM2DBL(rbminv);
-    /* java 
-			double vScale = height / (maximum - minimum);
-			int range = endIdx - begIdx;
-			double hScale = width / (double) (range - 1);
-			boolean nubs = (width / range > 10) ? true : false;
-    */
     // Shoes: Remember - we use ints for x, y, w, h and for drawing lines and points
     int height = bottom - top;
     int width = right - left; 
     int range = plot->end_idx - plot->beg_idx; // zooming adj
     float vScale = height / (maximum - minimum);
     float hScale = width / (double) (range - 1);
-    /* java 
-			g.setColor(colors[i % colors.length]);
-    */
     // TODO: color should be part of the series description
-    cairo_set_source_rgb(canvas->cr, plot_colors[i][0], plot_colors[i][1],
+    cairo_set_source_rgb(cr, plot_colors[i][0], plot_colors[i][1],
         plot_colors[i][2]);
 
-    /* java
-			for (int j = 0; j < range; j++) 
-			{
-				float v = points[j+begIdx];
-				int x = (int) Math.round(j * hScale);
-				int y = (int) (height - Math.round((v - minimum) * vScale));
-
-				if (j == 0)
-					g.drawLine(x, y, x, y);
-				else
-					g.drawLine(oldx, oldy, x, y);
-            
-				if (nubs) drawNub(g, x, y);
-
-				oldx = x;
-				oldy = y;
-			}
-      */
     int j;
+    int brk = 0; // for missing value control
     for (j = 0; j < range; j++) {
       VALUE rbdp = rb_ary_entry(rbvalues, j + plot->beg_idx);
+      if (NIL_P(rbdp)) {
+        if (plot->missing == MISSING_MIN) {
+          rbdp = rbminv;
+        } else {
+          brk = 1;
+          continue;
+        }
+      }
       double v = NUM2DBL(rbdp);
       long x = roundl(j * hScale);
       long y = height - roundl((v - minimum) *vScale);
       x += left;
       y += top;
       //printf("draw i: %i, x: %i, y: %i %f \n", j, (int) x, (int) y, hScale);
-      if (j == 0)
-        cairo_move_to(canvas->cr, x, y);
-      else
-        cairo_line_to(canvas->cr, x, y);
+      if (j == 0 || brk == 1) {
+        cairo_move_to(cr, x, y);
+        brk = 0;
+      } else {
+        cairo_line_to(cr, x, y);
+      }
     }
-    cairo_stroke(canvas->cr);
+    cairo_stroke(cr);
   } // end of drawing one series
   // tell cairo to draw all lines (and points)
-  cairo_stroke(canvas->cr); 
+  cairo_stroke(cr); 
   // set color back to dark gray
-  cairo_set_source_rgb(canvas->cr, 0.9, 0.9, 0.9);
+  cairo_set_source_rgb(cr, 0.9, 0.9, 0.9);
 }
 
-static void shoes_plot_draw_title(shoes_canvas *canvas, shoes_plot *plot) 
+static void shoes_plot_draw_title(cairo_t *cr, shoes_plot *plot) 
 {
   char *str = RSTRING_PTR(plot->title);
   int x, y;
   cairo_text_extents_t te;
-  cairo_text_extents(canvas->cr, str, &te);
+  cairo_text_extents(cr, str, &te);
   int xoffset = (plot->place.w / 2) - (te.width / 2);
   int yhalf = (plot->title_h / 2 ); 
   int yoffset = yhalf + (te.height / 2);
   x = plot->place.ix + xoffset;
   //y = plot->title_h;
   y = yoffset;
-  cairo_move_to(canvas->cr, x, y);
-  cairo_show_text(canvas->cr, str);
+  cairo_move_to(cr, x, y);
+  cairo_show_text(cr, str);
 }
 
-static void shoes_plot_draw_caption(shoes_canvas *canvas, shoes_plot *plot)
+static void shoes_plot_draw_caption(cairo_t *cr, shoes_plot *plot)
 {
   char *str = RSTRING_PTR(plot->caption);
   int x, y;
   cairo_text_extents_t te;
-  cairo_text_extents(canvas->cr, str, &te);
+  cairo_text_extents(cr, str, &te);
   int xoffset = (plot->place.w / 2) - (te.width / 2);
   int yhalf = (plot->caption_h / 2 ); 
   int yoffset = yhalf + (te.height / 2);
@@ -635,8 +551,9 @@ static void shoes_plot_draw_caption(shoes_canvas *canvas, shoes_plot *plot)
   //y = plot->place.h - plot->caption_h; 
   y = plot->place.h; 
   y -= yoffset;
-  cairo_move_to(canvas->cr, x, y);
-  cairo_show_text(canvas->cr, str);}
+  cairo_move_to(cr, x, y);
+  cairo_show_text(cr, str);
+}
 
 VALUE shoes_plot_add(VALUE self, VALUE newseries) 
 {
@@ -710,15 +627,120 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
 }
 
 VALUE shoes_plot_delete(VALUE self, VALUE series) 
-{
-  printf("TODO: shoes_plot_add called\n");
-  return self;
+{ 
+  shoes_plot *self_t;
+  Data_Get_Struct(self, shoes_plot, self_t); 
+  if (TYPE(series) != T_FIXNUM) 
+    rb_raise(rb_eArgError, "plot.delete arg not integer");
+  int idx = NUM2INT(series);
+  if (! (idx >= 0 && idx <= self_t->seriescnt))
+    rb_raise(rb_eArgError, "plot.delete arg is out of range");
+  rb_ary_delete(self_t->sizes, series);
+  rb_ary_delete(self_t->values, series);
+  rb_ary_delete(self_t->xobs, series);
+  rb_ary_delete(self_t->maxvs, series);
+  rb_ary_delete(self_t->minvs, series);
+  rb_ary_delete(self_t->names, series);
+  rb_ary_delete(self_t->long_names, series);
+  self_t->seriescnt--;
+  shoes_canvas_repaint_all(self_t->parent);  
+    
+  // printf("shoes_plot_delete (%i) called\n", idx);
+  return Qtrue;
 }
 
-VALUE shoes_plot_redraw(VALUE self) 
+// odds are extremely high that this may flash or crash if called too frequently
+VALUE shoes_plot_redraw_to(VALUE self, VALUE to_here) 
 {
-  printf("TODO: shoes_plot_redraw called\n");
-  return self;
+  shoes_plot *self_t;
+  Data_Get_Struct(self, shoes_plot, self_t); 
+  if (TYPE(to_here) != T_FIXNUM) 
+    rb_raise(rb_eArgError, "plot.redraw_to arg is not an integer");
+  int idx = NUM2INT(to_here);
+  self_t->end_idx = idx;
+  int i;
+  // following loop is probably not needed and useless
+  for (i = 0; i < self_t->seriescnt; i++) {
+    rb_ary_store(self_t->sizes, i, INT2NUM(idx));
+    // Sync  C struct Ruby VALUES? 
+    VALUE tv, rblen;
+    int len;
+    tv = rb_ary_entry(self_t->values, i);
+    len = RARRAY_LEN(tv);
+    if (len != idx )
+      printf("redraw_to: values len %i, idx %i\n", len, idx);
+      
+    tv = rb_ary_entry(self_t->xobs, i);
+    len = RARRAY_LEN(tv);
+    if (len != idx )
+      printf("redraw_to: xobs len %i, idx %i\n", len, idx);
+      
+  }
+  shoes_canvas *canvas;
+  Data_Get_Struct(self_t->parent, shoes_canvas, canvas); 
+  // TODO Invoke magic to redraw the contents. 
+  shoes_canvas_draw(self_t->parent, self_t->parent, Qtrue);
+  //shoes_canvas_repaint_all(self_t->parent);
+  printf("shoes_plot_redraw_to(%i) called\n", idx);
+  return Qtrue;
+}
+
+// id method
+VALUE shoes_plot_find_name(VALUE self, VALUE name) 
+{
+  shoes_plot *self_t;
+  Data_Get_Struct(self, shoes_plot, self_t); 
+  if (TYPE(name) != T_STRING) rb_raise(rb_eArgError, "plot.find arg is not a string");
+  char *search = RSTRING_PTR(name);
+  int i; 
+  for (i =0; i <self_t->seriescnt; i++) {
+    VALUE rbstr = rb_ary_entry(self_t->names, i);
+    char *entry = RSTRING_PTR(rbstr);
+    if (strcmp(search, entry) == 0) {
+      return INT2NUM(i);
+    }
+  }
+  return Qnil; // when nothing matches
+}
+
+VALUE shoes_plot_get_count(VALUE self) 
+{
+  shoes_plot *self_t;
+  Data_Get_Struct(self, shoes_plot, self_t); 
+  return INT2NUM(self_t->seriescnt);
+}
+
+VALUE shoes_plot_get_first(VALUE self) 
+{
+  shoes_plot *self_t;
+  Data_Get_Struct(self, shoes_plot, self_t); 
+  return INT2NUM(self_t->beg_idx);
+}
+
+VALUE shoes_plot_set_first(VALUE self, VALUE idx) 
+{
+  shoes_plot *self_t;
+  Data_Get_Struct(self, shoes_plot, self_t); 
+  if (TYPE(idx) != T_FIXNUM) rb_raise(rb_eArgError, "plot.set_first arg is not an integer"); 
+  self_t->beg_idx = NUM2INT(idx);
+  // TODO trigger cairo redraw here
+  return idx;
+}
+
+VALUE shoes_plot_get_last(VALUE self) 
+{
+  shoes_plot *self_t;
+  Data_Get_Struct(self, shoes_plot, self_t); 
+  return INT2NUM(self_t->end_idx);
+}
+VALUE shoes_plot_set_last(VALUE self, VALUE idx) 
+{
+  shoes_plot *self_t;
+  Data_Get_Struct(self, shoes_plot, self_t); 
+  if (TYPE(idx) != T_FIXNUM) rb_raise(rb_eArgError, "plot.set_last arg is not an integer"); 
+  self_t->end_idx = NUM2INT(idx);
+  // TODO trigger cairo redraw here
+  return idx;
 }
 
 #if 0
