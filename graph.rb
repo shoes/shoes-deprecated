@@ -1,4 +1,4 @@
-# good-graph.rb
+# good-graph.rb ?
 Shoes.app width: 620, height: 610 do
   #@values1 = [24, 22, 10, 13, 20, 8, 22]
   #@x_axis1 = ['a','b','c','d','e','f', 'g']
@@ -12,8 +12,9 @@ Shoes.app width: 620, height: 610 do
     end
     widget_width = 600
     widget_height = 400
-    @grf = plot widget_width, widget_height, title:"My Graph", caption: 
-      "Look at that! Booyah!!" , font: "Helvetica", auto_grid: true
+    @grf = plot widget_width, widget_height, title: "My Graph", caption: 
+      "Look at that! Booyah!!" , font: "Helvetica", auto_grid: true,
+      missing: "skip"
     @grf.add num_obs: @values1.size, values: @values1, xobs: @x_axis1,
        name: "foobar", minv: 6, maxv: 26 , long_name: "foobar Yy"
     flow do 
@@ -34,9 +35,6 @@ Shoes.app width: 620, height: 610 do
       end
     end
     button "Add points to #1" do
-      #puts "Have #{@grf.count} series"
-      #s1 = @grf.id("foobar")
-      #puts "found first: #{s1}"
       s2 = @grf.id("bartab")
       @grf.delete(s2) if s2  # make sure only series1 is on screen
       idx = @values1.size

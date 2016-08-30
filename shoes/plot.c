@@ -162,10 +162,14 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     if (RTEST(auto_grid))
       self_t->auto_grid = 1;
   } 
-  
-  
-  if (!NIL_P(missing)) {
-    // TODO
+  if ((!NIL_P(missing)) && (TYPE(missing) == T_STRING)) {
+    char *mstr = RSTRING_PTR(missing);
+    if (strcmp(mstr, "min") == 0)
+      self_t->missing = MISSING_MIN;
+    else if (strcmp(mstr, "max") == 0)
+      self_t->missing = MISSING_MAX;
+    else 
+      self_t->missing = MISSING_SKIP;
   } 
 
   self_t->title_h = 50;
@@ -495,6 +499,8 @@ static void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot)
       if (NIL_P(rbdp)) {
         if (plot->missing == MISSING_MIN) {
           rbdp = rbminv;
+        } else if (plot->missing == MISSING_MAX) {
+          rbdp = rbmaxv;
         } else {
           brk = 1;
           continue;
