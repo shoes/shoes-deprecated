@@ -564,7 +564,7 @@ static void shoes_plot_draw_caption(cairo_t *cr, shoes_plot *plot)
 VALUE shoes_plot_add(VALUE self, VALUE newseries) 
 {
   shoes_plot *self_t;
-  VALUE rbsz, rbvals, rbobs, rbmin, rbmax, rbshname, rblgname;
+  VALUE rbsz, rbvals, rbobs, rbmin, rbmax, rbshname, rblgname, rbcolor;
   Data_Get_Struct(self, shoes_plot, self_t); 
   int i = self_t->seriescnt; // track number of series to plot.
   if (i >= 6) {
@@ -579,6 +579,7 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
     rbmax = shoes_hash_get(newseries, rb_intern("maxv"));
     rbshname = shoes_hash_get(newseries, rb_intern("name"));
     rblgname = shoes_hash_get(newseries, rb_intern("long_name"));
+    rbcolor  = shoes_hash_get(newseries, rb_intern("color"));
     if ( NIL_P(rbvals) || TYPE(rbvals) != T_ARRAY ) {
       rb_raise(rb_eArgError, "plot.add: Missing an Array of values");
     }
@@ -605,16 +606,32 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
     if (NIL_P(rblgname)) {
       rblgname = rbshname;
     }
-#if 0
+    // handle colors - replace 
+    if (! NIL_P(rbcolor)) {
+      if (TYPE(rbcolor) != T_STRING)
+        rb_raise(rb_eArgError, "plot.add color must be a string");
+      char *cstr = RSTRING_PTR(rbcolor);
+      VALUE cval = shoes_hash_get(cColors, rb_intern(cstr)); // segfault or raise? 
+      if (NIL_P(cval))
+        rb_raise(rb_eArgError, "plot.add color: not a known color");
+      shoes_color *color;
+      Data_Get_Struct(cval, shoes_color, color);
+      int r,g,b; // 0..255 - need to be cairo 
+      r = color->r;
+      g = color->g;
+      b = color->b;
+      plot_colors[self_t->seriescnt][0] = (float) (r / 255.);
+      plot_colors[self_t->seriescnt][1] = (float) (g / 255.);
+      plot_colors[self_t->seriescnt][2] = (float) (b / 255.);
+    }
     //  For C debugging 
     int l = NUM2INT(rbsz);
     double  min = NUM2DBL(rbmin);
     double  max = NUM2DBL(rbmax);
     char *shname = RSTRING_PTR(rbshname);
     char *lgname = RSTRING_PTR(rblgname);
-    printf("shoes_plot_add using hash: num_obs: %i range %f, %f, |%s|, |%s| \n",
-       l, min, max, shname, lgname); 
-#endif
+    //printf("shoes_plot_add using hash: num_obs: %i range %f, %f, |%s|, |%s| \n",
+    //   l, min, max, shname, lgname); 
   } else {
     rb_raise(rb_eArgError, "misssing something in plot.add \n");
   }
@@ -749,6 +766,15 @@ VALUE shoes_plot_set_last(VALUE self, VALUE idx)
   return idx;
 }
 
+// next two should not be needed
+VALUE shoes_plot_click(VALUE self)
+{
+}
+
+VALUE shoes_plot_release(VALUE self)
+{
+}
+
 #if 0
 typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
 
@@ -762,7 +788,7 @@ get_vector_surface(char *format)
 }
 
 static cairo_surface_t* 
-buid_surface(VALUE self, VALUE docanvas, double scale, int *result, char *filename, char *format) 
+build_surface(VALUE self, VALUE docanvas, double scale, int *result, char *filename, char *format) 
 {
   shoes_plot *self_t;
   Data_Get_Struct(self, shoes_plot, self_t);
@@ -822,7 +848,7 @@ VALUE shoes_plot_export(VALUE self, VALUE attr)
   
   if (!NIL_P(_dpi)) scale = NUM2INT(_dpi)/90.0;
   
-  cairo_surface_t *surf = buid_surface(self, _docanvas, scale, &result, NULL, NULL);
+  cairo_surface_t *surf = build_surface(self, _docanvas, scale, &result, NULL, NULL);
   
   cairo_status_t r = cairo_surface_write_to_png(surf, RSTRING_PTR(_filename));
   cairo_surface_destroy(surf);
@@ -846,7 +872,7 @@ VALUE shoes_plot_save(VALUE self, VALUE attr)
   char *filename = RSTRING_PTR(_filename);
   char *format = RSTRING_PTR(_format);
 
-  cairo_surface_t *surf = buid_surface(self, _docanvas, 1.0, &result, filename, format);
+  cairo_surface_t *surf = build_surface(self, _docanvas, 1.0, &result, filename, format);
   cairo_surface_destroy(surf);
   
   return result == 0 ? Qfalse : Qtrue;
@@ -862,8 +888,6 @@ shoes_plot_get_parent(VALUE self)
   GET_STRUCT(plot, self_t);
   return self_t->parent;
 }
-
-
 
 VALUE shoes_plot_remove(VALUE self)
 {

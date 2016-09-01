@@ -12,15 +12,20 @@ Shoes.app width: 620, height: 610 do
     end
     widget_width = 600
     widget_height = 400
-    @grf = plot widget_width, widget_height, title: "My Graph", caption: 
-      "Look at that! Booyah!!" , font: "Helvetica", auto_grid: true,
-      missing: "skip"
+    stack do
+      @grf = plot widget_width, widget_height, title: "My Graph", caption: 
+        "Look at that! Booyah!!" , font: "Helvetica", auto_grid: true,
+        missing: "skip"
+      #@grf.click do |btn, t, l| 
+      #  puts "click button #{btn} at #{t},#{l}"
+      #end
+    end
     @grf.add num_obs: @values1.size, values: @values1, xobs: @x_axis1,
-       name: "foobar", minv: 6, maxv: 26 , long_name: "foobar Yy"
+       name: "foobar", minv: 6, maxv: 26 , long_name: "foobar Yy", color: "dodgerblue"
     flow do 
       button "add #2" do
         @grf.add num_obs: @values2.size, values: @values2,
-          name: "bartab", minv: @values2.min, maxv: @values2.max
+          name: "bartab", minv: @values2.min, maxv: @values2.max , color: "coral"
       end
       button "delete #2" do
         @grf.delete(1)

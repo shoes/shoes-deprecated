@@ -1943,6 +1943,11 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
         v = shoes_svg_send_click(ele, button, ox, oy);
         *clicked = ele;
       }
+      else if (rb_obj_is_kind_of(ele, cPlot))
+      {
+        v = shoes_plot_send_click(ele, button, ox, oy);
+        *clicked = ele;
+      }
       else if (rb_obj_is_kind_of(ele, cShape))
       {
         v = shoes_shape_send_click(ele, button, ox, oy);
@@ -2045,6 +2050,10 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
       else if (rb_obj_is_kind_of(ele, cSvg))
       {
         shoes_svg_send_release(ele, button, ox, oy);
+      }
+      else if (rb_obj_is_kind_of(ele, cPlot))
+      {
+        shoes_plot_send_release(ele, button, ox, oy);
       }
       else if (rb_obj_is_kind_of(ele, cShape))
       {

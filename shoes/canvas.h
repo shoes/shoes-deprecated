@@ -357,7 +357,7 @@ typedef struct {
   int graph_w;
   int graph_x;
   int graph_y;
-  char hover;   // may not be used?
+  char hover;   
   shoes_transform *st;
 } shoes_plot;
 
@@ -613,6 +613,8 @@ VALUE shoes_plot_save(VALUE, VALUE);
 VALUE shoes_plot_show(VALUE);
 VALUE shoes_plot_hide(VALUE);
 VALUE shoes_plot_get_parent(VALUE);
+VALUE shoes_plot_click(VALUE);   // weird
+VALUE shoes_plot_release(VALUE); // weird
 VALUE shoes_plot_motion(VALUE, int, int, char *);
 VALUE shoes_plot_send_click(VALUE, int, int, int);
 void shoes_plot_send_release(VALUE, int, int, int);
