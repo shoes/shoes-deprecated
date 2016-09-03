@@ -4869,6 +4869,7 @@ shoes_ruby_init()
   rb_define_method(cPlot, "set_first", CASTHOOK(shoes_plot_set_first), 1);
   rb_define_method(cPlot, "last", CASTHOOK(shoes_plot_get_last), 0);
   rb_define_method(cPlot, "set_last", CASTHOOK(shoes_plot_set_last), 1);
+  rb_define_method(cPlot, "save_as", CASTHOOK(shoes_plot_save_as), -1);
   //rb_define_method(cPlot, "export", CASTHOOK(shoes_plot_export), 1);
   //rb_define_method(cPlot, "save", CASTHOOK(shoes_plot_save), 1);
   // methods commom to many Shoes widgets
@@ -4889,8 +4890,8 @@ shoes_ruby_init()
   //rb_define_method(cPlot, "leave", CASTHOOK(shoes_plot_leave), -1);
   //rb_define_method(cPlot, "top", CASTHOOK(shoes_plot_get_actual_top), 0);
   //rb_define_method(cPlot, "left", CASTHOOK(shoes_plot_get_actual_left), 0);
-  //rb_define_method(cPlot, "width", CASTHOOK(shoes_plot_get_actual_width), 0);
-  //rb_define_method(cPlot, "height", CASTHOOK(shoes_plot_get_actual_height), 0);
+  rb_define_method(cPlot, "width", CASTHOOK(shoes_plot_get_actual_width), 0);
+  rb_define_method(cPlot, "height", CASTHOOK(shoes_plot_get_actual_height), 0);
   //rb_define_method(cPlot, "transform", CASTHOOK(shoes_plot_transform), 1);
   //rb_define_method(cPlot, "translate", CASTHOOK(shoes_plot_translate), 2);
   //rb_define_method(cPlot, "rotate", CASTHOOK(shoes_plot_rotate), 1);

@@ -31,6 +31,7 @@ static void shoes_plot_draw_legend(cairo_t *, shoes_plot *);
 static void shoes_plot_draw_tick(cairo_t *, shoes_plot *, int, int, int);
 static void shoes_plot_draw_label(cairo_t *, shoes_plot *, int, int , char*, int);
 static void shoes_plot_draw_everything(cairo_t *, shoes_place *, shoes_plot *);
+static void shoes_plot_draw_nub(cairo_t *, int, int);
 
 static float plot_colors[6][3] = {
   { 0.0, 0.0, 0.9 }, // 0 is blue
@@ -65,6 +66,8 @@ shoes_plot_mark(shoes_plot *plot)
   rb_gc_mark_maybe(plot->names);
   rb_gc_mark_maybe(plot->sizes);
   rb_gc_mark_maybe(plot->long_names);
+  rb_gc_mark_maybe(plot->strokes);
+  rb_gc_mark_maybe(plot->nubs);
   rb_gc_mark_maybe(plot->title);
   rb_gc_mark_maybe(plot->caption);
 }
@@ -90,6 +93,8 @@ shoes_plot_alloc(VALUE klass)
   plot->names = rb_ary_new();
   plot->sizes = rb_ary_new();
   plot->long_names = rb_ary_new();
+  plot->strokes = rb_ary_new();
+  plot->nubs = rb_ary_new();
   plot->parent = Qnil;
   plot->st = NULL;
   plot->auto_grid = 0;
@@ -480,15 +485,23 @@ static void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot)
     VALUE rbmaxv = rb_ary_entry(plot->maxvs, i);
     VALUE rbminv = rb_ary_entry(plot->minvs, i);
     VALUE rbsize = rb_ary_entry(plot->sizes, i);
+    VALUE rbstroke = rb_ary_entry(plot->strokes, i);
+    VALUE rbnubs = rb_ary_entry(plot->nubs, i);
     double maximum = NUM2DBL(rbmaxv);
     double minimum = NUM2DBL(rbminv);
+    int strokew = NUM2INT(rbstroke);
+    if (strokew < 1) strokew = 1;
+    cairo_set_line_width(cr, strokew);
     // Shoes: Remember - we use ints for x, y, w, h and for drawing lines and points
     int height = bottom - top;
     int width = right - left; 
     int range = plot->end_idx - plot->beg_idx; // zooming adj
     float vScale = height / (maximum - minimum);
     float hScale = width / (double) (range - 1);
-    // TODO: color should be part of the series description
+    int nubs = (width / range > 10) ? RTEST(rbnubs) : 0;  // could be done if asked
+  
+    // Note colors can be part of the series description and modify
+    // the plot_colors tables; That is not done here.
     cairo_set_source_rgb(cr, plot_colors[i][0], plot_colors[i][1],
         plot_colors[i][2]);
 
@@ -518,13 +531,47 @@ static void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot)
       } else {
         cairo_line_to(cr, x, y);
       }
+      if (nubs) 
+        shoes_plot_draw_nub(cr, x, y);
     }
     cairo_stroke(cr);
+    cairo_set_line_width(cr, 1.0); // reset between series
   } // end of drawing one series
   // tell cairo to draw all lines (and points)
   cairo_stroke(cr); 
-  // set color back to dark gray
+  // set color back to dark gray and stroke to 1
   cairo_set_source_rgb(cr, 0.9, 0.9, 0.9);
+  cairo_set_line_width(cr, 1.0);
+}
+
+static void shoes_plot_draw_nub(cairo_t *cr, int x, int y)
+{
+    int sz = 2; 
+    /* java
+    Color save = g.getColor();
+
+		g.setColor(Color.black);
+		g.drawLine(x - 1 , y - 1, x + 1, y - 1);
+		g.drawLine(x - 1 , y - 1, x - 1, y + 1);
+
+		g.drawLine(x + 1 , y + 1, x + 1, y - 1);
+		g.drawLine(x + 1 , y + 1, x - 1, y + 1);
+		g.setColor(save);
+    */
+    // Shoes a draw a very small block at x,y
+    cairo_move_to(cr, x - sz, y - sz);
+    cairo_line_to(cr, x + sz, y - sz);
+    
+    cairo_move_to(cr, x - sz, y - sz);
+    cairo_line_to(cr, x - sz, y + sz);
+    
+    cairo_move_to(cr, x + sz, y + sz);
+    cairo_line_to(cr, x + sz, y - sz);
+    
+    cairo_move_to(cr, x + sz, y + sz);
+    cairo_line_to(cr, x - sz, y + sz);
+    
+    cairo_move_to(cr, x, y); // back to center point.
 }
 
 static void shoes_plot_draw_title(cairo_t *cr, shoes_plot *plot) 
@@ -565,6 +612,7 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
 {
   shoes_plot *self_t;
   VALUE rbsz, rbvals, rbobs, rbmin, rbmax, rbshname, rblgname, rbcolor;
+  VALUE rbstroke, rbnubs;
   Data_Get_Struct(self, shoes_plot, self_t); 
   int i = self_t->seriescnt; // track number of series to plot.
   if (i >= 6) {
@@ -580,6 +628,9 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
     rbshname = shoes_hash_get(newseries, rb_intern("name"));
     rblgname = shoes_hash_get(newseries, rb_intern("long_name"));
     rbcolor  = shoes_hash_get(newseries, rb_intern("color"));
+    rbstroke = shoes_hash_get(newseries, rb_intern("strokewidth"));
+    rbnubs = shoes_hash_get(newseries, rb_intern("nubs"));
+    
     if ( NIL_P(rbvals) || TYPE(rbvals) != T_ARRAY ) {
       rb_raise(rb_eArgError, "plot.add: Missing an Array of values");
     }
@@ -624,6 +675,18 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
       plot_colors[self_t->seriescnt][1] = (float) (g / 255.);
       plot_colors[self_t->seriescnt][2] = (float) (b / 255.);
     }
+    
+    if (!NIL_P(rbstroke)) {
+      if (TYPE(rbstroke) != T_FIXNUM) 
+        rb_raise(rb_eArgError, "plot.add strokewidth not an integer\n");
+    } else {
+      rbstroke = INT2NUM(1); // default
+    }
+    if (!NIL_P(rbnubs)) {
+      rbnubs = Qtrue;    
+    } else {
+      rbnubs = Qfalse;
+    }
     //  For C debugging 
     int l = NUM2INT(rbsz);
     double  min = NUM2DBL(rbmin);
@@ -642,6 +705,8 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
   rb_ary_store(self_t->minvs, i, rbmin);
   rb_ary_store(self_t->names, i, rbshname);
   rb_ary_store(self_t->long_names, i, rblgname);
+  rb_ary_store(self_t->strokes, i, rbstroke);
+  rb_ary_store(self_t->nubs, i, rbnubs);
   self_t->beg_idx = 0;
   self_t->end_idx = NUM2INT(rbsz);
   self_t->seriescnt++;
@@ -658,13 +723,35 @@ VALUE shoes_plot_delete(VALUE self, VALUE series)
   int idx = NUM2INT(series);
   if (! (idx >= 0 && idx <= self_t->seriescnt))
     rb_raise(rb_eArgError, "plot.delete arg is out of range");
-  rb_ary_delete(self_t->sizes, series);
-  rb_ary_delete(self_t->values, series);
-  rb_ary_delete(self_t->xobs, series);
-  rb_ary_delete(self_t->maxvs, series);
-  rb_ary_delete(self_t->minvs, series);
-  rb_ary_delete(self_t->names, series);
-  rb_ary_delete(self_t->long_names, series);
+  /* test deletion
+  {
+    int len = RARRAY_LEN(self_t->strokes);
+    VALUE sw = rb_ary_entry(self_t->strokes, 0);
+    printf("pre delete array len %i [0]: %i\n", len, (int)NUM2INT(sw));
+  }
+  */
+  rb_ary_delete_at(self_t->sizes, idx);
+  rb_ary_delete_at(self_t->values, idx);
+  rb_ary_delete_at(self_t->xobs, idx);
+  rb_ary_delete_at(self_t->maxvs, idx);
+  rb_ary_delete_at(self_t->minvs, idx);
+  rb_ary_delete_at(self_t->names, idx);
+  rb_ary_delete_at(self_t->long_names, idx);
+  rb_ary_delete_at(self_t->strokes, idx); 
+  rb_ary_delete_at(self_t->nubs, idx);
+  /* test deletion
+  {
+    int len = RARRAY_LEN(self_t->strokes);
+    VALUE sw = rb_ary_entry(self_t->strokes, 0);
+    printf("post delete array len %i [0]: %i\n", len, (int)NUM2INT(sw));
+  }
+  */
+  /* TODO: not optimal
+  shoes_canvas *canvas;
+  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+  cairo_t *cr = CCR(canvas);
+  cairo_set_line_width(cr, 1.0);
+  */
   self_t->seriescnt--;
   shoes_canvas_repaint_all(self_t->parent);  
     
@@ -682,29 +769,13 @@ VALUE shoes_plot_redraw_to(VALUE self, VALUE to_here)
   int idx = NUM2INT(to_here);
   self_t->end_idx = idx;
   int i;
-  // following loop is probably not needed and useless
+  
   for (i = 0; i < self_t->seriescnt; i++) {
     rb_ary_store(self_t->sizes, i, INT2NUM(idx));
-    // Sync  C struct Ruby VALUES? 
-    VALUE tv, rblen;
-    int len;
-    tv = rb_ary_entry(self_t->values, i);
-    len = RARRAY_LEN(tv);
-    if (len != idx )
-      printf("redraw_to: values len %i, idx %i\n", len, idx);
-      
-    tv = rb_ary_entry(self_t->xobs, i);
-    len = RARRAY_LEN(tv);
-    if (len != idx )
-      printf("redraw_to: xobs len %i, idx %i\n", len, idx);
-      
   }
-  shoes_canvas *canvas;
-  Data_Get_Struct(self_t->parent, shoes_canvas, canvas); 
-  // TODO Invoke magic to redraw the contents. 
-  shoes_canvas_draw(self_t->parent, self_t->parent, Qtrue);
-  //shoes_canvas_repaint_all(self_t->parent);
-  printf("shoes_plot_redraw_to(%i) called\n", idx);
+
+  shoes_canvas_repaint_all(self_t->parent);
+  //printf("shoes_plot_redraw_to(%i) called\n", idx);
   return Qtrue;
 }
 
@@ -746,7 +817,7 @@ VALUE shoes_plot_set_first(VALUE self, VALUE idx)
   Data_Get_Struct(self, shoes_plot, self_t); 
   if (TYPE(idx) != T_FIXNUM) rb_raise(rb_eArgError, "plot.set_first arg is not an integer"); 
   self_t->beg_idx = NUM2INT(idx);
-  // TODO trigger cairo redraw here
+  shoes_canvas_repaint_all(self_t->parent); 
   return idx;
 }
 
@@ -762,20 +833,63 @@ VALUE shoes_plot_set_last(VALUE self, VALUE idx)
   Data_Get_Struct(self, shoes_plot, self_t); 
   if (TYPE(idx) != T_FIXNUM) rb_raise(rb_eArgError, "plot.set_last arg is not an integer"); 
   self_t->end_idx = NUM2INT(idx);
-  // TODO trigger cairo redraw here
+  shoes_canvas_repaint_all(self_t->parent); 
   return idx;
 }
 
 // next two should not be needed
 VALUE shoes_plot_click(VALUE self)
 {
+  printf("shoes_plot_click called\n");
 }
 
 VALUE shoes_plot_release(VALUE self)
 {
+  printf("shoes_plot_release called\n");
 }
 
-#if 0
+// ------ widget methods for style and save/export ------
+VALUE shoes_plot_get_actual_width(VALUE self)
+{
+}
+
+VALUE shoes_plot_get_actual_height(VALUE self)
+{
+}
+
+VALUE shoes_plot_save_as(int argc, VALUE *argv, VALUE self) 
+{
+  if (argc == 0) {
+    // TODO: to clipboard -- as png
+    printf("save to clipboard\n");
+  } else if (TYPE(argv[0]) == T_STRING) {
+    char *rbstr = RSTRING_PTR(argv[0]);
+    char *lastslash = strrchr(rbstr,'/');
+    char *basename;
+    char *filename;
+    char *lastdot;
+    char *ext;
+    char *bare; 
+    if (lastslash) {
+      lastslash++;
+      basename = malloc(strlen(lastslash)+1);
+      strcpy(basename, lastslash);
+      lastdot = strrchr(basename, '.');
+      if (lastdot == 0) {
+        rb_raise(rb_eArgError,"save_as does not have an extension");
+      }
+      // replace dot with null (EOS)
+      *lastdot = '\0';
+      ext = lastdot + 1;
+    }
+    printf("save to: %s %s (long: %s)\n", basename, ext, rbstr);
+    // TODO: call the offscreen rendering
+    free(basename);
+  }
+}
+
+
+#if 1
 typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
 
 static cairo_surface_function_t *

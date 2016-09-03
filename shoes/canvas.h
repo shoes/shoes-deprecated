@@ -337,6 +337,8 @@ typedef struct {
   VALUE long_names; // for y axis display?? Someday
   VALUE xobs; 
   VALUE sizes;
+  VALUE strokes;
+  VALUE nubs;
   // now the singles for the plot
   VALUE title;  
   VALUE legend; 
@@ -607,9 +609,11 @@ VALUE shoes_plot_get_first(VALUE);
 VALUE shoes_plot_set_first(VALUE, VALUE);
 VALUE shoes_plot_get_last(VALUE);
 VALUE shoes_plot_set_last(VALUE, VALUE);
+VALUE shoes_plot_get_actual_width(VALUE);
+VALUE shoes_plot_get_actual_height(VALUE);
 VALUE shoes_plot_remove(VALUE);
 VALUE shoes_plot_export(VALUE, VALUE);
-VALUE shoes_plot_save(VALUE, VALUE);
+VALUE shoes_plot_save_as(int, VALUE *, VALUE);
 VALUE shoes_plot_show(VALUE);
 VALUE shoes_plot_hide(VALUE);
 VALUE shoes_plot_get_parent(VALUE);
