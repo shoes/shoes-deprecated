@@ -4869,6 +4869,7 @@ shoes_ruby_init()
   rb_define_method(cPlot, "set_first", CASTHOOK(shoes_plot_set_first), 1);
   rb_define_method(cPlot, "last", CASTHOOK(shoes_plot_get_last), 0);
   rb_define_method(cPlot, "set_last", CASTHOOK(shoes_plot_set_last), 1);
+  rb_define_method(cPlot, "zoom", CASTHOOK(shoes_plot_zoom), 2);
   rb_define_method(cPlot, "save_as", CASTHOOK(shoes_plot_save_as), -1);
   //rb_define_method(cPlot, "export", CASTHOOK(shoes_plot_export), 1);
   //rb_define_method(cPlot, "save", CASTHOOK(shoes_plot_save), 1);

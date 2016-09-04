@@ -797,6 +797,29 @@ VALUE shoes_plot_find_name(VALUE self, VALUE name)
   return Qnil; // when nothing matches
 }
 
+VALUE shoes_plot_zoom(VALUE self, VALUE beg, VALUE end)
+{
+  shoes_plot *self_t;
+  Data_Get_Struct(self, shoes_plot, self_t); 
+  if (self_t->seriescnt < 1)
+    return Qnil;
+  VALUE rbsz = rb_ary_entry(self_t->sizes, 0);
+  int maxe = NUM2INT(rbsz);
+  int b = NUM2INT(beg);
+  int e = NUM2INT(end);
+  int nb = max(0, b);
+  int ne = min(maxe, e);
+  if ((e - b) < 3) {
+    //printf("no smaller that 3 points\n");
+    return Qfalse;
+  }
+  //printf("zoom to %i -- %i\n", nb, ne);
+  self_t->beg_idx = nb;
+  self_t->end_idx = ne;
+  shoes_canvas_repaint_all(self_t->parent);
+  return Qtrue;
+}
+
 VALUE shoes_plot_get_count(VALUE self) 
 {
   shoes_plot *self_t;

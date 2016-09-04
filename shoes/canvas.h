@@ -609,6 +609,7 @@ VALUE shoes_plot_get_first(VALUE);
 VALUE shoes_plot_set_first(VALUE, VALUE);
 VALUE shoes_plot_get_last(VALUE);
 VALUE shoes_plot_set_last(VALUE, VALUE);
+VALUE shoes_plot_zoom(VALUE, VALUE, VALUE);
 VALUE shoes_plot_get_actual_width(VALUE);
 VALUE shoes_plot_get_actual_height(VALUE);
 VALUE shoes_plot_remove(VALUE);
