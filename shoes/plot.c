@@ -237,7 +237,7 @@ VALUE shoes_plot_draw(VALUE self, VALUE c, VALUE actual)
 }
 
 // this is called by both shoes_plot_draw (general Shoes refresh events)
-// and by shoes_plot_redraw_to(). Doesn't work on the latter.
+// and by shoes_plot_save_as
 static void shoes_plot_draw_everything(cairo_t *cr, shoes_place *place, shoes_plot *self_t) {
     
     shoes_apply_transformation(cr, self_t->st, place, 0);  // cairo_save(cr) is inside
@@ -837,7 +837,7 @@ VALUE shoes_plot_set_last(VALUE self, VALUE idx)
   return idx;
 }
 
-// next two should not be needed
+// next two should not be needed - except the C compiler wants them.
 VALUE shoes_plot_click(VALUE self)
 {
   printf("shoes_plot_click called\n");
@@ -851,16 +851,80 @@ VALUE shoes_plot_release(VALUE self)
 // ------ widget methods for style and save/export ------
 VALUE shoes_plot_get_actual_width(VALUE self)
 {
+  shoes_plot *self_t;
+  Data_Get_Struct(self, shoes_plot, self_t);
+  return INT2NUM(self_t->place.w);
 }
 
 VALUE shoes_plot_get_actual_height(VALUE self)
 {
+  shoes_plot *self_t;
+  Data_Get_Struct(self, shoes_plot, self_t); 
+  return INT2NUM(self_t->place.h);
+}
+
+typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
+
+static cairo_surface_function_t *get_vector_surface(char *format)
+{
+  if (strcmp(format, "pdf") == 0) return & cairo_pdf_surface_create;
+  if (strcmp(format, "ps") == 0)  return & cairo_ps_surface_create;
+  if (strcmp(format, "svg") == 0) return & cairo_svg_surface_create;
+  return NULL;
+}
+
+static cairo_surface_t* 
+build_surface(VALUE self, double scale, int *result, char *filename, char *format) 
+{
+  shoes_plot *self_t;
+  Data_Get_Struct(self, shoes_plot, self_t);
+  shoes_canvas *canvas;
+  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+  shoes_place place = self_t->place;
+  cairo_surface_t *surf;
+  cairo_t *cr;
+
+  int w = (int)(NUM2INT(shoes_plot_get_actual_width(self))*scale);
+  int h = (int)(NUM2INT(shoes_plot_get_actual_height(self))*scale);
+  if (format != NULL)
+    surf = get_vector_surface(format)(filename, w, h);
+  else
+    surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h);
+  cr = cairo_create(surf);
+    
+  if (scale != 1.0) cairo_scale(cr, scale, scale);
+  cairo_translate(cr, -(place.ix + place.dx), -(place.iy + place.dy));
+  // TODO *result = shoes_plot_draw_surface(cr, self_t, &place, w, h);
+  shoes_plot_draw_everything(cr, &self_t->place, self_t);
+  if (format != NULL) cairo_show_page(cr);
+  cairo_destroy(cr);
+  
+  return surf;
+}
+static int shoes_plot_save_png(VALUE self, char *filename)
+{
+  int result;
+  cairo_surface_t *surf = build_surface(self, 1.0, &result, NULL, NULL);
+  cairo_status_t r = cairo_surface_write_to_png(surf, filename);
+  cairo_surface_destroy(surf);
+  
+  return r == CAIRO_STATUS_SUCCESS ? Qtrue : Qfalse;
+}
+
+static int shoes_plot_save_vector(VALUE self, char *filename, char *format)
+{
+  double scale = 1.0;
+  int result;
+  cairo_surface_t *surf = build_surface(self, 1.0, &result, filename, format);
+  cairo_surface_destroy(surf);
+  
+  return 1;
 }
 
 VALUE shoes_plot_save_as(int argc, VALUE *argv, VALUE self) 
 {
   if (argc == 0) {
-    // TODO: to clipboard -- as png
+    shoes_plot_save_png(self, NULL);
     printf("save to clipboard\n");
   } else if (TYPE(argv[0]) == T_STRING) {
     char *rbstr = RSTRING_PTR(argv[0]);
@@ -883,14 +947,19 @@ VALUE shoes_plot_save_as(int argc, VALUE *argv, VALUE self)
       ext = lastdot + 1;
     }
     printf("save to: %s %s (long: %s)\n", basename, ext, rbstr);
-    // TODO: call the offscreen rendering
+    int result = 0;
+    if (strcmp(ext, "png") == 0) {
+      result = shoes_plot_save_png(self, rbstr);
+    } else {
+      result = shoes_plot_save_vector(self, rbstr, ext);
+    }
     free(basename);
+    return (result ? Qtrue : Qnil);
   }
 }
 
 
-#if 1
-typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
+#if 0
 
 static cairo_surface_function_t *
 get_vector_surface(char *format)
