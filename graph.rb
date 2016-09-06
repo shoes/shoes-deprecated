@@ -15,7 +15,7 @@ Shoes.app width: 620, height: 610 do
     stack do
       @grf = plot widget_width, widget_height, title: "My Graph", caption: 
         "Look at that! Booyah!!" , font: "Helvetica", auto_grid: true,
-        missing: "skip", click:  proc { puts "grf click button #{btn} at #{t},#{l}" }
+        missing: "skip", click: proc { grf_clicked}
     end
     @grf.add num_obs: @values1.size, values: @values1, xobs: @x_axis1,
        name: "foobar", minv: 6, maxv: 26 , long_name: "foobar Yy", color: "dodgerblue",
@@ -62,6 +62,9 @@ Shoes.app width: 620, height: 610 do
         i = i + 1
       end
     end
+  end
+  def grf_clicked (btn, t, l)
+    puts "clicked #{btn}, #{t}, #{l}"
   end
 end
 

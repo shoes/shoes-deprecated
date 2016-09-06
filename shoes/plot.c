@@ -58,6 +58,7 @@ static float plot_colors[6][3] = {
 void
 shoes_plot_mark(shoes_plot *plot)
 {
+  printf("plot_mark\n");
   rb_gc_mark_maybe(plot->parent);
   rb_gc_mark_maybe(plot->attr);
   rb_gc_mark_maybe(plot->values);
@@ -70,11 +71,14 @@ shoes_plot_mark(shoes_plot *plot)
   rb_gc_mark_maybe(plot->nubs);
   rb_gc_mark_maybe(plot->title);
   rb_gc_mark_maybe(plot->caption);
+  rb_gc_mark_maybe(plot->legend);
+  rb_gc_mark_maybe(plot->click_proc);
 }
 
 static void
 shoes_plot_free(shoes_plot *plot)
 {
+  printf("plot_free\n");
   shoes_transform_release(plot->st);
   RUBY_CRITICAL(SHOE_FREE(plot));
 }
@@ -101,6 +105,7 @@ shoes_plot_alloc(VALUE klass)
   plot->x_ticks = 8;
   plot->y_ticks = 6;
   plot->missing = MISSING_SKIP;
+  plot->click_proc = Qnil;
   return obj;
 }
 
@@ -110,7 +115,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   VALUE attr = Qnil, widthObj = Qnil, heightObj = Qnil, optsArg = Qnil;
   VALUE title = Qnil, caption = Qnil, fontreq = Qnil, auto_grid = Qnil;
   VALUE x_ticks = Qnil, y_ticks = Qnil;
-  VALUE missing = Qnil; 
+  VALUE missing = Qnil, clickproc = Qnil;
   shoes_canvas *canvas;
   Data_Get_Struct(parent, shoes_canvas, canvas);
   
@@ -133,6 +138,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     x_ticks = shoes_hash_get(optsArg, rb_intern("x_ticks"));
     y_ticks = shoes_hash_get(optsArg, rb_intern("y_ticks"));
     missing = shoes_hash_get(optsArg, rb_intern("missing"));
+    clickproc = shoes_hash_get(optsArg, rb_intern("click"));
   } else {
     rb_raise(rb_eArgError, "Plot: missing {options}");
   }
@@ -196,6 +202,10 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     self_t->x_ticks = NUM2INT(x_ticks);
   if (!NIL_P(y_ticks))
     self_t->y_ticks = NUM2INT(y_ticks);
+    
+  if (! NIL_P(clickproc)) {
+    self_t->click_proc = clickproc;
+  }
     
   self_t->parent = parent;
   self_t->attr = Qnil;
@@ -981,110 +991,6 @@ VALUE shoes_plot_save_as(int argc, VALUE *argv, VALUE self)
   }
 }
 
-
-#if 0
-
-static cairo_surface_function_t *
-get_vector_surface(char *format)
-{
-  if (strstr(format, "pdf") != NULL) return & cairo_pdf_surface_create;
-  if (strstr(format, "ps") != NULL)  return & cairo_ps_surface_create;
-  if (strstr(format, "svg") != NULL) return & cairo_svg_surface_create;
-  return NULL;
-}
-
-static cairo_surface_t* 
-build_surface(VALUE self, VALUE docanvas, double scale, int *result, char *filename, char *format) 
-{
-  shoes_plot *self_t;
-  Data_Get_Struct(self, shoes_plot, self_t);
-  shoes_canvas *canvas;
-  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-  shoes_place place = self_t->place;
-  cairo_surface_t *surf;
-  cairo_t *cr;
-  
-  if (docanvas == Qtrue) {
-    if (format != NULL)
-      surf = get_vector_surface(format)(filename, canvas->width*scale, canvas->height*scale);
-    else
-      surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int)(canvas->width*scale), (int)(canvas->height*scale));
-    cr = cairo_create(surf);
-    
-    if (scale != 1.0) cairo_scale(cr, scale, scale);
-// TODO:   *result = shoes_plot_draw_surface(cr, self_t, &place, (int)(place.w*scale), (int)(place.h*scale));
-    place.w = (int)(place.w*scale); place.h = (int)(place.h*scale);
-    cairo_t *waz_cr = canvas->cr;
-    canvas->cr = cr;
-    shoes_canvas_draw(self_t->parent, self_t->parent, Qtrue);
-    canvas->cr = waz_cr;
-    *result = 1; //TODO
-  } else {
-    int w = (int)(NUM2INT(shoes_plot_get_actual_width(self))*scale);
-    int h = (int)(NUM2INT(shoes_plot_get_actual_height(self))*scale);
-    if (format != NULL)
-      surf = get_vector_surface(format)(filename, w, h);
-    else
-      surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h);
-    cr = cairo_create(surf);
-    
-    if (scale != 1.0) cairo_scale(cr, scale, scale);
-    cairo_translate(cr, -(place.ix + place.dx), -(place.iy + place.dy));
-    // TODO *result = shoes_plot_draw_surface(cr, self_t, &place, w, h);
-  }
-  if (format != NULL) cairo_show_page(cr);
-  cairo_destroy(cr);
-  
-  return surf;
-}
-
-VALUE shoes_plot_export(VALUE self, VALUE attr) 
-{
-  VALUE _filename, _dpi, _docanvas;
-  _filename = shoes_hash_get(attr, rb_intern("filename"));
-  _dpi = shoes_hash_get(attr, rb_intern("dpi"));
-  _docanvas = shoes_hash_get(attr, rb_intern("canvas"));
-  double scale = 1.0;
-  int result;
-  
-  if (NIL_P(_filename)) {
-    rb_raise(rb_eArgError, "wrong arguments for plot export ({:filename=>'...', "
-                            "[:dpi=>90, :canvas=>true|false] })\n:filename is mandatory\n");
-  }
-  
-  if (!NIL_P(_dpi)) scale = NUM2INT(_dpi)/90.0;
-  
-  cairo_surface_t *surf = build_surface(self, _docanvas, scale, &result, NULL, NULL);
-  
-  cairo_status_t r = cairo_surface_write_to_png(surf, RSTRING_PTR(_filename));
-  cairo_surface_destroy(surf);
-  
-  return r == CAIRO_STATUS_SUCCESS ? Qtrue : Qfalse;
-}
-  
-VALUE shoes_plot_save(VALUE self, VALUE attr)
-{
-  VALUE _filename, _format, _docanvas;
-  _filename = shoes_hash_get(attr, rb_intern("filename"));
-  _format = shoes_hash_get(attr, rb_intern("format"));
-  _docanvas = shoes_hash_get(attr, rb_intern("canvas"));
-  int result;
-  
-  if (NIL_P(_filename) || NIL_P(_format)) {
-    rb_raise(rb_eArgError, "wrong arguments for plot save ({:filename=>'...', "
-      ":format=>'pdf'|'ps'|'plot' [, :canvas=>true|false] })\n:filename and :format are mandatory");
-  }
-  
-  char *filename = RSTRING_PTR(_filename);
-  char *format = RSTRING_PTR(_format);
-
-  cairo_surface_t *surf = build_surface(self, _docanvas, 1.0, &result, filename, format);
-  cairo_surface_destroy(surf);
-  
-  return result == 0 ? Qfalse : Qtrue;
-}
-#endif
-
 /*  Not using PLACE_COMMMON Macro in ruby.c, as we do the plot rendering a bit differently
  *  than other widgets [parent, left, top, width, height ruby methods]
  */
@@ -1114,6 +1020,8 @@ VALUE shoes_plot_remove(VALUE self)
   return Qtrue;
 }
 
+// ----  click handling ------
+
 //called by shoes_plot_send_click and shoes_canvas_send_motion
 VALUE
 shoes_plot_motion(VALUE self, int x, int y, char *touch)
@@ -1122,7 +1030,8 @@ shoes_plot_motion(VALUE self, int x, int y, char *touch)
   VALUE click;
   GET_STRUCT(plot, self_t);
 
-  click = ATTR(self_t->attr, click);
+  //click = ATTR(self_t->attr, click);
+  click = self_t->click_proc;
 
   if (IS_INSIDE(self_t, x, y)) {
     if (!NIL_P(click)) {
