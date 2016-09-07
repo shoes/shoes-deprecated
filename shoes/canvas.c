@@ -2114,6 +2114,11 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
       {
         urll = shoes_svg_motion(ele, ox, oy, NULL);
       }
+      else if (rb_obj_is_kind_of(ele, cPlot))
+      {
+        urll = shoes_plot_motion(ele, ox, oy, NULL);
+      }
+ 
       else if (rb_obj_is_kind_of(ele, cShape))
       {
         urll = shoes_shape_motion(ele, ox, oy, NULL);

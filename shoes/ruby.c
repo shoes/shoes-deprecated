@@ -4010,9 +4010,11 @@ PLACE_COMMON(textblock)
 CLASS_COMMON2(textblock)
 REPLACE_COMMON(textblock)
 
+// The next two macros are very important for new widget writers.
 CLASS_COMMON2(svg)
 TRANS_COMMON(svg, 1);
-CLASS_COMMON(plot)
+
+CLASS_COMMON2(plot)
 TRANS_COMMON(plot, 1);
 
 VALUE
@@ -4886,9 +4888,9 @@ shoes_ruby_init()
   //rb_define_method(cPlot, "toggle", CASTHOOK(shoes_plot_toggle), 0);
   //rb_define_method(cPlot, "hidden?", CASTHOOK(shoes_plot_is_hidden), 0);
   rb_define_method(cPlot, "click", CASTHOOK(shoes_plot_click), -1);
-  rb_define_method(cPlot, "release", CASTHOOK(shoes_plot_release), -1);
-  //rb_define_method(cPlot, "hover", CASTHOOK(shoes_plot_hover), -1);
-  //rb_define_method(cPlot, "leave", CASTHOOK(shoes_plot_leave), -1);
+  rb_define_method(cPlot, "released", CASTHOOK(shoes_plot_release), -1);
+  rb_define_method(cPlot, "hover", CASTHOOK(shoes_plot_hover), -1);
+  rb_define_method(cPlot, "leave", CASTHOOK(shoes_plot_leave), -1);
   //rb_define_method(cPlot, "top", CASTHOOK(shoes_plot_get_actual_top), 0);
   //rb_define_method(cPlot, "left", CASTHOOK(shoes_plot_get_actual_left), 0);
   rb_define_method(cPlot, "width", CASTHOOK(shoes_plot_get_actual_width), 0);

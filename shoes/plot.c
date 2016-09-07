@@ -72,7 +72,6 @@ shoes_plot_mark(shoes_plot *plot)
   rb_gc_mark_maybe(plot->title);
   rb_gc_mark_maybe(plot->caption);
   rb_gc_mark_maybe(plot->legend);
-  rb_gc_mark_maybe(plot->click_proc);
 }
 
 static void
@@ -105,7 +104,6 @@ shoes_plot_alloc(VALUE klass)
   plot->x_ticks = 8;
   plot->y_ticks = 6;
   plot->missing = MISSING_SKIP;
-  plot->click_proc = Qnil;
   return obj;
 }
 
@@ -115,38 +113,36 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   VALUE attr = Qnil, widthObj = Qnil, heightObj = Qnil, optsArg = Qnil;
   VALUE title = Qnil, caption = Qnil, fontreq = Qnil, auto_grid = Qnil;
   VALUE x_ticks = Qnil, y_ticks = Qnil;
-  VALUE missing = Qnil, clickproc = Qnil;
+  VALUE missing = Qnil;
   shoes_canvas *canvas;
   Data_Get_Struct(parent, shoes_canvas, canvas);
   
   rb_arg_list args;
-  // TODO parse args
   switch (rb_parse_args(argc, argv, "iih", &args))
   {
     case 1: 
      widthObj  = args.a[0];
      heightObj = args.a[1];
-     optsArg = args.a[2];
+     attr = args.a[2];
     break;
   }
-  if (!NIL_P(optsArg)) {
+  if (!NIL_P(attr)) {
     // TODO pick out :title and :caption if given (and other 'style' args?)
-    title = shoes_hash_get(optsArg, rb_intern("title"));
-    caption = shoes_hash_get(optsArg, rb_intern("caption"));
-    fontreq = shoes_hash_get(optsArg, rb_intern("font"));
-    auto_grid = shoes_hash_get(optsArg, rb_intern("auto_grid"));
-    x_ticks = shoes_hash_get(optsArg, rb_intern("x_ticks"));
-    y_ticks = shoes_hash_get(optsArg, rb_intern("y_ticks"));
-    missing = shoes_hash_get(optsArg, rb_intern("missing"));
-    clickproc = shoes_hash_get(optsArg, rb_intern("click"));
+    title = shoes_hash_get(attr, rb_intern("title"));
+    caption = shoes_hash_get(attr, rb_intern("caption"));
+    fontreq = shoes_hash_get(attr, rb_intern("font"));
+    auto_grid = shoes_hash_get(attr, rb_intern("auto_grid"));
+    x_ticks = shoes_hash_get(attr, rb_intern("x_ticks"));
+    y_ticks = shoes_hash_get(attr, rb_intern("y_ticks"));
+    missing = shoes_hash_get(attr, rb_intern("missing"));
+    // there are many other things in that hash
   } else {
-    rb_raise(rb_eArgError, "Plot: missing {options}");
+    rb_raise(rb_eArgError, "Plot: missing mandatory {options}");
   }
 
   VALUE obj = shoes_plot_alloc(cPlot);
   shoes_plot *self_t;
   Data_Get_Struct(obj, shoes_plot, self_t);
-  
   
   self_t->place.w = NUM2INT(widthObj);
   self_t->place.h = NUM2INT(heightObj);
@@ -173,6 +169,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     if (RTEST(auto_grid))
       self_t->auto_grid = 1;
   } 
+  // todo :sym would be more ruby like than strings.
   if ((!NIL_P(missing)) && (TYPE(missing) == T_STRING)) {
     char *mstr = RSTRING_PTR(missing);
     if (strcmp(mstr, "min") == 0)
@@ -203,12 +200,8 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   if (!NIL_P(y_ticks))
     self_t->y_ticks = NUM2INT(y_ticks);
     
-  if (! NIL_P(clickproc)) {
-    self_t->click_proc = clickproc;
-  }
-    
   self_t->parent = parent;
-  self_t->attr = Qnil;
+  self_t->attr = attr;
   
   // initialize cairo matrice used in transform methods (rotate, scale, skew, translate)
   self_t->st = shoes_transform_touch(canvas->st);
@@ -281,6 +274,7 @@ static void shoes_plot_draw_everything(cairo_t *cr, shoes_place *place, shoes_pl
     }
     // drawing finished
     shoes_undo_transformation(cr, self_t->st, place, 0); // doing cairo_restore(cr)
+    self_t->place = *place;
 }
 
 static void shoes_plot_draw_fill(cairo_t *cr, shoes_plot *plot)
@@ -870,17 +864,6 @@ VALUE shoes_plot_set_last(VALUE self, VALUE idx)
   return idx;
 }
 
-// next two should not be needed - except the C compiler wants them.
-VALUE shoes_plot_click(VALUE self)
-{
-  printf("shoes_plot_click called\n");
-}
-
-VALUE shoes_plot_release(VALUE self)
-{
-  printf("shoes_plot_release called\n");
-}
-
 // ------ widget methods for style and save/export ------
 VALUE shoes_plot_get_actual_width(VALUE self)
 {
@@ -1022,6 +1005,18 @@ VALUE shoes_plot_remove(VALUE self)
 
 // ----  click handling ------
 
+// define our own inside function so we can offset our own margings
+static int shoes_plot_inside(shoes_plot *self_t, int x, int y)
+{
+  int inside = 0;
+  inside = (self_t->place.iw > 0 && self_t->place.ih > 0 && 
+   x >= self_t->place.ix + self_t->place.dx && 
+   x <= self_t->place.ix + self_t->place.dx + self_t->place.iw && 
+   y >= self_t->place.iy + self_t->place.dy && 
+   y <= self_t->place.iy + self_t->place.dy + self_t->place.ih);
+   return inside;
+}
+
 //called by shoes_plot_send_click and shoes_canvas_send_motion
 VALUE
 shoes_plot_motion(VALUE self, int x, int y, char *touch)
@@ -1030,10 +1025,10 @@ shoes_plot_motion(VALUE self, int x, int y, char *touch)
   VALUE click;
   GET_STRUCT(plot, self_t);
 
-  //click = ATTR(self_t->attr, click);
-  click = self_t->click_proc;
+  click = ATTR(self_t->attr, click);
 
-  if (IS_INSIDE(self_t, x, y)) {
+  //if (IS_INSIDE(self_t, x, y)) {
+  if (shoes_plot_inside(self_t, x, y)) {
     if (!NIL_P(click)) {
       shoes_canvas *canvas;
       Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
@@ -1061,7 +1056,7 @@ shoes_plot_send_click(VALUE self, int button, int x, int y)
 {
   VALUE v = Qnil;
 
-  if (button == 1) {
+  if (button >  0) {
     GET_STRUCT(plot, self_t);
     v = shoes_plot_motion(self, x, y, NULL);
     if (self_t->hover & HOVER_MOTION)             // ok, cursor is over the element, proceed
@@ -1078,11 +1073,12 @@ void
 shoes_plot_send_release(VALUE self, int button, int x, int y)
 {
   GET_STRUCT(plot, self_t);
-  if (button == 1 && (self_t->hover & HOVER_CLICK)) {
+  if (button > 0 && (self_t->hover & HOVER_CLICK)) {
     VALUE proc = ATTR(self_t->attr, release);
     self_t->hover ^= HOVER_CLICK; // we have been clicked and released
     if (!NIL_P(proc))
-      shoes_safe_block(self, proc, rb_ary_new3(1, self));
+      //shoes_safe_block(self, proc, rb_ary_new3(1, self));
+      shoes_safe_block(self, proc, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
   }
 }
 

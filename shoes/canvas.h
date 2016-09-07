@@ -343,7 +343,6 @@ typedef struct {
   VALUE title;  
   VALUE legend; 
   VALUE caption;
-  VALUE click_proc;
   int x_ticks;   // number of x_axis (which means a vertical drid line draw)
   int y_ticks;   // number of (left side) y axis horizontial grid lines)
   char  *fontname; // not a Shoes name, cairo "toy" name - might be the same
@@ -619,8 +618,6 @@ VALUE shoes_plot_save_as(int, VALUE *, VALUE);
 VALUE shoes_plot_show(VALUE);
 VALUE shoes_plot_hide(VALUE);
 VALUE shoes_plot_get_parent(VALUE);
-VALUE shoes_plot_click(VALUE);   // weird
-VALUE shoes_plot_release(VALUE); // weird
 VALUE shoes_plot_motion(VALUE, int, int, char *);
 VALUE shoes_plot_send_click(VALUE, int, int, int);
 void shoes_plot_send_release(VALUE, int, int, int);
