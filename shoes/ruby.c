@@ -1087,7 +1087,7 @@ shoes_shape_send_click(VALUE self, int button, int x, int y)
 {
   VALUE v = Qnil;
 
-  if (button == 1)
+  if (button > 0)
   {
     GET_STRUCT(shape, self_t);
     v = shoes_shape_motion(self, x, y, NULL);
@@ -1102,12 +1102,12 @@ void
 shoes_shape_send_release(VALUE self, int button, int x, int y)
 {
   GET_STRUCT(shape, self_t);
-  if (button == 1 && (self_t->hover & HOVER_CLICK))
+  if (button > 0 && (self_t->hover & HOVER_CLICK))
   {
     VALUE proc = ATTR(self_t->attr, release);
     self_t->hover ^= HOVER_CLICK;
     if (!NIL_P(proc))
-      shoes_safe_block(self, proc, rb_ary_new3(1, self));
+      shoes_safe_block(self, proc, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
   }
 }
 
@@ -1371,7 +1371,7 @@ shoes_image_send_click(VALUE self, int button, int x, int y)
 {
   VALUE v = Qnil;
 
-  if (button == 1)
+  if (button > 0)
   {
     GET_STRUCT(image, self_t);
     v = shoes_image_motion(self, x, y, NULL);
@@ -1386,12 +1386,12 @@ void
 shoes_image_send_release(VALUE self, int button, int x, int y)
 {
   GET_STRUCT(image, self_t);
-  if (button == 1 && (self_t->hover & HOVER_CLICK))
+  if (button > 0 && (self_t->hover & HOVER_CLICK))
   {
     VALUE proc = ATTR(self_t->attr, release);
     self_t->hover ^= HOVER_CLICK;
     if (!NIL_P(proc))
-      shoes_safe_block(self, proc, rb_ary_new3(1, self));
+      shoes_safe_block(self, proc, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
   }
 }
 
@@ -2428,7 +2428,7 @@ shoes_textblock_send_click(VALUE self, int button, int x, int y, VALUE *clicked)
 {
   VALUE v = Qnil;
 
-  if (button == 1)
+  if (button > 0)
   {
     GET_STRUCT(textblock, self_t);
     v = shoes_textblock_send_hover(self, x, y, clicked, NULL);
@@ -2443,7 +2443,7 @@ void
 shoes_textblock_send_release(VALUE self, int button, int x, int y)
 {
   GET_STRUCT(textblock, self_t);
-  if (button == 1 && (self_t->hover & HOVER_CLICK))
+  if (button > 0 && (self_t->hover & HOVER_CLICK))
   {
     VALUE proc = ATTR(self_t->attr, release);
     self_t->hover ^= HOVER_CLICK;

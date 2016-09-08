@@ -708,7 +708,7 @@ shoes_svg_send_click(VALUE self, int button, int x, int y)
 {
   VALUE v = Qnil;
 
-  if (button == 1) {
+  if (button > 0) {
     GET_STRUCT(svg, self_t);
     v = shoes_svg_motion(self, x, y, NULL);
     if (self_t->hover & HOVER_MOTION)             // ok, cursor is over the element, proceed
@@ -725,11 +725,11 @@ void
 shoes_svg_send_release(VALUE self, int button, int x, int y)
 {
   GET_STRUCT(svg, self_t);
-  if (button == 1 && (self_t->hover & HOVER_CLICK)) {
+  if (button > 0 && (self_t->hover & HOVER_CLICK)) {
     VALUE proc = ATTR(self_t->attr, release);
     self_t->hover ^= HOVER_CLICK; // we have been clicked and released
     if (!NIL_P(proc))
-      shoes_safe_block(self, proc, rb_ary_new3(1, self));
+      shoes_safe_block(self, proc, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
   }
 }
 

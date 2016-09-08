@@ -22,6 +22,8 @@
       or install one of those ANSI dll things for your DOS era console. 
       Rumor: Win 10 does support ansi escape sequences on it's console.
       Sometimes Win7 does ok with some escape sequence. 
+    On OSX - scrollbars might not show up. page up/down keys and home/end
+      and scroll wheel do work.
     Useful for running unit tests of Shoes and other terminal stuff like the
     profiler text report.
     Note: raspbian may have font issues for 'monospace' font.
@@ -29,6 +31,12 @@
     
   * exit should no long be used. Please use Shoes.quit
     https://github.com/Shoes3/shoes3/issues/263
+  
+  * experimental plot widget (line charts only) 
+      expected problems and confusion
+      can crash with too many data points (aro 5k)
+      https://github.com/Shoes3/shoes3/issues/264
+      https://github.com/Shoes3/shoes3/wiki/Plot-Widget
 
 === Fixed with 3.3.2
   * A new launch script for OSX (cshoes) that works like Linux and Windows
@@ -38,7 +46,11 @@
   * debugging with byebug is much better.
     https://github.com/Shoes3/shoes3/issues/263
     https://github.com/Shoes3/shoes3/wiki/Debugging-with-Byebug
-    
+  * fixed: click and release methods return the documented button. top, left 
+    values. Button numbers start with left button = 1 and increases from there. 
+    How many buttons and how they are numbered is not something Shoes can know 
+    about so it's the user repsonsibility to be cross platform with buttons > 1.
+    https://github.com/Shoes3/shoes3/issues/240
 
 === Developer isssues for 3.3.2
   * no improvements per se although I consider the byebug and osx cshoes major

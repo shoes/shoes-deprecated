@@ -1989,7 +1989,8 @@ shoes_canvas_send_click(VALUE self, int button, int x, int y)
   if (!NIL_P(url))
   {
     if (rb_obj_is_kind_of(url, rb_cProc))
-      shoes_safe_block(self, url, rb_ary_new3(1, clicked));
+      //shoes_safe_block(self, url, rb_ary_new3(1, clicked));
+      shoes_safe_block(self, url, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
     else
     {
       shoes_canvas *self_t;

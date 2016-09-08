@@ -1082,3 +1082,17 @@ shoes_plot_send_release(VALUE self, int button, int x, int y)
   }
 }
 
+/*
+void
+shoes_plot_send_release(VALUE self, int button, int x, int y)
+{
+  GET_STRUCT(plot, self_t);
+  if (button > 0 && (self_t->hover & HOVER_CLICK)) {
+    VALUE proc = ATTR(self_t->attr, release);
+    self_t->hover ^= HOVER_CLICK; // we have been clicked and released
+    if (!NIL_P(proc))
+      //shoes_safe_block(self, proc, rb_ary_new3(1, self));
+      shoes_safe_block(self, proc, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
+  }
+}
+*/
