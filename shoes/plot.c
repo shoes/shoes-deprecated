@@ -58,10 +58,10 @@ static float plot_colors[6][3] = {
 void
 shoes_plot_mark(shoes_plot *plot)
 {
-  printf("plot_mark\n");
   rb_gc_mark_maybe(plot->parent);
   rb_gc_mark_maybe(plot->attr);
   rb_gc_mark_maybe(plot->values);
+  rb_gc_mark_maybe(plot->xobs);
   rb_gc_mark_maybe(plot->minvs);
   rb_gc_mark_maybe(plot->maxvs);
   rb_gc_mark_maybe(plot->names);
@@ -77,7 +77,6 @@ shoes_plot_mark(shoes_plot *plot)
 static void
 shoes_plot_free(shoes_plot *plot)
 {
-  printf("plot_free\n");
   shoes_transform_release(plot->st);
   RUBY_CRITICAL(SHOE_FREE(plot));
 }
