@@ -1005,6 +1005,10 @@ VALUE shoes_plot_remove(VALUE self)
 
 // ----  click handling ------
 
+VALUE shoes_plot_near(VALUE self, VALUE xpos) 
+{
+}
+
 // define our own inside function so we can offset our own margings
 static int shoes_plot_inside(shoes_plot *self_t, int x, int y)
 {

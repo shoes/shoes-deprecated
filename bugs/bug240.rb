@@ -21,10 +21,10 @@ Shoes.app do
       button "textblock" do
         @demo.clear do
           stack width: 200, height: 200 do
-            para "textblock click"
-            para "     click here", family: "mono", 
+            para "textblock click", 
+              link(" click here",
               click: proc {|btn, t, l| puts "textblock clicked #{btn}, #{t}, #{l}"},
-              release: proc {|btn, t, l| puts "telextblock released #{btn}, #{t}, #{l}"}
+              release: proc {|btn, t, l| puts "telextblock released #{btn}, #{t}, #{l}"})
           end
         end
       end
