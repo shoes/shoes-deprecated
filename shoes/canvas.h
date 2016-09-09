@@ -319,6 +319,50 @@ typedef struct {
   shoes_transform *st;
 } shoes_svg;
 
+
+//
+// Plot struct
+//
+typedef struct {
+  VALUE parent;
+  VALUE attr;
+  shoes_place place;
+  int seriescnt;
+  int auto_grid; 
+  int missing; 
+  VALUE maxvs;  // these will be Ruby arrays of things (0..seriescnt)
+  VALUE minvs;
+  VALUE values;
+  VALUE names;  
+  VALUE long_names; // for y axis display?? Someday
+  VALUE xobs; 
+  VALUE sizes;
+  VALUE strokes;
+  VALUE nubs;
+  // now the singles for the plot
+  VALUE title;  
+  VALUE legend; 
+  VALUE caption;
+  int x_ticks;   // number of x_axis (which means a vertical drid line draw)
+  int y_ticks;   // number of (left side) y axis horizontial grid lines)
+  char  *fontname; // not a Shoes name, cairo "toy" name - might be the same
+  int beg_idx;  //used for zooming in
+  int end_idx;  // and zooming out
+  int title_h;
+  int title_fh; // font height
+  int legend_h; 
+  int legend_fh; 
+  int caption_h;
+  int caption_fh;
+  int yaxis_offset;
+  int graph_h;  // where the dots are drawn
+  int graph_w;
+  int graph_x;
+  int graph_y;
+  char hover;   
+  shoes_transform *st;
+} shoes_plot;
+
 //
 // not very temporary canvas (used internally for painting)
 //
@@ -433,6 +477,7 @@ VALUE shoes_canvas_animate(int, VALUE *, VALUE);
 VALUE shoes_canvas_every(int, VALUE *, VALUE);
 VALUE shoes_canvas_timer(int, VALUE *, VALUE);
 VALUE shoes_canvas_svg(int, VALUE *, VALUE);
+VALUE shoes_canvas_plot(int, VALUE *, VALUE);
 VALUE shoes_canvas_imagesize(VALUE, VALUE);
 VALUE shoes_canvas_shape(int, VALUE *, VALUE);
 void shoes_canvas_remove_item(VALUE, VALUE, char, char);
@@ -551,6 +596,32 @@ VALUE shoes_svg_has_group(VALUE, VALUE);
 VALUE shoes_svg_motion(VALUE, int, int, char *);
 VALUE shoes_svg_send_click(VALUE, int, int, int);
 void shoes_svg_send_release(VALUE, int, int, int);
+
+VALUE shoes_plot_new(int, VALUE *, VALUE);
+VALUE shoes_plot_alloc(VALUE);
+VALUE shoes_plot_draw(VALUE, VALUE, VALUE);
+VALUE shoes_plot_redraw_to(VALUE, VALUE);
+VALUE shoes_plot_add(VALUE, VALUE);
+VALUE shoes_plot_delete(VALUE, VALUE);
+VALUE shoes_plot_find_name(VALUE, VALUE);
+VALUE shoes_plot_get_count(VALUE);
+VALUE shoes_plot_get_first(VALUE);
+VALUE shoes_plot_set_first(VALUE, VALUE);
+VALUE shoes_plot_get_last(VALUE);
+VALUE shoes_plot_set_last(VALUE, VALUE);
+VALUE shoes_plot_near(VALUE, VALUE);
+VALUE shoes_plot_zoom(VALUE, VALUE, VALUE);
+VALUE shoes_plot_get_actual_width(VALUE);
+VALUE shoes_plot_get_actual_height(VALUE);
+VALUE shoes_plot_remove(VALUE);
+VALUE shoes_plot_export(VALUE, VALUE);
+VALUE shoes_plot_save_as(int, VALUE *, VALUE);
+VALUE shoes_plot_show(VALUE);
+VALUE shoes_plot_hide(VALUE);
+VALUE shoes_plot_get_parent(VALUE);
+VALUE shoes_plot_motion(VALUE, int, int, char *);
+VALUE shoes_plot_send_click(VALUE, int, int, int);
+void shoes_plot_send_release(VALUE, int, int, int);
 
 void shoes_control_mark(shoes_control *);
 VALUE shoes_control_new(VALUE, VALUE, VALUE);

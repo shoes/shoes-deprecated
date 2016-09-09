@@ -781,6 +781,16 @@ shoes_canvas_svg(int argc, VALUE *argv, VALUE self)
   return widget;
 }
 
+VALUE
+shoes_canvas_plot(int argc, VALUE *argv, VALUE self)
+{
+  VALUE widget;
+  SETUP();
+  widget = shoes_plot_new(argc, argv, self);
+  shoes_add_ele(canvas, widget);
+  return widget;
+}
+
 
 VALUE
 shoes_canvas_shape(int argc, VALUE *argv, VALUE self)
@@ -1933,6 +1943,11 @@ shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
         v = shoes_svg_send_click(ele, button, ox, oy);
         *clicked = ele;
       }
+      else if (rb_obj_is_kind_of(ele, cPlot))
+      {
+        v = shoes_plot_send_click(ele, button, ox, oy);
+        *clicked = ele;
+      }
       else if (rb_obj_is_kind_of(ele, cShape))
       {
         v = shoes_shape_send_click(ele, button, ox, oy);
@@ -1974,7 +1989,8 @@ shoes_canvas_send_click(VALUE self, int button, int x, int y)
   if (!NIL_P(url))
   {
     if (rb_obj_is_kind_of(url, rb_cProc))
-      shoes_safe_block(self, url, rb_ary_new3(1, clicked));
+      //shoes_safe_block(self, url, rb_ary_new3(1, clicked));
+      shoes_safe_block(self, url, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
     else
     {
       shoes_canvas *self_t;
@@ -2036,6 +2052,10 @@ shoes_canvas_send_release(VALUE self, int button, int x, int y)
       {
         shoes_svg_send_release(ele, button, ox, oy);
       }
+      else if (rb_obj_is_kind_of(ele, cPlot))
+      {
+        shoes_plot_send_release(ele, button, ox, oy);
+      }
       else if (rb_obj_is_kind_of(ele, cShape))
       {
         shoes_shape_send_release(ele, button, ox, oy);
@@ -2095,6 +2115,11 @@ shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url)
       {
         urll = shoes_svg_motion(ele, ox, oy, NULL);
       }
+      else if (rb_obj_is_kind_of(ele, cPlot))
+      {
+        urll = shoes_plot_motion(ele, ox, oy, NULL);
+      }
+ 
       else if (rb_obj_is_kind_of(ele, cShape))
       {
         urll = shoes_shape_motion(ele, ox, oy, NULL);
