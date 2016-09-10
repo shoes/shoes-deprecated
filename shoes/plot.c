@@ -126,7 +126,6 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     break;
   }
   if (!NIL_P(attr)) {
-    // TODO pick out :title and :caption if given (and other 'style' args?)
     title = shoes_hash_get(attr, rb_intern("title"));
     caption = shoes_hash_get(attr, rb_intern("caption"));
     fontreq = shoes_hash_get(attr, rb_intern("font"));
@@ -742,19 +741,6 @@ VALUE shoes_plot_delete(VALUE self, VALUE series)
   rb_ary_delete_at(self_t->long_names, idx);
   rb_ary_delete_at(self_t->strokes, idx); 
   rb_ary_delete_at(self_t->nubs, idx);
-  /* test deletion
-  {
-    int len = RARRAY_LEN(self_t->strokes);
-    VALUE sw = rb_ary_entry(self_t->strokes, 0);
-    printf("post delete array len %i [0]: %i\n", len, (int)NUM2INT(sw));
-  }
-  */
-  /* TODO: not optimal
-  shoes_canvas *canvas;
-  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-  cairo_t *cr = CCR(canvas);
-  cairo_set_line_width(cr, 1.0);
-  */
   self_t->seriescnt--;
   shoes_canvas_repaint_all(self_t->parent);  
     
@@ -878,6 +864,23 @@ VALUE shoes_plot_get_actual_height(VALUE self)
   return INT2NUM(self_t->place.h);
 }
 
+VALUE
+shoes_plot_get_actual_left(VALUE self)
+{
+  shoes_plot *self_t;
+  Data_Get_Struct(self, shoes_plot, self_t);
+  return INT2NUM(self_t->place.ix + self_t->place.dx);
+}
+
+VALUE
+shoes_plot_get_actual_top(VALUE self)
+{
+  shoes_plot *self_t;
+  Data_Get_Struct(self, shoes_plot, self_t);
+  return INT2NUM(self_t->place.iy + self_t->place.dy);
+}
+
+// --- fun with vector and png ---
 typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
 
 static cairo_surface_function_t *get_vector_surface(char *format)
@@ -909,7 +912,7 @@ build_surface(VALUE self, double scale, int *result, char *filename, char *forma
     
   if (scale != 1.0) cairo_scale(cr, scale, scale);
   cairo_translate(cr, -(place.ix + place.dx), -(place.iy + place.dy));
-  // TODO *result = shoes_plot_draw_surface(cr, self_t, &place, w, h);
+  
   shoes_plot_draw_everything(cr, &self_t->place, self_t);
   if (format != NULL) cairo_show_page(cr);
   cairo_destroy(cr);
@@ -985,38 +988,63 @@ shoes_plot_get_parent(VALUE self)
 
 VALUE shoes_plot_remove(VALUE self)
 {
-  //printf("remove\n");
   shoes_plot *self_t;
   shoes_canvas *canvas;
   Data_Get_Struct(self, shoes_plot, self_t);
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
   
   rb_ary_delete(canvas->contents, self);    // shoes_basic_remove does it this way
-  shoes_canvas_repaint_all(self_t->parent); //
+  shoes_canvas_repaint_all(self_t->parent); 
   
-  // let ruby gc collect handle (it may be shared) just remove this ref
-  // TODO self_t->plothandle = Qnil;
   self_t = NULL;
   self = Qnil;
-  
   return Qtrue;
 }
 
 // ----  click handling ------
 
+/* 
+ * this attempts compute the values/xobs index nearest the x pixel 
+ * from a mouse click.  First get a % of x between width
+ * use that to pick between beg_idx, end_idx and return that.
+ * 
+ */
 VALUE shoes_plot_near(VALUE self, VALUE xpos) 
 {
+  shoes_plot *self_t;
+  Data_Get_Struct(self, shoes_plot, self_t);
+  int x = NUM2INT(xpos); 
+  int left,right;
+  left = self_t->graph_x; 
+  right = self_t->graph_w;
+  int offx = self_t->place.ix + self_t->place.dx;
+  double wid = self_t->place.iw; 
+  double rpos = (x - offx) / wid; 
+  if (rpos < 0.0) 
+    rpos = 0.0;
+  if (rpos > 1.0)
+    rpos = 1.0;
+  int rng = (self_t->end_idx - self_t->beg_idx);
+  int idx = floorl(rpos * rng);
+  // printf("shoes_plot_near: %i xoff: %i rpos: %f here: %i\n", x, offx,rpos,idx);
+  return INT2NUM(idx);
 }
 
-// define our own inside function so we can offset our own margings
+// define our own inside function so we can offset our own margins
+// this controls what cursor is shown - mostly
 static int shoes_plot_inside(shoes_plot *self_t, int x, int y)
 {
   int inside = 0;
-  inside = (self_t->place.iw > 0 && self_t->place.ih > 0 && 
-   x >= self_t->place.ix + self_t->place.dx && 
-   x <= self_t->place.ix + self_t->place.dx + self_t->place.iw && 
-   y >= self_t->place.iy + self_t->place.dy && 
-   y <= self_t->place.iy + self_t->place.dy + self_t->place.ih);
+  inside = (self_t->place.iw > 0 &&  self_t->place.ih > 0 && 
+   //x >= self_t->place.ix + self_t->place.dx && 
+   x >= self_t->place.ix + self_t->place.dx + self_t->graph_x && 
+   // x <= self_t->place.ix + self_t->place.dx + self_t->place.iw && 
+   x <= self_t->place.ix + self_t->place.dx + self_t->place.iw -self_t->graph_x && 
+   //y >= self_t->place.iy + self_t->place.dy && 
+   y >= self_t->place.iy + self_t->place.dy + self_t->graph_y && 
+   //y <= self_t->place.iy + self_t->place.dy + self_t->place.ih);
+   y <= self_t->place.iy + self_t->place.dy + self_t->place.ih - 
+     (self_t->caption_h + self_t->legend_h + 25));  //TODO no hardcoding of offsets
    return inside;
 }
 

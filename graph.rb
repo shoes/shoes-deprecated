@@ -1,5 +1,5 @@
 # good-graph.rb ?
-Shoes.app width: 620, height: 610 do
+Shoes.app width: 700, height: 610 do
   @values1 = [24, 22, 10, 13, 20, 8, 22]
   @x_axis1 = ['a','b','c','d','e','f', 'g']
   #@values1 = [24, 22, nil, 13, 20, 8, 22]
@@ -13,10 +13,13 @@ Shoes.app width: 620, height: 610 do
     widget_width = 600
     widget_height = 400
     stack do
-      @grf = plot widget_width, widget_height, title: "My Graph", caption: 
-        "Look at that! Booyah!!" , font: "Helvetica", auto_grid: true,
-        missing: "skip", click: proc {|btn, t, l| puts "clicked #{btn}, #{t}, #{l}"},
-        release:  proc {|btn, t, l| puts "released #{btn}, #{t}, #{l}"}
+      flow do
+        para "This is mine!"
+        @grf = plot widget_width, widget_height, title: "My Graph", caption: 
+          "Look at that! Booyah!!" , font: "Helvetica", auto_grid: true,
+          missing: "skip", click: proc {|btn, l, t| puts "click on #{@grf.near_x(l)}" }
+          
+      end
     end
     @grf.add num_obs: @values1.size, values: @values1, xobs: @x_axis1,
        name: "foobar", minv: 6, maxv: 26 , long_name: "foobar Yy", color: "dodgerblue",

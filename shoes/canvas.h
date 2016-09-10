@@ -355,7 +355,7 @@ typedef struct {
   int caption_h;
   int caption_fh;
   int yaxis_offset;
-  int graph_h;  // where the dots are drawn
+  int graph_h;  // to where the dots are drawn
   int graph_w;
   int graph_x;
   int graph_y;
@@ -613,6 +613,8 @@ VALUE shoes_plot_near(VALUE, VALUE);
 VALUE shoes_plot_zoom(VALUE, VALUE, VALUE);
 VALUE shoes_plot_get_actual_width(VALUE);
 VALUE shoes_plot_get_actual_height(VALUE);
+VALUE shoes_plot_get_actual_left(VALUE);
+VALUE shoes_plot_get_actual_top(VALUE);
 VALUE shoes_plot_remove(VALUE);
 VALUE shoes_plot_export(VALUE, VALUE);
 VALUE shoes_plot_save_as(int, VALUE *, VALUE);

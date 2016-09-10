@@ -44,7 +44,7 @@ class DataSeries
       @obvs <<  "#{dts[2..3]}-#{dts[4..5]}-#{dts[6..7]}"
       @values << flds[2].to_f
     end
-    puts "load_file: #{@values.size}"
+    #puts "load_file: #{@values.size}"
   end
   
   def size 
@@ -135,6 +135,18 @@ Shoes.app width: 620, height: 610 do
     @grf.zoom @zoom_beg, @zoom_end
   end
   
+  # like zoom in, but it centers the display on the clicked observation (index)
+  # Note that the cpidx lies between displayed beg and end indices already
+  def zoom_center(x)
+    cpidx = @grf.near_x x
+    range = @zoom_end - @zoom_beg
+    @zoom_beg = (cpidx - (range * 0.875)).to_i
+    @zoom_end = (cpidx + (range * 0.875)).to_i
+    puts "zoom center near #{cpidx} #{@zoom_beg} #{@zoom_end}"
+    @zooming = true;
+    #@grf.zoom @zoom_beg, @zoom_end
+  end
+  
   stack do
     flow do 
       button "quit" do Shoes.quit end
@@ -144,7 +156,7 @@ Shoes.app width: 620, height: 610 do
           if filename 
               @series << DataSeries.new(filename)
               newidx = @series.size - 1
-              puts "newidx = #{newidx}"
+              #puts "newidx = #{newidx}"
               ser = @series[newidx]
               @grf.add  num_obs: ser.size, values: ser.values, maxv: ser.max * 1.01,
                 minv: ser.min, name: ser.name, xobs: ser.obvs, nubs: :true
@@ -167,7 +179,7 @@ Shoes.app width: 620, height: 610 do
       end
     end
     @grf = plot 600, 400,  title: "Explore Market Data", caption: "depends on the datat",
-      x_ticks: 8, y_ticks: 10,  auto_grid: true
+      x_ticks: 8, y_ticks: 10,  auto_grid: true, click: proc {|btn, l, t| zoom_center l}
     keypress do |k|
       #puts "key: #{k.inspect}"
       case k
