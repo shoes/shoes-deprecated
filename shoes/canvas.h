@@ -349,7 +349,9 @@ typedef struct {
   int beg_idx;  //used for zooming in
   int end_idx;  // and zooming out
   int title_h;
-  int title_fh; // font height
+  int title_w;  // pixels of actual title?
+  PangoFontDescription *title_pfd; 
+  PangoLayout *title_layout; 
   int legend_h; 
   int legend_fh; 
   int caption_h;

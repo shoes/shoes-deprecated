@@ -135,16 +135,29 @@ Shoes.app width: 620, height: 610 do
     @grf.zoom @zoom_beg, @zoom_end
   end
   
+  def max (a, b)
+    return (a >= b) ? a : b
+  end
+  
+  def min (a, b)
+    return (a <= b) ? a : b
+  end
+  
   # like zoom in, but it centers the display on the clicked observation (index)
-  # Note that the cpidx lies between displayed beg and end indices already
+  # Note that the idx lies between displayed beg and end indices already
   def zoom_center(x)
-    cpidx = @grf.near_x x
+    idx = @grf.near_x x
+    printf("zoom center start: %3d % 4d % 4d % 4d\n", x, @zoom_beg, idx, @zoom_end)
     range = @zoom_end - @zoom_beg
-    @zoom_beg = (cpidx - (range * 0.875)).to_i
-    @zoom_end = (cpidx + (range * 0.875)).to_i
-    puts "zoom center near #{cpidx} #{@zoom_beg} #{@zoom_end}"
+    cpidx = idx / range
+  
+    newl = (@zoom_beg + (range * 0.125)).to_i
+    newr = (@zoom_end - (range * 0.125)).to_i
+    @zoom_beg = newl
+    @zoom_end = newr
+    printf("zoom center end:   %3d % 4d % 4d % 4d \n", x, @zoom_beg, idx, @zoom_end)
     @zooming = true;
-    #@grf.zoom @zoom_beg, @zoom_end
+    @grf.zoom @zoom_beg, @zoom_end
   end
   
   stack do

@@ -162,6 +162,13 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   } else {
     self_t->title = rb_str_new2("Missing a title:");
   }
+  // setup pangocairo for the title
+  self_t->title_pfd = pango_font_description_new ();
+  pango_font_description_set_family (self_t->title_pfd, self_t->fontname);
+  pango_font_description_set_weight (self_t->title_pfd, PANGO_WEIGHT_BOLD);
+  pango_font_description_set_absolute_size (self_t->title_pfd, 16 * PANGO_SCALE);
+
+     
   self_t->auto_grid = 0;
   if (! NIL_P(auto_grid)) {
     if (RTEST(auto_grid))
@@ -396,15 +403,17 @@ static void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
   for (i = 0; i < plot->seriescnt; i++) {
     rbstr = rb_ary_entry(plot->long_names, i);
     strary[i] = RSTRING_PTR(rbstr);
+    if (i > 0) 
+      bigstrlen += 2; // TODO number of space
     bigstrlen += strlen(strary[i]);
-    bigstrlen += 2; // TODO number of space
   }
   char *space_str = "  ";
   char *bigstr = malloc(bigstrlen);
   bigstr[0] = '\0';
   for (i = 0; i < plot->seriescnt; i++) {
+    if (i > 0) 
+      strcat(bigstr, space_str);
     strcat(bigstr, strary[i]);
-    strcat(bigstr, space_str);
   }
   cairo_set_font_size(cr, 14);
   cairo_text_extents_t bigstr_ct;
@@ -413,7 +422,9 @@ static void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
   free(bigstr);
   // where to position the drawing pt?
   int pos_x;
-  pos_x = (width - (int) bigstr_ct.width) / 2;
+  int pct;
+  pct = (width / 2) - (bigstr_ct.width / 2);
+  pos_x = plot->place.ix + pct;
   //printf("middle? w: %i, l: %i  pos_x: %i, strw: %i\n", width, left, pos_x, (int)bigstr_ct.width);
   cairo_move_to(cr, pos_x, bottom+5); //TODO: compute baseline
   for (i = 0; i < plot->seriescnt; i++) {
@@ -580,16 +591,32 @@ static void shoes_plot_draw_title(cairo_t *cr, shoes_plot *plot)
 {
   char *str = RSTRING_PTR(plot->title);
   int x, y;
+#ifdef TOY_CAIRO
   cairo_text_extents_t te;
   cairo_text_extents(cr, str, &te);
   int xoffset = (plot->place.w / 2) - (te.width / 2);
   int yhalf = (plot->title_h / 2 ); 
   int yoffset = yhalf + (te.height / 2);
-  x = plot->place.ix + xoffset;
+  //x = xoffset - (plot->place.ix + plot->place.dx);
+  x = xoffset - (plot->place.dx);
   //y = plot->title_h;
   y = yoffset;
   cairo_move_to(cr, x, y);
   cairo_show_text(cr, str);
+#else
+  PangoLayout *layout = pango_cairo_create_layout (cr);
+  pango_layout_set_font_description (layout, plot->title_pfd);
+  pango_layout_set_text (layout, str, -1);
+  PangoRectangle ink, logical;
+  pango_layout_get_pixel_extents (layout, &ink, &logical);
+  int xoffset = (plot->place.w / 2) - (logical.width / 2);
+  x = xoffset - (plot->place.dx);
+  int yhalf = (plot->title_h / 2 ); 
+  int yoffset = yhalf; 
+  y = yoffset;
+  cairo_move_to(cr, x, y);
+  pango_cairo_show_layout (cr, layout);
+#endif 
 }
 
 static void shoes_plot_draw_caption(cairo_t *cr, shoes_plot *plot)
@@ -602,7 +629,8 @@ static void shoes_plot_draw_caption(cairo_t *cr, shoes_plot *plot)
   int yhalf = (plot->caption_h / 2 ); 
   int yoffset = yhalf + (te.height / 2);
   //int offset = (plot->place.w / 2) - (strlen(t) * 6);
-  x = plot->place.ix + xoffset;
+  //x = plot->place.ix + xoffset;
+  x = xoffset - (plot->place.dx);
   //y = plot->place.h - plot->caption_h; 
   y = plot->place.h; 
   y -= yoffset;
@@ -1004,7 +1032,7 @@ VALUE shoes_plot_remove(VALUE self)
 // ----  click handling ------
 
 /* 
- * this attempts compute the values/xobs index nearest the x pixel 
+ * this attempts to compute the values/xobs index nearest the x pixel 
  * from a mouse click.  First get a % of x between width
  * use that to pick between beg_idx, end_idx and return that.
  * 
@@ -1017,16 +1045,12 @@ VALUE shoes_plot_near(VALUE self, VALUE xpos)
   int left,right;
   left = self_t->graph_x; 
   right = self_t->graph_w;
-  int offx = self_t->place.ix + self_t->place.dx;
-  double wid = self_t->place.iw; 
-  double rpos = (x - offx) / wid; 
-  if (rpos < 0.0) 
-    rpos = 0.0;
-  if (rpos > 1.0)
-    rpos = 1.0;
+  int newx = x - (self_t->place.ix + self_t->place.dx + left);
+  int wid = right - left;
+  double rpos = newx  / wid; 
   int rng = (self_t->end_idx - self_t->beg_idx);
   int idx = floorl(rpos * rng);
-  // printf("shoes_plot_near: %i xoff: %i rpos: %f here: %i\n", x, offx,rpos,idx);
+  printf("shoes_plot_near: %i newx: %i rpos: %f here: %i\n", x,newx,rpos,idx);
   return INT2NUM(idx);
 }
 
