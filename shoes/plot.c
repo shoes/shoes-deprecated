@@ -184,21 +184,28 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     else 
       self_t->missing = MISSING_SKIP;
   } 
-
-  self_t->title_h = 50;
-
   if (!NIL_P(caption)) {
     self_t->caption = caption;
   } else {
     self_t->caption = rb_str_new2("Missing a caption:");
   }
+  
+  // setup pangocairo for the caption
+  self_t->caption_pfd = pango_font_description_new ();
+  pango_font_description_set_family (self_t->caption_pfd, self_t->fontname);
+  pango_font_description_set_weight (self_t->caption_pfd, PANGO_WEIGHT_NORMAL);
+  pango_font_description_set_absolute_size (self_t->caption_pfd, 12 * PANGO_SCALE);
+  
+  // TODO these should be computed based on heuristics
+  self_t->title_h = 50;
   self_t->legend_h = 25;
   self_t->caption_h = 25;
-
+  self_t->yaxis_offset = 50;  
+  
   // width of y axis on left and right of plot, in pixels
   // really should be computed based on the data being presented.
   // TODO Of course.
-  self_t->yaxis_offset = 50; 
+
   
   if (!NIL_P(x_ticks))
     self_t->x_ticks = NUM2INT(x_ticks);
@@ -608,7 +615,7 @@ static void shoes_plot_draw_title(cairo_t *cr, shoes_plot *plot)
   pango_layout_set_font_description (layout, plot->title_pfd);
   pango_layout_set_text (layout, str, -1);
   PangoRectangle ink, logical;
-  pango_layout_get_pixel_extents (layout, &ink, &logical);
+  pango_layout_get_pixel_extents (layout, NULL, &logical);
   int xoffset = (plot->place.w / 2) - (logical.width / 2);
   x = xoffset - (plot->place.dx);
   int yhalf = (plot->title_h / 2 ); 
@@ -623,19 +630,33 @@ static void shoes_plot_draw_caption(cairo_t *cr, shoes_plot *plot)
 {
   char *str = RSTRING_PTR(plot->caption);
   int x, y;
+#if TOY_CAIRO
   cairo_text_extents_t te;
   cairo_text_extents(cr, str, &te);
   int xoffset = (plot->place.w / 2) - (te.width / 2);
   int yhalf = (plot->caption_h / 2 ); 
   int yoffset = yhalf + (te.height / 2);
-  //int offset = (plot->place.w / 2) - (strlen(t) * 6);
-  //x = plot->place.ix + xoffset;
   x = xoffset - (plot->place.dx);
-  //y = plot->place.h - plot->caption_h; 
   y = plot->place.h; 
   y -= yoffset;
   cairo_move_to(cr, x, y);
   cairo_show_text(cr, str);
+#else
+  PangoLayout *layout = pango_cairo_create_layout (cr);
+  pango_layout_set_font_description (layout, plot->caption_pfd);
+  pango_layout_set_text (layout, str, -1);
+  PangoRectangle logical;
+  pango_layout_get_pixel_extents (layout, NULL, &logical);
+  int xoffset = (plot->place.w / 2) - (logical.width / 2);
+  x = xoffset - (plot->place.dx);
+  
+  int yhalf = (plot->caption_h / 2 ); 
+  int yoffset = yhalf + (logical.height/ 2); 
+  y = plot->place.iy + plot->graph_h;
+  y -= yoffset;
+  cairo_move_to(cr, x, y);
+  pango_cairo_show_layout (cr, layout);
+#endif
 }
 
 VALUE shoes_plot_add(VALUE self, VALUE newseries) 

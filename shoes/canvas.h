@@ -349,13 +349,11 @@ typedef struct {
   int beg_idx;  //used for zooming in
   int end_idx;  // and zooming out
   int title_h;
-  int title_w;  // pixels of actual title?
   PangoFontDescription *title_pfd; 
-  PangoLayout *title_layout; 
+  int caption_h;
+  PangoFontDescription *caption_pfd; 
   int legend_h; 
   int legend_fh; 
-  int caption_h;
-  int caption_fh;
   int yaxis_offset;
   int graph_h;  // to where the dots are drawn
   int graph_w;
