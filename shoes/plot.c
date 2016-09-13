@@ -55,29 +55,33 @@ static float plot_colors[6][3] = {
 // alloc some memory for a shoes_plot; We'll protect it's Ruby VALUES from gc
 // out of caution. fingers crossed.
 void
-shoes_plot_mark(shoes_plot *plot)
+shoes_plot_mark(shoes_plot *self_t)
 {
-  rb_gc_mark_maybe(plot->parent);
-  rb_gc_mark_maybe(plot->attr);
-  rb_gc_mark_maybe(plot->values);
-  rb_gc_mark_maybe(plot->xobs);
-  rb_gc_mark_maybe(plot->minvs);
-  rb_gc_mark_maybe(plot->maxvs);
-  rb_gc_mark_maybe(plot->names);
-  rb_gc_mark_maybe(plot->sizes);
-  rb_gc_mark_maybe(plot->long_names);
-  rb_gc_mark_maybe(plot->strokes);
-  rb_gc_mark_maybe(plot->nubs);
-  rb_gc_mark_maybe(plot->title);
-  rb_gc_mark_maybe(plot->caption);
-  rb_gc_mark_maybe(plot->legend);
+  rb_gc_mark_maybe(self_t->parent);
+  rb_gc_mark_maybe(self_t->attr);
+  rb_gc_mark_maybe(self_t->values);
+  rb_gc_mark_maybe(self_t->xobs);
+  rb_gc_mark_maybe(self_t->minvs);
+  rb_gc_mark_maybe(self_t->maxvs);
+  rb_gc_mark_maybe(self_t->names);
+  rb_gc_mark_maybe(self_t->sizes);
+  rb_gc_mark_maybe(self_t->long_names);
+  rb_gc_mark_maybe(self_t->strokes);
+  rb_gc_mark_maybe(self_t->nubs);
+  rb_gc_mark_maybe(self_t->title);
+  rb_gc_mark_maybe(self_t->caption);
+  rb_gc_mark_maybe(self_t->legend);
 }
 
 static void
-shoes_plot_free(shoes_plot *plot)
+shoes_plot_free(shoes_plot *self_t)
 {
-  shoes_transform_release(plot->st);
-  RUBY_CRITICAL(SHOE_FREE(plot));
+  pango_font_description_free (self_t->title_pfd);
+  pango_font_description_free (self_t->caption_pfd);
+  pango_font_description_free (self_t->legend_pfd);
+  pango_font_description_free (self_t->label_pfd);
+  shoes_transform_release(self_t->st);
+  RUBY_CRITICAL(SHOE_FREE(self_t));
 }
 
 VALUE
@@ -201,6 +205,11 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   pango_font_description_set_weight (self_t->legend_pfd, PANGO_WEIGHT_NORMAL);
   pango_font_description_set_absolute_size (self_t->legend_pfd, 14 * PANGO_SCALE);
   
+   // setup pangocairo for the labels
+  self_t->label_pfd = pango_font_description_new ();
+  pango_font_description_set_family (self_t->label_pfd, self_t->fontname);
+  pango_font_description_set_weight (self_t->label_pfd, PANGO_WEIGHT_NORMAL);
+  pango_font_description_set_absolute_size (self_t->label_pfd, 12 * PANGO_SCALE); 
   
   // TODO: these should be computed based on heuristics (% of vertical?)
   // and font sizes
@@ -267,9 +276,9 @@ static void shoes_plot_draw_everything(cairo_t *cr, shoes_place *place, shoes_pl
     
     // draw widget box and fill with color (nearly white). 
     shoes_plot_draw_fill(cr, self_t);
-    // draw title TODO - should use pangocairo/fontmetrics
 #ifdef TOY_CAIRO
-    cairo_select_font_face(cr, self_t->fontname, CAIRO_FONT_SLANT_NORMAL,
+     // draw title TODO - should use pangocairo/fontmetrics
+   cairo_select_font_face(cr, self_t->fontname, CAIRO_FONT_SLANT_NORMAL,
       CAIRO_FONT_WEIGHT_BOLD);
     cairo_set_font_size(cr, 16);
 #endif
@@ -296,7 +305,7 @@ static void shoes_plot_draw_everything(cairo_t *cr, shoes_place *place, shoes_pl
       shoes_plot_draw_datapts(cr, self_t);
     }
     // drawing finished
-    shoes_undo_transformation(cr, self_t->st, place, 0); // doing cairo_restore(cr)
+    shoes_undo_transformation(cr, self_t->st, place, 0); // does cairo_restore(cr)
     self_t->place = *place;
 }
 
@@ -449,8 +458,8 @@ static void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
      cairo_show_text(cr, space_str);
   }
 #else
-  // TODO: Can some of this chould be done in add/delete series ?
-  // One ugly mess. 
+  // TODO: Can some of this done in add/delete series ?
+  // One Ugly Mess. 
   int i, legend_width = 0;
   int x, y;
   int white_space = 0;
@@ -466,8 +475,8 @@ static void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
   int widary[6];
   for (i = 0; i <  6; i++) {
     strary[i] = NULL;
-    widary[i] = NULL;
-    layouts[i] = NULL;
+    widary[i] = 0;
+    //layouts[i] = NULL;
   }
   for (i = 0; i < plot->seriescnt; i++) {
     if (i > 1) {
@@ -490,9 +499,9 @@ static void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
   y = yoffset;
  
   int pos_x = plot->place.ix + x;
-  int baseline = bottom-5;
+  int baseline = bottom - 5; //TODO: compute baseline better
   // printf("middle? w: %i, l: %i  pos_x: %i, strw: %i\n", width, left, pos_x, legend_width);
-  cairo_move_to(cr, x, baseline); //TODO: compute baseline better
+  cairo_move_to(cr, x, baseline);
   for (i = 0; i < plot->seriescnt; i++) {
     cairo_set_source_rgb(cr, plot_colors[i][0], plot_colors[i][1],
          plot_colors[i][2]);
@@ -500,7 +509,6 @@ static void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
     g_object_unref(layouts[i]);
     x += (widary[i] +  white_space);
     cairo_move_to(cr, x , baseline);
-
   }
   g_object_unref(space_layout);
 #endif   
@@ -528,6 +536,7 @@ static void shoes_plot_draw_label(cairo_t *cr, shoes_plot *plot,
 {
   // TODO: Font was previously set to Helvetica 12 and color was setup
   // keep them for now
+#ifdef TOY_CAIRO
   cairo_text_extents_t ct;
   cairo_text_extents(cr, str, &ct);
   int str_w = (int) ct.width;
@@ -535,6 +544,7 @@ static void shoes_plot_draw_label(cairo_t *cr, shoes_plot *plot,
   cairo_font_extents_t ft;
   cairo_font_extents(cr, &ft);
   int str_h = (int) ceil(ft.height);
+
   int newx;
   int newy;
   if (where == LEFT) { // left side y-axis
@@ -552,6 +562,36 @@ static void shoes_plot_draw_label(cairo_t *cr, shoes_plot *plot,
   }
   cairo_move_to(cr, newx, newy);
   cairo_show_text(cr, str);
+#else
+  cairo_font_extents_t ft; // TODO: pangocairo way
+  cairo_font_extents(cr, &ft);
+  int str_h = (int) ceil(ft.height);
+  PangoLayout *layout = pango_cairo_create_layout (cr);
+  pango_layout_set_font_description (layout , plot->label_pfd);
+  pango_layout_set_text (layout, str, -1);
+  PangoRectangle ct;
+  pango_layout_get_pixel_extents (layout, NULL, &ct);
+  int str_w = ct.width;
+  int newx;
+  int newy;
+  if (where == LEFT) { // left side y-axis
+    newx = x - (str_w + 3) - 1 ;
+    newy = y - (str_h / 2);
+  } else if (where == RIGHT) { // right side y-axis
+    newx = x;
+    newy = y - (str_h / 2);
+    //printf("lbl rightx: %i, y: %i, %s\n", (int)newx, (int)newy, str);
+  } else if (where == BELOW) { // bottom side x axis
+    newx = x - (str_w / 2);
+    newy = y + (str_h / 2);
+  } else { 
+    printf("FAIL: shoes_plot_draw_label 'where ?'\n");
+  }
+  cairo_move_to(cr, newx, newy);
+  pango_cairo_show_layout(cr, layout);
+  g_object_unref(layout);
+#endif
+
   // printf("TODO: shoes_plot_draw_label called\n");
 }
 
@@ -837,13 +877,7 @@ VALUE shoes_plot_delete(VALUE self, VALUE series)
   int idx = NUM2INT(series);
   if (! (idx >= 0 && idx <= self_t->seriescnt))
     rb_raise(rb_eArgError, "plot.delete arg is out of range");
-  /* test deletion
-  {
-    int len = RARRAY_LEN(self_t->strokes);
-    VALUE sw = rb_ary_entry(self_t->strokes, 0);
-    printf("pre delete array len %i [0]: %i\n", len, (int)NUM2INT(sw));
-  }
-  */
+
   rb_ary_delete_at(self_t->sizes, idx);
   rb_ary_delete_at(self_t->values, idx);
   rb_ary_delete_at(self_t->xobs, idx);
@@ -1106,6 +1140,11 @@ VALUE shoes_plot_remove(VALUE self)
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
   
   rb_ary_delete(canvas->contents, self);    // shoes_basic_remove does it this way
+  // free some pango/cairo stuff
+  pango_font_description_free (self_t->title_pfd);
+  pango_font_description_free (self_t->caption_pfd);
+  pango_font_description_free (self_t->legend_pfd);
+  pango_font_description_free (self_t->label_pfd);
   shoes_canvas_repaint_all(self_t->parent); 
   
   self_t = NULL;
