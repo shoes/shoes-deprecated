@@ -191,7 +191,7 @@ Shoes.app width: 620, height: 610 do
         @grf.save_as file if file
       end
     end
-    @grf = plot 600, 400,  title: "Explore Market Data", caption: "depends on the datat",
+    @grf = plot 600, 400,  title: "Explore Market Data", caption: "depends on the data. eh?",
       x_ticks: 8, y_ticks: 10,  auto_grid: true, click: proc {|btn, l, t| zoom_center l}
     keypress do |k|
       #puts "key: #{k.inspect}"

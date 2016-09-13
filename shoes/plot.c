@@ -20,7 +20,6 @@
  */
 
 // forward declares in this file:
-//static int shoes_plot_draw_surface(cairo_t *, shoes_plot *, shoes_place *, int, int); // for svg save?
 static void shoes_plot_draw_title(cairo_t *, shoes_plot *);
 static void shoes_plot_draw_caption(cairo_t *,shoes_plot *);
 static void shoes_plot_draw_fill(cairo_t *, shoes_plot *);
@@ -37,7 +36,7 @@ static float plot_colors[6][3] = {
   { 0.0, 0.0, 0.9 }, // 0 is blue
   { 0.9, 0.0, 0.0 }, // 1 is red
   { 0.0, 0.9, 0.0 }, // 2 is green
-  { 0.9, 0.9, 0.9 }, // 3 is yellow
+  { 1.0, 215.0/255.0, 0.0 }, // 3 is yellow-ish
   { 0.9, 0.5, 0.0 }, // 4 is orange-ish
   { 0.5, 0.0, 0.9 }  // 5 is purple
 } ;
@@ -196,7 +195,15 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   pango_font_description_set_weight (self_t->caption_pfd, PANGO_WEIGHT_NORMAL);
   pango_font_description_set_absolute_size (self_t->caption_pfd, 12 * PANGO_SCALE);
   
-  // TODO these should be computed based on heuristics
+  // setup pangocairo for the legend
+  self_t->legend_pfd = pango_font_description_new ();
+  pango_font_description_set_family (self_t->legend_pfd, self_t->fontname);
+  pango_font_description_set_weight (self_t->legend_pfd, PANGO_WEIGHT_NORMAL);
+  pango_font_description_set_absolute_size (self_t->legend_pfd, 14 * PANGO_SCALE);
+  
+  
+  // TODO: these should be computed based on heuristics (% of vertical?)
+  // and font sizes
   self_t->title_h = 50;
   self_t->legend_h = 25;
   self_t->caption_h = 25;
@@ -261,15 +268,19 @@ static void shoes_plot_draw_everything(cairo_t *cr, shoes_place *place, shoes_pl
     // draw widget box and fill with color (nearly white). 
     shoes_plot_draw_fill(cr, self_t);
     // draw title TODO - should use pangocairo/fontmetrics
+#ifdef TOY_CAIRO
     cairo_select_font_face(cr, self_t->fontname, CAIRO_FONT_SLANT_NORMAL,
       CAIRO_FONT_WEIGHT_BOLD);
     cairo_set_font_size(cr, 16);
+#endif
     shoes_plot_draw_title(cr, self_t);
-  
+
+#ifdef TOY_CAIRO
     // draw caption TODO: should use pangocairo/fontmetrics
     cairo_select_font_face(cr, self_t->fontname, CAIRO_FONT_SLANT_NORMAL,
       CAIRO_FONT_WEIGHT_NORMAL);
     cairo_set_font_size(cr, 12);  
+#endif
     shoes_plot_draw_caption(cr, self_t);
     
     self_t->graph_h = self_t->place.h - (self_t->title_h + self_t->caption_h);
@@ -390,11 +401,7 @@ static void shoes_plot_draw_ticks_and_labels(cairo_t *cr, shoes_plot *plot)
 }
 static void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
 {
-  // kind of tricksy using the cairo toy api's.
-  // compute width of all name plus some space between them
-  // compute left point, move_to there. for each name
-  // pick and set the color, draw string and a space or two
-  // repeat for next series
+  // needs to be very, very clever 
   
   int top, left, bottom, right; 
   int width, height;   
@@ -403,6 +410,7 @@ static void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
   width = right - left; 
   height = bottom - top;
   
+#ifdef TOY_CAIRO
   int i, bigstrlen = 0;
   VALUE rbstr; 
   char *strary[6];
@@ -440,7 +448,62 @@ static void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
      cairo_show_text(cr, strary[i]);
      cairo_show_text(cr, space_str);
   }
-  
+#else
+  // TODO: Can some of this chould be done in add/delete series ?
+  // One ugly mess. 
+  int i, legend_width = 0;
+  int x, y;
+  int white_space = 0;
+  PangoLayout *layouts[6];
+  PangoLayout *space_layout = pango_cairo_create_layout (cr);
+  pango_layout_set_font_description (space_layout , plot->legend_pfd);
+  pango_layout_set_text (space_layout, "  ", -1);
+  PangoRectangle space_rect;
+  pango_layout_get_pixel_extents (space_layout, NULL, &space_rect);
+  white_space = space_rect.width;
+  VALUE rbstr; 
+  char *strary[6];
+  int widary[6];
+  for (i = 0; i <  6; i++) {
+    strary[i] = NULL;
+    widary[i] = NULL;
+    layouts[i] = NULL;
+  }
+  for (i = 0; i < plot->seriescnt; i++) {
+    if (i > 1) {
+      legend_width += white_space;
+    }
+    rbstr = rb_ary_entry(plot->long_names, i);
+    strary[i] = RSTRING_PTR(rbstr);   
+    layouts[i] = pango_cairo_create_layout (cr);
+    pango_layout_set_font_description (layouts[i], plot->legend_pfd);
+    pango_layout_set_text (layouts[i], strary[i], -1);
+    PangoRectangle logical;
+    pango_layout_get_pixel_extents (layouts[i], NULL, &logical);
+    widary[i] = logical.width;
+    legend_width += logical.width;
+  }
+  int xoffset = (plot->place.w / 2) - (legend_width / 2);
+  x = xoffset - (plot->place.dx);
+  int yhalf = (plot->legend_h / 2 ); 
+  int yoffset = yhalf; 
+  y = yoffset;
+ 
+  int pos_x = plot->place.ix + x;
+  int baseline = bottom-5;
+  // printf("middle? w: %i, l: %i  pos_x: %i, strw: %i\n", width, left, pos_x, legend_width);
+  cairo_move_to(cr, x, baseline); //TODO: compute baseline better
+  for (i = 0; i < plot->seriescnt; i++) {
+    cairo_set_source_rgb(cr, plot_colors[i][0], plot_colors[i][1],
+         plot_colors[i][2]);
+    pango_cairo_show_layout(cr, layouts[i]);
+    g_object_unref(layouts[i]);
+    x += (widary[i] +  white_space);
+    cairo_move_to(cr, x , baseline);
+
+  }
+  g_object_unref(space_layout);
+#endif   
 }
 
 static void shoes_plot_draw_tick(cairo_t *cr, shoes_plot *plot,
@@ -651,8 +714,8 @@ static void shoes_plot_draw_caption(cairo_t *cr, shoes_plot *plot)
   x = xoffset - (plot->place.dx);
   
   int yhalf = (plot->caption_h / 2 ); 
-  int yoffset = yhalf + (logical.height/ 2); 
-  y = plot->place.iy + plot->graph_h;
+  int yoffset = yhalf + logical.height; 
+  y = plot->place.ih;
   y -= yoffset;
   cairo_move_to(cr, x, y);
   pango_cairo_show_layout (cr, layout);
