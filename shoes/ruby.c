@@ -4599,6 +4599,7 @@ shoes_ruby_init()
   symAltEqual = ID2SYM(rb_intern("alt_="));
   symAltDot = ID2SYM(rb_intern("alt_."));
   symAltSemiColon = ID2SYM(rb_intern("alt_;"));
+  
   //
   // I want all elements to be addressed Shoes::Name, but also available in
   // a separate mixin (cTypes), for inclusion in every Shoes.app block.

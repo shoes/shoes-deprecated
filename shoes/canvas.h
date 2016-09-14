@@ -327,9 +327,11 @@ typedef struct {
   VALUE parent;
   VALUE attr;
   shoes_place place;
+  int chart_type;
   int seriescnt;
   int auto_grid; 
   int missing; 
+  VALUE background;
   VALUE maxvs;  // these will be Ruby arrays of things (0..seriescnt)
   VALUE minvs;
   VALUE values;
