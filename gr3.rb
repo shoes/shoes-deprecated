@@ -20,8 +20,8 @@ Shoes.app width: 800, height: 500 do
           "Look at that! Booyah!!" , font: "Helvetica", auto_grid: true,
           missing: "skip", background: "honeydew"
          @grf2 = plot widget_width, widget_height+100, title: "Column Graph", caption: 
-          "Amazing!!" , font: "Helvetica", auto_grid: false, chart: "column",
-          missing: "skip", background: "cornsilk"
+          "Amazing!!" , font: "Mono", auto_grid: false, 
+          missing: "skip", background: "cornsilk", chart: "column"
       
       end
     end

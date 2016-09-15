@@ -321,7 +321,7 @@ typedef struct {
 
 
 //
-// Plot struct
+// Plot struct - It's HUGE!
 //
 typedef struct {
   VALUE parent;
@@ -341,6 +341,7 @@ typedef struct {
   VALUE sizes;
   VALUE strokes;
   VALUE nubs;
+  VALUE color;
   // now the singles for the plot
   VALUE title;  
   VALUE legend; 

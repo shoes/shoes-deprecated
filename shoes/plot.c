@@ -33,24 +33,22 @@ static void shoes_plot_draw_everything(cairo_t *, shoes_place *, shoes_plot *);
 static void shoes_plot_draw_nub(cairo_t *, int, int);
 static void shoes_plot_draw_columns(cairo_t *, shoes_plot *);
 
-static float plot_colors[6][3] = {
-  { 0.0, 0.0, 0.9 }, // 0 is blue
-  { 0.9, 0.0, 0.0 }, // 1 is red
-  { 0.0, 0.9, 0.0 }, // 2 is green
-  { 1.0, 215.0/255.0, 0.0 }, // 3 is yellow-ish
-  { 0.9, 0.5, 0.0 }, // 4 is orange-ish
-  { 0.5, 0.0, 0.9 }  // 5 is purple
-} ;
+enum {
+  VERTICALLY,
+  HORIZONTALLY 
+};
 
-// ugly defines used only in this file?  Could use fancy new C enum? Or Not.
-#define VERTICALLY 0
-#define HORIZONTALLY 1
-#define LEFT 0
-#define BELOW 1
-#define RIGHT 2
-#define MISSING_SKIP 0
-#define MISSING_MIN 1
-#define MISSING_MAX 2
+enum {
+  LEFT,
+  BELOW,
+  RIGHT
+};
+// missing value or observation handling
+enum {
+  MISSING_SKIP,
+  MISSING_MIN,
+  MISSING_MAX
+};
 // chart type - line is default
 enum  {
   LINE_CHART,
@@ -79,6 +77,7 @@ shoes_plot_mark(shoes_plot *self_t)
   rb_gc_mark_maybe(self_t->caption);
   rb_gc_mark_maybe(self_t->legend);
   rb_gc_mark_maybe(self_t->background);
+  rb_gc_mark_maybe(self_t->color);
 }
 
 static void
@@ -108,6 +107,7 @@ shoes_plot_alloc(VALUE klass)
   plot->long_names = rb_ary_new();
   plot->strokes = rb_ary_new();
   plot->nubs = rb_ary_new();
+  plot->color = rb_ary_new();
   plot->parent = Qnil;
   plot->st = NULL;
   plot->auto_grid = 0;
@@ -311,22 +311,9 @@ static void shoes_plot_draw_everything(cairo_t *cr, shoes_place *place, shoes_pl
     cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
     switch (self_t->chart_type) {
       case LINE_CHART:
-      // draw widget box and fill with color (nearly white). 
-      shoes_plot_draw_fill(cr, self_t);
-#ifdef TOY_CAIRO
-       // draw title TODO - should use pangocairo/fontmetrics
-       cairo_select_font_face(cr, self_t->fontname, CAIRO_FONT_SLANT_NORMAL,
-          CAIRO_FONT_WEIGHT_BOLD);
-        cairo_set_font_size(cr, 16);
-#endif
+        // draw widget box and fill with color (nearly white). 
+        shoes_plot_draw_fill(cr, self_t);
         shoes_plot_draw_title(cr, self_t);
-
-#ifdef TOY_CAIRO
-        // draw caption TODO: should use pangocairo/fontmetrics
-        cairo_select_font_face(cr, self_t->fontname, CAIRO_FONT_SLANT_NORMAL,
-         CAIRO_FONT_WEIGHT_NORMAL);
-        cairo_set_font_size(cr, 12);  
-#endif
         shoes_plot_draw_caption(cr, self_t);
     
         self_t->graph_h = self_t->place.h - (self_t->title_h + self_t->caption_h);
@@ -366,21 +353,22 @@ static void shoes_plot_draw_everything(cairo_t *cr, shoes_place *place, shoes_pl
 static void shoes_plot_draw_fill(cairo_t *cr, shoes_plot *plot)
 {
   if (NIL_P(plot->background)) {
-    cairo_set_source_rgb(cr, 0.99, 0.99, 0.99);
+    cairo_set_source_rgba(cr, 0.99, 0.99, 0.99, 0.99);
   } else {
     shoes_color *color;
     Data_Get_Struct(plot->background, shoes_color, color);
-    cairo_set_source_rgb(cr,
-        (float) color->r / 255.0 ,
-        (float) color->g / 255.0 ,
-        (float) color->b / 255.0
+    cairo_set_source_rgba(cr,
+        color->r / 255.0 ,
+        color->g / 255.0 ,
+        color->b / 255.0 ,
+        color->a / 255.0
     );
   }
   cairo_set_line_width(cr, 1);
   cairo_rectangle(cr, 0, 0, plot->place.w, plot->place.h);
   cairo_stroke_preserve(cr);
   cairo_fill(cr);
-  cairo_set_source_rgb(cr, 0.1, 0.1, 0.1);
+  cairo_set_source_rgba(cr, 0.1, 0.1, 0.1, 1.0); // barely visible? needed?
 }
 
 static void shoes_plot_draw_adornments(cairo_t *cr, shoes_plot *plot)
@@ -474,54 +462,12 @@ static void shoes_plot_draw_ticks_and_labels(cairo_t *cr, shoes_plot *plot)
 }
 static void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
 {
-  // needs to be very, very clever 
-  
   int top, left, bottom, right; 
   int width, height;   
   left = plot->place.x; top = plot->graph_h + 5;
   right = plot->place.w; bottom = top + plot->legend_h; 
   width = right - left; 
   height = bottom - top;
-  
-#ifdef TOY_CAIRO
-  int i, bigstrlen = 0;
-  VALUE rbstr; 
-  char *strary[6];
-  for (i = 0; i <  6; i++) strary[i] = 0;
-  for (i = 0; i < plot->seriescnt; i++) {
-    rbstr = rb_ary_entry(plot->long_names, i);
-    strary[i] = RSTRING_PTR(rbstr);
-    if (i > 0) 
-      bigstrlen += 2; // TODO number of space
-    bigstrlen += strlen(strary[i]);
-  }
-  char *space_str = "  ";
-  char *bigstr = malloc(bigstrlen);
-  bigstr[0] = '\0';
-  for (i = 0; i < plot->seriescnt; i++) {
-    if (i > 0) 
-      strcat(bigstr, space_str);
-    strcat(bigstr, strary[i]);
-  }
-  cairo_set_font_size(cr, 14);
-  cairo_text_extents_t bigstr_ct;
-  cairo_text_extents(cr, bigstr, &bigstr_ct);
-
-  free(bigstr);
-  // where to position the drawing pt?
-  int pos_x;
-  int pct;
-  pct = (width / 2) - (bigstr_ct.width / 2);
-  pos_x = plot->place.ix + pct;
-  //printf("middle? w: %i, l: %i  pos_x: %i, strw: %i\n", width, left, pos_x, (int)bigstr_ct.width);
-  cairo_move_to(cr, pos_x, bottom+5); //TODO: compute baseline
-  for (i = 0; i < plot->seriescnt; i++) {
-     cairo_set_source_rgb(cr, plot_colors[i][0], plot_colors[i][1],
-         plot_colors[i][2]);
-     cairo_show_text(cr, strary[i]);
-     cairo_show_text(cr, space_str);
-  }
-#else
   // TODO: Can some of this done in add/delete series ?
   // One Ugly Mess. 
   int i, legend_width = 0;
@@ -567,15 +513,17 @@ static void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
   // printf("middle? w: %i, l: %i  pos_x: %i, strw: %i\n", width, left, pos_x, legend_width);
   cairo_move_to(cr, x, baseline);
   for (i = 0; i < plot->seriescnt; i++) {
-    cairo_set_source_rgb(cr, plot_colors[i][0], plot_colors[i][1],
-         plot_colors[i][2]);
+    VALUE rbcolor = rb_ary_entry(plot->color, i);
+    shoes_color *color;
+    Data_Get_Struct(rbcolor, shoes_color, color);
+    cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0,
+       color->b / 255.0, color->a / 255.0); 
     pango_cairo_show_layout(cr, layouts[i]);
     g_object_unref(layouts[i]);
     x += (widary[i] +  white_space);
     cairo_move_to(cr, x , baseline);
   }
-  g_object_unref(space_layout);
-#endif   
+  g_object_unref(space_layout);  
 }
 
 static void shoes_plot_draw_tick(cairo_t *cr, shoes_plot *plot,
@@ -600,33 +548,7 @@ static void shoes_plot_draw_label(cairo_t *cr, shoes_plot *plot,
 {
   // TODO: Font was previously set to Helvetica 12 and color was setup
   // keep them for now
-#ifdef TOY_CAIRO
-  cairo_text_extents_t ct;
-  cairo_text_extents(cr, str, &ct);
-  int str_w = (int) ct.width;
-  // measure the max height of the font not the string.
-  cairo_font_extents_t ft;
-  cairo_font_extents(cr, &ft);
-  int str_h = (int) ceil(ft.height);
 
-  int newx;
-  int newy;
-  if (where == LEFT) { // left side y-axis
-    newx = x - (str_w + 3) - 1 ;
-    newy = y + (str_h -(str_h / 2));
-  } else if (where == RIGHT) { // right side y-axis
-    newx = x;
-    newy = y + (str_h -(str_h / 2));
-    //printf("lbl rightx: %i, y: %i, %s\n", (int)newx, (int)newy, str);
-  } else if (where == BELOW) { // bottom side x axis
-    newx = x - (str_w / 2);
-    newy = y + str_h + 3;
-  } else { 
-    printf("FAIL: shoes_plot_draw_label 'where ?'\n");
-  }
-  cairo_move_to(cr, newx, newy);
-  cairo_show_text(cr, str);
-#else
   cairo_font_extents_t ft; // TODO: pangocairo way
   cairo_font_extents(cr, &ft);
   int str_h = (int) ceil(ft.height);
@@ -654,8 +576,6 @@ static void shoes_plot_draw_label(cairo_t *cr, shoes_plot *plot,
   cairo_move_to(cr, newx, newy);
   pango_cairo_show_layout(cr, layout);
   g_object_unref(layout);
-#endif
-
   // printf("TODO: shoes_plot_draw_label called\n");
 }
 
@@ -666,14 +586,15 @@ static void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot)
   left = plot->graph_x; top = plot->graph_y;
   right = plot->graph_w; bottom = plot->graph_h;    
   for (i = 0; i < plot->seriescnt; i++) {
-    int oldx = 0;
-    int oldy = plot->graph_h; // Needed?
     VALUE rbvalues = rb_ary_entry(plot->values, i);
     VALUE rbmaxv = rb_ary_entry(plot->maxvs, i);
     VALUE rbminv = rb_ary_entry(plot->minvs, i);
     VALUE rbsize = rb_ary_entry(plot->sizes, i);
     VALUE rbstroke = rb_ary_entry(plot->strokes, i);
     VALUE rbnubs = rb_ary_entry(plot->nubs, i);
+    VALUE shcolor = rb_ary_entry(plot->color, i);
+    shoes_color *color;
+    Data_Get_Struct(shcolor, shoes_color, color);
     double maximum = NUM2DBL(rbmaxv);
     double minimum = NUM2DBL(rbminv);
     int strokew = NUM2INT(rbstroke);
@@ -687,10 +608,8 @@ static void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot)
     float hScale = width / (double) (range - 1);
     int nubs = (width / range > 10) ? RTEST(rbnubs) : 0;  // could be done if asked
   
-    // Note colors can be part of the series description and modify
-    // the plot_colors tables; That is not done here.
-    cairo_set_source_rgb(cr, plot_colors[i][0], plot_colors[i][1],
-        plot_colors[i][2]);
+    cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0,
+       color->b / 255.0, color->a / 255.0); 
 
     int j;
     int brk = 0; // for missing value control
@@ -727,25 +646,14 @@ static void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot)
   // tell cairo to draw all lines (and points)
   cairo_stroke(cr); 
   // set color back to dark gray and stroke to 1
-  cairo_set_source_rgb(cr, 0.9, 0.9, 0.9);
+  cairo_set_source_rgba(cr, 0.9, 0.9, 0.9, 1.0);
   cairo_set_line_width(cr, 1.0);
 }
 
 static void shoes_plot_draw_nub(cairo_t *cr, int x, int y)
 {
     int sz = 2; 
-    /* java
-    Color save = g.getColor();
 
-		g.setColor(Color.black);
-		g.drawLine(x - 1 , y - 1, x + 1, y - 1);
-		g.drawLine(x - 1 , y - 1, x - 1, y + 1);
-
-		g.drawLine(x + 1 , y + 1, x + 1, y - 1);
-		g.drawLine(x + 1 , y + 1, x - 1, y + 1);
-		g.setColor(save);
-    */
-    // Shoes a draw a very small block at x,y
     cairo_move_to(cr, x - sz, y - sz);
     cairo_line_to(cr, x + sz, y - sz);
     
@@ -765,19 +673,6 @@ static void shoes_plot_draw_title(cairo_t *cr, shoes_plot *plot)
 {
   char *str = RSTRING_PTR(plot->title);
   int x, y;
-#ifdef TOY_CAIRO
-  cairo_text_extents_t te;
-  cairo_text_extents(cr, str, &te);
-  int xoffset = (plot->place.w / 2) - (te.width / 2);
-  int yhalf = (plot->title_h / 2 ); 
-  int yoffset = yhalf + (te.height / 2);
-  //x = xoffset - (plot->place.ix + plot->place.dx);
-  x = xoffset - (plot->place.dx);
-  //y = plot->title_h;
-  y = yoffset;
-  cairo_move_to(cr, x, y);
-  cairo_show_text(cr, str);
-#else
   PangoLayout *layout = pango_cairo_create_layout (cr);
   pango_layout_set_font_description (layout, plot->title_pfd);
   pango_layout_set_text (layout, str, -1);
@@ -790,25 +685,12 @@ static void shoes_plot_draw_title(cairo_t *cr, shoes_plot *plot)
   y = yoffset;
   cairo_move_to(cr, x, y);
   pango_cairo_show_layout (cr, layout);
-#endif 
 }
 
 static void shoes_plot_draw_caption(cairo_t *cr, shoes_plot *plot)
 {
   char *str = RSTRING_PTR(plot->caption);
   int x, y;
-#if TOY_CAIRO
-  cairo_text_extents_t te;
-  cairo_text_extents(cr, str, &te);
-  int xoffset = (plot->place.w / 2) - (te.width / 2);
-  int yhalf = (plot->caption_h / 2 ); 
-  int yoffset = yhalf + (te.height / 2);
-  x = xoffset - (plot->place.dx);
-  y = plot->place.h; 
-  y -= yoffset;
-  cairo_move_to(cr, x, y);
-  cairo_show_text(cr, str);
-#else
   PangoLayout *layout = pango_cairo_create_layout (cr);
   pango_layout_set_font_description (layout, plot->caption_pfd);
   pango_layout_set_text (layout, str, -1);
@@ -823,7 +705,6 @@ static void shoes_plot_draw_caption(cairo_t *cr, shoes_plot *plot)
   y -= yoffset;
   cairo_move_to(cr, x, y);
   pango_cairo_show_layout (cr, layout);
-#endif
 }
 
 /* ------ other chart types ------*/
@@ -841,14 +722,15 @@ static void shoes_plot_draw_columns(cairo_t *cr, shoes_plot *plot)
   left = plot->graph_x; top = plot->graph_y;
   right = plot->graph_w; bottom = plot->graph_h;    
   for (i = 0; i < plot->seriescnt; i++) {
-    int oldx = 0;
-    int oldy = plot->graph_h; // Needed?
     VALUE rbvalues = rb_ary_entry(plot->values, i);
     VALUE rbmaxv = rb_ary_entry(plot->maxvs, i);
     VALUE rbminv = rb_ary_entry(plot->minvs, i);
     VALUE rbsize = rb_ary_entry(plot->sizes, i);
     VALUE rbstroke = rb_ary_entry(plot->strokes, i);
     VALUE rbnubs = rb_ary_entry(plot->nubs, i);
+    VALUE shcolor = rb_ary_entry(plot->color, i);
+    shoes_color *color;
+    Data_Get_Struct(shcolor, shoes_color, color);
     double maximum = NUM2DBL(rbmaxv);
     double minimum = NUM2DBL(rbminv);
     int strokew = NUM2INT(rbstroke);
@@ -861,8 +743,8 @@ static void shoes_plot_draw_columns(cairo_t *cr, shoes_plot *plot)
     float vScale = height / (maximum - minimum);
     float hScale = width / (double) (range - 1);
     int nubs = (width / range > 10) ? RTEST(rbnubs) : 0; 
-    cairo_set_source_rgb(cr, plot_colors[i][0], plot_colors[i][1],
-        plot_colors[i][2]);
+    cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0,
+       color->b / 255.0, color->a / 255.0); 
 
     int j;
     int brk = 0; // for missing value control
@@ -897,7 +779,7 @@ static void shoes_plot_draw_columns(cairo_t *cr, shoes_plot *plot)
   // tell cairo to draw all lines (and points)
   cairo_stroke(cr); 
   // set color back to dark gray and stroke to 1
-  cairo_set_source_rgb(cr, 0.9, 0.9, 0.9);
+  cairo_set_source_rgba(cr, 0.9, 0.9, 0.9, 1.0);
   cairo_set_line_width(cr, 1.0);  
 }
 
@@ -906,6 +788,7 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
   shoes_plot *self_t;
   VALUE rbsz, rbvals, rbobs, rbmin, rbmax, rbshname, rblgname, rbcolor;
   VALUE rbstroke, rbnubs;
+  VALUE color_wrapped;
   Data_Get_Struct(self, shoes_plot, self_t); 
   int i = self_t->seriescnt; // track number of series to plot.
   if (i >= 6) {
@@ -950,23 +833,35 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
     if (NIL_P(rblgname)) {
       rblgname = rbshname;
     }
-    // handle colors - replace 
+    // handle colors
     if (! NIL_P(rbcolor)) {
       if (TYPE(rbcolor) != T_STRING)
         rb_raise(rb_eArgError, "plot.add color must be a string");
       char *cstr = RSTRING_PTR(rbcolor);
-      VALUE cval = shoes_hash_get(cColors, rb_intern(cstr)); // segfault or raise? 
-      if (NIL_P(cval))
+      color_wrapped = shoes_hash_get(cColors, rb_intern(cstr));
+      if (NIL_P(color_wrapped))
         rb_raise(rb_eArgError, "plot.add color: not a known color");
-      shoes_color *color;
-      Data_Get_Struct(cval, shoes_color, color);
-      int r,g,b; // 0..255 - need to be cairo 
-      r = color->r;
-      g = color->g;
-      b = color->b;
-      plot_colors[self_t->seriescnt][0] = (float) (r / 255.);
-      plot_colors[self_t->seriescnt][1] = (float) (g / 255.);
-      plot_colors[self_t->seriescnt][2] = (float) (b / 255.);
+    } else {
+      switch (i) {
+      case 0: 
+        color_wrapped = shoes_hash_get(cColors, rb_intern("blue"));
+        break;
+      case 1:
+        color_wrapped = shoes_hash_get(cColors, rb_intern("red"));
+        break;
+      case 2:
+        color_wrapped = shoes_hash_get(cColors, rb_intern("green"));
+        break;
+      case 3:
+        color_wrapped = shoes_hash_get(cColors, rb_intern("coral"));
+        break;
+      case 4:
+        color_wrapped = shoes_hash_get(cColors, rb_intern("purple"));
+        break;
+      case 5:
+        color_wrapped = shoes_hash_get(cColors, rb_intern("orange"));
+        break;
+      }
     }
     
     if (!NIL_P(rbstroke)) {
@@ -1000,6 +895,7 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
   rb_ary_store(self_t->long_names, i, rblgname);
   rb_ary_store(self_t->strokes, i, rbstroke);
   rb_ary_store(self_t->nubs, i, rbnubs);
+  rb_ary_store(self_t->color, i, color_wrapped);
   self_t->beg_idx = 0;
   self_t->end_idx = NUM2INT(rbsz);
   self_t->seriescnt++;
