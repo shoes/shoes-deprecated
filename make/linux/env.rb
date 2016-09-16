@@ -30,7 +30,8 @@ CC = "gcc"
 file_list = %w(shoes/native/gtk.c shoes/native/gtkfixedalt.c shoes/native/gtkentryalt.c
                shoes/native/gtkcomboboxtextalt.c shoes/native/gtkbuttonalt.c
                shoes/native/gtkscrolledwindowalt.c shoes/native/gtkprogressbaralt.c 
-               shoes/http/rbload.c) + ["shoes/*.c"] + ["shoes/console/*.c"]
+               shoes/http/rbload.c) + ["shoes/*.c"] + ["shoes/console/*.c"] +
+               ["shoes/plot/*.c"]
 file_list << "shoes/video/video.c" 
 
 SRC = FileList[*file_list]

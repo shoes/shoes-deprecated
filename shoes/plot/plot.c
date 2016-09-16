@@ -1,16 +1,7 @@
 /*
- * plot - draws graphs from annotated arrays
+ * plot - draws charts/graphs 
 */
-#include "shoes/app.h"
-#include "shoes/canvas.h"
-#include "shoes/ruby.h"
-#include "shoes/internal.h"
-#include "shoes/world.h"
-#include "shoes/native.h"
-#include "shoes/version.h"
-#include "shoes/http.h"
-#include "shoes/effects.h"
-#include <math.h>
+#include "shoes/plot/plot.h"
 
 /* -------- plot_series object - not a widget -----
 */
@@ -18,44 +9,6 @@
 /*  ------- Plot widget -----
  *  several methods are defined in ruby.c Macros (CLASS_COMMON2, TRANS_COMMON)
  */
-
-// forward declares in this file:
-static void shoes_plot_draw_title(cairo_t *, shoes_plot *);
-static void shoes_plot_draw_caption(cairo_t *,shoes_plot *);
-static void shoes_plot_draw_fill(cairo_t *, shoes_plot *);
-static void shoes_plot_draw_adornments(cairo_t *, shoes_plot *);
-static void shoes_plot_draw_datapts(cairo_t *, shoes_plot *);
-static void shoes_plot_draw_ticks_and_labels(cairo_t *, shoes_plot *);
-static void shoes_plot_draw_legend(cairo_t *, shoes_plot *);
-static void shoes_plot_draw_tick(cairo_t *, shoes_plot *, int, int, int);
-static void shoes_plot_draw_label(cairo_t *, shoes_plot *, int, int , char*, int);
-static void shoes_plot_draw_everything(cairo_t *, shoes_place *, shoes_plot *);
-static void shoes_plot_draw_nub(cairo_t *, int, int);
-static void shoes_plot_draw_columns(cairo_t *, shoes_plot *);
-
-enum {
-  VERTICALLY,
-  HORIZONTALLY 
-};
-
-enum {
-  LEFT,
-  BELOW,
-  RIGHT
-};
-// missing value or observation handling
-enum {
-  MISSING_SKIP,
-  MISSING_MIN,
-  MISSING_MAX
-};
-// chart type - line is default
-enum  {
-  LINE_CHART,
-  COLUMN_CHART,
-  PIE_CHART
-};
-
 
 // alloc some memory for a shoes_plot; We'll protect it's Ruby VALUES from gc
 // out of caution. fingers crossed.
@@ -80,7 +33,7 @@ shoes_plot_mark(shoes_plot *self_t)
   rb_gc_mark_maybe(self_t->color);
 }
 
-static void
+void
 shoes_plot_free(shoes_plot *self_t)
 {
   pango_font_description_free (self_t->title_pfd);
@@ -305,44 +258,16 @@ VALUE shoes_plot_draw(VALUE self, VALUE c, VALUE actual)
 
 // this is called by both shoes_plot_draw (general Shoes refresh events)
 // and by shoes_plot_save_as
-static void shoes_plot_draw_everything(cairo_t *cr, shoes_place *place, shoes_plot *self_t) {
+void shoes_plot_draw_everything(cairo_t *cr, shoes_place *place, shoes_plot *self_t) {
     
     shoes_apply_transformation(cr, self_t->st, place, 0);  // cairo_save(cr) is inside
     cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
     switch (self_t->chart_type) {
       case LINE_CHART:
-        // draw widget box and fill with color (nearly white). 
-        shoes_plot_draw_fill(cr, self_t);
-        shoes_plot_draw_title(cr, self_t);
-        shoes_plot_draw_caption(cr, self_t);
-    
-        self_t->graph_h = self_t->place.h - (self_t->title_h + self_t->caption_h);
-        self_t->graph_y = self_t->title_h + 3;
-        self_t->yaxis_offset = 50; // TODO:  run TOTO, run!
-        self_t->graph_w = self_t->place.w - self_t->yaxis_offset;
-        self_t->graph_x = self_t->yaxis_offset;
-        if (self_t->seriescnt) {
-          // draw  box, ticks and x,y labels.
-          shoes_plot_draw_adornments(cr, self_t);
-          // draw data
-          shoes_plot_draw_datapts(cr, self_t);
-        }
+        shoes_plot_line_draw(cr, place, self_t);
         break;
       case COLUMN_CHART:
-        shoes_plot_draw_fill(cr, self_t);
-        shoes_plot_draw_title(cr, self_t);
-        shoes_plot_draw_caption(cr, self_t);
-        self_t->graph_h = self_t->place.h - (self_t->title_h + self_t->caption_h);
-        self_t->graph_y = self_t->title_h + 3;
-        self_t->yaxis_offset = 50; // TODO:  run TOTO, run!
-        self_t->graph_w = self_t->place.w - self_t->yaxis_offset;
-        self_t->graph_x = self_t->yaxis_offset;
-        if (self_t->seriescnt) {
-          // draw  box, ticks and x,y labels.
-          shoes_plot_draw_adornments(cr, self_t);
-          // draw data
-          shoes_plot_draw_columns(cr, self_t);
-        }
+        shoes_plot_column_draw(cr, place, self_t);
         break;
     }
     // drawing finished
@@ -350,7 +275,7 @@ static void shoes_plot_draw_everything(cairo_t *cr, shoes_place *place, shoes_pl
     self_t->place = *place;
 }
 
-static void shoes_plot_draw_fill(cairo_t *cr, shoes_plot *plot)
+void shoes_plot_draw_fill(cairo_t *cr, shoes_plot *plot)
 {
   if (NIL_P(plot->background)) {
     cairo_set_source_rgba(cr, 0.99, 0.99, 0.99, 0.99);
@@ -371,7 +296,7 @@ static void shoes_plot_draw_fill(cairo_t *cr, shoes_plot *plot)
   cairo_set_source_rgba(cr, 0.1, 0.1, 0.1, 1.0); // barely visible? needed?
 }
 
-static void shoes_plot_draw_adornments(cairo_t *cr, shoes_plot *plot)
+void shoes_plot_draw_adornments(cairo_t *cr, shoes_plot *plot)
 {
   // draw box around data area (plot->graph_?)
   cairo_set_line_width(cr, 1);
@@ -388,7 +313,7 @@ static void shoes_plot_draw_adornments(cairo_t *cr, shoes_plot *plot)
   shoes_plot_draw_legend(cr, plot);
 }
 
-static void shoes_plot_draw_ticks_and_labels(cairo_t *cr, shoes_plot *plot)
+void shoes_plot_draw_ticks_and_labels(cairo_t *cr, shoes_plot *plot)
 {
   int top, left, bottom, right; // these are cairo abs for plot->graph
   int width, height;   // full plot space so it includes everything
@@ -460,7 +385,7 @@ static void shoes_plot_draw_ticks_and_labels(cairo_t *cr, shoes_plot *plot)
     }
   }
 }
-static void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
+void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
 {
   int top, left, bottom, right; 
   int width, height;   
@@ -526,7 +451,7 @@ static void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
   g_object_unref(space_layout);  
 }
 
-static void shoes_plot_draw_tick(cairo_t *cr, shoes_plot *plot,
+void shoes_plot_draw_tick(cairo_t *cr, shoes_plot *plot,
     int x, int y, int orientation) 
 {
   if (plot->auto_grid == 0) return;
@@ -543,7 +468,7 @@ static void shoes_plot_draw_tick(cairo_t *cr, shoes_plot *plot,
   cairo_stroke(cr);
 }
 
-static void shoes_plot_draw_label(cairo_t *cr, shoes_plot *plot,
+void shoes_plot_draw_label(cairo_t *cr, shoes_plot *plot,
     int x, int y, char *str, int where)
 {
   // TODO: Font was previously set to Helvetica 12 and color was setup
@@ -579,97 +504,8 @@ static void shoes_plot_draw_label(cairo_t *cr, shoes_plot *plot,
   // printf("TODO: shoes_plot_draw_label called\n");
 }
 
-static void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot)
-{
-  int i, num_series;
-  int top,left,bottom,right;
-  left = plot->graph_x; top = plot->graph_y;
-  right = plot->graph_w; bottom = plot->graph_h;    
-  for (i = 0; i < plot->seriescnt; i++) {
-    VALUE rbvalues = rb_ary_entry(plot->values, i);
-    VALUE rbmaxv = rb_ary_entry(plot->maxvs, i);
-    VALUE rbminv = rb_ary_entry(plot->minvs, i);
-    VALUE rbsize = rb_ary_entry(plot->sizes, i);
-    VALUE rbstroke = rb_ary_entry(plot->strokes, i);
-    VALUE rbnubs = rb_ary_entry(plot->nubs, i);
-    VALUE shcolor = rb_ary_entry(plot->color, i);
-    shoes_color *color;
-    Data_Get_Struct(shcolor, shoes_color, color);
-    double maximum = NUM2DBL(rbmaxv);
-    double minimum = NUM2DBL(rbminv);
-    int strokew = NUM2INT(rbstroke);
-    if (strokew < 1) strokew = 1;
-    cairo_set_line_width(cr, strokew);
-    // Shoes: Remember - we use ints for x, y, w, h and for drawing lines and points
-    int height = bottom - top;
-    int width = right - left; 
-    int range = plot->end_idx - plot->beg_idx; // zooming adj
-    float vScale = height / (maximum - minimum);
-    float hScale = width / (double) (range - 1);
-    int nubs = (width / range > 10) ? RTEST(rbnubs) : 0;  // could be done if asked
-  
-    cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0,
-       color->b / 255.0, color->a / 255.0); 
 
-    int j;
-    int brk = 0; // for missing value control
-    for (j = 0; j < range; j++) {
-      VALUE rbdp = rb_ary_entry(rbvalues, j + plot->beg_idx);
-      if (NIL_P(rbdp)) {
-        if (plot->missing == MISSING_MIN) {
-          rbdp = rbminv;
-        } else if (plot->missing == MISSING_MAX) {
-          rbdp = rbmaxv;
-        } else {
-          brk = 1;
-          continue;
-        }
-      }
-      double v = NUM2DBL(rbdp);
-      long x = roundl(j * hScale);
-      long y = height - roundl((v - minimum) *vScale);
-      x += left;
-      y += top;
-      //printf("draw i: %i, x: %i, y: %i %f \n", j, (int) x, (int) y, hScale);
-      if (j == 0 || brk == 1) {
-        cairo_move_to(cr, x, y);
-        brk = 0;
-      } else {
-        cairo_line_to(cr, x, y);
-      }
-      if (nubs) 
-        shoes_plot_draw_nub(cr, x, y);
-    }
-    cairo_stroke(cr);
-    cairo_set_line_width(cr, 1.0); // reset between series
-  } // end of drawing one series
-  // tell cairo to draw all lines (and points)
-  cairo_stroke(cr); 
-  // set color back to dark gray and stroke to 1
-  cairo_set_source_rgba(cr, 0.9, 0.9, 0.9, 1.0);
-  cairo_set_line_width(cr, 1.0);
-}
-
-static void shoes_plot_draw_nub(cairo_t *cr, int x, int y)
-{
-    int sz = 2; 
-
-    cairo_move_to(cr, x - sz, y - sz);
-    cairo_line_to(cr, x + sz, y - sz);
-    
-    cairo_move_to(cr, x - sz, y - sz);
-    cairo_line_to(cr, x - sz, y + sz);
-    
-    cairo_move_to(cr, x + sz, y + sz);
-    cairo_line_to(cr, x + sz, y - sz);
-    
-    cairo_move_to(cr, x + sz, y + sz);
-    cairo_line_to(cr, x - sz, y + sz);
-    
-    cairo_move_to(cr, x, y); // back to center point.
-}
-
-static void shoes_plot_draw_title(cairo_t *cr, shoes_plot *plot) 
+void shoes_plot_draw_title(cairo_t *cr, shoes_plot *plot) 
 {
   char *str = RSTRING_PTR(plot->title);
   int x, y;
@@ -687,7 +523,7 @@ static void shoes_plot_draw_title(cairo_t *cr, shoes_plot *plot)
   pango_cairo_show_layout (cr, layout);
 }
 
-static void shoes_plot_draw_caption(cairo_t *cr, shoes_plot *plot)
+void shoes_plot_draw_caption(cairo_t *cr, shoes_plot *plot)
 {
   char *str = RSTRING_PTR(plot->caption);
   int x, y;
@@ -705,82 +541,6 @@ static void shoes_plot_draw_caption(cairo_t *cr, shoes_plot *plot)
   y -= yoffset;
   cairo_move_to(cr, x, y);
   pango_cairo_show_layout (cr, layout);
-}
-
-/* ------ other chart types ------*/
-
-
-// column chart
-static void shoes_plot_draw_column_top(cairo_t *cr, int x, int y)
-{
-}
-
-static void shoes_plot_draw_columns(cairo_t *cr, shoes_plot *plot)
-{
-  int i, num_series;
-  int top,left,bottom,right;
-  left = plot->graph_x; top = plot->graph_y;
-  right = plot->graph_w; bottom = plot->graph_h;    
-  for (i = 0; i < plot->seriescnt; i++) {
-    VALUE rbvalues = rb_ary_entry(plot->values, i);
-    VALUE rbmaxv = rb_ary_entry(plot->maxvs, i);
-    VALUE rbminv = rb_ary_entry(plot->minvs, i);
-    VALUE rbsize = rb_ary_entry(plot->sizes, i);
-    VALUE rbstroke = rb_ary_entry(plot->strokes, i);
-    VALUE rbnubs = rb_ary_entry(plot->nubs, i);
-    VALUE shcolor = rb_ary_entry(plot->color, i);
-    shoes_color *color;
-    Data_Get_Struct(shcolor, shoes_color, color);
-    double maximum = NUM2DBL(rbmaxv);
-    double minimum = NUM2DBL(rbminv);
-    int strokew = NUM2INT(rbstroke);
-    if (strokew < 4) strokew = 4;
-    cairo_set_line_width(cr, strokew);
-    // Shoes: Remember - we use ints for x, y, w, h and for drawing lines and points
-    int height = bottom - top;
-    int width = right - left; 
-    int range = plot->end_idx - plot->beg_idx; // zooming adj
-    float vScale = height / (maximum - minimum);
-    float hScale = width / (double) (range - 1);
-    int nubs = (width / range > 10) ? RTEST(rbnubs) : 0; 
-    cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0,
-       color->b / 255.0, color->a / 255.0); 
-
-    int j;
-    int brk = 0; // for missing value control
-    for (j = 0; j < range; j++) {
-      VALUE rbdp = rb_ary_entry(rbvalues, j + plot->beg_idx);
-      if (NIL_P(rbdp)) {
-        if (plot->missing == MISSING_MIN) {
-          rbdp = rbminv;
-        } else if (plot->missing == MISSING_MAX) {
-          rbdp = rbmaxv;
-        } else {
-          rbdp = rbminv;
-          brk = 0;
-        }
-      }
-      double v = NUM2DBL(rbdp);
-      long x = roundl(j * hScale);
-      long y = height - roundl((v - minimum) *vScale);
-      x += left;
-      y += top;
-      {
-        cairo_move_to(cr, x, bottom);
-        cairo_line_to(cr, x, y);
-        if (nubs) 
-          shoes_plot_draw_column_top(cr, x, y);
-      }
-      brk = 0;
-    }
-    cairo_stroke(cr);
-    cairo_set_line_width(cr, 1.0); // reset between series
-  } // end of drawing one series
-  // tell cairo to draw all lines (and points)
-  cairo_stroke(cr); 
-  // set color back to dark gray and stroke to 1
-  cairo_set_source_rgba(cr, 0.9, 0.9, 0.9, 1.0);
-  cairo_set_line_width(cr, 1.0);  
 }
 
 VALUE shoes_plot_add(VALUE self, VALUE newseries) 
@@ -1062,9 +822,9 @@ shoes_plot_get_actual_top(VALUE self)
 }
 
 // --- fun with vector and png ---
-typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
+//typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
 
-static cairo_surface_function_t *get_vector_surface(char *format)
+cairo_surface_function_t *get_vector_surface(char *format)
 {
   if (strcmp(format, "pdf") == 0) return & cairo_pdf_surface_create;
   if (strcmp(format, "ps") == 0)  return & cairo_ps_surface_create;
@@ -1072,7 +832,7 @@ static cairo_surface_function_t *get_vector_surface(char *format)
   return NULL;
 }
 
-static cairo_surface_t* 
+cairo_surface_t* 
 build_surface(VALUE self, double scale, int *result, char *filename, char *format) 
 {
   shoes_plot *self_t;
@@ -1100,7 +860,7 @@ build_surface(VALUE self, double scale, int *result, char *filename, char *forma
   
   return surf;
 }
-static int shoes_plot_save_png(VALUE self, char *filename)
+int shoes_plot_save_png(VALUE self, char *filename)
 {
   int result;
   cairo_surface_t *surf = build_surface(self, 1.0, &result, NULL, NULL);
@@ -1110,7 +870,7 @@ static int shoes_plot_save_png(VALUE self, char *filename)
   return r == CAIRO_STATUS_SUCCESS ? Qtrue : Qfalse;
 }
 
-static int shoes_plot_save_vector(VALUE self, char *filename, char *format)
+int shoes_plot_save_vector(VALUE self, char *filename, char *format)
 {
   double scale = 1.0;
   int result;
@@ -1214,7 +974,7 @@ VALUE shoes_plot_near(VALUE self, VALUE xpos)
 
 // define our own inside function so we can offset our own margins
 // this controls what cursor is shown - mostly
-static int shoes_plot_inside(shoes_plot *self_t, int x, int y)
+int shoes_plot_inside(shoes_plot *self_t, int x, int y)
 {
   int inside = 0;
   inside = (self_t->place.iw > 0 &&  self_t->place.ih > 0 && 
@@ -1294,5 +1054,3 @@ shoes_plot_send_release(VALUE self, int button, int x, int y)
       shoes_safe_block(self, proc, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
   }
 }
-
-
