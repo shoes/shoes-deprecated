@@ -33,7 +33,8 @@ larch = "#{TGT_SYS_DIR}lib/#{arch}"
 CC = "gcc"
 pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.2.pc"
 pkggtk ="#{ularch}/pkgconfig/gtk+-3.0.pc" 
-file_list = ["shoes/console/*.c"] + ["shoes/native/*.c"] + ["shoes/http/rbload.c"] + ["shoes/*.c"]
+file_list = ["shoes/console/*.c"] + ["shoes/native/*.c"] + ["shoes/http/rbload.c"] + ["shoes/*.c"] +
+  ["shoes/plot/*.c"]
 file_list << "shoes/video/video.c" 
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|

@@ -9,6 +9,9 @@
 /*  ------- Plot widget -----
  *  several methods are defined in ruby.c Macros (CLASS_COMMON2, TRANS_COMMON)
  */
+ 
+// some forward declares for functions in this file
+void shoes_plot_draw_everything(cairo_t *, shoes_place *, shoes_plot *);
 
 // alloc some memory for a shoes_plot; We'll protect it's Ruby VALUES from gc
 // out of caution. fingers crossed.
@@ -132,7 +135,6 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     } else err = 1;
     if (err)    
       rb_raise(rb_eArgError, "Plot: bad chart type");
-    printf("chart: %s\n", str);
   } 
   
   if (! NIL_P(fontreq)) {

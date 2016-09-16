@@ -31,6 +31,9 @@ Shoes.app width: 800, height: 500 do
     @grf2.add num_obs: @values1.size, values: @values1, xobs: @x_axis1,
        name: "Bar", minv: 0, maxv:  30, long_name: "BarBaz", color: "crimson",
        nubs: true, strokewidth: 10
+    @grf2.add num_obs: @values2.size, values: @values2, xobs: @x_axis2,
+       name: "Tab", minv: 0, maxv:  250, long_name: "BarTab", color: "green",
+       nubs: true, strokewidth: 8
   end
 end
 

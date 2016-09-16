@@ -67,7 +67,8 @@ WINFNAME = "#{APPNAME}-#{WINVERSION}"
 gtk_extra_list = %w(shoes/native/gtkfixedalt.c shoes/native/gtkentryalt.c
                shoes/native/gtkcomboboxtextalt.c shoes/native/gtkbuttonalt.c
                shoes/native/gtkscrolledwindowalt.c shoes/native/gtkprogressbaralt.c)
-file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"]
+file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"] +
+    ["shoes/plot/*.c"]
 file_list << "shoes/video/video.c" 
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|

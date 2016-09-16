@@ -1,6 +1,10 @@
 // line chart
 #include "shoes/plot/plot.h"
 
+// forward declares in this file:
+void shoes_plot_draw_nub(cairo_t *, int, int);
+
+
 void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot)
 {
   int i, num_series;
