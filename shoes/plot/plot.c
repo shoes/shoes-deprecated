@@ -80,7 +80,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
 {
   VALUE attr = Qnil, widthObj = Qnil, heightObj = Qnil, optsArg = Qnil;
   VALUE title = Qnil, caption = Qnil, fontreq = Qnil, auto_grid = Qnil;
-  VALUE x_ticks = Qnil, y_ticks = Qnil;
+  VALUE x_ticks = Qnil, y_ticks = Qnil, boundbox = Qnil;
   VALUE missing = Qnil, chart_type = Qnil, background = Qnil;
   shoes_canvas *canvas;
   Data_Get_Struct(parent, shoes_canvas, canvas);
@@ -105,6 +105,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     missing = shoes_hash_get(attr, rb_intern("missing"));
     chart_type = shoes_hash_get(attr, rb_intern("chart"));
     background = shoes_hash_get(attr, rb_intern("background"));
+    boundbox = shoes_hash_get(attr, rb_intern("boundary_box"));
     // there may be many other things in that hash :-)
   } else {
     rb_raise(rb_eArgError, "Plot: missing mandatory {options}");
@@ -155,12 +156,20 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   pango_font_description_set_absolute_size (self_t->title_pfd, 16 * PANGO_SCALE);
 
      
-  self_t->auto_grid = 0;
+  self_t->auto_grid = 0;  // default
   if (! NIL_P(auto_grid)) {
     if (RTEST(auto_grid))
       self_t->auto_grid = 1;
   } 
-  // todo :sym would be more ruby like than strings.
+  
+  self_t->boundbox = 1;  // default 
+  if (! NIL_P(boundbox)) {
+    if (! RTEST(boundbox))
+      self_t->boundbox = 0;
+  }
+  
+  // TODO :sym would be more ruby like than strings but appears to
+  // pollute symbol space in ruby.c and something of PITA.
   if ((!NIL_P(missing)) && (TYPE(missing) == T_STRING)) {
     char *mstr = RSTRING_PTR(missing);
     if (strcmp(mstr, "min") == 0)
@@ -259,7 +268,8 @@ VALUE shoes_plot_draw(VALUE self, VALUE c, VALUE actual)
 }
 
 // this is called by both shoes_plot_draw (general Shoes refresh events)
-// and by shoes_plot_save_as
+// and by shoes_plot_save_as the real code is in plot_util.c and the
+// other plot_xxxx.c files
 void shoes_plot_draw_everything(cairo_t *cr, shoes_place *place, shoes_plot *self_t) {
     
     shoes_apply_transformation(cr, self_t->st, place, 0);  // cairo_save(cr) is inside
@@ -275,275 +285,6 @@ void shoes_plot_draw_everything(cairo_t *cr, shoes_place *place, shoes_plot *sel
     // drawing finished
     shoes_undo_transformation(cr, self_t->st, place, 0); // does cairo_restore(cr)
     self_t->place = *place;
-}
-
-void shoes_plot_draw_fill(cairo_t *cr, shoes_plot *plot)
-{
-  if (NIL_P(plot->background)) {
-    cairo_set_source_rgba(cr, 0.99, 0.99, 0.99, 0.99);
-  } else {
-    shoes_color *color;
-    Data_Get_Struct(plot->background, shoes_color, color);
-    cairo_set_source_rgba(cr,
-        color->r / 255.0 ,
-        color->g / 255.0 ,
-        color->b / 255.0 ,
-        color->a / 255.0
-    );
-  }
-  cairo_set_line_width(cr, 1);
-  cairo_rectangle(cr, 0, 0, plot->place.w, plot->place.h);
-  cairo_stroke_preserve(cr);
-  cairo_fill(cr);
-  cairo_set_source_rgba(cr, 0.1, 0.1, 0.1, 1.0); // barely visible? needed?
-}
-
-void shoes_plot_draw_adornments(cairo_t *cr, shoes_plot *plot)
-{
-  // draw box around data area (plot->graph_?)
-  cairo_set_line_width(cr, 1);
-  int t,l,b,r;
-  l = plot->graph_x; t = plot->graph_y;
-  r = plot->graph_w; b = plot->graph_h;
-  cairo_move_to(cr, l, t);
-  cairo_line_to(cr, r, t);  // across top
-  cairo_line_to(cr, r, b);  // down right side
-  cairo_line_to(cr, l, b);  // across bottom
-  cairo_line_to(cr, l, t);  // up left
-  cairo_stroke(cr);
-  shoes_plot_draw_ticks_and_labels(cr, plot);
-  shoes_plot_draw_legend(cr, plot);
-}
-
-void shoes_plot_draw_ticks_and_labels(cairo_t *cr, shoes_plot *plot)
-{
-  int top, left, bottom, right; // these are cairo abs for plot->graph
-  int width, height;   // full plot space so it includes everything
-  int range;
-  int h_padding = 65; // default width of horizontal tick cell TODO: an option in plot-> 
-  int v_padding = 25; // default height of tick TODO: an option in plot->
-  left = plot->graph_x; top = plot->graph_y;
-  right = plot->graph_w; bottom = plot->graph_h; 
-  range = plot->end_idx - plot->beg_idx;
-  width = right - left; 
-  height = bottom - top;
-  h_padding = width / plot->x_ticks;
-  v_padding = height / plot->y_ticks;
- 
-  double h_scale; 
-  int h_interval; 
-  h_scale = width / (double) (range -1);
-  h_interval = (int) ceil(h_padding / h_scale);
- 
-  // draw x axis - labels and tick mark uses plot->xobs - assumes it's string
-  // in the array -- TODO: allow a proc to be called to create the string. at 'i'
-  int i;
-  VALUE xobs = rb_ary_entry(plot->xobs, 0); // first series is x axis descripter
-  if (NIL_P(xobs) || TYPE(xobs) != T_ARRAY) rb_raise (rb_eArgError, "xobs must be an array");
- 
-  for (i = 0 ; i < range; i++ ) {
-    int x = (int) roundl(i * h_scale);
-    x += left;
-    long y = bottom;
-    if ((i % h_interval) == 0) {
-      char *rawstr;
-      VALUE rbstr = rb_ary_entry(xobs, i + plot->beg_idx);
-      if (NIL_P(rbstr)) {
-        rawstr = " ";
-      } else {
-        rawstr = RSTRING_PTR(rbstr);
-      }
-      //printf("x label i: %i, x: %i, y: %i, \"%s\" %i %f \n", i, (int) x, (int) y, rawstr, h_interval, h_scale);
-      shoes_plot_draw_tick(cr, plot, x, y, VERTICALLY);
-      if (plot->chart_type == LINE_CHART)
-        shoes_plot_draw_label(cr, plot, x, y, rawstr, BELOW);
-    }
-  }
-  int j;
-  for (j = 0; j < min(2, plot->seriescnt); j++) {
-    VALUE rbmax = rb_ary_entry(plot->maxvs, j);
-    double maximum = NUM2DBL(rbmax);
-    VALUE rbmin = rb_ary_entry(plot->minvs, j);
-    double minimum = NUM2DBL(rbmin);
-    //double v_scale = plot->graph_h / (maximum - minimum);
-    double v_scale = height / (maximum - minimum);
-    int v_interval = (int) ceil(v_padding / v_scale);
-    VALUE rbser = rb_ary_entry(plot->values, j);
-    char tstr[16];
-    long i;
-    for (i = ((long) minimum) + 1 ; i < ((long) roundl(maximum)); i = i + roundl(v_interval)) {
-      int y = (int) (bottom - roundl((i - minimum) * v_scale));
-      int x = 0;
-      sprintf(tstr, "%i",  (int)i); // TODO user specificed format? 
-      if (j == 0) { // left side y presentation 
-        x = left;
-        //printf("hoz left %i, %i, %s\n", (int)x, (int)y,tstr);
-        shoes_plot_draw_tick(cr, plot, x, y, HORIZONTALLY);
-        shoes_plot_draw_label(cr, plot, x, y, tstr, LEFT);
-      } else {        // right side y presentation
-        x = right;
-        shoes_plot_draw_tick(cr, plot, x, y, HORIZONTALLY);
-        shoes_plot_draw_label(cr, plot, x, y, tstr, RIGHT); 
-      }
-    }
-  }
-}
-void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
-{
-  int top, left, bottom, right; 
-  int width, height;   
-  left = plot->place.x; top = plot->graph_h + 5;
-  right = plot->place.w; bottom = top + plot->legend_h; 
-  width = right - left; 
-  height = bottom - top;
-  // TODO: Can some of this done in add/delete series ?
-  // One Ugly Mess. 
-  int i, legend_width = 0;
-  int x, y;
-  int white_space = 0;
-  PangoLayout *layouts[6];
-  PangoLayout *space_layout = pango_cairo_create_layout (cr);
-  pango_layout_set_font_description (space_layout , plot->legend_pfd);
-  pango_layout_set_text (space_layout, "  ", -1);
-  PangoRectangle space_rect;
-  pango_layout_get_pixel_extents (space_layout, NULL, &space_rect);
-  white_space = space_rect.width;
-  VALUE rbstr; 
-  char *strary[6];
-  int widary[6];
-  for (i = 0; i <  6; i++) {
-    strary[i] = NULL;
-    widary[i] = 0;
-    //layouts[i] = NULL;
-  }
-  for (i = 0; i < plot->seriescnt; i++) {
-    if (i > 1) {
-      legend_width += white_space;
-    }
-    rbstr = rb_ary_entry(plot->long_names, i);
-    strary[i] = RSTRING_PTR(rbstr);   
-    layouts[i] = pango_cairo_create_layout (cr);
-    pango_layout_set_font_description (layouts[i], plot->legend_pfd);
-    pango_layout_set_text (layouts[i], strary[i], -1);
-    PangoRectangle logical;
-    pango_layout_get_pixel_extents (layouts[i], NULL, &logical);
-    widary[i] = logical.width;
-    legend_width += logical.width;
-  }
-  int xoffset = (plot->place.w / 2) - (legend_width / 2);
-  x = xoffset - (plot->place.dx);
-  int yhalf = (plot->legend_h / 2 ); 
-  int yoffset = yhalf; 
-  y = yoffset;
- 
-  int pos_x = plot->place.ix + x;
-  int baseline = bottom - 5; //TODO: compute baseline better
-  // printf("middle? w: %i, l: %i  pos_x: %i, strw: %i\n", width, left, pos_x, legend_width);
-  cairo_move_to(cr, x, baseline);
-  for (i = 0; i < plot->seriescnt; i++) {
-    VALUE rbcolor = rb_ary_entry(plot->color, i);
-    shoes_color *color;
-    Data_Get_Struct(rbcolor, shoes_color, color);
-    cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0,
-       color->b / 255.0, color->a / 255.0); 
-    pango_cairo_show_layout(cr, layouts[i]);
-    g_object_unref(layouts[i]);
-    x += (widary[i] +  white_space);
-    cairo_move_to(cr, x , baseline);
-  }
-  g_object_unref(space_layout);  
-}
-
-void shoes_plot_draw_tick(cairo_t *cr, shoes_plot *plot,
-    int x, int y, int orientation) 
-{
-  if (plot->auto_grid == 0) return;
-  int tick_size = 3;
-  if (orientation == VERTICALLY) {
-    cairo_move_to(cr, x, y);
-    cairo_line_to(cr, x, plot->graph_y);
-  } else if (orientation == HORIZONTALLY) {
-    cairo_move_to(cr, x, y);
-    cairo_line_to(cr, plot->graph_w, y);
-  } else {
-    printf("FAIL: shoes_plot_draw_tick  orientation\n");
-  }
-  cairo_stroke(cr);
-}
-
-void shoes_plot_draw_label(cairo_t *cr, shoes_plot *plot,
-    int x, int y, char *str, int where)
-{
-  // TODO: Font was previously set to Helvetica 12 and color was setup
-  // keep them for now
-
-  cairo_font_extents_t ft; // TODO: pangocairo way
-  cairo_font_extents(cr, &ft);
-  int str_h = (int) ceil(ft.height);
-  PangoLayout *layout = pango_cairo_create_layout (cr);
-  pango_layout_set_font_description (layout , plot->label_pfd);
-  pango_layout_set_text (layout, str, -1);
-  PangoRectangle ct;
-  pango_layout_get_pixel_extents (layout, NULL, &ct);
-  int str_w = ct.width;
-  int newx;
-  int newy;
-  if (where == LEFT) { // left side y-axis
-    newx = x - (str_w + 3) - 1 ;
-    newy = y - (str_h / 2);
-  } else if (where == RIGHT) { // right side y-axis
-    newx = x;
-    newy = y - (str_h / 2);
-    //printf("lbl rightx: %i, y: %i, %s\n", (int)newx, (int)newy, str);
-  } else if (where == BELOW) { // bottom side x axis
-    newx = x - (str_w / 2);
-    newy = y + (str_h / 2);
-  } else { 
-    printf("FAIL: shoes_plot_draw_label 'where ?'\n");
-  }
-  cairo_move_to(cr, newx, newy);
-  pango_cairo_show_layout(cr, layout);
-  g_object_unref(layout);
-  // printf("TODO: shoes_plot_draw_label called\n");
-}
-
-
-void shoes_plot_draw_title(cairo_t *cr, shoes_plot *plot) 
-{
-  char *str = RSTRING_PTR(plot->title);
-  int x, y;
-  PangoLayout *layout = pango_cairo_create_layout (cr);
-  pango_layout_set_font_description (layout, plot->title_pfd);
-  pango_layout_set_text (layout, str, -1);
-  PangoRectangle ink, logical;
-  pango_layout_get_pixel_extents (layout, NULL, &logical);
-  int xoffset = (plot->place.w / 2) - (logical.width / 2);
-  x = xoffset - (plot->place.dx);
-  int yhalf = (plot->title_h / 2 ); 
-  int yoffset = yhalf; 
-  y = yoffset;
-  cairo_move_to(cr, x, y);
-  pango_cairo_show_layout (cr, layout);
-}
-
-void shoes_plot_draw_caption(cairo_t *cr, shoes_plot *plot)
-{
-  char *str = RSTRING_PTR(plot->caption);
-  int x, y;
-  PangoLayout *layout = pango_cairo_create_layout (cr);
-  pango_layout_set_font_description (layout, plot->caption_pfd);
-  pango_layout_set_text (layout, str, -1);
-  PangoRectangle logical;
-  pango_layout_get_pixel_extents (layout, NULL, &logical);
-  int xoffset = (plot->place.w / 2) - (logical.width / 2);
-  x = xoffset - (plot->place.dx);
-  
-  int yhalf = (plot->caption_h / 2 ); 
-  int yoffset = yhalf + logical.height; 
-  y = plot->place.ih;
-  y -= yoffset;
-  cairo_move_to(cr, x, y);
-  pango_cairo_show_layout (cr, layout);
 }
 
 VALUE shoes_plot_add(VALUE self, VALUE newseries) 

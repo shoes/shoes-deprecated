@@ -103,7 +103,8 @@ void shoes_plot_line_draw(cairo_t *cr, shoes_place *place, shoes_plot *self_t) {
   shoes_plot_draw_fill(cr, self_t);
   shoes_plot_draw_title(cr, self_t);
   shoes_plot_draw_caption(cr, self_t);
-    
+  if (self_t->boundbox) 
+    shoes_plot_draw_boundbox(cr, self_t);
   self_t->graph_h = self_t->place.h - (self_t->title_h + self_t->caption_h);
   self_t->graph_y = self_t->title_h + 3;
   self_t->yaxis_offset = 50; // TODO:  run TOTO, run!
@@ -111,8 +112,9 @@ void shoes_plot_line_draw(cairo_t *cr, shoes_place *place, shoes_plot *self_t) {
   self_t->graph_x = self_t->yaxis_offset;
   if (self_t->seriescnt) {
     // draw  box, ticks and x,y labels.
-    shoes_plot_draw_adornments(cr, self_t);
-    // draw data
+    //shoes_plot_draw_adornments(cr, self_t);
+    shoes_plot_draw_ticks_and_labels(cr, self_t);
+    shoes_plot_draw_legend(cr, self_t);    // draw data
     shoes_plot_draw_datapts(cr, self_t);
   }
 }

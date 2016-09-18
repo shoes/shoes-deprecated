@@ -22,7 +22,7 @@ Shoes.app width: 800, height: 500 do
           missing: "skip", background: "honeydew"
          @grf2 = plot widget_width, widget_height+100, title: "Column Graph", caption: 
           "Amazing!!" , font: "Mono", auto_grid: false, 
-          missing: "skip", background: "cornsilk", chart: "column"
+          missing: "skip", background: "cornsilk", chart: "column", boundary_box: false
       
       end
     end
