@@ -355,7 +355,8 @@ void shoes_plot_draw_ticks_and_labels(cairo_t *cr, shoes_plot *plot)
       }
       //printf("x label i: %i, x: %i, y: %i, \"%s\" %i %f \n", i, (int) x, (int) y, rawstr, h_interval, h_scale);
       shoes_plot_draw_tick(cr, plot, x, y, VERTICALLY);
-      shoes_plot_draw_label(cr, plot, x, y, rawstr, BELOW);
+      if (plot->chart_type == LINE_CHART)
+        shoes_plot_draw_label(cr, plot, x, y, rawstr, BELOW);
     }
   }
   int j;

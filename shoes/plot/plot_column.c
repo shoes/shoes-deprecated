@@ -11,6 +11,18 @@ void shoes_plot_draw_column_top(cairo_t *cr, int x, int y)
 {
 }
 
+void shoes_plot_column_xaxis(cairo_t *cr, shoes_plot *plot, int x, VALUE obs)
+{
+  char *rawstr = RSTRING_PTR(obs);
+  int y;
+  y = plot->graph_h;
+  cairo_stroke(cr); // doesn't help, doesn't hurt
+  //cairo_set_source_rgba(cr, 0.9, 0.9, 0.9, 1.0); // Why doesn't this work?
+  cairo_set_line_width(cr, 1.0);  
+  shoes_plot_draw_label(cr, plot, x, y, rawstr, BELOW);
+  cairo_stroke(cr);
+}
+
 void shoes_plot_draw_columns(cairo_t *cr, shoes_plot *plot)
 {
   int i, num_series;
@@ -20,82 +32,66 @@ void shoes_plot_draw_columns(cairo_t *cr, shoes_plot *plot)
   int width = right - left;  
   int height = bottom - top;
   // need to compute x advance based on number of series and stroke width
-  int colsw = 0;       // combined stroke width
-  int numobs = 0;      // aka series.size(s)
+  int colsw = 0;       // combined stroke width for one set of bars
   num_series = plot->seriescnt;
   int strokesw[num_series];
+  double maximums[num_series];
+  double minimums[num_series];
+  double vScales[num_series];
+  shoes_color *colors[num_series];
+  int nubs[num_series];
+  VALUE values[num_series];
+  int range = plot->end_idx - plot->beg_idx; // zooming adj
+  VALUE rbobs = rb_ary_entry(plot->xobs, 0);
+  
   for (i = 0; i < plot->seriescnt; i++) {
+    values[i] = rb_ary_entry(plot->values, i);
+    VALUE rbmaxv = rb_ary_entry(plot->maxvs, i);
+    VALUE rbminv = rb_ary_entry(plot->minvs, i);
+    maximums[i] = NUM2DBL(rbmaxv);
+    minimums[i] = NUM2DBL(rbminv);
+    VALUE rbnubs = rb_ary_entry(plot->nubs, i);
+    nubs[i] = (width / range > 10) ? RTEST(rbnubs) : 0; 
+    VALUE rbcolor = rb_ary_entry(plot->color, i);
     VALUE rbstroke = rb_ary_entry(plot->strokes, i);
     int sw = NUM2INT(rbstroke);
     if (sw < 4) sw = 4;
     strokesw[i] = sw;
     colsw += sw;
-    VALUE rbsize = rb_ary_entry(plot->sizes, i);
-    numobs = max(numobs, NUM2INT(rbsize));
-  }
-  int ncolsw = (width - (2 * colsw)) / numobs; // TODO: float and round? 
-  int colpos_xoffset = ncolsw / 2;
-  printf("ncolsw: %i offset %i\n", ncolsw, colpos_xoffset);
-  int xpos = colpos_xoffset;
-  for (i = 0; i < numobs; i++) {
-    // move to center pos of o
-    printf("move to obvs %i, at x:%i\n", i, xpos);
-    xpos += colpos_xoffset;
-    // draw x label there.
-    // move left or right from that sopt and draw the bar
-  }
-  for (i = 0; i < plot->seriescnt; i++) {
-    VALUE rbvalues = rb_ary_entry(plot->values, i);
-    VALUE rbmaxv = rb_ary_entry(plot->maxvs, i);
-    VALUE rbminv = rb_ary_entry(plot->minvs, i);
-    VALUE rbstroke = rb_ary_entry(plot->strokes, i);
-    VALUE rbnubs = rb_ary_entry(plot->nubs, i);
-    VALUE shcolor = rb_ary_entry(plot->color, i);
+    vScales[i] = (height / (maximums[i] - minimums[i]));
     shoes_color *color;
-    Data_Get_Struct(shcolor, shoes_color, color);
-    double maximum = NUM2DBL(rbmaxv);
-    double minimum = NUM2DBL(rbminv);
-
-    cairo_set_line_width(cr, strokesw[i]);
-    // Shoes: Remember - we use ints for x, y, w, h and for drawing lines and points
-    int range = plot->end_idx - plot->beg_idx; // zooming adj
-    float vScale = height / (maximum - minimum);
-    float hScale = width / (double) (range - 1);
-    int nubs = (width / range > 10) ? RTEST(rbnubs) : 0; 
-    cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0,
-       color->b / 255.0, color->a / 255.0); 
-
+    Data_Get_Struct(rbcolor, shoes_color, colors[i]);
+  }
+  int ncolsw = width / (range) ; // 
+  int xinset = left + (ncolsw / 2); // start inside the box, half a width
+  int xpos = xinset; 
+  //printf("ncolsw: w: %i, advw: %i, start inset %i\n", width, ncolsw, xpos);
+  for (i = plot->beg_idx; i < plot->end_idx; i++) {
     int j;
-    int brk = 0; // for missing value control
-    for (j = 0; j < range; j++) {
-      VALUE rbdp = rb_ary_entry(rbvalues, j + plot->beg_idx);
+    for (j = 0; j < plot->seriescnt; j++) {
+      VALUE rbdp  = rb_ary_entry(values[j], i + plot->beg_idx);
       if (NIL_P(rbdp)) {
-        if (plot->missing == MISSING_MIN) {
-          rbdp = rbminv;
-        } else if (plot->missing == MISSING_MAX) {
-          rbdp = rbmaxv;
-        } else {
-          rbdp = rbminv;
-          brk = 0;
-        }
+          printf("skipping nil at %i\n", i + plot->beg_idx);
+          continue;
       }
       double v = NUM2DBL(rbdp);
-      long x = roundl(j * hScale);
-      long y = height - roundl((v - minimum) *vScale);
-      x += left;
+      cairo_set_line_width(cr, strokesw[j]);
+      cairo_set_source_rgba(cr, colors[j]->r / 255.0, colors[j]->g / 255.0,
+        colors[j]->b / 255.0, colors[j]->a / 255.0); 
+       
+      long y = height - roundl((v - minimums[j]) * vScales[j]);
+      //printf("move i: %i, j: %i, x: %i, v: %f -> y: %i,%i \n", i, j, xpos, v, y, y+top);
       y += top;
-      {
-        cairo_move_to(cr, x, bottom);
-        cairo_line_to(cr, x, y);
-        if (nubs) 
-          shoes_plot_draw_column_top(cr, x, y);
-      }
-      brk = 0;
+      cairo_move_to(cr, xpos, bottom);
+      cairo_line_to(cr, xpos, y);
+      cairo_stroke(cr);
+      xpos += strokesw[j];
     }
-    cairo_stroke(cr);
-    cairo_set_line_width(cr, 1.0); // reset between series
-  } // end of drawing one series
-  // tell cairo to draw all lines (and points)
+    VALUE obs = rb_ary_entry(rbobs, i + plot->beg_idx);
+    shoes_plot_column_xaxis(cr, plot, xpos-(colsw / 2), obs);
+    xpos = (ncolsw * (i + 1)) + xinset;
+  }
+  // tell cairo to draw all lines (and points) not already drawn.
   cairo_stroke(cr); 
   // set color back to dark gray and stroke to 1
   cairo_set_source_rgba(cr, 0.9, 0.9, 0.9, 1.0);
