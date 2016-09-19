@@ -14,6 +14,14 @@
 #include "shoes/effects.h"
 #include <math.h>
 
+/* 
+ * NOTE: functions that changes the cairo state (aka ontext, cairo_t) for
+ * color or line width and the like should call shoes_plot_set_cairo_default()
+ * in plot_util.c to restore the default Shoes plot drawing state.
+ * 
+*/
+
+
 enum {
   VERTICALLY,
   HORIZONTALLY 
@@ -42,7 +50,7 @@ extern void shoes_plot_line_draw(cairo_t *, shoes_place *, shoes_plot *);
 extern void shoes_plot_column_draw(cairo_t *, shoes_place *, shoes_plot *);
 
 // plot utility functions (in plot_line.c for now), called at draw time
-
+extern void shoes_plot_set_cairo_default(cairo_t *, shoes_plot *);
 extern void shoes_plot_draw_title(cairo_t *, shoes_plot *);
 extern void shoes_plot_draw_caption(cairo_t *,shoes_plot *);
 extern void shoes_plot_draw_fill(cairo_t *, shoes_plot *);

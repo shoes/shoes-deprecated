@@ -3,6 +3,17 @@
 */
 #include "shoes/plot/plot.h"
 
+/*
+ *  default drawing state is very dark gray(aka black), line width = 1
+ *  If your function changes line_width or color you should probably
+ *  call this to ensure others functions can have a consistent state.
+*/
+void shoes_plot_set_cairo_default(cairo_t *cr, shoes_plot *plot)
+{
+  cairo_set_source_rgba(cr, 0.01, 0.01, 0.01, 1.0);
+  cairo_set_line_width(cr, 1);
+}
+
 // fill graph area with background color
 void shoes_plot_draw_fill(cairo_t *cr, shoes_plot *plot)
 {
@@ -20,14 +31,13 @@ void shoes_plot_draw_fill(cairo_t *cr, shoes_plot *plot)
   }
   cairo_set_line_width(cr, 1);
   cairo_rectangle(cr, 0, 0, plot->place.w, plot->place.h);
-  cairo_stroke_preserve(cr);
   cairo_fill(cr);
-  cairo_set_source_rgba(cr, 0.1, 0.1, 0.1, 1.0); // barely visible? needed?
+  shoes_plot_set_cairo_default(cr, plot);
 }
 
 void shoes_plot_draw_boundbox(cairo_t *cr, shoes_plot *plot) {
   // draw box around data area (plot->graph_?)
-  cairo_set_line_width(cr, 1);
+  shoes_plot_set_cairo_default(cr, plot);
   int t,l,b,r;
   l = plot->graph_x; t = plot->graph_y;
   r = plot->graph_w; b = plot->graph_h;

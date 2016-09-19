@@ -268,7 +268,7 @@ VALUE shoes_plot_draw(VALUE self, VALUE c, VALUE actual)
 }
 
 // this is called by both shoes_plot_draw (general Shoes refresh events)
-// and by shoes_plot_save_as the real code is in plot_util.c and the
+// and by shoes_plot_save_as. The real code is in plot_util.c and the
 // other plot_xxxx.c files
 void shoes_plot_draw_everything(cairo_t *cr, shoes_place *place, shoes_plot *self_t) {
     

@@ -100,6 +100,7 @@ void shoes_plot_draw_nub(cairo_t *cr, int x, int y)
 // called at draw time.
 void shoes_plot_line_draw(cairo_t *cr, shoes_place *place, shoes_plot *self_t) {
   // draw widget box and fill with color (nearly white). 
+  shoes_plot_set_cairo_default(cr, self_t);
   shoes_plot_draw_fill(cr, self_t);
   shoes_plot_draw_title(cr, self_t);
   shoes_plot_draw_caption(cr, self_t);

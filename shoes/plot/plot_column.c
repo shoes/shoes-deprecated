@@ -16,11 +16,9 @@ void shoes_plot_column_xaxis(cairo_t *cr, shoes_plot *plot, int x, VALUE obs)
   char *rawstr = RSTRING_PTR(obs);
   int y;
   y = plot->graph_h;
-  cairo_stroke(cr); // doesn't help, doesn't hurt
-  //cairo_set_source_rgba(cr, 0.9, 0.9, 0.9, 1.0); // Why doesn't this work?
-  cairo_set_line_width(cr, 1.0);  
   shoes_plot_draw_label(cr, plot, x, y, rawstr, BELOW);
-  cairo_stroke(cr);
+  // we don't need to call shoes_plot_set_cairo_default on return
+  // since we know it won't be changed on us. 
 }
 
 void shoes_plot_draw_columns(cairo_t *cr, shoes_plot *plot)
@@ -87,6 +85,7 @@ void shoes_plot_draw_columns(cairo_t *cr, shoes_plot *plot)
       cairo_stroke(cr);
       xpos += strokesw[j];
     }
+    shoes_plot_set_cairo_default(cr, plot); // reset to default
     VALUE obs = rb_ary_entry(rbobs, i + plot->beg_idx);
     shoes_plot_column_xaxis(cr, plot, xpos-(colsw / 2), obs);
     xpos = (ncolsw * (i + 1)) + xinset;
@@ -94,12 +93,14 @@ void shoes_plot_draw_columns(cairo_t *cr, shoes_plot *plot)
   // tell cairo to draw all lines (and points) not already drawn.
   cairo_stroke(cr); 
   // set color back to dark gray and stroke to 1
-  cairo_set_source_rgba(cr, 0.9, 0.9, 0.9, 1.0);
-  cairo_set_line_width(cr, 1.0);  
+  //cairo_set_source_rgba(cr, 0.9, 0.9, 0.9, 1.0);
+  //cairo_set_line_width(cr, 1.0);  
+  shoes_plot_set_cairo_default(cr, plot);
 }
 
 // called by the draw event - draw everything. 
 void shoes_plot_column_draw(cairo_t *cr, shoes_place *place, shoes_plot *self_t) {
+  shoes_plot_set_cairo_default(cr, self_t);
   shoes_plot_draw_fill(cr, self_t);
   shoes_plot_draw_title(cr, self_t);
   shoes_plot_draw_caption(cr, self_t);
