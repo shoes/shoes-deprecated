@@ -129,6 +129,8 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
         self_t->chart_type = LINE_CHART;
       else if (! strcmp(str, "column"))
         self_t->chart_type = COLUMN_CHART;
+      else if (! strcmp(str, "scatter"))
+        self_t->chart_type = SCATTER_CHART;
       else if (! strcmp(str, "pie"))
         err = 1;
       else 
@@ -280,6 +282,9 @@ void shoes_plot_draw_everything(cairo_t *cr, shoes_place *place, shoes_plot *sel
         break;
       case COLUMN_CHART:
         shoes_plot_column_draw(cr, place, self_t);
+        break;
+      case SCATTER_CHART:
+        shoes_plot_scatter_draw(cr, place, self_t);
         break;
     }
     // drawing finished

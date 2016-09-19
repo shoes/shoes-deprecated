@@ -192,7 +192,7 @@ Shoes.app width: 620, height: 610 do
       end
     end
     @grf = plot 600, 400,  title: "Explore Market Data", caption: "depends on the data. eh?",
-      x_ticks: 8, y_ticks: 10,  auto_grid: true, click: proc {|btn, l, t| zoom_center l}
+      x_ticks: 8, y_ticks: 10,  auto_grid: true, click: proc {|btn, l, t| zoom_center l}, chart: "line"
     keypress do |k|
       #puts "key: #{k.inspect}"
       case k

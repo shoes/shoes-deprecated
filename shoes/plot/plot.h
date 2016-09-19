@@ -19,8 +19,8 @@
  * color or line width and the like should call shoes_plot_set_cairo_default()
  * in plot_util.c to restore the default Shoes plot drawing state.
  * 
+ * Only plot_*.c includes plot.h so the enums don't blead into Shoes.
 */
-
 
 enum {
   VERTICALLY,
@@ -38,16 +38,28 @@ enum {
   MISSING_MIN,
   MISSING_MAX
 };
+
 // chart type - line is default
 enum  {
   LINE_CHART,
   COLUMN_CHART,
+  SCATTER_CHART,
   PIE_CHART
 };
+
+enum {
+  NUB_DOT,
+  NUB_RECT,
+  NUB_CIRCLE,
+  NUB_DIAMOND,
+  NUM_STAR
+};
+
 typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
 
 extern void shoes_plot_line_draw(cairo_t *, shoes_place *, shoes_plot *);
 extern void shoes_plot_column_draw(cairo_t *, shoes_place *, shoes_plot *);
+extern void shoes_plot_scatter_draw(cairo_t *, shoes_place *, shoes_plot *);
 
 // plot utility functions (in plot_line.c for now), called at draw time
 extern void shoes_plot_set_cairo_default(cairo_t *, shoes_plot *);
