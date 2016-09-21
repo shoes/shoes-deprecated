@@ -2,7 +2,7 @@
 #include "shoes/plot/plot.h"
 
 // forward declares in this file:
-void shoes_plot_draw_nub(cairo_t *, int, int);
+void shoes_plot_line_nub(cairo_t *, int, int);
 
 
 void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot)
@@ -32,7 +32,7 @@ void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot)
     int range = plot->end_idx - plot->beg_idx; // zooming adj
     float vScale = height / (maximum - minimum);
     float hScale = width / (double) (range - 1);
-    int nubs = (width / range > 10) ? RTEST(rbnubs) : 0;  // could be done if asked
+    int nubs = (width / range > 10) ? NUM2INT(rbnubs) : 0;  
   
     cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0,
        color->b / 255.0, color->a / 255.0); 
@@ -63,8 +63,11 @@ void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot)
       } else {
         cairo_line_to(cr, x, y);
       }
-      if (nubs) 
-        shoes_plot_draw_nub(cr, x, y);
+      if (nubs) {
+        //shoes_plot_line_nub(cr, x, y);
+        // TODO: shoes_plot_draw_nub(cr, plot, x, y, nubs, strokew + 2); 
+        shoes_plot_draw_nub(cr, plot, x, y, 7, strokew + 2); // 7 will default to old code
+      }
     }
     cairo_stroke(cr);
     cairo_set_line_width(cr, 1.0); // reset between series
@@ -76,7 +79,7 @@ void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot)
   cairo_set_line_width(cr, 1.0);
 }
 
-void shoes_plot_draw_nub(cairo_t *cr, int x, int y)
+void shoes_plot_line_nub(cairo_t *cr, int x, int y)
 {
     int sz = 2; 
 

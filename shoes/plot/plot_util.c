@@ -281,3 +281,57 @@ void shoes_plot_draw_caption(cairo_t *cr, shoes_plot *plot)
   cairo_move_to(cr, x, y);
   pango_cairo_show_layout (cr, layout);
 }
+
+void shoes_plot_draw_nub(cairo_t *cr, shoes_plot *plot,  double x, double y, int nubt, int szhint )
+{
+ 
+  shoes_color *bgcolor;
+  Data_Get_Struct(plot->background, shoes_color, bgcolor);
+  switch (nubt) {
+    case NUB_NONE:
+      return; // probably shouldn't happen but just in case
+    case NUB_DOT:
+      cairo_save(cr);
+      cairo_arc(cr, x, y, szhint, 0.0, 2*M_PI);
+      cairo_stroke_preserve(cr);
+      cairo_fill(cr);
+      cairo_restore(cr);
+      break;
+    case NUB_CIRCLE:
+      cairo_arc(cr, x, y, szhint, 0.0, 2*M_PI);
+      cairo_stroke_preserve(cr);
+      cairo_save(cr);
+      cairo_set_source_rgba(cr, bgcolor->r / 255.0, bgcolor->g / 255.0,
+        bgcolor->b / 255.0, 1.0);
+      cairo_fill(cr);
+      cairo_restore(cr);
+      break;
+    case NUB_BOX:
+      cairo_rectangle(cr, x-1, y-1, szhint, szhint);
+      cairo_stroke_preserve(cr);
+      cairo_fill(cr);
+      break;
+    case NUB_RECT:
+      cairo_rectangle(cr, x-1, y-1, szhint, szhint);
+      cairo_stroke_preserve(cr);
+      cairo_save(cr);
+      cairo_set_source_rgba(cr, bgcolor->r / 255.0, bgcolor->g / 255.0,
+        bgcolor->b / 255.0, 1.0);
+      cairo_fill(cr);
+      cairo_restore(cr);
+      break;
+    default: { // The hard way draw a rect, line graph uses this until bug fixed
+      int sz = 2; 
+      cairo_move_to(cr, x - sz, y - sz);
+      cairo_line_to(cr, x + sz, y - sz);
+      cairo_move_to(cr, x - sz, y - sz);
+      cairo_line_to(cr, x - sz, y + sz);
+      cairo_move_to(cr, x + sz, y + sz);
+      cairo_line_to(cr, x + sz, y - sz);
+      cairo_move_to(cr, x + sz, y + sz);
+      cairo_line_to(cr, x - sz, y + sz);
+      cairo_move_to(cr, x, y); // back to center point.
+    }
+  }
+}
+

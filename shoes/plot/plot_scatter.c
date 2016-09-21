@@ -1,17 +1,52 @@
-// line chart
+// scatter chart
 #include "shoes/plot/plot.h"
 
 // forward declares in this file:
-void shoes_plot_draw_scatter_nub(cairo_t *, int, int, int);
+void shoes_plot_scatter_nub(cairo_t *, double, double, int);
 
 
 void shoes_plot_draw_scatter_pts(cairo_t *cr, shoes_plot *plot)
 {
+  // first series (x) controls graphical settings. 
+  if (plot->seriescnt !=  2)
+    return; // we can only use two series 
   int i, num_series;
   int top,left,bottom,right;
   left = plot->graph_x; top = plot->graph_y;
-  right = plot->graph_w; bottom = plot->graph_h;    
-  for (i = 0; i < plot->seriescnt; i++) {
+  right = plot->graph_w; bottom = plot->graph_h; 
+  VALUE rbxary = rb_ary_entry(plot->values, 0);
+  VALUE rbyary = rb_ary_entry(plot->values, 1);
+  
+  VALUE rbxmax = rb_ary_entry(plot->maxvs, 0);
+  VALUE rbymax = rb_ary_entry(plot->maxvs, 1);
+  VALUE rbxmin = rb_ary_entry(plot->minvs, 0);
+  VALUE rbymin = rb_ary_entry(plot->minvs, 1);
+  double xmax = NUM2DBL(rbxmax);
+  double ymax = NUM2DBL(rbymax);
+  double xmin = NUM2DBL(rbxmin);
+  double ymin = NUM2DBL(rbymin);
+  VALUE rbnubs = rb_ary_entry(plot->nubs, 0);
+  VALUE shcolor = rb_ary_entry(plot->color, 0);
+  VALUE rbstroke = rb_ary_entry(plot->strokes, 0);
+  int strokew = NUM2INT(rbstroke);
+  if (strokew < 1) strokew = 1;
+  shoes_color *color;
+  Data_Get_Struct(shcolor, shoes_color, color);
+  // scale x and y to 
+  //printf("scale x to %f, %f\n", xmin, xmax);
+  //printf("scale y to %f, %f\n", ymin, ymax);
+  VALUE rbobs = rb_ary_entry(plot->sizes, 0);
+  int obvs = NUM2INT(rbobs);
+  double yScale;
+  double xScale;
+  for (i = 0; i < obvs; i++) {
+    double xval, yval;
+    xval = NUM2DBL(rb_ary_entry(rbxary, i));
+    yval = NUM2DBL(rb_ary_entry(rbyary, i));
+    //printf("scatter x: %f, y: %f\n", xval, yval);
+  }
+  return;   
+  for (i = 0; i < plot->seriescnt; i + 2) {
     VALUE rbvalues = rb_ary_entry(plot->values, i);
     VALUE rbmaxv = rb_ary_entry(plot->maxvs, i);
     VALUE rbminv = rb_ary_entry(plot->minvs, i);
@@ -32,7 +67,7 @@ void shoes_plot_draw_scatter_pts(cairo_t *cr, shoes_plot *plot)
     int range = plot->end_idx - plot->beg_idx; // zooming adj
     float vScale = height / (maximum - minimum);
     float hScale = width / (double) (range - 1);
-    int nubs = (width / range > 10) ? RTEST(rbnubs) : 0;  // could be done if asked
+    int nubs = (width / range > 10) ? NUM2INT(rbnubs) : 0;  
   
     cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0,
        color->b / 255.0, color->a / 255.0); 
@@ -62,7 +97,7 @@ void shoes_plot_draw_scatter_pts(cairo_t *cr, shoes_plot *plot)
       cairo_line_to(cr, x, y);
       
       if (nubs) 
-        shoes_plot_scatter_nub(cr, NUB_DOT, x, y);
+        shoes_plot_draw_nub(cr, plot, x, y, nubs, strokew + 2);
     }
     cairo_stroke(cr);
     cairo_set_line_width(cr, 1.0); // reset between series
@@ -72,27 +107,15 @@ void shoes_plot_draw_scatter_pts(cairo_t *cr, shoes_plot *plot)
   shoes_plot_set_cairo_default(cr, plot);
 }
 
-// * fun below  - port to plot_line.c ?
-void shoes_plot_scatter_nub(cairo_t *cr, int nubt, int x, int y)
+static void shoes_plot_scatter_ticks_and_labels(cairo_t *cr, shoes_plot *plot)
 {
-  switch (nubt) {
-    case NUB_DOT:
-    default: {
-      int sz = 2; 
-      cairo_move_to(cr, x - sz, y - sz);
-      cairo_line_to(cr, x + sz, y - sz);
-      cairo_move_to(cr, x - sz, y - sz);
-      cairo_line_to(cr, x - sz, y + sz);
-      cairo_move_to(cr, x + sz, y + sz);
-      cairo_line_to(cr, x + sz, y - sz);
-      cairo_move_to(cr, x + sz, y + sz);
-      cairo_line_to(cr, x - sz, y + sz);
-      cairo_move_to(cr, x, y); // back to center point.
-    }
-  }
 }
 
-// called at draw time.
+static void shoes_plot_scatter_adornments(cairo_t *cr, shoes_plot *plot)
+{
+}
+
+// called at draw time. Call many other functions
 void shoes_plot_scatter_draw(cairo_t *cr, shoes_place *place, shoes_plot *self_t) {
   shoes_plot_set_cairo_default(cr, self_t);
   shoes_plot_draw_fill(cr, self_t);
@@ -107,9 +130,9 @@ void shoes_plot_scatter_draw(cairo_t *cr, shoes_place *place, shoes_plot *self_t
   self_t->graph_x = self_t->yaxis_offset;
   if (self_t->seriescnt) {
     // draw  box, ticks and x,y labels.
-    //shoes_plot_draw_adornments(cr, self_t);
-    shoes_plot_draw_ticks_and_labels(cr, self_t);
-    shoes_plot_draw_legend(cr, self_t);    // draw data
+    shoes_plot_scatter_adornments(cr, self_t);
+    shoes_plot_scatter_ticks_and_labels(cr, self_t);
+    shoes_plot_draw_legend(cr, self_t); 
     shoes_plot_draw_scatter_pts(cr, self_t);
   }
 }

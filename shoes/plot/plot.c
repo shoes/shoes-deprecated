@@ -229,6 +229,8 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     if (NIL_P(cval))
       rb_raise(rb_eArgError, "plot.add color: not a known color");
     self_t->background = cval;
+  } else {
+    self_t->background = shoes_hash_get(cColors, rb_intern("white"));
   }
   self_t->parent = parent;
   self_t->attr = attr;
@@ -296,7 +298,7 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
 {
   shoes_plot *self_t;
   VALUE rbsz, rbvals, rbobs, rbmin, rbmax, rbshname, rblgname, rbcolor;
-  VALUE rbstroke, rbnubs;
+  VALUE rbstroke, rbnubs, rbnubtype;
   VALUE color_wrapped;
   Data_Get_Struct(self, shoes_plot, self_t); 
   int i = self_t->seriescnt; // track number of series to plot.
@@ -322,8 +324,9 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
     if (NIL_P(rbmin) || NIL_P(rbmax)) {
       rb_raise(rb_eArgError, "plot.add: Missing minv: or maxv: option");
     }
-    if ( NIL_P(rbobs) ) {
-      // we can fake it - poorly - TODO better. Please.
+    int need_x_strings = (self_t->chart_type == LINE_CHART || self_t->chart_type == COLUMN_CHART);
+    if ( NIL_P(rbobs) && need_x_strings) {
+      // we can fake it - poorly - TODO: call a user given proc ?
       int l = NUM2INT(rbsz);
       int i;
       rbobs = rb_ary_new2(l);
@@ -334,9 +337,10 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
         rb_ary_store(rbobs, i, foostr);
       }
     }
-    if ( TYPE(rbobs) != T_ARRAY ) {
+    if (need_x_strings && TYPE(rbobs) != T_ARRAY ) {
       rb_raise(rb_eArgError, "plot.add xobs is not an array");
-    }
+    } 
+    
     if (NIL_P(rbshname)) 
       rb_raise(rb_eArgError, "plot.add missing name:");
     if (NIL_P(rblgname)) {
@@ -379,11 +383,28 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
     } else {
       rbstroke = INT2NUM(1); // default
     }
-    if (!NIL_P(rbnubs)) {
-      rbnubs = Qtrue;    
-    } else {
-      rbnubs = Qfalse;
+    
+    // This is weird. We handle :true, :false/nil and string.
+    if (NIL_P(rbnubs)) {
+      rbnubtype = INT2NUM(NUB_NONE);
+    } else if (TYPE(rbnubs) == T_STRING) {
+      char *req = RSTRING_PTR(rbnubs);
+      if (!strcmp(req, "dot"))
+        rbnubtype = INT2NUM(NUB_DOT);
+      else if (!strcmp(req, "circle"))
+        rbnubtype = INT2NUM(NUB_CIRCLE);
+      else if (!strcmp(req, "box"))
+        rbnubtype = INT2NUM(NUB_BOX);
+      else if (!strcmp(req, "rect"))
+        rbnubtype = INT2NUM(NUB_RECT);
+      else
+        rb_raise(rb_eArgError, "plot.add nubs: string does not match know nub types\n");
+    } else if (TYPE(rbnubs) == T_TRUE) {
+        rbnubtype = INT2NUM(NUB_DOT);
+    } else if (TYPE(rbnubs) == T_FALSE) {
+        rbnubtype = INT2NUM(NUB_NONE);
     }
+#if 0
     //  For C debugging 
     int l = NUM2INT(rbsz);
     double  min = NUM2DBL(rbmin);
@@ -392,6 +413,7 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
     char *lgname = RSTRING_PTR(rblgname);
     //printf("shoes_plot_add using hash: num_obs: %i range %f, %f, |%s|, |%s| \n",
     //   l, min, max, shname, lgname); 
+#endif
   } else {
     rb_raise(rb_eArgError, "misssing something in plot.add \n");
   }
@@ -403,7 +425,7 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
   rb_ary_store(self_t->names, i, rbshname);
   rb_ary_store(self_t->long_names, i, rblgname);
   rb_ary_store(self_t->strokes, i, rbstroke);
-  rb_ary_store(self_t->nubs, i, rbnubs);
+  rb_ary_store(self_t->nubs, i, rbnubtype);
   rb_ary_store(self_t->color, i, color_wrapped);
   self_t->beg_idx = 0;
   self_t->end_idx = NUM2INT(rbsz);
