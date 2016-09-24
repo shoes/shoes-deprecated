@@ -123,6 +123,7 @@ void shoes_plot_draw_ticks_and_labels(cairo_t *cr, shoes_plot *plot)
   }
 }
 
+
 void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
 {
   int top, left, bottom, right; 
