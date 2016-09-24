@@ -82,7 +82,7 @@ static void shoes_plot_scatter_ticks_and_labels(cairo_t *cr, shoes_plot *plot)
   range = plot->end_idx - plot->beg_idx;
   width = right - left; 
   height = bottom - top;
-  h_padding = width / plot->x_ticks;
+  h_padding = width / plot->x_ticks; // TODO: rethink.
   v_padding = height / plot->y_ticks;
   VALUE rbxary = rb_ary_entry(plot->values, 0);
   VALUE rbyary = rb_ary_entry(plot->values, 1);
@@ -97,9 +97,11 @@ static void shoes_plot_scatter_ticks_and_labels(cairo_t *cr, shoes_plot *plot)
   double ymin = NUM2DBL(rbymin);
   double h_scale; 
   int h_interval; 
-  h_scale = width / (double) (range -1);
+  //h_scale = width / (double) (range -1);
+  h_scale = width / (double) (range );
   h_interval = (int) ceil(h_padding / h_scale);
- 
+  char tstr[10];
+
   // draw x axis - labels and tick marks generated between xmin-->xmax
   int i;
   for (i = 0 ; i < range; i++ ) {
@@ -114,23 +116,17 @@ static void shoes_plot_scatter_ticks_and_labels(cairo_t *cr, shoes_plot *plot)
       shoes_plot_draw_label(cr, plot, x, y, rawstr, BELOW);
     }
   }
+  // draw the last label on x
+  sprintf(tstr, "%4.2f", xmax);
+  shoes_plot_draw_label(cr, plot, right, bottom, tstr, BELOW);
+  
+  
   // draw y axis - there is only one in a Shoes scatter plot
   double v_scale = height / (ymax - ymin); 
-  char tstr[10];
   double j;
   int v_interval = (int) ceil(v_padding / v_scale);
   //printf("v_scale: %f, v_interval: %i\n", v_scale, v_interval);
   double yrange = ymax - ymin;
-#if 0
-  for (i = 1; i < v_interval; i++) {
-      int y = (int) (bottom - roundl(i * v_scale));
-      int x = left;
-      sprintf(tstr, "%4.2f", (i / yrange)+ymin);  
-      printf("hoz left x: %i, y: %i, %s\n", x, y, tstr);
-      shoes_plot_draw_tick(cr, plot, x, y, HORIZONTALLY);
-      shoes_plot_draw_label(cr, plot, x, y, tstr, LEFT);
-  }
-#else
   for (j = ymin ; j < ymax; j += v_interval) {
       int y = (int) (bottom - roundl((j - ymin) * v_scale));
       int x = left;
@@ -143,7 +139,6 @@ static void shoes_plot_scatter_ticks_and_labels(cairo_t *cr, shoes_plot *plot)
   sprintf(tstr, "%4.2f", ymax);
   shoes_plot_draw_label(cr, plot, left, top, tstr, LEFT);
   
-#endif
 }
 
 void shoes_plot_scatter_legend(cairo_t *cr, shoes_plot *plot)

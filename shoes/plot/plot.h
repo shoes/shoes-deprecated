@@ -42,6 +42,7 @@ enum {
 // chart type - line is default
 enum  {
   LINE_CHART,
+  TIMESERIES_CHART,
   COLUMN_CHART,
   SCATTER_CHART,
   PIE_CHART

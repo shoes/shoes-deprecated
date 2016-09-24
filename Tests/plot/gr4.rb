@@ -14,7 +14,7 @@ Shoes.app width: 620, height: 480 do
     stack do
       flow do
         @grf = plot widget_width, widget_height, title: "Weather Conditions", caption: 
-          "Look at that! Booyah!!" , font: "Helvetica", auto_grid: false,
+          "Look at that! Booyah!!" , font: "Helvetica", auto_grid: true,
           missing: "skip", background: "honeydew", chart: "scatter"
       end
     end

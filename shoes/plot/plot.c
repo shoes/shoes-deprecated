@@ -127,6 +127,8 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
       str = RSTRING_PTR(chart_type);
       if (! strcmp(str, "line"))
         self_t->chart_type = LINE_CHART;
+      else if (! strcmp(str, "timeseries"))
+        self_t->chart_type = TIMESERIES_CHART;
       else if (! strcmp(str, "column"))
         self_t->chart_type = COLUMN_CHART;
       else if (! strcmp(str, "scatter"))
@@ -279,6 +281,7 @@ void shoes_plot_draw_everything(cairo_t *cr, shoes_place *place, shoes_plot *sel
     shoes_apply_transformation(cr, self_t->st, place, 0);  // cairo_save(cr) is inside
     cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
     switch (self_t->chart_type) {
+      case TIMESERIES_CHART:
       case LINE_CHART:
         shoes_plot_line_draw(cr, place, self_t);
         break;
@@ -465,6 +468,10 @@ VALUE shoes_plot_redraw_to(VALUE self, VALUE to_here)
 {
   shoes_plot *self_t;
   Data_Get_Struct(self, shoes_plot, self_t); 
+  // restrict to timeseries chart and line chart
+  if ((self_t->chart_type != TIMESERIES_CHART) &&
+       (self_t->chart_type != LINE_CHART))
+    return;
   if (TYPE(to_here) != T_FIXNUM) 
     rb_raise(rb_eArgError, "plot.redraw_to arg is not an integer");
   int idx = NUM2INT(to_here);
@@ -502,6 +509,9 @@ VALUE shoes_plot_zoom(VALUE self, VALUE beg, VALUE end)
 {
   shoes_plot *self_t;
   Data_Get_Struct(self, shoes_plot, self_t); 
+  // restrict to timeseries chart 
+  if (self_t->chart_type != TIMESERIES_CHART) 
+    return Qnil;
   if (self_t->seriescnt < 1)
     return Qnil;
   VALUE rbsz = rb_ary_entry(self_t->sizes, 0);
@@ -539,6 +549,8 @@ VALUE shoes_plot_set_first(VALUE self, VALUE idx)
 {
   shoes_plot *self_t;
   Data_Get_Struct(self, shoes_plot, self_t); 
+  if (self_t->chart_type != TIMESERIES_CHART) 
+    return Qnil;
   if (TYPE(idx) != T_FIXNUM) rb_raise(rb_eArgError, "plot.set_first arg is not an integer"); 
   self_t->beg_idx = NUM2INT(idx);
   shoes_canvas_repaint_all(self_t->parent); 
@@ -555,6 +567,8 @@ VALUE shoes_plot_set_last(VALUE self, VALUE idx)
 {
   shoes_plot *self_t;
   Data_Get_Struct(self, shoes_plot, self_t); 
+  if (self_t->chart_type != TIMESERIES_CHART) 
+    return Qnil;
   if (TYPE(idx) != T_FIXNUM) rb_raise(rb_eArgError, "plot.set_last arg is not an integer"); 
   self_t->end_idx = NUM2INT(idx);
   shoes_canvas_repaint_all(self_t->parent); 
@@ -768,7 +782,8 @@ shoes_plot_motion(VALUE self, int x, int y, char *touch)
   char h = 0;
   VALUE click;
   GET_STRUCT(plot, self_t);
-
+  if (self_t->chart_type != TIMESERIES_CHART) 
+    return Qnil;
   click = ATTR(self_t->attr, click);
 
   //if (IS_INSIDE(self_t, x, y)) {
