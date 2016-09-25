@@ -222,8 +222,8 @@ void shoes_plot_draw_label(cairo_t *cr, shoes_plot *plot,
   PangoRectangle ct;
   pango_layout_get_pixel_extents (layout, NULL, &ct);
   int str_w = ct.width;
-  int newx;
-  int newy;
+  int newx = 0;
+  int newy = 0;
   if (where == LEFT) { // left side y-axis
     newx = x - (str_w + 3) - 1 ;
     newy = y - (str_h / 2);

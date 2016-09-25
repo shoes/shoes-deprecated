@@ -301,8 +301,8 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
 {
   shoes_plot *self_t;
   VALUE rbsz, rbvals, rbobs, rbmin, rbmax, rbshname, rblgname, rbcolor;
-  VALUE rbstroke, rbnubs, rbnubtype;
-  VALUE color_wrapped;
+  VALUE rbstroke, rbnubs, rbnubtype  = Qnil;
+  VALUE color_wrapped = Qnil;
   Data_Get_Struct(self, shoes_plot, self_t); 
   int i = self_t->seriescnt; // track number of series to plot.
   if (i >= 6) {
@@ -327,7 +327,8 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
     if (NIL_P(rbmin) || NIL_P(rbmax)) {
       rb_raise(rb_eArgError, "plot.add: Missing minv: or maxv: option");
     }
-    int need_x_strings = (self_t->chart_type == LINE_CHART || self_t->chart_type == COLUMN_CHART);
+    int need_x_strings = (self_t->chart_type == LINE_CHART ||
+        self_t->chart_type == COLUMN_CHART);
     if ( NIL_P(rbobs) && need_x_strings) {
       // we can fake it - poorly - TODO: call a user given proc ?
       int l = NUM2INT(rbsz);
@@ -471,7 +472,7 @@ VALUE shoes_plot_redraw_to(VALUE self, VALUE to_here)
   // restrict to timeseries chart and line chart
   if ((self_t->chart_type != TIMESERIES_CHART) &&
        (self_t->chart_type != LINE_CHART))
-    return;
+    return Qnil;
   if (TYPE(to_here) != T_FIXNUM) 
     rb_raise(rb_eArgError, "plot.redraw_to arg is not an integer");
   int idx = NUM2INT(to_here);
@@ -673,10 +674,10 @@ VALUE shoes_plot_save_as(int argc, VALUE *argv, VALUE self)
   } else if (TYPE(argv[0]) == T_STRING) {
     char *rbstr = RSTRING_PTR(argv[0]);
     char *lastslash = strrchr(rbstr,'/');
-    char *basename;
+    char *basename = NULL;
     char *filename;
     char *lastdot;
-    char *ext;
+    char *ext  = NULL;
     char *bare; 
     if (lastslash) {
       lastslash++;
@@ -690,16 +691,17 @@ VALUE shoes_plot_save_as(int argc, VALUE *argv, VALUE self)
       *lastdot = '\0';
       ext = lastdot + 1;
     }
-    printf("save to: %s %s (long: %s)\n", basename, ext, rbstr);
+    //printf("save to: %s %s (long: %s)\n", basename, ext, rbstr);
     int result = 0;
     if (strcmp(ext, "png") == 0) {
       result = shoes_plot_save_png(self, rbstr);
     } else {
       result = shoes_plot_save_vector(self, rbstr, ext);
     }
-    free(basename);
+    if (basename) free(basename);
     return (result ? Qtrue : Qnil);
   }
+  return Qnil;
 }
 
 /*  Not using PLACE_COMMMON Macro in ruby.c, as we do the plot rendering a bit differently

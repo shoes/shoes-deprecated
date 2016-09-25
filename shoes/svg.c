@@ -220,7 +220,7 @@ svg_aspect_ratio(int imw, int imh, shoes_svg *self_t, shoes_svghandle *svghan)
 VALUE
 shoes_svg_new(int argc, VALUE *argv, VALUE parent)
 {
-  VALUE attr = Qnil, widthObj, heightObj, svg_string;
+  VALUE attr = Qnil, widthObj, heightObj, svg_string = Qnil;
   VALUE svghanObj = Qnil;
   shoes_canvas *canvas;
   Data_Get_Struct(parent, shoes_canvas, canvas);

@@ -188,6 +188,7 @@ int
 shoes_win32_cmdvector(const char *cmdline, char ***argv)
 {
 //  return rb_w32_cmdvector(cmdline, argv);
+  return 0; // TODO: delete this function.
 }
 
 void shoes_get_time(SHOES_TIME *ts)
@@ -1136,7 +1137,7 @@ shoes_native_surface_new(VALUE attr, VALUE video)
   SHOES_CONTROL_REF da = gtk_drawing_area_new();
   gtk_widget_set_size_request(da, NUM2INT(ATTR(attr, width)), NUM2INT(ATTR(attr, height)));
   
-  VALUE uc;
+  VALUE uc = Qnil;
   if (!NIL_P(attr)) uc = ATTR(attr, bg_color);
 
   // TODO (better with GtkStyleProvider)
@@ -1573,7 +1574,7 @@ shoes_native_to_s(VALUE text)
   return text;
 }
 
-#if defined(GTK3) && !defined(SHOES_GTK_WIN32)
+#if defined(GTK3) // && !defined(SHOES_GTK_WIN32)
 VALUE
 shoes_native_window_color(shoes_app *app)
 {
@@ -1866,7 +1867,7 @@ shoes_load_font(const char *filename)
   FcConfig *fc = FcConfigGetCurrent();
   FcBool yay = FcConfigAppFontAddFile(fc, (const FcChar8 *)filename);
   if (yay == FcFalse) {
-     fprintf("failed to add font %s ?\n", filename);
+     printf("failed to add font %s ?\n", filename);
   }
   // the Shoes api says an array of all fonts is returned. After a 
   // font load, the Shoes fontlist must be updated. Use the much faster
