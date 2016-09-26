@@ -160,11 +160,17 @@ Shoes.app width: 620, height: 610 do
     @grf.zoom @zoom_beg, @zoom_end
   end
   
+  @loaddir = Dir.getwd
+  #puts "default load dir #{@loaddir}"
   stack do
     flow do 
       button "quit" do Shoes.quit end
-      button "load csv..." do 
-        Dir.chdir("/home/ccoupe/Projects/JModel-1.4/Data/93-13/") do 
+      button "Load Dir" do
+        ndir = ask_open_folder 
+        @loaddir = ndir if ndir
+      end
+      button "load file" do 
+        Dir.chdir(@loaddir) do 
           filename = ask_open_file
           if filename 
               @series << DataSeries.new(filename)
