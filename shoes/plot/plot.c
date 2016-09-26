@@ -134,7 +134,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
       else if (! strcmp(str, "scatter"))
         self_t->chart_type = SCATTER_CHART;
       else if (! strcmp(str, "pie"))
-        err = 1;
+        self_t->chart_type = PIE_CHART;
       else 
        err = 1;
     } else err = 1;
@@ -291,6 +291,8 @@ void shoes_plot_draw_everything(cairo_t *cr, shoes_place *place, shoes_plot *sel
       case SCATTER_CHART:
         shoes_plot_scatter_draw(cr, place, self_t);
         break;
+      case PIE_CHART:
+        shoes_plot_pie_draw(cr, place, self_t);
     }
     // drawing finished
     shoes_undo_transformation(cr, self_t->st, place, 0); // does cairo_restore(cr)
@@ -328,7 +330,8 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
       rb_raise(rb_eArgError, "plot.add: Missing minv: or maxv: option");
     }
     int need_x_strings = (self_t->chart_type == LINE_CHART ||
-        self_t->chart_type == COLUMN_CHART);
+        self_t->chart_type == COLUMN_CHART || 
+        self_t->chart_type == TIMESERIES_CHART);
     if ( NIL_P(rbobs) && need_x_strings) {
       // we can fake it - poorly - TODO: call a user given proc ?
       int l = NUM2INT(rbsz);

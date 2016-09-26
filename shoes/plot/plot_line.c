@@ -115,10 +115,9 @@ void shoes_plot_line_draw(cairo_t *cr, shoes_place *place, shoes_plot *self_t) {
   self_t->graph_w = self_t->place.w - self_t->yaxis_offset;
   self_t->graph_x = self_t->yaxis_offset;
   if (self_t->seriescnt) {
-    // draw  box, ticks and x,y labels.
-    //shoes_plot_draw_adornments(cr, self_t);
+    // draw  ticks and x,y labels.
     shoes_plot_draw_ticks_and_labels(cr, self_t);
-    shoes_plot_draw_legend(cr, self_t);    // draw data
-    shoes_plot_draw_datapts(cr, self_t);
+    shoes_plot_draw_legend(cr, self_t);
+    shoes_plot_draw_datapts(cr, self_t); // draw data
   }
 }
