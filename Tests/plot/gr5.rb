@@ -3,7 +3,7 @@
 Shoes.app width: 620, height: 480 do
   @values1 = [15, 5, 4, 4, 3, 3, 1, 1] # downloads
   @obs1 = ["gtk3-32.exe", "gtk3-x86_64.install", "osx-10.9.tgz", "/",
-     "3.2.25.exe", "robots.txt", "gtk3-i686,install,", "gtk3-armmhf.install"]
+     "3.2.25.exe", "robots.txt", "gtk3-i686,install,", "gtk3-armhf.install"]
   
   stack do
     para "Plot Pie Demo 5"

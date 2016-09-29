@@ -44,6 +44,8 @@ shoes_plot_free(shoes_plot *self_t)
   pango_font_description_free (self_t->legend_pfd);
   pango_font_description_free (self_t->label_pfd);
   shoes_transform_release(self_t->st);
+  if (self_t->pie_things)
+    shoes_plot_pie_dealloc(self_t);
   RUBY_CRITICAL(SHOE_FREE(self_t));
 }
 
@@ -72,6 +74,7 @@ shoes_plot_alloc(VALUE klass)
   plot->missing = MISSING_SKIP;
   plot->chart_type = LINE_CHART;
   plot->background = Qnil;
+  plot->pie_things = NULL;
   return obj;
 }
 
@@ -424,6 +427,9 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
   } else {
     rb_raise(rb_eArgError, "misssing something in plot.add \n");
   }
+  // pie chart type needs to pre-compute some geometery and store it (in plot.pie.c)
+
+
   rb_ary_store(self_t->sizes, i, rbsz);
   rb_ary_store(self_t->values, i, rbvals);
   rb_ary_store(self_t->xobs, i, rbobs);
@@ -437,6 +443,8 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
   self_t->beg_idx = 0;
   self_t->end_idx = NUM2INT(rbsz);
   self_t->seriescnt++;
+  if (self_t->chart_type == PIE_CHART) 
+    shoes_plot_pie_init(self_t);
   shoes_canvas_repaint_all(self_t->parent);
   return self;
 }
@@ -450,7 +458,8 @@ VALUE shoes_plot_delete(VALUE self, VALUE series)
   int idx = NUM2INT(series);
   if (! (idx >= 0 && idx <= self_t->seriescnt))
     rb_raise(rb_eArgError, "plot.delete arg is out of range");
-
+  if (self_t->chart_type == PIE_CHART)
+    shoes_plot_pie_dealloc(self_t);
   rb_ary_delete_at(self_t->sizes, idx);
   rb_ary_delete_at(self_t->values, idx);
   rb_ary_delete_at(self_t->xobs, idx);

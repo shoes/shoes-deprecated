@@ -56,12 +56,32 @@ enum {
   NUB_RECT,    //unfilled rect
 };
 
+// Pie charts are sufficently complex that we need some structs for the 
+// internal fluff. 
+typedef struct {
+  double value; 
+  double startAngle;
+  double endAngle;
+  shoes_color *color;
+} pie_slice_t;
+
+typedef struct {
+  int count;
+  double maxv;
+  double minv;
+  pie_slice_t *slices;
+} pie_chart_t;
+
+
+
 typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
 
 extern void shoes_plot_line_draw(cairo_t *, shoes_place *, shoes_plot *);
 extern void shoes_plot_column_draw(cairo_t *, shoes_place *, shoes_plot *);
 extern void shoes_plot_scatter_draw(cairo_t *, shoes_place *, shoes_plot *);
-
+extern void shoes_plot_pie_draw(cairo_t *, shoes_place *, shoes_plot *);
+extern void shoes_plot_pie_init(shoes_plot *);
+extern void shoes_plot_pie_dealloc(shoes_plot *);
 // plot utility functions (in plot_util.c)
 extern void shoes_plot_set_cairo_default(cairo_t *, shoes_plot *);
 extern void shoes_plot_draw_title(cairo_t *, shoes_plot *);
