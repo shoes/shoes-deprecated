@@ -93,17 +93,11 @@ void shoes_plot_draw_pie_chart(cairo_t *cr, shoes_plot *plot)
     pie_slice_t *slice = &chart->slices[i];
     //TODO: !!! if (abs(startAngle[i] - endAngle[i]) > 0.001) { // bigEnough?
     {
-#if 0
-      VALUE wedge_color = shoes_plot_pie_color(i);
-      shoes_color *color;
-      Data_Get_Struct(wedge_color, shoes_color, color);
-#else
      shoes_color *color = slice->color;
-#endif
-      cairo_set_source_rgba(cr, color->r / 255.0, color->b / 255.0, 
-          color->g / 255.0, color->a / 255.0);
-      printf("pie color for %i: r:%i g:%i b:%i a:%i\n", i, color->r, color->g,
-          color->b, color->a);
+      cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0, 
+          color->b / 255.0, color->a / 255.0);
+      //printf("pie color for %i: r:%i g:%i b:%i a:%i\n", i, color->r, color->g,
+      //    color->b, color->a);
       cairo_new_path(cr);
       cairo_move_to(cr, centerx, centery);
       cairo_arc(cr, centerx, centery, radius, -(slice->endAngle), -(slice->startAngle));
@@ -192,8 +186,8 @@ void shoes_plot_draw_pie_legend(cairo_t *cr, shoes_plot *self_t) {
   }
   int box_x = (self_t->place.iw - boxw) - 5; // everything we can get on the right
   int box_y = self_t->graph_y + 2;
-  printf("legend box x: %i, y: %i, h: %i, w: %i\n", box_x, box_y, boxh, boxw);
-  // Draw (layout)
+  //printf("legend box x: %i, y: %i, h: %i, w: %i\n", box_x, box_y, boxh, boxw);
+  // Draw using layout
   for (i = 0; i < numstrs; i++) {
     cairo_move_to(cr, box_x, box_y);
     shoes_color *color;
@@ -207,7 +201,12 @@ void shoes_plot_draw_pie_legend(cairo_t *cr, shoes_plot *self_t) {
   }
 }
 
-// called at draw time. Calls many other functions. 
+// here, ticks are values (%?) drawn around the slices.  Expect confusion.
+void shoes_plot_draw_pie_ticks(cairo_t *cr, shoes_plot *self_t) 
+{
+}
+
+// called at Shoes draw time. Calls many other functions. 
 //      Whole lotta drawing going on
 void shoes_plot_pie_draw(cairo_t *cr, shoes_place *place, shoes_plot *self_t) {
   shoes_plot_set_cairo_default(cr, self_t);
@@ -223,6 +222,7 @@ void shoes_plot_pie_draw(cairo_t *cr, shoes_place *place, shoes_plot *self_t) {
   self_t->graph_x = self_t->yaxis_offset;
   if (self_t->seriescnt) {
     shoes_plot_draw_pie_chart(cr, self_t);
+    shoes_plot_draw_pie_ticks(cr, self_t);
     shoes_plot_draw_pie_legend(cr, self_t);
   }
 }

@@ -10,7 +10,7 @@ void shoes_plot_draw_scatter_pts(cairo_t *cr, shoes_plot *plot)
   // first series (x) controls graphical settings. 
   if (plot->seriescnt !=  2)
     return; // we can only use two series 
-  int i, num_series;
+  int i;
   int top,left,bottom,right;
   left = plot->graph_x; top = plot->graph_y;
   right = plot->graph_w; bottom = plot->graph_h; 
@@ -40,7 +40,7 @@ void shoes_plot_draw_scatter_pts(cairo_t *cr, shoes_plot *plot)
   int obvs = NUM2INT(rbobs);
   int height = bottom - top;
   int width = right - left; 
-  int range = plot->end_idx - plot->beg_idx; // zooming adj? 
+  
   for (i = 0; i < obvs; i++) {
     double xval, yval;
     xval = NUM2DBL(rb_ary_entry(rbxary, i));
@@ -84,8 +84,7 @@ static void shoes_plot_scatter_ticks_and_labels(cairo_t *cr, shoes_plot *plot)
   height = bottom - top;
   h_padding = width / plot->x_ticks; // TODO: rethink.
   v_padding = height / plot->y_ticks;
-  VALUE rbxary = rb_ary_entry(plot->values, 0);
-  VALUE rbyary = rb_ary_entry(plot->values, 1);
+
   
   VALUE rbxmax = rb_ary_entry(plot->maxvs, 0);
   VALUE rbymax = rb_ary_entry(plot->maxvs, 1);
@@ -126,7 +125,6 @@ static void shoes_plot_scatter_ticks_and_labels(cairo_t *cr, shoes_plot *plot)
   double j;
   int v_interval = (int) ceil(v_padding / v_scale);
   //printf("v_scale: %f, v_interval: %i\n", v_scale, v_interval);
-  double yrange = ymax - ymin;
   for (j = ymin ; j < ymax; j += v_interval) {
       int y = (int) (bottom - roundl((j - ymin) * v_scale));
       int x = left;
@@ -152,7 +150,7 @@ void shoes_plot_scatter_legend(cairo_t *cr, shoes_plot *plot)
   height = bottom - top;
   // scatter has only two series - center the x string [0]
   // try to draw the y string [1] vertically. -fun or groan?
-  int i, legend_width = 0;
+  int legend_width = 0;
   int x, y;
   VALUE rbstr; 
   rbstr = rb_ary_entry(plot->long_names, 0); // x
@@ -170,7 +168,6 @@ void shoes_plot_scatter_legend(cairo_t *cr, shoes_plot *plot)
   int yoffset = yhalf; 
   y = yoffset;
  
-  int pos_x = plot->place.ix + x;
   int baseline = bottom - 5; //TODO: compute baseline better
   VALUE rbcolor = rb_ary_entry(plot->color, 0);
   shoes_color *color;
@@ -196,11 +193,6 @@ void shoes_plot_scatter_legend(cairo_t *cr, shoes_plot *plot)
   Data_Get_Struct(rbcolor, shoes_color, color);
   cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0,
       color->b / 255.0, color->a / 255.0); 
-   //PangoContext *context = pango_layout_get_context (y_layout);
-   //pango_context_set_base_gravity (context, PANGO_GRAVITY_EAST);
-   //pango_context_set_gravity_hint(context, PANGO_GRAVITY_HINT_STRONG);
-   //pango_layout_context_changed(y_layout);
-   
   // since we're drawing text vertically, compute text placement differently
   // It's very confusing (to me, at least). 
   int yoff = ((plot->graph_h - plot->graph_y) - logical.width) / 2;

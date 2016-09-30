@@ -7,7 +7,7 @@ void shoes_plot_line_nub(cairo_t *, int, int);
 
 void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot)
 {
-  int i, num_series;
+  int i;
   int top,left,bottom,right;
   left = plot->graph_x; top = plot->graph_y;
   right = plot->graph_w; bottom = plot->graph_h;    

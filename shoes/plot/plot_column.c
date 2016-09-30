@@ -57,7 +57,6 @@ void shoes_plot_draw_columns(cairo_t *cr, shoes_plot *plot)
     strokesw[i] = sw;
     colsw += sw;
     vScales[i] = (height / (maximums[i] - minimums[i]));
-    shoes_color *color;
     Data_Get_Struct(rbcolor, shoes_color, colors[i]);
   }
   int ncolsw = width / (range) ; // 

@@ -670,7 +670,6 @@ int shoes_plot_save_png(VALUE self, char *filename)
 
 int shoes_plot_save_vector(VALUE self, char *filename, char *format)
 {
-  double scale = 1.0;
   int result;
   cairo_surface_t *surf = build_surface(self, 1.0, &result, filename, format);
   cairo_surface_destroy(surf);
@@ -687,7 +686,6 @@ VALUE shoes_plot_save_as(int argc, VALUE *argv, VALUE self)
     char *rbstr = RSTRING_PTR(argv[0]);
     char *lastslash = strrchr(rbstr,'/');
     char *basename = NULL;
-    char *filename;
     char *lastdot;
     char *ext  = NULL;
     char *bare; 
