@@ -63,13 +63,22 @@ typedef struct {
   double startAngle;
   double endAngle;
   shoes_color *color;
+  char *label; 
+  int lh; // lable heigth and width
+  int lw;
+  int lx, ly; 
+  PangoLayout *layout; 
 } pie_slice_t;
 
 typedef struct {
+  double radius;
+  int centerx;
+  int centery;
   int count;
+  int top, left, bottom, right, height, width;
   double maxv;
   double minv;
-  pie_slice_t *slices;
+  pie_slice_t *slices; // treated as an array because it is.
 } pie_chart_t;
 
 
@@ -88,7 +97,6 @@ extern void shoes_plot_draw_title(cairo_t *, shoes_plot *);
 extern void shoes_plot_draw_caption(cairo_t *,shoes_plot *);
 extern void shoes_plot_draw_fill(cairo_t *, shoes_plot *);
 extern void shoes_plot_draw_boundbox(cairo_t *, shoes_plot *);
-//extern void shoes_plot_draw_datapts(cairo_t *, shoes_plot *);
 extern void shoes_plot_draw_ticks_and_labels(cairo_t *, shoes_plot *);
 extern void shoes_plot_draw_legend(cairo_t *, shoes_plot *);
 extern void shoes_plot_draw_tick(cairo_t *, shoes_plot *, int, int, int);

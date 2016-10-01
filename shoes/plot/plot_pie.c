@@ -69,43 +69,41 @@ void shoes_plot_draw_pie_chart(cairo_t *cr, shoes_plot *plot)
   height = bottom - top; 
   pie_chart_t *chart = (pie_chart_t *) plot->pie_things;
 
-  int centerx = left + roundl(width * 0.5);
-  int centery = top + roundl(height * 0.5);
-  double radius = min(width/2.0, height/2.0);
+  chart->centerx = left + roundl(width * 0.5);
+  chart->centery = top + roundl(height * 0.5);
+  chart->radius = min(width / 2.0, height / 2.0);
+  chart->top = top; chart->left = left; chart->bottom = bottom;
+  chart->right = right; chart->width = width; chart->height = height;
   
 #if 0 // OR attr(drop_shadow) 
   // draw something circular which might be the drop shadow of the pie.
   // Which we probably don't need since Shoes doesn't have a drop shadow option
-  // Pixel counting still sucks
   cairo_save(cr);
   cairo_set_source_rgba(cr, 0, 0, 0, 0.15);
   cairo_new_path(cr);
   cairo_move_to(cr, centerx, centery);
-  cairo_arc(cr, centerx + 1, centery + 2, radius + 1, 0, SHOES_PIM2);
+  cairo_arc(cr, centerx + 1, centery + 2, chart->radius + 1, 0, SHOES_PIM2);
   cairo_line_to(cr, centerx, centery);
   cairo_close_path(cr);
   cairo_fill(cr);
   cairo_restore(cr);
 #endif    
-  // color problems below, somewhere
-  //cairo_save(cr);
+
   for (i = 0; i < chart->count; i++) {
     pie_slice_t *slice = &chart->slices[i];
-    //TODO: !!! if (abs(startAngle[i] - endAngle[i]) > 0.001) { // bigEnough?
-    {
-     shoes_color *color = slice->color;
+    if (fabs(slice->startAngle - slice->endAngle) > 0.001) { // bigEnough?
+      shoes_color *color = slice->color;
       cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0, 
           color->b / 255.0, color->a / 255.0);
       //printf("pie color for %i: r:%i g:%i b:%i a:%i\n", i, color->r, color->g,
       //    color->b, color->a);
       cairo_new_path(cr);
-      cairo_move_to(cr, centerx, centery);
-      cairo_arc(cr, centerx, centery, radius, -(slice->endAngle), -(slice->startAngle));
+      cairo_move_to(cr, chart->centerx, chart->centery);
+      cairo_arc(cr, chart->centerx, chart->centery, chart->radius, -(slice->endAngle), -(slice->startAngle));
       cairo_close_path(cr);
       cairo_fill(cr);
     }
   }
-  //cairo_restore(cr);
   shoes_plot_set_cairo_default(cr, plot);
 }
 ;
@@ -201,9 +199,102 @@ void shoes_plot_draw_pie_legend(cairo_t *cr, shoes_plot *self_t) {
   }
 }
 
-// here, ticks are values (%?) drawn around the slices.  Expect confusion.
-void shoes_plot_draw_pie_ticks(cairo_t *cr, shoes_plot *self_t) 
+/* 
+ * NOTE: here, "ticks" are values (or %?) drawn around the slices.  
+ * Expect confusion and many helper functions.
+ * This called after drawing the wedges in a shoes draw event so we know
+ * we actually have a cairo_t that is real and the slices are OK. 
+ * We depend on that. 
+*/
+double shoes_plot_pie_getNormalisedAngle(pie_slice_t *self) {
+  double normalisedAngle = (self->startAngle + self->endAngle) / 2;
+  if (normalisedAngle > SHOES_PI * 2)
+    normalisedAngle -= SHOES_PI * 2;
+  else if (normalisedAngle < 0)
+    normalisedAngle += SHOES_PI * 2;
+
+  return normalisedAngle;
+}
+
+shoes_plot_pie_tick_position(cairo_t *cr, pie_chart_t * chart, pie_slice_t *slice, double angle)
 {
+  int half_width = slice->lw / 2.0;
+  int half_height = slice->lh / 2.0;
+  double k1, k2, j1, j2;
+  printf("tick: value: %s, radius: %f, angle: %f\n", slice->label, chart->radius, angle);
+  if (0 <= angle < 0.5 * SHOES_PI) {
+    // first quadrant
+    k1 = j1 = k2 = 1;
+    j2 = -1;
+    printf("first quad \n");
+  }
+#ifdef PYTHON
+       if 0 <= angle < 0.5 * math.pi:
+            # first quadrant
+            k1 = j1 = k2 = 1
+            j2 = -1
+        elif 0.5 * math.pi <= angle < math.pi:
+            # second quadrant
+            k1 = k2 = -1
+            j1 = j2 = 1
+        elif math.pi <= angle < 1.5 * math.pi:
+            # third quadrant
+            k1 = j1 = k2 = -1
+            j2 = 1
+        elif 1.5 * math.pi <= angle < 2 * math.pi:
+            # fourth quadrant
+            k1 = k2 = 1
+            j1 = j2 = -1
+
+        cx = radius * math.cos(angle) + k1 * half_width
+        cy = radius * math.sin(angle) + j1 * half_height
+
+        radius2 = math.sqrt(cx * cx + cy * cy)
+
+        tan = math.tan(angle)
+        x = math.sqrt((radius2 * radius2) / (1 + tan * tan))
+        y = tan * x
+
+        x = centerx + k2 * x
+        y = centery + j2 * y
+
+        return x - half_width, y - half_height, text_width, text_height
+#endif
+}
+
+void shoes_plot_draw_pie_ticks(cairo_t *cr, shoes_plot *plot) 
+{
+  if (plot->seriescnt != 1) 
+    return; //  just in case
+  pie_chart_t *chart = (pie_chart_t *) plot->pie_things;
+  int i;
+  PangoRectangle logical;
+  for (i = 0; i < chart->count; i++) {
+    pie_slice_t *slice = &chart->slices[i];
+    char vstr[10];
+    // TODO - option for % 
+    sprintf(vstr, "%i", (int)slice->value);
+    //sprintf(vstr, "%i%%", (int)((slice->value / (chart->maxv - chart->minv))*100.0));
+    // gets ugly quick
+    slice->label = malloc(strlen(vstr));
+    strcpy(slice->label, vstr);
+    slice->layout = pango_cairo_create_layout (cr);
+    pango_layout_set_font_description (slice->layout, plot->label_pfd);
+    pango_layout_set_text (slice->layout, slice->label, -1);
+    pango_layout_get_pixel_extents (slice->layout, NULL, &logical);
+    slice->lw = logical.width;
+    slice->lh = logical.height;
+    //double angle = shoes_plot_pie_getNormalisedAngle(slice);
+    //double radius = get_min_radius(angle, chart->centerx, chart->centery,
+    //                                      logical->width, logical->height)
+  }
+  
+  // pass through the slices again, drawing, free the string, unref the layouts ?
+  for (i = 0; i < chart->count; i++) {
+    pie_slice_t *slice = &chart->slices[i];
+    double angle = shoes_plot_pie_getNormalisedAngle(slice);
+    shoes_plot_pie_tick_position(cr, chart, slice, angle);
+  }
 }
 
 // called at Shoes draw time. Calls many other functions. 
@@ -217,7 +308,7 @@ void shoes_plot_pie_draw(cairo_t *cr, shoes_place *place, shoes_plot *self_t) {
   //  shoes_plot_draw_boundbox(cr, self_t); // not helpful for pie charts. IMHO.
   self_t->graph_h = self_t->place.h - (self_t->title_h + self_t->caption_h);
   self_t->graph_y = self_t->title_h + 3;
-  self_t->yaxis_offset = 70; // TODO:  run TOTO! run!
+  self_t->yaxis_offset = 20; // TODO:  run TOTO! run!
   self_t->graph_w = self_t->place.w - self_t->yaxis_offset;
   self_t->graph_x = self_t->yaxis_offset;
   if (self_t->seriescnt) {
