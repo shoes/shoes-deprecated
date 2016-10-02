@@ -15,8 +15,8 @@ Shoes.app width: 620, height: 480 do
     stack do
       flow do
         @grf = plot widget_width, widget_height, title: "Shoes Https downloads", caption: 
-          "popularilty " , font: "Helvetica", auto_grid: true,
-          missing: "skip", background: "white", chart: "pie"
+          "popularity " , font: "Helvetica", auto_grid: true,
+          missing: "skip", background: "white", chart: "pie", pie_percent: true
       end
     end
     @grf.add num_obs: @values1.size, values: @values1, xobs: @obs1,

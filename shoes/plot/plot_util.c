@@ -259,6 +259,8 @@ void shoes_plot_draw_title(cairo_t *cr, shoes_plot *plot)
   int yhalf = (plot->title_h / 2 ); 
   int yoffset = yhalf; 
   y = yoffset;
+  if (plot->chart_type == PIE_CHART)
+    y -= 8;
   cairo_move_to(cr, x, y);
   pango_cairo_show_layout (cr, layout);
 }

@@ -85,6 +85,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   VALUE title = Qnil, caption = Qnil, fontreq = Qnil, auto_grid = Qnil;
   VALUE x_ticks = Qnil, y_ticks = Qnil, boundbox = Qnil;
   VALUE missing = Qnil, chart_type = Qnil, background = Qnil;
+  VALUE pie_pct = Qnil;
   shoes_canvas *canvas;
   Data_Get_Struct(parent, shoes_canvas, canvas);
   
@@ -109,6 +110,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     chart_type = shoes_hash_get(attr, rb_intern("chart"));
     background = shoes_hash_get(attr, rb_intern("background"));
     boundbox = shoes_hash_get(attr, rb_intern("boundary_box"));
+    pie_pct = shoes_hash_get(attr, rb_intern("pie_percent"));
     // there may be many other things in that hash :-)
   } else {
     rb_raise(rb_eArgError, "Plot: missing mandatory {options}");
@@ -186,6 +188,12 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     else 
       self_t->missing = MISSING_SKIP;
   } 
+  if (self_t->chart_type == PIE_CHART) {
+    // using the missing field to keep track of percentage option
+    self_t->missing = 0;  // default
+    if (! NIL_P(pie_pct))
+      self_t->missing = RTEST(pie_pct);
+  }
   if (!NIL_P(caption)) {
     self_t->caption = caption;
   } else {

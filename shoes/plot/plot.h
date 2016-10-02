@@ -64,13 +64,14 @@ typedef struct {
   double endAngle;
   shoes_color *color;
   char *label; 
-  int lh; // lable heigth and width
+  int lh; // label height and width and placement
   int lw;
   int lx, ly; 
   PangoLayout *layout; 
 } pie_slice_t;
 
 typedef struct {
+  int percent;  // true when display % instead of value
   double radius;
   int centerx;
   int centery;

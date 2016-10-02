@@ -331,7 +331,7 @@ typedef struct {
   int seriescnt;
   int auto_grid; 
   int boundbox;
-  int missing; 
+  int missing;   // repurposed in pie_charts so beware
   VALUE background;
   VALUE maxvs;  // these will be Ruby arrays of things (0..seriescnt)
   VALUE minvs;

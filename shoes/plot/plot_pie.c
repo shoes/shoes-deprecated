@@ -74,6 +74,7 @@ void shoes_plot_draw_pie_chart(cairo_t *cr, shoes_plot *plot)
   chart->radius = min(width / 2.0, height / 2.0);
   chart->top = top; chart->left = left; chart->bottom = bottom;
   chart->right = right; chart->width = width; chart->height = height;
+  chart->percent = plot->missing; // Bait `n switch
   
 #if 0 // OR attr(drop_shadow) 
   // draw something circular which might be the drop shadow of the pie.
@@ -218,48 +219,49 @@ double shoes_plot_pie_getNormalisedAngle(pie_slice_t *self) {
 
 shoes_plot_pie_tick_position(cairo_t *cr, pie_chart_t * chart, pie_slice_t *slice, double angle)
 {
-  int half_width = slice->lw / 2.0;
-  int half_height = slice->lh / 2.0;
-  double k1, k2, j1, j2;
-  printf("tick: value: %s, radius: %f, angle: %f\n", slice->label, chart->radius, angle);
-  if (0 <= angle < 0.5 * SHOES_PI) {
+  int text_height = slice->lh;
+  int text_width = slice->lw;
+  int half_width = text_width / 2.0;
+  int half_height = text_height / 2.0;
+  int k1, k2, j1, j2;
+  //printf("tick: value: %s, radius: %f, angle: %f\n", slice->label, chart->radius, angle);
+  if ((0 <= angle) && (angle < 0.5 * SHOES_PI)) {
     // first quadrant
     k1 = j1 = k2 = 1;
     j2 = -1;
-    printf("first quad \n");
+  } else if ((0.5 * SHOES_PI <= angle) && (angle < SHOES_PI)) {
+    // second quadrant
+    k1 = k2 = -1;
+    j1 = j2 = 1;
+  } else if ((SHOES_PI <= angle) && (angle < 1.5 * SHOES_PI)) {
+    // third quadrant
+    k1 = j1 = k2 = -1;
+    j2 = 1;
+  } else if ((1.5 * SHOES_PI <= angle) && (angle < 2 * SHOES_PI)) {
+    // fourth quadrant
+    k1 = k2 = 1;
+    j1 = j2 = -1;
+  } else {
+    fprintf(stderr, "plot_pie.c - bad news\n");
   }
-#ifdef PYTHON
-       if 0 <= angle < 0.5 * math.pi:
-            # first quadrant
-            k1 = j1 = k2 = 1
-            j2 = -1
-        elif 0.5 * math.pi <= angle < math.pi:
-            # second quadrant
-            k1 = k2 = -1
-            j1 = j2 = 1
-        elif math.pi <= angle < 1.5 * math.pi:
-            # third quadrant
-            k1 = j1 = k2 = -1
-            j2 = 1
-        elif 1.5 * math.pi <= angle < 2 * math.pi:
-            # fourth quadrant
-            k1 = k2 = 1
-            j1 = j2 = -1
+  double cx = chart->radius * cos(angle) + k1 * half_width;
+  double cy = chart->radius * sin(angle) + j1 * half_height;
 
-        cx = radius * math.cos(angle) + k1 * half_width
-        cy = radius * math.sin(angle) + j1 * half_height
+  double radius2 = sqrt(cx * cx + cy * cy);
 
-        radius2 = math.sqrt(cx * cx + cy * cy)
+  double tang = tan(angle);
+  double x = sqrt((radius2 * radius2) / (1 + tang * tang));
+  double y = tang * x;
 
-        tan = math.tan(angle)
-        x = math.sqrt((radius2 * radius2) / (1 + tan * tan))
-        y = tan * x
-
-        x = centerx + k2 * x
-        y = centery + j2 * y
-
-        return x - half_width, y - half_height, text_width, text_height
-#endif
+  x = chart->centerx + k2 * x;
+  y = chart->centery + j2 * y;
+  
+  // set 4 variables for return (python puts the list into the tick tuple)
+  //return x - half_width, y - half_height, text_width, text_height
+  slice->lx = x - half_width;
+  slice->ly = y - half_height;
+  slice->lw = text_width;
+  slice->lh = text_height;
 }
 
 void shoes_plot_draw_pie_ticks(cairo_t *cr, shoes_plot *plot) 
@@ -272,10 +274,11 @@ void shoes_plot_draw_pie_ticks(cairo_t *cr, shoes_plot *plot)
   for (i = 0; i < chart->count; i++) {
     pie_slice_t *slice = &chart->slices[i];
     char vstr[10];
-    // TODO - option for % 
-    sprintf(vstr, "%i", (int)slice->value);
-    //sprintf(vstr, "%i%%", (int)((slice->value / (chart->maxv - chart->minv))*100.0));
-    // gets ugly quick
+    if (chart->percent)
+      sprintf(vstr, "%i%%", (int)((slice->value / (chart->maxv - chart->minv))*100.0));
+    else 
+      sprintf(vstr, "%i", (int)slice->value);
+
     slice->label = malloc(strlen(vstr));
     strcpy(slice->label, vstr);
     slice->layout = pango_cairo_create_layout (cr);
@@ -294,6 +297,9 @@ void shoes_plot_draw_pie_ticks(cairo_t *cr, shoes_plot *plot)
     pie_slice_t *slice = &chart->slices[i];
     double angle = shoes_plot_pie_getNormalisedAngle(slice);
     shoes_plot_pie_tick_position(cr, chart, slice, angle);
+    cairo_move_to(cr, slice->lx, slice->ly);
+    // set color?
+    pango_cairo_show_layout(cr, slice->layout);
   }
 }
 
