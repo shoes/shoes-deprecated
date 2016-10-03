@@ -156,6 +156,19 @@ VALUE shoes_plot_pie_color(int ser)
     return color_wrapped;
 }
 
+// just draws a box
+void shoes_plot_pie_legend_box(cairo_t *cr, shoes_plot *self_t, 
+  int t, int l, int b, int r)
+{
+  shoes_plot_set_cairo_default(cr, self_t);
+  cairo_move_to(cr, l, t);
+  cairo_line_to(cr, r, t);  // across top
+  cairo_line_to(cr, r, b);  // down right side
+  cairo_line_to(cr, l, b);  // across bottom
+  cairo_line_to(cr, l, t);  // up left
+  cairo_stroke(cr);
+}
+
 void shoes_plot_draw_pie_legend(cairo_t *cr, shoes_plot *self_t) {
   /* draw xobs values (string) in the legend area in color, on the right 
    * hand side. need to compute the max height and width of all strings
@@ -184,9 +197,12 @@ void shoes_plot_draw_pie_legend(cairo_t *cr, shoes_plot *self_t) {
     boxw = max(boxw, logical.width);
   }
   int box_x = (self_t->place.iw - boxw) - 5; // everything we can get on the right
-  int box_y = self_t->graph_y + 2;
-  //printf("legend box x: %i, y: %i, h: %i, w: %i\n", box_x, box_y, boxh, boxw);
-  // Draw using layout
+  int box_y = self_t->graph_y + 1;
+  int box_t = box_y - 2;
+  int box_l = box_x - 3;
+  int box_r = self_t->place.iw - 1;
+  int box_b = boxh + box_y + 1;
+  // Draw strings using layout
   for (i = 0; i < numstrs; i++) {
     cairo_move_to(cr, box_x, box_y);
     shoes_color *color;
@@ -197,6 +213,11 @@ void shoes_plot_draw_pie_legend(cairo_t *cr, shoes_plot *self_t) {
     pango_cairo_show_layout(cr, layouts[i]);
     box_y += strh[i];
     g_object_unref(layouts[i]);
+  }
+  // Draw a box around the legend (auto grid repurpose?)
+  if (self_t->auto_grid) {
+    //printf("legend box l: %i, t: %i, b: %i, r: %i\n", box_l, box_t, box_b, box_r);
+    shoes_plot_pie_legend_box(cr, self_t, box_t, box_l, box_b, box_r);
   }
 }
 
@@ -282,7 +303,7 @@ void shoes_plot_draw_pie_ticks(cairo_t *cr, shoes_plot *plot)
     slice->label = malloc(strlen(vstr));
     strcpy(slice->label, vstr);
     slice->layout = pango_cairo_create_layout (cr);
-    pango_layout_set_font_description (slice->layout, plot->label_pfd);
+    pango_layout_set_font_description (slice->layout, plot->legend_pfd);
     pango_layout_set_text (slice->layout, slice->label, -1);
     pango_layout_get_pixel_extents (slice->layout, NULL, &logical);
     slice->lw = logical.width;
@@ -300,6 +321,8 @@ void shoes_plot_draw_pie_ticks(cairo_t *cr, shoes_plot *plot)
     cairo_move_to(cr, slice->lx, slice->ly);
     // set color?
     pango_cairo_show_layout(cr, slice->layout);
+    free(slice->label);
+    g_object_unref(slice->layout);
   }
 }
 
