@@ -20,10 +20,10 @@ Shoes.app width: 620, height: 480 do
       end
     end
     @grf.add num_obs: @values1.size, values: @values1, xobs: @xobs,
-      name: "Year 1", minv: 0, maxv: 225, color: "dodgerblue",
+      name: "Year 1", minv: 0, maxv: 200, color: "dodgerblue",
       nubs: "dot", strokewidth: 1
     #@grf.add num_obs: @values2.size, values: @values2, xobs: @xobs,
-    #  name: "Year 2", minv: 0, maxv: 225, color: "coral",
+    #  name: "Year 2", minv: 0, maxv: 200, color: "coral",
     #  nubs: "dot", strokewidth: 1
   end
 end

@@ -347,7 +347,7 @@ typedef struct {
   VALUE title;  
   VALUE legend; 
   VALUE caption;
-  void *pie_things; 
+  void *c_things; 
   int x_ticks;   // number of x_axis (which means a vertical grid line draw)
   int y_ticks;   // number of (left side) y axis horizontial grid lines)
   char  *fontname; // not a Shoes name, cairo "toy" name - might be the same

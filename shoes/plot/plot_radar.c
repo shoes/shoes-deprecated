@@ -1,12 +1,12 @@
 // radar chart
 // TODO: cloned (lexical) from plot_pie.c - 
-// uses pie_chart_t and pie_slice_t for now.
-much work is needed
+// uses radar_chart_t and radar_slice_t for now.
+
 #include "shoes/plot/plot.h"
 
 
 /* borrows heavily from this python code
- * https://bitbucket.org/lgs/pycha/src/e3e270a0e7ae4896052d4cc34fe7f1e532ece914/pycha/pie.py?at=default&fileviewer=file-view-default
+ * https://bitbucket.org/lgs/pycha/src/
  * because its kind of Ruby/Shoes friendly and short-ish.
 */
 // Forward declares in this file
@@ -15,33 +15,33 @@ VALUE shoes_plot_radar_color(int);
 // called when the data series is added to the chart.
 // Trying very hard to not pollute Shoes C name space and h files with plot stuff
 void shoes_plot_radar_init(shoes_plot *plot) {
-  pie_chart_t *piechart = malloc(sizeof(pie_chart_t));
-  plot->pie_things = (void *)piechart;
+  radar_chart_t *rdrchart = malloc(sizeof(radar_chart_t));
+  plot->c_things = (void *)rdrchart;
   VALUE rbsz = rb_ary_entry(plot->sizes, 0);
   int numobs = NUM2INT(rbsz);
-  piechart->count = numobs;
-  pie_slice_t *slices = (pie_slice_t *)malloc(sizeof(pie_slice_t) * numobs);
-  piechart->slices = slices;
+  rdrchart->count = numobs;
+  radar_slice_t *slices = (radar_slice_t *)malloc(sizeof(radar_slice_t) * numobs);
+  rdrchart->slices = slices;
   int i;
-  piechart->maxv = 0.0; 
-  piechart->minv = 100000000.0; // TODO: use a max double constant
+  rdrchart->maxv = 0.0; 
+  rdrchart->minv = 100000000.0; // TODO: use a max double constant
   VALUE rbvals = rb_ary_entry(plot->values, 0);
   // sum the values
   for (i = 0; i <numobs; i++) {
-    pie_slice_t *slice = &slices[i];
+    radar_slice_t *slice = &slices[i];
     VALUE rbv = rb_ary_entry(rbvals, i);
     double v = NUM2DBL(rbv);
     slice->value = v;
-    if (v < piechart->minv) piechart->minv = v;
-    piechart->maxv += v;
+    if (v < rdrchart->minv) rdrchart->minv = v;
+    rdrchart->maxv += v;
   }
   double fraction = 0.0;
   double angle = 0.0;
   for (i = 0; i < numobs; i++) {
-    pie_slice_t *slice = &slices[i];
+    radar_slice_t *slice = &slices[i];
     angle += fraction;
     double v = slice->value;
-    fraction = v / piechart->maxv;
+    fraction = v / rdrchart->maxv;
     slice->startAngle = 2 * angle * SHOES_PI;
     slice->endAngle = 2 * (angle + fraction) * SHOES_PI;
     VALUE wedge_color = shoes_plot_radar_color(i);
@@ -51,10 +51,10 @@ void shoes_plot_radar_init(shoes_plot *plot) {
 
 // called when it needs to go away
 void shoes_plot_radar_dealloc(shoes_plot *plot) {
-  if (plot->pie_things) {
-   pie_chart_t *piechart = (pie_chart_t *) plot->pie_things;
-   free(piechart->slices);
-   free(piechart);
+  if (plot->c_things) {
+   radar_chart_t *rdrchart = (radar_chart_t *) plot->c_things;
+   free(rdrchart->slices);
+   free(rdrchart);
   }
 }
 
@@ -69,7 +69,7 @@ void shoes_plot_draw_radar_chart(cairo_t *cr, shoes_plot *plot)
   right = plot->graph_w; bottom = plot->graph_h; 
   width = right - left;
   height = bottom - top; 
-  pie_chart_t *chart = (pie_chart_t *) plot->pie_things;
+  radar_chart_t *chart = (radar_chart_t *) plot->c_things;
 
   chart->centerx = left + roundl(width * 0.5);
   chart->centery = top + roundl(height * 0.5);
@@ -77,28 +77,14 @@ void shoes_plot_draw_radar_chart(cairo_t *cr, shoes_plot *plot)
   chart->top = top; chart->left = left; chart->bottom = bottom;
   chart->right = right; chart->width = width; chart->height = height;
   chart->percent = plot->missing; // Bait `n switch
-  
-#if 0 // OR attr(drop_shadow) 
-  // draw something circular which might be the drop shadow of the pie.
-  // Which we probably don't need since Shoes doesn't have a drop shadow option
-  cairo_save(cr);
-  cairo_set_source_rgba(cr, 0, 0, 0, 0.15);
-  cairo_new_path(cr);
-  cairo_move_to(cr, centerx, centery);
-  cairo_arc(cr, centerx + 1, centery + 2, chart->radius + 1, 0, SHOES_PIM2);
-  cairo_line_to(cr, centerx, centery);
-  cairo_close_path(cr);
-  cairo_fill(cr);
-  cairo_restore(cr);
-#endif    
 
   for (i = 0; i < chart->count; i++) {
-    pie_slice_t *slice = &chart->slices[i];
+    radar_slice_t *slice = &chart->slices[i];
     if (fabs(slice->startAngle - slice->endAngle) > 0.001) { // bigEnough?
       shoes_color *color = slice->color;
       cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0, 
           color->b / 255.0, color->a / 255.0);
-      //printf("pie color for %i: r:%i g:%i b:%i a:%i\n", i, color->r, color->g,
+      //printf("rdr color for %i: r:%i g:%i b:%i a:%i\n", i, color->r, color->g,
       //    color->b, color->a);
       cairo_new_path(cr);
       cairo_move_to(cr, chart->centerx, chart->centery);
@@ -230,7 +216,7 @@ void shoes_plot_draw_radar_legend(cairo_t *cr, shoes_plot *self_t) {
  * we actually have a cairo_t that is real and the slices are OK. 
  * We depend on that. 
 */
-double shoes_plot_radar_getNormalisedAngle(pie_slice_t *self) {
+double shoes_plot_radar_getNormalisedAngle(radar_slice_t *self) {
   double normalisedAngle = (self->startAngle + self->endAngle) / 2;
   if (normalisedAngle > SHOES_PI * 2)
     normalisedAngle -= SHOES_PI * 2;
@@ -240,7 +226,7 @@ double shoes_plot_radar_getNormalisedAngle(pie_slice_t *self) {
   return normalisedAngle;
 }
 
-shoes_plot_radar_tick_position(cairo_t *cr, pie_chart_t * chart, pie_slice_t *slice, double angle)
+shoes_plot_radar_tick_position(cairo_t *cr, radar_chart_t * chart, radar_slice_t *slice, double angle)
 {
   int text_height = slice->lh;
   int text_width = slice->lw;
@@ -291,11 +277,11 @@ void shoes_plot_draw_radar_ticks(cairo_t *cr, shoes_plot *plot)
 {
   if (plot->seriescnt != 1) 
     return; //  just in case
-  pie_chart_t *chart = (pie_chart_t *) plot->pie_things;
+  radar_chart_t *chart = (radar_chart_t *) plot->c_things;
   int i;
   PangoRectangle logical;
   for (i = 0; i < chart->count; i++) {
-    pie_slice_t *slice = &chart->slices[i];
+    radar_slice_t *slice = &chart->slices[i];
     char vstr[10];
     if (chart->percent)
       sprintf(vstr, "%i%%", (int)((slice->value / (chart->maxv - chart->minv))*100.0));
@@ -317,7 +303,7 @@ void shoes_plot_draw_radar_ticks(cairo_t *cr, shoes_plot *plot)
   
   // pass through the slices again, drawing, free the string, unref the layouts ?
   for (i = 0; i < chart->count; i++) {
-    pie_slice_t *slice = &chart->slices[i];
+    radar_slice_t *slice = &chart->slices[i];
     double angle = shoes_plot_radar_getNormalisedAngle(slice);
     shoes_plot_radar_tick_position(cr, chart, slice, angle);
     cairo_move_to(cr, slice->lx, slice->ly);
@@ -335,8 +321,6 @@ void shoes_plot_radar_draw(cairo_t *cr, shoes_place *place, shoes_plot *self_t) 
   shoes_plot_draw_fill(cr, self_t);
   shoes_plot_draw_title(cr, self_t);
   shoes_plot_draw_caption(cr, self_t);
-  //if (self_t->boundbox) 
-  //  shoes_plot_draw_boundbox(cr, self_t); // not helpful for radar charts. IMHO.
   self_t->graph_h = self_t->place.h - (self_t->title_h + self_t->caption_h);
   self_t->graph_y = self_t->title_h + 3;
   self_t->yaxis_offset = 20; // TODO:  run TOTO! run!

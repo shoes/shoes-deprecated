@@ -14,7 +14,7 @@ VALUE shoes_plot_pie_color(int);
 // Trying very hard to not pollute Shoes C name space and h files with plot stuff
 void shoes_plot_pie_init(shoes_plot *plot) {
   pie_chart_t *piechart = malloc(sizeof(pie_chart_t));
-  plot->pie_things = (void *)piechart;
+  plot->c_things = (void *)piechart;
   VALUE rbsz = rb_ary_entry(plot->sizes, 0);
   int numobs = NUM2INT(rbsz);
   piechart->count = numobs;
@@ -49,8 +49,8 @@ void shoes_plot_pie_init(shoes_plot *plot) {
 
 // called when it needs to go away
 void shoes_plot_pie_dealloc(shoes_plot *plot) {
-  if (plot->pie_things) {
-   pie_chart_t *piechart = (pie_chart_t *) plot->pie_things;
+  if (plot->c_things) {
+   pie_chart_t *piechart = (pie_chart_t *) plot->c_things;
    free(piechart->slices);
    free(piechart);
   }
@@ -67,7 +67,7 @@ void shoes_plot_draw_pie_chart(cairo_t *cr, shoes_plot *plot)
   right = plot->graph_w; bottom = plot->graph_h; 
   width = right - left;
   height = bottom - top; 
-  pie_chart_t *chart = (pie_chart_t *) plot->pie_things;
+  pie_chart_t *chart = (pie_chart_t *) plot->c_things;
 
   chart->centerx = left + roundl(width * 0.5);
   chart->centery = top + roundl(height * 0.5);
@@ -289,7 +289,7 @@ void shoes_plot_draw_pie_ticks(cairo_t *cr, shoes_plot *plot)
 {
   if (plot->seriescnt != 1) 
     return; //  just in case
-  pie_chart_t *chart = (pie_chart_t *) plot->pie_things;
+  pie_chart_t *chart = (pie_chart_t *) plot->c_things;
   int i;
   PangoRectangle logical;
   for (i = 0; i < chart->count; i++) {

@@ -44,8 +44,16 @@ shoes_plot_free(shoes_plot *self_t)
   pango_font_description_free (self_t->legend_pfd);
   pango_font_description_free (self_t->label_pfd);
   shoes_transform_release(self_t->st);
-  if (self_t->pie_things)
-    shoes_plot_pie_dealloc(self_t);
+  if (self_t->c_things) {
+    switch (self_t-> chart_type) {
+      case PIE_CHART:
+        shoes_plot_pie_dealloc(self_t);
+        break;
+      case RADAR_CHART:
+        shoes_plot_radar_dealloc(self_t);
+        break;
+    }
+  }
   RUBY_CRITICAL(SHOE_FREE(self_t));
 }
 
@@ -74,7 +82,7 @@ shoes_plot_alloc(VALUE klass)
   plot->missing = MISSING_SKIP;
   plot->chart_type = LINE_CHART;
   plot->background = Qnil;
-  plot->pie_things = NULL;
+  plot->c_things = NULL;
   return obj;
 }
 
@@ -427,22 +435,11 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
     } else if (TYPE(rbnubs) == T_FALSE) {
         rbnubtype = INT2NUM(NUB_NONE);
     }
-#if 0
-    //  For C debugging 
-    int l = NUM2INT(rbsz);
-    double  min = NUM2DBL(rbmin);
-    double  max = NUM2DBL(rbmax);
-    char *shname = RSTRING_PTR(rbshname);
-    char *lgname = RSTRING_PTR(rblgname);
-    //printf("shoes_plot_add using hash: num_obs: %i range %f, %f, |%s|, |%s| \n",
-    //   l, min, max, shname, lgname); 
-#endif
   } else {
     rb_raise(rb_eArgError, "misssing something in plot.add \n");
   }
-  // pie chart type needs to pre-compute some geometery and store it (in plot.pie.c)
-
-
+  // radar & pie chart types need to pre-compute some geometery and store it
+  // in their own structs.
   rb_ary_store(self_t->sizes, i, rbsz);
   rb_ary_store(self_t->values, i, rbvals);
   rb_ary_store(self_t->xobs, i, rbobs);
