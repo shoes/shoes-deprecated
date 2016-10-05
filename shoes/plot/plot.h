@@ -19,7 +19,7 @@
  * color or line width and the like should call shoes_plot_set_cairo_default()
  * in plot_util.c to restore the default Shoes plot drawing state.
  * 
- * Only plot_*.c includes plot.h so the enums don't blead into Shoes.
+ * Only plot_*.c includes plot.h so the enums don't bleed into Shoes.
 */
 
 enum {
@@ -45,7 +45,8 @@ enum  {
   TIMESERIES_CHART,
   COLUMN_CHART,
   SCATTER_CHART,
-  PIE_CHART
+  PIE_CHART,
+  RADAR_CHART
 };
 
 enum {
@@ -81,8 +82,6 @@ typedef struct {
   double minv;
   pie_slice_t *slices; // treated as an array because it is.
 } pie_chart_t;
-
-
 
 typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
 

@@ -140,8 +140,11 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
         self_t->chart_type = SCATTER_CHART;
       else if (! strcmp(str, "pie"))
         self_t->chart_type = PIE_CHART;
+      else if (! strcmp(str, "radar"))
+        self_t->chart_type = RADAR_CHART;
+        //self_t->chart_type = PIE_CHART;
       else 
-       err = 1;
+        err = 1;
     } else err = 1;
     if (err)    
       rb_raise(rb_eArgError, "Plot: bad chart type");
@@ -304,6 +307,8 @@ void shoes_plot_draw_everything(cairo_t *cr, shoes_place *place, shoes_plot *sel
         break;
       case PIE_CHART:
         shoes_plot_pie_draw(cr, place, self_t);
+      case RADAR_CHART:
+        shoes_plot_radar_draw(cr, place, self_t);
     }
     // drawing finished
     shoes_undo_transformation(cr, self_t->st, place, 0); // does cairo_restore(cr)
@@ -453,6 +458,9 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
   self_t->seriescnt++;
   if (self_t->chart_type == PIE_CHART) 
     shoes_plot_pie_init(self_t);
+  else if (self_t->chart_type == RADAR_CHART) 
+    shoes_plot_radar_init(self_t);
+    
   shoes_canvas_repaint_all(self_t->parent);
   return self;
 }
