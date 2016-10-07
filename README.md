@@ -16,7 +16,7 @@ There is a Shoes 4 under development. For historical reasons (the
 color of the icon in Raisins), it's also called Red Shoes. Red Shoes is written
 in C (and some Objective C on the Mac). Shoes 4 is written in Java. 
 
-(Federales)[https://github.com/Shoes3/shoes3/blob/master/README.federales] 
+[Federales](https://github.com/Shoes3/shoes3/blob/master/README.federales)
 was a maintenance release to keep Red Shoes current with modern 
 Linux, OSX, and Windows distributions and newer versions of Ruby and ruby gems.
 Federales didn't really add any new features to Shoes except that it works now.
@@ -31,9 +31,9 @@ compatible with Shoes 4.
 * Video widgets work again. Dependent on all kinds of thing Shoes can't
   control.
   
-Shoes 3.3.2 - Not released yet, but (beta's exist)[http://walkabout.mvmanila.com/public/shoes/]
+Shoes 3.3.2 - Not released yet, but [beta's exist](http://walkabout.mvmanila.com/public/shoes/)
 
-Remember, no one is happy if the Shoes don't fit so (report your bug.)[https://github.com/Shoes3/shoes3/issues]
+Remember, no one is happy if the Shoes don't fit so [report your bug.](https://github.com/Shoes3/shoes3/issues)
   
   
 
