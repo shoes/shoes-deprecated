@@ -16,7 +16,7 @@ Shoes.app width: 620, height: 480 do
       flow do
         @grf = plot widget_width, widget_height, title: "Advertising", caption: 
           "Budget Spend" , font: "Helvetica", auto_grid: true,
-          missing: "skip", background: "white", chart: "radar", pie_percent: false
+          missing: "skip", background: "white", chart: "radar"
       end
     end
     @grf.add num_obs: @values1.size, values: @values1, xobs: @xobs,

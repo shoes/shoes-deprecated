@@ -8,10 +8,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-This is Shoes 3.3 (Walkabout). Download binaries for your platfrom from
-<http://shoesrb.com>
-
-Earlier releases were Policeman (3.0 and 3.1)
+This is Shoes 3.2 (Federales). Earlier releases were Policeman (3.0 and 3.1)
 and Raisins. There is a Shoes 4 under development. For historical reasons (the 
 color of the icon in Raisins), it's also called Red Shoes. Red Shoes is written
 in C (and some Objective C on the Mac). Shoes 4 is written in Java. 

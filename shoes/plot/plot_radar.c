@@ -1,7 +1,9 @@
-// radar chart
-// TODO: cloned (lexical) from plot_pie.c - 
-// uses radar_chart_t and radar_slice_t for now.
-
+/* 
+ * radar chart
+ * 
+ * uses radar_chart_t and radar_slice_t for now. MAY NOT BE NEEDED
+ * It's more like a bar chart than a pie chart.
+*/
 #include "shoes/plot/plot.h"
 
 
@@ -12,7 +14,7 @@
 // Forward declares in this file
 VALUE shoes_plot_radar_color(int);
 
-// called when the data series is added to the chart.
+// called when a data series is added to the chart.
 // Trying very hard to not pollute Shoes C name space and h files with plot stuff
 void shoes_plot_radar_init(shoes_plot *plot) {
   radar_chart_t *rdrchart = malloc(sizeof(radar_chart_t));
@@ -58,17 +60,19 @@ void shoes_plot_radar_dealloc(shoes_plot *plot) {
   }
 }
 
+// draws the lines/nubs connecting the data points of each series
 void shoes_plot_draw_radar_chart(cairo_t *cr, shoes_plot *plot)
 {
   // first series (x) controls graphical settings. 
-  if (plot->seriescnt !=  1)
-    return; // we can only use one series 
+  if (plot->seriescnt <= 0)
+    return; 
   int i;
   int top,left,bottom,right, height, width;
   left = plot->graph_x; top = plot->graph_y;
   right = plot->graph_w; bottom = plot->graph_h; 
   width = right - left;
   height = bottom - top; 
+  /*
   radar_chart_t *chart = (radar_chart_t *) plot->c_things;
 
   chart->centerx = left + roundl(width * 0.5);
@@ -76,22 +80,9 @@ void shoes_plot_draw_radar_chart(cairo_t *cr, shoes_plot *plot)
   chart->radius = min(width / 2.0, height / 2.0);
   chart->top = top; chart->left = left; chart->bottom = bottom;
   chart->right = right; chart->width = width; chart->height = height;
-  chart->percent = plot->missing; // Bait `n switch
-
-  for (i = 0; i < chart->count; i++) {
-    radar_slice_t *slice = &chart->slices[i];
-    if (fabs(slice->startAngle - slice->endAngle) > 0.001) { // bigEnough?
-      shoes_color *color = slice->color;
-      cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0, 
-          color->b / 255.0, color->a / 255.0);
-      //printf("rdr color for %i: r:%i g:%i b:%i a:%i\n", i, color->r, color->g,
-      //    color->b, color->a);
-      cairo_new_path(cr);
-      cairo_move_to(cr, chart->centerx, chart->centery);
-      cairo_arc(cr, chart->centerx, chart->centery, chart->radius, -(slice->endAngle), -(slice->startAngle));
-      cairo_close_path(cr);
-      cairo_fill(cr);
-    }
+  printf("radius %4.2f\n", chart->radius);
+  */
+  for (i = 0; i < plot->seriescnt; i++) {
   }
   shoes_plot_set_cairo_default(cr, plot);
 }
@@ -328,7 +319,7 @@ void shoes_plot_radar_draw(cairo_t *cr, shoes_place *place, shoes_plot *self_t) 
   self_t->graph_x = self_t->yaxis_offset;
   if (self_t->seriescnt) {
     shoes_plot_draw_radar_chart(cr, self_t);
-    shoes_plot_draw_radar_ticks(cr, self_t);
-    shoes_plot_draw_radar_legend(cr, self_t);
+    // shoes_plot_draw_radar_ticks(cr, self_t);
+    shoes_plot_draw_legend(cr, self_t);
   }
 }
