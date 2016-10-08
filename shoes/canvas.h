@@ -339,7 +339,7 @@ typedef struct {
   VALUE names;  
   VALUE long_names; // for y axis display?? Someday
   VALUE xobs; 
-  VALUE sizes;
+  //VALUE sizes;
   VALUE strokes;
   VALUE nubs;
   VALUE color;

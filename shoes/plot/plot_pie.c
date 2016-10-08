@@ -15,8 +15,9 @@ VALUE shoes_plot_pie_color(int);
 void shoes_plot_pie_init(shoes_plot *plot) {
   pie_chart_t *piechart = malloc(sizeof(pie_chart_t));
   plot->c_things = (void *)piechart;
-  VALUE rbsz = rb_ary_entry(plot->sizes, 0);
-  int numobs = NUM2INT(rbsz);
+  //VALUE rbsz = rb_ary_entry(plot->sizes, 0);
+  //int numobs = NUM2INT(rbsz);
+  int numobs = RARRAY_LEN(rb_ary_entry(plot->values, 0));
   piechart->count = numobs;
   pie_slice_t *slices = (pie_slice_t *)malloc(sizeof(pie_slice_t) * numobs);
   piechart->slices = slices;
@@ -177,9 +178,10 @@ void shoes_plot_draw_pie_legend(cairo_t *cr, shoes_plot *self_t) {
   */
   int i; 
   if (self_t->seriescnt != 1) return;
-  VALUE rbsz = rb_ary_entry(self_t->sizes, 0);
+  //VALUE rbsz = rb_ary_entry(self_t->sizes, 0);
+  //int numstrs = NUM2INT(rbsz);
+  int numstrs = RARRAY_LEN(rb_ary_entry(self_t->values, 0));
   VALUE rbobs = rb_ary_entry(self_t->xobs, 0);
-  int numstrs = NUM2INT(rbsz);
   PangoLayout *layouts[numstrs];
   char *strary[numstrs];
   char strh[numstrs];

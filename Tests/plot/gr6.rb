@@ -19,7 +19,7 @@ Shoes.app width: 620, height: 480 do
           missing: "skip", background: "white", chart: "radar"
       end
     end
-    @grf.add num_obs: @values1.size, values: @values1, xobs: @xobs,
+    @grf.add values: @values1, xobs: @xobs,
       name: "Year 1", minv: 0, maxv: 200, color: "dodgerblue",
       nubs: "dot", strokewidth: 1
     #@grf.add num_obs: @values2.size, values: @values2, xobs: @xobs,

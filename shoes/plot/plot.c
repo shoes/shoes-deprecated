@@ -25,7 +25,7 @@ shoes_plot_mark(shoes_plot *self_t)
   rb_gc_mark_maybe(self_t->minvs);
   rb_gc_mark_maybe(self_t->maxvs);
   rb_gc_mark_maybe(self_t->names);
-  rb_gc_mark_maybe(self_t->sizes);
+  //rb_gc_mark_maybe(self_t->sizes);
   rb_gc_mark_maybe(self_t->long_names);
   rb_gc_mark_maybe(self_t->strokes);
   rb_gc_mark_maybe(self_t->nubs);
@@ -69,7 +69,7 @@ shoes_plot_alloc(VALUE klass)
   plot->minvs = rb_ary_new();
   plot->maxvs = rb_ary_new();
   plot->names = rb_ary_new();
-  plot->sizes = rb_ary_new();
+  //plot->sizes = rb_ary_new();
   plot->long_names = rb_ary_new();
   plot->strokes = rb_ary_new();
   plot->nubs = rb_ary_new();
@@ -315,6 +315,7 @@ void shoes_plot_draw_everything(cairo_t *cr, shoes_place *place, shoes_plot *sel
         break;
       case PIE_CHART:
         shoes_plot_pie_draw(cr, place, self_t);
+        break;
       case RADAR_CHART:
         shoes_plot_radar_draw(cr, place, self_t);
     }
@@ -336,7 +337,7 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
   }
   if (TYPE(newseries) == T_HASH) {
 
-    rbsz = shoes_hash_get(newseries, rb_intern("num_obs"));
+    //rbsz = shoes_hash_get(newseries, rb_intern("num_obs"));
     rbvals = shoes_hash_get(newseries, rb_intern("values"));
     rbobs = shoes_hash_get(newseries, rb_intern("xobs"));
     rbmin = shoes_hash_get(newseries, rb_intern("minv"));
@@ -350,6 +351,9 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
     if ( NIL_P(rbvals) || TYPE(rbvals) != T_ARRAY ) {
       rb_raise(rb_eArgError, "plot.add: Missing an Array of values");
     }
+    int valsz = RARRAY_LEN(rbvals);
+    // printf("values rarray_len: %d\n", valsz);
+    rbsz = INT2NUM(valsz);
     if (NIL_P(rbmin) || NIL_P(rbmax)) {
       rb_raise(rb_eArgError, "plot.add: Missing minv: or maxv: option");
     }
@@ -440,7 +444,7 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
   }
   // radar & pie chart types need to pre-compute some geometery and store it
   // in their own structs.
-  rb_ary_store(self_t->sizes, i, rbsz);
+  //rb_ary_store(self_t->sizes, i, rbsz);
   rb_ary_store(self_t->values, i, rbvals);
   rb_ary_store(self_t->xobs, i, rbobs);
   rb_ary_store(self_t->maxvs, i, rbmax);
@@ -473,7 +477,7 @@ VALUE shoes_plot_delete(VALUE self, VALUE series)
     rb_raise(rb_eArgError, "plot.delete arg is out of range");
   if (self_t->chart_type == PIE_CHART)
     shoes_plot_pie_dealloc(self_t);
-  rb_ary_delete_at(self_t->sizes, idx);
+  //rb_ary_delete_at(self_t->sizes, idx);
   rb_ary_delete_at(self_t->values, idx);
   rb_ary_delete_at(self_t->xobs, idx);
   rb_ary_delete_at(self_t->maxvs, idx);
@@ -502,11 +506,6 @@ VALUE shoes_plot_redraw_to(VALUE self, VALUE to_here)
     rb_raise(rb_eArgError, "plot.redraw_to arg is not an integer");
   int idx = NUM2INT(to_here);
   self_t->end_idx = idx;
-  int i;
-  
-  for (i = 0; i < self_t->seriescnt; i++) {
-    rb_ary_store(self_t->sizes, i, INT2NUM(idx));
-  }
 
   shoes_canvas_repaint_all(self_t->parent);
   //printf("shoes_plot_redraw_to(%i) called\n", idx);
@@ -540,8 +539,9 @@ VALUE shoes_plot_zoom(VALUE self, VALUE beg, VALUE end)
     return Qnil;
   if (self_t->seriescnt < 1)
     return Qnil;
-  VALUE rbsz = rb_ary_entry(self_t->sizes, 0);
-  int maxe = NUM2INT(rbsz);
+  //VALUE rbsz = rb_ary_entry(self_t->sizes, 0);
+  //int maxe = NUM2INT(rbsz);
+  int maxe = RARRAY_LEN(rb_ary_entry(self_t->values, 0));
   int b = NUM2INT(beg);
   int e = NUM2INT(end);
   int nb = max(0, b);

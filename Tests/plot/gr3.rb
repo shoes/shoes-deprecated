@@ -26,17 +26,17 @@ Shoes.app width: 800, height: 500 do
       
       end
     end
-    @grf.add num_obs: @values1.size, values: @values1, xobs: @x_axis1,
+    @grf.add values: @values1, xobs: @x_axis1,
       name: "foobar", minv: 6, maxv: 26 , long_name: "foobar Yy", color: "dodgerblue",
        nubs: true
-    @grf.add num_obs: @values2.size, values: @values2, xobs: @x_axis2,
+    @grf.add values: @values2, xobs: @x_axis2,
        name: "Tab", minv: @values2.min, maxv: @values2.max, long_name: "BarTab", color: "coral",
        nubs: true, strokewidth: 2
 
-    @grf2.add num_obs: @values1.size, values: @values1, xobs: @x_axis1,
+    @grf2.add values: @values1, xobs: @x_axis1,
        name: "Bar", minv: 0, maxv:  30, long_name: "foobar Yy", color: "crimson",
        nubs: true, strokewidth: 12
-    @grf2.add num_obs: @values2.size, values: @values2, xobs: @x_axis2,
+    @grf2.add values: @values2, xobs: @x_axis2,
        name: "Tab", minv: 50, maxv: 230, long_name: "BarTab", color: "green",
        nubs: true, strokewidth: 6
   end

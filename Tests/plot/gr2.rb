@@ -25,10 +25,10 @@ Shoes.app width: 800, height: 500 do
       
       end
     end
-    @grf.add num_obs: @values1.size, values: @values1, xobs: @x_axis1,
+    @grf.add values: @values1, xobs: @x_axis1,
        name: "foobar", minv: 6, maxv: 26 , long_name: "foobar Yy", color: "dodgerblue",
        nubs: true
-    @grf2.add num_obs: @values2.size, values: @values2, xobs: @x_axis2,
+    @grf2.add values: @values2, xobs: @x_axis2,
        name: "Bar", minv: 50, maxv:  250, long_name: "BarBaz", color: "dodgerblue",
        nubs: true
   end

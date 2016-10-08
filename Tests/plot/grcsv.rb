@@ -177,7 +177,7 @@ Shoes.app width: 620, height: 610 do
               newidx = @series.size - 1
               #puts "newidx = #{newidx}"
               ser = @series[newidx]
-              @grf.add  num_obs: ser.size, values: ser.values, maxv: ser.max * 1.01,
+              @grf.add values: ser.values, maxv: ser.max * 1.01,
                 minv: ser.min, name: ser.name, xobs: ser.obvs, nubs: :true
               @zoom_end = ser.size
           end

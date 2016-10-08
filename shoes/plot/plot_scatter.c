@@ -9,7 +9,7 @@ void shoes_plot_draw_scatter_pts(cairo_t *cr, shoes_plot *plot)
 {
   // first series (x) controls graphical settings. 
   if (plot->seriescnt !=  2)
-    return; // we can only use two series 
+    return; // we have only two series 
   int i;
   int top,left,bottom,right;
   left = plot->graph_x; top = plot->graph_y;
@@ -36,8 +36,9 @@ void shoes_plot_draw_scatter_pts(cairo_t *cr, shoes_plot *plot)
   // scale x and y to 
   //printf("scale x to %f, %f\n", xmin, xmax);
   //printf("scale y to %f, %f\n", ymin, ymax);
-  VALUE rbobs = rb_ary_entry(plot->sizes, 0);
-  int obvs = NUM2INT(rbobs);
+  //VALUE rbobs = rb_ary_entry(plot->sizes, 0);
+  //int obvs = NUM2INT(rbobs);
+  int obvs = RARRAY_LEN(rbxary);
   int height = bottom - top;
   int width = right - left; 
   

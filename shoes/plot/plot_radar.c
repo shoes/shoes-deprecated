@@ -19,8 +19,9 @@ VALUE shoes_plot_radar_color(int);
 void shoes_plot_radar_init(shoes_plot *plot) {
   radar_chart_t *rdrchart = malloc(sizeof(radar_chart_t));
   plot->c_things = (void *)rdrchart;
-  VALUE rbsz = rb_ary_entry(plot->sizes, 0);
-  int numobs = NUM2INT(rbsz);
+  //VALUE rbsz = rb_ary_entry(plot->sizes, 0);
+  //int numobs = NUM2INT(rbsz);
+  int numobs = RARRAY_LEN(rb_ary_entry(plot->values, 0));
   rdrchart->count = numobs;
   radar_slice_t *slices = (radar_slice_t *)malloc(sizeof(radar_slice_t) * numobs);
   rdrchart->slices = slices;
@@ -82,7 +83,9 @@ void shoes_plot_draw_radar_chart(cairo_t *cr, shoes_plot *plot)
   chart->right = right; chart->width = width; chart->height = height;
   printf("radius %4.2f\n", chart->radius);
   */
+  
   for (i = 0; i < plot->seriescnt; i++) {
+
   }
   shoes_plot_set_cairo_default(cr, plot);
 }
@@ -146,58 +149,6 @@ void shoes_plot_radar_legend_box(cairo_t *cr, shoes_plot *self_t,
   cairo_line_to(cr, l, b);  // across bottom
   cairo_line_to(cr, l, t);  // up left
   cairo_stroke(cr);
-}
-
-void shoes_plot_draw_radar_legend(cairo_t *cr, shoes_plot *self_t) {
-  /* draw xobs values (string) in the legend area in color, on the right 
-   * hand side. need to compute the max height and width of all strings
-   * attempt to get the most data on the chart.  Ugly. TODO: it would
-   * be nice to have shoes class/struct. 
-  */
-  int i; 
-  if (self_t->seriescnt != 1) return;
-  VALUE rbsz = rb_ary_entry(self_t->sizes, 0);
-  VALUE rbobs = rb_ary_entry(self_t->xobs, 0);
-  int numstrs = NUM2INT(rbsz);
-  PangoLayout *layouts[numstrs];
-  char *strary[numstrs];
-  char strh[numstrs];
-  int boxh = 0, boxw = 0;
-  // compute layouts for each string. Don't forget to g_unref them!
-  for (i = 0; i < numstrs; i++) {
-    strary[i] = RSTRING_PTR(rb_ary_entry(rbobs, i));
-    layouts[i] = pango_cairo_create_layout (cr);
-    pango_layout_set_font_description (layouts[i], self_t->caption_pfd);
-    pango_layout_set_text (layouts[i], strary[i], -1);
-    PangoRectangle logical;
-    pango_layout_get_pixel_extents (layouts[i], NULL, &logical);
-    strh[i] = logical.height;
-    boxh += logical.height;
-    boxw = max(boxw, logical.width);
-  }
-  int box_x = (self_t->place.iw - boxw) - 5; // everything we can get on the right
-  int box_y = self_t->graph_y + 1;
-  int box_t = box_y - 2;
-  int box_l = box_x - 3;
-  int box_r = self_t->place.iw - 1;
-  int box_b = boxh + box_y + 1;
-  // Draw strings using layout
-  for (i = 0; i < numstrs; i++) {
-    cairo_move_to(cr, box_x, box_y);
-    shoes_color *color;
-    VALUE rbcolor = shoes_plot_radar_color(i);
-    Data_Get_Struct(rbcolor, shoes_color, color);
-    cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0,
-       color->b / 255.0, color->a / 255.0);
-    pango_cairo_show_layout(cr, layouts[i]);
-    box_y += strh[i];
-    g_object_unref(layouts[i]);
-  }
-  // Draw a box around the legend (auto grid repurpose?)
-  if (self_t->auto_grid) {
-    //printf("legend box l: %i, t: %i, b: %i, r: %i\n", box_l, box_t, box_b, box_r);
-    shoes_plot_radar_legend_box(cr, self_t, box_t, box_l, box_b, box_r);
-  }
 }
 
 /* 

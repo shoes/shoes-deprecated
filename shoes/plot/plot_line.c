@@ -15,7 +15,6 @@ void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot)
     VALUE rbvalues = rb_ary_entry(plot->values, i);
     VALUE rbmaxv = rb_ary_entry(plot->maxvs, i);
     VALUE rbminv = rb_ary_entry(plot->minvs, i);
-    VALUE rbsize = rb_ary_entry(plot->sizes, i);
     VALUE rbstroke = rb_ary_entry(plot->strokes, i);
     VALUE rbnubs = rb_ary_entry(plot->nubs, i);
     VALUE shcolor = rb_ary_entry(plot->color, i);

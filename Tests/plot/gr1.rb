@@ -16,17 +16,17 @@ Shoes.app width: 700, height: 610 do
       flow do
         para "This is mine!"
         @grf = plot widget_width, widget_height, title: "My Graph", caption: 
-          "Look at that! Booyah!!" , font: "Helvetica", auto_grid: true,
+          "Look at that! Booyah!!" , font: "Helvetica", auto_grid: true, chart: "timeseries",
           missing: "skip", click: proc {|btn, l, t| puts "click on #{@grf.near_x(l)}" }
           
       end
     end
-    @grf.add num_obs: @values1.size, values: @values1, xobs: @x_axis1,
+    @grf.add  values: @values1, xobs: @x_axis1,
        name: "foobar", minv: 6, maxv: 26 , long_name: "foobar Yy", color: "dodgerblue",
        nubs: true
     flow do 
       button "add #2" do
-        @grf.add num_obs: @values2.size, values: @values2,
+        @grf.add values: @values2,
           name: "bartab", minv: @values2.min, maxv: @values2.max , color: "coral",
           strokewidth: 3 #, nubs: true
       end
@@ -35,7 +35,7 @@ Shoes.app width: 700, height: 610 do
       end
       button "drop two right" do
         last = @grf.last
-        puts "chopping #{last} bye two"
+        #puts "chopping #{last} bye two"
         @grf.set_last last-2
       end
       button "drop one left" do

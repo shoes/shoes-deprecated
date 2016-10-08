@@ -18,10 +18,10 @@ Shoes.app width: 620, height: 480 do
           missing: "skip", background: "honeydew", chart: "scatter"
       end
     end
-    @grf.add num_obs: @values1.size, values: @values1, 
+    @grf.add  values: @values1, 
       name: "Wind", minv: 12.5, maxv: 35 , color: "dodgerblue",
       nubs: "dot", strokewidth: 1
-    @grf.add num_obs: @values2.size, values: @values2, name: "Clouds",
+    @grf.add  values: @values2, name: "Clouds",
       long_name: "Cloud Cover (percentage)", minv: 10, maxv: 50 , color: "black",
       nubs: "box", strokewidth: 1
 
