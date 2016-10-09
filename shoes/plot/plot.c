@@ -114,7 +114,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     auto_grid = shoes_hash_get(attr, rb_intern("auto_grid"));
     x_ticks = shoes_hash_get(attr, rb_intern("x_ticks"));
     y_ticks = shoes_hash_get(attr, rb_intern("y_ticks"));
-    missing = shoes_hash_get(attr, rb_intern("missing"));
+    missing = shoes_hash_get(attr, rb_intern("default"));
     chart_type = shoes_hash_get(attr, rb_intern("chart"));
     background = shoes_hash_get(attr, rb_intern("background"));
     boundbox = shoes_hash_get(attr, rb_intern("boundary_box"));
@@ -339,14 +339,14 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
 
     //rbsz = shoes_hash_get(newseries, rb_intern("num_obs"));
     rbvals = shoes_hash_get(newseries, rb_intern("values"));
-    rbobs = shoes_hash_get(newseries, rb_intern("xobs"));
-    rbmin = shoes_hash_get(newseries, rb_intern("minv"));
-    rbmax = shoes_hash_get(newseries, rb_intern("maxv"));
+    rbobs = shoes_hash_get(newseries, rb_intern("labels"));
+    rbmin = shoes_hash_get(newseries, rb_intern("min"));
+    rbmax = shoes_hash_get(newseries, rb_intern("max"));
     rbshname = shoes_hash_get(newseries, rb_intern("name"));
-    rblgname = shoes_hash_get(newseries, rb_intern("long_name"));
+    rblgname = shoes_hash_get(newseries, rb_intern("desc"));
     rbcolor  = shoes_hash_get(newseries, rb_intern("color"));
     rbstroke = shoes_hash_get(newseries, rb_intern("strokewidth"));
-    rbnubs = shoes_hash_get(newseries, rb_intern("nubs"));
+    rbnubs = shoes_hash_get(newseries, rb_intern("points"));
     
     if ( NIL_P(rbvals) || TYPE(rbvals) != T_ARRAY ) {
       rb_raise(rb_eArgError, "plot.add: Missing an Array of values");

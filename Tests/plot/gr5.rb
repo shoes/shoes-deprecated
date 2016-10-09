@@ -16,12 +16,12 @@ Shoes.app width: 620, height: 480 do
       flow do
         @grf = plot widget_width, widget_height, title: "Shoes Https downloads", caption: 
           "popularity " , font: "Helvetica", auto_grid: true,
-          missing: "skip", background: "white", chart: "pie", pie_percent: false
+          default: "skip", background: "white", chart: "pie", pie_percent: false
       end
     end
-    @grf.add values: @values1, xobs: @obs1,
-      name: "download", minv: @values1.min, maxv: @values1.max, color: "dodgerblue",
-      nubs: "dot", strokewidth: 1
+    @grf.add values: @values1, labels: @obs1,
+      name: "download", min: @values1.min, max: @values1.max #, color: "dodgerblue",
+      #points: "dot", strokewidth: 1
   end
 end
 

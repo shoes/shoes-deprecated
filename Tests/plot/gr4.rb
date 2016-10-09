@@ -15,15 +15,15 @@ Shoes.app width: 620, height: 480 do
       flow do
         @grf = plot widget_width, widget_height, title: "Weather Conditions", caption: 
           "Look at that! Booyah!!" , font: "Helvetica", auto_grid: true,
-          missing: "skip", background: "honeydew", chart: "scatter"
+          default: "skip", background: "honeydew", chart: "scatter"
       end
     end
     @grf.add  values: @values1, 
-      name: "Wind", minv: 12.5, maxv: 35 , color: "dodgerblue",
-      nubs: "dot", strokewidth: 1
+      name: "Wind", min: 12.5, max: 35 , color: "dodgerblue",
+      points: "dot", strokewidth: 1
     @grf.add  values: @values2, name: "Clouds",
-      long_name: "Cloud Cover (percentage)", minv: 10, maxv: 50 , color: "black",
-      nubs: "box", strokewidth: 1
+      long_name: "Cloud Cover (percentage)", min: 10, max: 50 , color: "black",
+      points: "box", strokewidth: 1
 
   end
 end

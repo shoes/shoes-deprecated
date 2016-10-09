@@ -17,18 +17,17 @@ Shoes.app width: 700, height: 610 do
         para "This is mine!"
         @grf = plot widget_width, widget_height, title: "My Graph", caption: 
           "Look at that! Booyah!!" , font: "Helvetica", auto_grid: true, chart: "timeseries",
-          missing: "skip", click: proc {|btn, l, t| puts "click on #{@grf.near_x(l)}" }
-          
+          default: "skip", click: proc {|btn, l, t| puts "click on #{@grf.near_x(l)}" }
       end
     end
-    @grf.add  values: @values1, xobs: @x_axis1,
-       name: "foobar", minv: 6, maxv: 26 , long_name: "foobar Yy", color: "dodgerblue",
-       nubs: true
+    @grf.add  values: @values1, labels: @x_axis1,
+       name: "foobar", min: 6, max: 26 , desc: "foobar Yy", color: "dodgerblue",
+       points: true
     flow do 
       button "add #2" do
         @grf.add values: @values2,
-          name: "bartab", minv: @values2.min, maxv: @values2.max , color: "coral",
-          strokewidth: 3 #, nubs: true
+          name: "bartab", min: @values2.min, max: @values2.max , color: "coral",
+          strokewidth: 3 #, points: true
       end
       button "delete #2" do
         @grf.delete(1)
@@ -40,9 +39,6 @@ Shoes.app width: 700, height: 610 do
       end
       button "drop one left" do
         @grf.set_first (@grf.first + 1)
-      end
-      button "to clipboard" do
-        @grf.save_as
       end
       button "save as" do
         file = ask_save_file

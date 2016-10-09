@@ -16,15 +16,15 @@ Shoes.app width: 620, height: 480 do
       flow do
         @grf = plot widget_width, widget_height, title: "Advertising", caption: 
           "Budget Spend" , font: "Helvetica", auto_grid: true,
-          missing: "skip", background: "white", chart: "radar"
+          default: "skip", background: "white", chart: "radar"
       end
     end
-    @grf.add values: @values1, xobs: @xobs,
-      name: "Year 1", minv: 0, maxv: 200, color: "dodgerblue",
-      nubs: "dot", strokewidth: 1
-    #@grf.add num_obs: @values2.size, values: @values2, xobs: @xobs,
-    #  name: "Year 2", minv: 0, maxv: 200, color: "coral",
-    #  nubs: "dot", strokewidth: 1
+    @grf.add values: @values1, labels: @xobs,
+      name: "Year 1", min: 0, max: 200, color: "dodgerblue",
+      points: "dot", strokewidth: 1
+    #@grf.add num_obs: @values2.size, values: @values2, labels: @xobs,
+    #  name: "Year 2", min: 0, max: 200, color: "coral",
+    #  points: "dot", strokewidth: 1
   end
 end
 

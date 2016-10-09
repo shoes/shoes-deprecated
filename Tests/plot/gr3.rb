@@ -8,7 +8,7 @@ Shoes.app width: 800, height: 500 do
   @values2 = [200, 150, 75, 125, 75, 225, 125]
   # @values2 = [200, 150, 75, 125, nil, 50, 125]
   stack do
-    para "Plot Widget Demo 3"
+    para "Plot Demo Line and Column"
     flow do 
       button "quit" do Shoes.quit end
     end
@@ -19,26 +19,25 @@ Shoes.app width: 800, height: 500 do
         #para "This is mine!"
         @grf = plot widget_width, widget_height, title: "My Graph", caption: 
           "Look at that! Booyah!!" , font: "Helvetica", auto_grid: true,
-          missing: "skip", background: "honeydew"
+          default: "skip", background: "honeydew"
          @grf2 = plot widget_width, widget_height+100, title: "Column Graph", caption: 
           "Amazing!!" , font: "Mono", auto_grid: false, 
-          missing: "skip", background: "cornsilk", chart: "column", boundary_box: false
-      
+          default: "skip", background: "cornsilk", chart: "column", boundary_box: false
       end
     end
-    @grf.add values: @values1, xobs: @x_axis1,
-      name: "foobar", minv: 6, maxv: 26 , long_name: "foobar Yy", color: "dodgerblue",
-       nubs: true
-    @grf.add values: @values2, xobs: @x_axis2,
-       name: "Tab", minv: @values2.min, maxv: @values2.max, long_name: "BarTab", color: "coral",
-       nubs: true, strokewidth: 2
+    @grf.add values: @values1, labels: @x_axis1,
+      name: "foobar", min: 6, max: 26 , desc: "foobar Yy", color: "dodgerblue",
+       points: true
+    @grf.add values: @values2, labels: @x_axis2,
+       name: "Tab", min: @values2.min, max: @values2.max, desc: "BarTab", color: "coral",
+       points: true, strokewidth: 2
 
-    @grf2.add values: @values1, xobs: @x_axis1,
-       name: "Bar", minv: 0, maxv:  30, long_name: "foobar Yy", color: "crimson",
-       nubs: true, strokewidth: 12
-    @grf2.add values: @values2, xobs: @x_axis2,
-       name: "Tab", minv: 50, maxv: 230, long_name: "BarTab", color: "green",
-       nubs: true, strokewidth: 6
+    @grf2.add values: @values1, labels: @x_axis1,
+       name: "Bar", min: 0, max:  30, desc: "foobar Yy", color: "crimson",
+       points: true, strokewidth: 12
+    @grf2.add values: @values2, labels: @x_axis2,
+       name: "Tab", min: 50, max: 230, desc: "BarTab", color: "green",
+       points: true, strokewidth: 6
   end
 end
 

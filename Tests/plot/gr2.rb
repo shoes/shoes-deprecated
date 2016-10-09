@@ -18,19 +18,19 @@ Shoes.app width: 800, height: 500 do
         #para "This is mine!"
         @grf = plot widget_width, widget_height, title: "My Graph", caption: 
           "Look at that! Booyah!!" , font: "Helvetica", auto_grid: true,
-          missing: "skip"
+          default: "skip"
          @grf2 = plot widget_width, widget_height+100, title: "2nd Graph", caption: 
           "Amazing!!" , font: "Helvetica", auto_grid: false, chart: "line",
-          missing: "skip", background: "cornsilk"
+          default: "skip", background: "cornsilk"
       
       end
     end
-    @grf.add values: @values1, xobs: @x_axis1,
-       name: "foobar", minv: 6, maxv: 26 , long_name: "foobar Yy", color: "dodgerblue",
-       nubs: true
-    @grf2.add values: @values2, xobs: @x_axis2,
-       name: "Bar", minv: 50, maxv:  250, long_name: "BarBaz", color: "dodgerblue",
-       nubs: true
+    @grf.add values: @values1, labels: @x_axis1,
+       name: "foobar", min: 6, max: 26 , desc: "foobar Yy", color: "dodgerblue",
+       points: true
+    @grf2.add values: @values2, labels: @x_axis2,
+       name: "Bar", min: 50, max:  250, desc: "BarBaz", color: "dodgerblue",
+       points: true
   end
 end
 
