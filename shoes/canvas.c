@@ -1565,7 +1565,7 @@ shoes_canvas_clear_contents(int argc, VALUE *argv, VALUE self)
         // OSX clang compiler doesn't like that semicolon. it doesn't
         // like the Qnill to boolean comparison either
         //if (!shoes_hash_get(canvas->app->groups, group) == Qnil);
-        if (NIL_P(shoes_hash_get(canvas->app->groups, group)))
+        if (! NIL_P(shoes_hash_get(canvas->app->groups, group)))
         {
            shoes_hash_set(canvas->app->groups, group, Qnil);
         }
