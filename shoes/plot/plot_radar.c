@@ -19,8 +19,6 @@ VALUE shoes_plot_radar_color(int);
 void shoes_plot_radar_init(shoes_plot *plot) {
   radar_chart_t *rdrchart = malloc(sizeof(radar_chart_t));
   plot->c_things = (void *)rdrchart;
-  //VALUE rbsz = rb_ary_entry(plot->sizes, 0);
-  //int numobs = NUM2INT(rbsz);
   int numobs = RARRAY_LEN(rb_ary_entry(plot->values, 0));
   rdrchart->count = numobs;
   radar_slice_t *slices = (radar_slice_t *)malloc(sizeof(radar_slice_t) * numobs);
@@ -73,7 +71,7 @@ void shoes_plot_draw_radar_chart(cairo_t *cr, shoes_plot *plot)
   right = plot->graph_w; bottom = plot->graph_h; 
   width = right - left;
   height = bottom - top; 
-  /*
+  
   radar_chart_t *chart = (radar_chart_t *) plot->c_things;
 
   chart->centerx = left + roundl(width * 0.5);
@@ -82,11 +80,41 @@ void shoes_plot_draw_radar_chart(cairo_t *cr, shoes_plot *plot)
   chart->top = top; chart->left = left; chart->bottom = bottom;
   chart->right = right; chart->width = width; chart->height = height;
   printf("radius %4.2f\n", chart->radius);
-  */
   
+  int j;
+  cairo_save(cr);
   for (i = 0; i < plot->seriescnt; i++) {
-
+    VALUE rbvary = rb_ary_entry(plot->values, i);
+    int count = RARRAY_LEN(rbvary);
+    VALUE rbminv = rb_ary_entry(plot->minvs, i);
+    double minv = NUM2DBL(rbminv);
+    VALUE rbmaxv = rb_ary_entry(plot->maxvs, i);
+    double maxv = NUM2DBL(rbmaxv);
+    int first = TRUE;
+    cairo_new_path(cr);
+    for (j = 0; j < count; j++) {
+      int k = j + 1;
+      VALUE rbv = rb_ary_entry(rbvary, j);
+      double value =  NUM2DBL(rbv);
+      double offset1 = k * 2 * SHOES_PI / k;
+      double offset = SHOES_PI / 2 - offset1;
+      //double rad = (height / 2) * (1 - value);
+      double rad = (height / 2) / (value);
+      int x = chart->centerx - cos(offset) * rad;
+      int y = chart->centery - sin(offset) * rad;
+      if (first) {
+        printf("move to x %i, y: %i v: %4.2f offset: %4.2f rad: %4.2f\n", x, y, value, offset, rad);
+        cairo_move_to(cr, x, y);
+        first = FALSE;
+        continue;
+      } else {
+        printf("line to x %i, y: %i v: %4.2f offset: %4.2f rad: %4.2f\n", x, y, value, offset, rad);
+        cairo_line_to(cr, x, y);
+      }
+    }
+    cairo_stroke(cr);
   }
+  cairo_restore(cr);
   shoes_plot_set_cairo_default(cr, plot);
 }
 ;
