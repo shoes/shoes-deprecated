@@ -320,6 +320,19 @@ typedef struct {
 } shoes_svg;
 
 
+// ChartSeries struct
+typedef struct {
+  VALUE maxv;  
+  VALUE minv;
+  VALUE values;
+  VALUE name;  
+  VALUE desc; // for y axis display?? Someday
+  VALUE labels; 
+  VALUE strokes;
+  VALUE point_type;
+  VALUE color;  
+} shoes_chart_series;
+
 //
 // Plot struct - It's HUGE!
 //
@@ -329,17 +342,18 @@ typedef struct {
   shoes_place place;
   int chart_type;
   int seriescnt;
+  VALUE series;  
   int auto_grid; 
   int boundbox;
   int missing;   // repurposed in pie_charts so beware
   VALUE background;
+  // warning these will be moving to a separate ruby class/struct: in series
   VALUE maxvs;  // these will be Ruby arrays of things (0..seriescnt)
   VALUE minvs;
   VALUE values;
   VALUE names;  
   VALUE long_names; // for y axis display?? Someday
   VALUE xobs; 
-  //VALUE sizes;
   VALUE strokes;
   VALUE nubs;
   VALUE color;
@@ -602,6 +616,9 @@ VALUE shoes_svg_has_group(VALUE, VALUE);
 VALUE shoes_svg_motion(VALUE, int, int, char *);
 VALUE shoes_svg_send_click(VALUE, int, int, int);
 void shoes_svg_send_release(VALUE, int, int, int);
+
+VALUE shoes_chart_series_new(int, VALUE *, VALUE);
+VALUE shoes_chart_series_alloc(VALUE);
 
 VALUE shoes_plot_new(int, VALUE *, VALUE);
 VALUE shoes_plot_alloc(VALUE);

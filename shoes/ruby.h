@@ -85,7 +85,7 @@ extern VALUE cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns, cBu
 extern VALUE cEditLine, cEditBox, cListBox, cProgress, cSlider, cCheck, cRadio, cColor;
 extern VALUE cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 extern VALUE cTextEditBox;
-extern VALUE cSvgHandle, cSvg, cPlot, cTimeSeries;
+extern VALUE cSvgHandle, cSvg, cPlot, cChartSeries;
 extern VALUE cWidget;
 extern VALUE aMsgList;
 extern VALUE eInvMode, eNotImpl, eImageError;

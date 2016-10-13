@@ -20,12 +20,12 @@ shoes_plot_mark(shoes_plot *self_t)
 {
   rb_gc_mark_maybe(self_t->parent);
   rb_gc_mark_maybe(self_t->attr);
+  rb_gc_mark_maybe(self_t->series);
   rb_gc_mark_maybe(self_t->values);
   rb_gc_mark_maybe(self_t->xobs);
   rb_gc_mark_maybe(self_t->minvs);
   rb_gc_mark_maybe(self_t->maxvs);
   rb_gc_mark_maybe(self_t->names);
-  //rb_gc_mark_maybe(self_t->sizes);
   rb_gc_mark_maybe(self_t->long_names);
   rb_gc_mark_maybe(self_t->strokes);
   rb_gc_mark_maybe(self_t->nubs);
@@ -69,12 +69,12 @@ shoes_plot_alloc(VALUE klass)
   plot->minvs = rb_ary_new();
   plot->maxvs = rb_ary_new();
   plot->names = rb_ary_new();
-  //plot->sizes = rb_ary_new();
   plot->long_names = rb_ary_new();
   plot->strokes = rb_ary_new();
   plot->nubs = rb_ary_new();
   plot->color = rb_ary_new();
   plot->parent = Qnil;
+  plot->series = rb_ary_new();
   plot->st = NULL;
   plot->auto_grid = 0;
   plot->x_ticks = 8;
@@ -335,9 +335,38 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
   if (i >= 6) {
     rb_raise(rb_eArgError, "Maximum of 6 series");
   }
+  // chartseries has already parsed it's args. 
+  if (rb_obj_is_kind_of(newseries, cChartSeries)) {
+    shoes_chart_series *cs;
+    Data_Get_Struct(newseries, shoes_chart_series, cs);
+    rbsz = RARRAY_LEN(cs->values);
+    self_t->beg_idx = 0;
+    self_t->end_idx = NUM2INT(rbsz);
+    self_t->seriescnt++;
+    rb_ary_store(self_t->series, i, newseries);
+    // for compatibility with the old way, we need to dup
+    rb_ary_store(self_t->values, i, cs->values);
+    rb_ary_store(self_t->xobs, i, cs->labels);
+    rb_ary_store(self_t->maxvs, i, cs->maxv);
+    rb_ary_store(self_t->minvs, i, cs->minv);
+    rb_ary_store(self_t->names, i, cs->name);
+    rb_ary_store(self_t->long_names, i, cs->desc);
+    rb_ary_store(self_t->strokes, i, cs->strokes);
+    rb_ary_store(self_t->nubs, i, cs->point_type);
+    rb_ary_store(self_t->color, i, cs->color);
+    // radar & pie chart types need to pre-compute some geometery and store it
+    // in their own structs.  
+    if (self_t->chart_type == PIE_CHART) 
+      shoes_plot_pie_init(self_t);
+    else if (self_t->chart_type == RADAR_CHART) 
+     shoes_plot_radar_init(self_t);
+    
+    shoes_canvas_repaint_all(self_t->parent);
+    return self;
+  }
+  
   if (TYPE(newseries) == T_HASH) {
 
-    //rbsz = shoes_hash_get(newseries, rb_intern("num_obs"));
     rbvals = shoes_hash_get(newseries, rb_intern("values"));
     rbobs = shoes_hash_get(newseries, rb_intern("labels"));
     rbmin = shoes_hash_get(newseries, rb_intern("min"));
@@ -442,21 +471,35 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
   } else {
     rb_raise(rb_eArgError, "misssing something in plot.add \n");
   }
-  // radar & pie chart types need to pre-compute some geometery and store it
-  // in their own structs.
-  //rb_ary_store(self_t->sizes, i, rbsz);
-  rb_ary_store(self_t->values, i, rbvals);
-  rb_ary_store(self_t->xobs, i, rbobs);
-  rb_ary_store(self_t->maxvs, i, rbmax);
-  rb_ary_store(self_t->minvs, i, rbmin);
-  rb_ary_store(self_t->names, i, rbshname);
-  rb_ary_store(self_t->long_names, i, rblgname);
-  rb_ary_store(self_t->strokes, i, rbstroke);
-  rb_ary_store(self_t->nubs, i, rbnubtype);
-  rb_ary_store(self_t->color, i, color_wrapped);
+  // transition code
+  VALUE cs;
+  shoes_chart_series *ser;
+  switch (self_t->chart_type) {
+    // charts using the new chart_series class
+    case PIE_CHART:
+    case RADAR_CHART: 
+      cs = shoes_chart_series_alloc(cChartSeries);
+      Data_Get_Struct(cs, shoes_chart_series, ser);
+      shoes_chart_series_Cinit(ser, rbvals, rbobs, rbmax, rbmin, rbshname, rblgname,
+      rbstroke, rbnubtype, color_wrapped);
+      break;
+    default:  // these charts use the old code
+      rb_ary_store(self_t->values, i, rbvals);
+      rb_ary_store(self_t->xobs, i, rbobs);
+      rb_ary_store(self_t->maxvs, i, rbmax);
+      rb_ary_store(self_t->minvs, i, rbmin);
+      rb_ary_store(self_t->names, i, rbshname);
+      rb_ary_store(self_t->long_names, i, rblgname);
+      rb_ary_store(self_t->strokes, i, rbstroke);
+      rb_ary_store(self_t->nubs, i, rbnubtype);
+      rb_ary_store(self_t->color, i, color_wrapped);
+  }
+  rb_ary_store(self_t->series, i, cs);
   self_t->beg_idx = 0;
   self_t->end_idx = NUM2INT(rbsz);
   self_t->seriescnt++;
+  // radar & pie chart types need to pre-compute some geometery and store it
+  // in their own structs.  
   if (self_t->chart_type == PIE_CHART) 
     shoes_plot_pie_init(self_t);
   else if (self_t->chart_type == RADAR_CHART) 

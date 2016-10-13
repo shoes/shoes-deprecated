@@ -83,6 +83,7 @@ typedef struct {
   pie_slice_t *slices; // treated as an array because it is.
 } pie_chart_t;
 
+// Radar charts are even more complex;
 typedef struct {
   double value; 
   double startAngle;
@@ -107,8 +108,6 @@ typedef struct {
   radar_slice_t *slices; // treated as an array because it is.
 } radar_chart_t;
 
-// Radar charts are even more complex;
-
 typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
 
 extern void shoes_plot_line_draw(cairo_t *, shoes_place *, shoes_plot *);
@@ -117,6 +116,8 @@ extern void shoes_plot_scatter_draw(cairo_t *, shoes_place *, shoes_plot *);
 extern void shoes_plot_pie_draw(cairo_t *, shoes_place *, shoes_plot *);
 extern void shoes_plot_pie_init(shoes_plot *);
 extern void shoes_plot_pie_dealloc(shoes_plot *);
+extern void shoes_chart_series_Cinit(shoes_chart_series *, VALUE, VALUE,
+    VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE);
 // plot utility functions (in plot_util.c)
 extern void shoes_plot_set_cairo_default(cairo_t *, shoes_plot *);
 extern void shoes_plot_draw_title(cairo_t *, shoes_plot *);
@@ -125,8 +126,11 @@ extern void shoes_plot_draw_fill(cairo_t *, shoes_plot *);
 extern void shoes_plot_draw_boundbox(cairo_t *, shoes_plot *);
 extern void shoes_plot_draw_ticks_and_labels(cairo_t *, shoes_plot *);
 extern void shoes_plot_draw_legend(cairo_t *, shoes_plot *);
+extern void shoes_plot_draw_cslegend(cairo_t *, shoes_plot *); // Version 2 prefix 'ds'
 extern void shoes_plot_draw_tick(cairo_t *, shoes_plot *, int, int, int);
 extern void shoes_plot_draw_label(cairo_t *, shoes_plot *, int, int , char*, int);
 extern void shoes_plot_draw_nub(cairo_t *, shoes_plot *, double, double, int, int);
+
+
 
 #endif

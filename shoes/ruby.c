@@ -15,7 +15,7 @@
 
 VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cSlider, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE cTextEditBox;
-VALUE cSvgHandle, cSvg, cPlot; // cTimeSeries;
+VALUE cSvgHandle, cSvg, cPlot, cChartSeries;
 VALUE eVlcError, eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot, symAltEqual, symAltSemiColon;
@@ -4683,6 +4683,9 @@ shoes_ruby_init()
   rb_define_method(cSvgHandle, "width", CASTHOOK(shoes_svghandle_get_width), 0);
   rb_define_method(cSvgHandle, "height", CASTHOOK(shoes_svghandle_get_height), 0);
   rb_define_method(cSvgHandle, "group?", CASTHOOK(shoes_svghandle_has_group), 1);
+  
+  cChartSeries =rb_define_class_under(cTypes, "ChartSeries", rb_cObject); // 3.3.2
+  rb_define_alloc_func(cChartSeries, shoes_chart_series_alloc);
 
   cDialog = rb_define_class_under(cTypes, "Dialog", cApp);
 

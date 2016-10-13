@@ -1,7 +1,7 @@
 // pie chart
 #include "shoes/plot/plot.h"
 
-// REMEMBER - this is only one data series in a PIE CHART. 
+// REMEMBER - there is only one data series in a PIE CHART. 
 
 /* borrows heavily from this python code
  * https://bitbucket.org/lgs/pycha/src/e3e270a0e7ae4896052d4cc34fe7f1e532ece914/pycha/pie.py?at=default&fileviewer=file-view-default
@@ -15,20 +15,21 @@ VALUE shoes_plot_pie_color(int);
 void shoes_plot_pie_init(shoes_plot *plot) {
   pie_chart_t *piechart = malloc(sizeof(pie_chart_t));
   plot->c_things = (void *)piechart;
-  //VALUE rbsz = rb_ary_entry(plot->sizes, 0);
-  //int numobs = NUM2INT(rbsz);
-  int numobs = RARRAY_LEN(rb_ary_entry(plot->values, 0));
+  VALUE cs = rb_ary_entry(plot->series, 0);
+  shoes_chart_series *ser;
+  Data_Get_Struct(cs, shoes_chart_series, ser);
+  int numobs = RARRAY_LEN(ser->values);
   piechart->count = numobs;
   pie_slice_t *slices = (pie_slice_t *)malloc(sizeof(pie_slice_t) * numobs);
   piechart->slices = slices;
   int i;
   piechart->maxv = 0.0; 
   piechart->minv = 100000000.0; // TODO: use a max double constant
-  VALUE rbvals = rb_ary_entry(plot->values, 0);
+  
   // sum the values
   for (i = 0; i <numobs; i++) {
     pie_slice_t *slice = &slices[i];
-    VALUE rbv = rb_ary_entry(rbvals, i);
+    VALUE rbv = rb_ary_entry(ser->values, i);
     double v = NUM2DBL(rbv);
     slice->value = v;
     if (v < piechart->minv) piechart->minv = v;
@@ -171,17 +172,18 @@ void shoes_plot_pie_legend_box(cairo_t *cr, shoes_plot *self_t,
 }
 
 void shoes_plot_draw_pie_legend(cairo_t *cr, shoes_plot *self_t) {
-  /* draw xobs values (string) in the legend area in color, on the right 
-   * hand side. need to compute the max height and width of all strings
+  /* draw labels (strings) in the legend area in color, on the right 
+   * hand side. Need to compute the max height and width of all strings
    * attempt to get the most data on the chart.  Ugly. TODO: it would
    * be nice to have shoes class/struct. 
   */
   int i; 
   if (self_t->seriescnt != 1) return;
-  //VALUE rbsz = rb_ary_entry(self_t->sizes, 0);
-  //int numstrs = NUM2INT(rbsz);
-  int numstrs = RARRAY_LEN(rb_ary_entry(self_t->values, 0));
-  VALUE rbobs = rb_ary_entry(self_t->xobs, 0);
+  VALUE cs = rb_ary_entry(self_t->series, 0);
+  shoes_chart_series *ser;
+  Data_Get_Struct(cs, shoes_chart_series, ser);
+  int numstrs = RARRAY_LEN(ser->labels);
+  VALUE rbobs = ser->labels;
   PangoLayout *layouts[numstrs];
   char *strary[numstrs];
   char strh[numstrs];
