@@ -4677,6 +4677,7 @@ shoes_ruby_init()
   rb_define_method(cApp, "set_window_icon_path", CASTHOOK(shoes_app_set_icon), 1); // New in 3.2.19
   rb_define_method(cApp, "set_window_title", CASTHOOK(shoes_app_set_wtitle), 1); // New in 3.2.19
   rb_define_method(cApp, "svghandle", CASTHOOK(shoes_svghandle_new), -1); 
+  rb_define_method(cApp, "chart_series", CASTHOOK(shoes_chart_series_new), -1);
   
   cSvgHandle = rb_define_class_under(cTypes, "SvgHandle", rb_cObject); // new with 3.3.0
   rb_define_alloc_func(cSvgHandle, shoes_svghandle_alloc);

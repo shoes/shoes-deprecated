@@ -22,9 +22,10 @@ Shoes.app width: 620, height: 480 do
     @grf.add values: @values1, labels: @xobs,
       name: "Year 1", min: 0, max: 200, color: "dodgerblue",
       points: "dot", strokewidth: 1
-    #@grf.add num_obs: @values2.size, values: @values2, labels: @xobs,
-    #  name: "Year 2", min: 0, max: 200, color: "coral",
-    #  points: "dot", strokewidth: 1
+    cs = app.chart_series values: @values2, labels: @xobs,
+      name: "Year 2", min: 0, max: 200, color: "coral",
+      points: "dot", strokewidth: 1
+    @grf.add cs
   end
 end
 

@@ -76,8 +76,6 @@ shoes_chart_series_new(int argc, VALUE *argv, VALUE self)
   case 1:
      newseries = args.a[0];
   }
-  // VALUE cs = shoes_chart_series_alloc(parent);
-  //shoes_chart_series *self_t = shoes_chart_series_alloc(parent);
 
   if (TYPE(newseries) == T_HASH) {
     rbvals = shoes_hash_get(newseries, rb_intern("values"));
@@ -159,7 +157,10 @@ shoes_chart_series_new(int argc, VALUE *argv, VALUE self)
   } else {
     rb_raise(rb_eArgError, "misssing something in plot.add \n");
   }
+  //VALUE cs = shoes_chart_series_alloc(parent);
+  //shoes_chart_series *self_t = shoes_chart_series_alloc(parent);
   VALUE obj = shoes_chart_series_alloc(cChartSeries);
+  Data_Get_Struct(obj, shoes_chart_series, self_t);
   shoes_chart_series_Cinit(self_t, rbvals, rblabels, rbmax, rbmin, rbname, rbdesc,
       rbstroke, rbpoint_type, color_wrapped);
   return obj;
