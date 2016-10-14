@@ -83,13 +83,16 @@ shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
   
   if (!NIL_P(subidObj) && (RSTRING_LEN(subidObj) > 0))
   {
-    self_t->subid = RSTRING_PTR(subidObj);
-    if (!rsvg_handle_has_sub(self_t->handle, self_t->subid))
-      printf("not a id %s\n",self_t->subid);
-    if (!rsvg_handle_get_dimensions_sub(self_t->handle, &self_t->svghdim, self_t->subid))
-      printf("no dim for %s\n", self_t->subid);
-    if (!rsvg_handle_get_position_sub(self_t->handle, &self_t->svghpos, self_t->subid))
-      printf("no pos for %s\n",self_t->subid);
+    if (rsvg_handle_has_sub(self_t->handle, RSTRING_PTR(subidObj))) {
+      self_t->subid = strdup(RSTRING_PTR(subidObj));
+      if (!rsvg_handle_get_dimensions_sub(self_t->handle, &self_t->svghdim, self_t->subid))
+        printf("no dim for %s\n", self_t->subid);
+      if (!rsvg_handle_get_position_sub(self_t->handle, &self_t->svghpos, self_t->subid))
+        printf("no pos for %s\n",self_t->subid);
+    } else {
+      printf("not a valid id %s\n",self_t->subid);
+      self_t->subid = NULL;
+    }
   }
   else
   {
