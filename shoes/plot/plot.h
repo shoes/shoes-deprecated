@@ -126,7 +126,6 @@ extern void shoes_plot_draw_fill(cairo_t *, shoes_plot *);
 extern void shoes_plot_draw_boundbox(cairo_t *, shoes_plot *);
 extern void shoes_plot_draw_ticks_and_labels(cairo_t *, shoes_plot *);
 extern void shoes_plot_draw_legend(cairo_t *, shoes_plot *);
-extern void shoes_plot_draw_cslegend(cairo_t *, shoes_plot *); // Version 2 prefix 'ds'
 extern void shoes_plot_draw_tick(cairo_t *, shoes_plot *, int, int, int);
 extern void shoes_plot_draw_label(cairo_t *, shoes_plot *, int, int , char*, int);
 extern void shoes_plot_draw_nub(cairo_t *, shoes_plot *, double, double, int, int);

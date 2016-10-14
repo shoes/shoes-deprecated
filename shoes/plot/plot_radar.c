@@ -309,6 +309,6 @@ void shoes_plot_radar_draw(cairo_t *cr, shoes_place *place, shoes_plot *self_t) 
   if (self_t->seriescnt) {
     shoes_plot_draw_radar_chart(cr, self_t);
     // shoes_plot_draw_radar_ticks(cr, self_t);
-    shoes_plot_draw_cslegend(cr, self_t);
+    shoes_plot_draw_legend(cr, self_t);
   }
 }

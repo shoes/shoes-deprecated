@@ -480,6 +480,9 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
     case PIE_CHART:
     case RADAR_CHART: 
     case SCATTER_CHART:
+    case COLUMN_CHART:
+    case LINE_CHART:
+    case TIMESERIES_CHART:
       cs = shoes_chart_series_alloc(cChartSeries);
       Data_Get_Struct(cs, shoes_chart_series, ser);
       shoes_chart_series_Cinit(ser, rbvals, rbobs, rbmax, rbmin, rbshname, rblgname,
@@ -565,8 +568,12 @@ VALUE shoes_plot_find_name(VALUE self, VALUE name)
   if (TYPE(name) != T_STRING) rb_raise(rb_eArgError, "plot.find arg is not a string");
   char *search = RSTRING_PTR(name);
   int i; 
-  for (i =0; i <self_t->seriescnt; i++) {
-    VALUE rbstr = rb_ary_entry(self_t->names, i);
+  for (i = 0; i <self_t->seriescnt; i++) {
+    VALUE rbser = rb_ary_entry(self_t->series, i);
+    //VALUE rbstr = rb_ary_entry(self_t->names, i);
+    shoes_chart_series *cs;
+    Data_Get_Struct(rbser, shoes_chart_series, cs);
+    VALUE rbstr = cs->name;
     char *entry = RSTRING_PTR(rbstr);
     if (strcmp(search, entry) == 0) {
       return INT2NUM(i);
@@ -584,9 +591,11 @@ VALUE shoes_plot_zoom(VALUE self, VALUE beg, VALUE end)
     return Qnil;
   if (self_t->seriescnt < 1)
     return Qnil;
-  //VALUE rbsz = rb_ary_entry(self_t->sizes, 0);
-  //int maxe = NUM2INT(rbsz);
-  int maxe = RARRAY_LEN(rb_ary_entry(self_t->values, 0));
+  //int maxe = RARRAY_LEN(rb_ary_entry(self_t->values, 0));
+  VALUE rbser = rb_ary_entry(self_t->series, 0);
+  shoes_chart_series *cs;
+  Data_Get_Struct(rbser, shoes_chart_series, cs);
+  int maxe = RARRAY_LEN(cs->values);
   int b = NUM2INT(beg);
   int e = NUM2INT(end);
   int nb = max(0, b);

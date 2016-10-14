@@ -39,25 +39,39 @@ void shoes_plot_draw_columns(cairo_t *cr, shoes_plot *plot)
   shoes_color *colors[num_series];
   int nubs[num_series];
   VALUE values[num_series];
+  VALUE labels[num_series];
   int range = plot->end_idx - plot->beg_idx; // zooming adj
-  VALUE rbobs = rb_ary_entry(plot->xobs, 0);
-  
+  // load local var arrays 
   for (i = 0; i < plot->seriescnt; i++) {
-    values[i] = rb_ary_entry(plot->values, i);
-    VALUE rbmaxv = rb_ary_entry(plot->maxvs, i);
-    VALUE rbminv = rb_ary_entry(plot->minvs, i);
-    maximums[i] = NUM2DBL(rbmaxv);
-    minimums[i] = NUM2DBL(rbminv);
-    VALUE rbnubs = rb_ary_entry(plot->nubs, i);
-    nubs[i] = (width / range > 10) ? RTEST(rbnubs) : 0; 
-    VALUE rbcolor = rb_ary_entry(plot->color, i);
-    VALUE rbstroke = rb_ary_entry(plot->strokes, i);
-    int sw = NUM2INT(rbstroke);
+    VALUE rbser = rb_ary_entry(plot->series, i);
+    shoes_chart_series *cs;
+    Data_Get_Struct(rbser, shoes_chart_series, cs);
+    values[i] = cs->values;
+    labels[i] = cs->labels;
+    maximums[i] = NUM2DBL(cs->maxv);
+    minimums[i] = NUM2DBL(cs->minv);
+    nubs[i] = (width / range > 10) ? RTEST(cs->point_type) : 0;
+    Data_Get_Struct(cs->color, shoes_color, colors[i]);
+    int sw = NUM2INT(cs->strokes);
     if (sw < 4) sw = 4;
     strokesw[i] = sw;
     colsw += sw;
     vScales[i] = (height / (maximums[i] - minimums[i]));
-    Data_Get_Struct(rbcolor, shoes_color, colors[i]);
+    //values[i] = rb_ary_entry(plot->values, i);
+    //VALUE rbmaxv = rb_ary_entry(plot->maxvs, i);
+    //VALUE rbminv = rb_ary_entry(plot->minvs, i);
+    //maximums[i] = NUM2DBL(rbmaxv);
+    //minimums[i] = NUM2DBL(rbminv);
+    //VALUE rbnubs = rb_ary_entry(plot->nubs, i);
+    //nubs[i] = (width / range > 10) ? RTEST(rbnubs) : 0; 
+    //VALUE rbcolor = rb_ary_entry(plot->color, i);
+    //VALUE rbstroke = rb_ary_entry(plot->strokes, i);
+    //int sw = NUM2INT(rbstroke);
+    //if (sw < 4) sw = 4;
+    //strokesw[i] = sw;
+    //colsw += sw;
+    //vScales[i] = (height / (maximums[i] - minimums[i]));
+    //Data_Get_Struct(rbcolor, shoes_color, colors[i]);
   }
   int ncolsw = width / (range) ; // 
   int xinset = left + (ncolsw / 2); // start inside the box, half a width
@@ -84,8 +98,10 @@ void shoes_plot_draw_columns(cairo_t *cr, shoes_plot *plot)
       cairo_stroke(cr);
       xpos += strokesw[j];
     }
+    // draw xaxis labels.
     shoes_plot_set_cairo_default(cr, plot); // reset to default
-    VALUE obs = rb_ary_entry(rbobs, i + plot->beg_idx);
+    VALUE obs = rb_ary_entry(labels[0], i + plot->beg_idx);
+    //VALUE obs = rb_ary_entry(rbobs, i + plot->beg_idx);
     shoes_plot_column_xaxis(cr, plot, xpos-(colsw / 2), obs);
     xpos = (ncolsw * (i + 1)) + xinset;
   }
@@ -112,11 +128,8 @@ void shoes_plot_column_draw(cairo_t *cr, shoes_place *place, shoes_plot *self_t)
   self_t->graph_x = self_t->yaxis_offset;
   if (self_t->seriescnt) {
     // draw  box, ticks and x,y labels.
-
-    shoes_plot_draw_ticks_and_labels(cr, self_t);
-    shoes_plot_draw_legend(cr, self_t);
-    // shoes_plot_draw_adornments(cr, self_t);
-    // draw data
+    shoes_plot_draw_ticks_and_labels(cr, self_t); // FIX for v2?
+    shoes_plot_draw_legend(cr, self_t); //Fix for v2?
     shoes_plot_draw_columns(cr, self_t);
   }
 }

@@ -12,6 +12,18 @@ void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot)
   left = plot->graph_x; top = plot->graph_y;
   right = plot->graph_w; bottom = plot->graph_h;    
   for (i = 0; i < plot->seriescnt; i++) {
+    VALUE rbser = rb_ary_entry(plot->series, i);
+    shoes_chart_series *cs;
+    Data_Get_Struct(rbser, shoes_chart_series, cs);
+    VALUE rbvalues = cs->values;
+    VALUE rbmaxv = cs->maxv;
+    double maximum = NUM2DBL(rbmaxv);
+    VALUE rbminv = cs->minv;
+    double minimum = NUM2DBL(rbminv);
+    int strokew = NUM2INT(cs->strokes);
+    shoes_color *color;
+    Data_Get_Struct(cs->color, shoes_color, color);
+    /*
     VALUE rbvalues = rb_ary_entry(plot->values, i);
     VALUE rbmaxv = rb_ary_entry(plot->maxvs, i);
     VALUE rbminv = rb_ary_entry(plot->minvs, i);
@@ -23,6 +35,7 @@ void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot)
     double maximum = NUM2DBL(rbmaxv);
     double minimum = NUM2DBL(rbminv);
     int strokew = NUM2INT(rbstroke);
+    */
     if (strokew < 1) strokew = 1;
     cairo_set_line_width(cr, strokew);
     // Shoes: Remember - we use ints for x, y, w, h and for drawing lines and points
@@ -31,7 +44,8 @@ void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot)
     int range = plot->end_idx - plot->beg_idx; // zooming adj
     float vScale = height / (maximum - minimum);
     float hScale = width / (double) (range - 1);
-    int nubs = (width / range > 10) ? NUM2INT(rbnubs) : 0;  
+    //int nubs = (width / range > 10) ? NUM2INT(rbnubs) : 0;  
+    int nubs = (width / range > 10) ? NUM2INT(cs->point_type) : 0;  
   
     cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0,
        color->b / 255.0, color->a / 255.0); 

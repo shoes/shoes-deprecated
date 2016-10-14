@@ -48,8 +48,8 @@ void shoes_plot_draw_boundbox(cairo_t *cr, shoes_plot *plot) {
   cairo_line_to(cr, l, t);  // up left
   cairo_stroke(cr);  
 }
-
-void shoes_plot_draw_ticks_and_labels(cairo_t *cr, shoes_plot *plot)
+#if 0
+void shoes_plot_draw_old_ticks_and_labels(cairo_t *cr, shoes_plot *plot)
 {
   int top, left, bottom, right; // these are cairo abs for plot->graph
   int width, height;   // full plot space so it includes everything
@@ -122,9 +122,87 @@ void shoes_plot_draw_ticks_and_labels(cairo_t *cr, shoes_plot *plot)
     }
   }
 }
+#endif
 
-
-void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
+void shoes_plot_draw_ticks_and_labels(cairo_t *cr, shoes_plot *plot)
+{
+  int top, left, bottom, right; // these are cairo abs for plot->graph
+  int width, height;   // full plot space so it includes everything
+  int range;
+  int h_padding = 65; // default width of horizontal tick cell TODO: an option in plot-> 
+  int v_padding = 25; // default height of tick TODO: an option in plot->
+  left = plot->graph_x; top = plot->graph_y;
+  right = plot->graph_w; bottom = plot->graph_h; 
+  range = plot->end_idx - plot->beg_idx;
+  width = right - left; 
+  height = bottom - top;
+  h_padding = width / plot->x_ticks;
+  v_padding = height / plot->y_ticks;
+ 
+  double h_scale; 
+  int h_interval; 
+  h_scale = width / (double) (range -1);
+  h_interval = (int) ceil(h_padding / h_scale);
+ 
+  // draw x axis - labels and tick mark uses plot->xobs - assumes it's string
+  // in the array -- TODO: allow a proc to be called to create the string. at 'i'
+  int i;
+  VALUE rbxser;
+  shoes_chart_series *serx;
+  rbxser = rb_ary_entry(plot->series, 0);
+  Data_Get_Struct(rbxser, shoes_chart_series, serx);
+  VALUE xobs = serx->labels;
+  if (NIL_P(xobs) || TYPE(xobs) != T_ARRAY) rb_raise (rb_eArgError, "xobs must be an array");
+ 
+  for (i = 0 ; i < range; i++ ) {
+    int x = (int) roundl(i * h_scale);
+    x += left;
+    long y = bottom;
+    if ((i % h_interval) == 0) {
+      char *rawstr;
+      VALUE rbstr = rb_ary_entry(xobs, i + plot->beg_idx);
+      if (NIL_P(rbstr)) {
+        rawstr = " ";
+      } else {
+        rawstr = RSTRING_PTR(rbstr);
+      }
+      //printf("x label i: %i, x: %i, y: %i, \"%s\" %i %f \n", i, (int) x, (int) y, rawstr, h_interval, h_scale);
+      shoes_plot_draw_tick(cr, plot, x, y, VERTICALLY);
+      if (plot->chart_type == LINE_CHART || plot->chart_type == TIMESERIES_CHART)
+        shoes_plot_draw_label(cr, plot, x, y, rawstr, BELOW);
+    }
+  }
+  
+  int j;
+  for (j = 0; j < min(2, plot->seriescnt); j++) {
+    VALUE rbser = rb_ary_entry(plot->series, j);
+    shoes_chart_series *cs;
+    Data_Get_Struct(rbser, shoes_chart_series, cs);
+    double maximum = NUM2DBL(cs->maxv);
+    double minimum = NUM2DBL(cs->minv);
+    double v_scale = height / (maximum - minimum);
+    int v_interval = (int) ceil(v_padding / v_scale);
+    char tstr[16];
+    long i;
+    for (i = ((long) minimum) + 1 ; i < ((long) roundl(maximum)); i = i + roundl(v_interval)) {
+      int y = (int) (bottom - roundl((i - minimum) * v_scale));
+      int x = 0;
+      sprintf(tstr, "%i",  (int)i); // TODO user specificed format? 
+      if (j == 0) { // left side y presentation 
+        x = left;
+        //printf("hoz left %i, %i, %s\n", (int)x, (int)y,tstr);
+        shoes_plot_draw_tick(cr, plot, x, y, HORIZONTALLY);
+        shoes_plot_draw_label(cr, plot, x, y, tstr, LEFT);
+      } else {        // right side y presentation
+        x = right;
+        shoes_plot_draw_tick(cr, plot, x, y, HORIZONTALLY);
+        shoes_plot_draw_label(cr, plot, x, y, tstr, RIGHT); 
+      }
+    }
+  }
+}
+#if 0
+void shoes_plot_draw_old_legend(cairo_t *cr, shoes_plot *plot)
 {
   int top, left, bottom, right; 
   int width, height;   
@@ -189,8 +267,9 @@ void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
   }
   g_object_unref(space_layout);  
 }
+#endif
 
-void shoes_plot_draw_cslegend(cairo_t *cr, shoes_plot *plot)
+void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
 {
   int top, left, bottom, right; 
   int width, height;   
@@ -395,7 +474,7 @@ void shoes_plot_draw_nub(cairo_t *cr, shoes_plot *plot,  double x, double y, int
       cairo_fill(cr);
       cairo_restore(cr);
       break;
-    default: { // The hard way draw a rect, line graph uses this until bug fixed
+    default: { // TODO: The hard way to draw a rect, line chart uses this until bug fixed
       int sz = 2; 
       cairo_move_to(cr, x - sz, y - sz);
       cairo_line_to(cr, x + sz, y - sz);
