@@ -404,12 +404,13 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
     if (need_x_strings && TYPE(rbobs) != T_ARRAY ) {
       rb_raise(rb_eArgError, "plot.add xobs is not an array");
     } 
-    
     if (NIL_P(rbshname)) 
       rb_raise(rb_eArgError, "plot.add missing name:");
+      
     if (NIL_P(rblgname)) {
       rblgname = rbshname;
-    }
+    } 
+    
     // handle colors
     if (! NIL_P(rbcolor)) {
       if (TYPE(rbcolor) != T_STRING)
@@ -478,6 +479,7 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
     // charts using the new chart_series class
     case PIE_CHART:
     case RADAR_CHART: 
+    case SCATTER_CHART:
       cs = shoes_chart_series_alloc(cChartSeries);
       Data_Get_Struct(cs, shoes_chart_series, ser);
       shoes_chart_series_Cinit(ser, rbvals, rbobs, rbmax, rbmin, rbshname, rblgname,

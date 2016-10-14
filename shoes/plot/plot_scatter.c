@@ -1,63 +1,54 @@
 // scatter chart
 #include "shoes/plot/plot.h"
 
-// forward declares in this file:
-void shoes_plot_scatter_nub(cairo_t *, double, double, int);
-
 
 void shoes_plot_draw_scatter_pts(cairo_t *cr, shoes_plot *plot)
 {
   // first series (x) controls graphical settings. 
   if (plot->seriescnt !=  2)
-    return; // we have only two series 
+    return; // we don't have just two series 
   int i;
   int top,left,bottom,right;
   left = plot->graph_x; top = plot->graph_y;
   right = plot->graph_w; bottom = plot->graph_h; 
-  VALUE rbxary = rb_ary_entry(plot->values, 0);
-  VALUE rbyary = rb_ary_entry(plot->values, 1);
-  
-  VALUE rbxmax = rb_ary_entry(plot->maxvs, 0);
-  VALUE rbymax = rb_ary_entry(plot->maxvs, 1);
-  VALUE rbxmin = rb_ary_entry(plot->minvs, 0);
-  VALUE rbymin = rb_ary_entry(plot->minvs, 1);
-  double xmax = NUM2DBL(rbxmax);
-  double ymax = NUM2DBL(rbymax);
-  double xmin = NUM2DBL(rbxmin);
-  double ymin = NUM2DBL(rbymin);
-  VALUE rbnubs = rb_ary_entry(plot->nubs, 0);
-  int nubs = NUM2INT(rbnubs);
-  VALUE shcolor = rb_ary_entry(plot->color, 0);
-  VALUE rbstroke = rb_ary_entry(plot->strokes, 0);
+  int height = bottom - top;
+  int width = right - left; 
+  VALUE rbxser, rbyser;
+  shoes_chart_series *serx, *sery;
+  rbxser = rb_ary_entry(plot->series, 0);
+  Data_Get_Struct(rbxser, shoes_chart_series, serx);
+  rbyser = rb_ary_entry(plot->series, 1);
+  Data_Get_Struct(rbyser, shoes_chart_series, sery);
+ 
+  double xmax = NUM2DBL(serx->maxv);
+  double ymax = NUM2DBL(sery->maxv);
+  double xmin = NUM2DBL(serx->minv);
+  double ymin = NUM2DBL(sery->minv);
+  int nubs = NUM2INT(serx->point_type);
+  VALUE shcolor = serx->color;
+  VALUE rbstroke = serx->strokes;
   int strokew = NUM2INT(rbstroke);
   if (strokew < 1) strokew = 1;
   shoes_color *color;
   Data_Get_Struct(shcolor, shoes_color, color);
-  // scale x and y to 
-  //printf("scale x to %f, %f\n", xmin, xmax);
-  //printf("scale y to %f, %f\n", ymin, ymax);
-  //VALUE rbobs = rb_ary_entry(plot->sizes, 0);
-  //int obvs = NUM2INT(rbobs);
-  int obvs = RARRAY_LEN(rbxary);
-  int height = bottom - top;
-  int width = right - left; 
-  
+
+  int obvs = RARRAY_LEN(serx->values);
   for (i = 0; i < obvs; i++) {
     double xval, yval;
-    xval = NUM2DBL(rb_ary_entry(rbxary, i));
-    yval = NUM2DBL(rb_ary_entry(rbyary, i));
+    xval = NUM2DBL(rb_ary_entry(serx->values, i));
+    yval = NUM2DBL(rb_ary_entry(sery->values, i));
     //printf("scatter x: %f, y: %f\n", xval, yval);
   }
+  
   double yScale = height / (ymax - ymin);
   double xScale = width / (xmax - xmin);
   cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0,
       color->b / 255.0, color->a / 255.0); 
   for (i = 0; i < obvs; i++) {
-    VALUE rbx = rb_ary_entry(rbxary, i);
+    VALUE rbx = rb_ary_entry(serx->values, i);
     double xval = NUM2DBL(rbx);
-    VALUE rby = rb_ary_entry(rbyary, i);
+    VALUE rby = rb_ary_entry(sery->values, i);
     double yval = NUM2DBL(rby);
-    //long x = roundl(xval * xScale);
     long x = roundl((xval - xmin) * xScale);
     long y = height - roundl((yval - ymin) * yScale);
     x += left;
@@ -86,7 +77,17 @@ static void shoes_plot_scatter_ticks_and_labels(cairo_t *cr, shoes_plot *plot)
   h_padding = width / plot->x_ticks; // TODO: rethink.
   v_padding = height / plot->y_ticks;
 
-  
+  VALUE rbserx, rbsery;
+  shoes_chart_series *serx, *sery;
+  rbserx = rb_ary_entry(plot->series, 0);
+  rbsery = rb_ary_entry(plot->series, 1);
+  Data_Get_Struct(rbserx, shoes_chart_series, serx);
+  Data_Get_Struct(rbsery, shoes_chart_series, sery); 
+  double xmax = NUM2DBL(serx->maxv);
+  double ymax = NUM2DBL(sery->maxv);
+  double xmin = NUM2DBL(serx->minv);
+  double ymin = NUM2DBL(sery->minv);
+  /*  
   VALUE rbxmax = rb_ary_entry(plot->maxvs, 0);
   VALUE rbymax = rb_ary_entry(plot->maxvs, 1);
   VALUE rbxmin = rb_ary_entry(plot->minvs, 0);
@@ -95,6 +96,7 @@ static void shoes_plot_scatter_ticks_and_labels(cairo_t *cr, shoes_plot *plot)
   double ymax = NUM2DBL(rbymax);
   double xmin = NUM2DBL(rbxmin);
   double ymin = NUM2DBL(rbymin);
+  */
   double h_scale; 
   int h_interval; 
   //h_scale = width / (double) (range -1);
@@ -151,11 +153,16 @@ void shoes_plot_scatter_legend(cairo_t *cr, shoes_plot *plot)
   height = bottom - top;
   // scatter has only two series - center the x string [0]
   // try to draw the y string [1] vertically. -fun or groan?
+  VALUE rbserx, rbsery;
+  shoes_chart_series *serx, *sery;
+  rbserx = rb_ary_entry(plot->series, 0);
+  rbsery = rb_ary_entry(plot->series, 1);
+  Data_Get_Struct(rbserx, shoes_chart_series, serx);
+  Data_Get_Struct(rbsery, shoes_chart_series, sery);
   int legend_width = 0;
   int x, y;
-  VALUE rbstr; 
-  rbstr = rb_ary_entry(plot->long_names, 0); // x
-  char *xstr = RSTRING_PTR(rbstr);   
+
+  char *xstr = RSTRING_PTR(serx->desc);   
   PangoLayout *x_layout  = pango_cairo_create_layout (cr);
   pango_layout_set_font_description (x_layout, plot->legend_pfd);
   pango_layout_set_text (x_layout, xstr, -1);
@@ -170,34 +177,30 @@ void shoes_plot_scatter_legend(cairo_t *cr, shoes_plot *plot)
   y = yoffset;
  
   int baseline = bottom - 5; //TODO: compute baseline better
-  VALUE rbcolor = rb_ary_entry(plot->color, 0);
   shoes_color *color;
-  Data_Get_Struct(rbcolor, shoes_color, color);
+  Data_Get_Struct(serx->color, shoes_color, color);
   cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0,
       color->b / 255.0, color->a / 255.0); 
   cairo_move_to(cr, x, baseline);
   pango_cairo_show_layout(cr, x_layout);
-  
   /*
    *  Now the y axis label. Rotate and put on the left side
    *  Draw above (in the title area, left or right)?? 
    *  
   */
-  rbstr = rb_ary_entry(plot->long_names, 1); // y
-  char *ystr = RSTRING_PTR(rbstr);   
+  char *ystr = RSTRING_PTR(sery->desc);   
   cairo_save(cr);
   PangoLayout *y_layout  = pango_cairo_create_layout (cr);
   pango_layout_set_font_description (y_layout, plot->legend_pfd);
   pango_layout_set_text (y_layout, ystr, -1);
   pango_layout_get_pixel_extents (y_layout, NULL, &logical);
-  rbcolor = rb_ary_entry(plot->color, 1);
-  Data_Get_Struct(rbcolor, shoes_color, color);
+  Data_Get_Struct(sery->color, shoes_color, color);
   cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0,
       color->b / 255.0, color->a / 255.0); 
   // since we're drawing text vertically, compute text placement differently
   // It's very confusing (to me, at least). 
   int yoff = ((plot->graph_h - plot->graph_y) - logical.width) / 2;
-  cairo_move_to(cr, (plot->graph_x - plot->yaxis_offset) + 2, 
+  cairo_move_to(cr, (plot->graph_x - plot->yaxis_offset) + 5, 
       plot->graph_h - yoff);
   cairo_rotate(cr, -90.0 / (180.0 / G_PI)); // rotate in radians
   pango_cairo_show_layout(cr, y_layout);

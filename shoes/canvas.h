@@ -326,7 +326,7 @@ typedef struct {
   VALUE minv;
   VALUE values;
   VALUE name;  
-  VALUE desc; // for y axis display?? Someday
+  VALUE desc; 
   VALUE labels; 
   VALUE strokes;
   VALUE point_type;

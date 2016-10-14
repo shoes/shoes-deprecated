@@ -54,8 +54,10 @@ void shoes_chart_series_Cinit(shoes_chart_series *self_t, VALUE rbvals, VALUE rb
   self_t->minv = rbmin;
   self_t->name = rbname;
   self_t->desc = rbdesc;
-  if (NIL_P(self_t->desc))
+  if (NIL_P(rbdesc)) {
+    printf("fixme: no long name\n");
     self_t->desc = rbname;
+  }
   self_t->strokes = rbstroke;
   self_t->point_type = rbpoint_type;
   self_t->color = color_wrapped;
