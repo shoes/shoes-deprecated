@@ -63,7 +63,7 @@ shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
     if (self_t->handle == NULL) {
       self_t->path = NULL;
       printf("Failed SVG: %s\n", gerror->message);
-    } else self_t->path = path;
+    } else self_t->path = strdup(RSTRING_PTR(filename));
       
   } else if (!NIL_P(fromstring)) {
     // load it from a string
@@ -75,7 +75,7 @@ shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
     if (self_t->handle == NULL) {
       self_t->data = NULL;
       printf("Failed SVG: %s\n", gerror->message);
-    } else self_t->data = data;
+    } else self_t->data = strdup(RSTRING_PTR(fromstring));
     
   } else {
     // never reached, handled by shoes_svg_new
