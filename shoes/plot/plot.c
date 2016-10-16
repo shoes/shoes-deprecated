@@ -487,18 +487,15 @@ VALUE shoes_plot_delete(VALUE self, VALUE series)
   int idx = NUM2INT(series);
   if (! (idx >= 0 && idx <= self_t->seriescnt))
     rb_raise(rb_eArgError, "plot.delete arg is out of range");
+  rb_ary_delete_at(self_t->series, idx);
   if (self_t->chart_type == PIE_CHART)
     shoes_plot_pie_dealloc(self_t);
-  // TODO: delete from self_t->series
-  
   self_t->seriescnt--;
   shoes_canvas_repaint_all(self_t->parent);  
-    
-  // printf("shoes_plot_delete (%i) called\n", idx);
   return Qtrue;
 }
 
-// odds are extremely high that this may flash or crash if called too frequently
+// odds are high that this may flash or crash if called too frequently
 VALUE shoes_plot_redraw_to(VALUE self, VALUE to_here) 
 {
   shoes_plot *self_t;
