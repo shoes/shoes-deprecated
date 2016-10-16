@@ -1815,7 +1815,7 @@ shoes_dialog_chooser(VALUE self, char *title, GtkFileChooserAction act, const gc
     path = rb_str_new2(filename);
   }
   if (!NIL_P(attr) && !NIL_P(shoes_hash_get(attr, rb_intern("title"))))
-    free(title);
+    SHOE_FREE(title);
   gtk_widget_destroy(dialog);
   return path;
 }
