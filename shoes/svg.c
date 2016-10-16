@@ -26,6 +26,8 @@ shoes_svghandle_free(shoes_svghandle *handle)
 {
   if (handle->handle != NULL)
     g_object_unref(handle->handle);
+  RUBY_CRITICAL(SHOE_FREE(handle->subid));
+  RUBY_CRITICAL(SHOE_FREE(handle->path));
   RUBY_CRITICAL(SHOE_FREE(handle));
 }
 
@@ -75,7 +77,7 @@ shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
     if (self_t->handle == NULL) {
       self_t->data = NULL;
       printf("Failed SVG: %s\n", gerror->message);
-    } else self_t->data = strdup(RSTRING_PTR(fromstring));
+    } //else self_t->data = strdup(RSTRING_PTR(fromstring));
     
   } else {
     // never reached, handled by shoes_svg_new
