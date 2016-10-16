@@ -21,19 +21,10 @@ shoes_plot_mark(shoes_plot *self_t)
   rb_gc_mark_maybe(self_t->parent);
   rb_gc_mark_maybe(self_t->attr);
   rb_gc_mark_maybe(self_t->series);
-  rb_gc_mark_maybe(self_t->values);
-  rb_gc_mark_maybe(self_t->xobs);
-  rb_gc_mark_maybe(self_t->minvs);
-  rb_gc_mark_maybe(self_t->maxvs);
-  rb_gc_mark_maybe(self_t->names);
-  rb_gc_mark_maybe(self_t->long_names);
-  rb_gc_mark_maybe(self_t->strokes);
-  rb_gc_mark_maybe(self_t->nubs);
   rb_gc_mark_maybe(self_t->title);
   rb_gc_mark_maybe(self_t->caption);
   rb_gc_mark_maybe(self_t->legend);
   rb_gc_mark_maybe(self_t->background);
-  rb_gc_mark_maybe(self_t->color);
 }
 
 void
@@ -64,15 +55,6 @@ shoes_plot_alloc(VALUE klass)
   shoes_plot *plot = SHOE_ALLOC(shoes_plot);
   SHOE_MEMZERO(plot, shoes_plot, 1);
   obj = Data_Wrap_Struct(klass, shoes_plot_mark, shoes_plot_free, plot);
-  plot->values = rb_ary_new();
-  plot->xobs  = rb_ary_new();
-  plot->minvs = rb_ary_new();
-  plot->maxvs = rb_ary_new();
-  plot->names = rb_ary_new();
-  plot->long_names = rb_ary_new();
-  plot->strokes = rb_ary_new();
-  plot->nubs = rb_ary_new();
-  plot->color = rb_ary_new();
   plot->parent = Qnil;
   plot->series = rb_ary_new();
   plot->st = NULL;
@@ -344,16 +326,6 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
     self_t->end_idx = NUM2INT(rbsz);
     self_t->seriescnt++;
     rb_ary_store(self_t->series, i, newseries);
-    // for compatibility with the old way, we need to dup
-    rb_ary_store(self_t->values, i, cs->values);
-    rb_ary_store(self_t->xobs, i, cs->labels);
-    rb_ary_store(self_t->maxvs, i, cs->maxv);
-    rb_ary_store(self_t->minvs, i, cs->minv);
-    rb_ary_store(self_t->names, i, cs->name);
-    rb_ary_store(self_t->long_names, i, cs->desc);
-    rb_ary_store(self_t->strokes, i, cs->strokes);
-    rb_ary_store(self_t->nubs, i, cs->point_type);
-    rb_ary_store(self_t->color, i, cs->color);
     // radar & pie chart types need to pre-compute some geometery and store it
     // in their own structs.  
     if (self_t->chart_type == PIE_CHART) 
@@ -489,15 +461,7 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
       rbstroke, rbnubtype, color_wrapped);
       break;
     default:  // these charts use the old code
-      rb_ary_store(self_t->values, i, rbvals);
-      rb_ary_store(self_t->xobs, i, rbobs);
-      rb_ary_store(self_t->maxvs, i, rbmax);
-      rb_ary_store(self_t->minvs, i, rbmin);
-      rb_ary_store(self_t->names, i, rbshname);
-      rb_ary_store(self_t->long_names, i, rblgname);
-      rb_ary_store(self_t->strokes, i, rbstroke);
-      rb_ary_store(self_t->nubs, i, rbnubtype);
-      rb_ary_store(self_t->color, i, color_wrapped);
+      ;
   }
   rb_ary_store(self_t->series, i, cs);
   self_t->beg_idx = 0;
@@ -523,25 +487,15 @@ VALUE shoes_plot_delete(VALUE self, VALUE series)
   int idx = NUM2INT(series);
   if (! (idx >= 0 && idx <= self_t->seriescnt))
     rb_raise(rb_eArgError, "plot.delete arg is out of range");
+  rb_ary_delete_at(self_t->series, idx);
   if (self_t->chart_type == PIE_CHART)
     shoes_plot_pie_dealloc(self_t);
-  //rb_ary_delete_at(self_t->sizes, idx);
-  rb_ary_delete_at(self_t->values, idx);
-  rb_ary_delete_at(self_t->xobs, idx);
-  rb_ary_delete_at(self_t->maxvs, idx);
-  rb_ary_delete_at(self_t->minvs, idx);
-  rb_ary_delete_at(self_t->names, idx);
-  rb_ary_delete_at(self_t->long_names, idx);
-  rb_ary_delete_at(self_t->strokes, idx); 
-  rb_ary_delete_at(self_t->nubs, idx);
   self_t->seriescnt--;
   shoes_canvas_repaint_all(self_t->parent);  
-    
-  // printf("shoes_plot_delete (%i) called\n", idx);
   return Qtrue;
 }
 
-// odds are extremely high that this may flash or crash if called too frequently
+// odds are high that this may flash or crash if called too frequently
 VALUE shoes_plot_redraw_to(VALUE self, VALUE to_here) 
 {
   shoes_plot *self_t;
