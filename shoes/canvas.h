@@ -347,17 +347,6 @@ typedef struct {
   int boundbox;
   int missing;   // repurposed in pie_charts so beware
   VALUE background;
-  // warning these will be moving to a separate ruby class/struct: in series
-  VALUE maxvs;  // these will be Ruby arrays of things (0..seriescnt)
-  VALUE minvs;
-  VALUE values;
-  VALUE names;  
-  VALUE long_names; // for y axis display?? Someday
-  VALUE xobs; 
-  VALUE strokes;
-  VALUE nubs;
-  VALUE color;
-  // now the singles for the plot
   VALUE title;  
   VALUE legend; 
   VALUE caption;
