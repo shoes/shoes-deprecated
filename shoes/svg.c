@@ -26,6 +26,9 @@ shoes_svghandle_free(shoes_svghandle *handle)
 {
   if (handle->handle != NULL)
     g_object_unref(handle->handle);
+  if (handle->path) free(handle->path);
+  if (handle->data) free(handle->data); 
+  if (handle->subid) free(handle->subid);
   RUBY_CRITICAL(SHOE_FREE(handle));
 }
 
