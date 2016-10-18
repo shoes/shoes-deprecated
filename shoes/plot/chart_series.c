@@ -72,7 +72,6 @@ shoes_chart_series_new(int argc, VALUE *argv, VALUE self)
   VALUE rbsz, rbvals, rblabels, rbmin, rbmax, rbname, rbdesc, rbcolor;
   VALUE rbstroke, rbpoint, rbpoint_type  = Qnil;
   VALUE color_wrapped = Qnil;
-  Data_Get_Struct(self, shoes_chart_series, self_t);
   rb_arg_list args;
   switch (rb_parse_args(argc, argv, "h", &args)) {
   case 1:

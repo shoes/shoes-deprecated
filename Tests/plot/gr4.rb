@@ -21,12 +21,13 @@ Shoes.app width: 620, height: 480 do
     @grf.add  values: @values1, 
       name: "Wind", min: 12.5, max: 35 , color: "dodgerblue",
       points: "dot", strokewidth: 1
-    #cs = app.chart_series values: @values2, name: "Clouds",
-    #  min: 10, max: 50 , color: "black",
-    #  points: "box", strokewidth: 1, desc: "Cloud Cover (percentage)"
-    @grf.add  values: @values2, name: "Clouds",
-      desc: "Cloud Cover (percentage)", min: 10, max: 50 , color: "black",
-      points: "box", strokewidth: 1
+    cs = app.chart_series values: @values2, name: "Clouds",
+      min: 10, max: 50 , color: "black",
+      points: "box", strokewidth: 1, desc: "Cloud Cover (percentage)"
+    @grf.add cs
+    #@grf.add  values: @values2, name: "Clouds",
+    #  desc: "Cloud Cover (percentage)", min: 10, max: 50 , color: "black",
+    #  points: "box", strokewidth: 1
   end
 end
 

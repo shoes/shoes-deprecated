@@ -35,9 +35,13 @@ Shoes.app width: 800, height: 500 do
     @grf2.add values: @values1, labels: @x_axis1,
        name: "Bar", min: 0, max:  30, desc: "foobar Yy", color: "crimson",
        points: true, strokewidth: 12
-    @grf2.add values: @values2, labels: @x_axis2,
+    cs2 = app.chart_series values: @values2, labels: @x_axis2,
        name: "Tab", min: 50, max: 230, desc: "BarTab", color: "green",
        points: true, strokewidth: 6
+    @grf2.add cs2
+    #@grf2.add values: @values2, labels: @x_axis2,
+    #   name: "Tab", min: 50, max: 230, desc: "BarTab", color: "green",
+    #   points: true, strokewidth: 6
   end
 end
 
