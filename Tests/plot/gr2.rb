@@ -25,7 +25,7 @@ Shoes.app width: 800, height: 500 do
       
       end
     end
-    cs1 = app.chart_series values: @values1, labels: @x_axis1,
+    cs1 = chart_series values: @values1, labels: @x_axis1,
        name: "foobar", min: 6, max: 26 , desc: "foobar Yy", color: "dodgerblue",
        points: true
     @grf.add cs1

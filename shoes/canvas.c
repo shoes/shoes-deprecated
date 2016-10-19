@@ -781,6 +781,16 @@ shoes_canvas_svg(int argc, VALUE *argv, VALUE self)
   return widget;
 }
 
+VALUE 
+shoes_canvas_svghandle(int argc, VALUE *argv, VALUE self)
+{
+  VALUE han;
+  SETUP();
+  han = shoes_svghandle_new(argc, argv, self);
+  return han;
+}
+
+
 VALUE
 shoes_canvas_plot(int argc, VALUE *argv, VALUE self)
 {
@@ -789,6 +799,15 @@ shoes_canvas_plot(int argc, VALUE *argv, VALUE self)
   widget = shoes_plot_new(argc, argv, self);
   shoes_add_ele(canvas, widget);
   return widget;
+}
+
+VALUE
+shoes_canvas_chart_series(int argc, VALUE *argv, VALUE self)
+{
+  VALUE cs;
+  SETUP();
+  cs = shoes_chart_series_new(argc, argv, self);
+  return cs;
 }
 
 

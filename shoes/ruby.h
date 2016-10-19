@@ -253,7 +253,9 @@ SYMBOL_DEFS(SYMBOL_EXTERN);
   f("+every", every, -1); \
   f("+timer", timer, -1); \
   f("+svg", svg, -1); \
+  f("+svghandle", svghandle, -1); \
   f("+plot", plot, -1); \
+  f("+chart_series", chart_series, -1); \
   f("+shape", shape, -1); \
   f(".move_to", move_to, 2); \
   f(".line_to", line_to, 2); \

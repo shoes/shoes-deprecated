@@ -4676,18 +4676,9 @@ shoes_ruby_init()
   rb_define_method(cApp, "slot", CASTHOOK(shoes_app_slot), 0);
   rb_define_method(cApp, "set_window_icon_path", CASTHOOK(shoes_app_set_icon), 1); // New in 3.2.19
   rb_define_method(cApp, "set_window_title", CASTHOOK(shoes_app_set_wtitle), 1); // New in 3.2.19
-  rb_define_method(cApp, "svghandle", CASTHOOK(shoes_svghandle_new), -1); 
-  rb_define_method(cApp, "chart_series", CASTHOOK(shoes_chart_series_new), -1);
+  //rb_define_method(cApp, "svghandle", CASTHOOK(shoes_svghandle_new), -1); // Deprecate somehow
+  //rb_define_method(cApp, "chart_series", CASTHOOK(shoes_chart_series_new), -1);
   
-  cSvgHandle = rb_define_class_under(cTypes, "SvgHandle", rb_cObject); // new with 3.3.0
-  rb_define_alloc_func(cSvgHandle, shoes_svghandle_alloc);
-  rb_define_method(cSvgHandle, "width", CASTHOOK(shoes_svghandle_get_width), 0);
-  rb_define_method(cSvgHandle, "height", CASTHOOK(shoes_svghandle_get_height), 0);
-  rb_define_method(cSvgHandle, "group?", CASTHOOK(shoes_svghandle_has_group), 1);
-  
-  cChartSeries =rb_define_class_under(cTypes, "ChartSeries", rb_cObject); // 3.3.2
-  rb_define_alloc_func(cChartSeries, shoes_chart_series_alloc);
-
   cDialog = rb_define_class_under(cTypes, "Dialog", cApp);
 
   eInvMode = rb_define_class_under(cTypes, "InvalidModeError", rb_eStandardError);
@@ -4864,6 +4855,15 @@ shoes_ruby_init()
   rb_define_method(cSvg, "scale", CASTHOOK(shoes_svg_scale), -1);
   rb_define_method(cSvg, "skew", CASTHOOK(shoes_svg_skew), -1);
   
+  cSvgHandle = rb_define_class_under(cTypes, "SvgHandle", rb_cObject); // new with 3.3.0
+  rb_define_alloc_func(cSvgHandle, shoes_svghandle_alloc);
+  rb_define_method(cSvgHandle, "width", CASTHOOK(shoes_svghandle_get_width), 0);
+  rb_define_method(cSvgHandle, "height", CASTHOOK(shoes_svghandle_get_height), 0);
+  rb_define_method(cSvgHandle, "group?", CASTHOOK(shoes_svghandle_has_group), 1);
+
+  cChartSeries = rb_define_class_under(cTypes, "chart_series", rb_cObject); // 3.3.2
+  rb_define_alloc_func(cChartSeries, shoes_chart_series_alloc);
+
   cPlot   = rb_define_class_under(cTypes, "Plot", rb_cObject);
   rb_define_alloc_func(cPlot, shoes_plot_alloc);
   // methods unique to plot
