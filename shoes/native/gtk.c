@@ -1785,6 +1785,8 @@ shoes_dialog_chooser(VALUE self, char *title, GtkFileChooserAction act, const gc
 {
   VALUE path = Qnil;
   GLOBAL_APP(app);
+  if (!NIL_P(attr) && !NIL_P(shoes_hash_get(attr, rb_intern("title"))))
+    title = strdup(RSTRING_PTR(shoes_hash_get(attr, rb_intern("title"))));
   GtkWidget *dialog = gtk_file_chooser_dialog_new(title, APP_WINDOW(app), act,
     _("_Cancel"), GTK_RESPONSE_CANCEL, button, GTK_RESPONSE_ACCEPT, NULL);
   if (act == GTK_FILE_CHOOSER_ACTION_SAVE)
@@ -1812,6 +1814,8 @@ shoes_dialog_chooser(VALUE self, char *title, GtkFileChooserAction act, const gc
     filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
     path = rb_str_new2(filename);
   }
+  if (!NIL_P(attr) && !NIL_P(shoes_hash_get(attr, rb_intern("title"))))
+    SHOE_FREE(title);
   gtk_widget_destroy(dialog);
   return path;
 }
