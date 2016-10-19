@@ -74,7 +74,7 @@ end
     elsif File.exist? "#{DIR}/paris.svg"
       "#{DIR}/paris.svg"
     else
-      ask_open_file "Locate paris.svg"
+      ask_open_file title: "Locate paris.svg"
     end
   end
 
