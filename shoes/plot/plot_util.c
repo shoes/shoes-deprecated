@@ -349,3 +349,22 @@ void shoes_plot_draw_nub(cairo_t *cr, shoes_plot *plot,  double x, double y, int
   }
 }
 
+// initialize the default colors.  Yes it could be a chart option. TODO ?
+void shoes_plot_util_default_colors(shoes_plot *plot)
+{
+  rb_ary_store(plot->default_colors, 0, shoes_hash_get(cColors, rb_intern("blue")));
+  rb_ary_store(plot->default_colors, 1, shoes_hash_get(cColors, rb_intern("red")));
+  rb_ary_store(plot->default_colors, 2, shoes_hash_get(cColors, rb_intern("green")));
+  rb_ary_store(plot->default_colors, 3, shoes_hash_get(cColors, rb_intern("coral")));
+  rb_ary_store(plot->default_colors, 4, shoes_hash_get(cColors, rb_intern("purple")));
+  rb_ary_store(plot->default_colors, 5, shoes_hash_get(cColors, rb_intern("orange")));
+  rb_ary_store(plot->default_colors, 6, shoes_hash_get(cColors, rb_intern("aqua")));
+  rb_ary_store(plot->default_colors, 7, shoes_hash_get(cColors, rb_intern("brown")));
+  rb_ary_store(plot->default_colors, 8, shoes_hash_get(cColors, rb_intern("darkolive")));
+  rb_ary_store(plot->default_colors, 9, shoes_hash_get(cColors, rb_intern("hotpink")));
+  rb_ary_store(plot->default_colors, 10, shoes_hash_get(cColors, rb_intern("lightsky")));
+  rb_ary_store(plot->default_colors, 11, shoes_hash_get(cColors, rb_intern("greenyellow")));
+  rb_ary_store(plot->default_colors, 12, shoes_hash_get(cColors, rb_intern("gray")));
+  rb_ary_store(plot->default_colors, 13, shoes_hash_get(cColors, rb_intern("black")));
+}
+

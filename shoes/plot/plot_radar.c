@@ -47,7 +47,7 @@ void shoes_plot_radar_init(shoes_plot *plot) {
     fraction = v / rdrchart->maxv;
     slice->startAngle = 2 * angle * SHOES_PI;
     slice->endAngle = 2 * (angle + fraction) * SHOES_PI;
-    VALUE wedge_color = shoes_plot_radar_color(i);
+    VALUE wedge_color = rb_ary_entry(plot->default_colors, i);
     Data_Get_Struct(wedge_color, shoes_color, slice->color);
   }
 }
@@ -127,54 +127,7 @@ void shoes_plot_draw_radar_chart(cairo_t *cr, shoes_plot *plot)
   cairo_restore(cr);
   shoes_plot_set_cairo_default(cr, plot);
 }
-;
-// Yes this could be precomputed. It isn't. TODO:
-VALUE shoes_plot_radar_color(int ser)
-{
-  VALUE color_wrapped = Qnil;
-      switch (ser) {
-      case 0: 
-        color_wrapped = shoes_hash_get(cColors, rb_intern("blue"));
-        break;
-      case 1:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("red"));
-        break;
-      case 2:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("green"));
-        break;
-      case 3:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("coral"));
-        break;
-      case 4:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("purple"));
-        break;
-      case 5:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("orange"));
-        break;
-      case 6:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("aqua"));
-        break;
-      case 7:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("brown"));
-        break;
-      case 8:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("darkolivegreen"));
-        break;
-      case 9:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("hotpink"));
-        break;
-      case 10:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("lightskyblue"));
-        break;
-      case 11:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("greenyellow"));
-        break;
-      default:
-        // too many wedges. 
-        color_wrapped = shoes_hash_get(cColors, rb_intern("gray"));
-      }
-    return color_wrapped;
-}
+
 
 // just draws a box
 void shoes_plot_radar_legend_box(cairo_t *cr, shoes_plot *self_t, 

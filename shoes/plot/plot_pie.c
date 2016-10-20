@@ -8,7 +8,6 @@
  * because its kind of Ruby/Shoes friendly and short-ish.
 */
 // Forward declares in this file
-VALUE shoes_plot_pie_color(int);
 
 // called when the data series is added to the chart.
 // Trying very hard to not pollute Shoes C name space and h files with plot stuff
@@ -44,7 +43,8 @@ void shoes_plot_pie_init(shoes_plot *plot) {
     fraction = v / piechart->maxv;
     slice->startAngle = 2 * angle * SHOES_PI;
     slice->endAngle = 2 * (angle + fraction) * SHOES_PI;
-    VALUE wedge_color = shoes_plot_pie_color(i);
+    //VALUE wedge_color = shoes_plot_pie_color(i);
+    VALUE wedge_color = rb_ary_entry(plot->default_colors, i);
     Data_Get_Struct(wedge_color, shoes_color, slice->color);
   }
 }
@@ -109,54 +109,6 @@ void shoes_plot_draw_pie_chart(cairo_t *cr, shoes_plot *plot)
   }
   shoes_plot_set_cairo_default(cr, plot);
 }
-;
-// Yes this could be precomputed. It isn't. TODO:
-VALUE shoes_plot_pie_color(int ser)
-{
-  VALUE color_wrapped = Qnil;
-      switch (ser) {
-      case 0: 
-        color_wrapped = shoes_hash_get(cColors, rb_intern("blue"));
-        break;
-      case 1:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("red"));
-        break;
-      case 2:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("green"));
-        break;
-      case 3:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("coral"));
-        break;
-      case 4:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("purple"));
-        break;
-      case 5:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("orange"));
-        break;
-      case 6:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("aqua"));
-        break;
-      case 7:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("brown"));
-        break;
-      case 8:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("darkolivegreen"));
-        break;
-      case 9:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("hotpink"));
-        break;
-      case 10:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("lightskyblue"));
-        break;
-      case 11:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("greenyellow"));
-        break;
-      default:
-        // too many wedges. 
-        color_wrapped = shoes_hash_get(cColors, rb_intern("gray"));
-      }
-    return color_wrapped;
-}
 
 // just draws a box
 void shoes_plot_pie_legend_box(cairo_t *cr, shoes_plot *self_t, 
@@ -210,7 +162,7 @@ void shoes_plot_draw_pie_legend(cairo_t *cr, shoes_plot *self_t) {
   for (i = 0; i < numstrs; i++) {
     cairo_move_to(cr, box_x, box_y);
     shoes_color *color;
-    VALUE rbcolor = shoes_plot_pie_color(i);
+    VALUE rbcolor = rb_ary_entry(self_t->default_colors, i);
     Data_Get_Struct(rbcolor, shoes_color, color);
     cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0,
        color->b / 255.0, color->a / 255.0);

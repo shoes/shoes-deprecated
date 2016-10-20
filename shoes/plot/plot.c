@@ -25,6 +25,7 @@ shoes_plot_mark(shoes_plot *self_t)
   rb_gc_mark_maybe(self_t->caption);
   rb_gc_mark_maybe(self_t->legend);
   rb_gc_mark_maybe(self_t->background);
+  rb_gc_mark_maybe(self_t->default_colors);
 }
 
 void
@@ -64,6 +65,8 @@ shoes_plot_alloc(VALUE klass)
   plot->missing = MISSING_SKIP;
   plot->chart_type = LINE_CHART;
   plot->background = Qnil;
+  plot->default_colors = rb_ary_new();
+  shoes_plot_util_default_colors(plot);
   plot->c_things = NULL;
   return obj;
 }
@@ -75,7 +78,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   VALUE title = Qnil, caption = Qnil, fontreq = Qnil, auto_grid = Qnil;
   VALUE x_ticks = Qnil, y_ticks = Qnil, boundbox = Qnil;
   VALUE missing = Qnil, chart_type = Qnil, background = Qnil;
-  VALUE pie_pct = Qnil;
+  VALUE pie_pct = Qnil, colors = Qnil;
   shoes_canvas *canvas;
   Data_Get_Struct(parent, shoes_canvas, canvas);
   
@@ -101,6 +104,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     background = shoes_hash_get(attr, rb_intern("background"));
     boundbox = shoes_hash_get(attr, rb_intern("boundary_box"));
     pie_pct = shoes_hash_get(attr, rb_intern("pie_percent"));
+    colors = shoes_hash_get(attr, rb_intern("colors"));
     // there may be many other things in that hash :-)
   } else {
     rb_raise(rb_eArgError, "Plot: missing mandatory {options}");
@@ -238,9 +242,20 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   } else {
     self_t->background = shoes_hash_get(cColors, rb_intern("white"));
   }
+  
+  //Override series default colors? (created in alloc)
+  if  (! NIL_P(colors) && TYPE(colors) == T_ARRAY) {
+    int sz = RARRAY_LEN(colors);
+    int i;
+    for (i = 0; i < sz; i++) {
+      char *clrn = RSTRING_PTR(rb_ary_entry(colors, i));
+      VALUE ndclr = shoes_hash_get(cColors, rb_intern(clrn));
+      rb_ary_store(self_t->default_colors, i, ndclr);
+    }
+  } 
+  
   self_t->parent = parent;
   self_t->attr = attr;
-  
   // initialize cairo matrice used in transform methods (rotate, scale, skew, translate)
   self_t->st = shoes_transform_touch(canvas->st);
   
@@ -337,7 +352,10 @@ VALUE shoes_plot_add(VALUE self, VALUE theseries)
       shoes_plot_pie_init(self_t);
     else if (self_t->chart_type == RADAR_CHART) 
      shoes_plot_radar_init(self_t);
-    
+    // We need to specify a default color if we don't have an explicit one
+    if (NIL_P(cs->color)) {
+      cs->color = rb_ary_entry(self_t->default_colors, i);
+    }
     shoes_canvas_repaint_all(self_t->parent);
     return self;
   }

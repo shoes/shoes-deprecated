@@ -120,6 +120,7 @@ extern void shoes_chart_series_Cinit(shoes_chart_series *, VALUE, VALUE,
     VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE);
 // plot utility functions (in plot_util.c)
 extern void shoes_plot_set_cairo_default(cairo_t *, shoes_plot *);
+extern void shoes_plot_util_default_colors(shoes_plot *);
 extern void shoes_plot_draw_title(cairo_t *, shoes_plot *);
 extern void shoes_plot_draw_caption(cairo_t *,shoes_plot *);
 extern void shoes_plot_draw_fill(cairo_t *, shoes_plot *);
