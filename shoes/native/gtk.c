@@ -1824,9 +1824,27 @@ VALUE
 shoes_dialog_open(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
+#if 0
+  VALUE attr = Qnil;
+  char *title;
+  switch (rb_parse_args(argc, argv, "|h", &args)) {
+    case 0:
+      title = strdup("Open file...");
+      break;
+    case 1:
+      attr = args.a[0];
+      title = strdup(RSTRING_PTR(shoes_hash_get(attr, rb_intern("title"))));
+      break;
+  }
+  shoes_dialog_chooser(self, title, GTK_FILE_CHOOSER_ACTION_OPEN,
+    _("_Open"), args.a[0]);
+  free(title); 
+  return;
+#else
   rb_parse_args(argc, argv, "|h", &args);
   return shoes_dialog_chooser(self, "Open file...", GTK_FILE_CHOOSER_ACTION_OPEN,
-    _("_Open"), args.a[0]);
+     _("_Open"), args.a[0]);
+#endif
 }
 
 VALUE

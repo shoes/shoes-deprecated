@@ -171,7 +171,7 @@ Shoes.app width: 620, height: 610 do
       end
       button "load file" do 
         Dir.chdir(@loaddir) do 
-          filename = ask_open_file
+          filename = ask_open_file title: "Please be a csv file"
           if filename 
               @series << DataSeries.new(filename)
               newidx = @series.size - 1
