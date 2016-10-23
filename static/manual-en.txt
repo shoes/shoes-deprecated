@@ -4192,6 +4192,184 @@ If loaded media has a video track, fetches it's real height. This is not necessa
 
 If loaded media has a video track, fetches it's real width. See video_track_height() above.
 
+== Plot ==
+
+In Shoes 3.3.2+ you can draw some simple plots or charts or graphs. Line charts,
+column charts, scatter charts, pie charts and a variation of Line charts for time series.
+
+A plot widget is a rectangular space on the screen you can place in in a stack
+or flow just like any other element. You'll have to specify the height and width in pixels and
+then you pass in a hash of options that we'll discuss. Consider this example:
+
+{{{Shoes.app width: 800, height: 500 do
+  stack do
+    para "Plot Demo Line and Column"
+    flow do 
+      button "quit" do Shoes.quit end
+    end
+    widget_width = 400
+    widget_height = 300
+    stack do
+      flow do
+        @grf = plot widget_width, widget_height, title: "My Graph", caption: 
+          "Look at that! Booyah!!" , font: "Helvetica", auto_grid: true,
+          default: "skip", background: "honeydew"
+         @grf2 = plot widget_width, widget_height+100, title: "Column Graph", caption: 
+          "Amazing!!" , font: "Mono", auto_grid: false, 
+          default: "skip", background: "cornsilk", chart: "column", boundary_box: false
+      end
+    end
+  end
+end
+}}}
+
+Click the Run this button and continue reading.
+
+That example doesn't draw any data points! Correct-o-mundo! We have to add them and we'll get to how to
+do that soon but there are a bunch of options you want to consider. The most important option is
+that chart: <string> and  know that not all options make sense for all chart types. Look closely and you'll notice
+that the title string is displayed inside the plot widget. So is the caption string. And there is too much empty
+space at the bottom of the widget. 
+
+To draw data inside the plot widget we add another hash to the plot. In this example we
+are going to draw two sets of data points and labels into two different chart_types.
+
+{{{
+Shoes.app width: 800, height: 500 do
+  @values1 = [24, 22, 10, 13, 20, 8, 22]
+  @x_axis1 = ['a','b','c','d','e','f', 'g']
+  @values2 = [200, 150, 75, 125, 75, 225, 125] 
+  @x_axis2 = ['a','b','c','d','e','f', 'g']
+  stack do
+    para "Plot Demo Line and Column"
+    flow do 
+      button "quit" do Shoes.quit end
+    end
+    widget_width = 400
+    widget_height = 300
+    stack do
+      flow do
+        @grf = plot widget_width, widget_height, title: "My Graph", caption: 
+          "Look at that! Booyah!!" , font: "Helvetica", auto_grid: true,
+          default: "skip", background: "honeydew"
+         @grf2 = plot widget_width, widget_height+100, title: "Column Graph", caption: 
+          "Amazing!!" , font: "Mono", auto_grid: false, 
+          default: "skip", background: "cornsilk", chart: "column", boundary_box: false
+      end
+    end
+    @grf.add values: @values1, labels: @x_axis1,
+      name: "foobar", min: 6, max: 26 , desc: "foobar Yy", color: "dodgerblue",
+       points: true
+    @grf.add values: @values2, labels: @x_axis2,
+       name: "Tab", min: @values2.min, max: @values2.max, desc: "BarTab", color: "coral",
+       points: true, strokewidth: 2
+
+    @grf2.add values: @values1, labels: @x_axis1,
+       name: "Bar", min: 0, max:  30, desc: "foobar Yy", color: "crimson",
+       points: true, strokewidth: 12
+    cs2 = chart_series values: @values2, labels: @x_axis2,
+       name: "Tab", min: 50, max: 230, desc: "BarTab", color: "green",
+       points: true, strokewidth: 6
+    @grf2.add cs2
+  end
+end
+}}}
+
+If you look closely, you'll notice most of those add's are the same except the second
+add to the column graph creates a chart_series first and then adds that to plot widget.
+instead of a hash.
+
+[[Chart_series]] is documented in the Advanced Section of the manual. If you prefer to add a hash
+of options, Shoes will create a chart_series for you. We'll touch on the obvious settings her.
+
+Now you know how it all comes together in some kind of complicated dance of options. Some options belong
+to a plot and some options belong to one set of data in the plot (aka the chart_series).
+
+=== plot width, height, {options} ===
+
+Creates a plot widget of width, height using the options given. The data inside that rectangle
+is auto-sized, auto-scaled to fit as best it can in that rectangle. 
+
+=== chart: <string> ===
+
+String is one of "line", "column", "scatter", "pie" or "timeseries" This is the type of
+chart you want for this plot widget. Timeseries is like "line" except it has extra options
+for interacting with very large data sets with hundreds or thousands of data points.
+
+=== font: <string> ===
+
+This is the Shoes font name to be used for all text in this plot widget.
+You have no control over which point size is used where. Default is "Helvitica" and
+if you happen to pick some font that only exists on your machine, Shoes may default
+to something you don't want on another machine or OS without that font.
+
+=== title: <string> ===
+
+The string will be drawn, centered, at the top of plot in the chosen font. The point size and style
+will be 16 bold.
+
+=== caption: <string> ===
+
+The string will drawn at the bottom of the plot widget as 12 point normal. Do 
+not attempt to draw multiple lines captions with a newline in the string. Multiple line 
+captions (and titles) won't work so don't do it. 
+
+=== background: <string> ===
+
+String is something in the [[Colors The Colors list]]. The background is for
+the entire widget space and some plot types may not respect the setting.
+
+=== boundary_box: <boolean> ===
+
+If true then a box is drawn around the inner data area.  Not all chart types
+will respect the setting (Pie chart for one won't- doesn't hurt if specified, it just won't
+be drawn.
+
+=== auto_grid: <boolean> ===
+
+This another option that is only respected by certain chart types where it makes sense.
+(Line, scatter, timeseries and column). 
+Draws vertical and horizontal lines at what Shoes thinks would be best for the
+data given. 
+
+=== default: <string> ===
+
+This controls how the plot will deal with nils in your data arrays or labels arrays that you 
+add to to the plot. The default is "missing", but some chart types will respect "max" and "min"
+so a missing value (nil) is set to the maximum or minimum of their range. Usually, this is not
+visually helpful can be confusing.  If you need this option you should clean up your data or find 
+a more compentent chart application and not use Shoes for more than exploratory work. Just Saying. 
+"A man has got to now his limits".
+
+=== click: proc {|btn, l, t| } ===
+
+Only (barely) useful for TimeSeries charts. If the user clicks in the content area of the
+plot, Shoes will call the proc with the button number and the top, left values of the mouse scaled to in the content
+area. Figuring out what to do with that info is very complicated.
+
+=== plot.save_as <filename> ===
+
+This method will draw the plot to an .svg, .pdf ,ps, or .png depending on the extention 
+of the filename
+
+=== plot.zoom (begin, end)  ===
+
+This method only works on Timeseries plots (think about thousand of data points).
+Remember that you can draw up to 6 data sets (chart_series) in some plot types. 
+You can set the beginning and ending indicies (integers) for display. This and the click:
+proc and some keypress handling will allow you to zoom in, zoom out, and shift left or right.
+It does not change the data. It only affects which part of your data is drawn.
+
+=== plot.redraw_to(index) ===
+
+Timeseries and line plots can be appended to with new data (perhaps you're collecting data
+from a sensor or a remote website or some sort of progress starus from a long running process)
+
+This is a plot method!! If your have two or three data sets displayed in one plot widget then
+it's up to you to update all of them before calling redraw_to and if your zooming in and appending 
+you'll have to figure it out because redraw_to will reset the plot begin to 0 and the end index to the given index which
+really should be a new data point.
+
 
 = Furthermore =
  Run the samples from here, or read more Shoes information on the Internet. 
@@ -4493,6 +4671,12 @@ Returns the internal svg handle (group?) height. Not very useful.
 Returns true or false (nil) if the svghandle has a group matching the string
 which starts with '#'
 »
+
+== Chart_series ==
+
+This an object that you can explicitly create (or subclass if needed). It describes
+a group of data (series) to be drawn in a plot. 
+
 == Terminal ==
 
 Sometimes you want a logging window or even a window you can read keystrokes
