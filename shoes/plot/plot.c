@@ -231,14 +231,8 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   if (!NIL_P(y_ticks))
     self_t->y_ticks = NUM2INT(y_ticks);
     
-  if (! NIL_P(background)) {
-    if (TYPE(background) != T_STRING)
-        rb_raise(rb_eArgError, "plot backround color must be a string");
-    char *cstr = RSTRING_PTR(background);
-    VALUE cval = shoes_hash_get(cColors, rb_intern(cstr)); // segfault or raise? 
-    if (NIL_P(cval))
-      rb_raise(rb_eArgError, "plot.add color: not a known color");
-    self_t->background = cval;
+  if (! NIL_P(background) && rb_obj_is_kind_of(background, cColor)) {
+    self_t->background = background;
   } else {
     self_t->background = shoes_hash_get(cColors, rb_intern("white"));
   }
@@ -248,9 +242,8 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     int sz = RARRAY_LEN(colors);
     int i;
     for (i = 0; i < sz; i++) {
-      char *clrn = RSTRING_PTR(rb_ary_entry(colors, i));
-      VALUE ndclr = shoes_hash_get(cColors, rb_intern(clrn));
-      rb_ary_store(self_t->default_colors, i, ndclr);
+      VALUE clr = rb_ary_entry(colors, i);
+      rb_ary_store(self_t->default_colors, i, clr);
     }
   } 
   
@@ -333,7 +326,7 @@ VALUE shoes_plot_add(VALUE self, VALUE theseries)
   if (i >= 6) {
     rb_raise(rb_eArgError, "Maximum of 6 series");
   }
-  // we got hash - convert it to a chart_series
+  // we got a hash - convert it to a chart_series
   if (TYPE(theseries) == T_HASH) { 
     newseries = shoes_chart_series_new(1, &theseries, self);
   }
@@ -357,7 +350,7 @@ VALUE shoes_plot_add(VALUE self, VALUE theseries)
       cs->color = rb_ary_entry(self_t->default_colors, i);
     }
     shoes_canvas_repaint_all(self_t->parent);
-    return self;
+    return newseries;
   }
   // if we get here, we don't have a chart_series and we couldn't create one
   // odds are exceptions have been raised already, but just in case:

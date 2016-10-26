@@ -55,7 +55,7 @@ void shoes_chart_series_Cinit(shoes_chart_series *self_t, VALUE rbvals, VALUE rb
   self_t->name = rbname;
   self_t->desc = rbdesc;
   if (NIL_P(rbdesc)) {
-    printf("fixme: no long name\n");
+    //printf("fixme: no long name\n");
     self_t->desc = rbname;
   }
   self_t->strokes = rbstroke;
@@ -117,12 +117,16 @@ shoes_chart_series_new(int argc, VALUE *argv, VALUE self)
     }
     // handle colors
     if (! NIL_P(rbcolor)) {
-      if (TYPE(rbcolor) != T_STRING)
-        rb_raise(rb_eArgError, "plot.add color must be a string");
-      char *cstr = RSTRING_PTR(rbcolor);
-      color_wrapped = shoes_hash_get(cColors, rb_intern(cstr));
-      if (NIL_P(color_wrapped))
-        rb_raise(rb_eArgError, "plot.add color: not a known color");
+      if (rb_obj_is_kind_of(rbcolor, cColor)) {
+        color_wrapped = rbcolor;
+      } else {
+        if (TYPE(rbcolor) != T_STRING)
+          rb_raise(rb_eArgError, "plot.add color must be a string");
+        char *cstr = RSTRING_PTR(rbcolor);
+        color_wrapped = shoes_hash_get(cColors, rb_intern(cstr));
+        if (NIL_P(color_wrapped))
+          rb_raise(rb_eArgError, "plot.add color: not a known color");
+      } 
     } else {
       // will have to accept the default colors of the chart
       color_wrapped = Qnil;
@@ -158,8 +162,6 @@ shoes_chart_series_new(int argc, VALUE *argv, VALUE self)
   } else {
     rb_raise(rb_eArgError, "misssing something in plot.add \n");
   }
-  //VALUE cs = shoes_chart_series_alloc(parent);
-  //shoes_chart_series *self_t = shoes_chart_series_alloc(parent);
   VALUE obj = shoes_chart_series_alloc(cChartSeries);
   Data_Get_Struct(obj, shoes_chart_series, self_t);
   shoes_chart_series_Cinit(self_t, rbvals, rblabels, rbmax, rbmin, rbname, rbdesc,
@@ -167,3 +169,81 @@ shoes_chart_series_new(int argc, VALUE *argv, VALUE self)
   return obj;
 }
 
+// Simple getter/setter  methods 
+VALUE 
+shoes_chart_series_values(VALUE self)
+{
+  shoes_chart_series *cs;
+  Data_Get_Struct(self, shoes_chart_series, cs);
+  return cs->values;
+}
+
+VALUE 
+shoes_chart_series_labels(VALUE self)
+{
+  shoes_chart_series *cs;
+  Data_Get_Struct(self, shoes_chart_series, cs);
+  return cs->labels;
+}
+
+VALUE shoes_chart_series_min(VALUE self)
+{
+  shoes_chart_series *cs;
+  Data_Get_Struct(self, shoes_chart_series, cs);
+  return cs->minv;
+}
+
+VALUE shoes_chart_series_min_set(VALUE self, VALUE val)
+{
+  shoes_chart_series *cs;
+  Data_Get_Struct(self, shoes_chart_series, cs);
+  cs->minv = val;
+  return cs->minv;
+}
+
+VALUE shoes_chart_series_max(VALUE self)
+{
+  shoes_chart_series *cs;
+  Data_Get_Struct(self, shoes_chart_series, cs);
+  return cs->maxv;
+}
+
+VALUE shoes_chart_series_max_set(VALUE self, VALUE val)
+{
+  shoes_chart_series *cs;
+  Data_Get_Struct(self, shoes_chart_series, cs);
+  cs->maxv = val;
+  return cs->maxv;
+}
+
+VALUE shoes_chart_series_name(VALUE self)
+{
+  shoes_chart_series *cs;
+  Data_Get_Struct(self, shoes_chart_series, cs);
+  return cs->name;
+}
+
+VALUE shoes_chart_series_desc(VALUE self)
+{
+  shoes_chart_series *cs;
+  Data_Get_Struct(self, shoes_chart_series, cs);
+  return cs->desc;
+}
+
+VALUE shoes_chart_series_desc_set(VALUE self, VALUE str)
+{
+}
+
+// ---- more interesting methods ----
+
+// Returns and an array[label, value] at idx
+VALUE
+shoes_chart_series_get(VALUE self, VALUE idx) 
+{
+}
+
+// Sets labels[idx] and values[idx]
+VALUE
+shoes_chart_series_set(VALUE self, VALUE idx, VALUE ary)
+{
+}

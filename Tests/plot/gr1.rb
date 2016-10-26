@@ -21,11 +21,11 @@ Shoes.app width: 700, height: 610 do
       end
     end
     @grf.add  values: @values1, labels: @x_axis1,
-       name: "foobar", min: 6, max: 26 , desc: "foobar Yy", color: "dodgerblue",
+       name: "foobar", min: 6, max: 26 , desc: "foobar Yy", color: dodgerblue,
        points: true
     flow do 
       button "add #2" do
-        cs2 = chart_series values: @values2, name: "bartab", min: @values2.min, max: @values2.max , color: "coral",
+        cs2 = chart_series values: @values2, name: "bartab", min: @values2.min, max: @values2.max , color: coral,
           strokewidth: 3
         @grf.add cs2
         #@grf.add values: @values2, 

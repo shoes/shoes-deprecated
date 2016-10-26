@@ -21,19 +21,19 @@ Shoes.app width: 800, height: 500 do
           default: "skip"
          @grf2 = plot widget_width, widget_height+100, title: "2nd Graph", caption: 
           "Amazing!!" , font: "Helvetica", auto_grid: false, chart: "line",
-          default: "skip", background: "cornsilk"
+          default: "skip", background: cornsilk
       
       end
     end
     cs1 = chart_series values: @values1, labels: @x_axis1,
-       name: "foobar", min: 6, max: 26 , desc: "foobar Yy", color: "dodgerblue",
+       name: "foobar", min: 6, max: 26 , desc: "foobar Yy", color: dodgerblue,
        points: true
     @grf.add cs1
     #@grf.add values: @values1, labels: @x_axis1,
-    #   name: "foobar", min: 6, max: 26 , desc: "foobar Yy", color: "dodgerblue",
+    #   name: "foobar", min: 6, max: 26 , desc: "foobar Yy", color: dodgerblue,
     #   points: true
     @grf2.add values: @values2, labels: @x_axis2,
-       name: "Bar", min: 50, max:  250, desc: "BarBaz", color: "dodgerblue",
+       name: "Bar", min: 50, max:  250, desc: "BarBaz", color: dodgerblue,
        points: true
   end
 end

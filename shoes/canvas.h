@@ -611,6 +611,18 @@ void shoes_svg_send_release(VALUE, int, int, int);
 
 VALUE shoes_chart_series_new(int, VALUE *, VALUE);
 VALUE shoes_chart_series_alloc(VALUE);
+VALUE shoes_chart_series_values(VALUE);
+VALUE shoes_chart_series_labels(VALUE);
+VALUE shoes_chart_series_min(VALUE);
+VALUE shoes_chart_series_min_set(VALUE, VALUE);
+VALUE shoes_chart_series_max(VALUE);
+VALUE shoes_chart_series_max_set(VALUE, VALUE);
+VALUE shoes_chart_series_name(VALUE);
+VALUE shoes_chart_series_desc(VALUE);
+VALUE shoes_chart_series_desc_set(VALUE, VALUE);
+
+VALUE shoes_chart_series_get(VALUE, VALUE);
+VALUE shoes_chart_series_set(VALUE, VALUE, VALUE);
 
 VALUE shoes_plot_new(int, VALUE *, VALUE);
 VALUE shoes_plot_alloc(VALUE);

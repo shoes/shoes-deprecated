@@ -19,28 +19,28 @@ Shoes.app width: 800, height: 500 do
         #para "This is mine!"
         @grf = plot widget_width, widget_height, title: "My Graph", caption: 
           "Look at that! Booyah!!" , font: "Helvetica", auto_grid: true,
-          default: "skip", background: "honeydew"
+          default: "skip", background: honeydew
          @grf2 = plot widget_width, widget_height+100, title: "Column Graph", caption: 
           "Amazing!!" , font: "Mono", auto_grid: false, 
-          default: "skip", background: "cornsilk", chart: "column", boundary_box: false
+          default: "skip", background: cornsilk, chart: "column", boundary_box: false
       end
     end
     @grf.add values: @values1, labels: @x_axis1,
-      name: "foobar", min: 6, max: 26 , desc: "foobar Yy", color: "dodgerblue",
+      name: "foobar", min: 6, max: 26 , desc: "foobar Yy", color: dodgerblue,
        points: true
     @grf.add values: @values2, labels: @x_axis2,
-       name: "Tab", min: @values2.min, max: @values2.max, desc: "BarTab", color: "coral",
+       name: "Tab", min: @values2.min, max: @values2.max, desc: "BarTab", color: coral,
        points: true, strokewidth: 2
 
     @grf2.add values: @values1, labels: @x_axis1,
-       name: "Bar", min: 0, max:  30, desc: "foobar Yy", color: "crimson",
+       name: "Bar", min: 0, max:  30, desc: "foobar Yy", color: rgb(220, 20, 60, 172),
        points: true, strokewidth: 12
     cs2 = chart_series values: @values2, labels: @x_axis2,
-       name: "Tab", min: 50, max: 230, desc: "BarTab", color: "green",
+       name: "Tab", min: 50, max: 230, desc: "BarTab", color: green,
        points: true, strokewidth: 6
     @grf2.add cs2
     #@grf2.add values: @values2, labels: @x_axis2,
-    #   name: "Tab", min: 50, max: 230, desc: "BarTab", color: "green",
+    #   name: "Tab", min: 50, max: 230, desc: "BarTab", color: green,
     #   points: true, strokewidth: 6
   end
 end
