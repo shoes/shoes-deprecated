@@ -4204,19 +4204,16 @@ then you pass in a hash of options that we'll discuss. Consider this example:
 {{{Shoes.app width: 800, height: 500 do
   stack do
     para "Plot Demo Line and Column"
-    flow do 
-      button "quit" do Shoes.quit end
-    end
     widget_width = 400
     widget_height = 300
     stack do
       flow do
         @grf = plot widget_width, widget_height, title: "My Graph", caption: 
           "Look at that! Booyah!!" , font: "Helvetica", auto_grid: true,
-          default: "skip", background: "honeydew"
+          default: "skip", background: honeydew
          @grf2 = plot widget_width, widget_height+100, title: "Column Graph", caption: 
           "Amazing!!" , font: "Mono", auto_grid: false, 
-          default: "skip", background: "cornsilk", chart: "column", boundary_box: false
+          default: "skip", background: cornsilk, chart: "column", boundary_box: false
       end
     end
   end
@@ -4242,19 +4239,16 @@ Shoes.app width: 800, height: 500 do
   @x_axis2 = ['a','b','c','d','e','f', 'g']
   stack do
     para "Plot Demo Line and Column"
-    flow do 
-      button "quit" do Shoes.quit end
-    end
     widget_width = 400
     widget_height = 300
     stack do
       flow do
         @grf = plot widget_width, widget_height, title: "My Graph", caption: 
           "Look at that! Booyah!!" , font: "Helvetica", auto_grid: true,
-          default: "skip", background: "honeydew"
+          default: "skip", background: honeydew
          @grf2 = plot widget_width, widget_height+100, title: "Column Graph", caption: 
           "Amazing!!" , font: "Mono", auto_grid: false, 
-          default: "skip", background: "cornsilk", chart: "column", boundary_box: false
+          default: "skip", background: cornsilk, chart: "column", boundary_box: false
       end
     end
     @grf.add values: @values1, labels: @x_axis1,
@@ -4280,7 +4274,7 @@ add to the column graph creates a chart_series first and then adds that to plot 
 instead of a hash.
 
 [[Chart_series]] is documented in the Advanced Section of the manual. If you prefer to add a hash
-of options, Shoes will create a chart_series for you. We'll touch on the obvious settings here.
+of options, Shoes will create a chart_series for you. We'll touch on the obvious settings here down below.
 
 Now you know how it all comes together in some kind of complicated dance of options. Some options belong
 to a plot and some options belong to one set of data in the plot (aka the chart_series).
@@ -4314,10 +4308,10 @@ The string will drawn at the bottom of the plot widget as 12 point normal. Do
 not attempt to draw multiple lines captions with a newline in the string. Multiple line 
 captions (and titles) won't work so don't do it. 
 
-=== background: <string> ===
+=== background: <color> ===
 
-String is something in the [[Colors The Colors list]]. The background is for
-the entire widget space and some plot types may not respect the setting.
+color is something in the [[Colors The Colors list]] or the result of calling 
+rgb(). The background is for the entire widget space and some plot types may not respect the setting.
 
 === boundary_box: <boolean> ===
 
@@ -4343,8 +4337,8 @@ a more competent chart application and not use Shoes for more than your explorat
 
 === click: proc {|btn, l, t| } ===
 
-Only (barely) useful for TimeSeries charts. If the user clicks in the content area of the
-plot, Shoes will call the proc with the button number and the top, left values of the mouse scaled to in the content
+Only (barely) useful and only for TimeSeries charts. If the user clicks in the content area of the
+plot, Shoes will call the proc with the button number and the top, left values of the mouse scaled to be in the content
 area. Figuring out what to do with that info is very complicated.
 
 === plot.save_as <filename> ===
@@ -4369,6 +4363,87 @@ This is a plot method!! If your have two or three data sets displayed in one plo
 it's up to you to update all of them before calling redraw_to and if your zooming in and appending 
 you'll have to figure it out because redraw_to will reset the plot begin to 0 and the end index to the given index which
 really should be a new data point.
+
+=== plot.add {options} or chart_series. ===
+
+create s a chart_series for you from the hash arguments. The chart_series
+is added to the plot widget. You can only have one series for a Pie chart. 
+You must have two and only two for a Scatter graph. Line, timeseries, and bar charts
+can have up to 6, but you probably don't want that many in one widget.
+
+The first add to a plot widget controls what is shown on the horizontal x axis. 
+
+Not all chart types respect all chart settings. 
+
+=== plot.add labels: <array> ===
+
+The labels: option is mostly required.  It must be an array of strings. In a few
+cases Shoes can create one ["1", "2" ....] but you should not depend on that and you 
+don't want that.
+
+=== plot.add values: <array> ===
+
+The values: array must be Ruby numbers and too be safe, they should be positive numbers.
+values: and labels: are assummed to have same number of array elements.
+
+=== plot.add min: <number> ===
+
+This controls y axis auto scaling lower tick for this data. Currently, you want this
+to be a positive number. This is a required hash arg for most chart types. 
+Although you can calulate it with <array>.min you'll usually set your own for visual reasons.
+
+=== plot.add max: <number> ===
+
+This controls y axis auto scaling upper tick for this data. Currently, you want this
+to be a positive number. This is a required hash arg for most chart types. 
+Although you can calulate it with <array>.max you'll usually set your own for visual reasons.
+
+=== plot.add name: <string> ===
+
+This is a string you can use for what ever makes sense to you. There are methods
+to look it up in the plot wdith to get the chart_series.  Required but mostly not all that important to
+you. 
+
+=== plot.add desc: <string> ===
+
+This is the string that will show up in the chart legend. Highly recommended.
+If you don't provide it, Shoes will use what ever your name: is. 
+
+=== plot.add color: <color> ===
+
+This is color to use to draw this data. It can be one to the built in Shoes colors
+or an rgb() color you created. Note: Pie charts ignore this and use there own set of
+colors. The first entry for a Scatter Chart uses this for the widget and ignores any color:
+in the second series of a scatter.
+
+=== plot.add strokewidth: <integer> ===
+
+This is the width of the line, and/or size of the point. For column charts, it's the width
+of the bar. Ignored for Pie charts
+
+=== plot.add points: <int, string or boolean> ===
+
+Only working for scatter charts. Line and Timeseries don't use this (known bug)
+and pie & column don't need it. 
+
+Controls what kind of point to draw. I highly recommend you do not specify this and just
+accept that ever Shoes thinks. There is a relationship with strokewidth: which probably make
+no sense to the beginner.  Even so, here's how it should work.
+
+Each point has a number inside Shoes - 0 or nil or false means don't draw any point markers. 
+That can vanishs your drawing in a Scatter and others. Don't use this unless you're feeling extra
+clever. 
+
+The default (which is what you want) is true or 1, You get the default point for your chart tyoe. 
+Did I mention this is what you want? A Timeseries charts with 1000's of data points will not disply
+the point type until you zoom in close enough that Shoes thins it has enough visual space for them to
+be useful.
+
+The string can be "dot", "circle", "box", and "rect" and perhaps drawn according to
+strokewidth: - or not.  depending on chart type.  "dot" is a filled in "circle". box is a filled in
+"rect"
+
+Have we mentioned that the default is what you want?  
 
 
 = Furthermore =
@@ -4675,7 +4750,62 @@ which starts with '#'
 == Chart_series ==
 
 This an object that you can explicitly create (or subclass if needed). It describes
-a group of data (series) to be drawn in a plot. 
+a group of data (series) to be drawn in a plot.
+
+=== chart_series {options} ===
+
+Returns a chart_series object you can add to a plot. The options are exactly identical
+to those you give for plot.add {options}. 
+
+For the advanced explorer, you can do some
+fun stuff if you work with explict chart_series object(s). Most of the options you set when adding
+a hash of options can be modifed. Perhaps you have new data to add to the plot widget or you want to 
+change the color based on the new data arriving or change the min/max . We have getters and setters to do that. 
+
+It's not sub second real time graphing - computers vary but every 1 or 2 second is not unresonable if your willing to 
+put that load on your box (or your user's boxen). I suggest you stick to the coarse Shoe aninmate or every methods
+(much slower) before you go wild and deep into Ruby threading. If you ever think you need
+to change a threads priority, stop digging that hole deeper and climb out for a rethink.
+
+One other thing to consider: Shoes does not clone or dup or unfreeze arrays or strings. Just reference.
+If that makes no sense, just know that we told you so and there is nothing Shoes can do about it.
+
+=== chart_series.values ===
+
+Returns the entire values array. A mistake just waiting for a catalyst.
+
+=== chart_series.value = <array> ===
+
+Replace the series values with a new array. A mistake just waiting for a catalyst.
+
+=== chart_series.labels ===
+
+Returns the entire labels array. A mistake just waiting for a catalyst.
+
+=== chart_series.labels = <array> ===
+
+Replace the series labels with a new array. A mistake just waiting for a catalyst.
+
+=== chart_series.at <integer> ===
+
+Returns a two element array of [label[index], values[index]], of type [String, Number]
+
+=== chart_series.get index ===
+
+Same as .at . Returns a two element array of [label[index], values[index]]
+
+=== chart_series.set <integer>, ["new string", new_number] ===
+
+This has some meat. Chew carefully.  The <integer> could be an existing observation to change
+or it could be s new observation to append, depending on the <integer> The <integer> is a Ruby 
+0 based index into both the label and values arrays. You can append (expand the Ruby arrays)
+
+If you have 7 entries (0..6), append at 7 (array.size) or face the nil's that plot may not handle.
+
+It will be serious mistake to set [nil, newvalue] or ["newlabel", nil] and expect that Shoes will fix your nil. 
+It will segfault, if you are lucky. 
+
+
 
 == Terminal ==
 
