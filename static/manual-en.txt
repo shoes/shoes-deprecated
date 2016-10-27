@@ -4280,7 +4280,7 @@ add to the column graph creates a chart_series first and then adds that to plot 
 instead of a hash.
 
 [[Chart_series]] is documented in the Advanced Section of the manual. If you prefer to add a hash
-of options, Shoes will create a chart_series for you. We'll touch on the obvious settings her.
+of options, Shoes will create a chart_series for you. We'll touch on the obvious settings here.
 
 Now you know how it all comes together in some kind of complicated dance of options. Some options belong
 to a plot and some options belong to one set of data in the plot (aka the chart_series).
@@ -4337,9 +4337,9 @@ data given.
 This controls how the plot will deal with nils in your data arrays or labels arrays that you 
 add to to the plot. The default is "missing", but some chart types will respect "max" and "min"
 so a missing value (nil) is set to the maximum or minimum of their range. Usually, this is not
-visually helpful can be confusing.  If you need this option you should clean up your data or find 
-a more compentent chart application and not use Shoes for more than exploratory work. Just Saying. 
-"A man has got to now his limits".
+visually helpful and can be confusing or misleading.  If you need this option you should clean up your data or find 
+a more competent chart application and not use Shoes for more than your exploratory work. Just Saying"
+"A man has got to now his limitations".
 
 === click: proc {|btn, l, t| } ===
 

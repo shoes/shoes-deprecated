@@ -4,6 +4,9 @@
  * not really Shoes api user visible (yet) 
 */
 #include "shoes/plot/plot.h"
+// forward declare
+static VALUE shoes_chart_series_parse_points(VALUE);
+
 void
 shoes_chart_series_mark(shoes_chart_series *self_t)
 {
@@ -142,7 +145,11 @@ shoes_chart_series_new(int argc, VALUE *argv, VALUE self)
     // This is weird. We handle :true, :false/nil and string.
     if (NIL_P(rbpoint)) {
       rbpoint_type = INT2NUM(NUB_NONE);
-    } else if (TYPE(rbpoint) == T_STRING) {
+    } else {
+      rbpoint_type = shoes_chart_series_parse_points(rbpoint);
+    }
+#if 0
+    if (TYPE(rbpoint) == T_STRING) {
       char *req = RSTRING_PTR(rbpoint);
       if (!strcmp(req, "dot"))
         rbpoint_type = INT2NUM(NUB_DOT);
@@ -159,6 +166,7 @@ shoes_chart_series_new(int argc, VALUE *argv, VALUE self)
     } else if (TYPE(rbpoint) == T_FALSE) {
         rbpoint_type = INT2NUM(NUB_NONE);
     }
+#endif
   } else {
     rb_raise(rb_eArgError, "misssing something in plot.add \n");
   }
@@ -167,6 +175,36 @@ shoes_chart_series_new(int argc, VALUE *argv, VALUE self)
   shoes_chart_series_Cinit(self_t, rbvals, rblabels, rbmax, rbmin, rbname, rbdesc,
       rbstroke, rbpoint_type, color_wrapped);
   return obj;
+}
+
+// ugly 
+static VALUE shoes_chart_series_parse_points(VALUE rbpoint) {
+    // This is weird. We handle :true, :false/nil and string.
+    VALUE rbpoint_type;
+    if (NIL_P(rbpoint)) {
+      rbpoint_type = INT2NUM(NUB_NONE);
+      return rbpoint_type;
+    }
+    if (TYPE(rbpoint) == T_STRING) {
+      char *req = RSTRING_PTR(rbpoint);
+      if (!strcmp(req, "dot"))
+        rbpoint_type = INT2NUM(NUB_DOT);
+      else if (!strcmp(req, "circle"))
+        rbpoint_type = INT2NUM(NUB_CIRCLE);
+      else if (!strcmp(req, "box"))
+        rbpoint_type = INT2NUM(NUB_BOX);
+      else if (!strcmp(req, "rect"))
+        rbpoint_type = INT2NUM(NUB_RECT);
+      else
+        rb_raise(rb_eArgError, "plot.add points: string does not match known types\n");
+    } else if (TYPE(rbpoint) == T_TRUE) {
+        rbpoint_type = INT2NUM(NUB_DOT);
+    } else if (TYPE(rbpoint) == T_FALSE) {
+        rbpoint_type = INT2NUM(NUB_NONE);
+    } else {
+     rb_raise(rb_eArgError, "misssing something in plot.add \n");
+    }
+  return rbpoint_type;
 }
 
 // Simple getter/setter  methods 
@@ -232,6 +270,57 @@ VALUE shoes_chart_series_desc(VALUE self)
 
 VALUE shoes_chart_series_desc_set(VALUE self, VALUE str)
 {
+  shoes_chart_series *cs;
+  Data_Get_Struct(self, shoes_chart_series, cs);
+  cs->desc = str;
+  return cs->desc;
+}
+VALUE shoes_chart_series_color(VALUE self)
+{
+  shoes_chart_series *cs;
+  Data_Get_Struct(self, shoes_chart_series, cs);
+  return cs->color;
+}
+
+VALUE shoes_chart_series_color_set(VALUE self, VALUE clr)
+{
+  shoes_chart_series *cs;
+  Data_Get_Struct(self, shoes_chart_series, cs);
+  cs->color = clr;
+  return cs->color;
+}
+
+VALUE shoes_chart_series_strokewidth(VALUE self)
+{
+  shoes_chart_series *cs;
+  Data_Get_Struct(self, shoes_chart_series, cs);
+  return cs->strokes;
+}
+
+VALUE shoes_chart_series_strokewidth_set(VALUE self, VALUE wid)
+{
+  shoes_chart_series *cs;
+  Data_Get_Struct(self, shoes_chart_series, cs);
+  cs->strokes = wid;
+  return cs->strokes;
+}
+
+VALUE shoes_chart_series_points(VALUE self)
+{
+  shoes_chart_series *cs;
+  Data_Get_Struct(self, shoes_chart_series, cs);
+  return cs->point_type;
+}
+
+VALUE shoes_chart_series_points_set(VALUE self, VALUE pt)
+{
+  shoes_chart_series *cs;
+  Data_Get_Struct(self, shoes_chart_series, cs);
+  if (TYPE(pt) == T_FIXNUM)
+    cs->point_type = pt; 
+  else 
+    cs->point_type =  shoes_chart_series_parse_points(pt);
+  return cs->point_type;
 }
 
 // ---- more interesting methods ----
@@ -240,10 +329,29 @@ VALUE shoes_chart_series_desc_set(VALUE self, VALUE str)
 VALUE
 shoes_chart_series_get(VALUE self, VALUE idx) 
 {
+  shoes_chart_series *cs;
+  Data_Get_Struct(self, shoes_chart_series, cs);
+  VALUE nary = Qnil;
+  if (TYPE(idx) == T_FIXNUM) {
+    nary = rb_ary_new_capa(2);
+    long i  = NUM2INT(idx);
+    rb_ary_store(nary, 0, rb_ary_entry(cs->labels, i));
+    rb_ary_store(nary, 1, rb_ary_entry(cs->values, i));
+  }
+  return nary;
 }
 
 // Sets labels[idx] and values[idx]
 VALUE
 shoes_chart_series_set(VALUE self, VALUE idx, VALUE ary)
 {
+  shoes_chart_series *cs;
+  Data_Get_Struct(self, shoes_chart_series, cs);
+  if ((TYPE(idx) == T_FIXNUM) && (TYPE(ary) == T_ARRAY) && (RARRAY_LEN(ary) == 2)) {
+    long i  = NUM2INT(idx);
+    rb_ary_store(cs->labels, i, rb_ary_entry(ary, 0));
+    rb_ary_store(cs->values, i, rb_ary_entry(ary, 1));
+  } else
+    rb_raise(rb_eArgError, "bad arguments to chart_series.set");
+  return Qtrue;
 }

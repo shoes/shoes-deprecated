@@ -620,6 +620,12 @@ VALUE shoes_chart_series_max_set(VALUE, VALUE);
 VALUE shoes_chart_series_name(VALUE);
 VALUE shoes_chart_series_desc(VALUE);
 VALUE shoes_chart_series_desc_set(VALUE, VALUE);
+VALUE shoes_chart_series_color(VALUE);
+VALUE shoes_chart_series_color_set(VALUE, VALUE);
+VALUE shoes_chart_series_strokewidth(VALUE);
+VALUE shoes_chart_series_strokewidth_set(VALUE, VALUE);
+VALUE shoes_chart_series_points(VALUE);
+VALUE shoes_chart_series_points_set(VALUE, VALUE);
 
 VALUE shoes_chart_series_get(VALUE, VALUE);
 VALUE shoes_chart_series_set(VALUE, VALUE, VALUE);
