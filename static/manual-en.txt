@@ -4274,7 +4274,8 @@ add to the column graph creates a chart_series first and then adds that to plot 
 instead of a hash.
 
 [[Chart_series]] is documented in the Advanced Section of the manual. If you prefer to add a hash
-of options, Shoes will create a chart_series for you. We'll touch on the obvious settings here down below.
+of options, Shoes will create a chart_series for you. We'll discuss the options in this section
+with more advanced things in the [[Chart_Series]] section.
 
 Now you know how it all comes together in some kind of complicated dance of options. Some options belong
 to a plot and some options belong to one set of data in the plot (aka the chart_series).
