@@ -364,6 +364,7 @@ typedef struct {
   int legend_h; 
   PangoFontDescription *legend_pfd;
   PangoFontDescription *label_pfd; 
+  PangoFontDescription *tiny_pfd;
   int yaxis_offset; // don't like
   int graph_h;  // to where the dots are drawn
   int graph_w;

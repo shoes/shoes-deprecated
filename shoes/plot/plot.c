@@ -215,6 +215,12 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   pango_font_description_set_weight (self_t->label_pfd, PANGO_WEIGHT_NORMAL);
   pango_font_description_set_absolute_size (self_t->label_pfd, 12 * PANGO_SCALE); 
   
+  // setup pangocairo for realy small (used by radar)
+  self_t->tiny_pfd = pango_font_description_new ();
+  pango_font_description_set_family (self_t->tiny_pfd, self_t->fontname);
+  pango_font_description_set_weight (self_t->tiny_pfd, PANGO_WEIGHT_NORMAL);
+  pango_font_description_set_absolute_size (self_t->tiny_pfd, 10 * PANGO_SCALE);
+  
   // TODO: these should be computed based on heuristics (% of vertical?)
   // and font sizes
   self_t->title_h = 50;

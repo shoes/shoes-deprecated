@@ -1,37 +1,72 @@
 /* 
  * radar chart
  * 
- * uses radar_chart_t and radar_slice_t for now. MAY NOT BE NEEDED
+ * uses radar_chart_t and radar_pole_t for now. MAY NOT BE NEEDED
  * It's more like a bar chart than a pie chart.
 */
 #include "shoes/plot/plot.h"
 
 
-/* borrows heavily from this python code
- * https://bitbucket.org/lgs/pycha/src/
- * because its kind of Ruby/Shoes friendly and short-ish.
+/* borrows heavily from https://github.com/topfunky/gruff
+ * also a hat tip python code https://bitbucket.org/lgs/pycha/src/
 */
 // Forward declares in this file
 VALUE shoes_plot_radar_color(int);
+void shoes_plot_radar_draw_axes(cairo_t *, shoes_plot *, shoes_chart_series *, radar_chart_t *);
 
-// called when a data series is added to the chart.
-// USES the chart_series class. Beware.
+/* 
+ * called when each data series is added to the chart, after it's added to
+ * shoes_plot->series (array of) chart_series class and shoes_plot->seriescnt
+ * is accurate (1, 2, ..) Create a more gruff like struct to play with and
+ * convert to c values (normalized?)- don't forget to free things
+*/
 void shoes_plot_radar_init(shoes_plot *plot) {
-  radar_chart_t *rdrchart = malloc(sizeof(radar_chart_t));
-  plot->c_things = (void *)rdrchart;
-  VALUE cs = rb_ary_entry(plot->series, 0);
+  radar_chart_t *rdrchart;;
+  VALUE cs = rb_ary_entry(plot->series, plot->seriescnt -1);
   shoes_chart_series *ser;
   Data_Get_Struct(cs, shoes_chart_series, ser);
-  int numobs = RARRAY_LEN(ser->values);
-  rdrchart->count = numobs;
-  radar_slice_t *slices = (radar_slice_t *)malloc(sizeof(radar_slice_t) * numobs);
-  rdrchart->slices = slices;
+  int numcols = RARRAY_LEN(ser->labels);
+
+  radar_pole_t *slices; 
   int i;
+  if (plot->seriescnt == 1) {
+    // one init time
+    rdrchart = malloc(sizeof(radar_chart_t));
+    plot->c_things = (void *)rdrchart;
+    rdrchart->count = numcols;
+    rdrchart->slices = slices = (radar_pole_t *)malloc(sizeof(radar_pole_t) * numcols);
+    rdrchart->colmax = malloc(sizeof(double) * numcols);
+    rdrchart->colmin = malloc(sizeof(double) * numcols);
+    for (i = 0; i < numcols; i++) {
+      rdrchart->colmax[i] = DBL_MIN;
+      rdrchart->colmin[i] = DBL_MAX;
+    }
+  } else {
+    rdrchart = (radar_chart_t *)plot->c_things;
+    slices = (radar_pole_t *)rdrchart->slices;
+  }
+  // ignore chart_series - computte min max settings use the values in the column
+  // in each row (chart_series)
+  for (i = 0; i < plot->seriescnt; i++) {
+    VALUE cs = rb_ary_entry(plot->series, i);
+    shoes_chart_series *ser;
+    Data_Get_Struct(cs, shoes_chart_series, ser);
+    int j;   // column in each row
+    for (j = 0; j < numcols; j++) {
+      VALUE rbv  = rb_ary_entry(ser->values, j);
+      double val = NUM2DBL(rbv);
+      rdrchart->colmax[j] = max(val, rdrchart->colmax[j]);
+      rdrchart->colmin[j] = min(val, rdrchart->colmin[j]);
+    }
+  }
+  
+  
+  // following is pie chart stuff - not needed for radar? 
   rdrchart->maxv = 0.0; 
   rdrchart->minv = 100000000.0; // TODO: use a max double constant
   // sum the values
-  for (i = 0; i <numobs; i++) {
-    radar_slice_t *slice = &slices[i];
+  for (i = 0; i <numcols; i++) {
+    radar_pole_t *slice = &slices[i];
     VALUE rbv = rb_ary_entry(ser->values, i);
     double v = NUM2DBL(rbv);
     slice->value = v;
@@ -40,8 +75,8 @@ void shoes_plot_radar_init(shoes_plot *plot) {
   }
   double fraction = 0.0;
   double angle = 0.0;
-  for (i = 0; i < numobs; i++) {
-    radar_slice_t *slice = &slices[i];
+  for (i = 0; i < numcols; i++) {
+    radar_pole_t *slice = &slices[i];
     angle += fraction;
     double v = slice->value;
     fraction = v / rdrchart->maxv;
@@ -56,21 +91,24 @@ void shoes_plot_radar_init(shoes_plot *plot) {
 void shoes_plot_radar_dealloc(shoes_plot *plot) {
   if (plot->c_things) {
    radar_chart_t *rdrchart = (radar_chart_t *) plot->c_things;
+   free(rdrchart->colmax);
+   free(rdrchart->colmin);
    free(rdrchart->slices);
    free(rdrchart);
   }
 }
 
-// draws the lines/nubs connecting the data points of each series
 void shoes_plot_draw_radar_chart(cairo_t *cr, shoes_plot *plot)
 {
-  // first series (x) controls graphical settings. 
+  // first series controls labels and such. 
   if (plot->seriescnt <= 0)
     return; 
   int i;
   int top,left,bottom,right, height, width;
-  left = plot->graph_x; top = plot->graph_y;
-  right = plot->graph_w; bottom = plot->graph_h; 
+  left = plot->graph_x;
+  top = plot->graph_y + 20;
+  right = plot->graph_w;
+  bottom = plot->graph_h -20; 
   width = right - left;
   height = bottom - top; 
   
@@ -82,52 +120,83 @@ void shoes_plot_draw_radar_chart(cairo_t *cr, shoes_plot *plot)
   chart->radius = min(width / 2.0, height / 2.0);
   chart->top = top; chart->left = left; chart->bottom = bottom;
   chart->right = right; chart->width = width; chart->height = height;
-  printf("radius %4.2f\n", chart->radius);
+  // get some control things from series[0]
+  VALUE cs = rb_ary_entry(plot->series, 0);
+  shoes_chart_series *ctl_ser;
+  Data_Get_Struct(cs, shoes_chart_series, ctl_ser);
+  int count = RARRAY_LEN(ctl_ser->values);
+  chart->additive_angle = (2 * SHOES_PI) / count;
+  chart->rotation = 0.0;
+  printf("radius: %4.2f, additive_angle: %4.2f\n", chart->radius, chart->additive_angle);
+  // draw the axes and labels at the edge
+  shoes_plot_radar_draw_axes(cr, plot, ctl_ser, chart);
   
-  int j;
-  cairo_save(cr);
-  for (i = 0; i < plot->seriescnt; i++) {
-    VALUE cs = rb_ary_entry(plot->series, i);
-    shoes_chart_series *ser;
-    Data_Get_Struct(cs, shoes_chart_series, ser);
-    //VALUE rbvary = rb_ary_entry(plot->values, i);
-    //int count = RARRAY_LEN(rbvary);
-    int count = RARRAY_LEN(ser->values);
-    //VALUE rbminv = rb_ary_entry(plot->minvs, i);
-    //double minv = NUM2DBL(rbminv);
-    double minv = NUM2DBL(ser->minv);
-    //VALUE rbmaxv = rb_ary_entry(plot->maxvs, i);
-    //double maxv = NUM2DBL(rbmaxv);
-    double maxv = NUM2DBL(ser->maxv);
-    int first = TRUE;
-    cairo_new_path(cr);
-    for (j = 0; j < count; j++) {
-      int k = j + 1;
-      //VALUE rbv = rb_ary_entry(rbvary, j);
-      VALUE rbv = rb_ary_entry(ser->values, j);
-      double value =  NUM2DBL(rbv);
-      double offset1 = k * 2 * SHOES_PI / k;
-      double offset = SHOES_PI / 2 - offset1;
-      //double rad = (height / 2) * (1 - value);
-      double rad = (height / 2) / (value);
-      int x = chart->centerx - cos(offset) * rad;
-      int y = chart->centery - sin(offset) * rad;
-      if (first) {
-        printf("move to x %i, y: %i v: %4.2f offset: %4.2f rad: %4.2f\n", x, y, value, offset, rad);
-        cairo_move_to(cr, x, y);
-        first = FALSE;
-        continue;
-      } else {
-        printf("line to x %i, y: %i v: %4.2f offset: %4.2f rad: %4.2f\n", x, y, value, offset, rad);
-        cairo_line_to(cr, x, y);
-      }
-    }
-    cairo_stroke(cr);
-  }
-  cairo_restore(cr);
   shoes_plot_set_cairo_default(cr, plot);
 }
 
+void shoes_plot_radar_draw_axes(cairo_t *cr, shoes_plot *plot, shoes_chart_series *cs, radar_chart_t *chart)
+{
+#if 0
+ def draw_line_markers
+    return if @hide_line_markers
+
+
+    # have to do this here (AGAIN)... see draw() in this class
+    # because this funtion is called before the @radius, @center_x and @center_y are set
+    @radius = @graph_height / 2.0
+    @center_x = @graph_left + (@graph_width / 2.0)
+    @center_y = @graph_top + (@graph_height / 2.0) - 10 # Move graph up a bit
+
+
+    # Draw horizontal line markers and annotate with numbers
+    @d = @d.stroke(@marker_color)
+    @d = @d.stroke_width 1
+
+
+    (0..@column_count-1).each do |index|
+      rad_pos = index * Math::PI * 2 / @column_count
+
+      @d = @d.line(@center_x, @center_y, @center_x + Math::sin(rad_pos) * @radius, @center_y - Math::cos(rad_pos) * @radius)
+
+
+      marker_label = labels[index] ? labels[index].to_s : '000'
+
+      draw_label(@center_x, @center_y, rad_pos * 360 / (2 * Math::PI), @radius, marker_label)
+    end
+  end
+#endif
+  int i;
+  int sz = RARRAY_LEN(cs->labels);
+  cairo_save(cr);
+  for (i = 0; i < sz; i++) {
+    VALUE rblbl = rb_ary_entry(cs->labels, i);
+    char *lbl = RSTRING_PTR(rblbl);  // might not need here
+    radar_pole_t *axis =  &chart->slices[i]; // might not need color here
+    shoes_color *color = axis->color; 
+    double rad_pos = (i * SHOES_PI * 2) / sz;
+    int x = chart->centerx;
+    int y = chart->centery;
+    int rx = chart->centerx + sin(rad_pos) * chart->radius;
+    int ry = chart->centery - cos(rad_pos) * chart->radius;
+    cairo_move_to(cr, x, y);
+    cairo_line_to(cr, rx, ry);
+    cairo_stroke(cr);
+    
+    char vlbl[8];
+    sprintf(vlbl, "%4.2f", chart->colmax[i]);
+    printf("%10.10s x: %i, y: %i, to rx: %i, ry: %i, %s\n", lbl, x, y, rx, ry, vlbl);
+    // draw the numeric value for maxv ?
+    cairo_move_to(cr, rx, ry);
+    PangoRectangle logical;
+    PangoLayout *layout = pango_cairo_create_layout (cr);
+    pango_layout_set_font_description (layout, plot->tiny_pfd);
+    pango_layout_set_text (layout, vlbl, -1);
+    pango_layout_get_pixel_extents (layout, NULL, &logical);
+    pango_cairo_show_layout(cr, layout);
+    
+  }
+  cairo_restore(cr);
+}
 
 // just draws a box
 void shoes_plot_radar_legend_box(cairo_t *cr, shoes_plot *self_t, 
@@ -149,7 +218,7 @@ void shoes_plot_radar_legend_box(cairo_t *cr, shoes_plot *self_t,
  * we actually have a cairo_t that is real and the slices are OK. 
  * We depend on that. 
 */
-double shoes_plot_radar_getNormalisedAngle(radar_slice_t *self) {
+double shoes_plot_radar_getNormalisedAngle(radar_pole_t *self) {
   double normalisedAngle = (self->startAngle + self->endAngle) / 2;
   if (normalisedAngle > SHOES_PI * 2)
     normalisedAngle -= SHOES_PI * 2;
@@ -159,7 +228,7 @@ double shoes_plot_radar_getNormalisedAngle(radar_slice_t *self) {
   return normalisedAngle;
 }
 
-shoes_plot_radar_tick_position(cairo_t *cr, radar_chart_t * chart, radar_slice_t *slice, double angle)
+shoes_plot_radar_tick_position(cairo_t *cr, radar_chart_t * chart, radar_pole_t *slice, double angle)
 {
   int text_height = slice->lh;
   int text_width = slice->lw;
@@ -214,7 +283,7 @@ void shoes_plot_draw_radar_ticks(cairo_t *cr, shoes_plot *plot)
   int i;
   PangoRectangle logical;
   for (i = 0; i < chart->count; i++) {
-    radar_slice_t *slice = &chart->slices[i];
+    radar_pole_t *slice = &chart->slices[i];
     char vstr[10];
     if (chart->percent)
       sprintf(vstr, "%i%%", (int)((slice->value / (chart->maxv - chart->minv))*100.0));
@@ -236,7 +305,7 @@ void shoes_plot_draw_radar_ticks(cairo_t *cr, shoes_plot *plot)
   
   // pass through the slices again, drawing, free the string, unref the layouts ?
   for (i = 0; i < chart->count; i++) {
-    radar_slice_t *slice = &chart->slices[i];
+    radar_pole_t *slice = &chart->slices[i];
     double angle = shoes_plot_radar_getNormalisedAngle(slice);
     shoes_plot_radar_tick_position(cr, chart, slice, angle);
     cairo_move_to(cr, slice->lx, slice->ly);

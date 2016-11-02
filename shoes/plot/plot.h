@@ -88,24 +88,30 @@ typedef struct {
   double value; 
   double startAngle;
   double endAngle;
+  double maxv; // ugly
+  double minv; // twice as ugly
   shoes_color *color;
   char *label; 
   int lh; // label height and width and placement
   int lw;
   int lx, ly; 
   PangoLayout *layout; 
-} radar_slice_t;
+} radar_pole_t;
 
 typedef struct {
   int percent;  // true when display % instead of value
   double radius;
+  double rotation;
+  double additive_angle;
   int centerx;
   int centery;
   int count;
   int top, left, bottom, right, height, width;
   double maxv;
   double minv;
-  radar_slice_t *slices; // treated as an array because it is.
+  double *colmax;
+  double *colmin;
+  radar_pole_t *slices; // treated as an array because it is.
 } radar_chart_t;
 
 typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);

@@ -5,7 +5,7 @@ Shoes.app width: 620, height: 480 do
   @values2 = [180,        90,           95,     90,          90]
   
   stack do
-    para "Plot Radar Demo 5"
+    para "Plot Radar Demo 6"
     flow do 
       button "quit" do Shoes.quit end
     end
