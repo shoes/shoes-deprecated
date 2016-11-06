@@ -26,6 +26,7 @@ shoes_plot_mark(shoes_plot *self_t)
   rb_gc_mark_maybe(self_t->legend);
   rb_gc_mark_maybe(self_t->background);
   rb_gc_mark_maybe(self_t->default_colors);
+  rb_gc_mark_maybe(self_t->column_opts);
 }
 
 void
@@ -57,6 +58,7 @@ shoes_plot_alloc(VALUE klass)
   SHOE_MEMZERO(plot, shoes_plot, 1);
   obj = Data_Wrap_Struct(klass, shoes_plot_mark, shoes_plot_free, plot);
   plot->parent = Qnil;
+  plot->column_opts = Qnil;
   plot->series = rb_ary_new();
   plot->st = NULL;
   plot->auto_grid = 0;
@@ -78,7 +80,8 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   VALUE title = Qnil, caption = Qnil, fontreq = Qnil, auto_grid = Qnil;
   VALUE x_ticks = Qnil, y_ticks = Qnil, boundbox = Qnil;
   VALUE missing = Qnil, chart_type = Qnil, background = Qnil;
-  VALUE pie_pct = Qnil, colors = Qnil;
+  VALUE pie_pct = Qnil, colors = Qnil, radar_opts = Qnil;
+  VALUE rbcol_settings = Qnil;
   shoes_canvas *canvas;
   Data_Get_Struct(parent, shoes_canvas, canvas);
   
@@ -105,6 +108,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     boundbox = shoes_hash_get(attr, rb_intern("boundary_box"));
     pie_pct = shoes_hash_get(attr, rb_intern("pie_percent"));
     colors = shoes_hash_get(attr, rb_intern("colors"));
+    radar_opts = shoes_hash_get(attr, rb_intern("column_settings"));
     // there may be many other things in that hash :-)
   } else {
     rb_raise(rb_eArgError, "Plot: missing mandatory {options}");
@@ -134,10 +138,36 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
         self_t->chart_type = SCATTER_CHART;
       else if (! strcmp(str, "pie"))
         self_t->chart_type = PIE_CHART;
-      else if (! strcmp(str, "radar"))
+      else if (! strcmp(str, "radar")) {
         self_t->chart_type = RADAR_CHART;
-        //self_t->chart_type = PIE_CHART;
-      else 
+        if (NIL_P(radar_opts))
+          rb_raise(rb_eArgError, "Plot: radar chart requires column settings");
+        else {
+          // returns an array of arrays
+          rbcol_settings = shoes_plot_parse_column_settings(radar_opts);
+          self_t->column_opts = rbcol_settings;
+          // type check parser
+          int i, cnt; VALUE rbval = Qnil;
+          cnt = RARRAY_LEN(rbcol_settings);
+          for (i = 0; i < cnt; i++) {
+            VALUE rbcol = rb_ary_entry(rbcol_settings, i);
+            int csz = RARRAY_LEN(rbcol);
+            VALUE rbv;
+            rbv = rb_ary_entry(rbcol, 0); // string - xaxis label
+            if (TYPE(rbv) != T_STRING)
+              rb_raise(rb_eArgError, "Plot: column_settings label [0] is not a string");
+            rbv = rb_ary_entry(rbcol, 1);  // number - xaxis min
+            if (TYPE(rbv) != T_FIXNUM && (TYPE(rbv) != T_FLOAT)) 
+              rb_raise(rb_eArgError, "Plot: column_settings min [1] is not a number");
+            rbv = rb_ary_entry(rbcol, 2);  // number - xaxis max
+            if (TYPE(rbv) != T_FIXNUM && (TYPE(rbv) != T_FLOAT)) 
+              rb_raise(rb_eArgError, "Plot: column_settings max [2] is not a number");
+            rbv = rb_ary_entry(rbcol, 3); // optional format string
+            if (! NIL_P(rbv) && (TYPE(rbv) != T_STRING))
+              rb_raise(rb_eArgError, "Plot: column_settings format [3] is not a string");
+          }
+        }
+      } else 
         err = 1;
     } else err = 1;
     if (err)    

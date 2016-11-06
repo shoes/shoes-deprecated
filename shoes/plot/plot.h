@@ -102,15 +102,17 @@ typedef struct {
   int percent;  // true when display % instead of value
   double radius;
   double rotation;
-  double additive_angle;
+  double angle;
   int centerx;
   int centery;
   int count;
   int top, left, bottom, right, height, width;
   double maxv;
   double minv;
-  double *colmax;
-  double *colmin;
+  double *colmax;   //array of 
+  double *colmin;   //array of
+  char **labels;    //array of string ptrs;
+  char **fmt_strs;  //array of string ptrs;
   radar_pole_t *slices; // treated as an array because it is.
 } radar_chart_t;
 
@@ -124,6 +126,7 @@ extern void shoes_plot_pie_init(shoes_plot *);
 extern void shoes_plot_pie_dealloc(shoes_plot *);
 extern void shoes_chart_series_Cinit(shoes_chart_series *, VALUE, VALUE,
     VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE);
+extern VALUE shoe_plot_parse_column_settings(VALUE);
 // plot utility functions (in plot_util.c)
 extern void shoes_plot_set_cairo_default(cairo_t *, shoes_plot *);
 extern void shoes_plot_util_default_colors(shoes_plot *);

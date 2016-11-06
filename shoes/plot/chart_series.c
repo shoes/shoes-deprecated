@@ -207,6 +207,40 @@ static VALUE shoes_chart_series_parse_points(VALUE rbpoint) {
   return rbpoint_type;
 }
 
+// parse - Returns an mostly or entirely ruby  array of arrays 
+// used by radar charts called from shoes_plot_new() plot.c 
+VALUE shoes_plot_parse_column_settings(VALUE opts) {
+  if (TYPE(opts) != T_ARRAY)
+    rb_raise(rb_eArgError, "column_settings is not an array");
+  int count = RARRAY_LEN(opts);
+  int i;
+  VALUE outer_ary = rb_ary_new_capa(count);
+  for (i = 0; i < count; i++) {
+    VALUE rbcol = rb_ary_entry(opts, i);
+    if (TYPE(rbcol) == T_ARRAY) {
+      rb_ary_store(outer_ary, i, rbcol); 
+    } else if (TYPE(rbcol) != T_HASH) {
+      rb_raise(rb_eArgError, "one of column_settings[] is not an array or hash");
+    } else {
+      // we know its a hash. 
+      VALUE inner_ary = rb_ary_new();
+      VALUE rblabel, rbmin, rbmax, rbfmt;
+      rblabel = shoes_hash_get(rbcol, rb_intern("label"));
+      rbmin = shoes_hash_get(rbcol, rb_intern("min"));
+      rbmax = shoes_hash_get(rbcol, rb_intern("max"));
+      rbfmt = shoes_hash_get(rbcol, rb_intern("format"));
+      rb_ary_store(inner_ary, 0, rblabel);
+      rb_ary_store(inner_ary, 1, rbmin);
+      rb_ary_store(inner_ary, 2, rbmax);
+      if (! NIL_P(rbfmt))
+        rb_ary_store(inner_ary, 3, rbfmt);
+        
+      rb_ary_store(outer_ary, i, inner_ary);
+    } 
+  }
+  return outer_ary;
+}
+
 // Simple getter/setter  methods 
 VALUE 
 shoes_chart_series_values(VALUE self)

@@ -351,6 +351,7 @@ typedef struct {
   VALUE legend; 
   VALUE caption;
   VALUE default_colors;
+  VALUE column_opts;
   void *c_things; 
   int x_ticks;   // number of x_axis (which means a vertical grid line draw)
   int y_ticks;   // number of (left side) y axis horizontial grid lines)
