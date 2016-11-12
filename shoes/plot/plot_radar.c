@@ -272,6 +272,7 @@ double shoes_plot_radar_getNormalisedAngle(radar_pole_t *self) {
 }
 #endif 
 
+void
 shoes_plot_radar_label_position(cairo_t *cr, radar_chart_t * chart, int idx, double angle)
 {
   int text_height = chart->lh[idx]; //slice->lh;
@@ -279,26 +280,29 @@ shoes_plot_radar_label_position(cairo_t *cr, radar_chart_t * chart, int idx, dou
   int half_width = text_width / 2.0;
   int half_height = text_height / 2.0;
   int k1, k2, j1, j2;
-  //printf("tick: value: %s, radius: %f, angle: %f\n", slice->label, chart->radius, angle);
-  if ((0 <= angle) && (angle < 0.5 * SHOES_PI)) {
-    // first quadrant
-    k1 = j1 = k2 = 1;
-    j2 = -1;
-  } else if ((0.5 * SHOES_PI <= angle) && (angle < SHOES_PI)) {
-    // second quadrant
-    k1 = k2 = -1;
-    j1 = j2 = 1;
-  } else if ((SHOES_PI <= angle) && (angle < 1.5 * SHOES_PI)) {
-    // third quadrant
-    k1 = j1 = k2 = -1;
-    j2 = 1;
-  } else if ((1.5 * SHOES_PI <= angle) && (angle < 2 * SHOES_PI)) {
-    // fourth quadrant
-    k1 = k2 = 1;
-    j1 = j2 = -1;
-  } else {
-    fprintf(stderr, "plot_radar.c - bad news\n");
+  int quad = shoes_plot_util_quadrant(angle);
+  switch(quad) {
+    case QUAD_ONE:
+      k1 = j1 = k2 = 1;
+      j2 = -1;
+      break;
+    case QUAD_TWO:
+      k1 = k2 = -1;
+      j1 = j2 = 1;
+      break;
+    case QUAD_THREE:
+      k1 = j1 = k2 = -1;
+      j2 = 1;
+      break;
+    case QUAD_FOUR:
+      k1 = k2 = 1;
+      j1 = j2 = -1;
+      break;
+    default:
+      fprintf(stderr, "plot_radar.c - bad news\n");
+      return;
   }
+
   double cx = chart->radius * cos(angle) + k1 * half_width;
   double cy = chart->radius * sin(angle) + j1 * half_height;
 

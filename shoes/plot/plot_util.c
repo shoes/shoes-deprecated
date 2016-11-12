@@ -368,3 +368,21 @@ void shoes_plot_util_default_colors(shoes_plot *plot)
   rb_ary_store(plot->default_colors, 13, shoes_hash_get(cColors, rb_intern("black")));
 }
 
+int shoes_plot_util_quadrant(double angle) {
+    if ((0 <= angle) && (angle < 0.5 * SHOES_PI)) {
+    // first quadrant
+    return QUAD_ONE;
+  } else if ((0.5 * SHOES_PI <= angle) && (angle < SHOES_PI)) {
+    // second quadrant
+    return QUAD_TWO;
+  } else if ((SHOES_PI <= angle) && (angle < 1.5 * SHOES_PI)) {
+    // third quadrant
+    return QUAD_THREE;
+  } else if ((1.5 * SHOES_PI <= angle) && (angle < 2 * SHOES_PI)) {
+    // fourth quadrant
+    return QUAD_FOUR;
+  } else {
+    fprintf(stderr, "plot quadrant - bad news\n");
+    return QUAD_ERR;
+  }
+}

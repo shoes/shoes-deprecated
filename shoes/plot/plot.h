@@ -65,6 +65,15 @@ enum {
    RADAR_EXTRA,
 };
 
+// quadrant (pie, radar)
+enum {
+  QUAD_ONE,
+  QUAD_TWO,
+  QUAD_THREE,
+  QUAD_FOUR,
+  QUAD_ERR
+};
+
 // Pie charts are sufficently complex that we need some structs for the 
 // internal stuff. Probably should be done for the other types to
 typedef struct {
@@ -137,6 +146,7 @@ extern void shoes_plot_draw_legend(cairo_t *, shoes_plot *);
 extern void shoes_plot_draw_tick(cairo_t *, shoes_plot *, int, int, int);
 extern void shoes_plot_draw_label(cairo_t *, shoes_plot *, int, int , char*, int);
 extern void shoes_plot_draw_nub(cairo_t *, shoes_plot *, double, double, int, int);
+extern int shoes_plot_util_quadrant(double angle);
 
 
 
