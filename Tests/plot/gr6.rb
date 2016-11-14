@@ -4,9 +4,8 @@ Shoes.app width: 620, height: 480 do
   @values1 = [80,        160,          145,     75,          80] # in k$
   @values2 = [180,        90,           95,     90,          90]
   @columns = [ ["Internet", 0, 200, "%4.0f k"], 
-               ["Television", 0, 250],
-               {label: "Radio", min: 0, max: 200, format: "%3.3f"},
-               #["radio", 0, 200],
+               ["Television", 0, 250," %4.0f k" ],
+               {label: "Radio", min: 0, max: 200, format: "%4.2f k"},
                ["Newspaper", 0, 200],
                ["Magazine", 0, 200]
              ]

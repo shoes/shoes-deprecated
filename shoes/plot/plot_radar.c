@@ -220,7 +220,7 @@ void shoes_plot_radar_draw_label(cairo_t *cr, shoes_plot *plot,  double cx, doub
 // should be a user setting. 
 static int shoes_plot_radar_ring_count(double radius) {
   // TODO: magic heuristic
-  return 2;
+  return 3;
 }
 
 // checks if all colmin[*] are the same AND all colmax[*] are the same
@@ -275,6 +275,35 @@ static void shoes_plot_radar_draw_axes(cairo_t *cr, shoes_plot *plot, radar_char
 
 static void shoes_plot_radar_draw_rings(cairo_t *cr, shoes_plot *plot, radar_chart_t *chart)
 {
+ int i;
+  int sz = chart->count;
+  cairo_save(cr);
+  cairo_set_source_rgba(cr, 0.0, 0.0 ,0.0, 0.4); // black, 40%
+  // how many rings?
+  int rings = shoes_plot_radar_ring_count(chart->radius);
+  int j;
+  int close_x, close_y;
+  for (j = 0; j < rings; j++) {
+    double radius = (chart->radius / rings) * (j +1 ); // drawing pos
+    for (i = 0; i < sz ; i++) {
+      double rad_pos = (i * SHOES_PI * 2) / sz;
+      int x = chart->centerx;
+      int y = chart->centery;
+      int rx = chart->centerx + sin(rad_pos) * radius;
+      int ry = chart->centery - cos(rad_pos) * radius;
+      if (i == 0) {
+        cairo_move_to(cr, rx, ry);
+        close_x = rx;
+        close_y = ry;
+      }
+      else 
+        cairo_line_to(cr, rx, ry);
+     }
+     cairo_line_to(cr, close_x, close_y);
+     cairo_stroke(cr);
+  }
+  cairo_stroke(cr);
+  cairo_restore(cr);
 }
 
 // just draws a box
