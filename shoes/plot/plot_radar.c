@@ -12,7 +12,8 @@
 */
 // Forward declares in this file
 VALUE shoes_plot_radar_color(int);
-void shoes_plot_radar_draw_axes(cairo_t *, shoes_plot *, radar_chart_t *);
+static void shoes_plot_radar_draw_axes(cairo_t *, shoes_plot *, radar_chart_t *);
+static void  shoes_plot_radar_draw_rings(cr, plot, chart);
 static double deg2rad(double);
 
 /* 
@@ -114,8 +115,9 @@ void shoes_plot_draw_radar_chart(cairo_t *cr, shoes_plot *plot)
   chart->angle = (2 * SHOES_PI) / count;
   chart->rotation = 0.0;
   
-  // TODO: draw the axes and labels at the edge - incomplete or done poorly
+  // TODO: incomplete or done poorly
   shoes_plot_radar_draw_axes(cr, plot, chart);
+  shoes_plot_radar_draw_rings(cr, plot, chart);
   
   // draw the data points - 
   for (i = 0; i < plot->seriescnt; i++) {
@@ -214,37 +216,65 @@ void shoes_plot_radar_draw_label(cairo_t *cr, shoes_plot *plot,  double cx, doub
 }
 #endif
 
-// 
-void shoes_plot_radar_draw_axes(cairo_t *cr, shoes_plot *plot, radar_chart_t *chart)
+// determines how many rings can be drawn without getting too busy. 
+// should be a user setting. 
+static int shoes_plot_radar_ring_count(double radius) {
+  // TODO: magic heuristic
+  return 2;
+}
+
+// checks if all colmin[*] are the same AND all colmax[*] are the same
+static int shoes_plot_radar_same_range(radar_chart_t *chart) {
+  double same_min = chart->colmin[0];
+  double same_max = chart->colmax[0];
+  int sz = chart->count;
+  int i;
+  for (i = 0; i < sz; i++) {
+    if (chart->colmin[i] != same_min) return 0;
+    if (chart->colmax[i] != same_max) return 0;
+  }
+  return 1;
+}
+
+// draws the vertical radial and the numeric labels
+static void shoes_plot_radar_draw_axes(cairo_t *cr, shoes_plot *plot, radar_chart_t *chart)
 {
   int i;
   int sz = chart->count;
   cairo_save(cr);
-  cairo_set_source_rgba(cr, 0.0, 0.0 ,0.0, 0.7); // black, 70%
-  for (i = 0; i < sz; i++) {
-    double rad_pos = (i * SHOES_PI * 2) / sz;
-    int x = chart->centerx;
-    int y = chart->centery;
-    int rx = chart->centerx + sin(rad_pos) * chart->radius;
-    int ry = chart->centery - cos(rad_pos) * chart->radius;
-    cairo_move_to(cr, x, y);
-    cairo_line_to(cr, rx, ry);
-    cairo_stroke(cr);
-    
-    char vlbl[16];
-    sprintf(vlbl, chart->fmt_strs[i], chart->colmax[i]);
-    // draw the max value at the end of the radial.
-    shoes_plot_radar_draw_mark(cr, plot, chart->centerx, chart->centery, 
-        rad_pos * 360 / (2 * SHOES_PI), chart->radius, vlbl);
-
-#if 0
-    // draw the xaxis text label - gruff code
-    char *disp_label = chart->labels[i];
-    shoes_plot_radar_draw_label(cr, plot, chart->centerx, chart->centery, 
-       rad_pos * 360 / (2 * SHOES_PI), chart->radius, disp_label);
-#endif
+  cairo_set_source_rgba(cr, 0.0, 0.0 ,0.0, 0.6); // black, 60%
+  // how many rings/labels for each axis?
+  int rings = shoes_plot_radar_ring_count(chart->radius);
+  int only_one = shoes_plot_radar_same_range(chart);
+  int j;
+  for (j = 0; j < rings; j++) {
+    double radius = (chart->radius / rings) * (j +1 ); // drawing pos
+    double scale_pos = (1.0 / rings) * (j + 1);
+    // printf("radius: %4.2f scale_pos %4.2f\n", radius, scale_pos);
+    for (i = 0; i < sz ; i++) {
+      double rad_pos = (i * SHOES_PI * 2) / sz;
+      int x = chart->centerx;
+      int y = chart->centery;
+      int rx = chart->centerx + sin(rad_pos) * radius;
+      int ry = chart->centery - cos(rad_pos) * radius;
+      cairo_move_to(cr, x, y);
+      cairo_line_to(cr, rx, ry);
+      cairo_stroke(cr);
+      if (i == 0 || !only_one) {
+        char vlbl[16];
+        double range = chart->colmax[i] - chart->colmin[i];
+        double lblv = range * scale_pos;
+        sprintf(vlbl, chart->fmt_strs[i], lblv);
+        shoes_plot_radar_draw_mark(cr, plot, chart->centerx, chart->centery, 
+            rad_pos * 360 / (2 * SHOES_PI), radius, vlbl);
+       }   
+     }
   }
   cairo_restore(cr);
+}
+
+static void shoes_plot_radar_draw_rings(cairo_t *cr, shoes_plot *plot, radar_chart_t *chart)
+{
 }
 
 // just draws a box
