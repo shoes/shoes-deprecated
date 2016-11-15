@@ -12,8 +12,9 @@
 */
 // Forward declares in this file
 VALUE shoes_plot_radar_color(int);
-static void shoes_plot_radar_draw_axes(cairo_t *, shoes_plot *, radar_chart_t *);
-static void  shoes_plot_radar_draw_rings(cr, plot, chart);
+static void shoes_plot_radar_draw_radials(cairo_t *, shoes_plot *, radar_chart_t *);
+static void shoes_plot_radar_draw_ticks(cairo_t *, shoes_plot *, radar_chart_t *);
+static void shoes_plot_radar_draw_rings(cairo_t *, shoes_plot *, radar_chart_t *);
 static double deg2rad(double);
 
 /* 
@@ -115,8 +116,9 @@ void shoes_plot_draw_radar_chart(cairo_t *cr, shoes_plot *plot)
   chart->angle = (2 * SHOES_PI) / count;
   chart->rotation = 0.0;
   
-  // TODO: incomplete or done poorly
-  shoes_plot_radar_draw_axes(cr, plot, chart);
+  // TODO: incomplete or done poorly ?
+  shoes_plot_radar_draw_radials(cr, plot, chart);
+  shoes_plot_radar_draw_ticks(cr, plot, chart);
   shoes_plot_radar_draw_rings(cr, plot, chart);
   
   // draw the data points - 
@@ -217,10 +219,13 @@ void shoes_plot_radar_draw_label(cairo_t *cr, shoes_plot *plot,  double cx, doub
 #endif
 
 // determines how many rings can be drawn without getting too busy. 
-// should be a user setting. 
-static int shoes_plot_radar_ring_count(double radius) {
-  // TODO: magic heuristic
-  return 3;
+// user setting can override
+static int shoes_plot_radar_ring_count(shoes_plot *plot, double radius) {
+  if (plot->x_ticks == 1) {
+    // magic heuristic
+    return max(1, ceill(radius / 75));
+  } else
+    return plot->x_ticks;
 }
 
 // checks if all colmin[*] are the same AND all colmax[*] are the same
@@ -236,15 +241,40 @@ static int shoes_plot_radar_same_range(radar_chart_t *chart) {
   return 1;
 }
 
-// draws the vertical radial and the numeric labels
-static void shoes_plot_radar_draw_axes(cairo_t *cr, shoes_plot *plot, radar_chart_t *chart)
+// Just draw the x_axis lines from center to outer
+static void shoes_plot_radar_draw_radials(cairo_t *cr, shoes_plot *plot, radar_chart_t *chart)
 {
   int i;
   int sz = chart->count;
   cairo_save(cr);
   cairo_set_source_rgba(cr, 0.0, 0.0 ,0.0, 0.6); // black, 60%
   // how many rings/labels for each axis?
-  int rings = shoes_plot_radar_ring_count(chart->radius);
+  int rings = shoes_plot_radar_ring_count(plot, chart->radius);
+  int only_one = shoes_plot_radar_same_range(chart);
+ 
+    for (i = 0; i < sz ; i++) {
+      double rad_pos = (i * SHOES_PI * 2) / sz;
+      int x = chart->centerx;
+      int y = chart->centery;
+      int rx = chart->centerx + sin(rad_pos) * chart->radius;
+      int ry = chart->centery - cos(rad_pos) * chart->radius;
+      cairo_move_to(cr, x, y);
+      cairo_line_to(cr, rx, ry);
+      cairo_stroke(cr);
+     }
+
+  cairo_restore(cr);
+}
+
+// draws the xaxis (radial) numeric labels
+static void shoes_plot_radar_draw_ticks(cairo_t *cr, shoes_plot *plot, radar_chart_t *chart)
+{
+  int i;
+  int sz = chart->count;
+  cairo_save(cr);
+  cairo_set_source_rgba(cr, 0.0, 0.0 ,0.0, 0.6); // black, 60%
+  // how many rings/labels for each axis?
+  int rings = shoes_plot_radar_ring_count(plot, chart->radius);
   int only_one = shoes_plot_radar_same_range(chart);
   int j;
   for (j = 0; j < rings; j++) {
@@ -258,8 +288,8 @@ static void shoes_plot_radar_draw_axes(cairo_t *cr, shoes_plot *plot, radar_char
       int rx = chart->centerx + sin(rad_pos) * radius;
       int ry = chart->centery - cos(rad_pos) * radius;
       cairo_move_to(cr, x, y);
-      cairo_line_to(cr, rx, ry);
-      cairo_stroke(cr);
+      //cairo_line_to(cr, rx, ry);
+      //cairo_stroke(cr);
       if (i == 0 || !only_one) {
         char vlbl[16];
         double range = chart->colmax[i] - chart->colmin[i];
@@ -278,9 +308,9 @@ static void shoes_plot_radar_draw_rings(cairo_t *cr, shoes_plot *plot, radar_cha
  int i;
   int sz = chart->count;
   cairo_save(cr);
-  cairo_set_source_rgba(cr, 0.0, 0.0 ,0.0, 0.4); // black, 40%
+  cairo_set_source_rgba(cr, 0.4, 0.4 ,0.4, 1.0); // lt gray.
   // how many rings?
-  int rings = shoes_plot_radar_ring_count(chart->radius);
+  int rings = shoes_plot_radar_ring_count(plot, chart->radius);
   int j;
   int close_x, close_y;
   for (j = 0; j < rings; j++) {

@@ -8,7 +8,7 @@ Shoes.app width: 620, height: 480 do
                {label: "Disgust", min: 0, max: 100, format: "%3.0f%%"},
                ["Fear", 0, 100, "%3.0f%%"],
                ["Joy", 0, 100, "%3.0f%%"],
-               ["Sadneess", 0, 100, "%3.0f%%"],
+               ["Sadness", 0, 100, "%3.0f%%"],
                ["Surprise", 0, 100, "%3.0f%%"]
              ]
   stack do
@@ -21,7 +21,7 @@ Shoes.app width: 620, height: 480 do
     stack do
       flow do
         @grf = plot widget_width, widget_height, title: "Microexpressions Scores", 
-          font: "Helvetica", auto_grid: true,
+          font: "Helvetica", auto_grid: true, rings: 2,
           default: "skip", chart: "radar", column_settings: @dimensions
       end
     end
