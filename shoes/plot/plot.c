@@ -109,7 +109,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     pie_pct = shoes_hash_get(attr, rb_intern("pie_percent"));
     colors = shoes_hash_get(attr, rb_intern("colors"));
     radar_opts = shoes_hash_get(attr, rb_intern("column_settings"));
-    radar_rings = shoes_hash_get(attr, rb_intern("rings"));
+    radar_rings = shoes_hash_get(attr, rb_intern("grid_lines"));
     // there may be many other things in that hash :-)
   } else {
     rb_raise(rb_eArgError, "Plot: missing mandatory {options}");
