@@ -16,7 +16,7 @@ Shoes.app width: 620, height: 480 do
       flow do
         @grf = plot widget_width, widget_height, title: "Shoes Https downloads", caption: 
           "popularity " , font: "Helvetica", auto_grid: true,
-          default: "skip", background: white, chart: "pie", pie_percent: false,
+          default: "skip", background: white, chart: "pie", percent: true,
           colors: [yellow, olive]
       end
     end

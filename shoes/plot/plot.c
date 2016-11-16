@@ -106,7 +106,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     chart_type = shoes_hash_get(attr, rb_intern("chart"));
     background = shoes_hash_get(attr, rb_intern("background"));
     boundbox = shoes_hash_get(attr, rb_intern("boundary_box"));
-    pie_pct = shoes_hash_get(attr, rb_intern("pie_percent"));
+    pie_pct = shoes_hash_get(attr, rb_intern("percent"));
     colors = shoes_hash_get(attr, rb_intern("colors"));
     radar_opts = shoes_hash_get(attr, rb_intern("column_settings"));
     radar_rings = shoes_hash_get(attr, rb_intern("grid_lines"));
