@@ -21,7 +21,7 @@ Shoes.app width: 620, height: 480 do
     stack do
       flow do
         @grf = plot widget_width, widget_height, title: "Microexpressions Scores", 
-          font: "Helvetica", auto_grid: true, grid_lines: true,
+          font: "Helvetica", auto_grid: true, grid_lines: 3,
           default: "skip", chart: "radar", column_settings: @dimensions
       end
     end
