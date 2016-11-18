@@ -81,7 +81,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   VALUE x_ticks = Qnil, y_ticks = Qnil, boundbox = Qnil;
   VALUE missing = Qnil, chart_type = Qnil, background = Qnil;
   VALUE pie_pct = Qnil, colors = Qnil, radar_opts = Qnil;
-  VALUE rbcol_settings = Qnil, radar_rings = Qnil;
+  VALUE rbcol_settings = Qnil, grid_lines = Qnil, radar_lbl_mult = Qnil;
   shoes_canvas *canvas;
   Data_Get_Struct(parent, shoes_canvas, canvas);
   
@@ -109,7 +109,8 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     pie_pct = shoes_hash_get(attr, rb_intern("percent"));
     colors = shoes_hash_get(attr, rb_intern("colors"));
     radar_opts = shoes_hash_get(attr, rb_intern("column_settings"));
-    radar_rings = shoes_hash_get(attr, rb_intern("grid_lines"));
+    grid_lines = shoes_hash_get(attr, rb_intern("grid_lines"));
+    radar_lbl_mult = shoes_hash_get(attr, rb_intern("label_radius"));
     // there may be many other things in that hash :-)
   } else {
     rb_raise(rb_eArgError, "Plot: missing mandatory {options}");
@@ -145,18 +146,24 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
           rb_raise(rb_eArgError, "Plot: radar chart requires column settings");
         else {
           // parse radar only options here
-          if (! NIL_P(radar_rings)) {
-            if (TYPE(radar_rings) == T_FIXNUM ) {
-              self_t->x_ticks = NUM2INT(radar_rings);
-            } else if (radar_rings == Qfalse) { 
+          if (! NIL_P(grid_lines)) {
+            if (TYPE(grid_lines) == T_FIXNUM ) {
+              self_t->x_ticks = NUM2INT(grid_lines);
+            } else if (grid_lines == Qfalse) { 
               self_t->x_ticks = 0;
-            } else if (radar_rings == Qtrue) {
+            } else if (grid_lines == Qtrue) {
               self_t->x_ticks = 1;
             } else {
               rb_raise(rb_eArgError, "Plot: rings is not t/f or integer");
             }
           } else {
             self_t->x_ticks = 1;  // use heuristic for default
+          }
+          // radar needs many options not writen yet. sigh. 
+          if (! NIL_P(radar_lbl_mult)) {
+            self_t->radar_label_mult = NUM2DBL(radar_lbl_mult);
+          } else {
+            self_t->radar_label_mult = 1.15;
           }
           // returns an array of arrays
           rbcol_settings = shoes_plot_parse_column_settings(radar_opts);
