@@ -1,7 +1,7 @@
 # Radar graph - 
 Shoes.app width: 620, height: 480 do
   @xobs = ["internet", "television", "radio", "newspaper", "magazine"]
-  @values1 = [80,        160,          145,     75,          80] # in k$
+  @values1 = [80,        160,          145,     75,          80] 
   @values2 = [180,        90,           95,     90,          90]
   @columns = [ ["Internet", 0, 200, "%3.0f k"], 
                ["Television", 0, 250," %3.0f k" ],

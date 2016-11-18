@@ -49,9 +49,8 @@ void shoes_plot_radar_init(shoes_plot *plot) {
     for (i = 0; i < numcols; i++) {
       // unwrap the Ruby array of arrays
       VALUE inner_ary = rb_ary_entry(outer_ary, i);
-      int j, cnt;
+      int cnt;
       VALUE rbval;
-      char *str;
       cnt = RARRAY_LEN(inner_ary);
       rbval = rb_ary_entry(inner_ary, RADAR_LABEL); 
       rdrchart->labels[i] = RSTRING_PTR(rbval); // should be safe from gc
@@ -135,8 +134,8 @@ void shoes_plot_draw_radar_chart(cairo_t *cr, shoes_plot *plot)
         color->b / 255.0 , color->a / 255.0);
     cairo_set_line_width(cr, strokew);
     
-    double close_x;
-    double close_y;
+    double close_x = 0.0; // keep comilers from whining
+    double close_y = 0.0;
     int j;
     for (j = 0; j < count; j++) {
       // scale the value (aka normalize) for the column min/max
@@ -145,7 +144,6 @@ void shoes_plot_draw_radar_chart(cairo_t *cr, shoes_plot *plot)
       double minv = chart->colmin[j];
       double maxv = chart->colmax[j];
       double spread = maxv - minv;
-      spread > 0 ? spread: 1.0;
       double sv = (val - minv) / spread;
       // compute position on the axis to move/draw to
       //printf("scaleval: %f\n", sv);
@@ -276,21 +274,17 @@ static void shoes_plot_radar_draw_radials(cairo_t *cr, shoes_plot *plot, radar_c
   int sz = chart->count;
   cairo_save(cr);
   cairo_set_source_rgba(cr, 0.0, 0.0 ,0.0, 0.6); // black, 60%
-  // how many rings/labels for each axis?
-  int rings = shoes_plot_radar_ring_count(plot, chart->radius);
-  int only_one = shoes_plot_radar_same_range(chart);
  
-    for (i = 0; i < sz ; i++) {
-      double rad_pos = (i * SHOES_PI * 2) / sz;
-      int x = chart->centerx;
-      int y = chart->centery;
-      int rx = chart->centerx + sin(rad_pos) * chart->radius;
-      int ry = chart->centery - cos(rad_pos) * chart->radius;
-      cairo_move_to(cr, x, y);
-      cairo_line_to(cr, rx, ry);
-      cairo_stroke(cr);
-     }
-
+  for (i = 0; i < sz ; i++) {
+    double rad_pos = (i * SHOES_PI * 2) / sz;
+    int x = chart->centerx;
+    int y = chart->centery;
+    int rx = chart->centerx + sin(rad_pos) * chart->radius;
+    int ry = chart->centery - cos(rad_pos) * chart->radius;
+    cairo_move_to(cr, x, y);
+    cairo_line_to(cr, rx, ry);
+    cairo_stroke(cr);
+  }
   cairo_restore(cr);
 }
 
@@ -313,11 +307,7 @@ static void shoes_plot_radar_draw_ticks(cairo_t *cr, shoes_plot *plot, radar_cha
       double rad_pos = (i * SHOES_PI * 2) / sz;
       int x = chart->centerx;
       int y = chart->centery;
-      int rx = chart->centerx + sin(rad_pos) * radius;
-      int ry = chart->centery - cos(rad_pos) * radius;
       cairo_move_to(cr, x, y);
-      //cairo_line_to(cr, rx, ry);
-      //cairo_stroke(cr);
       if (i == 0 || !only_one) {
         char vlbl[16];
         double range = chart->colmax[i] - chart->colmin[i];
@@ -340,13 +330,11 @@ static void shoes_plot_radar_draw_rings(cairo_t *cr, shoes_plot *plot, radar_cha
   // how many rings?
   int rings = shoes_plot_radar_ring_count(plot, chart->radius);
   int j;
-  int close_x, close_y;
+  int close_x = 0, close_y = 0;
   for (j = 0; j < rings; j++) {
     double radius = (chart->radius / rings) * (j + 1 ); // drawing pos
     for (i = 0; i < sz ; i++) {
       double rad_pos = (i * SHOES_PI * 2) / sz;
-      int x = chart->centerx;
-      int y = chart->centery;
       int rx = chart->centerx + sin(rad_pos) * radius;
       int ry = chart->centery - cos(rad_pos) * radius;
       if (i == 0) {

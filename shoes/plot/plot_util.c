@@ -149,7 +149,6 @@ void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
   PangoRectangle space_rect;
   pango_layout_get_pixel_extents (space_layout, NULL, &space_rect);
   white_space = space_rect.width;
-  VALUE rbstr; 
   char *strary[6];
   int widary[6];
   for (i = 0; i <  6; i++) {
@@ -180,7 +179,7 @@ void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
   int yoffset = yhalf; 
   y = yoffset;
  
-  int pos_x = plot->place.ix + x;
+  //int pos_x = plot->place.ix + x;
   int baseline = bottom - 5; //TODO: compute baseline better
   // printf("middle? w: %i, l: %i  pos_x: %i, strw: %i\n", width, left, pos_x, legend_width);
   cairo_move_to(cr, x, baseline);
@@ -205,7 +204,6 @@ void shoes_plot_draw_tick(cairo_t *cr, shoes_plot *plot,
     int x, int y, int orientation) 
 {
   if (plot->auto_grid == 0) return;
-  int tick_size = 3;
   if (orientation == VERTICALLY) {
     cairo_move_to(cr, x, y);
     cairo_line_to(cr, x, plot->graph_y);
@@ -263,7 +261,7 @@ void shoes_plot_draw_title(cairo_t *cr, shoes_plot *plot)
   PangoLayout *layout = pango_cairo_create_layout (cr);
   pango_layout_set_font_description (layout, plot->title_pfd);
   pango_layout_set_text (layout, str, -1);
-  PangoRectangle ink, logical;
+  PangoRectangle logical;
   pango_layout_get_pixel_extents (layout, NULL, &logical);
   int xoffset = (plot->place.w / 2) - (logical.width / 2);
   x = xoffset - (plot->place.dx);

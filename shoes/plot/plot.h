@@ -131,9 +131,12 @@ extern void shoes_plot_scatter_draw(cairo_t *, shoes_place *, shoes_plot *);
 extern void shoes_plot_pie_draw(cairo_t *, shoes_place *, shoes_plot *);
 extern void shoes_plot_pie_init(shoes_plot *);
 extern void shoes_plot_pie_dealloc(shoes_plot *);
+extern void shoes_plot_radar_init(shoes_plot *);
+extern void shoes_plot_radar_dealloc(shoes_plot *);
+extern void shoes_plot_radar_draw(cairo_t *, shoes_place *, shoes_plot *);
 extern void shoes_chart_series_Cinit(shoes_chart_series *, VALUE, VALUE,
     VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE);
-extern VALUE shoe_plot_parse_column_settings(VALUE);
+extern VALUE shoes_plot_parse_column_settings(VALUE);
 // plot utility functions (in plot_util.c)
 extern void shoes_plot_set_cairo_default(cairo_t *, shoes_plot *);
 extern void shoes_plot_util_default_colors(shoes_plot *);

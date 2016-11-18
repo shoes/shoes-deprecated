@@ -194,6 +194,7 @@ double shoes_plot_pie_getNormalisedAngle(pie_slice_t *self) {
   return normalisedAngle;
 }
 
+void
 shoes_plot_pie_tick_position(cairo_t *cr, pie_chart_t * chart, pie_slice_t *slice, double angle)
 {
   int text_height = slice->lh;

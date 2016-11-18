@@ -76,7 +76,7 @@ shoes_plot_alloc(VALUE klass)
 VALUE
 shoes_plot_new(int argc, VALUE *argv, VALUE parent)
 {
-  VALUE attr = Qnil, widthObj = Qnil, heightObj = Qnil, optsArg = Qnil;
+  VALUE attr = Qnil, widthObj = Qnil, heightObj = Qnil;
   VALUE title = Qnil, caption = Qnil, fontreq = Qnil, auto_grid = Qnil;
   VALUE x_ticks = Qnil, y_ticks = Qnil, boundbox = Qnil;
   VALUE missing = Qnil, chart_type = Qnil, background = Qnil;
@@ -169,11 +169,10 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
           rbcol_settings = shoes_plot_parse_column_settings(radar_opts);
           self_t->column_opts = rbcol_settings;
           // type check parser
-          int i, cnt; VALUE rbval = Qnil;
+          int i, cnt; 
           cnt = RARRAY_LEN(rbcol_settings);
           for (i = 0; i < cnt; i++) {
             VALUE rbcol = rb_ary_entry(rbcol_settings, i);
-            int csz = RARRAY_LEN(rbcol);
             VALUE rbv;
             rbv = rb_ary_entry(rbcol, 0); // string - xaxis label
             if (TYPE(rbv) != T_STRING)
@@ -375,9 +374,9 @@ void shoes_plot_draw_everything(cairo_t *cr, shoes_place *place, shoes_plot *sel
 VALUE shoes_plot_add(VALUE self, VALUE theseries) 
 {
   shoes_plot *self_t;
-  VALUE rbsz, rbvals, rbobs, rbmin, rbmax, rbshname, rblgname, rbcolor;
-  VALUE rbstroke, rbnubs, rbnubtype  = Qnil;
-  VALUE color_wrapped = Qnil;
+  //VALUE rbsz, rbvals, rbobs, rbmin, rbmax, rbshname, rblgname, rbcolor;
+  //VALUE rbstroke, rbnubs, rbnubtype  = Qnil;
+  //VALUE color_wrapped = Qnil;
   Data_Get_Struct(self, shoes_plot, self_t); 
   int i = self_t->seriescnt; // track number of series to plot.
   VALUE newseries = theseries;
@@ -647,7 +646,6 @@ VALUE shoes_plot_save_as(int argc, VALUE *argv, VALUE self)
     char *basename = NULL;
     char *lastdot;
     char *ext  = NULL;
-    char *bare; 
     if (lastslash) {
       lastslash++;
       basename = malloc(strlen(lastslash)+1);
