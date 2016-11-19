@@ -115,11 +115,9 @@ void shoes_plot_draw_radar_chart(cairo_t *cr, shoes_plot *plot)
   chart->angle = (2 * SHOES_PI) / count;
   chart->rotation = 0.0;
   
-  // TODO: incomplete or done poorly ?
   shoes_plot_radar_draw_radials(cr, plot, chart);
   shoes_plot_radar_draw_ticks(cr, plot, chart);
   shoes_plot_radar_draw_rings(cr, plot, chart);
-  
   
   // draw the data points - 
   for (i = 0; i < plot->seriescnt; i++) {
@@ -146,7 +144,6 @@ void shoes_plot_draw_radar_chart(cairo_t *cr, shoes_plot *plot)
       double spread = maxv - minv;
       double sv = (val - minv) / spread;
       // compute position on the axis to move/draw to
-      //printf("scaleval: %f\n", sv);
       double rad_pos = j * SHOES_PI * 2 / count;
       double point_distance = sv * chart->radius;
       double xpos = chart->centerx + sin(rad_pos) * point_distance;
@@ -218,31 +215,9 @@ void shoes_plot_radar_draw_mark(cairo_t *cr, shoes_plot *plot,  double cx, doubl
     cairo_move_to(cr, rx, ry);
     cairo_set_source_rgba(cr, 0.15, 0.15, 0.15, 1.0);
     pango_cairo_show_layout(cr, layout);
-    // TODO unref the layout? 
     g_object_unref(layout);
     cairo_restore(cr);
 }
-
-#if 0
-// draw xaxis (radial) label value 
-// This is the gruff code - we might need it
-void shoes_plot_radar_draw_label(cairo_t *cr, shoes_plot *plot,  double cx, double cy, double angle, double radius, char *vlbl)
-{
-    double r_offset = 1.2;
-    double x_offset = cx;
-    double y_offset = cy;
-    double rx = x_offset + (radius * r_offset * sin(deg2rad(angle)));
-    double ry = y_offset - (radius * r_offset * cos(deg2rad(angle)));
-  
-    cairo_move_to(cr, rx, ry);
-    PangoRectangle logical;
-    PangoLayout *layout = pango_cairo_create_layout (cr);
-    pango_layout_set_font_description (layout, plot->label_pfd);
-    pango_layout_set_text (layout, vlbl, -1);
-    pango_layout_get_pixel_extents (layout, NULL, &logical);
-    pango_cairo_show_layout(cr, layout);
-}
-#endif
 
 // determines how many rings can be drawn without getting too busy. 
 // user setting can override
@@ -302,7 +277,6 @@ static void shoes_plot_radar_draw_ticks(cairo_t *cr, shoes_plot *plot, radar_cha
   for (j = 0; j < rings; j++) {
     double radius = (chart->radius / rings) * (j +1 ); // drawing pos
     double scale_pos = (1.0 / rings) * (j + 1);
-    // printf("radius: %4.2f scale_pos %4.2f\n", radius, scale_pos);
     for (i = 0; i < sz ; i++) {
       double rad_pos = (i * SHOES_PI * 2) / sz;
       int x = chart->centerx;
@@ -352,84 +326,6 @@ static void shoes_plot_radar_draw_rings(cairo_t *cr, shoes_plot *plot, radar_cha
   cairo_restore(cr);
 }
 
-// just draws a box
-void shoes_plot_radar_legend_box(cairo_t *cr, shoes_plot *self_t, 
-  int t, int l, int b, int r)
-{
-  shoes_plot_set_cairo_default(cr, self_t);
-  cairo_move_to(cr, l, t);
-  cairo_line_to(cr, r, t);  // across top
-  cairo_line_to(cr, r, b);  // down right side
-  cairo_line_to(cr, l, b);  // across bottom
-  cairo_line_to(cr, l, t);  // up left
-  cairo_stroke(cr);
-}
-
-#if 0 // may want this. 
-double shoes_plot_radar_getNormalisedAngle(radar_pole_t *self) {
-  double normalisedAngle = (self->startAngle + self->endAngle) / 2;
-  if (normalisedAngle > SHOES_PI * 2)
-    normalisedAngle -= SHOES_PI * 2;
-  else if (normalisedAngle < 0)
-    normalisedAngle += SHOES_PI * 2;
-
-  return normalisedAngle;
-}
-
-// TODO: This needs fixing or not using
-void
-shoes_plot_radar_label_position(cairo_t *cr, radar_chart_t * chart, int idx, double angle)
-{
-  int text_height = chart->lh[idx]; //slice->lh;
-  int text_width = chart->lw[idx];  //slice->lw;
-  int half_width = text_width / 2.0;
-  int half_height = text_height / 2.0;
-  int k1, k2, j1, j2;
-  int quad = shoes_plot_util_quadrant(angle);
-  //printf("label_pos angle %4.2f, quad: %i\n", angle, quad);
-  switch(quad) {
-    case QUAD_ONE:
-      k1 = j1 = k2 = 1;
-      j2 = -1;
-      break;
-    case QUAD_TWO:
-      k1 = k2 = -1;
-      j1 = j2 = 1;
-      break;
-    case QUAD_THREE:
-      k1 = j1 = k2 = -1;
-      j2 = 1;
-      break;
-    case QUAD_FOUR:
-      k1 = k2 = 1;
-      j1 = j2 = -1;
-      break;
-    default:
-      fprintf(stderr, "plot_radar.c - bad news\n");
-      return;
-  }
-
-  double cx = chart->radius * cos(angle) + k1 * half_width;
-  double cy = chart->radius * sin(angle) + j1 * half_height;
-
-  double radius2 = sqrt(cx * cx + cy * cy);
-
-  double tang = tan(angle);
-  double x = sqrt((radius2 * radius2) / (1 + tang * tang));
-  double y = tang * x;
-
-  x = chart->centerx + k2 * x;
-  y = chart->centery + j2 * y;
-  
-  // set 4 variables for the return value - caller has to deal with it.
-  chart->lx[idx] = x - half_width;
-  chart->ly[idx] = y - half_height;
-  chart->lw[idx] = text_width;
-  chart->lh[idx] = text_height;
-}
-#endif 
-
-
 void shoes_plot_draw_radar_outer_labels(cairo_t *cr, shoes_plot *plot) 
 {
   if (plot->seriescnt < 1) 
@@ -448,20 +344,11 @@ void shoes_plot_draw_radar_outer_labels(cairo_t *cr, shoes_plot *plot)
   
   // pass through the labels  again, drawing, free the string, unref the layouts ?
   for (i = 0; i < chart->count; i++) {
-    //double angle = shoes_plot_radar_getNormalisedAngle(slice);
     double angle = deg2rad(i * (360.0 / chart->count));
-#if 0
-    shoes_plot_radar_label_position(cr, chart, i, angle);
-    printf("ring label ang: %4.2f -> %4.2f, %4.2f\n",angle, chart->lx[i], chart->ly[i]); 
-    cairo_move_to(cr, chart->lx[i], chart->ly[i]);
-#else
+
     int quad = shoes_plot_util_quadrant(angle); 
-    // TODO: user specified radius multipler
-    // double radius = chart->radius * 1.15; // extend it to draw outside
     double radius = chart->radius * plot->radar_label_mult; // extend it to draw outside
     double rad_pos = (i * SHOES_PI * 2) / chart->count;
-    //int x = chart->centerx;
-    //int y = chart->centery;
     int rx = chart->centerx + sin(rad_pos) * radius;
     int ry = chart->centery - cos(rad_pos) * radius;
     if (i == 0) {
@@ -469,7 +356,6 @@ void shoes_plot_draw_radar_outer_labels(cairo_t *cr, shoes_plot *plot)
         ry = ry - (chart->lh[i] / 2);
         rx = rx - (chart->lw[i] / 2);
     } else {
-      //printf("radius: %4.2f, quad: %i\n", radius, quad+1);
       switch (quad) {
       case QUAD_ONE: 
         ry = ry - (chart->lh[i] / 2);
@@ -488,7 +374,6 @@ void shoes_plot_draw_radar_outer_labels(cairo_t *cr, shoes_plot *plot)
       }
     }
     cairo_move_to(cr, rx, ry);
-#endif
     pango_cairo_show_layout(cr, chart->layouts[i]);
     g_object_unref(chart->layouts[i]);
   }
@@ -509,7 +394,6 @@ void shoes_plot_radar_draw(cairo_t *cr, shoes_place *place, shoes_plot *self_t) 
   if (self_t->seriescnt) {
     shoes_plot_draw_radar_chart(cr, self_t);
     shoes_plot_draw_radar_outer_labels(cr, self_t);
-    // shoes_plot_draw_radar_ticks(cr, self_t);
     shoes_plot_draw_legend(cr, self_t);
   }
 }
