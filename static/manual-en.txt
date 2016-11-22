@@ -4287,9 +4287,11 @@ is auto-sized, auto-scaled to fit as best it can in that rectangle.
 
 === chart: <string> ===
 
-String is one of "line", "column", "scatter", "pie" or "timeseries" This is the type of
+String is one of "line", "column", "scatter", "pie", "radar" or "timeseries" This is the type of
 chart you want for this plot widget. Timeseries is like "line" except it has extra options
 for interacting with very large data sets with hundreds or thousands of data points.
+
+Not all options are used by all chart types. 
 
 === font: <string> ===
 
@@ -4342,6 +4344,73 @@ Only (barely) useful and only for TimeSeries charts. If the user clicks in the c
 plot, Shoes will call the proc with the button number and the top, left values of the mouse scaled to be in the content
 area. Figuring out what to do with that info is very complicated.
 
+=== column_settings: <array> ===
+
+This only used for radar charts and is mandatory. It also requires a long description
+and an example.
+{{{
+# Radar graph - 
+Shoes.app width: 620, height: 480 do
+  @pre_test =  [71, 35, 62, 55, 88, 76, 55] 
+  @practice =  [70, 53, 83, 94, 71, 59, 82]
+  @post_test = [94, 93, 96, 89, 96, 88, 93]
+  @dimensions = [ ["Anger", 0, 100, "%3.0f%%"], 
+               ["Contempt", 0, 100, "%3.0f%%"],
+               {label: "Disgust", min: 0, max: 100, format: "%3.0f%%"},
+               ["Fear", 0, 100, "%3.0f%%"],
+               ["Joy", 0, 100, "%3.0f%%"],
+               ["Sadness", 0, 100, "%3.0f%%"],
+               ["Surprise", 0, 100, "%3.0f%%"]
+             ]
+  stack do
+    para "Plot Radar Demo 7"
+    flow do 
+      button "quit" do Shoes.quit end
+    end
+    widget_width = 600
+    widget_height = 400
+    stack do
+      flow do
+        @grf = plot widget_width, widget_height, title: "Microexpressions Scores", 
+          font: "Helvetica", auto_grid: true, grid_lines: 3, label_radius: 1.10,
+          default: "skip", chart: "radar", column_settings: @dimensions
+      end
+    end
+    @grf.add values: @pre_test, color: blue, 
+      name: "Pre-Test Score", min: 0, max: 100, strokewidth: 3
+    cs = app.chart_series values: @practice, color: red,
+      name: "Practice Score", min: 0, max: 100, strokewidth: 3
+    @grf.add cs
+    @grf.add values: @post_test, color: orange,
+      name: "Post-Test Score", min: 0, max: 100, strokewidth: 3
+  end
+end
+}}}
+
+Run the example and study the code.  For the other chart types, Shoes
+processes chart_series like a row in speadsheet. Radar needs column info and
+column settings: is how you specify it with an array containing  another array or a hash.
+If you look at the hash in the example you'll see old friends like label: min: and max:
+format: is not something you may have seen before. It's a Ruby printf control string
+that will be given a Ruby double to turn into text.  format: is optional but it
+defaults to "4.2f" - four digits on the left of the decimal point and 2 digits to 
+the right. 
+
+=== grid_lines: <integer> ===
+
+This is only used for radar charts and is optional. It can be true, false or a number.
+The default is true. When true,  Shoes makes it's estimate of how many grid_lines or 'rings'
+to draw around before it becomes too busy.  You can override that. False or 0
+means none, true or 1 means guess. 3 would mean 3 'rings' and so on. 
+
+=== label_radius: <float_number> ===
+
+This is only used for radar charts and is optional. The labels in the column_setting
+are drawn on outside of the circle at the radius * 1.15 (default). This good
+for some charts and not so good for others. 1.15 means 15% outside. 1.20 is probably
+are high as you can get away with before colliding into the title string. 0.5 would
+would move them into the circle - probably not what you want.
+
 === plot.save_as <filename> ===
 
 This method will draw the plot to an .svg, .pdf ,ps, or .png depending on the extention 
@@ -4364,6 +4433,7 @@ This is a plot method!! If your have two or three data sets displayed in one plo
 it's up to you to update all of them before calling redraw_to and if your zooming in and appending 
 you'll have to figure it out because redraw_to will reset the plot begin to 0 and the end index to the given index which
 really should be a new data point.
+
 
 === plot.add {options} or chart_series. ===
 

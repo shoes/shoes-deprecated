@@ -154,7 +154,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
             } else if (grid_lines == Qtrue) {
               self_t->x_ticks = 1;
             } else {
-              rb_raise(rb_eArgError, "Plot: rings is not t/f or integer");
+              rb_raise(rb_eArgError, "Plot: grid_lines is not t/f or integer");
             }
           } else {
             self_t->x_ticks = 1;  // use heuristic for default
