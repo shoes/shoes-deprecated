@@ -548,8 +548,9 @@ def Shoes.make_help_page
       end
     end
     image :width => 120, :height => 120, :top => -18, :left => 6 do
-      image "#{DIR}/static/shoes-icon.png", :width => 100, :height => 100, :top => 10, :left => 10 
-      glow 2
+      #image "#{DIR}/static/shoes-icon.png", :width => 100, :height => 100, :top => 10, :left => 10 
+      image "#{DIR}/static/shoes-icon.png", :width => 80, :height => 80, :top => 22, :left => 10 
+     glow 2
     end
   end
 rescue => e
