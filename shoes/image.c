@@ -294,7 +294,7 @@ shoes_surface_create_from_gif(char *filename, int *width, int *height, unsigned 
   int intjump[] = { 8, 8, 4, 2 };
 
   transp = -1;
-#if !defined(GIFLIB_MAJOR)
+#if !defined(GIFLIB_MAJOR) || (GIFLIB_MAJOR <= 4)
   gif = DGifOpenFileName(filename);
 #else
   int gif_err;
@@ -410,7 +410,7 @@ shoes_surface_create_from_gif(char *filename, int *width, int *height, unsigned 
   surface = shoes_surface_create_from_pixels(pixels, w, h);
 
 done:
-#if !defined(GIFLIB_MAJOR)
+#if !defined(GIFLIB_MAJOR)  || (GIFLIB_MAJOR <= 4)
   if (gif != NULL) DGifCloseFile(gif);
 #else
   if (gif != NULL) DGifCloseFile(gif, &gif_err);
