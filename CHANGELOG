@@ -10,6 +10,8 @@
 -------------- Shoes 3.3.2 ----------------------------------
 
 === New with 3.3.2
+  * Ruby is updated to 2.2.6 (windows still uses 2.2.4)
+  * gems is updated to 
   * Profiler with both a GUI and the more traditional text report.
     Written in Shoes and Ruby so you can modify it if you like. 
     https://github.com/Shoes3/shoes3/issues/232
@@ -28,6 +30,7 @@
     profiler text report.
     Note: raspbian may have font issues for 'monospace' font.
     https://github.com/Shoes3/shoes3/issues/236
+    https://github.com/Shoes3/shoes3/issues/256
     
   * exit should no long be used. Please use Shoes.quit
     https://github.com/Shoes3/shoes3/issues/263
@@ -36,11 +39,14 @@
       https://github.com/Shoes3/shoes3/issues/288
       https://github.com/Shoes3/shoes3/issues/264
       https://github.com/Shoes3/shoes3/wiki/Plot-Widget
+      expect some confusion and bugs.
       
   * rename method 'refresh_slot' to 'refresh' before too many people 
     use the old name.  This could break some scripts.
 
 === Fixed with 3.3.2
+  * Radio buttons fix
+    https://github.com/Shoes3/shoes3/issues/274
   * A new launch script for OSX (cshoes) that works like Linux and Windows
     from the command line. Use Cobbler to create your osx cshoes script.
   * Windows: bug261 - fix font loading
