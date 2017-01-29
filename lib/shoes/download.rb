@@ -1,6 +1,7 @@
 # Borrowed/backported from Shoes 4 which I modified to fix some bugs 
 # and conform better to the Shoes 3.2 manual. I hope. 
 # https://github.com/shoes/shoes4/commit/b0e7cfafe9705f223bcbbd1031acfac02e9f79c6
+require 'shoes/open-uri-patch'
 class Shoes
   class HttpResponse
      # Struct might be better? 
@@ -23,7 +24,6 @@ class Shoes
       @opts = opts
       @blk = blk
       @response = HttpResponse.new
-      #@gui = Shoes.configuration.backend_for(self)
       @finished = false
       @transferred = 0
       @length = 0
@@ -32,18 +32,16 @@ class Shoes
 
     
     def start_download(url)
-      require 'open-uri'
+      #require 'open-uri'
       @thread = Thread.new do
         uri_opts = {}
         uri_opts[:content_length_proc] = content_length_proc
         uri_opts[:progress_proc] = progress_proc if @opts[:progress]
+        uri_opts[:redirect_to_https] = true
           
-        #puts "Thread Start"
         open url, uri_opts do |f|
           # everything has been downloaded at this point. f is a tempfile
-          #puts "Download.finished"
           finish_download f
-          #puts "end of thread block - joining"
           @thread.join
         end
       end
