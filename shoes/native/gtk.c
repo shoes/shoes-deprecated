@@ -1615,11 +1615,19 @@ shoes_native_dialog_color(shoes_app *app)
 VALUE
 shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
 {
-    //GLOBAL_APP(app);
-    //ACTUAL_APP(app);
-    GTK_APP_VAR(app);
 
-    char *apptitle = RSTRING_PTR(app->title); //default is "Shoes"
+    char *apptitle = "Shoes";
+    shoes_app *app = NULL;
+    GtkWindow *window = NULL;
+    if (RARRAY_LEN(shoes_world->apps) > 0) {
+      //GLOBAL_APP(app);
+      //ACTUAL_APP(app);
+      //GTK_APP_VAR(app);
+      VALUE actual_app = rb_funcall2(self, rb_intern("app"), 0, NULL); 
+      Data_Get_Struct(actual_app, shoes_app, app);
+      apptitle = RSTRING_PTR(app->title); //default is "Shoes"
+      window = APP_WINDOW(app);
+    }
     char atitle[50];
     g_sprintf(atitle, "%s says", apptitle);
     rb_arg_list args;
@@ -1641,7 +1649,7 @@ shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
     }
 
     GtkWidget *dialog = gtk_message_dialog_new_with_markup(
-            APP_WINDOW(app), GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_OK,
+            window, GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_OK,
             format_string, atitle, msg );
 
     gtk_dialog_run(GTK_DIALOG(dialog));
