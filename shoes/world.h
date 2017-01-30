@@ -52,9 +52,13 @@ extern SHOES_EXTERN shoes_world_t *shoes_world;
   }\
 
 #define OSX_APP_VAR(appvar) \
+  char * title_##appvar = "Shoes"; \
   shoes_app *appvar = NULL; \
-  if (RARRAY_LEN(shoes_world->apps) > 0) \
-    Data_Get_Struct(rb_ary_entry(shoes_world->apps, 0), shoes_app, appvar)\
+  if (RARRAY_LEN(shoes_world->apps) > 0) { \
+    VALUE actual_app = rb_funcall2(self, rb_intern("app"), 0, NULL); \
+    Data_Get_Struct(actual_app, shoes_app, appvar); \
+    title_##appvar = RSTRING_PTR(app->title); \
+  }\
     
 
 // no longer used - TODO: remove after testing.

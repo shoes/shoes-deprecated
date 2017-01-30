@@ -1790,9 +1790,11 @@ shoes_native_dialog_color(shoes_app *app)
 VALUE
 shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
 {
-  GLOBAL_APP(app);
+  //GLOBAL_APP(app);
   //ACTUAL_APP(app);
-  NSString *appstr = [[NSString alloc] initWithUTF8String: RSTRING_PTR(app->title)];
+  OSX_APP_VAR(app);
+  //NSString *appstr = [[NSString alloc] initWithUTF8String: RSTRING_PTR(app->title)];
+  NSString *appstr = [[NSString alloc] initWithUTF8String: title_app];
   rb_arg_list args;
   rb_parse_args(argc, argv, "S|h", &args);
   VALUE msg;
@@ -1832,10 +1834,13 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   VALUE answer = Qnil;
-  GLOBAL_APP(app);
+  //GLOBAL_APP(app);
   //ACTUAL_APP(app);
-  char *rbcTitle = RSTRING_PTR(app->title);
-  NSString *appstr = [[NSString alloc] initWithCString: rbcTitle encoding: NSUTF8StringEncoding];
+  OSX_APP_VAR(app);
+  //char *rbcTitle = RSTRING_PTR(app->title);
+  //char *rbcTitle = title_app;
+  //NSString *appstr = [[NSString alloc] initWithCString: rbcTitle encoding: NSUTF8StringEncoding];
+  NSString *appstr = [[NSString alloc] initWithCString: title_app encoding: NSUTF8StringEncoding];
   rb_parse_args(argc, argv, "S|h", &args);
   COCOA_DO({
     // replace with styles if needed when we have one
@@ -1922,10 +1927,12 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
   char *msg;
   VALUE quiz;
   VALUE answer = Qnil;
-  GLOBAL_APP(app);
+  //GLOBAL_APP(app);
   //ACTUAL_APP(app);
-  char *rbcTitle = RSTRING_PTR(app->title);
-  NSString *appstr = [[NSString alloc] initWithCString: rbcTitle encoding: NSUTF8StringEncoding];
+  //char *rbcTitle = RSTRING_PTR(app->title);
+  //NSString *appstr = [[NSString alloc] initWithCString: rbcTitle encoding: NSUTF8StringEncoding];
+  OSX_APP_VAR(app);
+  NSString *appstr = [[NSString alloc] initWithCString: title_app encoding: NSUTF8StringEncoding];
   rb_arg_list args;
   rb_parse_args(argc, argv, "S|h", &args);
   COCOA_DO({
@@ -2023,8 +2030,10 @@ shoes_dialog_color(VALUE self, VALUE title)
    * New dialog for Shoes 3.3.2 - doesn't use Carbon
    * Implements Alpha selection
   */
-  GLOBAL_APP(app);
-  NSString *defTitle = [NSString stringWithUTF8String: RSTRING_PTR(title)];
+  //GLOBAL_APP(app);
+  //NSString *defTitle = [NSString stringWithUTF8String: RSTRING_PTR(title)];
+  OSX_APP_VAR(app);
+  NSString *defTitle = [NSString stringWithUTF8String: title_app];
   VALUE color = Qnil;
   NSInteger returnCode;
   NSColor *nscolor;
@@ -2063,7 +2072,10 @@ shoes_dialog_chooser(VALUE self, NSString *title, BOOL directories, VALUE attr)
     [openDlg setCanChooseFiles: !directories];
     [openDlg setCanChooseDirectories: directories];
     [openDlg setAllowsMultipleSelection: NO];
-    [openDlg setTitle: title];
+    //if (!NIL_P(attr) && !NIL_P(shoes_hash_get(attr, rb_intern("title"))))
+    //  title = strdup(RSTRING_PTR(shoes_hash_get(attr, rb_intern("title"))));
+    //else
+      [openDlg setTitle: title];
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
     if ( [openDlg runModal] == NSOKButton )
     {
