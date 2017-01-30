@@ -32,18 +32,31 @@ SHOES_EXTERN typedef struct _shoes_world_t {
 
 extern SHOES_EXTERN shoes_world_t *shoes_world;
 
-// OSX uses GLOBAL_APP 
+// rarely used ? but needed
 #define GLOBAL_APP(appvar) \
   shoes_app *appvar = NULL; \
   if (RARRAY_LEN(shoes_world->apps) > 0) \
     Data_Get_Struct(rb_ary_entry(shoes_world->apps, 0), shoes_app, appvar)\
     
-// gtk uses this   
+// gtk uses this for mKernel methods - app is optional
+// defines 3 variables that callers need to know about. Ick!
 #define GTK_APP_VAR(appvar) \
+  char * title_##appvar = "Shoes"; \
+  GtkWindow *window_##appvar = NULL; \
   shoes_app *appvar = NULL; \
-  VALUE actual_app = rb_funcall2(self, rb_intern("app"), 0, NULL); \
-  Data_Get_Struct(actual_app, shoes_app, appvar);
-  
+  if (RARRAY_LEN(shoes_world->apps) > 0) { \
+    VALUE actual_app = rb_funcall2(self, rb_intern("app"), 0, NULL); \
+    Data_Get_Struct(actual_app, shoes_app, appvar); \
+    title_##appvar = RSTRING_PTR(app->title); \
+    window_##appvar = APP_WINDOW(app);\
+  }\
+
+#define OSX_APP_VAR(appvar) \
+  shoes_app *appvar = NULL; \
+  if (RARRAY_LEN(shoes_world->apps) > 0) \
+    Data_Get_Struct(rb_ary_entry(shoes_world->apps, 0), shoes_app, appvar)\
+    
+
 // no longer used - TODO: remove after testing.
 #define ACTUAL_APP_NOPE(appvar) \
   shoes_app *appvar = NULL; \

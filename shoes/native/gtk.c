@@ -1615,21 +1615,9 @@ shoes_native_dialog_color(shoes_app *app)
 VALUE
 shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
 {
-
-    char *apptitle = "Shoes";
-    shoes_app *app = NULL;
-    GtkWindow *window = NULL;
-    if (RARRAY_LEN(shoes_world->apps) > 0) {
-      //GLOBAL_APP(app);
-      //ACTUAL_APP(app);
-      //GTK_APP_VAR(app);
-      VALUE actual_app = rb_funcall2(self, rb_intern("app"), 0, NULL); 
-      Data_Get_Struct(actual_app, shoes_app, app);
-      apptitle = RSTRING_PTR(app->title); //default is "Shoes"
-      window = APP_WINDOW(app);
-    }
+    GTK_APP_VAR(app);
     char atitle[50];
-    g_sprintf(atitle, "%s says", apptitle);
+    g_sprintf(atitle, "%s says", title_app);
     rb_arg_list args;
     rb_parse_args(argc, argv, "S|h", &args);
     char *msg = RSTRING_PTR(shoes_native_to_s(args.a[0]));
@@ -1649,7 +1637,7 @@ shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
     }
 
     GtkWidget *dialog = gtk_message_dialog_new_with_markup(
-            window, GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_OK,
+            window_app, GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_OK,
             format_string, atitle, msg );
 
     gtk_dialog_run(GTK_DIALOG(dialog));
@@ -1661,11 +1649,8 @@ VALUE
 shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
 {
   char atitle[50];
-  //GLOBAL_APP(app);
-  //ACTUAL_APP(app);
   GTK_APP_VAR(app);
 
-  char *apptitle = RSTRING_PTR(app->title);
   VALUE answer = Qnil;
   rb_arg_list args;
   rb_parse_args(argc, argv, "S|h", &args);
@@ -1673,7 +1658,7 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
     switch(argc)
     {
     case 1:
-        sprintf(atitle, "%s asks", apptitle);
+        sprintf(atitle, "%s asks", title_app);
         break;
     case 2:
         if (RTEST(ATTR(args.a[1], title)))
@@ -1688,9 +1673,9 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
         break;
     }
 
-  // GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle,
-  // APP_WINDOW(app), GTK_DIALOG_MODAL, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
-  GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle, APP_WINDOW(app), GTK_DIALOG_MODAL,
+  //GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle, APP_WINDOW(app), GTK_DIALOG_MODAL,
+  //  _("_Cancel"), GTK_RESPONSE_CANCEL, _("_OK"), GTK_RESPONSE_OK, NULL);
+  GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle, window_app, GTK_DIALOG_MODAL,
     _("_Cancel"), GTK_RESPONSE_CANCEL, _("_OK"), GTK_RESPONSE_OK, NULL);
 
   gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
@@ -1719,9 +1704,8 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
 {
   VALUE answer = Qfalse;
   char atitle[50];
-  //GLOBAL_APP(app);
   GTK_APP_VAR(app);
-  char *apptitle = RSTRING_PTR(app->title);
+  //char *apptitle = RSTRING_PTR(app->title);
   rb_arg_list args;
   rb_parse_args(argc, argv, "S|h", &args);
   VALUE quiz = shoes_native_to_s(args.a[0]);
@@ -1729,7 +1713,7 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
     switch(argc)
     {
     case 1:
-        sprintf(atitle, "%s asks", apptitle);
+        sprintf(atitle, "%s asks", title_app);
         break;
     case 2:
         if (RTEST(ATTR(args.a[1], title)))
@@ -1746,7 +1730,9 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
 
 
 
-  GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle, APP_WINDOW(app), GTK_DIALOG_MODAL,
+  //GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle, APP_WINDOW(app), GTK_DIALOG_MODAL,
+  //  _("_Cancel"), GTK_RESPONSE_CANCEL, _("_OK"), GTK_RESPONSE_OK, NULL);
+  GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle, window_app, GTK_DIALOG_MODAL,
     _("_Cancel"), GTK_RESPONSE_CANCEL, _("_OK"), GTK_RESPONSE_OK, NULL);
 
 
@@ -1771,7 +1757,7 @@ VALUE
 shoes_dialog_color(VALUE self, VALUE title)
 {
   VALUE color = Qnil;
-  GLOBAL_APP(app);
+  GTK_APP_VAR(app);
   title = shoes_native_to_s(title);
   GtkWidget *dialog = gtk_color_chooser_dialog_new(RSTRING_PTR(title), NULL);
   gint result = gtk_dialog_run(GTK_DIALOG(dialog));
@@ -1792,10 +1778,12 @@ VALUE
 shoes_dialog_chooser(VALUE self, char *title, GtkFileChooserAction act, const gchar *button, VALUE attr)
 {
   VALUE path = Qnil;
-  GLOBAL_APP(app);
+  GTK_APP_VAR(app);
   if (!NIL_P(attr) && !NIL_P(shoes_hash_get(attr, rb_intern("title"))))
     title = strdup(RSTRING_PTR(shoes_hash_get(attr, rb_intern("title"))));
-  GtkWidget *dialog = gtk_file_chooser_dialog_new(title, APP_WINDOW(app), act,
+  //GtkWidget *dialog = gtk_file_chooser_dialog_new(title, APP_WINDOW(app), act,
+  //  _("_Cancel"), GTK_RESPONSE_CANCEL, button, GTK_RESPONSE_ACCEPT, NULL);
+  GtkWidget *dialog = gtk_file_chooser_dialog_new(title, window_app, act,
     _("_Cancel"), GTK_RESPONSE_CANCEL, button, GTK_RESPONSE_ACCEPT, NULL);
   if (act == GTK_FILE_CHOOSER_ACTION_SAVE)
     gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(dialog), TRUE);
