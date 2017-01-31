@@ -673,13 +673,27 @@ use this color.
 
 Pops up an "Open file..." window. It's the standard window which shows all of
 your folders and lets you select a file to open. Hands you back the name of the
-file.
+file. 
 
 {{{
  #!ruby
  filename = ask_open_file
  Shoes.app do
    para File.read(filename)
+ end
+}}}
+
+You can also specify the title string the dialog displays by including a hash argument 
+with 'title'. This 'title' feature is new with Shoes 3.3.3 and is also available for
+ask_save_file, ask_open_folder and ask_save_folder as well as ask_open_file.
+
+{{{
+ #!ruby
+ Shoes.app do
+   button "open special" do
+     sel = ask_open_file title: "Shoes Manual wants you to select a file"
+     para "Selected: #{sel}"
+   end
  end
 }}}
 
