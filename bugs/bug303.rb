@@ -1,5 +1,5 @@
 # bug 303 - alert mis-behaves when naked
-ask_save_file #title: "do you see me?"
+ask_save_folder title: "do you see me?"
 #alert "do you see me?"
 Shoes.app do
   button "Ask 2" do ask "this is second alert" end
