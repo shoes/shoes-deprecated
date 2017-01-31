@@ -2068,14 +2068,14 @@ shoes_dialog_chooser(VALUE self, NSString *title, BOOL directories, VALUE attr)
 {
   VALUE path = Qnil;
   COCOA_DO({
+    NSString *real_title = [NSString stringWithString: title];
     NSOpenPanel* openDlg = [NSOpenPanel openPanel];
     [openDlg setCanChooseFiles: !directories];
     [openDlg setCanChooseDirectories: directories];
     [openDlg setAllowsMultipleSelection: NO];
-    //if (!NIL_P(attr) && !NIL_P(shoes_hash_get(attr, rb_intern("title"))))
-    //  title = strdup(RSTRING_PTR(shoes_hash_get(attr, rb_intern("title"))));
-    //else
-      [openDlg setTitle: title];
+    if (!NIL_P(attr) && !NIL_P(shoes_hash_get(attr, rb_intern("title"))))
+      real_title = [NSString stringWithUTF8String: (RSTRING_PTR(shoes_hash_get(attr, rb_intern("title"))))];
+    [openDlg setTitle: real_title];
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
     if ( [openDlg runModal] == NSOKButton )
     {
@@ -2107,24 +2107,28 @@ VALUE
 shoes_dialog_save(int argc, VALUE *argv, VALUE self)
 {
   VALUE path = Qnil;
+  NSString *real_title;
+  VALUE attr;
+  char *tstr; 
+  int swv;
   COCOA_DO({
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+    rb_arg_list args;
+    swv = rb_parse_args(argc, argv, "|h", &args);
+    if (NIL_P(args.a[0])) {
+      real_title = @"Save file...";
+    } else {
+      attr = args.a[0];
+      tstr = RSTRING_PTR(shoes_hash_get(attr, rb_intern("title")));
+      real_title = [NSString stringWithUTF8String: tstr];
+    }
     NSSavePanel* saveDlg = [NSSavePanel savePanel];
-    [saveDlg setTitle: @"Save file"];
+    [saveDlg setTitle: real_title];
     if ( [saveDlg runModal] == NSOKButton )
     {
       NSURL *url = [saveDlg URL];
       const char *filename = [[url path] UTF8String];
       path = rb_str_new2(filename);
     }
-#else
-    NSSavePanel* saveDlg = [NSSavePanel savePanel];
-    if ( [saveDlg runModalForDirectory:nil file:nil] == NSOKButton )
-    {
-      const char *filename = [[saveDlg filename] UTF8String];
-      path = rb_str_new2(filename);
-    }
-#endif
   });
   return path;
 }
@@ -2140,13 +2144,22 @@ shoes_dialog_open_folder(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
 {
+  NSString *real_title;
   rb_arg_list args;
   rb_parse_args(argc, argv, "|h", &args);
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
   VALUE path = Qnil;
+  VALUE attr;
   COCOA_DO({
+    if (NIL_P(args.a[0])) {
+      real_title = @"Save to folder";
+    } else {
+      char *tstr;
+      attr = args.a[0];
+      tstr = RSTRING_PTR(shoes_hash_get(attr, rb_intern("title")));
+      real_title = [NSString stringWithUTF8String: tstr];
+    } 
     NSSavePanel *saveDlg = [NSSavePanel savePanel];
-    [saveDlg setTitle: @"Save folder..."];
+    [saveDlg setTitle: real_title];
     [saveDlg setPrompt: @"Save here"];
     [saveDlg setNameFieldStringValue: @"Any Name"];
     if ( [saveDlg runModal] == NSOKButton )
@@ -2157,7 +2170,4 @@ shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
     }
   });
   return path;
-#else
-  return shoes_dialog_chooser(self, @"Save folder...", YES, args.a[0]);
-#endif
 }
