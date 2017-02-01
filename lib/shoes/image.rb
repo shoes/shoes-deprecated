@@ -1,4 +1,6 @@
-require 'digest/sha1'
+require 'shoes/open-uri-patch'
+require 'shoes/HttpResponse'
+#require 'digest/sha1'
 
 class Shoes
   def self.image_temp_path uri, uext
@@ -18,11 +20,13 @@ class Shoes
   # and with magic of duck typing, it looks like cResponse. 
   def self.image_download_sync url, opts
     # puts "image_download_sync called"
-    require 'open-uri'
+    #require 'open-uri'
     tmpf = File.open(opts[:save],'wb')
     result = HttpResponse.new
     begin
-      open url do |f|
+      uri_opts = {}
+      uri_opts[:redirect_to_https] = true
+      open url, uri_opts do |f|
         # everything has been downloaded at this point.
         # f is a tempfile like creature
         result.status = f.status[0].to_i # 200, 404, etc
@@ -31,8 +35,8 @@ class Shoes
         result.headers = f.meta
         tmpf.close
        end
-    rescue 
-      alert "Download failed for #{url}"
+    rescue => e
+      raise "Image download failed for #{url} because: #{e}"
     end
     # puts "image_download_sync finished"
     return result

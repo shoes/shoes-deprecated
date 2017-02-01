@@ -2,16 +2,8 @@
 # and conform better to the Shoes 3.2 manual. I hope. 
 # https://github.com/shoes/shoes4/commit/b0e7cfafe9705f223bcbbd1031acfac02e9f79c6
 require 'shoes/open-uri-patch'
+require 'shoes/HttpResponse'
 class Shoes
-  class HttpResponse
-     # Struct might be better? 
-     attr_accessor :headers, :body, :status
-     def initalize
-       @headers = {}
-       @body = ''
-       @status = 404
-     end
-  end
   class Download
     attr_reader :progress, :response, :content_length, :gui, :transferred 
     # length and percent is preserved for Shoes3 compatibility
