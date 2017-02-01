@@ -121,7 +121,8 @@ LINUX_CFLAGS << " -mms-bitfields -D__MINGW_USE_VC2005_COMPAT -DXMD_H -D_WIN32_IE
 # It should probably be in tasks/prebuild or tasks/package
 cp APP['icons']['win32'], "shoes/appwin32.ico"
 
-LINUX_LIB_NAMES = %W[gif-4 jpeg librsvg-2 libffi]
+#LINUX_LIB_NAMES = %W[gif-4 jpeg librsvg-2 libffi]
+LINUX_LIB_NAMES = %W[gif-7 jpeg librsvg-2 libffi]
 
 DLEXT = "dll"
 LINUX_LDFLAGS = "-shared -L#{ularch} "
@@ -144,7 +145,8 @@ LINUX_LIBS << " #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} "
 SOLOCS = {
   'ruby'    => "#{EXT_RUBY}/bin/msvcrt-ruby220.dll",
   #'ungif'  => "#{uldir}/libungif.so.4",
-  'gif'     => "#{bindll}/libgif-4.dll",
+  #'gif'     => "#{bindll}/libgif-4.dll",
+  'gif'     => "#{bindll}/libgif-7.dll",
   'jpeg'    => "#{bindll}/libjpeg-9.dll",
   'libyaml' => "#{bindll}/libyaml-0-2.dll",
   #'intl'    => "#{bindll}/intl.dll",
