@@ -1,5 +1,6 @@
 require 'shoes/open-uri-patch'
 require 'shoes/HttpResponse'
+require 'openssl'
 #require 'digest/sha1'
 
 class Shoes
