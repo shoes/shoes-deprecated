@@ -3,6 +3,7 @@
 # https://github.com/shoes/shoes4/commit/b0e7cfafe9705f223bcbbd1031acfac02e9f79c6
 require 'shoes/open-uri-patch'
 require 'shoes/HttpResponse'
+require 'openssl'
 class Shoes
   class Download
     attr_reader :progress, :response, :content_length, :gui, :transferred 
@@ -24,13 +25,15 @@ class Shoes
 
     
     def start_download(url)
+      puts "download method: starting for #{url}"
       #require 'open-uri'
       @thread = Thread.new do
         uri_opts = {}
         uri_opts[:content_length_proc] = content_length_proc
         uri_opts[:progress_proc] = progress_proc if @opts[:progress]
         uri_opts[:redirect_to_https] = true
-          
+        uri_opts[:ssl_verify_mode] = OpenSSL::SSL::VERIFY_NONE
+        
         open url, uri_opts do |f|
           # everything has been downloaded at this point. f is a tempfile
           finish_download f
@@ -61,6 +64,7 @@ class Shoes
     end
 
     def finish_download(f)
+      puts "download method finishing"
       @finished = true
       @response.body = f.read
       @response.status = f.status[0]
