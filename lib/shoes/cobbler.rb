@@ -346,7 +346,7 @@ the first selection and then the Folder named plugins"
                 v = val.split('|')
                 path = Shoes::image_cache_path v[1], File.extname(k)
                 #puts "Deleted #{path}"
-                File.delete path
+                File.delete path if File.exist? path
               end
               DATABASE.clear
             else
@@ -354,7 +354,7 @@ the first selection and then the Folder named plugins"
               if fdel
                 v = DATABASE[sel].split('|')
                 path = Shoes::image_cache_path v[1], File.extname(sel)
-                File.delete path
+                File.delete path if File.exist? path
               end
               DATABASE.delete(sel) # block doesn't work as expected
             end
