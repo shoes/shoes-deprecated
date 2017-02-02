@@ -26,6 +26,7 @@ class Shoes
     begin
       uri_opts = {}
       uri_opts[:redirect_to_https] = true
+      uri_opts[:ssl_verify_mode] = OpenSSL::SSL::VERIFY_NONE
       open url, uri_opts do |f|
         # everything has been downloaded at this point.
         # f is a tempfile like creature
@@ -38,7 +39,7 @@ class Shoes
     rescue => e
       raise "Image download failed for #{url} because: #{e}"
     end
-    # puts "image_download_sync finished"
+    puts "image_download_sync finished"
     return result
   end
   
