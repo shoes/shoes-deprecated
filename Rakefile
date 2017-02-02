@@ -32,7 +32,7 @@ case APP['revision']
     if APP['revision'].kind_of? Fixnum
       APP['REVISION'] = APP['revision'].to_s
     else
-      APP['REVISION'] = '0009' # make it up
+      APP['REVISION'] = '9' # make it up
     end
 end
 
