@@ -26,7 +26,6 @@ CURL_LIB = `curl-config --libs`
 RELEASE_NAME = `cat shoes/version.h | ruby -ne 'puts $$1.downcase if ~/SHOES_RELEASE_NAME "(.+)"/'`
 HPRICOT_NAME = `ruby -rubygems -e 'puts eval(File.read("req/hpricot/gemspec")).full_name'`
 SQLITE_NAME = `ruby -rubygems -e 'puts eval(File.read("req/sqlite3/gemspec")).full_name'`
-JSON_NAME = `ruby -rubygems -e 'puts eval(File.read("req/json/gemspec")).full_name'`
 GEM_DIR = "dist/ruby/gems/${RUBY_VERSION}"
 SHOES_IDENT = "shoes ${RELEASE_NAME} (0.r${REVISION}) [${RUBY_PLATFORM}]"
 
@@ -81,13 +80,6 @@ dist/shoes.launch: dist/shoes-bin
 	@cd req/sqlite3/ext/sqlite3 && ruby extconf.rb && make
 	@cp req/sqlite3/ext/sqlite3/*.so ${GEM_DIR}/gems/${SQLITE_NAME}/lib
 	@cp req/sqlite3/gemspec ${GEM_DIR}/specifications/${SQLITE_NAME}.gemspec
-	@mkdir -p ${GEM_DIR}/gems/${JSON_NAME}
-	@cp -r req/json/lib ${GEM_DIR}/gems/${JSON_NAME}/lib
-	@cd req/json/ext/generator && ruby extconf.rb && make
-	@cd req/json/ext/parser && ruby extconf.rb && make
-	@mkdir -p ${GEM_DIR}/gems/${JSON_NAME}/lib/json/ext
-	@cp req/json/ext/**/*.so ${GEM_DIR}/gems/${JSON_NAME}/lib/json/ext
-	@cp req/json/gemspec ${GEM_DIR}/specifications/${JSON_NAME}.gemspec
 	@cp -r req/ftsearch/lib/* dist/lib
 	@cd req/ftsearch/ext/ftsearchrt && ruby extconf.rb && make
 	@cp req/ftsearch/ext/ftsearchrt/*.so dist/lib

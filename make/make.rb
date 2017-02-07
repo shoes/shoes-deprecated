@@ -73,7 +73,7 @@ module Make
 
     gdir = "dist/ruby/gems/#{RUBY_V}"
     #{}.each do |gemn, xdir|
-    {'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
+    {'hpricot' => 'lib', 'sqlite3' => 'lib'}.each do |gemn, xdir|
       spec = eval(File.read("req/#{gemn}/gemspec"))
       mkdir_p "#{gdir}/specifications"
       mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
