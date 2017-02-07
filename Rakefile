@@ -139,9 +139,6 @@ when /linux/
       require File.expand_path('make/xwin7/stubs')
       require File.expand_path('make/xwin7/packdeps')
       require File.expand_path('make/gems')
-    when /xmsw32/
-      require File.expand_path('make/xmsw32/env')
-      require File.expand_path('make/xmsw32/tasks')
    else
       puts "Unknown builder for #{TGT_ARCH}, removing setting"
       rm_rf "crosscompile" if File.exists? "crosscompile"
@@ -423,12 +420,6 @@ namespace :linux do
     task :pi2 do
       sh "echo 'TGT_ARCH=pi2' >crosscompile"
     end
-
-#    desc "Cross compile to Windows Native GUI"
-#    task :msw32 do
-#      puts "Cross compile for WIN32"
-#      sh "echo 'TGT_ARCH=xmsw32' >crosscompile"
-#    end
 
     desc "Cross compile to MingW32 (Gtk)"
     task :xwin7 do
