@@ -68,7 +68,7 @@ ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.6'
 LINUX_CFLAGS << ' -Wno-incompatible-pointer-types-discards-qualifiers'
 
 OSX_ARCH = '-arch x86_64'
-# These env vars are used in ftsearch, chipmunk extconf.rb
+# These env vars are used in chipmunk extconf.rb
 SHOES_TGT_ARCH = SHOES_GEM_ARCH ='x86_64-darwin10.0'
 ENV['CC'] = CC
 ENV['TGT_RUBY_PATH'] = EXT_RUBY

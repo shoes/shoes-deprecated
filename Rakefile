@@ -49,7 +49,7 @@ SHOES_RUBY_ARCH = RbConfig::CONFIG['arch']
 # default exts, gems & locations to build and include - replace with custom.yaml
 APP['GEMLOC'] = File.expand_path('req')
 APP['EXTLOC'] = File.expand_path('req')
-APP['EXTLIST'] = ['ftsearch', 'chipmunk']
+APP['EXTLIST'] = ['chipmunk']
 APP['GEMLIST'] = ['sqlite3']
 
 if File.exists? "crosscompile"
