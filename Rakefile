@@ -50,7 +50,7 @@ SHOES_RUBY_ARCH = RbConfig::CONFIG['arch']
 APP['GEMLOC'] = File.expand_path('req')
 APP['EXTLOC'] = File.expand_path('req')
 APP['EXTLIST'] = ['ftsearch', 'chipmunk']
-APP['GEMLIST'] = ['hpricot', 'sqlite3']
+APP['GEMLIST'] = ['sqlite3']
 
 if File.exists? "crosscompile"
   CROSS = true

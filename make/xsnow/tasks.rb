@@ -330,8 +330,7 @@ class MakeDarwin
       puts "Build gems #{TGT_DIR}"
       mkdir_p "#{TGT_DIR}/builtins"
       gdir = "#{TGT_DIR}/builtins"
-      #{'hpricot' => 'lib', 'sqlite3' => 'lib'}.each do |gemn, xdir|
-      {'hpricot' => 'lib'}.each do |gemn, xdir|
+      {}.each do |gemn, xdir|
         spec = eval(File.read("req/#{gemn}/gemspec"))
         mkdir_p "#{gdir}/specifications"
         mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
