@@ -72,7 +72,7 @@ class MakeDarwin
       puts "Entering osx pre_build #{TGT_DIR}"
       rm_rf "#{TGT_DIR}"
       # copy Ruby, dylib, includes - have them in place before
-      # we build exts (binject, bloopsaphone, chipmunk, sqlite3 and winject).
+      # we build exts (ftsearch).
       puts "Ruby at #{EXT_RUBY}"
       rbvt = RUBY_V
       rbvm = RUBY_V[/^\d+\.\d+/]
