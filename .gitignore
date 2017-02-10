@@ -32,6 +32,7 @@ mavericks
 xmavericks
 snowleopard
 xsnow
+/msys2
 /pi2
 *.app
 req/binject

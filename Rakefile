@@ -84,14 +84,13 @@ CLEAN.include ["req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
 case RUBY_PLATFORM
 when /mingw/
   if CROSS
-    require File.expand_path("make/win7/env")
-    require File.expand_path("make/win7/tasks")
-    require File.expand_path("make/win7/stubs")
+    require File.expand_path("make/#{TGT_ARCH}/env")
+    require File.expand_path("make/#{TGT_ARCH}/tasks")
+    require File.expand_path("make/#{TGT_ARCH}/stubs")
     require File.expand_path("make/gems")
   else
     require File.expand_path('rakefile_mingw')
   end
-
   Builder = MakeMinGW
   NAMESPACE = :win32
 
@@ -386,13 +385,17 @@ end
 namespace :win32 do
 
   namespace :setup do
-    desc "Build for distribution (Tight)"
+    desc "Winodws build with devkit"
     task :win7 do
-      puts "Windows tight build"
       sh "echo TGT_ARCH=win7 >crosscompile"
     end
 
-    desc "Loose setup"
+    desc "Windows build with msys2"
+    task :msys2 do
+      sh "echo TGT_ARCH=msys2 >crosscompile"
+    end
+    
+    desc "remove win32 setup"
     task :clean do
       puts "restored to Loose Shoes build"
       rm_rf "crosscompile" if File.exists? "crosscompile"
