@@ -50,7 +50,7 @@ SHOES_RUBY_ARCH = RbConfig::CONFIG['arch']
 APP['GEMLOC'] = File.expand_path('req')
 APP['EXTLOC'] = File.expand_path('req')
 APP['EXTLIST'] = ['ftsearch', 'chipmunk']
-APP['GEMLIST'] = ['hpricot', 'sqlite3']
+APP['GEMLIST'] = ['sqlite3']
 
 if File.exists? "crosscompile"
   CROSS = true
@@ -138,9 +138,6 @@ when /linux/
       require File.expand_path('make/xwin7/stubs')
       require File.expand_path('make/xwin7/packdeps')
       require File.expand_path('make/gems')
-    when /xmsw32/
-      require File.expand_path('make/xmsw32/env')
-      require File.expand_path('make/xmsw32/tasks')
    else
       puts "Unknown builder for #{TGT_ARCH}, removing setting"
       rm_rf "crosscompile" if File.exists? "crosscompile"
@@ -354,11 +351,6 @@ namespace :osx do
       sh "echo 'TGT_ARCH=xsnow' >crosscompile"
     end
 
-    #desc "Experimental OSX/Gtk3"
-    #task :osxgtk do
-    #  sh "echo 'TGT_ARCH=osxgtk' >crosscompile"
-    #end
-
     desc "Setup to build Shoes just for my Mac (default)"
     task :clean do
       rm_rf "crosscompile"
@@ -431,12 +423,6 @@ namespace :linux do
     task :pi2 do
       sh "echo 'TGT_ARCH=pi2' >crosscompile"
     end
-
-#    desc "Cross compile to Windows Native GUI"
-#    task :msw32 do
-#      puts "Cross compile for WIN32"
-#      sh "echo 'TGT_ARCH=xmsw32' >crosscompile"
-#    end
 
     desc "Cross compile to MingW32 (Gtk)"
     task :xwin7 do

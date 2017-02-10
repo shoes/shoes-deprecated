@@ -76,7 +76,6 @@ module Make
 
     gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
     # Loose shoes doesn't build gems
-    #{'hpricot' => 'lib', 'json' => 'lib/json/ext', 'sqlite3' => 'lib'}.each do |gemn, xdir|
     {}.each do |gemn, xdir|
       spec = eval(File.read("req/#{gemn}/gemspec"))
       mkdir_p "#{gdir}/specifications"

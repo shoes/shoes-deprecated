@@ -1,16 +1,11 @@
-# This example tries Nokogiri (used in Shoes 4), but falls back to
-# Hpricot for Shoes 3 compatibility
-begin
-  require 'nokogiri'
-rescue Exception => e
-  require 'hpricot'
-end
+# This example tries Nokogiri (used in Shoes 4)
+require 'nokogiri'
 
 class Comic
   attr_reader :rss, :title
 
   def initialize(body)
-    @rss = defined?(Nokogiri) ? Nokogiri::XML(body) : Hpricot(body)
+    @rss = Nokogiri::XML(body)
     @title = @rss.at("//channel/title").inner_text
   end
 
