@@ -1,5 +1,0 @@
-.bundle
-coverage
-Gemfile.lock
-pkg/*
-vendor/*
