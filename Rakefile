@@ -115,9 +115,9 @@ when /linux/
   if CROSS
     # This will be a Tight Shoes setup
     case TGT_ARCH
-    when /x86_64_linux/
-      require File.expand_path('make/x86_64_linux/env')
-      require File.expand_path('make/x86_64_linux/tasks')
+    when /x86_64-linux/
+      require File.expand_path('make/x86_64-linux/env')
+      require File.expand_path('make/x86_64-linux/tasks')
       require File.expand_path("make/gems")
     when /i686-linux/
       require File.expand_path('make/i686-linux/env')
@@ -435,10 +435,10 @@ namespace :linux do
       sh "echo 'TGT_ARCH=i686-linux' >crosscompile"
     end
 
-    desc "chroot build for x86_64 (64 bit linux)"
+    desc "chroot build for x86_64 (64bit linux)"
     task :x86_64_linux do
       puts "Cross complile for x86_64-linux"
-      sh "echo 'TGT_ARCH=x86_64_linux' >crosscompile"
+      sh "echo 'TGT_ARCH=x86_64-linux' >crosscompile"
     end
 
     desc "Remove linux compile setup"
