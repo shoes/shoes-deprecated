@@ -105,8 +105,7 @@ when /darwin/
     require File.expand_path("make/gems")
   else
     # build Loose Shoes on OSX for OSX
-    puts "Loose Shoes OSX"
-    #osx_bootstrap_env
+    puts "OSX: please select a target - see rake -T"
     require File.expand_path('make/darwin/env')
     require File.expand_path('make/darwin/tasks')
   end
@@ -120,9 +119,9 @@ when /linux/
       require File.expand_path('make/x86_64_linux/env')
       require File.expand_path('make/x86_64_linux/tasks')
       require File.expand_path("make/gems")
-    when /xi686_linux/
-      require File.expand_path('make/xi686_linux/env')
-      require File.expand_path('make/xi686_linux/tasks')
+    when /i686-linux/
+      require File.expand_path('make/i686-linux/env')
+      require File.expand_path('make/i686-linux/tasks')
       require File.expand_path("make/gems")
     when /pi2/
       require File.expand_path('make/pi2/env')
@@ -326,12 +325,12 @@ end
 
 namespace :osx do
   namespace :setup do
-    desc "Setup to build Shoes for 10.1+"
+    desc "Setup to build Shoes for 10.10+"
     task :yosemite do
       sh "echo 'TGT_ARCH=yosemite' >crosscompile"
     end
 
-    desc "Setup to build Shoes for 10.9+ from 10.1+"
+    desc "Setup to build Shoes for 10.9+ from 10.10+"
     task :xmavericks do
       sh "echo 'TGT_ARCH=xmavericks' >crosscompile"
     end
@@ -341,17 +340,17 @@ namespace :osx do
       sh "echo 'TGT_ARCH=mavericks' >crosscompile"
     end
 
-    desc "Setup to build for 10.6+ from 10.6"
-    task :snow do
-      sh "echo 'TGT_ARCH=snow' >crosscompile"
-    end
+    #desc "Setup to build for 10.6+ from 10.6"
+    #task :snow do
+    #  sh "echo 'TGT_ARCH=snow' >crosscompile"
+    #end
 
-    desc "Downshift Build 10.6 from 10.9"
-    task "xsnow" do
-      sh "echo 'TGT_ARCH=xsnow' >crosscompile"
-    end
+    #desc "Downshift Build 10.6 from 10.9"
+    #task "xsnow" do
+    #  sh "echo 'TGT_ARCH=xsnow' >crosscompile"
+    #end
 
-    desc "Setup to build Shoes just for my Mac (default)"
+    desc "restore build my current system"
     task :clean do
       rm_rf "crosscompile"
     end
@@ -414,7 +413,7 @@ end
 namespace :linux do
 
   namespace :setup do
-    desc "Cross compile to Raspberry pi 1a, 1b, 2"
+    desc "Cross compile to arm6hf - advanced users"
     task :xarm6hf do
       sh "echo 'TGT_ARCH=xarmv6hf' >crosscompile"
     end
@@ -424,25 +423,25 @@ namespace :linux do
       sh "echo 'TGT_ARCH=pi2' >crosscompile"
     end
 
-    desc "Cross compile to MingW32 (Gtk)"
+    desc "Cross compile to MingW32 (Gtk, 32)"
     task :xwin7 do
       puts "Cross compile for Windows MingW32"
       sh "echo 'TGT_ARCH=xwin7' >crosscompile"
     end
 
-    desc "Cross compile to i686 (32bit linux)"
-    task :xi686_linux do
-      puts "Cross complile to i386-gnu-linux setup"
-      sh "echo 'TGT_ARCH=xi686_linux' >crosscompile"
+    desc "chroot build for i686 (32bit linux)"
+    task :i686_linux do
+      puts "Cross complile for i686-linux"
+      sh "echo 'TGT_ARCH=i686-linux' >crosscompile"
     end
 
-    desc "Cross compile to x86_64 (64 bit linux)"
+    desc "chroot build for x86_64 (64 bit linux)"
     task :x86_64_linux do
-      puts "Cross complile to x86_64-linux setup"
+      puts "Cross complile for x86_64-linux"
       sh "echo 'TGT_ARCH=x86_64_linux' >crosscompile"
     end
 
-    desc "Remove cross compile setup"
+    desc "Remove linux compile setup"
     task :clean do
       puts "restored to native build"
       rm_rf "crosscompile" if File.exists? "crosscompile"

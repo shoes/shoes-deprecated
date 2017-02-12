@@ -1,0 +1,131 @@
+= How to contribute
+
+Community involvement is essential to RubyGems. We want to keep it easy as
+possible to contribute changes. There are a few guidelines that we need
+contributors to follow to reduce the time it takes to get changes merged in.
+
+== Guidelines
+
+1. New features should be coupled with tests.
+
+2. Ensure that your code blends well with ours:
+   * No trailing whitespace
+   * Match indentation (two spaces)
+   * Match coding style (`if`, `elsif`, `when` need trailing `then`)
+
+3. If any new files are added or existing files removed in a commit or PR, please update the `Manifest.txt` accordingly.
+
+4. Don't modify the history file or version number.
+
+5. If you have any questions, just ask on IRC in #rubygems on Freenode or file
+   an issue here: http://github.com/rubygems/rubygems/issues
+
+For more information and ideas on how to contribute to RubyGems ecosystem, see
+here: http://guides.rubygems.org/contributing/
+
+== Getting Started
+
+    $ gem install hoe
+    $ rake newb
+
+To run commands like `gem install` from the repo:
+
+    $ ruby -Ilib bin/gem install
+
+== Issues
+
+RubyGems uses labels to track all issues and pull requests. In order to provide
+guidance to the community this is documentation of how labels are used in the
+rubygems repository.
+
+=== Type
+
+Most Issues or pull requests will have one of these labels, which describes the
+type of the issue or pull request.
+
+* <b>bug report</b> - An issue describing a bug in rubygems. This would be something
+  that is broken, confusing, unexpected behavior etc.
+* <b>bugfix</b> - A pull request that fixes a bug report.
+* <b>feature request</b> - An issue describing a request for a new feature or
+  enhancement.
+* <b>feature implementation</b> - A pull request implementing a feature request.
+* <b>question</b> - An issue that is a more of a question than a call for specific
+  changes in the codebase.
+* <b>cleanup</b> - Generally for a pull request that improves the code base without
+  fixing a bug or implementing a feature.
+* <b>major bump</b> - This issue or pull request requires a major version bump
+* <b>administrative</b> - This issue relates to adminstrative tasks that need to
+  take place as it relates to rubygems
+
+Bug report and Bugfix have the same color. And feature implementation and
+feature request have the same color since they are related labels.
+
+=== Workflow
+
+These are labels that indicate the state of an issue, where it is in the process
+from being submitted to being closed. These are listed in rough progression
+order from submitted to closed.
+
+* <b>triage</b> - This is an issue or pull request that needs to be properly
+  labeled by by a maintainer.
+* <b>accepted</b> - This issue / pull request has been accepted as valid and
+  will be worked on by someone.
+* <b>ready for work</b> - An issue that is available for collaboration. This issue
+  should have existing discussion on the problem, and a description of how to go
+  about solving it. This label should be removed once someone has said they are
+  going to work on it.
+* <b>claimed</b> - An issue that is claimed by a member of the community and is
+  working on it. If the member can be assigned to the issue, they should be.
+* <b>feedback</b>- This issue/pull request is waiting on feedback from
+  one ore more of the folks involved in the issue. Generally their should be an
+  <tt>@username/team</tt> in the issue indicating who should respond.
+* <b>blocked</b> - the issue/pull request is currently unable to move forward because
+  of some specific reason, generally this will be a reason that is outside
+  RubyGems or needs feedback from some specific individual or group, and it may
+  be a while before something it is resolved.
+
+Feedback and blocked all have the same color since they are all waiting on
+someone in particular to do something.
+
+=== Inactive Reason
+
+Reasons are why an issue / pull request was closed without being worked on or
+accepted. There should also be more detailed information in the comments.
+
+* *duplicate* - This is a duplicate of an existing bug. The comments must
+  reference the existing issue.
+* *abandonded* - This is an issue/pull request that has aged off, is no longer
+  applicable or similar.
+* *declined* - An issue that won't be fixed/implemented or a pull request that
+  is not accepted.
+* *deprecated* - An issue/pull request that no longer applies to the actively
+  maintained codebase.
+
+All the reason labels are the same maroon color.
+
+=== Categories
+
+These are aspects of the codebase, or what general area the issue or pull
+request pertains too. Not all issues will have a category.
+
+* <b>gemspec</b> - related to the gem specification itself
+* <b>API</b> - related to the public supported rubygems API. This is the code api,
+  not a network related API.
+* <b>command</b> - related to something in <tt>Gem::Commands</tt>
+* <b>install</b> - related to gem installations
+* <b>documentation</b> - related to updating / fixing / clarifying documentation or
+  guides
+
+All category labels are the same blue color.
+
+=== Platforms
+
+If an issue or pull request pertains to only one platform, then it should have
+an appropriate platform tag.
+
+* *windows*
+* *java*
+* *osx*
+* *linux*
+
+All platform tags are the same purple color.

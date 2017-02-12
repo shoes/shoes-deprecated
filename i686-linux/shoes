@@ -1,0 +1,22 @@
+#!/bin/bash
+
+REALPATH=`readlink -f $0`
+
+APPPATH="${REALPATH%/*}"
+if [ "$APPPATH" = "shoes" ]; then
+  APPPATH="."
+fi
+if [ "$APPPATH" = "." ]; then
+  APPPATH=`pwd`
+fi
+
+# makeself changes the directory to /tmp/selfgzNNNNN.  if we're in
+# an extracted archive, change back to the directory where we launched.
+if [ `pwd | awk '{ sub(/[0-9]+/, ""); print }'` = "/tmp/selfgz" ]; then
+  # fix the symlink, this is actually a bug in the minitar lib
+  #rm -f libruby.so.2.1
+  #ln -s libruby.so.2.1 libruby.so.2.1.0
+  cd "$OLDPWD"
+fi
+cd "$OLDPWD"
+LD_LIBRARY_PATH=$APPPATH $APPPATH/shoes-bin "$@"
