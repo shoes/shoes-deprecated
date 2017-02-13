@@ -1,6 +1,6 @@
 ﻿# https://en.wikipedia.org/wiki/Farnsworth-Munsell_100_hue_test
 
-SQUARES = 10
+SQUARES = 22
 SQUARE_SIZE = 50
 SQUARE_PADDING = 2
 
