@@ -14,8 +14,6 @@ HUES = [
 ]
 
 def generate_rgb(rgb_start, rgb_end, segments = 2)
-   retval = []
-   
    rstep, gstep, bstep = 3.times.collect { |n|
       rgb_start[n].to_f.step(
          by: ((rgb_end[n] - rgb_start[n]) / (segments - 1).to_f), 
@@ -23,11 +21,7 @@ def generate_rgb(rgb_start, rgb_end, segments = 2)
       ).to_a
    }
    
-   segments.times { |n|
-      retval << rgb(rstep[n].floor, gstep[n].floor, bstep[n].floor)
-   }
-   
-   retval
+   segments.times.collect { |n| rgb(rstep[n].floor, gstep[n].floor, bstep[n].floor) }
 end
 
 Shoes.app(width: (SQUARE_SIZE + SQUARE_PADDING) * SQUARES + SQUARE_PADDING, height: (SQUARE_SIZE + SQUARE_PADDING) * HUES.size + SQUARE_PADDING, title: TITLE % 0, resizable: false) do
@@ -105,7 +99,6 @@ Shoes.app(width: (SQUARE_SIZE + SQUARE_PADDING) * SQUARES + SQUARE_PADDING, heig
             @hues.flatten.each_with_index { |item, index|
                item.eql?(@r[index].fill) ? @completed += 1 : @success = false
             }
-            @anim.start if @success
          end
       }
    end
