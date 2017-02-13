@@ -84,58 +84,61 @@ CLEAN.include ["req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
 case RUBY_PLATFORM
 when /mingw/
   if CROSS
-    require File.expand_path("make/#{TGT_ARCH}/env")
-    require File.expand_path("make/#{TGT_ARCH}/tasks")
-    require File.expand_path("make/#{TGT_ARCH}/stubs")
+    require File.expand_path("make/win32/#{TGT_ARCH}/env")
+    require File.expand_path("make/win32/#{TGT_ARCH}/tasks")
+    require File.expand_path("make/win32/#{TGT_ARCH}/stubs")
     require File.expand_path("make/gems")
   else
-    require File.expand_path('rakefile_mingw')
+    require File.expand_path('make/win32/loose/env.rb')
+    require File.expand_path('make/win32/loose/tasks.rb')
+    puts "PLEASE SELECT a build environment from the win32 options "
+    puts"   shown from a a `rake -T` "
   end
   Builder = MakeMinGW
   NAMESPACE = :win32
 
 when /darwin/
-
   if CROSS
     # Building tight shoes on OSX for OSX
-    require File.expand_path("make/#{TGT_ARCH}/env")
-    #require_relative "make/#{TGT_ARCH}/homebrew"
-    require File.expand_path("make/#{TGT_ARCH}/tasks")
-    require File.expand_path("make/#{TGT_ARCH}/stubs")
+    require File.expand_path("make/darwin/#{TGT_ARCH}/env")
+    require File.expand_path("make/darwin/#{TGT_ARCH}/tasks")
+    require File.expand_path("make/darwin/#{TGT_ARCH}/stubs")
     require File.expand_path("make/gems")
   else
     # build Loose Shoes on OSX for OSX
     puts "OSX: please select a target - see rake -T"
-    require File.expand_path('make/darwin/env')
-    require File.expand_path('make/darwin/tasks')
+    puts "This Shoes may not be portable to other OSX systems"
+    require File.expand_path('make/darwin/loose/env')
+    require File.expand_path('make/darwin/loose/tasks')
   end
   Builder = MakeDarwin
   NAMESPACE = :osx
+  
 when /linux/
   if CROSS
     # This will be a Tight Shoes setup
     case TGT_ARCH
     when /x86_64-linux/
-      require File.expand_path('make/x86_64-linux/env')
-      require File.expand_path('make/x86_64-linux/tasks')
+      require File.expand_path('make/linux/x86_64-linux/env')
+      require File.expand_path('make/linux/x86_64-linux/tasks')
       require File.expand_path("make/gems")
     when /i686-linux/
-      require File.expand_path('make/i686-linux/env')
-      require File.expand_path('make/i686-linux/tasks')
+      require File.expand_path('make/linux/i686-linux/env')
+      require File.expand_path('make/linux/i686-linux/tasks')
       require File.expand_path("make/gems")
     when /pi2/
-      require File.expand_path('make/pi2/env')
-      require File.expand_path('make/pi2/tasks')
+      require File.expand_path('make/linux/pi2/env')
+      require File.expand_path('make/linux/pi2/tasks')
       require File.expand_path("make/gems")
     when /xarmv6hf/
-      require File.expand_path('make/xarm6hf/env')
-      require File.expand_path('make/xarm6hf/tasks')
+      require File.expand_path('make/linux/xarm6hf/env')
+      require File.expand_path('make/linux/xarm6hf/tasks')
       require File.expand_path('make/gems')
    when /xwin7/
-      require File.expand_path('make/xwin7/env')
-      require File.expand_path('make/xwin7/tasks')
-      require File.expand_path('make/xwin7/stubs')
-      require File.expand_path('make/xwin7/packdeps')
+      require File.expand_path('make/linux/xwin7/env')
+      require File.expand_path('make/linux/xwin7/tasks')
+      require File.expand_path('make/linux/xwin7/stubs')
+      require File.expand_path('make/linux/xwin7/packdeps')
       require File.expand_path('make/gems')
    else
       puts "Unknown builder for #{TGT_ARCH}, removing setting"
@@ -144,8 +147,8 @@ when /linux/
   else
      # This is Loose Shoes setup
      #TGT_DIR = "dist"
-     require File.expand_path('make/linux/env')
-     require File.expand_path('make/linux/tasks')
+     require File.expand_path('make/linux/loose/env')
+     require File.expand_path('make/linux/loose/tasks')
   end
   Builder = MakeLinux
   NAMESPACE = :linux
@@ -254,7 +257,7 @@ end
 # --------------------------
 # tasks depending on Builder = MakeLinux|MakeDarwin|MakeMinGW
 
-desc "Does a full compile, for the OS you're running on"
+desc "Build using your OS setup"
 task :build => ["#{NAMESPACE}:build"]
 
 task :pre_build do
