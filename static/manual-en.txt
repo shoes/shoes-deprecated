@@ -829,6 +829,12 @@ loaded, the font cache will tend to ignore loaded fonts.
 
 Builds a linear gradient from two colors.  For each color, you may pass in a
 Shoes::Color object or a string describing the color.
+{{{
+Shoes.app do
+   fill gradient(red, green)
+   oval 10, 10, 150
+end
+}}}
 
 === gray(the numbers: darkness, alpha) » Shoes::Color ===
 
@@ -838,6 +844,13 @@ level.
 {{{
  black = gray(0.0)
  white = gray(1.0)
+}}}
+
+{{{
+Shoes.app do
+   fill gray(127)
+   oval 10, 10, 150
+end
 }}}
 
 === info(message: a string) » nil ===
@@ -937,9 +950,31 @@ Returns a string containing all of the text that's on the system clipboard.
 This is the global clipboard that every program on the computer cuts and pastes
 into.
 
+{{{
+Shoes.app(:title => "Copy and Paste", :width => 450, :height => 250) do
+   button "copy" do
+      self.clipboard = "this is a Shoes string."
+   end
+   button "paste" do
+      para clipboard()
+   end
+end
+}}}
+
 === clipboard = a string ===
 
 Stores `a string` of text in the system clipboard.
+
+{{{
+Shoes.app(:title => "Copy and Paste", :width => 450, :height => 250) do
+   button "copy" do
+      self.clipboard = "this is a Shoes string."
+   end
+   button "paste" do
+      para clipboard()
+   end
+end
+}}}
 
 === close() ===
 
@@ -1120,6 +1155,13 @@ For: ''background, border, gradient''.
 The angle at which to apply a gradient.  Normally, gradient colors range from
 top to bottom.  If the `:angle` is set to 90, the gradient will rotate 90
 degrees counter-clockwise and the gradient will go from left to right.
+
+{{{
+Shoes.app do
+   fill gradient(red, green, angle: 35)
+   oval 10, 10, 150
+end
+}}}
 
 === :attach » a slot or element ===
 
@@ -1610,6 +1652,18 @@ How should the text wrap when it fills its width? Possible options are:
  * "word" - Break lines at word breaks.
  * "char" - Break lines between characters, thus breaking some words.
  * "trim" - Cut the line off with an ellipsis if it goes too long.
+ 
+ {{{
+ Shoes.app do
+   str = "Shoes is a tiny graphics toolkit. It's simple and straightforward. Shoes was born to be easy!"
+   
+   stack left: 100, width: 200 do
+      para str, wrap: "word"
+      para str, wrap: "char"
+      para str, wrap: "trim"
+   end
+end
+ }}}
 
 == Classes List ==
 
@@ -1725,15 +1779,43 @@ method just give you a bit more control than [[Art.oval]], by offering the
 `:angle1` and `:angle2` styles.  (In fact, you can mimick the `oval` method by
 setting `:angle1` to 0 and `:angle2` to `Shoes::TWO_PI`.)
 
+{{{
+Shoes.app do
+   fill red
+   arc self.width / 2, self.height / 2, 150, 75, Shoes::PI, 0
+   
+   fill green
+   arc self.width / 2, self.height / 2, 150, 75, 0, Shoes::PI
+end
+}}}
+
 === arrow(left, top, width) » Shoes::Shape ===
 
 Draws an arrow at coordinates (left, top) with a pixel `width`.
+
+{{{
+ #!ruby
+ Shoes.app do
+   arrow 100, 100, 50
+ end
+}}}
 
 === cap(:curve or :rect or :project) » self ===
 
 Sets the line cap, which is the shape at the end of every line you draw.  If
 set to `:curve`, the end is rounded.  The default is `:rect`, a line which ends
 abruptly flat.  The `:project` cap is also fat, but sticks out a bit longer.
+
+{{{
+Shoes.app do
+   [:curve, :rect, :project].each_with_index do |n, m|
+      cap n
+      strokewidth 5
+      stroke rgb(rand(255), rand(255), rand(255))
+      line 50, 50 + (m * 25), self.width - 50, 50 + (m * 25)
+   end
+end
+}}}
 
 === fill(pattern) » pattern ===
 
@@ -1768,6 +1850,16 @@ also set, shapes drawn will not be visible.
 
 Draws a line using the current line color (aka "stroke") starting at
 coordinates (left, top) and ending at coordinates (x2, y2).
+
+{{{
+Shoes.app do
+   100.times do |n|
+      strokewidth rand(10)
+      stroke rgb(rand(255), rand(255), rand(255))
+      line rand(self.width), rand(self.height), rand(self.width), rand(self.height)
+   end
+end
+}}}
 
 === oval(left, top, radius) » Shoes::Shape ===
 
@@ -1932,6 +2024,15 @@ center point at coordinates (left, top) with a certain number of `points`.  The
 `outer` width defines the full radius of the star; the `inner` width specifies
 the radius of the star's middle, where points stem from.
 
+{{{
+Shoes.app do
+   10.times do |n|
+      fill rgb(rand(255), rand(255), rand(255))
+      star rand(self.width) + 50, rand(self.height) + 50, rand(10) + 5, rand(50) + 50, rand(50)
+   end
+end
+}}}
+
 === stroke(pattern) » pattern ===
 
 Set the active line color for this slot.  The `pattern` may be a color, a
@@ -1944,7 +2045,7 @@ So, to draw an arrow with a red line around it:
  #!ruby
  Shoes.app do
    stroke red
-   arrow 0, 100, 10
+   arrow 100, 100, 50
  end
 }}}
 
@@ -2040,6 +2141,12 @@ text blocks, images, and everything else.
 Adds a push button with the message `text` written across its surface.  An
 optional block can be attached, which is called if the button is pressed.
 
+{{{
+Shoes.app do
+   button("push me") { alert "How dare ya!" }
+end
+}}}
+
 === caption(text) » Shoes::Caption ===
 
 Creates a Caption text block.  Shoes styles this text to 14 pixels high.
@@ -2051,6 +2158,16 @@ Adds a check box.
 === code(text) » Shoes::Code ===
 
 Create a Code text fragment.  This text defaults to a monospaced font.
+
+{{{
+Shoes.app do
+   para code %q[
+      Shoes.app do
+         para "Shoes version #{Shoes::VERSION_NUMBER}"
+      end
+   ]
+end
+}}}
 
 === del(text) » Shoes::Del ===
 
@@ -2139,6 +2256,14 @@ Creates a Link text block, which Shoes styles with a single underline and
 colors with a #06E (blue) colored stroke.
 
 The default LinkHover style is also single-underlined with a #039 (dark blue) stroke.
+
+{{{
+Shoes.app do
+   para link("click here\n", click: proc { |btn, left, top|
+      alert "#{btn}, #{left}, #{top}\n"
+   })
+end
+}}}
 
 === list_box(:items => [strings, ...]) » Shoes::ListBox ===
 
@@ -2297,6 +2422,14 @@ number of the mouse button which has been pressed.  The `left` and `top` are
 the mouse coordinates at which the click happened.
 
 To catch the moment when the mouse is unclicked, see the [[Events.release]] event.
+
+{{{
+Shoes.app do
+   click do |btn, left, top|
+      para "#{btn}, #{left}, #{top}\n"
+   end
+end
+}}}
 
 === finish { |self| ... } » self ===
 
