@@ -36,6 +36,8 @@ Shoes.app do
         exit
       end
     end
+    @msglog = edit_box width: 500, height: 200
+
     @panel = stack do
         @gemlist = stack {}
     end
@@ -74,13 +76,15 @@ Shoes.app do
        @deplist[spec.name] = spec
        gem_build_deps spec
        # now filter out the built in gems in default (minitest, rake, rdoc)
-       # HACK ALERT - HARD CODED
-       inRuby = ['bigdecimal', 'io-console', 'json', 'psych' , 'rake', 'test-unit']
+       # TODO - HARD CODED list
+       inRuby = ['bigdecimal', 'io-console', 'json', 'psych' , 'rake', 'test-unit', 'minitest']
        inRuby.each do |key| 
          @deplist.delete key
        end
+       @msglog.append "These will be copied\n"
        @deplist.each do |nm, dep|
-         para "#{nm} => #{dep.full_name} #{Gem::Platform.local}"
+         #para "#{nm} => #{dep.full_name} #{Gem::Platform.local}"
+         @msglog.append "#{nm} => #{dep.full_name}\n"
        end
      end
    end
@@ -99,16 +103,19 @@ Shoes.app do
   
   
   def copy_gem_files
-    alert "empty destination" if @dirfld.text == ""
+    if @dirfld.text == ""
+      alert "empty destination"
+      return
+    end
     srcpath = @srcfld.text
     destpath =  @dirfld.text
     if RUBY_PLATFORM =~ /mingw/
       srcpath.gsub!(/\\/, '/')  
       destpath.gsub!(/\\/, '/')  
     end
-
+    @msglog.text = ""
     @deplist.each do |name, spec|
-      puts "copy #{spec.full_name} to #{destpath}"
+      @msglog.append "copy #{spec.full_name} to #{destpath}\n"
       mkdir_p(File.join(destpath, spec.full_name))
       cp File.join(srcpath, 'specifications', "#{spec.full_name}.gemspec") , 
          File.join(destpath, spec.full_name,'gemspec')
@@ -117,26 +124,26 @@ Shoes.app do
       gemcompl = File.join(srcpath, 'extensions', "#{Gem::Platform.local}",
          rubyv, spec.full_name, 'gem.build_complete')
       if File.exist? gemcompl
-        puts "binary #{gemcompl}"
+        @msglog.append "binary #{gemcompl}\n"
         cp gemcompl, File.join(destpath, spec.full_name)
       end 
       # copy lib/ or ext/ or whatever the spec says.
       # caution: spec is modified by the eval() so it's filled in with stuff
-      puts "Require paths #{spec.require_paths}"
+      @msglog.append "Require paths #{spec.require_paths}\n"
       skip1 = spec.require_paths
       if (skip1.length > 1) &&  (skip1.include? 'ext')
-       # A confused gem! Me too. Perhaps Any binary gem?
-       src = File.join(skip1)
-       dest = File.join(destpath, spec.full_name, skip1[1])
-       mkdir_p dest
-       puts "weird ext copy #{src} -> #{dest}"
-       cp_r src, dest
+        # A confused gem! Me too. Perhaps Any binary gem?
+        src = File.join(skip1)
+        dest = File.join(destpath, spec.full_name, skip1[1])
+        mkdir_p dest
+        @msglog.append "weird ext copy #{src} -> #{dest}\n"
+        cp_r src, dest
       elsif (skip1.length > 1) &&  (skip1.include? 'lib')
-        puts "weird lib copy  #{}"
+        @msglog.append "weird lib copy  #{}\n"
         cp_r File.join(srcpath,'gems', spec.full_name, 'lib'), File.join(destpath, spec.full_name)
       else
         skip1.each do |rqp| 
-          puts "copy this  #{rqp}"
+          @msglog.append "copy this  #{rqp}\n"
           cp_r File.join(srcpath,'gems', spec.full_name, rqp), File.join(destpath, spec.full_name)
         end
       end
@@ -147,6 +154,7 @@ Shoes.app do
   end
   
   def create_tar
+    # TODO: create a full gempack here - see coobler.rb for what that is
     puts "create_tar called"
   end
   
