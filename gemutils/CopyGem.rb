@@ -12,6 +12,7 @@ Shoes.app do
         Gem.use_paths(@srcfld.text, [GEM_DIR, GEM_CENTRAL_DIR])
         Gem.refresh
       end
+      para "Dir with specifications/, gems/, extensions/"
     end
     flow do 
       para "Copy gems to here: "
@@ -115,17 +116,28 @@ Shoes.app do
     end
     @msglog.text = ""
     @deplist.each do |name, spec|
-      @msglog.append "copy #{spec.full_name} to #{destpath}\n"
-      mkdir_p(File.join(destpath, spec.full_name))
-      cp File.join(srcpath, 'specifications', "#{spec.full_name}.gemspec") , 
-         File.join(destpath, spec.full_name,'gemspec')
+      # deal with spec version numbers that are different  - it happens
+      # can be multiples - use the last one
+      gnm = spec.full_name.gsub(/-\d+.\d+.\d+$/,'')
+      lst = Dir.glob("#{srcpath}/specifications/#{gnm}*.gemspec").sort
+      puts "specs #{lst}"
+      spec_path = lst[-1]
+      # now break it apart 
+      use_spec_name = File.basename(spec_path, '.gemspec')
+      use_dir = File.dirname(spec_path)
+      @msglog.append "copy #{use_spec_name} to #{destpath}\n"
+      mkdir_p(File.join(destpath, use_spec_name))
+      # 
+      cp spec_path, File.join(destpath, use_spec_name, 'gemspec')
+      
       # check for binary code
       rubyv = RUBY_VERSION[/\d.\d/]+'.0'
       gemcompl = File.join(srcpath, 'extensions', "#{Gem::Platform.local}",
-         rubyv, spec.full_name, 'gem.build_complete')
+         rubyv, use_spec_name, 'gem.build_complete')
+      puts "bin check: #{gemcompl}"
       if File.exist? gemcompl
         @msglog.append "binary #{gemcompl}\n"
-        cp gemcompl, File.join(destpath, spec.full_name)
+        cp gemcompl, File.join(destpath, use_spec_name,'gem.build_complete')
       end 
       # copy lib/ or ext/ or whatever the spec says.
       # caution: spec is modified by the eval() so it's filled in with stuff
@@ -134,17 +146,17 @@ Shoes.app do
       if (skip1.length > 1) &&  (skip1.include? 'ext')
         # A confused gem! Me too. Perhaps Any binary gem?
         src = File.join(skip1)
-        dest = File.join(destpath, spec.full_name, skip1[1])
+        dest = File.join(destpath, use_spec_name, skip1[1])
         mkdir_p dest
         @msglog.append "weird ext copy #{src} -> #{dest}\n"
         cp_r src, dest
       elsif (skip1.length > 1) &&  (skip1.include? 'lib')
         @msglog.append "weird lib copy  #{}\n"
-        cp_r File.join(srcpath,'gems', spec.full_name, 'lib'), File.join(destpath, spec.full_name)
+        cp_r File.join(srcpath,'gems', use_spec_name, 'lib'), File.join(destpath, use_spec_name)
       else
         skip1.each do |rqp| 
           @msglog.append "copy this  #{rqp}\n"
-          cp_r File.join(srcpath,'gems', spec.full_name, rqp), File.join(destpath, spec.full_name)
+          cp_r File.join(srcpath,'gems', use_spec_name, rqp), File.join(destpath, use_spec_name)
         end
       end
     end 
