@@ -166,7 +166,7 @@ class Shoes
           background black(0.3), :curve => 8
           para link(strong("Run an App")) { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Read the Manual")) { Shoes.show_manual and close }, :margin => 10, :margin_bottom => 4
-          para link(strong("Maintain Shoes")) {Shoes.cobbler and close}, :margin => 10
+          para link(strong("Maintain Shoes")) {Shoes.cobbler and close}, :margin => 10, :margin_bottom => 4
           #para link(strong("Debug an App (remote)")) {Shoes.remote_debug and close}, :margin => 10, :margin_bottom => 4
           #para link(strong("Profile an App")) {Shoes.profiler and close}, :margin => 10, :margin_bottom => 4
           para link(strong("Bundle an App (shy)")) { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
