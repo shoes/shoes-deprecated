@@ -3901,16 +3901,27 @@ Those are the size of the SVG widget on screen in pixels
 `source` is a file pathname to the svg or a string containing the svg xml or
 an svghandle. Svghandle is a bit weird for the casual Shoes user (see [[Svghandle]])
 
+{{{
+Shoes.app do
+   svg "#{DIR}/samples/paris.svg"
+end
+}}}
 
 The hash has some other `options`:
 
 `:group => string`
 
 This how you pick one group from the larger svg to display The string starts with '#'  
-so in a svg of playing cards for example you might want to draw '#diamonds_queen'
+so in a svg of playing cards for example you might want to draw '#diamond_queen'
 That is the group name. Shoes can not figure out the group names for you. Sorry. 
 If you don't specify a ':group' then Shoes draws everything in the svg which may
 or may not be what you want.
+
+{{{
+Shoes.app do
+   svg "#{DIR}/samples/paris.svg", group: "#diamond_queen"
+end
+}}}
 
 `:aspect => boolean or float`
 
