@@ -224,7 +224,7 @@ module Shoes::Manual
     str = IO.read(path).force_encoding("UTF-8") # or UTF-8
     #$DEBUG = true
     #$DEBUGF = File.open("ft#{RUBY_VERSION[/\d/]}.log", 'w')
-    @search = Shoes::Search.new
+    @search = Search.new
     @sections, @methods, @mindex = {}, {}, {}
     @docs =
       (str.split(/^= (.+?) =/)[1..-1]/2).map do |k,v|
