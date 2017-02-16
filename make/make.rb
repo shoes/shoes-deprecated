@@ -64,11 +64,10 @@ module Make
         rm_rf "dist/ruby/lib/#{libn}"
       end
     end
-    %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
+    %w[req/rake/lib/*].each do |rdir|
       FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
     end
-    #%w[req/ftsearch/ext/ftsearchrt].
-    %w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
+    %w[req/binject/ext/binject_c req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
       each { |xdir| copy_ext xdir, "dist/ruby/lib/#{SHOES_RUBY_ARCH}" }
 
     gdir = "dist/ruby/gems/#{RUBY_V}"

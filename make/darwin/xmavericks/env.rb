@@ -72,7 +72,7 @@ ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
 LINUX_CFLAGS << ' -Wno-incompatible-pointer-types-discards-qualifiers'
 
 OSX_ARCH = '-arch x86_64'
-# These env vars are used in ftsearch, chipmunk extconf.rb
+# These env vars are used in chipmunk, sqlite3 extconf.rb
 #SHOES_TGT_ARCH = SHOES_GEM_ARCH ='x86_64-darwin13.0'
 SHOES_TGT_ARCH = SHOES_GEM_ARCH ='x86_64-darwin13'
 ENV['CC'] = CC
