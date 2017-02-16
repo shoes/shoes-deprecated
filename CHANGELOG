@@ -264,7 +264,7 @@
      Not fixed for OSX.
    
 === Building Shoes 
-   * platform specific extconf.rb files for hpricot, sqlite3, ftsearch, chipmunk
+   * platform specific extconf.rb files for hpricot, sqlite3, chipmunk
      https://github.com/Shoes3/shoes3/issues/70
    * add PackShoes.make_shy method and wiki article
      https://github.com/Shoes3/shoes3/wiki/Command-line-packager

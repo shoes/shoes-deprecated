@@ -58,13 +58,13 @@ class MakeDarwin
       #cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "dist/ruby/lib"
       #cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "#{TGT_DIR}/lib/ruby"
       #cp "#{EXT_RUBY}/lib/libruby.dylib", "#{TGT_DIR}"
-      %w[req/ftsearch/lib/* req/rake/lib/*].each do |rdir|
+      %w[req/rake/lib/*].each do |rdir|
         #FileList[rdir].each { |rlib| cp_r rlib, "dist/ruby/lib" }
         FileList[rdir].each { |rlib| cp_r rlib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}" }
      end
-     #%w[req/binject/ext/binject_c req/ftsearch/ext/ftsearchrt req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
+     #%w[req/binject/ext/binject_c req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
      #  each { |xdir| copy_ext_osx xdir, "dist/ruby/lib/#{SHOES_RUBY_ARCH}" }
-     %w[req/ftsearch/ext/ftsearchrt req/chipmunk/ext/chipmunk].
+     %w[req/chipmunk/ext/chipmunk].
         each { |xdir| copy_ext_osx xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_RUBY_ARCH}" }
 
       gdir = "#{TGT_DIR}/ruby/gems/#{RUBY_V}"
