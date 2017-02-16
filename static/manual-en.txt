@@ -2629,7 +2629,7 @@ Adds elements to the beginning of a slot.
 
 The `para` element is added to the beginning of the `@slot`.
 
-=== refresh_slot() ===
+=== refresh() ===
 
 Sometimes you want the slot to be drawn as soon as possible, to update an inside background color for example. That methods urges Shoes to do so.
 
