@@ -22,6 +22,7 @@ else
   EXT_RUBY = "#{ShoesDeps}/usr/local"
   ENABLE_MS_THEME = false
 end
+puts "EXT_RUBY: #{EXT_RUBY}"
 APP['GTK'] = "gtk+-3.0" # needed in tasks.rb
 #SHOES_GEM_ARCH = {Gem::Platform.local}
 SHOES_GEM_ARCH = 'x86-mingw32' 

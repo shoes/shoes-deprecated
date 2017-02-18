@@ -122,16 +122,17 @@ module Make
       cp_r "#{ShoesDeps}/lib/gtk-2.0", "#{TGT_DIR}/lib" #  shoes, exerb, ruby here
     end
     bindir = "#{ShoesDeps}/bin"
-    # we need to execute some gtk setup apps - sigh
-    gdkcache = "#{TGT_DIR}/lib/gdk-pixbuf-2.0/2.10.0/"
-    $stderr.puts "create #{gdkcache}"
-    mkdir_p gdkcache
-    Dir.chdir(gdkcache) do
-      `gdk-pixbuf-query-loaders > loaders.cache`
-    end
+    # newer gtk versions may need to execute some gtk setup apps - sigh
+    #gdkcache = "#{TGT_DIR}/lib/gdk-pixbuf-2.0/2.10.0/"
+    #$stderr.puts "create #{gdkcache}"
+    #mkdir_p gdkcache
+    #Dir.chdir(gdkcache) do
+    #  `gdk-pixbuf-query-loaders > loaders.cache`
+    #end
+    
     #cp_r "#{bindir}/fc-cache.exe", TGT_DIR
-    #cp_r "#{bindir}/gtk-update-icon-cache.exe", TGT_DIR
-    cp_r "#{bindir}/gtk-update-icon-cache-3.0.exe", TGT_DIR
+    cp_r "#{bindir}/gtk-update-icon-cache.exe", TGT_DIR
+    #cp_r "#{bindir}/gtk-update-icon-cache-3.0.exe", TGT_DIR
     # below for debugging purposes
     if ENV['GDB'] 
       cp "#{bindir}/fc-cat.exe", TGT_DIR
