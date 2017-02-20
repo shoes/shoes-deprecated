@@ -59,10 +59,12 @@ ENV['CC'] = CC		# for building sqlite3 gem
 ENV['ShoesDeps'] = ShoesDeps # also for sqlite3 gem
 STRIP = "strip -s"
 WINDRES = "windres"
-PKG_CONFIG = "C:/msys64/usr/bin/pkg-config.exe"  # Has to be Ruby `path`
-PKG_LOC = "C:/msys64/mingw32/lib/pkgconfig"      #   ditto
+#PKG_CONFIG = "C:/msys64/usr/bin/pkg-config.exe"  # Has to be Ruby `path`
+PKG_CONFIG = "pkg-config.exe"
+ENV['PKG_CONFIG_PATH'] = ENV['PKG_CONFIG_PATH'].split(";").collect { |n| `cygpath -u #{n}`.chomp }.join(":")
+#PKG_LOC = "C:/msys64/mingw32/lib/pkgconfig"      #   ditto
 # dance on ENV['PKG_CONFIG_PATH'] We want something  pkg-config can use
-ENV['PKG_CONFIG_PATH'] = '/c/msys64/mingw32/lib/pkgconfig'+':'+ENV['PKG_CONFIG_PATH']
+#ENV['PKG_CONFIG_PATH'] = '/c/msys64/mingw32/lib/pkgconfig'+':'+ENV['PKG_CONFIG_PATH']
 #$stderr.puts "have #{ENV['PKG_CONFIG_PATH']}"
 if ENV['DEBUG'] || ENV['GDB']
   WIN32_CFLAGS << "-g3 -O0"
@@ -72,12 +74,14 @@ end
 
 # fixup include paths
 def xfixip(path)
-   path.gsub!(/-I\/mingw32\//, "-IC:/msys64/mingw32/")
+   #path.gsub!(/-I\/mingw32\//, "-IC:/msys64/mingw32/")
+   path.gsub!(/-I\/mingw32\//,  "-I#{`cygpath -m /mingw32/`.chomp}")
    return path
 end
 # fixup link paths
 def xfixlp(path)
-  path.gsub!(/-L\/mingw32\//, "-LC:/msys64/mingw32/")
+  #path.gsub!(/-L\/mingw32\//, "-LC:/msys64/mingw32/")
+  path.gsub!(/-L\/mingw32\//,  "-L#{`cygpath -m /mingw32/`.chomp}")
   return path
 end
 
@@ -149,23 +153,25 @@ rubydll = "#{EXT_RUBY}/bin"
 devdll = "#{ENV['RI_DEVKIT']}/mingw/bin"
 libdll = "#{ShoesDeps}/lib"
 # msys2 want's some things from or maybe its Ruby 2.2.6?
-basedll = "C:/msys64/mingw32/bin"
+#basedll = "C:/msys64/mingw32/bin"
+basedll = `cygpath -m /mingw32/bin`.chomp
 SOLOCS = {
 #  'ruby'    => "#{EXT_RUBY}/bin/msvcrt-ruby210.dll",
   'ruby'    => "#{EXT_RUBY}/bin/msvcrt-ruby220.dll",
   #'gif'     => "#{bindll}/libgif-4.dll",
   'gif'     => "#{bindll}/libgif-7.dll",
-  #'jpeg'    => "#{bindll}/libjpeg-.dll",
-  'jpeg'    => "#{bindll}/libjpeg-9.dll",
+  'jpeg'    => "#{bindll}/libjpeg-8.dll",
+  #'jpeg'    => "#{bindll}/libjpeg-9.dll",
   'libyaml' => "#{bindll}/libyaml-0-2.dll",
   'iconv'   => "#{bindll}/libiconv-2.dll",
   'eay'     => "#{bindll}/libeay32.dll",
-  'gdbm'    => "#{bindll}/libgdbm-4.dll",
+  #'gdbm'    => "#{bindll}/libgdbm-4.dll",
+  'gdbm'    => "#{basedll}/libgdbm-4.dll",
   'ssl'     => "#{bindll}/ssleay32.dll",
   'gmp'     => "#{basedll}/libgmp-10.dll",
   'gcc-dw'  => "#{basedll}/libgcc_s_dw2-1.dll",
-  'sqlite'  => "#{bindll}/sqlite3.dll"
-  #'sqlite'  => "#{libdll}/sqlite3.13.0/sqlite3130.dll"
+  #'sqlite'  => "#{bindll}/sqlite3.dll"
+  'sqlite'  => "#{`cygpath -m /mingw32/lib`.chomp}/sqlite3.13.0/sqlite3130.dll"
 }
 
 if APP['GTK'] == 'gtk+-3.0'
@@ -188,8 +194,8 @@ if APP['GTK'] == 'gtk+-3.0'
       'pixman'      => "#{bindll}/libpixman-1-0.dll", 
       'intl8'       => "#{bindll}/libintl-8.dll",
       'pango'       => "#{bindll}/libpango-1.0-0.dll",
-      'pangocairo'  => "#{bindll}/libpangocairo-1.0-0.dll",
-      'pangoft'     => "#{bindll}/libpangoft2-1.0-0.dll",
+      #'pangocairo'  => "#{bindll}/libpangocairo-1.0-0.dll",
+      #'pangoft'     => "#{bindll}/libpangoft2-1.0-0.dll",
       'pango32'     => "#{bindll}/libpangowin32-1.0-0.dll",
       'pixbuf'      => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
       'harfbuzz'    => "#{bindll}/libharfbuzz-0.dll",
