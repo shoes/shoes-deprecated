@@ -16,8 +16,8 @@ Shoes.app(title: "Expert curve_to control points", width: 500, height: 400) do
    move_to *xy[0]
    
    @controller = nil
-   xy.each_with_index { |val, index|
-      (@controllers ||= []) << oval(:left => val[0], :top => val[1], :radius => 10, :center => true)
+   xy.each { |n|
+      (@controllers ||= []) << oval(:left => n[0], :top => n[1], :radius => 10, :center => true)
    }
    @controllers.each_with_index { |n, index|
       n.click do |btn, left, top|
