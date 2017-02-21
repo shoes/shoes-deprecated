@@ -6,7 +6,7 @@
 Shoes.app(title: "Expert curve_to control points", width: 500, height: 400) do
    xy = [
       [self.width / 8, self.height / 2], 
-      [self.width / 8 * 3,  self.height / 4 * 3], 
+      [self.width / 8 * 3, self.height / 4 * 3], 
       [self.width / 8 * 4, self.height / 4], 
       [self.width / 8 * 7, self.height / 2]
    ]
