@@ -19,7 +19,7 @@ Shoes.app(title: "Expert curve_to control points", width: 500, height: 400) do
    xy.each { |n|
       (@controllers ||= []) << oval(:left => n[0], :top => n[1], :radius => 10, :center => true)
    }
-   @controllers.each_with_index { |n, index|
+   @controllers.each { |n|
       n.click do |btn, left, top|
          n.style :fill => red
          @controller = n
