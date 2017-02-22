@@ -3081,6 +3081,20 @@ Yanks out the color, gradient or image used to paint this background and places
 it in a normal Shoes::Pattern object.  You can then pass that object to other
 backgrounds and borders.  Reuse it as you like.
 
+{{{
+Shoes.app do 
+   stack(left: 0, top: 0, width: width / 4, height: height / 4) do
+      @b = background "#{DIR}/static/stripe.png"
+   end
+   
+   4.times do |n|
+      stack(left: n * width / 4, top: n * height / 4, width: width / 4, height: height / 4) do
+         background @b.to_pattern
+      end
+   end
+end
+}}}
+
 == Border ==
 
 A border is a color, gradient or image painted in a line around the edge of any
