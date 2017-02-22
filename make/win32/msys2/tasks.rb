@@ -121,18 +121,25 @@ module Make
     else
       cp_r "#{ShoesDeps}/lib/gtk-2.0", "#{TGT_DIR}/lib" #  shoes, exerb, ruby here
     end
-    bindir = "#{ShoesDeps}/bin"
-    # newer gtk versions may need to execute some gtk setup apps - sigh
-    #gdkcache = "#{TGT_DIR}/lib/gdk-pixbuf-2.0/2.10.0/"
-    #$stderr.puts "create #{gdkcache}"
-    #mkdir_p gdkcache
-    #Dir.chdir(gdkcache) do
-    #  `gdk-pixbuf-query-loaders > loaders.cache`
-    #end
+    
+    bindir = "#{GtkDeps}/bin"
+    # some gdk-pixbuf versions may need to execute some gtk setup apps - sigh
+    gdkcache = "#{TGT_DIR}/lib/gdk-pixbuf-2.0/2.10.0/"
+    $stderr.puts "create cache #{gdkcache}"
+    mkdir_p gdkcache
+    Dir.chdir(gdkcache) do
+      `gdk-pixbuf-query-loaders > loaders.cache`
+    end
     
     #cp_r "#{bindir}/fc-cache.exe", TGT_DIR
-    cp_r "#{bindir}/gtk-update-icon-cache.exe", TGT_DIR
-    #cp_r "#{bindir}/gtk-update-icon-cache-3.0.exe", TGT_DIR
+    # newer versions of gkt3 changed the name of an exe- grrr.
+    if File.exist?("#{bindir}/gtk-update-icon-cache-3.0.exe")
+      cp "#{bindir}/gtk-update-icon-cache-3.0.exe",
+            "#{TGT_DIR}/gtk-update-icon-cache.exe"
+    else 
+      cp  "#{bindir}/gtk-update-icon-cache.exe", TGT_DIR
+    end
+
     # below for debugging purposes
     if ENV['GDB'] 
       cp "#{bindir}/fc-cat.exe", TGT_DIR
