@@ -3150,6 +3150,22 @@ Creates a basic pattern object based on the color, gradient or image used to
 paint this border.  The pattern may then be re-used in new borders and
 backgrounds.
 
+{{{
+Shoes.app do
+   stack :width => 50, :height => 30 do
+     @b = border red, :strokewidth => 5
+     para "=^.^=", :stroke => green
+   end
+
+   12.times do |n|
+      stack :left => n * 50, :top => height / 2, :width => 50 do
+        border @b.to_pattern
+        para "=^.^=", :stroke => green
+      end
+   end
+end
+}}}
+
 == Button ==
 
 Buttons are, you know, push buttons.  You click them and they do something.
