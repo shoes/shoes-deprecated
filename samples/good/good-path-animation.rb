@@ -38,7 +38,7 @@ Shoes.app(title: "Drag the dot to make a path. Redrag to extend.") do
             stroke green
             rotate -5
             x, y, r = @path[@index]
-            rect x - 40, y - 40, r * 4, r * 4, r / 2
+            rect x, y, r * 4, r * 4, r / 2, :center => true
             @index = (@index < @path.size - 1) ? @index + 1 : 0
          end
       end
