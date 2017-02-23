@@ -3494,7 +3494,7 @@ You can use web URLs directly as well.
 {{{
  #!ruby
  Shoes.app do
-   image "http://hacketyhack.heroku.com/images/logo.png"
+   image "http://shoesrb.com/img/shoes-icon.png"
  end
 }}}
 
