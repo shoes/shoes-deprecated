@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Installer>
+    <Name>#{APPNAME}</Name>
+    <Version>#{WINVERSION}</Version>
+    <Title>#{APPNAME} #{WINVERSION} Installer</Title>
+    <Publisher>shoesrb</Publisher>
+    <StartMenuDir>#{APPNAME}</StartMenuDir>
+    <InstallerWindowIcon>shoes</InstallerWindowIcon>
+    <InstallerApplicationIcon>shoes</InstallerApplicationIcon>
+    <TargetDir>@HomeDir@/InstallationDirectory</TargetDir>
+</Installer>
