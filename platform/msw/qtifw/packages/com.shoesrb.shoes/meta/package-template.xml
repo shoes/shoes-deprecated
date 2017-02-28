@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package>
+    <DisplayName>#{APPNAME}</DisplayName>
+    <Description>Shoes is a tiny graphic toolkit.</Description>
+    <Version>#{APPVERSION}</Version>
+    <ReleaseDate>#{RELEASE_DATE}</ReleaseDate>
+    <Licenses>
+        <License name="MIT License" file="COPYING" />
+    </Licenses>
+    <Default>script</Default>
+    <Script>installscript.js</Script>
+    <RequiresAdminRights>true</RequiresAdminRights>
+</Package>
