@@ -2629,7 +2629,7 @@ Adds elements to the beginning of a slot.
 
 The `para` element is added to the beginning of the `@slot`.
 
-=== refresh_slot() ===
+=== refresh() ===
 
 Sometimes you want the slot to be drawn as soon as possible, to update an inside background color for example. That methods urges Shoes to do so.
 
@@ -3081,6 +3081,20 @@ Yanks out the color, gradient or image used to paint this background and places
 it in a normal Shoes::Pattern object.  You can then pass that object to other
 backgrounds and borders.  Reuse it as you like.
 
+{{{
+Shoes.app do 
+   stack(left: 0, top: 0, width: width / 4, height: height / 4) do
+      @b = background "#{DIR}/static/stripe.png"
+   end
+   
+   4.times do |n|
+      stack(left: n * width / 4, top: n * height / 4, width: width / 4, height: height / 4) do
+         background @b.to_pattern
+      end
+   end
+end
+}}}
+
 == Border ==
 
 A border is a color, gradient or image painted in a line around the edge of any
@@ -3135,6 +3149,22 @@ Please also check out the [[Elements]] section for other methods used on borders
 Creates a basic pattern object based on the color, gradient or image used to
 paint this border.  The pattern may then be re-used in new borders and
 backgrounds.
+
+{{{
+Shoes.app do
+   stack :width => 50, :height => 30 do
+     @b = border red, :strokewidth => 5
+     para "=^.^=", :stroke => green
+   end
+
+   12.times do |n|
+      stack :left => n * 50, :top => height / 2, :width => 50 do
+        border @b.to_pattern
+        para "=^.^=", :stroke => green
+      end
+   end
+end
+}}}
 
 == Button ==
 
@@ -3464,7 +3494,7 @@ You can use web URLs directly as well.
 {{{
  #!ruby
  Shoes.app do
-   image "http://hacketyhack.heroku.com/images/logo.png"
+   image "http://shoesrb.com/img/shoes-icon.png"
  end
 }}}
 
@@ -3901,16 +3931,27 @@ Those are the size of the SVG widget on screen in pixels
 `source` is a file pathname to the svg or a string containing the svg xml or
 an svghandle. Svghandle is a bit weird for the casual Shoes user (see [[Svghandle]])
 
+{{{
+Shoes.app do
+   svg "#{DIR}/samples/paris.svg"
+end
+}}}
 
 The hash has some other `options`:
 
 `:group => string`
 
 This how you pick one group from the larger svg to display The string starts with '#'  
-so in a svg of playing cards for example you might want to draw '#diamonds_queen'
+so in a svg of playing cards for example you might want to draw '#diamond_queen'
 That is the group name. Shoes can not figure out the group names for you. Sorry. 
 If you don't specify a ':group' then Shoes draws everything in the svg which may
 or may not be what you want.
+
+{{{
+Shoes.app do
+   svg "#{DIR}/samples/paris.svg", group: "#diamond_queen"
+end
+}}}
 
 `:aspect => boolean or float`
 

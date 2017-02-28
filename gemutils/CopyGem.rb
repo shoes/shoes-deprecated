@@ -120,7 +120,7 @@ Shoes.app do
       # can be multiples - use the last one
       gnm = spec.full_name.gsub(/-\d+.\d+.\d+$/,'')
       lst = Dir.glob("#{srcpath}/specifications/#{gnm}*.gemspec").sort
-      puts "specs #{lst}"
+      #puts "specs #{lst}"
       spec_path = lst[-1]
       # now break it apart 
       use_spec_name = File.basename(spec_path, '.gemspec')
@@ -134,7 +134,7 @@ Shoes.app do
       rubyv = RUBY_VERSION[/\d.\d/]+'.0'
       gemcompl = File.join(srcpath, 'extensions', "#{Gem::Platform.local}",
          rubyv, use_spec_name, 'gem.build_complete')
-      puts "bin check: #{gemcompl}"
+      #puts "bin check: #{gemcompl}"
       if File.exist? gemcompl
         @msglog.append "binary #{gemcompl}\n"
         cp gemcompl, File.join(destpath, use_spec_name,'gem.build_complete')
