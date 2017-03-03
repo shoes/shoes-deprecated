@@ -218,8 +218,26 @@ class MakeMinGW
       puts "make resource"
     end
 
-    
-    def make_installer
+   Object::APPVERSION = APP['VERSION']
+   Object::RELEASE_DATE = Date.parse(APP['DATE']).strftime("%Y-%m-%d")
+   def make_installer
+      def sh(*args); super; end
+      rm_rf "qtifw"
+      mkdir_p "qtifw"
+      
+      cp_r File.join("platform", "msw", "qtifw", "."), "qtifw"
+      cp_r File.join(TGT_DIR, "."), File.join("qtifw", "packages", "com.shoesrb.shoes", "data")
+      cp "COPYING", File.join("qtifw", "packages", "com.shoesrb.shoes", "meta")
+      cp APP['icons']['win32'], File.join("qtifw", "config")
+
+      Dir.chdir("qtifw") do
+         rewrite File.join("config", "config-template.xml"), File.join("config", "config.xml")
+         rewrite File.join("packages", "com.shoesrb.shoes", "meta", "package-template.xml"), File.join("packages", "com.shoesrb.shoes", "meta", "package.xml")
+         sh "E:/Programmes/Qt/QtIFW/bin/binarycreator -c config/config.xml -p packages #{WINFNAME}.exe"
+      end
+   end
+   
+    def make_installer_nsis
       # assumes you have NSIS installed on your box in the system PATH 
       def sh(*args); super; end
       puts "make_installer #{`pwd`}"
