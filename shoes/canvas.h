@@ -90,6 +90,12 @@ typedef struct {
 #define CCR(c)  (c->cr == NULL ? c->app->scratch : c->cr)
 #define SWPOS(x) ((int)sw % 2 == 0 ? x * 1. : x + .5)
 
+#define SETUP_CANVAS() \
+   shoes_canvas *canvas; \
+   cairo_t *cr; \
+   Data_Get_Struct(self, shoes_canvas, canvas); \
+   cr = CCR(canvas)
+   
 //
 // color struct
 //
