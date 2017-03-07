@@ -43,7 +43,7 @@ if APP['GTK'] == "gtk+-3.0"
 end
 if RUBY_HTTP
   file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"] +
-     ["shoes/plot/*.c"]
+     ["shoes/plot/*.c"] + ["shoes/types/*.c"]
 else
   file_list = %w{shoes/native/gtk.c shoes/http/winhttp.c shoes/http/windownload.c} + ["shoes/*.c"] 
 end

@@ -514,7 +514,6 @@ VALUE shoes_canvas_edit_line(int, VALUE *, VALUE);
 VALUE shoes_canvas_edit_box(int, VALUE *, VALUE);
 VALUE shoes_canvas_text_edit_box(int, VALUE *, VALUE);
 VALUE shoes_canvas_progress(int, VALUE *, VALUE);
-VALUE shoes_canvas_slider(int, VALUE *, VALUE);
 VALUE shoes_canvas_check(int, VALUE *, VALUE);
 VALUE shoes_canvas_radio(int, VALUE *, VALUE);
 VALUE shoes_canvas_contents(VALUE);

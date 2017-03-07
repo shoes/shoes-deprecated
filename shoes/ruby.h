@@ -82,7 +82,7 @@ extern VALUE cFlow, cStack, cMask, cNative, cShape, cVideo, cImage, cEffect, cEv
 extern VALUE cTimer, cAnim, cPattern, cBorder, cBackground, cPara, cBanner, cTitle;
 extern VALUE cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextBlock;
 extern VALUE cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns, cButton;
-extern VALUE cEditLine, cEditBox, cListBox, cProgress, cSlider, cCheck, cRadio, cColor;
+extern VALUE cEditLine, cEditBox, cListBox, cProgress, cCheck, cRadio, cColor;
 extern VALUE cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 extern VALUE cTextEditBox;
 extern VALUE cSvgHandle, cSvg, cPlot, cChartSeries;
@@ -110,6 +110,8 @@ void shoes_ruby_init(void);
 void shoes_ruby_video_init(void);
 VALUE shoes_exit_setup(VALUE);
 #define BEZIER 0.55228475;
+
+VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv); 
 
 //
 // Exception handling strings for eval
@@ -185,6 +187,79 @@ VALUE shoes_exit_setup(VALUE);
    y >= self_t->place.iy + self_t->place.dy && \
    y <= self_t->place.iy + self_t->place.dy + self_t->place.ih)
 
+#define RUBY_M(name, func, argc) \
+  rb_define_method(cCanvas, name + 1, CASTHOOK(shoes_canvas_c_##func), -1); \
+  rb_define_method(cApp, name + 1, CASTHOOK(shoes_app_c_##func), -1)
+  
+//
+// Defines a redirecting function which applies the element or transformation
+// to the currently active canvas.  This is used in place of the old instance_eval
+// and ensures that you have access to the App's instance variables while
+// assembling elements in a layout.
+//
+#define FUNC_M(name, func, argn) \
+  VALUE \
+  shoes_canvas_c_##func(int argc, VALUE *argv, VALUE self) \
+  { \
+    VALUE canvas, obj; \
+    GET_STRUCT(canvas, self_t); \
+    char *n = name; \
+    if (rb_ary_entry(self_t->app->nesting, 0) == self || \
+         ((rb_obj_is_kind_of(self, cWidget) || self == self_t->app->nestslot) && \
+          RARRAY_LEN(self_t->app->nesting) > 0)) \
+      canvas = rb_ary_entry(self_t->app->nesting, RARRAY_LEN(self_t->app->nesting) - 1); \
+    else \
+      canvas = self; \
+    if (!rb_obj_is_kind_of(canvas, cCanvas)) \
+      return ts_funcall2(canvas, rb_intern(n + 1), argc, argv); \
+    obj = call_cfunc(CASTHOOK(shoes_canvas_##func), canvas, argn, argc, argv); \
+    if (n[0] == '+' && RARRAY_LEN(self_t->app->nesting) == 0) shoes_canvas_repaint_all(self); \
+    return obj; \
+  } \
+  VALUE \
+  shoes_app_c_##func(int argc, VALUE *argv, VALUE self) \
+  { \
+    VALUE canvas; \
+    char *n = name; \
+    GET_STRUCT(app, app); \
+    if (RARRAY_LEN(app->nesting) > 0) \
+      canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1); \
+    else \
+      canvas = app->canvas; \
+    if (!rb_obj_is_kind_of(canvas, cCanvas)) \
+      return ts_funcall2(canvas, rb_intern(n + 1), argc, argv); \
+    return shoes_canvas_c_##func(argc, argv, canvas); \
+  }
+  
+#define SETUP_CONTROL(dh, dw, flex) \
+  char *msg = ""; \
+  int len = dw ? dw : 200; \
+  shoes_control *self_t; \
+  shoes_canvas *canvas; \
+  shoes_place place; \
+  VALUE text = Qnil, ck = rb_obj_class(c); \
+  Data_Get_Struct(self, shoes_control, self_t); \
+  Data_Get_Struct(c, shoes_canvas, canvas); \
+  text = ATTR(self_t->attr, text); \
+  if (!NIL_P(text)) { \
+    text = shoes_native_to_s(text); \
+    msg = RSTRING_PTR(text); \
+    if (flex) len = ((int)RSTRING_LEN(text) * 8) + 32; \
+  } \
+  shoes_place_decide(&place, c, self_t->attr, len, 28 + dh, REL_CANVAS, TRUE)
+
+#define FINISH() \
+  if (!ABSY(place)) { \
+    canvas->cx += place.w; \
+    canvas->cy = place.y; \
+    canvas->endx = canvas->cx; \
+    canvas->endy = max(canvas->endy, place.y + place.h); \
+  } \
+  if (ck == cStack) { \
+    canvas->cx = CPX(canvas); \
+    canvas->cy = canvas->endy; \
+  }
+  
 int shoes_px(VALUE, int, int, int);
 int shoes_px2(VALUE, ID, ID, int, int, int);
 VALUE shoes_hash_set(VALUE, ID, VALUE);
@@ -202,7 +277,7 @@ void shoes_ele_remove_all(VALUE);
 void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
 void shoes_cairo_arc(cairo_t *, double, double, double, double, double, double);
 
-#define SYMBOL_DEFS(f) f(bind); f(gsub); f(keys); f(update); f(merge); f(new); f(URI); f(now); f(debug); f(info); f(warn); f(error); f(run); f(to_a); f(to_ary); f(to_f); f(to_i); f(to_int); f(to_s); f(to_str); f(to_pattern); f(align); f(angle); f(angle1); f(angle2); f(arrow); f(autoplay); f(begin); f(body); f(cancel); f(call); f(center); f(change); f(checked); f(choose); f(click); f(corner); f(curve); f(distance); f(displace_left); f(displace_top); f(downcase); f(draw); f(emphasis); f(end); f(family); f(fill); f(finish); f(font); f(fraction); f(fullscreen); f(group); f(hand); f(headers); f(hidden); f(host); f(hover); f(href); f(insert); f(inner); f(items); f(justify); f(kerning); f(keydown); f(keypress); f(keyup); f(match); f(method); f(motion); f(link); f(leading); f(leave); f(ok); f(outer); f(path); f(points); f(port); f(progress); f(redirect); f(release); f(request_uri); f(rise); f(scheme); f(save); f(size); f(slider); f(state); f(wheel); f(scroll); f(stretch); f(strikecolor); f(strikethrough); f(stroke); f(start); f(attach); f(text); f(title); f(top); f(right); f(bottom); f(left); f(up); f(down); f(height); f(minheight); f(remove); f(resizable); f(strokewidth); f(cap); f(widget); f(width); f(minwidth); f(marker); f(margin); f(margin_left); f(margin_right); f(margin_top); f(margin_bottom); f(radius); f(secret); f(blur); f(glow); f(shadow); f(arc); f(rect); f(oval); f(line); f(shape); f(star); f(project); f(round); f(square); f(undercolor); f(underline); f(variant); f(weight); f(wrap); f(dash); f(nodot); f(onedot); f(donekey); f(volume); f(bg_color)
+#define SYMBOL_DEFS(f) f(bind); f(gsub); f(keys); f(update); f(merge); f(new); f(URI); f(now); f(debug); f(info); f(warn); f(error); f(run); f(to_a); f(to_ary); f(to_f); f(to_i); f(to_int); f(to_s); f(to_str); f(to_pattern); f(align); f(angle); f(angle1); f(angle2); f(arrow); f(autoplay); f(begin); f(body); f(cancel); f(call); f(center); f(change); f(checked); f(choose); f(click); f(corner); f(curve); f(distance); f(displace_left); f(displace_top); f(downcase); f(draw); f(emphasis); f(end); f(family); f(fill); f(finish); f(font); f(fraction); f(fullscreen); f(group); f(hand); f(headers); f(hidden); f(host); f(hover); f(href); f(insert); f(inner); f(items); f(justify); f(kerning); f(keydown); f(keypress); f(keyup); f(match); f(method); f(motion); f(link); f(leading); f(leave); f(ok); f(outer); f(path); f(points); f(port); f(progress); f(redirect); f(release); f(request_uri); f(rise); f(scheme); f(save); f(size); f(state); f(wheel); f(scroll); f(stretch); f(strikecolor); f(strikethrough); f(stroke); f(start); f(attach); f(text); f(title); f(top); f(right); f(bottom); f(left); f(up); f(down); f(height); f(minheight); f(remove); f(resizable); f(strokewidth); f(cap); f(widget); f(width); f(minwidth); f(marker); f(margin); f(margin_left); f(margin_right); f(margin_top); f(margin_bottom); f(radius); f(secret); f(blur); f(glow); f(shadow); f(arc); f(rect); f(oval); f(line); f(shape); f(star); f(project); f(round); f(square); f(undercolor); f(underline); f(variant); f(weight); f(wrap); f(dash); f(nodot); f(onedot); f(donekey); f(volume); f(bg_color)
 #define SYMBOL_INTERN(name) s_##name = rb_intern("" # name)
 #define SYMBOL_ID(name) ID s_##name
 #define SYMBOL_EXTERN(name) extern ID s_##name
@@ -275,7 +350,6 @@ SYMBOL_DEFS(SYMBOL_EXTERN);
   f("+edit_box", edit_box, -1); \
   f("+text_edit_box", text_edit_box, -1); \
   f("+progress", progress, -1); \
-  f("+slider", slider, -1); \
   f("+check", check, -1); \
   f("+radio", radio, -1); \
   f(".app", get_app, 0); \

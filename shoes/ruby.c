@@ -11,9 +11,10 @@
 #include "shoes/version.h"
 #include "shoes/http.h"
 #include "shoes/effects.h"
+#include "shoes/types/slider.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cSlider, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
+VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE cTextEditBox;
 VALUE cSvgHandle, cSvg, cPlot, cChartSeries;
 VALUE eVlcError, eImageError, eInvMode, eNotImpl;
@@ -202,7 +203,7 @@ rb_ary_insert_at(VALUE ary, long index, int len, VALUE ary2)
 //
 // from ruby's eval.c
 //
-static inline VALUE
+inline VALUE
 call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv)
 {
   if (len >= 0 && argc != len) {
@@ -728,34 +729,7 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
   if (ATTR(self_t->attr, hidden) == Qtrue) return self; \
   shoes_place_decide(&place, c, self_t->attr, dw, dh, rel, REL_COORDS(rel) == REL_CANVAS)
 
-#define SETUP_CONTROL(dh, dw, flex) \
-  char *msg = ""; \
-  int len = dw ? dw : 200; \
-  shoes_control *self_t; \
-  shoes_canvas *canvas; \
-  shoes_place place; \
-  VALUE text = Qnil, ck = rb_obj_class(c); \
-  Data_Get_Struct(self, shoes_control, self_t); \
-  Data_Get_Struct(c, shoes_canvas, canvas); \
-  text = ATTR(self_t->attr, text); \
-  if (!NIL_P(text)) { \
-    text = shoes_native_to_s(text); \
-    msg = RSTRING_PTR(text); \
-    if (flex) len = ((int)RSTRING_LEN(text) * 8) + 32; \
-  } \
-  shoes_place_decide(&place, c, self_t->attr, len, 28 + dh, REL_CANVAS, TRUE)
-
-#define FINISH() \
-  if (!ABSY(place)) { \
-    canvas->cx += place.w; \
-    canvas->cy = place.y; \
-    canvas->endx = canvas->cx; \
-    canvas->endy = max(canvas->endy, place.y + place.h); \
-  } \
-  if (ck == cStack) { \
-    canvas->cx = CPX(canvas); \
-    canvas->cy = canvas->endy; \
-  }
+// SETUP_CONTROL and FINISH macro are moved to ruby.h
 
 #define PATTERN_SCALE(self_t, place, sw) \
   if (self_t->cached == NULL) \
@@ -3578,50 +3552,6 @@ shoes_check_draw(VALUE self, VALUE c, VALUE actual)
 }
 
 VALUE
-shoes_slider_draw(VALUE self, VALUE c, VALUE actual)
-{
-  SETUP_CONTROL(0, 0, FALSE);
-
-  if (RTEST(actual))
-  {
-    if (self_t->ref == NULL)
-    {
-      self_t->ref = shoes_native_slider(self, canvas, &place, self_t->attr, msg);
-      shoes_control_check_styles(self_t);
-      if (RTEST(ATTR(self_t->attr, fraction))) shoes_native_slider_set_fraction(self_t->ref, NUM2DBL(ATTR(self_t->attr, fraction)));
-      shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
-    }
-    else
-      shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
-  }
-
-  FINISH();
-
-  return self;
-}
-
-VALUE
-shoes_slider_get_fraction(VALUE self)
-{
-  double perc = 0.;
-  GET_STRUCT(control, self_t);
-  if (self_t->ref != NULL)
-    perc = shoes_native_slider_get_fraction(self_t->ref);
-  return rb_float_new(perc);
-}
-
-VALUE
-shoes_slider_set_fraction(VALUE self, VALUE _perc)
-{
-  double perc = min(max(NUM2DBL(_perc), 0.0), 1.0);
-  GET_STRUCT(control, self_t);
-  if (self_t->ref != NULL)
-    shoes_native_slider_set_fraction(self_t->ref, perc);
-
-  return self;
-}
-
-VALUE
 shoes_check_is_checked(VALUE self)
 {
   GET_STRUCT(control, self_t);
@@ -4523,46 +4453,6 @@ shoes_font(VALUE self, VALUE path)
 }
 
 //
-// Defines a redirecting function which applies the element or transformation
-// to the currently active canvas.  This is used in place of the old instance_eval
-// and ensures that you have access to the App's instance variables while
-// assembling elements in a layout.
-//
-#define FUNC_M(name, func, argn) \
-  VALUE \
-  shoes_canvas_c_##func(int argc, VALUE *argv, VALUE self) \
-  { \
-    VALUE canvas, obj; \
-    GET_STRUCT(canvas, self_t); \
-    char *n = name; \
-    if (rb_ary_entry(self_t->app->nesting, 0) == self || \
-         ((rb_obj_is_kind_of(self, cWidget) || self == self_t->app->nestslot) && \
-          RARRAY_LEN(self_t->app->nesting) > 0)) \
-      canvas = rb_ary_entry(self_t->app->nesting, RARRAY_LEN(self_t->app->nesting) - 1); \
-    else \
-      canvas = self; \
-    if (!rb_obj_is_kind_of(canvas, cCanvas)) \
-      return ts_funcall2(canvas, rb_intern(n + 1), argc, argv); \
-    obj = call_cfunc(CASTHOOK(shoes_canvas_##func), canvas, argn, argc, argv); \
-    if (n[0] == '+' && RARRAY_LEN(self_t->app->nesting) == 0) shoes_canvas_repaint_all(self); \
-    return obj; \
-  } \
-  VALUE \
-  shoes_app_c_##func(int argc, VALUE *argv, VALUE self) \
-  { \
-    VALUE canvas; \
-    char *n = name; \
-    GET_STRUCT(app, app); \
-    if (RARRAY_LEN(app->nesting) > 0) \
-      canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1); \
-    else \
-      canvas = app->canvas; \
-    if (!rb_obj_is_kind_of(canvas, cCanvas)) \
-      return ts_funcall2(canvas, rb_intern(n + 1), argc, argv); \
-    return shoes_canvas_c_##func(argc, argv, canvas); \
-  }
-
-//
 // See ruby.h for the complete list of App methods which redirect to Canvas.
 //
 CANVAS_DEFS(FUNC_M);
@@ -4714,9 +4604,6 @@ shoes_ruby_init()
   // Macros are used to build App redirection methods, which should be
   // speedier than method_missing.
   //
-#define RUBY_M(name, func, argc) \
-  rb_define_method(cCanvas, name + 1, CASTHOOK(shoes_canvas_c_##func), -1); \
-  rb_define_method(cApp, name + 1, CASTHOOK(shoes_app_c_##func), -1)
 
   CANVAS_DEFS(RUBY_M);
 
@@ -5079,11 +4966,9 @@ shoes_ruby_init()
   rb_define_method(cProgress, "draw", CASTHOOK(shoes_progress_draw), 2);
   rb_define_method(cProgress, "fraction", CASTHOOK(shoes_progress_get_fraction), 0);
   rb_define_method(cProgress, "fraction=", CASTHOOK(shoes_progress_set_fraction), 1);
-  cSlider  = rb_define_class_under(cTypes, "Slider", cNative);
-  rb_define_method(cSlider, "draw", CASTHOOK(shoes_slider_draw), 2);
-  rb_define_method(cSlider, "fraction", CASTHOOK(shoes_slider_get_fraction), 0);
-  rb_define_method(cSlider, "fraction=", CASTHOOK(shoes_slider_set_fraction), 1);
-  rb_define_method(cSlider, "change", CASTHOOK(shoes_control_change), -1);
+  
+  shoes_slider_init();
+  
   cCheck  = rb_define_class_under(cTypes, "Check", cNative);
   rb_define_method(cCheck, "draw", CASTHOOK(shoes_check_draw), 2);
   rb_define_method(cCheck, "checked?", CASTHOOK(shoes_check_is_checked), 0);
