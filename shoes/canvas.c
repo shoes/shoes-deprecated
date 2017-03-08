@@ -947,23 +947,6 @@ shoes_canvas_text_edit_box(int argc, VALUE *argv, VALUE self)
 }
 
 VALUE
-shoes_canvas_list_box(int argc, VALUE *argv, VALUE self)
-{
-  rb_arg_list args;
-  VALUE list_box;
-  SETUP_CANVAS();
-
-  rb_parse_args(argc, argv, "|h&", &args);
-
-  if (!NIL_P(args.a[1]))
-    ATTRSET(args.a[0], change, args.a[1]);
-
-  list_box = shoes_control_new(cListBox, args.a[0], self);
-  shoes_add_ele(canvas, list_box);
-  return list_box;
-}
-
-VALUE
 shoes_canvas_progress(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
