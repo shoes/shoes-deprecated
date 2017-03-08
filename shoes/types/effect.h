@@ -16,10 +16,10 @@ extern shoes_app _shoes_app;
 typedef void (*shoes_effect_filter)(cairo_t *, VALUE attr, shoes_place *);
 
 typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
-  shoes_effect_filter filter;
+    VALUE parent;
+    VALUE attr;
+    shoes_place place;
+    shoes_effect_filter filter;
 } shoes_effect;
 
 /* each widget should have its own init function */
@@ -29,7 +29,6 @@ void shoes_effect_init();
 VALUE shoes_effect_new(ID name, VALUE attr, VALUE parent);
 VALUE shoes_effect_alloc(VALUE klass);
 VALUE shoes_effect_draw(VALUE self, VALUE c, VALUE actual);
-
 
 void shoes_effect_mark(shoes_effect *fx);
 void shoes_effect_free(shoes_effect *fx);

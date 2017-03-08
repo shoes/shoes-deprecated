@@ -75,11 +75,10 @@ VALUE shoes_edit_box_draw(VALUE self, VALUE c, VALUE actual) {
 }
 
 // canvas
-VALUE
-shoes_canvas_edit_box(int argc, VALUE *argv, VALUE self) {
+VALUE shoes_canvas_edit_box(int argc, VALUE *argv, VALUE self) {
     rb_arg_list args;
     VALUE phrase = Qnil, attr = Qnil, edit_box;
-    
+
     SETUP_CANVAS();
 
     switch (rb_parse_args(argc, argv, "h,S|h,", &args)) {
@@ -101,6 +100,6 @@ shoes_canvas_edit_box(int argc, VALUE *argv, VALUE self) {
 
     edit_box = shoes_control_new(cEditBox, attr, self);
     shoes_add_ele(canvas, edit_box);
-    
+
     return edit_box;
 }

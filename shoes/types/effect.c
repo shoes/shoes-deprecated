@@ -11,8 +11,7 @@ void shoes_effect_init() {
     rb_define_method(cEffect, "remove", CASTHOOK(shoes_basic_remove), 0);
 }
 
-VALUE
-shoes_effect_new(ID name, VALUE attr, VALUE parent) {
+VALUE shoes_effect_new(ID name, VALUE attr, VALUE parent) {
     shoes_effect *fx;
     shoes_canvas *canvas;
     VALUE obj = shoes_effect_alloc(cEffect);
@@ -26,8 +25,7 @@ shoes_effect_new(ID name, VALUE attr, VALUE parent) {
     return obj;
 }
 
-VALUE
-shoes_effect_alloc(VALUE klass) {
+VALUE shoes_effect_alloc(VALUE klass) {
     VALUE obj;
     shoes_effect *fx = SHOE_ALLOC(shoes_effect);
 
@@ -39,8 +37,7 @@ shoes_effect_alloc(VALUE klass) {
     return obj;
 }
 
-VALUE
-shoes_effect_draw(VALUE self, VALUE c, VALUE actual) {
+VALUE shoes_effect_draw(VALUE self, VALUE c, VALUE actual) {
     SETUP_DRAWING(shoes_effect, REL_TILE, canvas->width, canvas->height);
 
     if (RTEST(actual) && self_t->filter != NULL)
@@ -80,6 +77,6 @@ VALUE shoes_add_effect(VALUE self, ID name, VALUE attr) {
     }
 
     SETUP_CANVAS();
-    
+
     return shoes_add_ele(canvas, shoes_effect_new(name, attr, self));
 }

@@ -98,5 +98,6 @@ VALUE shoes_canvas_edit_line(int argc, VALUE *argv, VALUE self) {
 
     edit_line = shoes_control_new(cEditLine, attr, self);
     shoes_add_ele(canvas, edit_line);
+    
     return edit_line;
 }
