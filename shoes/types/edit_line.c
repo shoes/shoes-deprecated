@@ -73,6 +73,7 @@ VALUE shoes_edit_line_draw(VALUE self, VALUE c, VALUE actual) {
     return self;
 }
 
+// canvas
 VALUE shoes_canvas_edit_line(int argc, VALUE *argv, VALUE self) {
     rb_arg_list args;
     VALUE phrase = Qnil, attr = Qnil, edit_line;

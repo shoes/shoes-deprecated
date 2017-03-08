@@ -15,9 +15,10 @@
 #include "shoes/types/effect.h"
 #include "shoes/types/button.h"
 #include "shoes/types/edit_line.h"
+#include "shoes/types/edit_box.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cCheck, cRadio, cEditBox, cListBox, cProgress, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
+VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cCheck, cRadio, cListBox, cProgress, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE cTextEditBox;
 VALUE cSvgHandle, cSvg, cPlot, cChartSeries;
 VALUE eVlcError, eImageError, eInvMode, eNotImpl;
@@ -3062,74 +3063,6 @@ shoes_control_send(VALUE self, ID event)
   }
 }
 
-VALUE
-shoes_edit_box_get_text(VALUE self)
-{
-  GET_STRUCT(control, self_t);
-  if (self_t->ref == NULL) return Qnil;
-  return shoes_native_edit_box_get_text(self_t->ref);
-}
-
-VALUE
-shoes_edit_box_set_text(VALUE self, VALUE text)
-{
-  char *msg = "";
-  GET_STRUCT(control, self_t);
-  if (!NIL_P(text))
-  {
-    text = shoes_native_to_s(text);
-    ATTRSET(self_t->attr, text, text);
-    msg = RSTRING_PTR(text);
-  }
-  if (self_t->ref != NULL) shoes_native_edit_box_set_text(self_t->ref, msg);
-  return text;
-}
-
-VALUE
-shoes_edit_box_append(VALUE self, VALUE text)
-{
-  char *msg = "";
-  GET_STRUCT(control, self_t);
-  if (!NIL_P(text))
-  {
-    text = shoes_native_to_s(text);
-    ATTRSET(self_t->attr, text, text);
-    msg = RSTRING_PTR(text);
-  }
-  if (self_t->ref != NULL) shoes_native_edit_box_append(self_t->ref, msg);
-  return Qnil;
- }
-
-VALUE
-shoes_edit_box_scroll_to_end(VALUE self)
-{
-  GET_STRUCT(control, self_t);
-  if (self_t->ref != NULL) shoes_native_edit_box_scroll_to_end(self_t->ref);
-  return Qnil;
-}
-
-VALUE
-shoes_edit_box_draw(VALUE self, VALUE c, VALUE actual)
-{
-  SETUP_CONTROL(80, 0, FALSE);
-
-  if (RTEST(actual))
-  {
-    if (self_t->ref == NULL)
-    {
-      self_t->ref = shoes_native_edit_box(self, canvas, &place, self_t->attr, msg);
-      shoes_control_check_styles(self_t);
-      shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
-    }
-    else
-      shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
-  }
-
-  FINISH();
-
-  return self;
-}
-
 // text_edit_box methods added in 3.2.25
 VALUE
 shoes_text_edit_box_get_text(VALUE self)
@@ -4755,13 +4688,8 @@ shoes_ruby_init()
   
   shoes_edit_line_init();
   
-  cEditBox  = rb_define_class_under(cTypes, "EditBox", cNative);
-  rb_define_method(cEditBox, "text", CASTHOOK(shoes_edit_box_get_text), 0);
-  rb_define_method(cEditBox, "text=", CASTHOOK(shoes_edit_box_set_text), 1);
-  rb_define_method(cEditBox, "draw", CASTHOOK(shoes_edit_box_draw), 2);
-  rb_define_method(cEditBox, "change", CASTHOOK(shoes_control_change), -1);
-  rb_define_method(cEditBox, "append", CASTHOOK(shoes_edit_box_append), 1);
-  rb_define_method(cEditBox, "scroll_to_end", CASTHOOK(shoes_edit_box_scroll_to_end), 0);
+  shoes_edit_box_init();
+  
   cListBox  = rb_define_class_under(cTypes, "ListBox", cNative);
   rb_define_method(cListBox, "text", CASTHOOK(shoes_list_box_text), 0);
   rb_define_method(cListBox, "draw", CASTHOOK(shoes_list_box_draw), 2);
