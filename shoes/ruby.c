@@ -13,9 +13,10 @@
 #include "shoes/effects.h"
 #include "shoes/types/slider.h"
 #include "shoes/types/effect.h"
+#include "shoes/types/button.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
+VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE cTextEditBox;
 VALUE cSvgHandle, cSvg, cPlot, cChartSeries;
 VALUE eVlcError, eImageError, eInvMode, eNotImpl;
@@ -3061,32 +3062,6 @@ shoes_control_send(VALUE self, ID event)
 }
 
 VALUE
-shoes_button_draw(VALUE self, VALUE c, VALUE actual)
-{
-  SETUP_CONTROL(2, 0, TRUE);
-
-#ifdef SHOES_QUARTZ
-  place.h += 8;
-  place.ih += 8;
-#endif
-  if (RTEST(actual))
-  {
-    if (self_t->ref == NULL)
-    {
-      self_t->ref = shoes_native_button(self, canvas, &place, msg);
-      shoes_control_check_styles(self_t);
-      shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
-    }
-    else
-      shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
-  }
-
-  FINISH();
-
-  return self;
-}
-
-VALUE
 shoes_edit_line_get_text(VALUE self)
 {
   GET_STRUCT(control, self_t);
@@ -3544,14 +3519,6 @@ shoes_check_set_checked_m(VALUE self, VALUE on)
 #endif
   shoes_check_set_checked(self, on);
   return on;
-}
-
-void
-shoes_button_send_click(VALUE control)
-{
-  if (rb_obj_is_kind_of(control, cRadio))
-    shoes_check_set_checked_m(control, Qtrue);
-  shoes_control_send(control, s_click);
 }
 
 #ifdef SHOES_FORCE_RADIO
@@ -4855,9 +4822,9 @@ shoes_ruby_init()
   rb_define_method(cNative, "width", CASTHOOK(shoes_control_get_width), 0);
   rb_define_method(cNative, "height", CASTHOOK(shoes_control_get_height), 0);
   rb_define_method(cNative, "remove", CASTHOOK(shoes_control_remove), 0);
-  cButton  = rb_define_class_under(cTypes, "Button", cNative);
-  rb_define_method(cButton, "draw", CASTHOOK(shoes_button_draw), 2);
-  rb_define_method(cButton, "click", CASTHOOK(shoes_control_click), -1);
+  
+  shoes_button_init();
+  
   cEditLine  = rb_define_class_under(cTypes, "EditLine", cNative);
   rb_define_method(cEditLine, "text", CASTHOOK(shoes_edit_line_get_text), 0);
   rb_define_method(cEditLine, "text=", CASTHOOK(shoes_edit_line_set_text), 1);

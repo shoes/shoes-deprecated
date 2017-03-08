@@ -81,7 +81,7 @@ extern VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas;
 extern VALUE cFlow, cStack, cMask, cNative, cShape, cVideo, cImage, cEvery;
 extern VALUE cTimer, cAnim, cPattern, cBorder, cBackground, cPara, cBanner, cTitle;
 extern VALUE cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextBlock;
-extern VALUE cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns, cButton;
+extern VALUE cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns;
 extern VALUE cEditLine, cEditBox, cListBox, cProgress, cCheck, cRadio, cColor;
 extern VALUE cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 extern VALUE cTextEditBox;
@@ -272,7 +272,9 @@ VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv);
   if (ATTR(self_t->attr, hidden) == Qtrue) return self; \
   shoes_place_decide(&place, c, self_t->attr, dw, dh, rel, REL_COORDS(rel) == REL_CANVAS)
   
+// Forward declaration necassary for refactoring
 void shoes_control_check_styles(shoes_control *self_t);
+VALUE shoes_check_set_checked_m(VALUE self, VALUE on);
 
 int shoes_px(VALUE, int, int, int);
 int shoes_px2(VALUE, ID, ID, int, int, int);
@@ -358,7 +360,6 @@ SYMBOL_DEFS(SYMBOL_EXTERN);
   f(".push", push, 0); \
   f(".pop", pop, 0); \
   f(".reset", reset, 0); \
-  f("+button", button, -1); \
   f("+list_box", list_box, -1); \
   f("+edit_line", edit_line, -1); \
   f("+edit_box", edit_box, -1); \

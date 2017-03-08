@@ -512,7 +512,6 @@ VALUE shoes_canvas_skew(int, VALUE *, VALUE);
 VALUE shoes_canvas_push(VALUE);
 VALUE shoes_canvas_pop(VALUE);
 VALUE shoes_canvas_reset(VALUE);
-VALUE shoes_canvas_button(int, VALUE *, VALUE);
 VALUE shoes_canvas_list_box(int, VALUE *, VALUE);
 VALUE shoes_canvas_edit_line(int, VALUE *, VALUE);
 VALUE shoes_canvas_edit_box(int, VALUE *, VALUE);
@@ -685,7 +684,7 @@ VALUE shoes_control_focus(VALUE);
 VALUE shoes_control_get_state(VALUE);
 VALUE shoes_control_set_state(VALUE, VALUE);
 
-VALUE shoes_button_draw(VALUE, VALUE, VALUE);
+//VALUE shoes_button_draw(VALUE, VALUE, VALUE);
 void shoes_button_send_click(VALUE);
 VALUE shoes_edit_line_draw(VALUE, VALUE, VALUE);
 VALUE shoes_edit_line_get_text(VALUE);

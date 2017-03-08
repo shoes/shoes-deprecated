@@ -917,36 +917,6 @@ shoes_canvas_reset(VALUE self)
 }
 
 VALUE
-shoes_canvas_button(int argc, VALUE *argv, VALUE self)
-{
-  rb_arg_list args;
-  VALUE text = Qnil, attr = Qnil, button;
-  SETUP_CANVAS();
-
-  switch (rb_parse_args(argc, argv, "s|h,|h", &args))
-  {
-    case 1:
-      text = args.a[0];
-      attr = args.a[1];
-    break;
-
-    case 2:
-      attr = args.a[0];
-    break;
-  }
-
-  if (!NIL_P(text))
-    ATTRSET(attr, text, text);
-
-  if (rb_block_given_p())
-    ATTRSET(attr, click, rb_block_proc());
-
-  button = shoes_control_new(cButton, attr, self);
-  shoes_add_ele(canvas, button);
-  return button;
-}
-
-VALUE
 shoes_canvas_edit_line(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
