@@ -82,7 +82,7 @@ extern VALUE cFlow, cStack, cMask, cNative, cShape, cVideo, cImage, cEvery;
 extern VALUE cTimer, cAnim, cPattern, cBorder, cBackground, cPara, cBanner, cTitle;
 extern VALUE cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextBlock;
 extern VALUE cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns;
-extern VALUE cEditLine, cEditBox, cListBox, cProgress, cCheck, cRadio, cColor;
+extern VALUE cEditBox, cListBox, cProgress, cCheck, cRadio, cColor;
 extern VALUE cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 extern VALUE cTextEditBox;
 extern VALUE cSvgHandle, cSvg, cPlot, cChartSeries;
@@ -361,7 +361,6 @@ SYMBOL_DEFS(SYMBOL_EXTERN);
   f(".pop", pop, 0); \
   f(".reset", reset, 0); \
   f("+list_box", list_box, -1); \
-  f("+edit_line", edit_line, -1); \
   f("+edit_box", edit_box, -1); \
   f("+text_edit_box", text_edit_box, -1); \
   f("+progress", progress, -1); \
