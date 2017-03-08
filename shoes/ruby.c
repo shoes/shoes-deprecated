@@ -12,9 +12,10 @@
 #include "shoes/http.h"
 #include "shoes/effects.h"
 #include "shoes/types/slider.h"
+#include "shoes/types/effect.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
+VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE cTextEditBox;
 VALUE cSvgHandle, cSvg, cPlot, cChartSeries;
 VALUE eVlcError, eImageError, eInvMode, eNotImpl;
@@ -1367,72 +1368,6 @@ shoes_image_send_release(VALUE self, int button, int x, int y)
     if (!NIL_P(proc))
       shoes_safe_block(self, proc, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
   }
-}
-
-//
-// Shoes::Effect
-//
-void
-shoes_effect_mark(shoes_effect *fx)
-{
-  rb_gc_mark_maybe(fx->parent);
-  rb_gc_mark_maybe(fx->attr);
-}
-
-static void
-shoes_effect_free(shoes_effect *fx)
-{
-  RUBY_CRITICAL(free(fx));
-}
-
-shoes_effect_filter
-shoes_effect_for_type(ID name)
-{
-  if (name == s_blur)
-    return &shoes_gaussian_blur_filter;
-  else if (name == s_shadow)
-    return &shoes_shadow_filter;
-  else if (name == s_glow)
-    return &shoes_glow_filter;
-  return NULL;
-}
-
-VALUE
-shoes_effect_new(ID name, VALUE attr, VALUE parent)
-{
-  shoes_effect *fx;
-  shoes_canvas *canvas;
-  VALUE obj = shoes_effect_alloc(cEffect);
-  Data_Get_Struct(obj, shoes_effect, fx);
-  Data_Get_Struct(parent, shoes_canvas, canvas);
-  fx->parent = parent;
-  fx->attr = attr;
-  fx->filter = shoes_effect_for_type(name);
-  return obj;
-}
-
-VALUE
-shoes_effect_alloc(VALUE klass)
-{
-  VALUE obj;
-  shoes_effect *fx = SHOE_ALLOC(shoes_effect);
-  SHOE_MEMZERO(fx, shoes_effect, 1);
-  obj = Data_Wrap_Struct(klass, shoes_effect_mark, shoes_effect_free, fx);
-  fx->attr = Qnil;
-  fx->parent = Qnil;
-  return obj;
-}
-
-VALUE
-shoes_effect_draw(VALUE self, VALUE c, VALUE actual)
-{
-  SETUP(shoes_effect, REL_TILE, canvas->width, canvas->height);
-
-  if (RTEST(actual) && self_t->filter != NULL)
-    self_t->filter(CCR(canvas), self_t->attr, &self_t->place);
-
-  self_t->place = place;
-  return self;
 }
 
 //
@@ -4813,10 +4748,7 @@ shoes_ruby_init()
   rb_define_method(cPlot, "skew", CASTHOOK(shoes_plot_skew), -1);
 
 
-  cEffect   = rb_define_class_under(cTypes, "Effect", rb_cObject);
-  rb_define_alloc_func(cEffect, shoes_effect_alloc);
-  rb_define_method(cEffect, "draw", CASTHOOK(shoes_effect_draw), 2);
-  rb_define_method(cEffect, "remove", CASTHOOK(shoes_basic_remove), 0);
+  shoes_effect_init();
   
   shoes_ruby_video_init();
 

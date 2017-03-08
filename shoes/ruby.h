@@ -78,7 +78,7 @@ static inline void flip_endian(unsigned char* x, int length) {
 #undef s_host
 
 extern VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas;
-extern VALUE cFlow, cStack, cMask, cNative, cShape, cVideo, cImage, cEffect, cEvery;
+extern VALUE cFlow, cStack, cMask, cNative, cShape, cVideo, cImage, cEvery;
 extern VALUE cTimer, cAnim, cPattern, cBorder, cBackground, cPara, cBanner, cTitle;
 extern VALUE cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextBlock;
 extern VALUE cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns, cButton;
@@ -260,6 +260,20 @@ VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv);
     canvas->cy = canvas->endy; \
   }
   
+//
+// Macros for setting up drawing
+//
+#define SETUP_DRAWING(self_type, rel, dw, dh) \
+  self_type *self_t; \
+  shoes_place place; \
+  shoes_canvas *canvas; \
+  Data_Get_Struct(self, self_type, self_t); \
+  Data_Get_Struct(c, shoes_canvas, canvas); \
+  if (ATTR(self_t->attr, hidden) == Qtrue) return self; \
+  shoes_place_decide(&place, c, self_t->attr, dw, dh, rel, REL_COORDS(rel) == REL_CANVAS)
+  
+void shoes_control_check_styles(shoes_control *self_t);
+
 int shoes_px(VALUE, int, int, int);
 int shoes_px2(VALUE, ID, ID, int, int, int);
 VALUE shoes_hash_set(VALUE, ID, VALUE);

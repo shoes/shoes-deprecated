@@ -95,7 +95,14 @@ typedef struct {
    cairo_t *cr; \
    Data_Get_Struct(self, shoes_canvas, canvas); \
    cr = CCR(canvas)
-   
+#define SETUP_IMAGE() \
+  shoes_place place; \
+  GET_STRUCT(image, image); \
+  shoes_image_ensure_dup(image); \
+  shoes_place_exact(&place, attr, 0, 0); \
+  if (NIL_P(attr)) attr = image->attr; \
+  else if (!NIL_P(image->attr)) attr = rb_funcall(image->attr, s_merge, 1, attr);
+  
 //
 // color struct
 //
@@ -273,15 +280,6 @@ typedef struct {
   char started;
   SHOES_TIMER_REF ref;
 } shoes_timer;
-
-typedef void (*shoes_effect_filter)(cairo_t *, VALUE attr, shoes_place *);
-
-typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
-  shoes_effect_filter filter;
-} shoes_effect;
 
 typedef struct {
   VALUE parent;
@@ -577,6 +575,10 @@ VALUE shoes_canvas_dialog_plain(VALUE);
 VALUE shoes_canvas_snapshot(int, VALUE *, VALUE);
 VALUE shoes_canvas_download(int, VALUE *, VALUE);
 
+VALUE shoes_add_ele(shoes_canvas *canvas, VALUE ele);
+
+// TODO: forward declaration, temporary, should be automatically generated
+extern VALUE shoes_add_effect(VALUE self, ID name, VALUE attr);
 
 SHOES_SLOT_OS *shoes_slot_alloc(shoes_canvas *, SHOES_SLOT_OS *, int);
 VALUE shoes_slot_new(VALUE, VALUE, VALUE);
@@ -723,12 +725,6 @@ VALUE shoes_image_get_height(VALUE);
 VALUE shoes_image_motion(VALUE, int, int, char *);
 VALUE shoes_image_send_click(VALUE, int, int, int);
 void shoes_image_send_release(VALUE, int, int, int);
-
-shoes_effect_filter shoes_effect_for_type(ID);
-void shoes_effect_mark(shoes_effect *);
-VALUE shoes_effect_new(ID, VALUE, VALUE);
-VALUE shoes_effect_alloc(VALUE);
-VALUE shoes_effect_draw(VALUE, VALUE, VALUE);
 
 VALUE shoes_pattern_self(VALUE);
 VALUE shoes_pattern_method(VALUE, VALUE);

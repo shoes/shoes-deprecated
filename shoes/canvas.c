@@ -10,18 +10,6 @@
 #include "shoes/native.h"
 #include "shoes/http.h"
 
-#define SETUP() \
-  shoes_canvas *canvas; \
-  cairo_t *cr; \
-  Data_Get_Struct(self, shoes_canvas, canvas); \
-  cr = CCR(canvas)
-#define SETUP_IMAGE() \
-  shoes_place place; \
-  GET_STRUCT(image, image); \
-  shoes_image_ensure_dup(image); \
-  shoes_place_exact(&place, attr, 0, 0); \
-  if (NIL_P(attr)) attr = image->attr; \
-  else if (!NIL_P(image->attr)) attr = rb_funcall(image->attr, s_merge, 1, attr);
 #define SETUP_SHAPE() \
   shoes_canvas *canvas = NULL; \
   VALUE c = shoes_find_canvas(self); \
@@ -80,14 +68,14 @@ shoes_transform_release(shoes_transform *st)
 VALUE
 shoes_canvas_owner(VALUE self)
 {
-  SETUP();
+  SETUP_CANVAS();
   return canvas->app->owner;
 }
 
 VALUE
 shoes_canvas_close(VALUE self)
 {
-  SETUP();
+  SETUP_CANVAS();
   return shoes_app_close_window(canvas->app);
 }
 
@@ -101,7 +89,7 @@ shoes_canvas_get_scroll_top(VALUE self)
 VALUE
 shoes_canvas_set_scroll_top(VALUE self, VALUE num)
 {
-  SETUP();
+  SETUP_CANVAS();
   shoes_slot_scroll_to(canvas, NUM2INT(num), 0);
   return num;
 }
@@ -109,14 +97,14 @@ shoes_canvas_set_scroll_top(VALUE self, VALUE num)
 VALUE
 shoes_canvas_get_scroll_max(VALUE self)
 {
-  SETUP();
+  SETUP_CANVAS();
   return INT2NUM(max(0, canvas->fully - canvas->height));
 }
 
 VALUE
 shoes_canvas_get_scroll_height(VALUE self)
 {
-  SETUP();
+  SETUP_CANVAS();
   return INT2NUM(canvas->fully);
 }
 
@@ -132,7 +120,7 @@ shoes_canvas_get_gutter_width(VALUE self)
 VALUE
 shoes_canvas_displace(VALUE self, VALUE dx, VALUE dy)
 {
-  SETUP();
+  SETUP_CANVAS();
   ATTRSET(canvas->attr, displace_left, dx);
   ATTRSET(canvas->attr, displace_top, dy);
   shoes_canvas_repaint_all(canvas->parent);
@@ -142,7 +130,7 @@ shoes_canvas_displace(VALUE self, VALUE dx, VALUE dy)
 VALUE
 shoes_canvas_move(VALUE self, VALUE x, VALUE y)
 {
-  SETUP();
+  SETUP_CANVAS();
   ATTRSET(canvas->attr, left, x);
   ATTRSET(canvas->attr, top, y);
   shoes_canvas_repaint_all(canvas->parent);
@@ -153,7 +141,7 @@ VALUE
 shoes_canvas_style(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
-  SETUP();
+  SETUP_CANVAS();
 
   switch (rb_parse_args(argc, argv, "kh,h,", &args))
   {
@@ -185,7 +173,7 @@ shoes_canvas_paint_call(VALUE self)
   if (self == Qnil)
     return self;
 
-  SETUP();
+  SETUP_CANVAS();
 
   if (canvas->cr != NULL)
     goto quit;
@@ -481,7 +469,7 @@ shoes_add_shape(VALUE self, ID name, VALUE attr, cairo_path_t *line)
     return self;
   }
 
-  SETUP();
+  SETUP_CANVAS();
   if (canvas->shape != NULL)
   {
     shoes_place place;
@@ -539,22 +527,6 @@ shoes_canvas_star(int argc, VALUE *argv, VALUE self)
 }
 
 VALUE
-shoes_add_effect(VALUE self, ID name, VALUE attr)
-{
-  if (rb_obj_is_kind_of(self, cImage))
-  {
-    shoes_effect_filter filter = shoes_effect_for_type(name);
-    SETUP_IMAGE();
-    if (filter == NULL) return self;
-    filter(image->cr, attr, &place);
-    return self;
-  }
-
-  SETUP();
-  return shoes_add_ele(canvas, shoes_effect_new(name, attr, self));
-}
-
-VALUE
 shoes_canvas_blur(int argc, VALUE *argv, VALUE self)
 {
   VALUE attr = shoes_shape_attr(argc, argv, 1, s_radius);
@@ -588,7 +560,7 @@ shoes_canvas_shadow(int argc, VALUE *argv, VALUE self)
   { \
     long i; \
     VALUE msgs, attr, text; \
-    SETUP(); \
+    SETUP_CANVAS(); \
     msgs = rb_ary_new(); \
     attr = Qnil; \
     for (i = 0; i < argc; i++) \
@@ -624,7 +596,7 @@ shoes_canvas_link(int argc, VALUE *argv, VALUE self)
 {
   long i;
   VALUE msgs, attr, text;
-  SETUP();
+  SETUP_CANVAS();
   msgs = rb_ary_new();
   attr = Qnil;
   for (i = 0; i < argc; i++)
@@ -658,7 +630,7 @@ VALUE
 shoes_canvas_background(int argc, VALUE *argv, VALUE self)
 {
   VALUE pat;
-  SETUP();
+  SETUP_CANVAS();
   if (argc == 1 && rb_respond_to(argv[0], s_to_pattern))
     pat = argv[0];
   else
@@ -676,7 +648,7 @@ VALUE
 shoes_canvas_border(int argc, VALUE *argv, VALUE self)
 {
   VALUE pat;
-  SETUP();
+  SETUP_CANVAS();
   if (argc == 1 && rb_respond_to(argv[0], s_to_pattern))
     pat = argv[0];
   else
@@ -725,7 +697,7 @@ shoes_canvas_image(int argc, VALUE *argv, VALUE self)
     return self;
   }
 
-  SETUP();
+  SETUP_CANVAS();
   image = shoes_image_new(cImage, path, attr, self, canvas->st);
   shoes_add_ele(canvas, image);
 
@@ -737,7 +709,7 @@ shoes_canvas_animate(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   VALUE anim;
-  SETUP();
+  SETUP_CANVAS();
 
   rb_parse_args(argc, argv, "|I&", &args);
   anim = shoes_timer_new(cAnim, args.a[0], args.a[1], self);
@@ -750,7 +722,7 @@ shoes_canvas_every(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   VALUE ev;
-  SETUP();
+  SETUP_CANVAS();
 
   rb_parse_args(argc, argv, "|F&", &args);
   ev = shoes_timer_new(cEvery, args.a[0], args.a[1], self);
@@ -763,7 +735,7 @@ shoes_canvas_timer(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   VALUE timer;
-  SETUP();
+  SETUP_CANVAS();
 
   rb_parse_args(argc, argv, "|I&", &args);
   timer = shoes_timer_new(cTimer, args.a[0], args.a[1], self);
@@ -775,7 +747,7 @@ VALUE
 shoes_canvas_svg(int argc, VALUE *argv, VALUE self)
 {
   VALUE widget;
-  SETUP();
+  SETUP_CANVAS();
   widget = shoes_svg_new(argc, argv, self);
   shoes_add_ele(canvas, widget);
   return widget;
@@ -785,7 +757,7 @@ VALUE
 shoes_canvas_svghandle(int argc, VALUE *argv, VALUE self)
 {
   VALUE han;
-  SETUP();
+  SETUP_CANVAS();
   han = shoes_svghandle_new(argc, argv, self);
   return han;
 }
@@ -795,7 +767,7 @@ VALUE
 shoes_canvas_plot(int argc, VALUE *argv, VALUE self)
 {
   VALUE widget;
-  SETUP();
+  SETUP_CANVAS();
   widget = shoes_plot_new(argc, argv, self);
   shoes_add_ele(canvas, widget);
   return widget;
@@ -805,7 +777,7 @@ VALUE
 shoes_canvas_chart_series(int argc, VALUE *argv, VALUE self)
 {
   VALUE cs;
-  SETUP();
+  SETUP_CANVAS();
   cs = shoes_chart_series_new(argc, argv, self);
   return cs;
 }
@@ -909,7 +881,7 @@ VALUE
 shoes_canvas_push(VALUE self)
 {
   shoes_transform *m;
-  SETUP();
+  SETUP_CANVAS();
 
   m = canvas->st;
   if (canvas->stl + 1 > canvas->stt)
@@ -925,7 +897,7 @@ shoes_canvas_push(VALUE self)
 VALUE
 shoes_canvas_pop(VALUE self)
 {
-  SETUP();
+  SETUP_CANVAS();
 
   if (canvas->stl >= 1)
   {
@@ -939,7 +911,7 @@ shoes_canvas_pop(VALUE self)
 VALUE
 shoes_canvas_reset(VALUE self)
 {
-  SETUP();
+  SETUP_CANVAS();
   shoes_canvas_reset_transform(canvas);
   return self;
 }
@@ -949,7 +921,7 @@ shoes_canvas_button(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   VALUE text = Qnil, attr = Qnil, button;
-  SETUP();
+  SETUP_CANVAS();
 
   switch (rb_parse_args(argc, argv, "s|h,|h", &args))
   {
@@ -979,7 +951,7 @@ shoes_canvas_edit_line(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   VALUE phrase = Qnil, attr = Qnil, edit_line;
-  SETUP();
+  SETUP_CANVAS();
 
   switch (rb_parse_args(argc, argv, "h,S|h,", &args))
   {
@@ -1009,7 +981,7 @@ shoes_canvas_edit_box(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   VALUE phrase = Qnil, attr = Qnil, edit_box;
-  SETUP();
+  SETUP_CANVAS();
 
   switch (rb_parse_args(argc, argv, "h,S|h,", &args))
   {
@@ -1039,7 +1011,7 @@ shoes_canvas_text_edit_box(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   VALUE phrase = Qnil, attr = Qnil, text_edit_box;
-  SETUP();
+  SETUP_CANVAS();
 
   switch (rb_parse_args(argc, argv, "h,S|h,", &args))
   {
@@ -1069,7 +1041,7 @@ shoes_canvas_list_box(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   VALUE list_box;
-  SETUP();
+  SETUP_CANVAS();
 
   rb_parse_args(argc, argv, "|h&", &args);
 
@@ -1086,7 +1058,7 @@ shoes_canvas_progress(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   VALUE progress;
-  SETUP();
+  SETUP_CANVAS();
 
   rb_parse_args(argc, argv, "|h", &args);
   progress = shoes_control_new(cProgress, args.a[0], self);
@@ -1099,7 +1071,7 @@ shoes_canvas_radio(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   VALUE group = Qnil, attr = Qnil, radio;
-  SETUP();
+  SETUP_CANVAS();
 
   switch (rb_parse_args(argc, argv, "h,o|h,", &args))
   {
@@ -1128,7 +1100,7 @@ shoes_canvas_check(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   VALUE check;
-  SETUP();
+  SETUP_CANVAS();
 
   rb_parse_args(argc, argv, "|h", &args);
 
@@ -1418,7 +1390,7 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
 static void
 shoes_canvas_memdraw(VALUE self, VALUE block)
 {
-  SETUP();
+  SETUP_CANVAS();
   DRAW(self, canvas->app, rb_funcall(block, s_call, 0));
 }
 
@@ -1437,7 +1409,7 @@ shoes_get_snapshot_surface(VALUE _format)
 VALUE
 shoes_canvas_snapshot(int argc, VALUE *argv, VALUE self)
 {
-  SETUP();
+  SETUP_CANVAS();
   rb_arg_list args;
   ID   s_filename = rb_intern ("filename");
   ID   s_format   = rb_intern ("format");
@@ -1482,7 +1454,7 @@ shoes_canvas_snapshot(int argc, VALUE *argv, VALUE self)
 void
 shoes_canvas_compute(VALUE self)
 {
-  SETUP();
+  SETUP_CANVAS();
   if (!shoes_canvas_independent(canvas))
     return shoes_canvas_compute(canvas->parent);
 
@@ -1494,7 +1466,7 @@ shoes_canvas_compute(VALUE self)
 static void
 shoes_canvas_insert(VALUE self, long i, VALUE ele, VALUE block)
 {
-  SETUP();
+  SETUP_CANVAS();
 
   if (canvas->insertion != -2)
     rb_raise(eInvMode, "this slot is already being modified by an append, clear, etc.");
@@ -1551,7 +1523,7 @@ VALUE
 shoes_canvas_clear_contents(int argc, VALUE *argv, VALUE self)
 {
   // VALUE block = Qnil;
-  SETUP();
+  SETUP_CANVAS();
   
   int i;
   for (i = 0; i < RARRAY_LEN(canvas->contents); i++)
@@ -1588,7 +1560,7 @@ shoes_canvas_flow(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   VALUE flow;
-  SETUP();
+  SETUP_CANVAS();
 
   rb_parse_args(argc, argv, "|h&", &args);
   flow = shoes_flow_new(args.a[0], self);
@@ -1605,7 +1577,7 @@ shoes_canvas_stack(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   VALUE stack;
-  SETUP();
+  SETUP_CANVAS();
 
   rb_parse_args(argc, argv, "|h&", &args);
   stack = shoes_stack_new(args.a[0], self);
@@ -1625,7 +1597,7 @@ shoes_canvas_mask(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   VALUE mask;
-  SETUP();
+  SETUP_CANVAS();
 
   rb_parse_args(argc, argv, "|h&", &args);
   mask = shoes_mask_new(args.a[0], self);
@@ -1642,7 +1614,7 @@ shoes_canvas_widget(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   VALUE widget, attr = Qnil;
-  SETUP();
+  SETUP_CANVAS();
 
   rb_parse_args(argc, argv, "k|", &args);
   if (TYPE(argv[argc-1]) == T_HASH)
@@ -1657,7 +1629,7 @@ VALUE
 shoes_canvas_download(int argc, VALUE *argv, VALUE self)
 {
   VALUE url, block, obj, attr = Qnil;
-  SETUP();
+  SETUP_CANVAS();
 
   rb_scan_args(argc, argv, "11&", &url, &attr, &block);
   CHECK_HASH(attr);
@@ -1671,7 +1643,7 @@ shoes_canvas_download(int argc, VALUE *argv, VALUE self)
 void
 shoes_canvas_size(VALUE self, int w, int h)
 {
-  SETUP();
+  SETUP_CANVAS();
   canvas->place.iw = canvas->place.w = canvas->width = w;
   canvas->place.ih = canvas->place.h = canvas->height = h;
   shoes_native_canvas_resize(canvas);
@@ -1803,7 +1775,7 @@ shoes_canvas_toggle(VALUE self)
   shoes_canvas_##x(int argc, VALUE *argv, VALUE self) \
   { \
     VALUE val, block; \
-    SETUP(); \
+    SETUP_CANVAS(); \
     rb_scan_args(argc, argv, "01&", &val, &block); \
     ATTRSET(canvas->attr, x, NIL_P(block) ? val : block); \
     return self; \
@@ -1824,7 +1796,7 @@ VALUE
 shoes_canvas_start(int argc, VALUE *argv, VALUE self)
   {
     VALUE val, block;
-    SETUP();
+    SETUP_CANVAS();
     rb_scan_args(argc, argv, "01&", &val, &block);
     ATTRSET(canvas->attr, start, NIL_P(block) ? val : block);
     
@@ -2284,14 +2256,14 @@ shoes_widget_new(VALUE klass, VALUE attr, VALUE parent)
 VALUE
 shoes_canvas_get_cursor(VALUE self)
 {
-  SETUP();
+  SETUP_CANVAS();
   return ID2SYM(canvas->app->cursor);
 }
 
 VALUE
 shoes_canvas_set_cursor(VALUE self, VALUE name)
 {
-  SETUP();
+  SETUP_CANVAS();
   shoes_app_cursor(canvas->app, SYM2ID(name));
   return name;
 }
@@ -2323,7 +2295,7 @@ shoes_canvas_set_clipboard(VALUE self, VALUE string)
 VALUE
 shoes_canvas_window(int argc, VALUE *argv, VALUE self)
 {
-  SETUP();
+  SETUP_CANVAS();
   return shoes_app_window(argc, argv, cApp, canvas->app->self);
 }
 
@@ -2336,14 +2308,14 @@ shoes_canvas_dialog(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_canvas_window_plain(VALUE self)
 {
-  SETUP();
+  SETUP_CANVAS();
   return shoes_native_window_color(canvas->app);
 }
 
 VALUE
 shoes_canvas_dialog_plain(VALUE self)
 {
-  SETUP();
+  SETUP_CANVAS();
   return shoes_native_dialog_color(canvas->app);
 }
 
