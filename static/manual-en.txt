@@ -1883,7 +1883,9 @@ Shoes.app width: 300, height: 150 do
   end
 end
 }}}
+
 Next the same setup is used but this time an image is used for clipping. 
+
 {{{
 Shoes.app width: 300, height: 150 do
   flow width: 0.5, height: 1.0 do
@@ -1901,6 +1903,7 @@ end
 }}}
 
 Texts can be used for their shape too.
+
 {{{
 Shoes.app width: 400, height: 100 do
   flow width: 0.5, height: 1.0 do
@@ -1916,7 +1919,9 @@ Shoes.app width: 400, height: 100 do
   end
 end
 }}}
+
 Check the sample directory for more examples.
+
 === oval(left, top, radius) » Shoes::Shape ===
 
 Draws a circular form at pixel coordinates (left, top) with a width and height
