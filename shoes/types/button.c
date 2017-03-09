@@ -44,6 +44,7 @@ void shoes_button_send_click(VALUE control) {
 VALUE shoes_canvas_button(int argc, VALUE *argv, VALUE self) {
     rb_arg_list args;
     VALUE text = Qnil, attr = Qnil, button;
+    
     SETUP_CANVAS();
 
     switch (rb_parse_args(argc, argv, "s|h,|h", &args)) {
@@ -65,5 +66,6 @@ VALUE shoes_canvas_button(int argc, VALUE *argv, VALUE self) {
 
     button = shoes_control_new(cButton, attr, self);
     shoes_add_ele(canvas, button);
+    
     return button;
 }

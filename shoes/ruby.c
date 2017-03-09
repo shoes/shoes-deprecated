@@ -17,6 +17,7 @@
 #include "shoes/types/edit_line.h"
 #include "shoes/types/edit_box.h"
 #include "shoes/types/list_box.h"
+#include "shoes/types/switch.h"
 #include <math.h>
 
 VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cCheck, cRadio, cProgress, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
@@ -3450,18 +3451,6 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
 //
 // Common methods
 //
-#define EVENT_COMMON(ele, est, sym) \
-  VALUE \
-  shoes_##ele##_##sym(int argc, VALUE *argv, VALUE self) \
-  { \
-    VALUE str = Qnil, blk = Qnil; \
-    GET_STRUCT(est, self_t); \
-  \
-    rb_scan_args(argc, argv, "01&", &str, &blk); \
-    if (NIL_P(self_t->attr)) self_t->attr = rb_hash_new(); \
-    rb_hash_aset(self_t->attr, ID2SYM(s_##sym), NIL_P(blk) ? str : blk ); \
-    return self; \
-  }
 
 #define CLASS_COMMON(ele) \
   VALUE \
@@ -4606,6 +4595,9 @@ shoes_ruby_init()
   shoes_edit_box_init();
   
   shoes_list_box_init();
+  
+  // Switch is new with 3.3.4
+  shoes_switch_init();
   
   // text_edit_box is new with 3.2.25
   cTextEditBox  = rb_define_class_under(cTypes, "TextEditBox", cNative);

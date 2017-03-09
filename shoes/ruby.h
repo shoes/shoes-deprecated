@@ -272,6 +272,19 @@ VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv);
   if (ATTR(self_t->attr, hidden) == Qtrue) return self; \
   shoes_place_decide(&place, c, self_t->attr, dw, dh, rel, REL_COORDS(rel) == REL_CANVAS)
   
+#define EVENT_COMMON(ele, est, sym) \
+  VALUE \
+  shoes_##ele##_##sym(int argc, VALUE *argv, VALUE self) \
+  { \
+    VALUE str = Qnil, blk = Qnil; \
+    GET_STRUCT(est, self_t); \
+  \
+    rb_scan_args(argc, argv, "01&", &str, &blk); \
+    if (NIL_P(self_t->attr)) self_t->attr = rb_hash_new(); \
+    rb_hash_aset(self_t->attr, ID2SYM(s_##sym), NIL_P(blk) ? str : blk ); \
+    return self; \
+  }
+  
 // Forward declaration necassary for refactoring
 void shoes_control_check_styles(shoes_control *self_t);
 VALUE shoes_check_set_checked_m(VALUE self, VALUE on);
