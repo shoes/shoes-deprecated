@@ -18,6 +18,7 @@
 #include "shoes/types/edit_box.h"
 #include "shoes/types/list_box.h"
 #include "shoes/types/switch.h"
+#include "shoes/types/spinner.h"
 #include <math.h>
 
 VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cCheck, cRadio, cProgress, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
@@ -4598,6 +4599,8 @@ shoes_ruby_init()
   
   // Switch is new with 3.3.4
   shoes_switch_init();
+  
+  shoes_spinner_init();
   
   // text_edit_box is new with 3.2.25
   cTextEditBox  = rb_define_class_under(cTypes, "TextEditBox", cNative);
