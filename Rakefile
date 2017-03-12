@@ -169,6 +169,8 @@ task :build_os => [:build_skel, "#{TGT_DIR}/#{NAME}"]
 
 task "shoes/version.h" do |t|
   File.open(t.name, 'w') do |f|
+    f << "#ifndef SHOES_VERSION_H\n"
+    f << "#define SHOES_VERSION_H\n\n"
     f << "// compatatibily pre 3.2.22\n"
     f << "#define SHOES_RELEASE_ID #{APP['MAJOR']}\n"
     f << "#define SHOES_REVISION #{APP['REVISION']}\n"
@@ -185,10 +187,13 @@ task "shoes/version.h" do |t|
     f << "#define SHOES_VERSION_DATE \"#{APP['DATE']}\"\n"
     f << "#define SHOES_VERSION_PLATFORM \"#{APP['PLATFORM']}\"\n"
     if CROSS
-      f << '#define SHOES_STYLE "TIGHT_SHOES"'
+      f << "#define SHOES_STYLE \"TIGHT_SHOES\"\n\n"
     else
-      f << '#define SHOES_STYLE "LOOSE_SHOES"'
+      f << "#define SHOES_STYLE \"LOOSE_SHOES\"\n\n"
     end
+    f << "extern VALUE cTypes;\n"
+    f << "\nvoid shoes_version_init();\n\n"
+    f << "#endif\n"
   end
 end
 
