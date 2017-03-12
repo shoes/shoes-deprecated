@@ -1251,6 +1251,21 @@ The radius of curved corners on each of these rectangular elements.  As an
 example, if this is set to 6, the corners of the rectangle are given a curve
 with a 6-pixel radius.
 
+=== :dash » a string ===
+
+
+Defines the line style used to draw elements. It can be either:
+
+
+If dash style is undefined ":nodot" is set as default.
+
+{{{
+Shoes.app width: 410, height: 60 do
+    line 10,20,400,20, dash: :onedot, stroke: green, strokewidth: 3
+	line 10,40,400,40, stroke: green, strokewidth: 3
+end
+}}}
+
 === :displace_left » a number ===
 
 For: ''all slots and elements''.
