@@ -1253,9 +1253,12 @@ with a 6-pixel radius.
 
 === :dash » a string ===
 
+For: ''arrow, border, line, oval, rect, shape''.
 
 Defines the line style used to draw elements. It can be either:
 
+ * ":onedot" - Creates dot-dash line.
+ * ":nodot" - Creates solid line.
 
 If dash style is undefined ":nodot" is set as default.
 
