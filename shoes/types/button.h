@@ -14,6 +14,7 @@ extern shoes_app _shoes_app;
 
 /* Should be automatically available but ruby.c is not sharing enough information */
 extern VALUE shoes_control_click(int argc, VALUE *argv, VALUE self);
+extern SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg);
 
 /* each widget should have its own init function */
 void shoes_button_init();

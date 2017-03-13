@@ -22,7 +22,7 @@ VALUE shoes_button_draw(VALUE self, VALUE c, VALUE actual) {
 #endif
     if (RTEST(actual)) {
         if (self_t->ref == NULL) {
-            self_t->ref = shoes_native_button(self, canvas, &place, msg);
+            self_t->ref = shoes_native_button(self, canvas, &place, self_t->attr, msg);
             shoes_control_check_styles(self_t);
             shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
         } else

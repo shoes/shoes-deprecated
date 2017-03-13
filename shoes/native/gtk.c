@@ -1186,8 +1186,6 @@ shoes_native_surface_show(SHOES_CONTROL_REF ref)
 }
 */
 
-
-
 static gboolean
 shoes_button_gtk_clicked(GtkButton *button, gpointer data)
 {
@@ -1196,15 +1194,18 @@ shoes_button_gtk_clicked(GtkButton *button, gpointer data)
   return TRUE;
 }
 
-SHOES_CONTROL_REF
-shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, char *msg)
-{
-  SHOES_CONTROL_REF ref = gtk_button_alt_new_with_label(_(msg));
+SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg) {
+    SHOES_CONTROL_REF ref = gtk_button_alt_new_with_label(_(msg));
 
-  g_signal_connect(G_OBJECT(ref), "clicked",
-                   G_CALLBACK(shoes_button_gtk_clicked),
-                   (gpointer)self);
-  return ref;
+    if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
+        gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));
+    }
+
+    g_signal_connect(G_OBJECT(ref), "clicked",
+                     G_CALLBACK(shoes_button_gtk_clicked),
+                     (gpointer)self);
+
+    return ref;
 }
 
 void
@@ -1230,8 +1231,15 @@ SHOES_CONTROL_REF
 shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
   SHOES_CONTROL_REF ref = gtk_entry_alt_new();
+  
   if (RTEST(ATTR(attr, secret))) shoes_native_secrecy(ref);
+  
+  if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
+      gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));
+  }
+  
   gtk_entry_set_text(GTK_ENTRY(ref), _(msg));
+  
   g_signal_connect(G_OBJECT(ref), "changed",
                    G_CALLBACK(shoes_widget_changed),
                    (gpointer)self);
@@ -1268,6 +1276,11 @@ shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALU
   GtkTextBuffer *buffer;
   GtkWidget* textview = gtk_text_view_new();
   SHOES_CONTROL_REF ref = gtk_scrolled_window_alt_new(NULL, NULL);
+  
+   if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
+      gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));
+   }
+  
   gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textview), GTK_WRAP_WORD);
   buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
   gtk_text_buffer_set_text(buffer, _(msg), -1);
@@ -1275,9 +1288,11 @@ shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALU
                                  GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
   gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(ref), GTK_SHADOW_IN);
   gtk_container_add(GTK_CONTAINER(ref), textview);
+  
   g_signal_connect(G_OBJECT(buffer), "changed",
                    G_CALLBACK(shoes_widget_changed),
                    (gpointer)self);
+                   
   return ref;
 }
 
@@ -1339,6 +1354,11 @@ shoes_native_text_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place,
 {
   GtkTextBuffer *buffer;
   GtkWidget* textview = gtk_text_view_new();
+  
+   if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
+      gtk_widget_set_tooltip_text(GTK_WIDGET(textview), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));
+   }
+  
   SHOES_CONTROL_REF ref = gtk_scrolled_window_alt_new(NULL, NULL);
   gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textview), GTK_WRAP_WORD);
   buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
@@ -1347,9 +1367,11 @@ shoes_native_text_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place,
                                  GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
   gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(ref), GTK_SHADOW_IN);
   gtk_container_add(GTK_CONTAINER(ref), textview);
+  
   g_signal_connect(G_OBJECT(buffer), "changed",
                    G_CALLBACK(shoes_widget_changed),
                    (gpointer)self);
+                   
   return ref;
 }
 
@@ -1394,8 +1416,13 @@ shoes_native_list_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALU
 {
   /*get bottom margin : following macro gives us bmargin (also lmargin,tmargin,rmargin)*/
   ATTR_MARGINS(attr, 0, canvas);
-  
+    
   SHOES_CONTROL_REF ref = gtk_combo_box_text_alt_new(attr, bmargin);
+  
+  if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
+      gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));
+  }
+   
   g_signal_connect(G_OBJECT(ref), "changed",
                    G_CALLBACK(shoes_widget_changed),
                    (gpointer)self);
@@ -1435,6 +1462,11 @@ SHOES_CONTROL_REF
 shoes_native_progress(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
   SHOES_CONTROL_REF ref = gtk_progress_bar_alt_new();
+  
+   if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
+      gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));
+   }
+  
   gtk_progress_bar_set_text(GTK_PROGRESS_BAR(ref), _(msg));
   return ref;
 }
@@ -1455,6 +1487,11 @@ SHOES_CONTROL_REF
 shoes_native_slider(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
   SHOES_CONTROL_REF ref = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0., 1., 0.01);
+  
+  if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
+      gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));
+   }
+   
   gtk_scale_set_draw_value(GTK_SCALE(ref), FALSE);
   g_signal_connect(G_OBJECT(ref), "value-changed",
                    G_CALLBACK(shoes_widget_changed), (gpointer)self);
@@ -1482,6 +1519,11 @@ shoes_native_check(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE a
   {
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ref), TRUE);
   }
+  
+  if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
+      gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));
+   }
+   
   g_signal_connect(G_OBJECT(ref), "clicked",
                    G_CALLBACK(shoes_button_gtk_clicked),
                    (gpointer)self);
@@ -1516,7 +1558,13 @@ shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE a
     Data_Get_Struct(leader, shoes_control, lctrl);
     list = gtk_radio_button_get_group(GTK_RADIO_BUTTON(lctrl->ref));
   }
+   
   ref = gtk_radio_button_new(list);
+  
+  if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
+      gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));
+   }
+   
   g_signal_connect(G_OBJECT(ref), "clicked",
                    G_CALLBACK(shoes_button_gtk_clicked),
                    (gpointer)self);
