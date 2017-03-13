@@ -1116,6 +1116,13 @@ shoes_native_control_free(SHOES_CONTROL_REF ref)
   //
 }
 
+void shoes_native_control_set_tooltip(SHOES_CONTROL_REF ref, VALUE tooltip) {
+   gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_native_to_s(tooltip)));
+}
+
+VALUE shoes_native_control_get_tooltip(SHOES_CONTROL_REF ref) {
+   return rb_str_new2(gtk_widget_get_tooltip_text(GTK_WIDGET(ref)));
+}
 
 /*
  * video support
@@ -1353,13 +1360,13 @@ SHOES_CONTROL_REF
 shoes_native_text_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
   GtkTextBuffer *buffer;
-  GtkWidget* textview = gtk_text_view_new();
-  
-   if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
-      gtk_widget_set_tooltip_text(GTK_WIDGET(textview), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));
-   }
-  
+  GtkWidget* textview = gtk_text_view_new();  
   SHOES_CONTROL_REF ref = gtk_scrolled_window_alt_new(NULL, NULL);
+  
+  if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
+      gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));
+   }
+   
   gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textview), GTK_WRAP_WORD);
   buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
   gtk_text_buffer_set_text(buffer, _(msg), -1);

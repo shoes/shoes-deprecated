@@ -11,6 +11,8 @@ void shoes_slider_init() {
     rb_define_method(cSlider, "fraction", CASTHOOK(shoes_slider_get_fraction), 0);
     rb_define_method(cSlider, "fraction=", CASTHOOK(shoes_slider_set_fraction), 1);
     rb_define_method(cSlider, "change", CASTHOOK(shoes_control_change), -1);
+    rb_define_method(cSlider, "tooltip", CASTHOOK(shoes_control_get_tooltip), 0);
+    rb_define_method(cSlider, "tooltip=", CASTHOOK(shoes_control_set_tooltip), 1);
 
     RUBY_M("+slider", slider, -1);
 }

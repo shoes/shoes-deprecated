@@ -13,6 +13,8 @@ void shoes_list_box_init() {
     rb_define_method(cListBox, "change", CASTHOOK(shoes_control_change), -1);
     rb_define_method(cListBox, "items", CASTHOOK(shoes_list_box_items_get), 0);
     rb_define_method(cListBox, "items=", CASTHOOK(shoes_list_box_items_set), 1);
+    rb_define_method(cListBox, "tooltip", CASTHOOK(shoes_control_get_tooltip), 0);
+    rb_define_method(cListBox, "tooltip=", CASTHOOK(shoes_control_set_tooltip), 1);
 
     RUBY_M("+list_box", list_box, -1);
 }

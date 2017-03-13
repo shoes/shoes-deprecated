@@ -3066,6 +3066,19 @@ shoes_control_send(VALUE self, ID event)
   }
 }
 
+VALUE shoes_control_get_tooltip(VALUE self) {
+   GET_STRUCT(control, self_t);
+   return shoes_native_control_get_tooltip(self_t->ref);
+}
+
+VALUE shoes_control_set_tooltip(VALUE self, VALUE tooltip) {
+   GET_STRUCT(control, self_t);
+   if (self_t->ref != NULL)
+      shoes_native_control_set_tooltip(self_t->ref, tooltip);
+   
+   return self;
+}
+
 // text_edit_box methods added in 3.2.25
 VALUE
 shoes_text_edit_box_get_text(VALUE self)
@@ -4602,11 +4615,15 @@ shoes_ruby_init()
   rb_define_method(cTextEditBox, "currrent_insertion", CASTHOOK(shoes_text_edit_box_current_insertion), 0);
   rb_define_method(cTextEditBox, "scroll_to_insertion", CASTHOOK(shoes_text_edit_box_scroll_to_insertion), 1);
   rb_define_method(cTextEditBox, "scroll_to_end", CASTHOOK(shoes_text_edit_box_scroll_to_end), 0);
+  rb_define_method(cTextEditBox, "tooltip", CASTHOOK(shoes_control_get_tooltip), 0);
+  rb_define_method(cTextEditBox, "tooltip=", CASTHOOK(shoes_control_set_tooltip), 1);
 
   cProgress  = rb_define_class_under(cTypes, "Progress", cNative);
   rb_define_method(cProgress, "draw", CASTHOOK(shoes_progress_draw), 2);
   rb_define_method(cProgress, "fraction", CASTHOOK(shoes_progress_get_fraction), 0);
   rb_define_method(cProgress, "fraction=", CASTHOOK(shoes_progress_set_fraction), 1);
+  rb_define_method(cProgress, "tooltip", CASTHOOK(shoes_control_get_tooltip), 0);
+  rb_define_method(cProgress, "tooltip=", CASTHOOK(shoes_control_set_tooltip), 1);
   
   shoes_slider_init();
   
@@ -4615,11 +4632,16 @@ shoes_ruby_init()
   rb_define_method(cCheck, "checked?", CASTHOOK(shoes_check_is_checked), 0);
   rb_define_method(cCheck, "checked=", CASTHOOK(shoes_check_set_checked), 1);
   rb_define_method(cCheck, "click", CASTHOOK(shoes_control_click), -1);
+  rb_define_method(cCheck, "tooltip", CASTHOOK(shoes_control_get_tooltip), 0);
+  rb_define_method(cCheck, "tooltip=", CASTHOOK(shoes_control_set_tooltip), 1);
+  
   cRadio  = rb_define_class_under(cTypes, "Radio", cNative);
   rb_define_method(cRadio, "draw", CASTHOOK(shoes_radio_draw), 2);
   rb_define_method(cRadio, "checked?", CASTHOOK(shoes_check_is_checked), 0);
   rb_define_method(cRadio, "checked=", CASTHOOK(shoes_check_set_checked_m), 1);
   rb_define_method(cRadio, "click", CASTHOOK(shoes_control_click), -1);
+  rb_define_method(cRadio, "tooltip", CASTHOOK(shoes_control_get_tooltip), 0);
+  rb_define_method(cRadio, "tooltip=", CASTHOOK(shoes_control_set_tooltip), 1);
 
   cTimerBase   = rb_define_class_under(cTypes, "TimerBase", rb_cObject);
   rb_define_alloc_func(cTimerBase, shoes_timer_alloc);

@@ -664,6 +664,7 @@ VALUE shoes_plot_motion(VALUE, int, int, char *);
 VALUE shoes_plot_send_click(VALUE, int, int, int);
 void shoes_plot_send_release(VALUE, int, int, int);
 
+// TODO: shoes_control_* belong to ruby.h
 void shoes_control_mark(shoes_control *);
 VALUE shoes_control_new(VALUE, VALUE, VALUE);
 VALUE shoes_control_alloc(VALUE);
@@ -680,6 +681,8 @@ VALUE shoes_control_temporary_hide(VALUE);
 VALUE shoes_control_focus(VALUE);
 VALUE shoes_control_get_state(VALUE);
 VALUE shoes_control_set_state(VALUE, VALUE);
+VALUE shoes_control_get_tooltip(VALUE self);
+VALUE shoes_control_set_tooltip(VALUE self, VALUE tooltip);
 
 VALUE shoes_progress_draw(VALUE, VALUE, VALUE);
 
