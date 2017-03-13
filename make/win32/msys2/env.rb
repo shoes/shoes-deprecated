@@ -17,6 +17,8 @@ if File.exists? cf
   APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
   APP['VIDEO'] = true
   APP['GTK'] = 'gtk+-3.0'
+  APP['INSTALLER'] = custmz['Installer'] == 'qtifw'? 'qtifw' : 'nsis'
+  APP['INSTALLER_LOC'] = custmz['InstallerLoc']
 else
   # define where your deps are
   #ShoesDeps = "E:/shoesdeps/mingw"
@@ -62,10 +64,11 @@ STRIP = "strip -s"
 WINDRES = "windres"
 #PKG_CONFIG = "C:/msys64/usr/bin/pkg-config.exe"  # Has to be Ruby `path`
 PKG_CONFIG = "pkg-config.exe"
-ENV['PKG_CONFIG_PATH'] = ENV['PKG_CONFIG_PATH'].split(";").collect { |n| `cygpath -u #{n}`.chomp }.join(":")
+#ENV['PKG_CONFIG_PATH'] = ENV['PKG_CONFIG_PATH'].split(";").collect { |n| `cygpath -u #{n}`.chomp }.join(":")
 #PKG_LOC = "C:/msys64/mingw32/lib/pkgconfig"      #   ditto
 # dance on ENV['PKG_CONFIG_PATH'] We want something  pkg-config can use
-#ENV['PKG_CONFIG_PATH'] = '/c/msys64/mingw32/lib/pkgconfig'+':'+ENV['PKG_CONFIG_PATH']
+ENV['PKG_CONFIG_PATH'] = "/c/shoesdeps/mingw/lib/pkgconfig"+':'+ENV['PKG_CONFIG_PATH']
+puts "PKG PATH: #{ENV['PKG_CONFIG_PATH']}"
 #$stderr.puts "have #{ENV['PKG_CONFIG_PATH']}"
 if ENV['DEBUG'] || ENV['GDB']
   WIN32_CFLAGS << "-g3 -O0"
@@ -75,20 +78,20 @@ end
 
 # fixup include paths
 def xfixip(path)
-   #path.gsub!(/-I\/mingw32\//, "-IC:/msys64/mingw32/")
-   path.gsub!(/-I\/mingw32\//,  "-I#{`cygpath -m /mingw32/`.chomp}")
+   path.gsub!(/-I\/c\/shoesdeps\/mingw\//, "-I#{ShoesDeps}/")
+   #path.gsub!(/-I\/mingw32\//,  "-I#{`cygpath -m /mingw32/`.chomp}")
    return path
 end
 # fixup link paths
 def xfixlp(path)
-  #path.gsub!(/-L\/mingw32\//, "-LC:/msys64/mingw32/")
-  path.gsub!(/-L\/mingw32\//,  "-L#{`cygpath -m /mingw32/`.chomp}")
+  path.gsub!(/-L\/c\/shoesdeps\/mingw\//, "-L#{ShoesDeps}/")
+  #path.gsub!(/-L\/mingw32\//,  "-L#{`cygpath -m /mingw32/`.chomp}")
   return path
 end
 
 #fixup ruby includes 
 def xfixri(path)
-  #path.gsub!(/-I\/usr\/local\//, "-I/#{TGT_SYS_DIR}usr/local/")
+  path.gsub!(/-IC:\/shoesdeps\/ruby-2.2.6/, "-I#{EXT_RUBY}/include")
   return path
 end
 
@@ -173,7 +176,7 @@ SOLOCS = {
   'gmp'     => "#{basedll}/libgmp-10.dll", # ruby 2.2.6 needs this
 #  'gcc-dw'  => "#{basedll}/libgcc_s_dw2-1.dll",
   'gcc-dw'  => "#{basedll}/libgcc_s_dw2-1.dll",
-  'sqlite'  => "#{bindll}/sqlite3.dll"
+  #'sqlite'  => "#{bindll}/sqlite3.dll"
   #'sqlite'  => "#{`cygpath -m /mingw32/lib`.chomp}/sqlite3.13.0/sqlite3130.dll"
 }
 
@@ -208,9 +211,9 @@ if APP['GTK'] == 'gtk+-3.0'
       'xml2'        => "#{bindll}/libxml2-2.dll",
       'thread'      => "#{bindll}/libgthread-2.0-0.dll",
       'zlib1'       => "#{bindll}/zlib1.dll",
-      'pthread'     => "#{bindll}/libwinpthread-1.dll",
-      #'pthread'     => "#{basedll}/libwinpthread-1.dll",
-      'sjlj'        => "#{bindll}/libgcc_s_sjlj-1.dll" 
+      #'pthread'     => "#{bindll}/libwinpthread-1.dll",
+      'pthread'     => "#{basedll}/libwinpthread-1.dll",
+      #'sjlj'        => "#{bindll}/libgcc_s_sjlj-1.dll" 
     }
   )
 end

@@ -1257,15 +1257,15 @@ For: ''arrow, border, line, oval, rect, shape''.
 
 Defines the line style used to draw elements. It can be either:
 
- * ":onedot" - Creates dot-dash line.
- * ":nodot" - Creates solid line.
+ * :onedot - Creates dot-dash line.
+ * :nodot - Creates solid line.
 
-If dash style is undefined ":nodot" is set as default.
+If dash style is undefined, ":nodot" is set as default.
 
 {{{
 Shoes.app width: 410, height: 60 do
-    line 10,20,400,20, dash: :onedot, stroke: green, strokewidth: 3
-	line 10,40,400,40, stroke: green, strokewidth: 3
+   line 10,20,400,20, dash: :onedot, stroke: green, strokewidth: 3
+   line 10,40,400,40, stroke: green, strokewidth: 3
 end
 }}}
 

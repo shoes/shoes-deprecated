@@ -28,10 +28,9 @@ notes
 /win7
 /mavericks
 /xmavericks
-snowleopard
-xsnow
 /msys2
 /pi2
+/qtifw
 *.app
 req/binject
 req/bloopsaphone
