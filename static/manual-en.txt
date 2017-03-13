@@ -1251,6 +1251,24 @@ The radius of curved corners on each of these rectangular elements.  As an
 example, if this is set to 6, the corners of the rectangle are given a curve
 with a 6-pixel radius.
 
+=== :dash » a string ===
+
+For: ''arrow, border, line, oval, rect, shape''.
+
+Defines the line style used to draw elements. It can be either:
+
+ * :onedot - Creates dot-dash line.
+ * :nodot - Creates solid line.
+
+If dash style is undefined, ":nodot" is set as default.
+
+{{{
+Shoes.app width: 410, height: 60 do
+   line 10,20,400,20, dash: :onedot, stroke: green, strokewidth: 3
+   line 10,40,400,40, stroke: green, strokewidth: 3
+end
+}}}
+
 === :displace_left » a number ===
 
 For: ''all slots and elements''.
@@ -1860,6 +1878,67 @@ Shoes.app do
    end
 end
 }}}
+
+=== Mask() » Shoes::Mask ===
+
+Mask is a slot allowing to clip elements outside its own area. The size and frame of the area is defined by a number of Shoes elements - shapes, images and texts.
+
+In the example below there are two same colour slots. The left slot is drawn with a green star 
+while the right slot contains the green star used as a clipping mask. Notice how the colour of the star is not taken into account.
+
+{{{
+Shoes.app width: 300, height: 150 do
+  flow width: 0.5, height: 1.0 do
+    background orange
+    star left: 75, top: 75, points: 6, outer: 40, inner: 9, fill: green
+  end
+	
+  flow width: 0.5, height: 1.0 do
+    background orange
+    mask do
+      star left: 75, top: 75, points: 6, outer: 40, inner: 9, fill: green
+    end
+  end
+end
+}}}
+
+Next the same setup is used but this time an image is used for clipping. 
+
+{{{
+Shoes.app width: 300, height: 150 do
+  flow width: 0.5, height: 1.0 do
+    background orange
+    image "#{DIR}/static/shoes-icon.png", left: 25, top: 25, width: 100
+  end
+	
+  flow width: 0.5, height: 1.0 do
+    background orange
+    mask do
+      image "#{DIR}/static/shoes-icon.png", left: 25, top: 25, width: 100
+    end
+  end
+end
+}}}
+
+Texts can be used for their shape too.
+
+{{{
+Shoes.app width: 400, height: 100 do
+  flow width: 0.5, height: 1.0 do
+    background orange
+    title "SHOES!", weight: "ultrabold", align: "center"
+  end
+	
+  flow width: 0.5, height: 1.0 do
+    background orange
+    mask do
+      title "SHOES!", weight: "ultrabold", align: "center"
+    end
+  end
+end
+}}}
+
+Check the sample directory for more examples.
 
 === oval(left, top, radius) » Shoes::Shape ===
 
