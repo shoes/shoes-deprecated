@@ -85,28 +85,21 @@ shoes_world_free(shoes_world_t *world)
     SHOE_FREE(world);
 }
 
-#ifndef RUBY_1_8
+
 int
 shoes_ruby_embed()
 {
   VALUE v;
   char *argv[] = {"ruby", "-e", "1"};
-
-  // TODO delete: char**  sysinit_argv = NULL;
   RUBY_INIT_STACK;
 #ifdef SHOES_WIN32
   //ruby_sysinit(0, 0);
 #endif
-  //printf("starting ruby_init\n");
   ruby_init();
-  //printf("back from ruby_init\n");
   v = (VALUE)ruby_options(3, argv);
-  //printf("back from ruby_options : %d\n", !FIXNUM_P(v));
   return !FIXNUM_P(v);
 }
-#else
-#define shoes_ruby_embed ruby_init
-#endif
+
 
 shoes_code
 shoes_init(SHOES_INIT_ARGS)
@@ -120,20 +113,16 @@ shoes_init(SHOES_INIT_ARGS)
 #endif
 #ifdef SHOES_QUARTZ 
   // init some OSX things our way before Ruby inits.
-  // setenv("TERM", "xterm-256color", 1); // mostly harmless, also not needed.
   shoes_osx_setup_stdout();
 #endif
-  shoes_ruby_embed();
-  //printf("back from shoes_ruby_embed\n");
+  shoes_ruby_embed();  // initialize ruby
   shoes_ruby_init();
-  //printf("back from shoes_ruby_init\n");
   shoes_world = shoes_world_alloc();
 #ifdef SHOES_WIN32
   shoes_world->os.instance = inst;
   shoes_world->os.style = style;
 #endif
   shoes_native_init();
-  //printf("back from shoes_native_init\n");
 
   rb_const_set(cShoes, rb_intern("FONTS"), shoes_font_list());
   return SHOES_OK;

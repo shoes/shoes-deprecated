@@ -218,9 +218,9 @@ class MakeMinGW
       puts "make resource"
     end
 
-   Object::APPVERSION = APP['VERSION']
-   Object::RELEASE_DATE = Date.parse(APP['DATE']).strftime("%Y-%m-%d")
-   def make_installer
+    Object::APPVERSION = APP['VERSION']
+    Object::RELEASE_DATE = Date.parse(APP['DATE']).strftime("%Y-%m-%d")
+    def make_installer_gtifw exe_path
       def sh(*args); super; end
       rm_rf "qtifw"
       mkdir_p "qtifw"
@@ -232,15 +232,18 @@ class MakeMinGW
 
       Dir.chdir("qtifw") do
          rewrite File.join("config", "config-template.xml"), File.join("config", "config.xml")
-         rewrite File.join("packages", "com.shoesrb.shoes", "meta", "package-template.xml"), File.join("packages", "com.shoesrb.shoes", "meta", "package.xml")
-         sh "E:/Programmes/Qt/QtIFW/bin/binarycreator -c config/config.xml -p packages #{WINFNAME}.exe"
+         rewrite File.join("packages", "com.shoesrb.shoes", "meta", "package-template.xml"), 
+           File.join("packages", "com.shoesrb.shoes", "meta", "package.xml")
+         #sh "E:/Programmes/Qt/QtIFW/bin/binarycreator -c config/config.xml -p packages #{WINFNAME}.exe"
+         sh "#{exe_path} -c config/config.xml -p packages #{WINFNAME}.exe"
       end
-   end
+      mv "qtifw/#{WINFNAME}.exe", "pkg/qtifw-#{WINFNAME}.exe"
+      #rm_rf "qtifw"
+     end
    
-    def make_installer_nsis
-      # assumes you have NSIS installed on your box in the system PATH 
+    def make_installer_nsis exe_path
       def sh(*args); super; end
-      puts "make_installer #{`pwd`}"
+      puts "make_installer #{`pwd`.chomp} using #{exe_path}"
       mkdir_p "pkg"
       cp_r "VERSION.txt", "#{TGT_DIR}/VERSION.txt"
       rm_rf "#{TGT_DIR}/nsis"
@@ -248,11 +251,25 @@ class MakeMinGW
       cp APP['icons']['win32'], "#{TGT_DIR}/nsis/setup.ico"
       rewrite "#{TGT_DIR}/nsis/base.nsi", "#{TGT_DIR}/nsis/#{WINFNAME}.nsi"
       Dir.chdir("#{TGT_DIR}/nsis") do
-        sh "\"c:\\Program Files (x86)\\NSIS\\Unicode\\makensis.exe\" #{WINFNAME}.nsi" 
-        #sh "\"c:\\Program Files (x86)\\NSIS\\makensis.exe\" #{WINFNAME}.nsi" 
+        #sh "\"c:\\Program Files (x86)\\NSIS\\Unicode\\makensis.exe\" #{WINFNAME}.nsi" 
+        sh "#{exe_path} #{WINFNAME}.nsi" 
       end
       mv "#{TGT_DIR}/nsis/#{WINFNAME}.exe", "pkg/"
     end
-
+    
+    #Allow diffrent installers
+    def make_installer
+      if APP['INSTALLER'] == 'qtifw'
+        installer = "C:/Qt/QtIFW2.0.5/bin/binarycreator"
+        installer = APP['INSTALLER_LOC'] if APP['INSTALLER_LOC']
+        make_installer_gtifw installer
+      elsif APP['INSTALLER'] == 'nsis'
+        installer = "\"c:\\Program Files (x86)\\NSIS\\Unicode\\makensis.exe\""
+        installer = APP['INSTALLER_LOC'] if APP['INSTALLER_LOC'] 
+        make_installer_nsis installer
+      else 
+        puts "No Installer defined"
+      end
+    end
   end
 end
