@@ -302,5 +302,6 @@ void shoes_ruby_video_init() {
   rb_define_method(cVideo, "height", CASTHOOK(shoes_video_get_height), 0);
   rb_define_method(cVideo, "left", CASTHOOK(shoes_video_get_left), 0);
   rb_define_method(cVideo, "top", CASTHOOK(shoes_video_get_top), 0);
-
+  rb_define_method(cVideo, "tooltip", CASTHOOK(shoes_control_get_tooltip), 0);
+  rb_define_method(cVideo, "tooltip=", CASTHOOK(shoes_control_set_tooltip), 1);
 }

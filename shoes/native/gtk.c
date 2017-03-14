@@ -1142,6 +1142,11 @@ SHOES_CONTROL_REF
 shoes_native_surface_new(VALUE attr, VALUE video)
 {
   SHOES_CONTROL_REF da = gtk_drawing_area_new();
+  
+  if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
+     gtk_widget_set_tooltip_text(GTK_WIDGET(da), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));
+  }
+    
   gtk_widget_set_size_request(da, NUM2INT(ATTR(attr, width)), NUM2INT(ATTR(attr, height)));
   
   VALUE uc = Qnil;

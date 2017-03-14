@@ -14,6 +14,10 @@ SHOES_CONTROL_REF shoes_native_spinner(VALUE self, shoes_canvas *canvas, shoes_p
             gtk_spinner_start(GTK_SPINNER(ref));
     }
 
+    if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
+        gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));
+    }
+
     return ref;
 }
 

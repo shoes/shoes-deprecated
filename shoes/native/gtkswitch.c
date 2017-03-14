@@ -15,6 +15,10 @@ SHOES_CONTROL_REF shoes_native_switch(VALUE self, shoes_canvas *canvas, shoes_pl
         gtk_switch_set_active(GTK_SWITCH(ref), shoes_hash_get(attr, rb_intern("active")) == Qtrue);
     }
 
+    if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
+        gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));
+    }
+
     g_signal_connect(G_OBJECT(ref), "notify::active",
                      G_CALLBACK(shoes_native_activate),
                      (gpointer)self);
