@@ -69,7 +69,7 @@ PKG_CONFIG = "pkg-config.exe"
 #ENV['PKG_CONFIG_PATH'] = ENV['PKG_CONFIG_PATH'].split(";").collect { |n| `cygpath -u #{n}`.chomp }.join(":")
 #PKG_LOC = "C:/msys64/mingw32/lib/pkgconfig"      #   ditto
 # dance on ENV['PKG_CONFIG_PATH'] We want something  pkg-config can use
-ENV['PKG_CONFIG_PATH'] = "/c/shoesdeps/mingw/lib/pkgconfig"+':'+ENV['PKG_CONFIG_PATH']
+ENV['PKG_CONFIG_PATH'] = `cygpath -u #{ShoesDeps}/lib/pkgconfig`.chomp 
 puts "PKG PATH: #{ENV['PKG_CONFIG_PATH']}"
 #$stderr.puts "have #{ENV['PKG_CONFIG_PATH']}"
 if ENV['DEBUG'] || ENV['GDB']
@@ -79,32 +79,39 @@ else
 end
 
 # fixup include paths
-def xfixip(path)
-   path.gsub!(/-I\/c\/shoesdeps\/mingw\//, "-I#{ShoesDeps}/")
-   #path.gsub!(/-I\/mingw32\//,  "-I#{`cygpath -m /mingw32/`.chomp}")
-   return path
-end
+#def xfixip(path)
+#   path.gsub!(/-I\/c\/shoesdeps\/mingw\//, "-I#{ShoesDeps}/")
+#   #path.gsub!(/-I\/mingw32\//,  "-I#{`cygpath -m /mingw32/`.chomp}")
+#   return path
+#end
 # fixup link paths
-def xfixlp(path)
-  path.gsub!(/-L\/c\/shoesdeps\/mingw\//, "-L#{ShoesDeps}/")
-  #path.gsub!(/-L\/mingw32\//,  "-L#{`cygpath -m /mingw32/`.chomp}")
-  return path
-end
+#def xfixlp(path)
+#  path.gsub!(/-L\/c\/shoesdeps\/mingw\//, "-L#{ShoesDeps}/")
+#  #path.gsub!(/-L\/mingw32\//,  "-L#{`cygpath -m /mingw32/`.chomp}")
+#  return path
+#end
 
 #fixup ruby includes 
-def xfixri(path)
-  path.gsub!(/-IC:\/shoesdeps\/ruby-2.2.6/, "-I#{EXT_RUBY}/include")
-  return path
-end
+#def xfixri(path)
+#  path.gsub!(/-IC:\/shoesdeps\/ruby-2.2.6/, "-I#{EXT_RUBY}/include")
+#  return path
+#end
 
 gtk_pkg_path = "#{GtkDeps}/lib/pkgconfig/gtk+-3.0.pc"
-GTK_CFLAGS = xfixip(`#{PKG_CONFIG} --cflags #{gtk_pkg_path}`.chomp)
-GTK_LDFLAGS = xfixlp(`#{PKG_CONFIG}  --libs gtk+-3.0`.chomp)
-CAIRO_CFLAGS = xfixip(`#{PKG_CONFIG} --cflags glib-2.0`.chomp + 
-                  `#{PKG_CONFIG} --cflags cairo`.chomp)
-CAIRO_LDFLAGS = xfixlp(`#{PKG_CONFIG} --libs cairo`.chomp)
-PANGO_CFLAGS = xfixip(`#{PKG_CONFIG} --cflags pango`.chomp)
-PANGO_LDFLAGS = xfixlp(`#{PKG_CONFIG} --libs pango`.chomp)
+#GTK_CFLAGS = xfixip(`#{PKG_CONFIG} --cflags #{gtk_pkg_path}`.chomp)
+GTK_CFLAGS = `#{PKG_CONFIG} --cflags gtk+-3.0 --define-variable=prefix=#{ShoesDeps}`.chomp
+#GTK_LDFLAGS = xfixlp(`#{PKG_CONFIG}  --libs gtk+-3.0`.chomp)
+GTK_LDFLAGS = `#{PKG_CONFIG} --libs gtk+-3.0 --define-variable=prefix=#{ShoesDeps}`.chomp
+#CAIRO_CFLAGS = xfixip(`#{PKG_CONFIG} --cflags glib-2.0 .chomp + 
+#                  `#{PKG_CONFIG} --cflags cairo`.chomp)
+CAIRO_CFLAGS = `#{PKG_CONFIG} --cflags glib-2.0 --define-variable=prefix=#{ShoesDeps}`.chomp +
+    `#{PKG_CONFIG} --cflags cairo --define-variable=prefix=#{ShoesDeps}`.chomp
+#CAIRO_LDFLAGS = xfixlp(`#{PKG_CONFIG} --libs cairo`.chomp)
+CAIRO_LDFLAGS = `#{PKG_CONFIG} --libs cairo --define-variable=prefix=#{ShoesDeps}`.chomp
+#PANGO_CFLAGS = xfixip(`#{PKG_CONFIG} --cflags pango`.chomp)
+PANGO_CFLAGS = `#{PKG_CONFIG} --cflags pango --define-variable=prefix=#{ShoesDeps}`.chomp
+#PANGO_LDFLAGS = xfixlp(`#{PKG_CONFIG} --libs pango`.chomp)
+PANGO_LDFLAGS = `#{PKG_CONFIG} --libs pango --define-variable=prefix=#{ShoesDeps}`.chomp
 
 RUBY_LDFLAGS = "-L#{RbConfig::CONFIG["bindir"]} #{RbConfig::CONFIG["LIBRUBYARG"]} "
 RUBY_LDFLAGS << "-Wl,-export-all-symbols "
