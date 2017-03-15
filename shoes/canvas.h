@@ -458,7 +458,6 @@ VALUE shoes_canvas_sub(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_sup(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_background(int, VALUE *, VALUE);
 VALUE shoes_canvas_border(int, VALUE *, VALUE);
-VALUE shoes_canvas_video(int, VALUE *, VALUE);
 VALUE shoes_canvas_blur(int, VALUE *, VALUE);
 VALUE shoes_canvas_glow(int, VALUE *, VALUE);
 VALUE shoes_canvas_shadow(int, VALUE *, VALUE);

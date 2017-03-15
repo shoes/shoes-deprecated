@@ -78,7 +78,7 @@ static inline void flip_endian(unsigned char* x, int length) {
 #undef s_host
 
 extern VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas;
-extern VALUE cFlow, cStack, cMask, cNative, cShape, cVideo, cImage, cEvery;
+extern VALUE cFlow, cStack, cMask, cNative, cShape, cImage, cEvery;
 extern VALUE cTimer, cAnim, cPattern, cBorder, cBackground, cPara, cBanner, cTitle;
 extern VALUE cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextBlock;
 extern VALUE cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns;
@@ -107,7 +107,6 @@ long rb_ary_index_of(VALUE, VALUE);
 VALUE rb_ary_insert_at(VALUE, long, int, VALUE);
 VALUE shoes_safe_block(VALUE, VALUE, VALUE);
 void shoes_ruby_init(void);
-void shoes_ruby_video_init(void);
 VALUE shoes_exit_setup(VALUE);
 #define BEZIER 0.55228475;
 
@@ -506,7 +505,6 @@ SYMBOL_DEFS(SYMBOL_EXTERN);
   f(".sup", sup, -1); \
   f("+background", background, -1); \
   f("+border", border, -1); \
-  /*f("+video", video, -1);*/ \
   f(".blur", blur, -1); \
   f(".glow", glow, -1); \
   f(".shadow", shadow, -1); \

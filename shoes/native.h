@@ -74,13 +74,6 @@ void shoes_native_control_focus(SHOES_CONTROL_REF);
 void shoes_native_control_state(SHOES_CONTROL_REF, SHOES_BOOL, SHOES_BOOL);
 void shoes_native_control_remove(SHOES_CONTROL_REF, shoes_canvas *);
 void shoes_native_control_free(SHOES_CONTROL_REF);
-SHOES_CONTROL_REF shoes_native_surface_new(VALUE, VALUE);
-unsigned long shoes_native_surface_get_window_handle(SHOES_CONTROL_REF);
-void shoes_native_surface_position(SHOES_SURFACE_REF, shoes_place *,
-  VALUE, shoes_canvas *, shoes_place *);
-void shoes_native_surface_hide(SHOES_SURFACE_REF);
-void shoes_native_surface_show(SHOES_SURFACE_REF);
-void shoes_native_surface_remove(SHOES_SURFACE_REF);
 void shoes_native_control_set_tooltip(SHOES_CONTROL_REF ref, VALUE tooltip);
 VALUE shoes_native_control_get_tooltip(SHOES_CONTROL_REF ref);
 

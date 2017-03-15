@@ -2,31 +2,31 @@
 #include "shoes/world.h"
 #include "shoes/internal.h"
 #include "shoes/app.h"
+#include "native/gtkvideo.h"
 
-#ifndef VIDEO_H
-#define	VIDEO_H
-
-//#ifdef VIDEO
+#ifndef SHOES_VIDEO_H
+#define SHOES_VIDEO_H
 
 #define SHOES_VIDEO 1
 
+/* extern variables necessary to communicate with other parts of Shoes */
+extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
+extern shoes_app _shoes_app;
+
 typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
-  SHOES_CONTROL_REF ref;
-  int realized;
-  SHOES_SLOT_OS *slot;
-  int init;
+    VALUE parent;
+    VALUE attr;
+    shoes_place place;
+    SHOES_CONTROL_REF ref;
+    int realized;
+    SHOES_SLOT_OS *slot;
+    int init;
 } shoes_video;
 
-VALUE cVideo; // ruby.c line 16
+/* each widget should have its own init function */
+void shoes_video_init();
 
-
-VALUE shoes_canvas_video(int, VALUE*, VALUE);
-VALUE shoes_canvas_c_video(int, VALUE*, VALUE);
-VALUE shoes_app_c_video(int, VALUE*, VALUE);
-
+// ruby
 VALUE shoes_video_alloc(VALUE);
 VALUE shoes_video_new(VALUE, VALUE);
 VALUE shoes_video_draw(VALUE, VALUE, VALUE);
@@ -45,8 +45,9 @@ VALUE shoes_video_get_height(VALUE);
 VALUE shoes_video_get_left(VALUE);
 VALUE shoes_video_get_top(VALUE);
 
-//#else
-//#define SHOES_VIDEO 0
-//#endif
+// Canvas
+VALUE shoes_canvas_video(int, VALUE*, VALUE);
+VALUE shoes_canvas_c_video(int, VALUE*, VALUE);
+VALUE shoes_app_c_video(int, VALUE*, VALUE);
 
-#endif	/* VIDEO_H */
+#endif

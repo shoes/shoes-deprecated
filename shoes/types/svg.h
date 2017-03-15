@@ -41,8 +41,7 @@ typedef struct {
 /* each widget should have its own init function */
 void shoes_svg_init();
 
-// canvas
-VALUE shoes_canvas_svg(int, VALUE *, VALUE);
+// ruby (svg)
 VALUE shoes_svg_new(int, VALUE *, VALUE);
 VALUE shoes_svg_alloc(VALUE);
 VALUE shoes_svg_draw(VALUE, VALUE, VALUE);
@@ -65,15 +64,20 @@ VALUE shoes_svg_preferred_height(VALUE);
 VALUE shoes_svg_preferred_width(VALUE);
 VALUE shoes_svg_remove(VALUE);
 VALUE shoes_svg_has_group(VALUE, VALUE);
-VALUE shoes_svg_motion(VALUE, int, int, char *);
-VALUE shoes_svg_send_click(VALUE, int, int, int);
-void shoes_svg_send_release(VALUE, int, int, int);
 
-VALUE shoes_canvas_svghandle(int, VALUE *, VALUE);
+// ruby (svghandle)
 VALUE shoes_svghandle_new(int argc, VALUE *argv, VALUE self);
 VALUE shoes_svghandle_alloc(VALUE);
 VALUE shoes_svghandle_get_width(VALUE);
 VALUE shoes_svghandle_get_height(VALUE);
 VALUE shoes_svghandle_has_group(VALUE, VALUE);
+
+// canvas
+VALUE shoes_canvas_svg(int, VALUE *, VALUE);
+VALUE shoes_svg_motion(VALUE, int, int, char *);
+VALUE shoes_svg_send_click(VALUE, int, int, int);
+void shoes_svg_send_release(VALUE, int, int, int);
+
+VALUE shoes_canvas_svghandle(int, VALUE *, VALUE);
 
 #endif

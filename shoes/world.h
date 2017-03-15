@@ -10,9 +10,6 @@
 #include "shoes/config.h"
 #include "shoes/ruby.h"
 #include "shoes/code.h"
-#ifdef VIDEO
-#include "shoes/video/video.h"
-#endif
 
 #ifdef __cplusplus
 extern "C" {

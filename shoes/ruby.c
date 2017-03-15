@@ -19,13 +19,14 @@
 #include "shoes/types/list_box.h"
 #include "shoes/types/switch.h"
 #include "shoes/types/spinner.h"
+#include "shoes/types/video.h"
 #include "shoes/types/svg.h"
 #include <math.h>
 
 VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cCheck, cRadio, cProgress, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE cTextEditBox;
 VALUE cPlot, cChartSeries;
-VALUE eVlcError, eImageError, eInvMode, eNotImpl;
+VALUE eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot, symAltEqual, symAltSemiColon;
 ID s_checked_q, s_perc, s_fraction, s_aref, s_mult, s_donekey;
@@ -3444,10 +3445,6 @@ EVENT_COMMON(control, control, click)
 EVENT_COMMON(control, control, change)
 CLASS_COMMON(text)
 REPLACE_COMMON(text)
-#ifdef VIDEO_C_VLC
-PLACE_COMMON(video)
-CLASS_COMMON(video)
-#endif
 PLACE_COMMON(image)
 CLASS_COMMON2(image)
 TRANS_COMMON(image, 1);
@@ -4057,8 +4054,6 @@ shoes_ruby_init()
   rb_const_set(cTypes, rb_intern("TWO_PI"), rb_float_new(SHOES_PIM2));
   rb_const_set(cTypes, rb_intern("HALF_PI"), rb_float_new(SHOES_HALFPI));
   rb_const_set(cTypes, rb_intern("PI"), rb_float_new(SHOES_PI));
-  //rb_const_set(cTypes, rb_intern("VIDEO"), SHOES_VIDEO ? Qtrue : Qfalse);
-  rb_const_set(cTypes, rb_intern("VIDEO"),  Qtrue);
 
   cApp = rb_define_class_under(cTypes, "App", rb_cObject);
   rb_define_alloc_func(cApp, shoes_app_alloc);
@@ -4083,7 +4078,6 @@ shoes_ruby_init()
 
   eInvMode = rb_define_class_under(cTypes, "InvalidModeError", rb_eStandardError);
   eNotImpl = rb_define_class_under(cTypes, "NotImplementedError", rb_eStandardError);
-  eVlcError = rb_define_class_under(cTypes, "VideoError", rb_eStandardError);
   eImageError = rb_define_class_under(cTypes, "ImageError", rb_eStandardError);
   C(HEX_SOURCE, "/^(?:0x|#)?([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})$/i");
   C(HEX3_SOURCE, "/^(?:0x|#)?([0-9A-F])([0-9A-F])([0-9A-F])$/i");
@@ -4281,7 +4275,7 @@ shoes_ruby_init()
 
   shoes_effect_init();
   
-  shoes_ruby_video_init();
+  shoes_video_init();
 
   cPattern = rb_define_class_under(cTypes, "Pattern", rb_cObject);
   rb_define_alloc_func(cPattern, shoes_pattern_alloc);
