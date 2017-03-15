@@ -77,16 +77,6 @@ void shoes_native_control_free(SHOES_CONTROL_REF);
 void shoes_native_control_set_tooltip(SHOES_CONTROL_REF ref, VALUE tooltip);
 VALUE shoes_native_control_get_tooltip(SHOES_CONTROL_REF ref);
 
-SHOES_CONTROL_REF shoes_native_edit_line(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);
-VALUE shoes_native_edit_line_get_text(SHOES_CONTROL_REF);
-void shoes_native_edit_line_set_text(SHOES_CONTROL_REF, char *);
-VALUE shoes_native_edit_line_cursor_to_end(SHOES_CONTROL_REF);
-SHOES_CONTROL_REF shoes_native_edit_box(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);
-VALUE shoes_native_edit_box_get_text(SHOES_CONTROL_REF);
-void shoes_native_edit_box_set_text(SHOES_CONTROL_REF, char *);
-// 3.2.25 adds
-void shoes_native_edit_box_append(SHOES_CONTROL_REF, char *);
-void shoes_native_edit_box_scroll_to_end(SHOES_CONTROL_REF);
 // 3.3.x might add native_text_edit_box
 SHOES_CONTROL_REF shoes_native_text_edit_box(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);
 VALUE shoes_native_text_edit_box_get_text(SHOES_CONTROL_REF);
