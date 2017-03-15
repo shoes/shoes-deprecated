@@ -744,26 +744,6 @@ shoes_canvas_timer(int argc, VALUE *argv, VALUE self)
 }
 
 VALUE
-shoes_canvas_svg(int argc, VALUE *argv, VALUE self)
-{
-  VALUE widget;
-  SETUP_CANVAS();
-  widget = shoes_svg_new(argc, argv, self);
-  shoes_add_ele(canvas, widget);
-  return widget;
-}
-
-VALUE 
-shoes_canvas_svghandle(int argc, VALUE *argv, VALUE self)
-{
-  VALUE han;
-  SETUP_CANVAS();
-  han = shoes_svghandle_new(argc, argv, self);
-  return han;
-}
-
-
-VALUE
 shoes_canvas_plot(int argc, VALUE *argv, VALUE self)
 {
   VALUE widget;
@@ -1755,7 +1735,7 @@ shoes_canvas_send_finish(VALUE self)
     shoes_safe_block(self, finish, rb_ary_new3(1, self));
 }
 
-static VALUE
+VALUE
 shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked)
 {
   long i;

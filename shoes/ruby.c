@@ -19,11 +19,12 @@
 #include "shoes/types/list_box.h"
 #include "shoes/types/switch.h"
 #include "shoes/types/spinner.h"
+#include "shoes/types/svg.h"
 #include <math.h>
 
 VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cCheck, cRadio, cProgress, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE cTextEditBox;
-VALUE cSvgHandle, cSvg, cPlot, cChartSeries;
+VALUE cPlot, cChartSeries;
 VALUE eVlcError, eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot, symAltEqual, symAltSemiColon;
@@ -3361,81 +3362,6 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   return self;
 }
 
-//
-// Transformations
-//
-#define TRANS_COMMON(ele, repaint) \
-  VALUE \
-  shoes_##ele##_transform(VALUE self, VALUE _m) \
-  { \
-    GET_STRUCT(ele, self_t); \
-    ID m = SYM2ID(_m); \
-    if (m == s_center || m == s_corner) \
-    { \
-      self_t->st = shoes_transform_detach(self_t->st); \
-      self_t->st->mode = m; \
-    } \
-    else \
-    { \
-      rb_raise(rb_eArgError, "transform must be called with either :center or :corner."); \
-    } \
-    return self; \
-  } \
-  VALUE \
-  shoes_##ele##_translate(VALUE self, VALUE _x, VALUE _y) \
-  { \
-    double x, y; \
-    GET_STRUCT(ele, self_t); \
-    x = NUM2DBL(_x); \
-    y = NUM2DBL(_y); \
-    self_t->st = shoes_transform_detach(self_t->st); \
-    cairo_matrix_translate(&self_t->st->tf, x, y); \
-    return self; \
-  } \
-  VALUE \
-  shoes_##ele##_rotate(VALUE self, VALUE _deg) \
-  { \
-    double rad; \
-    GET_STRUCT(ele, self_t); \
-    rad = NUM2DBL(_deg) * SHOES_RAD2PI; \
-    self_t->st = shoes_transform_detach(self_t->st); \
-    cairo_matrix_rotate(&self_t->st->tf, -rad); \
-    if (repaint) shoes_canvas_repaint_all(self_t->parent); \
-    return self; \
-  } \
-  VALUE \
-  shoes_##ele##_scale(int argc, VALUE *argv, VALUE self) \
-  { \
-    VALUE _sx, _sy; \
-    double sx, sy; \
-    GET_STRUCT(ele, self_t); \
-    rb_scan_args(argc, argv, "11", &_sx, &_sy); \
-    sx = NUM2DBL(_sx); \
-    if (NIL_P(_sy)) sy = sx; \
-    else            sy = NUM2DBL(_sy); \
-    self_t->st = shoes_transform_detach(self_t->st); \
-    cairo_matrix_scale(&self_t->st->tf, sx, sy); \
-    if (repaint) shoes_canvas_repaint_all(self_t->parent); \
-    return self; \
-  } \
-  VALUE \
-  shoes_##ele##_skew(int argc, VALUE *argv, VALUE self) \
-  { \
-    cairo_matrix_t matrix; \
-    VALUE _sx, _sy; \
-    double sx, sy; \
-    GET_STRUCT(ele, self_t); \
-    rb_scan_args(argc, argv, "11", &_sx, &_sy); \
-    sx = NUM2DBL(_sx) * SHOES_RAD2PI; \
-    sy = 0.0; \
-    if (!NIL_P(_sy)) sy = NUM2DBL(_sy) * SHOES_RAD2PI; \
-    cairo_matrix_init(&matrix, 1.0, sy, sx, 1.0, 0.0, 0.0); \
-    self_t->st = shoes_transform_detach(self_t->st); \
-    cairo_matrix_multiply(&self_t->st->tf, &self_t->st->tf, &matrix); \
-    if (repaint) shoes_canvas_repaint_all(self_t->parent); \
-    return self; \
-  }
-
 #define REPLACE_COMMON(ele) \
   VALUE \
   shoes_##ele##_replace(int argc, VALUE *argv, VALUE self) \
@@ -3461,90 +3387,6 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
     shoes_canvas_repaint_all(self_t->parent); \
     return self; \
   }
-
-//
-// Common methods
-//
-
-#define CLASS_COMMON(ele) \
-  VALUE \
-  shoes_##ele##_style(int argc, VALUE *argv, VALUE self) \
-  { \
-    rb_arg_list args; \
-    GET_STRUCT(ele, self_t); \
-    switch (rb_parse_args(argc, argv, "h,", &args)) { \
-      case 1: \
-        if (NIL_P(self_t->attr)) self_t->attr = rb_hash_new(); \
-        rb_funcall(self_t->attr, s_update, 1, args.a[0]); \
-        shoes_canvas_repaint_all(self_t->parent); \
-      break; \
-      case 2: return rb_obj_freeze(rb_obj_dup(self_t->attr)); \
-    } \
-    return self; \
-  } \
-  \
-  VALUE \
-  shoes_##ele##_displace(VALUE self, VALUE x, VALUE y) \
-  { \
-    GET_STRUCT(ele, self_t); \
-    ATTRSET(self_t->attr, displace_left, x); \
-    ATTRSET(self_t->attr, displace_top, y); \
-    shoes_canvas_repaint_all(self_t->parent); \
-    return self; \
-  } \
-  \
-  VALUE \
-  shoes_##ele##_move(VALUE self, VALUE x, VALUE y) \
-  { \
-    GET_STRUCT(ele, self_t); \
-    ATTRSET(self_t->attr, left, x); \
-    ATTRSET(self_t->attr, top, y); \
-    shoes_canvas_repaint_all(self_t->parent); \
-    return self; \
-  }
-
-#define CLASS_COMMON2(ele) \
-  VALUE \
-  shoes_##ele##_hide(VALUE self) \
-  { \
-    GET_STRUCT(ele, self_t); \
-    ATTRSET(self_t->attr, hidden, Qtrue); \
-    shoes_canvas_repaint_all(self_t->parent); \
-    return self; \
-  } \
-  \
-  VALUE \
-  shoes_##ele##_show(VALUE self) \
-  { \
-    GET_STRUCT(ele, self_t); \
-    ATTRSET(self_t->attr, hidden, Qfalse); \
-    shoes_canvas_repaint_all(self_t->parent); \
-    return self; \
-  } \
-  \
-  VALUE \
-  shoes_##ele##_toggle(VALUE self) \
-  { \
-    GET_STRUCT(ele, self_t); \
-    ATTRSET(self_t->attr, hidden, ATTR(self_t->attr, hidden) == Qtrue ? Qfalse : Qtrue); \
-    shoes_canvas_repaint_all(self_t->parent); \
-    return self; \
-  } \
-  \
-  VALUE \
-  shoes_##ele##_is_hidden(VALUE self) \
-  { \
-    GET_STRUCT(ele, self_t); \
-    if (RTEST(ATTR(self_t->attr, hidden))) \
-      return ATTR(self_t->attr, hidden); \
-    else return Qfalse; \
-  } \
-  CLASS_COMMON(ele); \
-  EVENT_COMMON(ele, ele, change); \
-  EVENT_COMMON(ele, ele, click); \
-  EVENT_COMMON(ele, ele, release); \
-  EVENT_COMMON(ele, ele, hover); \
-  EVENT_COMMON(ele, ele, leave);
 
 #define PLACE_COMMON(ele) \
   VALUE \
@@ -3622,9 +3464,6 @@ CLASS_COMMON2(textblock)
 REPLACE_COMMON(textblock)
 
 // The next two macros are very important for new widget writers.
-CLASS_COMMON2(svg)
-TRANS_COMMON(svg, 1);
-
 CLASS_COMMON2(plot)
 TRANS_COMMON(plot, 1);
 
@@ -4240,9 +4079,6 @@ shoes_ruby_init()
   rb_define_method(cApp, "decorated=", CASTHOOK(shoes_app_set_decoration), 1);
   rb_define_alias(cApp, "decorated?", "decorated");
   
-  //rb_define_method(cApp, "svghandle", CASTHOOK(shoes_svghandle_new), -1); // Deprecate somehow
-  //rb_define_method(cApp, "chart_series", CASTHOOK(shoes_chart_series_new), -1);
-  
   cDialog = rb_define_class_under(cTypes, "Dialog", cApp);
 
   eInvMode = rb_define_class_under(cTypes, "InvalidModeError", rb_eStandardError);
@@ -4377,50 +4213,7 @@ shoes_ruby_init()
   rb_define_method(cImage, "hover", CASTHOOK(shoes_image_hover), -1);
   rb_define_method(cImage, "leave", CASTHOOK(shoes_image_leave), -1);
   
-  // svg is kind of like cImage with different methods
-  // do not call draw from Shoes scripts - just don't do it!
-  cSvg   = rb_define_class_under(cTypes, "Svg", rb_cObject);
-  rb_define_alloc_func(cSvg, shoes_svg_alloc);
-  rb_define_method(cSvg, "draw", CASTHOOK(shoes_svg_draw), 2);
-  rb_define_method(cSvg, "preferred_width", CASTHOOK(shoes_svg_preferred_width), 0);
-  rb_define_method(cSvg, "preferred_height", CASTHOOK(shoes_svg_preferred_height),0);
-  rb_define_method(cSvg, "offset_x", CASTHOOK(shoes_svg_get_offsetX),0);
-  rb_define_method(cSvg, "offset_y", CASTHOOK(shoes_svg_get_offsetY),0);
-  rb_define_method(cSvg, "remove", CASTHOOK(shoes_svg_remove), 0);
-  rb_define_method(cSvg, "export", CASTHOOK(shoes_svg_export), 1);
-  rb_define_method(cSvg, "save", CASTHOOK(shoes_svg_save), 1);
-  rb_define_method(cSvg, "handle", CASTHOOK(shoes_svg_get_handle), 0);
-  rb_define_method(cSvg, "handle=", CASTHOOK(shoes_svg_set_handle), 1);
-  rb_define_method(cSvg, "dpi", CASTHOOK(shoes_svg_get_dpi), 0);
-  rb_define_method(cSvg, "dpi=", CASTHOOK(shoes_svg_set_dpi), 1);
-  rb_define_method(cSvg, "style", CASTHOOK(shoes_svg_style), -1);
-  rb_define_method(cSvg, "move", CASTHOOK(shoes_svg_move), 2);
-  rb_define_method(cSvg, "displace", CASTHOOK(shoes_svg_displace), 2);
-  rb_define_method(cSvg, "hide", CASTHOOK(shoes_svg_hide), 0);
-  rb_define_method(cSvg, "show", CASTHOOK(shoes_svg_show), 0);
-  rb_define_method(cSvg, "toggle", CASTHOOK(shoes_svg_toggle), 0);
-  rb_define_method(cSvg, "hidden?", CASTHOOK(shoes_svg_is_hidden), 0);
-  rb_define_method(cSvg, "click", CASTHOOK(shoes_svg_click), -1);
-  rb_define_method(cSvg, "release", CASTHOOK(shoes_svg_release), -1);
-  rb_define_method(cSvg, "hover", CASTHOOK(shoes_svg_hover), -1);
-  rb_define_method(cSvg, "leave", CASTHOOK(shoes_svg_leave), -1);
-  rb_define_method(cSvg, "parent", CASTHOOK(shoes_svg_get_parent), 0);
-  rb_define_method(cSvg, "top", CASTHOOK(shoes_svg_get_actual_top), 0);
-  rb_define_method(cSvg, "left", CASTHOOK(shoes_svg_get_actual_left), 0);
-  rb_define_method(cSvg, "width", CASTHOOK(shoes_svg_get_actual_width), 0);
-  rb_define_method(cSvg, "height", CASTHOOK(shoes_svg_get_actual_height), 0);
-  rb_define_method(cSvg, "group?", CASTHOOK(shoes_svg_has_group), 1);
-  rb_define_method(cSvg, "transform", CASTHOOK(shoes_svg_transform), 1);
-  rb_define_method(cSvg, "translate", CASTHOOK(shoes_svg_translate), 2);
-  rb_define_method(cSvg, "rotate", CASTHOOK(shoes_svg_rotate), 1);
-  rb_define_method(cSvg, "scale", CASTHOOK(shoes_svg_scale), -1);
-  rb_define_method(cSvg, "skew", CASTHOOK(shoes_svg_skew), -1);
-  
-  cSvgHandle = rb_define_class_under(cTypes, "SvgHandle", rb_cObject); // new with 3.3.0
-  rb_define_alloc_func(cSvgHandle, shoes_svghandle_alloc);
-  rb_define_method(cSvgHandle, "width", CASTHOOK(shoes_svghandle_get_width), 0);
-  rb_define_method(cSvgHandle, "height", CASTHOOK(shoes_svghandle_get_height), 0);
-  rb_define_method(cSvgHandle, "group?", CASTHOOK(shoes_svghandle_has_group), 1);
+  shoes_svg_init();
 
   cChartSeries = rb_define_class_under(cTypes, "chart_series", rb_cObject); // 3.3.2
   rb_define_alloc_func(cChartSeries, shoes_chart_series_alloc);

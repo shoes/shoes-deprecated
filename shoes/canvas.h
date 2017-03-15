@@ -297,33 +297,6 @@ typedef struct {
 #define CANVAS_EMPTY   3
 #define CANVAS_REMOVED 4
 
-// SvgHandle struct - not a graphical widget
-// new in 3.3.0
-typedef struct _svghandle {
-  RsvgHandle *handle;
-  RsvgDimensionData svghdim;
-  RsvgPositionData svghpos;
-  char *path;
-  char *data;
-  char *subid;
-  double aspect;
-} shoes_svghandle;
-
-//
-// SVG struct
-//
-typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
-  double scalew;
-  double scaleh;
-  VALUE svghandle;
-  char hover;
-  shoes_transform *st;
-} shoes_svg;
-
-
 // ChartSeries struct
 typedef struct {
   VALUE maxv;  
@@ -493,8 +466,6 @@ VALUE shoes_canvas_image(int, VALUE *, VALUE);
 VALUE shoes_canvas_animate(int, VALUE *, VALUE);
 VALUE shoes_canvas_every(int, VALUE *, VALUE);
 VALUE shoes_canvas_timer(int, VALUE *, VALUE);
-VALUE shoes_canvas_svg(int, VALUE *, VALUE);
-VALUE shoes_canvas_svghandle(int, VALUE *, VALUE);
 VALUE shoes_canvas_plot(int, VALUE *, VALUE);
 VALUE shoes_canvas_chart_series(int, VALUE *, VALUE);
 VALUE shoes_canvas_imagesize(VALUE, VALUE);
@@ -552,6 +523,7 @@ void shoes_canvas_repaint_all(VALUE);
 void shoes_canvas_compute(VALUE);
 VALUE shoes_canvas_goto(VALUE, VALUE);
 VALUE shoes_canvas_send_click(VALUE, int, int, int);
+VALUE shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked);
 void shoes_canvas_send_release(VALUE, int, int, int);
 VALUE shoes_canvas_send_motion(VALUE, int, int, VALUE);
 void shoes_canvas_send_wheel(VALUE, ID, int, int);
@@ -582,38 +554,6 @@ VALUE shoes_flow_new(VALUE, VALUE);
 VALUE shoes_stack_new(VALUE, VALUE);
 VALUE shoes_mask_new(VALUE, VALUE);
 VALUE shoes_widget_new(VALUE, VALUE, VALUE);
-
-VALUE shoes_svghandle_new(int argc, VALUE *argv, VALUE self);
-VALUE shoes_svghandle_alloc(VALUE);
-VALUE shoes_svghandle_get_width(VALUE);
-VALUE shoes_svghandle_get_height(VALUE);
-VALUE shoes_svghandle_has_group(VALUE, VALUE);
-
-VALUE shoes_svg_new(int, VALUE *, VALUE);
-VALUE shoes_svg_alloc(VALUE);
-VALUE shoes_svg_draw(VALUE, VALUE, VALUE);
-VALUE shoes_svg_get_handle(VALUE);
-VALUE shoes_svg_set_handle(VALUE, VALUE);
-VALUE shoes_svg_get_dpi(VALUE);
-VALUE shoes_svg_set_dpi(VALUE, VALUE);
-VALUE shoes_svg_export(VALUE, VALUE);
-VALUE shoes_svg_save(VALUE, VALUE);
-VALUE shoes_svg_show(VALUE);
-VALUE shoes_svg_hide(VALUE);
-VALUE shoes_svg_get_actual_width(VALUE);
-VALUE shoes_svg_get_actual_height(VALUE);
-VALUE shoes_svg_get_actual_left(VALUE);
-VALUE shoes_svg_get_actual_top(VALUE);
-VALUE shoes_svg_get_parent(VALUE);
-VALUE shoes_svg_get_offsetX(VALUE);
-VALUE shoes_svg_get_offsetY(VALUE);
-VALUE shoes_svg_preferred_height(VALUE);
-VALUE shoes_svg_preferred_width(VALUE);
-VALUE shoes_svg_remove(VALUE);
-VALUE shoes_svg_has_group(VALUE, VALUE);
-VALUE shoes_svg_motion(VALUE, int, int, char *);
-VALUE shoes_svg_send_click(VALUE, int, int, int);
-void shoes_svg_send_release(VALUE, int, int, int);
 
 VALUE shoes_chart_series_new(int, VALUE *, VALUE);
 VALUE shoes_chart_series_alloc(VALUE);
@@ -804,5 +744,12 @@ shoes_code shoes_load_imagesize(VALUE, int *, int *);
 shoes_cached_image *shoes_cached_image_new(int, int, cairo_surface_t *);
 shoes_cached_image *shoes_load_image(VALUE, VALUE);
 unsigned char shoes_image_downloaded(shoes_image_download_event *);
+
+// Canvas needs cSvg to create snapshots and send events
+extern VALUE cSvg;
+
+extern VALUE shoes_svg_motion(VALUE, int, int, char *);
+extern VALUE shoes_svg_send_click(VALUE, int, int, int);
+extern void shoes_svg_send_release(VALUE, int, int, int);
 
 #endif

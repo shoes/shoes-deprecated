@@ -84,13 +84,6 @@ void shoes_native_surface_remove(SHOES_SURFACE_REF);
 void shoes_native_control_set_tooltip(SHOES_CONTROL_REF ref, VALUE tooltip);
 VALUE shoes_native_control_get_tooltip(SHOES_CONTROL_REF ref);
 
-//SHOES_SURFACE_REF shoes_native_svg(shoes_canvas *, VALUE, shoes_place *);
-//void shoes_native_svg_position(SHOES_SURFACE_REF, shoes_place *,
-//  VALUE, shoes_canvas *, shoes_place *);
-//void shoes_native_svg_hide(SHOES_SURFACE_REF);
-//void shoes_native_svg_show(SHOES_SURFACE_REF);
-//void shoes_native_svg_remove(shoes_canvas *, SHOES_SURFACE_REF);
-
 SHOES_CONTROL_REF shoes_native_edit_line(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);
 VALUE shoes_native_edit_line_get_text(SHOES_CONTROL_REF);
 void shoes_native_edit_line_set_text(SHOES_CONTROL_REF, char *);
