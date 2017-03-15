@@ -59,6 +59,8 @@ shoes_app_alloc(VALUE klass)
   app->minheight = 0;
   app->fullscreen = FALSE;
   app->resizable = TRUE;
+  app->decorated = TRUE;
+  app->opacity = 1.0;
   app->cursor = s_arrow;
   app->scratch = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
   app->self = Data_Wrap_Struct(klass, shoes_app_mark, shoes_app_free, app);
@@ -143,7 +145,13 @@ shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner)
   app_t->title = ATTR(attr, title);
   app_t->fullscreen = RTEST(ATTR(attr, fullscreen));
   app_t->resizable = (ATTR(attr, resizable) != Qfalse);
+  app_t->decorated = (ATTR(attr, decorated) != Qfalse);
   app_t->hidden = (ATTR(attr, hidden) == Qtrue);
+  
+  if (RTEST(ATTR(attr, opacity)))
+     if ((0.0 <= NUM2DBL(ATTR(attr, opacity))) && (1.0 >= NUM2DBL(ATTR(attr, opacity))))
+         app_t->opacity = NUM2DBL(ATTR(attr, opacity));
+  
   shoes_app_resize(app_t, ATTR2(int, attr, width, SHOES_APP_WIDTH), ATTR2(int, attr, height, SHOES_APP_HEIGHT));
   if (RTEST(ATTR(attr, minwidth)))
     //app_t->minwidth = (NUM2INT(ATTR(attr, minwidth)) - 1) / 2;
@@ -253,6 +261,44 @@ shoes_app_title(shoes_app *app, VALUE title)
     app->title = rb_str_new2(SHOES_APPNAME);
   msg = RSTRING_PTR(app->title);
   shoes_native_app_title(app, msg);
+}
+
+VALUE 
+shoes_app_set_opacity(VALUE app, VALUE opacity)
+{
+  shoes_app *app_t;
+  Data_Get_Struct(app, shoes_app, app_t);
+  app_t->opacity = NUM2DBL(opacity);
+  
+   if ((0.0 <= app_t->opacity) && (1.0 >= app_t->opacity))
+      shoes_native_app_set_opacity(app_t, app_t->opacity);
+   
+  return Qtrue;
+}
+
+VALUE 
+shoes_app_get_opacity(VALUE app) 
+{
+  shoes_app *app_t;
+  Data_Get_Struct(app, shoes_app, app_t);
+  return DBL2NUM(shoes_native_app_get_opacity(app_t));
+}
+
+VALUE
+shoes_app_set_decoration(VALUE app, VALUE decorated)
+{
+   shoes_app *app_t;
+  Data_Get_Struct(app, shoes_app, app_t);
+  shoes_native_app_set_decoration(app_t, (decorated != Qfalse));
+  return Qtrue;
+}
+
+VALUE
+shoes_app_get_decoration(VALUE app)
+{
+   shoes_app *app_t;
+  Data_Get_Struct(app, shoes_app, app_t);
+  return (shoes_native_app_get_decoration(app_t) ? Qtrue : Qfalse);
 }
 
 shoes_code

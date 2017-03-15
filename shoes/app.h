@@ -34,7 +34,8 @@ typedef struct _shoes_app {
   cairo_t *scratch;
   int width, height, mouseb, mousex, mousey,
     resizable, hidden, started, fullscreen,
-    minwidth, minheight;
+    minwidth, minheight, decorated;
+  double opacity;
   VALUE self;
   VALUE canvas;
   VALUE keypresses;
@@ -60,6 +61,10 @@ VALUE shoes_app_get_title(VALUE);
 VALUE shoes_app_set_title(VALUE, VALUE);
 VALUE shoes_app_get_fullscreen(VALUE);
 VALUE shoes_app_set_fullscreen(VALUE, VALUE);
+VALUE shoes_app_set_opacity(VALUE app, VALUE opacity);
+VALUE shoes_app_get_opacity(VALUE app);
+VALUE shoes_app_set_decoration(VALUE app, VALUE decorated);
+VALUE shoes_app_get_decoration(VALUE app);
 VALUE shoes_app_slot(VALUE);
 VALUE shoes_app_set_icon(VALUE, VALUE); // New 3.2.19
 VALUE shoes_app_set_wtitle(VALUE, VALUE); // New in 3.2.19

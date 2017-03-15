@@ -4234,6 +4234,12 @@ shoes_ruby_init()
   rb_define_method(cApp, "slot", CASTHOOK(shoes_app_slot), 0);
   rb_define_method(cApp, "set_window_icon_path", CASTHOOK(shoes_app_set_icon), 1); // New in 3.2.19
   rb_define_method(cApp, "set_window_title", CASTHOOK(shoes_app_set_wtitle), 1); // New in 3.2.19
+  rb_define_method(cApp, "opacity", CASTHOOK(shoes_app_get_opacity), 0);
+  rb_define_method(cApp, "opacity=", CASTHOOK(shoes_app_set_opacity), 1);
+  rb_define_method(cApp, "decorated", CASTHOOK(shoes_app_get_decoration), 0);
+  rb_define_method(cApp, "decorated=", CASTHOOK(shoes_app_set_decoration), 1);
+  rb_define_alias(cApp, "decorated?", "decorated");
+  
   //rb_define_method(cApp, "svghandle", CASTHOOK(shoes_svghandle_new), -1); // Deprecate somehow
   //rb_define_method(cApp, "chart_series", CASTHOOK(shoes_chart_series_new), -1);
   
