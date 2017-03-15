@@ -2,7 +2,6 @@
 #include "shoes/world.h"
 #include "shoes/internal.h"
 #include "shoes/app.h"
-#include "native/gtkvideo.h"
 
 #ifndef SHOES_VIDEO_H
 #define SHOES_VIDEO_H
@@ -22,6 +21,15 @@ typedef struct {
     SHOES_SLOT_OS *slot;
     int init;
 } shoes_video;
+
+// native forward declarations
+extern SHOES_CONTROL_REF shoes_native_surface_new(VALUE, VALUE);
+extern unsigned long shoes_native_surface_get_window_handle(SHOES_CONTROL_REF);
+extern void shoes_native_surface_position(SHOES_SURFACE_REF, shoes_place *,
+                                   VALUE, shoes_canvas *, shoes_place *);
+extern void shoes_native_surface_hide(SHOES_SURFACE_REF);
+extern void shoes_native_surface_show(SHOES_SURFACE_REF);
+extern void shoes_native_surface_remove(SHOES_SURFACE_REF);
 
 /* each widget should have its own init function */
 void shoes_video_init();
