@@ -483,7 +483,6 @@ VALUE shoes_canvas_push(VALUE);
 VALUE shoes_canvas_pop(VALUE);
 VALUE shoes_canvas_reset(VALUE);
 VALUE shoes_canvas_text_edit_box(int, VALUE *, VALUE);
-VALUE shoes_canvas_progress(int, VALUE *, VALUE);
 VALUE shoes_canvas_check(int, VALUE *, VALUE);
 VALUE shoes_canvas_radio(int, VALUE *, VALUE);
 VALUE shoes_canvas_contents(VALUE);
@@ -622,8 +621,6 @@ VALUE shoes_control_get_state(VALUE);
 VALUE shoes_control_set_state(VALUE, VALUE);
 VALUE shoes_control_get_tooltip(VALUE self);
 VALUE shoes_control_set_tooltip(VALUE self, VALUE tooltip);
-
-VALUE shoes_progress_draw(VALUE, VALUE, VALUE);
 
 void shoes_shape_mark(shoes_shape *);
 VALUE shoes_shape_attr(int, VALUE *, int, ...);

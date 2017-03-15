@@ -12,7 +12,6 @@
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
 extern shoes_app _shoes_app;
 
-
 typedef void (*shoes_effect_filter)(cairo_t *, VALUE attr, shoes_place *);
 
 typedef struct {

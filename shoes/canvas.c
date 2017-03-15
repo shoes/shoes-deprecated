@@ -927,19 +927,6 @@ shoes_canvas_text_edit_box(int argc, VALUE *argv, VALUE self)
 }
 
 VALUE
-shoes_canvas_progress(int argc, VALUE *argv, VALUE self)
-{
-  rb_arg_list args;
-  VALUE progress;
-  SETUP_CANVAS();
-
-  rb_parse_args(argc, argv, "|h", &args);
-  progress = shoes_control_new(cProgress, args.a[0], self);
-  shoes_add_ele(canvas, progress);
-  return progress;
-}
-
-VALUE
 shoes_canvas_radio(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;

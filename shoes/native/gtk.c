@@ -1416,6 +1416,7 @@ shoes_native_list_box_set_active(SHOES_CONTROL_REF combo, VALUE ary, VALUE item)
   gtk_combo_box_set_active(GTK_COMBO_BOX(combo), idx);
 }
 
+// TODO: should be moved into gtkprogress.c (or gtkprogressbaralt.c)
 SHOES_CONTROL_REF
 shoes_native_progress(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
