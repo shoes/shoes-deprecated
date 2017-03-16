@@ -437,21 +437,6 @@ VALUE shoes_canvas_star(int argc, VALUE *argv, VALUE self) {
     return shoes_add_shape(self, s_star, attr, NULL);
 }
 
-VALUE shoes_canvas_blur(int argc, VALUE *argv, VALUE self) {
-    VALUE attr = shoes_shape_attr(argc, argv, 1, s_radius);
-    return shoes_add_effect(self, s_blur, attr);
-}
-
-VALUE shoes_canvas_glow(int argc, VALUE *argv, VALUE self) {
-    VALUE attr = shoes_shape_attr(argc, argv, 1, s_radius);
-    return shoes_add_effect(self, s_glow, attr);
-}
-
-VALUE shoes_canvas_shadow(int argc, VALUE *argv, VALUE self) {
-    VALUE attr = shoes_shape_attr(argc, argv, 2, s_distance, s_radius);
-    return shoes_add_effect(self, s_shadow, attr);
-}
-
 #define MARKUP_BLOCK(klass) \
   text = shoes_textblock_new(klass, msgs, attr, self, canvas->st); \
   shoes_add_ele(canvas, text)

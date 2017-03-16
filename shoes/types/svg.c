@@ -16,7 +16,7 @@
 #include "shoes/native/native.h"
 #include "shoes/version.h"
 #include "shoes/http.h"
-#include "shoes/effects.h"
+#include "shoes/types/effect.h"
 #include "shoes/types/svg.h"
 
 // ruby

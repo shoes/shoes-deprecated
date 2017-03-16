@@ -10,7 +10,6 @@
 #include "shoes/native/native.h"
 #include "shoes/version.h"
 #include "shoes/http.h"
-#include "shoes/effects.h"
 #include "shoes/types/types.h"
 #include <math.h>
 

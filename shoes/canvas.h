@@ -530,9 +530,6 @@ VALUE shoes_canvas_download(int, VALUE *, VALUE);
 
 VALUE shoes_add_ele(shoes_canvas *canvas, VALUE ele);
 
-// TODO: forward declaration, temporary, should be automatically generated
-extern VALUE shoes_add_effect(VALUE self, ID name, VALUE attr);
-
 SHOES_SLOT_OS *shoes_slot_alloc(shoes_canvas *, SHOES_SLOT_OS *, int);
 VALUE shoes_slot_new(VALUE, VALUE, VALUE);
 VALUE shoes_flow_new(VALUE, VALUE);
