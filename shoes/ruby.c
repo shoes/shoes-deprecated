@@ -3099,8 +3099,7 @@ VALUE shoes_http_abort(VALUE self) {
     return self;
 }
 
-int
-shoes_message_download(VALUE self, void *data) {
+int shoes_message_download(VALUE self, void *data) {
     VALUE proc = Qnil;
     shoes_http_event *de = (shoes_http_event *)data;
     GET_STRUCT(http_klass, dl);
@@ -3156,8 +3155,7 @@ typedef struct {
     VALUE download;
 } shoes_doth_data;
 
-int
-shoes_doth_handler(shoes_http_event *de, void *data) {
+int shoes_doth_handler(shoes_http_event *de, void *data) {
     shoes_doth_data *doth = (shoes_doth_data *)data;
     shoes_http_event *de2 = SHOE_ALLOC(shoes_http_event);
     SHOE_MEMCPY(de2, de, shoes_http_event, 1);
