@@ -16,15 +16,15 @@ extern "C" {
 #endif
 
 SHOES_EXTERN typedef struct _shoes_world_t {
-  SHOES_WORLD_OS os;
-  int mainloop;
-  char path[SHOES_BUFSIZE];
-  VALUE apps, msgs;
-  st_table *image_cache;
-  guint thread_event;
-  cairo_surface_t *blank_image;
-  shoes_cached_image *blank_cache;
-  PangoFontDescription *default_font;
+    SHOES_WORLD_OS os;
+    int mainloop;
+    char path[SHOES_BUFSIZE];
+    VALUE apps, msgs;
+    st_table *image_cache;
+    guint thread_event;
+    cairo_surface_t *blank_image;
+    shoes_cached_image *blank_cache;
+    PangoFontDescription *default_font;
 } shoes_world_t;
 
 extern SHOES_EXTERN shoes_world_t *shoes_world;
@@ -34,7 +34,7 @@ extern SHOES_EXTERN shoes_world_t *shoes_world;
   shoes_app *appvar = NULL; \
   if (RARRAY_LEN(shoes_world->apps) > 0) \
     Data_Get_Struct(rb_ary_entry(shoes_world->apps, 0), shoes_app, appvar)\
-    
+
 // gtk uses this for mKernel methods - app is optional
 // defines 3 variables that callers need to know about. Ick!
 #define GTK_APP_VAR(appvar) \
@@ -56,7 +56,7 @@ extern SHOES_EXTERN shoes_world_t *shoes_world;
     Data_Get_Struct(actual_app, shoes_app, appvar); \
     title_##appvar = RSTRING_PTR(app->title); \
   }\
-    
+
 
 // no longer used - TODO: remove after testing.
 #define ACTUAL_APP_NOPE(appvar) \
@@ -68,14 +68,14 @@ extern SHOES_EXTERN shoes_world_t *shoes_world;
 
 //
 // Shoes World
-// 
+//
 SHOES_EXTERN shoes_world_t *shoes_world_alloc(void);
 SHOES_EXTERN void shoes_world_free(shoes_world_t *);
 void shoes_update_fonts(VALUE);
 
 //
 // Shoes
-// 
+//
 SHOES_EXTERN shoes_code shoes_init(SHOES_INIT_ARGS);
 SHOES_EXTERN shoes_code shoes_load(char *);
 SHOES_EXTERN shoes_code shoes_start(char *, char *, int);

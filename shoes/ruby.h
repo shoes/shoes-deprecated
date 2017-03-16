@@ -24,7 +24,8 @@ extern "C" {
 
 #if defined(__cplusplus)
 #if 0
-{ /* satisfy cc-mode */
+{
+    /* satisfy cc-mode */
 #endif
 }  /* extern "C" { */
 #endif
@@ -58,14 +59,14 @@ typedef VALUE (*HOOK)();
 #define LE_CPU(x) LE_CPU_N(&(x), sizeof(x))
 
 static inline void flip_endian(unsigned char* x, int length) {
-  int i;
-  unsigned char tmp;
+    int i;
+    unsigned char tmp;
 
-  for(i = 0; i < (length / 2); i++) {
-    tmp = x[i];
-    x[i] = x[length - i - 1];
-    x[length - i - 1] = tmp;
-  }
+    for(i = 0; i < (length / 2); i++) {
+        tmp = x[i];
+        x[i] = x[length - i - 1];
+        x[length - i - 1] = tmp;
+    }
 }
 
 #ifndef RARRAY_LEN
@@ -95,8 +96,8 @@ extern VALUE instance_eval_proc;
 extern ID s_checked_q, s_perc, s_fraction, s_aref, s_mult, s_donekey, s_progress;
 
 typedef struct {
-  int n;
-  VALUE a[10];
+    int n;
+    VALUE a[10];
 } rb_arg_list;
 
 VALUE mfp_instance_eval(VALUE, VALUE);
@@ -110,7 +111,7 @@ void shoes_ruby_init(void);
 VALUE shoes_exit_setup(VALUE);
 #define BEZIER 0.55228475;
 
-VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv); 
+VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv);
 
 //
 // Exception handling strings for eval
@@ -189,7 +190,7 @@ VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv);
 #define RUBY_M(name, func, argc) \
   rb_define_method(cCanvas, name + 1, CASTHOOK(shoes_canvas_c_##func), -1); \
   rb_define_method(cApp, name + 1, CASTHOOK(shoes_app_c_##func), -1)
-  
+
 //
 // Defines a redirecting function which applies the element or transformation
 // to the currently active canvas.  This is used in place of the old instance_eval
@@ -229,7 +230,7 @@ VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv);
       return ts_funcall2(canvas, rb_intern(n + 1), argc, argv); \
     return shoes_canvas_c_##func(argc, argv, canvas); \
   }
-  
+
 #define SETUP_CONTROL(dh, dw, flex) \
   char *msg = ""; \
   int len = dw ? dw : 200; \
@@ -258,7 +259,7 @@ VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv);
     canvas->cx = CPX(canvas); \
     canvas->cy = canvas->endy; \
   }
-  
+
 //
 // Macros for setting up drawing
 //
@@ -270,7 +271,7 @@ VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv);
   Data_Get_Struct(c, shoes_canvas, canvas); \
   if (ATTR(self_t->attr, hidden) == Qtrue) return self; \
   shoes_place_decide(&place, c, self_t->attr, dw, dh, rel, REL_COORDS(rel) == REL_CANVAS)
-  
+
 #define EVENT_COMMON(ele, est, sym) \
   VALUE \
   shoes_##ele##_##sym(int argc, VALUE *argv, VALUE self) \
@@ -283,7 +284,7 @@ VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv);
     rb_hash_aset(self_t->attr, ID2SYM(s_##sym), NIL_P(blk) ? str : blk ); \
     return self; \
   }
-  
+
 //
 // Common methods
 //
@@ -367,7 +368,7 @@ VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv);
   EVENT_COMMON(ele, ele, release); \
   EVENT_COMMON(ele, ele, hover); \
   EVENT_COMMON(ele, ele, leave);
-  
+
 //
 // Transformations
 //
@@ -442,7 +443,7 @@ VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv);
     if (repaint) shoes_canvas_repaint_all(self_t->parent); \
     return self; \
   }
-  
+
 // Forward declaration necassary for refactoring
 void shoes_control_check_styles(shoes_control *self_t);
 VALUE shoes_check_set_checked_m(VALUE self, VALUE on);

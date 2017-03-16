@@ -42,7 +42,7 @@
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 // choose gdk
-#if defined(SHOES_GTK_WIN32) 
+#if defined(SHOES_GTK_WIN32)
 #include <gdk/gdkwin32.h>
 #else
 #include <gdk/gdkx.h>
@@ -63,31 +63,31 @@
 
 typedef struct {
 #ifdef GTK3
-  GtkWidget *vscroll, *oscanvas;
-  cairo_t *drawevent;
+    GtkWidget *vscroll, *oscanvas;
+    cairo_t *drawevent;
 #else
-  GtkWidget *vscroll, *oscanvas;
-  GdkEventExpose *expose;
+    GtkWidget *vscroll, *oscanvas;
+    GdkEventExpose *expose;
 #endif
-  int scrolly, scrollh, scrollw;
-  void *owner;
+    int scrolly, scrollh, scrollw;
+    void *owner;
 } shoes_slot_gtk, SHOES_SLOT_OS;
 
 typedef struct {
-  GtkWidget *layout;
-  GtkWidget *radios;
+    GtkWidget *layout;
+    GtkWidget *radios;
 } shoes_group_gtk, SHOES_GROUP_OS;
 
 typedef struct {
-  GtkWidget *window;
+    GtkWidget *window;
 } shoes_app_gtk, SHOES_APP_OS;
 
 typedef struct {
 #ifdef SHOES_GTK_WIN32
-  HINSTANCE instance;
-  int style;
+    HINSTANCE instance;
+    int style;
 #endif
-  int nada;
+    int nada;
 } shoes_world_gtk, SHOES_WORLD_OS;
 
 #define USTR(str) str
@@ -147,27 +147,27 @@ typedef struct {
 #define SHOES_EXTERN
 
 typedef struct {
-  NSView *view;
-  NSScroller *vscroll;
-  CGContextRef context;
-  cairo_surface_t *surface;
-  VALUE controls;
-  int scrolly;
-  void *owner;
+    NSView *view;
+    NSScroller *vscroll;
+    CGContextRef context;
+    cairo_surface_t *surface;
+    VALUE controls;
+    int scrolly;
+    void *owner;
 } shoes_slot_quartz, SHOES_SLOT_OS;
 
 typedef struct {
-  char none;
+    char none;
 } shoes_group_quartz, SHOES_GROUP_OS;
 
 typedef struct {
-  ShoesWindow *window;
-  NSView *view;
-  NSRect normal;
+    ShoesWindow *window;
+    NSView *view;
+    NSRect normal;
 } shoes_app_quartz, SHOES_APP_OS;
 
 typedef struct {
-  ShoesEvents *events;
+    ShoesEvents *events;
 } shoes_world_quartz, SHOES_WORLD_OS;
 
 #define kShoesViewClassID CFSTR("org.hackety.ShoesView")
@@ -219,36 +219,36 @@ typedef struct {
 #define SHOES_EXTERN __declspec(dllexport)
 
 typedef struct {
-  PAINTSTRUCT ps;
-  HDC dc, dc2;
-  HWND window;
-  VALUE focus;
-  VALUE controls;
-  cairo_surface_t *surface;
-  int scrolly;
-  char vscroll;
-  void *owner;
-  void *parent;
+    PAINTSTRUCT ps;
+    HDC dc, dc2;
+    HWND window;
+    VALUE focus;
+    VALUE controls;
+    cairo_surface_t *surface;
+    int scrolly;
+    char vscroll;
+    void *owner;
+    void *parent;
 } shoes_slot_win32, SHOES_SLOT_OS;
 
 typedef struct {
-  char none;
+    char none;
 } shoes_group_win32, SHOES_GROUP_OS;
 
 typedef struct {
-  LONG style;
-  RECT normal;
-  BOOL ctrlkey, altkey, shiftkey;
-  HWND window;
+    LONG style;
+    RECT normal;
+    BOOL ctrlkey, altkey, shiftkey;
+    HWND window;
 } shoes_app_win32, SHOES_APP_OS;
 
 typedef struct {
-  HINSTANCE instance;
-  int style;
-  HWND hidden;
-  WNDCLASSEX classex, slotex, vlclassex, hiddenex;
-  ATOM classatom;
-  BOOL doublebuffer;
+    HINSTANCE instance;
+    int style;
+    HWND hidden;
+    WNDCLASSEX classex, slotex, vlclassex, hiddenex;
+    ATOM classatom;
+    BOOL doublebuffer;
 } shoes_world_win32, SHOES_WORLD_OS;
 
 #define USTR(str) (const char *)L##str

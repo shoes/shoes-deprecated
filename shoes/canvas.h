@@ -47,9 +47,9 @@ extern const char *dialog_title, *dialog_title_says;
 // affine transforms, to avoid littering these structs everywhere
 //
 typedef struct {
-  cairo_matrix_t tf;
-  ID mode;
-  int refs;
+    cairo_matrix_t tf;
+    ID mode;
+    int refs;
 } shoes_transform;
 
 //
@@ -57,9 +57,9 @@ typedef struct {
 // (outlines the area where a control has been placed)
 //
 typedef struct {
-  int x, y, w, h, dx, dy;
-  int ix, iy, iw, ih;
-  unsigned char flags;
+    int x, y, w, h, dx, dy;
+    int ix, iy, iw, ih;
+    unsigned char flags;
 } shoes_place;
 
 #define SETUP_BASIC() \
@@ -102,12 +102,12 @@ typedef struct {
   shoes_place_exact(&place, attr, 0, 0); \
   if (NIL_P(attr)) attr = image->attr; \
   else if (!NIL_P(image->attr)) attr = rb_funcall(image->attr, s_merge, 1, attr);
-  
+
 //
 // color struct
 //
 typedef struct {
-  unsigned char r, g, b, a, on;
+    unsigned char r, g, b, a, on;
 } shoes_color;
 
 #define SHOES_COLOR_OPAQUE 0xFF
@@ -119,97 +119,97 @@ typedef struct {
 // basic struct
 //
 typedef struct {
-  VALUE parent;
-  VALUE attr;
+    VALUE parent;
+    VALUE attr;
 } shoes_basic;
 
 typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
+    VALUE parent;
+    VALUE attr;
+    shoes_place place;
 } shoes_element;
 
 //
 // shape struct
 //
 typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
-  ID name;
-  char hover;
-  cairo_path_t *line;
-  shoes_transform *st;
+    VALUE parent;
+    VALUE attr;
+    shoes_place place;
+    ID name;
+    char hover;
+    cairo_path_t *line;
+    shoes_transform *st;
 } shoes_shape;
 
 //
 // flow struct
 //
 typedef struct {
-  VALUE parent;
-  VALUE attr;
-  VALUE contents;
+    VALUE parent;
+    VALUE attr;
+    VALUE contents;
 } shoes_flow;
 
 //
 // link struct
 //
 typedef struct {
-  int start;
-  int end;
-  VALUE ele;
+    int start;
+    int end;
+    VALUE ele;
 } shoes_link;
 
 //
 // text cursor
 //
 typedef struct {
-  int pos, x, y, hi;
+    int pos, x, y, hi;
 } shoes_textcursor;
 
 //
 // text block struct
 //
 typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
-  VALUE texts;
-  VALUE links;
-  shoes_textcursor *cursor;
-  PangoLayout *layout;
-  PangoAttrList *pattr;
-  GString *text;
-  guint len;
-  char cached, hover;
-  shoes_transform *st;
+    VALUE parent;
+    VALUE attr;
+    shoes_place place;
+    VALUE texts;
+    VALUE links;
+    shoes_textcursor *cursor;
+    PangoLayout *layout;
+    PangoAttrList *pattr;
+    GString *text;
+    guint len;
+    char cached, hover;
+    shoes_transform *st;
 } shoes_textblock;
 
 //
 // text struct
 //
 typedef struct {
-  VALUE parent;
-  VALUE attr;
-  VALUE texts;
-  char hover;
+    VALUE parent;
+    VALUE attr;
+    VALUE texts;
+    char hover;
 } shoes_text;
 
 //
 // cached image
 //
 typedef enum {
-  SHOES_IMAGE_NONE,
-  SHOES_IMAGE_PNG,
-  SHOES_IMAGE_JPEG,
-  SHOES_IMAGE_GIF
+    SHOES_IMAGE_NONE,
+    SHOES_IMAGE_PNG,
+    SHOES_IMAGE_JPEG,
+    SHOES_IMAGE_GIF
 } shoes_image_format;
 
 typedef struct {
-  cairo_surface_t *surface;
-  cairo_pattern_t *pattern;
-  int width, height, mtime;
-  shoes_image_format format;
+    cairo_surface_t *surface;
+    cairo_pattern_t *pattern;
+    int width, height, mtime;
+    shoes_image_format format;
 } shoes_cached_image;
 
 #define SHOES_CACHE_FILE  0
@@ -217,8 +217,8 @@ typedef struct {
 #define SHOES_CACHE_MEM   2
 
 typedef struct {
-  unsigned char type;
-  shoes_cached_image *image;
+    unsigned char type;
+    shoes_cached_image *image;
 } shoes_cache_entry;
 
 //
@@ -226,15 +226,15 @@ typedef struct {
 //
 #define SHOES_IMAGE_EXPIRE (60 * 60)
 typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
-  unsigned char type;
-  shoes_cached_image *cached;
-  shoes_transform *st;
-  cairo_t *cr;
-  VALUE path;
-  char hover;
+    VALUE parent;
+    VALUE attr;
+    shoes_place place;
+    unsigned char type;
+    shoes_cached_image *cached;
+    shoes_transform *st;
+    cairo_t *cr;
+    VALUE path;
+    char hover;
 } shoes_image;
 
 
@@ -242,13 +242,13 @@ typedef struct {
 // pattern struct
 //
 typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
-  VALUE source;
-  char hover;
-  shoes_cached_image *cached;
-  cairo_pattern_t *pattern;
+    VALUE parent;
+    VALUE attr;
+    shoes_place place;
+    VALUE source;
+    char hover;
+    shoes_cached_image *cached;
+    cairo_pattern_t *pattern;
 } shoes_pattern;
 
 //
@@ -259,10 +259,10 @@ typedef struct {
 #define CONTROL_DISABLED 2
 
 typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
-  SHOES_CONTROL_REF ref;
+    VALUE parent;
+    VALUE attr;
+    shoes_place place;
+    SHOES_CONTROL_REF ref;
 } shoes_control;
 
 #define ANIM_NADA    0
@@ -274,21 +274,21 @@ typedef struct {
 // animation struct
 //
 typedef struct {
-  VALUE parent;
-  VALUE block;
-  unsigned int rate, frame;
-  char started;
-  SHOES_TIMER_REF ref;
+    VALUE parent;
+    VALUE block;
+    unsigned int rate, frame;
+    char started;
+    SHOES_TIMER_REF ref;
 } shoes_timer;
 
 typedef struct {
-  VALUE parent;
-  VALUE attr;
-  VALUE response;
-  unsigned char state;
-  unsigned LONG_LONG total;
-  unsigned LONG_LONG transferred;
-  unsigned long percent;
+    VALUE parent;
+    VALUE attr;
+    VALUE response;
+    unsigned char state;
+    unsigned LONG_LONG total;
+    unsigned LONG_LONG transferred;
+    unsigned long percent;
 } shoes_http_klass;
 
 #define CANVAS_NADA    0
@@ -299,81 +299,81 @@ typedef struct {
 
 // ChartSeries struct
 typedef struct {
-  VALUE maxv;  
-  VALUE minv;
-  VALUE values;
-  VALUE name;  
-  VALUE desc; 
-  VALUE labels; 
-  VALUE strokes;
-  VALUE point_type;
-  VALUE color;  
+    VALUE maxv;
+    VALUE minv;
+    VALUE values;
+    VALUE name;
+    VALUE desc;
+    VALUE labels;
+    VALUE strokes;
+    VALUE point_type;
+    VALUE color;
 } shoes_chart_series;
 
 //
 // Plot struct - It's HUGE!
 //
 typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
-  int chart_type;
-  int seriescnt;
-  VALUE series;  
-  int auto_grid; 
-  int boundbox;
-  int missing;   // repurposed in pie_charts so beware
-  VALUE background;
-  VALUE title;  
-  VALUE legend; 
-  VALUE caption;
-  VALUE default_colors;
-  VALUE column_opts;
-  void *c_things; 
-  int x_ticks;   // number of x_axis (which means a vertical grid line draw)
-  int y_ticks;   // number of (left side) y axis horizontial grid lines)
-  double radar_label_mult; // radius multipler (1.1 ex)
-  char  *fontname; // not a Shoes name, cairo "toy" name - might be the same
-  int beg_idx;  //used for zooming in
-  int end_idx;  // and zooming out
-  int title_h;
-  PangoFontDescription *title_pfd; 
-  int caption_h;
-  PangoFontDescription *caption_pfd; 
-  int legend_h; 
-  PangoFontDescription *legend_pfd;
-  PangoFontDescription *label_pfd; 
-  PangoFontDescription *tiny_pfd;
-  int yaxis_offset; // don't like
-  int graph_h;  // to where the dots are drawn
-  int graph_w;
-  int graph_x;
-  int graph_y;
-  char hover;   
-  shoes_transform *st;
+    VALUE parent;
+    VALUE attr;
+    shoes_place place;
+    int chart_type;
+    int seriescnt;
+    VALUE series;
+    int auto_grid;
+    int boundbox;
+    int missing;   // repurposed in pie_charts so beware
+    VALUE background;
+    VALUE title;
+    VALUE legend;
+    VALUE caption;
+    VALUE default_colors;
+    VALUE column_opts;
+    void *c_things;
+    int x_ticks;   // number of x_axis (which means a vertical grid line draw)
+    int y_ticks;   // number of (left side) y axis horizontial grid lines)
+    double radar_label_mult; // radius multipler (1.1 ex)
+    char  *fontname; // not a Shoes name, cairo "toy" name - might be the same
+    int beg_idx;  //used for zooming in
+    int end_idx;  // and zooming out
+    int title_h;
+    PangoFontDescription *title_pfd;
+    int caption_h;
+    PangoFontDescription *caption_pfd;
+    int legend_h;
+    PangoFontDescription *legend_pfd;
+    PangoFontDescription *label_pfd;
+    PangoFontDescription *tiny_pfd;
+    int yaxis_offset; // don't like
+    int graph_h;  // to where the dots are drawn
+    int graph_w;
+    int graph_x;
+    int graph_y;
+    char hover;
+    shoes_transform *st;
 } shoes_plot;
 
 //
 // not very temporary canvas (used internally for painting)
 //
 typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
-  cairo_t *cr, *shape;
-  shoes_transform *st, **sts;
-  int stl, stt;
-  VALUE contents;
-  unsigned char stage;
-  long insertion;
-  int cx, cy;               // cursor x and y (stored in absolute coords)
-  int endx, endy;           // jump points if the cursor spills over
-  int topy, fully;          // since we often stack vertically
-  int width, height;        // the full height and width used by this box
-  char hover;
-  struct _shoes_app *app;
-  SHOES_SLOT_OS *slot;
-  SHOES_GROUP_OS group;
+    VALUE parent;
+    VALUE attr;
+    shoes_place place;
+    cairo_t *cr, *shape;
+    shoes_transform *st, **sts;
+    int stl, stt;
+    VALUE contents;
+    unsigned char stage;
+    long insertion;
+    int cx, cy;               // cursor x and y (stored in absolute coords)
+    int endx, endy;           // jump points if the cursor spills over
+    int topy, fully;          // since we often stack vertically
+    int width, height;        // the full height and width used by this box
+    char hover;
+    struct _shoes_app *app;
+    SHOES_SLOT_OS *slot;
+    SHOES_GROUP_OS group;
 } shoes_canvas;
 
 void shoes_control_hide_ref(SHOES_CONTROL_REF);
@@ -730,10 +730,10 @@ extern const double SHOES_PIM2, SHOES_PI, SHOES_RAD2PI, SHOES_HALFPI;
 // shoes/image.c
 //
 typedef struct {
-  unsigned long status;
-  char *cachepath, *filepath, *uripath, *etag;
-  char hexdigest[42];
-  VALUE slot;
+    unsigned long status;
+    char *cachepath, *filepath, *uripath, *etag;
+    char hexdigest[42];
+    VALUE slot;
 } shoes_image_download_event;
 
 shoes_code shoes_load_imagesize(VALUE, int *, int *);

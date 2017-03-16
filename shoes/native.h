@@ -50,7 +50,7 @@ void shoes_native_app_close(shoes_app *);
 void shoes_native_app_set_icon(shoes_app *, char *);
 void shoes_native_app_set_wtitle(shoes_app *, char*);
 int shoes_native_console();  // Yes it's different
-int shoes_native_terminal(); 
+int shoes_native_terminal();
 void shoes_native_app_console();
 void shoes_browser_open(char *);
 void shoes_slot_init(VALUE, SHOES_SLOT_OS *, int, int, int, int, int, int);
@@ -63,13 +63,13 @@ void shoes_native_canvas_resize(shoes_canvas *);
 void shoes_native_control_hide(SHOES_CONTROL_REF);
 void shoes_native_control_show(SHOES_CONTROL_REF);
 void shoes_native_control_position(SHOES_CONTROL_REF, shoes_place *,
-  VALUE, shoes_canvas *, shoes_place *);
+                                   VALUE, shoes_canvas *, shoes_place *);
 void shoes_native_control_position_no_pad(SHOES_CONTROL_REF, shoes_place *,
-  VALUE, shoes_canvas *, shoes_place *);
+        VALUE, shoes_canvas *, shoes_place *);
 void shoes_native_control_repaint(SHOES_CONTROL_REF, shoes_place *,
-  shoes_canvas *, shoes_place *);
+                                  shoes_canvas *, shoes_place *);
 void shoes_native_control_repaint_no_pad(SHOES_CONTROL_REF, shoes_place *,
-  shoes_canvas *, shoes_place *);
+        shoes_canvas *, shoes_place *);
 void shoes_native_control_focus(SHOES_CONTROL_REF);
 void shoes_native_control_state(SHOES_CONTROL_REF, SHOES_BOOL, SHOES_BOOL);
 void shoes_native_control_remove(SHOES_CONTROL_REF, shoes_canvas *);
