@@ -4,7 +4,7 @@
 #include "shoes/world.h"
 #include "shoes/native.h"
 #include "shoes/internal.h"
-#include "shoes/native/gtkspinner.h"
+#include "shoes/native/gtk/gtkspinner.h"
 
 SHOES_CONTROL_REF shoes_native_spinner(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg) {
     SHOES_CONTROL_REF ref = gtk_spinner_new();

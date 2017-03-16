@@ -9,5 +9,6 @@ void shoes_native_enterkey(GtkWidget *ref, gpointer data);
 
 // gtk forward declaration
 extern void shoes_widget_changed(GtkWidget *ref, gpointer data);
+extern void shoes_native_secrecy(SHOES_CONTROL_REF ref);
 
 #endif

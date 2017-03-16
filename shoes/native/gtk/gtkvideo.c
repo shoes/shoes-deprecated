@@ -4,7 +4,7 @@
 #include "shoes/world.h"
 #include "shoes/native.h"
 #include "shoes/internal.h"
-#include "shoes/native/gtkvideo.h"
+#include "shoes/native/gtk/gtkvideo.h"
 #include "shoes/types/video.h"
 
 void surface_on_realize(SHOES_CONTROL_REF ref, gpointer data) {

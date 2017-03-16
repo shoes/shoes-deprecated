@@ -6,7 +6,8 @@
 #include "shoes/internal.h"
 
 #include "shoes/native/gtk.h"
-#include "shoes/native/gtkeditbox.h"
+#include "shoes/native/gtk/gtkscrolledwindowalt.h"
+#include "shoes/native/gtk/gtkeditbox.h"
 
 SHOES_CONTROL_REF shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg) {
     GtkTextBuffer *buffer;

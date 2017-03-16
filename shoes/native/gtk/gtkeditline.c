@@ -4,7 +4,9 @@
 #include "shoes/world.h"
 #include "shoes/native.h"
 #include "shoes/internal.h"
-#include "shoes/native/gtkeditline.h"
+
+#include "shoes/native/gtk/gtkentryalt.h"
+#include "shoes/native/gtk/gtkeditline.h"
 
 SHOES_CONTROL_REF shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg) {
     SHOES_CONTROL_REF ref = gtk_entry_alt_new();

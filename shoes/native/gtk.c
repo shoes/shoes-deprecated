@@ -24,12 +24,12 @@
 #include <glib/gprintf.h>
 
 #include "gtk.h"
-#include "gtkfixedalt.h"
-#include "gtkentryalt.h"
-#include "gtkcomboboxtextalt.h"
-#include "gtkbuttonalt.h"
-#include "gtkscrolledwindowalt.h"
-#include "gtkprogressbaralt.h"
+#include "shoes/native/gtk/gtkfixedalt.h"
+#include "shoes/native/gtk/gtkentryalt.h"
+#include "shoes/native/gtk/gtkcomboboxtextalt.h"
+#include "shoes/native/gtk/gtkbuttonalt.h"
+#include "shoes/native/gtk/gtkscrolledwindowalt.h"
+#include "shoes/native/gtk/gtkprogressbaralt.h"
 
 #define HEIGHT_PAD 0
 

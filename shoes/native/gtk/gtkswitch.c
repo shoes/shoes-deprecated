@@ -4,7 +4,7 @@
 #include "shoes/world.h"
 #include "shoes/native.h"
 #include "shoes/internal.h"
-#include "shoes/native/gtkswitch.h"
+#include "shoes/native/gtk/gtkswitch.h"
 
 EVENT_COMMON(control, control, active)
 
