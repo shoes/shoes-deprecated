@@ -209,7 +209,9 @@ end
 task "shoes/types/types.h" do |t|
    puts "Processing #{t.name}..."
    
-   headers =  Dir["shoes/types/*.h"]
+   rm_rf "shoes/types/types.h" if File.exists? "shoes/types/types.h"
+   
+   headers =  Dir["shoes/types/*.h"] - ["shoes/types/types.h"]
    content = headers.collect { |file|
       File.read(file).scan(/shoes_[[:alnum:]_]+_init\(\);/)
    }.flatten

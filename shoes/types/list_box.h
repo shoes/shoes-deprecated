@@ -15,6 +15,12 @@ extern shoes_app _shoes_app;
 /* Should be automatically available but ruby.c is not sharing enough information */
 extern VALUE shoes_control_change(int argc, VALUE *argv, VALUE self);
 
+// native forward declarations
+extern SHOES_CONTROL_REF shoes_native_list_box(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);
+extern void shoes_native_list_box_update(SHOES_CONTROL_REF, VALUE);
+extern VALUE shoes_native_list_box_get_active(SHOES_CONTROL_REF, VALUE);
+extern void shoes_native_list_box_set_active(SHOES_CONTROL_REF, VALUE, VALUE);
+
 /* each widget should have its own init function */
 void shoes_list_box_init();
 
