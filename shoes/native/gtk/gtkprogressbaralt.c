@@ -36,7 +36,8 @@ static void gtk_progress_bar_alt_class_init(GtkProgressBar_AltClass *klass) {
     widget_class->get_preferred_height = gtk_progress_bar_alt_get_preferred_height;
 
     /* Override GtkProgressBar methods */
-    GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+    // TODO: determine whether gobject_class has any use.
+    //GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
     // ...
 
     /* Add private indirection member */
@@ -49,7 +50,8 @@ static void gtk_progress_bar_alt_init(GtkProgressBar_Alt *progressbarAlt) {
     gtk_widget_set_has_window(GTK_WIDGET(progressbarAlt), FALSE);
 
     /* Initialize private members */
-    GtkProgressBar_AltPrivate *priv = GTK_PROGRESS_BAR_ALT_PRIVATE(progressbarAlt);
+    // TODO: determine whether priv has any use.
+    //GtkProgressBar_AltPrivate *priv = GTK_PROGRESS_BAR_ALT_PRIVATE(progressbarAlt);
 
 }
 

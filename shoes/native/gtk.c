@@ -493,6 +493,7 @@ static void shoes_canvas_gtk_scroll(GtkRange *r, gpointer data) {
     shoes_slot_repaint(canvas->app->slot);
 }
 
+// TODO:  remove dead code? warning: 'shoes_app_g_poll' defined but not used
 #ifndef SHOES_GTK_WIN32
 static gint shoes_app_g_poll(GPollFD *fds, guint nfds, gint timeout) {
     struct timeval tv;
@@ -568,7 +569,7 @@ static gint shoes_app_g_poll(GPollFD *fds, guint nfds, gint timeout) {
  *   run a poll/select on the Gtk fds
  *   and return that number.
  */
-
+/*
 static gint shoes_app_g_poll(GPollFD *fds, guint nfds, gint timeout) {
     struct timeval tv;
     rb_fdset_t rset, wset, xset; //ruby
@@ -640,6 +641,7 @@ static gint shoes_app_g_poll(GPollFD *fds, guint nfds, gint timeout) {
     }
     return ready;
 }
+*/
 #endif
 
 shoes_code shoes_app_cursor(shoes_app *app, ID cursor) {
@@ -711,7 +713,10 @@ gboolean shoes_native_app_get_decoration(shoes_app *app) {
 }
 
 shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
+#if !defined(SHOES_GTK_WIN32)
     char icon_path[SHOES_BUFSIZE];
+#endif
+
     shoes_app_gtk *gk = &app->os;
 
 #if !defined(SHOES_GTK_WIN32)
@@ -766,9 +771,9 @@ void shoes_native_app_show(shoes_app *app) {
 }
 
 #ifdef SHOES_GTK_WIN32
-static GSource *gtkrb_source;
+/*static GSource *gtkrb_source;
 static GSource *gtkrb_init_source();
-static  GSourceFuncs gtkrb_func_tbl;
+static  GSourceFuncs gtkrb_func_tbl;*/
 /*
 static GSource *gtkrb_init_source()
 {
@@ -1533,7 +1538,7 @@ VALUE shoes_load_font(const char *filename) {
 }
 
 static int CALLBACK shoes_font_list_iter(const ENUMLOGFONTEX *font, const NEWTEXTMETRICA *pfont, DWORD type, LPARAM l) {
-    VALUE ary = (VALUE)l;
+    //VALUE ary = (VALUE)l; // TODO: compiler warning, remove because unused
     rb_ary_push(l, rb_str_new2(font->elfLogFont.lfFaceName));
     return TRUE;
 }

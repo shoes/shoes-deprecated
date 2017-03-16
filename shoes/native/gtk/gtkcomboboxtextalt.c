@@ -113,7 +113,8 @@ static void gtk_combo_box_text_alt_class_init(GtkComboBoxText_AltClass *klass) {
     widget_class->get_preferred_width_for_height = gtk_combo_box_text_alt_get_preferred_width_for_height;
 
     /* Override GtkComboBoxText methods */
-    GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+    // TODO: determine whether gobject_class has any use.
+    // GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
     // ...
 
     /* Add private indirection member */
@@ -126,8 +127,8 @@ static void gtk_combo_box_text_alt_init(GtkComboBoxText_Alt *comboboxtextAlt) {
     gtk_widget_set_has_window(GTK_WIDGET(comboboxtextAlt), FALSE);
 
     /* Initialize private members */
-    GtkComboBoxText_AltPrivate *priv = GTK_COMBOBOXTEXT_ALT_PRIVATE(comboboxtextAlt);
-
+    // TODO: determine whether priv has any use.
+    //GtkComboBoxText_AltPrivate *priv = GTK_COMBOBOXTEXT_ALT_PRIVATE(comboboxtextAlt);
 }
 
 /* Return a new GtkComboBoxText_Alt cast to a GtkWidget */

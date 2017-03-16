@@ -36,7 +36,8 @@ static void gtk_scrolled_window_alt_class_init(GtkScrolledWindow_AltClass *klass
     widget_class->get_preferred_height = gtk_scrolled_window_alt_get_preferred_height;
 
     /* Override GtkScrolledWindow methods */
-    GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+    // TODO: determine whether gobject_class has any use.
+    //GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
     // ...
 
     /* Add private indirection member */
@@ -51,8 +52,8 @@ static void gtk_scrolled_window_alt_init(GtkScrolledWindow_Alt *scrolledwindowAl
                               gtk_widget_get_has_window(GTK_WIDGET(&(scrolledwindowAlt->parent_instance))));
 
     /* Initialize private members */
-    GtkScrolledWindow_AltPrivate *priv = GTK_SCROLLED_WINDOW_ALT_PRIVATE(scrolledwindowAlt);
-
+    // TODO: determine whether gobject_class has any use.
+    //GtkScrolledWindow_AltPrivate *priv = GTK_SCROLLED_WINDOW_ALT_PRIVATE(scrolledwindowAlt);
 }
 
 /* Return a new GtkScrolledWindow_Alt cast to a GtkWidget */
