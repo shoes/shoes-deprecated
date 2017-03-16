@@ -139,15 +139,6 @@ typedef struct {
 } shoes_flow;
 
 //
-// link struct
-//
-typedef struct {
-    int start;
-    int end;
-    VALUE ele;
-} shoes_link;
-
-//
 // text cursor
 //
 typedef struct {
@@ -434,15 +425,6 @@ VALUE shoes_canvas_subtitle(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_tagline(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_caption(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_inscription(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_code(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_del(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_em(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_ins(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_link(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_span(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_strong(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_sub(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_sup(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_background(int, VALUE *, VALUE);
 VALUE shoes_canvas_border(int, VALUE *, VALUE);
 VALUE shoes_canvas_blur(int, VALUE *, VALUE);
@@ -655,12 +637,6 @@ VALUE shoes_timer_start(VALUE);
 VALUE shoes_timer_stop(VALUE);
 void shoes_timer_call(VALUE);
 
-void shoes_link_mark(shoes_link *);
-VALUE shoes_link_new(VALUE, int, int);
-VALUE shoes_link_alloc(VALUE);
-VALUE shoes_text_new(VALUE, VALUE, VALUE);
-VALUE shoes_text_alloc(VALUE);
-
 void shoes_text_mark(shoes_text *);
 void shoes_textblock_mark(shoes_textblock *);
 VALUE shoes_textblock_new(VALUE, VALUE, VALUE, VALUE, shoes_transform *);
@@ -713,5 +689,35 @@ extern VALUE cSvg;
 extern VALUE shoes_svg_motion(VALUE, int, int, char *);
 extern VALUE shoes_svg_send_click(VALUE, int, int, int);
 extern void shoes_svg_send_release(VALUE, int, int, int);
+
+// TODO: to be removed during refactoring
+extern VALUE shoes_text_new(VALUE klass, VALUE texts, VALUE attr);
+
+#define MARKUP_BLOCK(klass) \
+  text = shoes_textblock_new(klass, msgs, attr, self, canvas->st); \
+  shoes_add_ele(canvas, text)
+
+#define MARKUP_INLINE(klass) \
+  text = shoes_text_new(klass, msgs, attr)
+  
+#define MARKUP_DEF(mname, fname, klass) \
+  VALUE \
+  shoes_canvas_##mname(int argc, VALUE *argv, VALUE self) \
+  { \
+    long i; \
+    VALUE msgs, attr, text; \
+    SETUP_CANVAS(); \
+    msgs = rb_ary_new(); \
+    attr = Qnil; \
+    for (i = 0; i < argc; i++) \
+    { \
+      if (rb_obj_is_kind_of(argv[i], rb_cHash)) \
+        attr = argv[i]; \
+      else \
+        rb_ary_push(msgs, argv[i]); \
+    } \
+    MARKUP_##fname(klass); \
+    return text; \
+  }
 
 #endif

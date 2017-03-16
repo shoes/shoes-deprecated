@@ -437,33 +437,6 @@ VALUE shoes_canvas_star(int argc, VALUE *argv, VALUE self) {
     return shoes_add_shape(self, s_star, attr, NULL);
 }
 
-#define MARKUP_BLOCK(klass) \
-  text = shoes_textblock_new(klass, msgs, attr, self, canvas->st); \
-  shoes_add_ele(canvas, text)
-
-#define MARKUP_INLINE(klass) \
-  text = shoes_text_new(klass, msgs, attr)
-
-#define MARKUP_DEF(mname, fname, klass) \
-  VALUE \
-  shoes_canvas_##mname(int argc, VALUE *argv, VALUE self) \
-  { \
-    long i; \
-    VALUE msgs, attr, text; \
-    SETUP_CANVAS(); \
-    msgs = rb_ary_new(); \
-    attr = Qnil; \
-    for (i = 0; i < argc; i++) \
-    { \
-      if (rb_obj_is_kind_of(argv[i], rb_cHash)) \
-        attr = argv[i]; \
-      else \
-        rb_ary_push(msgs, argv[i]); \
-    } \
-    MARKUP_##fname(klass); \
-    return text; \
-  }
-
 MARKUP_DEF(para, BLOCK, cPara);
 MARKUP_DEF(banner, BLOCK, cBanner);
 MARKUP_DEF(title, BLOCK, cTitle);
@@ -471,37 +444,6 @@ MARKUP_DEF(subtitle, BLOCK, cSubtitle);
 MARKUP_DEF(tagline, BLOCK, cTagline);
 MARKUP_DEF(caption, BLOCK, cCaption);
 MARKUP_DEF(inscription, BLOCK, cInscription);
-
-MARKUP_DEF(code, INLINE, cCode);
-MARKUP_DEF(del, INLINE, cDel);
-MARKUP_DEF(em, INLINE, cEm);
-MARKUP_DEF(ins, INLINE, cIns);
-MARKUP_DEF(span, INLINE, cSpan);
-MARKUP_DEF(strong, INLINE, cStrong);
-MARKUP_DEF(sub, INLINE, cSub);
-MARKUP_DEF(sup, INLINE, cSup);
-
-VALUE shoes_canvas_link(int argc, VALUE *argv, VALUE self) {
-    long i;
-    VALUE msgs, attr, text;
-    SETUP_CANVAS();
-    msgs = rb_ary_new();
-    attr = Qnil;
-    for (i = 0; i < argc; i++) {
-        if (rb_obj_is_kind_of(argv[i], rb_cHash))
-            attr = argv[i];
-        else
-            rb_ary_push(msgs, argv[i]);
-    }
-
-    if (rb_block_given_p()) {
-        if (NIL_P(attr)) attr = rb_hash_new();
-        rb_hash_aset(attr, ID2SYM(s_click), rb_block_proc());
-    }
-
-    MARKUP_INLINE(cLink);
-    return text;
-}
 
 VALUE shoes_canvas_imagesize(VALUE self, VALUE _path) {
     int w, h;

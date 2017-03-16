@@ -81,10 +81,9 @@ static inline void flip_endian(unsigned char* x, int length) {
 extern VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas;
 extern VALUE cFlow, cStack, cMask, cNative, cShape, cImage;
 extern VALUE cPattern, cBorder, cBackground, cPara, cBanner, cTitle;
-extern VALUE cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextBlock;
-extern VALUE cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns;
+extern VALUE cSubtitle, cTagline, cCaption, cInscription, cTextBlock;
 extern VALUE cProgress, cCheck, cRadio;
-extern VALUE cDownload, cResponse, cLink, cLinkHover, ssNestSlot;
+extern VALUE cDownload, cResponse, ssNestSlot;
 extern VALUE cTextEditBox;
 extern VALUE cPlot, cChartSeries;
 extern VALUE cWidget;
@@ -369,6 +368,32 @@ VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv);
   EVENT_COMMON(ele, ele, hover); \
   EVENT_COMMON(ele, ele, leave);
 
+#define REPLACE_COMMON(ele) \
+  VALUE \
+  shoes_##ele##_replace(int argc, VALUE *argv, VALUE self) \
+  { \
+    long i; \
+    shoes_textblock *block_t; \
+    VALUE texts, attr, block; \
+    GET_STRUCT(ele, self_t); \
+    attr = Qnil; \
+    texts = rb_ary_new(); \
+    for (i = 0; i < argc; i++) \
+    { \
+      if (rb_obj_is_kind_of(argv[i], rb_cHash)) \
+        attr = argv[i]; \
+      else \
+        rb_ary_push(texts, argv[i]); \
+    } \
+    self_t->texts = texts; \
+    if (!NIL_P(attr)) self_t->attr = attr; \
+    block = shoes_find_textblock(self); \
+    Data_Get_Struct(block, shoes_textblock, block_t); \
+    shoes_textblock_uncache(block_t, TRUE); \
+    shoes_canvas_repaint_all(self_t->parent); \
+    return self; \
+  }
+  
 //
 // Transformations
 //
@@ -447,6 +472,8 @@ VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv);
 // Forward declaration necassary for refactoring
 void shoes_control_check_styles(shoes_control *self_t);
 VALUE shoes_check_set_checked_m(VALUE self, VALUE on);
+void shoes_textblock_uncache(shoes_textblock *text, unsigned char all);
+VALUE shoes_find_textblock(VALUE self);
 
 int shoes_px(VALUE, int, int, int);
 int shoes_px2(VALUE, ID, ID, int, int, int);
@@ -465,12 +492,16 @@ void shoes_ele_remove_all(VALUE);
 void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
 void shoes_cairo_arc(cairo_t *, double, double, double, double, double, double);
 
-#define SYMBOL_DEFS(f) f(bind); f(gsub); f(keys); f(update); f(merge); f(new); f(URI); f(now); f(debug); f(info); f(warn); f(error); f(run); f(to_a); f(to_ary); f(to_f); f(to_i); f(to_int); f(to_s); f(to_str); f(to_pattern); f(align); f(angle); f(angle1); f(angle2); f(arrow); f(autoplay); f(begin); f(body); f(cancel); f(call); f(center); f(change); f(checked); f(choose); f(click); f(corner); f(curve); f(distance); f(displace_left); f(displace_top); f(downcase); f(draw); f(emphasis); f(end); f(family); f(fill); f(finish); f(font); f(fraction); f(fullscreen); f(group); f(hand); f(headers); f(hidden); f(host); f(hover); f(href); f(insert); f(inner); f(items); f(justify); f(kerning); f(keydown); f(keypress); f(keyup); f(match); f(method); f(motion); f(link); f(leading); f(leave); f(ok); f(outer); f(path); f(points); f(port); f(redirect); f(release); f(request_uri); f(rise); f(scheme); f(save); f(size); f(state); f(wheel); f(scroll); f(stretch); f(strikecolor); f(strikethrough); f(stroke); f(start); f(attach); f(text); f(title); f(top); f(right); f(bottom); f(left); f(up); f(down); f(height); f(minheight); f(remove); f(resizable); f(strokewidth); f(cap); f(widget); f(width); f(minwidth); f(marker); f(margin); f(margin_left); f(margin_right); f(margin_top); f(margin_bottom); f(radius); f(secret); f(blur); f(glow); f(shadow); f(arc); f(rect); f(oval); f(line); f(shape); f(star); f(project); f(round); f(square); f(undercolor); f(underline); f(variant); f(weight); f(wrap); f(dash); f(nodot); f(onedot); f(donekey); f(volume); f(bg_color); f(decorated); f(opacity)
+#define SYMBOL_DEFS(f) f(bind); f(gsub); f(keys); f(update); f(merge); f(new); f(URI); f(now); f(debug); f(info); f(warn); f(error); f(run); f(to_a); f(to_ary); f(to_f); f(to_i); f(to_int); f(to_s); f(to_str); f(to_pattern); f(align); f(angle); f(angle1); f(angle2); f(arrow); f(autoplay); f(begin); f(body); f(cancel); f(call); f(center); f(change); f(checked); f(choose); f(click); f(corner); f(curve); f(distance); f(displace_left); f(displace_top); f(downcase); f(draw); f(emphasis); f(end); f(family); f(fill); f(finish); f(font); f(fraction); f(fullscreen); f(group); f(hand); f(headers); f(hidden); f(host); f(hover); f(href); f(insert); f(inner); f(items); f(justify); f(kerning); f(keydown); f(keypress); f(keyup); f(match); f(method); f(motion); f(leading); f(leave); f(ok); f(outer); f(path); f(points); f(port); f(redirect); f(release); f(request_uri); f(rise); f(scheme); f(save); f(size); f(state); f(wheel); f(scroll); f(stretch); f(strikecolor); f(strikethrough); f(stroke); f(start); f(attach); f(title); f(top); f(right); f(bottom); f(left); f(up); f(down); f(height); f(minheight); f(remove); f(resizable); f(strokewidth); f(cap); f(widget); f(width); f(minwidth); f(marker); f(margin); f(margin_left); f(margin_right); f(margin_top); f(margin_bottom); f(radius); f(secret); f(blur); f(glow); f(shadow); f(arc); f(rect); f(oval); f(line); f(shape); f(star); f(project); f(round); f(square); f(undercolor); f(underline); f(variant); f(weight); f(wrap); f(dash); f(nodot); f(onedot); f(donekey); f(volume); f(bg_color); f(decorated); f(opacity)
 #define SYMBOL_INTERN(name) s_##name = rb_intern("" # name)
 #define SYMBOL_ID(name) ID s_##name
 #define SYMBOL_EXTERN(name) extern ID s_##name
 
 SYMBOL_DEFS(SYMBOL_EXTERN);
+
+// TODO: temporary extern until refactoring proper component, i.e. text should move with TextEditBox in native/gtk
+SYMBOL_EXTERN(text);
+SYMBOL_EXTERN(link);
 
 #define CANVAS_DEFS(f) \
   f(".close", close, 0); \
@@ -495,15 +526,6 @@ SYMBOL_DEFS(SYMBOL_EXTERN);
   f("+tagline", tagline, -1); \
   f("+caption", caption, -1); \
   f("+inscription", inscription, -1); \
-  f(".code", code, -1); \
-  f(".del", del, -1); \
-  f(".em", em, -1); \
-  f(".ins", ins, -1); \
-  f(".link", link, -1); \
-  f(".span", span, -1); \
-  f(".strong", strong, -1); \
-  f(".sub", sub, -1); \
-  f(".sup", sup, -1); \
   f("+background", background, -1); \
   f("+border", border, -1); \
   f(".blur", blur, -1); \

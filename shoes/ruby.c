@@ -13,7 +13,7 @@
 #include "shoes/types/types.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cCheck, cRadio, cProgress, cColor, cDownload, cResponse, cLink, cLinkHover, ssNestSlot;
+VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cNative, cCheck, cRadio, cProgress, cColor, cDownload, cResponse, ssNestSlot;
 VALUE cTextEditBox;
 VALUE cPlot, cChartSeries;
 VALUE eImageError, eInvMode, eNotImpl;
@@ -1397,117 +1397,6 @@ VALUE shoes_app_method_missing(int argc, VALUE *argv, VALUE self) {
 }
 
 //
-// Shoes::LinkUrl
-//
-void shoes_link_mark(shoes_link *link) {
-}
-
-static void shoes_link_free(shoes_link *link) {
-    RUBY_CRITICAL(free(link));
-}
-
-VALUE shoes_link_new(VALUE ele, int start, int end) {
-    shoes_link *link;
-    VALUE obj = shoes_link_alloc(cLinkUrl);
-    Data_Get_Struct(obj, shoes_link, link);
-    link->ele = ele;
-    link->start = start;
-    link->end = end;
-    return obj;
-}
-
-VALUE shoes_link_alloc(VALUE klass) {
-    VALUE obj;
-    shoes_link *link = SHOE_ALLOC(shoes_link);
-    SHOE_MEMZERO(link, shoes_link, 1);
-    obj = Data_Wrap_Struct(klass, shoes_link_mark, shoes_link_free, link);
-    link->ele = Qnil;
-    return obj;
-}
-
-static VALUE shoes_link_at(shoes_textblock *t, VALUE self, int index, int blockhover, VALUE *clicked, char *touch) {
-    char h = 0;
-    VALUE url = Qnil;
-    shoes_text *self_t;
-
-    GET_STRUCT(link, link);
-    Data_Get_Struct(link->ele, shoes_text, self_t);
-    if (blockhover && link->start <= index && link->end >= index) {
-        h = 1;
-        if (clicked != NULL) *clicked = link->ele;
-        url = ATTR(self_t->attr, click);
-    }
-
-    self = link->ele;
-    CHECK_HOVER(self_t, h, touch);
-    t->hover = (t->hover & HOVER_CLICK) | h;
-
-    return url;
-}
-
-//
-// Shoes::Text
-//
-void shoes_text_mark(shoes_text *text) {
-    rb_gc_mark_maybe(text->texts);
-    rb_gc_mark_maybe(text->attr);
-    rb_gc_mark_maybe(text->parent);
-}
-
-static void shoes_text_free(shoes_text *text) {
-    RUBY_CRITICAL(free(text));
-}
-
-static VALUE shoes_text_check(VALUE texts, VALUE parent) {
-    long i;
-    for (i = 0; i < RARRAY_LEN(texts); i++) {
-        VALUE ele = rb_ary_entry(texts, i);
-        if (rb_obj_is_kind_of(ele, cTextClass)) {
-            shoes_text *text;
-            Data_Get_Struct(ele, shoes_text, text);
-            text->parent = parent;
-        }
-    }
-    return texts;
-}
-
-VALUE shoes_text_to_s(VALUE self) {
-    GET_STRUCT(textblock, self_t);
-    return rb_funcall(self_t->texts, s_to_s, 0);
-}
-
-VALUE shoes_text_new(VALUE klass, VALUE texts, VALUE attr) {
-    shoes_text *text;
-    VALUE obj = shoes_text_alloc(klass);
-    Data_Get_Struct(obj, shoes_text, text);
-    text->hover = 0;
-    text->texts = shoes_text_check(texts, obj);
-    text->attr = attr;
-    return obj;
-}
-
-VALUE shoes_text_alloc(VALUE klass) {
-    VALUE obj;
-    shoes_text *text = SHOE_ALLOC(shoes_text);
-    SHOE_MEMZERO(text, shoes_text, 1);
-    obj = Data_Wrap_Struct(klass, shoes_text_mark, shoes_text_free, text);
-    text->texts = Qnil;
-    text->attr = Qnil;
-    text->parent = Qnil;
-    return obj;
-}
-
-VALUE shoes_text_parent(VALUE self) {
-    GET_STRUCT(text, text);
-    return text->parent;
-}
-
-VALUE shoes_text_children(VALUE self) {
-    GET_STRUCT(text, text);
-    return text->texts;
-}
-
-//
 // Shoes::TextBlock
 //
 void shoes_textblock_mark(shoes_textblock *text) {
@@ -1521,7 +1410,7 @@ void shoes_textblock_mark(shoes_textblock *text) {
 // Frees the pango attribute list.
 // The `all` flag means the string has changed as well.
 //
-static void shoes_textblock_uncache(shoes_textblock *text, unsigned char all) {
+void shoes_textblock_uncache(shoes_textblock *text, unsigned char all) {
     if (text->pattr != NULL)
         pango_attr_list_unref(text->pattr);
     text->pattr = NULL;
@@ -1646,7 +1535,7 @@ VALUE shoes_textblock_get_highlight(VALUE self) {
     return rb_ary_new3(2, INT2NUM(start), INT2NUM(len));
 }
 
-static VALUE shoes_find_textblock(VALUE self) {
+VALUE shoes_find_textblock(VALUE self) {
     while (!NIL_P(self) && !rb_obj_is_kind_of(self, cTextBlock)) {
         SETUP_BASIC();
         self = basic->parent;
@@ -2524,32 +2413,6 @@ VALUE shoes_radio_draw(VALUE self, VALUE c, VALUE actual) {
     return self;
 }
 
-#define REPLACE_COMMON(ele) \
-  VALUE \
-  shoes_##ele##_replace(int argc, VALUE *argv, VALUE self) \
-  { \
-    long i; \
-    shoes_textblock *block_t; \
-    VALUE texts, attr, block; \
-    GET_STRUCT(ele, self_t); \
-    attr = Qnil; \
-    texts = rb_ary_new(); \
-    for (i = 0; i < argc; i++) \
-    { \
-      if (rb_obj_is_kind_of(argv[i], rb_cHash)) \
-        attr = argv[i]; \
-      else \
-        rb_ary_push(texts, argv[i]); \
-    } \
-    self_t->texts = texts; \
-    if (!NIL_P(attr)) self_t->attr = attr; \
-    block = shoes_find_textblock(self); \
-    Data_Get_Struct(block, shoes_textblock, block_t); \
-    shoes_textblock_uncache(block_t, TRUE); \
-    shoes_canvas_repaint_all(self_t->parent); \
-    return self; \
-  }
-
 #define PLACE_COMMON(ele) \
   VALUE \
   shoes_##ele##_get_parent(VALUE self) \
@@ -2604,15 +2467,9 @@ PLACE_COMMON(control)
 CLASS_COMMON(control)
 EVENT_COMMON(control, control, click)
 EVENT_COMMON(control, control, change)
-CLASS_COMMON(text)
-REPLACE_COMMON(text)
 PLACE_COMMON(image)
 CLASS_COMMON2(image)
 TRANS_COMMON(image, 1);
-EVENT_COMMON(linktext, text, click);
-EVENT_COMMON(linktext, text, release);
-EVENT_COMMON(linktext, text, hover);
-EVENT_COMMON(linktext, text, leave);
 PLACE_COMMON(shape)
 CLASS_COMMON2(shape)
 TRANS_COMMON(shape, 1);
@@ -3314,33 +3171,6 @@ void shoes_ruby_init() {
     cCaption = rb_define_class_under(cTypes, "Caption", cTextBlock);
     cInscription = rb_define_class_under(cTypes, "Inscription", cTextBlock);
 
-    cTextClass = rb_define_class_under(cTypes, "Text", rb_cObject);
-    rb_define_alloc_func(cTextClass, shoes_text_alloc);
-    rb_define_method(cTextClass, "app", CASTHOOK(shoes_canvas_get_app), 0);
-    rb_define_method(cTextClass, "contents", CASTHOOK(shoes_text_children), 0);
-    rb_define_method(cTextClass, "children", CASTHOOK(shoes_text_children), 0);
-    rb_define_method(cTextClass, "parent", CASTHOOK(shoes_text_parent), 0);
-    rb_define_method(cTextClass, "style", CASTHOOK(shoes_text_style), -1);
-    rb_define_method(cTextClass, "to_s", CASTHOOK(shoes_text_to_s), 0);
-    rb_define_method(cTextClass, "text", CASTHOOK(shoes_text_children), 0);
-    rb_define_method(cTextClass, "text=", CASTHOOK(shoes_text_replace), -1);
-    rb_define_method(cTextClass, "replace", CASTHOOK(shoes_text_replace), -1);
-    cCode      = rb_define_class_under(cTypes, "Code", cTextClass);
-    cDel       = rb_define_class_under(cTypes, "Del", cTextClass);
-    cEm        = rb_define_class_under(cTypes, "Em", cTextClass);
-    cIns       = rb_define_class_under(cTypes, "Ins", cTextClass);
-    cSpan      = rb_define_class_under(cTypes, "Span", cTextClass);
-    cStrong    = rb_define_class_under(cTypes, "Strong", cTextClass);
-    cSub       = rb_define_class_under(cTypes, "Sub", cTextClass);
-    cSup       = rb_define_class_under(cTypes, "Sup", cTextClass);
-
-    cLink      = rb_define_class_under(cTypes, "Link", cTextClass);
-    rb_define_method(cTextClass, "click", CASTHOOK(shoes_linktext_click), -1);
-    rb_define_method(cTextClass, "release", CASTHOOK(shoes_linktext_release), -1);
-    rb_define_method(cTextClass, "hover", CASTHOOK(shoes_linktext_hover), -1);
-    rb_define_method(cTextClass, "leave", CASTHOOK(shoes_linktext_leave), -1);
-    cLinkHover = rb_define_class_under(cTypes, "LinkHover", cTextClass);
-
     cNative  = rb_define_class_under(cTypes, "Native", rb_cObject);
     rb_define_alloc_func(cNative, shoes_control_alloc);
     rb_define_method(cNative, "app", CASTHOOK(shoes_canvas_get_app), 0);
@@ -3413,8 +3243,6 @@ void shoes_ruby_init() {
 
     rb_define_method(cCanvas, "method_missing", CASTHOOK(shoes_color_method_missing), -1);
     rb_define_method(cApp, "method_missing", CASTHOOK(shoes_app_method_missing), -1);
-
-    cLinkUrl = rb_define_class_under(cTypes, "LinkUrl", rb_cObject);
 
     rb_define_method(rb_mKernel, "alert", CASTHOOK(shoes_dialog_alert), -1);
     rb_define_method(rb_mKernel, "ask", CASTHOOK(shoes_dialog_ask), -1);
