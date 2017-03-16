@@ -8,6 +8,7 @@
 #include "shoes/types/spinner.h"
 #include "shoes/types/svg.h"
 #include "shoes/types/switch.h"
+#include "shoes/types/timerbase.h"
 #include "shoes/types/video.h"
 
 #define SHOES_TYPES_INIT \
@@ -21,4 +22,5 @@
 	shoes_spinner_init(); \
 	shoes_svg_init(); \
 	shoes_switch_init(); \
+	shoes_timerbase_init(); \
 	shoes_video_init();

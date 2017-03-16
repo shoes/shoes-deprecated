@@ -79,8 +79,8 @@ static inline void flip_endian(unsigned char* x, int length) {
 #undef s_host
 
 extern VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas;
-extern VALUE cFlow, cStack, cMask, cNative, cShape, cImage, cEvery;
-extern VALUE cTimer, cAnim, cPattern, cBorder, cBackground, cPara, cBanner, cTitle;
+extern VALUE cFlow, cStack, cMask, cNative, cShape, cImage;
+extern VALUE cPattern, cBorder, cBackground, cPara, cBanner, cTitle;
 extern VALUE cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextBlock;
 extern VALUE cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns;
 extern VALUE cProgress, cCheck, cRadio, cColor;
@@ -511,9 +511,6 @@ SYMBOL_DEFS(SYMBOL_EXTERN);
   f(".shadow", shadow, -1); \
   f("+image", image, -1); \
   f(".imagesize", imagesize, 1); \
-  f("+animate", animate, -1); \
-  f("+every", every, -1); \
-  f("+timer", timer, -1); \
   f("+plot", plot, -1); \
   f("+chart_series", chart_series, -1); \
   f("+shape", shape, -1); \

@@ -1218,23 +1218,6 @@ SHOES_CONTROL_REF shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_pla
     return ref;
 }
 
-static gboolean shoes_gtk_animate(gpointer data) {
-    VALUE timer = (VALUE)data;
-    shoes_timer *self_t;
-    Data_Get_Struct(timer, shoes_timer, self_t);
-    if (self_t->started == ANIM_STARTED)
-        shoes_timer_call(timer);
-    return self_t->started == ANIM_STARTED;
-}
-
-void shoes_native_timer_remove(shoes_canvas *canvas, SHOES_TIMER_REF ref) {
-    g_source_remove(ref);
-}
-
-SHOES_TIMER_REF shoes_native_timer_start(VALUE self, shoes_canvas *canvas, unsigned int interval) {
-    return g_timeout_add(interval, shoes_gtk_animate, (gpointer)self);
-}
-
 VALUE shoes_native_clipboard_get(shoes_app *app) {
     //GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_PRIMARY);
     GtkClipboard *primary = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);

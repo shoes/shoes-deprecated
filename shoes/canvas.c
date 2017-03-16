@@ -592,39 +592,6 @@ VALUE shoes_canvas_image(int argc, VALUE *argv, VALUE self) {
     return image;
 }
 
-VALUE shoes_canvas_animate(int argc, VALUE *argv, VALUE self) {
-    rb_arg_list args;
-    VALUE anim;
-    SETUP_CANVAS();
-
-    rb_parse_args(argc, argv, "|I&", &args);
-    anim = shoes_timer_new(cAnim, args.a[0], args.a[1], self);
-    rb_ary_push(canvas->app->extras, anim);
-    return anim;
-}
-
-VALUE shoes_canvas_every(int argc, VALUE *argv, VALUE self) {
-    rb_arg_list args;
-    VALUE ev;
-    SETUP_CANVAS();
-
-    rb_parse_args(argc, argv, "|F&", &args);
-    ev = shoes_timer_new(cEvery, args.a[0], args.a[1], self);
-    rb_ary_push(canvas->app->extras, ev);
-    return ev;
-}
-
-VALUE shoes_canvas_timer(int argc, VALUE *argv, VALUE self) {
-    rb_arg_list args;
-    VALUE timer;
-    SETUP_CANVAS();
-
-    rb_parse_args(argc, argv, "|I&", &args);
-    timer = shoes_timer_new(cTimer, args.a[0], args.a[1], self);
-    rb_ary_push(canvas->app->extras, timer);
-    return timer;
-}
-
 VALUE shoes_canvas_plot(int argc, VALUE *argv, VALUE self) {
     VALUE widget;
     SETUP_CANVAS();
