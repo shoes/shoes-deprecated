@@ -8,7 +8,7 @@
 #include "shoes/ruby.h"
 #include "shoes/internal.h"
 #include "shoes/world.h"
-#include "shoes/native.h"
+#include "shoes/native/native.h"
 #include "shoes/version.h"
 #include "shoes/http.h"
 #include "shoes/effects.h"

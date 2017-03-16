@@ -3,7 +3,7 @@
 #include "shoes/app.h"
 #include "shoes/internal.h"
 #include "shoes/world.h"
-#include "shoes/native.h"
+#include "shoes/native/native.h"
 
 #ifndef SHOES_LIST_BOX_H
 #define SHOES_LIST_BOX_H

@@ -6,7 +6,7 @@
 #include "shoes/ruby.h"
 #include "shoes/config.h"
 #include "shoes/world.h"
-#include "shoes/native.h"
+#include "shoes/native/native.h"
 #include "shoes/internal.h"
 
 #ifdef SHOES_SIGNAL

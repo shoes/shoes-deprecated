@@ -3,7 +3,7 @@
 #include "shoes/app.h"
 #include "shoes/internal.h"
 #include "shoes/world.h"
-#include "shoes/native.h"
+#include "shoes/native/native.h"
 
 #ifndef SHOES_SVG_H
 #define SHOES_SVG_H

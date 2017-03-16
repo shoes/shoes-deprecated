@@ -9,7 +9,7 @@
 #include "shoes/http.h"
 #include "shoes/version.h"
 #include "shoes/world.h"
-#include "shoes/native.h"
+#include "shoes/native/native.h"
 
 #import <Cocoa/Cocoa.h>
 

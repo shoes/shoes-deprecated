@@ -8,7 +8,7 @@
 #include "shoes/ruby.h"
 #include "shoes/canvas.h"
 #include "shoes/world.h"
-#include "shoes/native.h"
+#include "shoes/native/native.h"
 
 static void shoes_app_mark(shoes_app *app) {
     shoes_native_slot_mark(app->slot);

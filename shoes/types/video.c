@@ -1,5 +1,5 @@
 #include "shoes/types/video.h"
-#include "shoes/native.h"
+#include "shoes/native/native.h"
 #include "shoes/ruby.h"
 
 VALUE cVideo, eVlcError;
