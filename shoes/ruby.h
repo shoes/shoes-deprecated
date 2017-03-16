@@ -83,8 +83,8 @@ extern VALUE cFlow, cStack, cMask, cNative, cShape, cImage;
 extern VALUE cPattern, cBorder, cBackground, cPara, cBanner, cTitle;
 extern VALUE cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextBlock;
 extern VALUE cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns;
-extern VALUE cProgress, cCheck, cRadio, cColor;
-extern VALUE cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
+extern VALUE cProgress, cCheck, cRadio;
+extern VALUE cDownload, cResponse, cLink, cLinkHover, ssNestSlot;
 extern VALUE cTextEditBox;
 extern VALUE cPlot, cChartSeries;
 extern VALUE cWidget;
@@ -133,7 +133,7 @@ VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv);
    return SHOES_QUIT;
 
 #define NUM2RGBINT(x) (rb_obj_is_kind_of(x, rb_cFloat) ? ROUND(NUM2DBL(x) * 255) : NUM2INT(x))
-#define DEF_COLOR(name, r, g, b) rb_hash_aset(cColors, ID2SYM(rb_intern("" # name)), shoes_color_new(r, g, b, 255))
+
 #define GET_STRUCT(ele, var) \
   shoes_##ele *var; \
   Data_Get_Struct(self, shoes_##ele, var)

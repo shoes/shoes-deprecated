@@ -17,7 +17,6 @@
 #include "shoes/code.h"
 #include <rsvg.h>
 
-
 struct _shoes_app;
 
 typedef unsigned int PIXEL;
@@ -102,18 +101,6 @@ typedef struct {
   shoes_place_exact(&place, attr, 0, 0); \
   if (NIL_P(attr)) attr = image->attr; \
   else if (!NIL_P(image->attr)) attr = rb_funcall(image->attr, s_merge, 1, attr);
-
-//
-// color struct
-//
-typedef struct {
-    unsigned char r, g, b, a, on;
-} shoes_color;
-
-#define SHOES_COLOR_OPAQUE 0xFF
-#define SHOES_COLOR_TRANSPARENT 0x0
-#define SHOES_COLOR_DARK   (0x55 * 3)
-#define SHOES_COLOR_LIGHT  (0xAA * 3)
 
 //
 // basic struct
@@ -670,24 +657,6 @@ VALUE shoes_timer_remove(VALUE);
 VALUE shoes_timer_start(VALUE);
 VALUE shoes_timer_stop(VALUE);
 void shoes_timer_call(VALUE);
-
-void shoes_color_mark(shoes_color *);
-VALUE shoes_color_new(int, int, int, int);
-VALUE shoes_color_alloc(VALUE);
-VALUE shoes_color_rgb(int, VALUE *, VALUE);
-VALUE shoes_color_gray(int, VALUE *, VALUE);
-cairo_pattern_t *shoes_color_pattern(VALUE);
-void shoes_color_grad_stop(cairo_pattern_t *, double, VALUE);
-VALUE shoes_color_args(int, VALUE *, VALUE);
-VALUE shoes_color_parse(VALUE, VALUE);
-VALUE shoes_color_is_black(VALUE);
-VALUE shoes_color_is_dark(VALUE);
-VALUE shoes_color_is_light(VALUE);
-VALUE shoes_color_is_white(VALUE);
-VALUE shoes_color_invert(VALUE);
-VALUE shoes_color_to_s(VALUE);
-VALUE shoes_color_to_pattern(VALUE);
-VALUE shoes_color_gradient(int, VALUE *, VALUE);
 
 void shoes_link_mark(shoes_link *);
 VALUE shoes_link_new(VALUE, int, int);

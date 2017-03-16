@@ -9,6 +9,7 @@
 #include "shoes/internal.h"
 #include "shoes/world.h"
 #include "shoes/native/native.h"
+#include "shoes/types/color.h"
 #include "shoes/version.h"
 #include "shoes/http.h"
 #include "shoes/effects.h"

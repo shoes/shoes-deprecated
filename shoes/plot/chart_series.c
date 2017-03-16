@@ -3,7 +3,10 @@
  * encapsulates the data and unique presentation values of them
  * not really Shoes api user visible (yet)
 */
+#include "shoes/types/color.h"
 #include "shoes/plot/plot.h"
+
+
 // forward declare
 static VALUE shoes_chart_series_parse_points(VALUE);
 

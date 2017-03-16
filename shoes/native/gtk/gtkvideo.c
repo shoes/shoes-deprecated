@@ -2,9 +2,10 @@
 #include "shoes/ruby.h"
 #include "shoes/config.h"
 #include "shoes/world.h"
-#include "shoes/native/native.h"
 #include "shoes/internal.h"
+#include "shoes/native/native.h"
 #include "shoes/native/gtk/gtkvideo.h"
+#include "shoes/types/color.h"
 #include "shoes/types/video.h"
 
 void surface_on_realize(SHOES_CONTROL_REF ref, gpointer data) {

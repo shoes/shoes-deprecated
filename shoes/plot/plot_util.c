@@ -1,6 +1,7 @@
 /*
  * plot_util.c
 */
+#include "shoes/types/color.h"
 #include "shoes/plot/plot.h"
 
 /*
