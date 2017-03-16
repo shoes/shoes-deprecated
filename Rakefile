@@ -160,7 +160,7 @@ end
 # common platform tasks
 
 desc "Same as `rake build'"
-task :default => [:build]
+task :default => ["shoes/types/types.h", :build]
 
 desc "Package Shoes for distribution"
 task :package => [:version, :installer]
@@ -204,6 +204,22 @@ task "#{TGT_DIR}/VERSION.txt" do |t|
     %w[DEBUG].each { |x| f << " +#{x.downcase}" if ENV[x] }
     f << "\n"
   end
+end
+
+task "shoes/types/types.h" do |t|
+   puts "Processing #{t.name}..."
+   
+   headers =  Dir["shoes/types/*.h"]
+   content = headers.collect { |file|
+      File.read(file).scan(/shoes_[[:alnum:]_]+_init\(\);/)
+   }.flatten
+
+   File.open(t.name, 'w') do |f|
+      headers.each { |header|
+         f << "#include \"#{header}\"\n"
+      }
+      f << "\n#define SHOES_TYPES_INIT \\\n#{content.collect { |n| "\t#{n}" }.join(" \\\n") }\n"
+   end
 end
 
 def create_version_file file_path

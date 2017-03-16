@@ -11,17 +11,7 @@
 #include "shoes/version.h"
 #include "shoes/http.h"
 #include "shoes/effects.h"
-#include "shoes/types/slider.h"
-#include "shoes/types/effect.h"
-#include "shoes/types/button.h"
-#include "shoes/types/edit_line.h"
-#include "shoes/types/edit_box.h"
-#include "shoes/types/list_box.h"
-#include "shoes/types/switch.h"
-#include "shoes/types/spinner.h"
-#include "shoes/types/progress.h"
-#include "shoes/types/video.h"
-#include "shoes/types/svg.h"
+#include "shoes/types/types.h"
 #include <math.h>
 
 VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cCheck, cRadio, cProgress, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
@@ -3589,8 +3579,6 @@ void shoes_ruby_init() {
     rb_define_method(cImage, "hover", CASTHOOK(shoes_image_hover), -1);
     rb_define_method(cImage, "leave", CASTHOOK(shoes_image_leave), -1);
 
-    shoes_svg_init();
-
     cChartSeries = rb_define_class_under(cTypes, "chart_series", rb_cObject); // 3.3.2
     rb_define_alloc_func(cChartSeries, shoes_chart_series_alloc);
     //  simple getters/setters
@@ -3653,11 +3641,6 @@ void shoes_ruby_init() {
     rb_define_method(cPlot, "rotate", CASTHOOK(shoes_plot_rotate), 1);
     rb_define_method(cPlot, "scale", CASTHOOK(shoes_plot_scale), -1);
     rb_define_method(cPlot, "skew", CASTHOOK(shoes_plot_skew), -1);
-
-
-    shoes_effect_init();
-
-    shoes_video_init();
 
     cPattern = rb_define_class_under(cTypes, "Pattern", rb_cObject);
     rb_define_alloc_func(cPattern, shoes_pattern_alloc);
@@ -3763,19 +3746,6 @@ void shoes_ruby_init() {
     rb_define_method(cNative, "height", CASTHOOK(shoes_control_get_height), 0);
     rb_define_method(cNative, "remove", CASTHOOK(shoes_control_remove), 0);
 
-    shoes_button_init();
-
-    shoes_edit_line_init();
-
-    shoes_edit_box_init();
-
-    shoes_list_box_init();
-
-    // Switch is new with 3.3.4
-    shoes_switch_init();
-
-    shoes_spinner_init();
-
     // text_edit_box is new with 3.2.25
     cTextEditBox  = rb_define_class_under(cTypes, "TextEditBox", cNative);
     rb_define_method(cTextEditBox, "text", CASTHOOK(shoes_text_edit_box_get_text), 0);
@@ -3792,10 +3762,6 @@ void shoes_ruby_init() {
     rb_define_method(cTextEditBox, "scroll_to_end", CASTHOOK(shoes_text_edit_box_scroll_to_end), 0);
     rb_define_method(cTextEditBox, "tooltip", CASTHOOK(shoes_control_get_tooltip), 0);
     rb_define_method(cTextEditBox, "tooltip=", CASTHOOK(shoes_control_set_tooltip), 1);
-
-    shoes_progress_init();
-
-    shoes_slider_init();
 
     cCheck  = rb_define_class_under(cTypes, "Check", cNative);
     rb_define_method(cCheck, "draw", CASTHOOK(shoes_check_draw), 2);
@@ -4027,6 +3993,8 @@ void shoes_ruby_init() {
     rb_define_method(rb_mKernel, "ask_open_folder", CASTHOOK(shoes_dialog_open_folder), -1);
     rb_define_method(rb_mKernel, "ask_save_folder", CASTHOOK(shoes_dialog_save_folder), -1);
     rb_define_method(rb_mKernel, "font", CASTHOOK(shoes_font), 1);
+    
+    SHOES_TYPES_INIT;
 }
 
 VALUE shoes_exit_setup(VALUE self) {
