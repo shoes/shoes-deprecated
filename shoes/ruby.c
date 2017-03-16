@@ -112,43 +112,43 @@ static int rb_parse_args_p(unsigned char rais, int argc, const VALUE *argv, cons
             } else break;
         } else if (*p == '|') {
             if (!x) m = i;
-        } else if (*p == 's')
+        } else if (*p == 's') {
             CHECK_ARG_COERCE(T_STRING, to_str)
-            else if (*p == 'S')
-                CHECK_ARG_COERCE(T_STRING, to_s)
-                else if (*p == 'i')
-                    CHECK_ARG_COERCE(T_FIXNUM, to_int)
-                    else if (*p == 'I')
-                        CHECK_ARG_COERCE(T_FIXNUM, to_i)
-                        else if (*p == 'f')
-                            CHECK_ARG_TYPE(T_FLOAT, Qnil)
-                            else if (*p == 'F')
-                                CHECK_ARG_COERCE(T_FLOAT, to_f)
-                                else if (*p == 'a')
-                                    CHECK_ARG_COERCE(T_ARRAY, to_ary)
-                                    else if (*p == 'A')
-                                        CHECK_ARG_COERCE(T_ARRAY, to_a)
-                                        else if (*p == 'k')
-                                            CHECK_ARG_TYPE(T_CLASS, Qnil)
-                                            else if (*p == 'h')
-                                                CHECK_ARG_TYPE(T_HASH, Qnil)
-                                                else if (*p == 'o')
-                                                    CHECK_ARG_NOT_NIL()
-                                                    else if (*p == '&') {
-                                                        if (rb_block_given_p())
-                                                            SET_ARG(rb_block_proc());
-                                                        else
-                                                            SET_ARG(Qnil);
-                                                    }
+        } else if (*p == 'S') {
+            CHECK_ARG_COERCE(T_STRING, to_s)
+        } else if (*p == 'i') {
+            CHECK_ARG_COERCE(T_FIXNUM, to_int)
+        } else if (*p == 'I') {
+            CHECK_ARG_COERCE(T_FIXNUM, to_i)
+        } else if (*p == 'f') {
+            CHECK_ARG_TYPE(T_FLOAT, Qnil)
+        } else if (*p == 'F') {
+            CHECK_ARG_COERCE(T_FLOAT, to_f)
+        } else if (*p == 'a') {
+            CHECK_ARG_COERCE(T_ARRAY, to_ary)
+        } else if (*p == 'A') {
+            CHECK_ARG_COERCE(T_ARRAY, to_a)
+        } else if (*p == 'k') {
+            CHECK_ARG_TYPE(T_CLASS, Qnil)
+        } else if (*p == 'h') {
+            CHECK_ARG_TYPE(T_HASH, Qnil)
+        }  else if (*p == 'o') {
+            CHECK_ARG_NOT_NIL()
+        } else if (*p == '&') {
+            if (rb_block_given_p())
+                SET_ARG(rb_block_proc());
+            else
+                SET_ARG(Qnil);
+        }
 
         //
         // shoes-specific structures
         //
-                                                    else if (*p == 'e')
-                                                        CHECK_ARG_DATA(shoes_is_element)
-                                                        else if (*p == 'E')
-                                                            CHECK_ARG_DATA(shoes_is_any)
-                                                            else break;
+        else if (*p == 'e') {
+            CHECK_ARG_DATA(shoes_is_element)
+        } else if (*p == 'E') {
+            CHECK_ARG_DATA(shoes_is_any)
+        } else break;
     } while (p++);
 
     if (!x && n >= argc)
