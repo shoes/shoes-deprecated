@@ -1,4 +1,4 @@
-#include "config.h"
+#include "shoes/config.h"
 #include "shoes/canvas.h"
 
 #ifndef SHOES_GTK_VIDEO_H
