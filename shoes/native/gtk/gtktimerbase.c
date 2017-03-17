@@ -5,6 +5,7 @@
 #include "shoes/native/native.h"
 #include "shoes/internal.h"
 #include "shoes/native/gtk/gtktimerbase.h"
+#include "shoes/types/timerbase.h"
 
 static gboolean shoes_gtk_animate(gpointer data) {
     VALUE timer = (VALUE)data;

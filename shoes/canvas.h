@@ -243,22 +243,6 @@ typedef struct {
     SHOES_CONTROL_REF ref;
 } shoes_control;
 
-#define ANIM_NADA    0
-#define ANIM_STARTED 1
-#define ANIM_PAUSED  2
-#define ANIM_STOPPED 3
-
-//
-// animation struct
-//
-typedef struct {
-    VALUE parent;
-    VALUE block;
-    unsigned int rate, frame;
-    char started;
-    SHOES_TIMER_REF ref;
-} shoes_timer;
-
 typedef struct {
     VALUE parent;
     VALUE attr;
@@ -431,9 +415,6 @@ VALUE shoes_canvas_blur(int, VALUE *, VALUE);
 VALUE shoes_canvas_glow(int, VALUE *, VALUE);
 VALUE shoes_canvas_shadow(int, VALUE *, VALUE);
 VALUE shoes_canvas_image(int, VALUE *, VALUE);
-VALUE shoes_canvas_animate(int, VALUE *, VALUE);
-VALUE shoes_canvas_every(int, VALUE *, VALUE);
-VALUE shoes_canvas_timer(int, VALUE *, VALUE);
 VALUE shoes_canvas_plot(int, VALUE *, VALUE);
 VALUE shoes_canvas_chart_series(int, VALUE *, VALUE);
 VALUE shoes_canvas_imagesize(VALUE, VALUE);
@@ -627,15 +608,6 @@ VALUE shoes_pattern_motion(VALUE, int, int, char *);
 VALUE shoes_background_draw(VALUE, VALUE, VALUE);
 VALUE shoes_border_draw(VALUE, VALUE, VALUE);
 VALUE shoes_subpattern_new(VALUE, VALUE, VALUE);
-
-void shoes_timer_mark(shoes_timer *);
-VALUE shoes_timer_new(VALUE, VALUE, VALUE, VALUE);
-VALUE shoes_timer_alloc(VALUE);
-VALUE shoes_timer_init(VALUE, VALUE);
-VALUE shoes_timer_remove(VALUE);
-VALUE shoes_timer_start(VALUE);
-VALUE shoes_timer_stop(VALUE);
-void shoes_timer_call(VALUE);
 
 void shoes_text_mark(shoes_text *);
 void shoes_textblock_mark(shoes_textblock *);

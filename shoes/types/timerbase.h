@@ -16,6 +16,19 @@ extern shoes_app _shoes_app;
 extern SHOES_TIMER_REF shoes_native_timer_start(VALUE self, shoes_canvas *canvas, unsigned int interval);
 extern void shoes_native_timer_remove(shoes_canvas *canvas, SHOES_TIMER_REF ref);
 
+#define ANIM_NADA    0
+#define ANIM_STARTED 1
+#define ANIM_PAUSED  2
+#define ANIM_STOPPED 3
+
+typedef struct {
+    VALUE parent;
+    VALUE block;
+    unsigned int rate, frame;
+    char started;
+    SHOES_TIMER_REF ref;
+} shoes_timer;
+
 /* each widget should have its own init function */
 void shoes_timerbase_init();
 
@@ -31,7 +44,6 @@ void shoes_timer_free(shoes_timer *timer);
 VALUE shoes_timer_new(VALUE klass, VALUE rate, VALUE block, VALUE parent);
 VALUE shoes_timer_alloc(VALUE klass);
 VALUE shoes_timer_remove(VALUE self);
-
 
 // canvas
 VALUE shoes_canvas_animate(int argc, VALUE *argv, VALUE self);
