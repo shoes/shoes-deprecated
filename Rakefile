@@ -217,10 +217,10 @@ task "shoes/types/types.h" do |t|
    }.flatten
 
    File.open(t.name, 'w') do |f|
-      headers.each { |header|
+      headers.sort.each { |header|
          f << "#include \"#{header}\"\n"
       }
-      f << "\n#define SHOES_TYPES_INIT \\\n#{content.collect { |n| "\t#{n}" }.join(" \\\n") }\n"
+      f << "\n#define SHOES_TYPES_INIT \\\n#{content.sort.collect { |n| "\t#{n}" }.join(" \\\n") }\n"
    end
 end
 
