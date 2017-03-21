@@ -432,7 +432,6 @@ VALUE shoes_canvas_skew(int, VALUE *, VALUE);
 VALUE shoes_canvas_push(VALUE);
 VALUE shoes_canvas_pop(VALUE);
 VALUE shoes_canvas_reset(VALUE);
-VALUE shoes_canvas_text_edit_box(int, VALUE *, VALUE);
 VALUE shoes_canvas_check(int, VALUE *, VALUE);
 VALUE shoes_canvas_radio(int, VALUE *, VALUE);
 VALUE shoes_canvas_contents(VALUE);

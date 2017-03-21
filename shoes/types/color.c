@@ -31,6 +31,8 @@ void shoes_color_init() {
     rb_define_method(cColor, "to_pattern", CASTHOOK(shoes_color_to_pattern), 0);
     rb_define_method(cColor, "transparent?", CASTHOOK(shoes_color_is_transparent), 0);
     rb_define_method(cColor, "white?", CASTHOOK(shoes_color_is_white), 0);
+    
+    rb_define_method(cCanvas, "method_missing", CASTHOOK(shoes_color_method_missing), -1);
 
     rb_const_set(cTypes, rb_intern("ALL_NAMED_COLORS"), rb_hash_new());
     cColors = rb_const_get(cTypes, rb_intern("ALL_NAMED_COLORS"));

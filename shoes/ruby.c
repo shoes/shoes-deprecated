@@ -14,7 +14,6 @@
 #include <math.h>
 
 VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cNative, cCheck, cRadio, cProgress, cColor, cDownload, cResponse, ssNestSlot;
-VALUE cTextEditBox;
 VALUE cPlot, cChartSeries;
 VALUE eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
@@ -2225,88 +2224,6 @@ VALUE shoes_control_set_tooltip(VALUE self, VALUE tooltip) {
     return self;
 }
 
-// text_edit_box methods added in 3.2.25
-VALUE shoes_text_edit_box_get_text(VALUE self) {
-    GET_STRUCT(control, self_t);
-    if (self_t->ref == NULL) return Qnil;
-    return shoes_native_text_edit_box_get_text(self_t->ref);
-}
-
-VALUE shoes_text_edit_box_set_text(VALUE self, VALUE text) {
-    char *msg = "";
-    GET_STRUCT(control, self_t);
-    if (!NIL_P(text)) {
-        text = shoes_native_to_s(text);
-        ATTRSET(self_t->attr, text, text);
-        msg = RSTRING_PTR(text);
-    }
-    if (self_t->ref != NULL) shoes_native_text_edit_box_set_text(self_t->ref, msg);
-    return text;
-}
-
-VALUE shoes_text_edit_box_append (VALUE self, VALUE text) {
-    char *msg = "";
-    VALUE ret;
-    GET_STRUCT(control, self_t);
-    if (!NIL_P(text)) {
-        text = shoes_native_to_s(text);
-        ATTRSET(self_t->attr, text, text);
-        msg = RSTRING_PTR(text);
-    }
-    if (self_t->ref != NULL)
-        ret = shoes_native_text_edit_box_append(self_t->ref, msg);
-    else
-        ret = text;
-    return ret; //TODO: should return updated internal insertion point
-}
-
-VALUE shoes_text_edit_box_insert (VALUE self, VALUE args) {
-    // parse args
-    return Qnil;
-}
-
-VALUE shoes_text_edit_box_delete( VALUE self, VALUE args) {
-    return args;
-}
-
-VALUE shoes_text_edit_box_get(VALUE self, VALUE args) {
-    return args;
-}
-
-VALUE shoes_text_edit_box_create_insertion(VALUE self, VALUE args) {
-    return args;
-}
-
-VALUE shoes_text_edit_box_current_insertion(VALUE self) {
-    return Qnil;
-}
-
-VALUE shoes_text_edit_box_scroll_to_insertion(VALUE seff, VALUE insert_pt) {
-    return insert_pt; // TODO: wrong
-}
-
-VALUE shoes_text_edit_box_scroll_to_end (VALUE self) {
-    return self; // TODO: Not even wrong
-}
-
-VALUE shoes_text_edit_box_draw(VALUE self, VALUE c, VALUE actual) {
-    SETUP_CONTROL(80, 0, FALSE);
-
-    if (RTEST(actual)) {
-        if (self_t->ref == NULL) {
-            self_t->ref = shoes_native_text_edit_box(self, canvas, &place, self_t->attr, msg);
-            shoes_control_check_styles(self_t);
-            shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
-        } else
-            shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
-    }
-
-    FINISH();
-
-    return self;
-
-}
-
 VALUE shoes_check_draw(VALUE self, VALUE c, VALUE actual) {
     SETUP_CONTROL(0, 20, FALSE);
 
@@ -3189,23 +3106,6 @@ void shoes_ruby_init() {
     rb_define_method(cNative, "height", CASTHOOK(shoes_control_get_height), 0);
     rb_define_method(cNative, "remove", CASTHOOK(shoes_control_remove), 0);
 
-    // text_edit_box is new with 3.2.25
-    cTextEditBox  = rb_define_class_under(cTypes, "TextEditBox", cNative);
-    rb_define_method(cTextEditBox, "text", CASTHOOK(shoes_text_edit_box_get_text), 0);
-    rb_define_method(cTextEditBox, "text=", CASTHOOK(shoes_text_edit_box_set_text), 1);
-    rb_define_method(cTextEditBox, "draw", CASTHOOK(shoes_text_edit_box_draw), 2);
-    rb_define_method(cTextEditBox, "change", CASTHOOK(shoes_control_change), -1);
-    rb_define_method(cTextEditBox, "append", CASTHOOK(shoes_text_edit_box_append), 1);
-    rb_define_method(cTextEditBox, "insert", CASTHOOK(shoes_text_edit_box_insert), -1);
-    rb_define_method(cTextEditBox, "delete", CASTHOOK(shoes_text_edit_box_delete), 2);
-    rb_define_method(cTextEditBox, "get_from", CASTHOOK(shoes_text_edit_box_get), 2);
-    rb_define_method(cTextEditBox, "new_insertion", CASTHOOK(shoes_text_edit_box_create_insertion), 2);
-    rb_define_method(cTextEditBox, "currrent_insertion", CASTHOOK(shoes_text_edit_box_current_insertion), 0);
-    rb_define_method(cTextEditBox, "scroll_to_insertion", CASTHOOK(shoes_text_edit_box_scroll_to_insertion), 1);
-    rb_define_method(cTextEditBox, "scroll_to_end", CASTHOOK(shoes_text_edit_box_scroll_to_end), 0);
-    rb_define_method(cTextEditBox, "tooltip", CASTHOOK(shoes_control_get_tooltip), 0);
-    rb_define_method(cTextEditBox, "tooltip=", CASTHOOK(shoes_control_set_tooltip), 1);
-
     cCheck  = rb_define_class_under(cTypes, "Check", cNative);
     rb_define_method(cCheck, "draw", CASTHOOK(shoes_check_draw), 2);
     rb_define_method(cCheck, "checked?", CASTHOOK(shoes_check_is_checked), 0);
@@ -3241,7 +3141,6 @@ void shoes_ruby_init() {
     rb_define_method(cResponse, "status", CASTHOOK(shoes_response_status), 0);
     rb_define_method(cResponse, "text", CASTHOOK(shoes_response_body), 0);
 
-    rb_define_method(cCanvas, "method_missing", CASTHOOK(shoes_color_method_missing), -1);
     rb_define_method(cApp, "method_missing", CASTHOOK(shoes_app_method_missing), -1);
 
     rb_define_method(rb_mKernel, "alert", CASTHOOK(shoes_dialog_alert), -1);

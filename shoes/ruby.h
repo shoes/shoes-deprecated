@@ -84,7 +84,6 @@ extern VALUE cPattern, cBorder, cBackground, cPara, cBanner, cTitle;
 extern VALUE cSubtitle, cTagline, cCaption, cInscription, cTextBlock;
 extern VALUE cProgress, cCheck, cRadio;
 extern VALUE cDownload, cResponse, ssNestSlot;
-extern VALUE cTextEditBox;
 extern VALUE cPlot, cChartSeries;
 extern VALUE cWidget;
 extern VALUE aMsgList;
@@ -548,7 +547,6 @@ SYMBOL_EXTERN(link);
   f(".push", push, 0); \
   f(".pop", pop, 0); \
   f(".reset", reset, 0); \
-  f("+text_edit_box", text_edit_box, -1); \
   f("+check", check, -1); \
   f("+radio", radio, -1); \
   f(".app", get_app, 0); \

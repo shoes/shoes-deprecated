@@ -649,33 +649,6 @@ VALUE shoes_canvas_reset(VALUE self) {
     return self;
 }
 
-VALUE shoes_canvas_text_edit_box(int argc, VALUE *argv, VALUE self) {
-    rb_arg_list args;
-    VALUE phrase = Qnil, attr = Qnil, text_edit_box;
-    SETUP_CANVAS();
-
-    switch (rb_parse_args(argc, argv, "h,S|h,", &args)) {
-        case 1:
-            attr = args.a[0];
-            break;
-
-        case 2:
-            phrase = args.a[0];
-            attr = args.a[1];
-            break;
-    }
-
-    if (!NIL_P(phrase))
-        ATTRSET(attr, text, phrase);
-
-    if (rb_block_given_p())
-        ATTRSET(attr, change, rb_block_proc());
-
-    text_edit_box = shoes_control_new(cTextEditBox, attr, self);
-    shoes_add_ele(canvas, text_edit_box);
-    return text_edit_box;
-}
-
 VALUE shoes_canvas_radio(int argc, VALUE *argv, VALUE self) {
     rb_arg_list args;
     VALUE group = Qnil, attr = Qnil, radio;
