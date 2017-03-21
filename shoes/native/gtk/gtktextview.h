@@ -1,5 +1,5 @@
-#ifndef SHOES_GTK_SPINNER_H
-#define SHOES_GTK_SPINNER_H
+#ifndef SHOES_GTK_TEXT_VIEW_H
+#define SHOES_GTK_TEXT_VIEW_H
 
 SHOES_CONTROL_REF shoes_native_text_view(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg);
 VALUE shoes_native_text_view_get_text(SHOES_CONTROL_REF ref);

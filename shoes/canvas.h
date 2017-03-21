@@ -664,6 +664,8 @@ extern void shoes_svg_send_release(VALUE, int, int, int);
 // TODO: to be removed during refactoring
 extern VALUE shoes_text_new(VALUE klass, VALUE texts, VALUE attr);
 
+extern VALUE cPlot;
+
 #define MARKUP_BLOCK(klass) \
   text = shoes_textblock_new(klass, msgs, attr, self, canvas->st); \
   shoes_add_ele(canvas, text)

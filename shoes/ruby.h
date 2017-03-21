@@ -84,7 +84,6 @@ extern VALUE cPattern, cBorder, cBackground, cPara, cBanner, cTitle;
 extern VALUE cSubtitle, cTagline, cCaption, cInscription, cTextBlock;
 extern VALUE cProgress, cCheck, cRadio;
 extern VALUE cDownload, cResponse, ssNestSlot;
-extern VALUE cPlot, cChartSeries;
 extern VALUE cWidget;
 extern VALUE aMsgList;
 extern VALUE eInvMode, eNotImpl, eImageError;
@@ -532,8 +531,6 @@ SYMBOL_EXTERN(link);
   f(".shadow", shadow, -1); \
   f("+image", image, -1); \
   f(".imagesize", imagesize, 1); \
-  f("+plot", plot, -1); \
-  f("+chart_series", chart_series, -1); \
   f("+shape", shape, -1); \
   f(".move_to", move_to, 2); \
   f(".line_to", line_to, 2); \

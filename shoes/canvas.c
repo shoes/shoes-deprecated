@@ -520,21 +520,6 @@ VALUE shoes_canvas_image(int argc, VALUE *argv, VALUE self) {
     return image;
 }
 
-VALUE shoes_canvas_plot(int argc, VALUE *argv, VALUE self) {
-    VALUE widget;
-    SETUP_CANVAS();
-    widget = shoes_plot_new(argc, argv, self);
-    shoes_add_ele(canvas, widget);
-    return widget;
-}
-
-VALUE shoes_canvas_chart_series(int argc, VALUE *argv, VALUE self) {
-    VALUE cs;
-    SETUP_CANVAS();
-    cs = shoes_chart_series_new(argc, argv, self);
-    return cs;
-}
-
 VALUE shoes_canvas_shape(int argc, VALUE *argv, VALUE self) {
     int x;
     double x1, y1, x2, y2;
