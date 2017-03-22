@@ -27,10 +27,6 @@ typedef struct {
 } shoes_shape;
 
 // native forward declarations
-/* extern SHOES_CONTROL_REF shoes_native_spinner(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg);
-extern void shoes_native_spinner_start(SHOES_CONTROL_REF ref);
-extern void shoes_native_spinner_stop(SHOES_CONTROL_REF ref);
-extern gboolean shoes_native_spinner_started(SHOES_CONTROL_REF ref); */
 
 /* each widget should have its own init function */
 void shoes_shape_init();
