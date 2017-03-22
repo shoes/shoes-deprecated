@@ -33,6 +33,10 @@ void shoes_color_init() {
     rb_define_method(cColor, "white?", CASTHOOK(shoes_color_is_white), 0);
     
     rb_define_method(cCanvas, "method_missing", CASTHOOK(shoes_color_method_missing), -1);
+    
+    rb_define_method(rb_mKernel, "rgb", CASTHOOK(shoes_color_rgb), -1);
+    rb_define_method(rb_mKernel, "gray", CASTHOOK(shoes_color_gray), -1);
+    rb_define_method(rb_mKernel, "gradient", CASTHOOK(shoes_color_gradient), -1);
 
     rb_const_set(cTypes, rb_intern("ALL_NAMED_COLORS"), rb_hash_new());
     cColors = rb_const_get(cTypes, rb_intern("ALL_NAMED_COLORS"));

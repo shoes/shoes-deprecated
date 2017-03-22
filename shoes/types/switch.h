@@ -11,7 +11,8 @@
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
 extern shoes_app _shoes_app;
-extern ID s_active;
+
+SYMBOL_EXTERN(active);
 
 /* Should be automatically available but ruby.c is not sharing enough information */
 extern VALUE shoes_control_active(int argc, VALUE *argv, VALUE self);

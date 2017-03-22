@@ -2867,9 +2867,6 @@ void shoes_ruby_init() {
     //
     // Shoes Kernel methods
     //
-    rb_define_method(rb_mKernel, "rgb", CASTHOOK(shoes_color_rgb), -1);
-    rb_define_method(rb_mKernel, "gray", CASTHOOK(shoes_color_gray), -1);
-    rb_define_method(rb_mKernel, "gradient", CASTHOOK(shoes_color_gradient), -1);
     rb_define_method(rb_mKernel, "pattern", CASTHOOK(shoes_pattern_method), 1);
     //rb_define_method(rb_mKernel, "quit", CASTHOOK(shoes_app_quit), 0);
     //rb_define_method(rb_mKernel, "exit", CASTHOOK(shoes_app_quit), 0);
