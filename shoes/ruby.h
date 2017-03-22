@@ -79,7 +79,7 @@ static inline void flip_endian(unsigned char* x, int length) {
 #undef s_host
 
 extern VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas;
-extern VALUE cFlow, cStack, cMask, cNative, cShape, cImage;
+extern VALUE cFlow, cStack, cMask, cNative, cImage;
 extern VALUE cPattern, cBorder, cBackground, cPara, cBanner, cTitle;
 extern VALUE cSubtitle, cTagline, cCaption, cInscription, cTextBlock;
 extern VALUE cProgress, cCheck, cRadio;
@@ -365,7 +365,55 @@ VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv);
   EVENT_COMMON(ele, ele, release); \
   EVENT_COMMON(ele, ele, hover); \
   EVENT_COMMON(ele, ele, leave);
-
+  
+#define PLACE_COMMON(ele) \
+  VALUE \
+  shoes_##ele##_get_parent(VALUE self) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    return self_t->parent; \
+  } \
+  \
+  VALUE \
+  shoes_##ele##_get_left(VALUE self) \
+  { \
+    shoes_canvas *canvas = NULL; \
+    GET_STRUCT(ele, self_t); \
+    if (!NIL_P(self_t->parent)) { \
+      Data_Get_Struct(self_t->parent, shoes_canvas, canvas); \
+    } else { \
+      Data_Get_Struct(self, shoes_canvas, canvas); \
+    } \
+    return INT2NUM(self_t->place.x - CPX(canvas)); \
+  } \
+  \
+  VALUE \
+  shoes_##ele##_get_top(VALUE self) \
+  { \
+    shoes_canvas *canvas = NULL; \
+    GET_STRUCT(ele, self_t); \
+    if (!NIL_P(self_t->parent)) { \
+      Data_Get_Struct(self_t->parent, shoes_canvas, canvas); \
+    } else { \
+      Data_Get_Struct(self, shoes_canvas, canvas); \
+    } \
+    return INT2NUM(self_t->place.y - CPY(canvas)); \
+  } \
+  \
+  VALUE \
+  shoes_##ele##_get_height(VALUE self) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    return INT2NUM(self_t->place.h); \
+  } \
+  \
+  VALUE \
+  shoes_##ele##_get_width(VALUE self) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    return INT2NUM(self_t->place.w); \
+  }
+  
 #define REPLACE_COMMON(ele) \
   VALUE \
   shoes_##ele##_replace(int argc, VALUE *argv, VALUE self) \
@@ -466,6 +514,25 @@ VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv);
     if (repaint) shoes_canvas_repaint_all(self_t->parent); \
     return self; \
   }
+  
+#define PATTERN_SCALE(self_t, place, sw) \
+  if (self_t->cached == NULL) \
+  { \
+    double woff = abs(place.iw) + (sw * 2.), hoff = abs(place.ih) + (sw * 2.); \
+    cairo_pattern_get_matrix(PATTERN(self_t), &matrix1); \
+    cairo_pattern_get_matrix(PATTERN(self_t), &matrix2); \
+    if (cairo_pattern_get_type(PATTERN(self_t)) == CAIRO_PATTERN_TYPE_RADIAL) \
+      cairo_matrix_translate(&matrix2, (-place.ix * 1.) / woff, (-place.iy * 1.) / hoff); \
+    cairo_matrix_scale(&matrix2, 1. / woff, 1. / hoff); \
+    if (sw != 0.0) cairo_matrix_translate(&matrix2, sw, sw); \
+    cairo_pattern_set_matrix(PATTERN(self_t), &matrix2); \
+  }
+
+#define PATTERN_RESET(self_t) \
+  if (self_t->cached == NULL) \
+  { \
+    cairo_pattern_set_matrix(PATTERN(self_t), &matrix1); \
+  }
 
 // Forward declaration necassary for refactoring
 void shoes_control_check_styles(shoes_control *self_t);
@@ -490,7 +557,7 @@ void shoes_ele_remove_all(VALUE);
 void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
 void shoes_cairo_arc(cairo_t *, double, double, double, double, double, double);
 
-#define SYMBOL_DEFS(f) f(bind); f(gsub); f(keys); f(update); f(merge); f(new); f(URI); f(now); f(debug); f(info); f(warn); f(error); f(run); f(to_a); f(to_ary); f(to_f); f(to_i); f(to_int); f(to_s); f(to_str); f(to_pattern); f(align); f(angle); f(angle1); f(angle2); f(arrow); f(autoplay); f(begin); f(body); f(cancel); f(call); f(center); f(change); f(checked); f(choose); f(click); f(corner); f(curve); f(distance); f(displace_left); f(displace_top); f(downcase); f(draw); f(emphasis); f(end); f(family); f(fill); f(finish); f(font); f(fraction); f(fullscreen); f(group); f(hand); f(headers); f(hidden); f(host); f(hover); f(href); f(insert); f(inner); f(items); f(justify); f(kerning); f(keydown); f(keypress); f(keyup); f(match); f(method); f(motion); f(leading); f(leave); f(ok); f(outer); f(path); f(points); f(port); f(redirect); f(release); f(request_uri); f(rise); f(scheme); f(save); f(size); f(state); f(wheel); f(scroll); f(stretch); f(strikecolor); f(strikethrough); f(stroke); f(start); f(attach); f(title); f(top); f(right); f(bottom); f(left); f(up); f(down); f(height); f(minheight); f(remove); f(resizable); f(strokewidth); f(cap); f(widget); f(width); f(minwidth); f(marker); f(margin); f(margin_left); f(margin_right); f(margin_top); f(margin_bottom); f(radius); f(secret); f(blur); f(glow); f(shadow); f(arc); f(rect); f(oval); f(line); f(shape); f(star); f(project); f(round); f(square); f(undercolor); f(underline); f(variant); f(weight); f(wrap); f(dash); f(nodot); f(onedot); f(donekey); f(volume); f(bg_color); f(decorated); f(opacity)
+#define SYMBOL_DEFS(f) f(bind); f(gsub); f(keys); f(update); f(merge); f(new); f(URI); f(now); f(debug); f(info); f(warn); f(error); f(run); f(to_a); f(to_ary); f(to_f); f(to_i); f(to_int); f(to_s); f(to_str); f(to_pattern); f(align); f(angle); f(angle1); f(angle2); f(arrow); f(autoplay); f(begin); f(body); f(cancel); f(call); f(center); f(change); f(checked); f(choose); f(click); f(corner); f(curve); f(distance); f(displace_left); f(displace_top); f(downcase); f(draw); f(emphasis); f(end); f(family); f(fill); f(finish); f(font); f(fraction); f(fullscreen); f(group); f(hand); f(headers); f(hidden); f(host); f(hover); f(href); f(insert); f(inner); f(items); f(justify); f(kerning); f(keydown); f(keypress); f(keyup); f(match); f(method); f(motion); f(leading); f(leave); f(ok); f(outer); f(path); f(points); f(port); f(redirect); f(release); f(request_uri); f(rise); f(scheme); f(save); f(size); f(state); f(wheel); f(scroll); f(stretch); f(strikecolor); f(strikethrough); f(stroke); f(start); f(attach); f(title); f(top); f(right); f(bottom); f(left); f(up); f(down); f(height); f(minheight); f(remove); f(resizable); f(strokewidth); f(cap); f(widget); f(width); f(minwidth); f(marker); f(margin); f(margin_left); f(margin_right); f(margin_top); f(margin_bottom); f(radius); f(secret); f(blur); f(glow); f(shadow); f(arc); f(rect); f(oval); f(line); f(star); f(project); f(round); f(square); f(undercolor); f(underline); f(variant); f(weight); f(wrap); f(dash); f(nodot); f(onedot); f(donekey); f(volume); f(bg_color); f(decorated); f(opacity)
 #define SYMBOL_INTERN(name) s_##name = rb_intern("" # name)
 #define SYMBOL_ID(name) ID s_##name
 #define SYMBOL_EXTERN(name) extern ID s_##name
@@ -531,7 +598,6 @@ SYMBOL_EXTERN(link);
   f(".shadow", shadow, -1); \
   f("+image", image, -1); \
   f(".imagesize", imagesize, 1); \
-  f("+shape", shape, -1); \
   f(".move_to", move_to, 2); \
   f(".line_to", line_to, 2); \
   f(".curve_to", curve_to, 6); \

@@ -117,19 +117,6 @@ typedef struct {
 } shoes_element;
 
 //
-// shape struct
-//
-typedef struct {
-    VALUE parent;
-    VALUE attr;
-    shoes_place place;
-    ID name;
-    char hover;
-    cairo_path_t *line;
-    shoes_transform *st;
-} shoes_shape;
-
-//
 // flow struct
 //
 typedef struct {
@@ -372,7 +359,7 @@ void shoes_slot_scroll_to(shoes_canvas *, int, int);
 void shoes_canvas_paint(VALUE);
 void shoes_apply_transformation(cairo_t *, shoes_transform *, shoes_place *, unsigned char);
 void shoes_undo_transformation(cairo_t *, shoes_transform *, shoes_place *, unsigned char);
-void shoes_canvas_shape_do(shoes_canvas *, double, double, double, double, unsigned char);
+//void shoes_canvas_shape_do(shoes_canvas *, double, double, double, double, unsigned char);
 VALUE shoes_canvas_style(int, VALUE *, VALUE);
 VALUE shoes_canvas_owner(VALUE);
 VALUE shoes_canvas_close(VALUE);
@@ -418,7 +405,6 @@ VALUE shoes_canvas_image(int, VALUE *, VALUE);
 VALUE shoes_canvas_plot(int, VALUE *, VALUE);
 VALUE shoes_canvas_chart_series(int, VALUE *, VALUE);
 VALUE shoes_canvas_imagesize(VALUE, VALUE);
-VALUE shoes_canvas_shape(int, VALUE *, VALUE);
 void shoes_canvas_remove_item(VALUE, VALUE, char, char);
 VALUE shoes_canvas_move_to(VALUE, VALUE, VALUE);
 VALUE shoes_canvas_line_to(VALUE, VALUE, VALUE);
@@ -568,21 +554,6 @@ VALUE shoes_control_set_state(VALUE, VALUE);
 VALUE shoes_control_get_tooltip(VALUE self);
 VALUE shoes_control_set_tooltip(VALUE self, VALUE tooltip);
 
-void shoes_shape_mark(shoes_shape *);
-VALUE shoes_shape_attr(int, VALUE *, int, ...);
-void shoes_shape_sketch(cairo_t *, ID, shoes_place *, shoes_transform *, VALUE, cairo_path_t *, unsigned char);
-VALUE shoes_shape_new(VALUE, ID, VALUE, shoes_transform *, cairo_path_t *);
-VALUE shoes_shape_alloc(VALUE);
-VALUE shoes_shape_draw(VALUE, VALUE, VALUE);
-VALUE shoes_shape_move(VALUE, VALUE, VALUE);
-VALUE shoes_shape_get_top(VALUE);
-VALUE shoes_shape_get_left(VALUE);
-VALUE shoes_shape_get_width(VALUE);
-VALUE shoes_shape_get_height(VALUE);
-VALUE shoes_shape_motion(VALUE, int, int, char *);
-VALUE shoes_shape_send_click(VALUE, int, int, int);
-void shoes_shape_send_release(VALUE, int, int, int);
-
 void shoes_image_ensure_dup(shoes_image *);
 void shoes_image_mark(shoes_image *);
 VALUE shoes_image_new(VALUE, VALUE, VALUE, VALUE, shoes_transform *);
@@ -693,4 +664,9 @@ extern VALUE cPlot;
     return text; \
   }
 
+#define SETUP_SHAPE() \
+  shoes_canvas *canvas = NULL; \
+  VALUE c = shoes_find_canvas(self); \
+  Data_Get_Struct(c, shoes_canvas, canvas)
+  
 #endif

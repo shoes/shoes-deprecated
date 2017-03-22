@@ -9,12 +9,8 @@
 #include "shoes/world.h"
 #include "shoes/native/native.h"
 #include "shoes/types/color.h"
+#include "shoes/types/shape.h"
 #include "shoes/http.h"
-
-#define SETUP_SHAPE() \
-  shoes_canvas *canvas = NULL; \
-  VALUE c = shoes_find_canvas(self); \
-  Data_Get_Struct(c, shoes_canvas, canvas)
 
 const double SHOES_PIM2   = 6.28318530717958647693;
 const double SHOES_PI     = 3.14159265358979323846;
@@ -386,57 +382,6 @@ VALUE shoes_canvas_fill(int argc, VALUE *argv, VALUE self) {
     return pat;
 }
 
-VALUE shoes_add_shape(VALUE self, ID name, VALUE attr, cairo_path_t *line) {
-    if (rb_obj_is_kind_of(self, cImage)) {
-        SETUP_IMAGE();
-        shoes_shape_sketch(image->cr, name, &place, NULL, attr, line, 1);
-        return self;
-    }
-
-    SETUP_CANVAS();
-    if (canvas->shape != NULL) {
-        shoes_place place;
-        shoes_place_exact(&place, attr, 0, 0);
-        cairo_new_sub_path(canvas->shape);
-        shoes_shape_sketch(canvas->shape, name, &place, canvas->st, attr, line, 0);
-        return self;
-    }
-
-    return shoes_add_ele(canvas, shoes_shape_new(self, name, attr, canvas->st, line));
-}
-
-VALUE shoes_canvas_arc(int argc, VALUE *argv, VALUE self) {
-    VALUE attr = shoes_shape_attr(argc, argv, 6, s_left, s_top, s_width, s_height, s_angle1, s_angle2);
-    return shoes_add_shape(self, s_arc, attr, NULL);
-}
-
-VALUE shoes_canvas_rect(int argc, VALUE *argv, VALUE self) {
-    VALUE attr = shoes_shape_attr(argc, argv, 5, s_left, s_top, s_width, s_height, s_curve);
-    return shoes_add_shape(self, s_rect, attr, NULL);
-}
-
-VALUE shoes_canvas_oval(int argc, VALUE *argv, VALUE self) {
-    VALUE attr = shoes_shape_attr(argc, argv, 4, s_left, s_top, s_width, s_height);
-    //VALUE attr = shoes_shape_attr(argc, argv, 3, s_left, s_top, s_radius);
-    //rb_warn("shoes_canvas_oval: %s\n", RSTRING_PTR(rb_inspect(attr)));
-    return shoes_add_shape(self, s_oval, attr, NULL);
-}
-
-VALUE shoes_canvas_line(int argc, VALUE *argv, VALUE self) {
-    VALUE attr = shoes_shape_attr(argc, argv, 4, s_left, s_top, s_right, s_bottom);
-    return shoes_add_shape(self, s_line, attr, NULL);
-}
-
-VALUE shoes_canvas_arrow(int argc, VALUE *argv, VALUE self) {
-    VALUE attr = shoes_shape_attr(argc, argv, 3, s_left, s_top, s_width);
-    return shoes_add_shape(self, s_arrow, attr, NULL);
-}
-
-VALUE shoes_canvas_star(int argc, VALUE *argv, VALUE self) {
-    VALUE attr = shoes_shape_attr(argc, argv, 5, s_left, s_top, s_points, s_outer, s_inner);
-    return shoes_add_shape(self, s_star, attr, NULL);
-}
-
 MARKUP_DEF(para, BLOCK, cPara);
 MARKUP_DEF(banner, BLOCK, cBanner);
 MARKUP_DEF(title, BLOCK, cTitle);
@@ -518,33 +463,6 @@ VALUE shoes_canvas_image(int argc, VALUE *argv, VALUE self) {
     shoes_add_ele(canvas, image);
 
     return image;
-}
-
-VALUE shoes_canvas_shape(int argc, VALUE *argv, VALUE self) {
-    int x;
-    double x1, y1, x2, y2;
-    cairo_t *shape = NULL;
-    cairo_path_t *line = NULL;
-    SETUP_SHAPE();
-
-    shape = canvas->shape;
-    VALUE attr = shoes_shape_attr(argc, argv, 2, s_left, s_top);
-    canvas->shape = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
-    cairo_move_to(canvas->shape, 0, 0);
-    if (rb_block_given_p()) rb_funcall(rb_block_proc(), s_call, 0);
-
-#if CAIRO_VERSION_MAJOR == 1 && CAIRO_VERSION_MINOR <= 4
-    cairo_fill_extents(canvas->shape, &x1, &y1, &x2, &y2);
-#else
-    cairo_path_extents(canvas->shape, &x1, &y1, &x2, &y2);
-#endif
-    x = ROUND(x2 - x1);
-    ATTRSET(attr, width, INT2NUM(x));
-    x = ROUND(y2 - y1);
-    ATTRSET(attr, height, INT2NUM(x));
-    line = cairo_copy_path(canvas->shape);
-    canvas->shape = shape;
-    return shoes_add_shape(self, s_shape, attr, line);
 }
 
 VALUE shoes_canvas_move_to(VALUE self, VALUE _x, VALUE _y) {

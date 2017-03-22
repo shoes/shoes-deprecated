@@ -6,6 +6,7 @@
 #include "shoes/types/list_box.h"
 #include "shoes/types/plot.h"
 #include "shoes/types/progress.h"
+#include "shoes/types/shape.h"
 #include "shoes/types/slider.h"
 #include "shoes/types/spinner.h"
 #include "shoes/types/svg.h"
@@ -25,6 +26,7 @@
 	shoes_list_box_init(); \
 	shoes_plot_init(); \
 	shoes_progress_init(); \
+	shoes_shape_init(); \
 	shoes_slider_init(); \
 	shoes_spinner_init(); \
 	shoes_svg_init(); \
