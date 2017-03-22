@@ -474,7 +474,6 @@ VALUE shoes_canvas_dialog(int, VALUE *, VALUE);
 VALUE shoes_canvas_window_plain(VALUE);
 VALUE shoes_canvas_dialog_plain(VALUE);
 VALUE shoes_canvas_snapshot(int, VALUE *, VALUE);
-VALUE shoes_canvas_download(int, VALUE *, VALUE);
 
 VALUE shoes_add_ele(shoes_canvas *canvas, VALUE ele);
 
@@ -593,18 +592,6 @@ VALUE shoes_textblock_draw(VALUE, VALUE, VALUE);
 VALUE shoes_textblock_motion(VALUE, int, int, char *);
 VALUE shoes_textblock_send_click(VALUE, int, int, int, VALUE *);
 void shoes_textblock_send_release(VALUE, int, int, int);
-
-void shoes_http_mark(shoes_http_klass *);
-VALUE shoes_http_new(VALUE, VALUE, VALUE);
-VALUE shoes_http_alloc(VALUE);
-VALUE shoes_http_threaded(VALUE, VALUE, VALUE);
-int shoes_message_download(VALUE, void *);
-int shoes_catch_message(unsigned int name, VALUE obj, void *data);
-
-VALUE shoes_response_new(VALUE, int);
-VALUE shoes_response_body(VALUE);
-VALUE shoes_response_headers(VALUE);
-VALUE shoes_response_status(VALUE);
 
 VALUE shoes_p(VALUE, VALUE);
 

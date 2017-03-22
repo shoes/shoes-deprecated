@@ -83,7 +83,7 @@ extern VALUE cFlow, cStack, cMask, cNative, cImage;
 extern VALUE cPattern, cBorder, cBackground, cPara, cBanner, cTitle;
 extern VALUE cSubtitle, cTagline, cCaption, cInscription, cTextBlock;
 extern VALUE cProgress, cCheck, cRadio;
-extern VALUE cDownload, cResponse, ssNestSlot;
+extern VALUE ssNestSlot;
 extern VALUE cWidget;
 extern VALUE aMsgList;
 extern VALUE eInvMode, eNotImpl, eImageError;
@@ -638,7 +638,6 @@ SYMBOL_EXTERN(link);
   f(".cursor=", set_cursor, 1); \
   f(".clipboard", get_clipboard, 0); \
   f(".clipboard=", set_clipboard, 1); \
-  f(".download", download, -1); \
   f(".owner", owner, 0); \
   f(".window", window, -1); \
   f(".dialog", dialog, -1); \

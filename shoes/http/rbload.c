@@ -12,6 +12,7 @@
 #include "shoes/version.h"
 #include "shoes/world.h"
 #include "shoes/native/native.h"
+#include "shoes/types/download.h"
 #include "shoes/canvas.h"
 
 void shoes_download(shoes_http_request *req) {

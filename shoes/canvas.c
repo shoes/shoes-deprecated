@@ -1021,19 +1021,6 @@ VALUE shoes_canvas_widget(int argc, VALUE *argv, VALUE self) {
     return widget;
 }
 
-VALUE shoes_canvas_download(int argc, VALUE *argv, VALUE self) {
-    VALUE url, block, obj, attr = Qnil;
-    SETUP_CANVAS();
-
-    rb_scan_args(argc, argv, "11&", &url, &attr, &block);
-    CHECK_HASH(attr);
-    if (!NIL_P(block))
-        ATTRSET(attr, finish, block);
-    obj = shoes_http_threaded(self, url, attr);
-    rb_ary_push(canvas->app->extras, obj);
-    return obj;
-}
-
 void shoes_canvas_size(VALUE self, int w, int h) {
     SETUP_CANVAS();
     canvas->place.iw = canvas->place.w = canvas->width = w;

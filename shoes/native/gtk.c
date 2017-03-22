@@ -15,6 +15,7 @@
 #include "shoes/types/color.h"
 #include "shoes/types/text.h"
 #include "shoes/types/text_link.h"
+#include "shoes/types/download.h"
 #include "shoes/internal.h"
 
 #include <fontconfig/fontconfig.h>

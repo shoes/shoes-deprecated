@@ -1,5 +1,6 @@
 #include "shoes/types/button.h"
 #include "shoes/types/color.h"
+#include "shoes/types/download.h"
 #include "shoes/types/edit_box.h"
 #include "shoes/types/edit_line.h"
 #include "shoes/types/effect.h"
@@ -20,6 +21,7 @@
 #define SHOES_TYPES_INIT \
 	shoes_button_init(); \
 	shoes_color_init(); \
+	shoes_download_init(); \
 	shoes_edit_box_init(); \
 	shoes_edit_line_init(); \
 	shoes_effect_init(); \
