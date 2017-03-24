@@ -12,7 +12,7 @@
 #include "shoes/types/types.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cImage, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cNative, cCheck, cRadio, cProgress, cColor, cResponse, ssNestSlot;
+VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cImage, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cNative, cProgress, cColor, cResponse, ssNestSlot;
 VALUE eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot, symAltEqual, symAltSemiColon;
@@ -1912,29 +1912,6 @@ VALUE shoes_control_set_tooltip(VALUE self, VALUE tooltip) {
     return self;
 }
 
-VALUE shoes_check_draw(VALUE self, VALUE c, VALUE actual) {
-    SETUP_CONTROL(0, 20, FALSE);
-
-    if (RTEST(actual)) {
-        if (self_t->ref == NULL) {
-            self_t->ref = shoes_native_check(self, canvas, &place, self_t->attr, msg);
-            if (RTEST(ATTR(self_t->attr, checked))) shoes_native_check_set(self_t->ref, Qtrue);
-            shoes_control_check_styles(self_t);
-            shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
-        } else
-            shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
-    }
-
-    FINISH();
-
-    return self;
-}
-
-VALUE shoes_check_is_checked(VALUE self) {
-    GET_STRUCT(control, self_t);
-    return shoes_native_check_get(self_t->ref);
-}
-
 VALUE shoes_button_group(VALUE self) {
     GET_STRUCT(control, self_t);
     if (!NIL_P(self_t->parent)) {
@@ -1945,77 +1922,6 @@ VALUE shoes_button_group(VALUE self) {
         return shoes_hash_get(canvas->app->groups, group);
     }
     return Qnil;
-}
-
-VALUE shoes_check_set_checked(VALUE self, VALUE on) {
-    GET_STRUCT(control, self_t);
-    ATTRSET(self_t->attr, checked, on);
-    if (self_t->ref != NULL)
-        shoes_native_check_set(self_t->ref, RTEST(on));
-    return on;
-}
-
-VALUE shoes_check_set_checked_m(VALUE self, VALUE on) {
-#ifdef SHOES_FORCE_RADIO
-    if (RTEST(on)) {
-        VALUE glist = shoes_button_group(self);
-
-        if (!NIL_P(glist)) {
-            long i;
-            for (i = 0; i < RARRAY_LEN(glist); i++) {
-                VALUE ele = rb_ary_entry(glist, i);
-                shoes_check_set_checked(ele, ele == self ? Qtrue : Qfalse);
-            }
-        } else {
-            shoes_check_set_checked(self, on);
-        }
-        return on;
-    }
-#endif
-    shoes_check_set_checked(self, on);
-    return on;
-}
-
-#ifdef SHOES_FORCE_RADIO
-void shoes_radio_button_click(VALUE control) {
-    shoes_check_set_checked_m(control, Qtrue);
-}
-#endif
-
-VALUE shoes_radio_draw(VALUE self, VALUE c, VALUE actual) {
-    SETUP_CONTROL(0, 20, FALSE);
-
-    if (RTEST(actual)) {
-        if (self_t->ref == NULL) {
-            VALUE group = ATTR(self_t->attr, group);
-            if (NIL_P(group)) group = c;
-
-            VALUE glist = shoes_hash_get(canvas->app->groups, group);
-#ifdef SHOES_FORCE_RADIO // aka OSX - create group before realizing widget
-            if (NIL_P(glist))
-                canvas->app->groups = shoes_hash_set(canvas->app->groups, group, (glist = rb_ary_new3(1, self)));
-            else
-                rb_ary_push(glist, self);
-            glist = shoes_hash_get(canvas->app->groups, group);
-            self_t->ref = shoes_native_radio(self, canvas, &place, self_t->attr, glist);
-#else
-            self_t->ref = shoes_native_radio(self, canvas, &place, self_t->attr, glist);
-
-            if (NIL_P(glist))
-                canvas->app->groups = shoes_hash_set(canvas->app->groups, group, (glist = rb_ary_new3(1, self)));
-            else
-                rb_ary_push(glist, self);
-#endif
-            if (RTEST(ATTR(self_t->attr, checked))) shoes_native_check_set(self_t->ref, Qtrue);
-            shoes_control_check_styles(self_t);
-            shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
-        } else
-            shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
-    }
-
-    FINISH();
-
-    return self;
 }
 
 PLACE_COMMON(canvas)
@@ -2381,22 +2287,6 @@ void shoes_ruby_init() {
     rb_define_method(cNative, "width", CASTHOOK(shoes_control_get_width), 0);
     rb_define_method(cNative, "height", CASTHOOK(shoes_control_get_height), 0);
     rb_define_method(cNative, "remove", CASTHOOK(shoes_control_remove), 0);
-
-    cCheck  = rb_define_class_under(cTypes, "Check", cNative);
-    rb_define_method(cCheck, "draw", CASTHOOK(shoes_check_draw), 2);
-    rb_define_method(cCheck, "checked?", CASTHOOK(shoes_check_is_checked), 0);
-    rb_define_method(cCheck, "checked=", CASTHOOK(shoes_check_set_checked), 1);
-    rb_define_method(cCheck, "click", CASTHOOK(shoes_control_click), -1);
-    rb_define_method(cCheck, "tooltip", CASTHOOK(shoes_control_get_tooltip), 0);
-    rb_define_method(cCheck, "tooltip=", CASTHOOK(shoes_control_set_tooltip), 1);
-
-    cRadio  = rb_define_class_under(cTypes, "Radio", cNative);
-    rb_define_method(cRadio, "draw", CASTHOOK(shoes_radio_draw), 2);
-    rb_define_method(cRadio, "checked?", CASTHOOK(shoes_check_is_checked), 0);
-    rb_define_method(cRadio, "checked=", CASTHOOK(shoes_check_set_checked_m), 1);
-    rb_define_method(cRadio, "click", CASTHOOK(shoes_control_click), -1);
-    rb_define_method(cRadio, "tooltip", CASTHOOK(shoes_control_get_tooltip), 0);
-    rb_define_method(cRadio, "tooltip=", CASTHOOK(shoes_control_set_tooltip), 1);
 
     rb_define_method(cApp, "method_missing", CASTHOOK(shoes_app_method_missing), -1);
 

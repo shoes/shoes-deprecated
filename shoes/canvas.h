@@ -418,8 +418,6 @@ VALUE shoes_canvas_skew(int, VALUE *, VALUE);
 VALUE shoes_canvas_push(VALUE);
 VALUE shoes_canvas_pop(VALUE);
 VALUE shoes_canvas_reset(VALUE);
-VALUE shoes_canvas_check(int, VALUE *, VALUE);
-VALUE shoes_canvas_radio(int, VALUE *, VALUE);
 VALUE shoes_canvas_contents(VALUE);
 VALUE shoes_canvas_children(VALUE);
 void shoes_canvas_size(VALUE, int, int);
@@ -622,7 +620,7 @@ extern void shoes_svg_send_release(VALUE, int, int, int);
 // TODO: to be removed during refactoring
 extern VALUE shoes_text_new(VALUE klass, VALUE texts, VALUE attr);
 
-extern VALUE cPlot;
+extern VALUE cPlot, cRadio;
 
 #define MARKUP_BLOCK(klass) \
   text = shoes_textblock_new(klass, msgs, attr, self, canvas->st); \

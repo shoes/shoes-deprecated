@@ -552,47 +552,6 @@ VALUE shoes_canvas_reset(VALUE self) {
     return self;
 }
 
-VALUE shoes_canvas_radio(int argc, VALUE *argv, VALUE self) {
-    rb_arg_list args;
-    VALUE group = Qnil, attr = Qnil, radio;
-    SETUP_CANVAS();
-
-    switch (rb_parse_args(argc, argv, "h,o|h,", &args)) {
-        case 1:
-            attr = args.a[0];
-            break;
-
-        case 2:
-            group = args.a[0];
-            attr = args.a[1];
-            break;
-    }
-
-    if (!NIL_P(group))
-        ATTRSET(attr, group, group);
-    if (rb_block_given_p())
-        ATTRSET(attr, click, rb_block_proc());
-
-    radio = shoes_control_new(cRadio, attr, self);
-    shoes_add_ele(canvas, radio);
-    return radio;
-}
-
-VALUE shoes_canvas_check(int argc, VALUE *argv, VALUE self) {
-    rb_arg_list args;
-    VALUE check;
-    SETUP_CANVAS();
-
-    rb_parse_args(argc, argv, "|h", &args);
-
-    if (rb_block_given_p())
-        ATTRSET(args.a[0], click, rb_block_proc());
-
-    check = shoes_control_new(cCheck, args.a[0], self);
-    shoes_add_ele(canvas, check);
-    return check;
-}
-
 VALUE shoes_canvas_contents(VALUE self) {
     GET_STRUCT(canvas, self_t);
     return self_t->contents;

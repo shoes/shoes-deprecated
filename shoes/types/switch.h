@@ -12,7 +12,7 @@
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
 extern shoes_app _shoes_app;
 
-SYMBOL_EXTERN(active);
+SYMBOL_ID(active);
 
 /* Should be automatically available but ruby.c is not sharing enough information */
 extern VALUE shoes_control_active(int argc, VALUE *argv, VALUE self);

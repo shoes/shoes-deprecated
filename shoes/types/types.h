@@ -1,4 +1,5 @@
 #include "shoes/types/button.h"
+#include "shoes/types/check.h"
 #include "shoes/types/color.h"
 #include "shoes/types/download.h"
 #include "shoes/types/edit_box.h"
@@ -7,6 +8,7 @@
 #include "shoes/types/list_box.h"
 #include "shoes/types/plot.h"
 #include "shoes/types/progress.h"
+#include "shoes/types/radio.h"
 #include "shoes/types/shape.h"
 #include "shoes/types/slider.h"
 #include "shoes/types/spinner.h"
@@ -20,6 +22,7 @@
 
 #define SHOES_TYPES_INIT \
 	shoes_button_init(); \
+	shoes_check_init(); \
 	shoes_color_init(); \
 	shoes_download_init(); \
 	shoes_edit_box_init(); \
@@ -28,6 +31,7 @@
 	shoes_list_box_init(); \
 	shoes_plot_init(); \
 	shoes_progress_init(); \
+	shoes_radio_init(); \
 	shoes_shape_init(); \
 	shoes_slider_init(); \
 	shoes_spinner_init(); \
