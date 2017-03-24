@@ -16,7 +16,8 @@ VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStac
 VALUE eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot, symAltEqual, symAltSemiColon;
-ID s_checked_q, s_perc, s_fraction, s_aref, s_mult, s_donekey;
+ID s_perc, s_fraction, s_aref, s_mult, s_donekey;
+
 SYMBOL_DEFS(SYMBOL_ID);
 
 //
@@ -1889,8 +1890,8 @@ void shoes_control_send(VALUE self, ID event) {
     VALUE click;
     GET_STRUCT(control, self_t);
 
-    if (rb_respond_to(self, s_checked_q))
-        ATTRSET(self_t->attr, checked, rb_funcall(self, s_checked_q, 0));
+    if (rb_respond_to(self, s_checked))
+        ATTRSET(self_t->attr, checked, rb_funcall(self, s_checked, 0));
 
     if (!NIL_P(self_t->attr)) {
         click = rb_hash_aref(self_t->attr, ID2SYM(event));
@@ -2026,7 +2027,6 @@ void shoes_ruby_init() {
     s_aref = rb_intern("[]=");
     s_perc = rb_intern("%");
     s_mult = rb_intern("*");
-    s_checked_q = rb_intern("checked?");
     SYMBOL_DEFS(SYMBOL_INTERN);
 
     symAltQuest = ID2SYM(rb_intern("alt_?"));

@@ -12,6 +12,10 @@ SHOES_CONTROL_REF shoes_native_check(VALUE self, shoes_canvas *canvas, shoes_pla
     if (RTEST(ATTR(attr, checked))) {
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ref), TRUE);
     }
+    
+    if (!NIL_P(shoes_hash_get(attr, rb_intern("checked")))) {
+       gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ref), shoes_hash_get(attr, rb_intern("checked")) == Qtrue);
+    }
 
     if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
         gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));
