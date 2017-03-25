@@ -1,3 +1,4 @@
+#include "shoes/types/pattern.h"
 #include "shoes/types/color.h"
 
 // ruby

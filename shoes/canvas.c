@@ -10,6 +10,7 @@
 #include "shoes/native/native.h"
 #include "shoes/types/native.h"
 #include "shoes/types/color.h"
+#include "shoes/types/pattern.h"
 #include "shoes/types/shape.h"
 #include "shoes/types/textblock.h"
 #include "shoes/http.h"
@@ -391,40 +392,6 @@ VALUE shoes_canvas_imagesize(VALUE self, VALUE _path) {
     if (shoes_load_imagesize(_path, &w, &h) == SHOES_OK)
         return rb_ary_new3(2, INT2NUM(w), INT2NUM(h));
     return Qnil;
-}
-
-VALUE shoes_canvas_background(int argc, VALUE *argv, VALUE self) {
-    VALUE pat;
-    SETUP_CANVAS();
-
-    if (argc == 1 && rb_obj_is_kind_of(argv[0], cPattern))
-        pat = argv[0];
-    else
-        pat = shoes_pattern_args(argc, argv, self);
-
-    if (!NIL_P(pat)) {
-        pat = shoes_subpattern_new(cBackground, pat, self);
-        shoes_add_ele(canvas, pat);
-    }
-
-    return pat;
-}
-
-VALUE shoes_canvas_border(int argc, VALUE *argv, VALUE self) {
-    VALUE pat;
-    SETUP_CANVAS();
-
-    if (argc == 1 && rb_obj_is_kind_of(argv[0], cPattern))
-        pat = argv[0];
-    else
-        pat = shoes_pattern_args(argc, argv, self);
-
-    if (!NIL_P(pat)) {
-        pat = shoes_subpattern_new(cBorder, pat, self);
-        shoes_add_ele(canvas, pat);
-    }
-
-    return pat;
 }
 
 VALUE shoes_canvas_image(int argc, VALUE *argv, VALUE self) {

@@ -12,11 +12,6 @@
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
 extern shoes_app _shoes_app;
 
-/* Should be automatically available but ruby.c is not sharing enough information */
-extern void shoes_pattern_gradient(shoes_pattern *pattern, VALUE r1, VALUE r2, VALUE attr);
-
-// native forward declarations
-
 VALUE cColor, cColors;
 
 typedef struct {
@@ -33,6 +28,8 @@ typedef struct {
   shoes_color *v; \
   VALUE o = shoes_color_alloc(cColor); \
   Data_Get_Struct(o, shoes_color, v)
+
+VALUE cColor, cColors;
 
 /* each widget should have its own init function */
 void shoes_color_init();

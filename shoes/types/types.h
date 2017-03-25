@@ -7,6 +7,7 @@
 #include "shoes/types/effect.h"
 #include "shoes/types/list_box.h"
 #include "shoes/types/native.h"
+#include "shoes/types/pattern.h"
 #include "shoes/types/plot.h"
 #include "shoes/types/progress.h"
 #include "shoes/types/radio.h"
@@ -32,6 +33,7 @@
 	shoes_edit_line_init(); \
 	shoes_effect_init(); \
 	shoes_list_box_init(); \
+	shoes_pattern_init(); \
 	shoes_plot_init(); \
 	shoes_progress_init(); \
 	shoes_radio_init(); \

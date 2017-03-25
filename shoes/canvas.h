@@ -75,8 +75,6 @@ typedef struct {
     blk; \
     rb_ary_pop(app->nesting); \
   }
-#define PATTERN_DIM(self_t, x) (self_t->cached != NULL ? self_t->cached->x : 1)
-#define PATTERN(self_t) (self_t->cached != NULL ? self_t->cached->pattern : self_t->pattern)
 #define ABSX(place)   ((place).flags & FLAG_ABSX)
 #define ABSY(place)   ((place).flags & FLAG_ABSY)
 #define POS(place)    ((place).flags & FLAG_POSITION)
@@ -201,20 +199,6 @@ typedef struct {
     VALUE path;
     char hover;
 } shoes_image;
-
-
-//
-// pattern struct
-//
-typedef struct {
-    VALUE parent;
-    VALUE attr;
-    shoes_place place;
-    VALUE source;
-    char hover;
-    shoes_cached_image *cached;
-    cairo_pattern_t *pattern;
-} shoes_pattern;
 
 typedef struct {
     VALUE parent;
@@ -532,17 +516,6 @@ VALUE shoes_image_get_height(VALUE);
 VALUE shoes_image_motion(VALUE, int, int, char *);
 VALUE shoes_image_send_click(VALUE, int, int, int);
 void shoes_image_send_release(VALUE, int, int, int);
-
-VALUE shoes_pattern_self(VALUE);
-VALUE shoes_pattern_method(VALUE, VALUE);
-VALUE shoes_pattern_args(int, VALUE *, VALUE);
-void shoes_pattern_mark(shoes_pattern *);
-VALUE shoes_pattern_new(VALUE, VALUE, VALUE, VALUE);
-VALUE shoes_pattern_alloc(VALUE);
-VALUE shoes_pattern_motion(VALUE, int, int, char *);
-VALUE shoes_background_draw(VALUE, VALUE, VALUE);
-VALUE shoes_border_draw(VALUE, VALUE, VALUE);
-VALUE shoes_subpattern_new(VALUE, VALUE, VALUE);
 
 void shoes_text_mark(shoes_text *);
 void shoes_textblock_mark(shoes_textblock *);

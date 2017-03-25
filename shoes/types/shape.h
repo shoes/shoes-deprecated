@@ -53,56 +53,5 @@ VALUE shoes_canvas_oval(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_line(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_arrow(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_star(int argc, VALUE *argv, VALUE self);
-
-#define PATH_OUT(cr, attr, place, sw, cap, dash, pen, cfunc) \
-{ \
-  VALUE p = ATTR(attr, pen); \
-  if (!NIL_P(p)) \
-  { \
-    CAP_SET(cr, cap); \
-    DASH_SET(cr, dash); \
-    cairo_set_line_width(cr, sw); \
-    if (rb_obj_is_kind_of(p, cColor)) \
-    { \
-      shoes_color *color; \
-      Data_Get_Struct(p, shoes_color, color); \
-      cairo_set_source_rgba(cr, color->r / 255., color->g / 255., color->b / 255., color->a / 255.); \
-      cfunc(cr); \
-    } \
-    else \
-    { \
-      if (!rb_obj_is_kind_of(p, cPattern)) \
-        ATTRSET(attr, pen, p = shoes_pattern_new(cPattern, p, Qnil, Qnil)); \
-      cairo_matrix_t matrix1, matrix2; \
-      shoes_pattern *pattern; \
-      Data_Get_Struct(p, shoes_pattern, pattern); \
-      PATTERN_SCALE(pattern, (place), sw); \
-      cairo_set_source(cr, PATTERN(pattern)); \
-      cfunc(cr); \
-      PATTERN_RESET(pattern); \
-    } \
-  } \
-}
-
-#define CAP_SET(cr, cap) \
-  if (cap == s_project) \
-    cairo_set_line_cap(cr, CAIRO_LINE_CAP_SQUARE); \
-  else if (cap == s_round || cap == s_curve) \
-    cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND); \
-  else if (cap == s_square || cap == s_rect) \
-    cairo_set_line_cap(cr, CAIRO_LINE_CAP_BUTT)
-
-#define DASH_SET(cr, dash) \
-  if (dash == s_onedot) \
-  { \
-    double dashes[] = {50.0, 10.0, 10.0, 10.0}; \
-    int    ndash  = sizeof (dashes)/sizeof(dashes[0]); \
-    double offset = -50.0; \
-    cairo_set_dash(cr, dashes, ndash, offset); \
-  } \
-  else \
-  { \
-    cairo_set_dash(cr, NULL, 0, 0.0); \
-  }
   
 #endif
