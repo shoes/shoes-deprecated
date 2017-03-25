@@ -61,6 +61,13 @@ VALUE shoes_textblock_send_click(VALUE self, int button, int x, int y, VALUE *cl
 void shoes_textblock_send_release(VALUE self, int button, int x, int y);
 
 // canvas
+VALUE shoes_canvas_para(int argc, VALUE *argv, VALUE self);
+VALUE shoes_canvas_banner(int argc, VALUE *argv, VALUE self);
+VALUE shoes_canvas_title(int argc, VALUE *argv, VALUE self);
+VALUE shoes_canvas_subtitle(int argc, VALUE *argv, VALUE self);
+VALUE shoes_canvas_tagline(int argc, VALUE *argv, VALUE self);
+VALUE shoes_canvas_caption(int argc, VALUE *argv, VALUE self);
+VALUE shoes_canvas_inscription(int argc, VALUE *argv, VALUE self);
 
 #define GET_STYLE(name) \
   attr = NULL; \

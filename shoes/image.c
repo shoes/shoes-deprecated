@@ -481,16 +481,13 @@ typedef struct shoes_jpeg_error_mgr *shoes_jpeg_err;
 
 #define JPEG_INPUT_BUF_SIZE 4096
 
-void
-shoes_jpeg_term_source(j_decompress_ptr cinfo) {
+void shoes_jpeg_term_source(j_decompress_ptr cinfo) {
 }
 
-void
-shoes_jpeg_init_source(j_decompress_ptr cinfo) {
+void shoes_jpeg_init_source(j_decompress_ptr cinfo) {
     shoes_jpeg_file src = (shoes_jpeg_file) cinfo->src;
     src->start_of_file = 1;
 }
-
 
 boolean shoes_jpeg_fill_input_buffer(j_decompress_ptr cinfo) {
     shoes_jpeg_file src = (shoes_jpeg_file)cinfo->src;

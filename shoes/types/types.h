@@ -5,6 +5,7 @@
 #include "shoes/types/edit_box.h"
 #include "shoes/types/edit_line.h"
 #include "shoes/types/effect.h"
+#include "shoes/types/image.h"
 #include "shoes/types/list_box.h"
 #include "shoes/types/native.h"
 #include "shoes/types/pattern.h"
@@ -32,6 +33,7 @@
 	shoes_edit_box_init(); \
 	shoes_edit_line_init(); \
 	shoes_effect_init(); \
+	shoes_image_init(); \
 	shoes_list_box_init(); \
 	shoes_pattern_init(); \
 	shoes_plot_init(); \

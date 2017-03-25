@@ -1,4 +1,5 @@
 #include "shoes/types/color.h"
+#include "shoes/types/image.h"
 #include "shoes/types/pattern.h"
 #include "shoes/types/shape.h"
 #include "shoes/types/effect.h"

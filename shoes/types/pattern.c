@@ -6,6 +6,9 @@ VALUE cPattern, cBorder, cBackground;
 
 CLASS_COMMON2(pattern);
 
+FUNC_M("+background", background, -1);
+FUNC_M("+border", border, -1);
+
 void shoes_pattern_init() {
     cPattern = rb_define_class_under(cTypes, "Pattern", rb_cObject);
 
@@ -21,13 +24,16 @@ void shoes_pattern_init() {
     rb_define_method(cPattern, "hide", CASTHOOK(shoes_pattern_hide), 0);
     rb_define_method(cPattern, "show", CASTHOOK(shoes_pattern_show), 0);
     rb_define_method(cPattern, "toggle", CASTHOOK(shoes_pattern_toggle), 0);
-    
+
     cBackground = rb_define_class_under(cTypes, "Background", cPattern);
     rb_define_method(cBackground, "draw", CASTHOOK(shoes_background_draw), 2);
     cBorder = rb_define_class_under(cTypes, "Border", cPattern);
     rb_define_method(cBorder, "draw", CASTHOOK(shoes_border_draw), 2);
 
     rb_define_method(rb_mKernel, "pattern", CASTHOOK(shoes_pattern_method), 1);
+
+    RUBY_M("+background", background, -1);
+    RUBY_M("+border", border, -1);
 }
 
 // ruby

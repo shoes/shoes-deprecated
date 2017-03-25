@@ -79,7 +79,7 @@ static inline void flip_endian(unsigned char* x, int length) {
 #undef s_host
 
 extern VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas;
-extern VALUE cFlow, cStack, cMask, cImage;
+extern VALUE cFlow, cStack, cMask;
 extern VALUE cProgress;
 extern VALUE ssNestSlot;
 extern VALUE cWidget;
@@ -544,35 +544,6 @@ SYMBOL_EXTERN(link);
 #define CANVAS_DEFS(f) \
   f(".close", close, 0); \
   f(".gutter", get_gutter_width, 0); \
-  f(".nostroke", nostroke, 0); \
-  f(".stroke", stroke, -1); \
-  f(".strokewidth", strokewidth, 1); \
-  f(".dash", dash, 1); \
-  f(".cap", cap, 1); \
-  f(".nofill", nofill, 0); \
-  f(".fill", fill, -1); \
-  f("+arc", arc, -1); \
-  f("+rect", rect, -1); \
-  f("+oval", oval, -1); \
-  f("+line", line, -1); \
-  f("+arrow", arrow, -1); \
-  f("+star", star, -1); \
-  f("+background", background, -1); \
-  f("+border", border, -1); \
-  f(".blur", blur, -1); \
-  f(".glow", glow, -1); \
-  f(".shadow", shadow, -1); \
-  f("+image", image, -1); \
-  f(".imagesize", imagesize, 1); \
-  f(".move_to", move_to, 2); \
-  f(".line_to", line_to, 2); \
-  f(".curve_to", curve_to, 6); \
-  f(".arc_to", arc_to, 6); \
-  f(".transform", transform, 1); \
-  f(".translate", translate, 2); \
-  f(".rotate", rotate, 1); \
-  f(".scale", scale, -1); \
-  f(".skew", skew, -1); \
   f(".push", push, 0); \
   f(".pop", pop, 0); \
   f(".reset", reset, 0); \

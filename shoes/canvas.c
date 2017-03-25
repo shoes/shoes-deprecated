@@ -10,6 +10,7 @@
 #include "shoes/native/native.h"
 #include "shoes/types/native.h"
 #include "shoes/types/color.h"
+#include "shoes/types/image.h"
 #include "shoes/types/pattern.h"
 #include "shoes/types/shape.h"
 #include "shoes/types/textblock.h"
@@ -392,44 +393,6 @@ VALUE shoes_canvas_imagesize(VALUE self, VALUE _path) {
     if (shoes_load_imagesize(_path, &w, &h) == SHOES_OK)
         return rb_ary_new3(2, INT2NUM(w), INT2NUM(h));
     return Qnil;
-}
-
-VALUE shoes_canvas_image(int argc, VALUE *argv, VALUE self) {
-    rb_arg_list args;
-    VALUE path = Qnil, attr = Qnil, _w, _h, image;
-
-    switch (rb_parse_args(argc, argv, "ii|h,s|h,|h", &args)) {
-        case 1:
-            _w = args.a[0];
-            _h = args.a[1];
-            attr = args.a[2];
-            ATTRSET(attr, width, _w);
-            ATTRSET(attr, height, _h);
-            if (rb_block_given_p()) ATTRSET(attr, draw, rb_block_proc());
-            break;
-
-        case 2:
-            path = args.a[0];
-            attr = args.a[1];
-            if (rb_block_given_p()) ATTRSET(attr, click, rb_block_proc());
-            break;
-
-        case 3:
-            attr = args.a[0];
-            if (rb_block_given_p()) ATTRSET(attr, draw, rb_block_proc());
-            break;
-    }
-
-    if (rb_obj_is_kind_of(self, cImage)) {
-        shoes_image_image(self, path, attr);
-        return self;
-    }
-
-    SETUP_CANVAS();
-    image = shoes_image_new(cImage, path, attr, self, canvas->st);
-    shoes_add_ele(canvas, image);
-
-    return image;
 }
 
 VALUE shoes_canvas_move_to(VALUE self, VALUE _x, VALUE _y) {
