@@ -1,3 +1,4 @@
+#include "shoes/types/text.h"
 #include "shoes/types/text_link.h"
 
 // ruby

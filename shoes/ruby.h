@@ -513,10 +513,6 @@ VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv);
     return self; \
   }
 
-// Forward declaration necassary for refactoring
-void shoes_textblock_uncache(shoes_textblock *text, unsigned char all);
-VALUE shoes_find_textblock(VALUE self);
-
 int shoes_px(VALUE, int, int, int);
 int shoes_px2(VALUE, ID, ID, int, int, int);
 VALUE shoes_hash_set(VALUE, ID, VALUE);

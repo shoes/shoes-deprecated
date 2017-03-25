@@ -1,3 +1,4 @@
+#include "shoes/types/textblock.h"
 #include "shoes/types/text.h"
 
 // ruby

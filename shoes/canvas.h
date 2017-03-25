@@ -124,41 +124,6 @@ typedef struct {
 } shoes_flow;
 
 //
-// text cursor
-//
-typedef struct {
-    int pos, x, y, hi;
-} shoes_textcursor;
-
-//
-// text block struct
-//
-typedef struct {
-    VALUE parent;
-    VALUE attr;
-    shoes_place place;
-    VALUE texts;
-    VALUE links;
-    shoes_textcursor *cursor;
-    PangoLayout *layout;
-    PangoAttrList *pattr;
-    GString *text;
-    guint len;
-    char cached, hover;
-    shoes_transform *st;
-} shoes_textblock;
-
-//
-// text struct
-//
-typedef struct {
-    VALUE parent;
-    VALUE attr;
-    VALUE texts;
-    char hover;
-} shoes_text;
-
-//
 // cached image
 //
 typedef enum {
@@ -517,21 +482,6 @@ VALUE shoes_image_motion(VALUE, int, int, char *);
 VALUE shoes_image_send_click(VALUE, int, int, int);
 void shoes_image_send_release(VALUE, int, int, int);
 
-void shoes_text_mark(shoes_text *);
-void shoes_textblock_mark(shoes_textblock *);
-VALUE shoes_textblock_new(VALUE, VALUE, VALUE, VALUE, shoes_transform *);
-VALUE shoes_textblock_alloc(VALUE);
-VALUE shoes_textblock_get_top(VALUE);
-VALUE shoes_textblock_get_left(VALUE);
-VALUE shoes_textblock_get_width(VALUE);
-VALUE shoes_textblock_get_height(VALUE);
-VALUE shoes_textblock_set_cursor(VALUE, VALUE);
-VALUE shoes_textblock_get_cursor(VALUE);
-VALUE shoes_textblock_draw(VALUE, VALUE, VALUE);
-VALUE shoes_textblock_motion(VALUE, int, int, char *);
-VALUE shoes_textblock_send_click(VALUE, int, int, int, VALUE *);
-void shoes_textblock_send_release(VALUE, int, int, int);
-
 VALUE shoes_p(VALUE, VALUE);
 
 extern const double SHOES_PIM2, SHOES_PI, SHOES_RAD2PI, SHOES_HALFPI;
@@ -563,6 +513,8 @@ extern VALUE shoes_text_new(VALUE klass, VALUE texts, VALUE attr);
 
 extern VALUE cNative, cPlot, cRadio;
 
+
+// TODO: MARKUP_* macro belongs to either TextBlock or Text?
 #define MARKUP_BLOCK(klass) \
   text = shoes_textblock_new(klass, msgs, attr, self, canvas->st); \
   shoes_add_ele(canvas, text)

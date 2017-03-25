@@ -4,6 +4,7 @@
 #include "shoes/internal.h"
 #include "shoes/world.h"
 #include "shoes/native/native.h"
+#include "shoes/types/textblock.h"
 
 /*
    Named text_link{.c,.h} to ensure text{.c,.h} is loaded first in SHOES_TYPES_INIT

@@ -14,6 +14,25 @@ extern shoes_app _shoes_app;
 
 VALUE cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription;
 
+typedef struct {
+    int pos, x, y, hi;
+} shoes_textcursor;
+
+typedef struct {
+    VALUE parent;
+    VALUE attr;
+    shoes_place place;
+    VALUE texts;
+    VALUE links;
+    shoes_textcursor *cursor;
+    PangoLayout *layout;
+    PangoAttrList *pattr;
+    GString *text;
+    guint len;
+    char cached, hover;
+    shoes_transform *st;
+} shoes_textblock;
+
 /* each widget should have its own init function */
 void shoes_textblock_init();
 

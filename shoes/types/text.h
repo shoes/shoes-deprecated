@@ -16,6 +16,13 @@ SYMBOL_ID(text);
 
 VALUE cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns;
 
+typedef struct {
+    VALUE parent;
+    VALUE attr;
+    VALUE texts;
+    char hover;
+} shoes_text;
+
 /* each widget should have its own init function */
 void shoes_text_init();
 
