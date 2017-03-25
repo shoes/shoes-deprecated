@@ -11,6 +11,7 @@
 #include "shoes/native/native.h"
 #include "shoes/types/text.h"
 #include "shoes/types/text_link.h"
+#include "shoes/types/textblock.h"
 
 static void shoes_app_mark(shoes_app *app) {
     shoes_native_slot_mark(app->slot);

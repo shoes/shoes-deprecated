@@ -8,6 +8,8 @@ CLASS_COMMON(control);
 EVENT_COMMON(control, control, click);
 EVENT_COMMON(control, control, change);
 
+// TODO: May need to refactor all types depending on native to use either types/native_<type>{.c,.h} or types/native/<type>{.c,.h}. That would be proper etiquette. For now, just using shoes_0_native_type_init().
+
 // Many types depend on native, so initialization needs to be triggered first.
 void shoes_0_native_type_init() {
     cNative  = rb_define_class_under(cTypes, "Native", rb_cObject);

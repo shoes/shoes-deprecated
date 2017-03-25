@@ -63,6 +63,8 @@ void shoes_cairo_destroy(shoes_canvas *);
 void shoes_group_clear(SHOES_GROUP_OS *);
 void shoes_native_canvas_place(shoes_canvas *, shoes_canvas *);
 void shoes_native_canvas_resize(shoes_canvas *);
+
+// TODO: Control belongs to types/native
 void shoes_native_control_hide(SHOES_CONTROL_REF);
 void shoes_native_control_show(SHOES_CONTROL_REF);
 void shoes_native_control_position(SHOES_CONTROL_REF, shoes_place *,

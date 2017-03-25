@@ -80,8 +80,7 @@ static inline void flip_endian(unsigned char* x, int length) {
 
 extern VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas;
 extern VALUE cFlow, cStack, cMask, cImage;
-extern VALUE cPattern, cBorder, cBackground, cPara, cBanner, cTitle;
-extern VALUE cSubtitle, cTagline, cCaption, cInscription, cTextBlock;
+extern VALUE cPattern, cBorder, cBackground;
 extern VALUE cProgress;
 extern VALUE ssNestSlot;
 extern VALUE cWidget;
@@ -533,6 +532,35 @@ VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv);
   { \
     cairo_pattern_set_matrix(PATTERN(self_t), &matrix1); \
   }
+  
+#define GET_STYLE(name) \
+  attr = NULL; \
+  str = Qnil; \
+  if (!NIL_P(oattr)) str = rb_hash_aref(oattr, ID2SYM(s_##name)); \
+  if (!NIL_P(hsh) && NIL_P(str)) str = rb_hash_aref(hsh, ID2SYM(s_##name))
+     
+#define APPLY_ATTR() \
+  if (attr != NULL) { \
+    attr->start_index = start_index; \
+    attr->end_index = end_index; \
+    pango_attr_list_insert_before(block->pattr, attr); \
+    attr = NULL; \
+  }
+
+#define APPLY_STYLE_COLOR(name, func) \
+  GET_STYLE(name); \
+  if (!NIL_P(str)) \
+  { \
+    if (TYPE(str) == T_STRING) \
+      str = shoes_color_parse(cColor, str); \
+    if (rb_obj_is_kind_of(str, cColor)) \
+    { \
+      shoes_color *color; \
+      Data_Get_Struct(str, shoes_color, color); \
+      attr = pango_attr_##func##_new(color->r * 255, color->g * 255, color-> b * 255); \
+    } \
+    APPLY_ATTR(); \
+  }
 
 // Forward declaration necassary for refactoring
 void shoes_textblock_uncache(shoes_textblock *text, unsigned char all);
@@ -582,13 +610,6 @@ SYMBOL_EXTERN(link);
   f("+line", line, -1); \
   f("+arrow", arrow, -1); \
   f("+star", star, -1); \
-  f("+para", para, -1); \
-  f("+banner", banner, -1); \
-  f("+title", title, -1); \
-  f("+subtitle", subtitle, -1); \
-  f("+tagline", tagline, -1); \
-  f("+caption", caption, -1); \
-  f("+inscription", inscription, -1); \
   f("+background", background, -1); \
   f("+border", border, -1); \
   f(".blur", blur, -1); \

@@ -11,6 +11,7 @@
 #include "shoes/types/native.h"
 #include "shoes/types/color.h"
 #include "shoes/types/shape.h"
+#include "shoes/types/textblock.h"
 #include "shoes/http.h"
 
 const double SHOES_PIM2   = 6.28318530717958647693;
@@ -384,14 +385,6 @@ VALUE shoes_canvas_fill(int argc, VALUE *argv, VALUE self) {
 
     return pat;
 }
-
-MARKUP_DEF(para, BLOCK, cPara);
-MARKUP_DEF(banner, BLOCK, cBanner);
-MARKUP_DEF(title, BLOCK, cTitle);
-MARKUP_DEF(subtitle, BLOCK, cSubtitle);
-MARKUP_DEF(tagline, BLOCK, cTagline);
-MARKUP_DEF(caption, BLOCK, cCaption);
-MARKUP_DEF(inscription, BLOCK, cInscription);
 
 VALUE shoes_canvas_imagesize(VALUE self, VALUE _path) {
     int w, h;
