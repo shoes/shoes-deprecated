@@ -336,13 +336,11 @@ VALUE shoes_canvas_stroke(int argc, VALUE *argv, VALUE self) {
     VALUE pat;
     SETUP_BASIC();
 
-    if (argc == 1 && rb_respond_to(argv[0], s_to_pattern))
+    if (argc == 1 && rb_obj_is_kind_of(argv[0], cPattern))
         pat = argv[0];
     else
         pat = shoes_pattern_args(argc, argv, self);
 
-    if (!rb_obj_is_kind_of(pat, cColor))
-        pat = rb_funcall(pat, s_to_pattern, 0);
     ATTRSET(basic->attr, stroke, pat);
 
     return pat;
@@ -376,13 +374,11 @@ VALUE shoes_canvas_fill(int argc, VALUE *argv, VALUE self) {
     VALUE pat;
     SETUP_BASIC();
 
-    if (argc == 1 && rb_respond_to(argv[0], s_to_pattern))
+    if (argc == 1 && rb_obj_is_kind_of(argv[0], cPattern))
         pat = argv[0];
     else
         pat = shoes_pattern_args(argc, argv, self);
 
-    if (!rb_obj_is_kind_of(pat, cColor))
-        pat = rb_funcall(pat, s_to_pattern, 0);
     ATTRSET(basic->attr, fill, pat);
 
     return pat;
@@ -407,8 +403,8 @@ VALUE shoes_canvas_background(int argc, VALUE *argv, VALUE self) {
     VALUE pat;
     SETUP_CANVAS();
 
-    if (argc == 1 && rb_respond_to(argv[0], s_to_pattern))
-        pat = rb_funcall(argv[0], s_to_pattern, 0);
+    if (argc == 1 && rb_obj_is_kind_of(argv[0], cPattern))
+        pat = argv[0];
     else
         pat = shoes_pattern_args(argc, argv, self);
 
@@ -424,8 +420,8 @@ VALUE shoes_canvas_border(int argc, VALUE *argv, VALUE self) {
     VALUE pat;
     SETUP_CANVAS();
 
-    if (argc == 1 && rb_respond_to(argv[0], s_to_pattern))
-        pat = rb_funcall(argv[0], s_to_pattern, 0);
+    if (argc == 1 && rb_obj_is_kind_of(argv[0], cPattern))
+        pat = argv[0];
     else
         pat = shoes_pattern_args(argc, argv, self);
 

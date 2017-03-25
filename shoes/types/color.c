@@ -436,6 +436,7 @@ VALUE shoes_color_to_s(VALUE self) {
         return rb_funcall(rb_str_new2("rgb(%d, %d, %d, %0.1f)"), s_perc, 1, ary);
 }
 
+// TODO: deprecated code remove after 2017-10
 VALUE shoes_color_to_pattern(VALUE self) {
     return shoes_pattern_method(cPattern, self);
 }
