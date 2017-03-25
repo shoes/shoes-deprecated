@@ -1,5 +1,6 @@
 #include "shoes/types/native.h"
 #include "shoes/types/color.h"
+#include "shoes/types/pattern.h"
 #include "shoes/types/shape.h"
 #include "shoes/types/image.h"
 
@@ -395,4 +396,69 @@ VALUE shoes_canvas_image(int argc, VALUE *argv, VALUE self) {
     shoes_add_ele(canvas, image);
 
     return image;
+}
+
+VALUE shoes_canvas_nostroke(VALUE self) {
+    SETUP_BASIC();
+    ATTRSET(basic->attr, stroke, Qnil);
+    return self;
+}
+
+VALUE shoes_canvas_stroke(int argc, VALUE *argv, VALUE self) {
+    VALUE pat;
+    SETUP_BASIC();
+
+    if (argc == 1 && rb_obj_is_kind_of(argv[0], cPattern))
+        pat = argv[0];
+    else
+        pat = shoes_pattern_args(argc, argv, self);
+
+    ATTRSET(basic->attr, stroke, pat);
+
+    return pat;
+}
+
+VALUE shoes_canvas_strokewidth(VALUE self, VALUE w) {
+    SETUP_BASIC();
+    ATTRSET(basic->attr, strokewidth, w);
+    return self;
+}
+
+VALUE shoes_canvas_dash(VALUE self, VALUE dash) {
+    SETUP_BASIC();
+    ATTRSET(basic->attr, dash, dash);
+    return self;
+}
+
+VALUE shoes_canvas_cap(VALUE self, VALUE cap) {
+    SETUP_BASIC();
+    ATTRSET(basic->attr, cap, cap);
+    return self;
+}
+
+VALUE shoes_canvas_nofill(VALUE self) {
+    SETUP_BASIC();
+    ATTRSET(basic->attr, fill, Qnil);
+    return self;
+}
+
+VALUE shoes_canvas_fill(int argc, VALUE *argv, VALUE self) {
+    VALUE pat;
+    SETUP_BASIC();
+
+    if (argc == 1 && rb_obj_is_kind_of(argv[0], cPattern))
+        pat = argv[0];
+    else
+        pat = shoes_pattern_args(argc, argv, self);
+
+    ATTRSET(basic->attr, fill, pat);
+
+    return pat;
+}
+
+VALUE shoes_canvas_imagesize(VALUE self, VALUE _path) {
+    int w, h;
+    if (shoes_load_imagesize(_path, &w, &h) == SHOES_OK)
+        return rb_ary_new3(2, INT2NUM(w), INT2NUM(h));
+    return Qnil;
 }

@@ -310,7 +310,6 @@ VALUE shoes_canvas_rgb(int, VALUE *, VALUE);
 VALUE shoes_canvas_gray(int, VALUE *, VALUE);
 VALUE shoes_canvas_plot(int, VALUE *, VALUE);
 VALUE shoes_canvas_chart_series(int, VALUE *, VALUE);
-VALUE shoes_canvas_imagesize(VALUE, VALUE);
 void shoes_canvas_remove_item(VALUE, VALUE, char, char);
 VALUE shoes_canvas_push(VALUE);
 VALUE shoes_canvas_pop(VALUE);

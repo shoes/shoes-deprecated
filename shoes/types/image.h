@@ -45,6 +45,7 @@ void shoes_image_send_release(VALUE self, int button, int x, int y);
 
 // canvas
 VALUE shoes_canvas_image(int, VALUE *, VALUE);
+VALUE shoes_canvas_imagesize(VALUE self, VALUE _path);
 VALUE shoes_canvas_nostroke(VALUE);
 VALUE shoes_canvas_stroke(int, VALUE *, VALUE);
 VALUE shoes_canvas_strokewidth(VALUE, VALUE);

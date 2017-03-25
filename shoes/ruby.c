@@ -12,7 +12,7 @@
 #include "shoes/types/types.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cImage, cProgress, cColor, cResponse, ssNestSlot;
+VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cProgress, cColor, cResponse, ssNestSlot;
 VALUE eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot, symAltEqual, symAltSemiColon;
