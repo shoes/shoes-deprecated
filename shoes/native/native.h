@@ -2,6 +2,9 @@
 // shoes/native.h
 // Common native Shoes routines.
 //
+#ifndef SHOES_NATIVE_H
+#define SHOES_NATIVE_H
+
 #define CHANGED_COORDS() \
   (p1->ix != p2->ix || p1->iy != p2->iy || \
    p1->iw != p2->iw || p1->dx != p2->dx || \
@@ -102,3 +105,5 @@ VALUE shoes_dialog_open(int,VALUE*,VALUE);
 VALUE shoes_dialog_save(int,VALUE*,VALUE);
 VALUE shoes_dialog_open_folder(int,VALUE*,VALUE);
 VALUE shoes_dialog_save_folder(int,VALUE*,VALUE);
+
+#endif

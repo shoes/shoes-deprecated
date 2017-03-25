@@ -5,8 +5,8 @@
 #include "shoes/world.h"
 #include "shoes/native/native.h"
 
-#ifndef SHOES_RADIO_H
-#define SHOES_RADIO_H
+#ifndef SHOES_RADIO_TYPE_H
+#define SHOES_RADIO_TYPE_H
 
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
@@ -29,6 +29,7 @@ void shoes_radio_init();
 VALUE shoes_radio_draw(VALUE self, VALUE c, VALUE actual);
 VALUE shoes_check_set_checked_m(VALUE self, VALUE on);
 void shoes_radio_button_click(VALUE control);
+VALUE shoes_radio_group(VALUE self);
 
 // reuse code from check type
 extern VALUE shoes_check_is_checked(VALUE self);

@@ -8,6 +8,7 @@
 #include "shoes/ruby.h"
 #include "shoes/world.h"
 #include "shoes/native/native.h"
+#include "shoes/types/native.h"
 #include "shoes/types/color.h"
 #include "shoes/types/shape.h"
 #include "shoes/http.h"
@@ -1022,10 +1023,7 @@ void shoes_canvas_repaint_all(VALUE self) {
     shoes_slot_repaint(canvas->slot);
 }
 
-typedef VALUE (*ccallfunc)(VALUE);
-typedef void (*ccallfunc2)(SHOES_CONTROL_REF);
-
-static void shoes_canvas_ccall(VALUE self, ccallfunc func, ccallfunc2 func2, unsigned char check) {
+void shoes_canvas_ccall(VALUE self, ccallfunc func, ccallfunc2 func2, unsigned char check) {
     shoes_canvas *self_t, *pc;
     Data_Get_Struct(self, shoes_canvas, self_t);
 
@@ -1062,24 +1060,6 @@ static void shoes_canvas_ccall(VALUE self, ccallfunc func, ccallfunc2 func2, uns
             }
         }
     }
-}
-
-VALUE shoes_canvas_hide(VALUE self) {
-    shoes_canvas *self_t;
-    Data_Get_Struct(self, shoes_canvas, self_t);
-    ATTRSET(self_t->attr, hidden, Qtrue);
-    shoes_canvas_ccall(self, shoes_control_temporary_hide, shoes_native_control_hide, 1);
-    shoes_canvas_repaint_all(self);
-    return self;
-}
-
-VALUE shoes_canvas_show(VALUE self) {
-    shoes_canvas *self_t;
-    Data_Get_Struct(self, shoes_canvas, self_t);
-    ATTRSET(self_t->attr, hidden, Qfalse);
-    shoes_canvas_ccall(self, shoes_control_temporary_show, shoes_native_control_show, 1);
-    shoes_canvas_repaint_all(self);
-    return self;
 }
 
 VALUE shoes_canvas_toggle(VALUE self) {

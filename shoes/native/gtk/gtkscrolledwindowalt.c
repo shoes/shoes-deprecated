@@ -1,4 +1,3 @@
-
 #include "shoes/app.h"
 #include "shoes/ruby.h"
 #include "shoes/config.h"

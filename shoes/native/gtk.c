@@ -12,6 +12,7 @@
 #include "shoes/config.h"
 #include "shoes/world.h"
 #include "shoes/native/native.h"
+#include "shoes/types/native.h"
 #include "shoes/types/color.h"
 #include "shoes/types/text.h"
 #include "shoes/types/text_link.h"

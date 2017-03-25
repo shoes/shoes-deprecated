@@ -1,4 +1,5 @@
 #include "shoes/types/video.h"
+#include "shoes/types/native.h"
 #include "shoes/native/native.h"
 #include "shoes/ruby.h"
 

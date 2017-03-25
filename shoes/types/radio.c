@@ -1,3 +1,4 @@
+#include "shoes/types/native.h"
 #include "shoes/types/radio.h"
 
 // ruby
@@ -57,7 +58,7 @@ VALUE shoes_radio_draw(VALUE self, VALUE c, VALUE actual) {
 VALUE shoes_check_set_checked_m(VALUE self, VALUE on) {
 #ifdef SHOES_FORCE_RADIO
     if (RTEST(on)) {
-        VALUE glist = shoes_button_group(self);
+        VALUE glist = shoes_radio_group(self);
 
         if (!NIL_P(glist)) {
             long i;
@@ -80,6 +81,18 @@ void shoes_radio_button_click(VALUE control) {
     shoes_check_set_checked_m(control, Qtrue);
 }
 #endif
+
+VALUE shoes_radio_group(VALUE self) {
+    GET_STRUCT(control, self_t);
+    if (!NIL_P(self_t->parent)) {
+        shoes_canvas *canvas;
+        VALUE group = ATTR(self_t->attr, group);
+        if (NIL_P(group)) group = self_t->parent;
+        Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+        return shoes_hash_get(canvas->app->groups, group);
+    }
+    return Qnil;
+}
 
 // canvas
 VALUE shoes_canvas_radio(int argc, VALUE *argv, VALUE self) {

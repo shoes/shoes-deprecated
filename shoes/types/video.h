@@ -3,8 +3,8 @@
 #include "shoes/internal.h"
 #include "shoes/app.h"
 
-#ifndef SHOES_VIDEO_H
-#define SHOES_VIDEO_H
+#ifndef SHOES_VIDEO_TYPE_H
+#define SHOES_VIDEO_TYPE_H
 
 #define SHOES_VIDEO 1
 

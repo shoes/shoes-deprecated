@@ -79,7 +79,7 @@ static inline void flip_endian(unsigned char* x, int length) {
 #undef s_host
 
 extern VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas;
-extern VALUE cFlow, cStack, cMask, cNative, cImage;
+extern VALUE cFlow, cStack, cMask, cImage;
 extern VALUE cPattern, cBorder, cBackground, cPara, cBanner, cTitle;
 extern VALUE cSubtitle, cTagline, cCaption, cInscription, cTextBlock;
 extern VALUE cProgress;
@@ -535,8 +535,6 @@ VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv);
   }
 
 // Forward declaration necassary for refactoring
-void shoes_control_check_styles(shoes_control *self_t);
-VALUE shoes_check_set_checked_m(VALUE self, VALUE on);
 void shoes_textblock_uncache(shoes_textblock *text, unsigned char all);
 VALUE shoes_find_textblock(VALUE self);
 

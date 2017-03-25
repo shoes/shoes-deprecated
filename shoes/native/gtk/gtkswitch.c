@@ -3,6 +3,7 @@
 #include "shoes/config.h"
 #include "shoes/world.h"
 #include "shoes/native/native.h"
+#include "shoes/types/native.h"
 #include "shoes/internal.h"
 #include "shoes/native/gtk/gtkswitch.h"
 

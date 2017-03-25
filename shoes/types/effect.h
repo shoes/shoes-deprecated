@@ -6,8 +6,8 @@
 #include "shoes/native/native.h"
 #include <math.h>
 
-#ifndef SHOES_EFFECT_H
-#define SHOES_EFFECT_H
+#ifndef SHOES_EFFECT_TYPE_H
+#define SHOES_EFFECT_TYPE_H
 
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;

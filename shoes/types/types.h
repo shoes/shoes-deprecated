@@ -6,6 +6,7 @@
 #include "shoes/types/edit_line.h"
 #include "shoes/types/effect.h"
 #include "shoes/types/list_box.h"
+#include "shoes/types/native.h"
 #include "shoes/types/plot.h"
 #include "shoes/types/progress.h"
 #include "shoes/types/radio.h"
@@ -21,6 +22,7 @@
 #include "shoes/types/video.h"
 
 #define SHOES_TYPES_INIT \
+	shoes_0_native_type_init(); \
 	shoes_button_init(); \
 	shoes_check_init(); \
 	shoes_color_init(); \

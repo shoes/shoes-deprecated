@@ -5,8 +5,8 @@
 #include "shoes/world.h"
 #include "shoes/native/native.h"
 
-#ifndef SHOES_SHAPE_H
-#define SHOES_SHAPE_H
+#ifndef SHOES_SHAPE_TYPE_H
+#define SHOES_SHAPE_TYPE_H
 
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;

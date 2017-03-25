@@ -1,3 +1,4 @@
+#include "shoes/types/native.h"
 #include "shoes/types/switch.h"
 
 // ruby

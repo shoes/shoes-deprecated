@@ -1,3 +1,5 @@
+#include "shoes/types/native.h"
+#include "shoes/types/radio.h"
 #include "shoes/types/button.h"
 
 // ruby

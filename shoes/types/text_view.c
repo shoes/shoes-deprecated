@@ -1,3 +1,4 @@
+#include "shoes/types/native.h"
 #include "shoes/types/text_view.h"
 
 // text_edit_box is new with 3.2.25

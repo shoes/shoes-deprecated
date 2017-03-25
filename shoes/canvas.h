@@ -216,20 +216,6 @@ typedef struct {
     cairo_pattern_t *pattern;
 } shoes_pattern;
 
-//
-// native controls struct
-//
-#define CONTROL_NORMAL   0
-#define CONTROL_READONLY 1
-#define CONTROL_DISABLED 2
-
-typedef struct {
-    VALUE parent;
-    VALUE attr;
-    shoes_place place;
-    SHOES_CONTROL_REF ref;
-} shoes_control;
-
 typedef struct {
     VALUE parent;
     VALUE attr;
@@ -324,9 +310,6 @@ typedef struct {
     SHOES_SLOT_OS *slot;
     SHOES_GROUP_OS group;
 } shoes_canvas;
-
-void shoes_control_hide_ref(SHOES_CONTROL_REF);
-void shoes_control_show_ref(SHOES_CONTROL_REF);
 
 VALUE shoes_app_main(int, VALUE *, VALUE);
 VALUE shoes_app_window(int, VALUE *, VALUE, VALUE);
@@ -473,6 +456,11 @@ VALUE shoes_canvas_window_plain(VALUE);
 VALUE shoes_canvas_dialog_plain(VALUE);
 VALUE shoes_canvas_snapshot(int, VALUE *, VALUE);
 
+typedef VALUE (*ccallfunc)(VALUE);
+typedef void (*ccallfunc2)(SHOES_CONTROL_REF);
+
+void shoes_canvas_ccall(VALUE, ccallfunc, ccallfunc2, unsigned char);
+
 VALUE shoes_add_ele(shoes_canvas *canvas, VALUE ele);
 
 SHOES_SLOT_OS *shoes_slot_alloc(shoes_canvas *, SHOES_SLOT_OS *, int);
@@ -530,26 +518,6 @@ VALUE shoes_plot_get_parent(VALUE);
 VALUE shoes_plot_motion(VALUE, int, int, char *);
 VALUE shoes_plot_send_click(VALUE, int, int, int);
 void shoes_plot_send_release(VALUE, int, int, int);
-
-// TODO: shoes_control_* belong to ruby.h
-void shoes_control_mark(shoes_control *);
-VALUE shoes_control_new(VALUE, VALUE, VALUE);
-VALUE shoes_control_alloc(VALUE);
-void shoes_control_send(VALUE, ID);
-VALUE shoes_control_get_top(VALUE);
-VALUE shoes_control_get_left(VALUE);
-VALUE shoes_control_get_width(VALUE);
-VALUE shoes_control_get_height(VALUE);
-VALUE shoes_control_remove(VALUE);
-VALUE shoes_control_show(VALUE);
-VALUE shoes_control_temporary_show(VALUE);
-VALUE shoes_control_hide(VALUE);
-VALUE shoes_control_temporary_hide(VALUE);
-VALUE shoes_control_focus(VALUE);
-VALUE shoes_control_get_state(VALUE);
-VALUE shoes_control_set_state(VALUE, VALUE);
-VALUE shoes_control_get_tooltip(VALUE self);
-VALUE shoes_control_set_tooltip(VALUE self, VALUE tooltip);
 
 void shoes_image_ensure_dup(shoes_image *);
 void shoes_image_mark(shoes_image *);
@@ -620,7 +588,7 @@ extern void shoes_svg_send_release(VALUE, int, int, int);
 // TODO: to be removed during refactoring
 extern VALUE shoes_text_new(VALUE klass, VALUE texts, VALUE attr);
 
-extern VALUE cPlot, cRadio;
+extern VALUE cNative, cPlot, cRadio;
 
 #define MARKUP_BLOCK(klass) \
   text = shoes_textblock_new(klass, msgs, attr, self, canvas->st); \

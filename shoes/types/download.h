@@ -6,8 +6,8 @@
 #include "shoes/native/native.h"
 #include "shoes/http.h"
 
-#ifndef SHOES_DOWNLOAD_H
-#define SHOES_DOWNLOAD_H
+#ifndef SHOES_DOWNLOAD_TYPE_H
+#define SHOES_DOWNLOAD_TYPE_H
 
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
