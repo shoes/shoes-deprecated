@@ -13,7 +13,7 @@ extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
 extern shoes_app _shoes_app;
 
 // forward progress.c's own s_progress, other components are using it.
-ID s_progress;
+SYMBOL_ID(progress);
 
 // native forward declarations
 SHOES_CONTROL_REF shoes_native_progress(VALUE, shoes_canvas *, shoes_place *, VALUE, char *);
