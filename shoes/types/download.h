@@ -13,12 +13,6 @@
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
 extern shoes_app _shoes_app;
 
-// native forward declarations
-/* extern SHOES_CONTROL_REF shoes_native_spinner(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg);
-extern void shoes_native_spinner_start(SHOES_CONTROL_REF ref);
-extern void shoes_native_spinner_stop(SHOES_CONTROL_REF ref);
-extern gboolean shoes_native_spinner_started(SHOES_CONTROL_REF ref); */
-
 typedef struct {
     SHOES_CONTROL_REF ref;
     VALUE download;
