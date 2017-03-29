@@ -117,7 +117,7 @@ shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner)
   VALUE attr = Qnil;
   VALUE app = shoes_app_new(self == cDialog ? cDialog : cApp);
   shoes_app *app_t;
-  char *url = "/";
+  const char *url = "/";
   Data_Get_Struct(app, shoes_app, app_t);
 
   switch (rb_parse_args(argc, argv, "h,s|h,", &args))
@@ -248,7 +248,7 @@ shoes_app_start(VALUE allapps, char *uri)
 }
 
 shoes_code
-shoes_app_open(shoes_app *app, char *path)
+shoes_app_open(shoes_app *app, const char *path)
 {
   shoes_code code = SHOES_OK;
   int dialog = (rb_obj_class(app->self) == cDialog);
@@ -348,7 +348,7 @@ shoes_app_exception(VALUE rb_exec, VALUE e)
 }
 
 shoes_code
-shoes_app_visit(shoes_app *app, char *path)
+shoes_app_visit(shoes_app *app, const char *path)
 {
   shoes_exec exec;
   shoes_canvas *canvas;
@@ -475,7 +475,7 @@ shoes_sys(char *cmd, int detach)
 }
 
 shoes_code
-shoes_app_goto(shoes_app *app, char *path)
+shoes_app_goto(shoes_app *app, const char *path)
 {
   shoes_code code = SHOES_OK;
   const char http_scheme[] = "http://";

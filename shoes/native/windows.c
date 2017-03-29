@@ -1198,7 +1198,7 @@ shoes_native_app_fullscreen(shoes_app *app, char yn)
 }
 
 shoes_code
-shoes_native_app_open(shoes_app *app, char *path, int dialog)
+shoes_native_app_open(shoes_app *app, const char *path, int dialog)
 {
   shoes_code code = SHOES_OK;
   LONG style;
@@ -1393,7 +1393,7 @@ shoes_native_app_close(shoes_app *app)
 }
 
 void
-shoes_browser_open(char *url)
+shoes_browser_open(const char *url)
 {
   ShellExecute(0, "open", url, 0, 0, 0);
 }

@@ -544,7 +544,7 @@ shoes_native_app_fullscreen(shoes_app *app, char yn)
 }
 
 shoes_code
-shoes_native_app_open(shoes_app *app, char *path, int dialog)
+shoes_native_app_open(shoes_app *app, const char *path, int dialog)
 {
   char icon_path[SHOES_BUFSIZE];
   shoes_app_gtk *gk = &app->os;
@@ -608,7 +608,7 @@ shoes_native_app_close(shoes_app *app)
 }
 
 void
-shoes_browser_open(char *url)
+shoes_browser_open(const char *url)
 {
   VALUE browser = rb_str_new2("xdg-open '");
   rb_str_cat2(browser, url);
