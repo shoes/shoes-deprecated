@@ -32,19 +32,24 @@ WIN32_CFLAGS = []
 WIN32_LDFLAGS = []
 WIN32_LIBS = []
 RUBY_HTTP = true
-gtk_extra_list = []
-if APP['GTK'] == "gtk+-3.0"
-  gtk_extra_list = %w(shoes/native/gtkfixedalt.c shoes/native/gtkentryalt.c
-               shoes/native/gtkcomboboxtextalt.c shoes/native/gtkbuttonalt.c
-               shoes/native/gtkscrolledwindowalt.c shoes/native/gtkprogressbaralt.c )
-end
-if RUBY_HTTP
-  file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"] +
-     ["shoes/plot/*.c"]
-else
-  file_list = %w{shoes/native/gtk.c shoes/http/winhttp.c shoes/http/windownload.c} + ["shoes/*.c"] 
-end
-file_list << "shoes/video/video.c" if APP['VIDEO']
+
+gtk_extra_list = Dir["shoes/native/*.c"] - ["shoes/native/gtk.c"]
+console_list  = Dir["shoes/console/*.c"]
+file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"] +
+     ["shoes/plot/*.c"] + ["shoes/types/*.c"] + ["shoes/native/gtk/*.c"]
+     
+#if APP['GTK'] == "gtk+-3.0"
+#  gtk_extra_list = %w(shoes/native/gtkfixedalt.c shoes/native/gtkentryalt.c
+#               shoes/native/gtkcomboboxtextalt.c shoes/native/gtkbuttonalt.c
+#               shoes/native/gtkscrolledwindowalt.c shoes/native/gtkprogressbaralt.c )
+#end
+#if RUBY_HTTP
+#  file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"] +
+#     ["shoes/plot/*.c"]
+#else
+#  file_list = %w{shoes/native/gtk.c shoes/http/winhttp.c shoes/http/windownload.c} + ["shoes/*.c"] 
+#end
+#file_list << "shoes/video/video.c" if APP['VIDEO']
 SRC = FileList[*file_list]
 
 OBJ = SRC.map do |x|
