@@ -71,8 +71,8 @@ module Make
       FileList[rdir].each { |rlib| cp_r rlib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}" }
     end
     #%w[req/binject/ext/binject_c req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
-    %w[req/chipmunk/ext/chipmunk].
-     each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_RUBY_ARCH}" }
+    #%w[req/chipmunk/ext/chipmunk].
+    # each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_RUBY_ARCH}" }
 
     gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
     # Loose shoes doesn't build gems

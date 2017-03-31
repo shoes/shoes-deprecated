@@ -27,12 +27,17 @@ LINUX_CFLAGS << " #{`pkg-config --cflags gtk+-3.0`.strip}"
 
 CC = "gcc"
 
-file_list = %w(shoes/native/gtk.c shoes/native/gtkfixedalt.c shoes/native/gtkentryalt.c
-               shoes/native/gtkcomboboxtextalt.c shoes/native/gtkbuttonalt.c
-               shoes/native/gtkscrolledwindowalt.c shoes/native/gtkprogressbaralt.c 
-               shoes/http/rbload.c) + ["shoes/*.c"] + ["shoes/console/*.c"] +
-               ["shoes/plot/*.c"]
-file_list << "shoes/video/video.c" 
+gtk_extra_list = Dir["shoes/native/*.c"] - ["shoes/native/gtk.c"]
+console_list  = Dir["shoes/console/*.c"]
+file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"] +
+     ["shoes/plot/*.c"] + ["shoes/types/*.c"] + ["shoes/native/gtk/*.c"] + console_list
+     
+#file_list = %w(shoes/native/gtk.c shoes/native/gtkfixedalt.c shoes/native/gtkentryalt.c
+#               shoes/native/gtkcomboboxtextalt.c shoes/native/gtkbuttonalt.c
+#               shoes/native/gtkscrolledwindowalt.c shoes/native/gtkprogressbaralt.c 
+#               shoes/http/rbload.c) + ["shoes/*.c"] + ["shoes/console/*.c"] +
+#               ["shoes/plot/*.c"]
+#file_list << "shoes/video/video.c" 
 
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
