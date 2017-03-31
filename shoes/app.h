@@ -17,8 +17,8 @@
 #include "shoes/code.h"
 #include "shoes/config.h"
 
-#define SHOES_APP_HEIGHT 500
 #define SHOES_APP_WIDTH  600
+#define SHOES_APP_HEIGHT 500
 #define SHOES_SHORTNAME  "shoes"
 #define SHOES_APPNAME    "Shoes"
 #define SHOES_VLCLASS    "Shoes VLC"
@@ -29,24 +29,25 @@
 // abstract window struct
 //
 typedef struct _shoes_app {
-  SHOES_APP_OS os;
-  SHOES_SLOT_OS *slot;
-  cairo_t *scratch;
-  int width, height, mouseb, mousex, mousey,
-    resizable, hidden, started, fullscreen,
-    minwidth, minheight;
-  VALUE self;
-  VALUE canvas;
-  VALUE keypresses;
-  VALUE nestslot;
-  VALUE nesting;
-  VALUE extras;
-  VALUE styles;
-  VALUE groups;
-  ID cursor;
-  VALUE title;
-  VALUE location;
-  VALUE owner;
+    SHOES_APP_OS os;
+    SHOES_SLOT_OS *slot;
+    cairo_t *scratch;
+    int width, height, mouseb, mousex, mousey,
+        resizable, hidden, started, fullscreen,
+        minwidth, minheight, decorated;
+    double opacity;
+    VALUE self;
+    VALUE canvas;
+    VALUE keypresses;
+    VALUE nestslot;
+    VALUE nesting;
+    VALUE extras;
+    VALUE styles;
+    VALUE groups;
+    ID cursor;
+    VALUE title;
+    VALUE location;
+    VALUE owner;
 } shoes_app;
 
 //
@@ -60,11 +61,15 @@ VALUE shoes_app_get_title(VALUE);
 VALUE shoes_app_set_title(VALUE, VALUE);
 VALUE shoes_app_get_fullscreen(VALUE);
 VALUE shoes_app_set_fullscreen(VALUE, VALUE);
+VALUE shoes_app_set_opacity(VALUE app, VALUE opacity);
+VALUE shoes_app_get_opacity(VALUE app);
+VALUE shoes_app_set_decoration(VALUE app, VALUE decorated);
+VALUE shoes_app_get_decoration(VALUE app);
 VALUE shoes_app_slot(VALUE);
 VALUE shoes_app_set_icon(VALUE, VALUE); // New 3.2.19
 VALUE shoes_app_set_wtitle(VALUE, VALUE); // New in 3.2.19
-VALUE shoes_app_console(VALUE); // New in 3.2.23 ? 
-VALUE shoes_app_terminal(int, VALUE*, VALUE); //new in 3.3.2 
+VALUE shoes_app_console(VALUE); // New in 3.2.23 ?
+VALUE shoes_app_terminal(int, VALUE*, VALUE); //new in 3.3.2
 shoes_code shoes_app_start(VALUE, char *);
 shoes_code shoes_app_open(shoes_app *, char *);
 shoes_code shoes_app_loop(void);

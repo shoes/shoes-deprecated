@@ -17,7 +17,6 @@
 #include "shoes/code.h"
 #include <rsvg.h>
 
-
 struct _shoes_app;
 
 typedef unsigned int PIXEL;
@@ -47,9 +46,9 @@ extern const char *dialog_title, *dialog_title_says;
 // affine transforms, to avoid littering these structs everywhere
 //
 typedef struct {
-  cairo_matrix_t tf;
-  ID mode;
-  int refs;
+    cairo_matrix_t tf;
+    ID mode;
+    int refs;
 } shoes_transform;
 
 //
@@ -57,9 +56,9 @@ typedef struct {
 // (outlines the area where a control has been placed)
 //
 typedef struct {
-  int x, y, w, h, dx, dy;
-  int ix, iy, iw, ih;
-  unsigned char flags;
+    int x, y, w, h, dx, dy;
+    int ix, iy, iw, ih;
+    unsigned char flags;
 } shoes_place;
 
 #define SETUP_BASIC() \
@@ -76,8 +75,6 @@ typedef struct {
     blk; \
     rb_ary_pop(app->nesting); \
   }
-#define PATTERN_DIM(self_t, x) (self_t->cached != NULL ? self_t->cached->x : 1)
-#define PATTERN(self_t) (self_t->cached != NULL ? self_t->cached->pattern : self_t->pattern)
 #define ABSX(place)   ((place).flags & FLAG_ABSX)
 #define ABSY(place)   ((place).flags & FLAG_ABSY)
 #define POS(place)    ((place).flags & FLAG_POSITION)
@@ -90,113 +87,57 @@ typedef struct {
 #define CCR(c)  (c->cr == NULL ? c->app->scratch : c->cr)
 #define SWPOS(x) ((int)sw % 2 == 0 ? x * 1. : x + .5)
 
-//
-// color struct
-//
-typedef struct {
-  unsigned char r, g, b, a, on;
-} shoes_color;
-
-#define SHOES_COLOR_OPAQUE 0xFF
-#define SHOES_COLOR_TRANSPARENT 0x0
-#define SHOES_COLOR_DARK   (0x55 * 3)
-#define SHOES_COLOR_LIGHT  (0xAA * 3)
+#define SETUP_CANVAS() \
+   shoes_canvas *canvas; \
+   cairo_t *cr; \
+   Data_Get_Struct(self, shoes_canvas, canvas); \
+   cr = CCR(canvas)
+#define SETUP_IMAGE() \
+  shoes_place place; \
+  GET_STRUCT(image, image); \
+  shoes_image_ensure_dup(image); \
+  shoes_place_exact(&place, attr, 0, 0); \
+  if (NIL_P(attr)) attr = image->attr; \
+  else if (!NIL_P(image->attr)) attr = rb_funcall(image->attr, s_merge, 1, attr);
 
 //
 // basic struct
 //
 typedef struct {
-  VALUE parent;
-  VALUE attr;
+    VALUE parent;
+    VALUE attr;
 } shoes_basic;
 
 typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
+    VALUE parent;
+    VALUE attr;
+    shoes_place place;
 } shoes_element;
-
-//
-// shape struct
-//
-typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
-  ID name;
-  char hover;
-  cairo_path_t *line;
-  shoes_transform *st;
-} shoes_shape;
 
 //
 // flow struct
 //
 typedef struct {
-  VALUE parent;
-  VALUE attr;
-  VALUE contents;
+    VALUE parent;
+    VALUE attr;
+    VALUE contents;
 } shoes_flow;
-
-//
-// link struct
-//
-typedef struct {
-  int start;
-  int end;
-  VALUE ele;
-} shoes_link;
-
-//
-// text cursor
-//
-typedef struct {
-  int pos, x, y, hi;
-} shoes_textcursor;
-
-//
-// text block struct
-//
-typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
-  VALUE texts;
-  VALUE links;
-  shoes_textcursor *cursor;
-  PangoLayout *layout;
-  PangoAttrList *pattr;
-  GString *text;
-  guint len;
-  char cached, hover;
-  shoes_transform *st;
-} shoes_textblock;
-
-//
-// text struct
-//
-typedef struct {
-  VALUE parent;
-  VALUE attr;
-  VALUE texts;
-  char hover;
-} shoes_text;
 
 //
 // cached image
 //
 typedef enum {
-  SHOES_IMAGE_NONE,
-  SHOES_IMAGE_PNG,
-  SHOES_IMAGE_JPEG,
-  SHOES_IMAGE_GIF
+    SHOES_IMAGE_NONE,
+    SHOES_IMAGE_PNG,
+    SHOES_IMAGE_JPEG,
+    SHOES_IMAGE_GIF
 } shoes_image_format;
 
 typedef struct {
-  cairo_surface_t *surface;
-  cairo_pattern_t *pattern;
-  int width, height, mtime;
-  shoes_image_format format;
+    cairo_surface_t *surface;
+    cairo_pattern_t *pattern;
+    int width, height, mtime;
+    shoes_image_format format;
 } shoes_cached_image;
 
 #define SHOES_CACHE_FILE  0
@@ -204,8 +145,8 @@ typedef struct {
 #define SHOES_CACHE_MEM   2
 
 typedef struct {
-  unsigned char type;
-  shoes_cached_image *image;
+    unsigned char type;
+    shoes_cached_image *image;
 } shoes_cache_entry;
 
 //
@@ -213,78 +154,25 @@ typedef struct {
 //
 #define SHOES_IMAGE_EXPIRE (60 * 60)
 typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
-  unsigned char type;
-  shoes_cached_image *cached;
-  shoes_transform *st;
-  cairo_t *cr;
-  VALUE path;
-  char hover;
+    VALUE parent;
+    VALUE attr;
+    shoes_place place;
+    unsigned char type;
+    shoes_cached_image *cached;
+    shoes_transform *st;
+    cairo_t *cr;
+    VALUE path;
+    char hover;
 } shoes_image;
 
-
-//
-// pattern struct
-//
 typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
-  VALUE source;
-  char hover;
-  shoes_cached_image *cached;
-  cairo_pattern_t *pattern;
-} shoes_pattern;
-
-//
-// native controls struct
-//
-#define CONTROL_NORMAL   0
-#define CONTROL_READONLY 1
-#define CONTROL_DISABLED 2
-
-typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
-  SHOES_CONTROL_REF ref;
-} shoes_control;
-
-#define ANIM_NADA    0
-#define ANIM_STARTED 1
-#define ANIM_PAUSED  2
-#define ANIM_STOPPED 3
-
-//
-// animation struct
-//
-typedef struct {
-  VALUE parent;
-  VALUE block;
-  unsigned int rate, frame;
-  char started;
-  SHOES_TIMER_REF ref;
-} shoes_timer;
-
-typedef void (*shoes_effect_filter)(cairo_t *, VALUE attr, shoes_place *);
-
-typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
-  shoes_effect_filter filter;
-} shoes_effect;
-
-typedef struct {
-  VALUE parent;
-  VALUE attr;
-  VALUE response;
-  unsigned char state;
-  unsigned LONG_LONG total;
-  unsigned LONG_LONG transferred;
-  unsigned long percent;
+    VALUE parent;
+    VALUE attr;
+    VALUE response;
+    unsigned char state;
+    unsigned LONG_LONG total;
+    unsigned LONG_LONG transferred;
+    unsigned long percent;
 } shoes_http_klass;
 
 #define CANVAS_NADA    0
@@ -293,114 +181,84 @@ typedef struct {
 #define CANVAS_EMPTY   3
 #define CANVAS_REMOVED 4
 
-// SvgHandle struct - not a graphical widget
-// new in 3.3.0
-typedef struct _svghandle {
-  RsvgHandle *handle;
-  RsvgDimensionData svghdim;
-  RsvgPositionData svghpos;
-  char *path;
-  char *data;
-  char *subid;
-  double aspect;
-} shoes_svghandle;
-
-//
-// SVG struct
-//
-typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
-  double scalew;
-  double scaleh;
-  VALUE svghandle;
-  char hover;
-  shoes_transform *st;
-} shoes_svg;
-
-
 // ChartSeries struct
 typedef struct {
-  VALUE maxv;  
-  VALUE minv;
-  VALUE values;
-  VALUE name;  
-  VALUE desc; 
-  VALUE labels; 
-  VALUE strokes;
-  VALUE point_type;
-  VALUE color;  
+    VALUE maxv;
+    VALUE minv;
+    VALUE values;
+    VALUE name;
+    VALUE desc;
+    VALUE labels;
+    VALUE strokes;
+    VALUE point_type;
+    VALUE color;
 } shoes_chart_series;
 
 //
 // Plot struct - It's HUGE!
 //
 typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
-  int chart_type;
-  int seriescnt;
-  VALUE series;  
-  int auto_grid; 
-  int boundbox;
-  int missing;   // repurposed in pie_charts so beware
-  VALUE background;
-  VALUE title;  
-  VALUE legend; 
-  VALUE caption;
-  VALUE default_colors;
-  VALUE column_opts;
-  void *c_things; 
-  int x_ticks;   // number of x_axis (which means a vertical grid line draw)
-  int y_ticks;   // number of (left side) y axis horizontial grid lines)
-  double radar_label_mult; // radius multipler (1.1 ex)
-  char  *fontname; // not a Shoes name, cairo "toy" name - might be the same
-  int beg_idx;  //used for zooming in
-  int end_idx;  // and zooming out
-  int title_h;
-  PangoFontDescription *title_pfd; 
-  int caption_h;
-  PangoFontDescription *caption_pfd; 
-  int legend_h; 
-  PangoFontDescription *legend_pfd;
-  PangoFontDescription *label_pfd; 
-  PangoFontDescription *tiny_pfd;
-  int yaxis_offset; // don't like
-  int graph_h;  // to where the dots are drawn
-  int graph_w;
-  int graph_x;
-  int graph_y;
-  char hover;   
-  shoes_transform *st;
+    VALUE parent;
+    VALUE attr;
+    shoes_place place;
+    int chart_type;
+    int seriescnt;
+    VALUE series;
+    int auto_grid;
+    int boundbox;
+    int missing;   // repurposed in pie_charts so beware
+    VALUE background;
+    VALUE title;
+    VALUE legend;
+    VALUE caption;
+    VALUE default_colors;
+    VALUE column_opts;
+    void *c_things;
+    int x_ticks;   // number of x_axis (which means a vertical grid line draw)
+    int y_ticks;   // number of (left side) y axis horizontial grid lines)
+    double radar_label_mult; // radius multipler (1.1 ex)
+    char  *fontname; // not a Shoes name, cairo "toy" name - might be the same
+    int beg_idx;  //used for zooming in
+    int end_idx;  // and zooming out
+    int title_h;
+    PangoFontDescription *title_pfd;
+    int caption_h;
+    PangoFontDescription *caption_pfd;
+    int legend_h;
+    PangoFontDescription *legend_pfd;
+    PangoFontDescription *label_pfd;
+    PangoFontDescription *tiny_pfd;
+    int yaxis_offset; // don't like
+    int graph_h;  // to where the dots are drawn
+    int graph_w;
+    int graph_x;
+    int graph_y;
+    char hover;
+    shoes_transform *st;
 } shoes_plot;
 
 //
 // not very temporary canvas (used internally for painting)
 //
 typedef struct {
-  VALUE parent;
-  VALUE attr;
-  shoes_place place;
-  cairo_t *cr, *shape;
-  shoes_transform *st, **sts;
-  int stl, stt;
-  VALUE contents;
-  unsigned char stage;
-  long insertion;
-  int cx, cy;               // cursor x and y (stored in absolute coords)
-  int endx, endy;           // jump points if the cursor spills over
-  int topy, fully;          // since we often stack vertically
-  int width, height;        // the full height and width used by this box
-  char hover;
-  struct _shoes_app *app;
-  SHOES_SLOT_OS *slot;
-  SHOES_GROUP_OS group;
+    VALUE parent;
+    VALUE attr;
+    shoes_place place;
+    cairo_t *cr, *shape;
+    shoes_transform *st, **sts;
+    int stl, stt;
+    VALUE contents;
+    unsigned char stage;
+    long insertion;
+    int cx, cy;               // cursor x and y (stored in absolute coords)
+    int endx, endy;           // jump points if the cursor spills over
+    int topy, fully;          // since we often stack vertically
+    int width, height;        // the full height and width used by this box
+    char hover;
+    struct _shoes_app *app;
+    SHOES_SLOT_OS *slot;
+    SHOES_GROUP_OS group;
 } shoes_canvas;
-
-void shoes_control_hide_ref(SHOES_CONTROL_REF);
-void shoes_control_show_ref(SHOES_CONTROL_REF);
 
 VALUE shoes_app_main(int, VALUE *, VALUE);
 VALUE shoes_app_window(int, VALUE *, VALUE, VALUE);
@@ -433,7 +291,7 @@ void shoes_slot_scroll_to(shoes_canvas *, int, int);
 void shoes_canvas_paint(VALUE);
 void shoes_apply_transformation(cairo_t *, shoes_transform *, shoes_place *, unsigned char);
 void shoes_undo_transformation(cairo_t *, shoes_transform *, shoes_place *, unsigned char);
-void shoes_canvas_shape_do(shoes_canvas *, double, double, double, double, unsigned char);
+//void shoes_canvas_shape_do(shoes_canvas *, double, double, double, double, unsigned char);
 VALUE shoes_canvas_style(int, VALUE *, VALUE);
 VALUE shoes_canvas_owner(VALUE);
 VALUE shoes_canvas_close(VALUE);
@@ -448,75 +306,14 @@ VALUE shoes_canvas_set_scroll_top(VALUE, VALUE);
 VALUE shoes_canvas_get_gutter_width(VALUE);
 VALUE shoes_canvas_displace(VALUE, VALUE, VALUE);
 VALUE shoes_canvas_move(VALUE, VALUE, VALUE);
-VALUE shoes_canvas_nostroke(VALUE);
-VALUE shoes_canvas_stroke(int, VALUE *, VALUE);
-VALUE shoes_canvas_strokewidth(VALUE, VALUE);
-VALUE shoes_canvas_dash(VALUE, VALUE);
-VALUE shoes_canvas_cap(VALUE, VALUE);
-VALUE shoes_canvas_nofill(VALUE);
-VALUE shoes_canvas_fill(int, VALUE *, VALUE);
 VALUE shoes_canvas_rgb(int, VALUE *, VALUE);
 VALUE shoes_canvas_gray(int, VALUE *, VALUE);
-VALUE shoes_canvas_rect(int, VALUE *, VALUE);
-VALUE shoes_canvas_arc(int, VALUE *, VALUE);
-VALUE shoes_canvas_oval(int, VALUE *, VALUE);
-VALUE shoes_canvas_line(int, VALUE *, VALUE);
-VALUE shoes_canvas_arrow(int, VALUE *, VALUE);
-VALUE shoes_canvas_star(int, VALUE *, VALUE);
-VALUE shoes_canvas_para(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_banner(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_title(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_subtitle(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_tagline(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_caption(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_inscription(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_code(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_del(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_em(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_ins(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_link(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_span(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_strong(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_sub(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_sup(int argc, VALUE *argv, VALUE self);
-VALUE shoes_canvas_background(int, VALUE *, VALUE);
-VALUE shoes_canvas_border(int, VALUE *, VALUE);
-VALUE shoes_canvas_video(int, VALUE *, VALUE);
-VALUE shoes_canvas_blur(int, VALUE *, VALUE);
-VALUE shoes_canvas_glow(int, VALUE *, VALUE);
-VALUE shoes_canvas_shadow(int, VALUE *, VALUE);
-VALUE shoes_canvas_image(int, VALUE *, VALUE);
-VALUE shoes_canvas_animate(int, VALUE *, VALUE);
-VALUE shoes_canvas_every(int, VALUE *, VALUE);
-VALUE shoes_canvas_timer(int, VALUE *, VALUE);
-VALUE shoes_canvas_svg(int, VALUE *, VALUE);
-VALUE shoes_canvas_svghandle(int, VALUE *, VALUE);
 VALUE shoes_canvas_plot(int, VALUE *, VALUE);
 VALUE shoes_canvas_chart_series(int, VALUE *, VALUE);
-VALUE shoes_canvas_imagesize(VALUE, VALUE);
-VALUE shoes_canvas_shape(int, VALUE *, VALUE);
 void shoes_canvas_remove_item(VALUE, VALUE, char, char);
-VALUE shoes_canvas_move_to(VALUE, VALUE, VALUE);
-VALUE shoes_canvas_line_to(VALUE, VALUE, VALUE);
-VALUE shoes_canvas_curve_to(VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE);
-VALUE shoes_canvas_arc_to(VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE);
-VALUE shoes_canvas_transform(VALUE, VALUE);
-VALUE shoes_canvas_translate(VALUE, VALUE, VALUE);
-VALUE shoes_canvas_rotate(VALUE, VALUE);
-VALUE shoes_canvas_scale(int, VALUE *, VALUE);
-VALUE shoes_canvas_skew(int, VALUE *, VALUE);
 VALUE shoes_canvas_push(VALUE);
 VALUE shoes_canvas_pop(VALUE);
 VALUE shoes_canvas_reset(VALUE);
-VALUE shoes_canvas_button(int, VALUE *, VALUE);
-VALUE shoes_canvas_list_box(int, VALUE *, VALUE);
-VALUE shoes_canvas_edit_line(int, VALUE *, VALUE);
-VALUE shoes_canvas_edit_box(int, VALUE *, VALUE);
-VALUE shoes_canvas_text_edit_box(int, VALUE *, VALUE);
-VALUE shoes_canvas_progress(int, VALUE *, VALUE);
-VALUE shoes_canvas_slider(int, VALUE *, VALUE);
-VALUE shoes_canvas_check(int, VALUE *, VALUE);
-VALUE shoes_canvas_radio(int, VALUE *, VALUE);
 VALUE shoes_canvas_contents(VALUE);
 VALUE shoes_canvas_children(VALUE);
 void shoes_canvas_size(VALUE, int, int);
@@ -553,6 +350,7 @@ void shoes_canvas_repaint_all(VALUE);
 void shoes_canvas_compute(VALUE);
 VALUE shoes_canvas_goto(VALUE, VALUE);
 VALUE shoes_canvas_send_click(VALUE, int, int, int);
+VALUE shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked);
 void shoes_canvas_send_release(VALUE, int, int, int);
 VALUE shoes_canvas_send_motion(VALUE, int, int, VALUE);
 void shoes_canvas_send_wheel(VALUE, ID, int, int);
@@ -570,8 +368,13 @@ VALUE shoes_canvas_dialog(int, VALUE *, VALUE);
 VALUE shoes_canvas_window_plain(VALUE);
 VALUE shoes_canvas_dialog_plain(VALUE);
 VALUE shoes_canvas_snapshot(int, VALUE *, VALUE);
-VALUE shoes_canvas_download(int, VALUE *, VALUE);
 
+typedef VALUE (*ccallfunc)(VALUE);
+typedef void (*ccallfunc2)(SHOES_CONTROL_REF);
+
+void shoes_canvas_ccall(VALUE, ccallfunc, ccallfunc2, unsigned char);
+
+VALUE shoes_add_ele(shoes_canvas *canvas, VALUE ele);
 
 SHOES_SLOT_OS *shoes_slot_alloc(shoes_canvas *, SHOES_SLOT_OS *, int);
 VALUE shoes_slot_new(VALUE, VALUE, VALUE);
@@ -579,38 +382,6 @@ VALUE shoes_flow_new(VALUE, VALUE);
 VALUE shoes_stack_new(VALUE, VALUE);
 VALUE shoes_mask_new(VALUE, VALUE);
 VALUE shoes_widget_new(VALUE, VALUE, VALUE);
-
-VALUE shoes_svghandle_new(int argc, VALUE *argv, VALUE self);
-VALUE shoes_svghandle_alloc(VALUE);
-VALUE shoes_svghandle_get_width(VALUE);
-VALUE shoes_svghandle_get_height(VALUE);
-VALUE shoes_svghandle_has_group(VALUE, VALUE);
-
-VALUE shoes_svg_new(int, VALUE *, VALUE);
-VALUE shoes_svg_alloc(VALUE);
-VALUE shoes_svg_draw(VALUE, VALUE, VALUE);
-VALUE shoes_svg_get_handle(VALUE);
-VALUE shoes_svg_set_handle(VALUE, VALUE);
-VALUE shoes_svg_get_dpi(VALUE);
-VALUE shoes_svg_set_dpi(VALUE, VALUE);
-VALUE shoes_svg_export(VALUE, VALUE);
-VALUE shoes_svg_save(VALUE, VALUE);
-VALUE shoes_svg_show(VALUE);
-VALUE shoes_svg_hide(VALUE);
-VALUE shoes_svg_get_actual_width(VALUE);
-VALUE shoes_svg_get_actual_height(VALUE);
-VALUE shoes_svg_get_actual_left(VALUE);
-VALUE shoes_svg_get_actual_top(VALUE);
-VALUE shoes_svg_get_parent(VALUE);
-VALUE shoes_svg_get_offsetX(VALUE);
-VALUE shoes_svg_get_offsetY(VALUE);
-VALUE shoes_svg_preferred_height(VALUE);
-VALUE shoes_svg_preferred_width(VALUE);
-VALUE shoes_svg_remove(VALUE);
-VALUE shoes_svg_has_group(VALUE, VALUE);
-VALUE shoes_svg_motion(VALUE, int, int, char *);
-VALUE shoes_svg_send_click(VALUE, int, int, int);
-void shoes_svg_send_release(VALUE, int, int, int);
 
 VALUE shoes_chart_series_new(int, VALUE *, VALUE);
 VALUE shoes_chart_series_alloc(VALUE);
@@ -661,50 +432,6 @@ VALUE shoes_plot_motion(VALUE, int, int, char *);
 VALUE shoes_plot_send_click(VALUE, int, int, int);
 void shoes_plot_send_release(VALUE, int, int, int);
 
-void shoes_control_mark(shoes_control *);
-VALUE shoes_control_new(VALUE, VALUE, VALUE);
-VALUE shoes_control_alloc(VALUE);
-void shoes_control_send(VALUE, ID);
-VALUE shoes_control_get_top(VALUE);
-VALUE shoes_control_get_left(VALUE);
-VALUE shoes_control_get_width(VALUE);
-VALUE shoes_control_get_height(VALUE);
-VALUE shoes_control_remove(VALUE);
-VALUE shoes_control_show(VALUE);
-VALUE shoes_control_temporary_show(VALUE);
-VALUE shoes_control_hide(VALUE);
-VALUE shoes_control_temporary_hide(VALUE);
-VALUE shoes_control_focus(VALUE);
-VALUE shoes_control_get_state(VALUE);
-VALUE shoes_control_set_state(VALUE, VALUE);
-
-VALUE shoes_button_draw(VALUE, VALUE, VALUE);
-void shoes_button_send_click(VALUE);
-VALUE shoes_edit_line_draw(VALUE, VALUE, VALUE);
-VALUE shoes_edit_line_get_text(VALUE);
-VALUE shoes_edit_line_set_text(VALUE, VALUE);
-VALUE shoes_edit_box_draw(VALUE, VALUE, VALUE);
-VALUE shoes_edit_box_get_text(VALUE);
-VALUE shoes_edit_box_set_text(VALUE, VALUE);
-VALUE shoes_list_box_text(VALUE);
-VALUE shoes_list_box_draw(VALUE, VALUE, VALUE);
-VALUE shoes_progress_draw(VALUE, VALUE, VALUE);
-
-void shoes_shape_mark(shoes_shape *);
-VALUE shoes_shape_attr(int, VALUE *, int, ...);
-void shoes_shape_sketch(cairo_t *, ID, shoes_place *, shoes_transform *, VALUE, cairo_path_t *, unsigned char);
-VALUE shoes_shape_new(VALUE, ID, VALUE, shoes_transform *, cairo_path_t *);
-VALUE shoes_shape_alloc(VALUE);
-VALUE shoes_shape_draw(VALUE, VALUE, VALUE);
-VALUE shoes_shape_move(VALUE, VALUE, VALUE);
-VALUE shoes_shape_get_top(VALUE);
-VALUE shoes_shape_get_left(VALUE);
-VALUE shoes_shape_get_width(VALUE);
-VALUE shoes_shape_get_height(VALUE);
-VALUE shoes_shape_motion(VALUE, int, int, char *);
-VALUE shoes_shape_send_click(VALUE, int, int, int);
-void shoes_shape_send_release(VALUE, int, int, int);
-
 void shoes_image_ensure_dup(shoes_image *);
 void shoes_image_mark(shoes_image *);
 VALUE shoes_image_new(VALUE, VALUE, VALUE, VALUE, shoes_transform *);
@@ -719,83 +446,6 @@ VALUE shoes_image_motion(VALUE, int, int, char *);
 VALUE shoes_image_send_click(VALUE, int, int, int);
 void shoes_image_send_release(VALUE, int, int, int);
 
-shoes_effect_filter shoes_effect_for_type(ID);
-void shoes_effect_mark(shoes_effect *);
-VALUE shoes_effect_new(ID, VALUE, VALUE);
-VALUE shoes_effect_alloc(VALUE);
-VALUE shoes_effect_draw(VALUE, VALUE, VALUE);
-
-VALUE shoes_pattern_self(VALUE);
-VALUE shoes_pattern_method(VALUE, VALUE);
-VALUE shoes_pattern_args(int, VALUE *, VALUE);
-void shoes_pattern_mark(shoes_pattern *);
-VALUE shoes_pattern_new(VALUE, VALUE, VALUE, VALUE);
-VALUE shoes_pattern_alloc(VALUE);
-VALUE shoes_pattern_motion(VALUE, int, int, char *);
-VALUE shoes_background_draw(VALUE, VALUE, VALUE);
-VALUE shoes_border_draw(VALUE, VALUE, VALUE);
-VALUE shoes_subpattern_new(VALUE, VALUE, VALUE);
-
-void shoes_timer_mark(shoes_timer *);
-VALUE shoes_timer_new(VALUE, VALUE, VALUE, VALUE);
-VALUE shoes_timer_alloc(VALUE);
-VALUE shoes_timer_init(VALUE, VALUE);
-VALUE shoes_timer_remove(VALUE);
-VALUE shoes_timer_start(VALUE);
-VALUE shoes_timer_stop(VALUE);
-void shoes_timer_call(VALUE);
-
-void shoes_color_mark(shoes_color *);
-VALUE shoes_color_new(int, int, int, int);
-VALUE shoes_color_alloc(VALUE);
-VALUE shoes_color_rgb(int, VALUE *, VALUE);
-VALUE shoes_color_gray(int, VALUE *, VALUE);
-cairo_pattern_t *shoes_color_pattern(VALUE);
-void shoes_color_grad_stop(cairo_pattern_t *, double, VALUE);
-VALUE shoes_color_args(int, VALUE *, VALUE);
-VALUE shoes_color_parse(VALUE, VALUE);
-VALUE shoes_color_is_black(VALUE);
-VALUE shoes_color_is_dark(VALUE);
-VALUE shoes_color_is_light(VALUE);
-VALUE shoes_color_is_white(VALUE);
-VALUE shoes_color_invert(VALUE);
-VALUE shoes_color_to_s(VALUE);
-VALUE shoes_color_to_pattern(VALUE);
-VALUE shoes_color_gradient(int, VALUE *, VALUE);
-
-void shoes_link_mark(shoes_link *);
-VALUE shoes_link_new(VALUE, int, int);
-VALUE shoes_link_alloc(VALUE);
-VALUE shoes_text_new(VALUE, VALUE, VALUE);
-VALUE shoes_text_alloc(VALUE);
-
-void shoes_text_mark(shoes_text *);
-void shoes_textblock_mark(shoes_textblock *);
-VALUE shoes_textblock_new(VALUE, VALUE, VALUE, VALUE, shoes_transform *);
-VALUE shoes_textblock_alloc(VALUE);
-VALUE shoes_textblock_get_top(VALUE);
-VALUE shoes_textblock_get_left(VALUE);
-VALUE shoes_textblock_get_width(VALUE);
-VALUE shoes_textblock_get_height(VALUE);
-VALUE shoes_textblock_set_cursor(VALUE, VALUE);
-VALUE shoes_textblock_get_cursor(VALUE);
-VALUE shoes_textblock_draw(VALUE, VALUE, VALUE);
-VALUE shoes_textblock_motion(VALUE, int, int, char *);
-VALUE shoes_textblock_send_click(VALUE, int, int, int, VALUE *);
-void shoes_textblock_send_release(VALUE, int, int, int);
-
-void shoes_http_mark(shoes_http_klass *);
-VALUE shoes_http_new(VALUE, VALUE, VALUE);
-VALUE shoes_http_alloc(VALUE);
-VALUE shoes_http_threaded(VALUE, VALUE, VALUE);
-int shoes_message_download(VALUE, void *);
-int shoes_catch_message(unsigned int name, VALUE obj, void *data);
-
-VALUE shoes_response_new(VALUE, int);
-VALUE shoes_response_body(VALUE);
-VALUE shoes_response_headers(VALUE);
-VALUE shoes_response_status(VALUE);
-
 VALUE shoes_p(VALUE, VALUE);
 
 extern const double SHOES_PIM2, SHOES_PI, SHOES_RAD2PI, SHOES_HALFPI;
@@ -804,10 +454,10 @@ extern const double SHOES_PIM2, SHOES_PI, SHOES_RAD2PI, SHOES_HALFPI;
 // shoes/image.c
 //
 typedef struct {
-  unsigned long status;
-  char *cachepath, *filepath, *uripath, *etag;
-  char hexdigest[42];
-  VALUE slot;
+    unsigned long status;
+    char *cachepath, *filepath, *uripath, *etag;
+    char hexdigest[42];
+    VALUE slot;
 } shoes_image_download_event;
 
 shoes_code shoes_load_imagesize(VALUE, int *, int *);
@@ -815,4 +465,50 @@ shoes_cached_image *shoes_cached_image_new(int, int, cairo_surface_t *);
 shoes_cached_image *shoes_load_image(VALUE, VALUE);
 unsigned char shoes_image_downloaded(shoes_image_download_event *);
 
+// Canvas needs cSvg to create snapshots and send events
+extern VALUE cSvg;
+
+extern VALUE shoes_svg_motion(VALUE, int, int, char *);
+extern VALUE shoes_svg_send_click(VALUE, int, int, int);
+extern void shoes_svg_send_release(VALUE, int, int, int);
+
+// TODO: to be removed during refactoring
+extern VALUE shoes_text_new(VALUE klass, VALUE texts, VALUE attr);
+
+extern VALUE cNative, cPlot, cRadio;
+
+
+// TODO: MARKUP_* macro belongs to either TextBlock or Text?
+#define MARKUP_BLOCK(klass) \
+  text = shoes_textblock_new(klass, msgs, attr, self, canvas->st); \
+  shoes_add_ele(canvas, text)
+
+#define MARKUP_INLINE(klass) \
+  text = shoes_text_new(klass, msgs, attr)
+  
+#define MARKUP_DEF(mname, fname, klass) \
+  VALUE \
+  shoes_canvas_##mname(int argc, VALUE *argv, VALUE self) \
+  { \
+    long i; \
+    VALUE msgs, attr, text; \
+    SETUP_CANVAS(); \
+    msgs = rb_ary_new(); \
+    attr = Qnil; \
+    for (i = 0; i < argc; i++) \
+    { \
+      if (rb_obj_is_kind_of(argv[i], rb_cHash)) \
+        attr = argv[i]; \
+      else \
+        rb_ary_push(msgs, argv[i]); \
+    } \
+    MARKUP_##fname(klass); \
+    return text; \
+  }
+
+#define SETUP_SHAPE() \
+  shoes_canvas *canvas = NULL; \
+  VALUE c = shoes_find_canvas(self); \
+  Data_Get_Struct(c, shoes_canvas, canvas)
+  
 #endif

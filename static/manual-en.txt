@@ -2180,13 +2180,9 @@ The above animation is shown 24 times per second.  If no number is given, the
 
 === background(pattern) » Shoes::Background ===
 
-Draws a Background element with a specific color (or pattern.)  Patterns can be
-colors, gradients or images.  Colors and images will tile across the
+Draws a Background element with a specific color (or pattern.) Patterns can be
+colors, gradients or images. Colors and images will tile across the
 background.  Gradients stretch to fill the background.
-
-'''PLEASE NOTE:''' Backgrounds are actual elements, not styles.  HTML treats
-backgrounds like styles.  Which means every box can only have one background.
-Shoes layers background elements.
 
 {{{
  #!ruby
@@ -2200,15 +2196,56 @@ The above example paints two backgrounds.  First, a black background is painted
 over the entire app's surface area.  Then a 50 pixel white stripe is painted
 along the left side.
 
+Background are reusable and can be copied because they inherit from Pattern.
+
+{{{
+Shoes.app do 
+   stack(left: 0, top: 0, width: width / 4, height: height / 4) do
+      @b = background "#{DIR}/static/stripe.png"
+   end
+   
+   4.times do |n|
+      stack(left: n * width / 4, top: n * height / 4, width: width / 4, height: height / 4) do
+         background @b
+      end
+   end
+end
+}}}
+
+'''PLEASE NOTE:''' Backgrounds are actual elements, not styles.  HTML treats
+backgrounds like styles.  Which means every box can only have one background.
+Shoes layers background elements.
+
 === banner(text) » Shoes::Banner ===
 
 Creates a Banner text block.  Shoes automatically styles this text to 48 pixels high.
 
 === border(text, :strokewidth => a number) » Shoes::Border ===
 
-Draws a Border element using a specific color (or pattern.)  Patterns can be
-colors, gradients or images.  Colors and images will tile across the border.
+Draws a Border element using a specific color (or pattern). Patterns can be
+colors, gradients or images. Colors and images will tile across the border.
 Gradients stretch to fill the border.
+
+=== border(pattern) » Shoes::Border ===
+
+Draws a Border element with a specific pattern. Borders are reusable and can be copied 
+because they inherit from Pattern.
+
+{{{
+Shoes.app do
+   stack :width => 50, :height => 30 do
+     @b = border red, :strokewidth => 5
+     para "=^.^=", :stroke => green
+   end
+
+   12.times do |n|
+      stack :left => n * 50, :top => height / 2, :width => 50 do
+        border @b
+        para "=^.^=", :stroke => green
+      end
+   end
+end
+}}}
 
 '''PLEASE NOTE:''' Like Backgrounds, Borders are actual elements, not styles.
 HTML treats backgrounds and borders like styles.  Which means every box can
@@ -3154,26 +3191,6 @@ Or, to paint a fifty pixel column on the right-side of the window:
 Since Backgrounds are normal elements as well, see also the start of the
 [[Elements]] section for all of its other methods.
 
-=== to_pattern() » a Shoes::Pattern ===
-
-Yanks out the color, gradient or image used to paint this background and places
-it in a normal Shoes::Pattern object.  You can then pass that object to other
-backgrounds and borders.  Reuse it as you like.
-
-{{{
-Shoes.app do 
-   stack(left: 0, top: 0, width: width / 4, height: height / 4) do
-      @b = background "#{DIR}/static/stripe.png"
-   end
-   
-   4.times do |n|
-      stack(left: n * width / 4, top: n * height / 4, width: width / 4, height: height / 4) do
-         background @b.to_pattern
-      end
-   end
-end
-}}}
-
 == Border ==
 
 A border is a color, gradient or image painted in a line around the edge of any
@@ -3222,28 +3239,6 @@ consistency in mind, so that if you say that a box is fifty pixels wide, it
 stays fifty pixels wide regardless of its borders or margins or anything else.
 
 Please also check out the [[Elements]] section for other methods used on borders.
-
-=== to_pattern() » a Shoes::Pattern ===
-
-Creates a basic pattern object based on the color, gradient or image used to
-paint this border.  The pattern may then be re-used in new borders and
-backgrounds.
-
-{{{
-Shoes.app do
-   stack :width => 50, :height => 30 do
-     @b = border red, :strokewidth => 5
-     para "=^.^=", :stroke => green
-   end
-
-   12.times do |n|
-      stack :left => n * 50, :top => height / 2, :width => 50 do
-        border @b.to_pattern
-        para "=^.^=", :stroke => green
-      end
-   end
-end
-}}}
 
 == Button ==
 

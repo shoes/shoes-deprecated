@@ -266,6 +266,8 @@ class Shoes
 
   # This is the real entry point for shows. It's called from the C startup code
   def self.args!(osx_launch = nil)
+    require_relative "shoes/deprecated"
+    
     if (ARGV.empty?)
       Shoes.splash if  !osx_launch || osx_launch == '0'
       return true

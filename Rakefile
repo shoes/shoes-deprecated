@@ -160,7 +160,7 @@ end
 # common platform tasks
 
 desc "Same as `rake build'"
-task :default => [:build]
+task :default => ["shoes/types/types.h", :build]
 
 desc "Package Shoes for distribution"
 task :package => [:version, :installer]
@@ -169,6 +169,8 @@ task :build_os => [:build_skel, "#{TGT_DIR}/#{NAME}"]
 
 task "shoes/version.h" do |t|
   File.open(t.name, 'w') do |f|
+    f << "#ifndef SHOES_VERSION_H\n"
+    f << "#define SHOES_VERSION_H\n\n"
     f << "// compatatibily pre 3.2.22\n"
     f << "#define SHOES_RELEASE_ID #{APP['MAJOR']}\n"
     f << "#define SHOES_REVISION #{APP['REVISION']}\n"
@@ -185,10 +187,13 @@ task "shoes/version.h" do |t|
     f << "#define SHOES_VERSION_DATE \"#{APP['DATE']}\"\n"
     f << "#define SHOES_VERSION_PLATFORM \"#{APP['PLATFORM']}\"\n"
     if CROSS
-      f << '#define SHOES_STYLE "TIGHT_SHOES"'
+      f << "#define SHOES_STYLE \"TIGHT_SHOES\"\n\n"
     else
-      f << '#define SHOES_STYLE "LOOSE_SHOES"'
+      f << "#define SHOES_STYLE \"LOOSE_SHOES\"\n\n"
     end
+    f << "extern VALUE cTypes;\n"
+    f << "\nvoid shoes_version_init();\n\n"
+    f << "#endif\n"
   end
 end
 
@@ -199,6 +204,24 @@ task "#{TGT_DIR}/VERSION.txt" do |t|
     %w[DEBUG].each { |x| f << " +#{x.downcase}" if ENV[x] }
     f << "\n"
   end
+end
+
+task "shoes/types/types.h" do |t|
+   puts "Processing #{t.name}..."
+   
+   rm_rf "shoes/types/types.h" if File.exists? "shoes/types/types.h"
+   
+   headers =  Dir["shoes/types/*.h"] - ["shoes/types/types.h"]
+   content = headers.collect { |file|
+      File.read(file).scan(/shoes_[[:alnum:]_]+_init\(\);/)
+   }.flatten
+
+   File.open(t.name, 'w') do |f|
+      headers.sort.each { |header|
+         f << "#include \"#{header}\"\n"
+      }
+      f << "\n#define SHOES_TYPES_INIT \\\n#{content.sort.collect { |n| "\t#{n}" }.join(" \\\n") }\n"
+   end
 end
 
 def create_version_file file_path

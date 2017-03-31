@@ -3,7 +3,6 @@
 // The generic launcher for Shoes.
 //
 #include <stdio.h>
-#include "shoes/app.h"
 #include "shoes/ruby.h"
 #include "shoes/config.h"
 #include "shoes/world.h"
