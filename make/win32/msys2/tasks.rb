@@ -55,7 +55,7 @@ module Make
   #  Copy the rubyinstaller libs - sigh - don't copy all of the gems.
   #  Then copy the deps.
   def pre_build
-    puts "pre_build dir=#{`pwd`}"
+    $stderr.puts "pre_build dir=#{`pwd`}"
     rbvt = RUBY_V
     rbvm = RUBY_V[/^\d+\.\d+/]
     # remove leftovers from previous rake.
@@ -108,13 +108,22 @@ module Make
       cp_r "#{ShoesDeps}/share/fontconfig", "#{TGT_DIR}/share"
       cp_r "#{ShoesDeps}/share/themes", "#{TGT_DIR}/share"
       cp_r "#{ShoesDeps}/share/xml", "#{TGT_DIR}/share"
-      cp_r "#{ShoesDeps}/share/icons", "#{TGT_DIR}/share" 
+      mkdir_p "#{TGT_DIR}/share/icons"
+      cp_r "#{ShoesDeps}/share/icons/hicolor", "#{TGT_DIR}/share/icons" 
     else
       cp  "#{ShoesDeps}share/glib-2.0/schemas/gschemas.compiled" ,
         "#{TGT_DIR}/share/glib-2.0/schemas"
     end
     sh "#{WINDRES} -I. shoes/appwin32.rc shoes/appwin32.o"
     cp_r "#{ShoesDeps}/etc", TGT_DIR
+    if ENABLE_MS_THEME
+      ini_path = "#{TGT_DIR}/etc/gtk-3.0"
+      mkdir_p ini_path
+      File.open "#{ini_path}/settings.ini", mode: 'w' do |f|
+        f.write "[Settings]\n"
+        f.write "gtk-theme-name=win32"
+      end
+    end
     mkdir_p "#{ShoesDeps}/lib"
     if APP['GTK'] == "gtk+-3.0"
       cp_r "#{ShoesDeps}/lib/gtk-3.0", "#{TGT_DIR}/lib" #  shoes, exerb, ruby here
@@ -139,6 +148,23 @@ module Make
     else 
       cp  "#{bindir}/gtk-update-icon-cache.exe", TGT_DIR
     end
+    if ENABLE_MS_THEME
+      # we need to copy Adwaita icons - huge but Shoes/Gtk needs many
+      $stderr.puts "Copying Adwaita icons"
+      cp_r "#{ShoesDeps}/share/icons/Adwaita", "#{TGT_DIR}/share/icons"
+      #$stderr.puts "Narrowing icons copy to actions"
+      #mkdir_p "#{TGT_DIR}/share/icons/Adwaita"
+      #icons_p = Dir.glob("#{ShoesDeps}/share/icons/Adwaita/*/actions")
+      #icons_p.each do |p| 
+      #  last_dir = p.split('/')[-2]
+      #  mkdir_p "#{TGT_DIR}/share/icons/Adwaita/#{last_dir}"
+      #  $stderr.puts "icons_p: #{p} to #{TGT_DIR}/share/icons/Adwaita/#{last_dir}"
+      #  cp_r p, "#{TGT_DIR}/share/icons/Adwaita/#{last_dir}"
+      #end
+      # TODO: groan - upate icon cache? 
+      $stderr.puts "Force icon-cache update"
+      `#{TGT_DIR}/gtk-update-icon-cache.exe  -f #{TGT_DIR}/share/icons/Adwaita`
+    end
 
     # below for debugging purposes
     if ENV['GDB'] 
@@ -150,16 +176,7 @@ module Make
       cp "#{bindir}/fc-scan.exe", TGT_DIR
       cp "#{bindir}/fc-validate.exe", TGT_DIR
     end
-    # disable MS Theme
-    if !ENABLE_MS_THEME 
-      Dir.chdir("#{TGT_DIR}/share/themes/MS-Windows/gtk-2.0/") do
-        mv 'gtkrc', 'disabled-gtkrc'
-      end
-    else
-      # add our overrides to the MS-Windows theme
-      # TODO: cp "platform/msw/gtkrc", "#{TGT_DIR}/etc/gtk-2.0/"
-    end
-end
+  end
 
   # common_build is a misnomer. copies prebuilt extentions & gems
   def common_build
@@ -194,10 +211,12 @@ class MakeMinGW
       bin = "#{name}.exe"
       binc = bin.gsub(/shoes\.exe/, 'cshoes.exe')
       puts "binc  = #{binc}"
+      # Detect that msys is being used
+      extra = ENV['MSYSTEM_PREFIX'] ? '-DMSYS2' : nil
       rm_f name
       rm_f bin
       rm_f binc
-      extra = ENV['GDB'] == 'profile' ? '-pg' : ''
+      #extra = ENV['GDB'] == 'profile' ? '-pg' : ''
       sh "#{CC} -o #{bin} bin/main.o shoes/appwin32.o -L#{TGT_DIR} -mwindows -lshoes #{LINUX_LIBS}"
       sh "#{STRIP} #{bin}" unless ENV['GDB']
       sh "#{CC} -o #{binc} bin/main.o shoes/appwin32.o -L#{TGT_DIR} #{extra} -lshoes #{LINUX_LIBS}"

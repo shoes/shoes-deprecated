@@ -45,9 +45,10 @@ if APP['GTK'] == "gtk+-3.0"
 end
 if RUBY_HTTP
   file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"] +
-     ["shoes/plot/*.c"]
+     ["shoes/plot/*.c"] 
 else
   file_list = %w{shoes/native/gtk.c shoes/http/winhttp.c shoes/http/windownload.c} + ["shoes/*.c"] 
+
 end
 file_list << "shoes/video/video.c" if APP['VIDEO']
 SRC = FileList[*file_list]
