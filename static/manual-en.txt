@@ -3110,6 +3110,38 @@ shape.  Or any other number of style settings.
 
 Hides an element if it is shown.  Or shows the element, if it is hidden.
 
+=== tooltip() » a string ===
+
+Returns a string containing the tooltip text from an element. 
+
+{{{
+#!ruby
+Shoes.app do
+   button "push me!", tooltip: "push me at your own risk..." do
+      alert("...seriously?")
+   end
+end
+}}}
+
+=== tooltip = a string ===
+
+Set the tooltip text from an element with the given string.
+
+{{{
+Shoes.app do
+   @e = edit_line
+   @b = button "set tooltip" do
+      @e.tooltip = @e.text
+      @b.tooltip = @e.text
+      @b2.tooltip = @e.text
+   end
+   @b2 = button "get tooltip" do
+      @p.text = @b.tooltip
+   end
+   @p = para
+end
+}}}
+
 === top() » a number ===
 
 Gets the pixel position of the top edge of the element.
