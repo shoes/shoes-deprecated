@@ -701,13 +701,21 @@ void shoes_native_app_set_wtitle(shoes_app *app, char *wtitle) {
     gtk_window_set_title(GTK_WINDOW(app->slot->oscanvas), _(wtitle));
 }
 
+
 void shoes_native_app_set_opacity(shoes_app *app, double opacity) {
+#if GTK_CHECK_VERSION(3,8,0)
     gtk_widget_set_opacity(GTK_WIDGET(app->os.window), opacity);
+#endif
 }
 
 double shoes_native_app_get_opacity(shoes_app *app) {
+#if GTK_CHECK_VERSION(3,8,0)
     return gtk_widget_get_opacity(GTK_WIDGET(app->os.window));
+#else 
+    return 1.0;
+#endif 
 }
+
 
 void shoes_native_app_set_decoration(shoes_app *app, gboolean decorated) {
     gtk_window_set_decorated(GTK_WINDOW(app->os.window), decorated);
@@ -746,9 +754,9 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
     if (app->fullscreen) shoes_native_app_fullscreen(app, 1);
 
     gtk_window_set_decorated(GTK_WINDOW(gk->window), app->decorated);
-
+#if GTK_CHECK_VERSION(3,8,0)
     gtk_widget_set_opacity(GTK_WIDGET(gk->window), app->opacity);
-
+#endif
     gtk_widget_set_events(gk->window, GDK_POINTER_MOTION_MASK | GDK_SCROLL_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
     g_signal_connect(G_OBJECT(gk->window), "size-allocate",
                      G_CALLBACK(shoes_app_gtk_paint), app);
