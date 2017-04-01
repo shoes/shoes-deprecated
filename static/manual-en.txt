@@ -3356,6 +3356,17 @@ Okay, let's add to the above example.
 So, when the button gets pressed, each of the checks gets asked for its status,
 using the `checked?` method.
 
+You can also set a default `checked` value.
+
+{{{
+#!ruby
+Shoes.app do
+   flow { check; para "Default check (unchecked)" }
+   flow { check checked: false; para "Unchecked check" }
+   flow { check checked: true; para "Checked check" }
+end
+}}}
+
 Button methods are listed below, but also see the list of [[Common]] methods,
 which all elements respond to.
 
@@ -3971,6 +3982,74 @@ See [[Styles.state]] style for details.
 
 See [[Styles.state]] style for details.
 
+== Spinner ==
+
+Wait are you waiting for? Spinner let you know when something is going on. !{:margin_left => 100}man-ele-spinner.png!
+
+Here is a sample switch:
+{{{
+#!ruby
+Shoes.app(width: 200, height: 80) do
+   stack left: 60, top: 20 do
+      spinner width: 80, start: true, tooltip: "waiting for something?"
+   end
+end
+}}}
+
+Spinner methods are listed below, but also see the list of [[Common]] methods,
+which all elements respond to.
+
+=== started? » true or false ===
+
+Returns either true or false whether the `spinner` element is started or stopped.
+
+{{{
+#!ruby
+Shoes.app do
+   @s = spinner width: 80
+   
+   click do |btn, left, top|
+      @s.started? ? @s.stop : @s.start
+      @p.text = @s.started?
+   end
+   
+   @p = para
+end
+}}}
+
+=== start() » self ===
+
+Start a `spinner` element.
+
+=== stop() » self ===
+
+Stop a `spinner` element.
+
+=== tooltip() » a string ===
+
+Returns a string containing the tooltip text from a `spinner` element.
+
+{{{
+#!ruby
+Shoes.app do
+   spinner tooltip: "Not spinning enough?"
+end
+}}}
+
+=== tooltip = a string ===
+
+Set the tooltip text from a `spinner` element with the given string.
+
+{{{
+Shoes.app(:width => 450, :height => 250) do
+   @s = spinner start: true
+   
+   every(1) do |count|
+      @s.tooltip = "count #{count}"
+   end
+end
+}}}
+
 == Svg ==
 
 In Shoes 3.3 we gained the ability to draw svgs. While they may appear to
@@ -4141,6 +4220,93 @@ the svg image is written.
 `Note:` When creating an svg file from a svg group this will can create an
 svg file that is quite small (or quite larger) which may not pass muster for
 strict svg parsing. 
+
+== Switch ==
+
+Switch are clickable buttons that can be either on or off. They are fantastic
+for your configuration panel. !{:margin_left => 100}man-ele-switch.png!
+
+Here is a sample switch:
+{{{
+#!ruby
+Shoes.app do
+   switch; para "turn on and off"
+end
+}}}
+
+Switch methods are listed below, but also see the list of [[Common]] methods,
+which all elements respond to.
+
+=== active? » true or false ===
+
+Returns either true or false whether the `switch` element is turned on or off.
+
+{{{
+#!ruby
+Shoes.app do
+   switch.click do |n|
+      @p.text = n.active?
+   end
+   @p = para
+end
+}}}
+
+=== active = true or false ===
+
+Turn on or off a `switch` element.
+
+{{{
+#!ruby
+Shoes.app do
+   @s = switch
+   
+   every(1) do
+      @s.active = @s.active? ^ true
+   end
+end
+}}}
+
+=== click() { |self| ... } » self ===
+
+When the switch is clicked, its `click` block is called.  The block is handed
+`self`, which is the switch object that was clicked.
+
+{{{
+#!ruby
+Shoes.app do
+   switch.click do |n|
+      alert "switch box clicked, active? #{n.active?}"
+   end
+end
+}}}
+
+Clicks are sent for both switching on and off.
+
+=== tooltip() » a string ===
+
+Returns a string containing the tooltip text from a `switch` element.
+
+{{{
+#!ruby
+Shoes.app do
+   switch tooltip: "Turn the switch on or off" do |n|
+      @p.text = n.tooltip
+   end
+   @p = para
+end
+}}}
+
+=== tooltip = a string ===
+
+Set the tooltip text from a `switch` element with the given string.
+
+{{{
+Shoes.app(:title => "Switching On and Off", :width => 450, :height => 250) do
+   switch do |n|
+      n.tooltip = "Switch is active? #{n.active?}"
+   end
+end
+}}}
 
 == Snapshot ==
 
@@ -4910,12 +5076,19 @@ Another caution - these are methods of an App instance so you need that object.
 Even when they effect more than one instance of App. Shoes creates an 'app'
 method in the Shoes.app block that you must use for the following.
 
+=== app.decorated » true or false ===
+
+Returns true or false whether the window has decorations or not. Decorations are titlebar, menu and control buttons.
+
+=== app.decorated = true or false ===
+
+Set window decorations. `true` will display titlebar, menu and control buttons and `false` will hide them.
+
 === app.fullscreen » boolean ===
 
 This returns true or false if your script is running in full screen mode
 
-
-=== app.fullscreen=(Boolean) ===
+=== app.fullscreen = (Boolean) ===
 
 Set fullscreen to true or false. If you do this, you should provide a method
 for turning it off. There's nothing more annoying that than a full screen app
@@ -4950,6 +5123,25 @@ Returns the current width.
 
 Returns the current height. Perhaps you need it and the width after going fullscreen 
 to setup your game to the size availavble. 
+
+=== app.opacity » a float number ===
+
+Returns a float number of the current window opacity. The default opacity is `1.0` where you see the window without transparency. An opacity of `0.0` is fully transparent window.
+
+=== app.opacity = a float number ===
+
+Set the window opacity with a float number. A fully transparent window has an opacity of `0.0` whereas a fully visible window has an opacity of `1.0`.
+
+{{{
+Shoes.app do
+   @b = banner "Opacity\n"
+
+   slider fraction: 1.0 do |n|
+      app.opacity = n.fraction
+      @b.text = "Opacity %.2f\n" % n.fraction
+   end
+end
+}}}
 
 === app.slot » Array ===
 
