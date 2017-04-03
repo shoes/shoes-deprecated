@@ -11,8 +11,10 @@ void shoes_progress_init() {
     rb_define_method(cProgress, "draw", CASTHOOK(shoes_progress_draw), 2);
     rb_define_method(cProgress, "fraction", CASTHOOK(shoes_progress_get_fraction), 0);
     rb_define_method(cProgress, "fraction=", CASTHOOK(shoes_progress_set_fraction), 1);
+#ifdef GTK
     rb_define_method(cProgress, "tooltip", CASTHOOK(shoes_control_get_tooltip), 0);
     rb_define_method(cProgress, "tooltip=", CASTHOOK(shoes_control_set_tooltip), 1);
+#endif
 
     RUBY_M("+progress", progress, -1);
 }

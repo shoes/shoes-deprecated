@@ -14,9 +14,10 @@ void shoes_edit_line_init() {
     rb_define_method(cEditLine, "change", CASTHOOK(shoes_control_change), -1);
     rb_define_method(cEditLine, "finish=", CASTHOOK(shoes_edit_line_enterkey), 1);
     rb_define_method(cEditLine, "to_end", CASTHOOK(shoes_edit_line_cursor_to_end), 0);
+#ifdef GTK
     rb_define_method(cEditLine, "tooltip", CASTHOOK(shoes_control_get_tooltip), 0);
     rb_define_method(cEditLine, "tooltip=", CASTHOOK(shoes_control_set_tooltip), 1);
-
+#endif
     RUBY_M("+edit_line", edit_line, -1);
 }
 

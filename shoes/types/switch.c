@@ -11,10 +11,11 @@ void shoes_switch_init() {
     rb_define_method(cSwitch, "draw", CASTHOOK(shoes_switch_draw), 2);
     rb_define_method(cSwitch, "active?", CASTHOOK(shoes_switch_get_active), 0);
     rb_define_method(cSwitch, "active=", CASTHOOK(shoes_switch_set_active),1);
+#ifdef GTK
     rb_define_method(cSwitch, "click", CASTHOOK(shoes_control_active), -1);
     rb_define_method(cSwitch, "tooltip", CASTHOOK(shoes_control_get_tooltip), 0);
     rb_define_method(cSwitch, "tooltip=", CASTHOOK(shoes_control_set_tooltip), 1);
-
+#endif
     RUBY_M("+switch", switch, -1);
 }
 

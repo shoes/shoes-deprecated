@@ -7,8 +7,16 @@
 #include "shoes/config.h"
 #include "shoes/world.h"
 #include "shoes/native/native.h"
+#include "shoes/types/native.h"
+#include "shoes/types/color.h"
+#include "shoes/types/text.h"
+#include "shoes/types/text_link.h"
+#include "shoes/types/download.h"
 #include "shoes/internal.h"
 #include "shoes/http.h"
+#include "shoes/types/video.h"
+#include "shoes/types/timerbase.h"
+extern VALUE cTimer;
 
 #import <Carbon/Carbon.h>
 
@@ -1492,6 +1500,11 @@ shoes_native_edit_line_cursor_to_end(SHOES_CONTROL_REF ref)
   return Qnil;
 }
 
+void
+shoes_native_edit_box_set_text(SHOES_CONTROL_REF ref, char *msg)
+{
+  COCOA_DO([[[(ShoesTextView *)ref textStorage] mutableString] setString: [NSString stringWithUTF8String: msg]]);
+}
 
 SHOES_CONTROL_REF
 shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
@@ -1501,7 +1514,8 @@ shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALU
     NSMakeRect(place->ix + place->dx, place->iy + place->dy,
     place->ix + place->dx + place->iw, place->iy + place->dy + place->ih)
     andObject: self];
-  shoes_native_edit_box_set_text((NSControl *)tv, msg);
+  //shoes_native_edit_box_set_text((NSControl *)tv, msg);
+  shoes_native_edit_box_set_text((SHOES_CONTROL_REF )tv, msg);
   RELEASE;
   return (NSControl *)tv;
 }
@@ -1516,11 +1530,6 @@ shoes_native_edit_box_get_text(SHOES_CONTROL_REF ref)
   return text;
 }
 
-void
-shoes_native_edit_box_set_text(SHOES_CONTROL_REF ref, char *msg)
-{
-  COCOA_DO([[[(ShoesTextView *)ref textStorage] mutableString] setString: [NSString stringWithUTF8String: msg]]);
-}
 
 void
 shoes_native_edit_box_append(SHOES_CONTROL_REF ref, char *msg)
@@ -1537,21 +1546,28 @@ shoes_native_edit_box_scroll_to_end(SHOES_CONTROL_REF ref)
 }
 
 // text_edit_box is new in 3.2.25
+void
+shoes_native_text_view_set_text(SHOES_CONTROL_REF ref, char *msg)
+{
+  COCOA_DO([[[(ShoesTextEditView *)ref textStorage] mutableString] setString: [NSString stringWithUTF8String: msg]]);
+}
+
 SHOES_CONTROL_REF
-shoes_native_text_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+shoes_native_text_view(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
   INIT;
   ShoesTextEditView *tv = [[ShoesTextEditView alloc] initWithFrame:
     NSMakeRect(place->ix + place->dx, place->iy + place->dy,
     place->ix + place->dx + place->iw, place->iy + place->dy + place->ih)
     andObject: self];
-  shoes_native_text_edit_box_set_text((NSControl *)tv, msg);
+  //shoes_native_text_view_set_text((NSControl *)tv, msg);
+  shoes_native_text_view_set_text((SHOES_CONTROL_REF)tv, msg);
   RELEASE;
   return (NSControl *)tv;
 }
 
 VALUE
-shoes_native_text_edit_box_get_text(SHOES_CONTROL_REF ref)
+shoes_native_text_view_get_text(SHOES_CONTROL_REF ref)
 {
   VALUE text = Qnil;
   INIT;
@@ -1560,14 +1576,9 @@ shoes_native_text_edit_box_get_text(SHOES_CONTROL_REF ref)
   return text;
 }
 
-void
-shoes_native_text_edit_box_set_text(SHOES_CONTROL_REF ref, char *msg)
-{
-  COCOA_DO([[[(ShoesTextEditView *)ref textStorage] mutableString] setString: [NSString stringWithUTF8String: msg]]);
-}
 
 VALUE
-shoes_native_text_edit_box_append(SHOES_CONTROL_REF ref, char *msg)
+shoes_native_text_view_append(SHOES_CONTROL_REF ref, char *msg)
 {
   COCOA_DO([[[(ShoesTextEditView *)ref textStorage] mutableString] appendString: [NSString stringWithUTF8String: msg]]);
 #ifdef dontwant
@@ -2170,4 +2181,64 @@ shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
     }
   });
   return path;
+}
+
+/*
+   New with 3.3.3: switch, spinner widgets, opacity, decoraation and tooltips.
+   TODO: Fix No-op - they will crash
+*/
+
+// --- spinner ---
+SHOES_CONTROL_REF shoes_native_spinner(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+  return (SHOES_CONTROL_REF) Qnil;  // segfault if used.
+}
+void shoes_native_spinner_start(SHOES_CONTROL_REF ref)
+{
+}
+void shoes_native_spinner_stop(SHOES_CONTROL_REF ref)
+{
+}
+gboolean shoes_native_spinner_started(SHOES_CONTROL_REF ref)
+{
+  return true;
+}
+
+// ---- switch ----
+SHOES_CONTROL_REF shoes_native_switch(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+  return (SHOES_CONTROL_REF) Qnil;  // segfault if used.
+}
+
+void shoes_native_switch_set_active(SHOES_CONTROL_REF ref, gboolean activate)
+{
+}
+
+gboolean shoes_native_switch_get_active(SHOES_CONTROL_REF ref)
+{
+  return true;
+}
+
+void shoes_native_activate(GObject *switcher, GParamSpec *pspec, gpointer data)
+{
+}
+
+// ---- opacity ----
+double shoes_native_app_get_opacity(shoes_app *app) 
+{
+  return 1.0;
+}
+
+void shoes_native_app_set_opacity(shoes_app *app, double opacity)
+{
+}
+
+// ---- descoration ----
+void shoes_native_app_set_decoration(shoes_app *app, gboolean decorated)
+{
+}
+
+gboolean shoes_native_app_get_decoration(shoes_app *app)
+{
+  return false;
 }
