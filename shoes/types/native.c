@@ -164,7 +164,7 @@ void shoes_control_send(VALUE self, ID event) {
     }
 }
 
-#ifdef GTK
+
 VALUE shoes_control_get_tooltip(VALUE self) {
     GET_STRUCT(control, self_t);
     return shoes_native_control_get_tooltip(self_t->ref);
@@ -177,7 +177,7 @@ VALUE shoes_control_set_tooltip(VALUE self, VALUE tooltip) {
 
     return self;
 }
-#endif
+
 
 void shoes_control_hide_ref(SHOES_CONTROL_REF ref) {
     if (ref != NULL) shoes_native_control_hide(ref);

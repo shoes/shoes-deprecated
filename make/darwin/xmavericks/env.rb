@@ -26,7 +26,7 @@ end
 CC = ENV['CC'] ? ENV['CC'] : "gcc"
 file_list =  %w{shoes/console/tesi.c shoes/console/colortab.c shoes/console/cocoa-term.m
   shoes/native/cocoa.m shoes/http/nsurl.m} +  ["shoes/*.c"] + ["shoes/plot/*.c"] +
-  ["shoes/types/*.c"]
+  ["shoes/types/*.c"] 
   
 #file_list << 'shoes/types/video.c'
 SRC = FileList[*file_list]

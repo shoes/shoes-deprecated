@@ -7,15 +7,7 @@
 #include "shoes/config.h"
 #include "shoes/world.h"
 #include "shoes/native/native.h"
-#include "shoes/types/native.h"
-#include "shoes/types/color.h"
-#include "shoes/types/text.h"
-#include "shoes/types/text_link.h"
-#include "shoes/types/download.h"
-#include "shoes/internal.h"
-#include "shoes/http.h"
-#include "shoes/types/video.h"
-#include "shoes/types/timerbase.h"
+#include "shoes/types/types.h"
 extern VALUE cTimer;
 
 #import <Carbon/Carbon.h>
@@ -1445,8 +1437,7 @@ shoes_native_surface_remove(SHOES_SURFACE_REF ref)
 }
 
 
-SHOES_CONTROL_REF
-shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, char *msg)
+SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
   INIT;
   ShoesButton *button = [[ShoesButton alloc] initWithType: NSMomentaryPushInButton
@@ -2185,8 +2176,25 @@ shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
 
 /*
    New with 3.3.3: switch, spinner widgets, opacity, decoraation and tooltips.
-   TODO: Fix No-op - they will crash
+   TODO: Fix No-op - they can crash
 */
+
+/*
+ * ---- tooltips ----
+ * are a property of NSView - damn near everything in osx but we might
+ * want to make sure it's a SHOES_CONTROL_REF/shoes-widget.
+*/
+void shoes_native_control_set_tooltip(SHOES_CONTROL_REF ref, VALUE tooltip)
+{ 
+    NSView *view = (NSView *)ref;
+    view.toolTip = [NSString stringWithUTF8String: RSTRING_PTR(tooltip)];
+    
+}
+
+VALUE shoes_native_control_get_tooltip(SHOES_CONTROL_REF ref) {
+  NSView *view = (NSView *)ref;
+  return rb_str_new2((char *)view.toolTip);
+}
 
 // --- spinner ---
 SHOES_CONTROL_REF shoes_native_spinner(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)

@@ -825,7 +825,8 @@ void shoes_native_app_close(shoes_app *app) {
     app->os.window = NULL;
 }
 
-# Below function doesn't work - /etc/alternatives doesn't exist.
+// Below function doesn't work - /etc/alternatives doesn't exist.
+// TODO: Appears to not be used at Shoe/ruby level
 void shoes_browser_open(char *url) {
     VALUE browser = rb_str_new2("/etc/alternatives/x-www-browser '");
     rb_str_cat2(browser, url);

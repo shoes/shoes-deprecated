@@ -98,6 +98,7 @@ main(argc, argv)
  }
 #endif
 #ifdef SHOES_QUARTZ
+  int osx_cshoes_launch = 0;
   if (argc > 1 && strcmp(argv[1], "--osx") == 0)
   {
     // only the cshoes script sets this flag. An open -a launch will not.

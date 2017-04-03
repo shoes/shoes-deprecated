@@ -12,10 +12,8 @@ void shoes_check_init() {
     rb_define_method(cCheck, "checked?", CASTHOOK(shoes_check_is_checked), 0);
     rb_define_method(cCheck, "checked=", CASTHOOK(shoes_check_set_checked), 1);
     rb_define_method(cCheck, "click", CASTHOOK(shoes_control_click), -1);
-#ifdef GTK
     rb_define_method(cCheck, "tooltip", CASTHOOK(shoes_control_get_tooltip), 0);
     rb_define_method(cCheck, "tooltip=", CASTHOOK(shoes_control_set_tooltip), 1);
-#endif
 
     RUBY_M("+check", check, -1);
 }
