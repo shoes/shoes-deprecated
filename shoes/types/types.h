@@ -14,7 +14,6 @@
 #include "shoes/types/radio.h"
 #include "shoes/types/shape.h"
 #include "shoes/types/slider.h"
-#include "shoes/types/spinner.h"
 #include "shoes/types/svg.h"
 #include "shoes/types/switch.h"
 #include "shoes/types/text.h"
@@ -41,7 +40,6 @@
 	shoes_radio_init(); \
 	shoes_shape_init(); \
 	shoes_slider_init(); \
-	shoes_spinner_init(); \
 	shoes_svg_init(); \
 	shoes_switch_init(); \
 	shoes_text_init(); \
