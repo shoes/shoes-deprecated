@@ -12,10 +12,8 @@ void shoes_spinner_init() {
     rb_define_method(cSpinner, "start", CASTHOOK(shoes_spinner_start), 0);
     rb_define_method(cSpinner, "stop", CASTHOOK(shoes_spinner_stop),0);
     rb_define_method(cSpinner, "started?", CASTHOOK(shoes_spinner_started), 0);
-#ifdef GTK
     rb_define_method(cSpinner, "tooltip", CASTHOOK(shoes_control_get_tooltip), 0);
     rb_define_method(cSpinner, "tooltip=", CASTHOOK(shoes_control_set_tooltip), 1);
-#endif
 
     RUBY_M("+spinner", spinner, -1);
 }

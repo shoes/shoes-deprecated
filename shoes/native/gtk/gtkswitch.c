@@ -7,7 +7,6 @@
 #include "shoes/internal.h"
 #include "shoes/native/gtk/gtkswitch.h"
 
-EVENT_COMMON(control, control, active)
 
 SHOES_CONTROL_REF shoes_native_switch(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg) {
     SHOES_CONTROL_REF ref = gtk_switch_new();

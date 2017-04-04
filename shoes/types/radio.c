@@ -12,10 +12,8 @@ void shoes_radio_init() {
     rb_define_method(cRadio, "checked?", CASTHOOK(shoes_check_is_checked), 0);
     rb_define_method(cRadio, "checked=", CASTHOOK(shoes_check_set_checked_m), 1);
     rb_define_method(cRadio, "click", CASTHOOK(shoes_control_click), -1);
-#ifdef GTK3
     rb_define_method(cRadio, "tooltip", CASTHOOK(shoes_control_get_tooltip), 0);
     rb_define_method(cRadio, "tooltip=", CASTHOOK(shoes_control_set_tooltip), 1);
-#endif
 
     RUBY_M("+radio", radio, -1);
 }

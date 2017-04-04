@@ -2229,6 +2229,9 @@ gboolean shoes_native_switch_get_active(SHOES_CONTROL_REF ref)
 
 void shoes_native_activate(GObject *switcher, GParamSpec *pspec, gpointer data)
 {
+    VALUE self = (VALUE)data;
+
+    shoes_control_send(self, s_active);
 }
 
 // ---- opacity ----

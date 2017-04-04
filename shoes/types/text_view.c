@@ -23,10 +23,8 @@ void shoes_text_view_init() {
     rb_define_method(cTextView, "currrent_insertion", CASTHOOK(shoes_text_view_current_insertion), 0);
     rb_define_method(cTextView, "scroll_to_insertion", CASTHOOK(shoes_text_view_scroll_to_insertion), 1);
     rb_define_method(cTextView, "scroll_to_end", CASTHOOK(shoes_text_view_scroll_to_end), 0);
-#ifdef GTK
     rb_define_method(cTextView, "tooltip", CASTHOOK(shoes_control_get_tooltip), 0);
     rb_define_method(cTextView, "tooltip=", CASTHOOK(shoes_control_set_tooltip), 1);
-#endif
 
     RUBY_M("+text_view", text_view, -1);
 }
