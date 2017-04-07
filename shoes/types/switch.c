@@ -39,7 +39,7 @@ VALUE shoes_switch_draw(VALUE self, VALUE c, VALUE actual) {
 
 VALUE shoes_switch_get_active(VALUE self) {
     GET_STRUCT(control, self_t);
-    return shoes_native_switch_get_active(self_t->ref) ? Qtrue : Qfalse;
+    return shoes_native_switch_get_active(self_t->ref);
 }
 
 VALUE shoes_switch_set_active(VALUE self, VALUE activate) {

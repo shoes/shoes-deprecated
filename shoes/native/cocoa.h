@@ -86,6 +86,18 @@
 }
 @end
 
+@interface ShoesSwitch : NSButton
+{
+  VALUE object;
+}
+@end
+
+@interface ShoesSpinner : NSProgressIndicator
+{
+  VALUE object;
+}
+@end
+
 @interface ShoesDialogAsk : NSWindow
 {
   NSWindow *win;

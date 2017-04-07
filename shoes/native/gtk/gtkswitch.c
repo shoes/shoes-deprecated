@@ -7,7 +7,6 @@
 #include "shoes/internal.h"
 #include "shoes/native/gtk/gtkswitch.h"
 
-
 SHOES_CONTROL_REF shoes_native_switch(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg) {
     SHOES_CONTROL_REF ref = gtk_switch_new();
 
@@ -26,7 +25,7 @@ SHOES_CONTROL_REF shoes_native_switch(VALUE self, shoes_canvas *canvas, shoes_pl
     return ref;
 }
 
-void shoes_native_switch_set_active(SHOES_CONTROL_REF ref, gboolean activate) {
+void shoes_native_switch_set_active(SHOES_CONTROL_REF ref, int activate) {
     gtk_switch_set_active(GTK_SWITCH(ref), activate);
 }
 
@@ -34,7 +33,7 @@ gboolean shoes_native_switch_get_active(SHOES_CONTROL_REF ref) {
     return gtk_switch_get_active(GTK_SWITCH(ref));
 }
 
-void shoes_native_activate(GObject *switcher, GParamSpec *pspec, gpointer data) {
+static void shoes_native_activate(GObject *switcher, GParamSpec *pspec, gpointer data) {
     VALUE self = (VALUE)data;
 
     shoes_control_send(self, s_active);

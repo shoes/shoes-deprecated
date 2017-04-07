@@ -5,7 +5,7 @@ Shoes.app do
    
    flow do
       @n = switch(active: true) do
-         @p.text = @n.active? unless @p.nil?
+         @p.text = (@n.active? ? "true": "false") unless @p.nil?
       end
       @p = para
    end
@@ -13,6 +13,7 @@ Shoes.app do
    flow do
       @m = switch width: 80
       @m.click do
+        $stderr.puts "Click"
         @m.active? ? @e.start : @e.stop
       end
       @e = every(1) { |count| @q.text = count unless @q.nil? }
@@ -21,7 +22,7 @@ Shoes.app do
    
    start do
       @e.stop
-      @p.text = @n.active?
+      @p.text = @n.active? ? "true" : "false"
       @m.active = true
    end
 end

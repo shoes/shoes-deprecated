@@ -2196,10 +2196,36 @@ VALUE shoes_native_control_get_tooltip(SHOES_CONTROL_REF ref) {
   return rb_str_new2((char *)view.toolTip);
 }
 
-// --- spinner ---
+/*
+ * ---- spinner ----
+ * subclass NSButton for better control. Sadly, this is not a cocoa control
+ * so it needs a lot of infrastucture to get clicks - missing a lot at the moment
+*/
+@implementation ShoesSpinner
+- (id)initWithAnObject: (VALUE)o
+{
+  if ((self = [super init]))
+  {
+    object = o;
+    self.indeterminate = true;
+    [self setStyle: NSProgressIndicatorSpinningStyle];
+    [self setBezeled: true];
+    //[self setTarget: self];
+    //[self setAction: @selector(handleClick:)];
+  }
+  return self;
+}
+
+-(IBAction)handleClick: (id)sender
+{
+  shoes_control_send(object, s_click);
+}
+@end
+
 SHOES_CONTROL_REF shoes_native_spinner(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
-  return (SHOES_CONTROL_REF) Qnil;  // segfault if used.
+  ShoesSpinner *spin  = [[ShoesSpinner alloc] initWithAnObject: self];
+  return (SHOES_CONTROL_REF) spin;
 }
 void shoes_native_spinner_start(SHOES_CONTROL_REF ref)
 {
@@ -2212,27 +2238,60 @@ gboolean shoes_native_spinner_started(SHOES_CONTROL_REF ref)
   return true;
 }
 
-// ---- switch ----
-SHOES_CONTROL_REF shoes_native_switch(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+/*
+ * ---- switch ----
+ * subclass  NSButton and see what it looks like as ToggleButton
+ * needs it own action handlers 
+*/
+@implementation ShoesSwitch
+- (id)initWithType: (NSButtonType)t andObject: (VALUE)o
 {
-  return (SHOES_CONTROL_REF) Qnil;  // segfault if used.
+  if ((self = [super init]))
+  {
+    object = o;
+    [self setButtonType: t];
+    [self setBezelStyle: NSRoundedBezelStyle];
+    [self setTarget: self];
+    [self setAction: @selector(handleClick:)];
+  }
+  return self;
+}
+-(IBAction)handleClick: (id)sender
+{
+  shoes_control_send(object, s_active);
+}
+@end
+
+SHOES_CONTROL_REF
+shoes_native_switch(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+ INIT;
+  ShoesSwitch *button = [[ShoesSwitch alloc] initWithType: NSToggleButton
+    andObject: self];
+  [button setTitle: @"Off"];
+  [button setAlternateTitle: @"On"];
+  if (!NIL_P(shoes_hash_get(attr, rb_intern("active")))) {
+    [button setState: (shoes_hash_get(attr, rb_intern("active")) == Qtrue) ?
+      NSOnState : NSOffState];
+  }
+  RELEASE;
+  return (SHOES_CONTROL_REF) button;
 }
 
-void shoes_native_switch_set_active(SHOES_CONTROL_REF ref, gboolean activate)
+void shoes_native_switch_set_active(SHOES_CONTROL_REF ref, int activate)
 {
+  ShoesSwitch *btn = (ShoesSwitch *)ref;
+  NSInteger bst = activate ? NSOnState : NSOffState;
+  [btn setState: bst];
 }
 
-gboolean shoes_native_switch_get_active(SHOES_CONTROL_REF ref)
+VALUE
+shoes_native_switch_get_active(SHOES_CONTROL_REF ref)
 {
-  return true;
+  ShoesSwitch *btn = (ShoesSwitch *)ref;
+  return ([btn state]) ? NSOnState : Qtrue ; Qfalse;
 }
 
-void shoes_native_activate(GObject *switcher, GParamSpec *pspec, gpointer data)
-{
-    VALUE self = (VALUE)data;
-
-    shoes_control_send(self, s_active);
-}
 
 // ---- opacity ----
 double shoes_native_app_get_opacity(shoes_app *app) 
@@ -2244,7 +2303,7 @@ void shoes_native_app_set_opacity(shoes_app *app, double opacity)
 {
 }
 
-// ---- descoration ----
+// ---- decoration ----
 void shoes_native_app_set_decoration(shoes_app *app, gboolean decorated)
 {
 }
