@@ -165,7 +165,7 @@ task :default => ["shoes/types/types.h", :build]
 desc "Package Shoes for distribution"
 task :package => [:version, :installer]
 
-task :build_os => [:build_skel, "#{TGT_DIR}/#{NAME}"]
+task :build_os => ["#{TGT_DIR}/#{NAME}"]
 
 task "shoes/version.h" do |t|
   File.open(t.name, 'w') do |f|
@@ -264,18 +264,18 @@ def skel_replace(line)
 end
 
 # preprocess .skel
-task :build_skel do |t|
-  Dir["bin/*.skel"].each do |src|
-    name = src.gsub(/\.skel$/, '.c')
-    File.open(src) do |skel|
-      File.open(name, 'w') do |c|
-        skel.each_line do |line|
-          c << skel_replace(line)
-        end
-      end
-    end
-  end
-end
+#task :build_skel do |t|
+#  Dir["bin/*.skel"].each do |src|
+#    name = src.gsub(/\.skel$/, '.c')
+#    File.open(src) do |skel|
+#      File.open(name, 'w') do |c|
+#        skel.each_line do |line|
+#          c << skel_replace(line)
+#        end
+#      end
+#    end
+#  end
+#end
 
 # --------------------------
 # tasks depending on Builder = MakeLinux|MakeDarwin|MakeMinGW

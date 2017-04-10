@@ -38,3 +38,4 @@ req/json
 /qtifw
 *.orig
 shoes/types/types.h
+cshoes
