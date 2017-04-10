@@ -45,7 +45,7 @@ VALUE shoes_switch_get_active(VALUE self) {
 VALUE shoes_switch_set_active(VALUE self, VALUE activate) {
     GET_STRUCT(control, self_t);
     if (self_t->ref != NULL)
-        shoes_native_switch_set_active(self_t->ref, activate);
+        shoes_native_switch_set_active(self_t->ref, activate == Qtrue);
 
     return self;
 }

@@ -2253,11 +2253,16 @@ gboolean shoes_native_spinner_started(SHOES_CONTROL_REF ref)
     [self setBezelStyle: NSRoundedBezelStyle];
     [self setTarget: self];
     [self setAction: @selector(handleClick:)];
+    [self setState: NSOffState];
+    //sw_state = 0;
   }
   return self;
 }
 -(IBAction)handleClick: (id)sender
 {
+  //fprintf(stderr, "handler: %li\n", [self state]);
+  //sw_state = sw_state ^ 1;
+  //fprintf(stderr, "h after: %li\n", [self state]);
   shoes_control_send(object, s_active);
 }
 @end
@@ -2271,25 +2276,29 @@ shoes_native_switch(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE 
   [button setTitle: @"Off"];
   [button setAlternateTitle: @"On"];
   if (!NIL_P(shoes_hash_get(attr, rb_intern("active")))) {
-    [button setState: (shoes_hash_get(attr, rb_intern("active")) == Qtrue) ?
-      NSOnState : NSOffState];
+    VALUE bstv = shoes_hash_get(attr, rb_intern("active"));
+    button.state = !NIL_P(bstv) ? NSOnState : NSOffState;
+    //fprintf(stderr, "have a initial active %li\n",button.state);
   }
+  //button->sw_state = button.state; //property -> instance_var
   RELEASE;
   return (SHOES_CONTROL_REF) button;
 }
 
 void shoes_native_switch_set_active(SHOES_CONTROL_REF ref, int activate)
 {
-  ShoesSwitch *btn = (ShoesSwitch *)ref;
+  ShoesSwitch *button = (ShoesSwitch *)ref;  
+  //fprintf(stderr, "Set_active = %i\n", activate);
   NSInteger bst = activate ? NSOnState : NSOffState;
-  [btn setState: bst];
+  [button setState: bst];
 }
 
 VALUE
 shoes_native_switch_get_active(SHOES_CONTROL_REF ref)
 {
-  ShoesSwitch *btn = (ShoesSwitch *)ref;
-  return ([btn state]) ? NSOnState : Qtrue ; Qfalse;
+  ShoesSwitch *button = (ShoesSwitch *)ref;  
+  //fprintf(stderr, "get_active -> %li\n", [button state]);
+  return [button state]  ?  Qtrue : Qfalse;
 }
 
 

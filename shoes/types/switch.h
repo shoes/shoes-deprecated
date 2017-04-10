@@ -21,9 +21,8 @@ SYMBOL_ID(active);
 extern SHOES_CONTROL_REF shoes_native_switch(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg);
 extern void shoes_native_switch_set_active(SHOES_CONTROL_REF ref, int activate);
 extern VALUE shoes_native_switch_get_active(SHOES_CONTROL_REF ref);
-#ifdef GTK3 
 //extern void shoes_native_activate(GObject *switcher, GParamSpec *pspec, gpointer data);
-#endif 
+
 
 /* each widget should have its own init function */
 void shoes_switch_init();

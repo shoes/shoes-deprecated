@@ -8,7 +8,7 @@ SYMBOL_EXTERN(active);
 
 SHOES_CONTROL_REF shoes_native_switch(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg);
 void shoes_native_switch_set_active(SHOES_CONTROL_REF ref, int activate);
-gboolean shoes_native_switch_get_active(SHOES_CONTROL_REF ref);
+VALUE shoes_native_switch_get_active(SHOES_CONTROL_REF ref);
 static void shoes_native_activate(GObject *switcher, GParamSpec *pspec, gpointer data);
 
 // EVENT_COMMON generated functions

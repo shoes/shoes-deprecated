@@ -29,8 +29,8 @@ void shoes_native_switch_set_active(SHOES_CONTROL_REF ref, int activate) {
     gtk_switch_set_active(GTK_SWITCH(ref), activate);
 }
 
-gboolean shoes_native_switch_get_active(SHOES_CONTROL_REF ref) {
-    return gtk_switch_get_active(GTK_SWITCH(ref));
+VALUE shoes_native_switch_get_active(SHOES_CONTROL_REF ref) {
+    return gtk_switch_get_active(GTK_SWITCH(ref)) ? Qtrue : Qfalse;
 }
 
 static void shoes_native_activate(GObject *switcher, GParamSpec *pspec, gpointer data) {
