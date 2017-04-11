@@ -183,7 +183,7 @@ SOLOCS = {
   'gmp'     => "#{basedll}/libgmp-10.dll", # ruby 2.2.6 needs this
 #  'gcc-dw'  => "#{basedll}/libgcc_s_dw2-1.dll",
   'gcc-dw'  => "#{basedll}/libgcc_s_dw2-1.dll",
-  'sqlite'  => "#{bindll}/sqlite3.dll"
+  'sqlite'  => "#{bindll}/libsqlite3-0.dll"
   #'sqlite'  => "#{`cygpath -m /mingw32/lib`.chomp}/sqlite3.13.0/sqlite3130.dll"
 }
 
@@ -218,9 +218,9 @@ if APP['GTK'] == 'gtk+-3.0'
       'xml2'        => "#{bindll}/libxml2-2.dll",
       'thread'      => "#{bindll}/libgthread-2.0-0.dll",
       'zlib1'       => "#{bindll}/zlib1.dll",
-      'pthread'     => "#{bindll}/libwinpthread-1.dll",
-      #'pthread'     => "#{basedll}/libwinpthread-1.dll",
-      'sjlj'        => "#{bindll}/libgcc_s_sjlj-1.dll" 
+      #'pthread'     => "#{bindll}/libwinpthread-1.dll",
+      'pthread'     => "#{basedll}/libwinpthread-1.dll",
+      #'sjlj'        => "#{bindll}/libgcc_s_sjlj-1.dll" 
     }
   )
 end

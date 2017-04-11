@@ -263,20 +263,6 @@ def skel_replace(line)
   line
 end
 
-# preprocess .skel
-#task :build_skel do |t|
-#  Dir["bin/*.skel"].each do |src|
-#    name = src.gsub(/\.skel$/, '.c')
-#    File.open(src) do |skel|
-#      File.open(name, 'w') do |c|
-#        skel.each_line do |line|
-#          c << skel_replace(line)
-#        end
-#      end
-#    end
-#  end
-#end
-
 # --------------------------
 # tasks depending on Builder = MakeLinux|MakeDarwin|MakeMinGW
 
@@ -311,7 +297,8 @@ end
 
 directory "#{TGT_DIR}"	# was 'dist'
 
-task "#{TGT_DIR}/#{NAME}" => ["#{TGT_DIR}/lib#{SONAME}.#{DLEXT}", "bin/main.o"] + ADD_DLL + ["#{NAMESPACE}:make_app"]
+#task "#{TGT_DIR}/#{NAME}" => ["#{TGT_DIR}/lib#{SONAME}.#{DLEXT}", "bin/main.o"] + ADD_DLL + ["#{NAMESPACE}:make_app"]
+task "#{TGT_DIR}/#{NAME}" => ["#{TGT_DIR}/lib#{SONAME}.#{DLEXT}", "shoes/main.o"] + ADD_DLL + ["#{NAMESPACE}:make_app"]
 
 task "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}" => ['shoes/version.h', "#{TGT_DIR}"] + OBJ + ["#{NAMESPACE}:make_so"]
 

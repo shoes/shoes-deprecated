@@ -266,7 +266,7 @@ class MakeDarwin
       bin = "#{name}-bin"
       rm_f name
       rm_f bin
-      sh "#{CC} -L#{TGT_DIR} -o #{bin} bin/main.o #{LINUX_LIBS} -lshoes #{OSX_ARCH}"
+      sh "#{CC} -L#{TGT_DIR} -o #{bin} shoes/main.o #{LINUX_LIBS} -lshoes #{OSX_ARCH}"
     end
 
     def make_so(name)

@@ -116,7 +116,7 @@ class MakeLinux
     def make_app(name)
       # name is dist/shoes
       rm_f name
-      sh "#{CC} -o #{name} bin/main.o dist/shoes.a #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
+      sh "#{CC} -o #{name} shoes/main.o dist/shoes.a #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
       # remove the static lib
       sh "rm -f #{TGT_DIR}/shoes.a"
    end

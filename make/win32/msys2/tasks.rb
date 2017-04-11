@@ -217,9 +217,9 @@ class MakeMinGW
       rm_f bin
       rm_f binc
       #extra = ENV['GDB'] == 'profile' ? '-pg' : ''
-      sh "#{CC} -o #{bin} bin/main.o shoes/appwin32.o -L#{TGT_DIR} -mwindows -lshoes #{LINUX_LIBS}"
+      sh "#{CC} -o #{bin} shoes/main.o shoes/appwin32.o -L#{TGT_DIR} -mwindows -lshoes #{LINUX_LIBS}"
       sh "#{STRIP} #{bin}" unless ENV['GDB']
-      sh "#{CC} -o #{binc} bin/main.o shoes/appwin32.o -L#{TGT_DIR} #{extra} -lshoes #{LINUX_LIBS}"
+      sh "#{CC} -o #{binc} shoes/main.o shoes/appwin32.o -L#{TGT_DIR} #{extra} -lshoes #{LINUX_LIBS}"
       sh "#{STRIP} #{binc}" unless ENV['GDB']
    end
 

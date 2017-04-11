@@ -111,7 +111,7 @@ class MakeLinux
       bin = "#{name}-bin"
       rm_f name
       rm_f bin
-      sh "#{CC} -o #{bin} bin/main.o  -L#{TGT_DIR} -lshoes #{LINUX_LIBS}"
+      sh "#{CC} -o #{bin} shoes/main.o  -L#{TGT_DIR} -lshoes #{LINUX_LIBS}"
       rewrite "platform/nix/shoes.launch", name, %r!/shoes-bin!, "/#{NAME}-bin"
       sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{name}}
       chmod 0755, "#{name}" 
