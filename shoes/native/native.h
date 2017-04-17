@@ -44,8 +44,10 @@ void shoes_native_app_title(shoes_app *, char *);
 void shoes_native_app_fullscreen(shoes_app *, char);
 double shoes_native_app_get_opacity(shoes_app *app);
 void shoes_native_app_set_opacity(shoes_app *app, double opacity);
+#ifdef DECORATION
 void shoes_native_app_set_decoration(shoes_app *app, gboolean decorated);
 gboolean shoes_native_app_get_decoration(shoes_app *app);
+#endif
 shoes_code shoes_native_app_open(shoes_app *, char *, int);
 void shoes_native_app_show(shoes_app *);
 void shoes_native_loop(void);

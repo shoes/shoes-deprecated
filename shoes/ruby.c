@@ -793,9 +793,11 @@ void shoes_ruby_init() {
     rb_define_method(cApp, "set_window_title", CASTHOOK(shoes_app_set_wtitle), 1); // New in 3.2.19
     rb_define_method(cApp, "opacity", CASTHOOK(shoes_app_get_opacity), 0);
     rb_define_method(cApp, "opacity=", CASTHOOK(shoes_app_set_opacity), 1);
+#ifdef DECORATION
     rb_define_method(cApp, "decorated", CASTHOOK(shoes_app_get_decoration), 0);
     rb_define_method(cApp, "decorated=", CASTHOOK(shoes_app_set_decoration), 1);
     rb_define_alias(cApp, "decorated?", "decorated");
+#endif
 
     cDialog = rb_define_class_under(cTypes, "Dialog", cApp);
 

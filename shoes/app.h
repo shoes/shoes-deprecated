@@ -63,8 +63,10 @@ VALUE shoes_app_get_fullscreen(VALUE);
 VALUE shoes_app_set_fullscreen(VALUE, VALUE);
 VALUE shoes_app_set_opacity(VALUE app, VALUE opacity);
 VALUE shoes_app_get_opacity(VALUE app);
+#ifdef DECORATION
 VALUE shoes_app_set_decoration(VALUE app, VALUE decorated);
 VALUE shoes_app_get_decoration(VALUE app);
+#endif
 VALUE shoes_app_slot(VALUE);
 VALUE shoes_app_set_icon(VALUE, VALUE); // New 3.2.19
 VALUE shoes_app_set_wtitle(VALUE, VALUE); // New in 3.2.19

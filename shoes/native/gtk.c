@@ -701,22 +701,23 @@ void shoes_native_app_set_wtitle(shoes_app *app, char *wtitle) {
     gtk_window_set_title(GTK_WINDOW(app->slot->oscanvas), _(wtitle));
 }
 
-
+// new in 3.3.3 - opacity -uses the deprecated 
 void shoes_native_app_set_opacity(shoes_app *app, double opacity) {
-#if GTK_CHECK_VERSION(3,8,0)
-    gtk_widget_set_opacity(GTK_WIDGET(app->os.window), opacity);
-#endif
+//  if (gtk_get_minor_version() >= 8)
+//    gtk_widget_set_opacity(GTK_WIDGET(app->os.window), opacity);
+//  else 
+    gtk_window_set_opacity(GTK_WINDOW(app->os.window), opacity);
+
 }
 
 double shoes_native_app_get_opacity(shoes_app *app) {
-#if GTK_CHECK_VERSION(3,8,0)
-    return gtk_widget_get_opacity(GTK_WIDGET(app->os.window));
-#else 
-    return 1.0;
-#endif 
+//  if (gtk_get_minor_version() >= 8)
+//    return gtk_widget_get_opacity(GTK_WIDGET(app->os.window));
+//  else
+    return gtk_window_get_opacity(GTK_WINDOW(app->os.window));
 }
 
-
+#ifdef DECORATION
 void shoes_native_app_set_decoration(shoes_app *app, gboolean decorated) {
     gtk_window_set_decorated(GTK_WINDOW(app->os.window), decorated);
 }
@@ -724,6 +725,7 @@ void shoes_native_app_set_decoration(shoes_app *app, gboolean decorated) {
 gboolean shoes_native_app_get_decoration(shoes_app *app) {
     return gtk_window_get_decorated(GTK_WINDOW(app->os.window));
 }
+#endif
 
 shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
 #if !defined(SHOES_GTK_WIN32)

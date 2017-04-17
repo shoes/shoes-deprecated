@@ -2301,7 +2301,6 @@ shoes_native_switch_get_active(SHOES_CONTROL_REF ref)
   return [button state]  ?  Qtrue : Qfalse;
 }
 
-
 // ---- opacity ----
 double shoes_native_app_get_opacity(shoes_app *app) 
 {
@@ -2312,6 +2311,8 @@ void shoes_native_app_set_opacity(shoes_app *app, double opacity)
 {
 }
 
+
+#ifdef DECORATION
 // ---- decoration ----
 void shoes_native_app_set_decoration(shoes_app *app, gboolean decorated)
 {
@@ -2321,3 +2322,4 @@ gboolean shoes_native_app_get_decoration(shoes_app *app)
 {
   return false;
 }
+#endif
