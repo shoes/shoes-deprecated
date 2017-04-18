@@ -2304,11 +2304,14 @@ shoes_native_switch_get_active(SHOES_CONTROL_REF ref)
 // ---- opacity ----
 double shoes_native_app_get_opacity(shoes_app *app) 
 {
-  return 1.0;
+  NSWindow *win = (NSWindow *)app->os.window;
+  return [win alphaValue];
 }
 
 void shoes_native_app_set_opacity(shoes_app *app, double opacity)
 {
+  NSWindow *win = (NSWindow *)app->os.window;
+  [win setAlphaValue: opacity];
 }
 
 
