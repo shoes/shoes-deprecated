@@ -717,15 +717,13 @@ double shoes_native_app_get_opacity(shoes_app *app) {
     return gtk_window_get_opacity(GTK_WINDOW(app->os.window));
 }
 
-#ifdef DECORATION
 void shoes_native_app_set_decoration(shoes_app *app, gboolean decorated) {
     gtk_window_set_decorated(GTK_WINDOW(app->os.window), decorated);
 }
 
-gboolean shoes_native_app_get_decoration(shoes_app *app) {
-    return gtk_window_get_decorated(GTK_WINDOW(app->os.window));
+int shoes_native_app_get_decoration(shoes_app *app) {
+    return gtk_window_get_decorated(GTK_WINDOW(app->os.window)) == TRUE;
 }
-#endif
 
 shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
 #if !defined(SHOES_GTK_WIN32)

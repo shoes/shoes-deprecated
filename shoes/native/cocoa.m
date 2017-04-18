@@ -2315,14 +2315,14 @@ void shoes_native_app_set_opacity(shoes_app *app, double opacity)
 }
 
 
-#ifdef DECORATION
-// ---- decoration ----
+
+// ---- decoration remove title bar, resize controls ----
 void shoes_native_app_set_decoration(shoes_app *app, gboolean decorated)
 {
 }
 
-gboolean shoes_native_app_get_decoration(shoes_app *app)
+int shoes_native_app_get_decoration(shoes_app *app)
 {
-  return false;
+  return true;
 }
-#endif
+

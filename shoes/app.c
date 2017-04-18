@@ -243,7 +243,6 @@ VALUE shoes_app_get_opacity(VALUE app) {
 }
 
 
-#ifdef DECORATION
 VALUE shoes_app_set_decoration(VALUE app, VALUE decorated) {
     shoes_app *app_t;
     Data_Get_Struct(app, shoes_app, app_t);
@@ -256,7 +255,7 @@ VALUE shoes_app_get_decoration(VALUE app) {
     Data_Get_Struct(app, shoes_app, app_t);
     return (shoes_native_app_get_decoration(app_t) ? Qtrue : Qfalse);
 }
-#endif
+
 
 shoes_code shoes_app_start(VALUE allapps, char *uri) {
     int i;

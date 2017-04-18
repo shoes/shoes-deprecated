@@ -4016,9 +4016,12 @@ See [[Styles.state]] style for details.
 
 == Spinner ==
 
-Wait are you waiting for? Spinner let you know when something is going on. !{:margin_left => 100}man-ele-spinner.png!
+Caution: this is under development (osx)
 
-Here is a sample switch:
+A Spinner is a widget that does allows you display the "I'm busy" rotating 
+animated wheel-of-slow !{:margin_left => 100}man-ele-spinner.png!
+
+Here is a sample spinner:
 {{{
 #!ruby
 Shoes.app(width: 200, height: 80) do
@@ -4029,7 +4032,7 @@ end
 }}}
 
 Spinner methods are listed below, but also see the list of [[Common]] methods,
-which all elements respond to.
+which all elements spinner may respond to.
 
 === started? » true or false ===
 
@@ -5110,11 +5113,18 @@ method in the Shoes.app block that you must use for the following.
 
 === app.decorated » true or false ===
 
-Returns true or false whether the window has decorations or not. Decorations are titlebar, menu and control buttons.
+Decorations are the title bar and window resize controls. 
+
+Returns true or false whether the window has decorations or not. See below
+for the issues involved.
 
 === app.decorated = true or false ===
 
-Set window decorations. `true` will display titlebar, menu and control buttons and `false` will hide them.
+Warning: This is highly platform/theme specific.  DO NOT assume that if it works
+for you, that it will work for anyone else. It won't work for everyone. OSX for example.
+Combined with fullscreem - you are asking for trouble. Think twice or thrice.
+
+Set window decorations. `true` will display titlebar, and resize buttons and `false` will hide them.
 
 === app.fullscreen » boolean ===
 
@@ -5158,11 +5168,13 @@ to setup your game to the size availavble.
 
 === app.opacity » a float number ===
 
-Returns a float number of the current window opacity. The default opacity is `1.0` where you see the window without transparency. An opacity of `0.0` is fully transparent window.
+Returns a float number of the current window opacity. The default opacity is `1.0` 
+where you see the window without transparency. An opacity of `0.0` is fully transparent window.
 
 === app.opacity = a float number ===
 
-Set the window opacity with a float number. A fully transparent window has an opacity of `0.0` whereas a fully visible window has an opacity of `1.0`.
+Set the window opacity with a float number. A fully transparent window has an opacity of `0.0` 
+whereas a fully visible window has an opacity of `1.0`.
 
 {{{
 Shoes.app do
