@@ -246,23 +246,6 @@ SRC.zip(OBJ).each do |c, o|
   file o => [c] + Dir["shoes/*.h"]
 end
 
-# ------
-# skel
-
-def skel_replace(line)
-  line.gsub! /\s+%DEFAULTS%/ do
-    if APPARGS
-      args = APPARGS.split(/\s+/)
-      %{
-        char *default_argv[] = {argv[0], #{args.inspect[1..-2]}};
-        argv = default_argv;
-        argc = #{args.length + 1};
-      }
-    end
-  end
-  line
-end
-
 # --------------------------
 # tasks depending on Builder = MakeLinux|MakeDarwin|MakeMinGW
 

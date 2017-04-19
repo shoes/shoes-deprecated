@@ -1364,6 +1364,8 @@ shoes_native_control_state(SHOES_CONTROL_REF ref, BOOL sensitive, BOOL setting)
       ShoesTextView *sv = (ShoesTextView *)ref;
       NSTextView *tv = sv->textView;
       [tv setEditable: setting];
+  } else if ([ref isKindOfClass: [NSProgressIndicator class]]) {
+      // not really a control
   } else {
     fprintf(stderr, "control is unknown type\n");
   }
@@ -2198,9 +2200,10 @@ VALUE shoes_native_control_get_tooltip(SHOES_CONTROL_REF ref) {
 
 /*
  * ---- spinner ----
- * subclass NSButton for better control. Sadly, this is not a cocoa control
- * so it needs a lot of infrastucture to get clicks - missing a lot at the moment
+ * subclass NSProgressIndicator  for better control. Sadly, this is not a cocoa control
+ * so it can't be first class Shoes control
 */
+
 @implementation ShoesSpinner
 - (id)initWithAnObject: (VALUE)o
 {
@@ -2210,33 +2213,47 @@ VALUE shoes_native_control_get_tooltip(SHOES_CONTROL_REF ref) {
     self.indeterminate = true;
     [self setStyle: NSProgressIndicatorSpinningStyle];
     [self setBezeled: true];
-    //[self setTarget: self];
-    //[self setAction: @selector(handleClick:)];
   }
   return self;
 }
 
--(IBAction)handleClick: (id)sender
-{
-  shoes_control_send(object, s_click);
-}
 @end
+
+void shoes_native_spinner_start(SHOES_CONTROL_REF ref)
+{
+  ShoesSpinner *spin = (ShoesSpinner *)ref;
+  spin->state = true;
+  [spin startAnimation: (id)ref]; 
+}
+void shoes_native_spinner_stop(SHOES_CONTROL_REF ref)
+{
+  ShoesSpinner *spin = (ShoesSpinner *)ref;
+  spin->state = false;
+  [spin stopAnimation: (id)ref]; 
+}
+
+int shoes_native_spinner_started(SHOES_CONTROL_REF ref)
+{
+  ShoesSpinner *spin = (ShoesSpinner *)ref;
+  return spin->state;
+}
+
 
 SHOES_CONTROL_REF shoes_native_spinner(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
   ShoesSpinner *spin  = [[ShoesSpinner alloc] initWithAnObject: self];
+  spin->state = false;
+  if (!NIL_P(shoes_hash_get(attr, rb_intern("start")))) {
+    spin->state = (Qtrue == shoes_hash_get(attr, rb_intern("start"))) ?  true: false; 
+  }
+  if (spin->state == true)
+    shoes_native_spinner_start((SHOES_CONTROL_REF)spin);
+  else
+    shoes_native_spinner_stop((SHOES_CONTROL_REF)spin);
   return (SHOES_CONTROL_REF) spin;
 }
-void shoes_native_spinner_start(SHOES_CONTROL_REF ref)
-{
-}
-void shoes_native_spinner_stop(SHOES_CONTROL_REF ref)
-{
-}
-gboolean shoes_native_spinner_started(SHOES_CONTROL_REF ref)
-{
-  return true;
-}
+
+
 
 /*
  * ---- switch ----

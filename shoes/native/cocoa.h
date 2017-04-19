@@ -95,6 +95,8 @@
 @interface ShoesSpinner : NSProgressIndicator
 {
   VALUE object;
+@public
+  BOOL state;
 }
 @end
 

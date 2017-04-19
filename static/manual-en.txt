@@ -4016,9 +4016,7 @@ See [[Styles.state]] style for details.
 
 == Spinner ==
 
-Caution: this is under development (osx)
-
-A Spinner is a widget that does allows you display the "I'm busy" rotating 
+A Spinner is a widget that allows you display the "I'm busy" rotating 
 animated wheel-of-slow !{:margin_left => 100}man-ele-spinner.png!
 
 Here is a sample spinner:
@@ -4032,7 +4030,10 @@ end
 }}}
 
 Spinner methods are listed below, but also see the list of [[Common]] methods,
-which all elements spinner may respond to.
+which all elements spinner may respond to. The default for a spinner is too
+not aninamte (spin). 
+
+Caution: In OSX, this in not a native control so it won't have a tooltip
 
 === started? » true or false ===
 
