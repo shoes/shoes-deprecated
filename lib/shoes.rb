@@ -147,7 +147,7 @@ class Shoes
   end
 
   def self.splash
-    font "#{DIR}/fonts/Lacuna.ttf"
+    font "#{DIR}/fonts/Lacuna.ttf" unless Shoes::FONTS.include? "Lacuna"
     Shoes.app width: 598, height: 520, resizable: false do
       background "#{DIR}/static/splash.png"
       style(Para, align: 'center', weight: 'bold', font: 'Lacuna Regular', size: 13)
@@ -171,7 +171,7 @@ class Shoes
           #para link(strong("Profile an App")) {Shoes.profiler and close}, :margin => 10, :margin_bottom => 4
           para link(strong("Bundle an App (shy)")) { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Package an App with Shoes")) {Shoes.app_package and close }, :margin => 10, :margin_bottom => 4
-#         para link("Obsolete: Package") { Shoes.make_pack and close }, :margin => 10, :margin_bottom => 4
+          #para link("Obsolete: Package") { Shoes.make_pack and close }, :margin => 10, :margin_bottom => 4
         end
         para 'Alt-Slash opens the console', stroke: '#00', align: 'center'
       end

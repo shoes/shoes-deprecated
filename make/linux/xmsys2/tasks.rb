@@ -72,19 +72,14 @@ module Make
     SOLOCS.each_value do |path|
       cp "#{path}", "#{TGT_DIR}"
     end
-    # do some windows things
+    # copy/setup etc/share
     mkdir_p "#{TGT_DIR}/share/glib-2.0/schemas"
-    if APP['GTK'] == "gtk+-3.0"
-      cp  "#{TGT_SYS_DIR}share/glib-2.0/schemas/gschemas.compiled" ,
+    cp  "#{TGT_SYS_DIR}share/glib-2.0/schemas/gschemas.compiled" ,
         "#{TGT_DIR}/share/glib-2.0/schemas"
-      cp_r "#{ShoesDeps}/share/fontconfig", "#{TGT_DIR}/share"
-      cp_r "#{ShoesDeps}/share/themes", "#{TGT_DIR}/share"
-      cp_r "#{ShoesDeps}/share/xml", "#{TGT_DIR}/share"
-      cp_r "#{ShoesDeps}/share/icons", "#{TGT_DIR}/share"
-   else
-      cp  "#{TGT_SYS_DIR}share/glib-2.0/schemas/gschemas.compiled" ,
-        "#{TGT_DIR}/share/glib-2.0/schemas"
-    end
+    cp_r "#{ShoesDeps}/share/fontconfig", "#{TGT_DIR}/share"
+    cp_r "#{ShoesDeps}/share/themes", "#{TGT_DIR}/share"
+    cp_r "#{ShoesDeps}/share/xml", "#{TGT_DIR}/share"
+    cp_r "#{ShoesDeps}/share/icons", "#{TGT_DIR}/share"
     sh "#{WINDRES} -I. shoes/appwin32.rc shoes/appwin32.o"
     cp_r "#{ShoesDeps}/etc", TGT_DIR
     if ENABLE_MS_THEME
@@ -96,27 +91,13 @@ module Make
       end
     end
     mkdir_p "#{ShoesDeps}/lib"
-    if APP['GTK'] == "gtk+-3.0"
-      cp_r "#{ShoesDeps}/lib/gtk-3.0", "#{TGT_DIR}/lib" #  shoes, exerb, ruby here
-    end
+    cp_r "#{ShoesDeps}/lib/gtk-3.0", "#{TGT_DIR}/lib" 
     bindir = "#{ShoesDeps}/bin"
-    #cp_r "#{bindir}/fc-cache.exe", TGT_DIR
     if File.exist?("#{bindir}/gtk-update-icon-cache-3.0.exe")
       cp "#{bindir}/gtk-update-icon-cache-3.0.exe",
             "#{TGT_DIR}/gtk-update-icon-cache.exe"
     else 
       cp  "#{bindir}/gtk-update-icon-cache.exe", TGT_DIR
-    end
-
-    # below for debugging purposes
-    if ENV['GDB'] 
-      cp "#{bindir}/fc-cat.exe", TGT_DIR
-      cp "#{bindir}/fc-list.exe", TGT_DIR
-      cp "#{bindir}/fc-match.exe", TGT_DIR
-      cp "#{bindir}/fc-pattern.exe", TGT_DIR
-      cp "#{bindir}/fc-query.exe", TGT_DIR
-      cp "#{bindir}/fc-scan.exe", TGT_DIR
-      cp "#{bindir}/fc-validate.exe", TGT_DIR
     end
  end
 

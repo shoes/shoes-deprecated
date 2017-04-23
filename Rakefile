@@ -140,6 +140,12 @@ when /linux/
       require File.expand_path('make/linux/xwin7/stubs')
       require File.expand_path('make/linux/xwin7/packdeps')
       require File.expand_path('make/gems')
+   when /xmsys2/
+      require File.expand_path('make/linux/xmsys2/env')
+      require File.expand_path('make/linux/xmsys2/tasks')
+      require File.expand_path('make/linux/xmsys2/stubs')
+      require File.expand_path('make/linux/xmsys2/packdeps')
+      require File.expand_path('make/gems')
    else
       puts "Unknown builder for #{TGT_ARCH}, removing setting"
       rm_rf "crosscompile" if File.exists? "crosscompile"
@@ -387,7 +393,6 @@ namespace :win32 do
       puts "restored to Loose Shoes build"
       rm_rf "crosscompile" if File.exists? "crosscompile"
     end
-
   end
 
   task :build => [:old_build]
@@ -417,6 +422,12 @@ namespace :linux do
     desc "Native pi2 build"
     task :pi2 do
       sh "echo 'TGT_ARCH=pi2' >crosscompile"
+    end
+    
+    desc "Cross compile for msys2 deps (mingw)"
+    task :xmsys2 do
+      puts "Cross compile for Windows MingW32"
+      sh "echo 'TGT_ARCH=xmsys2' >crosscompile"
     end
 
     desc "Cross compile to MingW32 (Gtk, 32)"
@@ -464,3 +475,11 @@ end
 #task "#{TGT_DIR}/libshoes.so" do
 #   Builder.make_so  "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
 #end
+
+task :clean do
+  $stderr.puts "Inner clean"
+end
+
+task :clobber do |t| 
+  $stderr.puts "Inner clobber #{t.inspect}"
+end
