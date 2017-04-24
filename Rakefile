@@ -426,8 +426,9 @@ namespace :linux do
     
     desc "Cross compile for msys2 deps (mingw)"
     task :xmsys2 do
-      puts "Cross compile for Windows MingW32"
+      $stderr.puts "Cross compile for Newer MingW32"
       sh "echo 'TGT_ARCH=xmsys2' >crosscompile"
+      #require File.expand_path('make/linux/xmsys2/setup')
     end
 
     desc "Cross compile to MingW32 (Gtk, 32)"
@@ -454,7 +455,7 @@ namespace :linux do
       rm_rf "crosscompile" if File.exists? "crosscompile"
     end
   end
-
+  
   task :build => [:old_build]
 
   task :make_app do
