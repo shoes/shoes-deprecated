@@ -145,6 +145,7 @@ when /linux/
       require File.expand_path('make/linux/xmsys2/tasks')
       require File.expand_path('make/linux/xmsys2/stubs')
       require File.expand_path('make/linux/xmsys2/packdeps')
+      require File.expand_path('make/linux/xmsys2/setup')
       require File.expand_path('make/gems')
    else
       puts "Unknown builder for #{TGT_ARCH}, removing setting"
@@ -269,6 +270,17 @@ task :old_build => [:pre_build, :build_os] do
   Builder.copy_files_to_dist
   Builder.copy_deps_to_dist
   Builder.setup_system_resources
+end
+
+# newer build - used by linux 
+task :static_setup do 
+  puts "rake calls :static setup" 
+  Builder.static_setup SOLOCS
+end
+
+task :new_build => [:static_setup, :build_os] do
+  $stderr.puts "new build: called"
+  abort
 end
 
 desc "Install Shoes in your ~/.shoes Directory"
@@ -429,6 +441,7 @@ namespace :linux do
       $stderr.puts "Cross compile for Newer MingW32"
       sh "echo 'TGT_ARCH=xmsys2' >crosscompile"
       #require File.expand_path('make/linux/xmsys2/setup')
+      #static_setup SOLOCS
     end
 
     desc "Cross compile to MingW32 (Gtk, 32)"
@@ -456,7 +469,13 @@ namespace :linux do
     end
   end
   
-  task :build => [:old_build]
+  #task :build => [:old_build]
+  
+  task :static_setup do 
+    Builder.static_setup SOLOCS
+  end
+  
+  task :build => [:new_build]
 
   task :make_app do
     Builder.make_app "#{TGT_DIR}/#{NAME}"
