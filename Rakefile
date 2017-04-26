@@ -79,8 +79,8 @@ end
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 #CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
 #CLEAN.include ["req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
-CLEAN.include ["#{TGT_DIR}/libshoes.dll", "#{TGT_DIR}/libshoes.dll", "#{TGT_DIR}/*.exe"]
-CLOBBER.include ["#{TGT_DIR}", "zzsetup.done", "crosscompile"]
+CLEAN.include ["#{TGT_DIR}/libshoes.dll", "#{TGT_DIR}/libshoes.dll", "#{TGT_DIR}/*shoes.exe"]
+CLOBBER.include ["#{TGT_DIR}", "zzsetup.done", "crosscompile", "shoes/**/*.o"]
 
 # for Host building for Host:
 case RUBY_PLATFORM
