@@ -78,7 +78,9 @@ end
 
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 #CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
-CLEAN.include ["req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
+#CLEAN.include ["req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
+CLEAN.include ["#{TGT_DIR}/libshoes.dll", "#{TGT_DIR}/libshoes.dll", "#{TGT_DIR}/*.exe"]
+CLOBBER.include ["#{TGT_DIR}", "zzsetup.done", "crosscompile"]
 
 # for Host building for Host:
 case RUBY_PLATFORM
@@ -273,12 +275,16 @@ task :old_build => [:pre_build, :build_os] do
 end
 
 # newer build - used by linux 
-task :static_setup do 
-  puts "rake calls :static setup" 
+file  "zzsetup.done" do
   Builder.static_setup SOLOCS
 end
 
-task :new_build => [:static_setup, :build_os] do
+task :static_setup do
+  puts "rake calls :static setup" 
+  #Builder.static_setup SOLOCS
+end
+
+task :new_build => ["zzsetup.done", :build_os] do
   $stderr.puts "new build: called"
   abort
 end
@@ -438,10 +444,8 @@ namespace :linux do
     
     desc "Cross compile for msys2 deps (mingw)"
     task :xmsys2 do
-      $stderr.puts "Cross compile for Newer MingW32"
+      puts "Cross compile newer deps (mingw)"
       sh "echo 'TGT_ARCH=xmsys2' >crosscompile"
-      #require File.expand_path('make/linux/xmsys2/setup')
-      #static_setup SOLOCS
     end
 
     desc "Cross compile to MingW32 (Gtk, 32)"
@@ -495,11 +499,3 @@ end
 #task "#{TGT_DIR}/libshoes.so" do
 #   Builder.make_so  "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
 #end
-
-task :clean do
-  $stderr.puts "Inner clean"
-end
-
-task :clobber do |t| 
-  $stderr.puts "Inner clobber #{t.inspect}"
-end

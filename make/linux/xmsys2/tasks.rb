@@ -57,6 +57,7 @@ module Make
   #  Then copy the deps.
   def pre_build
     puts "pre_build dir=#{`pwd`}"
+    return 
     rbvt = RUBY_V
     rbvm = RUBY_V[/^\d+\.\d+/]
     # remove leftovers from previous rake.
