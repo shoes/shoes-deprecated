@@ -30,6 +30,9 @@ module Make
   def copy_files glob, dir
     FileList[glob].each { |f| cp_r f, dir }
   end
+  
+  def copy_gems
+  end
 
   # Set up symlinks to lib/shoes and lib/shoes.rb so that they
   # can be edited and tested without a rake clean/build every time we 
@@ -39,6 +42,7 @@ module Make
   # not be the same as linux ln -s. 
   def pre_build
     puts "Prebuild: #{pwd}"
+    return
     mkdir_p "dist/lib/shoes"
     Dir.chdir "dist/lib/shoes" do
       Dir["../../../lib/shoes/*.rb"].each do |f|

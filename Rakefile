@@ -162,6 +162,7 @@ when /linux/
      #TGT_DIR = "dist"
      require File.expand_path('make/linux/loose/env')
      require File.expand_path('make/linux/loose/tasks')
+     require File.expand_path('make/linux/loose/setup')
   end
   Builder = MakeLinux
   NAMESPACE = :linux

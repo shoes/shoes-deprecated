@@ -96,3 +96,4 @@ LINUX_LDFLAGS = "-L. -rdynamic -Wl,-export-dynamic"
 # Main Rakefile and tasks.rb needs the below Constants
 ADD_DLL = []
 DLEXT = "so"
+SOLOCS = {} # needed to match Rakefile expectations.
