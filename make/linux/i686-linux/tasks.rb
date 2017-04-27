@@ -1,6 +1,7 @@
 module Make
   include FileUtils
 
+  #TODO: probably unused.
   def copy_files_to_dist
     puts "copy_files_to_dist dir=#{pwd}"
     if ENV['APP']

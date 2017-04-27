@@ -79,7 +79,8 @@ end
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 #CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
 #CLEAN.include ["req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
-CLEAN.include ["#{TGT_DIR}/libshoes.dll", "#{TGT_DIR}/libshoes.dll", "#{TGT_DIR}/*shoes.exe"]
+CLEAN.include ["#{TGT_DIR}/libshoes.dll", "#{TGT_DIR}/*shoes.exe", 
+    "#{TGT_DIR}/libshoes.so","#{TGT_DIR}/shoes", "#{TGT_DIR}/shoes-bin"]
 CLOBBER.include ["#{TGT_DIR}", "zzsetup.done", "crosscompile", "shoes/**/*.o"]
 
 # for Host building for Host:
@@ -124,13 +125,16 @@ when /linux/
       require File.expand_path('make/linux/x86_64-linux/env')
       require File.expand_path('make/linux/x86_64-linux/tasks')
       require File.expand_path("make/gems")
+      require File.expand_path('make/linux/x86_64-linux/setup')
     when /i686-linux/
       require File.expand_path('make/linux/i686-linux/env')
       require File.expand_path('make/linux/i686-linux/tasks')
       require File.expand_path("make/gems")
+      require File.expand_path('make/linux/i686-linux/setup')
     when /pi2/
       require File.expand_path('make/linux/pi2/env')
       require File.expand_path('make/linux/pi2/tasks')
+      require File.expand_path('make/linux/pi2/setup')
       require File.expand_path("make/gems")
     when /xarmv6hf/
       require File.expand_path('make/linux/xarm6hf/env')
@@ -274,9 +278,13 @@ task :old_build => [:pre_build, :build_os] do
   Builder.setup_system_resources
 end
 
-# newer build - used by linux 
+# newer build - used by linux, so far.
 file  "zzsetup.done" do
   Builder.static_setup SOLOCS
+  Builder.copy_gems #used to be common_build
+  # not here. not now 
+  # Builder.copy_deps_to_dist # runs strip
+  Builder.setup_system_resources
 end
 
 task :static_setup do
