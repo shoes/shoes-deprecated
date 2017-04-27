@@ -379,10 +379,6 @@ namespace :osx do
     #  sh "echo 'TGT_ARCH=xsnow' >crosscompile"
     #end
 
-    desc "restore build my current system"
-    task :clean do
-      rm_rf "crosscompile"
-    end
   end
 
   task :build => [:old_build]
@@ -415,11 +411,6 @@ namespace :win32 do
       sh "echo TGT_ARCH=msys2 >crosscompile"
     end
     
-    desc "remove win32 setup"
-    task :clean do
-      puts "restored to Loose Shoes build"
-      rm_rf "crosscompile" if File.exists? "crosscompile"
-    end
   end
 
   task :build => [:old_build]
@@ -475,11 +466,6 @@ namespace :linux do
       sh "echo 'TGT_ARCH=x86_64-linux' >crosscompile"
     end
 
-    desc "Remove linux compile setup"
-    task :clean do
-      puts "restored to native build"
-      rm_rf "crosscompile" if File.exists? "crosscompile"
-    end
   end
   
   #task :build => [:old_build]
