@@ -92,7 +92,8 @@ module Make
       mkdir_p ini_path
       File.open "#{ini_path}/settings.ini", mode: 'w' do |f|
         f.write "[Settings]\n"
-        f.write "gtk-theme-name=win32"
+        f.write "#gtk-theme-name=win32\n"
+        f.write "#gtk-theme-name=ms-windows\n"
       end
     end
     mkdir_p "#{ShoesDeps}/lib"

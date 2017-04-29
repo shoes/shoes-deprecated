@@ -95,14 +95,7 @@ module Make
     end
     # setup GTK stuff
     mkdir_p "#{TGT_DIR}/share/glib-2.0/schemas"
-    if APP['GTK'] == "gtk+-2.0"
-      cp_r"#{ShoesDeps}/share/glib-2.0/schemas/gschema.dtd",
-        "#{TGT_DIR}/share/glib-2.0/schemas"
-      cp_r "#{ShoesDeps}/share/fontconfig", "#{TGT_DIR}/share"
-      cp_r "#{ShoesDeps}/share/themes", "#{TGT_DIR}/share"
-      cp_r "#{ShoesDeps}/share/xml", "#{TGT_DIR}/share"
-      cp_r "#{ShoesDeps}/share/icons", "#{TGT_DIR}/share"
-    elsif APP['GTK'] == "gtk+-3.0"
+    if APP['GTK'] == "gtk+-3.0"
       cp  "#{ShoesDeps}/share/glib-2.0/schemas/gschemas.compiled" ,
         "#{TGT_DIR}/share/glib-2.0/schemas"
       cp_r "#{ShoesDeps}/share/fontconfig", "#{TGT_DIR}/share"
@@ -115,11 +108,18 @@ module Make
     end
     sh "#{WINDRES} -I. shoes/appwin32.rc shoes/appwin32.o"
     cp_r "#{ShoesDeps}/etc", TGT_DIR
+    if ENABLE_MS_THEME
+      ini_path = "#{TGT_DIR}/etc/gtk-3.0"
+      mkdir_p ini_path
+      File.open "#{ini_path}/settings.ini", mode: 'w' do |f|
+        f.write "[Settings]\n"
+        f.write "#gtk-theme-name=win32\n"
+        f.write "#gtk-theme-name=ms-windows\n"
+      end
+    end
     mkdir_p "#{ShoesDeps}/lib"
     if APP['GTK'] == "gtk+-3.0"
       cp_r "#{ShoesDeps}/lib/gtk-3.0", "#{TGT_DIR}/lib" #  shoes, exerb, ruby here
-    else
-      cp_r "#{ShoesDeps}/lib/gtk-2.0", "#{TGT_DIR}/lib" #  shoes, exerb, ruby here
     end
     bindir = "#{ShoesDeps}/bin"
     #cp_r "#{bindir}/fc-cache.exe", TGT_DIR
@@ -133,15 +133,6 @@ module Make
       cp "#{bindir}/fc-query.exe", TGT_DIR
       cp "#{bindir}/fc-scan.exe", TGT_DIR
       cp "#{bindir}/fc-validate.exe", TGT_DIR
-    end
-    # disable MS Theme
-    if !ENABLE_MS_THEME 
-      Dir.chdir("#{TGT_DIR}/share/themes/MS-Windows/gtk-2.0/") do
-        mv 'gtkrc', 'disabled-gtkrc'
-      end
-    else
-      # add our overrides to the MS-Windows theme
-      cp "platform/msw/gtkrc", "#{TGT_DIR}/etc/gtk-2.0/"
     end
 end
 
