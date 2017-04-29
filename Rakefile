@@ -144,6 +144,7 @@ when /linux/
       require File.expand_path('make/linux/xwin7/env')
       require File.expand_path('make/linux/xwin7/tasks')
       require File.expand_path('make/linux/xwin7/stubs')
+      require File.expand_path('make/linux/xwin7/setup')
       require File.expand_path('make/linux/xwin7/packdeps')
       require File.expand_path('make/gems')
    when /xmsys2/
