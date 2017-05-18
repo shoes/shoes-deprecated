@@ -20,6 +20,8 @@
 	<string>APPL</string>
   <key>IFMajorVersion</key>
   <integer>0</integer>
+  <key>NSHighResolutionCapable</key>
+  <string>true</string>
   <key>IFMinorVersion</key>
   <integer>1</integer>
 	<key>CFBundleDocumentTypes</key>

@@ -231,6 +231,13 @@ class MakeDarwin
 
     def setup_system_resources
       puts "Enter setup_system_resources"
+      # create plist version string
+      tf = File.open("VERSION.txt")
+      str = tf.readline
+      tf.close
+      flds = str.split(' ');
+      APP['plist_version_string'] = "#{flds[1]} #{flds[2]} #{flds[3]}"
+      puts "plist_version_string #{APP['plist_version_string']}"
       tmpd = "/tmp"
       rm_rf "#{tmpd}/#{APPNAME}.app"
       mkdir "#{tmpd}/#{APPNAME}.app"
