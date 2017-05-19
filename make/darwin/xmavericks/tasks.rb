@@ -45,6 +45,24 @@ module Make
       end
     end
   end
+  
+  def rewrite_ary before, after, reg = /\#\{(\w+\[\'\w+\'\])\}/, reg2 = '\1'
+    File.open(after, 'w') do |a|
+      File.open(before) do |b|
+        b.each do |line|
+          a << line.gsub(reg) do
+            if reg2.include? '\1'
+              #reg2.gsub(%r!\\1!, Object.const_get($1))
+              sub = eval $1
+              reg2.gsub(%r!\\1!, sub)
+            else
+              reg2
+            end
+          end
+        end
+      end
+    end
+  end
 
   def copy_files glob, dir
     FileList[glob].each { |f| cp_r f, dir }
@@ -245,9 +263,17 @@ class MakeDarwin
       cp_r "#{TGT_DIR}", "#{tmpd}/#{APPNAME}.app/Contents/MacOS"
       mkdir "#{tmpd}/#{APPNAME}.app/Contents/Resources"
       mkdir "#{tmpd}/#{APPNAME}.app/Contents/Resources/English.lproj"
+      
       sh "ditto \"#{APP['icons']['osx']}\" \"#{tmpd}/#{APPNAME}.app/App.icns\""
       sh "ditto \"#{APP['icons']['osx']}\" \"#{tmpd}/#{APPNAME}.app/Contents/Resources/App.icns\""
-      rewrite "platform/mac/Info.plist", "#{tmpd}/#{APPNAME}.app/Contents/Info.plist"
+
+      #rewrite "platform/mac/Info.plist", "#{tmpd}/#{APPNAME}.app/Contents/Info.plist"
+      rewrite "platform/mac/Info.plist", "#{tmpd}/#{APPNAME}.app/Contents/Info.plist-1"
+      rewrite_ary  "#{tmpd}/#{APPNAME}.app/Contents/Info.plist-1",
+         "#{tmpd}/#{APPNAME}.app/Contents/Info.plist"
+     
+      rm "#{tmpd}/#{APPNAME}.app/Contents/Info.plist-1"
+      
       cp "platform/mac/version.plist", "#{tmpd}/#{APPNAME}.app/Contents/"
       rewrite "platform/mac/pangorc", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/pangorc"
       cp "platform/mac/command-manual.rb", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/"
