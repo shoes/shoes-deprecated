@@ -284,8 +284,6 @@ end
 file  "zzsetup.done" do
   Builder.static_setup SOLOCS
   Builder.copy_gems #used to be common_build
-  # not here. not now 
-  # Builder.copy_deps_to_dist # runs strip
   Builder.setup_system_resources
 end
 
