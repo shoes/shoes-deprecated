@@ -161,6 +161,7 @@ when /linux/
   else
      # This is Loose Shoes setup
      #TGT_DIR = "dist"
+     require File.expand_path('make/subsys')
      require File.expand_path('make/linux/loose/env')
      require File.expand_path('make/linux/loose/tasks')
      require File.expand_path('make/linux/loose/setup')
@@ -288,13 +289,13 @@ file  "zzsetup.done" do
 end
 
 task :static_setup do
-  puts "rake calls :static setup" 
+  $stderr.puts "rake calls :static setup" 
   #Builder.static_setup SOLOCS
 end
 
-task :new_build => ["zzsetup.done", :build_os] do
+SubDirs = ["shoes/base.lib", "shoes/plot/plot.lib", "shoes/console/console.lib"]
+task :new_build => ["zzsetup.done"] + SubDirs do
   $stderr.puts "new build: called"
-  abort
 end
 
 desc "Install Shoes in your ~/.shoes Directory"
@@ -312,7 +313,6 @@ end
 
 directory "#{TGT_DIR}"	# was 'dist'
 
-#task "#{TGT_DIR}/#{NAME}" => ["#{TGT_DIR}/lib#{SONAME}.#{DLEXT}", "bin/main.o"] + ADD_DLL + ["#{NAMESPACE}:make_app"]
 task "#{TGT_DIR}/#{NAME}" => ["#{TGT_DIR}/lib#{SONAME}.#{DLEXT}", "shoes/main.o"] + ADD_DLL + ["#{NAMESPACE}:make_app"]
 
 task "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}" => ['shoes/version.h', "#{TGT_DIR}"] + OBJ + ["#{NAMESPACE}:make_so"]
@@ -488,8 +488,3 @@ namespace :linux do
   end
 
 end
-
-# Note the following works: Not pretty but it works
-#task "#{TGT_DIR}/libshoes.so" do
-#   Builder.make_so  "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
-#end
