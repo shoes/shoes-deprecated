@@ -1,6 +1,6 @@
 # this is make _like_. very detailed.
 Base_h = FileList["shoes/*.h"] - ["shoes/appwin32.h", "shoes/version.h"]
-# touching one of those should rebuild everything. 
+# touching one of those chould rebuild everything. 
 
 # Shoes shoes/base.lib (canvas, ruby, image....
 base_src = FileList["shoes/*.c"]
@@ -118,4 +118,5 @@ else
     sh "ranlib shoes/console/console.lib"
   end
 end
+
 

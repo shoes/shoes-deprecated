@@ -125,9 +125,25 @@ class MakeLinux
       sh "rm -f #{TGT_DIR}/shoes.a"
     end
    
-    # this is for the file task based new_build
+    # this is for the file task based new_builder
     def new_link
-      sh "#{CC} -o dist/shoes #{SubDirs.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
+      #sh "#{CC} -o dist/shoes shoes/main.o #{SubDirs.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
+      # above almost works. Lets try something old like: Make  shoes.a from
+      # loose obj files (re-implement make_so)
+
+      objs = []
+      SubDirs.each do |f|
+        d = File.dirname(f)
+        $stderr.puts "collecting .o from #{d}"
+        objs = objs + FileList["#{d}/*.o"]      
+      end
+      # TODO  fix: gtk - needs to dig deeper
+      objs = objs + FileList["shoes/native/gtk/*.o"]
+      main_o = 'shoes/main.o'
+      objs = objs - [main_o]
+      sh "ar -rc dist/shoes.a #{objs.join(' ')}"
+      sh "ranlib dist/shoes.a"
+      sh "#{CC} -o dist/shoes #{main_o} dist/shoes.a #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
     end
 
     # make a static library 

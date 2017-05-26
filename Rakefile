@@ -296,11 +296,11 @@ end
 
 SubDirs = ["shoes/base.lib", "shoes/http/download.lib", "shoes/plot/plot.lib",
     "shoes/console/console.lib", "shoes/types/widgets.lib", "shoes/native/native.lib"]
-task :new_build => ["zzsetup.done", "shoes/types/types.h"] + SubDirs do
+task :new_build => ["zzsetup.done", "shoes/types/types.h"] + SubDirs  do
   # We can link shoes here - this can be done via a Builder call or
   # some more cleverness with file tasks.
   Builder.new_link
-  $stderr.puts "new build: called"
+  #$stderr.puts "new build: called"
 end
 
 desc "Install Shoes in your ~/.shoes Directory"
