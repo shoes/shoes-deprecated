@@ -27,10 +27,11 @@ LINUX_CFLAGS << " #{`pkg-config --cflags gtk+-3.0`.strip}"
 
 CC = "gcc"
 
-gtk_extra_list = Dir["shoes/native/*.c"] - ["shoes/native/gtk.c"]
+#gtk_extra_list = Dir["shoes/native/*.c"] - ["shoes/native/gtk.c"]
 
-file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list +
-    ["shoes/types/*.c"] + ["shoes/native/gtk/*.c"]
+#file_list = %w{shoes/native/gtk.c} + gtk_extra_list +
+#    ["shoes/native/gtk/*.c"]
+file_list = []
 #file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"] +
 #     ["shoes/plot/*.c"] + ["shoes/types/*.c"] + ["shoes/native/gtk/*.c"] + console_list
      

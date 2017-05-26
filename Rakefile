@@ -176,7 +176,7 @@ end
 # common platform tasks
 
 desc "Same as `rake build'"
-task :default => ["shoes/types/types.h", :build]
+task :default => [:build]
 
 desc "Package Shoes for distribution"
 task :package => [:version, :installer]
@@ -213,7 +213,7 @@ task "shoes/version.h" do |t|
   end
 end
 
-# FIXME: Left for historical reasons (aka OSX)
+# TODO: Left for historical reasons (aka OSX)
 task "#{TGT_DIR}/VERSION.txt" do |t|
   File.open(t.name, 'w') do |f|
     f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION}) [#{SHOES_RUBY_ARCH} Ruby#{RUBY_V}]}
@@ -222,7 +222,8 @@ task "#{TGT_DIR}/VERSION.txt" do |t|
   end
 end
 
-task "shoes/types/types.h" do |t|
+#TODO" should the following be a task or file? 
+file "shoes/types/types.h" do |t|
    puts "Processing #{t.name}..."
    
    rm_rf "shoes/types/types.h" if File.exists? "shoes/types/types.h"
@@ -247,7 +248,7 @@ def create_version_file file_path
   end
 end
 
-# FIXME: called from osx(s) copy_files_to_dist in task.rb
+# TODO: called from osx(s) copy_files_to_dist in task.rb
 def osx_version_txt t
   create_version_file t
 end
@@ -293,8 +294,12 @@ task :static_setup do
   #Builder.static_setup SOLOCS
 end
 
-SubDirs = ["shoes/base.lib", "shoes/plot/plot.lib", "shoes/console/console.lib"]
-task :new_build => ["zzsetup.done"] + SubDirs do
+SubDirs = ["shoes/base.lib", "shoes/http/download.lib", "shoes/plot/plot.lib",
+    "shoes/console/console.lib", "shoes/types/widgets.lib", "shoes/native/native.lib"]
+task :new_build => ["zzsetup.done", "shoes/types/types.h"] + SubDirs do
+  # We can link shoes here - this can be done via a Builder call or
+  # some more cleverness with file tasks.
+  Builder.new_link
   $stderr.puts "new build: called"
 end
 

@@ -123,7 +123,12 @@ class MakeLinux
       sh "#{CC} -o #{name} shoes/main.o dist/shoes.a #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
       # remove the static lib
       sh "rm -f #{TGT_DIR}/shoes.a"
-   end
+    end
+   
+    # this is for the file task based new_build
+    def new_link
+      sh "#{CC} -o dist/shoes #{SubDirs.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
+    end
 
     # make a static library 
     def make_so(name)

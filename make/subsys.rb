@@ -14,9 +14,71 @@ end
 file "shoes/base.lib" => base_obj do
   objs = Dir['shoes/*.o']
   sh "ar -rc shoes/base.lib #{objs.join(' ')}"
+  sh "ranlib shoes/base.lib"
 end
 
-# Shoes/types - 
+# Shoes/widget ruby interface (aka types/)
+rbwidget_src = FileList["shoes/types/*.c"]
+rbwidget_obj = []
+rbwidget_hdr = []
+rbwidget_src.each do |c|
+  o = c.gsub(/.c$/, '.o')
+  rbwidget_obj << o
+  h = c.gsub(/.c$/, '.h')
+  rbwidget_hdr << h
+  file o => [c] + [h] + Base_h
+end
+
+file "shoes/types/widgets.lib" => rbwidget_obj do
+  objs = Dir['shoes/types/*.o']
+  sh "ar -rc shoes/types/widgets.lib #{objs.join(' ')}"
+  sh "ranlib shoes/types/widgets.lib"
+end
+
+# Shoe Native
+nat_src = []
+nat_obj = []
+if RUBY_PLATFORM =~ /darwin/
+  #TODO ? 
+  file "shoes/native/cocoa.o" => ["shoes/native/cocoa.m", "shoes/native/cocoa.h"] +
+      Base_h do
+    sh "ar -rcs shoes/native/native.lib shoes/native/cocoa.o"
+  end
+else
+  nat_src = FileList['shoes/native/gtk/*.c']
+  nat_src.each do |c|
+    o = c.gsub(/.c$/, '.o')
+    nat_obj << o
+    h = c.gsub(/.c$/, '.h')
+    file o => [c] + [h] + ['shoes/native/native.h'] + Base_h
+  end
+  file "shoes/native/gtk.o" => ["shoes/native/gtk.h", "shoes/native/native.h"] + Base_h
+  file "shoes/native/native.lib" => ['shoes/native/gtk.o'] + nat_obj do
+    sh "ar -rc shoes/native/native.lib shoes/native/gtk.o #{nat_obj.join(' ')}"
+    sh "ranlib shoes/native/native.lib"
+  end
+end
+
+
+
+# Shoes/http
+dnl_src = []
+dnl_obj = []
+if RUBY_PLATFORM =~ /darwin/
+  #TODO - compile nsurl.m and rbload.c?
+else
+  dnl_src = ["shoes/http/rbload.c"]
+  dnl_obj = []
+end
+dnl_src.each do |c|
+  o = c.gsub(/.c$/, '.o')
+  dnl_obj << o
+  file o => [c] + Base_h
+end
+file "shoes/http/download.lib" => dnl_obj do
+  sh "ar -rc shoes/http/download.lib #{dnl_obj.join(' ')}"
+  sh "ranlib shoes/http/download.lib"
+end
 
 # Plot
 Plot_Src = FileList['shoes/plot/*.c']
@@ -33,6 +95,7 @@ file "shoes/plot/plot.lib" => Plot_Obj do
   objs = Dir['shoes/plot/*.o']
   #$stderr.puts "objs: #{objs.inspect}"
   sh "ar -rc shoes/plot/plot.lib #{objs.join(' ')}"
+  sh "ranlib shoes/plot/plot.lib"
 end
 
 # Console 
@@ -52,6 +115,7 @@ else
   end
   file "shoes/console/console.lib" =>  obj do
     sh "ar -rc shoes/console/console.lib #{obj.join(' ')}"
+    sh "ranlib shoes/console/console.lib"
   end
 end
 
