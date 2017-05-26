@@ -125,25 +125,30 @@ class MakeLinux
       sh "rm -f #{TGT_DIR}/shoes.a"
     end
    
-    # this is for the file task based new_builder
-    def new_link
-      #sh "#{CC} -o dist/shoes shoes/main.o #{SubDirs.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
-      # above almost works. Lets try something old like: Make  shoes.a from
-      # loose obj files (re-implement make_so)
-
+    # this is called from the file task based new_builder unlike anything seen before
+    def new_so (name) 
+      tgts = name.split('/')
+      tgtd = tgts[0]
+      $stderr.puts "new_so: #{tgtd}"
       objs = []
       SubDirs.each do |f|
         d = File.dirname(f)
         $stderr.puts "collecting .o from #{d}"
         objs = objs + FileList["#{d}/*.o"]      
       end
-      # TODO  fix: gtk - needs to dig deeper
+      # TODO  fix: gtk - needs to dig deeper vs osx
       objs = objs + FileList["shoes/native/gtk/*.o"]
       main_o = 'shoes/main.o'
       objs = objs - [main_o]
-      sh "ar -rc dist/shoes.a #{objs.join(' ')}"
-      sh "ranlib dist/shoes.a"
-      sh "#{CC} -o dist/shoes #{main_o} dist/shoes.a #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
+      sh "ar -rc #{tgtd}/shoes.lib #{objs.join(' ')}"
+      sh "ranlib #{tgtd}/shoes.lib"    
+    end
+    
+    def new_link name
+       tgts = name.split('/')
+       tgtd = tgts[0]
+       $stderr.puts "new_link: #{tgtd}"
+       sh "#{CC} -o #{name}  shoes/main.o #{tgtd}/shoes.lib #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
     end
 
     # make a static library 
