@@ -119,6 +119,6 @@ else
   end
 end
 
-# create an shoes.lib archive from all the *.o
+
 
 

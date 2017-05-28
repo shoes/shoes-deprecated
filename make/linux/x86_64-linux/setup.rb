@@ -3,8 +3,6 @@ require 'fileutils'
 module Make
   include FileUtils
  
-  #  Windows cross compile.  Copy the static stuff, Copy the ruby libs
-  #  Then copy the deps.
   def static_setup (so_list)
     $stderr.puts "setup: dir=#{`pwd`}"
     rbvt = RUBY_V
@@ -22,13 +20,12 @@ module Make
     cp   "CHANGELOG", "#{TGT_DIR}/CHANGELOG.txt"
     cp   "COPYING", "#{TGT_DIR}/COPYING.txt"
     # clean out leftovers from last build
-    #rm_f "#{TGT_DIR}/libruby.so" if File.exist? "#{TGT_DIR}/libruby.so"
-    #rm_f "#{TGT_DIR}/libruby.so.#{rbvm}" if File.exist? "#{TGT_DIR}/libruby.so.#{rbvm}"
-    #rm_f "#{TGT_DIR}/libruby.so.#{rbvt}" if File.exist? "#{TGT_DIR}/libruby.so.#{rbvt}"
+    rm_f "#{TGT_DIR}/libruby.so" if File.exist? "#{TGT_DIR}/libruby.so"
+    rm_f "#{TGT_DIR}/libruby.so.#{rbvm}" if File.exist? "#{TGT_DIR}/libruby.so.#{rbvm}"
+    rm_f "#{TGT_DIR}/libruby.so.#{rbvt}" if File.exist? "#{TGT_DIR}/libruby.so.#{rbvt}"
     cp_r "#{EXT_RUBY}/lib/ruby", "#{TGT_DIR}/lib", remove_destination:  true
     # copy and link libruby.so
     cp "#{EXT_RUBY}/lib/libruby.so.#{rbvm}", "#{TGT_DIR}"
-
     # copy include files - it might help build gems
     mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-#{rbvt}"
     cp_r "#{EXT_RUBY}/include/ruby-#{rbvt}/", "#{TGT_DIR}/lib/ruby/include"
@@ -38,7 +35,6 @@ module Make
     SOLOCS.each_value do |path|
       cp "#{path}", "#{TGT_DIR}"
     end   # create a file for rake 
-    touch "zzsetup.done"
   end
 end
 

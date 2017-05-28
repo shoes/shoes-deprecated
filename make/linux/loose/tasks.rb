@@ -133,7 +133,7 @@ class MakeLinux
       objs = []
       SubDirs.each do |f|
         d = File.dirname(f)
-        $stderr.puts "collecting .o from #{d}"
+        #$stderr.puts "collecting .o from #{d}"
         objs = objs + FileList["#{d}/*.o"]      
       end
       # TODO  fix: gtk - needs to dig deeper vs osx
@@ -148,7 +148,7 @@ class MakeLinux
        tgts = name.split('/')
        tgtd = tgts[0]
        $stderr.puts "new_link: #{tgtd}"
-       sh "#{CC} -o #{name}  shoes/main.o #{tgtd}/shoes.lib #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
+       sh "#{CC} -o #{tgts[0]}/shoes  shoes/main.o #{tgtd}/shoes.lib #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
     end
 
     # make a static library 

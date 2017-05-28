@@ -80,8 +80,10 @@ BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 #CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
 #CLEAN.include ["req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
 CLEAN.include ["#{TGT_DIR}/libshoes.dll", "#{TGT_DIR}/*shoes.exe", 
-    "#{TGT_DIR}/libshoes.so","#{TGT_DIR}/shoes", "#{TGT_DIR}/shoes-bin"]
-CLOBBER.include ["#{TGT_DIR}", "zzsetup.done", "crosscompile", "shoes/**/*.o"]
+    "#{TGT_DIR}/libshoes.so","#{TGT_DIR}/shoes", "#{TGT_DIR}/shoes-bin",
+    "shoes/**/*.o", "shoes/**/*.lib"]
+CLOBBER.include ["#{TGT_DIR}", "zzsetup.done", "crosscompile", "shoes/**/*.o",
+    "shoes/**/*.lib"]
 
 # for Host building for Host:
 case RUBY_PLATFORM
@@ -124,6 +126,7 @@ when /linux/
     when /x86_64-linux/
       require File.expand_path('make/linux/x86_64-linux/env')
       require File.expand_path('make/linux/x86_64-linux/tasks')
+      require File.expand_path('make/subsys')
       require File.expand_path("make/gems")
       require File.expand_path('make/linux/x86_64-linux/setup')
     when /i686-linux/
@@ -142,6 +145,7 @@ when /linux/
       require File.expand_path('make/gems')
    when /xwin7/
       require File.expand_path('make/linux/xwin7/env')
+      require File.expand_path('make/subsys')
       require File.expand_path('make/linux/xwin7/tasks')
       require File.expand_path('make/linux/xwin7/stubs')
       require File.expand_path('make/linux/xwin7/setup')
@@ -222,7 +226,7 @@ task "#{TGT_DIR}/VERSION.txt" do |t|
   end
 end
 
-#TODO" should the following be a task or file? 
+#TODO: should the following be a task or file? 
 file "shoes/types/types.h" do |t|
    puts "Processing #{t.name}..."
    
@@ -282,11 +286,13 @@ task :old_build => [:pre_build, :build_os] do
   Builder.setup_system_resources
 end
 
-# newer build - used by linux, so far.
+# ---------  newer build - used by linux, so far -------
+
 file  "zzsetup.done" do
   Builder.static_setup SOLOCS
   Builder.copy_gems #used to be common_build
   Builder.setup_system_resources
+  touch "zzsetup.done"
 end
 
 task :static_setup do
@@ -296,15 +302,22 @@ end
 
 SubDirs = ["shoes/base.lib", "shoes/http/download.lib", "shoes/plot/plot.lib",
     "shoes/console/console.lib", "shoes/types/widgets.lib", "shoes/native/native.lib"]
-file "#{TGT_DIR}/#{NAME}/shoes.lib" => ["zzsetup.done", "shoes/types/types.h"] + SubDirs do
-  Builder.new_so "#{TGT_DIR}/#{NAME}/shoes.lib"
+    
+# Windows does't use console - don't try to build it.
+case TGT_DIR
+  when 'win7', 'xwin7', 'msys2', 'xmsys2'
+    SubDirs.delete("shoes/console/console.lib")
 end
+file "#{TGT_DIR}/libshoes.so" => ["zzsetup.done", "shoes/types/types.h"] + SubDirs do
+  Builder.new_so "#{TGT_DIR}/libshoes.so"
+end
+
 #task :new_build => ["zzsetup.done", "shoes/types/types.h"] + SubDirs  do
-task :new_build => "#{TGT_DIR}/#{NAME}/shoes.lib"  do
+task :new_build => "#{TGT_DIR}/libshoes.so"  do
   # We can link shoes here - this can be done via a Builder call or
-  # some more cleverness with file tasks.
-  Builder.new_link "#{TGT_DIR}/#{NAME}"
-  $stderr.puts "new build: called for #{TGT_DIR}/#{NAME}"
+
+  Builder.new_link "#{TGT_DIR}/shoes"
+  $stderr.puts "new build: called for #{TGT_DIR}"
 end
 
 desc "Install Shoes in your ~/.shoes Directory"

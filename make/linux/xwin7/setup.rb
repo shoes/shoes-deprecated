@@ -10,10 +10,10 @@ module Make
     rbvt = RUBY_V
     rbvm = RUBY_V[/^\d+\.\d+/]
     # remove leftovers from previous rake.
-    #rm_rf "#{TGT_DIR}/lib"
-    #rm_rf "#{TGT_DIR}/etc"
-    #rm_rf "#{TGT_DIR}/share"
-    #rm_rf "#{TGT_DIR}/conf.d"
+    rm_rf "#{TGT_DIR}/lib"
+    rm_rf "#{TGT_DIR}/etc"
+    rm_rf "#{TGT_DIR}/share"
+    rm_rf "#{TGT_DIR}/conf.d"
     mkdir_p "#{TGT_DIR}/fonts"
     cp_r "fonts", "#{TGT_DIR}/fonts"
     mkdir_p "#{TGT_DIR}/lib"
