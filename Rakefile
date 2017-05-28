@@ -295,10 +295,10 @@ file  "zzsetup.done" do
   touch "zzsetup.done"
 end
 
-task :static_setup do
-  $stderr.puts "rake calls :static setup" 
-  #Builder.static_setup SOLOCS
-end
+#task :static_setup do
+#  $stderr.puts "rake calls :static setup" 
+#  #Builder.static_setup SOLOCS
+#end
 
 SubDirs = ["shoes/base.lib", "shoes/http/download.lib", "shoes/plot/plot.lib",
     "shoes/console/console.lib", "shoes/types/widgets.lib", "shoes/native/native.lib"]
@@ -308,6 +308,7 @@ case TGT_DIR
   when 'win7', 'xwin7', 'msys2', 'xmsys2'
     SubDirs.delete("shoes/console/console.lib")
 end
+
 file "#{TGT_DIR}/libshoes.so" => ["zzsetup.done", "shoes/types/types.h"] + SubDirs do
   Builder.new_so "#{TGT_DIR}/libshoes.so"
 end
@@ -491,9 +492,9 @@ namespace :linux do
   
   #task :build => [:old_build]
   
-  task :static_setup do 
-    Builder.static_setup SOLOCS
-  end
+  #task :static_setup do 
+  #  Builder.static_setup SOLOCS
+  #end
   
   task :build => [:new_build]
 
