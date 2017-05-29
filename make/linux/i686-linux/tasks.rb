@@ -124,8 +124,49 @@ class MakeLinux
 
     def make_so(name)
       puts "make_so dir=#{pwd} arg=#{name}"
+      if OBJ.empty?
+         puts "make_so called in error"
+         return
+      end
       #ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
       sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
+    end
+
+    def new_so (name) 
+      tgts = name.split('/')
+      tgtd = tgts[0]
+      $stderr.puts "new_so: #{tgtd}"
+
+      objs = []
+      SubDirs.each do |f|
+        d = File.dirname(f)
+        #$stderr.puts "collecting .o from #{d}"
+        objs = objs + FileList["#{d}/*.o"]      
+      end
+      # TODO  fix: gtk - needs to dig deeper vs osx
+      objs = objs + FileList["shoes/native/gtk/*.o"]
+      main_o = 'shoes/main.o'
+      objs = objs - [main_o]
+      sh "#{CC} -o  #{tgtd}/libshoes.#{DLEXT} #{objs.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
+      #sh "#{CC} -o  #{tgtd}/libshoes.so #{OBJS.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
+    end
+    
+    def new_link(name)
+      puts "new_link dir=#{pwd} arg=#{name}"
+      bin = "#{name}-bin"
+      rm_f name
+      rm_f bin
+      tgtf = name.split('/')
+      tgtd = tgtf[0]
+      #missing = "-lgtk-3 -lgdk-3  -lpangocairo-1.0" # TODO: This is a bug in env.rb ?
+      sh "#{CC} -o #{bin} shoes/main.o  -L#{tgtd} -lshoes -L#{TGT_DIR}  #{LINUX_LIBS}"
+      rewrite "platform/nix/shoes.launch", name, %r!/shoes-bin!, "/#{NAME}-bin"
+      sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{name}}
+      chmod 0755, "#{name}" 
+      # write a gdb launched shoes
+      rewrite "platform/nix/shoes.launch", "#{TGT_DIR}/debug", %r!/shoes-bin!, "/#{NAME}-bin"
+      sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH gdb $APPPATH/#{File.basename(bin)} "$@"' >> #{TGT_DIR}/debug}
+      chmod 0755, "#{TGT_DIR}/debug" 
     end
 
     # make a .install with all the bits and peices. 

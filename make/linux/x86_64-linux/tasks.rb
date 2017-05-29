@@ -124,6 +124,10 @@ class MakeLinux
 
     def make_so(name)
       puts "make_so dir=#{pwd} arg=#{name}"
+      if OBJ.empty?
+         puts "make_so called in error"
+         return
+      end
       #ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
       sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
@@ -132,7 +136,7 @@ class MakeLinux
       tgts = name.split('/')
       tgtd = tgts[0]
       $stderr.puts "new_so: #{tgtd}"
-=begin
+
       objs = []
       SubDirs.each do |f|
         d = File.dirname(f)
@@ -143,9 +147,8 @@ class MakeLinux
       objs = objs + FileList["shoes/native/gtk/*.o"]
       main_o = 'shoes/main.o'
       objs = objs - [main_o]
-      sh "#{CC} -o  #{tgtd}/libshoes.so #{objs.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
-=end
-      sh "#{CC} -o  #{tgtd}/libshoes.so #{OBJS.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
+      sh "#{CC} -o  #{tgtd}/libshoes.#{DLEXT} #{objs.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
+      #sh "#{CC} -o  #{tgtd}/libshoes.so #{OBJS.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
     
     def new_link(name)

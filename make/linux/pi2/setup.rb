@@ -3,8 +3,7 @@ require 'fileutils'
 module Make
   include FileUtils
  
-  #  Windows cross compile.  Copy the static stuff, Copy the ruby libs
-  #  Then copy the deps.
+
   def static_setup (so_list)
     $stderr.puts "setup: dir=#{`pwd`}"
     rbvt = RUBY_V

@@ -134,11 +134,13 @@ when /linux/
       require File.expand_path('make/linux/i686-linux/tasks')
       require File.expand_path("make/gems")
       require File.expand_path('make/linux/i686-linux/setup')
+      require File.expand_path('make/subsys')
     when /pi2/
       require File.expand_path('make/linux/pi2/env')
       require File.expand_path('make/linux/pi2/tasks')
       require File.expand_path('make/linux/pi2/setup')
       require File.expand_path("make/gems")
+      require File.expand_path('make/subsys')
     when /xarmv6hf/
       require File.expand_path('make/linux/xarm6hf/env')
       require File.expand_path('make/linux/xarm6hf/tasks')
@@ -309,12 +311,12 @@ case TGT_DIR
     SubDirs.delete("shoes/console/console.lib")
 end
 
-file "#{TGT_DIR}/libshoes.so" => ["zzsetup.done", "shoes/types/types.h"] + SubDirs do
-  Builder.new_so "#{TGT_DIR}/libshoes.so"
+file "#{TGT_DIR}/libshoes.#{DLEXT}" => ["zzsetup.done", "shoes/types/types.h"] + SubDirs do
+  Builder.new_so "#{TGT_DIR}/libshoes.#{DLEXT}"
 end
 
 #task :new_build => ["zzsetup.done", "shoes/types/types.h"] + SubDirs  do
-task :new_build => "#{TGT_DIR}/libshoes.so"  do
+task :new_build => "#{TGT_DIR}/libshoes.#{DLEXT}"  do
   # We can link shoes here - this can be done via a Builder call or
 
   Builder.new_link "#{TGT_DIR}/shoes"
