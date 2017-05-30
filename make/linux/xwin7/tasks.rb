@@ -167,7 +167,7 @@ class MakeLinux
       bin = "#{tgtd}/shoes.exe"
       #binc = bin.gsub(/shoes\.exe/, 'cshoes.exe')
       binc = "#{tgtd}/cshoes.exe"
-      puts "binc  = #{binc}"
+      #puts "binc  = #{binc}"
       #rm_f name
       rm_f bin
       rm_f binc

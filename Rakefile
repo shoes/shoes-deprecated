@@ -93,11 +93,13 @@ when /mingw/
     require File.expand_path("make/win32/#{TGT_ARCH}/tasks")
     require File.expand_path("make/win32/#{TGT_ARCH}/stubs")
     require File.expand_path("make/gems")
+    require File.expand_path("make/win32/#{TGT_ARCH}/setup")
+    require File.expand_path('make/subsys')
   else
-    require File.expand_path('make/win32/loose/env.rb')
-    require File.expand_path('make/win32/loose/tasks.rb')
+    require File.expand_path('make/win32/win7/env.rb')
+    require File.expand_path('make/win32/win7/tasks.rb')
     puts "PLEASE SELECT a build environment from the win32 options "
-    puts"   shown from a a `rake -T` "
+    puts"   shown from a `rake -T` "
   end
   Builder = MakeMinGW
   NAMESPACE = :win32
@@ -315,10 +317,8 @@ file "#{TGT_DIR}/libshoes.#{DLEXT}" => ["zzsetup.done", "shoes/types/types.h"] +
   Builder.new_so "#{TGT_DIR}/libshoes.#{DLEXT}"
 end
 
-#task :new_build => ["zzsetup.done", "shoes/types/types.h"] + SubDirs  do
 task :new_build => "#{TGT_DIR}/libshoes.#{DLEXT}"  do
-  # We can link shoes here - this can be done via a Builder call or
-
+  # We can link shoes here - this can be done via a Builder call
   Builder.new_link "#{TGT_DIR}/shoes"
   $stderr.puts "new build: called for #{TGT_DIR}"
 end
@@ -437,7 +437,8 @@ namespace :win32 do
     
   end
 
-  task :build => [:old_build]
+  #task :build => [:old_build]
+  task :build => [:new_build]
 
   task :make_app do
     Builder.make_app "#{TGT_DIR}/#{NAME}"
@@ -493,11 +494,6 @@ namespace :linux do
   end
   
   #task :build => [:old_build]
-  
-  #task :static_setup do 
-  #  Builder.static_setup SOLOCS
-  #end
-  
   task :build => [:new_build]
 
   task :make_app do

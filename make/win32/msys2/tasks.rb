@@ -224,10 +224,53 @@ class MakeMinGW
    end
 
     def make_so(name)
-      puts "make_so dir=#{pwd} arg=#{name}"
+      $stderr.puts "make_so dir=#{pwd} arg=#{name}"
+      if OBJ.empty?
+        $stderr.puts "make_so call not needed"
+        return
+      end
       #ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
       sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
+    
+    def new_so (name) 
+      tgts = name.split('/')
+      tgtd = tgts[0]
+      $stderr.puts "new_so: #{tgtd}"
+      objs = []
+      SubDirs.each do |f|
+        d = File.dirname(f)
+        #$stderr.puts "collecting .o from #{d}"
+        objs = objs + FileList["#{d}/*.o"]      
+      end
+      # TODO  fix: gtk - needs to dig deeper vs osx
+      objs = objs + FileList["shoes/native/gtk/*.o"]
+      main_o = 'shoes/main.o'
+      objs = objs - [main_o]
+      #sh "ar -rc #{tgtd}/shoes.lib #{objs.join(' ')}"
+      #sh "ranlib #{tgtd}/shoes.lib"    
+      sh "#{CC} -o #{tgtd}/libshoes.#{DLEXT} #{objs.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
+    end
+
+    def new_link(name)
+      tgts = name.split('/')
+      tgtd = tgts[0]
+      bin = "#{tgtd}/shoes.exe"
+      #binc = bin.gsub(/shoes\.exe/, 'cshoes.exe')
+      binc = "#{tgtd}/cshoes.exe"
+      #puts "binc  = #{binc}"
+      #rm_f name
+      rm_f bin
+      rm_f binc
+      sh "#{WINDRES} -I. shoes/appwin32.rc shoes/appwin32.o"
+      missing = "-lgtk-3 -lgdk-3 -lfontconfig-1 -lpangocairo-1.0" # TODO: This is a bug in env.rb for 
+      sh "#{CC} -o #{bin} shoes/main.o shoes/appwin32.o -L#{TGT_DIR} -lshoes -mwindows  #{LINUX_LIBS} #{missing}"
+      sh "#{STRIP} #{bin}" unless ENV['GDB']
+      sh "#{CC} -o #{binc} shoes/main.o shoes/appwin32.o -L#{TGT_DIR} -lshoes #{LINUX_LIBS}  #{missing}"
+      sh "#{STRIP} #{binc}" unless ENV['GDB']
+      #$stderr.puts "new_link: #{tgtd}"
+      #sh "#{CC} -o #{tgts[0]}/shoes  shoes/main.o #{tgtd}/shoes.lib #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
+    end   
    
     # does nothing
     def make_userinstall

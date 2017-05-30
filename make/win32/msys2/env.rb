@@ -37,19 +37,19 @@ WIN32_CFLAGS = []
 WIN32_LDFLAGS = []
 WIN32_LIBS = []
 RUBY_HTTP = true
-gtk_extra_list = []
-if APP['GTK'] == "gtk+-3.0"
-   gtk_extra_list = Dir["shoes/native/*.c"] - ["shoes/native/gtk.c"]
-end
-if RUBY_HTTP
-  file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"] +
-     ["shoes/plot/*.c"] + ["shoes/types/*.c"] + ["shoes/native/gtk/*.c"]
-else
-  file_list = %w{shoes/native/gtk.c shoes/http/winhttp.c shoes/http/windownload.c} + ["shoes/*.c"] 
-end
+#gtk_extra_list = []
+#if APP['GTK'] == "gtk+-3.0"
+   #gtk_extra_list = Dir["shoes/native/*.c"] - ["shoes/native/gtk.c"]
+#end
+#if RUBY_HTTP
+  #file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"] +
+  #   ["shoes/plot/*.c"] + ["shoes/types/*.c"] + ["shoes/native/gtk/*.c"]
+#else
+  #file_list = %w{shoes/native/gtk.c shoes/http/winhttp.c shoes/http/windownload.c} + ["shoes/*.c"] 
+#end
 #file_list << "shoes/video/video.c" if APP['VIDEO']
+file_list = []
 SRC = FileList[*file_list]
-
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
 end
@@ -68,7 +68,7 @@ PKG_CONFIG = "pkg-config.exe"
 #PKG_LOC = "C:/msys64/mingw32/lib/pkgconfig"      #   ditto
 # dance on ENV['PKG_CONFIG_PATH'] We want something  pkg-config can use
 ENV['PKG_CONFIG_PATH'] = `cygpath -u #{ShoesDeps}/lib/pkgconfig`.chomp 
-puts "PKG PATH: #{ENV['PKG_CONFIG_PATH']}"
+$stderr.puts "PKG PATH: #{ENV['PKG_CONFIG_PATH']}"
 #$stderr.puts "have #{ENV['PKG_CONFIG_PATH']}"
 if ENV['DEBUG'] || ENV['GDB']
   WIN32_CFLAGS << "-g3 -O0"
