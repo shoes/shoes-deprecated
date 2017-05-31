@@ -34,7 +34,8 @@ module Make
     end   
     SOLOCS.each_value do |path|
       cp "#{path}", "#{TGT_DIR}"
-    end   # create a file for rake 
+    end   
+    # create a file for rake 
   end
 end
 

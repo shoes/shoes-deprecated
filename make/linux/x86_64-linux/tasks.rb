@@ -1,6 +1,6 @@
 module Make
   include FileUtils
-
+=begin
   #TODO: this is probably unused 
   def copy_files_to_dist
     puts "copy_files_to_dist dir=#{pwd}"
@@ -27,7 +27,7 @@ module Make
     cp   "CHANGELOG", "#{TGT_DIR}/CHANGELOG.txt"
     cp   "COPYING", "#{TGT_DIR}/COPYING.txt"
   end
-
+=end
   def cc(t)
     sh "#{CC} -I. -c -o#{t.name} #{LINUX_CFLAGS} #{t.source}"
   end
@@ -48,7 +48,7 @@ module Make
       end
     end
   end
-
+=begin
   def copy_files glob, dir
     FileList[glob].each { |f| cp_r f, dir }
   end
@@ -78,7 +78,7 @@ module Make
       cp "#{path}", "#{TGT_DIR}"
     end
  end
-
+=end
   # common_build is a misnomer. Build extentions, gems
   def common_build
     copy_gems
@@ -93,19 +93,19 @@ class MakeLinux
   extend Make
 
   class << self
- 
+=begin
     def copy_deps_to_dist
       puts "copy_deps_to_dist dir=#{pwd}"
-      unless ENV['GDB']
+      unless APP['GDB']
         sh    "strip -x #{TGT_DIR}/*.so.*"
         sh    "strip -x #{TGT_DIR}/*.so"
       end
     end
-
+=end
     def setup_system_resources
       cp APP['icons']['gtk'], "#{TGT_DIR}/static/app-icon.png"
     end
- 
+=begin 
     # name {TGT_DIR}/shoes
     def make_app(name)
       puts "make_app dir=#{pwd} arg=#{name}"
@@ -121,7 +121,7 @@ class MakeLinux
       sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH gdb $APPPATH/#{File.basename(bin)} "$@"' >> #{TGT_DIR}/debug}
       chmod 0755, "#{TGT_DIR}/debug" 
     end
-
+=end
     def make_so(name)
       puts "make_so dir=#{pwd} arg=#{name}"
       if OBJ.empty?
@@ -136,11 +136,9 @@ class MakeLinux
       tgts = name.split('/')
       tgtd = tgts[0]
       $stderr.puts "new_so: #{tgtd}"
-
       objs = []
       SubDirs.each do |f|
         d = File.dirname(f)
-        #$stderr.puts "collecting .o from #{d}"
         objs = objs + FileList["#{d}/*.o"]      
       end
       # TODO  fix: gtk - needs to dig deeper vs osx
@@ -148,7 +146,6 @@ class MakeLinux
       main_o = 'shoes/main.o'
       objs = objs - [main_o]
       sh "#{CC} -o  #{tgtd}/libshoes.#{DLEXT} #{objs.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
-      #sh "#{CC} -o  #{tgtd}/libshoes.so #{OBJS.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
     
     def new_link(name)
@@ -185,7 +182,7 @@ class MakeLinux
         make_desktop 
         make_uninstall_script
         make_install_script
-        make_smaller unless ENV['GDB']
+        make_smaller unless APP['GDB']
       end
       Dir.chdir "pkg" do
         puts `pwd`

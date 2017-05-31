@@ -6,18 +6,16 @@ if File.exists? cf
   custmz = YAML.load_file(cf)
   ShoesDeps = custmz['Deps']
   EXT_RUBY = custmz['Ruby']
-  ENV['GDB'] = 'basic' if custmz['Debug'] == true
+  APP['GDB'] = 'basic' if custmz['Debug'] == true
   APP['GEMLOC'] = custmz['Gemloc'] if custmz['Gemloc']
   APP['EXTLOC'] = custmz['Extloc'] if custmz['Extloc']
   APP['EXTLIST'] = custmz['Exts'] if custmz['Exts']
   APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
   APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
-  #APP['GTK'] = custmz['Gtk'] if custmz['Gtk']
 else
   abort "missing custom.yaml"
 end
-#ENV['DEBUG'] = "true" # turns on the tracing log
-#ENV['GDB'] = "" # compile -g,  strip symbols when not defined
+
 APP['GTK'] = 'gtk+-3.0' # installer needs this to name the output
 CHROOT = ShoesDeps
 SHOES_TGT_ARCH = 'x86_64-linux'
@@ -37,9 +35,6 @@ pkggtk ="#{ularch}/pkgconfig/gtk+-3.0.pc"
 # Use Ruby or curl for downloads
 RUBY_HTTP = true
 
-#file_list << "shoes/video/video.c"
-
-#SRC = FileList[*file_list]
 SRC = []
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
@@ -55,7 +50,7 @@ PANGO_LIB = `pkg-config --libs pango`.strip
 
 png_lib = 'png'
 
-if ENV['DEBUG'] || ENV['GDB']
+if APP['GDB']
   LINUX_CFLAGS = " -g -O0"
 else
   LINUX_CFLAGS = " -O -Wall"
@@ -68,7 +63,6 @@ LINUX_CFLAGS << `pkg-config --cflags "#{pkggtk}"`.strip+" "
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/ " 
 LINUX_CFLAGS << "-I/usr/include/librsvg-2.0/librsvg "
 MISC_LIB = ' /usr/lib/x86_64-linux-gnu/librsvg-2.so'
-
 
 LINUX_LIB_NAMES = %W[ungif jpeg]
 
