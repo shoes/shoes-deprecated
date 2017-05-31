@@ -1,7 +1,7 @@
 include FileUtils
 module Make
   include FileUtils
-
+=begin
   def copy_files_to_dist
     puts "copy_files_to_dist dir=#{pwd}"
     if ENV['APP']
@@ -27,7 +27,7 @@ module Make
     cp   "CHANGELOG", "#{TGT_DIR}/CHANGELOG.txt"
     cp   "COPYING", "#{TGT_DIR}/COPYING.txt"
   end
-
+=end
   def cc(t)
     sh "#{CC} -I. -c -o#{t.name} #{LINUX_CFLAGS} #{t.source}"
   end
@@ -48,7 +48,7 @@ module Make
       end
     end
   end
-
+=begin
   def copy_files glob, dir
     FileList[glob].each { |f| cp_r f, dir }
   end
@@ -101,7 +101,7 @@ module Make
       cp  "#{bindir}/gtk-update-icon-cache.exe", TGT_DIR
     end
  end
-
+=end
   # common_build is a misnomer. copies prebuilt extentions & gems
   def common_build
     copy_gems
@@ -135,17 +135,54 @@ class MakeLinux
       rm_f name
       rm_f bin
       rm_f binc
-      extra = ENV['GDB'] == 'profile' ? '-pg' : ''
       sh "#{CC} -o #{bin} shoes/main.o shoes/appwin32.o -L#{TGT_DIR} -mwindows -lshoes #{LINUX_LIBS}"
-      sh "#{STRIP} #{bin}" unless ENV['GDB']
+      sh "#{STRIP} #{bin}" unless APP['GDB']
       sh "#{CC} -o #{binc} shoes/main.o shoes/appwin32.o -L#{TGT_DIR} #{extra} -lshoes #{LINUX_LIBS}"
-      sh "#{STRIP} #{binc}" unless ENV['GDB']
+      sh "#{STRIP} #{binc}" unless APP['GDB']
     end
 
     def make_so(name)
+      if OBJ.empty?
+        puts "Called w/o need"
+        return
+      end
       puts "make_so dir=#{pwd} arg=#{name}"
-      #ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
       sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
+    end
+    
+    def new_link(name)
+      tgts = name.split('/')
+      tgtd = tgts[0]
+      bin = "#{tgtd}/shoes.exe"
+      binc = "#{tgtd}/cshoes.exe"
+      #puts "binc  = #{binc}"
+      #rm_f name
+      rm_f bin
+      rm_f binc
+      sh "#{WINDRES} -I. shoes/appwin32.rc shoes/appwin32.o"
+      missing = "-lgtk-3 -lgdk-3 -lfontconfig-1 -lpangocairo-1.0" # TODO: This is a bug in env.rb ?
+      sh "#{CC} -o #{bin} shoes/main.o shoes/appwin32.o -L#{TGT_DIR} -lshoes -mwindows  #{LINUX_LIBS} #{missing}"
+      sh "#{STRIP} #{bin}" unless APP['GDB']
+      sh "#{CC} -o #{binc} shoes/main.o shoes/appwin32.o -L#{TGT_DIR} -lshoes #{LINUX_LIBS}  #{missing}"
+      sh "#{STRIP} #{binc}" unless APP['GDB']
+    end
+    
+    # this is called from the file task based new_build
+    def new_so (name) 
+      tgts = name.split('/')
+      tgtd = tgts[0]
+      $stderr.puts "new_so: #{tgtd}"
+      objs = []
+      SubDirs.each do |f|
+        d = File.dirname(f)
+        #$stderr.puts "collecting .o from #{d}"
+        objs = objs + FileList["#{d}/*.o"]      
+      end
+      # TODO  fix: gtk - needs to dig deeper vs osx
+      objs = objs + FileList["shoes/native/gtk/*.o"]
+      main_o = 'shoes/main.o'
+      objs = objs - [main_o]
+      sh "#{CC} -o #{tgtd}/libshoes.#{DLEXT} #{objs.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
    
     # does nothing

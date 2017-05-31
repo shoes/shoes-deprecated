@@ -41,14 +41,14 @@ module Make
     cp_r "#{ShoesDeps}/share/themes", "#{TGT_DIR}/share"
     cp_r "#{ShoesDeps}/share/xml", "#{TGT_DIR}/share"
     cp_r "#{ShoesDeps}/share/icons", "#{TGT_DIR}/share"
-    sh "#{WINDRES} -I. shoes/appwin32.rc shoes/appwin32.o"
+
     cp_r "#{ShoesDeps}/etc", TGT_DIR
     if ENABLE_MS_THEME
       ini_path = "#{TGT_DIR}/etc/gtk-3.0"
       mkdir_p ini_path
       File.open "#{ini_path}/settings.ini", mode: 'w' do |f|
         f.write "[Settings]\n"
-        f.write "gtk-theme-name=win32"
+        f.write "#gtk-theme-name=win32"
       end
     end
     mkdir_p "#{ShoesDeps}/lib"
@@ -60,6 +60,7 @@ module Make
     else 
       cp  "#{bindir}/gtk-update-icon-cache.exe", TGT_DIR
     end
+    cp APP['icons']['win32'], "shoes/appwin32.ico"
     # create a file for rake 
     touch "zzsetup.done"
   end

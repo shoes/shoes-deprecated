@@ -9,7 +9,7 @@ module Make
   # careful. Only Link to FILES, not to directories. Fileutils.ln_s may
   # not be the same as linux ln -s. 
   def static_setup (solocs)
-    puts "Prebuild: #{pwd}"
+    puts "setup: #{pwd}"
     mkdir_p "dist/lib/shoes"
     Dir.chdir "dist/lib/shoes" do
       Dir["../../../lib/shoes/*.rb"].each do |f|
@@ -27,7 +27,7 @@ module Make
     Dir.chdir "dist" do
       ln_s  "../static",  "." unless File.symlink? 'static'
     end
-    #cp_r  "static", "dist/static"
+
     cp    "README.md", "dist/README.txt"
     cp    "CHANGELOG", "dist/CHANGELOG.txt"
     cp    "COPYING", "dist/COPYING.txt"

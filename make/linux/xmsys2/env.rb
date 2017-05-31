@@ -33,6 +33,7 @@ WIN32_CFLAGS = []
 WIN32_LDFLAGS = []
 WIN32_LIBS = []
 RUBY_HTTP = true
+=begin
 gtk_extra_list = []
 if APP['GTK'] == "gtk+-3.0"
    gtk_extra_list = Dir["shoes/native/*.c"] - ["shoes/native/gtk.c"]
@@ -43,9 +44,9 @@ if RUBY_HTTP
 else
   file_list = %w{shoes/native/gtk.c shoes/http/winhttp.c shoes/http/windownload.c} + ["shoes/*.c"] 
 end
-
+=end
+file_list = []
 SRC = FileList[*file_list]
-
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
 end
@@ -62,13 +63,11 @@ TGT_SYS_DIR = "#{ShoesDeps}/"
 # dance on ENV['PKG_CONFIG_PATH'] We want something  pkg-config can use
 ENV['PKG_CONFIG_PATH'] = "#{ShoesDeps}/lib/pkgconfig"
 $stderr.puts "PKG PATH: #{ENV['PKG_CONFIG_PATH']}"
-if ENV['DEBUG'] || ENV['GDB']
+if APP['GDB']
   WIN32_CFLAGS << "-g3 -O0"
 else
   WIN32_CFLAGS << "-O -Wall"
 end
-
-
 
 gtk_pkg_path = "#{GtkDeps}/lib/pkgconfig/gtk+-3.0.pc"
 
@@ -135,36 +134,36 @@ SOLOCS = {
 }
 
 
-  SOLOCS.merge!(
-    {
-      'atk'         => "#{bindll}/libatk-1.0-0.dll",
-      'cairo'       => "#{bindll}/libcairo-2.dll",
-      'cairo-gobj'  => "#{bindll}/libcairo-gobject-2.dll",
-      'ffi'         => "#{bindll}/libffi-6.dll",
-      'fontconfig'  => "#{bindll}/libfontconfig-1.dll",
-      'freetype'    => "#{bindll}/libfreetype-6.dll",
-      'gdkpixbuf'   => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
-      'gio'         => "#{bindll}/libgio-2.0-0.dll",
-      'glib'        => "#{bindll}/libglib-2.0-0.dll",
-      'gmodule'     => "#{bindll}/libgmodule-2.0-0.dll",
-      'gobject'     => "#{bindll}/libgobject-2.0-0.dll",
-      'gdk3'        => "#{gtkdll}/libgdk-3-0.dll", 
-      'gtk3'        => "#{gtkdll}/libgtk-3-0.dll",
-      'pixman'      => "#{bindll}/libpixman-1-0.dll", 
-      'intl8'       => "#{bindll}/libintl-8.dll",
-      'pango'       => "#{bindll}/libpango-1.0-0.dll",
-      'pangocairo'  => "#{bindll}/libpangocairo-1.0-0.dll",
-      'pangoft'     => "#{bindll}/libpangoft2-1.0-0.dll",
-      'pango32'     => "#{bindll}/libpangowin32-1.0-0.dll",
-      'pixbuf'      => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
-      'harfbuzz'    => "#{bindll}/libharfbuzz-0.dll",
-      'png16'       => "#{bindll}/libpng16-16.dll",
-      'croco'       => "#{bindll}/libcroco-0.6-3.dll",
-      'rsvg'        => "#{bindll}/librsvg-2-2.dll",
-      'xml2'        => "#{bindll}/libxml2-2.dll",
-      'thread'      => "#{bindll}/libgthread-2.0-0.dll",
-      'zlib1'       => "#{bindll}/zlib1.dll",
-      'pthread'     => "#{basedll}/libwinpthread-1.dll",
-    }
-  )
+SOLOCS.merge!(
+  {
+    'atk'         => "#{bindll}/libatk-1.0-0.dll",
+    'cairo'       => "#{bindll}/libcairo-2.dll",
+    'cairo-gobj'  => "#{bindll}/libcairo-gobject-2.dll",
+    'ffi'         => "#{bindll}/libffi-6.dll",
+    'fontconfig'  => "#{bindll}/libfontconfig-1.dll",
+    'freetype'    => "#{bindll}/libfreetype-6.dll",
+    'gdkpixbuf'   => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
+    'gio'         => "#{bindll}/libgio-2.0-0.dll",
+    'glib'        => "#{bindll}/libglib-2.0-0.dll",
+    'gmodule'     => "#{bindll}/libgmodule-2.0-0.dll",
+    'gobject'     => "#{bindll}/libgobject-2.0-0.dll",
+    'gdk3'        => "#{gtkdll}/libgdk-3-0.dll", 
+    'gtk3'        => "#{gtkdll}/libgtk-3-0.dll",
+    'pixman'      => "#{bindll}/libpixman-1-0.dll", 
+    'intl8'       => "#{bindll}/libintl-8.dll",
+    'pango'       => "#{bindll}/libpango-1.0-0.dll",
+    'pangocairo'  => "#{bindll}/libpangocairo-1.0-0.dll",
+    'pangoft'     => "#{bindll}/libpangoft2-1.0-0.dll",
+    'pango32'     => "#{bindll}/libpangowin32-1.0-0.dll",
+    'pixbuf'      => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
+    'harfbuzz'    => "#{bindll}/libharfbuzz-0.dll",
+    'png16'       => "#{bindll}/libpng16-16.dll",
+    'croco'       => "#{bindll}/libcroco-0.6-3.dll",
+    'rsvg'        => "#{bindll}/librsvg-2-2.dll",
+    'xml2'        => "#{bindll}/libxml2-2.dll",
+    'thread'      => "#{bindll}/libgthread-2.0-0.dll",
+    'zlib1'       => "#{bindll}/zlib1.dll",
+    'pthread'     => "#{basedll}/libwinpthread-1.dll",
+  }
+)
 

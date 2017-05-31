@@ -1,11 +1,11 @@
 module Make
   include FileUtils
-
+=begin
   def copy_files_to_dist
     #cp   "lib/shoes.rb", "dist/lib"
     #cp_r "lib/shoes", "dist/lib"
   end
-
+=end
   def cc(t)
     sh "#{CC} -I. -c -o#{t.name} #{LINUX_CFLAGS} #{t.source}"
   end
@@ -33,7 +33,7 @@ module Make
   
   def copy_gems
   end
-
+=begin
   # Set up symlinks to lib/shoes and lib/shoes.rb so that they
   # can be edited and tested without a rake clean/build every time we 
   # change a lib/shoes/*.rb  
@@ -90,7 +90,7 @@ module Make
       cp "req/#{gemn}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
     end
   end
-
+=end
 end
 
 

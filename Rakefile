@@ -154,7 +154,6 @@ when /linux/
       require File.expand_path('make/linux/xwin7/setup')
       require File.expand_path('make/linux/xwin7/packdeps')
       require File.expand_path('make/gems')
-      require File.expand_path('make/subsys')
    when /xmsys2/
       require File.expand_path('make/linux/xmsys2/env')
       require File.expand_path('make/linux/xmsys2/tasks')
@@ -162,6 +161,7 @@ when /linux/
       require File.expand_path('make/linux/xmsys2/packdeps')
       require File.expand_path('make/linux/xmsys2/setup')
       require File.expand_path('make/gems')
+      require File.expand_path('make/subsys')
    else
       puts "Unknown builder for #{TGT_ARCH}, removing setting"
       rm_rf "crosscompile" if File.exists? "crosscompile"
@@ -169,10 +169,10 @@ when /linux/
   else
      # This is Loose Shoes setup
      #TGT_DIR = "dist"
-     require File.expand_path('make/subsys')
      require File.expand_path('make/linux/loose/env')
      require File.expand_path('make/linux/loose/tasks')
      require File.expand_path('make/linux/loose/setup')
+     require File.expand_path('make/subsys')
   end
   Builder = MakeLinux
   NAMESPACE = :linux
@@ -290,7 +290,7 @@ task :old_build => [:pre_build, :build_os] do
   Builder.setup_system_resources
 end
 
-# ---------  newer build - used by linux, so far -------
+# ---------  newer build - used by linux and windows, so far -------
 
 file  "zzsetup.done" do
   Builder.static_setup SOLOCS

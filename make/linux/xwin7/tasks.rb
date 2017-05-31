@@ -1,7 +1,7 @@
 include FileUtils
 module Make
   include FileUtils
-
+=begin
   def copy_files_to_dist
     puts "copy_files_to_dist dir=#{pwd}"
     if ENV['APP']
@@ -27,7 +27,7 @@ module Make
     cp   "CHANGELOG", "#{TGT_DIR}/CHANGELOG.txt"
     cp   "COPYING", "#{TGT_DIR}/COPYING.txt"
   end
-
+=end
   def cc(t)
     sh "#{CC} -I. -c -o#{t.name} #{LINUX_CFLAGS} #{t.source}"
   end
@@ -52,7 +52,7 @@ module Make
   def copy_files glob, dir
     FileList[glob].each { |f| cp_r f, dir }
   end
-
+=begin
   #  Windows cross compile.  Copy the ruby libs
   #  Then copy the deps.
   def pre_build
@@ -110,7 +110,7 @@ module Make
     end
 
     # below for debugging purposes
-    if ENV['GDB'] 
+    if APP['GDB'] 
       cp "#{bindir}/fc-cat.exe", TGT_DIR
       cp "#{bindir}/fc-list.exe", TGT_DIR
       cp "#{bindir}/fc-match.exe", TGT_DIR
@@ -120,7 +120,7 @@ module Make
       cp "#{bindir}/fc-validate.exe", TGT_DIR
     end
  end
-
+=end
   # common_build is a misnomer. copies prebuilt extentions & gems
   def common_build
     copy_gems
@@ -132,19 +132,19 @@ class MakeLinux
   extend Make
 
   class << self
-
+=begin
     def copy_deps_to_dist
       puts "copy_deps_to_dist dir=#{pwd}"
-      unless ENV['GDB']
+      unless APP['GDB']
         sh "#{STRIP}  #{TGT_DIR}/*.dll"
         Dir.glob("#{TGT_DIR}/lib/ruby/**/*.so").each {|lib| sh "#{STRIP} #{lib}"}
       end
     end
-
+=end
     def setup_system_resources
       cp APP['icons']['gtk'], "#{TGT_DIR}/static/app-icon.png"
     end
- 
+=begin 
     # name {TGT_DIR}/shoes
     def make_app(name)
       puts "make_app dir=#{pwd} arg=#{name}"
@@ -154,18 +154,17 @@ class MakeLinux
       rm_f name
       rm_f bin
       rm_f binc
-      extra = ENV['GDB'] == 'profile' ? '-pg' : ''
       sh "#{CC} -o #{bin} shoes/main.o shoes/appwin32.o -L#{TGT_DIR} -mwindows -lshoes #{LINUX_LIBS}"
-      sh "#{STRIP} #{bin}" unless ENV['GDB']
+      sh "#{STRIP} #{bin}" unless APP['GDB']
       sh "#{CC} -o #{binc} shoes/main.o shoes/appwin32.o -L#{TGT_DIR} #{extra} -lshoes #{LINUX_LIBS}"
-      sh "#{STRIP} #{binc}" unless ENV['GDB']
+      sh "#{STRIP} #{binc}" unless APP['GDB']
     end
-    
+=end   
+
     def new_link(name)
       tgts = name.split('/')
       tgtd = tgts[0]
       bin = "#{tgtd}/shoes.exe"
-      #binc = bin.gsub(/shoes\.exe/, 'cshoes.exe')
       binc = "#{tgtd}/cshoes.exe"
       #puts "binc  = #{binc}"
       #rm_f name
@@ -174,11 +173,9 @@ class MakeLinux
       sh "#{WINDRES} -I. shoes/appwin32.rc shoes/appwin32.o"
       missing = "-lgtk-3 -lgdk-3 -lfontconfig-1 -lpangocairo-1.0" # TODO: This is a bug in env.rb for 
       sh "#{CC} -o #{bin} shoes/main.o shoes/appwin32.o -L#{TGT_DIR} -lshoes -mwindows  #{LINUX_LIBS} #{missing}"
-      sh "#{STRIP} #{bin}" unless ENV['GDB']
+      sh "#{STRIP} #{bin}" unless APP['GDB']
       sh "#{CC} -o #{binc} shoes/main.o shoes/appwin32.o -L#{TGT_DIR} -lshoes #{LINUX_LIBS}  #{missing}"
-      sh "#{STRIP} #{binc}" unless ENV['GDB']
-      #$stderr.puts "new_link: #{tgtd}"
-      #sh "#{CC} -o #{tgts[0]}/shoes  shoes/main.o #{tgtd}/shoes.lib #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
+      sh "#{STRIP} #{binc}" unless APP['GDB']
     end
 
     def make_so(name)
@@ -187,7 +184,6 @@ class MakeLinux
         $stderr.puts "make_so called in error"
         return
       end
-      #ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
       sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
 
@@ -206,8 +202,6 @@ class MakeLinux
       objs = objs + FileList["shoes/native/gtk/*.o"]
       main_o = 'shoes/main.o'
       objs = objs - [main_o]
-      #sh "ar -rc #{tgtd}/shoes.lib #{objs.join(' ')}"
-      #sh "ranlib #{tgtd}/shoes.lib"    
       sh "#{CC} -o #{tgtd}/libshoes.#{DLEXT} #{objs.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
    

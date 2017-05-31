@@ -1,13 +1,10 @@
 # This is for a Linux only build (loose shoes)
 # It is safe and desireable to use RbConfig::CONFIG settings
-#   Will not build gems and most extentions
-#   Links against system (or rvm) ruby, and libraries. No LD_LIB_PATH
+#   Will not build gems or copy gems - uses the host ruby.
+#   Cannot be distributed. 
 require 'rbconfig'
 
-# manually set below to what you want to build with/for
-#ENV['DEBUG'] = "true" # turns on the call log
-
-ENV['GDB'] = "true" # true => compile -g,  don't strip symbols
+APP['GDB'] = "true" # true => compile -g,  don't strip symbols
 if ENV['GDB']
   LINUX_CFLAGS = "-g -O0"
 else
@@ -26,12 +23,11 @@ LINUX_CFLAGS << " -I/usr/include/"
 LINUX_CFLAGS << " #{`pkg-config --cflags gtk+-3.0`.strip}"
 
 CC = "gcc"
-
+=begin
 #gtk_extra_list = Dir["shoes/native/*.c"] - ["shoes/native/gtk.c"]
 
 #file_list = %w{shoes/native/gtk.c} + gtk_extra_list +
 #    ["shoes/native/gtk/*.c"]
-file_list = []
 #file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"] +
 #     ["shoes/plot/*.c"] + ["shoes/types/*.c"] + ["shoes/native/gtk/*.c"] + console_list
      
@@ -41,7 +37,8 @@ file_list = []
 #               shoes/http/rbload.c) + ["shoes/*.c"] + ["shoes/console/*.c"] +
 #               ["shoes/plot/*.c"]
 #file_list << "shoes/video/video.c" 
-
+=end
+file_list = []
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
