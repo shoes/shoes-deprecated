@@ -128,8 +128,8 @@ when /linux/
     when /x86_64-linux/
       require File.expand_path('make/linux/x86_64-linux/env')
       require File.expand_path('make/linux/x86_64-linux/tasks')
-      require File.expand_path("make/gems")
       require File.expand_path('make/linux/x86_64-linux/setup')
+      require File.expand_path("make/gems")
       require File.expand_path('make/subsys')
     when /i686-linux/
       require File.expand_path('make/linux/i686-linux/env')
@@ -154,6 +154,7 @@ when /linux/
       require File.expand_path('make/linux/xwin7/setup')
       require File.expand_path('make/linux/xwin7/packdeps')
       require File.expand_path('make/gems')
+      require File.expand_path('make/subsys')
    when /xmsys2/
       require File.expand_path('make/linux/xmsys2/env')
       require File.expand_path('make/linux/xmsys2/tasks')
