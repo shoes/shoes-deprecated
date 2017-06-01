@@ -60,8 +60,7 @@ module Make
     else 
       cp  "#{bindir}/gtk-update-icon-cache.exe", TGT_DIR
     end
-    # create a file for rake 
-    touch "zzsetup.done"
+    cp APP['icons']['win32'], "shoes/appwin32.ico"
   end
 end
 

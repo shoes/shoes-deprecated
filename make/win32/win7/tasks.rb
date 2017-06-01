@@ -1,32 +1,6 @@
 module Make
   include FileUtils
-=begin
-  def copy_files_to_dist
-    puts "copy_files_to_dist dir=#{pwd}"
-    if ENV['APP']
-      if APP['clone']
-        sh APP['clone'].gsub(/^git /, "#{GIT} --git-dir=#{ENV['APP']}/.git ")
-      else
-        cp_r ENV['APP'], "#{TGT_DIR}/app"
-      end
-      if APP['ignore']
-        APP['ignore'].each do |nn|
-          rm_rf "dist/app/#{nn}"
-        end
-      end
-    end
-
-    cp_r "fonts", "#{TGT_DIR}/fonts"
-    cp   "lib/shoes.rb", "#{TGT_DIR}/lib"
-    cp_r "lib/shoes", "#{TGT_DIR}/lib"
-    cp_r "lib/exerb", "#{TGT_DIR}/lib"
-    cp_r "samples", "#{TGT_DIR}/samples"
-    cp_r "static", "#{TGT_DIR}/static"
-    cp   "README.md", "#{TGT_DIR}/README.txt"
-    cp   "CHANGELOG", "#{TGT_DIR}/CHANGELOG.txt"
-    cp   "COPYING", "#{TGT_DIR}/COPYING.txt"
-  end
-=end
+  
   def cc(t)
     sh "#{CC} -I. -c -o#{t.name} #{WINDOWS_CFLAGS} #{t.source}"
   end
@@ -47,101 +21,6 @@ module Make
       end
     end
   end
-=begin
-  def copy_files glob, dir
-    FileList[glob].each { |f| cp_r f, dir }
-  end
-=end
-=begin
-  #  Copy the rubyinstaller libs - sigh - don't copy all of the gems.
-  #  Then copy the deps.
-  def pre_build
-    puts "pre_build dir=#{`pwd`}"
-    rbvt = RUBY_V
-    rbvm = RUBY_V[/^\d+\.\d+/]
-    # remove leftovers from previous rake.
-    rm_rf "#{TGT_DIR}/lib"
-    rm_rf "#{TGT_DIR}/etc"
-    rm_rf "#{TGT_DIR}/share"
-    rm_rf "#{TGT_DIR}/conf.d"
-    mkdir_p "#{TGT_DIR}/lib/ruby"
-    cp_r "#{EXT_RUBY}/lib/ruby/#{rbvt}", "#{TGT_DIR}/lib/ruby"
-    # copy include files
-    mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-#{rbvt}"
-    cp_r "#{EXT_RUBY}/include/ruby-#{rbvt}/", "#{TGT_DIR}/lib/ruby/include"
-    # copy site_ruby (gems updates)
-    cp_r "#{EXT_RUBY}/lib/ruby/site_ruby", "#{TGT_DIR}/lib/ruby"
-    # copy vendor_ruby
-    cp_r "#{EXT_RUBY}/lib/ruby/vendor_ruby", "#{TGT_DIR}/lib/ruby"
-    # make empty gem libs
-    mkdir_p "#{TGT_DIR}/lib/ruby/gems/#{rbvt}"
-    ['build_info', 'cache', 'doc', 'extentions', 'gems', 'specifications' ].each do
-       |d| mkdir_p "#{TGT_DIR}/lib/ruby/gems/#{rbvt}/#{d}"
-    end
-    # copy default gemspecs
-    cp_r "#{EXT_RUBY}/lib/ruby/gems/#{rbvt}/specifications/default",
-      "#{TGT_DIR}/lib/ruby/gems/#{rbvt}/specifications"
-    # from default gemspecs , copy what's in gems (rake, rdoc, test-unit)
-    # other defaults like bigdecimal are inside ruby. Grr.
-    specs = Dir.glob("#{EXT_RUBY}/lib/ruby/gems/#{rbvt}/specifications/default/*.gemspec")
-    specs.each do |spec|
-       dirname = File.basename(spec, ".gemspec")
-       next unless File.directory?("#{EXT_RUBY}/lib/ruby/gems/#{rbvt}/gems/#{dirname}")
-       #puts "Copy #{dirname}"
-       cp_r "#{EXT_RUBY}/lib/ruby/gems/#{rbvt}/gems/#{dirname}", "#{TGT_DIR}/lib/ruby/gems/#{rbvt}/gems"
-    end
-    # copy the deplibs (see env.rb)
-    SOLOCS.each_value do |path|
-      cp "#{path}", "#{TGT_DIR}"
-    end
-    # setup GTK stuff
-    mkdir_p "#{TGT_DIR}/share/glib-2.0/schemas"
-    if APP['GTK'] == "gtk+-3.0"
-      cp  "#{ShoesDeps}/share/glib-2.0/schemas/gschemas.compiled" ,
-        "#{TGT_DIR}/share/glib-2.0/schemas"
-      cp_r "#{ShoesDeps}/share/fontconfig", "#{TGT_DIR}/share"
-      cp_r "#{ShoesDeps}/share/themes", "#{TGT_DIR}/share"
-      cp_r "#{ShoesDeps}/share/xml", "#{TGT_DIR}/share"
-      cp_r "#{ShoesDeps}/share/icons", "#{TGT_DIR}/share" 
-    else
-      cp  "#{ShoesDeps}share/glib-2.0/schemas/gschemas.compiled" ,
-        "#{TGT_DIR}/share/glib-2.0/schemas"
-    end
-    sh "#{WINDRES} -I. shoes/appwin32.rc shoes/appwin32.o"
-    cp_r "#{ShoesDeps}/etc", TGT_DIR
-    if ENABLE_MS_THEME
-      ini_path = "#{TGT_DIR}/etc/gtk-3.0"
-      mkdir_p ini_path
-      File.open "#{ini_path}/settings.ini", mode: 'w' do |f|
-        f.write "[Settings]\n"
-        f.write "#gtk-theme-name=win32\n"
-        f.write "#gtk-theme-name=ms-windows\n"
-      end
-    end
-    mkdir_p "#{ShoesDeps}/lib"
-    if APP['GTK'] == "gtk+-3.0"
-      cp_r "#{ShoesDeps}/lib/gtk-3.0", "#{TGT_DIR}/lib" #  shoes, exerb, ruby here
-    end
-    bindir = "#{ShoesDeps}/bin"
-    #cp_r "#{bindir}/fc-cache.exe", TGT_DIR
-    cp_r "#{bindir}/gtk-update-icon-cache.exe", TGT_DIR
-    # below for debugging purposes
-    if APP['GDB'] 
-      cp "#{bindir}/fc-cat.exe", TGT_DIR
-      cp "#{bindir}/fc-list.exe", TGT_DIR
-      cp "#{bindir}/fc-match.exe", TGT_DIR
-      cp "#{bindir}/fc-pattern.exe", TGT_DIR
-      cp "#{bindir}/fc-query.exe", TGT_DIR
-      cp "#{bindir}/fc-scan.exe", TGT_DIR
-      cp "#{bindir}/fc-validate.exe", TGT_DIR
-    end
-  end
-=end
-  # common_build is a misnomer. copies prebuilt extentions & gems
-  def common_build
-    copy_gems
-  end
-  
 end
 
 
@@ -163,21 +42,7 @@ class MakeMinGW
     def setup_system_resources
       cp APP['icons']['gtk'], "#{TGT_DIR}/static/app-icon.png"
     end
-=begin 
-    # name {TGT_DIR}/shoes
-    def make_app(name)
-      puts "make_app dir=#{pwd} arg=#{name}"
-      bin = "#{name}.exe"
-      binc = bin.gsub(/shoes\.exe/, 'cshoes.exe')
-      rm_f name
-      rm_f bin
-      rm_f binc
-      sh "#{CC} -o #{bin} shoes/main.o shoes/appwin32.o -L#{TGT_DIR} -mwindows -lshoes #{LINUX_LIBS}"
-      sh "#{STRIP} #{bin}" unless APP['GDB']
-      sh "#{CC} -o #{binc} shoes/main.o shoes/appwin32.o -L#{TGT_DIR} #{extra} -lshoes #{LINUX_LIBS}"
-      sh "#{STRIP} #{binc}" unless APP['GDB']
-   end
-=end
+
     def make_so(name)
       puts "make_so dir=#{pwd} arg=#{name}"
       if OBJ.empty?

@@ -37,8 +37,7 @@ module Make
     end   
     SOLOCS.each_value do |path|
       cp "#{path}", "#{TGT_DIR}"
-    end   # create a file for rake 
-    touch "zzsetup.done"
+    end   
   end
 end
 

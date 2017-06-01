@@ -33,18 +33,7 @@ WIN32_CFLAGS = []
 WIN32_LDFLAGS = []
 WIN32_LIBS = []
 RUBY_HTTP = true
-=begin
-gtk_extra_list = []
-if APP['GTK'] == "gtk+-3.0"
-   gtk_extra_list = Dir["shoes/native/*.c"] - ["shoes/native/gtk.c"]
-end
-if RUBY_HTTP
-  file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"] +
-     ["shoes/plot/*.c"] + ["shoes/types/*.c"] + ["shoes/native/gtk/*.c"]
-else
-  file_list = %w{shoes/native/gtk.c shoes/http/winhttp.c shoes/http/windownload.c} + ["shoes/*.c"] 
-end
-=end
+
 file_list = []
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|

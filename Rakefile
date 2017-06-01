@@ -98,8 +98,10 @@ when /mingw/
   else
     require File.expand_path('make/win32/win7/env.rb')
     require File.expand_path('make/win32/win7/tasks.rb')
-    puts "PLEASE SELECT a build environment from the win32 options "
-    puts"   shown from a `rake -T` "
+    if !CROSS
+      puts "PLEASE SELECT a build environment from the win32 options "
+      puts"   shown from a `rake -T` "
+    end
   end
   Builder = MakeMinGW
   NAMESPACE = :win32
@@ -134,8 +136,8 @@ when /linux/
     when /i686-linux/
       require File.expand_path('make/linux/i686-linux/env')
       require File.expand_path('make/linux/i686-linux/tasks')
-      require File.expand_path("make/gems")
       require File.expand_path('make/linux/i686-linux/setup')
+      require File.expand_path("make/gems")
       require File.expand_path('make/subsys')
     when /pi2/
       require File.expand_path('make/linux/pi2/env')
@@ -291,19 +293,14 @@ task :old_build => [:pre_build, :build_os] do
   Builder.setup_system_resources
 end
 
-# ---------  newer build - used by linux and windows, so far -------
+# ------  new build - used by linux and windows, so far -------
 
-file  "zzsetup.done" do
+file  "#{TGT_DIR}/zzsetup.done" do
   Builder.static_setup SOLOCS
-  Builder.copy_gems #used to be common_build
+  Builder.copy_gems #used to be common_build, located in make/gems.rb
   Builder.setup_system_resources
-  touch "zzsetup.done"
+  touch "#{TGT_DIR}/zzsetup.done"
 end
-
-#task :static_setup do
-#  $stderr.puts "rake calls :static setup" 
-#  #Builder.static_setup SOLOCS
-#end
 
 SubDirs = ["shoes/base.lib", "shoes/http/download.lib", "shoes/plot/plot.lib",
     "shoes/console/console.lib", "shoes/types/widgets.lib", "shoes/native/native.lib"]
@@ -314,12 +311,13 @@ case TGT_DIR
     SubDirs.delete("shoes/console/console.lib")
 end
 
-file "#{TGT_DIR}/libshoes.#{DLEXT}" => ["zzsetup.done", "shoes/types/types.h"] + SubDirs do
+file "#{TGT_DIR}/libshoes.#{DLEXT}" => ["#{TGT_DIR}/zzsetup.done", "shoes/types/types.h"] + SubDirs do
   Builder.new_so "#{TGT_DIR}/libshoes.#{DLEXT}"
 end
 
 task :new_build => "#{TGT_DIR}/libshoes.#{DLEXT}"  do
-  # We can link shoes here - this can be done via a Builder call
+  # We can link shoes here - this will be done via a Builder call
+  # because it's platform specific.
   Builder.new_link "#{TGT_DIR}/shoes"
   $stderr.puts "new build: called for #{TGT_DIR}"
 end

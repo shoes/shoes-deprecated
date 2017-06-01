@@ -62,17 +62,7 @@ RUBY_HTTP = true
 ENV['PKG_CONFIG_PATH'] = "#{ularch}/pkgconfig"
 WINVERSION = "#{APP['VERSION']}-gtk3-32"
 WINFNAME = "#{APPNAME}-#{WINVERSION}"
-=begin
-#gtk_extra_list = Dir["shoes/native/*.c"] - ["shoes/native/gtk.c"]
-#file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"] +
-#     ["shoes/plot/*.c"] + ["shoes/types/*.c"] + ["shoes/native/gtk/*.c"]
-#gtk_extra_list = %w(shoes/native/gtkfixedalt.c shoes/native/gtkentryalt.c
-#               shoes/native/gtkcomboboxtextalt.c shoes/native/gtkbuttonalt.c
- #              shoes/native/gtkscrolledwindowalt.c shoes/native/gtkprogressbaralt.c)
-#file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"] +
-#   ["shoes/plot/*.c"]
-#file_list << "shoes/video/video.c" 
-=end
+
 file_list = []
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
@@ -117,10 +107,6 @@ LINUX_CFLAGS << "-I#{ShoesDeps}/include/librsvg-2.0/librsvg "
 LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/local/include "
 LINUX_CFLAGS << " -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-function"
 LINUX_CFLAGS << " -mms-bitfields -D__MINGW_USE_VC2005_COMPAT -DXMD_H -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -DCOBJMACROS "
-
-# I don't think the line below belongs in this file. 
-# It should probably be in setup.rb
-#cp APP['icons']['win32'], "shoes/appwin32.ico"
 
 LINUX_LIB_NAMES = %W[gif-7 jpeg librsvg-2 libffi]
 

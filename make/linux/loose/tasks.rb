@@ -1,11 +1,6 @@
 module Make
   include FileUtils
-=begin
-  def copy_files_to_dist
-    #cp   "lib/shoes.rb", "dist/lib"
-    #cp_r "lib/shoes", "dist/lib"
-  end
-=end
+
   def cc(t)
     sh "#{CC} -I. -c -o#{t.name} #{LINUX_CFLAGS} #{t.source}"
   end
@@ -31,66 +26,10 @@ module Make
     FileList[glob].each { |f| cp_r f, dir }
   end
   
-  def copy_gems
-  end
-=begin
-  # Set up symlinks to lib/shoes and lib/shoes.rb so that they
-  # can be edited and tested without a rake clean/build every time we 
-  # change a lib/shoes/*.rb  
-  # They'll be copied (not linked) when rake install occurs. Be very
-  # careful. Only Link to FILES, not to directories. Fileutils.ln_s may
-  # not be the same as linux ln -s. 
-  def pre_build
-    puts "Prebuild: #{pwd}"
-    return
-    mkdir_p "dist/lib/shoes"
-    Dir.chdir "dist/lib/shoes" do
-      Dir["../../../lib/shoes/*.rb"].each do |f|
-        #puts "SymLinking #{f}"
-        ln_s f, "." unless File.symlink? File.basename(f)
-      end
-    end
-    Dir.chdir "dist/lib" do
-      ln_s "../../lib/shoes.rb" , "shoes.rb" unless File.symlink? "shoes.rb"
-      # link to exerb
-      ln_s "../../lib/exerb", "exerb" unless File.symlink? "exerb"
-    end
-    cp_r  "fonts", "dist/fonts"
-    cp_r  "samples", "dist/samples"
-    Dir.chdir "dist" do
-      ln_s  "../static",  "." unless File.symlink? 'static'
-    end
-    #cp_r  "static", "dist/static"
-    cp    "README.md", "dist/README.txt"
-    cp    "CHANGELOG", "dist/CHANGELOG.txt"
-    cp    "COPYING", "dist/COPYING.txt"
+  # a stub, loose linux doesn't copy gems but the Builder will call it
+  def copy_gems  
   end
 
-  #  Build the extensions, gems and copy to Shoes directories
-  def common_build
-    puts "common_build dir=#{pwd} #{SHOES_RUBY_ARCH}"
-    mkdir_p "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_RUBY_ARCH}"
-    #cp_r  "#{EXT_RUBY}/lib/ruby/#{RUBY_V}", "#{TGT_DIR}/ruby/lib"
-    %w[req/rake/lib/*].each do |rdir|
-      FileList[rdir].each { |rlib| cp_r rlib, "#{TGT_DIR}/lib/ruby/#{RUBY_V}" }
-    end
-    #%w[req/binject/ext/binject_c req/bloopsaphone/ext/bloops req/chipmunk/ext/chipmunk].
-    #%w[req/chipmunk/ext/chipmunk].
-    # each { |xdir| copy_ext xdir, "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_RUBY_ARCH}" }
-
-    gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
-    # Loose shoes doesn't build gems
-    {}.each do |gemn, xdir|
-      spec = eval(File.read("req/#{gemn}/gemspec"))
-      mkdir_p "#{gdir}/specifications"
-      mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
-      FileList["req/#{gemn}/lib/*"].each { |rlib| cp_r rlib, "#{gdir}/gems/#{spec.full_name}/lib" }
-      mkdir_p "#{gdir}/gems/#{spec.full_name}/#{xdir}"
-      FileList["req/#{gemn}/ext/*"].each { |elib| copy_ext elib, "#{gdir}/gems/#{spec.full_name}/#{xdir}" }
-      cp "req/#{gemn}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
-    end
-  end
-=end
 end
 
 
@@ -100,31 +39,11 @@ class MakeLinux
   extend Make
 
   class << self
-    def copy_ext xdir, libdir
-      Dir.chdir(xdir) do
-        unless system "ruby", "extconf.rb" and system "make"
-          raise "Extension build failed"
-        end
-      end
-      copy_files "#{xdir}/*.so", libdir
-    end
-
-    # does nothing
-    def copy_deps_to_dist
-    end
 
     def setup_system_resources
       cp APP['icons']['gtk'], "dist/static/app-icon.png"
     end
- 
-    def make_app(name)
-      # name is dist/shoes
-      rm_f name
-      sh "#{CC} -o #{name} shoes/main.o dist/shoes.a #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
-      # remove the static lib
-      sh "rm -f #{TGT_DIR}/shoes.a"
-    end
-   
+  
     # this is called from the file task based new_builder unlike anything seen before
     def new_so (name) 
       tgts = name.split('/')
@@ -154,6 +73,10 @@ class MakeLinux
     # make a static library 
     def make_so(name)
       puts "make_so: #{name}"
+      if OBJ.empty?
+        puts "make_so called w/o needed"
+        return
+      end
       name = 'dist/shoes.a'
       sh "ar rc #{name} #{OBJ.join(' ')}"
       sh "ranlib #{name}"

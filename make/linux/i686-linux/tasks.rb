@@ -1,33 +1,6 @@
 module Make
   include FileUtils
 
-  #TODO: probably unused.
-  def copy_files_to_dist
-    puts "copy_files_to_dist dir=#{pwd}"
-    if ENV['APP']
-      if APP['clone']
-        sh APP['clone'].gsub(/^git /, "#{GIT} --git-dir=#{ENV['APP']}/.git ")
-      else
-        cp_r ENV['APP'], "#{TGT_DIR}/app"
-      end
-      if APP['ignore']
-        APP['ignore'].each do |nn|
-          rm_rf "dist/app/#{nn}"
-        end
-      end
-    end
-
-    cp_r "fonts", "#{TGT_DIR}/fonts"
-    cp   "lib/shoes.rb", "#{TGT_DIR}/lib"
-    cp_r "lib/shoes", "#{TGT_DIR}/lib"
-    cp_r "lib/exerb", "#{TGT_DIR}/lib"
-    cp_r "samples", "#{TGT_DIR}/samples"
-    cp_r "static", "#{TGT_DIR}/static"
-    cp   "README.md", "#{TGT_DIR}/README.txt"
-    cp   "CHANGELOG", "#{TGT_DIR}/CHANGELOG.txt"
-    cp   "COPYING", "#{TGT_DIR}/COPYING.txt"
-  end
-
   def cc(t)
     sh "#{CC} -I. -c -o#{t.name} #{LINUX_CFLAGS} #{t.source}"
   end
@@ -48,42 +21,6 @@ module Make
       end
     end
   end
-
-  def copy_files glob, dir
-    FileList[glob].each { |f| cp_r f, dir }
-  end
-
-  # copy everything from the cross compiled Ruby libs as ruby wants it
-  # copy any deps libraries that might ever be used in linking or when
-  # building a static ar. 
-  def pre_build
-    puts "pre_build dir=#{`pwd`}"
-    rbvt = RUBY_V
-    rbvm = RUBY_V[/^\d+\.\d+/]
-    mkdir_p "#{TGT_DIR}/lib"
-    # clean out leftovers from last build
-    rm_f "#{TGT_DIR}/libruby.so" if File.exist? "#{TGT_DIR}/libruby.so"
-    rm_f "#{TGT_DIR}/libruby.so.#{rbvm}" if File.exist? "#{TGT_DIR}/libruby.so.#{rbvm}"
-    rm_f "#{TGT_DIR}/libruby.so.#{rbvt}" if File.exist? "#{TGT_DIR}/libruby.so.#{rbvt}"
-    cp_r "#{EXT_RUBY}/lib/ruby", "#{TGT_DIR}/lib"
-    # copy and link libruby.so
-    cp "#{EXT_RUBY}/lib/libruby.so.#{rbvm}", "#{TGT_DIR}"
-    # copy include files - it might help build gems
-    mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-#{rbvt}"
-    cp_r "#{EXT_RUBY}/include/ruby-#{rbvt}/", "#{TGT_DIR}/lib/ruby/include"
-    chdir TGT_DIR do
-      ln_s "libruby.so.#{rbvm}", "libruby.so"
-    end
-    SOLOCS.each_value do |path|
-      cp "#{path}", "#{TGT_DIR}"
-    end
- end
-
-  # common_build is a misnomer. Build extentions, gems
-  def common_build
-    copy_gems
-  end
-
 end
 
 
@@ -93,33 +30,8 @@ class MakeLinux
   extend Make
 
   class << self
-
-    def copy_deps_to_dist
-      puts "copy_deps_to_dist dir=#{pwd}"
-      unless ENV['GDB']
-        sh    "strip -x #{TGT_DIR}/*.so.*"
-        sh    "strip -x #{TGT_DIR}/*.so"
-      end
-    end
-
     def setup_system_resources
       cp APP['icons']['gtk'], "#{TGT_DIR}/static/app-icon.png"
-    end
- 
-    # name {TGT_DIR}/shoes
-    def make_app(name)
-      puts "make_app dir=#{pwd} arg=#{name}"
-      bin = "#{name}-bin"
-      rm_f name
-      rm_f bin
-      sh "#{CC} -o #{bin} shoes/main.o  -L#{TGT_DIR}  -lshoes #{LINUX_LIBS}"
-      rewrite "platform/nix/shoes.launch", name, %r!/shoes-bin!, "/#{NAME}-bin"
-      sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{name}}
-      chmod 0755, "#{name}" 
-      # write a gdb launched shoes
-      rewrite "platform/nix/shoes.launch", "#{TGT_DIR}/debug", %r!/shoes-bin!, "/#{NAME}-bin"
-      sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH gdb $APPPATH/#{File.basename(bin)} "$@"' >> #{TGT_DIR}/debug}
-      chmod 0755, "#{TGT_DIR}/debug" 
     end
 
     def make_so(name)
@@ -128,7 +40,6 @@ class MakeLinux
          puts "make_so called in error"
          return
       end
-      #ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
       sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
 
@@ -136,11 +47,9 @@ class MakeLinux
       tgts = name.split('/')
       tgtd = tgts[0]
       $stderr.puts "new_so: #{tgtd}"
-
       objs = []
       SubDirs.each do |f|
         d = File.dirname(f)
-        #$stderr.puts "collecting .o from #{d}"
         objs = objs + FileList["#{d}/*.o"]      
       end
       # TODO  fix: gtk - needs to dig deeper vs osx
@@ -148,7 +57,6 @@ class MakeLinux
       main_o = 'shoes/main.o'
       objs = objs - [main_o]
       sh "#{CC} -o  #{tgtd}/libshoes.#{DLEXT} #{objs.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
-      #sh "#{CC} -o  #{tgtd}/libshoes.so #{OBJS.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
     
     def new_link(name)
@@ -184,7 +92,7 @@ class MakeLinux
         make_desktop 
         make_uninstall_script
         make_install_script
-        make_smaller unless ENV['GDB']
+        make_smaller unless APP['GDB']
       end
       Dir.chdir "pkg" do
         puts `pwd`

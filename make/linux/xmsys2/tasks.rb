@@ -1,33 +1,7 @@
 include FileUtils
 module Make
   include FileUtils
-=begin
-  def copy_files_to_dist
-    puts "copy_files_to_dist dir=#{pwd}"
-    if ENV['APP']
-      if APP['clone']
-        sh APP['clone'].gsub(/^git /, "#{GIT} --git-dir=#{ENV['APP']}/.git ")
-      else
-        cp_r ENV['APP'], "#{TGT_DIR}/app"
-      end
-      if APP['ignore']
-        APP['ignore'].each do |nn|
-          rm_rf "dist/app/#{nn}"
-        end
-      end
-    end
-
-    cp_r "fonts", "#{TGT_DIR}/fonts"
-    cp   "lib/shoes.rb", "#{TGT_DIR}/lib"
-    cp_r "lib/shoes", "#{TGT_DIR}/lib"
-    cp_r "lib/exerb", "#{TGT_DIR}/lib"
-    cp_r "samples", "#{TGT_DIR}/samples"
-    cp_r "static", "#{TGT_DIR}/static"
-    cp   "README.md", "#{TGT_DIR}/README.txt"
-    cp   "CHANGELOG", "#{TGT_DIR}/CHANGELOG.txt"
-    cp   "COPYING", "#{TGT_DIR}/COPYING.txt"
-  end
-=end
+  
   def cc(t)
     sh "#{CC} -I. -c -o#{t.name} #{LINUX_CFLAGS} #{t.source}"
   end
@@ -48,65 +22,7 @@ module Make
       end
     end
   end
-=begin
-  def copy_files glob, dir
-    FileList[glob].each { |f| cp_r f, dir }
-  end
-
-  #  Windows cross compile.  Copy the ruby libs
-  #  Then copy the deps.
-  def pre_build
-    puts "pre_build dir=#{`pwd`}"
-    return 
-    rbvt = RUBY_V
-    rbvm = RUBY_V[/^\d+\.\d+/]
-    # remove leftovers from previous rake.
-    rm_rf "#{TGT_DIR}/lib"
-    rm_rf "#{TGT_DIR}/etc"
-    rm_rf "#{TGT_DIR}/share"
-    rm_rf "#{TGT_DIR}/conf.d"
-    mkdir_p "#{TGT_DIR}/lib"
-    cp_r "#{EXT_RUBY}/lib/ruby", "#{TGT_DIR}/lib"
-    # copy include files
-    mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-#{rbvt}"
-    cp_r "#{EXT_RUBY}/include/ruby-#{rbvt}/", "#{TGT_DIR}/lib/ruby/include"
-    SOLOCS.each_value do |path|
-      cp "#{path}", "#{TGT_DIR}"
-    end
-    # copy/setup etc/share
-    mkdir_p "#{TGT_DIR}/share/glib-2.0/schemas"
-    cp  "#{TGT_SYS_DIR}share/glib-2.0/schemas/gschemas.compiled" ,
-        "#{TGT_DIR}/share/glib-2.0/schemas"
-    cp_r "#{ShoesDeps}/share/fontconfig", "#{TGT_DIR}/share"
-    cp_r "#{ShoesDeps}/share/themes", "#{TGT_DIR}/share"
-    cp_r "#{ShoesDeps}/share/xml", "#{TGT_DIR}/share"
-    cp_r "#{ShoesDeps}/share/icons", "#{TGT_DIR}/share"
-    sh "#{WINDRES} -I. shoes/appwin32.rc shoes/appwin32.o"
-    cp_r "#{ShoesDeps}/etc", TGT_DIR
-    if ENABLE_MS_THEME
-      ini_path = "#{TGT_DIR}/etc/gtk-3.0"
-      mkdir_p ini_path
-      File.open "#{ini_path}/settings.ini", mode: 'w' do |f|
-        f.write "[Settings]\n"
-        f.write "gtk-theme-name=win32"
-      end
-    end
-    mkdir_p "#{ShoesDeps}/lib"
-    cp_r "#{ShoesDeps}/lib/gtk-3.0", "#{TGT_DIR}/lib" 
-    bindir = "#{ShoesDeps}/bin"
-    if File.exist?("#{bindir}/gtk-update-icon-cache-3.0.exe")
-      cp "#{bindir}/gtk-update-icon-cache-3.0.exe",
-            "#{TGT_DIR}/gtk-update-icon-cache.exe"
-    else 
-      cp  "#{bindir}/gtk-update-icon-cache.exe", TGT_DIR
-    end
- end
-=end
-  # common_build is a misnomer. copies prebuilt extentions & gems
-  def common_build
-    copy_gems
-  end
-  
+ 
 end
 
 class MakeLinux
@@ -114,33 +30,10 @@ class MakeLinux
 
   class << self
 
-    def copy_deps_to_dist
-      puts "copy_deps_to_dist dir=#{pwd}"
-      unless ENV['GDB']
-        sh "#{STRIP}  #{TGT_DIR}/*.dll"
-        Dir.glob("#{TGT_DIR}/lib/ruby/**/*.so").each {|lib| sh "#{STRIP} #{lib}"}
-      end
-    end
-
     def setup_system_resources
       cp APP['icons']['gtk'], "#{TGT_DIR}/static/app-icon.png"
     end
  
-    # name {TGT_DIR}/shoes
-    def make_app(name)
-      puts "make_app dir=#{pwd} arg=#{name}"
-      bin = "#{name}.exe"
-      binc = bin.gsub(/shoes\.exe/, 'cshoes.exe')
-      puts "binc  = #{binc}"
-      rm_f name
-      rm_f bin
-      rm_f binc
-      sh "#{CC} -o #{bin} shoes/main.o shoes/appwin32.o -L#{TGT_DIR} -mwindows -lshoes #{LINUX_LIBS}"
-      sh "#{STRIP} #{bin}" unless APP['GDB']
-      sh "#{CC} -o #{binc} shoes/main.o shoes/appwin32.o -L#{TGT_DIR} #{extra} -lshoes #{LINUX_LIBS}"
-      sh "#{STRIP} #{binc}" unless APP['GDB']
-    end
-
     def make_so(name)
       if OBJ.empty?
         puts "Called w/o need"

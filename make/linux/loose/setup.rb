@@ -31,6 +31,5 @@ module Make
     cp    "README.md", "dist/README.txt"
     cp    "CHANGELOG", "dist/CHANGELOG.txt"
     cp    "COPYING", "dist/COPYING.txt"
-    touch 'zzsetup.done'
   end
 end

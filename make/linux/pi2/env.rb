@@ -4,7 +4,7 @@ if File.exists? cf
   custmz = YAML.load_file(cf)
   ShoesDeps = custmz['Deps']
   EXT_RUBY = custmz['Ruby']
-  ENV['GDB'] = 'basic' if custmz['Debug'] == true
+  APP['GDB'] = 'basic' if custmz['Debug'] == true
   APP['GEMLOC'] = custmz['Gemloc'] if custmz['Gemloc']
   APP['EXTLOC'] = custmz['Extloc'] if custmz['Extloc']
   APP['EXTLIST'] = custmz['Exts'] if custmz['Exts']
@@ -14,8 +14,7 @@ if File.exists? cf
 else
   abort "missing custom.yaml"
 end
-#ENV['DEBUG'] = "true" # turns on the tracing log
-#ENV['GDB'] = "" # compile -g,  strip symbols when not defined
+
 APP['GTK'] = 'gtk+-3.0' # installer needs this to name the output
 CHROOT = ShoesDeps
 SHOES_TGT_ARCH = 'armv7l-linux-eabihf'
@@ -34,14 +33,7 @@ pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.2.pc"
 pkggtk ="#{ularch}/pkgconfig/gtk+-3.0.pc" 
 # Use Ruby or curl for downloads
 RUBY_HTTP = true
-#gtk_extra_list = Dir["shoes/native/*.c"] - ["shoes/native/gtk.c"]
-#console_list  = Dir["shoes/console/*.c"]
-#file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"] +
- #    ["shoes/plot/*.c"] + ["shoes/types/*.c"] + ["shoes/native/gtk/*.c"] + console_list
-     
-#file_list = ["shoes/console/*.c"] + ["shoes/native/*.c"] + ["shoes/http/rbload.c"] + ["shoes/*.c"] +
-#  ["shoes/plot/*.c"]
-#file_list << "shoes/video/video.c" 
+
 file_list = []
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
@@ -58,7 +50,7 @@ PANGO_LIB = `pkg-config --libs pango`.strip
 
 png_lib = 'png'
 
-if ENV['DEBUG'] || ENV['GDB']
+if APP['GDB']
   LINUX_CFLAGS = " -g -O0"
 else
   LINUX_CFLAGS = " -O -Wall"

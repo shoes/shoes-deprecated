@@ -6,18 +6,16 @@ if File.exists? cf
   custmz = YAML.load_file(cf)
   ShoesDeps = custmz['Deps']
   EXT_RUBY = custmz['Ruby']
-  ENV['GDB'] = 'basic' if custmz['Debug'] == true
+  APP['GDB'] = 'basic' if custmz['Debug'] == true
   APP['GEMLOC'] = custmz['Gemloc'] if custmz['Gemloc']
   APP['EXTLOC'] = custmz['Extloc'] if custmz['Extloc']
   APP['EXTLIST'] = custmz['Exts'] if custmz['Exts']
   APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
   APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
-  #APP['GTK'] = custmz['Gtk'] if custmz['Gtk']
 else
   abort "You need a custom.yaml"
 end
 APP['GTK'] = "gtk+-3.0"
-#ENV['DEBUG'] = "true" # turns on the tracing log
 CHROOT = ShoesDeps
 SHOES_TGT_ARCH = 'i686-linux'
 SHOES_GEM_ARCH = "#{Gem::Platform.local}"
@@ -33,13 +31,7 @@ larch = "#{TGT_SYS_DIR}lib/#{arch}"
 CC = "gcc"
 pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.2.pc"
 pkggtk ="#{ularch}/pkgconfig/gtk+-3.0.pc" 
-#gtk_extra_list = Dir["shoes/native/*.c"] - ["shoes/native/gtk.c"]
-#console_list  = Dir["shoes/console/*.c"]
-#file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"] +
-#     ["shoes/plot/*.c"] + ["shoes/types/*.c"] + ["shoes/native/gtk/*.c"] + console_list
-#file_list = ["shoes/console/*.c"] + ["shoes/native/*.c"] + ["shoes/http/rbload.c"] + ["shoes/*.c"] +
-#  ["shoes/plot/*.c"]
-#file_list << "shoes/video/video.c" 
+
 file_list = []
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
@@ -54,7 +46,7 @@ PANGO_LIB = `pkg-config --libs pango`.strip
 
 png_lib = 'png'
 
-if ENV['DEBUG'] || ENV['GDB']
+if APP['GDB']
   LINUX_CFLAGS = " -g -O0"
 else
   LINUX_CFLAGS = " -O -Wall"
