@@ -10,7 +10,7 @@ if File.exists? cf
   BREWLOC = custmz['Deps']
   EXT_RUBY = custmz['Ruby'] ? custmz['Ruby'] : RbConfig::CONFIG['prefix']
   puts "For #{EXT_RUBY}"
-  ENV['GDB'] = 'basic' if custmz['Debug'] == true
+  APP['GDB'] = 'basic' if custmz['Debug'] == true
   ENV['CDEFS'] = custmz['CFLAGS'] if custmz['CFLAGS']
   APP['GEMLOC'] = custmz['Gemloc'] if custmz['Gemloc']
   APP['EXTLOC'] = custmz['Extloc'] if custmz['Extloc']
@@ -24,16 +24,19 @@ else
 end
 
 CC = ENV['CC'] ? ENV['CC'] : "gcc"
+=begin
 file_list =  %w{shoes/console/tesi.c shoes/console/colortab.c shoes/console/cocoa-term.m
   shoes/native/cocoa.m shoes/http/nsurl.m } +  ["shoes/*.c"] + ["shoes/plot/*.c"] +
   ["shoes/types/*.c"] 
   
 #file_list << 'shoes/types/video.c'
+=end
+file_list = []
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
 end
-if ENV['DEBUG'] || ENV['GDB']
+if APP['GDB']
   LINUX_CFLAGS = " -g"
 else
   LINUX_CFLAGS = " -O"

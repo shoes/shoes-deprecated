@@ -113,6 +113,8 @@ when /darwin/
     require File.expand_path("make/darwin/#{TGT_ARCH}/tasks")
     require File.expand_path("make/darwin/#{TGT_ARCH}/stubs")
     require File.expand_path("make/gems")
+    require File.expand_path("make/darwin/#{TGT_ARCH}/setup")
+    require File.expand_path("make/subsys")
   else
     # build Loose Shoes on OSX for OSX
     puts "OSX: please select a target - see rake -T"
@@ -404,7 +406,8 @@ namespace :osx do
 
   end
 
-  task :build => [:old_build]
+  #task :build => [:old_build]
+  task :build => [:new_build]
 
   task :make_app do
     Builder.make_app "#{TGT_DIR}/#{NAME}"
