@@ -45,24 +45,6 @@ module Make
       end
     end
   end
-  
-  def rewrite_ary before, after, reg = /\#\{(\w+\[\'\w+\'\])\}/, reg2 = '\1'
-    File.open(after, 'w') do |a|
-      File.open(before) do |b|
-        b.each do |line|
-          a << line.gsub(reg) do
-            if reg2.include? '\1'
-              #reg2.gsub(%r!\\1!, Object.const_get($1))
-              sub = eval $1
-              reg2.gsub(%r!\\1!, sub)
-            else
-              reg2
-            end
-          end
-        end
-      end
-    end
-  end
 
   def copy_files glob, dir
     FileList[glob].each { |f| cp_r f, dir }
@@ -106,9 +88,9 @@ class MakeDarwin
       # copy include files - it might help build gems
       mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-#{rbvt}"
       cp_r "#{EXT_RUBY}/include/ruby-#{rbvt}/", "#{TGT_DIR}/lib/ruby/include"
-      # build a hash of x.dylib > BrewLoc/**/*.dylib
+      # build a hash of x.dylib > ShoesDeps/**/*.dylib
       @brew_hsh = {}
-      Dir.glob("#{BREWLOC}/lib/**/*.dylib").each do |path|
+      Dir.glob("#{ShoesDeps}/lib/**/*.dylib").each do |path|
         key = File.basename(path)
         @brew_hsh[key] = path
       end
@@ -232,8 +214,7 @@ class MakeDarwin
           # the code below won't be triggered if they are.
           puts "Adding #{libn}"
           @brew_hsh[keyf] = libn
-          #cp @brew_hsh[keyf], "#{TGT_DIR}/" unless File.exists? "#{TGT_DIR}/#{keyf}"
-          cp "#{BREWLOC}/lib/#{keyf}", "#{TGT_DIR}/" unless File.exists? "#{TGT_DIR}/#{keyf}"
+          cp "#{ShoesDeps}/lib/#{keyf}", "#{TGT_DIR}/" unless File.exists? "#{TGT_DIR}/#{keyf}"
           chmod 0755, "#{TGT_DIR}/#{keyf}" unless File.writable? "#{TGT_DIR}/#{keyf}"
         else
           puts "Missing #{libn}"
@@ -245,17 +226,15 @@ class MakeDarwin
       ['libresolv.9.dylib', 'libicucore.A.dylib', 'libc++.1.dylib', 'libc++abi.dylib'].each do |lib|
         rm "#{TGT_DIR}/#{lib}" if File.exists? "#{TGT_DIR}/#{lib}"
       end
-   end
+    end
 
     def setup_system_resources
+      # does nothing so far but build wants it
+    end
+    
+    # this is called by new_link
+    def osx_create_app
       puts "Enter setup_system_resources"
-      # create plist version string
-      tf = File.open("VERSION.txt")
-      str = tf.readline
-      tf.close
-      flds = str.split(' ');
-      APP['plist_version_string'] = "#{flds[1]} #{flds[2]} #{flds[3]}"
-      puts "plist_version_string #{APP['plist_version_string']}"
       tmpd = "/tmp"
       rm_rf "#{tmpd}/#{APPNAME}.app"
       mkdir "#{tmpd}/#{APPNAME}.app"
@@ -263,17 +242,9 @@ class MakeDarwin
       cp_r "#{TGT_DIR}", "#{tmpd}/#{APPNAME}.app/Contents/MacOS"
       mkdir "#{tmpd}/#{APPNAME}.app/Contents/Resources"
       mkdir "#{tmpd}/#{APPNAME}.app/Contents/Resources/English.lproj"
-      
       sh "ditto \"#{APP['icons']['osx']}\" \"#{tmpd}/#{APPNAME}.app/App.icns\""
       sh "ditto \"#{APP['icons']['osx']}\" \"#{tmpd}/#{APPNAME}.app/Contents/Resources/App.icns\""
-
-      #rewrite "platform/mac/Info.plist", "#{tmpd}/#{APPNAME}.app/Contents/Info.plist"
-      rewrite "platform/mac/Info.plist", "#{tmpd}/#{APPNAME}.app/Contents/Info.plist-1"
-      rewrite_ary  "#{tmpd}/#{APPNAME}.app/Contents/Info.plist-1",
-         "#{tmpd}/#{APPNAME}.app/Contents/Info.plist"
-     
-      rm "#{tmpd}/#{APPNAME}.app/Contents/Info.plist-1"
-      
+      rewrite "platform/mac/Info.plist", "#{tmpd}/#{APPNAME}.app/Contents/Info.plist"
       cp "platform/mac/version.plist", "#{tmpd}/#{APPNAME}.app/Contents/"
       rewrite "platform/mac/pangorc", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/pangorc"
       cp "platform/mac/command-manual.rb", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/"

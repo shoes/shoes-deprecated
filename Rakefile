@@ -78,7 +78,12 @@ end
 
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 #CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
-CLEAN.include ["req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
+#CLEAN.include ["req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
+CLEAN.include ["#{TGT_DIR}/libshoes.dll", "#{TGT_DIR}/*shoes.exe", 
+    "#{TGT_DIR}/libshoes.so","#{TGT_DIR}/shoes", "#{TGT_DIR}/shoes-bin",
+    "shoes/**/*.o", "shoes/**/*.lib"]
+CLOBBER.include ["#{TGT_DIR}", "zzsetup.done", "crosscompile", "shoes/**/*.o",
+    "shoes/**/*.lib"]
 
 # for Host building for Host:
 case RUBY_PLATFORM
@@ -88,11 +93,15 @@ when /mingw/
     require File.expand_path("make/win32/#{TGT_ARCH}/tasks")
     require File.expand_path("make/win32/#{TGT_ARCH}/stubs")
     require File.expand_path("make/gems")
+    require File.expand_path("make/win32/#{TGT_ARCH}/setup")
+    require File.expand_path('make/subsys')
   else
-    require File.expand_path('make/win32/loose/env.rb')
-    require File.expand_path('make/win32/loose/tasks.rb')
-    puts "PLEASE SELECT a build environment from the win32 options "
-    puts"   shown from a a `rake -T` "
+    require File.expand_path('make/win32/win7/env.rb')
+    require File.expand_path('make/win32/win7/tasks.rb')
+    if !CROSS
+      puts "PLEASE SELECT a build environment from the win32 options "
+      puts"   shown from a `rake -T` "
+    end
   end
   Builder = MakeMinGW
   NAMESPACE = :win32
@@ -104,6 +113,8 @@ when /darwin/
     require File.expand_path("make/darwin/#{TGT_ARCH}/tasks")
     require File.expand_path("make/darwin/#{TGT_ARCH}/stubs")
     require File.expand_path("make/gems")
+    require File.expand_path("make/darwin/#{TGT_ARCH}/setup")
+    require File.expand_path("make/subsys")
   else
     # build Loose Shoes on OSX for OSX
     puts "OSX: please select a target - see rake -T"
@@ -121,15 +132,21 @@ when /linux/
     when /x86_64-linux/
       require File.expand_path('make/linux/x86_64-linux/env')
       require File.expand_path('make/linux/x86_64-linux/tasks')
+      require File.expand_path('make/linux/x86_64-linux/setup')
       require File.expand_path("make/gems")
+      require File.expand_path('make/subsys')
     when /i686-linux/
       require File.expand_path('make/linux/i686-linux/env')
       require File.expand_path('make/linux/i686-linux/tasks')
+      require File.expand_path('make/linux/i686-linux/setup')
       require File.expand_path("make/gems")
+      require File.expand_path('make/subsys')
     when /pi2/
       require File.expand_path('make/linux/pi2/env')
       require File.expand_path('make/linux/pi2/tasks')
+      require File.expand_path('make/linux/pi2/setup')
       require File.expand_path("make/gems")
+      require File.expand_path('make/subsys')
     when /xarmv6hf/
       require File.expand_path('make/linux/xarm6hf/env')
       require File.expand_path('make/linux/xarm6hf/tasks')
@@ -138,14 +155,18 @@ when /linux/
       require File.expand_path('make/linux/xwin7/env')
       require File.expand_path('make/linux/xwin7/tasks')
       require File.expand_path('make/linux/xwin7/stubs')
+      require File.expand_path('make/linux/xwin7/setup')
       require File.expand_path('make/linux/xwin7/packdeps')
       require File.expand_path('make/gems')
+      require File.expand_path('make/subsys')
    when /xmsys2/
       require File.expand_path('make/linux/xmsys2/env')
       require File.expand_path('make/linux/xmsys2/tasks')
       require File.expand_path('make/linux/xmsys2/stubs')
       require File.expand_path('make/linux/xmsys2/packdeps')
+      require File.expand_path('make/linux/xmsys2/setup')
       require File.expand_path('make/gems')
+      require File.expand_path('make/subsys')
    else
       puts "Unknown builder for #{TGT_ARCH}, removing setting"
       rm_rf "crosscompile" if File.exists? "crosscompile"
@@ -155,6 +176,8 @@ when /linux/
      #TGT_DIR = "dist"
      require File.expand_path('make/linux/loose/env')
      require File.expand_path('make/linux/loose/tasks')
+     require File.expand_path('make/linux/loose/setup')
+     require File.expand_path('make/subsys')
   end
   Builder = MakeLinux
   NAMESPACE = :linux
@@ -166,7 +189,7 @@ end
 # common platform tasks
 
 desc "Same as `rake build'"
-task :default => ["shoes/types/types.h", :build]
+task :default => [:build]
 
 desc "Package Shoes for distribution"
 task :package => [:version, :installer]
@@ -203,7 +226,7 @@ task "shoes/version.h" do |t|
   end
 end
 
-# FIXME: Left for historical reasons (aka OSX)
+# TODO: Left for historical reasons (aka OSX)
 task "#{TGT_DIR}/VERSION.txt" do |t|
   File.open(t.name, 'w') do |f|
     f << %{shoes #{RELEASE_NAME.downcase} (0.r#{REVISION}) [#{SHOES_RUBY_ARCH} Ruby#{RUBY_V}]}
@@ -212,7 +235,8 @@ task "#{TGT_DIR}/VERSION.txt" do |t|
   end
 end
 
-task "shoes/types/types.h" do |t|
+#TODO: should the following be a task or file? 
+file "shoes/types/types.h" do |t|
    puts "Processing #{t.name}..."
    
    rm_rf "shoes/types/types.h" if File.exists? "shoes/types/types.h"
@@ -237,7 +261,7 @@ def create_version_file file_path
   end
 end
 
-# FIXME: called from osx(s) copy_files_to_dist in task.rb
+# TODO: called from osx(s) copy_files_to_dist in task.rb
 def osx_version_txt t
   create_version_file t
 end
@@ -271,6 +295,35 @@ task :old_build => [:pre_build, :build_os] do
   Builder.setup_system_resources
 end
 
+# ------  new build - used by linux and windows, so far -------
+
+file  "#{TGT_DIR}/zzsetup.done" do
+  Builder.static_setup SOLOCS
+  Builder.copy_gems #used to be common_build, located in make/gems.rb
+  Builder.setup_system_resources
+  touch "#{TGT_DIR}/zzsetup.done"
+end
+
+SubDirs = ["shoes/base.lib", "shoes/http/download.lib", "shoes/plot/plot.lib",
+    "shoes/console/console.lib", "shoes/types/widgets.lib", "shoes/native/native.lib"]
+    
+# Windows does't use console - don't try to build it.
+case TGT_DIR
+  when 'win7', 'xwin7', 'msys2', 'xmsys2'
+    SubDirs.delete("shoes/console/console.lib")
+end
+
+file "#{TGT_DIR}/libshoes.#{DLEXT}" => ["#{TGT_DIR}/zzsetup.done", "shoes/types/types.h"] + SubDirs do
+  Builder.new_so "#{TGT_DIR}/libshoes.#{DLEXT}"
+end
+
+task :new_build => "#{TGT_DIR}/libshoes.#{DLEXT}"  do
+  # We can link shoes here - this will be done via a Builder call
+  # because it's platform specific.
+  Builder.new_link "#{TGT_DIR}/shoes"
+  $stderr.puts "new build: called for #{TGT_DIR}"
+end
+
 desc "Install Shoes in your ~/.shoes Directory"
 task  :install do
   if CROSS
@@ -286,7 +339,6 @@ end
 
 directory "#{TGT_DIR}"	# was 'dist'
 
-#task "#{TGT_DIR}/#{NAME}" => ["#{TGT_DIR}/lib#{SONAME}.#{DLEXT}", "bin/main.o"] + ADD_DLL + ["#{NAMESPACE}:make_app"]
 task "#{TGT_DIR}/#{NAME}" => ["#{TGT_DIR}/lib#{SONAME}.#{DLEXT}", "shoes/main.o"] + ADD_DLL + ["#{NAMESPACE}:make_app"]
 
 task "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}" => ['shoes/version.h', "#{TGT_DIR}"] + OBJ + ["#{NAMESPACE}:make_so"]
@@ -352,13 +404,10 @@ namespace :osx do
     #  sh "echo 'TGT_ARCH=xsnow' >crosscompile"
     #end
 
-    desc "restore build my current system"
-    task :clean do
-      rm_rf "crosscompile"
-    end
   end
 
-  task :build => [:old_build]
+  #task :build => [:old_build]
+  task :build => [:new_build]
 
   task :make_app do
     Builder.make_app "#{TGT_DIR}/#{NAME}"
@@ -388,14 +437,10 @@ namespace :win32 do
       sh "echo TGT_ARCH=msys2 >crosscompile"
     end
     
-    desc "remove win32 setup"
-    task :clean do
-      puts "restored to Loose Shoes build"
-      rm_rf "crosscompile" if File.exists? "crosscompile"
-    end
   end
 
-  task :build => [:old_build]
+  #task :build => [:old_build]
+  task :build => [:new_build]
 
   task :make_app do
     Builder.make_app "#{TGT_DIR}/#{NAME}"
@@ -426,7 +471,7 @@ namespace :linux do
     
     desc "Cross compile for msys2 deps (mingw)"
     task :xmsys2 do
-      puts "Cross compile for Windows MingW32"
+      puts "Cross compile newer deps (mingw)"
       sh "echo 'TGT_ARCH=xmsys2' >crosscompile"
     end
 
@@ -448,14 +493,10 @@ namespace :linux do
       sh "echo 'TGT_ARCH=x86_64-linux' >crosscompile"
     end
 
-    desc "Remove linux compile setup"
-    task :clean do
-      puts "restored to native build"
-      rm_rf "crosscompile" if File.exists? "crosscompile"
-    end
   end
-
-  task :build => [:old_build]
+  
+  #task :build => [:old_build]
+  task :build => [:new_build]
 
   task :make_app do
     Builder.make_app "#{TGT_DIR}/#{NAME}"
@@ -469,17 +510,4 @@ namespace :linux do
     Builder.make_installer
   end
 
-end
-
-# Note the following works: Not pretty but it works
-#task "#{TGT_DIR}/libshoes.so" do
-#   Builder.make_so  "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
-#end
-
-task :clean do
-  $stderr.puts "Inner clean"
-end
-
-task :clobber do |t| 
-  $stderr.puts "Inner clobber #{t.inspect}"
 end
