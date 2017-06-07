@@ -88,9 +88,9 @@ class MakeDarwin
       # copy include files - it might help build gems
       mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-#{rbvt}"
       cp_r "#{EXT_RUBY}/include/ruby-#{rbvt}/", "#{TGT_DIR}/lib/ruby/include"
-      # build a hash of x.dylib > BrewLoc/**/*.dylib
+      # build a hash of x.dylib > ShoesDeps/**/*.dylib
       @brew_hsh = {}
-      Dir.glob("#{BREWLOC}/lib/**/*.dylib").each do |path|
+      Dir.glob("#{ShoesDeps}/lib/**/*.dylib").each do |path|
         key = File.basename(path)
         @brew_hsh[key] = path
       end
@@ -215,7 +215,7 @@ class MakeDarwin
           puts "Adding #{libn}"
           @brew_hsh[keyf] = libn
           #cp @brew_hsh[keyf], "#{TGT_DIR}/" unless File.exists? "#{TGT_DIR}/#{keyf}"
-          cp "#{BREWLOC}/lib/#{keyf}", "#{TGT_DIR}/" unless File.exists? "#{TGT_DIR}/#{keyf}"
+          cp "#{ShoesDeps}/lib/#{keyf}", "#{TGT_DIR}/" unless File.exists? "#{TGT_DIR}/#{keyf}"
           chmod 0755, "#{TGT_DIR}/#{keyf}" unless File.writable? "#{TGT_DIR}/#{keyf}"
         else
           puts "Missing #{libn}"
@@ -227,9 +227,51 @@ class MakeDarwin
       ['libresolv.9.dylib', 'libicucore.A.dylib', 'libc++.1.dylib', 'libc++abi.dylib'].each do |lib|
         rm "#{TGT_DIR}/#{lib}" if File.exists? "#{TGT_DIR}/#{lib}"
       end
-   end
-
+    end
+    
     def setup_system_resources
+      # called after the gems are copied into the above setup.
+      # build a hash of x.dylib > ShoesDeps/**/*.dylib
+      @brew_hsh = {}
+      Dir.glob("#{ShoesDeps}/lib/**/*.dylib").each do |path|
+        key = File.basename(path)
+        @brew_hsh[key] = path
+      end
+      # Find ruby's + gems dependent libs
+      cd "#{TGT_DIR}/lib/ruby/#{rbvm}.0/#{SHOES_TGT_ARCH}" do
+        bundles = *Dir['*.bundle']
+        puts "Bundles #{bundles}"
+        cplibs = {}
+        bundles.each do |bpath|
+          `otool -L #{bpath}`.split.each do |lib|
+            cplibs[lib] = lib if File.extname(lib)=='.dylib'
+          end
+        end
+        cplibs.each_key do |k|
+          cppath = @brew_hsh[File.basename(k)]
+          if cppath
+            cp cppath, "#{TGT_DIR}"
+            chmod 0755, "#{TGT_DIR}/#{File.basename k}"
+            puts "Copy #{cppath}"
+          else
+            puts "Missing Ruby: #{k}"
+          end
+        end
+        # -id/-change the lib
+        bundles.each do |f|
+          dylibs = get_dylibs f
+          dylibs.each do |dylib|
+            if @brew_hsh[File.basename(dylib)]
+              sh "install_name_tool -change #{dylib} @executable_path/../#{File.basename dylib} #{f}"
+            else
+              puts "Bundle lib missing #{dylib}"
+            end
+          end
+        end
+      end
+    end
+
+    def osx_create_app
       puts "Enter setup_system_resources"
       tmpd = "/tmp"
       rm_rf "#{tmpd}/#{APPNAME}.app"
@@ -271,8 +313,27 @@ class MakeDarwin
 
     def make_so(name)
       puts "Enter make_so"
+      if OBJ.empty? 
+        $stderr.puts "Called w/o need"
+        return
+      end
       ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
       sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
+    end
+    
+    def new_so(name)
+      $stderr.puts "new__so #{name}"
+      ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
+      sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
+    end
+    
+    def new_link(name)
+      $stderr.puts "new_link #{name}"
+      bin = "#{name}-bin"
+      rm_f name
+      rm_f bin
+      sh "#{CC} -L#{TGT_DIR} -o #{bin} shoes/main.o #{LINUX_LIBS} -lshoes #{OSX_ARCH}"
+      osx_create_app # generate plist and much copying/moving
     end
 
     def make_installer

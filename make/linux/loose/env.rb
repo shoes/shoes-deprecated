@@ -24,11 +24,11 @@ LINUX_CFLAGS << " #{`pkg-config --cflags gtk+-3.0`.strip}"
 
 CC = "gcc"
 
-file_list = []
-SRC = FileList[*file_list]
-OBJ = SRC.map do |x|
-  x.gsub(/\.\w+$/, '.o')
-end
+#file_list = []
+#SRC = FileList[*file_list]
+#OBJ = SRC.map do |x|
+#  x.gsub(/\.\w+$/, '.o')
+#end
 
 # Query pkg-config for cflags and link settings
 EXT_RUBY = RbConfig::CONFIG['prefix']

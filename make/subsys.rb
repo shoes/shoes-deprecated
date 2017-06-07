@@ -1,124 +1,162 @@
-# this is make _like_. very detailed.
+# this is make _like_. very hand crafted. Modify with care and wisdome.
 Base_h = FileList["shoes/*.h"] - ["shoes/appwin32.h", "shoes/version.h"]
-# touching one of those chould rebuild everything. 
+# touching one of those could/should rebuild everything. 
 #
 # Keep the file paths to .o files in Constant OBJS - not the
-# same as OBJ in the older build. NOT THE SAME
+# same as OBJ in the older build. NOT THE SAME. May not be used everywhere
+# or anywhere 
 OBJS = []
+
 # Shoes shoes/base.lib (canvas, ruby, image....
+tp = "#{TGT_DIR}/#{APP['Bld_Tmp']}"
+mkdir_p tp
 base_src = FileList["shoes/*.c"]
 base_obj = []
 base_src.each do |c|
-  o = c.gsub(/.c$/, '.o')
+  fnm = File.basename(c, ".*")
+  o = "#{tp}/#{fnm}.o"
   base_obj  << o
-  file o => [c] + Base_h
+  #$stderr.puts "create base task for #{o} => #{c}"
+  file o => [c] + Base_h do |t|
+    sh "#{CC} -o #{o} -I. -c #{LINUX_CFLAGS} #{c}"
+  end
 end
-
-file "shoes/base.lib" => base_obj do
-  objs = Dir['shoes/*.o']
+#puts "base_obj = #{base_obj}"
+file "#{tp}/base.lib" => base_obj do
+  objs = Dir["#{tp}/*.o"]
   OBJS.concat objs
-  sh "ar -rc shoes/base.lib #{objs.join(' ')}"
+  sh "ar -rc #{tp}/base.lib #{objs.join(' ')}"
 end
 
 # Shoes/widget ruby interface (aka types/)
+mkdir_p "#{tp}/types"
 rbwidget_src = FileList["shoes/types/*.c"]
 rbwidget_obj = []
 rbwidget_hdr = []
 rbwidget_src.each do |c|
-  o = c.gsub(/.c$/, '.o')
+  fnm = File.basename(c, ".*")
+  o = "#{tp}/types/#{fnm}.o"
   rbwidget_obj << o
   h = c.gsub(/.c$/, '.h')
   rbwidget_hdr << h
-  file o => [c] + [h] + Base_h
+  file o => [c] + [h] + Base_h do |t| 
+   sh "#{CC} -o #{o} -I. -c #{LINUX_CFLAGS} #{c}"
+  end
 end
-
-file "shoes/types/widgets.lib" => rbwidget_obj do
-  objs = Dir['shoes/types/*.o']
+file "#{tp}/types/widgets.lib" => rbwidget_obj do
+  objs = Dir["#{tp}/types/*.o"]
   OBJS.concat objs
-  sh "ar -rc shoes/types/widgets.lib #{objs.join(' ')}"
+  sh "ar -rc #{tp}/types/widgets.lib #{objs.join(' ')}"
 end
 
 # Shoe Native
 nat_src = []
 nat_obj = []
+mkdir_p "#{tp}/native"
 if RUBY_PLATFORM =~ /darwin/
-  #TODO ? 
-  file "shoes/native/cocoa.o" => ["shoes/native/cocoa.m", "shoes/native/cocoa.h"] +
-      Base_h do
-    sh "ar -rc shoes/native/native.lib shoes/native/cocoa.o"
+  file "#{tp}/native/cocoa.o" => ["shoes/native/cocoa.m", "shoes/native/cocoa.h"] +
+      Base_h
+  file "#{tp}/native/native/lib" => ["shoes/native/cocoa.o"] do
+    sh "ar -rc #{tp}/native/native.lib shoes/native/cocoa.o"
   end
 else
   nat_src = FileList['shoes/native/gtk/*.c']
   nat_src.each do |c|
-    o = c.gsub(/.c$/, '.o')
+    fnm = File.basename(c, ".*")
+    o = "#{tp}/native/#{fnm}.o"
+    #o = c.gsub(/.c$/, '.o')
     nat_obj << o
     h = c.gsub(/.c$/, '.h')
-    file o => [c] + [h] + ['shoes/native/native.h'] + Base_h
+    file o => [c] + [h] + ['shoes/native/native.h'] + Base_h do
+      sh "#{CC} -o #{o} -I. -c #{LINUX_CFLAGS} #{c}"
+    end
   end
-  file "shoes/native/gtk.o" => ["shoes/native/gtk.h", "shoes/native/native.h"] + Base_h
-  file "shoes/native/native.lib" => ['shoes/native/gtk.o'] + nat_obj do
+  file "#{tp}/native/gtk.o" => ["shoes/native/gtk.c", "shoes/native/gtk.h", "shoes/native/native.h"] + Base_h do
+    sh "#{CC} -o #{tp}/native/gtk.o -I. -c #{LINUX_CFLAGS} shoes/native/gtk.c"
+  end
+  file "#{tp}/native/native.lib" => ["#{tp}/native/gtk.o"] + nat_obj do
     OBJS.concat nat_obj
-    OBJS.concat ["shoes/native/gtk.o"] 
-    sh "ar -rc shoes/native/native.lib shoes/native/gtk.o #{nat_obj.join(' ')}"
+    OBJS.concat ["#{tp}/native/gtk.o"] 
+    sh "ar -rc #{tp}/native/native.lib #{tp}/native/gtk.o #{nat_obj.join(' ')}"
   end
 end
-
-
 
 # Shoes/http
 dnl_src = []
 dnl_obj = []
+mkdir_p "#{tp}/http"
 if RUBY_PLATFORM =~ /darwin/
-  #TODO - compile nsurl.m and rbload.c?
+  dnl_src = ["shoes/http/rbload.c", "nsurl.m"]
 else
   dnl_src = ["shoes/http/rbload.c"]
-  dnl_obj = []
 end
 dnl_src.each do |c|
-  o = c.gsub(/.c$/, '.o')
+  fnm = File.basename(c, ".*")
+  o = "#{tp}/http/#{fnm}.o"
+  #o = c.gsub(/(.c|.m)$/, '.o')
   dnl_obj << o
-  file o => [c] + Base_h
+  file o => [c] + Base_h do 
+    sh "#{CC} -o #{o} -I. -c #{LINUX_CFLAGS} #{c}"
+  end
 end
-file "shoes/http/download.lib" => dnl_obj do
+file "#{tp}/http/download.lib" => dnl_obj do
   OBJS.concat dnl_obj
-  sh "ar -rc shoes/http/download.lib #{dnl_obj.join(' ')}"
+  sh "ar -rc #{tp}/http/download.lib #{dnl_obj.join(' ')}"
 end
 
 # Plot
+mkdir_p "#{tp}/plot"
 plot_src = FileList['shoes/plot/*.c']
-#$stderr.puts "plot/*.c: #{Plot_Src}"
 plot_obj = []
 plot_src.each do |c|
-  o = c.gsub(/.c$/, '.o')
-  #$stderr.puts "creating file task #{o} => #{[c]}"
+  fnm = File.basename(c, ".*")
+  o = "#{tp}/plot/#{fnm}.o"
+  #o = c.gsub(/.c$/, '.o')
   plot_obj << o
-  file o => [c] + ["shoes/plot/plot.h", "shoes/plot/plot_util.c", "shoes/plot/chart_series.c"]
+  file o => [c] + ["shoes/plot/plot.h", "shoes/plot/plot_util.c", "shoes/plot/chart_series.c"] do
+    sh "#{CC} -o #{o} -I. -c #{LINUX_CFLAGS} #{c}"
+  end
 end
 
-file "shoes/plot/plot.lib" => plot_obj do 
+file "#{tp}/plot/plot.lib" => plot_obj do 
   objs = Dir['shoes/plot/*.o']
   OBJS.concat objs
-  sh "ar -rc shoes/plot/plot.lib #{objs.join(' ')}"
+  sh "ar -rc #{tp}/plot/plot.lib #{objs.join(' ')}"
 end
 
 # Console 
+mkdir_p "#{tp}/console"
 if RUBY_PLATFORM =~ /darwin/
-  # TODO 
-  file "shoes/console/console.lib" => ["shoes/console/tesi.o", "shoes/console/cocoa-term.h",
-    "shoes/console/cocoa-term.m"] do
-    # some sort of osx ar -rc
+  src = ["shoes/console/tesi.c", "shoes/console/colortab.c", "shoes/console/cocoa-term.c"]
+  obj =[]
+  src.each do |c|
+    fnm = File.basename(c, ".*")
+    o = "#{tp}/plot/#{fnm}.o"
+    #o = c.gsub(/(.c|.m)$/, '.o')
+    obj << o
+    file o => [c] + ["shoes/console/tesi.h"] do
+      sh "#{CC} -o #{o} -I. -c #{LINUX_CFLAGS} #{c}"
+    end
+  end
+  file "#{TGT_DIR}/tmp/shoes/console/console.lib" =>  obj do
+    OBJS.concat obj
+    sh "ar -rc s#{TGT_DIR}/tmp/hoes/console/console.lib #{obj.join(' ')}"
   end
 else 
   src = ["shoes/console/tesi.c", "shoes/console/colortab.c", "shoes/console/gtk-terminal.c"]
   obj = []
   src.each do |c|
-    o = c.gsub(/.c$/, '.o')
+    fnm = File.basename(c, ".*")
+    o = "#{tp}/plot/#{fnm}.o"
+    #o = c.gsub(/.c$/, '.o')
     obj << o
-    file o => [c] + ["shoes/console/tesi.h"]
+    file o => [c] + ["shoes/console/tesi.h"] do
+        sh "#{CC} -o #{o} -I. -c #{LINUX_CFLAGS} #{c}"
+    end
   end
-  file "shoes/console/console.lib" =>  obj do
-  OBJS.concat obj
-    sh "ar -rc shoes/console/console.lib #{obj.join(' ')}"
+  file "#{tp}/console/console.lib" =>  obj do
+    OBJS.concat obj
+    sh "ar -rc #{tp}/console/console.lib #{obj.join(' ')}"
   end
 end
 

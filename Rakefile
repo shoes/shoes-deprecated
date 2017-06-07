@@ -47,10 +47,11 @@ RUBY_V = RbConfig::CONFIG['ruby_version']
 SHOES_RUBY_ARCH = RbConfig::CONFIG['arch']
 
 # default exts, gems & locations to build and include - replace with custom.yaml
-APP['GEMLOC'] = File.expand_path('req')
-APP['EXTLOC'] = File.expand_path('req')
-APP['EXTLIST'] = ['chipmunk']
-APP['GEMLIST'] = ['sqlite3']
+APP['GEMLOC'] = ""
+APP['EXTLOC'] = ""
+APP['EXTLIST'] = []
+APP['GEMLIST'] = []
+APP['Bld_Tmp'] = 'tmp'
 
 if File.exists? "crosscompile"
   CROSS = true
@@ -81,9 +82,8 @@ BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 #CLEAN.include ["req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
 CLEAN.include ["#{TGT_DIR}/libshoes.dll", "#{TGT_DIR}/*shoes.exe", 
     "#{TGT_DIR}/libshoes.so","#{TGT_DIR}/shoes", "#{TGT_DIR}/shoes-bin",
-    "shoes/**/*.o", "shoes/**/*.lib"]
-CLOBBER.include ["#{TGT_DIR}", "zzsetup.done", "crosscompile", "shoes/**/*.o",
-    "shoes/**/*.lib"]
+    "#{TGT_DIR}/**/*.lib", "#{TGT_DIR}/**/*.o"]
+CLOBBER.include ["#{TGT_DIR}", "crosscompile", "shoes/**/*.o"]
 
 # for Host building for Host:
 case RUBY_PLATFORM
@@ -272,9 +272,9 @@ task :version do
 end
 
 # shoes is small, if any include changes, go ahead and build from scratch.
-SRC.zip(OBJ).each do |c, o|
-  file o => [c] + Dir["shoes/*.h"]
-end
+#SRC.zip(OBJ).each do |c, o|
+#  file o => [c] + Dir["shoes/*.h"]
+#end
 
 # --------------------------
 # tasks depending on Builder = MakeLinux|MakeDarwin|MakeMinGW
@@ -295,25 +295,27 @@ task :old_build => [:pre_build, :build_os] do
   Builder.setup_system_resources
 end
 
-# ------  new build - used by linux and windows, so far -------
-
-file  "#{TGT_DIR}/zzsetup.done" do
+# ------      new build   --------
+rtp = "#{TGT_DIR}/#{APP['Bld_Tmp']}"
+$stderr.puts "Build Products in #{rtp}"
+file  "#{rtp}/zzsetup.done" do
   Builder.static_setup SOLOCS
   Builder.copy_gems #used to be common_build, located in make/gems.rb
   Builder.setup_system_resources
-  touch "#{TGT_DIR}/zzsetup.done"
+  touch "#{rtp}/zzsetup.done"
 end
 
-SubDirs = ["shoes/base.lib", "shoes/http/download.lib", "shoes/plot/plot.lib",
-    "shoes/console/console.lib", "shoes/types/widgets.lib", "shoes/native/native.lib"]
+SubDirs = ["#{rtp}/base.lib", "#{rtp}/http/download.lib",
+   "#{rtp}/plot/plot.lib", "#{rtp}/console/console.lib", 
+   "#{rtp}/types/widgets.lib", "#{rtp}/native/native.lib"]
     
 # Windows does't use console - don't try to build it.
 case TGT_DIR
   when 'win7', 'xwin7', 'msys2', 'xmsys2'
-    SubDirs.delete("shoes/console/console.lib")
+    SubDirs.delete("#{rtp}/console/console.lib")
 end
 
-file "#{TGT_DIR}/libshoes.#{DLEXT}" => ["#{TGT_DIR}/zzsetup.done", "shoes/types/types.h"] + SubDirs do
+file "#{TGT_DIR}/libshoes.#{DLEXT}" => ["#{rtp}/zzsetup.done", "shoes/types/types.h"] + SubDirs do
   Builder.new_so "#{TGT_DIR}/libshoes.#{DLEXT}"
 end
 
@@ -339,11 +341,12 @@ end
 
 directory "#{TGT_DIR}"	# was 'dist'
 
-task "#{TGT_DIR}/#{NAME}" => ["#{TGT_DIR}/lib#{SONAME}.#{DLEXT}", "shoes/main.o"] + ADD_DLL + ["#{NAMESPACE}:make_app"]
+#task "#{TGT_DIR}/#{NAME}" => ["#{TGT_DIR}/lib#{SONAME}.#{DLEXT}", "shoes/main.o"] + ADD_DLL + ["#{NAMESPACE}:make_app"]
 
-task "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}" => ['shoes/version.h', "#{TGT_DIR}"] + OBJ + ["#{NAMESPACE}:make_so"]
+#task "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}" => ['shoes/version.h', "#{TGT_DIR}"] + OBJ + ["#{NAMESPACE}:make_so"]
 
 def cc(t)
+  $stderr.puts "compiling #{t}"
   sh "#{CC} -I. -c -o #{t.name} #{LINUX_CFLAGS} #{t.source}"
 end
 

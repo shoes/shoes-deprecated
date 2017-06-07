@@ -67,7 +67,7 @@ class MakeLinux
        tgts = name.split('/')
        tgtd = tgts[0]
        $stderr.puts "new_link: #{tgtd}"
-       sh "#{CC} -o #{tgts[0]}/shoes  shoes/main.o #{tgtd}/shoes.lib #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
+       sh "#{CC} -o #{tgts[0]}/shoes  #{TGT_DIR}/#{APP['Bld_Tmp']}/main.o #{tgtd}/shoes.lib #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
     end
 
     # make a static library 
