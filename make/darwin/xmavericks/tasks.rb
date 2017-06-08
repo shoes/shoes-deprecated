@@ -229,6 +229,7 @@ class MakeDarwin
       end
     end
     
+    
     def setup_system_resources
       # called after the gems are copied into the above setup.
       # build a hash of x.dylib > ShoesDeps/**/*.dylib
@@ -237,6 +238,7 @@ class MakeDarwin
         key = File.basename(path)
         @brew_hsh[key] = path
       end
+      rbvm = RUBY_V[/^\d+\.\d+/]
       # Find ruby's + gems dependent libs
       cd "#{TGT_DIR}/lib/ruby/#{rbvm}.0/#{SHOES_TGT_ARCH}" do
         bundles = *Dir['*.bundle']
@@ -323,8 +325,18 @@ class MakeDarwin
     
     def new_so(name)
       $stderr.puts "new__so #{name}"
+      objs = []
+      SubDirs.each do |f|
+        d = File.dirname(f)
+        objs = objs + FileList["#{d}/*.o"]      
+      end
+      # TODO  fix: gtk - needs to dig deeper vs osx
+      objs = objs + FileList["shoes/native/gtk/*.o"]
+      main_o = 'shoes/main.o'
+      objs = objs - [main_o]
+      #$stderr.puts "objs: #{objs}"
       ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
-      sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
+      sh "#{CC} -o #{name} #{objs.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
     
     def new_link(name)
@@ -332,12 +344,14 @@ class MakeDarwin
       bin = "#{name}-bin"
       rm_f name
       rm_f bin
-      sh "#{CC} -L#{TGT_DIR} -o #{bin} shoes/main.o #{LINUX_LIBS} -lshoes #{OSX_ARCH}"
+      tp = "#{TGT_DIR}/#{APP['Bld_Tmp']}"
+      sh "#{CC} -L#{TGT_DIR} -o #{bin} #{tp}/main.o #{LINUX_LIBS} -lshoes #{OSX_ARCH}"
       osx_create_app # generate plist and much copying/moving
     end
 
     def make_installer
       puts "tbz_create from #{`pwd`}"
+      #TODO: don't suck in the tmp/ dir
       nfs=ENV['NFS_ALTP']
       mkdir_p "#{nfs}pkg"
       #distfile = "#{nfs}pkg/#{PKG}#{TINYVER}-osx-10.9.tbz"

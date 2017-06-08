@@ -29,12 +29,13 @@ file_list =  %w{shoes/console/tesi.c shoes/console/colortab.c shoes/console/coco
   ["shoes/types/*.c"] 
   
 #file_list << 'shoes/types/video.c'
-=end
+
 file_list = []
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')
 end
+=end
 if APP['GDB']
   LINUX_CFLAGS = " -g"
 else
@@ -90,3 +91,5 @@ LINUX_LDFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH} -L#{ShoesDeps}/lib/ #{GLIB_L
 
 LINUX_LIBS = " -l#{RUBY_SO} -L#{ShoesDeps}/lib -l cairo -L#{ShoesDeps}/lib -lpangocairo-1.0 -L#{ShoesDeps}/lib -lgif -ljpeg"
 LINUX_LIBS << " -L#{TGT_DIR} #{CAIRO_LDFLAGS} #{PANGO_LDFLAGS} #{GLIB_LDFLAGS}"
+# build want the following, but OSX won't use it
+SOLOCS = {}

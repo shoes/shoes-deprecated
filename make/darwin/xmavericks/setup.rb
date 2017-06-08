@@ -5,7 +5,8 @@ module Make
  
   def static_setup (so_list)
     $stderr.puts "setup: dir=#{`pwd`} for #{TGT_DIR}"
-	  rm_rf "#{TGT_DIR}"
+	  #rm_rf "#{TGT_DIR}"
+    mkdir_p "#{TGT_DIR}/#{APP['Bld_Tmp']}"
 	  # copy Ruby, dylib, includes - have them in place before
 	  # we build exts (chipmunk).
 	  puts "Ruby at #{EXT_RUBY}"
