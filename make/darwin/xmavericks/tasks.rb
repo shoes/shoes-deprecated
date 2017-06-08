@@ -45,6 +45,24 @@ module Make
       end
     end
   end
+  
+  def rewrite_ary before, after, reg = /\#\{(\w+\[\'\w+\'\])\}/, reg2 = '\1'
+    File.open(after, 'w') do |a|
+      File.open(before) do |b|
+        b.each do |line|
+          a << line.gsub(reg) do
+            if reg2.include? '\1'
+              #reg2.gsub(%r!\\1!, Object.const_get($1))
+              sub = eval $1
+              reg2.gsub(%r!\\1!, sub)
+            else
+              reg2
+            end
+          end
+        end
+      end
+    end
+  end
 
   def copy_files glob, dir
     FileList[glob].each { |f| cp_r f, dir }
@@ -67,7 +85,7 @@ class MakeDarwin
   extend Make
 
   class << self
-
+=begin
     def pre_build
       puts "Entering osx pre_build #{TGT_DIR}"
       rm_rf "#{TGT_DIR}"
@@ -129,6 +147,7 @@ class MakeDarwin
         #abort "Quitting"
       end
     end
+=end
 
     def change_install_names
       puts "Entering change_install_names"
@@ -143,7 +162,7 @@ class MakeDarwin
         end
       end
     end
-
+=begin
     def copy_pango_modules
       puts "Entering copy_pango_modules #{`pwd`}"
       mkdir_p "#{TGT_DIR}/pango/modules"
@@ -154,6 +173,7 @@ class MakeDarwin
       puts "Entering copy_gem_deplibs"
       puts "leaving copy_gem_deplib"
     end
+=end
 
     # Get a list of linked libraries for lib (discard the non-indented lines)
     def get_dylibs lib
@@ -178,7 +198,7 @@ class MakeDarwin
 
     def copy_deps_to_dist
       puts "Entering copy_deps_to_dist #{TGT_DIR}"
-      copy_gem_deplibs
+      #copy_gem_deplibs
       #copy_pango_modules
       # Generate a list of dependencies straight from the generated files.
       # Start with dependencies of shoes-bin, and then add the dependencies
@@ -275,6 +295,14 @@ class MakeDarwin
 
     def osx_create_app
       puts "Enter setup_system_resources"
+      # create plist version string
+      tf = File.open("VERSION.txt")
+      str = tf.readline
+      tf.close
+      flds = str.split(' ');
+      APP['plist_version_string'] = "#{flds[1]} #{flds[2]} #{flds[3]}"
+      puts "plist_version_string #{APP['plist_version_string']}"
+      
       tmpd = "/tmp"
       rm_rf "#{tmpd}/#{APPNAME}.app"
       mkdir "#{tmpd}/#{APPNAME}.app"
@@ -284,7 +312,12 @@ class MakeDarwin
       mkdir "#{tmpd}/#{APPNAME}.app/Contents/Resources/English.lproj"
       sh "ditto \"#{APP['icons']['osx']}\" \"#{tmpd}/#{APPNAME}.app/App.icns\""
       sh "ditto \"#{APP['icons']['osx']}\" \"#{tmpd}/#{APPNAME}.app/Contents/Resources/App.icns\""
-      rewrite "platform/mac/Info.plist", "#{tmpd}/#{APPNAME}.app/Contents/Info.plist"
+      #rewrite "platform/mac/Info.plist", "#{tmpd}/#{APPNAME}.app/Contents/Info.plist"
+      rewrite "platform/mac/Info.plist", "#{tmpd}/#{APPNAME}.app/Contents/Info.plist-1"
+      rewrite_ary  "#{tmpd}/#{APPNAME}.app/Contents/Info.plist-1",
+         "#{tmpd}/#{APPNAME}.app/Contents/Info.plist"
+      rm "#{tmpd}/#{APPNAME}.app/Contents/Info.plist-1"
+      
       cp "platform/mac/version.plist", "#{tmpd}/#{APPNAME}.app/Contents/"
       rewrite "platform/mac/pangorc", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/pangorc"
       cp "platform/mac/command-manual.rb", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/"
@@ -346,6 +379,7 @@ class MakeDarwin
       rm_f bin
       tp = "#{TGT_DIR}/#{APP['Bld_Tmp']}"
       sh "#{CC} -L#{TGT_DIR} -o #{bin} #{tp}/main.o #{LINUX_LIBS} -lshoes #{OSX_ARCH}"
+      copy_deps_to_dist
       osx_create_app # generate plist and much copying/moving
     end
 

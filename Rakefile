@@ -83,7 +83,7 @@ BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 CLEAN.include ["#{TGT_DIR}/libshoes.dll", "#{TGT_DIR}/*shoes.exe", 
     "#{TGT_DIR}/libshoes.so","#{TGT_DIR}/shoes", "#{TGT_DIR}/shoes-bin",
     "#{TGT_DIR}/**/*.lib", "#{TGT_DIR}/**/*.o"]
-CLOBBER.include ["#{TGT_DIR}", "crosscompile", "shoes/**/*.o"]
+CLOBBER.include ["#{TGT_DIR}", "crosscompile", "cshoes", "shoes/**/*.o"]
 
 # for Host building for Host:
 case RUBY_PLATFORM

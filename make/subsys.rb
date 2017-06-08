@@ -54,10 +54,11 @@ nat_src = []
 nat_obj = []
 mkdir_p "#{tp}/native"
 if RUBY_PLATFORM =~ /darwin/
-  file "#{tp}/native/cocoa.o" => ["shoes/native/cocoa.m", "shoes/native/cocoa.h"] +
-      Base_h
-  file "#{tp}/native/native/lib" => ["shoes/native/cocoa.o"] do
-    sh "ar -rc #{tp}/native/native.lib shoes/native/cocoa.o"
+  file "#{tp}/native/cocoa.o" => ["shoes/native/cocoa.m", "shoes/native/cocoa.h"] + Base_h do
+    sh "#{CC} -o #{tp}/native/cocoa.o -I. -c #{LINUX_CFLAGS} shoes/native/cocoa.m"
+  end
+  file "#{tp}/native/native.lib" => ["#{tp}/native/cocoa.o"] do
+    sh "ar -rc #{tp}/native/native.lib #{tp}/native/cocoa.o"
   end
 else
   nat_src = FileList['shoes/native/gtk/*.c']
@@ -86,7 +87,7 @@ dnl_src = []
 dnl_obj = []
 mkdir_p "#{tp}/http"
 if RUBY_PLATFORM =~ /darwin/
-  dnl_src = ["shoes/http/rbload.c", "nsurl.m"]
+  dnl_src = ["shoes/http/nsurl.m"]
 else
   dnl_src = ["shoes/http/rbload.c"]
 end
@@ -95,8 +96,9 @@ dnl_src.each do |c|
   o = "#{tp}/http/#{fnm}.o"
   #o = c.gsub(/(.c|.m)$/, '.o')
   dnl_obj << o
-  file o => [c] + Base_h do 
-    sh "#{CC} -o #{o} -I. -c #{LINUX_CFLAGS} #{c}"
+  file o => [c] + Base_h do |t|
+    cc t
+    #sh "#{CC} -o #{o} -I. -c #{LINUX_CFLAGS} #{c}"
   end
 end
 file "#{tp}/http/download.lib" => dnl_obj do
@@ -119,7 +121,7 @@ plot_src.each do |c|
 end
 
 file "#{tp}/plot/plot.lib" => plot_obj do 
-  objs = Dir['shoes/plot/*.o']
+  objs = Dir["#{tp}/plot/*.o"]
   OBJS.concat objs
   sh "ar -rc #{tp}/plot/plot.lib #{objs.join(' ')}"
 end
@@ -127,7 +129,7 @@ end
 # Console 
 mkdir_p "#{tp}/console"
 if RUBY_PLATFORM =~ /darwin/
-  src = ["shoes/console/tesi.c", "shoes/console/colortab.c", "shoes/console/cocoa-term.c"]
+  src = ["shoes/console/tesi.c", "shoes/console/colortab.c", "shoes/console/cocoa-term.m"]
   obj =[]
   src.each do |c|
     fnm = File.basename(c, ".*")
@@ -138,9 +140,9 @@ if RUBY_PLATFORM =~ /darwin/
       sh "#{CC} -o #{o} -I. -c #{LINUX_CFLAGS} #{c}"
     end
   end
-  file "#{TGT_DIR}/tmp/shoes/console/console.lib" =>  obj do
+  file "#{tp}/console/console.lib" =>  obj do
     OBJS.concat obj
-    sh "ar -rc s#{TGT_DIR}/tmp/hoes/console/console.lib #{obj.join(' ')}"
+    sh "ar -rc #{tp}/console/console.lib #{obj.join(' ')}"
   end
 else 
   src = ["shoes/console/tesi.c", "shoes/console/colortab.c", "shoes/console/gtk-terminal.c"]
