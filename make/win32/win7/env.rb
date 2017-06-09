@@ -33,11 +33,11 @@ WIN32_LDFLAGS = []
 WIN32_LIBS = []
 RUBY_HTTP = true
 
-file_list = []
-SRC = FileList[*file_list]
-OBJ = SRC.map do |x|
-  x.gsub(/\.\w+$/, '.o')
-end
+#file_list = []
+#SRC = FileList[*file_list]
+#OBJ = SRC.map do |x|
+#  x.gsub(/\.\w+$/, '.o')
+#end
 
 DLEXT = "dll"
 ADD_DLL = []

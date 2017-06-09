@@ -76,11 +76,12 @@ class MakeMinGW
       binc = "#{tgtd}/cshoes.exe"
       rm_f bin
       rm_f binc
+      tp = "#{TGT_DIR}/#{APP['Bld_Tmp']}"
       sh "#{WINDRES} -I. shoes/appwin32.rc shoes/appwin32.o"
       missing = "-lgtk-3 -lgdk-3 -lfontconfig-1 -lpangocairo-1.0" # TODO: This is a bug in env.rb for 
-      sh "#{CC} -o #{bin} shoes/main.o shoes/appwin32.o -L#{TGT_DIR} -lshoes -mwindows  #{LINUX_LIBS} #{missing}"
+      sh "#{CC} -o #{bin} #{tp}/main.o shoes/appwin32.o -L#{TGT_DIR} -lshoes -mwindows  #{LINUX_LIBS} #{missing}"
       sh "#{STRIP} #{bin}" unless APP['GDB']
-      sh "#{CC} -o #{binc} shoes/main.o shoes/appwin32.o -L#{TGT_DIR} -lshoes #{LINUX_LIBS}  #{missing}"
+      sh "#{CC} -o #{binc} #{tp}/main.o shoes/appwin32.o -L#{TGT_DIR} -lshoes #{LINUX_LIBS}  #{missing}"
       sh "#{STRIP} #{binc}" unless APP['GDB']
     end   
    
@@ -96,7 +97,10 @@ class MakeMinGW
     def make_installer
       # assumes you have NSIS installed on your box in the system PATH 
       def sh(*args); super; end
-      puts "make_installer #{`pwd`}"
+      $stderr.puts "make_installer #{`pwd`} moving tmp/"
+      tp = "#{TGT_DIR}/#{APP['Bld_Tmp']}"
+      mp = "#{TGT_DIR}-#{APP['Bld_Tmp']}"
+      mv tp, mp
       mkdir_p "pkg"
       cp_r "VERSION.txt", "#{TGT_DIR}/VERSION.txt"
       rm_rf "#{TGT_DIR}/nsis"
@@ -107,7 +111,8 @@ class MakeMinGW
         sh "\"c:\\Program Files (x86)\\NSIS\\Unicode\\makensis.exe\" #{WINFNAME}.nsi"  
       end
       mv "#{TGT_DIR}/nsis/#{WINFNAME}.exe", "pkg/"
+      $stderr.puts "restore tmp/"
+      mv mp, tp
     end
-
   end
 end

@@ -88,7 +88,10 @@ class MakeLinux
     def make_installer
       # assumes you have NSIS installed on your box in the system PATH
       # def sh(*args); super; end
-      puts "make_installer #{`pwd`}"
+      $stderr.puts "make_installer #{`pwd`} moving tmp/"
+      tp = "#{TGT_DIR}/#{APP['Bld_Tmp']}"
+      mp = "#{TGT_DIR}-#{APP['Bld_Tmp']}"
+      mv tp, mp
       mkdir_p "pkg"
       cp_r "VERSION.txt", "#{TGT_DIR}/VERSION.txt"
       rm_rf "#{TGT_DIR}/nsis"
@@ -105,6 +108,8 @@ class MakeLinux
           mv f, "#{f.downcase}"
         end
       end
+      $stderr.puts "restore tmp/"
+      mv mp, tp
     end
 
   end
