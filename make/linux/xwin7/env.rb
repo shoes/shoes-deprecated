@@ -63,15 +63,15 @@ ENV['PKG_CONFIG_PATH'] = "#{ularch}/pkgconfig"
 WINVERSION = "#{APP['VERSION']}-gtk3-32"
 WINFNAME = "#{APPNAME}-#{WINVERSION}"
 
-file_list = []
-SRC = FileList[*file_list]
-OBJ = SRC.map do |x|
-  x.gsub(/\.\w+$/, '.o')
-end
+#file_list = []
+#SRC = FileList[*file_list]
+#OBJ = SRC.map do |x|
+#  x.gsub(/\.\w+$/, '.o')
+#end
 
 ADD_DLL = []
 
-# Hand code for your situation 
+# Hand code for your cross compie setup.
 def xfixip(path)
    path.gsub!(/-I\/usr\//, "-I#{TGT_SYS_DIR}usr/")
    return path

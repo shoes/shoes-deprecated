@@ -92,8 +92,8 @@ when /mingw/
     require File.expand_path("make/win32/#{TGT_ARCH}/env")
     require File.expand_path("make/win32/#{TGT_ARCH}/tasks")
     require File.expand_path("make/win32/#{TGT_ARCH}/stubs")
-    require File.expand_path("make/gems")
     require File.expand_path("make/win32/#{TGT_ARCH}/setup")
+    require File.expand_path("make/gems")
     require File.expand_path('make/subsys')
   else
     require File.expand_path('make/win32/win7/env.rb')
@@ -112,8 +112,8 @@ when /darwin/
     require File.expand_path("make/darwin/#{TGT_ARCH}/env")
     require File.expand_path("make/darwin/#{TGT_ARCH}/tasks")
     require File.expand_path("make/darwin/#{TGT_ARCH}/stubs")
-    require File.expand_path("make/gems")
     require File.expand_path("make/darwin/#{TGT_ARCH}/setup")
+    require File.expand_path("make/gems")
     require File.expand_path("make/subsys")
   else
     # build Loose Shoes on OSX for OSX
@@ -151,7 +151,7 @@ when /linux/
       require File.expand_path('make/linux/xarm6hf/env')
       require File.expand_path('make/linux/xarm6hf/tasks')
       require File.expand_path('make/gems')
-   when /xwin7/
+    when /xwin7/
       require File.expand_path('make/linux/xwin7/env')
       require File.expand_path('make/linux/xwin7/tasks')
       require File.expand_path('make/linux/xwin7/stubs')
@@ -315,7 +315,10 @@ case TGT_DIR
     SubDirs.delete("#{rtp}/console/console.lib")
 end
 
-file "#{TGT_DIR}/libshoes.#{DLEXT}" => ["#{rtp}/zzsetup.done", "shoes/types/types.h"] + SubDirs do
+file "#{TGT_DIR}/libshoes.#{DLEXT}" => ["#{rtp}/zzsetup.done", "shoes/types/types.h",
+    "shoes/version.h"] + SubDirs do
+  # need to compile version.c -> .o (and create the verion.h for every build)
+  sh "#{CC} -o #{rtp}/version.o -I. -c #{LINUX_CFLAGS} shoes/version.c"
   Builder.new_so "#{TGT_DIR}/libshoes.#{DLEXT}"
 end
 
