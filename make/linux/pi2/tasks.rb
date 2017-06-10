@@ -44,10 +44,8 @@ class MakeLinux
     end
 
     def new_so (name) 
-      tgts = name.split('/')
-      tgtd = tgts[0]
-      $stderr.puts "new_so: #{tgtd}"
-
+      $stderr.puts "new_so: #{name}"
+      tgtd = File.dirname(name)
       objs = []
       SubDirs.each do |f|
         d = File.dirname(f)
@@ -61,13 +59,15 @@ class MakeLinux
     end
     
     def new_link(name)
-      puts "new_link dir=#{pwd} arg=#{name}"
-      bin = "#{name}-bin"
-      rm_f name
-      rm_f bin
-      tgtf = name.split('/')
-      tgtd = tgtf[0]
-      sh "#{CC} -o #{bin} shoes/main.o  -L#{tgtd} -lshoes -L#{TGT_DIR}  #{LINUX_LIBS}"
+      #name is actually a file path
+      puts "new_link: arg=#{name}"
+      dpath = File.dirname(name)
+      fname = File.basename(name)
+      bin = "#{fname}-bin"
+      #rm_f fname
+      #rm_f bin
+      #sh "#{CC} -o #{name} #{dpath}/tmp/main.o  -L#{tgtd} -lshoes -L#{TGT_DIR}  #{LINUX_LIBS}"
+      sh "#{CC} -o #{dpath}/#{bin} #{dpath}/tmp/main.o  -L#{dpath} -lshoes -L#{TGT_DIR}  #{LINUX_LIBS}"
       rewrite "platform/nix/shoes.launch", name, %r!/shoes-bin!, "/#{NAME}-bin"
       sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{name}}
       chmod 0755, "#{name}" 
@@ -79,7 +79,7 @@ class MakeLinux
 
     # make a .install with all the bits and peices. 
     def make_installer
-      gtkv = APP['GTK']== 'gtk+-3.0' ? '3' : '2'
+      gtkv = '3'
       arch = 'armhf'
       appname =  "#{APP['name'].downcase}"
       rlname = "#{appname}-#{APP['VERSION']}-gtk#{gtkv}-#{arch}"

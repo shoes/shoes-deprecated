@@ -52,14 +52,17 @@ APP['EXTLOC'] = ""
 APP['EXTLIST'] = []
 APP['GEMLIST'] = []
 APP['Bld_Tmp'] = 'tmp'
+APP['Bld_Pre'] = ENV['NFS_ALTP'] if ENV['NFS_ALTP']
+
 
 if File.exists? "crosscompile"
   CROSS = true
   File.open('crosscompile','r') do |f|
     str = f.readline
     TGT_ARCH = str.split('=')[1].strip
-    if ENV['NFS_ALTP']
-      TGT_DIR = ENV['NFS_ALTP']+TGT_ARCH
+    # is the build output directory outside the shoes3 dir
+    if APP['Bld_Pre']
+      TGT_DIR = APP['Bld_Pre']+TGT_ARCH
        mkdir_p "#{TGT_DIR}"
     else
       TGT_DIR = TGT_ARCH
@@ -67,10 +70,9 @@ if File.exists? "crosscompile"
   end
 else
   CROSS = false
-  # is the build directory outside the project dir like
-  # Cecil's weird NFS setup for his mac
-  if ENV['NFS_ALTP']
-    TGT_DIR = ENV['NFS_ALTP']+'dist'
+  # is the build outpu directory outside the shoes3 dir
+  if APP['Bld_Pre']
+    TGT_DIR = APP['Bld_Pre']+'dist'
     mkdir_p "#{TGT_DIR}"
   else
     TGT_DIR = 'dist'

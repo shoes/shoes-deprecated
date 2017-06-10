@@ -1,7 +1,7 @@
 include FileUtils
 module Make
   include FileUtils
-
+=begin
   def copy_files_to_dist
     if ENV['APP']
       if APP['clone']
@@ -24,7 +24,7 @@ module Make
     cp    "CHANGELOG", "#{TGT_DIR}/CHANGELOG.txt"
     cp    "COPYING", "#{TGT_DIR}/COPYING.txt"
    end
-
+=end
   def cc(t)
     sh "#{CC} -I. -c -o#{t.name} #{LINUX_CFLAGS} #{t.source}"
   end
@@ -63,7 +63,7 @@ module Make
       end
     end
   end
-
+=begin
   def copy_files glob, dir
     FileList[glob].each { |f| cp_r f, dir }
   end
@@ -79,6 +79,7 @@ module Make
     end
     ENV[x]
   end
+=end
 end
 
 class MakeDarwin
@@ -337,7 +338,7 @@ class MakeDarwin
     def make_stub
       sh "gcc -O -isysroot #{OSX_SDK} -framework Cocoa -o stub-osx platform/mac/stub.m -I."
     end
-
+=begin
     def make_app(name)
       puts "Enter make_app"
       bin = "#{name}-bin"
@@ -355,7 +356,7 @@ class MakeDarwin
       ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
       sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
-    
+=end    
     def new_so(name)
       $stderr.puts "new__so #{name}"
       objs = []
@@ -385,8 +386,7 @@ class MakeDarwin
 
     def make_installer
       puts "tbz_create from #{`pwd`}"
-      #TODO: don't suck in the tmp/ dir
-      nfs=ENV['NFS_ALTP']
+      nfs=APP['Bld_Pre']
       mkdir_p "#{nfs}pkg"
       #distfile = "#{nfs}pkg/#{PKG}#{TINYVER}-osx-10.9.tbz"
       distfile = "#{nfs}pkg/#{APPNAME}-#{APP['VERSION']}-osx-10.9.tgz"
@@ -409,8 +409,9 @@ class MakeDarwin
         mkdir_p "pkg"
         sh  "cp #{distfile.downcase} pkg/"
       end
+      # restore tmp dir to the build
     end
-
+=begin
     # unused - was make_installer
     def make_dmg_installer
       dmg_ds, dmg_jpg = "platform/mac/dmg_ds_store", "static/shoes-dmg.jpg"
@@ -448,7 +449,7 @@ class MakeDarwin
         puts "Gems: #{gemn}"
       end
     end
-
+=end
     def make_smaller
       puts "Shrinking #{`pwd`}"
       sh "strip *.dylib"
