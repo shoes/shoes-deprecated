@@ -32,12 +32,6 @@ CC = "gcc"
 pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.2.pc"
 pkggtk ="#{ularch}/pkgconfig/gtk+-3.0.pc" 
 
-file_list = []
-SRC = FileList[*file_list]
-OBJ = SRC.map do |x|
-  x.gsub(/\.\w+$/, '.o')
-end
-
 ADD_DLL = []
 
 # Target environment

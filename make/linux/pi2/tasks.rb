@@ -97,7 +97,7 @@ class MakeLinux
       sh "cp -r #{TGT_DIR}/* #{pkg}/#{rlname}"
       Dir.chdir "#{pkg}/#{rlname}" do
         rm_r "#{APP['Bld_Tmp']}"
-        rm_r "pkg"
+        rm_r "pkg" if File.exist? "pkg"
         make_desktop 
         make_uninstall_script
         make_install_script

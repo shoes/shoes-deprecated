@@ -60,6 +60,7 @@ class MakeLinux
     end
     
     def new_link(name)
+=begin    
       puts "new_link dir=#{pwd} arg=#{name}"
       bin = "#{name}-bin"
       rm_f name
@@ -75,10 +76,25 @@ class MakeLinux
       rewrite "platform/nix/shoes.launch", "#{TGT_DIR}/debug", %r!/shoes-bin!, "/#{NAME}-bin"
       sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH gdb $APPPATH/#{File.basename(bin)} "$@"' >> #{TGT_DIR}/debug}
       chmod 0755, "#{TGT_DIR}/debug" 
+=end
+      #name is actually a file path
+      puts "new_link: arg=#{name}"
+      dpath = File.dirname(name)
+      fname = File.basename(name)
+      bin = "#{fname}-bin"
+      sh "#{CC} -o #{dpath}/#{bin} #{dpath}/tmp/main.o  -L#{dpath} -lshoes -L#{TGT_DIR}  #{LINUX_LIBS}"
+      rewrite "platform/nix/shoes.launch", name, %r!/shoes-bin!, "/#{NAME}-bin"
+      sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{name}}
+      chmod 0755, "#{name}" 
+      # write a gdb launched shoes
+      rewrite "platform/nix/shoes.launch", "#{TGT_DIR}/debug", %r!/shoes-bin!, "/#{NAME}-bin"
+      sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH gdb $APPPATH/#{File.basename(bin)} "$@"' >> #{TGT_DIR}/debug}
+      chmod 0755, "#{TGT_DIR}/debug"
     end
 
-    # make a .install with all the bits and peices. 
+    # make a .install with all the bits and pieces. 
     def make_installer
+=begin
       gtkv = APP['GTK']== 'gtk+-3.0' ? '3' : '2'
       arch = 'i686'
       appname =  "#{APP['name'].downcase}"
@@ -98,6 +114,39 @@ class MakeLinux
         puts `pwd`
         sh "makeself #{rlname} #{rlname}.install #{appname} \
 ./shoes-install.sh "
+      end
+=end
+      gtkv = '3'
+      arch = 'i686'
+      appname =  "#{APP['name'].downcase}"
+      rlname = "#{appname}-#{APP['VERSION']}-gtk#{gtkv}-#{arch}"
+      #puts "Creating Pkg for #{rlname}"
+      pkg = ""
+      if APP['Bld_Pre']
+        pkg = "#{APP['Bld_Pre']}pkg"
+        mkdir_p pkg
+      else
+        pkg = 'pkg'
+      end
+      rm_r "#{pkg}/#{rlname}" if File.exists? "#{pkg}/#{rlname}"
+      cp_r "VERSION.txt", "#{TGT_DIR}"
+      mkdir_p "#{pkg}/#{rlname}"
+      sh "cp -r #{TGT_DIR}/* #{pkg}/#{rlname}"
+      Dir.chdir "#{pkg}/#{rlname}" do
+        rm_r "#{APP['Bld_Tmp']}"
+        rm_r "pkg" if File.exist? "pkg"
+        make_desktop 
+        make_uninstall_script
+        make_install_script
+        make_smaller unless APP['GDB']
+      end
+      Dir.chdir "#{pkg}" do
+        puts `pwd`
+        sh "makeself #{rlname} #{rlname}.install #{appname} ./shoes-install.sh "
+      end
+      if APP['Bld_Pre']
+        # copy installer to the shoes3 source pkg/ dir (on an nfs server?)
+        cp "#{pkg}/#{rlname}.install", "pkg"
       end
     end
     
