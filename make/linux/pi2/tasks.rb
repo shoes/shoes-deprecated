@@ -84,20 +84,32 @@ class MakeLinux
       appname =  "#{APP['name'].downcase}"
       rlname = "#{appname}-#{APP['VERSION']}-gtk#{gtkv}-#{arch}"
       #puts "Creating Pkg for #{rlname}"
-      rm_r "pkg/#{rlname}" if File.exists? "pkg/#{rlname}"
+      pkg = ""
+      if APP['Bld_Pre']
+        pkg = "#{APP['Bld_Pre']}pkg"
+        mkdir_p pkg
+      else
+        pkg = 'pkg'
+      end
+      rm_r "#{pkg}/#{rlname}" if File.exists? "#{pkg}/#{rlname}"
       cp_r "VERSION.txt", "#{TGT_DIR}"
-      mkdir_p "pkg/#{rlname}"
-      sh "cp -r #{TGT_DIR}/* pkg/#{rlname}"
-      Dir.chdir "pkg/#{rlname}" do
+      mkdir_p "#{pkg}/#{rlname}"
+      sh "cp -r #{TGT_DIR}/* #{pkg}/#{rlname}"
+      Dir.chdir "#{pkg}/#{rlname}" do
+        rm_r "#{APP['Bld_Tmp']}"
+        rm_r "pkg"
         make_desktop 
         make_uninstall_script
         make_install_script
         make_smaller unless APP['GDB']
       end
-      Dir.chdir "pkg" do
+      Dir.chdir "#{pkg}" do
         puts `pwd`
-        sh "makeself #{rlname} #{rlname}.install #{appname} \
-./shoes-install.sh "
+        sh "makeself #{rlname} #{rlname}.install #{appname} ./shoes-install.sh "
+      end
+      if APP['Bld_Pre']
+        # copy installer to the shoes3 source pkg/ dir (on an nfs server?)
+        cp "#{pkg}/#{rlname}.install", "pkg"
       end
     end
     
