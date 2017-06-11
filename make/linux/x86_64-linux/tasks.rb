@@ -60,6 +60,7 @@ class MakeLinux
     end
     
     def new_link(name)
+=begin
       puts "new_link dir=#{pwd} arg=#{name}"
       bin = "#{name}-bin"
       rm_f name
@@ -75,7 +76,23 @@ class MakeLinux
       rewrite "platform/nix/shoes.launch", "#{TGT_DIR}/debug", %r!/shoes-bin!, "/#{NAME}-bin"
       sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH gdb $APPPATH/#{File.basename(bin)} "$@"' >> #{TGT_DIR}/debug}
       chmod 0755, "#{TGT_DIR}/debug" 
-    end
+=end
+      #name is actually a file path
+      puts "new_link: arg=#{name}"
+      dpath = File.dirname(name)
+      fname = File.basename(name)
+      bin = "#{fname}-bin"
+      #rm_f fname
+      #rm_f bin
+      #sh "#{CC} -o #{name} #{dpath}/tmp/main.o  -L#{tgtd} -lshoes -L#{TGT_DIR}  #{LINUX_LIBS}"
+      sh "#{CC} -o #{dpath}/#{bin} #{dpath}/tmp/main.o  -L#{dpath} -lshoes -L#{TGT_DIR}  #{LINUX_LIBS}"
+      rewrite "platform/nix/shoes.launch", name, %r!/shoes-bin!, "/#{NAME}-bin"
+      sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{name}}
+      chmod 0755, "#{name}" 
+      # write a gdb launched shoes
+      rewrite "platform/nix/shoes.launch", "#{TGT_DIR}/debug", %r!/shoes-bin!, "/#{NAME}-bin"
+      sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH gdb $APPPATH/#{File.basename(bin)} "$@"' >> #{TGT_DIR}/debug}
+      chmod 0755, "#{TGT_DIR}/debug"     end
 
 
     # make a .install with all the bits and peices. 

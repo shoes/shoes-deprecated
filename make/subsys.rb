@@ -1,4 +1,4 @@
-# this is make _like_. very hand crafted. Modify with care and wisdome.
+# this is make _like_. very hand crafted. Modify with care and wisdom.
 Base_h = FileList["shoes/*.h"] - ["shoes/appwin32.h", "shoes/version.h"]
 # touching one of those could/should rebuild everything. 
 #

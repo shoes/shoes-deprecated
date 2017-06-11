@@ -70,7 +70,7 @@ if File.exists? "crosscompile"
   end
 else
   CROSS = false
-  # is the build outpu directory outside the shoes3 dir
+  # is the build output directory outside the shoes3 dir
   if APP['Bld_Pre']
     TGT_DIR = APP['Bld_Pre']+'dist'
     mkdir_p "#{TGT_DIR}"
