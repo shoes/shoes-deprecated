@@ -17,18 +17,12 @@ rv =  RUBY_VERSION[/\d.\d/]
 LINUX_CFLAGS << " -DRUBY_HTTP"
 LINUX_CFLAGS << " -DRUBY_1_9"
 LINUX_CFLAGS << " -DDEBUG" if ENV['DEBUG']
-LINUX_CFLAGS << " -DSHOES_GTK -fPIC -shared"
+LINUX_CFLAGS << " -DSHOES_GTK -fPIC -shared -Wno-unused-but-set-variable"
 # Following line may need handcrafting
 LINUX_CFLAGS << " -I/usr/include/"
 LINUX_CFLAGS << " #{`pkg-config --cflags gtk+-3.0`.strip}"
 
 CC = "gcc"
-
-#file_list = []
-#SRC = FileList[*file_list]
-#OBJ = SRC.map do |x|
-#  x.gsub(/\.\w+$/, '.o')
-#end
 
 # Query pkg-config for cflags and link settings
 EXT_RUBY = RbConfig::CONFIG['prefix']

@@ -44,7 +44,7 @@ class MakeLinux
       cp APP['icons']['gtk'], "dist/static/app-icon.png"
     end
   
-    # this is called from the file task based new_builder unlike anything seen before
+    # this is called from the file task based new_builder
     def new_so (name) 
       tgts = name.split('/')
       tgtd = tgts[0]

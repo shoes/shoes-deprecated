@@ -307,14 +307,14 @@ file  "#{rtp}/zzsetup.done" do
   touch "#{rtp}/zzsetup.done"
 end
 
-SubDirs = ["#{rtp}/base.lib", "#{rtp}/http/download.lib",
-   "#{rtp}/plot/plot.lib", "#{rtp}/console/console.lib", 
-   "#{rtp}/types/widgets.lib", "#{rtp}/native/native.lib"]
+SubDirs = ["#{rtp}/zzbase.done", "#{rtp}/http/zzdownload.done",
+   "#{rtp}/plot/zzplot.done", "#{rtp}/console/zzconsole.done", 
+   "#{rtp}/types/zzwidgets.done", "#{rtp}/native/zznative.done"]
     
 # Windows does't use console - don't try to build it.
 case TGT_DIR
   when 'win7', 'xwin7', 'msys2', 'xmsys2'
-    SubDirs.delete("#{rtp}/console/console.lib")
+    SubDirs.delete("#{rtp}/console/zzconsole.done")
 end
 
 file "#{TGT_DIR}/libshoes.#{DLEXT}" => ["#{rtp}/zzsetup.done", "shoes/types/types.h",
@@ -328,7 +328,6 @@ task :new_build => "#{TGT_DIR}/libshoes.#{DLEXT}"  do
   # We can link shoes here - this will be done via a Builder call
   # because it's platform specific.
   Builder.new_link "#{TGT_DIR}/shoes"
-  $stderr.puts "new build: called for #{TGT_DIR}"
 end
 
 desc "Install Shoes in your ~/.shoes Directory"
