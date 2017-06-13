@@ -1,10 +1,11 @@
 # this is make _like_. very hand crafted. Modify with care and wisdom.
+# it creates the file tasks triggered at build time. 
 Base_h = FileList["shoes/*.h"] - ["shoes/appwin32.h", "shoes/version.h"]
 # touching one of those could/should rebuild everything. 
 #
 # Shoes shoes/base.lib (canvas, ruby, image....
 tp = "#{TGT_DIR}/#{APP['Bld_Tmp']}"
-mkdir_p tp
+mkdir_p tp, verbose: false
 base_src = FileList["shoes/*.c"]
 base_obj = []
 base_src.each do |c|
@@ -20,7 +21,7 @@ file "#{tp}/zzbase.done" => base_obj do
 end
 
 # Shoes/widget ruby interface (aka types/)
-mkdir_p "#{tp}/types"
+mkdir_p "#{tp}/types", verbose: false
 rbwidget_src = FileList["shoes/types/*.c"]
 rbwidget_obj = []
 rbwidget_hdr = []
@@ -41,7 +42,7 @@ end
 # Shoes Native
 nat_src = []
 nat_obj = []
-mkdir_p "#{tp}/native"
+mkdir_p "#{tp}/native", verbose: false
 if RUBY_PLATFORM =~ /darwin/
   file "#{tp}/native/cocoa.o" => ["shoes/native/cocoa.m", "shoes/native/cocoa.h"] + Base_h do
     sh "#{CC} -o #{tp}/native/cocoa.o -I. -c #{LINUX_CFLAGS} shoes/native/cocoa.m"
@@ -71,7 +72,7 @@ end
 # Shoes/http
 dnl_src = []
 dnl_obj = []
-mkdir_p "#{tp}/http"
+mkdir_p "#{tp}/http", verbose: false
 if RUBY_PLATFORM =~ /darwin/
   dnl_src = ["shoes/http/nsurl.m"]
 else
@@ -90,7 +91,7 @@ file "#{tp}/http/zzdownload.done" => dnl_obj do
 end
 
 # Plot
-mkdir_p "#{tp}/plot"
+mkdir_p "#{tp}/plot", verbose: false
 plot_src = FileList['shoes/plot/*.c']
 plot_obj = []
 plot_src.each do |c|
@@ -101,13 +102,12 @@ plot_src.each do |c|
     sh "#{CC} -o #{o} -I. -c #{LINUX_CFLAGS} #{c}"
   end
 end
-
 file "#{tp}/plot/zzplot.done" => plot_obj do 
   touch "#{tp}/plot/zzplot.done"
 end
 
 # Console 
-mkdir_p "#{tp}/console"
+mkdir_p "#{tp}/console", verbose: false
 if RUBY_PLATFORM =~ /darwin/
   src = ["shoes/console/tesi.c", "shoes/console/colortab.c", "shoes/console/cocoa-term.m"]
   obj =[]
@@ -138,6 +138,26 @@ else
   end
 end
 
-
+# Too keep the main Rakefile almost sane, create some file tasks here for detecting 
+# updates to static/manual-en.txt and lib/shoes.rb, lib/shoes/*.rb after shoes is 'setup'
+# and built. 
+if CROSS
+  file "#{TGT_DIR}/static/manual-en.txt" => ["#{tp}/zzsetup.done", "static/manual-en.txt"] do
+    $stderr.puts "YAY! manual was updated"
+    cp "static/manual-en.txt", "#{TGT_DIR}/static/manual-en.txt"
+  end
+  file "#{TGT_DIR}/lib/shoes.rb" => ["#{tp}/zzsetup.done", "lib/shoes.rb"] do
+    $stderr.puts "Updating shoes.rb"
+    cp "lib/shoes.rb", "#{TGT_DIR}/lib/shoes.rb"
+  end
+  rbdeps = FileList["#{TGT_DIR}/lib/shoes/*.rb"]
+  rbdeps.each do |f|
+    #$stderr.puts "creating file task #{f} => lib/shoes/#{File.basename(f)}"
+    file f => ["lib/shoes/#{File.basename(f)}"] do |t|
+      #$stderr.puts "updated: #{f} from lib/shoes/#{File.basename(t.name)}"
+      cp "lib/shoes/#{File.basename(t.name)}", f
+    end
+  end
+end
 
 

@@ -284,20 +284,20 @@ end
 desc "Build using your OS setup"
 task :build => ["#{NAMESPACE}:build"]
 
-task :pre_build do
-  Builder.pre_build
-end
+#task :pre_build do
+#  Builder.pre_build
+#end
 
 # first refactor ; build calls platform namespaced build;
 # for now, each of those calls the old build method.
-task :old_build => [:pre_build, :build_os] do
-  Builder.common_build
-  Builder.copy_files_to_dist
-  Builder.copy_deps_to_dist
-  Builder.setup_system_resources
-end
+#task :old_build => [:pre_build, :build_os] do
+#  Builder.common_build
+#  Builder.copy_files_to_dist
+#  Builder.copy_deps_to_dist
+#  Builder.setup_system_resources
+#end
 
-# ------      new build   --------
+# ------  new build   --------
 rtp = "#{TGT_DIR}/#{APP['Bld_Tmp']}"
 $stderr.puts "Build Products in #{rtp}"
 file  "#{rtp}/zzsetup.done" do
@@ -311,7 +311,7 @@ SubDirs = ["#{rtp}/zzbase.done", "#{rtp}/http/zzdownload.done",
    "#{rtp}/plot/zzplot.done", "#{rtp}/console/zzconsole.done", 
    "#{rtp}/types/zzwidgets.done", "#{rtp}/native/zznative.done"]
     
-# Windows does't use console - don't try to build it.
+# Windows doesn't use console - don't try to build it. Delete from dependcies
 case TGT_DIR
   when 'win7', 'xwin7', 'msys2', 'xmsys2'
     SubDirs.delete("#{rtp}/console/zzconsole.done")
@@ -324,10 +324,24 @@ file "#{TGT_DIR}/libshoes.#{DLEXT}" => ["#{rtp}/zzsetup.done", "shoes/types/type
   Builder.new_so "#{TGT_DIR}/libshoes.#{DLEXT}"
 end
 
+if CROSS # i.e. most platforms. 
+  # dependency is set in subsys.rb
+  task :update_man => ["#{TGT_DIR}/static/manual-en.txt"]
+  task :update_shoes_rb => ["#{TGT_DIR}/lib/shoes.rb"]
+  rbdeps = FileList["#{TGT_DIR}/lib/shoes/*.rb"]
+  task :update_shoes_internals => rbdeps
+end
+
+# rake build (or just rake) will get here. 
 task :new_build => "#{TGT_DIR}/libshoes.#{DLEXT}"  do
-  # We can link shoes here - this will be done via a Builder call
+  # We can link shoes now - this will be done via a Builder call
   # because it's platform specific.
   Builder.new_link "#{TGT_DIR}/shoes"
+  if CROSS
+    Rake::Task[:update_man].invoke
+    Rake::Task[:update_shoes_rb].invoke
+    Rake::Task[:update_shoes_internals].invoke
+  end
 end
 
 desc "Install Shoes in your ~/.shoes Directory"
@@ -363,7 +377,7 @@ rule ".o" => ".c" do |t|
 end
 
 task :installer => ["#{NAMESPACE}:installer"]
-
+=begin
 def rewrite before, after, reg = /\#\{(\w+)\}/, reg2 = '\1'
   File.open(after, 'w') do |a|
     File.open(before) do |b|
@@ -383,6 +397,7 @@ end
 def copy_files glob, dir
   FileList[glob].each { |f| cp_r f, dir }
 end
+=end
 
 namespace :osx do
   namespace :setup do
@@ -416,13 +431,13 @@ namespace :osx do
   #task :build => [:old_build]
   task :build => [:new_build]
 
-  task :make_app do
-    Builder.make_app "#{TGT_DIR}/#{NAME}"
-  end
+  #task :make_app do
+  #  Builder.make_app "#{TGT_DIR}/#{NAME}"
+  #end
 
-  task :make_so do
-    Builder.make_so  "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
-  end
+  #task :make_so do
+  #  Builder.make_so  "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
+  #end
 
   task :installer do
     Builder.make_installer
@@ -449,13 +464,13 @@ namespace :win32 do
   #task :build => [:old_build]
   task :build => [:new_build]
 
-  task :make_app do
-    Builder.make_app "#{TGT_DIR}/#{NAME}"
-  end
+  #task :make_app do
+  #  Builder.make_app "#{TGT_DIR}/#{NAME}"
+  #end
 
-  task :make_so do
-    Builder.make_so  "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
-  end
+  #task :make_so do
+  #  Builder.make_so  "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
+  #end
 
   task :installer do
     Builder.make_installer
@@ -505,13 +520,13 @@ namespace :linux do
   #task :build => [:old_build]
   task :build => [:new_build]
 
-  task :make_app do
-    Builder.make_app "#{TGT_DIR}/#{NAME}"
-  end
+  #task :make_app do
+  #  Builder.make_app "#{TGT_DIR}/#{NAME}"
+  #end
 
-  task :make_so do
-    Builder.make_so  "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
-  end
+  #task :make_so do
+  #  Builder.make_so  "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
+  #end
 
   task :installer do
     Builder.make_installer
