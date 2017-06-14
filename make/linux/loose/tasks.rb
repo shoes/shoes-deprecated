@@ -52,10 +52,8 @@ class MakeLinux
       objs = []
       SubDirs.each do |f|
         d = File.dirname(f)
-        #$stderr.puts "collecting .o from #{d}"
         objs = objs + FileList["#{d}/*.o"]      
       end
-      # TODO  fix: gtk - needs to dig deeper vs osx
       objs = objs + FileList["shoes/native/gtk/*.o"]
       main_o = 'shoes/main.o'
       objs = objs - [main_o]
@@ -68,18 +66,6 @@ class MakeLinux
        tgtd = tgts[0]
        $stderr.puts "new_link: #{tgtd}"
        sh "#{CC} -o #{tgts[0]}/shoes  #{TGT_DIR}/#{APP['Bld_Tmp']}/main.o #{tgtd}/shoes.lib #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
-    end
-
-    # make a static library 
-    def make_so(name)
-      puts "make_so: #{name}"
-      if OBJ.empty?
-        puts "make_so called w/o needed"
-        return
-      end
-      name = 'dist/shoes.a'
-      sh "ar rc #{name} #{OBJ.join(' ')}"
-      sh "ranlib #{name}"
     end
 
     def make_installer

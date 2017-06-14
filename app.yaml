@@ -3,7 +3,7 @@ major: 3
 minor: 3
 tiny: 3 
 release: walkabout 
-revision: git 
+revision: git
 icons:
   win32: platform/msw/shoes.ico
   osx:   static/Shoes.icns

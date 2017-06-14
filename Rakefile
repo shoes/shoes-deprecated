@@ -54,7 +54,6 @@ APP['GEMLIST'] = []
 APP['Bld_Tmp'] = 'tmp'
 APP['Bld_Pre'] = ENV['NFS_ALTP'] if ENV['NFS_ALTP']
 
-
 if File.exists? "crosscompile"
   CROSS = true
   File.open('crosscompile','r') do |f|
@@ -84,7 +83,7 @@ BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 #CLEAN.include ["req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
 CLEAN.include ["#{TGT_DIR}/libshoes.dll", "#{TGT_DIR}/*shoes.exe", 
     "#{TGT_DIR}/libshoes.so","#{TGT_DIR}/shoes", "#{TGT_DIR}/shoes-bin",
-    "#{TGT_DIR}/**/*.lib", "#{TGT_DIR}/**/*.o"]
+    "#{TGT_DIR}/#{APP['Bld_tmp']}/**/*.o"]
 CLOBBER.include ["#{TGT_DIR}", "crosscompile", "cshoes", "shoes/**/*.o"]
 
 # for Host building for Host:
@@ -100,10 +99,8 @@ when /mingw/
   else
     require File.expand_path('make/win32/win7/env.rb')
     require File.expand_path('make/win32/win7/tasks.rb')
-    if !CROSS
-      puts "PLEASE SELECT a build environment from the win32 options "
-      puts"   shown from a `rake -T` "
-    end
+    puts " Win32: Please select a build environment from the win32 options "
+    puts"   shown from a `rake -T` "
   end
   Builder = MakeMinGW
   NAMESPACE = :win32
@@ -119,8 +116,7 @@ when /darwin/
     require File.expand_path("make/subsys")
   else
     # build Loose Shoes on OSX for OSX
-    puts "OSX: please select a target - see rake -T"
-    puts "This Shoes may not be portable to other OSX systems"
+    puts "OSX: Please select a target - see rake -T"
     require File.expand_path('make/darwin/loose/env')
     require File.expand_path('make/darwin/loose/tasks')
   end
@@ -273,10 +269,6 @@ task :version do
  create_version_file 'VERSION.txt'
 end
 
-# shoes is small, if any include changes, go ahead and build from scratch.
-#SRC.zip(OBJ).each do |c, o|
-#  file o => [c] + Dir["shoes/*.h"]
-#end
 
 # --------------------------
 # tasks depending on Builder = MakeLinux|MakeDarwin|MakeMinGW
@@ -284,18 +276,6 @@ end
 desc "Build using your OS setup"
 task :build => ["#{NAMESPACE}:build"]
 
-#task :pre_build do
-#  Builder.pre_build
-#end
-
-# first refactor ; build calls platform namespaced build;
-# for now, each of those calls the old build method.
-#task :old_build => [:pre_build, :build_os] do
-#  Builder.common_build
-#  Builder.copy_files_to_dist
-#  Builder.copy_deps_to_dist
-#  Builder.setup_system_resources
-#end
 
 # ------  new build   --------
 rtp = "#{TGT_DIR}/#{APP['Bld_Tmp']}"
@@ -338,6 +318,9 @@ task :new_build => "#{TGT_DIR}/libshoes.#{DLEXT}"  do
   # because it's platform specific.
   Builder.new_link "#{TGT_DIR}/shoes"
   if CROSS
+    # check if the manual, or the shoes ruby code was changed an
+    # needs to be moved to the 'setup' (TGT_DIR)
+    # after 
     Rake::Task[:update_man].invoke
     Rake::Task[:update_shoes_rb].invoke
     Rake::Task[:update_shoes_internals].invoke
@@ -359,10 +342,6 @@ end
 
 directory "#{TGT_DIR}"	# was 'dist'
 
-#task "#{TGT_DIR}/#{NAME}" => ["#{TGT_DIR}/lib#{SONAME}.#{DLEXT}", "shoes/main.o"] + ADD_DLL + ["#{NAMESPACE}:make_app"]
-
-#task "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}" => ['shoes/version.h', "#{TGT_DIR}"] + OBJ + ["#{NAMESPACE}:make_so"]
-
 def cc(t)
   $stderr.puts "compiling #{t}"
   sh "#{CC} -I. -c -o #{t.name} #{LINUX_CFLAGS} #{t.source}"
@@ -377,27 +356,6 @@ rule ".o" => ".c" do |t|
 end
 
 task :installer => ["#{NAMESPACE}:installer"]
-=begin
-def rewrite before, after, reg = /\#\{(\w+)\}/, reg2 = '\1'
-  File.open(after, 'w') do |a|
-    File.open(before) do |b|
-      b.each do |line|
-        a << line.gsub(reg) do
-          if reg2.include? '\1'
-            reg2.gsub(%r!\\1!, Object.const_get($1))
-          else
-            reg2
-          end
-        end
-      end
-    end
-  end
-end
-
-def copy_files glob, dir
-  FileList[glob].each { |f| cp_r f, dir }
-end
-=end
 
 namespace :osx do
   namespace :setup do
@@ -428,21 +386,11 @@ namespace :osx do
 
   end
 
-  #task :build => [:old_build]
   task :build => [:new_build]
-
-  #task :make_app do
-  #  Builder.make_app "#{TGT_DIR}/#{NAME}"
-  #end
-
-  #task :make_so do
-  #  Builder.make_so  "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
-  #end
 
   task :installer do
     Builder.make_installer
   end
-
 end
 
 
@@ -461,16 +409,7 @@ namespace :win32 do
     
   end
 
-  #task :build => [:old_build]
   task :build => [:new_build]
-
-  #task :make_app do
-  #  Builder.make_app "#{TGT_DIR}/#{NAME}"
-  #end
-
-  #task :make_so do
-  #  Builder.make_so  "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
-  #end
 
   task :installer do
     Builder.make_installer
@@ -517,16 +456,7 @@ namespace :linux do
 
   end
   
-  #task :build => [:old_build]
   task :build => [:new_build]
-
-  #task :make_app do
-  #  Builder.make_app "#{TGT_DIR}/#{NAME}"
-  #end
-
-  #task :make_so do
-  #  Builder.make_so  "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
-  #end
 
   task :installer do
     Builder.make_installer

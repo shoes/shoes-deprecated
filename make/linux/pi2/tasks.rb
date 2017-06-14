@@ -34,15 +34,6 @@ class MakeLinux
       cp APP['icons']['gtk'], "#{TGT_DIR}/static/app-icon.png"
     end
 
-    def make_so(name)
-      puts "make_so dir=#{pwd} arg=#{name}"
-      if OBJ.empty?
-         puts "make_so called in error"
-         return
-      end
-      sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
-    end
-
     def new_so (name) 
       $stderr.puts "new_so: #{name}"
       tgtd = File.dirname(name)
@@ -51,7 +42,6 @@ class MakeLinux
         d = File.dirname(f)
         objs = objs + FileList["#{d}/*.o"]      
       end
-      # TODO  fix: gtk - needs to dig deeper vs osx
       objs = objs + FileList["shoes/native/gtk/*.o"]
       main_o = 'shoes/main.o'
       objs = objs - [main_o]

@@ -34,12 +34,7 @@ pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.2.pc"
 pkggtk ="#{ularch}/pkgconfig/gtk+-3.0.pc" 
 # Use Ruby or curl for downloads
 RUBY_HTTP = true
-=begin
-SRC = []
-OBJ = SRC.map do |x|
-  x.gsub(/\.\w+$/, '.o')
-end
-=end
+
 ADD_DLL = []
 
 # Target environment

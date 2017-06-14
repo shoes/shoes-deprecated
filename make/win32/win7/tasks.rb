@@ -21,8 +21,8 @@ module Make
       end
     end
   end
+  
 end
-
 
 include FileUtils
 
@@ -42,16 +42,7 @@ class MakeMinGW
     def setup_system_resources
       cp APP['icons']['gtk'], "#{TGT_DIR}/static/app-icon.png"
     end
-
-    def make_so(name)
-      puts "make_so dir=#{pwd} arg=#{name}"
-      if OBJ.empty?
-        $stderr.puts "make_so called in error"
-        return
-      end
-      sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
-    end
-    
+   
     # this is called from the file task based new_builder 
     def new_so (name) 
       tgts = name.split('/')
@@ -89,10 +80,6 @@ class MakeMinGW
     def make_userinstall
     end
  
-    def make_resource(t)
-      puts "make resource"
-    end
-
     
     def make_installer
       # assumes you have NSIS installed on your box in the system PATH 

@@ -63,12 +63,6 @@ ENV['PKG_CONFIG_PATH'] = "#{ularch}/pkgconfig"
 WINVERSION = "#{APP['VERSION']}-gtk3-32"
 WINFNAME = "#{APPNAME}-#{WINVERSION}"
 
-#file_list = []
-#SRC = FileList[*file_list]
-#OBJ = SRC.map do |x|
-#  x.gsub(/\.\w+$/, '.o')
-#end
-
 ADD_DLL = []
 
 # Hand code for your cross compie setup.
@@ -125,7 +119,7 @@ LINUX_LIBS << LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
 LINUX_LIBS << " #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} "
 
-# This is used in pre_build/setup instead of copy_deps_to_dist, 
+# This is used in pre_build/setup
 
 SOLOCS = {
   'ruby'    => "#{EXT_RUBY}/bin/msvcrt-ruby220.dll",

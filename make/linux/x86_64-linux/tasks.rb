@@ -34,14 +34,6 @@ class MakeLinux
       cp APP['icons']['gtk'], "#{TGT_DIR}/static/app-icon.png"
     end
 
-    def make_so(name)
-      puts "make_so dir=#{pwd} arg=#{name}"
-      if OBJ.empty?
-         puts "make_so called in error"
-         return
-      end
-      sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
-    end
     
     def new_so (name) 
       tgts = name.split('/')
@@ -76,7 +68,7 @@ class MakeLinux
     end
 
 
-    # make a .install with all the bits and peices. 
+    # make a .install with all the bits and pieces. 
     def make_installer
       gtkv = '3'
       arch = 'x86_64'

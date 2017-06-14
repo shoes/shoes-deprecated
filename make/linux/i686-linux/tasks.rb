@@ -34,14 +34,6 @@ class MakeLinux
       cp APP['icons']['gtk'], "#{TGT_DIR}/static/app-icon.png"
     end
 
-    def make_so(name)
-      puts "make_so dir=#{pwd} arg=#{name}"
-      if OBJ.empty?
-         puts "make_so called in error"
-         return
-      end
-      sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
-    end
 
     def new_so (name) 
       tgts = name.split('/')
@@ -52,7 +44,6 @@ class MakeLinux
         d = File.dirname(f)
         objs = objs + FileList["#{d}/*.o"]      
       end
-      # TODO  fix: gtk - needs to dig deeper vs osx
       objs = objs + FileList["shoes/native/gtk/*.o"]
       main_o = 'shoes/main.o'
       objs = objs - [main_o]
@@ -60,23 +51,6 @@ class MakeLinux
     end
     
     def new_link(name)
-=begin    
-      puts "new_link dir=#{pwd} arg=#{name}"
-      bin = "#{name}-bin"
-      rm_f name
-      rm_f bin
-      tgtf = name.split('/')
-      tgtd = tgtf[0]
-      #missing = "-lgtk-3 -lgdk-3  -lpangocairo-1.0" # TODO: This is a bug in env.rb ?
-      sh "#{CC} -o #{bin} shoes/main.o  -L#{tgtd} -lshoes -L#{TGT_DIR}  #{LINUX_LIBS}"
-      rewrite "platform/nix/shoes.launch", name, %r!/shoes-bin!, "/#{NAME}-bin"
-      sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{name}}
-      chmod 0755, "#{name}" 
-      # write a gdb launched shoes
-      rewrite "platform/nix/shoes.launch", "#{TGT_DIR}/debug", %r!/shoes-bin!, "/#{NAME}-bin"
-      sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH gdb $APPPATH/#{File.basename(bin)} "$@"' >> #{TGT_DIR}/debug}
-      chmod 0755, "#{TGT_DIR}/debug" 
-=end
       #name is actually a file path
       puts "new_link: arg=#{name}"
       dpath = File.dirname(name)
@@ -94,28 +68,6 @@ class MakeLinux
 
     # make a .install with all the bits and pieces. 
     def make_installer
-=begin
-      gtkv = APP['GTK']== 'gtk+-3.0' ? '3' : '2'
-      arch = 'i686'
-      appname =  "#{APP['name'].downcase}"
-      rlname = "#{appname}-#{APP['VERSION']}-gtk#{gtkv}-#{arch}"
-      #puts "Creating Pkg for #{rlname}"
-      rm_r "pkg/#{rlname}" if File.exists? "pkg/#{rlname}"
-      cp_r "VERSION.txt", "#{TGT_DIR}"
-      mkdir_p "pkg/#{rlname}"
-      sh "cp -r #{TGT_DIR}/* pkg/#{rlname}"
-      Dir.chdir "pkg/#{rlname}" do
-        make_desktop 
-        make_uninstall_script
-        make_install_script
-        make_smaller unless APP['GDB']
-      end
-      Dir.chdir "pkg" do
-        puts `pwd`
-        sh "makeself #{rlname} #{rlname}.install #{appname} \
-./shoes-install.sh "
-      end
-=end
       gtkv = '3'
       arch = 'i686'
       appname =  "#{APP['name'].downcase}"

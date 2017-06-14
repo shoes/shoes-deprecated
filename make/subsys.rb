@@ -143,11 +143,11 @@ end
 # and built. 
 if CROSS
   file "#{TGT_DIR}/static/manual-en.txt" => ["#{tp}/zzsetup.done", "static/manual-en.txt"] do
-    $stderr.puts "YAY! manual was updated"
+    #$stderr.puts "YAY! manual was updated"
     cp "static/manual-en.txt", "#{TGT_DIR}/static/manual-en.txt"
   end
   file "#{TGT_DIR}/lib/shoes.rb" => ["#{tp}/zzsetup.done", "lib/shoes.rb"] do
-    $stderr.puts "Updating shoes.rb"
+    #$stderr.puts "Updating shoes.rb"
     cp "lib/shoes.rb", "#{TGT_DIR}/lib/shoes.rb"
   end
   rbdeps = FileList["#{TGT_DIR}/lib/shoes/*.rb"]
