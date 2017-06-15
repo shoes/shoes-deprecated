@@ -359,20 +359,20 @@ task :installer => ["#{NAMESPACE}:installer"]
 
 namespace :osx do
   namespace :setup do
-    desc "Setup to build Shoes for 10.10+"
-    task :yosemite do
-      sh "echo 'TGT_ARCH=yosemite' >crosscompile"
-    end
+    #desc "Setup to build Shoes for 10.10+"
+    #task :yosemite do
+    #  sh "echo 'TGT_ARCH=yosemite' >crosscompile"
+    #end
 
     desc "Setup to build Shoes for 10.9+ from 10.10+"
     task :xmavericks do
       sh "echo 'TGT_ARCH=xmavericks' >crosscompile"
     end
 
-    desc "Setup to build Shoes for 10.9+ from 10.9"
-    task :mavericks do
-      sh "echo 'TGT_ARCH=mavericks' >crosscompile"
-    end
+    #desc "Setup to build Shoes for 10.9+ from 10.9"
+    #task :mavericks do
+    #  sh "echo 'TGT_ARCH=mavericks' >crosscompile"
+    #end
 
     #desc "Setup to build for 10.6+ from 10.6"
     #task :snow do
@@ -402,7 +402,7 @@ namespace :win32 do
       sh "echo TGT_ARCH=win7 >crosscompile"
     end
 
-    desc "Windows build with msys2"
+    #desc "Windows build with msys2"
     task :msys2 do
       sh "echo TGT_ARCH=msys2 >crosscompile"
     end
@@ -420,23 +420,23 @@ end
 namespace :linux do
 
   namespace :setup do
-    desc "Cross compile to arm6hf - advanced users"
+    #desc "Cross compile to arm6hf - advanced users"
     task :xarm6hf do
-      sh "echo 'TGT_ARCH=xarmv6hf' >crosscompile"
+     sh "echo 'TGT_ARCH=xarmv6hf' >crosscompile"
     end
     
-    desc "Native pi2 build"
+    desc "Native arm build - pi 2+"
     task :pi2 do
       sh "echo 'TGT_ARCH=pi2' >crosscompile"
     end
     
-    desc "Cross compile for msys2 deps (mingw)"
+    #desc "Cross compile for msys2 deps (mingw)"
     task :xmsys2 do
       puts "Cross compile newer deps (mingw)"
       sh "echo 'TGT_ARCH=xmsys2' >crosscompile"
     end
 
-    desc "Cross compile to MingW32 (Gtk, 32)"
+    desc "Cross compile with  MingW32"
     task :xwin7 do
       puts "Cross compile for Windows MingW32"
       sh "echo 'TGT_ARCH=xwin7' >crosscompile"
