@@ -9,6 +9,7 @@
 ._*
 *.rl
 *.log
+*.lib
 .byebug_history
 Makefile
 VERSION.txt

@@ -107,7 +107,7 @@ module Make
   def copy_gems
     puts "copy_gems dir=#{pwd} #{SHOES_TGT_ARCH}"
     APP['EXTLIST'].each do |ext|
-      puts "copy prebuild ext #{ext}"
+      $stderr.puts "copy prebuild ext #{ext}"
       copy_files "#{APP['EXTLOC']}/built/#{TGT_ARCH}/#{ext}/ext/*.#{Lext}", "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_TGT_ARCH}"
       if  File.exists? "#{APP['EXTLOC']}/built/#{TGT_ARCH}/#{ext}/lib"
         Dir.glob("#{APP['EXTLOC']}/built/#{TGT_ARCH}/#{ext}/lib/*").each do |lib|
@@ -119,7 +119,7 @@ module Make
     # precompiled gems here - just copy
     APP['INCLGEMS'].each do |gemn|
       gemp = "#{APP['GEMLOC']}/built/#{TGT_ARCH}/#{gemn}"
-      puts "Copying prebuilt gem #{gemp}"
+      $stderr.puts "Copying prebuilt gem #{gemp}"
       spec = eval(File.read("#{gemp}/gemspec"))
       mkdir_p "#{gdir}/specifications"
       mkdir_p "#{gdir}/specifications/default"
@@ -135,12 +135,12 @@ module Make
         end
         cp "#{gemp}/gemspec", "#{gdir}/specifications/#{spec.full_name}.gemspec"
         if spec.require_paths.include? 'ext'
-          puts "Ext weird copy = #{spec.require_paths}"
+          $stderr.puts "Ext weird copy = #{spec.require_paths}"
           mkdir_p "#{gdir}/gems/#{spec.full_name}/ext"
           cp_r "#{gemp}/ext",  "#{gdir}/gems/#{spec.full_name}"
         end
         if spec.require_paths.include? 'lib'
-          puts "Lib copy = #{spec.require_paths[-1]}"
+          $stderr.puts "Lib copy = #{spec.require_paths[-1]}"
           mkdir_p "#{gdir}/gems/#{spec.full_name}/lib"
           cp_r "#{gemp}/lib",  "#{gdir}/gems/#{spec.full_name}"
         end
@@ -154,7 +154,7 @@ module Make
       # do we need a rpath fixup? linux? probably not. OSX possibly
       if false
         FileList["#{gdir}/gems/#{spec.full_name}/**/*.so"].each do |so|
-          puts "FIX rpath #{so}"
+          $stderr.puts "FIX rpath #{so}"
           sh "chrpath #{so} -r '${ORIGIN}/../lib'"
         end
       end
@@ -164,7 +164,7 @@ module Make
         Dir.chdir("#{gdir}/gems/#{spec.full_name}/lib/nokogiri/") do
           Dir.glob('*').each do |dirn|
             if dirn =~ /\d.\d/ && dirn != grubyv
-              puts "Noko delete: #{dirn}"
+              $stderr.puts "Noko delete: #{dirn}"
               rm_r dirn
             end
           end

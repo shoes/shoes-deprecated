@@ -1,13 +1,10 @@
 # This is for a Linux only build (loose shoes)
 # It is safe and desireable to use RbConfig::CONFIG settings
-#   Will not build gems and most extentions
-#   Links against system (or rvm) ruby, and libraries. No LD_LIB_PATH
+#   Will not build gems or copy gems - uses the host ruby.
+#   Cannot be distributed. 
 require 'rbconfig'
 
-# manually set below to what you want to build with/for
-#ENV['DEBUG'] = "true" # turns on the call log
-
-ENV['GDB'] = "true" # true => compile -g,  don't strip symbols
+APP['GDB'] = "true" # true => compile -g,  don't strip symbols
 if ENV['GDB']
   LINUX_CFLAGS = "-g -O0"
 else
@@ -20,29 +17,12 @@ rv =  RUBY_VERSION[/\d.\d/]
 LINUX_CFLAGS << " -DRUBY_HTTP"
 LINUX_CFLAGS << " -DRUBY_1_9"
 LINUX_CFLAGS << " -DDEBUG" if ENV['DEBUG']
-LINUX_CFLAGS << " -DSHOES_GTK -fPIC -shared"
+LINUX_CFLAGS << " -DSHOES_GTK -fPIC -shared -Wno-unused-but-set-variable"
 # Following line may need handcrafting
 LINUX_CFLAGS << " -I/usr/include/"
 LINUX_CFLAGS << " #{`pkg-config --cflags gtk+-3.0`.strip}"
 
 CC = "gcc"
-
-gtk_extra_list = Dir["shoes/native/*.c"] - ["shoes/native/gtk.c"]
-console_list  = Dir["shoes/console/*.c"]
-file_list = %w{shoes/native/gtk.c shoes/http/rbload.c} + gtk_extra_list + ["shoes/*.c"] +
-     ["shoes/plot/*.c"] + ["shoes/types/*.c"] + ["shoes/native/gtk/*.c"] + console_list
-     
-#file_list = %w(shoes/native/gtk.c shoes/native/gtkfixedalt.c shoes/native/gtkentryalt.c
-#               shoes/native/gtkcomboboxtextalt.c shoes/native/gtkbuttonalt.c
-#               shoes/native/gtkscrolledwindowalt.c shoes/native/gtkprogressbaralt.c 
-#               shoes/http/rbload.c) + ["shoes/*.c"] + ["shoes/console/*.c"] +
-#               ["shoes/plot/*.c"]
-#file_list << "shoes/video/video.c" 
-
-SRC = FileList[*file_list]
-OBJ = SRC.map do |x|
-  x.gsub(/\.\w+$/, '.o')
-end
 
 # Query pkg-config for cflags and link settings
 EXT_RUBY = RbConfig::CONFIG['prefix']
@@ -96,3 +76,4 @@ LINUX_LDFLAGS = "-L. -rdynamic -Wl,-export-dynamic"
 # Main Rakefile and tasks.rb needs the below Constants
 ADD_DLL = []
 DLEXT = "so"
+SOLOCS = {} # needed to match Rakefile expectations.

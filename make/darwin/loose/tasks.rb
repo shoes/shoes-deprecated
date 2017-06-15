@@ -23,7 +23,6 @@ module Make
   end
 end
 
-
 include FileUtils
 
 class MakeDarwin

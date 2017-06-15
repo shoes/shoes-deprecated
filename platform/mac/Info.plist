@@ -24,7 +24,8 @@
   <string>true</string>
   <key>IFMinorVersion</key>
   <integer>1</integer>
-	<key>CFBundleDocumentTypes</key>
+  <key>NSHighResolutionCapable</key>
+  <string>true</string>	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleTypeExtensions</key>

@@ -47,18 +47,21 @@ RUBY_V = RbConfig::CONFIG['ruby_version']
 SHOES_RUBY_ARCH = RbConfig::CONFIG['arch']
 
 # default exts, gems & locations to build and include - replace with custom.yaml
-APP['GEMLOC'] = File.expand_path('req')
-APP['EXTLOC'] = File.expand_path('req')
-APP['EXTLIST'] = ['chipmunk']
-APP['GEMLIST'] = ['sqlite3']
+APP['GEMLOC'] = ""
+APP['EXTLOC'] = ""
+APP['EXTLIST'] = []
+APP['GEMLIST'] = []
+APP['Bld_Tmp'] = 'tmp'
+APP['Bld_Pre'] = ENV['NFS_ALTP'] if ENV['NFS_ALTP']
 
 if File.exists? "crosscompile"
   CROSS = true
   File.open('crosscompile','r') do |f|
     str = f.readline
     TGT_ARCH = str.split('=')[1].strip
-    if ENV['NFS_ALTP']
-      TGT_DIR = ENV['NFS_ALTP']+TGT_ARCH
+    # is the build output directory outside the shoes3 dir
+    if APP['Bld_Pre']
+      TGT_DIR = APP['Bld_Pre']+TGT_ARCH
        mkdir_p "#{TGT_DIR}"
     else
       TGT_DIR = TGT_ARCH
@@ -66,10 +69,9 @@ if File.exists? "crosscompile"
   end
 else
   CROSS = false
-  # is the build directory outside the project dir like
-  # Cecil's weird NFS setup for his mac
-  if ENV['NFS_ALTP']
-    TGT_DIR = ENV['NFS_ALTP']+'dist'
+  # is the build output directory outside the shoes3 dir
+  if APP['Bld_Pre']
+    TGT_DIR = APP['Bld_Pre']+'dist'
     mkdir_p "#{TGT_DIR}"
   else
     TGT_DIR = 'dist'
@@ -81,9 +83,8 @@ BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 #CLEAN.include ["req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
 CLEAN.include ["#{TGT_DIR}/libshoes.dll", "#{TGT_DIR}/*shoes.exe", 
     "#{TGT_DIR}/libshoes.so","#{TGT_DIR}/shoes", "#{TGT_DIR}/shoes-bin",
-    "shoes/**/*.o", "shoes/**/*.lib"]
-CLOBBER.include ["#{TGT_DIR}", "zzsetup.done", "crosscompile", "shoes/**/*.o",
-    "shoes/**/*.lib"]
+    "#{TGT_DIR}/#{APP['Bld_tmp']}/**/*.o"]
+CLOBBER.include ["#{TGT_DIR}", "crosscompile", "cshoes", "shoes/**/*.o"]
 
 # for Host building for Host:
 case RUBY_PLATFORM
@@ -92,16 +93,14 @@ when /mingw/
     require File.expand_path("make/win32/#{TGT_ARCH}/env")
     require File.expand_path("make/win32/#{TGT_ARCH}/tasks")
     require File.expand_path("make/win32/#{TGT_ARCH}/stubs")
-    require File.expand_path("make/gems")
     require File.expand_path("make/win32/#{TGT_ARCH}/setup")
+    require File.expand_path("make/gems")
     require File.expand_path('make/subsys')
   else
     require File.expand_path('make/win32/win7/env.rb')
     require File.expand_path('make/win32/win7/tasks.rb')
-    if !CROSS
-      puts "PLEASE SELECT a build environment from the win32 options "
-      puts"   shown from a `rake -T` "
-    end
+    puts " Win32: Please select a build environment from the win32 options "
+    puts"   shown from a `rake -T` "
   end
   Builder = MakeMinGW
   NAMESPACE = :win32
@@ -112,13 +111,12 @@ when /darwin/
     require File.expand_path("make/darwin/#{TGT_ARCH}/env")
     require File.expand_path("make/darwin/#{TGT_ARCH}/tasks")
     require File.expand_path("make/darwin/#{TGT_ARCH}/stubs")
-    require File.expand_path("make/gems")
     require File.expand_path("make/darwin/#{TGT_ARCH}/setup")
+    require File.expand_path("make/gems")
     require File.expand_path("make/subsys")
   else
     # build Loose Shoes on OSX for OSX
-    puts "OSX: please select a target - see rake -T"
-    puts "This Shoes may not be portable to other OSX systems"
+    puts "OSX: Please select a target - see rake -T"
     require File.expand_path('make/darwin/loose/env')
     require File.expand_path('make/darwin/loose/tasks')
   end
@@ -151,7 +149,7 @@ when /linux/
       require File.expand_path('make/linux/xarm6hf/env')
       require File.expand_path('make/linux/xarm6hf/tasks')
       require File.expand_path('make/gems')
-   when /xwin7/
+    when /xwin7/
       require File.expand_path('make/linux/xwin7/env')
       require File.expand_path('make/linux/xwin7/tasks')
       require File.expand_path('make/linux/xwin7/stubs')
@@ -271,10 +269,6 @@ task :version do
  create_version_file 'VERSION.txt'
 end
 
-# shoes is small, if any include changes, go ahead and build from scratch.
-SRC.zip(OBJ).each do |c, o|
-  file o => [c] + Dir["shoes/*.h"]
-end
 
 # --------------------------
 # tasks depending on Builder = MakeLinux|MakeDarwin|MakeMinGW
@@ -282,46 +276,55 @@ end
 desc "Build using your OS setup"
 task :build => ["#{NAMESPACE}:build"]
 
-task :pre_build do
-  Builder.pre_build
-end
 
-# first refactor ; build calls platform namespaced build;
-# for now, each of those calls the old build method.
-task :old_build => [:pre_build, :build_os] do
-  Builder.common_build
-  Builder.copy_files_to_dist
-  Builder.copy_deps_to_dist
-  Builder.setup_system_resources
-end
-
-# ------  new build - used by linux and windows, so far -------
-
-file  "#{TGT_DIR}/zzsetup.done" do
+# ------  new build   --------
+rtp = "#{TGT_DIR}/#{APP['Bld_Tmp']}"
+$stderr.puts "Build Products in #{rtp}"
+file  "#{rtp}/zzsetup.done" do
   Builder.static_setup SOLOCS
   Builder.copy_gems #used to be common_build, located in make/gems.rb
   Builder.setup_system_resources
-  touch "#{TGT_DIR}/zzsetup.done"
+  touch "#{rtp}/zzsetup.done"
 end
 
-SubDirs = ["shoes/base.lib", "shoes/http/download.lib", "shoes/plot/plot.lib",
-    "shoes/console/console.lib", "shoes/types/widgets.lib", "shoes/native/native.lib"]
+SubDirs = ["#{rtp}/zzbase.done", "#{rtp}/http/zzdownload.done",
+   "#{rtp}/plot/zzplot.done", "#{rtp}/console/zzconsole.done", 
+   "#{rtp}/types/zzwidgets.done", "#{rtp}/native/zznative.done"]
     
-# Windows does't use console - don't try to build it.
+# Windows doesn't use console - don't try to build it. Delete from dependcies
 case TGT_DIR
   when 'win7', 'xwin7', 'msys2', 'xmsys2'
-    SubDirs.delete("shoes/console/console.lib")
+    SubDirs.delete("#{rtp}/console/zzconsole.done")
 end
 
-file "#{TGT_DIR}/libshoes.#{DLEXT}" => ["#{TGT_DIR}/zzsetup.done", "shoes/types/types.h"] + SubDirs do
+file "#{TGT_DIR}/libshoes.#{DLEXT}" => ["#{rtp}/zzsetup.done", "shoes/types/types.h",
+    "shoes/version.h"] + SubDirs do
+  # need to compile version.c -> .o (and create the verion.h for every build)
+  sh "#{CC} -o #{rtp}/version.o -I. -c #{LINUX_CFLAGS} shoes/version.c"
   Builder.new_so "#{TGT_DIR}/libshoes.#{DLEXT}"
 end
 
+if CROSS # i.e. most platforms. 
+  # dependency is set in subsys.rb
+  task :update_man => ["#{TGT_DIR}/static/manual-en.txt"]
+  task :update_shoes_rb => ["#{TGT_DIR}/lib/shoes.rb"]
+  rbdeps = FileList["#{TGT_DIR}/lib/shoes/*.rb"]
+  task :update_shoes_internals => rbdeps
+end
+
+# rake build (or just rake) will get here. 
 task :new_build => "#{TGT_DIR}/libshoes.#{DLEXT}"  do
-  # We can link shoes here - this will be done via a Builder call
+  # We can link shoes now - this will be done via a Builder call
   # because it's platform specific.
   Builder.new_link "#{TGT_DIR}/shoes"
-  $stderr.puts "new build: called for #{TGT_DIR}"
+  if CROSS
+    # check if the manual, or the shoes ruby code was changed an
+    # needs to be moved to the 'setup' (TGT_DIR)
+    # after 
+    Rake::Task[:update_man].invoke
+    Rake::Task[:update_shoes_rb].invoke
+    Rake::Task[:update_shoes_internals].invoke
+  end
 end
 
 desc "Install Shoes in your ~/.shoes Directory"
@@ -339,11 +342,8 @@ end
 
 directory "#{TGT_DIR}"	# was 'dist'
 
-task "#{TGT_DIR}/#{NAME}" => ["#{TGT_DIR}/lib#{SONAME}.#{DLEXT}", "shoes/main.o"] + ADD_DLL + ["#{NAMESPACE}:make_app"]
-
-task "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}" => ['shoes/version.h', "#{TGT_DIR}"] + OBJ + ["#{NAMESPACE}:make_so"]
-
 def cc(t)
+  $stderr.puts "compiling #{t}"
   sh "#{CC} -I. -c -o #{t.name} #{LINUX_CFLAGS} #{t.source}"
 end
 
@@ -356,26 +356,6 @@ rule ".o" => ".c" do |t|
 end
 
 task :installer => ["#{NAMESPACE}:installer"]
-
-def rewrite before, after, reg = /\#\{(\w+)\}/, reg2 = '\1'
-  File.open(after, 'w') do |a|
-    File.open(before) do |b|
-      b.each do |line|
-        a << line.gsub(reg) do
-          if reg2.include? '\1'
-            reg2.gsub(%r!\\1!, Object.const_get($1))
-          else
-            reg2
-          end
-        end
-      end
-    end
-  end
-end
-
-def copy_files glob, dir
-  FileList[glob].each { |f| cp_r f, dir }
-end
 
 namespace :osx do
   namespace :setup do
@@ -406,21 +386,11 @@ namespace :osx do
 
   end
 
-  #task :build => [:old_build]
   task :build => [:new_build]
-
-  task :make_app do
-    Builder.make_app "#{TGT_DIR}/#{NAME}"
-  end
-
-  task :make_so do
-    Builder.make_so  "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
-  end
 
   task :installer do
     Builder.make_installer
   end
-
 end
 
 
@@ -439,16 +409,7 @@ namespace :win32 do
     
   end
 
-  #task :build => [:old_build]
   task :build => [:new_build]
-
-  task :make_app do
-    Builder.make_app "#{TGT_DIR}/#{NAME}"
-  end
-
-  task :make_so do
-    Builder.make_so  "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
-  end
 
   task :installer do
     Builder.make_installer
@@ -495,16 +456,7 @@ namespace :linux do
 
   end
   
-  #task :build => [:old_build]
   task :build => [:new_build]
-
-  task :make_app do
-    Builder.make_app "#{TGT_DIR}/#{NAME}"
-  end
-
-  task :make_so do
-    Builder.make_so  "#{TGT_DIR}/lib#{SONAME}.#{DLEXT}"
-  end
 
   task :installer do
     Builder.make_installer
