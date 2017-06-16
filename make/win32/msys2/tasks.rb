@@ -54,7 +54,6 @@ class MakeMinGW
         #$stderr.puts "collecting .o from #{d}"
         objs = objs + FileList["#{d}/*.o"]      
       end
-      # TODO  fix: gtk - needs to dig deeper vs osx
       objs = objs + FileList["shoes/native/gtk/*.o"]
       main_o = 'shoes/main.o'
       objs = objs - [main_o]
@@ -69,10 +68,11 @@ class MakeMinGW
       rm_f bin
       rm_f binc
       sh "#{WINDRES} -I. shoes/appwin32.rc shoes/appwin32.o"
+      tp = "#{TGT_DIR}/#{APP['Bld_Tmp']}"
       missing = "-lgtk-3 -lgdk-3 -lfontconfig-1 -lpangocairo-1.0" # TODO: a bug in env.rb? 
-      sh "#{CC} -o #{bin} shoes/main.o shoes/appwin32.o -L#{TGT_DIR} -lshoes -mwindows  #{LINUX_LIBS} #{missing}"
+      sh "#{CC} -o #{bin} #{tp}/main.o shoes/appwin32.o -L#{TGT_DIR} -lshoes -mwindows  #{LINUX_LIBS} #{missing}"
       sh "#{STRIP} #{bin}" unless APP['GDB']
-      sh "#{CC} -o #{binc} shoes/main.o shoes/appwin32.o -L#{TGT_DIR} -lshoes #{LINUX_LIBS}  #{missing}"
+      sh "#{CC} -o #{binc} #{tp}/main.o shoes/appwin32.o -L#{TGT_DIR} -lshoes #{LINUX_LIBS}  #{missing}"
       sh "#{STRIP} #{binc}" unless APP['GDB']
     end   
    
@@ -81,7 +81,6 @@ class MakeMinGW
     end
  
     def make_resource(t)
-      puts "make resource"
     end
 
     Object::APPVERSION = APP['VERSION']
