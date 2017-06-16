@@ -1,7 +1,6 @@
 require 'rubygems'
 require 'rake'
 require 'rake/clean'
-# require_relative 'platform/skel'
 require 'fileutils'
 require 'find'
 require 'yaml'
@@ -54,9 +53,9 @@ APP['GEMLIST'] = []
 APP['Bld_Tmp'] = 'tmp'
 APP['Bld_Pre'] = ENV['NFS_ALTP'] if ENV['NFS_ALTP']
 
-if File.exists? "crosscompile"
+if File.exists? "build_target"
   CROSS = true
-  File.open('crosscompile','r') do |f|
+  File.open('build_target','r') do |f|
     str = f.readline
     TGT_ARCH = str.split('=')[1].strip
     # is the build output directory outside the shoes3 dir
@@ -84,7 +83,7 @@ BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 CLEAN.include ["#{TGT_DIR}/libshoes.dll", "#{TGT_DIR}/*shoes.exe", 
     "#{TGT_DIR}/libshoes.so","#{TGT_DIR}/shoes", "#{TGT_DIR}/shoes-bin",
     "#{TGT_DIR}/#{APP['Bld_tmp']}/**/*.o"]
-CLOBBER.include ["#{TGT_DIR}", "crosscompile", "cshoes", "shoes/**/*.o"]
+CLOBBER.include ["#{TGT_DIR}", "build_target", "cshoes", "shoes/**/*.o"]
 
 # for Host building for Host:
 case RUBY_PLATFORM
@@ -167,7 +166,7 @@ when /linux/
       require File.expand_path('make/subsys')
    else
       puts "Unknown builder for #{TGT_ARCH}, removing setting"
-      rm_rf "crosscompile" if File.exists? "crosscompile"
+      rm_rf "build_target" if File.exists? "build_target"
     end
   else
      # This is Loose Shoes setup
@@ -361,27 +360,27 @@ namespace :osx do
   namespace :setup do
     #desc "Setup to build Shoes for 10.10+"
     #task :yosemite do
-    #  sh "echo 'TGT_ARCH=yosemite' >crosscompile"
+    #  sh "echo 'TGT_ARCH=yosemite' >build_target"
     #end
 
     desc "Setup to build Shoes for 10.9+ from 10.10+"
     task :xmavericks do
-      sh "echo 'TGT_ARCH=xmavericks' >crosscompile"
+      sh "echo 'TGT_ARCH=xmavericks' >build_target"
     end
 
     #desc "Setup to build Shoes for 10.9+ from 10.9"
     #task :mavericks do
-    #  sh "echo 'TGT_ARCH=mavericks' >crosscompile"
+    #  sh "echo 'TGT_ARCH=mavericks' >build_target"
     #end
 
     #desc "Setup to build for 10.6+ from 10.6"
     #task :snow do
-    #  sh "echo 'TGT_ARCH=snow' >crosscompile"
+    #  sh "echo 'TGT_ARCH=snow' >build_target"
     #end
 
     #desc "Downshift Build 10.6 from 10.9"
     #task "xsnow" do
-    #  sh "echo 'TGT_ARCH=xsnow' >crosscompile"
+    #  sh "echo 'TGT_ARCH=xsnow' >build_target"
     #end
 
   end
@@ -399,16 +398,16 @@ namespace :win32 do
   namespace :setup do
     desc "Winodws build with devkit"
     task :win7 do
-      sh "echo TGT_ARCH=win7 >crosscompile"
+      sh "echo TGT_ARCH=win7 >build_target"
     end
 
     desc "Windows build with msys2"
     task :msys2 do
-      sh "echo TGT_ARCH=msys2 >crosscompile"
+      sh "echo TGT_ARCH=msys2 >build_target"
     end    
   end
 
-  task :build => ["crosscompile", :new_build]
+  task :build => ["build_target", :new_build]
 
   task :installer do
     Builder.make_installer
@@ -421,36 +420,36 @@ namespace :linux do
   namespace :setup do
     #desc "Cross compile to arm6hf - advanced users"
     task :xarm6hf do
-     sh "echo 'TGT_ARCH=xarmv6hf' >crosscompile"
+     sh "echo 'TGT_ARCH=xarmv6hf' >build_target"
     end
     
     desc "Native arm build - pi 2+"
     task :pi2 do
-      sh "echo 'TGT_ARCH=pi2' >crosscompile"
+      sh "echo 'TGT_ARCH=pi2' >build_target"
     end
     
     #desc "Cross compile for msys2 deps (mingw)"
     task :xmsys2 do
       puts "Cross compile newer deps (mingw)"
-      sh "echo 'TGT_ARCH=xmsys2' >crosscompile"
+      sh "echo 'TGT_ARCH=xmsys2' >build_target"
     end
 
     desc "Cross compile with  MingW32"
     task :xwin7 do
       puts "Cross compile for Windows MingW32"
-      sh "echo 'TGT_ARCH=xwin7' >crosscompile"
+      sh "echo 'TGT_ARCH=xwin7' >build_target"
     end
 
     desc "chroot build for i686 (32bit linux)"
     task :i686_linux do
       puts "Cross complile for i686-linux"
-      sh "echo 'TGT_ARCH=i686-linux' >crosscompile"
+      sh "echo 'TGT_ARCH=i686-linux' >build_target"
     end
 
     desc "chroot build for x86_64 (64bit linux)"
     task :x86_64_linux do
       puts "Cross complile for x86_64-linux"
-      sh "echo 'TGT_ARCH=x86_64-linux' >crosscompile"
+      sh "echo 'TGT_ARCH=x86_64-linux' >build_target"
     end
 
   end
