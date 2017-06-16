@@ -97,8 +97,8 @@ when /mingw/
     require File.expand_path("make/gems")
     require File.expand_path('make/subsys')
   else
-    require File.expand_path('make/win32/win7/env.rb')
-    require File.expand_path('make/win32/win7/tasks.rb')
+    require File.expand_path('make/win32/loose/env.rb')
+    require File.expand_path('make/win32/loose/tasks.rb')
     puts " Win32: Please select a build environment from the win32 options "
     puts"   shown from a `rake -T` "
   end
@@ -402,14 +402,13 @@ namespace :win32 do
       sh "echo TGT_ARCH=win7 >crosscompile"
     end
 
-    #desc "Windows build with msys2"
+    desc "Windows build with msys2"
     task :msys2 do
       sh "echo TGT_ARCH=msys2 >crosscompile"
-    end
-    
+    end    
   end
 
-  task :build => [:new_build]
+  task :build => ["crosscompile", :new_build]
 
   task :installer do
     Builder.make_installer
