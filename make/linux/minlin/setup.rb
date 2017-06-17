@@ -10,26 +10,26 @@ module Make
   # not be the same as linux ln -s. 
   def static_setup (solocs)
     puts "setup: #{pwd}"
-    mkdir_p "dist/lib/shoes"
-    Dir.chdir "dist/lib/shoes" do
+    mkdir_p "#{TGT_DIR}/lib/shoes"
+    Dir.chdir "#{TGT_DIR}/lib/shoes" do
       Dir["../../../lib/shoes/*.rb"].each do |f|
         #puts "SymLinking #{f}"
         ln_s f, "." unless File.symlink? File.basename(f)
       end
     end
-    Dir.chdir "dist/lib" do
+    Dir.chdir "#{TGT_DIR}/lib" do
       ln_s "../../lib/shoes.rb" , "shoes.rb" unless File.symlink? "shoes.rb"
       # link to exerb
       ln_s "../../lib/exerb", "exerb" unless File.symlink? "exerb"
     end
-    cp_r  "fonts", "dist/fonts"
-    cp_r  "samples", "dist/samples"
-    Dir.chdir "dist" do
+    cp_r  "fonts", "#{TGT_DIR}/fonts"
+    cp_r  "samples", "#{TGT_DIR}/samples"
+    Dir.chdir "#{TGT_DIR}" do
       ln_s  "../static",  "." unless File.symlink? 'static'
     end
 
-    cp    "README.md", "dist/README.txt"
-    cp    "CHANGELOG", "dist/CHANGELOG.txt"
-    cp    "COPYING", "dist/COPYING.txt"
+    cp    "README.md", "#{TGT_DIR}/README.txt"
+    cp    "CHANGELOG", "#{TGT_DIR}/CHANGELOG.txt"
+    cp    "COPYING", "#{TGT_DIR}/COPYING.txt"
   end
 end

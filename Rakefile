@@ -61,20 +61,27 @@ if File.exists? "build_target"
     # is the build output directory outside the shoes3 dir
     if APP['Bld_Pre']
       TGT_DIR = APP['Bld_Pre']+TGT_ARCH
-       mkdir_p "#{TGT_DIR}"
     else
       TGT_DIR = TGT_ARCH
     end
+    mkdir_p "#{TGT_DIR}"
   end
 else
   CROSS = false
-  # is the build output directory outside the shoes3 dir
-  if APP['Bld_Pre']
-    TGT_DIR = APP['Bld_Pre']+'dist'
-    mkdir_p "#{TGT_DIR}"
-  else
-    TGT_DIR = 'dist'
+  if ARGV.length == 0 # bare rake w/o a setup called earlier
+    plt = ''
+    case RUBY_PLATFORM
+      when /darwin/ 
+        plt = 'osx'
+      when /mingw/
+        plt = 'win32'
+      when /linux/
+        plt = 'linux'
+    end
+    $stderr.puts "Please Select a #{plt}:setup: target from the"
+    $stderr.puts "  list from a 'rake -T'"
   end
+  TGT_DIR = 'unknown'
 end
 
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
@@ -82,8 +89,8 @@ BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 #CLEAN.include ["req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
 CLEAN.include ["#{TGT_DIR}/libshoes.dll", "#{TGT_DIR}/*shoes.exe", 
     "#{TGT_DIR}/libshoes.so","#{TGT_DIR}/shoes", "#{TGT_DIR}/shoes-bin",
-    "#{TGT_DIR}/#{APP['Bld_tmp']}/**/*.o"]
-CLOBBER.include ["#{TGT_DIR}", "build_target", "cshoes", "shoes/**/*.o"]
+    "#{TGT_DIR}/*.app", "#{TGT_DIR}/#{APP['Bld_tmp']}/**/*.o"]
+CLOBBER.include ["#{TGT_DIR}/.DS_Store", "#{TGT_DIR}", "build_target", "cshoes", "shoes/**/*.o"]
 
 # for Host building for Host:
 case RUBY_PLATFORM
@@ -96,10 +103,9 @@ when /mingw/
     require File.expand_path("make/gems")
     require File.expand_path('make/subsys')
   else
+    # just enough to do a rake w/o target 
     require File.expand_path('make/win32/loose/env.rb')
     require File.expand_path('make/win32/loose/tasks.rb')
-    puts " Win32: Please select a build environment from the win32 options "
-    puts"   shown from a `rake -T` "
   end
   Builder = MakeMinGW
   NAMESPACE = :win32
@@ -114,8 +120,7 @@ when /darwin/
     require File.expand_path("make/gems")
     require File.expand_path("make/subsys")
   else
-    # build Loose Shoes on OSX for OSX
-    puts "OSX: Please select a target - see rake -T"
+    # just enough to do a rake w/o target 
     require File.expand_path('make/darwin/loose/env')
     require File.expand_path('make/darwin/loose/tasks')
   end
@@ -124,7 +129,6 @@ when /darwin/
   
 when /linux/
   if CROSS
-    # This will be a Tight Shoes setup
     case TGT_ARCH
     when /x86_64-linux/
       require File.expand_path('make/linux/x86_64-linux/env')
@@ -164,17 +168,20 @@ when /linux/
       require File.expand_path('make/linux/xmsys2/setup')
       require File.expand_path('make/gems')
       require File.expand_path('make/subsys')
+   when /minlin/ 
+      # This is Loose Shoes setup
+      require File.expand_path('make/linux/minlin/env')
+      require File.expand_path('make/linux/minlin/tasks')
+      require File.expand_path('make/linux/minlin/setup')
+      require File.expand_path('make/subsys')
    else
-      puts "Unknown builder for #{TGT_ARCH}, removing setting"
+      $stderr.puts "Unknown builder for #{TGT_ARCH}, removing setting"
       rm_rf "build_target" if File.exists? "build_target"
     end
   else
-     # This is Loose Shoes setup
-     #TGT_DIR = "dist"
+     # just enough to do a rake w/o target 
      require File.expand_path('make/linux/loose/env')
      require File.expand_path('make/linux/loose/tasks')
-     require File.expand_path('make/linux/loose/setup')
-     require File.expand_path('make/subsys')
   end
   Builder = MakeLinux
   NAMESPACE = :linux
@@ -212,7 +219,7 @@ task "shoes/version.h" do |t|
     f << "#define SHOES_VERSION_REVISION #{APP['REVISION']}\n"
     f << "#define SHOES_VERSION_DATE \"#{APP['DATE']}\"\n"
     f << "#define SHOES_VERSION_PLATFORM \"#{APP['PLATFORM']}\"\n"
-    if CROSS
+    if CROSS && TGT_DIR != 'minlin'
       f << "#define SHOES_STYLE \"TIGHT_SHOES\"\n\n"
     else
       f << "#define SHOES_STYLE \"LOOSE_SHOES\"\n\n"
@@ -392,7 +399,6 @@ namespace :osx do
   end
 end
 
-
 namespace :win32 do
 
   namespace :setup do
@@ -418,6 +424,11 @@ end
 namespace :linux do
 
   namespace :setup do
+    desc "build non-portable linux"
+    task :minlin do
+      sh "echo 'TGT_ARCH=minlin' >build_target"
+    end
+    
     #desc "Cross compile to arm6hf - advanced users"
     task :xarm6hf do
      sh "echo 'TGT_ARCH=xarmv6hf' >build_target"

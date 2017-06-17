@@ -140,8 +140,8 @@ end
 
 # Too keep the main Rakefile almost sane, create some file tasks here for detecting 
 # updates to static/manual-en.txt and lib/shoes.rb, lib/shoes/*.rb after shoes is 'setup'
-# and built. 
-if CROSS
+# and built.  Don't bother if minlin (loose Shoes)
+if CROSS && TGT_DIR != 'minlin'
   file "#{TGT_DIR}/static/manual-en.txt" => ["#{tp}/zzsetup.done", "static/manual-en.txt"] do
     #$stderr.puts "YAY! manual was updated"
     cp "static/manual-en.txt", "#{TGT_DIR}/static/manual-en.txt"
