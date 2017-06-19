@@ -1,4 +1,4 @@
 ﻿# just enough allow a rake -T
 CC = "gcc"
-DLEXT = "dll"
+DLEXT = "so"
 LINUX_CFLAGS = []

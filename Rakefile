@@ -16,11 +16,11 @@ APP['MINOR'] = APP['minor'].to_s
 APP['TINY'] = APP['tiny'].to_s
 APP['NAME'] = APP['release']
 APP['DATE'] = Time.now.to_s
-APP['PLATFORM'] = RbConfig::CONFIG['arch'] # not correct in cross compile
+APP['PLATFORM'] = RbConfig::CONFIG['arch'] # not correct for cross compile
 case APP['revision']
   when 'git'
-    GIT = ENV['GIT'] || "git"
-    APP['REVISION'] = (`#{GIT} rev-list HEAD`.split.length).to_s
+    gitp = ENV['GIT'] || "git"
+    APP['REVISION'] = (`#{gitp} rev-list HEAD`.split.length).to_s
   when 'file'
     File.open('VERSION.txt', 'r') do |f|
       ln = f.read
@@ -41,9 +41,13 @@ APPNAME = APP['name'] # OSX needs this
 SONAME = 'shoes'
 APPARGS = APP['run']
 
+# TODO: Shadow these until replaced with APP[] in env/setup/tasks files
 RUBY_SO = RbConfig::CONFIG['RUBY_SO_NAME']
+APP['RUBY_SO'] = RbConfig::CONFIG['RUBY_SO_NAME']
 RUBY_V = RbConfig::CONFIG['ruby_version']
+APP['RUBY_V'] = RbConfig::CONFIG['ruby_version']
 SHOES_RUBY_ARCH = RbConfig::CONFIG['arch']
+APP['SHOES_RUBY_ARCH'] = RbConfig::CONFIG['arch']
 
 # default exts, gems & locations to build and include - replace with custom.yaml
 APP['GEMLOC'] = ""
@@ -65,24 +69,32 @@ if File.exists? "build_target"
       TGT_DIR = TGT_ARCH
     end
     mkdir_p "#{TGT_DIR}"
+    BLD_ARGS = {}
+    # This allows short circuiting the need to load setup and env (and pkg-config overhead)
+    # Exprimental - no visible performance gain. see make/linux/minlin/env.rb
+    if File.exists? "#{TGT_DIR}/build.yaml"
+      $stderr.puts "loading building args"
+      thsh = YAML.load_file("#{TGT_DIR}/build.yaml")
+      thsh.each {|k,v| BLD_ARGS[k] = v} 
+      HAVE_BLD = true
+    else 
+      HAVE_BLD = false
+    end
   end
 else
   CROSS = false
   if ARGV.length == 0 # bare rake w/o a setup called earlier
-    plt = ''
-    case RUBY_PLATFORM
-      when /darwin/ 
-        plt = 'osx'
-      when /mingw/
-        plt = 'win32'
-      when /linux/
-        plt = 'linux'
+    plt = case RUBY_PLATFORM
+      when /darwin/ then 'osx'
+      when /mingw/  then 'win32'
+      when /linux/  then 'linux'
     end
     $stderr.puts "Please Select a #{plt}:setup: target from the"
-    $stderr.puts "  list from a 'rake -T'"
+    $stderr.puts "  list shown by 'rake -T'"
   end
   TGT_DIR = 'unknown'
 end
+
 
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 #CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
@@ -92,7 +104,7 @@ CLEAN.include ["#{TGT_DIR}/libshoes.dll", "#{TGT_DIR}/*shoes.exe",
     "#{TGT_DIR}/*.app", "#{TGT_DIR}/#{APP['Bld_tmp']}/**/*.o"]
 CLOBBER.include ["#{TGT_DIR}/.DS_Store", "#{TGT_DIR}", "build_target", "cshoes", "shoes/**/*.o"]
 
-# for Host building for Host:
+# for Host building for target
 case RUBY_PLATFORM
 when /mingw/
   if CROSS
@@ -169,17 +181,31 @@ when /linux/
       require File.expand_path('make/gems')
       require File.expand_path('make/subsys')
    when /minlin/ 
-      # This is Loose Shoes setup
-      require File.expand_path('make/linux/minlin/env')
-      require File.expand_path('make/linux/minlin/tasks')
-      require File.expand_path('make/linux/minlin/setup')
-      require File.expand_path('make/subsys')
+      # This is Loose Shoes setup now known as minlin
+      if CROSS && HAVE_BLD  # shortcut
+        puts "skipping #{TGT_ARCH} env.rb, setup.rb"
+        require File.expand_path('make/linux/minlin/tasks')
+        require File.expand_path('make/subsys')
+        DLEXT = BLD_ARGS['DLEXT']
+        CC = BLD_ARGS['CC']
+        SOLOCS = BLD_ARGS['SOLOCS']
+        LINUX_CFLAGS = BLD_ARGS['LINUX_CFLAGS']
+        LINUX_LDFLAGS = BLD_ARGS['LINUX_LDFLAGS']
+        LINUX_LIBS = BLD_ARGS['LINUX_LIBS']
+      else 
+        puts "Require All minlin:"
+        require File.expand_path('make/linux/minlin/env')
+        require File.expand_path('make/linux/minlin/tasks')
+        require File.expand_path('make/linux/minlin/setup')
+        require File.expand_path('make/subsys')
+     end
    else
       $stderr.puts "Unknown builder for #{TGT_ARCH}, removing setting"
       rm_rf "build_target" if File.exists? "build_target"
     end
   else
-     # just enough to do a rake w/o target 
+     # just enough to do a rake w/o target - will fail with a decent enough
+     # error message
      require File.expand_path('make/linux/loose/env')
      require File.expand_path('make/linux/loose/tasks')
   end
@@ -285,12 +311,12 @@ task :build => ["#{NAMESPACE}:build"]
 
 # ------  new build   --------
 rtp = "#{TGT_DIR}/#{APP['Bld_Tmp']}"
-$stderr.puts "Build Products in #{rtp}"
 file  "#{rtp}/zzsetup.done" do
   Builder.static_setup SOLOCS
   Builder.copy_gems #used to be common_build, located in make/gems.rb
   Builder.setup_system_resources
   touch "#{rtp}/zzsetup.done"
+  $stderr.puts "Build Products in #{rtp}"
 end
 
 SubDirs = ["#{rtp}/zzbase.done", "#{rtp}/http/zzdownload.done",

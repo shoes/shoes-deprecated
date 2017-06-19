@@ -77,3 +77,15 @@ LINUX_LDFLAGS = "-L. -rdynamic -Wl,-export-dynamic"
 ADD_DLL = []
 DLEXT = "so"
 SOLOCS = {} # needed to match Rakefile expectations.
+=begin
+# to save settings 
+bld_args = {}
+bld_args['CC'] = CC
+bld_args['ADD_DLL'] = []
+bld_args['DLEXT'] = "so"
+bld_args['SOLOCS'] = {}
+bld_args['LINUX_CFLAGS'] = LINUX_CFLAGS
+bld_args['LINUX_LDFLAGS'] = LINUX_LDFLAGS
+bld_args['LINUX_LIBS'] = LINUX_LIBS
+File.open("#{TGT_DIR}/build.yaml", 'w') {|f| YAML.dump(bld_args, f)}
+=end
