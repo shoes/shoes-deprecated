@@ -50,7 +50,7 @@ class MakeLinux
     
     def new_link(name)
       #name is actually a file path
-      puts "new_link: arg=#{name}"
+      $Sstderr.puts "new_link: arg=#{name}"
       dpath = File.dirname(name)
       fname = File.basename(name)
       bin = "#{fname}-bin"

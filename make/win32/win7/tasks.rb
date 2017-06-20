@@ -45,9 +45,10 @@ class MakeMinGW
    
     # this is called from the file task based new_builder 
     def new_so (name) 
-      tgts = name.split('/')
-      tgtd = tgts[0]
-      $stderr.puts "new_so: #{tgtd}"
+      $stderr.puts "new so: #{name}"
+      #tgts = name.split('/')
+      #tgtd = tgts[0]
+      tgtd = File.dirname(name)
       objs = []
       SubDirs.each do |f|
         d = File.dirname(f)
@@ -61,10 +62,13 @@ class MakeMinGW
     end
 
     def new_link(name)
+      $stderr.puts "new_link: #{name}"
+      dpath = File.dirname(name)
+      fname = File.basename(name)
       tgts = name.split('/')
       tgtd = tgts[0]
-      bin = "#{tgtd}/shoes.exe"
-      binc = "#{tgtd}/cshoes.exe"
+      bin = "#{dpath}/shoes.exe"
+      binc = "#{dpath}/cshoes.exe"
       rm_f bin
       rm_f binc
       tp = "#{TGT_DIR}/#{APP['Bld_Tmp']}"

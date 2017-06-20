@@ -116,8 +116,8 @@ when /mingw/
     require File.expand_path('make/subsys')
   else
     # just enough to do a rake w/o target 
-    require File.expand_path('make/win32/loose/env.rb')
-    require File.expand_path('make/win32/loose/tasks.rb')
+    require File.expand_path('make/win32/none/env.rb')
+    require File.expand_path('make/win32/none/tasks.rb')
   end
   Builder = MakeMinGW
   NAMESPACE = :win32
@@ -325,7 +325,7 @@ SubDirs = ["#{rtp}/zzbase.done", "#{rtp}/http/zzdownload.done",
     
 # Windows doesn't use console - don't try to build it. Delete from dependcies
 case TGT_DIR
-  when 'win7', 'xwin7', 'msys2', 'xmsys2'
+  when /win7/, /xwin7/, /msys2/, /xmsys2/
     SubDirs.delete("#{rtp}/console/zzconsole.done")
 end
 

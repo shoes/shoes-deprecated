@@ -441,6 +441,8 @@ END
   <string>6.0</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
+  <key>NSHighResolutionCapable</key>
+  <string>true</string>
   <key>IFMajorVersion</key>
   <integer>#{vers[0]}</integer>
   <key>IFMinorVersion</key>
@@ -526,40 +528,40 @@ END
   end
 
   def PackShoes.fastxzf infile, outdir, modes = {}, osx = ''
-	#from blog post http://dracoater.blogspot.com/2013/10/extracting-files-from-targz-with-ruby.html
-	# modified by Cecil Coupe - Jun 27+, 2014. Thanks to Juri Timošin   
-	
-	tar_longlink = '././@LongLink'
-
-	Gem::Package::TarReader.new( Zlib::GzipReader.open infile ) do |tar|
-	  dest = nil
-	  tar.each do |entry|
-	    if entry.full_name == tar_longlink
-	      dest = File.join outdir, entry.read.strip
-	      next
-	    end
-	    dest ||= File.join outdir, entry.full_name
-	    hashname = entry.full_name.gsub('./','')
-	    hashname.gsub!(/Shoes.app/, osx) if osx
-	    hashname.chomp!('/')
-	    #@pkgstat.text = hashname
-	    modes[hashname] = entry.header.mode
-	    if entry.directory?
-	      FileUtils.rm_rf dest unless File.directory? dest
-	      FileUtils.mkdir_p dest, :mode => entry.header.mode, :verbose => false
-	    elsif entry.file?
-	      FileUtils.rm_rf dest unless File.file? dest
-	      File.open dest, "wb" do |f|
-	        f.print entry.read
-	      end
-	      FileUtils.chmod entry.header.mode, dest, :verbose => false
-	    elsif entry.header.typeflag == '2' #Symlink!
-	      #puts "Symlink #{entry.header.linkname} Ignore"
-	      # File.symlink entry.header.linkname, dest
-	    end
-	    dest = nil
-	  end
-	end
+    #from blog post http://dracoater.blogspot.com/2013/10/extracting-files-from-targz-with-ruby.html
+    # modified by Cecil Coupe - Jun 27+, 2014. Thanks to Juri Timošin   
+    
+    tar_longlink = '././@LongLink'
+  
+    Gem::Package::TarReader.new( Zlib::GzipReader.open infile ) do |tar|
+      dest = nil
+      tar.each do |entry|
+        if entry.full_name == tar_longlink
+          dest = File.join outdir, entry.read.strip
+          next
+        end
+        dest ||= File.join outdir, entry.full_name
+        hashname = entry.full_name.gsub('./','')
+        hashname.gsub!(/Shoes.app/, osx) if osx
+        hashname.chomp!('/')
+        #@pkgstat.text = hashname
+        modes[hashname] = entry.header.mode
+        if entry.directory?
+          FileUtils.rm_rf dest unless File.directory? dest
+          FileUtils.mkdir_p dest, :mode => entry.header.mode, :verbose => false
+        elsif entry.file?
+          FileUtils.rm_rf dest unless File.file? dest
+          File.open dest, "wb" do |f|
+            f.print entry.read
+          end
+          FileUtils.chmod entry.header.mode, dest, :verbose => false
+        elsif entry.header.typeflag == '2' #Symlink!
+          #puts "Symlink #{entry.header.linkname} Ignore"
+          # File.symlink entry.header.linkname, dest
+        end
+        dest = nil
+      end
+    end
   end
   
   def PackShoes.fastcf outf, indir, modes
