@@ -133,8 +133,8 @@ when /darwin/
     require File.expand_path("make/subsys")
   else
     # just enough to do a rake w/o target 
-    require File.expand_path('make/darwin/loose/env')
-    require File.expand_path('make/darwin/loose/tasks')
+    require File.expand_path('make/darwin/none/env')
+    require File.expand_path('make/darwin/none/tasks')
   end
   Builder = MakeDarwin
   NAMESPACE = :osx
@@ -206,8 +206,8 @@ when /linux/
   else
      # just enough to do a rake w/o target - will fail with a decent enough
      # error message
-     require File.expand_path('make/linux/loose/env')
-     require File.expand_path('make/linux/loose/tasks')
+     require File.expand_path('make/linux/none/env')
+     require File.expand_path('make/linux/none/tasks')
   end
   Builder = MakeLinux
   NAMESPACE = :linux
