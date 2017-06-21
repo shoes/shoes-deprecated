@@ -15,29 +15,22 @@ if File.exists? cf
   APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
   APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
 else
-  # define where your deps are
-  ShoesDeps = "/home/ccoupe/Projects/shoesdeps/mingw"
-  EXT_RUBY = "#{ShoesDeps}/usr/local"
-  ENABLE_MS_THEME = false
+  abort "You must have an 'xwin7-custom.yaml' file!"
 end
-puts "EXT_RUBY: #{EXT_RUBY}"
+#puts "EXT_RUBY: #{EXT_RUBY}"
 APP['GTK'] = "gtk+-3.0" # needed in tasks.rb
 #SHOES_GEM_ARCH = {Gem::Platform.local}
 SHOES_GEM_ARCH = 'x86-mingw32' 
 
 SHOES_TGT_ARCH = "i386-mingw32"
-# Specify where the Target system binaries live. 
-# Trailing slash is important.
-TGT_SYS_DIR = "#{ShoesDeps}/"
-# Setup some shortcuts for the library locations. These are not ruby paths. 
-# depends on what ruby was compiled to produce. Don't guess. 
+
 arch = 'i386-mingw32'
-uldir = "#{TGT_SYS_DIR}lib"
-ularch = "#{TGT_SYS_DIR}lib"
-larch = "#{TGT_SYS_DIR}lib/"
-bindll = "#{TGT_SYS_DIR}bin"
-ulbin = "#{TGT_SYS_DIR}usr/local/bin"
-# Set appropriately (in my PATH, or use abs)
+uldir = "#{ShoesDeps}/lib"
+ularch = "#{ShoesDeps}/lib"
+larch = "#{ShoesDeps}/lib/"
+bindll = "#{ShoesDeps}/bin"
+ulbin = "#{ShoesDeps}/usr/local/bin"
+
 CC = "i686-w64-mingw32-gcc"
 STRIP = "strip -x"
 WINDRES = "i686-w64-mingw32-windres"
@@ -67,12 +60,12 @@ ADD_DLL = []
 
 # Hand code for your cross compie setup.
 def xfixip(path)
-   path.gsub!(/-I\/usr\//, "-I#{TGT_SYS_DIR}usr/")
+   path.gsub!(/-I\/usr\//, "-I#{ShoesDeps}/usr/")
    return path
 end
 
 def xfixrvmp(path)
-  path.gsub!(/-I\/usr\/local\//, "-I/#{TGT_SYS_DIR}usr/local/")
+  path.gsub!(/-I\/usr\/local\//, "-I/#{ShoesDeps}/usr/local/")
   return path
 end
 
@@ -94,11 +87,11 @@ end
 LINUX_CFLAGS << " -DSHOES_GTK -DSHOES_GTK_WIN32 "
 LINUX_CFLAGS << "-DRUBY_HTTP "
 LINUX_CFLAGS << xfixrvmp(`pkg-config --cflags "#{pkgruby}"`.strip)+" "
-LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/#{arch} "
+LINUX_CFLAGS << " -I#{ShoesDeps}/usr/include/#{arch} "
 LINUX_CFLAGS << xfixip("-I/usr/include")+" "
 LINUX_CFLAGS << xfixip(`pkg-config --cflags "#{pkggtk}"`.strip)+" "
 LINUX_CFLAGS << "-I#{ShoesDeps}/include/librsvg-2.0/librsvg "
-LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/local/include "
+LINUX_CFLAGS << " -I#{ShoesDeps}/usr/local/include "
 LINUX_CFLAGS << " -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-function"
 LINUX_CFLAGS << " -mms-bitfields -D__MINGW_USE_VC2005_COMPAT -DXMD_H -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -DCOBJMACROS "
 
