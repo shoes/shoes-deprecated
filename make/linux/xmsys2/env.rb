@@ -47,7 +47,6 @@ CC = "i686-w64-mingw32-gcc"
 STRIP = "strip -x"
 WINDRES = "i686-w64-mingw32-windres"
 PKG_CONFIG = "pkg-config"
-TGT_SYS_DIR = "#{ShoesDeps}/"
 
 # dance on ENV['PKG_CONFIG_PATH'] We want something  pkg-config can use
 ENV['PKG_CONFIG_PATH'] = "#{ShoesDeps}/lib/pkgconfig"

@@ -44,6 +44,7 @@ class MakeLinux
     end
     
     def new_link(name)
+=begin
       tgts = name.split('/')
       tgtd = tgts[0]
       bin = "#{tgtd}/shoes.exe"
@@ -58,6 +59,22 @@ class MakeLinux
       sh "#{STRIP} #{bin}" unless APP['GDB']
       sh "#{CC} -o #{binc} shoes/main.o shoes/appwin32.o -L#{TGT_DIR} -lshoes #{LINUX_LIBS}  #{missing}"
       sh "#{STRIP} #{binc}" unless APP['GDB']
+=end
+      tgts = name.split('/')
+      tgtd = tgts[0]
+      bin = "#{tgtd}/shoes.exe"
+      binc = "#{tgtd}/cshoes.exe"
+      #puts "binc  = #{binc}"
+      #rm_f name
+      rm_f bin
+      rm_f binc
+      tp = "#{TGT_DIR}/#{APP['Bld_Tmp']}"
+      sh "#{WINDRES} -I. shoes/appwin32.rc #{tp}/appwin32.o"
+      missing = "-lgtk-3 -lgdk-3 -lfontconfig-1 -lpangocairo-1.0" # TODO: This is a bug in env.rb ?
+      sh "#{CC} -o #{bin} #{tp}/main.o #{tp}/appwin32.o -L#{TGT_DIR} -lshoes -mwindows  #{LINUX_LIBS} #{missing}"
+      sh "#{STRIP} #{bin}" unless APP['GDB']
+      sh "#{CC} -o #{binc} #{tp}/main.o #{tp}/appwin32.o -L#{TGT_DIR} -lshoes #{LINUX_LIBS}  #{missing}"
+      sh "#{STRIP} #{binc}" unless APP['GDB']      
     end
     
     # this is called from the file task based new_build

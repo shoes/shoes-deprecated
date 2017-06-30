@@ -1,5 +1,6 @@
 #
 # Build shoes for Raspberry pi.  Ruby is built in the chroot/qemu
+# no longer used but left for historical and how to reasons
 #
 cf =(ENV['ENV_CUSTOM'] || "#{TGT_ARCH}-custom.yaml")
 if File.exists? cf
@@ -19,24 +20,21 @@ else
   EXT_RUBY = "/srv/chroot/debrpi/usr/local"  
   APP['GTK'] = "gtk+-2.0"
 end
-#ENV['DEBUG'] = "true" # turns on the tracing log
-#ENV['GDB'] = nil # compile -g,  strip symbols when nil
-CHROOT = ShoesDeps
+
 SHOES_TGT_ARCH = "armv7l-linux-eabihf"
 SHOES_GEM_ARCH = "armv7l-linux"
 # Specify where the Target system binaries live. 
-# Trailing slash is important.
-TGT_SYS_DIR = "#{CHROOT}/"
 # Setup some shortcuts for the library locations. 
 # These are not ruby paths but library paths
 arch = 'arm-linux-gnueabihf'
-uldir = "#{TGT_SYS_DIR}usr/lib"
-ularch = "#{TGT_SYS_DIR}usr/lib/#{arch}"
-larch = "#{TGT_SYS_DIR}lib/#{arch}"
+uldir = "#{ShoesDeps}/usr/lib"
+ularch = "#{ShoesDeps}usr/lib/#{arch}"
+larch = "#{ShoesDeps}lib/#{arch}"
 # Set appropriately (in my PATH), or use abs path)
 CC = "arm-linux-gnueabihf-gcc"
 # These ENV vars are used by the extconf.rb files (and tasks.rb)
-ENV['SYSROOT'] = CHROOT
+# should we have to build exts or gems 
+ENV['SYSROOT'] = ShoesDeps
 ENV['CC'] = CC
 ENV['TGT_RUBY_PATH'] = EXT_RUBY
 ENV['TGT_ARCH'] = SHOES_TGT_ARCH
@@ -61,14 +59,14 @@ ADD_DLL = []
 
 # Hand code for your situation 
 def xfixip(path)
-   path.gsub!(/-I\/usr\//, "-I#{TGT_SYS_DIR}usr/")
+   path.gsub!(/-I\/usr\//, "-I#{ShoesDeps}/usr/")
    return path
 end
 
 def xfixrvmp(path)
   #puts "path  in: #{path}"
   path.gsub!(/-I\/home\/ccoupe\/\.rvm/, "-I/home/cross/armv6-pi/rvm")
-  path.gsub!(/-I\/usr\/local\//, "-I#{TGT_SYS_DIR}usr/local/")
+  path.gsub!(/-I\/usr\/local\//, "-I#{ShoesDeps}/usr/local/")
   #puts "path out: #{path}"
   return path
 end
@@ -91,7 +89,7 @@ LINUX_CFLAGS << " -DRUBY_HTTP"
 LINUX_CFLAGS << " -DSHOES_GTK " 
 LINUX_CFLAGS << " -DGTK3 " unless APP['GTK'] == 'gtk+-2.0'
 LINUX_CFLAGS << xfixrvmp(`pkg-config --cflags "#{pkgruby}"`.strip)+" "
-LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/#{arch} "
+LINUX_CFLAGS << " -I#{ShoesDeps}/usr/include/#{arch} "
 
 LINUX_CFLAGS << xfixip("-I/usr/include")+" "
 LINUX_CFLAGS << xfixip(`pkg-config --cflags "#{pkggtk}"`.strip)+" "
@@ -100,14 +98,14 @@ MISC_LIB = '  /srv/chroot/debrpi/usr/lib/arm-linux-gnueabihf/librsvg-2.so'
 LINUX_LIB_NAMES = %W[ungif jpeg]
 
 DLEXT = "so"
-LINUX_LDFLAGS = "-fPIC -shared --sysroot=#{CHROOT} -L#{ularch} "
+LINUX_LDFLAGS = "-fPIC -shared --sysroot=#{ShoesDeps} -L#{ularch} "
 LINUX_LDFLAGS << `pkg-config --libs "#{pkggtk}"`.strip+" "
 # dont use the ruby link info
 RUBY_LDFLAGS = "-rdynamic -Wl,-export-dynamic "
 RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lruby "
 
 
-LINUX_LIBS = "--sysroot=#{CHROOT} -L/usr/lib "
+LINUX_LIBS = "--sysroot=#{ShoesDeps} -L/usr/lib "
 LINUX_LIBS << LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
 LINUX_LIBS << " #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} #{MISC_LIB}"

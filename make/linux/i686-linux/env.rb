@@ -16,17 +16,13 @@ else
   abort "You need a custom.yaml"
 end
 APP['GTK'] = "gtk+-3.0"
-CHROOT = ShoesDeps
 SHOES_TGT_ARCH = 'i686-linux'
 SHOES_GEM_ARCH = "#{Gem::Platform.local}"
-# Specify where the Target system binaries live. 
-# Trailing slash is important.
-TGT_SYS_DIR = "#{CHROOT}/"
 # Setup some shortcuts for the library locations
 arch = 'i386-linux-gnu'
-uldir = "#{TGT_SYS_DIR}usr/lib"
-ularch = "#{TGT_SYS_DIR}usr/lib/#{arch}"
-larch = "#{TGT_SYS_DIR}lib/#{arch}"
+uldir = "#{ShoesDeps}/usr/lib"
+ularch = "#{ShoesDeps}/usr/lib/#{arch}"
+larch = "#{ShoesDeps}/lib/#{arch}"
 # Set appropriately
 CC = "gcc"
 pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.2.pc"
@@ -48,10 +44,10 @@ end
 
 LINUX_CFLAGS << " -DSHOES_GTK -Wno-unused-but-set-variable -Wno-unused-variable"
 LINUX_CFLAGS << " -DRUBY_HTTP" 
-LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include "
+LINUX_CFLAGS << " -I#{ShoesDeps}/usr/include "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkgruby}"`.strip+" "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkggtk}"`.strip+" "
-LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/ " 
+LINUX_CFLAGS << " -I#{ShoesDeps}/usr/include/ " 
 LINUX_CFLAGS << "-I/usr/include/librsvg-2.0/librsvg "
 MISC_LIB = ' /usr/lib/i386-linux-gnu/librsvg-2.so'
 
