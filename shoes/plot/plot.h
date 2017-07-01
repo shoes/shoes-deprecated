@@ -151,6 +151,7 @@ extern void shoes_plot_draw_tick(cairo_t *, shoes_plot *, int, int, int);
 extern void shoes_plot_draw_label(cairo_t *, shoes_plot *, int, int, char*, int);
 extern void shoes_plot_draw_nub(cairo_t *, shoes_plot *, double, double, int, int);
 extern int shoes_plot_util_quadrant(double angle);
+extern void shoes_plot_util_adornments(cairo_t *, shoes_place *, shoes_plot *, int);
 
 // TODO: refactor into shoes/types?
 extern VALUE cPlot, cChartSeries;

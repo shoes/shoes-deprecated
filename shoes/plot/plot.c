@@ -210,11 +210,14 @@ VALUE shoes_plot_new(int argc, VALUE *argv, VALUE parent) {
             self_t->auto_grid = 1;
     }
 
-    self_t->boundbox = 1;  // default
+    self_t->boundbox = 1;  // default unless
     if (! NIL_P(boundbox)) {
         if (! RTEST(boundbox))
             self_t->boundbox = 0;
     }
+    
+    if (self_t->chart_type == PIE_CHART || self_t->chart_type == RADAR_CHART) 
+      self_t->boundbox = 0;
 
     // TODO :sym would be more ruby like than strings but appears to
     // pollute symbol space in ruby.c and something of PITA.

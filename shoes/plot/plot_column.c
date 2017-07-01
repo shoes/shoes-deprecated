@@ -106,25 +106,12 @@ void shoes_plot_draw_columns(cairo_t *cr, shoes_plot *plot) {
     }
     // tell cairo to draw all lines (and points) not already drawn.
     cairo_stroke(cr);
-    // set color back to dark gray and stroke to 1
-    //cairo_set_source_rgba(cr, 0.9, 0.9, 0.9, 1.0);
-    //cairo_set_line_width(cr, 1.0);
     shoes_plot_set_cairo_default(cr, plot);
 }
 
 // called by the draw event - draw everything.
 void shoes_plot_column_draw(cairo_t *cr, shoes_place *place, shoes_plot *self_t) {
-    shoes_plot_set_cairo_default(cr, self_t);
-    shoes_plot_draw_fill(cr, self_t);
-    shoes_plot_draw_title(cr, self_t);
-    shoes_plot_draw_caption(cr, self_t);
-    if (self_t->boundbox)
-        shoes_plot_draw_boundbox(cr, self_t);
-    self_t->graph_h = self_t->place.h - (self_t->title_h + self_t->caption_h);
-    self_t->graph_y = self_t->title_h + 3;
-    self_t->yaxis_offset = 50; // TODO:  run TOTO, run!
-    self_t->graph_w = self_t->place.w - self_t->yaxis_offset;
-    self_t->graph_x = self_t->yaxis_offset;
+    shoes_plot_util_adornments(cr, place, self_t, 50);
     if (self_t->seriescnt) {
         // draw  box, ticks and x,y labels.
         shoes_plot_draw_ticks_and_labels(cr, self_t); // FIX for v2?

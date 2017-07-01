@@ -383,3 +383,21 @@ int shoes_plot_util_quadrant(double angle) {
         return QUAD_ERR;
     }
 }
+/* 
+ * setup plot struct and draw the title, caption, boundary box
+ * called by some plot types at draw time.
+*/
+void shoes_plot_util_adornments(cairo_t *cr , shoes_place *place, shoes_plot *self_t, int tweak ) {
+    // draw widget box and fill with color (nearly white).
+    shoes_plot_set_cairo_default(cr, self_t);
+    shoes_plot_draw_fill(cr, self_t);
+    shoes_plot_draw_title(cr, self_t);
+    shoes_plot_draw_caption(cr, self_t);
+    self_t->graph_h = self_t->place.h - (self_t->title_h + self_t->caption_h);
+    self_t->graph_y = self_t->title_h + 3;
+    self_t->yaxis_offset = tweak;
+    self_t->graph_w = self_t->place.w - self_t->yaxis_offset;
+    self_t->graph_x = self_t->yaxis_offset;
+    if (self_t->boundbox)
+        shoes_plot_draw_boundbox(cr, self_t);
+}

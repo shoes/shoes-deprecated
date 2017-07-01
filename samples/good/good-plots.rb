@@ -70,6 +70,29 @@ Shoes.app width: 620, height: 480 do
           @grf.add cs
         end
       end
+      button "Radar" do
+        @plot_area.clear do
+          @obs1 = ["internet", "television", "radio", "newspaper", "magazine"]
+          @values1 = [80,        160,          145,     75,          80] 
+          @values2 = [180,        90,           95,     90,          90]
+          @columns = [ ["Internet", 0, 200, "%3.0f k"], 
+               ["Television", 0, 250," %3.0f k" ],
+               {label: "Radio", min: 0, max: 200, format: "%3.0f k"},
+               ["Newspaper", 0, 200, "%3.0f k"],
+               ["Magazine", 0, 200, "%3.0f k"]
+             ]
+          @grf = plot 600, 400, title: "Advertising", caption: 
+            "Budget Spend" , font: "Helvetica", auto_grid: true,
+            default: "skip", background: cornsilk, chart: "radar", column_settings: @columns
+          @grf.add values: @values1, labels: @xobs,
+            name: "Year 1", min: 0, max: 200, color: dodgerblue,
+            points: "dot", strokewidth: 3
+          cs = app.chart_series values: @values2, labels: @xobs,
+            name: "Year 2", min: 0, max: 200, color: coral,
+            points: "dot", strokewidth: 3
+          @grf.add cs
+        end
+      end
     end
     @plot_area = stack do
     end
