@@ -222,13 +222,13 @@ void shoes_plot_scatter_draw(cairo_t *cr, shoes_place *place, shoes_plot *self_t
     shoes_plot_draw_fill(cr, self_t);
     shoes_plot_draw_title(cr, self_t);
     shoes_plot_draw_caption(cr, self_t);
-    if (self_t->boundbox)
-        shoes_plot_draw_boundbox(cr, self_t);
     self_t->graph_h = self_t->place.h - (self_t->title_h + self_t->caption_h);
     self_t->graph_y = self_t->title_h + 3;
     self_t->yaxis_offset = 70; // TODO:  run TOTO! run!
     self_t->graph_w = self_t->place.w - self_t->yaxis_offset;
     self_t->graph_x = self_t->yaxis_offset;
+    if (self_t->boundbox)
+        shoes_plot_draw_boundbox(cr, self_t);
     if (self_t->seriescnt) {
         // draw  box, ticks and x,y labels.
         shoes_plot_scatter_ticks_and_labels(cr, self_t);
