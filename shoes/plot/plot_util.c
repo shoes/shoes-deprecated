@@ -287,7 +287,9 @@ void shoes_plot_draw_caption(cairo_t *cr, shoes_plot *plot) {
 
     int yhalf = (plot->caption_h / 2 );
     int yoffset = yhalf + logical.height;
-    y = plot->place.ih;
+    //y = plot->place.ih;
+    y = plot->place.h;
+    //fprintf(stderr, "caption y = %i\n", y);
     y -= yoffset;
     cairo_move_to(cr, x, y);
     pango_cairo_show_layout (cr, layout);
