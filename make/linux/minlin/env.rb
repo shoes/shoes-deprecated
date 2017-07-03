@@ -5,7 +5,7 @@
 require 'rbconfig'
 
 APP['GDB'] = "true" # true => compile -g,  don't strip symbols
-if ENV['GDB']
+if APP['GDB']
   LINUX_CFLAGS = "-g -O0"
 else
   LINUX_CFLAGS = "-O -Wall"

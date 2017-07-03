@@ -149,18 +149,29 @@ VALUE shoes_pattern_alloc(VALUE klass) {
     return obj;
 }
 
-// background is treated differently from other patterns. It needs to use
-// the parent's canvas/slot not it's own widget/pattern slot. 
+  
+// This crawls up the parent tree at draw time to learn if there is
+// an active scroll bar 'above'. Returns the width of the gutter
+int is_slot_scrolled(shoes_canvas *canvas) {
+   int gutterw = 0;
+   shoes_canvas *cvs = canvas;
+   gutterw = shoes_native_slot_gutter(cvs->slot);
+   while (gutterw == 0 && (! NIL_P(cvs->parent)) ) {
+     //fprintf(stderr, "Backgound Climb up\n");
+     Data_Get_Struct(cvs->parent, shoes_canvas, cvs);
+     gutterw = shoes_native_slot_gutter(cvs->slot);
+   }
+   return gutterw;
+}
 
-
+// background is treated differently from other patterns.
 VALUE shoes_background_draw(VALUE self, VALUE c, VALUE actual) {
     cairo_matrix_t matrix1, matrix2;
     double r = 0., sw = 1.;
     SETUP_DRAWING(shoes_pattern, REL_TILE, PATTERN_DIM(self_t, width), PATTERN_DIM(self_t, height));
     r = ATTR2(dbl, self_t->attr, curve, 0.); 
-    // figure out if we are in a slot with an active scroll bar
-    int scrollwidth = 0;
-    scrollwidth = shoes_native_slot_gutter(canvas->slot);
+    // are we in a slot with an active scroll bar?
+    int scrollwidth = is_slot_scrolled(canvas);
     
     if (RTEST(actual)) {
         cairo_t *cr = CCR(canvas);
