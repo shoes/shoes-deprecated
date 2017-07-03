@@ -149,19 +149,36 @@ VALUE shoes_pattern_alloc(VALUE klass) {
     return obj;
 }
 
+// background is treated differently from other patterns. It needs to use
+// the parent's canvas/slot not it's own widget/pattern slot. 
+
+
 VALUE shoes_background_draw(VALUE self, VALUE c, VALUE actual) {
     cairo_matrix_t matrix1, matrix2;
     double r = 0., sw = 1.;
     SETUP_DRAWING(shoes_pattern, REL_TILE, PATTERN_DIM(self_t, width), PATTERN_DIM(self_t, height));
-    r = ATTR2(dbl, self_t->attr, curve, 0.);
-
+    r = ATTR2(dbl, self_t->attr, curve, 0.); 
+    // figure out if we are in a slot with an active scroll bar
+    int scrollwidth = 0;
+    scrollwidth = shoes_native_slot_gutter(canvas->slot);
+    
     if (RTEST(actual)) {
         cairo_t *cr = CCR(canvas);
         cairo_save(cr);
-        cairo_translate(cr, place.ix + place.dx, place.iy + place.dy);
-        PATTERN_SCALE(self_t, place, sw);
-        cairo_new_path(cr);
-        shoes_cairo_rect(cr, 0, 0, place.iw, place.ih, r);
+        if (scrollwidth == 0) {
+            cairo_translate(cr, place.ix + place.dx, place.iy + place.dy);
+            PATTERN_SCALE(self_t, place, sw);
+            cairo_new_path(cr);
+            shoes_cairo_rect(cr, 0, 0, place.iw, place.ih, r);
+       } else {
+            int top = INT2NUM(canvas->slot->scrolly);
+            //fprintf(stderr, "inside y: %d, iy: %d, dy: %d\n", place.y, place.iy, place.dy );
+            //fprintf(stderr, "       h: %d, ih: %d, top: %d\n", place.h, place.ih, top);
+            cairo_translate(cr, place.ix + place.dx - scrollwidth, place.iy + place.dy + top);
+            PATTERN_SCALE(self_t, place, sw);
+            cairo_new_path(cr);
+            shoes_cairo_rect(cr, 0, 0 - top, place.iw, place.ih + top, r);
+        }
         cairo_set_source(cr, PATTERN(self_t));
         cairo_fill(cr);
         cairo_restore(cr);
@@ -169,7 +186,7 @@ VALUE shoes_background_draw(VALUE self, VALUE c, VALUE actual) {
     }
 
     self_t->place = place;
-    INFO("BACKGROUND: (%d, %d), (%d, %d)\n", place.x, place.y, place.w, place.h);
+    //INFO("BACKGROUND: (%d, %d), (%d, %d)\n", place.x, place.y, place.w, place.h);
     return self;
 }
 
