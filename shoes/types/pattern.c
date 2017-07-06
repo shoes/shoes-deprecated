@@ -152,15 +152,18 @@ VALUE shoes_pattern_alloc(VALUE klass) {
   
 // This crawls up the parent tree at draw time to learn if there is
 // an active scroll bar 'above'. Returns the width of the gutter
+// TODO: Breaks manual (help.rb) so it's not used.
 int is_slot_scrolled(shoes_canvas *canvas) {
    int gutterw = 0;
    shoes_canvas *cvs = canvas;
+   /*
    gutterw = shoes_native_slot_gutter(cvs->slot);
    while (gutterw == 0 && (! NIL_P(cvs->parent)) ) {
      //fprintf(stderr, "Backgound Climb up\n");
      Data_Get_Struct(cvs->parent, shoes_canvas, cvs);
      gutterw = shoes_native_slot_gutter(cvs->slot);
-   }
+   } 
+   */
    return gutterw;
 }
 
