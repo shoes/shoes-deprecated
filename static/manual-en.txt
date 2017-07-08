@@ -1490,13 +1490,16 @@ element has a `:rise` of -10 pixels.
 
 === :scroll » true or false ===
 
-For: ''flow, stack''.
+For: ''flow, stack, background''.
 
 Establishes this slot as a scrolling slot.  If `:scroll => true` is set, the
 slot will show a scrollbar if any of its contents go past its height.  The
 scrollbar will appear and disappear as needed.  It will also appear inside the
 width of the slot, meaning the slot's width will never change, regardless of
 whether there is a scrollbar or not.
+
+When used on a background instead of a flow or stack the background and set true
+the background will always fill the slot when scrolled. See [[Element.background]].
 
 === :secret » true or false ===
 
@@ -2211,6 +2214,39 @@ Shoes.app do
    end
 end
 }}}
+
+Once a background is created it's size and location won't change unless the slot
+is resized. If the slot has a scroll bar it may do what you think. Scroll thru
+this example:
+
+{{{
+Shoes.app(title: "No Scroll", width: 300, height: 400, resizable: true ) do
+    background green
+    @main = stack left: 0.05, top: 0.15, width: 0.9, height: 0.8, scroll: true do
+        background beige
+        100.times do |i|
+            para "#{i+1} times"
+        end
+    end
+end
+}}}
+
+As of Shoes 3.3.3, You can ask Shoes to be more respectful of scrolling by setting scroll: true 
+as this example does
+{{{
+Shoes.app(title: "Scroll", width: 300, height: 400, resizable: true ) do
+    background green
+    @main = stack left: 0.05, top: 0.15, width: 0.9, height: 0.8, scroll: true do
+        background beige, scroll: true
+        100.times do |i|
+            para "#{i+1} times"
+        end
+    end
+end
+}}}
+
+Be careful when using scroll: true. It may find a scrollbar you didn't want
+to use and it's not Shoes 4 compatible. 
 
 '''PLEASE NOTE:''' Backgrounds are actual elements, not styles.  HTML treats
 backgrounds like styles.  Which means every box can only have one background.

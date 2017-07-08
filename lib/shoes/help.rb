@@ -134,10 +134,20 @@ module Shoes::Manual
   def sample_page
     folder = File.join DIR, 'samples'
     h = {}
+=begin
     Dir.glob(File.join folder, '**/**').each do |file|
       if File.extname(file) == '.rb'
         key = File.basename(file).split('-')[0]
         h[key] ? h[key].push(file) : h[key] = [file]
+      end
+    end
+=end
+    ['simple', 'good', 'expert'].each do |d|
+      Dir.glob(File.join folder, d, "*").each do |file|
+        if File.extname(file) == '.rb'
+          key = File.basename(file).split('-')[0]
+          h[key] ? h[key].push(file) : h[key] = [file]
+        end
       end
     end
     stack do

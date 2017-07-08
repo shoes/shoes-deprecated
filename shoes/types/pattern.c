@@ -156,14 +156,12 @@ VALUE shoes_pattern_alloc(VALUE klass) {
 int is_slot_scrolled(shoes_canvas *canvas) {
    int gutterw = 0;
    shoes_canvas *cvs = canvas;
-   /*
    gutterw = shoes_native_slot_gutter(cvs->slot);
    while (gutterw == 0 && (! NIL_P(cvs->parent)) ) {
      //fprintf(stderr, "Backgound Climb up\n");
      Data_Get_Struct(cvs->parent, shoes_canvas, cvs);
      gutterw = shoes_native_slot_gutter(cvs->slot);
    } 
-   */
    return gutterw;
 }
 
@@ -171,20 +169,24 @@ int is_slot_scrolled(shoes_canvas *canvas) {
 VALUE shoes_background_draw(VALUE self, VALUE c, VALUE actual) {
     cairo_matrix_t matrix1, matrix2;
     double r = 0., sw = 1.;
+    int expand = 0;
     SETUP_DRAWING(shoes_pattern, REL_TILE, PATTERN_DIM(self_t, width), PATTERN_DIM(self_t, height));
     r = ATTR2(dbl, self_t->attr, curve, 0.); 
-    // are we in a slot with an active scroll bar?
-    int scrollwidth = is_slot_scrolled(canvas);
+    VALUE ev = shoes_hash_get(self_t->attr, s_scroll);
+    if (!NIL_P(ev) && (ev == Qtrue))
+      expand = 1;
     
     if (RTEST(actual)) {
         cairo_t *cr = CCR(canvas);
         cairo_save(cr);
-        if (scrollwidth == 0) {
+        if (expand == 0) {
             cairo_translate(cr, place.ix + place.dx, place.iy + place.dy);
             PATTERN_SCALE(self_t, place, sw);
             cairo_new_path(cr);
             shoes_cairo_rect(cr, 0, 0, place.iw, place.ih, r);
        } else {
+            // new option with 3.3.3
+            int scrollwidth = is_slot_scrolled(canvas);
             int top = INT2NUM(canvas->slot->scrolly);
             //fprintf(stderr, "inside y: %d, iy: %d, dy: %d\n", place.y, place.iy, place.dy );
             //fprintf(stderr, "       h: %d, ih: %d, top: %d\n", place.h, place.ih, top);
@@ -193,6 +195,7 @@ VALUE shoes_background_draw(VALUE self, VALUE c, VALUE actual) {
             cairo_new_path(cr);
             shoes_cairo_rect(cr, 0, 0 - top, place.iw, place.ih + top, r);
         }
+        
         cairo_set_source(cr, PATTERN(self_t));
         cairo_fill(cr);
         cairo_restore(cr);
