@@ -30,6 +30,7 @@
     https://github.com/Shoes3/shoes3/issues/352
   * new samples added 
     https://github.com/Shoes3/shoes3/issues/317
+  * background can take a `scroll: true' so it scrolls as many expect.
     
 === developer issues with 3.3.3
   * new target 'msys2' for windows builds. Work in progress.
@@ -75,11 +76,15 @@
     https://github.com/Shoes3/shoes3/issues/317
   * plots/charts draw more reliably.
     issue: https://github.com/Shoes3/shoes3/issues/315
-  * background (a widget & apattern) has issues 
+  * background doesn't scroll as expected
     issues: https://github.com/Shoes3/shoes3/issues/2
+            https://github.com/Shoes3/shoes3/issues/38
             https://github.com/Shoes3/shoes3/issues/355
-    Those two can be fixed with a proper layout in the users code
-      ie. stack right_margin: gutter - but not compatible with Shoes4.
+    new feaure.
+  * moved samples/classbook.* to samples/good/good-stories.*
+  * Manual disply of samples (Furthermore->Sample) now
+    displays from simple to good to expert.
+
   
 -------------- Shoes 3.3.2 ----------------------------------
 
