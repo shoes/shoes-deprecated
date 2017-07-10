@@ -23,7 +23,17 @@ module Make
       ln_s "../../lib/exerb", "exerb" unless File.symlink? "exerb"
     end
     cp_r  "fonts", "#{TGT_DIR}/fonts"
-    cp_r  "samples", "#{TGT_DIR}/samples"
+    
+    #cp_r  "samples", "#{TGT_DIR}/samples"
+    mkdir_p "#{TGT_DIR}/samples"
+    ['simple', 'good', 'expert'].each do |d|
+      mkdir_p "#{TGT_DIR}/samples/#{d}"
+      Dir.chdir "#{TGT_DIR}/samples/#{d}" do
+        Dir["../../../samples/#{d}/*"].each do |f|
+          ln_s f, '.' unless File.symlink? File.basename(f)
+        end
+      end
+    end
     Dir.chdir "#{TGT_DIR}" do
       ln_s  "../static",  "." unless File.symlink? 'static'
     end

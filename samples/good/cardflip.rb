@@ -63,16 +63,19 @@ Shoes.app do
     @top_card.handle = han
 end
 
-  # finding script resources is odd when developing a samples/myprogram.rb
+  # finding script resources is tricky when developing a samples/myprogram.rb
   # particularly on osx when invoked with ./cshoes mydir/myprogram.rb
   # DIR is not sufficient.
   # its best to return a full path.
   def find_paris
     cdir = Dir.getwd
+    $stderr.puts "here: #{cdir}"
     if File.exist? "paris.svg"
       "#{cdir}/paris.svg"
-    elsif File.exist? "#{DIR}/paris.svg"
-      "#{DIR}/paris.svg"
+    elsif File.exist? "#{cdir}/good/paris.svg"
+      "#{cdir}/good/paris.svg"
+    elsif File.exist? "#{DIR}/good/paris.svg"
+      "#{DIR}/good/paris.svg"
     else
       ask_open_file title: "Locate paris.svg"
     end
