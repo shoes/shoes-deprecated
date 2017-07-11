@@ -289,29 +289,34 @@ the first selection and then the Folder named plugins"
   def cp_samples_screen
     @panel.clear
     @panel.append do
-       para "Copy samples to a directory you can see and edit."
-       para "Chose a directory that you want the Samples directory"
-       para "to be created inside of."
-       button "Select Directory for a copy of" do
-         # OSX is a bit brain dead for ask_save_folder
-         if destdir = ask_save_folder()
-           @panel.append do
-             para "Copy #{DIR}/samples/* to #{destdir}/Samples ?"
-             button "OK" do
-               @panel.append do
-                 @lb = edit_box
-               end
-               ary = []
-               require 'fileutils'
-               mkdir_p destdir
-               sampdir = File.join DIR, 'samples'
-               cd sampdir do
-                 Dir.glob('*').each do |fp|
-                   cp fp, destdir
-                   ary << fp
-                   @lb.text = ary.join("\n")
-                 end
-               end
+      para "Copy samples to a directory you can see and edit."
+      para "Chose a directory that you want the Samples directory"
+      para "to be created inside of."
+      button "Select Directory for a copy of" do
+        # OSX is a bit brain dead for ask_save_folder
+        if destdir = ask_save_folder()
+          @panel.append do
+            para "Copy #{DIR}/samples/* to #{destdir}/Samples ?"
+            button "OK" do
+              @panel.append do
+                @lb = edit_box width: 400
+              end
+              ary = []
+              require 'fileutils'
+              mkdir_p destdir
+              sampdir = File.join DIR, 'samples'
+              ary.push "In #{destdir}"
+              cd sampdir do
+                Dir.glob('*') do |d|   # simple, good, expert in a perfect world
+                  mkdir_p "#{destdir}/#{d}"
+                  Dir.glob("#{d}/*").each do |f|
+                    cp_r f, "#{destdir}/#{d}"
+                    ary << f
+                  end
+                end
+                @lb.text = ary.join("\n")
+              end
+              #alert "copied"
              end
            end
          end
