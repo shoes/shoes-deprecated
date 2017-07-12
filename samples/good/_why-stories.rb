@@ -9,7 +9,7 @@ class Book < Shoes
   end
 
   #INCIDENTS = YAML.load_file("good/good-stories.yaml")
-  INCIDENTS = YAML.load_file("#{DIR}/samples/good/good-stories.yaml")
+  INCIDENTS = YAML.load_file("#{DIR}/samples/good/_why-stories.yaml")
 
   def table_of_contents
     toc = []

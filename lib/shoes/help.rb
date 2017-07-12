@@ -134,25 +134,11 @@ module Shoes::Manual
   def sample_page
     folder = File.join DIR, 'samples'
     h = {}
-=begin
-    Dir.glob(File.join folder, '**/**').each do |file|
-      if File.extname(file) == '.rb'
-        key = File.basename(file).split('-')[0]
-        h[key] ? h[key].push(file) : h[key] = [file]
-      end
-    end
-=end
     ['simple', 'good', 'expert'].each do |d|
       Dir.glob(File.join folder, d, "*").each do |file|
         if File.extname(file) == '.rb'
-          if File.basename(file).include? d
-            # before  3.3.3 rename
-            key = File.basename(file).split('-')[0]
-            h[key] ? h[key].push(file) : h[key] = [file]
-          else
-            key = File.basename(file)
-            h[d] ? h[d].push(file) : h[d] = [file]
-          end
+          key = File.basename(file)
+          h[d] ? h[d].push(file) : h[d] = [file]
         end
       end
     end
@@ -161,17 +147,9 @@ module Shoes::Manual
         subtitle k
         flow do
           v.sort.each do |file|
-            if File.basename(file).index(/simple|good|expert/)  
-              # before 3.3.3 rename
-              para link(File.basename(file).split('-')[1..-1].join('-')[0..-4]){
-                Dir.chdir(folder){eval IO.read(file).force_encoding("UTF-8"), TOPLEVEL_BINDING}
-              }
-            else
-              para link(File.basename(file, '.rb')) {
-                Dir.chdir(folder){eval IO.read(file).force_encoding("UTF-8"), TOPLEVEL_BINDING}
-              }
-   
-            end
+            para link(File.basename(file, '.rb')) {
+              Dir.chdir(folder){eval IO.read(file).force_encoding("UTF-8"), TOPLEVEL_BINDING}
+            }
           end
         end
       end

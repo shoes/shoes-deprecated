@@ -290,13 +290,13 @@ the first selection and then the Folder named plugins"
     @panel.clear
     @panel.append do
       para "Copy samples to a directory you can see and edit."
-      para "Chose a directory that you want the Samples directory"
+      para "Chose a directory that you want the samples directories"
       para "to be created inside of."
-      button "Select Directory for a copy of" do
+      button "Select Directory for a copy to" do
         # OSX is a bit brain dead for ask_save_folder
         if destdir = ask_save_folder()
           @panel.append do
-            para "Copy #{DIR}/samples/* to #{destdir}/Samples ?"
+            para "Copy #{DIR}/samples/* to #{destdir} ?"
             button "OK" do
               @panel.append do
                 @lb = edit_box width: 400
