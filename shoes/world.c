@@ -79,10 +79,15 @@ void shoes_world_free(shoes_world_t *world) {
 int shoes_ruby_embed() {
     VALUE v;
     char *argv[] = {"ruby", "-e", "1"};
+    //char *argv[] = {"ruby_engine", "-e", "1"};
     RUBY_INIT_STACK;
 #ifdef SHOES_WIN32
     //ruby_sysinit(0, 0);
 #endif
+    /* in ruby 2.3+ we need to fake  */
+    int zedc = 0;
+    int *zeda = &zedc;
+    ruby_sysinit(&zedc, &zeda);
     ruby_init();
     v = (VALUE)ruby_options(3, argv);
     return !FIXNUM_P(v);
