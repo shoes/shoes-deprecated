@@ -1,4 +1,4 @@
-require "devkit" unless ENV['MINGW_PREFIX']
+#require "devkit" unless ENV['MINGW_PREFIX']
 cf =(ENV['ENV_CUSTOM'] || "win7-custom.yaml")
 gtk_version = '3'
 if File.exists? cf
@@ -102,7 +102,7 @@ bindll = "#{ShoesDeps}/bin"
 rubydll = "#{EXT_RUBY}/bin"
 devdll = "#{ENV['RI_DEVKIT']}/mingw/bin"
 SOLOCS = {
-  'ruby'    => "#{EXT_RUBY}/bin/msvcrt-ruby220.dll",
+  'ruby'    => "#{EXT_RUBY}/bin/msvcrt-ruby230.dll",
   'gif'     => "#{bindll}/libgif-7.dll",
   'jpeg'    => "#{bindll}/libjpeg-9.dll",
   'libyaml' => "#{bindll}/libyaml-0-2.dll",
