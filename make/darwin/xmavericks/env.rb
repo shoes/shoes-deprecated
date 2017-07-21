@@ -42,8 +42,8 @@ CAIRO_LDFLAGS = "-L#{ShoesDeps}/lib -lcairo"
 PANGO_CFLAGS  = "-I#{ShoesDeps}/include/pango-1.0"
 PANGO_LDFLAGS = "-L#{ShoesDeps}/lib -lpango-1.0"
 #RUBY_CFLAGS   = "-I#{ShoesDeps}/include/ruby-2.1.0/x86_64-darwin13.0 -I#{ShoesDeps}/include/ruby-2.1.0 "
-RUBY_CFLAGS   = "-I#{ShoesDeps}/include/ruby-2.2.0/x86_64-darwin13 -I#{ShoesDeps}/include/ruby-2.2.0 "
-RUBY_LDFLAGS  = "-L#{ShoesDeps}lib/ -Wl,-undefined,dynamic_lookup -Wl,-multiply_defined,suppress -lruby.2.1.0 -lpthread -ldl -lobjc "
+RUBY_CFLAGS   = "-I#{ShoesDeps}/include/ruby-2.3.0/x86_64-darwin13 -I#{ShoesDeps}/include/ruby-2.3.0 "
+RUBY_LDFLAGS  = "-L#{ShoesDeps}lib/ -Wl,-undefined,dynamic_lookup -Wl,-multiply_defined,suppress -lruby.2.3.0 -lpthread -ldl -lobjc "
 
 LINUX_CFLAGS << " -I#{ShoesDeps}/include #{GLIB_CFLAGS} #{RUBY_CFLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS}"
 
@@ -65,13 +65,13 @@ ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
 LINUX_CFLAGS << ' -Wno-incompatible-pointer-types-discards-qualifiers'
 
 OSX_ARCH = '-arch x86_64'
-# These env vars are used in chipmunk, sqlite3 extconf.rb - not needed in 3.3.x? 
+# These env vars are used in chipmunk, sqlite3 extconf.rb - not needed in 3.3.3+? 
 #SHOES_TGT_ARCH = SHOES_GEM_ARCH ='x86_64-darwin13.0'
 SHOES_TGT_ARCH = SHOES_GEM_ARCH ='x86_64-darwin13'
 ENV['CC'] = CC
 ENV['TGT_RUBY_PATH'] = EXT_RUBY
 ENV['TGT_ARCH'] = SHOES_TGT_ARCH
-ENV['TGT_RUBY_V'] = '2.2.0'  # library version - all 2.2.x rubys
+ENV['TGT_RUBY_V'] = '2.3.0'  # library version - all 2.3.x rubys
 ENV['SYSROOT'] = " -isysroot #{OSX_SDK} #{OSX_ARCH}"
 
 LINUX_CFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH}"
