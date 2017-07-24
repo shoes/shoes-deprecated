@@ -4,6 +4,8 @@ include FileUtils
 require_relative 'download.rb'
 # locate ~/.shoes
 require 'tmpdir'
+require 'rubygems' # Loads a Gem class
+
 lib_dir = nil
 homes = []
 homes << [ENV['LOCALAPPDATA'], File.join( ENV['LOCALAPPDATA'], 'Shoes')] if ENV['LOCALAPPDATA']
@@ -18,7 +20,8 @@ homes.each do |home_top, home_dir|
 end
 LIB_DIR = lib_dir || File.join(Dir::tmpdir, "shoes")
 #LIB_DIR.gsub! /\\/, '\/'
-LIB_DIR.gsub! /\\+/, "/"
+#LIB_DIR.gsub! /\\+/, "/"
+LIB_DIR.gsub!(/\\/, '/') # should not be needed? 
 
 tight_shoes = Shoes::RELEASE_TYPE =~ /TIGHT/
 rbv = RbConfig::CONFIG['ruby_version']
@@ -29,6 +32,13 @@ if tight_shoes
   $:.unshift SITE_LIB_DIR
   $:.unshift GEM_DIR
   ENV['GEM_HOME'] = GEM_DIR
+  # remove any rvm stuff in $PATH
+  np = []
+  ENV['PATH'].split(':').each do |p|
+    np << p unless p =~ /\/.rvm\//
+  end
+  ENV['PATH'] = np.join(':')
+  #$stderr.puts "replaced $PATH with #{ENV['PATH']}"
 else
   #puts "LOOSE Shoes #{RUBY_VERSION} #{DIR}"
   $:.unshift ENV['GEM_HOME'] if ENV['GEM_HOME']
@@ -87,10 +97,9 @@ if tight_shoes
 	  'LDFLAGS' => "-L. -L#{DIR}",
 	  'rubylibprefix' => "#{DIR}/ruby"
   }
-  #debug "DYLD = #{ENV['DYLD_LIBRARY_PATH']} DIR = #{DIR}"
   RbConfig::CONFIG.merge! config
   RbConfig::MAKEFILE_CONFIG.merge! config
-  # Add refs to Shoes builtin Gems (but not exts?)
+  # Add paths to Shoes builtin Gems TODO: may not be needed
   GEM_CENTRAL_DIR = File.join(DIR, 'lib/ruby/gems/' + RbConfig::CONFIG['ruby_version'])
   Dir[GEM_CENTRAL_DIR + "/gems/*"].each do |gdir|
     $: << "#{gdir}/lib"
@@ -114,8 +123,10 @@ if tight_shoes
     ShoesGemJailBreak = true
   else
     if ENV['GEM_PATH']
-      # disable GEM_PATH if its in use otherwise funny things occur.
-      ENV.delete('GEM_PATH')
+      # replace GEM_PATH 
+      ENV['GEM_PATH'] = "#{GEM_DIR}:#{GEM_CENTRAL_DIR}"
+      Gem.use_paths(GEM_DIR, [GEM_DIR, GEM_CENTRAL_DIR])
+      Gem.refresh
     end
     ShoesGemJailBreak = false
   end
