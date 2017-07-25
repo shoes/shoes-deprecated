@@ -32,10 +32,9 @@ if tight_shoes
   $:.unshift SITE_LIB_DIR
   $:.unshift GEM_DIR
   ENV['GEM_HOME'] = GEM_DIR
-  # remove any rvm stuff in $PATH
   np = []
   ENV['PATH'].split(':').each do |p|
-    np << p unless p =~ /\/.rvm\//
+    np << p unless p =~ /\/.(rvm|rbenv)\//
   end
   ENV['PATH'] = np.join(':')
   #$stderr.puts "replaced $PATH with #{ENV['PATH']}"

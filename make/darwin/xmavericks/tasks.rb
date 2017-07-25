@@ -212,6 +212,7 @@ class MakeDarwin
       chmod 0755, "#{tmpd}/#{APPNAME}.app/Contents/MacOS/#{NAME}"
       # cp InfoPlist.strings YourApp.app/Contents/Resources/English.lproj/
       `echo -n 'APPL????' > "#{tmpd}/#{APPNAME}.app/Contents/PkgInfo"`
+      rm_rf "#{TGT_DIR}/#{APPNAME}.app"
       mv "#{tmpd}/#{APPNAME}.app",  "#{TGT_DIR}"
       # create cshoes script /Users/ccoupe/build/mavericks/Shoes.app/Contents/MacOS
       rewrite "platform/mac/cshoes.tmpl", "cshoes"
