@@ -6,7 +6,7 @@ module Make
   #  Windows compile.  Copy the static stuff, Copy the ruby libs
   #  Then copy the deps.
   def static_setup (so_list)
-    $stderr.puts "setup: dir=#{`pwd`}"
+    $stderr.puts "setup: dir=#{Dir.pwd}"
     rbvt = RUBY_V
     rbvm = RUBY_V[/^\d+\.\d+/]
     # remove leftovers from previous rake.

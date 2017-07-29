@@ -193,7 +193,7 @@ when /linux/
         LINUX_LDFLAGS = BLD_ARGS['LINUX_LDFLAGS']
         LINUX_LIBS = BLD_ARGS['LINUX_LIBS']
       else 
-        puts "Require All minlin:"
+        #puts "Require All minlin:"
         require File.expand_path('make/linux/minlin/env')
         require File.expand_path('make/linux/minlin/tasks')
         require File.expand_path('make/linux/minlin/setup')
@@ -319,7 +319,8 @@ file  "#{rtp}/zzsetup.done" do
   $stderr.puts "Build Products in #{rtp}"
 end
 
-SubDirs = ["#{rtp}/zzbase.done", "#{rtp}/http/zzdownload.done",
+#These tasks create object files:
+SubDirs = ["#{rtp}/zzbase.done",  "#{rtp}/http/zzdownload.done",
    "#{rtp}/plot/zzplot.done", "#{rtp}/console/zzconsole.done", 
    "#{rtp}/types/zzwidgets.done", "#{rtp}/native/zznative.done"]
     
@@ -329,19 +330,16 @@ case TGT_DIR
     SubDirs.delete("#{rtp}/console/zzconsole.done")
 end
 
+# These tasks copy updated Shoes lib/*/*.rb files and samples and the manual
+StaticDirs = ["#{rtp}/copyonly/zzmanual.done", "#{rtp}/copyonly/zzshoesrb.done",
+    "#{rtp}/copyonly/zzshoesrblib.done", "#{rtp}/copyonly/zzsimple.done",
+     "#{rtp}/copyonly/zzgood.done", "#{rtp}/copyonly/zzexpert.done"]
+
 file "#{TGT_DIR}/libshoes.#{DLEXT}" => ["#{rtp}/zzsetup.done", "shoes/types/types.h",
-    "shoes/version.h"] + SubDirs do
+    "shoes/version.h"] + SubDirs + StaticDirs do
   # need to compile version.c -> .o (and create the verion.h for every build)
   sh "#{CC} -o #{rtp}/version.o -I. -c #{LINUX_CFLAGS} shoes/version.c"
   Builder.new_so "#{TGT_DIR}/libshoes.#{DLEXT}"
-end
-
-if CROSS # i.e. most platforms. 
-  # dependency is set in subsys.rb
-  task :update_man => ["#{TGT_DIR}/static/manual-en.txt"]
-  task :update_shoes_rb => ["#{TGT_DIR}/lib/shoes.rb"]
-  rbdeps = FileList["#{TGT_DIR}/lib/shoes/*.rb"]
-  task :update_shoes_internals => rbdeps
 end
 
 # rake build (or just rake) will get here. 
@@ -349,14 +347,6 @@ task :new_build => "#{TGT_DIR}/libshoes.#{DLEXT}"  do
   # We can link shoes now - this will be done via a Builder call
   # because it's platform specific.
   Builder.new_link "#{TGT_DIR}/shoes"
-  if CROSS
-    # check if the manual, or the shoes ruby code was changed an
-    # needs to be moved to the 'setup' (TGT_DIR)
-    # after 
-    Rake::Task[:update_man].invoke
-    Rake::Task[:update_shoes_rb].invoke
-    Rake::Task[:update_shoes_internals].invoke
-  end
 end
 
 desc "Install Shoes in your ~/.shoes Directory"

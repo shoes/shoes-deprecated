@@ -113,7 +113,7 @@ if RUBY_PLATFORM =~ /darwin/
   obj =[]
   src.each do |c|
     fnm = File.basename(c, ".*")
-    o = "#{tp}/plot/#{fnm}.o"
+    o = "#{tp}/console/#{fnm}.o"
     obj << o
     file o => [c] + ["shoes/console/tesi.h"] do
       sh "#{CC} -o #{o} -I. -c #{LINUX_CFLAGS} #{c}"
@@ -127,7 +127,7 @@ else
   obj = []
   src.each do |c|
     fnm = File.basename(c, ".*")
-    o = "#{tp}/plot/#{fnm}.o"
+    o = "#{tp}/console/#{fnm}.o"
     obj << o
     file o => [c] + ["shoes/console/tesi.h"] do
         sh "#{CC} -o #{o} -I. -c #{LINUX_CFLAGS} #{c}"
@@ -138,14 +138,67 @@ else
   end
 end
 
-# Too keep the main Rakefile almost sane, create some file tasks here for detecting 
+# Too keep the main Rakefile almost legible, create some file tasks here for detecting 
 # updates to static/manual-en.txt and lib/shoes.rb, lib/shoes/*.rb after shoes is 'setup'
-# and built.  Don't bother if minlin (loose Shoes)
-if CROSS && TGT_DIR != 'minlin'
-  file "#{TGT_DIR}/static/manual-en.txt" => ["#{tp}/zzsetup.done", "static/manual-en.txt"] do
-    #$stderr.puts "YAY! manual was updated"
+# but BEFORE new_so/new_link is called - an OSX requirement 
+# Also handle sample/*/*.rb changes 
+mkdir_p "#{tp}/copyonly", verbose: false
+file "#{tp}/copyonly/zzmanual.done" => ["#{tp}/zzsetup.done", "static/manual-en.txt"] do
+  if CROSS && TGT_DIR != 'minlin'
     cp "static/manual-en.txt", "#{TGT_DIR}/static/manual-en.txt"
   end
+  touch "#{tp}/copyonly/zzmanual.done"
+end
+
+file "#{tp}/copyonly/zzshoesrb.done" => ["#{tp}/zzsetup.done", "lib/shoes.rb"] do
+  if CROSS && TGT_DIR != 'minlin'
+    cp "lib/shoes.rb", "#{TGT_DIR}/lib/shoes.rb"
+  end
+  touch "#{tp}/copyonly/zzshoesrb.done" 
+end
+
+# update lib/shoes/*.rb if changed. 
+if CROSS && TGT_DIR != 'minlin'
+  shoesrblib = FileList["lib/shoes/*.rb"]
+  taskl = []
+  shoesrblib.each do |fp| 
+    taskl << "#{TGT_DIR}/#{fp}"
+    file "#{TGT_DIR}/#{fp}" => [fp] do |t|
+      cp "#{fp}", "#{TGT_DIR}/#{fp}"
+    end
+  end
+  file "#{tp}/copyonly/zzshoesrblib.done" => taskl do
+    touch "#{tp}/copyonly/zzshoesrblib.done", verbose: false
+  end
+else
+  # nothing to do because minlin uses symlinks
+  file "#{tp}/copyonly/zzshoesrblib.done" => ["#{tp}/zzsetup.done"] do
+    touch "#{tp}/copyonly/zzshoesrblib.done", verbose: false
+  end
+end
+
+# samples simple/ good/ expert/
+['simple', 'good', 'expert'].each do |sub|
+  if CROSS && TGT_DIR != 'minlin'
+    samples = FileList["samples/#{sub}/*.rb"]
+    sampl = []
+    samples.each do |fp|
+      sampl << "#{TGT_DIR}/#{fp}"
+      file "#{TGT_DIR}/#{fp}" => [fp] do
+        cp "#{fp}", "#{TGT_DIR}/#{fp}"
+      end
+    end
+    file "#{tp}/copyonly/zz#{sub}.done" => sampl do
+      touch "#{tp}/copyonly/zz#{sub}.done", verbose: false
+    end
+  else
+    file "#{tp}/copyonly/zz#{sub}.done" => ["#{tp}/zzsetup.done"] do
+      touch "#{tp}/copyonly/zz#{sub}.done", verbose: false
+    end
+  end
+end
+=begin
+if CROSS && TGT_DIR != 'minlin'
   file "#{TGT_DIR}/lib/shoes.rb" => ["#{tp}/zzsetup.done", "lib/shoes.rb"] do
     #$stderr.puts "Updating shoes.rb"
     cp "lib/shoes.rb", "#{TGT_DIR}/lib/shoes.rb"
@@ -159,5 +212,4 @@ if CROSS && TGT_DIR != 'minlin'
     end
   end
 end
-
-
+=end

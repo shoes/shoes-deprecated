@@ -6,7 +6,19 @@
   Walkabout (3.3) will be less compatible with the unmaintained 3.1 and with 4.0 (jRuby)
   We have interesting ideas of we what we do with Shoes that may be difficult
   to immplememt in Shoes 4. 
+ 
+-------------- Shoes 3.3.4 ---------------------------------  
+=== New with 3.3.4
+  * Uses Ruby 2.3.4 (2.3.3 on Windows) Rubygems 2.6.12
   
+=== Fixed with 3.3.4
+  * When Shoes is installed on system with existing rvm/rbenv it
+    might use the wrong set of gems. 
+
+=== Developer issues with 3.3.4
+  * rake does a better job of dealing with changes in lib/shoes/*.rb, static/manual-en.txt
+    and changes in samples/*/*.rb. You can change these without a full rebuild.
+    
 -------------- Shoes 3.3.3 ---------------------------------
 
 === New with 3.3.3
