@@ -176,7 +176,24 @@ class MakeDarwin
       end
     end
 
-
+    def postbuild_fix
+      # if this is called the only thing that has changed is libshoes.dylib
+      # and shoes-bin. This hasn't needed but might involve
+      #$stderr.puts "called postbuild_fix"
+=begin
+      install_name_tool -id @executable_path/shoes-bin shoes-bin
+      install_name_tool -change /usr/local/lib/libcairo.2.dylib @executable_path/libcairo.2.dylib shoes-bin
+      install_name_tool -change /usr/local/lib/libpangocairo-1.0.0.dylib @executable_path/libpangocairo-1.0.0.dylib shoes-bin
+      install_name_tool -change /usr/local/lib/libgif.4.dylib @executable_path/libgif.4.dylib shoes-bin
+      install_name_tool -change /usr/local/lib/libjpeg.8.dylib @executable_path/libjpeg.8.dylib shoes-bin
+      install_name_tool -change /usr/local/lib/libpango-1.0.0.dylib @executable_path/libpango-1.0.0.dylib shoes-bin
+      install_name_tool -change /usr/local/lib/libglib-2.0.0.dylib @executable_path/libglib-2.0.0.dylib shoes-bin
+      install_name_tool -change /usr/local/lib/libgobject-2.0.0.dylib @executable_path/libgobject-2.0.0.dylib shoes-bin
+      install_name_tool -change /usr/local/lib/libintl.8.dylib @executable_path/libintl.8.dylib shoes-bin
+      install_name_tool -change /usr/local/lib/librsvg-2.2.dylib @executable_path/librsvg-2.2.dylib shoes-bin
+=end
+    end
+    
     def osx_create_app
       puts "Enter setup_system_resources"
       # create plist version string
@@ -246,8 +263,13 @@ class MakeDarwin
       rm_f bin
       tp = "#{TGT_DIR}/#{APP['Bld_Tmp']}"
       sh "#{CC} -L#{TGT_DIR} -o #{bin} #{tp}/main.o #{LINUX_LIBS} -lshoes #{OSX_ARCH}"
-      copy_deps_to_dist
+      if File.exist? "#{tp}/zzshoesbin.done"
+        postbuild_fix
+      else
+        copy_deps_to_dist
+      end
       osx_create_app # generate plist and much copying/moving
+      touch "#{tp}/zzshoesbin.done"
     end
 
     def make_installer
