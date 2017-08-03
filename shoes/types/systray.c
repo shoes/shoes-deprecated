@@ -65,5 +65,7 @@ VALUE shoes_systray_new(int argc, VALUE *argv, VALUE parent) {
     }
     if ((!NIL_P(rbpath)) && (RSTRING_LEN(rbpath) > 0)) {
       path = strdup(RSTRING_PTR(rbpath));
-    }    // call the native widget
+    }
+    // call the native widget
+    shoes_native_systray(title, message, path); // temporary
 }

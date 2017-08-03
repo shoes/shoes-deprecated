@@ -95,6 +95,7 @@ SHOES_CONTROL_REF shoes_native_radio(VALUE, shoes_canvas *, shoes_place *, VALUE
 void shoes_native_canvas_oneshot(int, VALUE);
 VALUE shoes_native_clipboard_get(shoes_app *);
 void shoes_native_clipboard_set(shoes_app *, VALUE);
+void shoes_native_systray(char *, char *, char *);   //temporary sig and location
 VALUE shoes_native_to_s(VALUE);
 char *shoes_native_to_utf8(VALUE, int *);
 VALUE shoes_native_window_color(shoes_app *);
