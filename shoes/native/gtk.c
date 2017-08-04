@@ -83,82 +83,29 @@ VALUE shoes_load_font(const char *filename) {
 }
 #endif
 
-#if 0
-// FIXME: experiment with font settings
-// Borrowed from http://ricardo.ecn.wfu.edu/~cottrell/gtk_win32/
-#ifdef G_OS_WIN32
-static char appfontname[128] = "sans-serif 12"; /* fallback value */
-#else
-static char appfontname[128] = "Sans-Serif 10";  // gtk doc says 'Sans 10'
-#endif
-
-void set_app_font (const char *fontname) {
-    GtkSettings *settings;
-    gchar *themedir;
-    gchar *themename;
-
-    if (fontname != NULL && *fontname == 0) return;
-
-    settings = gtk_settings_get_default();
-    themedir = gtk_rc_get_theme_dir ();
-    g_object_get(settings, "gtk-theme-name", &themename, NULL);
-    printf("dir=%s, name: %s\n", themedir,themename);
-
-
-    if (fontname == NULL) {
-        g_object_set(G_OBJECT(settings), "gtk-font-name", appfontname, NULL);
-    } else {
-        GtkWidget *w;
-        PangoFontDescription *pfd;
-        PangoContext *pc;
-        PangoFont *pfont;
-
-        w = gtk_label_new(NULL);
-        pfd = pango_font_description_from_string(fontname);
-        pc = gtk_widget_get_pango_context(w);
-        pfont = pango_context_load_font(pc, pfd);
-
-        if (pfont != NULL) {
-            strcpy(appfontname, fontname);
-            g_object_set(G_OBJECT(settings), "gtk-font-name", appfontname, NULL);
-        }
-
-        gtk_widget_destroy(w);
-        pango_font_description_free(pfd);
-    }
+/*  capture the Gapplication in a global */
+GApplication *shoes_GApp; 
+GtkApplication *shoes_GtkApp;
+void
+shoes_gtk_app_activate (GApplication *app, gpointer user_data) {
+    shoes_GApp = app;
+    fprintf(stderr, "shoes_gtk_app_activate called\n");
+    //GtkWidget *widget;
+    //widget = gtk_application_window_new (GTK_APPLICATION (app));
+    //gtk_widget_show (widget);
 }
-
-void shoes_native_print_env() {
-    GtkSettings *settings;
-    gchar *themedir;
-    gchar *themename;
-
-    gchar *rcfile = "shoesgtk.rc";
-    //gchar *rcfiles[] = {rcfile, NULL};
-    gchar **defs;
-    //gtk_rc_set_default_files(rcfiles);
-    //gtk_rc_parse(rcfile);
-    //printf("ask theme = %s\n", rcfile);
-    defs = gtk_rc_get_default_files ();
-    int i = 0;
-    while ((rcfile = defs[i]) != NULL) {
-        printf("%d: %s\n", i+1, rcfile);
-        i++;
-    }
-    settings = gtk_settings_get_default();
-    themedir = gtk_rc_get_theme_dir ();
-    g_object_get(settings, "gtk-theme-name", &themename, NULL);
-    printf("dir=%s, name: %s\n", themedir,themename);
-}
-#endif
 
 void shoes_native_init() {
 #if !defined(RUBY_HTTP) && !defined(SHOES_GTK_WIN32)
     curl_global_init(CURL_GLOBAL_ALL);
 #endif
-    gtk_init(NULL, NULL);
-    //set_app_font(NULL);  // experiment failed
-    //shoes_native_print_env();
+    /* try using gtk_application_new() instead of gtk_init
+    */
+    int status;
+    shoes_GtkApp = gtk_application_new ("org.gnome.example", G_APPLICATION_FLAGS_NONE);
+    g_signal_connect (shoes_GtkApp, "activate", G_CALLBACK (shoes_gtk_app_activate), NULL);
+    status = g_application_run (G_APPLICATION (shoes_GtkApp), 0, NULL);
+    //gtk_init(NULL, NULL);
 }
 
 void shoes_native_cleanup(shoes_world_t *world) {
