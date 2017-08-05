@@ -99,13 +99,19 @@ void shoes_native_init() {
 #if !defined(RUBY_HTTP) && !defined(SHOES_GTK_WIN32)
     curl_global_init(CURL_GLOBAL_ALL);
 #endif
+#ifndef SHOES_GTK_WIN32
     /* try using gtk_application_new() instead of gtk_init
     */
     int status;
+    char *empty = NULL;
     shoes_GtkApp = gtk_application_new ("org.gnome.example", G_APPLICATION_FLAGS_NONE);
+    shoes_GApp = (G_APPLICATION (shoes_GtkApp));
     g_signal_connect (shoes_GtkApp, "activate", G_CALLBACK (shoes_gtk_app_activate), NULL);
-    status = g_application_run (G_APPLICATION (shoes_GtkApp), 0, NULL);
+    status = g_application_run (G_APPLICATION (shoes_GtkApp), 0, &empty);
     //gtk_init(NULL, NULL);
+#else
+    gtk_init(NULL, NULL);
+#endif 
 }
 
 void shoes_native_cleanup(shoes_world_t *world) {
