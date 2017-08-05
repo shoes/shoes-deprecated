@@ -22,9 +22,16 @@ void shoes_native_systray(char *title, char *message, char *path) {
 #else
   // try older gtk_status_icon for Windows to see what happens
 static GtkStatusIcon *stsicon = NULL;
+static char *stspath = NULL;
 void shoes_native_systray(char *title, char *message, char *path) {
     if (stsicon == NULL) {
         stsicon = gtk_status_icon_new_from_file(path);
+        stspath = path;
+    }
+    // detect change of icon
+    if (strcmp(path, stspath)) {
+        stspath = path;
+        gtk_status_icon_set_from_file (stsicon, stspath);
     }
     gtk_status_icon_set_title(stsicon, title);
     gtk_status_icon_set_tooltip_text(stsicon, message);

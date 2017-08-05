@@ -4,7 +4,13 @@ Shoes.app do
     ctr = 0;
     button "Notify" do
       ctr += 1
-      systray title: "Notify Test", message: "message ##{ctr}", icon: "#{DIR}/static/shoes-icon.png"
+      icp = ''
+      if ctr % 3 != 0
+        icp = "#{DIR}/static/shoes-icon.png"
+      else
+        icp = "#{DIR}/static/shoes-icon-red.png"
+      end
+      systray title: "Notify Test", message: "message ##{ctr}", icon: icp
     end
   end 
 end

@@ -4423,6 +4423,55 @@ end
 note that the method returns the drawing code (text) of the snapshot, so 
 you might take further control about details of your svg image for example.
 
+== Systray ==
+
+Systray allows you to send an icon and a text message to the desktop manager
+which will be shown where the platform decides it should be (systray for Windows),
+Notification area for Linux and OSX. Typically, you would call it for some
+long running process, like a email client that got a new message and you the desktop
+to know about it.
+
+This is not a widget you can modify. There are no methods other than creating it
+and that will return nil (even when it works). There is no guarantee it will work,
+particularly if you call it too often and expect everything to show up. That's up to
+the OS and Desktop manager, not Shoes. 
+
+You can call it in two ways, with positional arguments or with a hash of arguments.
+
+
+=== systray <string>, <string>, <string> » nil ===
+
+The first string is the title, the second is the message to display and the
+third string is a file path to the icon. The example below describes the preferred
+way
+
+=== systray title: <string>, message: <string>, icon: <file path> » nil ===
+
+You can also use a hash of arguments.  The example below is worth some study.
+{{{
+#!ruby
+Shoes.app do
+  stack do
+    para "Press button and look in your systems notication area"
+    ctr = 0;
+    button "Notify" do
+      ctr += 1
+      icp = ''
+      if ctr % 3 != 0
+        icp = "#{DIR}/static/shoes-icon.png"
+      else
+        icp = "#{DIR}/static/shoes-icon-red.png"
+      end
+      systray title: "Shoes Notify", message: "message ##{ctr}", icon: icp
+    end
+  end 
+end
+}}}
+
+Notice how we change the message: and every third click, the icon changes.
+Changes to the title: may not appear, depending on your platform so you
+not change change it. All three arguments must be included. 
+
 == TextBlock ==
 
 The TextBlock object represents a group of text organized as a single element.

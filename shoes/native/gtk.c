@@ -89,7 +89,7 @@ GtkApplication *shoes_GtkApp;
 void
 shoes_gtk_app_activate (GApplication *app, gpointer user_data) {
     shoes_GApp = app;
-    fprintf(stderr, "shoes_gtk_app_activate called\n");
+    //fprintf(stderr, "shoes_gtk_app_activate called\n");
     //GtkWidget *widget;
     //widget = gtk_application_window_new (GTK_APPLICATION (app));
     //gtk_widget_show (widget);
@@ -100,16 +100,16 @@ void shoes_native_init() {
     curl_global_init(CURL_GLOBAL_ALL);
 #endif
 #ifndef SHOES_GTK_WIN32
-    /* try using gtk_application_new() instead of gtk_init
+    /* try using linux gtk_application_new() instead of gtk_init
     */
     int status;
     char *empty = NULL;
-    shoes_GtkApp = gtk_application_new ("org.gnome.example", G_APPLICATION_FLAGS_NONE);
+    shoes_GtkApp = gtk_application_new ("com.mvmanila.shoes", G_APPLICATION_FLAGS_NONE);
     shoes_GApp = (G_APPLICATION (shoes_GtkApp));
     g_signal_connect (shoes_GtkApp, "activate", G_CALLBACK (shoes_gtk_app_activate), NULL);
     status = g_application_run (G_APPLICATION (shoes_GtkApp), 0, &empty);
-    //gtk_init(NULL, NULL);
 #else
+    // windows Shoes <= 3.3.3
     gtk_init(NULL, NULL);
 #endif 
 }
