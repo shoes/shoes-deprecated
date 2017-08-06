@@ -593,6 +593,17 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 }
 @end
 
+@implementation ShoesNotifyDelegate 
+- (void)applicationDidFinishLaunching:(NSNotification *)aNotification
+{
+    [[NSUserNotificationCenter defaultUserNotificationCenter] setDelegate:self];
+}
+
+- (BOOL)userNotificationCenter:(NSUserNotificationCenter *)center shouldPresentNotification:(NSUserNotification *)notification{
+    return YES;
+}
+@end
+
 @implementation ShoesDialogAsk
 - (id)init
 {
@@ -1288,6 +1299,7 @@ start_wait(VALUE data) {
 @end
 
 
+
 void
 shoes_native_canvas_oneshot(int ms, VALUE canvas)
 {
@@ -1784,6 +1796,18 @@ shoes_native_window_color(shoes_app *app)
   //return shoes_color_new((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255));
   return shoes_color_new(255, 255, 255, 255);
 }
+
+
+void shoes_native_systray(char *title, char *message, char *path)
+{
+    NSUserNotification *notification = [[NSUserNotification alloc] init];
+    notification.title = [NSString stringWithUTF8String: title];
+    notification.informativeText = [NSString stringWithUTF8String: message];
+    notification.soundName = NSUserNotificationDefaultSoundName;
+    notification.contentImage = [[NSImage alloc] initWithContentsOfFile: [NSString stringWithUTF8String: path]];
+    [[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:notification];
+}
+
 
 VALUE
 shoes_native_dialog_color(shoes_app *app)

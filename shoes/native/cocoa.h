@@ -121,6 +121,8 @@
   NSTimer *timer;
 }
 @end
+@interface ShoesNotifyDelegate : NSObject <NSApplicationDelegate, NSUserNotificationCenterDelegate>
+@end
 
 // declares to stop compiler whining
 void add_to_menubar(NSMenu *main, NSMenu *menu);
