@@ -83,36 +83,52 @@ VALUE shoes_load_font(const char *filename) {
 }
 #endif
 
-/*  capture the Gapplication in a global */
-GApplication *shoes_GApp; 
-GtkApplication *shoes_GtkApp;
+/*
+ * Shoes 3.3.4 uses gtk_application_new (aka GApplication) instead of gtk_init
+*/
+
+#if 0  // not used
 void
 shoes_gtk_app_activate (GApplication *app, gpointer user_data) {
-    shoes_GApp = app;
-    //fprintf(stderr, "shoes_gtk_app_activate called\n");
-    //GtkWidget *widget;
-    //widget = gtk_application_window_new (GTK_APPLICATION (app));
-    //gtk_widget_show (widget);
+    fprintf(stderr, "shoes_gtk_app_activate called\n");
+}
+
+void shoes_gtk_app_open (GApplication *app, GFile **files,
+      gint n_files, gchar *hint) {
+    fprintf(stderr, "shoes_gtk_app_open called\n");
+}
+#endif 
+
+gboolean
+shoes_gtk_app_cmdline (GApplication *application, gchar ***arguments,
+      gint *exit_status)
+{
+  /* This doesn't seem to work as documented.
+   * *exit_status is 0x0 instead of a real pointer, arguments don't seem
+   * correct either. For Shoes it doesn't matter. Just tell gtk we processed
+   * them so it doesn't have too. Need to do this for Gtk/Windows which has the
+   * documented habit of reading the commandline twice
+  */ 
+  return TRUE;
 }
 
 void shoes_native_init() {
 #if !defined(RUBY_HTTP) && !defined(SHOES_GTK_WIN32)
     curl_global_init(CURL_GLOBAL_ALL);
 #endif
-#ifndef SHOES_GTK_WIN32
-    /* try using linux gtk_application_new() instead of gtk_init
+    /* using linux gtk_application_new() instead of 
+     *     // Shoes <= 3.3.3
+     *     gtk_init(NULL, NULL);
     */
     int status;
-    char *empty = NULL;
-    shoes_GtkApp = gtk_application_new ("com.mvmanila.shoes", G_APPLICATION_FLAGS_NONE);
-    shoes_GApp = (G_APPLICATION (shoes_GtkApp));
-    g_signal_connect (shoes_GtkApp, "activate", G_CALLBACK (shoes_gtk_app_activate), NULL);
-    status = g_application_run (G_APPLICATION (shoes_GtkApp), 0, &empty);
-#else
-    // windows Shoes <= 3.3.3
-    gtk_init(NULL, NULL);
-#endif 
+    GtkApplication *shoes_GtkApp;
+    shoes_GtkApp = gtk_application_new ("com.mvmanila.shoes", G_APPLICATION_HANDLES_COMMAND_LINE);
+
+    g_signal_connect (shoes_GtkApp, "command-line", G_CALLBACK (shoes_gtk_app_cmdline), NULL);
+    status = g_application_run (G_APPLICATION (shoes_GtkApp), NULL, NULL);
 }
+
+/* end of GApplication init  */
 
 void shoes_native_cleanup(shoes_world_t *world) {
 #if !defined(RUBY_HTTP) && !defined(SHOES_GTK_WIN32)
