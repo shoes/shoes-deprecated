@@ -8,7 +8,7 @@
 #include "shoes/native/gtk/gtksystray.h"
 
 //extern GApplication *shoes_GApp;
-#ifndef SHOES_GTK_WIN32  // Linux, not Windows
+#if !defined(SHOES_GTK_WIN32) && defined(GNOTE)  // some Linux, not Windows
 void shoes_native_systray(char *title, char *message, char *path) {
   GApplication *gapp = g_application_get_default();
   GNotification *note;

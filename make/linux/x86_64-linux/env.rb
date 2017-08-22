@@ -24,6 +24,7 @@ arch = 'x86_64-linux-gnu'
 uldir = "#{ShoesDeps}/usr/lib"
 ularch = "#{ShoesDeps}/usr/lib/#{arch}"
 larch = "#{ShoesDeps}/lib/#{arch}"
+lcllib = "/usr/local/lib"
 # Set appropriately
 CC = "gcc"
 pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.3.pc"
@@ -80,3 +81,4 @@ SOLOCS['ssl'] = "#{ularch}/libssl.so.1.0.0"
 SOLOCS['sqlite'] = "#{ularch}/libsqlite3.so.0.8.6"
 SOLOCS['ffi'] = "#{ularch}/libffi.so.5"
 SOLOCS['rsvg2'] = "#{ularch}/librsvg-2.so"
+SOLOCS['curl'] = "#{lcllib}/libcurl.so"

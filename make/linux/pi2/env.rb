@@ -44,7 +44,7 @@ if APP['GDB']
 else
   LINUX_CFLAGS = " -O -Wall"
 end
-LINUX_CFLAGS << " -DRUBY_HTTP" 
+LINUX_CFLAGS << " -DRUBY_HTTP -DGNOTE" 
 LINUX_CFLAGS << " -DSHOES_GTK -fPIC -Wno-unused-but-set-variable -Wno-unused-variable"
 LINUX_CFLAGS << " -I#{ShoesDeps}/usr/include "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkgruby}"`.strip+" "
@@ -82,3 +82,4 @@ SOLOCS['ssl'] = "#{ularch}/libssl.so.1.0.0"
 SOLOCS['sqlite'] = "#{ularch}/libsqlite3.so.0.8.6"
 SOLOCS['ffi'] = "#{ularch}/libffi.so" 
 SOLOCS['rsvg2'] = "#{ularch}/librsvg-2.so"
+SOLOCS['curl'] = "#{ularch}/libcurl.so.4"

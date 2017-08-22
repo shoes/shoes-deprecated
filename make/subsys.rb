@@ -157,9 +157,10 @@ file "#{tp}/copyonly/zzshoesrb.done" => ["#{tp}/zzsetup.done", "lib/shoes.rb"] d
   touch "#{tp}/copyonly/zzshoesrb.done" 
 end
 
-# update lib/shoes/*.rb if changed. 
+# update lib/shoes/*.rb if changed. And  ssl certs file.
 if CROSS && TGT_DIR != 'minlin'
-  shoesrblib = FileList["lib/shoes/*.rb"]
+  shoesrblib = FileList["lib/shoes/*.rb"] 
+  shoesrblib << "lib/shoes/cacert.pem"
   taskl = []
   shoesrblib.each do |fp| 
     taskl << "#{TGT_DIR}/#{fp}"
