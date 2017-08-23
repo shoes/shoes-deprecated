@@ -29,7 +29,9 @@ class Shoes
       uri_opts[:redirect_to_https] = true
       #uri_opts[:ssl_verify_mode] = OpenSSL::SSL::VERIFY_NONE
       uri_opts[:ssl_verify_mode] = OpenSSL::SSL::VERIFY_PEER
-      uri_opts[:ssl_ca_cert]  = File.join(DIR, "lib/shoes/cacert.pem")
+      if RUBY_PLATFORM =~ /mingw|darwin/
+        uri_opts[:ssl_ca_cert]  = File.join(DIR, "lib/shoes/cacert.pem")
+      end
       open url, uri_opts do |f|
         # everything has been downloaded at this point.
         # f is a tempfile like creature
