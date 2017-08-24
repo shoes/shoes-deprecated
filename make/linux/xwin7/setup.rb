@@ -33,6 +33,13 @@ module Make
     so_list.each_value do |path|
       cp "#{path}", "#{TGT_DIR}"
     end
+    # the things we do for love...
+    ReNames.each_pair do |k, v|
+      if File.exist? "#{TGT_DIR}/#{k}"
+        mv "#{TGT_DIR}/#{k}", "#{TGT_DIR}/#{v}"
+        $stderr.puts "renamed #{k} to #{v}"
+      end
+    end 
     # copy/setup etc/share
     mkdir_p "#{TGT_DIR}/share/glib-2.0/schemas"
     cp  "#{ShoesDeps}/share/glib-2.0/schemas/gschemas.compiled" ,

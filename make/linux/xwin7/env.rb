@@ -145,7 +145,7 @@ SOLOCS.merge!(
     'gobject'     => "#{bindll}/libgobject-2.0-0.dll",
     'gtk3'        => "#{bindll}/libgtk-3-0.dll",
     'pixman'      => "#{bindll}/libpixman-1-0.dll", 
-    'intl8'        => "#{bindll}/libintl-8.dll",
+    'intl8'       => "#{bindll}/libintl-8.dll",
     'pango'       => "#{bindll}/libpango-1.0-0.dll",
     'pangocairo'  => "#{bindll}/libpangocairo-1.0-0.dll",
     'pangoft'     => "#{bindll}/libpangoft2-1.0-0.dll",
@@ -156,10 +156,14 @@ SOLOCS.merge!(
     'xml2'        => "#{bindll}/libxml2-2.dll",
     'croco'       => "#{bindll}/libcroco-0.6-3.dll",
     'rsvg'        => "#{bindll}/librsvg-2-2.dll",
+    'curl'        => "#{bindll}/libcurl-4.dll",
     'thread'      => "#{bindll}/libgthread-2.0-0.dll",
     'zlib1'       => "#{bindll}/zlib1.dll",
     'siji'        => "/usr/lib/gcc/i686-w64-mingw32/4.8/libgcc_s_sjlj-1.dll",
     'pthread'     => "/usr/i686-w64-mingw32/lib/libwinpthread-1.dll" 
     }
 )
+ReNames = {
+   "libcurl-4.dll" => "libcurl.dll"
+}
 

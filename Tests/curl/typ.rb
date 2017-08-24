@@ -1,3 +1,4 @@
+require 'typhoeus'
 Shoes.app do
   button "typheous" do
     st_time = Time.now

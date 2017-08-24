@@ -80,6 +80,8 @@ LINUX_LDFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH} -L#{ShoesDeps}/lib/ #{GLIB_L
 LINUX_LIBS = " -l#{RUBY_SO} -L#{ShoesDeps}/lib -l cairo -L#{ShoesDeps}/lib -lpangocairo-1.0 -L#{ShoesDeps}/lib -lgif -ljpeg"
 LINUX_LIBS << " -L#{TGT_DIR} #{CAIRO_LDFLAGS} #{PANGO_LDFLAGS} #{GLIB_LDFLAGS}"
 
-# build wants the following Constant, but OSX build won't use it
-SOLOCS = {}
+libdll = "#{ShoesDeps}/lib"
+SOLOCS = {
+  'curl'    => "#{libdll}/libcurl.dylib"
+}
 
