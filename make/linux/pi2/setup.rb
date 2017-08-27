@@ -37,6 +37,13 @@ module Make
     SOLOCS.each_value do |path|
       cp "#{path}", "#{TGT_DIR}"
     end
+    chdir TGT_DIR do
+      SYMLNK.each do |k, v|
+        v.each do |syml|
+          ln_s k, syml
+        end
+      end
+    end
   end
 end
 

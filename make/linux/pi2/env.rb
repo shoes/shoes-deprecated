@@ -72,14 +72,18 @@ LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 LINUX_LIBS << " #{CURL_LDFLAGS if !RUBY_HTTP} #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} #{MISC_LIB}"
 
 SOLOCS = {}
-SOLOCS['ungif'] = "#{uldir}/libungif.so.4" if !justgif
-SOLOCS['gif'] = "#{ularch}/libgif.so.4"  if justgif
-SOLOCS['jpeg'] = "#{ularch}/libjpeg.so.8"
-SOLOCS['libyaml'] = "#{ularch}/libyaml-0.so.2"
-SOLOCS['pcre'] = "#{larch}/libpcre.so.3"
+SOLOCS['ungif'] = "#{uldir}/libgif.so.4.1.6" if !justgif
+SOLOCS['gif'] = "#{ularch}/libgif.so.4.1.6"  if justgif
+SOLOCS['jpeg'] = "#{ularch}/libjpeg.so.8.4.0"
+SOLOCS['libyaml'] = "#{ularch}/libyaml-0.so.2.0.4"
+SOLOCS['pcre'] = "#{larch}/libpcre.so.3.13.1"  # needed? 
 SOLOCS['crypto'] = "#{ularch}/libcrypto.so.1.0.0"
 SOLOCS['ssl'] = "#{ularch}/libssl.so.1.0.0"
 SOLOCS['sqlite'] = "#{ularch}/libsqlite3.so.0.8.6"
-SOLOCS['ffi'] = "#{ularch}/libffi.so" 
-SOLOCS['rsvg2'] = "#{ularch}/librsvg-2.so"
-SOLOCS['curl'] = "#{EXT_RUBY}/lib//libcurl.so.4"
+SOLOCS['ffi'] = "#{ularch}/libffi.so.5.0.10" 
+SOLOCS['rsvg2'] = "#{ularch}/librsvg-2.so.2.40.5"
+SOLOCS['curl'] = "#{EXT_RUBY}/lib/libcurl.so.4.4.0"
+
+# sigh, curl and tyhpoeus - processed in setup.rb
+SYMLNK = {}
+SYMLNK['libcurl.so.4.4.0'] = ['libcurl.so', 'libcurl.so.4']
