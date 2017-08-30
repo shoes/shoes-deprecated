@@ -88,6 +88,7 @@ else
       when /darwin/ then 'osx'
       when /mingw/  then 'win32'
       when /linux/  then 'linux'
+      when /freebsd/ then 'bsd'
     end
     $stderr.puts "Please Select a #{plt}:setup: target from the"
     $stderr.puts "  list shown by 'rake -T'"
@@ -138,6 +139,33 @@ when /darwin/
   end
   Builder = MakeDarwin
   NAMESPACE = :osx
+  
+when /bsd/
+  #$stderr.puts "running BSD"
+  if CROSS
+    case TGT_ARCH
+    when /x86_64-bsd/
+      require File.expand_path('make/bsd/x86_64-bsd/env')
+      require File.expand_path('make/bsd/x86_64-bsd/tasks')
+      require File.expand_path('make/bsd/x86_64-bsd/setup')
+      require File.expand_path("make/gems")
+      require File.expand_path('make/subsys')
+    when /minbsd/
+      require File.expand_path('make/bsd/minbsd/env')
+      require File.expand_path('make/bsd/minbsd/tasks')
+      require File.expand_path('make/bsd/minbsd/setup')
+      require File.expand_path('make/subsys')
+    else
+      require File.expand_path('make/bsd/none/env')
+      require File.expand_path('make/bsd/none/tasks')
+    end
+  else 
+    require File.expand_path('make/bsd/none/env')
+    require File.expand_path('make/bsd/none/tasks')
+    $stderr.puts "Please pick a bsd:setup: target - see rake -T"
+  end
+  Builder = MakeBSD
+  NAMESPACE = :bsd
   
 when /linux/
   if CROSS
@@ -434,6 +462,26 @@ namespace :win32 do
   task :installer do
     Builder.make_installer
   end
+end
+
+namespace :bsd do
+
+  namespace :setup do
+    desc "freebsd x86_64"
+    task :x86_64_bsd do
+      sh "echo 'TGT_ARCH=x86_64-bsd' >build_target"
+    end
+    
+    desc "freebsd minimal"
+    task :minbsd do
+      sh "echo 'TGT_ARCH=minbsd' >build_target"
+    end
+  end
+  task :build => ["build_target", :new_build]
+
+  task :installer do
+    Builder.make_installer
+  end  
 end
 
 # get here when rake decides it's running on a linux system
