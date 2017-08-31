@@ -17,11 +17,17 @@
 #if defined(SHOES_QUARTZ) || defined(SHOES_GTK_OSX)
 #include <util.h>
 #else
+#if !defined(BSD)
 #include <pty.h>
+#endif
 extern int posix_openpt(int);   // shut warnings off
 extern int setenv(const char*, const char*, int); // shut warnings off
 #endif
+#if !defined(BSD)
 #include <utmp.h>
+#else
+#include <termios.h>
+#endif
 #include <unistd.h>
 #include <string.h>
 #include <poll.h>

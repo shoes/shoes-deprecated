@@ -38,7 +38,8 @@ class MakeBSD
     def new_so (name) 
       tgts = name.split('/')
       tgtd = tgts[0]
-      $stderr.puts "new_so: #{tgtd}"
+      tgtd = File.dirname(name)
+      $stderr.puts "new_so: #{tgtd} from #{name}"
       objs = []
       SubDirs.each do |f|
         d = File.dirname(f)

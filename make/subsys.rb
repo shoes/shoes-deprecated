@@ -144,21 +144,21 @@ end
 # Also handle sample/*/*.rb changes 
 mkdir_p "#{tp}/copyonly", verbose: false
 file "#{tp}/copyonly/zzmanual.done" => ["#{tp}/zzsetup.done", "static/manual-en.txt"] do
-  if CROSS && TGT_DIR != 'minlin'
+  if CROSS && TGT_DIR != 'minlin' && TGT_DIR != 'minbsd'
     cp "static/manual-en.txt", "#{TGT_DIR}/static/manual-en.txt"
   end
   touch "#{tp}/copyonly/zzmanual.done"
 end
 
 file "#{tp}/copyonly/zzshoesrb.done" => ["#{tp}/zzsetup.done", "lib/shoes.rb"] do
-  if CROSS && TGT_DIR != 'minlin'
+  if CROSS && TGT_DIR != 'minlin' && TGT_DIR != 'minbsd'
     cp "lib/shoes.rb", "#{TGT_DIR}/lib/shoes.rb"
   end
   touch "#{tp}/copyonly/zzshoesrb.done" 
 end
 
 # update lib/shoes/*.rb if changed. And  ssl certs file.
-if CROSS && TGT_DIR != 'minlin'
+if CROSS && TGT_DIR != 'minlin' && TGT_DIR != 'minbsd'
   shoesrblib = FileList["lib/shoes/*.rb"] 
   shoesrblib << "lib/shoes/cacert.pem"
   taskl = []
@@ -180,7 +180,7 @@ end
 
 # samples simple/ good/ expert/
 ['simple', 'good', 'expert'].each do |sub|
-  if CROSS && TGT_DIR != 'minlin'
+  if CROSS && TGT_DIR != 'minlin' && TGT_DIR != 'minbsd'
     samples = FileList["samples/#{sub}/*.rb"]
     sampl = []
     samples.each do |fp|
