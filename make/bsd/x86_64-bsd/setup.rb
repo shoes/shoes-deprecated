@@ -24,7 +24,7 @@ module Make
     rm_f "#{TGT_DIR}/libruby.so" if File.exist? "#{TGT_DIR}/libruby.so"
     rm_f "#{TGT_DIR}/libruby.so.#{rbvm}" if File.exist? "#{TGT_DIR}/libruby.so.#{rbvm}"
     rm_f "#{TGT_DIR}/libruby.so.#{rbvt}" if File.exist? "#{TGT_DIR}/libruby.so.#{rbvt}"
-    cp_r "#{EXT_RUBY}/lib/ruby", "#{TGT_DIR}/lib", remove_destination:  true
+    cp_r "#{EXT_RUBY}/lib/ruby", "#{TGT_DIR}/lib"  #, remove_destination:  true
     # copy and link libruby.so
     cp "#{EXT_RUBY}/lib/libruby.so.#{rbvm}", "#{TGT_DIR}"
     # copy include files - it might help build gems

@@ -59,7 +59,7 @@ LINUX_CFLAGS << " -I#{ShoesDeps}/usr/include/ "
 LINUX_CFLAGS <<  " -I/usr/local/include/librsvg-2.0/librsvg "
 MISC_LIB =  " /usr/local/lib/librsvg-2.so"
 #LINUX_LIB_NAMES = %W[ungif jpeg]
-LINUX_LIB_NAMES = %W[jpeg]
+LINUX_LIB_NAMES = %W[gif jpeg]
 
 DLEXT = "so"
 LINUX_LDFLAGS = "-fPIC -shared -L#{ularch} "
