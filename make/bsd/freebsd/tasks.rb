@@ -72,7 +72,7 @@ class MakeBSD
     # make a .install with all the bits and pieces. 
     def make_installer
       gtkv = '3'
-      arch = 'x86_64'
+      arch = 'freebsd11.1'
       appname =  "#{APP['name'].downcase}"
       rlname = "#{appname}-#{APP['VERSION']}-gtk#{gtkv}-#{arch}"
       #puts "Creating Pkg for #{rlname}"
@@ -132,7 +132,7 @@ class MakeBSD
     
     def make_uninstall_script
       File.open("shoes-uninstall.sh", 'w') do |f|
-        f << "#!/bin/bash\n"
+        f << "#!/bin/sh\n"
         f << "#pwd\n"
         f << "cd $HOME/.shoes/#{APP['NAME']}\n"
         f << "xdg-desktop-menu uninstall Shoes.remove.desktop\n"
@@ -148,7 +148,7 @@ class MakeBSD
     # sed the desktop file and copy it with xdg-desktop-menu
     def make_install_script
       File.open("shoes-install.sh", 'w') do |f|
-        f << "#!/bin/bash\n"
+        f << "#!/bin/sh\n"
         f << "#pwd\n"
         f << "ddir=$HOME/.shoes/#{APP['NAME']}\n"
         f << "#echo $ddir\n"

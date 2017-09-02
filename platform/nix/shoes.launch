@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-##!/bin/bash
 
 REALPATH=`readlink -f $0`
 
