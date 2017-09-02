@@ -144,10 +144,10 @@ when /bsd/
   #$stderr.puts "running BSD"
   if CROSS
     case TGT_ARCH
-    when /x86_64-bsd/
-      require File.expand_path('make/bsd/x86_64-bsd/env')
-      require File.expand_path('make/bsd/x86_64-bsd/tasks')
-      require File.expand_path('make/bsd/x86_64-bsd/setup')
+    when /freebsd/
+      require File.expand_path('make/bsd/freebsd/env')
+      require File.expand_path('make/bsd/freebsd/tasks')
+      require File.expand_path('make/bsd/freebsd/setup')
       require File.expand_path("make/gems")
       require File.expand_path('make/subsys')
     when /minbsd/
@@ -467,9 +467,9 @@ end
 namespace :bsd do
 
   namespace :setup do
-    desc "freebsd x86_64"
-    task :x86_64_bsd do
-      sh "echo 'TGT_ARCH=x86_64-bsd' >build_target"
+    desc "freebsd 11.1 x86_64"
+    task :freebsd do
+      sh "echo 'TGT_ARCH=freebsd' >build_target"
     end
     
     desc "freebsd minimal"
