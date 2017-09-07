@@ -72,7 +72,7 @@ class MakeBSD
     # make a .install with all the bits and pieces. 
     def make_installer
       gtkv = '3'
-      arch = 'freebsd11.1'
+      arch = 'freebsd'
       appname =  "#{APP['name'].downcase}"
       rlname = "#{appname}-#{APP['VERSION']}-gtk#{gtkv}-#{arch}"
       #puts "Creating Pkg for #{rlname}"

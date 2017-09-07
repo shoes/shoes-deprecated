@@ -128,7 +128,6 @@ module PackShoes
   end
 
   def PackShoes.repack_linux opts, &blk
-    #opts.each {|k, v| puts "#{k} => #{v}"}
     arch = opts['arch']
     script = custom_installer opts
     name = File.basename(script).gsub(/\.\w+$/, '')
@@ -143,29 +142,29 @@ module PackShoes
       blk.call"Expanding #{arch} distribution. Patience is needed"
     end
     # skip to the tar contents in the .run
-	size = Shy.hrun(pkgf)
-	# Copy the rest to a new file
-	wk_dir = File.join(opts['packtmp'], "+tmp")
+	  size = Shy.hrun(pkgf)
+	  # Copy the rest to a new file
+	  wk_dir = File.join(opts['packtmp'], "+tmp")
     FileUtils.mkdir_p(wk_dir)
-	wkf = open(File.join(wk_dir,"run.gz"),'wb')
-	buff = ''
-	while pkgf.read(32768, buff) != nil do
-	   wkf.write(buff) 
+	  wkf = open(File.join(wk_dir,"run.gz"),'wb')
+	  buff = ''
+	  while pkgf.read(32768, buff) != nil do
+	    wkf.write(buff) 
     end
-	wkf.close
-	if blk 
-	  blk.call "Start extract"
-	end
-	@tarmodes = {}
-	fastxzf(wkf, tmp_dir, @tarmodes)
+	  wkf.close
+	  if blk 
+	    blk.call "Start extract"
+	  end
+	  @tarmodes = {}
+	  fastxzf(wkf, tmp_dir, @tarmodes)
     FileUtils.rm_rf(wk_dir)
     if blk 
       blk.call "Copy script and stubs"
     end
     FileUtils.cp(script, File.join(tmp_dir, File.basename(script)))
     File.open(File.join(tmp_dir, "sh-install"), 'wb') do |a|
-	  rewrite a, File.join(DIR, "static", "stubs", "sh-install"),
-	    'SCRIPT' => "./#{File.basename(script)}"
+	    rewrite a, File.join(DIR, "static", "stubs", "sh-install"),
+	        'SCRIPT' => "./#{File.basename(script)}"
     end
     FileUtils.chmod 0755, File.join(tmp_dir, "sh-install")
     # add sh-install and script to the modes list
@@ -173,7 +172,6 @@ module PackShoes
     @tarmodes['sh-install'] = "0755".oct
     # debug - dump @tarmodes
     #@tarmodes.each { |k,v| puts "#{k} #{sprintf('%4o',v)}" }
-    
  
     if blk
       blk.call "Compute size and compress"
@@ -198,12 +196,12 @@ module PackShoes
     end
     md5, fsize = Shy.md5sum(tgz_path), File.size(tgz_path)
     File.open(run_path, 'wb') do |f|
-	  rewrite f, File.join(DIR, "static", "stubs", "blank.run"),
-	   'CRC' => '0000000000', 'MD5' => md5, 'LABEL' => app_name, 'NAME' => name,
-	   'SIZE' => fsize, 'RAWSIZE' => (raw / 1024) + 1, 'TIME' => Time.now, 'FULLSIZE' => raw
+	    rewrite f, File.join(DIR, "static", "stubs", "blank.run"),
+	     'CRC' => '0000000000', 'MD5' => md5, 'LABEL' => app_name, 'NAME' => name,
+	     'SIZE' => fsize, 'RAWSIZE' => (raw / 1024) + 1, 'TIME' => Time.now, 'FULLSIZE' => raw
       File.open(tgz_path, 'rb') do |f2|
 	     f.write f2.read(8192) until f2.eof
-	  end
+	    end
     end
     if blk
       blk.call "Done packing Linux"
