@@ -26,9 +26,9 @@ CC = "cc"
 
 # Query pkg-config for cflags and link settings
 EXT_RUBY = RbConfig::CONFIG['prefix']
-RUBY_CFLAGS = " #{`pkgconf --cflags #{EXT_RUBY}/lib/pkgconfig/ruby-#{rv}.pc`.strip}"
+RUBY_CFLAGS = " #{`pkgconf --cflags /usr/local/libdata/pkgconfig/ruby-#{rv}.pc`.strip}"
 # Ruby 2.1.2 with RVM has a bug. Workaround or wait for perfection?
-rlib = `pkgconf --libs #{EXT_RUBY}/lib/pkgconfig/ruby-#{rv}.pc`.strip
+rlib = `pkgconf --libs /usr/local/libdata/pkgconfig/ruby-#{rv}.pc`.strip
 # 2.2.3 is missing  -L'$${ORIGIN}/../lib' in LIBRUBYARG_SHARED in .pc
 if !rlib[/\-L/]
   #puts "missing -L in #{rlib}" 

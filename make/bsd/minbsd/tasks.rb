@@ -46,9 +46,9 @@ class MakeBSD
   
     # this is called from the file task based new_builder
     def new_so (name) 
-      tgts = name.split('/')
-      tgtd = tgts[0]
-      $stderr.puts "new_so: #{tgtd}"
+      tgts = File.expand_path(name)
+      tgtd = File.dirname(name)
+      $stderr.puts "new_so: #{tgtd} from #{tgts}"
       objs = []
       SubDirs.each do |f|
         d = File.dirname(f)
@@ -62,10 +62,10 @@ class MakeBSD
     end
     
     def new_link name
-       tgts = name.split('/')
-       tgtd = tgts[0]
-       $stderr.puts "new_link: #{tgtd}"
-       sh "#{CC} -o #{tgts[0]}/shoes  #{TGT_DIR}/#{APP['Bld_Tmp']}/main.o #{tgtd}/shoes.lib #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
+      tgts = File.expand_path(name)
+      tgtd = File.dirname(name)
+      $stderr.puts "new_link: #{tgtd} from #{name}"
+      sh "#{CC} -o #{TGT_DIR}/shoes  #{TGT_DIR}/#{APP['Bld_Tmp']}/main.o #{TGT_DIR}/shoes.lib #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
     end
 
     def make_installer
@@ -90,21 +90,21 @@ class MakeBSD
         rm_r hdir
       end
       mkdir_p hdir
-      cp_r  "fonts", "#{hdir}/fonts"
-      cp_r  "samples", "#{hdir}/samples"
-      cp_r  "static", "#{hdir}/static"
-      cp    "README.md", "#{hdir}/README.txt"
-      cp    "CHANGELOG", "#{hdir}/CHANGELOG.txt"
-      cp    "COPYING", "#{hdir}/COPYING.txt"
-      cp    "VERSION.txt", "#{hdir}"
-      cp "dist/shoes" , "#{hdir}"
-      #cp "Shoes.desktop",  "#{hdir}"
+      cp_r  "#{TGT_DIR}/fonts", "#{hdir}/fonts"
+      cp_r  "#{TGT_DIR}/samples", "#{hdir}/samples"
+      cp_r  "#{TGT_DIR}/static", "#{hdir}/static"
+      cp    "#{TGT_DIR}/README.md", "#{hdir}/README.txt"
+      cp    "#{TGT_DIR}/CHANGELOG", "#{hdir}/CHANGELOG.txt"
+      cp    "#{TGT_DIR}/COPYING", "#{hdir}/COPYING.txt"
+      cp    "#{TGT_DIR}/VERSION.txt", "#{hdir}"
+      cp    "#{TGT_DIR}/shoes" , "#{hdir}"
+      cp    "#{TGT_DIR}/shoes.lib",hdir
       mkdir_p "#{hdir}/lib"
-      sh "cp -r dist/lib/ruby #{hdir}/lib"
+      #sh "cp -r #{TGT_DIR}/lib/ruby #{hdir}/lib"
       # bit of a hack here. Don't copy symlinks in dist/lib
-      sh "cp -r lib/shoes #{hdir}/lib"
-      sh "cp -r lib/shoes.rb #{hdir}/lib/"
-      sh "cp -r lib/exerb #{hdir}/lib"
+      sh "cp -r #{TGT_DIR}/lib/shoes #{hdir}/lib"
+      sh "cp -r #{TGT_DIR}/lib/shoes.rb #{hdir}/lib/"
+      sh "cp -r #{TGT_DIR}/lib/exerb #{hdir}/lib"
       Dir.chdir hdir do
         make_desktop 
         make_uninstall_script
@@ -141,7 +141,7 @@ class MakeBSD
     
     def make_uninstall_script
       File.open("shoes-uninstall.sh", 'w') do |f|
-        f << "#!/bin/bash\n"
+        f << "#!/usr/bin/env bash\n"
         f << "#pwd\n"
         f << "cd $HOME/.shoes/#{APP['NAME']}\n"
         f << "xdg-desktop-menu uninstall Shoes.remove.desktop\n"
@@ -155,7 +155,7 @@ class MakeBSD
     # Note: this is different from make_install script for Tight Shoes
     def make_install_script
       File.open("shoes-install.sh", 'w') do |f|
-        f << "#!/bin/bash\n"
+        f << "#!/usr/bin/env bash\n"
         f << "#pwd\n"
         f << "ddir=$HOME/.shoes/#{APP['NAME']}\n"
         f << "cd $ddir\n"

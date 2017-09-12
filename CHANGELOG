@@ -3,21 +3,40 @@
   from the internet. He went walkabout! We changed some icons and backgrounds
   to relect that whimsical theme.  
   
-  Walkabout (3.3) will be less compatible with the unmaintained 3.1 and with 4.0 (jRuby)
+  Walkabout (3.3+) will be less compatible with the unmaintained 3.1 and with 4.0 (jRuby)
   We have interesting ideas of we what we do with Shoes that may be difficult
   to immplememt in Shoes 4. 
  
 -------------- Shoes 3.3.4 ---------------------------------  
+
 === New with 3.3.4
-  * Uses Ruby 2.3.4 (2.3.3 on Windows) Rubygems 2.6.12
+  * Uses Ruby 2.3.4 (2.3.3 on Windows) and Rubygems 2.6.12+
+    https://github.com/Shoes3/shoes3/issues/361 and
+    https://github.com/Shoes3/shoes3/issues/270
+  * New widget! - systray sends tiny status messages to the 
+    host OS desktop.
+    https://github.com/Shoes3/shoes3/issues/363
+  * New platform - freebsd 11.1 (64). Can build, run, install and package for.
+    https://github.com/Shoes3/shoes3/issues/365
+  * Dead platform - 32 bit i686 (Linux intel) target is no longer supported
+  * libcurl.dll/dylib/so and new gems are included with Shoes. require 'typhoeus'
+    to use it. When net/http and open_uri is too confusing, arcane and limiting. 
+    On Windows it's not faster (or slower) - just better in other ways. 
+    see https://github.com/typhoeus/typhoeus
   
 === Fixed with 3.3.4
-  * When Shoes is installed on system with existing rvm/rbenv it
+  * When Shoes is installed on a system with existing rvm/rbenv it
     might use the wrong set of gems. 
+  * Fixed some SSL issues for download and image (Windows).
+    Ruby/Windows (net/http) ssl problems remain unfixed.
+  * Improved Windows downloading speed - still sub-par but better than
+    before. 
 
 === Developer issues with 3.3.4
   * rake does a better job of dealing with changes in lib/shoes/*.rb, static/manual-en.txt
     and changes in samples/*/*.rb. You can change these without a full rebuild.
+    https://github.com/Shoes3/shoes3/issues/362
+  * new freebsd target
     
 -------------- Shoes 3.3.3 ---------------------------------
 
@@ -63,7 +82,7 @@
     see https://github.com/Shoes3/shoes3/issues/320
   * Chipmunk and Sqlite are now real gems, maintained by others. Shoes
     no longer has exts nor the pseudo gems: ftsearch, chipmunk, sqlite3, hpricot.
-    Newer sqlite3 & chipmunk gems are included as a real gems.
+    Newer sqlite3 & chipmunk gems are included as real gems.
   ** Major restucturing of C source code. 
     Less monolithic, more files but smaller files.
     https://github.com/Shoes3/shoes3/issues/333

@@ -379,12 +379,12 @@ end
 
 desc "Install Shoes in your ~/.shoes Directory"
 task  :install do
-  if CROSS
-     puts "Sorry. You can't do an install of your source built Shoes"
-     puts "when crosscompiling is setup."
+  if ! (TGT_DIR[/minlin/] || TGT_DIR[/minbsd/])
+     puts "Sorry. You can't do an install of your source built Tight Shoes"
+     puts "  Install the 'rake package' distro just like a user does."
   else
-    create_version_file 'VERSION.txt'
-    Builder.copy_files_to_dist
+    create_version_file "#{TGT_DIR}/VERSION.txt"
+    #Builder.copy_files_to_dist
     Builder.make_userinstall
   end
 end
