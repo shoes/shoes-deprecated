@@ -58,10 +58,6 @@ else
   $:.unshift DIR+"/lib/ruby/#{rv}/#{RbConfig::CONFIG['arch']}"
   $:.unshift DIR+"/lib/ruby/#{rv}"
   $:.unshift DIR+"/lib/shoes"
-  # May encounter ENV['GEM_PATH'] in the wild.
-  #if ENV['GEM_PATH']
-  #  ENV['GEM_PATH'].split(':').each {|p| $:.unshift p }
-  #end
 end
 
 CACHE_DIR = File.join(LIB_DIR, '+cache')
@@ -134,10 +130,33 @@ else # Loose Shoes
   # 'rubylibprefix' then 'libdir' for gem's rb and so
   # FIXME -  lib/shoes/setup.rb uses GEM_DIR and GEM_CENTRAL_DIR 
   # Set this to where the users/system Ruby keeps things.
+  # TODO: assumes rvm or system ruby BUT system ruby could be RVM
+  #       doesn't deal with rbenv setup
   if ENV['GEM_HOME'] && ENV['GEM_HOME'] =~ /home\/.*\/.rvm/
-	GEM_CENTRAL_DIR = GEM_DIR =  ENV['GEM_HOME']
+	  GEM_CENTRAL_DIR = GEM_DIR =  ENV['GEM_HOME']
   else
-    puts "Please set GEM_HOME env var or use rvm"
+    # here from a Menu launch of a loose shoes -- GEM_HOME/PATH does not exist
+    # only minlin and minbsd can do this - they probably shouldn't attempt it, but still?
+    # Guess where the gems are
+    gp = ""
+    binloc = RbConfig::CONFIG['prefix']
+    rbv = RbConfig::CONFIG['ruby_version']
+    if binloc =~ /home\/.*\/.rvm/
+      gp = "#{ENV['HOME']}/.rvm/gems/ruby-#{RUBY_VERSION}"
+    elsif binloc =~ /\/usr\//
+      # ruby is installed in system dirs
+      gp = "#{binloc}/lib/ruby/gems/#{rbv}"
+    else
+      gp = "Missing"
+    end
+    ENV['GEM_HOME'] = gp
+    ENV['GEM_PATH'] = "#{gp}:#{gp}@global"
+    debug "Trying to use GEM_PATH: #{ENV['GEM_PATH']}}"
+    GEM_CENTRAL_DIR = GEM_DIR = ENV['GEM_HOME']
+    ENV['GEM_PATH'].split(':').each {|p| $:.unshift p }
+    debug "#{$:.inspect}"
+    Gem.use_paths(GEM_DIR, [GEM_DIR, GEM_CENTRAL_DIR])
+    Gem.refresh
   end
 end
 # find vlc libs

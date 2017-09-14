@@ -9,7 +9,9 @@ module Make
   # careful. Only Link to FILES, not to directories. Fileutils.ln_s may
   # not be the same as linux ln -s. 
   def static_setup (solocs)
-    puts "setup: #{pwd}"
+    srcloc= `pwd`.strip
+    puts "setup: #{srcloc}"
+=begin
     mkdir_p "#{TGT_DIR}/lib/shoes"
     Dir.chdir "#{TGT_DIR}/lib/shoes" do
       Dir["../../../lib/shoes/*.rb"].each do |f|
@@ -37,9 +39,16 @@ module Make
     Dir.chdir "#{TGT_DIR}" do
       ln_s  "../static",  "." unless File.symlink? 'static'
     end
-
     cp    "README.md", "#{TGT_DIR}/README.txt"
     cp    "CHANGELOG", "#{TGT_DIR}/CHANGELOG.txt"
     cp    "COPYING", "#{TGT_DIR}/COPYING.txt"
+=end
+    ln_s "#{srcloc}/lib", TGT_DIR
+    ln_s "#{srcloc}/samples", TGT_DIR
+    ln_s "#{srcloc}/static",  TGT_DIR
+    ln_s "#{srcloc}/fonts", TGT_DIR
+    cp    "README.md", TGT_DIR
+    cp    "CHANGELOG", TGT_DIR
+    cp    "COPYING", TGT_DIR
   end
 end
