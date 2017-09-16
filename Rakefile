@@ -273,7 +273,7 @@ task "shoes/version.h" do |t|
     f << "#define SHOES_VERSION_REVISION #{APP['REVISION']}\n"
     f << "#define SHOES_VERSION_DATE \"#{APP['DATE']}\"\n"
     f << "#define SHOES_VERSION_PLATFORM \"#{APP['PLATFORM']}\"\n"
-    if CROSS && TGT_DIR != 'minlin'
+    if CROSS && (!TGT_DIR[/minlin/] &&  !TGT_DIR[/minbsd/])
       f << "#define SHOES_STYLE \"TIGHT_SHOES\"\n\n"
     else
       f << "#define SHOES_STYLE \"LOOSE_SHOES\"\n\n"

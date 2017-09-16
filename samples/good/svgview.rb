@@ -49,7 +49,7 @@ Shoes.app width: 500, height: 610, title: "SVG Viewer" do
       end
 
       button "Paris Cards" do
-        fpath = Shoes::RELEASE_TYPE =~ /TIGHT/ ? "#{DIR}/samples/good/paris.svg" : "#{DIR}/../samples/good/paris.svg"
+        fpath = Shoes::RELEASE_TYPE =~ /TIGHT/ ? "#{DIR}/samples/good/paris.svg" : "#{DIR}/samples/good/paris.svg"
 
         if File.exist? fpath
           show_svg(fpath)

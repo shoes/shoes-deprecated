@@ -1,6 +1,6 @@
 require 'fileutils'
 include FileUtils
-# add it download.rb monkey patches Shoes download -replaces curl
+# download.rb monkey patches Shoes download -replaces curl
 require_relative 'download.rb'
 # locate ~/.shoes
 require 'tmpdir'
@@ -127,34 +127,34 @@ if tight_shoes
   end
 else # Loose Shoes
   ShoesGemJailBreak = true
-  # 'rubylibprefix' then 'libdir' for gem's rb and so
-  # FIXME -  lib/shoes/setup.rb uses GEM_DIR and GEM_CENTRAL_DIR 
-  # Set this to where the users/system Ruby keeps things.
+  # NOTE -  lib/shoes/setup.rb uses GEM_DIR and GEM_CENTRAL_DIR 
+  #   GEM_DIR would point to ~/.shoes/+gem and we don't want that 
+  #   GEM_CENTRAL_DIR points to Ruby's gems
   # TODO: assumes rvm or system ruby BUT system ruby could be RVM
-  #       doesn't deal with rbenv setup
+  #       Doesn't deal with rbenv setups
   if ENV['GEM_HOME'] && ENV['GEM_HOME'] =~ /home\/.*\/.rvm/
 	  GEM_CENTRAL_DIR = GEM_DIR =  ENV['GEM_HOME']
   else
-    # here from a Menu launch of a loose shoes -- GEM_HOME/PATH does not exist
+    # here from a Menu launch of a loose shoes -- GEM_HOME, GEM_PATH do not exist
     # only minlin and minbsd can do this - they probably shouldn't attempt it, but still?
-    # Guess where the gems are
-    gp = ""
+    # We guess where the gems are
+    gp = ""  #path to rubygems internal store
     binloc = RbConfig::CONFIG['prefix']
     rbv = RbConfig::CONFIG['ruby_version']
     if binloc =~ /home\/.*\/.rvm/
       gp = "#{ENV['HOME']}/.rvm/gems/ruby-#{RUBY_VERSION}"
     elsif binloc =~ /\/usr\//
-      # ruby is installed in system dirs
+      # ruby is installed in system dirs - bsd? 
       gp = "#{binloc}/lib/ruby/gems/#{rbv}"
     else
       gp = "Missing"
     end
-    ENV['GEM_HOME'] = gp
-    ENV['GEM_PATH'] = "#{gp}:#{gp}@global"
-    debug "Trying to use GEM_PATH: #{ENV['GEM_PATH']}}"
-    GEM_CENTRAL_DIR = GEM_DIR = ENV['GEM_HOME']
-    ENV['GEM_PATH'].split(':').each {|p| $:.unshift p }
-    debug "#{$:.inspect}"
+    #debug "Trying to use #{gp} and #{ip}"
+    GEM_CENTRAL_DIR = GEM_DIR = gp # don't use ~/.shoes/+gem/
+    Dir[GEM_CENTRAL_DIR + "/gems/*"].each do |gdir|
+      #debug "adding to loadpath: #{gdir}"
+      $: << "#{gdir}/lib"
+    end
     Gem.use_paths(GEM_DIR, [GEM_DIR, GEM_CENTRAL_DIR])
     Gem.refresh
   end
