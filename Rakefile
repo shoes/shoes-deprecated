@@ -377,7 +377,7 @@ task :new_build => "#{TGT_DIR}/libshoes.#{DLEXT}"  do
   Builder.new_link "#{TGT_DIR}/shoes"
 end
 
-desc "Install Shoes in your ~/.shoes Directory"
+desc "Not Recommended! Install min Shoes in your ~/.shoes Directory"
 task  :install do
   if ! (TGT_DIR[/minlin/] || TGT_DIR[/minbsd/])
      puts "Sorry. You can't do an install of your source built Tight Shoes"
