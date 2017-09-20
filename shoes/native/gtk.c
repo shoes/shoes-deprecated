@@ -1000,8 +1000,12 @@ gboolean shoes_button_gtk_clicked(GtkButton *button, gpointer data) {
 }
 
 SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg) {
+    char *fntstr = NULL;
     SHOES_CONTROL_REF ref = gtk_button_alt_new_with_label(_(msg));
-
+    if (!NIL_P(shoes_hash_get(attr, rb_intern("font")))) {
+      fntstr = RSTRING_PTR(shoes_hash_get(attr, rb_intern("font")));
+      fprintf(stderr, "%s\n", fntstr);
+    }
     if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
         gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));
     }
