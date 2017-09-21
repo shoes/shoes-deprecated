@@ -1001,11 +1001,57 @@ gboolean shoes_button_gtk_clicked(GtkButton *button, gpointer data) {
 
 SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg) {
     char *fntstr = NULL;
-    SHOES_CONTROL_REF ref = gtk_button_alt_new_with_label(_(msg));
+    VALUE fgclr = NULL; // Could be hex color or name
+    VALUE bgclr = NULL; // "     " or range (ick)
+    //SHOES_CONTROL_REF ref = gtk_button_alt_new_with_label(_(msg));
+    GtkWidget *glabel = NULL; 
+    SHOES_CONTROL_REF ref = gtk_button_alt_new();
     if (!NIL_P(shoes_hash_get(attr, rb_intern("font")))) {
       fntstr = RSTRING_PTR(shoes_hash_get(attr, rb_intern("font")));
-      fprintf(stderr, "%s\n", fntstr);
+      //fprintf(stderr, "%s\n", fntstr);
+    } else {
+      fntstr = "Arial";
+    } 
+    if (!NIL_P(shoes_hash_get(attr, rb_intern("stroke")))) {
+      fgclr = shoes_hash_get(attr, rb_intern("stroke"));
+      //fprintf(stderr, "found stroke\n");
     }
+    if (!NIL_P(shoes_hash_get(attr, rb_intern("fill")))) {
+      bgclr = shoes_hash_get(attr, rb_intern("fill"));
+      //fprintf(stderr, "found fill\n");
+    } 
+
+    glabel = gtk_label_new(NULL);
+    PangoAttribute *pattr = NULL;
+    PangoAttrList *plist = pango_attr_list_new ();
+    PangoFontDescription *fontdesc = NULL;
+    fontdesc = pango_font_description_from_string(fntstr);
+    pattr = pango_attr_font_desc_new(fontdesc);
+    pango_attr_list_insert (plist, pattr);
+    // deal with stroke attr here
+    gtk_label_set_attributes((GtkLabel *)glabel, plist);
+    
+    gtk_label_set_text((GtkLabel *)glabel, msg);
+    // Finally, we add the GtkLabel to the Gtk_Button 
+    gtk_container_add ((GtkContainer *)ref, (GtkWidget *)glabel);
+    // apply fill settings
+    if (! NIL_P(bgclr)) {
+      GdkRGBA gcolor; 
+      if (TYPE(bgclr) == T_STRING) 
+        bgclr = shoes_color_parse(cColor, bgclr);  // convert string to cColor
+      if (rb_obj_is_kind_of(bgclr, cColor)) 
+      { 
+        shoes_color *color; 
+        Data_Get_Struct(bgclr, shoes_color, color); 
+        gcolor.red = color->r * 255;
+        gcolor.green = color->g * 255;
+        gcolor.blue = color->b * 255;
+        gcolor.alpha = color->a * 255;
+      } 
+      // deprecated: gtk_widget_modify_bg ( GTK_WIDGET(ref), GTK_STATE_NORMAL, &color);
+      gtk_widget_override_background_color( GTK_WIDGET(ref), GTK_STATE_NORMAL, &gcolor);
+    }
+    
     if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
         gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));
     }
