@@ -1454,9 +1454,47 @@ shoes_native_surface_remove(SHOES_SURFACE_REF ref)
 SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
   INIT;
+  char *fntstr = 0;
+  VALUE fgclr = Qnil; // Could be hex color or name
+  //VALUE icon = Qnil;
+  NSString *ffamily;
+  NSString *fstyle;
+  NSInteger fsize;
+  NSArray *fontsettings;
   ShoesButton *button = [[ShoesButton alloc] initWithType: NSMomentaryPushInButton
-    andObject: self];
-  [button setTitle: [NSString stringWithUTF8String: msg]];
+      andObject: self];
+  if (!NIL_P(shoes_hash_get(attr, rb_intern("font")))) {
+    fntstr = RSTRING_PTR(shoes_hash_get(attr, rb_intern("font")));
+    // TODO: need a helper to parse into a FontDescripter and deal with missing parts
+    NSString *fstr = [NSString stringWithUTF8String: fntstr];
+    fontsettings = [fstr componentsSeparatedByString:@" "]; 
+    //testing: must have all three
+    ffamily = fontsettings[0];
+    fstyle = fontsettings[1];
+    fsize = [fontsettings[2] integerValue];
+  }
+  if (!NIL_P(shoes_hash_get(attr, rb_intern("stroke")))) {
+    fgclr = shoes_hash_get(attr, rb_intern("stroke"));
+  }
+ 
+  if (fntstr || !NIL_P(fgclr)) {
+    NSString *title = [NSString stringWithUTF8String: msg];
+    NSFont *font = [NSFont fontWithName: ffamily size: fsize];
+    NSDictionary *attrsDictionary = [NSDictionary dictionaryWithObject:font
+        forKey:NSFontAttributeName];
+    NSAttributedString *attrString = [[NSAttributedString alloc] initWithString:title
+        attributes:attrsDictionary];
+    [button setAttributedTitle : attrString];
+  } else {
+    [button setTitle: [NSString stringWithUTF8String: msg]];
+  }
+  // Do we have an icon? 
+  if (!NIL_P(shoes_hash_get(attr, rb_intern("icon")))) {
+    char *cpath = RSTRING_PTR(shoes_hash_get(attr, rb_intern("icon")));
+    NSString *ipath = [NSString stringWithUTF8String: cpath];
+    NSImage *icon =  [[NSImage alloc] initWithContentsOfFile: ipath];
+    [button setImage: icon];
+  }
   RELEASE;
   return (NSControl *)button;
 }

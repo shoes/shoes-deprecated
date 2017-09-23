@@ -1060,12 +1060,11 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
     // Finally, we add the GtkLabel to the Gtk_Button 
     gtk_container_add ((GtkContainer *)ref, (GtkWidget *)glabel);
     if (gimage) {
-      gtk_button_set_image_position(ref, GTK_POS_LEFT);
       gtk_button_set_image(ref, gimage);
-      //gtk_button_set_always_show_image(ref, TRUE);
+      gtk_button_set_image_position(ref, GTK_POS_RIGHT);
+      gtk_button_set_always_show_image(ref, TRUE);
     }
 
-    
     if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
         gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));
     }
