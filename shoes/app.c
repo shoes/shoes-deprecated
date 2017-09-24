@@ -180,6 +180,17 @@ VALUE shoes_app_set_icon(VALUE app, VALUE icon_path) {
     return Qtrue;
 }
 
+VALUE shoes_app_resize_window(VALUE app, VALUE width, VALUE height) {
+    shoes_app *app_t;
+    Data_Get_Struct(app, shoes_app, app_t);
+
+    app_t->width = NUM2INT(width);
+    app_t->height = NUM2INT(height);
+
+    shoes_native_app_resize_window(app_t);
+    return Qtrue;
+}
+
 VALUE shoes_app_set_wtitle(VALUE app, VALUE title) {
     shoes_app *app_t;
     char *wtitle;

@@ -649,6 +649,12 @@ void shoes_native_app_title(shoes_app *app, char *msg) {
     gtk_window_set_title(GTK_WINDOW(app->os.window), _(msg));
 }
 
+void shoes_native_app_resize_window(shoes_app *app) {
+    if (app->os.window != NULL) {
+        gtk_window_resize(GTK_WINDOW(app->os.window), app->width, app->height);
+    }
+}
+
 void shoes_native_app_fullscreen(shoes_app *app, char yn) {
     gtk_window_set_keep_above(GTK_WINDOW(app->os.window), (gboolean)yn);
     if (yn)
