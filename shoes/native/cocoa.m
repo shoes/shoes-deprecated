@@ -1456,11 +1456,11 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
   INIT;
   char *fntstr = 0;
   VALUE fgclr = Qnil; // Could be hex color or name
-  //VALUE icon = Qnil;
-  NSString *ffamily;
-  NSString *fstyle;
-  NSInteger fsize;
+  //NSString *ffamily;
+  //NSString *fstyle;
+  NSInteger fsize = 0;
   NSArray *fontsettings;
+  NSMutableString *fontname = [[NSMutableString alloc] initWithCapacity: 40];
   ShoesButton *button = [[ShoesButton alloc] initWithType: NSMomentaryPushInButton
       andObject: self];
   if (!NIL_P(shoes_hash_get(attr, rb_intern("font")))) {
@@ -1468,24 +1468,61 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
     // TODO: need a helper to parse into a FontDescripter and deal with missing parts
     NSString *fstr = [NSString stringWithUTF8String: fntstr];
     fontsettings = [fstr componentsSeparatedByString:@" "]; 
-    //testing: must have all three
-    ffamily = fontsettings[0];
-    fstyle = fontsettings[1];
-    fsize = [fontsettings[2] integerValue];
+    // in OSX there is font name - may include Bold etc, and size
+    int cnt = fontsettings.count;
+    fsize = [fontsettings[cnt-1] integerValue];
+    if (fsize > 0 && fsize < 24)  {
+      //we probably have a size spec - everything before that is fontname
+      int i;
+      for (i = 0; i < cnt-1; i++) {
+       [fontname appendString: fontsettings[i]];
+       if (i < cnt-2) {
+         [fontname appendString:@" "];
+       }
+      }
+    } else {
+      // have to assume they didn't give a point size so 
+      [fontname  appendString: fstr];
+      fsize = 10;
+    }
   }
   if (!NIL_P(shoes_hash_get(attr, rb_intern("stroke")))) {
     fgclr = shoes_hash_get(attr, rb_intern("stroke"));
   }
  
   if (fntstr || !NIL_P(fgclr)) {
+    NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity: 5];
     NSString *title = [NSString stringWithUTF8String: msg];
-    NSFont *font = [NSFont fontWithName: ffamily size: fsize];
-    NSDictionary *attrsDictionary = [NSDictionary dictionaryWithObject:font
-        forKey:NSFontAttributeName];
+    if (fntstr) {
+      NSFont *font = [NSFont fontWithName: fontname size: fsize];
+      [dict setObject: font forKey: NSFontAttributeName];
+      // Center the text of Attributed String in NSButton is more work
+      NSMutableParagraphStyle *centredStyle = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease];
+      [centredStyle setAlignment:NSCenterTextAlignment];
+      [dict setObject: centredStyle forKey: NSParagraphStyleAttributeName];
+    }
+    if (! NIL_P(fgclr)) {
+      // convert Shoes color to NSColor
+      if (TYPE(fgclr) == T_STRING) 
+        fgclr = shoes_color_parse(cColor, fgclr);  // convert string to cColor
+      if (rb_obj_is_kind_of(fgclr, cColor)) 
+      { 
+        shoes_color *color; 
+        Data_Get_Struct(fgclr, shoes_color, color); 
+        CGFloat rg = (CGFloat)color->r / 255;
+        CGFloat gb = (CGFloat)color->g / 255;
+        CGFloat bb = (CGFloat)color->b / 255;
+        NSColor *clr = [NSColor colorWithCalibratedRed: rg green: gb blue: bb alpha: 1.0];
+        // add to dict with setValue x forKey NSForegroundColorAttribute
+        [dict setObject: clr forKey: NSForegroundColorAttributeName];
+      }
+    }
+    //Connect dict to title
     NSAttributedString *attrString = [[NSAttributedString alloc] initWithString:title
-        attributes:attrsDictionary];
+        attributes: dict];  
     [button setAttributedTitle : attrString];
   } else {
+    // this is the normal Shoes button
     [button setTitle: [NSString stringWithUTF8String: msg]];
   }
   // Do we have an icon? 
@@ -1494,7 +1531,15 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
     NSString *ipath = [NSString stringWithUTF8String: cpath];
     NSImage *icon =  [[NSImage alloc] initWithContentsOfFile: ipath];
     [button setImage: icon];
+    [button setImagePosition: NSImageLeft];
   }
+  // Tooltip
+  VALUE vtip = shoes_hash_get(attr, rb_intern("tooltip"));
+  if (! NIL_P(vtip)) {
+    char *cstr = RSTRING_PTR(vtip);
+    NSString *tip = [NSString stringWithUTF8String: cstr];
+    [button setToolTip:tip];
+  } 
   RELEASE;
   return (NSControl *)button;
 }
