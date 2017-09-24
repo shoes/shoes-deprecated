@@ -31,7 +31,7 @@ compatible with Shoes 4.
 * Video widgets work again. Dependent on all kinds of thing Shoes can't
   control.
   
-Shoes 3.3.2 - Not released yet, but [beta's exist](http://walkabout.mvmanila.com/public/shoes/)
+Shoes 3.3.4 - Not released yet, but [beta's exist](http://walkabout.mvmanila.com/public/shoes/)
 
 Remember, no one is happy if the Shoes don't fit so [report your bug.](https://github.com/Shoes3/shoes3/issues)
   
