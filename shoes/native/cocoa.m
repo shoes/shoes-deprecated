@@ -1455,14 +1455,17 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
 {
   INIT;
   char *fntstr = 0;
-  VALUE fgclr = Qnil; // Could be hex color or name
-  //NSString *ffamily;
-  //NSString *fstyle;
+  VALUE fgclr = Qnil; // Could be hex color string or Shoes color object
+  VALUE lblposv = Qnil;
   NSInteger fsize = 0;
   NSArray *fontsettings;
+  NSCellImagePosition imgpos = NSImageLeft;
   NSMutableString *fontname = [[NSMutableString alloc] initWithCapacity: 40];
+  
   ShoesButton *button = [[ShoesButton alloc] initWithType: NSMomentaryPushInButton
       andObject: self];
+      
+  // get the Shoes attributes 
   if (!NIL_P(shoes_hash_get(attr, rb_intern("font")))) {
     fntstr = RSTRING_PTR(shoes_hash_get(attr, rb_intern("font")));
     // TODO: need a helper to parse into a FontDescripter and deal with missing parts
@@ -1489,12 +1492,33 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
   if (!NIL_P(shoes_hash_get(attr, rb_intern("stroke")))) {
     fgclr = shoes_hash_get(attr, rb_intern("stroke"));
   }
- 
+  
+  lblposv = shoes_hash_get(attr, rb_intern("titlepos"));
+  // Ponder. Title vs Image 'left' means title on left, the image
+  if (lblposv != Qnil) {
+    char *lblp = RSTRING_PTR(lblposv);
+    if ( !msg || (strcmp(lblp, "none") == 0)) 
+      imgpos = NSImageOnly;
+    else if (strcmp(lblp, "left") == 0)
+      imgpos = NSImageRight;
+    else if (strcmp(lblp, "right") == 0)
+      imgpos =  NSImageLeft;
+    else if (strcmp(lblp, "top") == 0)
+      imgpos = NSImageBelow;
+    else if (strcmp(lblp, "bottom") == 0)
+      imgpos = NSImageAbove;
+    else 
+       // rb_raise? 
+      imgpos = NSImageLeft;
+  }
+  
   if (fntstr || !NIL_P(fgclr)) {
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity: 5];
     NSString *title = [NSString stringWithUTF8String: msg];
     if (fntstr) {
       NSFont *font = [NSFont fontWithName: fontname size: fsize];
+      if (font == nil) 
+        rb_raise(rb_eArgError, "Font \"%s\" not found", fntstr);
       [dict setObject: font forKey: NSFontAttributeName];
       // Center the text of Attributed String in NSButton is more work
       NSMutableParagraphStyle *centredStyle = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease];
@@ -1517,6 +1541,7 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
         [dict setObject: clr forKey: NSForegroundColorAttributeName];
       }
     }
+   
     //Connect dict to title
     NSAttributedString *attrString = [[NSAttributedString alloc] initWithString:title
         attributes: dict];  
@@ -1531,7 +1556,12 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
     NSString *ipath = [NSString stringWithUTF8String: cpath];
     NSImage *icon =  [[NSImage alloc] initWithContentsOfFile: ipath];
     [button setImage: icon];
-    [button setImagePosition: NSImageLeft];
+    // do we have an explictt setting of title vs icon setting?
+    if (lblposv != Qnil) {
+      [button setImagePosition: imgpos];
+    } else {
+     [button setImagePosition: NSImageLeft];
+    }
   }
   // Tooltip
   VALUE vtip = shoes_hash_get(attr, rb_intern("tooltip"));

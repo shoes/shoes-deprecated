@@ -1,7 +1,7 @@
-Shoes.app width: 300, height: 200 do
+Shoes.app width: 600, height: 400 do
   stack do
+    para "Quick fun"
     flow do
-      #button "Button", font: "mono bold 14",width: 200, stroke: red,
       button "Button", font: "Menlo Bold 14",width: 200, stroke: red,
           tooltip: "Menlo Bold 14" do
       end
@@ -9,14 +9,33 @@ Shoes.app width: 300, height: 200 do
           tooltip: "info button" do
       end
     end
-    button "Normal", tooltip: "Normal" do
+    para "What is normal?"
+    flow do
+      button "Normal", tooltip: "Normal" do end
+      button "Normal", tooltip: "Arial 12", font: "Arial 12" do end
     end
+    para "try some font names"
     flow do
       button "Curry", font: "Courier New Italic 12",
-        tooltip: "Courier New Italic 12" do
+        tooltip: "Courier New Italic 12" do end
+      button "Short", font: "Monaco 17", tooltip: "Monaco 17" do end
+    end
+    para "testing icon/title interactions"
+    flow do
+      button "left", width: 80, icon: "#{DIR}/static/icon-info.png",
+          titlepos: "left", tooltip: "title left" do
       end
-      button "Short", font: "Monaco 17", tooltip: "Monaco 17" do
+      button "only icon", width: 80, icon: "#{DIR}/static/icon-info.png",
+          titlepos: "none", tooltip: "just icon" do
       end
+      button "above", width: 80, height: 120, icon: "#{DIR}/static/icon-info.png",
+          titlepos: "top" do
+      end
+    end
+    para "testing defaults and fail - open console"
+    flow do
+      button "Fail 1", font: "Monaco" do end
+      button "Fail 2", tooltip: "unknown font", font: "missing font 12" do end
     end
   end
 end
