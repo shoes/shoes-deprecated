@@ -374,6 +374,20 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
     [self setBezelStyle: NSRoundedBezelStyle];
     [self setTarget: self];
     [self setAction: @selector(handleClick:)];
+    NSLog(@"button w/o frame called");
+ }
+  return self;
+}
+- (id)initWithType: (NSButtonType)t withFrame:(NSRect)rect andObject: (VALUE)o
+{
+  if ((self = [super initWithFrame: rect]))
+  {
+    object = o;
+    [self setButtonType: t];
+    [self setBezelStyle: NSRoundedBezelStyle];
+    [self setTarget: self];
+    [self setAction: @selector(handleClick:)];
+    NSLog(@"button with frame w: %f h: %f\n", NSWidth(rect), NSHeight(rect));
   }
   return self;
 }
@@ -1460,10 +1474,15 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
   NSInteger fsize = 0;
   NSArray *fontsettings;
   NSCellImagePosition imgpos = NSImageLeft;
-  NSMutableString *fontname = [[NSMutableString alloc] initWithCapacity: 40];
   
+  NSMutableString *fontname = [[NSMutableString alloc] initWithCapacity: 40];
+  NSRect reqsize = NSMakeRect(place->ix + place->dx, place->iy + place->dy,
+      place->ix + place->dx + place->iw, place->iy + place->dy + place->ih);
+      
+  //ShoesButton *button = [[ShoesButton alloc] initWithType: NSMomentaryPushInButton
+  //    andObject: self];
   ShoesButton *button = [[ShoesButton alloc] initWithType: NSMomentaryPushInButton
-      andObject: self];
+     withFrame: reqsize andObject: self];
       
   // get the Shoes attributes 
   if (!NIL_P(shoes_hash_get(attr, rb_intern("font")))) {
