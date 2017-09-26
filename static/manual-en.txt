@@ -5239,6 +5239,13 @@ Parenthesis are required.
 Returns the Shoes url. Be careful. It's a shoes-url so it might not be what
 you think.
 
+=== app.resize width, height » boolean ===
+
+Change the size of the window. You don't want to increase beyond your or
+your users screen size - That could be a problem (crash?).  Also it can misbehave if 
+you shrink it smaller than the original creation size. Always returns True 
+but there is no error checking. Use cautiously.
+
 === app.started? » boolean ===
 
 Is the app completely initiailized? 

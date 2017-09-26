@@ -639,10 +639,10 @@ done:
     return SHOES_OK;
 }
 
-void shoes_native_app_resized(shoes_app *app) {
-    // Not needed anymore ?
-    //  if (app->os.window != NULL)
-    //    gtk_widget_set_size_request(app->os.window, app->width, app->height);
+void shoes_native_app_resize_window(shoes_app *app) {
+    if (app->os.window != NULL) {
+        gtk_window_resize(GTK_WINDOW(app->os.window), app->width, app->height);
+    }
 }
 
 void shoes_native_app_title(shoes_app *app, char *msg) {

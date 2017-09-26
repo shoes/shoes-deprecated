@@ -98,10 +98,12 @@ int shoes_app_remove(shoes_app *app) {
     return (RARRAY_LEN(shoes_world->apps) == 0);
 }
 
+
 shoes_code shoes_app_resize(shoes_app *app, int width, int height) {
     app->width = width;
     app->height = height;
-    shoes_native_app_resized(app);
+    //shoes_native_app_resized(app);
+    shoes_native_app_resize_window(app);
     return SHOES_OK;
 }
 
@@ -177,6 +179,15 @@ VALUE shoes_app_set_icon(VALUE app, VALUE icon_path) {
     Data_Get_Struct(app, shoes_app, app_t);
     path = RSTRING_PTR(icon_path);
     shoes_native_app_set_icon(app_t, path);
+    return Qtrue;
+}
+
+VALUE shoes_app_resize_window(VALUE app, VALUE width, VALUE height) {
+    shoes_app *app_t;
+    Data_Get_Struct(app, shoes_app, app_t);
+    app_t->width = NUM2INT(width);
+    app_t->height = NUM2INT(height);
+    shoes_native_app_resize_window(app_t);
     return Qtrue;
 }
 

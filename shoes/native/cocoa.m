@@ -1029,7 +1029,7 @@ done:
 }
 
 void
-shoes_native_app_resized(shoes_app *app)
+shoes_native_app_resize_window(shoes_app *app)
 {
   NSRect rect = [app->os.window frame];
   rect.size.width = app->width;
