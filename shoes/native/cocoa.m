@@ -378,7 +378,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
  }
   return self;
 }
-- (id)initWithType: (NSButtonType)t withFrame:(NSRect)rect andObject: (VALUE)o
+- (id)initWithTypeF: (NSButtonType)t withFrame:(NSRect)rect andObject: (VALUE)o
 {
   if ((self = [super initWithFrame: rect]))
   {
@@ -387,7 +387,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
     [self setBezelStyle: NSRoundedBezelStyle];
     [self setTarget: self];
     [self setAction: @selector(handleClick:)];
-    NSLog(@"button with frame w: %f h: %f\n", NSWidth(rect), NSHeight(rect));
+    NSLog(@"button with frame w: %i h: %i\n", (int) NSWidth(rect), (int)NSHeight(rect));
   }
   return self;
 }
@@ -1474,15 +1474,12 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
   NSInteger fsize = 0;
   NSArray *fontsettings;
   NSCellImagePosition imgpos = NSImageLeft;
+  ShoesButton *button;
   
   NSMutableString *fontname = [[NSMutableString alloc] initWithCapacity: 40];
   NSRect reqsize = NSMakeRect(place->ix + place->dx, place->iy + place->dy,
       place->ix + place->dx + place->iw, place->iy + place->dy + place->ih);
       
-  //ShoesButton *button = [[ShoesButton alloc] initWithType: NSMomentaryPushInButton
-  //    andObject: self];
-  ShoesButton *button = [[ShoesButton alloc] initWithType: NSMomentaryPushInButton
-     withFrame: reqsize andObject: self];
       
   // get the Shoes attributes 
   if (!NIL_P(shoes_hash_get(attr, rb_intern("font")))) {
@@ -1564,9 +1561,13 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
     //Connect dict to title
     NSAttributedString *attrString = [[NSAttributedString alloc] initWithString:title
         attributes: dict];  
+    button = [[ShoesButton alloc] initWithTypeF: NSMomentaryPushInButton
+        withFrame: reqsize andObject: self];
     [button setAttributedTitle : attrString];
   } else {
     // this is the normal Shoes button
+    button = [[ShoesButton alloc] initWithType: NSMomentaryPushInButton
+        andObject: self];
     [button setTitle: [NSString stringWithUTF8String: msg]];
   }
   // Do we have an icon? 
