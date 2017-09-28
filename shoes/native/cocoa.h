@@ -30,7 +30,7 @@
   VALUE video; // shoes internal
 }
 @end
-
+/*
 @interface ShoesButton : NSButton
 {
   VALUE object;
@@ -44,7 +44,7 @@
 }
 @end
 #endif
-
+*/
 @interface ShoesTextField : NSTextField
 {
   VALUE object;

@@ -8,6 +8,7 @@
 #include "shoes/world.h"
 #include "shoes/native/native.h"
 #include "shoes/types/types.h"
+#include "shoes/native/cocoa/button.h"
 extern VALUE cTimer;
 
 #import <Carbon/Carbon.h>
@@ -364,6 +365,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 }
 @end
 
+/*
 @implementation ShoesButton
 - (id)initWithType: (NSButtonType)t andObject: (VALUE)o
 {
@@ -421,7 +423,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 @end
 
 #endif
-
+*/
 @implementation ShoesTextField
 - (id)initWithFrame: (NSRect)frame andObject: (VALUE)o
 {
@@ -1464,7 +1466,7 @@ shoes_native_surface_remove(SHOES_SURFACE_REF ref)
   COCOA_DO([(ShoesVideoView *)ref removeFromSuperview]);
 }
 
-
+/*
 SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
   INIT;
@@ -1593,6 +1595,7 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
   RELEASE;
   return (NSControl *)button;
 }
+*/
 
 SHOES_CONTROL_REF
 shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
@@ -1828,7 +1831,7 @@ shoes_native_slider_set_fraction(SHOES_CONTROL_REF ref, double perc)
 {
   COCOA_DO([(ShoesSlider *)ref setDoubleValue: perc * 100.]);
 }
-
+#if 0
 SHOES_CONTROL_REF
 shoes_native_check(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
@@ -1849,7 +1852,9 @@ shoes_native_check_set(SHOES_CONTROL_REF ref, int on)
 {
   COCOA_DO([(ShoesButton *)ref setState: on ? NSOnState : NSOffState]);
 }
+#endif
 
+#if 0
 SHOES_CONTROL_REF
 shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, VALUE group)
 {
@@ -1873,6 +1878,7 @@ shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE a
  	return (NSControl *)button;
 #endif
 }
+#endif
 
 void
 shoes_native_timer_remove(shoes_canvas *canvas, SHOES_TIMER_REF ref)

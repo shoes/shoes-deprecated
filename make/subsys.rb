@@ -44,10 +44,21 @@ nat_src = []
 nat_obj = []
 mkdir_p "#{tp}/native", verbose: false
 if RUBY_PLATFORM =~ /darwin/
+  nat_src = FileList['shoes/native/cocoa/*.m']
+  nat_src.each do |c|
+    fnm = File.basename(c,".*")
+    o = "#{tp}/native/#{fnm}.o"
+    nat_obj << o
+    h = c.gsub(/.m$/, '.h')
+    #$stderr.puts "creating rule for #{o} => #{c}"
+    file o => [c] +[h] + ["shoes/native/cocoa.h"] + Base_h do
+      sh "#{CC} -o #{o} -I. -c #{LINUX_CFLAGS} #{c}"
+    end
+  end
   file "#{tp}/native/cocoa.o" => ["shoes/native/cocoa.m", "shoes/native/cocoa.h"] + Base_h do
     sh "#{CC} -o #{tp}/native/cocoa.o -I. -c #{LINUX_CFLAGS} shoes/native/cocoa.m"
   end
-  file "#{tp}/native/zznative.done" => ["#{tp}/native/cocoa.o"] do
+  file "#{tp}/native/zznative.done" => ["#{tp}/native/cocoa.o"] + nat_obj do
     touch "#{tp}/native/zznative.done"
   end
 else
