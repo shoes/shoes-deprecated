@@ -44,7 +44,7 @@
 }
 @end
 #endif
-*/
+
 @interface ShoesTextField : NSTextField
 {
   VALUE object;
@@ -58,7 +58,7 @@
   VALUE object;
 }
 @end
-/*
+
 @interface ShoesTextView : NSScrollView
 {
 @public
@@ -106,7 +106,7 @@
   BOOL answer;
 }
 @end
-
+/*
 @interface ShoesTimer : NSObject
 {
   VALUE object;
@@ -121,6 +121,7 @@
   NSTimer *timer;
 }
 @end
+*/
 @interface ShoesNotifyDelegate : NSObject <NSApplicationDelegate, NSUserNotificationCenterDelegate>
 @end
 

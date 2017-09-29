@@ -367,124 +367,6 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 @end
 
 #if 0
-@implementation ShoesButton
-- (id)initWithType: (NSButtonType)t andObject: (VALUE)o
-{
-  if ((self = [super init]))
-  {
-    object = o;
-    [self setButtonType: t];
-    [self setBezelStyle: NSRoundedBezelStyle];
-    [self setTarget: self];
-    [self setAction: @selector(handleClick:)];
-    NSLog(@"button w/o frame called");
- }
-  return self;
-}
-- (id)initWithTypeF: (NSButtonType)t withFrame:(NSRect)rect andObject: (VALUE)o
-{
-  if ((self = [super initWithFrame: rect]))
-  {
-    object = o;
-    [self setButtonType: t];
-    [self setBezelStyle: NSRoundedBezelStyle];
-    [self setTarget: self];
-    [self setAction: @selector(handleClick:)];
-    NSLog(@"button with frame w: %i h: %i\n", (int) NSWidth(rect), (int)NSHeight(rect));
-  }
-  return self;
-}
--(IBAction)handleClick: (id)sender
-{
-  shoes_button_send_click(object);
-}
-@end
-
-#ifndef OLD_RADIO
-// TODO: Radios are pretty broken and this one is too.
-@implementation ShoesRadioButton
-- (id)initWithType: (NSButtonType)t andObject: (VALUE)o
-{
-  if ((self = [super init]))
-  {
-    object = o;
-    [self setButtonType: NSPushOnPushOffButton];  // checkbox for now
-	// [self setShoesViewPosition: NSImageOnly]; // unknown what this was supposed to do
-    [self setBezelStyle: NSCircularBezelStyle];
-    [self setTarget: self];
-    [self setAction: @selector(handleClick:)];
-  }
-  return self;
-}
--(IBAction)handleClick: (id)sender
-{
-  //NSLog(@"radio button handler called on %lx", object);
-  shoes_button_send_click(object);
-}
-@end
-
-#endif
-#endif
-#if 0
-@implementation ShoesTextField
-- (id)initWithFrame: (NSRect)frame andObject: (VALUE)o
-{
-  if ((self = [super initWithFrame: frame]))
-  {
-    object = o;
-    [self setBezelStyle: NSRegularSquareBezelStyle];
-    [self setDelegate: (id<NSTextFieldDelegate>)self];
-  }
-  //printf("Create %u\n",self);
-  return self;
-}
--(void)textDidChange: (NSNotification *)note
-{
-  //printf("didChange %u\n", self);
-  shoes_control_send(object, s_change);
-}
-
-//  Shoes4 bug860, shoes3.2 bug008
-/*
-  Pay attention to the delicate delegate dance need to implement textShouldEndEditing
-  if we implement textDidEndEditing. 'should' is called before 'end'
-*/
-
--(void)textDidEndEditing: (NSNotification *)note
-{
-    //printf("didEndEditing %u\n", self);
-	shoes_control_send(object, s_donekey);
-}
-
-// fixes bug that disappeared entered text
-- (BOOL)textShouldEndEditing:(NSText *)textObject
-{
-  NSString *tmp = [textObject string];
-  //printf("shouldEndEditing %u %s\n", self, [tmp UTF8String]);
-  // need to save the contents
-  [self setStringValue: tmp]; // yes, it seems silly but it works.
-  return YES;
-}
-@end
-
-@implementation ShoesSecureTextField
-- (id)initWithFrame: (NSRect)frame andObject: (VALUE)o
-{
-  if ((self = [super initWithFrame: frame]))
-  {
-    object = o;
-    [self setBezelStyle: NSRegularSquareBezelStyle];
-    [self setDelegate: (id<NSTextFieldDelegate>)self];
-  }
-  return self;
-}
--(void)textDidChange: (NSNotification *)n
-{
-  shoes_control_send(object, s_change);
-}
-@end
-#endif
-#if 0
 @implementation ShoesTextView
 - (id)initWithFrame: (NSRect)frame andObject: (VALUE)o
 {
@@ -578,41 +460,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 }
 @end
 #endif 
-#if 0
-@implementation ShoesPopUpButton
-- (id)initWithFrame: (NSRect)frame andObject: (VALUE)o
-{
-  if ((self = [super initWithFrame: frame pullsDown: NO]))
-  {
-    object = o;
-    [self setTarget: self];
-    [self setAction: @selector(handleChange:)];
-  }
-  return self;
-}
--(IBAction)handleChange: (id)sender
-{
-  shoes_control_send(object, s_change);
-}
-@end
 
-@implementation ShoesSlider
-- (id)initWithObject: (VALUE)o
-{
-  if ((self = [super init]))
-  {
-    object = o;
-    [self setTarget: self];
-    [self setAction: @selector(handleChange:)];
-  }
-  return self;
-}
--(IBAction)handleChange: (id)sender
-{
-  shoes_control_send(object, s_change);
-}
-@end
-#endif
 @implementation ShoesNotifyDelegate 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
@@ -1282,7 +1130,7 @@ shoes_native_canvas_resize(shoes_canvas *canvas)
   NSSize size = {canvas->width, canvas->height};
   [canvas->slot->view setFrameSize: size];
 }
-
+#if 0
 // ---- canvas oneshot new with 3.3.1 -----
 static int
 start_wait(VALUE data) {
@@ -1318,8 +1166,6 @@ start_wait(VALUE data) {
 }
 @end
 
-
-
 void
 shoes_native_canvas_oneshot(int ms, VALUE canvas)
 {
@@ -1330,6 +1176,7 @@ shoes_native_canvas_oneshot(int ms, VALUE canvas)
   RELEASE;
   //return timer;
 }
+#endif
 
 void
 shoes_native_control_hide(SHOES_CONTROL_REF ref)
@@ -1886,7 +1733,7 @@ shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE a
 #endif
 }
 #endif
-
+#if 0
 void
 shoes_native_timer_remove(shoes_canvas *canvas, SHOES_TIMER_REF ref)
 {
@@ -1902,7 +1749,7 @@ shoes_native_timer_start(VALUE self, shoes_canvas *canvas, unsigned int interval
   RELEASE;
   return timer;
 }
-
+#endif
 VALUE
 shoes_native_clipboard_get(shoes_app *app)
 {
