@@ -8,7 +8,8 @@
 #include "shoes/world.h"
 #include "shoes/native/native.h"
 #include "shoes/types/types.h"
-#include "shoes/native/cocoa/button.h"
+#include "shoes/native/cocoa/button.h" // needed? 
+#include "shoes/native/cocoa/textview.h"
 extern VALUE cTimer;
 
 #import <Carbon/Carbon.h>
@@ -365,7 +366,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 }
 @end
 
-/*
+#if 0
 @implementation ShoesButton
 - (id)initWithType: (NSButtonType)t andObject: (VALUE)o
 {
@@ -423,7 +424,8 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 @end
 
 #endif
-*/
+#endif
+#if 0
 @implementation ShoesTextField
 - (id)initWithFrame: (NSRect)frame andObject: (VALUE)o
 {
@@ -481,7 +483,8 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
   shoes_control_send(object, s_change);
 }
 @end
-
+#endif
+#if 0
 @implementation ShoesTextView
 - (id)initWithFrame: (NSRect)frame andObject: (VALUE)o
 {
@@ -531,6 +534,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 @end
 
 // new for 3.2.25 - Subclass of ShoesTextView
+
 @implementation ShoesTextEditView
 - (id)initWithFrame: (NSRect)frame andObject: (VALUE)o
 {
@@ -573,8 +577,8 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
   shoes_control_send(object, s_change);
 }
 @end
-
-
+#endif 
+#if 0
 @implementation ShoesPopUpButton
 - (id)initWithFrame: (NSRect)frame andObject: (VALUE)o
 {
@@ -608,7 +612,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
   shoes_control_send(object, s_change);
 }
 @end
-
+#endif
 @implementation ShoesNotifyDelegate 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
@@ -1466,7 +1470,7 @@ shoes_native_surface_remove(SHOES_SURFACE_REF ref)
   COCOA_DO([(ShoesVideoView *)ref removeFromSuperview]);
 }
 
-/*
+#if 0
 SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
   INIT;
@@ -1595,8 +1599,8 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
   RELEASE;
   return (NSControl *)button;
 }
-*/
-
+#endif
+#if 0
 SHOES_CONTROL_REF
 shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
@@ -1640,7 +1644,8 @@ shoes_native_edit_line_cursor_to_end(SHOES_CONTROL_REF ref)
   // TODO:
   return Qnil;
 }
-
+#endif
+#if 0
 void
 shoes_native_edit_box_set_text(SHOES_CONTROL_REF ref, char *msg)
 {
@@ -1685,7 +1690,8 @@ shoes_native_edit_box_scroll_to_end(SHOES_CONTROL_REF ref)
   NSTextView *tv = [(ShoesTextView *) ref textView];
   [tv scrollRangeToVisible: NSMakeRange(tv.string.length, 0)];
 }
-
+#endif
+#if 0
 // text_edit_box is new in 3.2.25
 void
 shoes_native_text_view_set_text(SHOES_CONTROL_REF ref, char *msg)
@@ -1737,8 +1743,8 @@ shoes_native_text_view_append(SHOES_CONTROL_REF ref, char *msg)
 #endif
   return Qnil;
 }
-
-//
+#endif
+#if 0
 SHOES_CONTROL_REF
 shoes_native_list_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
@@ -1784,6 +1790,7 @@ shoes_native_list_box_set_active(SHOES_CONTROL_REF ref, VALUE ary, VALUE item)
   if (idx < 0) return;
   COCOA_DO([(ShoesPopUpButton *)ref selectItemAtIndex: idx]);
 }
+#endif
 
 SHOES_CONTROL_REF
 shoes_native_progress(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
@@ -1808,7 +1815,7 @@ shoes_native_progress_set_fraction(SHOES_CONTROL_REF ref, double perc)
 {
   COCOA_DO([(NSProgressIndicator *)ref setDoubleValue: perc * 100.]);
 }
-
+#if 0
 SHOES_CONTROL_REF
 shoes_native_slider(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
@@ -1831,7 +1838,7 @@ shoes_native_slider_set_fraction(SHOES_CONTROL_REF ref, double perc)
 {
   COCOA_DO([(ShoesSlider *)ref setDoubleValue: perc * 100.]);
 }
-#if 0
+
 SHOES_CONTROL_REF
 shoes_native_check(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
@@ -2360,7 +2367,7 @@ VALUE shoes_native_control_get_tooltip(SHOES_CONTROL_REF ref) {
   NSView *view = (NSView *)ref;
   return rb_str_new2((char *)view.toolTip);
 }
-
+#if 0
 /*
  * ---- spinner ----
  * subclass NSProgressIndicator  for better control. Sadly, this is not a cocoa control
@@ -2415,9 +2422,9 @@ SHOES_CONTROL_REF shoes_native_spinner(VALUE self, shoes_canvas *canvas, shoes_p
     shoes_native_spinner_stop((SHOES_CONTROL_REF)spin);
   return (SHOES_CONTROL_REF) spin;
 }
+#endif
 
-
-
+#if 0
 /*
  * ---- switch ----
  * subclass  NSButton and see what it looks like as ToggleButton
@@ -2446,6 +2453,7 @@ SHOES_CONTROL_REF shoes_native_spinner(VALUE self, shoes_canvas *canvas, shoes_p
   shoes_control_send(object, s_active);
 }
 @end
+
 
 SHOES_CONTROL_REF
 shoes_native_switch(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
@@ -2480,7 +2488,7 @@ shoes_native_switch_get_active(SHOES_CONTROL_REF ref)
   //fprintf(stderr, "get_active -> %li\n", [button state]);
   return [button state]  ?  Qtrue : Qfalse;
 }
-
+#endif
 // ---- opacity ----
 double shoes_native_app_get_opacity(shoes_app *app) 
 {

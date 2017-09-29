@@ -58,7 +58,7 @@
   VALUE object;
 }
 @end
-
+/*
 @interface ShoesTextView : NSScrollView
 {
 @public
@@ -86,12 +86,12 @@
 }
 @end
 
+
 @interface ShoesSwitch : NSButton
 {
   VALUE object;
 }
 @end
-
 @interface ShoesSpinner : NSProgressIndicator
 {
   VALUE object;
@@ -99,7 +99,7 @@
   BOOL state;
 }
 @end
-
+*/
 @interface ShoesDialogAsk : NSWindow
 {
   NSWindow *win;
