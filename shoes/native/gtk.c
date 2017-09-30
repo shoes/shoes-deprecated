@@ -274,6 +274,7 @@ static gboolean shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, g
     }
     return TRUE;
 }
+
 #ifdef NEWCLICK
 static gboolean shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, gpointer data) {
     shoes_app *app = (shoes_app *)data;
@@ -667,6 +668,18 @@ void shoes_native_app_resize_window(shoes_app *app) {
         gtk_widget_set_size_request(GTK_WINDOW(app->os.window), app->width, app->height);
     }
 }
+
+VALUE shoes_native_get_resizable(shoes_app *app) {
+    return gtk_window_get_resizable(GTK_WINDOW(app->os.window));
+}
+
+void shoes_native_set_resizable(shoes_app *app, int resizable) {
+    gboolean state;
+    state = resizable ? TRUE : FALSE;
+    if (gtk_window_get_resizable(GTK_WINDOW(app->os.window)) != state)
+        gtk_window_set_resizable(GTK_WINDOW(app->os.window), state);
+}
+
 
 void shoes_native_app_fullscreen(shoes_app *app, char yn) {
     gtk_window_set_keep_above(GTK_WINDOW(app->os.window), (gboolean)yn);

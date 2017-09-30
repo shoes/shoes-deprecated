@@ -191,6 +191,22 @@ VALUE shoes_app_resize_window(VALUE app, VALUE width, VALUE height) {
     return Qtrue;
 }
 
+VALUE shoes_app_get_resizable(VALUE app) {
+    shoes_app *app_t;
+    Data_Get_Struct(app, shoes_app, app_t);
+    return shoes_native_get_resizable(app_t) ? Qtrue : Qfalse;
+}
+
+VALUE shoes_app_set_resizable(VALUE app, VALUE resizable) {
+    shoes_app *app_t;
+    Data_Get_Struct(app, shoes_app, app_t);
+
+    shoes_native_set_resizable(app_t, app_t->resizable = RTEST(resizable));
+
+    return resizable;
+}
+
+
 VALUE shoes_app_set_wtitle(VALUE app, VALUE title) {
     shoes_app *app_t;
     char *wtitle;

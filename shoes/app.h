@@ -94,6 +94,8 @@ VALUE shoes_app_quit(VALUE);
 VALUE shoes_app_resize_window(VALUE, VALUE, VALUE);
 
 VALUE shoes_app_resize_window(VALUE, VALUE, VALUE);
+VALUE shoes_app_get_resizable(VALUE);
+VALUE shoes_app_set_resizable(VALUE, VALUE);
 
 // global var for console up and running
 extern int shoes_global_terminal;
