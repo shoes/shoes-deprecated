@@ -664,7 +664,7 @@ void shoes_native_app_title(shoes_app *app, char *msg) {
 
 void shoes_native_app_resize_window(shoes_app *app) {
     if ((app->os.window != NULL) && (app->width > 0 && app->height > 0)) {
-        gtk_window_resize(GTK_WINDOW(app->os.window), app->width, app->height);
+        gtk_widget_set_size_request(GTK_WINDOW(app->os.window), app->width, app->height);
     }
 }
 
