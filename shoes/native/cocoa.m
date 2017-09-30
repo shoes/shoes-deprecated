@@ -6,9 +6,9 @@
 #include "shoes/ruby.h"
 #include "shoes/config.h"
 #include "shoes/world.h"
-#include "shoes/native.h"
-#include "shoes/internal.h"
-#include "shoes/http.h"
+#include "shoes/native/native.h"
+#include "shoes/types/types.h"
+extern VALUE cTimer;
 
 #import <Carbon/Carbon.h>
 
@@ -593,6 +593,17 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 }
 @end
 
+@implementation ShoesNotifyDelegate 
+- (void)applicationDidFinishLaunching:(NSNotification *)aNotification
+{
+    [[NSUserNotificationCenter defaultUserNotificationCenter] setDelegate:self];
+}
+
+- (BOOL)userNotificationCenter:(NSUserNotificationCenter *)center shouldPresentNotification:(NSUserNotification *)notification{
+    return YES;
+}
+@end
+
 @implementation ShoesDialogAsk
 - (id)init
 {
@@ -1018,7 +1029,7 @@ done:
 }
 
 void
-shoes_native_app_resized(shoes_app *app)
+shoes_native_app_resize_window(shoes_app *app)
 {
   NSRect rect = [app->os.window frame];
   rect.size.width = app->width;
@@ -1288,6 +1299,7 @@ start_wait(VALUE data) {
 @end
 
 
+
 void
 shoes_native_canvas_oneshot(int ms, VALUE canvas)
 {
@@ -1364,6 +1376,8 @@ shoes_native_control_state(SHOES_CONTROL_REF ref, BOOL sensitive, BOOL setting)
       ShoesTextView *sv = (ShoesTextView *)ref;
       NSTextView *tv = sv->textView;
       [tv setEditable: setting];
+  } else if ([ref isKindOfClass: [NSProgressIndicator class]]) {
+      // not really a control
   } else {
     fprintf(stderr, "control is unknown type\n");
   }
@@ -1437,8 +1451,7 @@ shoes_native_surface_remove(SHOES_SURFACE_REF ref)
 }
 
 
-SHOES_CONTROL_REF
-shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, char *msg)
+SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
   INIT;
   ShoesButton *button = [[ShoesButton alloc] initWithType: NSMomentaryPushInButton
@@ -1492,6 +1505,11 @@ shoes_native_edit_line_cursor_to_end(SHOES_CONTROL_REF ref)
   return Qnil;
 }
 
+void
+shoes_native_edit_box_set_text(SHOES_CONTROL_REF ref, char *msg)
+{
+  COCOA_DO([[[(ShoesTextView *)ref textStorage] mutableString] setString: [NSString stringWithUTF8String: msg]]);
+}
 
 SHOES_CONTROL_REF
 shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
@@ -1501,7 +1519,8 @@ shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALU
     NSMakeRect(place->ix + place->dx, place->iy + place->dy,
     place->ix + place->dx + place->iw, place->iy + place->dy + place->ih)
     andObject: self];
-  shoes_native_edit_box_set_text((NSControl *)tv, msg);
+  //shoes_native_edit_box_set_text((NSControl *)tv, msg);
+  shoes_native_edit_box_set_text((SHOES_CONTROL_REF )tv, msg);
   RELEASE;
   return (NSControl *)tv;
 }
@@ -1516,11 +1535,6 @@ shoes_native_edit_box_get_text(SHOES_CONTROL_REF ref)
   return text;
 }
 
-void
-shoes_native_edit_box_set_text(SHOES_CONTROL_REF ref, char *msg)
-{
-  COCOA_DO([[[(ShoesTextView *)ref textStorage] mutableString] setString: [NSString stringWithUTF8String: msg]]);
-}
 
 void
 shoes_native_edit_box_append(SHOES_CONTROL_REF ref, char *msg)
@@ -1537,21 +1551,28 @@ shoes_native_edit_box_scroll_to_end(SHOES_CONTROL_REF ref)
 }
 
 // text_edit_box is new in 3.2.25
+void
+shoes_native_text_view_set_text(SHOES_CONTROL_REF ref, char *msg)
+{
+  COCOA_DO([[[(ShoesTextEditView *)ref textStorage] mutableString] setString: [NSString stringWithUTF8String: msg]]);
+}
+
 SHOES_CONTROL_REF
-shoes_native_text_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+shoes_native_text_view(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
   INIT;
   ShoesTextEditView *tv = [[ShoesTextEditView alloc] initWithFrame:
     NSMakeRect(place->ix + place->dx, place->iy + place->dy,
     place->ix + place->dx + place->iw, place->iy + place->dy + place->ih)
     andObject: self];
-  shoes_native_text_edit_box_set_text((NSControl *)tv, msg);
+  //shoes_native_text_view_set_text((NSControl *)tv, msg);
+  shoes_native_text_view_set_text((SHOES_CONTROL_REF)tv, msg);
   RELEASE;
   return (NSControl *)tv;
 }
 
 VALUE
-shoes_native_text_edit_box_get_text(SHOES_CONTROL_REF ref)
+shoes_native_text_view_get_text(SHOES_CONTROL_REF ref)
 {
   VALUE text = Qnil;
   INIT;
@@ -1560,14 +1581,9 @@ shoes_native_text_edit_box_get_text(SHOES_CONTROL_REF ref)
   return text;
 }
 
-void
-shoes_native_text_edit_box_set_text(SHOES_CONTROL_REF ref, char *msg)
-{
-  COCOA_DO([[[(ShoesTextEditView *)ref textStorage] mutableString] setString: [NSString stringWithUTF8String: msg]]);
-}
 
 VALUE
-shoes_native_text_edit_box_append(SHOES_CONTROL_REF ref, char *msg)
+shoes_native_text_view_append(SHOES_CONTROL_REF ref, char *msg)
 {
   COCOA_DO([[[(ShoesTextEditView *)ref textStorage] mutableString] appendString: [NSString stringWithUTF8String: msg]]);
 #ifdef dontwant
@@ -1780,6 +1796,18 @@ shoes_native_window_color(shoes_app *app)
   //return shoes_color_new((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255));
   return shoes_color_new(255, 255, 255, 255);
 }
+
+
+void shoes_native_systray(char *title, char *message, char *path)
+{
+    NSUserNotification *notification = [[NSUserNotification alloc] init];
+    notification.title = [NSString stringWithUTF8String: title];
+    notification.informativeText = [NSString stringWithUTF8String: message];
+    notification.soundName = NSUserNotificationDefaultSoundName;
+    notification.contentImage = [[NSImage alloc] initWithContentsOfFile: [NSString stringWithUTF8String: path]];
+    [[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:notification];
+}
+
 
 VALUE
 shoes_native_dialog_color(shoes_app *app)
@@ -2171,3 +2199,171 @@ shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
   });
   return path;
 }
+
+/*
+   New with 3.3.3: switch, spinner widgets, opacity, decoraation and tooltips.
+   TODO: Fix No-op - they can crash
+*/
+
+/*
+ * ---- tooltips ----
+ * are a property of NSView - damn near everything in osx but we might
+ * want to make sure it's a SHOES_CONTROL_REF/shoes-widget.
+*/
+void shoes_native_control_set_tooltip(SHOES_CONTROL_REF ref, VALUE tooltip)
+{ 
+    NSView *view = (NSView *)ref;
+    view.toolTip = [NSString stringWithUTF8String: RSTRING_PTR(tooltip)];
+    
+}
+
+VALUE shoes_native_control_get_tooltip(SHOES_CONTROL_REF ref) {
+  NSView *view = (NSView *)ref;
+  return rb_str_new2((char *)view.toolTip);
+}
+
+/*
+ * ---- spinner ----
+ * subclass NSProgressIndicator  for better control. Sadly, this is not a cocoa control
+ * so it can't be first class Shoes control
+*/
+
+@implementation ShoesSpinner
+- (id)initWithAnObject: (VALUE)o
+{
+  if ((self = [super init]))
+  {
+    object = o;
+    self.indeterminate = true;
+    [self setStyle: NSProgressIndicatorSpinningStyle];
+    [self setBezeled: true];
+  }
+  return self;
+}
+
+@end
+
+void shoes_native_spinner_start(SHOES_CONTROL_REF ref)
+{
+  ShoesSpinner *spin = (ShoesSpinner *)ref;
+  spin->state = true;
+  [spin startAnimation: (id)ref]; 
+}
+void shoes_native_spinner_stop(SHOES_CONTROL_REF ref)
+{
+  ShoesSpinner *spin = (ShoesSpinner *)ref;
+  spin->state = false;
+  [spin stopAnimation: (id)ref]; 
+}
+
+int shoes_native_spinner_started(SHOES_CONTROL_REF ref)
+{
+  ShoesSpinner *spin = (ShoesSpinner *)ref;
+  return spin->state;
+}
+
+
+SHOES_CONTROL_REF shoes_native_spinner(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+  ShoesSpinner *spin  = [[ShoesSpinner alloc] initWithAnObject: self];
+  spin->state = false;
+  if (!NIL_P(shoes_hash_get(attr, rb_intern("start")))) {
+    spin->state = (Qtrue == shoes_hash_get(attr, rb_intern("start"))) ?  true: false; 
+  }
+  if (spin->state == true)
+    shoes_native_spinner_start((SHOES_CONTROL_REF)spin);
+  else
+    shoes_native_spinner_stop((SHOES_CONTROL_REF)spin);
+  return (SHOES_CONTROL_REF) spin;
+}
+
+
+
+/*
+ * ---- switch ----
+ * subclass  NSButton and see what it looks like as ToggleButton
+ * needs it own action handlers 
+*/
+@implementation ShoesSwitch
+- (id)initWithType: (NSButtonType)t andObject: (VALUE)o
+{
+  if ((self = [super init]))
+  {
+    object = o;
+    [self setButtonType: t];
+    [self setBezelStyle: NSRoundedBezelStyle];
+    [self setTarget: self];
+    [self setAction: @selector(handleClick:)];
+    [self setState: NSOffState];
+    //sw_state = 0;
+  }
+  return self;
+}
+-(IBAction)handleClick: (id)sender
+{
+  //fprintf(stderr, "handler: %li\n", [self state]);
+  //sw_state = sw_state ^ 1;
+  //fprintf(stderr, "h after: %li\n", [self state]);
+  shoes_control_send(object, s_active);
+}
+@end
+
+SHOES_CONTROL_REF
+shoes_native_switch(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
+{
+ INIT;
+  ShoesSwitch *button = [[ShoesSwitch alloc] initWithType: NSToggleButton
+    andObject: self];
+  [button setTitle: @"Off"];
+  [button setAlternateTitle: @"On"];
+  if (!NIL_P(shoes_hash_get(attr, rb_intern("active")))) {
+    VALUE bstv = shoes_hash_get(attr, rb_intern("active"));
+    button.state = !NIL_P(bstv) ? NSOnState : NSOffState;
+    //fprintf(stderr, "have a initial active %li\n",button.state);
+  }
+  //button->sw_state = button.state; //property -> instance_var
+  RELEASE;
+  return (SHOES_CONTROL_REF) button;
+}
+
+void shoes_native_switch_set_active(SHOES_CONTROL_REF ref, int activate)
+{
+  ShoesSwitch *button = (ShoesSwitch *)ref;  
+  //fprintf(stderr, "Set_active = %i\n", activate);
+  NSInteger bst = activate ? NSOnState : NSOffState;
+  [button setState: bst];
+}
+
+VALUE
+shoes_native_switch_get_active(SHOES_CONTROL_REF ref)
+{
+  ShoesSwitch *button = (ShoesSwitch *)ref;  
+  //fprintf(stderr, "get_active -> %li\n", [button state]);
+  return [button state]  ?  Qtrue : Qfalse;
+}
+
+// ---- opacity ----
+double shoes_native_app_get_opacity(shoes_app *app) 
+{
+  NSWindow *win = (NSWindow *)app->os.window;
+  return [win alphaValue];
+}
+
+void shoes_native_app_set_opacity(shoes_app *app, double opacity)
+{
+  NSWindow *win = (NSWindow *)app->os.window;
+  [win setAlphaValue: opacity];
+}
+
+
+
+// ---- decoration remove title bar, resize controls ----
+void shoes_native_app_set_decoration(shoes_app *app, gboolean decorated)
+{
+}
+
+int shoes_native_app_get_decoration(shoes_app *app)
+{
+  return true;
+}
+

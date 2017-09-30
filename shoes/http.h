@@ -9,23 +9,23 @@
 #include "shoes/http/common.h"
 
 typedef struct {
-  char *url;
-  char *scheme;
-  char *host;
-  int port;
-  char *path;
+    char *url;
+    char *scheme;
+    char *host;
+    int port;
+    char *path;
 
-  char *method, *body;
-  unsigned long bodylen;
-  SHOES_DOWNLOAD_HEADERS headers;
+    char *method, *body;
+    unsigned long bodylen;
+    SHOES_DOWNLOAD_HEADERS headers;
 
-  char *mem;
-  unsigned long memlen;
-  char *filepath;
-  unsigned LONG_LONG size;
-  shoes_http_handler handler;
-  void *data;
-  unsigned char flags;
+    char *mem;
+    unsigned long memlen;
+    char *filepath;
+    unsigned LONG_LONG size;
+    shoes_http_handler handler;
+    void *data;
+    unsigned char flags;
 } shoes_http_request;
 
 void shoes_download(shoes_http_request *req);

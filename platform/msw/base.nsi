@@ -86,6 +86,8 @@ Section "MainSection" SEC01
    
    ${EnvVarUpdate} $0 "PATH" "A" HKLM $INSTDIR
    ${registerExtension} "$INSTDIR\${SHOES_NAME}.exe" ".shy" "Shoes Application"
+   DetailPrint "Building Incon cache, this may take a while..."
+   ExecWait '"$INSTDIR\gtk-update-icon-cache.exe" "$INSTDIR\share\icons\Adwaita"'
 SectionEnd
 
 Section -AdditionalIcons

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 REALPATH=`readlink -f $0`
 
@@ -18,3 +18,4 @@ if [ `pwd | awk '{ sub(/[0-9]+/, ""); print }'` = "/tmp/selfgz" ]; then
   #ln -s libruby.so.2.1 libruby.so.2.1.0
   cd "$OLDPWD"
 fi
+export NO_AT_BRIDGE=1

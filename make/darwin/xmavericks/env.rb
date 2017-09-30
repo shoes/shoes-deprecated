@@ -1,16 +1,15 @@
 # xmavericks (10.9) build Assumes:
-# (1) deps are in BREWLOC
-# (2) Ruby was built -C --enable-shared --enable-load-relative & installed in BREWLOC
+# (1) deps are in ShoesDeps
+# (2) Ruby was built -C --enable-shared --enable-load-relative & installed in ShoesDeps
 # (3) 10.9 SDK is installed (ln -s if need) in Xcode.app/....
 include FileUtils
-
 cf =(ENV['ENV_CUSTOM'] || "#{TGT_ARCH}-custom.yaml")
 if File.exists? cf
   custmz = YAML.load_file(cf)
-  BREWLOC = custmz['Deps']
+  ShoesDeps = custmz['Deps']
   EXT_RUBY = custmz['Ruby'] ? custmz['Ruby'] : RbConfig::CONFIG['prefix']
   puts "For #{EXT_RUBY}"
-  ENV['GDB'] = 'basic' if custmz['Debug'] == true
+  APP['GDB'] = 'basic' if custmz['Debug'] == true
   ENV['CDEFS'] = custmz['CFLAGS'] if custmz['CFLAGS']
   APP['GEMLOC'] = custmz['Gemloc'] if custmz['Gemloc']
   APP['EXTLOC'] = custmz['Extloc'] if custmz['Extloc']
@@ -18,20 +17,14 @@ if File.exists? cf
   APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
   APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
   ENV['CDEFS'] = custmz['CFLAGS'] if custmz['CFLAGS']
-  ENV['SQLLOC'] = BREWLOC
+  ENV['SQLLOC'] = ShoesDeps
 else
   abort "You must have a #{TGT_ARCH}-custom.yaml"
 end
 
 CC = ENV['CC'] ? ENV['CC'] : "gcc"
-file_list =  %w{shoes/console/tesi.c shoes/console/colortab.c shoes/console/cocoa-term.m shoes/native/cocoa.m shoes/http/nsurl.m} + 
-  ["shoes/*.c"] + ["shoes/plot/*.c"]
-file_list << 'shoes/video/video.c'
-SRC = FileList[*file_list]
-OBJ = SRC.map do |x|
-  x.gsub(/\.\w+$/, '.o')
-end
-if ENV['DEBUG'] || ENV['GDB']
+
+if APP['GDB']
   LINUX_CFLAGS = " -g"
 else
   LINUX_CFLAGS = " -O"
@@ -41,18 +34,18 @@ ADD_DLL = []
 
 # nothing is going to change for 10.9 deps - don't bother with pkg-config
 # because it does go wrong in this situation.
-GLIB_CFLAGS   = "-I#{BREWLOC}/include/glib-2.0 -I#{BREWLOC}/lib/glib-2.0/include"
-GLIB_CFLAGS << " -I#{BREWLOC}/include/librsvg-2.0/librsvg -I#{BREWLOC}/include/gdk-pixbuf-2.0/"
-GLIB_LDFLAGS  = "-L#{BREWLOC}/lib -lglib-2.0 -lgobject-2.0 -lintl #{BREWLOC}/lib/librsvg-2.2.dylib"
-CAIRO_CFLAGS  = "-I#{BREWLOC}/include/cairo"
-CAIRO_LDFLAGS = "-L#{BREWLOC}/lib -lcairo"
-PANGO_CFLAGS  = "-I#{BREWLOC}/include/pango-1.0"
-PANGO_LDFLAGS = "-L#{BREWLOC}/lib -lpango-1.0"
-#RUBY_CFLAGS   = "-I#{BREWLOC}/include/ruby-2.1.0/x86_64-darwin13.0 -I#{BREWLOC}/include/ruby-2.1.0 "
-RUBY_CFLAGS   = "-I#{BREWLOC}/include/ruby-2.2.0/x86_64-darwin13 -I#{BREWLOC}/include/ruby-2.2.0 "
-RUBY_LDFLAGS  = "-L#{BREWLOC}lib/ -Wl,-undefined,dynamic_lookup -Wl,-multiply_defined,suppress -lruby.2.1.0 -lpthread -ldl -lobjc "
+GLIB_CFLAGS   = "-I#{ShoesDeps}/include/glib-2.0 -I#{ShoesDeps}/lib/glib-2.0/include"
+GLIB_CFLAGS << " -I#{ShoesDeps}/include/librsvg-2.0/librsvg -I#{ShoesDeps}/include/gdk-pixbuf-2.0/"
+GLIB_LDFLAGS  = "-L#{ShoesDeps}/lib -lglib-2.0 -lgobject-2.0 -lintl #{ShoesDeps}/lib/librsvg-2.2.dylib"
+CAIRO_CFLAGS  = "-I#{ShoesDeps}/include/cairo"
+CAIRO_LDFLAGS = "-L#{ShoesDeps}/lib -lcairo"
+PANGO_CFLAGS  = "-I#{ShoesDeps}/include/pango-1.0"
+PANGO_LDFLAGS = "-L#{ShoesDeps}/lib -lpango-1.0"
+#RUBY_CFLAGS   = "-I#{ShoesDeps}/include/ruby-2.1.0/x86_64-darwin13.0 -I#{ShoesDeps}/include/ruby-2.1.0 "
+RUBY_CFLAGS   = "-I#{ShoesDeps}/include/ruby-2.3.0/x86_64-darwin13 -I#{ShoesDeps}/include/ruby-2.3.0 "
+RUBY_LDFLAGS  = "-L#{ShoesDeps}lib/ -Wl,-undefined,dynamic_lookup -Wl,-multiply_defined,suppress -lruby.2.3.0 -lpthread -ldl -lobjc "
 
-LINUX_CFLAGS << " -I#{BREWLOC}/include #{GLIB_CFLAGS} #{RUBY_CFLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS}"
+LINUX_CFLAGS << " -I#{ShoesDeps}/include #{GLIB_CFLAGS} #{RUBY_CFLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS}"
 
 LINUX_LIB_NAMES = %W[#{RUBY_SO} cairo pangocairo-1.0 gif]
 
@@ -72,17 +65,23 @@ ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
 LINUX_CFLAGS << ' -Wno-incompatible-pointer-types-discards-qualifiers'
 
 OSX_ARCH = '-arch x86_64'
-# These env vars are used in chipmunk, sqlite3 extconf.rb
+# These env vars are used in chipmunk, sqlite3 extconf.rb - not needed in 3.3.3+? 
 #SHOES_TGT_ARCH = SHOES_GEM_ARCH ='x86_64-darwin13.0'
 SHOES_TGT_ARCH = SHOES_GEM_ARCH ='x86_64-darwin13'
 ENV['CC'] = CC
 ENV['TGT_RUBY_PATH'] = EXT_RUBY
 ENV['TGT_ARCH'] = SHOES_TGT_ARCH
-ENV['TGT_RUBY_V'] = '2.1.0'  # library version - all 2.1.x rubys
+ENV['TGT_RUBY_V'] = '2.3.0'  # library version - all 2.3.x rubys
 ENV['SYSROOT'] = " -isysroot #{OSX_SDK} #{OSX_ARCH}"
 
 LINUX_CFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH}"
-LINUX_LDFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH} -L#{BREWLOC}/lib/ #{GLIB_LDFLAGS}"
+LINUX_LDFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH} -L#{ShoesDeps}/lib/ #{GLIB_LDFLAGS}"
 
-LINUX_LIBS = " -l#{RUBY_SO} -L#{BREWLOC}/lib -l cairo -L#{BREWLOC}/lib -lpangocairo-1.0 -L#{BREWLOC}/lib -lgif -ljpeg"
+LINUX_LIBS = " -l#{RUBY_SO} -L#{ShoesDeps}/lib -l cairo -L#{ShoesDeps}/lib -lpangocairo-1.0 -L#{ShoesDeps}/lib -lgif -ljpeg"
 LINUX_LIBS << " -L#{TGT_DIR} #{CAIRO_LDFLAGS} #{PANGO_LDFLAGS} #{GLIB_LDFLAGS}"
+
+libdll = "#{ShoesDeps}/lib"
+SOLOCS = {
+  'curl'    => "#{libdll}/libcurl.dylib"
+}
+

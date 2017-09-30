@@ -1,4 +1,5 @@
-require 'chipmunk.so'
+#require 'chipmunk.so'  #ext
+require 'chipmunk/chipmunk.so' #gem
 
 module ChipMunk
   def cp_space

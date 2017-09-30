@@ -506,6 +506,8 @@ class Shoes::VideoVlc
   def left; @video.left; end
   def top; @video.top; end
 
+  def tooltip; @video.tooltip; end
+  def tooltip=(tooltip); @video.tooltip = tooltip; end
 end
 
 

@@ -1,9 +1,11 @@
 require 'fileutils'
 include FileUtils
-# add it download.rb monkey patches Shoes download -replaces curl
+# download.rb monkey patches Shoes download -replaces curl
 require_relative 'download.rb'
 # locate ~/.shoes
 require 'tmpdir'
+require 'rubygems' # Loads a Gem class
+
 lib_dir = nil
 homes = []
 homes << [ENV['LOCALAPPDATA'], File.join( ENV['LOCALAPPDATA'], 'Shoes')] if ENV['LOCALAPPDATA']
@@ -18,7 +20,8 @@ homes.each do |home_top, home_dir|
 end
 LIB_DIR = lib_dir || File.join(Dir::tmpdir, "shoes")
 #LIB_DIR.gsub! /\\/, '\/'
-LIB_DIR.gsub! /\\+/, "/"
+#LIB_DIR.gsub! /\\+/, "/"
+LIB_DIR.gsub!(/\\/, '/') # should not be needed? 
 
 tight_shoes = Shoes::RELEASE_TYPE =~ /TIGHT/
 rbv = RbConfig::CONFIG['ruby_version']
@@ -29,6 +32,12 @@ if tight_shoes
   $:.unshift SITE_LIB_DIR
   $:.unshift GEM_DIR
   ENV['GEM_HOME'] = GEM_DIR
+  np = []
+  ENV['PATH'].split(':').each do |p|
+    np << p unless p =~ /\/.(rvm|rbenv)\//
+  end
+  ENV['PATH'] = np.join(':')
+  #$stderr.puts "replaced $PATH with #{ENV['PATH']}"
 else
   #puts "LOOSE Shoes #{RUBY_VERSION} #{DIR}"
   $:.unshift ENV['GEM_HOME'] if ENV['GEM_HOME']
@@ -49,10 +58,6 @@ else
   $:.unshift DIR+"/lib/ruby/#{rv}/#{RbConfig::CONFIG['arch']}"
   $:.unshift DIR+"/lib/ruby/#{rv}"
   $:.unshift DIR+"/lib/shoes"
-  # May encounter ENV['GEM_PATH'] in the wild.
-  #if ENV['GEM_PATH']
-  #  ENV['GEM_PATH'].split(':').each {|p| $:.unshift p }
-  #end
 end
 
 CACHE_DIR = File.join(LIB_DIR, '+cache')
@@ -87,10 +92,9 @@ if tight_shoes
 	  'LDFLAGS' => "-L. -L#{DIR}",
 	  'rubylibprefix' => "#{DIR}/ruby"
   }
-  #debug "DYLD = #{ENV['DYLD_LIBRARY_PATH']} DIR = #{DIR}"
   RbConfig::CONFIG.merge! config
   RbConfig::MAKEFILE_CONFIG.merge! config
-  # Add refs to Shoes builtin Gems (but not exts?)
+  # Add paths to Shoes builtin Gems TODO: may not be needed
   GEM_CENTRAL_DIR = File.join(DIR, 'lib/ruby/gems/' + RbConfig::CONFIG['ruby_version'])
   Dir[GEM_CENTRAL_DIR + "/gems/*"].each do |gdir|
     $: << "#{gdir}/lib"
@@ -114,20 +118,45 @@ if tight_shoes
     ShoesGemJailBreak = true
   else
     if ENV['GEM_PATH']
-      # disable GEM_PATH if its in use otherwise funny things occur.
-      ENV.delete('GEM_PATH')
+      # replace GEM_PATH 
+      ENV['GEM_PATH'] = "#{GEM_DIR}:#{GEM_CENTRAL_DIR}"
+      Gem.use_paths(GEM_DIR, [GEM_DIR, GEM_CENTRAL_DIR])
+      Gem.refresh
     end
     ShoesGemJailBreak = false
   end
 else # Loose Shoes
   ShoesGemJailBreak = true
-  # 'rubylibprefix' then 'libdir' for gem's rb and so
-  # FIXME -  lib/shoes/setup.rb uses GEM_DIR and GEM_CENTRAL_DIR 
-  # Set this to where the users/system Ruby keeps things.
+  # NOTE -  lib/shoes/setup.rb uses GEM_DIR and GEM_CENTRAL_DIR 
+  #   GEM_DIR would point to ~/.shoes/+gem and we don't want that 
+  #   GEM_CENTRAL_DIR points to Ruby's gems
+  # TODO: assumes rvm or system ruby BUT system ruby could be RVM
+  #       Doesn't deal with rbenv setups
   if ENV['GEM_HOME'] && ENV['GEM_HOME'] =~ /home\/.*\/.rvm/
-	GEM_CENTRAL_DIR = GEM_DIR =  ENV['GEM_HOME']
+	  GEM_CENTRAL_DIR = GEM_DIR =  ENV['GEM_HOME']
   else
-    puts "Please set GEM_HOME env var or use rvm"
+    # here from a Menu launch of a loose shoes -- GEM_HOME, GEM_PATH do not exist
+    # only minlin and minbsd can do this - they probably shouldn't attempt it, but still?
+    # We guess where the gems are
+    gp = ""  #path to rubygems internal store
+    binloc = RbConfig::CONFIG['prefix']
+    rbv = RbConfig::CONFIG['ruby_version']
+    if binloc =~ /home\/.*\/.rvm/
+      gp = "#{ENV['HOME']}/.rvm/gems/ruby-#{RUBY_VERSION}"
+    elsif binloc =~ /\/usr\//
+      # ruby is installed in system dirs - bsd? 
+      gp = "#{binloc}/lib/ruby/gems/#{rbv}"
+    else
+      gp = "Missing"
+    end
+    #debug "Trying to use #{gp} and #{ip}"
+    GEM_CENTRAL_DIR = GEM_DIR = gp # don't use ~/.shoes/+gem/
+    Dir[GEM_CENTRAL_DIR + "/gems/*"].each do |gdir|
+      #debug "adding to loadpath: #{gdir}"
+      $: << "#{gdir}/lib"
+    end
+    Gem.use_paths(GEM_DIR, [GEM_DIR, GEM_CENTRAL_DIR])
+    Gem.refresh
   end
 end
 # find vlc libs

@@ -29,7 +29,7 @@
 void odprintf(const char *format, ...);
 static inline void odignore(const char *format, ...) {}
 int shoes_snprintf(char* str, size_t size, const char* format, ...);
-#define PUTS odprintf 
+#define PUTS odprintf
 
 #ifdef DEBUG
 #define INFO PUTS

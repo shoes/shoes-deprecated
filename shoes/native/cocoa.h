@@ -86,6 +86,20 @@
 }
 @end
 
+@interface ShoesSwitch : NSButton
+{
+  VALUE object;
+}
+@end
+
+@interface ShoesSpinner : NSProgressIndicator
+{
+  VALUE object;
+@public
+  BOOL state;
+}
+@end
+
 @interface ShoesDialogAsk : NSWindow
 {
   NSWindow *win;
@@ -106,6 +120,8 @@
   VALUE object;
   NSTimer *timer;
 }
+@end
+@interface ShoesNotifyDelegate : NSObject <NSApplicationDelegate, NSUserNotificationCenterDelegate>
 @end
 
 // declares to stop compiler whining

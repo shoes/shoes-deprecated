@@ -4,43 +4,30 @@ if File.exists? cf
   custmz = YAML.load_file(cf)
   ShoesDeps = custmz['Deps']
   EXT_RUBY = custmz['Ruby']
-  ENV['GDB'] = 'basic' if custmz['Debug'] == true
+  APP['GDB'] = 'basic' if custmz['Debug'] == true
   APP['GEMLOC'] = custmz['Gemloc'] if custmz['Gemloc']
   APP['EXTLOC'] = custmz['Extloc'] if custmz['Extloc']
   APP['EXTLIST'] = custmz['Exts'] if custmz['Exts']
   APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
   APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
-  #APP['GTK'] = custmz['Gtk'] if custmz['Gtk']
 else
   abort "missing custom.yaml"
 end
-#ENV['DEBUG'] = "true" # turns on the tracing log
-#ENV['GDB'] = "" # compile -g,  strip symbols when not defined
+
 APP['GTK'] = 'gtk+-3.0' # installer needs this to name the output
-CHROOT = ShoesDeps
 SHOES_TGT_ARCH = 'armv7l-linux-eabihf'
 SHOES_GEM_ARCH = "#{Gem::Platform.local}"
-# Specify where the Target system binaries live. 
-# Trailing slash is important.
-TGT_SYS_DIR = "#{CHROOT}/"
 # Setup some shortcuts for the library locations
 arch = 'arm-linux-gnueabihf'
-uldir = "#{TGT_SYS_DIR}usr/lib"
-ularch = "#{TGT_SYS_DIR}usr/lib/#{arch}"
-larch = "#{TGT_SYS_DIR}lib/#{arch}"
+uldir = "#{ShoesDeps}/usr/lib"
+ularch = "#{ShoesDeps}/usr/lib/#{arch}"
+larch = "#{ShoesDeps}/lib/#{arch}"
 # Set appropriately
 CC = "gcc"
-pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.2.pc"
+pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.3.pc"
 pkggtk ="#{ularch}/pkgconfig/gtk+-3.0.pc" 
 # Use Ruby or curl for downloads
 RUBY_HTTP = true
-file_list = ["shoes/console/*.c"] + ["shoes/native/*.c"] + ["shoes/http/rbload.c"] + ["shoes/*.c"] +
-  ["shoes/plot/*.c"]
-file_list << "shoes/video/video.c" 
-SRC = FileList[*file_list]
-OBJ = SRC.map do |x|
-  x.gsub(/\.\w+$/, '.o')
-end
 
 ADD_DLL = []
 
@@ -52,17 +39,17 @@ PANGO_LIB = `pkg-config --libs pango`.strip
 
 png_lib = 'png'
 
-if ENV['DEBUG'] || ENV['GDB']
+if APP['GDB']
   LINUX_CFLAGS = " -g -O0"
 else
   LINUX_CFLAGS = " -O -Wall"
 end
-LINUX_CFLAGS << " -DRUBY_HTTP" 
+LINUX_CFLAGS << " -DRUBY_HTTP -DGNOTE" 
 LINUX_CFLAGS << " -DSHOES_GTK -fPIC -Wno-unused-but-set-variable -Wno-unused-variable"
-LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include "
+LINUX_CFLAGS << " -I#{ShoesDeps}/usr/include "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkgruby}"`.strip+" "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkggtk}"`.strip+" "
-LINUX_CFLAGS << " -I#{TGT_SYS_DIR}usr/include/ " 
+LINUX_CFLAGS << " -I#{ShoesDeps}/usr/include/ " 
 LINUX_CFLAGS << "-I/usr/include/librsvg-2.0/librsvg "
 MISC_LIB = " #{ularch}/librsvg-2.so"
 
@@ -85,13 +72,18 @@ LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 LINUX_LIBS << " #{CURL_LDFLAGS if !RUBY_HTTP} #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} #{MISC_LIB}"
 
 SOLOCS = {}
-SOLOCS['ungif'] = "#{uldir}/libungif.so.4" if !justgif
-SOLOCS['gif'] = "#{ularch}/libgif.so.4"  if justgif
-SOLOCS['jpeg'] = "#{ularch}/libjpeg.so.8"
-SOLOCS['libyaml'] = "#{ularch}/libyaml-0.so.2"
-SOLOCS['pcre'] = "#{larch}/libpcre.so.3"
+SOLOCS['ungif'] = "#{uldir}/libgif.so.4.1.6" if !justgif
+SOLOCS['gif'] = "#{ularch}/libgif.so.4.1.6"  if justgif
+SOLOCS['jpeg'] = "#{ularch}/libjpeg.so.8.4.0"
+SOLOCS['libyaml'] = "#{ularch}/libyaml-0.so.2.0.4"
+SOLOCS['pcre'] = "#{larch}/libpcre.so.3.13.1"  # needed? 
 SOLOCS['crypto'] = "#{ularch}/libcrypto.so.1.0.0"
 SOLOCS['ssl'] = "#{ularch}/libssl.so.1.0.0"
 SOLOCS['sqlite'] = "#{ularch}/libsqlite3.so.0.8.6"
-SOLOCS['ffi'] = "#{ularch}/libffi.so" 
-SOLOCS['rsvg2'] = "#{ularch}/librsvg-2.so"
+SOLOCS['ffi'] = "#{ularch}/libffi.so.5.0.10" 
+SOLOCS['rsvg2'] = "#{ularch}/librsvg-2.so.2.40.5"
+SOLOCS['curl'] = "#{EXT_RUBY}/lib/libcurl.so.4.4.0"
+
+# sigh, curl and tyhpoeus - processed in setup.rb
+SYMLNK = {}
+SYMLNK['libcurl.so.4.4.0'] = ['libcurl.so', 'libcurl.so.4']

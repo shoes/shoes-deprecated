@@ -128,7 +128,6 @@ module PackShoes
   end
 
   def PackShoes.repack_linux opts, &blk
-    #opts.each {|k, v| puts "#{k} => #{v}"}
     arch = opts['arch']
     script = custom_installer opts
     name = File.basename(script).gsub(/\.\w+$/, '')
@@ -143,29 +142,29 @@ module PackShoes
       blk.call"Expanding #{arch} distribution. Patience is needed"
     end
     # skip to the tar contents in the .run
-	size = Shy.hrun(pkgf)
-	# Copy the rest to a new file
-	wk_dir = File.join(opts['packtmp'], "+tmp")
+	  size = Shy.hrun(pkgf)
+	  # Copy the rest to a new file
+	  wk_dir = File.join(opts['packtmp'], "+tmp")
     FileUtils.mkdir_p(wk_dir)
-	wkf = open(File.join(wk_dir,"run.gz"),'wb')
-	buff = ''
-	while pkgf.read(32768, buff) != nil do
-	   wkf.write(buff) 
+	  wkf = open(File.join(wk_dir,"run.gz"),'wb')
+	  buff = ''
+	  while pkgf.read(32768, buff) != nil do
+	    wkf.write(buff) 
     end
-	wkf.close
-	if blk 
-	  blk.call "Start extract"
-	end
-	@tarmodes = {}
-	fastxzf(wkf, tmp_dir, @tarmodes)
+	  wkf.close
+	  if blk 
+	    blk.call "Start extract"
+	  end
+	  @tarmodes = {}
+	  fastxzf(wkf, tmp_dir, @tarmodes)
     FileUtils.rm_rf(wk_dir)
     if blk 
       blk.call "Copy script and stubs"
     end
     FileUtils.cp(script, File.join(tmp_dir, File.basename(script)))
     File.open(File.join(tmp_dir, "sh-install"), 'wb') do |a|
-	  rewrite a, File.join(DIR, "static", "stubs", "sh-install"),
-	    'SCRIPT' => "./#{File.basename(script)}"
+	    rewrite a, File.join(DIR, "static", "stubs", "sh-install"),
+	        'SCRIPT' => "./#{File.basename(script)}"
     end
     FileUtils.chmod 0755, File.join(tmp_dir, "sh-install")
     # add sh-install and script to the modes list
@@ -173,7 +172,6 @@ module PackShoes
     @tarmodes['sh-install'] = "0755".oct
     # debug - dump @tarmodes
     #@tarmodes.each { |k,v| puts "#{k} #{sprintf('%4o',v)}" }
-    
  
     if blk
       blk.call "Compute size and compress"
@@ -198,12 +196,12 @@ module PackShoes
     end
     md5, fsize = Shy.md5sum(tgz_path), File.size(tgz_path)
     File.open(run_path, 'wb') do |f|
-	  rewrite f, File.join(DIR, "static", "stubs", "blank.run"),
-	   'CRC' => '0000000000', 'MD5' => md5, 'LABEL' => app_name, 'NAME' => name,
-	   'SIZE' => fsize, 'RAWSIZE' => (raw / 1024) + 1, 'TIME' => Time.now, 'FULLSIZE' => raw
+	    rewrite f, File.join(DIR, "static", "stubs", "blank.run"),
+	     'CRC' => '0000000000', 'MD5' => md5, 'LABEL' => app_name, 'NAME' => name,
+	     'SIZE' => fsize, 'RAWSIZE' => (raw / 1024) + 1, 'TIME' => Time.now, 'FULLSIZE' => raw
       File.open(tgz_path, 'rb') do |f2|
 	     f.write f2.read(8192) until f2.eof
-	  end
+	    end
     end
     if blk
       blk.call "Done packing Linux"
@@ -441,6 +439,8 @@ END
   <string>6.0</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
+  <key>NSHighResolutionCapable</key>
+  <string>true</string>
   <key>IFMajorVersion</key>
   <integer>#{vers[0]}</integer>
   <key>IFMinorVersion</key>
@@ -526,40 +526,40 @@ END
   end
 
   def PackShoes.fastxzf infile, outdir, modes = {}, osx = ''
-	#from blog post http://dracoater.blogspot.com/2013/10/extracting-files-from-targz-with-ruby.html
-	# modified by Cecil Coupe - Jun 27+, 2014. Thanks to Juri Timošin   
-	
-	tar_longlink = '././@LongLink'
-
-	Gem::Package::TarReader.new( Zlib::GzipReader.open infile ) do |tar|
-	  dest = nil
-	  tar.each do |entry|
-	    if entry.full_name == tar_longlink
-	      dest = File.join outdir, entry.read.strip
-	      next
-	    end
-	    dest ||= File.join outdir, entry.full_name
-	    hashname = entry.full_name.gsub('./','')
-	    hashname.gsub!(/Shoes.app/, osx) if osx
-	    hashname.chomp!('/')
-	    #@pkgstat.text = hashname
-	    modes[hashname] = entry.header.mode
-	    if entry.directory?
-	      FileUtils.rm_rf dest unless File.directory? dest
-	      FileUtils.mkdir_p dest, :mode => entry.header.mode, :verbose => false
-	    elsif entry.file?
-	      FileUtils.rm_rf dest unless File.file? dest
-	      File.open dest, "wb" do |f|
-	        f.print entry.read
-	      end
-	      FileUtils.chmod entry.header.mode, dest, :verbose => false
-	    elsif entry.header.typeflag == '2' #Symlink!
-	      #puts "Symlink #{entry.header.linkname} Ignore"
-	      # File.symlink entry.header.linkname, dest
-	    end
-	    dest = nil
-	  end
-	end
+    #from blog post http://dracoater.blogspot.com/2013/10/extracting-files-from-targz-with-ruby.html
+    # modified by Cecil Coupe - Jun 27+, 2014. Thanks to Juri Timošin   
+    
+    tar_longlink = '././@LongLink'
+  
+    Gem::Package::TarReader.new( Zlib::GzipReader.open infile ) do |tar|
+      dest = nil
+      tar.each do |entry|
+        if entry.full_name == tar_longlink
+          dest = File.join outdir, entry.read.strip
+          next
+        end
+        dest ||= File.join outdir, entry.full_name
+        hashname = entry.full_name.gsub('./','')
+        hashname.gsub!(/Shoes.app/, osx) if osx
+        hashname.chomp!('/')
+        #@pkgstat.text = hashname
+        modes[hashname] = entry.header.mode
+        if entry.directory?
+          FileUtils.rm_rf dest unless File.directory? dest
+          FileUtils.mkdir_p dest, :mode => entry.header.mode, :verbose => false
+        elsif entry.file?
+          FileUtils.rm_rf dest unless File.file? dest
+          File.open dest, "wb" do |f|
+            f.print entry.read
+          end
+          FileUtils.chmod entry.header.mode, dest, :verbose => false
+        elsif entry.header.typeflag == '2' #Symlink!
+          #puts "Symlink #{entry.header.linkname} Ignore"
+          # File.symlink entry.header.linkname, dest
+        end
+        dest = nil
+      end
+    end
   end
   
   def PackShoes.fastcf outf, indir, modes

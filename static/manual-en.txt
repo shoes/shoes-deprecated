@@ -1251,6 +1251,24 @@ The radius of curved corners on each of these rectangular elements.  As an
 example, if this is set to 6, the corners of the rectangle are given a curve
 with a 6-pixel radius.
 
+=== :dash » a string ===
+
+For: ''arrow, border, line, oval, rect, shape''.
+
+Defines the line style used to draw elements. It can be either:
+
+ * :onedot - Creates dot-dash line.
+ * :nodot - Creates solid line.
+
+If dash style is undefined, ":nodot" is set as default.
+
+{{{
+Shoes.app width: 410, height: 60 do
+   line 10,20,400,20, dash: :onedot, stroke: green, strokewidth: 3
+   line 10,40,400,40, stroke: green, strokewidth: 3
+end
+}}}
+
 === :displace_left » a number ===
 
 For: ''all slots and elements''.
@@ -1472,13 +1490,16 @@ element has a `:rise` of -10 pixels.
 
 === :scroll » true or false ===
 
-For: ''flow, stack''.
+For: ''flow, stack, background''.
 
 Establishes this slot as a scrolling slot.  If `:scroll => true` is set, the
 slot will show a scrollbar if any of its contents go past its height.  The
 scrollbar will appear and disappear as needed.  It will also appear inside the
 width of the slot, meaning the slot's width will never change, regardless of
 whether there is a scrollbar or not.
+
+When used on a background instead of a flow or stack the background and set true
+the background will always fill the slot when scrolled. See [[Element.background]].
 
 === :secret » true or false ===
 
@@ -1861,6 +1882,67 @@ Shoes.app do
 end
 }}}
 
+=== Mask() » Shoes::Mask ===
+
+Mask is a slot allowing to clip elements outside its own area. The size and frame of the area is defined by a number of Shoes elements - shapes, images and texts.
+
+In the example below there are two same colour slots. The left slot is drawn with a green star 
+while the right slot contains the green star used as a clipping mask. Notice how the colour of the star is not taken into account.
+
+{{{
+Shoes.app width: 300, height: 150 do
+  flow width: 0.5, height: 1.0 do
+    background orange
+    star left: 75, top: 75, points: 6, outer: 40, inner: 9, fill: green
+  end
+	
+  flow width: 0.5, height: 1.0 do
+    background orange
+    mask do
+      star left: 75, top: 75, points: 6, outer: 40, inner: 9, fill: green
+    end
+  end
+end
+}}}
+
+Next the same setup is used but this time an image is used for clipping. 
+
+{{{
+Shoes.app width: 300, height: 150 do
+  flow width: 0.5, height: 1.0 do
+    background orange
+    image "#{DIR}/static/shoes-icon.png", left: 25, top: 25, width: 100
+  end
+	
+  flow width: 0.5, height: 1.0 do
+    background orange
+    mask do
+      image "#{DIR}/static/shoes-icon.png", left: 25, top: 25, width: 100
+    end
+  end
+end
+}}}
+
+Texts can be used for their shape too.
+
+{{{
+Shoes.app width: 400, height: 100 do
+  flow width: 0.5, height: 1.0 do
+    background orange
+    title "SHOES!", weight: "ultrabold", align: "center"
+  end
+	
+  flow width: 0.5, height: 1.0 do
+    background orange
+    mask do
+      title "SHOES!", weight: "ultrabold", align: "center"
+    end
+  end
+end
+}}}
+
+Check the sample directory for more examples.
+
 === oval(left, top, radius) » Shoes::Shape ===
 
 Draws a circular form at pixel coordinates (left, top) with a width and height
@@ -2101,13 +2183,9 @@ The above animation is shown 24 times per second.  If no number is given, the
 
 === background(pattern) » Shoes::Background ===
 
-Draws a Background element with a specific color (or pattern.)  Patterns can be
-colors, gradients or images.  Colors and images will tile across the
+Draws a Background element with a specific color (or pattern.) Patterns can be
+colors, gradients or images. Colors and images will tile across the
 background.  Gradients stretch to fill the background.
-
-'''PLEASE NOTE:''' Backgrounds are actual elements, not styles.  HTML treats
-backgrounds like styles.  Which means every box can only have one background.
-Shoes layers background elements.
 
 {{{
  #!ruby
@@ -2121,15 +2199,89 @@ The above example paints two backgrounds.  First, a black background is painted
 over the entire app's surface area.  Then a 50 pixel white stripe is painted
 along the left side.
 
+Background are reusable and can be copied because they inherit from Pattern.
+
+{{{
+Shoes.app do 
+   stack(left: 0, top: 0, width: width / 4, height: height / 4) do
+      @b = background "#{DIR}/static/stripe.png"
+   end
+   
+   4.times do |n|
+      stack(left: n * width / 4, top: n * height / 4, width: width / 4, height: height / 4) do
+         background @b
+      end
+   end
+end
+}}}
+
+Once a background is created it's size and location won't change unless the slot
+is resized. If the slot has a scroll bar it may do what you think. Scroll thru
+this example:
+
+{{{
+Shoes.app(title: "No Scroll", width: 300, height: 400, resizable: true ) do
+    background green
+    @main = stack left: 0.05, top: 0.15, width: 0.9, height: 0.8, scroll: true do
+        background beige
+        100.times do |i|
+            para "#{i+1} times"
+        end
+    end
+end
+}}}
+
+As of Shoes 3.3.3, You can ask Shoes to be more respectful of scrolling by setting scroll: true 
+as this example does
+{{{
+Shoes.app(title: "Scroll", width: 300, height: 400, resizable: true ) do
+    background green
+    @main = stack left: 0.05, top: 0.15, width: 0.9, height: 0.8, scroll: true do
+        background beige, scroll: true
+        100.times do |i|
+            para "#{i+1} times"
+        end
+    end
+end
+}}}
+
+Be careful when using scroll: true. It may find a scrollbar you didn't want
+to use and it's not Shoes 4 compatible. 
+
+'''PLEASE NOTE:''' Backgrounds are actual elements, not styles.  HTML treats
+backgrounds like styles.  Which means every box can only have one background.
+Shoes layers background elements.
+
 === banner(text) » Shoes::Banner ===
 
 Creates a Banner text block.  Shoes automatically styles this text to 48 pixels high.
 
 === border(text, :strokewidth => a number) » Shoes::Border ===
 
-Draws a Border element using a specific color (or pattern.)  Patterns can be
-colors, gradients or images.  Colors and images will tile across the border.
+Draws a Border element using a specific color (or pattern). Patterns can be
+colors, gradients or images. Colors and images will tile across the border.
 Gradients stretch to fill the border.
+
+=== border(pattern) » Shoes::Border ===
+
+Draws a Border element with a specific pattern. Borders are reusable and can be copied 
+because they inherit from Pattern.
+
+{{{
+Shoes.app do
+   stack :width => 50, :height => 30 do
+     @b = border red, :strokewidth => 5
+     para "=^.^=", :stroke => green
+   end
+
+   12.times do |n|
+      stack :left => n * 50, :top => height / 2, :width => 50 do
+        border @b
+        para "=^.^=", :stroke => green
+      end
+   end
+end
+}}}
 
 '''PLEASE NOTE:''' Like Backgrounds, Borders are actual elements, not styles.
 HTML treats backgrounds and borders like styles.  Which means every box can
@@ -2994,6 +3146,38 @@ shape.  Or any other number of style settings.
 
 Hides an element if it is shown.  Or shows the element, if it is hidden.
 
+=== tooltip() » a string ===
+
+Returns a string containing the tooltip text from an element. 
+
+{{{
+#!ruby
+Shoes.app do
+   button "push me!", tooltip: "push me at your own risk..." do
+      alert("...seriously?")
+   end
+end
+}}}
+
+=== tooltip = a string ===
+
+Set the tooltip text from an element with the given string.
+
+{{{
+Shoes.app do
+   @e = edit_line
+   @b = button "set tooltip" do
+      @e.tooltip = @e.text
+      @b.tooltip = @e.text
+      @b2.tooltip = @e.text
+   end
+   @b2 = button "get tooltip" do
+      @p.text = @b.tooltip
+   end
+   @p = para
+end
+}}}
+
 === top() » a number ===
 
 Gets the pixel position of the top edge of the element.
@@ -3075,26 +3259,6 @@ Or, to paint a fifty pixel column on the right-side of the window:
 Since Backgrounds are normal elements as well, see also the start of the
 [[Elements]] section for all of its other methods.
 
-=== to_pattern() » a Shoes::Pattern ===
-
-Yanks out the color, gradient or image used to paint this background and places
-it in a normal Shoes::Pattern object.  You can then pass that object to other
-backgrounds and borders.  Reuse it as you like.
-
-{{{
-Shoes.app do 
-   stack(left: 0, top: 0, width: width / 4, height: height / 4) do
-      @b = background "#{DIR}/static/stripe.png"
-   end
-   
-   4.times do |n|
-      stack(left: n * width / 4, top: n * height / 4, width: width / 4, height: height / 4) do
-         background @b.to_pattern
-      end
-   end
-end
-}}}
-
 == Border ==
 
 A border is a color, gradient or image painted in a line around the edge of any
@@ -3143,28 +3307,6 @@ consistency in mind, so that if you say that a box is fifty pixels wide, it
 stays fifty pixels wide regardless of its borders or margins or anything else.
 
 Please also check out the [[Elements]] section for other methods used on borders.
-
-=== to_pattern() » a Shoes::Pattern ===
-
-Creates a basic pattern object based on the color, gradient or image used to
-paint this border.  The pattern may then be re-used in new borders and
-backgrounds.
-
-{{{
-Shoes.app do
-   stack :width => 50, :height => 30 do
-     @b = border red, :strokewidth => 5
-     para "=^.^=", :stroke => green
-   end
-
-   12.times do |n|
-      stack :left => n * 50, :top => height / 2, :width => 50 do
-        border @b.to_pattern
-        para "=^.^=", :stroke => green
-      end
-   end
-end
-}}}
 
 == Button ==
 
@@ -3281,6 +3423,17 @@ Okay, let's add to the above example.
 
 So, when the button gets pressed, each of the checks gets asked for its status,
 using the `checked?` method.
+
+You can also set a default `checked` value.
+
+{{{
+#!ruby
+Shoes.app do
+   flow { check; para "Default check (unchecked)" }
+   flow { check checked: false; para "Unchecked check" }
+   flow { check checked: true; para "Checked check" }
+end
+}}}
 
 Button methods are listed below, but also see the list of [[Common]] methods,
 which all elements respond to.
@@ -3897,6 +4050,78 @@ See [[Styles.state]] style for details.
 
 See [[Styles.state]] style for details.
 
+== Spinner ==
+
+A Spinner is a widget that allows you display the "I'm busy" rotating 
+animated wheel-of-slow !{:margin_left => 100}man-ele-spinner.png!
+
+Here is a sample spinner:
+{{{
+#!ruby
+Shoes.app(width: 200, height: 80) do
+   stack left: 60, top: 20 do
+      spinner width: 80, start: true, tooltip: "waiting for something?"
+   end
+end
+}}}
+
+Spinner methods are listed below, but also see the list of [[Common]] methods,
+which all elements spinner may respond to. The default for a spinner is too
+not aninamte (spin). 
+
+Caution: In OSX, this in not a native control so it won't have a tooltip
+
+=== started? » true or false ===
+
+Returns either true or false whether the `spinner` element is started or stopped.
+
+{{{
+#!ruby
+Shoes.app do
+   @s = spinner width: 80
+   
+   click do |btn, left, top|
+      @s.started? ? @s.stop : @s.start
+      @p.text = @s.started?
+   end
+   
+   @p = para
+end
+}}}
+
+=== start() » self ===
+
+Start a `spinner` element.
+
+=== stop() » self ===
+
+Stop a `spinner` element.
+
+=== tooltip() » a string ===
+
+Returns a string containing the tooltip text from a `spinner` element.
+
+{{{
+#!ruby
+Shoes.app do
+   spinner tooltip: "Not spinning enough?"
+end
+}}}
+
+=== tooltip = a string ===
+
+Set the tooltip text from a `spinner` element with the given string.
+
+{{{
+Shoes.app(:width => 450, :height => 250) do
+   @s = spinner start: true
+   
+   every(1) do |count|
+      @s.tooltip = "count #{count}"
+   end
+end
+}}}
+
 == Svg ==
 
 In Shoes 3.3 we gained the ability to draw svgs. While they may appear to
@@ -4068,6 +4293,93 @@ the svg image is written.
 svg file that is quite small (or quite larger) which may not pass muster for
 strict svg parsing. 
 
+== Switch ==
+
+Switch are clickable buttons that can be either on or off. They are fantastic
+for your configuration panel. !{:margin_left => 100}man-ele-switch.png!
+
+Here is a sample switch:
+{{{
+#!ruby
+Shoes.app do
+   switch; para "turn on and off"
+end
+}}}
+
+Switch methods are listed below, but also see the list of [[Common]] methods,
+which all elements respond to.
+
+=== active? » true or false ===
+
+Returns either true or false whether the `switch` element is turned on or off.
+
+{{{
+#!ruby
+Shoes.app do
+   switch.click do |n|
+      @p.text = n.active?
+   end
+   @p = para
+end
+}}}
+
+=== active = true or false ===
+
+Turn on or off a `switch` element.
+
+{{{
+#!ruby
+Shoes.app do
+   @s = switch
+   
+   every(1) do
+      @s.active = @s.active? ^ true
+   end
+end
+}}}
+
+=== click() { |self| ... } » self ===
+
+When the switch is clicked, its `click` block is called.  The block is handed
+`self`, which is the switch object that was clicked.
+
+{{{
+#!ruby
+Shoes.app do
+   switch.click do |n|
+      alert "switch box clicked, active? #{n.active?}"
+   end
+end
+}}}
+
+Clicks are sent for both switching on and off.
+
+=== tooltip() » a string ===
+
+Returns a string containing the tooltip text from a `switch` element.
+
+{{{
+#!ruby
+Shoes.app do
+   switch tooltip: "Turn the switch on or off" do |n|
+      @p.text = n.tooltip
+   end
+   @p = para
+end
+}}}
+
+=== tooltip = a string ===
+
+Set the tooltip text from a `switch` element with the given string.
+
+{{{
+Shoes.app(:title => "Switching On and Off", :width => 450, :height => 250) do
+   switch do |n|
+      n.tooltip = "Switch is active? #{n.active?}"
+   end
+end
+}}}
+
 == Snapshot ==
 
 Shoes can draw an image block into a file instead of on the screen by calling
@@ -4110,6 +4422,55 @@ end
 
 note that the method returns the drawing code (text) of the snapshot, so 
 you might take further control about details of your svg image for example.
+
+== Systray ==
+
+Systray allows you to send an icon and a text message to the desktop manager
+which will be shown where the platform decides it should be (systray for Windows),
+Notification area for Linux and OSX. Typically, you would call it for some
+long running process, like a email client that got a new message and you the desktop
+to know about it.
+
+This is not a widget you can modify. There are no methods other than creating it
+and that will return nil (even when it works). There is no guarantee it will work,
+particularly if you call it too often and expect everything to show up. That's up to
+the OS and Desktop manager, not Shoes. 
+
+You can call it in two ways, with positional arguments or with a hash of arguments.
+
+
+=== systray <string>, <string>, <string> » nil ===
+
+The first string is the title, the second is the message to display and the
+third string is a file path to the icon. The example below describes the preferred
+way
+
+=== systray title: <string>, message: <string>, icon: <file path> » nil ===
+
+You can also use a hash of arguments.  The example below is worth some study.
+{{{
+#!ruby
+Shoes.app do
+  stack do
+    para "Press button and look in your system's notification area"
+    ctr = 0;
+    button "Notify" do
+      ctr += 1
+      icp = ''
+      if ctr % 3 != 0
+        icp = "#{DIR}/static/shoes-icon.png"
+      else
+        icp = "#{DIR}/static/shoes-icon-red.png"
+      end
+      systray title: "Shoes Notify", message: "message ##{ctr}", icon: icp
+    end
+  end 
+end
+}}}
+
+Notice how we change the message: and every third click, the icon changes.
+Changes to the title: may not appear, depending on your platform so you
+not change change it. All three arguments must be included. 
 
 == TextBlock ==
 
@@ -4836,12 +5197,26 @@ Another caution - these are methods of an App instance so you need that object.
 Even when they effect more than one instance of App. Shoes creates an 'app'
 method in the Shoes.app block that you must use for the following.
 
+=== app.decorated » true or false ===
+
+Decorations are the title bar and window resize controls. 
+
+Returns true or false whether the window has decorations or not. See below
+for the issues involved.
+
+=== app.decorated = true or false ===
+
+Warning: This is highly platform/theme specific.  DO NOT assume that if it works
+for you, that it will work for anyone else. It won't work for everyone. OSX for example.
+Combined with fullscreem - you are asking for trouble. Think twice or thrice.
+
+Set window decorations. `true` will display titlebar, and resize buttons and `false` will hide them.
+
 === app.fullscreen » boolean ===
 
 This returns true or false if your script is running in full screen mode
 
-
-=== app.fullscreen=(Boolean) ===
+=== app.fullscreen = (Boolean) ===
 
 Set fullscreen to true or false. If you do this, you should provide a method
 for turning it off. There's nothing more annoying that than a full screen app
@@ -4864,6 +5239,13 @@ Parenthesis are required.
 Returns the Shoes url. Be careful. It's a shoes-url so it might not be what
 you think.
 
+=== app.resize width, height » boolean ===
+
+Change the size of the window. You don't want to increase beyond your or
+your users screen size - That could be a problem (crash?).  Also it can misbehave if 
+you shrink it smaller than the original creation size. Always returns True 
+but there is no error checking. Use cautiously.
+
 === app.started? » boolean ===
 
 Is the app completely initiailized? 
@@ -4876,6 +5258,27 @@ Returns the current width.
 
 Returns the current height. Perhaps you need it and the width after going fullscreen 
 to setup your game to the size availavble. 
+
+=== app.opacity » a float number ===
+
+Returns a float number of the current window opacity. The default opacity is `1.0` 
+where you see the window without transparency. An opacity of `0.0` is fully transparent window.
+
+=== app.opacity = a float number ===
+
+Set the window opacity with a float number. A fully transparent window has an opacity of `0.0` 
+whereas a fully visible window has an opacity of `1.0`.
+
+{{{
+Shoes.app do
+   @b = banner "Opacity\n"
+
+   slider fraction: 1.0 do |n|
+      app.opacity = n.fraction
+      @b.text = "Opacity %.2f\n" % n.fraction
+   end
+end
+}}}
 
 === app.slot » Array ===
 

@@ -183,8 +183,8 @@ Shoes.app height: 600, :title =>"Shoes Packager" do
               end
               @select_panel.clear
               @select_panel.background white
-			  @platforms.each_key do |k| 
-			    ln = @platforms[k]
+			        @platforms.each_key do |k| 
+			          ln = @platforms[k]
                 flds = ln.split(' ')
                 parts = flds[2].split('-')
                 @select_panel.append do 
@@ -200,7 +200,7 @@ Shoes.app height: 600, :title =>"Shoes Packager" do
                     para " #{parts[0]}  #{parts[1]}"
                   end
                 end
-			  end
+			        end
             else
               @info_panel = para "Failed"
             end
@@ -237,7 +237,7 @@ Shoes.app height: 600, :title =>"Shoes Packager" do
         return  #  short circuit - ignore .runs in 3.2.15+ 
       when /osx\-.*\.tgz$/
         @platforms['OSX'] = ln
-     when /armhf\.run$/
+      when /armhf\.run$/
         @platforms['Linux_Raspberry'] = ln
       when /i686\.run$/
         @platforms['Linux_i686'] = ln
@@ -249,6 +249,8 @@ Shoes.app height: 600, :title =>"Shoes Packager" do
         @platforms['Linux_i686'] = ln
       when /x86_64\.install$/ 
         @platforms['Linux_x86_64'] = ln
+      when /freebsd\.install/ 
+        @platforms['FreeBSD 11.1'] = ln
       when /tar\.gz$/
         tarball = ln
       else
@@ -376,6 +378,7 @@ Shoes.app height: 600, :title =>"Shoes Packager" do
     # the packed install.sh
     arch = installname[/(\w+)\.install$/]
     arch.gsub!(/\.install/,"")
+    debug "dnlif #{installname} => #{arch}"
     @options['app'] = $script_path
     @options['arch'] = arch
     @options['dnlhost'] = @dnlhost
@@ -419,6 +422,7 @@ Shoes.app height: 600, :title =>"Shoes Packager" do
     @options['packtmp'] = LIB_DIR
     @options['relname'] = Shoes::RELEASE_NAME
     @options['shoesdist'] = @work_path
+    $stderr.puts "repack_linux #{@options.inspect}"
     PackShoes.repack_linux @options do |msg|
       @pkgstat.text = msg
     end

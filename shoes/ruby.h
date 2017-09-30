@@ -24,7 +24,8 @@ extern "C" {
 
 #if defined(__cplusplus)
 #if 0
-{ /* satisfy cc-mode */
+{
+    /* satisfy cc-mode */
 #endif
 }  /* extern "C" { */
 #endif
@@ -58,14 +59,14 @@ typedef VALUE (*HOOK)();
 #define LE_CPU(x) LE_CPU_N(&(x), sizeof(x))
 
 static inline void flip_endian(unsigned char* x, int length) {
-  int i;
-  unsigned char tmp;
+    int i;
+    unsigned char tmp;
 
-  for(i = 0; i < (length / 2); i++) {
-    tmp = x[i];
-    x[i] = x[length - i - 1];
-    x[length - i - 1] = tmp;
-  }
+    for(i = 0; i < (length / 2); i++) {
+        tmp = x[i];
+        x[i] = x[length - i - 1];
+        x[length - i - 1] = tmp;
+    }
 }
 
 #ifndef RARRAY_LEN
@@ -78,25 +79,20 @@ static inline void flip_endian(unsigned char* x, int length) {
 #undef s_host
 
 extern VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas;
-extern VALUE cFlow, cStack, cMask, cNative, cShape, cVideo, cImage, cEffect, cEvery;
-extern VALUE cTimer, cAnim, cPattern, cBorder, cBackground, cPara, cBanner, cTitle;
-extern VALUE cSubtitle, cTagline, cCaption, cInscription, cLinkText, cTextBlock;
-extern VALUE cTextClass, cSpan, cStrong, cSub, cSup, cCode, cDel, cEm, cIns, cButton;
-extern VALUE cEditLine, cEditBox, cListBox, cProgress, cSlider, cCheck, cRadio, cColor;
-extern VALUE cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
-extern VALUE cTextEditBox;
-extern VALUE cSvgHandle, cSvg, cPlot, cChartSeries;
+extern VALUE cFlow, cStack, cMask;
+extern VALUE cProgress;
+extern VALUE ssNestSlot;
 extern VALUE cWidget;
 extern VALUE aMsgList;
 extern VALUE eInvMode, eNotImpl, eImageError;
 extern VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 extern VALUE symAltQuest, symAltSlash, symAltDot, symAltEqual, symAltSemiColon;
 extern VALUE instance_eval_proc;
-extern ID s_checked_q, s_perc, s_fraction, s_aref, s_mult, s_donekey;
+extern ID s_perc, s_fraction, s_aref, s_mult, s_donekey, s_progress;
 
 typedef struct {
-  int n;
-  VALUE a[10];
+    int n;
+    VALUE a[10];
 } rb_arg_list;
 
 VALUE mfp_instance_eval(VALUE, VALUE);
@@ -107,9 +103,10 @@ long rb_ary_index_of(VALUE, VALUE);
 VALUE rb_ary_insert_at(VALUE, long, int, VALUE);
 VALUE shoes_safe_block(VALUE, VALUE, VALUE);
 void shoes_ruby_init(void);
-void shoes_ruby_video_init(void);
 VALUE shoes_exit_setup(VALUE);
 #define BEZIER 0.55228475;
+
+VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv);
 
 //
 // Exception handling strings for eval
@@ -131,7 +128,7 @@ VALUE shoes_exit_setup(VALUE);
    return SHOES_QUIT;
 
 #define NUM2RGBINT(x) (rb_obj_is_kind_of(x, rb_cFloat) ? ROUND(NUM2DBL(x) * 255) : NUM2INT(x))
-#define DEF_COLOR(name, r, g, b) rb_hash_aset(cColors, ID2SYM(rb_intern("" # name)), shoes_color_new(r, g, b, 255))
+
 #define GET_STRUCT(ele, var) \
   shoes_##ele *var; \
   Data_Get_Struct(self, shoes_##ele, var)
@@ -185,6 +182,337 @@ VALUE shoes_exit_setup(VALUE);
    y >= self_t->place.iy + self_t->place.dy && \
    y <= self_t->place.iy + self_t->place.dy + self_t->place.ih)
 
+#define RUBY_M(name, func, argc) \
+  rb_define_method(cCanvas, name + 1, CASTHOOK(shoes_canvas_c_##func), -1); \
+  rb_define_method(cApp, name + 1, CASTHOOK(shoes_app_c_##func), -1)
+
+//
+// Defines a redirecting function which applies the element or transformation
+// to the currently active canvas.  This is used in place of the old instance_eval
+// and ensures that you have access to the App's instance variables while
+// assembling elements in a layout.
+//
+#define FUNC_M(name, func, argn) \
+  VALUE \
+  shoes_canvas_c_##func(int argc, VALUE *argv, VALUE self) \
+  { \
+    VALUE canvas, obj; \
+    GET_STRUCT(canvas, self_t); \
+    char *n = name; \
+    if (rb_ary_entry(self_t->app->nesting, 0) == self || \
+         ((rb_obj_is_kind_of(self, cWidget) || self == self_t->app->nestslot) && \
+          RARRAY_LEN(self_t->app->nesting) > 0)) \
+      canvas = rb_ary_entry(self_t->app->nesting, RARRAY_LEN(self_t->app->nesting) - 1); \
+    else \
+      canvas = self; \
+    if (!rb_obj_is_kind_of(canvas, cCanvas)) \
+      return ts_funcall2(canvas, rb_intern(n + 1), argc, argv); \
+    obj = call_cfunc(CASTHOOK(shoes_canvas_##func), canvas, argn, argc, argv); \
+    if (n[0] == '+' && RARRAY_LEN(self_t->app->nesting) == 0) shoes_canvas_repaint_all(self); \
+    return obj; \
+  } \
+  VALUE \
+  shoes_app_c_##func(int argc, VALUE *argv, VALUE self) \
+  { \
+    VALUE canvas; \
+    char *n = name; \
+    GET_STRUCT(app, app); \
+    if (RARRAY_LEN(app->nesting) > 0) \
+      canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1); \
+    else \
+      canvas = app->canvas; \
+    if (!rb_obj_is_kind_of(canvas, cCanvas)) \
+      return ts_funcall2(canvas, rb_intern(n + 1), argc, argv); \
+    return shoes_canvas_c_##func(argc, argv, canvas); \
+  }
+
+#define SETUP_CONTROL(dh, dw, flex) \
+  char *msg = ""; \
+  int len = dw ? dw : 200; \
+  shoes_control *self_t; \
+  shoes_canvas *canvas; \
+  shoes_place place; \
+  VALUE text = Qnil, ck = rb_obj_class(c); \
+  Data_Get_Struct(self, shoes_control, self_t); \
+  Data_Get_Struct(c, shoes_canvas, canvas); \
+  text = ATTR(self_t->attr, text); \
+  if (!NIL_P(text)) { \
+    text = shoes_native_to_s(text); \
+    msg = RSTRING_PTR(text); \
+    if (flex) len = ((int)RSTRING_LEN(text) * 8) + 32; \
+  } \
+  shoes_place_decide(&place, c, self_t->attr, len, 28 + dh, REL_CANVAS, TRUE)
+
+#define FINISH() \
+  if (!ABSY(place)) { \
+    canvas->cx += place.w; \
+    canvas->cy = place.y; \
+    canvas->endx = canvas->cx; \
+    canvas->endy = max(canvas->endy, place.y + place.h); \
+  } \
+  if (ck == cStack) { \
+    canvas->cx = CPX(canvas); \
+    canvas->cy = canvas->endy; \
+  }
+
+//
+// Macros for setting up drawing
+//
+#define SETUP_DRAWING(self_type, rel, dw, dh) \
+  self_type *self_t; \
+  shoes_place place; \
+  shoes_canvas *canvas; \
+  Data_Get_Struct(self, self_type, self_t); \
+  Data_Get_Struct(c, shoes_canvas, canvas); \
+  if (ATTR(self_t->attr, hidden) == Qtrue) return self; \
+  shoes_place_decide(&place, c, self_t->attr, dw, dh, rel, REL_COORDS(rel) == REL_CANVAS)
+
+#define EVENT_COMMON(ele, est, sym) \
+  VALUE \
+  shoes_##ele##_##sym(int argc, VALUE *argv, VALUE self) \
+  { \
+    VALUE str = Qnil, blk = Qnil; \
+    GET_STRUCT(est, self_t); \
+  \
+    rb_scan_args(argc, argv, "01&", &str, &blk); \
+    if (NIL_P(self_t->attr)) self_t->attr = rb_hash_new(); \
+    rb_hash_aset(self_t->attr, ID2SYM(s_##sym), NIL_P(blk) ? str : blk ); \
+    return self; \
+  }
+
+//
+// Common methods
+//
+
+#define CLASS_COMMON(ele) \
+  VALUE \
+  shoes_##ele##_style(int argc, VALUE *argv, VALUE self) \
+  { \
+    rb_arg_list args; \
+    GET_STRUCT(ele, self_t); \
+    switch (rb_parse_args(argc, argv, "h,", &args)) { \
+      case 1: \
+        if (NIL_P(self_t->attr)) self_t->attr = rb_hash_new(); \
+        rb_funcall(self_t->attr, s_update, 1, args.a[0]); \
+        shoes_canvas_repaint_all(self_t->parent); \
+      break; \
+      case 2: return rb_obj_freeze(rb_obj_dup(self_t->attr)); \
+    } \
+    return self; \
+  } \
+  \
+  VALUE \
+  shoes_##ele##_displace(VALUE self, VALUE x, VALUE y) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    ATTRSET(self_t->attr, displace_left, x); \
+    ATTRSET(self_t->attr, displace_top, y); \
+    shoes_canvas_repaint_all(self_t->parent); \
+    return self; \
+  } \
+  \
+  VALUE \
+  shoes_##ele##_move(VALUE self, VALUE x, VALUE y) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    ATTRSET(self_t->attr, left, x); \
+    ATTRSET(self_t->attr, top, y); \
+    shoes_canvas_repaint_all(self_t->parent); \
+    return self; \
+  }
+
+#define CLASS_COMMON2(ele) \
+  VALUE \
+  shoes_##ele##_hide(VALUE self) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    ATTRSET(self_t->attr, hidden, Qtrue); \
+    shoes_canvas_repaint_all(self_t->parent); \
+    return self; \
+  } \
+  \
+  VALUE \
+  shoes_##ele##_show(VALUE self) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    ATTRSET(self_t->attr, hidden, Qfalse); \
+    shoes_canvas_repaint_all(self_t->parent); \
+    return self; \
+  } \
+  \
+  VALUE \
+  shoes_##ele##_toggle(VALUE self) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    ATTRSET(self_t->attr, hidden, ATTR(self_t->attr, hidden) == Qtrue ? Qfalse : Qtrue); \
+    shoes_canvas_repaint_all(self_t->parent); \
+    return self; \
+  } \
+  \
+  VALUE \
+  shoes_##ele##_is_hidden(VALUE self) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    if (RTEST(ATTR(self_t->attr, hidden))) \
+      return ATTR(self_t->attr, hidden); \
+    else return Qfalse; \
+  } \
+  CLASS_COMMON(ele); \
+  EVENT_COMMON(ele, ele, change); \
+  EVENT_COMMON(ele, ele, click); \
+  EVENT_COMMON(ele, ele, release); \
+  EVENT_COMMON(ele, ele, hover); \
+  EVENT_COMMON(ele, ele, leave);
+  
+#define PLACE_COMMON(ele) \
+  VALUE \
+  shoes_##ele##_get_parent(VALUE self) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    return self_t->parent; \
+  } \
+  \
+  VALUE \
+  shoes_##ele##_get_left(VALUE self) \
+  { \
+    shoes_canvas *canvas = NULL; \
+    GET_STRUCT(ele, self_t); \
+    if (!NIL_P(self_t->parent)) { \
+      Data_Get_Struct(self_t->parent, shoes_canvas, canvas); \
+    } else { \
+      Data_Get_Struct(self, shoes_canvas, canvas); \
+    } \
+    return INT2NUM(self_t->place.x - CPX(canvas)); \
+  } \
+  \
+  VALUE \
+  shoes_##ele##_get_top(VALUE self) \
+  { \
+    shoes_canvas *canvas = NULL; \
+    GET_STRUCT(ele, self_t); \
+    if (!NIL_P(self_t->parent)) { \
+      Data_Get_Struct(self_t->parent, shoes_canvas, canvas); \
+    } else { \
+      Data_Get_Struct(self, shoes_canvas, canvas); \
+    } \
+    return INT2NUM(self_t->place.y - CPY(canvas)); \
+  } \
+  \
+  VALUE \
+  shoes_##ele##_get_height(VALUE self) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    return INT2NUM(self_t->place.h); \
+  } \
+  \
+  VALUE \
+  shoes_##ele##_get_width(VALUE self) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    return INT2NUM(self_t->place.w); \
+  }
+  
+#define REPLACE_COMMON(ele) \
+  VALUE \
+  shoes_##ele##_replace(int argc, VALUE *argv, VALUE self) \
+  { \
+    long i; \
+    shoes_textblock *block_t; \
+    VALUE texts, attr, block; \
+    GET_STRUCT(ele, self_t); \
+    attr = Qnil; \
+    texts = rb_ary_new(); \
+    for (i = 0; i < argc; i++) \
+    { \
+      if (rb_obj_is_kind_of(argv[i], rb_cHash)) \
+        attr = argv[i]; \
+      else \
+        rb_ary_push(texts, argv[i]); \
+    } \
+    self_t->texts = texts; \
+    if (!NIL_P(attr)) self_t->attr = attr; \
+    block = shoes_find_textblock(self); \
+    Data_Get_Struct(block, shoes_textblock, block_t); \
+    shoes_textblock_uncache(block_t, TRUE); \
+    shoes_canvas_repaint_all(self_t->parent); \
+    return self; \
+  }
+  
+//
+// Transformations
+//
+#define TRANS_COMMON(ele, repaint) \
+  VALUE \
+  shoes_##ele##_transform(VALUE self, VALUE _m) \
+  { \
+    GET_STRUCT(ele, self_t); \
+    ID m = SYM2ID(_m); \
+    if (m == s_center || m == s_corner) \
+    { \
+      self_t->st = shoes_transform_detach(self_t->st); \
+      self_t->st->mode = m; \
+    } \
+    else \
+    { \
+      rb_raise(rb_eArgError, "transform must be called with either :center or :corner."); \
+    } \
+    return self; \
+  } \
+  VALUE \
+  shoes_##ele##_translate(VALUE self, VALUE _x, VALUE _y) \
+  { \
+    double x, y; \
+    GET_STRUCT(ele, self_t); \
+    x = NUM2DBL(_x); \
+    y = NUM2DBL(_y); \
+    self_t->st = shoes_transform_detach(self_t->st); \
+    cairo_matrix_translate(&self_t->st->tf, x, y); \
+    return self; \
+  } \
+  VALUE \
+  shoes_##ele##_rotate(VALUE self, VALUE _deg) \
+  { \
+    double rad; \
+    GET_STRUCT(ele, self_t); \
+    rad = NUM2DBL(_deg) * SHOES_RAD2PI; \
+    self_t->st = shoes_transform_detach(self_t->st); \
+    cairo_matrix_rotate(&self_t->st->tf, -rad); \
+    if (repaint) shoes_canvas_repaint_all(self_t->parent); \
+    return self; \
+  } \
+  VALUE \
+  shoes_##ele##_scale(int argc, VALUE *argv, VALUE self) \
+  { \
+    VALUE _sx, _sy; \
+    double sx, sy; \
+    GET_STRUCT(ele, self_t); \
+    rb_scan_args(argc, argv, "11", &_sx, &_sy); \
+    sx = NUM2DBL(_sx); \
+    if (NIL_P(_sy)) sy = sx; \
+    else            sy = NUM2DBL(_sy); \
+    self_t->st = shoes_transform_detach(self_t->st); \
+    cairo_matrix_scale(&self_t->st->tf, sx, sy); \
+    if (repaint) shoes_canvas_repaint_all(self_t->parent); \
+    return self; \
+  } \
+  VALUE \
+  shoes_##ele##_skew(int argc, VALUE *argv, VALUE self) \
+  { \
+    cairo_matrix_t matrix; \
+    VALUE _sx, _sy; \
+    double sx, sy; \
+    GET_STRUCT(ele, self_t); \
+    rb_scan_args(argc, argv, "11", &_sx, &_sy); \
+    sx = NUM2DBL(_sx) * SHOES_RAD2PI; \
+    sy = 0.0; \
+    if (!NIL_P(_sy)) sy = NUM2DBL(_sy) * SHOES_RAD2PI; \
+    cairo_matrix_init(&matrix, 1.0, sy, sx, 1.0, 0.0, 0.0); \
+    self_t->st = shoes_transform_detach(self_t->st); \
+    cairo_matrix_multiply(&self_t->st->tf, &self_t->st->tf, &matrix); \
+    if (repaint) shoes_canvas_repaint_all(self_t->parent); \
+    return self; \
+  }
+
 int shoes_px(VALUE, int, int, int);
 int shoes_px2(VALUE, ID, ID, int, int, int);
 VALUE shoes_hash_set(VALUE, ID, VALUE);
@@ -202,82 +530,45 @@ void shoes_ele_remove_all(VALUE);
 void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
 void shoes_cairo_arc(cairo_t *, double, double, double, double, double, double);
 
-#define SYMBOL_DEFS(f) f(bind); f(gsub); f(keys); f(update); f(merge); f(new); f(URI); f(now); f(debug); f(info); f(warn); f(error); f(run); f(to_a); f(to_ary); f(to_f); f(to_i); f(to_int); f(to_s); f(to_str); f(to_pattern); f(align); f(angle); f(angle1); f(angle2); f(arrow); f(autoplay); f(begin); f(body); f(cancel); f(call); f(center); f(change); f(checked); f(choose); f(click); f(corner); f(curve); f(distance); f(displace_left); f(displace_top); f(downcase); f(draw); f(emphasis); f(end); f(family); f(fill); f(finish); f(font); f(fraction); f(fullscreen); f(group); f(hand); f(headers); f(hidden); f(host); f(hover); f(href); f(insert); f(inner); f(items); f(justify); f(kerning); f(keydown); f(keypress); f(keyup); f(match); f(method); f(motion); f(link); f(leading); f(leave); f(ok); f(outer); f(path); f(points); f(port); f(progress); f(redirect); f(release); f(request_uri); f(rise); f(scheme); f(save); f(size); f(slider); f(state); f(wheel); f(scroll); f(stretch); f(strikecolor); f(strikethrough); f(stroke); f(start); f(attach); f(text); f(title); f(top); f(right); f(bottom); f(left); f(up); f(down); f(height); f(minheight); f(remove); f(resizable); f(strokewidth); f(cap); f(widget); f(width); f(minwidth); f(marker); f(margin); f(margin_left); f(margin_right); f(margin_top); f(margin_bottom); f(radius); f(secret); f(blur); f(glow); f(shadow); f(arc); f(rect); f(oval); f(line); f(shape); f(star); f(project); f(round); f(square); f(undercolor); f(underline); f(variant); f(weight); f(wrap); f(dash); f(nodot); f(onedot); f(donekey); f(volume); f(bg_color)
+// FIXME: Symbols in Shoes are broken in many ways. For example, the symbol progress is shared amongst types/progress and types/download, which causes Shoes to crash if defined in either ones. It should also be noted that Shoes crashes even if progress is defined here below. It apparently has to be defined on top of ruby{.c,.h}. Image and TextBlock/Text/TextLink are also heavily affected by this.
+#define SYMBOL_DEFS(f) f(bind); f(gsub); f(keys); f(update); f(merge); \
+  f(new); f(URI); f(now); f(debug); f(info); f(warn); f(error); f(run); \
+  f(to_a); f(to_ary); f(to_f); f(to_i); f(to_int); f(to_s); f(to_str); \
+  f(align); f(angle); f(angle1); f(angle2); f(arrow); f(autoplay); f(begin); \
+  f(body); f(cancel); f(call); f(center); f(change); f(choose); f(click); \
+  f(corner); f(curve); f(distance); f(displace_left); f(displace_top); \
+  f(downcase); f(draw); f(emphasis); f(end); f(family); f(fill); f(finish); \
+  f(font); f(fraction); f(fullscreen); f(group); f(hand); f(headers); \
+  f(hidden); f(host); f(hover); f(href); f(insert); f(inner); f(items); \
+  f(justify); f(kerning); f(keydown); f(keypress); f(keyup); f(match); \
+  f(method); f(motion); f(leading); f(leave); f(ok); f(outer); f(path); \
+  f(points); f(port); f(redirect); f(release); f(request_uri); f(rise); \
+  f(scheme); f(save); f(size); f(state); f(wheel); f(scroll); f(stretch); \
+  f(strikecolor); f(strikethrough); f(stroke); f(start); f(attach); f(title); \
+  f(top); f(right); f(bottom); f(left); f(up); f(down); f(height); \
+  f(minheight); f(remove); f(resizable); f(strokewidth); f(cap); f(widget); \
+  f(width); f(minwidth); f(marker); f(margin); f(margin_left); f(margin_right); \
+  f(margin_top); f(margin_bottom); f(radius); f(secret); f(blur); f(glow); \
+  f(shadow); f(arc); f(rect); f(oval); f(line); f(star); f(project); f(round); \
+  f(square); f(undercolor); f(underline); f(variant); f(weight); f(wrap); \
+  f(dash); f(nodot); f(onedot); f(donekey); f(volume); f(bg_color); \
+  f(decorated); f(opacity)
 #define SYMBOL_INTERN(name) s_##name = rb_intern("" # name)
 #define SYMBOL_ID(name) ID s_##name
 #define SYMBOL_EXTERN(name) extern ID s_##name
 
 SYMBOL_DEFS(SYMBOL_EXTERN);
 
+// TODO: temporary extern until refactoring proper component, i.e. text should move with TextEditBox in native/gtk
+SYMBOL_EXTERN(text);
+SYMBOL_EXTERN(link);
+
 #define CANVAS_DEFS(f) \
   f(".close", close, 0); \
   f(".gutter", get_gutter_width, 0); \
-  f(".nostroke", nostroke, 0); \
-  f(".stroke", stroke, -1); \
-  f(".strokewidth", strokewidth, 1); \
-  f(".dash", dash, 1); \
-  f(".cap", cap, 1); \
-  f(".nofill", nofill, 0); \
-  f(".fill", fill, -1); \
-  f("+arc", arc, -1); \
-  f("+rect", rect, -1); \
-  f("+oval", oval, -1); \
-  f("+line", line, -1); \
-  f("+arrow", arrow, -1); \
-  f("+star", star, -1); \
-  f("+para", para, -1); \
-  f("+banner", banner, -1); \
-  f("+title", title, -1); \
-  f("+subtitle", subtitle, -1); \
-  f("+tagline", tagline, -1); \
-  f("+caption", caption, -1); \
-  f("+inscription", inscription, -1); \
-  f(".code", code, -1); \
-  f(".del", del, -1); \
-  f(".em", em, -1); \
-  f(".ins", ins, -1); \
-  f(".link", link, -1); \
-  f(".span", span, -1); \
-  f(".strong", strong, -1); \
-  f(".sub", sub, -1); \
-  f(".sup", sup, -1); \
-  f("+background", background, -1); \
-  f("+border", border, -1); \
-  /*f("+video", video, -1);*/ \
-  f(".blur", blur, -1); \
-  f(".glow", glow, -1); \
-  f(".shadow", shadow, -1); \
-  f("+image", image, -1); \
-  f(".imagesize", imagesize, 1); \
-  f("+animate", animate, -1); \
-  f("+every", every, -1); \
-  f("+timer", timer, -1); \
-  f("+svg", svg, -1); \
-  f("+svghandle", svghandle, -1); \
-  f("+plot", plot, -1); \
-  f("+chart_series", chart_series, -1); \
-  f("+shape", shape, -1); \
-  f(".move_to", move_to, 2); \
-  f(".line_to", line_to, 2); \
-  f(".curve_to", curve_to, 6); \
-  f(".arc_to", arc_to, 6); \
-  f(".transform", transform, 1); \
-  f(".translate", translate, 2); \
-  f(".rotate", rotate, 1); \
-  f(".scale", scale, -1); \
-  f(".skew", skew, -1); \
   f(".push", push, 0); \
   f(".pop", pop, 0); \
   f(".reset", reset, 0); \
-  f("+button", button, -1); \
-  f("+list_box", list_box, -1); \
-  f("+edit_line", edit_line, -1); \
-  f("+edit_box", edit_box, -1); \
-  f("+text_edit_box", text_edit_box, -1); \
-  f("+progress", progress, -1); \
-  f("+slider", slider, -1); \
-  f("+check", check, -1); \
-  f("+radio", radio, -1); \
   f(".app", get_app, 0); \
   f("+after", after, -1); \
   f("+before", before, -1); \
@@ -304,7 +595,6 @@ SYMBOL_DEFS(SYMBOL_EXTERN);
   f(".cursor=", set_cursor, 1); \
   f(".clipboard", get_clipboard, 0); \
   f(".clipboard=", set_clipboard, 1); \
-  f(".download", download, -1); \
   f(".owner", owner, 0); \
   f(".window", window, -1); \
   f(".dialog", dialog, -1); \

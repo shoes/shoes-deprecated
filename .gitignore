@@ -9,6 +9,7 @@
 ._*
 *.rl
 *.log
+*.lib
 .byebug_history
 Makefile
 VERSION.txt
@@ -28,12 +29,14 @@ notes
 /win7
 /mavericks
 /xmavericks
-snowleopard
-xsnow
 /msys2
+/xmsys2
 /pi2
+/qtifw
 *.app
 req/binject
 req/bloopsaphone
 req/json
 /qtifw
+*.orig
+cshoes

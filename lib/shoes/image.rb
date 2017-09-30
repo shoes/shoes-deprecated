@@ -1,7 +1,7 @@
 require 'shoes/open-uri-patch'
 require 'shoes/HttpResponse'
 require 'openssl'
-#require 'digest/sha1'
+require 'digest/sha1'
 
 class Shoes
   def self.image_temp_path uri, uext
@@ -27,7 +27,12 @@ class Shoes
     begin
       uri_opts = {}
       uri_opts[:redirect_to_https] = true
-      uri_opts[:ssl_verify_mode] = OpenSSL::SSL::VERIFY_NONE
+      #uri_opts[:ssl_verify_mode] = OpenSSL::SSL::VERIFY_NONE
+      uri_opts[:ssl_verify_mode] = OpenSSL::SSL::VERIFY_PEER
+      if RUBY_PLATFORM =~ /mingw|darwin/
+        $stderr.puts "fixing ssl"
+        uri_opts[:ssl_ca_cert]  = File.join(DIR, "lib/shoes/cacert.pem")
+      end
       open url, uri_opts do |f|
         # everything has been downloaded at this point.
         # f is a tempfile like creature
