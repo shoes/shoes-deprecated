@@ -274,7 +274,7 @@ static gboolean shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, g
     }
     return TRUE;
 }
-
+#ifdef NEWCLICK
 static gboolean shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, gpointer data) {
     shoes_app *app = (shoes_app *)data;
     shoes_canvas *canvas;
@@ -292,6 +292,19 @@ static gboolean shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, g
     }
     return TRUE;
 }
+#else
+static gboolean shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, gpointer data) {
+    shoes_app *app = (shoes_app *)data;
+    shoes_canvas *canvas;
+    Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+    if (event->type == GDK_BUTTON_PRESS) {
+        shoes_app_click(app, event->button, event->x, event->y + canvas->slot->scrolly);
+    } else if (event->type == GDK_BUTTON_RELEASE) {
+        shoes_app_release(app, event->button, event->x, event->y + canvas->slot->scrolly);
+    }
+    return TRUE;
+}
+#endif
 
 static gboolean shoes_app_gtk_wheel(GtkWidget *widget, GdkEventScroll *event, gpointer data) {
     ID wheel;
