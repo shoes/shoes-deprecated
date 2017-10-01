@@ -24,13 +24,13 @@
   VALUE canvas;
 }
 @end
-
+/*
 @interface ShoesVideoView : NSView
 {
   VALUE video; // shoes internal
 }
 @end
-/*
+
 @interface ShoesButton : NSButton
 {
   VALUE object;
@@ -99,14 +99,14 @@
   BOOL state;
 }
 @end
-*/
+
 @interface ShoesDialogAsk : NSWindow
 {
   NSWindow *win;
   BOOL answer;
 }
 @end
-/*
+*/
 @interface ShoesTimer : NSObject
 {
   VALUE object;
@@ -121,7 +121,7 @@
   NSTimer *timer;
 }
 @end
-*/
+
 @interface ShoesNotifyDelegate : NSObject <NSApplicationDelegate, NSUserNotificationCenterDelegate>
 @end
 

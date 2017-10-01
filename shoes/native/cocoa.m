@@ -341,6 +341,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 }
 @end
 
+#if 0
 @implementation ShoesVideoView
 - (id)initWithFrame: (NSRect)frame andVideo: (VALUE)vid
 {
@@ -365,7 +366,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
   }
 }
 @end
-
+#endif
 #if 0
 @implementation ShoesTextView
 - (id)initWithFrame: (NSRect)frame andObject: (VALUE)o
@@ -472,6 +473,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 }
 @end
 
+#if 0
 @implementation ShoesDialogAsk
 - (id)init
 {
@@ -501,7 +503,9 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
   return answer;
 }
 @end
+#endif
 
+#if 0
 @implementation ShoesTimer
 - (id)initWithTimeInterval: (NSTimeInterval)i andObject: (VALUE)o repeats: (BOOL)r
 {
@@ -523,7 +527,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
   [timer invalidate];
 }
 @end
-
+#endif
 
 
 void
@@ -1267,7 +1271,8 @@ shoes_native_control_free(SHOES_CONTROL_REF ref)
 {
 }
 
-// This changed in 3.3.1 - only video uses it (so far)
+#if 0
+// This changed in 3.3.1 - only video uses it
 
 
 SHOES_CONTROL_REF
@@ -1316,7 +1321,7 @@ shoes_native_surface_remove(SHOES_SURFACE_REF ref)
 {
   COCOA_DO([(ShoesVideoView *)ref removeFromSuperview]);
 }
-
+#endif
 #if 0
 SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
@@ -1639,6 +1644,7 @@ shoes_native_list_box_set_active(SHOES_CONTROL_REF ref, VALUE ary, VALUE item)
 }
 #endif
 
+#if 0
 SHOES_CONTROL_REF
 shoes_native_progress(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
 {
@@ -1662,6 +1668,8 @@ shoes_native_progress_set_fraction(SHOES_CONTROL_REF ref, double perc)
 {
   COCOA_DO([(NSProgressIndicator *)ref setDoubleValue: perc * 100.]);
 }
+#endif
+
 #if 0
 SHOES_CONTROL_REF
 shoes_native_slider(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg)
@@ -1801,7 +1809,7 @@ void shoes_native_systray(char *title, char *message, char *path)
     [[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:notification];
 }
 
-
+#if 0
 VALUE
 shoes_native_dialog_color(shoes_app *app)
 {
@@ -1994,6 +2002,7 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
     });
     return answer;
 }
+#endif
 
 #if 0
 // TODO: replace with Cocoa and return the alpha channel
@@ -2028,6 +2037,7 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
 @end
 #endif 
 
+#if 0
 VALUE
 shoes_dialog_color(VALUE self, VALUE title)
 {
@@ -2083,6 +2093,7 @@ shoes_dialog_color(VALUE self, VALUE title)
     return Qnil;
 #endif
 }
+#endif
 
 static VALUE
 shoes_dialog_chooser(VALUE self, NSString *title, BOOL directories, VALUE attr)

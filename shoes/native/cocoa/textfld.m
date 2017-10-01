@@ -4,7 +4,7 @@
 #include "shoes/world.h"
 #include "shoes/native/native.h"
 #include "shoes/types/types.h"
-#include "shoes/native/cocoa/textview.h"
+#include "shoes/native/cocoa/textfld.h"
 extern VALUE cTimer;
 
 //#import <Carbon/Carbon.h>
