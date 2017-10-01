@@ -50,6 +50,8 @@ VALUE shoes_app_alloc(VALUE klass) {
     app->groups = Qnil;
     app->styles = Qnil;
     app->title = Qnil;
+    app->x = 0;
+    app->y = 0;
     app->width = SHOES_APP_WIDTH;
     app->height = SHOES_APP_HEIGHT;
     app->minwidth = 0;
@@ -171,6 +173,32 @@ VALUE shoes_app_get_height(VALUE app) {
     shoes_app *app_t;
     Data_Get_Struct(app, shoes_app, app_t);
     return INT2NUM(app_t->height);
+}
+
+VALUE shoes_app_get_window_x_position(VALUE app) {
+    shoes_app *app_t;
+    Data_Get_Struct(app, shoes_app, app_t);
+    shoes_native_app_get_window_position(app_t);
+    return INT2NUM(app_t->x);
+}
+
+VALUE shoes_app_get_window_y_position(VALUE app) {
+    shoes_app *app_t;
+    Data_Get_Struct(app, shoes_app, app_t);
+    shoes_native_app_get_window_position(app_t);
+    return INT2NUM(app_t->y);
+}
+
+VALUE shoes_app_set_window_position(VALUE app, VALUE x, VALUE y) {
+    shoes_app *app_t;
+    Data_Get_Struct(app, shoes_app, app_t);
+    
+    app_t->x = NUM2INT(x);
+    app_t->y = NUM2INT(y);
+
+    shoes_native_app_window_move(app_t, app_t->x, app_t->y);
+
+    return Qtrue;
 }
 
 VALUE shoes_app_set_icon(VALUE app, VALUE icon_path) {

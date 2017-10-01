@@ -32,7 +32,7 @@ typedef struct _shoes_app {
     SHOES_APP_OS os;
     SHOES_SLOT_OS *slot;
     cairo_t *scratch;
-    int width, height, mouseb, mousex, mousey,
+    int x, y, width, height, mouseb, mousex, mousey,
         resizable, hidden, started, fullscreen,
         minwidth, minheight, decorated;
     double opacity;
@@ -93,7 +93,9 @@ VALUE shoes_app_is_started(VALUE);
 VALUE shoes_app_quit(VALUE);
 VALUE shoes_app_resize_window(VALUE, VALUE, VALUE);
 
-VALUE shoes_app_resize_window(VALUE, VALUE, VALUE);
+VALUE shoes_app_get_window_x_position(VALUE);
+VALUE shoes_app_get_window_y_position(VALUE);
+VALUE shoes_app_set_window_position(VALUE, VALUE, VALUE);
 
 // global var for console up and running
 extern int shoes_global_terminal;

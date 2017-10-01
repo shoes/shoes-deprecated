@@ -713,6 +713,15 @@ int shoes_native_app_get_decoration(shoes_app *app) {
     return gtk_window_get_decorated(GTK_WINDOW(app->os.window)) == TRUE;
 }
 
+// new in 3.3.4
+void shoes_native_app_get_window_position(shoes_app *app) {
+    gtk_window_get_position(GTK_WINDOW(app->os.window), &app->x, &app->y);
+}
+
+void shoes_native_app_window_move(shoes_app *app, int x, int y) {
+    gtk_window_move(GTK_WINDOW(app->os.window), app->x = x, app->y = y);
+}
+
 shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
 #if !defined(SHOES_GTK_WIN32)
     char icon_path[SHOES_BUFSIZE];
@@ -738,6 +747,8 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
                                       &hints, GDK_HINT_MIN_SIZE);
     }
     gtk_window_set_default_size(GTK_WINDOW(gk->window), app->width, app->height);
+
+    gtk_window_get_position(GTK_WINDOW(gk->window), &app->x, &app->y);
 
     if (app->fullscreen) shoes_native_app_fullscreen(app, 1);
 

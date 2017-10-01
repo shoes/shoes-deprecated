@@ -109,4 +109,8 @@ VALUE shoes_dialog_save(int,VALUE*,VALUE);
 VALUE shoes_dialog_open_folder(int,VALUE*,VALUE);
 VALUE shoes_dialog_save_folder(int,VALUE*,VALUE);
 
+// new in 3.3.4
+void shoes_native_app_get_window_position(shoes_app *); 
+void shoes_native_app_window_move(shoes_app *, int, int);
+
 #endif
