@@ -13,7 +13,7 @@ Shoes.app width: 600, height: 500 do
     para "What is normal?"
     flow do
       button "Normal", tooltip: "Normal" do para "normal 1" end
-      button "Normal", tooltip: "Arial 12", font: "Arial 12" do para "normal 2./csh	" end
+      button "Normal", tooltip: "Arial 12", font: "Arial 12" do para "normal 2" end
     end
     para "try some font names"
     flow do
@@ -34,7 +34,7 @@ Shoes.app width: 600, height: 500 do
           para "above button pressed"
       end
     end
-    para "testing defaults and fail - open console"
+    para "testing defaults and failures - open console"
     flow do
       button "Fail 1", font: "Monaco" do end
       button "Fail 2", tooltip: "unknown font", font: "missing font 12" do end

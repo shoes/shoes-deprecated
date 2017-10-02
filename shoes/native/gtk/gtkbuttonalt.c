@@ -60,6 +60,7 @@ GtkWidget *gtk_button_alt_new() {
 }
 
 GtkWidget *gtk_button_alt_new_with_label(const gchar *label) {
+  
     return GTK_WIDGET(g_object_new (gtk_button_alt_get_type(), "label", label, NULL));
 }
 
