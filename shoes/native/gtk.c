@@ -743,9 +743,9 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
         GdkGeometry hints;
         hints.min_width = app->minwidth;
         hints.min_height = app->minheight;
-        gtk_window_set_geometry_hints(GTK_WINDOW(gk->window), gk->window,
+        gtk_window_set_geometry_hints(GTK_WINDOW(gk->window), NULL,
                                       &hints, GDK_HINT_MIN_SIZE);
-    }
+   }
     gtk_window_set_default_size(GTK_WINDOW(gk->window), app->width, app->height);
 
     gtk_window_get_position(GTK_WINDOW(gk->window), &app->x, &app->y);

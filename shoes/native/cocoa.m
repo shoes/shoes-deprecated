@@ -2367,3 +2367,14 @@ int shoes_native_app_get_decoration(shoes_app *app)
   return true;
 }
 
+// ---- window resizing calls from Shoes ----
+
+void shoes_native_app_get_window_position(shoes_app *app) {
+  NSWindow *win = (NSWindow *)app->os.window;
+}
+
+void shoes_native_app_window_move(shoes_app *app, int x, int y) {
+  app->x = x; 
+  app->y = y;
+  NSWindow *win = (NSWindow *)app->os.window;
+}
