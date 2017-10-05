@@ -1071,8 +1071,10 @@ static void
 shoes_native_control_frame(SHOES_CONTROL_REF ref, shoes_place *p)
 {
   NSRect rect;
-  rect.origin.x = p->ix + p->dx; rect.origin.y = p->iy + p->dy;
-  rect.size.width = p->iw; rect.size.height = p->ih;
+  rect.origin.x = p->ix + p->dx;
+  rect.origin.y = p->iy + p->dy;
+  rect.size.width = p->iw;
+  rect.size.height = p->ih;
   [ref setFrame: rect];
 }
 
@@ -1295,14 +1297,39 @@ int shoes_native_app_get_decoration(shoes_app *app)
   return true;
 }
 
-// ---- window resizing calls from Shoes ----
+// ---- window positioning calls from Shoes ----
 
+/* 
+    set app->x, app->y with the current values. OSX origin is 0,0 
+    bottom left. Shoes is top,left Cocoa wont move past  menubar or
+    launcher - shoes reports otherwise. 
+*/
 void shoes_native_app_get_window_position(shoes_app *app) {
   NSWindow *win = (NSWindow *)app->os.window;
+  NSRect screen = [[NSScreen mainScreen] frame];
+  NSRect frame = [win frame];
+  NSLog(@"current: x, y h: %i, %i %i", (int) frame.origin.x, (int) frame.origin.y, 
+     (int) frame.size.height);
+  app->x = frame.origin.x;
+  app->y = screen.size.height - frame.origin.y;
 }
 
+
 void shoes_native_app_window_move(shoes_app *app, int x, int y) {
-  app->x = x; 
-  app->y = y;
+  NSRect screen = [[NSScreen mainScreen] frame];
+  NSLog(@"screen h,w: %i, %i",(int) screen.size.height, (int)screen.size.width);
   NSWindow *win = (NSWindow *)app->os.window;
+  NSRect frame = [win frame];
+  int cx = (x >= 0) ? x : 0;
+  cx = min(cx, screen.size.width - app->width);
+  frame.origin.x = cx;
+  frame.origin.y = screen.size.height - y;
+  NSLog(@"move: x, y: %i, %i", x, y);
+  [win setFrame: frame display: YES animate: NO];
+  // get where the frame really moved to
+  frame = [win frame];
+  app->x = cx;
+  app->y = screen.size.height - y;  // actively constrain ? 
+  NSLog(@"real pos %i,%i return y: %i", (int)frame.origin.x, (int)frame.origin.y, app->y);
+  
 }
