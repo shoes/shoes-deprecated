@@ -15,10 +15,11 @@ Shoes.app(width: 350, height: 200) do
         button("move") do
             @x, @y = @edx.text.to_i, @edy.text.to_i
             app.move @x, @y
+            @p.replace "Window at [#{app.x}, #{app.y}]"
         end
     end
 
-    animate do
-        @p.replace "Window at [#{app.x}, #{app.y}]"
+    start do
+        @p.replace "Window at [#{@x}, #{@y}]"
     end
 end

@@ -1300,36 +1300,38 @@ int shoes_native_app_get_decoration(shoes_app *app)
 // ---- window positioning calls from Shoes ----
 
 /* 
-    set app->x, app->y with the current values. OSX origin is 0,0 
-    bottom left. Shoes is top,left Cocoa wont move past  menubar or
-    launcher - shoes reports otherwise. 
+    OSX origin is 0,0  bottom left. Shoes is top,left
+    Cocoa wont move past  menubar or completely below the dock.
+    launcher - shoes reports otherwise. So we report where it was
+    really was moved to.
+    TODO: I suspect this could be simpilfied.
 */
 void shoes_native_app_get_window_position(shoes_app *app) {
   NSWindow *win = (NSWindow *)app->os.window;
   NSRect screen = [[NSScreen mainScreen] frame];
   NSRect frame = [win frame];
-  NSLog(@"current: x, y h: %i, %i %i", (int) frame.origin.x, (int) frame.origin.y, 
-     (int) frame.size.height);
+  //NSLog(@"current: x, y h: %i, %i %i", (int) frame.origin.x, (int) frame.origin.y, 
+  //   (int) frame.size.height);
   app->x = frame.origin.x;
-  app->y = screen.size.height - frame.origin.y;
+  app->y = screen.size.height - frame.origin.y - frame.size.height;
 }
 
 
 void shoes_native_app_window_move(shoes_app *app, int x, int y) {
   NSRect screen = [[NSScreen mainScreen] frame];
-  NSLog(@"screen h,w: %i, %i",(int) screen.size.height, (int)screen.size.width);
+  //NSLog(@"screen h,w: %i, %i",(int) screen.size.height, (int)screen.size.width);
   NSWindow *win = (NSWindow *)app->os.window;
   NSRect frame = [win frame];
   int cx = (x >= 0) ? x : 0;
   cx = min(cx, screen.size.width - app->width);
   frame.origin.x = cx;
-  frame.origin.y = screen.size.height - y;
-  NSLog(@"move: x, y: %i, %i", x, y);
+  frame.origin.y = screen.size.height - y - frame.size.height;
+  //NSLog(@"move: x, y: %i, %i", x, y);
   [win setFrame: frame display: YES animate: NO];
-  // get where the frame really moved to
+  // get where the frame really moved to because OSX contrains it.
   frame = [win frame];
   app->x = cx;
-  app->y = screen.size.height - y;  // actively constrain ? 
-  NSLog(@"real pos %i,%i return y: %i", (int)frame.origin.x, (int)frame.origin.y, app->y);
+  app->y = screen.size.height - frame.origin.y - frame.size.height;
+  //NSLog(@"real pos %i,%i return y: %i", (int)frame.origin.x, (int)frame.origin.y, app->y);
   
 }
