@@ -1028,6 +1028,8 @@ done:
   return SHOES_OK;
 }
 
+
+//  ---- window resize ----
 void
 shoes_native_app_resize_window(shoes_app *app)
 {
@@ -1036,6 +1038,25 @@ shoes_native_app_resize_window(shoes_app *app)
   rect.size.height = app->height;
   [app->os.window setFrame: rect display: YES];
 }
+
+VALUE shoes_native_get_resizable(shoes_app *app) 
+{
+  NSWindow *win = app->os.window;
+  if ([win styleMask] == NSResizableWindowMask)
+     return Qtrue;
+  else 
+    return Qfalse;
+} 
+
+void shoes_native_set_resizable(shoes_app *app, int resizable)
+{
+  NSWindow *win = app->os.window;
+  if (resizable)
+    [win setStyleMask:[win styleMask] | NSResizableWindowMask];
+  else
+    [win setStyleMask:[win styleMask] & ~NSResizableWindowMask];
+}
+
 
 void
 shoes_native_app_title(shoes_app *app, char *msg)
