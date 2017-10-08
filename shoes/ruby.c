@@ -786,8 +786,8 @@ void shoes_ruby_init() {
     rb_define_method(cApp, "name=", CASTHOOK(shoes_app_set_title), 1);
     rb_define_method(cApp, "location", CASTHOOK(shoes_app_location), 0);
     rb_define_method(cApp, "started?", CASTHOOK(shoes_app_is_started), 0);
-    rb_define_method(cApp, "x", CASTHOOK(shoes_app_get_window_x_position), 0);
-    rb_define_method(cApp, "y", CASTHOOK(shoes_app_get_window_y_position), 0);
+    rb_define_method(cApp, "left", CASTHOOK(shoes_app_get_window_x_position), 0);
+    rb_define_method(cApp, "top", CASTHOOK(shoes_app_get_window_y_position), 0);
     rb_define_method(cApp, "move", CASTHOOK(shoes_app_set_window_position), 2);
     rb_define_method(cApp, "width", CASTHOOK(shoes_app_get_width), 0);
     rb_define_method(cApp, "height", CASTHOOK(shoes_app_get_height), 0);

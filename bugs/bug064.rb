@@ -1,21 +1,21 @@
 Shoes.app(width: 350, height: 200) do
-    @x, @y = app.x, app.y
+    @x, @y = app.left, app.top
     @p = para
     stack do
         flow do
-            tagline "set x: "
+            tagline "set left: "
             @edx = edit_line
             @edx.text = @x
         end
         flow do
-            tagline "set y: "
+            tagline "set top: "
             @edy = edit_line
             @edy.text = @y
         end
         button("move") do
             @x, @y = @edx.text.to_i, @edy.text.to_i
             app.move @x, @y
-            @p.replace "Window at [#{app.x}, #{app.y}]"
+            @p.replace "Window at [#{app.left}, #{app.top}]"
         end
     end
 
