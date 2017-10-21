@@ -900,17 +900,26 @@ int shoes_http_image_handler(shoes_http_event *de, void *data) {
     return SHOES_DOWNLOAD_CONTINUE;
 }
 
-shoes_cached_image *shoes_load_image(VALUE slot, VALUE imgpath) {
+shoes_cached_image *shoes_load_image(VALUE slot, VALUE imgpath, VALUE nocache) {
     shoes_cached_image *cached = NULL;
     cairo_surface_t *img = NULL;
     VALUE filename = rb_funcall(imgpath, s_downcase, 0);
     StringValue(filename);
     char *fname = RSTRING_PTR(filename);
     int width = 1, height = 1;
-
-    if (shoes_cache_lookup(RSTRING_PTR(imgpath), &cached))
+    /*
+     * don't check the cache  issue #379 always download  - it will be cached
+     * but we will ignore it. Brilliant fix or sub-optimal hack? 
+    */
+    if (nocache == Qnil || nocache == Qfalse) {
+      if (shoes_cache_lookup(RSTRING_PTR(imgpath), &cached)) {
+        fprintf(stderr, "using cached image\n");
         goto done;
-
+      }
+    } else {
+      // fall thru 
+      fprintf(stderr, "always (down)load\n");
+    }
     if (strlen(fname) > 7 && (strncmp(fname, "http://", 7) == 0 || strncmp(fname, "https://", 8) == 0)) {
         struct timeval tv;
         VALUE cache, uext, hdrs, tmppath, uri, scheme, host, port, requ, path, cachepath = Qnil, hash = Qnil;
@@ -922,18 +931,20 @@ shoes_cached_image *shoes_load_image(VALUE slot, VALUE imgpath) {
         requ = rb_funcall(uri, s_request_uri, 0);
         path = rb_funcall(uri, s_path, 0);
         path = rb_funcall(path, s_downcase, 0);
-
+        // check the download cache (~/.shoes/+cache)
         cache = rb_funcall(rb_const_get(rb_cObject, rb_intern("DATABASE")), rb_intern("check_cache_for"), 1, imgpath);
         uext = rb_funcall(rb_cFile, rb_intern("extname"), 1, path);
         hdrs = Qnil;
         if (!NIL_P(cache)) {
             VALUE etag = rb_hash_aref(cache, ID2SYM(rb_intern("etag")));
             hash = rb_hash_aref(cache, ID2SYM(rb_intern("hash")));
-            if (!NIL_P(hash)) cachepath = rb_funcall(cShoes, rb_intern("image_cache_path"), 2, hash, uext);
+            if (!NIL_P(hash)) 
+              cachepath = rb_funcall(cShoes, rb_intern("image_cache_path"), 2, hash, uext);
             int saved = NUM2INT(rb_hash_aref(cache, ID2SYM(rb_intern("saved"))));
             gettimeofday(&tv, 0);
             if (tv.tv_sec - saved < SHOES_IMAGE_EXPIRE) {
-                cached = shoes_load_image(slot, cachepath);
+                fprintf(stderr,"recursive load\n");
+                cached = shoes_load_image(slot, cachepath, nocache); // recursive ick!
                 if (cached != NULL) {
                     shoes_cache_insert(SHOES_CACHE_ALIAS, imgpath, cached);
                     goto done;
@@ -941,7 +952,6 @@ shoes_cached_image *shoes_load_image(VALUE slot, VALUE imgpath) {
             } else if (!NIL_P(etag))
                 rb_hash_aset(hdrs = rb_hash_new(), rb_str_new2("If-None-Match"), etag);
         }
-
         cached = shoes_cached_image_new(1, 1, shoes_world->blank_image);
         shoes_cache_insert(SHOES_CACHE_FILE, imgpath, cached);
         tmppath = rb_funcall(cShoes, rb_intern("image_temp_path"), 2, uri, uext);
@@ -967,11 +977,13 @@ shoes_cached_image *shoes_load_image(VALUE slot, VALUE imgpath) {
         shoes_queue_download(req);
         goto done;
     }
-
+    /* here when not http reading from file */
+    fprintf(stderr, "Read file\n");
     img = shoes_surface_create_from_file(imgpath, &width, &height);
     if (img != shoes_world->blank_image) {
         cached = shoes_cached_image_new(width, height, img);
-        shoes_cache_insert(SHOES_CACHE_FILE, imgpath, cached);
+        if (nocache != Qtrue)
+          shoes_cache_insert(SHOES_CACHE_FILE, imgpath, cached);
     }
 
 done:

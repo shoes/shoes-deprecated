@@ -95,7 +95,7 @@ VALUE shoes_pattern_set_fill(VALUE self, VALUE source) {
         if (rb_obj_is_kind_of(source, cColor)) {
             pattern->pattern = shoes_color_pattern(source);
         } else {
-            pattern->cached = shoes_load_image(pattern->parent, source);
+            pattern->cached = shoes_load_image(pattern->parent, source, Qfalse);
             if (pattern->cached != NULL && pattern->cached->pattern == NULL)
                 pattern->cached->pattern = cairo_pattern_create_for_surface(pattern->cached->surface);
         }
