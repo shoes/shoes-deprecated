@@ -2385,6 +2385,9 @@ personal Shoes directory.  Remote images are loaded in the background; as with
 browsers, the images will not appear right away, but will be shown when they
 are loaded.
 
+You can disable the remote image caching in several ways. For just this image,
+append the hash arg 'cache: false` See [[AppMethods]] for the global way.
+
 === imagesize(path) » [width, height] ===
 
 Quickly grab the width and height of an image.  The image won't be loaded into
@@ -3656,9 +3659,21 @@ in memory. This prevents a repeat download unless the image has changed. (In
 case you're wondering: Shoes keeps track of modification times and etags just
 like a browser would.)
 
-Shoes also loads remote images in the background using system threads. So,
-using remote images will not block Ruby or any intense graphical displays you
-may have going on.
+Sometimes, you don't want Shoes to cache images. For just one particular image
+just add add  'cache: false' 
+
+{{{
+ #!ruby
+ Shoes.app do
+   image "http://shoesrb.com/img/shoes-icon.png", cache: false
+ end
+}}}
+
+You can also disable all image caching - see [[AppMethods]]
+
+Shoes may load remote images in the background using system threads. So,
+using remote images may not block Ruby or any intense graphical displays you
+may have going on. May not. Assume you'll wait.
 
 === full_height() » a number ===
 
@@ -5196,6 +5211,18 @@ block.
 Another caution - these are methods of an App instance so you need that object.
 Even when they effect more than one instance of App. Shoes creates an 'app'
 method in the Shoes.app block that you must use for the following.
+
+=== app.cache » boolean ===
+
+Returns the setting of the app's image caching status.
+
+=== app.cache = boolean ===
+
+Changes the image caching behavior for the whole app. By default, images are 
+cached (aka 'true'). Sometimes, that is not desired. You can turn off the caching
+for all image calls by setting this to 'false' Note: individual calls to image can
+override the global setting - see [[Image]]
+
 
 === app.decorated » true or false ===
 

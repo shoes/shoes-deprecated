@@ -54,7 +54,8 @@ void shoes_queue_download(shoes_http_request *req) {
             break;
         }
     }
-    side->etag = RSTRING_PTR(rb_hash_aref(hdrs, etag));
+    if (! NIL_P(etag)) 
+      side->etag = RSTRING_PTR(rb_hash_aref(hdrs, etag));
     // draws the image into  side->slot 
     shoes_catch_message(SHOES_IMAGE_DOWNLOAD, Qnil, side);
     shoes_http_request_free(req);
@@ -93,7 +94,8 @@ shoes_cached_image* shoes_no_cache_queue_download(shoes_http_request *req) {
             break;
         }
     }
-    side->etag = RSTRING_PTR(rb_hash_aref(hdrs, etag));
+    if (! NIL_P(etag)) 
+      side->etag = RSTRING_PTR(rb_hash_aref(hdrs, etag));
     // may draw the image into  side->slot 
     cached = shoes_no_cache_download(side);
     shoes_http_request_free(req);

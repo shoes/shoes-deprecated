@@ -1,11 +1,12 @@
 Shoes.app do
   require 'shoes/data'
   require 'shoes/image'
+  app.cache = false
   stack do
     flow do
       #@el = edit_line "#{DIR}/static/shoes-icon-walkabout.png"
       @el = edit_line "https://shoes.mvmanila.com/public/images/dino.jpg"
-      @cb = check; para "Don't cache"
+      @cb = check; para "Cached?"
       button "(Re)load" do
         @img.clear
         @img.append do
@@ -40,5 +41,8 @@ Shoes.app do
     end
     @img = flow {} 
     @cview = flow {}
+  end
+  start do
+    @cb.checked = app.cache
   end
 end

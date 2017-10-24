@@ -44,7 +44,7 @@ VALUE shoes_response_body(VALUE self);
 VALUE shoes_response_headers(VALUE self);
 VALUE shoes_response_status(VALUE self);
 int shoes_catch_message(unsigned int name, VALUE obj, void *data);
-
+shoes_cached_image* shoes_no_cache_queue_download(shoes_http_request *req);
 // canvas
 VALUE shoes_canvas_download(int, VALUE *, VALUE);
 

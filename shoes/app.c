@@ -311,6 +311,16 @@ VALUE shoes_app_get_decoration(VALUE app) {
     return (shoes_native_app_get_decoration(app_t) ? Qtrue : Qfalse);
 }
 
+extern int shoes_cache_setting;
+VALUE shoes_app_set_cache(VALUE app, VALUE bool) {
+    shoes_cache_setting = (bool == Qtrue) ? 1 : 0;
+    return bool;
+}
+
+VALUE shoes_app_get_cache(VALUE app) {
+    return shoes_cache_setting ? Qtrue: Qnil;
+}
+
 
 shoes_code shoes_app_start(VALUE allapps, char *uri) {
     int i;
