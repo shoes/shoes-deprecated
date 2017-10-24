@@ -36,6 +36,8 @@
 
 shoes_image_format shoes_image_detect(VALUE, int *, int *);
 
+int shoes_cache_setting = 1;
+
 #define JPEG_LINES 16
 #define SIZE_SURFACE ((cairo_surface_t *)1)
 
@@ -818,6 +820,26 @@ shoes_code shoes_load_imagesize(VALUE imgpath, int *width, int *height) {
     return SHOES_OK;
 }
 
+shoes_cached_image* shoes_no_cache_download(shoes_image_download_event *evt) {
+    int width, height;
+    shoes_cached_image *cached = shoes_world->blank_cache;
+    fprintf(stderr,"http no cache, finishing\n");
+    if (evt->status != 200) 
+        shoes_error("Shoes could not load the file at %s. [%lu]", evt->uripath, evt->status);
+    cairo_surface_t *img = shoes_surface_create_from_file(rb_str_new2(evt->filepath), &width, &height);
+    if (img != shoes_world->blank_image) {
+        cached = shoes_cached_image_new(width, height, img);
+    }
+    shoes_canvas_repaint_all(evt->slot);
+
+    free(evt->filepath);
+    free(evt->uripath);
+    if (evt->etag != NULL)
+      free(evt->etag);
+    free(evt);
+    return cached;
+}
+
 unsigned char shoes_image_downloaded(shoes_image_download_event *idat) {
     int i, j, width, height;
     SHA1_CTX context;
@@ -900,29 +922,28 @@ int shoes_http_image_handler(shoes_http_event *de, void *data) {
     return SHOES_DOWNLOAD_CONTINUE;
 }
 
-shoes_cached_image *shoes_load_image(VALUE slot, VALUE imgpath, VALUE nocache) {
+shoes_cached_image *shoes_load_image(VALUE slot, VALUE imgpath, VALUE cache_opt) {
     shoes_cached_image *cached = NULL;
     cairo_surface_t *img = NULL;
     VALUE filename = rb_funcall(imgpath, s_downcase, 0);
     StringValue(filename);
     char *fname = RSTRING_PTR(filename);
     int width = 1, height = 1;
-    /*
-     * don't check the cache  issue #379 always download  - it will be cached
-     * but we will ignore it. Brilliant fix or sub-optimal hack? 
-    */
-    if (nocache == Qnil || nocache == Qfalse) {
+    int global_cache_save = shoes_cache_setting; // save global setting
+    shoes_cache_setting = (cache_opt == Qtrue) ? 1 : 0;
+ 
+    if (cache_opt == Qtrue) {
       if (shoes_cache_lookup(RSTRING_PTR(imgpath), &cached)) {
-        fprintf(stderr, "using cached image\n");
-        goto done;
-      }
+        // fprintf(stderr, "using memory cached image\n");
+        goto done; 
+      } 
     } else {
       // fall thru 
-      fprintf(stderr, "always (down)load\n");
+      // fprintf(stderr, "always (down)load\n");
     }
     if (strlen(fname) > 7 && (strncmp(fname, "http://", 7) == 0 || strncmp(fname, "https://", 8) == 0)) {
         struct timeval tv;
-        VALUE cache, uext, hdrs, tmppath, uri, scheme, host, port, requ, path, cachepath = Qnil, hash = Qnil;
+        VALUE cache, uext, hdrs, tmppath, uri, scheme, host, port, requ, path, cachepath = Qnil, digest = Qnil;
         rb_require("shoes/data");
         uri = rb_funcall(cShoes, rb_intern("uri"), 1, imgpath);
         scheme = rb_funcall(uri, s_scheme, 0);
@@ -931,31 +952,43 @@ shoes_cached_image *shoes_load_image(VALUE slot, VALUE imgpath, VALUE nocache) {
         requ = rb_funcall(uri, s_request_uri, 0);
         path = rb_funcall(uri, s_path, 0);
         path = rb_funcall(path, s_downcase, 0);
-        // check the download cache (~/.shoes/+cache)
-        cache = rb_funcall(rb_const_get(rb_cObject, rb_intern("DATABASE")), rb_intern("check_cache_for"), 1, imgpath);
-        uext = rb_funcall(rb_cFile, rb_intern("extname"), 1, path);
-        hdrs = Qnil;
-        if (!NIL_P(cache)) {
-            VALUE etag = rb_hash_aref(cache, ID2SYM(rb_intern("etag")));
-            hash = rb_hash_aref(cache, ID2SYM(rb_intern("hash")));
-            if (!NIL_P(hash)) 
-              cachepath = rb_funcall(cShoes, rb_intern("image_cache_path"), 2, hash, uext);
-            int saved = NUM2INT(rb_hash_aref(cache, ID2SYM(rb_intern("saved"))));
-            gettimeofday(&tv, 0);
-            if (tv.tv_sec - saved < SHOES_IMAGE_EXPIRE) {
-                fprintf(stderr,"recursive load\n");
-                cached = shoes_load_image(slot, cachepath, nocache); // recursive ick!
-                if (cached != NULL) {
-                    shoes_cache_insert(SHOES_CACHE_ALIAS, imgpath, cached);
-                    goto done;
-                }
-            } else if (!NIL_P(etag))
-                rb_hash_aset(hdrs = rb_hash_new(), rb_str_new2("If-None-Match"), etag);
+        if (cache_opt != Qtrue) {
+          /* populate the Values used later for a download - be careful
+           * tmppath calculated later is good enough. Remember, curl could
+           * might be used again instead of rbload
+          */
+          hdrs = Qnil;
+          cachepath = Qnil;
+          digest = Qnil;  // a hexdigest hash - not a ruby {}
+          uext = rb_funcall(rb_cFile, rb_intern("extname"), 1, path);
+       } else {
+          // check the download cache (~/.shoes/+cache) 
+          cache = rb_funcall(rb_const_get(rb_cObject, rb_intern("DATABASE")), rb_intern("check_cache_for"), 1, imgpath);
+          uext = rb_funcall(rb_cFile, rb_intern("extname"), 1, path);
+          hdrs = Qnil;
+          if (!NIL_P(cache)) {
+              VALUE etag = rb_hash_aref(cache, ID2SYM(rb_intern("etag")));
+              digest = rb_hash_aref(cache, ID2SYM(rb_intern("hash")));
+              if (!NIL_P(digest)) 
+                cachepath = rb_funcall(cShoes, rb_intern("image_cache_path"), 2, digest, uext);
+              int saved = NUM2INT(rb_hash_aref(cache, ID2SYM(rb_intern("saved"))));
+              gettimeofday(&tv, 0);
+              if (tv.tv_sec - saved < SHOES_IMAGE_EXPIRE) {
+                  //fprintf(stderr,"old cache, recursive load\n");
+                  cached = shoes_load_image(slot, cachepath, Qtrue); // recursive ick!
+                  if (cached != NULL) {
+                      shoes_cache_insert(SHOES_CACHE_ALIAS, imgpath, cached);
+                      goto done;
+                  }
+              } else if (!NIL_P(etag))
+                  rb_hash_aset(hdrs = rb_hash_new(), rb_str_new2("If-None-Match"), etag);
+          }
+          cached = shoes_cached_image_new(1, 1, shoes_world->blank_image);
+          if (! NIL_P(cache_opt))
+            shoes_cache_insert(SHOES_CACHE_FILE, imgpath, cached);
         }
-        cached = shoes_cached_image_new(1, 1, shoes_world->blank_image);
-        shoes_cache_insert(SHOES_CACHE_FILE, imgpath, cached);
+        // build the req for a download
         tmppath = rb_funcall(cShoes, rb_intern("image_temp_path"), 2, uri, uext);
-
         shoes_http_request *req = SHOE_ALLOC(shoes_http_request);
         SHOE_MEMZERO(req, shoes_http_request, 1);
         shoes_image_download_event *idat = SHOE_ALLOC(shoes_image_download_event);
@@ -970,25 +1003,41 @@ shoes_cached_image *shoes_load_image(VALUE slot, VALUE imgpath, VALUE nocache) {
         idat->filepath = strdup(RSTRING_PTR(tmppath));
         idat->uripath = strdup(RSTRING_PTR(imgpath));
         idat->slot = slot;
-        if (!NIL_P(cachepath)) idat->cachepath = strdup(RSTRING_PTR(cachepath));
-        if (!NIL_P(hash)) SHOE_MEMCPY(idat->hexdigest, RSTRING_PTR(hash), char, min(42, RSTRING_LEN(hash)));
-        if (!NIL_P(hdrs)) req->headers = shoes_http_headers(hdrs);
+        if (!NIL_P(cachepath))
+          idat->cachepath = strdup(RSTRING_PTR(cachepath));
+        if (!NIL_P(digest))
+          SHOE_MEMCPY(idat->hexdigest, RSTRING_PTR(digest), char, min(42, RSTRING_LEN(digest)));
+        if (!NIL_P(hdrs))
+          req->headers = shoes_http_headers(hdrs);
         req->data = idat;
-        shoes_queue_download(req);
+
+        if (shoes_cache_setting) {
+          /*
+           * shoes_queue_download does the download, optional cache settings
+           * and display of image in the slot. 
+          */
+          shoes_queue_download(req); 
+        } else {
+          // Make sure cached varible points to mething useful when non cached?
+          cached = shoes_no_cache_queue_download(req);
+        }
         goto done;
+
     }
-    /* here when not http reading from file */
-    fprintf(stderr, "Read file\n");
+    
+    /* here when reading from file */
+    //fprintf(stderr, "Read file %s\n",RSTRING_PTR(imgpath));
     img = shoes_surface_create_from_file(imgpath, &width, &height);
     if (img != shoes_world->blank_image) {
         cached = shoes_cached_image_new(width, height, img);
-        if (nocache != Qtrue)
+        if (cache_opt == Qtrue)
           shoes_cache_insert(SHOES_CACHE_FILE, imgpath, cached);
     }
 
 done:
     if (cached == NULL)
         cached = shoes_world->blank_cache;
+    shoes_cache_setting = global_cache_save; // restore global setting
     return cached;
 }
 

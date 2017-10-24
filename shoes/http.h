@@ -30,6 +30,7 @@ typedef struct {
 
 void shoes_download(shoes_http_request *req);
 void shoes_queue_download(shoes_http_request *req);
+shoes_cached_image* shoes_no_cache_queue_download(shoes_http_request *req);
 VALUE shoes_http_err(SHOES_DOWNLOAD_ERROR error);
 SHOES_DOWNLOAD_HEADERS shoes_http_headers(VALUE hsh);
 void shoes_http_request_free(shoes_http_request *);

@@ -144,6 +144,7 @@ void shoes_image_free(shoes_image *image) {
     shoes_transform_release(image->st);
     RUBY_CRITICAL(SHOE_FREE(image));
 }
+extern int shoes_cache_setting;
 
 VALUE shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, shoes_transform *st) {
     VALUE obj = Qnil;
@@ -159,18 +160,18 @@ VALUE shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, shoes_t
     image->attr = attr;
     image->parent = shoes_find_canvas(parent);
     COPY_PENS(image->attr, basic->attr);
-    VALUE nocache = Qfalse; // note reversed meaning internally
+    VALUE cache_opt = shoes_cache_setting ? Qtrue : Qfalse;
     VALUE vcache = shoes_hash_get(attr,rb_intern("cache"));
     if (! NIL_P(vcache)) {
-      // arg specified. reverse it. 
-      if (vcache == Qnil || vcache == Qfalse) {
-        nocache = Qtrue;
-        fprintf(stderr, "don't cache\n");
-      }
+      cache_opt = vcache;
+    }
+    /*
+    if (cache_opt == Qnil || cache_opt == Qfalse) {
+      fprintf(stderr,"won't cache\n");
     } else {
       fprintf(stderr,"will cache\n");
     }
-    
+    */
     if (rb_obj_is_kind_of(path, cImage)) {
         shoes_image *image2;
         Data_Get_Struct(path, shoes_image, image2);
@@ -179,7 +180,7 @@ VALUE shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, shoes_t
     } else if (!NIL_P(path)) {
         path = shoes_native_to_s(path);
         image->path = path;
-        image->cached = shoes_load_image(image->parent, path, nocache);
+        image->cached = shoes_load_image(image->parent, path, cache_opt);
         image->type = SHOES_CACHE_FILE;
     } else {
         shoes_canvas *canvas;
