@@ -2,7 +2,6 @@
 
 // ruby
 VALUE cDownload, cResponse;
-extern int shoes_cache_setting;
 FUNC_M("+download", download, -1);
 
 EVENT_COMMON(http, http_klass, start);
@@ -34,7 +33,6 @@ void shoes_download_init() {
 }
 
 // ruby (download)
-extern int shoes_cache_setting;
 
 void shoes_http_mark(shoes_http_klass *dl) {
     rb_gc_mark_maybe(dl->parent);
@@ -208,7 +206,7 @@ VALUE shoes_http_threaded(VALUE self, VALUE url, VALUE attr) {
     data->download = obj;
     req->data = data;
 
-    shoes_queue_download(req);
+    shoes_native_download(req);
     return obj;
 }
 
@@ -274,13 +272,15 @@ int shoes_catch_message(unsigned int name, VALUE obj, void *data) {
             hash = rb_str_new2(side->hexdigest);
             if (side->etag != NULL)
               etag = rb_str_new2(side->etag);
-            uext = rb_funcall(rb_cFile, rb_intern("extname"), 1, path);
-            rb_funcall(rb_const_get(rb_cObject, rb_intern("DATABASE")),
+            if (shoes_cache_setting) {
+              uext = rb_funcall(rb_cFile, rb_intern("extname"), 1, path);
+              rb_funcall(rb_const_get(rb_cObject, rb_intern("DATABASE")),
                      rb_intern("notify_cache_of"), 3, uri, etag, hash);
-            if (side->status != 304) {
-              realpath = rb_funcall(cShoes, rb_intern("image_cache_path"), 2, hash, uext);
-              rename(side->filepath, RSTRING_PTR(realpath));
-          }
+              if (side->status != 304) {
+                realpath = rb_funcall(cShoes, rb_intern("image_cache_path"), 2, hash, uext);
+                rename(side->filepath, RSTRING_PTR(realpath));
+              }
+            }
         }
 
         free(side->filepath);

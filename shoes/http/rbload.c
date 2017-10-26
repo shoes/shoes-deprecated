@@ -15,15 +15,13 @@
 #include "shoes/types/download.h"
 #include "shoes/canvas.h"
 
-extern int shoes_cache_setting;
-
 void shoes_download(shoes_http_request *req) {
     /* monkey patched out in download.rb - need function for linking */
     printf("monkey patch failed\n");
 }
 
-void shoes_queue_download(shoes_http_request *req) {
-    //printf("shoes_queue_download called: %s -> %s\n",req->url,req->filepath);
+void shoes_native_download(shoes_http_request *req) {
+    //printf("shoes_native_download called: %s -> %s\n",req->url,req->filepath);
     VALUE path, url, opts, svsym, dnobj, stvar;
     path = rb_str_new2(req->filepath);
     url = rb_str_new2(req->url);
@@ -60,49 +58,9 @@ void shoes_queue_download(shoes_http_request *req) {
     shoes_catch_message(SHOES_IMAGE_DOWNLOAD, Qnil, side);
     shoes_http_request_free(req);
     free(req);
-    // assume Ruby will garbage collect all the VALUE var's.
+    // TODO : assume Ruby will garbage collect all the VALUE var's.
     // after this stack frame pops there's nothing holding them.
 }
-
-shoes_cached_image* shoes_no_cache_queue_download(shoes_http_request *req) {
-    VALUE path, url, opts, svsym, dnobj, stvar;
-    path = rb_str_new2(req->filepath);
-    url = rb_str_new2(req->url);
-    opts = rb_hash_new();
-    shoes_cached_image *cached;
-    // make a :save symbol
-    svsym = ID2SYM(rb_intern("save"));
-    // add :save and filepath to hash
-    rb_hash_aset(opts, svsym, path);
-    // Call Shoes::image_download_sync - defined in image.rb
-    dnobj = rb_funcall(cShoes,
-                       rb_intern("image_download_sync"), 2, url, opts);
-    // convert the status var of dnobj to a C int and save it in req->idat
-    stvar = rb_funcall(dnobj, rb_intern("status"), 0);
-    int st = NUM2INT(stvar);
-    // dig the etag field out of headers.
-    VALUE hdrs = rb_funcall(dnobj, rb_intern("headers"), 0);
-    shoes_image_download_event *side = req->data;
-    side->status = st;
-    VALUE etag = Qnil;
-    VALUE keys = rb_funcall(hdrs, s_keys, 0);
-    int i;
-    for (i = 0; i < RARRAY_LEN(keys); i++ ) {
-        VALUE key = rb_ary_entry(keys, i);
-        if (strcmp("etag", RSTRING_PTR(key)) == 0) {
-            etag = key;
-            break;
-        }
-    }
-    if (! NIL_P(etag)) 
-      side->etag = RSTRING_PTR(rb_hash_aref(hdrs, etag));
-    // may draw the image into  side->slot 
-    cached = shoes_no_cache_download(side);
-    shoes_http_request_free(req);
-    free(req);
-    return cached;
-}
-
 
 VALUE shoes_http_err(SHOES_DOWNLOAD_ERROR code) {
     /* a little unclear what this does or what it returns

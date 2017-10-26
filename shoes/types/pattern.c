@@ -38,8 +38,6 @@ void shoes_pattern_init() {
 
 // ruby
 
-extern int shoes_cache_setting;
-
 void shoes_pattern_mark(shoes_pattern *pattern) {
     rb_gc_mark_maybe(pattern->source);
     rb_gc_mark_maybe(pattern->parent);

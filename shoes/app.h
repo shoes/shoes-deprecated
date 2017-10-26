@@ -100,7 +100,8 @@ VALUE shoes_app_get_resizable(VALUE);
 VALUE shoes_app_set_resizable(VALUE, VALUE);
 VALUE shoes_app_set_cache(VALUE app, VALUE decorated);
 VALUE shoes_app_get_cache(VALUE app);
-
+// global var for image cache - declared in types/image.c
+extern int shoes_cache_setting;
 // global var for console up and running
 extern int shoes_global_terminal;
 #ifdef SHOES_QUARTZ

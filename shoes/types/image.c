@@ -1,3 +1,4 @@
+#include "shoes/app.h"
 #include "shoes/types/native.h"
 #include "shoes/types/color.h"
 #include "shoes/types/pattern.h"
@@ -144,7 +145,7 @@ void shoes_image_free(shoes_image *image) {
     shoes_transform_release(image->st);
     RUBY_CRITICAL(SHOE_FREE(image));
 }
-extern int shoes_cache_setting;
+
 
 VALUE shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, shoes_transform *st) {
     VALUE obj = Qnil;
@@ -160,18 +161,13 @@ VALUE shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, shoes_t
     image->attr = attr;
     image->parent = shoes_find_canvas(parent);
     COPY_PENS(image->attr, basic->attr);
+    int saved_cache_setting = shoes_cache_setting;
     VALUE cache_opt = shoes_cache_setting ? Qtrue : Qfalse;
     VALUE vcache = shoes_hash_get(attr,rb_intern("cache"));
     if (! NIL_P(vcache)) {
       cache_opt = vcache;
     }
-    /*
-    if (cache_opt == Qnil || cache_opt == Qfalse) {
-      fprintf(stderr,"won't cache\n");
-    } else {
-      fprintf(stderr,"will cache\n");
-    }
-    */
+
     if (rb_obj_is_kind_of(path, cImage)) {
         shoes_image *image2;
         Data_Get_Struct(path, shoes_image, image2);
@@ -193,7 +189,7 @@ VALUE shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, shoes_t
         image->type = SHOES_CACHE_MEM;
         if (!NIL_P(block)) DRAW(obj, canvas->app, rb_funcall(block, s_call, 0));
     }
-
+    shoes_cache_setting = saved_cache_setting;
     return obj;
 }
 

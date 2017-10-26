@@ -245,6 +245,12 @@ shoes_queue_download(shoes_http_request *req)
   shoes_download(req);
 }
 
+void
+shoes_native_download(shoes_http_request *req)
+{
+  shoes_download(req);
+}
+
 VALUE
 shoes_http_err(SHOES_DOWNLOAD_ERROR code)
 {
