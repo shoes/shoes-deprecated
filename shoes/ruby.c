@@ -804,6 +804,7 @@ void shoes_ruby_init() {
     rb_define_alias(cApp, "decorated?", "decorated");
     rb_define_method(cApp, "cache", CASTHOOK(shoes_app_get_cache), 0);
     rb_define_method(cApp, "cache=", CASTHOOK(shoes_app_set_cache), 1);
+    rb_define_method(cApp, "cache_clear", CASTHOOK(shoes_app_clear_cache), 1);
 
     cDialog = rb_define_class_under(cTypes, "Dialog", cApp);
 

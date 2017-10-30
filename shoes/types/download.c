@@ -255,6 +255,8 @@ VALUE shoes_response_status(VALUE self) {
  *  This a lot more than 'catch' - that's a poor name 
  *  
  */ 
+extern void shoes_cache_delete(char *); // in image.c
+
 int shoes_catch_message(unsigned int name, VALUE obj, void *data) {
     int ret = SHOES_DOWNLOAD_CONTINUE;
     switch (name) {
@@ -280,7 +282,11 @@ int shoes_catch_message(unsigned int name, VALUE obj, void *data) {
                 realpath = rb_funcall(cShoes, rb_intern("image_cache_path"), 2, hash, uext);
                 rename(side->filepath, RSTRING_PTR(realpath));
               }
-            }
+            } else {
+				// remove from cache - crash 
+				// shoes_cache_delete(RSTRING_PTR(side->uripath));
+				st_clear(shoes_world->image_cache);
+		    }
         }
 
         free(side->filepath);

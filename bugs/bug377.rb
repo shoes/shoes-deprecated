@@ -3,8 +3,8 @@ Shoes.app do
   require 'shoes/image'
   stack do
     flow do
-      @el = edit_line "#{DIR}/static/shoes-icon-walkabout.png"
-      #@el = edit_line "https://shoes.mvmanila.com/public/images/dino.jpg"
+      #@el = edit_line "#{DIR}/static/shoes-icon-walkabout.png"
+      @el = edit_line "https://shoes.mvmanila.com/public/images/dino.jpg"
       @cb = check; para "Cached?"
       button "(Re)load" do
         @img.clear
@@ -12,7 +12,7 @@ Shoes.app do
           image @el.text, cache: @cb.checked
         end
       end
-      button "Show cache" do
+      button "Show external cache" do
         @cview.clear
         @cview.append do
           eb = edit_box width: 400
@@ -21,16 +21,9 @@ Shoes.app do
           end
         end
       end
-      button "clear caches" do
-        DATABASE.each do |k, val|
-          v = val.split('|')
-          path = Shoes::image_cache_path v[1], File.extname(k)
-          puts "delete: #{path}"
-          File.delete path if File.exist? path
-        end        
-        DATABASE.clear
-        DATABASE.close
-        quit if confirm "Please restart Shoes"
+      button "clear all caches" do
+        app.cache_clear :all
+        quit if confirm "Please restart Shoes for best results"
       end
       para "Global cache: " 
       @sw = switch width: 80 do |n|

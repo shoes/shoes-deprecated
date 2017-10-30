@@ -5223,6 +5223,12 @@ cached (aka 'true'). Sometimes, that is not desired. You can turn off the cachin
 for all image calls by setting this to 'false' Note: individual calls to image can
 override the global setting - see [[Image]]
 
+=== app.cache_clear sym » boolean  ===
+
+Clears the internal image cache or the external image cache or both depending on the 
+symbol provided for the argument - one of :memory, :external, :all
+
+Always returns true. 
 
 === app.decorated » true or false ===
 

@@ -19,5 +19,17 @@ class << DATABASE
     val = [etag, hash, Time.now].join('|')
     DATABASE[url] = val
   end
+  
+  def delete_cache 
+    DATABASE.each do |k, val|
+      v = val.split('|')
+      path = Shoes::image_cache_path v[1], File.extname(k)
+      $stderr.puts "ext cache delete: #{path}"
+      File.delete path if File.exist? path
+    end        
+    DATABASE.clear
+    DATABASE.close
+    # TODO: reopen - somehow.
+  end
 end
 
