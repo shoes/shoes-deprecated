@@ -765,8 +765,8 @@ void shoes_cache_insert(unsigned char type, VALUE imgpath, shoes_cached_image *i
 }
 
 void shoes_cache_delete(char *imgpath) {
-	int err = st_delete(shoes_world->image_cache, (st_data_t *)imgpath, (st_data_t *)0);
-	// FYI st_ functions in rubys ruby/st.h
+	st_delete(shoes_world->image_cache, (st_data_t *)imgpath, (st_data_t *)0);
+	// FYI st_ functions are defined in rubys ruby/st.h
 }
 
 shoes_image_format shoes_image_detect(VALUE imgpath, int *width, int *height) {
@@ -838,7 +838,7 @@ unsigned char shoes_image_downloaded(shoes_image_download_event *idat) {
         shoes_error("Shoes could not load the file at %s. [%lu]", idat->uripath, idat->status);
         return 0;
     }
-    fprintf(stderr, "osx download finished %s\n", idat->filepath);
+    fprintf(stderr, "download finished %s\n", idat->filepath);
     cairo_surface_t *img = shoes_surface_create_from_file(rb_str_new2(idat->filepath), &width, &height);
     if (img != NULL) {
         shoes_cached_image *cached;
@@ -965,23 +965,13 @@ shoes_cached_image *shoes_load_image_nocache (VALUE slot, VALUE imgpath) {
     if (!NIL_P(hdrs))
       req->headers = shoes_http_headers(hdrs);
     req->data = idat;
-    fprintf(stderr, "download to %s\n", req->filepath);
+    //fprintf(stderr, "download to %s\n", req->filepath);
     cached = shoes_cached_image_new(1, 1, shoes_world->blank_image);
     shoes_cache_insert(SHOES_CACHE_FILE, imgpath, cached);
     shoes_native_download(req); 
-#ifndef SHOES_GTK 
-    // osx download is asynchrouus (run loop threaded)
-    // that dummieds cached var above is replaced later - hence the
-    // need to insert it into the cache.
-#else
-    //img = shoes_surface_create_from_file(tmppath, &width, &height);
-    //if (img != shoes_world->blank_image) {
-    //    cached = shoes_cached_image_new(width, height, img);
-    //}
-#endif
   } else {
     // read user file
-    fprintf(stderr, "no cache read from %s\n", RSTRING_PTR(imgpath));
+    //fprintf(stderr, "no cache read from %s\n", RSTRING_PTR(imgpath));
     img = shoes_surface_create_from_file(imgpath, &width, &height);
     if (img != shoes_world->blank_image) {
         cached = shoes_cached_image_new(width, height, img);
@@ -1004,7 +994,7 @@ shoes_cached_image *shoes_load_image(VALUE slot, VALUE imgpath, VALUE cache_opt)
     }
     // check in memory cache for imgpath
     if (shoes_cache_lookup(RSTRING_PTR(imgpath), &cached)) {
-      fprintf(stderr, "mem cache found: %s\n", RSTRING_PTR(imgpath));
+      //fprintf(stderr, "mem cache found: %s\n", RSTRING_PTR(imgpath));
       return shoes_load_image_sanity(cached);
     }
     if (strlen(fname) > 7 && (strncmp(fname, "http://", 7) == 0 || strncmp(fname, "https://", 8) == 0)) {
@@ -1069,7 +1059,7 @@ shoes_cached_image *shoes_load_image(VALUE slot, VALUE imgpath, VALUE cache_opt)
         shoes_native_download(req); 
     } else {
       /* here when reading from file */
-      fprintf(stderr, "Read and mem cache file %s\n",RSTRING_PTR(imgpath));
+      //fprintf(stderr, "Read and mem cache file %s\n",RSTRING_PTR(imgpath));
       img = shoes_surface_create_from_file(imgpath, &width, &height);
       if (img != shoes_world->blank_image) {
         cached = shoes_cached_image_new(width, height, img);
