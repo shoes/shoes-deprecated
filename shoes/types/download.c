@@ -2,7 +2,6 @@
 
 // ruby
 VALUE cDownload, cResponse;
-
 FUNC_M("+download", download, -1);
 
 EVENT_COMMON(http, http_klass, start);
@@ -34,6 +33,7 @@ void shoes_download_init() {
 }
 
 // ruby (download)
+
 void shoes_http_mark(shoes_http_klass *dl) {
     rb_gc_mark_maybe(dl->parent);
     rb_gc_mark_maybe(dl->attr);
@@ -206,7 +206,7 @@ VALUE shoes_http_threaded(VALUE self, VALUE url, VALUE attr) {
     data->download = obj;
     req->data = data;
 
-    shoes_queue_download(req);
+    shoes_native_download(req);
     return obj;
 }
 
@@ -251,43 +251,55 @@ VALUE shoes_response_status(VALUE self) {
     return rb_iv_get(self, "status");
 }
 
-// TODO: handle exceptions
+/*  TODO: check for C memory leaks 
+ *  This a lot more than 'catch' - that's a poor name 
+ *  
+ */ 
+extern void shoes_cache_delete(char *); // in image.c
+
 int shoes_catch_message(unsigned int name, VALUE obj, void *data) {
     int ret = SHOES_DOWNLOAD_CONTINUE;
     switch (name) {
-        case SHOES_THREAD_DOWNLOAD:
-            ret = shoes_message_download(obj, data);
-            free(data);
-            break;
-        case SHOES_IMAGE_DOWNLOAD: {
-                VALUE hash, etag = Qnil, uri, uext, path, realpath;
-                shoes_image_download_event *side = (shoes_image_download_event *)data;
-                if (shoes_image_downloaded(side)) {
-                    shoes_canvas_repaint_all(side->slot);
+      case SHOES_THREAD_DOWNLOAD:
+        ret = shoes_message_download(obj, data);
+        free(data);
+        break;
+      case SHOES_IMAGE_DOWNLOAD: {
+        VALUE hash, etag = Qnil, uri, uext, path, realpath;
+        shoes_image_download_event *side = (shoes_image_download_event *)data;
+        if (shoes_image_downloaded(side)) {
+            shoes_canvas_repaint_all(side->slot);
+            path = rb_str_new2(side->filepath);
+            uri = rb_str_new2(side->uripath);
+            hash = rb_str_new2(side->hexdigest);
+            if (side->etag != NULL)
+              etag = rb_str_new2(side->etag);
+            if (shoes_cache_setting) {
+              uext = rb_funcall(rb_cFile, rb_intern("extname"), 1, path);
+              rb_funcall(rb_const_get(rb_cObject, rb_intern("DATABASE")),
+                     rb_intern("notify_cache_of"), 3, uri, etag, hash);
+              if (side->status != 304) {
+                realpath = rb_funcall(cShoes, rb_intern("image_cache_path"), 2, hash, uext);
+                rename(side->filepath, RSTRING_PTR(realpath));
+              }
+            } else {
+				// remove from cache - crash 
+				// shoes_cache_delete(RSTRING_PTR(side->uripath));
+				st_clear(shoes_world->image_cache);
+		    }
+        }
 
-                    path = rb_str_new2(side->filepath);
-                    uri = rb_str_new2(side->uripath);
-                    hash = rb_str_new2(side->hexdigest);
-                    if (side->etag != NULL) etag = rb_str_new2(side->etag);
-                    uext = rb_funcall(rb_cFile, rb_intern("extname"), 1, path);
-
-                    rb_funcall(rb_const_get(rb_cObject, rb_intern("DATABASE")),
-                               rb_intern("notify_cache_of"), 3, uri, etag, hash);
-                    if (side->status != 304) {
-                        realpath = rb_funcall(cShoes, rb_intern("image_cache_path"), 2, hash, uext);
-                        rename(side->filepath, RSTRING_PTR(realpath));
-                    }
-                }
-
-                free(side->filepath);
-                free(side->uripath);
-                if (side->etag != NULL) free(side->etag);
-                free(data);
-            }
-            break;
-    }
-    return ret;
+        free(side->filepath);
+        free(side->uripath);
+        if (side->etag != NULL)
+          free(side->etag);
+        free(data);
+      }
+      break;
+  }
+  return ret;
 }
+
 
 // canvas
 VALUE shoes_canvas_download(int argc, VALUE *argv, VALUE self) {

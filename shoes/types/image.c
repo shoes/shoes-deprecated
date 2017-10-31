@@ -1,3 +1,4 @@
+#include "shoes/app.h"
 #include "shoes/types/native.h"
 #include "shoes/types/color.h"
 #include "shoes/types/pattern.h"
@@ -145,6 +146,7 @@ void shoes_image_free(shoes_image *image) {
     RUBY_CRITICAL(SHOE_FREE(image));
 }
 
+
 VALUE shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, shoes_transform *st) {
     VALUE obj = Qnil;
     shoes_image *image;
@@ -159,6 +161,12 @@ VALUE shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, shoes_t
     image->attr = attr;
     image->parent = shoes_find_canvas(parent);
     COPY_PENS(image->attr, basic->attr);
+    int saved_cache_setting = shoes_cache_setting;
+    VALUE cache_opt = shoes_cache_setting ? Qtrue : Qfalse;
+    VALUE vcache = shoes_hash_get(attr,rb_intern("cache"));
+    if (! NIL_P(vcache)) {
+      cache_opt = vcache;
+    }
 
     if (rb_obj_is_kind_of(path, cImage)) {
         shoes_image *image2;
@@ -168,7 +176,7 @@ VALUE shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, shoes_t
     } else if (!NIL_P(path)) {
         path = shoes_native_to_s(path);
         image->path = path;
-        image->cached = shoes_load_image(image->parent, path);
+        image->cached = shoes_load_image(image->parent, path, cache_opt);
         image->type = SHOES_CACHE_FILE;
     } else {
         shoes_canvas *canvas;
@@ -181,7 +189,7 @@ VALUE shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, shoes_t
         image->type = SHOES_CACHE_MEM;
         if (!NIL_P(block)) DRAW(obj, canvas->app, rb_funcall(block, s_call, 0));
     }
-
+    shoes_cache_setting = saved_cache_setting;
     return obj;
 }
 
@@ -267,7 +275,7 @@ VALUE shoes_image_get_path(VALUE self) {
 VALUE shoes_image_set_path(VALUE self, VALUE path) {
     GET_STRUCT(image, image);
     image->path = path;
-    image->cached = shoes_load_image(image->parent, path);
+    image->cached = shoes_load_image(image->parent, path, Qfalse);
     image->type = SHOES_CACHE_FILE;
     shoes_canvas_repaint_all(image->parent);
     return path;

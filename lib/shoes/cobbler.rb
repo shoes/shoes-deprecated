@@ -330,42 +330,17 @@ the first selection and then the Folder named plugins"
     require 'shoes/image'
     litems = ['-all-']
     @panel.append do
-      para "Select image to delete or all"
-      @dblist = list_box :items => litems, :choose =>'-all-'
-      #para "DB at: #{LIB_DIR}"
-      #para "cache: #{CACHE_DIR}"
-      DATABASE.each do |key, value|
-        litems << "#{key}"
-      end
-      @dblist.items = litems
-    end
-    @panel.append do
-      flow do
-        button "Delete From Cache" do
-          sel = @dblist.text
-          if confirm "Delete #{sel}"
-            fdel = @filestoo.checked?
-            if sel == '-all-'
-              #puts 'delete all'
-              DATABASE.each do |k, val|
-                v = val.split('|')
-                path = Shoes::image_cache_path v[1], File.extname(k)
-                #puts "Deleted #{path}"
-                File.delete path if File.exist? path
-              end
-              DATABASE.clear
-            else
-              #delete single item.
-              if fdel
-                v = DATABASE[sel].split('|')
-                path = Shoes::image_cache_path v[1], File.extname(sel)
-                File.delete path if File.exist? path
-              end
-              DATABASE.delete(sel) # block doesn't work as expected
-            end
-          end
+      @cflow = flow do
+        button "Delete Image Cache" do
+          app.cache_clear :all if @cache_all.checked? 
+          app.cache_clear :memory if @cache_int.checked? 
+          app.cache_clear :external if @cache_ext.checked?
+          quit if confirm "You should restart Shoes"
         end
-        @filestoo = check; para "Remove file? (I really need disk space)"
+        @cache_all = radio :imgcache; para "Both caches"
+        @cache_int = radio :imgcache ; para "Internal images"
+        @cache_ext = radio :imgcache; para "External images"
+        @cache_all.checked = true
       end
     end
   end

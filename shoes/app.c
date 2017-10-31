@@ -311,6 +311,35 @@ VALUE shoes_app_get_decoration(VALUE app) {
     return (shoes_native_app_get_decoration(app_t) ? Qtrue : Qfalse);
 }
 
+VALUE shoes_app_set_cache(VALUE app, VALUE boolv) {
+    shoes_cache_setting = (boolv == Qtrue) ? 1 : 0;
+    return boolv;
+}
+
+VALUE shoes_app_get_cache(VALUE app) {
+    return shoes_cache_setting ? Qtrue: Qnil;
+}
+
+VALUE shoes_app_clear_cache(VALUE app, VALUE opts) {
+  int mem, ext = 0;
+  if (opts == ID2SYM(rb_intern("memory")))
+    mem = 1;
+  if (opts == ID2SYM(rb_intern("eternal")))
+    ext = 1;
+  if (opts == ID2SYM(rb_intern("all"))) {
+    ext = 1;
+    mem = 1;
+  }
+  if (mem) 
+    st_clear(shoes_world->image_cache);
+  if (ext) {
+    // call into shoes/ruby 
+    rb_require("shoes/data");
+    rb_funcall(rb_const_get(rb_cObject, rb_intern("DATABASE")), rb_intern("delete_cache"), 0);
+  }
+  return Qtrue;
+}
+
 
 shoes_code shoes_app_start(VALUE allapps, char *uri) {
     int i;

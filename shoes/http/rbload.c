@@ -20,10 +20,9 @@ void shoes_download(shoes_http_request *req) {
     printf("monkey patch failed\n");
 }
 
-void shoes_queue_download(shoes_http_request *req) {
-    //printf("shoes_queue_download called: %s -> %s\n",req->url,req->filepath);
+void shoes_native_download(shoes_http_request *req) {
+    //printf("shoes_native_download called: %s -> %s\n",req->url,req->filepath);
     VALUE path, url, opts, svsym, dnobj, stvar;
-    // convert req->url, req->filepath to ruby strings
     path = rb_str_new2(req->filepath);
     url = rb_str_new2(req->url);
     // make a hash
@@ -41,8 +40,6 @@ void shoes_queue_download(shoes_http_request *req) {
     // dig the etag field out of headers.
     VALUE hdrs = rb_funcall(dnobj, rb_intern("headers"), 0);
     //printf("returned from image_download_sync %i\n", st);
-    // shoes_image_download_event *idat
-    // shoes_image_download_event in req->data
     shoes_image_download_event *side = req->data;
     side->status = st;
     VALUE etag = Qnil;
@@ -54,15 +51,14 @@ void shoes_queue_download(shoes_http_request *req) {
             etag = key;
             break;
         }
-        //printf("key=%s\n",RSTRING_PTR(key));
     }
-    side->etag = RSTRING_PTR(rb_hash_aref(hdrs, etag));
-    //VALUE rbetag = rb_hash_aref(hdrs, rb_intern("etag"));
-    //printf("%s\n",RSTRING_PTR(rbetag));
+    if (! NIL_P(etag)) 
+      side->etag = RSTRING_PTR(rb_hash_aref(hdrs, etag));
+    // draws the image into  side->slot 
     shoes_catch_message(SHOES_IMAGE_DOWNLOAD, Qnil, side);
     shoes_http_request_free(req);
     free(req);
-    // assume Ruby will garbage collect all the VALUE var's.
+    // TODO : assume Ruby will garbage collect all the VALUE var's.
     // after this stack frame pops there's nothing holding them.
 }
 
