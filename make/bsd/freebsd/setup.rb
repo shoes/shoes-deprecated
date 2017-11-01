@@ -29,7 +29,7 @@ module Make
     cp "#{EXT_RUBY}/lib/libruby.so.#{rbvm}", "#{TGT_DIR}"
     # copy include files - it might help build gems
     mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-#{rbvt}"
-    cp_r "#{EXT_RUBY}/include/ruby-#{rbvt}/", "#{TGT_DIR}/lib/ruby/include"
+    cp_r "#{EXT_RUBY}/include/ruby-#{rbvt}.0/", "#{TGT_DIR}/lib/ruby/include"
     chdir TGT_DIR do
       ln_s "libruby.so.#{rbvm}", "libruby.so"
     end   

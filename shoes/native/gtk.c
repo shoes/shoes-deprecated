@@ -116,16 +116,22 @@ void shoes_native_init() {
 #if !defined(RUBY_HTTP) && !defined(SHOES_GTK_WIN32)
     curl_global_init(CURL_GLOBAL_ALL);
 #endif
-    /* using linux gtk_application_new() instead of 
-     *     // Shoes <= 3.3.3
-     *     gtk_init(NULL, NULL);
-    */
+#ifdef GAPP
     int status;
     GtkApplication *shoes_GtkApp;
-    shoes_GtkApp = gtk_application_new ("com.mvmanila.shoes", G_APPLICATION_HANDLES_COMMAND_LINE);
+    srand(time(NULL));
+    int pid = rand();
+    char app_id[100];
+    sprintf(app_id, "com.mvmanila.shoes-%i", pid);
+    fprintf(stderr,"launching %s\n", app_id);
+    //shoes_GtkApp = gtk_application_new ("com.mvmanila.shoes", G_APPLICATION_HANDLES_COMMAND_LINE);
+    shoes_GtkApp = gtk_application_new (app_id, G_APPLICATION_HANDLES_COMMAND_LINE);
 
     g_signal_connect (shoes_GtkApp, "command-line", G_CALLBACK (shoes_gtk_app_cmdline), NULL);
-    status = g_application_run (G_APPLICATION (shoes_GtkApp), NULL, NULL);
+#else
+    // Shoes 3.3.3 way to init
+    gtk_init(NULL, NULL);
+#endif
 }
 
 /* end of GApplication init  */

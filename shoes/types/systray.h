@@ -12,8 +12,7 @@
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
 extern shoes_app _shoes_app;
 
-// SvgHandle struct - not a graphical widget
-// new in 3.3.0
+// not a graphical widget
 typedef struct _systray {
     char *icon_path;
     char *title;
