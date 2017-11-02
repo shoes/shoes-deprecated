@@ -1,8 +1,8 @@
 # THIS REPO IS NO LONGER ACTIVE!
 
-Looking for Shoes 3 support (CRuby-based)? Try https://github.com/shoes3/shoes3
+**Looking for Shoes 3 support (CRuby-based)? Try https://github.com/shoes3/shoes3**
 
-Looking for Shoes 4 (JRuby)? Try https://github.com/shoes/shoes4
+**Looking for Shoes 4 (JRuby)? Try https://github.com/shoes/shoes4**
 
 <pre>
     ((( |||_| ///\ [[[_ (((
