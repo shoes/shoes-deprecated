@@ -1,6 +1,6 @@
 # THIS REPO IS NO LONGER ACTIVE!
 
-**Looking for continuing Shoes 3 support (CRuby-based)? Try https://github.com/shoes3/shoes3**
+**Looking for continuing Shoes 3 support (CRuby-based)? Try https://github.com/shoes/shoes3**
 
 **Looking for new development with Shoes 4 (JRuby)? Try https://github.com/shoes/shoes4**
 
